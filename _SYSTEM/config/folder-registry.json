@@ -167,11 +167,11 @@
     {
       "path": ".claude",
       "class": "provider_adapter",
-      "owner": "Claude CLI adapter",
+      "owner": "Claude Code adapter",
       "readByDefault": false,
       "protected": false,
-      "status": "dormant_adapter",
-      "notes": "Provider adapter/runtime surface. Use only when Claude CLI tasks require it; not a policy source."
+      "status": "active_adapter",
+      "notes": "Claude Code CLI and VS Code plugin adapter surface. Thin door into YURI policy, skills, hooks, and provider settings; not a separate policy source."
     },
     {
       "path": ".clauderules",

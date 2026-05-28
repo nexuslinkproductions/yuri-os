@@ -1,5 +1,5 @@
-INHERIT: ./_SYSTEM/yuri-origin.md
-INHERIT: ./SOUL.md
+@_SYSTEM/yuri-origin.md
+@SOUL.md
 
 # CLAUDE.md
 
@@ -48,6 +48,14 @@ Rick references are a private development overlay for Marcel's local sessions, n
 Use `_SYSTEM/Scripts/lane-persona-map.mjs` as the only mapping surface for those private aliases. It must keep `privateUseOnly`, `copyrightRisk`, and a neutral `shipLabel` for every referenced alias.
 
 Enable the private overlay only by setting `YURI_PRIVATE_RICK_OVERLAY=1` in the local session environment. Without that flag, packets must use neutral labels and neutral packet headers while preserving the same peer-collaboration behavior.
+
+When asked about the available Ricks, do not infer from memory. Run:
+
+```bash
+node _SYSTEM/Scripts/lane-persona-map.mjs roster
+```
+
+Current roster entries include Rick C-137, Quantum Rick, Memory Rick, Rick Prime, Simple Rick, Council of Ricks, and Robot Rick, each paired with a neutral YURI shipping label and authority boundary.
 
 ## Token Caching Shape
 
@@ -122,6 +130,70 @@ skills/adversarial-verification/SKILL.md
 
 Attack your own output before calling it ready: name likely failure modes, run or request the smallest meaningful positive checks, include negative or mismatch checks when routing/permissions/adapters/parsers changed, and state residual risk. Claude output remains advisory until Codex/main verifies the local evidence.
 
+## Claude-Only Work Session
+
+This workflow is always active in Claude Code. Marcel should not need to paste it into each task.
+
+For every non-trivial task:
+
+1. Run `node _SYSTEM/Scripts/context-router.mjs "<task>"` before broad exploration.
+2. Follow the selected YURI context, protected paths, commit boundary, GitNexus rules, and local evidence priority.
+3. Keep changes scoped to the requested task.
+4. Attack your own work before claiming it is ready.
+5. Run the smallest meaningful checks and report exact failures.
+6. End with changed files, checks run, residual risk, and whether Codex final pass was run or intentionally skipped.
+
+Do not call work `Codex-verified` just because Claude completed these steps.
+
+## Codex Final-Pass Bridge
+
+When Claude finishes source/config/docs changes, prepares a commit candidate, touches routing/security/protected-path/tooling behavior, or Marcel asks if work is done, Claude must prepare a final-pass packet and send it to Codex/main through:
+
+```bash
+node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute
+```
+
+Use the default read-only Codex Spark route for ordinary final-pass review. Escalate without asking to:
+
+```bash
+node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute --model codex --reasoning max
+```
+
+when the work is a commit candidate, security/protected-path/routing/tooling change, schema or registry change, high-risk refactor, or when the first Codex pass is inconclusive.
+
+Use the packet path under `_SYSTEM/reports/claude-output-lane/` or another `_SYSTEM/reports/` task report path. The packet must include:
+
+- task summary
+- files changed
+- exact tests/checks run and important output
+- protected path and secret-surface checks
+- GitNexus impact/detect status when symbols changed
+- residual risks and known failures
+- whether commit is requested
+
+The bridge is a verification handoff, not permission to edit, commit, push, deploy, install dependencies, or read protected paths. If Codex is unavailable, rate-limited, stale, or returns a bounded failure, report that exact result and keep status as `PENDING_CODEX_MAIN_ARBITRATION`.
+
+## Rick Tmux Lane Bridge
+
+When Claude Code needs to inspect or operate the paired Rick panes, use the YURI wrapper instead of raw `tmux` commands:
+
+```bash
+node _SYSTEM/Scripts/rick-tmux-lanes.mjs status
+node _SYSTEM/Scripts/rick-tmux-lanes.mjs capture quantum --lines 120
+node _SYSTEM/Scripts/rick-tmux-lanes.mjs capture prime --lines 120
+```
+
+The default live session is `yuri-ricks` with `quantum` in pane `0.0` and `prime` in pane `0.1`.
+
+Feeding a prompt into a Rick pane is allowed only when Marcel explicitly asks Claude to coordinate that lane or the active packet grants a bounded advisory handoff. Use:
+
+```bash
+node _SYSTEM/Scripts/rick-tmux-lanes.mjs feed quantum --prompt "<bounded packet>" --execute
+node _SYSTEM/Scripts/rick-tmux-lanes.mjs feed prime --prompt "<bounded packet>" --execute
+```
+
+Without `--execute`, feed runs as a dry-run preview. Do not use raw `tmux send-keys` unless the wrapper is broken and the owner approves a manual fallback.
+
 ## Rick / SOUL Persona
 
 In this repository, inherit the YURI/Rick interaction surface from `SOUL.md`: decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
@@ -189,7 +261,7 @@ After edits:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os** (48859 symbols, 68748 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **yuri-os** (44724 symbols, 66937 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

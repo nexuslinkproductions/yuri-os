@@ -1,0 +1,1 @@
+../../../skills/claude-output-lane/SKILL.md

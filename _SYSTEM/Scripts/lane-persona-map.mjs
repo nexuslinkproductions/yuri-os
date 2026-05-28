@@ -6,6 +6,8 @@
  * dev aliases only and must remain opt-in through YURI_PRIVATE_RICK_OVERLAY=1.
  */
 
+import { fileURLToPath } from 'node:url';
+
 export const PRIVATE_PERSONA_ENV = 'YURI_PRIVATE_RICK_OVERLAY';
 
 export const LANE_PERSONAS = Object.freeze({
@@ -19,6 +21,17 @@ export const LANE_PERSONAS = Object.freeze({
     role: 'core builder and verifier',
     rationale:
       'Private shorthand for the main self-made Rick: strongest fit for final technical ownership without changing YURI authority.',
+  }),
+  quantum: Object.freeze({
+    key: 'quantum',
+    shipLabel: 'Claude/Sonnet Quantum builder',
+    privateAlias: 'Quantum Rick',
+    privateUseOnly: true,
+    copyrightRisk: true,
+    authority: 'primary Claude Sonnet builder lane for bounded drafts, plans, and advisory implementation packets verified by Codex/main',
+    role: 'fast builder and pressure-test lane',
+    rationale:
+      'Private shorthand for the active Sonnet builder lane in the paired Rick tmux cockpit; advisory until Codex/main verifies.',
   }),
   'claude-sonnet': Object.freeze({
     key: 'claude-sonnet',
@@ -77,12 +90,39 @@ export const LANE_PERSONAS = Object.freeze({
   }),
 });
 
+export const RICK_TMUX_DEFAULTS = Object.freeze({
+  session: 'yuri-ricks',
+  window: '0',
+  bufferName: 'yuri-ricks-feed',
+});
+
+export const RICK_TMUX_LANES = Object.freeze({
+  quantum: Object.freeze({
+    key: 'quantum',
+    personaKey: 'quantum',
+    session: RICK_TMUX_DEFAULTS.session,
+    window: RICK_TMUX_DEFAULTS.window,
+    pane: '0',
+    aliases: Object.freeze(['q', 'quantum-rick', 'qtrk']),
+  }),
+  prime: Object.freeze({
+    key: 'prime',
+    personaKey: 'claude-opus',
+    session: RICK_TMUX_DEFAULTS.session,
+    window: RICK_TMUX_DEFAULTS.window,
+    pane: '1',
+    aliases: Object.freeze(['p', 'rick-prime', 'rpri']),
+  }),
+});
+
 const WORKER_TO_PERSONA = Object.freeze({
   codex: 'codex',
   claude: 'claude-sonnet',
   deepseek: 'deepseek',
   kagami: 'kagami',
   automation: 'automation',
+  quantum: 'quantum',
+  prime: 'claude-opus',
 });
 
 export function privatePersonaOverlayEnabled(env = process.env) {
@@ -156,4 +196,97 @@ export function shippingPersonaAudit() {
     privateUseOnly: persona.privateUseOnly,
     copyrightRisk: persona.copyrightRisk,
   }));
+}
+
+export function rickTmuxLaneConfig(env = process.env) {
+  return Object.freeze({
+    quantum: Object.freeze({
+      ...RICK_TMUX_LANES.quantum,
+      session: env.YURI_RICKS_TMUX_SESSION || RICK_TMUX_LANES.quantum.session,
+      window: env.YURI_RICKS_TMUX_WINDOW || RICK_TMUX_LANES.quantum.window,
+      pane: env.YURI_RICKS_QUANTUM_PANE || RICK_TMUX_LANES.quantum.pane,
+      aliases: [...RICK_TMUX_LANES.quantum.aliases],
+    }),
+    prime: Object.freeze({
+      ...RICK_TMUX_LANES.prime,
+      session: env.YURI_RICKS_TMUX_SESSION || RICK_TMUX_LANES.prime.session,
+      window: env.YURI_RICKS_TMUX_WINDOW || RICK_TMUX_LANES.prime.window,
+      pane: env.YURI_RICKS_PRIME_PANE || RICK_TMUX_LANES.prime.pane,
+      aliases: [...RICK_TMUX_LANES.prime.aliases],
+    }),
+  });
+}
+
+export function rickRoster(options = {}) {
+  const env = options.env || process.env;
+  const tmuxLanes = rickTmuxLaneConfig(env);
+  const tmuxByPersona = new Map();
+  for (const lane of Object.values(tmuxLanes)) {
+    tmuxByPersona.set(lane.personaKey, {
+      lane: lane.key,
+      session: lane.session,
+      window: lane.window,
+      pane: lane.pane,
+      target: `${lane.session}:${lane.window}.${lane.pane}`,
+      aliases: [...lane.aliases],
+    });
+  }
+
+  return Object.values(LANE_PERSONAS).map((persona) => ({
+    key: persona.key,
+    shipLabel: persona.shipLabel,
+    privateAlias: persona.privateAlias,
+    role: persona.role,
+    authority: persona.authority,
+    privateUseOnly: persona.privateUseOnly,
+    copyrightRisk: persona.copyrightRisk,
+    tmux: tmuxByPersona.get(persona.key) || null,
+  }));
+}
+
+export function resolveRickRosterAlias(input, options = {}) {
+  const needle = normalizeAlias(input);
+  if (!needle) return null;
+  for (const entry of rickRoster(options)) {
+    const aliases = [
+      entry.key,
+      entry.shipLabel,
+      entry.privateAlias,
+      entry.tmux?.lane,
+      ...(entry.tmux?.aliases || []),
+    ].filter(Boolean).map(normalizeAlias);
+    if (aliases.includes(needle)) return entry;
+  }
+  return null;
+}
+
+function normalizeAlias(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function printRoster(command) {
+  if (command === 'audit') {
+    process.stdout.write(`${JSON.stringify(shippingPersonaAudit(), null, 2)}\n`);
+    return;
+  }
+  if (command === 'table') {
+    const rows = rickRoster();
+    const lines = rows.map((entry) => {
+      const tmux = entry.tmux ? ` tmux=${entry.tmux.target}` : '';
+      return `${entry.key}: ${entry.privateAlias} -> ${entry.shipLabel}; ${entry.role}; ${entry.authority}${tmux}`;
+    });
+    process.stdout.write(`${lines.join('\n')}\n`);
+    return;
+  }
+  process.stdout.write(`${JSON.stringify(rickRoster(), null, 2)}\n`);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const command = process.argv[2] || 'roster';
+  if (['roster', 'json', 'audit', 'table'].includes(command)) {
+    printRoster(command);
+  } else {
+    process.stderr.write('Usage: node _SYSTEM/Scripts/lane-persona-map.mjs [roster|json|table|audit]\n');
+    process.exit(1);
+  }
 }

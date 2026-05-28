@@ -118,6 +118,13 @@
       "storageRule": "YURI-owned reusable skills live in root skills/."
     },
     {
+      "id": "claude-skill",
+      "matchPrefix": ".claude/skills/",
+      "artifactType": "skill",
+      "class": "provider_adapter",
+      "storageRule": "Claude Code project-visible skill shims live in .claude/skills/ and point back to canonical root skills when mirrored."
+    },
+    {
       "id": "codex-skill",
       "matchPrefix": ".codex/skills/",
       "artifactType": "skill",
@@ -204,13 +211,37 @@
       "path": "CLAUDE.md",
       "type": "provider_adapter",
       "class": "canonical_anchor",
-      "owner": "Claude CLI adapter",
-      "status": "dormant_adapter",
+      "owner": "Claude Code adapter",
+      "status": "active",
       "readByDefault": true,
       "protected": false,
       "storageRule": "Root adapter that inherits YURI authority.",
-      "rebuildRule": "Keep thin; persistent CLI only when active.",
-      "notes": "Kept for possible future Claude subscription use."
+      "rebuildRule": "Keep thin; use Claude-native @ imports for canonical anchors.",
+      "notes": "Claude Code CLI and VS Code plugin entrypoint."
+    },
+    {
+      "path": ".claude/CLAUDE.md",
+      "type": "provider_adapter",
+      "class": "provider_adapter",
+      "owner": "Claude Code adapter",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Claude Code local project adapter extension.",
+      "rebuildRule": "Keep thin; root CLAUDE.md remains the primary adapter.",
+      "notes": "Workspace root and branch guard for Claude Code plugin/CLI work."
+    },
+    {
+      "path": ".claude/settings.json",
+      "type": "config",
+      "class": "provider_adapter",
+      "owner": "Claude Code adapter",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Shared Claude Code project settings live under .claude/.",
+      "rebuildRule": "Validate with claude-plugin-parity-check and targeted hook tests.",
+      "notes": "Project-visible permissions, hooks, status line, and UI defaults."
     },
     {
       "path": "_SYSTEM/INDEX.md",

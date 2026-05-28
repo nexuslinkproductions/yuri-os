@@ -1,0 +1,1 @@
+../../../skills/claude-codex-capability-bridge/SKILL.md

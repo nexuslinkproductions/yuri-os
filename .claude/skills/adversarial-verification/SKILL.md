@@ -1,0 +1,1 @@
+../../../skills/adversarial-verification/SKILL.md

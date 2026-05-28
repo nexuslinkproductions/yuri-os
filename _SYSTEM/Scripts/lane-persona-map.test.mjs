@@ -5,6 +5,8 @@ import {
   PRIVATE_PERSONA_ENV,
   buildRickLanePacket,
   lanePersonaForWorker,
+  resolveRickRosterAlias,
+  rickRoster,
   shippingPersonaAudit,
 } from './lane-persona-map.mjs';
 
@@ -23,7 +25,9 @@ test('private persona overlay maps Claude model lanes to fitting Rick aliases', 
   const env = { [PRIVATE_PERSONA_ENV]: '1' };
 
   assert.equal(lanePersonaForWorker('codex', { env }).displayName, 'Rick C-137');
+  assert.equal(lanePersonaForWorker('quantum', { env }).displayName, 'Quantum Rick');
   assert.equal(lanePersonaForWorker('claude', { model: 'sonnet', env }).displayName, 'Memory Rick');
+  assert.equal(lanePersonaForWorker('prime', { env }).displayName, 'Rick Prime');
   assert.equal(lanePersonaForWorker('claude', { model: 'opus', env }).displayName, 'Rick Prime');
   assert.equal(lanePersonaForWorker('deepseek', { env }).displayName, 'Simple Rick');
   assert.equal(lanePersonaForWorker('kagami', { env }).displayName, 'Council of Ricks');
@@ -62,4 +66,30 @@ test('shipping persona audit marks copyrighted aliases private-only', () => {
     assert.equal(entry.copyrightRisk, true);
     assert.notEqual(entry.shipLabel, entry.privateAlias);
   }
+});
+
+test('canonical Rick roster includes tmux-backed Quantum and Prime lanes', () => {
+  const roster = rickRoster({ env: {} });
+  const aliases = roster.map((entry) => entry.privateAlias);
+
+  assert.ok(aliases.includes('Rick C-137'));
+  assert.ok(aliases.includes('Quantum Rick'));
+  assert.ok(aliases.includes('Memory Rick'));
+  assert.ok(aliases.includes('Rick Prime'));
+  assert.ok(aliases.includes('Simple Rick'));
+  assert.ok(aliases.includes('Council of Ricks'));
+  assert.ok(aliases.includes('Robot Rick'));
+
+  const quantum = roster.find((entry) => entry.privateAlias === 'Quantum Rick');
+  const prime = roster.find((entry) => entry.privateAlias === 'Rick Prime');
+
+  assert.equal(quantum.tmux.target, 'yuri-ricks:0.0');
+  assert.equal(prime.tmux.target, 'yuri-ricks:0.1');
+});
+
+test('Rick roster alias resolver accepts pane aliases and private aliases', () => {
+  assert.equal(resolveRickRosterAlias('qtrk', { env: {} }).privateAlias, 'Quantum Rick');
+  assert.equal(resolveRickRosterAlias('Quantum Rick', { env: {} }).tmux.lane, 'quantum');
+  assert.equal(resolveRickRosterAlias('rpri', { env: {} }).privateAlias, 'Rick Prime');
+  assert.equal(resolveRickRosterAlias('Rick C-137', { env: {} }).shipLabel, 'Codex/main');
 });

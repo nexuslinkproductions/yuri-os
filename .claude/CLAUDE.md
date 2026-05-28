@@ -1,7 +1,7 @@
-# Yuri OS / Musubi Session Start Guard
+@../CLAUDE.md
+@../SOUL.md
 
-INHERIT: ../CLAUDE.md
-INHERIT: ../SOUL.md
+# Yuri OS / Musubi Session Start Guard
 
 This file is a secondary extension layer for local Claude tooling behavior. If any instruction here conflicts with `../CLAUDE.md`, the higher file prevails.
 

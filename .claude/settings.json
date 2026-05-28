@@ -21,13 +21,45 @@
     ],
     "deny": [
       "Read(.env)",
+      "Read(.env*)",
       "Write(.env)",
+      "Write(.env*)",
       "Edit(.env)",
+      "Edit(.env*)",
       "MultiEdit(.env)",
+      "MultiEdit(.env*)",
+      "Read(backend/data/**)",
+      "Write(backend/data/**)",
+      "Edit(backend/data/**)",
+      "MultiEdit(backend/data/**)",
+      "Read(.claude/state/**)",
+      "Write(.claude/state/**)",
+      "Edit(.claude/state/**)",
+      "MultiEdit(.claude/state/**)",
+      "Read(.claude/history/**)",
+      "Write(.claude/history/**)",
+      "Edit(.claude/history/**)",
+      "MultiEdit(.claude/history/**)",
+      "Read(.claude/file-history/**)",
+      "Write(.claude/file-history/**)",
+      "Edit(.claude/file-history/**)",
+      "MultiEdit(.claude/file-history/**)",
+      "Read(.claude/projects/**)",
+      "Write(.claude/projects/**)",
+      "Edit(.claude/projects/**)",
+      "MultiEdit(.claude/projects/**)",
       "Read(.claude/history.jsonl)",
       "Write(.claude/history.jsonl)",
       "Edit(.claude/history.jsonl)",
       "MultiEdit(.claude/history.jsonl)",
+      "Read(node_modules/**)",
+      "Write(node_modules/**)",
+      "Edit(node_modules/**)",
+      "MultiEdit(node_modules/**)",
+      "Read(.amp/**)",
+      "Write(.amp/**)",
+      "Edit(.amp/**)",
+      "MultiEdit(.amp/**)",
       "Write(.claude/state/session-state.json)",
       "Edit(.claude/state/session-state.json)",
       "MultiEdit(.claude/state/session-state.json)",
@@ -45,11 +77,9 @@
       "MultiEdit(.claude/state/token-session.json)"
     ]
   },
-  "model": "user-selected",
   "hooks": {
     "SessionStart": [
       {
-        "priority": 90,
         "matcher": "",
         "hooks": [
           {
@@ -90,7 +120,6 @@
     ],
     "UserPromptSubmit": [
       {
-        "priority": 50,
         "matcher": "",
         "hooks": [
           {
@@ -102,7 +131,6 @@
     ],
     "SubagentStart": [
       {
-        "priority": 50,
         "matcher": "",
         "hooks": [
           {
@@ -118,7 +146,6 @@
     ],
     "PreToolUse": [
       {
-        "priority": 10,
         "matcher": "",
         "hooks": [
           {
@@ -157,7 +184,6 @@
         ]
       },
       {
-        "priority": 30,
         "matcher": "Grep|Glob|Bash",
         "hooks": [
           {
@@ -169,7 +195,6 @@
         ]
       },
       {
-        "priority": 10,
         "matcher": "Agent",
         "hooks": [
           {
@@ -183,7 +208,6 @@
     ],
     "PostToolUse": [
       {
-        "priority": 30,
         "matcher": "",
         "hooks": [
           {
@@ -209,7 +233,6 @@
         ]
       },
       {
-        "priority": 30,
         "matcher": "Bash",
         "hooks": [
           {
@@ -223,7 +246,6 @@
     ],
     "Stop": [
       {
-        "priority": 90,
         "matcher": "",
         "hooks": [
           {
@@ -262,11 +284,14 @@
     "command": "node .claude/hooks/token-status.js"
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "max",
   "prefersReducedMotion": false,
   "theme": "dark-ansi",
+  "editorMode": "normal",
+  "verbose": true,
   "autoScrollEnabled": true,
   "showTurnDuration": true,
   "terminalProgressBarEnabled": true,
-  "agentPushNotifEnabled": true
+  "remoteControlAtStartup": false,
+  "agentPushNotifEnabled": true,
+  "effortLevel": "xhigh"
 }

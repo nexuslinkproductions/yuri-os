@@ -13,6 +13,7 @@ const BLOCKED_CLAUDE_FILES = new Set([
   '.claude/settings.local.json',
   '.claude/state/session-state.json',
   '.claude/state/scout-bus.json',
+  '.claude/state/scout-errors.log',
   '.claude/state/token-session.json',
 ]);
 
