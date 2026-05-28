@@ -51,6 +51,10 @@
     "source_path": "skills/codebase-to-course/SKILL.md",
     "hash": "4e799a594afca564"
   },
+  "codex-plugin-control-plane": {
+    "source_path": "skills/codex-plugin-control-plane/SKILL.md",
+    "hash": "acc3efe577eb3d27"
+  },
   "compact-optimizer": {
     "source_path": "skills/compact-optimizer/SKILL.md",
     "hash": "2c48b4064f55505d"
@@ -390,6 +394,10 @@
   "yuri-code-intelligence": {
     "source_path": "skills/yuri-code-intelligence/SKILL.md",
     "hash": "7c085eccdc4fec0a"
+  },
+  "yuri-control-plane-first": {
+    "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",
+    "hash": "128eb4021b123c41"
   },
   "yuri-report": {
     "source_path": "skills/yuri-report/SKILL.md",

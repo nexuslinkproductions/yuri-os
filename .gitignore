@@ -119,6 +119,7 @@ _SYSTEM/state/memory-proposals.jsonl
 _SYSTEM/state/memory-proposal-decisions.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
 _SYSTEM/state/pulse-bus.jsonl
+_SYSTEM/state/context-router-last.json
 _SYSTEM/state/claude-architecture-probes.jsonl
 _SYSTEM/state/kagami-control/
 _SYSTEM/state/lane-sessions/

@@ -57,7 +57,7 @@
     {
       "id": "skills",
       "label": "Skill Library / Evolution Context",
-      "triggers": ["skill", "skills", "skill-tree", "skill evolution", "design system", "capability"],
+      "triggers": ["skill", "skills", "skill-tree", "skill evolution", "design system", "capability", "plugin", "plugins", "connector", "connectors", "codex plugin", "app connector", "mcp tool", "tool_search"],
       "paths": [
         ".agents/README.md",
         ".agents/agent-index.json",

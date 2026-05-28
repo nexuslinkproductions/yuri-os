@@ -307,14 +307,26 @@ function runValidate(registry, useJson) {
     let status = 'OK'
     let detail = ''
 
+    const referenceOnly = isReferenceOnlySkill(skill)
+
     if (!entry) {
       status = 'UNREGISTERED'
-      unregisteredCount++
       detail = 'not in manifest'
+      if (referenceOnly) {
+        status = 'REFERENCE_UNREGISTERED'
+        detail = 'reference-only provider/plugin skill not in manifest'
+      } else {
+        unregisteredCount++
+      }
     } else if (entry.hash !== skill.hash) {
       status = 'DRIFT'
-      driftCount++
       detail = 'manifest=' + entry.hash + ' disk=' + skill.hash
+      if (referenceOnly) {
+        status = 'REFERENCE_DRIFT'
+        detail = 'reference-only ' + detail
+      } else {
+        driftCount++
+      }
     } else {
       okCount++
       detail = 'hash match'
@@ -330,14 +342,17 @@ function runValidate(registry, useJson) {
   // Check for skills in manifest but missing from disk
   for (const [name, entry] of Object.entries(manifest)) {
     if (!registry.skills.some(s => s.name === name)) {
+      const referenceOnly = isReferenceOnlySourcePath(entry.source_path)
       results.push({
         name,
         source_path: entry.source_path || 'unknown',
         hash: entry.hash,
-        status: 'MISSING',
-        detail: 'in manifest but not found on disk',
+        status: referenceOnly ? 'REFERENCE_MISSING' : 'MISSING',
+        detail: referenceOnly
+          ? 'reference-only manifest entry not found on disk'
+          : 'in manifest but not found on disk',
       })
-      missingCount++
+      if (!referenceOnly) missingCount++
     }
   }
 
@@ -490,6 +505,15 @@ function unique(values) {
 
 function isCanonicalSurface(surface) {
   return surface?.sourceType === 'yuri_skill'
+}
+
+function isReferenceOnlySkill(skill) {
+  return skill?.source_type === 'codex_plugin_cache_skill' ||
+    isReferenceOnlySourcePath(skill?.source_path)
+}
+
+function isReferenceOnlySourcePath(sourcePath = '') {
+  return String(sourcePath || '').startsWith('.codex/plugins/cache/')
 }
 
 function normalizeSkillId(value) {

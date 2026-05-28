@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -69,6 +70,23 @@ test('Superpowers imports are cloned into root skills without first-response que
   const usingSuperpowers = readFileSync('skills/using-superpowers/SKILL.md', 'utf8');
   assert.doesNotMatch(usingSuperpowers, /before any response or action/i);
   assert.doesNotMatch(usingSuperpowers, /before any response\/action/i);
+});
+
+test('skill validation treats plugin cache drift as reference-only advisory state', () => {
+  const output = execFileSync(
+    process.execPath,
+    ['_SYSTEM/Scripts/yuri-skill-loader.mjs', '--validate', '--json'],
+    { encoding: 'utf8' },
+  );
+  const result = JSON.parse(output);
+
+  assert.equal(result.summary.drift, 0, 'canonical skill drift should still fail validation');
+  assert.equal(result.summary.missing, 0, 'canonical missing skills should still fail validation');
+  assert.equal(result.collisions_detected, false, 'skill collisions should remain visible');
+  assert(
+    result.results.some((entry) => String(entry.status).startsWith('REFERENCE_')),
+    'provider/plugin cache drift should be reported as reference-only state',
+  );
 });
 
 function walkFiles(base, relativeDir = '') {

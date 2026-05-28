@@ -10,6 +10,7 @@
       "purpose": "Intent, pulse, routing, constraints, and high-stakes reasoning composition.",
       "skillIds": [
         "ai-pipeline-offloading",
+        "codex-plugin-control-plane",
         "swarm-coordination",
         "tokenmaxxing",
         "haki-intent",

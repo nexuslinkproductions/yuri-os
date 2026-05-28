@@ -1,25 +1,36 @@
 #!/usr/bin/env node
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const POLICY_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(POLICY_DIR, '../../..');
+const CONTEXT_ROUTE_STAMP_PATH = path.join(PROJECT_ROOT, '_SYSTEM/state/context-router-last.json');
+const CONTEXT_ROUTE_STAMP_TTL_MS = 30 * 60 * 1000;
 
 const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, '.env'), type: 'file', label: '.env' },
   { path: path.join(PROJECT_ROOT, '.claude/state'), type: 'dir', label: '.claude/state' },
   { path: path.join(PROJECT_ROOT, '.claude/history'), type: 'dir', label: '.claude/history' },
+  { path: path.join(PROJECT_ROOT, '.claude/file-history'), type: 'dir', label: '.claude/file-history' },
+  { path: path.join(PROJECT_ROOT, '.claude/projects'), type: 'dir', label: '.claude/projects' },
+  { path: path.join(PROJECT_ROOT, '.amp'), type: 'dir', label: '.amp' },
   { path: path.join(PROJECT_ROOT, 'backend/data'), type: 'dir', label: 'backend/data' },
   { path: path.join(PROJECT_ROOT, '_SYSTEM/backend/data'), type: 'dir', label: '_SYSTEM/backend/data' },
+  { path: path.join(PROJECT_ROOT, 'node_modules'), type: 'dir', label: 'node_modules' },
 ];
 
 const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])\.env($|[\s"';|&])/u, label: '.env' },
   { re: /(^|[\s"'=;:])\.claude\/state(\/|$|[\s"';|&])/u, label: '.claude/state' },
   { re: /(^|[\s"'=;:])\.claude\/history(\/|$|[\s"';|&])/u, label: '.claude/history' },
+  { re: /(^|[\s"'=;:])\.claude\/file-history(\/|$|[\s"';|&])/u, label: '.claude/file-history' },
+  { re: /(^|[\s"'=;:])\.claude\/projects(\/|$|[\s"';|&])/u, label: '.claude/projects' },
+  { re: /(^|[\s"'=;:])\.amp(\/|$|[\s"';|&])/u, label: '.amp' },
   { re: /(^|[\s"'=;:])backend\/data(\/|$|[\s"';|&])/u, label: 'backend/data' },
   { re: /(^|[\s"'=;:])_SYSTEM\/backend\/data(\/|$|[\s"';|&])/u, label: '_SYSTEM/backend/data' },
+  { re: /(^|[\s"'=;:])node_modules(\/|$|[\s"';|&])/u, label: 'node_modules' },
 ];
 
 const MUTATING_COMMAND_RE =
@@ -43,13 +54,19 @@ const DESTRUCTIVE_PATTERNS = [
 ];
 
 export function evaluateToolCall(toolName, toolInput = {}, opts = {}) {
+  const rawToolName = String(toolName || '');
   const normalizedTool = normalizeToolName(toolName);
   const input = toolInput || {};
   const cwd = input.cwd || input.workdir || opts.cwd || PROJECT_ROOT;
 
+  if (isCodexAppPluginTool(rawToolName) && !hasFreshContextRoute(opts)) {
+    return block('Codex app/plugin tool blocked until YURI context-router runs for this task');
+  }
+
   if (isShellTool(normalizedTool)) {
     const command = input.command || input.cmd || '';
     if (!command) return allow();
+    if (isContextRouterCommand(command)) markContextRoute(cwd, opts);
     return evaluateShellCommand(command, cwd);
   }
 
@@ -149,6 +166,42 @@ function isAllowedProtectedReadForOffload(command, protectedLabel) {
   if (!invokesOffload) return false;
 
   return !/\s(?:>|>>|2>|&>)\s*['"]?\.env(?:['"]?|\s|$)/u.test(command);
+}
+
+function isCodexAppPluginTool(toolName) {
+  return String(toolName || '').startsWith('mcp__codex_apps__');
+}
+
+function isContextRouterCommand(command) {
+  return /\bnode\s+_SYSTEM\/Scripts\/context-router\.mjs\b/u.test(command) ||
+    /\b_SYSTEM\/Scripts\/context-router\.mjs\b/u.test(command);
+}
+
+function hasFreshContextRoute(opts = {}) {
+  if (process.env.YURI_CODEX_CONTROL_PLANE_ROUTED === '1') return true;
+
+  const stampPath = opts.routeStampPath || CONTEXT_ROUTE_STAMP_PATH;
+  if (!existsSync(stampPath)) return false;
+
+  try {
+    const stamp = JSON.parse(readFileSync(stampPath, 'utf8'));
+    const routedAt = Date.parse(stamp.routedAt || '');
+    if (!Number.isFinite(routedAt)) return false;
+    const now = typeof opts.now === 'number' ? opts.now : Date.now();
+    return now - routedAt <= CONTEXT_ROUTE_STAMP_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function markContextRoute(cwd, opts = {}) {
+  const stampPath = opts.routeStampPath || CONTEXT_ROUTE_STAMP_PATH;
+  mkdirSync(path.dirname(stampPath), { recursive: true });
+  writeFileSync(stampPath, `${JSON.stringify({
+    routedAt: new Date(typeof opts.now === 'number' ? opts.now : Date.now()).toISOString(),
+    cwd: path.resolve(cwd || PROJECT_ROOT),
+    source: 'codex-pre-tool-use',
+  }, null, 2)}\n`);
 }
 
 function extractLikelyWriteTargets(command) {

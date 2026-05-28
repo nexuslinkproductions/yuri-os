@@ -3,7 +3,7 @@
   "updated": "2026-05-25",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 103,
+  "count": 104,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -86,6 +86,11 @@
       "id": "codebase-to-course",
       "path": "skills/codebase-to-course/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "codex-plugin-control-plane",
+      "path": "skills/codex-plugin-control-plane/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
       "id": "compact-optimizer",

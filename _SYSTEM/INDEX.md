@@ -15,6 +15,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
+| `_SYSTEM/docs/YURI_CODEX_PLUGIN_CONTROL_PLANE_PROTOCOL_2026-05-28.md` | Codex plugin/app connector routing rule: plugins are capability lanes that must traverse YURI context and hook gates. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification map. |
 | `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact map and future placement rules. |
 | `.agents/README.md` | Agent assembly layer: agents are recipes, not hidden provider magic. |
