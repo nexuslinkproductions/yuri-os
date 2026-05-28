@@ -1,0 +1,2736 @@
+<!doctype html>
+<html lang="en" data-surface="hud">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YURI Energy Landscape Dashboard</title>
+  <style>
+    /* ---- YURI HUD surface tokens — canonical, _SYSTEM/DESIGN.md §3 (HUD) ---- */
+    [data-surface="hud"] {
+      --yuri-hud-bg-void: hsl(0 0% 0%);
+      --yuri-hud-bg-surface: hsla(0 0% 8% / 0.92);
+      --yuri-hud-bg-glass: hsla(0 0% 8% / 0.72);
+      --yuri-hud-cyan-glow: hsl(96 68% 74%);
+      --yuri-hud-cyan-dim: hsl(96 42% 24%);
+      --yuri-hud-gold-solar: hsl(90 100% 36%);
+      --yuri-hud-red-fusion: hsl(12 84% 58%);
+      --yuri-hud-silver-albedo: hsl(0 0% 97%);
+      --yuri-hud-text-dim: hsl(0 0% 66%);
+      --yuri-hud-font-display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+      --yuri-hud-font-body: "DM Sans", system-ui, -apple-system, sans-serif;
+      --yuri-hud-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --yuri-hud-grid-unit: 8px;
+      --yuri-hud-radius-chip: 2px;
+      --yuri-hud-radius-button: 3px;
+      --yuri-hud-radius-panel: 4px;
+      --yuri-hud-ease-snap: cubic-bezier(0.42, 0, 0.58, 1);
+      --yuri-hud-ease-out: cubic-bezier(0, 0, 0.2, 1);
+      --yuri-hud-ease-neural: cubic-bezier(0.23, 1, 0.32, 1);
+      --yuri-hud-dur-micro: 100ms;
+      --yuri-hud-dur-ui: 200ms;
+      --yuri-hud-dur-panel: 280ms;
+      --yuri-hud-dur-meter: 900ms;
+      /* data-encoding extensions (HUD namespace only): hues the base palette does
+         not define, tuned to read on void-black for charts and status. */
+      --yuri-hud-data-blue: hsl(204 90% 64%);
+      --yuri-hud-data-amber: hsl(38 96% 58%);
+      --yuri-hud-data-violet: hsl(266 84% 74%);
+    }
+
+    /* Light = daylight-ops adapter; Dark = canonical HUD void (default).
+       JS reads the semantic --teal/--blue/... slots via getComputedStyle, which does
+       NOT resolve var() references — so values are inlined (comma-hsl, canvas-safe)
+       and mirror the HUD tokens above rather than var()-chaining. Accent hues are
+       hue-locked to the HUD family: 96 cyan-glow, 90 gold-solar, 12 red-fusion. */
+    :root {
+      color-scheme: light;
+      --paper: hsl(60, 8%, 95%);
+      --panel: hsl(0, 0%, 100%);
+      --panel-soft: hsl(96, 16%, 95%);
+      --panel-glass: hsla(0, 0%, 100%, 0.72);
+      --control: hsl(0, 0%, 100%);
+      --chart-bg: hsl(0, 0%, 100%);
+      --ink: hsl(0, 0%, 9%);
+      --muted: hsl(220, 9%, 38%);
+      --line: hsl(220, 14%, 85%);
+      --line-strong: hsl(220, 12%, 68%);
+      --teal: hsl(96, 60%, 30%);
+      --teal-soft: hsl(96, 45%, 88%);
+      --blue: hsl(204, 80%, 42%);
+      --blue-soft: hsl(204, 80%, 91%);
+      --green: hsl(90, 80%, 26%);
+      --green-soft: hsl(90, 55%, 88%);
+      --amber: hsl(34, 90%, 40%);
+      --amber-soft: hsl(38, 92%, 89%);
+      --rose: hsl(12, 80%, 46%);
+      --rose-soft: hsl(12, 84%, 93%);
+      --violet: hsl(266, 60%, 48%);
+      --violet-soft: hsl(266, 70%, 93%);
+      --shadow: 0 18px 45px rgba(20, 22, 26, 0.10);
+      --glow: 0 0 0 1px color-mix(in srgb, var(--teal) 30%, transparent);
+      --radius: 4px;
+      --mono: var(--yuri-hud-font-mono);
+      --sans: var(--yuri-hud-font-body);
+      --display: var(--yuri-hud-font-display);
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --paper: hsl(0, 0%, 0%);
+      --panel: hsl(0, 0%, 7%);
+      --panel-soft: hsl(0, 0%, 10%);
+      --panel-glass: hsla(0, 0%, 6%, 0.72);
+      --control: hsl(0, 0%, 5%);
+      --chart-bg: hsl(0, 0%, 4%);
+      --ink: hsl(0, 0%, 97%);
+      --muted: hsl(0, 0%, 66%);
+      --line: hsl(0, 0%, 15%);
+      --line-strong: hsl(0, 0%, 30%);
+      --teal: hsl(96, 68%, 74%);
+      --teal-soft: hsl(96, 42%, 22%);
+      --blue: hsl(204, 90%, 64%);
+      --blue-soft: hsl(204, 64%, 20%);
+      --green: hsl(90, 80%, 46%);
+      --green-soft: hsl(96, 48%, 17%);
+      --amber: hsl(38, 96%, 58%);
+      --amber-soft: hsl(34, 60%, 17%);
+      --rose: hsl(12, 84%, 60%);
+      --rose-soft: hsl(12, 56%, 20%);
+      --violet: hsl(266, 84%, 74%);
+      --violet-soft: hsl(266, 46%, 26%);
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+      --glow: 0 0 0 1px color-mix(in srgb, var(--teal) 42%, transparent), 0 0 24px color-mix(in srgb, var(--teal) 20%, transparent);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--paper) 96%, transparent), color-mix(in srgb, var(--panel-soft) 70%, var(--paper))),
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 4%, transparent) 0, color-mix(in srgb, var(--ink) 4%, transparent) 1px, transparent 1px, transparent 72px);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.5;
+      transition: background-color 180ms ease, color 180ms ease;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      padding: 24px 16px;
+      border-right: 1px solid var(--line);
+      background: var(--panel-glass);
+      backdrop-filter: blur(16px);
+      overflow: auto;
+    }
+
+    .mark {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .mark-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--teal);
+      border-radius: var(--yuri-hud-radius-button);
+      background: var(--teal);
+      color: hsl(0, 0%, 4%);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .mark-title {
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .mark-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+
+    .nav a:hover,
+    .nav a:focus-visible {
+      color: var(--ink);
+      border-color: var(--line);
+      background: var(--control);
+      outline: none;
+    }
+
+    .nav-code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--teal);
+    }
+
+    .rail-note {
+      margin-top: 24px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: var(--paper);
+      font-size: 12px;
+    }
+
+    .content {
+      min-width: 0;
+      padding-bottom: 72px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 84%, transparent);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar strong {
+      font-size: 14px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--control);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .theme-toggle {
+      gap: 8px;
+    }
+
+    .theme-toggle::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 68% 34%, var(--control) 0 23%, transparent 24%),
+        radial-gradient(circle at 50% 50%, var(--teal) 0 62%, transparent 64%);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--teal) 48%, transparent);
+    }
+
+    .button.primary {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: hsl(0, 0%, 4%);
+      box-shadow: var(--glow);
+    }
+
+    .button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, 0.22);
+      outline-offset: 1px;
+    }
+
+    .hero {
+      min-height: clamp(500px, 72vh, 760px);
+      display: grid;
+      align-items: end;
+      padding: 48px 28px 28px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(115deg, rgba(8, 8, 8, 0.94) 0%, rgba(10, 12, 9, 0.80) 46%, rgba(150, 210, 110, 0.34) 100%),
+        linear-gradient(180deg, rgba(23, 26, 33, 0.2), rgba(23, 26, 33, 0.96)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 760'%3E%3Crect width='1400' height='760' fill='%23171a21'/%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.13'%3E%3Cpath d='M0 570 C170 420 280 690 460 500 S760 360 930 430 1160 660 1400 350' stroke-width='3'/%3E%3Cpath d='M0 650 C190 520 320 600 470 560 S760 210 940 300 1160 470 1400 220' stroke-width='2'/%3E%3Cpath d='M0 470 C160 350 270 430 420 380 S700 120 920 180 1150 290 1400 110' stroke-width='2'/%3E%3Cpath d='M120 720 L240 548 L360 635 L480 455 L600 510 L720 328 L840 392 L960 252 L1080 338 L1200 150 L1320 250' stroke-width='2' stroke-dasharray='8 9'/%3E%3C/g%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='240' cy='548' r='5' opacity='.42'/%3E%3Ccircle cx='480' cy='455' r='5' opacity='.42'/%3E%3Ccircle cx='720' cy='328' r='5' opacity='.42'/%3E%3Ccircle cx='960' cy='252' r='5' opacity='.42'/%3E%3Ccircle cx='1200' cy='150' r='5' opacity='.42'/%3E%3C/g%3E%3Cg fill='%230f766e' opacity='.8'%3E%3Crect x='1020' y='462' width='230' height='16' rx='2'/%3E%3Crect x='1020' y='492' width='180' height='16' rx='2'/%3E%3Crect x='1020' y='522' width='260' height='16' rx='2'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 5px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.10);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.86);
+    }
+
+    h1 {
+      max-width: 1040px;
+      margin: 18px 0 14px;
+      font-family: var(--display);
+      font-size: clamp(40px, 7vw, 86px);
+      line-height: 0.96;
+      letter-spacing: -0.015em;
+    }
+
+    .hero-copy {
+      max-width: 860px;
+      margin: 0 0 28px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: clamp(16px, 2vw, 20px);
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+      max-width: 1060px;
+    }
+
+    .hero-metric {
+      min-height: 104px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(8px);
+    }
+
+    .metric-label,
+    .kicker {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .hero-metric .metric-label {
+      color: rgba(255, 255, 255, 0.68);
+    }
+
+    .metric-value {
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .metric-detail {
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.70);
+      font-size: 12px;
+    }
+
+    .section {
+      padding: 36px 28px;
+    }
+
+    .section + .section {
+      border-top: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.04;
+      letter-spacing: -0.01em;
+    }
+
+    .section-copy {
+      max-width: 780px;
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .panel,
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 7%, transparent);
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .card {
+      padding: 14px;
+    }
+
+    .panel-title,
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 8px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .panel-text,
+    .card-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--yuri-hud-radius-button);
+      background: var(--control);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    /* Token-driven, theme-agnostic — semantic vars already flip per theme. */
+    .badge.green {
+      border-color: color-mix(in srgb, var(--green) 45%, var(--line));
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .badge.amber {
+      border-color: color-mix(in srgb, var(--amber) 48%, var(--line));
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .badge.blue {
+      border-color: color-mix(in srgb, var(--blue) 45%, var(--line));
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .badge.rose {
+      border-color: color-mix(in srgb, var(--rose) 45%, var(--line));
+      background: var(--rose-soft);
+      color: var(--rose);
+    }
+
+    .badge.violet {
+      border-color: color-mix(in srgb, var(--violet) 45%, var(--line));
+      background: var(--violet-soft);
+      color: var(--violet);
+    }
+
+    .big-number {
+      margin: 8px 0 0;
+      font-family: var(--mono);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(115px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .flow-step {
+      min-height: 148px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: ">";
+      position: absolute;
+      right: -9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--line-strong);
+      font-family: var(--mono);
+      font-weight: 900;
+      z-index: 1;
+    }
+
+    .flow-step:last-child::after {
+      content: "";
+    }
+
+    .step-index {
+      font-family: var(--mono);
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .step-title {
+      margin: 8px 0 6px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .step-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .timeline-wrap,
+    .chart-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .field-lab {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .field-stage {
+      min-height: 530px;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      background:
+        radial-gradient(circle at 70% 22%, color-mix(in srgb, var(--teal) 24%, transparent), transparent 28%),
+        radial-gradient(circle at 22% 72%, color-mix(in srgb, var(--amber) 18%, transparent), transparent 30%),
+        var(--chart-bg);
+    }
+
+    .field-stage canvas {
+      display: block;
+      width: 100%;
+      height: 530px;
+    }
+
+    .field-overlay {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      display: grid;
+      gap: 8px;
+      max-width: min(420px, calc(100% - 32px));
+      pointer-events: none;
+    }
+
+    .formula-pill {
+      display: inline-flex;
+      width: max-content;
+      max-width: 100%;
+      padding: 8px 10px;
+      border: 1px solid color-mix(in srgb, var(--teal) 42%, var(--line));
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--panel) 78%, transparent);
+      box-shadow: 0 0 30px color-mix(in srgb, var(--teal) 18%, transparent);
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(18px, 3vw, 30px);
+      line-height: 1.1;
+    }
+
+    .field-caption {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--panel) 78%, transparent);
+      color: var(--muted);
+      font-size: 13px;
+      box-shadow: var(--shadow);
+    }
+
+    .field-controls {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mode-button {
+      min-height: 42px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--control);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .mode-button.active {
+      border-color: color-mix(in srgb, var(--teal) 70%, var(--line));
+      background: color-mix(in srgb, var(--teal-soft) 78%, var(--control));
+      color: var(--ink);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 18%, transparent);
+    }
+
+    .field-metrics {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-metric {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 46px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .field-metric span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .field-metric strong {
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 110px minmax(180px, 1.4fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 46px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .source-row a {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--blue);
+      overflow-wrap: anywhere;
+    }
+
+    .source-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .tab.active {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: hsl(0, 0%, 4%);
+      box-shadow: var(--glow);
+    }
+
+    .playground {
+      display: grid;
+      grid-template-columns: minmax(260px, 370px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .slider-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 54px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .slider-row label {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .slider-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .slider-value {
+      text-align: right;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .scenario-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-box {
+      min-height: 78px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+    }
+
+    .stat-box strong {
+      display: block;
+      margin-top: 4px;
+      font-family: var(--mono);
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .telemetry-drop {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--control);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .file-input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--paper);
+      cursor: pointer;
+    }
+
+    .footer {
+      padding: 24px 28px 40px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .topbar {
+        position: static;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero-metrics,
+      .grid.four,
+      .grid.three,
+      .grid.two,
+      .field-lab,
+      .playground,
+      .telemetry-drop {
+        grid-template-columns: 1fr;
+      }
+
+      .source-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .rail,
+      .topbar,
+      .section,
+      .hero,
+      .footer {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .nav {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero {
+        min-height: 680px;
+      }
+
+      .scenario-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .field-stage,
+      .field-stage canvas {
+        min-height: 430px;
+        height: 430px;
+      }
+    }
+
+    @media print {
+      .rail,
+      .topbar,
+      .telemetry-drop textarea,
+      .tabs,
+      .button,
+      .file-input {
+        display: none;
+      }
+
+      .app {
+        display: block;
+      }
+
+      .section {
+        break-inside: avoid;
+      }
+    }
+
+    /* --- state chips: Built / Simulated / Planned --- */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 22px;
+      padding: 2px 9px;
+      border: 1px solid var(--line);
+      border-radius: var(--yuri-hud-radius-chip);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      color: var(--muted);
+    }
+
+    .chip::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--muted);
+    }
+
+    .chip.built {
+      border-color: color-mix(in srgb, var(--green) 50%, var(--line));
+      color: var(--green);
+    }
+
+    .chip.built::before {
+      background: var(--green);
+    }
+
+    .chip.sim {
+      border-color: color-mix(in srgb, var(--amber) 52%, var(--line));
+      color: var(--amber);
+    }
+
+    .chip.sim::before {
+      background: var(--amber);
+    }
+
+    .chip.planned {
+      border-color: color-mix(in srgb, var(--blue) 50%, var(--line));
+      color: var(--blue);
+    }
+
+    .chip.planned::before {
+      background: var(--blue);
+    }
+
+    /* --- reality strip --- */
+    .reality-strip {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reality-row {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 122px minmax(220px, 2.2fr);
+      gap: 12px;
+      align-items: center;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .reality-row .r-surface {
+      font-weight: 800;
+      font-size: 13.5px;
+    }
+
+    .reality-row .r-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* --- weight ledger --- */
+    .weight-ledger {
+      display: grid;
+      gap: 8px;
+    }
+
+    .ledger-head,
+    .ledger-row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1.05fr) minmax(150px, 1.3fr) minmax(132px, 1.15fr) 108px minmax(168px, 1.55fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ledger-head {
+      padding: 0 10px 2px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ledger-row {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .ledger-comp {
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .ledger-comp small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .ledger-weight {
+      display: grid;
+      grid-template-columns: 1fr 42px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ledger-weight input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .ledger-wval {
+      text-align: right;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .ledger-mult {
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    .ledger-dir {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .ledger-dir.up {
+      color: var(--rose);
+    }
+
+    .ledger-dir.down {
+      color: var(--green);
+    }
+
+    .ledger-why {
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    .rule-line {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid color-mix(in srgb, var(--teal) 32%, var(--line));
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--teal-soft) 46%, var(--panel));
+    }
+
+    .rule-line .formula {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .rule-line .caveat {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+
+    /* --- figure manifest --- */
+    .figure-manifest {
+      display: grid;
+      gap: 8px;
+    }
+
+    .figure-row {
+      display: grid;
+      grid-template-columns: 60px minmax(0, 1fr) 128px;
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--control);
+    }
+
+    .figure-row .f-id {
+      font-family: var(--mono);
+      font-weight: 800;
+      color: var(--teal);
+      font-size: 12px;
+    }
+
+    .figure-row .f-desc {
+      font-size: 13px;
+    }
+
+    .figure-row .f-src {
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+      text-align: right;
+    }
+
+    /* --- canvas honesty chip --- */
+    .field-stage .canvas-chip {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 2;
+      pointer-events: none;
+      background: color-mix(in srgb, var(--panel) 82%, transparent);
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 980px) {
+      .ledger-head {
+        display: none;
+      }
+
+      .ledger-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .ledger-comp {
+        grid-column: 1 / -1;
+      }
+
+      .reality-row,
+      .figure-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .figure-row .f-src {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <a class="mark" href="#top" aria-label="Dashboard top">
+        <span class="mark-icon">YU</span>
+        <span>
+          <span class="mark-title">Energy Landscape</span>
+          <span class="mark-subtitle">Paper control room</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Dashboard sections">
+        <a href="#status">Status <span class="nav-code">01</span></a>
+        <a href="#scoring">Scoring <span class="nav-code">02</span></a>
+        <a href="#gate">Gate <span class="nav-code">03</span></a>
+        <a href="#geometry">Geometry <span class="nav-code">04</span></a>
+        <a href="#why">Proof <span class="nav-code">05</span></a>
+        <a href="#map">Sandbox <span class="nav-code">06</span></a>
+        <a href="#timeline">Plan <span class="nav-code">07</span></a>
+        <a href="#telemetry">Telemetry <span class="nav-code">08</span></a>
+        <a href="#files">Files <span class="nav-code">09</span></a>
+      </nav>
+      <div class="rail-note">
+        <strong>Local artifact.</strong><br>
+        Built from the markdown packet in this folder. No network, no external runtime, no protected state reads.
+      </div>
+    </aside>
+
+    <main class="content" id="top">
+      <header class="topbar">
+        <strong>YURI Conservative State Flows sprint</strong>
+        <div class="topbar-actions">
+          <button class="button theme-toggle" id="themeToggle" type="button" aria-pressed="false">Dark</button>
+          <a class="button" href="00-evidence-plan.md">Evidence plan</a>
+          <a class="button" href="01-sandbox-simulation-architecture.md">Architecture</a>
+          <a class="button primary" href="04-operator-decisions.md">Decisions</a>
+        </div>
+      </header>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-inner">
+          <span class="eyebrow">strict-descent gate · function built, not yet deployed · ship 2026-07-23</span>
+          <h1 id="hero-title">Accept the move only if it lowers U.</h1>
+          <p class="hero-copy">
+            YURI scores every proposed transition against a scalar potential U. If a move raises the
+            system's uncertainty or claim-to-evidence drift, the gate rejects it before it runs. This
+            surface tracks what is built, what is still a worked example, and what the sprint must prove.
+          </p>
+          <div class="hero-metrics" id="heroMetrics"></div>
+        </div>
+      </section>
+
+      <section class="section" id="status" aria-labelledby="status-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">what is real today</span>
+            <h2 id="status-title">Built, simulated, or still planned.</h2>
+            <p class="section-copy">
+              One row per surface on this page. The energy function and the telemetry layer are built and
+              tested. The gate is not wired into live dispatch, and no real trace has ever been written —
+              so everything downstream of that is a worked example or a plan, and it is labelled as such.
+            </p>
+          </div>
+        </div>
+        <div class="reality-strip" id="realityStrip"></div>
+      </section>
+
+      <section class="section" id="scoring" aria-labelledby="scoring-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">what U measures</span>
+            <h2 id="scoring-title">Nine components decide whether a move lowers U.</h2>
+            <p class="section-copy">
+              U is a weighted sum of penalties minus evidence credits. Each weight scales one measurable
+              quantity and pushes the score up or down. The values are operator policy — hand-tuned, not
+              learned. Drag a weight to rescale its contribution in the worked examples below.
+            </p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Scoring policy <span class="badge">9 components · operator-tuned, not learned</span></div>
+          <div class="ledger-head">
+            <span>Component</span><span>Weight</span><span>Multiplies</span><span>Direction</span><span>Why the magnitude</span>
+          </div>
+          <div class="weight-ledger" id="weightControls"></div>
+          <div class="rule-line">
+            <div class="formula">U = weighted penalties − weighted evidence credits · gate accepts when ΔU ≤ 0</div>
+            <div class="caveat">These nine weights are hand-tuned operator policy — not learned from data, and not a proof of semantic correctness.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="gate" aria-labelledby="gate-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">the gate · real function · synthetic scenario</span>
+            <h2 id="gate-title">Run through the real function on synthetic state.</h2>
+            <p class="section-copy">
+              Not measured traffic. Scenario A is the B.2 descent-demo: 15 transitions run through the real
+              yuri-energy gate, plotting the real U trajectory and ΔU series. Scenario B is the protected-path
+              violation worked example. The numbers are real outputs of the function — over states the author
+              wrote, not over live dispatch.
+            </p>
+          </div>
+          <span class="chip sim">Real ΔU · synthetic scenario</span>
+        </div>
+        <div class="panel">
+          <div class="tabs" role="tablist" aria-label="Energy scenarios">
+            <button class="tab active" type="button" data-scenario="descent">Scenario A: descent</button>
+            <button class="tab" type="button" data-scenario="violation">Scenario B: protected path</button>
+          </div>
+          <div class="scenario-stats" id="scenarioStats"></div>
+          <div class="chart-wrap">
+            <svg id="scenarioChart" width="760" height="320" role="img" aria-label="Component contribution chart"></svg>
+          </div>
+          <p class="panel-text" style="margin-top:10px">
+            Scenario A plots the real U trajectory captured from the B.2 descent-demo at the default weights —
+            it does not rescale as you drag a weight, because it is a recorded run, not a live re-evaluation.
+            Scenario B rescales its fixed per-component contributions as weights change; the nonlinear
+            entropy / KL / Brier terms are baked in, because no live state snapshot is loaded here.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="geometry" aria-labelledby="geometry-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">visual analogy</span>
+            <h2 id="geometry-title">A scalar potential turns "is this a good move?" into "does this lower U?"</h2>
+            <p class="section-copy">
+              The field below is an illustrative two-basin surface — not the energy function. The real U has
+              the nine components above; this view only shows why a conservative descent field settles into
+              stable basins while an unconstrained field can circulate without ever settling.
+            </p>
+          </div>
+        </div>
+        <div class="field-lab">
+          <div class="panel field-stage">
+            <canvas id="fieldCanvas" width="980" height="560" aria-label="Illustrative energy landscape field, not the energy function"></canvas>
+            <span class="chip sim canvas-chip">Schematic · not computeU</span>
+            <div class="field-overlay">
+              <div class="formula-pill" id="fieldFormula">downhill = accepted</div>
+              <div class="field-caption" id="fieldCaption"></div>
+            </div>
+          </div>
+          <aside class="panel field-controls">
+            <div class="panel-title">Field lens <span class="badge blue">interactive</span></div>
+            <div class="mode-grid" role="group" aria-label="Field mode">
+              <button class="mode-button active" type="button" data-field-mode="conservative">Conservative</button>
+              <button class="mode-button" type="button" data-field-mode="unconstrained">Unconstrained</button>
+            </div>
+            <p class="panel-text">
+              Conservative mode descends into stable basins — the analogy for a gate that only accepts downhill
+              moves. Unconstrained mode rotates: local motion with no global score to settle it.
+            </p>
+            <div class="field-metrics" id="fieldMetrics"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="why" aria-labelledby="why-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">the proof gap</span>
+            <h2 id="why-title">The idea holds. The evidence does not exist yet.</h2>
+            <p class="section-copy">
+              The draft has a strong premise and a tested reference function. What it lacks is empirical:
+              deployed gate traces, controlled experiments, adversarial probes, and reproducible figures.
+              Eight figures are named and still empty.
+            </p>
+          </div>
+        </div>
+        <div class="grid four" id="problemGrid"></div>
+        <div class="panel" style="margin-top:14px">
+          <div class="panel-title">Figure manifest <span class="badge amber">0 / 8 rendered</span></div>
+          <div class="figure-manifest" id="figureManifest"></div>
+        </div>
+      </section>
+
+      <section class="section" id="map" aria-labelledby="map-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">sandbox design</span>
+            <h2 id="map-title">Seven layers keep the experiment useful and contained.</h2>
+            <p class="section-copy">
+              The sandbox architecture is fully designed and pre-Codex-review — not built. Raw state stays
+              local, sanitizers mediate every crossing, and only the sandbox runs the gate in action mode.
+            </p>
+          </div>
+          <span class="chip planned">Designed · not built</span>
+        </div>
+        <div class="flow" id="layerFlow"></div>
+      </section>
+
+      <section class="section" id="timeline" aria-labelledby="timeline-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">sprint plan</span>
+            <h2 id="timeline-title">Three workstreams, one deadline.</h2>
+            <p class="section-copy">
+              A wires telemetry, B generates the missing evidence, C turns it into a paper a skeptical
+              reader can reproduce. B.1 needs a 10–14 day passive collection window before any result lands.
+            </p>
+          </div>
+          <span class="chip planned">Planned · Jun 4 – Jul 23</span>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Week-by-week plan <span class="badge blue">Jun 4 – Jul 23</span></div>
+          <div class="timeline-wrap">
+            <svg id="timelineChart" width="1120" height="420" role="img" aria-label="Sprint timeline chart"></svg>
+          </div>
+        </div>
+        <div class="grid three" style="margin-top:14px" id="workstreamGrid"></div>
+      </section>
+
+      <section class="section" id="telemetry" aria-labelledby="telemetry-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">telemetry · built, no real traces</span>
+            <h2 id="telemetry-title">Telemetry is built and certified — it just has no real traces yet.</h2>
+            <p class="section-copy">
+              A.1 emits a sanitized JSONL record per gate evaluation and passes its test suite. The live trace
+              state holds only baseline records and zero real-traffic dispatch records — the B.1
+              collection window just opened. The live count appears in the panel below. The chart shows that
+              honest empty state, not seeded demo rows. Paste or load a sanitized JSONL line to preview the real shape.
+            </p>
+          </div>
+        </div>
+        <div class="telemetry-drop">
+          <div class="panel">
+            <div class="panel-title">Sanitized JSONL input <span class="badge amber">local only</span></div>
+            <textarea id="jsonlInput" spellcheck="false" aria-label="Sanitized JSONL telemetry input"></textarea>
+            <input class="file-input" id="jsonlFile" type="file" accept=".jsonl,.json,.txt">
+            <button class="button primary" id="parseTelemetry" type="button">Analyze telemetry</button>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Trace summary <span class="badge" id="traceCountBadge">0 real-traffic records · B.1 open</span></div>
+            <div class="scenario-stats" id="telemetryStats"></div>
+            <div class="chart-wrap">
+              <svg id="telemetryChart" width="760" height="320" role="img" aria-label="Telemetry histogram"></svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="files" aria-labelledby="files-title">
+        <div class="section-head">
+          <div>
+            <span class="kicker">source packet</span>
+            <h2 id="files-title">Anchored to the paper packet.</h2>
+            <p class="section-copy">
+              Each card points back to the report file or implementation module it summarizes.
+            </p>
+          </div>
+        </div>
+        <div class="source-list" id="sourceList"></div>
+      </section>
+
+      <footer class="footer">
+        Local static artifact. Gate and telemetry numbers are aggregated by
+        _SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs. Every surface is labelled built, simulated, or
+        planned: the descent curve is real gate output over a synthetic scenario (B.2); the telemetry view
+        reads the live trace state (0 real-traffic dispatch records yet, B.1 window open); ablation,
+        adversarial probes, and the eight figures remain planned.
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // ENERGY-DATA-START — real aggregated data from yuri-energy-dashboard-data.mjs (B.2 descent + live energy-trace state).
+    // Regenerate: node _SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs --out /tmp/d.json
+    // then replace everything between these two markers with: const REAL = <contents of /tmp/d.json>;
+    const REAL = {
+      "schema": "yuri-energy-dashboard-data/v1",
+      "generatedAt": "2026-05-28T21:48:38.619Z",
+      "descent": {
+        "provenance": "real",
+        "scenario": "descent-demo",
+        "note": "Real yuri-energy gate outputs over a synthetic, hand-authored descent scenario (B.2). Numbers are real function results; the input states are authored, not measured traffic.",
+        "chip": "Real ΔU · synthetic scenario",
+        "transitionCount": 15,
+        "accepted": 15,
+        "rejected": 0,
+        "deltaUSeries": [
+          -0.245901439,
+          -0.252360918,
+          -0.256158111,
+          -0.258591147,
+          -0.260221904,
+          -0.261350196,
+          -0.262166434,
+          -0.262816416,
+          -0.263438782,
+          -0.264199092,
+          -0.265340498,
+          -0.267291313,
+          -0.270964532,
+          -0.278945478,
+          -0.310522196
+        ],
+        "uTrajectory": [
+          1.054989681,
+          0.809088242,
+          0.556727324,
+          0.300569213,
+          0.041978066,
+          -0.218243838,
+          -0.479594034,
+          -0.741760468,
+          -1.004576884,
+          -1.268015666,
+          -1.532214758,
+          -1.797555256,
+          -2.064846569,
+          -2.335811101,
+          -2.614756579,
+          -2.925278775
+        ],
+        "labels": [
+          "submit-claim",
+          "gather-evidence-1",
+          "gather-evidence-2",
+          "verify-evidence-batch-1",
+          "promote-research-to-fixture-1",
+          "verify-evidence-batch-2",
+          "promote-research-to-fixture-2",
+          "verify-evidence-batch-3",
+          "promote-fixture-to-trusted-1",
+          "verify-evidence-batch-4",
+          "promote-fixture-to-trusted-2",
+          "verify-evidence-batch-5",
+          "reconcile-claimed-to-verified-1",
+          "reconcile-claimed-to-verified-2",
+          "final-promotion-to-trusted"
+        ],
+        "finalU": -2.925278775,
+        "dominantTerms": {}
+      },
+      "telemetry": {
+        "provenance": "real",
+        "note": "Live energy-trace state. Real-traffic = records with a non-empty lane. Dispatch = real-traffic that is not the synthetic experiment lane.",
+        "chip": "0 real-traffic records · B.1 open",
+        "totalRecords": 50,
+        "realTrafficRecords": 0,
+        "experimentRecords": 0,
+        "dispatchRecords": 0,
+        "byLane": {
+          "<baseline>": 50
+        },
+        "accepted": 0,
+        "rejected": 0,
+        "dominantTerms": {},
+        "deltaUDistribution": {
+          "count": 0,
+          "buckets": []
+        },
+        "sampleRecords": [],
+        "malformedLines": 0,
+        "sourceFiles": [
+          "2026-05-28.jsonl"
+        ]
+      },
+      "components": {
+        "provenance": "real",
+        "note": "DEFAULT_WEIGHTS from yuri-energy.mjs — operator policy, not learned.",
+        "weights": {
+          "alpha": 1,
+          "beta": 2,
+          "gamma": 1,
+          "delta": 1,
+          "epsilon": 1,
+          "zeta": 0.5,
+          "eta": 100,
+          "theta": 10,
+          "iota": 0.1
+        }
+      },
+      "surfaces": {
+        "provenance": "mixed",
+        "surfaces": [
+          {
+            "surface": "Energy function (computeU)",
+            "provenance": "real",
+            "note": "yuri-energy.mjs scores U over a state snapshot. 28 unit tests pass."
+          },
+          {
+            "surface": "Telemetry layer (A.1)",
+            "provenance": "real",
+            "note": "Sanitized JSONL emitter, 39 tests pass. Observability flag now on; B.1 window open."
+          },
+          {
+            "surface": "Dispatch wiring (A.2.a)",
+            "provenance": "real",
+            "note": "Observe-mode dispatch wiring landed. Action-mode (A.2.b) gated until B.1 review."
+          },
+          {
+            "surface": "Experiment runner (A.3)",
+            "provenance": "real",
+            "note": "yuri-energy-experiment.mjs built — runs scenario modules through the real gate."
+          },
+          {
+            "surface": "Descent demo (B.2)",
+            "provenance": "real",
+            "note": "Real gate outputs over a synthetic 15-transition descent. ΔU + U trajectory shown."
+          },
+          {
+            "surface": "Layer-7 sanitizer",
+            "provenance": "real",
+            "note": "Privacy-gate sanitizer built — 32 tests pass."
+          },
+          {
+            "surface": "Weight ledger",
+            "provenance": "real",
+            "note": "Values match DEFAULT_WEIGHTS in source exactly."
+          },
+          {
+            "surface": "Real dispatch traces (B.1)",
+            "provenance": "planned",
+            "note": "Collection window open; zero real-traffic dispatch records captured yet."
+          },
+          {
+            "surface": "Energy field animation",
+            "provenance": "simulated",
+            "note": "Illustrative two-basin geometry. Not the energy function."
+          },
+          {
+            "surface": "Ablation / adversarial (B.3–B.4)",
+            "provenance": "planned",
+            "note": "Component ablation and adversarial probe — scheduled Jun–Jul."
+          },
+          {
+            "surface": "Eight figures",
+            "provenance": "planned",
+            "note": "U traces, component stacks, rejection rates, architecture diagrams — not rendered."
+          }
+        ]
+      },
+      "status": {
+        "provenance": "real",
+        "workstreams": [
+          {
+            "id": "A.1",
+            "label": "Telemetry",
+            "state": "PASS"
+          },
+          {
+            "id": "A.2.a",
+            "label": "Dispatch wiring (observe)",
+            "state": "PASS"
+          },
+          {
+            "id": "A.2.b",
+            "label": "Action-mode",
+            "state": "GATED",
+            "note": "Until B.1 review 2026-06-07..11"
+          },
+          {
+            "id": "A.3",
+            "label": "Experiment runner",
+            "state": "BUILT"
+          },
+          {
+            "id": "B.1",
+            "label": "Real dispatch traces",
+            "state": "COLLECTING",
+            "note": "Observability on; window open"
+          },
+          {
+            "id": "B.2",
+            "label": "Descent demo",
+            "state": "REAL_DATA"
+          },
+          {
+            "id": "L7",
+            "label": "Layer-7 sanitizer",
+            "state": "BUILT"
+          }
+        ],
+        "testCounts": {
+          "yuri-energy": 28,
+          "yuri-energy-trace": 39,
+          "yuri-energy-dispatch-bridge": 26,
+          "yuri-energy-experiment": 35,
+          "yuri-energy-sanitize": 32
+        },
+        "totalTests": 160,
+        "testCountsSource": "snapshot"
+      },
+      "advisory_only": true,
+      "local_truth_claim": false
+    };
+    // ENERGY-DATA-END
+
+    const DATA = {
+      today: "2026-05-28",
+      shipTarget: "2026-07-23",
+      metrics: [
+        { label: "Days to ship", value: "56", detail: "May 28 → Jul 23, 2026" },
+        { label: "Draft body", value: "2,810 words", detail: "six sections · zero figures" },
+        { label: "Evidence scope", value: "HEAVY", detail: "B.1–B.4 required · B.5 optional" },
+        { label: "Gate status", value: "built", detail: "function tested, not deployed" }
+      ],
+      problems: [
+        {
+          title: "No empirical evidence yet",
+          tag: "blocker",
+          tone: "rose",
+          text: "The current paper has worked examples, but no deployed gate traces."
+        },
+        {
+          title: "Function, not a running system",
+          tag: "gap",
+          tone: "amber",
+          text: "gateProposal exists and passes tests, but it is not wired into dispatch yet."
+        },
+        {
+          title: "No ablation or adversarial run",
+          tag: "gap",
+          tone: "amber",
+          text: "The methodology needs baseline comparison, ablation, and evasion attempts."
+        },
+        {
+          title: "No figures in the draft",
+          tag: "visual debt",
+          tone: "blue",
+          text: "Readers need U traces, component stacks, rejection rates, and architecture diagrams."
+        }
+      ],
+      layers: [
+        { title: "Worktree sandbox", text: "Isolated checkout and state root." },
+        { title: "Trace replay", text: "Re-evaluate captured transitions under alternate configs." },
+        { title: "Synthetic traffic", text: "Generate edge cases and high-volume state transitions." },
+        { title: "Metamorphic invariants", text: "Test relationships that must hold without a perfect oracle." },
+        { title: "Adversarial generators", text: "Probe weight ratios, blind spots, stale evidence, and thresholds." },
+        { title: "Statistical pipeline", text: "Summaries, bootstrap intervals, component contribution analysis." },
+        { title: "Privacy gate", text: "Raw state stays local; sanitized and public zones are separate." }
+      ],
+      weeks: [
+        "Jun 4-10",
+        "Jun 11-17",
+        "Jun 18-24",
+        "Jun 25-Jul 1",
+        "Jul 2-8",
+        "Jul 9-23"
+      ],
+      timeline: [
+        { lane: "A: implementation", start: 0, end: 1, label: "A.1 telemetry + A.2.a wiring", tone: "teal" },
+        { lane: "A: implementation", start: 1, end: 2, label: "A.3 experiment runner", tone: "teal" },
+        { lane: "A: implementation", start: 3, end: 4, label: "cross-experiment analysis", tone: "teal" },
+        { lane: "B: evidence", start: 0, end: 1, label: "sandbox setup + replay", tone: "blue" },
+        { lane: "B: evidence", start: 1, end: 2, label: "property generators", tone: "blue" },
+        { lane: "B: evidence", start: 2, end: 3, label: "metamorphic + adversarial", tone: "blue" },
+        { lane: "B: evidence", start: 3, end: 4, label: "stats + SMT feasibility", tone: "blue" },
+        { lane: "B: evidence", start: 4, end: 5, label: "differential weights + ablation", tone: "blue" },
+        { lane: "C: paper", start: 0, end: 2, label: "unification + voice pass", tone: "amber" },
+        { lane: "C: paper", start: 3, end: 4, label: "Section 4.5 results", tone: "amber" },
+        { lane: "C: paper", start: 4, end: 5, label: "visual production", tone: "amber" },
+        { lane: "C: paper", start: 5, end: 6, label: "polish + reproducibility", tone: "amber" }
+      ],
+      workstreams: [
+        {
+          title: "Workstream A",
+          tag: "implementation",
+          tone: "green",
+          number: "3",
+          text: "Telemetry, dispatch observability, and experiment runner scaffolding."
+        },
+        {
+          title: "Workstream B",
+          tag: "evidence",
+          tone: "blue",
+          number: "5",
+          text: "Real dispatch traces, descent demo, ablation, adversarial probe, optional baseline."
+        },
+        {
+          title: "Workstream C",
+          tag: "paper",
+          tone: "violet",
+          number: "4",
+          text: "Unified draft, results integration, visual production, reproducibility appendix."
+        }
+      ],
+      weights: {
+        alpha:   { value: 1.0,   min: 0, max: 5,   step: 0.1,  label: "alpha",   sym: "α", name: "Claim-status entropy",   multiplies: "entropy of claim-promotion mix",       dir: "up",   why: "Uncertainty about where claims sit on the ladder." },
+        beta:    { value: 2.0,   min: 0, max: 5,   step: 0.1,  label: "beta",    sym: "β", name: "Claim-vs-evidence drift", multiplies: "KL(claimed ‖ verified)",               dir: "up",   why: "Heaviest soft term — drift counts double (×2)." },
+        gamma:   { value: 1.0,   min: 0, max: 5,   step: 0.1,  label: "gamma",   sym: "γ", name: "Forecast calibration",    multiplies: "log-loss(predictions, outcomes)",      dir: "up",   why: "Penalty for confident wrong forecasts." },
+        delta:   { value: 1.0,   min: 0, max: 5,   step: 0.1,  label: "delta",   sym: "δ", name: "Forecast accuracy",       multiplies: "Brier(forecasts, results)",            dir: "up",   why: "Penalty for inaccurate forecasts." },
+        epsilon: { value: 1.0,   min: 0, max: 5,   step: 0.1,  label: "epsilon", sym: "ε", name: "Information gain",         multiplies: "−info-gain(prior, posterior)",         dir: "down", why: "Genuine evidence progress lowers U." },
+        zeta:    { value: 0.5,   min: 0, max: 3,   step: 0.1,  label: "zeta",    sym: "ζ", name: "Evidence staleness",       multiplies: "Σ confidence-decay over evidence",     dir: "up",   why: "Aging evidence drags the score up (×0.5)." },
+        eta:     { value: 100.0, min: 0, max: 150, step: 1,    label: "eta",     sym: "η", name: "Protected-path violation", multiplies: "count of protected-path reads",        dir: "up",   why: "Catastrophic — one violation alone forces reject (ΔU=100)." },
+        theta:   { value: 10.0,  min: 0, max: 30,  step: 0.5,  label: "theta",   sym: "θ", name: "Ladder inversion",         multiplies: "count of skipped/inverted promotions", dir: "up",   why: "Hard penalty for jumping the promotion ladder (×10)." },
+        iota:    { value: 0.1,   min: 0, max: 1,   step: 0.01, label: "iota",    sym: "ι", name: "Verified-evidence credit", multiplies: "−count of verified evidence",          dir: "down", why: "Small reward for volume of verified evidence." }
+      },
+      realityStrip: [
+        { surface: "Energy function (computeU)", state: "built", note: "yuri-energy.mjs scores U over a state snapshot. 28 unit tests pass." },
+        { surface: "Telemetry layer (A.1)", state: "built", note: "17-field sanitized JSONL emitter, Codex-certified, 39 tests pass — no trace written yet." },
+        { surface: "Weight ledger (above)", state: "built", note: "Values match DEFAULT_WEIGHTS in source exactly." },
+        { surface: "Gate scenario A (descent)", state: "sim", note: "Real B.2 descent-demo: 15 transitions through the real gate, real U trajectory — synthetic scenario, not live traffic." },
+        { surface: "Gate scenario B (violation)", state: "sim", note: "Real function run on a synthetic protected-path worked-example state — not live traffic." },
+        { surface: "Energy field animation", state: "sim", note: "Illustrative two-basin geometry. Not the energy function." },
+        { surface: "Telemetry chart (default)", state: "built", note: "Reads the live trace state: baseline records only, 0 real-traffic dispatch records (B.1 window open). Honest empty state, no demo rows." },
+        { surface: "Gate wired into dispatch", state: "planned", note: "gateProposal() is callable but not bound to routing; observability flag is off." },
+        { surface: "Seven-layer sandbox", state: "planned", note: "Fully designed, pre-Codex-review. Core modules not on disk yet." },
+        { surface: "Experiments B.1–B.4 + figures", state: "planned", note: "Real traces, ablation, adversarial probe, 8 figures — scheduled Jun–Jul." }
+      ],
+      figures: [
+        { id: "Fig 1", desc: "ΔU distribution histogram across real dispatches", src: "B.1" },
+        { id: "Fig 2", desc: "U trajectory over a representative day", src: "B.1" },
+        { id: "Fig 3", desc: "Component-contribution stacked area", src: "B.1" },
+        { id: "Fig 4", desc: "U descent curve over a controlled sequence", src: "B.2" },
+        { id: "Fig 5", desc: "Component ablation: gate behaviour with each term removed", src: "B.3" },
+        { id: "Fig 6", desc: "Rejection rate by ablation", src: "B.3" },
+        { id: "Fig 7", desc: "Adversarial cases: intent vs what U saw vs verdict", src: "B.4" },
+        { id: "Fig 8", desc: "Gate-rejected vs structural-rejected transitions", src: "B.5 · optional" }
+      ],
+      scenarios: {
+        descent: {
+          title: "Scenario A: verified evidence descends",
+          expected: "accept",
+          bars: [
+            { name: "entropy", key: "alpha", raw: 0.014863032 },
+            { name: "KL drift", key: "beta", raw: -0.0880151685 },
+            { name: "verified evidence", key: "iota", raw: -1.0 },
+            { name: "protected paths", key: "eta", raw: 0 },
+            { name: "ladder inversions", key: "theta", raw: 0 }
+          ]
+        },
+        violation: {
+          title: "Scenario B: protected-path violation ascends",
+          expected: "reject",
+          bars: [
+            { name: "entropy", key: "alpha", raw: 0 },
+            { name: "KL drift", key: "beta", raw: 0 },
+            { name: "verified evidence", key: "iota", raw: 0 },
+            { name: "protected paths", key: "eta", raw: 1 },
+            { name: "ladder inversions", key: "theta", raw: 0 }
+          ]
+        }
+      },
+      // shapeExample: illustrative JSONL record shapes ONLY. NOT measured data and
+      // NOT rendered anywhere — the telemetry view reads REAL.telemetry instead.
+      // Kept solely to document the field shape a real dispatch record would carry.
+      shapeExample: [
+        { runId: "shape-001", lane: "main", deltaU: -0.26, decision: "accept", dominantTerm: null },
+        { runId: "shape-002", lane: "codex", deltaU: 100, decision: "reject", dominantTerm: "protectedPathViolations" }
+      ],
+      sources: [
+        { file: "00-evidence-plan.md", status: "planning", note: "Evidence gap, workstreams, figures, schedule, discipline rules." },
+        { file: "01-sandbox-simulation-architecture.md", status: "accepted", note: "Seven-layer sandbox, replay, privacy gate, research anchors." },
+        { file: "03-architecture-acceptance-docs-only.md", status: "packet", note: "Docs-only certification scope for Rick Prime review." },
+        { file: "04-operator-decisions.md", status: "locked", note: "HEAVY evidence scope, Web+D3/Observable visuals, public artifact." },
+        { file: "05-quantum-a1-telemetry-packet.md", status: "next", note: "A.1 implementation packet for sanitized JSONL telemetry." },
+        { file: "section-1-premise.md", status: "draft", note: "ICM/MWP premise and dynamical-control framing." },
+        { file: "section-2-gap.md", status: "draft", note: "Structural containment vs dynamical behavior gap." },
+        { file: "section-3-proposal.md", status: "draft", note: "Scalar potential U and strict-descent gate proposal." },
+        { file: "section-4-reference-implementation.md", status: "draft", note: "YURI reference implementation and worked examples." },
+        { file: "section-5-honest-limitations.md", status: "draft", note: "Known limits and what would advance the claim." },
+        { file: "section-6-open-questions.md", status: "draft", note: "Future questions, framing, and research extensions." }
+      ]
+    };
+
+    const state = {
+      weights: Object.fromEntries(Object.entries(DATA.weights).map(([key, item]) => [key, item.value])),
+      scenario: "descent",
+      // Seed telemetry from the REAL aggregated trace state, not fabricated demo
+      // rows. With zero real-traffic records this is an empty array, which the
+      // telemetry view renders as an honest empty state.
+      telemetry: REAL.telemetry.sampleRecords,
+      telemetryLive: false,
+      fieldMode: "conservative",
+      theme: "light",
+      reduceMotion: false
+    };
+
+    let colors = readThemeColors();
+    let fieldAnimationId = null;
+    let fieldParticles = [];
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function readThemeColors() {
+      return {
+        teal: cssVar("--teal") || "#0f766e",
+        blue: cssVar("--blue") || "#2563eb",
+        green: cssVar("--green") || "#15803d",
+        amber: cssVar("--amber") || "#b45309",
+        rose: cssVar("--rose") || "#be123c",
+        violet: cssVar("--violet") || "#6d28d9",
+        line: cssVar("--line") || "#d6dae2",
+        track: cssVar("--panel-soft") || "#eef0f4",
+        ink: cssVar("--ink") || "#171a21",
+        muted: cssVar("--muted") || "#5f6673",
+        chartBg: cssVar("--chart-bg") || "#ffffff",
+        paper: cssVar("--paper") || "#f7f5ef"
+      };
+    }
+
+    function refreshColors() {
+      colors = readThemeColors();
+    }
+
+    function hslToRgb(h, s, l) {
+      s /= 100;
+      l /= 100;
+      const k = (n) => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      return { r: Math.round(255 * f(0)), g: Math.round(255 * f(8)), b: Math.round(255 * f(4)) };
+    }
+
+    function parseColor(value) {
+      const text = String(value).trim();
+      if (text.startsWith("#")) {
+        const hex = text.slice(1);
+        const full = hex.length === 3 ? hex.split("").map((c) => c + c).join("") : hex;
+        return {
+          r: parseInt(full.slice(0, 2), 16),
+          g: parseInt(full.slice(2, 4), 16),
+          b: parseInt(full.slice(4, 6), 16)
+        };
+      }
+      // YURI tokens are hsl(); getComputedStyle returns them unresolved, so parse here.
+      const hsl = text.match(/hsla?\(([^)]+)\)/i);
+      if (hsl) {
+        const parts = hsl[1].replace(/\//g, " ").split(/[\s,]+/).filter(Boolean);
+        const h = Number.parseFloat(parts[0]);
+        const s = Number.parseFloat(parts[1]);
+        const l = Number.parseFloat(parts[2]);
+        if ([h, s, l].every(Number.isFinite)) return hslToRgb(h, s, l);
+      }
+      const match = text.match(/rgba?\(([^)]+)\)/);
+      if (!match) return { r: 160, g: 224, b: 130 };
+      const [r, g, b] = match[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part));
+      return { r, g, b };
+    }
+
+    function mixColor(a, b, t) {
+      const left = parseColor(a);
+      const right = parseColor(b);
+      const clamped = Math.max(0, Math.min(1, t));
+      const r = Math.round(left.r + (right.r - left.r) * clamped);
+      const g = Math.round(left.g + (right.g - left.g) * clamped);
+      const bb = Math.round(left.b + (right.b - left.b) * clamped);
+      return { r, g, b: bb };
+    }
+
+    function rgba(color, alpha) {
+      const parsed = typeof color === "string" ? parseColor(color) : color;
+      return `rgba(${parsed.r}, ${parsed.g}, ${parsed.b}, ${alpha})`;
+    }
+
+    function fmtNumber(value, digits = 3) {
+      if (!Number.isFinite(value)) return "n/a";
+      const fixed = Math.abs(value) >= 10 ? value.toFixed(1) : value.toFixed(digits);
+      return fixed.replace(/\.?0+$/, "");
+    }
+
+    function badge(text, tone = "") {
+      return `<span class="badge ${tone}">${text}</span>`;
+    }
+
+    function renderHeroMetrics() {
+      document.getElementById("heroMetrics").innerHTML = DATA.metrics.map((metric) => `
+        <div class="hero-metric">
+          <div class="metric-label">${metric.label}</div>
+          <div class="metric-value">${metric.value}</div>
+          <div class="metric-detail">${metric.detail}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderProblems() {
+      document.getElementById("problemGrid").innerHTML = DATA.problems.map((item) => `
+        <article class="card">
+          <div class="card-title">${item.title} ${badge(item.tag, item.tone)}</div>
+          <p class="card-text">${item.text}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderLayers() {
+      document.getElementById("layerFlow").innerHTML = DATA.layers.map((item, index) => `
+        <article class="flow-step">
+          <div class="step-index">L${index + 1}</div>
+          <div class="step-title">${item.title}</div>
+          <p class="step-text">${item.text}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderRealityStrip() {
+      const labels = { built: "Built", sim: "Simulated", planned: "Planned" };
+      document.getElementById("realityStrip").innerHTML = DATA.realityStrip.map((row) => `
+        <div class="reality-row">
+          <div class="r-surface">${row.surface}</div>
+          <span class="chip ${row.state}">${labels[row.state]}</span>
+          <div class="r-note">${row.note}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderFigures() {
+      document.getElementById("figureManifest").innerHTML = DATA.figures.map((f) => `
+        <div class="figure-row">
+          <span class="f-id">${f.id}</span>
+          <span class="f-desc">${f.desc}</span>
+          <span class="f-src">${f.src} · pending</span>
+        </div>
+      `).join("");
+    }
+
+    function applyTheme(theme, persist = true) {
+      state.theme = theme === "dark" ? "dark" : "light";
+      document.documentElement.dataset.theme = state.theme;
+      const button = document.getElementById("themeToggle");
+      if (button) {
+        button.textContent = state.theme === "dark" ? "Light" : "Dark";
+        button.setAttribute("aria-pressed", String(state.theme === "dark"));
+      }
+      if (persist) {
+        try {
+          localStorage.setItem("yuri-energy-dashboard-theme", state.theme);
+        } catch (err) {
+          // File URLs can block storage in some browser settings.
+        }
+      }
+      refreshColors();
+      renderTimeline();
+      renderScenario();
+      renderTelemetry(state.telemetry);
+      drawField(0);
+    }
+
+    function setupTheme() {
+      let initial = "dark";
+      try {
+        initial = localStorage.getItem("yuri-energy-dashboard-theme") || "dark";
+      } catch (err) {
+        initial = "dark";
+      }
+      const button = document.getElementById("themeToggle");
+      button.addEventListener("click", () => applyTheme(state.theme === "dark" ? "light" : "dark"));
+      applyTheme(initial, false);
+    }
+
+    function potential(x, y, phase = 0) {
+      const basinA = Math.exp(-(((x - 0.42) ** 2) / 0.12 + ((y + 0.24) ** 2) / 0.16));
+      const basinB = Math.exp(-(((x + 0.46) ** 2) / 0.18 + ((y - 0.36) ** 2) / 0.12));
+      const ridge = Math.exp(-(((x + 0.04) ** 2) / 0.08 + ((y + 0.02) ** 2) / 0.06));
+      const texture = 0.12 * Math.sin(3.2 * x + phase * 0.4) * Math.cos(2.4 * y - phase * 0.3);
+      return 0.72 * (x * x + y * y) - 1.35 * basinA - 0.9 * basinB + 0.72 * ridge + texture;
+    }
+
+    function gradient(x, y, phase = 0) {
+      const h = 0.012;
+      return {
+        x: (potential(x + h, y, phase) - potential(x - h, y, phase)) / (2 * h),
+        y: (potential(x, y + h, phase) - potential(x, y - h, phase)) / (2 * h)
+      };
+    }
+
+    function vectorAt(x, y, phase = 0) {
+      if (state.fieldMode === "unconstrained") {
+        return {
+          x: -1.2 * y + 0.46 * Math.sin(3 * y + phase) + 0.24 * Math.cos(5 * x - phase * 0.7),
+          y: 1.2 * x + 0.42 * Math.cos(2.4 * x - phase) - 0.20 * Math.sin(4 * y + phase)
+        };
+      }
+      const grad = gradient(x, y, phase);
+      return { x: -grad.x, y: -grad.y };
+    }
+
+    function resetFieldParticles() {
+      fieldParticles = Array.from({ length: 32 }, (_, index) => {
+        const angle = index * 2.399963;
+        const radius = 0.18 + (index % 8) * 0.09;
+        return {
+          x: Math.cos(angle) * radius + ((index % 3) - 1) * 0.22,
+          y: Math.sin(angle) * radius + ((index % 5) - 2) * 0.11,
+          trail: []
+        };
+      });
+    }
+
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const width = Math.max(320, Math.floor(rect.width * dpr));
+      const height = Math.max(320, Math.floor(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      return { width, height, dpr };
+    }
+
+    function worldToCanvas(x, y, width, height) {
+      const scale = Math.min(width, height) * 0.39;
+      return {
+        x: width * 0.5 + x * scale,
+        y: height * 0.52 + y * scale
+      };
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, alpha = 1) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const size = 5;
+      ctx.strokeStyle = rgba(color, alpha);
+      ctx.fillStyle = rgba(color, alpha);
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - Math.cos(angle - 0.55) * size, y2 - Math.sin(angle - 0.55) * size);
+      ctx.lineTo(x2 - Math.cos(angle + 0.55) * size, y2 - Math.sin(angle + 0.55) * size);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawField(time = 0) {
+      const canvas = document.getElementById("fieldCanvas");
+      if (!canvas) return;
+      refreshColors();
+      const ctx = canvas.getContext("2d");
+      const { width, height } = resizeCanvas(canvas);
+      const phase = time * 0.00055;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = colors.chartBg;
+      ctx.fillRect(0, 0, width, height);
+
+      const low = colors.teal;
+      const mid = state.theme === "dark" ? colors.blue : "#f8fafc";
+      const high = state.fieldMode === "unconstrained" ? colors.rose : colors.amber;
+      const cols = 62;
+      const rows = 36;
+      for (let iy = 0; iy < rows; iy += 1) {
+        for (let ix = 0; ix < cols; ix += 1) {
+          const x = (ix / (cols - 1)) * 2.6 - 1.3;
+          const y = (iy / (rows - 1)) * 2.0 - 1.0;
+          const energy = state.fieldMode === "unconstrained"
+            ? Math.sin(2.8 * x + phase) * Math.cos(2.2 * y - phase) + 0.35 * (x * x + y * y)
+            : potential(x, y, phase);
+          const normalized = Math.max(0, Math.min(1, (energy + 1.05) / 2.35));
+          const base = normalized < 0.52
+            ? mixColor(low, mid, normalized / 0.52)
+            : mixColor(mid, high, (normalized - 0.52) / 0.48);
+          ctx.fillStyle = rgba(base, state.theme === "dark" ? 0.20 : 0.28);
+          ctx.fillRect((ix / cols) * width, (iy / rows) * height, width / cols + 1, height / rows + 1);
+        }
+      }
+
+      ctx.strokeStyle = rgba(colors.line, state.theme === "dark" ? 0.34 : 0.62);
+      ctx.lineWidth = 1;
+      for (let i = -6; i <= 6; i += 1) {
+        ctx.beginPath();
+        for (let j = -80; j <= 80; j += 1) {
+          const x = j / 60;
+          const y = i / 6 + 0.08 * Math.sin(j / 9 + i + phase);
+          const p = worldToCanvas(x, y, width, height);
+          if (j === -80) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      for (let i = -8; i <= 8; i += 1) {
+        ctx.beginPath();
+        for (let j = -60; j <= 60; j += 1) {
+          const x = i / 7 + 0.06 * Math.sin(j / 8 + phase);
+          const y = j / 60;
+          const p = worldToCanvas(x, y, width, height);
+          if (j === -60) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+
+      const arrowColor = state.fieldMode === "unconstrained" ? colors.rose : colors.teal;
+      for (let y = -0.85; y <= 0.85; y += 0.28) {
+        for (let x = -1.16; x <= 1.16; x += 0.28) {
+          const v = vectorAt(x, y, phase);
+          const mag = Math.hypot(v.x, v.y) || 1;
+          const p = worldToCanvas(x, y, width, height);
+          const len = state.fieldMode === "unconstrained" ? 22 : 18;
+          drawArrow(ctx, p.x - (v.x / mag) * 5, p.y - (v.y / mag) * 5, p.x + (v.x / mag) * len, p.y + (v.y / mag) * len, arrowColor, 0.58);
+        }
+      }
+
+      for (const particle of fieldParticles) {
+        const v = vectorAt(particle.x, particle.y, phase);
+        const speed = Math.hypot(v.x, v.y) || 1;
+        particle.x += (v.x / speed) * 0.0065;
+        particle.y += (v.y / speed) * 0.0065;
+        if (Math.abs(particle.x) > 1.34 || Math.abs(particle.y) > 1.08) {
+          particle.x *= -0.72;
+          particle.y *= -0.72;
+          particle.trail = [];
+        }
+        if (state.fieldMode === "conservative" && potential(particle.x, particle.y, phase) < -0.95) {
+          particle.x += (Math.random() - 0.5) * 0.018;
+          particle.y += (Math.random() - 0.5) * 0.018;
+        }
+        particle.trail.push({ x: particle.x, y: particle.y });
+        if (particle.trail.length > 42) particle.trail.shift();
+
+        ctx.beginPath();
+        particle.trail.forEach((point, index) => {
+          const p = worldToCanvas(point.x, point.y, width, height);
+          if (index === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.strokeStyle = rgba(state.fieldMode === "unconstrained" ? colors.amber : colors.teal, 0.34);
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        const p = worldToCanvas(particle.x, particle.y, width, height);
+        ctx.fillStyle = rgba(state.fieldMode === "unconstrained" ? colors.rose : colors.teal, 0.92);
+        ctx.shadowColor = rgba(state.fieldMode === "unconstrained" ? colors.rose : colors.teal, 0.72);
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      if (state.fieldMode === "conservative") {
+        for (const basin of [{ x: 0.42, y: -0.24 }, { x: -0.46, y: 0.36 }]) {
+          const p = worldToCanvas(basin.x, basin.y, width, height);
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 78);
+          grad.addColorStop(0, rgba(colors.teal, 0.42));
+          grad.addColorStop(1, rgba(colors.teal, 0));
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 78, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function animateField(time) {
+      drawField(time);
+      fieldAnimationId = requestAnimationFrame(animateField);
+    }
+
+    function renderFieldMetrics() {
+      const conservative = state.fieldMode === "conservative";
+      document.getElementById("fieldFormula").textContent = conservative
+        ? "downhill = accepted"
+        : "rotation = never settles";
+      document.getElementById("fieldCaption").textContent = conservative
+        ? "Every point has one downhill direction, so motion settles into stable basins — the analogy for the gate's accept-if-ΔU≤0 rule."
+        : "Local arrows with no global score: motion can circulate forever — the contrast case, a transition with no dynamical check.";
+      document.getElementById("fieldMetrics").innerHTML = [
+        ["surface", "illustrative — not computeU"],
+        ["real U components", "9 (see Scoring)"],
+        ["this view shows", conservative ? "descent into basins" : "rotation, no basin"],
+        ["maps to", conservative ? "accept if ΔU ≤ 0" : "no dynamical check"],
+        ["motion", state.reduceMotion ? "reduced" : "animated"]
+      ].map(([label, value]) => `
+        <div class="field-metric"><span>${label}</span><strong>${value}</strong></div>
+      `).join("");
+    }
+
+    function setupField() {
+      state.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      resetFieldParticles();
+      renderFieldMetrics();
+      document.querySelectorAll("[data-field-mode]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.fieldMode = button.dataset.fieldMode;
+          document.querySelectorAll("[data-field-mode]").forEach((node) => node.classList.toggle("active", node === button));
+          resetFieldParticles();
+          renderFieldMetrics();
+          drawField(0);
+        });
+      });
+      if (fieldAnimationId) cancelAnimationFrame(fieldAnimationId);
+      if (state.reduceMotion) {
+        drawField(0);
+      } else {
+        fieldAnimationId = requestAnimationFrame(animateField);
+      }
+      window.addEventListener("resize", () => drawField(0));
+    }
+
+    function makeSVG(tag, attrs = {}, children = []) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [key, value] of Object.entries(attrs)) {
+        node.setAttribute(key, value);
+      }
+      for (const child of children) {
+        node.appendChild(child);
+      }
+      return node;
+    }
+
+    function textNode(x, y, text, attrs = {}) {
+      const node = makeSVG("text", { x, y, ...attrs });
+      node.textContent = text;
+      return node;
+    }
+
+    function clearSVG(id) {
+      const svg = document.getElementById(id);
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      return svg;
+    }
+
+    function renderTimeline() {
+      refreshColors();
+      const svg = clearSVG("timelineChart");
+      const width = Number(svg.getAttribute("width"));
+      const height = Number(svg.getAttribute("height"));
+      const margin = { top: 46, right: 24, bottom: 32, left: 142 };
+      const laneHeight = 96;
+      const weekWidth = (width - margin.left - margin.right) / DATA.weeks.length;
+      const lanes = [...new Set(DATA.timeline.map((item) => item.lane))];
+
+      svg.appendChild(makeSVG("rect", { x: 0, y: 0, width, height, fill: colors.chartBg, rx: 8 }));
+
+      DATA.weeks.forEach((week, i) => {
+        const x = margin.left + i * weekWidth;
+        svg.appendChild(makeSVG("line", {
+          x1: x, y1: margin.top - 24, x2: x, y2: height - margin.bottom,
+          stroke: colors.line, "stroke-width": 1
+        }));
+        svg.appendChild(textNode(x + 8, 24, week, {
+          fill: colors.muted, "font-size": 12, "font-family": "ui-monospace, monospace", "font-weight": 700
+        }));
+      });
+
+      lanes.forEach((lane, laneIndex) => {
+        const y = margin.top + laneIndex * laneHeight;
+        svg.appendChild(textNode(16, y + 36, lane, {
+          fill: colors.ink, "font-size": 13, "font-weight": 800
+        }));
+        svg.appendChild(makeSVG("line", {
+          x1: margin.left, y1: y + 52, x2: width - margin.right, y2: y + 52,
+          stroke: colors.track, "stroke-width": 1
+        }));
+      });
+
+      DATA.timeline.forEach((item) => {
+        const laneIndex = lanes.indexOf(item.lane);
+        const x = margin.left + item.start * weekWidth + 7;
+        const y = margin.top + laneIndex * laneHeight + 22;
+        const w = Math.max(1, (item.end - item.start) * weekWidth - 14);
+        const fill = colors[item.tone] || colors.teal;
+        svg.appendChild(makeSVG("rect", {
+          x, y, width: w, height: 44, rx: 6, fill, opacity: 0.92
+        }));
+        const label = item.label.length > 34 ? `${item.label.slice(0, 31)}...` : item.label;
+        svg.appendChild(textNode(x + 10, y + 27, label, {
+          fill: state.theme === "dark" ? "hsl(0, 0%, 6%)" : "#ffffff", "font-size": 12, "font-weight": 800
+        }));
+      });
+    }
+
+    function renderWorkstreams() {
+      document.getElementById("workstreamGrid").innerHTML = DATA.workstreams.map((item) => `
+        <article class="card">
+          <div class="card-title">${item.title} ${badge(item.tag, item.tone)}</div>
+          <div class="big-number">${item.number}</div>
+          <p class="card-text">${item.text}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderWeightControls() {
+      document.getElementById("weightControls").innerHTML = Object.entries(DATA.weights).map(([key, item]) => `
+        <div class="ledger-row">
+          <div class="ledger-comp">${item.name}<small>${item.sym} · ${item.label}</small></div>
+          <div class="ledger-weight">
+            <input id="weight-${key}" type="range" min="${item.min}" max="${item.max}" step="${item.step}" value="${state.weights[key]}" data-weight="${key}" aria-label="${item.name} weight">
+            <span class="ledger-wval" id="value-${key}">${fmtNumber(state.weights[key], 2)}</span>
+          </div>
+          <div class="ledger-mult">${item.multiplies}</div>
+          <div class="ledger-dir ${item.dir}">${item.dir === "up" ? "▲ raises U" : "▼ lowers U"}</div>
+          <div class="ledger-why">${item.why}</div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll("[data-weight]").forEach((input) => {
+        input.addEventListener("input", (event) => {
+          const key = event.target.dataset.weight;
+          state.weights[key] = Number(event.target.value);
+          document.getElementById(`value-${key}`).textContent = fmtNumber(state.weights[key], 2);
+          renderScenario();
+        });
+      });
+    }
+
+    function scenarioContributions() {
+      const scenario = DATA.scenarios[state.scenario];
+      return scenario.bars.map((bar) => ({
+        ...bar,
+        value: bar.raw * state.weights[bar.key]
+      }));
+    }
+
+    function renderDescentTrajectory() {
+      refreshColors();
+      const d = REAL.descent;
+      const traj = d.uTrajectory;          // 16 real computeU outputs (16 states)
+      const deltas = d.deltaUSeries;       // 15 real ΔU values
+      const finalU = d.finalU;
+
+      document.getElementById("scenarioStats").innerHTML = `
+        <div class="stat-box"><span class="metric-label">transitions</span><strong>${d.transitionCount}</strong></div>
+        <div class="stat-box"><span class="metric-label">accept/reject</span><strong>${d.accepted}/${d.rejected}</strong></div>
+        <div class="stat-box"><span class="metric-label">final U</span><strong>${fmtNumber(finalU, 6)}</strong></div>
+      `;
+
+      const svg = clearSVG("scenarioChart");
+      const width = Number(svg.getAttribute("width"));
+      const height = Number(svg.getAttribute("height"));
+      const margin = { top: 30, right: 30, bottom: 40, left: 56 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      svg.appendChild(makeSVG("rect", { x: 0, y: 0, width, height, fill: colors.chartBg, rx: 8 }));
+      svg.appendChild(textNode(margin.left, 20, "Scenario A: real U descent (B.2 · synthetic scenario)", {
+        fill: colors.ink, "font-size": 14, "font-weight": 900
+      }));
+
+      const yMax = Math.max(...traj);
+      const yMin = Math.min(...traj);
+      const yPad = (yMax - yMin) * 0.08 || 1;
+      const lo = yMin - yPad;
+      const hi = yMax + yPad;
+      const xAt = (i) => margin.left + (i / (traj.length - 1)) * plotW;
+      const yAt = (v) => margin.top + (1 - (v - lo) / (hi - lo)) * plotH;
+
+      // Zero baseline (U = 0) — the gate's accept/reject reference line.
+      if (lo < 0 && hi > 0) {
+        const zeroY = yAt(0);
+        svg.appendChild(makeSVG("line", {
+          x1: margin.left, y1: zeroY, x2: margin.left + plotW, y2: zeroY,
+          stroke: colors.line, "stroke-width": 1, "stroke-dasharray": "4 4"
+        }));
+        svg.appendChild(textNode(margin.left + plotW - 30, zeroY - 5, "U = 0", {
+          fill: colors.muted, "font-size": 10, "font-family": "ui-monospace, monospace"
+        }));
+      }
+
+      // Descent polyline.
+      const points = traj.map((v, i) => `${xAt(i)},${yAt(v)}`).join(" ");
+      svg.appendChild(makeSVG("polyline", {
+        points, fill: "none", stroke: colors.green, "stroke-width": 2.5,
+        "stroke-linejoin": "round", "stroke-linecap": "round"
+      }));
+
+      // Point markers + endpoint labels.
+      traj.forEach((v, i) => {
+        svg.appendChild(makeSVG("circle", {
+          cx: xAt(i), cy: yAt(v), r: 3.2, fill: colors.green, opacity: 0.92
+        }));
+      });
+      svg.appendChild(textNode(xAt(0) + 6, yAt(traj[0]) - 8, fmtNumber(traj[0], 3), {
+        fill: colors.muted, "font-size": 10, "font-family": "ui-monospace, monospace"
+      }));
+      svg.appendChild(textNode(xAt(traj.length - 1) - 44, yAt(traj[traj.length - 1]) - 8, fmtNumber(finalU, 3), {
+        fill: colors.green, "font-size": 11, "font-weight": 800, "font-family": "ui-monospace, monospace"
+      }));
+
+      // X axis: transition index.
+      svg.appendChild(textNode(margin.left, height - 14, "transition →", {
+        fill: colors.muted, "font-size": 11
+      }));
+      svg.appendChild(textNode(margin.left + plotW - 70, height - 14, `${deltas.length} ΔU steps`, {
+        fill: colors.muted, "font-size": 11, "font-family": "ui-monospace, monospace"
+      }));
+    }
+
+    function renderScenario() {
+      // The descent tab plots the REAL 15-transition U trajectory from the B.2
+      // descent-demo (run through the actual gate). The violation tab keeps the
+      // single-transition component bar worked example.
+      if (state.scenario === "descent") {
+        renderDescentTrajectory();
+        return;
+      }
+      refreshColors();
+      const scenario = DATA.scenarios[state.scenario];
+      const bars = scenarioContributions();
+      const delta = bars.reduce((sum, item) => sum + item.value, 0);
+      const decision = delta <= 0 ? "accept" : "reject";
+      const dominant = decision === "reject"
+        ? bars.filter((item) => item.value > 0).sort((a, b) => b.value - a.value)[0]?.name || "none"
+        : "none";
+
+      document.getElementById("scenarioStats").innerHTML = `
+        <div class="stat-box"><span class="metric-label">ΔU</span><strong>${fmtNumber(delta, 6)}</strong></div>
+        <div class="stat-box"><span class="metric-label">Decision</span><strong>${decision}</strong></div>
+        <div class="stat-box"><span class="metric-label">Dominant risk</span><strong>${dominant}</strong></div>
+      `;
+
+      const svg = clearSVG("scenarioChart");
+      const width = Number(svg.getAttribute("width"));
+      const height = Number(svg.getAttribute("height"));
+      const margin = { top: 28, right: 30, bottom: 46, left: 138 };
+      const plotW = width - margin.left - margin.right;
+      const rowH = 46;
+      const axisX = margin.left + plotW / 2;
+      const maxAbs = Math.max(0.2, ...bars.map((item) => Math.abs(item.value)));
+      const scale = (plotW / 2 - 20) / maxAbs;
+
+      svg.appendChild(makeSVG("rect", { x: 0, y: 0, width, height, fill: colors.chartBg, rx: 8 }));
+      svg.appendChild(textNode(margin.left, 20, scenario.title, {
+        fill: colors.ink, "font-size": 14, "font-weight": 900
+      }));
+      svg.appendChild(makeSVG("line", {
+        x1: axisX, y1: margin.top + 10, x2: axisX, y2: height - margin.bottom,
+        stroke: colors.line, "stroke-width": 2
+      }));
+      svg.appendChild(textNode(axisX + 6, height - 18, "0", {
+        fill: colors.muted, "font-size": 11, "font-family": "ui-monospace, monospace"
+      }));
+
+      bars.forEach((item, index) => {
+        const y = margin.top + 22 + index * rowH;
+        const barW = Math.abs(item.value) * scale;
+        const x = item.value >= 0 ? axisX : axisX - barW;
+        const fill = item.value >= 0 ? colors.rose : colors.green;
+        svg.appendChild(textNode(18, y + 19, item.name, {
+          fill: colors.ink, "font-size": 12, "font-weight": 800
+        }));
+        svg.appendChild(makeSVG("rect", {
+          x, y, width: Math.max(1, barW), height: 24, rx: 4, fill, opacity: 0.9
+        }));
+        svg.appendChild(textNode(item.value >= 0 ? x + barW + 6 : x - 58, y + 17, fmtNumber(item.value, 4), {
+          fill: colors.muted, "font-size": 11, "font-family": "ui-monospace, monospace"
+        }));
+      });
+    }
+
+    function renderTelemetry(records = state.telemetry) {
+      refreshColors();
+      const clean = records.filter((item) => Number.isFinite(Number(item.deltaU)));
+      const acceptCount = clean.filter((item) => item.decision === "accept").length;
+      const rejectCount = Math.max(0, clean.length - acceptCount);
+      const avg = clean.length ? clean.reduce((sum, item) => sum + Number(item.deltaU), 0) / clean.length : 0;
+      const largest = clean.reduce((max, item) => Math.max(max, Number(item.deltaU)), Number.NEGATIVE_INFINITY);
+
+      document.getElementById("traceCountBadge").textContent = state.telemetryLive ? `${clean.length} records` : REAL.telemetry.chip;
+      document.getElementById("telemetryStats").innerHTML = `
+        <div class="stat-box"><span class="metric-label">records</span><strong>${clean.length}</strong></div>
+        <div class="stat-box"><span class="metric-label">accept/reject</span><strong>${acceptCount}/${rejectCount}</strong></div>
+        <div class="stat-box"><span class="metric-label">avg ΔU</span><strong>${fmtNumber(avg, 3)}</strong></div>
+      `;
+
+      const svg = clearSVG("telemetryChart");
+      const width = Number(svg.getAttribute("width"));
+      const height = Number(svg.getAttribute("height"));
+      const margin = { top: 28, right: 24, bottom: 44, left: 48 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      svg.appendChild(makeSVG("rect", { x: 0, y: 0, width, height, fill: colors.chartBg, rx: 8 }));
+
+      if (!clean.length) {
+        // Honest empty state. Before any user paste, this reflects the REAL
+        // trace state: dispatch traffic has not been captured yet (B.1 open).
+        const line1 = state.telemetryLive
+          ? "No valid trace records in the pasted input."
+          : `${REAL.telemetry.totalRecords} trace records on disk · 0 real-traffic (dispatch) records yet.`;
+        const line2 = state.telemetryLive
+          ? ""
+          : "B.1 collection window is open — paste a sanitized JSONL line to preview the real shape.";
+        svg.appendChild(textNode(24, 56, line1, { fill: colors.muted, "font-size": 14 }));
+        if (line2) {
+          svg.appendChild(textNode(24, 80, line2, { fill: colors.muted, "font-size": 12 }));
+        }
+        return;
+      }
+
+      const values = clean.map((item) => Number(item.deltaU));
+      const min = Math.min(-1, ...values);
+      const max = Math.max(1, ...values, largest);
+      const bucketCount = 10;
+      const bucketSize = (max - min) / bucketCount || 1;
+      const buckets = Array.from({ length: bucketCount }, (_, i) => ({
+        x0: min + i * bucketSize,
+        x1: min + (i + 1) * bucketSize,
+        count: 0
+      }));
+
+      values.forEach((value) => {
+        const idx = Math.max(0, Math.min(bucketCount - 1, Math.floor((value - min) / bucketSize)));
+        buckets[idx].count += 1;
+      });
+
+      const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
+      const zeroX = margin.left + ((0 - min) / (max - min)) * plotW;
+      svg.appendChild(makeSVG("line", {
+        x1: zeroX, y1: margin.top, x2: zeroX, y2: margin.top + plotH,
+        stroke: colors.line, "stroke-width": 2
+      }));
+
+      buckets.forEach((bucket, i) => {
+        const x = margin.left + (i / bucketCount) * plotW + 4;
+        const w = plotW / bucketCount - 8;
+        const h = (bucket.count / maxCount) * (plotH - 16);
+        const y = margin.top + plotH - h;
+        const fill = bucket.x1 <= 0 ? colors.green : bucket.x0 >= 0 ? colors.rose : colors.amber;
+        svg.appendChild(makeSVG("rect", { x, y, width: w, height: h, rx: 4, fill, opacity: 0.88 }));
+        svg.appendChild(textNode(x + 4, margin.top + plotH + 18, fmtNumber(bucket.x0, 1), {
+          fill: colors.muted, "font-size": 10, "font-family": "ui-monospace, monospace"
+        }));
+      });
+
+      svg.appendChild(textNode(margin.left, 20, "ΔU distribution", {
+        fill: colors.ink, "font-size": 14, "font-weight": 900
+      }));
+    }
+
+    function parseTelemetryText(text) {
+      // A.1 emits a flat camelCase record. Trust the gate's own decision field;
+      // only infer accept/reject if a (legacy) record omits it.
+      const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+      const parsed = [];
+      for (const line of lines) {
+        try {
+          const item = JSON.parse(line);
+          const delta = Number(item.deltaU);
+          const decision = item.decision != null
+            ? String(item.decision)
+            : (Number.isFinite(delta) && delta <= 0 ? "accept" : "reject");
+          parsed.push({
+            runId: String(item.runId ?? "unknown"),
+            lane: String(item.lane ?? "unknown"),
+            deltaU: delta,
+            decision,
+            dominantTerm: item.dominantTerm ?? null
+          });
+        } catch (err) {
+          parsed.push({ runId: "parse-error", lane: "local", deltaU: Number.NaN, decision: "reject", dominantTerm: null });
+        }
+      }
+      return parsed;
+    }
+
+    function renderSources() {
+      document.getElementById("sourceList").innerHTML = DATA.sources.map((item) => {
+        const tone = item.status === "locked" || item.status === "accepted"
+          ? "green"
+          : item.status === "next"
+            ? "blue"
+            : item.status === "packet"
+              ? "violet"
+              : "amber";
+        return `
+          <div class="source-row">
+            <a href="${item.file}">${item.file}</a>
+            ${badge(item.status, tone)}
+            <div class="source-note">${item.note}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".tab[data-scenario]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.scenario = button.dataset.scenario;
+          document.querySelectorAll(".tab[data-scenario]").forEach((node) => node.classList.toggle("active", node === button));
+          renderScenario();
+        });
+      });
+    }
+
+    function setupTelemetry() {
+      const textarea = document.getElementById("jsonlInput");
+      // Seed with REAL captured dispatch rows. With zero real-traffic records the
+      // textarea starts empty (no fabricated demo rows). A placeholder shows the
+      // expected JSONL shape without presenting it as measured data.
+      textarea.value = REAL.telemetry.sampleRecords.map((item) => JSON.stringify(item)).join("\n");
+      if (!REAL.telemetry.sampleRecords.length) {
+        textarea.placeholder = '{"runId":"…","lane":"main","deltaU":-0.26,"decision":"accept","dominantTerm":null}';
+      }
+      document.getElementById("parseTelemetry").addEventListener("click", () => {
+        state.telemetry = parseTelemetryText(textarea.value);
+        state.telemetryLive = true;
+        renderTelemetry(state.telemetry);
+      });
+      document.getElementById("jsonlFile").addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        textarea.value = await file.text();
+        state.telemetry = parseTelemetryText(textarea.value);
+        state.telemetryLive = true;
+        renderTelemetry(state.telemetry);
+      });
+    }
+
+    function init() {
+      setupTheme();
+      renderHeroMetrics();
+      renderRealityStrip();
+      renderProblems();
+      renderFigures();
+      renderLayers();
+      renderTimeline();
+      renderWorkstreams();
+      renderWeightControls();
+      setupTabs();
+      renderScenario();
+      setupField();
+      setupTelemetry();
+      renderTelemetry();
+      renderSources();
+    }
+
+    init();
+  </script>
+</body>
+</html>

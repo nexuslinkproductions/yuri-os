@@ -40,6 +40,7 @@ import {
   resolvePulseTracePaths,
   writePulseTraceSnapshot,
 } from './pulse-trace-ledger.mjs';
+import { traceDispatchEvent } from './math/yuri-energy-dispatch-bridge.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
@@ -172,6 +173,8 @@ if (quarantineSubstitution.substituted) {
   lane = quarantineSubstitution.to;
   resolved = quarantineSubstitution.resolved;
 }
+// A.2.a observability hook — fire-and-forget, never throws into dispatch path.
+traceDispatchEvent({ lane: 'offload', runId: `offload-${Date.now()}` });
 
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });

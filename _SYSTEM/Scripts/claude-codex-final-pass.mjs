@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { traceDispatchEvent } from './math/yuri-energy-dispatch-bridge.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -63,6 +64,8 @@ const preview = {
   command: [process.execPath, ...runnerArgs.slice(0, -1), '<prompt>'],
 };
 fs.writeFileSync(path.join(artifactDir, 'handoff.json'), `${JSON.stringify(preview, null, 2)}\n`);
+// A.2.a observability hook — fire-and-forget, never throws into dispatch path.
+traceDispatchEvent({ lane: 'codex-final-pass', runId: `codex-final-pass-${Date.now()}` });
 
 const result = spawnSync(process.execPath, runnerArgs, {
   cwd: REPO_ROOT,

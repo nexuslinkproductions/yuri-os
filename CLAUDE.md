@@ -118,6 +118,68 @@ Writing to this lane is allowed only when the packet grants `CLAUDE_OUTPUT_LANE_
 
 This lane is advisory organization. Accepted truth still moves into the task's canonical artifact path after Codex/main verification.
 
+## Claude Auto-Memory (Behavioral Self-Development) — v3 Format
+
+Two-track memory architecture lives in `_SYSTEM/yuri-origin.md` under `Memory Architecture (Two Tracks)`. Read it before deciding where a memory belongs.
+
+Use Claude auto-memory **only** for Claude behavioral self-development with this operator: communication preferences, output-mode habits, tool-routing heuristics, voice/style instincts, low-stakes self-correction.
+
+YURI project facts, collaborators, IP constraints, paper deadlines, durable architecture decisions, and any rule other lanes need to know go through `memory-kernel.mjs` (Track A). Ambiguous cases default to Track A.
+
+Direct Write tool calls into `~/.claude/projects/*/memory/` remain blocked by the protected-paths rule. The only allowed write path is the wrapper.
+
+### v3 Format Conventions (2026 SOTA-grounded)
+
+Adopted 2026-05-28 from research synthesis (SimpleMem, Memori, Mem0, LLMLingua, function-tokens). See `REF:MEMORY-FORMAT-RESEARCH` for full provenance.
+
+**Index format** — `MEMORY.md` lines use the stable-handle convention:
+```
+[FB:ROUTE-TO-QUANTUM](feedback-route-to-quantum.md) — non-trivial impl → packet to Quantum Rick via tmux
+```
+Handle prefixes: `FB:` feedback · `REF:` reference · `PROJ:` project · `USR:` user.
+
+**Body conventions per type:**
+- `feedback` — `RULE | WHEN | DO | DONT | [STYLE] | WHY | SEE`
+- `reference` — `FACTS (semantic triples) | IMPLICATION | SEE`
+- `project` — `GOAL | WHO | WHEN | WHERE | STATE | NEXT | SEE`
+- `user` — free-form
+
+`STYLE` is optional but required when the rule has tone or voice implications (e.g. peer-lane / no-blame coordination). It captures the voice the rule must be applied in, not just the action. Evidence anchors in `WHY` and `SEE` must be timeless — cite skills, policies, and mechanisms; avoid brittle wording like specific counts, commit hashes, or single-incident references that age into staleness.
+
+**Frontmatter** — beyond required `name/description/metadata.type`, v3 adds:
+- `tier: working | episodic | semantic` — recall priority
+- `scope: main | all | claude` — which lanes care
+- `trig: ["phrase1", "phrase2"]` — intent-matching triggers
+- `refs: ["[[other-slug]]"]` — crosslinks
+
+### Wrapper Usage
+
+```bash
+node _SYSTEM/Scripts/claude-memory-write.mjs surfaces     # show v3 conventions inline
+node _SYSTEM/Scripts/claude-memory-write.mjs list
+node _SYSTEM/Scripts/claude-memory-write.mjs read --name <name>
+node _SYSTEM/Scripts/claude-memory-write.mjs add \
+  --name <kebab-case-slug> \
+  --type <feedback|reference|project|user> \
+  --description "<one-line ≤80 chars>" \
+  --tier <working|episodic|semantic> \
+  --scope <main|all|claude> \
+  --trig "phrase1,phrase2,phrase3" \
+  --refs "[[other-slug-1]],[[other-slug-2]]" \
+  --body-file /tmp/body.md
+node _SYSTEM/Scripts/claude-memory-write.mjs add ... --force   # overwrite existing
+node _SYSTEM/Scripts/claude-memory-write.mjs remove --name <name>
+node _SYSTEM/Scripts/claude-memory-write.mjs reindex
+```
+
+The wrapper refuses writes outside `memory/` and refuses any path segment named `history`, `state`, `file-history`, `worktrees`, or `transcripts`. It validates frontmatter and keeps `MEMORY.md` consistent atomically.
+
+### Migration Policy
+
+V3 is the going-forward standard. Pre-v3 entries (underscore-named) stay as-is until they get refined; migrate opportunistically, not in bulk. Mixed-version index lines coexist — the wrapper auto-derives the handle from `name + metadata.type`.
+
+Do not duplicate YURI project facts into Claude auto-memory. Cross-link by handle only: `See YURI memory: <slug>` or `[[fb-slug]]`.
+
 ## Adversarial Verification
 
 Treat first-run success as a hypothesis, not proof.
@@ -261,7 +323,7 @@ After edits:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os** (44724 symbols, 66937 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **yuri-os** (45368 symbols, 67848 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

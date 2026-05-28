@@ -119,7 +119,7 @@
     {
       "id": "mathematics",
       "label": "Mathematical Operating Substrate Context",
-      "triggers": ["math", "mathematics", "algorithm", "algorithms", "logarithm", "logarithmic", "entropy", "kl", "dijkstra", "astar", "a*", "formula", "eml", "proof", "graph", "bayes", "brier", "calibration", "vector", "optimization"],
+      "triggers": ["math", "mathematics", "algorithm", "algorithms", "logarithm", "logarithmic", "entropy", "kl", "dijkstra", "astar", "a*", "formula", "eml", "proof", "graph", "bayes", "brier", "calibration", "vector", "optimization", "lyapunov", "energy", "energy-landscape", "potential", "scalar-potential", "conservative-vector-field", "gateProposal", "yuri-energy", "agent-control-plane", "lyapunov-gate", "icm", "mwp"],
       "paths": [
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md",
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/01_source_registry.md",
@@ -138,6 +138,8 @@
         "_SYSTEM/Scripts/math/math-proof-gate.mjs",
         "_SYSTEM/Scripts/math/math-health.mjs",
         "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.test.mjs",
         "_SYSTEM/labs/math/lab-manifest.json",
         "_SYSTEM/labs/math/visual-proof-artifact-lab.py",
         "_SYSTEM/data/math/formula-banks/information-theory.v0.json",
@@ -147,6 +149,25 @@
         "_SYSTEM/data/math/formula-banks/scoring-normalization.v0.json"
       ],
       "loadRule": "Use for math substrate, graph algorithms, logarithmic scoring, formula banks, visual proofs, and EML research. External math engines remain advisory unless verified and promoted."
+    },
+    {
+      "id": "energy-landscape-paper",
+      "label": "Energy-Landscape Methodology Paper Sprint Context",
+      "triggers": ["paper", "energy-landscape", "lyapunov", "conservative-vector-field", "icm", "mwp", "jake", "van-clief", "yuri-energy", "scalar-potential", "promotion-paper", "methodology-paper", "section-1", "section-2", "section-3", "section-4", "section-5", "section-6"],
+      "paths": [
+        "_SYSTEM/reports/YURI_GROUND_TRUTH_AUDIT_2026-05-28.md",
+        "_SYSTEM/reports/YURI_ACTUAL_CAPABILITY_AUDIT_2026-05-25.md",
+        "_SYSTEM/reports/claude-output-lane/draft-artifacts/2026-05-28-jan-brief-energy-landscape-paper.md",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.test.mjs",
+        "_SYSTEM/Scripts/math/math-kernel.mjs",
+        "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "_SYSTEM/Scripts/claim-integrity-gate.mjs",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/04_mathematical_operating_substrate.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md",
+        "_SYSTEM/config/schemas/yuri.promotion-ladder.v0.schema.json"
+      ],
+      "loadRule": "Load when working on the Conservative State Flows methodology paper (ship 2026-07-23). Includes ground-truth audit, Jan brief, yuri-energy reference implementation, math substrate composition, and the truth-promotion ladder schema. External references: Jake Van Clief ICM/MWP arXiv 2603.16021 (not in repo)."
     },
     {
       "id": "automation",
@@ -159,6 +180,8 @@
         "_SYSTEM/Scripts/worker-bridge.mjs",
         "_SYSTEM/Scripts/lane-arbitration.mjs",
         "_SYSTEM/Scripts/lane-persona-map.mjs",
+        "_SYSTEM/Scripts/memory-proposal-autopilot.mjs",
+        "_SYSTEM/Scripts/memory-proposal-autopilot.test.mjs",
         "_SYSTEM/Scripts/health-status.mjs",
         "_SYSTEM/Scripts/yuri-health.mjs",
         "_SYSTEM/Scripts/kagami-event-bus.mjs",
@@ -179,6 +202,8 @@
         "_SYSTEM/Scripts/yuri-workcell.test.mjs",
         "_SYSTEM/Scripts/yuri-workcell-capture.mjs",
         "_SYSTEM/Scripts/yuri-workcell-capture.test.mjs",
+        "_SYSTEM/Scripts/memory-proposal-autopilot.mjs",
+        "_SYSTEM/Scripts/memory-proposal-autopilot.test.mjs",
         "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
         "_SYSTEM/config/schemas/yuri.workcell-packet.v0.schema.json",
         "_SYSTEM/config/schemas/yuri.workcell-output.v0.schema.json",

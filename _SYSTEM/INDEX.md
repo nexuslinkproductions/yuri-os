@@ -34,6 +34,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md` | Active governed-autonomy sprint plan: baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
 | `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md` | Multi-Sonnet workcell protocol: worker bundles, memory capsules/signals, Rick Prime supercharge, C-137 integration, and commit authorization. |
 | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs` | Dry-run-first autonomy runner that emits baseline-anchored run manifests and optional Kagami events. |
+| `_SYSTEM/Scripts/memory-proposal-autopilot.mjs` | Background-capable memory proposal processor: reviews pending proposals, records keep/rewrite/reject/defer decisions, and optionally commits/pushes scoped source/docs changes. |
 | `_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json` | Canonical schema reference for autonomy run manifests. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md` | Mathematical operating substrate research intake and governance boundary. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md` | General-purpose math operationalization method and adapter map. |
@@ -45,6 +46,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/math/math-proof-gate.mjs` | Formula-bank proof gate for executable examples and deterministic proof traces. |
 | `_SYSTEM/Scripts/math/math-health.mjs` | Health check for math archive, adapters, formula banks, and core algorithm proofs. |
 | `_SYSTEM/Scripts/math/math-operational-simulation.mjs` | Non-invasive math integration report for memory scoring, context routing, RAG conflict detection, tool routing, release scoring, and creative scheduling. |
+| `_SYSTEM/Scripts/math/yuri-energy.mjs` | Scalar potential U(state) composition over YURI control-plane state. Lyapunov-style gateProposal rejection rule. Reference implementation for the energy-landscape methodology paper (ship 2026-07-23). |
+| `_SYSTEM/reports/YURI_GROUND_TRUTH_AUDIT_2026-05-28.md` | Operating-surface ground-truth audit; foundation for paper claims about YURI. |
 
 ## Root Folder Classes
 

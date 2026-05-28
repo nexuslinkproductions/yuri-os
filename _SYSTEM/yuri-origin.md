@@ -49,9 +49,40 @@ Never read or write these paths unless the owner explicitly authorizes a specifi
 - `backend/data/`
 - `.claude/state/`
 - `.claude/history/`
+- `.claude/file-history/`
+- `.claude/projects/*/history/`
+- `.claude/projects/*/state/`
+- `.claude/projects/*/file-history/`
+- `.claude/projects/*/worktrees/`
+- `.claude/projects/*/transcripts/`
 - `.env`
 - `node_modules/`
 - secrets, API keys, credentials
+
+## Memory Architecture (Two Tracks)
+
+YURI uses two distinct memory tracks. They are not interchangeable.
+
+**Track A — YURI canonical memory.** Operating truth shared across all lanes (Claude, Codex, DeepSeek, future operators). Projects, references, collaborators, IP constraints, durable architecture decisions, rules other lanes need to know.
+
+- Surface: `yuri-memory` (rooted at `_SYSTEM/memory`, durable store `_SYSTEM/OS_KERNEL/memory.db`)
+- Mediator: `_SYSTEM/Scripts/memory-kernel.mjs`
+- Pipeline: `propose → decide → ledger` (operator approval required for promotion)
+
+**Track B — Claude auto-memory.** Claude-Sonnet behavioral self-development with this operator only. Communication preferences, output-mode habits, tool-routing heuristics, voice/style instincts, low-stakes self-correction. Not shared with other lanes.
+
+- Surface: `claude-auto-memory` (rooted at `~/.claude/projects/<project-id>/memory/`)
+- Mediator: `_SYSTEM/Scripts/claude-memory-write.mjs` (only allowed write path)
+- Direct Write tool calls into that directory remain blocked by the protected-paths rule; the wrapper is the narrow Claude-adapter exception
+- The wrapper refuses writes outside `memory/` and refuses path segments named `history`, `state`, `file-history`, `worktrees`, or `transcripts`
+
+**Routing rules:**
+
+- If a different lane would benefit from knowing this → Track A (YURI canonical).
+- If only "Claude-Sonnet working with the operator" would benefit → Track B (auto-memory).
+- Ambiguous → default to Track A (broader audience, governed pipeline).
+- No duplication. Cross-link by label (e.g. `See YURI memory: jake-outreach-target`), do not mirror.
+- Track B may reference Track A entries; Track A entries do not depend on Track B.
 
 ## Evidence Contract Grammar
 

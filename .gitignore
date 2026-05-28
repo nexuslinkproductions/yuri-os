@@ -110,6 +110,7 @@ _SYSTEM/tools/nemo-guardrails/
 _SYSTEM/tools/MSA/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
+_SYSTEM/state/energy-trace/
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
@@ -132,6 +133,7 @@ _SYSTEM/state/worker-queues.json
 _SYSTEM/state/worker-captures/
 _SYSTEM/state/workcell/*
 !_SYSTEM/state/workcell/.gitkeep
+_SYSTEM/state/memory-proposal-autopilot/
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
@@ -175,6 +177,9 @@ graph/
 
 # Claude Palace navigation index (auto-regenerated)
 claude-palace-out/
+
+# Codex final-pass runtime artifacts
+_SYSTEM/reports/codex-final-pass/
 
 # Quarantine for refactor safety (move-not-delete pattern)
 _QUARANTINE_*/
@@ -313,3 +318,7 @@ NEURAL-NETWORK/
 # Large local-only tool directories
 needle/
 checkpoints/
+
+# Claude Code provider runtime caches (not source truth)
+.claude/stats-cache.json
+.claude/.last-update-result.json

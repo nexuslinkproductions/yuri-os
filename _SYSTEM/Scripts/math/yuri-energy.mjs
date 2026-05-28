@@ -1,0 +1,455 @@
+#!/usr/bin/env node
+/**
+ * YURI Energy Function — yuri-energy.mjs
+ *
+ * Composes existing math-kernel primitives into a scalar potential U(state)
+ * over YURI control-plane state. Bound to dispatch and claim promotion as a
+ * Lyapunov-style rejection rule:
+ *
+ *   ΔU > threshold → reject the proposed transition (unless operator override)
+ *   ΔU ≤ threshold → accept the proposed transition
+ *
+ * Architectural disclaimer:
+ *
+ * This is NOT the Potential-Derived (PD) layer from the energy-based-models
+ * literature. It is an applied composition of proven primitives at the
+ * control-plane meta-level, not at the neural-network weight level.
+ *
+ * The weights are designed (hand-tuned), not learned. This is an explicit
+ * limitation noted in the methodology paper. The current weights reflect the
+ * policy "claim/evidence drift is bad, protected-path violations are
+ * catastrophic, verified evidence is good."
+ *
+ * Status: research → fixture_ready. Not yet runtime_tested in dispatch.
+ *
+ * Related:
+ *   - _SYSTEM/Scripts/math/math-kernel.mjs           (primitives composed here)
+ *   - _SYSTEM/reports/YURI_GROUND_TRUTH_AUDIT_2026-05-28.md §4.1
+ *   - YURI memory: project-energy-landscape-paper
+ */
+
+import {
+  entropy,
+  klDivergence,
+  logLoss,
+  brierScore,
+  informationGain,
+  confidenceDecay,
+  makeMathResult,
+} from './math-kernel.mjs';
+
+const ENERGY_PRECISION = 1e9;
+
+// ---------------------------------------------------------------------------
+// Default weights
+// ---------------------------------------------------------------------------
+//
+// These weights are hand-tuned, not learned. They encode the policy described
+// above. Override per-call via the `weights` argument if a specific dispatch
+// scenario requires a different weighting.
+
+export const DEFAULT_WEIGHTS = Object.freeze({
+  alpha: 1.0,    // entropy(claimPromotionDistribution) — uncertainty about claim status
+  beta: 2.0,     // klDivergence(claimed, verified) — drift between claim and evidence
+  gamma: 1.0,    // logLoss(predictions, outcomes) — forecast calibration penalty
+  delta: 1.0,    // brierScore(forecasts, results) — forecast accuracy penalty
+  epsilon: 1.0,  // -informationGain(prior, posterior) — info gain LOWERS energy
+  zeta: 0.5,    // sum(staleness) — stale evidence dragging state up
+  eta: 100.0,   // protectedPathViolations — catastrophic, high weight
+  theta: 10.0,  // promotionLadderInversions — high weight
+  iota: 0.1,    // -verifiedEvidenceCount — verified evidence subtracts from U
+});
+
+function normalizeWeights(weights = DEFAULT_WEIGHTS) {
+  const supplied = weights || {};
+  for (const key of Object.keys(supplied)) {
+    if (!Object.hasOwn(DEFAULT_WEIGHTS, key)) {
+      throw new Error(`unknown yuri-energy weight: ${key}`);
+    }
+  }
+
+  const normalized = { ...DEFAULT_WEIGHTS };
+  for (const [key, value] of Object.entries({ ...DEFAULT_WEIGHTS, ...supplied })) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) throw new Error(`weight ${key} must be finite`);
+    if (numeric < 0) throw new Error(`weight ${key} must be non-negative`);
+    normalized[key] = numeric;
+  }
+  return normalized;
+}
+
+function roundEnergy(value) {
+  const rounded = Math.round(value * ENERGY_PRECISION) / ENERGY_PRECISION;
+  return Object.is(rounded, -0) ? 0 : rounded;
+}
+
+function readNonNegativeField(state, field, warnings) {
+  if (!Object.hasOwn(state, field) || state[field] === null || state[field] === undefined || state[field] === '') {
+    return 0;
+  }
+
+  const value = Number(state[field]);
+  if (!Number.isFinite(value)) {
+    warnings.push(`${field} ignored: expected finite non-negative number`);
+    return 0;
+  }
+  if (value < 0) {
+    warnings.push(`${field} clamped to 0: negative values cannot lower U`);
+    return 0;
+  }
+  return value;
+}
+
+function serializeComponent(component) {
+  if (component.skipped) {
+    return {
+      skipped: true,
+      reason: component.reason,
+      ...(component.warnings?.length ? { warnings: component.warnings } : {}),
+    };
+  }
+  return {
+    value: component.value,
+    ...(component.warnings?.length ? { warnings: component.warnings } : {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Component evaluators — each one is safe against missing/empty state fields.
+// Returns { value, skipped: false } on success or { skipped: true, reason } on
+// missing data. The composition uses 0 contribution for skipped components,
+// not NaN — this keeps U finite for partial state snapshots.
+// ---------------------------------------------------------------------------
+
+function evalEntropy(distribution) {
+  if (!distribution) return { skipped: true, reason: 'no claimPromotionDistribution' };
+  const values = Array.isArray(distribution) ? distribution : Object.values(distribution);
+  if (values.length === 0) return { skipped: true, reason: 'empty distribution' };
+  if (values.every((v) => v === 0)) return { value: 0, skipped: false };
+  try {
+    return { value: entropy(values), skipped: false };
+  } catch (err) {
+    return { skipped: true, reason: `entropy failed: ${err.message}` };
+  }
+}
+
+function evalKL({ claimed, verified }) {
+  if (!claimed || !verified) return { skipped: true, reason: 'no claimed/verified pair' };
+  try {
+    return { value: klDivergence(claimed, verified), skipped: false };
+  } catch (err) {
+    return { skipped: true, reason: `KL failed: ${err.message}` };
+  }
+}
+
+function evalLogLoss(preds, outs) {
+  if (!preds || !outs) return { skipped: true, reason: 'no predictions/outcomes' };
+  if (preds.length === 0) return { value: 0, skipped: false };
+  try {
+    return { value: logLoss(preds, outs), skipped: false };
+  } catch (err) {
+    return { skipped: true, reason: `logLoss failed: ${err.message}` };
+  }
+}
+
+function evalBrier(preds, outs) {
+  if (!preds || !outs) return { skipped: true, reason: 'no forecasts/results' };
+  if (preds.length === 0) return { value: 0, skipped: false };
+  try {
+    return { value: brierScore(preds, outs), skipped: false };
+  } catch (err) {
+    return { skipped: true, reason: `brier failed: ${err.message}` };
+  }
+}
+
+function evalInfoGain({ prior, posterior }) {
+  if (!prior || !posterior) return { skipped: true, reason: 'no prior/posterior' };
+  try {
+    return { value: informationGain(prior, posterior), skipped: false };
+  } catch (err) {
+    return { skipped: true, reason: `infoGain failed: ${err.message}` };
+  }
+}
+
+function evalStaleness(evidence) {
+  if (!Array.isArray(evidence) || evidence.length === 0) {
+    return { skipped: true, reason: 'no evidence array' };
+  }
+  let total = 0;
+  const warnings = [];
+  for (const [index, item] of evidence.entries()) {
+    try {
+      const decayed = confidenceDecay(item);
+      total += Math.max(0, item.base - decayed);
+    } catch (err) {
+      warnings.push(`evidence[${index}] skipped: ${err.message}`);
+    }
+  }
+  if (warnings.length === evidence.length) {
+    return { skipped: true, reason: 'all evidence items malformed', warnings };
+  }
+  return { value: roundEnergy(total), skipped: false, warnings };
+}
+
+// ---------------------------------------------------------------------------
+// computeU — scalar potential over a YURI control-plane state snapshot.
+// ---------------------------------------------------------------------------
+
+export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
+  const w = normalizeWeights(weights);
+  const validationWarnings = [];
+
+  const components = {
+    entropy: evalEntropy(state.claimPromotionDistribution),
+    klDivergence: evalKL({
+      claimed: state.claimedDistribution,
+      verified: state.verifiedDistribution,
+    }),
+    logLoss: evalLogLoss(state.predictions, state.outcomes),
+    brier: evalBrier(state.forecasts, state.results),
+    informationGain: evalInfoGain({
+      prior: state.priorState,
+      posterior: state.posteriorState,
+    }),
+    staleness: evalStaleness(state.evidence),
+  };
+
+  const contributions = {};
+  let U = 0;
+
+  if (!components.entropy.skipped) {
+    contributions.entropy = w.alpha * components.entropy.value;
+    U += contributions.entropy;
+  }
+  if (!components.klDivergence.skipped) {
+    contributions.klDivergence = w.beta * components.klDivergence.value;
+    U += contributions.klDivergence;
+  }
+  if (!components.logLoss.skipped) {
+    contributions.logLoss = w.gamma * components.logLoss.value;
+    U += contributions.logLoss;
+  }
+  if (!components.brier.skipped) {
+    contributions.brier = w.delta * components.brier.value;
+    U += contributions.brier;
+  }
+  if (!components.informationGain.skipped) {
+    contributions.informationGain = -w.epsilon * components.informationGain.value;
+    U += contributions.informationGain;
+  }
+  if (!components.staleness.skipped) {
+    contributions.staleness = w.zeta * components.staleness.value;
+    U += contributions.staleness;
+  }
+
+  const protectedPathViolations = readNonNegativeField(state, 'protectedPathViolations', validationWarnings);
+  const promotionLadderInversions = readNonNegativeField(state, 'promotionLadderInversions', validationWarnings);
+  const verifiedEvidenceCount = readNonNegativeField(state, 'verifiedEvidenceCount', validationWarnings);
+
+  contributions.protectedPathViolations = roundEnergy(w.eta * protectedPathViolations);
+  contributions.promotionLadderInversions = roundEnergy(w.theta * promotionLadderInversions);
+  contributions.verifiedEvidenceCredit = roundEnergy(-w.iota * verifiedEvidenceCount);
+
+  U += contributions.protectedPathViolations;
+  U += contributions.promotionLadderInversions;
+  U += contributions.verifiedEvidenceCredit;
+
+  const value = roundEnergy(U);
+
+  return makeMathResult({
+    operation: 'yuri-energy.computeU',
+    input: { state, weights: w },
+    result: {
+      U: value,
+      components: Object.fromEntries(
+        Object.entries(components).map(([k, v]) => [k, serializeComponent(v)]),
+      ),
+      contributions,
+      validationWarnings,
+    },
+    proof: {
+      advisory_only: true,
+      local_truth_claim: false,
+      weights: w,
+      note: 'Hand-tuned weights; not learned. See methodology paper §5 (Honest Limitations).',
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// computeDeltaU — gradient between two states.
+// ---------------------------------------------------------------------------
+
+export function computeDeltaU(stateBefore, stateAfter, weights = DEFAULT_WEIGHTS) {
+  const w = normalizeWeights(weights);
+  const before = computeU(stateBefore, w);
+  const after = computeU(stateAfter, w);
+  const deltaU = roundEnergy(after.result.U - before.result.U);
+
+  const componentDeltas = {};
+  const keys = new Set([
+    ...Object.keys(before.result.contributions),
+    ...Object.keys(after.result.contributions),
+  ]);
+  for (const key of keys) {
+    const b = before.result.contributions[key] ?? 0;
+    const a = after.result.contributions[key] ?? 0;
+    componentDeltas[key] = roundEnergy(a - b);
+  }
+
+  return makeMathResult({
+    operation: 'yuri-energy.computeDeltaU',
+    input: { stateBefore, stateAfter, weights: w },
+    result: {
+      deltaU,
+      uBefore: before.result.U,
+      uAfter: after.result.U,
+      componentDeltas,
+    },
+    proof: {
+      advisory_only: true,
+      local_truth_claim: false,
+      lyapunovProperty: deltaU <= 0 ? 'descending' : 'ascending',
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// gateProposal — Lyapunov gate on a proposed state transition.
+// ---------------------------------------------------------------------------
+
+export function gateProposal({
+  stateBefore,
+  stateAfter,
+  weights = DEFAULT_WEIGHTS,
+  threshold = 0,
+  allowOverride = false,
+} = {}) {
+  if (!stateBefore || !stateAfter || Array.isArray(stateBefore) || Array.isArray(stateAfter)) {
+    throw new Error('gateProposal requires stateBefore and stateAfter');
+  }
+  const normalizedThreshold = Number(threshold);
+  if (!Number.isFinite(normalizedThreshold)) {
+    throw new Error('gateProposal threshold must be finite');
+  }
+  const w = normalizeWeights(weights);
+  const delta = computeDeltaU(stateBefore, stateAfter, w);
+  const deltaU = delta.result.deltaU;
+  const passesThreshold = deltaU <= normalizedThreshold;
+  const overrideAllowed = allowOverride === true;
+  const accept = passesThreshold || overrideAllowed;
+
+  const reason = passesThreshold
+    ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
+    : overrideAllowed
+      ? `ΔU=${deltaU} > threshold=${normalizedThreshold} but override allowed`
+      : `ΔU=${deltaU} > threshold=${normalizedThreshold} (ascending — energy raised, reject)`;
+
+  let dominantTerm = null;
+  if (deltaU > normalizedThreshold) {
+    const positive = Object.entries(delta.result.componentDeltas)
+      .filter(([, v]) => v > 0)
+      .sort(([, a], [, b]) => b - a);
+    dominantTerm = positive[0]?.[0] ?? null;
+  }
+
+  return makeMathResult({
+    operation: 'yuri-energy.gateProposal',
+    input: { stateBefore, stateAfter, weights: w, threshold: normalizedThreshold, allowOverride },
+    result: {
+      accept,
+      reason,
+      deltaU,
+      threshold: normalizedThreshold,
+      override: !passesThreshold && overrideAllowed,
+      dominantTerm,
+      componentDeltas: delta.result.componentDeltas,
+    },
+    proof: {
+      advisory_only: true,
+      local_truth_claim: false,
+      lyapunovProperty: passesThreshold ? 'descending' : 'ascending',
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CLI worked example — runs two demo scenarios when invoked directly.
+// ---------------------------------------------------------------------------
+
+function workedExample() {
+  // Scenario A — descending transition: a new claim gets verified, KL drift drops.
+  const stateA_before = {
+    claimPromotionDistribution: { draft: 5, research: 8, fixture_ready: 3, runtime_tested: 1 },
+    claimedDistribution: [0.5, 0.3, 0.2],
+    verifiedDistribution: [0.3, 0.3, 0.4],
+    verifiedEvidenceCount: 12,
+    protectedPathViolations: 0,
+    promotionLadderInversions: 0,
+  };
+  const stateA_after = {
+    claimPromotionDistribution: { draft: 4, research: 8, fixture_ready: 4, runtime_tested: 1 },
+    claimedDistribution: [0.4, 0.3, 0.3],
+    verifiedDistribution: [0.3, 0.3, 0.4],
+    verifiedEvidenceCount: 13,
+    protectedPathViolations: 0,
+    promotionLadderInversions: 0,
+  };
+
+  const gateA = gateProposal({ stateBefore: stateA_before, stateAfter: stateA_after });
+
+  // Scenario B — ascending transition: a protected-path violation is introduced.
+  const stateB_before = {
+    claimPromotionDistribution: { runtime_tested: 5, trusted: 3 },
+    verifiedEvidenceCount: 20,
+    protectedPathViolations: 0,
+    promotionLadderInversions: 0,
+  };
+  const stateB_after = {
+    claimPromotionDistribution: { runtime_tested: 5, trusted: 3 },
+    verifiedEvidenceCount: 20,
+    protectedPathViolations: 1,
+    promotionLadderInversions: 0,
+  };
+
+  const gateB = gateProposal({ stateBefore: stateB_before, stateAfter: stateB_after });
+
+  return {
+    scenarioA_descent: {
+      accept: gateA.result.accept,
+      deltaU: gateA.result.deltaU,
+      reason: gateA.result.reason,
+      componentDeltas: gateA.result.componentDeltas,
+    },
+    scenarioB_ascent_protected_path: {
+      accept: gateB.result.accept,
+      deltaU: gateB.result.deltaU,
+      reason: gateB.result.reason,
+      dominantTerm: gateB.result.dominantTerm,
+      componentDeltas: gateB.result.componentDeltas,
+    },
+  };
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const argv = process.argv.slice(2);
+  if (argv[0] === '--worked-example' || argv.length === 0) {
+    console.log(JSON.stringify(workedExample(), null, 2));
+  } else if (argv[0] === '--help' || argv[0] === '-h') {
+    console.log(
+      [
+        'YURI Energy Function — Lyapunov-gated promotion potential',
+        '',
+        'Usage:',
+        '  node _SYSTEM/Scripts/math/yuri-energy.mjs --worked-example',
+        '',
+        'Programmatic:',
+        '  import { computeU, computeDeltaU, gateProposal, DEFAULT_WEIGHTS }',
+        '    from "_SYSTEM/Scripts/math/yuri-energy.mjs";',
+      ].join('\n'),
+    );
+  } else {
+    console.error(`unknown argument: ${argv[0]}`);
+    process.exit(2);
+  }
+}

@@ -27,6 +27,7 @@ import { requiredEvidenceIdsForTask } from './evidence-contract.mjs';
 import { evaluateDialogRails, evaluateExecutionRails, evaluateNeurodivergenceRails } from './rails.mjs';
 import { buildConstraintBlock, preflightControlPlane } from './yuri-control-plane.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
+import { traceDispatchEvent } from './math/yuri-energy-dispatch-bridge.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -1157,6 +1158,15 @@ export async function runAdvisory(task, options = {}) {
       say(C.warn, `  ⚠ skipped ${skipped.member.displayName} · ${skipped.member.lane}`, stream);
     }
   }
+
+  // A.2.a observability hook — fire-and-forget, never throws into dispatch path.
+  // Placed AFTER health preflight so verifiedEvidenceCount reflects the final
+  // dispatched assembly, not the pre-health candidate (Codex review 2026-05-28).
+  traceDispatchEvent({
+    lane: 'shintai',
+    runId: `shintai-${Date.now()}`,
+    numericContext: { verifiedEvidenceCount: assembly.members?.length ?? 0 },
+  });
 
   if (!initialDialogRail.ok) {
     const payload = {
