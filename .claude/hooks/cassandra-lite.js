@@ -1,5 +1,11 @@
 'use strict';
 
+// `deny: true` marks patterns that are catastrophic AND essentially never legitimate
+// in this workspace — these hard-block at the PreToolUse layer. Everything else is
+// surfaced as a visible advisory (verify-intent), since rm -rf / DROP TABLE / git
+// force-push are common enough that a hard block would be friction, not safety, and
+// Claude Code's own permission prompt already gates them. curl|bash is intentionally
+// NOT denied here because bash-security-guard (earlier in the chain) already blocks it.
 const PATTERNS = [
   // Destructive shell
   { re: /rm\s+-[rf]{1,2}\b/i,              severity: 'CRITICAL', msg: 'rm -rf detected' },
@@ -11,13 +17,13 @@ const PATTERNS = [
   { re: /chmod\s+777/i,                     severity: 'WARN',     msg: 'chmod 777 detected' },
   { re: /chmod\s+a\+rwx/i,                  severity: 'WARN',     msg: 'chmod a+rwx detected' },
   { re: /\bdd\s+if=/i,                      severity: 'HIGH',     msg: 'dd if= (disk write)' },
-  { re: /mkfs\./i,                          severity: 'CRITICAL', msg: 'filesystem format (mkfs)' },
+  { re: /mkfs\./i,                          severity: 'CRITICAL', msg: 'filesystem format (mkfs)', deny: true },
   { re: /\btruncate\s+-s\s+0\b/i,           severity: 'HIGH',     msg: 'truncate to zero bytes' },
-  { re: />(\/dev\/sda|\/dev\/nvme)/i,       severity: 'CRITICAL', msg: 'raw disk write detected' },
+  { re: />\s*(\/dev\/sd[a-z]|\/dev\/nvme)/i, severity: 'CRITICAL', msg: 'raw disk write detected', deny: true },
 
   // SQL destructive
   { re: /DROP\s+TABLE\b/i,                  severity: 'CRITICAL', msg: 'DROP TABLE detected' },
-  { re: /DROP\s+DATABASE\b/i,               severity: 'CRITICAL', msg: 'DROP DATABASE detected' },
+  { re: /DROP\s+DATABASE\b/i,               severity: 'CRITICAL', msg: 'DROP DATABASE detected', deny: true },
   { re: /TRUNCATE\s+TABLE\b/i,              severity: 'HIGH',     msg: 'TRUNCATE TABLE detected' },
   { re: /DELETE\s+FROM\s+\w+\s*;/i,         severity: 'HIGH',     msg: 'DELETE without WHERE clause' },
 

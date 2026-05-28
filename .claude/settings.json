@@ -284,7 +284,9 @@
     "command": "node .claude/hooks/token-status.js"
   },
   "spinnerTipsEnabled": false,
+  "effortLevel": "xhigh",
   "prefersReducedMotion": false,
+  "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",
   "verbose": true,
@@ -292,6 +294,5 @@
   "showTurnDuration": true,
   "terminalProgressBarEnabled": true,
   "remoteControlAtStartup": false,
-  "agentPushNotifEnabled": true,
-  "effortLevel": "xhigh"
+  "agentPushNotifEnabled": true
 }

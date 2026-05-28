@@ -422,16 +422,16 @@ export function isProtectedPath(candidate) {
   const normalized = normalizePathForPolicy(candidate);
   if (!normalized) return false;
   const withSlash = normalized.endsWith('/') ? normalized : `${normalized}/`;
-  return (
-    withSlash.includes(`${BACKEND_DATA}/`) ||
-    withSlash.includes(`${CLAUDE_FILE_HISTORY}/`) ||
-    withSlash.includes(`${CLAUDE_STATE}/`) ||
-    withSlash.includes(`${CLAUDE_HISTORY}/`) ||
-    withSlash.includes(`${CLAUDE_PROJECTS}/`) ||
-    withSlash.includes(`${NODE_MODULES}/`) ||
-    withSlash.includes(`${AMP_DIR}/`) ||
-    path.basename(normalized) === ENV_FILE
-  );
+  // Derive enforcement from the single frozen source of truth so a path can never
+  // be DECLARED protected (PROTECTED_SURFACE_PREFIXES) yet silently unguarded here.
+  // Directory prefixes (trailing '/') match anywhere in the path (handles absolute
+  // paths); file surfaces match the exact path or an absolute path ending in it.
+  return PROTECTED_SURFACE_PREFIXES.some((prefix) => {
+    if (prefix.endsWith('/')) {
+      return withSlash.includes(prefix);
+    }
+    return normalized === prefix || normalized.endsWith(`/${prefix}`);
+  });
 }
 
 export function safeRuntimePath(envName, fallbackPath) {
