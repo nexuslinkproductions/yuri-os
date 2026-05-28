@@ -50,6 +50,7 @@ const CAPABILITY_TO_STAGE = Object.freeze({
   'reduce-and-learn': ['merge_learn'],
   'token-efficiency': ['intake_classify', 'merge_learn'],
   orchestration: ['campaign_decompose', 'specialist_fanout'],
+  'output-organization': ['intake_classify', 'campaign_decompose', 'merge_learn'],
 });
 
 const SKILL_CAPABILITY_PROFILES = Object.freeze({
@@ -91,6 +92,11 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
   'non-destructive-infinity-guard': {
     capabilities: ['risk-review', 'mutation-guard', 'deterministic-verification'],
     traits: ['safety', 'verification'],
+    signals: ['risk', 'code'],
+  },
+  'adversarial-verification': {
+    capabilities: ['risk-review', 'mutation-guard', 'failure-learning'],
+    traits: ['adversarial-checks', 'negative-case', 'completion-gate', 'agent-output-review'],
     signals: ['risk', 'code'],
   },
   'failure-evolution-loop': {
@@ -172,6 +178,16 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     capabilities: ['orchestration', 'intent-normalization'],
     traits: ['routing', 'capability-map'],
     signals: ['campaign'],
+  },
+  'claude-output-lane': {
+    capabilities: ['output-organization', 'skill-recall', 'summarization'],
+    traits: ['claude-output', 'lane-taxonomy', 'advisory-sorting'],
+    signals: ['docs', 'campaign'],
+  },
+  'claude-codex-capability-bridge': {
+    capabilities: ['output-organization', 'orchestration', 'skill-recall'],
+    traits: ['codex-plugin-bridge', 'claude-lane', 'capability-routing'],
+    signals: ['campaign', 'code'],
   },
   tokenmaxxing: {
     capabilities: ['token-efficiency', 'reduce-and-learn'],
@@ -475,6 +491,8 @@ function scoreSkill({ profile, matchedCapabilities, matchedSignals, capabilityHi
   if (context.persona && profile.capabilities.includes('persona-alignment')) score += 8;
   if (context.requiresHighReasoning && profile.capabilities.includes('deep-decomposition')) score += 4;
   if (profile.capabilities.includes('deterministic-verification')) score += 10;
+  if (capabilityHints.has('output-organization') && profile.traits.includes('lane-taxonomy')) score += 28;
+  if (capabilityHints.has('failure-learning') && profile.traits.includes('adversarial-checks')) score += 28;
   if (routePlan?.scenario && profile.signals.includes(String(routePlan.scenario))) score += 2;
   return profile.knownProfile ? score : Math.min(score, 18);
 }

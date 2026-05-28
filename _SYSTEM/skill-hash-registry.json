@@ -3,6 +3,10 @@
     "source_path": "skills/ad-creative/SKILL.md",
     "hash": "97b41c50d2da97ab"
   },
+  "adversarial-verification": {
+    "source_path": "skills/adversarial-verification/SKILL.md",
+    "hash": "b1a064ca8912adc7"
+  },
   "agent-scout": {
     "source_path": "skills/agent-scout/SKILL.md",
     "hash": "39a5e0f6cf2df073"
@@ -54,6 +58,14 @@
   "codex-plugin-control-plane": {
     "source_path": "skills/codex-plugin-control-plane/SKILL.md",
     "hash": "acc3efe577eb3d27"
+  },
+  "claude-codex-capability-bridge": {
+    "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
+    "hash": "943a8a6fdc8940a0"
+  },
+  "claude-output-lane": {
+    "source_path": "skills/claude-output-lane/SKILL.md",
+    "hash": "c3ded3e192d8ff0c"
   },
   "compact-optimizer": {
     "source_path": "skills/compact-optimizer/SKILL.md",

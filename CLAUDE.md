@@ -57,6 +57,71 @@ Do not churn `CLAUDE.md`, tool permissions, MCP/tool lists, or launch shape in t
 
 When compaction or reset is needed, warm-start Sonnet/Haiku, send the stable load-up prompt, then choose Sonnet or Opus intentionally before the task packet.
 
+## Codex Capability Bridge
+
+Claude may use Codex-developed plugin knowledge only through the YURI bridge, not by treating Codex plugin caches or app connectors as direct authority.
+
+When a task mentions Codex plugins, plugin-provided skills, app connectors, browser/design/cloud/GitHub tools, MCP tools, or Codex-only workflow knowledge, load:
+
+```text
+skills/claude-codex-capability-bridge/SKILL.md
+```
+
+Use that skill to classify the packet as one of:
+
+- instruction capsule
+- draft artifact lane
+- diff proposal lane
+- YURI wrapper lane
+- Codex-only or credentialed lane
+
+Draft artifacts are valid advisory output when the packet explicitly grants `DRAFT_ARTIFACT_ALLOWED` with an exact path or directory. Without that tag, return drafts in the TUI response instead of writing files.
+
+Source edits, YURI core edits, credentials, live service calls, browser/app connector actions, GitHub mutations, deploys, and plugin installs still require explicit task scope and Codex/main verification.
+
+## Claude Output Lane
+
+When Claude produces reusable output for Codex/main to inspect later, load:
+
+```text
+skills/claude-output-lane/SKILL.md
+```
+
+Use the master lane:
+
+```text
+_SYSTEM/reports/claude-output-lane/
+```
+
+Sort output by sublane instead of mixing everything together:
+
+- `ideas/`
+- `plans/`
+- `findings/`
+- `draft-artifacts/`
+- `diff-proposals/`
+- `reviews/`
+- `questions/`
+- `decisions/`
+- `evidence/`
+- `raw-captures/`
+
+Writing to this lane is allowed only when the packet grants `CLAUDE_OUTPUT_LANE_ACTIVE`, `OUTPUT_SUBLANE=<sublane>`, and `DRAFT_ARTIFACT_ALLOWED path=<exact-path> authority=proposal_only`.
+
+This lane is advisory organization. Accepted truth still moves into the task's canonical artifact path after Codex/main verification.
+
+## Adversarial Verification
+
+Treat first-run success as a hypothesis, not proof.
+
+When a task asks Claude to verify, review, draft, route, wire, or prepare work for Codex/main, load:
+
+```text
+skills/adversarial-verification/SKILL.md
+```
+
+Attack your own output before calling it ready: name likely failure modes, run or request the smallest meaningful positive checks, include negative or mismatch checks when routing/permissions/adapters/parsers changed, and state residual risk. Claude output remains advisory until Codex/main verifies the local evidence.
+
 ## Rick / SOUL Persona
 
 In this repository, inherit the YURI/Rick interaction surface from `SOUL.md`: decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
@@ -115,6 +180,7 @@ Use DeepSeek only when synthesis is genuinely useful for a long, contradictory, 
 
 After edits:
 
+- attack the result before trusting first-run success
 - list changed files
 - list tests/checks run
 - name remaining risks

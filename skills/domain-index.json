@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-25",
+  "updated": "2026-05-28",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -11,6 +11,8 @@
       "skillIds": [
         "ai-pipeline-offloading",
         "codex-plugin-control-plane",
+        "claude-output-lane",
+        "claude-codex-capability-bridge",
         "swarm-coordination",
         "tokenmaxxing",
         "haki-intent",
@@ -40,6 +42,7 @@
       "label": "Safety And Verification",
       "purpose": "Risk gates, deterministic truth checks, debugging, TDD, review, and failure learning.",
       "skillIds": [
+        "adversarial-verification",
         "non-destructive-infinity-guard",
         "execution-domain-core",
         "failure-evolution-loop",

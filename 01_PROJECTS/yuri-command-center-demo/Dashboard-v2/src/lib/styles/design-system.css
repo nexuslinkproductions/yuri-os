@@ -1,0 +1,414 @@
+/* ════════════════════════════════════════════════════════════════════
+   c2moviez · NEX Design System — Workstream W
+   ────────────────────────────────────────────────────────────────────
+   Canonical interactive-surface recipes:
+     L1 — hero action       (`.btn--l1`)  · GlassActionPrimary.svelte
+     L2 — secondary action  (`.btn--l2`)  · GlassActionSecondary.svelte
+     L3 — value chip / pill (`.chip--l3`) · GlassValueChip.svelte
+     L4 — inline link       (`.link--l4`) · GlassInlineLink.svelte
+
+   Counting rule per surface (Linear / Attio / Tyme3 discipline):
+     ≤ 1 L1   ·   ≤ 3 L2 in the primary action zone   ·   unlimited L3+L4
+
+   Tokens live in tokens.css. This file only composes recipes — never
+   hardcode colours/spacings here, always read from --tier-*, --tx, etc.
+   Import once in +layout.svelte after tokens.css.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ═══ Shared baseline for all tiered buttons / chips ═══ */
+:where(.btn--l1, .btn--l2, .chip--l3, .link--l4) {
+  font-family: var(--sa);
+  font-feature-settings: "ss01","cv11";
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+:where(.btn--l1, .btn--l2):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-line-2);
+}
+
+:where(.btn--l1, .btn--l2)[disabled],
+:where(.btn--l1, .btn--l2)[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(.5);
+}
+
+/* ═══ L1 — Hero action ════════════════════════════════════════════════
+   Only ONE per surface. Brand-tinted, with the signature outer glow.
+   Uses position:relative so the gradient border can be a pseudo. */
+.btn--l1 {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--tier-l1-padding);
+  min-height: var(--tap-target);
+  border-radius: var(--tier-l1-radius);
+  border: 0;
+  background: var(--tier-l1-bg);
+  backdrop-filter: var(--blur-card);
+  -webkit-backdrop-filter: var(--blur-card);
+  color: var(--tier-l1-text);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    0 1px 2px rgba(0,0,0,0.12),
+    var(--tier-l1-glow);
+  transition:
+    background var(--tier-hover-dur) var(--ease),
+    box-shadow var(--tier-glow-dur) var(--ease),
+    transform var(--tier-press-dur) var(--tier-spring),
+    filter var(--tier-hover-dur) var(--ease);
+}
+
+.btn--l1::before {
+  /* Gradient hairline border that sits on top of the surface */
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--tier-l1-border);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  opacity: .85;
+  transition: opacity var(--tier-hover-dur) var(--ease);
+}
+
+.btn--l1:hover {
+  background: var(--tier-l1-bg-hover);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.20),
+    0 2px 6px rgba(0,0,0,0.15),
+    var(--tier-l1-glow-hover);
+  filter: brightness(1.05);
+}
+.btn--l1:hover::before { opacity: 1; }
+
+.btn--l1:active {
+  transform: translateY(1px);
+  filter: brightness(1.08);
+}
+
+/* Tone variants — alter glow + border accent, never the layout */
+.btn--l1[data-tone="success"] {
+  --tier-l1-glow:       0 0 24px rgba(30,160,51,0.40);
+  --tier-l1-glow-hover: 0 0 32px rgba(30,160,51,0.55);
+  --tier-l1-border:     linear-gradient(95deg, var(--gr) 0%, #22D67F 100%);
+}
+.btn--l1[data-tone="warn"] {
+  --tier-l1-glow:       0 0 24px rgba(217,119,0,0.40);
+  --tier-l1-glow-hover: 0 0 32px rgba(217,119,0,0.55);
+  --tier-l1-border:     linear-gradient(95deg, var(--ye) 0%, var(--or) 100%);
+}
+.btn--l1[data-tone="danger"] {
+  --tier-l1-glow:       0 0 24px rgba(224,49,43,0.40);
+  --tier-l1-glow-hover: 0 0 32px rgba(224,49,43,0.55);
+  --tier-l1-border:     linear-gradient(95deg, var(--re) 0%, #FF5C5C 100%);
+}
+
+/* ═══ L2 — Secondary action ═══════════════════════════════════════════
+   Standard glass button. ≤ 3 in the primary action zone of a surface. */
+.btn--l2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--tier-l2-padding);
+  min-height: var(--tap-target);
+  border-radius: var(--tier-l2-radius);
+  border: 1px solid var(--tier-l2-border);
+  background: var(--tier-l2-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--tier-l2-text);
+  font-weight: 500;
+  font-size: 13.5px;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  transition:
+    background var(--tier-hover-dur) var(--ease),
+    border-color var(--tier-hover-dur) var(--ease),
+    color var(--tier-hover-dur) var(--ease),
+    transform var(--tier-press-dur) var(--tier-spring),
+    box-shadow var(--tier-hover-dur) var(--ease);
+}
+
+.btn--l2:hover {
+  background: var(--tier-l2-bg-hover);
+  border-color: var(--tier-l2-border-hover);
+  color: var(--tier-l2-text-hover);
+  box-shadow: var(--sh-sm);
+}
+
+.btn--l2:active {
+  transform: translateY(1px);
+  opacity: .92;
+}
+
+.btn--l2[data-tone="success"] { color: var(--gr); border-color: rgba(30,160,51,.22); }
+.btn--l2[data-tone="warn"]    { color: var(--or); border-color: rgba(217,119,0,.22); }
+.btn--l2[data-tone="danger"]  { color: var(--re); border-color: rgba(224,49,43,.22); }
+
+/* Icon-only mode — used by sidebar avatar, card quick-actions, drag handles */
+.btn--l2[data-kind="icon"] {
+  padding: 0;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  border-radius: 50%;
+}
+
+/* ═══ L3 — Value chip / pill ══════════════════════════════════════════
+   Clickable values (status, ticket id, client code, tag, etc.).
+   The accent bar on the left is the visual indicator of clickability;
+   data-accent='hex' sets the bar colour (resolved via the tone preset
+   or a raw CSS-var when needed). */
+.chip--l3 {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--tier-l3-padding);
+  padding-left: calc(var(--tier-l3-padding) + 8px); /* room for accent bar */
+  min-height: 26px;
+  border-radius: var(--tier-l3-radius);
+  border: 1px solid var(--tier-l3-border);
+  background: var(--tier-l3-bg);
+  color: var(--tier-l3-text);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.005em;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--tier-hover-dur) var(--ease),
+    border-color var(--tier-hover-dur) var(--ease),
+    color var(--tier-hover-dur) var(--ease);
+  overflow: hidden; /* so the accent bar stays inside the pill */
+}
+
+.chip--l3::before {
+  /* Left-edge accent bar — the chip's identity signal */
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: var(--tier-l3-accent-w);
+  background: var(--chip-accent, var(--brand));
+  transition: width var(--tier-hover-dur) var(--ease);
+}
+
+.chip--l3:hover {
+  background: var(--tier-l3-bg-hover);
+  border-color: var(--b2);
+}
+.chip--l3:hover::before { width: var(--tier-l3-accent-w-hover); }
+
+/* Tone presets — set both accent and tint */
+.chip--l3[data-tone="success"] { background: var(--chip-tint-success); --chip-accent: var(--gr); color: var(--gr); border-color: rgba(30,160,51,.22); }
+.chip--l3[data-tone="warn"]    { background: var(--chip-tint-warn);    --chip-accent: var(--or); color: var(--or); border-color: rgba(217,119,0,.22); }
+.chip--l3[data-tone="danger"]  { background: var(--chip-tint-danger);  --chip-accent: var(--re); color: var(--re); border-color: rgba(224,49,43,.22); }
+.chip--l3[data-tone="info"]    { background: var(--chip-tint-info);    --chip-accent: var(--a);  color: var(--brand-deep); border-color: var(--brand-line); }
+.chip--l3[data-tone="violet"]  { background: var(--chip-tint-violet);  --chip-accent: var(--a2); color: var(--a2); border-color: rgba(107,79,216,.22); }
+.chip--l3[data-tone="neutral"] { background: var(--chip-tint-neutral); --chip-accent: var(--t3); color: var(--t2); }
+
+/* Static chip — non-clickable display variant */
+.chip--l3[data-static="true"] {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Compact + jumbo size variants */
+.chip--l3[data-size="sm"] { padding: 2px 8px; padding-left: 12px; font-size: 11px; min-height: 22px; }
+.chip--l3[data-size="lg"] { padding: 6px 14px; padding-left: 20px; font-size: 13px; min-height: 30px; }
+
+/* ═══ L4 — Inline link ════════════════════════════════════════════════ */
+.link--l4 {
+  color: var(--tier-l4-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: text-decoration-color var(--tier-hover-dur) var(--ease);
+  cursor: pointer;
+}
+.link--l4:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--tier-l4-underline-offset);
+  text-decoration-thickness: 1px;
+}
+
+/* ═══ Lane / Card surface recipes ═════════════════════════════════════
+   Used by the CRM Kanban + tracker calendar columns + any grouped-card
+   surface. Lane is the container; card is the surface inside. */
+.lane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--r2);
+  background: var(--glass-card);
+  border: 1px solid var(--line);
+  backdrop-filter: var(--blur-card);
+  -webkit-backdrop-filter: var(--blur-card);
+  box-shadow: var(--sh-card);
+  min-height: 120px;
+}
+
+.lane[data-accent] {
+  /* Subtle 4px-thick top accent (lane lifecycle indicator) */
+}
+.lane[data-accent]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--lane-accent, var(--brand));
+  border-radius: var(--r2) var(--r2) 0 0;
+  opacity: .72;
+}
+
+.lane[data-accent="lifecycle-prospect"]    { --lane-accent: var(--lifecycle-pre-sales);  }
+.lane[data-accent="lifecycle-sales"]       { --lane-accent: var(--a2);                    }
+.lane[data-accent="lifecycle-pre-active"]  { --lane-accent: var(--lifecycle-pre-active); }
+.lane[data-accent="lifecycle-active"]      { --lane-accent: var(--lifecycle-active);     }
+.lane[data-accent="lifecycle-dormant"]     { --lane-accent: var(--lifecycle-dormant);    }
+.lane[data-accent="lifecycle-lost"]        { --lane-accent: var(--re);                   }
+
+.lane__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.lane__title {
+  font-family: var(--hd);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--t2);
+}
+
+.lane__count {
+  /* numeric pill, distinct from .chip--l3 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font: 700 11px/1 var(--mo);
+  color: var(--t2);
+  background: var(--s2);
+  border-radius: 999px;
+}
+
+.lane__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--r1);
+  background: var(--glass-elev);
+  border: 1px solid var(--line);
+  backdrop-filter: var(--blur-card);
+  -webkit-backdrop-filter: var(--blur-card);
+  box-shadow: var(--sh-card);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform var(--tier-press-dur) var(--tier-spring),
+    box-shadow var(--tier-hover-dur) var(--ease),
+    background var(--tier-hover-dur) var(--ease),
+    border-color var(--tier-hover-dur) var(--ease);
+}
+
+.card[data-accent] {
+  /* 4px left accent bar — lifecycle / client / category indicator */
+}
+.card[data-accent]::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--card-accent, var(--brand));
+  opacity: .85;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--sh-card-hover);
+  border-color: var(--line-2);
+}
+
+.card:active {
+  transform: translateY(0);
+  box-shadow: var(--sh-card);
+}
+
+.card[data-dragging="true"] {
+  opacity: .45;
+  filter: blur(1px);
+  transform: scale(.98);
+}
+
+.card[data-depth="flat"]  { background: var(--s1); box-shadow: none; }
+.card[data-depth="elev-2"] { box-shadow: var(--sh-elev); }
+
+.card__title  { font-weight: 600; font-size: 14px; color: var(--tx); line-height: 1.3; }
+.card__meta   { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11.5px; color: var(--t3); }
+
+/* ═══ Drag ghost — global drag-overlay material ═══ */
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  box-shadow: var(--sh-elev);
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,0.35));
+  transform-origin: top left;
+}
+
+/* ═══ Skeleton ═══════════════════════════════════════════════════════ */
+.skel {
+  background:
+    linear-gradient(90deg,
+      var(--s1) 0%,
+      var(--s2) 50%,
+      var(--s1) 100%);
+  background-size: 200% 100%;
+  animation: skel-pulse 1.4s ease-in-out infinite;
+  border-radius: var(--r1);
+}
+@keyframes skel-pulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--l1, .btn--l2, .chip--l3, .card { transition: none; }
+}

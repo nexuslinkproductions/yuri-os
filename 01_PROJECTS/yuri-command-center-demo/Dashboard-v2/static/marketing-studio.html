@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Studio - c2moviez</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a14;
+    --panel: rgba(255,255,255,0.04);
+    --panel-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-active: rgba(0,212,255,0.4);
+    --cyan: #00d4ff;
+    --violet: #7c3aed;
+    --text: #e8eaf0;
+    --muted: #8892a4;
+    --danger: #f87171;
+    --success: #34d399;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 28px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .logo span { color: var(--muted); }
+  header h1 { font-size: 17px; font-weight: 600; color: var(--text); }
+  .header-sep { flex: 1; }
+  .user-badge {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    flex: 1;
+    height: calc(100vh - 65px);
+    overflow: hidden;
+  }
+
+  /* ── Auth screen ── */
+  #auth-screen {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 380px;
+    text-align: center;
+  }
+  .auth-card h2 { font-size: 22px; margin-bottom: 8px; }
+  .auth-card p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* ── Main panel ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  /* ── Step bar ── */
+  .steps {
+    display: flex;
+    gap: 0;
+    padding: 20px 28px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 16px;
+    margin-right: 32px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    opacity: 0.4;
+  }
+  .step-item.active { opacity: 1; border-bottom-color: var(--cyan); }
+  .step-item.done { opacity: 0.7; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .step-item.active .step-num { background: var(--cyan); color: #000; }
+  .step-item.done .step-num { background: var(--success); color: #000; }
+  .step-label { font-size: 13px; font-weight: 500; }
+
+  /* ── Form area ── */
+  .form-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+  }
+
+  /* ── Steps ── */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  .step-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .step-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* ── Client grid ── */
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .client-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    overflow: hidden;
+  }
+  .client-card:hover { background: var(--panel-hover); border-color: rgba(0,212,255,0.2); }
+  .client-card.selected { border-color: var(--cyan); background: rgba(0,212,255,0.08); }
+  .client-card-thumb {
+    height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; letter-spacing: -1px;
+    color: rgba(255,255,255,0.9);
+    position: relative; overflow: hidden;
+  }
+  .client-card-body { padding: 10px 12px 12px; }
+  .client-code { font-size: 11px; font-weight: 700; color: var(--cyan); letter-spacing: 1px; margin-bottom: 3px; }
+  .client-name { font-size: 12px; color: var(--text); line-height: 1.3; }
+
+  /* ── Client preview modal ── */
+  #client-modal {
+    position: fixed; inset: 0; z-index: 150;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  #client-modal.open { display: flex; }
+  .client-modal-inner {
+    background: #13131f;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%; max-width: 900px;
+    max-height: 85vh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .client-modal-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .client-modal-swatch {
+    width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+  }
+  .client-modal-title { flex: 1; }
+  .client-modal-title h3 { font-size: 18px; font-weight: 700; }
+  .client-modal-title p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .client-modal-close {
+    background: none; border: none; color: var(--muted); font-size: 22px;
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  }
+  .client-modal-close:hover { background: var(--panel); color: var(--text); }
+  .client-modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .client-modal-actions {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 12px;
+  }
+
+  /* ── Doc thumbnail cards ── */
+  .doc-thumb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .doc-thumb-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .doc-thumb-card:hover { border-color: rgba(0,212,255,0.3); transform: translateY(-2px); }
+  .doc-thumb-preview {
+    width: 100%; height: 130px;
+    overflow: hidden; position: relative;
+    background: #f5f5f5;
+  }
+  .doc-thumb-preview iframe {
+    width: 800px; height: 600px;
+    transform: scale(0.25); transform-origin: 0 0;
+    pointer-events: none; border: none;
+  }
+  .doc-thumb-preview .thumb-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; background: linear-gradient(135deg, var(--panel), var(--panel-hover));
+  }
+  .doc-thumb-meta { padding: 10px 12px; }
+  .doc-thumb-type { font-size: 10px; color: var(--cyan); font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .doc-thumb-title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+  .doc-thumb-date { font-size: 11px; color: var(--muted); }
+
+  /* ── Doc type grid ── */
+  .doctype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .doctype-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .doctype-card:hover { background: var(--panel-hover); border-color: rgba(124,58,237,0.4); }
+  .doctype-card.selected { border-color: var(--violet); background: rgba(124,58,237,0.08); }
+  .doctype-icon { font-size: 24px; flex-shrink: 0; }
+  .doctype-label { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .doctype-desc { font-size: 12px; color: var(--muted); }
+
+  /* ── Form fields ── */
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], textarea, input[type="password"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 12px 14px;
+    transition: border-color 0.15s;
+    outline: none;
+    resize: vertical;
+  }
+  input:focus, textarea:focus { border-color: var(--cyan); }
+  textarea { min-height: 120px; }
+
+  .field { margin-bottom: 20px; }
+
+  /* ── File upload ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--cyan); background: rgba(0,212,255,0.04); }
+  .upload-zone p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .upload-zone small { color: var(--muted); font-size: 11px; }
+  #file-input { display: none; }
+
+  .file-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border-radius: 8px; padding: 10px 14px;
+    font-size: 13px;
+  }
+  .file-item .remove {
+    margin-left: auto; cursor: pointer; color: var(--muted);
+    background: none; border: none; font-size: 16px; color: var(--danger);
+  }
+
+  /* ── Summary card ── */
+  .summary-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .summary-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+  .summary-row:last-child { margin-bottom: 0; }
+  .summary-row .key { color: var(--muted); width: 100px; flex-shrink: 0; }
+  .summary-row .val { font-weight: 600; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.15s; font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--cyan), #0099cc);
+    color: #000;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-secondary {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: var(--panel-hover); }
+  .btn-violet {
+    background: linear-gradient(135deg, var(--violet), #5b21b6);
+    color: #fff;
+  }
+  .btn-violet:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-danger { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: var(--danger); }
+
+  .btn-row { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+
+  /* ── Progress/spinner ── */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .progress-block {
+    background: rgba(0,212,255,0.06);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+  }
+  .progress-text { font-size: 14px; }
+  .progress-text small { display: block; color: var(--muted); margin-top: 2px; font-size: 12px; }
+
+  /* ── Result panel ── */
+  #result-panel { display: none; }
+  .result-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 0 16px;
+  }
+  .result-header h3 { font-size: 16px; font-weight: 700; flex: 1; }
+  .result-meta { font-size: 12px; color: var(--muted); }
+
+  .preview-frame {
+    width: 100%;
+    height: 500px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+
+  /* ── History sidebar ── */
+  .sidebar {
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .sidebar-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hist-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hist-item:hover { border-color: rgba(0,212,255,0.2); background: var(--panel-hover); }
+  .hist-client { font-size: 10px; font-weight: 700; color: var(--cyan); letter-spacing: 1px; margin-bottom: 4px; }
+  .hist-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+  .hist-meta { font-size: 11px; color: var(--muted); }
+  .hist-tg {
+    display: inline-block; font-size: 10px; margin-top: 6px;
+    background: rgba(52,211,153,0.1); color: var(--success);
+    padding: 2px 6px; border-radius: 4px;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 300;
+    background: #1e293b; border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 20px;
+    font-size: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.25s;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(52,211,153,0.4); color: var(--success); }
+  #toast.error { border-color: rgba(248,113,113,0.4); color: var(--danger); }
+
+  /* ── Step 3 layout ── */
+  .step3-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .step3-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Auth overlay -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="logo" style="font-size:11px;margin-bottom:16px;">c2moviez <span>/ EXEO</span></div>
+    <h2>Marketing Studio</h2>
+    <p>Internal access required. Enter your access key to continue.</p>
+    <div class="field">
+      <input type="password" id="auth-input" placeholder="Access key..." autocomplete="off" />
+    </div>
+    <button class="btn btn-primary" onclick="doAuth()" style="width:100%;justify-content:center;">
+      Enter Studio
+    </button>
+    <p id="auth-err" style="color:var(--danger);font-size:13px;margin-top:12px;display:none;">
+      Invalid key. Ask Claudio for access.
+    </p>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">c2moviez <span>/ EXEO</span></div>
+  <div style="width:1px;height:20px;background:var(--border);"></div>
+  <h1>Marketing Studio</h1>
+  <div class="header-sep"></div>
+  <div class="user-badge" id="user-badge">Fanny Kecskes</div>
+</header>
+
+<!-- Main layout -->
+<div class="layout">
+  <!-- Left: main form -->
+  <div class="main">
+
+    <!-- Step bar -->
+    <div class="steps">
+      <div class="step-item active" id="step-tab-1" onclick="goStep(1)">
+        <div class="step-num">1</div>
+        <div class="step-label">Client</div>
+      </div>
+      <div class="step-item" id="step-tab-2" onclick="goStep(2)">
+        <div class="step-num">2</div>
+        <div class="step-label">Document Type</div>
+      </div>
+      <div class="step-item" id="step-tab-3" onclick="goStep(3)">
+        <div class="step-num">3</div>
+        <div class="step-label">Prompt &amp; Files</div>
+      </div>
+      <div class="step-item" id="step-tab-4" onclick="goStep(4)">
+        <div class="step-num">4</div>
+        <div class="step-label">Generate</div>
+      </div>
+    </div>
+
+    <!-- Form area -->
+    <div class="form-area">
+
+      <!-- Step 1: Client -->
+      <div class="step-panel active" id="step-1">
+        <div class="step-title">Select a Client</div>
+        <div class="step-sub">Choose who this document is for.</div>
+        <div class="client-grid" id="client-grid"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="goStep(2)" id="next-1" disabled>Next: Document Type</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Doc type -->
+      <div class="step-panel" id="step-2">
+        <div class="step-title">Document Type</div>
+        <div class="step-sub">What kind of document do you need?</div>
+        <div class="doctype-grid" id="doctype-grid"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(1)">Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)" id="next-2" disabled>Next: Prompt</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Prompt + files -->
+      <div class="step-panel" id="step-3">
+        <div class="step-title">Your Prompt</div>
+        <div class="step-sub">Describe exactly what you need. The more detail, the better the output.</div>
+        <div class="step3-grid">
+          <div>
+            <div class="field">
+              <label>Document Title</label>
+              <input type="text" id="doc-title" placeholder="e.g. SHIPSTER Campaign Report May 2026" />
+            </div>
+            <div class="field">
+              <label>Instructions for Claude</label>
+              <textarea id="doc-prompt" rows="8" placeholder="Describe what you need in this document. Include: key messages, data points, tone, specific sections, any dates or deadlines, anything important..."></textarea>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label>Attach Images (optional, max 3)</label>
+              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                <div style="font-size:32px;">📎</div>
+                <p>Click to attach images</p>
+                <small>JPG, PNG, WEBP - max 4MB each</small>
+              </div>
+              <input type="file" id="file-input" accept="image/*" multiple />
+              <div class="file-list" id="file-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(2)">Back</button>
+          <button class="btn btn-primary" onclick="goStep(4)" id="next-3">Review &amp; Generate</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Generate -->
+      <div class="step-panel" id="step-4">
+        <div class="step-title">Generate Document</div>
+        <div class="step-sub">Review your selections and generate the document.</div>
+
+        <div class="summary-card" id="summary-card"></div>
+
+        <div class="progress-block" id="progress-block" style="display:none;">
+          <div class="spinner"></div>
+          <div class="progress-text">
+            Generating document with Claude AI...
+            <small>This usually takes 20-40 seconds</small>
+          </div>
+        </div>
+
+        <div id="result-panel">
+          <div class="result-header">
+            <h3 id="result-title">Document Ready</h3>
+            <div class="result-meta" id="result-meta"></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary" onclick="downloadHtml()" style="padding:8px 16px;font-size:13px;">
+                ↓ HTML
+              </button>
+              <button class="btn btn-secondary" onclick="printPdf()" style="padding:8px 16px;font-size:13px;background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.4);color:#a78bfa;">
+                ↓ PDF
+              </button>
+            </div>
+          </div>
+          <iframe id="preview-frame" class="preview-frame" title="Document Preview"></iframe>
+          <div class="btn-row" style="margin-top:16px;">
+            <button class="btn btn-secondary" onclick="startOver()">Create Another</button>
+            <button class="btn btn-secondary" onclick="downloadHtml()">Download HTML</button>
+            <button class="btn btn-violet" onclick="printPdf()">Export PDF</button>
+          </div>
+        </div>
+
+        <div class="btn-row" id="generate-btn-row" style="flex-direction:column;align-items:stretch;gap:16px;">
+          <!-- Output format toggle -->
+          <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px 20px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">Output Format</div>
+            <div style="display:flex;gap:10px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border-radius:8px;border:1px solid var(--border);flex:1;transition:all 0.15s;" id="fmt-html-label">
+                <input type="radio" name="output-format" value="html" checked onchange="updateFormatLabel()" style="accent-color:var(--cyan);">
+                <div>
+                  <div style="font-size:13px;font-weight:600;">HTML Document</div>
+                  <div style="font-size:11px;color:var(--muted);">Interactive, shareable, editable</div>
+                </div>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 16px;border-radius:8px;border:1px solid var(--border);flex:1;transition:all 0.15s;" id="fmt-pdf-label">
+                <input type="radio" name="output-format" value="pdf" onchange="updateFormatLabel()" style="accent-color:var(--violet);">
+                <div>
+                  <div style="font-size:13px;font-weight:600;">PDF Export</div>
+                  <div style="font-size:11px;color:var(--muted);">Print-ready, client-sendable</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-secondary" onclick="goStep(3)">Back</button>
+            <button class="btn btn-violet" id="generate-btn" onclick="generate()" style="flex:1;justify-content:center;">
+              Generate with Claude AI
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right: history sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      Recent Documents
+      <button onclick="loadHistory()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;">↻</button>
+    </div>
+    <div id="history-list">
+      <div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Client preview modal -->
+<div id="client-modal" onclick="if(event.target===this)closeClientModal()">
+  <div class="client-modal-inner" style="max-width:1100px;">
+    <div class="client-modal-header" id="modal-header">
+      <div class="client-modal-swatch" id="modal-swatch"></div>
+      <div class="client-modal-title">
+        <h3 id="modal-client-name">Client</h3>
+        <p id="modal-client-industry"></p>
+      </div>
+      <!-- Tab bar -->
+      <div style="display:flex;gap:4px;background:rgba(255,255,255,0.05);border-radius:8px;padding:4px;margin-right:12px;">
+        <button id="tab-preview" onclick="switchModalTab('preview')"
+          style="padding:6px 14px;border-radius:6px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:rgba(0,212,255,0.15);color:var(--cyan);">
+          Style Preview
+        </button>
+        <button id="tab-docs" onclick="switchModalTab('docs')"
+          style="padding:6px 14px;border-radius:6px;border:none;font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--muted);">
+          Past Documents
+        </button>
+      </div>
+      <button class="client-modal-close" onclick="closeClientModal()">×</button>
+    </div>
+    <div class="client-modal-body" style="padding:0;">
+      <!-- Style preview pane -->
+      <div id="pane-preview" style="height:480px;overflow:hidden;">
+        <iframe id="style-preview-frame" style="width:100%;height:100%;border:none;" title="Brand preview"></iframe>
+      </div>
+      <!-- Past docs pane -->
+      <div id="pane-docs" style="display:none;padding:20px 24px;min-height:200px;">
+        <div id="modal-doc-list">
+          <div style="text-align:center;color:var(--muted);padding:40px;">Loading...</div>
+        </div>
+      </div>
+    </div>
+    <div class="client-modal-actions">
+      <button class="btn btn-primary" onclick="confirmClientAndContinue()">
+        Select this client &amp; Continue
+      </button>
+      <button class="btn btn-secondary" onclick="closeClientModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let apiKey = '';
+let selectedClient = null;
+let selectedDocType = null;
+let attachedFiles = [];
+let generatedHtml = '';
+let currentDocId = null;
+let BRAND_CONFIGS = {};
+
+// Fallback client names (used before brand configs load)
+const CLIENTS = {
+  'ALP':  'ALPHAVIVO AG', 'ALPEA':'ALPEAHOMES', 'BABA': 'Schafmilchkäserei Koster GmbH',
+  'BAL':  'Balas Pflästererungen GmbH', 'BBA':  'BBA Baumaschinen AG', 'BOV':  'Boviro Security AG',
+  'CARN': 'Carnuccio ReinXpert', 'CASA': 'CASA Solution', 'CHI':  'Chicano Conceptstore',
+  'GANZ': 'GANZ BOATS AG', 'GLG':  'Gianluca Giardino GmbH', 'GRYD': 'GRYD SWISS',
+  'ISO':  'Isorol Tacker AG', 'KAP':  'Kappiserie GmbH', 'MFB':  'Med For Balance GmbH',
+  'NOBA': 'NOBA Shop', 'OREA': 'OREA CARE', 'P2S':  'Power2Sales', 'PDRT': 'PDR Tech',
+  'RIBO': 'Carosserie RIBO GmbH', 'SHI':  'SHIPSTER AG', 'SLT':  'SLTECH GmbH', 'UPG':  'UPGREAT AG',
+};
+
+const DOC_TYPES = [
+  { id: 'campaign-report',  label: 'Campaign Report',    icon: '📊', desc: 'Monthly/quarterly performance recap' },
+  { id: 'social-brief',     label: 'Social Media Brief', icon: '📱', desc: 'Platform strategy and guidelines' },
+  { id: 'reel-brief',       label: 'Reel Brief',         icon: '🎬', desc: 'Video content specification' },
+  { id: 'content-calendar', label: 'Content Calendar',   icon: '📅', desc: 'Publishing schedule and topics' },
+  { id: 'proposal',         label: 'Services Proposal',  icon: '📝', desc: 'Client offer and pricing' },
+  { id: 'meeting-prep',     label: 'Meeting Prep',       icon: '🤝', desc: 'Agenda, talking points, goals' },
+  { id: 'brand-guidelines', label: 'Brand Guidelines',   icon: '🎨', desc: 'Visual identity and usage rules' },
+  { id: 'post-copy',        label: 'Post Copy',          icon: '✍️', desc: 'Captions, CTAs, hashtags' },
+];
+
+// ── Auth ──
+function doAuth() {
+  const val = document.getElementById('auth-input').value.trim();
+  if (!val) return;
+  apiKey = val;
+  localStorage.setItem('ms_key', val);
+  // Test the key
+  fetch('/.netlify/functions/marketing-studio?action=history', {
+    headers: { 'X-Internal-Key': val }
+  }).then(r => {
+    if (r.status === 401) {
+      document.getElementById('auth-err').style.display = 'block';
+      apiKey = '';
+    } else {
+      document.getElementById('auth-screen').style.display = 'none';
+      init();
+    }
+  }).catch(() => {
+    document.getElementById('auth-err').style.display = 'block';
+    apiKey = '';
+  });
+}
+
+document.getElementById('auth-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doAuth();
+});
+
+// ── Init ──
+async function init() {
+  // Load brand configs first for color swatches
+  try {
+    const r = await fetch('/.netlify/functions/marketing-studio?action=brands', {
+      headers: { 'X-Internal-Key': apiKey }
+    });
+    const d = await r.json();
+    if (d.brands) BRAND_CONFIGS = d.brands;
+  } catch {}
+  buildClientGrid();
+  buildDocTypeGrid();
+  setupFileUpload();
+  loadHistory();
+}
+
+// Check saved key on load
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('ms_key');
+  if (saved) {
+    apiKey = saved;
+    fetch('/.netlify/functions/marketing-studio?action=history', {
+      headers: { 'X-Internal-Key': saved }
+    }).then(r => {
+      if (r.ok) {
+        document.getElementById('auth-screen').style.display = 'none';
+        init();
+      } else {
+        apiKey = '';
+        localStorage.removeItem('ms_key');
+      }
+    }).catch(() => { apiKey = ''; localStorage.removeItem('ms_key'); });
+  }
+});
+
+// ── Build grids ──
+function buildClientGrid() {
+  const grid = document.getElementById('client-grid');
+  const entries = Object.keys(BRAND_CONFIGS).length
+    ? Object.entries(BRAND_CONFIGS).map(([code, b]) => [code, b.name])
+    : Object.entries(CLIENTS);
+  grid.innerHTML = entries.map(([code, name]) => {
+    const brand = BRAND_CONFIGS[code] || {};
+    const primary = brand.primary || '#1a1a2e';
+    const secondary = brand.secondary || '#0d0d14';
+    const initials = code.slice(0, 3);
+    // Color luminance check for text contrast
+    const hex = primary.replace('#','');
+    const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b2 = parseInt(hex.substr(4,2),16);
+    const lum = (0.299*r + 0.587*g + 0.114*b2) / 255;
+    const textClr = lum > 0.55 ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.9)';
+    return `<div class="client-card" data-code="${code}" onclick="openClientModal('${code}')">
+      <div class="client-card-thumb" style="background:linear-gradient(135deg,${primary},${secondary});">
+        <span style="color:${textClr};font-size:15px;font-weight:800;letter-spacing:1px;">${initials}</span>
+      </div>
+      <div class="client-card-body">
+        <div class="client-code">${code}</div>
+        <div class="client-name">${name}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Client modal ──
+let modalClientCode = null;
+
+async function openClientModal(code) {
+  modalClientCode = code;
+  const brand = BRAND_CONFIGS[code] || {};
+  const name = brand.name || CLIENTS[code] || code;
+
+  document.getElementById('modal-swatch').style.background =
+    `linear-gradient(135deg,${brand.primary||'#1a1a2e'},${brand.secondary||'#0d0d14'})`;
+  document.getElementById('modal-client-name').textContent = name;
+  document.getElementById('modal-client-industry').textContent = brand.industry || '';
+  document.getElementById('modal-doc-list').innerHTML =
+    '<div style="text-align:center;color:var(--muted);padding:40px;">Loading...</div>';
+  document.getElementById('client-modal').classList.add('open');
+
+  // Render brand style preview immediately (no API call needed)
+  const sampleHtml = buildSampleHtml(brand);
+  document.getElementById('style-preview-frame').srcdoc = sampleHtml;
+  switchModalTab('preview');
+
+  // Fetch this client's past docs
+  try {
+    const r = await fetch(`/.netlify/functions/marketing-studio?action=history`, {
+      headers: { 'X-Internal-Key': apiKey }
+    });
+    const data = await r.json();
+    const docs = (data.docs || []).filter(d => d.client_code === code);
+    renderModalDocs(docs, brand);
+  } catch {
+    document.getElementById('modal-doc-list').innerHTML =
+      '<div style="color:var(--danger);padding:20px;">Could not load documents.</div>';
+  }
+}
+
+function renderModalDocs(docs, brand) {
+  const dtIcons = {
+    'campaign-report':'📊','social-brief':'📱','reel-brief':'🎬',
+    'content-calendar':'📅','proposal':'📝','meeting-prep':'🤝',
+    'brand-guidelines':'🎨','post-copy':'✍️'
+  };
+  const dtLabels = {
+    'campaign-report':'Campaign Report','social-brief':'Social Brief','reel-brief':'Reel Brief',
+    'content-calendar':'Content Calendar','proposal':'Proposal','meeting-prep':'Meeting Prep',
+    'brand-guidelines':'Brand Guidelines','post-copy':'Post Copy'
+  };
+
+  if (!docs.length) {
+    document.getElementById('modal-doc-list').innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--muted);">
+        <div style="font-size:40px;margin-bottom:12px;">📄</div>
+        <div>No documents generated yet for this client.</div>
+        <div style="font-size:13px;margin-top:8px;">Select this client and generate the first one!</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('modal-doc-list').innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${docs.length} document${docs.length!==1?'s':''} generated</div>
+    <div class="doc-thumb-grid">${docs.map(doc => {
+      const date = new Date(doc.created_at).toLocaleDateString('de-CH',{day:'2-digit',month:'short',year:'2-digit'});
+      const icon = dtIcons[doc.doc_type] || '📄';
+      const label = dtLabels[doc.doc_type] || doc.doc_type;
+      return `<div class="doc-thumb-card" onclick="loadDocFromModal('${doc.id}')">
+        <div class="doc-thumb-preview">
+          <div class="thumb-placeholder" style="background:linear-gradient(135deg,${brand.bg||'#f5f5f5'},${brand.paper||'#ffffff'});">
+            <span style="font-size:28px;">${icon}</span>
+          </div>
+        </div>
+        <div class="doc-thumb-meta">
+          <div class="doc-thumb-type">${label}</div>
+          <div class="doc-thumb-title">${doc.title}</div>
+          <div class="doc-thumb-date">${date} ${doc.file_size_bytes ? '· '+Math.round(doc.file_size_bytes/1024)+'KB' : ''}</div>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
+async function loadDocFromModal(docId) {
+  closeClientModal();
+  await loadDoc(docId);
+}
+
+function closeClientModal() {
+  document.getElementById('client-modal').classList.remove('open');
+}
+
+function confirmClientAndContinue() {
+  if (!modalClientCode) return;
+  const brand = BRAND_CONFIGS[modalClientCode] || {};
+  selectedClient = { code: modalClientCode, name: brand.name || CLIENTS[modalClientCode], brand };
+  document.querySelectorAll('.client-card').forEach(el => {
+    el.classList.toggle('selected', el.dataset.code === modalClientCode);
+  });
+  document.getElementById('next-1').disabled = false;
+  closeClientModal();
+  goStep(2);
+}
+
+function buildDocTypeGrid() {
+  const grid = document.getElementById('doctype-grid');
+  grid.innerHTML = DOC_TYPES.map(dt =>
+    `<div class="doctype-card" data-id="${dt.id}" onclick="selectDocType('${dt.id}')">
+      <div class="doctype-icon">${dt.icon}</div>
+      <div>
+        <div class="doctype-label">${dt.label}</div>
+        <div class="doctype-desc">${dt.desc}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+// ── Selections ──
+function selectClient(code) {
+  // Direct select (used by confirmClientAndContinue and startOver)
+  const brand = BRAND_CONFIGS[code] || {};
+  selectedClient = { code, name: brand.name || CLIENTS[code], brand };
+  document.querySelectorAll('.client-card').forEach(el => {
+    el.classList.toggle('selected', el.dataset.code === code);
+  });
+  document.getElementById('next-1').disabled = false;
+}
+
+function selectDocType(id) {
+  selectedDocType = DOC_TYPES.find(d => d.id === id);
+  document.querySelectorAll('.doctype-card').forEach(el => {
+    el.classList.toggle('selected', el.dataset.id === id);
+  });
+  document.getElementById('next-2').disabled = false;
+}
+
+// ── Step navigation ──
+let currentStep = 1;
+
+function goStep(n) {
+  if (n === 2 && !selectedClient) { toast('Select a client first', 'error'); return; }
+  if (n === 3 && !selectedDocType) { toast('Select a document type first', 'error'); return; }
+  if (n === 4) {
+    const title = document.getElementById('doc-title').value.trim();
+    const prompt = document.getElementById('doc-prompt').value.trim();
+    if (!title) { toast('Enter a document title', 'error'); return; }
+    if (prompt.length < 20) { toast('Add more detail to your prompt', 'error'); return; }
+    buildSummary();
+  }
+
+  currentStep = n;
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+
+  document.querySelectorAll('.step-item').forEach((item, i) => {
+    item.classList.remove('active', 'done');
+    if (i + 1 === n) item.classList.add('active');
+    else if (i + 1 < n) item.classList.add('done');
+  });
+
+  // Hide result when navigating away from step 4
+  if (n !== 4) {
+    document.getElementById('result-panel').style.display = 'none';
+    document.getElementById('generate-btn-row').style.display = 'flex';
+  }
+}
+
+// ── Summary ──
+function buildSummary() {
+  const title = document.getElementById('doc-title').value.trim();
+  const prompt = document.getElementById('doc-prompt').value.trim();
+  const card = document.getElementById('summary-card');
+  const dt = DOC_TYPES.find(d => d.id === selectedDocType?.id);
+  card.innerHTML = `
+    <div class="summary-row"><span class="key">Client</span><span class="val">${selectedClient.code} - ${selectedClient.name}</span></div>
+    <div class="summary-row"><span class="key">Type</span><span class="val">${dt?.icon} ${dt?.label}</span></div>
+    <div class="summary-row"><span class="key">Title</span><span class="val">${title}</span></div>
+    <div class="summary-row"><span class="key">Prompt</span><span class="val" style="color:var(--muted);font-weight:400;">${prompt.slice(0, 150)}${prompt.length > 150 ? '...' : ''}</span></div>
+    ${attachedFiles.length ? `<div class="summary-row"><span class="key">Files</span><span class="val">${attachedFiles.length} image(s) attached</span></div>` : ''}
+  `;
+}
+
+// ── File upload ──
+function setupFileUpload() {
+  const zone = document.getElementById('upload-zone');
+  const input = document.getElementById('file-input');
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    addFiles(Array.from(e.dataTransfer.files));
+  });
+
+  input.addEventListener('change', () => addFiles(Array.from(input.files)));
+}
+
+function addFiles(files) {
+  const remaining = 3 - attachedFiles.length;
+  if (remaining <= 0) { toast('Max 3 files allowed', 'error'); return; }
+  files.slice(0, remaining).forEach(file => {
+    if (!file.type.startsWith('image/')) { toast(`${file.name} is not an image`, 'error'); return; }
+    if (file.size > 4 * 1024 * 1024) { toast(`${file.name} is too large (max 4MB)`, 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      const base64 = dataUrl.split(',')[1];
+      attachedFiles.push({ name: file.name, type: file.type, data: base64 });
+      renderFileList();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeFile(i) {
+  attachedFiles.splice(i, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  list.innerHTML = attachedFiles.map((f, i) =>
+    `<div class="file-item">
+      <span>📷</span>
+      <span>${f.name}</span>
+      <button class="remove" onclick="removeFile(${i})">×</button>
+    </div>`
+  ).join('');
+}
+
+// ── Generate ──
+async function generate() {
+  const title = document.getElementById('doc-title').value.trim();
+  const prompt = document.getElementById('doc-prompt').value.trim();
+
+  document.getElementById('generate-btn-row').style.display = 'none';
+  document.getElementById('progress-block').style.display = 'flex';
+  document.getElementById('result-panel').style.display = 'none';
+
+  try {
+    const payload = {
+      client_code: selectedClient.code,
+      doc_type: selectedDocType.id,
+      title,
+      prompt,
+      files: attachedFiles.map(f => ({ name: f.name, type: f.type, data: f.data })),
+      created_by: 'FK',
+    };
+
+    const resp = await fetch('/.netlify/functions/marketing-studio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Internal-Key': apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Generation failed');
+
+    generatedHtml = data.html;
+    currentDocId = data.doc_id;
+
+    document.getElementById('progress-block').style.display = 'none';
+    document.getElementById('result-panel').style.display = 'block';
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-meta').textContent =
+      `${selectedClient.code} - ${data.doc_type_name} - ${Math.round(generatedHtml.length / 1024)}KB`;
+
+    const frame = document.getElementById('preview-frame');
+    frame.srcdoc = generatedHtml;
+
+    const fmt = document.querySelector('input[name="output-format"]:checked')?.value || 'html';
+    toast('Document generated! Sending to Telegram...', 'success');
+    loadHistory();
+
+    // Auto-trigger PDF dialog if PDF format was selected
+    if (fmt === 'pdf') {
+      frame.onload = () => { frame.contentWindow?.print(); frame.onload = null; };
+    }
+
+  } catch (e) {
+    document.getElementById('progress-block').style.display = 'none';
+    document.getElementById('generate-btn-row').style.display = 'flex';
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── Download ──
+function downloadHtml() {
+  if (!generatedHtml) return;
+  const title = document.getElementById('doc-title').value.trim();
+  const safe = title.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  const blob = new Blob([generatedHtml], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${selectedClient?.code}-${safe}.html`;
+  a.click();
+}
+
+function downloadDoc() { downloadHtml(); }
+
+function printPdf() {
+  const frame = document.getElementById('preview-frame');
+  if (!frame || !frame.contentWindow) { toast('Document not loaded yet', 'error'); return; }
+  frame.contentWindow.print();
+}
+
+function updateFormatLabel() {
+  const fmt = document.querySelector('input[name="output-format"]:checked')?.value || 'html';
+  document.getElementById('fmt-html-label').style.borderColor = fmt === 'html' ? 'var(--cyan)' : 'var(--border)';
+  document.getElementById('fmt-pdf-label').style.borderColor = fmt === 'pdf' ? 'var(--violet)' : 'var(--border)';
+  const btn = document.getElementById('generate-btn');
+  if (btn) btn.textContent = fmt === 'pdf' ? 'Generate & Export PDF' : 'Generate with Claude AI';
+}
+
+// ── Brand style sample preview (CSS-only, no API call) ──
+function buildSampleHtml(brand) {
+  const p = brand.primary || '#1AA8DD';
+  const s = brand.secondary || '#0E1726';
+  const bg = brand.bg || '#EEF2F5';
+  const paper = brand.paper || '#FFFFFF';
+  const ink = brand.ink || '#1a1a2e';
+  const muted = brand.muted || '#6B7280';
+  const line = brand.line || '#E5E7EB';
+  const font = brand.font || 'system-ui, -apple-system, sans-serif';
+  const name = brand.name || 'Client';
+  const style = brand.style || 'corporate';
+
+  const isLuxury = style === 'luxury';
+  const isBold = style === 'bold';
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: ${font}; background: ${bg}; color: ${ink}; font-size: 14px; }
+  .cover {
+    background: ${isBold ? s : `linear-gradient(135deg, ${p}, ${s})`};
+    color: ${isBold ? p : '#fff'};
+    padding: 48px 40px; min-height: 180px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .cover .tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; margin-bottom: 10px; }
+  .cover h1 { font-size: 28px; font-weight: 800; line-height: 1.2; }
+  .cover .sub { font-size: 14px; opacity: 0.8; margin-top: 8px; }
+  .body { padding: 32px 40px; background: ${bg}; }
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+  .kpi { background: ${paper}; border: 1px solid ${line}; border-top: 3px solid ${p}; border-radius: 10px; padding: 18px; }
+  .kpi-num { font-size: 26px; font-weight: 800; color: ${p}; }
+  .kpi-label { font-size: 11px; color: ${muted}; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .section { background: ${paper}; border: 1px solid ${line}; border-radius: 10px; padding: 22px; margin-bottom: 16px; }
+  .section h2 { font-size: 15px; font-weight: 700; color: ${s}; border-left: 3px solid ${p}; padding-left: 10px; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: ${p}; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+  td { padding: 8px 12px; border-bottom: 1px solid ${line}; }
+  tr:nth-child(even) td { background: ${bg}; }
+  .footer { text-align: center; padding: 20px; font-size: 11px; color: ${muted}; border-top: 1px solid ${line}; margin-top: 8px; }
+  .bar-wrap { margin-bottom: 10px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+  .bar-track { background: ${line}; border-radius: 4px; height: 8px; }
+  .bar-fill { background: ${p}; border-radius: 4px; height: 8px; }
+</style></head><body>
+<div class="cover">
+  <div class="tag">Dokument Vorlage &bull; Muster</div>
+  <h1>${name}</h1>
+  <div class="sub">Erstellt durch c2moviez GmbH &bull; Fanny Kecskes, Marketing Manager</div>
+</div>
+<div class="body">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-num">94%</div><div class="kpi-label">Reichweite</div></div>
+    <div class="kpi"><div class="kpi-num">2.4K</div><div class="kpi-label">Interaktionen</div></div>
+    <div class="kpi"><div class="kpi-num">+18%</div><div class="kpi-label">Wachstum</div></div>
+  </div>
+  <div class="section">
+    <h2>Performance Übersicht</h2>
+    <div class="bar-wrap"><div class="bar-label"><span>Instagram</span><span>87%</span></div><div class="bar-track"><div class="bar-fill" style="width:87%"></div></div></div>
+    <div class="bar-wrap"><div class="bar-label"><span>LinkedIn</span><span>64%</span></div><div class="bar-track"><div class="bar-fill" style="width:64%"></div></div></div>
+    <div class="bar-wrap"><div class="bar-label"><span>Website</span><span>72%</span></div><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div></div>
+  </div>
+  <div class="section">
+    <h2>Inhalts-Übersicht</h2>
+    <table>
+      <thead><tr><th>Format</th><th>Anzahl</th><th>Reichweite</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Reels</td><td>4</td><td>12.400</td><td>Abgeschlossen</td></tr>
+        <tr><td>Stories</td><td>12</td><td>8.200</td><td>Abgeschlossen</td></tr>
+        <tr><td>Posts</td><td>6</td><td>5.800</td><td>In Bearbeitung</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="footer">c2moviez GmbH &bull; Hedi-Lang-Strasse 5, 8620 Wetzikon &bull; info@c2moviez.com &bull; +41 78 317 85 85</div>
+</body></html>`;
+}
+
+function switchModalTab(tab) {
+  const isPreview = tab === 'preview';
+  document.getElementById('pane-preview').style.display = isPreview ? 'block' : 'none';
+  document.getElementById('pane-docs').style.display = isPreview ? 'none' : 'block';
+  document.getElementById('tab-preview').style.background = isPreview ? 'rgba(0,212,255,0.15)' : 'none';
+  document.getElementById('tab-preview').style.color = isPreview ? 'var(--cyan)' : 'var(--muted)';
+  document.getElementById('tab-docs').style.background = isPreview ? 'none' : 'rgba(0,212,255,0.15)';
+  document.getElementById('tab-docs').style.color = isPreview ? 'var(--muted)' : 'var(--cyan)';
+}
+
+// ── Start over ──
+function startOver() {
+  selectedClient = null;
+  selectedDocType = null;
+  attachedFiles = [];
+  generatedHtml = '';
+  currentDocId = null;
+  document.getElementById('doc-title').value = '';
+  document.getElementById('doc-prompt').value = '';
+  document.getElementById('file-list').innerHTML = '';
+  document.querySelectorAll('.client-card').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.doctype-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById('next-1').disabled = true;
+  document.getElementById('next-2').disabled = true;
+  document.getElementById('result-panel').style.display = 'none';
+  document.getElementById('generate-btn-row').style.display = 'flex';
+  goStep(1);
+}
+
+// ── History ──
+async function loadHistory() {
+  const list = document.getElementById('history-list');
+  try {
+    const resp = await fetch('/.netlify/functions/marketing-studio?action=history', {
+      headers: { 'X-Internal-Key': apiKey }
+    });
+    const data = await resp.json();
+    const docs = data.docs || [];
+    if (!docs.length) {
+      list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">No documents yet</div>';
+      return;
+    }
+    list.innerHTML = docs.map(doc => {
+      const date = new Date(doc.created_at).toLocaleDateString('de-CH', { day: '2-digit', month: 'short' });
+      const size = doc.file_size_bytes ? `${Math.round(doc.file_size_bytes / 1024)}KB` : '';
+      const dtLabel = {
+        'campaign-report': 'Report', 'social-brief': 'Social Brief', 'reel-brief': 'Reel Brief',
+        'content-calendar': 'Calendar', 'proposal': 'Proposal', 'meeting-prep': 'Meeting',
+        'brand-guidelines': 'Brand', 'post-copy': 'Copy'
+      }[doc.doc_type] || doc.doc_type;
+      return `<div class="hist-item" onclick="loadDoc('${doc.id}')">
+        <div class="hist-client">${doc.client_code} - ${dtLabel}</div>
+        <div class="hist-title">${doc.title}</div>
+        <div class="hist-meta">${date} ${size ? '- ' + size : ''}</div>
+        ${doc.telegram_sent ? '<span class="hist-tg">Sent to Telegram</span>' : ''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = '<div style="color:var(--danger);font-size:13px;padding:20px;">Could not load history</div>';
+  }
+}
+
+async function loadDoc(docId) {
+  try {
+    const resp = await fetch(`/.netlify/functions/marketing-studio?action=get_doc&doc_id=${docId}`, {
+      headers: { 'X-Internal-Key': apiKey }
+    });
+    const data = await resp.json();
+    if (!data.html_content) { toast('Could not load document', 'error'); return; }
+
+    generatedHtml = data.html_content;
+    currentDocId = docId;
+
+    selectedClient = { code: data.client_code, name: CLIENTS[data.client_code] || data.client_code };
+    selectedDocType = DOC_TYPES.find(d => d.id === data.doc_type) || { id: data.doc_type, label: data.doc_type };
+
+    document.getElementById('doc-title').value = data.title;
+    document.getElementById('result-title').textContent = data.title;
+    document.getElementById('result-meta').textContent =
+      `${data.client_code} - ${data.doc_type} - ${Math.round(generatedHtml.length / 1024)}KB`;
+
+    document.getElementById('generate-btn-row').style.display = 'none';
+    document.getElementById('progress-block').style.display = 'none';
+    document.getElementById('result-panel').style.display = 'block';
+
+    const frame = document.getElementById('preview-frame');
+    frame.srcdoc = generatedHtml;
+
+    goStep(4);
+    document.querySelectorAll('.step-item').forEach((item, i) => {
+      item.classList.remove('active', 'done');
+      if (i + 1 === 4) item.classList.add('active');
+      else item.classList.add('done');
+    });
+
+  } catch (e) {
+    toast('Error loading document', 'error');
+  }
+}
+
+// ── Toast ──
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+</script>
+</body>
+</html>

@@ -433,6 +433,8 @@ function deriveCapabilityHints(text) {
   const hints = ['intent-normalization', 'deterministic-verification']
   if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) hints.push('memory-navigation', 'retrieval', 'reduce-and-learn')
   if (/\b(skill|skills|capability|trigger|routing|recall)\b/.test(text)) hints.push('skill-recall', 'orchestration')
+  if (/\b(claude output lane|output lane|sublane|sublanes|plans?|ideas?|findings?|draft[- ]?artifacts?|diff[- ]?proposals?|reviews?|questions?|decisions?|evidence|raw[- ]?captures?)\b/.test(text)) hints.push('output-organization', 'skill-recall')
+  if (/\b(attack|stress[- ]?test|double[- ]?check|first[- ]?run|first run|completion|complete|claim|commit|push|relaunch|ready|agent[- ]?output|claude[- ]?output)\b/.test(text)) hints.push('risk-review', 'mutation-guard', 'failure-learning')
   if (/\b(neuro|persona|preference|interaction|marcel|rick|soul)\b/.test(text)) hints.push('persona-alignment')
   if (/\b(research|source|citation|paper|msa|web|browser)\b/.test(text)) hints.push('research', 'summarization')
   if (/\b(code|test|refactor|script|kernel|loader|mjs|js|ts)\b/.test(text)) hints.push('code')
@@ -454,6 +456,8 @@ function deriveSignals(text) {
   if (/\b(risk|guard|protected|security|audit|failure|critical|production)\b/.test(text)) signals.push('risk')
   if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) signals.push('memory')
   if (/\b(research|source|citation|paper|msa|web|browser)\b/.test(text)) signals.push('research', 'docs')
+  if (/\b(claude output lane|output lane|sublane|sublanes|plans?|ideas?|findings?|draft[- ]?artifacts?|diff[- ]?proposals?|reviews?|questions?|decisions?|evidence|raw[- ]?captures?)\b/.test(text)) signals.push('docs', 'campaign')
+  if (/\b(attack|stress[- ]?test|double[- ]?check|first[- ]?run|first run|completion|complete|claim|commit|push|relaunch|ready|agent[- ]?output|claude[- ]?output)\b/.test(text)) signals.push('risk')
   if (/\b(design|visual|presentation|html|ui|ux)\b/.test(text)) signals.push('design')
   if (/\b(campaign|supercharge|forensic|symbiotic|shintai)\b/.test(text)) signals.push('campaign')
   return unique(signals)

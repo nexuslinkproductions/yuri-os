@@ -31,6 +31,7 @@ const rawSkillRegistry = {
   count: 10,
   skills: [
     skill('probabilistic-decision-core', 'hash-prob', 'PRIVATE BODY SHOULD NOT LEAK'),
+    skill('adversarial-verification', 'hash-attack', 'ATTACK BODY SHOULD NOT LEAK'),
     skill('execution-domain-core', 'hash-exec', 'EXECUTION BODY SHOULD NOT LEAK'),
     skill('non-destructive-infinity-guard', 'hash-guard', 'GUARD BODY SHOULD NOT LEAK'),
     skill('failure-evolution-loop', 'hash-failure', 'FAILURE BODY SHOULD NOT LEAK'),
@@ -54,6 +55,7 @@ assert.equal(first.policy.advisoryOnly, true, 'skills must remain advisory only'
 assert(first.active.length > 0, 'matching skills should be selected');
 assert(first.active.length <= first.policy.maxActive, 'active skills should respect maxActive');
 assert(first.active.some((item) => item.skill_id === 'probabilistic-decision-core'), 'probability skill should match risk planning');
+assert(first.active.some((item) => item.skill_id === 'adversarial-verification'), 'adversarial skill should match verification/risk work');
 assert(first.active.some((item) => item.skill_id === 'execution-domain-core'), 'execution skill should match verification');
 assert(first.suppressed.some((item) => item.skill_id === 'colliding-skill' && item.reason === 'collision'), 'collisions should be suppressed');
 assert(first.suppressed.some((item) => item.skill_id === 'irrelevant-skill' && item.reason === 'no_capability_match'), 'irrelevant skills should be suppressed');
@@ -67,6 +69,27 @@ for (const [stageId, skillIds] of Object.entries(first.stageBindings)) {
 assert(first.stageBindings.intake_classify.includes('probabilistic-decision-core'), 'intake should bind planning skill');
 assert(first.stageBindings.verify_local_truth.includes('execution-domain-core'), 'verify should bind execution skill');
 assert(first.capabilityIndex['risk-review'].includes('probabilistic-decision-core'), 'capability index should map risk-review');
+
+const outputLaneRegistry = buildActiveSkillRegistry({
+  pulseSeed: {
+    capabilityHints: ['output-organization', 'skill-recall'],
+    workPackets: [{ id: 'lane', capability: 'output-organization' }],
+  },
+  context: { signals: ['docs', 'campaign'] },
+  routePlan,
+  rawSkillRegistry: {
+    discovered_at: '2026-05-28T10:00:00.000Z',
+    count: 2,
+    skills: [
+      skill('claude-output-lane', 'hash-output', 'OUTPUT LANE BODY SHOULD NOT LEAK'),
+      skill('claude-codex-capability-bridge', 'hash-bridge', 'BRIDGE BODY SHOULD NOT LEAK'),
+    ],
+  },
+});
+
+assert(outputLaneRegistry.active.some((item) => item.skill_id === 'claude-output-lane'), 'Claude output lane should route output-organization work');
+assert(outputLaneRegistry.active.some((item) => item.skill_id === 'claude-codex-capability-bridge'), 'Codex bridge should route capability/output work');
+assert(outputLaneRegistry.capabilityIndex['output-organization'].includes('claude-output-lane'), 'capability index should map output-organization');
 
 const serialized = JSON.stringify(first);
 for (const forbidden of ['PRIVATE BODY SHOULD NOT LEAK', 'EXECUTION BODY SHOULD NOT LEAK', 'COLLISION BODY SHOULD NOT LEAK']) {

@@ -1,0 +1,296 @@
+/* ════════════════════════════════════════════════════════════════════
+   c2moviez · CRM Design System — high-end SaaS surface (Attio / Linear / Plane bar)
+   ────────────────────────────────────────────────────────────────────
+   Scoped to CRM surfaces only — never leaks into legacy pages.
+   Apply via class: .crm-surface { ... }, .info-rail, .crm-row.
+
+   Hero pattern: info-rail row — grey value text on lighter-grey row bg,
+   morphs to inline input on focus-within (Phase 1 inline edit).
+   ════════════════════════════════════════════════════════════════════ */
+
+:where(.crm-surface, .sheet, .lane, .card, .crm-row, .info-rail) {
+  /* ─── 9-step neutral scale (cool grey) ─────────────────────────── */
+  --crm-gray-0:    #FFFFFF;
+  --crm-gray-50:   #FAFBFC;
+  --crm-gray-100:  #F4F6F9;  /* row bg — lighter grey */
+  --crm-gray-150:  #ECEFF3;  /* row hover */
+  --crm-gray-200:  #E1E5EB;  /* row border */
+  --crm-gray-300:  #C5CCD6;  /* divider strong */
+  --crm-gray-400:  #94A0B0;  /* label / muted */
+  --crm-gray-500:  #6B7689;  /* body secondary */
+  --crm-gray-600:  #4E5968;  /* VALUE — hero grey, 6.81:1 on gray-100 */
+  --crm-gray-700:  #2F3848;
+  --crm-gray-800:  #1A1F2C;
+  --crm-gray-900:  #0E1119;
+
+  /* ─── Brand (CRM-scoped, AAA-safe link blue) ───────────────────── */
+  --crm-brand:        #56BCEC;            /* c2moviez primary, never substitute */
+  --crm-brand-deep:   #1F7AAB;            /* links on grey, 7.5:1 AAA */
+  --crm-brand-haze:   rgba(86,188,236,.08);
+  --crm-brand-ring:   rgba(86,188,236,.32);
+  --crm-success:      #1EA033;
+  --crm-warn:         #D97700;
+  --crm-danger:       #DC2626;
+  --crm-violet:       #6B4FD8;
+
+  /* ─── Typography (4 voices, max) ───────────────────────────────── */
+  --crm-font-ui:      'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+  --crm-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --crm-font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Sizes — 8-step strict scale */
+  --crm-text-xs:  10.5px;  /* labels, eyebrows */
+  --crm-text-sm:  12px;    /* meta, chip */
+  --crm-text-md:  13px;    /* secondary body */
+  --crm-text-base:14px;    /* default body */
+  --crm-text-lg:  15px;    /* VALUE — info-rail hero */
+  --crm-text-xl:  17px;    /* section title */
+  --crm-text-2xl: 22px;    /* sheet title */
+  --crm-text-3xl: 30px;    /* page heading */
+
+  /* Weights */
+  --crm-w-normal: 400;
+  --crm-w-medium: 500;
+  --crm-w-semi:   600;
+  --crm-w-bold:   700;
+
+  /* ─── Spacing — 4 / 8 / 12 / 16 / 20 / 24 / 32 / 48 ─────────────── */
+  --crm-sp-1: 4px;
+  --crm-sp-2: 8px;
+  --crm-sp-3: 12px;
+  --crm-sp-4: 16px;
+  --crm-sp-5: 20px;
+  --crm-sp-6: 24px;
+  --crm-sp-8: 32px;
+  --crm-sp-12:48px;
+
+  /* ─── Radii ───────────────────────────────────────────────────── */
+  --crm-r-sm:  6px;
+  --crm-r-md:  10px;       /* info-rail row */
+  --crm-r-lg:  14px;
+  --crm-r-xl:  22px;
+
+  /* ─── Shadows — 3 tiers ─────────────────────────────────────────── */
+  --crm-sh-1: 0 1px 2px rgba(14,17,25,.06), 0 1px 3px rgba(14,17,25,.04);
+  --crm-sh-2: 0 4px 12px rgba(14,17,25,.07), 0 2px 4px rgba(14,17,25,.05);
+  --crm-sh-3: 0 16px 48px rgba(14,17,25,.16), 0 4px 12px rgba(14,17,25,.08);
+
+  --crm-focus-ring: 0 0 0 3px var(--crm-brand-ring);
+
+  /* ─── Motion ───────────────────────────────────────────────────── */
+  --crm-dur-fast: 120ms;
+  --crm-dur-base: 180ms;
+  --crm-dur-slow: 280ms;
+  --crm-ease:     cubic-bezier(.2,.0,.0,1);
+}
+
+/* ═══ Hero pattern: info-rail row ═════════════════════════════════════
+   Use for Overview tab fields (email, phone, domain, website, address,
+   contact name). Renders as label-value row with grey-on-grey palette;
+   becomes inline-edit input on click (focus-within state). */
+
+.info-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crm-sp-1);
+}
+
+.info-rail__row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: var(--crm-sp-4);
+  padding: var(--crm-sp-3) var(--crm-sp-4);
+  background: var(--crm-gray-100);
+  border: 1px solid var(--crm-gray-200);
+  border-radius: var(--crm-r-md);
+  transition: background var(--crm-dur-fast) var(--crm-ease),
+              box-shadow var(--crm-dur-fast) var(--crm-ease),
+              border-color var(--crm-dur-fast) var(--crm-ease);
+}
+
+.info-rail__row:hover {
+  background: var(--crm-gray-150);
+  box-shadow: var(--crm-sh-1);
+}
+
+.info-rail__row:focus-within {
+  background: var(--crm-gray-0);
+  border-color: var(--crm-brand);
+  box-shadow: var(--crm-focus-ring);
+}
+
+.info-rail__label {
+  font: var(--crm-w-bold) var(--crm-text-xs) / 1.2 var(--crm-font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--crm-gray-400);
+  white-space: nowrap;
+}
+
+.info-rail__value {
+  font: var(--crm-w-medium) var(--crm-text-lg) / 1.45 var(--crm-font-ui);
+  color: var(--crm-gray-600);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-rail__value--link,
+.info-rail__value a {
+  color: var(--crm-brand-deep);
+  text-decoration: none;
+  font-weight: var(--crm-w-medium);
+}
+
+.info-rail__value--link:hover,
+.info-rail__value a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.info-rail__value--muted,
+.info-rail__value--empty {
+  color: var(--crm-gray-400);
+  font-style: italic;
+  font-weight: var(--crm-w-normal);
+}
+
+.info-rail__value--mono {
+  font-family: var(--crm-font-mono);
+  font-size: var(--crm-text-md);
+  letter-spacing: -.01em;
+}
+
+/* Inline-edit input — replaces value while focused */
+.info-rail__input {
+  all: unset;
+  width: 100%;
+  font: var(--crm-w-medium) var(--crm-text-lg) / 1.45 var(--crm-font-ui);
+  color: var(--crm-gray-800);
+  cursor: text;
+}
+
+.info-rail__input::placeholder {
+  color: var(--crm-gray-400);
+  font-weight: var(--crm-w-normal);
+}
+
+/* Trailing slot — edit hint icon, save spinner, copy button */
+.info-rail__action {
+  opacity: 0;
+  transition: opacity var(--crm-dur-fast) var(--crm-ease);
+  color: var(--crm-gray-400);
+  font-size: var(--crm-text-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crm-sp-1);
+}
+
+.info-rail__row:hover .info-rail__action,
+.info-rail__row:focus-within .info-rail__action {
+  opacity: 1;
+}
+
+.info-rail__action--saving { color: var(--crm-brand-deep); opacity: 1; }
+.info-rail__action--saved  { color: var(--crm-success);    opacity: 1; }
+.info-rail__action--error  { color: var(--crm-danger);     opacity: 1; }
+
+/* Editable-aware variant (Phase 1 inline-edit gate) */
+.info-rail__row--editable { cursor: pointer; }
+.info-rail__row--readonly { cursor: default; }
+.info-rail__row--readonly:hover { background: var(--crm-gray-100); box-shadow: none; }
+
+/* Responsive: stack label above value below 640px */
+@media (max-width: 640px) {
+  .info-rail__row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+  }
+  .info-rail__label { grid-column: 1 / -1; }
+  .info-rail__value { grid-column: 1 / -1; }
+}
+
+/* ═══ CRM section heading ════════════════════════════════════════════ */
+.crm-section-title {
+  font: var(--crm-w-semi) var(--crm-text-xl) / 1.25 var(--crm-font-display);
+  color: var(--crm-gray-800);
+  margin: 0 0 var(--crm-sp-3) 0;
+  letter-spacing: -.01em;
+}
+
+.crm-section-eyebrow {
+  font: var(--crm-w-bold) var(--crm-text-xs) / 1.2 var(--crm-font-ui);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--crm-gray-400);
+  margin: 0 0 var(--crm-sp-2) 0;
+}
+
+/* ═══ CRM chip / pill ════════════════════════════════════════════════ */
+.crm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font: var(--crm-w-semi) var(--crm-text-sm) / 1.4 var(--crm-font-ui);
+  background: var(--crm-gray-100);
+  color: var(--crm-gray-600);
+  border: 1px solid var(--crm-gray-200);
+}
+
+.crm-chip--brand   { background: var(--crm-brand-haze); color: var(--crm-brand-deep); border-color: rgba(86,188,236,.24); }
+.crm-chip--success { background: rgba(30,160,51,.10);  color: #15782B; border-color: rgba(30,160,51,.22); }
+.crm-chip--warn    { background: rgba(217,119,0,.10);  color: #9E5800; border-color: rgba(217,119,0,.22); }
+.crm-chip--danger  { background: rgba(220,38,38,.08);  color: #B91C1C; border-color: rgba(220,38,38,.20); }
+.crm-chip--violet  { background: rgba(107,79,216,.08); color: #4F3BB0; border-color: rgba(107,79,216,.20); }
+
+/* ═══ CRM button (compact, surface-friendly) ══════════════════════════ */
+.crm-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--crm-sp-2);
+  padding: var(--crm-sp-2) var(--crm-sp-4);
+  border-radius: var(--crm-r-sm);
+  font: var(--crm-w-semi) var(--crm-text-base) / 1 var(--crm-font-ui);
+  cursor: pointer;
+  transition: background var(--crm-dur-fast) var(--crm-ease),
+              transform var(--crm-dur-fast) var(--crm-ease),
+              box-shadow var(--crm-dur-fast) var(--crm-ease);
+}
+
+.crm-btn--primary {
+  background: var(--crm-brand);
+  color: white;
+  box-shadow: var(--crm-sh-1);
+}
+.crm-btn--primary:hover { filter: brightness(1.05); box-shadow: var(--crm-sh-2); }
+.crm-btn--primary:active { transform: translateY(1px); }
+
+.crm-btn--ghost {
+  background: transparent;
+  color: var(--crm-gray-600);
+  border: 1px solid var(--crm-gray-200);
+}
+.crm-btn--ghost:hover { background: var(--crm-gray-100); color: var(--crm-gray-800); }
+
+.crm-btn:focus-visible { box-shadow: var(--crm-focus-ring); outline: none; }
+
+.crm-btn[disabled] { opacity: .55; cursor: not-allowed; transform: none; }
+
+/* ═══ Skeleton loader ═════════════════════════════════════════════════ */
+.crm-skeleton {
+  background: linear-gradient(90deg, var(--crm-gray-100) 0%, var(--crm-gray-150) 50%, var(--crm-gray-100) 100%);
+  background-size: 200% 100%;
+  animation: crm-skeleton-pulse 1.4s ease-in-out infinite;
+  border-radius: var(--crm-r-sm);
+}
+@keyframes crm-skeleton-pulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

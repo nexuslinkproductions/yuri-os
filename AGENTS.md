@@ -78,6 +78,21 @@ No auto-commit by default. Commit only when the owner asks for it or the active 
 
 Never push unless explicitly requested.
 
+## Adversarial Verification Rule
+
+Treat the first successful run as a hypothesis, not proof.
+
+Before claiming completion, committing, pushing, relaunching lanes, or accepting Claude/other-agent output:
+
+- attack your own work with at least one skeptical pass
+- verify collaborator output with local evidence before trusting it
+- include positive checks that prove the intended path works
+- include negative or mismatch checks when wiring, routing, permissions, adapters, or parsers changed
+- check staged scope and protected surfaces before commit/push
+- report what failed first, what was fixed, what commands proved the final state, and any remaining risk
+
+Load `skills/adversarial-verification/SKILL.md` when the task mentions attack, stress test, double-check, verification, completion, commit, push, relaunch, route wiring, adapters, or agent-output review.
+
 ## Cleanup Rule
 
 Do not browse or preserve retired tool identities as active architecture. Promote useful patterns into YURI-owned docs, skills, scripts, or registries, then remove the old surface from default navigation.

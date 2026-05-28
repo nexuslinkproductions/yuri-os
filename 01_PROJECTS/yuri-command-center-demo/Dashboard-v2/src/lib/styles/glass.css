@@ -1,0 +1,498 @@
+/* ═══════════════════════════════════════════════════════════════════
+   glass.css — visionOS material system on top of tokens.css
+   ─────────────────────────────────────────────────────────────────── */
+
+/* Deep-space base so translucency has something rich to sit over */
+:root[data-theme="dark"] {
+  --bg:        #06080E;
+  --s1:        rgba(255, 255, 255, 0.025);
+  --s2:        rgba(255, 255, 255, 0.045);
+  --s3:        rgba(255, 255, 255, 0.075);
+  --b1:        rgba(255, 255, 255, 0.07);
+  --b2:        rgba(255, 255, 255, 0.11);
+  --b3:        rgba(255, 255, 255, 0.17);
+  --tx:        rgba(255, 255, 255, 0.95);
+  --t2:        rgba(255, 255, 255, 0.72);
+  --t3:        rgba(255, 255, 255, 0.5);
+  --t4:        rgba(255, 255, 255, 0.32);
+
+  /* Brand re-stated in dark-mode form */
+  --a:         #3FB5F2;
+  --a2:        #7B5CFF;
+  --gr:        #34c759;
+  --ye:        #ff9f0a;
+  --re:        #ff453a;
+  --or:        #ff9f0a;
+}
+
+:root[data-theme="light"] {
+  --bg:        #F3F5FA;
+  --tx:        #0A0A0B;
+  --t2:        rgba(10, 10, 11, 0.7);
+  --t3:        rgba(10, 10, 11, 0.48);
+  --t4:        rgba(10, 10, 11, 0.3);
+
+  /* Light-mode glass — frosted white instead of dark overlay */
+  --mat-thin:    rgba(255, 255, 255, 0.55);
+  --mat-regular: rgba(255, 255, 255, 0.70);
+  --mat-thick:   rgba(255, 255, 255, 0.88);
+  --shadow-card: inset 0 1px 0 0 rgba(255,255,255,0.9),
+                 0 1px 3px rgba(0,0,0,0.08),
+                 0 8px 24px rgba(0,0,0,0.06);
+  --shadow-lift: inset 0 1px 0 0 rgba(255,255,255,0.95),
+                 0 4px 12px rgba(0,0,0,0.12),
+                 0 16px 40px rgba(0,0,0,0.08);
+}
+
+/* Material / glass */
+:root {
+  --mat-thin:    rgba(255, 255, 255, 0.06);
+  --mat-regular: rgba(28, 28, 32, 0.55);
+  --mat-thick:   rgba(14, 16, 24, 0.72);
+
+  --glass-blur-light: blur(12px) saturate(130%);
+  --glass-blur-med:   blur(22px) saturate(150%);
+  --glass-blur-heavy: blur(36px) saturate(180%);
+
+  --shadow-card:   inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+                   0 1px 2px rgba(0, 0, 0, 0.25),
+                   0 8px 24px rgba(0, 0, 0, 0.18);
+  --shadow-lift:   inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+                   0 4px 12px rgba(0, 0, 0, 0.35),
+                   0 16px 40px rgba(0, 0, 0, 0.28);
+  --shadow-glow:   0 0 0 1px rgba(63, 181, 242, 0.35),
+                   0 0 32px rgba(63, 181, 242, 0.28);
+
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast:    120ms;
+  --dur-base:    220ms;
+  --dur-slow:    400ms;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
+}
+
+/* Base body */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+button { font-family: inherit; }
+
+/* Ambient cyan/violet orbs drifting on hero surfaces — per SKILL.md */
+.ambient-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.ambient-orbs .orb {
+  position: absolute;
+  width: 44vmax;
+  height: 44vmax;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.6;
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: drift 38s ease-in-out infinite alternate;
+}
+.ambient-orbs .orb-a { top: -20%; left: -15%; background: radial-gradient(circle, #3FB5F255, transparent 60%); }
+.ambient-orbs .orb-b { bottom: -25%; right: -15%; background: radial-gradient(circle, #7B5CFF55, transparent 60%); animation-delay: -14s; animation-duration: 46s; }
+.ambient-orbs .orb-c { top: 40%; left: 55%; background: radial-gradient(circle, #22d3ee33, transparent 60%); animation-delay: -28s; animation-duration: 52s; }
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(-6vmax, 4vmax, 0) scale(1.12); }
+  66%  { transform: translate3d(5vmax, -5vmax, 0) scale(0.95); }
+  100% { transform: translate3d(-2vmax, 6vmax, 0) scale(1.06); }
+}
+
+/* Reduced motion — kill the orbs */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orbs .orb { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Fallback: solid panels when transparency is reduced */
+@media (prefers-reduced-transparency: reduce) {
+  .glass { backdrop-filter: none !important; background: var(--s2) !important; }
+}
+
+/* Base glass */
+.glass {
+  background: var(--mat-regular);
+  backdrop-filter: var(--glass-blur-med);
+  -webkit-backdrop-filter: var(--glass-blur-med);
+  border: 1px solid var(--b2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+.glass--thin  { background: var(--mat-thin);    backdrop-filter: var(--glass-blur-light); -webkit-backdrop-filter: var(--glass-blur-light); }
+.glass--thick { background: var(--mat-thick);   backdrop-filter: var(--glass-blur-heavy); -webkit-backdrop-filter: var(--glass-blur-heavy); }
+
+.glass-hover { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+.glass-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); border-color: var(--b3); }
+.glass-press { transition: transform var(--dur-fast) var(--ease-out); }
+.glass-press:active { transform: scale(0.97); }
+
+.glass-pulse {
+  position: relative;
+}
+.glass-pulse::after {
+  content: "";
+  position: absolute; inset: -2px;
+  border-radius: inherit;
+  border: 1px solid rgba(63, 181, 242, 0.5);
+  box-shadow: 0 0 24px rgba(63, 181, 242, 0.45);
+  pointer-events: none;
+  animation: pulse-glow 2.4s ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.02); }
+}
+
+/* Spatial entrance — staggered on mount */
+.enter-up {
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  animation: enter-up var(--dur-slow) var(--ease-spring) forwards;
+  animation-delay: calc(var(--idx, 0) * 60ms);
+}
+@keyframes enter-up {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Realtime flash — triggered when a Supabase payload updates a value.
+   Add + remove .rt-flash class for a brief cyan glow pulse. */
+.rt-flash {
+  position: relative;
+}
+.rt-flash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px var(--a), 0 0 24px 4px color-mix(in oklab, var(--a) 60%, transparent);
+  animation: rt-flash 800ms var(--ease-out) forwards;
+}
+@keyframes rt-flash {
+  0%   { opacity: 0; }
+  30%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Depth z-stack on overlapping cards — subtle lift that implies layers */
+.depth-1 { z-index: 1; }
+.depth-2 { z-index: 2; transform: scale(1.005); box-shadow: var(--shadow-lift); }
+.depth-3 { z-index: 3; transform: scale(1.012); box-shadow: var(--shadow-lift), 0 24px 48px rgba(0, 0, 0, 0.4); }
+
+/* Sidebar active-trail — a glowing rail on the left of the active row */
+.nav-trail {
+  position: relative;
+}
+.nav-trail::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 10%; bottom: 10%;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, var(--a) 50%, transparent);
+  box-shadow: 0 0 12px var(--a);
+  border-radius: 2px;
+  animation: trail-shimmer 2.4s var(--ease-in-out, ease-in-out) infinite;
+}
+@keyframes trail-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
+/* Layout-shift easing: any .smooth-layout grid/flex change is animated */
+.smooth-layout,
+.smooth-layout * {
+  transition: grid-template-columns var(--dur-base) var(--ease-out),
+              gap var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out);
+}
+
+/* Ambient realtime indicator — a dot that breathes when live */
+.live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gr);
+  box-shadow: 0 0 6px var(--gr);
+  animation: breathe 1.8s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1);   opacity: 1;   }
+  50%      { transform: scale(0.7); opacity: 0.5; }
+}
+
+/* Typography helpers */
+.font-display  { font-family: "Space Grotesk", "Inter", sans-serif; letter-spacing: -0.012em; }
+.font-mono     { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-feature-settings: "liga" 0, "cv11"; }
+.font-editorial { font-family: "DM Serif Display", Georgia, serif; letter-spacing: -0.01em; }
+
+.eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+.h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(28px, 4vw, 44px); font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; margin: 0; }
+.h2 { font-family: "Space Grotesk", sans-serif; font-size: 22px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.2; margin: 0; }
+.h3 { font-family: "Space Grotesk", sans-serif; font-size: 16px; font-weight: 500; letter-spacing: -0.005em; line-height: 1.3; margin: 0; }
+.body  { font-size: 14.5px; line-height: 1.55; color: var(--t2); margin: 0; }
+.small { font-size: 12px; color: var(--t3); }
+.caption { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; color: var(--t3); text-transform: uppercase; }
+
+/* Focus ring — consistent across the app */
+:focus-visible {
+  outline: 2px solid var(--a);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Scrollbar — light and subtle */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--b2) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 999px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--b3); }
+
+/* ═══ Material elevation hierarchy ═══
+   Four explicit z-planes. Use these instead of ad-hoc glass variants.
+   elev-0 = body background (no card treatment)
+   elev-1 = default content card — most panels, lists, stats
+   elev-2 = raised / interactive card — hover targets, selected state
+   elev-3 = floating / modal surface — drawers, dropdowns, overlays
+*/
+:root {
+  --elev-1-bg:     rgba(255,255,255,.028);
+  --elev-1-border: rgba(255,255,255,.07);
+  --elev-1-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 3px rgba(0,0,0,.22), 0 4px 14px rgba(0,0,0,.14);
+
+  --elev-2-bg:     rgba(255,255,255,.048);
+  --elev-2-border: rgba(255,255,255,.11);
+  --elev-2-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 4px 12px rgba(0,0,0,.30), 0 12px 32px rgba(0,0,0,.22);
+
+  --elev-3-bg:     rgba(14,16,26,.78);
+  --elev-3-border: rgba(255,255,255,.14);
+  --elev-3-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 24px rgba(0,0,0,.40), 0 24px 56px rgba(0,0,0,.35);
+}
+
+[data-theme="light"] {
+  --elev-1-bg:     rgba(255,255,255,.72);
+  --elev-1-border: rgba(0,0,0,.07);
+  --elev-1-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+
+  --elev-2-bg:     rgba(255,255,255,.90);
+  --elev-2-border: rgba(0,0,0,.10);
+  --elev-2-shadow: 0 4px 12px rgba(0,0,0,.08), 0 12px 32px rgba(0,0,0,.06);
+
+  --elev-3-bg:     rgba(255,255,255,.95);
+  --elev-3-border: rgba(0,0,0,.12);
+  --elev-3-shadow: 0 8px 24px rgba(0,0,0,.12), 0 24px 56px rgba(0,0,0,.10);
+}
+
+/* Elevation utility classes — use instead of .glass directly for new components */
+.elev-1 {
+  background: var(--elev-1-bg);
+  backdrop-filter: var(--glass-blur-med);
+  -webkit-backdrop-filter: var(--glass-blur-med);
+  border: 1px solid var(--elev-1-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--elev-1-shadow);
+}
+.elev-2 {
+  background: var(--elev-2-bg);
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  border: 1px solid var(--elev-2-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--elev-2-shadow);
+}
+.elev-3 {
+  background: var(--elev-3-bg);
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  border: 1px solid var(--elev-3-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--elev-3-shadow);
+}
+
+.elev-hover {
+  transition: transform var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out),
+              background var(--dur-base) var(--ease-out);
+}
+.elev-hover:hover {
+  transform: translateY(-2px);
+  background: var(--elev-2-bg);
+  border-color: var(--elev-2-border);
+  box-shadow: var(--elev-2-shadow);
+}
+
+/* Card section anatomy — header / body / footer with consistent rhythm */
+.card-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--b1);
+  flex-shrink: 0;
+}
+.card-header-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.004em;
+  color: var(--t2);
+  flex: 1;
+  min-width: 0;
+}
+.card-header-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--a-12);
+  color: var(--a);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+}
+.card-body {
+  flex: 1;
+  padding: 16px 20px;
+  overflow: hidden;
+  min-height: 0;
+}
+.card-body--flush { padding: 0; }
+.card-body--scroll { overflow-y: auto; }
+.card-footer {
+  padding: 10px 20px;
+  border-top: 1px solid var(--b1);
+  flex-shrink: 0;
+}
+
+/* ═══ View Transitions — #4 Depth & motion ═══
+   Triggered by SvelteKit's onNavigate + document.startViewTransition.
+   Falls back gracefully in Firefox / Safari (no transition, no flash).
+*/
+@keyframes vt-fade-in  { from { opacity: 0; transform: translateY(6px) scale(0.995); } to { opacity: 1; transform: none; } }
+@keyframes vt-fade-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px) scale(1.002); } }
+
+/* Default page-level transition */
+::view-transition-old(root) {
+  animation: vt-fade-out var(--dur-base) var(--ease-in) both;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in var(--dur-base) var(--ease-out) both;
+}
+
+/* Named transition: top-nav stays stable across routes */
+.navbar {
+  view-transition-name: topnav;
+}
+::view-transition-old(topnav),
+::view-transition-new(topnav) {
+  animation: none;
+}
+
+/* Named transition: page heading slides in per-page */
+[data-vt="heading"] {
+  view-transition-name: page-heading;
+}
+::view-transition-old(page-heading) {
+  animation: vt-fade-out 160ms var(--ease-in) both;
+}
+::view-transition-new(page-heading) {
+  animation: vt-fade-in 200ms var(--ease-out) 60ms both;
+}
+
+/* Respect reduced-motion — kill all view transitions */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(topnav),
+  ::view-transition-new(topnav),
+  ::view-transition-old(page-heading),
+  ::view-transition-new(page-heading) {
+    animation: none !important;
+  }
+}
+
+/* Utility layout */
+.stack   { display: flex; flex-direction: column; }
+.row     { display: flex; flex-direction: row; }
+.gap-1   { gap: 4px;  }
+.gap-2   { gap: 8px;  }
+.gap-3   { gap: 12px; }
+.gap-4   { gap: 16px; }
+.gap-5   { gap: 20px; }
+.gap-6   { gap: 24px; }
+.gap-8   { gap: 32px; }
+.center  { justify-content: center; align-items: center; }
+.between { justify-content: space-between; }
+.items-center { align-items: center; }
+.wrap    { flex-wrap: wrap; }
+.grow    { flex: 1 1 auto; }
+
+/* Badges / chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--b2);
+  background: var(--s1);
+  font-size: 12px;
+  color: var(--t2);
+  backdrop-filter: blur(8px);
+}
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--a); }
+.chip.ok     { color: var(--gr); border-color: color-mix(in oklab, var(--gr) 40%, transparent); background: color-mix(in oklab, var(--gr) 10%, transparent); }
+.chip.warn   { color: var(--ye); border-color: color-mix(in oklab, var(--ye) 40%, transparent); background: color-mix(in oklab, var(--ye) 10%, transparent); }
+.chip.error  { color: var(--re); border-color: color-mix(in oklab, var(--re) 40%, transparent); background: color-mix(in oklab, var(--re) 10%, transparent); }
+.chip.urgent { color: var(--re); background: color-mix(in oklab, var(--re) 16%, transparent); font-weight: 500; }

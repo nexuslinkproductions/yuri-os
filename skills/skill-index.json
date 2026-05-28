@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-25",
+  "updated": "2026-05-28",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 104,
+  "count": 107,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -26,6 +26,11 @@
       "id": "ad-creative",
       "path": "skills/ad-creative/SKILL.md",
       "sourceFamily": "claude_import"
+    },
+    {
+      "id": "adversarial-verification",
+      "path": "skills/adversarial-verification/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
       "id": "agent-scout",
@@ -90,6 +95,16 @@
     {
       "id": "codex-plugin-control-plane",
       "path": "skills/codex-plugin-control-plane/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "claude-output-lane",
+      "path": "skills/claude-output-lane/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "claude-codex-capability-bridge",
+      "path": "skills/claude-codex-capability-bridge/SKILL.md",
       "sourceFamily": "yuri_native"
     },
     {

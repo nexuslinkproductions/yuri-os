@@ -1,0 +1,32 @@
+{
+  "name": "c2moviez NEX Operations",
+  "short_name": "NEX Ops",
+  "description": "c2moviez autonomous operations dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0C111A",
+  "theme_color": "#56BCEC",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/logo.png",
+      "sizes": "1068x867",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "shortcuts": [
+    { "name": "Command", "url": "/", "description": "Operations command centre" },
+    { "name": "Schedule", "url": "/schedule", "description": "Team planner" },
+    { "name": "Clients", "url": "/clients", "description": "Client intelligence" },
+    { "name": "Revenue", "url": "/revenue", "description": "Revenue dashboard" }
+  ]
+}
