@@ -320,3 +320,6 @@ checkpoints/
 # Claude Code provider runtime caches (not source truth)
 .claude/stats-cache.json
 .claude/.last-update-result.json
+
+# Per-machine operator identity (two-role system) — local only
+.claude/operator.json

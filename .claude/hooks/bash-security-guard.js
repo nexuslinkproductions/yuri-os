@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
+const path = require('path');
+const OPERATOR_MODULE = path.resolve(__dirname, '..', '..', '_SYSTEM', 'Scripts', 'yuri-operator.cjs');
+const CRED_FILE_PATH  = path.resolve(__dirname, '..', '..', '_SYSTEM', 'SELF', 'dev-credential.json');
+
 const LIVE_BLOCK_SENTINEL = 'echo __bash_security_guard_live_block_test__';
 
 function isSentinelCommand(cmd) {
@@ -207,12 +211,88 @@ function extractShellWrapper(cmd) {
 function isBlockedShellWrapper(cmd) {
   const inner = extractShellWrapper(cmd);
   if (!inner) return false;
-  return isBlockedInner(inner) || isDownloadExecuteChain(inner);
+  return isBlockedInner(inner) || isDownloadExecuteChain(inner) || !!isBlockedForCoworker(inner);
+}
+
+// ── Two-role operator gate (dev / coworker) ──────────────────────────────────
+// Role resolves via _SYSTEM/Scripts/yuri-operator.cjs (owner passphrase = dev key).
+// FAIL CLOSED: if the role module is broken but a dev-credential exists, the system
+// WAS installed -> treat as coworker (tamper). If no module and no credential, the
+// role system is simply not installed -> unrestricted (dev).
+let _roleCache = null;
+function activeRole() {
+  if (_roleCache) return _roleCache;
+  try {
+    _roleCache = require(OPERATOR_MODULE).resolveRole();
+  } catch {
+    try { _roleCache = require('fs').existsSync(CRED_FILE_PATH) ? 'coworker' : 'dev'; }
+    catch { _roleCache = 'dev'; }
+  }
+  return _roleCache;
+}
+
+const PROTECTED_ROLE_PATHS = [
+  '_SYSTEM/Scripts/yuri-operator.cjs',
+  '_SYSTEM/SELF/dev-credential.json',
+  '.claude/hooks/bash-security-guard.js',
+  '.claude/hooks/operator-guard',
+];
+
+function isGitPush(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (parts[i] === 'git' && parts[i + 1] === 'push') return true;
+  }
+  return false;
+}
+
+function isGitRemoteMutation(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length - 2; i++) {
+    if (parts[i] === 'git' && parts[i + 1] === 'remote' &&
+        ['add', 'set-url', 'remove', 'rename', 'rm'].includes(parts[i + 2])) return true;
+  }
+  return false;
+}
+
+function isOwnerOnlyOp(cmd) {
+  // Setting/rotating the dev passphrase is owner-only.
+  return /yuri-operator(\.cjs)?\b[\s\S]*\binit-dev\b/.test(cmd);
+}
+
+function isRolePathMutation(cmd) {
+  if (!PROTECTED_ROLE_PATHS.some((p) => cmd.includes(p))) return false;
+  const parts = toks(cmd);
+  const first = parts[0];
+  if (['rm', 'mv', 'cp', 'tee', 'truncate', 'dd', 'ln'].includes(first)) return true;
+  if (first === 'sed' && parts.includes('-i')) return true;
+  if (first === 'git' && (parts[1] === 'checkout' || parts[1] === 'restore')) return true;
+  if (/>>?\s*/.test(cmd)) return true; // output redirect onto a protected path
+  return false;
+}
+
+// Returns a deny reason string if the active role is `coworker` and the command
+// is in the restricted set; otherwise null. (Scope: repo + owner-surface.)
+function isBlockedForCoworker(cmd) {
+  if (activeRole() !== 'coworker') return null;
+  if (isGitPush(cmd))
+    return 'Read-only operator (coworker): pushing to the repo is blocked. Commit locally or push to your own remote.';
+  if (isGitRemoteMutation(cmd))
+    return 'Read-only operator (coworker): changing git remotes is blocked.';
+  if (isOwnerOnlyOp(cmd))
+    return 'Owner-only: only the dev role (owner passphrase) can set the dev passphrase.';
+  if (isRolePathMutation(cmd))
+    return 'Read-only operator (coworker): modifying the YURI guard/role system is blocked.';
+  return null;
 }
 
 function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
+  // Two-role gate: coworker is denied repo-mutation + owner-surface ops.
+  const coworkerBlock = isBlockedForCoworker(cmd);
+  if (coworkerBlock)
+    return { type: 'block', reason: coworkerBlock };
   // Owner-scoped exemption: intra-repo .env mirror (cp/mv between repo paths).
   // Documented + tested in this file; harness allowlist also explicitly enumerates
   // the canonical backend/.env <-> _SYSTEM/backend/.env mirror commands.
