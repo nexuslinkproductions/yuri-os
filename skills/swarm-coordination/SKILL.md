@@ -1,6 +1,6 @@
 ---
 name: swarm-coordination
-description: "Global swarm orchestration for NUDIMMUD. Use when distributing work across agents, model lanes, or handoff steps with shared state."
+description: "Global swarm orchestration for YURI. Use when distributing work across agents, model lanes, or handoff steps with shared state."
 triggers:
   - "@swarm"
   - "swarm orchestration"

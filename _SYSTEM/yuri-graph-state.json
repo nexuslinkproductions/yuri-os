@@ -111,7 +111,7 @@
         "DEEPSEEK_A",
         "OPENCLAW_A",
         "HERMES_A",
-        "CASSANDRA_A",
+        "YURI_RISK_A",
         "SWARM_A",
         "OBLITERATUS_A",
         "DS_FLASH",
@@ -696,7 +696,7 @@
         "DEEPSEEK_A",
         "OPENCLAW_A",
         "HERMES_A",
-        "CASSANDRA_A",
+        "YURI_RISK_A",
         "SWARM_A",
         "OBLITERATUS_A"
       ]
@@ -1972,9 +1972,9 @@
       "children": []
     },
     {
-      "id": "CASSANDRA_A",
+      "id": "YURI_RISK_A",
       "tier": "sub",
-      "label": "CASSANDRA",
+      "label": "YURI-RISK",
       "role": "foresight",
       "detail": "",
       "radius": 24,
@@ -2004,7 +2004,7 @@
         "state_files": [],
         "runtime_kind": "native_function_or_model_advisor",
         "authority_bounds": "advisory; known hallucination risk tracked in pulse archive",
-        "notes": "Pulse archive records Cassandra accuracy concerns; use with local verification.",
+        "notes": "Pulse archive records Yuri-Risk accuracy concerns; use with local verification.",
         "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
@@ -5160,7 +5160,7 @@
     },
     {
       "source": "ADVISORS",
-      "target": "CASSANDRA_A",
+      "target": "YURI_RISK_A",
       "type": "branch",
       "is_return": false
     },
@@ -5487,7 +5487,7 @@
       "is_return": false
     },
     {
-      "source": "CASSANDRA_A",
+      "source": "YURI_RISK_A",
       "target": "PULSE_BUS",
       "type": "data",
       "is_return": false
@@ -6389,7 +6389,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "CASSANDRA_A",
+      "target": "YURI_RISK_A",
       "type": "memory",
       "is_return": false
     },
@@ -6676,7 +6676,7 @@
         "DEEPSEEK_A",
         "OPENCLAW_A",
         "HERMES_A",
-        "CASSANDRA_A",
+        "YURI_RISK_A",
         "SWARM_A",
         "OBLITERATUS_A"
       ],

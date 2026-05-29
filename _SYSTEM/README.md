@@ -91,7 +91,6 @@ Yuri OS / Musubi operational meta layer. 145 items. Do not commit secret files f
 | `corpus-output/` | Skill corpus generation outputs |
 | `deleted-backups/` | Soft-deleted file backups |
 | `mcp-servers/` | MCP server configs |
-| `nexbox/` | Nexbox sovereignty capsule |
 | `research-archive/` | Research archive |
 | `session-outputs/` | Session report outputs |
 | `specs/` | System specs |

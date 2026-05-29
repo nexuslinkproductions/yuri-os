@@ -17,7 +17,7 @@ try {
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',
-        additionalContext: `🔴 TOKEN CRITICAL: ~${t.toLocaleString()} est. tokens used. Use palace-index.md over raw reads. Consider new session.`
+        additionalContext: `🔴 TOKEN CRITICAL: ~${t.toLocaleString()} est. tokens used. Use 'ai search "<query>"' over raw reads. Consider new session.`
       }
     }));
   } else if (t >= WARN) {

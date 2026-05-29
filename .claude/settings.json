@@ -163,7 +163,7 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/claude-protocol-guard.js"
+            "command": "node .claude/hooks/claude-protocol-guard.mjs"
           },
           {
             "type": "command",
@@ -175,7 +175,7 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/cassandra-lite.js"
+            "command": "node .claude/hooks/yuri-risk-lite.js"
           },
           {
             "type": "command",

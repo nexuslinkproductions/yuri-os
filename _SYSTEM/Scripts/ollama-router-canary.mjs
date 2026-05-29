@@ -12,9 +12,9 @@ const GOLDENS = Object.freeze({
   retrieval: ['ollama-local', 'triage-local'],
   triage: ['triage-local', 'ollama-local'],
   coding: ['code-local', 'deepseek', 'codex'],
-  architecture_review: ['swarm', 'deepseek-v4-pro', 'codex'],
-  audit_security: ['swarm', 'deepseek-v4-pro', 'codex'],
-  research_latest: ['comet'],
+  architecture_review: ['native', 'deepseek-v4-pro', 'codex'],
+  audit_security: ['native', 'deepseek-v4-pro', 'codex'],
+  research_latest: ['native'],
 });
 
 function main() {
@@ -108,7 +108,7 @@ function classify(row) {
   if (/code|coding|patch/.test(text)) return 'coding';
   if (/architecture/.test(text)) return 'architecture_review';
   if (/security|audit/.test(text)) return 'audit_security';
-  if (/research|browser|comet/.test(text)) return 'research_latest';
+  if (/research|browser/.test(text)) return 'research_latest';
   return 'unknown';
 }
 

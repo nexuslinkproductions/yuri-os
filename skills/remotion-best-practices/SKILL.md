@@ -1,6 +1,6 @@
 ---
 name: remotion-best-practices
-description: "Remotion best practices skill — stub. Populate with React-based video rendering patterns, composition structure, and NUDIMMUD video generation workflows."
+description: "Remotion best practices skill — stub. Populate with React-based video rendering patterns, composition structure, and YURI video generation workflows."
 triggers:
   - "remotion"
   - "react video"
@@ -10,4 +10,4 @@ triggers:
 
 # Remotion Best Practices
 
-Stub — not yet implemented. Add Remotion composition patterns, render pipeline, and NUDIMMUD video generation workflows here.
+Stub — not yet implemented. Add Remotion composition patterns, render pipeline, and YURI video generation workflows here.

@@ -674,8 +674,8 @@
       "owner": "YURI/runtime",
       "readByDefault": false,
       "protected": false,
-      "status": "ignore",
-      "notes": "Database artifact. Do not inspect by default."
+      "status": "removed_from_root",
+      "notes": "Runtime DB lives under backend/data/yuri.db (protected surface), never at repo root. Root entry retained as a tombstone so the census gate tracks placement drift."
     }
   ]
 }

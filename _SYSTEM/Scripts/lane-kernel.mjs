@@ -46,6 +46,23 @@ export const PROTECTED_SURFACE_PREFIXES = Object.freeze([
 
 export const PROTECTED_SURFACE_LABELS = PROTECTED_SURFACE_PREFIXES;
 
+// Canonical control-file surfaces — distinct from PROTECTED_SURFACE_PREFIXES (which are
+// read/write BLOCK surfaces like backend/data and secrets). These are core governance files
+// that may be edited, but a direct mutation should carry a control packet. Single-sourced here
+// so the ESM protocol-guard hook and any future consumer share one list instead of drifting.
+export const CONTROL_FILE_PREFIXES = Object.freeze([
+  '.claude/hooks/',
+  '.claude/settings.json',
+  'SOUL.md',
+  'AGENTS.md',
+  'CODEX_PROTOCOL.md',
+  'CLAUDE.md',
+  '_SYSTEM/Scripts/pulse-orchestrator',
+  '_SYSTEM/Scripts/offload-contract',
+  '_SYSTEM/Scripts/lane-kernel',
+  '_SYSTEM/Scripts/neuron-loop',
+]);
+
 export const ACTIVE_NIM_LANES = Object.freeze([
   'nvidia-llama-70b',
   'nvidia-qwen',

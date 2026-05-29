@@ -590,7 +590,7 @@ function analyzeIntent(intent, routePlan) {
     private: signals.includes('private'),
     multimodal: signals.includes('multimodal'),
     requiresHighReasoning: signals.some((signal) => ['campaign', 'risk', 'research'].includes(signal)) ||
-      ['swarm', 'deepseek-v4-pro', 'kimi'].includes(routePlan.lane),
+      ['native', 'deepseek-v4-pro', 'kimi'].includes(routePlan.lane),
   };
 }
 
@@ -606,7 +606,7 @@ function buildSpecialistCandidates(context, routePlan) {
   if (context.multimodal) groups.push(['gemma-local', 'gemma-cloud', 'gemma']);
 
   groups.push(['deepseek-v4-pro', 'deepseek-v4-flash']);
-  if (routePlan.lane && routePlan.lane !== 'swarm') groups.push([routePlan.lane]);
+  if (routePlan.lane && routePlan.lane !== 'native') groups.push([routePlan.lane]);
 
   return groups;
 }

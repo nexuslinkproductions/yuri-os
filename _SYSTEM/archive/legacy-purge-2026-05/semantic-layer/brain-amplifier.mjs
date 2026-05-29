@@ -180,7 +180,7 @@ export function amplifyPrompt(rawPrompt) {
 
 /**
  * amplifyPromptCompact(rawPrompt) → single-line compressed context prefix
- * Used when token budget is tight (e.g. Cassandra's 25s window).
+ * Used when token budget is tight (e.g. yuri-risk's 25s window).
  */
 export function amplifyPromptCompact(rawPrompt) {
   const palace  = loadPalaceAnchors().slice(0, 2).join(',');

@@ -13,8 +13,7 @@ function createEmpty() {
     ring: [],
     throttle: {
       ARGUS:    { last_spawn: 0 },
-      CASSANDRA: { last_spawn: 0 },
-      HERMES:   { last_spawn: 0 },
+      'YURI-RISK': { last_spawn: 0 },
     },
     last_updated: new Date().toISOString(),
   };

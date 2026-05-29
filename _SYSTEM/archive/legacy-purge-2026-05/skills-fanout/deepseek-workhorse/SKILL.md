@@ -106,6 +106,18 @@ node Scripts/yuri-workhorse.mjs forge --generate-plan "analyze what Obsidian cac
 
 ## Session Notes
 
+### 2026-05-29
+- session: 210m | peak ctx: 54% | compacts: 0
+- tools: Bash×131, Read×93, Edit×92, TodoWrite×10, Write×7, StructuredOutput×5, ToolSearch×1, Workflow×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 154m | peak ctx: 17% | compacts: 0
+- tools: Bash×45, Read×38, Edit×7, TodoWrite×4, Write×2, ToolSearch×1, Workflow×1
+- corrections: none
+- errors: none
+
 ### 2026-05-17
 - session: 160m | peak ctx: 0% | compacts: 0
 - tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1

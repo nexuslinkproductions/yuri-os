@@ -2,10 +2,8 @@
 /**
  * neuron-loop.mjs — Musubi autonomous self-learning orchestrator
  *
- * Runs daily (03:00 via LaunchAgent). 12-phase sequence + feedback substep:
- *   0. memory-embed           — refresh semantic vectors for changed memory notes
- *   0.5a memory-consolidate   — merge near-duplicate memories and flag contradictions
- *   0.5b memory-synthesize    — synthesize cluster-level memory summaries
+ * Runs daily (03:00 via LaunchAgent). Phase sequence + feedback substep:
+ *   (phases 0 / 0.5a / 0.5b — semantic-memory/palace retrieval retired 2026-05-29)
  *   1. self-audit.mjs         — structural flaw scan
  *   2. pattern-promoter       — promote repeated council findings to global.md
  *   3. calibration-tracker    — update advisor accuracy priors
@@ -31,13 +29,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const YURI_SENTINEL_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 
 const PATHS = {
-  memoryEmbed:        path.join(__dirname, 'memory-embed.mjs'),
-  memoryConsolidate:   path.join(__dirname, 'memory-consolidate.mjs'),
-  memorySynthesize:    path.join(__dirname, 'memory-synthesize.mjs'),
+  // semantic-memory/palace retrieval retired 2026-05-29 — memoryEmbed/memoryConsolidate/memorySynthesize paths removed
   selfAudit:          path.join(__dirname, 'self-audit.mjs'),
   promoter:           path.join(__dirname, 'pattern-promoter.mjs'),
   calibration:        path.join(__dirname, 'calibration-tracker.mjs'),
@@ -48,17 +44,17 @@ const PATHS = {
   selfModel:          path.join(__dirname, 'self-model.mjs'),
   selfModelFeedback:  path.join(__dirname, 'self-model-feedback.mjs'),
   auditReport:        path.join(STATE_DIR, 'self-audit-report.json'),
-  promoterDelta:      path.join(NISABA_DIR, 'promoter', 'delta.json'),
-  izanagiDir:         path.join(NISABA_DIR, 'izanagi'),
-  learningGlobal:     path.join(NISABA_DIR, 'learning', 'global.md'),
-  priors:             path.join(NISABA_DIR, 'calibration', 'priors.json'),
-  synthesis:          path.join(NISABA_DIR, 'learning', 'synthesis.json'),
-  synthLog:           path.join(NISABA_DIR, 'learning', 'synthesis.jsonl'),
-  fingerprint:        path.join(NISABA_DIR, 'self-model', 'fingerprint.json'),
-  githubTrending:     path.join(NISABA_DIR, 'learning', 'github-trending.json'),
-  hnDigest:           path.join(NISABA_DIR, 'learning', 'hn-digest.json'),
-  hypotheses:         path.join(NISABA_DIR, 'learning', 'hypotheses.json'),
-  metaSynthesis:      path.join(NISABA_DIR, 'learning', 'meta-synthesis.json'),
+  promoterDelta:      path.join(YURI_SENTINEL_DIR, 'promoter', 'delta.json'),
+  izanagiDir:         path.join(YURI_SENTINEL_DIR, 'izanagi'),
+  learningGlobal:     path.join(YURI_SENTINEL_DIR, 'learning', 'global.md'),
+  priors:             path.join(YURI_SENTINEL_DIR, 'calibration', 'priors.json'),
+  synthesis:          path.join(YURI_SENTINEL_DIR, 'learning', 'synthesis.json'),
+  synthLog:           path.join(YURI_SENTINEL_DIR, 'learning', 'synthesis.jsonl'),
+  fingerprint:        path.join(YURI_SENTINEL_DIR, 'self-model', 'fingerprint.json'),
+  githubTrending:     path.join(YURI_SENTINEL_DIR, 'learning', 'github-trending.json'),
+  hnDigest:           path.join(YURI_SENTINEL_DIR, 'learning', 'hn-digest.json'),
+  hypotheses:         path.join(YURI_SENTINEL_DIR, 'learning', 'hypotheses.json'),
+  metaSynthesis:      path.join(YURI_SENTINEL_DIR, 'learning', 'meta-synthesis.json'),
   brainStale:         path.join(STATE_DIR, 'brain-stale.sentinel'),
   neuronLog:          path.join(STATE_DIR, 'neuron-loop.log'),
 };
@@ -218,20 +214,9 @@ const runId  = `NL-${new Date().toISOString().slice(0, 10)}`;
 const prior  = loadPriorSynthesis();
 log(`starting run=${runId} dry=${DRY_RUN}`);
 
-// 0. Memory embed refresh
-log('phase 0: memory-embed');
-const embedResult = await runScript(PATHS.memoryEmbed, [], { echo: true });
-if (embedResult.code !== 0) log(`phase 0: memory-embed failed (non-fatal): ${embedResult.err.slice(0, 200)}`);
-
-// 0.5a Memory consolidate
-log('phase 0.5a: memory-consolidate');
-const consolidateResult = await runScript(PATHS.memoryConsolidate, [], { echo: true });
-if (consolidateResult.code !== 0) log(`phase 0.5a: memory-consolidate failed (non-fatal): ${consolidateResult.err.slice(0, 200)}`);
-
-// 0.5b Memory synthesize
-log('phase 0.5b: memory-synthesize');
-const synthesizeResult = await runScript(PATHS.memorySynthesize, [], { echo: true });
-if (synthesizeResult.code !== 0) log(`phase 0.5b: memory-synthesize failed (non-fatal): ${synthesizeResult.err.slice(0, 200)}`);
+// semantic-memory/palace retrieval retired 2026-05-29
+// (phases 0 / 0.5a / 0.5b — memory-embed, memory-consolidate, memory-synthesize removed;
+//  these produced the empty/stale semantic-memory.db and fed nothing downstream)
 
 // 1. Self-audit
 log('phase 1: self-audit');

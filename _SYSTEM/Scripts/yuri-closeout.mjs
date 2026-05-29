@@ -15,6 +15,7 @@ import { stdout } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { readKagamiEvents } from './kagami-event-bus.mjs';
 import { isProtectedPath } from './lane-kernel.mjs';
+import { scanClaimIntegrity } from './claim-integrity-gate.mjs';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -40,6 +41,10 @@ export function buildReport(scopedPaths = [], options = {}) {
   const scoped = scopedPaths.length
     ? scopedPaths.map((pathValue) => buildScopedStatus(pathValue))
     : [];
+  // Claim-integrity runs only on explicitly scoped paths (deterministic, read-only). It never
+  // scans the whole repo and never blocks; a failure escalates the closeout verdict so the
+  // operator/Codex sees unsupported claims before final-pass approval.
+  const claimIntegrity = scopedPaths.length ? runClaimIntegrity(scopedPaths, options) : null;
 
   return {
     schemaVersion: 'yuri.closeout.v1',
@@ -52,8 +57,9 @@ export function buildReport(scopedPaths = [], options = {}) {
     workingTree: summarizeStatus(status),
     scoped,
     validation: scoped.length ? scoped.flatMap((entry) => entry.validation) : ['no scoped validation requested'],
+    claimIntegrity,
     recentEvents,
-    verdict: closeoutVerdict(status, scoped, recentEvents),
+    verdict: closeoutVerdict(status, scoped, recentEvents, claimIntegrity),
     nonClaims: [
       'no mutation performed',
       'no protected provider runtime read',
@@ -79,6 +85,19 @@ export function formatReport(report) {
   lines.push('Validation:');
   for (const item of report.validation) lines.push(`- ${item}`);
   lines.push('');
+  if (report.claimIntegrity) {
+    const ci = report.claimIntegrity;
+    lines.push('Claim integrity:');
+    if (ci.error) {
+      lines.push(`- scan error (non-blocking): ${ci.error}`);
+    } else {
+      lines.push(`- ok=${ci.ok} fail=${ci.summary?.fail ?? 0} warn=${ci.summary?.warn ?? 0} files=${ci.summary?.filesScanned ?? 0}`);
+      for (const finding of (ci.findings || []).filter((f) => f.severity === 'fail').slice(0, 5)) {
+        lines.push(`- FAIL ${finding.path}:${finding.line} "${finding.term}" (${finding.supportStatus})`);
+      }
+    }
+    lines.push('');
+  }
   lines.push('Recent Kagami events:');
   for (const event of report.recentEvents) lines.push(`- ${event.ts} ${event.kind} ${event.lane || ''}`.trim());
   if (!report.recentEvents.length) lines.push('- none observed');
@@ -155,7 +174,18 @@ function hasProtectedEvidence(event) {
   return (event.evidenceRefs || []).some((ref) => isProtectedPath(ref));
 }
 
-function closeoutVerdict(statusText, scoped, recentEvents) {
+function runClaimIntegrity(scopedPaths, options = {}) {
+  try {
+    return scanClaimIntegrity(scopedPaths, { repoRoot: REPO_ROOT, ...options });
+  } catch (err) {
+    return { ok: null, error: String(err.message || err), summary: {}, findings: [] };
+  }
+}
+
+function closeoutVerdict(statusText, scoped, recentEvents, claimIntegrity) {
+  if (claimIntegrity && claimIntegrity.ok === false) {
+    return 'attention-needed: claim-integrity issues found';
+  }
   if (scoped.some((entry) => entry.validation.some((line) => line.includes('fail')))) {
     return 'attention-needed: scoped validation failed';
   }

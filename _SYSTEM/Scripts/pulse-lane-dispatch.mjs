@@ -4,7 +4,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { readMemoryContext } from './pulse-memory-context.mjs';
+// semantic-memory/palace retrieval retired 2026-05-29
 
 function parseArgs(argv) {
   const raw = argv.slice(2);
@@ -80,7 +80,7 @@ if (tier === 'trivial' || tier === 'standard') {
   process.exit(0);
 }
 
-const mem = await readMemoryContext({ tier, budget: Number(process.env.PULSE_CONTEXT_BUDGET || 6000) });
+const mem = ''; // semantic-memory/palace retrieval retired 2026-05-29
 const persona = existsSync('./SOUL.md') ? readFileSync('./SOUL.md', 'utf8').slice(0, 1200) : '';
 const enriched = `${persona}\n\n--- MEMORY CONTEXT ---\n${mem}\n\n--- INSTRUCTION ---\n${args.prompt}`;
 

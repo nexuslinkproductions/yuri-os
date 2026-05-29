@@ -51,8 +51,8 @@ _SYSTEM/tools/gitnexus/
 
 # Handoff bundles — offline transfer artifacts (zip + bundle dir)
 /handoff/
-.claude/nisaba/learning/.dream-lock
-.claude/nisaba/learning/.dream-prompt.txt
+.claude/yuri-sentinel/learning/.dream-lock
+.claude/yuri-sentinel/learning/.dream-prompt.txt
 
 # Large media (store references, not originals)
 *.mp4
@@ -146,9 +146,7 @@ _SYSTEM/backend/data/liquid_state.json
 # Local cache and nested snapshot artifacts
 .smart-env/
 NUDIMMUD/
-!Scripts/nudimmud/
-!Scripts/nudimmud/symbiotic-pulse.mjs
-!Scripts/nudimmud/symbiotic-pulse.test.mjs
+# symbiotic-pulse relocated to _SYSTEM/Scripts/yuri/ (not ignored — no negation needed)
 
 # Graphify generated runtime artifacts
 graphify-out/.venv/
@@ -202,7 +200,7 @@ backend/src/scripts/importPlaneTickets.ts
 .claude/history.jsonl
 .claude/credentials.json
 .claude/.credentials.json
-.claude/nisaba/learning/sessions/
+.claude/yuri-sentinel/learning/sessions/
 .claude/state/token-tracker.md
 .claude/state/token-weekly.json
 .claude/state/tokenmaxxing-state.json

@@ -25,7 +25,7 @@ const OFFLOAD_CONTRACT = {
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Shintai/NIM/DeepSeek advisory lanes.
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek'],
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@kimi', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -242,11 +242,11 @@ const OFFLOAD_CONTRACT = {
       description: 'Codex full tier — gpt-5.5, workspace-write, reasoning=high (escalates to xhigh), project rules enabled',
       preferredUsage: ['full implementation', 'complex multi-step coding', 'deep reasoning tasks', 'maximum codex features', 'high-stakes code generation']
     },
-    swarm: {
-      alias: '@swarm',
-      dispatchTokens: ['swarm'],
-      description: 'Ruflo-backed swarm orchestration',
-      preferredUsage: ['consensus', 'parallel checks', 'high-stakes review']
+    native: {
+      alias: '@native',
+      dispatchTokens: ['native', 'main', 'workflow'],
+      description: 'Main-session Opus 4.8 dynamic Workflow orchestration — replaces the deprecated parallel swarm fan-out; spawns no parallel DeepSeek pair. Optional advisory is a single sequential DeepSeek-pro call.',
+      preferredUsage: ['consensus', 'orchestration', 'high-stakes review', 'native fan-out via the Workflow tool']
     },
     kimi: {
       alias: '@kimi',
@@ -259,18 +259,7 @@ const OFFLOAD_CONTRACT = {
       dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus'],
       description: 'Bounded Claude Sonnet advisory lane',
       preferredUsage: ['architecture review', 'risk review', 'protocol review', 'model council']
-    },
-    comet: {
-      alias: '@comet',
-      dispatchTokens: ['comet'],
-      description: 'Browser interaction lane',
-      preferredUsage: ['screenshot', 'click', 'type', 'browser control']
     }
-  },
-  swarm: {
-    defaultModels: ['deepseek-v4-pro', 'deepseek-v4-flash'],
-    workhorseModels: ['deepseek-v4-pro', 'deepseek-v4-flash'],
-    description: 'Shared swarm default for Ruflo-backed workhorse fan-out'
   },
   deepseekCodexQualityGate: {
     authority: {
@@ -286,12 +275,7 @@ const OFFLOAD_CONTRACT = {
       },
       pro: {
         model: 'deepseek-v4-pro',
-        use: ['architecture review', 'protocol review', 'security/risk review', 'ambiguous high-cost planning'],
-        outputCapLines: 80
-      },
-      swarm: {
-        models: ['deepseek-v4-pro', 'deepseek-v4-flash'],
-        use: ['high-stakes review', 'audit', 'architecture/protocol consensus', 'material uncertainty after local inspection'],
+        use: ['architecture review', 'protocol review', 'security/risk review', 'ambiguous high-cost planning', 'high-stakes review', 'audit', 'architecture/protocol consensus'],
         outputCapLines: 80
       }
     },
@@ -395,17 +379,16 @@ const OFFLOAD_CONTRACT = {
       advisoryExpectations: ['symbioticPulse routing', 'DeepSeek Pro/Flash advisory for protocol/high-risk work']
     },
     nativeFunctionGates: {
-      hermes: 'always-on',
       argus: 'always-on',
       obliteratus: 'conditional-high-risk'
     },
     openClaw: {
       authority: 'native-integrated',
       status: 'absorbed-2026-05-17',
-      note: 'OpenClaw/09OC fully absorbed into Musubi as Nisaba Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/nisaba-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Nisaba Sentinel operates under the same native gates as all other Musubi components.',
+      note: 'OpenClaw/09OC fully absorbed into Musubi as Yuri Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/yuri-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Yuri Sentinel operates under the same native gates as all other Musubi components.',
       gatewayPort: 18789,
-      sentinel: '_SYSTEM/Scripts/nisaba-sentinel.mjs',
-      launchAgent: 'com.yuri.nisaba-sentinel'
+      sentinel: '_SYSTEM/Scripts/yuri-sentinel.mjs',
+      launchAgent: 'com.yuri-os-musubi.yuri-sentinel'
     },
     hardBlocksRemainOwnedBy: 'bash-security-guard.js',
     denyPermissionDecision: false
@@ -423,12 +406,6 @@ const OFFLOAD_CONTRACT = {
         activation: 'PostToolUse scout dispatcher',
         role: 'logic and sequencing check for meaningful tool calls',
         linkedSkills: ['oracle-router', 'gitnexus-impact-analysis', 'non-destructive-infinity-guard']
-      },
-      hermes: {
-        runtime: 'native_function',
-        activation: 'PostToolUse scout dispatcher for file mutation tools',
-        role: 'session scope, context pressure, and drift check',
-        linkedSkills: ['oracle-memory', 'compact-optimizer', 'end-of-transmission']
       }
     },
     obliteratus: {
@@ -475,17 +452,6 @@ const OFFLOAD_CONTRACT = {
           { phase: 'specialist_fanout', action: 'meaningful_call_and_failed_edit_check', severity: 'guard' },
           { phase: 'verify_local_truth', action: 'canonical_touch_and_evidence_check', severity: 'blocker' },
           { phase: 'merge_learn', action: 'scope_and_commit_evidence_integrity', severity: 'guard' }
-        ]
-      },
-      hermes: {
-        kind: 'native_gate_profile',
-        activation: 'always-on',
-        focus: 'session coherence, file-scope drift, context pressure, preservation timing',
-        checkpoints: [
-          { phase: 'campaign_decompose', action: 'session_scope_and_context_pressure_init', severity: 'notice' },
-          { phase: 'specialist_fanout', action: 'scope_drift_and_context_pressure_check', severity: 'guard' },
-          { phase: 'verify_local_truth', action: 'broad_file_scope_drift_check', severity: 'guard' },
-          { phase: 'merge_learn', action: 'compression_and_closeout_trigger_check', severity: 'notice' }
         ]
       },
       obliteratus: {
@@ -539,7 +505,7 @@ const OFFLOAD_CONTRACT = {
         'intake normalize graph plan', 'verify sanitize promote',
         'sanitize promote', 'artifact-driven verification', 'canonical state'
       ],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: capture raw brain dump as tainted artifact-only input.',
         'Normalize: compile typed intent with constraints, risk, uncertainty, mutation policy, artifact policy, and verifier requirements.',
@@ -562,7 +528,7 @@ const OFFLOAD_CONTRACT = {
         'md-vs-html', 'html control surface', 'control surface',
         'artifact audit', 'promotion candidates'
       ],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Detect: classify scope, route, branch, and canonical-state risk.',
         'Isolate: create an artifact-only run directory outside tracked repo state.',
@@ -613,7 +579,7 @@ const OFFLOAD_CONTRACT = {
         'recommend', 'architectural review', 'system audit',
         'what do you think', 'opinion on', 'thoughts on'
       ],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: identify the artifact, system, or question to be analyzed.',
         'Fan-out: dispatch multi-model council (DeepSeek-pro + NVIDIA + SHURA) in parallel.',
@@ -640,7 +606,7 @@ const OFFLOAD_CONTRACT = {
       id: 'strategic-review',
       title: 'Strategic architecture, refactor, or deployment review',
       match: ['strategic review', 'architecture review', 'should we refactor', 'deployment plan', 'before we ship'],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: define the decision, options, and irreversible risks.',
         'Fan-out: run Yuri Shura perspectives in addition to the pulse ensemble.',
@@ -653,10 +619,10 @@ const OFFLOAD_CONTRACT = {
       id: 'high-stakes-review',
       title: 'Review, audit, security, or architecture check',
       match: ['review', 'audit', 'security', 'architecture', 'risk', 'high-stakes'],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: define verdict, risk categories, and files/processes in scope.',
-        'Fan-out: run shared swarm pair for independent reads.',
+        'Advisory scan: main session runs a single sequential DeepSeek-pro advisory for an independent read; no parallel swarm pair.',
         'Verify: check claims with local source, tests, GitNexus, or browser evidence.',
         'Merge: main session reports findings first, ordered by severity.',
         'Learn: promote repeated risks into guardrails or scenario examples.'
@@ -666,10 +632,10 @@ const OFFLOAD_CONTRACT = {
       id: 'research-latest',
       title: 'Current research or external facts',
       match: ['latest', 'current', 'today', 'research', 'web', 'citation'],
-      defaultLane: 'comet',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: mark volatile facts and required source quality.',
-        'Delegate: use browser control or first-party web tooling for current evidence.',
+        'Delegate: gather current evidence with the main-session deep-research skill (WebSearch + WebFetch first-party tooling); offload model lanes cannot browse live web.',
         'Verify: compare dates, primary sources, and contradictions.',
         'Merge: separate facts, inference, and recommendation.',
         'Learn: store durable source patterns, not transient facts.'
@@ -679,7 +645,7 @@ const OFFLOAD_CONTRACT = {
       id: 'protocol-change',
       title: 'Rules, protocols, IDE sync, or agent harness behavior',
       match: ['protocol', 'rule', 'ide', 'agent', 'harness', 'workflow', 'offload', 'routing'],
-      defaultLane: 'swarm',
+      defaultLane: 'native',
       lifecycle: [
         'Intake: identify every rule surface that must stay aligned.',
         'Impact: inspect existing protocol inheritance and stale wording.',
@@ -754,11 +720,11 @@ function selectSteeringLane(prompt) {
   if (!text) return 'triage-local';
 
   if (text.includes('/tokenmaxxing') || text.includes('tokenmaxxing')) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('btw offload this') || text.startsWith('offload this')) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('@claude') || text.includes('claude sonnet')) {
@@ -770,15 +736,15 @@ function selectSteeringLane(prompt) {
   }
 
   if (hasSandboxImprovementSignal(text)) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('control plane') || text.includes('control-plane') || text.includes('graph plan') || text.includes('graph-plan') || text.includes('task graph') || text.includes('brain dump') || text.includes('durable orchestration') || text.includes('verify sanitize promote') || text.includes('sanitize promote') || text.includes('canonical state')) {
-    return 'swarm';
+    return 'native';
   }
 
-  if (text.includes('@swarm') || text.includes('swarm') || text.includes('fan out') || text.includes('parallel') || text.includes('compare') || text.includes('consensus')) {
-    return 'swarm';
+  if (text.includes('@native') || text.includes('fan out') || text.includes('parallel') || text.includes('compare') || text.includes('consensus')) {
+    return 'native';
   }
 
   // Analysis council — explicit fan-out, assess, deep analysis (before generic architecture catch)
@@ -790,15 +756,15 @@ function selectSteeringLane(prompt) {
     text.includes('what can be improved') || text.includes('what are the flaws') ||
     text.includes('whats wrong') || text.includes('thoughts on') || text.includes('opinion on')
   ) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('architecture') || text.includes('review') || text.includes('audit') || text.includes('security') || text.includes('high-stakes')) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('protocol') || text.includes('ide') || text.includes('agent harness') || text.includes('workflow') || text.includes('routing') || text.includes('offload')) {
-    return 'swarm';
+    return 'native';
   }
 
   if (text.includes('@ollama-local') || text.includes('ollama local')) return 'ollama-local';
@@ -853,16 +819,8 @@ function selectSteeringLane(prompt) {
     return 'gpt-oss';
   }
 
-  if (text.includes('@comet')) return 'comet';
 
   return 'triage-local';
-}
-
-function getSwarmModels(kind = 'default') {
-  if (kind === 'workhorse' || kind === 'default') {
-    return OFFLOAD_CONTRACT.swarm.defaultModels.slice();
-  }
-  return OFFLOAD_CONTRACT.swarm.defaultModels.slice();
 }
 
 function includesAny(text, markers) {
@@ -891,15 +849,15 @@ function assessDeepseekAdvisory(prompt, lane, scenario) {
     'still unclear', 'could not isolate', 'material uncertainty'
   ];
 
-  if (lane === 'swarm') {
+  if (lane === 'native') {
     return {
-      decision: 'use-swarm',
-      models: getSwarmModels('default'),
-      role: 'independent advisory review',
+      decision: 'use-native',
+      models: [policy.roles.pro.model],
+      role: 'main-session native orchestration with a single sequential DeepSeek-pro advisory (no parallel fan-out)',
       reason: scenario.id === 'protocol-change' ? 'protocol_or_routing_quality_risk' : 'high_stakes_review_threshold_met',
       preflight: true,
       postflight: true,
-      outputCapLines: policy.roles.swarm.outputCapLines,
+      outputCapLines: policy.roles.pro.outputCapLines,
       localTruthRequired: true,
       codexFinalAuthority: true,
       discardWhenAny: policy.discardWhenAny,
@@ -1011,17 +969,13 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
     'protocol-change'
   ];
   const useObliteratus = gatedScenarios.includes(scenario.id) ||
-    lane === 'swarm' ||
+    lane === 'native' ||
     includesAny(text, promotionSignals);
 
   return {
     argus: {
       decision: 'always-on',
       ...policy.alwaysOn.argus
-    },
-    hermes: {
-      decision: 'always-on',
-      ...policy.alwaysOn.hermes
     },
     obliteratus: useObliteratus
       ? {
@@ -1079,7 +1033,7 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
     'pattern', 'architecture', 'design', 'system', 'cross-cutting',
     'refactor', 'protocol', 'governance', 'cortex'
   ];
-  const shouldFire = lane === 'swarm' ||
+  const shouldFire = lane === 'native' ||
     eligibleScenarios.includes(scenario.id) ||
     includesAny(text, patternSignals);
 
@@ -1099,7 +1053,7 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
     outputCapLines: 60,
     runtimeKind: 'bridge_advisory',
     authority: ocConfig.authority,
-    reason: lane === 'swarm' ? 'swarm_dispatch_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
+    reason: lane === 'native' ? 'native_orchestration_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
     bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh',
     localTruthRequired: true,
     codexFinalAuthority: true
@@ -1127,9 +1081,9 @@ function classifyComplexity(prompt, lane, scenario) {
     'memory.db', 'protected path', 'promotion', 'canonical', 'governance',
     'launchd', 'production', 'rollout', 'migrate', 'kernel', 'protected'
   ];
-  const protocolSwarm = lane === 'swarm' &&
+  const protocolNative = lane === 'native' &&
     ['protocol-change', 'control-plane-orchestration', 'high-stakes-review', 'strategic-review'].includes(scenario.id);
-  if (protocolSwarm || includesAny(text, criticalSignals)) {
+  if (protocolNative || includesAny(text, criticalSignals)) {
     return 'critical';
   }
 
@@ -1223,8 +1177,7 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
     if (openClawAdvisory && openClawAdvisory.decision !== 'skip') {
       ensemble.push('openclaw-preflight');
     }
-    ensemble.push('hermes-forecast');
-    ensemble.push('cassandra');
+    ensemble.push('yuri-risk');
     // SHURA fires at complex+ (was: strategic-review only)
     ensemble.push('shura-review');
   }
@@ -1244,7 +1197,6 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
   }
 
   if (complexityTier === 'critical') {
-    ensemble.push('swarm-fanout');
     ensemble.push('obliteratus-hint');
   }
   return ensemble;
@@ -1311,7 +1263,6 @@ function buildPulseGovernanceSkeleton(nativeFunctionGates) {
   const skeleton = OFFLOAD_CONTRACT.pulseGovernanceSkeleton;
   const profileStatus = {
     argus: nativeFunctionGates.argus?.decision || 'skip',
-    hermes: nativeFunctionGates.hermes?.decision || 'skip',
     obliteratus: nativeFunctionGates.obliteratus?.decision || 'skip',
     'openclaw-derived': 'reference-pattern'
   };
@@ -1413,7 +1364,7 @@ function buildRoutePlan(prompt) {
     automatic: OFFLOAD_CONTRACT.activation.triggerless,
     entrypoint: './_SYSTEM/Scripts/ai auto',
     qualityGate: 'main-session',
-    dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
+    dispatch: lane === 'native' ? 'native-orchestration' : 'single-lane',
     // PATCH 030 — Pulse Cortex fields (consumed by pulse-orchestrator.mjs)
     complexityTier,
     ensemble,
@@ -1522,7 +1473,11 @@ if (isCliEntrypoint()) {
       break;
     case 'swarm-default':
     case 'swarm-workhorse':
-      process.stdout.write(`${getSwarmModels(command === 'swarm-workhorse' ? 'workhorse' : 'default').join(',')}\n`);
+      // DEPRECATED compatibility shim (2026-05-29). The parallel swarm fan-out is retired; Opus 4.8's
+      // native Workflow orchestration replaces it. Emits a SINGLE advisory lane (no DeepSeek pair) so
+      // legacy `ai` callers (run_codex_swarm / triage) degrade safely without doubling DeepSeek.
+      // Full removal of the ai-CLI swarm surface is a flagged phase-2 follow-up.
+      process.stdout.write('deepseek-v4-pro\n');
       break;
     default:
       console.error(`Unknown offload contract command: ${command}`);

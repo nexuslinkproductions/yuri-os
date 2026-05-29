@@ -15,11 +15,7 @@
       ".codex/skills",
       ".codex/plugins/cache"
     ],
-    "retiredAliasesNotPromoted": [
-      "deepseek-workhorse",
-      "deepseek-offload",
-      "openclaw-offload"
-    ]
+    "retiredAliasesNotPromoted": []
   },
   "skills": [
     {

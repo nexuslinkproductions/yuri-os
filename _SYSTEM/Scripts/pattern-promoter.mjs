@@ -19,10 +19,10 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
-const SYNTH_LOG  = path.join(NISABA_DIR, 'logs', 'council-synthesis.jsonl');
-const GLOBAL_MD  = path.join(NISABA_DIR, 'learning', 'global.md');
-const PROMOTER_DIR = path.join(NISABA_DIR, 'promoter');
+const YURI_SENTINEL_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const SYNTH_LOG  = path.join(YURI_SENTINEL_DIR, 'logs', 'council-synthesis.jsonl');
+const GLOBAL_MD  = path.join(YURI_SENTINEL_DIR, 'learning', 'global.md');
+const PROMOTER_DIR = path.join(YURI_SENTINEL_DIR, 'promoter');
 const DELTA_PATH = path.join(PROMOTER_DIR, 'delta.json');
 
 const args = process.argv.slice(2);

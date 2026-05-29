@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yuri-os-musubi.palace-auto-rebuild</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/palace-auto-rebuild.mjs</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/.bun/bin:/Users/marcelspatz/YURI-OS-MUSUBI/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/marcelspatz</string>
+        <key>YURI_ROOT</key>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+    </dict>
+
+    <!-- Run nightly at 02:30 — low-traffic window, T7 likely mounted -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/palace-rebuild.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/palace-rebuild.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

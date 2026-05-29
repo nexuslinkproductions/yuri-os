@@ -320,8 +320,8 @@ Promote high-signal pulse-bus findings to durable learning. Reads `.claude/state
 Filter rules:
 - Keep all `severity >= WARN` findings
 - Keep all `source === 'CORTEX'` (advisor disagreement markers)
-- Keep all `source === 'CASSANDRA'` strategic foresights regardless of severity
-- Drop pure INFO findings from DeepSeek/OpenClaw/Hermes-forecast (too noisy)
+- Keep all `source === 'YURI_RISK'` strategic foresights regardless of severity
+- Drop pure INFO findings from DeepSeek/OpenClaw (too noisy)
 - Drop expired entries
 
 Archive shape:
@@ -334,7 +334,7 @@ Archive shape:
     {
       "ts": "...",
       "turn_id": "...",
-      "source": "DEEPSEEK|OPENCLAW|HERMES_FC|CASSANDRA|CORTEX",
+      "source": "DEEPSEEK|OPENCLAW|YURI_RISK|CORTEX",
       "severity": "WARN|HIGH|CRITICAL",
       "finding": "...",
       "runtime_kind": "model_advisor|bridge_advisory|native_function|meta",
@@ -466,6 +466,114 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ---
 
 ## Session Notes
+
+### 2026-05-29
+- session: 349m | peak ctx: 71% | compacts: 4
+- tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 342m | peak ctx: 70% | compacts: 4
+- tools: Bash×267, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 331m | peak ctx: 67% | compacts: 3
+- tools: Bash×157, Edit×104, Read×100, TodoWrite×12, Write×7, StructuredOutput×5, Workflow×2, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 250m | peak ctx: 67% | compacts: 3
+- tools: Bash×152, Edit×104, Read×98, TodoWrite×12, Write×7, StructuredOutput×5, ToolSearch×1, Workflow×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 210m | peak ctx: 54% | compacts: 0
+- tools: Bash×131, Read×93, Edit×92, TodoWrite×10, Write×7, StructuredOutput×5, ToolSearch×1, Workflow×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 154m | peak ctx: 17% | compacts: 0
+- tools: Bash×45, Read×38, Edit×7, TodoWrite×4, Write×2, ToolSearch×1, Workflow×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 739m | peak ctx: 99% | compacts: 14 (mid-session)
+- tools: Bash×423, Read×235, WebSearch×219, Edit×157, WebFetch×148, StructuredOutput×135, ToolSearch×108, Write×21, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 729m | peak ctx: 98% | compacts: 13
+- tools: Bash×423, Read×235, WebSearch×219, Edit×157, WebFetch×148, StructuredOutput×135, ToolSearch×108, Write×20, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 723m | peak ctx: 96% | compacts: 13 (mid-session)
+- tools: Bash×423, Read×234, Edit×157, WebSearch×156, WebFetch×118, StructuredOutput×109, ToolSearch×91, Write×20, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 718m | peak ctx: 94% | compacts: 12
+- tools: Bash×423, Read×234, Edit×157, StructuredOutput×59, ToolSearch×43, WebSearch×40, WebFetch×40, Write×19, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 711m | peak ctx: 93% | compacts: 12 (mid-session)
+- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 693m | peak ctx: 91% | compacts: 11
+- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 672m | peak ctx: 91% | compacts: 11
+- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 670m | peak ctx: 90% | compacts: 11 (mid-session)
+- tools: Bash×421, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×11, Workflow×5, AskUserQuestion×4, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 633m | peak ctx: 87% | compacts: 10 (mid-session)
+- tools: Bash×419, Read×232, Edit×155, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 628m | peak ctx: 84% | compacts: 9 (mid-session)
+- tools: Bash×414, Read×228, Edit×150, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 593m | peak ctx: 80% | compacts: 7
+- tools: Bash×408, Read×228, Edit×150, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-05-28
+- session: 161m | peak ctx: 68% | compacts: 3
+- tools: Bash×398, Read×216, Edit×113, StructuredOutput×28, Write×18, TodoWrite×7, Workflow×5, AskUserQuestion×3, ToolSearch×1
+- corrections: none
+- errors: none
 
 ### 2026-05-18
 - session: 521m | peak ctx: 0% | compacts: 0

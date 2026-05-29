@@ -2,7 +2,7 @@
   "version": "2.0",
   "canonicalPath": "design-memory.json",
   "lastUpdated": "2026-05-10T20:00:45.293Z",
-  "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
+  "note": "Canonical YURI design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
     {
       "date": "2026-04-24",

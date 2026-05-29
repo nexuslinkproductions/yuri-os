@@ -18,7 +18,7 @@ Use it as a deliberate closeout checkpoint when the session needs continuity, a 
 
 ## Current Verdict
 
-Keep EOT as a YURI closeout protocol, not as the old NUDIMMUD full-auto pipeline.
+Keep EOT as a YURI closeout protocol, not as the old YURI full-auto pipeline.
 
 Remove these early-dev assumptions:
 

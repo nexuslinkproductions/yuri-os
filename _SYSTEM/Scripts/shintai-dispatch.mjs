@@ -113,7 +113,7 @@ const ASSIGNMENTS = {
     lane: 'gpt-5.5',
     reasoningEffort: 'xhigh',
     skills: ['openai-codex-workflow', 'gitnexus', 'execution-domain-core', 'non-destructive-infinity-guard', 'failure-evolution-loop'],
-    assignment: 'Own final implementation architecture: Hermes update, Rick renderer plan, Shintai boundary cleanup, rename plan.',
+    assignment: 'Own final implementation architecture: Rick renderer plan, Shintai boundary cleanup, rename plan.',
     dispatchArgs: ['offload', '--model', 'gpt-5.5'],
   },
   deepseek: {
@@ -134,7 +134,7 @@ const ASSIGNMENTS = {
     displayName: 'Nemotron Orchestrator',
     lane: 'nvidia-nemotron-120b',
     skills: ['yuri-shura', 'bankai-manifest', 'visual-introspection', 'yuri-code-intelligence'],
-    assignment: 'Long-horizon architecture: Hermes-inspired scroll/composer adaptation without destructing YURI/Kagami.',
+    assignment: 'Long-horizon architecture: scroll/composer adaptation without destructing YURI/Kagami.',
     dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b'],
   },
   'mistral-large': {
@@ -223,7 +223,7 @@ export function loadShintaiRoster(rosterPath = ROSTER_PATH) {
 
 export function classifyTaskTier(task) {
   const text = normalizeTask(task).toLowerCase();
-  if (/(critical|harness|terminal|renderer|stream|scroll|pty|shintai|control[- ]?plane|guardrail|hermes|regression|production|broken|failed)/.test(text)) {
+  if (/(critical|harness|terminal|renderer|stream|scroll|pty|shintai|control[- ]?plane|guardrail|regression|production|broken|failed)/.test(text)) {
     return 'critical';
   }
   if (/(architecture|integration|multi[- ]?file|refactor|diagnos|debug|race|health|dispatch)/.test(text)) {
@@ -324,7 +324,7 @@ function selectMemberIds(task, roster) {
   if (tier === 'critical' && /(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|eot|neuron|persona|recall)/i.test(task)) {
     return selectMemoryRagMemberIds(members);
   }
-  if (tier === 'critical' && /(rick|harness|terminal|renderer|stream|shintai|hermes|pty)/i.test(task)) {
+  if (tier === 'critical' && /(rick|harness|terminal|renderer|stream|shintai|pty)/i.test(task)) {
     return selectSuperauditMemberIds(members);
   }
 
@@ -504,7 +504,7 @@ function objectiveForTask(task) {
   if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|eot|neuron|persona|recall)/.test(text)) {
     return 'stabilize YURI memory/RAG, skill recall, neurodivergence interaction rails, and self-improvement loops as one symbiotic control-plane system.';
   }
-  if (/(rick|harness|terminal|renderer|stream|hermes|pty)/.test(text)) {
+  if (/(rick|harness|terminal|renderer|stream|pty)/.test(text)) {
     return 'stabilize Rick harness and Shintai integration.';
   }
   return 'stabilize the requested YURI control-plane operation with advisory-first Shintai, Opus co-main pressure where useful, Codex arbitration, and evidence-backed patch guidance.';

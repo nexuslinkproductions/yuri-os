@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+// semantic-memory/palace retrieval retired 2026-05-29
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -9,24 +9,24 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
-const NISABA_LEARNING_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning');
+const YURI_SENTINEL_LEARNING_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning');
 
 const PATHS = {
   plan: path.join(STATE_DIR, 'pulse-plan.json'),
   bus: path.join(STATE_DIR, 'pulse-bus.json'),
-  hypotheses: path.join(NISABA_LEARNING_DIR, 'hypotheses.json'),
-  githubTrending: path.join(NISABA_LEARNING_DIR, 'github-trending.json'),
+  hypotheses: path.join(YURI_SENTINEL_LEARNING_DIR, 'hypotheses.json'),
+  githubTrending: path.join(YURI_SENTINEL_LEARNING_DIR, 'github-trending.json'),
   synthesis: path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'synthesis.jsonl'),
   heartbeat: path.join(STATE_DIR, 'yuri-sentinel-state.json'),
   vaultLogDir: path.join(STATE_DIR, 'pulse-vault-log'),
-  memoryConsolidate: path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'memory-consolidate.mjs'),
+  // semantic-memory/palace retrieval retired 2026-05-29
 };
 
 const OPENCLAW_HEALTH_URL = 'http://localhost:18789/health';
 const FETCH_TIMEOUT_MS = 2000;
 const NEURON_LOOP_MAX_AGE_HOURS = 25;
 const KNOWLEDGE_SCOUT_MAX_AGE_HOURS = 23;
-const MEMORY_CONSOLIDATE_TIMEOUT_MS = 120000;
+// semantic-memory/palace retrieval retired 2026-05-29
 
 function oneLine(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -290,63 +290,7 @@ function collectHealthResult(alerts) {
   };
 }
 
-function runMemory(alerts) {
-  const phase = 'memory';
-  try {
-    const result = spawnSync(process.execPath, [PATHS.memoryConsolidate], {
-      cwd: REPO_ROOT,
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024 * 8,
-      timeout: MEMORY_CONSOLIDATE_TIMEOUT_MS,
-    });
-
-    const stdout = oneLine(result.stdout);
-    const stderr = oneLine(result.stderr);
-    const exitCode = result.status ?? (result.error ? 1 : 0);
-    const status = exitCode === 0 ? 'ok' : 'warn';
-    const summary = `exit=${exitCode}${result.signal ? ` signal=${result.signal}` : ''}`;
-
-    if (stdout) {
-      for (const line of result.stdout.split(/\r?\n/).map(oneLine).filter(Boolean)) {
-        phaseLog(phase, status, line);
-      }
-    }
-    if (stderr) {
-      for (const line of result.stderr.split(/\r?\n/).map(oneLine).filter(Boolean)) {
-        phaseLog(phase, 'warn', line);
-      }
-    }
-    phaseLog(phase, status, `memory-consolidate ${summary}`);
-
-    if (exitCode !== 0) {
-      addIssue(alerts, phase, 'warn', `memory-consolidate exited ${exitCode}`, {
-        signal: result.signal ?? null,
-        error: result.error?.message ?? null,
-      });
-    }
-
-    return {
-      status,
-      msg: `memory-consolidate ${summary}`,
-      exitCode,
-      signal: result.signal ?? null,
-      stdoutLines: result.stdout ? result.stdout.split(/\r?\n/).filter(Boolean).length : 0,
-      stderrLines: result.stderr ? result.stderr.split(/\r?\n/).filter(Boolean).length : 0,
-    };
-  } catch (error) {
-    const message = error instanceof Error ? `memory-consolidate failed: ${error.message}` : `memory-consolidate failed: ${String(error)}`;
-    phaseLog(phase, 'warn', message);
-    addIssue(alerts, phase, 'warn', message);
-    return {
-      status: 'warn',
-      msg: message,
-      exitCode: null,
-      signal: null,
-      stdoutLines: 0,
-      stderrLines: 0,
-    };
-  }
-}
+// semantic-memory/palace retrieval retired 2026-05-29
 
 function runExternal(alerts) {
   const phase = 'external';
@@ -407,7 +351,7 @@ function writeVaultAlertSection(alerts, runAt) {
   mkdirSync(PATHS.vaultLogDir, { recursive: true });
 
   const sectionLines = [
-    '## Nisaba Sentinel Alerts',
+    '## Yuri Sentinel Alerts',
     `- run: ${runAt}`,
     ...alerts.map((alert) => `- phase=${alert.phase} severity=${alert.severity} msg=${oneLine(alert.msg)}`),
   ];
@@ -424,7 +368,7 @@ async function main() {
   const phases = {
     liveness: await runLiveness(alerts),
     health: collectHealthResult(alerts),
-    memory: runMemory(alerts),
+    // semantic-memory/palace retrieval retired 2026-05-29
     external: runExternal(alerts),
   };
 

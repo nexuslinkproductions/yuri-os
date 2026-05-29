@@ -56,7 +56,7 @@ function check(name, fn) {
 
 // 1. Independence score
 // Gate: fail=0 (hard). Warns are tracked but intentional Claude/Codex
-// opt-ins are by design — shipped nexbox is local-first, Claude/Codex
+// opt-ins are by design — YURI is local-first, Claude/Codex
 // are optional licensed add-ons customers bring. warn count is informational.
 check('independence', () => {
   const r = run('node', ['_SYSTEM/Scripts/independence-check.mjs'], { timeout: 20000 });
@@ -88,16 +88,7 @@ check('learning', () => {
   };
 });
 
-// 3. nexbox verify
-check('nexbox-verify', () => {
-  const verifyPath = join(REPO, '_SYSTEM', 'nexbox', 'verify.mjs');
-  if (!existsSync(verifyPath)) return { pass: false, value: 'MISSING', detail: 'nexbox/verify.mjs not found' };
-  const r = run('node', [verifyPath], { timeout: 15000 });
-  const pass = r.status === 0;
-  return { pass, value: pass ? 'PASS' : 'FAIL', detail: pass ? '' : r.stderr.slice(0, 120) };
-});
-
-// 4. Memory health
+// 3. Memory health
 check('memory-health', () => {
   if (!existsSync(GOVERNOR_PY)) return { pass: false, value: 'MISSING', detail: 'memory_governor.py not found' };
   const r = run('python3', [GOVERNOR_PY, 'health'], { timeout: 15000 });
@@ -107,7 +98,7 @@ check('memory-health', () => {
   return { pass, value: `${total} items`, detail: pass ? '' : 'health returned 0 or parse failed' };
 });
 
-// 5. Dream processor queue state
+// 4. Dream processor queue state
 check('dream-processor', () => {
   const script = join(REPO, '_SYSTEM', 'Scripts', 'yuri-dream-processor.mjs');
   if (!existsSync(script)) return { pass: false, value: 'MISSING', detail: 'nisaba-dream-processor.mjs not found' };
@@ -116,7 +107,7 @@ check('dream-processor', () => {
   return { pass, value: pass ? 'OK' : 'FAIL', detail: pass ? '' : r.stderr.slice(0, 120) };
 });
 
-// 6. RAG injection (brain-inject.js — unified boot layer: soul+palace+memory+gate)
+// 5. RAG injection (brain-inject.js — unified boot layer: soul+palace+memory+gate)
 check('rag-inject', () => {
   if (!existsSync(RAG_HOOK)) return { pass: false, value: 'MISSING', detail: 'brain-inject.js not found' };
   const r = spawnSync('node', [RAG_HOOK], {
@@ -131,7 +122,7 @@ check('rag-inject', () => {
   };
 });
 
-// 7. Spawn guard — safe types pass
+// 6. Spawn guard — safe types pass
 check('spawn-guard-safe', () => {
   const hookPath = join(REPO, '.claude', 'hooks', 'agent-spawn-guard.js');
   if (!existsSync(hookPath)) return { pass: false, value: 'MISSING', detail: '' };
@@ -142,7 +133,7 @@ check('spawn-guard-safe', () => {
   return { pass: r.status === 0, value: r.status === 0 ? 'PASS' : 'FAIL', detail: '' };
 });
 
-// 8. Spawn guard — Anthropic blocked (hook protocol: deny via JSON output, exit 0)
+// 7. Spawn guard — Anthropic blocked (hook protocol: deny via JSON output, exit 0)
 check('spawn-guard-block', () => {
   const hookPath = join(REPO, '.claude', 'hooks', 'agent-spawn-guard.js');
   if (!existsSync(hookPath)) return { pass: false, value: 'MISSING', detail: '' };

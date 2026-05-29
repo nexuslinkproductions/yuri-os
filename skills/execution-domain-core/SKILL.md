@@ -1,6 +1,6 @@
 ---
 name: execution-domain-core
-description: Scoped execution environment, task policy, and exit criteria system for Yuri OS / Nudimmud. Inspired by Domain Expansion, translated into enterprise-safe system behavior.
+description: Scoped execution environment, task policy, and exit criteria system for Yuri OS / YURI. Inspired by Domain Expansion, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks YURI OS to perform work involving:
 
 - user_goal
 - target_paths

@@ -2,18 +2,11 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { isProtectedPath } from './lane-kernel.mjs';
 
 const REPO = process.cwd();
 const REGISTRY_PATH = path.join(REPO, '_SYSTEM/config/folder-registry.json');
 const args = new Set(process.argv.slice(2));
-
-const PROTECTED = new Set([
-  '.env',
-  'backend/data',
-  '.claude/state',
-  '.claude/history',
-  'node_modules',
-]);
 
 function loadRegistry() {
   if (!existsSync(REGISTRY_PATH)) return { entries: [], byPath: new Map() };
@@ -59,7 +52,7 @@ function topLevelEntries() {
 
 function classifyPath(relPath, registry) {
   if (registry.has(relPath)) return registry.get(relPath);
-  if (PROTECTED.has(relPath)) {
+  if (isProtectedPath(relPath)) {
     return {
       class: 'protected_surface',
       readByDefault: false,
@@ -122,8 +115,12 @@ const summary = entries.reduce(
   { total: 0, unclassified: 0, protected: 0, byClass: {} },
 );
 
+// Tombstone statuses are EXPECTED to be absent on disk (already removed / planned / retired);
+// they must not fail the --validate gate. Mirrors artifact-registry.mjs's existence exemption,
+// so --validate can actually pass on genuine drift instead of being permanently red.
+const TOMBSTONE_STATUSES = new Set(['removed_from_root', 'planned', 'retired']);
 const missingRegistryEntries = registry.entries
-  .filter((entry) => !existsSync(path.join(REPO, entry.path)))
+  .filter((entry) => !TOMBSTONE_STATUSES.has(entry.status) && !existsSync(path.join(REPO, entry.path)))
   .map((entry) => ({
     path: entry.path,
     class: entry.class,

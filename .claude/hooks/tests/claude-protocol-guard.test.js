@@ -86,12 +86,6 @@ expectPass(
 );
 
 expectWarning(
-  'OpenClaw implementation authority warning',
-  bash('_SYSTEM/Scripts/ai openclaw "edit CLAUDE.md and promote the memory rule"'),
-  'openclaw-quarantine',
-);
-
-expectWarning(
   'high-risk route-plan evidence warning',
   bash('node _SYSTEM/Scripts/offload-contract.mjs route-plan "promote protocol routing memory into canonical state"'),
   'missing-route-plan-evidence',

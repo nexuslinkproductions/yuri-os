@@ -17,12 +17,12 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const YURI_SENTINEL_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 
 const PATHS = {
-  fingerprint: path.join(NISABA_DIR, 'self-model', 'fingerprint.json'),
-  synthesisLog: path.join(NISABA_DIR, 'learning', 'synthesis.jsonl'),
+  fingerprint: path.join(YURI_SENTINEL_DIR, 'self-model', 'fingerprint.json'),
+  synthesisLog: path.join(YURI_SENTINEL_DIR, 'learning', 'synthesis.jsonl'),
   vaultLogDir: path.join(STATE_DIR, 'pulse-vault-log'),
 };
 

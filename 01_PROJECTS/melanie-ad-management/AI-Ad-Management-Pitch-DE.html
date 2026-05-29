@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KI-gestütztes Ad Management — Angebot</title>
+<style>
+  :root{
+    --ink:#15181d; --muted:#5b6675; --line:#e3e7ec; --paper:#ffffff; --soft:#f6f8fa;
+    --accent:#0e7c66; --accent-soft:#e6f4f0; --warn:#b4532a; --good:#0e7c66;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--soft);font-size:15px;line-height:1.55;}
+  .page{max-width:820px;margin:24px auto;background:var(--paper);padding:54px 56px 48px;box-shadow:0 12px 40px rgba(20,24,29,.08);}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+  h1{font-size:34px;line-height:1.08;letter-spacing:-.02em;margin:10px 0 6px;}
+  .lede{font-size:17px;color:var(--muted);max-width:60ch;margin:0 0 8px;}
+  .for{font-size:13px;color:var(--muted);margin-top:4px;}
+  h2{font-size:18px;letter-spacing:-.01em;margin:34px 0 10px;padding-top:18px;border-top:1px solid var(--line);}
+  h2:first-of-type{border-top:0;padding-top:0;}
+  p{margin:0 0 12px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0 4px;}
+  .card{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--paper);}
+  .card.keep{border-color:#cfe7df;background:var(--accent-soft);}
+  .card h3{margin:0 0 6px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;}
+  .card.keep h3{color:var(--good);}
+  .card.change h3{color:var(--warn);}
+  .card p{margin:0;color:var(--muted);font-size:14px;}
+  ul.feat{list-style:none;padding:0;margin:6px 0 0;display:grid;gap:12px;}
+  ul.feat li{padding-left:30px;position:relative;}
+  ul.feat li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border-radius:5px;background:var(--accent-soft);
+    box-shadow:inset 0 0 0 1.5px var(--accent);}
+  ul.feat li::after{content:"✓";position:absolute;left:4px;top:1px;color:var(--accent);font-weight:800;font-size:12px;}
+  ul.feat b{display:block;font-weight:700;}
+  ul.feat span{color:var(--muted);font-size:14px;}
+  .calc{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:8px;}
+  .calc .row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:13px 18px;border-bottom:1px solid var(--line);align-items:baseline;}
+  .calc .row:last-child{border-bottom:0;}
+  .calc .row.head{background:var(--soft);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .calc .row.total{background:var(--accent-soft);font-weight:700;}
+  .calc .lbl b{display:block;}
+  .calc .lbl span{color:var(--muted);font-size:13px;}
+  .calc .amt{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;}
+  .ph{background:#fff4e6;border-bottom:1px dashed #e0a96d;padding:0 4px;border-radius:3px;color:#8a4a18;font-style:normal;}
+  .note{font-size:12.5px;color:var(--muted);margin-top:8px;}
+  .cta{margin-top:30px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:18px 20px;background:var(--soft);}
+  .cta b{font-size:16px;}
+  .foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  @media print{ body{background:#fff;} .page{box-shadow:none;margin:0;max-width:none;padding:28px 32px;} @page{margin:14mm;} }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">Angebot · Performance Marketing</div>
+  <h1>KI-gestütztes Ad Management</h1>
+  <p class="lede">Weniger Verwaltungskosten. Volle Transparenz. Du behältst die Kontrolle.</p>
+  <p class="for">Vorbereitet für Melanie · Meta &amp; Google Ads</p>
+
+  <h2>Die Ausgangslage</h2>
+  <p>Aktuell fließen rund <b>€10.000 pro Monat</b> in Werbung auf Meta und Google. Zusätzlich zum
+  Werbebudget zahlst du eine laufende <b>Betreuungsgebühr</b> — und genau diese Gebühr bezahlt zu großen
+  Teilen Arbeit, die heute KI-gestützt schneller und günstiger erledigt werden kann: Anzeigen-Varianten
+  erstellen, Zielgruppen testen, Budgets steuern und Reporting aufbereiten.</p>
+  <p>Das Werbebudget selbst ist gut investiert. Die <b>Verwaltungskosten</b> sind der Hebel.</p>
+
+  <h2>Was sich ändert — und was nicht</h2>
+  <div class="two">
+    <div class="card keep">
+      <h3>Bleibt gleich</h3>
+      <p>Dein Werbebudget bleibt deins. Du behältst die volle Kontrolle, Freigabe und Entscheidungsgewalt
+      über jede Kampagne. Keine Agentur-Abhängigkeit.</p>
+    </div>
+    <div class="card change">
+      <h3>Ändert sich</h3>
+      <p>Die laufende Betreuung läuft über ein KI-gestütztes System — schneller, transparenter und zu
+      einem Bruchteil der bisherigen Betreuungsgebühr.</p>
+    </div>
+  </div>
+
+  <h2>Was das System für dich übernimmt</h2>
+  <ul class="feat">
+    <li><b>Anzeigen-Varianten &amp; Hooks</b><span>Laufend frische Creatives und Texte für deine Coaching-Angebote
+      (Transformation, Check-in, Wettkampf-Prep) — auf Deutsch und Englisch, in Mengen, die manuell nicht machbar sind.</span></li>
+    <li><b>Zielgruppen-Tests</b><span>Systematisches Testen, welche Zielgruppen und Botschaften am besten konvertieren —
+      statt Bauchgefühl und gelegentlicher Anpassung.</span></li>
+    <li><b>Budget-Steuerung rund um die Uhr</b><span>Das Budget fließt automatisch dorthin, wo es gerade am besten
+      performt — auch nachts und am Wochenende, ohne dass jemand manuell eingreifen muss.</span></li>
+    <li><b>Transparentes Reporting</b><span>Ein verständliches Dashboard, das du jederzeit selbst lesen kannst.
+      Keine Blackbox, keine geschönten Agentur-Reports.</span></li>
+  </ul>
+
+  <h2>Du behältst die Kontrolle</h2>
+  <p>Das System wird einmal <b>für dich gebaut und eingerichtet</b>. Danach hast du die Wahl: Du bedienst und gibst
+  Kampagnen selbst frei (es ist bewusst so einfach gehalten, dass das problemlos geht) — oder die laufende
+  Betreuung wird übernommen. In beiden Fällen gilt: deine Accounts, deine Daten, deine Entscheidung.</p>
+
+  <h2>Die Rechnung <span style="font-weight:400;color:var(--muted);font-size:14px;">(Beispiel)</span></h2>
+  <div class="calc">
+    <div class="row head"><div>Position</div><div>pro Monat</div></div>
+    <div class="row"><div class="lbl"><b>Werbebudget</b><span>unverändert — bleibt vollständig dein Budget</span></div><div class="amt">€10.000</div></div>
+    <div class="row"><div class="lbl"><b>Betreuung heute</b><span>klassische Management Fee</span></div><div class="amt"><span class="ph">€ ____</span></div></div>
+    <div class="row total"><div class="lbl"><b>Betreuung mit KI-System</b><span>gleiche oder bessere Betreuungsqualität</span></div><div class="amt"><span class="ph">€ ____</span></div></div>
+  </div>
+  <p class="note">Die genauen Zahlen stimmen wir auf Basis deiner aktuellen Betreuungsgebühr ab — die Ersparnis
+  liegt bei der Verwaltung, nicht beim Werbebudget. Ehrlich gesagt: ich verspreche dir keine magisch besseren
+  Werbeergebnisse. Was ich verspreche, ist dieselbe (oder bessere) Betreuung, volle Transparenz und deutlich
+  geringere laufende Kosten.</p>
+
+  <div class="cta">
+    <b>Nächster Schritt</b><br>
+    Ein kurzes, unverbindliches Gespräch (15–20 Min). Ich zeige dir das System live und wir rechnen deine
+    konkrete Ersparnis gemeinsam durch.
+  </div>
+
+  <div class="foot">
+    <span>KI-gestütztes Ad Management · Meta &amp; Google</span>
+    <span>[Name] · [E-Mail] · [Telefon]</span>
+  </div>
+</div>
+</body>
+</html>

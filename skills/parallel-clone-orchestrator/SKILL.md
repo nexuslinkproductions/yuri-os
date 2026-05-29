@@ -1,6 +1,6 @@
 ---
 name: parallel-clone-orchestrator
-description: Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / Nudimmud. Inspired by Shadow Clone Jutsu, translated into enterprise-safe system behavior.
+description: Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / YURI. Inspired by Shadow Clone Jutsu, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks YURI OS to perform work involving:
 
 - domain_manifest
 - task_breakdown

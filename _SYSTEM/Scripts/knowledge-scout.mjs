@@ -23,11 +23,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning');
+const YURI_SENTINEL_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning');
 
 const PATHS = {
-  githubTrending: path.join(NISABA_DIR, 'github-trending.json'),
-  arxivPulse:     path.join(NISABA_DIR, 'arxiv-pulse.json'),
+  githubTrending: path.join(YURI_SENTINEL_DIR, 'github-trending.json'),
+  arxivPulse:     path.join(YURI_SENTINEL_DIR, 'arxiv-pulse.json'),
 };
 
 const RELEVANCE_KEYWORDS = [

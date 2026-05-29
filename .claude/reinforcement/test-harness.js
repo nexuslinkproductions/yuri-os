@@ -170,7 +170,7 @@ test('agent-manifest: model agents have explicit model', () => {
 });
 
 test('agent-manifest: native function scouts stay model-free', () => {
-  ['argus', 'hermes', 'obliteratus-qa'].forEach(name => {
+  ['argus', 'obliteratus-qa'].forEach(name => {
     const agent = agentManifest.agents.find(a => a.name === name);
     if (!agent) throw new Error(`Required native function not found: ${name}`);
     if (agent.runtime_kind !== 'native_function') {

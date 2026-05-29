@@ -1,6 +1,6 @@
 ---
 name: pattern-mirror-core
-description: Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Nudimmud. Inspired by Sharingan / Copy Technique, translated into enterprise-safe system behavior.
+description: Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / YURI. Inspired by Sharingan / Copy Technique, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks YURI OS to perform work involving:
 
 - repo
 - document

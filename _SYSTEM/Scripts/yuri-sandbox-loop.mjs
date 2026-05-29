@@ -13,6 +13,7 @@ import {
   validateNormalizedIntent,
   writeNodeVerificationArtifacts,
 } from './yuri-control-plane-schema.mjs';
+import { isProtectedPath } from './lane-kernel.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
@@ -22,14 +23,9 @@ const LEARNING_CLI = path.join(SCRIPT_DIR, 'yuri-learning-capture.mjs');
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri', 'sandbox-runs');
 const FALLBACK_ARTIFACT_ROOT = '/tmp/yuri-sandbox-runs';
 const DEFAULT_PROMPT = 'first Yuri sandbox operational proving run';
-const PROTECTED_PATHS = new Set(['.env']);
-const PROTECTED_PREFIXES = [
-  '.claude/state/',
-  '.claude/history/',
-  '.claude/projects/',
-  'backend/data/',
-  'node_modules/',
-];
+// Protected-surface prefixes are single-sourced from lane-kernel.isProtectedPath (canonical,
+// superset of the former local list). PROTECTED_FILE_PATTERNS below adds sandbox-specific extra
+// coverage (OS_KERNEL *.db runtime stores and any credential/secret file) on top of canonical.
 const PROTECTED_FILE_PATTERNS = [
   /^_SYSTEM\/OS_KERNEL\/[^/]+\.db$/i,
   /(^|\/)(credential|credentials|secret|secrets)(\.[^/]*)?$/i,
@@ -729,8 +725,7 @@ function isProtectedStatusLine(line) {
   const filePath = statusPath(line);
   const normalizedPath = normalizedStatusPath(filePath);
   if (!normalizedPath || RUNTIME_SIDECAR_PATTERN.test(normalizedPath)) return false;
-  if (PROTECTED_PATHS.has(normalizedPath)) return true;
-  if (PROTECTED_PREFIXES.some((prefix) => normalizedPath === prefix.slice(0, -1) || normalizedPath.startsWith(prefix))) return true;
+  if (isProtectedPath(normalizedPath)) return true;
   if (PROTECTED_FILE_PATTERNS.some((pattern) => pattern.test(normalizedPath))) return true;
   return resolvesInsideProtectedTarget(filePath);
 }
@@ -786,8 +781,7 @@ function resolvesInsideProtectedTarget(filePath) {
     const relative = path.relative(REPO_ROOT, real);
     if (relative.startsWith('..') || path.isAbsolute(relative)) return false;
     const normalizedReal = normalizedStatusPath(relative);
-    if (PROTECTED_PATHS.has(normalizedReal)) return true;
-    if (PROTECTED_PREFIXES.some((prefix) => normalizedReal === prefix.slice(0, -1) || normalizedReal.startsWith(prefix))) return true;
+    if (isProtectedPath(normalizedReal)) return true;
     return PROTECTED_FILE_PATTERNS.some((pattern) => pattern.test(normalizedReal));
   } catch {
     return false;

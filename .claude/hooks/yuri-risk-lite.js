@@ -56,12 +56,49 @@ function check(toolName, toolInput) {
     target = JSON.stringify(toolInput || {});
   }
 
-  for (const { re, severity, msg } of PATTERNS) {
+  for (const { re, severity, msg, deny } of PATTERNS) {
     if (re.test(target)) {
-      return { hit: true, severity, msg, target: target.slice(0, 120) };
+      return { hit: true, severity, msg, deny: Boolean(deny), target: target.slice(0, 120) };
     }
   }
   return { hit: false };
 }
 
 module.exports = { check, PATTERNS };
+
+// ── PreToolUse executor ───────────────────────────────────────────────────
+// As a hook (`node yuri-risk-lite.js`): read the tool event from stdin and, for
+// Bash commands only, DENY the catastrophic-and-never-legitimate patterns
+// (mkfs / raw-disk write / DROP DATABASE) and surface everything else as a
+// visible advisory. Write CONTENT is intentionally not gated here (so legit SQL
+// or file authoring is never blocked). When require()'d as a module by
+// scout-orchestrator this block does not run (require.main !== module).
+if (require.main === module) {
+  let raw = '';
+  process.stdin.setEncoding('utf8');
+  process.stdin.on('data', (chunk) => { raw += chunk; });
+  process.stdin.on('end', () => {
+    let input;
+    try { input = JSON.parse(raw); } catch { process.exit(0); return; }
+    if (!input || input.tool_name !== 'Bash') { process.exit(0); return; }
+    const result = check('Bash', input.tool_input || {});
+    if (!result.hit) { process.exit(0); return; }
+    if (result.deny) {
+      process.stdout.write(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          permissionDecision: 'deny',
+          permissionDecisionReason: `YURI_RISK_LITE: ${result.severity} — ${result.msg}. Catastrophic and almost never legitimate; run it yourself if truly intended.`,
+        },
+      }) + '\n');
+    } else {
+      process.stdout.write(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          additionalContext: `⚠ yuri-risk-lite [${result.severity}]: ${result.msg} — verify intent before proceeding.`,
+        },
+      }) + '\n');
+    }
+    process.exit(0);
+  });
+}

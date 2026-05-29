@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // .claude/hooks/agent-spawn-guard.js — PATCH 023
 // Hard-block Agent() spawns with Anthropic models (Claude/Haiku/Sonnet/Opus).
-// Memory rule: memory/feedback_no_anthropic_agents.md
+// Memory rule: _SYSTEM/memory/feedback_no_anthropic_agents.md
 // Bypass (rare, explicit): YURI_ALLOW_AGENT=1 in environment.
 
 'use strict';
@@ -46,7 +46,7 @@ process.stdin.on('end', () => {
 
   const reason = [
     'YURI-OS-MUSUBI policy: Agent() with Anthropic models (Claude/Haiku/Sonnet/Opus) is BANNED.',
-    'Memory rule: memory/feedback_no_anthropic_agents.md',
+    'Memory rule: _SYSTEM/memory/feedback_no_anthropic_agents.md',
     `Attempted spawn: subagent_type="${subagentType}" model="${model}" description="${description}"`,
     '',
     'USE THESE LANES INSTEAD:',

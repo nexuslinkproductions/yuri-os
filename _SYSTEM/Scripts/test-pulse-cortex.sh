@@ -43,7 +43,7 @@ run_phase() {
       assert_contains "standard codexPolicy dry-run" '"codexPolicy":"dry-run-only"' "$standard"
       assert_contains "critical tier" '"complexityTier":"critical"' "$critical"
       assert_contains "critical ensemble has openclaw" '"openclaw-preflight"' "$critical"
-      assert_contains "critical ensemble has cassandra" '"cassandra"' "$critical"
+      assert_contains "critical ensemble has yuri-risk" '"yuri-risk"' "$critical"
       assert_contains "critical beacon notify+obsidian" 'beaconLevel":"notify+obsidian' "$critical"
       assert_contains "critical codexPolicy none" '"codexPolicy":"none"' "$critical"
       ;;
@@ -74,12 +74,10 @@ run_phase() {
       assert_contains "protocol-guard recognizes pulse-plan.json" 'pulseCortexEvidence' "$(cat .claude/hooks/claude-protocol-guard.js)"
       ;;
     5)
-      echo "── Phase 5: Hermes-forecast predictive (PATCH 034)"
-      assert_contains "evaluateHermesForecast logic present" 'spans .* top-level areas' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
-      assert_contains "session-state read" 'session-state.json' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
+      echo "── Phase 5: (retired — Hermes-forecast lane removed 2026-05-29)"
       ;;
     6)
-      echo "── Phase 6: Cassandra full impl (PATCH 035)"
+      echo "── Phase 6: Yuri-Risk full impl (PATCH 035)"
       assert_contains "git log read" 'git.*log.*-5' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
       assert_contains "session-journal.md read" 'session-journal.md' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
       assert_contains "Promise.race timeout guard" 'Promise.race' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"

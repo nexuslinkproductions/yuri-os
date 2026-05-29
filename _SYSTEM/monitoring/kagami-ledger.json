@@ -1,0 +1,438 @@
+{
+  "events": [
+    {
+      "label": "com.yuri-os-musubi.launch-readiness-nightly",
+      "ts": "2026-05-29T07:13:13.221Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.ollama-kv",
+      "ts": "2026-05-29T07:13:17.262Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T07:13:21.333Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.wiki-rag",
+      "ts": "2026-05-29T07:13:25.376Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri.lane-memory-prune",
+      "ts": "2026-05-29T07:13:29.417Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.launch-readiness-nightly",
+      "ts": "2026-05-29T07:14:33.446Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri.lane-memory-prune",
+      "ts": "2026-05-29T07:14:37.469Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.launch-readiness-nightly",
+      "ts": "2026-05-29T07:15:41.498Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri.lane-memory-prune",
+      "ts": "2026-05-29T07:15:45.539Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T07:23:49.611Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T07:34:53.698Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T07:45:57.787Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T07:56:59.708Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T08:08:03.790Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T08:19:07.878Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T08:30:11.963Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T08:41:16.046Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T08:52:20.124Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:03:26.317Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:14:30.426Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:24:34.490Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:35:38.594Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:46:42.667Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T09:57:46.714Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T10:08:50.786Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T10:19:54.764Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T10:30:58.821Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T10:42:02.874Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T10:53:06.930Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:04:10.997Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:15:15.061Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:26:19.105Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:37:23.169Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:48:27.237Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T11:59:31.328Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T12:09:35.371Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T12:20:39.562Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T12:31:43.626Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T12:42:47.696Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T12:53:51.871Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T13:04:55.965Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T13:16:00.047Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T13:27:04.124Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T13:38:08.216Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T13:49:12.345Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:00:16.428Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:11:20.519Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:22:24.524Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:33:28.607Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:43:32.690Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T14:54:36.741Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T15:05:40.799Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T15:13:44.933Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T15:14:48.975Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T15:15:53.033Z",
+      "action": "kickstart",
+      "result": "FAILED"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T16:18:37.739Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.lane-health",
+      "ts": "2026-05-29T16:52:36.524Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T16:52:40.556Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.yuri-sentinel",
+      "ts": "2026-05-29T16:58:40.609Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T17:14:30.602Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri.kagami-heartbeat",
+      "ts": "2026-05-29T17:14:34.658Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T17:30:17.706Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T17:45:51.231Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.lane-health",
+      "ts": "2026-05-29T17:53:49.474Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T18:09:40.022Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.yuri-sentinel",
+      "ts": "2026-05-29T18:09:44.050Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "ts": "2026-05-29T18:25:29.636Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri.lane-calibration",
+      "ts": "2026-05-29T18:29:33.695Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri-os-musubi.lane-health",
+      "ts": "2026-05-29T18:54:37.776Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    },
+    {
+      "label": "com.yuri.kagami-heartbeat",
+      "ts": "2026-05-29T19:14:41.855Z",
+      "action": "kickstart",
+      "result": "SUCCESS"
+    }
+  ],
+  "quarantine": [
+    {
+      "label": "com.yuri-os-musubi.launch-readiness-nightly",
+      "ts": "2026-05-29T07:15:45.538Z"
+    },
+    {
+      "label": "com.yuri.lane-memory-prune",
+      "ts": "2026-05-29T07:15:49.565Z"
+    },
+    {
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "ts": "2026-05-29T15:15:57.070Z"
+    }
+  ]
+}

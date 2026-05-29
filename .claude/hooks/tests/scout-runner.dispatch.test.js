@@ -16,7 +16,7 @@ fs.writeFileSync(offloadStub, [
   '#!/usr/bin/env bash',
   `printf "%s\\n" "$*" >> "${offloadLogFile}"`,
   'printf "SEVERITY: WARN\\n"',
-  'printf "FINDING: Cassandra model path invoked.\\n"',
+  'printf "FINDING: yuri-risk model path invoked.\\n"',
   '',
 ].join('\n'));
 fs.chmodSync(offloadStub, 0o755);
@@ -71,21 +71,13 @@ try {
   assert.equal(argusEntry.runtime_kind, 'native_function');
   assert.equal(argusEntry.severity, 'HIGH');
 
-  const hermesContext = writeContext(baseContext('Edit', { file_path: 'src/a.ts' }, { contextPct: 85 }));
-  assert.equal(runner.runScout('HERMES', hermesContext), 0);
-  assert.equal(fs.existsSync(offloadLogFile), false, 'HERMES must not invoke offload lane');
-  const hermesEntry = entries().at(-1);
-  assert.equal(hermesEntry.scout, 'HERMES');
-  assert.equal(hermesEntry.runtime_kind, 'native_function');
-  assert.equal(hermesEntry.severity, 'INFO');
-
-  const cassandraContext = writeContext(baseContext('Bash', { command: 'chmod 777 tmp' }));
-  assert.equal(runner.runScout('CASSANDRA', cassandraContext), 0);
-  assert.equal(fs.existsSync(offloadLogFile), true, 'CASSANDRA should invoke offload model path');
-  const cassandraEntry = entries().at(-1);
-  assert.equal(cassandraEntry.scout, 'CASSANDRA');
-  assert.equal(cassandraEntry.runtime_kind, 'model_agent');
-  assert.equal(cassandraEntry.severity, 'WARN');
+  const riskContext = writeContext(baseContext('Bash', { command: 'chmod 777 tmp' }));
+  assert.equal(runner.runScout('YURI-RISK', riskContext), 0);
+  assert.equal(fs.existsSync(offloadLogFile), true, 'YURI-RISK should invoke offload model path');
+  const riskEntry = entries().at(-1);
+  assert.equal(riskEntry.scout, 'YURI-RISK');
+  assert.equal(riskEntry.runtime_kind, 'model_agent');
+  assert.equal(riskEntry.severity, 'WARN');
 
   // Verify the offload stub was invoked with the expected lane args.
   const logContents = fs.readFileSync(offloadLogFile, 'utf8');

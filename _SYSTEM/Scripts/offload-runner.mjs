@@ -2730,18 +2730,10 @@ async function executeTool(name, argsStr) {
     }
 
     if (name === 'palace_query') {
-      const { query, top = 5 } = args;
+      const { query } = args;
       if (!query) return 'ERROR: Missing query parameter';
-      try {
-        const safeQuery = query.replace(/"/g, '\\"');
-        const out = execSync(
-          `node _SYSTEM/Scripts/memory-query.mjs "${safeQuery}" --top ${top}`,
-          { cwd: REPO_ROOT, encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
-        );
-        return out.trim() || '(no results)';
-      } catch (e) {
-        return `palace_query error: ${e.stderr?.toString() || e.message}`;
-      }
+      // semantic-memory/palace retrieval retired 2026-05-29
+      return '(no results)';
     }
 
     if (name === 'ollama_run') {

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -9,8 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..', '..');
 const PULSE_PLAN_FILE = join(REPO_ROOT, '.claude', 'state', 'pulse-plan.json');
-const MEMORY_QUERY = join(REPO_ROOT, '_SYSTEM', 'Scripts', 'memory-query.mjs');
-const MAX_DIGEST_CHARS = 500;
+// semantic-memory/palace retrieval retired 2026-05-29
 
 function parseArgs(argv) {
   const out = { sessionId: process.env.CLAUDE_SESSION_ID || '', prompt: '' };
@@ -48,41 +46,6 @@ function arrayOf(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function compactMemoryDigest(stdout) {
-  const raw = String(stdout || '').trim();
-  if (!raw) return '';
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .map((item) => [item.name, item.description, item.file_path].filter(Boolean).join(' | '))
-        .join('\n')
-        .slice(0, MAX_DIGEST_CHARS);
-    }
-  } catch (_) {
-    // Plain stdout is acceptable as a digest fallback.
-  }
-
-  return raw.slice(0, MAX_DIGEST_CHARS);
-}
-
-function queryMemoryDigest() {
-  try {
-    if (!existsSync(MEMORY_QUERY)) return '';
-    const result = spawnSync('node', [MEMORY_QUERY, 'session context', '--top', '3'], {
-      cwd: REPO_ROOT,
-      encoding: 'utf8',
-      timeout: 2000,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-    if (result.error || result.status !== 0) return '';
-    return compactMemoryDigest(result.stdout);
-  } catch (_) {
-    return '';
-  }
-}
-
 function buildPulsePlan(plan) {
   const route = plan?.route || plan?.routePlan || plan?.selected_route || null;
   return {
@@ -104,7 +67,8 @@ function main() {
     session_id: sessionId,
     turn_id: plan?.turn_id || plan?.turnId || process.env.PULSE_TURN_ID || randomUUID(),
     pulse_plan: buildPulsePlan(plan),
-    memory_digest: queryMemoryDigest(),
+    // semantic-memory/palace retrieval retired 2026-05-29
+    memory_digest: '',
     generated_at: new Date().toISOString(),
     entry_point: process.env.YURI_ENTRY_POINT || 'claude',
   };

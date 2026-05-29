@@ -25,8 +25,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 const bus  = require('./scout-bus.js');
 
-let cassandraLite;
-try { cassandraLite = require('./cassandra-lite.js'); } catch (_) { cassandraLite = null; }
+let yuriRiskLite;
+try { yuriRiskLite = require('./yuri-risk-lite.js'); } catch (_) { yuriRiskLite = null; }
 
 const REPO_ROOT     = path.resolve(__dirname, '..', '..');
 const LOG_PATH      = path.join(REPO_ROOT, '.claude', 'state', 'scout-errors.log');
@@ -38,7 +38,7 @@ const KEEP_LINES     = 200;
 const SEV_ORDER      = { CRITICAL: 4, HIGH: 3, WARN: 2, INFO: 1 };
 const SUBSTANTIVE    = new Set(['Write', 'Edit', 'MultiEdit', 'Bash', 'Agent']);
 const FILE_TOOLS     = new Set(['Write', 'Edit', 'MultiEdit']);
-const CASSANDRA_TOOLS= new Set(['Write', 'Edit', 'MultiEdit', 'Bash']);
+const RISK_TOOLS= new Set(['Write', 'Edit', 'MultiEdit', 'Bash']);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -154,12 +154,12 @@ function handlePostToolUse(event) {
 
     if (!SUBSTANTIVE.has(toolName)) { process.exit(0); return; }
 
-    // CASSANDRA-LITE: instant heuristic
-    if (cassandraLite) {
-      const liteResult = cassandraLite.check(toolName, toolInput);
+    // yuri-risk-lite: instant heuristic
+    if (yuriRiskLite) {
+      const liteResult = yuriRiskLite.check(toolName, toolInput);
       if (liteResult.hit) {
         bus.appendFinding(
-          'CASSANDRA-LITE', liteResult.severity, toolName,
+          'YURI-RISK-LITE', liteResult.severity, toolName,
           `[INSTANT] ${liteResult.msg} — verify intent before proceeding.`, 'native_function'
         );
       }
@@ -175,15 +175,10 @@ function handlePostToolUse(event) {
       bus.recordSpawn(b, 'ARGUS');
       spawnScout('ARGUS', ctx);
     }
-    if (CASSANDRA_TOOLS.has(toolName) && bus.canSpawn(b, 'CASSANDRA')) {
-      const ctx = buildContext(toolName, toolInput, toolResult, bus.getPeerFindings(b, 'CASSANDRA'), sessionState);
-      bus.recordSpawn(b, 'CASSANDRA');
-      spawnScout('CASSANDRA', ctx);
-    }
-    if (FILE_TOOLS.has(toolName) && bus.canSpawn(b, 'HERMES')) {
-      const ctx = buildContext(toolName, toolInput, toolResult, bus.getPeerFindings(b, 'HERMES'), sessionState);
-      bus.recordSpawn(b, 'HERMES');
-      spawnScout('HERMES', ctx);
+    if (RISK_TOOLS.has(toolName) && bus.canSpawn(b, 'YURI-RISK')) {
+      const ctx = buildContext(toolName, toolInput, toolResult, bus.getPeerFindings(b, 'YURI-RISK'), sessionState);
+      bus.recordSpawn(b, 'YURI-RISK');
+      spawnScout('YURI-RISK', ctx);
     }
     bus.writeBus(b);
   } catch (_) {}

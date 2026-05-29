@@ -1,6 +1,6 @@
 ---
 name: ai-pipeline-offloading
-description: "Global offload routing for NUDIMMUD. Tokenmaxxing owns activation; this skill is the shared lane map and command facade."
+description: "Global offload routing for YURI. Tokenmaxxing owns activation; this skill is the shared lane map and command facade."
 triggers:
   - "@deepseek"
   - "@triage-local"

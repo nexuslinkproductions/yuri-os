@@ -8,7 +8,7 @@
 // to .claude/state/pulse-bus.json.
 //
 // Authority model:
-//   - DeepSeek, OpenClaw, Hermes-forecast, Cassandra = ADVISORY ONLY.
+//   - DeepSeek, OpenClaw, Yuri-Risk = ADVISORY ONLY.
 //     Never grant write or canonical authority.
 //   - OpenClaw is quarantined per OFFLOAD_CONTRACT.claudeProtocolGate.openClaw:
 //     bridge_advisory only. Tagged in pulse-bus accordingly.
@@ -42,8 +42,7 @@ const TIMEOUT_NVIDIA_MS   = 60_000;
 const requireFromCjs = (await import('node:module')).createRequire(import.meta.url);
 const pulseBus = requireFromCjs(path.join(REPO_ROOT, '.claude', 'hooks', 'pulse-bus.js'));
 
-// M1 — Brain amplifier: enriches advisor prompts with SOUL+LTM+PDC+palace context
-import { amplifyPrompt, amplifyPromptCompact } from './brain-amplifier.mjs';
+// semantic-memory/palace retrieval retired 2026-05-29
 
 function logError(msg) {
   try {
@@ -188,8 +187,8 @@ async function dispatchDeepSeekPreflight(prompt, plan, turnId) {
     }
   } catch (_) { /* never block preflight */ }
 
-  // M1: compact amplification (spatial+PDC prefix) — ragBlock already handles LTM
-  const amplifiedSlice = amplifyPromptCompact(String(prompt).slice(0, 240));
+  // semantic-memory/palace retrieval retired 2026-05-29
+  const amplifiedSlice = String(prompt).slice(0, 240);
   const preflightPrompt = `PULSE_PREFLIGHT (turn=${turnId})
 SCENARIO: ${plan.scenario}
 LANE: ${plan.lane}
@@ -216,8 +215,8 @@ OUTPUT_CAP: 40 lines`;
 
 async function dispatchNvidiaPreflight(prompt, plan, turnId) {
   if (!process.env.NVIDIA_API_KEY) return null;
-  // M1: full brain amplification for NVIDIA (no ragBlock here, so full context)
-  const nvidiaAmplified = amplifyPrompt(String(prompt).slice(0, 300));
+  // semantic-memory/palace retrieval retired 2026-05-29
+  const nvidiaAmplified = String(prompt).slice(0, 300);
   const preflightPrompt = `PULSE_PREFLIGHT nvidia-advisory. Scenario=${plan.scenario}, tier=${plan.complexityTier}.
 LANE: ${plan.lane}
 TIER: ${plan.complexityTier}
@@ -288,53 +287,7 @@ async function dispatchOpenClawPreflight(prompt, plan, turnId) {
   return { source: 'OPENCLAW', runtimeKind: 'bridge_advisory', ...parsed };
 }
 
-async function dispatchHermesForecast(prompt, plan, turnId) {
-  // PATCH 034 — native predictive temporal/scope forecast.
-  // Inputs: .claude/state/session-state.json (context.pct + files_written),
-  // plus the prompt itself (file path mentions, top-level scope breadth).
-  // Output: 1-line forecast with severity scaled to predicted pressure.
-  const SESSION_STATE = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
-  let contextPct = 0;
-  let filesWrittenCount = 0;
-  try {
-    const raw = await fsp.readFile(SESSION_STATE, 'utf8');
-    const state = JSON.parse(raw);
-    contextPct = Math.round(state?.context?.pct || 0);
-    filesWrittenCount = Array.isArray(state?.files_written) ? state.files_written.length : 0;
-  } catch (_) { /* missing state = fresh session, leave zeros */ }
-
-  const pathMatches = String(prompt).match(/[/][\w./-]+\.[a-z]+/gi) || [];
-  const topLevels = new Set(pathMatches.map(p => p.replace(/^\//, '').split('/')[0]).filter(Boolean));
-  const fileCount = pathMatches.length;
-
-  let severity = 'INFO';
-  let finding;
-  if (contextPct >= 70) {
-    severity = 'WARN';
-    finding = `Context at ${contextPct}% before this turn; high risk of crossing auto-compact threshold mid-task.`;
-  } else if (contextPct >= 55 && fileCount > 2) {
-    severity = 'WARN';
-    finding = `Context at ${contextPct}% + ${fileCount} file paths in prompt; scope likely pushes past 70%.`;
-  } else if (topLevels.size >= 4) {
-    severity = 'WARN';
-    finding = `Prompt scope spans ${topLevels.size} top-level areas (${[...topLevels].slice(0,4).join(', ')}); consider scoping down.`;
-  } else if (filesWrittenCount >= 10 && fileCount > 0) {
-    severity = 'INFO';
-    finding = `Session has written ${filesWrittenCount} files already; cumulative drift risk elevated.`;
-  } else {
-    finding = `Forecast clean: ctx=${contextPct}% scope=${topLevels.size}-area session_writes=${filesWrittenCount}.`;
-  }
-
-  return {
-    source: 'HERMES_FC',
-    runtimeKind: 'native_function',
-    severity,
-    finding,
-    confidence: 0.85, // native heuristic, deterministic inputs
-  };
-}
-
-async function dispatchCassandra(prompt, plan, turnId) {
+async function dispatchYuriRisk(prompt, plan, turnId) {
   // PATCH 035 — strategic-foresight scout.
   // Reads git log + EOT history + peer pulse-bus findings on this turn,
   // emits 1-line prediction of the failure mode most likely to bite.
@@ -363,7 +316,7 @@ async function dispatchCassandra(prompt, plan, turnId) {
     2000
   );
 
-  // Peer findings already on bus for this turn (DeepSeek, OpenClaw, Hermes_FC)
+  // Peer findings already on bus for this turn (DeepSeek, OpenClaw)
   const peers = pulseBus.findingsByTurn(turnId);
   const peerDigest = peers.map(p => `${p.source}:${p.severity}:${p.finding.slice(0, 80)}`).join(' | ');
 
@@ -388,7 +341,7 @@ async function dispatchCassandra(prompt, plan, turnId) {
   // Try model upgrade (DeepSeek flash, bounded 25s) — if it succeeds, replace native finding.
   // Native finding is the floor; model is the lift.
   try {
-    const cassPrompt = `CASSANDRA strategic foresight. Prompt: "${String(prompt).slice(0, 180)}".
+    const riskPrompt = `YURI-RISK strategic foresight. Prompt: "${String(prompt).slice(0, 180)}".
 Recent commits:
 ${gitLog.slice(0, 600)}
 Peer cortex findings this turn:
@@ -396,7 +349,7 @@ ${peerDigest.slice(0, 400) || '(none)'}
 Output ONE line predicting the highest-probability failure mode for this turn. Format: SEVERITY:WARN|HIGH|CRITICAL :: <prediction>. Be concrete.`;
     const result = await execWithTimeout(
       'bash',
-      [OFFLOAD_SH, '@deepseek-v4-flash', cassPrompt],
+      [OFFLOAD_SH, '@deepseek-v4-flash', riskPrompt],
       {},
       25_000
     );
@@ -410,12 +363,12 @@ Output ONE line predicting the highest-probability failure mode for this turn. F
       }
     }
   } catch (e) {
-    logError(`Cassandra model upgrade failed: ${e.message}`);
+    logError(`Yuri-Risk model upgrade failed: ${e.message}`);
     // Keep native foresight as fallback
   }
 
   return {
-    source: 'CASSANDRA',
+    source: 'YURI_RISK',
     runtimeKind: nativeForesight ? 'native_function' : 'model_advisor',
     severity: nativeForesight.severity,
     finding: nativeForesight.finding,
@@ -423,39 +376,10 @@ Output ONE line predicting the highest-probability failure mode for this turn. F
   };
 }
 
-async function dispatchSwarmFanout(prompt, plan, turnId) {
-  // PATCH 040 — native two-model DeepSeek fan-out replacing Ruflo @swarm backend call.
-  // Runs deepseek-v4-flash + deepseek-v4-pro in parallel; merges findings.
-  // No external service dependency — eliminates the port-3004 hard fail.
-  const swarmPrompt = `PULSE_SWARM (turn=${turnId}) tier=${plan.complexityTier} scenario=${plan.scenario}
-${String(prompt).slice(0, 300)}
-TASK: Independent strategic risk scan. What could go wrong that the primary analysis missed? 1-3 lines.`;
-
-  const [flashResult, proResult] = await Promise.allSettled([
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
-  ]);
-
-  const outputs = [];
-  for (const [label, r] of [['flash', flashResult], ['pro', proResult]]) {
-    if (r.status === 'fulfilled' && r.value.code === 0 && !r.value.timedOut && r.value.stdout.trim()) {
-      outputs.push(r.value.stdout.trim());
-    } else {
-      const err = r.status === 'rejected' ? r.reason?.message : `code=${r.value?.code}`;
-      logError(`@swarm ${label} failed: ${err}`);
-    }
-  }
-
-  if (outputs.length === 0) return null;
-
-  // Merge: use highest-severity finding across both outputs
-  const candidates = outputs.map(parseAdvisorOutput);
-  const severityRank = { CRITICAL: 4, HIGH: 3, WARN: 2, INFO: 1 };
-  candidates.sort((a, b) => (severityRank[b.severity] || 0) - (severityRank[a.severity] || 0));
-  const best = candidates[0];
-
-  return { source: 'SWARM', runtimeKind: 'swarm_dispatch', ...best };
-}
+// dispatchSwarmFanout REMOVED 2026-05-29 — the parallel deepseek-pro+flash fan-out is
+// deprecated. Opus 4.8's native dynamic Workflow orchestration replaces it, and the
+// single-model advisory path (dispatchDeepSeekPreflight / dispatchShuraReview) covers
+// independent strategic review without doubling DeepSeek load per critical turn.
 
 async function dispatchShuraReview(prompt, plan, turnId) {
   const shuraPrompt = `YURI_SHURA (turn=${turnId}) scenario=${plan.scenario} tier=${plan.complexityTier}
@@ -498,8 +422,8 @@ async function dispatchCodexAdvisory(prompt, plan, turnId) {
   const codexModel = plan.councilComposition?.codexModel;
   if (!codexModel) return null;
 
-  // M1: full brain amplification for Codex advisory (code-level needs full context)
-  const codexAmplified = amplifyPrompt(String(prompt).slice(0, 300));
+  // semantic-memory/palace retrieval retired 2026-05-29
+  const codexAmplified = String(prompt).slice(0, 300);
   const advisoryPrompt = `CODEX_ADVISORY (turn=${turnId}) model=${codexModel}
 SCENARIO: ${plan.scenario}
 TIER: ${plan.complexityTier}
@@ -569,7 +493,7 @@ async function dispatchCodexQueueEmit(prompt, plan, turnId) {
 function writeCouncilSynthesis(findings, turnId, plan) {
   const SYNTH_LOG  = path.join(STATE_DIR, 'council-synthesis.jsonl');
   const STALE_FILE = path.join(STATE_DIR, 'brain-stale.sentinel');
-  const NISABA_DIR = path.join(path.dirname(STATE_DIR), 'yuri-sentinel', 'logs');
+  const YURI_SENTINEL_DIR = path.join(path.dirname(STATE_DIR), 'yuri-sentinel', 'logs');
 
   try {
     // M2a: pass all WARN+ findings to the synthesis log.
@@ -601,9 +525,9 @@ function writeCouncilSynthesis(findings, turnId, plan) {
       }, 'INFO'),
     };
 
-    try { mkdirSync(NISABA_DIR, { recursive: true }); } catch (_) {}
-    const nisabaSynthLog = path.join(NISABA_DIR, 'council-synthesis.jsonl');
-    appendFileSync(nisabaSynthLog, JSON.stringify(record) + '\n');
+    try { mkdirSync(YURI_SENTINEL_DIR, { recursive: true }); } catch (_) {}
+    const yuriSentinelSynthLog = path.join(YURI_SENTINEL_DIR, 'council-synthesis.jsonl');
+    appendFileSync(yuriSentinelSynthLog, JSON.stringify(record) + '\n');
 
     // M3: touch brain:stale sentinel if consensus findings exist
     // user-prompt-submit.js reads this next turn and triggers brain re-injection
@@ -689,9 +613,7 @@ function buildTaskMap(ensemble, prompt, plan, turnId, advisorPrompt = prompt) {
     if (slot === 'deepseek-preflight') m.deepseek = () => dispatchDeepSeekPreflight(advisorPrompt, plan, turnId);
     if (slot === 'nvidia-preflight')   m.nvidia   = () => dispatchNvidiaPreflight(advisorPrompt, plan, turnId);
     if (slot === 'openclaw-preflight') m.openclaw = () => dispatchOpenClawPreflight(advisorPrompt, plan, turnId);
-    if (slot === 'hermes-forecast')    m.hermesFC = () => dispatchHermesForecast(advisorPrompt, plan, turnId);
-    if (slot === 'cassandra')          m.cassandra = () => dispatchCassandra(advisorPrompt, plan, turnId);
-    if (slot === 'swarm-fanout')       m.swarm    = () => dispatchSwarmFanout(advisorPrompt, plan, turnId);
+    if (slot === 'yuri-risk')          m.yuriRisk = () => dispatchYuriRisk(advisorPrompt, plan, turnId);
     if (slot === 'shura-review')       m.shura      = () => dispatchShuraReview(advisorPrompt, plan, turnId);
     if (slot === 'codex-advisory')     m.codexAdvisory = () => dispatchCodexAdvisory(advisorPrompt, plan, turnId);
     if (slot === 'codex-queue-emit')   m.codexQueue    = () => dispatchCodexQueueEmit(prompt, plan, turnId);

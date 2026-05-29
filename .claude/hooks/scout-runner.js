@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Background scout runner — called by scout-spawn.js as a detached subprocess
-// argv[2] = scoutType (ARGUS|CASSANDRA|HERMES)
+// argv[2] = scoutType (ARGUS|YURI-RISK)
 // argv[3] = contextFile path (temp file with tool + session context)
 'use strict';
 const fs = require('fs');
@@ -13,7 +13,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const OFFLOAD_SH = process.env.SCOUT_OFFLOAD_SH || path.join(REPO_ROOT, 'Scripts', 'offload.sh');
 const MAX_LOG_BYTES = 1 * 1024 * 1024; // 1 MB ring cap
 const MODEL_SCOUT = 'deepseek';
-const NATIVE_SCOUTS = new Set(['ARGUS', 'HERMES']);
+const NATIVE_SCOUTS = new Set(['ARGUS']);
 
 function rotateErrorLogIfNeeded() {
   try {
@@ -121,31 +121,8 @@ function evaluateArgus(contextText) {
   return null;
 }
 
-function evaluateHermes(contextText) {
-  const contextPct = extractContextPct(contextText);
-  const recentFiles = extractRecentFiles(contextText);
-  const topLevels = new Set(recentFiles.map(topLevelFor).filter(Boolean));
-
-  if (topLevels.size > 4) {
-    return {
-      severity: 'WARN',
-      finding: `Recent writes span ${topLevels.size} top-level areas; confirm this is one coherent task.`
-    };
-  }
-
-  if (contextPct >= 80) {
-    return {
-      severity: 'INFO',
-      finding: 'Context is above 80%; preserve the active task state before more file edits.'
-    };
-  }
-
-  return null;
-}
-
 function runNativeScout(scoutType, contextText) {
   if (scoutType === 'ARGUS') return evaluateArgus(contextText);
-  if (scoutType === 'HERMES') return evaluateHermes(contextText);
   return null;
 }
 
@@ -224,7 +201,6 @@ module.exports = {
   NATIVE_SCOUTS,
   parseScoutOutput,
   evaluateArgus,
-  evaluateHermes,
   runNativeScout,
   runModelScout,
   runScout,

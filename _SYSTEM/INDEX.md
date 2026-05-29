@@ -23,7 +23,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `skills/skill-index.json` | Machine-readable root skill index. |
 | `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
-| `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives relocated from the retired `nudimmud` script folder. |
+| `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives — the canonical harness script folder. |
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |
 | `_SYSTEM/Scripts/lane-arbitration.mjs` | Codex/main verifier for captured lane evidence, emitting Kagami verification events. |
 | `_SYSTEM/Scripts/lane-persona-map.mjs` | Private dev-only Rick alias overlay with neutral shipping labels and cache-stable packet headers. |

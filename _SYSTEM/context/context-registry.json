@@ -160,6 +160,11 @@
         "_SYSTEM/reports/claude-output-lane/draft-artifacts/2026-05-28-jan-brief-energy-landscape-paper.md",
         "_SYSTEM/Scripts/math/yuri-energy.mjs",
         "_SYSTEM/Scripts/math/yuri-energy.test.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-trace.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-experiment.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs",
+        "_SYSTEM/Scripts/math/experiments/descent-demo.mjs",
         "_SYSTEM/Scripts/math/math-kernel.mjs",
         "_SYSTEM/Scripts/math/math-proof-gate.mjs",
         "_SYSTEM/Scripts/claim-integrity-gate.mjs",
@@ -167,7 +172,7 @@
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md",
         "_SYSTEM/config/schemas/yuri.promotion-ladder.v0.schema.json"
       ],
-      "loadRule": "Load when working on the Conservative State Flows methodology paper (ship 2026-07-23). Includes ground-truth audit, Jan brief, yuri-energy reference implementation, math substrate composition, and the truth-promotion ladder schema. External references: Jake Van Clief ICM/MWP arXiv 2603.16021 (not in repo)."
+      "loadRule": "Load when working on the Conservative State Flows methodology paper (ship 2026-07-23). Includes ground-truth audit, Jan brief, yuri-energy reference implementation plus its telemetry (yuri-energy-trace), dispatch bridge (observability), experiment runner + descent-demo scenario, and the privacy sanitizer; math substrate composition; and the truth-promotion ladder schema. External references: Jake Van Clief ICM/MWP arXiv 2603.16021 (not in repo)."
     },
     {
       "id": "automation",

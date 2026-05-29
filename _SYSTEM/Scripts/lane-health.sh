@@ -21,6 +21,7 @@ print_row() {
   case "$status" in
     LIVE) icon="$(color_green "✅")" ;;
     COOLDOWN) icon="$(color_yellow "⏳")" ;;
+    DORMANT) icon="$(color_yellow "🌙")" ;;
     DOWN) icon="$(color_red "❌")" ;;
     SKIP) icon="·" ;;
   esac
@@ -70,30 +71,6 @@ check_ollama_local() {
   fi
 }
 
-check_comet() {
-  local out
-  out="$(OFFLOAD_PROMPT_TEXT="test" node "$SCRIPT_DIR/comet-adapter.mjs" 2>&1 | head -10)"
-  if echo "$out" | grep -qE '"lane"\s*:\s*"comet"'; then
-    print_row "comet" LIVE "adapter responds"
-  else
-    print_row "comet" DOWN "adapter not responding"
-  fi
-}
-
-check_palace() {
-  local palace_path="$SCRIPT_DIR/../claude-palace-out/palace-index.md"
-  if [[ ! -f "$palace_path" ]]; then
-    print_row "palace-index" DOWN "missing"
-    return
-  fi
-  local age_days
-  age_days="$(( ($(date +%s) - $(stat -f %m "$palace_path")) / 86400 ))"
-  if (( age_days <= 7 )); then
-    print_row "palace-index" LIVE "${age_days}d old"
-  else
-    print_row "palace-index" COOLDOWN "${age_days}d stale (>7d)"
-  fi
-}
 
 check_gitnexus() {
   local gitnexus_dir="$SCRIPT_DIR/../.gitnexus"
@@ -131,12 +108,7 @@ echo "Local:"
 check_ollama_local
 
 echo
-echo "Browser / Web:"
-check_comet
-
-echo
 echo "Knowledge:"
-check_palace
 check_gitnexus
 
 echo "──────────────────────────────────────────────────────────────"
@@ -151,8 +123,6 @@ CODEX_STATUS="DOWN"
 codex --version >/dev/null 2>&1 && CODEX_STATUS="LIVE"
 GITNEXUS_STATUS="DOWN"
 [[ -d "$SCRIPT_DIR/../.gitnexus" ]] && GITNEXUS_STATUS="LIVE"
-PALACE_STATUS="DOWN"
-[[ -f "$SCRIPT_DIR/../claude-palace-out/palace-index.md" ]] && PALACE_STATUS="LIVE"
-printf '{"ts":"%s","lanes":{"codex":"%s","deepseek":"%s","ollama":"%s","gitnexus":"%s","palace":"%s"}}\n' \
-  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CODEX_STATUS" "$DEEPSEEK_STATUS" "$OLLAMA_STATUS" "$GITNEXUS_STATUS" "$PALACE_STATUS" \
+printf '{"ts":"%s","lanes":{"codex":"%s","deepseek":"%s","ollama":"%s","gitnexus":"%s"}}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CODEX_STATUS" "$DEEPSEEK_STATUS" "$OLLAMA_STATUS" "$GITNEXUS_STATUS" \
   > "$JSON_OUT" 2>/dev/null || true

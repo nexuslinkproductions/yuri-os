@@ -6,8 +6,8 @@
 // Architecture:
 //   [identity]      → SOUL.md persona rules (who Yuri is, how to think)
 //   [learned_rules] → global.md dream-processor synthesized session rules (what sessions taught)
-//   [spatial]       → palace-index.md top hub concepts (what's most active in the vault)
-//   [memory]        → semantic memory query over memory files (session-context relevant)
+//   [memory]        → curated MEMORY.md truths (semantic/palace retrieval retired 2026-05-29;
+//                     corpus lookup lives in the separate FTS5 search index, never auto-injected)
 //   [session]       → branch, last commits, active cwd (where we are right now)
 //   [hardware]      → M2 Pro constraints (safe local models, frozen models list)
 //   [gate]          → launch readiness + independence score snapshot
@@ -25,7 +25,6 @@ const { spawnSync } = require('child_process');
 const REPO_ROOT        = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
 const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
-const PALACE_PATHS     = [path.join(REPO_ROOT, 'claude-palace-out', 'palace-index.md')];
 const STATE_FILE       = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
 const LAUNCH_GATE      = path.join(REPO_ROOT, '.claude', 'state', 'launch-gate.json');
 const LANE_HEALTH_FILE = path.join(REPO_ROOT, '.claude', 'state', 'lane-health-status.json');
@@ -128,46 +127,28 @@ function extractPersonaRules(content) {
   return rules;
 }
 
-// ── Palace hub concepts ─────────────────────────────────────────────────────
 
-function parsePalace(content) {
-  const hubMatch = content.match(/## Hub Concepts \(Most Central\)([\s\S]*?)(?=\n## [A-Z]|$)/);
-  if (!hubMatch) return [];
-  const conceptRE = /^\d+\.\s+\*\*([^*]+)\*\*\s+\(([^)]+)\)\s*\n\s*[-•]\s+Centrality:\s+([\d.]+)\s*\n\s*[-•]\s+Connections:\s+(\d+)/gm;
-  const concepts = [];
-  let m;
-  while ((m = conceptRE.exec(hubMatch[1])) !== null) {
-    concepts.push({ name: m[1].trim(), type: m[2].trim(), centrality: parseFloat(m[3]), connections: parseInt(m[4], 10) });
-  }
-  return concepts.slice(0, 12);
-}
-
-function loadSemanticMemory(sessionContext) {
+function loadCuratedMemory() {
+  // Curated memory only. Semantic/embedding retrieval (memory-query.mjs over semantic-memory.db)
+  // retired 2026-05-29 — it was dead plumbing that injected "(memory unavailable)". The curated
+  // MEMORY.md index IS the memory YURI carries each session. Corpus lookup lives in the separate
+  // FTS5 search index (yuri-search), never auto-injected here.
   try {
-    const { execSync } = require('child_process');
-    if (!sessionContext) throw new Error('missing session context');
-    const raw = execSync(
-      'node _SYSTEM/Scripts/memory-query.mjs "$MEMORY_QUERY_CONTEXT" --top 8',
-      {
-        cwd: REPO_ROOT,
-        timeout: 10000,
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          MEMORY_QUERY_CONTEXT: sessionContext,
-        },
-      }
-    );
-    const results = JSON.parse(raw);
-    if (!results.length) return '(no relevant LTM items)';
-    return results.map(r => `- **${r.name}** (${r.type}): ${r.description}`).join('\n');
-  } catch (e) {
-    try {
-      const fallback = fs.readFileSync(path.join(REPO_ROOT, '_SYSTEM/memory/MEMORY.md'), 'utf8')
-        .split('\n').filter(l => l.startsWith('-')).slice(0, 8).join('\n');
-      return fallback || '(memory unavailable)';
-    } catch { return '(memory unavailable)'; }
-  }
+    // _SYSTEM/memory/MEMORY.md is a "| Date | Entry | Surface | Notes |" table — parse rows,
+    // skip the header + separator, inject "Entry — Notes(truncated)".
+    const rows = fs.readFileSync(path.join(REPO_ROOT, '_SYSTEM/memory/MEMORY.md'), 'utf8')
+      .split('\n')
+      .filter(l => l.startsWith('|') && !/^\|\s*Date\s*\|/i.test(l) && !/^\|[\s:|-]*\|?\s*$/.test(l))
+      .slice(0, 12)
+      .map(l => {
+        const c = l.split('|').map(s => s.trim());
+        const entry = c[2] || '';
+        const note = (c[4] || '').replace(/\*\*/g, '').slice(0, 110);
+        return entry ? `- ${entry}${note ? ' — ' + note : ''}` : '';
+      })
+      .filter(Boolean);
+    return rows.length ? rows.join('\n') : '(no curated memory entries)';
+  } catch { return '(memory index unavailable)'; }
 }
 
 // ── PDC + Market Signal — probabilistic priors + calibration ─────────────────
@@ -280,7 +261,7 @@ function loadNeurodivergentEngine(cortexTier) {
 
 // ── Self-awareness — L1–L3 ───────────────────────────────────────────────────
 // L1: cortex state (already in DYNAMIC section)
-// L2: behavioral fingerprint from nisaba/self-model/fingerprint.json
+// L2: behavioral fingerprint from yuri-sentinel/self-model/fingerprint.json
 // L3: watch-list + active drives
 
 const FINGERPRINT_PATH = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'self-model', 'fingerprint.json');
@@ -420,14 +401,8 @@ function loadNenPhase() {
 
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState }) {
+function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
-
-  const spatialLines = palace.length
-    ? palace.slice(0, 6).map((c, i) =>
-        `  ${i + 1}. ${c.name} (${c.type}) — ${c.connections} refs, centrality ${c.centrality.toFixed(3)}`
-      ).join('\n')
-    : '  (palace unavailable)';
 
   const hwSafe    = HARDWARE.safe_local.join(', ');
   const hwFrozen  = HARDWARE.frozen.slice(0,4).join(', ') + '…';
@@ -479,10 +454,7 @@ ${identityLines}
 ### LEARNED_RULES — Dream-processor synthesis (global.md)
 ${learnedRules}
 
-### SPATIAL — Vault hub concepts — ${palaceStatus}
-${spatialLines}
-
-### MEMORY — LTM (semantic query)
+### MEMORY — curated truths (MEMORY.md)
 ${memoryLines}
 
 ### SESSION — Current context
@@ -511,24 +483,11 @@ function main() {
   // 2. Learned rules from dream processor
   const learnedRules = loadLearnedRules();
 
-  // 3. Palace
-  let palace = [], palaceStatus = 'UNAVAILABLE';
-  for (const p of PALACE_PATHS) {
-    try {
-      if (fs.existsSync(p)) {
-        palace = parsePalace(fs.readFileSync(p, 'utf8'));
-        const age = Math.floor((Date.now() - fs.statSync(p).mtimeMs) / 86400000);
-        palaceStatus = age > 7 ? `STALE (${age}d old)` : `CURRENT (${age}d old)`;
-        break;
-      }
-    } catch (_) {}
-  }
-
-  // 4. Session context
+  // 3. Session context
   const sessionCtx = loadSessionContext();
 
-  // 5. Memory — semantic session-context query
-  const memoryLines = loadSemanticMemory(sessionCtx);
+  // 4. Memory — curated MEMORY.md truths (semantic/palace retrieval retired 2026-05-29)
+  const memoryLines = loadCuratedMemory();
 
   // 6. Lane health
   const laneHealth = loadLaneHealth();
@@ -536,18 +495,7 @@ function main() {
   // 7. Gate snapshot
   const gateSnapshot = loadGateSnapshot();
 
-  // 8. Write palace context to session-state.json (for other hooks)
-  try {
-    if (fs.existsSync(STATE_FILE)) {
-      const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-      if (!state.vault_context) {
-        state.vault_context = { status: palaceStatus, hub_concepts_top_12: palace, injected_at: new Date().toISOString() };
-        fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-      }
-    }
-  } catch (_) {}
-
-  // 9. Emit unified <yuri-brain> block
+  // 8. Emit unified <yuri-brain> block
   const cortexDynamic  = loadCortexDynamic();
   const pdcContext     = loadPdcContext();
 
@@ -569,7 +517,7 @@ function main() {
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
 
-  const block = buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState });
+  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

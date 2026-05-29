@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
+import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -33,7 +34,13 @@ export function normalizeRepoPath(inputPath, repoRoot = REPO_ROOT) {
 }
 
 export function isProtectedPath(relPath, protectedPrefixes = []) {
-  return protectedPrefixes.some((prefix) => {
+  // Single-sourced: always enforce the canonical protected surfaces (lane-kernel
+  // PROTECTED_SURFACE_PREFIXES) plus any registry-supplied extras, so a path declared
+  // protected canonically can never be silently UNPROTECTED here through a stale registry list.
+  const prefixes = protectedPrefixes.length
+    ? [...PROTECTED_SURFACE_PREFIXES, ...protectedPrefixes]
+    : PROTECTED_SURFACE_PREFIXES;
+  return prefixes.some((prefix) => {
     const clean = prefix.replace(/\/+$/, '');
     return relPath === clean || relPath.startsWith(`${clean}/`);
   });

@@ -21,11 +21,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA    = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const YURI_SENTINEL    = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 
 const PATHS = {
-  synthLog:       path.join(NISABA, 'learning', 'synthesis.jsonl'),
-  metaSynthesis:  path.join(NISABA, 'learning', 'meta-synthesis.json'),
+  synthLog:       path.join(YURI_SENTINEL, 'learning', 'synthesis.jsonl'),
+  metaSynthesis:  path.join(YURI_SENTINEL, 'learning', 'meta-synthesis.json'),
   selfModel:      path.join(__dirname, 'self-model.mjs'),
 };
 

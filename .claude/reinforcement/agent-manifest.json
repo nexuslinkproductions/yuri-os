@@ -86,12 +86,12 @@
       ]
     },
     {
-      "name": "cassandra",
+      "name": "yuri-risk",
       "description": "Risk Scout — Destructive Action & Consequence Predictor. Evaluates tool calls for destructive, irreversible, or security-critical operations.",
       "role": "risk_scout",
       "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
-      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/cassandra.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/yuri-risk.md",
       "color": null,
       "responsibilities": [
         "identify destructive operations",
@@ -154,32 +154,6 @@
         "entrypoint mapping",
         "duplicate detection",
         "responsibility mapping"
-      ]
-    },
-    {
-      "name": "hermes",
-      "description": "Context Scout — Session Coherence & Task Scope Monitor. Monitors whether a Claude Code session is maintaining coherent focus on its original task.",
-      "role": "context_scout",
-      "runtime_kind": "native_function",
-      "model": null,
-      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/hermes.md",
-      "color": null,
-      "responsibilities": [
-        "detect context drift",
-        "monitor scope creep",
-        "catch task amnesia",
-        "detect premature divergence",
-        "check session coherence"
-      ],
-      "linked_skills": [
-        "oracle-memory",
-        "compact-optimizer",
-        "end-of-transmission"
-      ],
-      "best_for": [
-        "scope drift detection",
-        "context pressure alerts",
-        "session coherence checks"
       ]
     },
     {

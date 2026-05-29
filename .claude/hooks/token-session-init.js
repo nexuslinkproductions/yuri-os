@@ -89,21 +89,7 @@ function getWeekStart() {
   return d.toISOString().slice(0, 10);
 }
 
-// Palace status
-const palacePath = '/Users/marcelspatz/YURI-OS-MUSUBI/claude-palace-out/palace-index.md';
-let palaceStatus;
-try {
-  if (fs.existsSync(palacePath)) {
-    const age = Math.floor((Date.now() - fs.statSync(palacePath).mtimeMs) / 86400000);
-    palaceStatus = age > 7
-      ? `⚠️ STALE (${age}d) — run python3 _SYSTEM/palace-rebuild.py --output claude-palace-out`
-      : `✅ Current (${age}d old) — use palace-index.md before raw vault reads`;
-  } else {
-    palaceStatus = '❌ MISSING — run python3 _SYSTEM/palace-rebuild.py --output claude-palace-out';
-  }
-} catch(e) {
-  palaceStatus = '⚠️ Check failed';
-}
+// Palace retired 2026-05-29 — spatial vault index removed. Corpus lookup is the FTS5 search index.
 
 // Inject full tokenmaxxing behavioral rules from SKILL.md into startup context
 // Check project path first (most up-to-date), fallback to global
@@ -124,6 +110,6 @@ for (const tmPath of TM_PATHS) {
 console.log(JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'SessionStart',
-    additionalContext: `SESSION: Token tracking active (id: ${sessionId}) | ⚡ TOKENMAXXING ACTIVE | PALACE: ${palaceStatus} | Reasoning: MAX effort active | Navigation: structure-first via palace-index.md${tokenmaxxingRules}`
+    additionalContext: `SESSION: Token tracking active (id: ${sessionId}) | ⚡ TOKENMAXXING ACTIVE | Reasoning: MAX effort active | Navigation: use 'ai search "<query>"' (FTS5 corpus index) instead of raw vault scans${tokenmaxxingRules}`
   }
 }));

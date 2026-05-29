@@ -22,14 +22,14 @@ import { getClosedDecisions } from './izanagi-postmortem.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const NISABA    = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const YURI_SENTINEL    = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 
 const PATHS = {
-  synthesis:    path.join(NISABA, 'learning', 'synthesis.json'),
-  fingerprint:  path.join(NISABA, 'self-model', 'fingerprint.json'),
-  hnDigest:     path.join(NISABA, 'learning', 'hn-digest.json'),
-  githubTrend:  path.join(NISABA, 'learning', 'github-trending.json'),
-  hypotheses:   path.join(NISABA, 'learning', 'hypotheses.json'),
+  synthesis:    path.join(YURI_SENTINEL, 'learning', 'synthesis.json'),
+  fingerprint:  path.join(YURI_SENTINEL, 'self-model', 'fingerprint.json'),
+  hnDigest:     path.join(YURI_SENTINEL, 'learning', 'hn-digest.json'),
+  githubTrend:  path.join(YURI_SENTINEL, 'learning', 'github-trending.json'),
+  hypotheses:   path.join(YURI_SENTINEL, 'learning', 'hypotheses.json'),
 };
 
 const args    = process.argv.slice(2);

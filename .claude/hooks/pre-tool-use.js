@@ -179,7 +179,7 @@ try {
     if (contextPct > heavyThreshold && isHeavy) {
         emitContext(`${prefix}TOKEN_ECONOMY: Context at ${contextPct.toFixed(0)}% — "${toolName}" is expensive. Consider offloading to @deepseek or @qwen.`);
     } else if (score > 2000 && contextPct > highCostThreshold) {
-        emitContext(`${prefix}TOKEN_ECONOMY: High-cost op "${toolName}" (score: ${score}). Recommend: offload via @swarm or @kimi.`);
+        emitContext(`${prefix}TOKEN_ECONOMY: High-cost op "${toolName}" (score: ${score}). Recommend: offload via @deepseek or @kimi.`);
     }
 
     process.exit(0);

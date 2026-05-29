@@ -37,7 +37,6 @@ echo ""
 echo "  EXISTING YURI AGENTS"
 check_agent "com.yuri-os-musubi.lane-health"        "com.yuri-os-musubi.lane-health"
 check_agent "com.yuri-os-musubi.neuron-loop"        "com.yuri-os-musubi.neuron-loop"
-check_agent "com.yuri-os-musubi.palace-auto-rebuild" "com.yuri-os-musubi.palace-auto-rebuild"
 check_agent "com.yuri-os-musubi.yuri-sentinel"      "com.yuri-os-musubi.yuri-sentinel"
 check_agent "com.yuri-os-musubi.gitnexus-weekly"    "com.yuri-os-musubi.gitnexus-weekly"
 

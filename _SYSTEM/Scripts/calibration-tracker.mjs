@@ -16,10 +16,10 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname   = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT   = path.resolve(__dirname, '../..') // Scripts/ → _SYSTEM/ → repo root;
-const NISABA_DIR  = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
-const SYNTH_LOG   = path.join(NISABA_DIR, 'logs', 'council-synthesis.jsonl');
+const YURI_SENTINEL_DIR  = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
+const SYNTH_LOG   = path.join(YURI_SENTINEL_DIR, 'logs', 'council-synthesis.jsonl');
 const PULSE_LOG   = path.join(REPO_ROOT, '.claude', 'state', 'pulse-bus.json');
-const CALIB_DIR   = path.join(NISABA_DIR, 'calibration');
+const CALIB_DIR   = path.join(YURI_SENTINEL_DIR, 'calibration');
 const PRIORS_PATH = path.join(CALIB_DIR, 'priors.json');
 const CALIB_LOG_MD = path.join(REPO_ROOT, '_SYSTEM', 'SELF-IMPROVEMENT', '02_EXTRACT', 'probability-calibration-log.md');
 
@@ -27,7 +27,7 @@ const args = process.argv.slice(2);
 const JSON_MODE = args.includes('--json');
 const WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-const ADVISOR_SOURCES = ['DEEPSEEK', 'NVIDIA', 'OPENCLAW', 'CASSANDRA', 'SWARM', 'HERMES_FC', 'CODEX_ADVISORY'];
+const ADVISOR_SOURCES = ['DEEPSEEK', 'NVIDIA', 'OPENCLAW', 'YURI_RISK', 'SWARM', 'CODEX_ADVISORY'];
 const F1_DROP_THRESHOLD = 0.15; // flag if F1 drops >15% since last calibration
 
 // ── Load prior state ──────────────────────────────────────────────────────────

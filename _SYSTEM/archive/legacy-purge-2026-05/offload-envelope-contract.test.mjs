@@ -70,28 +70,6 @@ function spawnAdapter(cmd, args, envOverride = {}) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 let failures = 0;
 
-// ── comet-adapter dry-run ────────────────────────────────────────────────────
-{
-  const result = await spawnAdapter('node', ['comet-adapter.mjs', '--dry-run'], {
-    OFFLOAD_PROMPT_TEXT: 'test',
-  });
-  try {
-    const obj = JSON.parse(result.stderr);
-    const err = validateEnvelope('comet-adapter --dry-run', obj);
-    if (err) {
-      console.error(`FAIL [comet-adapter --dry-run]: ${err}`);
-      console.error(`  received: ${result.stderr.slice(0, 200)}`);
-      failures++;
-    } else {
-      console.log(`PASS [comet-adapter --dry-run]: lane=${obj.lane} status=${obj.status}`);
-    }
-  } catch {
-    console.error(`FAIL [comet-adapter --dry-run]: not valid JSON`);
-    console.error(`  received: ${result.stderr.slice(0, 200)}`);
-    failures++;
-  }
-}
-
 // ── Report ───────────────────────────────────────────────────────────────────
 if (failures === 0) {
   console.log('\n✓ All contract tests PASSED.');

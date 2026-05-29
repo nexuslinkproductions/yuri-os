@@ -31,7 +31,6 @@ assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'
 assert.equal(contract.claudeProtocolGate.mode, 'warn-first', 'Claude protocol gate should warn first');
 assert.equal(contract.claudeProtocolGate.mainSessionFinalAuthority, true, 'Claude main session must keep final authority');
 assert.equal(contract.claudeProtocolGate.codexSpecCompatibility.requiredSpec, '## CODEX TASK SPEC', 'Claude gate must preserve Codex spec compatibility');
-assert.equal(contract.claudeProtocolGate.nativeFunctionGates.hermes, 'always-on', 'Claude gate should keep Hermes native gate always-on');
 assert.equal(contract.claudeProtocolGate.nativeFunctionGates.argus, 'always-on', 'Claude gate should keep Argus native gate always-on');
 assert.equal(contract.claudeProtocolGate.nativeFunctionGates.obliteratus, 'conditional-high-risk', 'Claude gate should make Obliteratus conditional');
 // OpenClaw absorbed into Musubi as Nisaba Sentinel (2026-05-17) — authority updated to native-integrated
@@ -78,7 +77,6 @@ assert.deepEqual(contract.pulseGovernanceSkeleton.phaseOrder, [
   'merge_learn',
 ], 'pulse governance phase spine changed');
 assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.argus, 'Argus checkpoint profile missing');
-assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.hermes, 'Hermes checkpoint profile missing');
 assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.obliteratus, 'Obliteratus checkpoint profile missing');
 assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles['openclaw-derived'], 'OpenClaw-derived pattern profile missing');
 
@@ -105,27 +103,27 @@ function autoPlan(prompt) {
 const cases = [
   {
     prompt: 'brain dump to durable orchestration control plane: intake normalize graph plan route execute verify sanitize promote',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'control-plane-orchestration'
   },
   {
     prompt: 'compile a task graph for artifact-driven verification and canonical state promotion',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'control-plane-orchestration'
   },
   {
     prompt: 'run the Yuri sandbox improvement loop as a live test',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'sandbox-improvement'
   },
   {
     prompt: 'complete Yuri OS evidence-first upgrade proving run with source manifest reference registry section manifest md-vs-html and html control surface',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'sandbox-improvement'
   },
   {
     prompt: 'document-native audit proving run for beta-readiness with artifact audit and promotion candidates',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'sandbox-improvement'
   },
   {
@@ -140,12 +138,12 @@ const cases = [
   },
   {
     prompt: 'review this architecture for security risk',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'high-stakes-review'
   },
   {
     prompt: 'update offload protocol for a new CLI harness',
-    lane: 'swarm',
+    lane: 'native',
     scenario: 'protocol-change'
   },
   {
@@ -182,23 +180,19 @@ for (const testCase of cases) {
   assert.equal(plan.scenario, testCase.scenario, `scenario mismatch for "${testCase.prompt}"`);
   assert.equal(plan.entrypoint, './_SYSTEM/Scripts/ai auto', `entrypoint mismatch for "${testCase.prompt}"`);
   assert.equal(plan.qualityGate, 'main-session', `quality gate mismatch for "${testCase.prompt}"`);
-  assert.ok(plan.dispatch === 'single-lane' || plan.dispatch === 'parallel-fan-out', `dispatch missing for "${testCase.prompt}"`);
+  assert.ok(plan.dispatch === 'single-lane' || plan.dispatch === 'native-orchestration', `dispatch missing for "${testCase.prompt}"`);
   assert.equal(plan.deepseekAdvisory.localTruthRequired, true, `local truth boundary missing for "${testCase.prompt}"`);
   assert.equal(plan.deepseekAdvisory.codexFinalAuthority, true, `Codex authority missing for "${testCase.prompt}"`);
   assert.equal(plan.claudeAdvisory.localTruthRequired, true, `Claude local truth boundary missing for "${testCase.prompt}"`);
   assert.equal(plan.claudeAdvisory.codexFinalAuthority, true, `Claude Codex authority missing for "${testCase.prompt}"`);
   assert.equal(plan.nativeFunctionGates.argus.decision, 'always-on', `Argus native gate missing for "${testCase.prompt}"`);
   assert.equal(plan.nativeFunctionGates.argus.runtime, 'native_function', `Argus should be native for "${testCase.prompt}"`);
-  assert.equal(plan.nativeFunctionGates.hermes.decision, 'always-on', `Hermes native gate missing for "${testCase.prompt}"`);
-  assert.equal(plan.nativeFunctionGates.hermes.runtime, 'native_function', `Hermes should be native for "${testCase.prompt}"`);
   assert.equal(plan.pulseGovernanceSkeleton.id, 'pulse-governance-skeleton', `pulse governance skeleton missing for "${testCase.prompt}"`);
   assert.equal(plan.pulseGovernanceSkeleton.authority.entryBranch, 'main', `pulse intake should start on main for "${testCase.prompt}"`);
   assert.equal(plan.pulseGovernanceSkeleton.authority.exitBranch, 'main', `pulse output should return to main for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('argus'), `Argus profile should be active for "${testCase.prompt}"`);
-  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('hermes'), `Hermes profile should be active for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), `OpenClaw-derived profile should be available for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.verify_local_truth.some((checkpoint) => checkpoint.profile === 'argus'), `verify phase should include Argus checkpoint for "${testCase.prompt}"`);
-  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'hermes'), `merge phase should include Hermes checkpoint for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.intake_classify.some((checkpoint) => checkpoint.profile === 'openclaw-derived'), `intake phase should include OpenClaw-derived manifest pattern for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.lifecycle) && plan.lifecycle.length >= 5, `lifecycle missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.learningCapture) && plan.learningCapture.includes('next_rule_candidate'), `learning capture missing for "${testCase.prompt}"`);
@@ -226,15 +220,14 @@ assert.ok(councilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliterat
 assert.ok(councilPlan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'obliteratus' && checkpoint.action === 'durable_promotion_gate'), 'high-stakes plan should include Obliteratus durable promotion checkpoint');
 const claudeUltraPlan = routePlan('claude ultra deep hardening protocol promotion OpenClaw symbioticPulse routing');
 assert.equal(claudeUltraPlan.scenario, 'protocol-change', 'Claude ultra hardening should classify as protocol-change');
-assert.equal(claudeUltraPlan.lane, 'swarm', 'Claude ultra hardening should route to swarm');
-assert.equal(claudeUltraPlan.deepseekAdvisory.decision, 'use-swarm', 'Claude ultra hardening should use DeepSeek swarm advisory');
-assert.deepEqual(claudeUltraPlan.deepseekAdvisory.models, ['deepseek-v4-pro', 'deepseek-v4-flash'], 'Claude ultra hardening should use DeepSeek Pro/Flash advisory');
+assert.equal(claudeUltraPlan.lane, 'native', 'Claude ultra hardening should route to native main-session orchestration');
+assert.equal(claudeUltraPlan.deepseekAdvisory.decision, 'use-native', 'Claude ultra hardening should use the native single-advisory decision');
+assert.deepEqual(claudeUltraPlan.deepseekAdvisory.models, ['deepseek-v4-pro'], 'native advisory must be a single sequential DeepSeek-pro call (no parallel pair)');
 assert.equal(claudeUltraPlan.nativeFunctionGates.argus.decision, 'always-on', 'Claude ultra hardening should keep Argus always-on');
-assert.equal(claudeUltraPlan.nativeFunctionGates.hermes.decision, 'always-on', 'Claude ultra hardening should keep Hermes always-on');
 assert.equal(claudeUltraPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Claude ultra hardening should activate Obliteratus');
 assert.ok(claudeUltraPlan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), 'Claude ultra hardening should expose OpenClaw-derived profile');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
-assert.equal(sandboxCouncilPlan.lane, 'swarm', 'sandbox proving runs should not auto-route to Spark without explicit request');
+assert.equal(sandboxCouncilPlan.lane, 'native', 'sandbox proving runs should not auto-route to Spark without explicit request');
 assert.equal(sandboxCouncilPlan.codexDispatch.model, 'gpt-5.5', 'non-explicit sandbox work should stay on primary Codex');
 assert.equal(sandboxCouncilPlan.codexDispatch.reasoning, 'xhigh', 'non-explicit sandbox work should use high-power Codex reasoning');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
@@ -267,8 +260,8 @@ const advisoryCases = [
   },
   {
     prompt: 'review architecture of DeepSeek and Codex collaboration for quality risk',
-    decision: 'use-swarm',
-    models: ['deepseek-v4-pro', 'deepseek-v4-flash']
+    decision: 'use-native',
+    models: ['deepseek-v4-pro']
   },
   {
     prompt: 'diagnose ambiguous bug in parser',
@@ -295,13 +288,13 @@ assert.ok(examples.some((scenario) => scenario.id === 'protocol-change'), 'proto
 assert.ok(examples.some((scenario) => scenario.id === 'high-stakes-review'), 'high-stakes-review example missing');
 const controlPlaneScenario = examples.find((scenario) => scenario.id === 'control-plane-orchestration');
 assert.ok(controlPlaneScenario, 'control-plane-orchestration example missing');
-assert.equal(controlPlaneScenario.defaultLane, 'swarm', 'control-plane-orchestration should route to swarm');
+assert.equal(controlPlaneScenario.defaultLane, 'native', 'control-plane-orchestration should route to native main-session orchestration');
 assert.ok(controlPlaneScenario.lifecycle.some((step) => /Graph plan/i.test(step)), 'control-plane lifecycle should include graph plan');
 assert.ok(controlPlaneScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'control-plane lifecycle should include sanitize');
 assert.ok(controlPlaneScenario.lifecycle.some((step) => /Promote/i.test(step)), 'control-plane lifecycle should include promote');
 const sandboxScenario = examples.find((scenario) => scenario.id === 'sandbox-improvement');
 assert.ok(sandboxScenario, 'sandbox-improvement example missing');
-assert.equal(sandboxScenario.defaultLane, 'swarm', 'sandbox-improvement should route to swarm unless Spark is explicit');
+assert.equal(sandboxScenario.defaultLane, 'native', 'sandbox-improvement should route to native unless Spark is explicit');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Self-probe/i.test(step)), 'sandbox lifecycle should include self-probe');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'sandbox lifecycle should include sanitize');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Promote-check/i.test(step)), 'sandbox lifecycle should include promote-check');
@@ -311,9 +304,6 @@ assert.equal(crossDomainScenario.defaultLane, 'summarize-local', 'cross-domain l
 assert.ok(crossDomainScenario.lifecycle.some((step) => /Bridge/i.test(step)), 'cross-domain lifecycle should include bridge');
 assert.ok(crossDomainScenario.lifecycle.some((step) => /Consolidate/i.test(step)), 'cross-domain lifecycle should include consolidate');
 assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
-
-const swarmDefault = runContract(['swarm-default']);
-assert.equal(swarmDefault, 'deepseek-v4-pro,deepseek-v4-flash', 'shared swarm default changed unexpectedly');
 
 const deepseekReasoningRoute = JSON.parse(execFileSync(
   process.execPath,

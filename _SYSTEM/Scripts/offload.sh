@@ -47,7 +47,7 @@ if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
 fi
 
 # YURI Task Offloader (Enhanced)
-# Automatically assesses context or allows manual model/swarm selection.
+# Automatically assesses context or allows manual model selection.
 
 set -euo pipefail
 
@@ -55,8 +55,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
 OFFLOAD_QUEUE="$SCRIPT_DIR/offload-queue.mjs"
 OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
-AUTH_HOOK="$SCRIPT_DIR/auth.mjs"
-BACKEND_URL="http://127.0.0.1:3004"
 # Ollama paths removed — lane deprecated
 
 usage() {
@@ -74,8 +72,6 @@ Options:
   --session <name>       Use a named persistent lane session
   --fresh                Rotate the named lane session before this call
   --write-scope <paths>  Colon-delimited write allowlist for DeepSeek write_file
-  -s, --swarm <id,id,..|default>
-                         Run task via multiple models (cloud parallel, local serialized)
   -d, --dry-run, --route-only
                          Print routing decision without executing
   -h, --help             Show this help
@@ -156,15 +152,11 @@ list_models() {
   printf '  [%-30s] %s\n' "gpt-5.3-codex" "Alias for codex-spark"
 
   echo
-  echo "Browser control lane:"
-  printf '  [%-30s] %s\n' "comet" "browser-control adapter via _SYSTEM/Scripts/comet-adapter.mjs"
-
-  echo
 }
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -173,7 +165,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle)
       return 0
       ;;
   esac
@@ -185,18 +177,6 @@ is_direct_lane_token() {
   esac
 
   return 1
-}
-
-resolve_swarm_models() {
-  local swarm_models="${1:-}"
-
-  if [[ -z "$swarm_models" || "$swarm_models" == "default" ]]; then
-    require_cmd node
-    node "$OFFLOAD_CONTRACT" swarm-default
-    return
-  fi
-
-  printf '%s\n' "$swarm_models"
 }
 
 run_offload_runner() {
@@ -309,20 +289,6 @@ apply_deepseek_normalization() {
   fi
 }
 
-build_route_payload() {
-  local prompt="$1"
-  local intent="${2:-}"
-  node -e 'const prompt = process.argv[1] ?? ""; const intent = process.argv[2] ?? ""; const payload = { prompt }; if (intent) payload.intent = intent; process.stdout.write(JSON.stringify(payload));' "$prompt" "$intent"
-}
-
-load_route_auth_headers() {
-  ROUTE_AUTH_HEADERS=()
-  if [[ -f "$AUTH_HOOK" ]]; then
-    while IFS= read -r auth_arg; do
-      ROUTE_AUTH_HEADERS+=("$auth_arg")
-    done < <(node "$AUTH_HOOK" curl-headers "$BACKEND_URL" 2>/dev/null || true)
-  fi
-}
 
 dry_run_model_override() {
   local target_model="$1"
@@ -410,22 +376,9 @@ dry_run_model_override() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         run_offload_runner gpt-oss "$prompt" --dry-run
         ;;
-      swarm)
-        local swarm_models
-        swarm_models="$(resolve_swarm_models default)"
-        route_log "$(printf '⬡ DRY_RUN_SWARM :: models=[%s]' "$swarm_models")"
-        IFS=',' read -ra ADDR <<< "$swarm_models"
-        for m in "${ADDR[@]}"; do
-          route_log "$(printf '  [%s] %s' "$(classify_lane "$m")" "$m")"
-        done
-        ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
-        ;;
-      comet)
-        printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs" --dry-run
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
         # DeepSeek dispatch: do not force CLI tool flags. Tool/skill intent belongs
@@ -492,10 +445,6 @@ dispatch_model() {
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.OFFLOAD_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
-        ;;
-      comet)
-        printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs"
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
@@ -567,10 +516,6 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK [gpt-5.3-codex-spark, read-only]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags}
         ;;
-      swarm)
-        printf '%s\n' "⬡ ROUTING_TO_SWARM..." >&2
-        exec bash "$0" -s default "$prompt"
-        ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_MINI [gpt-5.4-mini, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
@@ -627,7 +572,6 @@ route_log() {
 
 # Parse options
 MODEL_OVERRIDE=""
-SWARM_MODELS=""
 DRY_RUN=0
 ROUTE_INTENT="${OFFLOAD_INTENT:-}"
 REASONING_DEPTH=""
@@ -645,10 +589,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -m|--model)
       MODEL_OVERRIDE="$2"
-      shift 2
-      ;;
-    -s|--swarm)
-      SWARM_MODELS="$2"
       shift 2
       ;;
     --intent)
@@ -710,37 +650,24 @@ fi
 
 # ── Dry-run gate ────────────────────────────────────────────
 if [[ "$DRY_RUN" -eq 1 ]]; then
-  if [[ -n "$SWARM_MODELS" ]]; then
-    SWARM_MODELS="$(resolve_swarm_models "$SWARM_MODELS")"
-    route_log "$(printf '⬡ DRY_RUN_SWARM :: models=[%s]' "$SWARM_MODELS")"
-    IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
-    for m in "${ADDR[@]}"; do
-      route_log "$(printf '  [%s] %s' "$(classify_lane "$m")" "$m")"
-    done
-    exit 0
-  fi
   if [[ -n "$MODEL_OVERRIDE" ]]; then
     dry_run_model_override "$MODEL_OVERRIDE" "$PROMPT"
     exit 0
   fi
-  load_route_auth_headers
-  DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
-    -H "Content-Type: application/json" \
-    "${ROUTE_AUTH_HEADERS[@]}" \
-    -d "$(build_route_payload "$PROMPT" "$ROUTE_INTENT")" \
-    "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
+  # Backend command center (NUDIMMUD-era, pre-ICM) retired 2026-05-29 — route locally only.
+  DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
   if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
     FALLBACK_MODEL="deepseek-v4-flash"
-    case "${ROUTE_INTENT,,}" in
+    case "$(printf '%s' "$ROUTE_INTENT" | tr 'A-Z' 'a-z')" in
       architecture_review|audit_security|strategy|review|code_edit_large)
         FALLBACK_MODEL="deepseek-v4-pro"
         ;;
     esac
-    if [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]]; then
+    if [[ "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "high" || "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "xhigh" ]]; then
       FALLBACK_MODEL="deepseek-v4-pro"
     fi
-    route_log "$(printf '⬡ DRY_RUN :: backend unreachable, would fall back to %s' "$FALLBACK_MODEL")"
+    route_log "$(printf '⬡ DRY_RUN :: local routing → %s' "$FALLBACK_MODEL")"
   else
     RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
     INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
@@ -754,26 +681,6 @@ if [[ -z "$PROMPT" ]]; then
   exit 1
 fi
 
-# ── Swarm execution (cloud parallel, local serialized) ─────
-if [[ -n "$SWARM_MODELS" ]]; then
-    SWARM_MODELS="$(resolve_swarm_models "$SWARM_MODELS")"
-    route_log "⬡ INITIATING_MANUAL_SWARM :: models=[$SWARM_MODELS]"
-    IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
-    cloud_pids=()
-    for m in "${ADDR[@]}"; do
-        if [[ "$(classify_lane "$m")" == "cloud" ]]; then
-            ( OFFLOAD_OPTIONAL=1 dispatch_model "$m" "$PROMPT" ) &
-            cloud_pids+=($!)
-        else
-            OFFLOAD_OPTIONAL=1 dispatch_model "$m" "$PROMPT"
-        fi
-    done
-    for pid in "${cloud_pids[@]}"; do
-        wait "$pid" || true
-    done
-    exit 0
-fi
-
 if [[ -n "$MODEL_OVERRIDE" ]]; then
         apply_deepseek_normalization MODEL_OVERRIDE
         printf '%s\n' "⬡ MANUAL_OVERRIDE :: model=$MODEL_OVERRIDE${REASONING_DEPTH:+ reasoning=$REASONING_DEPTH}" >&2
@@ -781,13 +688,8 @@ if [[ -n "$MODEL_OVERRIDE" ]]; then
         exit 0
 fi
 
-# ── Auto routing: try backend, fall back to local default ──
-load_route_auth_headers
-DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
-  -H "Content-Type: application/json" \
-  "${ROUTE_AUTH_HEADERS[@]}" \
-  -d "$(build_route_payload "$PROMPT" "$ROUTE_INTENT")" \
-  "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
+# ── Auto routing: local-only (backend command center retired 2026-05-29, pre-ICM legacy) ──
+DECISION=""
 
 MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
 RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
@@ -795,19 +697,18 @@ INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
 
 if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   FALLBACK_MODEL="deepseek-v4-flash"
-  case "${ROUTE_INTENT,,}" in
+  case "$(printf '%s' "$ROUTE_INTENT" | tr 'A-Z' 'a-z')" in
     architecture_review|audit_security|strategy|review|code_edit_large)
       FALLBACK_MODEL="deepseek-v4-pro"
       ;;
   esac
-  if [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]]; then
+  if [[ "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "high" || "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "xhigh" ]]; then
     FALLBACK_MODEL="deepseek-v4-pro"
   fi
-  echo "⬡ BACKEND_UNREACHABLE — using direct DeepSeek fallback ($FALLBACK_MODEL)." >&2
+  echo "⬡ LOCAL_ROUTING — using direct DeepSeek lane ($FALLBACK_MODEL)." >&2
   echo "  Manual fallback options:" >&2
   echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
   echo "    offload --model codex-spark \"<prompt>\"          # bounded Codex Spark lane" >&2
-  echo "    offload --swarm deepseek-v4-flash,deepseek-v4-pro \"<prompt>\"   # swarm" >&2
   echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
   echo "    ai @deepseek-v4-flash \"<prompt>\"                 # DeepSeek cloud flash" >&2
@@ -823,7 +724,7 @@ if ! dispatch_model "$MODEL" "$PROMPT"; then
   FAIL_EXIT=$?
   if [[ "$MODEL" != "deepseek-v4-flash" && "$MODEL" != "deepseek-v4-pro" && "$MODEL" != "deepseek" ]]; then
     AUTO_FALLBACK="deepseek-v4-flash"
-    [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]] && AUTO_FALLBACK="deepseek-v4-pro"
+    [[ "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "high" || "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "xhigh" ]] && AUTO_FALLBACK="deepseek-v4-pro"
     printf '%s\n' "⬡ LANE_FAILURE [model=$MODEL exit=$FAIL_EXIT] — auto-fallback to $AUTO_FALLBACK" >&2
     dispatch_model "$AUTO_FALLBACK" "$PROMPT"
   else

@@ -10,7 +10,7 @@ const SESSIONS_DIR = path.join(os.homedir(), '.claude', 'memory-sessions');
 
 const MEMORY_PATTERNS = [
   /\/\.claude\/projects\/[^/]+\/memory\/[^/]+\.md$/,
-  /\/\.claude\/nisaba\/learning\/[^/]+\.md$/,
+  /\/\.claude\/yuri-sentinel\/learning\/[^/]+\.md$/,
 ];
 
 // Walk the process tree: Claude → sh → node(hook). Return Claude's stable PID.

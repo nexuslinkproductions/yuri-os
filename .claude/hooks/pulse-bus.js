@@ -61,8 +61,7 @@ function createEmpty() {
     throttle: {
       DEEPSEEK:  { last_emit: 0 },
       OPENCLAW:  { last_emit: 0 },
-      HERMES_FC: { last_emit: 0 },
-      CASSANDRA: { last_emit: 0 },
+      YURI_RISK: { last_emit: 0 },
       SWARM:     { last_emit: 0 },
     },
     last_updated: new Date().toISOString(),
@@ -149,7 +148,7 @@ function detectDisagreement(turnEntries) {
   // we tag advisor_disagreement so main thread asks user to weight voices.
   const ranks = { INFO: 1, WARN: 2, HIGH: 3, CRITICAL: 4 };
   const advisors = turnEntries.filter(e =>
-    ['DEEPSEEK', 'OPENCLAW', 'HERMES_FC', 'CASSANDRA'].includes(e.source)
+    ['DEEPSEEK', 'OPENCLAW', 'YURI_RISK'].includes(e.source)
   );
   if (advisors.length < 2) return false;
   const sevs = advisors.map(e => ranks[e.severity] || 0);

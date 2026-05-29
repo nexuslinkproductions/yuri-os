@@ -40,9 +40,9 @@ function scanDeadHooks() {
   for (const file of hookFiles) {
     // Skip shared modules, utility scripts, and on-demand runners (intentionally not in settings.json)
     const INTENTIONAL_NON_HOOKS = [
-      'scout-bus.js', 'scout-runner.js', 'pulse-bus.js', 'cassandra-lite.js',
+      'scout-bus.js', 'scout-runner.js', 'pulse-bus.js', 'yuri-risk-lite.js',
       'browser-lane.js',      // browser routing utility module
-      'nisaba-dream.js',      // dream processor — called by EOT, not a hook
+      'yuri-dream.js',        // dream processor — called by EOT, not a hook
       'session-reflect.js',   // /reflect command runner — not a hook
       'token-budget-check.js',// on-demand token check utility
     ];
@@ -129,7 +129,7 @@ function scanContractVsLaneHealth() {
   const aliases = aliasMatches.map(m => m.replace(/alias:\s*'/, '').replace(/'/, ''));
   for (const alias of aliases) {
     const laneKey = alias.replace('@', '');
-    if (!['gpt-5.5', 'gpt-5.4-mini', 'gpt-5.3-codex-spark', 'swarm', 'comet'].includes(laneKey)) {
+    if (!['gpt-5.5', 'gpt-5.4-mini', 'gpt-5.3-codex-spark', 'native'].includes(laneKey)) {
       if (!laneHealthText.includes(laneKey)) {
         flaws.push({
           id: `CONTRACT_DRIFT_${laneKey.toUpperCase().replace(/-/g, '_')}`,
