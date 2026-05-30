@@ -49,6 +49,9 @@ const ALLOWED_STRING_PATHS = new Set([
   'timestamp',
   'runId',
   'lane',
+  'user',     // stable per-user handle (gate-safe attribution) — see user-data-methodology.md §1 P4
+  'regime',   // 'observability' | 'action' — synthetic baseline vs real-ΔU, kept separable
+  'event',    // canonical Object+Action event name — see user-data-methodology.md §2
   'decision',
   'dominantTerm',
 ]);
@@ -241,6 +244,8 @@ function summarizeState(state) {
 export function buildTraceRecord({
   lane,
   runId,
+  user,
+  regime = 'observability',
   stateBefore,
   stateAfter,
   computeUResult,
@@ -259,10 +264,21 @@ export function buildTraceRecord({
   const accept = gateProposalResult?.result?.accept ?? false;
   const dominantTerm = gateProposalResult?.result?.dominantTerm ?? null;
 
+  // Regime keeps the synthetic baseline (observability) and real-ΔU runs
+  // (action) in separate columns — see user-data-methodology.md §5.
+  const regimeTag = regime === 'action' ? 'action' : 'observability';
+  // Canonical Object+Action event name, derived from regime + decision (§2).
+  const event = regimeTag === 'action'
+    ? (accept ? 'Proposal Accepted' : 'Proposal Rejected')
+    : 'Dispatch Recorded';
+
   return {
     timestamp: new Date().toISOString(),
     runId: String(runId ?? ''),
     lane: String(lane ?? ''),
+    user: String(user ?? ''),
+    regime: regimeTag,
+    event,
     stateBefore_summary: summarizeState(stateBefore),
     stateAfter_summary: summarizeState(stateAfter),
     U_before: uBefore,
@@ -318,6 +334,8 @@ export function appendTrace(record, options = {}) {
 export function traceGateEvaluation({
   lane,
   runId,
+  user,
+  regime = 'observability',
   stateBefore,
   stateAfter,
   weights = DEFAULT_WEIGHTS,
@@ -338,6 +356,8 @@ export function traceGateEvaluation({
   const record = buildTraceRecord({
     lane,
     runId,
+    user,
+    regime,
     stateBefore,
     stateAfter,
     computeUResult,

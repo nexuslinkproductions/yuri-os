@@ -376,3 +376,86 @@ test('_resetWarnOnce is a no-op without YURI_ENERGY_TEST flag (production guard)
     else process.env.YURI_ENERGY_TEST = saved;
   }
 });
+
+// ---------------------------------------------------------------------------
+// Phase 2 — user attribution + regime + canonical event taxonomy
+// ---------------------------------------------------------------------------
+
+function withActionMode(value, fn) {
+  const saved = process.env.YURI_ENERGY_ACTION_MODE;
+  if (value === undefined) delete process.env.YURI_ENERGY_ACTION_MODE;
+  else process.env.YURI_ENERGY_ACTION_MODE = value;
+  try { return fn(); } finally {
+    if (saved === undefined) delete process.env.YURI_ENERGY_ACTION_MODE;
+    else process.env.YURI_ENERGY_ACTION_MODE = saved;
+  }
+}
+function withUserEnv(value, fn) {
+  const saved = process.env.YURI_USER;
+  if (value === undefined) delete process.env.YURI_USER;
+  else process.env.YURI_USER = value;
+  try { return fn(); } finally {
+    if (saved === undefined) delete process.env.YURI_USER;
+    else process.env.YURI_USER = saved;
+  }
+}
+function readLastRecord(tmpDir) {
+  const date = new Date().toISOString().slice(0, 10);
+  const line = fs.readFileSync(path.join(tmpDir, 'energy-trace', `${date}.jsonl`), 'utf8').trim().split('\n').pop();
+  return JSON.parse(line);
+}
+
+test('traceDispatchEvent stamps the resolved user handle from YURI_USER', () => {
+  const tmpDir = makeTmpDir();
+  withObservability('1', () => withStateDir(tmpDir, () => withUserEnv('Mike', () => {
+    traceDispatchEvent({ lane: 'shintai', runId: 'user-env' });
+  })));
+  assert.equal(readLastRecord(tmpDir).user, 'mike');
+});
+
+test('explicit args.user overrides the env-resolved handle', () => {
+  const tmpDir = makeTmpDir();
+  withObservability('1', () => withStateDir(tmpDir, () => withUserEnv('Mike', () => {
+    traceDispatchEvent({ lane: 'offload', runId: 'user-explicit', user: 'marcel' });
+  })));
+  assert.equal(readLastRecord(tmpDir).user, 'marcel');
+});
+
+test('default (no action mode) → regime=observability, event=Dispatch Recorded, ΔU=0', () => {
+  const tmpDir = makeTmpDir();
+  withObservability('1', () => withStateDir(tmpDir, () => withActionMode(undefined, () => {
+    traceDispatchEvent({ lane: 'shintai', runId: 'obs-regime', numericContext: { verifiedEvidenceCount: 5 } });
+  })));
+  const r = readLastRecord(tmpDir);
+  assert.equal(r.regime, 'observability');
+  assert.equal(r.event, 'Dispatch Recorded');
+  assert.equal(r.deltaU, 0);
+});
+
+test('action mode → regime=action, distinct before/after counts yield real (non-zero) ΔU', () => {
+  const tmpDir = makeTmpDir();
+  withObservability('1', () => withStateDir(tmpDir, () => withActionMode('1', () => {
+    // more verified evidence after than before → verified credit lowers U → ΔU < 0
+    traceDispatchEvent({
+      lane: 'shintai', runId: 'action-delta',
+      numericContext: { verifiedEvidenceCountBefore: 1, verifiedEvidenceCountAfter: 8 },
+    });
+  })));
+  const r = readLastRecord(tmpDir);
+  assert.equal(r.regime, 'action');
+  assert.notEqual(r.deltaU, 0, 'distinct before/after must produce a real non-zero ΔU');
+  assert.ok(['Proposal Accepted', 'Proposal Rejected'].includes(r.event));
+});
+
+test('action-mode record carrying user/regime/event still passes the Privacy Gate', () => {
+  const tmpDir = makeTmpDir();
+  withObservability('1', () => withStateDir(tmpDir, () => withActionMode('1', () => withUserEnv('mike', () => {
+    traceDispatchEvent({ lane: 'codex-final-pass', runId: 'gate-newfields', numericContext: { verifiedEvidenceCountBefore: 0, verifiedEvidenceCountAfter: 3 } });
+  }))));
+  assert.doesNotThrow(() => validateRecord(readLastRecord(tmpDir)));
+});
+
+test('a user handle never leaks into a forbidden nested path (Privacy Gate negative)', () => {
+  // sanity: the record carries user only at root; nested user strings are refused
+  assert.throws(() => validateRecord({ stateAfter_summary: { user: 'mike' } }), /Privacy Gate/);
+});

@@ -24,6 +24,7 @@
  */
 
 import { traceGateEvaluation } from './yuri-energy-trace.mjs';
+import { currentUserHandle } from '../yuri-user.mjs';
 
 // ---------------------------------------------------------------------------
 // Per-process one-time warning sentinel
@@ -72,6 +73,16 @@ export function isObservabilityEnabled() {
   return process.env.YURI_ENERGY_OBSERVABILITY === '1';
 }
 
+/**
+ * Returns true only when YURI_ENERGY_ACTION_MODE is exactly '1'. Action mode
+ * builds a DISTINCT before/after state pair (real ΔU) instead of the identical
+ * synthetic pair. Records are tagged regime='action' so the real-traffic data
+ * stays separable from the synthetic baseline. See user-data-methodology.md §5.
+ */
+export function isActionModeEnabled() {
+  return process.env.YURI_ENERGY_ACTION_MODE === '1';
+}
+
 // ---------------------------------------------------------------------------
 // Privacy Gate — strip non-numeric values from caller-supplied context
 // ---------------------------------------------------------------------------
@@ -107,6 +118,24 @@ function buildDispatchState(ctx) {
   return state;
 }
 
+/**
+ * Build a DISTINCT before/after state pair for real-ΔU action mode from the
+ * sanitized numeric context. Surfaces pass `*Before`/`*After` counts; a genuine
+ * difference yields a non-zero ΔU. Absent fields fall back to 0 (→ ΔU 0 for that
+ * surface, honestly tagged 'action' but with no measured delta yet).
+ */
+function buildActionStates(ctx) {
+  const before = buildDispatchState({
+    verifiedEvidenceCount: ctx.verifiedEvidenceCountBefore ?? 0,
+    evidence_count: ctx.evidenceCountBefore ?? 0,
+  });
+  const after = buildDispatchState({
+    verifiedEvidenceCount: ctx.verifiedEvidenceCountAfter ?? 0,
+    evidence_count: ctx.evidenceCountAfter ?? 0,
+  });
+  return { before, after };
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -133,16 +162,31 @@ export function traceDispatchEvent(args) {
   try {
     if (!isObservabilityEnabled()) return;
 
-    const { lane, runId, numericContext } =
+    const { lane, runId, numericContext, user } =
       (args && typeof args === 'object') ? args : {};
     const ctx = sanitizeNumericContext(numericContext ?? {});
-    // Identical before/after guarantees ΔU = 0 — honest for A.2.a.
-    const stateBefore = buildDispatchState(ctx);
-    const stateAfter  = buildDispatchState(ctx);
+    // Explicit args.user overrides the resolved handle (e.g. tests / forced lane).
+    const resolvedUser = (typeof user === 'string' && user) ? user : currentUserHandle();
+
+    let stateBefore;
+    let stateAfter;
+    let regime;
+    if (isActionModeEnabled()) {
+      // Real ΔU: distinct before/after from surface-supplied *Before/*After counts.
+      ({ before: stateBefore, after: stateAfter } = buildActionStates(ctx));
+      regime = 'action';
+    } else {
+      // Identical before/after guarantees ΔU = 0 — synthetic baseline (A.2.a).
+      stateBefore = buildDispatchState(ctx);
+      stateAfter = buildDispatchState(ctx);
+      regime = 'observability';
+    }
 
     traceGateEvaluation({
       lane:  String(lane  ?? ''),
       runId: String(runId ?? ''),
+      user:  String(resolvedUser ?? ''),
+      regime,
       stateBefore,
       stateAfter,
     });
