@@ -4,25 +4,29 @@ Section 2 closed on a precise open question: whether a scalar potential function
 
 The mechanism requires no modification to the underlying models it governs, and that fact marks the critical level shift. In the energy-based-models literature, scalar potentials are applied at the neural-network weight layer — they shape how a model's parameters move during training. This proposal is not that. It operates at the control-plane layer: the orchestration meta-level that governs which ICM stage executes, which claim advances, which agent dispatches. A practitioner implementing this mechanism works with the control plane they already own. No access to model internals is required, and no training loop is involved.
 
-The composition rule defines U as a weighted sum of six measurement primitives:
+The composition rule defines U as a weighted sum of measurement primitives in three groups: six *epistemic/calibration* primitives, three *control-plane integrity* terms, and — after the 2026-05-30 hardening — one per-event repeated-failure penalty. The full composition the reference implementation evaluates is:
 
 ```
 ΔU = U(s′) − U(s), where
-U(s) = α · entropy(claim_distribution)
-     + β · KL_divergence(claimed, verified)
-     + γ · log_loss(predictions, outcomes)
-     + δ · Brier_score(forecasts, results)
-     − ε · information_gain(prior, current)
-     + ζ · confidence_decay(stale_evidence)
+U(s) = α · entropy(claim_distribution)          // epistemic uncertainty
+     + β · KL_divergence(claimed, verified)      // claim-to-evidence drift (clamped: finite)
+     + γ · log_loss(predictions, outcomes)       // calibration penalty
+     + δ · Brier_score(forecasts, results)       // forecast accuracy penalty
+     − ε · information_gain(prior, current)       // genuine progress lowers U
+     + ζ · confidence_decay(stale_evidence)       // staleness pressure
+     + η · protected_path_violations              // catastrophic — hard non-offsettable veto
+     + θ · promotion_ladder_inversions            // integrity violation
+     − ι · log1p(min(verified_evidence, cap))     // SATURATING evidence credit (bounds U below)
+     + κ · confidently_wrong_count                // per-event repeated-failure penalty
 ```
 
-Entropy, KL divergence, log loss, and Brier score each rise with incoherence, claim-to-evidence mismatch, and predictive error: their positive weights push U upward when the system's epistemic state deteriorates.
+The first six (α through ζ) are the epistemic core: entropy, KL divergence, log loss, and Brier score each rise with incoherence, claim-to-evidence mismatch, and predictive error; information gain carries a negative weight so genuine progress lowers U; confidence decay applies upward pressure when the system advances on unrefreshed claims.
 
-The information gain term carries a negative weight — genuine epistemic progress decreases U. Confidence decay rises with evidence staleness, applying upward pressure when the system advances on unrefreshed claims. Weights α through ζ are operator-configured parameters encoding domain priorities, not mathematical axioms. Reasonable defaults exist. The mechanism does not require exhaustive tuning to become useful.
+The next three are control-plane integrity terms the orchestrator owns directly: `protected_path_violations` (η) and `promotion_ladder_inversions` (θ) carry high penalty weight, and `verified_evidence` supplies a negative, *saturating* credit (ι) that rewards epistemic progress without buying unbounded masking budget — the cap is what gives U a finite infimum. The protected-path term is additionally enforced as a **hard, non-offsettable veto** in the gate: no evidence credit, override, or zeroed weight can accept a protected-path increase. The final term, `confidently_wrong_count` (κ), penalizes repeated confidently-wrong forecasts per-event, so the Nth failure keeps raising U rather than averaging away. Weights are operator-configured parameters encoding domain priorities, not mathematical axioms; reasonable defaults exist, and the mechanism does not require exhaustive tuning to become useful.
 
-The gating rule is strict and applies before any transition takes effect: a proposed advancement is accepted only if ΔU ≤ 0. Any promotion, dispatch, or state change that would increase U is rejected at the gate. This is not a retrospective penalty — it is a precondition. Evaluated as a single forward pass over the six primitives, the gate is computationally inexpensive, deterministic, and fully auditable. Every accepted transition carries a proof of non-worsening that an external observer can verify without access to the model that generated the proposal.
+The gating rule is strict: a proposed advancement is accepted only if ΔU ≤ 0 (and never if it raises a protected-path violation, which the veto rejects unconditionally). As a *gate*, this is a precondition, not a retrospective penalty. A deployment honesty note carried forward to §4–§5: the reference implementation currently evaluates this rule as **telemetry** — it observes and scores every transition at PostToolUse and emits an auditable ΔU signal; it is not yet wired as a blocking middleware on the live dispatch path. The gating semantics described here are the gate's evaluated verdict; converting that verdict into enforced rejection is the single-operator integration step named in §5. Evaluated as a single forward pass over the composition, the rule is computationally inexpensive, deterministic, and fully auditable: every scored transition carries a proof of non-worsening (or a named dominant cause of worsening) that an external observer can verify without access to the model that generated the proposal.
 
-The Lyapunov basis for this construction is direct. A Lyapunov function over a dynamical system is a scalar quantity that decreases monotonically along valid trajectories — its existence certifies that the system is converging rather than diverging. Applying that reasoning to orchestration state: U is the Lyapunov candidate, ΔU ≤ 0 is the descent criterion, and the gate is the enforcement mechanism. Every accepted step in the system's trajectory is a certified non-worsening move through orchestration state.
+The construction is **Lyapunov-style**, and the term is used with care. A Lyapunov function is a scalar quantity that is *bounded below* and *decreases monotonically* along valid trajectories — its existence certifies convergence rather than divergence. This construction earns the descent half directly (ΔU ≤ 0 is the gating criterion) and, after the 2026-05-30 hardening, the boundedness half: the evidence credit now saturates as `−ι·log1p(min(count, cap))`, giving U a finite infimum instead of the earlier unbounded-linear credit that made the boundedness claim vacuous. What it does **not** claim is a proven Lyapunov *function* in the full control-theoretic sense — there is no formal update map over the meta-state and no global-convergence proof. U is therefore a Lyapunov *candidate* with an enforced descent criterion and a bounded-below potential: an honest position, neither decorative nor overstated. Every accepted step is a certified non-worsening move through orchestration state; that is the guarantee, and it is the whole of it.
 
 A precise limitation requires explicit statement. Strict-descent gating establishes a local Lyapunov property — it guarantees monotonic improvement along accepted transitions; it does not guarantee convergence to a global minimum. Energy surfaces have local minima. An agent system gated on ΔU ≤ 0 may stabilize at a locally coherent configuration that is not the globally optimal one. The trade-off is intentional: local descent is verifiable; global optimality is not. Accepting only provably non-worsening transitions is a tractable, auditable guarantee. Claiming global convergence would be neither tractable nor honest.
 
