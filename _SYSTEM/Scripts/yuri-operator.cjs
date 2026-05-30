@@ -64,7 +64,13 @@ function roleSystemActive() {
 
 function resolveRole() {
   const cred = loadCred();
-  if (!cred) return 'dev';                 // system not initialized -> unrestricted (setup phase)
+  if (!cred) {
+    // FAIL CLOSED ON TAMPER (hardening 2026-05-30, verified attack finding):
+    // a cred file that EXISTS but won't parse/validate is a tamper signature ->
+    // coworker. Only a genuinely ABSENT file (fresh-repo setup) resolves to dev.
+    // Previously any unreadable cred resolved to 'dev' — a one-write self-escalation.
+    return fs.existsSync(CRED_FILE) ? 'coworker' : 'dev';
+  }
   return verifyDevKey(process.env.YURI_DEV_KEY, cred) ? 'dev' : 'coworker';
 }
 
