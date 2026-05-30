@@ -99,6 +99,50 @@ export function shouldGate(transition) {
   return salience(transition) !== TIER.SKIP;
 }
 
+// ---------------------------------------------------------------------------
+// Layer C — depth-gated |ΔU| surprise trigger (owner refinement 2026-05-30).
+//
+// The deep mathematical evaluation (Steps 2+3: formula-bank selectionGuidance
+// picker + stranded equations) should fire ONLY when a work thread is deep
+// enough that determinism matters AND something surprising happened. Below that,
+// Layers A+B (boundary + deterministic tiers) carry the load.
+//
+// Defaults are STANDARDS, not law — tunable via the cockpit/config. See
+// _SYSTEM/docs/icm-mwp-energy-governance-and-firing-policy.md §3.
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_SALIENCE = Object.freeze({
+  depthThreshold: 6,   // meaningful transitions before the surprise tier can engage
+  surpriseK: 2.0,      // |ΔU| must exceed median + K·MAD of the recent band
+  surpriseWindow: 20,  // how many recent |ΔU| samples define the band
+});
+
+function median(xs) {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+// Robust, scale-free spread (median absolute deviation) — no fixed ΔU number.
+function mad(xs, med) {
+  if (!xs.length) return 0;
+  return median(xs.map((x) => Math.abs(x - med)));
+}
+
+/** True iff |ΔU| stands out from the recent band (median + K·MAD). Needs a baseline. */
+export function isSurprise(absDeltaU, recentAbs, cfg = DEFAULT_SALIENCE) {
+  if (!Array.isArray(recentAbs) || recentAbs.length < 3) return false; // no band yet
+  const med = median(recentAbs);
+  const spread = mad(recentAbs, med) || med || 1; // guard a zero-spread (all-equal) band
+  return absDeltaU >= med + cfg.surpriseK * spread;
+}
+
+/** Layer C decision: fire the deep evaluation iff deep enough AND surprising. */
+export function surpriseEngaged({ depth, deltaU, recentAbs, cfg = DEFAULT_SALIENCE } = {}) {
+  if (!Number.isFinite(depth) || depth < cfg.depthThreshold) return false;
+  return isSurprise(Math.abs(Number(deltaU) || 0), recentAbs, cfg);
+}
+
 export function freshState() {
   return {
     verifiedEvidenceCount: 0,
@@ -183,12 +227,16 @@ export function evaluateTransition(prevState, event, nowIso = '') {
  */
 export function tickAndTrace(prevState, event, opts = {}) {
   const nowIso = opts.nowIso || new Date().toISOString();
+  const cfg = opts.salience || DEFAULT_SALIENCE;
   const t = classifyTransition(event);
+  const tier = salience(t);
   // Salience front door: SKIP transitions never reach the math — no trace, no
-  // state change. Keeps the ΔU stream dense and avoids one tick per keystroke.
-  if (salience(t) === TIER.SKIP) return { state: prevState, tier: TIER.SKIP, traced: false };
+  // state/depth change. Keeps the ΔU stream dense, no tick per keystroke.
+  if (tier === TIER.SKIP) {
+    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false };
+  }
   const nextState = applyTransition(prevState, t, nowIso);
-  traceGateEvaluation({
+  const { record } = traceGateEvaluation({
     lane: 'session',
     runId: String(opts.runId || `session-${nowIso}`),
     user: opts.user || currentUserHandle(),
@@ -197,5 +245,12 @@ export function tickAndTrace(prevState, event, opts = {}) {
     stateAfter: toGateState(nextState),
     traceOptions: opts.traceOptions || {},
   });
-  return { state: nextState, tier: salience(t), traced: true };
+  // Layer C: depth-gated |ΔU| surprise. Judge THIS ΔU against the band BEFORE
+  // adding it; then advance depth and roll the band forward.
+  const deltaU = (record && Number.isFinite(record.deltaU)) ? record.deltaU : 0;
+  const priorRecent = Array.isArray(opts.recentAbs) ? opts.recentAbs : [];
+  const depth = (Number.isFinite(opts.depth) ? opts.depth : 0) + 1;
+  const engaged = surpriseEngaged({ depth, deltaU, recentAbs: priorRecent, cfg });
+  const recentAbs = [...priorRecent, Math.abs(deltaU)].slice(-cfg.surpriseWindow);
+  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: engaged };
 }

@@ -21,7 +21,11 @@ import { tickAndTrace, freshState } from '../../_SYSTEM/Scripts/energy-tick-core
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(_HERE, '..', '..');
-const SNAP_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'energy-session');
+// Snapshot dir honors YURI_STATE_DIR (same as the energy-trace dir) so the two
+// session-state stores stay together and tests never touch real state.
+const SNAP_DIR = process.env.YURI_STATE_DIR
+  ? path.join(process.env.YURI_STATE_DIR, 'energy-session')
+  : path.join(REPO_ROOT, '_SYSTEM', 'state', 'energy-session');
 
 function readStdin() {
   try { return fs.readFileSync(0, 'utf8'); } catch { return ''; }
@@ -41,17 +45,27 @@ function run() {
   let snap = null;
   try { snap = JSON.parse(fs.readFileSync(snapPath, 'utf8')); } catch { snap = null; }
   const prevState = (snap && snap.state && typeof snap.state === 'object') ? snap.state : freshState();
-  const seq = (snap && Number.isFinite(snap.seq)) ? snap.seq : 0;
+  const depth = (snap && Number.isFinite(snap.depth)) ? snap.depth : 0;
+  const recentAbs = (snap && Array.isArray(snap.recentAbs)) ? snap.recentAbs : [];
   const nowIso = new Date().toISOString();
 
-  const result = tickAndTrace(prevState, event, { runId: `session-${sessionId}-${seq}`, nowIso });
+  const result = tickAndTrace(prevState, event, {
+    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs,
+  });
 
-  // SKIP transitions don't advance state or write a record — nothing to persist.
+  // SKIP transitions don't advance state/depth or write a record — nothing to persist.
   if (!result.traced) return;
 
   try {
     fs.mkdirSync(SNAP_DIR, { recursive: true });
-    fs.writeFileSync(snapPath, JSON.stringify({ state: result.state, seq: seq + 1, sessionId, updatedAt: nowIso }) + '\n');
+    fs.writeFileSync(snapPath, JSON.stringify({
+      state: result.state,
+      depth: result.depth,
+      recentAbs: result.recentAbs,
+      surpriseEngaged: result.surpriseEngaged,
+      sessionId,
+      updatedAt: nowIso,
+    }) + '\n');
   } catch { /* snapshot write failure must never affect the session */ }
 }
 

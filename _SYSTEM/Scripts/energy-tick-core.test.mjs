@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
   classifyTransition, isProtectedPath, applyTransition, freshState,
   evaluateTransition, salience, shouldGate, tickAndTrace, TIER,
+  DEFAULT_SALIENCE, isSurprise, surpriseEngaged,
 } from './energy-tick-core.mjs';
 
 const editOk = { tool_name: 'Edit', tool_input: { file_path: 'src/app.js' }, tool_response: { is_error: false } };
@@ -134,6 +135,43 @@ test('tickAndTrace WORK transition writes a regime=action, lane=session record',
     assert.equal(rec.regime, 'action');
     assert.equal(rec.user, 'marcel');
     assert.equal(rec.event, 'Proposal Accepted'); // descent → accepted
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+  }
+});
+
+// --- Layer C: depth-gated |ΔU| surprise ---
+
+test('isSurprise needs a baseline band, then flags outliers', () => {
+  assert.equal(isSurprise(10, [1, 1], DEFAULT_SALIENCE), false);       // band too small
+  assert.equal(isSurprise(1, [1, 1, 1, 1], DEFAULT_SALIENCE), false);  // inside the band
+  assert.equal(isSurprise(10, [1, 1, 1, 1], DEFAULT_SALIENCE), true);  // clear outlier
+});
+
+test('surpriseEngaged requires BOTH depth AND surprise (the depth gate)', () => {
+  const band = [1, 1, 1, 1];
+  assert.equal(surpriseEngaged({ depth: 3, deltaU: 10, recentAbs: band }), false); // surprising but shallow
+  assert.equal(surpriseEngaged({ depth: 8, deltaU: 10, recentAbs: band }), true);  // deep + surprising
+  assert.equal(surpriseEngaged({ depth: 8, deltaU: 1, recentAbs: band }), false);  // deep but routine
+});
+
+test('tickAndTrace threads depth + |ΔU| band; surprise stays off while shallow', () => {
+  const prevDir = process.env.YURI_STATE_DIR;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tickC-'));
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    let st = freshState(); let depth = 0; let recentAbs = [];
+    for (let i = 0; i < 3; i++) {
+      const r = tickAndTrace(st, editOk, { nowIso: new Date().toISOString(), user: 'marcel', depth, recentAbs });
+      st = r.state; depth = r.depth; recentAbs = r.recentAbs;
+      assert.equal(r.surpriseEngaged, false, 'shallow depth must never engage surprise');
+    }
+    assert.equal(depth, 3);
+    assert.equal(recentAbs.length, 3);
+    // a SKIP (read) must not advance depth
+    const rs = tickAndTrace(st, { tool_name: 'Read', tool_input: {}, tool_response: {} }, { depth, recentAbs });
+    assert.equal(rs.depth, 3);
+    assert.equal(rs.traced, false);
   } finally {
     if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
   }
