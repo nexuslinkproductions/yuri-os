@@ -107,7 +107,7 @@ for (const file of activePromptFiles) {
 assertIncludes('CLAUDE.md', 'Claude-facing adapter for YURI OS / MUSUBI.');
 assertIncludes('CLAUDE.md', 'It does not make Claude the control-plane owner.');
 assertIncludes('CLAUDE.md', 'one real interactive Claude Code session');
-assertIncludes('CLAUDE.md', 'Codex/main remains the final verifier');
+assertIncludes('CLAUDE.md', 'optional external clarification check');
 assertIncludes('CLAUDE.md', 'Protected Paths');
 assertIncludes('_SYSTEM/CODEX_PROTOCOL.md', 'GitNexus impact check on changed symbols');
 

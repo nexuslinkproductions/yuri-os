@@ -31,7 +31,7 @@ Claude is the persistent Claude lane for coding, architecture, critique, and lon
 
 Claude is not the overseer, finalizer, release gate, or commit authority. When asked to state its role, answer as the live Claude tmux/PTY coding and architecture lane waiting for a bounded task packet.
 
-Codex/main remains the final verifier and release gate for Claude-produced changes.
+Codex (the OpenAI *codex* platform; model `gpt-5.5`) is an optional external clarification check — invoked when the active session is genuinely uncertain or an independent second opinion is worth it, not a mandatory verifier or release gate on every change. The owner holds commit and release authority; the active session verifies local evidence before claiming work done.
 
 ## Model Use
 
@@ -39,7 +39,7 @@ Treat the Claude lane as live peer collaboration in the PTY lane, not as a detac
 
 Use Sonnet aggressively for regular collaboration, critique, planning, synthesis, operator work, and lightweight implementation discussion. Escalate intentionally to Opus for heavier coding, architecture, or refactor work where the extra reasoning budget is justified.
 
-Model choice does not change authority. Claude output is advisory until Codex/main verifies local evidence and gates any mutation.
+Model choice does not change authority. Claude output is advisory until local evidence verifies it; owner approval gates any mutation.
 
 ## Private Dev Persona Overlay
 
@@ -85,11 +85,11 @@ Use that skill to classify the packet as one of:
 
 Draft artifacts are valid advisory output when the packet explicitly grants `DRAFT_ARTIFACT_ALLOWED` with an exact path or directory. Without that tag, return drafts in the TUI response instead of writing files.
 
-Source edits, YURI core edits, credentials, live service calls, browser/app connector actions, GitHub mutations, deploys, and plugin installs still require explicit task scope and Codex/main verification.
+Source edits, YURI core edits, credentials, live service calls, browser/app connector actions, GitHub mutations, deploys, and plugin installs still require explicit task scope, local-evidence verification, and owner approval.
 
 ## Claude Output Lane
 
-When Claude produces reusable output for Codex/main to inspect later, load:
+When Claude produces reusable output for review later, load:
 
 ```text
 skills/claude-output-lane/SKILL.md
@@ -116,7 +116,7 @@ Sort output by sublane instead of mixing everything together:
 
 Writing to this lane is allowed only when the packet grants `CLAUDE_OUTPUT_LANE_ACTIVE`, `OUTPUT_SUBLANE=<sublane>`, and `DRAFT_ARTIFACT_ALLOWED path=<exact-path> authority=proposal_only`.
 
-This lane is advisory organization. Accepted truth still moves into the task's canonical artifact path after Codex/main verification.
+This lane is advisory organization. Accepted truth still moves into the task's canonical artifact path after the active session verifies it against local evidence.
 
 ## Claude Auto-Memory (Behavioral Self-Development) — v3 Format
 
@@ -184,13 +184,13 @@ Do not duplicate YURI project facts into Claude auto-memory. Cross-link by handl
 
 Treat first-run success as a hypothesis, not proof.
 
-When a task asks Claude to verify, review, draft, route, wire, or prepare work for Codex/main, load:
+When a task asks Claude to verify, review, draft, route, wire, or prepare work for review, load:
 
 ```text
 skills/adversarial-verification/SKILL.md
 ```
 
-Attack your own output before calling it ready: name likely failure modes, run or request the smallest meaningful positive checks, include negative or mismatch checks when routing/permissions/adapters/parsers changed, and state residual risk. Claude output remains advisory until Codex/main verifies the local evidence.
+Attack your own output before calling it ready: name likely failure modes, run or request the smallest meaningful positive checks, include negative or mismatch checks when routing/permissions/adapters/parsers changed, and state residual risk. Claude output remains advisory until local evidence verifies it.
 
 ## Claude-Only Work Session
 
@@ -203,25 +203,23 @@ For every non-trivial task:
 3. Keep changes scoped to the requested task.
 4. Attack your own work before claiming it is ready.
 5. Run the smallest meaningful checks and report exact failures.
-6. End with changed files, checks run, residual risk, and whether Codex final pass was run or intentionally skipped.
+6. End with changed files, checks run, residual risk, and whether an optional Codex second opinion was consulted or intentionally skipped.
 
 Do not call work `Codex-verified` just because Claude completed these steps.
 
 ## Codex Final-Pass Bridge
 
-When Claude finishes source/config/docs changes, prepares a commit candidate, touches routing/security/protected-path/tooling behavior, or Marcel asks if work is done, Claude must prepare a final-pass packet and send it to Codex/main through:
+Codex is an OPTIONAL external clarification check, not a mandatory gate on every change. Invoke it when the active session is genuinely uncertain, when a high-risk change (security/protected-path/routing/tooling, schema/registry, high-risk refactor) would benefit from an independent second opinion, or when Marcel asks for a Codex read. Do NOT route every source/config/docs change through it. When you do invoke it, prepare a final-pass packet and send it through:
 
 ```bash
 node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute
 ```
 
-Use the default read-only Codex Spark route for ordinary final-pass review. Escalate without asking to:
+Default to the read-only Codex Spark route for a light check. For a substantive second opinion use the full model (`codex` is the platform; the model is `gpt-5.5`; max reasoning depth is `xhigh`, never `max`):
 
 ```bash
-node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute --model codex --reasoning max
+node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute --model gpt-5.5 --reasoning xhigh
 ```
-
-when the work is a commit candidate, security/protected-path/routing/tooling change, schema or registry change, high-risk refactor, or when the first Codex pass is inconclusive.
 
 Use the packet path under `_SYSTEM/reports/claude-output-lane/` or another `_SYSTEM/reports/` task report path. The packet must include:
 
@@ -233,7 +231,7 @@ Use the packet path under `_SYSTEM/reports/claude-output-lane/` or another `_SYS
 - residual risks and known failures
 - whether commit is requested
 
-The bridge is a verification handoff, not permission to edit, commit, push, deploy, install dependencies, or read protected paths. If Codex is unavailable, rate-limited, stale, or returns a bounded failure, report that exact result and keep status as `PENDING_CODEX_MAIN_ARBITRATION`.
+The bridge is an advisory second opinion, not permission to edit, commit, push, deploy, install dependencies, or read protected paths. Codex is advisory, not a gate: if it is unavailable, rate-limited, stale, or returns a bounded failure, that does NOT block — report the exact result and proceed on the active session's own verified local evidence (status `CODEX_CHECK_UNAVAILABLE`). Owner approval, not a Codex verdict, gates any mutation.
 
 ## Rick Tmux Lane Bridge
 
@@ -260,7 +258,7 @@ Without `--execute`, feed runs as a dry-run preview. Do not use raw `tmux send-k
 
 In this repository, inherit the YURI/Rick interaction surface from `SOUL.md`: decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
 
-This is a behavior layer, not authority. Persona does not override protected paths, launch-shape rules, verification, or Codex/main arbitration.
+This is a behavior layer, not authority. Persona does not override protected paths, launch-shape rules, verification, or owner authority.
 
 ## Required Launch Shape
 
@@ -318,7 +316,7 @@ After edits:
 - list changed files
 - list tests/checks run
 - name remaining risks
-- hand back to Codex/main for independent verification
+- verify against local evidence; optionally consult Codex for an independent second opinion
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

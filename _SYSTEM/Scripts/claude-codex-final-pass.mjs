@@ -11,7 +11,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const RUNNER = path.join(REPO_ROOT, '_SYSTEM/Scripts/codex-offload-runner.mjs');
 const DEFAULT_MODEL = 'codex-spark';
-const DEFAULT_REASONING = 'max';
+// Operator reasoning vocab is `xhigh` (max depth), NEVER `max`. `codex` is the
+// OpenAI *platform*; the model is a gpt-* id (substantive review: gpt-5.5). The
+// runner translates `xhigh` to codex's internal reasoning_effort flag.
+const DEFAULT_REASONING = 'xhigh';
 const MAX_PACKET_CHARS = 120_000;
 
 const PROTECTED_PREFIXES = [
@@ -85,10 +88,12 @@ process.exit(result.status ?? 1);
 export function buildPrompt({ packetRelPath, packetText, task = '', gitStatus = '', gitDiffStat = '' }) {
   return `## CODEX FINAL PASS PACKET
 
-You are Codex/main verifying Claude Code work for YURI-OS-MUSUBI.
+You are an external GPT-5.x reviewer on the OpenAI Codex platform giving the YURI
+active session a second-opinion clarification check. You are NOT the final gate —
+the active session is the finalizer. Your verdict is advisory.
 
 Authority:
-- Verify and arbitrate only.
+- Advisory verification only — clarify; do not arbitrate or gate.
 - Do not edit files.
 - Do not commit or push.
 - Do not deploy or call live services.
@@ -148,6 +153,12 @@ function parseArgs(args) {
     else fail(`Unknown argument: ${arg}`);
   }
   if (!out.packet) usage(1);
+  // Operator-vocab guard: `max` is not an operator reasoning level — the max
+  // depth is `xhigh`. Coerce + warn rather than dispatch the wrong word.
+  if (['max', 'maximum', 'highest'].includes(String(out.reasoning).toLowerCase())) {
+    process.stderr.write(`[final-pass] reasoning "${out.reasoning}" -> "xhigh" (operator vocab; max depth is xhigh).\n`);
+    out.reasoning = 'xhigh';
+  }
   return out;
 }
 
@@ -190,8 +201,10 @@ Options:
   --packet <path>       Required. Final-pass packet under _SYSTEM/reports/.
   --artifact-dir <dir>  Optional output directory for prompt/result artifacts.
   --task <text>         Optional task label.
-  --model <alias>       Codex runner model alias. Default: ${DEFAULT_MODEL}.
-  --reasoning <level>   Codex reasoning level. Default: ${DEFAULT_REASONING}.
+  --model <model>       Model on the OpenAI *codex* platform (codex is the platform,
+                        not a model). Substantive review: gpt-5.5. Default: ${DEFAULT_MODEL}.
+  --reasoning <level>   Operator depth: xhigh (max) | high | medium | low. Never "max".
+                        Default: ${DEFAULT_REASONING}.
   --execute             Call Codex. Omit for dry-run preview.
   --dry-run             Force preview only.
 `;
