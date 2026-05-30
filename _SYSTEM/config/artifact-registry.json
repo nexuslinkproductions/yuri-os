@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-26",
+  "updated": "2026-05-30",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -2174,6 +2174,189 @@
       "storageRule": "The energy-gate dashboard lives in _SYSTEM/reports/energy-landscape-paper-2026-07/.",
       "rebuildRule": "Regenerate the embedded DATA via the dashboard data-aggregator (yuri-energy-dashboard-data.mjs) reading real energy-trace + descent-demo sources.",
       "notes": "Self-contained brand-styled energy-gate dashboard. Visualizes descent-demo U-trajectory, B.1 telemetry, gate components, workstream status. Honesty labels distinguish real / simulated / planned."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-user-roster.cjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/yuri-user-roster.test.cjs",
+      "notes": "githubId-keyed user roster (seeded marcel/mike). Identity foundation for user-attributed energy ΔU."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-user-auth.cjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/yuri-user-auth.test.cjs",
+      "notes": "Login password + single-use reset + dev admin-reset. scrypt-hashed; pairs with the yuri-operator role system."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-user.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/yuri-user.test.mjs",
+      "notes": "Stable-handle user resolver over the githubId roster."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-user-data-collect.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/yuri-user-data-collect.test.mjs",
+      "notes": "Per-user data collection for energy-landscape ΔU attribution."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-control-server.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/yuri-control-server.test.mjs",
+      "notes": "Dev-gated local cockpit server (127.0.0.1): real-gate preview + apply of energy weights. Residual hardening (#3): bearer token + Origin/Host check on /apply,/reset."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-tick-core.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/energy-tick-core.test.mjs",
+      "notes": "Everyday-workflow ΔU core: salience tiers (SKIP/WORK/CRITICAL) + Layer C depth-gated |ΔU| surprise. Backed by the energy-tick PostToolUse hook."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-energy-config.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/math/yuri-energy-config.test.mjs",
+      "notes": "Live energy-weights config loader/override; proven to steer the live salience signal."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-energy-simulate.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/math/yuri-energy-simulate.test.mjs",
+      "notes": "Energy gate simulator: labeled adversarial scenarios + scoring. Found a violation-masking false-accept (hard-veto fix)."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --test _SYSTEM/Scripts/math/yuri-energy-dashboard-data.test.mjs",
+      "notes": "Aggregates energy records into cockpit/dashboard data."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/math-operational-simulation.mjs",
+      "notes": "Operational math simulation harness (pre-existing; registered for must-register-zone completeness)."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-energy-trace-test-worker.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-energy-trace-test-worker.mjs",
+      "notes": "Child-process worker for yuri-energy-trace privacy-gate tests."
+    },
+    {
+      "path": ".claude/hooks/energy-tick.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Claude PreToolUse/PostToolUse hooks live in .claude/hooks/.",
+      "rebuildRule": "node --check .claude/hooks/energy-tick.mjs",
+      "notes": "PostToolUse hook: collects everyday-workflow ΔU via energy-tick-core. Governed in settings.json (owner-directed)."
+    },
+    {
+      "path": "_SYSTEM/SELF/CONSENT.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-facing governance docs live in _SYSTEM/SELF/.",
+      "rebuildRule": "Manual review — GDPR-grounded governance doc; no automated rebuild.",
+      "notes": "Consent + data-handling basis for user-attributed energy ΔU."
+    },
+    {
+      "path": "_SYSTEM/SELF/user-roster.json",
+      "type": "data",
+      "class": "system_control_plane",
+      "owner": "YURI identity + user-data substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Identity roster data lives in _SYSTEM/SELF/.",
+      "rebuildRule": "Regenerated/edited via yuri-user-roster.cjs.",
+      "notes": "githubId-keyed roster data (githubIds + auth hashes). Not readByDefault."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-observability-health.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/energy-observability-health.mjs",
+      "notes": "yuri-health liveness probe: confirms energy-tick ΔU telemetry is wired (hook + core) and reports record accrual."
     }
+  ],
+  "mustRegisterPrefixes": [
+    "_SYSTEM/Scripts/math/"
   ]
 }

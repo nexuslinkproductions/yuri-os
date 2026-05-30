@@ -123,6 +123,8 @@ _SYSTEM/state/memory-kernel-audit.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/memory-proposals.jsonl
 _SYSTEM/state/memory-proposal-decisions.jsonl
+_SYSTEM/state/energy-config-changes.jsonl
+_SYSTEM/config/energy-weights.json
 _SYSTEM/state/kagami-ledger.jsonl
 _SYSTEM/state/pulse-bus.jsonl
 _SYSTEM/state/context-router-last.json

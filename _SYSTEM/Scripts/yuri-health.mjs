@@ -52,6 +52,13 @@ const CHECKS = [
     command: gitnexusCommand(),
     required: true,
   },
+  {
+    id: 'energy_observability',
+    label: 'Energy ΔU telemetry liveness',
+    command: ['node', ['_SYSTEM/Scripts/energy-observability-health.mjs']],
+    required: true,
+    evaluate: evaluateEnergyObservability,
+  },
 ];
 
 const mode = process.argv[2] || 'json';
@@ -122,6 +129,16 @@ function evaluateSkillRegistry(stdout, stderr, status) {
     };
   } catch {
     return { ok: false, summary: 'skill validation returned non-JSON output' };
+  }
+}
+
+function evaluateEnergyObservability(stdout, stderr, status) {
+  try {
+    const parsed = JSON.parse(stdout);
+    const s = parsed.summary || {};
+    return { ok: status === 0 && s.ok === true, summary: s.summary || summarize(stdout, stderr) };
+  } catch {
+    return { ok: false, summary: summarize(stdout, stderr) };
   }
 }
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
@@ -152,6 +152,27 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
     }
     if (folderClasses.size && rule.class && !folderClasses.has(rule.class)) {
       errors.push(`placement rule ${label} has unknown class: ${rule.class}`);
+    }
+  }
+
+  // Must-register zones: durable substrate where a broad placement rule is NOT
+  // enough — every non-test source file must carry its OWN explicit registry
+  // entry. A new file here fails --validate until registered ("nothing slips
+  // past"). Scoped on purpose: only zones small enough to keep fully registered.
+  for (const prefix of registry.mustRegisterPrefixes || []) {
+    let dirEntries;
+    try {
+      dirEntries = readdirSync(path.join(repoRoot, prefix), { withFileTypes: true });
+    } catch {
+      continue; // zone directory absent -> nothing to enforce
+    }
+    for (const dirent of dirEntries) {
+      if (!dirent.isFile()) continue;
+      if (!/\.(mjs|cjs)$/.test(dirent.name) || /\.test\.(mjs|cjs)$/.test(dirent.name)) continue;
+      const relPath = `${prefix}${dirent.name}`;
+      if (!seen.has(relPath)) {
+        errors.push(`unregistered durable artifact in must-register zone ${prefix}: ${relPath}`);
+      }
     }
   }
 
