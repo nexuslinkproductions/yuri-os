@@ -235,7 +235,10 @@ test('buildSummary returns the documented summary shape', () => {
   assert.equal(summary.rejected, 0);
   assert.equal(summary.deltaUSeries.length, 15);
   assert.deepEqual(summary.dominantTerms, {}, 'no rejections → empty dominantTerms');
-  assert.ok(summary.finalU < 0, 'final U should be well below zero after a clean descent');
+  // Clean descent = every step lowers U (ΔU < 0). Absolute sign of finalU is no
+  // longer asserted: the verified-evidence credit now saturates (bound-U fix), so
+  // U descends without plunging arbitrarily negative.
+  assert.ok(summary.deltaUSeries.every((d) => d < 0), 'clean descent: every step lowers U (ΔU < 0)');
 });
 
 test('buildSummary counts rejections and dominantTerms on a mixed scenario', () => {

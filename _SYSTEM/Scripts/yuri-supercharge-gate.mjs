@@ -104,6 +104,7 @@ export function buildChecks(options = {}) {
     ['test:energy-config', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-config.test.mjs']],
     ['test:energy-simulate', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-simulate.test.mjs']],
     ['test:energy-dashboard-data', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-dashboard-data.test.mjs']],
+    ['test:energy-hardening', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-hardening.test.mjs']],
     ['test:energy-tick-core', process.execPath, ['--test', '_SYSTEM/Scripts/energy-tick-core.test.mjs']],
     ['test:yuri-user-roster', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-roster.test.cjs']],
     ['test:yuri-user-auth', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-auth.test.cjs']],

@@ -57,8 +57,16 @@ export const DEFAULT_WEIGHTS = Object.freeze({
   zeta: 0.5,    // sum(staleness) — stale evidence dragging state up
   eta: 100.0,   // protectedPathViolations — catastrophic, high weight
   theta: 10.0,  // promotionLadderInversions — high weight
-  iota: 0.1,    // -verifiedEvidenceCount — verified evidence subtracts from U
+  iota: 0.1,    // -verifiedEvidenceCount — verified evidence subtracts from U (saturating)
+  kappa: 5.0,   // repeatedFailurePenalty — per-event count of confidently-wrong predictions
 });
+
+// Saturation cap for the verified-evidence credit (bounds U BELOW). The credit is
+// -iota·log1p(min(count, CAP)): logarithmic AND capped, so it has a finite infimum
+// (-iota·log1p(CAP)). Without this the credit was linear -> U unbounded below ->
+// no infimum -> the "descent/Lyapunov" claim is vacuous and evidence buys an
+// arbitrarily large masking budget.
+const VERIFIED_EVIDENCE_CREDIT_CAP = 50;
 
 function normalizeWeights(weights = DEFAULT_WEIGHTS) {
   const supplied = weights || {};
@@ -133,13 +141,49 @@ function evalEntropy(distribution) {
   }
 }
 
+// Clamp distribution entries away from 0 (mirror of the logLoss epsilon clamp).
+// Without this, a provable-lie verified=[0,1] makes klDivergence throw "infinite"
+// -> evalKL returns skipped -> the term contributes 0 -> the gate ACCEPTS the
+// worst case. Clamping yields a large but FINITE KL -> large positive ΔU -> reject.
+const KL_EPSILON = 1e-12;
+function clampDistribution(arr) {
+  return arr.map((v) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > KL_EPSILON ? n : KL_EPSILON;
+  });
+}
+
 function evalKL({ claimed, verified }) {
   if (!claimed || !verified) return { skipped: true, reason: 'no claimed/verified pair' };
+  if (!Array.isArray(claimed) || !Array.isArray(verified)) {
+    return { skipped: true, reason: 'claimed/verified must be arrays' };
+  }
   try {
-    return { value: klDivergence(claimed, verified), skipped: false };
+    // HIGH bug #3 fix: clamp BOTH sides so KL is finite + monotonic in drift.
+    return { value: klDivergence(clampDistribution(claimed), clampDistribution(verified)), skipped: false };
   } catch (err) {
     return { skipped: true, reason: `KL failed: ${err.message}` };
   }
+}
+
+// Per-event repeated-failure penalty (HIGH bug #6). logLoss/brier are MEANS, so
+// the 2nd..Nth confidently-wrong prediction adds ~0 to a saturated average and
+// the gate stops penalizing repeated lies. This counts confidently-wrong events
+// (high-confidence prediction on the wrong side) and penalizes per COUNT, so each
+// additional failure raises U — breaking the windowed-mean plateau.
+function evalRepeatedFailure(preds, outs) {
+  if (!Array.isArray(preds) || !Array.isArray(outs)) {
+    return { skipped: true, reason: 'no predictions/outcomes' };
+  }
+  if (preds.length === 0) return { value: 0, skipped: false };
+  let count = 0;
+  for (let i = 0; i < preds.length; i += 1) {
+    const p = Number(preds[i]);
+    const o = Number(outs[i]);
+    if (!Number.isFinite(p) || !Number.isFinite(o)) continue;
+    if ((p >= 0.5 && o === 0) || (p < 0.5 && o === 1)) count += 1;
+  }
+  return { value: count, skipped: false };
 }
 
 function evalLogLoss(preds, outs) {
@@ -207,6 +251,7 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
     }),
     logLoss: evalLogLoss(state.predictions, state.outcomes),
     brier: evalBrier(state.forecasts, state.results),
+    repeatedFailure: evalRepeatedFailure(state.predictions, state.outcomes),
     informationGain: evalInfoGain({
       prior: state.priorState,
       posterior: state.posteriorState,
@@ -233,6 +278,10 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
     contributions.brier = w.delta * components.brier.value;
     U += contributions.brier;
   }
+  if (!components.repeatedFailure.skipped) {
+    contributions.repeatedFailure = roundEnergy(w.kappa * components.repeatedFailure.value);
+    U += contributions.repeatedFailure;
+  }
   if (!components.informationGain.skipped) {
     contributions.informationGain = -w.epsilon * components.informationGain.value;
     U += contributions.informationGain;
@@ -248,7 +297,8 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
 
   contributions.protectedPathViolations = roundEnergy(w.eta * protectedPathViolations);
   contributions.promotionLadderInversions = roundEnergy(w.theta * promotionLadderInversions);
-  contributions.verifiedEvidenceCredit = roundEnergy(-w.iota * verifiedEvidenceCount);
+  const cappedEvidence = Math.min(verifiedEvidenceCount, VERIFIED_EVIDENCE_CREDIT_CAP);
+  contributions.verifiedEvidenceCredit = roundEnergy(-w.iota * Math.log1p(cappedEvidence));
 
   U += contributions.protectedPathViolations;
   U += contributions.promotionLadderInversions;
@@ -337,13 +387,25 @@ export function gateProposal({
   const deltaU = delta.result.deltaU;
   const passesThreshold = deltaU <= normalizedThreshold;
   const overrideAllowed = allowOverride === true;
-  const accept = passesThreshold || overrideAllowed;
 
-  const reason = passesThreshold
-    ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
-    : overrideAllowed
-      ? `ΔU=${deltaU} > threshold=${normalizedThreshold} but override allowed`
-      : `ΔU=${deltaU} > threshold=${normalizedThreshold} (ascending — energy raised, reject)`;
+  // HARD VETO (HIGH bug #4): a protected-path violation INCREASE is catastrophic
+  // and NON-offsettable — no evidence credit (masking) and no override may accept
+  // it. This now lives in the LIVE gate, not just the simulator. A masking attack
+  // (huge verifiedEvidenceCount pushing ΔU back under threshold) cannot pass here.
+  const vetoWarnings = [];
+  const protectedBefore = readNonNegativeField(stateBefore, 'protectedPathViolations', vetoWarnings);
+  const protectedAfter = readNonNegativeField(stateAfter, 'protectedPathViolations', vetoWarnings);
+  const protectedPathVeto = protectedAfter > protectedBefore;
+
+  const accept = protectedPathVeto ? false : (passesThreshold || overrideAllowed);
+
+  const reason = protectedPathVeto
+    ? `protected-path violation increase (${protectedBefore}→${protectedAfter}) — HARD VETO, non-offsettable (ΔU and override ignored)`
+    : passesThreshold
+      ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
+      : overrideAllowed
+        ? `ΔU=${deltaU} > threshold=${normalizedThreshold} but override allowed`
+        : `ΔU=${deltaU} > threshold=${normalizedThreshold} (ascending — energy raised, reject)`;
 
   let dominantTerm = null;
   if (deltaU > normalizedThreshold) {
@@ -361,8 +423,9 @@ export function gateProposal({
       reason,
       deltaU,
       threshold: normalizedThreshold,
-      override: !passesThreshold && overrideAllowed,
-      dominantTerm,
+      override: !protectedPathVeto && !passesThreshold && overrideAllowed,
+      protectedPathVeto,
+      dominantTerm: protectedPathVeto ? 'protectedPathViolations' : dominantTerm,
       componentDeltas: delta.result.componentDeltas,
     },
     proof: {

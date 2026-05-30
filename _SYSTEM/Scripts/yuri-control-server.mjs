@@ -15,6 +15,7 @@
  * Run:  node _SYSTEM/Scripts/yuri-control-server.mjs   → http://127.0.0.1:7717
  */
 import http from 'node:http';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +29,34 @@ const COCKPIT = path.join(REPO_ROOT, '_SYSTEM', 'reports', 'yuri-control', 'inde
 const CHANGELOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'energy-config-changes.jsonl');
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.YURI_COCKPIT_PORT) || 7717;
+
+// Per-process bearer token for mutating endpoints (defense-in-depth). The dev-role
+// check authenticates the SERVER process, not the REQUESTER — so any local process,
+// or a browser page via DNS-rebinding, could POST /apply to a dev-run server. The
+// token (handed only to the dev cockpit via GET /config) plus an Origin/Host
+// allow-list close that. Env override supports tests/automation.
+const APPLY_TOKEN = process.env.YURI_COCKPIT_TOKEN || crypto.randomBytes(24).toString('hex');
+
+function timingSafeEqualStr(a, b) {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+
+function localOriginOk(req) {
+  const host = String((req.headers && req.headers.host) || '').toLowerCase();
+  const okHost = host === `${HOST}:${PORT}` || host === `localhost:${PORT}`;
+  const origin = req.headers && req.headers.origin;
+  // Absent Origin (curl/native client) is allowed; if present it must be local —
+  // blocks cross-site / DNS-rebinding writes initiated from a browser page.
+  const okOrigin = !origin || /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(origin);
+  return okHost && okOrigin;
+}
+
+function authedMutation(req) {
+  const m = String((req.headers && req.headers.authorization) || '').match(/^Bearer\s+(.+)$/i);
+  return Boolean(m) && timingSafeEqualStr(m[1], APPLY_TOKEN);
+}
 
 // The 3 cockpit scenarios, in the energy-tick state model.
 const SCN = [
@@ -111,10 +140,16 @@ const server = http.createServer(async (req, res) => {
       res.end(fs.readFileSync(COCKPIT));
       return;
     }
-    if (req.method === 'GET' && req.url === '/config') return send(200, { config: loadEnergyConfig(), dev: isDev() });
+    if (req.method === 'GET' && req.url === '/config') {
+      return send(200, { config: loadEnergyConfig(), dev: isDev(), ...(isDev() ? { applyToken: APPLY_TOKEN } : {}) });
+    }
     if (req.method === 'POST' && req.url === '/preview') return send(200, { scenarios: preview(await readBody(req)) });
-    if (req.method === 'POST' && req.url === '/apply') return send(200, apply(await readBody(req)));
-    if (req.method === 'POST' && req.url === '/reset') return send(200, reset());
+    if (req.method === 'POST' && (req.url === '/apply' || req.url === '/reset')) {
+      if (!localOriginOk(req)) return send(403, { ok: false, error: 'forbidden: non-local Origin/Host' });
+      if (!authedMutation(req)) return send(401, { ok: false, error: 'unauthorized: missing/invalid bearer token' });
+      const result = req.url === '/apply' ? apply(await readBody(req)) : reset();
+      return send(200, result);
+    }
     send(404, { error: 'not found' });
   } catch (e) { send(500, { error: String((e && e.message) || e) }); }
 });
@@ -125,4 +160,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { preview, validate, apply, reset, server, PORT, HOST };
+export { preview, validate, apply, reset, server, PORT, HOST, APPLY_TOKEN, localOriginOk, authedMutation };

@@ -35,14 +35,18 @@ test('computeU returns deterministic envelope with makeMathResult shape', () => 
   assert.equal(r.proof.advisory_only, true);
 });
 
-test('verified evidence count lowers U via iota credit', () => {
+test('verified evidence count lowers U via a SATURATING iota credit (bounds U below)', () => {
   const noEvidence = computeU({ verifiedEvidenceCount: 0 });
   const withEvidence = computeU({ verifiedEvidenceCount: 10 });
   assert.ok(withEvidence.result.U < noEvidence.result.U, 'verified evidence must lower U');
-  assert.equal(
-    withEvidence.result.contributions.verifiedEvidenceCredit,
-    -DEFAULT_WEIGHTS.iota * 10,
+  // credit is -iota·log1p(count), NOT linear -iota·count — saturating so U has a
+  // finite infimum (bound-U fix) and evidence cannot buy unbounded masking budget.
+  assert.ok(
+    Math.abs(withEvidence.result.contributions.verifiedEvidenceCredit - (-DEFAULT_WEIGHTS.iota * Math.log1p(10))) < 1e-6,
   );
+  // 100x the evidence does NOT give 100x the credit; it caps at -iota·log1p(50).
+  const huge = computeU({ verifiedEvidenceCount: 1000 }).result.contributions.verifiedEvidenceCredit;
+  assert.ok(Math.abs(huge - (-DEFAULT_WEIGHTS.iota * Math.log1p(50))) < 1e-6, 'credit saturates at the cap');
 });
 
 test('protected-path violations dominate U via eta weight', () => {
@@ -194,12 +198,16 @@ test('gateProposal rejects an ascending transition by default', () => {
   assert.equal(r.result.dominantTerm, 'protectedPathViolations');
 });
 
-test('gateProposal honors allowOverride and reports override=true', () => {
+test('gateProposal honors allowOverride and reports override=true (benign ascent)', () => {
+  // A BENIGN ascending transition (losing evidence credit raises U) — override may
+  // accept it. NOT a protected-path increase, which the hard veto refuses to
+  // override (covered separately below).
   const r = gateProposal({
-    stateBefore: { protectedPathViolations: 0 },
-    stateAfter: { protectedPathViolations: 1 },
+    stateBefore: { verifiedEvidenceCount: 10 },
+    stateAfter: { verifiedEvidenceCount: 0 },
     allowOverride: true,
   });
+  assert.ok(r.result.deltaU > 0, 'scenario must be ascending');
   assert.equal(r.result.accept, true);
   assert.equal(r.result.override, true);
 });
@@ -258,7 +266,8 @@ test('custom weights override defaults', () => {
   const defaultR = computeU({ verifiedEvidenceCount: 10 });
   const customR = computeU({ verifiedEvidenceCount: 10 }, { iota: 1.0 });
   assert.notEqual(defaultR.result.U, customR.result.U);
-  assert.equal(customR.result.contributions.verifiedEvidenceCredit, -10);
+  // saturating credit: -iota·log1p(10) with iota=1.0 (not the old linear -10).
+  assert.ok(Math.abs(customR.result.contributions.verifiedEvidenceCredit - (-1.0 * Math.log1p(10))) < 1e-6);
 });
 
 test('weight overrides must be finite, non-negative, and known', () => {

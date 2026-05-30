@@ -197,6 +197,10 @@ function evidenceAgeStats(evidence) {
   };
 }
 
+// Canonical promotion-label charset for claimPromotionDistribution keys (privacy
+// KEY guard, bug #5): lowercase snake_case, starts with a letter, ≤40 chars.
+const CANONICAL_LABEL_RE = /^[a-z][a-z0-9_]{0,39}$/;
+
 function summarizeState(state) {
   if (!state || typeof state !== 'object' || Array.isArray(state)) {
     return {
@@ -213,13 +217,18 @@ function summarizeState(state) {
     };
   }
 
-  // claimPromotionDistribution: numeric values only, keys are label strings
+  // claimPromotionDistribution: numeric values only, keys are label strings.
+  // Privacy KEY guard (HIGH bug #5): these KEYS land verbatim in the on-disk
+  // JSONL, and validateRecord gates VALUES by path but never KEYS — so a secret
+  // smuggled as a KEY would persist unredacted. Project keys onto the canonical
+  // label charset: only lowercase snake_case labels (≤40 chars) survive; any
+  // other key is dropped (a secret won't match), not written.
   const claimDist = {};
   const rawDist = state.claimPromotionDistribution;
   if (rawDist && typeof rawDist === 'object' && !Array.isArray(rawDist)) {
     for (const [k, v] of Object.entries(rawDist)) {
       const n = Number(v);
-      if (Number.isFinite(n)) claimDist[k] = n;
+      if (Number.isFinite(n) && CANONICAL_LABEL_RE.test(k)) claimDist[k] = n;
     }
   }
 
