@@ -74,3 +74,14 @@ test('collectDay skips malformed JSON lines without throwing', () => {
   const out = collectDay({ traceDir: dir, day, user: 'mike' });
   assert.equal(out.length, 2);
 });
+
+// attack regression: a secret smuggled as a componentContributions KEY must not
+// reach the published export (numericMap is closed-set over known term names).
+test('projectTraceForExport drops a malicious contribution key, keeps known terms', () => {
+  const out = projectTraceForExport({
+    componentContributions: { entropy: 1, klDivergence: 2, 'AKIA_SECRET/etc/passwd!': 42 },
+  });
+  assert.ok(!JSON.stringify(out).includes('AKIA_SECRET'), 'secret key must not reach the export');
+  assert.equal(out.componentContributions.entropy, 1);
+  assert.equal(out.componentContributions.klDivergence, 2);
+});

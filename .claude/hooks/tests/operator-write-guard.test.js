@@ -128,4 +128,17 @@ const passRun = runHook({ tool_name: 'Write', tool_input: { file_path: 'README.m
 assert.equal(passRun.status, 0, passRun.stderr);
 ok('e2e coworker Write README -> silent pass', passRun.stdout === '');
 
+// --- attack regression: symlink path-canonicalization bypass must be denied ---
+const os = require('os');
+const symRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'owg-sym-'));
+const link = path.join(symRoot, 'root_link');
+fs.symlinkSync(REPO_ROOT, link);
+const symDeny = runHook({ tool_name: 'Write', tool_input: { file_path: path.join(link, '.claude/hooks/bash-security-guard.js'), content: '{}' } }, 'coworker');
+const symDenyOut = symDeny.stdout ? JSON.parse(symDeny.stdout) : null;
+ok('symlinked write to a guard file -> deny (canonicalized)',
+  symDenyOut && symDenyOut.hookSpecificOutput && symDenyOut.hookSpecificOutput.permissionDecision === 'deny');
+const symPass = runHook({ tool_name: 'Write', tool_input: { file_path: path.join(link, 'README.md'), content: 'x' } }, 'coworker');
+ok('symlinked write to a non-protected file -> allow', symPass.stdout === '');
+fs.rmSync(symRoot, { recursive: true, force: true });
+
 console.log(`operator-write-guard.test.js: ${passed} checks passed`);

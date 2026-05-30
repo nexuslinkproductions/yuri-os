@@ -197,9 +197,17 @@ function evidenceAgeStats(evidence) {
   };
 }
 
-// Canonical promotion-label charset for claimPromotionDistribution keys (privacy
-// KEY guard, bug #5): lowercase snake_case, starts with a letter, ≤40 chars.
-const CANONICAL_LABEL_RE = /^[a-z][a-z0-9_]{0,39}$/;
+// CLOSED canonical promotion-label set for claimPromotionDistribution keys (privacy
+// KEY guard). Defined locally to avoid a trace<->sanitize import cycle (sanitize
+// imports validateRecord from here); a drift test asserts it equals sanitize's
+// PROMOTION_LADDER_LABELS. summarizeState iterates THIS set, never the attacker-
+// controlled keys, so an out-of-enum key — a secret, a 'ghp_...' token, a length-
+// split chunk — is never read and cannot reach disk. (The earlier lowercase charset
+// admitted lowercase secrets and was defeated by splitting a long secret in two.)
+export const CANONICAL_PROMOTION_LABELS = Object.freeze([
+  'draft', 'research', 'fixture_ready', 'runtime_tested', 'trusted',
+]);
+const CANONICAL_PROMOTION_LABEL_SET = new Set(CANONICAL_PROMOTION_LABELS);
 
 function summarizeState(state) {
   if (!state || typeof state !== 'object' || Array.isArray(state)) {
@@ -218,17 +226,17 @@ function summarizeState(state) {
   }
 
   // claimPromotionDistribution: numeric values only, keys are label strings.
-  // Privacy KEY guard (HIGH bug #5): these KEYS land verbatim in the on-disk
-  // JSONL, and validateRecord gates VALUES by path but never KEYS — so a secret
-  // smuggled as a KEY would persist unredacted. Project keys onto the canonical
-  // label charset: only lowercase snake_case labels (≤40 chars) survive; any
-  // other key is dropped (a secret won't match), not written.
+  // Privacy KEY guard: these KEYS land verbatim in the on-disk JSONL, and
+  // validateRecord gates VALUES by path but never KEYS. CLOSED-SET projection —
+  // iterate the canonical label enum, NEVER the attacker-controlled keys — so any
+  // out-of-enum key (a secret) is never read and cannot reach disk.
   const claimDist = {};
   const rawDist = state.claimPromotionDistribution;
   if (rawDist && typeof rawDist === 'object' && !Array.isArray(rawDist)) {
-    for (const [k, v] of Object.entries(rawDist)) {
-      const n = Number(v);
-      if (Number.isFinite(n) && CANONICAL_LABEL_RE.test(k)) claimDist[k] = n;
+    for (const label of CANONICAL_PROMOTION_LABEL_SET) {
+      if (!Object.hasOwn(rawDist, label)) continue;
+      const n = Number(rawDist[label]);
+      if (Number.isFinite(n)) claimDist[label] = n;
     }
   }
 

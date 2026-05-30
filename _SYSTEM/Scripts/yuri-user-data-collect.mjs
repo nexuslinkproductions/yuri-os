@@ -19,13 +19,26 @@ const REPO_ROOT = path.resolve(_HERE, '..', '..');
 
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
-/** Keep only numeric values from a contributions-style map (gate-safe). */
+// CLOSED allow-list of energy-contribution KEYS. numericMap feeds the PUBLISHED
+// per-user export; componentContributions KEYS are copied verbatim and the
+// validateRecord canary gates VALUES, not KEYS — so an attacker-shaped key in an
+// on-disk record would reach the published branch. Iterate the known term names,
+// never the record's keys, so an out-of-set key is never read. (Keys are camelCase
+// term names, so a lowercase charset cannot be used — a closed set is required.)
+const ALLOWED_CONTRIBUTION_KEYS = new Set([
+  'entropy', 'klDivergence', 'logLoss', 'brier', 'repeatedFailure', 'malformedForecast',
+  'informationGain', 'staleness', 'protectedPathViolations', 'promotionLadderInversions',
+  'verifiedEvidenceCredit',
+]);
+
+/** Keep only numeric values under KNOWN contribution keys (gate-safe, key-closed). */
 function numericMap(raw) {
   const out = {};
   if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-    for (const [k, v] of Object.entries(raw)) {
-      const n = Number(v);
-      if (Number.isFinite(n)) out[k] = n;
+    for (const key of ALLOWED_CONTRIBUTION_KEYS) {
+      if (!Object.hasOwn(raw, key)) continue;
+      const n = Number(raw[key]);
+      if (Number.isFinite(n)) out[key] = n;
     }
   }
   return out;

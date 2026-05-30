@@ -104,12 +104,33 @@ function isProtectedTarget(absPath) {
   return false;
 }
 
+// Resolve symlinks before the protected-path check. path.resolve is LEXICAL — it
+// does NOT collapse symlinks, so a coworker could write through a symlinked path
+// (e.g. ln -s <repo-root> /tmp/link, then Write /tmp/link/.claude/hooks/...) and
+// evade a lexical match, neutering the guard. realpath the target — or, for a file
+// that does not exist yet, the nearest existing ancestor — so the candidate is
+// compared by its true on-disk identity. Fail-closed: never throw; fall back lexical.
+function canonicalize(absPath) {
+  if (!absPath) return absPath;
+  try { return fs.realpathSync(absPath); } catch { /* target may not exist yet */ }
+  let dir = path.dirname(absPath);
+  const tail = [path.basename(absPath)];
+  while (dir && dir !== path.dirname(dir)) {
+    try { return path.join(fs.realpathSync(dir), ...tail.slice().reverse()); } catch { /* climb */ }
+    tail.push(path.basename(dir));
+    dir = path.dirname(dir);
+  }
+  return absPath;
+}
+
 // Returns a deny reason string, or null to allow.
 function inspectMutation(toolName, toolInput, role) {
   if (role !== 'coworker') return null;        // dev (owner) unrestricted
   if (!MUTATING_TOOLS.has(toolName)) return null;
   const abs = toAbs(resolveTargetPath(toolName, toolInput));
-  if (!isProtectedTarget(abs)) return null;
+  // Check BOTH the lexical path (direct writes) and the symlink-resolved path
+  // (writes routed through a symlink) — either landing on a protected target denies.
+  if (!isProtectedTarget(abs) && !isProtectedTarget(canonicalize(abs))) return null;
   return 'Read-only operator (coworker): modifying the YURI guard/role/credential system is blocked.';
 }
 

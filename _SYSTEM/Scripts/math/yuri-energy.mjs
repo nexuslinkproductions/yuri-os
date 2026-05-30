@@ -59,6 +59,7 @@ export const DEFAULT_WEIGHTS = Object.freeze({
   theta: 10.0,  // promotionLadderInversions — high weight
   iota: 0.1,    // -verifiedEvidenceCount — verified evidence subtracts from U (saturating)
   kappa: 5.0,   // repeatedFailurePenalty — per-event count of confidently-wrong predictions
+  lambda: 50.0, // malformedForecastPenalty — out-of-range/non-finite forecast inputs fail CLOSED
 });
 
 // Saturation cap for the verified-evidence credit (bounds U BELOW). The credit is
@@ -158,6 +159,17 @@ function evalKL({ claimed, verified }) {
   if (!Array.isArray(claimed) || !Array.isArray(verified)) {
     return { skipped: true, reason: 'claimed/verified must be arrays' };
   }
+  if (claimed.length !== verified.length) {
+    // Attack-finding fix: a length mismatch is itself a structurally invalid claim.
+    // klDivergence throws on unequal length -> evalKL would skip -> the drift term
+    // contributes 0 -> the gate ACCEPTS the worst case. Treat a mismatch as maximal
+    // drift (large finite KL) so it REJECTS, symmetric to the zero-value clamp.
+    return {
+      value: Math.log(1 / KL_EPSILON),
+      skipped: false,
+      warnings: ['claimed/verified length mismatch — treated as maximal drift'],
+    };
+  }
   try {
     // HIGH bug #3 fix: clamp BOTH sides so KL is finite + monotonic in drift.
     return { value: klDivergence(clampDistribution(claimed), clampDistribution(verified)), skipped: false };
@@ -180,9 +192,36 @@ function evalRepeatedFailure(preds, outs) {
   for (let i = 0; i < preds.length; i += 1) {
     const p = Number(preds[i]);
     const o = Number(outs[i]);
-    if (!Number.isFinite(p) || !Number.isFinite(o)) continue;
-    if ((p >= 0.5 && o === 0) || (p < 0.5 && o === 1)) count += 1;
+    if (!Number.isFinite(p) || !Number.isFinite(o)) continue; // malformed -> evalMalformedForecast
+    // Bucket fractional/out-of-range outcomes to the nearest label (0.0001 -> 0,
+    // 0.9999 -> 1) so a near-miss report cannot evade the count. Strict, symmetric
+    // boundary: the uninformative midpoint p=0.5 is counted on NEITHER side.
+    const oLabel = o >= 0.5 ? 1 : 0;
+    if ((p > 0.5 && oLabel === 0) || (p < 0.5 && oLabel === 1)) count += 1;
   }
+  return { value: count, skipped: false };
+}
+
+// Fail-CLOSED guard on malformed forecast inputs (attack-finding fix). logLoss and
+// brier throw -> skip -> contribute 0 on any prediction/outcome outside [0,1], and a
+// skipped term lets the gate ACCEPT the worst case (verified: outcome=2 flipped a
+// reject to accept). This counts every out-of-range / non-finite forecast entry and
+// RAISES U at high weight, so an attacker-controlled invalid forecast vector cannot
+// drive ΔU to 0 and slip a transition through gateProposal.
+function isValidProbability(x) {
+  const n = Number(x);
+  return Number.isFinite(n) && n >= 0 && n <= 1;
+}
+function countMalformed(arr) {
+  if (!Array.isArray(arr)) return 0;
+  let c = 0;
+  for (const x of arr) if (!isValidProbability(x)) c += 1;
+  return c;
+}
+function evalMalformedForecast(state) {
+  const count = countMalformed(state.predictions) + countMalformed(state.outcomes)
+    + countMalformed(state.forecasts) + countMalformed(state.results);
+  if (count === 0) return { skipped: true, reason: 'no malformed forecast inputs' };
   return { value: count, skipped: false };
 }
 
@@ -252,6 +291,7 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
     logLoss: evalLogLoss(state.predictions, state.outcomes),
     brier: evalBrier(state.forecasts, state.results),
     repeatedFailure: evalRepeatedFailure(state.predictions, state.outcomes),
+    malformedForecast: evalMalformedForecast(state),
     informationGain: evalInfoGain({
       prior: state.priorState,
       posterior: state.posteriorState,
@@ -281,6 +321,10 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
   if (!components.repeatedFailure.skipped) {
     contributions.repeatedFailure = roundEnergy(w.kappa * components.repeatedFailure.value);
     U += contributions.repeatedFailure;
+  }
+  if (!components.malformedForecast.skipped) {
+    contributions.malformedForecast = roundEnergy(w.lambda * components.malformedForecast.value);
+    U += contributions.malformedForecast;
   }
   if (!components.informationGain.skipped) {
     contributions.informationGain = -w.epsilon * components.informationGain.value;
