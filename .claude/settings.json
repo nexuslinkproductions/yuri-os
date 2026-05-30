@@ -229,6 +229,11 @@
             "type": "command",
             "command": "node .claude/hooks/session-checkpoint.js",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/energy-tick.mjs",
+            "async": true
           }
         ]
       },
