@@ -233,7 +233,7 @@ export function tickAndTrace(prevState, event, opts = {}) {
   // Salience front door: SKIP transitions never reach the math — no trace, no
   // state/depth change. Keeps the ΔU stream dense, no tick per keystroke.
   if (tier === TIER.SKIP) {
-    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false };
+    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false };
   }
   const nextState = applyTransition(prevState, t, nowIso);
   const { record } = traceGateEvaluation({
@@ -250,7 +250,16 @@ export function tickAndTrace(prevState, event, opts = {}) {
   const deltaU = (record && Number.isFinite(record.deltaU)) ? record.deltaU : 0;
   const priorRecent = Array.isArray(opts.recentAbs) ? opts.recentAbs : [];
   const depth = (Number.isFinite(opts.depth) ? opts.depth : 0) + 1;
-  const engaged = surpriseEngaged({ depth, deltaU, recentAbs: priorRecent, cfg });
-  const recentAbs = [...priorRecent, Math.abs(deltaU)].slice(-cfg.surpriseWindow);
-  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: engaged };
+  // Surprise is judged against the WORK band; see below for why CRITICAL is excluded.
+  const surprised = surpriseEngaged({ depth, deltaU, recentAbs: priorRecent, cfg });
+  // Fire the deep evaluation when the moment inherently demands determinism
+  // (CRITICAL — violation/failure) OR when a WORK transition is deep-and-surprising.
+  const deepEngaged = tier === TIER.CRITICAL || (tier === TIER.WORK && surprised);
+  // Only WORK |ΔU| feeds the surprise band. CRITICAL is force-kept anyway, and its
+  // huge |ΔU| (e.g. protected-path eta=100) would desensitize the band for the
+  // WORK transitions the surprise tier exists to catch (tuning insight, live data).
+  const recentAbs = tier === TIER.WORK
+    ? [...priorRecent, Math.abs(deltaU)].slice(-cfg.surpriseWindow)
+    : priorRecent;
+  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: surprised, deepEngaged };
 }

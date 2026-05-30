@@ -176,3 +176,19 @@ test('tickAndTrace threads depth + |ΔU| band; surprise stays off while shallow'
     if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
   }
 });
+
+test('CRITICAL auto-engages deep but does NOT pollute the WORK surprise band', () => {
+  const prevDir = process.env.YURI_STATE_DIR;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tickD-'));
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    // seed a small WORK band, then a protected-path write (CRITICAL, ΔU=100)
+    const seed = tickAndTrace(freshState(), editOk, { depth: 5, recentAbs: [0.1, 0.1, 0.1] });
+    const crit = tickAndTrace(seed.state, protectedEdit, { depth: seed.depth, recentAbs: seed.recentAbs });
+    assert.equal(crit.tier, TIER.CRITICAL);
+    assert.equal(crit.deepEngaged, true, 'CRITICAL must auto-engage the deep path regardless of depth/surprise');
+    assert.ok(!crit.recentAbs.includes(100), 'the CRITICAL ΔU=100 must not enter the WORK band');
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+  }
+});

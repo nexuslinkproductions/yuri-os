@@ -63,6 +63,7 @@ function run() {
       depth: result.depth,
       recentAbs: result.recentAbs,
       surpriseEngaged: result.surpriseEngaged,
+      deepEngaged: result.deepEngaged,
       sessionId,
       updatedAt: nowIso,
     }) + '\n');
