@@ -71,7 +71,8 @@
     <h2>Salience · when the surprise tier fires</h2>
     <div class="group" id="salience"></div>
     <div class="foot">
-      <button class="primary" onclick="exportCfg()">Export energy-weights.json</button>
+      <button class="primary" onclick="applyLive()">Apply to live gate</button>
+      <button onclick="exportCfg()">Export JSON</button>
       <button onclick="resetAll()">Reset to standards</button>
     </div>
     <div class="note">
@@ -174,6 +175,20 @@ function render(){
       <div class="deltabar"><i style="left:${pct}%;background:${accept?'var(--good)':'var(--bad)'}"></i></div>
       <div class="dom">dominant term · <b>${dom}</b></div></div>`;
   }).join('');
+}
+async function applyLive(){
+  const cfg={weights:{...W},threshold:T,salience:{...S},enforce:false};
+  const out=document.getElementById('out'); out.hidden=false;
+  out.textContent='applying…';
+  try{
+    const r=await fetch('/apply',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cfg)});
+    const j=await r.json();
+    out.textContent = j.ok
+      ? '✓ written to _SYSTEM/SELF/energy-weights.json — the live gate now uses these dials. (prior backed up to .bak)'
+      : '✗ '+(j.error||'apply failed');
+  }catch(e){
+    out.textContent='✗ not connected to the control server. Start it:\n  node _SYSTEM/Scripts/yuri-control-server.mjs\nthen open http://127.0.0.1:7717';
+  }
 }
 function exportCfg(){
   const cfg={weights:{...W},threshold:T,salience:{...S},enforce:false};
