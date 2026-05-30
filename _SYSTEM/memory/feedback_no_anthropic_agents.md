@@ -1,42 +1,32 @@
-# No Anthropic Agents — Hard Rule
+# Anthropic Agents — ALLOWED (policy reversed 2026-05-30)
 
-**Rule:** `Agent()` with Claude / Haiku / Sonnet / Opus models is **BANNED** in YURI.
+**Rule:** `Agent()` and Workflow subagents with Claude / Haiku / Sonnet / Opus models are **ALLOWED**.
 
-**Effective:** Hard-enforced by `.claude/hooks/agent-spawn-guard.js` (PATCH 023, 2026-05-14) — PreToolUse hook returns `permissionDecision: "deny"` on any `tool_name === "Agent"`.
+**Owner directive (2026-05-30):** Anthropic-model subagents are permitted, primarily for the **Workflow feature** and **ultracode-effort** work, where token cost is explicitly accepted in exchange for quality and parallelism. This reverses the earlier hard ban (PATCH 023, 2026-05-14).
 
-**Why it kept happening before the hook:**
-- `claude-protocol-guard.js` was warn-only — model ignored it under context pressure
-- `Agent(*)` is in `permissions.allow` array in `.claude/settings.json` — no negative gate
-- This memory file was referenced in `MEMORY.md` but the actual file was missing — no enforcement loop
+**Enforcement now:** `.claude/hooks/agent-spawn-guard.js` is **observability-only** — it logs every Agent spawn (`subagent_type`, `model`, `description`) to stderr and always allows. No `deny`.
 
-**Approved alternatives (in priority order):**
+**Cost guidance (guidance, NOT enforced):**
 
-| Task type | Lane | Command |
+Spend deliberately. An Anthropic subagent is the right tool when reasoning quality, parallel fan-out, or adversarial verification justify the spend (ultracode, complex multi-file work, independent review). For routine bounded work the cheaper lanes still win:
+
+| Task type | Prefer | Command |
 |---|---|---|
-| Bounded code change (1-3 files) | Codex gpt-5.4-mini | `bash _SYSTEM/Scripts/offload.sh -m gpt-5.4-mini "<CODEX TASK SPEC>"` |
-| Complex multi-file refactor | Codex gpt-5.5 | `bash _SYSTEM/Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC>"` |
-| Multi-file analysis + write | DeepSeek v4-pro (bounded per PATCH 011) | `bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --reasoning high "<bounded prompt>"` |
-| Quick triage / classification | llama3.2 local | `bash _SYSTEM/Scripts/offload.sh -m ollama-local "<prompt>"` |
 | Known-path file read | `Read` tool directly | `Read` |
-| Directory exploration | `Bash find/grep` or `mcp__ollama-bridge__ollama_explore_files` | direct |
-| Raw GitHub source | `curl raw.githubusercontent.com` (research_pipeline.md Tier 2) | `curl -s "https://raw.githubusercontent.com/<owner>/<repo>/main/<path>" \| head -200` |
-| Deterministic checks | direct Bash | direct |
+| Directory exploration | `Bash find/grep` or ollama-bridge | direct |
+| Quick triage / classification | llama3.2 local | `bash _SYSTEM/Scripts/offload.sh -m ollama-local "<prompt>"` |
+| Bounded code change (1-3 files) | inline Opus, or Codex | inline / `offload.sh -m gpt-5.4-mini` |
+| Raw GitHub source | `curl raw.githubusercontent.com` | `curl -s ".../main/<path>" \| head -200` |
+| Parallel fan-out / adversarial review / large research | **Workflow + Anthropic subagents** | `Workflow({...})` |
 
-**Bypass (emergency / explicit user approval only):**
-```bash
-YURI_ALLOW_AGENT=1 <command-that-spawns-agent>
-```
-The bypass logs to stderr (`[agent-spawn-guard] YURI_ALLOW_AGENT=1 — Agent spawn allowed (logged)`) — never silent.
+**Why the spend can be worth it now:** under ultracode the goal is the most exhaustive, correct answer — parallel Anthropic subagents for independent verification and fan-out buy quality the offload lanes can't match. The old failure mode (300k+ tokens on three Explore agents doing trivial reads) is still wasteful — that's what the cost guidance above prevents, by judgment rather than a hard gate.
 
-**Failure mode this rule prevents:**
-- Spawning 3 Explore/Haiku agents costs ~300k+ tokens
-- Same work via Codex/DeepSeek/curl costs 5-20k tokens
-- Anthropic agents bypass the offload-contract.mjs routing layer entirely
+**Bypass flag (now redundant):** `YURI_ALLOW_AGENT=1` is no longer needed — spawns are allowed by default. Harmless if still set.
 
 **Verification:**
 ```bash
-echo '{"tool_name":"Agent","tool_input":{"subagent_type":"Explore"}}' | node .claude/hooks/agent-spawn-guard.js | jq '.hookSpecificOutput.permissionDecision'
-# Expect: "deny"
+echo '{"tool_name":"Agent","tool_input":{"subagent_type":"general-purpose","model":"sonnet"}}' | node .claude/hooks/agent-spawn-guard.js; echo "exit=$?"
+# Expect: stderr log line + exit=0 (allowed), no deny JSON on stdout
 ```
 
-**Locked:** 2026-05-14 — PATCH 023 (commit pending)
+**History:** banned 2026-05-14 (PATCH 023) for cost control; reversed 2026-05-30 by owner directive for Workflow/ultracode use.

@@ -1,72 +1,45 @@
 #!/usr/bin/env node
-// .claude/hooks/agent-spawn-guard.js — PATCH 023
-// Hard-block Agent() spawns with Anthropic models (Claude/Haiku/Sonnet/Opus).
-// Memory rule: _SYSTEM/memory/feedback_no_anthropic_agents.md
-// Bypass (rare, explicit): YURI_ALLOW_AGENT=1 in environment.
+// .claude/hooks/agent-spawn-guard.js — PATCH 023, POLICY REVERSED 2026-05-30
+//
+// OWNER DIRECTIVE (2026-05-30): Anthropic-model subagents (Haiku / Sonnet /
+// Opus) are ALLOWED — primarily for the Workflow feature and ultracode-effort
+// work, where token cost is explicitly accepted in exchange for quality.
+//
+// This hook is now OBSERVABILITY-ONLY: it logs every Agent spawn and always
+// allows. The previous hard `deny` is removed.
+//
+// Cost guidance (NOT enforced — see _SYSTEM/memory/feedback_no_anthropic_agents.md):
+// for routine bounded work (known-path reads, simple greps, single-file edits)
+// still prefer direct tools or the offload lanes (Codex / DeepSeek / Ollama).
+// Reach for an Anthropic subagent when the task quality justifies the spend.
 
 'use strict';
 
 let stdin = '';
-process.stdin.on('data', (chunk) => {
-  stdin += chunk;
-});
+process.stdin.on('data', (chunk) => { stdin += chunk; });
 
 process.stdin.on('end', () => {
   let payload;
   try {
     payload = JSON.parse(stdin || '{}');
   } catch (_err) {
-    // Malformed payload — pass through silently
-    process.exit(0);
+    process.exit(0); // malformed payload — pass through silently
   }
 
   if (payload.tool_name !== 'Agent') {
     process.exit(0);
   }
 
-  // Explicit bypass for rare cases (e.g., user-approved one-off)
-  if (process.env.YURI_ALLOW_AGENT === '1') {
-    console.error('[agent-spawn-guard] YURI_ALLOW_AGENT=1 — Agent spawn allowed (logged)');
-    process.exit(0);
-  }
-  const subagentType = (payload.tool_input && payload.tool_input.subagent_type) || '<unspecified>';
-  const description = (payload.tool_input && payload.tool_input.description) || '';
-  const model = (payload.tool_input && payload.tool_input.model) || 'inherited';
-    // Allow built-in read-only subagent types (no model pinning, no Anthropic risk)
-  const SAFE_SUBAGENT_TYPES = ['Explore', 'Plan', 'statusline-setup', 'claude-code-guide'];
-  if (SAFE_SUBAGENT_TYPES.includes(subagentType)) {
-    process.exit(0);
-  }
+  const ti = payload.tool_input || {};
+  const subagentType = ti.subagent_type || '<unspecified>';
+  const model = ti.model || 'inherited';
+  const description = ti.description || '';
 
-  // Allow explicit non-Anthropic model strings
-  const NON_ANTHROPIC_PATTERNS = ['deepseek', 'gpt-', 'qwen', 'nvidia', 'nemotron', 'kimi', 'gemini', 'ollama', 'mistral', 'llama'];
-  if (model !== 'inherited' && NON_ANTHROPIC_PATTERNS.some(p => model.toLowerCase().includes(p))) {
-    process.exit(0);
-  }
-
-  const reason = [
-    'YURI-OS-MUSUBI policy: Agent() with Anthropic models (Claude/Haiku/Sonnet/Opus) is BANNED.',
-    'Memory rule: _SYSTEM/memory/feedback_no_anthropic_agents.md',
-    `Attempted spawn: subagent_type="${subagentType}" model="${model}" description="${description}"`,
-    '',
-    'USE THESE LANES INSTEAD:',
-    '  • Codex implementation: bash _SYSTEM/Scripts/offload.sh -m gpt-5.4-mini "<CODEX TASK SPEC>" (or gpt-5.5 for complex)',
-    '  • DeepSeek analysis (1M ctx + tools): bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --reasoning high "<bounded prompt per PATCH 011>"',
-    '  • Raw GitHub source (research_pipeline.md Tier 2): curl -s "https://raw.githubusercontent.com/<owner>/<repo>/main/<path>" | head -200',
-    '  • Local exploration: Read tool / Bash grep / mcp__ollama-bridge__ollama_explore_files',
-    '  • Local subagent (Ollama): mcp__ollama-bridge__ollama_run',
-    '',
-    'Bypass (rare/explicit only): YURI_ALLOW_AGENT=1',
-  ].join('\n');
-
-  const output = {
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'deny',
-      permissionDecisionReason: reason,
-    },
-  };
-
-  console.log(JSON.stringify(output));
+  // Observability only — log the spawn, then allow.
+  console.error(
+    `[agent-spawn-guard] Agent spawn allowed — subagent_type="${subagentType}" ` +
+    `model="${model}" description="${description}" ` +
+    '(Anthropic subagents permitted per owner directive 2026-05-30)',
+  );
   process.exit(0);
 });
