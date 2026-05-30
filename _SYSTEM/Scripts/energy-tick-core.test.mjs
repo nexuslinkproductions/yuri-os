@@ -192,3 +192,18 @@ test('CRITICAL auto-engages deep but does NOT pollute the WORK surprise band', (
     if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
   }
 });
+
+test('LIVE: energy-weights.json eta override drives the real gate (protected ΔU 100→0)', () => {
+  const cfgFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'cfg-')), 'energy-weights.json');
+  fs.writeFileSync(cfgFile, JSON.stringify({ weights: { eta: 0 } }));
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cfgst-'));
+  const prevDir = process.env.YURI_STATE_DIR; process.env.YURI_STATE_DIR = stateDir;
+  try {
+    // default eta=100 → protected ΔU=100; with the live override eta=0 → ΔU=0.
+    // This is the proof the sliders are NOT cosmetic: the config steers the gate.
+    const r = tickAndTrace(freshState(), protectedEdit, { configFile: cfgFile });
+    assert.equal(r.deltaU, 0, 'eta override to 0 must zero the protected-path term in the LIVE gate');
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+  }
+});

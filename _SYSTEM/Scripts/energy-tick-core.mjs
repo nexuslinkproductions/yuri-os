@@ -22,7 +22,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { traceGateEvaluation } from './math/yuri-energy-trace.mjs';
-import { gateProposal } from './math/yuri-energy.mjs';
+import { gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
+import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 import { currentUserHandle } from './yuri-user.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -227,7 +228,12 @@ export function evaluateTransition(prevState, event, nowIso = '') {
  */
 export function tickAndTrace(prevState, event, opts = {}) {
   const nowIso = opts.nowIso || new Date().toISOString();
-  const cfg = opts.salience || DEFAULT_SALIENCE;
+  // Live config: a value tuned in the cockpit and persisted to energy-weights.json
+  // steers the real gate here. Absent/invalid → standards (fail-safe).
+  const fileCfg = loadEnergyConfig(opts.configFile);
+  const cfg = { ...DEFAULT_SALIENCE, ...(opts.salience || {}), ...(fileCfg.salience || {}) };
+  const weights = { ...DEFAULT_WEIGHTS, ...(fileCfg.weights || {}) };
+  const threshold = Number.isFinite(fileCfg.threshold) ? fileCfg.threshold : 0;
   const t = classifyTransition(event);
   const tier = salience(t);
   // Salience front door: SKIP transitions never reach the math — no trace, no
@@ -243,6 +249,8 @@ export function tickAndTrace(prevState, event, opts = {}) {
     regime: 'action', // everyday-workflow ΔU is always a real, distinct before/after
     stateBefore: toGateState(prevState),
     stateAfter: toGateState(nextState),
+    weights,
+    threshold,
     traceOptions: opts.traceOptions || {},
   });
   // Layer C: depth-gated |ΔU| surprise. Judge THIS ΔU against the band BEFORE
