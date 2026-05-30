@@ -40,6 +40,10 @@ CLAUDE.local.md
 .claude/state/branch-lock.json
 .claude/state/session-checkpoint.json
 
+# YURI per-machine user identity + login secrets (local only, never committed)
+.claude/user-auth.json
+.claude/yuri-user.json
+
 # Local model/runtime payloads (binary/vendor, not source truth)
 checkpoints/
 _SYSTEM/data/models/needle/
@@ -111,6 +115,7 @@ _SYSTEM/tools/MSA/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/energy-trace/
+_SYSTEM/state/energy-session/
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "users": [
+    {
+      "githubId": "nexuslinkproductions",
+      "handle": "marcel",
+      "displayName": "Marcel",
+      "role": "dev",
+      "dataBranch": "user-data",
+      "dataPath": "user-data/marcel",
+      "consent": {
+        "version": "v1",
+        "at": "2026-05-30T06:07:49.815Z"
+      },
+      "registeredAt": "2026-05-30T06:07:49.683Z",
+      "updatedAt": "2026-05-30T06:07:49.683Z"
+    },
+    {
+      "githubId": "NotMeeMan",
+      "handle": "mike",
+      "displayName": "Mike",
+      "role": "coworker",
+      "dataBranch": "user-data",
+      "dataPath": "user-data/mike",
+      "consent": null,
+      "registeredAt": "2026-05-30T06:07:49.751Z",
+      "updatedAt": "2026-05-30T06:07:49.751Z"
+    }
+  ]
+}
