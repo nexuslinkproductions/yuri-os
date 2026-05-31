@@ -13,14 +13,14 @@ export const PRIVATE_PERSONA_ENV = 'YURI_PRIVATE_RICK_OVERLAY';
 export const LANE_PERSONAS = Object.freeze({
   codex: Object.freeze({
     key: 'codex',
-    shipLabel: 'Codex/main',
+    shipLabel: 'Claude/Opus',
     privateAlias: 'Rick C-137',
     privateUseOnly: true,
     copyrightRisk: true,
-    authority: 'final implementation, verification, arbitration, and authorized commit lane',
+    authority: 'core implementation, verification, and arbitration lane; advisory until local evidence verifies, owner holds commit authority',
     role: 'core builder and verifier',
     rationale:
-      'Private shorthand for the main self-made Rick: strongest fit for final technical ownership without changing YURI authority.',
+      'Private shorthand for the main self-made Rick: strongest fit for core technical ownership on the Claude/Opus lane without changing YURI authority. Codex/main is retired as a roster lane.',
   }),
   quantum: Object.freeze({
     key: 'quantum',
@@ -28,10 +28,10 @@ export const LANE_PERSONAS = Object.freeze({
     privateAlias: 'Quantum Rick',
     privateUseOnly: true,
     copyrightRisk: true,
-    authority: 'primary Claude Sonnet builder lane for bounded drafts, plans, and advisory implementation packets verified by Codex/main',
+    authority: 'primary Claude Sonnet builder lane for bounded drafts, plans, and advisory implementation packets verified against local evidence',
     role: 'fast builder and pressure-test lane',
     rationale:
-      'Private shorthand for the active Sonnet builder lane in the paired Rick tmux cockpit; advisory until Codex/main verifies.',
+      'Private shorthand for the active Sonnet builder lane; advisory until local evidence verifies.',
   }),
   'claude-sonnet': Object.freeze({
     key: 'claude-sonnet',
@@ -39,7 +39,7 @@ export const LANE_PERSONAS = Object.freeze({
     privateAlias: 'Memory Rick',
     privateUseOnly: true,
     copyrightRisk: true,
-    authority: 'regular collaboration, critique, planning, and synthesis lane verified by Codex/main',
+    authority: 'regular collaboration, critique, planning, and synthesis lane verified against local evidence',
     role: 'live thought partner',
     rationale:
       'Private shorthand for a mind-space collaborator: useful for critique, recall, planning, and conversational continuity.',
@@ -50,7 +50,7 @@ export const LANE_PERSONAS = Object.freeze({
     privateAlias: 'Rick Prime',
     privateUseOnly: true,
     copyrightRisk: true,
-    authority: 'intentional escalation for hard coding, architecture, and expensive reasoning verified by Codex/main',
+    authority: 'intentional escalation for hard coding, architecture, and expensive reasoning verified against local evidence',
     role: 'rare high-power escalation lane',
     rationale:
       'Private shorthand for apex-tier escalation. The reference is power-tier only; do not import villain persona or ethics.',
@@ -87,31 +87,6 @@ export const LANE_PERSONAS = Object.freeze({
     role: 'mechanical lane caretaker',
     rationale:
       'Private shorthand for infrastructure that keeps sessions awake, captured, and observable.',
-  }),
-});
-
-export const RICK_TMUX_DEFAULTS = Object.freeze({
-  session: 'yuri-ricks',
-  window: '0',
-  bufferName: 'yuri-ricks-feed',
-});
-
-export const RICK_TMUX_LANES = Object.freeze({
-  quantum: Object.freeze({
-    key: 'quantum',
-    personaKey: 'quantum',
-    session: RICK_TMUX_DEFAULTS.session,
-    window: RICK_TMUX_DEFAULTS.window,
-    pane: '0',
-    aliases: Object.freeze(['q', 'quantum-rick', 'qtrk']),
-  }),
-  prime: Object.freeze({
-    key: 'prime',
-    personaKey: 'claude-opus',
-    session: RICK_TMUX_DEFAULTS.session,
-    window: RICK_TMUX_DEFAULTS.window,
-    pane: '1',
-    aliases: Object.freeze(['p', 'rick-prime', 'rpri']),
   }),
 });
 
@@ -198,40 +173,7 @@ export function shippingPersonaAudit() {
   }));
 }
 
-export function rickTmuxLaneConfig(env = process.env) {
-  return Object.freeze({
-    quantum: Object.freeze({
-      ...RICK_TMUX_LANES.quantum,
-      session: env.YURI_RICKS_TMUX_SESSION || RICK_TMUX_LANES.quantum.session,
-      window: env.YURI_RICKS_TMUX_WINDOW || RICK_TMUX_LANES.quantum.window,
-      pane: env.YURI_RICKS_QUANTUM_PANE || RICK_TMUX_LANES.quantum.pane,
-      aliases: [...RICK_TMUX_LANES.quantum.aliases],
-    }),
-    prime: Object.freeze({
-      ...RICK_TMUX_LANES.prime,
-      session: env.YURI_RICKS_TMUX_SESSION || RICK_TMUX_LANES.prime.session,
-      window: env.YURI_RICKS_TMUX_WINDOW || RICK_TMUX_LANES.prime.window,
-      pane: env.YURI_RICKS_PRIME_PANE || RICK_TMUX_LANES.prime.pane,
-      aliases: [...RICK_TMUX_LANES.prime.aliases],
-    }),
-  });
-}
-
-export function rickRoster(options = {}) {
-  const env = options.env || process.env;
-  const tmuxLanes = rickTmuxLaneConfig(env);
-  const tmuxByPersona = new Map();
-  for (const lane of Object.values(tmuxLanes)) {
-    tmuxByPersona.set(lane.personaKey, {
-      lane: lane.key,
-      session: lane.session,
-      window: lane.window,
-      pane: lane.pane,
-      target: `${lane.session}:${lane.window}.${lane.pane}`,
-      aliases: [...lane.aliases],
-    });
-  }
-
+export function rickRoster() {
   return Object.values(LANE_PERSONAS).map((persona) => ({
     key: persona.key,
     shipLabel: persona.shipLabel,
@@ -240,7 +182,6 @@ export function rickRoster(options = {}) {
     authority: persona.authority,
     privateUseOnly: persona.privateUseOnly,
     copyrightRisk: persona.copyrightRisk,
-    tmux: tmuxByPersona.get(persona.key) || null,
   }));
 }
 
@@ -252,8 +193,6 @@ export function resolveRickRosterAlias(input, options = {}) {
       entry.key,
       entry.shipLabel,
       entry.privateAlias,
-      entry.tmux?.lane,
-      ...(entry.tmux?.aliases || []),
     ].filter(Boolean).map(normalizeAlias);
     if (aliases.includes(needle)) return entry;
   }
@@ -272,8 +211,7 @@ function printRoster(command) {
   if (command === 'table') {
     const rows = rickRoster();
     const lines = rows.map((entry) => {
-      const tmux = entry.tmux ? ` tmux=${entry.tmux.target}` : '';
-      return `${entry.key}: ${entry.privateAlias} -> ${entry.shipLabel}; ${entry.role}; ${entry.authority}${tmux}`;
+      return `${entry.key}: ${entry.privateAlias} -> ${entry.shipLabel}; ${entry.role}; ${entry.authority}`;
     });
     process.stdout.write(`${lines.join('\n')}\n`);
     return;

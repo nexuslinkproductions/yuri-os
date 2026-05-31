@@ -1,0 +1,30 @@
+[package]
+name = "nexus-ingest"
+version = "0.1.0"
+description = "Bug-bounty program ingestion for the Nexus Link acquisition engine: typed pullers (HackerOne / ProjectDiscovery chaos / disclose diodb / Immunefi-IBB) behind a Feed trait, cross-feed dedup by (program, asset), normalization of in-scope assets into tenant-scoped nexus-core LeadRecords + prior ScoreRecords, and a VETO-FIRST compliance gate that drops out-of-scope / ineligible / ToS-restricted assets through nexus_core::Veto BEFORE they can ever become an ev::Lead."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "nexus_ingest"
+path = "src/lib.rs"
+
+[dependencies]
+nexus-core = { path = "../nexus-core" }
+nexus-score = { path = "../nexus-score" }
+serde = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+time = { workspace = true }
+serde_json = "1"
+# Blocking HTTP with rustls (no OpenSSL system dep). Default features are turned off
+# so we do not drag in the native-tls/openssl stack; we opt back into exactly what we
+# need: a blocking client over rustls + JSON. The live network puller is the ONLY code
+# that touches reqwest; every test runs against committed fixtures (no network).
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls", "json"] }
+
+[lints]
+workspace = true

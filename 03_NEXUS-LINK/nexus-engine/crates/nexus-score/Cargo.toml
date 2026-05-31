@@ -1,0 +1,15 @@
+[package]
+name = "nexus-score"
+version = "0.1.0"
+description = "Typed, tested acquisition-math kernel: lead scoring, EV prioritization, queue stability, conversion forecasting, cadence, and a salience veto governor. std-only, no panics in library paths."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "nexus_score"
+path = "src/lib.rs"
+
+[lints]
+workspace = true

@@ -207,3 +207,13 @@ test('LIVE: energy-weights.json eta override drives the real gate (protected ΔU
     if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
   }
 });
+
+test('applyTransition deep-copies evidence records — mutating the output cannot reach back into prev', () => {
+  const s1 = applyTransition(freshState(), classifyTransition(editOk), '2026-01-01'); // 1 evidence record
+  assert.equal(s1.evidence.length, 1);
+  const s2 = applyTransition(s1, classifyTransition(editOk), '2026-01-02'); // carries s1's record + appends
+  assert.equal(s2.evidence.length, 2);
+  assert.notEqual(s2.evidence[0], s1.evidence[0], 'carried evidence record is a copy, not the same reference');
+  s2.evidence[0].base = 999;
+  assert.equal(s1.evidence[0].base, 1.0, 'mutating the output did not corrupt prev — immutability contract holds');
+});

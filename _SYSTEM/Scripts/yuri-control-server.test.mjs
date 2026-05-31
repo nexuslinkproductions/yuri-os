@@ -31,13 +31,19 @@ test('preview: a healthy edit descends (ΔU < 0, accept)', () => {
 });
 
 test('validate drops unknown / negative / non-finite, keeps valid', () => {
-  const v = validate({ weights: { eta: -5, bogus: 1, delta: 2 }, threshold: 0.3, salience: { surpriseK: 3 }, enforce: true });
+  const v = validate({ weights: { eta: -5, bogus: 1, delta: 2 }, threshold: 0.3, salience: { surpriseK: 3 } });
   assert.equal(v.weights.eta, undefined);
   assert.equal(v.weights.bogus, undefined);
   assert.equal(v.weights.delta, 2);
   assert.equal(v.threshold, 0.3);
   assert.equal(v.salience.surpriseK, 3);
-  assert.equal(v.enforce, true);
+});
+
+test('validate keeps valid fsrs + evict, drops out-of-range fail-closed', () => {
+  const v = validate({ fsrs: { rFloor: 0.7, decay: -0.4, factor: 0.25, salience: 2, freq: 1, deltaU: 0.5, bogus: 9 }, evict: { ttlDays: 45 } });
+  assert.deepEqual(v.fsrs, { rFloor: 0.7, decay: -0.4, factor: 0.25, salience: 2, freq: 1, deltaU: 0.5 });
+  assert.equal(v.evict.ttlDays, 45);
+  assert.equal(validate({ fsrs: { rFloor: 0, decay: 0.5 } }).fsrs, undefined); // rFloor must be >0, decay <0 → both dropped → no fsrs block
 });
 
 // --- mutation-endpoint hardening (report §35): bearer token + Origin/Host gate ---

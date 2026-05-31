@@ -70,15 +70,21 @@
     <div class="group" id="threshold"></div>
     <h2>Salience · when the surprise tier fires</h2>
     <div class="group" id="salience"></div>
+    <h2>Forgetting · subconscious demote curve (FSRS)</h2>
+    <div class="group" id="fsrs"></div>
+    <h2>Eviction · procedural-memory archive horizon</h2>
+    <div class="group" id="evict"></div>
     <div class="foot">
       <button class="primary" onclick="applyLive()">Apply to live gate</button>
       <button onclick="exportCfg()">Export JSON</button>
       <button onclick="resetAll()">Reset to standards</button>
     </div>
     <div class="note">
-      <b>Persist not wired yet.</b> This v1 previews + exports config. Writing it back to
-      <code>_SYSTEM/SELF/energy-weights.json</code> at runtime needs the local control server
-      (<code>yuri-control-server.mjs</code>) — next step. For now: export, save the JSON, done.
+      <b>Persist is live.</b> Served by <code>yuri-control-server.mjs</code>, the dials hydrate from
+      the current <code>energy-weights.json</code> and <b>Apply</b> writes back atomically (prior →
+      <code>.bak</code>, change logged). Writes need a <b>dev-role</b> server — it hands the cockpit a
+      bearer token via <code>GET /config</code>; a keyless/coworker run can preview + export but not apply.
+      Opened as a plain file (no server), Apply falls back to Export.
     </div>
     <pre id="out" hidden></pre>
   </div>
@@ -96,9 +102,11 @@
 </div>
 <script>
 // ── standards (mirror DEFAULT_WEIGHTS / DEFAULT_SALIENCE; threshold default 0) ──
-const STD_W = {alpha:1,beta:2,gamma:1,delta:1,epsilon:1,zeta:0.5,eta:100,theta:10,iota:0.1};
+const STD_W = {alpha:1,beta:2,gamma:1,delta:1,epsilon:1,zeta:0.5,eta:100,theta:10,iota:0.1,kappa:5,lambda:50};
 const STD_T = 0;
 const STD_S = {depthThreshold:6,surpriseK:2.0,surpriseWindow:20};
+const STD_E = {ttlDays:90};
+const STD_F = {rFloor:0.6,decay:-0.5,factor:0.2345679012345679,salience:1.0,freq:0.5,deltaU:0.3};
 const META = {
   alpha:['entropy','claim-status uncertainty',0,5,0.1],
   beta:['KL drift','claim ↔ evidence (anti-bullshit)',0,5,0.1],
@@ -109,8 +117,22 @@ const META = {
   eta:['protected','catastrophic violation',0,200,1,'crit'],
   theta:['ladder','promotion inversion',0,50,1,'crit'],
   iota:['verified','evidence credit',0,2,0.05,'reward'],
+  kappa:['repeatFail','confidently-wrong repeats',0,20,0.5,'crit'],
+  lambda:['malformed','out-of-range forecast (fail-closed)',0,100,1,'crit'],
 };
-let W={...STD_W}, T=STD_T, S={...STD_S};
+const META_F = {
+  rFloor:['R floor','demote below this retrievability',0.05,0.95,0.05,'crit'],
+  decay:['decay','FSRS power-law exponent (negative)',-1.5,-0.1,0.05],
+  factor:['factor','FSRS power-law factor',0.05,1,0.01],
+  salience:['salience·S','salience → slower decay',0,3,0.1,'reward'],
+  freq:['freq·S','recall frequency → slower decay',0,3,0.1,'reward'],
+  deltaU:['ΔU·S','encode-surprise → slower decay',0,2,0.05,'reward'],
+};
+const META_E = {
+  ttlDays:['evict TTL','procedural-memory archive horizon (days)',1,365,1],
+};
+let W={...STD_W}, T=STD_T, S={...STD_S}, E={...STD_E}, F={...STD_F};
+let APPLY_TOKEN=null;
 
 // ── faithful term ports (match yuri-energy.mjs for the live scenarios) ──
 const clamp=(p)=>Math.min(1-1e-9,Math.max(1e-9,p));
@@ -149,11 +171,19 @@ function buildControls(){
     slider('depthThreshold',S.depthThreshold,1,20,1,'',`depthThreshold`,'meaningful transitions before surprise can engage')+
     slider('surpriseK',S.surpriseK,0.5,5,0.1,'',`surpriseK`,'|ΔU| past median + K·MAD = surprising')+
     slider('surpriseWindow',S.surpriseWindow,5,60,1,'',`surpriseWindow`,'samples in the adaptive band');
+  document.getElementById('fsrs').innerHTML=Object.entries(META_F).map(([k,m])=>
+    slider('F.'+k,F[k],m[2],m[3],m[4],m[5],`${k} · ${m[0]}`,m[1])).join('');
+  document.getElementById('evict').innerHTML=Object.entries(META_E).map(([k,m])=>
+    slider('E.'+k,E[k],m[2],m[3],m[4],m[5],`${k} · ${m[0]}`,m[1])).join('');
   document.querySelectorAll('input[type=range]').forEach(inp=>inp.addEventListener('input',onInput));
 }
 function onInput(e){
   const k=e.target.dataset.k, v=+e.target.value, step=+e.target.step;
-  if(k in W)W[k]=v; else if(k==='T')T=v; else S[k]=v;
+  if(k.startsWith('F.'))F[k.slice(2)]=v;
+  else if(k.startsWith('E.'))E[k.slice(2)]=v;
+  else if(k in W)W[k]=v;
+  else if(k==='T')T=v;
+  else S[k]=v;
   e.target.parentElement.querySelector(`[data-v="${k}"]`).textContent=v.toFixed(step<1?2:0);
   render();
 }
@@ -176,27 +206,45 @@ function render(){
       <div class="dom">dominant term · <b>${dom}</b></div></div>`;
   }).join('');
 }
-async function applyLive(){
-  const cfg={weights:{...W},threshold:T,salience:{...S},enforce:false};
-  const out=document.getElementById('out'); out.hidden=false;
-  out.textContent='applying…';
+function cfgObj(){return{weights:{...W},threshold:T,salience:{...S},evict:{...E},fsrs:{...F}};}
+// Pull the live config + the dev-only apply token from the server. Hydrates the dials from
+// what the gate actually uses right now (falls back to standards for any unset section), and
+// captures the bearer token so /apply is authorized. Silently no-ops if served as a file://.
+async function loadConfig(){
   try{
-    const r=await fetch('/apply',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cfg)});
+    const r=await fetch('/config'); const j=await r.json();
+    APPLY_TOKEN=j.applyToken||null;
+    const c=j.config||{};
+    W={...STD_W,...(c.weights||{})};
+    T=Number.isFinite(c.threshold)?c.threshold:STD_T;
+    S={...STD_S,...(c.salience||{})};
+    E={...STD_E,...(c.evict||{})};
+    F={...STD_F,...(c.fsrs||{})};
+    document.getElementById('ver').textContent = j.dev ? 'v1 · live · dev (apply enabled)' : 'v1 · live · preview only';
+    return j;
+  }catch(_){return null;}
+}
+async function applyLive(){
+  const out=document.getElementById('out'); out.hidden=false; out.textContent='applying…';
+  try{
+    if(!APPLY_TOKEN) await loadConfig();   // (re)fetch the dev apply token if we don't have it yet
+    const headers={'content-type':'application/json'};
+    if(APPLY_TOKEN) headers['authorization']='Bearer '+APPLY_TOKEN;
+    const r=await fetch('/apply',{method:'POST',headers,body:JSON.stringify(cfgObj())});
     const j=await r.json();
     out.textContent = j.ok
       ? '✓ written to _SYSTEM/SELF/energy-weights.json — the live gate now uses these dials. (prior backed up to .bak)'
-      : '✗ '+(j.error||'apply failed');
+      : '✗ '+(j.error||'apply failed')+(r.status===401?'\n  Run the server from a dev-role shell so GET /config issues the apply token.':'');
   }catch(e){
     out.textContent='✗ not connected to the control server. Start it:\n  node _SYSTEM/Scripts/yuri-control-server.mjs\nthen open http://127.0.0.1:7717';
   }
 }
 function exportCfg(){
-  const cfg={weights:{...W},threshold:T,salience:{...S},enforce:false};
-  const j=JSON.stringify(cfg,null,2).replace(/"(\w+)":/g,'"<span class=k>$1</span>":').replace(/: (-?[\d.]+)/g,': <span class=n>$1</span>');
+  const j=JSON.stringify(cfgObj(),null,2).replace(/"(\w+)":/g,'"<span class=k>$1</span>":').replace(/: (-?[\d.]+)/g,': <span class=n>$1</span>');
   const out=document.getElementById('out'); out.hidden=false; out.innerHTML=j;
 }
-function resetAll(){W={...STD_W};T=STD_T;S={...STD_S};buildControls();render();document.getElementById('out').hidden=true;}
-buildControls(); render();
+function resetAll(){W={...STD_W};T=STD_T;S={...STD_S};E={...STD_E};F={...STD_F};buildControls();render();document.getElementById('out').hidden=true;}
+loadConfig().finally(()=>{buildControls();render();});
 </script>
 </body>
 </html>

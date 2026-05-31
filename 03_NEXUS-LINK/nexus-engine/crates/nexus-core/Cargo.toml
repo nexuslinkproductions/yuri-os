@@ -1,0 +1,26 @@
+[package]
+name = "nexus-core"
+version = "0.1.0"
+description = "Domain ports and records for the Nexus Link acquisition engine: tenant-scoped records, money-as-cents, stage transitions, and the Store/Ingestor/OutcomeLedger/Rankable/Veto ports that translate domain state into the nexus-score kernel."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "nexus_core"
+path = "src/lib.rs"
+
+[dependencies]
+nexus-score = { path = "../nexus-score" }
+serde = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+time = { workspace = true }
+
+[dev-dependencies]
+serde_json = "1"
+
+[lints]
+workspace = true

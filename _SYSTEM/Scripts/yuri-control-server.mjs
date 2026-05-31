@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { computeU, gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
-import { loadEnergyConfig, CONFIG_FILE } from './math/yuri-energy-config.mjs';
+import { loadEnergyConfig, CONFIG_FILE, num, MIN_SURPRISE_WINDOW } from './math/yuri-energy-config.mjs';
 import operator from './yuri-operator.cjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -68,21 +68,39 @@ const SCN = [
 function validate(body) {
   const out = {};
   const w = {};
-  if (body && body.weights && typeof body.weights === 'object') {
+  if (body && body.weights && typeof body.weights === 'object' && !Array.isArray(body.weights)) {
     for (const k of Object.keys(DEFAULT_WEIGHTS)) {
-      const n = Number(body.weights[k]); if (Number.isFinite(n) && n >= 0) w[k] = n;
+      const n = num(body.weights[k]); if (n !== null && n >= 0) w[k] = n;
     }
   }
   if (Object.keys(w).length) out.weights = w;
-  const t = Number(body && body.threshold); if (Number.isFinite(t)) out.threshold = t;
-  if (body && body.salience && typeof body.salience === 'object') {
+  const t = num(body && body.threshold); if (t !== null) out.threshold = t;
+  if (body && body.salience && typeof body.salience === 'object' && !Array.isArray(body.salience)) {
     const s = {};
-    const dt = Number(body.salience.depthThreshold); if (Number.isFinite(dt) && dt >= 1) s.depthThreshold = Math.trunc(dt);
-    const sk = Number(body.salience.surpriseK); if (Number.isFinite(sk) && sk >= 0) s.surpriseK = sk;
-    const sw = Number(body.salience.surpriseWindow); if (Number.isFinite(sw) && sw >= 1) s.surpriseWindow = Math.trunc(sw);
+    const dt = num(body.salience.depthThreshold); if (dt !== null && dt >= 1) s.depthThreshold = Math.trunc(dt);
+    const sk = num(body.salience.surpriseK); if (sk !== null && sk >= 0) s.surpriseK = sk;
+    const sw = num(body.salience.surpriseWindow); if (sw !== null && sw >= MIN_SURPRISE_WINDOW) s.surpriseWindow = Math.trunc(sw);
     if (Object.keys(s).length) out.salience = s;
   }
-  if (typeof (body && body.enforce) === 'boolean') out.enforce = body.enforce;
+  // evict.ttlDays — the forgetting horizon, so the cockpit can carry it (attack-finding:
+  // previously dropped here, making the knob unreachable from the canonical surface's own UI).
+  if (body && body.evict && typeof body.evict === 'object' && !Array.isArray(body.evict)) {
+    const e = {};
+    const ttl = num(body.evict.ttlDays); if (ttl !== null && ttl >= 1) e.ttlDays = Math.trunc(ttl);
+    if (Object.keys(e).length) out.evict = e;
+  }
+  // fsrs — subconscious forgetting-curve knobs (cockpit fsrs sliders → memory-relocator/yuri-fsrs).
+  // Same fail-closed rules as loadEnergyConfig: rFloor in (0,1], decay < 0, factor > 0, weights >= 0.
+  if (body && body.fsrs && typeof body.fsrs === 'object' && !Array.isArray(body.fsrs)) {
+    const f = {};
+    const rf = num(body.fsrs.rFloor);   if (rf !== null && rf > 0 && rf <= 1) f.rFloor = rf;
+    const dc = num(body.fsrs.decay);    if (dc !== null && dc < 0) f.decay = dc;
+    const ft = num(body.fsrs.factor);   if (ft !== null && ft > 0) f.factor = ft;
+    const sa = num(body.fsrs.salience); if (sa !== null && sa >= 0) f.salience = sa;
+    const fq = num(body.fsrs.freq);     if (fq !== null && fq >= 0) f.freq = fq;
+    const du = num(body.fsrs.deltaU);   if (du !== null && du >= 0) f.deltaU = du;
+    if (Object.keys(f).length) out.fsrs = f;
+  }
   return out;
 }
 
@@ -110,12 +128,22 @@ function apply(body) {
   try { prev = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch {}
   try { if (fs.existsSync(CONFIG_FILE)) fs.copyFileSync(CONFIG_FILE, CONFIG_FILE + '.bak'); } catch {}
   fs.mkdirSync(path.dirname(CONFIG_FILE), { recursive: true });
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2) + '\n');
+  // Merge over the prior file (attack-finding): a wholesale replace silently dropped the
+  // _doc block AND evict.ttlDays (validate only emits cockpit-owned sections), collapsing
+  // the tuned forgetting horizon back to 90. Top-level merge updates the tuned sections
+  // while preserving _doc and any section the request body omitted.
+  const merged = { ...prev, ...cfg };
+  // Atomic write (attack-finding): a reader (tickAndTrace / memory-evict) hitting the file
+  // mid-write would JSON.parse a torn file and silently fall back to ALL defaults. tmp +
+  // rename means a reader sees either the old or the new file, never a partial.
+  const tmp = `${CONFIG_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(merged, null, 2) + '\n');
+  fs.renameSync(tmp, CONFIG_FILE);
   try {
     fs.mkdirSync(path.dirname(CHANGELOG), { recursive: true });
-    fs.appendFileSync(CHANGELOG, JSON.stringify({ at: new Date().toISOString(), from: prev, to: cfg }) + '\n');
+    fs.appendFileSync(CHANGELOG, JSON.stringify({ at: new Date().toISOString(), from: prev, to: merged }) + '\n');
   } catch {}
-  return { ok: true, written: cfg, path: CONFIG_FILE };
+  return { ok: true, written: merged, path: CONFIG_FILE };
 }
 
 function reset() {

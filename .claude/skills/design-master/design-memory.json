@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "lastUpdated": "2026-05-29T08:47:34.332Z",
+  "lastUpdated": "2026-05-31T14:40:12.598Z",
   "templates": {
     "kagami-sprint-audit": {
       "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
@@ -43,6 +43,62 @@
     }
   },
   "entries": [
+    {
+      "date": "2026-05-31",
+      "component": "energy-landscape-dashboard-v2-preview",
+      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard-v2-preview.html",
+      "action": "edit",
+      "decision": "Updated: energy-landscape-dashboard-v2-preview"
+    },
+    {
+      "date": "2026-05-31",
+      "component": "energy-landscape-dashboard-v2-preview",
+      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard-v2-preview.html",
+      "action": "create",
+      "decision": "New component created: energy-landscape-dashboard-v2-preview"
+    },
+    {
+      "date": "2026-05-31",
+      "component": "index",
+      "file": "_SYSTEM/reports/yuri-control/index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-05-30",
+      "component": "nexus-design-system",
+      "file": "_SYSTEM/reports/assets/nexus-design-system.css",
+      "action": "edit",
+      "decision": "Updated: nexus-design-system"
+    },
+    {
+      "date": "2026-05-30",
+      "component": "nexus-design-system",
+      "file": "_SYSTEM/reports/assets/nexus-design-system.css",
+      "action": "create",
+      "decision": "New component created: nexus-design-system"
+    },
+    {
+      "date": "2026-05-30",
+      "component": "NEXUS_LINK_REVENUE_PLAN_2026-05-30",
+      "file": "_SYSTEM/reports/NEXUS_LINK_REVENUE_PLAN_2026-05-30.html",
+      "action": "edit",
+      "decision": "Updated: NEXUS_LINK_REVENUE_PLAN_2026-05-30"
+    },
+    {
+      "date": "2026-05-30",
+      "component": "index",
+      "file": "_SYSTEM/reports/yuri-control/index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-05-30",
+      "component": "index",
+      "file": "_SYSTEM/reports/yuri-control/index.html",
+      "action": "create",
+      "decision": "New component created: index"
+    },
     {
       "date": "2026-05-29",
       "component": "AI-Ad-Management-Pitch-DE",

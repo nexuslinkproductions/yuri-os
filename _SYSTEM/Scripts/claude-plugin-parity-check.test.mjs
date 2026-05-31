@@ -75,10 +75,6 @@ function copyTreeMinimal(tmpRoot) {
     '_SYSTEM/Scripts/lane-persona-map.mjs',
     '_SYSTEM/Scripts/gitnexus-mcp.mjs',
     '_SYSTEM/Scripts/gitnexus-mcp-check.mjs',
-    '_SYSTEM/Scripts/claude-codex-final-pass.mjs',
-    '_SYSTEM/Scripts/claude-codex-final-pass.test.mjs',
-    '_SYSTEM/Scripts/rick-tmux-lanes.mjs',
-    '_SYSTEM/Scripts/rick-tmux-lanes.test.mjs',
     '_SYSTEM/Scripts/ollama-bridge-mcp-check.mjs',
     '.claude/mcp-servers/ollama-bridge/index.js',
   ];

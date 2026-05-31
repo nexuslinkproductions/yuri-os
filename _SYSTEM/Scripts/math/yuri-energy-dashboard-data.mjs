@@ -46,6 +46,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DEFAULT_WEIGHTS } from './yuri-energy.mjs';
 import { loadScenario, evaluateTransitions } from './yuri-energy-experiment.mjs';
+import { loadEnergyConfig } from './yuri-energy-config.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 // _HERE = _SYSTEM/Scripts/math → up three levels is the repo root. Mirrors the
@@ -327,6 +328,39 @@ export function buildComponentsSection(weights = DEFAULT_WEIGHTS) {
 }
 
 // ---------------------------------------------------------------------------
+// buildConfigSection — pure. The LIVE tuned energy landscape: energy-weights.json
+// merged over the in-code defaults (loadEnergyConfig, fail-closed). Unlike
+// buildComponentsSection (the bare policy baseline), this is what the gate ACTUALLY
+// scores U over right now — weights + threshold + salience + the subconscious knobs
+// (evict/fsrs/recall) — plus an explicit list of what's tuned away from default. For
+// the paper: the real landscape, with the default→tuned delta made visible.
+// ---------------------------------------------------------------------------
+
+export function buildConfigSection(liveConfig = {}, defaults = DEFAULT_WEIGHTS) {
+  const cfg = liveConfig || {};
+  const mergedWeights = { ...defaults, ...(cfg.weights || {}) };
+  // Honest delta: only the WEIGHTS have an exported in-code baseline (DEFAULT_WEIGHTS) to compare
+  // against, so only weight tuning is claimed. threshold's default is a known 0. The subconscious
+  // blocks (salience/evict/fsrs/recall) are reported as LIVE VALUES — not flagged "tuned", because
+  // claiming that without their default objects would mislabel present-but-default as tuned.
+  const tunedWeights = Object.keys(mergedWeights).filter((k) => mergedWeights[k] !== defaults[k]);
+  const thresholdTuned = cfg.threshold != null && cfg.threshold !== 0;
+  return {
+    provenance: PROVENANCE.REAL,
+    note: 'Live energy-weights.json merged over the in-code defaults (loadEnergyConfig, fail-closed). These are the values the gate actually scores U with and the knobs the subconscious loop reads — the real landscape, not the bare policy baseline shown in `components`.',
+    source: 'energy-weights.json via loadEnergyConfig',
+    weights: mergedWeights,
+    tunedWeights,                              // weight keys whose live value differs from DEFAULT_WEIGHTS
+    threshold: cfg.threshold != null ? cfg.threshold : 0,
+    thresholdTuned,
+    salience: { ...(cfg.salience || {}) },
+    evict: { ...(cfg.evict || {}) },
+    fsrs: { ...(cfg.fsrs || {}) },
+    recall: { ...(cfg.recall || {}) },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // buildSurfacesSection — pure. Surface states with per-surface provenance.
 // Mirrors the dashboard reality strip but tags each entry honestly given the
 // current workstream state (A.1/A.2 PASS, A.3 built, B.2 real, B.1 collecting).
@@ -378,7 +412,7 @@ export function buildStatusSection({ testCounts = TEST_COUNTS } = {}) {
 // Pure given its inputs; the only impure callers are runDescent + readTrace.
 // ---------------------------------------------------------------------------
 
-export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, testCounts = TEST_COUNTS, generatedAt } = {}) {
+export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, liveConfig = {}, testCounts = TEST_COUNTS, generatedAt } = {}) {
   if (!descent) throw new Error('aggregate requires a descent section');
   const trace = traceResult ?? { records: [], malformed: 0, files: [] };
   return {
@@ -391,6 +425,7 @@ export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, tes
       sourceFiles: Array.isArray(trace.files) ? trace.files : [],
     },
     components: buildComponentsSection(weights),
+    config: buildConfigSection(liveConfig),
     surfaces: buildSurfacesSection(),
     status: buildStatusSection({ testCounts }),
     advisory_only: true,
@@ -406,7 +441,8 @@ export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, tes
 export async function buildDashboardData({ stateDir, env = process.env, scenario = 'descent-demo', generatedAt } = {}) {
   const descent = await runDescent({ scenario });
   const traceResult = readTraceRecords({ stateDir, env });
-  return aggregate({ descent, traceResult, generatedAt });
+  const liveConfig = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
+  return aggregate({ descent, traceResult, liveConfig, generatedAt });
 }
 
 // ---------------------------------------------------------------------------

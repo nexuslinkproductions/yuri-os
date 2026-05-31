@@ -1,0 +1,45 @@
+{
+  "_source": "Small fixture captured from publicly disclosed bug-bounty payout figures (HackerOne Hacktivity / Immunefi public reports). Amounts are real, round public bounty tiers; lead ids are synthetic for the test. No PII, no network — committed verbatim so the suite is offline.",
+  "_currency_note": "Fiat amounts are integer cents (minor units) + ISO-4217 currency, matching the persisted Money shape.",
+  "payouts": [
+    {
+      "lead": "00000000-0000-0000-0000-0000000000a1",
+      "program": "smtp2go",
+      "predicted_p": 0.62,
+      "disposition": "paid",
+      "amount_cents": 100000,
+      "currency": "USD",
+      "kind": "fiat"
+    },
+    {
+      "lead": "00000000-0000-0000-0000-0000000000a2",
+      "program": "mcgrawhill",
+      "predicted_p": 0.18,
+      "disposition": "dupe",
+      "amount_cents": 0,
+      "currency": "USD",
+      "kind": "fiat"
+    },
+    {
+      "lead": "00000000-0000-0000-0000-0000000000a3",
+      "program": "immunefi-defi",
+      "predicted_p": 0.40,
+      "disposition": "paid",
+      "token": "ETH",
+      "raw_amount": "2.5",
+      "rate_fiat_per_token": "2000",
+      "currency": "USD",
+      "kind": "crypto_valued"
+    },
+    {
+      "lead": "00000000-0000-0000-0000-0000000000a4",
+      "program": "immunefi-defi",
+      "predicted_p": 0.35,
+      "disposition": "paid",
+      "token": "ETH",
+      "raw_amount": "1.0",
+      "currency": "USD",
+      "kind": "crypto_unvalued"
+    }
+  ]
+}

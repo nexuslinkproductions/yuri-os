@@ -165,7 +165,10 @@ export function applyTransition(prev, t, nowIso = '') {
   const base = (prev && typeof prev === 'object') ? prev : freshState();
   const s = {
     verifiedEvidenceCount: Number(base.verifiedEvidenceCount) || 0,
-    evidence: Array.isArray(base.evidence) ? base.evidence.slice() : [],
+    // Deep-copy each evidence record, not just the array (.slice() shared element refs, so a
+    // downstream mutation of a record could reach back into `prev` — breaking the "never mutates
+    // the input" contract). Records are flat {base,age,capturedAt}, so a shallow spread suffices.
+    evidence: Array.isArray(base.evidence) ? base.evidence.map((e) => (e && typeof e === 'object' ? { ...e } : e)) : [],
     protectedPathViolations: Number(base.protectedPathViolations) || 0,
     promotionLadderInversions: Number(base.promotionLadderInversions) || 0,
     predictions: Array.isArray(base.predictions) ? base.predictions.slice() : [],

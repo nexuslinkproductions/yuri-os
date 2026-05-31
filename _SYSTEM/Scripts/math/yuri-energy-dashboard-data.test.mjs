@@ -15,6 +15,7 @@ import {
   buildTelemetrySection,
   buildDeltaUDistribution,
   buildComponentsSection,
+  buildConfigSection,
   buildSurfacesSection,
   buildStatusSection,
   aggregate,
@@ -311,6 +312,44 @@ test('aggregate composes a DATA object with provenance on every section', async 
 
 test('aggregate throws without a descent section', () => {
   assert.throws(() => aggregate({ traceResult: { records: [] } }), /requires a descent section/);
+});
+
+// ---------------------------------------------------------------------------
+// buildConfigSection — the live tuned energy landscape + default→tuned delta.
+// ---------------------------------------------------------------------------
+
+test('buildConfigSection: no overrides → equals defaults, no tuned weights', () => {
+  const base = buildConfigSection({});
+  assert.equal(base.provenance, PROVENANCE.REAL);
+  assert.deepEqual(base.weights, { ...DEFAULT_WEIGHTS });
+  assert.deepEqual(base.tunedWeights, []);
+  assert.equal(base.threshold, 0);
+  assert.equal(base.thresholdTuned, false);
+});
+
+test('buildConfigSection: overrides → merged weights + accurate tuned-weight delta + live block values', () => {
+  const tuned = buildConfigSection({ weights: { eta: 50 }, fsrs: { rFloor: 0.7 }, threshold: -1 });
+  assert.equal(tuned.weights.eta, 50, 'override applied');
+  assert.equal(tuned.weights.beta, DEFAULT_WEIGHTS.beta, 'untouched weights keep the default');
+  assert.deepEqual(tuned.tunedWeights, ['eta'], 'only the changed weight is flagged tuned');
+  assert.equal(tuned.fsrs.rFloor, 0.7, 'live fsrs value shown (not falsely flagged tuned)');
+  assert.equal(tuned.threshold, -1);
+  assert.equal(tuned.thresholdTuned, true);
+});
+
+test('buildConfigSection: a block present at default values is NOT mislabeled tuned', () => {
+  // salience present but no weight/threshold overrides → tunedWeights empty, value still shown
+  const c = buildConfigSection({ salience: { depthThreshold: 6 } });
+  assert.deepEqual(c.tunedWeights, []);
+  assert.equal(c.thresholdTuned, false);
+  assert.equal(c.salience.depthThreshold, 6, 'live salience value still rendered');
+});
+
+test('aggregate includes the live config section tagged real', async () => {
+  const descent = await runDescent();
+  const data = aggregate({ descent, traceResult: { records: [], malformed: 0, files: [] }, liveConfig: { fsrs: { rFloor: 0.5 } }, generatedAt: 'FIXED' });
+  assert.equal(data.config.provenance, PROVENANCE.REAL);
+  assert.equal(data.config.fsrs.rFloor, 0.5);
 });
 
 // ---------------------------------------------------------------------------

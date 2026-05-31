@@ -238,6 +238,11 @@ export function drainTokenLedger(paths = resolveTokenLedgerPaths()) {
       }
     }
   } catch (error) {
+    if (error.code === 'BETTER_SQLITE3_UNAVAILABLE') {
+      // DB engine absent (e.g. backend removed): events stay safely queued on disk
+      // for a later drain. Not a fault — degrade quietly so the Stop hook exits 0.
+      return { lock_acquired: true, inserted, skipped, failed, db_deferred: true };
+    }
     writeFault('drain_failed', error, {}, paths);
     return { lock_acquired: true, inserted, skipped, failed: failed + 1, error: error.message };
   } finally {
@@ -690,8 +695,37 @@ export function normalizeTokenEvent(event = {}) {
   };
 }
 
+let cachedBetterSqlite3;
+// Resolve better-sqlite3 resiliently. The clean install lives at the repo-root
+// node_modules; the legacy `_SYSTEM/backend/node_modules` copy is kept only as a
+// last-resort fallback because that backend tree is being removed. Bare-resolving
+// first means the Stop hooks no longer depend on the dying backend path — which was
+// the source of the MODULE_NOT_FOUND spam on every stop while the backend was being
+// deleted. If nothing resolves, throw ONE clean typed error so the drain/record
+// catches degrade to the on-disk queue instead of dumping a native module stack.
+function loadBetterSqlite3() {
+  if (cachedBetterSqlite3) return cachedBetterSqlite3;
+  const candidates = [
+    'better-sqlite3',
+    path.join(repoRoot, 'node_modules', 'better-sqlite3'),
+    path.join(repoRoot, '_SYSTEM', 'backend', 'node_modules', 'better-sqlite3'),
+  ];
+  for (const spec of candidates) {
+    try {
+      cachedBetterSqlite3 = require(spec);
+      return cachedBetterSqlite3;
+    } catch (_) {
+      // try the next candidate
+    }
+  }
+  throw Object.assign(
+    new Error('better-sqlite3 is not installed (tried repo-root and legacy backend node_modules); token-ledger DB writes are deferred to the on-disk queue'),
+    { code: 'BETTER_SQLITE3_UNAVAILABLE' },
+  );
+}
+
 function openDatabase(dbPath) {
-  const betterSqlite3 = require(path.join(repoRoot, '_SYSTEM', 'backend', 'node_modules', 'better-sqlite3'));
+  const betterSqlite3 = loadBetterSqlite3();
   const dbDir = path.dirname(dbPath);
   if (dbPath !== ':memory:' && !existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
   const db = new betterSqlite3(dbPath, { timeout: 10000 });

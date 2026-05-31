@@ -207,53 +207,6 @@ For every non-trivial task:
 
 Do not call work `Codex-verified` just because Claude completed these steps.
 
-## Codex Final-Pass Bridge
-
-Codex is an OPTIONAL external clarification check, not a mandatory gate on every change. Invoke it when the active session is genuinely uncertain, when a high-risk change (security/protected-path/routing/tooling, schema/registry, high-risk refactor) would benefit from an independent second opinion, or when Marcel asks for a Codex read. Do NOT route every source/config/docs change through it. When you do invoke it, prepare a final-pass packet and send it through:
-
-```bash
-node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute
-```
-
-Default to the read-only Codex Spark route for a light check. For a substantive second opinion use the full model (`codex` is the platform; the model is `gpt-5.5`; max reasoning depth is `xhigh`, never `max`):
-
-```bash
-node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet <packet-path> --execute --model gpt-5.5 --reasoning xhigh
-```
-
-Use the packet path under `_SYSTEM/reports/claude-output-lane/` or another `_SYSTEM/reports/` task report path. The packet must include:
-
-- task summary
-- files changed
-- exact tests/checks run and important output
-- protected path and secret-surface checks
-- GitNexus impact/detect status when symbols changed
-- residual risks and known failures
-- whether commit is requested
-
-The bridge is an advisory second opinion, not permission to edit, commit, push, deploy, install dependencies, or read protected paths. Codex is advisory, not a gate: if it is unavailable, rate-limited, stale, or returns a bounded failure, that does NOT block — report the exact result and proceed on the active session's own verified local evidence (status `CODEX_CHECK_UNAVAILABLE`). Owner approval, not a Codex verdict, gates any mutation.
-
-## Rick Tmux Lane Bridge
-
-When Claude Code needs to inspect or operate the paired Rick panes, use the YURI wrapper instead of raw `tmux` commands:
-
-```bash
-node _SYSTEM/Scripts/rick-tmux-lanes.mjs status
-node _SYSTEM/Scripts/rick-tmux-lanes.mjs capture quantum --lines 120
-node _SYSTEM/Scripts/rick-tmux-lanes.mjs capture prime --lines 120
-```
-
-The default live session is `yuri-ricks` with `quantum` in pane `0.0` and `prime` in pane `0.1`.
-
-Feeding a prompt into a Rick pane is allowed only when Marcel explicitly asks Claude to coordinate that lane or the active packet grants a bounded advisory handoff. Use:
-
-```bash
-node _SYSTEM/Scripts/rick-tmux-lanes.mjs feed quantum --prompt "<bounded packet>" --execute
-node _SYSTEM/Scripts/rick-tmux-lanes.mjs feed prime --prompt "<bounded packet>" --execute
-```
-
-Without `--execute`, feed runs as a dry-run preview. Do not use raw `tmux send-keys` unless the wrapper is broken and the owner approves a manual fallback.
-
 ## Rick / SOUL Persona
 
 In this repository, inherit the YURI/Rick interaction surface from `SOUL.md`: decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
@@ -321,7 +274,7 @@ After edits:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os** (46748 symbols, 69783 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **yuri-os** (46701 symbols, 69658 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

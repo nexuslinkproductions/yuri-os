@@ -1,0 +1,30 @@
+[package]
+name = "nexus-ledger"
+version = "0.1.0"
+description = "Thin (v1) immutable double-entry ledger for the Nexus Link acquisition engine: rust_decimal/Money postings (debit>0/credit<0) whose JournalEntry sums to exactly Decimal ZERO at construction (rejected otherwise), corrections as contra-entries never edits, outcome recording (accepted/dupe/n-a/paid$) into nexus_store as an OutcomeRecord whose bettable predicted_p is read from the lead's ScoreRecord.p_conv, and a mark_paid path that routes every settlement through nexus_core::Veto so an UNVALUED crypto receipt bumps protected_path_violations and is HARD-VETOED (you cannot mark paid without a receipt-timestamp valuation). CSV/manual import only — NO live banking. Full adapters are M6."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "nexus_ledger"
+path = "src/lib.rs"
+
+[dependencies]
+nexus-core = { path = "../nexus-core" }
+nexus-store = { path = "../nexus-store" }
+# The Veto port returns the kernel's GateDecision; depend on the kernel directly to
+# name that return type rather than re-export it through nexus-core.
+nexus-score = { path = "../nexus-score" }
+serde = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+time = { workspace = true }
+
+[dev-dependencies]
+serde_json = "1"
+
+[lints]
+workspace = true

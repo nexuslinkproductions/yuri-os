@@ -24,6 +24,20 @@ const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PULSE_PLAN_FILE = path.join(STATE_DIR, 'pulse-plan.json');
 const TELEMETRY_LOG = path.join(STATE_DIR, 'pulse-hook-telemetry.log');
 const BRAIN_STALE_FILE = path.join(STATE_DIR, 'brain-stale.sentinel');
+// L5b — subconscious cue-recall (prior-turn-lag re-injection)
+const RECALL_FILE = path.join(STATE_DIR, 'subconscious-recall.json');
+const RECALL_SCRIPT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'yuri-recall.mjs');
+const COLD_DB_FILE = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'memory-cold.db');
+const RECALL_MAX_AGE_MS = 60 * 60 * 1000; // drop recall envelopes older than 1h (stale leftovers)
+
+// L8 QUARANTINE — pulse-orchestrator is a retired dead layer. Evidence (2026-05-31): its only
+// production invoker is spawnOrchestrator() below, which targets <repo>/Scripts/pulse-orchestrator.mjs
+// — a path that does not exist (the real file is _SYSTEM/Scripts/), so the spawn has always failed
+// silently. Nothing in settings.json or LaunchAgents runs it; pulse-bus.json is written by other
+// components (sentinel/beacon/calibration), NOT the orchestrator. The governor RAG spawn fed the
+// orchestrator's dispatchDeepSeekPreflight, which therefore never ran. Memory injection is now the
+// wall-respecting L5b subconscious recall path. Flip this flag to false to fully restore the old path.
+const PULSE_ORCHESTRATOR_RETIRED = true;
 
 // M3 — Dynamic brain re-injection: check for brain:stale sentinel from prior turn's council
 function checkBrainStale() {
@@ -41,6 +55,44 @@ function checkBrainStale() {
       '</brain-update>',
     ].filter(Boolean).join('\n');
   } catch { return null; }
+}
+
+// L5b — subconscious cue-recall. Two halves of a prior-turn-lag loop:
+//   readPriorRecall(): consume the envelope the PRIOR turn's detached recall wrote, re-inject it.
+//   spawnRecall(): fire THIS turn's recall detached; it writes the envelope the NEXT turn consumes.
+// The hook can't block on recall (<50ms exit guarantee), so a recall always lands one turn late —
+// acceptable: consecutive prompts in a session stay topically related, so the prior cue is still
+// relevant. Consume-once (unlink on read) → a recall surfaces exactly once, never re-injects stale.
+function readPriorRecall() {
+  try {
+    if (!fs.existsSync(RECALL_FILE)) return null;
+    const raw = fs.readFileSync(RECALL_FILE, 'utf8');
+    try { fs.unlinkSync(RECALL_FILE); } catch (_) {}   // consume-once
+    const doc = JSON.parse(raw);
+    if (!doc || !doc.block) return null;
+    if (doc.ts && (Date.now() - doc.ts) > RECALL_MAX_AGE_MS) return null; // drop stale leftovers
+    return String(doc.block);
+  } catch (_) { return null; }
+}
+
+function spawnRecall(cue, turnId) {
+  // Inert until the cold store exists (populated by the L6 consolidation pass). No DB → no spawn
+  // and no empty-DB side effect. yuri-recall.mjs owns the query/rank/ledger-bump; the hook only
+  // fires-and-forgets (detached + unref), keeping the <50ms exit guarantee.
+  if (!fs.existsSync(COLD_DB_FILE)) return false;
+  try {
+    const child = spawn('node', [RECALL_SCRIPT, '--out', RECALL_FILE, cue.slice(0, 400)], {
+      cwd: REPO_ROOT,
+      detached: true,
+      stdio: 'ignore',
+      env: { ...process.env, YURI_RECALL_TURN: turnId },
+    });
+    child.unref();
+    return true;
+  } catch (e) {
+    logTelemetry(`recall-spawn-failed turn=${turnId} reason=${e.message}`);
+    return false;
+  }
 }
 
 // EOT is now a system behavior, not a manual command.
@@ -397,11 +449,13 @@ process.stdin.on('end', () => {
     // Persist Haki intent before the orchestrator spawns so the child can read it immediately.
     persistHakiPlan(hakiHint);
 
-    // PATCH 040: per-task semantic memory injection
+    // PATCH 040: per-task semantic memory injection — RETIRED (L8). This fed rag-turn-context.json
+    // to pulse-orchestrator's dispatchDeepSeekPreflight, which never runs (see PULSE_ORCHESTRATOR_RETIRED).
+    // It also read memory.db directly (MEMORY_VS_SEARCH wall violation). Superseded by L5b recall.
     // Spawn detached — must never block the hook (<50ms exit guarantee)
     const GOVERNOR_PY = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'memory_governor.py');
     const RAG_CONTEXT_FILE = path.join(STATE_DIR, 'rag-turn-context.json');
-    if (fs.existsSync(GOVERNOR_PY)) {
+    if (!PULSE_ORCHESTRATOR_RETIRED && fs.existsSync(GOVERNOR_PY)) {
       try {
         const ragChild = spawn('python3', [GOVERNOR_PY, 'read', '--query', text.slice(0, 400), '--limit', '20'], {
           cwd: REPO_ROOT,
@@ -422,12 +476,21 @@ process.stdin.on('end', () => {
       } catch (_) { /* never block */ }
     }
 
-    const spawned = spawnOrchestrator(text, turnId);
-    logTelemetry(`pulse-spawn turn=${turnId} spawned=${spawned} len=${text.length}`);
+    // L5b — consume the PRIOR turn's recall before firing THIS turn's (no self-read race),
+    // then re-inject below. spawnRecall is a no-op until the cold store exists.
+    const priorRecall = readPriorRecall();
+    spawnRecall(text, turnId);
 
-    const cortexHint = spawned
-      ? `⬢ pulse-cortex turn=${turnId} spawned — findings will populate .claude/state/pulse-bus.json within 30-60s`
-      : `⬢ pulse-cortex turn=${turnId} spawn failed (see pulse-hook-telemetry.log); proceeding without cortex`;
+    const spawned = PULSE_ORCHESTRATOR_RETIRED ? false : spawnOrchestrator(text, turnId);
+    if (!PULSE_ORCHESTRATOR_RETIRED) logTelemetry(`pulse-spawn turn=${turnId} spawned=${spawned} len=${text.length}`);
+
+    // cortexHint suppressed when the orchestrator is retired — no cortex runs, so there are no
+    // findings to await; injecting the old "spawned…" line would be a false claim.
+    const cortexHint = PULSE_ORCHESTRATOR_RETIRED
+      ? null
+      : (spawned
+        ? `⬢ pulse-cortex turn=${turnId} spawned — findings will populate .claude/state/pulse-bus.json within 30-60s`
+        : `⬢ pulse-cortex turn=${turnId} spawn failed (see pulse-hook-telemetry.log); proceeding without cortex`);
 
     // M3: inject prior-turn council synthesis if brain:stale sentinel was set
     const brainUpdate = checkBrainStale();
@@ -441,7 +504,7 @@ process.stdin.on('end', () => {
       }
     } catch {}
 
-    const baseContext = [cortexHint, brainUpdate, skillHint, hakiHint, hakiGate]
+    const baseContext = [cortexHint, brainUpdate, skillHint, hakiHint, hakiGate, priorRecall]
       .filter(Boolean).join('\n');
     additionalContext = [baseContext, additionalContext].filter(Boolean).join('');
 

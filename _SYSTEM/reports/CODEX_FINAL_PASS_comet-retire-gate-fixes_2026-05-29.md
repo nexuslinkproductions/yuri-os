@@ -65,6 +65,6 @@ context-router.mjs "energy landscape paper ..."     → selectedPacket=energy-la
 ## Recommended Codex route
 
 Routing/tooling change → escalated route is appropriate when the owner is ready:
-`node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet _SYSTEM/reports/CODEX_FINAL_PASS_comet-retire-gate-fixes_2026-05-29.md --execute --model codex --reasoning max`
+`node _SYSTEM/Scripts/claude-codex-final-pass.mjs --packet _SYSTEM/reports/CODEX_FINAL_PASS_comet-retire-gate-fixes_2026-05-29.md --execute --model codex --reasoning xhigh`
 
 Not auto-dispatched: owner away, no commit pending, and Codex Spark/full runs cost credits with nothing to gate yet.

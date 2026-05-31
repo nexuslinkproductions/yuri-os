@@ -1,0 +1,34 @@
+[package]
+name = "nexus-store"
+version = "0.1.0"
+description = "Sync rusqlite-backed persistence for the Nexus Link acquisition engine: tenant-isolated rows, money as integer cents + ISO-4217 currency (never REAL), append-only outcomes/postings enforced by Rust refusal AND SQL triggers, and the honesty-loop calibration query that feeds nexus_score::scoring::brier_score. Postgres lives behind an off-by-default feature."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "nexus_store"
+path = "src/lib.rs"
+
+[dependencies]
+nexus-core = { path = "../nexus-core" }
+nexus-score = { path = "../nexus-score" }
+rusqlite = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+time = { workspace = true }
+# Postgres-only deps live here, gated by the off-by-default `postgres` feature.
+tokio-postgres = { version = "0.7", optional = true }
+
+[features]
+default = []
+# An off-by-default Postgres backend. The core/sqlite paths never pull this in.
+postgres = ["dep:tokio-postgres"]
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

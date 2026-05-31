@@ -62,7 +62,8 @@ run_phase() {
       assert_contains "trivial returns continue:true" '"continue":true' "$trivial_out"
       assert_contains "trivial no additionalContext" '^{"continue":true}$' "$(echo "$trivial_out" | tr -d ' ')"
       assert_contains "non-trivial has additionalContext" 'additionalContext' "$non_trivial_out"
-      assert_contains "non-trivial mentions cortex" 'pulse-cortex' "$non_trivial_out"
+      # "non-trivial mentions cortex" removed 2026-05-31 — pulse-orchestrator retired
+      # (PULSE_ORCHESTRATOR_RETIRED in user-prompt-submit.js), so the cortexHint is suppressed.
       ;;
     4)
       echo "── Phase 4: OpenClaw assessor + bridge quarantine (PATCH 033)"
@@ -84,24 +85,10 @@ run_phase() {
       assert_contains "model upgrade via deepseek-flash" 'deepseek-v4-flash' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
       ;;
     7)
-      echo "── Phase 7: Two-phase Codex (PATCH 036)"
-      assert_contains "pulse-codex-runner exists" "" "$(test -f _SYSTEM/Scripts/pulse-codex-runner.mjs && echo OK)"
-      assert_contains "snapshot_head guard" 'snapshot_head' "$(cat _SYSTEM/Scripts/pulse-codex-runner.mjs)"
-      assert_contains "STALE_HEAD status" 'STALE_HEAD' "$(cat _SYSTEM/Scripts/pulse-codex-runner.mjs)"
-      assert_contains "PROPOSE-ONLY prohibition" 'PROPOSE-ONLY' "$(cat _SYSTEM/Scripts/pulse-codex-runner.mjs)"
-      assert_contains "expires_at 10 min" 'PENDING_TTL_MS' "$(cat _SYSTEM/Scripts/pulse-codex-runner.mjs)"
-      local status_out
-      status_out=$(node _SYSTEM/Scripts/pulse-codex-runner.mjs status)
-      assert_contains "status command works" 'exists' "$status_out"
+      echo "── Phase 7: (retired 2026-05-31 — pulse-codex-runner.mjs archived to _SYSTEM/archive/retired-pulse-cortex/; planned two-phase Codex wrapper, never wired to a live path)"
       ;;
     8)
-      echo "── Phase 8: Pulse Beacon (PATCH 037)"
-      local beacon_status
-      beacon_status=$(node _SYSTEM/Scripts/pulse-beacon.mjs status)
-      assert_contains "beacon status JSON" 'session_id' "$beacon_status"
-      assert_contains "beacon throttle count" 'count' "$beacon_status"
-      assert_contains "obsidian path resolved" 'obsidian_path' "$beacon_status"
-      assert_contains "orchestrator spawns beacon" 'pulse-beacon.mjs' "$(cat _SYSTEM/Scripts/pulse-orchestrator.mjs)"
+      echo "── Phase 8: (retired 2026-05-31 — pulse-beacon.mjs archived; only the dormant pulse-orchestrator spawned it)"
       ;;
     9)
       echo "── Phase 9: _SYSTEM/Scripts/ai cortex self-inspection (PATCH 038)"

@@ -1,4 +1,13 @@
 #!/usr/bin/env node
+// ⚠ RETIRED (2026-05-31, L8 subconscious-memory cleanup). This orchestrator is INERT: its sole
+// production invoker — spawnOrchestrator() in .claude/hooks/user-prompt-submit.js — targeted
+// <repo>/Scripts/pulse-orchestrator.mjs (a path that never existed; the real file is here under
+// _SYSTEM/Scripts/), so the per-turn spawn has always failed silently. Nothing in settings.json
+// or LaunchAgents runs it, and pulse-bus.json is written by other components (sentinel/beacon/
+// calibration), NOT by this file. The hook invocation is now guarded off (PULSE_ORCHESTRATOR_RETIRED).
+// Kept on disk (not deleted) — referenced by _SYSTEM/Scripts/test-pulse-cortex.sh and the
+// lane-kernel CONTROL_FILE_PREFIXES guard list. The header below describes the never-realized intent.
+//
 // PATCH 031 — Pulse Cortex orchestrator
 //
 // Entry point for the symbiotic pulse auto-trigger architecture. Spawned

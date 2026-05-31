@@ -11,6 +11,12 @@ import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSy
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import http from 'node:http';
+// L6 — subconscious consolidation: FSRS demote pass + cold re-promotion proposals.
+import { loadItems, planRelocations, executeRelocation, DEFAULT_MEMORY_ROOT } from './memory-relocator.mjs';
+import { openColdStore, getCold } from './memory-cold-store.mjs';
+import { buildUsageIndex } from './memory-usage.mjs';
+import { proposeMemoryWrite, listMemoryProposals } from './memory-kernel.mjs';
+import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
@@ -100,8 +106,104 @@ Output ONLY this JSON:
   }
 }
 
+/**
+ * L6 — cold re-promotion candidates: demoted (cold) memories the subconscious keeps
+ * surfacing. Recall pressure (ledger useCount ≥ minUse) on a slug that is STILL in cold
+ * means "this dormant trace keeps getting queried" → an operator-gated re-consolidation
+ * candidate. Pure read (ledger + cold store); never promotes on its own.
+ */
+export function findRepromotionCandidates(coldDb, { ledgerFile, minUse = 3 } = {}) {
+  const usage = buildUsageIndex(ledgerFile ? { ledgerFile } : {});
+  const out = [];
+  for (const [slug, u] of Object.entries(usage)) {
+    if ((u.useCount || 0) < minUse) continue;
+    const rec = getCold(coldDb, slug);          // only cold (demoted) items are re-promotable
+    if (!rec) continue;
+    out.push({ slug, useCount: u.useCount, lastUsedMs: u.lastUsedMs, title: rec.title });
+  }
+  return out.sort((a, b) => b.useCount - a.useCount);
+}
+
+/**
+ * L6 — subconscious consolidation pass. DRY-RUN by default: it only PLANS demotions and
+ * logs them. Real relocation (which creates the cold store + moves source files) and
+ * re-promotion proposal recording happen only when execute=true. Both halves are offline
+ * and operator-gated — relocation is reversible (relocated/ + cold body), re-promotion is
+ * a pending memory-kernel proposal the operator must approve. Fully injectable for tests.
+ */
+export async function runSubconsciousPass(opts = {}) {
+  const {
+    root = DEFAULT_MEMORY_ROOT,
+    ledgerFile,
+    nowMs = Date.now(),
+    execute = false,
+    rFloor,                    // explicit override; else fsrs.rFloor; else 0.6
+    fsrs = {},                 // fsrs knob block (main() sources it from loadEnergyConfig); {} = code defaults
+    repromotionMinUse = 3,
+    coldDb: injectedDb = null,
+    propose = proposeMemoryWrite,
+    listProposals = listMemoryProposals,
+    log: logFn = log,
+  } = opts;
+
+  // 1. DEMOTE — pure plan always (read-only); relocation I/O only when execute=true. The fsrs
+  // knob block (rFloor + decay/factor/salience/freq/deltaU stability weights) steers the demote
+  // threshold; an empty fsrs falls back to evaluateRetention's in-code defaults (rFloor 0.6).
+  const effRFloor = rFloor != null ? rFloor : (fsrs.rFloor != null ? fsrs.rFloor : 0.6);
+  const usageIndex = buildUsageIndex(ledgerFile ? { ledgerFile } : {});
+  const items = loadItems(root, { nowMs, usageIndex });
+  const plan = planRelocations(items, { nowMs, ...fsrs, rFloor: effRFloor });
+  logFn(`subconscious: scanned=${items.length} demote-candidates=${plan.demote.length} execute=${execute}`);
+  for (const d of plan.demote) logFn(`  DEMOTE-CANDIDATE ${d.slug} R=${Number(d.R).toFixed(3)}`);
+
+  let db = injectedDb;
+  let ownsDb = false;
+  let relocation = { dryRun: true, demoted: 0, kept: plan.keep.length };
+  const proposed = [];
+
+  if (execute) {
+    if (!db) { db = openColdStore(); ownsDb = true; }       // creates the cold store
+    relocation = executeRelocation(plan, { coldDb: db, root, dryRun: false, nowMs });
+    logFn(`subconscious: demoted=${relocation.demoted} kept=${relocation.kept}`);
+
+    // 2. RE-PROMOTION — cold slugs under recall pressure → operator-gated proposals.
+    const candidates = findRepromotionCandidates(db, { ledgerFile, minUse: repromotionMinUse });
+    const pendingTags = new Set();                          // dedup vs already-pending (no daily spam)
+    try {
+      for (const p of (listProposals('', {}).proposals || [])) {
+        if ((p.status || 'pending') === 'pending') for (const t of (p.tags || [])) pendingTags.add(t);
+      }
+    } catch (_) { /* proposal log unreadable → propose anyway */ }
+    for (const c of candidates) {
+      if (pendingTags.has(c.slug)) { logFn(`  REPROMOTE-SKIP ${c.slug} (already pending)`); continue; }
+      const res = propose({
+        content: `Re-promote dormant memory "${c.slug}" — recalled ${c.useCount}× from the subconscious cold store. The subconscious keeps surfacing it; consider restoring it to active memory (memory-relocator promoteHot).`,
+        surface: 'yuri-memory',
+        tags: ['cold-repromotion', c.slug],
+        confidence: 0.6,
+        reason: 'recall pressure on a demoted memory (testing effect → re-consolidation candidate)',
+      }, { record: true, session: 'kagami-memory-consolidator', lane: 'consolidator' });
+      proposed.push({ slug: c.slug, ok: !!(res && res.ok) });
+      logFn(`  REPROMOTE-PROPOSED ${c.slug} useCount=${c.useCount} ok=${!!(res && res.ok)}`);
+    }
+  }
+
+  if (ownsDb && db) db.close();
+  return { scanned: items.length, demoteCandidates: plan.demote.length, relocation, proposed };
+}
+
 async function main() {
   log('starting memory consolidation run');
+
+  // L6 — subconscious consolidation. Independent of Rapid-MLX (pure scoring + file ops),
+  // so it runs even when the local model is down. DRY-RUN unless --execute /
+  // YURI_SUBCONSCIOUS_EXECUTE=1 — the scheduled daily run only REPORTS demote candidates;
+  // the forgetting loop never fires unattended before the operator has verified it.
+  try {
+    const execute = process.argv.includes('--execute') || process.env.YURI_SUBCONSCIOUS_EXECUTE === '1';
+    const ec = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
+    await runSubconsciousPass({ execute, fsrs: ec.fsrs || {} });
+  } catch (e) { log('subconscious pass error:', e.message); }
 
   // Check Rapid-MLX available
   try {
@@ -147,4 +249,8 @@ async function main() {
   }
 }
 
-main().catch(e => log('fatal:', e.message));
+// Run only when executed directly (the plist invokes it as a script); importing the module
+// for tests must NOT trigger a live consolidation run.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(e => log('fatal:', e.message));
+}

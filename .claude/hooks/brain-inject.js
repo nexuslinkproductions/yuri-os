@@ -28,6 +28,7 @@ const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learn
 const STATE_FILE       = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
 const LAUNCH_GATE      = path.join(REPO_ROOT, '.claude', 'state', 'launch-gate.json');
 const LANE_HEALTH_FILE = path.join(REPO_ROOT, '.claude', 'state', 'lane-health-status.json');
+const ENERGY_WEIGHTS   = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'energy-weights.json');
 
 // M2 Pro hardware constraints — hardcoded, updated only when hardware changes
 const HARDWARE = {
@@ -128,6 +129,29 @@ function extractPersonaRules(content) {
 }
 
 
+// L7 — conscious-set cap (working-memory size) from the canonical knob file; fail-closed to 12.
+// brain-inject is CJS and the loader (loadEnergyConfig) is ESM, so we read the JSON directly with
+// the same fail-closed spirit: a missing/bad value falls back to the in-code default.
+function consciousSetCap() {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(ENERGY_WEIGHTS, 'utf8'));
+    const cap = Number(cfg && cfg.recall && cfg.recall.consciousSetCap);
+    return Number.isFinite(cap) && cap >= 1 ? Math.trunc(cap) : 12;
+  } catch { return 12; }
+}
+
+// FSRS retrievability, used ONLY to order the conscious set when it overflows the cap (the most
+// retrievable rows stay conscious). Monotonic-decreasing in age, so with a uniform base stability
+// this reduces to recency order — freshest curated truths win. Mirrors yuri-fsrs constants (inlined
+// because this CJS hook cannot import the ESM module). Undated rows sink to least-retrievable.
+function rowRetrievability(dateStr, nowMs) {
+  const t = Date.parse(dateStr);
+  if (!Number.isFinite(t)) return 0;
+  const ageDays = Math.max(0, (nowMs - t) / 86400000);
+  const S = 30; // uniform base stability (days)
+  return Math.pow(1 + (19 / 81) * (ageDays / S), -0.5);
+}
+
 function loadCuratedMemory() {
   // Curated memory only. Semantic/embedding retrieval (memory-query.mjs over semantic-memory.db)
   // retired 2026-05-29 — it was dead plumbing that injected "(memory unavailable)". The curated
@@ -136,18 +160,30 @@ function loadCuratedMemory() {
   try {
     // _SYSTEM/memory/MEMORY.md is a "| Date | Entry | Surface | Notes |" table — parse rows,
     // skip the header + separator, inject "Entry — Notes(truncated)".
+    const cap = consciousSetCap();
+    const now = Date.now();
     const rows = fs.readFileSync(path.join(REPO_ROOT, '_SYSTEM/memory/MEMORY.md'), 'utf8')
       .split('\n')
       .filter(l => l.startsWith('|') && !/^\|\s*Date\s*\|/i.test(l) && !/^\|[\s:|-]*\|?\s*$/.test(l))
-      .slice(0, 12)
-      .map(l => {
+      .map((l, idx) => {
         const c = l.split('|').map(s => s.trim());
         const entry = c[2] || '';
         const note = (c[4] || '').replace(/\*\*/g, '').slice(0, 110);
-        return entry ? `- ${entry}${note ? ' — ' + note : ''}` : '';
+        return { idx, date: c[1] || '', text: entry ? `- ${entry}${note ? ' — ' + note : ''}` : '' };
       })
-      .filter(Boolean);
-    return rows.length ? rows.join('\n') : '(no curated memory entries)';
+      .filter(r => r.text);
+
+    // Within cap → preserve file order (behavior-neutral). On overflow → keep the most
+    // retrievable rows, then restore file order so the displayed block stays stable.
+    const chosen = rows.length <= cap
+      ? rows
+      : rows.map(r => ({ r, R: rowRetrievability(r.date, now) }))
+            .sort((a, b) => b.R - a.R)
+            .slice(0, cap)
+            .map(x => x.r)
+            .sort((a, b) => a.idx - b.idx);
+
+    return chosen.length ? chosen.map(r => r.text).join('\n') : '(no curated memory entries)';
   } catch { return '(memory index unavailable)'; }
 }
 

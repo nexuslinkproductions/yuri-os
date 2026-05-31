@@ -4,20 +4,41 @@
 //
 // Behavior:
 //   - Scans memory/patterns/*.md
-//   - Any file whose access time (atime) is older than TTL_DAYS (default 90) moves to memory/patterns-archive/
+//   - Any file whose access time (atime) is older than TTL_DAYS moves to memory/patterns-archive/
 //   - Updates memory/patterns/index.json to reflect the move
 //   - --dry-run prints planned moves without performing them
 //   - Idempotent: re-running with no aged files is a no-op
+//
+// TTL is resolved from the canonical knob surface (see resolveTtlDays): an env
+// override wins for ops, else the energy-weights.json `evict.ttlDays`, else 90.
 
 import { readdirSync, statSync, renameSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const PATTERNS_DIR = path.join(REPO_ROOT, 'memory', 'patterns');
-const ARCHIVE_DIR = path.join(REPO_ROOT, 'memory', 'patterns-archive');
+const SYSTEM_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PATTERNS_DIR = path.join(SYSTEM_ROOT, 'memory', 'patterns');
+const ARCHIVE_DIR = path.join(SYSTEM_ROOT, 'memory', 'patterns-archive');
 const INDEX_PATH = path.join(PATTERNS_DIR, 'index.json');
-const TTL_DAYS = Number(process.env.MEMORY_EVICT_TTL_DAYS) || 90;
+
+// TTL precedence: env override (ops escape hatch) > canonical surface
+// (_SYSTEM/SELF/energy-weights.json `evict.ttlDays`) > 90-day default. The canonical
+// loader is fail-closed, so a malformed file contributes nothing and we always land
+// on a valid positive horizon. Pure + injectable so it is unit-testable.
+export function resolveTtlDays(env = process.env, cfg = loadEnergyConfig()) {
+  const envRaw = env.MEMORY_EVICT_TTL_DAYS;
+  if (envRaw !== undefined && envRaw !== '') {
+    const envNum = Number(envRaw);
+    if (Number.isFinite(envNum) && envNum >= 1) return Math.trunc(envNum);
+  }
+  const fileTtl = cfg && cfg.evict ? cfg.evict.ttlDays : undefined;
+  if (Number.isFinite(fileTtl) && fileTtl >= 1) return Math.trunc(fileTtl);
+  return 90;
+}
+
+const TTL_DAYS = resolveTtlDays();
 const DRY_RUN = process.argv.includes('--dry-run');
 
 function loadIndex() {
@@ -88,4 +109,7 @@ function main() {
   return 0;
 }
 
-process.exit(main());
+// Run only when executed directly (node memory-evict.mjs ...), never on import —
+// so tests can import resolveTtlDays without triggering an eviction pass.
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) process.exit(main());

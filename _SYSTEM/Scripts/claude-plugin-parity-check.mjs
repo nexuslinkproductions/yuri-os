@@ -46,9 +46,7 @@ export function runClaudePluginParityCheck(options = {}) {
   checkLocalSettings(repoRoot, failures, warnings);
   checkSkillShims(repoRoot, failures);
   checkMcpWrappers(repoRoot, failures);
-  checkFinalPassBridge(repoRoot, failures);
   checkRickRoster(repoRoot, failures);
-  checkRickTmuxBridge(repoRoot, failures);
 
   return {
     ok: failures.length === 0,
@@ -205,41 +203,6 @@ function checkMcpWrappers(repoRoot, failures) {
   }
 }
 
-function checkFinalPassBridge(repoRoot, failures) {
-  const rootClaude = readText(path.join(repoRoot, 'CLAUDE.md'), failures);
-  if (!rootClaude) return;
-  const requiredPhrases = [
-    '## Claude-Only Work Session',
-    '## Codex Final-Pass Bridge',
-    '_SYSTEM/Scripts/claude-codex-final-pass.mjs',
-    'PENDING_CODEX_MAIN_ARBITRATION',
-  ];
-  for (const phrase of requiredPhrases) {
-    if (!rootClaude.includes(phrase)) failures.push(`CLAUDE.md missing final-pass bridge phrase: ${phrase}`);
-  }
-  const bridgeScript = path.join(repoRoot, '_SYSTEM/Scripts/claude-codex-final-pass.mjs');
-  const bridgeTest = path.join(repoRoot, '_SYSTEM/Scripts/claude-codex-final-pass.test.mjs');
-  if (!fs.existsSync(bridgeScript)) failures.push('Codex final-pass bridge script missing');
-  if (!fs.existsSync(bridgeTest)) failures.push('Codex final-pass bridge test missing');
-}
-
-function checkRickTmuxBridge(repoRoot, failures) {
-  const rootClaude = readText(path.join(repoRoot, 'CLAUDE.md'), failures);
-  if (!rootClaude) return;
-  const requiredPhrases = [
-    '## Rick Tmux Lane Bridge',
-    '_SYSTEM/Scripts/rick-tmux-lanes.mjs',
-    'yuri-ricks',
-  ];
-  for (const phrase of requiredPhrases) {
-    if (!rootClaude.includes(phrase)) failures.push(`CLAUDE.md missing Rick tmux bridge phrase: ${phrase}`);
-  }
-  const bridgeScript = path.join(repoRoot, '_SYSTEM/Scripts/rick-tmux-lanes.mjs');
-  const bridgeTest = path.join(repoRoot, '_SYSTEM/Scripts/rick-tmux-lanes.test.mjs');
-  if (!fs.existsSync(bridgeScript)) failures.push('Rick tmux bridge script missing');
-  if (!fs.existsSync(bridgeTest)) failures.push('Rick tmux bridge test missing');
-}
-
 function checkRickRoster(repoRoot, failures) {
   const rootClaude = readText(path.join(repoRoot, 'CLAUDE.md'), failures);
   if (!rootClaude) return;
@@ -258,10 +221,6 @@ function checkRickRoster(repoRoot, failures) {
   for (const alias of ['Rick C-137', 'Quantum Rick', 'Memory Rick', 'Rick Prime', 'Simple Rick', 'Council of Ricks', 'Robot Rick']) {
     if (!aliases.has(alias)) failures.push(`Rick roster missing alias: ${alias}`);
   }
-  const quantum = roster.find((entry) => entry.privateAlias === 'Quantum Rick');
-  const prime = roster.find((entry) => entry.privateAlias === 'Rick Prime');
-  if (quantum?.tmux?.target !== 'yuri-ricks:0.0') failures.push('Quantum Rick tmux target must be yuri-ricks:0.0');
-  if (prime?.tmux?.target !== 'yuri-ricks:0.1') failures.push('Rick Prime tmux target must be yuri-ricks:0.1');
 }
 
 function hasProtectedDeny(deny, tool, prefix) {

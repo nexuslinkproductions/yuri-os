@@ -2,6 +2,17 @@
 
 Accepted from audit: 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P_PASS
 
+## LOCAL-FIRST MANDATE (canonical research process — non-negotiable)
+
+Every research task — design, technical, copy, physics, prior-art, references — MUST start in OUR OWN database before any online lookup. We are building a compounding local "research center"; the order is law:
+
+1. `ai search "<query>"` — FTS5/BM25 over ~26k indexed docs + code (`_SYSTEM/OS_KERNEL/search-index.db`).
+2. `_SYSTEM/` knowledge-base, design packs, Claude/YURI memory, GitNexus.
+3. ONLY when the local corpus is provably insufficient → escalate online (Tiers 1–5 below).
+4. Feed valuable online findings BACK into the corpus (write to the knowledge base, then `ai reindex`) so the center compounds.
+
+Going online before querying the local corpus is a process violation, not a shortcut. This persists across all sessions and lanes.
+
 ## TOKEN COST HARD RULES
 
 - No subagents for routine package or web research. Direct shell tools only.
@@ -17,14 +28,14 @@ Accepted from audit: 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P_PASS
 
 | Tier | Source | Method | Approval |
 |------|--------|---------|----------|
-| 0 | Local cache / git history | Read, grep, git log | None |
+| 0 | **Our local corpus + knowledge base (MANDATORY FIRST)** | `ai search "<q>"` (FTS5/BM25 ~26k docs+code) · `ai reindex` to refresh · read/grep/git log · `_SYSTEM/` knowledge-base | None |
 | 1 | Package registry metadata | `npm view <pkg> --json \| jq` | None |
 | 2 | Raw source files | `curl -s raw.githubusercontent.com` + `head -N` | None |
 | 3 | Snippets / highlights | Targeted grep on raw source | None |
 | 4 | Targeted extract | Single scoped file read | None |
 | 5 | Full crawl / WebFetch | Rendered page or full repo | None (scoped use) |
 
-Always start at Tier 0. Only escalate when lower tier is provably insufficient.
+Always start at Tier 0 — the local corpus is the mandatory first stop for ANY research (see LOCAL-FIRST MANDATE above). Only escalate online when the local DB is provably insufficient, then feed findings back via `ai reindex`.
 
 ## DEFAULT_PACKAGE_AUDIT_TEMPLATE
 

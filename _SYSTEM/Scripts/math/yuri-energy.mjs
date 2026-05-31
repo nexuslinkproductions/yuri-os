@@ -219,8 +219,17 @@ function countMalformed(arr) {
   return c;
 }
 function evalMalformedForecast(state) {
-  const count = countMalformed(state.predictions) + countMalformed(state.outcomes)
+  let count = countMalformed(state.predictions) + countMalformed(state.outcomes)
     + countMalformed(state.forecasts) + countMalformed(state.results);
+  // Length-mismatch fail-CLOSED (attack-finding): logLoss/brier THROW on unequal
+  // length -> evalLogLoss/evalBrier skip -> contribute 0 -> the gate ACCEPTS the worst
+  // case (a calibration penalty silently vanishes). evalKL already hardened its own
+  // mismatch; the forecast pairs must too. Count each mismatched pair so lambda (the
+  // high malformed-forecast weight) raises U and the transition cannot slip through.
+  if (Array.isArray(state.predictions) && Array.isArray(state.outcomes)
+      && state.predictions.length !== state.outcomes.length) count += 1;
+  if (Array.isArray(state.forecasts) && Array.isArray(state.results)
+      && state.forecasts.length !== state.results.length) count += 1;
   if (count === 0) return { skipped: true, reason: 'no malformed forecast inputs' };
   return { value: count, skipped: false };
 }
@@ -245,10 +254,56 @@ function evalBrier(preds, outs) {
   }
 }
 
+// Divisive normalization of the info-gain credit (info-gain buy-back fix, part a).
+//
+// informationGain = entropy(prior) - entropy(posterior), in nats (math-kernel base=e).
+// Its UPPER BOUND is the information-theoretic ceiling of the prior support:
+// H(prior) ≤ log(n) for an n-outcome distribution. The pre-fix credit was
+// -epsilon·gain in RAW nats, so an attacker who fabricates a large-n prior
+// (e.g. a 200k-element uniform that "collapses") manufactures gain ≈ ln(200000)
+// ≈ 12.2 nats of credit — unbounded below as n grows — and buys back a real
+// structural defect (promotionLadderInversions·theta = 10). Raw Shannon-info is
+// NOT real surprise: a giant flat distribution is max-entropy/min-belief-shift
+// (NEU-SAL-09 white-snow guardrail; corpus _SYSTEM/knowledge/neuroscience-corpus.md).
+//
+// Fix: divide gain by its own ceiling log(n) so the credit is in normalized [0,1]
+// units REGARDLESS of n — the same divisive-normalization / adaptive-coding the
+// midbrain applies to reward-prediction-error firing (bounded rates, context-
+// relative gain; PNAS 10.1073/pnas.1119969109) and the multiplicative homeostatic
+// synaptic scaling that renormalizes gain while preserving the relative pattern
+// (NEU-PLAS-06). n=3 collapse and n=200000 collapse now both normalize to 1.0;
+// a realistic partial update (e.g. [.25×4]→[.7,.1,.1,.1]) normalizes to ~0.32.
+// Legitimate learning keeps proportional credit; fabricated state-space inflation
+// gains nothing. The ceiling uses the prior's support size (the # of entries the
+// proposer declared), so inflating n cannot raise the ceiling-normalized credit.
+function infoGainCeiling(prior) {
+  // Support size = number of declared outcomes. log(n) is the max possible entropy
+  // (and thus max possible gain, since posterior entropy ≥ 0). n ≤ 1 -> ceiling 0.
+  const values = Array.isArray(prior) ? prior : Object.values(prior ?? {});
+  const n = values.length;
+  if (n <= 1) return 0;
+  return Math.log(n);
+}
+
 function evalInfoGain({ prior, posterior }) {
   if (!prior || !posterior) return { skipped: true, reason: 'no prior/posterior' };
   try {
-    return { value: informationGain(prior, posterior), skipped: false };
+    const rawGain = informationGain(prior, posterior);
+    const ceiling = infoGainCeiling(prior);
+    // Degenerate single-outcome prior (ceiling 0) carries no information and earns
+    // no credit. Clamp the normalized credit to [0,1]: rawGain cannot exceed the
+    // ceiling analytically, but rounding/coercion must not push it past 1.0 and
+    // re-open the buy-back. Negative gain (posterior LESS certain than prior — a
+    // belief that got muddier) yields a clamped 0: muddying is not a learning credit.
+    // roundEnergy collapses the tiny float gap left by rounding numerator and
+    // denominator independently (e.g. n=200000 -> 0.9999999999987814 -> 1) so the
+    // normalized credit is stable and the [0,1] clamp is exact.
+    const normalized = ceiling > 0 ? Math.max(0, Math.min(1, roundEnergy(rawGain / ceiling))) : 0;
+    return {
+      value: normalized,
+      skipped: false,
+      ...(ceiling > 0 ? {} : { warnings: ['degenerate prior (support ≤ 1): info-gain credit suppressed'] }),
+    };
   } catch (err) {
     return { skipped: true, reason: `infoGain failed: ${err.message}` };
   }
@@ -327,7 +382,9 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
     U += contributions.malformedForecast;
   }
   if (!components.informationGain.skipped) {
-    contributions.informationGain = -w.epsilon * components.informationGain.value;
+    // roundEnergy normalizes -0 -> 0 and stabilizes the float (the credit is already
+    // divisively normalized to [0,1] in evalInfoGain).
+    contributions.informationGain = roundEnergy(-w.epsilon * components.informationGain.value);
     U += contributions.informationGain;
   }
   if (!components.staleness.skipped) {
@@ -439,17 +496,78 @@ export function gateProposal({
   const vetoWarnings = [];
   const protectedBefore = readNonNegativeField(stateBefore, 'protectedPathViolations', vetoWarnings);
   const protectedAfter = readNonNegativeField(stateAfter, 'protectedPathViolations', vetoWarnings);
-  const protectedPathVeto = protectedAfter > protectedBefore;
+  // Fail-CLOSED on a malformed protected-path field (attack-finding): readNonNegativeField
+  // coerces NaN / a non-numeric string / an object to 0, so a stateAfter reporting
+  // protectedPathViolations as garbage would slip past `after > before` and DEFEAT the
+  // non-offsettable veto by changing the field's TYPE instead of its magnitude. Treat a
+  // PRESENT-but-unparseable value as "cannot prove no increase" -> veto.
+  const rawAfter = stateAfter.protectedPathViolations;
+  const afterMalformed = rawAfter !== undefined && rawAfter !== null && rawAfter !== ''
+    && !Number.isFinite(Number(rawAfter));
+  const protectedPathVeto = afterMalformed || (protectedAfter > protectedBefore);
 
-  const accept = protectedPathVeto ? false : (passesThreshold || overrideAllowed);
+  // STRUCTURAL FLOOR (info-gain buy-back fix, part b): a promotion-ladder inversion
+  // INCREASE is a real structural defect whose theta-weighted penalty must SURVIVE
+  // into the accept decision — it is NON-offsettable by the summed SOFT credits
+  // (normalized info-gain credit + verified-evidence credit), exactly as the
+  // protected-path veto is non-offsettable by evidence inflation.
+  //
+  // This is defense-in-depth on top of part (a): part (a) caps the info-gain credit
+  // at epsilon·1.0 so a single inflated state space cannot fund the buy-back; part
+  // (b) guarantees that even if MANY soft credits summed past the penalty under some
+  // future weighting, a genuine structural-defect increase still cannot be masked.
+  // Mirrors the brain's hard, non-negotiable error signals: homeostatic/credit
+  // mechanisms renormalize gain but do not erase a structural fault.
+  //
+  // Lyapunov preservation: the floor only ever RESTRICTS acceptance (turns an accept
+  // into a reject when a structural penalty is positive). It never accepts a
+  // transition the ΔU≤threshold rule would have rejected, so it cannot create an
+  // ascending accept — the descent guarantee on accepted transitions is unchanged
+  // for every state where the floor does not fire, and strengthened where it does.
+  //
+  // The floor keys on the ladder term's OWN delta, NOT a summed structural delta.
+  // Adversarial finding: summing structural terms let a protected-path REPAIR
+  // (-eta, e.g. 1→0 = -100) drag the summed structural delta negative while a NEW
+  // ladder inversion (+theta = +10) rode along — a repair on one axis masking a
+  // defect on another. Each structural defect must be individually non-offsettable,
+  // so the test is the ladder term's isolated theta-weighted increase.
+  const ladderBefore = readNonNegativeField(stateBefore, 'promotionLadderInversions', vetoWarnings);
+  const ladderAfter = readNonNegativeField(stateAfter, 'promotionLadderInversions', vetoWarnings);
+  const ladderPenaltyDelta = delta.result.componentDeltas.promotionLadderInversions ?? 0;
+  const rawLadderAfter = stateAfter.promotionLadderInversions;
+  const ladderAfterMalformed = rawLadderAfter !== undefined && rawLadderAfter !== null && rawLadderAfter !== ''
+    && !Number.isFinite(Number(rawLadderAfter));
+  // Fire the floor when a ladder inversion was introduced (its own theta-weighted
+  // penalty delta exceeds threshold AND the raw count rose) OR the ladder field is
+  // present-but-unparseable (fail-CLOSED, same as the protected-path type-confusion
+  // guard). The protected-path case keeps its own hard veto; this is the ladder term.
+  //
+  // Threshold note (owner-tunable policy, not a bug): the floor respects `threshold`.
+  // At the default threshold=0 any introduced inversion (theta·1 = 10 > 0) is vetoed.
+  // An operator who deliberately raises the threshold above theta is declaring an
+  // explicit energy-rise budget that tolerates that many inversion-units — distinct
+  // from the protected-path veto, which is catastrophic and ignores threshold entirely.
+  const structuralFloorVeto = !protectedPathVeto
+    && (ladderAfterMalformed
+      || (ladderPenaltyDelta > normalizedThreshold && ladderAfter > ladderBefore));
+
+  const accept = (protectedPathVeto || structuralFloorVeto)
+    ? false
+    : (passesThreshold || overrideAllowed);
 
   const reason = protectedPathVeto
-    ? `protected-path violation increase (${protectedBefore}→${protectedAfter}) — HARD VETO, non-offsettable (ΔU and override ignored)`
-    : passesThreshold
-      ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
-      : overrideAllowed
-        ? `ΔU=${deltaU} > threshold=${normalizedThreshold} but override allowed`
-        : `ΔU=${deltaU} > threshold=${normalizedThreshold} (ascending — energy raised, reject)`;
+    ? (afterMalformed
+        ? `protected-path field malformed in stateAfter (${JSON.stringify(rawAfter)}) — HARD VETO, fail-closed`
+        : `protected-path violation increase (${protectedBefore}→${protectedAfter}) — HARD VETO, non-offsettable (ΔU and override ignored)`)
+    : structuralFloorVeto
+      ? (ladderAfterMalformed
+          ? `promotion-ladder field malformed in stateAfter (${JSON.stringify(rawLadderAfter)}) — STRUCTURAL FLOOR, fail-closed`
+          : `promotion-ladder inversion increase (${ladderBefore}→${ladderAfter}; ladderΔ=${roundEnergy(ladderPenaltyDelta)}) — STRUCTURAL FLOOR, non-offsettable by soft credit (info-gain/evidence cannot buy it back)`)
+      : passesThreshold
+        ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
+        : overrideAllowed
+          ? `ΔU=${deltaU} > threshold=${normalizedThreshold} but override allowed`
+          : `ΔU=${deltaU} > threshold=${normalizedThreshold} (ascending — energy raised, reject)`;
 
   let dominantTerm = null;
   if (deltaU > normalizedThreshold) {
@@ -467,9 +585,14 @@ export function gateProposal({
       reason,
       deltaU,
       threshold: normalizedThreshold,
-      override: !protectedPathVeto && !passesThreshold && overrideAllowed,
+      override: !protectedPathVeto && !structuralFloorVeto && !passesThreshold && overrideAllowed,
       protectedPathVeto,
-      dominantTerm: protectedPathVeto ? 'protectedPathViolations' : dominantTerm,
+      structuralFloorVeto,
+      dominantTerm: protectedPathVeto
+        ? 'protectedPathViolations'
+        : structuralFloorVeto
+          ? 'promotionLadderInversions'
+          : dominantTerm,
       componentDeltas: delta.result.componentDeltas,
     },
     proof: {
