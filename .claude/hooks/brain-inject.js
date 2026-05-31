@@ -276,6 +276,33 @@ function loadOperatingBrain() {
   } catch { return null; }
 }
 
+// ── Persona-core (self-schema) + identity-hash (drift anchor) ────────────────
+// STABLE Zone-A content — zero volatile tokens. The distilled Rick/Deadpool voice spine
+// + the frozen identity invariants. Owner-gated files; loaded byte-identical so the brain
+// prefix stays cacheable across warm restarts. Full persona.md (772 lines) is on-demand only.
+
+const PERSONA_CORE_FILE  = path.join(REPO_ROOT, '_SYSTEM', 'persona-core.md');
+const IDENTITY_HASH_FILE = path.join(REPO_ROOT, '_SYSTEM', 'identity-hash.md');
+
+function stripCommentLines(content) {
+  // Drop top-level `# ` comment/title lines; keep `## ` sections + body.
+  return content.split('\n').filter(l => !l.startsWith('# ')).join('\n').trim();
+}
+
+function loadPersonaCore() {
+  try {
+    if (!fs.existsSync(PERSONA_CORE_FILE)) return null;
+    return stripCommentLines(fs.readFileSync(PERSONA_CORE_FILE, 'utf8')) || null;
+  } catch { return null; }
+}
+
+function loadIdentityHash() {
+  try {
+    if (!fs.existsSync(IDENTITY_HASH_FILE)) return null;
+    return stripCommentLines(fs.readFileSync(IDENTITY_HASH_FILE, 'utf8')) || null;
+  } catch { return null; }
+}
+
 // ── Self-awareness — L1–L3 ───────────────────────────────────────────────────
 // L1: cortex state (already in DYNAMIC section)
 // L2: behavioral fingerprint from yuri-sentinel/self-model/fingerprint.json
@@ -418,8 +445,16 @@ function loadNenPhase() {
 
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState }) {
+function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, personaCore, identityHash }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
+
+  const selfSchemaSection = personaCore
+    ? `### SELF_SCHEMA — Yuri self-schema (persona-core, always-load)\n${personaCore}\n\n`
+    : '';
+
+  const identityHashSection = identityHash
+    ? `\n\n### IDENTITY_HASH — frozen invariants (drift anchor, owner-gated)\n${identityHash}`
+    : '';
 
   const operatingBrainSection = operatingBrain
     ? `\n\n### OPERATING_BRAIN — Marcel cognitive operating contract (full, always-load)\n${operatingBrain}`
@@ -468,30 +503,38 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
     ? `\n### NEN_PHASE — Active work phase\n${nenPhase}`
     : '';
 
-  return `<yuri-brain>
-### IDENTITY — Yuri persona active (SOUL.md)
-${identityLines}${operatingBrainSection}
+  // ── ZONE A: STABLE CORE — byte-identical across warm restarts → cacheable prefix ──
+  // Zero volatile tokens (no dates/ages/session ids). Self-schema + persona identity + the
+  // frozen invariants + Marcel's operating brain + stable behavioral modules + curated memory.
+  const stableCore = `<yuri-brain>
+${selfSchemaSection}### IDENTITY — Yuri persona active (SOUL.md)
+${identityLines}${identityHashSection}${operatingBrainSection}
+
+### HARDWARE — M2 Pro constraints
+safe local: ${hwSafe}
+frozen (DO NOT RUN): ${hwFrozen}
+${HARDWARE.note}${animaDNASection}${neurodivSection}
 
 ### LEARNED_RULES — Dream-processor synthesis (global.md)
 ${learnedRules}
 
 ### MEMORY — curated truths (MEMORY.md)
-${memoryLines}
+${memoryLines}`;
+
+  // ── ZONE C: VOLATILE FOOTER — dates/ages/session-scoped; recency slot, never cached ──
+  const volatileFooter = `
 
 ### SESSION — Current context
 ${sessionCtx || '(checkpoint unavailable)'}
-
-### HARDWARE — M2 Pro constraints
-safe local: ${hwSafe}
-frozen (DO NOT RUN): ${hwFrozen}
-${HARDWARE.note}
 
 ### LANE_HEALTH — AI routing availability
 ${laneHealth}
 
 ### GATE — Launch readiness
-${gateSnapshot}${pdcSection}${dynamicSection}${animaDNASection}${neurodivSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${roadmapSection}${geassSection}${nenSection}
+${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${roadmapSection}${geassSection}${nenSection}
 </yuri-brain>`;
+
+  return stableCore + volatileFooter;
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -531,6 +574,8 @@ function main() {
 
   const animaDNA      = loadAnimaDNAModes();
   const operatingBrain= loadOperatingBrain();
+  const personaCore   = loadPersonaCore();
+  const identityHash  = loadIdentityHash();
   const neurodivergent= loadNeurodivergentEngine(cortexTier);
   const selfAwareness = loadSelfAwareness();
   const geassLock     = loadGeassLock();
@@ -539,7 +584,7 @@ function main() {
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
 
-  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState });
+  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, personaCore, identityHash });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
