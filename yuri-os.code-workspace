@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "name": "YURI-OS-MUSUBI",
+      "path": "."
+    },
+    {
+      "name": "Yuri Memory (Track B — auto-memory)",
+      "path": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory"
+    }
+  ],
+  "settings": {
+    "search.useIgnoreFiles": true,
+    "files.exclude": {
+      "**/target": true,
+      "**/node_modules": true
+    }
+  }
+}
