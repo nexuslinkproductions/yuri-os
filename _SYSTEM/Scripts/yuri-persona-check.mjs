@@ -64,13 +64,16 @@ assertIncludes('.claude/rules/yuri_operating_dna.md', '../../SOUL.md');
 const settings = JSON.parse(read('.claude/settings.json'));
 const sessionHooks = settings.hooks?.SessionStart?.flatMap((group) => group.hooks || []) || [];
 const subagentHooks = settings.hooks?.SubagentStart?.flatMap((group) => group.hooks || []) || [];
+// Match the hook script by name at the end of the command, so it stays valid whether the
+// path is relative (`node .claude/hooks/brain-inject.js`) or cwd-independent
+// (`node "$CLAUDE_PROJECT_DIR/.claude/hooks/brain-inject.js"`). Exact-string equality was
+// brittle and broke when hook commands were hardened to $CLAUDE_PROJECT_DIR.
 assert.ok(
-  sessionHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js')
-    || sessionHooks.some((hook) => hook.command === 'node .claude/hooks/brain-inject.js'),
+  sessionHooks.some((hook) => /\/(soul-persona-inject|brain-inject)\.js"?$/.test(hook.command || '')),
   'SessionStart missing persona injection hook',
 );
 assert.ok(
-  subagentHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js'),
+  subagentHooks.some((hook) => /\/soul-persona-inject\.js"?$/.test(hook.command || '')),
   'SubagentStart missing soul-persona-inject hook',
 );
 
