@@ -265,71 +265,17 @@ function loadAnimaDNAModes() {
   return MODES.map(m => `${m.name}: ${m.trigger}`).join('\n');
 }
 
-// ── Neurodivergent engine ────────────────────────────────────────────────────
-// Operationalizes Marcel's neurotype traits as testable behavioral modules.
-// Source: _SYSTEM/SELF/Identity.md (Autistic/ADHD/Polymath parameters)
+// ── Identity-hash (drift anchor) ─────────────────────────────────────────────
+// STABLE Zone-A content — zero volatile tokens: the frozen identity invariants.
+// Owner-gated file; loaded byte-identical so the brain prefix stays cacheable across
+// warm restarts. The persona voice, Marcel operating brain, and neurodivergent base are
+// consolidated into _SYSTEM/persona.md (native @-include in CLAUDE.md), not injected here.
 
-function loadNeurodivergentEngine(cortexTier) {
-  const IDENTITY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'Identity.md');
-  const isComplex = cortexTier && ['complex', 'critical'].includes(cortexTier);
-
-  const modules = [
-    { trait: 'Autistic pattern depth',   rule: 'Full spec-read + mechanism map before complex analysis; never skim' },
-    { trait: 'ADHD burst mode',          rule: 'Batch independent tasks into parallel tool calls — fan-out, never serial' },
-    { trait: 'Hyperfocus lock',          rule: `${isComplex ? '⚡ ACTIVE' : 'Standby'}: when deep in a thread, block advisor scatter to adjacent concerns` },
-    { trait: 'Polymath transfer',        rule: 'Check: does this problem map to a solved domain? Name source→target→mechanism before applying' },
-    { trait: 'Interest-driven salience', rule: 'High-interest = max depth; admin/low-interest = minimum tokens → route to lane' },
-    { trait: 'Pattern-first decode',     rule: 'Marcel sends brain dumps → decode structure first, ask only when decoding reveals true ambiguity' },
-  ];
-
-  // Verify Identity.md exists (graceful fallback)
-  let neurotype = 'Autistic+ADHD+Polymath (from Identity.md)';
-  try {
-    if (fs.existsSync(IDENTITY_FILE)) {
-      const content = fs.readFileSync(IDENTITY_FILE, 'utf8');
-      const match = content.match(/## Neurotype & Mind([\s\S]*?)(?=\n## |$)/);
-      if (match) neurotype = match[1].trim().split('\n').slice(0, 3).join(' · ').replace(/[*-]/g, '').trim();
-    }
-  } catch (_) {}
-
-  return `Neurotype: ${neurotype}\n` + modules.map(m => `[${m.trait}] ${m.rule}`).join('\n');
-}
-
-// ── Marcel operating brain — full always-load cognitive contract ─────────────
-// Source: _SYSTEM/SELF/marcel-operating-brain.md
-// Injected in FULL by owner directive ("must load every session, no matter the cost").
-// Stable file → caches well. Supercharged synthesis of Identity.md + cognitive-profile.md.
-
-const OPERATING_BRAIN_FILE = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'marcel-operating-brain.md');
-
-function loadOperatingBrain() {
-  try {
-    if (!fs.existsSync(OPERATING_BRAIN_FILE)) return null;
-    const content = fs.readFileSync(OPERATING_BRAIN_FILE, 'utf8');
-    // Drop H1 title + leading provenance blockquote; inject the doctrine in full (no truncation).
-    const start = content.indexOf('## 1.');
-    return (start >= 0 ? content.slice(start) : content).trim();
-  } catch { return null; }
-}
-
-// ── Persona-core (self-schema) + identity-hash (drift anchor) ────────────────
-// STABLE Zone-A content — zero volatile tokens. The distilled Rick/Deadpool voice spine
-// + the frozen identity invariants. Owner-gated files; loaded byte-identical so the brain
-// prefix stays cacheable across warm restarts. Full persona.md (772 lines) is on-demand only.
-
-const PERSONA_CORE_FILE  = path.join(REPO_ROOT, '_SYSTEM', 'persona-core.md');
 const IDENTITY_HASH_FILE = path.join(REPO_ROOT, '_SYSTEM', 'identity-hash.md');
 
 function stripCommentLines(content) {
   // Drop top-level `# ` comment/title lines; keep `## ` sections + body.
   return content.split('\n').filter(l => !l.startsWith('# ')).join('\n').trim();
-}
-
-function loadPersonaCore() {
-  try {
-    if (!fs.existsSync(PERSONA_CORE_FILE)) return null;
-    return stripCommentLines(fs.readFileSync(PERSONA_CORE_FILE, 'utf8')) || null;
-  } catch { return null; }
 }
 
 function loadIdentityHash() {
@@ -494,19 +440,11 @@ function loadNenPhase() {
 
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, personaCore, identityHash, neuroCore }) {
+function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, identityHash, neuroCore }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
-
-  const selfSchemaSection = personaCore
-    ? `### SELF_SCHEMA — Yuri self-schema (persona-core, always-load)\n${personaCore}\n\n`
-    : '';
 
   const identityHashSection = identityHash
     ? `\n\n### IDENTITY_HASH — frozen invariants (drift anchor, owner-gated)\n${identityHash}`
-    : '';
-
-  const operatingBrainSection = operatingBrain
-    ? `\n\n### OPERATING_BRAIN — Marcel cognitive operating contract (full, always-load)\n${operatingBrain}`
     : '';
 
   const neuroCoreSection = neuroCore
@@ -526,10 +464,6 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
 
   const animaDNASection = animaDNA
     ? `\n### ANIMA_DNA_MODES — Cognitive triggers (Japanese principles)\n${animaDNA}`
-    : '';
-
-  const neurodivSection = neurodivergent
-    ? `\n### NEURODIVERGENT_ENGINE — Active behavioral modules\n${neurodivergent}`
     : '';
 
   const selfAwarenessSection = selfAwareness
@@ -560,13 +494,13 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
   // Zero volatile tokens (no dates/ages/session ids). Self-schema + persona identity + the
   // frozen invariants + Marcel's operating brain + stable behavioral modules + curated memory.
   const stableCore = `<yuri-brain>
-${selfSchemaSection}### IDENTITY — Yuri persona active (SOUL.md)
-${identityLines}${identityHashSection}${operatingBrainSection}${neuroCoreSection}
+### IDENTITY — Yuri persona active (SOUL.md)
+${identityLines}${identityHashSection}${neuroCoreSection}
 
 ### HARDWARE — M2 Pro constraints
 safe local: ${hwSafe}
 frozen (DO NOT RUN): ${hwFrozen}
-${HARDWARE.note}${animaDNASection}${neurodivSection}
+${HARDWARE.note}${animaDNASection}
 
 ### LEARNED_RULES — Dream-processor synthesis (global.md)
 ${learnedRules}
@@ -616,23 +550,9 @@ function main() {
   const cortexDynamic  = loadCortexDynamic();
   const pdcContext     = loadPdcContext();
 
-  // Extract complexity tier from cortex state for neurodivergent engine
-  let cortexTier = 'standard';
-  try {
-    const CORTEX_STATE = path.join(REPO_ROOT, '.claude', 'state', 'cortex-state.json');
-    if (fs.existsSync(CORTEX_STATE)) {
-      cortexTier = JSON.parse(fs.readFileSync(CORTEX_STATE, 'utf8')).complexityTier || 'standard';
-    }
-  } catch (_) {}
-
   const animaDNA      = loadAnimaDNAModes();
-  // persona-core, operating-brain, and the neurodivergent base are consolidated into
-  // _SYSTEM/persona.md (native @-include in CLAUDE.md) — no longer injected by the hook.
-  const operatingBrain= null;
-  const personaCore   = null;
   const identityHash  = loadIdentityHash();
   const neuroCore     = loadNeuroCore();
-  const neurodivergent= null;
   const selfAwareness = loadSelfAwareness();
   const geassLock     = loadGeassLock();
   const nenPhase      = loadNenPhase();
@@ -640,7 +560,7 @@ function main() {
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
 
-  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, operatingBrain, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, personaCore, identityHash, neuroCore });
+  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, identityHash, neuroCore });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
