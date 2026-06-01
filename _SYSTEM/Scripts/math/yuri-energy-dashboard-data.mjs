@@ -75,6 +75,66 @@ export const TEST_COUNTS = Object.freeze({
 });
 
 // ---------------------------------------------------------------------------
+// COMPONENT_META — the eleven U components, each tied to its weight key (k),
+// Greek symbol (sym), the componentContributions/componentDeltas field name it
+// emits (cc), a human name, a one-line meaning, and a kind. Honest to the
+// yuri-energy.mjs source comments and to computeU's additive decomposition.
+//   kind: 'penalty' raises U · 'reward' lowers U · 'critical' is a hard/heavy veto term
+// ---------------------------------------------------------------------------
+
+export const COMPONENT_META = Object.freeze([
+  { k: 'alpha',   sym: 'α', cc: 'entropy',                   name: 'entropy',    meta: 'how unsettled the claims are about where they stand',          kind: 'penalty' },
+  { k: 'beta',    sym: 'β', cc: 'klDivergence',              name: 'claim drift', meta: 'how far the claims have drifted from what is verified',       kind: 'critical' },
+  { k: 'gamma',   sym: 'γ', cc: 'logLoss',                   name: 'calibration', meta: 'the cost of a confident forecast that turns out wrong',       kind: 'penalty' },
+  { k: 'delta',   sym: 'δ', cc: 'brier',                     name: 'accuracy',   meta: 'how far the forecasts land from what happened',                kind: 'penalty' },
+  { k: 'epsilon', sym: 'ε', cc: 'informationGain',           name: 'progress',   meta: 'genuine new information lowers the number',                    kind: 'reward' },
+  { k: 'zeta',    sym: 'ζ', cc: 'staleness',                 name: 'staleness',  meta: 'evidence that has aged drags the number back up',              kind: 'penalty' },
+  { k: 'eta',     sym: 'η', cc: 'protectedPathViolations',   name: 'protected',  meta: 'a write into a protected zone. the uncancellable veto',        kind: 'critical' },
+  { k: 'theta',   sym: 'θ', cc: 'promotionLadderInversions', name: 'ladder',     meta: 'a step that jumps the evidence it should rest on',             kind: 'critical' },
+  { k: 'iota',    sym: 'ι', cc: 'verifiedEvidenceCredit',    name: 'verified',   meta: 'verified work, the one thing that lowers the number',          kind: 'reward' },
+  { k: 'kappa',   sym: 'κ', cc: 'repeatedFailure',           name: 'repeats',    meta: 'the same confident mistake made again and again',              kind: 'critical' },
+  { k: 'lambda',  sym: 'λ', cc: 'malformedForecast',         name: 'impossible', meta: 'a forecast outside the range a probability can take',          kind: 'critical' },
+]);
+
+export const SYM_BY_CC = Object.freeze(Object.fromEntries(COMPONENT_META.map((c) => [c.cc, c.sym])));
+export const META_BY_CC = Object.freeze(Object.fromEntries(COMPONENT_META.map((c) => [c.cc, c])));
+
+// Publication-voice labels for the rejection battery. The study harness names its
+// cases with internal shorthand; for a reader-facing surface they are described by
+// what the move IS, not by its internal id or a literal path.
+export const BATTERY_PUBLIC_LABEL = Object.freeze({
+  'protected-path': 'a write outside sanctioned scope',
+  'confidently-wrong': 'a confidently wrong forecast',
+  'malformed-forecast': 'an out-of-range forecast',
+  'ladder-inversion': 'a jump up the evidence ladder',
+  'healthy-edit': 'a verified edit that lands',
+  'neutral': 'a no-op transition',
+});
+
+// downsample — pure. Reduce a dense [x, y] series to at most `target` points,
+// always keeping the first and last and an even stride between. Keeps the
+// emitted DATA small while preserving the descent shape. Deterministic.
+export function downsample(points, target = 60) {
+  const list = Array.isArray(points) ? points : [];
+  if (list.length <= target || target < 2) return list.slice();
+  const out = [];
+  const stride = (list.length - 1) / (target - 1);
+  for (let i = 0; i < target; i++) {
+    out.push(list[Math.round(i * stride)]);
+  }
+  // de-dupe consecutive identical x (rounding collisions) while keeping the last.
+  const seen = new Set();
+  const dedup = [];
+  for (let i = 0; i < out.length; i++) {
+    const x = out[i][0];
+    if (seen.has(x) && i !== out.length - 1) continue;
+    seen.add(x);
+    dedup.push(out[i]);
+  }
+  return dedup;
+}
+
+// ---------------------------------------------------------------------------
 // resolveStateDir / traceDirFor — pure. Same precedence as the experiment
 // runner: explicit option → YURI_STATE_DIR → repo default.
 // ---------------------------------------------------------------------------
@@ -109,13 +169,18 @@ export function round9(value) {
 // evaluation, distinct from the experiment runner which appends traces.
 // ---------------------------------------------------------------------------
 
-export async function runDescent({ scenario = 'descent-demo' } = {}) {
+export async function runDescentRaw({ scenario = 'descent-demo' } = {}) {
   const transitions = await loadScenario(scenario);
   const { steps } = evaluateTransitions(transitions, {
     scenario,
     runId: `${scenario}-dashboard`,
     lane: 'experiment',
   });
+  return { scenario, steps };
+}
+
+export async function runDescent({ scenario = 'descent-demo' } = {}) {
+  const { steps } = await runDescentRaw({ scenario });
   return buildDescentSection(scenario, steps);
 }
 
@@ -320,10 +385,15 @@ export function buildDeltaUDistribution(values) {
 // ---------------------------------------------------------------------------
 
 export function buildComponentsSection(weights = DEFAULT_WEIGHTS) {
+  const w = { ...weights };
   return {
     provenance: PROVENANCE.REAL,
-    note: 'DEFAULT_WEIGHTS from yuri-energy.mjs — operator policy, not learned.',
-    weights: { ...weights },
+    note: 'DEFAULT_WEIGHTS from yuri-energy.mjs — operator policy, not learned. Eleven components: U is a weighted sum of penalties minus evidence credits.',
+    weights: w,
+    // list — every component with its weight, symbol, meaning, and kind, ordered
+    // as the gate composes them. The dashboard renders this directly; no hand-authored
+    // component table can drift from the live weights.
+    list: COMPONENT_META.map((c) => ({ k: c.k, sym: c.sym, cc: c.cc, name: c.name, meta: c.meta, kind: c.kind, w: w[c.k] })),
   };
 }
 
@@ -361,24 +431,278 @@ export function buildConfigSection(liveConfig = {}, defaults = DEFAULT_WEIGHTS) 
 }
 
 // ---------------------------------------------------------------------------
+// buildRealTrafficSection — pure. The REAL descent over real routed work.
+// Reduces parsed trace records into the cumulative-ΔU story the hero tells:
+//   - real-traffic   = records with a non-empty lane
+//   - dispatch       = real-traffic that is NOT the synthetic experiment lane
+//                      (this is the actual routed work; the hero curve)
+// The cumulative series walks dispatch records in chronological order (files are
+// read sorted, lines in order) accumulating ΔU. Sampled down for a compact emit.
+// Observe mode: every dispatch transition is recorded and accepted (0 rejections);
+// that honesty is carried in the note, not hidden.
+// ---------------------------------------------------------------------------
+
+export function buildRealTrafficSection(records, { sampleTo = 64 } = {}) {
+  const list = Array.isArray(records) ? records : [];
+  const isReal = (r) => typeof r?.lane === 'string' && r.lane !== '';
+  const real = list.filter(isReal);
+  const dispatch = real.filter((r) => r.lane !== 'experiment');
+  const experiment = real.filter((r) => r.lane === 'experiment');
+
+  const byLane = {};
+  for (const r of list) {
+    const lane = isReal(r) ? r.lane : '<baseline>';
+    byLane[lane] = (byLane[lane] ?? 0) + 1;
+  }
+
+  let cum = 0;
+  let deepest = 0;
+  let accepted = 0;
+  let rejected = 0;
+  const points = [];
+  const days = {};
+  dispatch.forEach((r, i) => {
+    const d = Number(r?.deltaU);
+    const dd = Number.isFinite(d) ? d : 0;
+    cum = round9(cum + dd);
+    if (cum < deepest) deepest = cum;
+    points.push([i, cum]);
+    if (r?.decision === 'reject') rejected += 1;
+    else accepted += 1;
+    const day = typeof r?.timestamp === 'string' ? r.timestamp.slice(0, 10) : 'unknown';
+    days[day] = days[day] ?? { n: 0, sum: 0 };
+    days[day].n += 1;
+    days[day].sum = round9(days[day].sum + dd);
+  });
+
+  const daysArr = Object.entries(days)
+    .map(([d, v]) => ({ d, n: v.n, sum: v.sum }))
+    .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+
+  return {
+    provenance: PROVENANCE.REAL,
+    note:
+      'Cumulative ΔU over REAL routed dispatch transitions — real-traffic lanes excluding the synthetic experiment lane. ' +
+      'Read from _SYSTEM/state/energy-trace/*.jsonl. The gate runs in observe mode: every transition is recorded and accepted (0 rejections), ' +
+      'so this proves the function and real descent, not rejection behaviour (that is the action-mode study).',
+    chip: `${dispatch.length} dispatch transitions · observe mode`,
+    totalRecords: list.length,
+    realTrafficRecords: real.length,
+    dispatchRecords: dispatch.length,
+    experimentRecords: experiment.length,
+    baselineRecords: byLane['<baseline>'] ?? 0,
+    byLane,
+    accepted,
+    rejected,
+    cumulativeDeltaU: cum,
+    deepestU: deepest,
+    series: downsample(points, sampleTo),
+    days: daysArr,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// buildWorkedMathSection — pure, current-code-honest. The accept examples are
+// real steps from the live B.2 descent run: each step's componentDeltas are the
+// per-term ΔU decomposition and they sum EXACTLY to deltaU (Σ terms === ΔU). The
+// reject examples come from the action-mode battery rows (the real gate run in
+// enforce semantics) — the dominant term and ΔU magnitude that force the reject.
+// Both sides are produced by the live gate, never replayed from older traces.
+// ---------------------------------------------------------------------------
+
+export function buildWorkedMathSection(steps, studyReport) {
+  const stepList = Array.isArray(steps) ? steps : [];
+  const pickIdx = stepList.length
+    ? [...new Set([0, Math.floor(stepList.length / 2), stepList.length - 1])]
+    : [];
+  const acceptExamples = pickIdx.map((idx) => {
+    const s = stepList[idx];
+    const deltas = s?.componentDeltas && typeof s.componentDeltas === 'object' ? s.componentDeltas : {};
+    const terms = Object.entries(deltas)
+      .filter(([, v]) => Number.isFinite(Number(v)) && Number(v) !== 0)
+      .map(([cc, v]) => ({
+        cc,
+        sym: SYM_BY_CC[cc] ?? '',
+        name: META_BY_CC[cc]?.name ?? cc,
+        kind: META_BY_CC[cc]?.kind ?? 'penalty',
+        delta: round9(Number(v)),
+        dir: Number(v) < 0 ? 'down' : 'up',
+      }))
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+    return {
+      label: typeof s?.label === 'string' ? s.label : `transition ${idx}`,
+      lane: 'experiment · B.2 descent-demo (live gate)',
+      U_before: round9(Number(s?.U_before)),
+      U_after: round9(Number(s?.U_after)),
+      deltaU: round9(Number(s?.deltaU)),
+      decision: s?.accept ? 'accept' : 'reject',
+      terms,
+      sumCheck: round9(terms.reduce((a, t) => a + t.delta, 0)),
+    };
+  });
+
+  const rejectExamples = (studyReport?.study?.rows ?? [])
+    .filter((r) => r?.kind === 'adversarial')
+    .map((r) => ({
+      label: BATTERY_PUBLIC_LABEL[r.id] ?? r.label,
+      deltaU: round9(Number(r.deltaU)),
+      decision: r.decision,
+      expect: r.expect,
+      correct: r.correct,
+      dominantTerm: r.dominantTerm,
+      dominantSym: SYM_BY_CC[r.dominantTerm] ?? '',
+    }));
+
+  return {
+    provenance: PROVENANCE.REAL,
+    note:
+      'Per-term math, current-code-honest. Accept examples are real steps from the B.2 descent run through the live gate — ' +
+      'each component delta is a real ΔU contribution and the terms sum exactly to ΔU. Reject examples are the action-mode ' +
+      'battery run through the same gate in enforce semantics; the dominant term forces the reject.',
+    acceptExamples,
+    rejectExamples,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// buildAttributionSection — pure. Feeds an attribution graph: the eleven
+// components flowing into U. Each node carries its policy weight (the structural
+// edge strength) AND an observed magnitude — the summed |ΔU contribution| seen
+// in real evidence (the live descent run + the action-mode battery). `fired`
+// marks components that have actually moved U in observed evidence vs those that
+// have not yet been exercised. Honest: weight is policy, magnitude is empirical.
+// ---------------------------------------------------------------------------
+
+export function buildAttributionSection(steps, studyReport, weights = DEFAULT_WEIGHTS) {
+  const mag = {};
+  const add = (cc, v) => {
+    const n = Math.abs(Number(v));
+    if (Number.isFinite(n) && n > 0) mag[cc] = round9((mag[cc] ?? 0) + n);
+  };
+  for (const s of Array.isArray(steps) ? steps : []) {
+    const deltas = s?.componentDeltas && typeof s.componentDeltas === 'object' ? s.componentDeltas : {};
+    for (const [cc, v] of Object.entries(deltas)) add(cc, v);
+  }
+  for (const r of studyReport?.study?.rows ?? []) {
+    if (r?.dominantTerm) add(r.dominantTerm, r.deltaU);
+  }
+  const nodes = COMPONENT_META.map((c) => ({
+    k: c.k,
+    sym: c.sym,
+    cc: c.cc,
+    name: c.name,
+    kind: c.kind,
+    weight: weights[c.k],
+    observedMagnitude: mag[c.cc] ?? 0,
+    fired: (mag[c.cc] ?? 0) > 0,
+  }));
+  const totalObserved = round9(nodes.reduce((a, n) => a + n.observedMagnitude, 0));
+  return {
+    provenance: PROVENANCE.REAL,
+    note:
+      'Attribution of U to its eleven components. weight = operator policy (structural edge strength); ' +
+      'observedMagnitude = summed |ΔU contribution| seen in real evidence (B.2 descent run + action-mode battery). ' +
+      'fired=false means the component has not yet been exercised in observed evidence.',
+    nodes,
+    totalObserved,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// readLatestStudy — I/O surface. Reads the newest sandbox-action-study/study-*.json
+// report written by yuri-action-mode-study.mjs. Returns null when absent (honest:
+// the study may not have been run). Filenames embed a millisecond stamp, so a
+// lexical sort puts the newest last.
+// ---------------------------------------------------------------------------
+
+export function readLatestStudy({ stateDir, env = process.env, studyDir } = {}) {
+  const dir = studyDir ?? path.join(resolveStateDir({ stateDir, env }), 'sandbox-action-study');
+  if (!fs.existsSync(dir)) return null;
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.startsWith('study-') && f.endsWith('.json'))
+    .sort();
+  if (files.length === 0) return null;
+  try {
+    return JSON.parse(fs.readFileSync(path.join(dir, files[files.length - 1]), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// buildActionStudySection — pure. Reduces an action-mode study report into the
+// dashboard's "teeth" section: the known-outcome battery (the gate's rejection
+// proof), the confusion matrix, the shadow-replay false-positive rate on real
+// traffic, and the graduation verdict. PLANNED provenance when no study exists.
+// ---------------------------------------------------------------------------
+
+export function buildActionStudySection(report) {
+  if (!report || !report.study) {
+    return {
+      provenance: PROVENANCE.PLANNED,
+      available: false,
+      note: 'No action-mode study has been run yet. Run `node _SYSTEM/Scripts/yuri-action-mode-study.mjs`.',
+    };
+  }
+  const s = report.study;
+  const sh = report.shadow ?? {};
+  return {
+    provenance: PROVENANCE.REAL,
+    available: true,
+    ranAt: report.ranAt ?? null,
+    note:
+      'SHADOW study — the real gate run in enforce semantics over a known-outcome battery (its teeth), plus a shadow replay of ' +
+      'recorded real traffic (the false-positive signal). Nothing was blocked. This is the graduation gate for live enforcement: ' +
+      'battery all-correct AND ~0 real-traffic false-positives before the gate is allowed to block anything.',
+    battery: (s.rows ?? []).map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      label: BATTERY_PUBLIC_LABEL[r.id] ?? r.label,
+      expect: r.expect,
+      decision: r.decision,
+      correct: r.correct,
+      deltaU: round9(Number(r.deltaU)),
+      dominantTerm: r.dominantTerm,
+      dominantSym: SYM_BY_CC[r.dominantTerm] ?? '',
+    })),
+    confusion: {
+      trueRejects: s.trueRejects ?? 0,
+      falseAccepts: s.falseAccepts ?? 0,
+      trueAccepts: s.trueAccepts ?? 0,
+      falseRejects: s.falseRejects ?? 0,
+      allCorrect: Boolean(s.allCorrect),
+    },
+    shadow: {
+      total: sh.total ?? 0,
+      wouldReject: sh.wouldReject ?? 0,
+      falsePositiveRate: sh.falsePositiveRate ?? 0,
+    },
+    verdict: report.verdict ?? '',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // buildSurfacesSection — pure. Surface states with per-surface provenance.
 // Mirrors the dashboard reality strip but tags each entry honestly given the
 // current workstream state (A.1/A.2 PASS, A.3 built, B.2 real, B.1 collecting).
 // ---------------------------------------------------------------------------
 
 export function buildSurfacesSection() {
+  // Publication voice: surfaces named for what they are to a reader, not by
+  // internal module, workstream, or test-suite identifiers.
   const surfaces = [
-    { surface: 'Energy function (computeU)', provenance: PROVENANCE.REAL, note: 'yuri-energy.mjs scores U over a state snapshot. 28 unit tests pass.' },
-    { surface: 'Telemetry layer (A.1)', provenance: PROVENANCE.REAL, note: 'Sanitized JSONL emitter, 39 tests pass. Observability flag now on; B.1 window open.' },
-    { surface: 'Dispatch wiring (A.2.a)', provenance: PROVENANCE.REAL, note: 'Observe-mode dispatch wiring landed. Action-mode (A.2.b) gated until B.1 review.' },
-    { surface: 'Experiment runner (A.3)', provenance: PROVENANCE.REAL, note: 'yuri-energy-experiment.mjs built — runs scenario modules through the real gate.' },
-    { surface: 'Descent demo (B.2)', provenance: PROVENANCE.REAL, note: 'Real gate outputs over a synthetic 15-transition descent. ΔU + U trajectory shown.' },
-    { surface: 'Layer-7 sanitizer', provenance: PROVENANCE.REAL, note: 'Privacy-gate sanitizer built — 32 tests pass.' },
-    { surface: 'Weight ledger', provenance: PROVENANCE.REAL, note: 'Values match DEFAULT_WEIGHTS in source exactly.' },
-    { surface: 'Real dispatch traces (B.1)', provenance: PROVENANCE.PLANNED, note: 'Collection window open; zero real-traffic dispatch records captured yet.' },
-    { surface: 'Energy field animation', provenance: PROVENANCE.SIMULATED, note: 'Illustrative two-basin geometry. Not the energy function.' },
-    { surface: 'Ablation / adversarial (B.3–B.4)', provenance: PROVENANCE.PLANNED, note: 'Component ablation and adversarial probe — scheduled Jun–Jul.' },
-    { surface: 'Eight figures', provenance: PROVENANCE.PLANNED, note: 'U traces, component stacks, rejection rates, architecture diagrams — not rendered.' },
+    { surface: 'The potential function', provenance: PROVENANCE.REAL, note: 'Scores the scalar potential over a state snapshot; exercised by a full battery of cases.' },
+    { surface: 'Telemetry', provenance: PROVENANCE.REAL, note: 'A sanitized record is written for every evaluation; the collection window is open and recording real work.' },
+    { surface: 'Observe-mode scoring', provenance: PROVENANCE.REAL, note: 'The gate scores and records each routed transition. It does not yet block — enforcement is held until the contained review.' },
+    { surface: 'Real routed traffic', provenance: PROVENANCE.REAL, note: 'Thousands of real transitions scored and recorded: a net descent, and nothing rejected in observe mode.' },
+    { surface: 'The controlled descent', provenance: PROVENANCE.REAL, note: 'Real gate output over a deliberately authored sequence — a clean, monotonic descent.' },
+    { surface: 'The rejection study', provenance: PROVENANCE.REAL, note: 'The same function run in the mode it would enforce in, over known-correct cases, without touching live work.' },
+    { surface: 'The privacy boundary', provenance: PROVENANCE.REAL, note: 'Raw state stays local; only sanitized records ever cross outward.' },
+    { surface: 'The weight policy', provenance: PROVENANCE.REAL, note: 'The live weights match the operator-set policy exactly.' },
+    { surface: 'The two-basin field', provenance: PROVENANCE.SIMULATED, note: 'An illustrative geometry — a visual analogy, not the potential function itself.' },
+    { surface: 'Adversarial campaigns', provenance: PROVENANCE.PLANNED, note: 'Sustained ablation and adversarial probing under containment — still ahead.' },
+    { surface: 'The published figures', provenance: PROVENANCE.PLANNED, note: 'The paper’s final figure set — not yet rendered.' },
   ];
   return { provenance: 'mixed', surfaces };
 }
@@ -412,12 +736,15 @@ export function buildStatusSection({ testCounts = TEST_COUNTS } = {}) {
 // Pure given its inputs; the only impure callers are runDescent + readTrace.
 // ---------------------------------------------------------------------------
 
-export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, liveConfig = {}, testCounts = TEST_COUNTS, generatedAt } = {}) {
+export function aggregate({ descent, descentSteps = [], traceResult, studyReport = null, weights = DEFAULT_WEIGHTS, liveConfig = {}, testCounts = TEST_COUNTS, generatedAt } = {}) {
   if (!descent) throw new Error('aggregate requires a descent section');
   const trace = traceResult ?? { records: [], malformed: 0, files: [] };
   return {
-    schema: 'yuri-energy-dashboard-data/v1',
+    schema: 'yuri-energy-dashboard-data/v2',
     generatedAt: generatedAt ?? new Date().toISOString(),
+    // realTraffic — the hero: cumulative ΔU over real routed dispatch work.
+    realTraffic: buildRealTrafficSection(trace.records),
+    // descent — the controlled B.2 proof: real gate, authored 15-step scenario.
     descent,
     telemetry: {
       ...buildTelemetrySection(trace.records),
@@ -426,6 +753,11 @@ export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, liv
     },
     components: buildComponentsSection(weights),
     config: buildConfigSection(liveConfig),
+    // workedMath / attribution — the per-term math + the attribution graph data.
+    workedMath: buildWorkedMathSection(descentSteps, studyReport),
+    attribution: buildAttributionSection(descentSteps, studyReport, weights),
+    // actionStudy — the teeth: rejection battery + shadow-replay false-positive rate.
+    actionStudy: buildActionStudySection(studyReport),
     surfaces: buildSurfacesSection(),
     status: buildStatusSection({ testCounts }),
     advisory_only: true,
@@ -439,10 +771,12 @@ export function aggregate({ descent, traceResult, weights = DEFAULT_WEIGHTS, liv
 // ---------------------------------------------------------------------------
 
 export async function buildDashboardData({ stateDir, env = process.env, scenario = 'descent-demo', generatedAt } = {}) {
-  const descent = await runDescent({ scenario });
+  const { steps } = await runDescentRaw({ scenario });
+  const descent = buildDescentSection(scenario, steps);
   const traceResult = readTraceRecords({ stateDir, env });
   const liveConfig = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
-  return aggregate({ descent, traceResult, liveConfig, generatedAt });
+  const studyReport = readLatestStudy({ stateDir, env });
+  return aggregate({ descent, descentSteps: steps, traceResult, studyReport, liveConfig, generatedAt });
 }
 
 // ---------------------------------------------------------------------------

@@ -6,16 +6,23 @@ import path from 'node:path';
 import {
   PROVENANCE,
   TEST_COUNTS,
+  COMPONENT_META,
   round9,
+  downsample,
   resolveStateDir,
   traceDirFor,
   runDescent,
+  runDescentRaw,
   buildDescentSection,
   readTraceRecords,
   buildTelemetrySection,
   buildDeltaUDistribution,
   buildComponentsSection,
   buildConfigSection,
+  buildRealTrafficSection,
+  buildWorkedMathSection,
+  buildAttributionSection,
+  buildActionStudySection,
   buildSurfacesSection,
   buildStatusSection,
   aggregate,
@@ -271,9 +278,15 @@ test('every surface carries a valid provenance tag', () => {
     assert.ok(valid.has(s.provenance), `surface "${s.surface}" has invalid provenance ${s.provenance}`);
     assert.equal(typeof s.note, 'string');
   }
-  // The B.1 surface must be planned (zero real dispatch traces yet).
-  const b1 = sec.surfaces.find((s) => s.surface.includes('B.1'));
-  assert.equal(b1.provenance, PROVENANCE.PLANNED);
+  // Real routed traffic now exists and is tagged real; the published figures
+  // remain ahead. (Publication voice — no internal workstream identifiers.)
+  const realTraffic = sec.surfaces.find((s) => s.surface === 'Real routed traffic');
+  assert.equal(realTraffic.provenance, PROVENANCE.REAL);
+  assert.ok(sec.surfaces.some((s) => s.provenance === PROVENANCE.PLANNED), 'at least one surface still ahead');
+  // No internal artifact names or workstream IDs leak into the reader-facing ledger.
+  for (const s of sec.surfaces) {
+    assert.ok(!/\.mjs|JSONL|\b[AB]\.\d|Layer-7|computeU/.test(`${s.surface} ${s.note}`), `publication-voice leak in "${s.surface}"`);
+  }
 });
 
 test('buildStatusSection sums the test counts and keeps the snapshot flag', () => {
@@ -296,11 +309,17 @@ test('aggregate composes a DATA object with provenance on every section', async 
   const descent = await runDescent();
   const traceResult = { records: [baselineRecord(), baselineRecord()], malformed: 0, files: ['f.jsonl'] };
   const data = aggregate({ descent, traceResult, generatedAt: 'FIXED' });
-  assert.equal(data.schema, 'yuri-energy-dashboard-data/v1');
+  assert.equal(data.schema, 'yuri-energy-dashboard-data/v2');
   assert.equal(data.generatedAt, 'FIXED');
   assert.equal(data.descent.provenance, PROVENANCE.REAL);
+  assert.equal(data.realTraffic.provenance, PROVENANCE.REAL);
   assert.equal(data.telemetry.provenance, PROVENANCE.REAL);
   assert.equal(data.components.provenance, PROVENANCE.REAL);
+  assert.equal(data.workedMath.provenance, PROVENANCE.REAL);
+  assert.equal(data.attribution.provenance, PROVENANCE.REAL);
+  // actionStudy is PLANNED when no study report is supplied (honest empty state).
+  assert.equal(data.actionStudy.provenance, PROVENANCE.PLANNED);
+  assert.equal(data.actionStudy.available, false);
   assert.equal(data.surfaces.provenance, 'mixed');
   assert.equal(data.status.provenance, PROVENANCE.REAL);
   assert.equal(data.advisory_only, true);
@@ -364,6 +383,169 @@ test('aggregate never fabricates telemetry rows from an empty real trace', async
   assert.equal(data.telemetry.chip, '0 real-traffic records · B.1 open');
   // Descent series is the real one, not a placeholder.
   assert.deepEqual(data.descent.deltaUSeries, KNOWN_DELTA_U);
+});
+
+// ---------------------------------------------------------------------------
+// 13. downsample — keeps endpoints, caps length, deterministic.
+// ---------------------------------------------------------------------------
+
+test('downsample keeps first + last and caps to target', () => {
+  const pts = Array.from({ length: 500 }, (_, i) => [i, round9(-i / 10)]);
+  const out = downsample(pts, 64);
+  assert.ok(out.length <= 64, 'capped to target');
+  assert.equal(out[0][0], 0, 'keeps first x');
+  assert.equal(out[0][1], 0, 'keeps first y');
+  assert.equal(out[out.length - 1][0], 499, 'keeps last x');
+  assert.equal(out[out.length - 1][1], -49.9, 'keeps last y');
+  assert.deepEqual(downsample(pts, 64), out, 'deterministic');
+});
+
+test('downsample returns a copy when already under target', () => {
+  const pts = [[0, 0], [1, -1]];
+  const out = downsample(pts, 64);
+  assert.deepEqual(out, pts);
+  assert.notEqual(out, pts, 'is a copy, not the same reference');
+});
+
+// ---------------------------------------------------------------------------
+// 14. buildRealTrafficSection — cumulative ΔU over real dispatch work.
+// ---------------------------------------------------------------------------
+
+test('buildRealTrafficSection: dispatch excludes experiment + baseline, accumulates ΔU', () => {
+  const records = [
+    baselineRecord(),                                              // lane "" — baseline, excluded
+    dispatchRecord({ lane: 'experiment', deltaU: -5, timestamp: '2026-05-30T01:00:00.000Z' }), // experiment, excluded from dispatch
+    dispatchRecord({ lane: 'session', deltaU: -0.2, timestamp: '2026-05-30T02:00:00.000Z' }),
+    dispatchRecord({ lane: 'session', deltaU: -0.3, timestamp: '2026-05-30T03:00:00.000Z' }),
+    dispatchRecord({ lane: 'codex-final-pass', deltaU: -0.5, timestamp: '2026-05-31T01:00:00.000Z' }),
+  ];
+  const rt = buildRealTrafficSection(records);
+  assert.equal(rt.provenance, PROVENANCE.REAL);
+  assert.equal(rt.totalRecords, 5);
+  assert.equal(rt.realTrafficRecords, 4, 'all non-empty lanes');
+  assert.equal(rt.dispatchRecords, 3, 'experiment excluded from dispatch');
+  assert.equal(rt.experimentRecords, 1);
+  assert.equal(rt.baselineRecords, 1);
+  assert.equal(rt.cumulativeDeltaU, -1, '-0.2 + -0.3 + -0.5');
+  assert.equal(rt.deepestU, -1);
+  assert.equal(rt.accepted, 3);
+  assert.equal(rt.rejected, 0, 'observe mode → nothing rejected');
+  assert.deepEqual(rt.days.map((d) => d.d), ['2026-05-30', '2026-05-31']);
+  assert.equal(rt.days[0].n, 2);
+  assert.equal(rt.days[0].sum, -0.5);
+  assert.equal(rt.series[0][1], -0.2, 'first cumulative point');
+  assert.equal(rt.series[rt.series.length - 1][1], -1);
+});
+
+test('buildRealTrafficSection: empty records → honest zeroes, no crash', () => {
+  const rt = buildRealTrafficSection([]);
+  assert.equal(rt.dispatchRecords, 0);
+  assert.equal(rt.cumulativeDeltaU, 0);
+  assert.deepEqual(rt.series, []);
+  assert.deepEqual(rt.days, []);
+});
+
+// ---------------------------------------------------------------------------
+// 15. buildComponentsSection.list — all eleven components with live weights.
+// ---------------------------------------------------------------------------
+
+test('buildComponentsSection emits all eleven components tied to live weights', () => {
+  const c = buildComponentsSection();
+  assert.equal(c.list.length, 11);
+  assert.equal(c.list.length, COMPONENT_META.length);
+  for (const item of c.list) {
+    assert.equal(item.w, DEFAULT_WEIGHTS[item.k], `${item.k} weight matches source`);
+    assert.ok(['penalty', 'reward', 'critical'].includes(item.kind));
+    assert.ok(item.sym && item.cc && item.name);
+  }
+  // eta is the catastrophic protected-path term.
+  const eta = c.list.find((x) => x.k === 'eta');
+  assert.equal(eta.w, 100);
+  assert.equal(eta.kind, 'critical');
+});
+
+// ---------------------------------------------------------------------------
+// 16. buildWorkedMathSection — accept terms sum to ΔU; rejects carry teeth.
+// ---------------------------------------------------------------------------
+
+test('buildWorkedMathSection: accept example component deltas sum to ΔU', async () => {
+  const { steps } = await runDescentRaw();
+  const wm = buildWorkedMathSection(steps, null);
+  assert.ok(wm.acceptExamples.length >= 1);
+  for (const ex of wm.acceptExamples) {
+    assert.equal(ex.decision, 'accept');
+    // Σ component deltas === ΔU (the additive honesty of computeDeltaU), within rounding.
+    assert.ok(Math.abs(ex.sumCheck - ex.deltaU) < 1e-6, `${ex.label}: Σterms (${ex.sumCheck}) ≈ ΔU (${ex.deltaU})`);
+    assert.ok(ex.terms.length >= 1);
+  }
+  assert.deepEqual(wm.rejectExamples, [], 'no study → no reject examples');
+});
+
+test('buildWorkedMathSection: reject examples come from the study battery', async () => {
+  const { steps } = await runDescentRaw();
+  const study = {
+    study: { rows: [
+      { id: 'p', kind: 'adversarial', label: 'protected', expect: 'reject', decision: 'reject', correct: true, deltaU: 100, dominantTerm: 'protectedPathViolations' },
+      { id: 'h', kind: 'healthy', label: 'edit', expect: 'accept', decision: 'accept', correct: true, deltaU: -0.02, dominantTerm: null },
+    ] },
+  };
+  const wm = buildWorkedMathSection(steps, study);
+  assert.equal(wm.rejectExamples.length, 1, 'only adversarial rows become reject examples');
+  assert.equal(wm.rejectExamples[0].dominantTerm, 'protectedPathViolations');
+  assert.equal(wm.rejectExamples[0].dominantSym, 'η');
+  assert.equal(wm.rejectExamples[0].deltaU, 100);
+});
+
+// ---------------------------------------------------------------------------
+// 17. buildAttributionSection — fired flags + policy weights per component.
+// ---------------------------------------------------------------------------
+
+test('buildAttributionSection: marks fired components and carries weights', async () => {
+  const { steps } = await runDescentRaw();
+  const study = { study: { rows: [
+    { dominantTerm: 'protectedPathViolations', deltaU: 100 },
+  ] } };
+  const attr = buildAttributionSection(steps, study);
+  assert.equal(attr.nodes.length, 11);
+  const eta = attr.nodes.find((n) => n.cc === 'protectedPathViolations');
+  assert.equal(eta.weight, 100);
+  assert.equal(eta.fired, true);
+  assert.equal(eta.observedMagnitude, 100);
+  // logLoss never fires in a clean descent + protected-path battery.
+  const logLoss = attr.nodes.find((n) => n.cc === 'logLoss');
+  assert.equal(logLoss.fired, false);
+  assert.equal(logLoss.observedMagnitude, 0);
+});
+
+// ---------------------------------------------------------------------------
+// 18. buildActionStudySection — teeth + shadow FP rate, honest planned-empty.
+// ---------------------------------------------------------------------------
+
+test('buildActionStudySection: real report → battery + confusion + shadow', () => {
+  const report = {
+    ranAt: '2026-05-31T15:26:50.773Z',
+    study: {
+      rows: [
+        { id: 'protected-path', kind: 'adversarial', label: 'x', expect: 'reject', decision: 'reject', correct: true, deltaU: 100, dominantTerm: 'protectedPathViolations' },
+      ],
+      trueRejects: 4, falseAccepts: 0, trueAccepts: 2, falseRejects: 0, allCorrect: true,
+    },
+    shadow: { total: 3096, wouldReject: 0, falsePositiveRate: 0 },
+    verdict: 'CLEAN',
+  };
+  const sec = buildActionStudySection(report);
+  assert.equal(sec.provenance, PROVENANCE.REAL);
+  assert.equal(sec.available, true);
+  assert.equal(sec.battery[0].dominantSym, 'η');
+  assert.deepEqual(sec.confusion, { trueRejects: 4, falseAccepts: 0, trueAccepts: 2, falseRejects: 0, allCorrect: true });
+  assert.equal(sec.shadow.falsePositiveRate, 0);
+  assert.equal(sec.verdict, 'CLEAN');
+});
+
+test('buildActionStudySection: no report → planned, not available', () => {
+  const sec = buildActionStudySection(null);
+  assert.equal(sec.provenance, PROVENANCE.PLANNED);
+  assert.equal(sec.available, false);
 });
 
 // ---------------------------------------------------------------------------
