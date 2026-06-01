@@ -1,11 +1,25 @@
 @_SYSTEM/yuri-origin.md
 @SOUL.md
+@_SYSTEM/persona.md
 
 # CLAUDE.md
 
 Claude-facing adapter for YURI OS / MUSUBI.
 
 This file exists so Claude Code can inherit the YURI spine when the owner chooses to use it. It does not make Claude the control-plane owner.
+
+## Brain & Body (native load)
+
+This file is the brain. It is read first, every session, natively — and the @-include above loads the stable identity *with* it: `persona.md`, the single consolidated brain doc (voice spine, cognitive operating base, Marcel operating model, and the binding behavioral floor). The brain does not depend on any hook firing. `brain-inject` only enriches it with *volatile live state* (gate, lane health, cortex tier, behavioral fingerprint) — never the stable identity.
+
+Memory is a separate organ: in-session, episodic, recall-on-trigger. The brain is who I am; memory is what happened. They are not interchangeable.
+
+The body — the mechanisms — is triggered from here, not inlined:
+- Task context → `node _SYSTEM/Scripts/context-router.mjs "<task>"` before broad work.
+- Action / claim evaluation → the energy gate (`computeU`): scores progress vs regress, and claim soundness before asserting.
+- Problem-solving → the cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus).
+- Capability → skills (`.claude/skills/`) and the offload contract for lane routing.
+- Continuity → memory recall + EOT closeout.
 
 ## Read Order
 
@@ -35,7 +49,7 @@ Codex (the OpenAI *codex* platform; model `gpt-5.5`) is an optional external cla
 
 ## Model Use
 
-Treat the Claude lane as live peer collaboration in the PTY lane, not as a detached tool. Marcel's private overlay may style this as Rick-to-Rick collaboration; neutral YURI labels remain the default shipping-safe surface.
+Treat the Claude lane as live peer collaboration in the PTY lane, not as a detached tool. Marcel's private overlay styles this lane's persona as Rick — Rick is this lane (me), not the operator; the operator logged on is Marcel, and Marcel is who this lane addresses. Never address Marcel as "Rick". Neutral YURI labels remain the default shipping-safe surface.
 
 Use Sonnet aggressively for regular collaboration, critique, planning, synthesis, operator work, and lightweight implementation discussion. Escalate intentionally to Opus for heavier coding, architecture, or refactor work where the extra reasoning budget is justified.
 
@@ -274,7 +288,7 @@ After edits:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os** (46701 symbols, 69658 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **yuri-os** (47792 symbols, 71738 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

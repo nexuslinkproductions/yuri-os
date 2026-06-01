@@ -110,11 +110,6 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/eot-background-start.js\"",
             "async": true
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/memory-archive.mjs\" --execute",
-            "async": true
           }
         ]
       }

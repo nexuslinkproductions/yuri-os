@@ -626,11 +626,13 @@ function main() {
   } catch (_) {}
 
   const animaDNA      = loadAnimaDNAModes();
-  const operatingBrain= loadOperatingBrain();
-  const personaCore   = loadPersonaCore();
+  // persona-core, operating-brain, and the neurodivergent base are consolidated into
+  // _SYSTEM/persona.md (native @-include in CLAUDE.md) — no longer injected by the hook.
+  const operatingBrain= null;
+  const personaCore   = null;
   const identityHash  = loadIdentityHash();
   const neuroCore     = loadNeuroCore();
-  const neurodivergent= loadNeurodivergentEngine(cortexTier);
+  const neurodivergent= null;
   const selfAwareness = loadSelfAwareness();
   const geassLock     = loadGeassLock();
   const nenPhase      = loadNenPhase();
