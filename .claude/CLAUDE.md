@@ -30,7 +30,3 @@ If either check fails:
 
 Do not treat `/Users/marcelspatz` as the Yuri OS / Musubi repository root.
 Do not run Yuri OS / Musubi sprint work from `master`.
-
-## graphify
-- **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
-When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.

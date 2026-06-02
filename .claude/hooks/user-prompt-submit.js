@@ -146,21 +146,6 @@ const SKILL_AUTO_TRIGGERS = [
     desc: 'UI/design work',
   },
   {
-    patterns: ['/graphify', 'graphify', 'knowledge graph', 'graph this', 'visualize connections', 'map the dependencies'],
-    skill: 'graphify',
-    desc: 'knowledge graph',
-  },
-  {
-    patterns: ['/sharingan', 'sharingan', 'reverse engineer', 'copy this pattern', 'analyze this codebase', 'break down this repo', 'deconstruct this'],
-    skill: 'sharingan',
-    desc: 'reverse-engineering',
-  },
-  {
-    patterns: ['/report', 'generate report', 'html report', 'create slides', 'make a report', 'yuri report'],
-    skill: 'yuri-report',
-    desc: 'report generation',
-  },
-  {
     patterns: ['/codebase-to-course', 'codebase to course', 'codebase course', 'interactive tutorial from', 'turn this into a course', 'make a course from'],
     skill: 'codebase-to-course',
     desc: 'course generation',
@@ -176,19 +161,9 @@ const SKILL_AUTO_TRIGGERS = [
     desc: 'spec writing',
   },
   {
-    patterns: ['/shura', 'shura review', '6-perspective', 'adversarial review', 'multi-perspective review'],
-    skill: 'yuri-shura',
-    desc: 'adversarial multi-perspective review',
-  },
-  {
     patterns: ['/introspect', 'introspect', 'graph health', 'architecture graph', 'system audit', 'yuri graph'],
     skill: 'visual-introspection',
     desc: 'system architecture review',
-  },
-  {
-    patterns: ['/compact', 'compact hint', 'need to compact', 'context getting full'],
-    skill: 'compact-optimizer',
-    desc: 'context compaction',
   },
 ];
 
