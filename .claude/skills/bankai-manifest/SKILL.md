@@ -16,11 +16,11 @@ The power multiplier: when reasoning is externalized, Marcel can see it, challen
 
 ---
 
-## When This Fires
+## When To Invoke
 
-- `complexity_tier` = CRITICAL in pulse-plan.json (auto-fire)
-- OR user invokes `/bankai` explicitly
-- Does NOT fire on: standard/trivial tiers — the cost of full externalization is context overhead
+- Model-invocable on a CRITICAL-complexity task warranting full state externalization; or `/bankai` explicitly.
+- The standing behavior ("externalize on critical") lives in the brain (`_SYSTEM/persona.md`); this skill is the full manifest procedure.
+- Skip on standard/trivial tasks — full externalization is context overhead that does not pay off there.
 
 ---
 
@@ -91,8 +91,8 @@ On task close: compare actual outcome vs manifest. Log delta. Feed self-hypothes
     { "claim": "...", "source": "...", "confidence": 0.XX, "flagged": false }
   ],
   "failure_modes_systemic": [],
-  "advisor_consensus": {
-    "deepseek": "...", "codex": "...", "shura": "..."
+  "review_consensus": {
+    "architect": "...", "adversary": "...", "synthesis": "..."
   },
   "execution_log": [],
   "outcome": null
@@ -123,9 +123,9 @@ EVIDENCE:
 SYSTEMIC RISKS:
   - <...>
 
-ADVISOR CONSENSUS:
-  DeepSeek: <...>
-  Codex: <...>
+REVIEW (perspective lenses):
+  Architect: <...>
+  Adversary: <...>
 
 Manifest locked. Proceeding with G1.
 ```
@@ -133,6 +133,60 @@ Manifest locked. Proceeding with G1.
 ---
 
 ## Session Notes
+
+### 2026-06-02
+- session: 94m | peak ctx: 0% | compacts: 0
+- tools: Bash×97, Edit×42, Read×39, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 90m | peak ctx: 0% | compacts: 0
+- tools: Bash×94, Read×37, Edit×37, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 82m | peak ctx: 0% | compacts: 0
+- tools: Bash×87, Read×36, Edit×35, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 77m | peak ctx: 0% | compacts: 0
+- tools: Bash×86, Read×36, Edit×35, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 69m | peak ctx: 0% | compacts: 0
+- tools: Bash×79, Read×34, Edit×30, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 67m | peak ctx: 0% | compacts: 0
+- tools: Bash×78, Read×34, Edit×30, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 60m | peak ctx: 0% | compacts: 0
+- tools: Bash×75, Read×33, Edit×26, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 22m | peak ctx: 0% | compacts: 0
+- tools: Bash×64, Read×23, WebFetch×4, StructuredOutput×4, Workflow×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 18m | peak ctx: 0% | compacts: 0
+- tools: Bash×56, Read×20, WebFetch×4, StructuredOutput×3, Workflow×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.)
+- errors: none
 
 ### 2026-05-16 — Created
 Tools: Write. Part of Musubi Hyper-Intelligence v2 sprint.

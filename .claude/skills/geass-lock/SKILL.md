@@ -10,7 +10,7 @@ triggers:
 
 **Source anime:** Code Geass — Lelouch vi Britannia's Geass gives him the "Power of Absolute Obedience." Anyone who meets his gaze must obey any one command, unconditionally and permanently — but only once per person. After it fires, the effect is irreversible.
 
-**Cognitive translation:** The user can lock one behavioral constraint as absolutely inviolable for the current session. Once locked, no advisor, no complexity tier escalation, no ensemble output can override it. It is visible in the brain block on every turn. At session end, the lock automatically expires (one session = one Geass).
+**Cognitive translation:** The user can lock one behavioral constraint as absolutely inviolable for the current session. Once locked, no reasoning path, complexity escalation, or advisory output can override it. It is visible in the brain block on every turn. At session end, the lock automatically expires (one session = one Geass).
 
 The constraint is a hard gate — not a preference, not a guideline. It fires before any other logic.
 
@@ -19,9 +19,9 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 ## When This Fires
 
 - User explicitly invokes: `/geass <constraint phrase>`
-- Example: `/geass "no Codex dispatches until bankai manifest is approved"`
+- Example: `/geass "no commits until tests pass"`
 - Example: `/geass "all file writes require explicit user confirmation"`
-- Example: `/geass "deepseek-flash only for this session"`
+- Example: `/geass "stay inside _SYSTEM/ this session — no .claude edits"`
 
 ---
 
@@ -88,7 +88,7 @@ All advisors and tool calls subject to this constraint.
 🔴 "<constraint>"
 
 This constraint is now inviolable for this session.
-No advisor, ensemble, or complexity escalation can override it.
+No reasoning path, advisory output, or complexity escalation can override it.
 Auto-expires at session end. Use /geass off to remove early.
 ```
 
@@ -98,9 +98,9 @@ Auto-expires at session end. Use /geass off to remove early.
 
 | Constraint | Enforcement point |
 |------------|------------------|
-| "no Codex dispatches until bankai approved" | Before any `codex exec` or pulse-codex-runner call |
+| "no commits until tests pass" | Before any `git commit` |
 | "all file writes need confirmation" | Before any Write/Edit tool call |
-| "deepseek-flash only" | In offload-contract.mjs model selection |
+| "stay inside _SYSTEM/, no .claude edits" | Before any Write/Edit outside `_SYSTEM/` |
 | "no new LaunchAgents this session" | Before any launchctl or plist write |
 
 ---
