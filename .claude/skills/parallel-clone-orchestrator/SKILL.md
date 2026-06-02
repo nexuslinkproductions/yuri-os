@@ -1,6 +1,6 @@
 ---
 name: parallel-clone-orchestrator
-description: Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / Yuri. Inspired by Shadow Clone Jutsu, translated into enterprise-safe system behavior.
+description: Budgeted multi-agent decomposition, specialist execution, and synthesis — runs natively via the Workflow tool (parallel/pipeline fan-out under a shared token budget). Invoke (or /clone) to split complex work into specialist sub-agents and reconcile their outputs. Inspired by Shadow Clone Jutsu.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -16,6 +16,8 @@ requires:
 ---
 
 # Parallel Clone Orchestrator Skill
+
+> **Native execution:** this runs through the **Workflow tool** — `parallel()`/`pipeline()` fan-out of specialist sub-agents under a shared token `budget`, then synthesis. No external lanes or control-plane; the Workflow script *is* the orchestrator. The contract below (roles, budget, output, merge) maps directly onto Workflow stages.
 
 ## When to use
 

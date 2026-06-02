@@ -1,6 +1,6 @@
 ---
 name: yuri-shura
-description: 6-perspective adversarial review for high-stakes turns. Fires when classifier detects scenario=strategic-review (architecture decisions, refactor planning, deployment review). Fans out 6 lanes in parallel: nvidia-nemotron-120b (architect), DS-pro (adversary), codex-spark (maintainer), nvidia-kimi (ops/long-ctx), deepseek-flash (product), nvidia-mistral-medium (security). Additive -- does not replace per-turn 6-advisor ensemble.
+description: 6-perspective adversarial review for high-stakes turns (architecture decisions, refactor planning, deployment review). Invoke (or /shura) to fan out 6 perspectives in parallel via the native Workflow tool — architect, adversary (7-vector attack), maintainer, ops, product, security — then consolidate. Model-invocable; advisory only.
 triggers:
   - "/shura"
   - "strategic review"
@@ -12,21 +12,22 @@ triggers:
 
 Inspired by Istishraf (MIT-licensed Claude plugin). Original implementation adapted to Yuri OS's pulse-cortex.
 
-## When to fire
+## When to invoke
 
-Auto: pulse-classifier detects scenario `strategic-review`
-Manual: `/shura <topic>` from user
+Model-invocable for high-stakes strategic review (architecture, refactor planning, deployment); or `/shura <topic>`. Advisory only — never holds implementation authority.
 
-## 6 Perspectives (parallel)
+## 6 Perspectives (native Workflow fan-out)
 
-| Lane | Model | Perspective |
-|---|---|---|
-| @nvidia-nemotron-120b | nvidia/nemotron-3-super-120b-a12b | Architect -- soundness of design |
-| @ds-pro | deepseek-v4-pro | Adversary -- 7-vector attack protocol (see below) |
-| @codex-spark | gpt-5.3-codex | Maintainer -- long-term cost |
-| @nvidia-kimi | moonshotai/kimi-k2.6 | Ops -- production readiness (1M ctx) |
-| @ds-flash | deepseek-v4-flash | Product -- user impact |
-| @nvidia-mistral-medium | mistralai/mistral-medium-3.5-128b | Security -- risk surface |
+Run via the **Workflow tool**: 6 parallel agents, each adopting one perspective lens (Opus/Sonnet, self-selected per depth). Each returns a bounded structured finding; the main thread consolidates. No external model lanes.
+
+| Perspective | Lens |
+|---|---|
+| Architect | soundness of design |
+| Adversary | 7-vector attack protocol (see below) |
+| Maintainer | long-term cost |
+| Ops | production readiness |
+| Product | user impact |
+| Security | risk surface |
 
 ## Output format
 
@@ -50,7 +51,7 @@ Adversary prompt injection: for each vector, deliver one finding or "clean" — 
 
 ## Quarantine rules
 
-Standard advisory output. No impl authority. Findings logged to pulse-bus with source=SHURA. Codex applies any resulting changes through standard two-phase gate.
+Advisory output only — no implementation authority. Findings are consolidated for the owner; any resulting change goes through the normal owner-gated commit path.
 
 ## Trigger phrases (auto-classify)
 
