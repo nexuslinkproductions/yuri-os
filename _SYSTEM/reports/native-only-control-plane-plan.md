@@ -71,9 +71,9 @@ Branch(es) `refactor/native-only-*`. Owner-gated. **Pre-flight: snapshot a green
 4. **Untangle `memory-kernel.mjs` from offload-contract** (owner-named): replace lane-routing of memory proposals with native. memory-kernel itself STAYS as Track A mediator. Test memory-kernel.
 5. **Untangle `lane-kernel` + `yuri-control-plane(+schema)`** (the dispatch core): external-lane dispatch → native (Workflow/Agent). Test lane-kernel.
 6. **Rework `claude-protocol-guard.mjs` plan-dispatch gate:** decide thin native `route-plan` stub vs retire the gate; remove offload-contract dependency. Test the protocol-guard hook test.
-7. **Rewrite `yuri-shura` + `parallel-clone-orchestrator`** from dead NVIDIA/DeepSeek fan-out → native (Workflow tool / sequential sub-agent lenses in one Opus pass).
+7. ~~**Rewrite `yuri-shura` + `parallel-clone-orchestrator`** from dead NVIDIA/DeepSeek fan-out → native~~ — **DONE 2026-06-02 (commit e0621ca1):** both route through the native Workflow tool; shura keeps the 7-vector adversary checklist.
 8. **tmux → native worktree (Tranche 4 + owner's tmux-workaround greenlight):** the 3-pane shared-tree `yuri-workers-tmux.sh` was a manual workaround for native parallelism. Replace with native Workflow-tool fan-out where possible; for parallel MUTATING work use per-lane `git worktree add` + collision pre-check + `.worktreeinclude` env-seed. Read-only lanes keep sharing the tree.
-9. **Delete the husks:** once all consumers green, delete `offload-contract.mjs` + `offload-runner.mjs` + dead external-lane defs in models.json + orphaned lane-* machinery + retire/rewrite their tests. Final full test sweep.
+9. **Delete the husks:** once all consumers green, delete `offload-contract.mjs` + `offload-runner.mjs` + **`shintai-dispatch.mjs`** (1401-line SEAL-team multi-lane dispatch — same offload-workaround class; spine-coupled: imports lane-kernel/memory-kernel/evidence-contract/control-plane and is imported by `memory-kernel` + `yuri-control-plane` + `yuri-supercharge-gate` + `rick-repl`, so untangle those first per items 2/4/5) + dead external-lane defs in models.json + orphaned lane-* machinery + retire/rewrite their tests. Final full test sweep.
 10. **Doc sync:** CLAUDE.md / yuri-origin.md / AGENTS.md adapters → native-only; remove offload-contract references; reflect model + fan-out self-select.
 
 ## Open decision for Phase 4.8
