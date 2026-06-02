@@ -1,5 +1,6 @@
 ---
 name: bg
+disable-model-invocation: true
 description: "Background task router. Spawns Agent with run_in_background: true. Invoked by /bg <task> or ctrl+b which inserts [bg] prefix."
 triggers:
   - "/bg"

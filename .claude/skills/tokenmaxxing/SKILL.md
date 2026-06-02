@@ -29,38 +29,15 @@ triggers:
 - Single-sentence updates. Headers only for multi-section outputs.
 - Code stays deep. Docs stay thorough. Speech stays minimal.
 
-### Offload-Default (automatic, no trigger word needed)
-- Every non-trivial task → delegate to smallest lane first, without being asked.
-- Main thread = overseer + finalizer only. Never researcher or implementer.
-- Routing source of truth: `Scripts/offload-contract.mjs`.
-- Routing priority: @code-local → @deepseek → @triage-local/@summarize-local → @gpt-oss → @swarm → @kimi → @claude (last resort).
-- `btw`, `btw offload this`, `/tokenmaxxing`, and explicit `@lane` mentions are compatibility aliases, not required triggers.
-- Use `./Scripts/ai route-plan "<request>"` when another IDE or harness needs the lane, lifecycle scenario, and learning capture plan.
-- Do not narrate work that can run in a lane.
-
 ### Auto-Compact
 - When context hits tier 2 (60%+), run /compact immediately — do not suggest, do not wait.
 - Use the pre-built hint injected by pre-tool-use.js context.
 - Never compact without preserving: branch, files touched, last user correction, next step.
 
-### Local-First Subagent
-- Before any `Agent()` call, assess: can `mcp__ollama-bridge__ollama_run` handle this?
-- Lightweight tasks (lookup, explore, summarize, analyze ≤5 files, skill check) → use `mcp__ollama-bridge__ollama_run` or `mcp__ollama-bridge__ollama_explore_files` first.
-- Only escalate to `Agent()` if local result is insufficient or task needs write/tool-loop.
-- Skill: `/local-subagent` — full routing decision tree and model selection.
-- **Default local model:** See `.claude/config/models.json` → `local.primary` (currently `qwen2.5:7b`, M2 Pro optimized). Code tasks: see `local.code` in same file (currently `qwen2.5-coder:7b`).
-
-### No Cloud Agents for File Reads
-- Known file paths → `Read` tool directly, or `mcp__ollama-bridge__ollama_explore_files`
-- Directory exploration → `Bash find/grep` or ollama-bridge
-- NEVER spawn `Agent(Explore)` or `Agent(general-purpose)` to read known files — costs 26k–57k tokens
-- Only escalate to cloud Agent for: unknown paths + local insufficient + cross-file reasoning required
-
-### Local-Fail Fallback
-- Local (Ollama) fails → fetch/read/skill-lookup tasks → `Scripts/offload.sh -m deepseek-v4-flash`
-- Subagents and background agents → always `deepseek-v4-flash` lane, no exception
-- Planning, implementation, testing → Sonnet 4.6 (main thread only)
-- Never escalate a failed fetch task to Sonnet — deepseek-v4-flash is the fallback ceiling for utility work
+### Tool Routing (native-first)
+- Self-select model and fan-out per task — Opus 4.8 reasons the fit. No lane ladder, no external/local-model offload; those mechanisms are retired.
+- Known/trivial reads → `Read`/`Grep`/`Bash` directly. Never spawn an Agent to read a known file.
+- Reserve `Agent`/`Workflow` for genuine fan-out, cross-file reasoning, or write/tool-loops — sized to the task, no fixed cap.
 
 ### Background Tasks (`ctrl+b` / `[bg]` prefix)
 - If user input starts with `[bg]` or `/bg`: spawn as `Agent({ run_in_background: true })` immediately.

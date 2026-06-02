@@ -1,5 +1,6 @@
 ---
 name: compact-optimizer
+disable-model-invocation: true
 description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, perplexity-based pruning, attention-sink preservation). Use before every /compact call to prevent loss of session-critical state."
 triggers:
   - "/compact"

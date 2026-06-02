@@ -1,5 +1,6 @@
 ---
 name: gitnexus
+disable-model-invocation: true
 description: Unified GitNexus dispatcher for CLI, guide, exploration, debugging, PR review, impact analysis, and refactoring workflows.
 ---
 
