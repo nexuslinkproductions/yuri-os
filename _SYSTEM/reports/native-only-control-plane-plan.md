@@ -1,6 +1,6 @@
 # Operation: Native-Only Control Plane — Master Plan
 
-Status: PLANNING (no build until each phase is greenlit per-step). Owner: Marcel. Lane: Claude main.
+Status: PHASE 1-2 COMPLETE (2026-06-02). **Fresh-session start → read the "Current standpoint + fresh-session guide" section below first**, then Phase 4 + the elite-practice reference. Owner: Marcel. Lane: Claude main.
 Source of truth: this file. Derived from the elite-practice research (2 rounds) + the 6-lane setup audit (run `wf_54c0bfc6-af0`).
 
 ## Objective
@@ -11,6 +11,24 @@ Collapse YURI to a **native-Claude-only control plane** and lean the harness to 
 3. **Retire** the entire external-lane apparatus (Codex + ollama/local + NVIDIA/DeepSeek/Kimi) — obsolete under native-only + Opus 4.8 self-routing.
 
 Locked decisions (owner): full-Claude-only (no Codex, no ollama/local); prune permissions to a curated allowlist; align energy-gate docs to reality (observability instrument, not a gate); reconcile stale agent-policy memories; model + fan-out self-selected per task (no Opus floor, no ≤15 cap).
+
+## Current standpoint + fresh-session guide (2026-06-02)
+
+**Authoritative "where we are" — trust this over any stale phase text below.**
+
+**DONE — 9 commits on `origin/main`** (`52e4d554` `179db980` `3b40a37b` `df3d3186` `ce86aeaf` `e0621ca1` `bf721d53` `432184cf` + AGENTS.md-lean commit): offload apparatus gone at the **skill + behavior + doc** layers — offload session-rule killed; 16 skills deleted across BOTH `.claude/skills` and canonical `skills/`; Haki/Nen hook auto-fire removed; shura/clone → native Workflow; anime-DNA bodies cleaned; CLAUDE.md 330→177 + AGENTS.md leaned; skill manifest regenerated. Phase 1 ✓, Phase 2 ✓.
+
+**LEFT:** Phase 4 (engine kill, below) + Phase-2 leftovers (permissions wildcards [OWNER-AWAKE only — lockout risk], PreToolUse empty-matcher scoping). Phase 3 (verification spine) optional.
+
+**Reading list for a fresh session (in order):** (1) this section; (2) Phase 4 below (items 1-10; items 1/7 partly/fully done — see commits); (3) `elite-claude-practice-reference.md` (the Anthropic + pioneers guide, the *why*); (4) auto-memory `PROJ:NATIVE-ONLY-OP-RESUME-2026-06-02`; (5) the brain — `CLAUDE.md` → `_SYSTEM/yuri-origin.md` → `_SYSTEM/persona.md` → `SOUL.md`; (6) Phase-4 sources before touching — `_SYSTEM/Scripts/{offload-contract,offload-runner,shintai-dispatch,lane-kernel,memory-kernel,yuri-control-plane}.mjs`.
+
+**Key learnings (don't repeat this session's mistakes):**
+- DMI (`disable-model-invocation`) does NOT cut the skill-description budget — only stops mis-routing; budget wins come from DELETING skills.
+- TWO skill trees: `.claude/skills/` (Claude-loaded) AND top-level `skills/` (YURI canonical, ~110, read by corpus/parity/self-audit). Scrap = delete from BOTH + `node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest`.
+- Agent Bash CANNOT `rm`/`git rm` under `.claude/` (blanket `bash-security-guard` floor, all roles) → owner terminal. `skills/` + `_SYSTEM/` ARE agent-deletable. `Edit` into `.claude` is fine except the 8 protected guard files. Memory `--force` overwrite is also `.claude`-blocked.
+- Cognitive-gate auto-fire was HOOK-driven (not Skill-invocation); izanagi/bankai auto-fire already dead (pulse-orchestrator retired). `infinity-guard` ENFORCEMENT stays a hook (safety = hooks-guarantee); only reasoning gates → model-invocable skills.
+- GitNexus block is contract-enforced by `root-architecture.test.mjs`: keep `<!-- gitnexus:start/end -->` markers + all 6 `skills/gitnexus-*/SKILL.md` links in CLAUDE.md AND AGENTS.md; leaning prose is OK, stripping is NOT.
+- Pre-commit gates: secret-scan · offload-contract-drift · root-architecture · persona-contract · skill-registry · gitnexus-scope. Quick canary before claiming done: `node _SYSTEM/Scripts/root-architecture.test.mjs`.
 
 ## Key finding that shapes sequencing
 
@@ -105,5 +123,7 @@ git rm -r ".claude/skills/audit-log-firewall" ".claude/skills/receipt-subscripti
 Pre-checked: no commands/ or offload-contract reference the deleted skills; nested gitnexus impact skill + dispatcher remain.
 
 ## Verification ledger (fill as phases complete)
-- Phase 1: PARTIAL — CLAUDE.md leaned ✓; .claude deletions BLOCKED (guard) ⏸
-- Phase 2: ____  Phase 3: ____  Phase 4: ____ — held pending dev-role unblock
+- Phase 1: ✓ DONE 2026-06-02 — CLAUDE.md leaned; 11 junk skills + guard shim deleted (owner ran the `.claude` git-rm). Commits 52e4d554, 179db980.
+- Phase 2: ✓ DONE 2026-06-02 — offload session-rule killed; manual-skill DMI; Haki/Nen hook auto-fire removed; offload skill-layer + graphify/report scrapped (both `.claude/skills` AND canonical `skills/`) + manifest regen; shura/clone → native Workflow; anime-DNA body hygiene; CLAUDE.md + AGENTS.md GitNexus blocks leaned. Commits 3b40a37b, df3d3186, ce86aeaf, e0621ca1, bf721d53, 432184cf + handoff commit.
+- Phase 3 (verification spine): not started — optional; see Phase 3 above.
+- Phase 4 (engine kill) + Phase-2 leftovers (permissions/hooks): NEXT — fresh session. Pre-flight baseline + reading list in the handoff doc.
