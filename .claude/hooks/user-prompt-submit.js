@@ -202,135 +202,6 @@ function buildSkillAutoTrigger(text) {
   return `<auto-skill-trigger>\nApplicable skill(s) detected — invoke via Skill tool:\n${lines}\n</auto-skill-trigger>`;
 }
 
-// ── Haki — lightweight intent pre-cognition (sync, <3ms) ─────────────────────
-const HAKI_PATTERNS = [
-  { intent: 'implement_or_fix',    keys: ['fix','implement','build','create','add','wire','update','patch','debug','refactor'], w: 3 },
-  { intent: 'understand_or_learn', keys: ['how','what','why','explain','understand','show me','walk me','tell me'], w: 2 },
-  { intent: 'plan_or_design',      keys: ['plan','design','architect','roadmap','strategy','approach','structure','should we'], w: 2 },
-  { intent: 'validate_or_review',  keys: ['review','check','verify','is this correct','assess','audit','look at'], w: 2 },
-  { intent: 'investigate_blocker', keys: ['not working','broken','error','failing','wrong','issue','problem','why is','bug'], w: 3 },
-  { intent: 'meta_system',         keys: ['musubi','brain','neuron','soul','skill','hook','sprint','system','pulse','agent'], w: 2 },
-];
-
-function generateHakiIntent(text) {
-  const lower = text.toLowerCase();
-  const scored = HAKI_PATTERNS.map(p => ({
-    intent: p.intent,
-    score: p.keys.filter(k => lower.includes(k)).length * p.w,
-  })).filter(s => s.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
-
-  if (!scored.length) return null;
-  const total = scored.reduce((s, x) => s + x.score, 0);
-  const ranked = scored.map((s, i) => `P${i+1}[${Math.round(s.score/total*100)}%] ${s.intent}`).join(' · ');
-  const ambig = scored[0] && scored[0].score / total < 0.45 && scored[1]
-    ? ' ⚠ ambiguous — surface P1+P2' : '';
-  return `<haki-intent>\n${ranked}${ambig}\n</haki-intent>`;
-}
-
-function parseHakiIntents(hakiHint) {
-  if (!hakiHint) return null;
-
-  const body = String(hakiHint)
-    .replace(/<\/?haki-intent>/g, '')
-    .trim();
-  if (!body) return null;
-
-  const intents = body
-    .split(/\s*·\s*/)
-    .map(part => part.replace(/\s*⚠.*$/, '').trim())
-    .map(part => {
-      const match = part.match(/^P(\d+)\[(\d+)%\]\s*(.+)$/);
-      if (!match) return null;
-      return {
-        rank: Number(match[1]),
-        label: match[3].trim(),
-        probability: Number(match[2]),
-      };
-    })
-    .filter(Boolean);
-
-  return intents.length ? intents : null;
-}
-
-function persistHakiPlan(hakiHint) {
-  try {
-    const intents = parseHakiIntents(hakiHint);
-    const hasExistingPlan = fs.existsSync(PULSE_PLAN_FILE);
-    if (!hasExistingPlan && !intents) return;
-
-    let planDoc = {};
-    let planReadOk = !hasExistingPlan;
-    if (hasExistingPlan) {
-      try {
-        planDoc = JSON.parse(fs.readFileSync(PULSE_PLAN_FILE, 'utf8'));
-        planReadOk = true;
-      } catch (_) {
-        planDoc = {};
-      }
-    }
-    if (!planReadOk && !intents) return;
-
-    const isObject = value => value && typeof value === 'object' && !Array.isArray(value);
-    const plan = isObject(planDoc.plan) ? planDoc.plan : (isObject(planDoc) ? planDoc : {});
-
-    if (intents) {
-      plan.haki_intent = intents;
-      plan.haki_dominant = intents.reduce((best, current) => {
-        if (!best) return current;
-        if (current.probability > best.probability) return current;
-        if (current.probability === best.probability && current.rank < best.rank) return current;
-        return best;
-      }, null);
-    } else {
-      delete plan.haki_intent;
-      delete plan.haki_dominant;
-    }
-
-    const payload = isObject(planDoc.plan) ? { ...planDoc, plan } : plan;
-    fs.writeFileSync(PULSE_PLAN_FILE, JSON.stringify(payload, null, 2));
-  } catch (_) { /* silent on error */ }
-}
-
-// ── Nen — work phase detector (sync, <5ms) ───────────────────────────────────
-const NEN_SIGNALS = {
-  deep_code: { keys: ['fix','implement','debug','refactor','patch','wire','function','script','.mjs','.ts','.py','.js'], w: 3 },
-  design:    { keys: ['ui','css','html','design','visual','layout','component','style','hud','frontend','.tsx'], w: 3 },
-  strategy:  { keys: ['architecture','roadmap','plan','strategy','approach','decision','should we','sprint','direction'], w: 3 },
-  research:  { keys: ['research','investigate','find out','latest','trending','scan','what is','survey'], w: 2 },
-  admin:     { keys: ['cleanup','organize','update docs','rename','status','check','list','show'], w: 1 },
-};
-
-function detectAndWriteNenPhase(text) {
-  try {
-    const lower = text.toLowerCase();
-    const scores = Object.entries(NEN_SIGNALS).map(([phase, cfg]) => ({
-      phase,
-      score: cfg.keys.filter(k => lower.includes(k)).length * cfg.w,
-    })).filter(s => s.score > 0).sort((a, b) => b.score - a.score);
-
-    if (!scores.length) return;
-    const total = scores.reduce((s, x) => s + x.score, 0);
-    const top = scores[0];
-    const confidence = Math.round(top.score / total * 100) / 100;
-    if (confidence < 0.4) return;
-
-    const configs = {
-      deep_code: 'Codex-first, max depth, gpt-5.5 priority, minimal prose',
-      design:    'design-master, max depth, deepseek-pro priority',
-      strategy:  '6-advisor + shura, max depth, deepseek-pro priority',
-      research:  'knowledge-scout lane, medium depth, deepseek-flash',
-      admin:     'minimal, low depth, deepseek-flash only',
-    };
-
-    const STATE_FILE = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
-    if (fs.existsSync(STATE_FILE)) {
-      const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-      state.nen_phase = { phase: top.phase, confidence, config: configs[top.phase] || '', detected_at: new Date().toISOString() };
-      fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
-    }
-  } catch (_) { /* never block hook */ }
-}
-
 const DESIGN_PATTERN = /design|UI|CSS|visual|layout|component|HUD|dashboard|interface|style|color|font|typography|theme|brand|landing.?page|frontend|html.*build|build.*html|svg|animation|glassmorphism|dark.mode|musubi.brand|ember|audit.html|build.*report/i;
 
 function logTelemetry(line) {
@@ -407,12 +278,6 @@ process.stdin.on('end', () => {
     // 2. SPRINT 3 — skill auto-trigger (runs before trivial gate so short /commands are caught)
     const skillHint = buildSkillAutoTrigger(text);
 
-    // 3a. Haki intent decomposition (non-trivial only)
-    const hakiHint = buildSkillAutoTrigger(text) ? null : generateHakiIntent(text);
-
-    // 3b. Nen phase detection — writes to session-state.json (fire-and-forget, sync fast)
-    detectAndWriteNenPhase(text);
-
     const userPrompt = text;
     let additionalContext = '';
     if (DESIGN_PATTERN.test(userPrompt)) {
@@ -445,9 +310,6 @@ process.stdin.on('end', () => {
       }
       process.exit(0);
     }
-
-    // Persist Haki intent before the orchestrator spawns so the child can read it immediately.
-    persistHakiPlan(hakiHint);
 
     // PATCH 040: per-task semantic memory injection — RETIRED (L8). This fed rag-turn-context.json
     // to pulse-orchestrator's dispatchDeepSeekPreflight, which never runs (see PULSE_ORCHESTRATOR_RETIRED).
@@ -495,16 +357,7 @@ process.stdin.on('end', () => {
     // M3: inject prior-turn council synthesis if brain:stale sentinel was set
     const brainUpdate = checkBrainStale();
 
-    // Haki confidence gate: if dominant intent < 55%, surface ambiguity signal
-    let hakiGate = null;
-    try {
-      const dom = JSON.parse(fs.readFileSync(path.join(STATE_DIR, 'pulse-plan.json'), 'utf8'))?.haki_dominant;
-      if (dom && dom.probability < 55) {
-        hakiGate = `<haki-gate>Low intent confidence (P1=${dom.probability}% ${dom.label}). Consider clarifying before acting — ambiguity flag active.</haki-gate>`;
-      }
-    } catch {}
-
-    const baseContext = [cortexHint, brainUpdate, skillHint, hakiHint, hakiGate, priorRecall]
+    const baseContext = [cortexHint, brainUpdate, skillHint, priorRecall]
       .filter(Boolean).join('\n');
     additionalContext = [baseContext, additionalContext].filter(Boolean).join('');
 

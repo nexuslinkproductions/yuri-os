@@ -335,33 +335,6 @@ function loadSelfAwareness() {
   } catch { return null; }
 }
 
-// ── NVIDIA NIM live lane map ─────────────────────────────────────────────────
-// Source: .claude/config/models.json → nvidia_nim.live_status (updated by probe runs)
-
-function loadNvidiaLanes() {
-  try {
-    const MODELS_JSON = path.join(REPO_ROOT, '.claude', 'config', 'models.json');
-    if (!fs.existsSync(MODELS_JSON)) return null;
-    const cfg = JSON.parse(fs.readFileSync(MODELS_JSON, 'utf8'));
-    const nim = cfg.nvidia_nim;
-    if (!nim) return null;
-    const { live_status, routing_decision_guide } = nim;
-    if (!live_status) return null;
-    const lines = [
-      `tested: ${live_status.tested} | live=${live_status.live?.length ?? 0} dead=${live_status.dead?.length ?? 0}`,
-      `  ✓ live:  ${(live_status.live || []).join(', ')}`,
-      `  ✗ dead:  ${(live_status.dead || []).join(', ')}`,
-    ];
-    if (routing_decision_guide) {
-      lines.push('routing:');
-      for (const [task, lane] of Object.entries(routing_decision_guide).slice(0, 5)) {
-        lines.push(`  ${task.padEnd(32)} → ${lane}`);
-      }
-    }
-    return lines.join('\n');
-  } catch { return null; }
-}
-
 // ── Neuron loop last run ──────────────────────────────────────────────────────
 // Source: .claude/state/neuron-loop.log (written by _SYSTEM/Scripts/neuron-loop.mjs)
 
@@ -425,22 +398,9 @@ function loadGeassLock() {
   } catch { return null; }
 }
 
-// ── Nen phase — active work mode ─────────────────────────────────────────────
-
-function loadNenPhase() {
-  const STATE_FILE_PATH = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
-  try {
-    if (!fs.existsSync(STATE_FILE_PATH)) return null;
-    const state = JSON.parse(fs.readFileSync(STATE_FILE_PATH, 'utf8'));
-    if (!state.nen_phase) return null;
-    const { phase, confidence, config } = state.nen_phase;
-    return `Phase: ${phase} | Confidence: ${confidence != null ? Math.round(confidence * 100) + '%' : '?'}\n${config || ''}`;
-  } catch { return null; }
-}
-
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, identityHash, neuroCore }) {
+function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
 
   const identityHashSection = identityHash
@@ -470,10 +430,6 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
     ? `\n### SELF_AWARENESS — Behavioral fingerprint (L2/L3)\n${selfAwareness}`
     : '';
 
-  const nvidiaSection = nvidiaLanes
-    ? `\n### NVIDIA_NIM — Live lane map (probed ${new Date().toISOString().slice(0,10)})\n${nvidiaLanes}`
-    : '';
-
   const neuronSection = neuronLoop
     ? `\n### NEURON_LOOP — Self-improvement baseline\n${neuronLoop}`
     : '';
@@ -484,10 +440,6 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
 
   const geassSection = geassLock
     ? `\n### GEASS_LOCK — Active inviolable constraint\n🔴 ${geassLock}`
-    : '';
-
-  const nenSection = nenPhase
-    ? `\n### NEN_PHASE — Active work phase\n${nenPhase}`
     : '';
 
   // ── ZONE A: STABLE CORE — byte-identical across warm restarts → cacheable prefix ──
@@ -518,7 +470,7 @@ ${sessionCtx || '(checkpoint unavailable)'}
 ${laneHealth}
 
 ### GATE — Launch readiness
-${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${roadmapSection}${geassSection}${nenSection}
+${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${neuronSection}${roadmapSection}${geassSection}
 </yuri-brain>`;
 
   return stableCore + volatileFooter;
@@ -555,12 +507,10 @@ function main() {
   const neuroCore     = loadNeuroCore();
   const selfAwareness = loadSelfAwareness();
   const geassLock     = loadGeassLock();
-  const nenPhase      = loadNenPhase();
-  const nvidiaLanes   = loadNvidiaLanes();
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
 
-  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState, identityHash, neuroCore });
+  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
