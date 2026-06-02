@@ -239,7 +239,10 @@ function handlePostToolUse(input) {
   // If HEAD matches last indexed commit, no reindex needed
   if (currentHead && currentHead === lastCommit) return;
 
-  const analyzeCmd = `npx gitnexus analyze${hadEmbeddings ? ' --embeddings' : ''}`;
+  // --skip-agents-md: do NOT let analyze rewrite the leaned gitnexus block in
+  // CLAUDE.md/AGENTS.md (bare analyze re-expands it to the verbose template and
+  // repoints at .claude/skills paths → fails root-architecture.test.mjs).
+  const analyzeCmd = `npx gitnexus analyze --skip-agents-md${hadEmbeddings ? ' --embeddings' : ''}`;
   sendHookResponse(
     'PostToolUse',
     `GitNexus index is stale (last indexed: ${lastCommit ? lastCommit.slice(0, 7) : 'never'}). ` +
