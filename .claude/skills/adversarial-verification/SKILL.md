@@ -42,6 +42,42 @@ No "looks good" shortcut. Evidence first, then the claim.
 
 ## Session Notes
 
+### 2026-06-02
+- session: 196m | peak ctx: 0% | compacts: 0
+- tools: Bash×101, WebSearch×68, WebFetch×67, Read×45, StructuredOutput×18, ToolSearch×13, Write×11, Edit×7, TodoWrite×5, mcp×4, Workflow×3
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 193m | peak ctx: 0% | compacts: 0
+- tools: Bash×100, WebSearch×68, WebFetch×67, Read×45, StructuredOutput×18, ToolSearch×13, Write×10, Edit×7, TodoWrite×5, mcp×4, Workflow×3
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 167m | peak ctx: 0% | compacts: 0
+- tools: Bash×96, WebSearch×68, WebFetch×67, Read×45, StructuredOutput×18, ToolSearch×13, Write×10, Edit×6, mcp×4, TodoWrite×4, Workflow×3
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 143m | peak ctx: 0% | compacts: 0
+- tools: Bash×92, WebSearch×68, WebFetch×67, Read×44, StructuredOutput×18, ToolSearch×13, Write×10, mcp×4, Workflow×3, TodoWrite×2
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 121m | peak ctx: 0% | compacts: 0
+- tools: Bash×88, WebSearch×68, WebFetch×67, Read×44, StructuredOutput×18, ToolSearch×12, Write×6, Workflow×3
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 118m | peak ctx: 0% | compacts: 0
+- tools: Bash×86, WebSearch×68, WebFetch×67, Read×44, StructuredOutput×18, ToolSearch×12, Write×6, Workflow×3
+- corrections: none
+- errors: none
+
 ### 2026-05-29
 - session: 349m | peak ctx: 71% | compacts: 4
 - tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1

@@ -68,3 +68,4 @@ Adjustment for next month:
 2026-05-31 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
 2026-05-31 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
 2026-06-01 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-06-01 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
