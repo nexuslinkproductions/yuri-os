@@ -25,6 +25,7 @@ import { traceGateEvaluation } from './math/yuri-energy-trace.mjs';
 import { gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
 import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 import { currentUserHandle } from './yuri-user.mjs';
+import { freshLedger, applyClaimTransition, claimGateFields } from './claim-ledger.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(_HERE, '..', '..');
@@ -231,6 +232,13 @@ export function evaluateTransition(prevState, event, nowIso = '') {
  */
 export function tickAndTrace(prevState, event, opts = {}) {
   const nowIso = opts.nowIso || new Date().toISOString();
+  const nowMs = Date.parse(nowIso) || 0;
+  // Claim ledger — the LIVE BRIDGE that finally gives the claim-cortex a consumer and
+  // lights the 4 starved dark terms (α/β/ε) on real work. Carried across ticks via the
+  // snapshot. claimGateFields is fail-open (errors → no claim fields → tool-event-only
+  // state, current behavior) and OMITS the veto fields, so it can raise U but can never
+  // introduce a protected-path / structural-floor veto. The breaker keys on the raw state.
+  const ledger = (opts.ledger && Array.isArray(opts.ledger.claims)) ? opts.ledger : freshLedger();
   // Live config: a value tuned in the cockpit and persisted to energy-weights.json
   // steers the real gate here. Absent/invalid → standards (fail-safe).
   const fileCfg = loadEnergyConfig(opts.configFile);
@@ -242,16 +250,20 @@ export function tickAndTrace(prevState, event, opts = {}) {
   // Salience front door: SKIP transitions never reach the math — no trace, no
   // state/depth change. Keeps the ΔU stream dense, no tick per keystroke.
   if (tier === TIER.SKIP) {
-    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false };
+    // SKIP = reads/navigation: no claim authored, ledger passes through unchanged.
+    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false, ledger };
   }
   const nextState = applyTransition(prevState, t, nowIso);
+  const nextLedger = applyClaimTransition(ledger, t, nowMs);
   const { record } = traceGateEvaluation({
     lane: 'session',
     runId: String(opts.runId || `session-${nowIso}`),
     user: opts.user || currentUserHandle(),
     regime: 'action', // everyday-workflow ΔU is always a real, distinct before/after
-    stateBefore: toGateState(prevState),
-    stateAfter: toGateState(nextState),
+    // Tool-event terms (iota/gamma/delta/eta) PLUS the cortex's claim-distribution terms
+    // (alpha entropy / beta KL / epsilon infoGain) from the live ledger — the missing wire.
+    stateBefore: { ...toGateState(prevState), ...claimGateFields(ledger, nowMs) },
+    stateAfter: { ...toGateState(nextState), ...claimGateFields(nextLedger, nowMs) },
     weights,
     threshold,
     traceOptions: opts.traceOptions || {},
@@ -272,5 +284,5 @@ export function tickAndTrace(prevState, event, opts = {}) {
   const recentAbs = tier === TIER.WORK
     ? [...priorRecent, Math.abs(deltaU)].slice(-cfg.surpriseWindow)
     : priorRecent;
-  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: surprised, deepEngaged };
+  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: surprised, deepEngaged, ledger: nextLedger };
 }

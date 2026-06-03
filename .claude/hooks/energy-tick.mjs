@@ -50,8 +50,10 @@ function run() {
   const recentAbs = (snap && Array.isArray(snap.recentAbs)) ? snap.recentAbs : [];
   const nowIso = new Date().toISOString();
 
+  const ledger = (snap && snap.ledger && Array.isArray(snap.ledger.claims)) ? snap.ledger : undefined;
+
   const result = tickAndTrace(prevState, event, {
-    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs,
+    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs, ledger,
   });
 
   // SKIP transitions don't advance state/depth or write a record — nothing to persist.
@@ -79,6 +81,7 @@ function run() {
       surpriseEngaged: result.surpriseEngaged,
       deepEngaged: result.deepEngaged,
       breaker,
+      ledger: result.ledger,
       sessionId,
       updatedAt: nowIso,
     }) + '\n');
