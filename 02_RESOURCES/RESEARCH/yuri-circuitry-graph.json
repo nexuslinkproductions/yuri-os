@@ -7,7 +7,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy.mjs"
       ],
-      "triggeredBy": "import — live gate core (energy-tick), breaker, cortex, trace, control-server, sims; CLI --worked-example"
+      "triggeredBy": "import — live gate core (energy-tick), breaker, cortex, trace, control-server, sims; CLI --worked-example",
+      "description": "The scalar Lyapunov potential U, its gradient ΔU, and the accept/reject gateProposal — with a hard-veto (protected-path eta=100) plus a structural floor (ladder-inversion). This is the heart of the work-dynamics math and the live runtime gate core, fed real tool transitions by the energy-tick PostToolUse path; it reads a frozen 11-term DEFAULT_WEIGHTS and writes nothing."
     },
     {
       "id": "math-kernel",
@@ -16,7 +17,8 @@
       "files": [
         "_SYSTEM/Scripts/math/math-kernel.mjs"
       ],
-      "triggeredBy": "import — foundational primitive layer"
+      "triggeredBy": "import — foundational primitive layer",
+      "description": "The proven primitive library — 22 certified primitives (entropy, KL, cross-entropy, infoGain, confidenceDecay, brier, logLoss, bayes, softmax, dijkstra, A*, topo-sort, vector ops) with byte-stable rounding and sha256 result hashing. The foundational math layer the energy function and proof gate build on; stateless."
     },
     {
       "id": "energy-tick-core",
@@ -25,7 +27,8 @@
       "files": [
         "_SYSTEM/Scripts/energy-tick-core.mjs"
       ],
-      "triggeredBy": "import from energy-tick PostToolUse hook"
+      "triggeredBy": "import from energy-tick PostToolUse hook",
+      "description": "Turns LIVE session tool-events into real before/after control-plane state pairs and ΔU — salience tiering (SKIP/WORK/CRITICAL), per-transition state application, and a Layer-C depth-gated surprise trigger. Imported by the energy-tick PostToolUse hook; reads energy-weights via loadEnergyConfig and emits the trace each gated transition."
     },
     {
       "id": "energy-tick-hook",
@@ -34,7 +37,8 @@
       "files": [
         ".claude/hooks/energy-tick.mjs"
       ],
-      "triggeredBy": "PostToolUse hook (settings.json L259), gated YURI_ENERGY_OBSERVABILITY=1"
+      "triggeredBy": "PostToolUse hook (settings.json L259), gated YURI_ENERGY_OBSERVABILITY=1",
+      "description": "The PostToolUse Policy-Decision-Point and everyday ΔU source — reads the session snapshot, runs tickAndTrace on each genuine tool transition, advances the circuit-breaker, and persists the snapshot. Async hook at settings.json L259, gated on YURI_ENERGY_OBSERVABILITY=1."
     },
     {
       "id": "energy-breaker",
@@ -43,7 +47,8 @@
       "files": [
         "_SYSTEM/Scripts/energy-breaker.mjs"
       ],
-      "triggeredBy": "import — transitionOnVerdict (PostToolUse), evaluateGate (PreToolUse)"
+      "triggeredBy": "import — transitionOnVerdict (PostToolUse), evaluateGate (PreToolUse)",
+      "description": "A Resilience4j-style CLOSED/OPEN/HALF_OPEN circuit breaker ported to the gate — catastrophic non-offsettable verdicts (protected-path / structural-floor veto) trip it, and it auto-decays so it can never permanently block. Splits the outcome-driven transition (PostToolUse) from the time-driven enforcement read (PreToolUse), reading its breaker blob from the energy-session snapshot."
     },
     {
       "id": "energy-enforce-hook",
@@ -52,7 +57,8 @@
       "files": [
         ".claude/hooks/energy-enforce.mjs"
       ],
-      "triggeredBy": "PreToolUse hook (settings.json L206), gated OBS=1 AND (ENFORCE=1 OR flag file)"
+      "triggeredBy": "PreToolUse hook (settings.json L206), gated OBS=1 AND (ENFORCE=1 OR flag file)",
+      "description": "The PreToolUse Policy-Enforcement-Point that finally makes the gate ACT — reads the trailing breaker state and DENIES the next tool call on a catastrophic OPEN verdict, registered LAST in PreToolUse and failing OPEN on any data gap. Gated on OBSERVABILITY=1 AND (ENFORCE=1 OR the energy-enforce.enabled flag file); shipped default is OFF."
     },
     {
       "id": "energy-config",
@@ -61,7 +67,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-config.mjs"
       ],
-      "triggeredBy": "import — loadEnergyConfig per gated transition; CLI dump"
+      "triggeredBy": "import — loadEnergyConfig per gated transition; CLI dump",
+      "description": "The fail-closed config loader that validates the optional override (bad/non-finite values dropped, not coerced) and returns {weights, threshold, salience, evict, fsrs, recall} merged over in-code defaults. Called by tickAndTrace on every gated transition; the single externalized knob bridge between the energy-weights file and the gate."
     },
     {
       "id": "energy-weights",
@@ -70,7 +77,8 @@
       "files": [
         "_SYSTEM/SELF/energy-weights.json"
       ],
-      "triggeredBy": "read by config-loader/evict/relocator/fsrs/recall/brain-inject; written by control-server"
+      "triggeredBy": "read by config-loader/evict/relocator/fsrs/recall/brain-inject; written by control-server",
+      "description": "The single externalized knob surface (_SYSTEM/SELF/energy-weights.json) where every value equals the in-code default — editing it steers the live system, and the drift test enforces that defaults-equality invariant. Read by config-loader/evict/relocator/fsrs/recall/brain-inject; written only by the control-server POST /apply."
     },
     {
       "id": "energy-trace",
@@ -79,7 +87,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-trace.mjs"
       ],
-      "triggeredBy": "import — traceGateEvaluation on live tick + experiments"
+      "triggeredBy": "import — traceGateEvaluation on live tick + experiments",
+      "description": "JSONL telemetry for every gate evaluation, carrying the mechanically-enforced Layer-7 Privacy Gate (structural full-path allow-list, plain-object-only, toJSON/function/symbol/BigInt rejection, serialize-then-re-validate canary) and the closed-set canonical promotion-label key guard. Writes one record per gated transition to energy-trace/<date>.jsonl."
     },
     {
       "id": "claim-cortex",
@@ -88,7 +97,8 @@
       "files": [
         "_SYSTEM/Scripts/claim-cortex.mjs"
       ],
-      "triggeredBy": "import / CLI --worked-example only — NO live hook consumer"
+      "triggeredBy": "import / CLI --worked-example only — NO live hook consumer",
+      "description": "The intended-but-UNWIRED live epistemic sensor — an in-session claim ledger, claimed-vs-evidenced ladder rank, FSRS-style evidence aging, and prior→posterior belief shift that emits a computeU-shaped snapshot lighting the 4 starved terms (alpha/beta/epsilon/zeta) plus the theta floor. Built (36KB) but NOT wired to any live hook; only its own --worked-example CLI / test exercises it, so the live tick still uses 5 of 11 terms."
     },
     {
       "id": "claim-integrity-gate",
@@ -97,7 +107,8 @@
       "files": [
         "_SYSTEM/Scripts/claim-integrity-gate.mjs"
       ],
-      "triggeredBy": "import (PROMOTION_STATES) + CLI lint"
+      "triggeredBy": "import (PROMOTION_STATES) + CLI lint",
+      "description": "Lints claim PROSE for over-claim vocabulary and owns the canonical PROMOTION_STATES ladder (draft→research→fixture_ready→runtime_tested→operator_validated→trusted→deprecated) that the cortex and trace single-source. Import (ladder) plus an on-demand CLI lint."
     },
     {
       "id": "math-proof-gate",
@@ -107,7 +118,8 @@
         "_SYSTEM/Scripts/math/math-proof-gate.mjs",
         "_SYSTEM/data/math/formula-banks/*.json"
       ],
-      "triggeredBy": "on-demand CLI + tests; not a runtime hook"
+      "triggeredBy": "on-demand CLI + tests; not a runtime hook",
+      "description": "Binds each formula-bank card to a real math-kernel primitive and runs worked examples plus counterexamples (strict error-pattern match) before a bank can be promoted to non-advisory. On-demand CLI and tests only — not a runtime hook; reads the formula-bank JSON banks."
     },
     {
       "id": "fsrs",
@@ -116,7 +128,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-fsrs.mjs"
       ],
-      "triggeredBy": "import — reads fsrs:{} via caller"
+      "triggeredBy": "import — reads fsrs:{} via caller",
+      "description": "The FSRS-4.5 retention scorer — power-law retrievability R(t)=(1+factor·t/S)^decay with R(S)=0.9, an effective-stability boost from salience/frequency/|ΔU|, demote/force-keep, and recall-bump. A shared math primitive: it reads fsrs:{} via its caller and is consumed by both the energy layer and the subconscious memory relocator (it does NOT import yuri-energy)."
     },
     {
       "id": "energy-dispatch-bridge",
@@ -125,7 +138,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs"
       ],
-      "triggeredBy": "import — traceDispatchEvent from offload-runner/shintai-dispatch (retired path)"
+      "triggeredBy": "import — traceDispatchEvent from offload-runner/shintai-dispatch (retired path)",
+      "description": "The LEGACY ΔU surface that wired the old dispatch paths (offload-runner, shintai-dispatch) into a synthetic ΔU=0 (or action-mode real-ΔU) trace, default-off and error-isolated. Still fires via traceDispatchEvent if those surfaces run, but the live everyday ΔU now flows through the energy-tick PostToolUse hook, not here."
     },
     {
       "id": "energy-sanitize",
@@ -134,7 +148,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs"
       ],
-      "triggeredBy": "import by experiment tooling; in-memory only"
+      "triggeredBy": "import by experiment tooling; in-memory only",
+      "description": "The only sanctioned raw-_SYSTEM/state → experiment bridge — an allow-list projection re-validated through the Privacy Gate, in-memory only. Imported by experiment tooling to safely lift recorded state into experiment scenarios."
     },
     {
       "id": "energy-simulate",
@@ -143,7 +158,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-simulate.mjs"
       ],
-      "triggeredBy": "on-demand CLI + supercharge-gate"
+      "triggeredBy": "on-demand CLI + supercharge-gate",
+      "description": "The gate grader — runs the real gate against labelled adversarial+healthy scenarios and scores falseAccept / falseReject. Invoked on-demand via CLI and by the supercharge-gate."
     },
     {
       "id": "energy-experiment",
@@ -153,7 +169,8 @@
         "_SYSTEM/Scripts/math/yuri-energy-experiment.mjs",
         "_SYSTEM/Scripts/math/experiments/descent-demo.mjs"
       ],
-      "triggeredBy": "on-demand CLI (run --scenario)"
+      "triggeredBy": "on-demand CLI (run --scenario)",
+      "description": "The scenario runner — pushes scenario modules (including experiments/descent-demo.mjs) through computeU/ΔU/gateProposal and records Privacy-Gate-validated traces. On-demand CLI (run --scenario); writes both an experiment JSON and energy-trace JSONL."
     },
     {
       "id": "energy-dashboard-data",
@@ -162,7 +179,8 @@
       "files": [
         "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs"
       ],
-      "triggeredBy": "on-demand CLI / dashboard build"
+      "triggeredBy": "on-demand CLI / dashboard build",
+      "description": "Assembles the read-only research-paper dashboard's real-data object with real/simulated/planned provenance tags. On-demand CLI / dashboard build; reads the energy-trace JSONL history and pulls legacy dispatch data via the bridge."
     },
     {
       "id": "energy-control-server",
@@ -171,7 +189,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-control-server.mjs"
       ],
-      "triggeredBy": "on-demand CLI launch (not a daemon)"
+      "triggeredBy": "on-demand CLI launch (not a daemon)",
+      "description": "The on-demand HTTP backend for the live tuning cockpit — previews 3 scenarios through the real gate, validates dials fail-closed, and (DEV-gated) writes tuned dials to energy-weights.json plus a changelog. An on-demand CLI launch, NOT a daemon."
     },
     {
       "id": "energy-obs-health",
@@ -180,7 +199,8 @@
       "files": [
         "_SYSTEM/Scripts/energy-observability-health.mjs"
       ],
-      "triggeredBy": "import/CLI from yuri-health"
+      "triggeredBy": "import/CLI from yuri-health",
+      "description": "The energy observability liveness probe for yuri-health — confirms the PostToolUse hook is registered in settings.json and that trace records accrue (absence is reported, not failed). Imported/CLI from yuri-health."
     },
     {
       "id": "action-mode-study",
@@ -189,7 +209,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-action-mode-study.mjs"
       ],
-      "triggeredBy": "on-demand CLI"
+      "triggeredBy": "on-demand CLI",
+      "description": "The study harness that runs the REAL gate in enforce semantics over labelled transitions (a confusion matrix is the gate's teeth-proof) and replays recorded traces for the real-traffic false-positive rate that gates graduation to enforcement. On-demand CLI; never blocks a live tool."
     },
     {
       "id": "energy-weights-drift-test",
@@ -198,7 +219,8 @@
       "files": [
         "_SYSTEM/Scripts/energy-weights-drift.test.mjs"
       ],
-      "triggeredBy": "node --test (CI / supercharge-gate)"
+      "triggeredBy": "node --test (CI / supercharge-gate)",
+      "description": "Converts the _doc.values_are_defaults prose promise into an ENFORCED invariant — asserts every config value equals the in-code default across the energy/config/tick/fsrs surfaces. Run under node --test in CI and the supercharge-gate; reads energy-weights.json."
     },
     {
       "id": "claude-memory-write",
@@ -207,7 +229,8 @@
       "files": [
         "_SYSTEM/Scripts/claude-memory-write.mjs"
       ],
-      "triggeredBy": "CLI add|remove|read|list|reindex; SessionStart hook runs reindex"
+      "triggeredBy": "CLI add|remove|read|list|reindex; SessionStart hook runs reindex",
+      "description": "The optional mediated write/CRUD path into Claude Track-B auto-memory: validates v3 frontmatter, enforces memory/-root containment + forbidden-segment refusal, and keeps MEMORY.md consistent. Native direct Write into memory/ is also allowed (block scoped to volatile subdirs 2026-06-02) so this wrapper is the optional validation/reindex helper, not a required gate."
     },
     {
       "id": "yuri-recall",
@@ -216,7 +239,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-recall.mjs"
       ],
-      "triggeredBy": "UserPromptSubmit hook spawns detached every turn; CLI"
+      "triggeredBy": "UserPromptSubmit hook spawns detached every turn; CLI",
+      "description": "The subconscious cue-recall organ: BM25 cue-match over the cold store + 1-hop spreading-activation across crosslinks + recency/salience blend yields a bounded top-K of advisory candidates, and surfacing bumps the usage ledger (testing-effect reactivation). Fired DETACHED every turn by the UserPromptSubmit hook with one-turn lag; never auto-writes memory and currently surfaces nothing because the cold store holds 0 rows."
     },
     {
       "id": "memory-cold-store",
@@ -225,7 +249,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-cold-store.mjs"
       ],
-      "triggeredBy": "library import — recall(query), relocator(upsert/get/remove), consolidator(get); CLI count|query"
+      "triggeredBy": "library import — recall(query), relocator(upsert/get/remove), consolidator(get); CLI count|query",
+      "description": "The embedding-free FTS5 long-term store that demoted memories relocate INTO (never deleted) — a SEPARATE DB (memory-cold.db) from the search corpus so the Memory/Search wall holds, with two tables cold_docs (FTS5 porter+unicode61) + cold_meta (salience/base-stability/crosslinks/demotedAt). Has its own inlined buildMatch decoupled from yuri-search; verified holding 0 rows (schema live, empty by design until demotion executes)."
     },
     {
       "id": "memory-usage",
@@ -234,7 +259,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-usage.mjs"
       ],
-      "triggeredBy": "library import — recordUse per recall, buildUsageIndex; CLI record|index"
+      "triggeredBy": "library import — recordUse per recall, buildUsageIndex; CLI record|index",
+      "description": "The append-only replayable recall/reinforce ledger that REPLACES the broken atime-LRU signal — it replays into a usage index (useCount/lastUsed/lastReinforced) that the relocator scores retrievability off, not mtime/atime. Best-effort writes that never throw into the hot recall path; the jsonl is lazy-created on first recall and lives in writable _SYSTEM/state/."
     },
     {
       "id": "memory-relocator",
@@ -243,7 +269,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-relocator.mjs"
       ],
-      "triggeredBy": "import via consolidator runSubconsciousPass; CLI (DRY-RUN unless --execute)"
+      "triggeredBy": "import via consolidator runSubconsciousPass; CLI (DRY-RUN unless --execute)",
+      "description": "The canonical forgetting mechanism — FSRS-scored DEMOTION not deletion: a memory below the retrievability floor is copied verbatim into the cold store AND its source moved into reversible relocated/ (double safety), with a tombstone left in relocation-index.json; promoteHot() restores byte-identical. Tier sets base stability (semantic 60d / episodic 14d / working 3d); pinned + PROTECTED_TYPES (feedback, user) are exempt; DRY-RUN unless --execute (verified never executed)."
     },
     {
       "id": "kagami-consolidator",
@@ -254,7 +281,8 @@
         "~/Library/LaunchAgents/com.yuri.kagami-memory-consolidator.plist",
         "~/Library/LaunchAgents/com.yuri.kagami-stale-memory-scan.plist"
       ],
-      "triggeredBy": "launchd daily 06:00 + stale-scan; DRY-RUN unless --execute"
+      "triggeredBy": "launchd daily 06:00 + stale-scan; DRY-RUN unless --execute",
+      "description": "The daily subconscious orchestrator running two jobs in one launchd organ: (1) L6 consolidation via runSubconsciousPass (FSRS demote-plan + executeRelocation + cold re-promotion proposals for slugs with useCount≥3) and (2) a Qwen3.5-4B MLX review of Track-B files for stale/dup/contradiction into memory-health.json. DRY-RUN unless --execute (no plist sets the flag), and the scoring half runs even when MLX is down."
     },
     {
       "id": "memory-kernel",
@@ -263,7 +291,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-kernel.mjs"
       ],
-      "triggeredBy": "library import (CLI/agent + autopilot + consolidator + canonical-import)"
+      "triggeredBy": "library import (CLI/agent + autopilot + consolidator + canonical-import)",
+      "description": "The governed Track-A canonical mediator (propose→decide→ledger) for operating truth shared across all lanes — RBAC by lane, proposeMemoryWrite / recordMemoryProposalDecision / promoteMemoryProposal→appendLedger over a dual-ledger, plus recallEntries; emits Kagami events on promote and enforces protected surfaces via safeRuntimePath. Library import only, not auto-scheduled."
     },
     {
       "id": "memory-proposal-autopilot",
@@ -272,7 +301,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-proposal-autopilot.mjs"
       ],
-      "triggeredBy": "invoked by yuri-autonomy-runner + operator CLI (no launchagent)"
+      "triggeredBy": "invoked by yuri-autonomy-runner + operator CLI (no launchagent)",
+      "description": "Polls the Track-A proposal queue and runs a DETERMINISTIC review first (reject protected-surface mutation intent via verb-aware unnegated-intent matching, reject empty/no-id, defer oversized, rewrite peer-lane blame), escalating only ambiguous cases to Codex/main. Optional scoped auto-commit stages ONLY a source/docs allowlist and runs secret-leak-scan BEFORE committing, refusing if allowlist paths were dirty pre-run."
     },
     {
       "id": "secret-leak-scan",
@@ -281,7 +311,8 @@
       "files": [
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
-      "triggeredBy": "spawnSync from autopilot before commit"
+      "triggeredBy": "spawnSync from autopilot before commit",
+      "description": "The secret gate the autopilot runs via spawnSync BEFORE any scoped commit — a non-zero exit aborts the commit. Verified to exist and be executable; reads the git staged diff as its input."
     },
     {
       "id": "memory-governor",
@@ -290,7 +321,8 @@
       "files": [
         "_SYSTEM/OS_KERNEL/memory_governor.py"
       ],
-      "triggeredBy": "spawnSync from memory-session-write (SessionEnd); health-polled; CLI"
+      "triggeredBy": "spawnSync from memory-session-write (SessionEnd); health-polled; CLI",
+      "description": "The Track-A lifecycle governor over the large legacy memory.db (~230MB): STM/MTM/LTM split, importance scoring, daily/weekly/monthly consolidation cycles, quarantine, research-watch — a SEPARATE consolidation system from the FSRS cold-store subconscious (this governs the SQLite DB, the relocator governs the .md cold store). Its old session-boot RAG recall-injector role is SUPERSEDED by yuri-recall; lifecycle/health/SessionEnd-write role remains live."
     },
     {
       "id": "memory-session-write",
@@ -299,7 +331,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-session-write.mjs"
       ],
-      "triggeredBy": "settings.json Stop/SessionEnd hook (L292)"
+      "triggeredBy": "settings.json Stop/SessionEnd hook (L292)",
+      "description": "The SessionEnd episodic-capture organ — reads the last sentinel learning-session observation and writes it as episodic Track-A memory through memory_governor.py, opportunistically triggering weekly consolidation if the last run is >7d old. Fired by the settings.json Stop/SessionEnd hook (L292)."
     },
     {
       "id": "memory-evict-archive",
@@ -309,7 +342,8 @@
         "_SYSTEM/Scripts/memory-evict.mjs",
         "_SYSTEM/Scripts/memory-archive.mjs"
       ],
-      "triggeredBy": "NO live trigger — no launchagent/hook/spawn"
+      "triggeredBy": "NO live trigger — no launchagent/hook/spawn",
+      "description": "The two original crude forgetting paths now SUPERSEDED by memory-relocator: evict = atime-LRU over memory/patterns/*.md moving stale files to memory/patterns-archive/; archive = mtime+flag move with NO recall path. DORMANT — no live trigger (no launchagent/hook/spawn); the broken atime signal is the exact bug memory-usage.mjs was built to fix."
     },
     {
       "id": "yuri-search",
@@ -318,7 +352,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-search.mjs"
       ],
-      "triggeredBy": "CLI only — `ai search \"<q>\"`; never auto-fired"
+      "triggeredBy": "CLI only — `ai search \"<q>\"`; never auto-fired",
+      "description": "On-demand FTS5/BM25 query engine over the ~38.7k-doc local corpus (live count 38,742; the in-file '~26k docs' comment is stale), returning path+snippet ranked by bm25 and never auto-injected. Exports the injection-hardened buildMatch() that quotes every term as an OR-of-quoted-terms so raw user input can never inject FTS5 operators."
     },
     {
       "id": "yuri-search-index",
@@ -327,7 +362,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-search-index.mjs"
       ],
-      "triggeredBy": "CLI only — `ai reindex`. MANUAL (no hook/cron)"
+      "triggeredBy": "CLI only — `ai reindex`. MANUAL (no hook/cron)",
+      "description": "The corpus indexer that builds/refreshes search-index.db — walks 8 corpus roots, incremental by mtime, Porter+unicode61 FTS5 with WAL, and prunes deleted files. Strictly manual (no SessionStart hook, no LaunchAgent, no cron); enforces the Memory/Search Wall via an EXCLUDE_SUBSTR list + isProtectedPath so it literally cannot index .env, .claude/state, or the memory DBs."
     },
     {
       "id": "context-router",
@@ -336,7 +372,8 @@
       "files": [
         "_SYSTEM/Scripts/context-router.mjs"
       ],
-      "triggeredBy": "CLI — run before broad work (CLAUDE.md mandate); not a hook"
+      "triggeredBy": "CLI — run before broad work (CLAUDE.md mandate); not a hook",
+      "description": "The pre-broad-work context selector CLAUDE.md mandates — scores each registry packet by counting literal trigger substrings in the task text and returns the top context packet plus its read-order and protected paths. Pure substring-count (no embeddings) so it is fully auditable, but it uses process.cwd() as repo root and must run from repo root or registry resolution fails."
     },
     {
       "id": "memory-kernel-recall",
@@ -345,7 +382,8 @@
       "files": [
         "_SYSTEM/Scripts/memory-kernel.mjs"
       ],
-      "triggeredBy": "CLI recall <query> / recallBeforeDispatch"
+      "triggeredBy": "CLI recall <query> / recallBeforeDispatch",
+      "description": "Track-A recall over the WARM canonical store (_SYSTEM/memory/*.md|json|txt) — tokenizes the query, scores each file with a resolvable lexical-default scorer, and returns top-K with sha256 provenance. The warm/lexical tier of the two-tier retrieval split, distinct from the cold-store FTS5 recall (yuri-recall over memory-cold.db); do not conflate the two."
     },
     {
       "id": "evidence-contract-validator",
@@ -354,7 +392,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-evidence-contract.mjs"
       ],
-      "triggeredBy": "CLI — gate a PASS claim on swarm artifact dir"
+      "triggeredBy": "CLI — gate a PASS claim on swarm artifact dir",
+      "description": "Gates a swarm artifact dir's PASS claim by validating it contains the required deterministic grammar (TERM_COUNT / FILE_COUNT / MATCH), exiting 1 on a missing, invented, or empty verdict. Its three REQUIRED_EVIDENCE_PATTERNS regexes are the literal evidence grammar from yuri-origin.md."
     },
     {
       "id": "evidence-contract-resolver",
@@ -363,7 +402,8 @@
       "files": [
         "_SYSTEM/Scripts/evidence-contract.mjs"
       ],
-      "triggeredBy": "import — requiredEvidenceIdsForTask(task)"
+      "triggeredBy": "import — requiredEvidenceIdsForTask(task)",
+      "description": "Pure no-I/O function that maps a task string → required evidence-source IDs (Shintai base set, plus a memory/RAG set on regex match and a cyber set on security regex). Despite the near-identical name it is a different organ from the validator — it answers 'what evidence does this task require' (requiredEvidenceIdsForTask), called at import time by memory-kernel."
     },
     {
       "id": "research-capture",
@@ -373,7 +413,8 @@
         "_SYSTEM/Scripts/yuri-research-capture.mjs",
         "_SYSTEM/Scripts/yuri-research-capture.py"
       ],
-      "triggeredBy": "CLI — capture online findings, then manual `ai reindex`"
+      "triggeredBy": "CLI — capture online findings, then manual `ai reindex`",
+      "description": "Captures online research findings into the local compounding corpus — inits an archive dir, writes a manifest + source registry carrying provenance, and fetches sources, emitting a dated markdown file under 02_RESOURCES/research/. The capture→corpus bridge is NOT automatic: the written .md becomes searchable only after a manual ai reindex."
     },
     {
       "id": "ai-cli",
@@ -382,14 +423,16 @@
       "files": [
         "_SYSTEM/Scripts/ai"
       ],
-      "triggeredBy": "CLI — `ai search|find|reindex|triage` (bash; never `node ai`)"
+      "triggeredBy": "CLI — `ai search|find|reindex|triage` (bash; never `node ai`)",
+      "description": "The single bash dispatcher and true ingress of the retrieval layer — exec-style pure routing where 'ai search|find' → yuri-search, 'ai reindex|search-index' → yuri-search-index, and 'ai triage|research' → run_triage. Must be invoked as bash 'ai …', never 'node ai'."
     },
     {
       "id": "cross-domain-transfer-engine",
       "label": "Cross-Domain Transfer Engine (PHANTOM — claimed not built)",
       "layer": "Retrieval & Knowledge",
       "files": [],
-      "triggeredBy": "CLAUDE.md claims problem-solving; NO executable trigger exists"
+      "triggeredBy": "CLAUDE.md claims problem-solving; NO executable trigger exists",
+      "description": "PHANTOM node: CLAUDE.md claims a live 'cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus)' for problem-solving, but grep finds zero implementing module — it exists only as the future-build YURI memory PROJ:CROSS-DOMAIN-TRANSFER-ENGINE. The corpus search (yuri-search) is real; the mechanism-tagged transfer layer on top of it is not, so this node carries no executable trigger and no files."
     },
     {
       "id": "bash-security-guard",
@@ -398,7 +441,8 @@
       "files": [
         ".claude/hooks/bash-security-guard.js"
       ],
-      "triggeredBy": "PreToolUse hook 2nd in chain (Bash filter)"
+      "triggeredBy": "PreToolUse hook 2nd in chain (Bash filter)",
+      "description": "The primary deterministic Bash deny gate (PreToolUse, 2nd in chain) — it DENIES .env read/write/mutate/remove, sensitive .claude file reads, broad .claude destruction/git-rm/git-add, download-execute curl|bash chains, mkfs, shell-wrapper inline-exec, and coworker push/remote/role-path mutation (with an intra-repo .env mirror exemption). It resolves the operator role to decide what a coworker-role session may run."
     },
     {
       "id": "operator-write-guard",
@@ -407,7 +451,8 @@
       "files": [
         ".claude/hooks/operator-write-guard.js"
       ],
-      "triggeredBy": "PreToolUse hook 3rd in chain (mutating tools)"
+      "triggeredBy": "PreToolUse hook 3rd in chain (mutating tools)",
+      "description": "The tool-agnostic defense-in-depth write gate (PreToolUse, 3rd in chain) — denies coworker-role Write/Edit/MultiEdit/NotebookEdit onto the trust surface (dev-credential.json, yuri-operator.cjs, and every enforcement hook including itself), closing the gap that bash-security-guard only inspects Bash. Uses case-insensitive APFS + symlink-realpath ancestor-climb canonicalization and fails closed."
     },
     {
       "id": "yuri-operator",
@@ -416,7 +461,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-operator.cjs"
       ],
-      "triggeredBy": "require — resolveRole by the guards; fail-closed→coworker"
+      "triggeredBy": "require — resolveRole by the guards; fail-closed→coworker",
+      "description": "The dev/coworker role trust root — verifies the owner passphrase in YURI_DEV_KEY via scrypt (N=16384,r=8,p=1, timingSafeEqual) against the on-disk credential. A broken module plus existing creds is treated as a tampering signal, not an error, and resolves fail-closed to the coworker role."
     },
     {
       "id": "tirith-url-guard",
@@ -425,7 +471,8 @@
       "files": [
         ".claude/hooks/tirith-url-guard.js"
       ],
-      "triggeredBy": "PreToolUse hook (Bash); scores URLs via ~/.hermes/bin/tirith"
+      "triggeredBy": "PreToolUse hook (Bash); scores URLs via ~/.hermes/bin/tirith",
+      "description": "The URL threat-assessment gate (PreToolUse, Bash) — extracts URLs from a Bash command and scores each via the external ~/.hermes/bin/tirith binary, escalating MEDIUM/HIGH/CRITICAL to permissionDecision='ask'. A missing binary silently allows unless TIRITH_FAIL_LOUD=1 is set."
     },
     {
       "id": "claude-protocol-guard",
@@ -434,7 +481,8 @@
       "files": [
         ".claude/hooks/claude-protocol-guard.mjs"
       ],
-      "triggeredBy": "PreToolUse hook 5th in chain"
+      "triggeredBy": "PreToolUse hook 5th in chain",
+      "description": "The routing/control-plane gate (PreToolUse, 5th in chain) — reads session-state.json for the plan_dispatch_gate and emits WARN advisories for missing-control-packet / missing-codex-task-spec / missing-route-plan-evidence / post-plan-dispatch-required, upgrading WARN→DENY on a critical-tier packet. It writes gate satisfaction/warn-count back to state; YURI_SPRINT_MODE=1 suppresses it."
     },
     {
       "id": "yuri-risk-lite",
@@ -443,7 +491,8 @@
       "files": [
         ".claude/hooks/yuri-risk-lite.js"
       ],
-      "triggeredBy": "PreToolUse hook 8th in chain (Bash); also module for scout"
+      "triggeredBy": "PreToolUse hook 8th in chain (Bash); also module for scout",
+      "description": "The regex catastrophe scanner (PreToolUse, 8th in chain, Bash) — hard-DENIES the deny:true set (mkfs, raw /dev/sd* writes, DROP DATABASE) and surfaces everything else (rm -rf, force-push, DROP TABLE, curl|bash) as a visible advisory rather than a block. Also exported as a module consumed by the scout-orchestrator."
     },
     {
       "id": "lane-kernel",
@@ -452,7 +501,8 @@
       "files": [
         "_SYSTEM/Scripts/lane-kernel.mjs"
       ],
-      "triggeredBy": "import — isProtectedPath/safeRuntimePath/CONTROL_FILE_PREFIXES"
+      "triggeredBy": "import — isProtectedPath/safeRuntimePath/CONTROL_FILE_PREFIXES",
+      "description": "The protected-surface + control-file source of truth — exports isProtectedPath / safeRuntimePath / CONTROL_FILE_PREFIXES that the protocol guard, memory-kernel, and the search indexer all single-source. It is the shared library that defines which paths are off-limits and which files are control-plane files."
     },
     {
       "id": "brain-inject",
@@ -461,7 +511,8 @@
       "files": [
         ".claude/hooks/brain-inject.js"
       ],
-      "triggeredBy": "SessionStart hook (settings.json L112) — reads ~14 state files"
+      "triggeredBy": "SessionStart hook (settings.json L112) — reads ~14 state files",
+      "description": "The unified boot brain composer (.claude/hooks/brain-inject.js): on the SessionStart SYNC hook (settings.json L112) it reads ~14 sources and emits a single <yuri-brain> block joining a stable Zone-A core (identity/hardware/learned-rules/memory) with a volatile Zone-C footer (session/lane-health/gate/cortex/fingerprint/geass). It re-extracts the same 9 SOUL.md persona headings the native @-include already loaded, so live state rides in alongside the always-present stable identity."
     },
     {
       "id": "soul-persona-inject",
@@ -470,7 +521,8 @@
       "files": [
         ".claude/hooks/soul-persona-inject.js"
       ],
-      "triggeredBy": "SubagentStart hook (settings.json L154) — NOT SessionStart"
+      "triggeredBy": "SubagentStart hook (settings.json L154) — NOT SessionStart",
+      "description": "The SubagentStart persona hook (.claude/hooks/soul-persona-inject.js) that injects the SOUL persona contract into every spawned subagent's context. It fires on SubagentStart (settings.json L154), NOT SessionStart — the boot-time persona load moved into brain-inject's [identity] section, leaving this hook to cover only subagents."
     },
     {
       "id": "cortex-state",
@@ -479,7 +531,8 @@
       "files": [
         ".claude/state/cortex-state.json"
       ],
-      "triggeredBy": "read by brain-inject; written by pulse/risk surfaces"
+      "triggeredBy": "read by brain-inject; written by pulse/risk surfaces",
+      "description": "The cross-turn cognitive state file (.claude/state/cortex-state.json) holding accumulated risk and PDC (probabilistic-decision-core) priors. It is a read surface for brain-inject's volatile footer and is written by the pulse/risk surfaces, not by this layer."
     },
     {
       "id": "fingerprint",
@@ -488,7 +541,8 @@
       "files": [
         ".claude/yuri-sentinel/self-model/fingerprint.json"
       ],
-      "triggeredBy": "read by brain-inject; written by sentinel self-model"
+      "triggeredBy": "read by brain-inject; written by sentinel self-model",
+      "description": "The L2/L3 behavioral self-model file (.claude/yuri-sentinel/self-model/fingerprint.json) capturing the behavioral fingerprint and drives. Read by brain-inject into the volatile footer; written by the sentinel self-model subsystem."
     },
     {
       "id": "persona-md",
@@ -499,7 +553,8 @@
         "SOUL.md",
         "_SYSTEM/yuri-origin.md"
       ],
-      "triggeredBy": "harness NATIVE @-include of CLAUDE.md — no hook fires"
+      "triggeredBy": "harness NATIVE @-include of CLAUDE.md — no hook fires",
+      "description": "The native stable identity trio (_SYSTEM/persona.md, SOUL.md, _SYSTEM/yuri-origin.md) loaded by the harness's @-include of CLAUDE.md with NO hook firing. This is the always-present identity the whole Cognition & Persona layer rests on — if every SessionStart hook failed, this still loads."
     },
     {
       "id": "neuron-loop",
@@ -509,7 +564,8 @@
         "_SYSTEM/Scripts/neuron-loop.mjs",
         "~/Library/LaunchAgents/com.yuri-os-musubi.neuron-loop.plist"
       ],
-      "triggeredBy": "launchd agent (HEALTHY, not 0-invocations)"
+      "triggeredBy": "launchd agent (HEALTHY, not 0-invocations)",
+      "description": "The 9-phase self-synthesis self-improvement loop driven by a real launchd agent (com.yuri-os-musubi.neuron-loop.plist, verified HEALTHY on disk, not 0-invocations); it runs autonomously and records its last run so the boot brain can ingest it. Its log is the NEURON_LOOP section brain-inject reads at SessionStart, closing the loop launchd → neuron-loop.mjs → log → brain."
     },
     {
       "id": "kagami-event-bus",
@@ -518,7 +574,8 @@
       "files": [
         "_SYSTEM/Scripts/kagami-event-bus.mjs"
       ],
-      "triggeredBy": "import — appendKagamiEvent on memory promote etc."
+      "triggeredBy": "import — appendKagamiEvent on memory promote etc.",
+      "description": "The append-only Kagami event log surface — its appendKagamiEvent(kind, payload) writes one validated JSON event per line (events.jsonl) on lifecycle moments like memory promotion, with a closed kind allow-list. It is the cross-organ event spine memory-kernel and other surfaces fire into to record durable system events."
     },
     {
       "id": "yuri-dream",
@@ -527,7 +584,8 @@
       "files": [
         ".claude/hooks/yuri-dream.js"
       ],
-      "triggeredBy": "Stop hook (settings.json L301)"
+      "triggeredBy": "Stop hook (settings.json L301)",
+      "description": "The Dream-Processor that runs at session Stop, mining the session's human messages and detected corrections into a learning prompt and queuing learned rules into the global/project learning ledgers. It is how repeated operator corrections graduate into durable lessons that apply to every agent."
     },
     {
       "id": "session-reflect",
@@ -536,7 +594,8 @@
       "files": [
         ".claude/hooks/session-reflect.js"
       ],
-      "triggeredBy": "Stop hook (L305) + spawned mid-session by pre-tool-use tier-4"
+      "triggeredBy": "Stop hook (L305) + spawned mid-session by pre-tool-use tier-4",
+      "description": "The reflection organ that fires at session Stop and is also spawned mid-session (detached) by pre-tool-use at compaction tier 4; it writes dated newest-first entries into the Track-B session-journal.md and dedups the MEMORY.md Session-Notes block. It captures skills used, compact hints, and session shape into continuity memory."
     },
     {
       "id": "yuri-health",
@@ -545,7 +604,8 @@
       "files": [
         "_SYSTEM/Scripts/yuri-health.mjs"
       ],
-      "triggeredBy": "CLI / monitor"
+      "triggeredBy": "CLI / monitor",
+      "description": "The lane/launch health monitor — a CLI/monitor harness that runs a roster of subprocess health probes (memory_governor health, energy-observability-health, skill-registry, launchd status, gitnexus) and emits a PASS/FAIL summary table. It is the single liveness dashboard that confirms the heavy memory and energy circuits are actually wired and accruing."
     },
     {
       "id": "startup-offload",
@@ -554,7 +614,8 @@
       "files": [
         ".claude/hooks/startup-offload.js"
       ],
-      "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code"
+      "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code",
+      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/offload returns nothing; it does NOT run the offload-runner."
     },
     {
       "id": "offload-contract",
@@ -563,7 +624,8 @@
       "files": [
         "_SYSTEM/Scripts/offload-contract.mjs"
       ],
-      "triggeredBy": "import — single lane routing contract"
+      "triggeredBy": "import — single lane routing contract",
+      "description": "The single lane/scenario/lifecycle routing contract per yuri-origin.md — the one authoritative source of lane tables, model tables, and lifecycle matrices that adapters must not duplicate. Import-only library surface; no boot trigger of its own."
     },
     {
       "id": "scout-orchestrator",
@@ -572,7 +634,8 @@
       "files": [
         ".claude/hooks/scout-orchestrator.js"
       ],
-      "triggeredBy": "SessionStart + PreToolUse + PostToolUse (payload-shape dispatch)"
+      "triggeredBy": "SessionStart + PreToolUse + PostToolUse (payload-shape dispatch)",
+      "description": "Event-driven scout dispatch hook wired across three lifecycle points: SessionStart inits the scout bus + trims errors, PreToolUse injects findings, PostToolUse spawns background scouts — dispatched by payload shape. Gated off via YURI_DISABLE_SCOUTS=1; reuses yuri-risk-lite as a risk-scan module and persists state to scout-bus.json."
     },
     {
       "id": "shintai-dispatch",
@@ -581,7 +644,8 @@
       "files": [
         "_SYSTEM/Scripts/shintai-dispatch.mjs"
       ],
-      "triggeredBy": "import/CLI — task-sized roster dispatch"
+      "triggeredBy": "import/CLI — task-sized roster dispatch",
+      "description": "The SEAL-team (Shintai 神隊) dispatcher — assembles a task-sized roster (not a fixed team) and dispatches the lanes; when it runs it fires the legacy energy-dispatch-bridge (L1165) to emit a ΔU trace for the dispatch event. Import/CLI triggered, not auto-scheduled."
     },
     {
       "id": "offload-runner",
@@ -590,7 +654,8 @@
       "files": [
         "_SYSTEM/Scripts/offload-runner.mjs"
       ],
-      "triggeredBy": "import/CLI — fires energy-dispatch-bridge when run"
+      "triggeredBy": "import/CLI — fires energy-dispatch-bridge when run",
+      "description": "The legacy dispatch path — ACTIVE, not dormant (distinct from the misnamed startup-offload boot hook): when run it fires the legacy energy-dispatch-bridge (L177) to record a synthetic ΔU=0 (or action-mode real-ΔU) trace. This is the true 'offload-runner is ACTIVE' organ. Import/CLI triggered."
     },
     {
       "id": "token-session-init",
@@ -599,7 +664,8 @@
       "files": [
         ".claude/hooks/token-session-init.js"
       ],
-      "triggeredBy": "SessionStart hook (L108)"
+      "triggeredBy": "SessionStart hook (L108)",
+      "description": "SessionStart hook (settings L108, sync) that boots token tracking: reads the git branch, writes the per-session and weekly token files plus session-state.json (guarded — skips the session-state write if an active root session is <4h old). Greps tokenmaxxing/SKILL.md '## Rules' and injects the '⚡ TOKENMAXXING ACTIVE' banner + those rules as additionalContext so token-efficiency mode is on by default."
     },
     {
       "id": "pre-tool-use",
@@ -608,7 +674,8 @@
       "files": [
         ".claude/hooks/pre-tool-use.js"
       ],
-      "triggeredBy": "PreToolUse hook 6th in chain"
+      "triggeredBy": "PreToolUse hook 6th in chain",
+      "description": "The 6th PreToolUse hook: token/compaction + cross-terminal awareness. Reads session-state.json context.pct, the memory bus, and MEMORY.md, emits /compact hints on a 5-tier ladder, and at tier 4 spawns session-reflect --mid-session detached; on another terminal's bus write it injects a cross-terminal update. Writes compact_history, context.tier, and the bus cursor."
     },
     {
       "id": "post-tool-use",
@@ -617,7 +684,8 @@
       "files": [
         ".claude/hooks/post-tool-use.js"
       ],
-      "triggeredBy": "PostToolUse hook 1st (A)"
+      "triggeredBy": "PostToolUse hook 1st (A)",
+      "description": "The 1st PostToolUse hook and the main session bookkeeper: writes session-state.json (tools_used, errors, files_written, skills_read/written), pushes to the memory bus on a memory-file write, appends design-memory on a design-file write, and arms plan_dispatch_gate on a successful ExitPlanMode so claude-protocol-guard reads it next turn."
     },
     {
       "id": "token-tool-logger",
@@ -626,7 +694,8 @@
       "files": [
         ".claude/hooks/token-tool-logger.js"
       ],
-      "triggeredBy": "PostToolUse hook (C)"
+      "triggeredBy": "PostToolUse hook (C)",
+      "description": "PostToolUse hook (C) that estimates per-tool cost: reads /tmp/claude-current-session, pushes {tool,estimate,time} and increments estimatedTokens from a heuristic table (Agent 8000, Read 800, etc.), then spawns token-ledger.mjs write detached for the durable hashed record."
     },
     {
       "id": "token-ledger",
@@ -635,7 +704,8 @@
       "files": [
         "_SYSTEM/Scripts/token-ledger.mjs"
       ],
-      "triggeredBy": "spawned detached by token-tool-logger"
+      "triggeredBy": "spawned detached by token-tool-logger",
+      "description": "The crypto-chained, privacy-hashed durable token ledger (SQLite token_ledger table with prev_hash/event_hash chaining and hashed payloads). Spawned detached by token-tool-logger to persist one tamper-evident estimate event per tool call."
     },
     {
       "id": "token-budget-check",
@@ -644,7 +714,8 @@
       "files": [
         ".claude/hooks/token-budget-check.js"
       ],
-      "triggeredBy": "PreToolUse hook 9th in chain"
+      "triggeredBy": "PreToolUse hook 9th in chain",
+      "description": "The 9th PreToolUse hook: a budget advisory that reads /tmp/claude-current-session estimatedTokens and emits a 🟠 WARN at ≥80k and a 🔴 CRITICAL at ≥150k (advisory only, never denies) nudging toward ai-search over raw reads and a fresh session."
     },
     {
       "id": "session-state",
@@ -653,7 +724,8 @@
       "files": [
         ".claude/hooks/session-state.js"
       ],
-      "triggeredBy": "require — read/write by pre/post-tool, protocol-guard, checkpoint"
+      "triggeredBy": "require — read/write by pre/post-tool, protocol-guard, checkpoint",
+      "description": "The canonical lifecycle-file mediator (read/write surface for .claude/state/session-state.json) used via require, so hook subprocesses bypass the tool-level deny-list. Called by pre-tool-use, post-tool-use, claude-protocol-guard, musubi-protocol-enforce, session-checkpoint, and token-session-init."
     },
     {
       "id": "memory-bus",
@@ -662,7 +734,8 @@
       "files": [
         ".claude/hooks/memory-bus.js"
       ],
-      "triggeredBy": "require — cross-terminal session cursor"
+      "triggeredBy": "require — cross-terminal session cursor",
+      "description": "The cross-terminal session cursor backed by .claude/memory-bus.json: lets concurrent terminal sessions see each other's recent activity (e.g. memory-file writes) so one session can surface another's updates. Required by pre-tool-use and post-tool-use."
     },
     {
       "id": "session-checkpoint",
@@ -671,7 +744,8 @@
       "files": [
         ".claude/hooks/session-checkpoint.js"
       ],
-      "triggeredBy": "PostToolUse hook (D)"
+      "triggeredBy": "PostToolUse hook (D)",
+      "description": "PostToolUse hook (D) that writes an incremental session snapshot (.claude/state/session-checkpoint.json) roughly every 30+ minutes, reading the canonical session lifecycle state via the session-state mediator to build the snapshot."
     },
     {
       "id": "pre-tool-gate",
@@ -680,7 +754,8 @@
       "files": [
         ".claude/hooks/pre-tool-gate.js"
       ],
-      "triggeredBy": "PreToolUse hook 1st (async — does NOT gate the chain)"
+      "triggeredBy": "PreToolUse hook 1st (async — does NOT gate the chain)",
+      "description": "Local-first advisory hook (.claude/hooks/pre-tool-gate.js): on a large Read or broad Bash it emits an additionalContext route-to-deepseek-flash advisory. Registered PreToolUse 1st but ASYNC, so despite its position it does NOT gate the chain (the deterministic guards are the real first line); always continue:true and writes nothing."
     },
     {
       "id": "musubi-protocol-enforce",
@@ -689,7 +764,8 @@
       "files": [
         ".claude/hooks/musubi-protocol-enforce.js"
       ],
-      "triggeredBy": "PreToolUse hook 7th (throttled 60s)"
+      "triggeredBy": "PreToolUse hook 7th (throttled 60s)",
+      "description": "AEONIC soft-compliance hook (.claude/hooks/musubi-protocol-enforce.js), PreToolUse 7th and 60s-throttled: warns on >3 direct writes with 0 Agent dispatches, or an Agent dispatch carrying no skill. Records its last run time as aeonic.lastEnforceAt; advisory only, never blocks."
     },
     {
       "id": "musubi-protocol-ingest",
@@ -698,7 +774,8 @@
       "files": [
         ".claude/hooks/musubi-protocol-ingest.js"
       ],
-      "triggeredBy": "SessionStart hook (L116)"
+      "triggeredBy": "SessionStart hook (L116)",
+      "description": "SessionStart boot hook (.claude/hooks/musubi-protocol-ingest.js, settings L116) that reads the legacy MUSUBI_PROTOCOL.md shim (872 bytes: CORE_DIRECTIVES / GLOBAL_OFFLOAD_DIRECTIVE / ROLE_MATRIX), stashes the parsed sections into state.aeonic.sections, and emits a <musubi-protocol> context block into the boot load."
     },
     {
       "id": "user-prompt-submit",
@@ -707,7 +784,8 @@
       "files": [
         ".claude/hooks/user-prompt-submit.js"
       ],
-      "triggeredBy": "UserPromptSubmit hook (<50ms exit)"
+      "triggeredBy": "UserPromptSubmit hook (<50ms exit)",
+      "description": "Per-turn volatile re-inject hook (.claude/hooks/user-prompt-submit.js, UserPromptSubmit, <50ms exit): consumes the prior council brain-stale.sentinel into <brain-update>, consumes the one-turn-lagged subconscious recall envelope while spawning THIS turn's detached recall, fires skill-auto-trigger + design-master context on matched verbs, and routes HANDOFF_TRIGGERS to EOT. Pulse-orchestrator, the PATCH-040 memory.db RAG, and the old governor RAG spawn are retired in code; never blocks."
     },
     {
       "id": "eot-background-start",
@@ -716,7 +794,8 @@
       "files": [
         ".claude/hooks/eot-background-start.js"
       ],
-      "triggeredBy": "SessionStart hook (L131)"
+      "triggeredBy": "SessionStart hook (L131)",
+      "description": "SessionStart boot hook (.claude/hooks/eot-background-start.js, settings L131) that arms the continuous-reflection EOT engine by writing the per-session /tmp/claude-eot-<sid>.marker and emitting 'EOT monitoring active'; the actual handoff-intent detection happens later, per-turn, inside user-prompt-submit."
     },
     {
       "id": "agent-spawn-guard",
@@ -725,7 +804,8 @@
       "files": [
         ".claude/hooks/agent-spawn-guard.js"
       ],
-      "triggeredBy": "PreToolUse matcher=Agent — logs only, always allows"
+      "triggeredBy": "PreToolUse matcher=Agent — logs only, always allows",
+      "description": "PreToolUse hook matched on Agent (.claude/hooks/agent-spawn-guard.js): OBSERVABILITY-ONLY since 2026-05-30 after its old hard-deny was removed — it logs subagent_type and model to stderr and always allows the spawn."
     },
     {
       "id": "gitnexus-hook",
@@ -734,7 +814,8 @@
       "files": [
         "~/.claude/hooks/gitnexus/gitnexus-hook.cjs"
       ],
-      "triggeredBy": "PreToolUse matcher=Grep|Glob|Bash (10ms)"
+      "triggeredBy": "PreToolUse matcher=Grep|Glob|Bash (10ms)",
+      "description": "Global PreToolUse hook (~/.claude/hooks/gitnexus/gitnexus-hook.cjs) matched on Grep|Glob|Bash that enriches the call with GitNexus graph context under a 10ms timeout; advisory enrichment, not a gate."
     },
     {
       "id": "artifact-registry",
@@ -743,7 +824,8 @@
       "files": [
         "_SYSTEM/Scripts/artifact-registry.mjs"
       ],
-      "triggeredBy": "import — isProtectedPath/normalizeRepoPath"
+      "triggeredBy": "import — isProtectedPath/normalizeRepoPath",
+      "description": "Shared library module (_SYSTEM/Scripts/artifact-registry.mjs) exposing isProtectedPath / normalizeRepoPath / loadArtifactRegistry — the canonical protected-path test and repo-path normalizer imported by gates rather than fired as a hook."
     },
     {
       "id": "yuri-user",
@@ -752,850 +834,1004 @@
       "files": [
         "_SYSTEM/Scripts/yuri-user.mjs"
       ],
-      "triggeredBy": "import — currentUserHandle for trace attribution"
+      "triggeredBy": "import — currentUserHandle for trace attribution",
+      "description": "Shared library module (_SYSTEM/Scripts/yuri-user.mjs) exposing currentUserHandle, the single source of user attribution stamped onto energy traces and dispatch records."
     }
   ],
   "edges": [
     {
       "from": "energy-fn",
       "to": "math-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports the certified primitives (entropy, KL, logLoss, brierScore, informationGain, confidenceDecay) to assemble the scalar potential U and its ΔU terms."
     },
     {
       "from": "energy-tick-core",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls gateProposal with DEFAULT_WEIGHTS to compute ΔU and the accept/reject verdict for each live before/after state pair."
     },
     {
       "from": "energy-tick-core",
       "to": "energy-trace",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "invokes traceGateEvaluation to append a Privacy-Gate-validated record for the transition it just evaluated."
     },
     {
       "from": "energy-tick-core",
       "to": "energy-config",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls loadEnergyConfig on every gated transition to fetch the merged-over-defaults weights/threshold/salience block driving the tick."
     },
     {
       "from": "energy-tick-core",
       "to": "yuri-user",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "resolves the current user handle to stamp trace attribution onto each gate-evaluation record."
     },
     {
       "from": "energy-tick-core",
       "to": "energy-weights.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the externalized knob surface (via loadEnergyConfig) so live edits to the weights file steer each tick's ΔU computation."
     },
     {
       "from": "energy-tick-hook",
       "to": "energy-tick-core",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls tickAndTrace/freshState to convert the genuine tool transition in the session snapshot into a ΔU evaluation and a persisted next-state."
     },
     {
       "from": "energy-tick-hook",
       "to": "energy-breaker",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls verdictFromStates then transitionOnVerdict to advance the outcome-driven circuit breaker after each PostToolUse verdict."
     },
     {
       "from": "energy-tick-hook",
       "to": "_SYSTEM/state/energy-session/<sid>.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "persists the per-session snapshot (state, depth, recentAbs, surpriseEngaged, breaker blob) so the next tick and the PreToolUse enforcement read can continue from it."
     },
     {
       "from": "energy-breaker",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports the gate's verdict semantics to classify whether a verdict is catastrophic (non-offsettable veto) and should trip the breaker."
     },
     {
       "from": "energy-breaker",
       "to": "energy-tick-core",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "uses toGateState to derive the gate-ready state shape needed to evaluate the breaker verdict from a transition."
     },
     {
       "from": "energy-breaker",
       "to": "energy-session snapshot (breaker blob)",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the trailing breaker blob stored in the energy-session snapshot (plus env wait/half-open timings) to know the current CLOSED/OPEN/HALF_OPEN state."
     },
     {
       "from": "energy-enforce-hook",
       "to": "energy-breaker",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls evaluateGate/loadBreakerCfg/freshBreaker to read the trailing breaker state and decide whether to DENY the next tool call on a catastrophic OPEN verdict."
     },
     {
       "from": "energy-enforce-hook",
       "to": "_SYSTEM/state/energy-session/<sid>.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the session snapshot to recover the breaker state left by the previous PostToolUse tick (fails OPEN/allow on any data gap)."
     },
     {
       "from": "energy-enforce-hook",
       "to": "_SYSTEM/state/energy-enforce.enabled (flag)",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the gitignored flag file that (with OBSERVABILITY=1) arms enforcement — its absence keeps the shipped default in metrics-only mode."
     },
     {
       "from": "energy-enforce-hook",
       "to": "~/.yuri-audit.log",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "appends a deny / would_deny audit line whenever the breaker verdict triggers an enforcement decision."
     },
     {
       "from": "energy-config",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports DEFAULT_WEIGHTS as the allow-list and default baseline that the loaded override is validated and merged against."
     },
     {
       "from": "energy-config",
       "to": "_SYSTEM/SELF/energy-weights.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the externalized knob file and fail-closed-validates it (dropping non-finite values) before returning the merged config object."
     },
     {
       "from": "energy-trace",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "references the gate's verdict/label shape to validate and structure each trace record against the canonical schema."
     },
     {
       "from": "energy-trace",
       "to": "_SYSTEM/state/energy-trace/<date>.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "appends one Privacy-Gate-validated JSONL gate-evaluation record per gated transition to the day's trace file."
     },
     {
       "from": "claim-cortex",
       "to": "claim-integrity-gate",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports PROMOTION_STATES to rank each claim's claimed-vs-evidenced position on the canonical promotion ladder."
     },
     {
       "from": "claim-cortex",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "emits a computeU-shaped snapshot through gateProposal to light the 4 starved terms (alpha/beta/epsilon/zeta) plus the theta floor — though no live hook currently feeds this path."
     },
     {
       "from": "claim-integrity-gate",
       "to": "artifact-registry",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "uses the registry's protected-path/repo-path normalization when linting claims that reference artifact files."
     },
     {
       "from": "math-proof-gate",
       "to": "math-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "binds each formula-bank card to its real math-kernel primitive (FORMULA_IMPLEMENTATIONS) to run the worked-example and counterexample checks."
     },
     {
       "from": "math-proof-gate",
       "to": "_SYSTEM/data/math/formula-banks/*.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the formula-bank JSON cards (the examples/counterexamples) it certifies before a bank may be promoted to non-advisory."
     },
     {
       "from": "energy-dispatch-bridge",
       "to": "energy-trace",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls validateRecord/traceGateEvaluation to emit a Privacy-Gate-validated synthetic-ΔU trace when a legacy dispatch surface runs."
     },
     {
       "from": "energy-dispatch-bridge",
       "to": "yuri-user",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "resolves the current user handle to attribute the legacy dispatch trace record."
     },
     {
       "from": "energy-sanitize",
       "to": "energy-trace",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls validateRecord to re-validate its allow-list state projection through the Privacy Gate before handing it to experiment tooling."
     },
     {
       "from": "energy-simulate",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "runs each labelled scenario through gateProposal to score the gate's falseAccept / falseReject rate."
     },
     {
       "from": "energy-simulate",
       "to": "energy-breaker",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "exercises the breaker transition logic alongside the gate so the simulation reflects the live CLOSED/OPEN behavior."
     },
     {
       "from": "energy-experiment",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "pushes scenario modules through computeU/computeDeltaU/gateProposal to produce the experiment's ΔU descent results."
     },
     {
       "from": "energy-experiment",
       "to": "energy-trace",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls traceGateEvaluation so every experiment transition is recorded through the same Privacy-Gate-validated trace path as live ticks."
     },
     {
       "from": "energy-experiment",
       "to": "experiment JSON + energy-trace JSONL",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "writes the per-run experiment result JSON plus the appended energy-trace JSONL records for the scenario."
     },
     {
       "from": "energy-dashboard-data",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "references the gate semantics to compute the derived metrics the read-only dashboard renders."
     },
     {
       "from": "energy-dashboard-data",
       "to": "energy-dispatch-bridge",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "pulls the legacy dispatch-trace data so the dashboard can show the retired-path provenance alongside live ticks."
     },
     {
       "from": "energy-dashboard-data",
       "to": "_SYSTEM/state/energy-trace/*.jsonl",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the accumulated trace JSONL history to build the dashboard's real-data object (tagged real/simulated/planned)."
     },
     {
       "from": "energy-control-server",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "previews 3 scenarios through the real gateProposal so the cockpit shows the actual effect of a proposed dial change before applying it."
     },
     {
       "from": "energy-control-server",
       "to": "energy-config",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "uses the config loader to validate proposed dials fail-closed against DEFAULT_WEIGHTS before any write."
     },
     {
       "from": "energy-control-server",
       "to": "fsrs",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls the FSRS scorer to preview how retention dials behave under the proposed tuning."
     },
     {
       "from": "energy-control-server",
       "to": "_SYSTEM/SELF/energy-weights.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "is the ONLY writer of the knob surface — DEV-gated POST /apply persists the validated tuned dials to the weights file."
     },
     {
       "from": "energy-control-server",
       "to": "_SYSTEM/state/energy-config-changes.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "appends a changelog record for every applied dial change so weight edits are auditable."
     },
     {
       "from": "energy-obs-health",
       "to": "energy-tick-core",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "references the tick core to confirm the live ΔU path is importable and operational as part of the liveness probe."
     },
     {
       "from": "energy-obs-health",
       "to": ".claude/settings.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the hooks config to confirm the energy-tick PostToolUse hook is actually registered."
     },
     {
       "from": "energy-obs-health",
       "to": "_SYSTEM/state/energy-trace/",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "checks the trace directory for accruing records (reporting absence rather than failing) as the heartbeat signal."
     },
     {
       "from": "action-mode-study",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "runs the real gateProposal in enforce semantics over labelled transitions to produce the confusion-matrix teeth-proof."
     },
     {
       "from": "action-mode-study",
       "to": "recorded energy-trace JSONL",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "replays recorded trace records to measure the real-traffic false-positive rate that gates graduation to enforcement."
     },
     {
       "from": "energy-weights-drift-test",
       "to": "energy-fn",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports DEFAULT_WEIGHTS as the in-code baseline the config file is asserted to match value-for-value."
     },
     {
       "from": "energy-weights-drift-test",
       "to": "energy-config",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "loads the validated config so it can compare each loaded value against the in-code default."
     },
     {
       "from": "energy-weights-drift-test",
       "to": "energy-tick-core",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "exercises the tick core's config consumption to confirm the defaults invariant holds along the live path."
     },
     {
       "from": "energy-weights-drift-test",
       "to": "fsrs",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "checks the FSRS knob block against its in-code defaults so retention tuning can't silently drift."
     },
     {
       "from": "energy-weights-drift-test",
       "to": "_SYSTEM/SELF/energy-weights.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the config file to assert every externalized value equals the in-code default (the _doc.values_are_defaults invariant)."
     },
     {
       "from": "claude-memory-write",
       "to": ".claude/projects/*/memory/<slug>.md",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the validated Track-B memory file (v3 frontmatter, memory/-root containment enforced) when the mediated add/remove/edit path is used instead of a native direct Write."
     },
     {
       "from": "claude-memory-write",
       "to": ".claude/projects/*/memory/MEMORY.md",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Rebuilds the dense [HANDLE](file) MEMORY.md index via updateIndex() so even direct-Write (wrapper-less) memories self-heal into the boot index on reindex."
     },
     {
       "from": "yuri-recall",
       "to": "memory-cold-store",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Invokes queryCold to over-fetch BM25 cue-matched cold rows (topK×4 for re-rank headroom) as the candidate pool for associative retrieval."
     },
     {
       "from": "yuri-recall",
       "to": "memory-usage",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls recordUse on every surfaced recall (testing-effect reactivation) and buildUsageIndex to fold useCount/recency into the recall blend."
     },
     {
       "from": "yuri-recall",
       "to": "energy-config",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Loads the recall block from energy-weights.json to get the recency/salience/crosslink blend knobs that weight the top-K ranking."
     },
     {
       "from": "yuri-recall",
       "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the cold FTS5 store to source recall candidates; currently returns nothing because the DB holds 0 rows until demotion executes."
     },
     {
       "from": "yuri-recall",
       "to": "_SYSTEM/state/memory-usage.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends a recall event to the usage ledger so each surfaced memory reinforces its use-signal for the relocator's retrievability scoring."
     },
     {
       "from": "yuri-recall",
       "to": ".claude/state/subconscious-recall.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the bounded top-K candidate envelope (atomic tmp+rename) for the NEXT turn to consume — the one-turn-lag handoff to the prompt context."
     },
     {
       "from": "memory-cold-store",
       "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Upserts demoted memory bodies + metadata (salience/base-stability/crosslinks/demotedAt) into the embedding-free cold FTS5 DB via better-sqlite3."
     },
     {
       "from": "memory-usage",
       "to": "_SYSTEM/state/memory-usage.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends best-effort recall/reinforce records to the replayable use-signal ledger that replaces the broken atime-LRU signal."
     },
     {
       "from": "memory-relocator",
       "to": "fsrs",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls evaluateRetention to compute FSRS retrievability R(t) per memory and decide which fall below the demotion floor."
     },
     {
       "from": "memory-relocator",
       "to": "memory-usage",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads buildUsageIndex (useCount/lastUsed/lastReinforced) as the real use-signal feeding the FSRS effective-stability boost — not mtime/atime."
     },
     {
       "from": "memory-relocator",
       "to": "memory-cold-store",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Upserts the verbatim body of each demoted memory into the cold store so forgetting is relocation, not deletion."
     },
     {
       "from": "memory-relocator",
       "to": "claude-memory-write",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Imports memoryRoot to resolve the Track-B memory/ directory it scans and relocates files out of."
     },
     {
       "from": "memory-relocator",
       "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the demoted memory (via the cold store's upsert) into the cold FTS5 DB as the durable destination of a forget."
     },
     {
       "from": "memory-relocator",
       "to": ".claude/projects/*/memory/relocated/",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Moves the source .md file into the reversible relocated/ dir (double-safety alongside the cold-store copy) so nothing is ever deleted."
     },
     {
       "from": "memory-relocator",
       "to": "relocation-index.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Records a tombstone for each relocated slug so the active index knows it was demoted and promoteHot() can restore it byte-identical."
     },
     {
       "from": "kagami-consolidator",
       "to": "memory-relocator",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls runSubconsciousPass (FSRS demote-plan + executeRelocation) as the consolidation half of the daily subconscious pass."
     },
     {
       "from": "kagami-consolidator",
       "to": "memory-cold-store",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads cold slugs (get) to build cold re-promotion proposals for memories under renewed recall pressure."
     },
     {
       "from": "kagami-consolidator",
       "to": "memory-usage",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads the usage index to find cold slugs with recall pressure (useCount≥3) that qualify as re-promotion candidates."
     },
     {
       "from": "kagami-consolidator",
       "to": "memory-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Routes each cold re-promotion candidate into an operator-gated Track-A proposal via the kernel's propose pipeline rather than auto-promoting."
     },
     {
       "from": "kagami-consolidator",
       "to": "energy-config",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Loads the fsrs/recall knobs from energy-weights.json that parameterize the demotion scoring and re-promotion thresholds."
     },
     {
       "from": "kagami-consolidator",
       "to": "_SYSTEM/training/state/memory-health.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the Qwen3.5-4B MLX review verdict (stale/dup/contradiction findings) across Track-B files as the daily memory-health report."
     },
     {
       "from": "kagami-consolidator",
       "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the cold store to assess which demoted memories have accrued enough recall pressure to propose re-promotion."
     },
     {
       "from": "memory-kernel",
       "to": "kagami-event-bus",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls appendKagamiEvent on memory promotion so the canonical-memory mutation is broadcast onto the system event bus."
     },
     {
       "from": "memory-kernel",
       "to": "lane-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Uses lane-kernel's protected-surface checks (isProtectedPath/safeRuntimePath) and RBAC-by-lane authority to gate proposals and writes."
     },
     {
       "from": "memory-kernel",
       "to": "evidence-contract-resolver",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls requiredEvidenceIdsForTask to map a proposal's task string to the required evidence-source IDs before promotion."
     },
     {
       "from": "memory-kernel",
       "to": "_SYSTEM/state/memory-ledger.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends the promoted canonical entry to the durable Track-A ledger (the third leg of the propose→decide→ledger dual-ledger)."
     },
     {
       "from": "memory-kernel",
       "to": "_SYSTEM/state/memory-proposals.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends each proposeMemoryWrite as a pending Track-A proposal awaiting an operator/autopilot decision."
     },
     {
       "from": "memory-kernel",
       "to": "_SYSTEM/memory/",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the warm canonical store (incl. MEMORY.md index) to source recallEntries/recallMemory results over Track-A operating truth."
     },
     {
       "from": "memory-proposal-autopilot",
       "to": "memory-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Records each keep/rewrite/reject/defer verdict back through the kernel's recordMemoryProposalDecision so the dual-ledger stays authoritative."
     },
     {
       "from": "memory-proposal-autopilot",
       "to": "lane-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Uses lane-kernel to resolve lane authority and protected-surface rules when deterministically reviewing a proposal's mutation intent."
     },
     {
       "from": "memory-proposal-autopilot",
       "to": "secret-leak-scan",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Spawns secret-leak-scan before any scoped commit so a detected secret aborts the commit (non-zero exit)."
     },
     {
       "from": "memory-proposal-autopilot",
       "to": "_SYSTEM/state/memory-proposal-decisions.jsonl",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends the autopilot's review decision per proposal as the decisions leg of the Track-A audit trail."
     },
     {
       "from": "memory-proposal-autopilot",
       "to": "git commit (allowlist)",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Optionally stages ONLY the source/docs allowlist and commits, refusing if allowlist paths were dirty pre-run (scoped, never broad git add)."
     },
     {
       "from": "secret-leak-scan",
       "to": "git staged diff",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the staged diff to scan for secret patterns before the autopilot is allowed to finalize a scoped commit."
     },
     {
       "from": "memory-governor",
       "to": "_SYSTEM/OS_KERNEL/memory.db",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the STM/MTM/LTM lifecycle transitions, importance scores, and consolidation/quarantine results into the large legacy SQLite memory.db."
     },
     {
       "from": "memory-session-write",
       "to": "memory-governor",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Spawns memory_governor.py to persist the session's episodic observation into memory.db and opportunistically run weekly consolidation."
     },
     {
       "from": "memory-session-write",
       "to": ".claude/yuri-sentinel/learning/sessions/<date>.jsonl",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the last sentinel learning-session observation as the episodic content to capture at SessionEnd."
     },
     {
       "from": "memory-session-write",
       "to": "_SYSTEM/OS_KERNEL/memory.db",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the episodic Track-A memory into memory.db (via the governor) as the durable SessionEnd capture."
     },
     {
       "from": "memory-evict-archive",
       "to": "_SYSTEM/memory/patterns-archive/",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Moves atime-stale memory/patterns/*.md files into patterns-archive/ via the legacy atime-LRU evict path — DORMANT, no live trigger fires this."
     },
     {
       "from": "yuri-search",
       "to": "_SYSTEM/OS_KERNEL/search-index.db",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "opens the FTS5/BM25 corpus index read-only to run the quoted-term MATCH query and return path+snippet results ranked by bm25"
     },
     {
       "from": "yuri-search-index",
       "to": "lane-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports isProtectedPath to exclude protected surfaces from the corpus walk as defense-in-depth, enforcing the Memory/Search Wall so .env / .claude/state / the memory DBs can never be indexed"
     },
     {
       "from": "yuri-search-index",
       "to": "_SYSTEM/OS_KERNEL/search-index.db",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "builds/refreshes the index in place — incremental upserts of changed files by mtime under Porter+unicode61 FTS5 with WAL, plus pruning of rows for deleted files"
     },
     {
       "from": "context-router",
       "to": "_SYSTEM/context/context-registry.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "loads the registry of context packets so it can score each packet's literal trigger substrings against the task text and return the top packet with its read-order and protected paths"
     },
     {
       "from": "memory-kernel-recall",
       "to": "lane-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls isProtectedPath on the memory surface root at the top of recallMemory so recall fails closed and never reads a protected memory surface"
     },
     {
       "from": "memory-kernel-recall",
       "to": "_SYSTEM/memory/",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the warm canonical Track-A memory files (.md/.json/.txt) to lexically score each against the query and return top-K hits with sha256 provenance"
     },
     {
       "from": "evidence-contract-validator",
       "to": "<artifact_dir>/evidence-bundle.txt",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the swarm artifact's evidence bundle to verify it matches the required TERM_COUNT / FILE_COUNT / MATCH grammar, exiting 1 if the deterministic verdict is missing, invented, or empty"
     },
     {
       "from": "research-capture",
       "to": "02_RESOURCES/research/<topic>-<date>.md",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "writes the synthesized, provenance-tagged research findings as a dated markdown file that joins the searchable corpus only after a subsequent manual ai reindex"
     },
     {
       "from": "ai-cli",
       "to": "yuri-search",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "routes 'ai search' / 'ai find' to the corpus search engine (exec-style, replacing the process) as the layer's front-door query path"
     },
     {
       "from": "ai-cli",
       "to": "yuri-search-index",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "routes 'ai reindex' / 'ai search-index [--full]' to the corpus indexer to manually build or refresh search-index.db"
     },
     {
       "from": "bash-security-guard",
       "to": "yuri-operator",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls resolveRole to determine whether the session is dev or coworker, since coworker-role triggers the push/remote/role-path mutation denials."
     },
     {
       "from": "bash-security-guard",
       "to": "_SYSTEM/SELF/dev-credential.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the credential file's existence to fail-closed into a role decision (no/broken creds collapses to coworker), and reads /tmp session packet for tier."
     },
     {
       "from": "bash-security-guard",
       "to": "~/.yuri-audit.log",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends an audit record on every deny so blocked Bash attempts are durably logged."
     },
     {
       "from": "operator-write-guard",
       "to": "yuri-operator",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls resolveRole to decide whether to deny the coworker-role write onto the protected guard/role/credential trust surface."
     },
     {
       "from": "operator-write-guard",
       "to": "_SYSTEM/SELF/dev-credential.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the credential to resolve role, then realpath-resolves the on-disk write target for symlink-safe canonical ancestor-climb matching."
     },
     {
       "from": "operator-write-guard",
       "to": "~/.yuri-audit.log",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends an audit record when a coworker-role write onto the trust surface is denied."
     },
     {
       "from": "yuri-operator",
       "to": "_SYSTEM/SELF/dev-credential.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the scrypt-hashed credential to verify the YURI_DEV_KEY passphrase via timingSafeEqual; a broken read with creds present is treated as tampering and fails closed to coworker."
     },
     {
       "from": "claude-protocol-guard",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Calls into the session-state mediator to read the plan_dispatch_gate and write back gate.satisfied / incremented warn_count after evaluating the control-plane packet."
     },
     {
       "from": "claude-protocol-guard",
       "to": "lane-kernel",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Imports the canonical CONTROL_FILE_PREFIXES list from lane-kernel so the control-file set is single-sourced rather than re-declared in the guard."
     },
     {
       "from": "claude-protocol-guard",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes gate state — sets plan_dispatch_gate.satisfied and increments warn_count — so the routing verdict persists across turns."
     },
     {
       "from": "brain-inject",
       "to": "fsrs",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports FSRS-4.5 retrievability scoring to FSRS-order the Track-B MEMORY.md rows when they overflow the 12-row working-memory cap, so the most-retrievable memories survive into the boot brain block."
     },
     {
       "from": "brain-inject",
       "to": "SOUL.md / persona / energy-weights / MEMORY.md / cortex-state / fingerprint / geass",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads its ~14 input sources — the 9 SOUL.md persona headings, identity-hash/neuro-core, energy-weights.json (recall.consciousSetCap → working-mem cap, fail-closed 12), MEMORY.md, sentinel global.md, cortex-state.json, lane/launch/roadmap state, neuron-loop.log, fingerprint.json, and the geass active-lock — to compose the single <yuri-brain> block; it writes nothing."
     },
     {
       "from": "soul-persona-inject",
       "to": "SOUL.md (9 headings)",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the 9 persona-rule headings out of SOUL.md to materialize the persona contract injected into the subagent's startup context."
     },
     {
       "from": "neuron-loop",
       "to": ".claude/state/neuron-loop.log",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "writes its last-run record to neuron-loop.log on each launchd-driven pass, so brain-inject can read it back into the NEURON_LOOP boot section next session (the self-improvement loop's only persistence)"
     },
     {
       "from": "kagami-event-bus",
       "to": "kagami event log",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "appends one validated JSON event line (events.jsonl) per appendKagamiEvent call, recording lifecycle moments such as memory-kernel promotions into the durable cross-organ event spine"
     },
     {
       "from": "yuri-dream",
       "to": ".claude/yuri-sentinel/learning/global.md",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "queues mined session corrections as learned rules into the global learning ledger (global.md) at Stop, so durable operator corrections become lessons that apply to every agent in every project"
     },
     {
       "from": "session-reflect",
       "to": "session-journal",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "prepends a dated newest-first reflection entry (skills used, compact hints, session shape, with a mid-session marker when spawned at tier 4) into the Track-B session-journal.md continuity record"
     },
     {
       "from": "yuri-health",
       "to": "memory-governor",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "spawns the memory_governor.py health probe (python3 memory_governor.py health) to confirm the Track-A memory.db lifecycle governor is alive as one required liveness check"
     },
     {
       "from": "yuri-health",
       "to": "energy-obs-health",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "spawns energy-observability-health.mjs to verify the PostToolUse energy-tick hook is registered and trace records are accruing, surfacing absence rather than failing the energy circuit"
     },
     {
       "from": "yuri-health",
       "to": ".claude/state/lane-health-status.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads the persisted lane-health-status snapshot to report current lane/launch health alongside its live probe results"
     },
     {
       "from": "startup-offload",
       "to": ".claude/skills/*/SKILL.md",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "reads only the YAML frontmatter (name + description) of every skill's SKILL.md to build the <startup-index> skills roster — no body parse, no execution."
     },
     {
       "from": "scout-orchestrator",
       "to": "yuri-risk-lite",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "imports yuri-risk-lite as a module (not as a hook) to run its catastrophe-regex risk scan over scout payloads before dispatching findings."
     },
     {
       "from": "scout-orchestrator",
       "to": ".claude/state/scout-bus.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "persists the scout bus — inits/trims it on SessionStart and writes spawned-scout findings on PostToolUse so PreToolUse can later inject them."
     },
     {
       "from": "shintai-dispatch",
       "to": "energy-dispatch-bridge",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls traceDispatchEvent on the legacy energy-dispatch-bridge (L1165) when the SEAL-team roster runs, emitting one ΔU trace record per dispatch (gated on YURI_ENERGY_OBSERVABILITY=1)."
     },
     {
       "from": "offload-runner",
       "to": "energy-dispatch-bridge",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "calls traceDispatchEvent on the legacy energy-dispatch-bridge (L177) when the runner executes, emitting a synthetic ΔU=0 (or action-mode real-ΔU) dispatch trace — the active legacy ΔU surface."
     },
     {
       "from": "token-session-init",
       "to": ".claude/state/token-session.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the per-session token-tracking file (plus the weekly rollup) at boot to seed token accounting for the session."
     },
     {
       "from": "token-session-init",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Initializes the canonical session lifecycle file at SessionStart — guarded to skip if an active root session under 4h old already owns it."
     },
     {
       "from": "pre-tool-use",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads context.pct and writes compact_history + context.tier through the session-state mediator to drive the 5-tier /compact ladder."
     },
     {
       "from": "pre-tool-use",
       "to": "memory-bus",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads the memory bus to detect another terminal's recent write and inject a cross-terminal awareness update, and advances the bus cursor."
     },
     {
       "from": "pre-tool-use",
       "to": "session-reflect",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "At compaction tier 4 spawns session-reflect --mid-session detached to capture a reflection before context pressure forces a compact."
     },
     {
       "from": "pre-tool-use",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Persists compact_history entries and context.tier to the lifecycle file so the next turn's hints and the dashboard see the current compaction state."
     },
     {
       "from": "post-tool-use",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Writes tools_used, errors, files_written, and skills_read/written, and arms plan_dispatch_gate on ExitPlanMode, all through the session-state mediator."
     },
     {
       "from": "post-tool-use",
       "to": "memory-bus",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "On a memory-file write, pushes the changed filename to the bus so concurrent terminals know a memory was just written."
     },
     {
       "from": "post-tool-use",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Records the just-completed tool call into the canonical lifecycle file (tool result, error flag, written files, plan-dispatch arm) as the main per-turn bookkeeping write."
     },
     {
       "from": "post-tool-use",
       "to": ".claude/memory-bus.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends this session's memory-write event to the cross-terminal bus cursor file via memory-bus.writeBus."
     },
     {
       "from": "token-tool-logger",
       "to": "token-ledger",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Spawns token-ledger.mjs write detached, handing off the per-tool estimate for durable crypto-chained, privacy-hashed persistence."
     },
     {
       "from": "token-tool-logger",
       "to": "/tmp/claude-current-session",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Pushes {tool,estimate,time} and increments estimatedTokens from the per-tool heuristic table, which token-budget-check later reads for the WARN/CRITICAL thresholds."
     },
     {
       "from": "token-ledger",
       "to": "token ledger (privacy-hashed)",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Appends one tamper-evident event row (prev_hash→event_hash chain, hashed payload/source-path) to the SQLite token_ledger per tool call."
     },
     {
       "from": "token-budget-check",
       "to": "/tmp/claude-current-session",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads estimatedTokens from the live session file to decide whether to emit the ≥80k WARN or ≥150k CRITICAL budget advisory."
     },
     {
       "from": "session-state",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Is the sole mediator that reads and writes the canonical lifecycle file, so every hook routes its session-state mutations through this single fs surface."
     },
     {
       "from": "memory-bus",
       "to": ".claude/memory-bus.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Owns the cross-terminal cursor file — writeBus appends a session's recent activity so other terminals can read it."
     },
     {
       "from": "session-checkpoint",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Reads the current session lifecycle state via the session-state mediator to assemble the periodic snapshot."
     },
     {
       "from": "session-checkpoint",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Touches the canonical lifecycle file when persisting the ~30-min incremental snapshot of session progress."
     },
     {
       "from": "musubi-protocol-enforce",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Goes through the session-state mediator to read prior counters and stamp aeonic.lastEnforceAt, enforcing its 60s throttle and persisting the compliance check."
     },
     {
       "from": "musubi-protocol-enforce",
       "to": ".claude/state/session-state.json",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Persists the AEONIC enforcement timestamp (aeonic.lastEnforceAt) into the lifecycle session-state file so the next call can honor the 60s throttle window."
     },
     {
       "from": "musubi-protocol-ingest",
       "to": "session-state",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Goes through the session-state mediator to write the parsed protocol sections into state.aeonic.sections during SessionStart boot."
     },
     {
       "from": "musubi-protocol-ingest",
       "to": "_SYSTEM/MUSUBI_PROTOCOL.md",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the legacy 872-byte MUSUBI_PROTOCOL.md shim (CORE_DIRECTIVES / GLOBAL_OFFLOAD_DIRECTIVE / ROLE_MATRIX) to build the <musubi-protocol> boot context block."
     },
     {
       "from": "user-prompt-submit",
       "to": "yuri-recall",
-      "kind": "calls"
+      "kind": "calls",
+      "description": "Spawns yuri-recall.mjs detached each turn (the hook can't block on it under its <50ms budget) so it runs the query/rank/ledger-bump and writes the recall envelope the NEXT turn consumes."
     },
     {
       "from": "user-prompt-submit",
       "to": ".claude/state/subconscious-recall.json",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Consumes the one-turn-lagged subconscious recall envelope written by the prior turn's detached recall (read-then-unlink, consume-once) and re-injects it so a cue surfaces exactly once."
     },
     {
       "from": "user-prompt-submit",
       "to": ".claude/state/brain-stale.sentinel",
       "kind": "reads",
-      "target": true
+      "target": true,
+      "description": "Reads the council-set brain-stale sentinel and, when present, re-injects the volatile brain delta as a <brain-update> block on this turn."
     },
     {
       "from": "eot-background-start",
       "to": "/tmp/claude-eot-<sid>.marker",
       "kind": "writes",
-      "target": true
+      "target": true,
+      "description": "Writes the per-session EOT marker file at SessionStart to arm the continuous-reflection EOT engine for that session id."
     }
   ],
   "generatedAt": null
