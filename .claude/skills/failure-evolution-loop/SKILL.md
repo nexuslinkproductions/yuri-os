@@ -151,33 +151,9 @@ failure:
 - corrections: none
 - errors: none
 
-### 2026-05-16
-- session: 32m | peak ctx: 0% | compacts: 0
-- tools: Bash×21, Write×20, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 23m | peak ctx: 0% | compacts: 0
-- tools: Write×19, Bash×17, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 17m | peak ctx: 0% | compacts: 0
-- tools: Write×18, Bash×13, Edit×12, Read×11, TodoWrite×7, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
 - corrections: none
 - errors: none
 

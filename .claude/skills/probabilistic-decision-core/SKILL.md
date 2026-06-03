@@ -203,18 +203,6 @@ Continuous background reflection engine for YURI. Runs **two modes**:
 - corrections: none
 - errors: none
 
-### 2026-05-16
-- session: 27m | peak ctx: 0% | compacts: 0
-- tools: Bash×31, Edit×19, Write×10, TodoWrite×6, Read×4, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 13m | peak ctx: 0% | compacts: 0
-- tools: Bash×16, Edit×4, Write×3, TodoWrite×3, Read×2
-- corrections: none
-- errors: none
-
 ### 2026-05-10
 - tools used: web research, local file inspection, apply_patch
 - corrections: none

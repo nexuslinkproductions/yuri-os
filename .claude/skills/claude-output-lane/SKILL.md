@@ -126,24 +126,6 @@ If Claude writes the wrong category, Codex/main should leave the original intact
 - corrections: none
 - errors: none
 
-### 2026-06-03
-- session: 1301m | peak ctx: 0% | compacts: 0
-- tools: Edit×456, Read×312, Bash×212, WebFetch×99, WebSearch×92, StructuredOutput×26, ToolSearch×14, Write×5, Workflow×4, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-06-03
-- session: 1296m | peak ctx: 0% | compacts: 0
-- tools: Edit×353, Read×273, Bash×153, WebFetch×96, WebSearch×91, StructuredOutput×19, ToolSearch×14, Write×5, Workflow×4, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-06-03
-- session: 1290m | peak ctx: 0% | compacts: 0
-- tools: Edit×351, Read×238, Bash×141, WebSearch×62, WebFetch×40, StructuredOutput×15, ToolSearch×11, Write×5, Workflow×3
-- corrections: none
-- errors: none
-
 ### 2026-06-02
 - session: 61m | peak ctx: 0% | compacts: 0
 - tools: Edit×263, Read×218, Bash×102, WebSearch×51, WebFetch×36, StructuredOutput×12, ToolSearch×7, Write×5, Workflow×2
