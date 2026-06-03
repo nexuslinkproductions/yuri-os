@@ -1,22 +1,7 @@
 Only in NUDIMMUD: .DS_Store
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/ANGELIKA: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/ANGELIKA: 05_Export
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/BOVIRO: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/BOVIRO: 05_Export
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/CHEESE-DOCTOR: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/CHEESE-DOCTOR: 05_Export
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/MUDI: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/MUDI: 05_Export
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/OREA: 05_Export
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/SHIPSTER: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/SHIPSTER: 05_Export
-Only in NUDIMMUD/01_PROJECTS/MACL-ONE: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/MACL-ONE: 05_Export
 Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING/public: images
 Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING/public: videos
 Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING: src
-Only in NUDIMMUD/01_PROJECTS/_TEMPLATE: 04_Edit
-Only in NUDIMMUD/01_PROJECTS/_TEMPLATE: 05_Export
 Only in NUDIMMUD/01_PROJECTS/claude-mem: dist
 Only in NUDIMMUD/01_PROJECTS/claude-mem/docs/public: cm-preview.gif
 Only in NUDIMMUD/01_PROJECTS/gstack: agents
@@ -69,16 +54,6 @@ Only in NUDIMMUD/05_NEXUS-LINK: Legal
 Only in NUDIMMUD/05_NEXUS-LINK: Portfolio
 Only in NUDIMMUD/05_NEXUS-LINK: Services
 Only in NUDIMMUD/05_NEXUS-LINK: Strategy
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: CASA
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL/MACL DOCUMENTS/templates: docx
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL/MACL DOCUMENTS/templates: html
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL: MACL.png
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MFB: medforbalance_favicon.png
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MFB: medforbalance_mainlogo.png
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/P2S: power2sales-logo.jpg
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: SHI
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: UPG
-Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database: Scripts
 Only in NUDIMMUD/NABU: 02_GOVERNANCE
 Only in NUDIMMUD/NABU: 03_MEMORY
 Only in NUDIMMUD/NABU: 04_ECONOMICS
@@ -100,34 +75,5 @@ Only in NUDIMMUD/NISABA: 07_CANON
 Only in NUDIMMUD/NISABA/08_INGESTION/skool: skool_intelligence_report.md
 Only in NUDIMMUD/NISABA: nisaba.md
 Only in NUDIMMUD/backend/src: controllers
-Only in NUDIMMUD/iC2M: 00 - Inbox
-Only in NUDIMMUD/iC2M/02 - Clients: ASSI
-Only in NUDIMMUD/iC2M/02 - Clients/BOV: boviro-satisfaction-tool
-Only in NUDIMMUD/iC2M/02 - Clients/BOV: boviro_security_logo.png
-Only in NUDIMMUD/iC2M/02 - Clients: CASA
-Only in NUDIMMUD/iC2M/02 - Clients: JUCHLER
-Only in NUDIMMUD/iC2M/02 - Clients/MACL/MACL DOCUMENTS/templates: docx
-Only in NUDIMMUD/iC2M/02 - Clients/MACL/MACL DOCUMENTS/templates: html
-Only in NUDIMMUD/iC2M/02 - Clients/MACL: MACL.png
-Only in NUDIMMUD/iC2M/02 - Clients/MFB: medforbalance_favicon.png
-Only in NUDIMMUD/iC2M/02 - Clients/MFB: medforbalance_mainlogo.png
-Only in NUDIMMUD/iC2M/02 - Clients/P2S: power2sales-logo.jpg
-Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: app
-Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: assets
-Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: styles
-Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make: tmp
-Only in NUDIMMUD/iC2M/02 - Clients: UPG
-Only in NUDIMMUD/iC2M: 08 - Archive
-Only in NUDIMMUD/iC2M: _SYSTEM
-Only in NUDIMMUD/iC2M/_TOOLS: AutoResearchClaw
-Only in NUDIMMUD/iC2M: backup downloads
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: header.png
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: mark-corner-black.png
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: mark-corner.png
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System: fonts
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System: preview
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_1-1-corner-black.png
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_1-1-corner.png
-Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_header.png
 Only in NUDIMMUD/public: assets
 Only in NUDIMMUD: scripts

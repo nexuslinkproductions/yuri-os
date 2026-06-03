@@ -10,8 +10,8 @@
 **Meaning over output. Depth over volume. The work earns its existence or it doesn't exist.**
 
 Marcel is a producer, not a content machine. The distinction is total:
-- A videographer shows up and shoots. A producer owns the concept, execution, and output.
-- Every frame is a decision. Every cut is an argument. Every color grade is a statement.
+- A commodity executor delivers output on request. A producer owns the concept, execution, and result.
+- Every decision is deliberate. Every element is an argument. Nothing is incidental.
 - If an element can be removed without losing meaning, remove it.
 
 The goal is not to impress — it is to be undeniable.
@@ -45,36 +45,7 @@ The goal is not to impress — it is to be undeniable.
 
 ---
 
-## III. VIDEO PRODUCTION AESTHETIC
-
-### The Register
-Post-production under Nexus Link: Productions operates in a specific register:
-- Dark base — the frame breathes in shadow
-- Crimson punctuation — the accent hits once and is gone
-- No clutter — titles are sparse, motion is intentional
-- Audio drives as much as picture — silence is used as rhythm
-
-### Color Grading Approach
-- DaVinci Resolve: color managed pipeline preferred where footage allows
-- ACES or scene-referred workflow for high-end work
-- Base LUT or node tree established per client — shoot-to-shoot consistency above all
-- DaVinci base node → creative grade → output transform: three-stage minimum
-- Reference: LOG > grade primary > creative secondary > output
-
-### Motion Philosophy
-- Stabilization is not optional for handheld work (Warp Stabilizer or optical flow)
-- Motion graphics: After Effects for compositing, Premiere for editorial integration
-- Transitions: cut, dissolve, or motivated wipe — not novelty transitions
-- Speed ramps: only when the subject demands it, not as decoration
-
-### Audio
-- Clean audio before any creative choice — noise reduction first, always
-- Music layering happens on top of a clean dialogue foundation
-- Silence is a tool, not an absence
-
----
-
-## IV. PRODUCTION HIERARCHY
+## III. PRODUCTION HIERARCHY
 
 The order of operations is inviolable:
 
@@ -82,15 +53,15 @@ The order of operations is inviolable:
 CONCEPT → MEANING → EXECUTION → PACKAGING
 ```
 
-This is never reversed. Packaging (titles, thumbnails, graphics) is the last step — not because it doesn't matter, but because it can only be right when the meaning is already established.
+This is never reversed. Packaging (titles, graphics, presentation) is the last step — not because it doesn't matter, but because it can only be right when the meaning is already established.
 
-**Common violation to avoid**: designing the thumbnail before understanding what the video actually says.
+**Common violation to avoid**: designing the packaging before understanding what the work actually says.
 
 ---
 
-## V. DECISION FRAMEWORK
+## IV. DECISION FRAMEWORK
 
-When facing any creative decision — cut point, color choice, motion graphic, title design — apply this filter:
+When facing any creative decision — color choice, motion, type, composition — apply this filter:
 
 1. **Does this earn its place?** — If it can be removed without losing meaning, remove it.
 2. **Does this serve the frame or distract from it?** — Decoration that draws attention to itself has failed.
@@ -99,29 +70,28 @@ When facing any creative decision — cut point, color choice, motion graphic, t
 
 ---
 
-## VI. CLIENT WORK PRINCIPLES
+## V. CLIENT WORK PRINCIPLES
 
-- Marcel retains **portfolio and demo reel rights** on all work
-- **Raw footage** remains Marcel's unless separately negotiated in writing
-- Client receives full ownership of final edited deliverables
+- Marcel retains **portfolio rights** on all work
+- **Source materials** remain Marcel's unless separately negotiated in writing
+- Client receives full ownership of final deliverables
 - This is non-negotiable in all agreements
 
 **Communication register with clients**: direct, professional, producer-level authority. Not "I can do that" — "Here's what the project needs."
 
 ---
 
-## VII. WHAT NEXUS LINK IS NOT
+## VI. WHAT NEXUS LINK IS NOT
 
 - Not a social media agency
 - Not a content farm
-- Not a videographer-for-hire operation
-- Not a commodity post-production house
+- Not a commodity-output operation
 
 **Nexus Link: Productions** is a production company. Premium, precise, rooted in Marcel's actual worldview. The brand carries an aesthetic position — that position is not negotiable for short-term gain.
 
 ---
 
-## VIII. SACRED GEOMETRY REFERENCE
+## VII. SACRED GEOMETRY REFERENCE
 
 The Nexus Link symbol: Celtic trinity knot (triquetra) — built on vesica piscis geometry.
 - Numbers encoded: 108 (top), 11 (bottom-left), 33 (bottom-right)

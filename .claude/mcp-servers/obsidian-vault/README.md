@@ -30,7 +30,7 @@ Configured in `.claude/settings.json` — automatically enabled for Claude Code 
 
 // Find a client's files
 -> search_notes
-   pattern: "C2MOVIEZ|c2moviez"
+   pattern: "PROJECT_NAME"
 
 // Read a specific note
 -> read_note

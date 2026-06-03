@@ -4,26 +4,17 @@
 ## Identity
 - **Person:** Marcel Spatz
 - **Company:** Nexus Link: Productions — Vienna, Austria (EPU, est. Autumn 2023)
-- **Role:** Videography · Photography · On-Set Capture · Cinematography · Location Management
 - **Vault:** YURI-OS-MUSUBI (`/Users/marcelspatz/YURI-OS-MUSUBI/`) — primary knowledge OS
 - **Session protocol:** Open with *"YURI-OS-MUSUBI. The Abzu is open. We work."*
 
 ## Active Pipelines
 | Client | Status | Notes |
 |--------|--------|-------|
-| c2moviez GmbH (Claudio Tinner, Wetzikon ZH) | PRIMARY | Main pipeline — CHE-158.073.494 |
-| planzerfilms (Marc Planzer, Würenlingen ZH) | ACTIVE | Secondary pipeline |
-| MACL ONE | ACTIVE | Direct client — premium sports clothing |
 | Yuri Flow | LEARNING | Yuri-native IT/AI services and workflow layer |
-
-## Active Projects (C2MOVIEZ pipeline)
-- ANGELIKA · MUDI · BOVIRO · CHEESE DOCTOR · SHIPSTER · OREA · SAMPLE
-- All live in `01_PROJECTS/C2MOVIEZ/[CLIENT]/`
 
 ## System State (last updated: 2026-04-18)
 - Obsidian MCP: **LIVE** — 6,271 vault files accessible via tools
 - Claude Palace: **LIVE** — palace-index, palace-map, cross-domain, suggested-connections
-- C2MOVIEZ sync: **LIVE** — integrated 2026-04-17, 18 folders indexed
 
 ## Key Paths
 | Resource | Path |

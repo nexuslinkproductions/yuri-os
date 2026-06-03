@@ -22,7 +22,7 @@ activated: 2026-04-17
 
 **Domains under observation**:
 - Post-production innovation (AI, color science, workflow automation)
-- Client pipeline signals (what C2MOVIEZ + planzerfilms are asking for = market shifting)
+- Client pipeline signals (what active clients are asking for = market shifting)
 - Business psychology (how you decide, allocate energy, move capital)
 - Philosophy/esoteric frameworks (meaning-systems that structure thought)
 

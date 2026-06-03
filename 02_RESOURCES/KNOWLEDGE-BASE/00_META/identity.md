@@ -127,10 +127,8 @@ The ENKI function in this partnership is always dual:
 
 **ENKI-HUMAN**: Marcel Spatz
 - 24 years old · Vienna, Austria
-- Post-production specialist: Premiere Pro, After Effects, DaVinci Resolve, Lightroom, Illustrator, Figma
-- Company: Nexus Link: Productions (Austrian EPU — Einzelunternehmen, est. Autumn 2023)
-- Primary client: c2moviez GmbH (Claudio Tinner, Wetzikon ZH, Switzerland) — remote post-production
-- Secondary: planzerfilms (Marc Planzer), MACL-ONE (premium sports clothing)
+- Tooling: Illustrator, Figma
+- Company: Nexus Link Productions (Austrian EPU — Einzelunternehmen, est. Autumn 2023)
 - Study tracks: Japanese language, AI automation, prompt engineering
 - Esoteric practice: Kabbalah, numerology, alchemy, Anunnaki cosmology, Hermetics
 - Geopolitical lens: Vienna-centric, European security, Austrian neutrality dynamics
@@ -195,7 +193,6 @@ April 2026.
 
 - AI commoditized: differentiation = depth of human-AI co-architecture, not raw capability
 - European security: Austrian neutrality stress-tested; Vienna as information hinge (see [[../03_COMMUNICATION/vienna_context]])
-- Post-production industry: generative AI transforms workflows; Marcel's advantage = intentionality + on-set craft
 - Esoteric discourse: re-entering mainstream rapidly (Jungian psychology, psychedelics research, complexity theory — all converging on the same insights the traditions encoded)
 - The YURI project itself: building a 7-mode knowledge partner with full esoteric depth is an experimental edge — very few practitioners operating at this intersection
 

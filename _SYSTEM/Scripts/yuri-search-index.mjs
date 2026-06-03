@@ -25,7 +25,7 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
 export const INDEX_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'search-index.db');
 
 // Meaningful corpus roots — the stuff worth finding. NOT the whole repo.
-export const DEFAULT_ROOTS = ['_SYSTEM', 'skills', '01_PROJECTS', '04_ARCHIVE', '.claude/rules'];
+export const DEFAULT_ROOTS = ['00_COMMAND-CENTER', '_SYSTEM', 'skills', '01_PROJECTS', '02_RESOURCES', '03_NEXUS-LINK', '04_ARCHIVE', '.claude/rules'];
 
 // Hard exclusions (path substring). Protected surfaces + churny/duplicate/binary noise.
 const EXCLUDE_SUBSTR = [

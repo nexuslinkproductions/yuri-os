@@ -48,7 +48,7 @@ export function initColdAcquisitionRoutes(router: Router, db: Database.Database)
         res.json({
             config: {
                 weekly_target: 20,
-                webhook_configured: Boolean(process.env.C2MOVIEZ_LEAD_WEBHOOK_URL && process.env.C2MOVIEZ_LEAD_API_KEY),
+                webhook_configured: Boolean(process.env.COLD_ACQ_LEAD_WEBHOOK_URL && process.env.COLD_ACQ_LEAD_API_KEY),
                 markets: ['CH', 'AT'],
                 austria_postal_scope: ['1220', '1160'],
                 pipeline: ['intake', 'enriched', 'scored', 'needs_review', 'ready', 'pushed', 'sent', 'replied']

@@ -45,10 +45,26 @@
       "Write(.claude/file-history/**)",
       "Edit(.claude/file-history/**)",
       "MultiEdit(.claude/file-history/**)",
-      "Read(.claude/projects/**)",
-      "Write(.claude/projects/**)",
-      "Edit(.claude/projects/**)",
-      "MultiEdit(.claude/projects/**)",
+      "Read(.claude/projects/**/history/**)",
+      "Read(.claude/projects/**/state/**)",
+      "Read(.claude/projects/**/file-history/**)",
+      "Read(.claude/projects/**/worktrees/**)",
+      "Read(.claude/projects/**/transcripts/**)",
+      "Write(.claude/projects/**/history/**)",
+      "Write(.claude/projects/**/state/**)",
+      "Write(.claude/projects/**/file-history/**)",
+      "Write(.claude/projects/**/worktrees/**)",
+      "Write(.claude/projects/**/transcripts/**)",
+      "Edit(.claude/projects/**/history/**)",
+      "Edit(.claude/projects/**/state/**)",
+      "Edit(.claude/projects/**/file-history/**)",
+      "Edit(.claude/projects/**/worktrees/**)",
+      "Edit(.claude/projects/**/transcripts/**)",
+      "MultiEdit(.claude/projects/**/history/**)",
+      "MultiEdit(.claude/projects/**/state/**)",
+      "MultiEdit(.claude/projects/**/file-history/**)",
+      "MultiEdit(.claude/projects/**/worktrees/**)",
+      "MultiEdit(.claude/projects/**/transcripts/**)",
       "Read(.claude/history.jsonl)",
       "Write(.claude/history.jsonl)",
       "Edit(.claude/history.jsonl)",
@@ -83,6 +99,10 @@
       {
         "matcher": "",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/claude-memory-write.mjs\" reindex"
+          },
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-session-init.js\""

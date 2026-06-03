@@ -7,22 +7,9 @@
 
 ## Active Deferrals
 
-### PROJECT 3 — Client Pipeline Realignment
-**Blocked by:** Claudio billing structure map + MACL-ONE deliverables email
-**Reopen when:**
-- Claudio confirms CHF billing structure for 2026 on-set work, OR
-- Cati (MACL-ONE) responds with deliverable format/scope
-
-**What's waiting:**
-- Invoice structure for 2026 on-set work
-- Planzerfilms scope clarification (on-set vs. post)
-- MACL-ONE deliverables definition
-
----
-
 ### PROJECT 4 — EvoNexus Vessel (Command Center UI)
 **Blocked by:** No bandwidth for UI build; concept not fully locked
-**Reopen when:** All current client projects (BOVIRO, OREA, SHIPSTER) reach delivery state AND 2 uninterrupted weeks available
+**Reopen when:** All current client projects reach delivery state AND 2 uninterrupted weeks available
 **What's waiting:**
 - Visual interface framework decision (Electron / Tauri / Web)
 - Map of 38 agents + Pantheon to physical UI
@@ -36,15 +23,6 @@
 **What's waiting:**
 - DeBERTa-v3 classifier via Hugging Face
 - Chrome DevTools MCP Integration (Chrome 146+)
-
----
-
-### PLANZERFILMS — Scope Definition
-**Blocked by:** Marc Planzer contact pending
-**Reopen when:** Marc Planzer responds or first project brief is received
-**What's waiting:**
-- On-set vs. post-production scope
-- Pipeline structure (parallel to C2MOVIEZ or separate)
 
 ---
 
@@ -79,7 +57,6 @@
 | Item | Completed | Notes |
 |------|-----------|-------|
 | MIT RLM Paper archive + synthesis | 2026-04-24 | See `RESEARCH/papers/` + `06_KNOWLEDGE-BASE/05_OPERATIONAL/rlm-synthesis.md` |
-| _SHOOT-TEMPLATE.md | 2026-04-24 | At `01_PROJECTS/C2MOVIEZ/_SHOOT-TEMPLATE.md` |
 | EvoNexus Integration Map | 2026-04-24 | At `_SYSTEM/EVONEXUS_INTEGRATION_MAP.md` |
 | EvoNexus Fusion Protocol | 2026-04-24 | Appended to `_SYSTEM/EVONEXUS_PROTOCOLS.md` |
 | Offload workflow Gemini lanes | 2026-04-24 | Updated `_SYSTEM/offload-workflow.md` |

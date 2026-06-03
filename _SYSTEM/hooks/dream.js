@@ -111,9 +111,8 @@ function findPatterns(lines, config) {
 function guessDomain(snippet) {
   const domainKeywords = {
     'finance': ['invoice', 'expense', 'payment', 'receipt', 'cost', 'balance'],
-    'on-set': ['shot', 'location', 'equipment', 'call sheet', 'crew', 'gear'],
     'briefs': ['brief', 'proposal', 'deliverable', 'spec', 'requirement'],
-    'client-comms': ['email', 'message', 'tone', 'claudio', 'marc', 'update']
+    'client-comms': ['email', 'message', 'tone', 'update']
   };
 
   let guessed = 'global';

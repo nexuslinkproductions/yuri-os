@@ -24,11 +24,19 @@ import { fileURLToPath } from 'node:url';
 import { evaluateRetention } from './math/yuri-fsrs.mjs';
 import { buildUsageIndex } from './memory-usage.mjs';
 import { openColdStore, upsertCold, getCold, removeCold } from './memory-cold-store.mjs';
+import { memoryRoot } from './claude-memory-write.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYSTEM_ROOT = path.resolve(_HERE, '..');
-export const DEFAULT_MEMORY_ROOT = path.join(SYSTEM_ROOT, 'memory');
+const REPO_ROOT = path.resolve(_HERE, '..', '..');
+// Subconscious consolidates the CLAUDE behavioral memory (Track B), not the legacy
+// _SYSTEM/memory store (owner directive 2026-06-02). memoryRoot() resolves the Track-B
+// path from the repo root regardless of cwd.
+export const DEFAULT_MEMORY_ROOT = memoryRoot(REPO_ROOT);
 const PINNED_FILES = new Set(['memory-core.md', 'MEMORY.md', 'identity.md']);
+// Standing behavioral-floor types — never demoted into the subconscious (owner policy 2026-06-02).
+// Only stale project/reference/episodic memories decay; feedback + user rules are permanent.
+const PROTECTED_TYPES = new Set(['feedback', 'user']);
 const DAY_MS = 1000 * 60 * 60 * 24;
 
 // tier -> base stability (days). Semantic = consolidated, decays slowest; working = fast.
@@ -46,6 +54,7 @@ export function parseFrontmatter(content) {
   const pick = (re) => { const m = fm.match(re); return m ? m[1].trim() : null; };
   out.name = pick(/^\s*name:\s*(.+)$/m);
   out.tier = pick(/^\s*tier:\s*(.+)$/m);
+  out.type = pick(/^\s*type:\s*(.+)$/m);
   out.trig = pick(/^\s*trig:\s*(.+)$/m) || '';
   out.refs = pick(/^\s*refs:\s*(.+)$/m) || '';
   out.description = pick(/^\s*description:\s*(.+)$/m) || '';
@@ -67,7 +76,7 @@ export function buildItem(file, content, { usageIndex = {}, nowMs = Date.now(), 
   const filename = path.basename(file);
   const slug = fm.name || filename.replace(/\.md$/, '');
   const usage = usageIndex[slug] || usageIndex[filename] || {};
-  const forceKeep = Boolean(fm.forceKeepFlag) || PINNED_FILES.has(filename);
+  const forceKeep = Boolean(fm.forceKeepFlag) || PINNED_FILES.has(filename) || PROTECTED_TYPES.has(fm.type);
   const baseStabilityDays = TIER_STABILITY[fm.tier] || DEFAULT_STABILITY_DAYS;
   return {
     slug,

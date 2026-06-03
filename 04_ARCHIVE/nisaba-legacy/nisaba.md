@@ -119,7 +119,7 @@ Gate stack (enriched):
 
 **Marcel deployment patterns:**
 - Overnight coding: trigger at 21:00, orchestrator builds until morning or done
-- Client deliverable: trigger on asset upload, specialists process footage metadata, produce delivery package
+- Client deliverable: trigger on asset upload, specialists process asset metadata, produce delivery package
 - Nexus Link automation: trigger on new project brief, specialists research + spec + draft proposal
 
 ---
@@ -256,9 +256,9 @@ Agent 7: MEASURER (NISABA original — not in BTN)
 ```
 
 **Marcel-specific distribution targets:**
-- Nexus Link Productions: Instagram carousels (filmmaking tips), YouTube behind-the-scenes, LinkedIn client case studies
-- EXEOFLOW: technical blog posts on AI automation, Reddit r/SaaS community replies
-- Personal brand: Japanese learning thread (building in public), cinematography insights
+- Nexus Link Productions: Instagram carousels, LinkedIn client case studies
+- Technical brand: blog posts on AI automation, Reddit r/SaaS community replies
+- Personal brand: Japanese learning thread (building in public), AI systems insights
 
 **GEO optimization (enriched — BTN mentions it, NISABA codifies it):**
 ```
@@ -332,21 +332,7 @@ NISABA rubric library:
   - creative-content.md (LinkedIn, Instagram, blog posts)
   - technical-output.md (code, architecture, API design)
   - client-communication.md (proposals, updates, deliveries)
-  - cinematography.md (shot list, color grade, edit review)
   - security-audit.md (vulnerability findings, remediation advice)
-```
-
-**GAN Loop applied to Marcel's creative work:**
-```
-Color grading GAN:
-  Generator: produces color grade
-  Evaluator: checks against reference LUT + client brief + technical specs
-  Rubric dimensions: color accuracy (0.30), contrast ratio (0.20), skin tone rendering (0.25), mood match (0.15), technical compliance (0.10)
-
-Editorial GAN:
-  Generator: assembles rough cut
-  Evaluator: checks against pacing spec + story beat sheet + client direction notes
-  Rubric dimensions: story arc (0.30), pacing (0.25), coverage quality (0.20), audio sync (0.15), technical (0.10)
 ```
 
 ---
@@ -495,7 +481,7 @@ Stage 7: EVOLVE (NISABA Evolution System — House 2)
 **Marcel empire deployment contexts:**
 ```
 Nexus Link Productions empire:
-  Stage 0: research Vienna commercial video market
+  Stage 0: research the Vienna client market
   Stage 1: spec client portal, booking system, asset delivery
   Stage 2: build pipeline (auth → client dashboard → asset upload → approval workflow)
   Stage 3: quality gate (security scan before any client data enters)
@@ -504,7 +490,7 @@ Nexus Link Productions empire:
   Stage 6: distribute (case study content pipeline)
   Stage 7: evolve (learn from client feedback patterns)
 
-EXEOFLOW automation empire:
+AI automation empire:
   Same pipeline, different domain: AI automation SaaS product
   Stage 0: research AI automation market gaps
   Stage 1: spec core automation features
@@ -620,7 +606,7 @@ BTN stops at automated evaluation. NISABA adds human review gates for client-fac
 BTN has 4 distribution agents. NISABA adds Amplifier (cross-platform adaptation) and Measurer (ROI tracking that feeds back to Scout).
 
 **Gap 5: Creative domain deployment**
-BTN blueprints are SaaS-focused. NISABA bridges every pattern to Marcel's creative work (videography, post-production, client delivery, Nexus Link operations).
+BTN blueprints are SaaS-focused. NISABA bridges every pattern to Marcel's creative work (client delivery, Nexus Link operations).
 
 **Gap 6: Security depth**
 BTN security agents cover basics. NISABA extends to 15-category taxonomy with compliance mapping and supply chain attack vectors.

@@ -1,14 +1,14 @@
 # EvoNexus Protocols: Structural & Cognitive Fusion
 
 **Version:** 1.0.0  
-**Architects:** Claudio (Security/Structure) & Marcel (Synthesis/Enhancement)  
+**Architects:** Structural layer (Security/Structure) & Marcel (Synthesis/Enhancement)  
 **Objective:** Unified autonomous operations through the fusion of security-grade infrastructure and agentic intelligence.
 
-## ⬡ PROTOCOL 01: THE SKELETON (Claudio's Support)
-Claudio's vaults and systems define the **Barebone Support**. 
-*   **Structural Integrity**: All directory hierarchies and security protocols are defined by the Claudio layer.
-*   **Root Authority**: `iC2M` and `C2MOVIEZ` provide the skeleton upon which all cognitive work is built.
-*   **Security Baseline**: Cyber-security standards established by Claudio are non-negotiable and inherited by all enhancement layers.
+## ⬡ PROTOCOL 01: THE SKELETON (Structural Support)
+The structural layer's vaults and systems define the **Barebone Support**. 
+*   **Structural Integrity**: All directory hierarchies and security protocols are defined by the structural layer.
+*   **Root Authority**: The structural layer provides the skeleton upon which all cognitive work is built.
+*   **Security Baseline**: Cyber-security standards established by the structural layer are non-negotiable and inherited by all enhancement layers.
 
 ## ⬡ PROTOCOL 02: THE ENHANCEMENT (Marcel's Augmentation)
 The YURI layer provides the **Cognitive Enhancement**.

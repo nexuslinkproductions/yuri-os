@@ -37,13 +37,13 @@ Claude sees rule, follows it automatically
 ---
 
 ### System 2: GAN Loop
-**Purpose:** Validate high-stakes content before sending to clients/crew  
+**Purpose:** Validate high-stakes content before sending to clients  
 **Location:** `/gan-loop/`  
 **Lifespan:** On-demand (whenever you need assured quality)
 
 **Flow:**
 ```
-You have a brief or shot list to send
+You have a brief to send
   ↓
 You provide requirements file
   ↓
@@ -69,14 +69,14 @@ Final output ready to send
 ```
 Session with Self-Evolving Hooks:
   You generate a brief
-  Claudio says: "no, too formal for MACL tone"
-  Hook captures: "don't use formal tone with MACL"
+  Reviewer says: "no, too formal for this client's tone"
+  Hook captures: "don't use formal tone with Client A"
   ↓
-Later, you run GAN Loop for MACL brief:
+Later, you run GAN Loop for Client A's brief:
   Generator creates brief (still might be formal)
   Evaluator scores tone: 6/10 (too formal)
   ↓
-But WAIT — Hooks system has learned "MACL tone = casual"
+But WAIT — Hooks system has learned "Client A tone = casual"
   ↓
 Question: Should <mnemosyne> block prepend to GAN Loop evaluator?
   → YES. Evaluator sees your learned rule.
@@ -87,33 +87,33 @@ Result: Evaluator catches the formal tone faster (maybe iteration 1 instead of 2
 ### When GAN Loop Feeds Hooks
 
 ```
-GAN Loop generates output (e.g., shot list):
-  Evaluator gives feedback: "add rain contingency"
+GAN Loop generates output (e.g., a project brief):
+  Evaluator gives feedback: "add a fallback plan"
   Generator improves, now includes contingencies
   ↓
 You review final output, correct something:
-  "no, weather contingency should mention 'move indoor hallway scene'"
+  "no, the fallback should name a specific alternative approach"
   ↓
 Hook captures this correction
   ↓
 Dream worker sees pattern (contingencies matter)
   ↓
-Next time you request shot list via GAN Loop:
-  Evaluator has learned: always ask for specific indoor alternatives
+Next time you request a brief via GAN Loop:
+  Evaluator has learned: always ask for specific alternatives
   ↓
-Result: More detailed shot lists with less back-and-forth
+Result: More detailed briefs with less back-and-forth
 ```
 
 ---
 
 ## Workflow Integration: Real Example
 
-### Scenario: Generate MACL Brief → Learn → Generate Again
+### Scenario: Generate a Client Brief → Learn → Generate Again
 
 **Week 1: Day 1 - First GAN Loop Run (Pre-Learning)**
 
 ```
-INPUT: MACL ONE Q2 campaign requirements.txt
+INPUT: Client A Q2 campaign requirements.txt
   ↓
 GAN Loop:
   Generator creates brief
@@ -125,7 +125,7 @@ YOU review output, notice: "opening paragraph still too corporate"
 You say to Claude: "rewrite that opening, more casual"
   Claude fixes it
   ↓
-Self-Evolving Hook captures: "don't use corporate tone with MACL"
+Self-Evolving Hook captures: "don't use corporate tone with Client A"
   Stores in learning/client-comms.md
 ```
 
@@ -133,21 +133,21 @@ Self-Evolving Hook captures: "don't use corporate tone with MACL"
 
 ```
 After 4h idle + 3 sessions + 2 same corrections:
-  Dream worker detects: "MACL tone = casual, not corporate"
+  Dream worker detects: "Client A tone = casual, not corporate"
   Writes rule to client-comms.md:
-    - "Avoid corporate register (explain, implement, utilize) with MACL. Use casual, direct language."
+    - "Avoid corporate register (explain, implement, utilize) with Client A. Use casual, direct language."
 ```
 
 **Week 2: Day 3 - Second GAN Loop Run (Post-Learning)**
 
 ```
-INPUT: New MACL brief (similar scope)
+INPUT: New Client A brief (similar scope)
   ↓
 Before Generator runs:
   Hook system loads learning/client-comms.md
-  <mnemosyne> block prepends: "MACL tone = casual, not corporate"
+  <mnemosyne> block prepends: "Client A tone = casual, not corporate"
   ↓
-Generator creates brief (now aware of MACL tone preference)
+Generator creates brief (now aware of Client A's tone preference)
   ↓
 Evaluator scores tone: 8/10 (was 7/10 before learning)
   Overall score: 7.6/10 (same inputs, better output)
@@ -210,21 +210,21 @@ RESULT: Same brief quality achieved faster, with less iteration
 
 ---
 
-## Adjustments After Claudio Sync
+## Adjustments After Collaborator Sync
 
-**Week 3–4: You + Claudio collaborate**
+**Week 3–4: You + a collaborator align**
 
 ### Self-Evolving Hooks
 - Review learning files together
 - Decide which rules apply broadly vs. just your workflow
 - Adjust thresholds in `config.json` (e.g., 2→3 corrections for rule)
-- Create domain versions (e.g., rules for Claudio's shoots differ from Marc's)
+- Create domain versions (e.g., rules for one collaborator's work differ from another's)
 
 ### GAN Loop
 - Review rubrics together
 - Adjust binary gates (do they match your house standards?)
-- Change weights (does clarity matter more than completeness for MACL?)
-- Create client-specific versions (e.g., rubric-claudio.md for C2MOVIEZ, rubric-marc.md for planzerfilms)
+- Change weights (does clarity matter more than completeness for a given client?)
+- Create client-specific versions (e.g., a separate rubric per client account)
 
 ---
 
@@ -243,9 +243,6 @@ RESULT: Same brief quality achieved faster, with less iteration
 ### GAN Loop
 
 ```bash
-# Generate shot list
-  shot-list ~/my-brief.md
-
 # Generate brief
   brief ~/requirements.txt
 
@@ -271,7 +268,7 @@ Both systems follow the same principle: **externalize decision-making**.
 - Storage: Rubric markdown files
 - Reuse: Same rubric, tight feedback loops
 
-When you and Claudio sync, you're literally aligning these external decision systems. Not arguing philosophy — comparing actual files, rule lists, rubric gates.
+When you and a collaborator sync, you're literally aligning these external decision systems. Not arguing philosophy — comparing actual files, rule lists, rubric gates.
 
 ---
 
@@ -279,7 +276,7 @@ When you and Claudio sync, you're literally aligning these external decision sys
 
 1. **Use Self-Evolving Hooks for 1 week** — Let it capture corrections
 2. **Try GAN Loop on a real brief** — See the validation flow in action
-3. **After Claudio sync** — Adjust both systems together
+3. **After collaborator sync** — Adjust both systems together
 4. **Build on them** — Distribution agents, Trace to Skill, etc. all use the same foundation
 
 Both systems are now **live and ready to use**.

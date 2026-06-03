@@ -29,7 +29,7 @@ This index curates the most critical research from the MIT Parallel and Distribu
 
 ## 6. Arrakis: The Operating System is the Control Plane
 *   **Key Insight:** Applications should talk directly to hardware (NICs, SSDs) for the data plane, while the OS only handles the "control plane" (setup/security).
-*   **Relevance:** Direct hardware access for the multimedia ingestion pipeline (C2MovieZ).
+*   **Relevance:** Direct hardware access for the multimedia ingestion pipeline.
 *   **Link:** [Arrakis Paper](https://pdos.csail.mit.edu/papers/arrakis:osdi14.pdf)
 
 ## 7. Verifying a File System using Crash Hoare Logic (FSCQ)

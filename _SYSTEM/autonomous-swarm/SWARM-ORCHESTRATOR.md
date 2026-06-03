@@ -27,9 +27,9 @@ You run EVERY NIGHT 22:00–06:00. Marcel wakes to completed work.
 
 ```
 Dispatch to:
-├─ Behind-the-Scenes Writer (reads DEBRIEF.md from today/yesterday)
+├─ Blog Writer (reads DEBRIEF.md from today/yesterday)
 ├─ Carousel Maker (reads recent blog posts)
-├─ Reddit Scout (searches r/videography, r/filmmaking, etc.)
+├─ Reddit Scout (searches relevant subreddits)
 └─ Finance Digest (reads invoices/expenses folder)
 
 Wait for ALL to complete OR timeout at 60 minutes.
@@ -149,11 +149,11 @@ For each approved content piece:
 
 If multiple pieces succeeded with similar patterns:
 - Trigger dream worker to analyze
-- Update relevant domain rule files (global.md, on-set.md, etc.)
+- Update relevant domain rule files (global.md, etc.)
 - Prepend new rules to next session
 
-Example: If three consecutive blog posts used specific interview lighting technique, and all scored 8+:
-→ "Blog writer: prioritize interview lighting examples. Audience resonates."
+Example: If three consecutive blog posts used a specific technique, and all scored 8+:
+→ "Blog writer: prioritize that approach. Audience resonates."
 
 ---
 
@@ -187,7 +187,7 @@ Note: Marcel posts manually to maintain authenticity
 ```
 Action: Email-ready format
 Manual approval required: NO
-Note: Can be sent to Marcel or Claudio immediately
+Note: Can be sent to Marcel immediately
 Format: Markdown email-ready
 ```
 
@@ -270,17 +270,17 @@ Awaits: Manual review in morning
 - 💬 Reddit drafts → /social/reddit-drafts/ready/
 
 **Ready to send (no approval needed):**
-- 💰 Finance digest → send to Marcel or Claudio
+- 💰 Finance digest → send to Marcel
 
 ---
 
 ## 🧠 Learning & Patterns
 
 **Top-performing technique:**
-[Example: "Interview lighting examples consistently score 8+. Audience engagement high."]
+[Example: "Specific worked examples consistently score 8+. Audience engagement high."]
 
 **Rules updated:**
-[Example: "Updated on-set.md with new gimbal stabilization insight from blog post"]
+[Example: "Updated global.md with a new insight from a blog post"]
 
 **Confidence by agent (7-day average):**
 - Writer: 82%

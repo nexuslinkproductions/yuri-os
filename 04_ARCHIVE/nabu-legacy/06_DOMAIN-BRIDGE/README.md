@@ -8,15 +8,15 @@
 ## Four Integration Domains
 
 ### 1. CREATIVE INTEGRATION
-- Blueprint: GAN Loop → color grading (generator grades; evaluator checks)
-- Blueprint: Distribution Agents → content calendar (clips, behind-the-scenes, tutorials)
-- Blueprint: Context Engineering → project file management (footage→proxy→edit→color→export)
-- Blueprint: Auto Memory → capture lighting setups, camera techniques, crew preferences
+- Blueprint: GAN Loop → iterative refinement (generator produces; evaluator checks)
+- Blueprint: Distribution Agents → content calendar (posts, behind-the-scenes, tutorials)
+- Blueprint: Context Engineering → project file management (source→working draft→review→export)
+- Blueprint: Auto Memory → capture creative setups, technique notes, collaborator preferences
 
 ### 2. BUSINESS VALUE
 - Automation saves time → capacity unlocked → revenue potential
 - Example: Automated triage saves 3 hrs/week = $9,360/year value
-- Example: Color grading AI reduces manual work 20% = 1 day/week freed = $48k/year capacity
+- Example: Refinement AI reduces manual work 20% = 1 day/week freed = $48k/year capacity
 
 ### 3. ESOTERIC MAPPING
 Each blueprint corresponds to Kabbalistic principle:
@@ -32,8 +32,8 @@ Each blueprint corresponds to Kabbalistic principle:
 | Futures | Chokmah | Wisdom (creation of new possibilities) |
 
 ### 4. HUMAN-AI LOOPS
-- Color correction: AI suggests grade; Marcel reviews and refines
-- Editorial: AI assembles rough cut; editor reviews and restructures
+- Visual design: AI suggests a treatment; Marcel reviews and refines
+- Composition: AI assembles a first draft; Marcel reviews and restructures
 - Client communication: AI drafts proposal; Marcel personalizes
 - **Protocol:** AI generates, human validates (especially for creative)
 
@@ -42,7 +42,7 @@ Each blueprint corresponds to Kabbalistic principle:
 ## Files in This House
 
 - `README.md` (this file)
-- `creative-integration.md` — AI for video, design, narrative
+- `creative-integration.md` — AI for design, narrative
 - `business-value.md` — Agent → revenue/cost savings
 - `esoteric-mapping.md` — Blueprint ↔ Hermetic principle
 - `human-ai-loops.md` — When humans override AI decisions

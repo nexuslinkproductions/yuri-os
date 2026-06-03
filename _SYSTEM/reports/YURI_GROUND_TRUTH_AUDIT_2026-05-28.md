@@ -194,7 +194,7 @@ This is the largest parked-noise category. **Real implementations exist. All fla
 
 ### 4.7 PARKED NOISE — Cold Acquisition / Sales Surface
 
-Real implementation, but a separate domain (sales tooling for c2moviez / Nexus Link, not core YURI control-plane):
+Real implementation, but a separate domain (sales tooling for Nexus Link, not core YURI control-plane):
 
 - `cold-acquisition-crm-routes.test.mjs`
 - `cold-acquisition-crm-ui.test.mjs`

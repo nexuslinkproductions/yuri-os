@@ -98,7 +98,7 @@ Your token-efficiency.md is solid but not being enforced. Current behavior:
 
 ## Part 4: Full Session Cost Breakdown (Baseline Example)
 
-**Scenario:** Marcel queries about C2MOVIEZ project status, requests file updates, then browses network documents.
+**Scenario:** Marcel queries about a client project status, requests file updates, then browses network documents.
 
 ### Current Cost (Status Quo)
 ```

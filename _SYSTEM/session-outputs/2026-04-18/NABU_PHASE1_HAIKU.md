@@ -1726,7 +1726,7 @@ Outcome feeds back to NOESIS
 
 1. **Enriched Blueprint Expansion**
    - Full prompts for each blueprint (ready to load into agent)
-   - Real-world examples from Marcel's workflows (video production, client management)
+   - Real-world examples from Marcel's workflows (client management)
    - Integration examples (how blueprints compose)
 
 2. **NABU Implementation Framework**

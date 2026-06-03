@@ -102,14 +102,14 @@ RAW DUMP:
 
 Input:
 ```
-I want to build a website for my videography work.
+I want to build a portfolio website for my creative work.
 Dark theme definitely. I keep thinking about that one site
 with the horizontal scroll, it felt so premium. Also need
-a way to show video without it being a grid of thumbnails
+a way to show my media without it being a grid of thumbnails
 like everyone else. My design research mentioned something about
 magnetic buttons. Should I use a CMS or just hardcode it.
 Client needs to be able to update their own portfolio.
-Loading speed is important because video. I saw a cool
+Loading speed is important because the media is heavy. I saw a cool
 thing where the background changes color as you scroll.
 Three.js maybe but I've never used it. Budget is tight.
 Mobile first obviously. The contact form needs to not
@@ -125,11 +125,11 @@ Output:
 ## Raw Nodes
 1. Dark theme
 2. Horizontal scroll (premium feel)
-3. Video showcase that isn't a thumbnail grid
+3. Media showcase that isn't a thumbnail grid
 4. Magnetic buttons (from design research)
 5. CMS vs hardcoded question
 6. Client self-update requirement
-7. Loading speed concern (video-heavy)
+7. Loading speed concern (media-heavy)
 8. Scroll-based background color shift
 9. Three.js consideration (no experience)
 10. Tight budget
@@ -145,7 +145,7 @@ Dark theme + horizontal scroll + scroll-based color shift + magnetic buttons
 → Core interaction model. Premium, dark, scroll-driven.
 
 ### Cluster B: Content System (nodes 3, 6, 5)
-Video showcase + client self-update + CMS question
+Media showcase + client self-update + CMS question
 → Need a CMS, not hardcoded. Client must update their own portfolio.
 → This rules out static site unless you add a headless CMS.
 
@@ -166,13 +166,13 @@ Cluster A (Visual) ←feeds into→ Cluster C (Technical):
   GSAP for scroll animations instead of custom WebGL.
 
 Cluster B (Content) ←constrains→ Cluster A (Visual):
-  CMS choice affects what's possible with the video showcase.
+  CMS choice affects what's possible with the media showcase.
   Recommendation: Decap CMS (Git-based, free, client can use).
 
 Cluster D (Conversion) → depends on all clusters being resolved first.
 
 Cluster C (Technical) ←conflicts with→ Cluster A (Visual):
-  Horizontal scroll + video + performance = tension.
+  Horizontal scroll + heavy media + performance = tension.
   Solution: Lazy-load everything below fold. Use poster images.
   Horizontal scroll only on desktop; vertical stack on mobile.
 
@@ -200,13 +200,13 @@ Priority 4: Cluster D (Conversion) — last, because form depends on everything 
 
 ## Synthesis
 
-You're describing a premium, dark-themed videography portfolio with a scroll-driven
+You're describing a premium, dark-themed creative portfolio with a scroll-driven
 interaction model, but the real differentiator isn't the visual design — it's that
 the client needs to update it themselves. That means the architecture should center
 on a headless CMS with a beautiful admin experience, then layer the visual innovation
 on top within a tight budget. The horizontal scroll and color-shift can be done with
 CSS + GSAP, not Three.js. The real innovation opportunity is making the CMS-backed
-video showcase feel bespoke instead of templated, and turning the contact form into
+media showcase feel bespoke instead of templated, and turning the contact form into
 a conversation starter rather than a data collection tool.
 ```
 

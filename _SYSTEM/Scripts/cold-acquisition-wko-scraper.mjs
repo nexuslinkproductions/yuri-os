@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const WKO_USER_AGENT = 'YURI c2moviez cold-acquisition WKO scraper';
+const WKO_USER_AGENT = 'YURI cold-acquisition WKO scraper';
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const PROFILE_CHALLENGE_PATTERN = /Einen Moment bitte/i;
 const WKO_SOURCES = [

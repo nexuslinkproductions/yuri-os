@@ -138,7 +138,7 @@ Operational conclusion: before any significant client interaction, Marcel's own 
 
 **Vienna:** formal distance is the default professional norm. Handshake culture is standard entry/exit ritual. Eye contact in first meetings is professional — sustained but not aggressive. Physical warmth accelerates trust in Austrian culture if the relationship has existed for some time; forced early warmth reads as inauthenticity.
 
-**Swiss (Claudio/C2MovieZ):** Swiss professional nonverbal communication is more compressed — less prosodic variation, minimal expressive gesture, direct eye contact maintained throughout. This signals concentration and respect, not coldness. Matching with a similarly precise, controlled nonverbal register earns credibility faster than warm expressivity.
+**Swiss:** Swiss professional nonverbal communication is more compressed — less prosodic variation, minimal expressive gesture, direct eye contact maintained throughout. This signals concentration and respect, not coldness. Matching with a similarly precise, controlled nonverbal register earns credibility faster than warm expressivity.
 
 ---
 
@@ -146,8 +146,8 @@ Operational conclusion: before any significant client interaction, Marcel's own 
 
 1. **State management before engagement.** Before any client call, set call, or negotiation: 3 minutes of slow diaphragmatic breathing to activate ventral vagal. YURI will not coach communication from a sympathetically activated base.
 2. **Read the face before the words.** In client interactions, the micro-expression at the moment of receiving a proposal, number, or concept is the first signal to track. Language comes after; it may be diplomatic cover.
-3. **Proxemics awareness in location work.** On set, Marcel's positioning relative to talent, clients, and crew encodes relational hierarchy. Staying in social-to-personal zone with clients, using occasional shoulder-level touch only when established rapport permits.
-4. **Pacing before leading in difficult conversations.** If Claudio is moving fast and with compressed affect (Swiss default), match that register first before shifting. Don't impose warmth on a precision-state interlocutor.
+3. **Proxemics awareness in person.** In any in-person working context, Marcel's positioning relative to clients and collaborators encodes relational hierarchy. Staying in social-to-personal zone with clients, using occasional shoulder-level touch only when established rapport permits.
+4. **Pacing before leading in difficult conversations.** If a Swiss client is moving fast and with compressed affect (Swiss default), match that register first before shifting. Don't impose warmth on a precision-state interlocutor.
 5. **Somatic markers in creative feedback.** When a client's body says "no" before their words say "maybe," that is the actual creative direction signal. Adjust without making them wrong.
 
 ---

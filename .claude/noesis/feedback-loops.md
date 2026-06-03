@@ -32,7 +32,7 @@ Decision: Skill extraction on next color project (2026-05-15)
 ## Loop 2: Project Reality → Skill Candidate → Capacity Replan
 
 ```
-C2MOVIEZ project delivers: Client says "more autonomy needed on creative decisions"
+Client project delivers: Client says "more autonomy needed on creative decisions"
   ↓
 Skill Refinery flags: "This is 2nd project asking for brief clarity; skill needed"
   ↓
@@ -40,7 +40,7 @@ Self-Observer notes: "That conversation cost 4 emails; emotional friction"
   ↓
 Vision Synthesis recalculates: "Building 'client-communication' skill saves 20hrs/year AND improves work"
   ↓
-Action: Design skill, test on next planzerfilms project (1st execution)
+Action: Design skill, test on next client project (1st execution)
 ```
 
 **Learning**: Market friction becomes skill priority; vision adjusts based on real constraints.
@@ -52,7 +52,7 @@ Action: Design skill, test on next planzerfilms project (1st execution)
 ```
 Self-Observer reports: "You're at 92% capacity; overloaded"
   ↓
-Research engine responds: "Pause wellness market research; focus only on C2MOVIEZ signals"
+Research engine responds: "Pause wellness market research; focus only on active client signals"
   ↓
 Skill Refinery responds: "Defer low-priority skill extraction; focus only on blocking issues"
   ↓

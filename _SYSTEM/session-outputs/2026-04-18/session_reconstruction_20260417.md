@@ -36,7 +36,7 @@
 **Asian AI Intelligence Track activated** inside NOESIS — 6 signals documented:
 - DaVinci Resolve 21 (NAB 2026) — actionable immediately
 - Chinese AI video tools (Kling, Wan 2.5, Hailuo) — research phase
-- DeepSeek V3.2/V4 — watch for EXEOFLOW
+- DeepSeek V3.2/V4 — watch candidate
 - Qwen 3.6-Plus multimodal — test candidate
 - Asian agentic AI systemic infrastructure shift
 - Japan anime AI adoption (cultural intelligence for Marcel's Japan arc)
@@ -60,12 +60,7 @@ The graphify was rebuilt but pointed at the wrong directory. The 06_KNOWLEDGE-BA
 
 **Action needed:** Re-run graphify scoped to YURI vault markdown files, excluding `01_PROJECTS/openspace/` code files.
 
-### 2. Seed iC2M vault — STATUS: NOT DONE
-`06_NETWORK-SYNC/` contains two folders: `C2MOVIEZ/` and `PLANZERFILMS/`. No iC2M structure exists anywhere in the vault. The C2MOVIEZ integration (cloned Database/, _MAPPING.md, _SYNC-STATUS.md) is complete and live, but the iC2M (Integrated C2MovieZ) vault with basic Obsidian structure for cross-vault linking has not been seeded.
-
-**Action needed:** Define what iC2M means structurally — is this a bidirectional Obsidian vault link setup, or a separate vault folder for shared content? Clarify with Marcel before building.
-
-### 3. Update identity.md references to 05_OPERATIONAL — STATUS: PARTIAL
+### 2. Update identity.md references to 05_OPERATIONAL — STATUS: PARTIAL
 identity.md line 89 contains one reference: `**Full Pneuma Profile:** 06_KNOWLEDGE-BASE/05_OPERATIONAL/pneuma-profile.md`
 
 The 05_OPERATIONAL directory contains four files:
@@ -78,11 +73,11 @@ Three of four operational files are undiscoverable from identity.md. The single 
 
 **Action needed:** Add references to mode_triggers.md, partner_memory.md, and response_architecture.md in the relevant section of identity.md.
 
-### 4. Fill enki_state.md personal constraints — STATUS: DONE
+### 3. Fill enki_state.md personal constraints — STATUS: DONE
 The Constraints section is fully filled:
 - Time: Primary work window 21:00–05:00 documented; secondary availability 11:00–15:00; scheduling rules specified
 - Energy: Current status stable; deep work pattern defended; known drains documented (fragmentation, context-switching)
-- Money: Stable, C2MovieZ pipeline consistent; Austrian EPU structure, NET 14 invoice cadence, secondary pipelines clarifying
+- Money: Stable, client pipeline consistent; Austrian EPU structure, NET 14 invoice cadence, secondary pipelines clarifying
 
 This was either completed in the April 17 session or in a prior session that the April 17 log hadn't yet seen. No placeholder text remains. Closed.
 
@@ -94,7 +89,7 @@ This was either completed in the April 17 session or in a prior session that the
 
 All four engines had seeded data in noesis-intake.md:
 - Engine 1 (Research): 8 signals logged across Asian AI, DaVinci Resolve 21, market signals
-- Engine 2 (Skill Refinery): 3 patterns active — Shoot Brief Mastery (candidate), Client Handoff Communication (design phase), Fast-Turnaround Location Assessment (observe)
+- Engine 2 (Skill Refinery): 2 patterns active — Client Handoff Communication (design phase), Fast-Turnaround Location Assessment (observe)
 - Engine 3 (Self-Observer): Baseline captured at 85% capacity; monthly check-in scheduled 2026-05-17
 - Engine 4 (Vision Synthesis): 6-month trajectory emerging; Q2 vision synthesis scheduled 2026-06-30
 

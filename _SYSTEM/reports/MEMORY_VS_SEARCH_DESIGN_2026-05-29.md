@@ -28,7 +28,7 @@ separate is the entire point. One is **what YURI KNOWS**; the other is **what YU
 - **What:** a fast keyword index over the *big pile* — reports, archives, skills, vault notes, audits, docs (~30k .md). The stuff too large to hold in context.
 - **Scale:** huge, **auto-indexed** (no human approval — index everything, re-index on change).
 - **Governance:** none needed. Low signal-per-doc, but *findable in milliseconds*. BM25 ranking surfaces the relevant ones.
-- **Access:** queried **on demand** ("where did I write about the c2moviez audit / the energy substrate / Jake's ICM"). Results are file+snippet, NOT auto-injected into context.
+- **Access:** queried **on demand** ("where did I write about the energy substrate / Jake's ICM"). Results are file+snippet, NOT auto-injected into context.
 - **Tech:** **SQLite FTS5 / BM25. No Ollama, no embeddings, no vector DB, no daemon.** Built into sqlite (confirmed working). Dependency-free.
 - **Failure mode if confused with memory:** trying to hand-curate it (defeats the point) or auto-inject results (floods context). It's a *tool you call*, not a thing you carry.
 

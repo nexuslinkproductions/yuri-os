@@ -441,7 +441,7 @@ Gates: all 7 active
 Sleep: when client deliverable is ready or blocked on feedback
 ```
 
-### Context 2: EXEOFLOW overnight build
+### Context 2: Overnight build
 ```
 Trigger: cron at 23:00 (after Marcel starts his block)
 Orchestrator: reads sprint backlog
@@ -452,7 +452,7 @@ Gates: all 7 active
 Sleep: at 05:00 regardless (Marcel's sleep time), or when sprint complete
 ```
 
-### Context 3: Creative asset pipeline
+### Context 3: Asset delivery pipeline
 ```
 Trigger: on file upload to asset folder
 Orchestrator: reads asset metadata + client brief

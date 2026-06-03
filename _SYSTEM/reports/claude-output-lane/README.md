@@ -48,6 +48,6 @@ YYYY-MM-DD_<task-slug>_<lane>_<sublane>.md
 Example:
 
 ```text
-2026-05-28_c2moviez-adapter_quantum_plan.md
+2026-05-28_context-router-adapter_quantum_plan.md
 ```
 

@@ -9,15 +9,15 @@
 At 21:00, do this before touching any tool:
 
 1. **Open the night's goal doc** (or sticky note) — one sentence:
-   - *"Deliver grade pass on C2MovieZ interview and block out B-roll edits."*
-   - *"Finish DaVinci timeline assembly for planzerfilms spot."*
+   - *"Deliver the refactor pass on the auth module and block out the next tasks."*
+   - *"Finish the dashboard layout assembly."*
    - *"Two leetcode mediums on dynamic programming."*
 
 2. **Check against sprint goal** — does this tonight's work advance the weekly target? If no, reconsider. If yes, proceed.
 
 3. **Set one output measure** — what counts as success tonight:
-   - *"Exported grade pass + notes for sound design"*
-   - *"Comp timeline laid out, rendered proxy for tomorrow's color"*
+   - *"Refactor pass committed + notes for the next module"*
+   - *"Layout laid out, draft ready for tomorrow's polish"*
    - *"Three DP problems solved, typed up in Obsidian"*
 
 4. **Phone on DND + face down.** No exceptions.
@@ -80,12 +80,12 @@ When you notice these: break. Not optional.
 Your energy will dip around 01:00-02:00. This is normal. Have a plan:
 
 ### Fallback Tasks (keep on a sticky):
-- B-roll organization (low cognitive load)
+- Asset organization (low cognitive load)
 - Metadata entry / keyword tagging
-- Shot notes from the day's capture
+- Notes from the day's work
 - Admin clearing (inbox cleanup, file renaming, folder structure)
-- Learning: watch a DaVinci tutorial at 1.5x
-- Light reading: technical docs, camera manuals, CSS reference
+- Learning: watch a tutorial at 1.5x
+- Light reading: technical docs, CSS reference
 
 **Designate ONE fallback task before kicking off.** When energy dips, switch immediately. Don't burn decision energy choosing.
 
@@ -102,15 +102,15 @@ At 04:00-05:00, close deliberately:
 
 1. **Save and quit everything.** No "I'll just finish this one thing."
 2. **Log tonight's output** (can be one line):
-   - *"Grade pass complete on interview A. B-roll selects done for scenes 1-3."*
+   - *"Refactor pass complete on the auth module. Tasks selected for modules 1-3."*
 3. **Set tomorrow's first hook:** What is the *first* 5-minute action tomorrow night?
-   - *"Open Resolve project, check grade pass on scene 4."*
+   - *"Open the editor, check the refactor on module 4."*
    - *"Open Chrome, type first test case for DP problem 4."*
 4. **Close applications.** Shut down if you won't wake for 6+ hours.
 5. **Exit ritual:** Put headphones away, turn off desk light, close laptop. Physical closure matters.
 
 ### If You Didn't Hit the Goal
-- Note *why* (one sentence): *"Underestimated scene 4 complexity — color match took 2x expected."*
+- Note *why* (one sentence): *"Underestimated module 4 complexity — the fix took 2x expected."*
 - That's data, not failure. Account for it in tomorrow's estimate.
 - **No guilt spiral.** Tomorrow is another block.
 

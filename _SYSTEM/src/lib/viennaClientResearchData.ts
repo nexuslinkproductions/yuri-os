@@ -32,10 +32,10 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         contact: "Marc Bachhofner · Paul Pichler",
         star: true,
         gaps: ["🎥", "📱", "💻", "📣", "🎨"],
-        pitch: "We made OREA's car care content cinematic. Same thing for your detailing — your work is visual, we make it impossible to scroll past.",
-        why: "Exact structural parallel to OREA. Founder accessible. Premium niche with high visual appeal. Services gap crystal-clear from a 30-second website review.",
+        pitch: "Premium detailing is a visual product — we make your work impossible to scroll past.",
+        why: "Founder accessible. Premium niche with high visual appeal. Services gap crystal-clear from a 30-second website review.",
         priorities: [
-            "Cinematic video content (premium detailing = natural c2moviez content)",
+            "Cinematic video content (premium detailing = natural premium content)",
             "Social media strategy + content calendar",
             "Online booking system / IT support",
             "Meta / Instagram ad campaign management",
@@ -56,7 +56,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         star: true,
         gaps: ["🌐", "📱", "🎥", "💻", "📊"],
         pitch: "30 years, 22 countries, 43 million tons. Your website doesn't show any of it. One visit and we'll show you exactly what we'd change.",
-        why: "Enormous gap between actual company strength and digital presence. Zero social = first-mover advantage. Claudio walks in, shows two screens, closes within the meeting.",
+        why: "Enormous gap between actual company strength and digital presence. Zero social = first-mover advantage. Walk in, show two screens, close within the meeting.",
         priorities: [
             "Website redesign (urgent — dated for 30-year company)",
             "Social from scratch (LinkedIn B2B, Instagram fleet/brand)",
@@ -146,7 +146,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         contact: "2-location retail, shopping center ops",
         gaps: ["🎥", "📱", "📣", "💻", "🎨"],
         pitch: "You're already on TikTok. The gap is that your content doesn't show what your best work looks like. We have a client who does this — let us show you 30 seconds of what car care content looks like shot right.",
-        why: "OREA-adjacent. Has social channels but weak content. Multi-location = bigger campaign budget potential.",
+        why: "Has social channels but weak content. Multi-location = bigger campaign budget potential.",
         priorities: [
             "Professional video (before/after, process, seasonal)",
             "Social strategy — upgrade volume/quality",
@@ -168,7 +168,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         contact: "+43 1 330 34 47-0 · 80+ employees · 3 locations",
         gaps: ["🎥", "📣", "🎨", "💻", "📊"],
         pitch: "Maserati and Lexus are cinematic brands. You're selling emotion — your current social doesn't reflect that. We produce content that matches what those brands expect from their dealers.",
-        why: "Larger company = longer sales cycle, but premium brands = premium budgets. Claudio's in-person style is perfect here.",
+        why: "Larger company = longer sales cycle, but premium brands = premium budgets. An in-person approach is perfect here.",
         priorities: [
             "Premium video production (Maserati/Lexus deserve cinematic)",
             "Meta / YouTube Ads management",
@@ -601,8 +601,8 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         social: "TBD",
         contact: "E-commerce ops",
         gaps: ["🎥", "📱", "📣", "🌐", "💻"],
-        pitch: "Car care products look like commodities until someone films them in slow motion on a wet hood at golden hour. That's OREA's playbook — we made it. Same for you.",
-        why: "6000+ SKUs e-commerce. Product video = direct conversion lift. OREA-adjacent.",
+        pitch: "Car care products look like commodities until someone films them in slow motion on a wet hood at golden hour. We make that look. Same for you.",
+        why: "6000+ SKUs e-commerce. Product video = direct conversion lift.",
         priorities: [
             "Product video",
             "Social content",
@@ -824,7 +824,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         social: "TBD",
         contact: "+43 660 118 45 46",
         gaps: ["📱", "🎥", "🌐", "💻"],
-        pitch: "Certification + premium work + zero digital presence = growth blocked. OREA playbook applies.",
+        pitch: "Certification + premium work + zero digital presence = growth blocked. The detailing-content playbook applies.",
         why: "Smaller detailing shop, clean add-on to detailing cluster day.",
         priorities: [
             "Social from scratch",

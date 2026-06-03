@@ -189,7 +189,7 @@ The **Kybalion** (1908) synthesizes Hermetic principles into seven axioms. These
 
 The foundational claim: consciousness is the substrate of reality. The physical universe is the thought of the All. Operationally: the most effective point of intervention in any system is at the level of the organizing idea, not the physical implementation.
 
-**In post-production**: The quality of an edit is bounded by the clarity of the mental image of what the edit should achieve. Technically flawless work cut from an unclear mental model produces technically flawless work that doesn't land. The investment in *mental clarity before touching the timeline* is the Mentalism principle applied: get the mental image crisp, the execution follows from it.
+**In creative execution**: The quality of a finished piece is bounded by the clarity of the mental image of what it should achieve. Technically flawless work built from an unclear mental model produces technically flawless work that doesn't land. The investment in *mental clarity before touching the execution* is the Mentalism principle applied: get the mental image crisp, the execution follows from it.
 
 **In client architecture**: A client relationship is a mental field before it is a contractual reality. The mental model you hold of what a client relationship can be — what it should feel like, what it should produce, what level of creative autonomy it should contain — *determines* what client relationships you attract and what you accept. Clients who undervalue conceptual work find you because your mental model of your own value contains a corresponding undervaluation.
 
@@ -199,9 +199,7 @@ The foundational claim: consciousness is the substrate of reality. The physical 
 
 The principle underlying all cross-domain synthesis. Patterns that appear at one scale repeat at other scales because the same organizing logic operates throughout. See [[archetypes]] for the full development.
 
-**In post-production**: The structure of a well-edited sequence mirrors the structure of a well-constructed argument: opening (establishing context), development (building complexity), turn (the pivot), resolution (where all complexity collapses into clarity). Every great edit is an argument. Every great argument can be cut. Cross-domain work from this direction produces both better edits and better client presentations.
-
-**In creative direction for MACL-ONE (premium sports clothing)**: The athletic body in motion is a visual correspondence for a specific quality of will — *disciplined force*, the physical expression of the Martian (Geburah) principle. Effective visual work for this client resonates because it activates the correct correspondence: not just *showing* the product on an attractive body but *embodying* the quality of will that makes the product meaningful. Color, motion, rhythm — everything tuned to the Martian correspondence.
+**In composition**: The structure of a well-built sequence mirrors the structure of a well-constructed argument: opening (establishing context), development (building complexity), turn (the pivot), resolution (where all complexity collapses into clarity). Every great composition is an argument. Every great argument can be sequenced. Cross-domain work from this direction produces both better compositions and better client presentations.
 
 
 ### IV.3 — Vibration: "Nothing rests; everything moves; everything vibrates"
@@ -228,7 +226,7 @@ Hot and cold are the same thing at different degrees. The practical tool: when e
 
 The pendulum swings. Every advance contains within it the energy of the corresponding retreat.
 
-**For production cycles**: Long-form production at 4/month is a rhythm, not a constant. Within it there are micro-rhythms: the first day of a new project has a different quality than the fourth day of revision; the week after delivery has a different quality than the week before. Map these micro-rhythms explicitly. Schedule the tasks that require generative creative energy (concept development, first cuts) for the expansion phases; schedule the tasks that require precision and patience (color grading, export, delivery) for the contraction phases.
+**For project cycles**: A sustained delivery cadence is a rhythm, not a constant. Within it there are micro-rhythms: the first day of a new project has a different quality than the fourth day of revision; the week after delivery has a different quality than the week before. Map these micro-rhythms explicitly. Schedule the tasks that require generative creative energy (concept development, first drafts) for the expansion phases; schedule the tasks that require precision and patience (refinement, finishing, delivery) for the contraction phases.
 
 **For business development**: Client acquisition happens in waves, not in linear progression. Attempting to maintain constant client development output fights the rhythm and produces inconsistent results. Instead: identify the rhythm of your acquisition cycle and design deliberately for its phases — intensive outreach during expansion, deepening with existing clients during contraction.
 
@@ -248,7 +246,7 @@ Nothing happens by chance. The level of mastery in any domain is correlated with
 
 The Hermetic masculine principle is projective (initiating, directing, outward-moving); the feminine is receptive (containing, shaping, inward-drawing). Both exist in all phenomena.
 
-**In creative work**: The masculine principle generates (the brief, the concept, the first cut); the feminine principle shapes and refines (the edit, the color grade, the sound mix). The **failure mode** of pure masculine creative operation: technically accomplished work that feels incomplete, that forces rather than invites, that has visual ideas stated but not *allowed to breathe*. The feminine creative operation allows the work to reveal what it *wants to be*, not just what was planned for it. The quality leap for Marcel: develop the capacity to be fully receptive to a project — to listen to what it is *already* — before directing it.
+**In creative work**: The masculine principle generates (the brief, the concept, the first draft); the feminine principle shapes and refines (revision, finishing, the final pass). The **failure mode** of pure masculine creative operation: technically accomplished work that feels incomplete, that forces rather than invites, that has visual ideas stated but not *allowed to breathe*. The feminine creative operation allows the work to reveal what it *wants to be*, not just what was planned for it. The quality leap for Marcel: develop the capacity to be fully receptive to a project — to listen to what it is *already* — before directing it.
 
 **In client architecture**: Masculine operation in a client relationship: clear proposal, defined scope, structured deliverables, firm rates. Feminine operation: deep listening to what the client actually needs beneath what they're asking for, sensitivity to when the brief is wrong before it becomes a problem, intuitive assessment of whether the relationship is alive. Both are required. Exclusive masculine operation produces technically correct but relational inadequate client work. Exclusive feminine operation produces excellent relationship quality and scope creep.
 
@@ -406,7 +404,7 @@ The practical implication: to receive a specific planetary influence (solar vita
 
 This is not superstition. It is **correspondence-based environmental design**: the deliberate construction of a sensory environment tuned to activate specific mental states and cognitive qualities. The modern equivalents are understood: lighting color temperature affects productivity; certain music activates flow states; scent is the most direct sensory pathway to the limbic system (memory and emotional state). Ficino's planetary magic is the systematic codification of what we now call environmental design applied to consciousness optimization.
 
-**Direct application for Marcel**: Identify which planetary principles need to be stronger in each type of work. Pre-production concept work → Mercurial or Saturnine environment (contemplative, intellectually structured). Color grading → Solar or Martial environment (confident, precise, energetically decisive). Client meetings → Jovial environment (harmonious, generous, warm). Build corresponding environmental protocols.
+**Direct application for Marcel**: Identify which planetary principles need to be stronger in each type of work. Early concept work → Mercurial or Saturnine environment (contemplative, intellectually structured). Precision finishing work → Solar or Martial environment (confident, precise, energetically decisive). Client meetings → Jovial environment (harmonious, generous, warm). Build corresponding environmental protocols.
 
 ### VII.2 — The Ars Notoria: Sacred Notation
 
@@ -595,7 +593,7 @@ Marcel is at the **late Nigredo / early Albedo threshold** (as of April 2026). T
 **What this means for how YURI delivers**:
 - The Nigredo has done its work: the conventional frameworks have been dissolved. The question is no longer "which established path do I follow?" The question is "what is the essential structure of what I'm actually building?"
 - The Albedo work is *clarification*, not construction. Do not build new structures before the distillation of existing material is complete.
-- The primary Albedo operation for Marcel: identifying, with precision, the *core essential* in each domain (post-production, AI automation, esoteric framework, Japanese) — not the fullest expression of each, but the *purest* expression. What is irreducibly essential to each? What can be released without loss?
+- The primary Albedo operation for Marcel: identifying, with precision, the *core essential* in each domain (creative work, AI automation, esoteric framework, Japanese) — not the fullest expression of each, but the *purest* expression. What is irreducibly essential to each? What can be released without loss?
 - The Citrinitas threshold (solar emergence — the point at which the work begins to generate its own heat and light, to be recognizable as *distinctly itself* from a distance) approaches when the Albedo distillation has achieved sufficient purity. The signal: when the work produces unexpected resonance in others without explanation.
 - YURI tracks this stage explicitly and adjusts output accordingly: Albedo-phase Marcel needs *clarification tools*, not *expansion tools*. The operational question is not "what else can be added?" but "what remains when everything inessential is removed?"
 

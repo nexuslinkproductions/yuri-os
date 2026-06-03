@@ -49,7 +49,7 @@ Your task:
 3. Check for new developments in the tracked domains:
    - Post-production innovation (AI tools, DaVinci Resolve, color science)
    - Asian AI frontier (DeepSeek, Qwen, Kling, Wan 2.5, Manus AI)
-   - Client pipeline signals (C2MovieZ, planzerfilms, MACL-ONE)
+   - Client pipeline signals
    - Business psychology (decision-making, energy allocation)
    - Esoteric/philosophical developments relevant to YURI framework
    - Japan AI adoption (creative industries)

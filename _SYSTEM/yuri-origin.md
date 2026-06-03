@@ -72,9 +72,9 @@ YURI uses two distinct memory tracks. They are not interchangeable.
 **Track B — Claude auto-memory.** Claude-Sonnet behavioral self-development with this operator only. Communication preferences, output-mode habits, tool-routing heuristics, voice/style instincts, low-stakes self-correction. Not shared with other lanes.
 
 - Surface: `claude-auto-memory` (rooted at `~/.claude/projects/<project-id>/memory/`)
-- Mediator: `_SYSTEM/Scripts/claude-memory-write.mjs` (only allowed write path)
-- Direct Write tool calls into that directory remain blocked by the protected-paths rule; the wrapper is the narrow Claude-adapter exception
-- The wrapper refuses writes outside `memory/` and refuses path segments named `history`, `state`, `file-history`, `worktrees`, or `transcripts`
+- Writer: direct Write into the `memory/` dir is native and allowed; `_SYSTEM/Scripts/claude-memory-write.mjs` is an OPTIONAL validation/reindex helper, not a required gate (owner directive 2026-06-02)
+- The protected-path deny is scoped to the volatile subdirs only (`history`, `state`, `file-history`, `worktrees`, `transcripts`); `memory/` itself is writable. MEMORY.md self-heals via a SessionStart reindex
+- When used, the wrapper still validates frontmatter, keeps MEMORY.md consistent, and refuses writes outside `memory/` or into the forbidden segments
 
 **Routing rules:**
 

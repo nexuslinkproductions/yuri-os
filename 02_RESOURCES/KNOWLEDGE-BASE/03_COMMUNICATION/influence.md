@@ -37,7 +37,7 @@ The norm of reciprocity is among the most universal across cultures: receiving c
 
 Giving first, without contingency, triggers reciprocity. The key: **uninstructed, unexpected, personalized.** A gift that feels like a strategy undermines itself. A gift that is genuine and fits the specific person activates reciprocity at full strength.
 
-Application: providing genuine value (expertise, insight, problem-solving) before asking for anything. Sharing relevant knowledge with Claudio or potential clients before pitching. The gift of useful information is one of the highest-leverage forms.
+Application: providing genuine value (expertise, insight, problem-solving) before asking for anything. Sharing relevant knowledge with prospects or potential clients before pitching. The gift of useful information is one of the highest-leverage forms.
 
 ### 2. Commitment and Consistency
 
@@ -54,13 +54,13 @@ Under uncertainty, people look at what others are doing to determine correct beh
 - The social proof is specific and concrete ("17 brands in this sector" not "many brands")
 - The decision-maker is uncertain (social proof fills uncertainty; it does not override confidence)
 
-Application: testimonials, case studies, named clients, and visible partnerships activate social proof. For Nexus Link, association with established agency clients (C2MovieZ) provides social proof upstream for new direct clients.
+Application: testimonials, case studies, named clients, and visible partnerships activate social proof. For Nexus Link, association with established agency clients provides social proof upstream for new direct clients.
 
 ### 4. Authority
 
 Humans follow perceived experts. Authority signals include: credentials, titles, professional dress, artifacts of expertise (specific technical vocabulary, equipment, publications), third-party validation, and physical context (office environment, professional materials). The authority heuristic is activated before deep evaluation — the shortcut is: "they know what they're doing, so I can follow."
 
-Authority requires signaling. Expertise unexpressed is expertise undetected. Volunteering relevant specific knowledge in conversation, having visible artifacts of professional capability (a tight portfolio, a premium production setup, specific references to technical challenges solved), and being referenced by other authority figures (Claudio's recommendation to his network) all construct authority representation.
+Authority requires signaling. Expertise unexpressed is expertise undetected. Volunteering relevant specific knowledge in conversation, having visible artifacts of professional capability (a tight portfolio, a premium production setup, specific references to technical challenges solved), and being referenced by other authority figures (a peer's recommendation to their network) all construct authority representation.
 
 ### 5. Liking
 

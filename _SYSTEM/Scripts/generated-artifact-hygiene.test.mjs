@@ -128,7 +128,6 @@ function compareViolationPriority(left, right) {
 }
 
 function violationPriority(violation) {
-  if (/exeoflow/i.test(violation.sourcePath)) return 2;
   if (violation.sourcePath.startsWith('_SYSTEM/backend/src/')) return 1;
   return 0;
 }

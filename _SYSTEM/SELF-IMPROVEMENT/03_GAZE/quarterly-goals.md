@@ -16,9 +16,9 @@
 
 ### Goal 1: Client Pipeline Stability
 
-**One sentence:** Establish C2MovieZ and planzerfilms as reliable monthly retainer or recurring project bases so income doesn't require constant new acquisition.
+**One sentence:** Establish reliable monthly retainer or recurring project bases so income doesn't require constant new acquisition.
 
-**Measurable outcome:** Combined monthly revenue from C2MovieZ + planzerfilms covers baseline living costs (rent, food, subscriptions, transport) without dipping into savings for 3 consecutive months.
+**Measurable outcome:** Combined monthly revenue covers baseline living costs (rent, food, subscriptions, transport) without dipping into savings for 3 consecutive months.
 
 **Blocking question:** What is the actual monthly baseline, and do you have a clear monthly commitment amount from each client?
 

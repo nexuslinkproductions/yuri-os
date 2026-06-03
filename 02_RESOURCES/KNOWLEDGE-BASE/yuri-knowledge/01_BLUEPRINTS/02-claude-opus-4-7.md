@@ -155,14 +155,8 @@ Step 5: Ship or /rewind if wrong path
 - Timeline: 20 minutes
 - Validation: Run security scans to verify findings
 
-**Example 2: Color Science Consultation**
-- Scope: Should we use DaVinci Resolve or Premiere Pro color?
-- Invocation: "Explain the difference. What's the trade-off for commercial work?"
-- Cost: $1–2
-- Timeline: 5 minutes
-
-**Example 3: Business Strategy (C2MovieZ Partnership)**
-- Scope: How should we structure pricing for new service offering?
+**Example 2: Business Strategy (New Service Offering)**
+- Scope: How should we structure pricing for a new service offering?
 - Invocation: "Analyze market, competitors, margins. What's our positioning?"
 - Cost: $3–5
 - Timeline: 15 minutes

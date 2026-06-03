@@ -69,7 +69,6 @@ These dirs exist in mirror but not root, and contain **0 files**:
 - `04_FINANCE/2024`, `04_FINANCE/2025`, `04_FINANCE/2026/{Bank-Statements,Expenses,Invoices-Out,Tax,token-tracking}`
 - `05_NEXUS-LINK/{Legal,Portfolio,Services,Strategy}`
 - `02_AREAS/{Health,Learning,Network,Tech-Setup}`
-- `06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/{CASA,SHI,UPG}`
 
 ### 4.2 Unique content with real bytes (NEEDS RECONCILIATION)
 These exist only in mirror and have content:
@@ -81,7 +80,6 @@ These exist only in mirror and have content:
 - `YURI/05_NEXUS-LINK/CLAUDE.md`
 - `YURI/06_NETWORK-SYNC/MOC-Network.md`
 - `YURI/Untitled.canvas` (Obsidian canvas)
-- `YURI/iC2M/` — entire client-folder snapshot (CASA, JUCHLER, ASSI, BOV/boviro-satisfaction-tool)
 - NABU/02_GOVERNANCE through 07_FUTURES (skeleton dirs, mostly README.md only)
 - NISABA/01_DEPLOYMENT through 07_CANON, plus `nisaba.md`
 
@@ -91,7 +89,6 @@ Including these high-stakes files where mirror and root have diverged:
 - `00_COMMAND-CENTER/HOME.md`, `Dashboards/Active-Projects.md`
 - `01_PROJECTS/{CLAUDE.md,MOC-Projects.md}`, `NEXUS-LINK-LANDING/README.md`
 - `06_KNOWLEDGE-BASE/REPORT.md`
-- `06_NETWORK-SYNC/C2MOVIEZ/{SETUP-GUIDE,_MAPPING,_SYNC-STATUS}.md`, `Database/Home.md`, `Database/06 - Processes/Sales Process.md`, `Database/07 - Resources/Offering Packages.md`
 - `_SYSTEM/SELF/Instructions.md`, `_SYSTEM/{token-regulation-policy,token-tracker}.md`
 - `01_PROJECTS/{claude-mem,gstack,superpowers}/...` (embedded-repo SKILL.md drift)
 
@@ -108,7 +105,7 @@ diff -u YURI/CLAUDE.md ./CLAUDE.md
 These were intentionally NOT done autonomously because they require your judgment.
 
 ### A. YURI/ mirror disposition
-**Recommended:** review the 7 diverged top-level docs (`CLAUDE.md`, `AGENTS.md`, `STRUCTURE.md`, `README.md`, `AEONIC_PROTOCOL.md`, `CODEX_PROTOCOL.md`, `01_PROJECTS/MOC-Projects.md`) for anything worth merging, archive `iC2M/` to `07_ARCHIVE/iC2M/`, then `rm -rf YURI/` (it's already gitignored). The remaining unique content (NABU/NISABA skeletons, _SYSTEM mirror files) appears to be older snapshots already superseded at root.
+**Recommended:** review the 7 diverged top-level docs (`CLAUDE.md`, `AGENTS.md`, `STRUCTURE.md`, `README.md`, `AEONIC_PROTOCOL.md`, `CODEX_PROTOCOL.md`, `01_PROJECTS/MOC-Projects.md`) for anything worth merging, then `rm -rf YURI/` (it's already gitignored). The remaining unique content (NABU/NISABA skeletons, _SYSTEM mirror files) appears to be older snapshots already superseded at root.
 
 ### B. RESEARCH/ move to 06_KNOWLEDGE-BASE/
 **Blocker:** `CLAUDE.md` line 7 references `RESEARCH/04-BRAIN-DUMP-DECODER.md`. Other refs found in `RESEARCH/{DESIGN-IMPLEMENTATION-PROMPT,MASTER-PROMPT-GPT5}.md` and `RESEARCH/jake-van-klief/...`. Move requires concurrent `sed -i '' 's|RESEARCH/|06_KNOWLEDGE-BASE/RESEARCH/|g'` across all referencing files. Skip unless you want consolidated KB structure now.
@@ -166,7 +163,6 @@ The original master prompt's "30+ root items" was actually **42 dirs + ~25 root 
   git rm -r --cached graph/
   git commit -m "stop tracking auto-generated graph/ artifacts"
   ```
-- `iC2M/` — **109 tracked files** (client docs: ALP, ALPEA, ASSI, BABA, BAL, BOV, etc.). Looks like an active client-folder snapshot at root, mirroring some content also in `YURI/iC2M/`. Decide: leave at root, or move into `06_NETWORK-SYNC/iC2M/` and update refs.
 - `claude-palace-out/` — 4 tracked files. Memory says PALACE is a knowledge-graph artifact. Verify intent.
 
 ### Other root-level dirs not in master prompt:

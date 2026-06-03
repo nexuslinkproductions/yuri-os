@@ -126,10 +126,10 @@ This tells you which work is "expensive but worth it" vs "expensive and wasteful
 
 Example:
 ```
-### SESSION 2026-04-19 22:00 — C2MOVIEZ Project Planning
+### SESSION 2026-04-19 22:00 — Client Project Planning
 - Estimated tokens: 12K
 - Tools: Bash×5, Read×4, TodoWrite×1
-- Accomplishment: Defined on-set workflow, created shoot template
+- Accomplishment: Defined project workflow, created planning template
 - Anomalies: none
 - Notes: Efficient deep work. 12K is appropriate for scope.
 ```

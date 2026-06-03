@@ -43,7 +43,6 @@ const DIR_DOMAIN_MAP = {
     '00_COMMAND-CENTER':                  'COMMAND',
     'NEURAL-NETWORK':                     'NEURAL',
     'iC2M':                               'PROJECT_ENGINE',
-    '06_NETWORK-SYNC/C2MOVIEZ':           'CLAUDIO_VAULT',
     '01_PROJECTS':                        'PROJECTS',
 };
 

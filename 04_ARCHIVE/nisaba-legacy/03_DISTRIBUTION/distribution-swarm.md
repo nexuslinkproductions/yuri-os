@@ -50,7 +50,7 @@ Every agent reads from and writes to a shared state directory: `.nisaba/distribu
 1. Read the project's topic definition (.nisaba/distribution/topics.md)
 2. Search 4 channels:
    - Hacker News (front page + "Show HN" + "Ask HN")
-   - Reddit (configured subreddits — r/SaaS, r/webdev, r/filmmaking, r/cinematography)
+   - Reddit (configured subreddits — r/SaaS, r/webdev)
    - X/Twitter (configured keywords)
    - Google Trends (configured terms)
 3. Score each opportunity:
@@ -67,14 +67,7 @@ Every agent reads from and writes to a shared state directory: `.nisaba/distribu
 
 ## Top Opportunities (score ≥ 6)
 
-### 1. "How to automate video delivery for clients" (Score: 8)
-- Source: Reddit r/videography — 47 upvotes, 12 comments, 6 hours ago
-- URL: https://reddit.com/r/videography/...
-- Gap: No one mentioned automated delivery pipelines
-- Our angle: Nexus Link's client portal approach
-- Keyword: "automated video delivery"
-
-### 2. "Best practices for AI agent orchestration" (Score: 7)
+### 1. "Best practices for AI agent orchestration" (Score: 7)
 - Source: Hacker News — 89 points, 34 comments, 14 hours ago
 - URL: https://news.ycombinator.com/item?id=...
 - Gap: Most comments discuss single-agent approaches, not swarms
@@ -96,7 +89,6 @@ Every agent reads from and writes to a shared state directory: `.nisaba/distribu
 - AI agent orchestration
 - Autonomous coding workflows
 - Claude Code automation
-- Video production automation
 - Client portal design
 - SaaS building with AI
 
@@ -110,15 +102,11 @@ Every agent reads from and writes to a shared state directory: `.nisaba/distribu
 - r/SaaS
 - r/webdev
 - r/ClaudeAI
-- r/videography
-- r/cinematography
-- r/Filmmakers
 
 ## Keywords for X/Twitter
 - "claude code"
 - "AI agents"
 - "ship faster"
-- "video production workflow"
 ```
 
 ---
@@ -296,9 +284,9 @@ NEVER:
 ```markdown
 # Community Drafts — 2026-04-19
 
-## Thread 1: "How to automate video delivery for clients"
-Platform: Reddit r/videography
-URL: https://reddit.com/r/videography/...
+## Thread 1: "How to automate file delivery for clients"
+Platform: Reddit r/SaaS
+URL: https://reddit.com/r/SaaS/...
 Score: 8 (from Scout)
 
 ### Draft Reply:
@@ -425,7 +413,6 @@ Aggregated weekly:
 ## Feedback to Scout
 INCREASE priority: "AI agent orchestration", "autonomous coding"
 DECREASE priority: "getting started" / introductory content
-NEW signal: "video production automation" trending in r/videography (test next week)
 SATURATED: "prompt engineering tips" (declining engagement 3 weeks running)
 ```
 
@@ -500,25 +487,16 @@ Sunday 20:00  MEASURER  — weekly measurement + feedback
 
 ### Nexus Link Productions
 ```
-Topics: commercial videography, client management, video delivery, creative direction
-Platforms: Instagram (carousels + reels), YouTube (behind-the-scenes), LinkedIn (case studies)
+Topics: client management, creative direction, brand strategy
+Platforms: Instagram (carousels), LinkedIn (case studies)
 Voice: professional but personable, Austrian/German market awareness
-Carousel style: cinematic, dark backgrounds, high-contrast text
-Community: r/videography, r/cinematography, r/Filmmakers
-```
-
-### EXEOFLOW
-```
-Topics: AI automation, SaaS building, developer productivity, agent orchestration
-Platforms: Blog (primary), X/Twitter (threads), Reddit (r/SaaS, r/ClaudeAI)
-Voice: technical, specific, no-bullshit, lead with numbers
-Carousel style: tech-clean, dark mode, monospace accents
-Community: r/SaaS, r/webdev, Hacker News
+Carousel style: dark backgrounds, high-contrast text
+Community: LinkedIn B2B
 ```
 
 ### Personal brand (Marcel Spatz)
 ```
-Topics: building in public, Japanese learning, cinematography + AI intersection
+Topics: building in public, Japanese learning, AI systems
 Platforms: X/Twitter (primary), Instagram (secondary)
 Voice: honest, in-progress, showing work not polished results
 Community: building in public communities, language learning communities

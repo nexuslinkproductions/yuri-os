@@ -2,7 +2,7 @@
 
 **Status:** Live  
 **Last updated:** 2026-04-19  
-**Maintainers:** Marcel + Claudio (post-sync)
+**Maintainers:** Marcel
 
 ---
 
@@ -62,7 +62,6 @@ Rules live in these `.md` files:
 | File | Domain |
 |------|--------|
 | `global.md` | Cross-cutting behaviors |
-| `on-set.md` | Shot lists, call sheets, equipment |
 | `finance.md` | Invoices, expenses, accounting |
 | `briefs.md` | Client proposals, specs, briefs |
 | `client-comms.md` | Email tone, meeting notes, updates |
@@ -73,7 +72,7 @@ Each file has a "Rules" section where new rules appear.
 
 ## Manual Adjustments
 
-You and Claudio can **directly edit rule files** post-sync:
+You can **directly edit rule files**:
 
 1. Open any `.md` file
 2. Add rules manually under "## Rules"
@@ -123,18 +122,6 @@ Used by Dream Worker for pattern detection. Safe to clean up if it grows too lar
 **Rules too aggressive?**
 - Increase `minSessionsForRule` to 3–4
 - Manually delete rules from `.md` files
-- Claudio can override after sync
-
----
-
-## Adjusting for C2MOVIEZ Sync
-
-Once you and Claudio sync:
-
-1. **Review all rule files** — decide which apply broadly vs. just your workflow
-2. **Adjust thresholds** in `config.json` (e.g., more conservative for shared domains)
-3. **Add domain-specific overrides** (e.g., "on-set" rules differ for location scouts vs. directors)
-4. **Consider shared rules** (e.g., "briefs" and "client-comms" will need alignment)
 
 ---
 

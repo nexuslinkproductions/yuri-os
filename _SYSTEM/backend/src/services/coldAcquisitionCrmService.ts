@@ -12,7 +12,7 @@ import {
     ZefixBulkRecord
 } from './coldAcquisitionService';
 
-export const CRM_SESSION_COOKIE = 'c2moviez_acquisition_session';
+export const CRM_SESSION_COOKIE = 'acquisition_session';
 
 export type ColdAcquisitionCrmRole = 'admin' | 'operator';
 
@@ -491,9 +491,9 @@ export class ColdAcquisitionCrmService {
 
     getWebhookConfig() {
         return {
-            configured: Boolean(process.env.C2MOVIEZ_LEAD_WEBHOOK_URL && process.env.C2MOVIEZ_LEAD_API_KEY),
-            endpoint: process.env.C2MOVIEZ_LEAD_WEBHOOK_URL ? 'configured' : 'missing',
-            api_key: process.env.C2MOVIEZ_LEAD_API_KEY ? 'configured' : 'missing'
+            configured: Boolean(process.env.COLD_ACQ_LEAD_WEBHOOK_URL && process.env.COLD_ACQ_LEAD_API_KEY),
+            endpoint: process.env.COLD_ACQ_LEAD_WEBHOOK_URL ? 'configured' : 'missing',
+            api_key: process.env.COLD_ACQ_LEAD_API_KEY ? 'configured' : 'missing'
         };
     }
 

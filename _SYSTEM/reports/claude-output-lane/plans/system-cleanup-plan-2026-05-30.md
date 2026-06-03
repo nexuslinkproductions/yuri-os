@@ -18,7 +18,7 @@
 
 - KEEP-for-safety flags (any reference OR active-resume ambiguity → kept): **1** in reports (`RESUME_backend-removal`), plus all 41 `_SYSTEM` KEEPs are reference-proven (no guesswork).
 - Highest-confidence ARCHIVE candidates: 48 `_SYSTEM`-root zero-ref files + 21 reports zero-ref proofs/audits.
-- **Late reclassification (post-deep-grep):** `EVONEXUS_PROTOCOLS.md`, `memory-layer-spec.md`, `token-tracker.md` moved ARCHIVE→KEEP — each has a verified live script referencer (see 2a). They are NOT in the `git mv` block.
+- **Late reclassification (post-deep-grep):** `memory-layer-spec.md`, `token-tracker.md` moved ARCHIVE→KEEP — each has a verified live script referencer (see 2a). They are NOT in the `git mv` block.
 
 ---
 
@@ -48,7 +48,6 @@
 | `token-orchestrator.sh` | `token-guardian.sh` (REFS=1) |
 | `design-memory.json` | `design-suite.mjs` (REFS=1) |
 | `yuri-cognitive-persona-rationale.md` | `_SYSTEM/SELF/marcel-operating-brain.md` (REFS=2) |
-| `EVONEXUS_PROTOCOLS.md` | `yuri-exeoflow-assimilation.test.mjs` (deep-grep) |
 | `memory-layer-spec.md` | `memory-evict.mjs` (deep-grep) |
 | `token-tracker.md` | `self-hypothesis.mjs` (deep-grep) |
 

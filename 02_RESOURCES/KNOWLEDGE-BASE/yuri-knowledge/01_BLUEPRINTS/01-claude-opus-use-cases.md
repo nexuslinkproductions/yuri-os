@@ -151,25 +151,25 @@ Step 6: Ship or iterate
 
 ## VIII. REAL-WORLD EXAMPLES (Marcel's Context)
 
-**Example 1: Video Color Grading Direction**
-- Problem: Client wants "cinematic but naturalistic" color grade; aesthetic ambiguity
+**Example 1: Ambiguous Creative Direction Call**
+- Problem: Client wants a deliverable that is "bold but understated"; aesthetic ambiguity
 - Stakes: $5k project; client satisfaction depends on creative direction alignment
-- Error cost: Regrading entire project = $2k+ time
+- Error cost: Reworking the entire deliverable = $2k+ time
 - Decision: Opus 4.7 (xhigh)
-- Invocation: "Review raw footage; recommend LUT + grade direction based on scene mood"
-- Output: Color science + aesthetic reasoning (Opus specialization)
+- Invocation: "Review the brief and reference set; recommend a direction grounded in the stated mood"
+- Output: Aesthetic reasoning + tradeoff analysis (Opus specialization)
 - Validation: Marcel reviews; decides accept/modify
 - Cost: $1.50
 
 **Example 2: Automated Metadata Tagging**
-- Problem: Tag 500 clips with keywords, color temp, camera settings
+- Problem: Tag 500 assets with keywords against a known taxonomy
 - Stakes: $0 (metadata; doesn't affect final output)
 - Complexity: Defined format, known fields
 - Decision: Sonnet + routine automation
 - Cost: $0.05–0.10 per batch of 50
 
 **Example 3: Business Partnership Evaluation**
-- Problem: Should Nexus Link partner with new production company? (novel partnership, ambiguous terms)
+- Problem: Should Nexus Link partner with a new agency? (novel partnership, ambiguous terms)
 - Stakes: $50k+ annual revenue potential
 - Complexity: Cultural fit, financial risk, growth alignment
 - Decision: Opus 4.7 (max)

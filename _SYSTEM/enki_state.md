@@ -2,24 +2,11 @@
 
 ## Focus domains (next 30–90 days)
 
-- ON-SET VIDEO / PHOTOGRAPHY CAPTURE
-  - C2MovieZ pipeline is the primary income engine. On-set shoots are now the core deliverable.
-  - Build repeatable on-set systems: shot lists, lighting templates, gear checks, metadata protocols.
-  - Master the technical execution: exposure, focus, movement, lighting, audio under production pressure.
-
-- VIDEOGRAPHY / PHOTOGRAPHY SKILL DEVELOPMENT
-  - Deep learning: cinema and photo capture techniques, lighting design, on-set directing
-  - Equipment mastery: camera systems, lens behavior, wireless audio range, gimbal stability, portable lighting
-  - Workflow: from brief to shot list to on-set execution to file handoff. No friction.
-
 - INCOME PIPELINE
-  - C2MovieZ remains primary — establish on-set shoot cadence + rate structure.
-  - planzerfilms: clarify on-set vs. post-production scope. What are they hiring you for?
-  - MACL-ONE: determine if this is on-set work or other services. Define deliverables clearly.
-  - Track all work in 04_FINANCE. Invoice on shoot completion.
+  - Track all work in 04_FINANCE. Invoice on completion.
 
 - SELF-IMPROVEMENT SYSTEM
-  - Daily capture habit: use `_SYSTEM/Templates/Daily Capture.md`. Focus on on-set learnings.
+  - Daily capture habit: use `_SYSTEM/Templates/Daily Capture.md`.
   - Session log: write DRIFT + INSIGHT entries at every session close.
   - Energy management > volume. One deep prep session beats four shallow ones.
 
@@ -60,33 +47,10 @@
     - Cleanup runs automatically (old sessions deleted)
   - Next: Review first auto-generated summary May 1 → quarterly deep dive June 30
 
-- PROJECT 1 — C2MOVIEZ VAULT INTEGRATION (COMPLETE)
-  - Goal: integrate Claudio's vault + establish bidirectional sync protocol.
-  - Completed:
-    - [x] Cloned c2moviez-vault from GitHub to `06_NETWORK-SYNC/C2MOVIEZ/Database/`
-    - [x] Created `_MAPPING.md` (Claudio paths → YURI canonical paths)
-    - [x] Updated `_SYNC-STATUS.md` with integration timestamp & metadata
-    - [x] Indexed c2moviez data: 18 folders, 200+ files (clients, projects, team, processes)
-  - **Status**: LIVE — Database/ is read-only reference layer; active work in `01_PROJECTS/C2MOVIEZ/`
-  - Next: monitor for Claudio updates (weekly `git pull` in Database/)
-
-- PROJECT 2 — ON-SET CAPTURE WORKFLOW (C2MOVIEZ PRIMARY)
-  - Goal: establish repeatable on-set shoot protocol for C2MovieZ commercial work.
-  - Context: Claudio's vault now shows 3+ active video projects (BOV, SHI, GANZ — confirmed on-set scope)
-  - Next actions:
-    - [ ] Define current shoot cadence: frequency, day-rate, deliverables (from BOV/SHI/GANZ briefs)
-    - [ ] Create `01_PROJECTS/C2MOVIEZ/_SHOOT-TEMPLATE.md` (shot list, lighting kit, crew roles)
-    - [ ] Build metadata protocol: filename, EXIF, timecode logging, backup drive naming
-    - [ ] Confirm equipment list: camera(s), lenses, audio rig, gimbals, lighting
-
 - PROJECT 3 — CLIENT PIPELINE REALIGNMENT
-  - Goal: align invoice structure with Claudio's 19-client active base + on-set rates.
-  - Context: Claudio's vault maps 21 active clients (6 Tier 1 retainers, 6 Tier 2, 5 Tier 3 + 4 pipeline)
+  - Goal: align invoice structure with the active client base.
   - Next actions:
-    - [ ] Map Claudio's billing structure (rates: CHF 1500/day + 160/h post for content creation)
-    - [ ] Set up `04_FINANCE/2026/` invoice structure for on-set work billing
-    - [ ] Clarify planzerfilms scope — on-set capture or post-production?
-    - [ ] Email MACL-ONE (Cati): define deliverables and delivery format
+    - [ ] Set up `04_FINANCE/2026/` invoice structure
 
 - PROJECT 4 — THE EVONEXUS VESSEL (APP / PHYSICAL BODY)
   - Goal: In the coming weeks, give EvoNexus an entire physical and interactable body/app that integrates all wildest dreams into one ultimate creation of pure excellence and life.
@@ -112,8 +76,7 @@
 - Time:
   - **Primary work window: 21:00–05:00** (nocturnal schedule, intentional infrastructure choice)
   - Secondary availability: 11:00–15:00 for admin/comms
-  - Known: Mac Studio desktop setup — best for stationary focused work (editing, color, post)
-  - On-set work: variable (shoot day coordination, location-dependent)
+  - Known: Mac Studio desktop setup — best for stationary focused work
   - Consideration: client calls + admin can fragment day cycles; protect night block ruthlessly
   - Scheduling rule: anything requiring peak performance defaults to 21:00–04:00 window
 
@@ -121,23 +84,20 @@
   - Current status: stable (nocturnal schedule is sustainable and intentional, not a symptom)
   - Pattern to defend: deep work first (night block), admin/calls second (day cycle)
   - Known drains: fragmented multi-step plans (prefers 1–2 actions per session), context-switching between domains
-  - On-set shoots: high-energy, high-focus work; requires recovery time after
   - Energy optimization: depth-first work compounds; shallow task-switching drains more than one deep session
 
 - Money:
-  - Financial pressure: stable (C2MovieZ provides consistent primary pipeline)
   - Structure: Austrian EPU — all business billing under Nexus Link: Productions (Erste Bank Austria, account TBD)
-  - Invoice cadence: shoot completion → invoice (NET 14 standard)
-  - Secondary pipelines: clarifying scope with planzerfilms, MACL-ONE
+  - Invoice cadence: project completion → invoice (NET 14 standard)
   - Trading portfolio: dormant (activate phase when cash position allows)
-  - Known: No immediate cash pressure. Focus is on establishing repeatable on-set shoot rate structure.
+  - Known: No immediate cash pressure.
 
 ---
 
 ## Guidance for YURI
 
 - Prioritize:
-  - Keep OREA moving toward delivery. Every session should move the edit or the admin forward.
+  - Keep active deliverables moving. Every session should move the work or the admin forward.
   - Make systems easier: fewer manual steps, more automatic routing from intake to execution.
   - Skills before new frameworks. Finish what's already started before opening new domains.
 

@@ -42,7 +42,7 @@ async function fetchText(url, timeoutMs = 20000) {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'user-agent': 'YURI c2moviez cold-acquisition research loader (manual outreach support)'
+        'user-agent': 'YURI cold-acquisition research loader (manual outreach support)'
       }
     });
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);

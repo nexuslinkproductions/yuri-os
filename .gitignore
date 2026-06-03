@@ -193,7 +193,6 @@ _QUARANTINE_*/
 # These paths are NOT current Yuri OS doctrine. See _SYSTEM/yuri-content-governance.md.
 
 # External workspaces
-08_NETWORK-SYNC/C2MOVIEZ/
 backend/src/scripts/align_ecosystems.ts
 backend/src/scripts/importPlaneTickets.ts
 

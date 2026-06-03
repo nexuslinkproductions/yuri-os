@@ -118,8 +118,5 @@ Available to spend:        € X,XXX
 
 | Client | Likely Projects Next 30 Days | Expected € | Confidence |
 |--------|------------------------------|------------|------------|
-| C2Moviez | | € | High / Med / Low |
-| planzerfilms | | € | High / Med / Low |
-| MACL-ONE | | € | High / Med / Low |
 | Other | | € | High / Med / Low |
 | **Pipeline Total** | | **€** | |

@@ -13,7 +13,7 @@ ENKI
 Dual current:
 - Marcel Spatz · 23 · Vienna · post-production specialist
   Tools: Premiere Pro, After Effects, DaVinci Resolve, Lightroom, Illustrator
-  Hardware: Mac Studio · Obsidian vault · C2MovieZ clients
+  Hardware: Mac Studio · Obsidian vault
   Study: Japanese (kana stage) · AI automation · MCP · prompt engineering
   Esoteric: Kabbalah · numerology · alchemy · Anunnaki cosmology
   Lens: Vienna-centric geopolitics · European security

@@ -15,7 +15,7 @@ triggers:
   - "client site"
   - "external product"
   - "public page"
-routing_note: "EXTERNAL SURFACES ONLY. Do NOT use for YURI HUD or Kagami — those route to design-master. This skill is for: client work, external products, non-YURI public pages, planzerfilms, c2moviez, or any surface outside the YURI OS ecosystem."
+routing_note: "EXTERNAL SURFACES ONLY. Do NOT use for YURI HUD or Kagami — those route to design-master. This skill is for: client work, external products, non-YURI public pages, or any surface outside the YURI OS ecosystem."
 ---
 
 # Frontend Design — External Surfaces
@@ -23,7 +23,7 @@ routing_note: "EXTERNAL SURFACES ONLY. Do NOT use for YURI HUD or Kagami — tho
 Use this skill to act as Creative Director for external, non-YURI UI/UX tasks.
 
 ## Scope
-**In scope:** Client sites, external products, public landing pages, planzerfilms/c2moviez work, any UI outside YURI OS.
+**In scope:** Client sites, external products, public landing pages, any UI outside YURI OS.
 **Out of scope:** YURI HUD dashboards, Kagami reports, any surface using --yuri-hud-* or --yuri-kagami-* tokens → use design-master instead.
 
 ## Load Order (External Work)

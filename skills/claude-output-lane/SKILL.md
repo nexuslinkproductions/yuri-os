@@ -47,8 +47,8 @@ YYYY-MM-DD_<task-slug>_<lane>_<sublane>.md
 Examples:
 
 ```text
-2026-05-28_c2moviez-adapter_quantum_plan.md
-2026-05-28_c2moviez-adapter_prime_review.md
+2026-05-28_memory-adapter_quantum_plan.md
+2026-05-28_memory-adapter_prime_review.md
 2026-05-28_plugin-bridge_quantum_ideas.md
 ```
 

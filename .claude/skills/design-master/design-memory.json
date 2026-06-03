@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "lastUpdated": "2026-05-31T16:30:01.666Z",
+  "lastUpdated": "2026-06-03T12:03:59.401Z",
   "templates": {
     "kagami-sprint-audit": {
       "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
@@ -43,6 +43,62 @@
     }
   },
   "entries": [
+    {
+      "date": "2026-06-03",
+      "component": "index",
+      "file": "_SYSTEM/backend/public/acquisition/index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "marketing-studio",
+      "file": "01_PROJECTS/yuri-command-center-demo/Dashboard-v2/static/marketing-studio.html",
+      "action": "edit",
+      "decision": "Updated: marketing-studio"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "AboutPage",
+      "file": "_SYSTEM/src/pages/AboutPage.tsx",
+      "action": "edit",
+      "decision": "Updated: AboutPage"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "app",
+      "file": "01_PROJECTS/yuri-command-center-demo/Dashboard-v2/src/app.html",
+      "action": "edit",
+      "decision": "Updated: app"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "index",
+      "file": "00_COMMAND-CENTER/yuri-course/index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "_base",
+      "file": "00_COMMAND-CENTER/yuri-course/_base.html",
+      "action": "edit",
+      "decision": "Updated: _base"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "03-graph",
+      "file": "00_COMMAND-CENTER/yuri-course/modules/03-graph.html",
+      "action": "edit",
+      "decision": "Updated: 03-graph"
+    },
+    {
+      "date": "2026-06-02",
+      "component": "01-intro",
+      "file": "00_COMMAND-CENTER/yuri-course/modules/01-intro.html",
+      "action": "edit",
+      "decision": "Updated: 01-intro"
+    },
     {
       "date": "2026-05-31",
       "component": "energy-landscape-dashboard",

@@ -8,18 +8,6 @@
 
 What Marcel can do well *today* — these are reliable, deliverable, income-generating.
 
-### Creative Production
-| Capability | Proof | Est. Level |
-|-----------|-------|------------|
-| On-set cinema/photo capture | C2MovieZ + planzerfilms active | Professional |
-| Lighting design (key/fill/rim, color temp, contrast ratio) | On-set execution | Professional |
-| Post-production (Premiere, AE, Resolve) | Multi-project delivery | Professional |
-| Color grading (DaVinci Resolve) | Project track record | Advanced |
-| Gimbal/stabilization | On-set execution | Professional |
-| Wireless audio setup (lavalier, boom) | On-set execution | Professional |
-| Motion graphics (AE) | Project track record | Advanced |
-| Client architecture & production planning | C2MovieZ pipeline | Advanced |
-
 ### Systems Building
 | Capability | Proof | Est. Level |
 |-----------|-------|------------|
@@ -47,13 +35,10 @@ One step away. These leverage existing skills with modest new learning (2–6 we
 | Capability | Leverages | Time Estimate |
 |-----------|-----------|--------------|
 | **Prediction market bot (scan → signal)** | Systems building + market awareness | 4–6 weeks |
-| **Automated post-production workflow** | Resolve + Premiere + scripting | 2–3 weeks |
-| **DaVinci Resolve 21 AI tools** | Existing Resolve expertise | 1–2 weeks (beta now) |
 | **Client retainer architecture** | Existing client relationships | 1–2 weeks |
 | **Yuri Flow production infra** | Systems + creative production | 3–5 weeks |
 | **Medium Japanese conversation** | Hiragana/katakana + grammar base | 6–8 weeks |
 | **RAG-powered production assistant** | YURI RAG pipeline + creative knowledge | 3–4 weeks |
-| **Video compression/codec consulting** | Post-production depth | 1–2 weeks |
 
 ### Current Adjacent Focus
 
@@ -72,9 +57,7 @@ Requires dedicated learning, not just skill extension. 2–6 months each.
 | **Full Japanese proficiency (N3+)*** | Daily immersion, 1–2h/day | 12–18 months | 2–3 year relocation timeline |
 | **Options trading + strategy design** | Market fundamentals + paper bot running | 6–9 months | Start after bot is proven |
 | **Custom MCP server development** | Node.js, protocol design | 3–4 months | Enables deeper agent tooling |
-| **Video AI tooling (Resolve 21 + gen AI)** | Resolve expertise + Python | 4–6 months | Rapidly evolving space |
 | **Trading HUD full production** | Bot + data pipeline stable | 3–4 months | After adjacent bot is running |
-| **Small creative production studio ops** | Client base, production infra, team | 6–9 months | Long-term trajectory |
 | **Austrian neutrality geopolitics depth** | European security awareness | 3–4 months | Niche, useful for navigation |
 
 *\* Japanese N3: Can read/write ~650 kanji, hold daily conversation, follow simple native content. Realistic for Marcel's study speed with daily practice.*

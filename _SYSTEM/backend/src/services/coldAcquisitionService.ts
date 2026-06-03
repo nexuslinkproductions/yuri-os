@@ -14,7 +14,7 @@ const deepseekClient = process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK
 const DOCTRINE_HEADER = (() => {
     try {
         return readFileSync(
-            join(process.cwd(), '_SYSTEM/campaigns/c2moviez-acquisition-workbench/18-profiler-prompt-header.md'),
+            join(process.cwd(), '_SYSTEM/campaigns/cold-acquisition-workbench/18-profiler-prompt-header.md'),
             'utf-8'
         );
     } catch {
@@ -122,7 +122,7 @@ export interface CompiledCompanyProfile {
     best_surface: string;
     what_we_noticed: string;
     why_it_might_matter: string;
-    c2moviez_relevance: string;
+    outreach_relevance: string;
     safe_opening_angle: string;
     subject_line: string;
     cold_outreach_body: string;
@@ -341,27 +341,7 @@ type ColdLeadRow = {
 };
 
 const WEEKLY_TARGET = 20;
-const ACTIVE_CUSTOMER_NAMES = [
-    'PDR Tech',
-    'Boviro Security AG',
-    'Carosserie RIBO GmbH',
-    'Med For Balance GmbH',
-    'ALPHAVIVO AG',
-    'GRYD SWISS',
-    'SHIPSTER AG',
-    'NOBA Shop',
-    'Kappiserie GmbH',
-    'SLTECH GmbH',
-    'Isorol Tacker AG',
-    'Power2Sales',
-    'OREA CARE',
-    'GANZ BOATS AG',
-    'Gianluca Giardino GmbH',
-    'BBA Baumaschinen AG',
-    'UPGREAT AG',
-    'ALPEAHOMES',
-    'Balas Pflasterungen GmbH'
-];
+const ACTIVE_CUSTOMER_NAMES: string[] = [];
 
 export function computeSourceConfidence(lead: Pick<ColdLeadRecord, 'company' | 'contact' | 'evidence' | 'compliance'>): SourceConfidence {
     const signals: string[] = [];
@@ -1004,7 +984,7 @@ export class ColdAcquisitionService {
             pipeline_counts,
             compliance_warnings,
             webhook_health: {
-                configured: Boolean(process.env.C2MOVIEZ_LEAD_WEBHOOK_URL && process.env.C2MOVIEZ_LEAD_API_KEY),
+                configured: Boolean(process.env.COLD_ACQ_LEAD_WEBHOOK_URL && process.env.COLD_ACQ_LEAD_API_KEY),
                 last_status: lastStatus,
                 last_pushed_at: lastPushedAt
             }
@@ -1146,9 +1126,7 @@ export class ColdAcquisitionService {
                 '',
                 coldBody,
                 '',
-                `Best,`,
-                `Fanny`,
-                `c2moviez`,
+                `Best regards`,
             ].join('\n')
             : null;
 
@@ -1161,8 +1139,7 @@ export class ColdAcquisitionService {
                 '',
                 `Following up on ${companyName}. ${emailQuestion || 'Still worth a look — happy to ship the example if so.'}`,
                 '',
-                `Best,`,
-                `Fanny`
+                `Best regards`
             ].join('\n')
             : null;
 
@@ -1207,14 +1184,14 @@ export class ColdAcquisitionService {
             `Evidence (most important first):`,
             evidenceLines || '- No specific evidence available',
             '',
-            `c2moviez offers: short first-impression video angles for B2B companies — explainer videos, testimonial vignettes, behind-the-scenes, case-study reels. The goal is to help the target company convert more inbound by improving their visible communication surface.`,
+            `The goal is to help the target B2B company convert more inbound by improving their visible communication surface.`,
             '',
             `Generate the outreach profile. Return ONLY valid JSON, no markdown fences, no commentary:`,
             '',
             `{`,
             `  "what_we_noticed": "<analytical, 3rd person, max 100 chars — what you observed about the company for Dossier display>",`,
             `  "why_it_might_matter": "<analytical, max 100 chars — the hidden cost or gap, for Dossier display>",`,
-            `  "c2moviez_relevance": "<analytical, max 120 chars — what specific c2moviez angle could help, for Dossier display>",`,
+            `  "outreach_relevance": "<analytical, max 120 chars — what specific outreach angle could help, for Dossier display>",`,
             `  "safe_opening_angle": "<the specific surface, max 50 chars, e.g. 'your services page'>",`,
             `  "subject_line": "<4-7 words, specific to the observation, NO 'quick thought on', NO 'about' — e.g. 'your DBA-to-DBA copy' or '847 words, zero visuals'>",`,
             `  "cold_outreach_body": "<EXACTLY 3 sentences. ≤60 words total. S1: specificity anchor (concrete observation from evidence). S2: gap reframe with consequence. S3: direct question ending with '?'. Second-person POV. Earned-authority voice. NO first-person familiarity openers, no tiny-thought framing, no may-be-worth language, no perhaps/hope-this/I'd-love-to-chat phrasing. Follow the doctrine PATTERN LIBRARY examples in the system message.>",`,
@@ -1242,7 +1219,7 @@ export class ColdAcquisitionService {
                 best_surface: base.best_surface,
                 what_we_noticed: String(parsed.what_we_noticed || fallback.what_we_noticed).slice(0, 120),
                 why_it_might_matter: String(parsed.why_it_might_matter || fallback.why_it_might_matter).slice(0, 120),
-                c2moviez_relevance: String(parsed.c2moviez_relevance || fallback.c2moviez_relevance).slice(0, 130),
+                outreach_relevance: String(parsed.outreach_relevance || fallback.outreach_relevance).slice(0, 130),
                 safe_opening_angle: String(parsed.safe_opening_angle || base.safe_opening_angle).slice(0, 60),
                 subject_line: subjectLine.slice(0, 80),
                 cold_outreach_body: coldBody,
@@ -1367,9 +1344,7 @@ export class ColdAcquisitionService {
                 '',
                 coldBody,
                 '',
-                `Best,`,
-                `Fanny`,
-                `c2moviez`,
+                `Best regards`,
             ].join('\n')
             : null;
 
@@ -1382,8 +1357,7 @@ export class ColdAcquisitionService {
                 '',
                 `Following up on ${companyName}. ${emailQuestion || 'Still worth a look — happy to ship the example if so.'}`,
                 '',
-                `Best,`,
-                `Fanny`
+                `Best regards`
             ].join('\n')
             : null;
 
@@ -1416,7 +1390,7 @@ export class ColdAcquisitionService {
             ...base,
             observed_signal: base.what_we_noticed,
             why_it_might_matter: base.why_it_might_matter,
-            opening_angle: base.c2moviez_relevance,
+            opening_angle: base.outreach_relevance,
             source_urls,
             do_not_claim: base.claims_to_avoid.length > 0
                 ? base.claims_to_avoid
@@ -1451,7 +1425,7 @@ export class ColdAcquisitionService {
             : '';
         const whatWeNoticed = cleanedDetail || `${company.name} is a ${company.industry || 'business'} company`;
         const whyItMightMatter = this.pickWhyItMightMatter(bestSurface, whatWeNoticed);
-        const c2moviezRelevance = this.pickVideoAngle(bestSurface, whatWeNoticed);
+        const outreachRelevance = this.pickRelevanceAngle(bestSurface, whatWeNoticed);
 
         return {
             company_name: company.name,
@@ -1463,7 +1437,7 @@ export class ColdAcquisitionService {
             best_surface: bestSurface,
             what_we_noticed: whatWeNoticed,
             why_it_might_matter: whyItMightMatter,
-            c2moviez_relevance: c2moviezRelevance,
+            outreach_relevance: outreachRelevance,
             safe_opening_angle: bestSurface,
             subject_line: '',
             cold_outreach_body: '',
@@ -1491,17 +1465,17 @@ export class ColdAcquisitionService {
         return `A first-time visitor may use ${surface} to decide whether ${whatWeNoticed} makes sense quickly.`;
     }
 
-    private pickVideoAngle(surface: string, whatWeNoticed: string) {
+    private pickRelevanceAngle(surface: string, whatWeNoticed: string) {
         if (/website|page|listing|home/i.test(surface)) {
-            return `a short explainer angle that translates ${whatWeNoticed} for a first-time visitor`;
+            return `a short angle that translates ${whatWeNoticed} for a first-time visitor`;
         }
         if (/product/i.test(surface)) {
-            return `a short explainer angle that translates ${whatWeNoticed} for technical readers`;
+            return `a short angle that translates ${whatWeNoticed} for technical readers`;
         }
         if (/recent activity/i.test(surface)) {
-            return `a short first-impression angle that ties ${whatWeNoticed} to the company story`;
+            return `a short angle that ties ${whatWeNoticed} to the company story`;
         }
-        return `a short first-impression angle that helps translate ${whatWeNoticed}`;
+        return `a short angle that helps translate ${whatWeNoticed}`;
     }
 
     private ensureCompanyMention(companyName: string, observation: string) {
@@ -1592,8 +1566,6 @@ export class ColdAcquisitionService {
             /likely friction/i,
             /potential solution/i,
             /why it matters/i,
-            /c2moviez could/i,
-            /Fanny can/i,
             /B2B teams with clear growth signals/i,
             /share a 5-min overview/i,
             /booking option|booking link/i,
@@ -1777,8 +1749,8 @@ export class ColdAcquisitionService {
     }
 
     private async pushLead(lead: ColdLeadRecord, options: PushReadyBatchOptions) {
-        const webhookUrl = options.webhookUrl || process.env.C2MOVIEZ_LEAD_WEBHOOK_URL;
-        const apiKey = options.apiKey || process.env.C2MOVIEZ_LEAD_API_KEY;
+        const webhookUrl = options.webhookUrl || process.env.COLD_ACQ_LEAD_WEBHOOK_URL;
+        const apiKey = options.apiKey || process.env.COLD_ACQ_LEAD_API_KEY;
         if (!webhookUrl || !apiKey) {
             return {
                 lead_id: lead.id,
@@ -1834,8 +1806,8 @@ export class ColdAcquisitionService {
 
     async patchReplyToWebhook(id: string, replyText: string, options: PushReadyBatchOptions = {}) {
         const lead = this.requireLead(id);
-        const webhookUrl = options.webhookUrl || process.env.C2MOVIEZ_LEAD_WEBHOOK_URL;
-        const apiKey = options.apiKey || process.env.C2MOVIEZ_LEAD_API_KEY;
+        const webhookUrl = options.webhookUrl || process.env.COLD_ACQ_LEAD_WEBHOOK_URL;
+        const apiKey = options.apiKey || process.env.COLD_ACQ_LEAD_API_KEY;
         if (!webhookUrl || !apiKey || !lead.webhook_lead_id) {
             return this.recordReply(id, replyText);
         }
@@ -2507,8 +2479,6 @@ const check = (url) => new Promise((resolve) => {
             || this.hasSourceLeakage(combined)
             || /Open to me sending the short note/i.test(combined)
             || /Subject:\s*small observation/i.test(combined)
-            || /c2moviez could/i.test(combined)
-            || /Fanny workbench/i.test(combined)
             || /Subject:\s*quick thought on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /Subject:\s*quick note on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /quick follow-up on your (?:positioning|services page|workflow page|product page)/i.test(combined)

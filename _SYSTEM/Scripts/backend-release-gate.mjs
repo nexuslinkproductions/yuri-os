@@ -22,11 +22,6 @@ if (!args.db && !args.allowLiveDb) {
 const dbArgs = args.db ? ['--db', args.db] : ['--allow-live-db'];
 const steps = [
   {
-    name: 'yuri-assimilation-guardrail',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs'],
-  },
-  {
     name: 'generated-artifact-hygiene',
     command: process.execPath,
     args: ['_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs'],
@@ -148,9 +143,6 @@ function formatCommand(command, commandArgs) {
 }
 
 function formatDisplayArg(arg) {
-  if (String(arg).includes('yuri-exeoflow-assimilation.test.mjs')) {
-    return '_SYSTEM/Scripts/yuri-assimilation-guardrail.test.mjs';
-  }
   return arg;
 }
 

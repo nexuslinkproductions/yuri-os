@@ -157,7 +157,7 @@ These questions bypass the surface brief (deliverables, timelines, specs) and su
 2. **Position as guide, not hero, in every client interaction.** Marcel's technical skill and creative intelligence are in service of the client's story — never competing with it for center stage.
 3. **Briefs have narrative structure — make it explicit.** When receiving a brief, map it onto the morphology: what's the lack, who's the hero, what's the ordeal, what's the elixir? When presenting work, frame against the same structure.
 4. **Recognize dark narrative patterns early.** A client in a victimhood or hero-martyr narrative is not processing feedback as information — they're processing it as confirmation of their story. The correction is narrative, not logical.
-5. **Build mythic register deliberately.** Nexus Link's brand already operates at mythic scale. Projects for C2MovieZ and other clients should be evaluated against the question: what is the mythic structure this campaign is enacting?
+5. **Build mythic register deliberately.** Nexus Link's brand already operates at mythic scale. Client projects should be evaluated against the question: what is the mythic structure this campaign is enacting?
 
 ---
 

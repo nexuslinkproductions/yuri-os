@@ -39,10 +39,6 @@
     "source_path": "skills/browser-harness/SKILL.md",
     "hash": "4833ff29e7cfb8e9"
   },
-  "business-dach-market-intelligence": {
-    "source_path": "skills/business-dach-market-intelligence/SKILL.md",
-    "hash": "6f9541ed1f4914df"
-  },
   "caveman": {
     "source_path": "skills/caveman/SKILL.md",
     "hash": "b4bb6fe3bf3da222"
@@ -53,7 +49,7 @@
   },
   "claude-output-lane": {
     "source_path": "skills/claude-output-lane/SKILL.md",
-    "hash": "c3ded3e192d8ff0c"
+    "hash": "70c535264bb826c4"
   },
   "codebase-to-course": {
     "source_path": "skills/codebase-to-course/SKILL.md",
@@ -98,10 +94,6 @@
   "execution-domain-core": {
     "source_path": "skills/execution-domain-core/SKILL.md",
     "hash": "7e11974713500fe4"
-  },
-  "exeoflow-yuri-sitrep-pack": {
-    "source_path": "skills/exeoflow-yuri-sitrep-pack/SKILL.md",
-    "hash": "0ea13a5086e94747"
   },
   "extraction-sprint": {
     "source_path": "skills/extraction-sprint/SKILL.md",
@@ -398,10 +390,6 @@
   "yuri-shura": {
     "source_path": "skills/yuri-shura/SKILL.md",
     "hash": "a150ec961a1f0888"
-  },
-  "yuri-video-script": {
-    "source_path": "skills/yuri-video-script/SKILL.md",
-    "hash": "f12d0df709e23b15"
   },
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",

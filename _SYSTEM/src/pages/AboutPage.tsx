@@ -19,7 +19,6 @@ const storyBeats = [
 ];
 
 const activeClients = [
-  { name: 'c2moviez', role: 'Current production partner', detail: 'Swiss production collaboration for selected European projects and production expansion.', lane: 'Production' },
   { name: 'Lilly Mansfeld / @infinitycre8', role: 'Current visual collaborator', detail: 'Graphic design, identity support, layouts, and campaign surfaces.', lane: 'Design' },
   { name: 'boviro security', role: 'Active client', detail: 'Security-sector content and visual communication with a practical, trust-first edge.', lane: 'B2B' },
   { name: 'chicanostore barber', role: 'Active client', detail: 'Barber culture, local social output, and campaign-ready short-form production.', lane: 'Culture' },

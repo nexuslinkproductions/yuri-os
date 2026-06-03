@@ -4,14 +4,6 @@
 
 ---
 
-## Video Production
-
-*(Capture, lighting, audio, post-production)*
-
-- [ ] *Awaiting first entries*
-
----
-
 ## Systems
 
 *(YURI architecture, RAG, offloading, agent design)*
