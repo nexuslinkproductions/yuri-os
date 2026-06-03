@@ -40,7 +40,15 @@ export function freshLedger() {
 }
 
 function cloneClaims(claims) {
-  return claims.map((c) => ({ ...c, evidence: Array.isArray(c.evidence) ? c.evidence.map((e) => ({ ...e })) : [] }));
+  // Per-element fail-CLOSED: a poisoned ledger element (null/undefined/non-object from a
+  // truncated or corrupted persisted snapshot) must be SKIPPED, never throw. The READ
+  // side (cortexSnapshot) was hardened this way (claim-cortex.mjs Cluster-D guard); the
+  // wire red-team found the WRITE side here unguarded — a null element threw out of
+  // tickAndTrace BEFORE the persist/trace/breaker ran, wedging energy observability for
+  // the rest of the session (the poison re-reads every tick). Filtering self-heals it.
+  return claims
+    .filter((c) => c && typeof c === 'object')
+    .map((c) => ({ ...c, evidence: Array.isArray(c.evidence) ? c.evidence.map((e) => ({ ...e })) : [] }));
 }
 
 /**

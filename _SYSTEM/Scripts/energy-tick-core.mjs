@@ -254,7 +254,12 @@ export function tickAndTrace(prevState, event, opts = {}) {
     return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false, ledger };
   }
   const nextState = applyTransition(prevState, t, nowIso);
-  const nextLedger = applyClaimTransition(ledger, t, nowMs);
+  // Fail-OPEN on the ledger axis too (not just claimGateFields). A throw from the claim
+  // bridge must NEVER drop the persist/trace/breaker for the rest of the session (wire
+  // red-team: a poisoned snapshot ledger wedged observability). On any fault, carry the
+  // prior ledger forward and keep ticking.
+  let nextLedger;
+  try { nextLedger = applyClaimTransition(ledger, t, nowMs); } catch { nextLedger = ledger; }
   const { record } = traceGateEvaluation({
     lane: 'session',
     runId: String(opts.runId || `session-${nowIso}`),

@@ -14,6 +14,15 @@ const bashFail = { tool_name: 'Bash', tool_input: {}, tool_response: { is_error:
 const bashOk = { tool_name: 'Bash', tool_input: {}, tool_response: { is_error: false } };
 const protectedEdit = { tool_name: 'Write', tool_input: { file_path: '.env' }, tool_response: { is_error: false } };
 
+test('WIRE — a poisoned persisted ledger does NOT throw or wedge the tick (fail-open)', () => {
+  // Red-team: a corrupted/truncated snapshot ledger with a null element used to throw
+  // out of tickAndTrace BEFORE the trace/persist, silently killing observability for the
+  // session. It must now still trace + return a clean ledger.
+  const r = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-03T12:00:00.000Z', ledger: { claims: [null, { id: 'a', claimedStatus: 'fixture_ready', evidence: [] }], seq: 0 } });
+  assert.equal(r.traced, true, 'the tick still traced despite the poisoned ledger');
+  assert.ok(r.ledger && Array.isArray(r.ledger.claims) && r.ledger.claims.every((c) => c && typeof c === 'object'), 'returned ledger is clean (poison filtered)');
+});
+
 test('isProtectedPath flags protected surfaces, passes normal files', () => {
   assert.equal(isProtectedPath('.env'), true);
   assert.equal(isProtectedPath('backend/data/users.db'), true);

@@ -96,6 +96,21 @@ test('a test-promotion produces real beta drift + an epsilon credit (the dark te
   assert.ok(fired(res.components.informationGain), 'epsilon (belief sharpening) fires');
 });
 
+// --- wire red-team regression: a poisoned persisted ledger must NOT throw ---
+
+test('REGRESSION (wire) — a poisoned ledger element (null/non-object) is skipped, never throws', () => {
+  const poisoned = { claims: [null, undefined, 42, 'x', { id: 'good.mjs', claimedStatus: 'fixture_ready', evidence: [] }], seq: 0 };
+  let l;
+  assert.doesNotThrow(() => { l = applyClaimTransition(poisoned, t({ tool: 'Edit', filePath: 'new.mjs', isMutating: true, success: true }), NOW); });
+  // the valid claim survives, the new one is added, the garbage is dropped.
+  assert.ok(l.claims.every((c) => c && typeof c === 'object'), 'no poisoned elements remain');
+  assert.ok(l.claims.some((c) => c.id === 'good.mjs') && l.claims.some((c) => c.id === 'new.mjs'));
+  // and a protected-hit tick (early return) also cleans it (cloneClaims runs first).
+  assert.doesNotThrow(() => applyClaimTransition({ claims: [null], seq: 0 }, t({ isMutating: true, success: true, protectedHit: true, filePath: '.env' }), NOW));
+  // claimGateFields over a poisoned ledger stays fail-open.
+  assert.doesNotThrow(() => claimGateFields(poisoned, NOW));
+});
+
 test('determinism — same inputs, same fields', () => {
   const build = () => {
     let l = freshLedger();
