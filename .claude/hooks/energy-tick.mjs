@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tickAndTrace, freshState } from '../../_SYSTEM/Scripts/energy-tick-core.mjs';
+import { verdictFromStates, transitionOnVerdict, normBreaker } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(_HERE, '..', '..');
@@ -56,6 +57,19 @@ function run() {
   // SKIP transitions don't advance state/depth or write a record — nothing to persist.
   if (!result.traced) return;
 
+  // Circuit-breaker (layer-2): trip on a catastrophic, non-offsettable trailing
+  // verdict (protected-path / structural-floor veto); recover via a HALF_OPEN probe.
+  // The OUTCOME-driven transition lives here where the verdict is known; the
+  // PreToolUse energy-enforce hook does the TIME-driven decay + enforcement read.
+  // Fully error-isolated — a breaker fault must never affect the session.
+  let breaker;
+  try {
+    const verdict = verdictFromStates(prevState, result.state);
+    const prevBreaker = (snap && snap.breaker) ? snap.breaker : null;
+    const nowMs = Date.parse(nowIso) || Date.now();
+    breaker = transitionOnVerdict(prevBreaker, verdict, nowMs);
+  } catch { breaker = normBreaker(snap && snap.breaker); }
+
   try {
     fs.mkdirSync(SNAP_DIR, { recursive: true });
     fs.writeFileSync(snapPath, JSON.stringify({
@@ -64,6 +78,7 @@ function run() {
       recentAbs: result.recentAbs,
       surpriseEngaged: result.surpriseEngaged,
       deepEngaged: result.deepEngaged,
+      breaker,
       sessionId,
       updatedAt: nowIso,
     }) + '\n');

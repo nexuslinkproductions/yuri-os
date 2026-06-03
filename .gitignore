@@ -329,3 +329,9 @@ checkpoints/
 
 # Per-machine operator identity (two-role system) — local only
 .claude/operator.json
+
+# Energy gate enforcement flag — per-machine runtime state, never committed (repo default = OFF)
+_SYSTEM/state/energy-enforce.enabled
+# Secret stores — keychain is canonical; these are defense-in-depth (never commit)
+secrets.env
+*.secrets

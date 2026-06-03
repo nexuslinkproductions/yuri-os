@@ -48,7 +48,6 @@ assertIncludes('_SYSTEM/OPERATOR_PROTOCOL.md', 'Canonical operational rules live
 const directInheritFiles = [
   'AGENTS.md',
   'CLAUDE.md',
-  '_SYSTEM/CODEX_PROTOCOL.md',
   '_SYSTEM/LOCAL_EXECUTION_POLICY.md',
   '.claude/CLAUDE.md',
   '.clauderules',
@@ -112,7 +111,6 @@ assertIncludes('CLAUDE.md', 'It does not make Claude the control-plane owner.');
 assertIncludes('CLAUDE.md', 'one real interactive Claude Code session');
 assertIncludes('CLAUDE.md', 'optional external clarification check');
 assertIncludes('CLAUDE.md', 'Protected Paths');
-assertIncludes('_SYSTEM/CODEX_PROTOCOL.md', 'GitNexus impact check on changed symbols');
 
 const rationale = read('_SYSTEM/yuri-cognitive-persona-rationale.md');
 for (const url of [
