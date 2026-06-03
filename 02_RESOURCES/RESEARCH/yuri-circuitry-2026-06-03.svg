@@ -1,0 +1,26 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='3530' height='2030' viewBox='0 0 3530 2030' font-family='-apple-system, Segoe UI, Roboto, sans-serif'>
+<defs><radialGradient id='bg' cx='50%' cy='-10%' r='140%'><stop offset='0%' stop-color='#161A24'/><stop offset='60%' stop-color='#0C0E13'/><stop offset='100%' stop-color='#07080B'/></radialGradient></defs>
+<rect width='3530' height='2030' fill='url(#bg)'/>
+<text x='96' y='60' font-family='Georgia, Times New Roman, serif' font-weight='600' font-size='40' fill='#E3C677'>YURI OS — Living Circuitry</text>
+<text x='96' y='90' font-family='ui-monospace, Menlo, Consolas, monospace' font-size='15' fill='#8E929D'>83 organs · 153 signal threads · 9 layers · 77 live · 5 dormant · 1 phantom</text>
+<text x='96' y='114' font-family='-apple-system, Segoe UI, Roboto, sans-serif' font-size='13' fill='#8E929D'>The moat made visible — energy instrument · cognition/decode · governed memory threaded in gold; commodity layers dim.</text>
+<g transform='translate(96,210)'>
+<rect width='234' height='58' rx='10' fill='#1A1E28' stroke='rgba(201,161,74,0.55)' stroke-width='1.4'/>
+<circle cx='16' cy='29' r='6' fill='none' stroke='#C9A14A' opacity='0.7'/>
+<circle cx='16' cy='29' r='3.2' fill='#4FB3A6'/>
+<text x='30' y='33' font-size='12' font-weight='500' fill='#F6F4EE'>Cognition &amp; Persona (5)</text>
+</g>
+<text x='96' y='180' font-family='ui-monospace, Menlo, Consolas, monospace' font-size='11' letter-spacing='2' fill='#C9A14A'>◆ MOAT CORE</text>
+<text x='484' y='180' font-family='ui-monospace, Menlo, Consolas, monospace' font-size='11' letter-spacing='2' fill='#C9A14A'>◆ MOAT CORE</text>
+<text x='872' y='180' font-family='ui-monospace, Menlo, Consolas, monospace' font-size='11' letter-spacing='2' fill='#C9A14A'>◆ MOAT CORE</text>
+<text x='96' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#E3C677'>Cognition &amp; Persona</text>
+<text x='484' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#E3C677'>Energy &amp; Math</text>
+<text x='872' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#E3C677'>Memory &amp; Subconscious</text>
+<text x='1260' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Retrieval &amp; Knowledge</text>
+<text x='1648' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Learning &amp; Continuity</text>
+<text x='2036' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Governance &amp; Safety</text>
+<text x='2424' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Skills &amp; Orchestration</text>
+<text x='2812' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Token-Efficiency</text>
+<text x='3200' y='168' font-family='Georgia, serif' font-style='italic' font-size='18' fill='#8E929D'>Hidden / Meta</text>
+<text x='96' y='2010' font-family='ui-monospace, Menlo, Consolas, monospace' font-size='13' fill='#8E929D'>teal = live · amber = dormant · red = phantom · gold ring = moat core. Full interactive version (pan/zoom/tap) renders on desktop.</text>
+</svg>
