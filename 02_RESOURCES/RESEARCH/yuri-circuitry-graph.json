@@ -1,0 +1,1602 @@
+{
+  "nodes": [
+    {
+      "id": "energy-fn",
+      "label": "Energy Function (computeU/ΔU/gateProposal)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy.mjs"
+      ],
+      "triggeredBy": "import — live gate core (energy-tick), breaker, cortex, trace, control-server, sims; CLI --worked-example"
+    },
+    {
+      "id": "math-kernel",
+      "label": "Math Kernel (22 certified primitives)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-kernel.mjs"
+      ],
+      "triggeredBy": "import — foundational primitive layer"
+    },
+    {
+      "id": "energy-tick-core",
+      "label": "Energy Tick Core (tool-event→ΔU)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-tick-core.mjs"
+      ],
+      "triggeredBy": "import from energy-tick PostToolUse hook"
+    },
+    {
+      "id": "energy-tick-hook",
+      "label": "energy-tick hook (PostToolUse PDP)",
+      "layer": "Energy & Math",
+      "files": [
+        ".claude/hooks/energy-tick.mjs"
+      ],
+      "triggeredBy": "PostToolUse hook (settings.json L259), gated YURI_ENERGY_OBSERVABILITY=1"
+    },
+    {
+      "id": "energy-breaker",
+      "label": "Energy Breaker (circuit breaker)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-breaker.mjs"
+      ],
+      "triggeredBy": "import — transitionOnVerdict (PostToolUse), evaluateGate (PreToolUse)"
+    },
+    {
+      "id": "energy-enforce-hook",
+      "label": "energy-enforce hook (PreToolUse PEP)",
+      "layer": "Energy & Math",
+      "files": [
+        ".claude/hooks/energy-enforce.mjs"
+      ],
+      "triggeredBy": "PreToolUse hook (settings.json L206), gated OBS=1 AND (ENFORCE=1 OR flag file)"
+    },
+    {
+      "id": "energy-config",
+      "label": "Energy Config Loader (knob bridge)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-config.mjs"
+      ],
+      "triggeredBy": "import — loadEnergyConfig per gated transition; CLI dump"
+    },
+    {
+      "id": "energy-weights",
+      "label": "Energy Weights Config Surface",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/SELF/energy-weights.json"
+      ],
+      "triggeredBy": "read by config-loader/evict/relocator/fsrs/recall/brain-inject; written by control-server"
+    },
+    {
+      "id": "energy-trace",
+      "label": "Energy Trace (telemetry + Privacy Gate)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-trace.mjs"
+      ],
+      "triggeredBy": "import — traceGateEvaluation on live tick + experiments"
+    },
+    {
+      "id": "claim-cortex",
+      "label": "Claim-Evidence Cortex (epistemic sensor, UNWIRED)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/claim-cortex.mjs"
+      ],
+      "triggeredBy": "import / CLI --worked-example only — NO live hook consumer"
+    },
+    {
+      "id": "claim-integrity-gate",
+      "label": "Claim-Integrity Gate (canonical ladder)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/claim-integrity-gate.mjs"
+      ],
+      "triggeredBy": "import (PROMOTION_STATES) + CLI lint"
+    },
+    {
+      "id": "math-proof-gate",
+      "label": "Math Proof Gate + Formula Banks",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "_SYSTEM/data/math/formula-banks/*.json"
+      ],
+      "triggeredBy": "on-demand CLI + tests; not a runtime hook"
+    },
+    {
+      "id": "fsrs",
+      "label": "FSRS-4.5 Retention Scorer",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-fsrs.mjs"
+      ],
+      "triggeredBy": "import — reads fsrs:{} via caller"
+    },
+    {
+      "id": "energy-dispatch-bridge",
+      "label": "Energy Dispatch Bridge (LEGACY ΔU surface)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs"
+      ],
+      "triggeredBy": "import — traceDispatchEvent from offload-runner/shintai-dispatch (retired path)"
+    },
+    {
+      "id": "energy-sanitize",
+      "label": "Energy Sanitizer (raw→experiment bridge)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs"
+      ],
+      "triggeredBy": "import by experiment tooling; in-memory only"
+    },
+    {
+      "id": "energy-simulate",
+      "label": "Energy Simulate (gate grader)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-simulate.mjs"
+      ],
+      "triggeredBy": "on-demand CLI + supercharge-gate"
+    },
+    {
+      "id": "energy-experiment",
+      "label": "Energy Experiment Runner",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-experiment.mjs",
+        "_SYSTEM/Scripts/math/experiments/descent-demo.mjs"
+      ],
+      "triggeredBy": "on-demand CLI (run --scenario)"
+    },
+    {
+      "id": "energy-dashboard-data",
+      "label": "Energy Dashboard Data Aggregator",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs"
+      ],
+      "triggeredBy": "on-demand CLI / dashboard build"
+    },
+    {
+      "id": "energy-control-server",
+      "label": "Energy Control Server (tuning cockpit backend)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/yuri-control-server.mjs"
+      ],
+      "triggeredBy": "on-demand CLI launch (not a daemon)"
+    },
+    {
+      "id": "energy-obs-health",
+      "label": "Energy Observability Health Probe",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-observability-health.mjs"
+      ],
+      "triggeredBy": "import/CLI from yuri-health"
+    },
+    {
+      "id": "action-mode-study",
+      "label": "Action-Mode Study Harness",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/yuri-action-mode-study.mjs"
+      ],
+      "triggeredBy": "on-demand CLI"
+    },
+    {
+      "id": "energy-weights-drift-test",
+      "label": "Energy Weights Drift Test (config↔code invariant)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-weights-drift.test.mjs"
+      ],
+      "triggeredBy": "node --test (CI / supercharge-gate)"
+    },
+    {
+      "id": "claude-memory-write",
+      "label": "claude-memory-write (Track-B writer + reindex)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/claude-memory-write.mjs"
+      ],
+      "triggeredBy": "CLI add|remove|read|list|reindex; SessionStart hook runs reindex"
+    },
+    {
+      "id": "yuri-recall",
+      "label": "yuri-recall (subconscious cue-recall, prior-turn-lag)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/yuri-recall.mjs"
+      ],
+      "triggeredBy": "UserPromptSubmit hook spawns detached every turn; CLI"
+    },
+    {
+      "id": "memory-cold-store",
+      "label": "memory-cold-store (the subconscious / cold FTS5 DB)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-cold-store.mjs"
+      ],
+      "triggeredBy": "library import — recall(query), relocator(upsert/get/remove), consolidator(get); CLI count|query"
+    },
+    {
+      "id": "memory-usage",
+      "label": "memory-usage (recall-event ledger — real USE signal)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-usage.mjs"
+      ],
+      "triggeredBy": "library import — recordUse per recall, buildUsageIndex; CLI record|index"
+    },
+    {
+      "id": "memory-relocator",
+      "label": "memory-relocator (canonical forgetting — RELOCATE not delete)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-relocator.mjs"
+      ],
+      "triggeredBy": "import via consolidator runSubconsciousPass; CLI (DRY-RUN unless --execute)"
+    },
+    {
+      "id": "kagami-consolidator",
+      "label": "kagami-memory-consolidator (subconscious orchestrator + daily MLX review)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/kagami-memory-consolidator.mjs",
+        "~/Library/LaunchAgents/com.yuri.kagami-memory-consolidator.plist",
+        "~/Library/LaunchAgents/com.yuri.kagami-stale-memory-scan.plist"
+      ],
+      "triggeredBy": "launchd daily 06:00 + stale-scan; DRY-RUN unless --execute"
+    },
+    {
+      "id": "memory-kernel",
+      "label": "memory-kernel (Track-A mediator: propose→decide→ledger)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-kernel.mjs"
+      ],
+      "triggeredBy": "library import (CLI/agent + autopilot + consolidator + canonical-import)"
+    },
+    {
+      "id": "memory-proposal-autopilot",
+      "label": "memory-proposal-autopilot (deterministic + Codex reviewer)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-proposal-autopilot.mjs"
+      ],
+      "triggeredBy": "invoked by yuri-autonomy-runner + operator CLI (no launchagent)"
+    },
+    {
+      "id": "secret-leak-scan",
+      "label": "secret-leak-scan (scoped-commit secret gate)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/secret-leak-scan.mjs"
+      ],
+      "triggeredBy": "spawnSync from autopilot before commit"
+    },
+    {
+      "id": "memory-governor",
+      "label": "memory_governor.py (Track-A memory.db lifecycle governor)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/OS_KERNEL/memory_governor.py"
+      ],
+      "triggeredBy": "spawnSync from memory-session-write (SessionEnd); health-polled; CLI"
+    },
+    {
+      "id": "memory-session-write",
+      "label": "memory-session-write (SessionEnd episodic capture)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-session-write.mjs"
+      ],
+      "triggeredBy": "settings.json Stop/SessionEnd hook (L292)"
+    },
+    {
+      "id": "memory-evict-archive",
+      "label": "memory-evict / memory-archive (SUPERSEDED legacy relics)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-evict.mjs",
+        "_SYSTEM/Scripts/memory-archive.mjs"
+      ],
+      "triggeredBy": "NO live trigger — no launchagent/hook/spawn"
+    },
+    {
+      "id": "yuri-search",
+      "label": "Corpus Search Engine (yuri-search)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-search.mjs"
+      ],
+      "triggeredBy": "CLI only — `ai search \"<q>\"`; never auto-fired"
+    },
+    {
+      "id": "yuri-search-index",
+      "label": "Corpus Indexer (yuri-search-index)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-search-index.mjs"
+      ],
+      "triggeredBy": "CLI only — `ai reindex`. MANUAL (no hook/cron)"
+    },
+    {
+      "id": "context-router",
+      "label": "Context Router (symbolic trigger-scoring)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/context-router.mjs"
+      ],
+      "triggeredBy": "CLI — run before broad work (CLAUDE.md mandate); not a hook"
+    },
+    {
+      "id": "memory-kernel-recall",
+      "label": "Track-A Warm Memory Recall (memory-kernel recallMemory)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/memory-kernel.mjs"
+      ],
+      "triggeredBy": "CLI recall <query> / recallBeforeDispatch"
+    },
+    {
+      "id": "evidence-contract-validator",
+      "label": "Evidence Contract Validator (yuri-evidence-contract)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-evidence-contract.mjs"
+      ],
+      "triggeredBy": "CLI — gate a PASS claim on swarm artifact dir"
+    },
+    {
+      "id": "evidence-contract-resolver",
+      "label": "Required-Evidence Resolver (evidence-contract)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/evidence-contract.mjs"
+      ],
+      "triggeredBy": "import — requiredEvidenceIdsForTask(task)"
+    },
+    {
+      "id": "research-capture",
+      "label": "Research Capture + Provenance",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-research-capture.mjs",
+        "_SYSTEM/Scripts/yuri-research-capture.py"
+      ],
+      "triggeredBy": "CLI — capture online findings, then manual `ai reindex`"
+    },
+    {
+      "id": "ai-cli",
+      "label": "ai CLI Facade (retrieval front door)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/ai"
+      ],
+      "triggeredBy": "CLI — `ai search|find|reindex|triage` (bash; never `node ai`)"
+    },
+    {
+      "id": "cross-domain-transfer-engine",
+      "label": "Cross-Domain Transfer Engine (PHANTOM — claimed not built)",
+      "layer": "Retrieval & Knowledge",
+      "files": [],
+      "triggeredBy": "CLAUDE.md claims problem-solving; NO executable trigger exists"
+    },
+    {
+      "id": "bash-security-guard",
+      "label": "bash-security-guard (primary Bash deny gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/bash-security-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook 2nd in chain (Bash filter)"
+    },
+    {
+      "id": "operator-write-guard",
+      "label": "operator-write-guard (tool-agnostic trust-surface guard)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/operator-write-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook 3rd in chain (mutating tools)"
+    },
+    {
+      "id": "yuri-operator",
+      "label": "yuri-operator (two-role resolver + scrypt credential)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/yuri-operator.cjs"
+      ],
+      "triggeredBy": "require — resolveRole by the guards; fail-closed→coworker"
+    },
+    {
+      "id": "tirith-url-guard",
+      "label": "tirith-url-guard (URL threat assessment)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/tirith-url-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook (Bash); scores URLs via ~/.hermes/bin/tirith"
+    },
+    {
+      "id": "claude-protocol-guard",
+      "label": "claude-protocol-guard (routing/control-plane gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/claude-protocol-guard.mjs"
+      ],
+      "triggeredBy": "PreToolUse hook 5th in chain"
+    },
+    {
+      "id": "yuri-risk-lite",
+      "label": "yuri-risk-lite (catastrophe regex scanner)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/yuri-risk-lite.js"
+      ],
+      "triggeredBy": "PreToolUse hook 8th in chain (Bash); also module for scout"
+    },
+    {
+      "id": "lane-kernel",
+      "label": "lane-kernel (protected-surface + control-file source)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/lane-kernel.mjs"
+      ],
+      "triggeredBy": "import — isProtectedPath/safeRuntimePath/CONTROL_FILE_PREFIXES"
+    },
+    {
+      "id": "brain-inject",
+      "label": "brain-inject (unified boot brain composer)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/hooks/brain-inject.js"
+      ],
+      "triggeredBy": "SessionStart hook (settings.json L112) — reads ~14 state files"
+    },
+    {
+      "id": "soul-persona-inject",
+      "label": "soul-persona-inject (SubagentStart persona)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/hooks/soul-persona-inject.js"
+      ],
+      "triggeredBy": "SubagentStart hook (settings.json L154) — NOT SessionStart"
+    },
+    {
+      "id": "cortex-state",
+      "label": "Cortex Dynamic (cross-turn risk + PDC priors)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/state/cortex-state.json"
+      ],
+      "triggeredBy": "read by brain-inject; written by pulse/risk surfaces"
+    },
+    {
+      "id": "fingerprint",
+      "label": "Behavioral Fingerprint (L2/L3 self-model)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/yuri-sentinel/self-model/fingerprint.json"
+      ],
+      "triggeredBy": "read by brain-inject; written by sentinel self-model"
+    },
+    {
+      "id": "persona-md",
+      "label": "persona.md / SOUL.md (native @-include identity)",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/persona.md",
+        "SOUL.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "triggeredBy": "harness NATIVE @-include of CLAUDE.md — no hook fires"
+    },
+    {
+      "id": "neuron-loop",
+      "label": "Neuron-Loop (9-phase self-synthesis)",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/neuron-loop.mjs",
+        "~/Library/LaunchAgents/com.yuri-os-musubi.neuron-loop.plist"
+      ],
+      "triggeredBy": "launchd agent (HEALTHY, not 0-invocations)"
+    },
+    {
+      "id": "kagami-event-bus",
+      "label": "Kagami Event Bus",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/kagami-event-bus.mjs"
+      ],
+      "triggeredBy": "import — appendKagamiEvent on memory promote etc."
+    },
+    {
+      "id": "yuri-dream",
+      "label": "Dream-Processor (mistakes→rules)",
+      "layer": "Learning & Continuity",
+      "files": [
+        ".claude/hooks/yuri-dream.js"
+      ],
+      "triggeredBy": "Stop hook (settings.json L301)"
+    },
+    {
+      "id": "session-reflect",
+      "label": "Session-Reflect (mid+end reflection)",
+      "layer": "Learning & Continuity",
+      "files": [
+        ".claude/hooks/session-reflect.js"
+      ],
+      "triggeredBy": "Stop hook (L305) + spawned mid-session by pre-tool-use tier-4"
+    },
+    {
+      "id": "yuri-health",
+      "label": "yuri-health (lane/launch health monitor)",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/yuri-health.mjs"
+      ],
+      "triggeredBy": "CLI / monitor"
+    },
+    {
+      "id": "startup-offload",
+      "label": "startup-offload (MISNOMER — skills indexer)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        ".claude/hooks/startup-offload.js"
+      ],
+      "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code"
+    },
+    {
+      "id": "offload-contract",
+      "label": "offload-contract (lane/scenario/lifecycle contract)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/offload-contract.mjs"
+      ],
+      "triggeredBy": "import — single lane routing contract"
+    },
+    {
+      "id": "scout-orchestrator",
+      "label": "Scout Orchestrator (event-driven scout dispatch)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        ".claude/hooks/scout-orchestrator.js"
+      ],
+      "triggeredBy": "SessionStart + PreToolUse + PostToolUse (payload-shape dispatch)"
+    },
+    {
+      "id": "shintai-dispatch",
+      "label": "shintai-dispatch (SEAL-team dispatch)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/shintai-dispatch.mjs"
+      ],
+      "triggeredBy": "import/CLI — task-sized roster dispatch"
+    },
+    {
+      "id": "offload-runner",
+      "label": "offload-runner (legacy dispatch — ACTIVE not dormant)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/offload-runner.mjs"
+      ],
+      "triggeredBy": "import/CLI — fires energy-dispatch-bridge when run"
+    },
+    {
+      "id": "token-session-init",
+      "label": "token-session-init (boot token tracking + tokenmaxxing)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-session-init.js"
+      ],
+      "triggeredBy": "SessionStart hook (L108)"
+    },
+    {
+      "id": "pre-tool-use",
+      "label": "pre-tool-use (token/compaction + cross-terminal)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/pre-tool-use.js"
+      ],
+      "triggeredBy": "PreToolUse hook 6th in chain"
+    },
+    {
+      "id": "post-tool-use",
+      "label": "post-tool-use (main bookkeeper)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/post-tool-use.js"
+      ],
+      "triggeredBy": "PostToolUse hook 1st (A)"
+    },
+    {
+      "id": "token-tool-logger",
+      "label": "token-tool-logger (per-tool estimate + ledger spawn)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-tool-logger.js"
+      ],
+      "triggeredBy": "PostToolUse hook (C)"
+    },
+    {
+      "id": "token-ledger",
+      "label": "token-ledger (crypto-chained ledger)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        "_SYSTEM/Scripts/token-ledger.mjs"
+      ],
+      "triggeredBy": "spawned detached by token-tool-logger"
+    },
+    {
+      "id": "token-budget-check",
+      "label": "token-budget-check (budget WARN/CRITICAL)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-budget-check.js"
+      ],
+      "triggeredBy": "PreToolUse hook 9th in chain"
+    },
+    {
+      "id": "session-state",
+      "label": "session-state (canonical lifecycle file mediator)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/session-state.js"
+      ],
+      "triggeredBy": "require — read/write by pre/post-tool, protocol-guard, checkpoint"
+    },
+    {
+      "id": "memory-bus",
+      "label": "memory-bus (cross-terminal awareness)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/memory-bus.js"
+      ],
+      "triggeredBy": "require — cross-terminal session cursor"
+    },
+    {
+      "id": "session-checkpoint",
+      "label": "session-checkpoint (periodic snapshot)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/session-checkpoint.js"
+      ],
+      "triggeredBy": "PostToolUse hook (D)"
+    },
+    {
+      "id": "pre-tool-gate",
+      "label": "pre-tool-gate (local-first advisory, async non-blocking)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/pre-tool-gate.js"
+      ],
+      "triggeredBy": "PreToolUse hook 1st (async — does NOT gate the chain)"
+    },
+    {
+      "id": "musubi-protocol-enforce",
+      "label": "musubi-protocol-enforce (AEONIC soft compliance)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/musubi-protocol-enforce.js"
+      ],
+      "triggeredBy": "PreToolUse hook 7th (throttled 60s)"
+    },
+    {
+      "id": "musubi-protocol-ingest",
+      "label": "musubi-protocol-ingest (AEONIC boot ingest)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/musubi-protocol-ingest.js"
+      ],
+      "triggeredBy": "SessionStart hook (L116)"
+    },
+    {
+      "id": "user-prompt-submit",
+      "label": "user-prompt-submit (per-turn volatile re-inject)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/user-prompt-submit.js"
+      ],
+      "triggeredBy": "UserPromptSubmit hook (<50ms exit)"
+    },
+    {
+      "id": "eot-background-start",
+      "label": "eot-background-start (EOT monitor arm)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/eot-background-start.js"
+      ],
+      "triggeredBy": "SessionStart hook (L131)"
+    },
+    {
+      "id": "agent-spawn-guard",
+      "label": "agent-spawn-guard (OBSERVABILITY-ONLY since 2026-05-30)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/agent-spawn-guard.js"
+      ],
+      "triggeredBy": "PreToolUse matcher=Agent — logs only, always allows"
+    },
+    {
+      "id": "gitnexus-hook",
+      "label": "gitnexus-hook (graph-context enrich)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "~/.claude/hooks/gitnexus/gitnexus-hook.cjs"
+      ],
+      "triggeredBy": "PreToolUse matcher=Grep|Glob|Bash (10ms)"
+    },
+    {
+      "id": "artifact-registry",
+      "label": "artifact-registry (protected-path + repo-path norm)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/artifact-registry.mjs"
+      ],
+      "triggeredBy": "import — isProtectedPath/normalizeRepoPath"
+    },
+    {
+      "id": "yuri-user",
+      "label": "yuri-user (current user handle attribution)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/yuri-user.mjs"
+      ],
+      "triggeredBy": "import — currentUserHandle for trace attribution"
+    }
+  ],
+  "edges": [
+    {
+      "from": "energy-fn",
+      "to": "math-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-trace",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-config",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "yuri-user",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-weights.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "energy-tick-core",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "energy-breaker",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "_SYSTEM/state/energy-session/<sid>.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-tick-core",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-session snapshot (breaker blob)",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "energy-breaker",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "_SYSTEM/state/energy-session/<sid>.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "_SYSTEM/state/energy-enforce.enabled (flag)",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "energy-config",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-config",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-trace",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-trace",
+      "to": "_SYSTEM/state/energy-trace/<date>.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "claim-cortex",
+      "to": "claim-integrity-gate",
+      "kind": "calls"
+    },
+    {
+      "from": "claim-cortex",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "claim-integrity-gate",
+      "to": "artifact-registry",
+      "kind": "calls"
+    },
+    {
+      "from": "math-proof-gate",
+      "to": "math-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "math-proof-gate",
+      "to": "_SYSTEM/data/math/formula-banks/*.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-dispatch-bridge",
+      "to": "energy-trace",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-dispatch-bridge",
+      "to": "yuri-user",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-sanitize",
+      "to": "energy-trace",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-simulate",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-simulate",
+      "to": "energy-breaker",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-experiment",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-experiment",
+      "to": "energy-trace",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-experiment",
+      "to": "experiment JSON + energy-trace JSONL",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "_SYSTEM/state/energy-trace/*.jsonl",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-control-server",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-control-server",
+      "to": "energy-config",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-control-server",
+      "to": "fsrs",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-control-server",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "energy-control-server",
+      "to": "_SYSTEM/state/energy-config-changes.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "energy-obs-health",
+      "to": "energy-tick-core",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-obs-health",
+      "to": ".claude/settings.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-obs-health",
+      "to": "_SYSTEM/state/energy-trace/",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "action-mode-study",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "action-mode-study",
+      "to": "recorded energy-trace JSONL",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-fn",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-config",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-tick-core",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "fsrs",
+      "kind": "calls"
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "claude-memory-write",
+      "to": ".claude/projects/*/memory/<slug>.md",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "claude-memory-write",
+      "to": ".claude/projects/*/memory/MEMORY.md",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-recall",
+      "to": "memory-cold-store",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-recall",
+      "to": "memory-usage",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-recall",
+      "to": "energy-config",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-recall",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "yuri-recall",
+      "to": "_SYSTEM/state/memory-usage.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-recall",
+      "to": ".claude/state/subconscious-recall.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-cold-store",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-usage",
+      "to": "_SYSTEM/state/memory-usage.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-relocator",
+      "to": "fsrs",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-relocator",
+      "to": "memory-usage",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-relocator",
+      "to": "memory-cold-store",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-relocator",
+      "to": "claude-memory-write",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-relocator",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-relocator",
+      "to": ".claude/projects/*/memory/relocated/",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-relocator",
+      "to": "relocation-index.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-relocator",
+      "kind": "calls"
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-cold-store",
+      "kind": "calls"
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-usage",
+      "kind": "calls"
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "energy-config",
+      "kind": "calls"
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "_SYSTEM/training/state/memory-health.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "memory-kernel",
+      "to": "kagami-event-bus",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-kernel",
+      "to": "lane-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-kernel",
+      "to": "evidence-contract-resolver",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/state/memory-ledger.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/state/memory-proposals.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/memory/",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "memory-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "lane-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "secret-leak-scan",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "_SYSTEM/state/memory-proposal-decisions.jsonl",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "git commit (allowlist)",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "secret-leak-scan",
+      "to": "git staged diff",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "memory-governor",
+      "to": "_SYSTEM/OS_KERNEL/memory.db",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-session-write",
+      "to": "memory-governor",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-session-write",
+      "to": ".claude/yuri-sentinel/learning/sessions/<date>.jsonl",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "memory-session-write",
+      "to": "_SYSTEM/OS_KERNEL/memory.db",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-evict-archive",
+      "to": "_SYSTEM/memory/patterns-archive/",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-search",
+      "to": "_SYSTEM/OS_KERNEL/search-index.db",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "yuri-search-index",
+      "to": "lane-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-search-index",
+      "to": "_SYSTEM/OS_KERNEL/search-index.db",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "context-router",
+      "to": "_SYSTEM/context/context-registry.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "memory-kernel-recall",
+      "to": "lane-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "memory-kernel-recall",
+      "to": "_SYSTEM/memory/",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "evidence-contract-validator",
+      "to": "<artifact_dir>/evidence-bundle.txt",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "research-capture",
+      "to": "02_RESOURCES/research/<topic>-<date>.md",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "ai-cli",
+      "to": "yuri-search",
+      "kind": "calls"
+    },
+    {
+      "from": "ai-cli",
+      "to": "yuri-search-index",
+      "kind": "calls"
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "yuri-operator",
+      "kind": "calls"
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "yuri-operator",
+      "kind": "calls"
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-operator",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": "lane-kernel",
+      "kind": "calls"
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "brain-inject",
+      "to": "fsrs",
+      "kind": "calls"
+    },
+    {
+      "from": "brain-inject",
+      "to": "SOUL.md / persona / energy-weights / MEMORY.md / cortex-state / fingerprint / geass",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "soul-persona-inject",
+      "to": "SOUL.md (9 headings)",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "neuron-loop",
+      "to": ".claude/state/neuron-loop.log",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "kagami-event-bus",
+      "to": "kagami event log",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-dream",
+      "to": ".claude/yuri-sentinel/learning/global.md",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "session-reflect",
+      "to": "session-journal",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "yuri-health",
+      "to": "memory-governor",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-health",
+      "to": "energy-obs-health",
+      "kind": "calls"
+    },
+    {
+      "from": "yuri-health",
+      "to": ".claude/state/lane-health-status.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "startup-offload",
+      "to": ".claude/skills/*/SKILL.md",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "scout-orchestrator",
+      "to": "yuri-risk-lite",
+      "kind": "calls"
+    },
+    {
+      "from": "scout-orchestrator",
+      "to": ".claude/state/scout-bus.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "shintai-dispatch",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls"
+    },
+    {
+      "from": "offload-runner",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls"
+    },
+    {
+      "from": "token-session-init",
+      "to": ".claude/state/token-session.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "token-session-init",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "memory-bus",
+      "kind": "calls"
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "session-reflect",
+      "kind": "calls"
+    },
+    {
+      "from": "pre-tool-use",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "post-tool-use",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "post-tool-use",
+      "to": "memory-bus",
+      "kind": "calls"
+    },
+    {
+      "from": "post-tool-use",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "post-tool-use",
+      "to": ".claude/memory-bus.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "token-tool-logger",
+      "to": "token-ledger",
+      "kind": "calls"
+    },
+    {
+      "from": "token-tool-logger",
+      "to": "/tmp/claude-current-session",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "token-ledger",
+      "to": "token ledger (privacy-hashed)",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "token-budget-check",
+      "to": "/tmp/claude-current-session",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "session-state",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "memory-bus",
+      "to": ".claude/memory-bus.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "session-checkpoint",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "session-checkpoint",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "musubi-protocol-enforce",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "musubi-protocol-enforce",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true
+    },
+    {
+      "from": "musubi-protocol-ingest",
+      "to": "session-state",
+      "kind": "calls"
+    },
+    {
+      "from": "musubi-protocol-ingest",
+      "to": "_SYSTEM/MUSUBI_PROTOCOL.md",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": "yuri-recall",
+      "kind": "calls"
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": ".claude/state/subconscious-recall.json",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": ".claude/state/brain-stale.sentinel",
+      "kind": "reads",
+      "target": true
+    },
+    {
+      "from": "eot-background-start",
+      "to": "/tmp/claude-eot-<sid>.marker",
+      "kind": "writes",
+      "target": true
+    }
+  ],
+  "generatedAt": null
+}
