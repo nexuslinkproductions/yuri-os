@@ -472,8 +472,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--die);-webkit-tex
 body{color:var(--ink-2);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
 ::selection{background:var(--cyan);color:var(--die);}
 
+/* AURORA environment — fixed deep-space mesh: near-black base + a few soft desaturated
+   blooms (cool steel / deep violet / faint bronze). One field behind everything (die +
+   surround identical), hardware-accelerated, no noise, no seam, zero pan cost. */
 #stage{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;
-  background:radial-gradient(130% 110% at 50% 46%,#0a1018 0%,var(--die) 58%,#010204 100%);}
+  background:
+    radial-gradient(58% 52% at 22% 16%, rgba(44,74,100,0.40), transparent 62%),
+    radial-gradient(54% 50% at 82% 80%, rgba(66,52,98,0.36), transparent 64%),
+    radial-gradient(46% 44% at 64% 40%, rgba(92,74,46,0.20), transparent 60%),
+    radial-gradient(130% 110% at 50% 46%, #080b11 0%, #05070c 56%, #010204 100%);}
 #stage.grabbing{cursor:grabbing;}
 #viewport{position:absolute;inset:0;}
 #boardwrap{width:100%;height:100%;}
@@ -484,7 +491,7 @@ svg.board{display:block;width:100%;height:100%;}
 
 #fx{position:fixed;inset:0;z-index:6;pointer-events:none;}
 #fx::before{content:"";position:absolute;inset:0;
-  background:radial-gradient(75% 55% at 50% -4%,rgba(168,210,255,0.07),transparent 66%);}
+  background:radial-gradient(82% 60% at 50% 0%,rgba(150,180,210,0.035),transparent 58%);}
 #fx::after{content:"";position:absolute;inset:0;
   background:radial-gradient(135% 120% at 50% 48%,transparent 64%,rgba(2,4,8,0.34) 90%,rgba(1,2,4,0.64) 100%);}
 #frame{position:fixed;inset:10px;z-index:19;pointer-events:none;border:1px solid rgba(90,210,255,0.07);border-radius:3px;}
@@ -956,8 +963,9 @@ var rg=el("radialGradient");at(rg,{id:"moatGlow",cx:"50%",cy:"50%",r:"50%"});
 [["0%","#C9A14A"],["50%","#8A6A28"],["100%","#8A6A28"]].forEach(function(s,i){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":[0.26,0.08,0][i]});rg.appendChild(st);});
 defs.appendChild(rg);
 var bg=el("filter");at(bg,{id:"bigglow",x:"-80%",y:"-80%",width:"260%",height:"260%"});var bgb=el("feGaussianBlur");at(bgb,{stdDeviation:"16"});bg.appendChild(bgb);defs.appendChild(bg);
-(function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"44%",r:"68%"});
-  [["0%","#10141a"],["28%","#0b0f14"],["58%","#080b0f"],["82%","#05070a"],["100%","#020304"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
+// near-uniform dark base — flat so there is NO bright "die zone" vs dark surround (one field)
+(function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"46%",r:"75%"});
+  [["0%","#0a0d12"],["50%","#080a0f"],["80%","#06080c"],["100%","#040609"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
   defs.appendChild(sg);})();
 defs.appendChild(linGrad("sheen",[["0%","rgba(150,192,238,0.055)"],["42%","rgba(150,192,238,0)"],["72%","rgba(140,105,52,0)"],["100%","rgba(180,140,70,0.05)"]],true));
 defs.appendChild(linGrad("irid",[["0%","rgba(90,210,255,0.06)"],["26%","rgba(155,123,255,0.06)"],["50%","rgba(255,120,210,0.045)"],["72%","rgba(120,200,255,0.06)"],["100%","rgba(190,150,90,0.045)"]],true));
@@ -973,47 +981,17 @@ defs.appendChild(linGrad("streak",[["0%","rgba(255,255,255,0)"],["36%","rgba(232
   defs.appendChild(fg);})();
 svg.appendChild(defs);
 
-// substrate — REAL PCB: solder-mask + copper ground-pour + vias + silkscreen (all
-// cheap paths/patterns, NO filters, so pan stays smooth).
-// extend the substrate FAR beyond the canvas so panning never reveals a hard edge
+// substrate — MINIMAL. The rich background is the fixed AURORA on #stage (CSS). The SVG
+// board is left transparent so that one aurora field reads behind the die AND the surround
+// (never separate); only a soft radial "pocket" deepens the centre so the core/cells pop.
+// No noise, no PCB clutter. Extended bounds so a pan never reveals an edge.
 var EXT=CW, X0=-EXT, Y0=-EXT, WW=CW+2*EXT, HH=CH+2*EXT;
-svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"#020304"}));            // base = silicon edge tone, fills everywhere (no black gap)
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"}));        // radial blends into the base at its edge -> seamless
 (function(){
-  var MONO="ui-monospace,Menlo,Consolas,monospace";
-  // copper ground-pour — classic PCB cross-hatch fill (fills the empty plane = real board)
-  var hp=el("pattern");at(hp,{id:"cuPour",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"});
-  hp.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(146,126,82,0.075)","stroke-width":"2.4"}));defs.appendChild(hp);
-  var hp2=el("pattern");at(hp2,{id:"cuPour2",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(-45)"});
-  hp2.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(120,134,148,0.04)","stroke-width":"2"}));defs.appendChild(hp2);
-  svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"url(#cuPour)"}));
-  svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"url(#cuPour2)"}));
-  // faint radial litho guides (subtle, ties to the radial die)
-  var maxR=Math.hypot(Math.max(CC.x,CW-CC.x),Math.max(CC.y,CH-CC.y));
-  var lg=el("g");for(var r=120;r<=maxR;r+=120){lg.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:r,fill:"none",stroke:"rgba(122,182,228,0.035)","stroke-width":"1"}));}svg.appendChild(lg);
-  // via / test-pad field — deterministic irregular scatter of copper-ringed holes
-  function h32(x,y){var h=2166136261;h^=x;h=Math.imul(h,16777619);h^=y;h=Math.imul(h,16777619);return (h>>>0);}
-  var vg=el("g");
-  for(var gx=80; gx<CW-40; gx+=126){ for(var gy=80; gy<CH-40; gy+=126){
-    var hh=h32(gx,gy); if(hh%100<52) continue;
-    var jx=gx+((hh>>4)%44-22), jy=gy+((hh>>11)%44-22);
-    vg.appendChild(at(el("circle"),{cx:jx,cy:jy,r:"3.1",fill:"#06090e",stroke:"rgba(201,161,74,0.2)","stroke-width":"1.4"}));
-    vg.appendChild(at(el("circle"),{cx:jx,cy:jy,r:"1",fill:"rgba(201,161,74,0.28)"}));
-  }}
-  svg.appendChild(vg);
-  // silkscreen — board-edge dashed keepout ring, corner fiducials, rev tag
-  var sk=el("g"),rr=Math.min(CC.x,CC.y,CW-CC.x,CH-CC.y)-46;
-  sk.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:rr,fill:"none",stroke:"rgba(150,190,230,0.1)","stroke-width":"1.3","stroke-dasharray":"2 13"}));
-  [[60,60],[CW-60,60],[60,CH-60],[CW-60,CH-60]].forEach(function(c){
-    sk.appendChild(at(el("line"),{x1:c[0]-11,y1:c[1],x2:c[0]+11,y2:c[1],stroke:"rgba(150,190,230,0.26)","stroke-width":"1.4"}));
-    sk.appendChild(at(el("line"),{x1:c[0],y1:c[1]-11,x2:c[0],y2:c[1]+11,stroke:"rgba(150,190,230,0.26)","stroke-width":"1.4"}));
-    sk.appendChild(at(el("circle"),{cx:c[0],cy:c[1],r:"7",fill:"none",stroke:"rgba(150,190,230,0.18)","stroke-width":"1"}));
-  });
-  var tag=at(el("text"),{x:"64",y:String(CH-42),fill:"rgba(150,190,230,0.2)","font-family":MONO,"font-size":"22","letter-spacing":"4"});tag.textContent="YURI-OS · CIRCUIT DIE · REV.D";sk.appendChild(tag);
-  svg.appendChild(sk);
+  var pg=el("radialGradient");at(pg,{id:"diePocket",gradientUnits:"userSpaceOnUse",cx:String(CC.x),cy:String(Math.round(CC.y)),r:String(Math.round(CW*0.6))});
+  [["0%","#03050a",0.6],["58%","#03050a",0.34],["100%","#03050a",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});pg.appendChild(st);});
+  defs.appendChild(pg);
+  svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"url(#diePocket)","pointer-events":"none"}));
 })();
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#sheen)","pointer-events":"none"}));
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#irid)","pointer-events":"none"}));
 
 var BANDS = DATA.bands || [];
 function annulusPath(rIn,rOut){
