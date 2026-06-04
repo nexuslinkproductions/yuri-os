@@ -24,9 +24,9 @@ const PERIMETER = "Governance & Safety";
 
 export function buildRadialFloorplan(nodes, graphEdges = [], opts = {}) {
   const O = {
-    coreCell: 104, coreGapC: 18, coreGap: 64, labelH: 30,
-    ringCell: 78, ringCellGap: 16, ringGap0: 70, sectorGap: 0.05,
-    margin: 150, ...opts,
+    coreCell: 104, coreGapC: 16, coreGap: 34, labelH: 30,
+    ringCell: 80, ringCellGap: 12, ringGap0: 26, sectorGap: 0.04,
+    margin: 96, ...opts,
   };
 
   const byLayer = new Map(LAYER_ORDER.map((l) => [l, []]));
@@ -96,7 +96,7 @@ export function buildRadialFloorplan(nodes, graphEdges = [], opts = {}) {
     const ids = byLayer.get(L) || [], isPerim = L === PERIMETER;
     const span = Math.max(O.sectorGap * 2, usable * (ids.length / totalOrbit));
     const a0 = ang + O.sectorGap / 2, a1 = ang + span - O.sectorGap / 2, aMid = (a0 + a1) / 2;
-    let r = baseR + (isPerim ? cellPitchA * 0.9 : 0), rIn = r - O.ringCell / 2, placed = 0;
+    let r = baseR + (isPerim ? cellPitchA * 0.3 : 0), rIn = r - O.ringCell / 2, placed = 0;
     while (placed < ids.length) {
       const cap = Math.max(1, Math.floor(((a1 - a0) * r) / cellPitchA)), take = Math.min(cap, ids.length - placed);
       const padA = (((a1 - a0) * r) - take * cellPitchA) / 2 / r;

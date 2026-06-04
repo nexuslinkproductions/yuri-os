@@ -125,18 +125,45 @@ for (const [id, c] of Object.entries(floor.cells)) {
 // ----------------------------------------------------------------------------
 // 3) ROUTE — K2 over the scaled cells (general over any cell rects).
 // ----------------------------------------------------------------------------
-function curvedRoutes(cellMap, edgeList, ctr) {
+// per-layer hub = centroid of the layer's cells (the bundling waypoint).
+const layerHubs = {};
+{ const sx = {}, sy = {}, cnt = {};
+  for (const id in cells) { const c = cells[id]; sx[c.layer] = (sx[c.layer] || 0) + c.cx; sy[c.layer] = (sy[c.layer] || 0) + c.cy; cnt[c.layer] = (cnt[c.layer] || 0) + 1; }
+  for (const L in cnt) layerHubs[L] = { x: sx[L] / cnt[L], y: sy[L] / cnt[L] }; }
+
+// Catmull-Rom through control points -> smooth cubic SVG path.
+function catmullRom(pts) {
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+// Hierarchical edge bundling: route each edge through its layer hubs (and the die
+// centre for cross-layer edges), pulling control points toward the straight line by
+// (1-beta). Edges sharing layer-pairs bundle into clean tracts -> a neural pathway.
+function bundledRoutes(cellMap, edgeList, hubs, ctr) {
+  const beta = 0.85;
   return edgeList.filter((e) => cellMap[e.from] && cellMap[e.to]).map((e) => {
-    const a = cellMap[e.from], b = cellMap[e.to];
-    const mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
-    const t = 0.2; // pull the control point toward the die centre -> radial field-line flow
-    const cxp = mx + (ctr.x - mx) * t, cyp = my + (ctr.y - my) * t;
-    const path = `M ${a.cx.toFixed(1)} ${a.cy.toFixed(1)} Q ${cxp.toFixed(1)} ${cyp.toFixed(1)} ${b.cx.toFixed(1)} ${b.cy.toFixed(1)}`;
-    return { from: e.from, to: e.to, kind: e.kind, path, bends: 0 };
+    const A = cellMap[e.from], B = cellMap[e.to];
+    const ctrl = A.layer === B.layer
+      ? [[A.cx, A.cy], [hubs[A.layer].x, hubs[A.layer].y], [B.cx, B.cy]]
+      : [[A.cx, A.cy], [hubs[A.layer].x, hubs[A.layer].y], [ctr.x, ctr.y], [hubs[B.layer].x, hubs[B.layer].y], [B.cx, B.cy]];
+    const N = ctrl.length, sx = A.cx, sy = A.cy, ex = B.cx, ey = B.cy;
+    const bundled = ctrl.map((p, i) => {
+      if (i === 0 || i === N - 1) return p;
+      const t = i / (N - 1), lx = sx + (ex - sx) * t, ly = sy + (ey - sy) * t;
+      return [p[0] * beta + lx * (1 - beta), p[1] * beta + ly * (1 - beta)];
+    });
+    return { from: e.from, to: e.to, kind: e.kind, path: catmullRom(bundled), bends: 0 };
   });
 }
 const routes = LAYOUT === "radial"
-  ? curvedRoutes(cells, graphEdges, center)
+  ? bundledRoutes(cells, graphEdges, layerHubs, center)
   : routeOrthogonal(floor.blocks, cells, graphEdges, floor.channels, { blockMargin: 2, laneGap: 7, cornerRadius: 5 }).routes;
 
 // vias = interior bend vertices of a route (metal-layer contacts at every corner).
@@ -376,12 +403,12 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .blk.moat .blk-name{fill:var(--gold-bright);}
 .blk-count{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;fill:var(--ink-4);}
 .blk.moat .blk-count{fill:var(--gold);}
-.arc-band{fill:rgba(90,210,255,0.022);stroke:rgba(90,210,255,0.12);stroke-width:1;}
-.arc-band.perim{fill:rgba(201,161,74,0.04);stroke:rgba(201,161,74,0.28);stroke-dasharray:2 6;}
+.arc-band{fill:none;stroke:rgba(90,210,255,0.08);stroke-width:1;stroke-dasharray:1 7;}
+.arc-band.perim{fill:none;stroke:rgba(201,161,74,0.2);stroke-dasharray:2 7;}
 .arc-name{font-family:var(--mono);font-size:13px;letter-spacing:0.16em;fill:var(--cyan-2);opacity:0.85;}
 .arc-name.perim{fill:var(--gold-bright);}
-.core-disc{fill:rgba(201,161,74,0.03);stroke:rgba(201,161,74,0.22);stroke-width:1.3;}
-.core-disc.moat{stroke:rgba(201,161,74,0.3);}
+.core-disc{fill:none;stroke:rgba(201,161,74,0.16);stroke-width:1;stroke-dasharray:1 6;}
+.core-disc.moat{stroke:rgba(201,161,74,0.24);}
 .core-name{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.18em;fill:var(--gold-bright);opacity:0.92;}
 .fill{stroke:rgba(90,210,255,0.06);stroke-width:1;fill:none;}
 .fill.g{stroke:rgba(201,161,74,0.075);}
@@ -390,10 +417,10 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .moat-back{opacity:0.9;}
 .hubtick{fill:var(--hot);filter:drop-shadow(0 0 3px var(--hot));}
 
-.trace{fill:none;stroke-width:1.5;opacity:0.5;transition:opacity var(--fast),stroke-width var(--fast);}
-.trace.calls{stroke:var(--gold);} .trace.reads{stroke:var(--neutral);} .trace.writes{stroke:var(--teal);}
-.trace.hl{opacity:1;stroke-width:2.1;filter:url(#softglow);}
-.trace.dim{opacity:0.04;}
+.trace{fill:none;stroke-width:1.5;opacity:0.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity var(--fast),stroke-width var(--fast);}
+.trace.calls{stroke:var(--gold-bright);} .trace.reads{stroke:#9fd0ff;} .trace.writes{stroke:var(--teal-bright);}
+.trace.hl{opacity:1;stroke-width:2.6;filter:url(#softglow);}
+.trace.dim{opacity:0.05;}
 .flow{fill:none;stroke:var(--gold-bright);stroke-width:2.2;opacity:0;stroke-dasharray:3 16;stroke-linecap:round;filter:url(#softglow);}
 .flow.on{opacity:0.95;animation:flow 1.1s linear infinite;}
 @keyframes flow{to{stroke-dashoffset:-38;}}
