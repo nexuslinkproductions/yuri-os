@@ -141,3 +141,17 @@ Optional: write to `_SYSTEM/SELF-IMPROVEMENT/graph-introspection-{date}.md` for 
 - Detecting code drift between graph state and reality
 - Engineering retros (what merged? what split? what disappeared?)
 - After major commits that change system topology
+
+## Session Notes
+
+### 2026-06-04
+- session: 1081m | peak ctx: 0% | compacts: 0
+- tools: Bash×798, Read×626, Write×163, StructuredOutput×140, WebSearch×84, Edit×75, ToolSearch×39, WebFetch×16, Workflow×7, AskUserQuestion×1, Agent×1
+- corrections: none
+- errors: none
+
+### 2026-06-03
+- session: 147m | peak ctx: 0% | compacts: 0
+- tools: Bash×798, Read×626, Write×163, StructuredOutput×140, WebSearch×84, Edit×75, ToolSearch×39, WebFetch×16, Workflow×7, AskUserQuestion×1, Agent×1
+- corrections: none
+- errors: none

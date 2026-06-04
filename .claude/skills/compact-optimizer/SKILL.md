@@ -132,6 +132,18 @@ Never inject raw command dumps, full file contents, or unfiltered grep output in
 
 ## Session Notes
 
+### 2026-06-04
+- session: 85m | peak ctx: 0% | compacts: 0
+- tools: Bash×446, Read×180, StructuredOutput×34, WebSearch×19, Edit×13, Write×10, TodoWrite×8, WebFetch×7, ToolSearch×6, Workflow×4, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-06-03
+- session: 147m | peak ctx: 0% | compacts: 0
+- tools: Bash×798, Read×626, Write×163, StructuredOutput×140, WebSearch×84, Edit×75, ToolSearch×39, WebFetch×16, Workflow×7, AskUserQuestion×1, Agent×1
+- corrections: none
+- errors: none
+
 ### 2026-05-02
 - session: 4m | peak ctx: 14% | compacts: 0
 - tools: Bash×16, Read×4, Edit×4, Skill×1
