@@ -138,6 +138,7 @@ Diagram renderers are the top-exploited category in our local corpus (Mermaid/Kr
 - **New rendered string → §8 review.** Especially anything from the live-pulse file or a future external graph source.
 - **Update this manual in the same change** that alters architecture/provenance/decisions. Stale manual = drift.
 - **Regenerate, never hand-edit** the emitted HTML or baked positions — change the generator + re-run.
+- **VARIABLE node sizing — NOT one-size-for-all (Marcel 2026-06-04).** A node's visual mass (die-block / pin / diode size) scales with **how much that node does** — its weight, throughput, fan-out, centrality. Heavy organ → big block; tiny helper → small. **Principled, not hand-set:** `nodeSize = f(structural-analysis)` sourced from the architecture-graph engine (degree + spectral-centrality from card 4, betweenness/articulation from card 16, Forman-curvature from card 17 — see roadmap `02_RESOURCES/RESEARCH/yuri-math-engine-and-propagation-roadmap-2026-06-04.md` §3/§10.1). Add a `size`/`weight` field to the graph schema (today nodes carry only id/label/layer/files/triggeredBy/description) sourced from that engine; the renderer maps it to block dimensions. Wire when the architecture-graph engine ships (obeys the change-propagation trigger above).
 
 ## 12. Build log
 - 2026-06-04 — manual created (D-005); spectral core in progress; K1 verified, K2 defect known + fix sourced, K3→spectral. Theory captured + cited; 6 Code-Bible cards deposited.
