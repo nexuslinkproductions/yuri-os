@@ -1,7 +1,19 @@
 #!/usr/bin/env node
-// build-chip-die.mjs  — YURI Circuit Die: PCB orthogonal copper traces + QFN chip-package cells.
+// build-chip-die.mjs  — YURI Circuit Die: PER-TIER MATERIAL MIX (a deliberate blend).
 //
 //   node 02_RESOURCES/RESEARCH/circuitry/build-chip-die.mjs   -> ./yuri-chip-die.html
+//
+// MERGES four material redesigns (M1/M2/M3/M4) into ONE generator, dispatching the
+// per-cell material by its radial tier — each tier rendered in its best-fit material:
+//   tier 0 (core disc · energy hub + kernel)  -> M4 iridescent dark-glass (hero jewel)
+//   tier 1 (MOAT band · memory/cognition/energy) -> M2 frosted glass (precious inner ring)
+//   tier 2 (SYSTEMS band)                        -> M1 brushed-metal QFN (workhorse parts)
+//   tier 3 (RIM band · governance/hidden)        -> M3 ceramic IC package (boundary parts)
+// ALL tiers share M1's DEPTH treatment (contact-shadow layer + AO + inner shadow + bevel)
+// and the colour-as-TINT rule (layer hue integrated into the body gradient + rim, NEVER a
+// flat translucent wash). Pins/leads/LED/label/part-number/pin-1 detail render on every cell.
+// LAYOUT, wiring, pan/zoom shell, facing-rotation, label-flip are byte-identical to the
+// canonical build-chip-die.mjs — only the per-cell material is forked.
 //
 // LOCKED LAYOUT (owner: "D + a mix of B"): reuse K1D-tiers.mjs concentric
 // dependency-tier bands (glowing energy core disc dead-centre + concentric bands
@@ -68,6 +80,81 @@ const LAYER_COLOR = {
   "Token-Efficiency & Session": { a: "#8FA9C9", b: "#4d647f", glow: "#bcccdf" },
   "Hidden / Meta / Self-referential": { a: "#A9B6C2", b: "#5f7689", glow: "#cfd9e3" },
 };
+
+// ============================================================================
+// MATERIAL COLOUR MATH (Node-side, deterministic). Two engines lifted verbatim:
+//   • M1 — per-layer INTEGRATED-TINT brushed-metal gradients (tier 2 bodies). Colour
+//     folded into a lit-metal ramp; mids/shadows carry hue, top bevel near-neutral.
+//   • M4 — per-cell DARK-GLASS + iridescent thin-film material tokens (tier 0 bodies).
+//     Layer hue baked deep into a near-black coated-glass gradient + a cyan->violet->amber
+//     iridescent rim. No flat wash anywhere — colour IS the material.
+// (M2 frosted glass + M3 ceramic build their tinted gradients per-cell in the browser
+//  loop from n.accent/n.glow/n.accentB; no extra Node tokens needed for those tiers.)
+// ============================================================================
+// ---- M1 brushed-metal integrated-tint engine ----
+const hx2rgb = (h) => { const m = h.replace("#", ""); return [parseInt(m.slice(0, 2), 16), parseInt(m.slice(2, 4), 16), parseInt(m.slice(4, 6), 16)]; };
+const rgb2hx = (r) => "#" + r.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+const mix3 = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);           // linear rgb mix
+const desat = (rgb, k) => { const g = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]; return rgb.map((v) => v + (g - v) * k); };
+const tone = (rgb, k) => rgb.map((v) => v + (255 - v) * k);              // toward white (highlight)
+const shade = (rgb, k) => rgb.map((v) => v * (1 - k));                   // toward black (shadow)
+const METAL_RAMP = [
+  ["0%",  "#dbe6f1", 0.10],   // top specular bevel — near-neutral bright catch
+  ["7%",  "#aebecd", 0.28],   // shoulder (tint starts)
+  ["22%", "#7888a0", 0.58],   // upper mid (colour reads)
+  ["46%", "#46596b", 0.80],   // body — deepest colour identity (anodised tint lives here)
+  ["68%", "#324250", 0.78],
+  ["88%", "#26323d", 0.62],
+  ["100%","#3c4c5b", 0.62],   // reflected bottom bounce (lifted + tinted)
+];
+function metalStops(accentHex) {
+  const acc = hx2rgb(accentHex);
+  return METAL_RAMP.map(([off, baseHex, w]) => {
+    const base = hx2rgb(baseHex);
+    const offN = parseFloat(off) / 100;
+    const tinted = shade(desat(acc, 0.12), 0.08 + offN * 0.24);
+    return [off, rgb2hx(mix3(base, tinted, w))];
+  });
+}
+function rimHex(accentHex) { return rgb2hx(tone(desat(hx2rgb(accentHex), 0.18), 0.40)); }
+const LAYER_KEY = {};
+Object.keys(LAYER_COLOR).forEach((L, i) => { LAYER_KEY[L] = "L" + i; });
+function layerKeyOf(layer) { return LAYER_KEY[layer] || "L3"; }
+
+// ---- M4 dark-glass + iridescent thin-film engine ----
+function rgbToHsl([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) {
+    if (mx === r) h = ((g - b) / d) % 6;
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60; if (h < 0) h += 360;
+  }
+  const l = (mx + mn) / 2;
+  return [h, d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1)), l];
+}
+function hslToHex(h, s, l) {
+  h = ((h % 360) + 360) % 360; s = Math.max(0, Math.min(1, s)); l = Math.max(0, Math.min(1, l));
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) [r, g, b] = [c, x, 0]; else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x]; else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c]; else [r, g, b] = [c, 0, x];
+  return rgb2hx([(r + m) * 255, (g + m) * 255, (b + m) * 255]);
+}
+function rimHue(hue, l, sat) { return hslToHex(hue, sat, l); }
+function glassMaterial(accent, moat) {
+  const [h] = rgbToHsl(hx2rgb(accent));
+  return {
+    g0: hslToHex(h, 0.34, 0.34), g1: hslToHex(h, 0.42, 0.205),
+    g2: hslToHex(h, 0.50, 0.115), g3: hslToHex(h, 0.46, 0.055),
+    irA: rimHue(h - 40, 0.66, 0.88), irB: rimHue(h, 0.70, 0.86), irC: rimHue(h + 56, 0.64, 0.82),
+    rim: rimHue(h, moat ? 0.72 : 0.64, moat ? 0.78 : 0.66),
+    ao: hslToHex(h, 0.40, 0.03),
+  };
+}
 
 // --- status from prose (live / dormant / phantom) ---
 function statusOf(n) {
@@ -298,17 +385,24 @@ const nodeOut = nodes.map((n) => {
   const st = statusOf(n);
   counts[st]++;
   const col = LAYER_COLOR[n.layer] || LAYER_COLOR["Retrieval & Knowledge"];
+  const moat = MOAT_LAYERS.has(n.layer);
   return {
     id: n.id, label: n.label, layer: n.layer, short: BLOCK_SHORT[n.layer] || n.layer,
     files: n.files || [], triggeredBy: n.triggeredBy || "", description: n.description || "",
-    status: st, moat: MOAT_LAYERS.has(n.layer), core: c.band === 0,
+    status: st, moat, core: c.band === 0,
     x: c.x, y: c.y, w: c.w, h: c.h, cx: c.cx, cy: c.cy,
     band: c.band, tier: c.tier, ang: +(c.ang || 0).toFixed(4), r: Math.round(c.r || 0),
     deg: degree.get(n.id) || 0, sizeScale: +(c.w / 104).toFixed(3),
     accent: col.a, glow: col.glow, accentB: col.b,
+    // per-tier material tokens — M1 metal (layerKey/accentRim), M4 glass (mat).
+    layerKey: layerKeyOf(n.layer), accentRim: rimHex(col.a), mat: glassMaterial(col.a, moat),
     io: artifactIO.get(n.id) || [],
   };
 });
+// per-layer integrated-tint metal gradient stops (M1) — built once, referenced by id.
+const layerGrads = Object.keys(LAYER_COLOR).map((L) => ({
+  key: layerKeyOf(L), stops: metalStops(LAYER_COLOR[L].a),
+}));
 const blockOut = floor.blocks.map((b) => {
   const col = LAYER_COLOR[b.layer.replace(" · CORE", "")] || (b.core ? LAYER_COLOR["Energy & Math"] : LAYER_COLOR["Retrieval & Knowledge"]);
   return {
@@ -339,6 +433,7 @@ const payload = {
   channels: chanOut,
   blocks: blockOut,
   nodes: nodeOut,
+  layerGrads,
   routes: routes.map((r) => ({ from: r.from, to: r.to, kind: r.kind, cls: r.cls, path: r.d, vias: r.vias })),
   pads,
 };
@@ -525,35 +620,103 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .via.core{stroke:#E8A663;} .via.moat{stroke:#9b7bff;} .via.feed{stroke:#5AD2FF;} .via.sig{stroke:#6E9FD0;} .via.rim{stroke:#E0776B;}
 .via.hl{opacity:1;stroke-width:1.8;}
 
-/* =================  QFN CHIP-PACKAGE CELLS  ================= */
-.cell{cursor:pointer;filter:drop-shadow(0 4px 5px rgba(0,0,0,0.6));}
-.cell .c-shadow{fill:rgba(0,0,0,0.45);filter:blur(2px);}
-.cell .c-lead{fill:url(#leadMetal);stroke:rgba(20,28,36,0.7);stroke-width:0.5;}
-.cell.moat .c-lead{fill:url(#leadGold);}
-.cell .c-body{fill:url(#pkgBody);filter:url(#metal);}
-.cell.moat .c-body{fill:url(#pkgBodyGold);}
-.cell .c-wash{pointer-events:none;}
-.cell .c-bevel-t{stroke:rgba(210,230,255,0.85);stroke-width:1.4;fill:none;}
-.cell.moat .c-bevel-t{stroke:rgba(255,236,180,0.9);}
-.cell .c-bevel-b{stroke:rgba(0,0,0,0.55);stroke-width:1.6;fill:none;}
-.cell .c-edge{fill:none;stroke-width:1;stroke-opacity:0.5;transition:stroke var(--fast),stroke-width var(--fast),stroke-opacity var(--fast);}
+/* =================  PER-TIER MATERIAL-MIX CHIP CELLS  =================
+   Each cell carries a tier class (.t0 glass-hero / .t1 frosted / .t2 metal / .t3 ceramic).
+   Shared depth: the .csl contact-shadow LAYER renders behind all cells (M1); per-cell AO +
+   inner-shadow + bevels add the rest. Colour is INTEGRATED (gradient + rim), never a wash. */
+.cell{cursor:pointer;}
+/* ---- shared LEADS (overridden per-tier below) ---- */
+.cell .c-lead{fill:url(#leadMetal_m1);stroke:rgba(12,18,24,0.85);stroke-width:0.5;}
+.cell.moat .c-lead{fill:url(#leadGold_m1);}
+/* ---- shared depth + scaffolding classes ---- */
+.cell .c-ao{fill:none;pointer-events:none;}
+.cell .c-inner{fill:none;pointer-events:none;}
+.cell .c-spec,.cell .c-brush,.cell .c-streak,.cell .c-refr,.cell .c-frost,.cell .c-irid,.cell .c-irid2,.cell .c-cres,.cell .c-rim,.cell .c-tint,.cell .c-grain{pointer-events:none;}
+.cell .c-bevel-t{stroke:rgba(224,238,255,0.92);stroke-width:1.5;fill:none;}
+.cell.moat .c-bevel-t{stroke:rgba(255,238,188,0.95);}
+.cell .c-bevel-b{stroke:rgba(0,0,0,0.6);stroke-width:1.7;fill:none;}
+/* ---- shared structural edge ---- */
+.cell .c-edge{fill:none;stroke-width:1;stroke-opacity:0.55;transition:stroke var(--fast),stroke-width var(--fast),stroke-opacity var(--fast);}
 .cell:hover .c-edge,.cell.sel .c-edge{stroke-opacity:1;}
-.cell .c-streak,.cell .c-glint{pointer-events:none;}
-.cell .c-name{font-family:var(--mono);font-size:11px;font-weight:600;fill:#e3effb;pointer-events:none;letter-spacing:0.02em;}
-.cell.moat .c-name{fill:#f9f1da;}
-.cell .c-part{font-family:var(--mono);font-size:7px;fill:rgba(180,205,228,0.6);letter-spacing:0.14em;pointer-events:none;}
-.cell.moat .c-part{fill:rgba(231,201,127,0.6);}
-.cell .c-pin1{fill:none;stroke:#ffd6a0;stroke-width:1.4;opacity:0.85;}
-.cell .c-pad{fill:#0c121b;stroke-width:1;opacity:0.9;}
-.cell[data-status="dormant"] .c-edge{stroke-dasharray:5 3;}
-.cell[data-status="phantom"] .c-edge{stroke-dasharray:2 4;}
-.cell:hover .c-edge{stroke-width:2;}
-.cell.sel .c-edge{stroke-width:2.4;}
-.cell.sel .c-body{filter:url(#metal) drop-shadow(0 0 9px rgba(90,210,255,0.5));}
-.cell.moat.sel .c-body{filter:url(#metal) drop-shadow(0 0 9px rgba(231,201,127,0.55));}
+.cell[data-status="dormant"] .c-edge,.cell[data-status="dormant"] .c-silk{stroke-dasharray:5 3;}
+.cell[data-status="phantom"] .c-edge,.cell[data-status="phantom"] .c-silk{stroke-dasharray:2 4;}
+.cell:hover .c-edge,.cell:hover .c-silk{stroke-width:1.8;}
+.cell.sel .c-edge,.cell.sel .c-silk{stroke-width:2.4;}
+/* ---- shared label / detail ---- */
+.cell .c-name{font-family:var(--mono);font-size:11px;font-weight:600;fill:#eef5fc;pointer-events:none;letter-spacing:0.02em;paint-order:stroke;stroke:rgba(4,8,14,0.55);stroke-width:2.4px;}
+.cell.moat .c-name{fill:#fbf3dd;stroke:rgba(20,12,2,0.5);}
+.cell .c-part{font-family:var(--mono);font-size:7px;fill:rgba(186,210,232,0.62);letter-spacing:0.14em;pointer-events:none;}
+.cell.moat .c-part{fill:rgba(231,201,127,0.62);}
+.cell .c-pin1{fill:none;stroke:#ffd6a0;stroke-width:1.4;opacity:0.88;}
+.cell .c-pad{fill:#0a0f17;stroke-width:1;opacity:0.92;}
+.cell .c-silk{fill:none;stroke-width:1.4;stroke-opacity:0.8;transition:stroke-opacity var(--fast),stroke-width var(--fast);}
+.cell .c-mark{stroke:rgba(0,0,0,0.35);stroke-width:0.5;}
+.cell .c-cavity{fill:url(#cavityFloor_m3);}
+.cell .c-cavity-rim{fill:none;stroke:rgba(0,0,0,0.55);stroke-width:1.2;}
+.cell .c-cavity-lip{fill:none;stroke:rgba(255,250,240,0.22);stroke-width:0.8;}
+.cell .c-die{fill:url(#dieMetal_m3);}
+.cell .c-die-grid{stroke:rgba(150,180,210,0.18);stroke-width:0.4;fill:none;}
+.cell .c-chamfer-t{stroke:rgba(255,252,244,0.30);stroke-width:1.1;fill:none;}
+.cell .c-chamfer-b{stroke:rgba(0,0,0,0.40);stroke-width:1.3;fill:none;}
+.cell .c-contact,.cell .c-contact2{pointer-events:none;}
+.cell .c-back{pointer-events:none;}
 .cell.dim{opacity:0.1;}
+.cell.sel .c-body{filter:drop-shadow(0 0 10px rgba(90,210,255,0.55));}
+.cell.moat.sel .c-body{filter:drop-shadow(0 0 10px rgba(231,201,127,0.6));}
+
+/* ===== TIER 0 — M4 IRIDESCENT DARK-GLASS (hero jewel under the plasma core) ===== */
+.cell.t0 .c-lead{fill:url(#leadMetal_m4);stroke:rgba(8,14,22,0.85);}
+.cell.t0.moat .c-lead{fill:url(#leadGold_m4);}
+.cell.t0 .c-body{filter:url(#glassLit_m4);}
+.cell.t0 .c-cres{fill:none;stroke:rgba(244,250,255,0.9);stroke-width:1.4;stroke-linecap:round;filter:url(#thinFilm_m4);}
+.cell.t0.moat .c-cres{stroke:rgba(255,247,224,0.92);}
+.cell.t0 .c-edge{stroke-opacity:0.62;}
+.cell.t0.sel .c-body{filter:url(#glassLit_m4) drop-shadow(0 0 10px rgba(90,210,255,0.5));}
+.cell.t0.moat.sel .c-body{filter:url(#glassLit_m4) drop-shadow(0 0 10px rgba(231,201,127,0.55));}
+
+/* ===== TIER 1 — M2 FROSTED GLASS (precious inner moat ring) ===== */
+.cell.t1 .c-lead{fill:url(#leadGlass_m2);stroke:rgba(8,12,18,0.6);stroke-width:0.4;opacity:0.82;}
+.cell.t1.moat .c-lead{fill:url(#leadGlassGold_m2);}
+.cell.t1 .c-contact{fill:rgba(0,0,0,0.55);filter:url(#contactSoft_m2);}
+.cell.t1 .c-ao{fill:rgba(0,0,0,0.5);filter:url(#aoTight_m2);}
+.cell.t1 .c-body{filter:url(#frost_m2);}
+.cell.t1 .c-pin1{stroke:#ffe2b8;stroke-width:1.2;opacity:0.7;}
+.cell.t1 .c-pad{fill:rgba(8,14,22,0.55);opacity:0.85;}
+.cell.t1 .led-live{filter:drop-shadow(0 0 3px var(--pos));}
+.cell.t1 .led-dormant{filter:drop-shadow(0 0 3px var(--warn));}
+.cell.t1 .led-phantom{filter:drop-shadow(0 0 3px var(--risk));}
+.cell.t1.sel .c-body{filter:url(#frost_m2) drop-shadow(0 0 11px rgba(90,210,255,0.5));}
+.cell.t1.moat.sel .c-body{filter:url(#frost_m2) drop-shadow(0 0 11px rgba(231,201,127,0.55));}
+
+/* ===== TIER 2 — M1 PHOTOREAL BRUSHED METAL (workhorse SYSTEMS packages) ===== */
+.cell.t2 .c-lead{fill:url(#leadMetal_m1);stroke:rgba(12,18,24,0.85);}
+.cell.t2.moat .c-lead{fill:url(#leadGold_m1);}
+.cell.t2 .c-body{filter:url(#metalLit_m1);}
+.cell.t2 .c-brush{mix-blend-mode:overlay;opacity:0.5;}
+.cell.t2.moat .c-brush{opacity:0.42;}
+.cell.t2 .c-rim{fill:none;stroke-width:1.1;stroke-opacity:0.9;}
+.cell.t2.sel .c-body{filter:url(#metalLit_m1) drop-shadow(0 0 10px rgba(90,210,255,0.55));}
+.cell.t2.moat.sel .c-body{filter:url(#metalLit_m1) drop-shadow(0 0 10px rgba(231,201,127,0.6));}
+
+/* ===== TIER 3 — M3 MATTE CERAMIC IC (boundary / governance parts) ===== */
+.cell.t3 .c-lead{fill:url(#leadMetal_m3);stroke:none;}
+.cell.t3.moat .c-lead{fill:url(#leadGold_m3);}
+.cell.t3 .c-contact,.cell.t3 .c-contact2{fill:url(#contactGrad_m3);}
+.cell.t3 .c-body{fill:url(#ceramicBody_m3);}
+.cell.t3.moat .c-body{fill:url(#ceramicBodyGold_m3);}
+.cell.t3 .c-name{stroke:rgba(20,18,14,0.5);stroke-width:0.6px;fill:#f2ede1;}
+.cell.t3.moat .c-name{fill:#f9f1da;}
+.cell.t3 .c-part{fill:rgba(70,66,58,0.85);}
+.cell.t3.moat .c-part{fill:rgba(120,96,52,0.8);}
+.cell.t3 .c-pin1{stroke:rgba(40,36,30,0.6);stroke-width:1.2;opacity:0.8;}
+.cell.t3 .led-ring{stroke:rgba(0,0,0,0.4);}
+.cell.t3.sel .c-body{filter:drop-shadow(0 0 9px rgba(90,210,255,0.5));}
+.cell.t3.moat.sel .c-body{filter:drop-shadow(0 0 9px rgba(231,201,127,0.55));}
+
+/* contact-shadow layer (M1, behind all cells) */
+.csl .cs{fill:rgba(0,0,0,0.5);}
 .led-live{fill:var(--pos);} .led-dormant{fill:var(--warn);} .led-phantom{fill:var(--risk);}
-.led-ring{stroke:rgba(255,255,255,0.28);stroke-width:0.8;fill:none;}
+.led-ring{stroke:rgba(255,255,255,0.32);stroke-width:0.8;fill:none;}
 
 .enter .cell,.enter .trace{opacity:0;}
 .cell{animation:cellIn var(--dur) var(--ease) backwards;}
@@ -667,22 +830,125 @@ defs.appendChild(f);
 function linGrad(id,stops,horiz,coords){var g=el("linearGradient");
   at(g,coords||{x1:"0",y1:"0",x2:horiz?"1":"0",y2:horiz?"0":"1"});at(g,{id:id});
   stops.forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});if(s[2]!=null)at(st,{"stop-opacity":String(s[2])});g.appendChild(st);});return g;}
-// QFN package body — strong top-lit bevel: bright top edge, deep shadow bottom.
-defs.appendChild(linGrad("pkgBody",[["0%","#9fb3c4"],["10%","#5a6e7d"],["30%","#3c4a55"],["55%","#2b353d"],["82%","#222a31"],["100%","#171d23"]]));
-defs.appendChild(linGrad("pkgBodyGold",[["0%","#e9c477"],["10%","#a07c3e"],["30%","#6c5228"],["55%","#4e3b1d"],["82%","#3a2c16"],["100%","#241a0c"]]));
-// metal leads (gull-wing pins) — bright tin
-defs.appendChild(linGrad("leadMetal",[["0%","#cfdce8"],["48%","#8b9aa8"],["100%","#5a6773"]],true));
-defs.appendChild(linGrad("leadGold",[["0%","#f2d79a"],["48%","#c39a52"],["100%","#86642f"]],true));
-defs.appendChild(linGrad("glint",[["0%","rgba(220,238,255,0.4)"],["38%","rgba(220,238,255,0.06)"],["64%","rgba(255,255,255,0)"]]));
-// physical metal specular from overhead light
-(function(){var mf=el("filter");at(mf,{id:"metal",x:"-18%",y:"-18%",width:"136%",height:"136%"});
-  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"0.8",result:"mb"});mf.appendChild(b);
-  var sl=el("feSpecularLighting");at(sl,{in:"mb",surfaceScale:"2.8",specularConstant:"0.62",specularExponent:"30","lighting-color":"#eaf3ff",result:"sl"});
-  var dl=el("feDistantLight");at(dl,{azimuth:"235",elevation:"60"});sl.appendChild(dl);mf.appendChild(sl);
-  var ct=el("feComponentTransfer");at(ct,{in:"sl",result:"slc"});var fa=el("feFuncA");at(fa,{type:"linear",slope:"0.72",intercept:"0"});ct.appendChild(fa);mf.appendChild(ct);
+// ============================================================================
+// PER-TIER MATERIAL DEFS — every lifted id is NAMESPACED with its take suffix so the
+// four materials' gradients/filters never collide.
+// ============================================================================
+
+/* ===== M1 (tier 2) — brushed-metal QFN: per-layer integrated-tint bodies + lit-metal ===== */
+// per-layer integrated-tint metal body gradients (built in Node, no flat wash)
+(DATA.layerGrads||[]).forEach(function(lg){
+  var stops=lg.stops.map(function(s){return [s[0],s[1]];});
+  defs.appendChild(linGrad("body"+lg.key,stops));
+});
+defs.appendChild(linGrad("pkgBodyGold_m1",[["0%","#ffe9b0"],["8%","#e6b85e"],["24%","#c89234"],["46%","#9c6e22"],["68%","#6f4d16"],["88%","#4f3710"],["100%","#74521b"]]));
+defs.appendChild(linGrad("leadMetal_m1",[["0%","#cfdce8"],["48%","#8b9aa8"],["100%","#5a6773"]],true));
+defs.appendChild(linGrad("leadGold_m1",[["0%","#f2d79a"],["48%","#c39a52"],["100%","#86642f"]],true));
+// metalLit — tinted gradient body carries form + hue; this only adds a tight specular catch (screened).
+(function(){var mf=el("filter");at(mf,{id:"metalLit_m1",x:"-30%",y:"-30%",width:"160%",height:"160%"});
+  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"1.6",result:"nrm"});mf.appendChild(b);
+  var sl=el("feSpecularLighting");at(sl,{in:"nrm",surfaceScale:"3.4",specularConstant:"0.62",specularExponent:"34","lighting-color":"#f3f7fc",result:"spec"});
+  var sld=el("feDistantLight");at(sld,{azimuth:"235",elevation:"58"});sl.appendChild(sld);mf.appendChild(sl);
+  var ct=el("feComponentTransfer");at(ct,{in:"spec",result:"spt"});var fa=el("feFuncA");at(fa,{type:"gamma",amplitude:"0.85",exponent:"1.3",offset:"0"});ct.appendChild(fa);mf.appendChild(ct);
+  var sc=el("feComposite");at(sc,{in:"spt",in2:"SourceAlpha",operator:"in",result:"specc"});mf.appendChild(sc);
+  var fin=el("feBlend");at(fin,{in:"SourceGraphic",in2:"specc",mode:"screen"});mf.appendChild(fin);
+  defs.appendChild(mf);})();
+// contact-shadow blur (applied to the shared shadow LAYER once — cheap + robust at high DPR)
+(function(){var cf=el("filter");at(cf,{id:"csBlur_m1",x:"-20%",y:"-20%",width:"140%",height:"140%"});
+  var cb=el("feGaussianBlur");at(cb,{stdDeviation:"4"});cf.appendChild(cb);defs.appendChild(cf);})();
+// brushed-metal anisotropic striation — deterministic fine hairlines, tiled
+(function(){var p=el("pattern");at(p,{id:"brushGrain_m1",width:"14",height:"3",patternUnits:"userSpaceOnUse"});
+  p.appendChild(at(el("rect"),{x:0,y:0,width:14,height:0.6,fill:"#ffffff","fill-opacity":0.34}));
+  p.appendChild(at(el("rect"),{x:0,y:1.5,width:14,height:0.6,fill:"#000000","fill-opacity":0.34}));
+  defs.appendChild(p);})();
+// specular ARC catch (the glass/metal catch-light) — neutral + gold variants
+(function(){var sg=el("radialGradient");at(sg,{id:"specArc_m1",cx:"33%",cy:"18%",r:"66%"});
+  [["0%","#ffffff",0.58],["24%","#eef5ff",0.28],["50%","#d6e6f6",0.08],["76%","#cfe0f2",0.01],["100%","#cfe0f2",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});sg.appendChild(st);});
+  defs.appendChild(sg);})();
+(function(){var sg=el("radialGradient");at(sg,{id:"specArcGold_m1",cx:"33%",cy:"18%",r:"66%"});
+  [["0%","#fff8e8",0.60],["24%","#ffedcc",0.30],["50%","#f4d9a2",0.09],["76%","#eccf95",0.01],["100%","#eccf95",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});sg.appendChild(st);});
+  defs.appendChild(sg);})();
+
+/* ===== M2 (tier 1) — frosted glass: frost filter + contact/AO/inner + leads + arcs ===== */
+(function(){var ff=el("filter");at(ff,{id:"frost_m2",x:"-25%",y:"-25%",width:"150%",height:"150%","color-interpolation-filters":"sRGB"});
+  var tn=el("feTurbulence");at(tn,{type:"fractalNoise",baseFrequency:"0.85 0.85",numOctaves:"2",seed:"7",stitchTiles:"stitch",result:"grain"});ff.appendChild(tn);
+  var gct=el("feColorMatrix");at(gct,{in:"grain",type:"matrix",values:"0 0 0 0 0.55  0 0 0 0 0.62  0 0 0 0 0.72  0 0 0 0.09 0",result:"grainC"});ff.appendChild(gct);
+  var gc=el("feComposite");at(gc,{in:"grainC",in2:"SourceAlpha",operator:"in",result:"grainIn"});ff.appendChild(gc);
+  var fa=el("feGaussianBlur");at(fa,{in:"SourceAlpha",stdDeviation:"1.1",result:"surf"});ff.appendChild(fa);
+  var sl=el("feSpecularLighting");at(sl,{in:"surf",surfaceScale:"2.0",specularConstant:"0.42",specularExponent:"42","lighting-color":"#e6f1ff",result:"spec"});
+  var dl=el("feDistantLight");at(dl,{azimuth:"215",elevation:"62"});sl.appendChild(dl);ff.appendChild(sl);
+  var ct=el("feComponentTransfer");at(ct,{in:"spec",result:"specc"});var fA=el("feFuncA");at(fA,{type:"linear",slope:"0.6",intercept:"0"});ct.appendChild(fA);ff.appendChild(ct);
+  var sc=el("feComposite");at(sc,{in:"specc",in2:"SourceAlpha",operator:"in",result:"specIn"});ff.appendChild(sc);
+  var me=el("feMerge");[["SourceGraphic"],["grainIn"],["specIn"]].forEach(function(x){var nn=el("feMergeNode");at(nn,{in:x[0]});me.appendChild(nn);});ff.appendChild(me);
+  defs.appendChild(ff);})();
+(function(){var cf=el("filter");at(cf,{id:"contactSoft_m2",x:"-60%",y:"-40%",width:"220%",height:"200%"});
+  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"6",result:"b"});cf.appendChild(b);
+  var ct=el("feComponentTransfer");at(ct,{in:"b",result:"bb"});var fa=el("feFuncA");at(fa,{type:"linear",slope:"0.9",intercept:"0"});ct.appendChild(fa);cf.appendChild(ct);
+  defs.appendChild(cf);})();
+(function(){var af=el("filter");at(af,{id:"aoTight_m2",x:"-40%",y:"-30%",width:"180%",height:"170%"});
+  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"2.4"});af.appendChild(b);defs.appendChild(af);})();
+(function(){var isf=el("filter");at(isf,{id:"innerShadow_m2",x:"-30%",y:"-30%",width:"160%",height:"160%"});
+  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"3",result:"b"});isf.appendChild(b);
+  var off=el("feOffset");at(off,{in:"b",dx:"0",dy:"1.5",result:"o"});isf.appendChild(off);
+  var comp=el("feComposite");at(comp,{in:"SourceGraphic",in2:"o",operator:"out",result:"inv"});isf.appendChild(comp);
+  var cm=el("feColorMatrix");at(cm,{in:"inv",type:"matrix",values:"0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0"});isf.appendChild(cm);
+  defs.appendChild(isf);})();
+defs.appendChild(linGrad("leadGlass_m2",[["0%","#aebfcf"],["48%","#6c7d8c"],["100%","#3e4a56"]],true));
+defs.appendChild(linGrad("leadGlassGold_m2",[["0%","#d8be88"],["48%","#9c7e44"],["100%","#5e4824"]],true));
+defs.appendChild(linGrad("specArc_m2",[["0%","rgba(255,255,255,0.85)"],["40%","rgba(232,243,255,0.32)"],["100%","rgba(255,255,255,0)"]]));
+defs.appendChild(linGrad("specArcGold_m2",[["0%","rgba(255,248,228,0.85)"],["40%","rgba(255,236,196,0.32)"],["100%","rgba(255,255,255,0)"]]));
+defs.appendChild(linGrad("refrStreak_m2",[["0%","rgba(255,255,255,0)"],["44%","rgba(220,238,255,0)"],["50%","rgba(232,243,255,0.5)"],["56%","rgba(220,238,255,0)"],["100%","rgba(255,255,255,0)"]],true));
+defs.appendChild(linGrad("glassBack_m2",[["0%","rgba(18,26,36,0.42)"],["55%","rgba(10,16,24,0.62)"],["100%","rgba(5,9,15,0.74)"]]));
+defs.appendChild(linGrad("glassBackGold_m2",[["0%","rgba(40,32,16,0.44)"],["55%","rgba(24,18,9,0.64)"],["100%","rgba(12,9,4,0.76)"]]));
+
+/* ===== M3 (tier 3) — matte ceramic IC: filter-free gradients + gold pins + cavity ===== */
+defs.appendChild(linGrad("ceramicBody_m3",[["0%","#c2c8c6"],["12%","#9aa1a0"],["34%","#6f7674"],["56%","#4d5453"],["76%","#363b3b"],["90%","#252a2a"],["100%","#1a1e1e"]]));
+defs.appendChild(linGrad("ceramicBodyGold_m3",[["0%","#d4c69e"],["12%","#b1a173"],["34%","#857449"],["56%","#5f5234"],["76%","#433a25"],["90%","#2f2819"],["100%","#221d12"]]));
+defs.appendChild(linGrad("leadMetal_m3",[["0%","#e7c98a"],["40%","#c79e54"],["72%","#9a7536"],["100%","#6f5224"]],true));
+defs.appendChild(linGrad("leadGold_m3",[["0%","#f6dd9c"],["42%","#d4a85a"],["74%","#9c7331"],["100%","#6b4d20"]],true));
+(function(){var dg=el("linearGradient");at(dg,{id:"dieMetal_m3",x1:"0",y1:"0",x2:"1",y2:"1"});
+  [["0%","#3b4a5c"],["38%","#2a3644"],["62%","#1f2935"],["100%","#141b25"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});dg.appendChild(st);});defs.appendChild(dg);})();
+(function(){var cf=el("radialGradient");at(cf,{id:"cavityFloor_m3",cx:"42%",cy:"36%",r:"75%"});
+  [["0%","#5b6068"],["44%","#3c424a"],["100%","#23282f"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});cf.appendChild(st);});defs.appendChild(cf);})();
+(function(){var ao=el("radialGradient");at(ao,{id:"aoEdge_m3",cx:"50%",cy:"46%",r:"62%"});
+  [["0%","#000",0],["66%","#000",0],["88%","#000",0.18],["100%","#000",0.40]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});ao.appendChild(st);});defs.appendChild(ao);})();
+(function(){var lt=el("linearGradient");at(lt,{id:"ceramTop_m3",x1:"0",y1:"0",x2:"0",y2:"1"});
+  [["0%","#ffffff",0.16],["22%","#ffffff",0.03],["45%","#ffffff",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});lt.appendChild(st);});defs.appendChild(lt);})();
+(function(){var bs=el("linearGradient");at(bs,{id:"ceramBot_m3",x1:"0",y1:"0",x2:"0",y2:"1"});
+  [["0%","#000",0],["52%","#000",0],["80%","#000",0.16],["100%","#000",0.42]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});bs.appendChild(st);});defs.appendChild(bs);})();
+(function(){var cg2=el("radialGradient");at(cg2,{id:"contactGrad_m3",cx:"50%",cy:"50%",r:"50%"});
+  [["0%","#000",0.6],["50%","#000",0.42],["78%","#000",0.16],["100%","#000",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});cg2.appendChild(st);});defs.appendChild(cg2);})();
+defs.appendChild(linGrad("dieGlint_m3",[["0%","rgba(210,228,255,0.55)"],["30%","rgba(210,228,255,0.12)"],["55%","rgba(255,255,255,0)"]]));
+
+/* ===== M4 (tier 0) — dark glass + iridescent thin-film: glassLit/inner/AO/thinFilm ===== */
+defs.appendChild(linGrad("leadMetal_m4",[["0%","#f4f9ff"],["20%","#cdd9e6"],["52%","#8b9aa8"],["80%","#5f6c79"],["100%","#3c4651"]],true));
+defs.appendChild(linGrad("leadGold_m4",[["0%","#fff0c8"],["22%","#e6c477"],["52%","#bd9347"],["80%","#7f5e2c"],["100%","#4f3a1a"]],true));
+(function(){var mf=el("filter");at(mf,{id:"glassLit_m4",x:"-25%",y:"-25%",width:"150%",height:"150%"});
+  var b=el("feGaussianBlur");at(b,{in:"SourceAlpha",stdDeviation:"1.1",result:"gb"});mf.appendChild(b);
+  var sl=el("feSpecularLighting");at(sl,{in:"gb",surfaceScale:"1.6",specularConstant:"0.92",specularExponent:"58","lighting-color":"#eef6ff",result:"sl"});
+  var dl=el("feDistantLight");at(dl,{azimuth:"248",elevation:"66"});sl.appendChild(dl);mf.appendChild(sl);
+  var ct=el("feComponentTransfer");at(ct,{in:"sl",result:"slc"});var fa=el("feFuncA");at(fa,{type:"gamma",amplitude:"1",exponent:"1.7",offset:"0"});ct.appendChild(fa);mf.appendChild(ct);
   var sc=el("feComposite");at(sc,{in:"slc",in2:"SourceAlpha",operator:"in",result:"sc"});mf.appendChild(sc);
   var me=el("feMerge");var n1=el("feMergeNode");at(n1,{in:"SourceGraphic"});var n2=el("feMergeNode");at(n2,{in:"sc"});me.appendChild(n1);me.appendChild(n2);mf.appendChild(me);
   defs.appendChild(mf);})();
+(function(){var f=el("filter");at(f,{id:"glassInner_m4",x:"-30%",y:"-30%",width:"160%",height:"160%"});
+  var off=el("feOffset");at(off,{in:"SourceAlpha",dx:"0",dy:"2.4",result:"o"});f.appendChild(off);
+  var b=el("feGaussianBlur");at(b,{in:"o",stdDeviation:"3.4",result:"ob"});f.appendChild(b);
+  var inv=el("feComposite");at(inv,{in:"SourceAlpha",in2:"ob",operator:"out",result:"inner"});f.appendChild(inv);
+  var cf=el("feColorMatrix");at(cf,{in:"inner",type:"matrix",values:"0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.62 0",result:"sh"});f.appendChild(cf);
+  var me=el("feMerge");var a=el("feMergeNode");at(a,{in:"SourceGraphic"});var c=el("feMergeNode");at(c,{in:"sh"});me.appendChild(a);me.appendChild(c);f.appendChild(me);
+  defs.appendChild(f);})();
+(function(){var f=el("filter");at(f,{id:"cellAO_m4",x:"-45%",y:"-45%",width:"190%",height:"200%"});
+  var b1=el("feGaussianBlur");at(b1,{in:"SourceAlpha",stdDeviation:"5.5",result:"ao"});f.appendChild(b1);
+  var o1=el("feOffset");at(o1,{in:"ao",dx:"0",dy:"9",result:"aoO"});f.appendChild(o1);
+  var t1=el("feComponentTransfer");at(t1,{in:"aoO",result:"aoT"});var fa1=el("feFuncA");at(fa1,{type:"linear",slope:"0.78",intercept:"0"});t1.appendChild(fa1);f.appendChild(t1);
+  var b2=el("feGaussianBlur");at(b2,{in:"SourceAlpha",stdDeviation:"1.8",result:"ct"});f.appendChild(b2);
+  var o2=el("feOffset");at(o2,{in:"ct",dx:"0",dy:"3",result:"ctO"});f.appendChild(o2);
+  var t2=el("feComponentTransfer");at(t2,{in:"ctO",result:"ctT"});var fa2=el("feFuncA");at(fa2,{type:"linear",slope:"0.95",intercept:"0"});t2.appendChild(fa2);f.appendChild(t2);
+  var me=el("feMerge");[["aoT"],["ctT"],["SourceGraphic"]].forEach(function(s){var n=el("feMergeNode");at(n,{in:s[0]});me.appendChild(n);});f.appendChild(me);defs.appendChild(f);})();
+(function(){var f=el("filter");at(f,{id:"thinFilm_m4",x:"-30%",y:"-30%",width:"160%",height:"160%"});
+  var b=el("feGaussianBlur");at(b,{stdDeviation:"1.0"});f.appendChild(b);defs.appendChild(f);})();
+// ============================================================================
 // moat backlight + EUV plasma core
 var rg=el("radialGradient");at(rg,{id:"moatGlow",cx:"50%",cy:"50%",r:"50%"});
 [["0%","#C9A14A"],["50%","#8A6A28"],["100%","#8A6A28"]].forEach(function(s,i){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":[0.26,0.08,0][i]});rg.appendChild(st);});
@@ -830,70 +1096,231 @@ DATA.routes.forEach(function(e){
 });
 svg.appendChild(traceLayer);
 
-/* ---------- QFN chip-package cells ---------- */
+/* ---------- M1 SHARED contact-shadow layer (depth onto the board, behind all cells) ----
+   one soft blurred shadow per package in WORLD space (un-rotated -> stays grounded).
+   bigger / higher-degree cells sit "closer" -> larger, darker, more offset shadow. This
+   is the shared depth foundation every tier rides on. */
+var shadowLayer = el("g","csl"); shadowLayer.setAttribute("filter","url(#csBlur_m1)");
+DATA.nodes.forEach(function(n){
+  var W=n.w,H=n.h,R=6;
+  var lift=Math.min(1,(n.sizeScale||1)/1.55);            // 0..1 by size hierarchy
+  var off=2.5+lift*7;                                     // bigger -> casts farther
+  var grow=2+lift*3;                                      // skirt spread
+  shadowLayer.appendChild(at(el("rect","cs"),{x:n.cx-W/2-grow,y:n.cy-H/2-grow+off,width:W+2*grow,height:H+2*grow,rx:R+grow,
+    "fill-opacity":(0.34+lift*0.26).toFixed(2)}));
+});
+svg.appendChild(shadowLayer);
+
+/* ---------- PER-TIER MATERIAL-MIX chip-package cells ----------
+   The body/face/edge is dispatched by n.tier; leads + AO/inner depth + pin-1 + LED + pad +
+   part-number + name + facing-rotation + label-flip are shared on every cell. */
 var cellLayer = el("g","cells"); var cellEls=new Map();
 DATA.nodes.forEach(function(n,i){
   // face the core: rotate the package around its own centre by its polar angle
   var _faceDeg=((n.ang||0)*180/Math.PI);
   var _udn=((_faceDeg%360)+360)%360, _flip=(_udn>90&&_udn<270); // left half -> text upside down
-  var g = el("g","cell"+(n.moat?" moat":"")); at(g,{"data-status":n.status,transform:"translate("+n.x+","+n.y+") rotate("+_faceDeg.toFixed(1)+" "+(n.w/2)+" "+(n.h/2)+")"}); g.dataset.id=n.id;
+  var tier=n.tier||0;
+  var g = el("g","cell t"+tier+(n.moat?" moat":"")); at(g,{"data-status":n.status,transform:"translate("+n.x+","+n.y+") rotate("+_faceDeg.toFixed(1)+" "+(n.w/2)+" "+(n.h/2)+")"}); g.dataset.id=n.id;
   g.style.animationDelay=((i%12)*24+Math.floor(i/12)*38)+"ms";
-  var W=n.w, H=n.h, R=5;
-  // pin count scales with size (QFN density) — finer, denser leads read as a real package
+  var M=n.mat||{};
+  // R varies by material (ceramic + moulded glass use rounder corners)
+  var R = tier===3 ? Math.max(4,Math.round(n.w*0.055)) : (tier===0 ? Math.max(6,Math.round(n.w*0.085)) : 5);
+  var W=n.w, H=n.h;
+  // deterministic per-cell pseudo-noise (tone jitter / catch-light offsets) — fixed FNV, no RNG.
+  var _h=2166136261;for(var _i=0;_i<n.id.length;_i++){_h^=n.id.charCodeAt(_i);_h=Math.imul(_h,16777619);}
+  var _u=(_h>>>0), _tn=((_u%1000)/1000-0.5);
+  var safe=n.id.replace(/[^a-zA-Z0-9_-]/g,"_");
+  // pin count + lead geometry scale with size (QFN density). ceramic uses slightly chunkier pins.
   var pins=Math.max(4,Math.min(8,Math.round(W/15)));
-  var leadLen=Math.max(7,Math.round(W*0.08)), leadW=Math.max(2.4,W/(pins*3.0));
-  // 1) drop shadow plate (bottom-right offset -> sits ON the board)
-  g.appendChild(at(el("rect","c-shadow"),{x:3,y:5,width:W,height:H,rx:R}));
-  // 2) gull-wing leads on all four sides (where traces meet the package)
+  var leadLen=tier===3?Math.max(7,Math.round(W*0.085)):Math.max(7,Math.round(W*0.08));
+  var leadW=tier===3?Math.max(2.6,W/(pins*2.7)):Math.max(2.4,W/(pins*3.0));
+
+  // ---- per-tier CONTACT/AO drawn BEFORE leads (grounds the package on the board) ----
+  if(tier===1){ // M2 frosted: soft contact pool + tight AO ring
+    g.appendChild(at(el("rect","c-contact"),{x:R*0.6,y:R+3,width:W,height:H,rx:R}));
+    g.appendChild(at(el("rect","c-ao"),{x:1,y:2,width:W,height:H,rx:R,fill:"rgba(0,0,0,0.5)"}));
+  } else if(tier===3){ // M3 ceramic: radial-gradient contact ellipses (filter-free, SW-raster safe)
+    g.appendChild(at(el("ellipse","c-contact2"),{cx:W/2+9,cy:H/2+15,rx:W*0.82,ry:H*0.70}));
+    g.appendChild(at(el("ellipse","c-contact"),{cx:W/2+5,cy:H/2+9,rx:W*0.62,ry:H*0.54}));
+  } else if(tier===0){ // M4 dark-glass: layered AO + contact under the package
+    g.appendChild(at(el("rect","c-ao"),{x:0,y:0,width:W,height:H,rx:R,fill:"#000",opacity:"0.9",filter:"url(#cellAO_m4)"}));
+  }
+
+  // ---- gull-wing leads on all four sides (shared geometry; fill comes from tier CSS) ----
   var leads=el("g","c-leadg");
   for(var s=0;s<pins;s++){
     var fx=(s+1)/(pins+1);
-    // left + right
     var ly=Math.round(H*fx-leadW/2);
     leads.appendChild(at(el("rect","c-lead"),{x:-leadLen,y:ly,width:leadLen+2,height:leadW,rx:1}));
     leads.appendChild(at(el("rect","c-lead"),{x:W-2,y:ly,width:leadLen+2,height:leadW,rx:1}));
-    // top + bottom
     var lx=Math.round(W*fx-leadW/2);
     leads.appendChild(at(el("rect","c-lead"),{x:lx,y:-leadLen,width:leadW,height:leadLen+2,rx:1}));
     leads.appendChild(at(el("rect","c-lead"),{x:lx,y:H-2,width:leadW,height:leadLen+2,rx:1}));
   }
   g.appendChild(leads);
-  // 3) package body — beveled metal slab
-  g.appendChild(at(el("rect","c-body"),{x:0,y:0,width:W,height:H,rx:R}));
-  // subtle deterministic tone variation so cells aren't clones
-  var _h=2166136261;for(var _i=0;_i<n.id.length;_i++){_h^=n.id.charCodeAt(_i);_h=Math.imul(_h,16777619);}
-  var _tn=(((_h>>>0)%1000)/1000-0.5)*0.12;
-  g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:_tn>=0?"#d6ecff":"#000",opacity:Math.abs(_tn).toFixed(3),"pointer-events":"none"}));
-  // region-hue colour wash over the metal face (layer identity)
-  g.appendChild(at(el("rect","c-wash"),{x:0,y:0,width:W,height:H,rx:R,fill:n.accent,opacity:n.moat?"0.08":"0.06"}));
-  // anisotropic streak + top glint (de-plastic, polished)
-  g.appendChild(at(el("rect","c-streak"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#streak)",opacity:n.moat?"0.3":"0.5"}));
-  g.appendChild(at(el("rect","c-glint"),{x:2,y:2,width:W-4,height:Math.round(H*0.42),rx:4}));
-  // bevels: bright top edge, dark bottom edge
-  g.appendChild(at(el("path","c-bevel-t"),{d:"M "+(R+1)+" 2 L "+(W-R-1)+" 2"}));
-  g.appendChild(at(el("path","c-bevel-b"),{d:"M "+(R+1)+" "+(H-2)+" L "+(W-R-1)+" "+(H-2)}));
-  // accent edge frame (region colour) — the chip outline
-  var edge=at(el("rect","c-edge"),{x:0.5,y:0.5,width:W-1,height:H-1,rx:R});edge.style.stroke=n.accent;edge.setAttribute("stroke",n.accent);g.appendChild(edge);
-  // pin-1 corner marker (notch arc, top-left) — the QFN orientation dot
-  g.appendChild(at(el("path","c-pin1"),{d:"M 5 13 A 8 8 0 0 1 13 5"}));
+
+  // ====================================================================
+  // PER-TIER BODY / FACE / EDGE
+  // ====================================================================
+  if(tier===0){
+    // ===== TIER 0 — M4 IRIDESCENT DARK-GLASS (hero jewel under the plasma core) =====
+    var gid="m4g"+i, fid="m4f"+i, skid="m4s"+i, hsid="m4h"+i, clip0="m4c"+i;
+    var bg0=el("radialGradient");at(bg0,{id:gid,cx:"38%",cy:"24%",r:"96%"});
+    [["0%",M.g0||"#26323f"],["32%",M.g1||"#161f29"],["66%",M.g2||"#0c141c"],["100%",M.g3||"#05090e"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});bg0.appendChild(st);});defs.appendChild(bg0);
+    var fg2=el("linearGradient");at(fg2,{id:fid,x1:"0",y1:"0",x2:"1",y2:"1"});
+    [["0%",M.irA||"#5ad2ff",0.0],["16%",M.irA||"#5ad2ff",0.9],["50%",M.irB||"#9b7bff",0.95],["84%",M.irC||"#ffb86e",0.9],["100%",M.irC||"#ffb86e",0.0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});fg2.appendChild(st);});defs.appendChild(fg2);
+    // body — deep tinted glass radial, lit (specular catch)
+    var body0=at(el("rect","c-body"),{x:0,y:0,width:W,height:H,rx:R});body0.style.fill="url(#"+gid+")";body0.setAttribute("fill","url(#"+gid+")");g.appendChild(body0);
+    // inner-shadow pass (recessed glass depth)
+    g.appendChild(at(el("rect","c-inner"),{x:0,y:0,width:W,height:H,rx:R,fill:"none",stroke:M.ao||"#04070d","stroke-width":"0.01",filter:"url(#glassInner_m4)"}));
+    // thin-film iridescent EDGE sheen — the layer colour lives HERE (two concentric strokes)
+    g.appendChild(at(el("rect","c-irid"),{x:1.6,y:1.6,width:W-3.2,height:H-3.2,rx:Math.max(4,R-1),fill:"none",stroke:"url(#"+fid+")","stroke-width":Math.max(3.0,W*0.05).toFixed(2),"stroke-opacity":"0.7",filter:"url(#thinFilm_m4)"}));
+    g.appendChild(at(el("rect","c-irid2"),{x:3.2,y:3.2,width:W-6.4,height:H-6.4,rx:Math.max(3,R-2),fill:"none",stroke:"url(#"+fid+")","stroke-width":Math.max(1.3,W*0.02).toFixed(2)}));
+    // glass reflections, clipped to the body
+    var spc=el("clipPath");at(spc,{id:clip0});spc.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R}));defs.appendChild(spc);
+    var skg=el("linearGradient");at(skg,{id:skid,x1:"0",y1:"0",x2:"0",y2:"1"});
+    [["0%","#eaf4ff",n.moat?0.34:0.30],["26%","#cfe4ff",n.moat?0.16:0.13],["55%","#cfe4ff",0.0],["100%","#cfe4ff",0.0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});skg.appendChild(st);});defs.appendChild(skg);
+    var hsg=el("radialGradient");at(hsg,{id:hsid,cx:"50%",cy:"50%",r:"50%"});
+    [["0%","#ffffff",1],["22%","#ffffff",0.85],["52%","#eaf4ff",0.20],["100%","#eaf4ff",0.0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});hsg.appendChild(st);});defs.appendChild(hsg);
+    var catchG=el("g");at(catchG,{"clip-path":"url(#"+clip0+")","pointer-events":"none"});
+    catchG.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,fill:"url(#"+skid+")"}));
+    catchG.appendChild(at(el("rect","c-streak"),{x:0,y:0,width:W,height:H,fill:"url(#streak)",opacity:n.moat?"0.30":"0.22"}));
+    catchG.appendChild(at(el("ellipse"),{cx:W*0.34,cy:H*0.185,rx:W*0.17,ry:H*0.10,fill:"url(#"+hsid+")"}));
+    catchG.appendChild(at(el("path","c-cres"),{d:"M "+(R+2)+" "+(H*0.085)+" Q "+(W*0.5)+" "+(-H*0.02)+" "+(W-R-2)+" "+(H*0.085)}));
+    g.appendChild(catchG);
+    // crisp light rim (top) + dark settle (bottom)
+    g.appendChild(at(el("path","c-bevel-t"),{d:"M "+(R+1)+" 1.4 L "+(W-R-1)+" 1.4"}));
+    g.appendChild(at(el("path","c-bevel-b"),{d:"M "+(R+1)+" "+(H-1.4)+" L "+(W-R-1)+" "+(H-1.4)}));
+    // accent edge frame — deep integrated rim hue
+    var edge0=at(el("rect","c-edge"),{x:0.6,y:0.6,width:W-1.2,height:H-1.2,rx:R});edge0.style.stroke=M.rim||n.accent;edge0.setAttribute("stroke",M.rim||n.accent);g.appendChild(edge0);
+  } else if(tier===1){
+    // ===== TIER 1 — M2 FROSTED GLASS (precious inner moat ring) =====
+    var hex=n.accent.replace("#","");
+    var ar0=parseInt(hex.slice(0,2),16),ag0=parseInt(hex.slice(2,4),16),ab0=parseInt(hex.slice(4,6),16);
+    var lum=0.299*ar0+0.587*ag0+0.114*ab0, DES=0.55;
+    var ar=ar0+(lum-ar0)*DES, ag=ag0+(lum-ag0)*DES, ab=ab0+(lum-ab0)*DES;
+    function mixG(baseR,baseG,baseB,w){var r=Math.round(baseR+(ar-baseR)*w),gg=Math.round(baseG+(ag-baseG)*w),bb=Math.round(baseB+(ab-baseB)*w);return "rgb("+r+","+gg+","+bb+")";}
+    var mTop=n.moat?0.40:0.34, mMid=n.moat?0.30:0.24, mBot=n.moat?0.16:0.12, jit=Math.round(_tn*7);
+    var bodyId="gbody_"+safe;
+    defs.appendChild(linGrad(bodyId,[
+      ["0%",  mixG(40+jit,49+jit,60+jit, mTop)],
+      ["20%", mixG(26,32,41, mMid)],["46%", mixG(17,22,29, mMid)],
+      ["72%", mixG(11,15,20, mBot)],["100%",mixG(6,9,13, mBot)],
+    ]));
+    // dark translucent backing -> frosted body -> inner shadow
+    g.appendChild(at(el("rect","c-back"),{x:0,y:0,width:W,height:H,rx:R,fill:n.moat?"url(#glassBackGold_m2)":"url(#glassBack_m2)"}));
+    g.appendChild(at(el("rect","c-body"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#"+bodyId+")"}));
+    g.appendChild(at(el("rect","c-inner"),{x:0.5,y:0.5,width:W-1,height:H-1,rx:R,fill:"#000",filter:"url(#innerShadow_m2)",opacity:"0.9"}));
+    // coloured refraction rim (the strongest identity cue — colour DNA, not a wash)
+    g.appendChild(at(el("rect","c-refr"),{x:2,y:2,width:W-4,height:H-4,rx:R-1,fill:"none",stroke:n.glow||n.accent,"stroke-width":2.6,opacity:n.moat?"0.6":"0.5"}));
+    g.appendChild(at(el("rect","c-refr"),{x:2,y:2,width:W-4,height:H-4,rx:R-1,fill:"none",stroke:n.accent,"stroke-width":1,opacity:n.moat?"0.9":"0.8",filter:"url(#aoTight_m2)"}));
+    // specular catch-light arc + refraction streak, clipped to body (upper third only)
+    var clip1="glassclip_"+safe;
+    var cp1=el("clipPath");at(cp1,{id:clip1});cp1.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R}));defs.appendChild(cp1);
+    var specG=el("g");at(specG,{"clip-path":"url(#"+clip1+")","pointer-events":"none"});
+    var sjx=(((_u)%7)-3)*0.025, srot=-22+((((_h>>>3)>>>0)%9)-4)*2;
+    specG.appendChild(at(el("ellipse","c-spec"),{cx:W*(0.42+sjx),cy:-H*0.16,rx:W*0.66,ry:H*0.36,fill:n.moat?"url(#specArcGold_m2)":"url(#specArc_m2)",opacity:n.moat?"0.6":"0.7"}));
+    specG.appendChild(at(el("ellipse","c-spec"),{cx:W*(0.46+sjx),cy:H*0.04,rx:W*0.40,ry:H*0.045,fill:"#ffffff",opacity:"0.5"}));
+    specG.appendChild(at(el("rect","c-refr"),{x:-W*0.3,y:0,width:W*1.6,height:H,fill:"url(#refrStreak_m2)",opacity:"0.4",transform:"rotate("+srot+" "+(W/2)+" "+(H/2)+")"}));
+    g.appendChild(specG);
+    // crisp 1px light rim (top-left lit) + accent edge frame
+    g.appendChild(at(el("path","c-rim"),{d:"M "+(R)+" 1 L "+(W-R)+" 1 M 1 "+(R)+" L 1 "+(H-R),stroke:"rgba(232,243,255,0.9)","stroke-width":1.3,"stroke-linecap":"round",fill:"none"}));
+    var edge1=at(el("rect","c-edge"),{x:0.5,y:0.5,width:W-1,height:H-1,rx:R});edge1.style.stroke=n.accent;edge1.setAttribute("stroke",n.accent);g.appendChild(edge1);
+  } else if(tier===3){
+    // ===== TIER 3 — M3 MATTE CERAMIC IC (boundary / governance parts) =====
+    g.appendChild(at(el("rect","c-body"),{x:0,y:0,width:W,height:H,rx:R}));
+    g.appendChild(at(el("rect"),{x:1,y:1,width:W-2,height:Math.round(H*0.5),rx:R,fill:"url(#ceramTop_m3)","pointer-events":"none"}));
+    var hlId="hl"+i;var hlg=el("radialGradient");at(hlg,{id:hlId,cx:"36%",cy:"24%",r:"58%"});
+    [["0%","#ffffff",0.11],["44%","#ffffff",0.025],["100%","#fff",0]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":String(s[2])});hlg.appendChild(st);});defs.appendChild(hlg);
+    g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#"+hlId+")","pointer-events":"none"}));
+    g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#ceramBot_m3)","pointer-events":"none"}));
+    g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:(_tn*0.10)>=0?"#fff":"#000",opacity:Math.abs(_tn*0.10).toFixed(3),"pointer-events":"none"}));
+    // baked layer tint — coloured ceramic pigment (vertical gradient, NOT a wash)
+    var tintId="tint"+i;var tg2=el("linearGradient");at(tg2,{id:tintId,x1:"0",y1:"0",x2:"0",y2:"1"});
+    [[ "0%",n.glow,n.moat?0.42:0.34 ],[ "30%",n.accent,n.moat?0.30:0.24 ],[ "70%",n.accent,n.moat?0.34:0.28 ],[ "100%",n.accentB,n.moat?0.60:0.50 ]].forEach(function(st3){var st=el("stop");at(st,{offset:st3[0],"stop-color":st3[1],"stop-opacity":String(st3[2])});tg2.appendChild(st);});defs.appendChild(tg2);
+    g.appendChild(at(el("rect","c-tint"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#"+tintId+")"}));
+    g.appendChild(at(el("rect","c-ao"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#aoEdge_m3)"}));
+    g.appendChild(at(el("path","c-chamfer-t"),{d:"M "+(R+1)+" 1.5 L "+(W-R-1)+" 1.5"}));
+    g.appendChild(at(el("path","c-chamfer-b"),{d:"M "+(R+1)+" "+(H-1.5)+" L "+(W-R-1)+" "+(H-1.5)}));
+    // recessed die-window cavity with a faint metallic die
+    var cavW=Math.round(W*0.40), cavH=Math.round(H*0.30), cavX=Math.round(W*0.30), cavY=Math.round(H*0.50), cr2=Math.max(2,Math.round(cavW*0.06));
+    g.appendChild(at(el("rect","c-cavity-rim"),{x:cavX-1,y:cavY-1,width:cavW+2,height:cavH+2,rx:cr2}));
+    g.appendChild(at(el("rect","c-cavity"),{x:cavX,y:cavY,width:cavW,height:cavH,rx:cr2}));
+    var dieX=cavX+Math.round(cavW*0.16), dieY=cavY+Math.round(cavH*0.18), dieW=Math.round(cavW*0.68), dieH=Math.round(cavH*0.64);
+    g.appendChild(at(el("rect","c-die"),{x:dieX,y:dieY,width:dieW,height:dieH,rx:1.5}));
+    if(dieW>14){var dgp="";for(var gx=dieX+3;gx<dieX+dieW-2;gx+=3)dgp+="M "+gx+" "+(dieY+1)+" L "+gx+" "+(dieY+dieH-1)+" ";g.appendChild(at(el("path","c-die-grid"),{d:dgp}));}
+    g.appendChild(at(el("rect"),{x:dieX,y:dieY,width:dieW,height:Math.max(2,Math.round(dieH*0.42)),rx:1.5,fill:"url(#dieGlint_m3)","pointer-events":"none"}));
+    g.appendChild(at(el("rect","c-cavity-lip"),{x:cavX,y:cavY,width:cavW,height:cavH,rx:cr2}));
+    // printed silkscreen rim + accent mark + index stripes
+    var silk=at(el("rect","c-silk"),{x:1,y:1,width:W-2,height:H-2,rx:R});silk.style.stroke=n.glow;silk.setAttribute("stroke",n.glow);g.appendChild(silk);
+    var mk=at(el("rect","c-mark"),{x:W-14,y:6,width:8,height:8,rx:1.4});mk.style.fill=n.glow;mk.setAttribute("fill",n.glow);g.appendChild(mk);
+    g.appendChild(at(el("rect"),{x:W-12,y:8,width:4,height:4,rx:0.6,fill:n.accentB,opacity:"0.85"}));
+    g.appendChild(at(el("rect"),{x:W-14,y:16,width:8,height:1.4,rx:0.5,fill:n.accent,opacity:"0.85"}));
+    g.appendChild(at(el("rect"),{x:W-14,y:19,width:5,height:1.4,rx:0.5,fill:n.accent,opacity:"0.55"}));
+  } else {
+    // ===== TIER 2 — M1 PHOTOREAL BRUSHED METAL (workhorse SYSTEMS packages) =====
+    // body — per-layer integrated-tint metal ramp under the lit-metal filter (moat = gold ramp)
+    var bodyFill=n.moat?"url(#pkgBodyGold_m1)":("url(#body"+n.layerKey+")");
+    g.appendChild(at(el("rect","c-body"),{x:0,y:0,width:W,height:H,rx:R,fill:bodyFill}));
+    // deterministic micro tone variation (soft-light, subtle)
+    var _tn2=_tn*0.10;
+    g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:_tn2>=0?"#cfe2f5":"#000",opacity:Math.abs(_tn2).toFixed(3),"pointer-events":"none","mix-blend-mode":"soft-light"}));
+    // brushed striation (overlay) + AO skirt rings (filter-free) + inner shadow rings
+    g.appendChild(at(el("rect","c-brush"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#brushGrain_m1)"}));
+    var ao2=el("g","c-ao");
+    ao2.appendChild(at(el("rect"),{x:-4,y:-3,width:W+8,height:H+10,rx:R+4,fill:"none",stroke:"rgba(0,0,0,0.30)","stroke-width":6}));
+    ao2.appendChild(at(el("rect"),{x:-1,y:0,width:W+2,height:H+4,rx:R+1,fill:"none",stroke:"rgba(0,0,0,0.45)","stroke-width":2.5}));
+    g.appendChild(ao2);
+    var inn2=el("g","c-inner");
+    inn2.appendChild(at(el("rect"),{x:1.5,y:1.5,width:W-3,height:H-3,rx:R-1,fill:"none",stroke:"rgba(0,0,0,0.32)","stroke-width":2.5}));
+    inn2.appendChild(at(el("rect"),{x:2.5,y:2.5,width:W-5,height:H-5,rx:R-2,fill:"none",stroke:"rgba(0,0,0,0.18)","stroke-width":1.5}));
+    g.appendChild(inn2);
+    // glass/metal catch arc
+    g.appendChild(at(el("rect","c-spec"),{x:1.5,y:1.5,width:W-3,height:Math.round(H*0.6),rx:R,fill:n.moat?"url(#specArcGold_m1)":"url(#specArc_m1)"}));
+    // bevels
+    g.appendChild(at(el("path","c-bevel-t"),{d:"M "+(R+1)+" 2 L "+(W-R-1)+" 2"}));
+    g.appendChild(at(el("path","c-bevel-b"),{d:"M "+(R+1)+" "+(H-2)+" L "+(W-R-1)+" "+(H-2)}));
+    // crisp coloured LIGHT RIM on the top edge (integrated identity, not a wash)
+    var rim2=at(el("path","c-rim"),{d:"M 1.5 "+(R+1)+" A "+(R-0.5)+" "+(R-0.5)+" 0 0 1 "+(R+1)+" 1.5 L "+(W-R-1)+" 1.5 A "+(R-0.5)+" "+(R-0.5)+" 0 0 1 "+(W-1.5)+" "+(R+1)});
+    rim2.setAttribute("stroke",n.accentRim);g.appendChild(rim2);
+    // structural edge frame (neutral-dark)
+    g.appendChild(at(el("rect","c-edge"),{x:0.5,y:0.5,width:W-1,height:H-1,rx:R}));
+  }
+
+  // ====================================================================
+  // SHARED DETAIL — pin-1, status LED, via pad, part number, name (every cell)
+  // ====================================================================
+  // pin-1 corner marker (notch arc, top-left) — ceramic uses a slightly tighter dimple
+  g.appendChild(at(el("path","c-pin1"),{d:tier===3?"M 5 12 A 7 7 0 0 1 12 5":"M 5 13 A 8 8 0 0 1 13 5"}));
   // status LED just inside pin-1
-  g.appendChild(at(el("circle","led-ring"),{cx:10,cy:10,r:3.4}));
-  g.appendChild(at(el("circle","led-"+n.status),{cx:10,cy:10,r:2.2}));
-  // via pad (plated) top-right
-  var pad=at(el("rect","c-pad"),{x:W-10,y:6,width:5,height:5,rx:1});pad.style.stroke=n.accent;pad.setAttribute("stroke",n.accent);g.appendChild(pad);
+  var ledR=tier===3?3.2:3.4, ledI=tier===3?2.0:2.2;
+  g.appendChild(at(el("circle","led-ring"),{cx:10,cy:10,r:ledR}));
+  g.appendChild(at(el("circle","led-"+n.status),{cx:10,cy:10,r:ledI}));
+  // via pad (plated) top-right — ceramic owns its silkscreen mark instead, so skip the pad there
+  if(tier!==3){var pad=at(el("rect","c-pad"),{x:W-10,y:6,width:5,height:5,rx:1});pad.style.stroke=n.accent;pad.setAttribute("stroke",n.accent);g.appendChild(pad);}
   // etched part-number label bottom-left (fab vibe)
   var part=at(el("text","c-part"),_flip?{x:5,y:H-5,transform:"rotate(180 "+(W/2)+" "+(H/2)+")"}:{x:5,y:H-5});part.textContent="U"+(("0"+(i+1)).slice(-2))+" · D"+n.deg;g.appendChild(part);
-  // wrapped name label (centred)
+  // wrapped name label
   var words=n.label.replace(/[()]/g,"").split(/\\s+/), lines=["",""], li2=0, cap=Math.max(8,Math.floor(W/6.6));
   for(var w=0;w<words.length;w++){var word=words[w];var cand=(lines[li2]?lines[li2]+" ":"")+word;
     if(cand.length>cap&&li2===0){li2=1;lines[1]=word;}
     else if(li2===1&&((lines[1]?lines[1]+" ":"")+word).length>cap){lines[1]=lines[1]+"…";break;}
     else lines[li2]=cand;}
+  // ceramic prints the name in the UPPER field (the recessed die-window owns lower-centre);
+  // all other tiers centre it.
   var t=at(el("text","c-name"),_flip?{x:W/2,"text-anchor":"middle",transform:"rotate(180 "+(W/2)+" "+(H/2)+")"}:{x:W/2,"text-anchor":"middle"});
-  if(lines[1]){at(t,{y:H/2-1});
-    var t1=el("tspan");at(t1,{x:W/2});t1.textContent=lines[0];t.appendChild(t1);
-    var t2=el("tspan");at(t2,{x:W/2,dy:11});t2.textContent=lines[1];t.appendChild(t2);
-  } else {at(t,{y:H/2+4});t.textContent=lines[0];}
+  if(tier===3){
+    var nameY=Math.round(H*0.36);
+    if(lines[1]){at(t,{y:nameY-6});
+      var ct1=el("tspan");at(ct1,{x:W/2});ct1.textContent=lines[0];t.appendChild(ct1);
+      var ct2=el("tspan");at(ct2,{x:W/2,dy:11});ct2.textContent=lines[1];t.appendChild(ct2);
+    } else {at(t,{y:nameY});t.textContent=lines[0];}
+  } else {
+    if(lines[1]){at(t,{y:H/2-1});
+      var t1=el("tspan");at(t1,{x:W/2});t1.textContent=lines[0];t.appendChild(t1);
+      var t2=el("tspan");at(t2,{x:W/2,dy:11});t2.textContent=lines[1];t.appendChild(t2);
+    } else {at(t,{y:H/2+4});t.textContent=lines[0];}
+  }
   g.appendChild(t);
   g.addEventListener("mouseenter",function(){if(!selected)highlight(n.id);});
   g.addEventListener("mouseleave",function(){if(!selected)clearHL();else highlight(selected);});
