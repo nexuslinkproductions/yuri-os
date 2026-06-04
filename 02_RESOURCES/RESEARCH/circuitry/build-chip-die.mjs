@@ -973,15 +973,42 @@ defs.appendChild(linGrad("streak",[["0%","rgba(255,255,255,0)"],["36%","rgba(232
   defs.appendChild(fg);})();
 svg.appendChild(defs);
 
-// substrate fills
+// substrate — REAL PCB: solder-mask + copper ground-pour + vias + silkscreen (all
+// cheap paths/patterns, NO filters, so pan stays smooth).
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"}));
-// radial wafer-lithography etch — fine concentric rings + spokes that follow the
-// die's geometry (replaces the generic square grid; pure paths, no filters = cheap).
-(function(){var etch=el("g","etch");var maxR=Math.hypot(Math.max(CC.x,CW-CC.x),Math.max(CC.y,CH-CC.y));
-  for(var r=44;r<=maxR;r+=46){etch.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:r,fill:"none",stroke:"rgba(122,182,228,0.045)","stroke-width":"1"}));}
-  var spokes=48;for(var s=0;s<spokes;s++){var a=(s/spokes)*2*Math.PI;
-    etch.appendChild(at(el("line"),{x1:CC.x+78*Math.cos(a),y1:CC.y+78*Math.sin(a),x2:CC.x+maxR*Math.cos(a),y2:CC.y+maxR*Math.sin(a),stroke:"rgba(122,182,228,0.028)","stroke-width":"1"}));}
-  svg.appendChild(etch);})();
+(function(){
+  var MONO="ui-monospace,Menlo,Consolas,monospace";
+  // copper ground-pour — classic PCB cross-hatch fill (fills the empty plane = real board)
+  var hp=el("pattern");at(hp,{id:"cuPour",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"});
+  hp.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(201,161,74,0.085)","stroke-width":"2.4"}));defs.appendChild(hp);
+  var hp2=el("pattern");at(hp2,{id:"cuPour2",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(-45)"});
+  hp2.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(201,161,74,0.05)","stroke-width":"2"}));defs.appendChild(hp2);
+  svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour)"}));
+  svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour2)"}));
+  // faint radial litho guides (subtle, ties to the radial die)
+  var maxR=Math.hypot(Math.max(CC.x,CW-CC.x),Math.max(CC.y,CH-CC.y));
+  var lg=el("g");for(var r=120;r<=maxR;r+=120){lg.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:r,fill:"none",stroke:"rgba(122,182,228,0.035)","stroke-width":"1"}));}svg.appendChild(lg);
+  // via / test-pad field — deterministic irregular scatter of copper-ringed holes
+  function h32(x,y){var h=2166136261;h^=x;h=Math.imul(h,16777619);h^=y;h=Math.imul(h,16777619);return (h>>>0);}
+  var vg=el("g");
+  for(var gx=80; gx<CW-40; gx+=126){ for(var gy=80; gy<CH-40; gy+=126){
+    var hh=h32(gx,gy); if(hh%100<52) continue;
+    var jx=gx+((hh>>4)%44-22), jy=gy+((hh>>11)%44-22);
+    vg.appendChild(at(el("circle"),{cx:jx,cy:jy,r:"3.1",fill:"#06090e",stroke:"rgba(201,161,74,0.2)","stroke-width":"1.4"}));
+    vg.appendChild(at(el("circle"),{cx:jx,cy:jy,r:"1",fill:"rgba(201,161,74,0.28)"}));
+  }}
+  svg.appendChild(vg);
+  // silkscreen — board-edge dashed keepout ring, corner fiducials, rev tag
+  var sk=el("g"),rr=Math.min(CC.x,CC.y,CW-CC.x,CH-CC.y)-46;
+  sk.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:rr,fill:"none",stroke:"rgba(150,190,230,0.1)","stroke-width":"1.3","stroke-dasharray":"2 13"}));
+  [[60,60],[CW-60,60],[60,CH-60],[CW-60,CH-60]].forEach(function(c){
+    sk.appendChild(at(el("line"),{x1:c[0]-11,y1:c[1],x2:c[0]+11,y2:c[1],stroke:"rgba(150,190,230,0.26)","stroke-width":"1.4"}));
+    sk.appendChild(at(el("line"),{x1:c[0],y1:c[1]-11,x2:c[0],y2:c[1]+11,stroke:"rgba(150,190,230,0.26)","stroke-width":"1.4"}));
+    sk.appendChild(at(el("circle"),{cx:c[0],cy:c[1],r:"7",fill:"none",stroke:"rgba(150,190,230,0.18)","stroke-width":"1"}));
+  });
+  var tag=at(el("text"),{x:"64",y:String(CH-42),fill:"rgba(150,190,230,0.2)","font-family":MONO,"font-size":"22","letter-spacing":"4"});tag.textContent="YURI-OS · CIRCUIT DIE · REV.D";sk.appendChild(tag);
+  svg.appendChild(sk);
+})();
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#sheen)","pointer-events":"none"}));
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#irid)","pointer-events":"none"}));
 
