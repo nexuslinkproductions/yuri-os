@@ -477,7 +477,9 @@ body{color:var(--ink-2);font-family:var(--sans);-webkit-font-smoothing:antialias
 #stage.grabbing{cursor:grabbing;}
 #viewport{position:absolute;inset:0;}
 #boardwrap{width:100%;height:100%;}
-.nav .c-body,.nav .band-tint,.nav .core-face,.nav .cell,.nav .cell.sel,.nav .trace.copper{filter:none!important;}
+/* during pan/zoom: shed EVERY board filter so nothing re-rasters (kills lag + black-box tiles); snaps back crisp at rest */
+.nav .board *{filter:none!important;}
+.nav .cell{filter:none!important;}
 svg.board{display:block;width:100%;height:100%;}
 
 #fx{position:fixed;inset:0;z-index:6;pointer-events:none;}
@@ -954,8 +956,8 @@ var rg=el("radialGradient");at(rg,{id:"moatGlow",cx:"50%",cy:"50%",r:"50%"});
 [["0%","#C9A14A"],["50%","#8A6A28"],["100%","#8A6A28"]].forEach(function(s,i){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":[0.26,0.08,0][i]});rg.appendChild(st);});
 defs.appendChild(rg);
 var bg=el("filter");at(bg,{id:"bigglow",x:"-80%",y:"-80%",width:"260%",height:"260%"});var bgb=el("feGaussianBlur");at(bgb,{stdDeviation:"16"});bg.appendChild(bgb);defs.appendChild(bg);
-(function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"45%",r:"66%"});
-  [["0%","#0b131e"],["46%","#070d17"],["100%","#02040a"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
+(function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"44%",r:"68%"});
+  [["0%","#121d2c"],["28%","#0c1622"],["58%","#070e18"],["82%","#04080f"],["100%","#010307"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
   defs.appendChild(sg);})();
 defs.appendChild(linGrad("sheen",[["0%","rgba(150,192,238,0.055)"],["42%","rgba(150,192,238,0)"],["72%","rgba(140,105,52,0)"],["100%","rgba(180,140,70,0.05)"]],true));
 defs.appendChild(linGrad("irid",[["0%","rgba(90,210,255,0.06)"],["26%","rgba(155,123,255,0.06)"],["50%","rgba(255,120,210,0.045)"],["72%","rgba(120,200,255,0.06)"],["100%","rgba(190,150,90,0.045)"]],true));
@@ -973,8 +975,13 @@ svg.appendChild(defs);
 
 // substrate fills
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"}));
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#grid)",opacity:"0.6"}));
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#grid2)",opacity:"0.65"}));
+// radial wafer-lithography etch — fine concentric rings + spokes that follow the
+// die's geometry (replaces the generic square grid; pure paths, no filters = cheap).
+(function(){var etch=el("g","etch");var maxR=Math.hypot(Math.max(CC.x,CW-CC.x),Math.max(CC.y,CH-CC.y));
+  for(var r=44;r<=maxR;r+=46){etch.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:r,fill:"none",stroke:"rgba(122,182,228,0.045)","stroke-width":"1"}));}
+  var spokes=48;for(var s=0;s<spokes;s++){var a=(s/spokes)*2*Math.PI;
+    etch.appendChild(at(el("line"),{x1:CC.x+78*Math.cos(a),y1:CC.y+78*Math.sin(a),x2:CC.x+maxR*Math.cos(a),y2:CC.y+maxR*Math.sin(a),stroke:"rgba(122,182,228,0.028)","stroke-width":"1"}));}
+  svg.appendChild(etch);})();
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#sheen)","pointer-events":"none"}));
 svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#irid)","pointer-events":"none"}));
 
@@ -1008,9 +1015,13 @@ svg.appendChild(rail);
 var bandLayer = el("g","bandtints");
 BANDS.forEach(function(b){
   if(b.core) return;
-  bandLayer.appendChild(at(el("path","band-tint"),{d:annulusPath(b.rIn,b.rOut),"fill-rule":"evenodd",fill:b.accent,opacity:"0.04"}));
-  bandLayer.appendChild(at(el("circle","band-edge"),{cx:CC.x,cy:CC.y,r:b.rIn,stroke:b.accent}));
-  bandLayer.appendChild(at(el("circle","band-edge"),{cx:CC.x,cy:CC.y,r:b.rOut,stroke:b.accent}));
+  // faint integrated tint (not a flat highlighter wash) + ENGRAVED band boundaries
+  bandLayer.appendChild(at(el("path","band-tint"),{d:annulusPath(b.rIn,b.rOut),"fill-rule":"evenodd",fill:b.accent,opacity:"0.018"}));
+  [b.rIn,b.rOut].forEach(function(rr){
+    bandLayer.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:rr,fill:"none",stroke:"rgba(0,0,0,0.5)","stroke-width":"2.4"}));       // groove (shadow)
+    bandLayer.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:rr+1.4,fill:"none",stroke:"rgba(160,196,232,0.14)","stroke-width":"1"})); // light highlight (raised lip)
+    bandLayer.appendChild(at(el("circle","band-edge"),{cx:CC.x,cy:CC.y,r:rr,stroke:b.accent}));                                       // faint accent trace
+  });
 });
 svg.appendChild(bandLayer);
 
