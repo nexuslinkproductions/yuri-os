@@ -975,7 +975,10 @@ svg.appendChild(defs);
 
 // substrate — REAL PCB: solder-mask + copper ground-pour + vias + silkscreen (all
 // cheap paths/patterns, NO filters, so pan stays smooth).
-svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"}));
+// extend the substrate FAR beyond the canvas so panning never reveals a hard edge
+var EXT=CW, X0=-EXT, Y0=-EXT, WW=CW+2*EXT, HH=CH+2*EXT;
+svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"#020304"}));            // base = silicon edge tone, fills everywhere (no black gap)
+svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"}));        // radial blends into the base at its edge -> seamless
 (function(){
   var MONO="ui-monospace,Menlo,Consolas,monospace";
   // copper ground-pour — classic PCB cross-hatch fill (fills the empty plane = real board)
@@ -983,8 +986,8 @@ svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"})
   hp.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(146,126,82,0.075)","stroke-width":"2.4"}));defs.appendChild(hp);
   var hp2=el("pattern");at(hp2,{id:"cuPour2",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(-45)"});
   hp2.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(120,134,148,0.04)","stroke-width":"2"}));defs.appendChild(hp2);
-  svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour)"}));
-  svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour2)"}));
+  svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"url(#cuPour)"}));
+  svg.appendChild(at(el("rect"),{x:X0,y:Y0,width:WW,height:HH,fill:"url(#cuPour2)"}));
   // faint radial litho guides (subtle, ties to the radial die)
   var maxR=Math.hypot(Math.max(CC.x,CW-CC.x),Math.max(CC.y,CH-CC.y));
   var lg=el("g");for(var r=120;r<=maxR;r+=120){lg.appendChild(at(el("circle"),{cx:CC.x,cy:CC.y,r:r,fill:"none",stroke:"rgba(122,182,228,0.035)","stroke-width":"1"}));}svg.appendChild(lg);
