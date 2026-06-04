@@ -70,15 +70,15 @@ const BLOCK_SHORT = {
 // per-layer accent (region identity) — B's distinct hue wheel, kept inside the
 // silicon-die palette. {a:edge/ink hue, b:deep shadow, glow:bright bloom}
 const LAYER_COLOR = {
-  "Energy & Math":            { a: "#E3C677", b: "#8A6A28", glow: "#ffd877" },
-  "Cognition & Persona":      { a: "#74E6D6", b: "#2c7d72", glow: "#9bf2e4" },
-  "Memory & Subconscious":    { a: "#C9B0FF", b: "#6a48b0", glow: "#dcc8ff" },
-  "Retrieval & Knowledge":    { a: "#5AD2FF", b: "#23617f", glow: "#9fe6ff" },
-  "Learning & Continuity":    { a: "#7FB8FF", b: "#3556a8", glow: "#acd2ff" },
-  "Governance & Safety":      { a: "#E0776B", b: "#8a3a32", glow: "#ff9a8c" },
-  "Skills & Orchestration":   { a: "#FF9F6E", b: "#a8521f", glow: "#ffc09a" },
-  "Token-Efficiency & Session": { a: "#8FA9C9", b: "#4d647f", glow: "#bcccdf" },
-  "Hidden / Meta / Self-referential": { a: "#A9B6C2", b: "#5f7689", glow: "#cfd9e3" },
+  "Energy & Math":            { a: "#a78f54", b: "#42371d", glow: "#c3a967" },
+  "Cognition & Persona":      { a: "#6f928a", b: "#2a3a36", glow: "#88a89f" },
+  "Memory & Subconscious":    { a: "#8a82a6", b: "#332c47", glow: "#a298bd" },
+  "Retrieval & Knowledge":    { a: "#6f96a6", b: "#27424e", glow: "#8cb0bf" },
+  "Learning & Continuity":    { a: "#76889e", b: "#313c4e", glow: "#92a4b8" },
+  "Governance & Safety":      { a: "#9e6a5e", b: "#43302a", glow: "#b8857a" },
+  "Skills & Orchestration":   { a: "#a3825c", b: "#4a3826", glow: "#bd9d76" },
+  "Token-Efficiency & Session": { a: "#7a8794", b: "#373f48", glow: "#94a0ac" },
+  "Hidden / Meta / Self-referential": { a: "#828b94", b: "#414950", glow: "#9aa2aa" },
 };
 
 // ============================================================================
@@ -452,16 +452,16 @@ const html = `<!doctype html>
 <meta name="description" content="The YURI organ map as a cyberpunk silicon die: ${payload.meta.nodeCount} QFN cells wired by ${payload.meta.edgeCount} orthogonal copper traces across ${payload.meta.blockCount} functional regions — the moat made visible.">
 <style>
 :root{
-  --die:#04060a; --die-2:#070b12; --die-3:#0a0f18;
-  --ink:#F4ECD2; --ink-2:#9fb6c9; --ink-3:#5f7689; --ink-4:#3b4a59;
-  --cyan:#5AD2FF; --cyan-2:#9fdcff; --cyan-deep:#2E6F8F; --cyan-dim:rgba(90,210,255,0.30);
-  --teal:#4FB3A6; --teal-bright:#74e6d6;
-  --gold:#C9A14A; --gold-bright:#E3C677; --gold-deep:#8A6A28;
-  --copper:#E8A663; --copper-2:#FFCB8E; --copper-bed:#5e3a1c;
-  --pos:#54d6a0; --warn:#E3B24A; --risk:#E0776B; --neutral:#6E9FD0; --violet:#C9B0FF;
-  --grid:rgba(90,210,255,0.07); --grid2:rgba(90,210,255,0.135);
-  --hair:rgba(90,210,255,0.2); --hair-gold:rgba(201,161,74,0.32);
-  --hot:#ff5ad2;
+  --die:#050608; --die-2:#080a0d; --die-3:#0c0f13;
+  --ink:#d2d8dc; --ink-2:#9aa6b0; --ink-3:#5f6b76; --ink-4:#3a444d;
+  --cyan:#6f97a8; --cyan-2:#9ab8c5; --cyan-deep:#2c4a56; --cyan-dim:rgba(111,151,168,0.28);
+  --teal:#4d8076; --teal-bright:#6fa093;
+  --gold:#8f7a44; --gold-bright:#b39a5e; --gold-deep:#52431f;
+  --copper:#9a7c4e; --copper-2:#c0a070; --copper-bed:#3e2c16;
+  --pos:#4f9678; --warn:#bf9440; --risk:#ab584c; --neutral:#6a7a88; --violet:#8a82a6;
+  --grid:rgba(120,150,170,0.05); --grid2:rgba(120,150,170,0.09);
+  --hair:rgba(140,165,185,0.16); --hair-gold:rgba(150,128,80,0.24);
+  --hot:#9a6a8a;
   --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
   --serif:"Hoefler Text","Iowan Old Style",Palatino,Georgia,serif;
   --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
@@ -606,11 +606,11 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .trace.bed{stroke-width:7;opacity:0.5;}
 .trace.copper{stroke-width:2.6;opacity:0.9;}
 /* net-class colours (read as distinct copper nets on the board) */
-.trace.bed.core{stroke:#7a5118;} .trace.copper.core{stroke:#FFD9A0;stroke-width:3.4;}
-.trace.bed.moat{stroke:#4a3a73;} .trace.copper.moat{stroke:#C9B0FF;}
-.trace.bed.feed{stroke:#1d4a63;} .trace.copper.feed{stroke:#7fe0ff;}
-.trace.bed.sig{stroke:#27506b;}  .trace.copper.sig{stroke:#9fd0ff;}
-.trace.bed.rim{stroke:#6a2b24;}  .trace.copper.rim{stroke:#ff9a8c;}
+.trace.bed.core{stroke:#463719;} .trace.copper.core{stroke:#bca473;stroke-width:3.4;}
+.trace.bed.moat{stroke:#36304a;} .trace.copper.moat{stroke:#998fb0;}
+.trace.bed.feed{stroke:#223e49;} .trace.copper.feed{stroke:#7c9dad;}
+.trace.bed.sig{stroke:#283d49;}  .trace.copper.sig{stroke:#869aa8;}
+.trace.bed.rim{stroke:#4a2a24;}  .trace.copper.rim{stroke:#b0827a;}
 .trace.bed.dim,.trace.copper.dim{opacity:0.04;}
 .trace.copper.hl{stroke-width:3.4;opacity:1;filter:url(#softglow);}
 .trace.bed.hl{stroke-width:7.5;opacity:0.7;}
@@ -957,7 +957,7 @@ var rg=el("radialGradient");at(rg,{id:"moatGlow",cx:"50%",cy:"50%",r:"50%"});
 defs.appendChild(rg);
 var bg=el("filter");at(bg,{id:"bigglow",x:"-80%",y:"-80%",width:"260%",height:"260%"});var bgb=el("feGaussianBlur");at(bgb,{stdDeviation:"16"});bg.appendChild(bgb);defs.appendChild(bg);
 (function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"44%",r:"68%"});
-  [["0%","#121d2c"],["28%","#0c1622"],["58%","#070e18"],["82%","#04080f"],["100%","#010307"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
+  [["0%","#10141a"],["28%","#0b0f14"],["58%","#080b0f"],["82%","#05070a"],["100%","#020304"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
   defs.appendChild(sg);})();
 defs.appendChild(linGrad("sheen",[["0%","rgba(150,192,238,0.055)"],["42%","rgba(150,192,238,0)"],["72%","rgba(140,105,52,0)"],["100%","rgba(180,140,70,0.05)"]],true));
 defs.appendChild(linGrad("irid",[["0%","rgba(90,210,255,0.06)"],["26%","rgba(155,123,255,0.06)"],["50%","rgba(255,120,210,0.045)"],["72%","rgba(120,200,255,0.06)"],["100%","rgba(190,150,90,0.045)"]],true));
@@ -980,9 +980,9 @@ svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#silicon)"})
   var MONO="ui-monospace,Menlo,Consolas,monospace";
   // copper ground-pour — classic PCB cross-hatch fill (fills the empty plane = real board)
   var hp=el("pattern");at(hp,{id:"cuPour",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"});
-  hp.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(201,161,74,0.085)","stroke-width":"2.4"}));defs.appendChild(hp);
+  hp.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(146,126,82,0.075)","stroke-width":"2.4"}));defs.appendChild(hp);
   var hp2=el("pattern");at(hp2,{id:"cuPour2",width:"11",height:"11",patternUnits:"userSpaceOnUse",patternTransform:"rotate(-45)"});
-  hp2.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(201,161,74,0.05)","stroke-width":"2"}));defs.appendChild(hp2);
+  hp2.appendChild(at(el("line"),{x1:"0",y1:"0",x2:"0",y2:"11",stroke:"rgba(120,134,148,0.04)","stroke-width":"2"}));defs.appendChild(hp2);
   svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour)"}));
   svg.appendChild(at(el("rect"),{x:0,y:0,width:CW,height:CH,fill:"url(#cuPour2)"}));
   // faint radial litho guides (subtle, ties to the radial die)
