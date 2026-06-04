@@ -2270,7 +2270,11 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       }
 
       const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
-      if (lastToolCallNames === currentToolNames && iteration >= 3) {
+      // Name-based loop guard relaxed for deep file-reading tasks: a single `bash`/read tool
+      // legitimately gets called many times with DIFFERENT args (reading many files). The
+      // TOOL_ARG_REPETITION guard above already kills a genuine loop (identical tool+args twice),
+      // so only nudge on a high same-NAME streak, not after 3 distinct reads.
+      if (lastToolCallNames === currentToolNames && iteration >= 24) {
         if (!toolLoopRecovered) {
           toolLoopRecovered = true;
           lastToolCallNames = null;
@@ -2285,7 +2289,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       }
       lastToolCallNames = currentToolNames;
       consecutiveToolCalls++;
-      if (consecutiveToolCalls > 12) {
+      if (consecutiveToolCalls > 36) {
         throw new Error('TOOL_RUNAWAY: model has made ' + consecutiveToolCalls + ' consecutive tool calls without text output');
       }
 

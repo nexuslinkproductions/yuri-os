@@ -127,6 +127,7 @@ function parseArgs(rest) {
     dryRun:        false,
     smoke:         false,
     proveRoute:    false,
+    sandboxOverride: null,    // --sandbox override (DRAFT read-only = the gate-on-the-gate)
     promptParts:   [],
     artifactDir:   '',
     workspaceRoot: process.env.CODEX_TARGET_WORKTREE || process.env.CODEX_SPARK_WORKSPACE || repoRoot,
@@ -156,6 +157,7 @@ function parseArgs(rest) {
       out.reasoningArg = args[++i];
       continue;
     }
+    if (token === '--sandbox' && args[i + 1]) { out.sandboxOverride = args[++i]; continue; }
     if (token === '--artifact-dir' && args[i + 1]) { out.artifactDir  = args[++i]; continue; }
     if (token === '--cd'           && args[i + 1]) { out.workspaceRoot = path.resolve(args[++i]); continue; }
     if (token === '--timeout-ms'   && args[i + 1]) { out.timeoutMs    = parseInt(args[++i], 10); continue; }
@@ -163,6 +165,14 @@ function parseArgs(rest) {
   }
 
   out.prompt = out.promptParts.join(' ').trim();
+
+  // --sandbox override: validate against the codex enum and clone the model config (order-
+  // independent vs --model, which resets modelConfig). DRAFT lanes pass read-only.
+  if (out.sandboxOverride) {
+    const allowedSandbox = new Set(['read-only', 'workspace-write', 'danger-full-access']);
+    if (allowedSandbox.has(out.sandboxOverride)) out.modelConfig = { ...out.modelConfig, sandbox: out.sandboxOverride };
+    else process.stderr.write(`[runner] ignoring invalid --sandbox '${out.sandboxOverride}'\n`);
+  }
 
   // Resolve reasoning: caller arg → model default → null
   const rawDepth = out.reasoningArg || out.modelConfig.defaultReasoning;
