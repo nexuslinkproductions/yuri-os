@@ -32,6 +32,15 @@ function readStdin() {
   try { return fs.readFileSync(0, 'utf8'); } catch { return ''; }
 }
 
+// CAP-01 (red-team #3): atomic snapshot write — temp + rename so a crash mid-write can never
+// leave a torn JSON that the next read fails to parse (which would fail-OPEN the enforce gate).
+function atomicWrite(p, data) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  const tmp = `${p}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, data);
+  fs.renameSync(tmp, p);
+}
+
 function run() {
   // Master switch — zero I/O unless explicitly enabled.
   if (process.env.YURI_ENERGY_OBSERVABILITY !== '1') return;
@@ -73,8 +82,7 @@ function run() {
   } catch { breaker = normBreaker(snap && snap.breaker); }
 
   try {
-    fs.mkdirSync(SNAP_DIR, { recursive: true });
-    fs.writeFileSync(snapPath, JSON.stringify({
+    atomicWrite(snapPath, JSON.stringify({
       state: result.state,
       depth: result.depth,
       recentAbs: result.recentAbs,

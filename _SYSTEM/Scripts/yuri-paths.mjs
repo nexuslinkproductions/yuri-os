@@ -57,9 +57,49 @@ function usableString(v) {
 }
 
 /**
+ * Containment / traversal guard for an operator-supplied override candidate.
+ *
+ * The override surface (env var / yuri.config.json field) is install-time
+ * portability config: an operator/CI may legitimately point a write surface at
+ * any absolute install location (e.g. /opt/yuri, /var/lib/yuri). What it may
+ * NEVER do is escape via traversal or inject a truncating NUL byte. A hostile
+ * or misconfigured env value was previously returned RAW, so
+ * `/…/_SYSTEM/state/../../../../etc` resolved to /etc and a `…\0/../evil`
+ * value smuggled a NUL into downstream syscalls.
+ *
+ * Fail-CLOSED policy (preserves the module's "NEVER throws" hard contract):
+ *   - reject any NUL byte (no legitimate path contains one)
+ *   - reject any `..` traversal segment (a clean absolute install path never
+ *     needs one; its presence IS the escape vector)
+ *   - require the override to be (or normalize to) an ABSOLUTE path; a relative
+ *     override is ambiguous and was itself an escape vector
+ * On rejection return null so the resolver falls back to the deterministic
+ * in-base default — exactly the fail-safe path junk env/config already takes.
+ *
+ * @param {string} raw trimmed candidate string (already usableString-checked)
+ * @returns {string|null} the safe absolute path, or null to reject + fall back
+ */
+function sanitizeOverride(raw) {
+  // NUL byte: pure injection / truncation attack — never a real path.
+  if (raw.indexOf('\x00') !== -1) return null;
+  // Traversal: reject `..` as a whole path segment (posix or win32 separators).
+  // Splitting on both separators catches `a/../b`, `..`, `a\..\b`, and `../x`.
+  const segments = raw.split(/[/\\]+/);
+  if (segments.some((seg) => seg === '..')) return null;
+  // Require an absolute override. A relative value is ambiguous (cwd-relative)
+  // and was a live escape vector; only accept paths that are already absolute.
+  if (!path.isAbsolute(raw)) return null;
+  // Normalize (collapses `.` and duplicate separators) without resolving against
+  // cwd — input is already absolute and traversal-free, so this only canonicalizes.
+  return path.normalize(raw);
+}
+
+/**
  * Core resolver: env var -> config field -> deterministic default.
- * Each candidate is validated as a usable string; junk (empty, whitespace,
- * non-string) is skipped so resolution never lands on garbage and never throws.
+ * Each candidate is validated as a usable string AND passed through the
+ * containment guard; junk (empty, whitespace, non-string) and hostile values
+ * (traversal, NUL, relative) are skipped so resolution never lands on garbage,
+ * never escapes the install base, and never throws.
  *
  * @param {string} envName    environment variable name to check first
  * @param {string} configKey  field name to read from yuri.config.json
@@ -69,11 +109,19 @@ function usableString(v) {
  */
 function resolvePath(envName, configKey, defaultFn, configReader) {
   const envVal = process.env[envName];
-  if (usableString(envVal)) return envVal.trim();
+  if (usableString(envVal)) {
+    const safe = sanitizeOverride(envVal.trim());
+    if (safe !== null) return safe;
+    // hostile env override → fall through to config / default (fail closed)
+  }
 
   let cfg = null;
   try { cfg = (configReader ?? defaultConfigReader)(); } catch { cfg = null; }
-  if (cfg && usableString(cfg[configKey])) return cfg[configKey].trim();
+  if (cfg && usableString(cfg[configKey])) {
+    const safe = sanitizeOverride(cfg[configKey].trim());
+    if (safe !== null) return safe;
+    // hostile config override → fall through to default (fail closed)
+  }
 
   return defaultFn();
 }

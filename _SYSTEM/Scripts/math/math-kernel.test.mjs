@@ -53,6 +53,33 @@ test('normalizes finite non-negative distributions', () => {
   assert.throws(() => normalizeDistribution([1, -1]), /non-negative/);
 });
 
+// L4#7 (Codex kernel finding): aggregate overflow. 1e308-scale inputs saturate the
+// internal sum/product to Infinity, which used to silently produce [0,...,0] from
+// normalizeDistribution, 0 from entropy, NaN from weightedMean, and Infinity from
+// mergeLaneEvidence. These aggregate primitives must fail closed on a non-finite
+// intermediate, never emit overflow garbage.
+test('aggregate primitives fail closed on 1e308-scale overflow instead of emitting garbage', () => {
+  const MAX = 1e308; // MAX + MAX overflows to Infinity
+  // normalizeDistribution: sum overflows -> must throw, not return [0,0,0].
+  assert.throws(() => normalizeDistribution([MAX, MAX, MAX]), /non-finite|overflow/i);
+  // entropy delegates to normalizeDistribution -> must throw, not return 0.
+  assert.throws(() => entropy([MAX, MAX, MAX]), /non-finite|overflow/i);
+  // weightedMean: Infinity/Infinity = NaN -> must throw, not return NaN.
+  assert.throws(() => weightedMean([MAX, MAX], [MAX, MAX]), /non-finite|overflow/i);
+  // mergeLaneEvidence independent product overflows -> must throw, not return Infinity/null.
+  assert.throws(() => mergeLaneEvidence([MAX, MAX], [0.5, 0.5], 'independent'), /non-finite|overflow/i);
+  // mergeLaneEvidence arbitrary routes through weightedMean; weights [1,1] make
+  // the weighted numerator MAX*1+MAX*1 overflow -> must throw too.
+  assert.throws(() => mergeLaneEvidence([MAX, MAX], [1, 1], 'arbitrary'), /non-finite|overflow/i);
+
+  // OVER-FIX GUARD: legitimate small/normalized inputs are unaffected and still finite.
+  assert.deepEqual(normalizeDistribution([2, 2, 4]), [0.25, 0.25, 0.5]);
+  assert.equal(entropy([0.5, 0.5], { base: 2 }), 1);
+  assert.equal(weightedMean([1, 2, 3], [0.2, 0.3, 0.5]), 2.3);
+  assert.equal(mergeLaneEvidence([2, 3], [0.5, 0.5], 'independent').merged, 6);
+  assert.equal(mergeLaneEvidence([4, 4, 4, 4], [0.25, 0.25, 0.25, 0.25], 'arbitrary').merged, 4);
+});
+
 test('computes logarithmic information primitives deterministically', () => {
   assert.equal(entropy([0.5, 0.5], { base: 2 }), 1);
   assert.equal(entropy([1, 0], { base: 2 }), 0);
@@ -222,8 +249,11 @@ test('maxEntBelief rejects invalid support and out-of-range means', () => {
   assert.throws(() => maxEntBelief(-1, 7), /meanRank must be within/);
 });
 
-// --- card 27: LMSR increment (proper-scoring + b*ln(N) bound) ---
-test('lmsrIncrement is strictly proper and bounded by b*ln(N)', () => {
+// --- card 27: LMSR increment (proper-scoring + b*ln(N) UNIFORM-PRIOR bound) ---
+// SCOPE: this canary proves the bound holds FROM A UNIFORM PRIOR only. b*ln(N) is
+// the uniform-prior worst-case subsidy (1/N -> 1 costs exactly b*ln(N)); it is NOT
+// a per-increment bound from an arbitrary beliefBefore (see the non-uniform test).
+test('lmsrIncrement is strictly proper and (from a uniform prior) bounded by b*ln(N)', () => {
   const b = 2;
   const before = [0.25, 0.25, 0.25, 0.25];
   // Moving toward the resolved index nets positive credit on that index.
@@ -233,10 +263,40 @@ test('lmsrIncrement is strictly proper and bounded by b*ln(N)', () => {
   const away = lmsrIncrement(before, [0.01, 0.97, 0.01, 0.01], b);
   assert.ok(away.increments[0] < 0, 'pushing away from truth nets a penalty on the true index');
   assert.ok(Math.abs(away.increments[0]) > Math.abs(toward.increments[0]), 'wrong-confidence penalty exceeds toward-credit');
-  // Each per-index credit respects the subsidy bound b*ln(N).
+  // From the uniform prior, each per-index credit respects the subsidy cap b*ln(N).
   assert.ok(Math.abs(toward.bound - b * Math.log(4)) < 1e-9);
   for (const inc of toward.increments) {
     assert.ok(inc <= toward.bound + 1e-9, `increment ${inc} exceeds bound ${toward.bound}`);
+  }
+  // The exact uniform-prior worst case: 1/N -> certainty on the resolved index
+  // hits b*ln(N) to the digit (this is what `bound` actually proves).
+  const worst = lmsrIncrement([0.25, 0.25, 0.25, 0.25], [1 - 3e-15, 1e-15, 1e-15, 1e-15], b);
+  assert.ok(worst.increments[0] <= worst.bound + 1e-9, 'uniform-prior worst case stays at/below b*ln(N)');
+  assert.ok(worst.increments[0] > worst.bound - 1e-9, 'uniform-prior worst case approaches b*ln(N)');
+});
+
+// L4#8 (Codex kernel finding): the b*ln(N) `bound` is FALSE as a per-increment
+// guarantee from a NON-UNIFORM prior. From a near-zero pBefore a single increment
+// dwarfs the bound. This test asserts the TRUE per-index invariant
+// (increment == b*(ln pAfter - ln pBefore)) and documents that `bound` does NOT
+// cap it for arbitrary beliefBefore — so the canary is honest about what it proves.
+test('lmsrIncrement bound does NOT cap a single increment from a non-uniform prior', () => {
+  const MIN = Number.MIN_VALUE; // 5e-324, smallest positive double
+  const b = 1;
+  const res = lmsrIncrement([MIN, 1], [1, MIN], b);
+  // Claimed-by-the-old-canary bound for N=2 is b*ln(2) ~= 0.693.
+  assert.ok(Math.abs(res.bound - b * Math.log(2)) < 1e-9, 'bound is b*ln(N) for N=2');
+  // But the realized increment on the resolved index is ~744 — three orders of
+  // magnitude over `bound`. A per-increment <= bound assertion here WOULD BE FALSE.
+  const maxIncrement = Math.max(...res.increments.map(Math.abs));
+  assert.ok(maxIncrement > 700, `non-uniform increment must exceed b*ln(N) grossly, got ${maxIncrement}`);
+  assert.ok(maxIncrement > res.bound, 'increment from a non-uniform prior exceeds the uniform-prior bound');
+  // TRUE per-index invariant: increment == b*(ln pAfter - ln pBefore) exactly.
+  const before = normalizeDistribution([MIN, 1]);
+  const after = normalizeDistribution([1, MIN]);
+  for (let i = 0; i < res.increments.length; i += 1) {
+    const expected = b * (Math.log(after[i]) - Math.log(before[i]));
+    assert.ok(Math.abs(res.increments[i] - expected) < 1e-6, `increment[${i}] must equal b*(ln pAfter - ln pBefore)`);
   }
 });
 

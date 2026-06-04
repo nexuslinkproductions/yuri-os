@@ -241,6 +241,22 @@ test('gateProposal identifies the dominant rising component', () => {
   assert.equal(r.result.dominantTerm, 'promotionLadderInversions');
 });
 
+test('gateProposal structural floor keys on raw ladder increase, not theta or threshold (red-team #1)', () => {
+  for (const opts of [
+    { weights: { theta: 0 }, threshold: 0 },
+    { threshold: 99 },
+  ]) {
+    const r = gateProposal({
+      stateBefore: { promotionLadderInversions: 0 },
+      stateAfter: { promotionLadderInversions: 1 },
+      ...opts,
+    });
+    assert.equal(r.result.accept, false);
+    assert.equal(r.result.structuralFloorVeto, true);
+    assert.equal(r.result.dominantTerm, 'promotionLadderInversions');
+  }
+});
+
 test('gateProposal throws on missing state', () => {
   assert.throws(() => gateProposal({ stateBefore: {} }), /requires stateBefore and stateAfter/);
   assert.throws(() => gateProposal({}), /requires stateBefore and stateAfter/);

@@ -250,6 +250,47 @@ test('FAIL-LOUD: empty / null / whitespace / near-miss domains never silently va
   assert.equal(legalCards, 3, 'three legal anchor cards remain — accounting is complete, none dropped');
 });
 
+test('FAIL-LOUD: a PRESENT non-string domain ([]/[null]/{}/number) is malformed -> UNMAPPED, never silent no_domain', () => {
+  // REGRESSION (Codex-only L5 bypass): `domain:[]` and `domain:[null]` stringify
+  // to '' and previously fell through String(domain) into the SILENT no_domain
+  // bucket, evading the GAP_UNMAPPED_DOMAIN loud-fail. A present non-string domain
+  // is malformed input -> it must fail CLOSED into the loud unmapped path, and must
+  // NEVER be counted as a genuinely-absent (no_domain) field.
+  assert.equal(classifyDomain([]).kind, 'unmapped', 'domain:[] is malformed -> unmapped, not no_domain');
+  assert.equal(classifyDomain([null]).kind, 'unmapped', 'domain:[null] stringifies to "" but is malformed -> unmapped');
+  assert.equal(classifyDomain([undefined]).kind, 'unmapped', 'domain:[undefined] is malformed -> unmapped');
+  assert.equal(classifyDomain({}).kind, 'unmapped', 'domain:{} is malformed -> unmapped');
+  assert.equal(classifyDomain(42).kind, 'unmapped', 'domain:42 (number) is malformed -> unmapped');
+  assert.equal(classifyDomain(true).kind, 'unmapped', 'domain:true (boolean) is malformed -> unmapped');
+  // The boundary stays intact: genuinely-absent / empty / whitespace STRING is still no_domain.
+  assert.equal(classifyDomain(null).kind, 'no_domain');
+  assert.equal(classifyDomain(undefined).kind, 'no_domain');
+  assert.equal(classifyDomain('').kind, 'no_domain');
+  assert.equal(classifyDomain('   ').kind, 'no_domain');
+
+  // End to end through the scan: cards carrying [] and [null] must surface a LOUD,
+  // ACTIONABLE gap and must NOT be miscounted as no_domain.
+  const cards = [
+    { id: 'evil-array', domain: [] },
+    { id: 'evil-null-array', domain: [null] },
+    // legal anchors so organ_no_cards noise does not mask the assertion
+    { id: 'shannon-entropy', domain: 'information-theory', _bankMtimeMs: NOW },
+    { id: 'cosine-similarity', domain: 'vector-geometry', _bankMtimeMs: NOW },
+    { id: 'brier-score', domain: 'statistics', _bankMtimeMs: NOW },
+  ];
+  const r = scanLifecycle({ cards, built: BUILT, nowMs: NOW, staleDays: 30 });
+  assert.equal(r.counts.no_domain_cards, 0, 'a present non-string domain is NOT no_domain (the silent bypass is closed)');
+  assert.ok(r.counts.gap_unmapped_domain >= 1, 'a present non-string domain MUST surface as GAP_UNMAPPED_DOMAIN');
+  assert.ok(
+    r.actionable.some((g) => g.class === 'GAP_UNMAPPED_DOMAIN' && /non-string-domain/.test(g.domain)),
+    'the malformed-domain gap MUST reach the actionable list (never silently dropped)',
+  );
+  // Both carrying cards are accounted for in the loud gap, none vanish.
+  const carried = r.gaps.unmapped_domain.reduce((acc, g) => acc.concat(g.cards), []);
+  assert.ok(carried.includes('evil-array') && carried.includes('evil-null-array'),
+    'both malformed-domain cards are named in the loud gap — conservation holds');
+});
+
 test('FAIL-LOUD: an EXCLUDED sector carried as a card domain is legal — never a gap', () => {
   const cards = [
     { id: 'fixture-1', domain: 'services' },       // legal non-math -> excluded, no gap

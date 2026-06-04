@@ -177,3 +177,82 @@ test('repoRoot is absolute and is the parent dir of _SYSTEM/Scripts', () => {
   assert.ok(stateDir({ configReader: () => null }).startsWith(REPO));
   assert.ok(kernelDbDir({ configReader: () => null }).startsWith(REPO));
 });
+
+// --- CONTAINMENT GUARD (PORT-01 hardening): traversal / NUL / relative -----
+// Refute-by-default red-team finding: env/config-derived overrides were returned
+// RAW (no normalization, no traversal/NUL rejection), so a hostile value could
+// escape the install base. Guard must fail CLOSED: reject the hostile value and
+// fall back to the deterministic default (never throw — the module's hard rule).
+const NUL = '\u0000'; // escape only — no literal NUL byte in this source file
+
+test('GUARD: traversal in env override is rejected, falls back to default', () => {
+  const noCfg = () => null;
+  const safe = path.join(REPO, '_SYSTEM', 'state');
+  for (const evil of [
+    safe + '/../../../../../../etc',     // climb out via env
+    '/opt/yuri/../../../../etc/cron.d',  // absolute but escapes
+    '/a/b/../../../../../root',          // deep climb
+  ]) {
+    withEnv('YURI_STATE_DIR', evil, () => {
+      assert.doesNotThrow(() => stateDir({ configReader: noCfg }));
+      assert.equal(stateDir({ configReader: noCfg }), safe,
+        `traversal env not rejected: ${evil}`);
+    });
+  }
+});
+
+test('GUARD: traversal in config override is rejected, falls back to default', () => {
+  const safe = path.join(REPO, '_SYSTEM', 'OS_KERNEL');
+  withEnv('YURI_KERNEL_DIR', undefined, () => {
+    for (const evil of ['/opt/yuri/../../../../etc', '/x/../../../../../etc/passwd']) {
+      const reader = () => ({ kernelDir: evil });
+      assert.doesNotThrow(() => kernelDbDir({ configReader: reader }));
+      assert.equal(kernelDbDir({ configReader: reader }), safe,
+        `traversal config not rejected: ${evil}`);
+    }
+  });
+});
+
+test('GUARD: NUL byte in config override is rejected, falls back to default', () => {
+  // process.env truncates at NUL before our code sees it, so the load-bearing
+  // path for a surviving NUL is the config reader (JSON.parse preserves it) and
+  // direct programmatic callers. The guard must reject it outright.
+  const safe = path.join(REPO, '_SYSTEM', 'state');
+  withEnv('YURI_STATE_DIR', undefined, () => {
+    const reader = () => ({ stateDir: '/opt/yuri' + NUL + '/../../etc' });
+    assert.doesNotThrow(() => stateDir({ configReader: reader }));
+    const got = stateDir({ configReader: reader });
+    assert.equal(got, safe, 'NUL config override not rejected');
+    assert.equal(got.indexOf(NUL), -1, 'NUL byte leaked into resolved path');
+  });
+});
+
+test('GUARD: relative env override is rejected (must be absolute), falls back', () => {
+  const safe = path.join(REPO, '_SYSTEM', 'state');
+  for (const rel of ['../../../../tmp/escape', 'relative/dir', './x', '..']) {
+    withEnv('YURI_STATE_DIR', rel, () => {
+      assert.doesNotThrow(() => stateDir({ configReader: () => null }));
+      assert.equal(stateDir({ configReader: () => null }), safe,
+        `relative env not rejected: ${rel}`);
+    });
+  }
+});
+
+test('GUARD over-fix check: legitimate absolute overrides STILL honored', () => {
+  // The documented portability purpose — operator/CI points a write surface at an
+  // absolute install location — must keep working. These are clean (no .. / NUL).
+  withEnv('YURI_STATE_DIR', '/tmp/x', () => {
+    assert.equal(stateDir({ configReader: () => null }), '/tmp/x');
+  });
+  withEnv('YURI_STATE_DIR', undefined, () => {
+    const reader = () => ({ stateDir: '/opt/yuri/state' });
+    assert.equal(stateDir({ configReader: reader }), '/opt/yuri/state');
+    // A single internal '.' segment normalizes but the path is still honored.
+    const dotReader = () => ({ stateDir: '/opt/yuri/./state' });
+    assert.equal(stateDir({ configReader: dotReader }), path.join('/opt/yuri', 'state'));
+  });
+  // A dir literally named 'a..b' CONTAINS '..' but is NOT a traversal segment.
+  withEnv('YURI_STATE_DIR', '/opt/a..b/state', () => {
+    assert.equal(stateDir({ configReader: () => null }), '/opt/a..b/state');
+  });
+});

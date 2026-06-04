@@ -109,9 +109,9 @@ test('trusted is reachable ONLY via operator note + recurring executable checks'
   assert.equal(evidenceStatusRank(operatorPlusOneTest), LADDER.indexOf('operator_validated'),
     'one recurring check is not enough for trusted');
 
-  const trustedSet = [ev('operator_note', 1), ev('test', 1), ev('runtime_trace', 1)].map((e) => normalizeEvidence(e, NOW));
+  const trustedSet = [ev('operator_note', 1), ev('test', 1, { reference: 'suite-A' }), ev('runtime_trace', 1, { reference: 'trace-B' })].map((e) => normalizeEvidence(e, NOW));
   assert.equal(evidenceStatusRank(trustedSet), LADDER.indexOf('trusted'),
-    'operator note + two distinct executable checks earns trusted');
+    'operator note + two distinct executable checks WITH non-empty references earns trusted (red-team #10)');
 });
 
 test('stale evidence drops out of the supported rank (degrade, do not persist)', () => {
@@ -329,6 +329,15 @@ test('REGRESSION B3 — the literal same object pushed twice counts once', () =>
   assert.equal(evidenceStatusRank(legit.map((e) => normalizeEvidence(e, NOW))), LADDER.indexOf('trusted'));
 });
 
+test('REGRESSION B4 — empty-reference executable checks cannot satisfy trusted recurrence (red-team #10)', () => {
+  const emptyRef = [ev('operator_note', 1), ev('test', 1), ev('runtime_trace', 1)];
+  assert.equal(evidenceStatusRank(emptyRef.map((e) => normalizeEvidence(e, NOW))), LADDER.indexOf('operator_validated'),
+    'runtime-grade evidence without non-empty references cannot prove distinct recurrence');
+  const a = assess({ id: 'x', claimedStatus: 'trusted', evidence: emptyRef });
+  assert.equal(a.verdict, VERDICTS.VERIFY_FIRST);
+  assert.equal(a.inversions, 1);
+});
+
 // Cluster C — count-conserving severity laundering
 test('REGRESSION C1 — a fabricated trusted over-claim cannot be laundered by a count-conserving swap', () => {
   // BEFORE: five 1-rung inversions (sum 5).  AFTER: one fabricated 5-rung trusted-no-evidence
@@ -399,14 +408,18 @@ test('REGRESSION F1 — a wrong-scale (seconds/micros/tiny) clock fails CLOSED (
   assert.doesNotThrow(() => cortexSnapshot([], { nowMs: NOW }));
 });
 
-// Cluster D-residual — a throwing field-getter must not abort the whole snapshot
-test('REGRESSION D2 — a claim whose getter throws is skipped, not fatal', () => {
+// Cluster D-residual — a throwing field-getter must not disappear from the snapshot
+test('REGRESSION D2 — a claim whose getter throws is converted to fail-closed RETRACT (Codex L2)', () => {
   const poisonStatus = { id: 'p1', get claimedStatus() { throw new Error('poison status'); }, evidence: [] };
   const poisonEv = { id: 'p2', claimedStatus: 'research', evidence: [{ get kind() { throw new Error('poison ev'); } }] };
   const realOverclaim = { id: 'over', claimedStatus: 'trusted', evidence: [] };
   let snap;
   assert.doesNotThrow(() => { snap = cortexSnapshot([poisonStatus, poisonEv, realOverclaim], { nowMs: NOW }); });
-  assert.ok(snap.state.promotionLadderInversions > 0, 'the co-resident over-claim still registers despite poisoned siblings');
+  assert.equal(snap.assessments.length, 3);
+  assert.equal(snap.liveClaims, 3);
+  assert.equal(snap.retractCount, 3);
+  assert.ok(snap.maxLadderInversion >= 5);
+  assert.ok(snap.state.promotionLadderInversions >= 75, 'poisoned claims are maximal RETRACT signals, not skipped sensors');
 });
 
 test('snapshot exposes maxLadderInversion (L∞ groundwork for the owner-gated floor fix)', () => {

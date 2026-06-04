@@ -22,7 +22,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { traceGateEvaluation } from './math/yuri-energy-trace.mjs';
-import { gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
+import { gateProposal, DEFAULT_WEIGHTS, DEFAULT_MAX_LADDER_INVERSION_CAP } from './math/yuri-energy.mjs';
 import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 import { currentUserHandle } from './yuri-user.mjs';
 import { freshLedger, applyClaimTransition, claimGateFields } from './claim-ledger.mjs';
@@ -227,6 +227,7 @@ export function freshState() {
     evidence: [],
     protectedPathViolations: 0,
     promotionLadderInversions: 0,
+    maxLadderInversion: 0,
     predictions: [],
     outcomes: [],
   };
@@ -246,8 +247,9 @@ export function applyTransition(prev, t, nowIso = '') {
     // downstream mutation of a record could reach back into `prev` — breaking the "never mutates
     // the input" contract). Records are flat {base,age,capturedAt}, so a shallow spread suffices.
     evidence: Array.isArray(base.evidence) ? base.evidence.map((e) => (e && typeof e === 'object' ? { ...e } : e)) : [],
-    protectedPathViolations: Number(base.protectedPathViolations) || 0,
-    promotionLadderInversions: Number(base.promotionLadderInversions) || 0,
+    protectedPathViolations: base.protectedPathViolations ?? 0,
+    promotionLadderInversions: base.promotionLadderInversions ?? 0,
+    maxLadderInversion: base.maxLadderInversion ?? 0,
     predictions: Array.isArray(base.predictions) ? base.predictions.slice() : [],
     outcomes: Array.isArray(base.outcomes) ? base.outcomes.slice() : [],
   };
@@ -256,7 +258,8 @@ export function applyTransition(prev, t, nowIso = '') {
   if (t.protectedHit) {
     // A protected-path write is a violation, not progress → catastrophic eta=100
     // term only (no evidence credit). The gate rejects.
-    s.protectedPathViolations += 1;
+    const current = Number(s.protectedPathViolations);
+    s.protectedPathViolations = (Number.isFinite(current) && current >= 0 ? current : 0) + 1;
   } else if (meaningful && t.success) {
     // Healthy progress → verified-evidence credit (ΔU↓). No calibration penalty:
     // logLoss/brier of a confident-correct claim is small but nonzero and would
@@ -278,8 +281,9 @@ export function toGateState(s) {
   return {
     verifiedEvidenceCount: Number(v.verifiedEvidenceCount) || 0,
     evidence: Array.isArray(v.evidence) ? v.evidence : [],
-    protectedPathViolations: Number(v.protectedPathViolations) || 0,
-    promotionLadderInversions: Number(v.promotionLadderInversions) || 0,
+    protectedPathViolations: v.protectedPathViolations ?? 0,
+    promotionLadderInversions: v.promotionLadderInversions ?? 0,
+    maxLadderInversion: v.maxLadderInversion ?? 0,
     predictions: Array.isArray(v.predictions) ? v.predictions : [],
     outcomes: Array.isArray(v.outcomes) ? v.outcomes : [],
     forecasts: Array.isArray(v.predictions) ? v.predictions : [],
@@ -353,6 +357,7 @@ export function tickAndTrace(prevState, event, opts = {}) {
     stateAfter: { ...toGateState(nextState), ...claimGateFields(nextLedger, nowMs) },
     weights,
     threshold,
+    maxLadderInversionCap: DEFAULT_MAX_LADDER_INVERSION_CAP,
     traceOptions: opts.traceOptions || {},
   });
   // Layer C: depth-gated |ΔU| surprise. Judge THIS ΔU against the band BEFORE

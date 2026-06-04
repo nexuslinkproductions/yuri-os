@@ -115,13 +115,14 @@ export function claimGateFields(ledger, nowMs) {
   try {
     const claims = (ledger && Array.isArray(ledger.claims)) ? ledger.claims : [];
     if (claims.length === 0) return EMPTY_FIELDS;
-    const { state } = cortexSnapshot(claims, { nowMs });
+    const { state, maxLadderInversion } = cortexSnapshot(claims, { nowMs });
     return {
       claimPromotionDistribution: state.claimPromotionDistribution,
       claimedDistribution: state.claimedDistribution,
       verifiedDistribution: state.verifiedDistribution,
       priorState: state.priorState,
       posteriorState: state.posteriorState,
+      maxLadderInversion,
     };
   } catch {
     return EMPTY_FIELDS; // fail-open: never break the tick

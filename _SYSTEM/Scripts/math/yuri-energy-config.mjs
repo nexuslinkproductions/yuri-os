@@ -26,6 +26,10 @@ export const CONFIG_FILE = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'energy-weigh
 // before it can flag an outlier, so a configured window below 3 silently disables the
 // WORK surprise tier forever. Keep this floor in sync with isSurprise's length check.
 export const MIN_SURPRISE_WINDOW = 3;
+// Red-team #1: veto-bearing weights must never be config-disabled to 0 (that forges the
+// protected-path / structural floors open). They clamp to a positive floor; others allow 0.
+export const MIN_VETO_WEIGHT = 1e-9;
+const VETO_WEIGHT_KEYS = new Set(['eta', 'theta']);
 
 // Coerce to a finite number, fail-CLOSED on type confusion. Rejects (-> null):
 // booleans, null, arrays, objects, and empty/whitespace strings — all of which bare
@@ -55,13 +59,14 @@ export function loadEnergyConfig(file = CONFIG_FILE) {
     const w = {};
     for (const k of Object.keys(DEFAULT_WEIGHTS)) {
       const n = num(raw.weights[k]);
-      if (n !== null && n >= 0) w[k] = n;
+      const min = VETO_WEIGHT_KEYS.has(k) ? MIN_VETO_WEIGHT : 0;
+      if (n !== null && n >= min) w[k] = n;
     }
     if (Object.keys(w).length) out.weights = w;
   }
 
   const t = num(raw.threshold);
-  if (t !== null) out.threshold = t;
+  if (t !== null && t >= 0) out.threshold = t;
 
   // salience — depthThreshold (int>=1), surpriseK (>=0), surpriseWindow (int>=MIN_SURPRISE_WINDOW).
   if (raw.salience && typeof raw.salience === 'object' && !Array.isArray(raw.salience)) {

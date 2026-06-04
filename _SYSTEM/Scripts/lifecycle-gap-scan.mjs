@@ -121,7 +121,16 @@ const DOMAIN_TO_ORGAN = {
 //   'unmapped'  : NON-EMPTY domain that is NEITHER -> LOUD GAP_UNMAPPED_DOMAIN.
 export function classifyDomain(domain) {
   if (domain == null) return { kind: 'no_domain', key: null };
-  const key = String(domain).trim().toLowerCase();
+  // Fail-CLOSED on malformed input: a PRESENT-but-non-string domain is not a
+  // genuinely-absent field, so it must NOT be coerced via String() into the
+  // silent no_domain bucket. e.g. `[]`/`[null]` stringify to '' and would slip
+  // past GAP_UNMAPPED_DOMAIN; `{}` stringifies to '[object Object]'. A non-string
+  // present value is malformed -> surface it LOUD as an unmapped deficit, never
+  // silent. (no_domain stays reserved for null/undefined/empty/whitespace STRING.)
+  if (typeof domain !== 'string') {
+    return { kind: 'unmapped', key: `<non-string-domain:${Object.prototype.toString.call(domain).slice(8, -1).toLowerCase()}>` };
+  }
+  const key = domain.trim().toLowerCase();
   if (!key) return { kind: 'no_domain', key: null };
   if (Object.prototype.hasOwnProperty.call(DOMAIN_TO_ORGAN, key)) {
     return { kind: 'mapped', key, organ: DOMAIN_TO_ORGAN[key] };

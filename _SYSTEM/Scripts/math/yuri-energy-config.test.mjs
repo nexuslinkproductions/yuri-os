@@ -36,6 +36,14 @@ test('unknown keys, negatives, and non-finite weights are dropped (fail-closed)'
   assert.equal(c.weights.delta, 2);         // valid kept
 });
 
+test('veto-bearing weights cannot be disabled by config zero (red-team #1)', () => {
+  const c = loadEnergyConfig(tmp({ weights: { eta: 0, theta: 0, gamma: 0 }, threshold: -1 }));
+  assert.equal(c.weights.eta, undefined);   // eta=0 dropped (clamped to positive floor)
+  assert.equal(c.weights.theta, undefined); // theta=0 dropped
+  assert.equal(c.weights.gamma, 0);         // non-veto weight: 0 still allowed
+  assert.equal(c.threshold, undefined);     // negative threshold rejected
+});
+
 test('malformed JSON yields {} — the gate falls back to standards', () => {
   const f = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'ec-')), 'energy-weights.json');
   fs.writeFileSync(f, '{ broken json');

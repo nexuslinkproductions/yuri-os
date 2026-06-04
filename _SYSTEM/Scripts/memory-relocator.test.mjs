@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { openColdStore, getCold, coldCount } from './memory-cold-store.mjs';
 import { buildItem, planRelocations, loadItems, executeRelocation, promoteHot, lastContentChangeMs, seedDryRun, applySupersession, familyPrefix } from './memory-relocator.mjs';
@@ -206,6 +207,41 @@ test('MEM-02: stale+unique KEPT (protected) vs stale+duplicate DEMOTED — the t
   assert.ok(twoAxis.keep.some((k) => k.slug === 'unique' && /PROTECTED/.test(k.reason)), 'stale+unique is protected by the MDL axis');
 });
 
+test('MEM-02 RED-TEAM: shared high-entropy scaffold does not false-demote unique content (L3#3)', () => {
+  const now = 400 * DAY;
+  const fsrsFloor = { nowMs: now, rFloor: 0.6, redundancyFloor: 0.15, supersessionPenaltyDays: 0 };
+  const sharedEntropy = Array.from({ length: 80 }, (_, i) =>
+    `shared_entropy_${i}: ${crypto.createHash('sha256').update(`mdl-shared-scaffold-${i}`).digest('hex')}`
+  ).join('\n');
+  const scaffold = (name) => [
+    '---',
+    `name: ${name}`,
+    'type: project',
+    'tier: episodic',
+    'salience: 0',
+    sharedEntropy,
+    '---',
+    '## GOAL',
+    '## WHEN',
+    '## EXIT',
+    '## RISKS',
+    '## EVIDENCE',
+    '',
+  ].join('\n');
+  const refSentence = 'subconscious memory relocation keeps stale duplicate policy notes reversible while cold store promotion restores active recall through deterministic records.';
+  const uniqSentence = 'crimson lattice semaphore maps shoreline invoice cadence to launch approvals using obsidian kiln vectors and heliotrope checkpoints for partner escalation.';
+  const mk = (slug, lastUsedMs, sentence) => ({ slug, baseStabilityDays: 14, lastUsedMs, useCount: 0, salience: 0, forceKeep: false, body: scaffold(slug) + sentence });
+  const items = [
+    mk('kept-a', now, refSentence),
+    mk('kept-b', now, refSentence),
+    mk('unique-scaffolded', 0, uniqSentence),
+    mk('dup-scaffolded', 0, refSentence),
+  ];
+  const twoAxis = planRelocations(items, fsrsFloor);
+  assert.deepEqual(twoAxis.demote.map((d) => d.slug), ['dup-scaffolded'], 'only the true duplicate demotes');
+  assert.ok(twoAxis.keep.some((k) => k.slug === 'unique-scaffolded' && /PROTECTED/.test(k.reason)), 'unique content survives shared scaffold');
+});
+
 // GUARD: a low-quality (near-empty) stale file must NOT false-protect itself as "novel".
 test('MEM-02 GUARD: low-quality stale file is NOT protected (quality floor)', () => {
   const now = 400 * DAY;
@@ -304,6 +340,43 @@ test('MEM-05: feedback/user types remain exempt under the new two-axis + superse
   // even named like a family AND fully decayed AND with siblings, protected types never demote
   const { demote } = planRelocations([fb, usr], { nowMs: now, rFloor: 0.6, redundancyFloor: 0.15, supersessionPenaltyDays: 30 });
   assert.equal(demote.length, 0, 'feedback/user exempt even under supersession + redundancy axes');
+});
+
+// RED-TEAM #6a — PROTECTED_TYPES must survive quotes / inline comment / casing (fail-closed protection)
+test('SECURITY #6a: protected type survives quotes/comment/case (forceKeep not evaded)', () => {
+  assert.equal(buildItem('/x/a.md', '---\nname: a\ntype: "user"\n---\nbody', { nowMs: 1000 }).forceKeep, true);
+  assert.equal(buildItem('/x/b.md', '---\nname: b\ntype: feedback # standing rule\n---\nbody', { nowMs: 1000 }).forceKeep, true);
+  assert.equal(buildItem('/x/c.md', '---\nname: c\ntype: USER\n---\nbody', { nowMs: 1000 }).forceKeep, true);
+});
+
+// RED-TEAM #6b — supersession tie-break must resist suffix-forgery (shorter canonical wins, not lexically-greater)
+test('SECURITY #6b: tie-break is suffix-forgery-resistant (canonical anchor kept, forged sibling demotes)', () => {
+  const now = 100 * DAY;
+  const mk = (slug) => ({ slug, baseStabilityDays: 3, lastUsedMs: now, useCount: 0, forceKeep: false, body: `---\nname: ${slug}\n---\n` + 'content '.repeat(40) });
+  // identical last-touch; one is the real anchor, one a forged lexically-greater LONGER suffix
+  const items = [mk('session-resume-2026-06-04-master-build-plan'), mk('session-resume-2026-06-04-master-build-plan-zzz')];
+  const { demote, keep } = planRelocations(items, { nowMs: now, rFloor: 0.6, redundancyFloor: 0, supersessionPenaltyDays: 30 });
+  assert.ok(keep.some((k) => k.slug === 'session-resume-2026-06-04-master-build-plan'), 'shorter canonical anchor kept as newest');
+  assert.ok(demote.some((d) => d.slug === 'session-resume-2026-06-04-master-build-plan-zzz'), 'forged longer-suffix sibling does NOT out-rank — it demotes');
+});
+
+// RED-TEAM #4 — relocation must never clobber a prior relocated/ copy + must record the index durably per item
+test('SECURITY #4: executeRelocation collision-safe dest + durable index (no clobber)', () => {
+  const root = tmpRoot();
+  const body = '---\nname: doomed\n---\n# Doomed\n' + 'verbatim body long enough to clear the quality floor here. '.repeat(4);
+  const f = writeMem(root, 'doomed.md', body);
+  const old = new Date(Date.now() - 400 * DAY); fs.utimesSync(f, old, old);
+  const relDir = path.join(root, 'relocated'); fs.mkdirSync(relDir, { recursive: true });
+  const prior = path.join(relDir, 'doomed.md'); fs.writeFileSync(prior, 'PRIOR-COPY-DO-NOT-CLOBBER');
+  const db = openColdStore(':memory:');
+  const items = loadItems(root, { nowMs: Date.now(), usageIndex: {}, firstSeen: {} });
+  const plan = planRelocations(items, { nowMs: Date.now(), rFloor: 0.6, redundancyFloor: 0 });
+  executeRelocation(plan, { coldDb: db, root, dryRun: false, nowMs: Date.now() });
+  assert.equal(fs.readFileSync(prior, 'utf8'), 'PRIOR-COPY-DO-NOT-CLOBBER', 'prior relocated copy preserved (not clobbered)');
+  const idx = JSON.parse(fs.readFileSync(path.join(root, 'relocation-index.json'), 'utf8'));
+  assert.ok(idx.relocated.doomed, 'index records the relocation durably');
+  assert.notEqual(idx.relocated.doomed.relocatedFile, prior, 'used a collision-safe dest, not the prior path');
+  db.close();
 });
 
 // STEP 3 — seedDryRun produces a sorted demote-set table and executes NOTHING.

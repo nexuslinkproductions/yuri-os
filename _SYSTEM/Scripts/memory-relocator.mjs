@@ -91,6 +91,18 @@ export function familyPrefix(slug) {
   return m ? m[1].toLowerCase() : null;
 }
 
+// Canonicalize a frontmatter `type:` value so PROTECTED_TYPES membership cannot be evaded by a
+// trailing inline comment, surrounding quotes, or casing (`type: user # note` / `type: "user"`
+// / `type: USER`). Fail-CLOSED toward protection: normalize maximally before the closed-set test.
+function normalizeType(raw) {
+  if (typeof raw !== 'string') return null;
+  let t = raw.replace(/\s+#.*$/, '').trim();                     // strip YAML inline comment
+  if (t.length >= 2 && ((t[0] === '"' && t[t.length - 1] === '"') || (t[0] === "'" && t[t.length - 1] === "'"))) {
+    t = t.slice(1, -1).trim();                                   // strip surrounding quotes
+  }
+  return t ? t.toLowerCase() : null;
+}
+
 /** Minimal frontmatter reader — tolerant of Track A (flat name/type) and Track B (nested metadata). */
 export function parseFrontmatter(content) {
   const out = { body: content };
@@ -102,7 +114,7 @@ export function parseFrontmatter(content) {
   const pick = (re) => { const m = fm.match(re); return m ? m[1].trim() : null; };
   out.name = pick(/^\s*name:\s*(.+)$/m);
   out.tier = pick(/^\s*tier:\s*(.+)$/m);
-  out.type = pick(/^\s*type:\s*(.+)$/m);
+  out.type = normalizeType(pick(/^\s*type:\s*(.+)$/m));
   out.trig = pick(/^\s*trig:\s*(.+)$/m) || '';
   out.refs = pick(/^\s*refs:\s*(.+)$/m) || '';
   out.description = pick(/^\s*description:\s*(.+)$/m) || '';
@@ -112,6 +124,20 @@ export function parseFrontmatter(content) {
   const ar = fm.match(/^\s*archive:\s*(true|false)\s*$/im);
   out.forceKeepFlag = (fk && fk[1].toLowerCase() === 'true') || (ar && ar[1].toLowerCase() === 'false');
   return out;
+}
+
+const REDUNDANCY_SCAFFOLD_HEADING_RE = /^#{1,6}\s*(?:GOAL|WHEN|EXIT|RISKS|EVIDENCE|NOTES|CONTEXT|STATUS|NEXT|TODO)\s*$/i;
+
+/**
+ * MDL compares semantic memory CONTENT, not archival storage bytes (red-team L3#3). `item.body`
+ * stays the whole file for byte-identical restore; this strips YAML frontmatter and scaffold-only
+ * memory headings before gzip marginal-bits scoring so a shared high-entropy metadata scaffold
+ * cannot false-demote a genuinely distinct body.
+ */
+export function redundancyComparisonText(content) {
+  const raw = typeof content === 'string' ? content : '';
+  const body = parseFrontmatter(raw).body;
+  return body.split(/\r?\n/).filter((line) => !REDUNDANCY_SCAFFOLD_HEADING_RE.test(line.trim())).join('\n').trim();
 }
 
 function crosslinksFrom(refs) {
@@ -261,7 +287,14 @@ export function applySupersession(items, { penaltyDays = DEFAULT_SUPERSESSION_PE
     for (const m of members) {
       const a = Number(m.lastUsedMs) || 0;
       const b = Number(newest.lastUsedMs) || 0;
-      if (a > b || (a === b && String(m.slug) > String(newest.slug))) newest = m;
+      if (a > b) { newest = m; continue; }
+      // Tie on last-touch: the CANONICAL anchor wins, never a slug-forged one. A SHORTER slug is
+      // canonical — an injected longer suffix (`...-zzz`) must NOT out-rank and force-demote the
+      // real current anchor; equal length falls back to lexical for deterministic stability.
+      if (a === b) {
+        const ms = String(m.slug), ns = String(newest.slug);
+        if (ms.length < ns.length || (ms.length === ns.length && ms > ns)) newest = m;
+      }
     }
     for (const m of members) if (m !== newest) penalize.add(m);
   }
@@ -324,7 +357,7 @@ export function planRelocations(items, cfg = {}) {
     // pure-FSRS baseline: every R-floor candidate demotes (A/B comparison path)
     for (const c of lowR) demote.push({ ...c, redundancyBits: null });
   } else {
-    const keptBodies = keep.map((k) => (typeof k.body === 'string' ? k.body : ''));
+    const keptBodies = keep.map((k) => redundancyComparisonText(k.body));
     for (const cand of lowR) {
       // MEM-05 — a SUPERSEDED same-family anchor bypasses MDL protection: a newer sibling has
       // replaced its role, so its lexical uniqueness is MOOT (redundant-by-supersession). The
@@ -335,13 +368,13 @@ export function planRelocations(items, cfg = {}) {
         demote.push({ ...cand, redundancyBits: null, reason: `${cand.reason}; superseded by a newer same-family anchor (uniqueness moot)` });
         continue;
       }
-      const candBody = typeof cand.body === 'string' ? cand.body : '';
+      const candBody = redundancyComparisonText(cand.body);
       // A candidate with no assessable body (empty / sub-quality) gets NO redundancy
       // protection — the axis ABSTAINS and the FSRS verdict stands (demote). This is the
       // honest neutral: we can't certify a near-empty file as "novel/irreducible", and the
       // relocator's own MIN_QUALITY_BYTES floor already pinned a garbled file fully-decayed.
       const v = redundancyVerdict(candBody, keptBodies.concat(
-        lowR.filter((o) => o !== cand).map((o) => (typeof o.body === 'string' ? o.body : '')),
+        lowR.filter((o) => o !== cand).map((o) => redundancyComparisonText(o.body)),
       ).join('\n'), { redundancyFloor });
       const protect = v.irreducible && !v.lowQuality;   // only a substantive, novel body is protected
       if (protect) {
@@ -390,26 +423,54 @@ export function loadItems(root = DEFAULT_MEMORY_ROOT, { nowMs = Date.now(), usag
  * file into root/relocated/ (reversible), and record a relocation-index entry. dryRun
  * plans without touching anything. Returns a summary.
  */
+// CAP-01 / collision-safety helpers (red-team #4). A slug becomes an index key and its source file
+// is moved into relocated/ — both must be containment-safe and the move durably recorded per item.
+function assertSafeSlug(slug) {
+  if (typeof slug !== 'string' || slug.length === 0) throw new Error(`relocation: empty/invalid slug ${JSON.stringify(slug)}`);
+  if (slug.includes('/') || slug.includes('\\') || slug.includes('\0') || slug === '.' || slug === '..' || slug.includes('..')) {
+    throw new Error(`relocation: unsafe slug ${JSON.stringify(slug)} (path traversal / separator)`);
+  }
+}
+function atomicWriteJSON(file, obj) {
+  const tmp = `${file}.tmp-${process.pid}`;                       // same-dir temp → rename is atomic on POSIX
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2) + '\n');
+  fs.renameSync(tmp, file);
+}
+// Never overwrite an existing relocated/ copy (a prior relocation of the same filename) — suffix it.
+function collisionSafeDest(dir, filename) {
+  let dest = path.join(dir, filename);
+  if (!fs.existsSync(dest)) return dest;
+  const ext = path.extname(filename);
+  const stem = filename.slice(0, filename.length - ext.length);
+  let n = 1;
+  while (fs.existsSync(dest = path.join(dir, `${stem}.reloc${n}${ext}`))) n += 1;
+  return dest;
+}
+
 export function executeRelocation(plan, { coldDb, root = DEFAULT_MEMORY_ROOT, dryRun = true, nowMs = Date.now() } = {}) {
   const relocatedDir = path.join(root, 'relocated');
   const indexPath = path.join(root, 'relocation-index.json');
   const moved = [];
   if (!dryRun) fs.mkdirSync(relocatedDir, { recursive: true });
   const index = (() => { try { return JSON.parse(fs.readFileSync(indexPath, 'utf8')); } catch { return { relocated: {} }; } })();
+  if (!index.relocated || typeof index.relocated !== 'object') index.relocated = {};
 
   for (const item of plan.demote) {
     if (dryRun) { moved.push({ slug: item.slug, R: item.R, dryRun: true }); continue; }
+    assertSafeSlug(item.slug);                                    // fail-closed: never key/move on a traversing slug
+    // Order: cold safety-copy FIRST (body durable before the source moves) → move → record →
+    // atomically persist the index PER ITEM, so a crash mid-loop never orphans an already-moved file.
     upsertCold(coldDb, {
       slug: item.slug, title: item.title, body: item.body, trig: item.trig,
       salience: item.salience, baseStabilityDays: item.baseStabilityDays,
       crosslinks: item.crosslinks, sourcePath: item.file, reason: item.reason, nowMs,
     });
-    const dest = path.join(relocatedDir, item.filename);
-    fs.renameSync(item.file, dest);                       // reversible move, not delete
+    const dest = collisionSafeDest(relocatedDir, item.filename);  // never clobber a prior relocated copy
+    fs.renameSync(item.file, dest);                               // reversible move, not delete
     index.relocated[item.slug] = { coldHome: 'memory-cold.db', relocatedFile: dest, demotedAt: Math.trunc(nowMs), R: item.R, reason: item.reason, sourcePath: item.file };
+    atomicWriteJSON(indexPath, index);                            // durable after EACH move (temp+rename)
     moved.push({ slug: item.slug, R: item.R, dest });
   }
-  if (!dryRun) fs.writeFileSync(indexPath, JSON.stringify(index, null, 2) + '\n');
   return { demoted: moved.length, kept: plan.keep.length, moved, dryRun };
 }
 

@@ -49,6 +49,15 @@ function enforceEnabled() {
 
 function readStdin() { try { return fs.readFileSync(0, 'utf8'); } catch { return ''; } }
 
+// CAP-01 (red-team #3): atomic snapshot write — temp + rename. A torn write would make the next
+// snapshot read throw → fail-OPEN (allow), so the breaker state must land all-or-nothing.
+function atomicWrite(p, data) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  const tmp = `${p}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, data);
+  fs.renameSync(tmp, p);
+}
+
 // Bound our contribution to the shared audit log so a pathological tripped-breaker
 // loop can't grow it without limit (corpus "DoS via log files" / Uncontrolled
 // Resource Consumption). Best-effort: stop appending once the log is already large;
@@ -79,7 +88,7 @@ function run() {
 
   // Operator override: force-close the breaker, allow.
   if (process.env.YURI_ENERGY_BREAKER_RESET === '1') {
-    try { snap.breaker = freshBreaker(); fs.writeFileSync(snapPath, JSON.stringify(snap) + '\n'); } catch { /* ignore */ }
+    try { snap.breaker = freshBreaker(); atomicWrite(snapPath, JSON.stringify(snap) + '\n'); } catch { /* ignore */ }
     audit({ action: 'reset', session: sessionId });
     return;
   }
@@ -91,7 +100,7 @@ function run() {
 
   // Persist the (possibly advanced) breaker so the state machine evolves whether or
   // not we enforce — this is what gives a true METRICS_ONLY burn-in in the snapshot.
-  try { snap.breaker = res.breaker; fs.writeFileSync(snapPath, JSON.stringify(snap) + '\n'); } catch { /* ignore */ }
+  try { snap.breaker = res.breaker; atomicWrite(snapPath, JSON.stringify(snap) + '\n'); } catch { /* ignore */ }
 
   if (res.decision === 'deny') {
     if (enforce) {

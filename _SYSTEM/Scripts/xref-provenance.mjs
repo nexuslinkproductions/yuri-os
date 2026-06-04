@@ -93,9 +93,11 @@ export function scoreHit(input = {}, knobs = XREF_PROVENANCE_KNOBS) {
 
   switch (surface) {
     case EVIDENCE_KIND.STRUCTURAL: {
-      // A structural surface with no actual structural match is a contract violation — fail closed,
-      // do not silently promote. Downgrade to a null (not a sibling).
-      if (structuralMatch === false) return null;
+      // A structural surface MUST carry an EXPLICIT structuralMatch===true. Any other value
+      // (false, undefined, null, 0, '', non-boolean) is a contract violation — fail CLOSED, do
+      // NOT silently promote into the HIGH band. Returns null (not a sibling). The old
+      // `=== false` form was fail-OPEN: every non-false value (incl. undefined) laundered to HIGH.
+      if (structuralMatch !== true) return null;
       let confidence = projectIntoBand(lexicalScore, knobs.structuralBand, knobs);
       const stale = gitnexusStale === true;
       if (stale) confidence *= knobs.stalenessPenalty;

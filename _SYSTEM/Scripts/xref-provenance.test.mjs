@@ -155,6 +155,25 @@ test('ADVERSARIAL: structural surface with structuralMatch=false returns null (n
   assert.equal(r, null);
 });
 
+// REGRESSION (Finding #8 part 1 — scoreHit fail-open): a STRUCTURAL surface must require an
+// EXPLICIT structuralMatch===true. A non-true falsy value (undefined/null/0/'') is a contract
+// violation and must NOT be silently promoted into the HIGH 0.8..1.0 band. The old gate
+// (structuralMatch===false ? null : HIGH) let everything except literal false grade ~0.97 HIGH —
+// classic fail-open. Fail-CLOSED: only true passes; everything else returns null (not a sibling).
+test('REGRESSION: structural surface with a non-true structuralMatch fails CLOSED (no HIGH laundering)', () => {
+  for (const bad of [undefined, null, 0, '', 'true', 1, NaN, {}, []]) {
+    const r = scoreHit({ surface: EVIDENCE_KIND.STRUCTURAL, structuralMatch: bad, lexicalScore: 1.0 });
+    assert.equal(
+      r,
+      null,
+      `structuralMatch=${JSON.stringify(bad)} must return null (fail-closed), got ${JSON.stringify(r)}`,
+    );
+  }
+  // and the legitimate path (explicit true) STILL grades HIGH — no over-fix.
+  const good = scoreHit({ surface: EVIDENCE_KIND.STRUCTURAL, structuralMatch: true, lexicalScore: 1.0 });
+  assert.ok(good && good.confidence >= 0.8, `explicit true must still grade HIGH, got ${JSON.stringify(good)}`);
+});
+
 test('ADVERSARIAL: neighbor with a bogus/missing edgeKind returns null (closed-set, not charset)', () => {
   for (const edgeKind of ['deletes', 'WRITES', '', undefined, 'calls ', 'reads\n']) {
     assert.equal(scoreHit({ surface: EVIDENCE_KIND.NEIGHBOR, edgeKind, lexicalScore: 1 }), null, `edgeKind ${JSON.stringify(edgeKind)} must not surface`);

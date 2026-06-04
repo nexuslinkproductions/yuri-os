@@ -120,6 +120,18 @@ function overlapSignal(matched, total) {
   return Math.min(1, matched / total);
 }
 
+// Resolve a gitnexusStaleness() result into the boolean the structural scorer consumes.
+// FAIL-CLOSED on INDETERMINATE freshness (F3 / freshness-laundering): the only state that earns
+// "fresh" (no staleness penalty) is a PROVEN-fresh index — available===true AND stale===false.
+// Everything else — absent .gitnexus marker, git failure, empty HEAD (available===false), or an
+// explicit stale flag — is treated as STALE so the staleness penalty applies. Granting full-HIGH
+// structural confidence on an ABSENT freshness signal is severity-laundering (a LOW-trust claim
+// dressed as HIGH); a structural claim on an index of unknown freshness is NOT high-confidence.
+export function resolveGitnexusStale(staleInfo) {
+  const provenFresh = !!staleInfo && staleInfo.available === true && staleInfo.stale === false;
+  return !provenFresh;
+}
+
 // ============================================================================================
 // PASS 1 — FTS5 / BM25 corpus search (lexical-only)
 // ============================================================================================
@@ -478,8 +490,10 @@ export function xrefQuery(rawQuery, opts = {}) {
   const graph = loadGraph();
 
   // Determine gitnexus staleness ONCE (shared with the structural scorer).
+  // FAIL-CLOSED: indeterminate freshness (absent marker / git failure) is treated as STALE by
+  // resolveGitnexusStale — never granted full-HIGH on an absent freshness signal (no laundering).
   const staleInfo = gitnexusStaleness({ repoRoot: LIVE_REPO_ROOT });
-  const gitnexusStale = !!(staleInfo.available && staleInfo.stale);
+  const gitnexusStale = resolveGitnexusStale(staleInfo);
 
   // Run the four bounded passes.
   const fts5 = passFts5(rawQuery, match);

@@ -165,3 +165,47 @@ test('non-string witness entries (number/object) are rejected, no throw', () => 
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((e) => e.includes('malformed witness')));
 });
+
+// --- closed-set immutability (Finding #9): an importer must not be able to mutate
+// the shared verb membership and poison validation. Object.freeze(new Set) did NOT
+// block .add(); a frozen array + per-call rebuilt Set does. ---
+
+test('the exported verb surface exposes no mutator (add/delete/clear absent)', () => {
+  assert.equal(typeof MECHANISM_PATTERN_VERBS.add, 'undefined', 'add must not be exposed');
+  assert.equal(typeof MECHANISM_PATTERN_VERBS.delete, 'undefined', 'delete must not be exposed');
+  assert.equal(typeof MECHANISM_PATTERN_VERBS.clear, 'undefined', 'clear must not be exposed');
+});
+
+test('mutating the exported verb surface cannot poison closed-set validation (Finding #9)', () => {
+  const POISON = 'attacker-self-minted-verb';
+
+  // An importer attempts to widen the supposedly-closed set before validation.
+  // On the old Object.freeze(new Set) export, .add() silently succeeded and the
+  // verb below then passed the closed-set gate. The surface must now refuse it.
+  let mutationRejected = false;
+  try {
+    // eslint-disable-next-line no-restricted-syntax
+    MECHANISM_PATTERN_VERBS.add?.(POISON);
+  } catch {
+    mutationRejected = true;
+  }
+  // Either add is absent (optional-chain no-op) or it throws — either way membership
+  // must be unchanged.
+  assert.ok(
+    typeof MECHANISM_PATTERN_VERBS.add === 'undefined' || mutationRejected,
+    'a mutator either must not exist or must throw',
+  );
+  assert.equal(MECHANISM_PATTERN_VERBS.has(POISON), false, 'membership must not have grown');
+  assert.equal(MECHANISM_PATTERN_VERBS.size, 5, 'size must stay exactly 5');
+
+  // The load-bearing assertion: even after the poison attempt, a registry carrying
+  // the self-minted verb must be rejected by the closed-set gate.
+  const result = validateMechanismPatternRegistry(
+    validRegistry([validVerb({ verb: POISON })]),
+  );
+  assert.equal(result.ok, false, 'self-minted verb must be rejected after poison attempt');
+  assert.ok(
+    result.errors.some((e) => e.includes(POISON) && e.includes('closed v0 set')),
+    `expected closed-set rejection, got: ${result.errors.join(', ')}`,
+  );
+});

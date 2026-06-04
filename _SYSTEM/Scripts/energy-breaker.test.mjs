@@ -145,6 +145,32 @@ test('verdictFromStates never throws on garbage -> fail-open clean verdict', () 
   assert.equal(v.protectedPathVeto, false);
 });
 
+test('verdictFromStates preserves malformed veto fields so the gate fail-closes (red-team #2)', () => {
+  const before = { protectedPathViolations: 0, promotionLadderInversions: 0 };
+  const after = { ...before, protectedPathViolations: 'not-a-number' };
+  const v = verdictFromStates(before, after);
+  assert.equal(v.accept, false);
+  assert.equal(v.protectedPathVeto, true);
+  assert.equal(isCatastrophic(v), true);
+});
+
+test('verdictFromStates + breaker trip on the live L∞ maxSeverityVeto (red-team #5)', () => {
+  const before = { promotionLadderInversions: 1, maxLadderInversion: 5 };
+  const after = { promotionLadderInversions: 1, maxLadderInversion: 5 };
+  const v = verdictFromStates(before, after);
+  assert.equal(v.accept, false);
+  assert.equal(v.maxSeverityVeto, true);
+  assert.equal(isCatastrophic(v), true);
+  assert.equal(transitionOnVerdict(freshBreaker(), v, 1000).state, BREAKER_STATE.OPEN);
+});
+
+test('verdictFromStates fails closed on a thrown gate error (red-team #2)', () => {
+  const v = verdictFromStates({}, {}, { threshold: Infinity });
+  assert.equal(v.accept, false);
+  assert.equal(v.gateErrorVeto, true);
+  assert.equal(isCatastrophic(v), true);
+});
+
 test('loadBreakerCfg honors env overrides, rejects bad values', () => {
   const c = loadBreakerCfg({ YURI_ENERGY_BREAKER_WAIT_MS: '5000', YURI_ENERGY_BREAKER_HALFOPEN_MS: 'bad' });
   assert.equal(c.waitDurationMs, 5000);

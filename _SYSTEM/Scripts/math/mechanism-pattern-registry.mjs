@@ -22,16 +22,37 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..'); // Scripts/math/ → Scripts/ → _SYSTEM/ → repo root
 const REGISTRY_PATH = path.join(REPO_ROOT, '_SYSTEM', 'data', 'math', 'mechanism-pattern-registry.json');
 
-/** The closed v0 enum. Frozen Set — the single shared source of truth for verb identity. */
-export const MECHANISM_PATTERN_VERBS = Object.freeze(
-  new Set([
-    'replace-hand-tuned-constant',
-    'read-lower-bound-not-point',
-    'gate-on-identity-not-aggregate',
-    'shared-prerequisite-unlock',
-    'compose-readonly-analyzer',
-  ]),
-);
+/**
+ * The closed v0 enum, as a genuinely-immutable frozen array of primitives.
+ * This is the single shared source of truth for verb identity. A frozen array of
+ * strings cannot be mutated by an importer (push/splice throw in strict ESM, and the
+ * elements are primitives), unlike a Set — `Object.freeze(new Set(...))` does NOT
+ * block `.add()`/`.delete()`, so a Set is the wrong container for a closed enum.
+ */
+const MECHANISM_PATTERN_VERB_LIST = Object.freeze([
+  'replace-hand-tuned-constant',
+  'read-lower-bound-not-point',
+  'gate-on-identity-not-aggregate',
+  'shared-prerequisite-unlock',
+  'compose-readonly-analyzer',
+]);
+
+/**
+ * Read-only membership surface over the closed verb set. Exposes the Set-like
+ * shape consumers expect (`has`, `size`, iteration) but is poison-proof: `add`/
+ * `delete`/`clear` are absent, and membership is read from the frozen primitive
+ * array, never from a mutable Set. The validator rebuilds its own private Set on
+ * each call (below) so even tampering with this exported object cannot reach
+ * validation.
+ */
+export const MECHANISM_PATTERN_VERBS = Object.freeze({
+  has: (verb) => MECHANISM_PATTERN_VERB_LIST.includes(verb),
+  get size() {
+    return MECHANISM_PATTERN_VERB_LIST.length;
+  },
+  values: () => MECHANISM_PATTERN_VERB_LIST[Symbol.iterator](),
+  [Symbol.iterator]: () => MECHANISM_PATTERN_VERB_LIST[Symbol.iterator](),
+});
 
 /** Minimum witnesses for a verb to be admissible (the new-verb threshold). */
 export const MIN_WITNESSES = 2;
@@ -66,6 +87,11 @@ function isNonEmptyString(value) {
 export function validateMechanismPatternRegistry(registry) {
   const errors = [];
   const warnings = [];
+
+  // Rebuild the membership set locally from the frozen primitive array on every call.
+  // Never consult the exported MECHANISM_PATTERN_VERBS surface for validation, so an
+  // importer cannot poison the closed-set check by mutating a shared mutable Set.
+  const closedVerbSet = new Set(MECHANISM_PATTERN_VERB_LIST);
 
   if (!isPlainObject(registry)) {
     return { ok: false, errors: ['registry must be an object'], warnings };
@@ -105,7 +131,7 @@ export function validateMechanismPatternRegistry(registry) {
     // Closed-set gate — unknown verb is rejected outright (no self-mint).
     if (!isNonEmptyString(entry.verb)) {
       errors.push(`verb ${tag}: verb name is required`);
-    } else if (!MECHANISM_PATTERN_VERBS.has(entry.verb)) {
+    } else if (!closedVerbSet.has(entry.verb)) {
       errors.push(`verb ${entry.verb}: not in the closed v0 set (a new verb requires owner promotion)`);
     } else if (seen.has(entry.verb)) {
       errors.push(`verb ${entry.verb}: duplicate verb entry`);

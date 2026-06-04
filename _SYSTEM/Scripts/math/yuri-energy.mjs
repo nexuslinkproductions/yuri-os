@@ -78,6 +78,10 @@ export const DEFAULT_WEIGHTS = Object.freeze({
   lambda: 50.0, // malformedForecastPenalty — out-of-range/non-finite forecast inputs fail CLOSED
 });
 
+// Live enforcing path: any per-claim ladder inversion above this absolute level trips the L∞
+// floor. gateProposal keeps Infinity as its API default for compatibility (red-team #5).
+export const DEFAULT_MAX_LADDER_INVERSION_CAP = 0;
+
 // Saturation cap for the verified-evidence credit (bounds U BELOW). The credit is
 // -iota·log1p(min(count, CAP)): logarithmic AND capped, so it has a finite infimum
 // (-iota·log1p(CAP)). Without this the credit was linear -> U unbounded below ->
@@ -617,14 +621,13 @@ export function gateProposal({
   // present-but-unparseable (fail-CLOSED, same as the protected-path type-confusion
   // guard). The protected-path case keeps its own hard veto; this is the ladder term.
   //
-  // Threshold note (owner-tunable policy, not a bug): the floor respects `threshold`.
-  // At the default threshold=0 any introduced inversion (theta·1 = 10 > 0) is vetoed.
-  // An operator who deliberately raises the threshold above theta is declaring an
-  // explicit energy-rise budget that tolerates that many inversion-units — distinct
-  // from the protected-path veto, which is catastrophic and ignores threshold entirely.
+  // Red-team #1: the structural floor keys on the RAW ladder-count increase, NOT the
+  // theta-weighted delta vs threshold — otherwise a config theta=0 or a raised threshold
+  // silently forges the floor open. A structural inversion is non-offsettable like the
+  // protected-path veto; the soft `threshold` budget does not apply to it. (ladderPenaltyDelta
+  // is still surfaced in the reason string below.)
   const structuralFloorVeto = !protectedPathVeto
-    && (ladderAfterMalformed
-      || (ladderPenaltyDelta > normalizedThreshold && ladderAfter > ladderBefore));
+    && (ladderAfterMalformed || (ladderAfter > ladderBefore));
 
   // L∞ MAX-SEVERITY FLOOR — delta-gate severity-laundering closure.
   // The structural floor above keys on the ladder term's *delta*. A DELTA gate — on

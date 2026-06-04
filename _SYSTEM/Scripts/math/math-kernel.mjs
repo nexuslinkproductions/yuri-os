@@ -11,7 +11,14 @@ export function normalizeDistribution(values) {
   }
   const sum = values.reduce((total, value) => total + value, 0);
   if (sum <= 0) throw new Error('distribution must have a positive sum');
-  return values.map((value) => value / sum);
+  // Fail-closed on aggregate overflow: a sum of 1e308-scale inputs saturates to
+  // Infinity, so value/Infinity silently collapses every probability to 0 and
+  // downstream entropy/KL emit garbage. A non-finite sum is not a valid
+  // distribution — reject it rather than return a [0,...,0] phantom.
+  if (!Number.isFinite(sum)) {
+    throw new Error('distribution sum overflowed to a non-finite value');
+  }
+  return values.map((value) => assertFiniteResult(value / sum, 'normalized probability'));
 }
 
 export function entropy(probabilities, options = {}) {
@@ -127,7 +134,11 @@ export function cosineSimilarity(left, right) {
 export function weightedMean(values, weights) {
   assertVectorPair(values, weights, 'weighted mean');
   const weightSum = assertWeightVector(weights);
-  return roundStable(values.reduce((total, value, index) => total + value * weights[index], 0) / weightSum);
+  // Fail-closed on overflow: a numerator/denominator of 1e308-scale values can
+  // saturate to Infinity/Infinity = NaN. A weighted mean is an aggregate
+  // primitive that must never silently emit NaN/Infinity.
+  const mean = values.reduce((total, value, index) => total + value * weights[index], 0) / weightSum;
+  return roundStable(assertFiniteResult(mean, 'weighted mean'));
 }
 
 export function weightedVariance(values, weights) {
@@ -309,7 +320,12 @@ export function maxEntBelief(meanRank, support, options = {}) {
 export function lmsrIncrement(beliefBefore, beliefAfter, b) {
   // Logarithmic Market Scoring Rule per-step increment on a single resolved index:
   // credit = b * (ln beliefAfter[resolved] - ln beliefBefore[resolved]).
-  // Strictly proper; the per-claim subsidy is bounded by b*ln(N).
+  // Strictly proper. `bound` = b*ln(N) is the UNIFORM-PRIOR worst case only:
+  // moving from the uniform 1/N to certainty 1 costs exactly b*ln(N). It is NOT a
+  // per-increment bound from an arbitrary prior — from a near-zero pBefore a
+  // single increment can far exceed b*ln(N) (e.g. pBefore=MIN_VALUE → ~744 for
+  // b=1,N=2). Callers must read `bound` as the uniform-prior subsidy cap, not a
+  // guarantee on `increments` for non-uniform beliefBefore.
   assertFiniteNumber(b, 'b');
   if (b <= 0) throw new Error('LMSR liquidity b must be positive');
   const before = normalizeDistribution(beliefBefore);
@@ -339,7 +355,9 @@ export function mergeLaneEvidence(eValues, weights, dependence = 'arbitrary') {
   }
   if (dependence === 'independent') {
     const merged = eValues.reduce((product, value) => product * value, 1);
-    return { merged: roundStable(merged), merge: 'product', dependence };
+    // Fail-closed on overflow: a product of 1e308-scale e-values saturates to
+    // Infinity. A merged e-value must be a finite scalar, not a phantom Infinity.
+    return { merged: roundStable(assertFiniteResult(merged, 'merged e-value')), merge: 'product', dependence };
   }
   if (dependence !== 'arbitrary') {
     throw new Error("dependence must be 'arbitrary' or 'independent'");
@@ -732,6 +750,17 @@ function assertFiniteNumber(value, label) {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new Error(`${label} must be a finite number`);
   }
+}
+
+// Post-aggregate finite invariant. Inputs may be individually valid yet still
+// produce a non-finite aggregate via overflow (sum/product of 1e308-scale terms
+// → Infinity → Infinity/Infinity → NaN). These primitives must fail closed on a
+// non-finite intermediate rather than silently emit NaN/Infinity/[0,...,0].
+function assertFiniteResult(value, label) {
+  if (!Number.isFinite(value)) {
+    throw new Error(`${label} is non-finite (aggregate overflow)`);
+  }
+  return value;
 }
 
 function assertLogBase(base) {

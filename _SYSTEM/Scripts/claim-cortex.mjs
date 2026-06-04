@@ -266,13 +266,26 @@ export function evidenceStatusRank(evidenceRecords) {
   // cannot distinguish same-kind cycles, so same-suite reruns need distinct run-ids
   // (fail-closed). True cryptographic per-evidence provenance is the durable ledger's
   // job (Track A, sha256); this is the sensor-level floor.
-  const recurringKeys = new Set(
-    fresh
-      .filter((e) => e.kind === 'test' || e.kind === 'runtime_trace')
-      .map((e) => `${e.kind}::${e.reference}`),
-  );
+  const recurringKeys = new Set();
+  for (const e of fresh) {
+    const key = recurringEvidenceKey(e);
+    if (key) recurringKeys.add(key);
+  }
   if (hasOperator && recurringKeys.size >= TRUSTED_RECURRENCE) rank = RANK_TRUSTED;
   return rank;
+}
+
+// Red-team #10: an evidence identity key requires a NON-EMPTY string reference. Empty/missing
+// references cannot prove distinct recurrence (else two empty-ref keys forge the trusted floor).
+function evidenceIdentityKey(e) {
+  const reference = typeof e?.reference === 'string' ? e.reference.trim() : '';
+  if (!reference) return null;
+  return `${e.kind}::${reference}`;
+}
+
+function recurringEvidenceKey(e) {
+  if (e?.kind !== 'test' && e?.kind !== 'runtime_trace') return null;
+  return evidenceIdentityKey(e);
 }
 
 // ---------------------------------------------------------------------------
@@ -325,7 +338,11 @@ function maxEntBeliefVector(meanRank) {
 // UCB1 HEDGE tiebreaker consumes (the global-effort coupling), so copies of one result
 // cannot self-explore their way to ASSERT.
 function distinctFreshCount(freshRecords) {
-  const keys = new Set(freshRecords.map((e) => `${e.kind}::${e.reference}`));
+  const keys = new Set();
+  for (const e of freshRecords) {
+    const key = evidenceIdentityKey(e);
+    if (key) keys.add(key);
+  }
   return keys.size;
 }
 
@@ -664,6 +681,56 @@ function decideVerdict({ claimedRank, evidenceRank, deltaRank, freshCount, stron
   return { verdict: VERDICTS.ASSERT, reason: `evidence (${LADDER[evidenceRank]}) meets or exceeds claim — assert plainly` };
 }
 
+function safeClaimId(claim) {
+  try {
+    const id = claim?.id;
+    return id == null ? null : id;
+  } catch {
+    return null;
+  }
+}
+
+// Red-team (Codex L2): a claim whose accessor THROWS must become a maximal-severity RETRACT,
+// not silently vanish from the snapshot (fail-open denial-of-sensor). It is treated as the
+// worst case — a TRUSTED claim with zero evidence — so the gate sees the inversion.
+function unassessableClaimAssessment(claim, error, opts = {}) {
+  const weights = opts.weights || DEFAULT_WEIGHTS;
+  const claimedRank = RANK_TRUSTED;
+  const evidenceRank = 0;
+  const deltaRank = claimedRank - evidenceRank;
+  const inversions = deltaRank;
+  const prior = maxEntBeliefVector(claimedRank);
+  const posterior = maxEntBeliefVector(evidenceRank);
+  const state = {
+    claimPromotionDistribution: { [LADDER[claimedRank]]: 1 },
+    claimedDistribution: oneHot(claimedRank),
+    verifiedDistribution: oneHot(evidenceRank),
+    priorState: prior,
+    posteriorState: posterior,
+    evidence: [],
+    promotionLadderInversions: inversionPenalty(deltaRank),
+    verifiedEvidenceCount: 0,
+  };
+  const message = error && typeof error.message === 'string' ? error.message : 'assessment error';
+  return {
+    id: safeClaimId(claim),
+    claimedStatus: null,
+    claimedRank,
+    evidenceStatus: LADDER[evidenceRank],
+    evidenceRank,
+    deltaRank,
+    inversions,
+    freshCount: 0,
+    staleCount: 0,
+    U: computeU(state, weights).result.U,
+    verdict: VERDICTS.RETRACT,
+    reason: `claim could not be assessed (${message}) — fail-closed RETRACT`,
+    prior,
+    posterior,
+    assessmentError: true,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // cortexSnapshot — aggregate the whole ledger into a computeU state.
 // ---------------------------------------------------------------------------
@@ -707,11 +774,11 @@ export function cortexSnapshot(claims, opts = {}) {
     let a;
     try {
       a = assessClaim(claim, { nowMs, weights });
-    } catch {
-      continue;
+    } catch (err) {
+      a = unassessableClaimAssessment(claim, err, { weights });
     }
     assessments.push(a);
-    if (claim.claimedStatus === DEPRECATED) continue; // off-ladder: no distribution mass
+    if (a.claimedStatus === DEPRECATED) continue; // off-ladder: no distribution mass
     liveClaims += 1;
     const cs = LADDER[a.claimedRank] ?? 'draft';
     claimPromotionDistribution[cs] += 1;
@@ -733,10 +800,19 @@ export function cortexSnapshot(claims, opts = {}) {
     maxLadderInversion = Math.max(maxLadderInversion, a.inversions);
     if (a.verdict === VERDICTS.RETRACT) retractCount += 1;
     verifiedEvidenceCount += a.freshCount;
-    const records = Array.isArray(claim.evidence) ? claim.evidence : [];
-    for (const raw of records) {
-      const e = normalizeEvidence(raw, nowMs);
-      evidence.push({ base: e.base, age: e.ageDays, halfLife: e.halfLifeDays });
+    if (a.assessmentError !== true) {
+      let records = [];
+      try {
+        records = Array.isArray(claim.evidence) ? claim.evidence : [];
+      } catch {
+        records = [];
+      }
+      for (const raw of records) {
+        try {
+          const e = normalizeEvidence(raw, nowMs);
+          evidence.push({ base: e.base, age: e.ageDays, halfLife: e.halfLifeDays });
+        } catch {}
+      }
     }
   }
 

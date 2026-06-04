@@ -21,7 +21,7 @@
  * therefore FAILS OPEN on any data gap (missing/malformed snapshot) and only ever
  * RESTRICTS via deny when explicitly enabled. Pure + testable; the hooks do I/O.
  */
-import { gateProposal } from './math/yuri-energy.mjs';
+import { gateProposal, DEFAULT_MAX_LADDER_INVERSION_CAP } from './math/yuri-energy.mjs';
 import { toGateState } from './energy-tick-core.mjs';
 import { cusum, scalarKalman } from './math/math-kernel.mjs';
 
@@ -76,28 +76,35 @@ export function normBreaker(b) {
 
 /**
  * Compact verdict for a transition (prev -> next control-plane state). Never throws:
- * a thrown gate (malformed states) fails OPEN as a CLEAN verdict (no trip) — a broken
- * instrument must not invent a catastrophe.
+ * a thrown gate (malformed states) fails CLOSED (red-team #2) — an enforcing layer that
+ * cannot prove safety must treat the transition as catastrophic, not wave it through.
  */
-export function verdictFromStates(prevState, nextState) {
+export function verdictFromStates(prevState, nextState, opts = {}) {
   try {
-    const g = gateProposal({ stateBefore: toGateState(prevState), stateAfter: toGateState(nextState) });
+    const g = gateProposal({
+      stateBefore: toGateState(prevState),
+      stateAfter: toGateState(nextState),
+      maxLadderInversionCap: opts.maxLadderInversionCap ?? DEFAULT_MAX_LADDER_INVERSION_CAP,
+      threshold: opts.threshold,
+    });
     const r = g.result;
     return {
       accept: r.accept === true,
       protectedPathVeto: r.protectedPathVeto === true,
       structuralFloorVeto: r.structuralFloorVeto === true,
+      maxSeverityVeto: r.maxSeverityVeto === true,
+      gateErrorVeto: false,
       deltaU: Number.isFinite(r.deltaU) ? r.deltaU : 0,
       dominantTerm: r.dominantTerm || null,
     };
-  } catch {
-    return { accept: true, protectedPathVeto: false, structuralFloorVeto: false, deltaU: 0, dominantTerm: null };
+  } catch (err) {
+    return { accept: false, protectedPathVeto: false, structuralFloorVeto: false, maxSeverityVeto: false, gateErrorVeto: true, deltaU: 0, dominantTerm: 'gateProposal', error: err.message };
   }
 }
 
 /** The catastrophic, non-offsettable classes that trip the breaker on a single event. */
 export function isCatastrophic(verdict) {
-  return !!(verdict && (verdict.protectedPathVeto === true || verdict.structuralFloorVeto === true));
+  return !!(verdict && (verdict.protectedPathVeto === true || verdict.structuralFloorVeto === true || verdict.maxSeverityVeto === true || verdict.gateErrorVeto === true));
 }
 
 /**
@@ -117,7 +124,13 @@ export function transitionOnVerdict(breaker, verdict, nowMs) {
     next.state = BREAKER_STATE.OPEN;
     next.openedAt = at;
     next.halfOpenAt = 0;
-    next.reason = verdict.protectedPathVeto ? 'protected-path veto' : 'structural-floor veto';
+    next.reason = verdict.protectedPathVeto
+      ? 'protected-path veto'
+      : verdict.structuralFloorVeto
+        ? 'structural-floor veto'
+        : verdict.maxSeverityVeto
+          ? 'max-severity veto'
+          : 'gate-error veto';
     return next;
   }
   if (b.state === BREAKER_STATE.HALF_OPEN && verdict && verdict.accept === true) {

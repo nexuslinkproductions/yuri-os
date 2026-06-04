@@ -25,6 +25,7 @@ import {
   computeDeltaU,
   gateProposal,
   DEFAULT_WEIGHTS,
+  DEFAULT_MAX_LADDER_INVERSION_CAP,
 } from './yuri-energy.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -423,6 +424,7 @@ export function traceGateEvaluation({
   weights = DEFAULT_WEIGHTS,
   threshold = 0,
   allowOverride = false,
+  maxLadderInversionCap = DEFAULT_MAX_LADDER_INVERSION_CAP,
   traceOptions = {},
 } = {}) {
   const computeUResult = computeU(stateAfter, weights);
@@ -433,6 +435,7 @@ export function traceGateEvaluation({
     weights,
     threshold,
     allowOverride,
+    maxLadderInversionCap,
   });
 
   const record = buildTraceRecord({
