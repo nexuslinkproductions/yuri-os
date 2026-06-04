@@ -1,0 +1,240 @@
+// K1D — CONCENTRIC DEPENDENCY-TIER FLOORPLAN (Direction D, done right)
+// =====================================================================
+// The blob redeemed. NOT a dense packed disc of identical tiles. Instead:
+//
+//   - A single glowing CORE DISC at centre: the live energy gate kernel
+//     (energy-fn + its tight live-tick ring) — dominant, special, small set.
+//   - Concentric DESIGNED BANDS, each separated by a real ring GAP:
+//       Band 0  CORE        live energy gate kernel
+//       Band 1  MOAT        rest of Energy/Math + Memory + Cognition (the defensible core)
+//       Band 2  SYSTEMS     commodity layers ranked by coupling-to-moat
+//       Band 3  RIM         Governance & Safety (the safety perimeter) + Hidden/Meta
+//   - Within each band, every LAYER owns a contiguous angular WEDGE sized to
+//     its cell count. A layer therefore reads as ONE coherent radial region
+//     with its own accent — never scattered, never interleaved with a neighbour.
+//   - Cells inside a wedge are placed on sub-arcs with REAL breathing room
+//     (gap-aware arc packing), so a band reads as distinct modules, not a
+//     wall-to-wall tile ring.
+//
+// Placement is 100% reasoned: radius = dependency tier, angle = layer identity,
+// sub-position = degree rank (hubs sit toward the inner edge of their wedge,
+// closer to the core they feed). Deterministic; no RNG, no wall-clock.
+//
+// Output contract (consumed by build-chip-die-D.mjs):
+//   {
+//     center:{x,y}, canvas:{w,h}, coreR,
+//     bands:[{tier, rIn, rOut, rMid, accent}],
+//     blocks:[{layer, band, tier, a0, a1, aMid, rIn, rOut, rMid,
+//              labelR, labelAngle, accent, moat, perimeter, core, n}],
+//     cells:{ id:{ x,y,w,h, cx,cy, layer, band, tier, ang, r } },
+//     tierRings:[r,...]
+//   }
+// =====================================================================
+
+const MOAT = new Set(["Energy & Math", "Cognition & Persona", "Memory & Subconscious"]);
+
+// The live energy-gate kernel — the dominant glowing CORE disc (a small,
+// meaningful set: the heart + the organs that fire on every live tick).
+const CORE_IDS = new Set([
+  "energy-fn", "math-kernel",
+  "energy-tick-core", "energy-config", "energy-trace", "energy-breaker",
+]);
+
+// per-band, per-layer accent (region identity). distinct hues, all sitting
+// inside the silicon-die palette so it stays one chip, not a rainbow.
+const ACCENT = {
+  // CORE
+  "Energy & Math":            { h: "#E3C677", glow: "#C9A14A", ink: "#f6ecd2" }, // gold (moat heart)
+  // MOAT band
+  "Memory & Subconscious":    { h: "#C9B0FF", glow: "#9b7bff", ink: "#e7defc" }, // violet
+  "Cognition & Persona":      { h: "#74E6D6", glow: "#4FB3A6", ink: "#d6fff7" }, // teal
+  // SYSTEMS band
+  "Retrieval & Knowledge":    { h: "#5AD2FF", glow: "#2E6F8F", ink: "#d4f1ff" }, // cyan
+  "Learning & Continuity":    { h: "#7FB8FF", glow: "#3f6fd0", ink: "#dbe9ff" }, // azure
+  "Skills & Orchestration":   { h: "#FF9F6E", glow: "#c25a2a", ink: "#ffe1d0" }, // amber
+  "Token-Efficiency & Session": { h: "#8FA9C9", glow: "#56708f", ink: "#dbe6f2" }, // steel
+  // RIM band
+  "Governance & Safety":      { h: "#E0776B", glow: "#b03a30", ink: "#ffd9d2" }, // red (the guard rim)
+  "Hidden / Meta / Self-referential": { h: "#A9B6C2", glow: "#5f7689", ink: "#e2e9f0" }, // grey-meta
+};
+
+export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
+  const O = {
+    cellBase: 104,         // base cell footprint (px); scaled per-degree in the builder
+    margin: 70,
+    coreR: 252,            // outer radius of the core disc (dominant heart, cells fill it)
+    gap: 110,              // ring gap between bands (the breathing space)
+    bandH: 262,            // radial thickness of a band (holds 2 sub-rings of big cells)
+    wedgeGapDeg: 6,        // angular gap between adjacent layer wedges in a band
+    ...opts,
+  };
+
+  const layerOf = new Map(nodes.map((n) => [n.id, n.layer]));
+  const deg = new Map(nodes.map((n) => [n.id, 0]));
+  for (const e of graphEdges) { deg.set(e.from, (deg.get(e.from) || 0) + 1); deg.set(e.to, (deg.get(e.to) || 0) + 1); }
+
+  // coupling between layers -> orders the SYSTEMS band by pull toward the moat.
+  const couple = new Map(); const ckey = (a, b) => (a < b ? a + "|" + b : b + "|" + a);
+  for (const e of graphEdges) { const a = layerOf.get(e.from), b = layerOf.get(e.to); if (a && b && a !== b) couple.set(ckey(a, b), (couple.get(ckey(a, b)) || 0) + 1); }
+  const coupToMoat = (L) => { let s = 0; for (const M of MOAT) if (M !== L) s += couple.get(ckey(L, M)) || 0; return s; };
+
+  // bucket nodes: core kernel vs. everything by layer.
+  const coreNodes = nodes.filter((n) => CORE_IDS.has(n.id));
+  const byLayer = new Map();
+  for (const n of nodes) {
+    if (CORE_IDS.has(n.id)) continue;
+    if (!byLayer.has(n.layer)) byLayer.set(n.layer, []);
+    byLayer.get(n.layer).push(n.id);
+  }
+  // hubs toward inner edge of their wedge.
+  for (const [, ids] of byLayer) ids.sort((a, b) => (deg.get(b) - deg.get(a)) || (a < b ? -1 : 1));
+
+  // ---- BAND DEFINITIONS -------------------------------------------------
+  // Each band lists the layers it carries, in draw order. Layer order inside
+  // a band sets the angular sweep direction (deterministic, reasoned).
+  const MOAT_LAYERS_REST = ["Memory & Subconscious", "Cognition & Persona", "Energy & Math"]
+    .filter((L) => (byLayer.get(L) || []).length); // Energy remnant rides the moat band too
+  const SYSTEMS_LAYERS = ["Retrieval & Knowledge", "Learning & Continuity", "Skills & Orchestration", "Token-Efficiency & Session"]
+    .filter((L) => (byLayer.get(L) || []).length)
+    .sort((a, b) => coupToMoat(b) - coupToMoat(a)); // strongest pull sits first (clockwise from top)
+  const RIM_LAYERS = ["Governance & Safety", "Hidden / Meta / Self-referential"]
+    .filter((L) => (byLayer.get(L) || []).length);
+
+  const bandDefs = [
+    { tier: 1, name: "MOAT",    layers: MOAT_LAYERS_REST,  accent: "#C9A14A" },
+    { tier: 2, name: "SYSTEMS", layers: SYSTEMS_LAYERS,    accent: "#5AD2FF" },
+    { tier: 3, name: "RIM",     layers: RIM_LAYERS,        accent: "#E0776B" },
+  ];
+
+  const cells = {};
+  const blocks = [];
+  const bands = [];
+
+  // size scale per node from degree percentile (strong hierarchy).
+  const degVals = [...deg.values()].sort((a, b) => a - b);
+  const pct = (v) => { let lo = 0; while (lo < degVals.length && degVals[lo] < v) lo++; return degVals.length <= 1 ? 1 : lo / (degVals.length - 1); };
+  const sizeOf = (id, isCore) => {
+    const r = pct(deg.get(id) || 0);
+    let s = 0.60 + 0.78 * r;        // 0.60 .. 1.38 (strong hierarchy)
+    if (isCore) s = Math.min(0.86, Math.max(0.64, s * 0.66)); // core cells compact to fit the disc
+    return s;
+  };
+
+  // ---- CORE DISC --------------------------------------------------------
+  // energy-fn at dead centre (the singular hub); the rest of the kernel on a
+  // tight inner ring around it. This IS the glowing heart.
+  {
+    const cx0 = 0, cy0 = 0;
+    coreNodes.sort((a, b) => (deg.get(b.id) - deg.get(a.id)) || (a.id < b.id ? -1 : 1));
+    const hub = coreNodes[0];
+    const ring = coreNodes.slice(1);
+    // hub at centre — the singular dominant organ (energy-fn), bigger than ring cells
+    {
+      const w = Math.round(O.cellBase * 1.06), h = w;
+      cells[hub.id] = { x: cx0 - w / 2, y: cy0 - h / 2, w, h, cx: cx0, cy: cy0, layer: hub.layer, band: 0, tier: 0, ang: 0, r: 0 };
+    }
+    const rr = O.coreR * 0.62;
+    ring.forEach((n, i) => {
+      const a = -Math.PI / 2 + (i / ring.length) * 2 * Math.PI;
+      const cx = rr * Math.cos(a), cy = rr * Math.sin(a);
+      const s = sizeOf(n.id, true); const w = Math.round(O.cellBase * Math.max(0.80, s)), h = w;
+      cells[n.id] = { x: cx - w / 2, y: cy - h / 2, w, h, cx, cy, layer: n.layer, band: 0, tier: 0, ang: a, r: rr };
+    });
+    bands.push({ tier: 0, rIn: 0, rOut: O.coreR, rMid: O.coreR * 0.5, accent: "#E3C677", core: true });
+  }
+
+  // ---- BANDS ------------------------------------------------------------
+  let rIn = O.coreR + O.gap;
+  for (const bd of bandDefs) {
+    const rOut = rIn + O.bandH;
+    const rMid = (rIn + rOut) / 2;
+    bands.push({ tier: bd.tier, rIn, rOut, rMid, accent: bd.accent, name: bd.name });
+
+    // total cells in this band -> angular budget. Each layer gets a wedge sized
+    // to its share, minus inter-wedge gaps. Full 360° sweep, starting at top.
+    const layers = bd.layers;
+    const counts = layers.map((L) => (byLayer.get(L) || []).length);
+    const totalCells = counts.reduce((a, b) => a + b, 0) || 1;
+    const nGaps = layers.length;
+    const gapRad = (O.wedgeGapDeg * Math.PI) / 180;
+    const usable = 2 * Math.PI - nGaps * gapRad;
+
+    let aCursor = -Math.PI / 2 + gapRad / 2; // start near top, after half a gap
+    layers.forEach((L, li) => {
+      const ids = byLayer.get(L) || [];
+      const sweep = usable * (ids.length / totalCells);
+      const a0 = aCursor, a1 = aCursor + sweep, aMid = (a0 + a1) / 2;
+      const acc = ACCENT[L] || { h: bd.accent, glow: bd.accent, ink: "#fff" };
+
+      // place cells in this wedge on radial sub-rows so hubs sit toward the
+      // INNER edge (closer to core they feed). Distribute across the band
+      // thickness in up to 2 sub-rings with real gaps.
+      const innerPad = 56, outerPad = 56;
+      const rLo = rIn + innerPad, rHi = rOut - outerPad;
+      // choose sub-rings by count: <=3 single ring; else 2 rings
+      const subRings = ids.length <= 3 ? 1 : 2;
+      const perRing = Math.ceil(ids.length / subRings);
+      ids.forEach((id, i) => {
+        const rk = subRings === 1 ? 0 : Math.floor(i / perRing); // ring index 0=inner
+        const idxInRing = subRings === 1 ? i : (i % perRing);
+        const ringCount = subRings === 1 ? ids.length : Math.min(perRing, ids.length - rk * perRing);
+        const rr = subRings === 1 ? (rLo + rHi) / 2 : (rk === 0 ? rLo + (rHi - rLo) * 0.30 : rLo + (rHi - rLo) * 0.74);
+        // angular position within wedge with edge breathing room
+        const aEdge = sweep * 0.10;
+        const aSpan = sweep - 2 * aEdge;
+        const frac = ringCount === 1 ? 0.5 : idxInRing / (ringCount - 1);
+        const a = a0 + aEdge + aSpan * frac;
+        const cx = rr * Math.cos(a), cy = rr * Math.sin(a);
+        const s = sizeOf(id, false); const w = Math.round(O.cellBase * s), h = w;
+        cells[id] = { x: cx - w / 2, y: cy - h / 2, w, h, cx, cy, layer: L, band: bd.tier, tier: bd.tier, ang: a, r: rr };
+      });
+
+      const labelR = rOut + 30;
+      blocks.push({
+        layer: L, band: bd.tier, tier: bd.tier, a0, a1, aMid, rIn, rOut, rMid,
+        labelR, labelAngle: aMid, accent: acc, moat: MOAT.has(L), perimeter: L === "Governance & Safety",
+        core: false, n: ids.length,
+      });
+      aCursor = a1 + gapRad;
+    });
+
+    rIn = rOut + O.gap;
+  }
+  const outerR = rIn - O.gap;
+
+  // core layer block (for the chip/legend list) — anchored at top.
+  {
+    const acc = ACCENT["Energy & Math"];
+    blocks.unshift({
+      layer: "Energy & Math · CORE", band: 0, tier: 0, a0: -Math.PI, a1: Math.PI, aMid: -Math.PI / 2,
+      rIn: 0, rOut: O.coreR, rMid: O.coreR * 0.5, labelR: O.coreR + 24, labelAngle: -Math.PI / 2,
+      accent: acc, moat: true, perimeter: false, core: true, n: coreNodes.length,
+    });
+  }
+
+  // ---- shift to positive coords + canvas --------------------------------
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const id in cells) { const c = cells[id]; minX = Math.min(minX, c.x); minY = Math.min(minY, c.y); maxX = Math.max(maxX, c.x + c.w); maxY = Math.max(maxY, c.y + c.h); }
+  // include label radius in bounds so labels don't clip (tight hug)
+  const labelBound = outerR + 64;
+  minX = Math.min(minX, -labelBound); minY = Math.min(minY, -labelBound);
+  maxX = Math.max(maxX, labelBound); maxY = Math.max(maxY, labelBound);
+  const dx = O.margin - minX, dy = O.margin - minY;
+  for (const id in cells) { const c = cells[id]; c.x = Math.round(c.x + dx); c.y = Math.round(c.y + dy); c.cx += dx; c.cy += dy; }
+  for (const b of blocks) { /* keep angles; store absolute centre */ }
+  const center = { x: dx, y: dy };
+  const canvasW = Math.round(maxX - minX + 2 * O.margin);
+  const canvasH = Math.round(maxY - minY + 2 * O.margin);
+
+  const tierRings = bands.flatMap((b) => (b.core ? [b.rOut] : [b.rIn, b.rOut]));
+
+  return {
+    center, canvas: { w: canvasW, h: canvasH }, coreR: O.coreR,
+    bands: bands.map((b) => ({ ...b })),
+    blocks, cells,
+    channels: { vGutters: [], hGutters: [] },
+    tierRings, outerR,
+  };
+}
+
+export default buildTierFloorplan;
