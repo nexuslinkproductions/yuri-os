@@ -833,7 +833,10 @@ svg.appendChild(traceLayer);
 /* ---------- QFN chip-package cells ---------- */
 var cellLayer = el("g","cells"); var cellEls=new Map();
 DATA.nodes.forEach(function(n,i){
-  var g = el("g","cell"+(n.moat?" moat":"")); at(g,{"data-status":n.status,transform:"translate("+n.x+","+n.y+")"}); g.dataset.id=n.id;
+  // face the core: rotate the package around its own centre by its polar angle
+  var _faceDeg=((n.ang||0)*180/Math.PI);
+  var _udn=((_faceDeg%360)+360)%360, _flip=(_udn>90&&_udn<270); // left half -> text upside down
+  var g = el("g","cell"+(n.moat?" moat":"")); at(g,{"data-status":n.status,transform:"translate("+n.x+","+n.y+") rotate("+_faceDeg.toFixed(1)+" "+(n.w/2)+" "+(n.h/2)+")"}); g.dataset.id=n.id;
   g.style.animationDelay=((i%12)*24+Math.floor(i/12)*38)+"ms";
   var W=n.w, H=n.h, R=5;
   // pin count scales with size (QFN density) — finer, denser leads read as a real package
@@ -879,14 +882,14 @@ DATA.nodes.forEach(function(n,i){
   // via pad (plated) top-right
   var pad=at(el("rect","c-pad"),{x:W-10,y:6,width:5,height:5,rx:1});pad.style.stroke=n.accent;pad.setAttribute("stroke",n.accent);g.appendChild(pad);
   // etched part-number label bottom-left (fab vibe)
-  var part=at(el("text","c-part"),{x:5,y:H-5});part.textContent="U"+(("0"+(i+1)).slice(-2))+" · D"+n.deg;g.appendChild(part);
+  var part=at(el("text","c-part"),_flip?{x:5,y:H-5,transform:"rotate(180 "+(W/2)+" "+(H/2)+")"}:{x:5,y:H-5});part.textContent="U"+(("0"+(i+1)).slice(-2))+" · D"+n.deg;g.appendChild(part);
   // wrapped name label (centred)
   var words=n.label.replace(/[()]/g,"").split(/\\s+/), lines=["",""], li2=0, cap=Math.max(8,Math.floor(W/6.6));
   for(var w=0;w<words.length;w++){var word=words[w];var cand=(lines[li2]?lines[li2]+" ":"")+word;
     if(cand.length>cap&&li2===0){li2=1;lines[1]=word;}
     else if(li2===1&&((lines[1]?lines[1]+" ":"")+word).length>cap){lines[1]=lines[1]+"…";break;}
     else lines[li2]=cand;}
-  var t=at(el("text","c-name"),{x:W/2,"text-anchor":"middle"});
+  var t=at(el("text","c-name"),_flip?{x:W/2,"text-anchor":"middle",transform:"rotate(180 "+(W/2)+" "+(H/2)+")"}:{x:W/2,"text-anchor":"middle"});
   if(lines[1]){at(t,{y:H/2-1});
     var t1=el("tspan");at(t1,{x:W/2});t1.textContent=lines[0];t.appendChild(t1);
     var t2=el("tspan");at(t2,{x:W/2,dy:11});t2.textContent=lines[1];t.appendChild(t2);

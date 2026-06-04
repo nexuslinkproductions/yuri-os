@@ -62,10 +62,11 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
   const O = {
     cellBase: 104,         // base cell footprint (px); scaled per-degree in the builder
     margin: 70,
-    coreR: 252,            // outer radius of the core disc (dominant heart, cells fill it)
-    gap: 110,              // ring gap between bands (the breathing space)
-    bandH: 262,            // radial thickness of a band (holds 2 sub-rings of big cells)
+    coreR: 252,            // (legacy) nominal core radius; actual is now spacing-derived
+    gap: 120,              // ring gap between bands (the breathing space)
+    bandH: 262,            // (legacy) bands now size to fit their sub-rings at PITCH
     wedgeGapDeg: 6,        // angular gap between adjacent layer wedges in a band
+    clearance: 82,         // min empty space added to a cell's max footprint -> PITCH
     ...opts,
   };
 
@@ -120,84 +121,89 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
     return s;
   };
 
+  // spacing so cells never touch — even with the facing-rotation (square corners)
+  // + package leads. RSEP separates sub-rings radially; ARCSEP is the min along-arc
+  // spacing. Moderate so the die stays dense, not blown out.
+  const CELLMAX = O.cellBase * 1.38;
+  const RSEP = Math.round(CELLMAX * 1.12);        // radial sub-ring separation
+  const ARCSEP = Math.round(O.cellBase * 1.34);   // min arc spacing (rotation-aware)
+
   // ---- CORE DISC --------------------------------------------------------
   // energy-fn at dead centre (the singular hub); the rest of the kernel on a
-  // tight inner ring around it. This IS the glowing heart.
+  // ring sized so the cells never touch. This IS the glowing heart.
+  let coreOuter;
   {
     const cx0 = 0, cy0 = 0;
     coreNodes.sort((a, b) => (deg.get(b.id) - deg.get(a.id)) || (a.id < b.id ? -1 : 1));
     const hub = coreNodes[0];
     const ring = coreNodes.slice(1);
-    // hub at centre — the singular dominant organ (energy-fn), bigger than ring cells
     {
       const w = Math.round(O.cellBase * 1.06), h = w;
       cells[hub.id] = { x: cx0 - w / 2, y: cy0 - h / 2, w, h, cx: cx0, cy: cy0, layer: hub.layer, band: 0, tier: 0, ang: 0, r: 0 };
     }
-    const rr = O.coreR * 0.62;
+    const rr = Math.max(O.cellBase * 1.3, (ring.length * ARCSEP) / (2 * Math.PI));
     ring.forEach((n, i) => {
-      const a = -Math.PI / 2 + (i / ring.length) * 2 * Math.PI;
+      const a = -Math.PI / 2 + (i / Math.max(1, ring.length)) * 2 * Math.PI;
       const cx = rr * Math.cos(a), cy = rr * Math.sin(a);
       const s = sizeOf(n.id, true); const w = Math.round(O.cellBase * Math.max(0.80, s)), h = w;
       cells[n.id] = { x: cx - w / 2, y: cy - h / 2, w, h, cx, cy, layer: n.layer, band: 0, tier: 0, ang: a, r: rr };
     });
-    bands.push({ tier: 0, rIn: 0, rOut: O.coreR, rMid: O.coreR * 0.5, accent: "#E3C677", core: true });
+    coreOuter = rr + CELLMAX * 0.6;
+    bands.push({ tier: 0, rIn: 0, rOut: coreOuter, rMid: coreOuter * 0.5, accent: "#E3C677", core: true });
   }
 
-  // ---- BANDS ------------------------------------------------------------
-  let rIn = O.coreR + O.gap;
+  // ---- BANDS — each layer a wedge; cells spread to FILL the wedge arc evenly, on
+  //      the fewest sub-rings (cap 3) that keep arc spacing >= ARCSEP; sub-rings sit
+  //      RSEP apart radially so nothing overlaps.
+  let rIn = coreOuter + O.gap;
   for (const bd of bandDefs) {
-    const rOut = rIn + O.bandH;
-    const rMid = (rIn + rOut) / 2;
-    bands.push({ tier: bd.tier, rIn, rOut, rMid, accent: bd.accent, name: bd.name });
-
-    // total cells in this band -> angular budget. Each layer gets a wedge sized
-    // to its share, minus inter-wedge gaps. Full 360° sweep, starting at top.
     const layers = bd.layers;
     const counts = layers.map((L) => (byLayer.get(L) || []).length);
     const totalCells = counts.reduce((a, b) => a + b, 0) || 1;
     const nGaps = layers.length;
     const gapRad = (O.wedgeGapDeg * Math.PI) / 180;
     const usable = 2 * Math.PI - nGaps * gapRad;
+    const rFirst = rIn + CELLMAX * 0.6 + CELLMAX * 0.5;
 
-    let aCursor = -Math.PI / 2 + gapRad / 2; // start near top, after half a gap
-    layers.forEach((L, li) => {
+    const plan = layers.map((L) => {
       const ids = byLayer.get(L) || [];
       const sweep = usable * (ids.length / totalCells);
+      const perRing = Math.max(1, Math.floor((sweep * rFirst) / ARCSEP));
+      const subRings = Math.max(1, Math.min(3, Math.ceil(ids.length / perRing)));
+      return { L, ids, sweep, subRings };
+    });
+    const maxSub = Math.max(1, ...plan.map((p) => p.subRings));
+    const bandH = (maxSub - 1) * RSEP + CELLMAX + RSEP * 0.5;
+    const rOut = rIn + bandH;
+    bands.push({ tier: bd.tier, rIn, rOut, rMid: (rIn + rOut) / 2, accent: bd.accent, name: bd.name });
+
+    let aCursor = -Math.PI / 2 + gapRad / 2;
+    for (const p of plan) {
+      const { L, ids, sweep, subRings } = p;
       const a0 = aCursor, a1 = aCursor + sweep, aMid = (a0 + a1) / 2;
       const acc = ACCENT[L] || { h: bd.accent, glow: bd.accent, ink: "#fff" };
-
-      // place cells in this wedge on radial sub-rows so hubs sit toward the
-      // INNER edge (closer to core they feed). Distribute across the band
-      // thickness in up to 2 sub-rings with real gaps.
-      const innerPad = 56, outerPad = 56;
-      const rLo = rIn + innerPad, rHi = rOut - outerPad;
-      // choose sub-rings by count: <=3 single ring; else 2 rings
-      const subRings = ids.length <= 3 ? 1 : 2;
       const perRing = Math.ceil(ids.length / subRings);
+      const aEdge = sweep * 0.08;
+      const aSpan = Math.max(0, sweep - 2 * aEdge);
       ids.forEach((id, i) => {
-        const rk = subRings === 1 ? 0 : Math.floor(i / perRing); // ring index 0=inner
-        const idxInRing = subRings === 1 ? i : (i % perRing);
-        const ringCount = subRings === 1 ? ids.length : Math.min(perRing, ids.length - rk * perRing);
-        const rr = subRings === 1 ? (rLo + rHi) / 2 : (rk === 0 ? rLo + (rHi - rLo) * 0.30 : rLo + (rHi - rLo) * 0.74);
-        // angular position within wedge with edge breathing room
-        const aEdge = sweep * 0.10;
-        const aSpan = sweep - 2 * aEdge;
+        const rk = Math.floor(i / perRing);                 // 0 = inner sub-ring (hubs)
+        const idxInRing = i % perRing;
+        const ringCount = Math.min(perRing, ids.length - rk * perRing);
+        const rr = rFirst + rk * RSEP;                      // RSEP apart radially
         const frac = ringCount === 1 ? 0.5 : idxInRing / (ringCount - 1);
-        const a = a0 + aEdge + aSpan * frac;
+        const a = a0 + aEdge + aSpan * frac;                // FILL the wedge evenly (no centre-bunch)
         const cx = rr * Math.cos(a), cy = rr * Math.sin(a);
         const s = sizeOf(id, false); const w = Math.round(O.cellBase * s), h = w;
         cells[id] = { x: cx - w / 2, y: cy - h / 2, w, h, cx, cy, layer: L, band: bd.tier, tier: bd.tier, ang: a, r: rr };
       });
-
       const labelR = rOut + 30;
       blocks.push({
-        layer: L, band: bd.tier, tier: bd.tier, a0, a1, aMid, rIn, rOut, rMid,
+        layer: L, band: bd.tier, tier: bd.tier, a0, a1, aMid, rIn, rOut, rMid: (rIn + rOut) / 2,
         labelR, labelAngle: aMid, accent: acc, moat: MOAT.has(L), perimeter: L === "Governance & Safety",
         core: false, n: ids.length,
       });
       aCursor = a1 + gapRad;
-    });
-
+    }
     rIn = rOut + O.gap;
   }
   const outerR = rIn - O.gap;
@@ -207,7 +213,7 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
     const acc = ACCENT["Energy & Math"];
     blocks.unshift({
       layer: "Energy & Math · CORE", band: 0, tier: 0, a0: -Math.PI, a1: Math.PI, aMid: -Math.PI / 2,
-      rIn: 0, rOut: O.coreR, rMid: O.coreR * 0.5, labelR: O.coreR + 24, labelAngle: -Math.PI / 2,
+      rIn: 0, rOut: coreOuter, rMid: coreOuter * 0.5, labelR: coreOuter + 24, labelAngle: -Math.PI / 2,
       accent: acc, moat: true, perimeter: false, core: true, n: coreNodes.length,
     });
   }
