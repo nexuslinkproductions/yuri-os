@@ -152,7 +152,7 @@ function bundledRoutes(cellMap, edgeList, hubs, ctr) {
     const A = cellMap[e.from], B = cellMap[e.to];
     const ctrl = A.layer === B.layer
       ? [[A.cx, A.cy], [hubs[A.layer].x, hubs[A.layer].y], [B.cx, B.cy]]
-      : [[A.cx, A.cy], [hubs[A.layer].x, hubs[A.layer].y], [ctr.x, ctr.y], [hubs[B.layer].x, hubs[B.layer].y], [B.cx, B.cy]];
+      : [[A.cx, A.cy], [hubs[A.layer].x, hubs[A.layer].y], [hubs[B.layer].x, hubs[B.layer].y], [B.cx, B.cy]];
     const N = ctrl.length, sx = A.cx, sy = A.cy, ex = B.cx, ey = B.cy;
     const bundled = ctrl.map((p, i) => {
       if (i === 0 || i === N - 1) return p;
@@ -215,7 +215,7 @@ const nodeOut = nodes.map((n) => {
 });
 const blockOut = floor.blocks.map((b) => ({
   layer: b.layer, short: BLOCK_SHORT[b.layer] || b.layer, x: b.x, y: b.y, w: b.w, h: b.h,
-  moat: b.moat, arc: !!b.arc, core: !!b.core, perimeter: !!b.perimeter, labelH: b.labelH,
+  moat: b.moat, arc: !!b.arc, core: !!b.core, perimeter: !!b.perimeter, region: !!b.region, ringMid: b.ringMid, labelH: b.labelH,
   cx: b.cx, cy: b.cy, discR: b.discR, labelX: b.labelX, labelY: b.labelY,
   labelAngle: b.labelAngle, a0: b.a0, a1: b.a1, rIn: b.rIn, rOut: b.rOut, acx: b.acx, acy: b.acy,
   count: nodes.filter((n) => n.layer === b.layer).length,
@@ -410,6 +410,12 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .core-disc{fill:none;stroke:rgba(201,161,74,0.16);stroke-width:1;stroke-dasharray:1 6;}
 .core-disc.moat{stroke:rgba(201,161,74,0.24);}
 .core-name{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:0.18em;fill:var(--gold-bright);opacity:0.92;}
+.tier-ring{fill:none;stroke:rgba(90,210,255,0.07);stroke-width:1;stroke-dasharray:1 7;}
+.tier-ring.core{stroke:rgba(201,161,74,0.2);stroke-dasharray:none;}
+.tier-ring.perim{stroke:rgba(201,161,74,0.16);stroke-dasharray:2 8;}
+.region-name{font-family:var(--mono);font-size:12px;letter-spacing:0.16em;fill:var(--cyan-2);opacity:0.82;}
+.region-name.core{fill:var(--gold-bright);font-weight:700;font-size:13px;}
+.region-name.perim{fill:var(--gold-bright);}
 .fill{stroke:rgba(90,210,255,0.06);stroke-width:1;fill:none;}
 .fill.g{stroke:rgba(201,161,74,0.075);}
 .vfield{fill:rgba(90,210,255,0.13);}
@@ -646,49 +652,17 @@ svg.appendChild(ring);
   svg.appendChild(g);
 });
 
-/* ---------- functional blocks ---------- */
+/* ---------- layer regions: faint dependency-tier rings + tangent labels ---------- */
 var blockLayer = el("g","blocks");
+var CC = DATA.center || {x:CW/2,y:CH/2};
 DATA.blocks.forEach(function(b){
-  var g = el("g","blk"+(b.moat?" moat":"")+(b.arc?" arc":""));
-  if(b.arc){
-    // orbit layer = a ring-of-cells wedge: faint sector band + tangent label, NO rect
-    var cxC=b.acx, cyC=b.acy;
-    function pol(r,a){return [cxC+r*Math.cos(a), cyC+r*Math.sin(a)];}
-    var p0=pol(b.rIn,b.a0),p1=pol(b.rOut,b.a0),p2=pol(b.rOut,b.a1),p3=pol(b.rIn,b.a1);
-    var lrg=(b.a1-b.a0)>Math.PI?1:0;
-    var d="M "+p0[0].toFixed(1)+" "+p0[1].toFixed(1)+" L "+p1[0].toFixed(1)+" "+p1[1].toFixed(1)+
-          " A "+b.rOut.toFixed(1)+" "+b.rOut.toFixed(1)+" 0 "+lrg+" 1 "+p2[0].toFixed(1)+" "+p2[1].toFixed(1)+
-          " L "+p3[0].toFixed(1)+" "+p3[1].toFixed(1)+" A "+b.rIn.toFixed(1)+" "+b.rIn.toFixed(1)+" 0 "+lrg+" 0 "+p0[0].toFixed(1)+" "+p0[1].toFixed(1)+" Z";
-    g.appendChild(at(el("path","arc-band"+(b.perimeter?" perim":"")),{d:d}));
-    var la=b.labelAngle, lx=cxC+(b.rIn-15)*Math.cos(la), ly=cyC+(b.rIn-15)*Math.sin(la);
-    var rot=la*180/Math.PI+90; if(rot>90&&rot<270)rot-=180;
-    var nm=at(el("text"),{x:lx,y:ly,class:"arc-name"+(b.perimeter?" perim":""),"text-anchor":"middle",transform:"rotate("+rot.toFixed(1)+" "+lx.toFixed(1)+" "+ly.toFixed(1)+")"});
-    nm.textContent=b.short+"  "+b.count;g.appendChild(nm);
-    blockLayer.appendChild(g);return;
-  }
-  if(b.core){
-    // radial core = faint disc ring + centred label; cells render as metal pads
-    g.appendChild(at(el("circle","core-disc"+(b.moat?" moat":"")),{cx:b.cx,cy:b.cy,r:b.discR}));
-    var cn=at(el("text"),{x:b.labelX,y:b.labelY,class:"core-name","text-anchor":"middle"});
-    cn.textContent=b.short+"  ◆ "+b.count;g.appendChild(cn);
-    blockLayer.appendChild(g);return;
-  }
-  g.appendChild(at(el("rect"),{x:b.x,y:b.y,width:b.w,height:b.h,rx:7,class:"blk-bg"}));
-  // sub-cell array texture (faint internal grid = SRAM/array look)
-  var arr=el("g","blk-array");
-  for(var ax=b.x+18; ax<b.x+b.w-12; ax+=26){ arr.appendChild(at(el("line"),{x1:ax,y1:b.y+b.labelH+6,x2:ax,y2:b.y+b.h-8})); }
-  for(var ay=b.y+b.labelH+8; ay<b.y+b.h-8; ay+=26){ arr.appendChild(at(el("line"),{x1:b.x+8,y1:ay,x2:b.x+b.w-8,y2:ay})); }
-  g.appendChild(arr);
-  // via-field: contact dots at array intersections (SRAM / decoupling texture)
-  var vf=el("g","vfield");
-  for(var vx=b.x+18; vx<b.x+b.w-12; vx+=26){ for(var vy=b.y+b.labelH+10; vy<b.y+b.h-8; vy+=26){ if((Math.round(vx/26)+Math.round(vy/26))%2===0) vf.appendChild(at(el("rect"),{x:vx-1,y:vy-1,width:2.2,height:2.2})); } }
-  g.appendChild(vf);
-  // label strip
-  g.appendChild(at(el("rect"),{x:b.x,y:b.y,width:b.w,height:b.labelH,rx:7,class:"blk-strip"}));
-  g.appendChild(at(el("rect"),{x:b.x,y:b.y+b.labelH-7,width:b.w,height:7,fill:"#04060a",opacity:"0.0"}));
-  var nm=at(el("text"),{x:b.x+15,y:b.y+b.labelH-13,class:"blk-name"});nm.textContent=b.short;g.appendChild(nm);
-  var ct=at(el("text"),{x:b.x+b.w-13,y:b.y+b.labelH-13,"text-anchor":"end",class:"blk-count"});
-  ct.textContent=(b.moat?"◆ CORE ":"")+b.count;g.appendChild(ct);
+  var g = el("g","blk region"+(b.moat?" moat":"")+(b.perimeter?" perim":"")+(b.core?" core":""));
+  // faint concentric dependency-ring guide at this layer's mean radius
+  if(b.ringMid>4) g.appendChild(at(el("circle","tier-ring"+(b.perimeter?" perim":"")+(b.core?" core":"")),{cx:CC.x,cy:CC.y,r:b.ringMid.toFixed(1)}));
+  // layer label at its region centroid, set tangent to the ring
+  var rot=(b.labelAngle||0)*180/Math.PI+90; if(rot>90&&rot<270)rot-=180;
+  var nm=at(el("text"),{x:b.labelX,y:b.labelY,class:"region-name"+(b.perimeter?" perim":"")+(b.core?" core":""),"text-anchor":"middle",transform:"rotate("+rot.toFixed(1)+" "+(b.labelX||0).toFixed(1)+" "+(b.labelY||0).toFixed(1)+")"});
+  nm.textContent=b.short+"  "+(b.core?"◆ ":"")+b.count;g.appendChild(nm);
   blockLayer.appendChild(g);
 });
 svg.appendChild(blockLayer);
