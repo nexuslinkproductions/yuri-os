@@ -414,8 +414,9 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .moatline .g{color:var(--gold-bright);}
 
 #rail{position:fixed;top:16px;right:24px;z-index:22;display:flex;gap:7px;align-items:center;pointer-events:auto;}
-.btn,.inp{font-family:var(--mono);font-size:0.72rem;background:rgba(10,15,24,0.85);color:var(--ink-2);
-  border:1px solid var(--hair);border-radius:5px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(7px);
+.btn,.inp{font-family:var(--mono);font-size:0.72rem;background:rgba(22,29,40,0.5);color:var(--ink-2);
+  border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(16px) saturate(1.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 6px 18px -8px rgba(0,0,0,0.6);
   transition:border-color var(--fast),color var(--fast),box-shadow var(--fast);}
 .inp{cursor:text;width:170px;color:var(--ink);}
 .inp::placeholder{color:var(--ink-4);}
@@ -425,14 +426,14 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 #chips{position:fixed;top:112px;left:24px;right:24px;z-index:18;display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto;
   -webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent);}
 .chip{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.06em;padding:5px 9px;border-radius:4px;
-  border:1px solid var(--hair);background:rgba(7,11,18,0.7);backdrop-filter:blur(6px);color:var(--ink-3);
+  border:1px solid rgba(255,255,255,0.09);background:rgba(20,27,38,0.45);backdrop-filter:blur(14px) saturate(1.3);color:var(--ink-3);
   cursor:pointer;white-space:nowrap;transition:all var(--fast);display:inline-flex;align-items:center;gap:6px;}
 .chip .swd{width:8px;height:8px;border-radius:2px;flex:none;}
 .chip:hover{color:var(--ink);border-color:var(--cyan-dim);}
 .chip.on{color:var(--die);border-color:transparent;font-weight:700;}
 .chip .c{opacity:0.6;margin-left:3px;}
 
-#legend{position:fixed;left:24px;bottom:24px;z-index:20;background:rgba(7,11,18,0.86);backdrop-filter:blur(10px);
+#legend{position:fixed;left:24px;bottom:24px;z-index:20;background:rgba(20,27,38,0.46);backdrop-filter:blur(18px) saturate(1.35);
   border:1px solid var(--hair);border-radius:8px;padding:13px 15px;font-family:var(--mono);font-size:0.66rem;
   color:var(--ink-3);max-width:300px;box-shadow:0 18px 40px -18px #000;}
 #legend .lh{font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--cyan);margin:0 0 9px;}
@@ -442,13 +443,13 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .legrow{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:9px;padding-top:9px;border-top:1px solid var(--hair);}
 
 #minimap{position:fixed;right:24px;bottom:24px;z-index:20;width:210px;border:1px solid var(--hair);
-  border-radius:8px;background:rgba(2,4,8,0.82);backdrop-filter:blur(8px);overflow:hidden;box-shadow:0 18px 40px -18px #000;cursor:pointer;}
+  border-radius:8px;background:rgba(14,20,30,0.5);backdrop-filter:blur(16px) saturate(1.3);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 18px 40px -18px #000;cursor:pointer;}
 #minimap svg{display:block;}
 #mmView{fill:rgba(90,210,255,0.1);stroke:var(--cyan);stroke-width:2;}
 
 #panel{position:fixed;top:0;right:0;height:100%;width:min(420px,92vw);z-index:30;display:flex;flex-direction:column;
-  background:linear-gradient(180deg,var(--die-2),var(--die));border-left:1px solid var(--hair);
-  box-shadow:-30px 0 60px -30px #000;transform:translateX(100%);transition:transform var(--dur) var(--ease);}
+  background:linear-gradient(180deg,rgba(18,24,34,0.74),rgba(8,11,16,0.76));backdrop-filter:blur(22px) saturate(1.3);border-left:1px solid rgba(255,255,255,0.1);
+  box-shadow:inset 1px 0 0 rgba(255,255,255,0.06),-30px 0 60px -30px #000;transform:translateX(100%);transition:transform var(--dur) var(--ease);}
 #panel.open{transform:translateX(0);}
 #panel .ph{position:relative;padding:26px 26px 18px;border-bottom:1px solid var(--hair);
   background:linear-gradient(180deg,rgba(90,210,255,0.05),transparent 70%);}
@@ -505,8 +506,8 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 /* every trace is drawn TWICE: a wide darker copper BED under a bright thin CENTRELINE,
    giving real etched-copper depth. net class sets the hue. */
 .trace{fill:none;stroke-linecap:round;stroke-linejoin:round;transition:opacity var(--fast),stroke-width var(--fast);}
-.trace.bed{stroke-width:8;opacity:0.66;}
-.trace.copper{stroke-width:3.5;opacity:1;filter:url(#wireglow);}
+.trace.bed{stroke-width:7;opacity:0.5;}
+.trace.copper{stroke-width:2.6;opacity:0.9;}
 /* net-class colours (read as distinct copper nets on the board) */
 .trace.bed.core{stroke:#7a5118;} .trace.copper.core{stroke:#FFD9A0;stroke-width:3.4;}
 .trace.bed.moat{stroke:#4a3a73;} .trace.copper.moat{stroke:#C9B0FF;}
@@ -535,7 +536,8 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .cell .c-bevel-t{stroke:rgba(210,230,255,0.85);stroke-width:1.4;fill:none;}
 .cell.moat .c-bevel-t{stroke:rgba(255,236,180,0.9);}
 .cell .c-bevel-b{stroke:rgba(0,0,0,0.55);stroke-width:1.6;fill:none;}
-.cell .c-edge{fill:none;stroke-width:1.2;transition:stroke var(--fast),stroke-width var(--fast);}
+.cell .c-edge{fill:none;stroke-width:1;stroke-opacity:0.5;transition:stroke var(--fast),stroke-width var(--fast),stroke-opacity var(--fast);}
+.cell:hover .c-edge,.cell.sel .c-edge{stroke-opacity:1;}
 .cell .c-streak,.cell .c-glint{pointer-events:none;}
 .cell .c-name{font-family:var(--mono);font-size:11px;font-weight:600;fill:#e3effb;pointer-events:none;letter-spacing:0.02em;}
 .cell.moat .c-name{fill:#f9f1da;}
@@ -550,10 +552,8 @@ h1 .os{color:var(--cyan-2);text-shadow:0 0 22px rgba(90,210,255,0.4);}
 .cell.sel .c-body{filter:url(#metal) drop-shadow(0 0 9px rgba(90,210,255,0.5));}
 .cell.moat.sel .c-body{filter:url(#metal) drop-shadow(0 0 9px rgba(231,201,127,0.55));}
 .cell.dim{opacity:0.1;}
-.led-live{fill:var(--pos);filter:drop-shadow(0 0 3px var(--pos));}
-.led-dormant{fill:var(--warn);filter:drop-shadow(0 0 3px var(--warn));}
-.led-phantom{fill:var(--risk);filter:drop-shadow(0 0 3px var(--risk));}
-.led-ring{stroke:rgba(255,255,255,0.35);stroke-width:0.8;fill:none;}
+.led-live{fill:var(--pos);} .led-dormant{fill:var(--warn);} .led-phantom{fill:var(--risk);}
+.led-ring{stroke:rgba(255,255,255,0.28);stroke-width:0.8;fill:none;}
 
 .enter .cell,.enter .trace{opacity:0;}
 .cell{animation:cellIn var(--dur) var(--ease) backwards;}
@@ -687,7 +687,7 @@ defs.appendChild(linGrad("glint",[["0%","rgba(220,238,255,0.4)"],["38%","rgba(22
 var rg=el("radialGradient");at(rg,{id:"moatGlow",cx:"50%",cy:"50%",r:"50%"});
 [["0%","#C9A14A"],["50%","#8A6A28"],["100%","#8A6A28"]].forEach(function(s,i){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1],"stop-opacity":[0.26,0.08,0][i]});rg.appendChild(st);});
 defs.appendChild(rg);
-var bg=el("filter");at(bg,{id:"bigglow",x:"-80%",y:"-80%",width:"260%",height:"260%"});var bgb=el("feGaussianBlur");at(bgb,{stdDeviation:"26"});bg.appendChild(bgb);defs.appendChild(bg);
+var bg=el("filter");at(bg,{id:"bigglow",x:"-80%",y:"-80%",width:"260%",height:"260%"});var bgb=el("feGaussianBlur");at(bgb,{stdDeviation:"16"});bg.appendChild(bgb);defs.appendChild(bg);
 (function(){var sg=el("radialGradient");at(sg,{id:"silicon",cx:"50%",cy:"45%",r:"66%"});
   [["0%","#0b131e"],["46%","#070d17"],["100%","#02040a"]].forEach(function(s){var st=el("stop");at(st,{offset:s[0],"stop-color":s[1]});sg.appendChild(st);});
   defs.appendChild(sg);})();
@@ -865,9 +865,9 @@ DATA.nodes.forEach(function(n,i){
   var _tn=(((_h>>>0)%1000)/1000-0.5)*0.12;
   g.appendChild(at(el("rect"),{x:0,y:0,width:W,height:H,rx:R,fill:_tn>=0?"#d6ecff":"#000",opacity:Math.abs(_tn).toFixed(3),"pointer-events":"none"}));
   // region-hue colour wash over the metal face (layer identity)
-  g.appendChild(at(el("rect","c-wash"),{x:0,y:0,width:W,height:H,rx:R,fill:n.accent,opacity:n.moat?"0.13":"0.1"}));
+  g.appendChild(at(el("rect","c-wash"),{x:0,y:0,width:W,height:H,rx:R,fill:n.accent,opacity:n.moat?"0.08":"0.06"}));
   // anisotropic streak + top glint (de-plastic, polished)
-  g.appendChild(at(el("rect","c-streak"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#streak)",opacity:n.moat?"0.45":"0.8"}));
+  g.appendChild(at(el("rect","c-streak"),{x:0,y:0,width:W,height:H,rx:R,fill:"url(#streak)",opacity:n.moat?"0.3":"0.5"}));
   g.appendChild(at(el("rect","c-glint"),{x:2,y:2,width:W-4,height:Math.round(H*0.42),rx:4}));
   // bevels: bright top edge, dark bottom edge
   g.appendChild(at(el("path","c-bevel-t"),{d:"M "+(R+1)+" 2 L "+(W-R-1)+" 2"}));
