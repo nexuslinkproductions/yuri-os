@@ -22,9 +22,11 @@ test('demote → recall → re-promote: the full subconscious loop, reversible',
   const db = openColdStore(':memory:');
 
   // Seed: one fresh memory (must survive) + one decayed memory (must demote). Bodies carry
-  // distinctive cue terms so BM25 recall can find the demoted one.
-  const freshBody = '---\nname: fresh-note\ntier: semantic\n---\nactive recent guidance still in use\n';
-  const oldBody = '---\nname: quantum-note\ntier: working\n---\nquantum entanglement teleportation protocol notes\n';
+  // distinctive cue terms so BM25 recall can find the demoted one, AND enough lexical mass to
+  // clear the Wave-0 quality floor (MIN_QUALITY_BYTES=80 — a sub-floor body is pinned
+  // fully-decayed regardless of mtime, so a too-short "fresh" seed would false-demote).
+  const freshBody = '---\nname: fresh-note\ntier: semantic\n---\nActive recent guidance still in use across the current sprint: routing heuristics, lane health, and the live operating model that the operator relies on right now.\n';
+  const oldBody = '---\nname: quantum-note\ntier: working\n---\nQuantum entanglement teleportation protocol notes covering Bell-state measurement, classical channel correction, and the no-cloning constraints that bound the fidelity of the transferred qubit state.\n';
   fs.writeFileSync(path.join(root, 'fresh-note.md'), freshBody);
   const oldPath = path.join(root, 'quantum-note.md');
   fs.writeFileSync(oldPath, oldBody);
@@ -32,8 +34,13 @@ test('demote → recall → re-promote: the full subconscious loop, reversible',
   fs.utimesSync(oldPath, oldStamp, oldStamp);            // 400 days idle → R well below floor
 
   // 1) DEMOTE — consolidator execute pass relocates the decayed memory into cold (reversible move).
+  // fsrs.redundancyFloor:0 = the pure-FSRS A/B baseline switch (MEM-02). This e2e proves the
+  // reversible I/O LOOP (demote→cold→recall→promote), not the redundancy policy: a single unique
+  // stale memory is IRREDUCIBLE-given-rest and the two-axis path would (correctly) PROTECT it, so
+  // the baseline switch isolates the R-axis to exercise the round-trip machinery deterministically.
   const pass = await runSubconsciousPass({
     root, ledgerFile, nowMs: now, execute: true, coldDb: db, log: () => {},
+    fsrs: { redundancyFloor: 0, supersessionPenaltyDays: 0 },
     propose: () => ({ ok: true }), listProposals: () => ({ proposals: [] }),
   });
   assert.equal(pass.relocation.demoted, 1, 'exactly the decayed memory demoted');

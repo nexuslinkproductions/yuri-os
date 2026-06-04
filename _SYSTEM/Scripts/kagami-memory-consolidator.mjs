@@ -17,6 +17,7 @@ import { openColdStore, getCold } from './memory-cold-store.mjs';
 import { buildUsageIndex } from './memory-usage.mjs';
 import { proposeMemoryWrite, listMemoryProposals } from './memory-kernel.mjs';
 import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
+import { saturationProbe } from './math/yuri-jaccard.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
@@ -52,9 +53,19 @@ function httpPost(urlStr, bodyObj, timeoutMs = 45000) {
   });
 }
 
+// MEM-04 — mirror the relocator's subconscious exclusion so the MLX consolidation prompt
+// never ingests operational telemetry (the ~1.3MB append-only session journal) or any
+// oversized file. Keeps the two scan surfaces consistent: one exclusion truth, two readers.
+const CONSOLIDATOR_EXCLUDE = new Set(['MEMORY.md', 'session-journal.md']);
+const MAX_CONSOLIDATE_BYTES = 64 * 1024;
+
 function readMemoryFiles() {
   if (!existsSync(MEMORY_DIR)) return [];
-  const files = readdirSync(MEMORY_DIR).filter(f => f.endsWith('.md') && f !== 'MEMORY.md');
+  const files = readdirSync(MEMORY_DIR).filter(f => {
+    if (!f.endsWith('.md') || CONSOLIDATOR_EXCLUDE.has(f)) return false;
+    try { if (statSync(resolve(MEMORY_DIR, f)).size > MAX_CONSOLIDATE_BYTES) { log(`skip ${f} (over ${MAX_CONSOLIDATE_BYTES}B)`); return false; } } catch {}
+    return true;
+  });
   return files.map(f => {
     const path = resolve(MEMORY_DIR, f);
     const content = readFileSync(path, 'utf8');
@@ -62,6 +73,33 @@ function readMemoryFiles() {
     const agedays = (Date.now() - stat.mtimeMs) / 86400000;
     return { filename: f, content: content.slice(0, 600), agedays: Math.round(agedays) };
   });
+}
+
+/**
+ * MEM-03 (card 30) — deterministic, embedding-free hot-tier dedup over the memory files.
+ * Runs the Jaccard saturation probe and returns merge candidates + a saturation load. This
+ * is the LLM-FREE dedup: it produces a non-empty mergePairs signal WHETHER OR NOT rapid-mlx
+ * is up, downgrading the LLM eyeball (analyzeMemories) from primary detector to tie-breaker.
+ *
+ * Pure given the `memories` array ({filename, content}); thresholds come from the energy-config
+ * recall/fsrs knobs (TUNED, never the hard-coded 0.138 AGS constant — that is cited structurally
+ * only). The Hopfield pattern-completion mechanism is PARKED (embedding-free constraint).
+ *
+ * @returns {{ overCapacity:boolean, load:number, mergePairs:Array, n:number, overlapThreshold:number, loadThreshold:number }}
+ */
+export function deterministicDedup(memories, { overlapThreshold = 0.6, loadThreshold = 0.15 } = {}) {
+  const entries = (memories || [])
+    .filter((m) => m && typeof m.content === 'string')
+    .map((m) => ({ id: m.filename, text: m.content }));
+  const probe = saturationProbe(entries, { overlapThreshold, loadThreshold, metric: 'jaccard' });
+  return {
+    overCapacity: probe.overCapacity,
+    load: probe.load,
+    mergePairs: probe.mergePairs,
+    n: probe.n,
+    overlapThreshold: probe.overlapThreshold,
+    loadThreshold: probe.loadThreshold,
+  };
 }
 
 async function analyzeMemories(memories) {
@@ -205,9 +243,38 @@ async function main() {
     await runSubconsciousPass({ execute, fsrs: ec.fsrs || {} });
   } catch (e) { log('subconscious pass error:', e.message); }
 
-  // Check Rapid-MLX available
+  const memories = readMemoryFiles();
+  log(`found ${memories.length} memory files`);
+
+  if (!memories.length) { log('no memories to consolidate'); return; }
+
+  // MEM-03 (card 30) — DETERMINISTIC dedup FIRST, before the mlx gate. This is the LLM-free
+  // hot-tier saturation probe: it surfaces merge candidates whether or not rapid-mlx is up, so
+  // the report always carries a dedup signal (today it wrote nothing on an mlx-down run). Write
+  // a partial report immediately so the deterministic signal survives even if mlx is offline.
+  const ec2 = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
+  const dedup = deterministicDedup(memories, {
+    overlapThreshold: 0.6,
+    loadThreshold: (ec2.fsrs && Number.isFinite(ec2.fsrs.redundancyFloor)) ? Math.max(ec2.fsrs.redundancyFloor, 0.05) : 0.15,
+  });
+  log(`deterministic-dedup: n=${dedup.n} load=${dedup.load} overCapacity=${dedup.overCapacity} mergePairs=${dedup.mergePairs.length}`);
+  mkdirSync(STATE_DIR, { recursive: true });
+  const baseReport = {
+    analyzedAt: new Date().toISOString(),
+    totalFiles: memories.length,
+    deterministicDedup: dedup,
+    mlxAvailable: false,
+    mode: 'deterministic-only',
+  };
+  writeFileSync(REPORT, JSON.stringify(baseReport, null, 2));
+  log(`deterministic report written → ${REPORT} (mode=deterministic-only until mlx confirmed)`);
+
+  // Check Rapid-MLX available — when DOWN, the deterministic report above stands (dedup signal
+  // preserved). When UP, the LLM pass runs as a TIE-BREAKER: it confirms/explains the
+  // deterministic merge candidates rather than being the sole detector.
+  let mlxUp = false;
   try {
-    const check = await new Promise((res, rej) => {
+    mlxUp = await new Promise((res) => {
       const req = http.request(new URL('/v1/models', RAPID_MLX_URL), { timeout: 2000 }, r => {
         res(r.statusCode === 200);
         r.resume();
@@ -216,26 +283,26 @@ async function main() {
       req.on('timeout', () => { req.destroy(); res(false); });
       req.end();
     });
-    if (!check) { log('rapid-mlx not available — skip'); return; }
-  } catch { log('rapid-mlx check failed — skip'); return; }
-
-  const memories = readMemoryFiles();
-  log(`found ${memories.length} memory files`);
-
-  if (!memories.length) { log('no memories to consolidate'); return; }
+  } catch { mlxUp = false; }
+  if (!mlxUp) { log('rapid-mlx not available — deterministic-only report stands (dedup signal preserved)'); return; }
 
   const analysis = await analyzeMemories(memories);
   log(`health_score=${analysis.health_score} stale=${analysis.stale?.length ?? 0} dupes=${analysis.duplicates?.length ?? 0} contradictions=${analysis.contradictions?.length ?? 0}`);
 
-  // Write report
+  // Write report — mlx UP: the deterministic dedup remains the source of truth for merge
+  // candidates; the LLM analysis is folded in as the TIE-BREAKER (contradictions + human
+  // reasons). mlxAvailable:true, mode:enriched.
   mkdirSync(STATE_DIR, { recursive: true });
   const report = {
     analyzedAt: new Date().toISOString(),
     totalFiles: memories.length,
+    deterministicDedup: dedup,
+    mlxAvailable: true,
+    mode: 'enriched',
     ...analysis,
   };
   writeFileSync(REPORT, JSON.stringify(report, null, 2));
-  log(`report written → ${REPORT}`);
+  log(`report written → ${REPORT} (mode=enriched, mlx tie-breaker)`);
 
   // Log action items
   for (const s of analysis.stale ?? []) {

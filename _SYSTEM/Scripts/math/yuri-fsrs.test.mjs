@@ -20,6 +20,28 @@ test('effectiveStability: salience and frequency lengthen stability (slower forg
   assert.equal(effectiveStability(10, { salience: 2 }), 30);      // 10*(1+1.0*2)
 });
 
+// MEM-06 card 29-H1 — renewal-RATE beats raw count: dense recall dures harder than sparse.
+test('renewal-rate: same useCount, denser recall window → higher effective stability', () => {
+  const dense  = effectiveStability(10, { useCount: 10, elapsedDays: 1 });    // 10 recalls in 1 day
+  const sparse = effectiveStability(10, { useCount: 10, elapsedDays: 100 });  // 10 recalls over 100 days
+  assert.ok(dense > sparse, `dense-recall slug should be more durable (${dense.toFixed(2)} vs ${sparse.toFixed(2)})`);
+});
+
+// MEM-06 — the <renewalMinRecalls (default 4) fallback: too few recalls → count-based prior,
+// NOT a rate from a tiny sample. With useCount < 4, elapsedDays must be ignored.
+test('renewal-rate fallback: <4 recalls ignores elapsedDays (count-based prior, no rate)', () => {
+  const fewWithWindow = effectiveStability(10, { useCount: 3, elapsedDays: 1 });
+  const fewNoWindow   = effectiveStability(10, { useCount: 3 });
+  assert.equal(fewWithWindow, fewNoWindow, 'under the min-recalls floor the rate term is not used');
+  // and it equals the original count-based formula 10*(1 + 0.5*log1p(3))
+  assert.ok(Math.abs(fewWithWindow - 10 * (1 + 0.5 * Math.log1p(3))) < 1e-9);
+});
+
+// MEM-06 — backward-compat: no elapsedDays at all → byte-identical to the pre-MEM-06 formula.
+test('renewal-rate: absent elapsedDays preserves the original count-based stability', () => {
+  assert.equal(effectiveStability(10, { useCount: 50 }), 10 * (1 + 0.5 * Math.log1p(50)));
+});
+
 test('evaluateRetention: fresh stays, decayed demotes, force-keep never demotes', () => {
   const now = 200 * DAY;
   const fresh = evaluateRetention({ baseStabilityDays: 10, lastUsedMs: now, useCount: 0 }, { nowMs: now, rFloor: 0.6 });

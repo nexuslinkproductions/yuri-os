@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.mechanism-pattern-registry.v0.schema.json",
+  "title": "YURI Mechanism-Pattern Registry v0",
+  "description": "Closed v0 enum of the 5 propagation mechanism-pattern verbs (roadmap §5). Each verb carries >=2 real grep-verified path:line witnesses. additionalProperties:false everywhere — the registry fails closed: an unknown verb, a verb with <2 witnesses, or a malformed witness is rejected. A 6th verb is data-only and requires owner promotion.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "version", "promotionStatus", "advisoryOnly", "verbs"],
+  "properties": {
+    "schema": { "const": "yuri.mechanism-pattern-registry.v0" },
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "promotionStatus": {
+      "type": "string",
+      "enum": ["research", "verified-baseline", "stable", "quarantined", "fixture"]
+    },
+    "advisoryOnly": { "type": "boolean" },
+    "authorityBoundary": { "type": "string" },
+    "verbs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/mechanismPatternVerb" }
+    }
+  },
+  "$defs": {
+    "mechanismPatternVerb": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verb", "definition", "witnesses", "rippleClass", "guardRequirement", "cascadeFamily"],
+      "properties": {
+        "verb": {
+          "type": "string",
+          "enum": [
+            "replace-hand-tuned-constant",
+            "read-lower-bound-not-point",
+            "gate-on-identity-not-aggregate",
+            "shared-prerequisite-unlock",
+            "compose-readonly-analyzer"
+          ]
+        },
+        "definition": { "type": "string", "minLength": 1 },
+        "witnesses": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "description": "A grep-resolvable witness '<path>:<line>'. No whitespace-bordered path, no line range, no double-colon.",
+            "pattern": "^[^:\\s][^:]*[^:\\s]:[0-9]+$|^[^:\\s]:[0-9]+$"
+          }
+        },
+        "rippleClass": { "type": "string", "minLength": 1 },
+        "guardRequirement": { "type": "string", "minLength": 1 },
+        "cascadeFamily": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

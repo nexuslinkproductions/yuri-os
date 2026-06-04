@@ -49,3 +49,14 @@ First deposits (2026-06-04) — pulled for the circuitry-instrument build:
 | [orthogonal-edge-routing](mechanisms/orthogonal-edge-routing.md) | ELK/elkjs · **EPL-2.0 ⚠️ study-only** | chip-die trace routing (K2) — clean-room: segment-DAG + Kahn topo-numbering |
 | [symmetric-laplacian-eigensolve](mechanisms/symmetric-laplacian-eigensolve.md) | ml-matrix · MIT | spectral atlas — ψ₂/ψ₃ of the type-weighted Laplacian (K3, deterministic) |
 | [semantic-zoom-transform](mechanisms/semantic-zoom-transform.md) | d3-zoom · ISC | shared pan/zoom shell + macro→focus transition + LOD |
+
+Core non-viz mechanisms (2026-06-04) — the YURI-native excellence patterns the rest of Wave 0/1 cites (each card sources an IN-REPO path:line, grep-verified):
+
+| Card | Source · license | Mechanism / failure it prevents |
+|---|---|---|
+| [closed-set-fail-closed-validator](mechanisms/closed-set-fail-closed-validator.md) | `math-adapters.mjs:13` · internal | frozen allow-`Set` + negative-default flag — kills open-set leak + silent privilege grant |
+| [single-resolver-env-override-path](mechanisms/single-resolver-env-override-path.md) | `yuri-user.mjs:53` · internal | one resolver, env → persisted-verbatim → derived → safe fallback — kills identity drift + cwd-path breakage |
+| [privacy-gate-serialize-revalidate-canary](mechanisms/privacy-gate-serialize-revalidate-canary.md) | `yuri-energy-trace.mjs:321` · internal | validate→serialize→re-validate canary + closed-key projection — kills serialization-time secret smuggling |
+| [circuit-breaker-3-state-fail-open](mechanisms/circuit-breaker-3-state-fail-open.md) | `energy-breaker.mjs:144` · internal (resilience4j lineage) | CLOSED/OPEN/HALF_OPEN + anti-stuck auto-escape — a safety breaker that can never permanently brick |
+| [fsrs-retrievability-demotion](mechanisms/fsrs-retrievability-demotion.md) | `memory-relocator.mjs:115` · internal (FSRS/MIT) | retrievability-scored RELOCATE-not-delete + dry-run + restore — reversible forgetting |
+| [graded-confidence-provenance-gate](mechanisms/graded-confidence-provenance-gate.md) | `xref-provenance.mjs:87` + `xref-hit.schema.json:8` · internal | provenance→graded confidence + mandatory-mismatch suppression — kills mechanism-fit theater |

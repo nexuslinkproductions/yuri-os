@@ -4,21 +4,28 @@ import test from 'node:test';
 import {
   astar,
   bayesUpdate,
+  bregmanDivergence,
   brierScore,
   confidenceDecay,
   cosineSimilarity,
   crossEntropy,
+  cusum,
   dijkstra,
   dotProduct,
   entropy,
   expectedValue,
   informationGain,
   klDivergence,
+  lmsrIncrement,
   logLoss,
   logScale,
   makeMathResult,
+  maxEntBelief,
+  mergeLaneEvidence,
+  negEntropyPotential,
   normalizeDistribution,
   pNorm,
+  scalarKalman,
   softmax,
   topologicalSort,
   weightedMean,
@@ -152,4 +159,148 @@ test('math result envelope hashes inputs and results reproducibly', () => {
   assert.equal(first.inputsHash, second.inputsHash);
   assert.equal(first.resultHash, second.resultHash);
   assert.equal(first.deterministic, true);
+});
+
+// --- card 24: Bregman divergence (CANARY: negEntropy psi reproduces KL to the digit) ---
+test('bregmanDivergence with negEntropy potential reproduces klDivergence to the digit', () => {
+  const cases = [
+    [[0.5, 0.5], [0.25, 0.75]],
+    [[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]],
+    [[0.4, 0.6], [0.5, 0.5]],
+  ];
+  for (const [p, q] of cases) {
+    for (const base of [2, Math.E, 10]) {
+      const psi = negEntropyPotential({ base });
+      const bregman = bregmanDivergence(p, q, psi);
+      const kl = klDivergence(p, q, { base });
+      assert.ok(Math.abs(bregman - kl) < 1e-9, `base ${base} p ${p} q ${q}: bregman ${bregman} != kl ${kl}`);
+    }
+  }
+  // Identical distributions -> zero divergence.
+  assert.equal(bregmanDivergence([0.5, 0.5], [0.5, 0.5], negEntropyPotential({ base: 2 })), 0);
+});
+
+test('bregmanDivergence rejects malformed potentials and mismatched lengths', () => {
+  assert.throws(() => bregmanDivergence([0.5, 0.5], [0.5, 0.5], {}), /value\(x\) and grad\(x\)/);
+  assert.throws(() => bregmanDivergence([0.5, 0.5], [0.4, 0.3, 0.3], negEntropyPotential()), /equal length/);
+});
+
+// --- card 28: MaxEnt belief prior (CANARY: entropy(maxEnt) >= entropy(legacy beliefWidth)) ---
+test('maxEntBelief is entropy-maximal vs the legacy beliefWidth Gaussian-ish belief at matched mean', () => {
+  const support = 7;
+  const maxRank = support - 1;
+  for (const meanRank of [1, 2, 3, 4, 5]) {
+    const maxEnt = maxEntBelief(meanRank, support);
+    // Legacy beliefWidth = LADDER_N / (2 * (n + 1)); build the comparison belief as a
+    // truncated Gaussian-ish bump of that width centered at meanRank, then renormalize.
+    const beliefWidth = support / (2 * (support + 1));
+    const legacyRaw = Array.from({ length: support }, (_, i) =>
+      Math.exp(-((i - meanRank) ** 2) / (2 * Math.max(beliefWidth, 1e-9) ** 2)) + 1e-9);
+    const legacy = normalizeDistribution(legacyRaw);
+    // Sums to 1 and respects support.
+    assert.ok(Math.abs(maxEnt.reduce((a, b) => a + b, 0) - 1) < 1e-9);
+    assert.equal(maxEnt.length, support);
+    assert.ok(
+      entropy(maxEnt, { base: 2 }) >= entropy(legacy, { base: 2 }) - 1e-9,
+      `meanRank ${meanRank}: maxEnt entropy ${entropy(maxEnt, { base: 2 })} < legacy ${entropy(legacy, { base: 2 })}`,
+    );
+    // The recovered mean matches the constraint.
+    const recoveredMean = maxEnt.reduce((acc, p, i) => acc + i * p, 0);
+    assert.ok(Math.abs(recoveredMean - meanRank) < 1e-6, `meanRank ${meanRank}: recovered ${recoveredMean}`);
+  }
+  // Uniform mean -> uniform distribution (kernel applies roundStable to every mass).
+  const uniform = maxEntBelief(maxRank / 2, support);
+  for (const mass of uniform) {
+    assert.ok(Math.abs(mass - 1 / support) < 1e-12, `uniform mass ${mass} != ${1 / support}`);
+  }
+});
+
+test('maxEntBelief rejects invalid support and out-of-range means', () => {
+  assert.throws(() => maxEntBelief(2, 1), /support must be an integer >= 2/);
+  assert.throws(() => maxEntBelief(2, 4.5), /support must be an integer >= 2/);
+  assert.throws(() => maxEntBelief(9, 7), /meanRank must be within/);
+  assert.throws(() => maxEntBelief(-1, 7), /meanRank must be within/);
+});
+
+// --- card 27: LMSR increment (proper-scoring + b*ln(N) bound) ---
+test('lmsrIncrement is strictly proper and bounded by b*ln(N)', () => {
+  const b = 2;
+  const before = [0.25, 0.25, 0.25, 0.25];
+  // Moving toward the resolved index nets positive credit on that index.
+  const toward = lmsrIncrement(before, [0.7, 0.1, 0.1, 0.1], b);
+  assert.ok(toward.increments[0] > 0, 'pushing toward truth nets positive credit');
+  // Pushing confidently wrong nets a larger-magnitude penalty (log asymmetry).
+  const away = lmsrIncrement(before, [0.01, 0.97, 0.01, 0.01], b);
+  assert.ok(away.increments[0] < 0, 'pushing away from truth nets a penalty on the true index');
+  assert.ok(Math.abs(away.increments[0]) > Math.abs(toward.increments[0]), 'wrong-confidence penalty exceeds toward-credit');
+  // Each per-index credit respects the subsidy bound b*ln(N).
+  assert.ok(Math.abs(toward.bound - b * Math.log(4)) < 1e-9);
+  for (const inc of toward.increments) {
+    assert.ok(inc <= toward.bound + 1e-9, `increment ${inc} exceeds bound ${toward.bound}`);
+  }
+});
+
+test('lmsrIncrement rejects non-positive b and zero-mass beliefs', () => {
+  assert.throws(() => lmsrIncrement([0.5, 0.5], [0.5, 0.5], 0), /liquidity b must be positive/);
+  assert.throws(() => lmsrIncrement([1, 0], [0.5, 0.5], 1), /positive belief mass/);
+});
+
+// --- card 3: e-value merge under dependence (exposes redundant-council theater) ---
+test('mergeLaneEvidence exposes redundant lanes under arbitrary dependence', () => {
+  const oneLane = [4];
+  const fourCopies = [4, 4, 4, 4];
+  const equalWeights = [0.25, 0.25, 0.25, 0.25];
+  // Equal-weight mean of N identical lanes == one lane (redundancy exposed).
+  const mean = mergeLaneEvidence(fourCopies, equalWeights, 'arbitrary');
+  assert.equal(mean.merge, 'weighted-mean');
+  assert.equal(mean.merged, mergeLaneEvidence(oneLane, [1], 'arbitrary').merged);
+  assert.equal(mean.merged, 4);
+  // Product merge blows up ~4x for the same identical lanes (false confidence).
+  const product = mergeLaneEvidence(fourCopies, equalWeights, 'independent');
+  assert.equal(product.merge, 'product');
+  assert.equal(product.merged, 256);
+  assert.ok(product.merged > mean.merged * 4, 'product over-counts dependent lanes');
+});
+
+test('mergeLaneEvidence rejects negative e-values and unknown dependence', () => {
+  assert.throws(() => mergeLaneEvidence([-1, 2], [0.5, 0.5], 'arbitrary'), /non-negative/);
+  assert.throws(() => mergeLaneEvidence([1, 2], [0.5, 0.5], 'mystery'), /arbitrary.*independent/);
+});
+
+// --- PC-2 KIT: CUSUM regime alarm ---
+test('cusum alarms on slow drift that no single MAD step would flag, and stays quiet in-control', () => {
+  // Slow drift -0.3 -> +0.3 over 40 ticks; no single step is a big outlier.
+  const drift = Array.from({ length: 40 }, (_, i) => -0.3 + (0.6 * i) / 39);
+  const driftResult = cusum(drift, { k: 0.05, h: 1, mu0: 0 });
+  assert.equal(driftResult.alarm, true, 'CUSUM must catch the slow rot');
+  assert.ok(driftResult.changeIndex > 0 && driftResult.changeIndex < 40);
+  // Flat in-control stream around mu0 never alarms.
+  const flat = new Array(60).fill(0).map((_, i) => (i % 2 === 0 ? 0.02 : -0.02));
+  const flatResult = cusum(flat, { k: 0.1, h: 2, mu0: 0 });
+  assert.equal(flatResult.alarm, false, 'in-control stream must not alarm');
+  assert.equal(flatResult.changeIndex, -1);
+});
+
+test('cusum rejects non-positive threshold and negative slack', () => {
+  assert.throws(() => cusum([0.1, 0.2], { k: 0.1, h: 0 }), /threshold h must be positive/);
+  assert.throws(() => cusum([0.1, 0.2], { k: -1, h: 1 }), /slack k must be non-negative/);
+});
+
+// --- PC-2 KIT: scalar Kalman recovery filter ---
+test('scalarKalman flags a one-sided spike and re-sensitizes via q within a couple ticks', () => {
+  // Flat baseline, then a sharp upward spike at index 5.
+  const stream = [1, 1, 1, 1, 1, 8, 8, 8, 8, 8];
+  const result = scalarKalman(stream, { q: 0.5, r: 0.5, initialEstimate: 1, initialVariance: 0.5 });
+  // The spike step is surprising (one-sided high NIS).
+  assert.equal(result.surprises[5].surprised, true, 'the upward spike must be surprising');
+  // Baseline steps are not.
+  assert.equal(result.surprises[2].surprised, false);
+  // Estimate tracks toward the new regime within ~2 ticks of the spike.
+  assert.ok(result.estimates[7] > 6, `estimate should re-acquire the new level, got ${result.estimates[7]}`);
+  assert.equal(result.estimates.length, stream.length);
+});
+
+test('scalarKalman rejects non-positive measurement noise and negative process noise', () => {
+  assert.throws(() => scalarKalman([1, 2], { q: 0, r: 0 }), /measurement noise r must be positive/);
+  assert.throws(() => scalarKalman([1, 2], { q: -1, r: 1 }), /process noise q must be non-negative/);
 });

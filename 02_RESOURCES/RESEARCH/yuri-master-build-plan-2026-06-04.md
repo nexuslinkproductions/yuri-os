@@ -5,6 +5,23 @@
 
 ---
 
+## BUILD STATUS — live log (kept synced each wave; model = reality)
+> Orchestrated as Workflow fleets, build→adversarial-verify each, owner gates commits. **Everything below is built + locally verified but UNCOMMITTED** (owner commit pending; `ai reindex` deferred — shared DB, concurrent circuitry session live in `02_RESOURCES/RESEARCH/circuitry/`). Detail: memory `[[wave0-foundations-done-2026-06-04]]`.
+
+**✅ WAVE 0 — DONE (7 built + verified, 1 census).** KERNEL phantom→registry (MATH-01), `yuri-paths.mjs` (PORT-01), provenance gate (XREF-04), drift-detector (XREF-03), deferred-outcome labeler+trace-fix (ENG-07/08), MEMORY mtime-fix+telemetry-exclude (MEM-02/04), offload census (XREF-00). All suites green. Owner decision landed: **route-plan → INTO the cross-ref engine** (recorded §10.2; census corrected 4→**6** consumers).
+
+**✅ WAVE 1a — DONE (6 items).** KERNEL Tier-1 primitives (cards 24/28/27/3 + PC-2 CUSUM/Kalman kit + MATH-04/05, canaries numerically proven), read-only ARCH-ENGINE lens (cards 4/16/17; **empirically falsified the Cheeger≈Forman≈Tarjan triple-equality** — Tarjan bridges are orthogonal; roadmap §3 corrected), MEMORY LLM-free dedup (yuri-mdl + yuri-jaccard, PC-6; caught+fixed a poisoned-`superseded` bypass), MATH-07 cortex↔kernel verification (the 1b de-risker), LIFECYCLE gap-scan (rebuilt to three-seams §SEAM-2 after first build missed it; **+ closed two silent-degrade blind-spots: loud `GAP_UNMAPPED_DOMAIN` + fail-loud config invariant**), XREF-01 unified `ai xref`. 123 tests green; graph read-only throughout.
+
+**✅ WAVE 1b — DONE (3/3 pass, live-safe; 6 suites green: cortex 57, energy 28, kernel 23, breaker 28, hardening 17, advisory 15).** CORTEX: the owner-approved beliefWidth→MaxEnt seam landed LIVE (card-34 distinct-count + card-28 MaxEnt λ-width, retiring the magic Gaussian constant) — `aggregateU 280.71536831 → 280.64846761` (Δ −0.0669, 100% the ε/info-gain term; entropy/KL/staleness byte-identical). card-8 ablation pure/additive; card-36 Jeffrey + UCB1 HEDGE built but **flag-gated OFF** (no live verdict change). card-34's literal UCB formula contradicted its own test → behavioral-spec form shipped (decays as effort grows), owner-confirm pending. TREND + ENERGY Tier-2: **advisory-only, live tick verdict + breaker trip BYTE-IDENTICAL proven** (zeta/Kalman/CUSUM/KKT computed, NOT wired to the live gate — Wave-3 owner-gated).
+
+**⚠️ CONCURRENT ENERGY-CORE LANE (2026-06-04):** a second interactive session (`3d279e0a`, VSCode) is implementing **NRG·ENG-02** (the L∞ `maxSeverityVeto` into `gateProposal`, owner-gated Wave-3) in `yuri-energy.mjs` + `claim-cortex.mjs` — the same files Wave-1b touched. It coexists cleanly (inert: `cap=Infinity` default, no live caller arms it; 28/28 energy green). **COMMIT ENTANGLEMENT:** those 2 files now carry BOTH Wave-1b (beliefWidth/advisory) and the concurrent L∞ work — a scoped commit needs hunk-level care or cross-lane coordination.
+
+**MEMORY subconscious:** seeded — 5 genuinely-superseded session-resume anchors relocated to cold (reversible, `relocated/`); the 2 live 06-04 anchors kept HOT; stale empty `memory-cold.db` deleted. `cold:5`.
+
+**DEFERRED (collision/safety):** the ~30-item DRIFT-SWEEP + ARCH-ENGINE's graph-`size`-field write + circuitry BUILD-MANUAL render rule — unblocked now that the circuitry session has committed, run once it fully settles. Live energy-core/breaker WIRING → owner-gated Wave 3.
+
+---
+
 ## 0. How to use this — the PROPORTIONAL agent loadout ([[build-agent-context-loadout]])
 Match the context handed to each build agent to its task. **Not every item gets the full loadout** (that was the corrected overkill).
 - **LIGHT** (the drift-fixes, single-file mechanical) → the scoped item + its appendix entry + 1-2 pointers. Trust `ai search` for the rest.
@@ -105,3 +122,13 @@ Each wave is a Workflow fan-out; loadout tier per the §0 contract.
 Everything keys on the corrected through-line: **the circuitry-graph node is the unit; structure→size, pattern→color/edges, heat→breath; propagate by verb matched on semantic structure, not lexical tokens.** The drift register (96 findings) IS the continuity-law debt — clearing it makes the circuitry an honest model again, which is the substrate the cross-ref + propagation engines traverse. The propagation clusters (§2) are the broad-aware doctrine proven by the sweep itself: the system told us where one fix ripples. Build order respects it: honest model (Wave 0) → structural lens + Tier-2 math (Wave 1) → cross-ref engine + hardening (Wave 2) → enforce + migrate + package + red-team (Wave 3).
 
 *Evidence: 14-agent full-system sweep (1.79M tokens, 330 tool-uses, 2026-06-04). Full per-item scopes + the 96 drift findings: `full-system-sweep-detail-2026-06-04.md`. Advisory until built + locally verified.*
+
+---
+
+## 6. Cross-session notes — Nemotron-3-Ultra full-package eval (2026-06-04)
+
+Added by a parallel Claude session; claims cross-referenced vs live code. Canonical capture: `02_RESOURCES/RESEARCH/nemotron-3-ultra-550b-eval-2026-06-04.md`. Filed by this plan's own wave discipline.
+
+- **LANDED this session (owner-approved) — heads-up to the MATH-07/cortex (Wave 1b) session:** an L∞ max-severity floor landed in `gateProposal` — new `maxLadderInversionCap` param (default `Infinity` = OFF → byte-identical verdict for all existing callers) + `maxSeverityVeto` result flag, wired through `claim-cortex.gateClaimTransition`. Closes the documented delta-gate equal-magnitude swap (`5→5`) **when armed**. Adds `_SYSTEM/Scripts/math/yuri-energy-max-severity.test.mjs` (10 tests); 327 energy/cortex tests green. **It edits the `gateProposal` structural-floor region + `gateClaimTransition` — coexists with the live `maxEntBelief` MATH-07 seam; do not rewrite over it.**
+- **→ WAVE 3 (owner-gated, live wiring):** ARM the L∞ floor live. `maxSeverityVeto` exists in `gateProposal` but is **NOT** in `energy-breaker.isCatastrophic`, so it never trips the breaker or reaches the `energy-enforce` PreToolUse deny — inert in the live enforcing path. Arming = add it to `isCatastrophic` + thread `maxLadderInversion` + a finite cap from config through `energy-tick-core`/`energy-breaker`. (Nemotron F2/FM5 + own-fix residual; **confirmed real**.)
+- **→ WAVE 2 hardening (verify first):** possible `verifiedEvidenceCount` (ι) **double-count** across both axes — tool-event (`energy-tick-core.applyTransition` increments on mutating success) AND claim-axis (`claim-ledger.applyClaimTransition`→`claimGateFields`), both merged into `stateAfter` by `tickAndTrace` → evidence credit inflated (log-sat cap masks it at high volume). Adjacent to the existing ε-vs-ζ no-double-count canary. (Nemotron F3, cross-organ-inference; **NEEDS live verification**.)

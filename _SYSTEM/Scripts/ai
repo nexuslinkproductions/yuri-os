@@ -970,6 +970,22 @@ case "${1:-help}" in
     require_cmd node
     exec node "$SCRIPT_DIR/yuri-search-index.mjs" "$@"
     ;;
+  xref-drift)
+    # Continuity-law drift detector (READ-ONLY): verify every circuitry seam still exists.
+    # Advisory (exit 0) by default; --strict yields nonzero on any DRIFT for CI/EOT gating.
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/xref-drift-scan.mjs" "$@"
+    ;;
+  xref)
+    # Unified cross-reference query (READ-ONLY): one question across FTS5 + circuitry-graph +
+    # GitNexus (structural) + mechanism-spectrum, merged + provenance-tagged. Every hit is graded
+    # (xref-provenance) and theater-gated; structural leg fails CLOSED, never silently lexical.
+    #   ai xref "<query>" [--node <id>] [--top N] [--json]
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/xref-query.mjs" "$@"
+    ;;
   cortex|pulse|pulse-status)
     # PATCH 038 — Pulse Cortex self-inspection
     shift || true

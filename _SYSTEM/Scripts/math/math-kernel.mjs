@@ -70,6 +70,38 @@ export function confidenceDecay({ base, age, halfLife }) {
   return roundStable(base * Math.pow(0.5, age / halfLife));
 }
 
+// Cox proportional-hazards per-class evidence aging (catalog card 18). A multiplier
+// on the BASELINE decay rate keyed on an evidence sourceClass: effectiveDecayRate =
+// baseRate · exp(beta · covariate), here pre-collapsed to a hardcoded closed-set
+// prior (Phase 1 — beta is fit by partial likelihood in Phase 2, owner-gated). A
+// runtime-verified MATCH ages SLOW (<1); council-text / a happy-path report ages
+// FAST (>1) so the staleness term rises faster for the classes YURI already
+// distrusts (PROSE-NOT-OUTRUN-WIRING made mechanical).
+//
+// FAIL-SAFE, not fail-open: an UNKNOWN class returns 1.0 (baseline), NEVER < 1.0 —
+// an unrecognized source must not be granted slow aging it did not earn. The map is
+// a CLOSED set; membership is exact, never a charset / prefix match.
+const HAZARD_MULTIPLIERS = Object.freeze({
+  runtime_trace: 0.3,
+  test: 0.3,
+  fixture: 1.0,
+  schema: 1.0,
+  advisory: 3.0,
+  report: 3.0,
+  operator_note: 0.5,
+});
+
+export const HAZARD_CLASSES = Object.freeze(Object.keys(HAZARD_MULTIPLIERS));
+
+export function hazardMultiplier(sourceClass) {
+  // Exact closed-set membership only. A non-string, an unknown class, or an
+  // attacker-supplied lookalike all collapse to the baseline 1.0 (fail-safe).
+  if (typeof sourceClass !== 'string') return 1.0;
+  return Object.hasOwn(HAZARD_MULTIPLIERS, sourceClass)
+    ? HAZARD_MULTIPLIERS[sourceClass]
+    : 1.0;
+}
+
 export function dotProduct(left, right) {
   assertVectorPair(left, right, 'dot product');
   return roundStable(left.reduce((total, value, index) => total + value * right[index], 0));
@@ -172,6 +204,234 @@ export function logScale(value, min, max, points = 1) {
   if (value <= min) return 0;
   if (value >= max) return points;
   return roundStable((Math.log(value) - Math.log(min)) / (Math.log(max) - Math.log(min)) * points);
+}
+
+export function bregmanDivergence(p, q, psi) {
+  // Bregman divergence D_psi(p||q) = psi(p) - psi(q) - <grad psi(q), p - q>.
+  // psi.value(x) -> scalar potential; psi.grad(x) -> gradient vector.
+  // canary: psi = negEntropy reproduces klDivergence to the digit (see negEntropyPotential).
+  if (!psi || typeof psi.value !== 'function' || typeof psi.grad !== 'function') {
+    throw new Error('Bregman potential must expose value(x) and grad(x) functions');
+  }
+  assertVectorPair(p, q, 'Bregman divergence');
+  const psiP = psi.value(p);
+  const psiQ = psi.value(q);
+  assertFiniteNumber(psiP, 'Bregman potential at p');
+  assertFiniteNumber(psiQ, 'Bregman potential at q');
+  const gradQ = psi.grad(q);
+  assertNumberArray(gradQ, 'Bregman gradient at q');
+  assertSameLength(gradQ, p, 'Bregman gradient');
+  let inner = 0;
+  for (let index = 0; index < p.length; index += 1) {
+    inner += gradQ[index] * (p[index] - q[index]);
+  }
+  const divergence = psiP - psiQ - inner;
+  // Bregman divergence is non-negative for convex psi; clamp tiny negative round-off to 0.
+  if (divergence < 0 && divergence > -1e-9) return 0;
+  if (divergence < 0) throw new Error('Bregman divergence is negative; potential is not convex on this input');
+  return roundStable(divergence);
+}
+
+export function negEntropyPotential(options = {}) {
+  // Convex potential psi(x) = sum_i x_i log_b(x_i) on the (normalized) simplex.
+  // Its Bregman divergence equals KL divergence to the digit (the regression canary).
+  const base = options.base ?? Math.E;
+  assertLogBase(base);
+  return {
+    base,
+    value: (x) => {
+      const distribution = normalizeDistribution(x);
+      return distribution.reduce((total, value) => {
+        if (value === 0) return total;
+        return total + value * logBase(value, base);
+      }, 0);
+    },
+    grad: (x) => {
+      const distribution = normalizeDistribution(x);
+      // d/dx_i [x_i log_b x_i] = log_b(x_i) + 1/ln(b); the constant cancels on the simplex.
+      return distribution.map((value) => {
+        if (value === 0) throw new Error('negEntropy gradient is undefined at zero mass');
+        return logBase(value, base) + 1 / Math.log(base);
+      });
+    },
+  };
+}
+
+export function maxEntBelief(meanRank, support, options = {}) {
+  // Maximum-entropy distribution p_i ∝ exp(lambda * i) over i in [0, support-1]
+  // matching the constraint E[i] = meanRank. lambda found by a 1-D Newton solve.
+  assertFiniteNumber(meanRank, 'meanRank');
+  if (!Number.isInteger(support) || support < 2) {
+    throw new Error('support must be an integer >= 2');
+  }
+  const maxRank = support - 1;
+  if (meanRank < 0 || meanRank > maxRank) {
+    throw new Error(`meanRank must be within [0, ${maxRank}]`);
+  }
+  const tolerance = options.tolerance ?? 1e-12;
+  const maxIterations = options.maxIterations ?? 100;
+  const uniformMean = maxRank / 2;
+  // Exact uniform case: lambda = 0 (avoids 0/0 in the Newton derivative).
+  if (Math.abs(meanRank - uniformMean) < 1e-12) {
+    return new Array(support).fill(roundStable(1 / support));
+  }
+
+  const ranks = Array.from({ length: support }, (_, index) => index);
+  const meanGivenLambda = (lambda) => {
+    const dist = buildExpDistribution(ranks, lambda);
+    let mean = 0;
+    for (let index = 0; index < support; index += 1) mean += ranks[index] * dist[index];
+    return { mean, dist };
+  };
+  const varianceGivenLambda = (lambda, mean) => {
+    const dist = buildExpDistribution(ranks, lambda);
+    let variance = 0;
+    for (let index = 0; index < support; index += 1) variance += (ranks[index] - mean) ** 2 * dist[index];
+    return variance;
+  };
+
+  let lambda = 0;
+  let distribution = buildExpDistribution(ranks, lambda);
+  for (let iteration = 0; iteration < maxIterations; iteration += 1) {
+    const { mean, dist } = meanGivenLambda(lambda);
+    distribution = dist;
+    const residual = mean - meanRank;
+    if (Math.abs(residual) < tolerance) break;
+    // dE[i]/dlambda = Var(i) under the exponential family (always > 0 off the uniform case).
+    const slope = varianceGivenLambda(lambda, mean);
+    if (slope < EPSILON) break;
+    lambda -= residual / slope;
+    if (!Number.isFinite(lambda)) throw new Error('maxEntBelief Newton step diverged');
+  }
+  return distribution.map(roundStable);
+}
+
+export function lmsrIncrement(beliefBefore, beliefAfter, b) {
+  // Logarithmic Market Scoring Rule per-step increment on a single resolved index:
+  // credit = b * (ln beliefAfter[resolved] - ln beliefBefore[resolved]).
+  // Strictly proper; the per-claim subsidy is bounded by b*ln(N).
+  assertFiniteNumber(b, 'b');
+  if (b <= 0) throw new Error('LMSR liquidity b must be positive');
+  const before = normalizeDistribution(beliefBefore);
+  const after = normalizeDistribution(beliefAfter);
+  assertSameLength(before, after, 'LMSR increment');
+  const increments = before.map((_, index) => {
+    const pAfter = after[index];
+    const pBefore = before[index];
+    if (pBefore <= 0 || pAfter <= 0) {
+      throw new Error('LMSR increment requires positive belief mass on every index');
+    }
+    return roundStable(b * (Math.log(pAfter) - Math.log(pBefore)));
+  });
+  const bound = roundStable(b * Math.log(before.length));
+  return { increments, bound };
+}
+
+export function mergeLaneEvidence(eValues, weights, dependence = 'arbitrary') {
+  // Merge calibrated e-values under a dependence assumption.
+  // 'independent' -> product (valid only for provably-independent lanes);
+  // 'arbitrary'   -> weighted arithmetic mean (the only admissible merge under
+  // arbitrary dependence). Equal-weight mean of N identical lanes == one lane,
+  // which is exactly how council redundancy gets exposed.
+  assertNumberArray(eValues, 'e-values');
+  for (const value of eValues) {
+    if (value < 0) throw new Error('e-values must be non-negative');
+  }
+  if (dependence === 'independent') {
+    const merged = eValues.reduce((product, value) => product * value, 1);
+    return { merged: roundStable(merged), merge: 'product', dependence };
+  }
+  if (dependence !== 'arbitrary') {
+    throw new Error("dependence must be 'arbitrary' or 'independent'");
+  }
+  const merged = weightedMean(eValues, weights);
+  return { merged: roundStable(merged), merge: 'weighted-mean', dependence };
+}
+
+export function cusum(signedDeltas, options = {}) {
+  // One-sided UPPER CUSUM change-point alarm on a SIGNED stream.
+  // S_t = max(0, S_{t-1} + (x_t - mu0) - k); alarm when S_t > h.
+  // Catches slow regime drift that no single step flags as an outlier.
+  assertNumberArray(signedDeltas, 'signed deltas');
+  const k = options.k ?? 0;
+  const h = options.h ?? 0;
+  const mu0 = options.mu0 ?? 0;
+  assertFiniteNumber(k, 'k');
+  assertFiniteNumber(h, 'h');
+  assertFiniteNumber(mu0, 'mu0');
+  if (k < 0) throw new Error('CUSUM slack k must be non-negative');
+  if (h <= 0) throw new Error('CUSUM threshold h must be positive');
+
+  let cumulative = 0;
+  let alarm = false;
+  let changeIndex = -1;
+  let peak = 0;
+  const series = [];
+  for (let index = 0; index < signedDeltas.length; index += 1) {
+    cumulative = Math.max(0, cumulative + (signedDeltas[index] - mu0) - k);
+    series.push(roundStable(cumulative));
+    if (cumulative > peak) peak = cumulative;
+    if (!alarm && cumulative > h) {
+      alarm = true;
+      changeIndex = index;
+    }
+  }
+  return { alarm, changeIndex, statistic: roundStable(cumulative), peak: roundStable(peak), series };
+}
+
+export function scalarKalman(stream, options = {}) {
+  // Scalar Kalman recovery filter with one-sided NIS gating.
+  // Each step: predict (var += q), innovate (y = z - estimate),
+  // S = var + r, gain = var/S, update estimate + var. surprised when y>0 and
+  // NIS = y^2/S exceeds the chi-square(1) threshold. q drives re-sensitization.
+  assertNumberArray(stream, 'stream');
+  const q = options.q ?? 0;
+  const r = options.r ?? 1;
+  const threshold = options.threshold ?? 3.841458820694124; // chi2(1) at 0.95
+  assertFiniteNumber(q, 'q');
+  assertFiniteNumber(r, 'r');
+  assertFiniteNumber(threshold, 'threshold');
+  if (q < 0) throw new Error('process noise q must be non-negative');
+  if (r <= 0) throw new Error('measurement noise r must be positive');
+  if (threshold <= 0) throw new Error('NIS threshold must be positive');
+
+  let estimate = options.initialEstimate ?? stream[0];
+  let variance = options.initialVariance ?? r;
+  assertFiniteNumber(estimate, 'initialEstimate');
+  assertFiniteNumber(variance, 'initialVariance');
+  if (variance < 0) throw new Error('initial variance must be non-negative');
+
+  const estimates = [];
+  const surprises = [];
+  let surprisedCount = 0;
+  for (let index = 0; index < stream.length; index += 1) {
+    const measurement = stream[index];
+    const priorVariance = variance + q;
+    const innovation = measurement - estimate;
+    const innovationVariance = priorVariance + r;
+    const nis = (innovation * innovation) / innovationVariance;
+    const surprised = innovation > 0 && nis > threshold;
+    if (surprised) surprisedCount += 1;
+    surprises.push({ index, nis: roundStable(nis), surprised });
+    const gain = priorVariance / innovationVariance;
+    estimate = estimate + gain * innovation;
+    variance = (1 - gain) * priorVariance;
+    estimates.push(roundStable(estimate));
+  }
+  return {
+    estimate: roundStable(estimate),
+    variance: roundStable(variance),
+    estimates,
+    surprises,
+    surprisedCount,
+  };
+}
+
+function buildExpDistribution(ranks, lambda) {
+  const maxExponent = Math.max(...ranks.map((rank) => lambda * rank));
+  const unnormalized = ranks.map((rank) => Math.exp(lambda * rank - maxExponent));
+  const sum = unnormalized.reduce((total, value) => total + value, 0);
+  return unnormalized.map((value) => value / sum);
 }
 
 export function makeMathResult({ operation, input, result, proof = {} }) {

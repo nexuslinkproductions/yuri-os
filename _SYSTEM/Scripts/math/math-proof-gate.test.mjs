@@ -147,3 +147,88 @@ test('validator rejects loose counterexample error patterns for promoted formula
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /loose expectedError/);
 });
+
+test('validator rejects implementedBy declaring a non-existent kernel symbol (fail-closed provenance)', () => {
+  const result = validateFormulaBank({
+    schema: 'yuri.math.formula-bank.v0',
+    id: 'desync-provenance-bank',
+    version: '0.1.0',
+    promotionStatus: 'verified-baseline',
+    advisoryOnly: false,
+    formulas: [{
+      id: 'shannon-entropy',
+      domain: 'information-theory',
+      notation: 'H(P) = -sum_i p_i log_b(p_i)',
+      purpose: 'Measure uncertainty.',
+      implementedBy: '_SYSTEM/Scripts/math/math-kernel.mjs#fakeFn',
+      variables: [
+        { symbol: 'p', meaning: 'probabilities', type: 'number[]', constraints: ['p >= 0'] },
+      ],
+      assumptions: ['normalizable'],
+      invalidInputs: ['empty array'],
+      failureModes: ['provenance desync'],
+      workedExamples: [{
+        name: 'valid',
+        input: { probabilities: [0.5, 0.5], base: 2 },
+        expected: { entropy: 1 },
+        interpretation: 'one bit',
+      }],
+      counterexamples: [{
+        name: 'negative weight',
+        input: { probabilities: [1, -1], base: 2 },
+        expectedError: 'non-negative',
+      }],
+      promotionStatus: 'verified-baseline',
+      advisoryOnly: false,
+      proofObligations: ['probabilities_non_negative'],
+    }],
+  });
+
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /kernel#fakeFn which is not an exported function/);
+});
+
+test('validator accepts a real kernel symbol in implementedBy and all shipped banks resolve', () => {
+  const real = validateFormulaBank({
+    schema: 'yuri.math.formula-bank.v0',
+    id: 'real-provenance-bank',
+    version: '0.1.0',
+    promotionStatus: 'verified-baseline',
+    advisoryOnly: false,
+    formulas: [{
+      id: 'shannon-entropy',
+      domain: 'information-theory',
+      notation: 'H(P) = -sum_i p_i log_b(p_i)',
+      purpose: 'Measure uncertainty.',
+      implementedBy: '_SYSTEM/Scripts/math/math-kernel.mjs#entropy',
+      variables: [
+        { symbol: 'p', meaning: 'probabilities', type: 'number[]', constraints: ['p >= 0'] },
+      ],
+      assumptions: ['normalizable'],
+      invalidInputs: ['empty array'],
+      failureModes: ['none'],
+      workedExamples: [{
+        name: 'valid',
+        input: { probabilities: [0.5, 0.5], base: 2 },
+        expected: { entropy: 1 },
+        interpretation: 'one bit',
+      }],
+      counterexamples: [{
+        name: 'negative weight',
+        input: { probabilities: [1, -1], base: 2 },
+        expectedError: 'non-negative',
+      }],
+      promotionStatus: 'verified-baseline',
+      advisoryOnly: false,
+      proofObligations: ['probabilities_non_negative'],
+    }],
+  });
+
+  // The desync check must not produce a kernel-symbol error for a real export.
+  assert.equal(real.errors.some((error) => /not an exported function/.test(error)), false, real.errors.join('\n'));
+
+  // Every shipped promoted bank still validates with the provenance check armed.
+  const inspection = inspectFormulaBankDirectory();
+  assert.equal(inspection.ok, true, inspection.errors.join('\n'));
+  assert.equal(inspection.errors.some((error) => /not an exported function/.test(error)), false);
+});

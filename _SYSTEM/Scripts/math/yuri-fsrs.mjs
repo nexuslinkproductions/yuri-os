@@ -51,12 +51,38 @@ export function retrievability(stabilityDays, daysSinceUse, { decay = FSRS_DECAY
  * Effective stability: base stability boosted by use-frequency, salience, and the
  * |ΔU| surprise at encode. High-salience / often-recalled traces get larger S → slower
  * forgetting. All weights come from the fsrs:{} knob block (fail-closed defaults here).
+ *
+ * MEM-06 / card 29-H1 — renewal-RATE frequency term. Raw useCount conflates a memory
+ * recalled 5× in one day with one recalled 5× over a year. Renewal theory says the real
+ * consolidation signal is frequency-PER-TIME: r = useCount / max(elapsedDays, minWindow).
+ * When `elapsedDays` is provided AND useCount ≥ renewalMinRecalls, the freq boost becomes
+ * freq·log1p(r·scale) so dense recall dures harder than sparse recall over a long span.
+ *
+ * FALLBACK (the card's <4-recall guard): if elapsedDays is absent, or fewer than
+ * renewalMinRecalls recalls exist, we DO NOT trust a rate from too few samples — we fall
+ * back to the original count-based freq·log1p(useCount). This makes the rate term a strict
+ * superset: callers that pass no elapsedDays get byte-identical behavior to before.
+ *
+ * Half-2 (inspection-paradox / length-biased age debias) is deliberately NOT implemented —
+ * the catalog warns it rescues dead memories without a stationarity guard. PARKED.
  */
-export function effectiveStability(baseStabilityDays, { useCount = 0, salience = 0, deltaU = 0 } = {}, weights = {}) {
-  const w = { freq: 0.5, salience: 1.0, deltaU: 0.3, ...weights };
+export function effectiveStability(baseStabilityDays, { useCount = 0, salience = 0, deltaU = 0, elapsedDays } = {}, weights = {}) {
+  const w = { freq: 0.5, salience: 1.0, deltaU: 0.3, renewalScale: 1.0, renewalMinWindowDays: 1, renewalMinRecalls: 4, ...weights };
   const S0 = (() => { const v = finite(baseStabilityDays, 0); return v > 0 ? v : 1; })();
+  const uc = Math.max(0, finite(useCount));
+  // freq term: rate-based when we have a trustworthy elapsed window + enough recalls; else count.
+  const ed = elapsedDays === undefined ? null : finite(elapsedDays, 0);
+  const minWin = Math.max(1, finite(w.renewalMinWindowDays, 1));
+  const minRecalls = Math.max(0, finite(w.renewalMinRecalls, 4));
+  let freqTerm;
+  if (ed !== null && ed > 0 && uc >= minRecalls) {
+    const r = uc / Math.max(ed, minWin);                       // renewal RATE (recalls/day)
+    freqTerm = Math.log1p(Math.max(0, r) * Math.max(0, finite(w.renewalScale, 1)));
+  } else {
+    freqTerm = Math.log1p(uc);                                 // <minRecalls or no window → count prior
+  }
   const boost = 1
-    + finite(w.freq) * Math.log1p(Math.max(0, finite(useCount)))
+    + finite(w.freq) * freqTerm
     + finite(w.salience) * Math.max(0, finite(salience))
     + finite(w.deltaU) * Math.abs(finite(deltaU));
   return S0 * boost;
@@ -76,7 +102,13 @@ export function evaluateRetention(item = {}, cfg = {}) {
   const now = finite(nowMs, 0);
   const lastUsed = finite(item.lastUsedMs, now);
   const daysSinceUse = Math.max(0, (now - lastUsed) / DAY_MS);
-  const S = effectiveStability(item.baseStabilityDays, { useCount: item.useCount, salience: item.salience, deltaU: item.deltaU }, sw);
+  // MEM-06 — recall WINDOW for the renewal rate: span from first-seen to now (the time over
+  // which useCount recalls accumulated). Prefer an explicit item.elapsedDays; else derive from
+  // item.firstSeenMs; else undefined → effectiveStability falls back to the count-based prior.
+  const elapsedDays = item.elapsedDays !== undefined
+    ? finite(item.elapsedDays, 0)
+    : (Number.isFinite(Number(item.firstSeenMs)) ? Math.max(0, (now - Number(item.firstSeenMs)) / DAY_MS) : undefined);
+  const S = effectiveStability(item.baseStabilityDays, { useCount: item.useCount, salience: item.salience, deltaU: item.deltaU, elapsedDays }, sw);
   const R = clamp01(retrievability(S, daysSinceUse, { decay, factor }));
   return {
     demote: R < rFloor,
@@ -94,6 +126,12 @@ export function bumpStability(stabilityDays, { growth = 1.6, maxDays = 3650 } = 
   const S = (() => { const v = finite(stabilityDays, 0); return v > 0 ? v : 1; })();
   return Math.min(finite(maxDays, 3650), S * finite(growth, 1.6));
 }
+
+// PARKED-BRANCH (card 29 Half-2 — inspection-paradox / length-biased age debias): NOT shipped.
+// The renewal-theory residual-age correction A(t) would rescue dead memories unless gated by a
+// stationarity guard (skip the correction for absorbing / hot-then-cold / shipped-project gaps).
+// The catalog flags this as risky without the guard, so Half-2 is deliberately deferred. Do not
+// implement an age debias here without first building the stationarity test it depends on.
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   // Tiny demo: a 10-day-stability item recalled 0 vs 40 days ago.

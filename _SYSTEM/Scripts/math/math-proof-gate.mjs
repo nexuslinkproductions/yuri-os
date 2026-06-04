@@ -32,6 +32,9 @@ const FORMULA_IMPLEMENTATIONS = {
   'cross-entropy': {
     invoke: (input) => ({ crossEntropy: kernel.crossEntropy(input.p, input.q, { base: input.base }) }),
   },
+  'information-gain': {
+    invoke: (input) => ({ gain: kernel.informationGain(input.before, input.after, { base: input.base }) }),
+  },
   'astar-evaluation': {
     invoke: (input) => {
       const fixture = loadFixture(input.fixture);
@@ -69,6 +72,9 @@ const FORMULA_IMPLEMENTATIONS = {
   },
   'weighted-variance': {
     invoke: (input) => ({ variance: kernel.weightedVariance(input.values, input.weights) }),
+  },
+  'weighted-std-dev': {
+    invoke: (input) => ({ stdDev: kernel.weightedStdDev(input.values, input.weights) }),
   },
   'expected-value': {
     invoke: (input) => ({ value: kernel.expectedValue(input.values, input.probabilities) }),
@@ -310,6 +316,7 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
 
   requireString(formula, 'domain', formulaLabel, errors);
   requireString(formula, 'implementedBy', formulaLabel, errors);
+  assertImplementedBySymbolResolves(formula.implementedBy, formulaLabel, errors);
   requireArray(formula, 'variables', formulaLabel, errors);
   requireArray(formula, 'assumptions', formulaLabel, errors);
   requireArray(formula, 'invalidInputs', formulaLabel, errors);
@@ -359,6 +366,25 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
     if (isLooseExpectedErrorPattern(counterexample.expectedError)) {
       errors.push(`${formulaLabel} counterexample ${counterexample.name || '(unnamed)'} has loose expectedError`);
     }
+  }
+}
+
+function assertImplementedBySymbolResolves(implementedBy, formulaLabel, errors) {
+  // Fail-closed provenance check: when a card declares a kernel symbol via
+  // '<path>#<symbol>', the symbol MUST be a real exported function of
+  // math-kernel.mjs. This makes the documented kernel function load-bearing so a
+  // future card-author or propagation auto-edit cannot silently desync the
+  // documented function from the executed binding. Scoped to math-kernel.mjs
+  // references only (the runtime); other paths (e.g. fixtures) skip the symbol check.
+  if (typeof implementedBy !== 'string' || !implementedBy.includes('#')) return;
+  const [pathPart, symbol] = implementedBy.split('#');
+  if (!pathPart.endsWith('math-kernel.mjs')) return;
+  if (!symbol || symbol.trim() === '') {
+    errors.push(`${formulaLabel} implementedBy declares an empty kernel symbol after '#'`);
+    return;
+  }
+  if (typeof kernel[symbol] !== 'function') {
+    errors.push(`${formulaLabel} implementedBy declares kernel#${symbol} which is not an exported function of math-kernel.mjs`);
   }
 }
 

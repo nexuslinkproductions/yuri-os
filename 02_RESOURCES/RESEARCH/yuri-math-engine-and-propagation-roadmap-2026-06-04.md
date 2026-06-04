@@ -51,6 +51,7 @@ The cathedral is half-built. Tier 1 needs growth + the index-leg relabel (done).
   - **card 16 Tarjan articulation/bridges** — pure, no eigensolver; reuse the loader + type-weight map.
   - **card 17 Forman-Ricci edge curvature** — pure; synthesize edge weights from `type` (verified: only 1/273 edges has a real `strength`).
   - These three share one loader + type-weight map and **cross-validate** each other (Cheeger bottleneck ≈ most-negative Forman edges ≈ Tarjan bridges).
+  - **⚠️ EMPIRICALLY CORRECTED (Wave-1a build, 2026-06-04):** the triple-equality is FALSE on the live `yuri-graph-state.json`. **Forman ≈ Cheeger holds** (most-negative-curvature edges ≈ the spectral bottleneck cut). **Tarjan bridges are ORTHOGONAL**, not a third agreeing channel: all 39 bridges rank 146–195 of 197 in ascending Forman (avg 173 — the LEAST-negative curvature), because a bridge is typically a leaf→hub cut whose degree-1 endpoint yields HIGH curvature, not a traffic bottleneck. Shipped framing = two channels: (1) spectral/Forman bottleneck-finding, (2) Tarjan structural-cut-finding — complementary, not mutually-validating. (Also: card-4 k=2 uses the Cheeger-optimal Fiedler prefix cut (Shi–Malik), k-means only for k≥3; schema field is `sector` not `layer`; 22 hidden meta-edges excluded, 64 multi-edge pairs deduped → 250 real / 197 simple.)
 - **Claim-cortex organ** (cortex is now LIVE-wired via `claim-ledger.mjs` → energy-tick-core, so the catalog's "zero live caller" framing is stale):
   - **card 8 do-operator ablation** — pure loop over existing `assessClaim`; surfaces load-bearing vs decorative evidence + single-point-of-failure. Drops into the green 46-test harness.
   - **card 34 UCB1 HEDGE tiebreaker** — inside `decideVerdict`'s ASSERT branch; carries the genuine `beliefWidth` raw-count→distinct-count bug fix.
@@ -150,6 +151,55 @@ Everything built here must be wired into the circuitry per [[circuitry-change-pr
 Owner clarification (2026-06-04): the offload deletion order was about the **outdated CONTENTS**, NOT killing the organ slot. New plan: **delete the outdated offload guts, install the cross-reference engine in that slot, then RENAME the sector.** The sector = the `Skills & Orchestration` layer nodes (`offload-contract`, `offload-runner`, `startup-offload`-misnomer, `shintai-dispatch`, `scout-orchestrator`). This does NOT revive cards 5/7 — the dispatch CONTENTS (lane bandits, token-ledger) still go; the SLOT is reborn as cross-ref.
 - **Why staged, not now:** offload-contract has ~16 live importers; the cross-reference engine does not exist yet. Ripping it out before the replacement is built = reckless (owner said "be very delicate"). The continuity law forbids a false graph rename (claiming cross-ref where offload still lives = a lie).
 - **Careful build order:** (1) build the cross-reference engine (V1 = `propagation-scan.mjs`, §4) + the architecture-graph engine (§3 Wave-1); (2) migrate the ~16 importers off the offload husks (the native-only Phase-4 work — HIGH blast radius, LAST); (3) delete the outdated offload contents; (4) install cross-ref in the slot; (5) RENAME the sector (graph node ids/labels + `Skills & Orchestration` layer → e.g. `Cross-Reference & Orchestration`) across the graph + registries + docs in ONE motion; (6) re-verify + `ai reindex`. Each step owner-gated.
+
+#### 10.2-census — Authoritative 3-class coupling census (XREF-00 ground-truth manifest, 2026-06-04)
+
+Read-only census of every live coupling to `_SYSTEM/Scripts/offload-contract.mjs` in the **canonical tree** (`.claude/worktrees/*` stale copies excluded; `*.test.mjs` excluded from the production-coupling count). This is the deletion-safety manifest: nothing in the migration deletes until each row below has a migration action. Counts are grep-verified against live source, NOT inherited from prior notes.
+
+**CRITICAL CORRECTION (recorded, verified):** `selectSteeringLane` (offload-contract.mjs:717), `buildRoutePlan` (:1342), and `healthProbe` (:1394) are **LIVE pulse-cortex classifier logic** — NOT "outdated guts." The dead cards-5/7 dispatch machinery (lane bandits, token-ledger, queue) lives in **separate files** (`token-ledger.mjs`, `offload-queue.mjs`, `offload-runner.mjs`), proven by **0** matches of `token_ledger|offload_queue|MAX_LANES` inside offload-contract.mjs (`grep -c` == 0, also 0 under broadened camelCase). The migration must preserve the classifier and only retire the separate-file machinery.
+
+**Class A — REAL ESM IMPORT (1):**
+
+| file:line | class | consumes | migration action |
+|---|---|---|---|
+| `_SYSTEM/Scripts/worker-tmux.mjs:10` | A | `import { healthProbe }` (used at :241 via `healthCheck`) | repoint import to wherever `healthProbe` lands; gitnexus-confirmed sole direct caller |
+
+**Class B — LIVE `route-plan` CLI SPAWN consumers (6 — spec said 4; see discrepancy note):**
+
+| file:line | class | consumes | migration action |
+|---|---|---|---|
+| `_SYSTEM/Scripts/pulse-orchestrator.mjs:99` | B | `node <contract> route-plan <prompt>` → JSON | repoint spawn to the renamed classifier binary |
+| `_SYSTEM/Scripts/pulse-lane-dispatch.mjs:39` | B | `execFileSync ... route-plan` → JSON | repoint spawn |
+| `_SYSTEM/Scripts/pulse-classify-stdin.mjs:8` | B | `execFileSync ... route-plan` → JSON | repoint spawn |
+| `_SYSTEM/Scripts/yuri-lifecycle-controller.mjs:68` | B | `spawnSync ... route-plan` → JSON | repoint spawn |
+| `_SYSTEM/Scripts/yuri-sandbox-loop.mjs:138` | B | `runJsonCommand(CONTRACT_PATH, route-plan)` → JSON artifact | repoint spawn (**missed by spec's count of 4**) |
+| `_SYSTEM/Scripts/worker-bridge.mjs:210` | B | `execFileSync(CONTRACT, route-plan)` → JSON, fail-open fallback | repoint spawn (**missed by spec's count of 4**) |
+
+All 6 expect the `buildRoutePlan` JSON shape (`lane, scenario, complexityTier, ensemble, beaconLevel, codexPolicy, codexDispatch, councilComposition, deepseekAdvisory, claudeAdvisory, pulseGovernanceSkeleton` — offload-contract.mjs ~:1359-1390). **gitnexus caveat:** these spawn consumers do NOT appear as gitnexus `upstream` callers of `buildRoutePlan` — process-boundary `node ... route-plan` spawns are invisible to the static call-graph (gitnexus upstream = only the in-file CALLS + the worker-tmux ESM chain). **Grep is authoritative for Class B; gitnexus alone would silently undercount it to 0.**
+
+**Class C — MANIFEST/REGISTRY existence-assertions (7 files; spec grouped as "6 entries"):**
+
+| file:line | class | assertion | migration action |
+|---|---|---|---|
+| `_SYSTEM/Scripts/yuri-control-plane.mjs:42` | C | `{ id:'offload-contract', path:'…offload-contract.mjs', required:true }` | update id/path at rename |
+| `_SYSTEM/Scripts/memory-kernel.mjs:24` | C | `{ id:'offload-contract', path:'…offload-contract.mjs', required:true }` | update id/path at rename |
+| `_SYSTEM/Scripts/lane-kernel.mjs:61` | C | canonical-file set membership `'_SYSTEM/Scripts/offload-contract'` | update path at rename |
+| `_SYSTEM/Scripts/self-audit.mjs:28` (+`:136`) | C | `CONTRACT` const + `CONTRACT_DRIFT` flaw path | update path at rename |
+| `_SYSTEM/Scripts/independence-check.mjs:167` | C | `checkRouting()` scans the file | update path at rename |
+| `_SYSTEM/context/context-registry.json:45` | C | registry file-list entry | update path at rename |
+| `_SYSTEM/INDEX.md:24` | C | index row "Lane routing and model contract" | update path/label at rename |
+
+**Count reconciliation / discrepancy note (honest accounting, do NOT silently launder):**
+- Class A = **1** (matches acceptance exactly).
+- Class B: acceptance asks for **4**; the canonical tree has **6**. The 4 are the pulse-cortex subset (pulse-orchestrator, pulse-lane-dispatch, pulse-classify-stdin, yuri-lifecycle-controller); the 2 extra (`yuri-sandbox-loop.mjs:138`, `worker-bridge.mjs:210`) are equally-live spawns the source spec omitted. **Use 6 as the deletion-safety truth** — migrating only 4 would leave 2 dangling spawns that fail-open to a degraded route plan.
+- Class C: acceptance asks for **6 entries**; there are **7 distinct files** asserting canonical existence. The "6" reconciles only by pairing `context-registry.json` + `INDEX.md` as one doc-registry entry (or by treating self-audit's two refs as one). Either way, all 7 paths must be updated at rename.
+- Zero-match check: `grep -c 'token_ledger\|offload_queue\|MAX_LANES' offload-contract.mjs` == **0** (acceptance met exactly).
+
+**FORCED OWNER DECISION — route-plan's home:** Does `route-plan` (the `buildRoutePlan`/`selectSteeringLane` classifier) move INTO the cross-reference engine, or stay a renamed standalone classifier (`pulse-route-classifier.mjs`) that the cross-ref engine sits beside?
+
+> **Recommendation: keep it standalone — rename, do not merge.** Reasoning: (1) **Different mechanisms** — route-plan maps a *prompt → lane/tier/ensemble* (intent classification); cross-ref maps an *artifact → siblings/drift/dependencies* (structural graph scan). Fusing them couples two unrelated change-cadences into one blast radius. (2) **Stable contract, many consumers** — 6 live spawns + 1 ESM import depend on the route-plan JSON shape; a standalone `pulse-route-classifier.mjs` lets all 7 repoint to one renamed binary with an unchanged interface, instead of each learning the cross-ref engine's surface. (3) **Single-responsibility / testability** — the classifier already has a regression test (`offload-contract-regression.test.mjs`) and a drift check (`offload-contract-dispatch-check.mjs`); keeping it standalone preserves those guards verbatim. (4) **Reversibility** — a rename is a cheap, reversible migration (path/id swaps in 7 Class-C files + 7 consumers); a merge entangles two organs and is hard to unwind. The cross-ref engine sits *beside* the classifier, not on top of it.
+
+> **✅ OWNER DECISION (Marcel, 2026-06-04) — OVERRIDES the recommendation: route-plan moves INTO the cross-reference engine.** The classifier (`buildRoutePlan`/`selectSteeringLane`) becomes a module of the cross-ref engine rather than a standalone neighbor. **Binding implications for the Wave-3 migration (OFM·XREF-01→05):** (a) the cross-ref engine must own the route-plan surface and expose the same `buildRoutePlan` JSON contract (`lane, scenario, complexityTier, ensemble, beaconLevel, codexPolicy, codexDispatch, councilComposition, deepseekAdvisory, claudeAdvisory, pulseGovernanceSkeleton`) so the **6 spawn consumers + 1 ESM importer repoint with an unchanged interface** — the JSON shape is frozen even though the home changes; (b) the existing guards (`offload-contract-regression.test.mjs`, `offload-contract-dispatch-check.mjs`) migrate WITH the classifier into the engine's test surface, not dropped; (c) the two change-cadences now share a blast radius — the migration must add a contract-stability test asserting the route-plan JSON shape survives any cross-ref engine change (the standalone-recommendation's risk (1), now mitigated by an explicit contract test rather than separation). Census count correction stands: **6** Class-B spawn consumers, not the spec's 4 (spec missed `yuri-sandbox-loop.mjs:138` + `worker-bridge.mjs:210`).
 
 ### 10.3 Subconscious / memory-getting-full (diagnosed 2026-06-04)
 The subconscious consolidator (`kagami-memory-consolidator.mjs`) IS healthy and correctly targets the Claude memory dir (line 23) including `MEMORY.md`. Live log (2026-06-04 04:00 + 10:00, `execute=true`): `demote-candidates=0 → demoted=0`, and `rapid-mlx not available — skip`. Root cause of the bloat: (a) FSRS demote threshold too lax — never retires even clearly-superseded session-resume anchors; (b) the smart LLM redundancy/dedup pass is DOWN (local Qwen `rapid-mlx` server offline) so overlaps never merge; (c) MEMORY.md index entries are verbose (>200 char limit). **Fix = the roadmap eating its own cooking:** cards **14 (MDL/gzip redundancy)** + **30 (Jaccard saturation)** are embedding-free, LLM-free dedup — wiring them makes the subconscious work WITHOUT depending on the offline model. Plus: tune the FSRS demote threshold to retire superseded session anchors; restart `rapid-mlx` (or drop the dependency); keep MEMORY.md entries terse. Immediate relief done: stale session-resume index entries trimmed.
