@@ -6,7 +6,7 @@
 ---
 
 ## BUILD STATUS — live log (kept synced each wave; model = reality)
-> Orchestrated as Workflow fleets, build→adversarial-verify each, owner gates commits. **Everything below is built + locally verified but UNCOMMITTED** (owner commit pending; `ai reindex` deferred — shared DB, concurrent circuitry session live in `02_RESOURCES/RESEARCH/circuitry/`). Detail: memory `[[wave0-foundations-done-2026-06-04]]`.
+> Orchestrated as Workflow fleets, build→adversarial-verify each, owner gates commits. **COMMITTED + PUSHED `e0302fe0` (2026-06-04): waves 0 + 1a + lifecycle + memory-dedup + xref + code-bible + docs (47 files, all suites green).** The **energy subsystem is HELD uncommitted** (`yuri-energy.mjs`, `claim-cortex.mjs`, `energy-tick-core`, `energy-breaker`, `neuron-loop`, `energy-weights`, the ENG-07/08/09 trace trio + advisory/trend tests) — a concurrent lane is editing the enforcing core there (NRG·ENG-02), so it commits with Wave 1b once that collision-check settles. `ai reindex` deferred (shared DB + concurrent lanes). Detail: memory `[[wave0-foundations-done-2026-06-04]]`.
 
 **✅ WAVE 0 — DONE (7 built + verified, 1 census).** KERNEL phantom→registry (MATH-01), `yuri-paths.mjs` (PORT-01), provenance gate (XREF-04), drift-detector (XREF-03), deferred-outcome labeler+trace-fix (ENG-07/08), MEMORY mtime-fix+telemetry-exclude (MEM-02/04), offload census (XREF-00). All suites green. Owner decision landed: **route-plan → INTO the cross-ref engine** (recorded §10.2; census corrected 4→**6** consumers).
 

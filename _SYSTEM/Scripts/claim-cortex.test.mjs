@@ -14,8 +14,9 @@ import {
   assessClaim,
   cortexSnapshot,
   gateClaimTransition,
+  evidenceNecessity,
 } from './claim-cortex.mjs';
-import { computeU, gateProposal } from './math/yuri-energy.mjs';
+import { computeU, gateProposal, maxEntBelief } from './math/yuri-energy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -487,6 +488,146 @@ test('IDENTITY GATE — a RETRACT over-claim with no stable id fails CLOSED', ()
   assert.equal(g.identityVeto, true);
   assert.equal(g.untrackedRetract, 1);
   assert.equal(g.accept, false);
+});
+
+// ---------------------------------------------------------------------------
+// CARD 8 — evidenceNecessity (Pearl do-operator / counterfactual ablation).
+// PURE additive readout: must not change any computeU-consumed field or aggregateU.
+// ---------------------------------------------------------------------------
+
+test('CARD8 — load-bearing vs decorative: the test is necessary, the advisory is decorative', () => {
+  // claimed runtime_tested with [fresh test, fresh advisory]. The test earns the rung;
+  // the advisory (ceiling research) is decorative. Remove the test -> ASSERT collapses
+  // toward RETRACT (high necessity); remove the advisory -> verdict unchanged (necessity 0).
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 1, { reference: 'T' }), ev('advisory', 1, { reference: 'A' })] };
+  const n = evidenceNecessity(claim, { nowMs: NOW });
+  assert.equal(n.baselineVerdict, VERDICTS.ASSERT);
+  const testRec = n.perRecord.find((r) => r.kind === 'test');
+  const advRec = n.perRecord.find((r) => r.kind === 'advisory');
+  assert.ok(testRec.necessity > 0, 'the test is load-bearing');
+  assert.equal(testRec.loadBearing, true);
+  assert.equal(advRec.necessity, 0, 'the advisory is decorative — its removal changes nothing');
+  assert.equal(advRec.loadBearing, false);
+  assert.equal(n.singlePointOfFailure, true, 'removing the lone test forces a RETRACT');
+});
+
+test('CARD8 — no single point of failure when two distinct executable checks back the claim', () => {
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 1, { reference: 'A' }), ev('runtime_trace', 1, { reference: 'B' })] };
+  const n = evidenceNecessity(claim, { nowMs: NOW });
+  assert.equal(n.baselineVerdict, VERDICTS.ASSERT);
+  // removing either leaves the other at runtime_tested ceiling -> still ASSERT, necessity 0.
+  assert.equal(n.singlePointOfFailure, false, 'redundant executable evidence removes the SPOF');
+});
+
+test('CARD8 — PURE: evidenceNecessity does not mutate the input claim', () => {
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 1, { reference: 'T' })] };
+  const snapshot = JSON.stringify(claim);
+  evidenceNecessity(claim, { nowMs: NOW });
+  assert.equal(JSON.stringify(claim), snapshot, 'the caller object is never observed-then-mutated');
+});
+
+test('CARD8 — PURE: it fails closed on a bad clock like every other cortex entry', () => {
+  assert.throws(() => evidenceNecessity({ claimedStatus: 'trusted', evidence: [] }, { nowMs: NaN }), /epoch-ms clock/);
+});
+
+// ---------------------------------------------------------------------------
+// CARD 28 / ENG-06 — MaxEnt belief replaces the magic beliefWidth constant.
+// ---------------------------------------------------------------------------
+
+test('CARD28 — the assessClaim posterior IS the MaxEnt belief at the evidenced rank', () => {
+  // claimed runtime_tested, advisory only -> evidenceRank research(1). Posterior must equal
+  // maxEntBelief(1, LADDER_N) clamped — proving the Gaussian beliefWidth constant is retired.
+  const a = assess({ id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('advisory', 1)] });
+  const expected = maxEntBelief(1, LADDER.length).map((v) => Math.max(v, 1e-9));
+  assert.equal(a.posterior.length, LADDER.length);
+  for (let i = 0; i < LADDER.length; i += 1) {
+    assert.ok(Math.abs(a.posterior[i] - expected[i]) < 1e-9, `posterior[${i}] ${a.posterior[i]} != maxEnt ${expected[i]}`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// CARD 34 — distinct-count (identity-keyed) + UCB1 global-effort HEDGE tiebreaker.
+// ---------------------------------------------------------------------------
+
+test('CARD34 — UCB tiebreaker is INERT by default (no totalSystemChecks) — boundary unchanged', () => {
+  // a fresh single test at its earned rung is a plain ASSERT with the tiebreaker disabled.
+  const a = assess({ id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 0)] });
+  assert.equal(a.verdict, VERDICTS.ASSERT);
+});
+
+test('CARD34 — armed: one green pass while the system is barely checked stays a HEDGE; recovers as effort grows', () => {
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 0, { reference: 'T' })] };
+  const thin = assessClaim(claim, { nowMs: NOW, totalSystemChecks: 1 });
+  assert.equal(thin.verdict, VERDICTS.HEDGE, 'thin global effort -> the lone green pass hedges');
+  const broad = assessClaim(claim, { nowMs: NOW, totalSystemChecks: 100000 });
+  assert.equal(broad.verdict, VERDICTS.ASSERT, 'as global verification effort grows the bonus decays -> ASSERT recovers');
+});
+
+test('CARD34 — armed: re-stamped COPIES of one check (same kind+ref) do NOT self-explore to ASSERT', () => {
+  // Two copies of one test = one DISTINCT check. With thin global effort the UCB bonus over
+  // n=1 distinct check holds it at HEDGE — copies cannot inflate the distinct count.
+  const dup = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('test', 0, { reference: 'R' }), ev('test', 0, { reference: 'R' })] };
+  const a = assessClaim(dup, { nowMs: NOW, totalSystemChecks: 2 });
+  assert.equal(a.verdict, VERDICTS.HEDGE, 'distinct count is 1 (identity dedup) -> bonus large -> HEDGE');
+});
+
+// ---------------------------------------------------------------------------
+// CARD 36 — Jeffrey conditioning (ADVISORY / flag-gated) + the MANDATORY
+// epsilon-vs-zeta no-double-count canary.
+// ---------------------------------------------------------------------------
+
+test('CARD36 — Jeffrey is OFF by default: live posterior is the MaxEnt-at-evidenceRank baseline', () => {
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('advisory', 0)] };
+  const off = assessClaim(claim, { nowMs: NOW });
+  const expected = maxEntBelief(off.evidenceRank, LADDER.length).map((v) => Math.max(v, 1e-9));
+  for (let i = 0; i < LADDER.length; i += 1) {
+    assert.ok(Math.abs(off.posterior[i] - expected[i]) < 1e-9, 'default posterior is MaxEnt-at-evidenceRank, not Jeffrey');
+  }
+});
+
+test('CARD36 — within-kind reliability blindness is REAL under MaxEnt-only and CLOSED under Jeffrey', () => {
+  // SAME KIND (advisory), claim ABOVE the ceiling so the posterior genuinely moves off the prior.
+  const strong = { id: 'S', claimedStatus: 'runtime_tested', evidence: [ev('advisory', 0, { reference: 's' })] };  // decayed ~1.0
+  const weak   = { id: 'W', claimedStatus: 'runtime_tested', evidence: [ev('advisory', 55, { reference: 'w' })] }; // decayed ~0.28, still fresh
+  const ig = (claim, jeffrey) => {
+    const a = assessClaim(claim, { nowMs: NOW, jeffrey });
+    return computeU({ priorState: a.prior, posteriorState: a.posterior }).result.components.informationGain.value;
+  };
+  // MaxEnt-only (the hole): strong and weak earn IDENTICAL info-gain — reliability-blind.
+  assert.equal(ig(strong, false), ig(weak, false), 'MaxEnt-only is within-kind reliability-blind (the verified hole)');
+  // Jeffrey: the reliable record moves the posterior nearly fully; the weak one fractionally
+  // -> strictly LESS info-gain credit for the weak-only case.
+  assert.ok(ig(strong, true) > ig(weak, true), 'Jeffrey credits the reliable record strictly more than the weak one');
+});
+
+test('CANARY — epsilon FIRES under Jeffrey (not the silent evalInfoGain skip) AND zeta is not double-counted', () => {
+  // The double-count risk: reliability uses decayed_strength, the SAME signal evalStaleness (zeta)
+  // consumes. The canary asserts (1) epsilon FIRES — a real value, not the silent skip evalInfoGain
+  // takes on a thrown/malformed posterior — and (2) turning Jeffrey ON changes epsilon (the posterior
+  // shape) but NOT zeta (the base-minus-decayed staleness), so aging is not scored twice.
+  const claim = { id: 'x', claimedStatus: 'runtime_tested', evidence: [ev('advisory', 55, { reference: 'w' })] };
+  const stateOf = (jeffrey) => {
+    const a = assessClaim(claim, { nowMs: NOW, jeffrey });
+    return computeU({
+      priorState: a.prior,
+      posteriorState: a.posterior,
+      // zeta reads this evidence array, independent of the belief vectors:
+      evidence: [{ base: 1, age: 55, halfLife: 30 }],
+    }).result.components;
+  };
+  const off = stateOf(false);
+  const on = stateOf(true);
+
+  // (1) epsilon FIRES in both modes — never the silent skip.
+  assert.equal(off.informationGain.skipped === true, false, 'epsilon must FIRE with Jeffrey OFF');
+  assert.equal(on.informationGain.skipped === true, false, 'epsilon must FIRE with Jeffrey ON (not the malformed-posterior skip)');
+  assert.ok(Number.isFinite(off.informationGain.value) && Number.isFinite(on.informationGain.value));
+
+  // (2) Jeffrey changes EPSILON (the within-kind reliability now lands in info-gain)...
+  assert.notEqual(on.informationGain.value, off.informationGain.value, 'Jeffrey moves the epsilon term');
+  // ...but does NOT change ZETA — the same decay signal is not scored a SECOND time through staleness.
+  assert.equal(on.staleness.value, off.staleness.value, 'zeta/staleness is unchanged — aging is not double-counted across epsilon and zeta');
+  assert.ok(on.staleness.value > 0, 'and zeta is genuinely live (a real aged record), not trivially equal at 0');
 });
 
 // ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   BREAKER_STATE, DEFAULT_BREAKER_CFG, freshBreaker, normBreaker,
   isCatastrophic, transitionOnVerdict, evaluateGate, verdictFromStates, loadBreakerCfg,
+  trendReadout,
 } from './energy-breaker.mjs';
 
 const VETO_PROTECTED = { accept: false, protectedPathVeto: true, structuralFloorVeto: false, deltaU: 100, dominantTerm: 'protectedPathViolations' };
@@ -162,4 +163,55 @@ test('full lifecycle: CLOSED -> trip OPEN -> cooldown probe -> clean -> CLOSED',
   assert.equal(b.state, BREAKER_STATE.HALF_OPEN);
   b = transitionOnVerdict(b, CLEAN, 31000);                    // probe succeeds
   assert.equal(b.state, BREAKER_STATE.CLOSED);                 // recovered
+});
+
+// ── ADVISORY trend readout (computed/shadow metric) ─────────────────────────────
+
+test('trendReadout: alarms on a signed-ΔU slow drift (regime change), pins changeIndex', () => {
+  // -0.3 -> +0.3 over 40 ticks; no single step is an outlier (catalog smallest-experiment).
+  const drift = Array.from({ length: 40 }, (_, i) => -0.3 + (0.6 * i) / 39);
+  const r = trendReadout(drift);
+  assert.equal(r.available, true);
+  assert.equal(r.alarm, true);
+  assert.ok(r.changeIndex >= 0, 'changeIndex should be pinned');
+  assert.ok(r.h > 0, 'scale-free h must be positive');
+});
+
+test('trendReadout: silent on a flat in-control stream (no false alarm)', () => {
+  // Stationary noise around 0 — must not alarm (the ARL₀ false-alarm dial is real).
+  const flat = [-0.1, 0.1, -0.05, 0.08, -0.12, 0.06, -0.04, 0.09, -0.07, 0.03];
+  const r = trendReadout(flat);
+  assert.equal(r.available, true);
+  assert.equal(r.alarm, false);
+});
+
+test('trendReadout: degenerate (constant) stream -> in-control, never fabricates an alarm', () => {
+  const r = trendReadout([2, 2, 2, 2, 2, 2]);
+  assert.equal(r.available, true);
+  assert.equal(r.alarm, false);
+  assert.equal(r.h, 0); // MAD=0 -> no admissible scale -> reported flat, not h<=0 throw
+});
+
+test('trendReadout: too-few samples / garbage -> unavailable flat, never throws', () => {
+  for (const junk of [null, undefined, [], [1, 2, 3], 'x', 42, [NaN, Infinity, 1]]) {
+    const r = trendReadout(junk);
+    assert.equal(r.available, false, `junk=${JSON.stringify(junk)} should be unavailable`);
+    assert.equal(r.alarm, false);
+  }
+});
+
+test('trendReadout NEVER feeds the gate: evaluateGate ignores it entirely (EQUIVALENCE proof)', () => {
+  // A breaker whose recentDeltaU is a clear CUSUM-alarming drift must still decide
+  // identically — the advisory readout cannot trip or steer the gate.
+  const driftBand = Array.from({ length: 40 }, (_, i) => -0.3 + (0.6 * i) / 39);
+  const b = { ...freshBreaker(), recentDeltaU: driftBand.slice(-20) };
+  // Confirm the FULL drift band would alarm the advisory readout (precondition).
+  assert.equal(trendReadout(driftBand).alarm, true, 'precondition: drift alarms the advisory readout');
+  // The gate decision depends ONLY on the existing steer window, not the readout.
+  const g = evaluateGate(b, 1000, { ...DEFAULT_BREAKER_CFG, steerAscentWindow: 5, steerAscentCount: 3 });
+  // Recompute the expected decision WITHOUT the readout to prove independence.
+  const win = b.recentDeltaU.slice(-5);
+  const positives = win.filter((x) => x > 0).length;
+  const expected = (positives >= 3) ? 'steer' : 'allow';
+  assert.equal(g.decision, expected, 'gate decision == pure steer-rule output, trend readout irrelevant');
 });

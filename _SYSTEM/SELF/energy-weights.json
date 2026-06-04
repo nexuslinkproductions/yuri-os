@@ -15,6 +15,10 @@
       "fsrs.decay": "finite, < 0; FSRS power-law decay exponent (default -0.5 → R(t=S)=0.9).",
       "fsrs.factor": "finite, > 0; FSRS power-law factor (default 19/81).",
       "fsrs.salience / fsrs.freq / fsrs.deltaU": "finite, >= 0; weights that lift effective STABILITY (slower decay) from salience, recall frequency, and encode-surprise.",
+      "fsrs.redundancyFloor": "finite, 0 <= x <= 1; MEM-02 MDL axis — normalized gzip marginal-bits below which a body is REDUNDANT (predicted by the rest of the kept store). Demote requires R<rFloor AND marginalBits<redundancyFloor. 0 disables the axis (pure-FSRS baseline). Higher = treat more bodies as redundant.",
+      "fsrs.supersessionPenaltyDays": "finite, >= 0; MEM-05 — days by which OLDER same-family anchors (e.g. session-resume-*) are back-dated so they cross rFloor once a NEWER sibling exists; the newest stays warm. 0 disables the supersession pass.",
+      "fsrs.renewalScale": "finite, > 0; MEM-06 card 29-H1 renewal-RATE scale — effectiveStability boosts by freq·log1p(r·scale), r=useCount/max(elapsedDays,minWindow). Frequency-per-time, not raw count.",
+      "fsrs.renewalMinWindowDays": "finite, >= 1; MEM-06 minimum elapsed-days window for the renewal rate (a 1-day burst can't inflate the rate); also the recall-count floor below which an item falls back to the count-based prior.",
       "recall.relevanceFloor": "finite, >= 0; min BM25 relevance for a cold hit to surface (yuri-recall rankRecall).",
       "recall.topK": "integer >= 1; max cold traces surfaced per cue.",
       "recall.halfLifeDays": "finite, >= 1; recency half-life in the recall blend.",
@@ -63,7 +67,11 @@
     "factor": 0.23456790123456789,
     "salience": 1.0,
     "freq": 0.5,
-    "deltaU": 0.3
+    "deltaU": 0.3,
+    "redundancyFloor": 0.15,
+    "supersessionPenaltyDays": 30,
+    "renewalScale": 1.0,
+    "renewalMinWindowDays": 1
   },
   "recall": {
     "relevanceFloor": 0,

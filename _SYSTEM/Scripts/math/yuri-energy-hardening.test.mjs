@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { computeU, gateProposal, DEFAULT_WEIGHTS } from './yuri-energy.mjs';
 import { buildTraceRecord, CANONICAL_PROMOTION_LABELS } from './yuri-energy-trace.mjs';
 import { PROMOTION_LADDER_LABELS } from './yuri-energy-sanitize.mjs';
+import { LADDER } from '../claim-cortex.mjs';
 
 // --- Bug #3: KL non-monotonic -> maximal drift must REJECT, not skip-to-accept ---
 test('bug#3 — a provable-lie verified distribution yields a FINITE KL and REJECTS', () => {
@@ -133,4 +134,46 @@ test('attack — secret distribution keys (and split chunks) are dropped via clo
 
 test('drift — trace CANONICAL_PROMOTION_LABELS equals sanitize PROMOTION_LADDER_LABELS', () => {
   assert.deepEqual([...CANONICAL_PROMOTION_LABELS], [...PROMOTION_LADDER_LABELS]);
+});
+
+// ENG-08: the assertion that would have CAUGHT the operator_validated drop. The old
+// drift test only checked trace==sanitize — both omitted operator_validated, so it
+// stayed green while both drifted from the real cortex LADDER. Key the assertion on
+// the LADDER (the source of truth), not on the two telemetry sets agreeing.
+test('drift — trace CANONICAL_PROMOTION_LABELS equals the live cortex LADDER (caught ENG-08)', () => {
+  assert.deepEqual(
+    [...CANONICAL_PROMOTION_LABELS],
+    [...LADDER],
+    'closed-set must equal the cortex LADDER or telemetry mass is silently dropped',
+  );
+});
+
+test('drift — operator_validated is a LADDER rung AND present in the closed telemetry set', () => {
+  assert.ok(LADDER.includes('operator_validated'), 'operator_validated is a live LADDER rung');
+  assert.ok(
+    CANONICAL_PROMOTION_LABELS.includes('operator_validated'),
+    'operator_validated must survive the closed-set projection (was dropped pre-ENG-08)',
+  );
+});
+
+test('drift — deprecated is the SINK and is excluded from BOTH the LADDER and the closed set', () => {
+  assert.ok(!LADDER.includes('deprecated'), 'deprecated is a sink, off the LADDER');
+  assert.ok(
+    !CANONICAL_PROMOTION_LABELS.includes('deprecated'),
+    'deprecated must NOT be a distribution rung in telemetry',
+  );
+});
+
+// End-to-end: a real cortex distribution with operator_validated mass must RETAIN that
+// count through summarizeState onto the on-disk record. Pre-ENG-08 it was silently 0/absent.
+test('ENG-08 — operator_validated count survives summarizeState onto the trace record', () => {
+  const rec = buildTraceRecord({
+    lane: 't', runId: 'eng08',
+    stateBefore: { claimPromotionDistribution: { fixture_ready: 2, operator_validated: 3, trusted: 1 } },
+    stateAfter: {},
+  });
+  const dist = rec.stateBefore_summary.claimPromotionDistribution;
+  assert.equal(dist.operator_validated, 3, 'operator_validated mass must be retained, not dropped');
+  assert.equal(dist.fixture_ready, 2);
+  assert.equal(dist.trusted, 1);
 });

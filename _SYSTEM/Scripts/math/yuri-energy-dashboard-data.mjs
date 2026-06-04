@@ -609,6 +609,115 @@ export function buildAttributionSection(steps, studyReport, weights = DEFAULT_WE
 }
 
 // ---------------------------------------------------------------------------
+// buildKKTReadoutSection — ENG-09. READ-ONLY Lagrangian/KKT slackness dead-term
+// prune + legibility readout over the live decision trace (catalog card 32).
+//
+// Reinterpret each soft structural term in computeU as a priced constraint and its
+// weighted componentContribution as an empirical activation cost. Per term across N
+// real decisions: how often it was non-zero (binding frequency) and its summed
+// |weighted contribution| (activation cost). Rank constraints by frequency × cost.
+//
+// BARRIER terms (η protected-path, θ ladder-floor) are the NON-offsettable hard
+// vetoes — explicitly flagged barrier:true and NEVER marked prunable, even when they
+// rarely fire (a barrier that rarely binds is a SAFE system, not a dead term). The
+// slackness/prune lens applies ONLY to offsettable soft terms. A soft term with ~0
+// cumulative contribution across the trace is a documented prune/merge candidate.
+//
+// Pure given its records input. No writes (the dashboard-data module's contract). The
+// caller (aggregate) supplies already-parsed, already-sanitized trace records.
+// ---------------------------------------------------------------------------
+
+// The two genuine non-offsettable BARRIER vetoes in gateProposal. Distinct from the
+// COMPONENT_META 'critical' kind (which also tags β/κ/λ — heavy SOFT penalties, still
+// offsettable). Only these two are hard floors that survive any soft-credit sum.
+export const BARRIER_TERMS = Object.freeze(['protectedPathViolations', 'promotionLadderInversions']);
+const BARRIER_SET = new Set(BARRIER_TERMS);
+
+export function buildKKTReadoutSection(records, { pruneEpsilon = 1e-9 } = {}) {
+  const list = Array.isArray(records) ? records : [];
+  // Accumulate per-term activation frequency + summed |weighted contribution|.
+  const stat = {};
+  let decisions = 0;
+  let rejects = 0;
+  const bumpDecision = () => { decisions += 1; };
+  for (const rec of list) {
+    if (!rec || typeof rec !== 'object') continue;
+    const cc = rec.componentContributions;
+    if (!cc || typeof cc !== 'object' || Array.isArray(cc)) continue;
+    bumpDecision();
+    if (rec.decision === 'reject') rejects += 1;
+    for (const [term, raw] of Object.entries(cc)) {
+      const v = Number(raw);
+      if (!Number.isFinite(v)) continue;
+      const s = stat[term] ?? (stat[term] = { term, firedCount: 0, absCost: 0 });
+      if (v !== 0) s.firedCount += 1;
+      s.absCost = round9(s.absCost + Math.abs(v));
+    }
+  }
+  const terms = Object.values(stat).map((s) => {
+    const meta = META_BY_CC[s.term] ?? null;
+    const barrier = BARRIER_SET.has(s.term);
+    const firedFraction = decisions > 0 ? round9(s.firedCount / decisions) : 0;
+    // Activation rank = how often it binds × how much it costs when it does.
+    const activation = round9(firedFraction * s.absCost);
+    // Prune candidate ONLY for offsettable soft terms with ~0 cumulative cost. A
+    // barrier is NEVER a prune candidate (rarely-firing barrier = safe, not dead).
+    const pruneCandidate = !barrier && s.absCost <= pruneEpsilon;
+    return {
+      term: s.term,
+      sym: meta?.sym ?? SYM_BY_CC[s.term] ?? '',
+      name: meta?.name ?? s.term,
+      kind: meta?.kind ?? 'penalty',
+      barrier,
+      firedCount: s.firedCount,
+      firedFraction,
+      absCost: s.absCost,
+      activation,
+      pruneCandidate,
+    };
+  }).sort((a, b) => b.activation - a.activation);
+
+  const pruneCandidates = terms.filter((t) => t.pruneCandidate).map((t) => t.term);
+  const barriers = terms.filter((t) => t.barrier).map((t) => t.term);
+
+  // Per-reject binding-constraints readout (dual readout): the ranked active terms
+  // that forced each reject, rendered as a constraint list instead of an opaque U.
+  const rejectReadouts = list
+    .filter((r) => r && typeof r === 'object' && r.decision === 'reject')
+    .slice(0, 24)
+    .map((r) => {
+      const cc = r.componentContributions && typeof r.componentContributions === 'object' && !Array.isArray(r.componentContributions)
+        ? r.componentContributions : {};
+      const binding = Object.entries(cc)
+        .map(([term, raw]) => ({ term, sym: SYM_BY_CC[term] ?? '', cost: round9(Number(raw)), barrier: BARRIER_SET.has(term) }))
+        .filter((b) => Number.isFinite(b.cost) && b.cost !== 0)
+        .sort((a, b) => Math.abs(b.cost) - Math.abs(a.cost));
+      return {
+        runId: typeof r.runId === 'string' ? r.runId : '',
+        deltaU: Number.isFinite(Number(r.deltaU)) ? round9(Number(r.deltaU)) : null,
+        dominantTerm: typeof r.dominantTerm === 'string' ? r.dominantTerm : null,
+        bindingConstraints: binding,
+      };
+    });
+
+  return {
+    provenance: PROVENANCE.REAL,
+    note:
+      'KKT slackness dead-term readout over the live decision trace. Each soft term is a priced ' +
+      'constraint; activation = bindingFrequency × summed |weighted contribution|. BARRIER terms ' +
+      '(protected-path, ladder-floor) are non-offsettable hard vetoes — never prune candidates even ' +
+      'when they rarely fire. A soft term with ~0 cumulative cost is a prune/merge candidate. ' +
+      'Read-only; sets no weights (duality does not set the weights).',
+    decisions,
+    rejects,
+    terms,
+    barriers,
+    pruneCandidates,
+    rejectReadouts,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // readLatestStudy — I/O surface. Reads the newest sandbox-action-study/study-*.json
 // report written by yuri-action-mode-study.mjs. Returns null when absent (honest:
 // the study may not have been run). Filenames embed a millisecond stamp, so a
@@ -758,6 +867,9 @@ export function aggregate({ descent, descentSteps = [], traceResult, studyReport
     attribution: buildAttributionSection(descentSteps, studyReport, weights),
     // actionStudy — the teeth: rejection battery + shadow-replay false-positive rate.
     actionStudy: buildActionStudySection(studyReport),
+    // kktReadout — ENG-09: read-only Lagrangian/KKT dead-term + binding-constraint
+    // legibility over the live trace. Empirical "which terms never bind" readout.
+    kktReadout: buildKKTReadoutSection(trace.records),
     surfaces: buildSurfacesSection(),
     status: buildStatusSection({ testCounts }),
     advisory_only: true,

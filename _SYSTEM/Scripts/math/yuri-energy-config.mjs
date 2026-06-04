@@ -83,6 +83,9 @@ export function loadEnergyConfig(file = CONFIG_FILE) {
 
   // fsrs — subconscious forgetting-curve knobs (memory-relocator / yuri-fsrs evaluateRetention).
   // Fail-closed: rFloor in (0,1], decay < 0, factor > 0, stability weights (salience/freq/deltaU) >= 0.
+  // MEM-02: redundancyFloor in [0,1] (0 disables the MDL axis → pure-FSRS baseline). MEM-05:
+  // supersessionPenaltyDays >= 0 (0 disables the same-family back-date). MEM-06: scale/minWindow
+  // for the renewal-rate stability term — scale > 0, minWindow >= 1 day.
   if (raw.fsrs && typeof raw.fsrs === 'object' && !Array.isArray(raw.fsrs)) {
     const f = {};
     const rf = num(raw.fsrs.rFloor);   if (rf !== null && rf > 0 && rf <= 1) f.rFloor = rf;
@@ -91,6 +94,10 @@ export function loadEnergyConfig(file = CONFIG_FILE) {
     const sa = num(raw.fsrs.salience); if (sa !== null && sa >= 0) f.salience = sa;
     const fq = num(raw.fsrs.freq);     if (fq !== null && fq >= 0) f.freq = fq;
     const du = num(raw.fsrs.deltaU);   if (du !== null && du >= 0) f.deltaU = du;
+    const rdf = num(raw.fsrs.redundancyFloor);        if (rdf !== null && rdf >= 0 && rdf <= 1) f.redundancyFloor = rdf;
+    const sup = num(raw.fsrs.supersessionPenaltyDays); if (sup !== null && sup >= 0) f.supersessionPenaltyDays = sup;
+    const rsc = num(raw.fsrs.renewalScale);            if (rsc !== null && rsc > 0) f.renewalScale = rsc;
+    const rmw = num(raw.fsrs.renewalMinWindowDays);    if (rmw !== null && rmw >= 1) f.renewalMinWindowDays = rmw;
     if (Object.keys(f).length) out.fsrs = f;
   }
 

@@ -54,6 +54,14 @@ const ALLOWED_STRING_PATHS = new Set([
   'event',    // canonical Object+Action event name — see user-data-methodology.md §2
   'decision',
   'dominantTerm',
+  // ENG-07 deferred-outcome record (energy-trace-outcomes/<date>.jsonl). Added
+  // DELIBERATELY (per spec): the outcome record is numeric/closed-set except its
+  // runId join key (already allow-listed) and resolvedAt — the ISO timestamp of when
+  // the deferred outcome was observed. Distinct from the record's write `timestamp`
+  // (when the row was appended), so it gets its own allow-listed path rather than
+  // overloading `timestamp`. A re-canonicalized ISO string only; the resolver coerces
+  // it through new Date(...).toISOString() before write, so no free text can land here.
+  'resolvedAt',
 ]);
 
 function isPlainObject(value) {
@@ -165,6 +173,21 @@ function resolveTraceDir(options = {}) {
   return path.join(DEFAULT_REPO_ROOT, '_SYSTEM', 'state', 'energy-trace');
 }
 
+// ENG-07: deferred-outcome JSONL lives in a SEPARATE subdir (energy-trace-outcomes)
+// so the decision stream and the outcome stream never interleave in one file and the
+// labeler is a strictly second writer that cannot corrupt the live decision trace.
+// Same YURI_STATE_DIR / explicit-dir precedence as the decision trace.
+function resolveOutcomeDir(options = {}) {
+  if (options.outcomeDir) return options.outcomeDir;
+  const stateDir = process.env.YURI_STATE_DIR;
+  if (stateDir) return path.join(stateDir, 'energy-trace-outcomes');
+  return path.join(DEFAULT_REPO_ROOT, '_SYSTEM', 'state', 'energy-trace-outcomes');
+}
+
+// Exported so the labeler module (yuri-energy-trace-outcomes.mjs) and dashboards can
+// resolve the same dir without re-deriving the precedence rules.
+export { resolveTraceDir, resolveOutcomeDir };
+
 // ---------------------------------------------------------------------------
 // State summarization — extract only numeric/structural fields, no free text.
 // ---------------------------------------------------------------------------
@@ -198,14 +221,30 @@ function evidenceAgeStats(evidence) {
 }
 
 // CLOSED canonical promotion-label set for claimPromotionDistribution keys (privacy
-// KEY guard). Defined locally to avoid a trace<->sanitize import cycle (sanitize
-// imports validateRecord from here); a drift test asserts it equals sanitize's
-// PROMOTION_LADDER_LABELS. summarizeState iterates THIS set, never the attacker-
-// controlled keys, so an out-of-enum key — a secret, a 'ghp_...' token, a length-
-// split chunk — is never read and cannot reach disk. (The earlier lowercase charset
-// admitted lowercase secrets and was defeated by splitting a long secret in two.)
+// KEY guard). Defined locally — NOT imported — on purpose: this set IS the security
+// control, and a privacy gate must stay hermetic, never coupled to another module's
+// transitive load graph (cortex → energy, registry → lane-kernel, …). The closed set
+// must equal the cortex LADDER (claim-cortex.LADDER = claim-integrity-gate.PROMOTION_STATES
+// minus the 'deprecated' SINK). A drift test (yuri-energy-hardening.test.mjs) asserts this
+// set EQUALS the live cortex LADDER, so a future ladder change that is not mirrored here
+// fails the suite instead of silently dropping telemetry mass on disk.
+//
+// operator_validated was ADDED 2026-06-04 (ENG-08): it is a live promotion rung in the
+// cortex LADDER (operator-note-ceilinged claims land here), but it was omitted from this
+// closed set, so summarizeState silently dropped any claimPromotionDistribution mass at
+// operator_validated from on-disk telemetry — corrupting any future weight-learning /
+// calibration replay (ENG-07) that reads the trace. The drift test below now keys on the
+// LADDER, not on trace-vs-sanitize agreement (both previously drifted together, hiding it).
+//
+// 'deprecated' stays OUT — it is a SINK (off the promotion ladder entirely), not a
+// distribution rung; the drift test asserts that exclusion explicitly.
+//
+// summarizeState iterates THIS set, never the attacker-controlled keys, so an out-of-enum
+// key — a secret, a 'ghp_...' token, a length-split chunk — is never read and cannot reach
+// disk. (The earlier lowercase charset admitted lowercase secrets and was defeated by
+// splitting a long secret in two.)
 export const CANONICAL_PROMOTION_LABELS = Object.freeze([
-  'draft', 'research', 'fixture_ready', 'runtime_tested', 'trusted',
+  'draft', 'research', 'fixture_ready', 'runtime_tested', 'operator_validated', 'trusted',
 ]);
 const CANONICAL_PROMOTION_LABEL_SET = new Set(CANONICAL_PROMOTION_LABELS);
 
@@ -339,6 +378,32 @@ export function appendTrace(record, options = {}) {
   fs.appendFileSync(filePath, serialized + '\n', {
     encoding: 'utf8',
   });
+
+  return filePath;
+}
+
+// ---------------------------------------------------------------------------
+// appendOutcome — ENG-07. The ONLY write surface for deferred-outcome records.
+// Append-only, second JSONL (energy-trace-outcomes/<date>.jsonl). Passes the SAME
+// Privacy Gate as appendTrace: pre-validate → serialize → re-parse → re-validate,
+// so a getter / lazy value / non-allow-listed string cannot smuggle content into
+// the outcome stream. Returns the absolute path of the outcome file written.
+// ---------------------------------------------------------------------------
+
+export function appendOutcome(record, options = {}) {
+  // Identical canary discipline to appendTrace — the outcome stream is held to the
+  // same privacy bar as the decision stream.
+  validateRecord(record);
+  const serialized = JSON.stringify(record);
+  const parsed = JSON.parse(serialized);
+  validateRecord(parsed);
+
+  const outcomeDir = resolveOutcomeDir(options);
+  const date = options.dateOverride ?? new Date().toISOString().slice(0, 10);
+  const filePath = path.join(outcomeDir, `${date}.jsonl`);
+
+  fs.mkdirSync(outcomeDir, { recursive: true });
+  fs.appendFileSync(filePath, serialized + '\n', { encoding: 'utf8' });
 
   return filePath;
 }

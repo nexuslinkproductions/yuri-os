@@ -23,6 +23,7 @@
  */
 import { gateProposal } from './math/yuri-energy.mjs';
 import { toGateState } from './energy-tick-core.mjs';
+import { cusum, scalarKalman } from './math/math-kernel.mjs';
 
 export const BREAKER_STATE = Object.freeze({ CLOSED: 'CLOSED', OPEN: 'OPEN', HALF_OPEN: 'HALF_OPEN' });
 const VALID_STATES = new Set(Object.values(BREAKER_STATE));
@@ -193,4 +194,95 @@ export function evaluateGate(breaker, nowMs, cfg = DEFAULT_BREAKER_CFG) {
     };
   }
   return { decision: 'allow', reason: '', breaker: b };
+}
+
+// ── ADVISORY trend readout (computed/shadow metric — NEVER a trip cause) ─────────
+// Catalog cards #2 (CUSUM change-point) + #1 (scalar-Kalman recovery) over the
+// breaker's SIGNED ΔU history. This is a READOUT the breaker EXPOSES for metrics /
+// burn-in audit; it is intentionally NOT called by evaluateGate or
+// transitionOnVerdict, so the 3-state CLOSED/OPEN/HALF_OPEN trip logic, thresholds,
+// and the energy-enforce veto are byte-identical with or without it. CUSUM catches
+// the SLOW ROT the shock-only steer band is blind to (a thread drifting
+// progressing->degrading where no single ΔU is an outlier); Kalman-q gives the
+// re-sensitization readout. Scale-free per the no-fixed-ΔU-number discipline:
+// k = 0.5·runningMAD, h = 5·MAD, μ0 = recent median signed ΔU.
+
+/** Median of a numeric array (non-mutating). Returns 0 for an empty array. */
+function medianOf(values) {
+  if (!Array.isArray(values) || values.length === 0) return 0;
+  const sorted = values.filter((x) => Number.isFinite(x)).slice().sort((a, b) => a - b);
+  if (sorted.length === 0) return 0;
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+/** Median Absolute Deviation — robust scale, blind to the outliers MAD must survive. */
+function madOf(values) {
+  const finite = (Array.isArray(values) ? values : []).filter((x) => Number.isFinite(x));
+  if (finite.length === 0) return 0;
+  const med = medianOf(finite);
+  return medianOf(finite.map((x) => Math.abs(x - med)));
+}
+
+/** Population std-dev — non-degenerate scale fallback when MAD collapses to 0. */
+function stdOf(values) {
+  const finite = (Array.isArray(values) ? values : []).filter((x) => Number.isFinite(x));
+  if (finite.length < 2) return 0;
+  const mean = finite.reduce((a, b) => a + b, 0) / finite.length;
+  return Math.sqrt(finite.reduce((a, b) => a + (b - mean) ** 2, 0) / finite.length);
+}
+
+/**
+ * ADVISORY-ONLY signed-ΔU regime readout. Pure; never throws (a broken instrument
+ * must not invent a regime change). Returns a flat in-control readout when the
+ * sample is too small or scale is degenerate. NOTHING in here can deny, trip, or
+ * steer — it is purely a number the breaker exposes.
+ *
+ * @returns {{ available:boolean, alarm:boolean, changeIndex:number, statistic:number,
+ *             peak:number, k:number, h:number, mu0:number, samples:number,
+ *             kalman:{ estimate:number, surprisedCount:number } }}
+ */
+export function trendReadout(recentDeltaU, opts = {}) {
+  const flat = {
+    available: false, alarm: false, changeIndex: -1, statistic: 0, peak: 0,
+    k: 0, h: 0, mu0: 0, samples: 0,
+    kalman: { estimate: 0, surprisedCount: 0 },
+  };
+  try {
+    const stream = (Array.isArray(recentDeltaU) ? recentDeltaU : []).filter((x) => Number.isFinite(x));
+    const minSamples = Number.isFinite(opts.minSamples) && opts.minSamples > 0 ? opts.minSamples : 4;
+    if (stream.length < minSamples) return flat;
+
+    // Scale-free dial. Floor MAD with 0.6745·std (= MAD for a Gaussian) so a clean
+    // ramp whose MAD collapses to 0 doesn't blind the detector; std is only 0 on a
+    // truly constant stream, which carries no regime signal.
+    const scale = Math.max(madOf(stream), 0.6745 * stdOf(stream));
+    // Degenerate scale (a flat/constant stream) => no admissible dial => report
+    // in-control rather than fabricate an alarm with h<=0.
+    if (!(scale > 0)) return { ...flat, available: true, samples: stream.length, mu0: medianOf(stream) };
+
+    const k = (Number.isFinite(opts.kFactor) ? opts.kFactor : 0.5) * scale;
+    const h = (Number.isFinite(opts.hFactor) ? opts.hFactor : 5) * scale;
+    const mu0 = medianOf(stream);
+
+    const c = cusum(stream, { k, h, mu0 });
+    // Kalman recovery readout over the same signed stream (q drives re-sensitization).
+    const ka = scalarKalman(stream, {
+      q: Number.isFinite(opts.q) ? opts.q : 0.3 * scale,
+      r: Number.isFinite(opts.r) && opts.r > 0 ? opts.r : Math.max(scale, 1e-9),
+    });
+
+    return {
+      available: true,
+      alarm: c.alarm === true,
+      changeIndex: c.changeIndex,
+      statistic: c.statistic,
+      peak: c.peak,
+      k, h, mu0,
+      samples: stream.length,
+      kalman: { estimate: ka.estimate, surprisedCount: ka.surprisedCount },
+    };
+  } catch {
+    return flat;
+  }
 }

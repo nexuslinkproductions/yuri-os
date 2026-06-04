@@ -79,7 +79,11 @@ export function shadowReplay(records = []) {
   return { total, wouldReject, falsePositiveRate: total ? +((wouldReject / total) * 100).toFixed(2) : 0 };
 }
 
-function readTraces(dir = TRACE_DIR) {
+// Exported (ENG-07): the deferred-outcome labeler (yuri-energy-trace-outcomes.mjs)
+// reuses THIS reader to load both the decision JSONL and the outcome JSONL rather than
+// duplicating the read/parse/skip-torn-line plumbing. TRACE_DIR is the default; callers
+// pass the outcome dir to read the second stream with the same robustness.
+export function readTraces(dir = TRACE_DIR) {
   const out = [];
   try {
     for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.jsonl'))) {

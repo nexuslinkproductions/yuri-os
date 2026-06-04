@@ -35,8 +35,24 @@ import {
   brierScore,
   informationGain,
   confidenceDecay,
+  maxEntBelief,
+  hazardMultiplier,
   makeMathResult,
 } from './math-kernel.mjs';
+
+// Transitive kernel re-export (MATH-07 seam contract). The claim-cortex composes
+// kernel primitives THROUGH this module, never by importing math-kernel directly —
+// keeping a single energy↔kernel edge. This is a pure pass-through: maxEntBelief +
+// hazardMultiplier are NOT consumed by computeU/gateProposal, so re-exporting them
+// changes no live verdict.
+export { maxEntBelief, hazardMultiplier };
+
+// ENG-01 default baseline halfLife (days) for the SHADOW Cox-aging metric. The live
+// confidenceDecay path requires a per-record halfLife; the live evidence records
+// (energy-tick-core.applyTransition) carry none, so the live staleness term stays a
+// verified-dead branch (intentional — wiring it is owner-gated Wave-3). This default
+// is used ONLY by the advisory evalStalenessShadow below, never by computeU.
+const SHADOW_BASE_HALF_LIFE_DAYS = 7;
 
 const ENERGY_PRECISION = 1e9;
 
@@ -330,6 +346,56 @@ function evalStaleness(evidence) {
 }
 
 // ---------------------------------------------------------------------------
+// evalStalenessShadow — ENG-01 ADVISORY-ONLY Cox per-class evidence aging.
+//
+// COMPUTED, NOT WIRED. This reproduces evalStaleness but scales each record's
+// effective halfLife by a per-class hazard multiplier (catalog card 18):
+//   effectiveHalfLife = halfLife / hazardMultiplier(sourceClass)
+// A runtime_trace (0.3) ages SLOW (longer effective halfLife → less staleness);
+// council-text advisory/report (3.0) ages FAST (shorter halfLife → more staleness).
+//
+// This is emitted to the trace as a SHADOW metric for the energy-landscape study.
+// computeU does NOT consume it: the live `staleness` contribution still calls the
+// flat evalStaleness above, so the live verdict is byte-identical. Live wiring is
+// owner-gated Wave-3.
+//
+// A record with multiplier 1.0 and a real age MUST reproduce the flat
+// confidenceDecay to the digit (the regression canary, asserted in tests).
+export function evalStalenessShadow(evidence, opts = {}) {
+  if (!Array.isArray(evidence) || evidence.length === 0) {
+    return { skipped: true, reason: 'no evidence array' };
+  }
+  const baseHalfLife = Number.isFinite(opts.baseHalfLife)
+    ? opts.baseHalfLife
+    : SHADOW_BASE_HALF_LIFE_DAYS;
+  let total = 0;
+  const warnings = [];
+  const perClass = {};
+  for (const [index, item] of evidence.entries()) {
+    try {
+      const it = (item && typeof item === 'object') ? item : {};
+      const sourceClass = typeof it.sourceClass === 'string' ? it.sourceClass : 'unknown';
+      const multiplier = hazardMultiplier(sourceClass);
+      // A present per-record halfLife wins; otherwise the shadow baseline. The
+      // multiplier shortens the effective halfLife for fast-aging classes.
+      const halfLife = (Number.isFinite(it.halfLife) ? it.halfLife : baseHalfLife) / multiplier;
+      const base = Number.isFinite(it.base) ? it.base : 1.0;
+      const age = Number.isFinite(it.age) ? it.age : 0;
+      const decayed = confidenceDecay({ base, age, halfLife });
+      const contribution = Math.max(0, base - decayed);
+      total += contribution;
+      perClass[sourceClass] = roundEnergy((perClass[sourceClass] ?? 0) + contribution);
+    } catch (err) {
+      warnings.push(`evidence[${index}] skipped: ${err.message}`);
+    }
+  }
+  if (warnings.length === evidence.length) {
+    return { skipped: true, reason: 'all evidence items malformed', warnings };
+  }
+  return { value: roundEnergy(total), skipped: false, perClass, warnings };
+}
+
+// ---------------------------------------------------------------------------
 // computeU — scalar potential over a YURI control-plane state snapshot.
 // ---------------------------------------------------------------------------
 
@@ -475,6 +541,7 @@ export function gateProposal({
   weights = DEFAULT_WEIGHTS,
   threshold = 0,
   allowOverride = false,
+  maxLadderInversionCap = Infinity,
 } = {}) {
   if (!stateBefore || !stateAfter || Array.isArray(stateBefore) || Array.isArray(stateAfter)) {
     throw new Error('gateProposal requires stateBefore and stateAfter');
@@ -483,6 +550,14 @@ export function gateProposal({
   if (!Number.isFinite(normalizedThreshold)) {
     throw new Error('gateProposal threshold must be finite');
   }
+  // L∞ max-severity floor cap. Default Infinity = DISABLED (backward-compatible: no
+  // existing caller is affected and the malformed-field guard below stays inert). A
+  // finite cap ARMS an absolute-level veto on the single deepest ladder inversion.
+  const capArmed = maxLadderInversionCap !== Infinity;
+  if (capArmed && (!Number.isFinite(Number(maxLadderInversionCap)) || Number(maxLadderInversionCap) < 0)) {
+    throw new Error('gateProposal maxLadderInversionCap must be Infinity or a finite non-negative number');
+  }
+  const cap = capArmed ? Number(maxLadderInversionCap) : Infinity;
   const w = normalizeWeights(weights);
   const delta = computeDeltaU(stateBefore, stateAfter, w);
   const deltaU = delta.result.deltaU;
@@ -551,7 +626,31 @@ export function gateProposal({
     && (ladderAfterMalformed
       || (ladderPenaltyDelta > normalizedThreshold && ladderAfter > ladderBefore));
 
-  const accept = (protectedPathVeto || structuralFloorVeto)
+  // L∞ MAX-SEVERITY FLOOR — delta-gate severity-laundering closure.
+  // The structural floor above keys on the ladder term's *delta*. A DELTA gate — on
+  // the sum, the convex sum, OR the L∞ max — is CONSERVED under an equal-magnitude
+  // swap: resolve one depth-5 over-claim honestly while smuggling in a fresh depth-5
+  // fabrication and max 5→5, convex-sum 25→25, so a delta gate is blind (the round-2
+  // C-residual: equal-magnitude swaps, Pythagorean 3²+4²=5² partitions). The term that
+  // catches it is an ABSOLUTE-LEVEL floor on the deepest per-claim inversion AFTER the
+  // transition: the after-state still CONTAINS a depth-5 inversion, and no amount of
+  // resolving OTHER claims lowers that max — so the veto is genuinely non-offsettable.
+  // Fail-CLOSED on a present-but-unparseable field (type-confusion guard, mirroring the
+  // protected-path veto). Only evaluated when a finite cap is armed (default Infinity =
+  // disabled), so every existing caller is unaffected. Lyapunov: like the other vetoes
+  // it only ever RESTRICTS acceptance — it never accepts a transition ΔU≤threshold rejects.
+  let maxLadderAfter = 0;
+  let maxLadderAfterMalformed = false;
+  let maxSeverityVeto = false;
+  if (capArmed) {
+    maxLadderAfter = readNonNegativeField(stateAfter, 'maxLadderInversion', vetoWarnings);
+    const rawMaxAfter = stateAfter.maxLadderInversion;
+    maxLadderAfterMalformed = rawMaxAfter !== undefined && rawMaxAfter !== null && rawMaxAfter !== ''
+      && !Number.isFinite(Number(rawMaxAfter));
+    maxSeverityVeto = maxLadderAfterMalformed || (maxLadderAfter > cap);
+  }
+
+  const accept = (protectedPathVeto || structuralFloorVeto || maxSeverityVeto)
     ? false
     : (passesThreshold || overrideAllowed);
 
@@ -563,6 +662,10 @@ export function gateProposal({
       ? (ladderAfterMalformed
           ? `promotion-ladder field malformed in stateAfter (${JSON.stringify(rawLadderAfter)}) — STRUCTURAL FLOOR, fail-closed`
           : `promotion-ladder inversion increase (${ladderBefore}→${ladderAfter}; ladderΔ=${roundEnergy(ladderPenaltyDelta)}) — STRUCTURAL FLOOR, non-offsettable by soft credit (info-gain/evidence cannot buy it back)`)
+      : maxSeverityVeto
+        ? (maxLadderAfterMalformed
+            ? `max-ladder-inversion field malformed in stateAfter (${JSON.stringify(stateAfter.maxLadderInversion)}) — L∞ MAX-SEVERITY FLOOR, fail-closed`
+            : `max per-claim ladder inversion depth ${maxLadderAfter} > cap ${cap} — L∞ MAX-SEVERITY FLOOR, absolute level (non-offsettable, closes equal-magnitude swap)`)
       : passesThreshold
         ? `ΔU=${deltaU} ≤ threshold=${normalizedThreshold} (descending or held)`
         : overrideAllowed
@@ -585,14 +688,17 @@ export function gateProposal({
       reason,
       deltaU,
       threshold: normalizedThreshold,
-      override: !protectedPathVeto && !structuralFloorVeto && !passesThreshold && overrideAllowed,
+      override: !protectedPathVeto && !structuralFloorVeto && !maxSeverityVeto && !passesThreshold && overrideAllowed,
       protectedPathVeto,
       structuralFloorVeto,
+      maxSeverityVeto,
       dominantTerm: protectedPathVeto
         ? 'protectedPathViolations'
         : structuralFloorVeto
           ? 'promotionLadderInversions'
-          : dominantTerm,
+          : maxSeverityVeto
+            ? 'maxLadderInversion'
+            : dominantTerm,
       componentDeltas: delta.result.componentDeltas,
     },
     proof: {

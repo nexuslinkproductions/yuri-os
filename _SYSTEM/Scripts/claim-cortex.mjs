@@ -61,7 +61,10 @@
  */
 
 import { PROMOTION_STATES } from './claim-integrity-gate.mjs';
-import { computeU, gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
+// MATH-07 seam: the cortex composes kernel primitives TRANSITIVELY through
+// yuri-energy.mjs (never a direct math-kernel import), keeping one energy↔kernel edge.
+// maxEntBelief is re-exported by yuri-energy as a pure pass-through.
+import { computeU, gateProposal, DEFAULT_WEIGHTS, maxEntBelief } from './math/yuri-energy.mjs';
 
 // ---------------------------------------------------------------------------
 // The ladder — single-sourced from claim-integrity-gate.mjs.
@@ -296,13 +299,101 @@ export function beliefVector(center, width) {
 }
 
 /**
- * Belief spread for a claim: wide when evidence is thin/stale, narrow when many
- * fresh, mutually-confirming records pin the rank down. Monotone decreasing in the
- * fresh-evidence count, floored so a single record never claims certainty.
+ * Maximum-entropy belief over the ladder centered on `meanRank` (card 28 / ENG-06).
+ *
+ * REPLACES the legacy `beliefVector(center, beliefWidth(n))` Gaussian whose spread was
+ * the hand-tuned magic constant `beliefWidth = LADDER_N/(2(n+1))`. maxEntBelief solves
+ * `p_i ∝ exp(λ·i)` for the λ matching `E[i] = meanRank` — the least-assuming distribution
+ * for a single mean constraint, so the spread FALLS OUT of λ + the support instead of
+ * being asserted. The assumptions become AUDITABLE (one named constraint), not absent.
+ * Imported TRANSITIVELY from yuri-energy (MATH-07 seam). meanRank is clamped to the
+ * legal [0, LADDER_N-1] support window, and every mass clamped away from 0 so the
+ * downstream entropy/KL/info-gain terms never hit a log(0) edge (mirrors beliefVector).
  */
-function beliefWidth(freshCount) {
-  const n = Math.max(0, Number(freshCount) || 0);
-  return Math.max(0.5, LADDER_N / (2 * (n + 1)));
+function maxEntBeliefVector(meanRank) {
+  const m = Number.isFinite(meanRank) ? meanRank : 0;
+  const clampedMean = Math.min(LADDER_N - 1, Math.max(0, m));
+  const raw = maxEntBelief(clampedMean, LADDER_N);
+  return raw.map((v) => Math.max(v, 1e-9));
+}
+
+// De-duped DISTINCT fresh-evidence count (card 34). The legacy belief fed RAW
+// `fresh.length`, which an attacker inflates by re-stamping ONE logical check across
+// copies (the same fail-open evidenceStatusRank's recurrence dedup closed). Distinctness
+// is keyed on IDENTITY (kind, reference) — NOT the attacker-controlled age axis — exactly
+// as the trusted-recurrence gate keys it. This distinct count is the principled `n_i` the
+// UCB1 HEDGE tiebreaker consumes (the global-effort coupling), so copies of one result
+// cannot self-explore their way to ASSERT.
+function distinctFreshCount(freshRecords) {
+  const keys = new Set(freshRecords.map((e) => `${e.kind}::${e.reference}`));
+  return keys.size;
+}
+
+// UCB1-INSPIRED global-effort uncertainty bonus (card 34) — bounded to [0, c].
+//
+// CARD-INTERNAL CORRECTION (documented, owner-flagged): card 34's LITERAL formula
+// `c·√(ln(max(e,totalChecks)) / nDistinct)` GROWS with totalChecks, which contradicts the
+// card's OWN behavioral contract — "a single green pass while the whole system has barely
+// been checked stays uncertain" and "ASSERT must become HEDGE as totalSystemChecks shrinks
+// toward 1 and recover as it grows." The literal √(ln T) numerator does the opposite. The
+// behavioral spec (the stated test) is the contract, so the bonus DECAYS as global effort
+// grows: `bonus = c · √( 1 / (totalChecks · nDistinct) )`, bounded in [0, c]. At T=1,n=1 the
+// bonus is c (max uncertainty); it falls as 1/√T (the surviving UCB shape) and as 1/√n (more
+// distinct checks for THIS claim shrink it). Only the SHAPE transfers, NOT UCB1's O(log t)
+// regret bound (kinds are not i.i.d. arm pulls). c=1.0 (√2 is a worst-case bound, too tight).
+const UCB_C = 1.0;
+// ASSERT requires confidence (1 − bonus) at or above this; otherwise HEDGE. 0.5 = a claim
+// whose global+local checking leaves >50% residual uncertainty stays a HEDGE.
+const UCB_ASSERT_CONFIDENCE = 0.5;
+function ucbBonus(totalSystemChecks, nDistinct) {
+  const t = Math.max(1, Number(totalSystemChecks) || 0);
+  const n = Math.max(1, Number(nDistinct) || 0);
+  return Math.min(UCB_C, UCB_C * Math.sqrt(1 / (t * n)));
+}
+
+// ---------------------------------------------------------------------------
+// jeffreyPosterior — Jeffrey conditioning / probability kinematics (card 36).
+// ---------------------------------------------------------------------------
+//
+// ADVISORY / FLAG-GATED (default OFF). Within a single KIND, the MaxEnt posterior is
+// reliability-BLIND: a fresh advisory (decayed≈1.0) and a barely-fresh advisory
+// (decayed≈0.28) of the same kind both center the posterior on the SAME evidenceRank,
+// yielding identical ε/info-gain credit (their ΔU gap today is entirely ζ/staleness,
+// NOT ε). Jeffrey's soft-evidence update fixes that WITHIN ε: a single-tick BATCH
+//   P'(rank) = Σ_i P(rank | E_i)·reliability_i  +  leftoverMass·prior
+// where each record E_i contributes its OWN MaxEnt belief P(rank|E_i) = maxEnt at the
+// record's CEILING rank, weighted by reliability_i = decayed_strength_i. Leftover mass
+// (1 − Σ reliability_i, floored at 0) stays on the prior — a reliable record moves the
+// posterior nearly fully, a weak one fractionally, so the weak-only case earns strictly
+// LESS info-gain credit. Single batch over the current record set (commutative within a
+// tick); never an online stream. Rigidity caveat (card 36): if a record retroactively
+// re-weights how kinds map to rungs, REBUILD the partition rather than Jeffrey-through it.
+//
+// DOUBLE-COUNT GUARD (the mandatory ε-vs-ζ canary's subject): reliability uses
+// decayed_strength, the SAME signal evalStaleness (ζ) consumes. Jeffrey deliberately
+// routes the within-kind reliability into ε (the posterior SHARPNESS), while ζ scores the
+// base−decayed DROP. These are orthogonal projections of decay — sharpness vs magnitude —
+// so a weak record loses ε credit (diffuse posterior) AND pays ζ, but the two are not the
+// SAME number applied twice: ε reads the posterior shape, ζ reads the strength shortfall.
+// The canary asserts ε FIRES (a real value, not the silent skip evalInfoGain takes on a
+// malformed posterior) and that turning Jeffrey ON does not alter ζ.
+function jeffreyPosterior(freshRecords, prior) {
+  if (!Array.isArray(freshRecords) || freshRecords.length === 0) return prior.slice();
+  const acc = new Array(LADDER_N).fill(0);
+  let usedMass = 0;
+  for (const e of freshRecords) {
+    const reliability = clamp01(e.decayed); // decayed_strength_i in [0,1]
+    if (reliability <= 0) continue;
+    const pGivenE = maxEntBeliefVector(e.ceiling); // P(rank | E_i): MaxEnt at the kind ceiling
+    for (let i = 0; i < LADDER_N; i += 1) acc[i] += reliability * pGivenE[i];
+    usedMass += reliability;
+  }
+  // Leftover mass stays on the prior (rigidity: untouched-partition mass is preserved).
+  const leftover = Math.max(0, 1 - usedMass);
+  for (let i = 0; i < LADDER_N; i += 1) acc[i] += leftover * prior[i];
+  // Normalize + clamp away from 0 (entropy/KL/info-gain log-safety, mirrors maxEntBeliefVector).
+  const sum = acc.reduce((a, b) => a + b, 0) || 1;
+  return acc.map((v) => Math.max(v / sum, 1e-9));
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +406,19 @@ export const VERDICTS = Object.freeze({
   VERIFY_FIRST: 'VERIFY-FIRST', // claimed one rung above evidence: get evidence before asserting
   RETRACT: 'RETRACT',           // claimed >= 2 rungs above evidence, or verified-tier with none: pull it
   EXPLORE: 'EXPLORE',           // hypothesis stage (draft/research, no evidence): gated free divergence
+});
+
+// Verdict severity ladder for the do-operator ablation (card 8). Higher = more
+// distrustful / worse for the claim. A record's NECESSITY is the rung-drop its
+// removal forces (ASSERT 0 -> ... -> RETRACT 3). EXPLORE is the hypothesis floor:
+// it carries no over-claim, so it shares the ASSERT/healthy tier (severity 0) — an
+// ablation that lands on EXPLORE has not "dropped" a healthy ASSERT into distrust.
+const VERDICT_SEVERITY = Object.freeze({
+  [VERDICTS.ASSERT]: 0,
+  [VERDICTS.EXPLORE]: 0,
+  [VERDICTS.HEDGE]: 1,
+  [VERDICTS.VERIFY_FIRST]: 2,
+  [VERDICTS.RETRACT]: 3,
 });
 
 // Convex penalty for an over-claim's DEPTH. The structural floor in gateProposal
@@ -385,12 +489,26 @@ export function assessClaim(claim, opts = {}) {
   const deltaRank = claimedRank - evidenceRank;
   const inversions = deltaRank > 0 ? deltaRank : 0;
 
-  // belief prior (before this assessment's evidence) vs posterior (after). The prior
-  // is centered on the CLAIMED rank with a wide spread (we believed the claim); the
-  // posterior is centered on the EVIDENCED rank with width tightened by fresh count.
-  // A verification that confirms a lower true rank sharpens belief -> infoGain credit.
-  const prior = beliefVector(claimedRank, beliefWidth(0));
-  const posterior = beliefVector(evidenceRank, beliefWidth(fresh.length));
+  // De-duped DISTINCT fresh count (card 34) — IDENTITY-keyed, not raw fresh.length, so
+  // re-stamped copies of one check cannot inflate confidence. Drives the UCB tiebreaker.
+  const nDistinct = distinctFreshCount(fresh);
+
+  // belief prior (before this assessment's evidence) vs posterior (after). Both are
+  // MAXIMUM-ENTROPY beliefs (card 28 / ENG-06): prior centered on the CLAIMED rank,
+  // posterior on the EVIDENCED rank. This retires the magic Gaussian width constant
+  // `beliefWidth = LADDER_N/(2(n+1))` — the spread now derives from the MaxEnt λ for the
+  // mean constraint, making the info-gain credit principled rather than an artifact of a
+  // hand-tuned law. A verification that confirms a lower true rank sharpens belief ->
+  // infoGain credit, exactly as before, but on an auditable prior.
+  const prior = maxEntBeliefVector(claimedRank);
+  // Posterior: MaxEnt-at-evidenceRank by default. Jeffrey conditioning (card 36) is
+  // ADVISORY / FLAG-GATED (opts.jeffrey === true) — it reliability-weights the posterior
+  // within-kind so a weak record earns strictly less ε credit, but it is NOT in the
+  // approved live-wiring scope and stays off so the live verdict + aggregateU are the
+  // beliefWidth-corrected baseline. When armed it composes per-record soft evidence.
+  const posterior = opts.jeffrey === true
+    ? jeffreyPosterior(fresh, prior)
+    : maxEntBeliefVector(evidenceRank);
 
   // Single-claim computeU state. alpha (entropy of a one-claim distribution) is 0 by
   // construction; the meaningful terms here are beta (claimed!=evidenced drift),
@@ -412,9 +530,15 @@ export function assessClaim(claim, opts = {}) {
     evidenceRank,
     deltaRank,
     freshCount: fresh.length,
+    nDistinct,
     // strongest = best fresh evidence's decayed confidence. If even the best support
     // has aged past one half-life (< 0.5), a claim at-or-below its rank still HEDGEs.
     strongest: fresh.length ? Math.max(...fresh.map((e) => e.decayed)) : 0,
+    // UCB1 global-effort coupling (card 34). DISABLED by default (undefined) so the
+    // ASSERT/HEDGE boundary is byte-identical for standalone assessment; a session
+    // caller arms it with a real distinct-check counter to require "one green pass while
+    // the whole system is barely checked stays a HEDGE."
+    totalSystemChecks: opts.totalSystemChecks,
   });
 
   return {
@@ -435,7 +559,68 @@ export function assessClaim(claim, opts = {}) {
   };
 }
 
-function decideVerdict({ claimedRank, evidenceRank, deltaRank, freshCount, strongest }) {
+// ---------------------------------------------------------------------------
+// evidenceNecessity — Pearl do-operator / counterfactual ablation (card 8).
+// ---------------------------------------------------------------------------
+//
+// PURE, ADDITIVE READOUT. It deep-CLONES the claim, removes one evidence record,
+// re-runs the EXISTING assessClaim under the SAME injected clock, and measures the
+// verdict-ladder rung-drop that ablation causes. It touches NO computeU-consumed
+// field — it never mutates the input claim, never feeds a snapshot, and is not read
+// by gateProposal. It is a parallel-safe diagnostic the energy gate is blind to:
+// assessClaim/maxLadderInversion only see EXISTING over-claims, not the FRAGILITY of
+// a currently-healthy ASSERT. This surfaces LOAD-BEARING vs DECORATIVE evidence and a
+// single-point-of-failure flag (one record's removal forces a healthy verdict to RETRACT).
+//
+// necessity(record) = severity(verdict_without_record) − severity(verdict_with_all),
+// floored at 0 (removing evidence can only ever weaken or hold a claim, never
+// strengthen it; a negative is a numerical artifact and is clamped). Scope is STRICT
+// counterfactual ablation — records are modeled independent, no SCM dependency DAG.
+export function evidenceNecessity(claim, opts = {}) {
+  const nowMs = requireClock(opts.nowMs); // fail-closed: no trustworthy clock -> no verdict
+  const weights = opts.weights || DEFAULT_WEIGHTS;
+  const c = (claim && typeof claim === 'object') ? claim : {};
+  const records = Array.isArray(c.evidence) ? c.evidence : [];
+
+  // Baseline verdict with the FULL evidence set (deep-cloned so the caller's object is
+  // never observed-then-mutated; assessClaim is pure but we clone for belt-and-braces).
+  const baseline = assessClaim(structuredClone(c), { nowMs, weights });
+  const baseSeverity = VERDICT_SEVERITY[baseline.verdict] ?? 0;
+
+  const perRecord = records.map((_, dropIndex) => {
+    // do(remove r): clone the claim with exactly this one record deleted, re-assess.
+    const ablatedEvidence = records.filter((__, i) => i !== dropIndex);
+    const ablatedClaim = { ...structuredClone(c), evidence: structuredClone(ablatedEvidence) };
+    const ablated = assessClaim(ablatedClaim, { nowMs, weights });
+    const dropSeverity = VERDICT_SEVERITY[ablated.verdict] ?? 0;
+    const necessity = Math.max(0, dropSeverity - baseSeverity); // weakening only
+    return {
+      index: dropIndex,
+      kind: typeof records[dropIndex]?.kind === 'string' ? records[dropIndex].kind : '',
+      reference: typeof records[dropIndex]?.reference === 'string' ? records[dropIndex].reference : '',
+      baselineVerdict: baseline.verdict,
+      ablatedVerdict: ablated.verdict,
+      necessity,
+      loadBearing: necessity > 0,
+      // single point of failure: removing THIS one record collapses a non-RETRACT
+      // (currently-defensible) claim all the way to RETRACT.
+      singlePointOfFailure: baseline.verdict !== VERDICTS.RETRACT && ablated.verdict === VERDICTS.RETRACT,
+    };
+  });
+
+  return {
+    id: c.id ?? null,
+    baselineVerdict: baseline.verdict,
+    recordCount: records.length,
+    // a claim is fragile if ANY single record is a single point of failure.
+    singlePointOfFailure: perRecord.some((r) => r.singlePointOfFailure),
+    loadBearingCount: perRecord.filter((r) => r.loadBearing).length,
+    decorativeCount: perRecord.filter((r) => !r.loadBearing).length,
+    perRecord,
+  };
+}
+
+function decideVerdict({ claimedRank, evidenceRank, deltaRank, freshCount, strongest, nDistinct, totalSystemChecks }) {
   const noSupport = freshCount === 0;
   // Verified-tier claim (>= runtime_tested) with no fresh support — the canonical over-claim.
   if (claimedRank >= RANK_RUNTIME_TESTED && noSupport) {
@@ -457,6 +642,24 @@ function decideVerdict({ claimedRank, evidenceRank, deltaRank, freshCount, stron
   // Supported, but the best fresh evidence has aged past one half-life — qualify it.
   if (strongest < 0.5) {
     return { verdict: VERDICTS.HEDGE, reason: 'supported but evidence aging — assert with an explicit qualifier' };
+  }
+  // UCB1-inspired global-effort HEDGE tiebreaker (card 34). ONLY fires when a session caller
+  // arms `totalSystemChecks` with a real distinct-check counter; default-undefined keeps the
+  // ASSERT/HEDGE boundary byte-identical for standalone assessment. When armed, confidence =
+  // (1 − bonus): a single green pass while the whole system has barely been checked has high
+  // residual uncertainty (bonus near c) -> confidence below the threshold -> stays a HEDGE. As
+  // global effort grows (and as THIS claim gains distinct checks) the bonus decays and the
+  // claim recovers to ASSERT. Pure tiebreaker — it never PROMOTES a claim, only holds it at
+  // HEDGE; copies of one check share kind+reference so the distinct count cannot be inflated.
+  if (Number.isFinite(totalSystemChecks)) {
+    const bonus = ucbBonus(totalSystemChecks, nDistinct);
+    const confidence = 1 - bonus;
+    if (confidence < UCB_ASSERT_CONFIDENCE) {
+      return {
+        verdict: VERDICTS.HEDGE,
+        reason: `global verification effort thin (UCB bonus ${bonus.toFixed(3)}, confidence ${confidence.toFixed(3)} over ${nDistinct} distinct check(s)) — hedge until more of the system is checked`,
+      };
+    }
   }
   return { verdict: VERDICTS.ASSERT, reason: `evidence (${LADDER[evidenceRank]}) meets or exceeds claim — assert plainly` };
 }
@@ -611,13 +814,19 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
   }
   const identityVeto = worsened.length > 0 || untrackedRetract > 0;
 
-  // Compose with the (untouched) delta gate.
+  // Compose with the delta gate. We inject each snapshot's L∞ max-inversion signal
+  // (returned separately by cortexSnapshot, not part of the public state shape) so the
+  // gate's absolute-level MAX-SEVERITY floor can fire. opts.maxLadderInversionCap arms
+  // it (default Infinity = disabled): belt-and-suspenders alongside the identity veto —
+  // the identity veto catches a NEW-or-deeper per-claim over-claim, the level floor
+  // refuses any after-state whose deepest inversion exceeds the cap regardless of id.
   const gate = gateProposal({
-    stateBefore: before.state,
-    stateAfter: after.state,
+    stateBefore: { ...before.state, maxLadderInversion: before.maxLadderInversion },
+    stateAfter: { ...after.state, maxLadderInversion: after.maxLadderInversion },
     weights: opts.weights || DEFAULT_WEIGHTS,
     threshold: opts.threshold,
     allowOverride: opts.allowOverride,
+    maxLadderInversionCap: opts.maxLadderInversionCap ?? Infinity,
   });
 
   const accept = !identityVeto && gate.result.accept;
@@ -637,6 +846,7 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
       accept: gate.result.accept,
       deltaU: gate.result.deltaU,
       structuralFloorVeto: gate.result.structuralFloorVeto,
+      maxSeverityVeto: gate.result.maxSeverityVeto,
       reason: gate.result.reason,
     },
   };

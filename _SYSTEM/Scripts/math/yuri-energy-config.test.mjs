@@ -88,6 +88,31 @@ test('fsrs / recall fail-closed: out-of-range + type confusion dropped, fraction
   assert.equal(loadEnergyConfig(tmp({ recall: { topK: 7.9 } })).recall.topK, 7);       // truncated to int
 });
 
+// MEM-02 / MEM-05 / MEM-06 — new fsrs knobs pass through valid, fail-closed on bad input.
+test('fsrs: redundancyFloor / supersessionPenaltyDays / renewal knobs pass through valid', () => {
+  const c = loadEnergyConfig(tmp({ fsrs: {
+    redundancyFloor: 0.2, supersessionPenaltyDays: 45, renewalScale: 2, renewalMinWindowDays: 3,
+  } })).fsrs;
+  assert.equal(c.redundancyFloor, 0.2);
+  assert.equal(c.supersessionPenaltyDays, 45);
+  assert.equal(c.renewalScale, 2);
+  assert.equal(c.renewalMinWindowDays, 3);
+});
+
+test('fsrs new knobs fail-closed: out-of-range / type confusion dropped', () => {
+  // redundancyFloor: [0,1] inclusive (0 is the valid "disable" sentinel)
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { redundancyFloor: 0 } })).fsrs.redundancyFloor, 0);
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { redundancyFloor: 1.5 } })).fsrs, undefined);   // > 1 dropped → block empty
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { redundancyFloor: -0.1 } })).fsrs, undefined);  // < 0 dropped
+  // supersessionPenaltyDays >= 0 (0 disables)
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { supersessionPenaltyDays: 0 } })).fsrs.supersessionPenaltyDays, 0);
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { supersessionPenaltyDays: -5 } })).fsrs, undefined);
+  // renewalScale > 0, renewalMinWindowDays >= 1
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { renewalScale: 0 } })).fsrs, undefined);
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { renewalMinWindowDays: 0 } })).fsrs, undefined);
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { supersessionPenaltyDays: true } })).fsrs, undefined); // type confusion
+});
+
 test('evict.ttlDays passes through when valid, drops + truncates per fail-closed rule', () => {
   assert.equal(loadEnergyConfig(tmp({ evict: { ttlDays: 45 } })).evict.ttlDays, 45);  // valid kept
   assert.equal(loadEnergyConfig(tmp({ evict: { ttlDays: 12.9 } })).evict.ttlDays, 12); // truncated to int

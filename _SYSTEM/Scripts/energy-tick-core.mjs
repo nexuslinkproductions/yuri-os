@@ -26,6 +26,7 @@ import { gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
 import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 import { currentUserHandle } from './yuri-user.mjs';
 import { freshLedger, applyClaimTransition, claimGateFields } from './claim-ledger.mjs';
+import { cusum, scalarKalman } from './math/math-kernel.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(_HERE, '..', '..');
@@ -145,6 +146,81 @@ export function surpriseEngaged({ depth, deltaU, recentAbs, cfg = DEFAULT_SALIEN
   return isSurprise(Math.abs(Number(deltaU) || 0), recentAbs, cfg);
 }
 
+// ---------------------------------------------------------------------------
+// ADVISORY SHADOW DETECTORS (ENG-04 Kalman/NIS · ENG-05 CUSUM) — COMPUTED, NOT
+// WIRED. These run a Kalman-recovery surprise band (card 1) and an upper CUSUM
+// slow-rot regime alarm (card 2) over the recent ΔU stream as SHADOW metrics.
+//
+// Hard safety contract: NOTHING here feeds the live verdict. The live
+// surpriseEngaged / deepEngaged decision still keys ONLY on isSurprise(MAD) and the
+// CRITICAL tier. These functions are emitted as additive return fields and exist so
+// the energy-landscape study can compare the shadow band to MAD on a real trace and
+// the eventual swap (owner-gated) is proven on equivalence first. Both fail-safe:
+// any throw or short stream → an inert {available:false} readout, never an alarm.
+//
+// Scale-free dials (no fixed ΔU number — honoring the discipline): k=kFactor·MAD,
+// h=hFactor·MAD over the |ΔU| band already tracked, so the alarm threshold rides the
+// observed spread instead of a magic constant.
+// ---------------------------------------------------------------------------
+
+export const SHADOW_TREND = Object.freeze({
+  minSamples: 4,   // need a baseline before a Kalman/CUSUM readout is meaningful
+  kFactor: 0.5,    // CUSUM slack as a fraction of MAD
+  hFactor: 5,      // CUSUM alarm threshold as a multiple of MAD
+  qFactor: 0.3,    // Kalman process noise (re-sensitization speed) as a fraction of MAD
+});
+
+/**
+ * Pure: a Kalman-recovery surprise band + an upper CUSUM regime alarm over a SIGNED
+ * ΔU stream. Returns numeric/boolean-only fields (privacy-gate clean if ever traced).
+ * ENG-04 (Kalman) reads |ΔU| innovations for the high-tail NIS gate; ENG-05 (CUSUM)
+ * integrates the SIGNED stream to catch slow directional rot the MAD shock-band is
+ * blind to. Advisory: NEVER consumed by the gate.
+ */
+export function shadowTrendReadout(signedStream, cfg = SHADOW_TREND) {
+  const flat = {
+    available: false,
+    cusumAlarm: false, cusumChangeIndex: -1, cusumStatistic: 0, cusumPeak: 0,
+    kalmanEstimate: 0, kalmanSurprisedCount: 0, kalmanLastSurprised: false,
+    samples: 0,
+  };
+  try {
+    const stream = (Array.isArray(signedStream) ? signedStream : []).filter((x) => Number.isFinite(x));
+    const minSamples = Number.isFinite(cfg.minSamples) && cfg.minSamples > 0 ? cfg.minSamples : 4;
+    if (stream.length < minSamples) return flat;
+    const mu0 = median(stream);
+    // Scale-free dial sourced from the SIGNED stream's spread; guard a zero-spread
+    // (constant) stream so cusum's h>0 contract is never violated.
+    const scale = mad(stream, mu0) || median(stream.map((x) => Math.abs(x))) || 0;
+    if (!(scale > 0)) {
+      return { ...flat, available: true, samples: stream.length };
+    }
+    const k = (Number.isFinite(cfg.kFactor) ? cfg.kFactor : 0.5) * scale;
+    const h = (Number.isFinite(cfg.hFactor) ? cfg.hFactor : 5) * scale;
+    const c = cusum(stream, { k, h, mu0 });
+    // Kalman recovery readout over the SAME signed stream (q drives re-sensitization
+    // within ~2 ticks where MAD stays numb ~10 after a CRITICAL spike).
+    const ka = scalarKalman(stream, {
+      q: (Number.isFinite(cfg.qFactor) ? cfg.qFactor : 0.3) * scale,
+      r: Math.max(scale, 1e-9),
+    });
+    const lastSurprise = ka.surprises.length ? ka.surprises[ka.surprises.length - 1] : null;
+    return {
+      available: true,
+      cusumAlarm: c.alarm === true,
+      cusumChangeIndex: c.changeIndex,
+      cusumStatistic: c.statistic,
+      cusumPeak: c.peak,
+      kalmanEstimate: ka.estimate,
+      kalmanSurprisedCount: ka.surprisedCount,
+      kalmanLastSurprised: lastSurprise ? lastSurprise.surprised === true : false,
+      samples: stream.length,
+    };
+  } catch {
+    return flat;
+  }
+}
+
 export function freshState() {
   return {
     verifiedEvidenceCount: 0,
@@ -251,7 +327,13 @@ export function tickAndTrace(prevState, event, opts = {}) {
   // state/depth change. Keeps the ΔU stream dense, no tick per keystroke.
   if (tier === TIER.SKIP) {
     // SKIP = reads/navigation: no claim authored, ledger passes through unchanged.
-    return { state: prevState, tier, traced: false, depth: opts.depth ?? 0, recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false, ledger };
+    // recentSigned + shadowTrend are ADVISORY passthroughs (ENG-04/05) — inert here.
+    return {
+      state: prevState, tier, traced: false, depth: opts.depth ?? 0,
+      recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false, ledger,
+      recentSigned: Array.isArray(opts.recentSigned) ? opts.recentSigned : [],
+      shadowTrend: shadowTrendReadout(Array.isArray(opts.recentSigned) ? opts.recentSigned : []),
+    };
   }
   const nextState = applyTransition(prevState, t, nowIso);
   // Fail-OPEN on the ledger axis too (not just claimGateFields). A throw from the claim
@@ -289,5 +371,17 @@ export function tickAndTrace(prevState, event, opts = {}) {
   const recentAbs = tier === TIER.WORK
     ? [...priorRecent, Math.abs(deltaU)].slice(-cfg.surpriseWindow)
     : priorRecent;
-  return { state: nextState, tier, traced: true, deltaU, depth, recentAbs, surpriseEngaged: surprised, deepEngaged, ledger: nextLedger };
+  // ADVISORY ONLY (ENG-04/05): a SIGNED ΔU window feeds the shadow Kalman/CUSUM
+  // detectors. Unlike recentAbs (WORK-only, by design — see above), the signed window
+  // includes ALL gated transitions: CUSUM slow-rot and Kalman recovery are exactly the
+  // detectors that must see the CRITICAL spikes the MAD band deliberately excludes.
+  // Judged against the PRIOR window (same discipline as MAD), then rolled forward.
+  const priorSigned = Array.isArray(opts.recentSigned) ? opts.recentSigned : [];
+  const shadowTrend = shadowTrendReadout(priorSigned);
+  const recentSigned = [...priorSigned, deltaU].slice(-cfg.surpriseWindow);
+  return {
+    state: nextState, tier, traced: true, deltaU, depth, recentAbs,
+    surpriseEngaged: surprised, deepEngaged, ledger: nextLedger,
+    recentSigned, shadowTrend,
+  };
 }
