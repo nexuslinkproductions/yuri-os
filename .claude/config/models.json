@@ -119,8 +119,9 @@
       "max_output_source": "DeepSeek API live-verified accepting up to 131072 (llm-lane.mjs comment).",
       "timeout_ms": 180000
     },
-    "nemotron-3-ultra-550b-a55b": {
-      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "nemotron-3-super-120b-a12b": {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "model_note": "Renamed 2026-06-05 from the nemotron-3-ultra-550b lane (owner-approved). The 550b can't emit a first token within NVIDIA's free-endpoint ~40s gateway wall under load, so the lane serves the 120b-super reasoner, which fits. Old id 'nemotron-3-ultra-550b-a55b' kept as a back-compat alias in llm-lane.mjs. The duplicate lane tables (lane-kernel/llm-compat.sh/llm-compat-contract/kagami/shintai) still carry the old id — reconcile in the Wave-2 routing-fragmentation fix.",
       "provider": "nvidia-nim",
       "endpoint_env": "NVIDIA_NIM_BASE_URL",
       "endpoint_default": "https://integrate.api.nvidia.com/v1",
@@ -128,8 +129,10 @@
       "protocol": "openai-compatible",
       "context_window": 1000000,
       "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
-      "max_output_source": "OPEN — NIM write ceiling for nemotron-3-ultra UNVERIFIED; conservative 32768 until a live --reasoning max probe reads finish_reason + usage. Do not raise blind.",
-      "timeout_ms": 240000
+      "max_output_source": "OPEN — NIM write ceiling for nemotron-3-super-120b UNVERIFIED; conservative 32768 until a live --reasoning max probe reads finish_reason + usage. Do not raise blind.",
+      "timeout_ms": 1800000,
+      "raw_https": true,
+      "raw_https_reason": "Slow NIM reasoning lane: routed through node:https (streaming SSE, no built-in headers/body timeout) instead of the global fetch (undici ~5min headersTimeout) — its own connection; deepseek/kimi stay on fetch. NVIDIA's free-endpoint ~40s no-output gateway wall still caps prefill (~50KB), so keep dispatch context lean (tool-read files; avoid big --context front-loads)."
     },
     "kimi-k2.6": {
       "model": "moonshotai/kimi-k2.6",

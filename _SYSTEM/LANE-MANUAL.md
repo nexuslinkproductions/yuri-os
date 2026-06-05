@@ -69,11 +69,13 @@ ai llm <lane> "<prompt>" [flags]            (CLI surface; hard rename of `ai off
 | Lane (alias) | Model | Provider / endpoint | Context | Max output (xhigh) | Timeout | Status |
 |---|---|---|---|---|---|---|
 | `deepseek` / `ds` | `deepseek-v4-pro` | deepseek-direct · `api.deepseek.com` | 1,000,000 | 131,072 | 180s | ✅ |
-| `nemotron` / `nvidia` | `nvidia/nemotron-3-ultra-550b-a55b` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 240s | ✅ |
+| `nemotron` / `nvidia` | `nvidia/nemotron-3-super-120b-a12b` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 30min* | ✅ |
 | `kimi` | `moonshotai/kimi-k2.6` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 240s | ✅ |
 | `codex` (separate platform) | `gpt-5.5` | OpenAI Codex MCP · `codex-offload-runner.mjs` | — | — | up to 6h | ✅ **un-sandboxed (`danger-full-access`), guard-verified** · `--context` parity · spine via AGENTS.md · repo-wide. Not via the lane-core-hooks seam (open option). codex-spark stays read-only DRAFT; `--sandbox read-only` overrides any lane. |
 
 Context window = INPUT cap (all 1M). Max output = a **separate** per-reasoning-depth knob (`off/low`:2048 · `medium`:4096 · `high`:16384 · `xhigh`: per table). DeepSeek counts reasoning tokens against it. Legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are **hard-removed** — invoking one fails loud (exit 3).
+
+> **\*nemotron lane (renamed 2026-06-05):** the lane key is now `nemotron-3-super-120b-a12b` (was `nemotron-3-ultra-550b-a55b`; old id kept as a back-compat ALIAS). Reason: the 550b-ultra can't emit a first token within NVIDIA's free-endpoint **~40s no-output gateway wall** under load — proven by removing every client-side timeout (shell → AbortController → undici headers → socket) and still hitting it; the 120b-super fits. This lane uses the **`raw_https` streaming transport** (`config.raw_https=true` → `postChatHttps`, node:https SSE, no timeout) instead of the global fetch, since a slow reasoner's TTFB exceeds undici's ~5min headersTimeout. **Caveat:** the ~40s wall still caps prefill (~50KB), so dispatch this lane with **tool-read files, not big `--context` front-loads**. The duplicate lane tables (lane-kernel/llm-compat.sh/llm-compat-contract/kagami/shintai) still carry the old id — reconcile in the Wave-2 routing-fragmentation fix. kimi uses a sibling adapter (`parseKimiToolCalls`) for its native tool-call token format; nemotron's NIM tool format parses cleanly with no adapter.
 
 ## 6. Invocation reference
 
