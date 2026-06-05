@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { DEAD_NIM_LANES, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
+import { resolveFinalText } from './reasoning-finalize.mjs';
 import {
   enforceOutputRails,
   evaluateInputRails,
@@ -621,7 +622,14 @@ function normalizeLaneRequest(rawLane, rawReasoning = '') {
     'usdcode': 'nvidia-usdcode',
   };
   const lane = alias[baseLane] || baseLane;
-  const reasoning = explicitReasoning || suffixReasoning || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : '');
+  // DeepSeek pro + flash ALWAYS default to MAX reasoning — owner policy 2026-06-05:
+  // they are reasoning models, so use them at full depth unless explicitly overridden.
+  // 'max' normalizes to the top tier via normalizeReasoningDepth (deepseek runtime
+  // re-normalizes it). The lite-budget alias keeps its deliberate cheap 'low'; all
+  // other lanes stay unset ('').
+  const deepseekProFlash = lane === 'deepseek-v4-pro' || lane === 'deepseek-v4-flash';
+  const reasoning = explicitReasoning || suffixReasoning
+    || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : (deepseekProFlash ? 'max' : ''));
   return { lane, reasoning };
 }
 
@@ -1116,42 +1124,42 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     },
     'codex': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: process.env.CODEX_MODEL || 'gpt-5.5',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'codex-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: process.env.CODEX_MINI_MODEL || 'gpt-5.4-mini',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
       timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.5': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.5',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4-mini',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
       timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.3-codex': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.3-codex',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
@@ -1347,12 +1355,16 @@ function resolveDeepseekRuntime(options, runnerOptions = {}) {
   const depth = normalizeReasoningDepth(runnerOptions.reasoning);
   const baseThinking = !!options.thinking;
   const thinking = depth === 'off' || depth === 'low' ? false : depth ? true : baseThinking;
+  // deepseek-v4-pro counts reasoning_tokens AGAINST max_tokens (live-verified: at max_tokens=8192
+  // a heavy prompt spent the whole budget thinking and truncated/blanked the answer). The API
+  // accepts much larger ceilings (live-verified up to 131072), so high/xhigh get real headroom
+  // ABOVE the thinking phase — otherwise raising reasoning depth can never let content through.
   const maxTokenByDepth = {
     off: Math.min(options.maxTokens, 2048),
     low: Math.min(options.maxTokens, 2048),
     medium: Math.max(options.maxTokens, 4096),
-    high: Math.max(options.maxTokens, 8192),
-    xhigh: Math.max(options.maxTokens, 8192),
+    high: Math.max(options.maxTokens, 16384),
+    xhigh: Math.max(options.maxTokens, 32768),
   };
   const timeoutByDepth = {
     off: options.timeout,
@@ -2156,7 +2168,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
           if (process.env.OFFLOAD_STREAM_REASONING === '1') opts.streamStatusWriter?.(`\x1b[2m[reasoning] ${chunk}\x1b[0m`);
         },
       });
-      const finalText = streamed.text || '';
+      const finalText = resolveFinalText(streamed.text, streamed.reasoning);
       const measurement = normalizeProviderUsage('openai-compatible', streamed.usage, {
         input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
         output_tokens: estimateTokensFromText(finalText),
@@ -2310,7 +2322,8 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     // No more tool calls or tools disabled — return final answer
     consecutiveToolCalls = 0;
-    const finalText = message.content || '';
+    const finishReason = data.choices?.[0]?.finish_reason;
+    const finalText = resolveFinalText(message.content, message.reasoning_content || message.reasoning, finishReason);
     if (cacheMetrics) {
       const totalCacheTokens = cacheMetrics.prompt_cache_hit_tokens + cacheMetrics.prompt_cache_miss_tokens;
       const ratio = totalCacheTokens > 0 ? cacheMetrics.prompt_cache_hit_tokens / totalCacheTokens : 0;
@@ -2331,6 +2344,9 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
 }
+
+// resolveFinalText (the capture-gap safety net) is imported from ./reasoning-finalize.mjs
+// (pure + unit-tested; offload-runner's kagami import blocks importing it from here).
 
 async function readOpenAICompatibleChatStream(response, onText = () => {}) {
   const handlers = typeof onText === 'function' ? { onText } : (onText || {});

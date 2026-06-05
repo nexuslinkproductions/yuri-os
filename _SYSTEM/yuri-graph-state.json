@@ -137,6 +137,7 @@
         "LANE_MINI",
         "LANE_CODEX",
         "LANE_KIMI",
+        "LANE_NEMOTRON",
         "LANE_TRIAGE",
         "LANE_GPTOSS",
         "MINI_WRITE",
@@ -212,7 +213,9 @@
         "GN_DETECT",
         "GN_QUERY",
         "GN_SYMBOL_GRAPH",
-        "GN_FLOW_TRACE"
+        "GN_FLOW_TRACE",
+        "PROPAGATION_SCAN",
+        "XREF_QUERY"
       ],
       "plane_radii": {
         "GITNEXUS": 280
@@ -829,6 +832,7 @@
         "LANE_MINI",
         "LANE_CODEX",
         "LANE_KIMI",
+        "LANE_NEMOTRON",
         "LANE_TRIAGE",
         "LANE_GPTOSS"
       ]
@@ -2523,6 +2527,42 @@
       "children": []
     },
     {
+      "id": "LANE_NEMOTRON",
+      "tier": "sub",
+      "label": "nemotron",
+      "role": "advisory reasoning",
+      "detail": "",
+      "radius": 20,
+      "color": "#4A9EFF",
+      "position": {
+        "x": 33.607,
+        "y": -756,
+        "z": -219.388
+      },
+      "sector": "routing_lanes",
+      "metadata": {
+        "purpose": "Advisory external reasoning lane (Nemotron-3-Ultra, DEV-ONLY, advisory-until-verified)",
+        "files": [
+          "_SYSTEM/Scripts/nemotron-dispatch.mjs"
+        ],
+        "capabilities": [
+          "Route to nemotron-3-ultra-550b-a55b",
+          "Bound work by lane policy",
+          "Return evidence to ENKI"
+        ],
+        "dependencies": [
+          "OFFLOAD_CONTRACT.lanes",
+          "nemotron-3-ultra-550b-a55b"
+        ],
+        "state_files": [],
+        "model": "nemotron-3-ultra-550b-a55b",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/nemotron-dispatch.mjs. DEV-ONLY advisory lane; output advisory-until-verified.",
+        "returns_to": "RESPONSE"
+      },
+      "parent": "ROUTING",
+      "children": []
+    },
+    {
       "id": "LANE_TRIAGE",
       "tier": "sub",
       "label": "triage-local",
@@ -3969,7 +4009,9 @@
       "children": [
         "GN_IMPACT",
         "GN_DETECT",
-        "GN_QUERY"
+        "GN_QUERY",
+        "PROPAGATION_SCAN",
+        "XREF_QUERY"
       ]
     },
     {
@@ -4138,6 +4180,73 @@
         "returns_to": "GN_QUERY"
       },
       "parent": "GN_QUERY",
+      "children": []
+    },
+    {
+      "id": "PROPAGATION_SCAN",
+      "tier": "sub",
+      "label": "propagation-scan",
+      "role": "cross-reference engine v1",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -120.0,
+        "y": -1076,
+        "z": 120.0
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Read-only cross-reference engine V1 — structural mechanism-sibling discovery via GitNexus",
+        "files": [
+          "_SYSTEM/Scripts/propagation-scan.mjs"
+        ],
+        "capabilities": [
+          "structural mechanism-sibling discovery",
+          "node-id resolution over circuitry graph"
+        ],
+        "dependencies": [
+          "GITNEXUS",
+          "XREF_QUERY"
+        ],
+        "state_files": [],
+        "notes": "Read-only over the circuitry graph + GitNexus; resolves node-ids and surfaces mechanism-siblings.",
+        "returns_to": "ENKI"
+      },
+      "parent": "GITNEXUS",
+      "children": []
+    },
+    {
+      "id": "XREF_QUERY",
+      "tier": "sub",
+      "label": "xref-query",
+      "role": "unified retrieval surface",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -160.0,
+        "y": -1076,
+        "z": 80.0
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Unified retrieval surface over corpus + circuitry graph + GitNexus, feeding propagation-scan",
+        "files": [
+          "_SYSTEM/Scripts/xref-query.mjs"
+        ],
+        "capabilities": [
+          "unified retrieval",
+          "feed structural cross-reference"
+        ],
+        "dependencies": [
+          "GITNEXUS"
+        ],
+        "state_files": [],
+        "notes": "Unified retrieval front door feeding PROPAGATION_SCAN.",
+        "returns_to": "ENKI"
+      },
+      "parent": "GITNEXUS",
       "children": []
     },
     {
@@ -5250,6 +5359,12 @@
     },
     {
       "source": "ROUTING",
+      "target": "LANE_NEMOTRON",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "ROUTING",
       "target": "LANE_TRIAGE",
       "type": "branch",
       "is_return": false
@@ -5639,6 +5754,12 @@
       "is_return": true
     },
     {
+      "source": "LANE_NEMOTRON",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
       "source": "LANE_TRIAGE",
       "target": "MEMORY",
       "type": "memory",
@@ -5900,6 +6021,25 @@
     },
     {
       "source": "GN_QUERY",
+      "target": "ENKI_INBOX",
+      "type": "data",
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
+    },
+    {
+      "source": "XREF_QUERY",
+      "target": "PROPAGATION_SCAN",
+      "type": "data",
+      "is_return": false
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "PROPAGATION_SCAN",
+      "type": "data",
+      "is_return": false
+    },
+    {
+      "source": "PROPAGATION_SCAN",
       "target": "ENKI_INBOX",
       "type": "data",
       "is_return": true,

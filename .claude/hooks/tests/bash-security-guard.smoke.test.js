@@ -6,6 +6,23 @@ const { spawnSync } = require('child_process');
 
 const HOOK = path.resolve(__dirname, '../bash-security-guard.js');
 
+// Resolve the role the hook will see in THIS env, so the surface-wide destructive git op
+// fixture (`git reset --hard`) asserts ADVISORY under dev / DENY under coworker. Mirrors
+// the hook's own resolver, so the suite is green independent of the resolved role.
+function resolvedRole() {
+  try {
+    const op = require(path.resolve(__dirname, '../../../_SYSTEM/Scripts/yuri-operator.cjs'));
+    return op.resolveRole();
+  } catch {
+    try {
+      const fs = require('fs');
+      const cred = path.resolve(__dirname, '../../../_SYSTEM/SELF/dev-credential.json');
+      return fs.existsSync(cred) ? 'coworker' : 'dev';
+    } catch { return 'dev'; }
+  }
+}
+const ROLE = resolvedRole();
+
 let pass = 0;
 let fail = 0;
 
@@ -62,6 +79,13 @@ function expectPass(label, cmd) {
   assert(label, out.status === 0 && out.stdout === '', `stdout=${JSON.stringify(out.stdout)}`);
 }
 
+// Role-aware: `git reset --hard` is a generic ADVISORY for dev, a hard DENY for coworker
+// (surface-wide destructive git op reverting the tracked enforcement-hook surface).
+function expectAdvisoryOrDenyByRole(label, cmd) {
+  if (ROLE === 'coworker') return expectBlock(label + ' [coworker DENY]', cmd);
+  return expectAdvisory(label + ' [dev advisory]', cmd);
+}
+
 // --- Block cases ---
 console.log('\nBlock cases:');
 expectBlock('cat .env', 'cat .env');
@@ -89,7 +113,7 @@ expectAdvisory('bash -c "ls"', 'bash -c "ls"');
 expectAdvisory('python3 -c "print(1)"', 'python3 -c "print(1)"');
 expectAdvisory('node -e "console.log(1)"', 'node -e "console.log(1)"');
 expectAdvisory('git add .', 'git add .');
-expectAdvisory('git reset --hard', 'git reset --hard');
+expectAdvisoryOrDenyByRole('git reset --hard', 'git reset --hard');
 
 // --- Pass / false-positive cases ---
 console.log('\nPass cases:');

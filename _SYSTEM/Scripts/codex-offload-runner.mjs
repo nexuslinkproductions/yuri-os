@@ -21,13 +21,13 @@ const MODEL_CONFIG = {
   },
   'gpt-5.4-mini': {
     sandbox: 'workspace-write',
-    defaultReasoning: 'high',
+    defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX
     ignoreRules: true,
     label: 'gpt-5.4-mini',
   },
   'gpt-5.5': {
     sandbox: 'workspace-write',
-    defaultReasoning: 'high',   // caller can escalate to xhigh → maps to 'max'
+    defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX (maps to codex 'max')
     ignoreRules: false,          // allow project rules — maximum features
     label: 'gpt-5.5',
   },
