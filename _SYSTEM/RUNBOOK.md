@@ -31,8 +31,8 @@
 ## Lane Routing Discipline
 
 - Main session = control plane only. Routes, verifies, merges. Never the researcher or implementer.
-- Routing priority: `@code-local → @deepseek → @triage-local → @summarize-local → @ollama-local → @gpt-oss → @swarm → @kimi → @claude`.
-- **Live lanes as of 2026-05-13:** `deepseek`, `codex-spark`. All Ollama-family + `gpt-oss` BLOCKED on a single env/adapter bug — see `_SYSTEM/lane-verification-2026-05-13.md`.
+- **Offload reasoning lanes (post-2026-06-05 consolidation) — EXACTLY 3:** `deepseek` (deepseek-v4-pro, DIRECT api.deepseek.com), `nemotron` (nvidia/nemotron-3-ultra-550b-a55b, NVIDIA NIM), `kimi` (moonshotai/kimi-k2.6, NVIDIA NIM). Single source of truth: `.claude/config/models.json` → `offload_lanes`. All 3 are 1M context; output cap is a separate knob. Codex/`gpt-5.5` is a SEPARATE collaborator lane, not an offload lane. The legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are HARD-REMOVED — invoking one now fails loud (exit 3).
+- **Live as of 2026-06-05:** all 3 live-verified (kimi NIM route revived). Loud-fail exit contract: 0 ok / 1 transient / 2 rail-block / 3 permanent (unknown lane / missing key / bad endpoint). NOTE: the `offload`→`ai llm` ("LLM Compatibility lane") rename is PENDING — `offload.sh` / `ai offload` commands below are current but get swept in that rename (see `NEXT_SESSION_BOOT_PACKET.md`).
 - Never call `Agent()` with a Claude/Haiku/Sonnet/Opus model (memory rule, banned).
 - All `_SYSTEM/Scripts/offload.sh` Bash invocations: `timeout: 600000`.
 
