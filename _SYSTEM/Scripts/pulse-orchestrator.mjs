@@ -12,14 +12,14 @@
 //
 // Entry point for the symbiotic pulse auto-trigger architecture. Spawned
 // detached by .claude/hooks/user-prompt-submit.js on every non-trivial
-// user prompt. Reads the classifier (offload-contract.mjs route-plan),
+// user prompt. Reads the classifier (llm-compat-contract.mjs route-plan),
 // fans out advisors in parallel via Promise.allSettled, writes findings
 // to .claude/state/pulse-bus.json.
 //
 // Authority model:
 //   - DeepSeek, OpenClaw, Yuri-Risk = ADVISORY ONLY.
 //     Never grant write or canonical authority.
-//   - OpenClaw is quarantined per OFFLOAD_CONTRACT.claudeProtocolGate.openClaw:
+//   - OpenClaw is quarantined per LLM_COMPAT_CONTRACT.claudeProtocolGate.openClaw:
 //     bridge_advisory only. Tagged in pulse-bus accordingly.
 //   - Two-phase Codex auto-impl (PATCH 036) calls a separate runner.
 //     Orchestrator only writes advisor findings + flags codexPolicy in plan.
@@ -38,8 +38,8 @@ const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ �
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PLAN_PATH = path.join(STATE_DIR, 'pulse-plan.json');
 const ERROR_LOG = path.join(STATE_DIR, 'pulse-errors.log');
-const CONTRACT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload-contract.mjs');
-const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
+const CONTRACT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat-contract.mjs');
+const LLM_COMPAT_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat.sh');
 const OPENCLAW_BRIDGE = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'openclaw-bridge.sh');
 
 const TIMEOUT_DEEPSEEK_MS = 60_000;
@@ -210,7 +210,7 @@ OUTPUT_CAP: 40 lines`;
   const dsModel = plan.councilComposition?.deepseekModel || 'deepseek-v4-flash';
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '-m', dsModel, '--tools', preflightPrompt],
+    [LLM_COMPAT_SH, '-m', dsModel, '--tools', preflightPrompt],
     {},
     TIMEOUT_DEEPSEEK_MS
   );
@@ -236,7 +236,7 @@ OUTPUT_CAP: 30 lines`;
 
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '@nvidia', '--tools', preflightPrompt],
+    [LLM_COMPAT_SH, '@nvidia', '--tools', preflightPrompt],
     {},
     TIMEOUT_NVIDIA_MS
   );
@@ -333,14 +333,14 @@ async function dispatchYuriRisk(prompt, plan, turnId) {
   let nativeForesight = null;
   const promptLower = String(prompt).toLowerCase();
   const recentMemoryDb = /memory\.db/.test(gitLog) && /memory\.db|kernel|canonical/.test(promptLower);
-  const recentProtocolChurn = (gitLog.match(/protocol|routing|offload-contract|hooks\//gi) || []).length >= 2 &&
+  const recentProtocolChurn = (gitLog.match(/protocol|routing|llm-compat-contract|hooks\//gi) || []).length >= 2 &&
                               /protocol|routing|hooks|offload/i.test(prompt);
   const recentRollback = /revert|rollback|fix.*regression/i.test(gitLog);
 
   if (recentMemoryDb) {
     nativeForesight = { severity: 'HIGH', finding: 'Recent memory.db touch in last 5 commits + this prompt re-enters canonical surface; verify promotion gate before mutation.' };
   } else if (recentProtocolChurn) {
-    nativeForesight = { severity: 'WARN', finding: `Last commits show ${(gitLog.match(/protocol|routing|offload-contract|hooks\//gi) || []).length}+ protocol/routing changes; cumulative drift risk elevated — run offload-contract regression before commit.` };
+    nativeForesight = { severity: 'WARN', finding: `Last commits show ${(gitLog.match(/protocol|routing|llm-compat-contract|hooks\//gi) || []).length}+ protocol/routing changes; cumulative drift risk elevated — run llm-compat-contract regression before commit.` };
   } else if (recentRollback) {
     nativeForesight = { severity: 'WARN', finding: 'Recent rollback/revert in git log — current campaign overlaps the unstable area; preserve rollback boundary.' };
   } else {
@@ -358,7 +358,7 @@ ${peerDigest.slice(0, 400) || '(none)'}
 Output ONE line predicting the highest-probability failure mode for this turn. Format: SEVERITY:WARN|HIGH|CRITICAL :: <prediction>. Be concrete.`;
     const result = await execWithTimeout(
       'bash',
-      [OFFLOAD_SH, '@deepseek-v4-flash', riskPrompt],
+      [LLM_COMPAT_SH, '@deepseek-v4-flash', riskPrompt],
       {},
       25_000
     );
@@ -405,7 +405,7 @@ TASK: 6-perspective strategic review. Return compact sections for architect, adv
   ];
 
   const results = await Promise.allSettled(lanes.map(([role, lane]) => (
-    execWithTimeout('bash', [OFFLOAD_SH, lane, '--tools', `${shuraPrompt}\nPERSPECTIVE: ${role}`], {}, TIMEOUT_SWARM_MS)
+    execWithTimeout('bash', [LLM_COMPAT_SH, lane, '--tools', `${shuraPrompt}\nPERSPECTIVE: ${role}`], {}, TIMEOUT_SWARM_MS)
   )));
 
   const outputs = [];
@@ -442,7 +442,7 @@ OUTPUT_CAP: 20 lines`;
 
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '-m', codexModel, '--tools', advisoryPrompt],
+    [LLM_COMPAT_SH, '-m', codexModel, '--tools', advisoryPrompt],
     {},
     TIMEOUT_DEEPSEEK_MS
   );

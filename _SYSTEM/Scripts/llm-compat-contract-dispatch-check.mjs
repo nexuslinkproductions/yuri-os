@@ -6,16 +6,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // PATCH 018 — Legacy dispatch tokens allowlist.
-// These tokens stay in offload.sh dispatch for backward compatibility but are
-// not in offload-contract.mjs lanes (deprecated aliases, retired model versions,
+// These tokens stay in llm-compat.sh dispatch for backward compatibility but are
+// not in llm-compat-contract.mjs lanes (deprecated aliases, retired model versions,
 // or dispatch-only tokens). Reviewing: 2026-05-14. Annual review marker.
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
-const CONTRACT_FILE = join(SCRIPT_DIR, 'offload-contract.mjs');
-const OFFLOAD_FILE = join(SCRIPT_DIR, 'offload.sh');
+const CONTRACT_FILE = join(SCRIPT_DIR, 'llm-compat-contract.mjs');
+const LLM_COMPAT_FILE = join(SCRIPT_DIR, 'llm-compat.sh');
 
-const usage = `Usage: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs [--json] [--verbose] [--help]
+const usage = `Usage: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs [--json] [--verbose] [--help]
 
-Checks drift between _SYSTEM/Scripts/offload-contract.mjs lanes and _SYSTEM/Scripts/offload.sh dispatch surfaces.
+Checks drift between _SYSTEM/Scripts/llm-compat-contract.mjs lanes and _SYSTEM/Scripts/llm-compat.sh dispatch surfaces.
 
 Options:
   --json       Print structured JSON.
@@ -191,11 +191,11 @@ function printTable(rows) {
   }
 }
 
-requireSyntaxOk(process.execPath, ['--check', CONTRACT_FILE], 'offload-contract.mjs');
-requireSyntaxOk('bash', ['-n', OFFLOAD_FILE], 'offload.sh');
+requireSyntaxOk(process.execPath, ['--check', CONTRACT_FILE], 'llm-compat-contract.mjs');
+requireSyntaxOk('bash', ['-n', LLM_COMPAT_FILE], 'llm-compat.sh');
 
 const contractText = readText(CONTRACT_FILE);
-const offloadText = readText(OFFLOAD_FILE);
+const offloadText = readText(LLM_COMPAT_FILE);
 const lanes = extractContractLanes(contractText);
 const contractTokens = new Set(lanes.flatMap((entry) => entry.tokens));
 const dispatchTokens = extractCaseTokens(extractFunction(offloadText, 'dispatch_model'));

@@ -30,10 +30,10 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const STATE_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state');
 const PULSE_BUS = path.join(STATE_DIR, 'pulse-bus.jsonl');
 const QUEUES_FILE = path.join(STATE_DIR, 'worker-queues.json');
-const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
+const LLM_COMPAT_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat.sh');
 const CODEX_RUNNER = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'codex-offload-runner.mjs');
 const AI_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'ai');
-const CONTRACT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload-contract.mjs');
+const CONTRACT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat-contract.mjs');
 
 const WORKERS = {
   codex: {
@@ -360,7 +360,7 @@ function execTask(task) {
     const env = {
       ...process.env,
       LANE_SESSION: spec.laneSession,
-      OFFLOAD_PROMPT_TEXT: task.prompt,
+      LLM_COMPAT_PROMPT_TEXT: task.prompt,
     };
 
     let cmd;
@@ -371,7 +371,7 @@ function execTask(task) {
       args = [CODEX_RUNNER, task.lane];
     } else {
       cmd = 'bash';
-      args = [OFFLOAD_SH, '-m', task.lane, ...(spec.offloadFlags || []), task.prompt];
+      args = [LLM_COMPAT_SH, '-m', task.lane, ...(spec.offloadFlags || []), task.prompt];
     }
 
     const child = spawn(cmd, args, {

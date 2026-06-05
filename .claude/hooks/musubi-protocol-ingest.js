@@ -39,7 +39,7 @@ function parseSections(content) {
 function formatXmlBlock(sections) {
   const timestamp = new Date().toISOString();
   const roleMatrix = sections.ROLE_MATRIX || '';
-  const offloadDirective = sections.GLOBAL_OFFLOAD_DIRECTIVE || '';
+  const llmCompatDirective = sections.GLOBAL_LLM_COMPAT_DIRECTIVE || '';
   const coreDirectives = sections.CORE_DIRECTIVES || '';
 
   return `<musubi-protocol version="1" loaded_at="${timestamp}">
@@ -47,9 +47,9 @@ function formatXmlBlock(sections) {
 
 ${roleMatrix}
 
-### GLOBAL_OFFLOAD_DIRECTIVE
+### GLOBAL_LLM_COMPAT_DIRECTIVE
 
-${offloadDirective}
+${llmCompatDirective}
 
 ### CORE_DIRECTIVES
 

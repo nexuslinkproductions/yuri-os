@@ -1101,7 +1101,7 @@ const GRAPH_STATE = {
       "date": "2026-05-17",
       "commit": "d50398f2 + 6837ec54",
       "title": "~230 bare Scripts/ refs → _SYSTEM/Scripts/",
-      "summary": "Live hooks, .codex adapters, trading-bot bootstrap, package.json, 195 _SYSTEM/ docs. Marker-swap sed; offload-contract regression + dispatch-drift + independence gate all clean.",
+      "summary": "Live hooks, .codex adapters, trading-bot bootstrap, package.json, 195 _SYSTEM/ docs. Marker-swap sed; llm-compat-contract regression + dispatch-drift + independence gate all clean.",
       "scope": "250 files"
     },
     {
@@ -1388,7 +1388,7 @@ const GRAPH_STATE = {
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO",
         "CMD_SHURA",
         "CMD_REPORT"
@@ -1601,7 +1601,7 @@ const GRAPH_STATE = {
           "Veto advisory output"
         ],
         "dependencies": [
-          "Scripts/offload-contract.mjs",
+          "Scripts/llm-compat-contract.mjs",
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
@@ -1730,8 +1730,8 @@ const GRAPH_STATE = {
           "Emit beacon when configured"
         ],
         "dependencies": [
-          "Scripts/offload-contract.mjs",
-          "OFFLOAD_SH",
+          "Scripts/llm-compat-contract.mjs",
+          "LLM_COMPAT_SH",
           "OPENCLAW_BRIDGE"
         ],
         "state_files": [
@@ -1753,7 +1753,7 @@ const GRAPH_STATE = {
       "id": "CLASSIFIER",
       "tier": "section",
       "label": "CLASSIFIER",
-      "role": "offload-contract.mjs",
+      "role": "llm-compat-contract.mjs",
       "detail": "tier: TRIVIAL / STD / CPLX / CRIT",
       "radius": 50,
       "color": "#48C3D8",
@@ -1764,9 +1764,9 @@ const GRAPH_STATE = {
       },
       "sector": "classification",
       "metadata": {
-        "purpose": "Complexity and scenario classifier from offload contract; maps prompts to tier and lane expectations.",
+        "purpose": "Complexity and scenario classifier from LLM-compat contract; maps prompts to tier and lane expectations.",
         "files": [
-          "Scripts/offload-contract.mjs",
+          "Scripts/llm-compat-contract.mjs",
           "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md"
         ],
         "capabilities": [
@@ -1775,7 +1775,7 @@ const GRAPH_STATE = {
           "Emit lane plan"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.routingPriority",
           "universalWorkflow"
         ],
         "state_files": [
@@ -1934,7 +1934,7 @@ const GRAPH_STATE = {
       "id": "ROUTING",
       "tier": "section",
       "label": "ROUTING",
-      "role": "offload lanes",
+      "role": "llm-compat lanes",
       "detail": "12 lanes / priority order",
       "radius": 50,
       "color": "#00C896",
@@ -1945,9 +1945,9 @@ const GRAPH_STATE = {
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Offload lane router using priority and scenario rules from the shared contract.",
+        "purpose": "LLM-compat lane router using priority and scenario rules from the shared contract.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Select smallest reliable lane",
@@ -1956,11 +1956,11 @@ const GRAPH_STATE = {
           "Route analysis separately"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
-          "OFFLOAD_CONTRACT.lanes"
+          "LLM_COMPAT_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.lanes"
         ],
         "state_files": [],
-        "notes": "Evidence: offload-contract routingPriority and universalWorkflow.",
+        "notes": "Evidence: llm-compat-contract routingPriority and universalWorkflow.",
         "returns_to": "RESPONSE"
       },
       "parent": null,
@@ -1993,7 +1993,7 @@ const GRAPH_STATE = {
         "purpose": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Propose dry-run diff",
@@ -3009,7 +3009,7 @@ const GRAPH_STATE = {
         "purpose": "DeepSeek preflight/model advisor for biggest risk, ambiguity, or missing context.",
         "files": [
           "Scripts/pulse-orchestrator.mjs",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Standard-tier preflight",
@@ -3170,7 +3170,7 @@ const GRAPH_STATE = {
         "purpose": "Dual DeepSeek fanout for high-stakes independent risk scan.",
         "files": [
           "Scripts/pulse-orchestrator.mjs",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Run flash and pro in parallel",
@@ -3461,7 +3461,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Qwen-backed local coding lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b / code-local",
@@ -3469,12 +3469,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "qwen:7b / code-local"
         ],
         "state_files": [],
         "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3497,7 +3497,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "DeepSeek flash cloud analysis lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-flash",
@@ -3505,12 +3505,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-flash"
         ],
         "state_files": [],
         "model": "deepseek-v4-flash",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3533,7 +3533,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "DeepSeek pro cloud reasoning lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-pro",
@@ -3541,12 +3541,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-pro"
         ],
         "state_files": [],
         "model": "deepseek-v4-pro",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3569,7 +3569,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Codex mini bounded implementation lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.4-mini",
@@ -3577,12 +3577,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.4-mini"
         ],
         "state_files": [],
         "model": "gpt-5.4-mini",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3607,7 +3607,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Codex full workspace implementation lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.5",
@@ -3615,12 +3615,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.5"
         ],
         "state_files": [],
         "model": "gpt-5.5",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3645,7 +3645,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Remote high-grade fallback reasoning lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to kimi-k2.6",
@@ -3653,12 +3653,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "kimi-k2.6"
         ],
         "state_files": [],
         "model": "kimi-k2.6",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3681,7 +3681,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Qwen-backed local triage and summarization lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b",
@@ -3689,12 +3689,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "qwen:7b"
         ],
         "state_files": [],
         "model": "qwen:7b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3717,7 +3717,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "Formatting and synthesis local GPU lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-oss 120b",
@@ -3725,12 +3725,12 @@ const GRAPH_STATE = {
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-oss 120b"
         ],
         "state_files": [],
         "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3754,7 +3754,7 @@ const GRAPH_STATE = {
         "purpose": "propose supports the codex gate sector as dry-run diff.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent dry-run diff",
@@ -3794,7 +3794,7 @@ const GRAPH_STATE = {
         "purpose": ".approved supports the codex gate sector as user marker.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent user marker",
@@ -3832,7 +3832,7 @@ const GRAPH_STATE = {
         "purpose": "apply supports the codex gate sector as HEAD SHA verify.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent HEAD SHA verify",
@@ -4672,7 +4672,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "workspace-write supports the routing lanes sector as sandbox impl auth.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent sandbox impl auth",
@@ -4706,7 +4706,7 @@ const GRAPH_STATE = {
       "metadata": {
         "purpose": "full workspace supports the routing lanes sector as max reasoning.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent max reasoning",
@@ -4741,7 +4741,7 @@ const GRAPH_STATE = {
         "purpose": "dry-run diff supports the codex gate sector as no writes.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent no writes",
@@ -4776,7 +4776,7 @@ const GRAPH_STATE = {
         "purpose": "HEAD SHA verify supports the codex gate sector as stale-protection.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent stale-protection",
@@ -5504,7 +5504,7 @@ const GRAPH_STATE = {
       "id": "PRECOMMIT_REGRESS",
       "tier": "leaf",
       "label": "precommit regress",
-      "role": "offload-contract",
+      "role": "llm-compat-contract",
       "detail": "",
       "radius": 8,
       "color": "#FF8855",
@@ -5515,9 +5515,9 @@ const GRAPH_STATE = {
       },
       "sector": "self_improvement",
       "metadata": {
-        "purpose": "offload-contract-regression.sh",
+        "purpose": "llm-compat-contract-regression.sh",
         "files": [
-          "Scripts/offload-contract-regression.test.mjs"
+          "Scripts/llm-compat-contract-regression.test.mjs"
         ],
         "capabilities": [
           "regression gate"
@@ -5601,7 +5601,7 @@ const GRAPH_STATE = {
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO"
       ]
     },
@@ -5681,9 +5681,9 @@ const GRAPH_STATE = {
           "ds-flash",
           "ds-pro"
         ],
-        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /offload",
+        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /llm",
         "current_size": "4 overlapping deepseek commands",
-        "ideal_size": "2 direct lane commands plus /offload routing",
+        "ideal_size": "2 direct lane commands plus /llm routing",
         "dependencies": [
           "ENKI_COMMANDS"
         ],
@@ -5845,9 +5845,9 @@ const GRAPH_STATE = {
       "children": []
     },
     {
-      "id": "CMD_OFFLOAD",
+      "id": "CMD_LLM",
       "tier": "leaf",
-      "label": "OFFLOAD family",
+      "label": "LLM family",
       "role": "2 commands",
       "detail": "2 commands",
       "radius": 8,
@@ -5859,19 +5859,19 @@ const GRAPH_STATE = {
       },
       "sector": "command_registry",
       "metadata": {
-        "purpose": "OFFLOAD family command family",
+        "purpose": "LLM family command family",
         "command_count": 2,
         "commands": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
         "duplicates_flagged": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
-        "merge_proposal": "Use /offload as the visible command and keep ai-pipeline-offloading as implementation skill",
+        "merge_proposal": "Use /llm as the visible command and keep ai-pipeline-offloading as implementation skill",
         "current_size": "2 command surfaces",
-        "ideal_size": "1 /offload command",
+        "ideal_size": "1 /llm command",
         "dependencies": [
           "ENKI_COMMANDS"
         ],
@@ -7412,12 +7412,12 @@ const GRAPH_STATE = {
     },
     {
       "source": "ENKI_COMMANDS",
-      "target": "CMD_OFFLOAD",
+      "target": "CMD_LLM",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "CMD_OFFLOAD",
+      "source": "CMD_LLM",
       "target": "ENKI_COMMANDS",
       "type": "return",
       "is_return": true
@@ -7842,7 +7842,7 @@ const GRAPH_STATE = {
       "id": "command-duplicates-deepseek",
       "title": "Consolidate 4 deepseek commands -> 2",
       "status": "applied-v15",
-      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /offload.",
+      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /llm.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",

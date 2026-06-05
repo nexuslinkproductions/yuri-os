@@ -3,7 +3,7 @@
  * llm-lane.mjs — the ENTIRE dispatch path for the 3 YURI reasoning lanes.
  *
  * Replaces the offload-runner / reasoning-lane-dispatch / *-dispatch adapter stack for lane
- * DISPATCH. Routing ("which lane handles X" via offload-contract route-plan) is a separate axis,
+ * DISPATCH. Routing ("which lane handles X" via llm-compat-contract route-plan) is a separate axis,
  * untouched. All three lanes are plain openai-compatible chat endpoints -> one code path.
  *
  * CAPABILITY: the lane is NOT a blind chatbot. It gets READ + FETCH tools (read_file, grep,
@@ -22,10 +22,10 @@
  * Flags:  --reasoning <low|medium|high|xhigh|max>   --system <str|@file>   --no-system
  *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 24)
  *         --out <file>   --dry-run   --list
- * Exit:   0 ok (truncated-but-nonempty -> OFFLOAD_WARN, still 0)
+ * Exit:   0 ok (truncated-but-nonempty -> LLM_COMPAT_WARN, still 0)
  *         1 empty output / transient transport / 5xx       3 unknown lane / missing key / bad endpoint / 4xx
  *
- * Single source of truth for lane config: .claude/config/models.json -> offload_lanes.
+ * Single source of truth for lane config: .claude/config/models.json -> llm_compat_lanes.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,7 +38,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_BIN = path.join(__dirname, 'ai');
 const MODELS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, '.claude/config/models.json'), 'utf8'));
-const LANES = MODELS.offload_lanes || {};
+const LANES = MODELS.llm_compat_lanes || {};
 
 const ALIAS = {
   deepseek: 'deepseek-v4-pro', ds: 'deepseek-v4-pro', 'deepseek-v4-pro': 'deepseek-v4-pro',
@@ -60,7 +60,7 @@ const OPERATING_DIRECTIVE =
   + 'grep / list_dir (the full repo, minus protected secrets), search (FTS5 corpus, ~26k docs+code), '
   + 'context_router (pull the selected YURI context packet for a task), fetch_url (external refs). '
   + 'Pull whatever you need — do not work from a sliver. Live state is authoritative over prose: read '
-  + '.claude/config/models.json (offload_lanes = the current lane roster), _SYSTEM/INDEX.md (architecture), '
+  + '.claude/config/models.json (llm_compat_lanes = the current lane roster), _SYSTEM/INDEX.md (architecture), '
   + 'and the memory indexes for current facts rather than inferring from older docs. Ground every claim '
   + 'in something you actually read. Authority: owner intent > local evidence > this contract. Your output is ADVISORY until '
   + 'YURI verifies it against live code — fluency is not verification. Protected surfaces (.env, '
@@ -75,7 +75,7 @@ function buildYuriLoadout() {
   }
   // A missing spine file means the lane would run cognitively decapitated (no contract/persona).
   // Don't silently degrade — make it LOUD so a broken spine is never mistaken for a working lane.
-  if (missing.length) process.stderr.write(`OFFLOAD_WARN code=0 lane=llm-lane reason=spine_incomplete missing=${missing.join(',')}\n`);
+  if (missing.length) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=llm-lane reason=spine_incomplete missing=${missing.join(',')}\n`);
   parts.push(OPERATING_DIRECTIVE);
   return parts.join('');
 }
@@ -133,7 +133,7 @@ function isProtectedPath(absPath) {
 
 function fail(code, lane, reason) {
   const r = String(reason).replace(/\s+/g, '_').replace(/[^\w.:%-]/g, '').slice(0, 160) || 'unknown';
-  process.stderr.write(`OFFLOAD_FAIL code=${code} lane=${lane || 'unknown'} reason=${r}\n`);
+  process.stderr.write(`LLM_COMPAT_FAIL code=${code} lane=${lane || 'unknown'} reason=${r}\n`);
   process.exit(code);
 }
 
@@ -343,7 +343,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     if (!text) return fail(1, key, `empty_output${finish ? `_${finish}` : ''}`);
     process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
     if (opts.out) fs.writeFileSync(path.resolve(opts.out), text);
-    if (truncated) process.stderr.write(`OFFLOAD_WARN code=0 lane=${key} reason=ok_truncated_${finish}\n`);
+    if (truncated) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=ok_truncated_${finish}\n`);
     coreOnResult({ lane: key, prompt, output: text, exitCode: 0, runId });
     return 0;
   }
@@ -390,7 +390,7 @@ async function main() {
   const cli = parseCli(process.argv.slice(2));
   if (cli.list) { console.log(JSON.stringify(Object.keys(LANES).filter((k) => k !== '_comment'), null, 2)); return 0; }
   if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|kimi|nemotron> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
-  let prompt = cli.prompt || process.env.OFFLOAD_PROMPT_TEXT || '';
+  let prompt = cli.prompt || process.env.LLM_COMPAT_PROMPT_TEXT || '';
   if (!prompt && !cli.dryRun && !process.stdin.isTTY) prompt = fs.readFileSync(0, 'utf8');
   return dispatch(cli.lane, prompt, cli);
 }

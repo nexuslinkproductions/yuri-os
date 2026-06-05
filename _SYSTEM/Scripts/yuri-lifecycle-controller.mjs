@@ -65,7 +65,7 @@ const bundle = {
 console.log(JSON.stringify(bundle, null, 2));
 
 function routeIntent(text) {
-  const result = spawnSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', text], {
+  const result = spawnSync('node', ['_SYSTEM/Scripts/llm-compat-contract.mjs', 'route-plan', text], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 2,

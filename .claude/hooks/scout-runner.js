@@ -10,7 +10,7 @@ const bus = require('./scout-bus.js');
 
 const ERROR_LOG = path.join(__dirname, '..', 'state', 'scout-errors.log');
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const OFFLOAD_SH = process.env.SCOUT_OFFLOAD_SH || path.join(REPO_ROOT, 'Scripts', 'offload.sh');
+const LLM_COMPAT_SH = process.env.SCOUT_LLM_COMPAT_SH || path.join(REPO_ROOT, 'Scripts', 'llm-compat.sh');
 const MAX_LOG_BYTES = 1 * 1024 * 1024; // 1 MB ring cap
 const MODEL_SCOUT = 'deepseek';
 const NATIVE_SCOUTS = new Set(['ARGUS']);
@@ -141,13 +141,13 @@ function runModelScout(scoutType, contextText) {
   try {
     rawOutput = execFileSync(
       'bash',
-      [OFFLOAD_SH, '-m', MODEL_SCOUT, '--no-tools', fullPrompt],
+      [LLM_COMPAT_SH, '-m', MODEL_SCOUT, '--no-tools', fullPrompt],
       { encoding: 'utf8', timeout: 90_000, cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
     );
   } catch (e) {
     const stderr = e.stderr ? String(e.stderr).trim().slice(0, 300) : '';
     const detail = stderr ? `${e.message?.slice(0, 200)} | stderr: ${stderr}` : e.message?.slice(0, 200);
-    logError(`offload.sh -m ${MODEL_SCOUT} failed for ${scoutType}: ${detail}`);
+    logError(`llm-compat.sh -m ${MODEL_SCOUT} failed for ${scoutType}: ${detail}`);
   }
 
   return parseScoutOutput(rawOutput, scoutType);

@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_SH = path.join(__dirname, 'ai');
 
-const OFFLOAD_CONTRACT = {
+const LLM_COMPAT_CONTRACT = {
   version: 3,
   activation: {
     mode: 'automatic',
@@ -588,7 +588,7 @@ const OFFLOAD_CONTRACT = {
     requiredBehavior: [
       'Load OPERATOR_PROTOCOL.md or an inheriting rule file at startup.',
       'Treat offload routing as automatic for every non-trivial task.',
-      'Use _SYSTEM/Scripts/offload-contract.mjs as the only lane and scenario source.',
+      'Use _SYSTEM/Scripts/llm-compat-contract.mjs as the only lane and scenario source.',
       'Use ./_SYSTEM/Scripts/ai auto "<prompt>" as the execution entrypoint for automatic classification and dispatch.',
       'Keep explicit triggers as compatibility aliases only.',
       'Log durable corrections and route outcomes to the shared memory surface.',
@@ -743,7 +743,7 @@ function includesAny(text, markers) {
 
 function assessDeepseekAdvisory(prompt, lane, scenario) {
   const text = normalizePrompt(prompt);
-  const policy = OFFLOAD_CONTRACT.deepseekCodexQualityGate;
+  const policy = LLM_COMPAT_CONTRACT.deepseekCodexQualityGate;
   const proSignals = [
     'architecture', 'protocol', 'security', 'audit', 'review', 'risk', 'high-stakes',
     'routing', 'offload', 'agent harness', 'workflow', 'protected', 'memory', 'policy',
@@ -827,7 +827,7 @@ function assessDeepseekAdvisory(prompt, lane, scenario) {
 
 function assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory = {}) {
   const text = normalizePrompt(prompt);
-  const policy = OFFLOAD_CONTRACT.claudeCouncilQualityGate;
+  const policy = LLM_COMPAT_CONTRACT.claudeCouncilQualityGate;
   const councilSignals = [
     'model council', 'council', 'claude', 'sonnet', 'architecture', 'protocol',
     'security', 'audit', 'risk', 'high-stakes', 'routing', 'offload', 'memory',
@@ -870,7 +870,7 @@ function assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory = {}) {
 
 function assessNativeFunctionGates(prompt, lane, scenario) {
   const text = normalizePrompt(prompt);
-  const policy = OFFLOAD_CONTRACT.nativeFunctionGates;
+  const policy = LLM_COMPAT_CONTRACT.nativeFunctionGates;
   const promotionSignals = [
     'promote', 'promotion', 'promotion candidate', 'promotion gate',
     'canonical state', 'canonical memory', 'memory.db', 'protected path',
@@ -923,7 +923,7 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // at _SYSTEM/Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
 
 function assessOpenClawAdvisory(prompt, lane, scenario) {
-  const ocConfig = OFFLOAD_CONTRACT.claudeProtocolGate.openClaw;
+  const ocConfig = LLM_COMPAT_CONTRACT.claudeProtocolGate.openClaw;
   // OpenClaw absorbed as Nisaba Sentinel (native-integrated) — no longer a separate bridge lane
   if (ocConfig.authority === 'native-integrated') {
     return {
@@ -1174,7 +1174,7 @@ function pickCodexPolicy(prompt, scenario, complexityTier) {
 }
 
 function buildPulseGovernanceSkeleton(nativeFunctionGates) {
-  const skeleton = OFFLOAD_CONTRACT.pulseGovernanceSkeleton;
+  const skeleton = LLM_COMPAT_CONTRACT.pulseGovernanceSkeleton;
   const profileStatus = {
     argus: nativeFunctionGates.argus?.decision || 'skip',
     obliteratus: nativeFunctionGates.obliteratus?.decision || 'skip',
@@ -1215,7 +1215,7 @@ function buildPulseGovernanceSkeleton(nativeFunctionGates) {
 
 function selectScenario(prompt, lane = '') {
   const text = normalizePrompt(prompt);
-  const scored = OFFLOAD_CONTRACT.scenarios
+  const scored = LLM_COMPAT_CONTRACT.scenarios
     .map((scenario) => {
       const hits = scenario.match.filter((marker) => text.includes(marker)).length;
       return { scenario, hits };
@@ -1226,7 +1226,7 @@ function selectScenario(prompt, lane = '') {
   const matches = scored.map(({ scenario }) => scenario);
   return matches.find((scenario) => scenario.defaultLane === lane) ||
     matches[0] ||
-    OFFLOAD_CONTRACT.scenarios.find((scenario) => scenario.id === 'document-synthesis');
+    LLM_COMPAT_CONTRACT.scenarios.find((scenario) => scenario.id === 'document-synthesis');
 }
 
 function readCalibration() {
@@ -1275,7 +1275,7 @@ function buildRoutePlan(prompt) {
     lane,
     scenario: scenario.id,
     title: scenario.title,
-    automatic: OFFLOAD_CONTRACT.activation.triggerless,
+    automatic: LLM_COMPAT_CONTRACT.activation.triggerless,
     entrypoint: './_SYSTEM/Scripts/ai auto',
     qualityGate: 'main-session',
     dispatch: lane === 'native' ? 'native-orchestration' : 'single-lane',
@@ -1290,13 +1290,13 @@ function buildRoutePlan(prompt) {
     // existing fields
     deepseekAdvisory,
     claudeAdvisory,
-    claudeProtocolGate: OFFLOAD_CONTRACT.claudeProtocolGate,
+    claudeProtocolGate: LLM_COMPAT_CONTRACT.claudeProtocolGate,
     nativeFunctionGates,
     pulseGovernanceSkeleton,
     lifecycle: scenario.lifecycle,
-    crossReference: OFFLOAD_CONTRACT.crossReference,
-    learningCapture: OFFLOAD_CONTRACT.learningLoop.capture,
-    memorySurface: OFFLOAD_CONTRACT.learningLoop.memorySurface,
+    crossReference: LLM_COMPAT_CONTRACT.crossReference,
+    learningCapture: LLM_COMPAT_CONTRACT.learningLoop.capture,
+    memorySurface: LLM_COMPAT_CONTRACT.learningLoop.memorySurface,
     calibrationStatus: calibStatus,
   };
 }
@@ -1322,8 +1322,8 @@ export function healthProbe(laneName, options = {}) {
       cwd: REPO_ROOT,
       env: {
         ...process.env,
-        OFFLOAD_PROMPT_TEXT: prompt,
-        OFFLOAD_STREAM: '0',
+        LLM_COMPAT_PROMPT_TEXT: prompt,
+        LLM_COMPAT_STREAM: '0',
         LANE_SESSION: 'health-probe',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -1374,7 +1374,7 @@ if (isCliEntrypoint()) {
 
   switch (command) {
     case 'contract':
-      printJson(OFFLOAD_CONTRACT);
+      printJson(LLM_COMPAT_CONTRACT);
       break;
     case 'steer':
       process.stdout.write(`${selectSteeringLane(args.join(' '))}\n`);
@@ -1383,7 +1383,7 @@ if (isCliEntrypoint()) {
       printJson(buildRoutePlan(args.join(' ')));
       break;
     case 'examples':
-      printJson(OFFLOAD_CONTRACT.scenarios);
+      printJson(LLM_COMPAT_CONTRACT.scenarios);
       break;
     case 'swarm-default':
     case 'swarm-workhorse':

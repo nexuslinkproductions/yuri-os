@@ -100,7 +100,7 @@ Auto-expires at session end. Use /geass off to remove early.
 |------------|------------------|
 | "no Codex dispatches until bankai approved" | Before any `codex exec` or pulse-codex-runner call |
 | "all file writes need confirmation" | Before any Write/Edit tool call |
-| "deepseek-flash only" | In offload-contract.mjs model selection |
+| "deepseek-flash only" | In llm-compat-contract.mjs model selection |
 | "no new LaunchAgents this session" | Before any launchctl or plist write |
 
 ---

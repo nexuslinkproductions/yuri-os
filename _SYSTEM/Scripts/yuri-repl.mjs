@@ -15,7 +15,7 @@ import {
 } from './yuri/status-line.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LLM_COMPAT_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/llm-compat.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
 const RUNS_DIR = path.join(os.homedir(), '.yuri', 'runs');
 const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'yuri-runs');
@@ -197,7 +197,7 @@ const CLAIM_VERIFIER_SMOKE_OUTPUT = [
   'git commit success',
 ].join('\n');
 
-const ROUTE_LOG_LINE = /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_[A-Z0-9_]+|DRY_RUN(?:_SWARM)?|INITIATING_MANUAL_SWARM|OFFLOAD_ASSESSMENT|BACKEND_UNREACHABLE)\b/;
+const ROUTE_LOG_LINE = /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_[A-Z0-9_]+|DRY_RUN(?:_SWARM)?|INITIATING_MANUAL_SWARM|LLM_COMPAT_ASSESSMENT|BACKEND_UNREACHABLE)\b/;
 const ROUTE_PROVIDER_LINE = /^(?:\s*)\[(?:[^\]]+)\]\s+(?:SKIPPED_MISSING_ENDPOINT|SKIPPED_MISSING_KEY|BLOCKED_PAID_MODEL)\b/;
 
 const isRouteLogLine = (line) => ROUTE_LOG_LINE.test(line) || ROUTE_PROVIDER_LINE.test(line);
@@ -704,7 +704,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   const { branch, head, staged, tmx } = getStatus();
   console.log(sectionTop('YURI ROUTE'));
   console.log(`${c('│')} ${d('LANE     ')} ${g(state.model)}`);
-  console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › _SYSTEM/Scripts/offload.sh')}`);
+  console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › _SYSTEM/Scripts/llm-compat.sh')}`);
   console.log(`${c('│')} ${d('BRANCH   ')} ${g(branch)}  ${d('HEAD')} ${d(head)}  ${d('STAGED')} ${staged > 0 ? c(String(staged)) : d('0')}`);
   console.log(`${c('│')} ${d('TMX      ')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}`);
   console.log(`${c('│')} ${d('SENT     ')} ${d(new Date().toISOString())}`);
@@ -713,12 +713,12 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   // ─ MODEL OUTPUT ─
   console.log(outputBanner('MODEL OUTPUT', turnId));
 
-  if (!existsSync(OFFLOAD_SH)) {
-    process.stdout.write(`${r('[ERROR] _SYSTEM/Scripts/offload.sh not found')}\n`);
+  if (!existsSync(LLM_COMPAT_SH)) {
+    process.stdout.write(`${r('[ERROR] _SYSTEM/Scripts/llm-compat.sh not found')}\n`);
     console.log('');
     printCompactOutputEnd(turnId, 0);
     state.busy = false;
-    const savedDir = saveTranscript(turnId, prompt, '[ERROR: offload.sh not found]', {
+    const savedDir = saveTranscript(turnId, prompt, '[ERROR: llm-compat.sh not found]', {
       turnId, error: 'offload_not_found', timestamp: new Date().toISOString(),
     });
     state.lastTurnId = turnId;
@@ -736,7 +736,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   let routeOutput = '';
   const stdoutBuffer = { tail: '' };
   const stderrBuffer = { tail: '' };
-  const proc = spawn('bash', [OFFLOAD_SH, '--model', state.model, prompt], {
+  const proc = spawn('bash', [LLM_COMPAT_SH, '--model', state.model, prompt], {
     cwd: REPO_ROOT,
     env: { ...process.env },
   });

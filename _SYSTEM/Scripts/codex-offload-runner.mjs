@@ -62,9 +62,9 @@ const scriptDir  = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot   = path.resolve(scriptDir, '..');
 const argv       = process.argv.slice(2);
 const options    = parseArgs(argv);
-const envPrompt  = (process.env.OFFLOAD_PROMPT_TEXT || '').trim();
+const envPrompt  = (process.env.LLM_COMPAT_PROMPT_TEXT || '').trim();
 const prompt     = options.prompt || envPrompt || (options.smoke || options.proveRoute ? SMOKE_PROMPT : '');
-const traceId    = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `codex-${options.modelId}-${Date.now()}-${process.pid}`;
+const traceId    = process.env.TOKEN_LEDGER_TRACE_ID || process.env.LLM_COMPAT_TASK_ID || `codex-${options.modelId}-${Date.now()}-${process.pid}`;
 
 if (options.dryRun) {
   const artifactDir = prepareArtifactDir(options.artifactDir);
@@ -184,7 +184,7 @@ function parseArgs(rest) {
 }
 
 // ─── Reasoning effort mapping ────────────────────────────────────────────────
-// offload.sh --reasoning values → codex -c reasoning_effort= values
+// llm-compat.sh --reasoning values → codex -c reasoning_effort= values
 function mapReasoningEffort(depth) {
   if (!depth) return null;
   const d = String(depth).toLowerCase();

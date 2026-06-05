@@ -615,14 +615,14 @@
         ".claude/hooks/startup-offload.js"
       ],
       "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code",
-      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/offload returns nothing; it does NOT run the dispatch core (llm-lane)."
+      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/llm returns nothing; it does NOT run the dispatch core (llm-lane)."
     },
     {
-      "id": "offload-contract",
-      "label": "offload-contract (lane/scenario/lifecycle contract)",
+      "id": "llm-compat-contract",
+      "label": "llm-compat-contract (lane/scenario/lifecycle contract)",
       "layer": "Skills & Orchestration",
       "files": [
-        "_SYSTEM/Scripts/offload-contract.mjs"
+        "_SYSTEM/Scripts/llm-compat-contract.mjs"
       ],
       "triggeredBy": "import — single lane routing contract",
       "description": "The single lane/scenario/lifecycle routing contract per yuri-origin.md — the one authoritative source of lane tables, model tables, and lifecycle matrices that adapters must not duplicate. Import-only library surface; no boot trigger of its own."
@@ -654,7 +654,7 @@
       "files": [
         "_SYSTEM/Scripts/llm-lane.mjs"
       ],
-      "triggeredBy": "CLI/import — `ai llm <lane>`, `ai deepseek|kimi|nemotron`, offload.sh -m, worker-bridge/task-queue/yuri-workhorse/deepseek-guarded-handoff",
+      "triggeredBy": "CLI/import — `ai llm <lane>`, `ai deepseek|kimi|nemotron`, llm-compat.sh -m, worker-bridge/task-queue/yuri-workhorse/deepseek-guarded-handoff",
       "description": "The ENTIRE dispatch path for the 3 reasoning lanes (deepseek-v4-pro, nemotron-3-ultra-550b-a55b, kimi-k2.6), all openai-compatible. Replaced the ~4040-line offload-runner/reasoning-lane-dispatch/*-dispatch-adapter stack in the 2026-06-05 consolidation. ~420 lines: prompt in -> text out, with a full-YURI-stack system loadout (brain/persona/origin/INDEX) and read_file/grep/list_dir/search/context_router/fetch_url/bash tools so the lane operates BY the framework, not blind. Fail-closed guards: endpoint host ALLOWLIST (api.deepseek.com / integrate.api.nvidia.com), fetch_url private/loopback/metadata DENY, protected-surface + git-mutation deny on bash. Advisory-until-verified, and wired into the YURI core like a native lane via lane-core-hooks: every dispatch fires energy ΔU (traceDispatchEvent), memory recall (injected as a recall block so the lane carries episodic memory), evidence (lane_output -> control-plane memory-ledger), and the docked-output symbiotic pulse (advisory-until-verified). A lane call is an input into YURI that triggers the same core machinery a native operator turn does — the orchestrating lane just supplies the input. This is the seam any future frontier model plugs into to inherit the full core."
     },
     {
@@ -785,7 +785,7 @@
         ".claude/hooks/musubi-protocol-ingest.js"
       ],
       "triggeredBy": "SessionStart hook (L116)",
-      "description": "SessionStart boot hook (.claude/hooks/musubi-protocol-ingest.js, settings L116) that reads the legacy MUSUBI_PROTOCOL.md shim (872 bytes: CORE_DIRECTIVES / GLOBAL_OFFLOAD_DIRECTIVE / ROLE_MATRIX), stashes the parsed sections into state.aeonic.sections, and emits a <musubi-protocol> context block into the boot load."
+      "description": "SessionStart boot hook (.claude/hooks/musubi-protocol-ingest.js, settings L116) that reads the legacy MUSUBI_PROTOCOL.md shim (872 bytes: CORE_DIRECTIVES / GLOBAL_LLM_COMPAT_DIRECTIVE / ROLE_MATRIX), stashes the parsed sections into state.aeonic.sections, and emits a <musubi-protocol> context block into the boot load."
     },
     {
       "id": "user-prompt-submit",
@@ -1856,7 +1856,7 @@
       "to": "_SYSTEM/MUSUBI_PROTOCOL.md",
       "kind": "reads",
       "target": true,
-      "description": "Reads the legacy 872-byte MUSUBI_PROTOCOL.md shim (CORE_DIRECTIVES / GLOBAL_OFFLOAD_DIRECTIVE / ROLE_MATRIX) to build the <musubi-protocol> boot context block."
+      "description": "Reads the legacy 872-byte MUSUBI_PROTOCOL.md shim (CORE_DIRECTIVES / GLOBAL_LLM_COMPAT_DIRECTIVE / ROLE_MATRIX) to build the <musubi-protocol> boot context block."
     },
     {
       "from": "user-prompt-submit",

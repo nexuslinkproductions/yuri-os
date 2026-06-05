@@ -10,8 +10,8 @@ git diff --cached --check
 echo "[pre-commit] secret leak scan"
 node _SYSTEM/Scripts/secret-leak-scan.mjs
 
-echo "[pre-commit] offload contract dispatch drift"
-node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs >/dev/null
+echo "[pre-commit] llm-compat contract dispatch drift"
+node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs >/dev/null
 
 echo "[pre-commit] gitnexus block normalize"
 node _SYSTEM/Scripts/gitnexus-block-normalize.mjs

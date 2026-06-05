@@ -39,7 +39,7 @@ const LEGACY_CLAUDE_PROJECT_MEMORY_DIR = path.join(
 export const CORE_EVIDENCE_FILES = Object.freeze([
   { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', required: true, type: 'json' },
   { id: 'lane-kernel', path: '_SYSTEM/Scripts/lane-kernel.mjs', required: true, type: 'source' },
-  { id: 'offload-contract', path: '_SYSTEM/Scripts/offload-contract.mjs', required: true, type: 'source' },
+  { id: 'llm-compat-contract', path: '_SYSTEM/Scripts/llm-compat-contract.mjs', required: true, type: 'source' },
   { id: 'goal', path: '_SYSTEM/docs/YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md', required: true, type: 'doc' },
   { id: 'nemo-matrix', path: '_SYSTEM/docs/YURI_OS_NEMO_GUARDRAIL_MATRIX_2026-05-20.md', required: true, type: 'doc' },
   { id: 'patch-waves', path: '_SYSTEM/docs/YURI_OS_SUPERCHARGE_PATCH_WAVES_2026-05-20.md', required: true, type: 'doc' },

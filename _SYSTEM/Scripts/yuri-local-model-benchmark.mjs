@@ -224,13 +224,13 @@ function buildScenarios(modelConfig) {
       role: 'primary',
       model: local.primary || 'needle',
       system: 'Return only strict JSON.',
-      prompt: 'Which repo file owns automatic offload lane selection? Choose one: _SYSTEM/Scripts/offload-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
-      validatorName: 'offload_contract_source_json',
+      prompt: 'Which repo file owns automatic offload lane selection? Choose one: _SYSTEM/Scripts/llm-compat-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
+      validatorName: 'llm_compat_contract_source_json',
       validate: (output) => {
         const json = parseJsonObject(output);
         return {
-          ok: json?.source_of_truth === '_SYSTEM/Scripts/offload-contract.mjs',
-          expected: '_SYSTEM/Scripts/offload-contract.mjs',
+          ok: json?.source_of_truth === '_SYSTEM/Scripts/llm-compat-contract.mjs',
+          expected: '_SYSTEM/Scripts/llm-compat-contract.mjs',
           observed: json?.source_of_truth || null,
         };
       },

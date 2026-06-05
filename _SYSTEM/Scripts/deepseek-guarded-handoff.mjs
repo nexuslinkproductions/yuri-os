@@ -15,7 +15,7 @@ const DEFAULT_MAX_ACTIONS = 12
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri/guarded-executor-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-guarded-executor-runs'
 const WRAPPER_VERSION = '1.0'
-const OFFLOAD_RUNNER_REL = '_SYSTEM/Scripts/llm-lane.mjs' // 3-lane consolidation: dispatch via the minimal core
+const LLM_COMPAT_RUNNER_REL = '_SYSTEM/Scripts/llm-lane.mjs' // 3-lane consolidation: dispatch via the minimal core
 const EXECUTOR_REL = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
 const WRAPPER_FINAL_REPORT_NAME = 'wrapper_final_report.md'
 const WRAPPER_META_NAME = 'wrapper_meta.json'
@@ -445,9 +445,9 @@ function createWrapperRun(artifactRoot) {
 }
 
 function runModel({ lane, prompt, wrapperRun, maxModelOutputBytes }) {
-  const result = spawnSync(process.execPath, [OFFLOAD_RUNNER_REL, lane], {
+  const result = spawnSync(process.execPath, [LLM_COMPAT_RUNNER_REL, lane], {
     cwd: REPO_ROOT,
-    env: { ...process.env, OFFLOAD_PROMPT_TEXT: prompt },
+    env: { ...process.env, LLM_COMPAT_PROMPT_TEXT: prompt },
     encoding: 'utf8',
     maxBuffer: Math.max(maxModelOutputBytes * 4, 1024 * 256),
   })
@@ -1145,7 +1145,7 @@ function scopedStatus() {
     '_SYSTEM/Scripts/deepseek-guarded-handoff.mjs',
     '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
     '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json',
-    '_SYSTEM/Scripts/offload-runner.mjs',
+    '_SYSTEM/Scripts/llm-lane.mjs',
     'backend/data/yuri.db',
     'backend/data/yuri.db-shm',
     'backend/data/yuri.db-wal',

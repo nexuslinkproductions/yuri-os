@@ -33,9 +33,9 @@ run_phase() {
     1)
       echo "── Phase 1: Classifier extensions (PATCH 030)"
       local trivial standard critical
-      trivial=$(node _SYSTEM/Scripts/offload-contract.mjs route-plan "hi")
-      standard=$(node _SYSTEM/Scripts/offload-contract.mjs route-plan "fix .claude/hooks/tirith-url-guard.js decode bug")
-      critical=$(node _SYSTEM/Scripts/offload-contract.mjs route-plan "refactor pulse cortex protocol gate routing memory.db governance")
+      trivial=$(node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "hi")
+      standard=$(node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "fix .claude/hooks/tirith-url-guard.js decode bug")
+      critical=$(node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "refactor pulse cortex protocol gate routing memory.db governance")
       assert_contains "trivial tier" '"complexityTier":"trivial"' "$trivial"
       assert_contains "trivial ensemble empty" '"ensemble":\[\]' "$trivial"
       assert_contains "standard tier" '"complexityTier":"standard"' "$standard"
@@ -58,7 +58,7 @@ run_phase() {
       echo "── Phase 3: user-prompt-submit sensory layer (PATCH 032)"
       local trivial_out non_trivial_out
       trivial_out=$(echo '{"messages":[{"role":"user","content":[{"type":"text","text":"hi"}]}]}' | node .claude/hooks/user-prompt-submit.js)
-      non_trivial_out=$(echo '{"messages":[{"role":"user","content":[{"type":"text","text":"refactor _SYSTEM/Scripts/offload.sh routing logic"}]}]}' | node .claude/hooks/user-prompt-submit.js)
+      non_trivial_out=$(echo '{"messages":[{"role":"user","content":[{"type":"text","text":"refactor _SYSTEM/Scripts/llm-compat.sh routing logic"}]}]}' | node .claude/hooks/user-prompt-submit.js)
       assert_contains "trivial returns continue:true" '"continue":true' "$trivial_out"
       assert_contains "trivial no additionalContext" '^{"continue":true}$' "$(echo "$trivial_out" | tr -d ' ')"
       assert_contains "non-trivial has additionalContext" 'additionalContext' "$non_trivial_out"
@@ -68,7 +68,7 @@ run_phase() {
     4)
       echo "── Phase 4: OpenClaw assessor + bridge quarantine (PATCH 033)"
       local critical
-      critical=$(node _SYSTEM/Scripts/offload-contract.mjs route-plan "refactor protocol architecture")
+      critical=$(node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "refactor protocol architecture")
       assert_contains "openClawAdvisory present" '"openClawAdvisory"' "$critical"
       assert_contains "openclaw runtimeKind bridge_advisory" '"runtimeKind":"bridge_advisory"' "$critical"
       assert_contains "openclaw quarantine list" '"Must not directly edit code' "$critical"

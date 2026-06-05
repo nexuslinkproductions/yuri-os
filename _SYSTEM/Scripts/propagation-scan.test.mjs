@@ -46,7 +46,7 @@ function backlogLines(stateDir) {
   return fs.readFileSync(p, 'utf8').split('\n').filter((l) => l.trim().length > 0);
 }
 
-// --- A small fixture graph modeling the offload-contract dispatch family ------------------------
+// --- A small fixture graph modeling the llm-compat-contract dispatch family ------------------------
 // source node "alpha" (import-only, file a.mjs); siblings "beta"/"gamma" share witness `sharedFn`;
 // "delta" is reachable ONLY via a writes edge (must be excluded).
 function fixtureGraph() {

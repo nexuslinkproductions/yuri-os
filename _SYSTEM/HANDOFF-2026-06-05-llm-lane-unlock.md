@@ -42,7 +42,13 @@ code, ran the test, and produced 4 DISTINCT file:line-grounded findings on the f
 REAL grep protected-surface leak; all fixed + verified in 76d622de. The build→multi-lane-review→fix loop with
 frontier models plugged into the core is CONFIRMED viable.
 
-## NEXT (this is the fresh-session task): the RENAME — offload → "LLM compatibility lane"
+## RENAME — offload → "LLM compatibility lane" — ✅ DONE (2026-06-05, owner-directed "be thorough with the atomic renaming")
+
+**LANDED (hard rename, no alias, lockstep):** 6 files git-mv'd to `llm-compat-*`; `ai offload` removed → folded into `ai llm` family (verified: `ai llm --dry-run deepseek` resolves to deepseek-v4-pro; no `offload)` case remains); ALL grammar pattern-renamed `OFFLOAD_*`→`LLM_COMPAT_*` (incl. the second-pass tokens a fixed-list sweep missed — `OFFLOAD_TASK_ID/STREAM/FILE/INTENT/ASSESSMENT/LEASE_*/_CONCURRENT_LANES/LANE_CEILING_REACHED`, caught by a 5-agent adversarial verify), `GLOBAL_OFFLOAD_DIRECTIVE`→`GLOBAL_LLM_COMPAT_DIRECTIVE`, `offload_lanes`→`llm_compat_lanes`, `run_offload_lane`→`run_llm_lane`, `CMD_OFFLOAD`→`CMD_LLM`; graph + arch-metrics + 3 circuitry viz + tracked dashboard regenerated self-consistent; canonical docs (yuri-origin "## LLM Compatibility Routing", RUNBOOK, models.json, MUSUBI_PROTOCOL, CLAUDE.md) + guard messages + git-hooks (pre-commit/pre-push — were real commit/push breakages) + safety-core regex (regex-escaped `offload\.sh`, real safety-gate gap) all updated. GitNexus reindexed. RUNTIME SURFACE FULLY CONVERGED (zero stale tokens). Tests green: drift-check, lane-kernel, llm-lane, codex-runner, supercharge-gate, propagation-scan, protected-surfaces, token-ledger, ollama-adapter, scout-dispatch. **NOT committed/merged — owner gate.**
+
+**PRE-EXISTING DEBT (from the PRIOR consolidation that deleted offload-runner.mjs in dd10eb38 — NOT this rename; surfaced by the verify, left for owner decision):** dangling `offload-runner.mjs` refs in `yuri-local-model-policy.test.mjs` (GATING, execs the deleted runner → MODULE_NOT_FOUND, was already red at HEAD) + `llm-compat-contract-regression.test.mjs` (internal `offloadRunnerPath`); `rick-harness-runtime.test.mjs` red (tests removed lane `deepseek-v4-flash` + streaming via deleted runner). Also pre-existing: `claude-protocol-guard.test.js` requires a `.js` hook that never existed (file is `.mjs`); `validate-session-state` fails on the stale pre-rename `session-state.json` (self-heals next boot — source lockstep confirmed). These predate the rename; fixing them = finishing the consolidation's test cleanup, a separate pass.
+
+### Original spec (for reference)
 
 Owner reframe: it's COMPATIBILITY with external LLMs, not offloading YURI's work onto something lesser.
 Owner-confirmed naming (binding): command `ai llm` (already exists); files `llm-compat-*.mjs`; graph

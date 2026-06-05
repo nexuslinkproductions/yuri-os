@@ -94,7 +94,7 @@ export const CONTROL_FILE_PREFIXES = Object.freeze([
   'CODEX_PROTOCOL.md',
   'CLAUDE.md',
   '_SYSTEM/Scripts/pulse-orchestrator',
-  '_SYSTEM/Scripts/offload-contract',
+  '_SYSTEM/Scripts/llm-compat-contract',
   '_SYSTEM/Scripts/lane-kernel',
   '_SYSTEM/Scripts/neuron-loop',
 ]);

@@ -127,8 +127,8 @@ export function buildChecks(options = {}) {
     ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
     ['test:llm-lane', process.execPath, ['--test', '_SYSTEM/Scripts/llm-lane.test.mjs']],
     ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
-    ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
-    ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
+    ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/llm-compat-contract-regression.test.mjs']],
+    ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs']],
     ['security:secret-leak-live', process.execPath, ['_SYSTEM/Scripts/secret-leak-scan.mjs']],
     ['math:health', process.execPath, ['_SYSTEM/Scripts/math/math-health.mjs']],
   ];

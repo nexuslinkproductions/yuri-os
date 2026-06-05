@@ -18,7 +18,7 @@
  *   - xref-drift-scan.mjs → scanDrift(), gitnexusStaleness() — staleness signals
  *   - memory-usage.mjs → buildUsageIndex() — recall ledger for memory tier coverage
  *   - yuri-graph-state.json → circuitry graph for sector/node mapping
- *   - offload-contract.mjs → classifyComplexity() — query classification for modality selection
+ *   - llm-compat-contract.mjs → classifyComplexity() — query classification for modality selection
  *   - pulse-orchestrator.mjs → classifyComplexity → NEXUSPULSE classification tier
  *   - yuri-origin.md → local-evidence hierarchy, protected paths, offload contract
  *
@@ -43,7 +43,7 @@ import {
 } from '../_SYSTEM/Scripts/xref-provenance.mjs';
 import { scanDrift, gitnexusStaleness } from '../_SYSTEM/Scripts/xref-drift-scan.mjs';
 import { buildUsageIndex } from '../_SYSTEM/Scripts/memory-usage.mjs';
-import { classifyComplexity } from '../_SYSTEM/Scripts/offload-contract.mjs';
+import { classifyComplexity } from '../_SYSTEM/Scripts/llm-compat-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');

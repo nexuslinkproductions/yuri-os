@@ -6,12 +6,12 @@ import path from 'path';
 import os from 'os';
 import { hashPayload, recordTokenEvent } from './token-ledger.mjs';
 
-const LEASE_ROOT = process.env.OFFLOAD_LEASE_DIR || path.join(os.tmpdir(), 'yuri-offload-leases');
-const HARD_MAX = parsePositiveInt(process.env.OFFLOAD_HARD_MAX_CONCURRENT_LANES, 14);
-const MAX_LANES = Math.min(parsePositiveInt(process.env.OFFLOAD_MAX_CONCURRENT_LANES, 10), HARD_MAX);
-const WAIT_MS = parsePositiveInt(process.env.OFFLOAD_QUEUE_WAIT_MS, 0);
-const POLL_MS = parsePositiveInt(process.env.OFFLOAD_QUEUE_POLL_MS, 500);
-const LEASE_TTL_MS = parsePositiveInt(process.env.OFFLOAD_LEASE_TTL_MS, 30 * 60 * 1000);
+const LEASE_ROOT = process.env.LLM_COMPAT_LEASE_DIR || path.join(os.tmpdir(), 'yuri-offload-leases');
+const HARD_MAX = parsePositiveInt(process.env.LLM_COMPAT_HARD_MAX_CONCURRENT_LANES, 14);
+const MAX_LANES = Math.min(parsePositiveInt(process.env.LLM_COMPAT_MAX_CONCURRENT_LANES, 10), HARD_MAX);
+const WAIT_MS = parsePositiveInt(process.env.LLM_COMPAT_QUEUE_WAIT_MS, 0);
+const POLL_MS = parsePositiveInt(process.env.LLM_COMPAT_QUEUE_POLL_MS, 500);
+const LEASE_TTL_MS = parsePositiveInt(process.env.LLM_COMPAT_LEASE_TTL_MS, 30 * 60 * 1000);
 
 const argv = process.argv.slice(2);
 const command = argv.shift();
@@ -35,9 +35,9 @@ if (!lease) {
     lane,
     status: 'error',
     operation: 'offload_queue_rejected',
-    metadata: { reason: 'OFFLOAD_LANE_CEILING_REACHED', max_lanes: MAX_LANES, lease_root_hash: hashPayload(LEASE_ROOT) },
+    metadata: { reason: 'LLM_COMPAT_LANE_CEILING_REACHED', max_lanes: MAX_LANES, lease_root_hash: hashPayload(LEASE_ROOT) },
   });
-  console.error(`OFFLOAD_LANE_CEILING_REACHED lane=${lane} max=${MAX_LANES} lease_dir=${LEASE_ROOT}`);
+  console.error(`LLM_COMPAT_LANE_CEILING_REACHED lane=${lane} max=${MAX_LANES} lease_dir=${LEASE_ROOT}`);
   process.exit(75);
 }
 
@@ -104,7 +104,7 @@ function acquireLease(lane) {
           dir: leaseDir,
           lane,
           pid: process.pid,
-          taskId: process.env.OFFLOAD_TASK_ID || '',
+          taskId: process.env.LLM_COMPAT_TASK_ID || '',
           acquiredAt: new Date().toISOString(),
           timeoutMs: LEASE_TTL_MS,
         };
@@ -201,9 +201,9 @@ function isPidAlive(pid) {
 
 async function recordQueueLedger({ lane, status, operation, lease = {}, metadata = {} }) {
   await recordTokenEvent({
-    trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || lease.taskId || `offload-queue-${Date.now()}-${process.pid}`,
-    session_id: process.env.OFFLOAD_TASK_ID || '',
-    source_path: '_SYSTEM/Scripts/offload-queue.mjs',
+    trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.LLM_COMPAT_TASK_ID || lease.taskId || `llm-compat-queue-${Date.now()}-${process.pid}`,
+    session_id: process.env.LLM_COMPAT_TASK_ID || '',
+    source_path: '_SYSTEM/Scripts/llm-compat-queue.mjs',
     lane,
     provider: 'local',
     operation_type: operation,
@@ -222,7 +222,7 @@ async function recordQueueLedger({ lane, status, operation, lease = {}, metadata
 }
 
 function usage() {
-  console.error('Usage: offload-queue.mjs run --lane <id> -- <command> [args...]');
-  console.error('       offload-queue.mjs status');
+  console.error('Usage: llm-compat-queue.mjs run --lane <id> -- <command> [args...]');
+  console.error('       llm-compat-queue.mjs status');
   process.exit(64);
 }

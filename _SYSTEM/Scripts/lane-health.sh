@@ -44,7 +44,7 @@ check_codex() {
 check_deepseek() {
   local model="$1"
   local out
-  out="$(bash "$SCRIPT_DIR/offload.sh" --dry-run -m "$model" "test" 2>&1 | head -30)"
+  out="$(bash "$SCRIPT_DIR/llm-compat.sh" --dry-run -m "$model" "test" 2>&1 | head -30)"
   # DeepSeek dry-run prints lane resolution JSON with "apiKey": "[set]" and "endpoint"
   if echo "$out" | grep -qE '"apiKey"\s*:\s*"\[set\]"' && echo "$out" | grep -qE '"endpoint"\s*:\s*"https://api\.deepseek\.com"'; then
     print_row "$model" LIVE "dry-run OK"
@@ -116,7 +116,7 @@ echo "────────────────────────�
 # Write machine-readable JSON for brain-inject.js and other consumers
 JSON_OUT="$SCRIPT_DIR/../.claude/state/lane-health-status.json"
 DEEPSEEK_STATUS="DOWN"
-bash "$SCRIPT_DIR/offload.sh" --dry-run -m deepseek-v4-pro "test" 2>/dev/null | grep -q '"apiKey": "\[set\]"' && DEEPSEEK_STATUS="LIVE"
+bash "$SCRIPT_DIR/llm-compat.sh" --dry-run -m deepseek-v4-pro "test" 2>/dev/null | grep -q '"apiKey": "\[set\]"' && DEEPSEEK_STATUS="LIVE"
 OLLAMA_STATUS="DOWN"
 curl -sf --max-time 3 localhost:11434/api/tags >/dev/null 2>&1 && OLLAMA_STATUS="LIVE"
 CODEX_STATUS="DOWN"

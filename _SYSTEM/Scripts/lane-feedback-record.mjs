@@ -3,7 +3,7 @@
  * lane-feedback-record.mjs — Per-lane outcome telemetry capture
  *
  * Appends a single JSON line to .claude/state/lane-feedback.jsonl.
- * Called by dispatchers (pulse-lane-dispatch.mjs, offload.sh, etc.) after
+ * Called by dispatchers (pulse-lane-dispatch.mjs, llm-compat.sh, etc.) after
  * each lane invocation to record what happened.
  *
  * CLI:

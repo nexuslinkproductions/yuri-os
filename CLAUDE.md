@@ -18,7 +18,7 @@ The body — the mechanisms — is triggered from here, not inlined:
 - Task context → `node _SYSTEM/Scripts/context-router.mjs "<task>"` before broad work.
 - Action / claim evaluation → the energy gate (`computeU`) records work-dynamics ΔU (progress vs regress) to a trace. When enforce is armed (`YURI_ENERGY_ENFORCE=1` + the `_SYSTEM/state/energy-enforce.enabled` flag), it BLOCKS on a catastrophic, non-offsettable trailing verdict (protected-path veto / structural-floor veto) through the circuit-breaker PreToolUse hook; soft ΔU-ascent stays advisory. Protected-path and mutation enforcement still live primarily in the deterministic PreToolUse hooks + the settings deny-list — the energy gate is a fail-open layer-2 conscience on top, not the primary guard.
 - Problem-solving → the cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus).
-- Capability → skills (`.claude/skills/`) and the offload contract for lane routing.
+- Capability → skills (`.claude/skills/`) and the LLM-compat contract for lane routing.
 - Continuity → memory recall + EOT closeout.
 
 ## Read Order

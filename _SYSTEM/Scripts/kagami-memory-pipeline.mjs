@@ -21,7 +21,7 @@ const MEMORY_DIR = resolve(process.env.HOME, '.claude/projects/-Users-marcelspat
 const MEMORY_IDX = resolve(MEMORY_DIR, 'MEMORY.md');
 const CORRECTION_PAIRS = resolve(MEMORY_DIR, 'correction-pairs.jsonl');
 const STATE_PATH   = resolve(REPO_ROOT, '_SYSTEM/training/state/memory-pipeline-state.json');
-const OFFLOAD_SH   = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LLM_COMPAT_SH   = resolve(REPO_ROOT, '_SYSTEM/Scripts/llm-compat.sh');
 const LOG_PATH     = resolve('/tmp/kagami-memory-pipeline.log');
 const PULSE_BUS    = resolve(process.env.KAGAMI_PULSE_BUS_PATH ?? resolve(REPO_ROOT, '.claude/state/pulse-bus.jsonl'));
 const PREFS_PATH   = resolve(MEMORY_DIR, 'preferences.json');
@@ -123,9 +123,9 @@ ${existingMemories}
 Respond with ONLY this JSON: {"decision":"APPROVE","reason":"..."} or {"decision":"REJECT","reason":"..."}`;
 
   try {
-    const result = spawnSync('bash', [OFFLOAD_SH, '-m', REVIEW_LANE], {
+    const result = spawnSync('bash', [LLM_COMPAT_SH, '-m', REVIEW_LANE], {
       input: prompt,
-      env: { ...process.env, OFFLOAD_PROMPT_TEXT: prompt },
+      env: { ...process.env, LLM_COMPAT_PROMPT_TEXT: prompt },
       timeout: 60000,
       encoding: 'utf8',
     });

@@ -33,7 +33,7 @@ Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-sessi
 ### Offload-Default (automatic, no trigger word needed)
 - Every non-trivial task → delegate to smallest lane first, without being asked.
 - Main thread = overseer + finalizer only. Never researcher or implementer.
-- Routing source of truth: `Scripts/offload-contract.mjs`.
+- Routing source of truth: `Scripts/llm-compat-contract.mjs`.
 - Routing priority: @code-local → @deepseek → @triage-local/@summarize-local → @gpt-oss → @swarm → @kimi → @claude (last resort).
 - `btw`, `btw offload this`, `/tokenmaxxing`, and explicit `@lane` mentions are compatibility aliases, not required triggers.
 - Use `./Scripts/ai route-plan "<request>"` when another IDE or harness needs the lane, lifecycle scenario, and learning capture plan.

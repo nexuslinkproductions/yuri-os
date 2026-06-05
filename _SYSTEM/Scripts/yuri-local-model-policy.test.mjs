@@ -183,7 +183,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-liberated:latest', 'local model policy check'],
+      ['_SYSTEM/Scripts/llm-compat.sh', '--model', 'deepseek-liberated:latest', 'local model policy check'],
       {
         encoding: 'utf8',
         env: {
@@ -203,14 +203,14 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['_SYSTEM/Scripts/offload.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
+      ['_SYSTEM/Scripts/llm-compat.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
       {
         encoding: 'utf8',
         env: {
           ...process.env,
           CAPTURE_FILE: captureFile,
           PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
+          LLM_COMPAT_QUEUE_BYPASS: '1',
         },
       }
     );
@@ -221,14 +221,14 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'needle', 'needle smoke test'],
+      ['_SYSTEM/Scripts/llm-compat.sh', '--model', 'needle', 'needle smoke test'],
       {
         encoding: 'utf8',
         env: {
           ...process.env,
           CAPTURE_FILE: captureFile,
           PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
+          LLM_COMPAT_QUEUE_BYPASS: '1',
         },
       }
     );
@@ -253,14 +253,14 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
+      ['_SYSTEM/Scripts/llm-compat.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
       {
         encoding: 'utf8',
         env: {
           ...process.env,
           CAPTURE_FILE: captureFile,
           PATH: `${deepseekCloudCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
+          LLM_COMPAT_QUEUE_BYPASS: '1',
         },
       }
     );

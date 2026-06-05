@@ -36,7 +36,7 @@ function parseArgs(argv) {
 
 function routePlan(prompt) {
   try {
-    const out = execFileSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', prompt], {
+    const out = execFileSync('node', ['_SYSTEM/Scripts/llm-compat-contract.mjs', 'route-plan', prompt], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
@@ -77,7 +77,7 @@ const tier = plan.complexityTier || 'standard';
 if (tier === 'trivial' || tier === 'standard') {
   const env = { ...process.env, PULSE_LANE_BYPASS: '1' };
   try {
-    execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...args.passthrough], { stdio: 'inherit', env });
+    execFileSync('bash', ['_SYSTEM/Scripts/llm-compat.sh', ...args.passthrough], { stdio: 'inherit', env });
     process.exit(0);
   } catch (err) {
     process.exit(Number(err.status || 1));
@@ -93,7 +93,7 @@ appendPulseBus({ kind: 'lane-dispatch-pre', lane: args.model, tier, scenario: pl
 const env = { ...process.env, INSIDE_PULSE_WRAPPER: '1' };
 let result = '';
 try {
-  result = execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...withPrompt(process.argv, enriched)], {
+  result = execFileSync('bash', ['_SYSTEM/Scripts/llm-compat.sh', ...withPrompt(process.argv, enriched)], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
     env,

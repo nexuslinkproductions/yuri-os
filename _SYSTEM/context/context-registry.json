@@ -42,7 +42,7 @@
         "_SYSTEM/Scripts/kagami-control-domain.mjs",
         "_SYSTEM/Scripts/lane-persona-map.mjs",
         "_SYSTEM/Scripts/lane-kernel.mjs",
-        "_SYSTEM/Scripts/offload-contract.mjs",
+        "_SYSTEM/Scripts/llm-compat-contract.mjs",
         "_SYSTEM/Scripts/kagami-event-bus.mjs",
         "_SYSTEM/Scripts/lane-arbitration.mjs",
         "_SYSTEM/Scripts/yuri/event-protocol.mjs",

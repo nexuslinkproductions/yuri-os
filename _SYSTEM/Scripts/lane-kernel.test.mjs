@@ -152,7 +152,7 @@ test('ROLE_TRUST_SURFACES is the canonical single source for both role guards', 
 });
 
 test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
-  const offload = readFileSync(new URL('./offload.sh', import.meta.url), 'utf8');
+  const offload = readFileSync(new URL('./llm-compat.sh', import.meta.url), 'utf8');
   const pulse = readFileSync(new URL('./pulse-orchestrator.mjs', import.meta.url), 'utf8');
 
   assert.doesNotMatch(offload, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);

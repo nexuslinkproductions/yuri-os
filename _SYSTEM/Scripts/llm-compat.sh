@@ -52,9 +52,9 @@ fi
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OFFLOAD_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
-OFFLOAD_QUEUE="$SCRIPT_DIR/offload-queue.mjs"
-OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
+LLM_COMPAT_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
+LLM_COMPAT_QUEUE="$SCRIPT_DIR/llm-compat-queue.mjs"
+LLM_COMPAT_CONTRACT="$SCRIPT_DIR/llm-compat-contract.mjs"
 # Ollama paths removed — lane deprecated
 
 usage() {
@@ -181,7 +181,7 @@ run_offload_runner() {
     esac
   done
 
-  local env_args=(OFFLOAD_PROMPT_TEXT="$prompt")
+  local env_args=(LLM_COMPAT_PROMPT_TEXT="$prompt")
   case "$lane" in
     deepseek|deepseek-v4-pro)
       if [[ -n "$write_scope" ]]; then
@@ -201,8 +201,8 @@ run_offload_runner() {
 
   # Dispatch through the minimal llm-lane.mjs core (replaces the retired offload-runner.mjs).
   # The 3 live lanes resolve; any dead legacy lane name loud-fails exit 3 (correct).
-  if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${OFFLOAD_QUEUE_BYPASS:-0}" != "1" ]]; then
-    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$SCRIPT_DIR/llm-lane.mjs" "$lane" ${runner_args[@]+"${runner_args[@]}"}
+  if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${LLM_COMPAT_QUEUE_BYPASS:-0}" != "1" ]]; then
+    env "${env_args[@]}" node "$LLM_COMPAT_QUEUE" run --lane "$lane" -- node "$SCRIPT_DIR/llm-lane.mjs" "$lane" ${runner_args[@]+"${runner_args[@]}"}
     return
   fi
 
@@ -287,13 +287,13 @@ dry_run_model_override() {
 
   case "$target_model" in
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run
         ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       gpt-5.5|codex|codex-high|codex-full)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
         printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro" >&2
@@ -317,7 +317,7 @@ dry_run_model_override() {
         ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
         ;;
       deepseek-v4-pro|deepseek)
         # DeepSeek dispatch: do not force CLI tool flags. Tool/skill intent belongs
@@ -382,7 +382,7 @@ dispatch_model() {
         ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.OFFLOAD_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.LLM_COMPAT_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
         ;;
       deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
@@ -411,19 +411,19 @@ dispatch_model() {
         ;;
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK [gpt-5.3-codex-spark, read-only]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags}
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags}
         ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_MINI [gpt-5.4-mini, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       gpt-5.5|codex|codex-high|codex-full)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       triage-local|summarize-local|code-local|ollama|ollama-local|reason-cloud|code-cloud|gemma|gemma-local)
         if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi
-        printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2
+        printf '%s\n' "⬡ ROUTING_TO_LLM_COMPAT_RUNNER..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;
       self)
@@ -470,7 +470,7 @@ route_log() {
 # Parse options
 MODEL_OVERRIDE=""
 DRY_RUN=0
-ROUTE_INTENT="${OFFLOAD_INTENT:-}"
+ROUTE_INTENT="${LLM_COMPAT_INTENT:-}"
 REASONING_DEPTH=""
 ALLOW_MODEL_TOOLS=0
 TOOLS_EXPLICIT=0   # 1 if user explicitly passed --tools or --no-tools
@@ -613,7 +613,7 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   RUNTIME="cloud"
 fi
 
-printf '%s\n' "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL" >&2
+printf '%s\n' "⬡ LLM_COMPAT_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL" >&2
 
 # Auto-fallback: if primary lane fails (429, auth error, timeout), route to DeepSeek.
 # This eliminates rate-limit time gates — work completes on fallback rather than blocking.

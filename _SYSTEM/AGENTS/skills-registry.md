@@ -63,7 +63,7 @@
 | Native function | Runtime owner | Linked skills | What Yuri can do with it |
 |-----------------|---------------|---------------|--------------------------|
 | argus | [`.claude/hooks/scout-runner.js`](</Users/marcelspatz/YURI-OS-MUSUBI/.claude/hooks/scout-runner.js>) / [spec](</Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/argus.md>) | `oracle-router`, `gitnexus-impact-analysis`, `non-destructive-infinity-guard` | Catch tool-call sequencing errors, failed-edit assumptions, direct canonical-memory touches, and commit-without-scope-evidence before they become session claims. |
-| obliteratus | [_SYSTEM/Scripts/offload-contract.mjs](</Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/offload-contract.mjs>) / [spec](</Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/obliteratus-qa.md>) | `gitnexus-impact-analysis`, `gitnexus-pr-review`, `failure-evolution-loop` | Act as an explicit pre-promotion adversarial gate for high-stakes reviews, protocol changes, sandbox promotion candidates, protected-state changes, and durable learning promotion. |
+| obliteratus | [_SYSTEM/Scripts/llm-compat-contract.mjs](</Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/llm-compat-contract.mjs>) / [spec](</Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/obliteratus-qa.md>) | `gitnexus-impact-analysis`, `gitnexus-pr-review`, `failure-evolution-loop` | Act as an explicit pre-promotion adversarial gate for high-stakes reviews, protocol changes, sandbox promotion candidates, protected-state changes, and durable learning promotion. |
 
 ## Integration Notes
 - Matt Pocock skills are promoted into root `skills/<skill-id>/`

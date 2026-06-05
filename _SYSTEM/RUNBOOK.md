@@ -15,8 +15,8 @@
 | Palace index parseable | `grep -q '^#\+ ' claude-palace-out/palace-index.md && echo OK` | prints `OK` |
 | Session state schema | `jq -e .schema_version .claude/state/session-state.json` | non-zero exit means corruption |
 | Active launchd agents | `launchctl list \| grep yuri` | shows 4+ entries (ollama-kv, shellservice, wiki-rag, yuri-session-runtime) |
-| DeepSeek lane live | `bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?"` | returns a model reply |
-| Codex-spark lane live | `bash _SYSTEM/Scripts/offload.sh -m codex-spark "OK?"` | returns a model reply |
+| DeepSeek lane live | `bash _SYSTEM/Scripts/llm-compat.sh -m deepseek --no-tools "OK?"` | returns a model reply |
+| Codex-spark lane live | `bash _SYSTEM/Scripts/llm-compat.sh -m codex-spark "OK?"` | returns a model reply |
 
 ## Weekly Maintenance
 
@@ -31,10 +31,10 @@
 ## Lane Routing Discipline
 
 - Main session = control plane only. Routes, verifies, merges. Never the researcher or implementer.
-- **Offload reasoning lanes (post-2026-06-05 consolidation) — EXACTLY 3:** `deepseek` (deepseek-v4-pro, DIRECT api.deepseek.com), `nemotron` (nvidia/nemotron-3-ultra-550b-a55b, NVIDIA NIM), `kimi` (moonshotai/kimi-k2.6, NVIDIA NIM). Single source of truth: `.claude/config/models.json` → `offload_lanes`. All 3 are 1M context; output cap is a separate knob. Codex/`gpt-5.5` is a SEPARATE collaborator lane, not an offload lane. The legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are HARD-REMOVED — invoking one now fails loud (exit 3).
-- **Live as of 2026-06-05:** all 3 live-verified (kimi NIM route revived). Loud-fail exit contract: 0 ok / 1 transient / 2 rail-block / 3 permanent (unknown lane / missing key / bad endpoint). NOTE: the `offload`→`ai llm` ("LLM Compatibility lane") rename is PENDING — `offload.sh` / `ai offload` commands below are current but get swept in that rename (see `NEXT_SESSION_BOOT_PACKET.md`).
+- **LLM compatibility lanes (post-2026-06-05 consolidation) — EXACTLY 3 reasoning lanes:** `deepseek` (deepseek-v4-pro, DIRECT api.deepseek.com), `nemotron` (nvidia/nemotron-3-ultra-550b-a55b, NVIDIA NIM), `kimi` (moonshotai/kimi-k2.6, NVIDIA NIM). Single source of truth: `.claude/config/models.json` → `llm_compat_lanes`. All 3 are 1M context; output cap is a separate knob. Codex/`gpt-5.5` is a SEPARATE collaborator lane, not an LLM-compat lane. The legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are HARD-REMOVED — invoking one now fails loud (exit 3).
+- **Live as of 2026-06-05:** all 3 live-verified (kimi NIM route revived). Loud-fail exit contract: 0 ok / 1 transient / 2 rail-block / 3 permanent (unknown lane / missing key / bad endpoint). The `offload`→`llm-compat` ("LLM Compatibility lane") rename is **DONE** — the command is now `ai llm <lane>` (hard rename, no `ai offload` alias), the dispatcher is `_SYSTEM/Scripts/llm-compat.sh`, the contract is `_SYSTEM/Scripts/llm-compat-contract.mjs`.
 - Never call `Agent()` with a Claude/Haiku/Sonnet/Opus model (memory rule, banned).
-- All `_SYSTEM/Scripts/offload.sh` Bash invocations: `timeout: 600000`.
+- All `_SYSTEM/Scripts/llm-compat.sh` Bash invocations: `timeout: 600000`.
 
 ## Emergency Procedures
 
@@ -43,7 +43,7 @@
 **Root cause:** Scout-runner uses banned `claude -p --model claude-haiku-4-5-20251001` pattern. See `_SYSTEM/scout-errors-2026-05-13-triage.md`.
 **Action:**
 1. Do NOT install `com.yuri.eot-refresh.plist` (deferred until scout is rebuilt).
-2. Apply the Codex spec from the triage doc to migrate scout to `_SYSTEM/Scripts/offload.sh -m deepseek`.
+2. Apply the Codex spec from the triage doc to migrate scout to `_SYSTEM/Scripts/llm-compat.sh -m deepseek`.
 3. Add size-based rotation (1 MB ring) as the second spec.
 
 ### Context stale or palace corruption
@@ -92,7 +92,7 @@ pwd                                              # /Users/marcelspatz/YURI-OS-MU
 git branch --show-current                        # main
 git status --short                               # not blocking, but inspect
 launchctl list | grep yuri | wc -l           # >= 4
-bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?" 2>&1 | tail -1
+bash _SYSTEM/Scripts/llm-compat.sh -m deepseek --no-tools "OK?" 2>&1 | tail -1
 ```
 
 If any line fails, stop and reconcile before starting work. Do not switch directories or branches automatically; report and ask.

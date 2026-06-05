@@ -33,7 +33,7 @@ Source authority: _SYSTEM/yuri-origin.md (canonical) + memory/feedback_*.md (rul
 3. _SYSTEM/yuri-origin.md
 4. SOUL.md (persona)
 5. AGENTS.md, CLAUDE.md, _SYSTEM/spec-kit-workflow-bridge.md
-6. Scripts/offload-contract.mjs (executable routing)
+6. Scripts/llm-compat-contract.mjs (executable routing)
 7. References / skills
 8. Model inference (lowest)
 
@@ -63,7 +63,7 @@ Claude (control) + Codex (implementation, primary) + DeepSeek (analysis + parall
 ## What's Forbidden
 - Anthropic model agents (Agent() with Claude/Haiku/Sonnet/Opus)
 - WebSearch/WebFetch (Perplexity app via computer-control instead)
-- Modifying offload-contract.mjs without route-plan evidence
+- Modifying llm-compat-contract.mjs without route-plan evidence
 - Skipping CLAUDE CONTROL PACKET on direct Edit/Write
 - Skipping CODEX TASK SPEC on Codex dispatches
 ```

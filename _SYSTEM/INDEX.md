@@ -21,7 +21,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `.agents/README.md` | Agent assembly layer: agents are recipes, not hidden provider magic. |
 | `skills/README.md` | Canonical root-visible skill library entrypoint. |
 | `skills/skill-index.json` | Machine-readable root skill index. |
-| `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
+| `_SYSTEM/Scripts/llm-compat-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 | `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives — the canonical harness script folder. |
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |

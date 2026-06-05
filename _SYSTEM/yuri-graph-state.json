@@ -249,7 +249,7 @@
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO",
         "CMD_SHURA",
         "CMD_REPORT"
@@ -462,7 +462,7 @@
           "Veto advisory output"
         ],
         "dependencies": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
@@ -591,8 +591,8 @@
           "Emit beacon when configured"
         ],
         "dependencies": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
-          "OFFLOAD_SH",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "LLM_COMPAT_SH",
           "OPENCLAW_BRIDGE"
         ],
         "state_files": [
@@ -614,7 +614,7 @@
       "id": "CLASSIFIER",
       "tier": "section",
       "label": "CLASSIFIER",
-      "role": "offload-contract.mjs",
+      "role": "llm-compat-contract.mjs",
       "detail": "tier: TRIVIAL / STD / CPLX / CRIT",
       "radius": 50,
       "color": "#48C3D8",
@@ -625,9 +625,9 @@
       },
       "sector": "classification",
       "metadata": {
-        "purpose": "Complexity and scenario classifier from offload contract; maps prompts to tier and lane expectations.",
+        "purpose": "Complexity and scenario classifier from LLM-compat contract; maps prompts to tier and lane expectations.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
           "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md"
         ],
         "capabilities": [
@@ -636,7 +636,7 @@
           "Emit lane plan"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.routingPriority",
           "universalWorkflow"
         ],
         "state_files": [
@@ -795,7 +795,7 @@
       "id": "ROUTING",
       "tier": "section",
       "label": "ROUTING",
-      "role": "offload lanes",
+      "role": "llm-compat lanes",
       "detail": "12 lanes / priority order",
       "radius": 50,
       "color": "#00C896",
@@ -806,9 +806,9 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Offload lane router using priority and scenario rules from the shared contract.",
+        "purpose": "LLM-compat lane router using priority and scenario rules from the shared contract.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Select smallest reliable lane",
@@ -817,11 +817,11 @@
           "Route analysis separately"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
-          "OFFLOAD_CONTRACT.lanes"
+          "LLM_COMPAT_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.lanes"
         ],
         "state_files": [],
-        "notes": "Evidence: offload-contract routingPriority and universalWorkflow.",
+        "notes": "Evidence: llm-compat-contract routingPriority and universalWorkflow.",
         "returns_to": "RESPONSE"
       },
       "parent": null,
@@ -855,7 +855,7 @@
         "purpose": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Propose dry-run diff",
@@ -1871,7 +1871,7 @@
         "purpose": "DeepSeek preflight/model advisor for biggest risk, ambiguity, or missing context.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Standard-tier preflight",
@@ -2032,7 +2032,7 @@
         "purpose": "Dual DeepSeek fanout for high-stakes independent risk scan.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Run flash and pro in parallel",
@@ -2323,7 +2323,7 @@
       "metadata": {
         "purpose": "Qwen-backed local coding lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b / code-local",
@@ -2331,12 +2331,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "qwen:7b / code-local"
         ],
         "state_files": [],
         "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2359,7 +2359,7 @@
       "metadata": {
         "purpose": "DeepSeek flash cloud analysis lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-flash",
@@ -2367,12 +2367,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-flash"
         ],
         "state_files": [],
         "model": "deepseek-v4-flash",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2395,7 +2395,7 @@
       "metadata": {
         "purpose": "DeepSeek pro cloud reasoning lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-pro",
@@ -2403,12 +2403,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-pro"
         ],
         "state_files": [],
         "model": "deepseek-v4-pro",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2431,7 +2431,7 @@
       "metadata": {
         "purpose": "Codex mini bounded implementation lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.4-mini",
@@ -2439,12 +2439,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.4-mini"
         ],
         "state_files": [],
         "model": "gpt-5.4-mini",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2469,7 +2469,7 @@
       "metadata": {
         "purpose": "Codex full workspace implementation lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.5",
@@ -2477,12 +2477,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.5"
         ],
         "state_files": [],
         "model": "gpt-5.5",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2507,7 +2507,7 @@
       "metadata": {
         "purpose": "Remote high-grade fallback reasoning lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to kimi-k2.6",
@@ -2515,12 +2515,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "kimi-k2.6"
         ],
         "state_files": [],
         "model": "kimi-k2.6",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2551,7 +2551,7 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "nemotron-3-ultra-550b-a55b"
         ],
         "state_files": [],
@@ -2579,7 +2579,7 @@
       "metadata": {
         "purpose": "Qwen-backed local triage and summarization lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b",
@@ -2587,12 +2587,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "qwen:7b"
         ],
         "state_files": [],
         "model": "qwen:7b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2615,7 +2615,7 @@
       "metadata": {
         "purpose": "Formatting and synthesis local GPU lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-oss 120b",
@@ -2623,12 +2623,12 @@
           "Return evidence to ENKI"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-oss 120b"
         ],
         "state_files": [],
         "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2652,7 +2652,7 @@
         "purpose": "propose supports the codex gate sector as dry-run diff.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent dry-run diff",
@@ -2692,7 +2692,7 @@
         "purpose": ".approved supports the codex gate sector as user marker.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent user marker",
@@ -2730,7 +2730,7 @@
         "purpose": "apply supports the codex gate sector as HEAD SHA verify.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent HEAD SHA verify",
@@ -3570,7 +3570,7 @@
       "metadata": {
         "purpose": "workspace-write supports the routing lanes sector as sandbox impl auth.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent sandbox impl auth",
@@ -3604,7 +3604,7 @@
       "metadata": {
         "purpose": "full workspace supports the routing lanes sector as max reasoning.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent max reasoning",
@@ -3639,7 +3639,7 @@
         "purpose": "dry-run diff supports the codex gate sector as no writes.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent no writes",
@@ -3674,7 +3674,7 @@
         "purpose": "HEAD SHA verify supports the codex gate sector as stale-protection.",
         "files": [
           "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent stale-protection",
@@ -4471,7 +4471,7 @@
       "id": "PRECOMMIT_REGRESS",
       "tier": "leaf",
       "label": "precommit regress",
-      "role": "offload-contract",
+      "role": "llm-compat-contract",
       "detail": "",
       "radius": 8,
       "color": "#FF8855",
@@ -4482,9 +4482,9 @@
       },
       "sector": "self_improvement",
       "metadata": {
-        "purpose": "offload-contract-regression.sh",
+        "purpose": "llm-compat-contract-regression.sh",
         "files": [
-          "_SYSTEM/Scripts/offload-contract-regression.test.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract-regression.test.mjs"
         ],
         "capabilities": [
           "regression gate"
@@ -4568,7 +4568,7 @@
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO"
       ]
     },
@@ -4648,9 +4648,9 @@
           "ds-flash",
           "ds-pro"
         ],
-        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /offload",
+        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /llm",
         "current_size": "4 overlapping deepseek commands",
-        "ideal_size": "2 direct lane commands plus /offload routing",
+        "ideal_size": "2 direct lane commands plus /llm routing",
         "dependencies": [
           "ENKI_COMMANDS"
         ],
@@ -4812,9 +4812,9 @@
       "children": []
     },
     {
-      "id": "CMD_OFFLOAD",
+      "id": "CMD_LLM",
       "tier": "leaf",
-      "label": "OFFLOAD family",
+      "label": "LLM family",
       "role": "2 commands",
       "detail": "2 commands",
       "radius": 8,
@@ -4826,19 +4826,19 @@
       },
       "sector": "command_registry",
       "metadata": {
-        "purpose": "OFFLOAD family command family",
+        "purpose": "LLM family command family",
         "command_count": 2,
         "commands": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
         "duplicates_flagged": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
-        "merge_proposal": "Use /offload as the visible command and keep ai-pipeline-offloading as implementation skill",
+        "merge_proposal": "Use /llm as the visible command and keep ai-pipeline-offloading as implementation skill",
         "current_size": "2 command surfaces",
-        "ideal_size": "1 /offload command",
+        "ideal_size": "1 /llm command",
         "dependencies": [
           "ENKI_COMMANDS"
         ],
@@ -6427,12 +6427,12 @@
     },
     {
       "source": "ENKI_COMMANDS",
-      "target": "CMD_OFFLOAD",
+      "target": "CMD_LLM",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "CMD_OFFLOAD",
+      "source": "CMD_LLM",
       "target": "ENKI_COMMANDS",
       "type": "return",
       "is_return": true
@@ -6841,7 +6841,7 @@
       "id": "command-duplicates-deepseek",
       "title": "Consolidate 4 deepseek commands -> 2",
       "status": "applied-v15",
-      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /offload.",
+      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /llm.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",

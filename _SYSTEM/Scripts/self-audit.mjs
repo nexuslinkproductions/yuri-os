@@ -7,7 +7,7 @@
  *   ORPHAN_SKILL   — skill SKILL.md with no matching commands/ alias
  *   STALE_MEMORY   — memory files with no frontmatter type/description
  *   MISSING_SECTION — brain-inject section missing from active block
- *   CONTRACT_DRIFT — offload-contract.mjs lanes not reflected in lane-health.sh
+ *   CONTRACT_DRIFT — llm-compat-contract.mjs lanes not reflected in lane-health.sh
  *
  * Output: .claude/state/self-audit-report.json
  * CLI: node _SYSTEM/Scripts/self-audit.mjs [--json] [--fix-plan]
@@ -25,7 +25,7 @@ const SKILLS_DIR = path.join(REPO_ROOT, '.claude', 'skills');
 const CMDS_DIR   = path.join(REPO_ROOT, '.claude', 'commands');
 const MEMORY_DIR = path.join(REPO_ROOT, '.claude', 'projects', '-Users-marcelspatz-YURI', 'memory');
 const SETTINGS   = path.join(REPO_ROOT, '.claude', 'settings.json');
-const CONTRACT   = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload-contract.mjs');
+const CONTRACT   = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat-contract.mjs');
 const LANE_HEALTH= path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'lane-health.sh');
 
 const REPORT_PATH = path.join(STATE_DIR, 'self-audit-report.json');
@@ -133,7 +133,7 @@ function scanContractVsLaneHealth() {
       if (!laneHealthText.includes(laneKey)) {
         flaws.push({
           id: `CONTRACT_DRIFT_${laneKey.toUpperCase().replace(/-/g, '_')}`,
-          path: '_SYSTEM/Scripts/offload-contract.mjs',
+          path: '_SYSTEM/Scripts/llm-compat-contract.mjs',
           kind: 'CONTRACT_DRIFT',
           evidence: `Lane ${alias} in contract but not checked in lane-health.sh`,
           severity: 'INFO',

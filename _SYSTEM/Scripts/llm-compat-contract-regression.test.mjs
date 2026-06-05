@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const contractPath = resolve(__dirname, 'offload-contract.mjs');
+const contractPath = resolve(__dirname, 'llm-compat-contract.mjs');
 const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
 
 function runContract(args) {
@@ -369,4 +369,4 @@ try {
   rmSync(manifestRoot, { recursive: true, force: true });
 }
 
-process.stdout.write('offload-contract-regression: pass\n');
+process.stdout.write('llm-compat-contract-regression: pass\n');

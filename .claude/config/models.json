@@ -105,8 +105,8 @@
       "deepseek-reasoner": "2026-07-24T15:59:00Z"
     }
   },
-  "offload_lanes": {
-    "_comment": "SINGLE SOURCE OF TRUTH for the 3 live reasoning lanes (2026-06-05 consolidation). context_window = INPUT cap (all 1,000,000, owner-confirmed); max_output = per-reasoning-depth OUTPUT cap (a SEPARATE knob — DeepSeek counts reasoning_tokens against it). Consumed by offload-runner resolveReasoningBudget + the dispatch adapters. The legacy ~50-lane laneMap is being hard-removed; only these three remain.",
+  "llm_compat_lanes": {
+    "_comment": "SINGLE SOURCE OF TRUTH for the 3 live reasoning lanes (2026-06-05 consolidation). context_window = INPUT cap (all 1,000,000, owner-confirmed); max_output = per-reasoning-depth OUTPUT cap (a SEPARATE knob — DeepSeek counts reasoning_tokens against it). Consumed by llm-lane.mjs resolveReasoningBudget + the dispatch adapters. The legacy ~50-lane laneMap is being hard-removed; only these three remain.",
     "deepseek-v4-pro": {
       "model": "deepseek-v4-pro",
       "provider": "deepseek-direct",
@@ -116,7 +116,7 @@
       "protocol": "openai-compatible",
       "context_window": 1000000,
       "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 131072 },
-      "max_output_source": "DeepSeek API live-verified accepting up to 131072 (offload-runner.mjs:1358 comment).",
+      "max_output_source": "DeepSeek API live-verified accepting up to 131072 (llm-lane.mjs comment).",
       "timeout_ms": 180000
     },
     "nemotron-3-ultra-550b-a55b": {
@@ -149,7 +149,7 @@
     "base_url": "https://integrate.api.nvidia.com/v1",
     "protocol": "openai-compatible",
     "api_key_env": "NVIDIA_API_KEY",
-    "routing_note": "Use @nvidia dispatch token in offload-contract. Pick model by CAPABILITY — never spam the catalogue. Each model has a primary purpose.",
+    "routing_note": "Use @nvidia dispatch token in llm-compat-contract. Pick model by CAPABILITY — never spam the catalogue. Each model has a primary purpose.",
     "models": {
       "default":            "meta/llama-3.3-70b-instruct",
       "architect":          "nvidia/nemotron-3-super-120b-a12b",

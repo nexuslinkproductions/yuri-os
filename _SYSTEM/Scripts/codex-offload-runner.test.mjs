@@ -53,13 +53,13 @@ try {
   // DeepSeek dispatch now runs through the minimal llm-lane.mjs core (offload-runner.mjs retired).
   const protectedEnvHydration = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
+    command: 'set -a; source .env; set +a; LLM_COMPAT_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvHydration.allowed, true, 'Direct DeepSeek runner should be allowed to read .env for key hydration');
 
   const protectedEnvWrite = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
+    command: 'echo SECRET=mutated >> .env; LLM_COMPAT_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvWrite.allowed, false, 'DeepSeek hook allowance must not permit .env writes');
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Executor wrapper for /offload, /ds-flash, /ds-pro, /research commands
-# Called by Claude Code skill system → offload.sh → offload-runner.mjs
+# Called by Claude Code skill system → llm-compat.sh → offload-runner.mjs
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OFFLOAD_SCRIPT="$SCRIPT_DIR/offload.sh"
+LLM_COMPAT_SCRIPT="$SCRIPT_DIR/llm-compat.sh"
 
 # Args: $1 = lane (deepseek-v4-flash | deepseek-v4-pro)
 #       $2+ = prompt text
@@ -23,4 +23,4 @@ fi
 export DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}"
 
 # Execute and stream output
-exec "$OFFLOAD_SCRIPT" --model "$lane" "$prompt"
+exec "$LLM_COMPAT_SCRIPT" --model "$lane" "$prompt"

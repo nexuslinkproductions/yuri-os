@@ -27,7 +27,7 @@
       "skills": ["deepseek-workhorse","deepseek-offload","probabilistic-decision-core","izanagi-simulator","haki-intent","pattern-mirror-core","sharingan"],
       "mcp_tools": ["filesystem","obsidian-vault","ollama-bridge"],
       "lane_id": "deepseek-v4-pro",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --reasoning xhigh"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m deepseek-v4-pro --reasoning xhigh"
     },
     "kimi": {
       "model": "kimi-k2.6",
@@ -36,7 +36,7 @@
       "skills": ["swarm-coordination","parallel-clone-orchestrator","gitnexus","visual-introspection","codebase-to-course"],
       "mcp_tools": ["filesystem","gitnexus","obsidian-vault"],
       "lane_id": "kimi",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m kimi --tools"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m kimi --tools"
     },
     "nemotron": {
       "model": "nvidia/nemotron-3-super-120b-a12b",
@@ -44,7 +44,7 @@
       "skills": ["yuri-shura","bankai-manifest","visual-introspection","yuri-code-intelligence"],
       "mcp_tools": ["filesystem","gitnexus"],
       "lane_id": "nvidia-nemotron-120b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-120b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-nemotron-120b"
     },
     "nemotron-super-49b": {
       "model": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
@@ -53,7 +53,7 @@
       "unique_strength": "daily Nemotron reasoning worker for Shintai review when 120B is unnecessary",
       "task_fit": ["reasoning","architecture review","guardrail","control-plane","daily shintai"],
       "lane_id": "nvidia-nemotron-super-49b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-super-49b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-nemotron-super-49b"
     },
     "mistral-large": {
       "model": "mistralai/mistral-large-3-675b-instruct-2512",
@@ -61,7 +61,7 @@
       "unique_strength": "largest active NIM reasoning lane for adversarial architecture review and contradiction pressure",
       "task_fit": ["architecture audit","frontier reasoning","superaudit","control-plane","guardrail"],
       "lane_id": "nvidia-mistral-large",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-large"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-mistral-large"
     },
     "mistral-medium": {
       "model": "mistralai/mistral-medium-3.5-128b",
@@ -69,7 +69,7 @@
       "unique_strength": "large but faster Mistral fallback for broad system audit and timeout recovery",
       "task_fit": ["fallback","system audit","routing cleanup","timeout policy"],
       "lane_id": "nvidia-mistral-medium",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-medium"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-mistral-medium"
     },
     "mistral-nemotron": {
       "model": "mistralai/mistral-nemotron",
@@ -78,7 +78,7 @@
       "unique_strength": "hybrid Mistral/Nemotron critic for guardrail planning and contradiction pressure",
       "task_fit": ["guardrail","architecture critique","planning","control-plane","second opinion"],
       "lane_id": "nvidia-mistral-nemotron",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-nemotron"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-mistral-nemotron"
     },
     "magistral-small": {
       "model": "mistralai/magistral-small-2506",
@@ -87,7 +87,7 @@
       "unique_strength": "catalog-visible but not usable through current OpenAI-compatible chat path",
       "task_fit": ["fast critique","routing","triage","guardrail check","second opinion"],
       "lane_id": "nvidia-magistral-small",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-magistral-small"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-magistral-small"
     },
     "qwen-coder": {
       "model": "qwen/qwen3-coder-480b-a35b-instruct",
@@ -95,7 +95,7 @@
       "unique_strength": "NIM code specialist for collision detection, merge order, and regression design",
       "task_fit": ["code review","refactor","merge collision","tests","routing logic"],
       "lane_id": "nvidia-qwen-coder",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-qwen-coder"
     },
     "qwen-coder-32b": {
       "model": "qwen/qwen2.5-coder-32b-instruct",
@@ -104,7 +104,7 @@
       "unique_strength": "former cheap code lane; NIM reports end-of-life and qwen3-next/qwen-coder remain fallbacks",
       "task_fit": ["code review","focused diff","test repair","small refactor","cheap code"],
       "lane_id": "nvidia-qwen-coder-32b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder-32b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-qwen-coder-32b"
     },
     "qwen-397b": {
       "model": "qwen/qwen3.5-397b-a17b",
@@ -113,7 +113,7 @@
       "unique_strength": "large Qwen NIM reasoning lane for architecture synthesis, contradiction pressure, and broad code-adjacent audit",
       "task_fit": ["architecture audit","deep reasoning","synthesis","contradiction check","large context review"],
       "lane_id": "nvidia-qwen-397b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-397b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-qwen-397b"
     },
     "nemotron-nano-30b": {
       "model": "nvidia/nemotron-3-nano-30b-a3b",
@@ -122,7 +122,7 @@
       "unique_strength": "fast Nemotron reasoning lane for triage, guardrail review, and cheaper contradiction checks",
       "task_fit": ["triage","guardrail audit","routing check","fast reasoning","contradiction check"],
       "lane_id": "nvidia-nemotron-nano-30b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-nano-30b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-nemotron-nano-30b"
     },
     "nemotron-nano-vl-8b": {
       "model": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
@@ -131,7 +131,7 @@
       "unique_strength": "low-cost visual lane before escalating screenshots to larger vision models; use fresh/small prompts",
       "task_fit": ["visual probe","screenshot triage","design audit","ui check","cheap vision"],
       "lane_id": "nvidia-nemotron-nano-vl-8b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-nano-vl-8b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-nemotron-nano-vl-8b"
     },
     "nemotron-mini-4b": {
       "model": "nvidia/nemotron-mini-4b-instruct",
@@ -140,7 +140,7 @@
       "unique_strength": "ultra-cheap sentinel for route labels, health triage, and smoke checks; use fresh/small prompts",
       "task_fit": ["classify","route","smoke test","stale lane","cheap sentinel"],
       "lane_id": "nvidia-nemotron-mini-4b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-mini-4b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh --model nvidia-nemotron-mini-4b"
     },
     "claude-opus-audit": {
       "model": "claude-opus-4-7",
@@ -167,7 +167,7 @@
       "unique_strength": "nuanced narrative, character voice, long-form creative output — best for anything where tone and depth matter more than raw reasoning",
       "task_fit": ["write","draft","story","creative","blog","script","copy","narrative","marketing","brand voice"],
       "lane_id": "nvidia-dracarys",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-dracarys"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-dracarys"
     },
     "glm": {
       "model": "thudm/glm-5.1-9b-chat",
@@ -176,7 +176,7 @@
       "unique_strength": "East/West bridge — bilingual Chinese/English, long-context document analysis",
       "task_fit": ["bilingual","chinese","translate","long document","long context","summarize lengthy"],
       "lane_id": "nvidia-glm",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-glm"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-glm"
     },
     "minimax-m27": {
       "model": "minimaxai/minimax-m2.7",
@@ -185,7 +185,7 @@
       "unique_strength": "GLM replacement candidate — long-context synthesis, evidence-contract review, stale alias detection, memory/RAG audit",
       "task_fit": ["long document","long context","memory","rag","docs","alias","evidence","synthesis","audit"],
       "lane_id": "nvidia-minimax-m27",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-minimax-m27"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-minimax-m27"
     },
     "gpt-oss-120b": {
       "model": "openai/gpt-oss-120b",
@@ -194,7 +194,7 @@
       "unique_strength": "high-capacity 120B — architecture review, complex multi-step reasoning, comprehensive analysis where scale matters",
       "task_fit": ["research","deep analysis","long-horizon","comprehensive review","architecture audit","second opinion"],
       "lane_id": "nvidia-gpt-oss-120b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-gpt-oss-120b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-gpt-oss-120b"
     },
     "qwen3-next": {
       "model": "qwen/qwen3-next-80b-a3b-instruct",
@@ -202,7 +202,7 @@
       "unique_strength": "efficient MoE — code generation, algorithm analysis, reasoning-heavy code tasks at lower cost than 120B models",
       "task_fit": ["algorithm","optimize","code review","data structure","complexity","benchmark","refactor logic"],
       "lane_id": "nvidia-qwen3-next",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-qwen3-next"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-qwen3-next"
     },
     "llama4-maverick": {
       "model": "meta/llama-4-maverick-17b-128e-instruct",
@@ -211,7 +211,7 @@
       "unique_strength": "general multimodal wildcard lane for broad review when specialists disagree",
       "task_fit": ["multimodal","general review","fallback","broad reasoning","wildcard"],
       "lane_id": "nvidia-llama4-maverick",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-llama4-maverick"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-llama4-maverick"
     },
     "vision-90b": {
       "model": "meta/llama-3.2-90b-vision-instruct",
@@ -220,7 +220,7 @@
       "unique_strength": "large vision lane for screenshots, UI audits, presentation polish, and design-system checks",
       "task_fit": ["visual introspection","screenshot","ui audit","design system","presentation"],
       "lane_id": "nvidia-vision-90b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-vision-90b"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-vision-90b"
     },
     "usdcode": {
       "model": "nvidia/usdcode",
@@ -229,7 +229,7 @@
       "unique_strength": "catalog-visible 3D specialist, but not usable through current chat-completions offload path; needs adapter research before routing",
       "task_fit": ["usd","3d","scene graph","motion design","omniverse","kagami mechanics"],
       "lane_id": "nvidia-usdcode",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-usdcode"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-usdcode"
     },
     "ising": {
       "model": "nvidia/ising-3b",
@@ -237,7 +237,7 @@
       "unique_strength": "sub-second inference — quick triage, classification, yes/no decisions where latency matters more than depth",
       "task_fit": ["classify","triage","quick check","yes or no","routing decision","label"],
       "lane_id": "nvidia-ising",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-ising"
+      "dispatch": "bash _SYSTEM/Scripts/llm-compat.sh -m nvidia-ising"
     }
   },
   "cross_cutting": {

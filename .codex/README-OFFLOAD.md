@@ -17,7 +17,7 @@ Expected:
 ## Lane Cheat Sheet
 
 ```bash
-Scripts/offload.sh --list
+Scripts/llm-compat.sh --list
 node Scripts/offload-runner.mjs --inventory
 ```
 
@@ -33,14 +33,14 @@ Core lanes:
 
 ```bash
 node Scripts/offload-runner.mjs codex --dry-run "ping"
-Scripts/offload.sh --intent architecture_review --dry-run "review this module"
-Scripts/offload.sh --model codex --dry-run "ping"
+Scripts/llm-compat.sh --intent architecture_review --dry-run "review this module"
+Scripts/llm-compat.sh --model codex --dry-run "ping"
 ```
 
 Live Codex smoke requires `OPENAI_API_KEY`:
 
 ```bash
-OFFLOAD_PROMPT_TEXT="Return YURI_CODEX_OK only." node Scripts/offload-runner.mjs codex
+LLM_COMPAT_PROMPT_TEXT="Return YURI_CODEX_OK only." node Scripts/offload-runner.mjs codex
 ```
 
 ## MCP Smoke
@@ -72,9 +72,9 @@ Expected: both return `decision: "deny"` and exit `2`.
 If `http://127.0.0.1:3004/api/swarm/route` is down, auto-route fails closed. Use a manual lane:
 
 ```bash
-Scripts/offload.sh --model summarize-local "summarize this context"
-Scripts/offload.sh --model deepseek-v4-pro "review this plan"
-Scripts/offload.sh --model codex --dry-run "ping"
+Scripts/llm-compat.sh --model summarize-local "summarize this context"
+Scripts/llm-compat.sh --model deepseek-v4-pro "review this plan"
+Scripts/llm-compat.sh --model codex --dry-run "ping"
 ```
 
 ## Rollback

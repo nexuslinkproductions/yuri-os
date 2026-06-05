@@ -662,7 +662,7 @@ export function normalizeTokenEvent(event = {}) {
     trace_id: String(event.trace_id || event.session_id || event.event_id || randomUUID()),
     span_id: String(event.span_id || randomUUID()),
     parent_span_id: optionalString(event.parent_span_id),
-    session_id: optionalString(event.session_id || process.env.CLAUDE_SESSION_ID || process.env.CODEX_SESSION_ID || process.env.OFFLOAD_TASK_ID),
+    session_id: optionalString(event.session_id || process.env.CLAUDE_SESSION_ID || process.env.CODEX_SESSION_ID || process.env.LLM_COMPAT_TASK_ID),
     source_path: String(event.source_path || 'unknown'),
     lane: optionalString(event.lane),
     provider: optionalString(event.provider),

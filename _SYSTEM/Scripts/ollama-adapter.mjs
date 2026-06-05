@@ -12,7 +12,7 @@ import { runNeedleLocalChat } from './needle-adapter.mjs';
 
 // Cold model loads need extended timeouts — native fetch headersTimeout is 10s (too short).
 // Use node:http directly for full socket + response timeout control.
-const OLLAMA_TIMEOUT_MS = Number(process.env.OFFLOAD_OLLAMA_TIMEOUT_MS) || 300_000;
+const OLLAMA_TIMEOUT_MS = Number(process.env.LLM_COMPAT_OLLAMA_TIMEOUT_MS) || 300_000;
 
 function ollamaHttpPost(url, body, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
@@ -248,8 +248,8 @@ async function recordOllamaLedger({ provider, model, responseModel, status, usag
     : { measurement_type: 'unobservable', accuracy_class: 'not_measurable' };
 
   await recordTokenEvent({
-    trace_id: ledger.traceId || process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `ollama-${Date.now()}-${process.pid}`,
-    session_id: process.env.OFFLOAD_TASK_ID || '',
+    trace_id: ledger.traceId || process.env.TOKEN_LEDGER_TRACE_ID || process.env.LLM_COMPAT_TASK_ID || `ollama-${Date.now()}-${process.pid}`,
+    session_id: process.env.LLM_COMPAT_TASK_ID || '',
     source_path: '_SYSTEM/Scripts/ollama-adapter.mjs',
     lane: ledger.lane || 'ollama',
     provider,

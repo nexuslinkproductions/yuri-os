@@ -2,7 +2,7 @@
 // kagami-session-synthesizer.mjs
 // Daily cloud task (21:00) — deepseek-flash reads today's Kagami reflections
 // and appends a compact daily synthesis to session-journal.md
-// Uses offload.sh → deepseek-v4-flash (cheap, fast)
+// Uses llm-compat.sh → deepseek-v4-flash (cheap, fast)
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
-const OFFLOAD_SH = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LLM_COMPAT_SH = resolve(REPO_ROOT, '_SYSTEM/Scripts/llm-compat.sh');
 const DB_PATH    = process.env.KAGAMI_DB_PATH ?? resolve(REPO_ROOT, '_SYSTEM/OS_KERNEL/kagami.db');
 const RAG_INDEX  = resolve(REPO_ROOT, '_SYSTEM/training/data/rag-index.jsonl');
 const JOURNAL    = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-journal.md');
@@ -99,9 +99,9 @@ Write a 3-5 bullet journal entry covering:
 
 Format: markdown bullets, max 200 words, factual only.`;
 
-  const result = spawnSync('bash', [OFFLOAD_SH, '-m', SYNTH_LANE], {
+  const result = spawnSync('bash', [LLM_COMPAT_SH, '-m', SYNTH_LANE], {
     input: prompt,
-    env: { ...process.env, OFFLOAD_PROMPT_TEXT: prompt },
+    env: { ...process.env, LLM_COMPAT_PROMPT_TEXT: prompt },
     timeout: 60000,
     encoding: 'utf8',
   });

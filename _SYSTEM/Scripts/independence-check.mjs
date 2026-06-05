@@ -39,7 +39,7 @@ const ALLOWLIST_FILES = new Set([
   '.claude/hooks/token-session-end.js',
   '.claude/hooks/pre-tool-use.js',
   '_SYSTEM/Scripts/token-ledger.mjs',
-  '_SYSTEM/Scripts/offload-contract-dispatch-check.mjs',
+  '_SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs',
   '_SYSTEM/Scripts/create-missing-commands.mjs',
   '_SYSTEM/Scripts/independence-check.mjs',
 ]);
@@ -79,7 +79,7 @@ function scanFile(path, surface) {
     const ln = lines[i];
     if (ANTHROPIC_SHELL_RE.test(ln)) {
       record('fail', surface, rel, i + 1, ln.trim(),
-        'Replace `claude -p` with `_SYSTEM/Scripts/offload.sh -m <non-anthropic-lane>` or strip the model call entirely.');
+        'Replace `claude -p` with `_SYSTEM/Scripts/llm-compat.sh -m <non-anthropic-lane>` or strip the model call entirely.');
     } else if (HAIKU_AGENT_RE.test(ln)) {
       record('fail', surface, rel, i + 1, ln.trim(),
         'Replace haiku Agent spawn with @deepseek-v4-flash cloud or deepseek-r1:8b local.');
@@ -164,7 +164,7 @@ function checkScripts() {
 
 // ============================================================ ROUTING
 function checkRouting() {
-  const path = join(REPO, '_SYSTEM/Scripts/offload-contract.mjs');
+  const path = join(REPO, '_SYSTEM/Scripts/llm-compat-contract.mjs');
   scanFile(path, 'routing');
 }
 

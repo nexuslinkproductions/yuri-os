@@ -227,7 +227,7 @@ export function buildGraphPlan({ normalizedIntent, routePlan = {}, memorySurface
       capability: 'bind-capability-to-lane',
       lane_hint: routePlan.lane || 'native',
       required_artifacts: ['route-plan.json'],
-      verifier: 'offload-contract-route-plan',
+      verifier: 'llm-compat-contract-route-plan',
       promotion_gate: { requires_verification: false, action: 'none' },
     }),
     buildNode({

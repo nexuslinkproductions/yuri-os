@@ -86,7 +86,7 @@ Total:                          4.3K tokens per session
 **Action:** Consolidate shared instruction policy into:
 1. `_SYSTEM/yuri-origin.md` - canonical operational authority
 2. `SOUL.md` - persona and cognitive workflow
-3. `_SYSTEM/Scripts/offload-contract.mjs` - executable routing authority
+3. `_SYSTEM/Scripts/llm-compat-contract.mjs` - executable routing authority
 4. Thin adapters only for surface-specific behavior
 
 **Expected reduction:** 4.3K → 3.5K = **19% reduction**

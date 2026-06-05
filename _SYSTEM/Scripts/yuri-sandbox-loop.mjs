@@ -17,7 +17,7 @@ import { isProtectedPath } from './lane-kernel.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
-const CONTRACT_PATH = path.join(SCRIPT_DIR, 'offload-contract.mjs');
+const CONTRACT_PATH = path.join(SCRIPT_DIR, 'llm-compat-contract.mjs');
 const RUNNER_PATH = path.join(SCRIPT_DIR, 'codex-offload-runner.mjs');
 const LEARNING_CLI = path.join(SCRIPT_DIR, 'yuri-learning-capture.mjs');
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri', 'sandbox-runs');

@@ -132,13 +132,13 @@ function hasRoutePlanEvidence(text) {
     lower.includes('.claude/eot/pulse-cortex/route-plans/') ||
     lower.includes('pulse-cortex/route-plans');
   if (pulseCortexEvidence) return true;
-  // Recognize direct Scripts/ai dispatch or offload as route-plan evidence
+  // Recognize direct Scripts/ai dispatch or llm-compat dispatch as route-plan evidence
   if (lower.includes('_system/scripts/ai route-plan') ||
       lower.includes('_system/scripts/ai auto') ||
       lower.includes('scripts/ai route-plan') ||
       lower.includes('scripts/ai auto') ||
-      lower.includes('offload.sh -m') ||
-      lower.includes('scripts/offload.sh')) return true;
+      lower.includes('llm-compat.sh -m') ||
+      lower.includes('scripts/llm-compat.sh')) return true;
   return (
     lower.includes('route-plan evidence') ||
     lower.includes('scripts/ai route-plan evidence') ||
@@ -215,7 +215,7 @@ function checkPlanDispatchGate(input) {
     ss.update(s => { s.plan_dispatch_gate.warn_count = (s.plan_dispatch_gate.warn_count || 0) + 1; });
     return {
       code: 'post-plan-dispatch-required',
-      message: 'ExitPlanMode approved but no route-plan dispatch — run: _SYSTEM/Scripts/ai route-plan "<task>" and dispatch to the returned lane before direct mutation. (offload priority: @gpt-5.5 → @codex-spark → ... → @claude last resort)',
+      message: 'ExitPlanMode approved but no route-plan dispatch — run: _SYSTEM/Scripts/ai route-plan "<task>" and dispatch to the returned lane before direct mutation. (llm-compat lane priority: @gpt-5.5 → @codex-spark → ... → @claude last resort)',
     };
   } catch (_) {
     return null;
@@ -229,8 +229,8 @@ function checkShintaiDispatch(input) {
   const isShintai = SHINTAI_DISPATCH_KEYWORDS.some(k => text.includes(k));
   if (!isShintai) return null;
   return {
-    code: 'shintai-must-use-offload',
-    message: 'Shintai operations MUST dispatch via offload lanes — not Claude agents. Run: bash _SYSTEM/Scripts/ai auto "<task>" or bash _SYSTEM/Scripts/offload.sh -m <lane> "<spec>". Claude agents are banned for Shintai. See _SYSTEM/memory/feedback_no_anthropic_agents.md.',
+    code: 'shintai-must-use-llm-compat',
+    message: 'Shintai operations MUST dispatch via llm-compat lanes — not Claude agents. Run: bash _SYSTEM/Scripts/ai auto "<task>" or bash _SYSTEM/Scripts/llm-compat.sh -m <lane> "<spec>". Claude agents are banned for Shintai. See _SYSTEM/memory/feedback_no_anthropic_agents.md.',
   };
 }
 

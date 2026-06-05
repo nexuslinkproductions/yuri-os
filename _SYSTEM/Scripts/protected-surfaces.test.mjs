@@ -60,7 +60,7 @@ const MUST_ALLOW = [
   '.claude-project/state.json', // not the .claude/ dir
   'src/env.config.ts',          // not the .env file
   'docs/node_modules_guide.md', // not the node_modules/ dir
-  '_SYSTEM/Scripts/offload-contract.mjs',
+  '_SYSTEM/Scripts/llm-compat-contract.mjs',
   'README.md',
 ];
 for (const p of MUST_ALLOW) {

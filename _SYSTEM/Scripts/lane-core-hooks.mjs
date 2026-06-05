@@ -49,7 +49,7 @@ export async function coreOnDispatch({ lane, prompt, runId } = {}) {
   } catch (err) {
     // Silent degradation is worse than a crash — a broken cold store must be VISIBLE, not invisibly
     // dropping the lane's episodic memory while it still exits 0.
-    process.stderr.write(`OFFLOAD_WARN code=0 lane=${lane} reason=recall_unavailable:${String(err?.message || err).slice(0, 80).replace(/\s+/g, '_')}\n`);
+    process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=recall_unavailable:${String(err?.message || err).slice(0, 80).replace(/\s+/g, '_')}\n`);
   }
   return { recallBlock, runId: rid };
 }

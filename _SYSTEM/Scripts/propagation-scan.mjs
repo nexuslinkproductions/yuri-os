@@ -15,7 +15,7 @@
  *   discovery is two structural legs over the LIVE-pinned gitnexus index:
  *     (1) WITNESS EXTRACTION — `context <node-file>` gives the symbols the node structurally CALLS
  *         / READS (its outgoing mechanism primitives). For an import-only contract node (e.g.
- *         offload-contract) outgoing calls are sparse, so we also harvest witnesses from the node's
+ *         llm-compat-contract) outgoing calls are sparse, so we also harvest witnesses from the node's
  *         mechanism cluster via `query <node label/id tokens>` and keep only symbols that ≥2 OTHER
  *         node-files structurally touch (the MIN_WITNESSES shared-mechanism rule — a witness shared
  *         by only one file is not a *shared* mechanism).
@@ -66,10 +66,10 @@
  *   With no structural leg the scan surfaces nothing above-floor and says so explicitly.
  *
  * Usage:
- *   node _SYSTEM/Scripts/propagation-scan.mjs offload-contract
- *   node _SYSTEM/Scripts/propagation-scan.mjs offload-contract --top 15 --json
- *   node _SYSTEM/Scripts/propagation-scan.mjs offload-contract --force   (override 24h cooldown)
- *   node _SYSTEM/Scripts/propagation-scan.mjs offload-contract --dry-run (no JSONL write)
+ *   node _SYSTEM/Scripts/propagation-scan.mjs llm-compat-contract
+ *   node _SYSTEM/Scripts/propagation-scan.mjs llm-compat-contract --top 15 --json
+ *   node _SYSTEM/Scripts/propagation-scan.mjs llm-compat-contract --force   (override 24h cooldown)
+ *   node _SYSTEM/Scripts/propagation-scan.mjs llm-compat-contract --dry-run (no JSONL write)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -346,7 +346,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
   //          shared mechanism the family is built on (e.g. traceDispatchEvent). A symbol only one
   //          file touches is NOT a *shared* mechanism and is dropped.
   // This binds the family through a verified structural primitive, never a word-overlap heuristic.
-  // The node-id STEM is the strongest structural anchor: a hyphenated id (offload-contract) shares
+  // The node-id STEM is the strongest structural anchor: a hyphenated id (llm-compat-contract) shares
   // a stem token (offload) with its family files (offload-runner) far more reliably than the prose
   // label, so the cluster query leads with id-stem tokens, then adds distinctive label tokens.
   const STOP = new Set(['the', 'and', 'for', 'node', 'engine', 'with', 'its', 'own']);
@@ -356,7 +356,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
   // Query variants, narrowest-recall to broadest. A SINGLE distinctive id-stem token (e.g. "offload")
   // is the best family anchor: multi-term BM25 ranks the node's OWN file to the top and the siblings
   // fall off the limit, whereas the bare stem co-locates the whole family (verified: "offload" ->
-  // offload-contract + offload-runner, but "offload contract" -> offload-contract only). So we try
+  // llm-compat-contract + offload-runner, but "offload contract" -> llm-compat-contract only). So we try
   // each id-stem token alone (longest = most distinctive first), then the joined fallbacks. We do NOT
   // stop at the first non-empty result — we UNION cluster files across variants (bounded), because no
   // single query reliably reaches every family member on this index.

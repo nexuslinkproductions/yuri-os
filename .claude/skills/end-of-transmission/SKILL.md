@@ -26,7 +26,7 @@ Micro-EOT auto-triggers after:
 - Error recovery: after backtracking, error resolution, or failed branch analysis
 - Cycle completion: Plan-Act-Validate loop finishes
 
-Trigger action: Dispatch `Scripts/offload.sh -m deepseek-v4-flash` with micro-EOT prompt (run_in_background via queue). Main thread continues unblocked. Output written to `.claude/eot/continuous/micro-{timestamp}.md`.
+Trigger action: Dispatch `Scripts/llm-compat.sh -m deepseek-v4-flash` with micro-EOT prompt (run_in_background via queue). Main thread continues unblocked. Output written to `.claude/eot/continuous/micro-{timestamp}.md`.
 
 ### Manual (Full EOT)
 
@@ -106,7 +106,7 @@ If a desired update conflicts with these boundaries, create a patch proposal mar
 - council review, final acceptance judgment, final report assembly
 
 ### DeepSeek Workers (all model-backed EOT execution):
-- Micro-EOT: `deepseek-v4-flash` through `_SYSTEM/Scripts/offload.sh`.
+- Micro-EOT: `deepseek-v4-flash` through `_SYSTEM/Scripts/llm-compat.sh`.
 - Full EOT worker reviews: `deepseek-v4-pro:max-reasoning` for high-stakes synthesis, `deepseek-v4-flash` for lightweight ledgers and smoke reflections.
 - No Haiku or Sonnet workers in EOT.
 - Main thread performs final synthesis directly from DeepSeek outputs and deterministic tool evidence.
@@ -349,7 +349,7 @@ Archive shape:
 }
 ```
 
-This archive becomes the calibration corpus for Innovation A (pulse memory + learning loop). After 100+ archived findings, classifier heuristics in `Scripts/offload-contract.mjs` can be tuned against actual outcomes rather than vibes.
+This archive becomes the calibration corpus for Innovation A (pulse memory + learning loop). After 100+ archived findings, classifier heuristics in `Scripts/llm-compat-contract.mjs` can be tuned against actual outcomes rather than vibes.
 
 Implementation note for Phase 10 worker: read `.claude/state/pulse-bus.json`, filter, write archive, then call `bash .claude/state/pulse-bus.json:resetForNewSession` equivalent via the Node module (see `.claude/hooks/pulse-bus.js` `resetForNewSession`).
 

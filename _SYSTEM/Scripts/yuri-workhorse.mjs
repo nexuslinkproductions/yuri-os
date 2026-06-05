@@ -12,7 +12,7 @@ const WORKHORSE_VERSION = '0.1.0'
 const PLAN_VERSION = 'yuri.workhorse.x1'
 const INTENT_SCHEMA_PATH = '_SYSTEM/Scripts/intent-schema.json'
 const ACTION_SCHEMA_PATH = '_SYSTEM/Scripts/deepseek-action-schema.json'
-const OFFLOAD_RUNNER_PATH = '_SYSTEM/Scripts/llm-lane.mjs' // 3-lane consolidation: dispatch via the minimal core
+const LLM_COMPAT_RUNNER_PATH = '_SYSTEM/Scripts/llm-lane.mjs' // 3-lane consolidation: dispatch via the minimal core
 const EXECUTOR_PATH = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
 const LIVE_PRO_LANE = process.env.YURI_WORKHORSE_PRO_LANE || 'deepseek-v4-pro'
 const LIVE_FLASH_LANE = process.env.YURI_WORKHORSE_FLASH_LANE || 'deepseek-v4-flash'
@@ -1158,7 +1158,7 @@ function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, art
 function createDeepseekTransport() {
   return {
     runLane(lane, prompt, options = {}) {
-      const args = [OFFLOAD_RUNNER_PATH, lane]
+      const args = [LLM_COMPAT_RUNNER_PATH, lane]
       if (options.system) {
         args.push('--system', options.system)
       }

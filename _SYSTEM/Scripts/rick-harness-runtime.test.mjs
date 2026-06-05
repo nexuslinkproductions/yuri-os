@@ -32,7 +32,7 @@ test('Rick harness modules import without starting the REPL', async () => {
     import('./rick-banner.mjs'),
     import('./rick-repl.mjs'),
     import('./worker-tmux.mjs'),
-    import('./offload-contract.mjs'),
+    import('./llm-compat-contract.mjs'),
     import('./browser-harness-bridge.mjs'),
     import('./lane-session.mjs'),
     import('./shintai-dispatch.mjs'),
@@ -304,7 +304,7 @@ test('offload wrapper streams chat SSE chunks before process close', async (t) =
       DEEPSEEK_API_KEY: 'mock-key',
       DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
       LANE_SESSION: 'rick-runtime-test',
-      OFFLOAD_STREAM: '1',
+      LLM_COMPAT_STREAM: '1',
     },
   });
 
@@ -597,7 +597,7 @@ sys.exit(0 if done and proc.returncode == 0 else 2)
       KAGAMI_RICK_MODE: 'rick',
       LANE_SESSION: 'rick-pty-runtime-test',
       NODE_BIN: process.execPath,
-      OFFLOAD_STREAM: '1',
+      LLM_COMPAT_STREAM: '1',
       RICK_REPO_ROOT: REPO_ROOT,
       TERM: 'xterm-256color',
     },

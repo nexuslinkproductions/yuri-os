@@ -47,38 +47,38 @@ description: "Task list template for feature implementation"
 
 ## Generated CODEX Task Scaffolds
 
-### Task 1: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+### Task 1: `node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs` exits 0 (was 1)
 
 GITNEXUS IMPACT (auto-generated):
   symbol: dispatchTokens
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload.sh
+  symbol: llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-dispatch-check.mjs
+  symbol: llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-regression.test.mjs
+  symbol: llm-compat-contract-regression.test.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -88,45 +88,45 @@ GITNEXUS IMPACT (auto-generated):
   risk: LOW
 
 CODEX TASK SPEC SCAFFOLD:
-  Goal: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+  Goal: `node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs` exits 0 (was 1)
   Target files: <to be determined during implementation>
   Constraints: anime DNA gates apply; respect protected surfaces
-  Acceptance criteria: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+  Acceptance criteria: `node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs` exits 0 (was 1)
   Test command: <to be defined>
   Rollback boundary: git checkout <files>
 
-### Task 2: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `offload.sh` that route to that lane
+### Task 2: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `llm-compat.sh` that route to that lane
 
 GITNEXUS IMPACT (auto-generated):
   symbol: dispatchTokens
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload.sh
+  symbol: llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-dispatch-check.mjs
+  symbol: llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-regression.test.mjs
+  symbol: llm-compat-contract-regression.test.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -136,10 +136,10 @@ GITNEXUS IMPACT (auto-generated):
   risk: LOW
 
 CODEX TASK SPEC SCAFFOLD:
-  Goal: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `offload.sh` that route to that lane
+  Goal: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `llm-compat.sh` that route to that lane
   Target files: <to be determined during implementation>
   Constraints: anime DNA gates apply; respect protected surfaces
-  Acceptance criteria: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `offload.sh` that route to that lane
+  Acceptance criteria: Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `llm-compat.sh` that route to that lane
   Test command: <to be defined>
   Rollback boundary: git checkout <files>
 
@@ -150,31 +150,31 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload.sh
+  symbol: llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-dispatch-check.mjs
+  symbol: llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-regression.test.mjs
+  symbol: llm-compat-contract-regression.test.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -191,38 +191,38 @@ CODEX TASK SPEC SCAFFOLD:
   Test command: <to be defined>
   Rollback boundary: git checkout <files>
 
-### Task 4: No regression in `offload-contract-regression.test.mjs`
+### Task 4: No regression in `llm-compat-contract-regression.test.mjs`
 
 GITNEXUS IMPACT (auto-generated):
   symbol: dispatchTokens
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload.sh
+  symbol: llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-dispatch-check.mjs
+  symbol: llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-regression.test.mjs
+  symbol: llm-compat-contract-regression.test.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -232,10 +232,10 @@ GITNEXUS IMPACT (auto-generated):
   risk: LOW
 
 CODEX TASK SPEC SCAFFOLD:
-  Goal: No regression in `offload-contract-regression.test.mjs`
+  Goal: No regression in `llm-compat-contract-regression.test.mjs`
   Target files: <to be determined during implementation>
   Constraints: anime DNA gates apply; respect protected surfaces
-  Acceptance criteria: No regression in `offload-contract-regression.test.mjs`
+  Acceptance criteria: No regression in `llm-compat-contract-regression.test.mjs`
   Test command: <to be defined>
   Rollback boundary: git checkout <files>
 
@@ -246,31 +246,31 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload.sh
+  symbol: llm-compat.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-dispatch-check.mjs
+  symbol: llm-compat-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: offload-contract-regression.test.mjs
+  symbol: llm-compat-contract-regression.test.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW

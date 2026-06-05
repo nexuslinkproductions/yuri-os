@@ -1124,7 +1124,7 @@ function streamLane(ui, lane, prompt, label) {
     stream.start();
     const child = spawn('bash', [AI_SH, lane, prompt], {
       cwd: REPO_ROOT,
-      env: { ...process.env, OFFLOAD_STREAM: '1', OFFLOAD_STREAM_STATUS: '1' },
+      env: { ...process.env, LLM_COMPAT_STREAM: '1', LLM_COMPAT_STREAM_STATUS: '1' },
     });
 
     const firstTokenWatch = setTimeout(() => {

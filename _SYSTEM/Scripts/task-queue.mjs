@@ -30,7 +30,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 const QUEUE_FILE = path.join(STATE_DIR, 'task-queue.json');
-const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
+const LLM_COMPAT_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'llm-compat.sh');
 const CODEX_RUNNER = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'codex-offload-runner.mjs');
 
 const TASK_TIMEOUT_MS = 10 * 60 * 1000; // 10 min per task ceiling
@@ -132,10 +132,10 @@ function execTask(task) {
       args = [CODEX_RUNNER, task.lane];
     } else {
       cmd = 'bash';
-      args = [OFFLOAD_SH, '-m', task.lane, task.prompt];
+      args = [LLM_COMPAT_SH, '-m', task.lane, task.prompt];
     }
 
-    const env = { ...process.env, OFFLOAD_PROMPT_TEXT: task.prompt };
+    const env = { ...process.env, LLM_COMPAT_PROMPT_TEXT: task.prompt };
     const child = spawn(cmd, args, { cwd: REPO_ROOT, env, stdio: ['pipe', 'pipe', 'pipe'] });
 
     if (isCodex) {
