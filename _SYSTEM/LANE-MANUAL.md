@@ -71,7 +71,7 @@ ai llm <lane> "<prompt>" [flags]            (CLI surface; hard rename of `ai off
 | `deepseek` / `ds` | `deepseek-v4-pro` | deepseek-direct · `api.deepseek.com` | 1,000,000 | 131,072 | 180s | ✅ |
 | `nemotron` / `nvidia` | `nvidia/nemotron-3-ultra-550b-a55b` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 240s | ✅ |
 | `kimi` | `moonshotai/kimi-k2.6` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 240s | ✅ |
-| `codex` (separate platform) | `gpt-5.5` | OpenAI Codex MCP · `codex-offload-runner.mjs` | — | — | up to 6h | ✅ (not via core seam) |
+| `codex` (separate platform) | `gpt-5.5` | OpenAI Codex MCP · `codex-offload-runner.mjs` | — | — | up to 6h | ✅ **un-sandboxed (`danger-full-access`), guard-verified** · `--context` parity · spine via AGENTS.md · repo-wide. Not via the lane-core-hooks seam (open option). codex-spark stays read-only DRAFT; `--sandbox read-only` overrides any lane. |
 
 Context window = INPUT cap (all 1M). Max output = a **separate** per-reasoning-depth knob (`off/low`:2048 · `medium`:4096 · `high`:16384 · `xhigh`: per table). DeepSeek counts reasoning tokens against it. Legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are **hard-removed** — invoking one fails loud (exit 3).
 
@@ -138,7 +138,7 @@ Recall unavailable (cold store down) → `LLM_COMPAT_WARN code=0 ... reason=reca
 ## 10. Known issues / gotchas (operational truth, 2026-06-05)
 
 1. ✅ **RESOLVED — it was the shell `timeout` command, not the lane.** Wrapping a *live* lane call in shell `timeout` (`timeout 100 node llm-lane.mjs <lane> "..."` or `timeout … ai llm …`) truncates the in-flight request → **empty output + exit 0**, even though the call completes well under the limit. Bare invocation, `ai llm`, and `import dispatch()` all work. Root-caused by a clean A/B (timeout → EMPTY, no-timeout → PONG) plus the env-gated `LLM_LANE_TRACE`. **The lane self-limits via its own `AbortController` (`cfg.timeout_ms`, 180–240s) — a shell `timeout` is redundant AND harmful.** RULE: never wrap a lane dispatch in the shell `timeout` command; if you need an outer cap in automation, use the harness Bash-tool `timeout` PARAMETER instead. (Debug aid added: `LLM_LANE_TRACE=<file>` writes stage markers `MAIN_START..POST_POSTCHAT`.)
-2. ⚠️ **kagami daemon noise.** A down kagami daemon makes `kagami-cli.mjs` print `AggregateError` + its `BOOT_HINT` (`boot: bash _SYSTEM/Scripts/kagami-start.sh`) to stderr on shell startup. Cosmetic; pollutes captured stderr and can masquerade as a lane error. Silence by booting the daemon or scoping the startup poke. ⏳
+2. ✅ **kagami noise — gated (`29e5b16c`).** The kagami FACADE is OFF by design (`KAGAMI_FACADE_ENABLED=0`; auth scrapped; boot script `kagami-start.sh` MISSING), but `kagami-cli.mjs`'s `fail()` always appended `BOOT_HINT` (`boot: bash kagami-start.sh`) → `AggregateError/boot` noise that polluted captured stderr and masqueraded as a lane error (cost real debug time — see [[lane-timeout-ghost-lesson]]). Now the hint only prints when the facade is actually enabled. Facade subsystem = retirement candidate (disabled + unused); the 5 SCHEDULED kagami agents are live + kept.
 3. **Direct lane needs the key in env.** `node llm-lane.mjs` reads `process.env[cfg.api_key_env]`; only the `ai` wrapper hydrates from keychain. For a direct call, export `DEEPSEEK_API_KEY` / `NVIDIA_API_KEY` first.
 4. **Loop-prone models (kimi/NIM):** convergence guards (repeated-tool-batch detection + tool-turn nudge at 60% of maxIters + a forced final no-tools call) prevent empty exits from tool loops.
 
@@ -161,4 +161,5 @@ Recall unavailable (cold store down) → `LLM_COMPAT_WARN code=0 ... reason=reca
 
 ## Status / change log
 
+- **2026-06-05 (later, same session) — lanes hardened + Codex fully equipped.** Timeout-ghost root-caused (shell `timeout` truncates live calls — §10.1, never the lane). `--context` front-load added to both `llm-lane.mjs` + `codex-offload-runner.mjs` (§7a). Codex un-sandboxed (`danger-full-access`, guard-VERIFIED — it attempted `rm -rf`, yuri-safety-core blocked it), repoRoot off-by-one fixed (guard + spine load from repo-root), spine via AGENTS.md. kagami boot-hint noise gated (§10.2). All merged to main (`d800012c`, `21ddcaca`, `29e5b16c`). **Lanes are fan-out-ready.**
 - **2026-06-05 — manual created.** Captures the post-consolidation + post-rename reality + the day's operational findings (piped-stdout truncation, kagami noise, reliable `--out` capture). Lane core verified live (`PONG` via direct dispatch). Open defects: §10.1 (flush robustness), §10.2 (kagami noise). Codex-through-core-seam: open option (§11.4).
