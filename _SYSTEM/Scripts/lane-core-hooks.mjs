@@ -36,25 +36,33 @@ function appendJsonl(file, obj) {
 }
 
 // Dispatch-start hooks: energy ΔU trace + memory recall (returns a recall block to inject).
-export async function coreOnDispatch({ lane, prompt } = {}) {
-  try { traceDispatchEvent({ lane, runId: `llm-lane-${lane}-${Date.now()}` }); } catch { /* self-isolated */ }
+export async function coreOnDispatch({ lane, prompt, runId } = {}) {
+  // Stable per-dispatch id so the energy trace, evidence record, and pulse all correlate to the
+  // same run (callers should pass one; we mint a fallback if not).
+  const rid = runId || `llm-lane-${lane}-${Date.now()}`;
+  try { traceDispatchEvent({ lane, runId: rid }); } catch { /* self-isolated */ }
   let recallBlock = '';
   try {
     const { recall, renderRecallBlock } = await import('./yuri-recall.mjs');
     const ranked = recall(String(prompt || '').slice(0, 400));
     if (Array.isArray(ranked) && ranked.length) recallBlock = String(renderRecallBlock(ranked) || '').trim();
-  } catch { /* cold store absent / sqlite missing -> degrade to no recall */ }
-  return { recallBlock };
+  } catch (err) {
+    // Silent degradation is worse than a crash — a broken cold store must be VISIBLE, not invisibly
+    // dropping the lane's episodic memory while it still exits 0.
+    process.stderr.write(`OFFLOAD_WARN code=0 lane=${lane} reason=recall_unavailable:${String(err?.message || err).slice(0, 80).replace(/\s+/g, '_')}\n`);
+  }
+  return { recallBlock, runId: rid };
 }
 
 // Result hooks: evidence into the control-plane ledger + the docked-output symbiotic pulse.
-export function coreOnResult({ lane, prompt, output, exitCode = 0 } = {}) {
+export function coreOnResult({ lane, prompt, output, exitCode = 0, runId } = {}) {
   const text = String(output || '');
   const bytes = Buffer.byteLength(text, 'utf8');
   appendJsonl(ledgerPath(), {
     timestamp: new Date().toISOString(),
     type: 'lane_output',
     lane,
+    runId,
     exitCode,
     bytes,
     content: `lane ${lane} completed with ${bytes} output bytes`,
@@ -68,6 +76,7 @@ export function coreOnResult({ lane, prompt, output, exitCode = 0 } = {}) {
     type: 'pulse',
     source: 'docked-llm',
     lane,
+    runId,
     authority: 'advisory_only',
     local_truth_claim: false,
     verdict: exitCode === 0 ? 'verify' : 'block',

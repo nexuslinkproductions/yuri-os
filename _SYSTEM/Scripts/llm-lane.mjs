@@ -68,9 +68,14 @@ const OPERATING_DIRECTIVE =
   + 'When done investigating, give your final answer as plain text with no further tool calls.';
 function buildYuriLoadout() {
   const parts = ['# YURI-OS FULL OPERATING STACK — you operate BY this framework as a YURI lane.'];
+  const missing = [];
   for (const f of SPINE_FILES) {
-    try { parts.push(`\n\n===== ${f} =====\n${fs.readFileSync(path.join(REPO_ROOT, f), 'utf8')}`); } catch { /* spine file optional */ }
+    try { parts.push(`\n\n===== ${f} =====\n${fs.readFileSync(path.join(REPO_ROOT, f), 'utf8')}`); }
+    catch { missing.push(f); }
   }
+  // A missing spine file means the lane would run cognitively decapitated (no contract/persona).
+  // Don't silently degrade — make it LOUD so a broken spine is never mistaken for a working lane.
+  if (missing.length) process.stderr.write(`OFFLOAD_WARN code=0 lane=llm-lane reason=spine_incomplete missing=${missing.join(',')}\n`);
   parts.push(OPERATING_DIRECTIVE);
   return parts.join('');
 }
@@ -191,8 +196,20 @@ async function executeTool(name, argsRaw) {
       const target = args.path ? path.resolve(REPO_ROOT, args.path) : REPO_ROOT;
       if (isProtectedPath(target) && target !== REPO_ROOT) return `REFUSED: protected path: ${args.path}`;
       try {
-        const out = execFileSync('grep', ['-rnI', '--exclude-dir=node_modules', '--exclude-dir=.git', '-e', args.pattern, target], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
-        return clip(out.trim() || '(no matches)');
+        const out = execFileSync('grep', [
+          '-rnI', '--exclude-dir=node_modules', '--exclude-dir=.git', '--exclude-dir=.claude',
+          '--exclude-dir=.amp', '--exclude-dir=secrets', '--exclude-dir=data',
+          '--exclude=.env', '--exclude=.env.*', '--exclude=*.pem', '--exclude=*.key',
+          '-e', args.pattern, target,
+        ], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+        // Defense-in-depth: grep --exclude-dir matches by basename and can't express backend/data
+        // precisely, so post-filter every match through isProtectedPath — guarantees no protected
+        // surface ever reaches the lane (the exclude flags are just a perf pre-filter).
+        const safe = out.split('\n').filter((line) => {
+          const p = line.split(':')[0];
+          return p && !isProtectedPath(path.resolve(REPO_ROOT, p));
+        });
+        return clip(safe.join('\n').trim() || '(no matches)');
       } catch (e) { return e.status === 1 ? '(no matches)' : `grep error: ${e.message}`; }
     }
     if (name === 'search') {
@@ -278,9 +295,11 @@ async function dispatch(laneArg, prompt, opts = {}) {
   assertSafeEndpoint(endpoint, key);
 
   // Fire the YURI core on dispatch (energy ΔU trace + memory recall) — every lane call is hooked
-  // into the core like a native turn, no matter who invokes it. Returns a recall block to inject so
+  // into the core like a native turn, no matter who invokes it. One stable runId correlates the
+  // energy trace, evidence record, and pulse for this dispatch. Returns a recall block to inject so
   // the lane carries the same episodic memory a native operator turn does.
-  const { recallBlock } = await coreOnDispatch({ lane: key, prompt });
+  const runId = `llm-lane-${key}-${Date.now()}`;
+  const { recallBlock } = await coreOnDispatch({ lane: key, prompt, runId });
 
   const messages = [];
   let system = opts.noSystem ? '' : (opts.system || (opts.light ? LIGHT_SYSTEM : buildYuriLoadout()));
@@ -325,7 +344,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
     if (opts.out) fs.writeFileSync(path.resolve(opts.out), text);
     if (truncated) process.stderr.write(`OFFLOAD_WARN code=0 lane=${key} reason=ok_truncated_${finish}\n`);
-    coreOnResult({ lane: key, prompt, output: text, exitCode: 0 });
+    coreOnResult({ lane: key, prompt, output: text, exitCode: 0, runId });
     return 0;
   }
   // Loop exhausted while still tool-calling: force ONE final no-tools call so a loop-prone model
@@ -334,7 +353,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     [...messages, { role: 'user', content: 'Stop using tools. Give your best final answer now as plain text.' }],
     maxTokens, [], timeoutMs, key);
   const ftext = String(forced.message?.content ?? lastChoice.message?.content ?? '').trim();
-  if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0 }); return 0; }
+  if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0, runId }); return 0; }
   return fail(1, key, 'tool_loop_no_final_answer');
 }
 

@@ -3,8 +3,11 @@
 // per-depth output budget, and the gated bash tool (block destructive / git-mutation / .env).
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { ALIAS, isPrivateHost, isProtectedPath, maxTokensFor, executeTool } from './llm-lane.mjs';
+import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
 
 const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 
@@ -62,4 +65,34 @@ test('bash tool gate: allows benign, blocks destructive / git-mutation / protect
 test('read_file tool refuses protected surfaces', async () => {
   assert.match(await executeTool('read_file', JSON.stringify({ path: '.env' })), /^REFUSED/);
   assert.match(await executeTool('read_file', JSON.stringify({ path: 'backend/data/yuri.db' })), /^REFUSED/);
+});
+
+test('grep tool never returns protected-surface matches (no-path root grep)', async () => {
+  // Pattern that exists across the repo incl. protected dirs; result must contain zero protected paths.
+  const out = await executeTool('grep', JSON.stringify({ pattern: 'API_KEY' }));
+  const leaked = out.split('\n').filter((l) => /(^|\/)\.env|\/secrets\/|\/backend\/data\/|\/\.claude\/(state|history|file-history)/.test(l));
+  assert.equal(leaked.length, 0, `grep leaked protected paths: ${leaked.slice(0, 2).join(' | ')}`);
+});
+
+test('coreOnDispatch fires without throwing, returns stable runId + string recallBlock', async () => {
+  const r = await coreOnDispatch({ lane: 'deepseek-v4-pro', prompt: 'energy gate', runId: 'test-run-1' });
+  assert.equal(typeof r.recallBlock, 'string');
+  assert.equal(r.runId, 'test-run-1');
+});
+
+test('coreOnResult writes lane_output + pulse records carrying the runId', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lane-hooks-'));
+  process.env.YURI_MEMORY_LEDGER_PATH = path.join(dir, 'ledger.jsonl');
+  process.env.YURI_LANE_PULSE_PATH = path.join(dir, 'pulse.jsonl');
+  try {
+    coreOnResult({ lane: 'deepseek-v4-pro', prompt: 'q', output: 'answer', exitCode: 0, runId: 'test-run-2' });
+    const led = JSON.parse(fs.readFileSync(process.env.YURI_MEMORY_LEDGER_PATH, 'utf8').trim().split('\n').pop());
+    const pul = JSON.parse(fs.readFileSync(process.env.YURI_LANE_PULSE_PATH, 'utf8').trim().split('\n').pop());
+    assert.equal(led.type, 'lane_output'); assert.equal(led.runId, 'test-run-2');
+    assert.equal(pul.type, 'pulse'); assert.equal(pul.source, 'docked-llm');
+    assert.equal(pul.authority, 'advisory_only'); assert.equal(pul.runId, 'test-run-2');
+  } finally {
+    delete process.env.YURI_MEMORY_LEDGER_PATH;
+    delete process.env.YURI_LANE_PULSE_PATH;
+  }
 });
