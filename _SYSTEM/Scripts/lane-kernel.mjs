@@ -46,6 +46,42 @@ export const PROTECTED_SURFACE_PREFIXES = Object.freeze([
 
 export const PROTECTED_SURFACE_LABELS = PROTECTED_SURFACE_PREFIXES;
 
+// Canonical role/credential/guard TRUST surface — semantically DISTINCT from
+// PROTECTED_SURFACE_PREFIXES. PROTECTED_SURFACE_PREFIXES is a UNIVERSAL read/write
+// block (data + secrets) enforced for everyone via isProtectedPath(). ROLE_TRUST_SURFACES
+// is a COWORKER-ONLY mutation block: the role resolver, the credential hash, and every
+// enforcement hook. The dev/owner role edits these freely (e.g. this guard-hardening work),
+// so they MUST NOT be folded into PROTECTED_SURFACE_PREFIXES or the owner could never edit a
+// hook again. Single-sourced here so bash-security-guard.js (PROTECTED_ROLE_PATHS) and
+// operator-write-guard.js (PROTECTED_ROLE_FILES/DIRS) stop maintaining divergent copies.
+// `files` = exact-path targets; `dirs` = directory prefixes (entry may not exist yet).
+// This is the UNION (fail-closed): operator-write-guard's list was already the superset, so
+// folding bash-security-guard onto it EXPANDS bash coverage from 4 -> the full surface.
+export const ROLE_TRUST_SURFACES = Object.freeze({
+  files: Object.freeze([
+    // trust roots — role resolver + credential hash + this kernel itself.
+    // lane-kernel.mjs DEFINES this surface, so it must be a member: otherwise a
+    // coworker could rm/rewrite the kernel to shrink the protected set out from
+    // under both role guards. Self-protect the trust root.
+    '_SYSTEM/Scripts/lane-kernel.mjs',
+    '_SYSTEM/Scripts/yuri-operator.cjs',
+    '_SYSTEM/SELF/dev-credential.json',
+    // enforcement guards — every PreToolUse hook whose job is enforcement, so a coworker
+    // cannot Edit/Bash-mutate one guard to neuter it. Includes the guards themselves.
+    '.claude/hooks/bash-security-guard.js',
+    '.claude/hooks/operator-write-guard.js',
+    '.claude/hooks/claude-protocol-guard.js',
+    '.claude/hooks/claude-protocol-guard.mjs',
+    '.claude/hooks/agent-spawn-guard.js',
+    '.claude/hooks/pre-tool-gate.js',
+    '.claude/hooks/musubi-protocol-enforce.js',
+    '.claude/hooks/tirith-url-guard.js',
+  ]),
+  dirs: Object.freeze([
+    '.claude/hooks/operator-guard',
+  ]),
+});
+
 // Canonical control-file surfaces — distinct from PROTECTED_SURFACE_PREFIXES (which are
 // read/write BLOCK surfaces like backend/data and secrets). These are core governance files
 // that may be edited, but a direct mutation should carry a control packet. Single-sourced here

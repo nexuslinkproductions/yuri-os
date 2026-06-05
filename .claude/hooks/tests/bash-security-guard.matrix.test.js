@@ -6,6 +6,23 @@ const { spawnSync } = require('child_process');
 
 const HOOK = path.resolve(__dirname, '../bash-security-guard.js');
 
+// Resolve the role the hook will see in THIS env, so role-sensitive fixtures
+// (surface-wide destructive git ops) assert the correct verdict regardless of whether the
+// suite runs under a dev key or a coworker-resolving env. Mirrors the hook's own resolver.
+function resolvedRole() {
+  try {
+    const op = require(path.resolve(__dirname, '../../../_SYSTEM/Scripts/yuri-operator.cjs'));
+    return op.resolveRole();
+  } catch {
+    try {
+      const fs = require('fs');
+      const cred = path.resolve(__dirname, '../../../_SYSTEM/SELF/dev-credential.json');
+      return fs.existsSync(cred) ? 'coworker' : 'dev';
+    } catch { return 'dev'; }
+  }
+}
+const ROLE = resolvedRole();
+
 let pass = 0;
 let fail = 0;
 
@@ -61,6 +78,15 @@ function expectPass(label, cmd) {
   const out = runHook(typeof cmd === 'string' ? bashInput(cmd) : cmd);
   assert(label, out.status === 0 && out.stdout === '',
     `stdout=${JSON.stringify(out.stdout)}`);
+}
+
+// Role-aware: a surface-wide destructive git op (`git reset --hard`) is a generic ADVISORY
+// for the unrestricted dev role, but a hard DENY for the restricted coworker role (it
+// reverts the WHOLE tracked enforcement-hook surface). Assert by the resolved role so the
+// suite is green whether it runs under a dev key or a coworker-resolving env.
+function expectAdvisoryOrDenyByRole(label, cmd) {
+  if (ROLE === 'coworker') return expectBlock(label + ' [coworker DENY]', cmd);
+  return expectAdvisory(label + ' [dev advisory]', cmd);
 }
 
 // --- A: block protected reads ---
@@ -136,7 +162,7 @@ expectAdvisory('git add .', 'git add .');
 expectAdvisory('git add -A', 'git add -A');
 expectAdvisory('git clean -f', 'git clean -f');
 expectAdvisory('git clean -fd', 'git clean -fd');
-expectAdvisory('git reset --hard', 'git reset --hard');
+expectAdvisoryOrDenyByRole('git reset --hard', 'git reset --hard');
 expectAdvisory('npm install some-pkg', 'npm install some-pkg');
 expectAdvisory('npm update', 'npm update');
 expectAdvisory('yarn add some-pkg', 'yarn add some-pkg');

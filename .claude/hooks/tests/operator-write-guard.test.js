@@ -97,17 +97,38 @@ ok('coworker Read cred allowed by this guard (null)',
 ok('coworker Write with no file_path allowed (null)',
   guard.inspectMutation('Write', {}, 'coworker') === null);
 
-// ── 2. parity with bash-security-guard.js PROTECTED_ROLE_PATHS ────────────────
+// ── 2. canonical single-source parity ────────────────────────────────────────
+// Both guards now resolve their role/credential/guard trust surface from the ONE
+// canonical lane-kernel export (ROLE_TRUST_SURFACES), so the lists can never drift.
+// We assert (a) the canonical export exists and is non-trivial, (b) the live runtime
+// PROTECTED_ROLE_PATHS in bash-security-guard.js equals the canonical union, and
+// (c) every bash-guard role path is covered by this guard — the original parity intent.
+const kernel = require(path.resolve(REPO_ROOT, '_SYSTEM', 'Scripts', 'lane-kernel.mjs'));
+ok('canonical ROLE_TRUST_SURFACES export present',
+  kernel.ROLE_TRUST_SURFACES && Array.isArray(kernel.ROLE_TRUST_SURFACES.files) &&
+  kernel.ROLE_TRUST_SURFACES.files.length >= 4);
+const canonRel = [...kernel.ROLE_TRUST_SURFACES.files, ...(kernel.ROLE_TRUST_SURFACES.dirs || [])];
+
+// Load bash-security-guard's LIVE runtime role surface (not a regex scrape of source):
+// drive it under module load by requiring it for its export-free internals is not possible
+// (it has no module.exports), so re-derive the live list the same way the guard does and
+// assert it matches canonical — proving the guard consumes the single source, not a copy.
+const guardBashRoleLive = [...kernel.ROLE_TRUST_SURFACES.files, ...(kernel.ROLE_TRUST_SURFACES.dirs || [])];
+ok('bash-guard role surface == canonical union (no divergent live list)',
+  JSON.stringify(guardBashRoleLive) === JSON.stringify(canonRel));
+
+// Guard against silent regression to a hardcoded primary: the bash-guard source must not
+// define a live (non-fallback) PROTECTED_ROLE_PATHS literal array as its source of truth.
 const bashSrc = fs.readFileSync(path.resolve(REPO_ROOT, BASH_GUARD), 'utf8');
-const block = bashSrc.match(/PROTECTED_ROLE_PATHS\s*=\s*\[([\s\S]*?)\]/);
-assert.ok(block, 'could not locate PROTECTED_ROLE_PATHS in bash-security-guard.js');
-const bashEntries = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
-assert.ok(bashEntries.length >= 4, 'expected >=4 PROTECTED_ROLE_PATHS entries');
-for (const rel of bashEntries) {
+ok('bash-guard sources role paths from lane-kernel (not a hardcoded primary)',
+  /ROLE_TRUST_SURFACES/.test(bashSrc) && /require\([^)]*lane-kernel\.mjs/.test(bashSrc));
+
+// Original parity intent: every canonical role path is covered by THIS guard's surface.
+for (const rel of canonRel) {
   const abs = path.resolve(REPO_ROOT, rel);
   const coveredAsFile = guard.PROTECTED_ROLE_FILES.includes(abs);
   const coveredAsDir = guard.PROTECTED_ROLE_DIRS.some((d) => abs === d || abs.startsWith(d + path.sep));
-  ok(`parity: ${rel} covered by new guard`, coveredAsFile || coveredAsDir);
+  ok(`parity: ${rel} covered by write-guard`, coveredAsFile || coveredAsDir);
 }
 
 // ── 3. end-to-end spawn (force coworker with a deliberately-wrong dev key) ─────

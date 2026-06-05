@@ -32,33 +32,45 @@ const CRED_FILE_PATH = path.resolve(REPO_ROOT, '_SYSTEM', 'SELF', 'dev-credentia
 // File-mutating tools this guard is responsible for (tool-agnostic by design).
 const MUTATING_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit']);
 
-// Protected surface (owner-approved scope 2026-05-30: FULL security-hook surface).
-//   Trust roots — role resolver + credential hash.
-//   Enforcement guards — every PreToolUse hook whose job is enforcement, so a
-//     coworker cannot Edit one guard to neuter it (mirrors+supersets the
-//     bash-security-guard.js PROTECTED_ROLE_PATHS list; parity asserted by the
-//     test). Includes this guard itself (else it could be edited away).
+// Protected surface (owner-approved scope 2026-05-30: FULL security-hook surface):
+// trust roots (role resolver + credential hash) plus every enforcement hook, so a
+// coworker cannot Edit one guard to neuter it. Single-sourced from lane-kernel's
+// canonical ROLE_TRUST_SURFACES (Node 25 require(esm) interop) so this guard and
+// bash-security-guard.js can never drift. Fail-closed: if the canonical import ever
+// fails, fall back to the previously-hardcoded full list rather than an empty (open) set.
 // Operational hooks that legitimately get iterated (token-budget, risk-lite,
-// pre-tool-use, energy-tick, …) are intentionally NOT listed.
-const PROTECTED_ROLE_FILES = [
-  // trust roots
-  '_SYSTEM/Scripts/yuri-operator.cjs',
-  '_SYSTEM/SELF/dev-credential.json',
-  // enforcement guards
-  '.claude/hooks/bash-security-guard.js',
-  '.claude/hooks/operator-write-guard.js',
-  '.claude/hooks/claude-protocol-guard.js',
-  '.claude/hooks/claude-protocol-guard.mjs',
-  '.claude/hooks/agent-spawn-guard.js',
-  '.claude/hooks/pre-tool-gate.js',
-  '.claude/hooks/musubi-protocol-enforce.js',
-  '.claude/hooks/tirith-url-guard.js',
-].map((p) => path.resolve(REPO_ROOT, p));
+// pre-tool-use, energy-tick, …) are intentionally NOT in the canonical surface.
+let _roleFiles;
+let _roleDirs;
+try {
+  const kernel = require(path.resolve(REPO_ROOT, '_SYSTEM', 'Scripts', 'lane-kernel.mjs'));
+  if (!kernel.ROLE_TRUST_SURFACES || !Array.isArray(kernel.ROLE_TRUST_SURFACES.files) ||
+      kernel.ROLE_TRUST_SURFACES.files.length === 0) {
+    throw new Error('lane-kernel ROLE_TRUST_SURFACES missing/empty');
+  }
+  _roleFiles = kernel.ROLE_TRUST_SURFACES.files;
+  _roleDirs = kernel.ROLE_TRUST_SURFACES.dirs || [];
+} catch (_err) {
+  // Fail CLOSED: canonical unreachable -> use the full hardcoded surface (never an empty set).
+  _roleFiles = [
+    '_SYSTEM/Scripts/yuri-operator.cjs',
+    '_SYSTEM/SELF/dev-credential.json',
+    '.claude/hooks/bash-security-guard.js',
+    '.claude/hooks/operator-write-guard.js',
+    '.claude/hooks/claude-protocol-guard.js',
+    '.claude/hooks/claude-protocol-guard.mjs',
+    '.claude/hooks/agent-spawn-guard.js',
+    '.claude/hooks/pre-tool-gate.js',
+    '.claude/hooks/musubi-protocol-enforce.js',
+    '.claude/hooks/tirith-url-guard.js',
+  ];
+  _roleDirs = ['.claude/hooks/operator-guard'];
+}
+
+const PROTECTED_ROLE_FILES = _roleFiles.map((p) => path.resolve(REPO_ROOT, p));
 
 // Directory-prefix protections (forward-looking; entry may not exist yet).
-const PROTECTED_ROLE_DIRS = [
-  '.claude/hooks/operator-guard',
-].map((p) => path.resolve(REPO_ROOT, p));
+const PROTECTED_ROLE_DIRS = _roleDirs.map((p) => path.resolve(REPO_ROOT, p));
 
 // ── role resolution (fail-closed, mirrors bash-security-guard.js) ─────────────
 let _roleCache = null;
