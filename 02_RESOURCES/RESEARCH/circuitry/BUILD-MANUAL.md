@@ -29,14 +29,14 @@ A single self-contained interactive HTML instrument that renders the YURI archit
 
 `02_RESOURCES/RESEARCH/yuri-circuitry-graph.json` — **do not** hand-edit positions into it; it carries topology + prose only.
 
-- **83 nodes:** `{ id, label, layer, files[], triggeredBy, description }`
-- **153 edges:** `{ from, to, kind∈{calls,reads,writes}, description }`
-  - **77 GRAPH edges** (`to` is a node id) → drive layout/routing.
+- **86 nodes:** `{ id, label, layer, files[], triggeredBy, description }`
+- **155 edges:** `{ from, to, kind∈{calls,reads,writes}, description }`
+  - **79 GRAPH edges** (`to` is a node id) → drive layout/routing.
   - **76 ARTIFACT-IO edges** (`to` is a file/state path) → panel + inspect-mode micro-ring only; **never** layout.
 - **9 layers**, LAYER_ORDER (moat first): `Cognition & Persona · Energy & Math · Memory & Subconscious · Retrieval & Knowledge · Learning & Continuity · Governance & Safety · Skills & Orchestration · Token-Efficiency & Session · Hidden / Meta / Self-referential`.
-- **MOAT_LAYERS** = {Energy & Math, Cognition & Persona, Memory & Subconscious}. Layer histogram: Energy&Math 22 (the central die), Memory 12, Retrieval/Token-Eff/Hidden 9, Governance 7, Cognition/Learning/Skills 5.
+- **MOAT_LAYERS** = {Energy & Math, Cognition & Persona, Memory & Subconscious}. Layer histogram: Energy&Math 22 (the central die), Memory 12, Retrieval 11, Token-Eff/Hidden 9, Governance 7, Skills 6, Cognition/Learning 5.
 - **Status** derived from prose: `phantom` (no files / "PHANTOM"), `dormant` (UNWIRED/DORMANT/SUPERSEDED/…), else `live`.
-- **Connectivity caveat:** 77 edges over 83 nodes ⇒ the graph is **disconnected** (a tree needs 82). Spectral must embed the *giant component* and place orphans/small components on a deterministic orbital rim (see §6).
+- **Connectivity caveat:** 79 graph edges over 86 nodes ⇒ the graph is **disconnected** (a tree needs 85). Spectral must embed the *giant component* and place orphans/small components on a deterministic orbital rim (see §6).
 
 ## 4. Architecture / pipeline
 
@@ -71,7 +71,7 @@ circuitry-live.json ◄── PostToolUse hook ────┘ (page polls → d
 ## 6. The two lenses (detail)
 
 **ATLAS — spectral** ✅ engine built+verified (`laplacian.mjs`, 7/7 self-checks: deterministic, no-mush, eigensolver-correct, Fiedler λ₂=0.0289>0, hulls closed) · ⏳ visual-tuning pending (see §12 punch-list)
-- `buildLaplacian(nodes, graphEdges, typeWeights)`: symmetric `W` from the 77 graph edges, `kind→weight` (calls 1.0 · writes 0.8 · reads 0.6, symmetrized by max), `L=D−W`.
+- `buildLaplacian(nodes, graphEdges, typeWeights)`: symmetric `W` from the 79 graph edges, `kind→weight` (calls 1.0 · writes 0.8 · reads 0.6, symmetrized by max), `L=D−W`.
 - Components: BFS. **Giant component → spectral** (`symEig(L_giant)`, ascending ⇒ col0=trivial, **col1=ψ₂=x, col2=ψ₃=y**). Orphans/small components → deterministic outer **orbital ring** (ordered by size desc then id) so they don't pollute the eigenvectors (Card 4 warning: near-zero entries on disconnected graphs are orphans, not boundary nodes).
 - Gauge: `pinSign` each eigenvector (anchor max-|component| node positive) + deterministic orientation (moat centroid → fixed quadrant). Normalize to canvas with padding.
 - Hulls: **per layer, giant-component members only** (clean coastlines); orphans render as rim markers excluded from hulls.
@@ -95,7 +95,7 @@ Locked = **1-hop ego default**, accreting (shift-click) as a secondary layer on 
 
 Diagram renderers are the top-exploited category in our local corpus (Mermaid/Kroki proto-pollution → stored XSS, HIGH-severity disclosed). Therefore:
 1. **Map / `Object.create(null)`** for every node-id-keyed structure — never `{}` literals (kills proto-pollution; the phone fetch-html violated this, the generator didn't).
-2. **Live-pulse file = trust boundary** — `circuitry-live.json` is hook-written from tool events (untrusted); intersect with the known 83 ids, **never render its raw strings**.
+2. **Live-pulse file = trust boundary** — `circuitry-live.json` is hook-written from tool events (untrusted); intersect with the known 86 ids, **never render its raw strings**.
 3. **All SVG via `createElementNS` + `textContent`**, never innerHTML string-concat for node content.
 4. `escapeHtml` covers `& < > " ' /`.
 5. **No data-derived string into `fill`/`style`/`href`** (CSP-bypass-via-color class).
@@ -110,6 +110,7 @@ Diagram renderers are the top-exploited category in our local corpus (Mermaid/Kr
 - **K2 routing rebuilt on ELK method (D-004).** Adversarial verify caught K2's greedy lane-stuffing overdrawing at hubs; ELK's segment-DAG+Kahn is the deterministic fix (clean-room, EPL never copied).
 - **Build manual exists (D-005).** This file — anti-drift as the circuitry evolves (owner request 2026-06-04).
 - **Chip-die circuit board is the HERO; spectral atlas demoted (D-006, Marcel 2026-06-04).** The spectral organic render was rejected on sight ("horrible, not the circuit board"). The visual target is the silicon-floorplan chip-die (`yuri-circuitry-chip.svg`). The spectral/Laplacian determinism math is KEPT — it feeds GORDIAN determined placement *under* the chip-die look — but it does NOT pick the aesthetic. Lead with the owner's loved artifact, not theory. See memory FB:CIRCUITRY-VISUAL-IS-CHIP-DIE.
+- **xref/propagation organs wired into the self-model, mirroring siblings (D-007, 2026-06-05).** The three real scripts (`xref-query.mjs`, `propagation-scan.mjs`, `nemotron-dispatch.mjs`) existed on disk but were absent from both self-model graphs — and the circuit graph already implied an `XREF_QUERY→PROPAGATION_SCAN` edge from a node that didn't exist. Wired all three into BOTH graphs by reading a real sibling first and copying its exact shape (no invented fields): `LANE_NEMOTRON`←`LANE_KIMI`/`offload-contract`; `PROPAGATION_SCAN`/`XREF_QUERY`←`GN_QUERY`/`yuri-search`. The circuit-graph node-ids are the SCREAMING_SNAKE state-graph ids (`PROPAGATION_SCAN`/`XREF_QUERY`/`LANE_NEMOTRON`) by design — `propagation-scan` resolves a node by exact `id` match, so those ids are the functional contract that makes the cross-reference engine able to scan its own organs. Obeyed the change-propagation trigger end-to-end (graph→engine/test→manual→re-verify); reindex per §11 step 6.
 
 ## 10. File map
 
@@ -144,3 +145,4 @@ Diagram renderers are the top-exploited category in our local corpus (Mermaid/Kr
 - 2026-06-04 — manual created (D-005); spectral core in progress; K1 verified, K2 defect known + fix sourced, K3→spectral. Theory captured + cited; 6 Code-Bible cards deposited.
 - 2026-06-04 — **COURSE-CORRECTION (D-006):** spectral atlas render rejected by Marcel; CHIP-DIE CIRCUIT BOARD is the hero. Built `build-circuitry-instrument.mjs` (interactive HTML generator) — its SHELL (pan/zoom/minimap/panel/search/moat/chips, security-hardened) is the reuse donor; its spectral render is swapped out next session for the chip-die (K1 blocks + K2/ELK orthogonal traces). Spectral engine kept for GORDIAN placement. EOT → direct continuation: [[session-resume-2026-06-04-circuitry-instrument]].
 - 2026-06-04 — **`laplacian.mjs` (spectral ATLAS core) BUILT + VERIFIED** (7/7). Clean-room TQL2 eigensolver (control [[2,1],[1,2]]→[1,3]); component-aware (real graph = 25 components, giant=55, 28 orphans on a deterministic orbital ring); gauge-pinned (sign + moat-quadrant orientation); type-weighted L (calls 1.0/writes 0.8/reads 0.6); per-layer Catmull-Rom coastlines over giant members. Determinism + no-mush proven. First render confirmed the research's caveat: squared-wirelength spectral over-tightens the densely-coupled moat. **VISUAL-TUNING PUNCH-LIST (next pass, before "outstanding"):** (a) GORDIAN-style per-district spreading + legalization to declump the moat knot; (b) hull outlier-rejection / per-cohesive-cluster coastlines (kill spiky slivers + ballooned overlaps); (c) de-overlap district labels; (d) tidy the orphan ring (group-by-layer arcs). NOTE: SVG label escaping (`&`→`&amp;`) confirmed mandatory live — the debug render's XML parse error proved §8's escape rule on contact.
+- 2026-06-05 — **xref / propagation organs WIRED into both self-model graphs (D-007).** Added 3 organs to the circuitry data contract (graph went **83→86 nodes, 153→155 edges**, GRAPH edges 77→79): `XREF_QUERY` (`_SYSTEM/Scripts/xref-query.mjs`, Retrieval & Knowledge — the unified retrieval surface) and `PROPAGATION_SCAN` (`_SYSTEM/Scripts/propagation-scan.mjs`, Retrieval & Knowledge — read-only cross-reference engine V1), with the real `XREF_QUERY→PROPAGATION_SCAN` (`calls`) edge that closes the prior "edge from nonexistent node" finding, plus `XREF_QUERY→yuri-search`; and `LANE_NEMOTRON` (`_SYSTEM/Scripts/nemotron-dispatch.mjs`, Skills & Orchestration — advisory external reasoning lane, DEV-ONLY, advisory-until-verified). The rich VISUAL self-model `_SYSTEM/yuri-graph-state.json` learned the same 3 organs (**124→127 nodes, 273→278 edges, 14 sectors unchanged**): `LANE_NEMOTRON` mirrors `LANE_KIMI` in `routing_lanes` (ROUTING branch-in → RESPONSE return); `PROPAGATION_SCAN` + `XREF_QUERY` mirror `GN_QUERY` in `code_intelligence` (`XREF_QUERY→PROPAGATION_SCAN`, `GITNEXUS→PROPAGATION_SCAN` structural leg, `PROPAGATION_SCAN→ENKI_INBOX` return so it is not a sink). **Verified:** both graphs parse; no dup id; every new node ≥1 edge + non-sink; `arch-graph-engine.test.mjs` 22/22 (LIVE shape re-snapshotted 127n/giant=116/11-isolated/255-realEdges); `lifecycle-gap-scan` 0 gaps; `xref-drift-scan` 86/86 pass drift=0; `propagation-scan PROPAGATION_SCAN|XREF_QUERY|LANE_NEMOTRON` all resolve + surface real mechanism-siblings (functional proof the circuit-graph edit took).

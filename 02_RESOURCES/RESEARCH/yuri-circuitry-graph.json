@@ -836,6 +836,36 @@
       ],
       "triggeredBy": "import — currentUserHandle for trace attribution",
       "description": "Shared library module (_SYSTEM/Scripts/yuri-user.mjs) exposing currentUserHandle, the single source of user attribution stamped onto energy traces and dispatch records."
+    },
+    {
+      "id": "LANE_NEMOTRON",
+      "label": "nemotron-dispatch (advisory external reasoning lane)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/nemotron-dispatch.mjs"
+      ],
+      "triggeredBy": "CLI / offload dispatch — advisory external reasoning lane (DEV-ONLY)",
+      "description": "Advisory external reasoning lane (Nemotron-3-Ultra, nemotron-3-ultra-550b-a55b) dispatched via _SYSTEM/Scripts/nemotron-dispatch.mjs. DEV-ONLY; output is advisory-until-verified and returns evidence into the control plane like the other offload lanes — never a release gate."
+    },
+    {
+      "id": "PROPAGATION_SCAN",
+      "label": "propagation-scan (cross-reference engine V1)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/propagation-scan.mjs"
+      ],
+      "triggeredBy": "CLI — `propagation-scan <node-id>`; read-only structural cross-reference",
+      "description": "Read-only cross-reference engine V1 (_SYSTEM/Scripts/propagation-scan.mjs): resolves a circuitry node-id and surfaces its structural mechanism-siblings via shared node.files membership and GitNexus structural relations (writes-edges excluded). Pure analyzer — reads the circuitry graph + GitNexus and writes nothing to either graph."
+    },
+    {
+      "id": "XREF_QUERY",
+      "label": "xref-query (unified retrieval surface)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/xref-query.mjs"
+      ],
+      "triggeredBy": "CLI / import — unified retrieval front door feeding propagation-scan",
+      "description": "Unified retrieval surface (_SYSTEM/Scripts/xref-query.mjs) over the corpus FTS5 index, the circuitry graph (1-hop graph-neighbors by edge.kind; writes edges excluded), and GitNexus — the single front door whose results feed the propagation-scan structural cross-reference."
     }
   ],
   "edges": [
@@ -1832,6 +1862,18 @@
       "kind": "writes",
       "target": true,
       "description": "Writes the per-session EOT marker file at SessionStart to arm the continuous-reflection EOT engine for that session id."
+    },
+    {
+      "from": "XREF_QUERY",
+      "to": "PROPAGATION_SCAN",
+      "kind": "calls",
+      "description": "The unified retrieval surface feeds its corpus + graph-neighbor + GitNexus results into the propagation-scan structural cross-reference as the upstream retrieval leg."
+    },
+    {
+      "from": "XREF_QUERY",
+      "to": "yuri-search",
+      "kind": "calls",
+      "description": "xref-query queries the FTS5/BM25 corpus search engine as one of its retrieval surfaces, reusing the injection-hardened buildMatch() rather than re-implementing corpus search."
     }
   ],
   "generatedAt": null
