@@ -104,6 +104,12 @@ Commands:
   @nvidia-nemotron [prompt]
       Run NVIDIA NIM with nvidia/llama-3.1-nemotron-70b-instruct.
 
+  nemotron --task <string|@file> --files <comma,list> [--handles <string|@file>] [--briefing <@file>] [--dry-run]
+      Assemble the YURI framework preamble, symbol inventory, and advisory dispatch for nvidia/nemotron-3-ultra-550b-a55b.
+
+  ds-reason --task <string|@file> --files <comma,list> [--handles <string|@file>] [--briefing <@file>] [--dry-run]
+      Disciplined DeepSeek adapter (framework preamble, symbol inventory, Track-A handles, falsifier extraction) for deepseek-v4-pro. NOTE: '@deepseek' is the RAW cloud lane with no discipline wrapper; 'ds-reason' adds the wrapper on top of the same lane.
+
   @nvidia-mistral [prompt]
       Run NVIDIA NIM with mistralai/mistral-large-2-instruct.
 
@@ -897,6 +903,16 @@ case "${1:-help}" in
         exec bash "$SCRIPT_DIR/offload.sh" "$@"
         ;;
     esac
+    ;;
+  nemotron)
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/nemotron-dispatch.mjs" "$@"
+    ;;
+  ds-reason)
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/deepseek-dispatch.mjs" "$@"
     ;;
   btw|/btw)
     shift || true

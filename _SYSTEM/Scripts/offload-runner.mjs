@@ -621,7 +621,14 @@ function normalizeLaneRequest(rawLane, rawReasoning = '') {
     'usdcode': 'nvidia-usdcode',
   };
   const lane = alias[baseLane] || baseLane;
-  const reasoning = explicitReasoning || suffixReasoning || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : '');
+  // DeepSeek pro + flash ALWAYS default to MAX reasoning — owner policy 2026-06-05:
+  // they are reasoning models, so use them at full depth unless explicitly overridden.
+  // 'max' normalizes to the top tier via normalizeReasoningDepth (deepseek runtime
+  // re-normalizes it). The lite-budget alias keeps its deliberate cheap 'low'; all
+  // other lanes stay unset ('').
+  const deepseekProFlash = lane === 'deepseek-v4-pro' || lane === 'deepseek-v4-flash';
+  const reasoning = explicitReasoning || suffixReasoning
+    || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : (deepseekProFlash ? 'max' : ''));
   return { lane, reasoning };
 }
 
@@ -1116,42 +1123,42 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     },
     'codex': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: process.env.CODEX_MODEL || 'gpt-5.5',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'codex-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: process.env.CODEX_MINI_MODEL || 'gpt-5.4-mini',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
       timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.5': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.5',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4-mini',
-      defaultReasoningEffort: 'medium',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
       timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.3-codex': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.3-codex',
-      defaultReasoningEffort: 'high',
+      defaultReasoningEffort: 'max',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
       timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
