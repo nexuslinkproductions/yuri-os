@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { DEAD_NIM_LANES, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
+import { resolveFinalText } from './reasoning-finalize.mjs';
 import {
   enforceOutputRails,
   evaluateInputRails,
@@ -1354,12 +1355,16 @@ function resolveDeepseekRuntime(options, runnerOptions = {}) {
   const depth = normalizeReasoningDepth(runnerOptions.reasoning);
   const baseThinking = !!options.thinking;
   const thinking = depth === 'off' || depth === 'low' ? false : depth ? true : baseThinking;
+  // deepseek-v4-pro counts reasoning_tokens AGAINST max_tokens (live-verified: at max_tokens=8192
+  // a heavy prompt spent the whole budget thinking and truncated/blanked the answer). The API
+  // accepts much larger ceilings (live-verified up to 131072), so high/xhigh get real headroom
+  // ABOVE the thinking phase — otherwise raising reasoning depth can never let content through.
   const maxTokenByDepth = {
     off: Math.min(options.maxTokens, 2048),
     low: Math.min(options.maxTokens, 2048),
     medium: Math.max(options.maxTokens, 4096),
-    high: Math.max(options.maxTokens, 8192),
-    xhigh: Math.max(options.maxTokens, 8192),
+    high: Math.max(options.maxTokens, 16384),
+    xhigh: Math.max(options.maxTokens, 32768),
   };
   const timeoutByDepth = {
     off: options.timeout,
@@ -2163,7 +2168,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
           if (process.env.OFFLOAD_STREAM_REASONING === '1') opts.streamStatusWriter?.(`\x1b[2m[reasoning] ${chunk}\x1b[0m`);
         },
       });
-      const finalText = streamed.text || '';
+      const finalText = resolveFinalText(streamed.text, streamed.reasoning);
       const measurement = normalizeProviderUsage('openai-compatible', streamed.usage, {
         input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
         output_tokens: estimateTokensFromText(finalText),
@@ -2317,7 +2322,8 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     // No more tool calls or tools disabled — return final answer
     consecutiveToolCalls = 0;
-    const finalText = message.content || '';
+    const finishReason = data.choices?.[0]?.finish_reason;
+    const finalText = resolveFinalText(message.content, message.reasoning_content || message.reasoning, finishReason);
     if (cacheMetrics) {
       const totalCacheTokens = cacheMetrics.prompt_cache_hit_tokens + cacheMetrics.prompt_cache_miss_tokens;
       const ratio = totalCacheTokens > 0 ? cacheMetrics.prompt_cache_hit_tokens / totalCacheTokens : 0;
@@ -2338,6 +2344,9 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
 }
+
+// resolveFinalText (the capture-gap safety net) is imported from ./reasoning-finalize.mjs
+// (pure + unit-tested; offload-runner's kagami import blocks importing it from here).
 
 async function readOpenAICompatibleChatStream(response, onText = () => {}) {
   const handlers = typeof onText === 'function' ? { onText } : (onText || {});
