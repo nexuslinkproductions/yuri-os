@@ -21,7 +21,13 @@
  * Lanes:  deepseek | ds  ·  kimi  ·  nemotron | nvidia
  * Flags:  --reasoning <low|medium|high|xhigh|max>   --system <str|@file>   --no-system
  *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 24)
+ *         --context <f1,f2,..|@manifest> (front-load must-read files into the dispatch — guaranteed
+ *           context from turn 1 instead of the lane discovering it; budget LLM_LANE_CONTEXT_BUDGET=240k)
  *         --out <file>   --dry-run   --list
+ * Debug:  LLM_LANE_TRACE=<file> writes env-gated stage markers (MAIN_START..POST_POSTCHAT) for dispatch debugging.
+ * NOTE:   Do NOT wrap a live lane call in the shell `timeout` command — it truncates the live request to
+ *         empty output. The lane self-limits via its own AbortController (cfg.timeout_ms). Use the harness
+ *         Bash-tool timeout PARAMETER if you need an outer cap.
  * Exit:   0 ok (truncated-but-nonempty -> LLM_COMPAT_WARN, still 0)
  *         1 empty output / transient transport / 5xx       3 unknown lane / missing key / bad endpoint / 4xx
  *
@@ -39,6 +45,9 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_BIN = path.join(__dirname, 'ai');
 const MODELS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, '.claude/config/models.json'), 'utf8'));
 const LANES = MODELS.llm_compat_lanes || {};
+
+// Env-gated stage trace for debugging the dispatch path (LLM_LANE_TRACE=/path). No-op unless set.
+const T = (m) => { try { if (process.env.LLM_LANE_TRACE) fs.appendFileSync(process.env.LLM_LANE_TRACE, `${m}\n`); } catch { /* never break dispatch */ } };
 
 const ALIAS = {
   deepseek: 'deepseek-v4-pro', ds: 'deepseek-v4-pro', 'deepseek-v4-pro': 'deepseek-v4-pro',
@@ -287,7 +296,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   if (opts.dryRun) {
     const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (opts.light ? 'light' : 'full-yuri-stack'));
     const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout().length : (loadoutMode === 'light' ? LIGHT_SYSTEM.length : (opts.system?.length || 0));
-    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, endpoint: `${endpoint}/chat/completions`, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, endpoint: `${endpoint}/chat/completions`, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
@@ -299,13 +308,17 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // energy trace, evidence record, and pulse for this dispatch. Returns a recall block to inject so
   // the lane carries the same episodic memory a native operator turn does.
   const runId = `llm-lane-${key}-${Date.now()}`;
+  T(`PRE_CORE lane=${key} endpoint=${endpoint} keylen=${apiKey.length} maxTokens=${maxTokens}`);
   const { recallBlock } = await coreOnDispatch({ lane: key, prompt, runId });
+  T(`POST_CORE recall=${recallBlock ? recallBlock.length : 0}`);
 
   const messages = [];
   let system = opts.noSystem ? '' : (opts.system || (opts.light ? LIGHT_SYSTEM : buildYuriLoadout()));
   if (system && recallBlock) system += `\n\n===== RECALLED YURI MEMORY (relevant to this task) =====\n${recallBlock}`;
   if (system) messages.push({ role: 'system', content: system });
-  messages.push({ role: 'user', content: prompt });
+  const contextPack = opts.context ? buildContextPack(opts.context) : '';
+  if (contextPack) T(`CONTEXT_PACK chars=${contextPack.length}`);
+  messages.push({ role: 'user', content: contextPack ? `${contextPack}\n\n===== TASK =====\n${prompt}` : prompt });
 
   const timeoutMs = Number(cfg.timeout_ms || 180000);
   const maxIters = Math.max(1, Number(opts.maxIters || 24));
@@ -314,8 +327,10 @@ async function dispatch(laneArg, prompt, opts = {}) {
   let toolTurns = 0;
   let lastChoice = {};
   for (let iter = 0; iter < maxIters; iter += 1) {
+    T(`PRE_POSTCHAT iter=${iter}`);
     const choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key);
     lastChoice = choice;
+    T(`POST_POSTCHAT msglen=${(choice.message?.content || '').length} calls=${(choice.message?.tool_calls || []).length} finish=${choice.finish_reason}`);
     const msg = choice.message || {};
     const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
     if (activeTools.length && calls.length > 0) {
@@ -359,6 +374,35 @@ async function dispatch(laneArg, prompt, opts = {}) {
 
 function readMaybeFile(v) { return v && v.startsWith('@') ? fs.readFileSync(path.resolve(v.slice(1)), 'utf8') : v; }
 
+// Front-load a must-read context pack INTO the dispatch so the lane starts with the exact files it
+// needs (guaranteed + fast), instead of spending turns discovering them via tools. The dispatcher
+// decides the must-reads per task (proportional — match the pack to the task, do not dump the repo).
+// spec = comma-list of paths, or @manifest (one path per line). Budget-capped via LLM_LANE_CONTEXT_BUDGET
+// (default 240k chars). Protected surfaces are refused.
+function buildContextPack(spec) {
+  if (!spec) return '';
+  const list = spec.startsWith('@')
+    ? fs.readFileSync(path.resolve(spec.slice(1)), 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
+    : spec.split(',').map((s) => s.trim()).filter(Boolean);
+  const BUDGET = Number(process.env.LLM_LANE_CONTEXT_BUDGET || 240000);
+  let used = 0; const parts = [];
+  for (const f of list) {
+    try {
+      if (isProtectedPath(path.relative(REPO_ROOT, path.resolve(f)))) { parts.push(`## ${f}\n[blocked: protected surface]`); continue; }
+      let body = fs.readFileSync(path.resolve(f), 'utf8');
+      const remaining = BUDGET - used;
+      if (remaining <= 0) { parts.push(`## ${f}\n[omitted — context budget reached]`); continue; }
+      let truncated = false;
+      if (body.length > remaining) { body = body.slice(0, remaining); truncated = true; }
+      used += body.length;
+      parts.push(`## ${f}${truncated ? ' (truncated to budget)' : ''}\n\`\`\`\n${body}\n\`\`\``);
+    } catch (e) { parts.push(`## ${f}\n[unreadable: ${String(e?.message || e).slice(0, 80)}]`); }
+  }
+  return parts.length
+    ? `===== PRELOADED CONTEXT — read these first; already provided, do NOT re-fetch them with tools =====\n\n${parts.join('\n\n')}\n\n===== END PRELOADED CONTEXT =====`
+    : '';
+}
+
 const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--route-only']);
 const LEGACY_SKIP_VALUE = new Set(['--model', '--session', '--write-scope', '--ts']);
 
@@ -375,6 +419,7 @@ function parseCli(argv) {
     else if (a === '--no-exec') out.noExec = true;
     else if (a === '--max-iters') out.maxIters = Number(argv[++i] || 24);
     else if (a === '--out') out.out = argv[++i] || '';
+    else if (a === '--context' || a === '--read') out.context = argv[++i] || '';
     else if (a === '--dry-run' || a === '-d') out.dryRun = true;
     else if (a === '--list') out.list = true;
     else if (LEGACY_SKIP_VALUE.has(a)) i += 1;
@@ -388,17 +433,26 @@ function parseCli(argv) {
 
 async function main() {
   const cli = parseCli(process.argv.slice(2));
+  T(`MAIN_START lane=${cli.lane} promptLen=${(cli.prompt || '').length} dryRun=${cli.dryRun} list=${cli.list}`);
   if (cli.list) { console.log(JSON.stringify(Object.keys(LANES).filter((k) => k !== '_comment'), null, 2)); return 0; }
   if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|kimi|nemotron> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
   let prompt = cli.prompt || process.env.LLM_COMPAT_PROMPT_TEXT || '';
   if (!prompt && !cli.dryRun && !process.stdin.isTTY) prompt = fs.readFileSync(0, 'utf8');
+  T(`MAIN_RETURN_DISPATCH lane=${cli.lane} plen=${prompt.length} stdinTTY=${process.stdin.isTTY}`);
   return dispatch(cli.lane, prompt, cli);
 }
 
 // Run the CLI only when executed directly — NOT when imported for its exports (tests, callers).
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
-  main().then((c) => process.exit(c || 0)).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
+  // Flush-safe exit: set exitCode and let the event loop drain stdout/stderr, instead of an eager
+  // process.exit() that truncates async-buffered output when stdout is a pipe/file (non-TTY). A
+  // short unref'd watchdog forces exit if a keep-alive socket lingers, so we never hang either.
+  main().then((c) => {
+    process.exitCode = c || 0;
+    const w = setTimeout(() => process.exit(process.exitCode || 0), 2000);
+    if (typeof w.unref === 'function') w.unref();
+  }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
 export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool };
