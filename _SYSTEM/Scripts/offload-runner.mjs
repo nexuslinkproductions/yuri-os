@@ -285,6 +285,11 @@ function emitAndRecordResult(result, exitCode = 0, outputFile = '') {
   recordLaneOutputEvidence(result, finalExitCode, outputRecord);
   if (finalExitCode !== 0) {
     emitOffloadFail(finalExitCode, lane, classifyExit(result, outputRail).reason);
+  } else {
+    const cls = classifyExit(result, outputRail);
+    if (cls.truncated) {
+      process.stderr.write(`OFFLOAD_WARN code=0 lane=${lane || 'unknown'} reason=${cls.reason}\n`);
+    }
   }
   return finalExitCode;
 }
@@ -294,10 +299,12 @@ function classifyExit(outcome, outputRail = null) {
   const result = normalizeDispatchResult(outcome);
   const finishReason = String(result.finishReason || '').toLowerCase();
   const text = result.text.trim();
-  if (text) return { code: 0, reason: 'ok' };
-  if (finishReason === 'length' || finishReason === 'incomplete') {
-    return { code: 1, reason: `empty_${finishReason}` };
-  }
+  const truncated = finishReason === 'length' || finishReason === 'incomplete';
+  // Non-empty = success (code 0), but a TRUNCATED non-empty answer is flagged (ok_truncated_*)
+  // and warned by emitAndRecordResult, so a cut-off answer is never silently reported as a
+  // complete success (red-team converged finding 2026-06-05). Empty output → loud code 1.
+  if (text) return { code: 0, reason: truncated ? `ok_truncated_${finishReason}` : 'ok', truncated };
+  if (truncated) return { code: 1, reason: `empty_${finishReason}` };
   return { code: 1, reason: 'empty_content' };
 }
 
@@ -315,8 +322,36 @@ function emitOffloadFail(code, laneName, reason) {
 // permanently unavailable lane. Transient transport/runtime errors stay exit 1 (retryable).
 function errorExitCode(message) {
   const m = String(message || '');
-  if (/Unsupported lane|Missing endpoint|Missing[\s_]+\w*[\s_]*key|SKIPPED_MISSING|BLOCKED_|DEAD_LANE/i.test(m)) return 3;
+  if (/Unsupported lane|Missing endpoint|Unsupported lane endpoint|Missing[\s_]+\w*[\s_]*key|SKIPPED_MISSING|BLOCKED_|DEAD_LANE/i.test(m)) return 3;
   return 1;
+}
+
+// Fail-closed SSRF guard on the (env-overridable) lane endpoint: https only, and no private /
+// loopback / link-local host (blocks the cleartext + cloud-metadata-endpoint attacks) while still
+// allowing a legit https proxy override. A bad endpoint throws -> errorExitCode -> exit 3 (permanent).
+// Red-team converged finding 2026-06-05 (no endpoint validation in the resolver).
+function assertSafeEndpoint(endpoint, laneId) {
+  // Mock transport (hermetic tests) makes NO real fetch (returns mock content) and points at a
+  // local http server — no SSRF surface, so the guard only applies to real dispatch.
+  if (process.env.YURI_OFFLOAD_MOCK_TRANSPORT === '1') return endpoint;
+  let url;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    throw new Error(`Missing endpoint: lane ${laneId} resolved an invalid URL: ${endpoint || '(empty)'}`);
+  }
+  if (url.protocol !== 'https:') {
+    throw new Error(`Unsupported lane endpoint for ${laneId}: protocol must be https, got ${url.protocol}`);
+  }
+  const h = url.hostname;
+  if (
+    h === 'localhost' || h === '::1' || h.endsWith('.local')
+    || /^(127\.|10\.|0\.|169\.254\.|192\.168\.)/.test(h)
+    || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(h)
+  ) {
+    throw new Error(`Unsupported lane endpoint for ${laneId}: private/loopback host blocked (SSRF): ${h}`);
+  }
+  return endpoint;
 }
 
 function writeAcceptedOutputFile(outputFile, text) {
@@ -1080,8 +1115,12 @@ function resolveReasoningBudget(laneCfg, depthValue) {
 function configuredOffloadLane(laneId, laneCfg, normalizedForcedModel, runnerOptions = {}) {
   const runtime = resolveReasoningBudget(laneCfg, runnerOptions.reasoning);
   const provider = String(laneCfg.provider || '');
-  const endpoint = normalizeOpenAIBaseUrl(process.env[laneCfg.endpoint_env] || laneCfg.endpoint_default || '');
   const apiKey = envOrKeychain(laneCfg.api_key_env) || (process.env.YURI_OFFLOAD_MOCK_TRANSPORT === '1' ? 'mock-key' : '');
+  const rawEndpoint = normalizeOpenAIBaseUrl(process.env[laneCfg.endpoint_env] || laneCfg.endpoint_default || '');
+  // SSRF guard applies only to REAL dispatch: a key must be present and it must not be a dry-run
+  // (dry-run/no-key/mock make no outbound fetch -> no SSRF surface; the missing-key path reports
+  // SKIPPED_MISSING_KEY for the no-key case).
+  const endpoint = (apiKey && !runnerOptions.dryRun) ? assertSafeEndpoint(rawEndpoint, laneId) : rawEndpoint;
   const model = laneId === 'deepseek-v4-pro'
     ? 'deepseek-v4-pro'
     : (normalizedForcedModel || laneCfg.model);
