@@ -20,13 +20,15 @@ const MODEL_CONFIG = {
     label: 'codex-spark',
   },
   'gpt-5.4-mini': {
-    sandbox: 'workspace-write',
+    sandbox: 'danger-full-access', // fully equipped (framework-governed, see gpt-5.5). --sandbox read-only for DRAFT.
     defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX
     ignoreRules: true,
     label: 'gpt-5.4-mini',
   },
   'gpt-5.5': {
-    sandbox: 'workspace-write',
+    sandbox: 'danger-full-access', // owner directive 2026-06-05: fully equipped like Claude — NOT caged.
+                                   // Governed by the framework (AGENTS.md spine + .codex/hooks/pre-tool-use.mjs
+                                   // deterministic guard), not by a sandbox wall. Use --sandbox read-only for a bounded DRAFT.
     defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX (maps to codex 'max')
     ignoreRules: false,          // allow project rules — maximum features
     label: 'gpt-5.5',
@@ -59,7 +61,11 @@ const SKIP_RE             = /(?:rate limit|rate-limited|queued|unavailable|tempo
 const DEFAULT_TIMEOUT_MS  = 6 * 60 * 60 * 1000;
 
 const scriptDir  = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot   = path.resolve(scriptDir, '..');
+// TRUE repo root: this script lives in _SYSTEM/Scripts, so the root is two levels up. (Was '..' =
+// _SYSTEM — an off-by-one that scoped Codex to _SYSTEM and, with the un-sandboxed lane, risked the
+// repo-root .codex/ guard + AGENTS.md spine not loading. Repo-root cwd loads both and lets Codex see
+// the whole repo for repo-wide work.)
+const repoRoot   = path.resolve(scriptDir, '../..');
 const argv       = process.argv.slice(2);
 const options    = parseArgs(argv);
 const envPrompt  = (process.env.LLM_COMPAT_PROMPT_TEXT || '').trim();
@@ -117,6 +123,35 @@ writeArtifact(artifactDir, 'run.json', run.summary);
 process.stdout.write(run.output + (run.output.endsWith('\n') ? '' : '\n'));
 process.exit(0);
 
+// ─── Context front-load (parity with llm-lane --context) ─────────────────────
+// Pre-load must-read files INTO the prompt so Codex starts with guaranteed context from turn 1
+// instead of discovering it via tools. Budget-capped (LLM_LANE_CONTEXT_BUDGET, default 240k chars);
+// protected surfaces refused. spec = comma-list of paths, or @manifest (one path per line).
+function buildContextPack(spec) {
+  if (!spec) return '';
+  const list = spec.startsWith('@')
+    ? readFileSync(path.resolve(spec.slice(1)), 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
+    : spec.split(',').map((s) => s.trim()).filter(Boolean);
+  const BUDGET = Number(process.env.LLM_LANE_CONTEXT_BUDGET || 240000);
+  const PROTECTED = ['.env', 'backend/data', '.claude/state', '.claude/history', '.claude/file-history'];
+  let used = 0; const parts = [];
+  for (const f of list) {
+    try {
+      const rel = path.relative(repoRoot, path.resolve(f));
+      if (PROTECTED.some((p) => rel === p || rel.startsWith(`${p}/`))) { parts.push(`## ${f}\n[blocked: protected surface]`); continue; }
+      let body = readFileSync(path.resolve(f), 'utf8');
+      const remaining = BUDGET - used;
+      if (remaining <= 0) { parts.push(`## ${f}\n[omitted — context budget reached]`); continue; }
+      if (body.length > remaining) body = body.slice(0, remaining);
+      used += body.length;
+      parts.push(`## ${f}\n\`\`\`\n${body}\n\`\`\``);
+    } catch (e) { parts.push(`## ${f}\n[unreadable: ${String(e?.message || e).slice(0, 80)}]`); }
+  }
+  return parts.length
+    ? `===== PRELOADED CONTEXT — read these first; already provided, do NOT re-fetch them with tools =====\n\n${parts.join('\n\n')}\n\n===== END PRELOADED CONTEXT =====`
+    : '';
+}
+
 // ─── parseArgs ───────────────────────────────────────────────────────────────
 function parseArgs(rest) {
   const out = {
@@ -132,6 +167,7 @@ function parseArgs(rest) {
     artifactDir:   '',
     workspaceRoot: process.env.CODEX_TARGET_WORKTREE || process.env.CODEX_SPARK_WORKSPACE || repoRoot,
     timeoutMs:     parseInt(process.env.CODEX_SPARK_TIMEOUT_MS || String(DEFAULT_TIMEOUT_MS), 10),
+    context:       null,      // --context <files|@manifest> → front-loaded must-read pack (parity with llm-lane)
   };
 
   const args = [...rest];
@@ -161,10 +197,14 @@ function parseArgs(rest) {
     if (token === '--artifact-dir' && args[i + 1]) { out.artifactDir  = args[++i]; continue; }
     if (token === '--cd'           && args[i + 1]) { out.workspaceRoot = path.resolve(args[++i]); continue; }
     if (token === '--timeout-ms'   && args[i + 1]) { out.timeoutMs    = parseInt(args[++i], 10); continue; }
+    if (token === '--context'      && args[i + 1]) { out.context      = args[++i]; continue; }
     out.promptParts.push(token);
   }
 
   out.prompt = out.promptParts.join(' ').trim();
+  // Front-load the must-read context pack into the prompt so Codex starts with guaranteed context
+  // (parity with llm-lane --context). The dispatcher picks the files per task (proportional).
+  if (out.context) { const pack = buildContextPack(out.context); if (pack) out.prompt = `${pack}\n\n===== TASK =====\n${out.prompt}`; }
 
   // --sandbox override: validate against the codex enum and clone the model config (order-
   // independent vs --model, which resets modelConfig). DRAFT lanes pass read-only.
