@@ -37,25 +37,12 @@ assert.equal(contract.claudeProtocolGate.nativeFunctionGates.obliteratus, 'condi
 assert.ok(['bridge-only-advisory', 'native-integrated'].includes(contract.claudeProtocolGate.openClaw.authority), 'OpenClaw/Nisaba authority must be advisory or native-integrated');
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
-assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
 assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
-assert.ok(contract.lanes.nvidia.dispatchTokens.includes('nvidia-minimax-m27'), 'Minimax M2.7 NIM dispatch token missing');
-assert.equal(contract.lanes.nvidia.models['nvidia-minimax-m27'], 'minimaxai/minimax-m2.7', 'Minimax M2.7 model mapping missing');
-assert.equal(contract.lanes.nvidia.routing.research_analysis, 'nvidia-minimax-m27', 'research analysis should prefer Minimax over unreliable GLM');
-for (const [token, model] of [
-  ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
-  ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
-  ['nvidia-magistral-small', 'mistralai/magistral-small-2506'],
-  ['nvidia-qwen-coder-32b', 'qwen/qwen2.5-coder-32b-instruct'],
-  ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
-  ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
-  ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
-  ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
-  ['nvidia-usdcode', 'nvidia/usdcode'],
-]) {
-  assert.ok(contract.lanes.nvidia.dispatchTokens.includes(token), `${token} dispatch token missing`);
-  assert.equal(contract.lanes.nvidia.models[token], model, `${token} model mapping missing`);
-}
+assert.deepEqual(contract.lanes.nvidia.dispatchTokens, ['nvidia', 'nemotron', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'], 'NVIDIA offload dispatch tokens = the live forms the dispatcher emits (drift-check aligned; Nemotron-3-Ultra only)');
+assert.deepEqual(contract.lanes.nvidia.liveStatus.live, ['nemotron-3-ultra-550b-a55b'], 'NVIDIA live roster should expose only Nemotron 3 Ultra');
+assert.deepEqual(contract.lanes.nvidia.deadModelFallbacks, {}, 'NVIDIA dead-lane fallback map should be removed');
+assert.equal(contract.lanes.nvidia.routing.frontier_reasoning, 'nemotron-3-ultra-550b-a55b', 'frontier NIM routing should point at Nemotron 3 Ultra');
+assert.equal(contract.lanes.nvidia.models['nemotron-3-ultra-550b-a55b'], 'nvidia/nemotron-3-ultra-550b-a55b', 'Nemotron 3 Ultra model mapping missing');
 assert.equal(contract.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', 'cross-reference taxonomy surface missing');
 assert.equal(contract.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', 'cross-reference rules surface missing');
 assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');

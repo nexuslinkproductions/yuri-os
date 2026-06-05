@@ -88,23 +88,14 @@ const SOURCE_PATHS = [
   '.claude/plans/shintai-has-to-fix-luminous-fountain.md',
 ];
 
-const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'gpt-oss-120b', 'minimax-m27', 'glm', 'qwen3-next', 'nemotron-nano-30b', 'kimi']);
-const HEAVY_HEALTH_IDS = new Set(['qwen-397b', 'gpt-oss-120b']);
+const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'kimi']);
+const HEAVY_HEALTH_IDS = new Set([]);
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
   'claude-opus-audit': ['claude-opus-audit', 'claude-opus-comain', 'claude-opus-4-7-comain', 'claude-opus-4-7', 'opus-4.7', 'claude'],
-  nemotron: ['nemotron-orchestrator', 'nvidia-nemotron-120b'],
-  'mistral-large': ['nvidia-mistral-large', 'mistral-large'],
-  'mistral-medium': ['nvidia-mistral-medium', 'mistral-medium'],
-  'qwen-coder': ['nvidia-qwen-coder', 'qwen-coder'],
-  kimi: ['kimi-context-keeper', 'kimi-k2.6', 'moonshot'],
-  'minimax-m27': ['nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'minimax-m27', 'minimax-m2.7'],
-  glm: ['nvidia-glm', 'glm'],
-  'qwen3-next': ['qwen3-next-code', 'nvidia-qwen3-next'],
-  'qwen-397b': ['nvidia-qwen-397b', 'qwen-397b', 'qwen3.5-397b'],
-  'gpt-oss-120b': ['nvidia-gpt-oss-120b', 'gpt-oss-120b'],
-  'nemotron-nano-30b': ['nvidia-nemotron-nano-30b', 'nemotron-nano-30b'],
+  nemotron: ['nemotron-orchestrator', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'],
+  kimi: ['kimi-context-keeper', 'kimi-k2.6', 'moonshotai/kimi-k2.6'],
 };
 
 const ASSIGNMENTS = {
@@ -132,73 +123,17 @@ const ASSIGNMENTS = {
   },
   nemotron: {
     displayName: 'Nemotron Orchestrator',
-    lane: 'nvidia-nemotron-120b',
+    lane: 'nemotron-3-ultra-550b-a55b',
     skills: ['yuri-shura', 'bankai-manifest', 'visual-introspection', 'yuri-code-intelligence'],
-    assignment: 'Long-horizon architecture: scroll/composer adaptation without destructing YURI/Kagami.',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b'],
-  },
-  'mistral-large': {
-    displayName: 'Mistral Large Auditor',
-    lane: 'nvidia-mistral-large',
-    skills: ['non-destructive-infinity-guard', 'execution-domain-core', 'failure-evolution-loop'],
-    assignment: 'Frontier-scale adversarial review of the full lane-kernel merge. Challenge Codex, DeepSeek, and Nemotron assumptions.',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large'],
-  },
-  'mistral-medium': {
-    displayName: 'Mistral Medium Reviewer',
-    lane: 'nvidia-mistral-medium',
-    skills: ['execution-domain-core', 'failure-evolution-loop'],
-    assignment: 'Fallback and broad-system reviewer for routing simplification, timeout policy, and degraded-mode operation.',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium'],
-  },
-  'qwen-coder': {
-    displayName: 'Qwen Coder Specialist',
-    lane: 'nvidia-qwen-coder',
-    skills: ['yuri-code-intelligence', 'gitnexus', 'failure-evolution-loop'],
-    assignment: 'Code-level collision detection and regression plan for offload, Shintai, Rick, worker, and browser-harness merge points.',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
-  },
-  'qwen-397b': {
-    displayName: 'Qwen 397B Reasoner',
-    lane: 'nvidia-qwen-397b',
-    skills: ['yuri-code-intelligence', 'oracle-memory', 'pattern-mirror-core', 'failure-evolution-loop'],
-    assignment: 'Memory/RAG and skill-recall specialist: inspect MemoryKernel, SkillLoader, retrieval surfaces, tests, and migration boundaries.',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-397b'],
-  },
-  'gpt-oss-120b': {
-    displayName: 'GPT-OSS 120B Adversary',
-    lane: 'nvidia-gpt-oss-120b',
-    skills: ['pattern-mirror-core', 'failure-evolution-loop', 'non-destructive-infinity-guard'],
-    assignment: 'Adversarial simplification: find overengineering, fake sentience language, and brittle Memory/RAG/skill coupling.',
-    dispatchArgs: ['offload', '--model', 'nvidia-gpt-oss-120b'],
+    assignment: 'Long-horizon architecture and rail mapping through Nemotron 3 Ultra.',
+    dispatchArgs: ['offload', '--model', 'nemotron-3-ultra-550b-a55b'],
   },
   kimi: {
     displayName: 'Kimi Context-Keeper',
     lane: 'kimi-k2.6',
     skills: ['swarm-coordination', 'parallel-clone-orchestrator', 'gitnexus', 'visual-introspection', 'codebase-to-course'],
     assignment: 'Context integrity: load Shintai templates, memory, roster rules, identify stale aliases, and define durable guardrails.',
-    dispatchArgs: ['@kimi'],
-  },
-  'qwen3-next': {
-    displayName: 'Qwen3-Next Code Specialist',
-    lane: 'nvidia-qwen3-next',
-    skills: [],
-    assignment: 'Renderer state machine and PTY regression design: two-turn streaming, resize/exit restore, terminal write serialization.',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next'],
-  },
-  glm: {
-    displayName: 'GLM Long-Document Auditor',
-    lane: 'nvidia-glm',
-    skills: ['pattern-mirror-core', 'codebase-to-course'],
-    assignment: 'Explicit-only legacy long-document lane. Do not use in default council until reliability is reprobed.',
-    dispatchArgs: ['offload', '--model', 'nvidia-glm'],
-  },
-  'minimax-m27': {
-    displayName: 'Minimax M2.7 Long-Context Auditor',
-    lane: 'nvidia-minimax-m27',
-    skills: ['pattern-mirror-core', 'codebase-to-course', 'failure-evolution-loop'],
-    assignment: 'GLM replacement for long-document memory, stale aliases, naming drift, docs consistency, and evidence-contract review.',
-    dispatchArgs: ['offload', '--model', 'nvidia-minimax-m27'],
+    dispatchArgs: ['offload', '--model', 'kimi-k2.6'],
   },
 };
 

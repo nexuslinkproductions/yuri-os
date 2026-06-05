@@ -25,8 +25,10 @@ import {
   formatVerifyChecklist,
   isProtectedPath,
 } from './reasoning-lane-dispatch.mjs';
+import { getOffloadLane } from './offload-lane-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
+const NEMOTRON_CFG = getOffloadLane('nemotron-3-ultra-550b-a55b');
 
 const NEMOTRON_LANE = {
   // Nemotron-3-Ultra is a 550B REASONING model on a tools-enabled lane; the nvidia
@@ -35,7 +37,7 @@ const NEMOTRON_LANE = {
   // lane we dispatch to defaults to MAX. defaultReasoning 'max' lifts the runner's
   // depth->maxTokens budget to the top tier (offload.sh forwards --reasoning;
   // --max-output-tokens is NOT forwarded). Override with --reasoning for cheap runs.
-  model: 'nvidia/nemotron-3-ultra-550b-a55b',
+  model: NEMOTRON_CFG.model,
   label: 'nemotron',
   defaultReasoning: 'max',
 };

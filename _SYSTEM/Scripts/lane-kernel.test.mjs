@@ -16,18 +16,15 @@ import {
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark', () => {
+test('lane kernel exposes the consolidated Shintai deployment without Spark', () => {
   const deployment = buildSuperauditDeployment();
   const ids = deployment.members.map((member) => member.id);
   const lanes = deployment.members.map((member) => member.lane).join(' ');
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
-  assert.ok(ids.includes('mistral-large'));
-  assert.ok(ids.includes('qwen-coder'));
-  assert.ok(ids.includes('minimax-m27'));
+  assert.ok(ids.includes('nemotron'));
+  assert.ok(ids.includes('kimi'));
   assert.equal(ids.includes('glm'), false);
-  assert.ok(ids.includes('qwen3-next'));
-  assert.equal(ids.includes('kimi'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
   assert.equal(deployment.authority.coMain, 'claude-opus-4-7-comain');
   assert.equal(deployment.authority.finalDecision, 'codex-main-after-independent-verification');
@@ -65,30 +62,8 @@ test('DeepSeek Shintai lane routes through direct paid API with no NVIDIA fallba
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-minimax-m27'));
-  for (const lane of [
-    'nvidia-nemotron-super-49b',
-    'nvidia-mistral-nemotron',
-    'nvidia-llama4-maverick',
-    'nvidia-vision-90b',
-    'nvidia-nemotron-nano-vl-8b',
-    'nvidia-nemotron-mini-4b',
-  ]) {
-    assert.ok(ACTIVE_NIM_LANES.includes(lane), `${lane} should be an active NIM lane`);
-  }
-  assert.equal(ACTIVE_NIM_LANES.includes('nvidia-glm'), false);
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-gpt-oss-120b'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-kimi'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-397b'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-nemotron-nano-30b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-llama-405b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-magistral-small'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-qwen-coder-32b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-usdcode'));
-  assert.equal(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'), false);
-  assert.equal(DEAD_NIM_LANES.includes('nvidia-kimi'), false);
+  assert.deepEqual(ACTIVE_NIM_LANES, ['nemotron-3-ultra-550b-a55b', 'kimi-k2.6']);
+  assert.deepEqual(DEAD_NIM_LANES, []);
 });
 
 test('memory/RAG Shintai council uses large task-fit lanes without Spark fallback', () => {
@@ -96,19 +71,14 @@ test('memory/RAG Shintai council uses large task-fit lanes without Spark fallbac
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
   assert.ok(ids.includes('nemotron'));
-  assert.ok(ids.includes('qwen-397b'));
-  assert.ok(ids.includes('mistral-large'));
-  assert.ok(ids.includes('gpt-oss-120b'));
-  assert.ok(ids.includes('minimax-m27'));
+  assert.ok(ids.includes('kimi'));
   assert.equal(ids.includes('glm'), false);
-  assert.ok(ids.includes('qwen-coder'));
   assert.equal(ids.includes('codex-spark'), false);
-  assert.equal(ids.includes('kimi'), false);
   assert.deepEqual(ids, [...SHINTAI_MEMORY_RAG_MEMBER_IDS]);
 });
 
 test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'qwen-397b', 'mistral-large', 'gpt-oss-120b', 'minimax-m27', 'qwen-coder']) {
+  for (const id of ['nemotron', 'kimi']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
@@ -122,19 +92,7 @@ test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', (
 test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
   for (const id of [
     'nemotron',
-    'nemotron-nano-30b',
-    'nemotron-super-49b',
-    'mistral-large',
-    'mistral-medium',
-    'mistral-nemotron',
-    'qwen-coder',
-    'qwen-397b',
-    'minimax-m27',
-    'qwen3-next',
-    'llama4-maverick',
-    'vision-90b',
-    'nemotron-nano-vl-8b',
-    'nemotron-mini-4b',
+    'kimi',
   ]) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);

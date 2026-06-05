@@ -909,6 +909,11 @@ case "${1:-help}" in
     require_cmd node
     exec node "$SCRIPT_DIR/nemotron-dispatch.mjs" "$@"
     ;;
+  kimi)
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/kimi-dispatch.mjs" "$@"
+    ;;
   ds-reason)
     shift || true
     require_cmd node

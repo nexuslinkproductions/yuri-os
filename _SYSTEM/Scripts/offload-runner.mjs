@@ -16,11 +16,8 @@ import {
 import {
   canonicalLaneForModel,
   clearCrashes,
-  isQuarantined,
   normalizeLaneId,
   recordCrash,
-  recordEscalation,
-  selectFallbackLane,
 } from './kagami-overseer.mjs';
 import { appendMemoryEntry } from './memory-kernel.mjs';
 import { YURI_RAILS_CONFIG } from '../kagami/yuri-rails-config.mjs';
@@ -48,6 +45,7 @@ const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
 const writeScope = process.env.DEEPSEEK_WRITE_SCOPE ? new Set(process.env.DEEPSEEK_WRITE_SCOPE.split(':').map(p => resolveRepoPath(p))) : null;
 const MODEL_POLICY_PATH = path.join(REPO_ROOT, '.claude/config/models.json');
 const MODEL_POLICY = loadModelPolicy();
+const OFFLOAD_LANES = MODEL_POLICY.offload_lanes || {};
 const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
 const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'needle';
 const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'needle';
@@ -81,6 +79,7 @@ function envOrKeychain(...names) {
   for (const name of names) {
     const value = process.env[name] || '';
     if (value) return value;
+    if (/^(1|true|yes|on)$/i.test(process.env.YURI_DISABLE_KEYCHAIN_LOOKUP || '')) continue;
     if (process.platform !== 'darwin') continue;
     try {
       const out = execFileSync('security', [
@@ -99,6 +98,19 @@ const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning 
 const DEFAULT_LONG_OFFLOAD_TIMEOUT_MS = 6 * 60 * 60 * 1000;
 
 const argv = process.argv.slice(2);
+let lane = '';
+
+process.on('uncaughtException', (err) => {
+  const code = errorExitCode(err?.message);
+  emitOffloadFail(code, lane || 'unknown', err?.message || 'runtime_error');
+  process.exit(code);
+});
+
+process.on('unhandledRejection', (err) => {
+  const code = errorExitCode(err?.message);
+  emitOffloadFail(code, lane || 'unknown', err?.message || 'runtime_error');
+  process.exit(code);
+});
 
 if (argv.includes('--inventory')) {
   const localModels = listLocalModels();
@@ -106,7 +118,7 @@ if (argv.includes('--inventory')) {
   process.exit(0);
 }
 
-let lane = (argv.shift() || '').toLowerCase();
+lane = (argv.shift() || '').toLowerCase();
 const options = parseArgs(argv);
 const laneRequest = normalizeLaneRequest(lane, options.reasoning);
 lane = laneRequest.lane;
@@ -164,27 +176,21 @@ if (
   resolved.status === 'BLOCKED_FROZEN_MODEL' ||
   resolved.kind === 'blocked'
 ) {
-  console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
-  process.exit(0);
+  emitOffloadFail(3, lane, resolved.status || 'lane_unavailable');
+  process.exit(3);
 }
 
-const quarantineSubstitution = maybeSubstituteQuarantinedLane(lane, resolved, options, localModels);
-if (quarantineSubstitution.substituted) {
-  process.stderr.write(`[kagami] quarantined ${quarantineSubstitution.from}; substituting ${quarantineSubstitution.to}\n`);
-  lane = quarantineSubstitution.to;
-  resolved = quarantineSubstitution.resolved;
-}
 // A.2.a observability hook — fire-and-forget, never throws into dispatch path.
 traceDispatchEvent({ lane: 'offload', runId: `offload-${Date.now()}` });
 
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  process.exit(emitAndRecordResult(result, 0, options.outputFile));
+  process.exit(emitAndRecordResult(result, classifyExit(result).code, options.outputFile));
 }
 
 if (resolved.protocol === 'ollama-native') {
   const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  process.exit(emitAndRecordResult(result, 0, options.outputFile));
+  process.exit(emitAndRecordResult(normalizeDispatchResult(result), classifyExit(result).code, options.outputFile));
 }
 
 if (resolved.protocol === 'responses') {
@@ -198,7 +204,7 @@ if (resolved.protocol === 'responses') {
     streamWriter: (chunk) => process.stdout.write(chunk),
     streamStatusWriter: (line) => process.stderr.write(line),
   });
-  process.exit(emitAndRecordResult(result, 0, options.outputFile));
+  process.exit(emitAndRecordResult(result, classifyExit(result).code, options.outputFile));
 }
 
 const result = await runCloudChatWithFallback(resolved, prompt, options, {
@@ -208,15 +214,26 @@ const result = await runCloudChatWithFallback(resolved, prompt, options, {
   streamWriter: (chunk) => process.stdout.write(chunk),
   streamStatusWriter: (line) => process.stderr.write(line),
 });
-process.exit(emitAndRecordResult(result, 0, options.outputFile));
+process.exit(emitAndRecordResult(result, classifyExit(result).code, options.outputFile));
+
+function normalizeDispatchResult(result) {
+  if (result && typeof result === 'object' && Object.hasOwn(result, 'text')) {
+    return {
+      text: String(result.text ?? ''),
+      finishReason: result.finishReason ?? result.finish_reason ?? null,
+      usage: result.usage ?? null,
+      streamed: Boolean(result.streamed),
+    };
+  }
+  return { text: String(result ?? ''), finishReason: null, usage: null, streamed: false };
+}
 
 function resultText(result) {
-  if (typeof result === 'string') return result;
-  return String(result?.text ?? '');
+  return normalizeDispatchResult(result).text;
 }
 
 function resultWasStreamed(result) {
-  return Boolean(result && typeof result === 'object' && result.streamed);
+  return normalizeDispatchResult(result).streamed;
 }
 
 function emitResult(result) {
@@ -245,6 +262,7 @@ function emitResult(result) {
 }
 
 function emitAndRecordResult(result, exitCode = 0, outputFile = '') {
+  result = normalizeDispatchResult(result);
   const outputRail = emitResult(result);
   let finalExitCode = outputRail?.ok === false ? 2 : exitCode;
   let outputRecord = outputRail;
@@ -265,7 +283,40 @@ function emitAndRecordResult(result, exitCode = 0, outputFile = '') {
     }
   }
   recordLaneOutputEvidence(result, finalExitCode, outputRecord);
+  if (finalExitCode !== 0) {
+    emitOffloadFail(finalExitCode, lane, classifyExit(result, outputRail).reason);
+  }
   return finalExitCode;
+}
+
+function classifyExit(outcome, outputRail = null) {
+  if (outputRail?.ok === false) return { code: 2, reason: 'rail_block' };
+  const result = normalizeDispatchResult(outcome);
+  const finishReason = String(result.finishReason || '').toLowerCase();
+  const text = result.text.trim();
+  if (text) return { code: 0, reason: 'ok' };
+  if (finishReason === 'length' || finishReason === 'incomplete') {
+    return { code: 1, reason: `empty_${finishReason}` };
+  }
+  return { code: 1, reason: 'empty_content' };
+}
+
+function emitOffloadFail(code, laneName, reason) {
+  const shortReason = String(reason || 'unknown')
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Za-z0-9_.:-]/g, '')
+    .slice(0, 120) || 'unknown';
+  process.stderr.write(`OFFLOAD_FAIL code=${code} lane=${laneName || 'unknown'} reason=${shortReason}\n`);
+}
+
+// Map a thrown-error message to a loud-fail exit code. PERMANENT / do-not-retry failures
+// (unknown or removed lane, missing endpoint/key, dead/blocked lane) → exit 3 so queue
+// consumers (worker-bridge / task-queue) mark the task failed WITHOUT retry-looping on a
+// permanently unavailable lane. Transient transport/runtime errors stay exit 1 (retryable).
+function errorExitCode(message) {
+  const m = String(message || '');
+  if (/Unsupported lane|Missing endpoint|Missing[\s_]+\w*[\s_]*key|SKIPPED_MISSING|BLOCKED_|DEAD_LANE/i.test(m)) return 3;
+  return 1;
 }
 
 function writeAcceptedOutputFile(outputFile, text) {
@@ -399,66 +450,9 @@ async function runCloudChatWithFallback(resolved, promptText, runnerOptions, con
     noteLaneSuccess(baseLaneId);
     return result;
   } catch (err) {
-    const fallbackLane = transientFallbackLaneFor(context.lane);
     if (isTransientProviderError(err)) noteLaneCrash(baseLaneId, err, 'base-transient-failure');
-    if (!isTransientProviderError(err) || !fallbackLane) throw err;
-    recordNimTransientIncident({
-      lane: context.lane,
-      model: resolved.model,
-      status: err.httpStatus || null,
-      action: 'fallback',
-      fallbackLane,
-      error: err.message,
-    });
-    context.streamStatusWriter?.(`\x1b[2m[retry] ${context.lane} transient failure; falling back to ${fallbackLane}\x1b[0m\n`);
-    const fallback = resolveLane(fallbackLane, '', localModels, false, runnerOptions);
-    const fallbackLaneId = quarantineLaneId(fallbackLane, fallback);
-    try {
-      const result = await runOpenAICompatibleChat(
-        fallback.endpoint,
-        fallback.apiKey,
-        fallback.model,
-        promptText,
-        runnerOptions.system,
-        fallback.extraBody,
-        {
-          ...baseOptions,
-          extraHeaders: fallback.extraHeaders,
-          maxTokens: fallback.maxTokens,
-          timeout: fallback.timeout,
-          lane: fallbackLane,
-          tools: fallback.tools,
-        },
-      );
-      noteLaneSuccess(fallbackLaneId);
-      return result;
-    } catch (fallbackError) {
-      if (isTransientProviderError(fallbackError)) noteLaneCrash(fallbackLaneId, fallbackError, 'fallback-transient-failure');
-      throw fallbackError;
-    }
+    throw err;
   }
-}
-
-function maybeSubstituteQuarantinedLane(currentLane, currentResolved, runnerOptions, availableLocalModels) {
-  const laneId = quarantineLaneId(currentLane, currentResolved);
-  if (!laneId || !isQuarantined(laneId)) {
-    return { substituted: false, from: laneId, to: '', resolved: currentResolved };
-  }
-  const fallbackLane = selectFallbackLane(laneId);
-  if (!fallbackLane) {
-    recordEscalation(laneId, {
-      code: 'NO_HEALTHY_LANE_FOR_TASK',
-      reason: 'target lane quarantined and no healthy fallback lane available',
-    });
-    throw new Error(`NO_HEALTHY_LANE_FOR_TASK: ${laneId}`);
-  }
-  const fallbackResolved = resolveLane(fallbackLane, '', availableLocalModels, false, runnerOptions);
-  return {
-    substituted: true,
-    from: laneId,
-    to: fallbackLane,
-    resolved: fallbackResolved,
-  };
 }
 
 function quarantineLaneId(laneName, resolvedLane = {}) {
@@ -477,17 +471,6 @@ function noteLaneCrash(laneId, err, reason) {
 function noteLaneSuccess(laneId) {
   if (!laneId) return;
   clearCrashes(laneId, { reason: 'provider-success' });
-}
-
-function transientFallbackLaneFor(laneName) {
-  const laneKey = String(laneName || '').replace(/^@/, '');
-  const fallbacks = {
-    'nvidia-nemotron-120b': 'nvidia-nemotron-nano-30b',
-    'nvidia-nemotron-nano-30b': 'nvidia-mistral-medium',
-    'nvidia-mistral-large': 'nvidia-mistral-medium',
-    'nvidia-qwen3-next': 'nvidia-qwen-coder',
-  };
-  return fallbacks[laneKey] || '';
 }
 
 function isTransientProviderError(err) {
@@ -607,27 +590,13 @@ function normalizeLaneRequest(rawLane, rawReasoning = '') {
     'deepseek-cloud': 'deepseek-v4-pro',
     'code-deepseek': 'deepseek-v4-pro',
     'deepseek-reasoner': 'deepseek-v4-pro',
-    'deepseek-chat': 'deepseek-v4-flash',
+    'deepseek-chat': 'deepseek-v4-pro',
     'deepseek-v4-pro-lite-budget': 'deepseek-v4-pro',
-    'minimax-m27': 'nvidia-minimax-m27',
-    'minimax-m2.7': 'nvidia-minimax-m2.7',
-    'nemotron-super-49b': 'nvidia-nemotron-super-49b',
-    'mistral-nemotron': 'nvidia-mistral-nemotron',
-    'magistral-small': 'nvidia-magistral-small',
-    'qwen-coder-32b': 'nvidia-qwen-coder-32b',
-    'llama4-maverick': 'nvidia-llama4-maverick',
-    'vision-90b': 'nvidia-vision-90b',
-    'nemotron-nano-vl-8b': 'nvidia-nemotron-nano-vl-8b',
-    'nemotron-mini-4b': 'nvidia-nemotron-mini-4b',
-    'usdcode': 'nvidia-usdcode',
+    nemotron: 'nemotron-3-ultra-550b-a55b',
+    kimi: 'kimi-k2.6',
   };
   const lane = alias[baseLane] || baseLane;
-  // DeepSeek pro + flash ALWAYS default to MAX reasoning — owner policy 2026-06-05:
-  // they are reasoning models, so use them at full depth unless explicitly overridden.
-  // 'max' normalizes to the top tier via normalizeReasoningDepth (deepseek runtime
-  // re-normalizes it). The lite-budget alias keeps its deliberate cheap 'low'; all
-  // other lanes stay unset ('').
-  const deepseekProFlash = lane === 'deepseek-v4-pro' || lane === 'deepseek-v4-flash';
+  const deepseekProFlash = lane === 'deepseek-v4-pro';
   const reasoning = explicitReasoning || suffixReasoning
     || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : (deepseekProFlash ? 'max' : ''));
   return { lane, reasoning };
@@ -769,11 +738,11 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     throw new Error(`DEAD_LANE_EXECUTION_BLOCKED: ${error}`);
   }
 
-  if (requestedLane === 'gemma' || requestedLane === 'gemma-local' || requestedLane === 'gemma-cloud') {
+  if (requestedLane === 'gemma' || requestedLane === 'gemma-local') {
     return resolveGemmaLane(requestedLane, normalizedForcedModel, localModels, dryRun);
   }
 
-  if (requestedLane === 'ollama' || requestedLane === 'ollama-local' || requestedLane === 'ollama-cloud') {
+  if (requestedLane === 'ollama' || requestedLane === 'ollama-local') {
     return resolveOllamaAdditiveLane(requestedLane, normalizedForcedModel, localModels, dryRun);
   }
 
@@ -799,6 +768,24 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     );
   }
 
+  const configuredLane = resolveOffloadLaneConfig(requestedLane, normalizedForcedModel);
+  if (configuredLane) {
+    const laneResolved = configuredOffloadLane(configuredLane.id, configuredLane.cfg, normalizedForcedModel, options);
+    if (!laneResolved.endpoint) {
+      return { ...laneResolved, executable: false, status: 'SKIPPED_MISSING_ENDPOINT', error: `Missing endpoint for lane: ${requestedLane}` };
+    }
+    if (laneResolved.requiresKey && !laneResolved.apiKey) {
+      return { ...laneResolved, executable: false, status: 'SKIPPED_MISSING_KEY', error: `Missing API key for lane: ${requestedLane}` };
+    }
+    return laneResolved;
+  }
+
+  if (
+    /^(nvidia(?:-|$)|moonshot$|reason-kimi$|deepseek-v4-flash$|deepseek-local$)/.test(requestedLane)
+  ) {
+    throw new Error(`Unsupported lane: ${requestedLane}`);
+  }
+
   const laneMap = {
     'gpt-oss': {
       kind: 'local',
@@ -812,34 +799,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'deepseek-local': resolveDeepseekLocalLane(
       normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_LOCAL_MODEL || process.env.DEEPSEEK_MODEL || '', 'deepseek-local') || ''
     ),
-    'kimi': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.KIMI_BASE_URL || ''),
-      apiKey: process.env.KIMI_API_KEY || '',
-      model: normalizedForcedModel || process.env.KIMI_MODEL || 'kimi-k2.6',
-      extraBody: cloudExtraBody('kimi')
-    },
-    'moonshot': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.MOONSHOT_BASE_URL || 'https://api.moonshot.ai/v1'),
-      apiKey: process.env.MOONSHOT_API_KEY || '',
-      model: normalizedForcedModel || process.env.MOONSHOT_MODEL || 'kimi-k2.6',
-      extraBody: cloudExtraBody('moonshot')
-    },
-    'deepseek-v4-flash': deepseekLane(normalizedForcedModel, {
-      defaultModel: 'deepseek-v4-flash',
-      envVars: ['DEEPSEEK_FLASH_MODEL'],
-      thinking: false,
-      maxTokens: 4096,
-      timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
-    }, options),
-    'deepseek-v4-pro': deepseekLane(normalizedForcedModel, {
-      defaultModel: 'deepseek-v4-pro',
-      envVars: ['DEEPSEEK_PRO_MODEL'],
-      thinking: true,
-      maxTokens: 8192,
-      timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
-    }, options),
     'triage-local': {
       kind: 'local',
       model: normalizedForcedModel || normalizeForcedModel(process.env.TRIAGE_LOCAL_MODEL || '', 'triage-local') || pickFirstExisting([
@@ -856,13 +815,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
         LOCAL_FALLBACK_MODEL
       ], localModels)
     },
-    'reason-kimi': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.REASON_KIMI_BASE_URL || process.env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1'),
-      apiKey: process.env.REASON_KIMI_API_KEY || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '',
-      model: normalizedForcedModel || process.env.REASON_KIMI_MODEL || 'kimi-k2.6',
-      extraBody: cloudExtraBody('reason-kimi')
-    },
     'reason-cloud': {
       kind: 'cloud',
       protocol: 'ollama-native',
@@ -876,238 +828,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       endpoint: process.env.CODE_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
       apiKey: process.env.CODE_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
       model: normalizedForcedModel || process.env.CODE_CLOUD_MODEL || 'qwen2.5-coder:32b',
-    },
-    'nvidia-nim': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'meta/llama-3.3-70b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-llama-405b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'meta/llama-3.1-405b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-llama-70b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'meta/llama-3.3-70b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-nemotron': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/llama-3.1-nemotron-ultra-253b-v1',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-70b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/llama-3.1-nemotron-70b-instruct',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-super-49b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-dracarys': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_DRACARYS || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'abacusai/dracarys-llama-3.1-70b-instruct',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-glm': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GLM || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'z-ai/glm-5.1',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-minimax-m27': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_MINIMAX_M27 || process.env.MINIMAX_M27_NIM_API_KEY || process.env.MINIMAX_NIM_API_KEY || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'minimaxai/minimax-m2.7',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-minimax-m2.7': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_MINIMAX_M27 || process.env.MINIMAX_M27_NIM_API_KEY || process.env.MINIMAX_NIM_API_KEY || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'minimaxai/minimax-m2.7',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-ising': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_ISING || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-nano-30b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/nemotron-3-nano-30b-a3b',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-nano-vl-8b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-mini-4b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/nemotron-mini-4b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-gpt-oss-120b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'openai/gpt-oss-120b',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-nemotron-120b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/nemotron-3-super-120b-a12b',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-qwen3-next': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_QWEN3_NEXT || process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'qwen/qwen3-next-80b-a3b-instruct',
-      tools: false,
-      requiresKey: true,
-    },
-    'nvidia-mistral': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'mistralai/mistral-large-2-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-mistral-medium': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'mistralai/mistral-medium-3.5-128b',
-      tools: false, // NIM Mistral-3 chat template breaks with tools — synthetic assistant turn trips add_generation_prompt
-      requiresKey: true,
-    },
-    'nvidia-mistral-large': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'mistralai/mistral-large-3-675b-instruct-2512',
-      tools: false, // NIM Mistral-3 chat template breaks with tools — synthetic assistant turn trips add_generation_prompt
-      requiresKey: true,
-    },
-    'nvidia-mistral-nemotron': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'mistralai/mistral-nemotron',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-magistral-small': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'mistralai/magistral-small-2506',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-qwen': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'qwen/qwen2.5-72b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-qwen-397b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'qwen/qwen3.5-397b-a17b',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-qwen-coder-32b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'qwen/qwen2.5-coder-32b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-phi': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'microsoft/phi-4',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-llama4-maverick': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'meta/llama-4-maverick-17b-128e-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-vision-90b': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'meta/llama-3.2-90b-vision-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-usdcode': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'nvidia/usdcode',
-      tools: true,
-      requiresKey: true,
     },
     'openrouter-free': {
       kind: 'cloud',
@@ -1197,40 +917,34 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
   }
 
   if (!resolved.endpoint) {
-    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
-      return {
-        kind: resolved.kind,
-        protocol: resolved.protocol,
-        endpoint: '',
-        apiKey: resolved.apiKey || '',
-        model: resolved.model,
-        extraBody: resolved.extraBody,
-        executable: false,
-        status: 'SKIPPED_MISSING_ENDPOINT',
-        error: `Missing endpoint for lane: ${requestedLane}`,
-      };
-    }
-    throw new Error(`Missing endpoint for lane: ${requestedLane}`);
+    return {
+      kind: resolved.kind,
+      protocol: resolved.protocol,
+      endpoint: '',
+      apiKey: resolved.apiKey || '',
+      model: resolved.model,
+      extraBody: resolved.extraBody,
+      executable: false,
+      status: 'SKIPPED_MISSING_ENDPOINT',
+      error: `Missing endpoint for lane: ${requestedLane}`,
+    };
   }
 
   if (resolved.requiresKey && !resolved.apiKey) {
-    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
-      return {
-        kind: resolved.kind,
-        protocol: resolved.protocol,
-        endpoint: resolved.endpoint,
-        apiKey: '',
-        model: resolved.model,
-        extraBody: resolved.extraBody,
-        maxTokens: resolved.maxTokens,
-        timeout: resolved.timeout,
-        reasoningEffort: resolved.reasoningEffort,
-        executable: false,
-        status: 'SKIPPED_MISSING_KEY',
-        error: `Missing API key for lane: ${requestedLane}`,
-      };
-    }
-    throw new Error(`Missing API key for lane: ${requestedLane}`);
+    return {
+      kind: resolved.kind,
+      protocol: resolved.protocol,
+      endpoint: resolved.endpoint,
+      apiKey: '',
+      model: resolved.model,
+      extraBody: resolved.extraBody,
+      maxTokens: resolved.maxTokens,
+      timeout: resolved.timeout,
+      reasoningEffort: resolved.reasoningEffort,
+      executable: false,
+      status: 'SKIPPED_MISSING_KEY',
+      error: `Missing API key for lane: ${requestedLane}`,
+    };
   }
 
   if (requestedLane === 'openrouter-free') {
@@ -1270,7 +984,7 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'nvidia-deepseek-v4-flash' && normalized === 'nvidia-deepseek-v4-flash') return '';
   if (/^deepseek-ai\/deepseek-v4-(?:flash|pro)$/.test(normalized)) return normalized.replace(/^deepseek-ai\//, '');
   if (laneName === 'deepseek-local' && (normalized === 'deepseek-local' || normalized === 'deepseek')) return '';
-  if ((laneName === 'ollama' || laneName === 'ollama-local' || laneName === 'ollama-cloud') && (normalized === 'ollama' || normalized === 'ollama-local' || normalized === 'ollama-cloud')) return '';
+  if ((laneName === 'ollama' || laneName === 'ollama-local') && (normalized === 'ollama' || normalized === 'ollama-local')) return '';
   if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
   if (laneName === 'triage-local' && normalized === 'triage-local') return '';
@@ -1280,12 +994,11 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'code-cloud' && normalized === 'code-cloud') return '';
   if (laneName === 'reason-kimi' && (normalized === 'reason-kimi' || normalized === 'kimi')) return '';
   if (laneName === 'gemma-local' && normalized === 'gemma-local') return '';
-  if (laneName === 'gemma-cloud' && normalized === 'gemma-cloud') return '';
   if (laneName === 'gemma' && normalized === 'gemma') return '';
   if (laneName === 'codex' && normalized === 'codex') return '';
   if (laneName === 'codex-mini' && normalized === 'codex-mini') return '';
 
-  if (['ollama', 'ollama-local', 'ollama-cloud', 'triage-local', 'summarize-local', 'gpt-oss'].includes(laneName)) {
+  if (['ollama', 'ollama-local', 'triage-local', 'summarize-local', 'gpt-oss'].includes(laneName)) {
     if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest', 'qwen-liberated', 'qwen-liberated:latest'].includes(normalized)) return LOCAL_UTILITY_MODEL;
     if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(normalized)) return LOCAL_PRIMARY_MODEL;
     if (['llama3.2', 'llama3.2:latest'].includes(normalized)) return LOCAL_FALLBACK_MODEL;
@@ -1305,10 +1018,6 @@ function normalizeForcedModel(forcedModel, lane) {
 
   if (laneName === 'gemma' || laneName === 'gemma-local') {
     if (['gemma4', 'gemma4:e2b', 'gemma4:latest', 'gemma'].includes(normalized)) return LOCAL_MULTIMODAL_MODEL;
-  }
-
-  if (laneName === 'gemma-cloud') {
-    if (['gemma4', 'gemma4:latest', 'gemma'].includes(normalized)) return 'gemma4:e4b';
   }
 
   return forcedModel;
@@ -1337,65 +1046,57 @@ function validateReasoningEffort(value) {
 }
 
 function cloudExtraBody(provider) {
-  if (provider === 'kimi' || provider === 'reason-kimi') {
+  if (provider === 'kimi') {
     return { chat_template_kwargs: { thinking: true } };
   }
   return undefined;
 }
 
-function resolveDeepseekModel(options) {
-  for (const envName of options.envVars || []) {
-    const val = process.env[envName] || '';
-    if (val) return normalizeDeepseekPublicModel(val);
+function resolveOffloadLaneConfig(laneToken, forcedModel = '') {
+  const token = String(laneToken || '').replace(/^@/, '');
+  if (OFFLOAD_LANES[token]) return { id: token, cfg: OFFLOAD_LANES[token] };
+  const forced = String(forcedModel || '').toLowerCase();
+  for (const [id, cfg] of Object.entries(OFFLOAD_LANES)) {
+    if (!cfg || typeof cfg !== 'object' || !forced) continue;
+    if (String(cfg.model || '').toLowerCase() === forced) return { id, cfg };
   }
-  return options.defaultModel;
+  if (token === 'kimi' && OFFLOAD_LANES['kimi-k2.6']) return { id: 'kimi-k2.6', cfg: OFFLOAD_LANES['kimi-k2.6'] };
+  if (token === 'nemotron' && OFFLOAD_LANES['nemotron-3-ultra-550b-a55b']) return { id: 'nemotron-3-ultra-550b-a55b', cfg: OFFLOAD_LANES['nemotron-3-ultra-550b-a55b'] };
+  if (token === 'deepseek' && OFFLOAD_LANES['deepseek-v4-pro']) return { id: 'deepseek-v4-pro', cfg: OFFLOAD_LANES['deepseek-v4-pro'] };
+  return null;
 }
 
-function resolveDeepseekRuntime(options, runnerOptions = {}) {
-  const depth = normalizeReasoningDepth(runnerOptions.reasoning);
-  const baseThinking = !!options.thinking;
-  const thinking = depth === 'off' || depth === 'low' ? false : depth ? true : baseThinking;
-  // deepseek-v4-pro counts reasoning_tokens AGAINST max_tokens (live-verified: at max_tokens=8192
-  // a heavy prompt spent the whole budget thinking and truncated/blanked the answer). The API
-  // accepts much larger ceilings (live-verified up to 131072), so high/xhigh get real headroom
-  // ABOVE the thinking phase — otherwise raising reasoning depth can never let content through.
-  const maxTokenByDepth = {
-    off: Math.min(options.maxTokens, 2048),
-    low: Math.min(options.maxTokens, 2048),
-    medium: Math.max(options.maxTokens, 4096),
-    high: Math.max(options.maxTokens, 16384),
-    xhigh: Math.max(options.maxTokens, 32768),
-  };
-  const timeoutByDepth = {
-    off: options.timeout,
-    low: options.timeout,
-    medium: options.timeout,
-    high: options.timeout,
-    xhigh: options.timeout,
-  };
+function resolveReasoningBudget(laneCfg, depthValue) {
+  const depth = normalizeReasoningDepth(depthValue) || 'xhigh';
+  const maxOutput = laneCfg?.max_output || {};
   return {
-    reasoningDepth: depth || (baseThinking ? 'high' : 'off'),
-    thinking,
-    maxTokens: depth ? maxTokenByDepth[depth] : options.maxTokens,
-    timeout: depth ? timeoutByDepth[depth] : options.timeout,
+    reasoningDepth: depth,
+    maxTokens: Number(maxOutput[depth] || maxOutput.high || maxOutput.medium || 4096),
+    timeout: Number(laneCfg?.timeout_ms || DEFAULT_LONG_OFFLOAD_TIMEOUT_MS),
+    contextWindow: Number(laneCfg?.context_window || 0),
   };
 }
 
-function deepseekLane(normalizedForcedModel, options, runnerOptions = {}) {
-  const runtime = resolveDeepseekRuntime(options, runnerOptions);
+function configuredOffloadLane(laneId, laneCfg, normalizedForcedModel, runnerOptions = {}) {
+  const runtime = resolveReasoningBudget(laneCfg, runnerOptions.reasoning);
+  const provider = String(laneCfg.provider || '');
+  const endpoint = normalizeOpenAIBaseUrl(process.env[laneCfg.endpoint_env] || laneCfg.endpoint_default || '');
+  const apiKey = envOrKeychain(laneCfg.api_key_env) || (process.env.YURI_OFFLOAD_MOCK_TRANSPORT === '1' ? 'mock-key' : '');
+  const model = laneId === 'deepseek-v4-pro'
+    ? 'deepseek-v4-pro'
+    : (normalizedForcedModel || laneCfg.model);
   return {
     kind: 'cloud',
-    endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'),
-    apiKey: envOrKeychain('DEEPSEEK_API_KEY', 'CODE_DEEPSEEK_API_KEY'),
-    model: normalizedForcedModel || resolveDeepseekModel(options),
+    endpoint,
+    apiKey,
+    model,
     maxTokens: runtime.maxTokens,
     timeout: runtime.timeout,
     reasoningDepth: runtime.reasoningDepth,
-    // Direct DeepSeek API is the canonical paid lane again. Tools default ON
-    // unless explicitly disabled by the caller.
     tools: runnerOptions.tools !== false,
     requiresKey: true,
-    resolvedVia: 'deepseek-direct',
+    resolvedVia: provider || laneId,
+    contextWindow: runtime.contextWindow,
   };
 }
 
@@ -1420,18 +1121,7 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
 
   const deepseekApiKey = envOrKeychain('DEEPSEEK_API_KEY', 'CODE_DEEPSEEK_API_KEY');
   if (deepseekApiKey) {
-    return {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'),
-      apiKey: deepseekApiKey,
-      model: normalizeDeepseekPublicModel(process.env.DEEPSEEK_DEFAULT_MODEL || process.env.DEEPSEEK_FLASH_MODEL || 'deepseek-v4-flash'),
-      maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
-      timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
-      reasoningDepth: 'off',
-      tools: true,
-      requiresKey: true,
-      resolvedVia: 'deepseek-direct-default',
-    };
+    return configuredOffloadLane('deepseek-v4-pro', OFFLOAD_LANES['deepseek-v4-pro'], 'deepseek-v4-pro', { reasoning: 'xhigh', tools: true });
   }
 
   return blockedDeepseekLocal(
@@ -1487,27 +1177,6 @@ function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = fal
       throw new Error('Lane "gemma-local": no local gemma4 model installed. Run: ollama pull gemma4:e2b');
     }
     return { kind: 'local', model, installed: true, executable: true };
-  }
-
-  if (lane === 'gemma-cloud') {
-    const apiKey = process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
-    const endpoint = process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat';
-    const model = normalizedForcedModel || normalizeGemmaCloudModel(envGemmaModel('GEMMA_CLOUD_MODEL')) || 'gemma4:e4b';
-    if (!apiKey) {
-      if (dryRun) {
-        return {
-          kind: 'cloud',
-          protocol: 'ollama-native',
-          endpoint,
-          model,
-          hasKey: false,
-          executable: false,
-          error: 'Missing OLLAMA_API_KEY or GEMMA_CLOUD_API_KEY',
-        };
-      }
-      throw new Error('Lane "gemma-cloud" requires OLLAMA_API_KEY or GEMMA_CLOUD_API_KEY.');
-    }
-    return { kind: 'cloud', protocol: 'ollama-native', endpoint, apiKey, model, hasKey: true, executable: true };
   }
 
   // lane === 'gemma' — cloud-first, local fallback
@@ -1693,7 +1362,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-llama4-maverick', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-nemotron-super-49b', 'nvidia-nemotron-nano-vl-8b', 'nvidia-nemotron-mini-4b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-mistral-nemotron', 'nvidia-magistral-small', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-qwen-coder-32b', 'nvidia-phi', 'nvidia-vision-90b', 'nvidia-usdcode', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['deepseek-v4-pro', 'nemotron-3-ultra-550b-a55b', 'kimi-k2.6', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -1811,7 +1480,7 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
       endpoint,
       metadata: { streamed: true, response_id_hash: streamed.finalResponse?.id ? hashPayload(streamed.finalResponse.id) : '' },
     });
-    return { text: output, streamed: true };
+    return { text: output, finishReason: streamed.finalResponse?.status || null, usage: streamed.usage || streamed.finalResponse?.usage || null, streamed: true };
   }
 
   const data = await response.json();
@@ -1833,7 +1502,7 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
     endpoint,
     metadata: { response_id_hash: data.id ? hashPayload(data.id) : '' },
   });
-  return output;
+  return { text: output, finishReason: data.status || null, usage: data.usage || null, streamed: false };
 }
 
 async function readResponsesStream(response, handlers = {}) {
@@ -1896,11 +1565,11 @@ function extractResponseText(data) {
 }
 
 async function runLocalChat(model, promptText, systemText, ledger = {}) {
-  return runOllamaLocalChat(model, promptText, systemText, ledger);
+  return normalizeDispatchResult(await runOllamaLocalChat(model, promptText, systemText, ledger));
 }
 
 async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText, ledger = {}) {
-  return runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger);
+  return normalizeDispatchResult(await runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger));
 }
 
 function normalizeDeepseekPublicModel(model = '') {
@@ -2202,7 +1871,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
           process.stderr.write(`[lane-session] persist failed: ${e.message}\n`);
         }
       }
-      return { text: finalText, streamed: true };
+      return { text: finalText, finishReason: streamed.finishReason || null, usage: streamed.usage || null, streamed: true };
     }
 
     const data = await response.json();
@@ -2339,7 +2008,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
         process.stderr.write(`[lane-session] persist failed: ${e.message}\n`);
       }
     }
-    return finalText;
+    return { text: finalText, finishReason, usage: data.usage || null, streamed: false };
   }
 
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
@@ -2357,12 +2026,14 @@ async function readOpenAICompatibleChatStream(response, onText = () => {}) {
     reasoning: '',
     usage: null,
     responseModel: '',
+    finishReason: null,
   };
 
   await readSseResponse(response, (payload) => {
     if (payload.model) state.responseModel = payload.model;
     if (payload.usage) state.usage = payload.usage;
     const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
+    if (choice?.finish_reason) state.finishReason = choice.finish_reason;
     const deltaObject = choice?.delta || {};
     const delta = deltaObject.content ?? choice?.message?.content ?? choice?.text ?? '';
     const reasoning =
@@ -2392,6 +2063,26 @@ async function fetchChatCompletionsWithRetry(url, options = {}) {
   let lastResponse = null;
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const mockResponse = maybeMockChatCompletionResponse(options, attempt);
+    if (mockResponse) {
+      lastResponse = mockResponse;
+      if (!retryStatuses.has(lastResponse.status) || attempt >= attempts) {
+        return lastResponse;
+      }
+      recordNimTransientIncident({
+        lane: options.lane,
+        model: options.model,
+        endpoint: 'mock-transport',
+        status: lastResponse.status,
+        attempt,
+        maxAttempts: attempts,
+        iteration: options.iteration,
+        action: 'retry',
+      });
+      await sleep(retryConfig.backoffMs?.[attempt - 1] ?? 1000);
+      continue;
+    }
+
     const fetchOpts = {
       method: 'POST',
       headers: options.headers,
@@ -2444,6 +2135,42 @@ async function fetchChatCompletionsWithRetry(url, options = {}) {
   }
 
   return lastResponse;
+}
+
+function maybeMockChatCompletionResponse(options = {}, attempt = 1) {
+  if (process.env.YURI_OFFLOAD_MOCK_TRANSPORT !== '1') return null;
+  const body = options.body || {};
+  const logPath = process.env.YURI_OFFLOAD_MOCK_REQUEST_LOG || '';
+  if (logPath) {
+    try {
+      mkdirSync(path.dirname(logPath), { recursive: true });
+      appendFileSync(logPath, `${JSON.stringify({ attempt, body })}\n`);
+    } catch {}
+  }
+  const statuses = String(process.env.YURI_OFFLOAD_MOCK_STATUSES || '200')
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value));
+  const status = statuses[Math.min(attempt - 1, statuses.length - 1)] || 200;
+  const responseModel = String(body.model || options.model || 'mock-model');
+  const content = process.env.YURI_OFFLOAD_MOCK_CONTENT || 'mock ok';
+  const payload = {
+    model: responseModel,
+    choices: [{ message: { role: 'assistant', content }, finish_reason: 'stop' }],
+    usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+  };
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async text() {
+      return status >= 200 && status < 300
+        ? JSON.stringify(payload)
+        : JSON.stringify({ error: process.env.YURI_OFFLOAD_MOCK_ERROR || `mock status ${status}` });
+    },
+    async json() {
+      return payload;
+    },
+  };
 }
 
 function decorateTransientFetchError(err) {

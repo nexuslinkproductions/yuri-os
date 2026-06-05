@@ -25,13 +25,8 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
     'deepseek',
     'claude-opus-audit',
     'nemotron',
-    'qwen-397b',
-    'mistral-large',
-    'gpt-oss-120b',
-    'minimax-m27',
-    'qwen-coder',
+    'kimi',
   ]);
-  assert.equal(assembly.selectedIds.includes('kimi'), false);
   assert.equal(assembly.selectedIds.includes('codex-spark'), false);
 });
 
@@ -62,8 +57,8 @@ test('Claude Opus member prompt reflects co-main coding plus Codex verification 
 
 test('memory/RAG member prompt uses YURI memory objective and neuro rail evidence', () => {
   const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
-  const qwen = assembly.members.find((member) => member.id === 'qwen-397b');
-  const prompt = buildMemberPrompt(MEMORY_TASK, qwen, {
+  const kimi = assembly.members.find((member) => member.id === 'kimi');
+  const prompt = buildMemberPrompt(MEMORY_TASK, kimi, {
     neuroRail: {
       evidence: {
         active: true,
@@ -146,11 +141,7 @@ test('critical Shintai dispatch fails closed when council degrades below minimum
     deepseek: { ok: true },
     'claude-opus-audit': { ok: false, error: 'down' },
     nemotron: { ok: false, error: 'down' },
-    'qwen-397b': { ok: false, error: 'down' },
-    'mistral-large': { ok: false, error: 'down' },
-    'gpt-oss-120b': { ok: false, error: 'down' },
-    'minimax-m27': { ok: false, error: 'down' },
-    'qwen-coder': { ok: false, error: 'down' },
+    kimi: { ok: false, error: 'down' },
   });
 
   assert.equal(assembly.ok, false);
@@ -169,9 +160,8 @@ test('Shintai health preflight has a bounded default timeout', () => {
 });
 
 test('heavy Shintai lanes get a long health preflight window by default', () => {
-  assert.equal(resolveMemberTimeout({ id: 'qwen-397b' }, 'health', 0), 3600000);
-  assert.equal(resolveMemberTimeout({ id: 'gpt-oss-120b' }, 'health', 0), 3600000);
-  assert.equal(resolveMemberTimeout({ id: 'qwen3-next' }, 'health', 0), 180000);
+  assert.equal(resolveMemberTimeout({ id: 'nemotron' }, 'health', 0), 180000);
+  assert.equal(resolveMemberTimeout({ id: 'kimi' }, 'health', 0), 180000);
 });
 
 test('Shintai health probes do not persist into lane sessions', () => {
@@ -205,10 +195,10 @@ test('Shintai member calls run in parallel and preserve member order', async () 
 
 test('Shintai health preflight preserves scoped assembly instead of rebuilding from roster', () => {
   const member = {
-    id: 'qwen3-next',
+    id: 'kimi',
     displayName: 'Timeout Probe Lane',
-    lane: 'nvidia-qwen3-next',
-    model: 'nvidia-qwen3-next',
+    lane: 'kimi-k2.6',
+    model: 'moonshotai/kimi-k2.6',
     health: { ok: true },
   };
   const assembly = {
@@ -217,7 +207,7 @@ test('Shintai health preflight preserves scoped assembly instead of rebuilding f
     tier: 'standard',
     minSize: 1,
     targetSize: 1,
-    selectedIds: ['qwen3-next'],
+    selectedIds: ['kimi'],
     selected: [member],
     members: [member],
     skipped: [],
@@ -225,12 +215,12 @@ test('Shintai health preflight preserves scoped assembly instead of rebuilding f
   };
 
   const updated = applyHealthPreflightToAssembly(assembly, {
-    'qwen3-next': { ok: false, signal: 'SIGTERM', error: 'timeout' },
+    kimi: { ok: false, signal: 'SIGTERM', error: 'timeout' },
   });
 
   assert.equal(updated.ok, false);
   assert.deepEqual(updated.selectedIds, []);
-  assert.equal(updated.skipped[0].id, 'qwen3-next');
+  assert.equal(updated.skipped[0].id, 'kimi');
   assert.equal(updated.members.some((entry) => entry.id === 'codex'), false);
 });
 

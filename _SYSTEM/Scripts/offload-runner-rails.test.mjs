@@ -55,6 +55,8 @@ function isolatedEnv(tmpDir, port, extra = {}) {
     NVIDIA_API_KEY: 'mock-nvidia-key',
     NVIDIA_KEY_GPT_OSS_120B: '',
     NVIDIA_NIM_BASE_URL: `http://127.0.0.1:${port}/v1`,
+    DEEPSEEK_API_KEY: 'mock-deepseek-key',
+    DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}/v1`,
     OFFLOAD_STREAM: '0',
     TOKEN_LEDGER_AUTO_DRAIN: '0',
     TOKEN_LEDGER_DB_PATH: path.join(tmpDir, 'memory.db'),
@@ -81,116 +83,87 @@ function jsonChatResponse(model, content) {
   });
 }
 
-test('offload runner retries transient NIM failures then falls back to nano Nemotron', { timeout: 15_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-rails-'));
-  const requests = [];
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
+function mockTransportEnv(tmpDir, content = 'plain ok', extra = {}) {
+  return {
+    YURI_OFFLOAD_MOCK_TRANSPORT: '1',
+    YURI_OFFLOAD_MOCK_CONTENT: content,
+    YURI_OFFLOAD_MOCK_REQUEST_LOG: path.join(tmpDir, 'mock-requests.jsonl'),
+    ...extra,
+  };
+}
 
-    let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk.toString();
-    });
-    req.on('end', () => {
-      const body = JSON.parse(raw || '{}');
-      requests.push(body);
-      if (body.model === 'nvidia/nemotron-3-super-120b-a12b') {
-        res.writeHead(503, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: 'mock cold start' }));
-        return;
-      }
-      assert.equal(body.model, 'nvidia/nemotron-3-nano-30b-a3b');
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse(body.model, 'fallback ok'));
-    });
-  });
+function readMockRequests(tmpDir) {
+  return readFileSync(path.join(tmpDir, 'mock-requests.jsonl'), 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
+test('offload runner retries transient failures on the same lane only', { timeout: 15_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-rails-'));
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port);
-    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
+    const env = isolatedEnv(tmpDir, 65530, mockTransportEnv(tmpDir, 'same lane ok', {
+      YURI_OFFLOAD_MOCK_STATUSES: '503,503,200',
+    }));
+    const result = await runOffload(['deepseek-v4-pro', 'say ok'], env);
+    const requests = readMockRequests(tmpDir).map((entry) => entry.body);
 
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /fallback ok/);
-    assert.equal(requests.filter((entry) => entry.model === 'nvidia/nemotron-3-super-120b-a12b').length, 3);
-    assert.equal(requests.filter((entry) => entry.model === 'nvidia/nemotron-3-nano-30b-a3b').length, 1);
-    assert.match(result.stderr, /falling back to nvidia-nemotron-nano-30b/);
+    assert.match(result.stdout, /same lane ok/);
+    assert.equal(requests.length, 3);
+    assert.equal(requests.filter((entry) => entry.model === 'deepseek-v4-pro').length, 3);
+    assert.doesNotMatch(result.stderr, /falling back to|substituting/);
 
     const incidents = readFileSync(path.join(tmpDir, 'nim-transient.jsonl'), 'utf8');
     assert.match(incidents, /"action":"retry"/);
-    assert.match(incidents, /"action":"fallback"/);
+    assert.doesNotMatch(incidents, /"action":"fallback"/);
     const memoryLedger = readFileSync(path.join(tmpDir, 'memory-ledger.jsonl'), 'utf8');
     assert.match(memoryLedger, /"type":"lane_output"/);
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner aborts quarantined lanes when no healthy fallback is available', { timeout: 10_000 }, async () => {
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-no-fallback-'));
+test('offload runner does not substitute quarantined lanes across models', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-no-substitute-'));
   const logPath = path.join(tmpDir, 'kagami-ledger.jsonl');
   const base = Date.parse('2026-05-20T12:00:00.000Z');
-  for (const lane of ['nvidia-nemotron-120b', 'nvidia-nemotron-nano-30b', 'nvidia-mistral-medium']) {
-    for (let i = 0; i < 3; i += 1) {
-      recordCrash(lane, {
-        logPath,
-        timestamp: base + i * 1000,
-        reason: 'provider-503',
-        status: 503,
-      });
-    }
+  for (let i = 0; i < 3; i += 1) {
+    recordCrash('deepseek-v4-pro', {
+      logPath,
+      timestamp: base + i * 1000,
+      reason: 'provider-503',
+      status: 503,
+    });
   }
 
   try {
-    const env = isolatedEnv(tmpDir, 65530, { YURI_KAGAMI_LEDGER_PATH: logPath });
-    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
+    const env = isolatedEnv(tmpDir, 65530, {
+      YURI_KAGAMI_LEDGER_PATH: logPath,
+      ...mockTransportEnv(tmpDir, 'quarantine observed'),
+    });
+    const result = await runOffload(['deepseek-v4-pro', 'say ok'], env);
+    const requests = readMockRequests(tmpDir).map((entry) => entry.body);
 
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /NO_HEALTHY_LANE_FOR_TASK/);
-    const ledger = readFileSync(logPath, 'utf8');
-    assert.match(ledger, /"event":"escalation"/);
-    assert.match(ledger, /NO_HEALTHY_LANE_FOR_TASK/);
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /quarantine observed/);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].model, 'deepseek-v4-pro');
+    assert.doesNotMatch(result.stderr, /substituting|NO_HEALTHY_LANE_FOR_TASK/);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner treats user shell blocks as prompt text', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
+test('offload runner treats user shell blocks as prompt text', { timeout: 10_000 }, async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-input-rails-'));
-  let receivedPrompt = '';
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-
-    let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk.toString();
-    });
-    req.on('end', () => {
-      const body = JSON.parse(raw || '{}');
-      receivedPrompt = body.messages?.at(-1)?.content || '';
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse(body.model, 'plain ok'));
-    });
-  });
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port);
+    const env = isolatedEnv(tmpDir, 65530, mockTransportEnv(tmpDir, 'plain ok'));
     const result = await runOffload([
-      'nvidia-mistral-medium',
+      'deepseek-v4-pro',
       'inspect this only',
       '```bash',
       'echo SHOULD_NOT_RUN',
@@ -200,90 +173,24 @@ test('offload runner treats user shell blocks as prompt text', { timeout: 10_000
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stderr, /user shell block treated as prompt text/);
     assert.match(result.stdout, /plain ok/);
+    const receivedPrompt = readMockRequests(tmpDir).at(-1).body.messages?.at(-1)?.content || '';
     assert.match(receivedPrompt, /echo SHOULD_NOT_RUN/);
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner substitutes quarantined NIM lanes before dispatch', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-quarantine-'));
-  const logPath = path.join(tmpDir, 'kagami-ledger.jsonl');
-  const base = Date.parse('2026-05-20T12:00:00.000Z');
-  for (let i = 0; i < 3; i += 1) {
-    recordCrash('nvidia-nemotron-120b', {
-      logPath,
-      timestamp: base + i * 1000,
-      reason: 'provider-503',
-      status: 503,
-    });
-  }
-
-  const requests = [];
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-
-    let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk.toString();
-    });
-    req.on('end', () => {
-      const body = JSON.parse(raw || '{}');
-      requests.push(body);
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse(body.model, 'substituted ok'));
-    });
-  });
-
-  try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port, { YURI_KAGAMI_LEDGER_PATH: logPath });
-    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
-
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /substituted ok/);
-    assert.equal(requests.length, 1);
-    assert.equal(requests[0].model, 'nvidia/nemotron-3-nano-30b-a3b');
-    assert.match(result.stderr, /quarantined nvidia-nemotron-120b; substituting nvidia-nemotron-nano-30b/);
-  } finally {
-    server.close();
-    rmSync(tmpDir, { recursive: true, force: true });
-  }
-});
-
-test('offload runner preserves lane output as advisory when declared evidence ids are missing', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
+test('offload runner preserves lane output as advisory when declared evidence ids are missing', { timeout: 10_000 }, async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-output-rails-'));
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-
-    req.resume();
-    req.on('end', () => {
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse('nvidia/mistral-medium-3.1', 'model output should be preserved'));
-    });
-  });
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port, {
+    const env = isolatedEnv(tmpDir, 65530, {
       YURI_OUTPUT_REQUIRED_EVIDENCE_IDS: 'source-a,source-b',
       YURI_OUTPUT_EVIDENCE_IDS: 'source-a',
+      ...mockTransportEnv(tmpDir, 'model output should be preserved'),
     });
     const outputFile = path.join(tmpDir, 'advisory-output.txt');
-    const result = await runOffload(['nvidia-mistral-medium', '--output-file', outputFile, 'say ok'], env);
+    const result = await runOffload(['deepseek-v4-pro', '--output-file', outputFile, 'say ok'], env);
 
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout.includes('model output should be preserved'), true);
@@ -296,33 +203,16 @@ test('offload runner preserves lane output as advisory when declared evidence id
     assert.match(memoryLedger, /"ok":true/);
     assert.match(memoryLedger, /required output evidence missing: source-b/);
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner denies protected --output-file targets', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
+test('offload runner denies protected --output-file targets', { timeout: 10_000 }, async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-protected-output-'));
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-
-    req.resume();
-    req.on('end', () => {
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse('nvidia/mistral-medium-3.1', 'plain ok'));
-    });
-  });
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port);
-    const result = await runOffload(['nvidia-mistral-medium', '--output-file', 'backend/data/blocked-output.txt', 'say ok'], env);
+    const env = isolatedEnv(tmpDir, 65530, mockTransportEnv(tmpDir, 'plain ok'));
+    const result = await runOffload(['deepseek-v4-pro', '--output-file', 'backend/data/blocked-output.txt', 'say ok'], env);
 
     assert.equal(result.status, 2);
     assert.match(result.stdout, /plain ok/);
@@ -331,137 +221,79 @@ test('offload runner denies protected --output-file targets', { timeout: 10_000 
     assert.match(guardrailLog, /output-file/);
     assert.match(guardrailLog, /backend\/data\/blocked-output\.txt/);
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner blocks dead NIM aliases before provider dispatch', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-dead-nim-'));
-  let requests = 0;
-  const server = http.createServer((req, res) => {
-    requests += 1;
-    res.writeHead(500, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ error: 'dead lane should not call provider' }));
-  });
-
-  try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port);
-    const result = await runOffload(['nvidia-nemotron', 'say ok'], env);
-
-    assert.notEqual(result.status, 0);
-    assert.equal(requests, 0);
-    assert.match(result.stderr, /DEAD_LANE_EXECUTION_BLOCKED/);
-  } finally {
-    server.close();
-    rmSync(tmpDir, { recursive: true, force: true });
-  }
-});
-
-test('offload runner prepares Minimax M2.7 NIM lane with dedicated key env', { timeout: 10_000 }, async () => {
+test('offload runner marks missing configured lane key as exit 3', { timeout: 10_000 }, async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-minimax-'));
   try {
     const env = isolatedEnv(tmpDir, 65531, {
       NVIDIA_API_KEY: '',
-      NVIDIA_KEY_MINIMAX_M27: 'mock-minimax-key',
+      DEEPSEEK_API_KEY: '',
+      CODE_DEEPSEEK_API_KEY: '',
+      YURI_DISABLE_KEYCHAIN_LOOKUP: '1',
     });
-    const result = await runOffload(['nvidia-minimax-m27', '--dry-run', 'pong'], env);
-    const payload = JSON.parse(result.stdout);
+    const result = await runOffload(['deepseek-v4-pro', 'pong'], env);
 
-    assert.equal(result.status, 0, result.stderr);
-    assert.equal(payload.lane, 'nvidia-minimax-m27');
-    assert.equal(payload.model, 'minimaxai/minimax-m2.7');
-    assert.equal(payload.apiKey, '[set]');
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^OFFLOAD_FAIL code=3 lane=deepseek-v4-pro reason=SKIPPED_MISSING_KEY\n$/);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload wrapper routes Minimax M2.7 manual override through dedicated lane', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-minimax-wrapper-'));
-  const requests = [];
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
+test('offload runner marks removed or unknown lane as exit 3', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-removed-lane-'));
+  try {
+    const env = isolatedEnv(tmpDir, 65531);
+    const result = await runOffload(['nvidia-minimax-m27', 'pong'], env);
 
-    let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk.toString();
-    });
-    req.on('end', () => {
-      const body = JSON.parse(raw || '{}');
-      requests.push({
-        auth: req.headers.authorization,
-        model: body.model,
-      });
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse(body.model, 'PONG'));
-    });
-  });
+    assert.equal(result.status, 3);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^OFFLOAD_FAIL code=3 lane=nvidia-minimax-m27 reason=Unsupported_lane:_nvidia-minimax-m27\n$/);
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload wrapper routes Kimi through NVIDIA NIM vendor model', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-kimi-wrapper-'));
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port, {
-      NVIDIA_API_KEY: '',
-      NVIDIA_KEY_MINIMAX_M27: 'mock-minimax-key',
+    const env = isolatedEnv(tmpDir, 65530, {
+      NVIDIA_API_KEY: 'mock-nvidia-key',
       OFFLOAD_QUEUE_BYPASS: '1',
+      ...mockTransportEnv(tmpDir, 'PONG'),
     });
-    const result = await runOffloadWrapper(['-m', 'nvidia-minimax-m27', 'Reply PONG only.'], env);
+    const result = await runOffloadWrapper(['-m', 'kimi-k2.6', 'Reply PONG only.'], env);
+    const requests = readMockRequests(tmpDir).map((entry) => entry.body);
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /PONG/);
-    assert.match(result.stderr, /MANUAL_OVERRIDE :: model=nvidia-minimax-m27/);
-    assert.match(result.stderr, /ROUTING_TO_MINIMAX_M27_NIM/);
+    assert.match(result.stderr, /MANUAL_OVERRIDE :: model=kimi-k2.6/);
+    assert.match(result.stderr, /ROUTING_TO_KIMI_NIM/);
     assert.doesNotMatch(result.stderr, /UNKNOWN_MODEL/);
     assert.equal(requests.length, 1);
-    assert.equal(requests[0].auth, 'Bearer mock-minimax-key');
-    assert.equal(requests[0].model, 'minimaxai/minimax-m2.7');
+    assert.equal(requests[0].model, 'moonshotai/kimi-k2.6');
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload wrapper forwards no-session to NIM runner', { timeout: 10_000 }, async (t) => {
-  if (!(await allowOnlyIfBindable(t))) return;
+test('offload wrapper forwards no-session to NIM runner', { timeout: 10_000 }, async () => {
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-no-session-'));
   const sessionDir = path.join(tmpDir, 'lane-sessions');
-  const requests = [];
-  const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-
-    let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk.toString();
-    });
-    req.on('end', () => {
-      const body = JSON.parse(raw || '{}');
-      requests.push(body);
-      res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse(body.model, 'PONG'));
-    });
-  });
 
   try {
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const { port } = server.address();
-    const env = isolatedEnv(tmpDir, port, {
+    const env = isolatedEnv(tmpDir, 65530, {
       OFFLOAD_QUEUE_BYPASS: '1',
       YURI_LANE_SESSION_DIR: sessionDir,
+      ...mockTransportEnv(tmpDir, 'PONG'),
     });
-    const result = await runOffloadWrapper(['-m', 'nvidia-qwen-397b', '--no-tools', '--no-session', 'Reply PONG only.'], env);
+    const result = await runOffloadWrapper(['-m', 'nemotron-3-ultra-550b-a55b', '--no-tools', '--no-session', 'Reply PONG only.'], env);
+    const requests = readMockRequests(tmpDir).map((entry) => entry.body);
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /PONG/);
@@ -469,82 +301,32 @@ test('offload wrapper forwards no-session to NIM runner', { timeout: 10_000 }, a
     assert.doesNotMatch(result.stderr, /lane-session.*persisted/);
     assert.equal(existsSync(sessionDir) ? readdirSync(sessionDir).length : 0, 0);
   } finally {
-    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
 
-test('offload runner prepares curated NIM expansion lanes', { timeout: 10_000 }, async () => {
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-nim-expansion-'));
-  const expected = [
-    ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
-    ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
-    ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
-    ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
-    ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
-    ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
-  ];
-
+test('offload runner dry-runs only the three configured offload lanes', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-three-lanes-'));
   try {
     const env = isolatedEnv(tmpDir, 65532);
-    for (const [lane, model] of expected) {
+    const expected = [
+      ['deepseek-v4-pro', 'deepseek-v4-pro', 131072],
+      ['nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b', 32768],
+      ['kimi-k2.6', 'moonshotai/kimi-k2.6', 32768],
+    ];
+    for (const [lane, model, maxTokens] of expected) {
       const result = await runOffload([lane, '--dry-run', 'pong'], env);
       const payload = JSON.parse(result.stdout);
-
       assert.equal(result.status, 0, result.stderr);
       assert.equal(payload.lane, lane);
       assert.equal(payload.model, model);
+      assert.equal(payload.maxTokens, maxTokens);
       assert.equal(payload.apiKey, '[set]');
-      assert.equal(payload.tools, true);
     }
-  } finally {
-    rmSync(tmpDir, { recursive: true, force: true });
-  }
-});
 
-test('offload wrapper dry-runs curated NIM expansion aliases through manual override', { timeout: 10_000 }, async () => {
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-nim-wrapper-expansion-'));
-  const expected = [
-    ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
-    ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
-    ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
-    ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
-    ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
-    ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
-  ];
-
-  try {
-    const env = isolatedEnv(tmpDir, 65533, { OFFLOAD_QUEUE_BYPASS: '1' });
-    for (const [lane, model] of expected) {
-      const result = await runOffloadWrapper(['-m', lane, '--dry-run', 'Reply PONG only.'], env);
-      const payload = JSON.parse(result.stdout);
-
-      assert.equal(result.status, 0, result.stderr);
-      assert.match(result.stderr, new RegExp(`ROUTING_TO_NVIDIA_NIM \\[${model.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`));
-      assert.equal(payload.lane, 'nvidia-nim');
-      assert.equal(payload.model, model);
-    }
-  } finally {
-    rmSync(tmpDir, { recursive: true, force: true });
-  }
-});
-
-test('offload wrapper blocks calibrated-dead NIM expansion aliases before provider dispatch', { timeout: 10_000 }, async () => {
-  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-dead-nim-wrapper-expansion-'));
-  const expected = ['nvidia-magistral-small', 'nvidia-qwen-coder-32b', 'nvidia-usdcode'];
-
-  try {
-    const env = isolatedEnv(tmpDir, 65534, { OFFLOAD_QUEUE_BYPASS: '1' });
-    for (const lane of expected) {
-      const result = await runOffloadWrapper(['-m', lane, '--dry-run', 'Reply PONG only.'], env);
-      const payload = JSON.parse(result.stdout);
-
-      assert.equal(result.status, 0, result.stderr);
-      assert.match(result.stderr, new RegExp(`DEAD_NIM_LANE_CHECK \\[${lane}\\]`));
-      assert.equal(payload.status, 'DEAD_LANE_EXECUTION_BLOCKED');
-      assert.equal(payload.executable, false);
-      assert.match(payload.error, /Dead NIM lane blocked/);
-    }
+    const removed = await runOffload(['nvidia-minimax-m27', '--dry-run', 'pong'], env);
+    assert.equal(removed.status, 3);
+    assert.match(removed.stderr, /^OFFLOAD_FAIL code=3 lane=nvidia-minimax-m27 reason=Unsupported_lane:_nvidia-minimax-m27\n$/);
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }

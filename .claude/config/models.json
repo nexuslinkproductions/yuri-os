@@ -45,10 +45,14 @@
   "deepseek_v4": {
     "docs_as_of": "2026-05-02",
     "base_urls": {
-      "nvidia_nim": "https://integrate.api.nvidia.com/v1"
+      "nvidia_nim": "https://integrate.api.nvidia.com/v1",
+      "direct": "https://api.deepseek.com/v1"
     },
     "api_key_env": "NVIDIA_API_KEY",
-    "direct_api_status": "retired",
+    "direct_api_status": "active",
+    "direct_api_key_env": "DEEPSEEK_API_KEY",
+    "direct_base_url_env": "DEEPSEEK_BASE_URL",
+    "canonical_route_note": "2026-06-05 owner decision: canonical deepseek route is the DIRECT api.deepseek.com/v1 (matches the live runner); retired status reverted.",
     "models": {
       "flash": "deepseek-v4-flash",
       "pro": "deepseek-v4-pro",
@@ -99,6 +103,45 @@
     "deprecation_utc": {
       "deepseek-chat": "2026-07-24T15:59:00Z",
       "deepseek-reasoner": "2026-07-24T15:59:00Z"
+    }
+  },
+  "offload_lanes": {
+    "_comment": "SINGLE SOURCE OF TRUTH for the 3 live reasoning lanes (2026-06-05 consolidation). context_window = INPUT cap (all 1,000,000, owner-confirmed); max_output = per-reasoning-depth OUTPUT cap (a SEPARATE knob — DeepSeek counts reasoning_tokens against it). Consumed by offload-runner resolveReasoningBudget + the dispatch adapters. The legacy ~50-lane laneMap is being hard-removed; only these three remain.",
+    "deepseek-v4-pro": {
+      "model": "deepseek-v4-pro",
+      "provider": "deepseek-direct",
+      "endpoint_env": "DEEPSEEK_BASE_URL",
+      "endpoint_default": "https://api.deepseek.com/v1",
+      "api_key_env": "DEEPSEEK_API_KEY",
+      "protocol": "openai-compatible",
+      "context_window": 1000000,
+      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 131072 },
+      "max_output_source": "DeepSeek API live-verified accepting up to 131072 (offload-runner.mjs:1358 comment).",
+      "timeout_ms": 180000
+    },
+    "nemotron-3-ultra-550b-a55b": {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "provider": "nvidia-nim",
+      "endpoint_env": "NVIDIA_NIM_BASE_URL",
+      "endpoint_default": "https://integrate.api.nvidia.com/v1",
+      "api_key_env": "NVIDIA_API_KEY",
+      "protocol": "openai-compatible",
+      "context_window": 1000000,
+      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
+      "max_output_source": "OPEN — NIM write ceiling for nemotron-3-ultra UNVERIFIED; conservative 32768 until a live --reasoning max probe reads finish_reason + usage. Do not raise blind.",
+      "timeout_ms": 240000
+    },
+    "kimi-k2.6": {
+      "model": "moonshotai/kimi-k2.6",
+      "provider": "nvidia-nim",
+      "endpoint_env": "NVIDIA_NIM_BASE_URL",
+      "endpoint_default": "https://integrate.api.nvidia.com/v1",
+      "api_key_env": "NVIDIA_API_KEY",
+      "protocol": "openai-compatible",
+      "context_window": 1000000,
+      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
+      "max_output_source": "OPEN — reviving the NIM kimi route (was flagged dead in live_status); ceiling UNVERIFIED, conservative 32768 until probed. Owner decision 2026-06-05: route kimi via NIM (not KIMI_BASE_URL/moonshot).",
+      "timeout_ms": 240000
     }
   },
   "nvidia_nim": {

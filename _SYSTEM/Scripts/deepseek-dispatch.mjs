@@ -30,8 +30,10 @@ import {
   formatVerifyChecklist,
   isProtectedPath,
 } from './reasoning-lane-dispatch.mjs';
+import { getOffloadLane } from './offload-lane-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
+const DEEPSEEK_CFG = getOffloadLane('deepseek-v4-pro');
 
 const DEEPSEEK_LANE = {
   // DeepSeek V4 Pro is a thinking/reasoning lane on the tools-enabled offload
@@ -40,7 +42,7 @@ const DEEPSEEK_LANE = {
   // the runner's depth->maxTokens budget to the top tier (offload.sh + the
   // deepseek runtime normalize it). The offload-runner lane default is 'max' too,
   // so this matches the lane policy; override with --reasoning only for cheap runs.
-  model: 'deepseek-v4-pro',
+  model: DEEPSEEK_CFG.model,
   label: 'deepseek',
   defaultReasoning: 'max',
 };

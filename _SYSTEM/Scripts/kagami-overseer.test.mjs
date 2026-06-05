@@ -75,14 +75,15 @@ test('Codex is exempt from quarantine', () => withLedger((logPath) => {
   assert.equal(summary.status, 'ok');
 }));
 
-test('fallback selection skips quarantined candidates and model slugs normalize to canonical lanes', () => withLedger((logPath) => {
+test('model slugs normalize to consolidated canonical lanes', () => withLedger((logPath) => {
   const base = Date.parse('2026-05-20T12:00:00.000Z');
   for (let i = 0; i < 3; i += 1) {
-    recordCrash('nvidia-nemotron-nano-30b', { logPath, timestamp: base + i * 1000, reason: 'provider-503' });
+    recordCrash('kimi-k2.6', { logPath, timestamp: base + i * 1000, reason: 'provider-503' });
   }
 
-  assert.equal(canonicalLaneForModel('nvidia/nemotron-3-super-120b-a12b'), 'nvidia-nemotron-120b');
-  assert.equal(selectFallbackLane('nvidia-nemotron-120b', { logPath, now: base + 4000 }), 'nvidia-mistral-medium');
+  assert.equal(canonicalLaneForModel('nvidia/nemotron-3-ultra-550b-a55b'), 'nemotron-3-ultra-550b-a55b');
+  assert.equal(canonicalLaneForModel('moonshotai/kimi-k2.6'), 'kimi-k2.6');
+  assert.equal(selectFallbackLane('nemotron-3-ultra-550b-a55b', { logPath, now: base + 4000 }), '');
 }));
 
 test('auto-unquarantine clears stale quarantine only when requested', () => withLedger((logPath) => {

@@ -17,13 +17,13 @@ hydrate_keychain_var() {
   value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
   [ -n "$value" ] && export "$key=$value"
 }
-for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY; do
   hydrate_keychain_var "$_lane_var"
 done
 unset _lane_var
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -96,41 +96,15 @@ list_models() {
   printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
 
   echo
-  echo "DeepSeek direct lanes:"
-  printf '  [%-30s] %s\n' "deepseek-v4-flash" "V4 Flash via api.deepseek.com; prompt-cache metrics recorded"
+  echo "Offload reasoning lanes:"
   printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via api.deepseek.com; reasoning depth via --reasoning"
-  printf '  [%-30s] %s\n' "deepseek" "compat default -> direct deepseek-v4-flash"
-  echo "  Deprecated DeepSeek aliases normalize into the two official lanes above."
-
-  echo
-  echo "OpenRouter free lanes:"
-  printf '  [%-30s] %s\n' "openrouter/free" "free router; picks a currently available free model"
-  printf '  [%-30s] %s\n' "provider/model:free" "any OpenRouter free variant, for example inclusionai/ring-2.6-1t:free"
-
-  echo
-  echo "NVIDIA hosted lanes:"
-  printf '  [%-30s] %s\n' "nvidia-nemotron-120b" "Nemotron 3 Super 120B A12B"
-  printf '  [%-30s] %s\n' "nvidia-nemotron-super-49b" "Nemotron Super 49B v1.5 daily reasoning"
-  printf '  [%-30s] %s\n' "nvidia-nemotron-nano-30b" "Nemotron 3 Nano 30B A3B"
-  printf '  [%-30s] %s\n' "nvidia-nemotron-nano-vl-8b" "Nemotron Nano VL 8B visual probe"
-  printf '  [%-30s] %s\n' "nvidia-nemotron-mini-4b" "Nemotron Mini 4B cheap sentinel"
-  printf '  [%-30s] %s\n' "nvidia-mistral-nemotron" "Mistral-Nemotron hybrid critique lane"
-  printf '  [%-30s] %s\n' "nvidia-magistral-small" "Magistral Small reasoning critic"
-  printf '  [%-30s] %s\n' "nvidia-qwen-397b" "Qwen3.5 397B A17B"
-  printf '  [%-30s] %s\n' "nvidia-qwen3.5-397b" "alias → nvidia-qwen-397b"
-  printf '  [%-30s] %s\n' "nvidia-qwen-coder" "Qwen3 Coder 480B A35B"
-  printf '  [%-30s] %s\n' "nvidia-qwen-coder-32b" "Qwen2.5 Coder 32B cheaper code fallback"
-  printf '  [%-30s] %s\n' "nvidia-qwen3-next" "Qwen3 Next 80B A3B"
-  printf '  [%-30s] %s\n' "nvidia-llama4-maverick" "Llama 4 Maverick multimodal generalist"
-  printf '  [%-30s] %s\n' "nvidia-vision-90b" "Llama 3.2 90B vision audit lane"
-  printf '  [%-30s] %s\n' "nvidia-usdcode" "NVIDIA USDCode for 3D scene/mechanics work"
-  printf '  [%-30s] %s\n' "nvidia-minimax-m27" "Minimax M2.7 via NIM; prefers NVIDIA_KEY_MINIMAX_M27"
+  printf '  [%-30s] %s\n' "nemotron-3-ultra-550b-a55b" "Nemotron 3 Ultra via NVIDIA NIM"
+  printf '  [%-30s] %s\n' "kimi-k2.6" "Kimi K2.6 via NVIDIA NIM"
 
   echo
   echo "Additive Ollama lanes:"
   printf '  [%-30s] %s\n' "ollama" "local-first utility lane, cloud fallback only if configured"
   printf '  [%-30s] %s\n' "ollama-local" "local-only private utility lane"
-  printf '  [%-30s] %s\n' "ollama-cloud" "temporary Ollama Cloud fallback using OLLAMA_API_KEY"
 
   echo
   echo "Needle local runtime:"
@@ -156,7 +130,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
+    deepseek-v4-pro|nemotron-3-ultra-550b-a55b|kimi-k2.6|nvidia/nemotron-3-ultra-550b-a55b|moonshotai/kimi-k2.6|kimi|nemotron|deepseek|nvidia/*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -165,13 +139,13 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle)
+    deepseek|deepseek-v4-pro|nemotron|nemotron-3-ultra-550b-a55b|kimi|kimi-k2.6|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
       return 0
       ;;
   esac
 
   case "$token" in
-    deepseek-v4-*|kimi*|moonshot*|ollama*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
+    nvidia/nemotron-3-ultra-550b-a55b|moonshotai/kimi-k2.6|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
       return 0
       ;;
   esac
@@ -209,7 +183,7 @@ run_offload_runner() {
 
   local env_args=(OFFLOAD_PROMPT_TEXT="$prompt")
   case "$lane" in
-    deepseek|deepseek-v4-*|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
+    deepseek|deepseek-v4-pro)
       if [[ -n "$write_scope" ]]; then
         env_args+=(DEEPSEEK_WRITE_SCOPE="$write_scope")
       fi
@@ -260,8 +234,8 @@ normalize_deepseek_model() {
       model="deepseek-v4-pro"
       ;;
     deepseek-chat)
-      printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-flash" >&2
-      model="deepseek-v4-flash"
+      printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-pro" >&2
+      model="deepseek-v4-pro"
       ;;
     deepseek-v4-pro-lite-budget)
       printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-pro --reasoning low" >&2
@@ -320,54 +294,17 @@ dry_run_model_override() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro or deepseek-v4-flash" >&2
+        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro" >&2
         return 2
         ;;
-      nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
-        printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
-        run_offload_runner "$target_model" "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      nvidia-magistral-small|nvidia-qwen-coder-32b|nvidia-usdcode)
-        printf '%s\n' "⬡ DEAD_NIM_LANE_CHECK [$target_model]..." >&2
-        run_offload_runner "$target_model" "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*)
-        case "$target_model" in
-          nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
-          nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
-          nvidia-nemotron-super-49b) _nim_model="nvidia/llama-3.3-nemotron-super-49b-v1.5" ;;
-          nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b) _nim_model="nvidia/nemotron-3-nano-30b-a3b" ;;
-          nvidia-nemotron-nano-vl-8b) _nim_model="nvidia/llama-3.1-nemotron-nano-vl-8b-v1" ;;
-          nvidia-nemotron-mini-4b) _nim_model="nvidia/nemotron-mini-4b-instruct" ;;
-          nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
-          nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
-          nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
-          nvidia-llama4-maverick) _nim_model="meta/llama-4-maverick-17b-128e-instruct" ;;
-          nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
-          nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
-          nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
-          nvidia-mistral-nemotron) _nim_model="mistralai/mistral-nemotron" ;;
-          nvidia-magistral-small) _nim_model="mistralai/magistral-small-2506" ;;
-          nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
-          nvidia-qwen-397b|nvidia-qwen3.5-397b) _nim_model="qwen/qwen3.5-397b-a17b" ;;
-          nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
-          nvidia-qwen-coder-32b)  _nim_model="qwen/qwen2.5-coder-32b-instruct" ;;
-          nvidia-phi)             _nim_model="microsoft/phi-4" ;;
-          nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;
-          nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
-          nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
-          nvidia-vision-90b)      _nim_model="meta/llama-3.2-90b-vision-instruct" ;;
-          nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
-          nvidia-dracarys)    _nim_model="abacusai/dracarys-llama-3.1-70b-instruct" ;;
-          nvidia-glm)         _nim_model="z-ai/glm-5.1" ;;
-          nvidia-ising)       _nim_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
-          nvidia-qwen3-next)  _nim_model="qwen/qwen3-next-80b-a3b-instruct" ;;
-          nvidia-usdcode)     _nim_model="nvidia/usdcode" ;;
-          nvidia/*)               _nim_model="$target_model" ;;
-          *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
-        esac
+      nemotron|nemotron-3-ultra-550b-a55b|nvidia/nemotron-3-ultra-550b-a55b)
+        _nim_model="nvidia/nemotron-3-ultra-550b-a55b"
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
         run_offload_runner nvidia-nim "$prompt" --dry-run --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
+        ;;
+      kimi|kimi-k2.6|moonshotai/kimi-k2.6)
+        printf '%s\n' "⬡ ROUTING_TO_KIMI_NIM..." >&2
+        run_offload_runner kimi-k2.6 "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -380,7 +317,7 @@ dry_run_model_override() {
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
         ;;
-      deepseek-v4-flash|deepseek-v4-pro|deepseek)
+      deepseek-v4-pro|deepseek)
         # DeepSeek dispatch: do not force CLI tool flags. Tool/skill intent belongs
         # in the prompt contract unless the caller explicitly overrides here.
         local _ds_tool_args=()
@@ -390,11 +327,11 @@ dry_run_model_override() {
           _ds_tool_args=(--no-tools)
         fi
         case "$target_model" in
-          deepseek-v4-flash|deepseek-v4-pro)
+          deepseek-v4-pro)
             run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
             ;;
           deepseek)
-            run_offload_runner deepseek-v4-flash "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+            run_offload_runner deepseek-v4-pro "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
             ;;
         esac
         ;;
@@ -433,10 +370,9 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
         "$SCRIPT_DIR/ai" claude "$prompt"
         ;;
-      # Deprecated Moonshot/Kimi compatibility path. Keep manual aliasing only.
-      kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)
-        printf '%s\n' "⬡ ROUTING_TO_KIMI..." >&2
-        run_offload_runner moonshot "$prompt" --model "$target_model"
+      kimi-k2.6|kimi|moonshotai/kimi-k2.6)
+        printf '%s\n' "⬡ ROUTING_TO_KIMI_NIM..." >&2
+        run_offload_runner kimi-k2.6 "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
@@ -446,7 +382,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.OFFLOAD_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
         ;;
-      deepseek-v4-flash|deepseek-v4-pro)
+      deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
         run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
@@ -455,56 +391,15 @@ dispatch_model() {
         run_offload_runner deepseek-local "$prompt" --model "$target_model" --dry-run
         ;;
       deepseek)
-        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [deepseek-v4-flash]..." >&2
-        run_offload_runner deepseek-v4-flash "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [deepseek-v4-pro]..." >&2
+        run_offload_runner deepseek-v4-pro "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro or deepseek-v4-flash" >&2
+        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro" >&2
         return 2
         ;;
-      nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
-        printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
-        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      nvidia-magistral-small|nvidia-qwen-coder-32b|nvidia-usdcode)
-        printf '%s\n' "⬡ DEAD_NIM_LANE_BLOCKED [$target_model]..." >&2
-        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*)
-        case "$target_model" in
-          nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
-          nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
-          nvidia-nemotron-super-49b) _nim_model="nvidia/llama-3.3-nemotron-super-49b-v1.5" ;;
-          nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b) _nim_model="nvidia/nemotron-3-nano-30b-a3b" ;;
-          nvidia-nemotron-nano-vl-8b) _nim_model="nvidia/llama-3.1-nemotron-nano-vl-8b-v1" ;;
-          nvidia-nemotron-mini-4b) _nim_model="nvidia/nemotron-mini-4b-instruct" ;;
-          nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
-          nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
-          nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
-          nvidia-llama4-maverick) _nim_model="meta/llama-4-maverick-17b-128e-instruct" ;;
-          nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
-          nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
-          nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
-          nvidia-mistral-nemotron) _nim_model="mistralai/mistral-nemotron" ;;
-          nvidia-magistral-small) _nim_model="mistralai/magistral-small-2506" ;;
-          nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
-          nvidia-qwen-397b|nvidia-qwen3.5-397b) _nim_model="qwen/qwen3.5-397b-a17b" ;;
-          nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
-          nvidia-qwen-coder-32b)  _nim_model="qwen/qwen2.5-coder-32b-instruct" ;;
-          nvidia-phi)             _nim_model="microsoft/phi-4" ;;
-          nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;
-          nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
-          nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
-          nvidia-vision-90b)      _nim_model="meta/llama-3.2-90b-vision-instruct" ;;
-          nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
-          nvidia-dracarys)    _nim_model="abacusai/dracarys-llama-3.1-70b-instruct" ;;
-          nvidia-glm)         _nim_model="z-ai/glm-5.1" ;;
-          nvidia-ising)       _nim_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
-          nvidia-qwen3-next)  _nim_model="qwen/qwen3-next-80b-a3b-instruct" ;;
-          nvidia-usdcode)     _nim_model="nvidia/usdcode" ;;
-          nvidia/*)               _nim_model="$target_model" ;;  # pass full NIM path directly
-          *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
-        esac
+      nemotron|nemotron-3-ultra-550b-a55b|nvidia/nemotron-3-ultra-550b-a55b)
+        _nim_model="nvidia/nemotron-3-ultra-550b-a55b"
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
         run_offload_runner nvidia-nim "$prompt" --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
         ;;
@@ -524,7 +419,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
-      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud)
+      triage-local|summarize-local|code-local|ollama|ollama-local|reason-cloud|code-cloud|gemma|gemma-local)
         if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2
         run_offload_runner "$target_model" "$prompt"
@@ -658,7 +553,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
   if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
-    FALLBACK_MODEL="deepseek-v4-flash"
+FALLBACK_MODEL="deepseek-v4-pro"
     case "$(printf '%s' "$ROUTE_INTENT" | tr 'A-Z' 'a-z')" in
       architecture_review|audit_security|strategy|review|code_edit_large)
         FALLBACK_MODEL="deepseek-v4-pro"
@@ -696,7 +591,7 @@ RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || 
 INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
 
 if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
-  FALLBACK_MODEL="deepseek-v4-flash"
+  FALLBACK_MODEL="deepseek-v4-pro"
   case "$(printf '%s' "$ROUTE_INTENT" | tr 'A-Z' 'a-z')" in
     architecture_review|audit_security|strategy|review|code_edit_large)
       FALLBACK_MODEL="deepseek-v4-pro"
@@ -711,7 +606,7 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "    offload --model codex-spark \"<prompt>\"          # bounded Codex Spark lane" >&2
   echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
-  echo "    ai @deepseek-v4-flash \"<prompt>\"                 # DeepSeek cloud flash" >&2
+  echo "    ai @deepseek-v4-pro \"<prompt>\"                   # DeepSeek cloud pro" >&2
   MODEL="$FALLBACK_MODEL"
   RUNTIME="cloud"
 fi
@@ -722,8 +617,8 @@ printf '%s\n' "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$
 # This eliminates rate-limit time gates — work completes on fallback rather than blocking.
 if ! dispatch_model "$MODEL" "$PROMPT"; then
   FAIL_EXIT=$?
-  if [[ "$MODEL" != "deepseek-v4-flash" && "$MODEL" != "deepseek-v4-pro" && "$MODEL" != "deepseek" ]]; then
-    AUTO_FALLBACK="deepseek-v4-flash"
+  if [[ "$MODEL" != "deepseek-v4-pro" && "$MODEL" != "deepseek" ]]; then
+    AUTO_FALLBACK="deepseek-v4-pro"
     [[ "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "high" || "$(printf '%s' "$REASONING_DEPTH" | tr 'A-Z' 'a-z')" == "xhigh" ]] && AUTO_FALLBACK="deepseek-v4-pro"
     printf '%s\n' "⬡ LANE_FAILURE [model=$MODEL exit=$FAIL_EXIT] — auto-fallback to $AUTO_FALLBACK" >&2
     dispatch_model "$AUTO_FALLBACK" "$PROMPT"
