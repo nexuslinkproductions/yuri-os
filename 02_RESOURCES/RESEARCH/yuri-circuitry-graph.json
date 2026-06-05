@@ -139,7 +139,7 @@
         "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs"
       ],
       "triggeredBy": "import — traceDispatchEvent from offload-runner/shintai-dispatch (retired path)",
-      "description": "The LEGACY ΔU surface that wired the old dispatch paths (offload-runner, shintai-dispatch) into a synthetic ΔU=0 (or action-mode real-ΔU) trace, default-off and error-isolated. Still fires via traceDispatchEvent if those surfaces run, but the live everyday ΔU now flows through the energy-tick PostToolUse hook, not here."
+      "description": "The ΔU surface that wires the dispatch paths (llm-lane, shintai-dispatch) into a synthetic ΔU=0 (or action-mode real-ΔU) trace, default-off and error-isolated. Still fires via traceDispatchEvent if those surfaces run, but the live everyday ΔU now flows through the energy-tick PostToolUse hook, not here."
     },
     {
       "id": "energy-sanitize",
@@ -615,7 +615,7 @@
         ".claude/hooks/startup-offload.js"
       ],
       "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code",
-      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/offload returns nothing; it does NOT run the offload-runner."
+      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/offload returns nothing; it does NOT run the dispatch core (llm-lane)."
     },
     {
       "id": "offload-contract",
@@ -648,14 +648,24 @@
       "description": "The SEAL-team (Shintai 神隊) dispatcher — assembles a task-sized roster (not a fixed team) and dispatches the lanes; when it runs it fires the legacy energy-dispatch-bridge (L1165) to emit a ΔU trace for the dispatch event. Import/CLI triggered, not auto-scheduled."
     },
     {
-      "id": "offload-runner",
-      "label": "offload-runner (legacy dispatch — ACTIVE not dormant)",
+      "id": "llm-lane",
+      "label": "llm-lane (consolidated dispatch core — the single openai-compatible path)",
       "layer": "Skills & Orchestration",
       "files": [
-        "_SYSTEM/Scripts/offload-runner.mjs"
+        "_SYSTEM/Scripts/llm-lane.mjs"
       ],
-      "triggeredBy": "import/CLI — fires energy-dispatch-bridge when run",
-      "description": "The legacy dispatch path — ACTIVE, not dormant (distinct from the misnamed startup-offload boot hook): when run it fires the legacy energy-dispatch-bridge (L177) to record a synthetic ΔU=0 (or action-mode real-ΔU) trace. This is the true 'offload-runner is ACTIVE' organ. Import/CLI triggered."
+      "triggeredBy": "CLI/import — `ai llm <lane>`, `ai deepseek|kimi|nemotron`, offload.sh -m, worker-bridge/task-queue/yuri-workhorse/deepseek-guarded-handoff",
+      "description": "The ENTIRE dispatch path for the 3 reasoning lanes (deepseek-v4-pro, nemotron-3-ultra-550b-a55b, kimi-k2.6), all openai-compatible. Replaced the ~4040-line offload-runner/reasoning-lane-dispatch/*-dispatch-adapter stack in the 2026-06-05 consolidation. ~420 lines: prompt in -> text out, with a full-YURI-stack system loadout (brain/persona/origin/INDEX) and read_file/grep/list_dir/search/context_router/fetch_url/bash tools so the lane operates BY the framework, not blind. Fail-closed guards: endpoint host ALLOWLIST (api.deepseek.com / integrate.api.nvidia.com), fetch_url private/loopback/metadata DENY, protected-surface + git-mutation deny on bash. Advisory-until-verified, and wired into the YURI core like a native lane via lane-core-hooks: every dispatch fires energy ΔU (traceDispatchEvent), memory recall (injected as a recall block so the lane carries episodic memory), evidence (lane_output -> control-plane memory-ledger), and the docked-output symbiotic pulse (advisory-until-verified). A lane call is an input into YURI that triggers the same core machinery a native operator turn does — the orchestrating lane just supplies the input. This is the seam any future frontier model plugs into to inherit the full core."
+    },
+    {
+      "id": "lane-core-hooks",
+      "label": "lane-core-hooks (core-ingest for pluggable model lanes)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/lane-core-hooks.mjs"
+      ],
+      "triggeredBy": "import — called by llm-lane on every dispatch (coreOnDispatch) and result (coreOnResult)",
+      "description": "The single core-ingest seam that makes ANY frontier model plugged into the lane fire the full YURI core from INSIDE the dispatch, like a native operator turn. coreOnDispatch: energy ΔU (traceDispatchEvent) + memory recall (yuri-recall over the cold store, returned as an injectable block so the lane carries episodic memory). coreOnResult: evidence (lane_output -> control-plane memory-ledger) + the mandatory docked-LLM-output symbiotic pulse (source=docked-llm, authority=advisory_only, verdict=verify -> lane-pulse-trace). Fully error-isolated — a core hook never breaks dispatch. THIS is where to extend when wiring more of the core (protocol, cortex)."
     },
     {
       "id": "token-session-init",
@@ -839,13 +849,13 @@
     },
     {
       "id": "LANE_NEMOTRON",
-      "label": "nemotron-dispatch (advisory external reasoning lane)",
+      "label": "nemotron lane (advisory external reasoning, via llm-lane)",
       "layer": "Skills & Orchestration",
       "files": [
-        "_SYSTEM/Scripts/nemotron-dispatch.mjs"
+        "_SYSTEM/Scripts/llm-lane.mjs"
       ],
-      "triggeredBy": "CLI / offload dispatch — advisory external reasoning lane (DEV-ONLY)",
-      "description": "Advisory external reasoning lane (Nemotron-3-Ultra, nemotron-3-ultra-550b-a55b) dispatched via _SYSTEM/Scripts/nemotron-dispatch.mjs. DEV-ONLY; output is advisory-until-verified and returns evidence into the control plane like the other offload lanes — never a release gate."
+      "triggeredBy": "CLI / llm-lane dispatch — advisory external reasoning lane (DEV-ONLY)",
+      "description": "Advisory external reasoning lane (Nemotron-3-Ultra, nemotron-3-ultra-550b-a55b) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all 3 lanes (deepseek/kimi/nemotron); the standalone nemotron-dispatch.mjs adapter was retired 2026-06-05. DEV-ONLY; advisory-until-verified, returns evidence into the control plane — never a release gate."
     },
     {
       "id": "PROPAGATION_SCAN",
@@ -1686,10 +1696,22 @@
       "description": "calls traceDispatchEvent on the legacy energy-dispatch-bridge (L1165) when the SEAL-team roster runs, emitting one ΔU trace record per dispatch (gated on YURI_ENERGY_OBSERVABILITY=1)."
     },
     {
-      "from": "offload-runner",
+      "from": "llm-lane",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "every dispatch calls coreOnDispatch (energy ΔU + memory recall) at start and coreOnResult (evidence + docked-output pulse) on result — the full YURI core fired from INSIDE the lane, the seam any frontier model plugs into."
+    },
+    {
+      "from": "lane-core-hooks",
       "to": "energy-dispatch-bridge",
       "kind": "calls",
-      "description": "calls traceDispatchEvent on the legacy energy-dispatch-bridge (L177) when the runner executes, emitting a synthetic ΔU=0 (or action-mode real-ΔU) dispatch trace — the active legacy ΔU surface."
+      "description": "coreOnDispatch fires traceDispatchEvent on every lane call, recording the invocation into the ΔU/energy landscape (gated on YURI_ENERGY_OBSERVABILITY=1) — a lane call is an input into YURI like a native operator turn, the orchestrating lane just supplies it."
+    },
+    {
+      "from": "lane-core-hooks",
+      "to": "yuri-recall",
+      "kind": "calls",
+      "description": "coreOnDispatch calls recall() over the cold store and injects a recall block so the lane carries the same episodic memory a native operator turn gets."
     },
     {
       "from": "token-session-init",
@@ -1876,5 +1898,5 @@
       "description": "xref-query queries the FTS5/BM25 corpus search engine as one of its retrieval surfaces, reusing the injection-hardened buildMatch() rather than re-implementing corpus search."
     }
   ],
-  "generatedAt": null
+  "generatedAt": "2026-06-05"
 }

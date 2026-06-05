@@ -1026,7 +1026,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       '.claude/rules/yuri_operating_dna.md',
       '.claude/config/models.json',
       '_SYSTEM/Scripts/ai',
-      '_SYSTEM/Scripts/offload-runner.mjs',
+      '_SYSTEM/Scripts/llm-lane.mjs',
     ],
     actions: [
       { type: 'READ_MANIFEST_FILE', path: 'package.json', start_line: 1, end_line: 30, reason: 'small file full read test' },
@@ -1038,7 +1038,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_STATUS_SCOPED_MANIFEST_AND_DB_FILES' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GREP_Q_MARKER', path: '.claude/rules/yuri_operating_dna.md', args: { marker: 'YURI-OS-MUSUBI' } },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'WC_L_FILE', path: 'package.json' },
-      { type: 'RUN_ALLOWED_CHECK', check_id: 'NODE_CHECK_SCRIPT', path: '_SYSTEM/Scripts/offload-runner.mjs' },
+      { type: 'RUN_ALLOWED_CHECK', check_id: 'NODE_CHECK_SCRIPT', path: '_SYSTEM/Scripts/llm-lane.mjs' },
       { type: 'SUMMARIZE_EVIDENCE' },
       { type: 'FINAL_REPORT' },
     ],

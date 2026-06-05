@@ -49,33 +49,17 @@ try {
     'yuriOffload MCP timeout must not reintroduce the 180s offload cap',
   );
 
-  const responsesPreview = JSON.parse(execFileSync(
-    process.execPath,
-    [path.join(__dirname, 'offload-runner.mjs'), 'codex', '--dry-run', 'timeout smoke'],
-    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-  ));
-  assert.equal(responsesPreview.timeout, 21600000, 'Codex Responses default timeout must allow long offload work');
 
-  const deepseekPreview = JSON.parse(execFileSync(
-    process.execPath,
-    [path.join(__dirname, 'offload-runner.mjs'), 'deepseek-v4-pro:max-reasoning', '--dry-run', 'timeout smoke'],
-    {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' },
-    },
-  ));
-  assert.equal(deepseekPreview.timeout, 21600000, 'DeepSeek Pro default timeout must allow long offload work');
-
+  // DeepSeek dispatch now runs through the minimal llm-lane.mjs core (offload-runner.mjs retired).
   const protectedEnvHydration = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvHydration.allowed, true, 'Direct DeepSeek runner should be allowed to read .env for key hydration');
 
   const protectedEnvWrite = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvWrite.allowed, false, 'DeepSeek hook allowance must not permit .env writes');
 

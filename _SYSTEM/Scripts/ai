@@ -17,7 +17,8 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${ROOT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
+# Dispatch hub is now the minimal llm-lane.mjs core (offload-runner.mjs retired in the 3-lane consolidation).
+OFFLOAD_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
 OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
 
 usage() {
@@ -592,14 +593,14 @@ run_offload_lane() {
   shift
   local prompt
   prompt="$(join_prompt "$@")"
-  local runner="$OFFLOAD_RUNNER"
+  # The 3 live reasoning lanes (deepseek/kimi/nemotron) dispatch through the minimal
+  # llm-lane.mjs core. codex-spark keeps its own runner. Any other (dead legacy) lane
+  # name reaches llm-lane and loud-fails exit 3 (unknown_lane) — correct for a dead lane.
+  local runner="$SCRIPT_DIR/llm-lane.mjs"
 
   case "$lane" in
     deepseek-cloud|code-deepseek|deepseek-reasoner|deepseek-v4-pro-lite-budget)
       lane="deepseek-v4-pro"
-      ;;
-    deepseek-chat)
-      lane="deepseek-v4-flash"
       ;;
     codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
       runner="$SCRIPT_DIR/codex-offload-runner.mjs"
@@ -897,27 +898,25 @@ case "${1:-help}" in
       capabilities|inventory)
         shift || true
         require_cmd node
-        exec node "$OFFLOAD_RUNNER" --inventory
+        exec node "$OFFLOAD_RUNNER" --list
         ;;
       *)
         exec bash "$SCRIPT_DIR/offload.sh" "$@"
         ;;
     esac
     ;;
-  nemotron)
+  llm)
+    # Primary, dead-simple lane invocation:  ai llm <deepseek|kimi|nemotron> "<prompt>" [--reasoning d]
     shift || true
     require_cmd node
-    exec node "$SCRIPT_DIR/nemotron-dispatch.mjs" "$@"
+    exec node "$SCRIPT_DIR/llm-lane.mjs" "$@"
     ;;
-  kimi)
+  nemotron|kimi|ds-reason)
+    # Convenience aliases -> the same minimal core. ds-reason maps to the deepseek lane.
+    _llm_lane="$1"; [ "$_llm_lane" = "ds-reason" ] && _llm_lane="deepseek"
     shift || true
     require_cmd node
-    exec node "$SCRIPT_DIR/kimi-dispatch.mjs" "$@"
-    ;;
-  ds-reason)
-    shift || true
-    require_cmd node
-    exec node "$SCRIPT_DIR/deepseek-dispatch.mjs" "$@"
+    exec node "$SCRIPT_DIR/llm-lane.mjs" "$_llm_lane" "$@"
     ;;
   btw|/btw)
     shift || true

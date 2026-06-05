@@ -160,6 +160,7 @@ function isAllowedProtectedReadForOffload(command, protectedLabel) {
   if (!readsEnv) return false;
 
   const invokesOffload =
+    /\b(?:node\s+)?Scripts\/llm-lane\.mjs\b[^;&|]*\bdeepseek\b/u.test(command) ||
     /\b(?:node\s+)?Scripts\/offload-runner\.mjs\b[^;&|]*\bdeepseek-v4-(?:pro|flash)\b/u.test(command) ||
     /\bScripts\/offload\.sh\b[^;&|]*--model\s+deepseek-v4-(?:pro|flash)\b/u.test(command) ||
     /\b(?:bash\s+)?\.codex\/deepseek-offload\.sh\b/u.test(command);

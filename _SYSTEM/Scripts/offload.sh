@@ -52,7 +52,7 @@ fi
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
+OFFLOAD_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
 OFFLOAD_QUEUE="$SCRIPT_DIR/offload-queue.mjs"
 OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
 # Ollama paths removed — lane deprecated
@@ -199,12 +199,14 @@ run_offload_runner() {
     done
   fi
 
+  # Dispatch through the minimal llm-lane.mjs core (replaces the retired offload-runner.mjs).
+  # The 3 live lanes resolve; any dead legacy lane name loud-fails exit 3 (correct).
   if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${OFFLOAD_QUEUE_BYPASS:-0}" != "1" ]]; then
-    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$OFFLOAD_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
+    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$SCRIPT_DIR/llm-lane.mjs" "$lane" ${runner_args[@]+"${runner_args[@]}"}
     return
   fi
 
-  env "${env_args[@]}" node "$OFFLOAD_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
+  env "${env_args[@]}" node "$SCRIPT_DIR/llm-lane.mjs" "$lane" ${runner_args[@]+"${runner_args[@]}"}
 }
 
 normalize_reasoning_depth() {
