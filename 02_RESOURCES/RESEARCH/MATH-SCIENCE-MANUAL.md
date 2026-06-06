@@ -94,12 +94,20 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Proof:** `math-formula-card-professionalization.test.mjs` asserts deterministic hash stability, `advisoryOnly:true`, `localTruthClaim:false`, `writesRuntimeTruth:false`, context-route cost 5, RAG status `review_distribution_shift`, and the expected creative dependency order.
 - **Residual:** synthetic/report-only; useful for demonstrating integration shape, not for promoting live routing/release decisions without real labelled data.
 
+### 10. NEXUS numerology encoding channels — principles, not mysticism
+- **Does:** adds opt-in deterministic feature channels for matcher recall: `num:` gematria bucket, `dr:` digital-root bucket, and `harm:` harmonic-ratio bucket. These augment the existing feature set only when requested; they are not a standalone metric and assign no meaning to numbers.
+- **Math:** `gematria(text)` = bounded 32-bit symbol hash over normalized code points (collisions inevitable and expected); `digitalRoot(n)` = mod-9 ring homomorphism bucket in `1..9` with `0` as no-signal; `harmonicSignature(text)` = small adjacent-token ratio vector snapped to low-order rational buckets; `numerologyFeatures(text)` = namespaced feature Set.
+- **Code:** `_SYSTEM/Scripts/math/nexus-numerology.mjs` · `_SYSTEM/Scripts/math/nexus-numerology.test.mjs`; `yuri-token-expand.mjs` wires the opt-in via `features(text, { numerology:true })` and `makeFeatureFn(items, { numerology:true })` (default off).
+- **Proof:** test covers deterministic repeatability, digital-root mod-9 property, basic collision sanity/order sensitivity, bounded finite harmonic signatures, clean namespace merge, and default-off/opt-in feature wiring.
+- **Residual:** refute-by-default on recall value; buckets may add false-positive candidates and need corpus-level bakeoff before promotion into any default matcher profile.
+
 ### Supporting math primitives
 - `math/yuri-jaccard.mjs` — tokenize, jaccard, tfCosine, saturationProbe (Hopfield/AGS).
 - `math/yuri-minhash.mjs` — deterministic MinHash + LSH banding + tuneBands.
 - `math/yuri-mdl.mjs` — gzip marginal-bits (MDL redundancy; memory demotion).
 - `math/math-kernel.mjs` — 23 shipped primitives (the central engine; reuse first).
 - `math/yuri-phi.mjs` — π/φ/Fibonacci: goldenSectionSearch, fibonacciSearchMin, phiSequence, goldenAnglePoints, fib/fibBig (see registry #4).
+- `math/nexus-numerology.mjs` — deterministic numerology encoding channels: gematria hash, digital-root bucket, harmonic-ratio buckets (see registry #10).
 
 ## Parked / candidate math (not yet built — see math-primitive-candidates-parking.md)
 - π · golden ratio (φ) · Fibonacci — **READY tier BUILT** (registry #4: golden-section search, Fibonacci search, φ low-discrepancy cadence, golden-angle, Fibonacci generator). STILL PARKED: Knuth/Fibonacci multiplicative hashing (no measured bucket-skew), Fibonacci heap (no profiled graph hot-path), π/FFT spectral probe (needs stable sanitized traces).
@@ -119,6 +127,7 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 
 ## Changelog
 - 2026-06-06e — NEXUS Rust kernel BUILT (`_SYSTEM/nexus-rs`, crate `nexus`): minhash/jaccard/phi/corpus_match ported BIT-EXACT from the JS reference; napi + wasm bindings both proven (cargo 19/19, napi 72/72, wasm 60/60 conformance — Node calls Rust, asserts exact). u128 mod_affine removed the JS f64 hi/lo hack. The JS modules remain the reference; the Rust kernel is the fast/portable delivery. Renamed from nexus-core to disambiguate from the nexus-engine billing crate. + circuitry-auto-register.mjs (matcher over the code+test corpus). Regenerative Nexus Guard designed (NG1).
+- 2026-06-07 — NEXUS numerology encoding channels BUILT (`nexus-numerology.mjs`): gematria hash, digital-root mod-9 bucket, harmonic-ratio buckets, opt-in `makeFeatureFn({numerology:true})`; graph-node proposal added, default matcher behavior unchanged.
 - 2026-06-06d — second-order synonym bridge BUILT (PPMI-profile cosine: buildSecondOrderMap/buildPpmiProfiles/sparseCosine + sem2: edges; login≈signin; opt-in, prefix-filter-complete; token-expand 62/62, mutation-tested). Circuitry math-board environment design (C9, recursive-phyllotaxis-v1 on yuri-phi, extends existing die) → design-queue.
 - 2026-06-06c — test-coverage hardening + π/φ/Fib BUILT. New suites: yuri-minhash (47), yuri-token-expand (45), corpus-match.sqlsec (75, real-temp-DB ident() injection), transfer-distance.prereq (24). Replaced brittle PREREQ_BLOCKER_RE with a structured clause+proximity detector (r3, evades-resistant, no over-fire; proof F intact 6/6). Folded mutation survivors M6/M12/M13/M14/M16/M18 + C8 cold-vector pins. **Registered #4: yuri-phi.mjs** (π/φ/Fibonacci primitives, 42/42, owner directive to build-in not park). Suite green; mutation-tested (break→red→revert).
 - 2026-06-06 — seeded; registered transfer-distance, matching engine, token-expand.

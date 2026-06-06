@@ -28,6 +28,7 @@
  * Pure + injectable: no I/O, no clock, no RNG. Mirrors yuri-jaccard / yuri-fsrs house style.
  */
 import { tokenize } from './yuri-jaccard.mjs';
+import { numerologyFeatures } from './nexus-numerology.mjs';
 
 // ── 1. CHAR-N-GRAM (morphology / spelling) ───────────────────────────────────────────────────
 export function charShingles(token, k = 3) {
@@ -217,7 +218,7 @@ export function weightedJaccard(setA, setB, { expWeight = 0.5 } = {}) {
 //   sem2:<a~b> symmetric SECOND-ORDER (PPMI-profile-cosine) synonym edge: substitutable terms that
 //             need not co-occur (login~signin). Same symmetric-key discipline → prefix-filter stays COMPLETE.
 const CHARGRAM_K = 4, CHARGRAM_MINLEN = 5, CHARGRAM_MAX = 6;
-export function features(text, { expansionMap = null, secondOrderMap = null, semPerToken = 4, sem2PerToken = 3 } = {}) {
+export function features(text, { expansionMap = null, secondOrderMap = null, semPerToken = 4, sem2PerToken = 3, numerology = false } = {}) {
   const toks = tokenize(text);
   const F = new Set();
   for (const t of toks) {
@@ -239,6 +240,7 @@ export function features(text, { expansionMap = null, secondOrderMap = null, sem
       }
     }
   }
+  if (numerology) for (const f of numerologyFeatures(text)) F.add(f);
   return F;
 }
 
@@ -256,8 +258,9 @@ export function makeFeatureFn(items, opts = {}) {
   const secondOrderMap = opts.secondOrder ? buildSecondOrderMap(stats, opts) : null;
   const semPerToken = opts.semPerToken ?? 4;
   const sem2PerToken = opts.sem2PerToken ?? 3;
-  const featureFn = (text) => features(text, { expansionMap, secondOrderMap, semPerToken, sem2PerToken });
-  return { featureFn, stats, expansionMap, secondOrderMap };
+  const numerology = opts.numerology === true;
+  const featureFn = (text) => features(text, { expansionMap, secondOrderMap, semPerToken, sem2PerToken, numerology });
+  return { featureFn, stats, expansionMap, secondOrderMap, numerology };
 }
 
 /** Plain feature fn (tok + c4 only, no corpus) — morphology bridge with zero corpus dependency. */

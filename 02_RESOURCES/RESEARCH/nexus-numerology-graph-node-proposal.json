@@ -1,0 +1,12 @@
+[
+  {
+    "id": "nexus-numerology",
+    "label": "NEXUS Numerology (deterministic encoding channels)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/nexus-numerology.mjs"
+    ],
+    "triggeredBy": "import by yuri-token-expand when makeFeatureFn({ numerology:true }) or features(..., { numerology:true }) is explicitly enabled; CLI self-demo when run directly",
+    "description": "Pure deterministic encoding channels for NEXUS feature augmentation: gematria as a bounded 32-bit symbol hash, digitalRoot as a mod-9 homomorphism bucket, harmonicSignature as adjacent-ratio buckets, and numerologyFeatures as num:/dr:/harm: matcher features. Advisory recall-side signal only; no mystical interpretation and no standalone similarity metric."
+  }
+]
