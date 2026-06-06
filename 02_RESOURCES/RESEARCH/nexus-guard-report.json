@@ -2,132 +2,22 @@
   "version": 1,
   "phase": "1-read-only-detector",
   "summary": {
-    "total": 37,
+    "total": 25,
     "byClass": {
-      "F": 2,
-      "G": 10,
       "A": 25
     },
-    "highConfidence": 12,
+    "highConfidence": 0,
     "lowConfidence": 25,
     "tension": {
-      "T": 12.873,
-      "hi": 2,
-      "med": 10,
+      "T": 0.677,
+      "hi": 0,
+      "med": 0,
       "lo": 25
     },
-    "exemptionsApplied": 1,
+    "exemptionsApplied": 3,
     "safeAutoWireProposed": 0
   },
   "findings": [
-    {
-      "cls": "F",
-      "code": "hook-not-in-settings",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": ".claude/hooks/pulse-bus.js",
-      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
-      "ownerGated": "settings-registration"
-    },
-    {
-      "cls": "F",
-      "code": "hook-not-in-settings",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": ".claude/hooks/scout-runner.js",
-      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
-      "ownerGated": "settings-registration"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/transfer-distance.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-jaccard.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-mdl.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-minhash.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-phi.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-token-expand.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/self-improvement/weekly-comp.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
     {
       "cls": "A",
       "code": "orphan-export",
@@ -357,6 +247,26 @@
   "safeAutoWire": [],
   "exemptionsApplied": [
     {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/pulse-bus.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration",
+      "exemptReason": "library-helper — required by _SYSTEM/Scripts/pulse-orchestrator.mjs (appendFinding/withLock/findingsByTurn); not a settings-registered hook (verified by Codex lane F, call sites)"
+    },
+    {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/scout-runner.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration",
+      "exemptReason": "spawned worker — forked detached by .claude/hooks/scout-orchestrator.js (SCOUT_RUNNER, expects argv not stdin); not a settings hook (verified by Codex lane F)"
+    },
+    {
       "cls": "C",
       "code": "test-no-cover",
       "severity": "medium",
@@ -372,6 +282,6 @@
     "tension.T is log-compressed per severity tier (severity dominates count). tension.hi/med/lo are raw counts — the non-offsettable L∞ floor: a wired↔unwired swap within a tier cannot launder them. Read hi first.",
     "PHASE-2 (folded research, parked): git-derived age + Tarjan betweenness centrality + churn weighting (S_c = Σ confidence·age·centrality·churn); GitNexus DSM reachability promoting class A/B from textual→structural on the top-N batches; root-cause batching; exemption sunset/saturation alarm. Grounded in the reflexion-model conformance literature (DS1)."
   ],
-  "generatedAt": "2026-06-06T17:39:10.214Z",
+  "generatedAt": "2026-06-06T18:00:55.539Z",
   "scope": "core-roots"
 }

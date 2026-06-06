@@ -85,7 +85,9 @@
     "_doc": "Exact repo-relative path → {reason, owner, reviewBy, classes}. For specific intentional standalones / public APIs / parked research. classes:'*' exempts all.",
     "rules": [
       { "path": "_SYSTEM/Scripts/math/extract-logbook-truth.mjs", "reason": "scratch proof-data extractor for the transfer-distance proof (regen helper, not a registered math method) — see transfer-distance.proof.mjs", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["A", "B", "D", "G"] },
-      { "path": "_SYSTEM/Scripts/math/math-research-archive.test.mjs", "reason": "docs/archive consistency test — covers a markdown corpus, not an .mjs module", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["C"] }
+      { "path": "_SYSTEM/Scripts/math/math-research-archive.test.mjs", "reason": "docs/archive consistency test — covers a markdown corpus, not an .mjs module", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["C"] },
+      { "path": ".claude/hooks/pulse-bus.js", "reason": "library-helper — required by _SYSTEM/Scripts/pulse-orchestrator.mjs (appendFinding/withLock/findingsByTurn); not a settings-registered hook (verified by Codex lane F, call sites)", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["F"] },
+      { "path": ".claude/hooks/scout-runner.js", "reason": "spawned worker — forked detached by .claude/hooks/scout-orchestrator.js (SCOUT_RUNNER, expects argv not stdin); not a settings hook (verified by Codex lane F)", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["F"] }
     ]
   }
 }

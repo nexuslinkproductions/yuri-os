@@ -302,7 +302,7 @@ function commandSet(contract) {
 function hookFilesAndRefs(contract) {
   const abs = path.join(REPO_ROOT, contract.registries.hooksDir);
   let entries = []; try { entries = fs.readdirSync(abs, { withFileTypes: true }); } catch { /* none */ }
-  const hookFiles = entries.filter((e) => e.isFile() && /\.(js|mjs|cjs)$/.test(e.name)).map((e) => `${contract.registries.hooksDir}/${e.name}`);
+  const hookFiles = entries.filter((e) => e.isFile() && /\.(js|mjs|cjs)$/.test(e.name) && !/\.test\.(js|mjs|cjs)$/.test(e.name)).map((e) => `${contract.registries.hooksDir}/${e.name}`);
   const settings = readText(contract.registries.settings);
   const refs = new Set();
   for (const m of settings.matchAll(/[A-Za-z0-9_.-]+\.(?:js|mjs|cjs)/g)) refs.add(m[0]);
