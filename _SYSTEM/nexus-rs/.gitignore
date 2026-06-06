@@ -3,3 +3,4 @@
 *.node
 npm-debug.log*
 /.claude
+/pkg

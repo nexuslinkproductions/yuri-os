@@ -1,8 +1,8 @@
 [package]
-name = "nexus-core"
+name = "nexus"
 version = "0.1.0"
 edition = "2021"
-description = "NEXUS CORE — YURI's deterministic, embedding-free math substrate in Rust (bit-exact with the JS reference). MinHash/LSH + Jaccard prefix-filter matcher + φ/Fibonacci primitives."
+description = "NEXUS — YURI's deterministic, embedding-free math substrate in Rust (bit-exact with the JS reference). MinHash/LSH + Jaccard prefix-filter matcher + φ/Fibonacci primitives. napi + wasm bindings."
 license = "MIT"
 
 [lib]
@@ -11,6 +11,7 @@ crate-type = ["rlib", "cdylib"]
 [dependencies]
 napi = { version = "2", default-features = false, features = ["napi8"], optional = true }
 napi-derive = { version = "2", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
 
 [build-dependencies]
 napi-build = "2"
@@ -18,6 +19,7 @@ napi-build = "2"
 [features]
 default = []
 napi-binding = ["dep:napi", "dep:napi-derive"]
+wasm-binding = ["dep:wasm-bindgen"]
 
 [profile.release]
 opt-level = 3

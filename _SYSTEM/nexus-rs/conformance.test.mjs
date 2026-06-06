@@ -115,5 +115,5 @@ for (const n of [0, 1, 5, 100]) ok(close(rust.goldenAnglePoint(n), jsGoldenAngle
   }
 }
 
-console.log(`\nnexus-core conformance: ${pass} passed, ${fail} failed`);
+console.log(`\nnexus napi conformance: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
