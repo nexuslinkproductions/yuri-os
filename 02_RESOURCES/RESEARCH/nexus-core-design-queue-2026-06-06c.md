@@ -921,3 +921,258 @@ Stage it like this:
 Do the Rust port, but scope it as a **post-v1 accelerator with a determinism-conformance gate**. Use **napi-rs for the Node production kernel**, and reserve **WASM for browser/viz surfaces**.
 
 Do not fork the release around Rust performance. Fork the implementation only after the harness proves bit-exact compatibility from FNV through full matcher output.
+
+=============================================================
+## LANE C9 — math-generated board environment (recursive-phyllotaxis-v1, extends existing die)
+=============================================================
+
+**Math-Generated Board Environment**
+
+Goal: extend the existing circuitry die generator, not replace it. The board/substrate becomes a deterministic math field baked by `02_RESOURCES/RESEARCH/circuitry/build-circuitry-instrument.mjs`, using `_SYSTEM/Scripts/math/yuri-phi.mjs` as the placement primitive layer.
+
+```js
+import {
+  goldenAnglePoints,
+  phiSequence,
+  phiPoint,
+  GOLDEN_ANGLE,
+} from "../../../_SYSTEM/Scripts/math/yuri-phi.mjs";
+```
+
+**1. Incremental Placement**
+
+Use a stable phyllotaxis allocator per region:
+
+```js
+const points = goldenAnglePoints(regionNodeCount, { radius: region.innerRadius });
+```
+
+For a node with stable ordinal `k` inside a region:
+
+```js
+const p = goldenAnglePoints(k + 1, { radius: region.innerRadius })[k];
+node.x = region.cx + p.x;
+node.y = region.cy + p.y;
+```
+
+This gives the “nth point lands in the largest angular/radial gap” behavior in practice: the golden-angle sequence fills the disk without resonant spokes, so every prefix `N` stays visually balanced. No RNG. Same registry order plus same region assignment produces the same board.
+
+Stable ordinal must not be array index from transient graph order. Use a deterministic registry key:
+
+```js
+stableRank = sortBy([regionId, node.kind, node.files[0] ?? "", node.id])
+```
+
+When a new node appears, assign it the next ordinal in its region. Existing nodes keep ordinals, so neighbors do not reshuffle.
+
+**2. Board Substrate**
+
+The substrate should be generated as a “die field” under the current SVG, before hulls/edges/nodes:
+
+```js
+const boardCells = goldenAnglePoints(cellCount, { radius: dieRadius });
+const timingJitter = phiSequence(cellCount, seed01);
+```
+
+Each cell becomes a faint chip pad / trace anchor / etched via. The substrate develops evenly as node count grows:
+
+```js
+cellCount = nextCapacity(totalVisibleItems);
+// e.g. 128, 256, 512, 1024...
+```
+
+Do not hand-place visual regions. Generate all board landmarks from math:
+
+```js
+const pads = goldenAnglePoints(capacity, { radius: dieRadius });
+const pulsePhase = phiPoint(i, seed01);
+```
+
+Use `pulsePhase` only for visual animation offset, not layout, so geometry remains deterministic.
+
+**3. Region Subdivision**
+
+Use recursive deterministic weighted regions, but keep identity stable.
+
+Top level: one region per existing `layer` from `LAYER_ORDER`.
+
+Weight:
+
+```js
+weight(layer) = organCount(layer) + testCount(layer) * 0.22 + edgePressure(layer) * 0.08
+```
+
+Subdivision algorithm:
+
+1. Sort layers by canonical `LAYER_ORDER`.
+2. Allocate region centers from:
+
+```js
+const regionSeeds = goldenAnglePoints(layerCount, { radius: dieRadius * 0.58 });
+```
+
+3. Convert seeds into soft Voronoi districts inside the chip boundary.
+4. Size each district by weight using radial scale:
+
+```js
+region.radius = baseRadius * Math.sqrt(weight / totalWeight) * layerCountCompensation;
+```
+
+5. Inside each region, place organs by `goldenAnglePoints(regionOrganCount, { radius })`.
+6. For tests under a module, create a local child-region around the module:
+
+```js
+const testPoints = goldenAnglePoints(testCount, { radius: module.testHaloRadius });
+```
+
+This keeps tests visually clustered under their module without hand placement.
+
+For dense modules, recurse:
+
+```js
+module
+  -> source node
+  -> test cluster
+  -> individual test nodes
+```
+
+At each level, same rule: stable ordinal, `goldenAnglePoints(count, { radius })`.
+
+**4. Plug Into Existing Generator**
+
+Extend `02_RESOURCES/RESEARCH/circuitry/build-circuitry-instrument.mjs`.
+
+Current flow:
+
+```js
+const atlas = buildSpectralAtlas(nodes, graphEdges, { w: 1700, h: 1700 });
+```
+
+Recommended C6 flow:
+
+```js
+const board = buildMathBoard({
+  nodes,
+  edges: graphEdges,
+  layers: LAYER_ORDER,
+  moatLayers: MOAT_LAYERS,
+  chip: { w: 1700, h: 1700, radius: 760 },
+});
+```
+
+Payload additions:
+
+```js
+payload.board = {
+  cells,
+  traces,
+  regions,
+  capacity,
+  algorithm: "recursive-phyllotaxis-v1",
+};
+
+payload.nodes = board.nodes;
+payload.hulls = board.regions;
+```
+
+Keep the existing instrument shell: pan/zoom, minimap, layer chips, moat spotlight, search, detail panel. Replace only the layout source and add board substrate rendering.
+
+The current chip-die aesthetic should render in this order:
+
+1. Die base / wafer boundary.
+2. Generated substrate cells from `board.cells`.
+3. Generated region fields from `board.regions`.
+4. Routed traces / edges.
+5. Organs.
+6. Test-node LOD layer.
+7. Labels and detail panel.
+
+If `yuri-circuitry-chip.svg` exists as the visual die skin, embed it as the first substrate layer and align generated coordinates to its viewBox. Do not fork a second visualization.
+
+**5. LOD / Microscope Layer**
+
+Thousands of tests cannot all label at once. Use zoom thresholds:
+
+```js
+LOD 0: regions + moat organs only
+LOD 1: all organs, no test labels
+LOD 2: test clusters as aggregate dots
+LOD 3: individual tests
+LOD 4: individual test labels + trace inspection
+```
+
+LOD state is client-side; layout is baked.
+
+Aggregate tests by module until zoom crosses threshold:
+
+```js
+cluster.count = tests.length;
+cluster.health = passFailRatio;
+cluster.points = goldenAnglePoints(tests.length, { radius: clusterRadius });
+```
+
+This directly extends the existing SVG instrument; no canvas rewrite required unless perf forces it later.
+
+**6. Stability Vs Evenness**
+
+There is a real trade-off:
+
+Perfect evenness after every insert wants a full recompute of all positions.  
+Layout stability wants old nodes to stay fixed forever.
+
+Recommendation: sit on the stability side.
+
+Use append-only stable ordinals within each region. New nodes fill the next golden-angle slot. Existing nodes do not move unless a region crosses a capacity threshold.
+
+When a threshold is crossed, subdivide only that local region:
+
+```js
+if (region.count > region.capacity) splitRegion(region);
+```
+
+Do not global-relayout the board. This preserves mental map and keeps growth non-lopsided enough.
+
+Thresholds should be hysteretic:
+
+```js
+split at > 0.82 density
+merge only below < 0.42 density
+```
+
+That prevents visual churn.
+
+**7. Edge Routing**
+
+Even node placement does not solve edge crowding. Route traces through generated substrate anchors:
+
+```js
+const anchor = board.cells[stableEdgeOrdinal % board.cells.length];
+```
+
+Use bundled/canonical routes:
+
+```js
+source -> local port -> substrate anchor -> target port -> target
+```
+
+For high-degree nodes, allocate ports by:
+
+```js
+const ports = goldenAnglePoints(edgeDegree, { radius: nodePortRadius });
+```
+
+This keeps trace exits evenly distributed around each node.
+
+**8. Hard Risks**
+
+Label collisions at scale: unavoidable without LOD. Fix by making labels conditional, not by moving nodes.
+
+Edge crowding: phyllotaxis spreads nodes, but semantic graph edges can still cross heavily. Need substrate-anchor routing plus edge bundling by `kind`.
+
+Region identity drift: recursive subdivision can make a layer feel fragmented. Keep one color/token identity per layer and draw child regions as nested etch fields, not separate unrelated blobs.
+
+Capacity jumps: if capacity doubles visually, the board may appear to “grow” suddenly. Use generated empty substrate cells ahead of visible nodes so future growth already has implied space.
+
+Strongest objection: spectral layout currently expresses graph structure better than phyllotaxis does. Pure phyllotaxis can make related organs less spatially adjacent than an eigenvector layout.
+
+Answer: keep graph meaning in region assignment, edge routing, LOD clustering, and interaction. Use math-board placement for stable, even substrate growth; use traces and local test halos to reveal relationships. The board’s primary job is long-term regenerative legibility, not optimal graph embedding.

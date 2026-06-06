@@ -49,7 +49,7 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Code:** `_SYSTEM/Scripts/math/yuri-token-expand.mjs` (`features`, `makeFeatureFn`, `buildCooccurrence`, `ppmi`, `buildExpansionMap`, `charShingles`) → plugs into corpus-match `buildIndex({featureFn})`. Proof: `corpus-match.collapse.mjs`.
 - **Proof:** disjoint-vocab pair (Jaccard 0) bridged at 0.108 via sem: edges; complete (pf==exact); precise (no distractors).
 - **Sources:** church-hanks PMI · levy-goldberg 2014 (PPMI≈word2vec) · kanerva/sahlgren RRI · jimenez soft-cardinality (ledger, session 2026-06-06).
-- **Residual / NEXT:** first-order PPMI + morphology only; true never-co-occurring synonyms need **second-order Reflective Random Indexing** (deterministic, seed-locked) — queued.
+- **Second-order synonym bridge — BUILT (2026-06-06c):** `buildSecondOrderMap`/`buildPpmiProfiles`/`sparseCosine` add `sem2:a~b` edges — terms with similar PPMI co-occurrence PROFILES are substitutable even when they NEVER co-occur (login≈signin, cosine 1.0). Chosen over RRI (Codex C7): deterministic, no seed/RNG/projection, fixed `Map<term,[syn]>` → symmetric keys keep the prefix-filter COMPLETE. Precision knobs: minProfilePpmi/minProfileDims/secondOrderFloor(0.75)/secondOrderTopN(3)/excludeFirstOrder. OPT-IN via `makeFeatureFn({secondOrder:true})` (default off — shipped feature space unchanged). yuri-token-expand.test 62/62; mutation-tested. Sources: levy-goldberg 2014 (PPMI-vector cosine ≈ word2vec).
 
 ### 4. π / φ / Fibonacci applied primitives — efficient comparisons, intervals & time-phases
 - **What:** the breakthrough is NOT "φ is magic" — φ/Fibonacci are the efficient way to spend COMPARISONS, INTERVALS, or TIME-PHASES when the structure is already 1-D, ordered, or resonance-prone (owner directive 2026-06-06: build these INTO NEXUS CORE, not park them).
@@ -68,7 +68,7 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 
 ## Parked / candidate math (not yet built — see math-primitive-candidates-parking.md)
 - π · golden ratio (φ) · Fibonacci — **READY tier BUILT** (registry #4: golden-section search, Fibonacci search, φ low-discrepancy cadence, golden-angle, Fibonacci generator). STILL PARKED: Knuth/Fibonacci multiplicative hashing (no measured bucket-skew), Fibonacci heap (no profiled graph hot-path), π/FFT spectral probe (needs stable sanitized traces).
-- Second-order Reflective Random Indexing (token-expand synonym layer). QUEUED.
+- Second-order synonym layer — BUILT as PPMI-profile cosine (`buildSecondOrderMap`, sem2: edges); RRI was the alternative, PPMI-cosine chosen (deterministic, no seed). See registry #3.
 
 ## ⚠️ ADVISORY-ONLY (transfer-distance) — read before trusting a score
 **The transfer-distance metric is an ADVISORY ranking aid, NOT a promotion gate.** It scores structural transfer-VALUE; defer real go/no-go to local evidence + owner judgment.
@@ -83,6 +83,7 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Field-distance distances** (e.g. consensus_dist 0.42, survival 0.58) are a-priori judgments justified in the build plan, not yet calibrated from an external field-adjacency source.
 
 ## Changelog
+- 2026-06-06d — second-order synonym bridge BUILT (PPMI-profile cosine: buildSecondOrderMap/buildPpmiProfiles/sparseCosine + sem2: edges; login≈signin; opt-in, prefix-filter-complete; token-expand 62/62, mutation-tested). Circuitry math-board environment design (C9, recursive-phyllotaxis-v1 on yuri-phi, extends existing die) → design-queue.
 - 2026-06-06c — test-coverage hardening + π/φ/Fib BUILT. New suites: yuri-minhash (47), yuri-token-expand (45), corpus-match.sqlsec (75, real-temp-DB ident() injection), transfer-distance.prereq (24). Replaced brittle PREREQ_BLOCKER_RE with a structured clause+proximity detector (r3, evades-resistant, no over-fire; proof F intact 6/6). Folded mutation survivors M6/M12/M13/M14/M16/M18 + C8 cold-vector pins. **Registered #4: yuri-phi.mjs** (π/φ/Fibonacci primitives, 42/42, owner directive to build-in not park). Suite green; mutation-tested (break→red→revert).
 - 2026-06-06 — seeded; registered transfer-distance, matching engine, token-expand.
 - 2026-06-06b — 8-attacker red-team + 2nd round (3 Codex + 1 DeepSeek): fixed matchLSH featureFn, MinHash a===MERSENNE, proof→V2 ship-config, SQL identifier whitelist, structuralConf/NaN clamps, fieldClassify spurious-match + tie-break, mechanismFrame unknown-family floor, bakeoff WINNER P1-P4, cooc/threshold guards. Core math proven sound (50k-trial completeness, 3M modAffine, MinHash bias<0.001). Tests: transfer-distance 18/18, corpus-match 27/27, proof 5/5.

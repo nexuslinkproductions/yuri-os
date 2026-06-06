@@ -11,6 +11,7 @@
 import {
   charShingles, tokenCharSim, buildCooccurrence, ppmi, buildExpansionMap,
   expandTokenSet, weightedJaccard, features, makeFeatureFn, plainFeatureFn,
+  buildPpmiProfiles, sparseCosine, buildSecondOrderMap,
 } from './yuri-token-expand.mjs';
 
 let pass = 0, fail = 0;
@@ -132,6 +133,47 @@ ok(weightedJaccard(new Set(['a']), new Set(['~a']), { expWeight: 0.5 }) === 0, '
   const pf = plainFeatureFn('cross site scripting');
   ok([...pf].every((x) => !x.startsWith('sem:')), 'plainFeatureFn emits NO sem: features (no corpus dependency)');
   ok([...pf].some((x) => x.startsWith('tok:')) && [...pf].some((x) => x.startsWith('c4:')), 'plainFeatureFn emits tok: + c4: features');
+}
+
+// ── SECOND-ORDER PPMI-profile-cosine synonym bridge (the never-co-occur synonym layer) ──────────
+{
+  // login & signin NEVER co-occur in any doc, but share an identical context profile (password/auth/...).
+  const corpus = [
+    'login requires password auth token', 'login form credential check', 'login account password reset',
+    'signin requires password auth token', 'signin form credential check', 'signin account password reset',
+    'subdomain takeover dangling dns record',
+  ];
+  const stats = buildCooccurrence(corpus, { minCooc: 2 });
+  const second = buildSecondOrderMap(stats, { minProfilePpmi: 0.1, minProfileDims: 2, secondOrderFloor: 0.7, secondOrderTopN: 3 });
+
+  ok((second.get('login') || []).includes('signin'), 'buildSecondOrderMap bridges login→signin (never co-occur, shared profile)');
+  ok((second.get('signin') || []).includes('login'), 'buildSecondOrderMap is symmetric: signin→login');
+  ok(!(second.get('login') || []).includes('password'), 'excludeFirstOrder: login does NOT list password (they DO co-occur — first-order, not sem2)');
+
+  // features() emits the symmetric sem2: edge from BOTH sides → prefix-filter stays complete.
+  ok(features('login', { secondOrderMap: second }).has('sem2:login~signin'), 'features sem2 edge from login side');
+  ok(features('signin', { secondOrderMap: second }).has('sem2:login~signin'), 'features sem2 edge from signin side (same ordered key)');
+  ok(![...features('login')].some((f) => f.startsWith('sem2:')), 'features emits NO sem2 without a secondOrderMap (backward-compatible)');
+
+  // determinism + precision gates
+  ok(JSON.stringify([...buildSecondOrderMap(stats)]) === JSON.stringify([...buildSecondOrderMap(stats)]), 'buildSecondOrderMap deterministic');
+  ok((buildSecondOrderMap(stats, { minProfilePpmi: 0.1, secondOrderFloor: 0.7, secondOrderTopN: 1 }).get('login') || []).length <= 1, 'secondOrderTopN caps synonyms per term');
+  ok(buildSecondOrderMap(stats, { minProfilePpmi: 0.1, secondOrderFloor: 1.01 }).size === 0, 'secondOrderFloor > 1 → no synonyms (cosine ≤ 1, gate works)');
+
+  // sparseCosine contract
+  const prof = buildPpmiProfiles(stats, { minProfilePpmi: 0.1 });
+  ok(sparseCosine(prof.get('login'), prof.get('login')) === 1, 'sparseCosine(x,x) === 1');
+  ok(approx(sparseCosine(prof.get('login'), prof.get('signin')), 1, 1e-9), 'sparseCosine(login,signin) === 1 (identical context profiles here)');
+  ok(sparseCosine(new Map(), prof.get('login')) === 0, 'sparseCosine with an empty profile === 0');
+  ok(sparseCosine(new Map([['x', 1]]), new Map([['y', 1]])) === 0, 'sparseCosine of disjoint profiles === 0');
+  ok((prof.get('login') || new Map()).has('password') && prof.get('login').has('auth'), 'buildPpmiProfiles: login profile carries password + auth context dims');
+
+  // makeFeatureFn: second-order is OPT-IN (default off → shipped corpus-match feature space unchanged)
+  const items = corpus.map((t, i) => ({ id: String(i), text: t }));
+  ok(makeFeatureFn(items, { minCooc: 2 }).secondOrderMap === null, 'makeFeatureFn second-order OFF by default (no silent feature-space change)');
+  const on = makeFeatureFn(items, { minCooc: 2, secondOrder: true, minProfilePpmi: 0.1, secondOrderFloor: 0.7 });
+  ok(on.secondOrderMap instanceof Map && on.secondOrderMap.size > 0, 'makeFeatureFn { secondOrder:true } builds the map');
+  ok([...on.featureFn('login')].some((f) => f.startsWith('sem2:')), 'makeFeatureFn opt-in featureFn emits sem2 edges');
 }
 
 console.log(`\nyuri-token-expand.test: ${pass} passed, ${fail} failed`);

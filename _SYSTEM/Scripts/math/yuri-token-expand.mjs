@@ -108,6 +108,81 @@ export function buildExpansionMap(stats, { minCooc = 3, ppmiFloor = 1.5, topN = 
   return map;
 }
 
+// ── 3. SECOND-ORDER PPMI-PROFILE COSINE (paradigmatic / synonym bridge) ─────────────────────────
+// First-order PPMI says "terms that CO-OCCUR are related" (login↔password). Second-order says "terms
+// with similar PPMI co-occurrence PROFILES are SUBSTITUTABLE" — login≈signin even though they NEVER
+// co-occur, because both have high PPMI with password/auth/credential/form. (Levy-Goldberg 2014:
+// PPMI-vector cosine ≈ word2vec.) Chosen over Reflective Random Indexing (Codex C7): fully
+// deterministic from `stats` — no seed, no projection dim, no RNG, no approximation — and it emits a
+// fixed Map<term,string[]> → deterministic symmetric `sem2:` feature edges that keep the prefix-filter
+// COMPLETE (identical, totally-orderable set representation on both index and query sides).
+const COOC_SEP = ''; // the co-occurrence-key delimiter used by buildCooccurrence (NOT a literal join)
+
+/** Sparse PPMI profile vectors: term → Map<contextTerm, ppmi>. Terms with similar profiles are synonyms. */
+export function buildPpmiProfiles(stats, { minProfilePpmi = 0.5 } = {}) {
+  const profiles = new Map();
+  for (const [key] of stats.cooc) {
+    const [a, b] = key.split(COOC_SEP);
+    const s = ppmi(a, b, stats);
+    if (s < minProfilePpmi) continue;
+    if (!profiles.has(a)) profiles.set(a, new Map());
+    if (!profiles.has(b)) profiles.set(b, new Map());
+    profiles.get(a).set(b, s);
+    profiles.get(b).set(a, s);
+  }
+  return profiles;
+}
+
+/** Cosine similarity of two sparse numeric Maps ∈ [0,1]. Empty either side → 0. */
+export function sparseCosine(A, B) {
+  if (!A || !B || A.size === 0 || B.size === 0) return 0;
+  let dot = 0, normA = 0, normB = 0;
+  for (const v of A.values()) normA += v * v;
+  for (const v of B.values()) normB += v * v;
+  const [sm, lg] = A.size <= B.size ? [A, B] : [B, A];
+  for (const [k, v] of sm) { const w = lg.get(k); if (w !== undefined) dot += v * w; }
+  return normA === 0 || normB === 0 ? 0 : dot / Math.sqrt(normA * normB);
+}
+
+function cooccurs(a, b, stats) {
+  const key = a < b ? a + COOC_SEP + b : b + COOC_SEP + a;
+  return stats.cooc.has(key);
+}
+
+/**
+ * Paradigmatic synonym map from PPMI-profile cosine: term → [substitutable terms], strongest first
+ * (lexical tie-break for determinism). Excludes direct co-occurrence pairs by default so sem2: carries
+ * only TRUE second-order bridges. Precision knobs bound the (real) false-positive rate (topical
+ * siblings like password~token share contexts) — keep secondOrderFloor high + topN low.
+ */
+export function buildSecondOrderMap(stats, {
+  minProfilePpmi = 0.5, minProfileDims = 2, secondOrderFloor = 0.75, secondOrderTopN = 3, excludeFirstOrder = true,
+} = {}) {
+  const profiles = buildPpmiProfiles(stats, { minProfilePpmi });
+  const terms = [...profiles.keys()].sort();
+  const out = new Map();
+  for (let i = 0; i < terms.length; i++) {
+    const a = terms[i], A = profiles.get(a);
+    if (!A || A.size < minProfileDims) continue;
+    const hits = [];
+    for (let j = 0; j < terms.length; j++) {
+      if (i === j) continue;
+      const b = terms[j], B = profiles.get(b);
+      if (!B || B.size < minProfileDims) continue;
+      if (excludeFirstOrder && cooccurs(a, b, stats)) continue;
+      let shared = 0;
+      const [sm, lg] = A.size <= B.size ? [A, B] : [B, A];
+      for (const k of sm.keys()) if (lg.has(k)) shared++;
+      if (shared < minProfileDims) continue;       // require enough shared structure before trusting cosine
+      const s = sparseCosine(A, B);
+      if (s >= secondOrderFloor) hits.push({ t: b, s });
+    }
+    hits.sort((x, y) => y.s - x.s || x.t.localeCompare(y.t));
+    if (hits.length) out.set(a, hits.slice(0, secondOrderTopN).map((x) => x.t));
+  }
+  return out;
+}
+
 /**
  * Expand a text's token set with PPMI neighbors (tagged '~' so a weighted scorer can down-weight).
  * Original tokens kept at full weight; expansion tokens added tagged.
@@ -139,8 +214,10 @@ export function weightedJaccard(setA, setB, { expWeight = 0.5 } = {}) {
 //   sem:<a~b> symmetric PPMI concept-edge (topical/synonym bridge: login~password, cortex~circuitry)
 // Used IDENTICALLY in buildIndex + query + scoring, the prefix-filter (Bayardo) stays COMPLETE —
 // the theorem only needs a total order + the same set representation on both sides.
+//   sem2:<a~b> symmetric SECOND-ORDER (PPMI-profile-cosine) synonym edge: substitutable terms that
+//             need not co-occur (login~signin). Same symmetric-key discipline → prefix-filter stays COMPLETE.
 const CHARGRAM_K = 4, CHARGRAM_MINLEN = 5, CHARGRAM_MAX = 6;
-export function features(text, { expansionMap = null, semPerToken = 4 } = {}) {
+export function features(text, { expansionMap = null, secondOrderMap = null, semPerToken = 4, sem2PerToken = 3 } = {}) {
   const toks = tokenize(text);
   const F = new Set();
   for (const t of toks) {
@@ -153,6 +230,12 @@ export function features(text, { expansionMap = null, semPerToken = 4 } = {}) {
       const ns = expansionMap.get(t);
       if (ns) for (let i = 0; i < ns.length && i < semPerToken; i++) {
         const u = ns[i]; F.add('sem:' + (t < u ? t + '~' + u : u + '~' + t));
+      }
+    }
+    if (secondOrderMap) {
+      const ns = secondOrderMap.get(t);
+      if (ns) for (let i = 0; i < ns.length && i < sem2PerToken; i++) {
+        const u = ns[i]; F.add('sem2:' + (t < u ? t + '~' + u : u + '~' + t));
       }
     }
   }
@@ -168,9 +251,13 @@ export function makeFeatureFn(items, opts = {}) {
   const texts = items.map((it) => it.text);
   const stats = buildCooccurrence(texts, opts);
   const expansionMap = buildExpansionMap(stats, opts);
+  // Second-order synonym map is OPT-IN (default off) to avoid silently changing the shipped corpus-match
+  // feature space + its proven collapse/precision behavior. Enable with { secondOrder: true } once tuned.
+  const secondOrderMap = opts.secondOrder ? buildSecondOrderMap(stats, opts) : null;
   const semPerToken = opts.semPerToken ?? 4;
-  const featureFn = (text) => features(text, { expansionMap, semPerToken });
-  return { featureFn, stats, expansionMap };
+  const sem2PerToken = opts.sem2PerToken ?? 3;
+  const featureFn = (text) => features(text, { expansionMap, secondOrderMap, semPerToken, sem2PerToken });
+  return { featureFn, stats, expansionMap, secondOrderMap };
 }
 
 /** Plain feature fn (tok + c4 only, no corpus) — morphology bridge with zero corpus dependency. */
