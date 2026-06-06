@@ -81,10 +81,30 @@ export const GATE = Object.freeze({
   FAR_WEAK_DIST: 0.75,       // far ...
   FAR_WEAK_BRIDGE: 0.55,     // ...but weakly bridged ...
   CAP_FAR_WEAK: 0.25,        // ...is capped (far novelty without strong reconstruction)
+  CAP_PREREQ_BLOCKED: 0.11,  // a transfer whose mismatch names a HARD unbuilt prerequisite is not
+                             // yet implementation-VIABLE → capped below USEFUL (BLOCKED tier).
 });
 
 // Value → tier banding (set from the logbook proof; see transfer-distance.proof.mjs).
 export const TIER = Object.freeze({ INNOVATION: 0.30, USEFUL: 0.12 });
+
+// IMPLEMENTATION-VIABILITY gate (red-team round 2): the metric scores structural transfer-VALUE,
+// but a transfer with a missing IMPLEMENTATION PREREQUISITE is not yet buildable (MPC needs an
+// unbuilt transition fn; VCG needs a dependency DAG). The prerequisite is stated in the card's
+// MISMATCH text — detect that hard-blocker language and route the transfer to a BLOCKED tier, so a
+// great-but-not-yet-buildable idea no longer ranks INNOVATION. Deterministic text signal.
+// STRONG prerequisite-of-the-core signals only. Deliberately NOT 'blocked by'/'needs…first' — those
+// over-fired on parked SUB-features (card 30 Hopfield: "blocked by the embedding-free constraint"
+// refers to a parked extension, not a hard prerequisite of the saturation-probe transfer).
+// RED-TEAM r2: dropped bare 'does not exist' (over-fires on prose: "does not exist in a vacuum").
+// MPC still catches via 'hard prerequisite'+'must be built first'; VCG via 'prerequisite'+'no input
+// data until'. Residual over-fire risk on a phrase like "trust must be built first" is bounded by
+// this running over the structured MISMATCH/RISK field, not arbitrary prose — pin with the prereq
+// barrage test (queued). It catches STATED prerequisites; a silently-missing one is not detectable.
+const PREREQ_BLOCKER_RE = /\b(hard prerequisite|prerequisite[^a-z]|not yet built|must (?:first )?be built|be built first|no input data until)\b/i;
+export function detectPrereqBlocked(mismatchText) {
+  return PREREQ_BLOCKER_RE.test(String(mismatchText || ''));
+}
 
 function gzipLen(text) {
   if (typeof text !== 'string' || text.length === 0) return 0;
@@ -191,7 +211,7 @@ export function bridge(mechanismText, aText, bText, opts = {}) {
  * Fail-CLOSED anti-theater gate. Applies the strictest applicable cap. Distance never
  * promotes on its own. Returns { value, gated, reason }.
  */
-export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structuralConf, dist, hasMechanism }) {
+export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structuralConf, dist, hasMechanism, prereqBlocked }) {
   if (!hasMechanism) return { value: 0, gated: true, reason: 'no-mechanism' };
   // RED-TEAM fix: coerce non-finite inputs to 0 — `NaN ?? 0` is NaN (not nullish) and `NaN < x`
   // is false, which let a NaN structuralConf bypass the low-struct cap and propagate NaN to value.
@@ -208,6 +228,7 @@ export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structur
   if (!mismatchPresent) apply(GATE.CAP_NO_MISMATCH, 'no-named-mismatch');
   if (sc < GATE.STRUCT_FLOOR) apply(GATE.CAP_LOW_STRUCT, 'structural<MEDIUM');
   if (dv > GATE.FAR_WEAK_DIST && bv < GATE.FAR_WEAK_BRIDGE) apply(GATE.CAP_FAR_WEAK, 'far-but-weakly-bridged');
+  if (prereqBlocked) apply(GATE.CAP_PREREQ_BLOCKED, 'prerequisite-blocked'); // not yet implementation-viable
   const value = Math.min(vr, cap);
   return { value, gated: value < vr, reason: value < vr ? reason : 'ungated', cap };
 }
@@ -236,7 +257,10 @@ export function transferScore(t, opts = {}) {
   // RED-TEAM fix: clamp to the documented [0,1] — an unclamped negative conf produced value<0
   // (the gate only caps, never raises), and conf>1 produced valueRaw>1, both breaking the contract.
   const structuralConf = Number.isFinite(t.structuralConf) ? Math.max(0, Math.min(1, t.structuralConf)) : 1;
-  const mismatchPresent = !!t.mismatchPresent;
+  const mismatchText = String(t.mismatchText || '');
+  const mismatchPresent = !!t.mismatchPresent || mismatchText.trim().length > 20;
+  // IMPLEMENTATION-VIABILITY: mismatch names a hard unbuilt prerequisite → not yet buildable.
+  const prereqBlocked = detectPrereqBlocked(mismatchText);
   const hasMechanism = mechanismText.trim().length >= MIN_CHARS;
 
   const d = distance(sourceText, targetText, opts);
@@ -255,6 +279,7 @@ export function transferScore(t, opts = {}) {
     structuralConf,
     dist: d.distance,
     hasMechanism,
+    prereqBlocked,
   });
 
   return {
@@ -262,7 +287,9 @@ export function transferScore(t, opts = {}) {
     bridge: br.bridge,
     valueRaw,
     value: gate.value,
-    tier: tierOf(gate.value),
+    // BLOCKED tier overrides value-banding: a prerequisite-blocked transfer is not yet viable,
+    // however high its structural value — it must never read as INNOVATION/USEFUL.
+    tier: prereqBlocked ? 'BLOCKED' : tierOf(gate.value),
     gate,
     signals: {
       ncd: d.ncd,
@@ -271,6 +298,7 @@ export function transferScore(t, opts = {}) {
       reconTarget: br.reconTarget,
       structuralConf,
       mismatchPresent,
+      prereqBlocked,
       lowQuality: d.lowQuality || br.lowQuality,
     },
   };

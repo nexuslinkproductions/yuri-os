@@ -34,6 +34,7 @@ const scored = cards.map((c) => {
     targetText: `${c.yuriTarget || ''} ${c.theTransfer || ''}`.trim() || c.targetText, // B — target organ + landing
     mechanismText: c.borrowedMechanism || '',                   // M — the shared mechanism (separate vertex)
     structuralConf: c.structuralNum,
+    mismatchText: c.mismatch,                        // feeds the implementation-viability (prereq) gate
     mismatchPresent: !!(c.mismatch && c.mismatch.length > 20),
   }, V2_CONFIG);
   return { n: c.n, title: c.title.slice(0, 46), juice: c.juice, struct: c.structuralConf, lit: c.literalConf, ...s };
@@ -98,6 +99,15 @@ const checks = [
   // The real E sanity is the value contract: every value finite + in [0,1].
   ['E  contract: every value ∈ [0,1] (finite)', E_inBounds, `bounds-ok=${E_inBounds} rho_info=${E_rho.toFixed(3)}`],
 ];
+// F (red-team r2): LOAD-BEARING on the viability gate. The known prerequisite-blocked cards (22 MPC,
+// 35 VCG) MUST be tier BLOCKED + flagged + value-capped (disabling detectPrereqBlocked turns this red),
+// AND no FAR_BROKEN card may read INNOVATION. Strengthened from the prior median-passable version.
+const PREREQ_CARDS = scored.filter((s) => [22, 35].includes(s.n));
+const F_ok = PREREQ_CARDS.length === 2
+  && PREREQ_CARDS.every((s) => s.tier === 'BLOCKED' && s.signals.prereqBlocked === true && s.value <= 0.12)
+  && scored.filter((s) => FAR_BROKEN.has(s.n)).every((s) => s.tier !== 'INNOVATION');
+checks.push(['F  viability gate: prereq cards 22+35 BLOCKED + no FAR_BROKEN is INNOVATION', F_ok,
+  `prereq=${PREREQ_CARDS.map((s) => s.n + ':' + s.tier + (s.signals.prereqBlocked ? '✓' : '✗')).join(',')} far_broken=${scored.filter((s) => FAR_BROKEN.has(s.n)).map((s) => s.n + ':' + s.tier).join(',')}`]);
 
 console.log('\n══ PROOF ASSERTIONS (thresholds + labels committed a priori) ══');
 let pass = 0;

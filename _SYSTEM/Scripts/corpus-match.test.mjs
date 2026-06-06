@@ -46,12 +46,13 @@ ok(JSON.stringify(a.matches) === JSON.stringify(b.matches), 'prefix-filter deter
 
 // ── prefix-filter scans FEWER than N (sublinear pruning) on a selective query ──
 const sel = matchPrefixFilter(index, 'sql injection profile endpoint', { threshold: 0.4 });
-ok(sel.candidates <= index.n, 'prefix-filter candidates <= N (pruning)');
+ok(sel.candidates < index.n && sel.complete === true, 'prefix-filter prunes (candidates < N) AND stays complete'); // was vacuous `<= N`
 
 // ── LSH recall <= 1 and is reported (probabilistic, never claims complete) ──
 const lex = matchExact(index, 'cross site scripting reflected login', { threshold: 0.25 });
 const lls = matchLSH(index, 'cross site scripting reflected login', { threshold: 0.25 });
 ok(lls.totalAboveThreshold <= lex.totalAboveThreshold, 'LSH recall <= exact (never over-reports)');
+{ const exIds = new Set(lex.matches.map((m) => m.id)); ok(lls.matches.every((m) => exIds.has(m.id)), 'LSH matches ⊆ exact matches (no false positives, not just count)'); } // was count-only
 
 // ── scores bounded + sorted ──
 const r = matchExact(index, 'cross site scripting login', { threshold: 0.1 });
@@ -74,7 +75,8 @@ ok(Math.abs(est - trueJ) < 0.15, `minhash est ${est.toFixed(2)} ≈ true ${trueJ
   const fex = matchExact(fidx, q, { threshold: 0.2 });
   const fls = matchLSH(fidx, q, { threshold: 0.2 });
   // featureFn index: LSH query must be computed in the SAME feature space → recall > 0 (not 0%)
-  ok(fex.totalAboveThreshold === 0 || fls.totalAboveThreshold > 0, 'matchLSH honors featureFn (recall>0 on expanded index)');
+  ok(fex.totalAboveThreshold > 0, 'featureFn expanded index has exact matches (non-vacuous precondition)');
+  ok(fls.totalAboveThreshold > 0, 'matchLSH honors featureFn (recall>0 on expanded index, not 0%)'); // was vacuous when fex===0
 }
 
 console.log(`\ncorpus-match.test: ${pass} passed, ${fail} failed`);

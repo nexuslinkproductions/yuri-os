@@ -4,7 +4,7 @@
  * Asserts ROBUST properties (bounds, determinism, gate, far>near, theater-killed) that hold
  * regardless of lexicon tuning. Run: node _SYSTEM/Scripts/math/transfer-distance.test.mjs
  */
-import { ncd, jaccardDistance, distance, bridge, transferScore, v1BlendMetric } from './transfer-distance.mjs';
+import { ncd, jaccardDistance, distance, bridge, transferScore, v1BlendMetric, antiTheaterGate, GATE } from './transfer-distance.mjs';
 import { fieldClassify, fieldDistance, mechanismFrameDistance, scoreTransferV2, operatorSkeletonDistance } from './transfer-distance-cores.mjs';
 
 let pass = 0, fail = 0;
@@ -34,7 +34,7 @@ ok(inUnit(fieldDistance(HOPFIELD).d) && fieldDistance(HOPFIELD).d >= 0.8, 'Hopfi
 // ── mechanismFrame bridge: genuine mechanism reconstructs better than a wrong one ──
 const reconRight = 1 - mechanismFrameDistance(HOPFIELD, MEMORY_ORGAN).d;
 const reconWrong = 1 - mechanismFrameDistance(KALMAN, MEMORY_ORGAN).d; // Kalman mechanism in a memory organ
-ok(reconRight >= reconWrong, 'right mechanism reconstructs target >= wrong mechanism');
+ok(reconRight > reconWrong, 'right mechanism reconstructs target STRICTLY > wrong mechanism'); // was >= (passed on constant scorer)
 
 // ── value gate: no-mechanism → 0; far+holds > 0 ──
 const noMech = scoreTransferV2({ sourceText: HOPFIELD, targetText: MEMORY_ORGAN, mechanismText: '', structuralConf: 0.6, mismatchPresent: true });
@@ -57,6 +57,33 @@ ok(inUnit(farHolds.value) && inUnit(noMech.value) && inUnit(nounOnly.value), 'al
   ok(scoreTransferV2({ ...base, structuralConf: 5 }).value <= 1, 'structuralConf>1 → value <= 1 (clamped)');
   const nanV = transferScore(base, { distFn: () => ({ d: NaN }), reconFn: () => ({ d: NaN }) }).value;
   ok(Number.isFinite(nanV) && nanV >= 0 && nanV <= 1, 'metric returning NaN → value finite ∈ [0,1]');
+}
+
+// ── REGRESSION (red-team r2): implementation-viability (prerequisite) gate → BLOCKED tier ──
+{
+  const M = 'past an interference threshold mutual crosstalk between stored patterns degrades recall super-linearly saturation governed by interference not per-item decay';
+  const blocked = scoreTransferV2({ sourceText: HOPFIELD, targetText: MEMORY_ORGAN, mechanismText: M, structuralConf: 0.9, mismatchText: 'HARD PREREQUISITE: a real transition function must be built first — it does not exist today' });
+  ok(blocked.tier === 'BLOCKED', 'prerequisite-blocked transfer → BLOCKED tier (not INNOVATION)');
+  ok(blocked.value <= 0.12 && blocked.signals.prereqBlocked === true, 'BLOCKED value capped + flagged');
+  const viable = scoreTransferV2({ sourceText: HOPFIELD, targetText: MEMORY_ORGAN, mechanismText: M, structuralConf: 0.9, mismatchText: 'use covariance intersection because the lanes are correlated' });
+  ok(viable.tier !== 'BLOCKED' && viable.signals.prereqBlocked === false, 'no hard prerequisite → not BLOCKED');
+}
+
+// ── GATE-INTERNAL mutation guards (from the mutation-test round — catch silent gate breaks) ──
+{
+  // M5 (invert apply) + M3 (BRIDGE_FLOOR→0): theater-only case must cap at CAP_THEATER, not pass through.
+  const g = antiTheaterGate(0.9, { bridgeVal: 0.1, dist: 0.5, structuralConf: 1, mismatchPresent: true, hasMechanism: true });
+  ok(g.cap === GATE.CAP_THEATER && g.value <= GATE.CAP_THEATER, 'antiTheaterGate fires (low bridge → CAP_THEATER); catches no-op/floor mutants');
+  // M1 (bridge min→max): asymmetric reconstruction must take the WEAKER side (min, not max/avg).
+  const A = 'reflected cross site scripting injection in the login form input sanitization layer here today';
+  const B = 'persistent homology filtration union find barcode topological data analysis over a weighted graph';
+  const Mtxt = 'reflected cross site scripting injection in the login form input field is not sanitized properly';
+  const br = bridge(Mtxt, A, B);
+  ok(br.reconSource !== br.reconTarget && br.bridge === Math.min(br.reconSource, br.reconTarget), 'bridge = min(recon) on asymmetric sides (catches min→max mutant)');
+  // M8 (mechanismFamilySim const): a WRONG mechanism must be far from the target (absolute floor).
+  ok(mechanismFrameDistance('Kalman filter scalar adaptive recursive estimator predicts then updates an innovation variance folding samples', MEMORY_ORGAN).d > 0.55, 'wrong-domain mechanism is structurally far from target (>0.55)');
+  // M2 (clamp drop): assert on valueRaw (NOT the always-clamped value) — conf>1 must not inflate raw.
+  ok(scoreTransferV2({ sourceText: HOPFIELD, targetText: MEMORY_ORGAN, mechanismText: 'past an interference threshold mutual crosstalk between stored patterns degrades recall super-linearly', structuralConf: 5, mismatchText: 'use covariance intersection' }).valueRaw <= 1, 'structuralConf>1 → valueRaw <= 1 (clamp non-vacuous, checks valueRaw)');
 }
 
 console.log(`\ntransfer-distance.test: ${pass} passed, ${fail} failed`);
