@@ -38,4 +38,11 @@ assert.ok(tags.includes('source_of_truth_mismatch'));
 assert.equal(result.index.bridges.some(bucket => bucket.tag === 'framing_failure'), true);
 assert.equal(result.index.totalLessons, 3);
 
+// similarity cross-reference is wired (the matcher is actively used, not just lexical aliases)
+assert.ok(result.index.similarity, 'index carries the similarity cross-reference');
+assert.equal(result.index.similarity.mode, 'prefix-filter');
+assert.equal(result.index.similarity.complete, true);
+assert.equal(result.index.similarity.totalLessons, 3);
+assert.equal(typeof result.index.similarity.relatedById, 'object');
+
 console.log('cross-reference.test: ok');

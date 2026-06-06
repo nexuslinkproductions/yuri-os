@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { buildIndex, matchPrefixFilter } from '../corpus-match.mjs';
+import { makeFeatureFn } from '../math/yuri-token-expand.mjs';
 
 export const TAXONOMY = {
   framing_failure: {
@@ -339,6 +341,7 @@ export function classifyLesson(lesson) {
 
 export function buildCrossReferenceIndex(lessons, { week = null } = {}) {
   const classified = lessons.map(classifyLesson);
+  const similarity = buildSimilarityCrossReference(classified);
   const tagBuckets = {};
   const domainBuckets = {};
 
@@ -394,6 +397,7 @@ export function buildCrossReferenceIndex(lessons, { week = null } = {}) {
     week,
     totalLessons: classified.length,
     totalDomains: Object.keys(domainBuckets).length,
+    similarity,
     taxonomy: CANONICAL_TAGS.map(tag => ({
       tag,
       ...TAXONOMY[tag],
@@ -415,6 +419,53 @@ export function buildCrossReferenceIndex(lessons, { week = null } = {}) {
     tags,
     bridges,
   };
+}
+
+// ── SIMILARITY cross-reference: wire the COMPLETE prefix-filter matcher over the lesson corpus, so the
+// cross-reference math is ACTIVELY USED (not just lexical aliases). Owner-gated wiring, 2026-06-06.
+export function buildSimilarityCrossReference(lessons, opts = {}) {
+  const threshold = opts.threshold ?? opts.similarityThreshold ?? 0.3;
+  if (!Number.isFinite(threshold) || threshold <= 0 || threshold > 1) {
+    throw new Error(`buildSimilarityCrossReference threshold must be in (0,1], got ${threshold}`);
+  }
+  const records = buildSimilarityRecords(lessons);
+  const empty = { threshold, mode: 'prefix-filter', complete: true, totalLessons: records.length, relatedById: {}, records };
+  if (records.length <= 1) return empty;
+
+  const featureOpts = opts.featureOptions || opts;
+  const { featureFn } = makeFeatureFn(records, featureOpts);
+  const index = buildIndex(records, { threshold, featureFn, metric: 'jaccard', prefixFilter: true, lsh: false });
+
+  const relatedById = {};
+  for (const record of records) {
+    const result = matchPrefixFilter(index, record.text, { threshold });
+    relatedById[record.id] = result.matches
+      .filter((match) => match.id !== record.id)
+      .map((match) => {
+        const lesson = records.find((item) => item.id === match.id)?.lesson || {};
+        return {
+          id: match.id, score: match.score, title: lesson.title || match.id, path: lesson.path || null,
+          archivePath: lesson.archivePath || null, domain: lesson.domain || 'general',
+          primaryTag: lesson.primaryTag || null, tags: lesson.tags || [],
+        };
+      });
+  }
+  return { ...empty, complete: true, relatedById };
+}
+
+function buildSimilarityRecords(lessons) {
+  const seen = new Map();
+  return (lessons || []).map((lesson, idx) => {
+    const baseId = String(lesson?.path || lesson?.title || `lesson-${idx + 1}`);
+    const count = seen.get(baseId) || 0;
+    seen.set(baseId, count + 1);
+    const id = count === 0 ? baseId : `${baseId}#${count + 1}`;
+    const title = lesson?.title || '';
+    const questions = (lesson?.questions || []).join('\n');
+    const summary = lesson?.summary || '';
+    const body = lesson?.content || lesson?.body || (lesson?.tokens || []).join(' ');
+    return { id, text: [title, questions, summary, body].filter(Boolean).join('\n'), lesson };
+  }).filter((record) => record.text.trim().length > 0);
 }
 
 export function renderCrossReferenceMarkdown(index) {
@@ -452,6 +503,23 @@ export function renderCrossReferenceMarkdown(index) {
       );
       for (const lesson of bucket.lessons) {
         lines.push(`- ${lesson.domain}: ${lesson.title} -> ${lesson.archivePath || lesson.path}`);
+      }
+    }
+  }
+
+  lines.push('', `## Related Lessons (similarity >= ${index.similarity?.threshold ?? 0.3}, complete prefix-filter)`);
+  const similarityRows = [];
+  for (const record of index.similarity?.records || []) {
+    const related = index.similarity.relatedById?.[record.id] || [];
+    if (related.length > 0) similarityRows.push({ lesson: record.lesson || {}, related });
+  }
+  if (similarityRows.length === 0) {
+    lines.push('- None yet');
+  } else {
+    for (const row of similarityRows) {
+      lines.push('', `### ${row.lesson.title || row.lesson.path || 'Untitled lesson'}`);
+      for (const related of row.related) {
+        lines.push(`- ${related.score.toFixed(3)} ${related.title} -> ${related.archivePath || related.path || related.id}`);
       }
     }
   }
