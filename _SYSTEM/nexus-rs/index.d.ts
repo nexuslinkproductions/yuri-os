@@ -20,12 +20,10 @@ export interface BandTuning {
 }
 export declare function tuneBands(k: number, t: number): BandTuning
 export declare function tokenize(text: string): Array<string>
-/** jaccard of two texts (tokenize both, then set-similarity) — convenience for conformance. */
 export declare function jaccardText(a: string, b: string): number
 export declare function fib(n: number): number
 export declare function phiSequence(count: number, x0: number): Array<number>
 export declare function goldenAnglePoint(n: number): number
-/** Minimize (x - target)^2 on [lo,hi] via golden-section — proves the closure-based search over FFI. */
 export declare function goldenSectionMinQuadratic(target: number, lo: number, hi: number): number
 export interface MatchResult {
   ids: Array<string>

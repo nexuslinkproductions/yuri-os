@@ -7,7 +7,18 @@ tags: handoff, nexus_core, math_engine, continue_here
 
 # SESSION HANDOFF — 2026-06-06 → next session (NEXUS CORE math substrate)
 
-## ⚡ SESSION 2026-06-06c CLOSEOUT (latest — read first)
+## ⚡ SESSION 2026-06-06e CLOSEOUT (LATEST — read first)
+RUST TRANSITION + new visions. Committed+pushed (212740f4, 54dd2eff). Fleet: full-code lanes now standard (Marcel: stop restricting to snippets).
+- **NEXUS Rust kernel BUILT + PROVEN** at `_SYSTEM/nexus-rs` (crate `nexus`, renamed from nexus-core to disambiguate from the pre-existing `03_NEXUS-LINK/nexus-engine/crates/nexus-core` billing crate): minhash/jaccard/phi/corpus_match ported BIT-EXACT from JS. **napi + wasm bindings both proven** — cargo 19/19, napi conformance 72/72, wasm conformance 60/60 (Node loads the binding, asserts exact vs JS: fnv1a/MinHash-sigs/LSH-keys exact, matcher prefix==exact==JS). Owner directive: ported now while small. Toolchain: rustup + wasm32 installed (Homebrew rust lacked the target). pkg/ + target/ + *.node gitignored. Lanes R1/R2/R3 wrote the modules (full code); I assembled + verified + fixed (const-sqrt, wrong test expectation, separator).
+- **circuitry-auto-register.mjs (D3)** — matcher over the code+test corpus; orphan/tests-cover/similarity detection. The DETECTION substrate for the Nexus Guard.
+- **NEW VISIONS (research done, build owner-gated):** [[regenerative-nexus-guard-vision]] + [[regenerative-nexus-guard-2026-06-06]] (NG1 design: detect built-but-unwired artifacts → safe pre-wire → notify; wiring-contracts + tension scalar; phased read-only-first build). Circuitry MATH-BOARD env design (C9) + microscope viz extends the EXISTING die (not new). RRI/2nd-order synonym BUILT (PPMI-cosine, sem2:).
+- **FINDINGS (memory):** [[feedback-codex-lane-not-truly-read-only]] (a lane wrote files despite --sandbox read-only → always git-status-check post-dispatch), [[feedback-full-prerequisite-closure-no-wire-later]], [[feedback-important-primitive-means-build-in]].
+- **IN FLIGHT at handoff:** DeepSeek full Rust SECURITY review (DR) — FFI input-limit hardening vs the #1 corpus class (Uncontrolled Resource Consumption); fold the boundary guards (max items/text/tokens, fail-closed) + a DoS test when it lands.
+- **NEXT (owner-gated):** Nexus Guard build (read-only detector first) · circuitry auto-regen + math-board on the existing die · wire matcher into cross-reference.mjs (the standing self-improvement path) · FFI hardening fold.
+
+---
+
+## ⚡ SESSION 2026-06-06c CLOSEOUT
 Standing fleet active (5 Codex xhigh + 2 DeepSeek, 3 dispatch rounds = 10 lanes; all collected, advisory-verified-vs-live before folding). **NOT committed — awaiting owner nod.**
 - **Test-coverage gaps CLOSED (queued #1):** NEW `math/yuri-minhash.test.mjs` (47), `math/yuri-token-expand.test.mjs` (45), `corpus-match.sqlsec.test.mjs` (75, real-temp-DB `ident()` injection, `ident()`-message-pinned). Folded mutants M6/M12/M13/M14/M16/M18 + C8 cold-vector pins (fnv1a/makeHashes/minhash-coords/lshBands/ppmi/tokenCharSim exact-pinned). **Mutation-tested** (break→red→revert: 7/7 mutants killed).
 - **PREREQ detector r3:** replaced brittle `PREREQ_BLOCKER_RE` with a structured clause+artifact-proximity detector in `transfer-distance.mjs` (evades-resistant: blocks 6/6 paraphrases, 0 over-fire incl. the "build-trust…workflow" trap). NEW `transfer-distance.prereq.test.mjs` (24, live-import). Proof F intact 6/6.

@@ -115,5 +115,18 @@ for (const n of [0, 1, 5, 100]) ok(close(rust.goldenAnglePoint(n), jsGoldenAngle
   }
 }
 
+// ── FFI FAIL-CLOSED LIMITS (DR security hardening) — DoS inputs MUST throw, not OOM/panic/trap ──
+const throws = (fn, n) => { try { fn(); ok(false, `${n} (should throw)`); } catch { ok(true, n); } };
+throws(() => rust.makeHashes(0, 1), 'makeHashes(0) rejected (was a panic-across-FFI)');
+throws(() => rust.makeHashes(0xFFFFFFFF, 1), 'makeHashes(u32::MAX) rejected (was a ~16GiB OOM)');
+throws(() => rust.lshBands([1, 2, 3, 4], 2, 3), 'lshBands b*r>sig.len rejected (was an index panic / wasm trap)');
+throws(() => rust.tuneBands(0xFFFFFFFF, 0.5), 'tuneBands(u32::MAX) rejected (was a 4-billion-iter CPU DoS)');
+throws(() => rust.phiSequence(60000, 0), 'phiSequence(>50k) rejected');
+throws(() => rust.fib(80), 'fib(80>78) rejected');
+throws(() => rust.minhashSignature(Array.from({ length: 250001 }, () => 'x'), [1], [1]), 'minhashSignature(>250k tokens) rejected');
+throws(() => rust.corpusMatchExact(Array.from({ length: 50001 }, (_, i) => String(i)), Array.from({ length: 50001 }, () => 't'), 'q', 0.2), 'corpusMatchExact(>50k items) rejected');
+ok(rust.makeHashes(4096, 1).a.length === 4096, 'makeHashes(4096=MAX) still valid');
+ok(rust.lshBands([1, 2, 3, 4], 2, 2).length === 2, 'lshBands b*r==sig.len (boundary) still valid');
+
 console.log(`\nnexus napi conformance: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
