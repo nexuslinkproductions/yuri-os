@@ -71,6 +71,26 @@ pub fn check_corpus(items: u32) -> Result<(), GuardError> {
     Ok(())
 }
 
+// ── SECOND-LINE guards (A1 stress-test) for the previously-unguarded FFI params ──────────────────
+// NOTE: these are SECOND-LINE. napi/wasm MARSHAL the JS input into Rust memory BEFORE any guard runs,
+// so a multi-GB input can OOM at the marshalling step regardless of these. The TRUE first boundary is
+// JS-side size validation before the native call — the kernel's JS consumers (cross-reference,
+// circuitry-auto-register) pass our own bounded data, not adversarial input. These cap post-marshal WORK.
+pub fn check_signature_pair(a_len: u32, b_len: u32) -> Result<(), GuardError> {
+    guard!(a_len <= MAX_LSH_SIG_LEN, format!("estimate_jaccard: a length must be <= {MAX_LSH_SIG_LEN}, got {a_len}"));
+    guard!(b_len <= MAX_LSH_SIG_LEN, format!("estimate_jaccard: b length must be <= {MAX_LSH_SIG_LEN}, got {b_len}"));
+    Ok(())
+}
+pub fn check_hash_params(a_len: u32, b_len: u32) -> Result<(), GuardError> {
+    guard!(a_len == b_len, format!("minhash_signature: a/b length mismatch ({a_len}/{b_len})"));
+    guard!(a_len <= MAX_HASHES, format!("minhash_signature: hash count must be <= {MAX_HASHES}, got {a_len}"));
+    Ok(())
+}
+pub fn check_finite(name: &str, x: f64) -> Result<(), GuardError> {
+    guard!(x.is_finite(), format!("{name}: must be finite, got {x}"));
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,5 +120,17 @@ mod tests {
         assert!(check_phi_sequence(MAX_PHI_SEQUENCE + 1).is_err());
         assert!(check_corpus(MAX_CORPUS_ITEMS + 1).is_err());
         assert!(check_corpus(7).is_ok());
+    }
+
+    #[test]
+    fn second_line_guards() {
+        assert!(check_signature_pair(MAX_LSH_SIG_LEN, MAX_LSH_SIG_LEN).is_ok());
+        assert!(check_signature_pair(MAX_LSH_SIG_LEN + 1, 1).is_err());
+        assert!(check_hash_params(128, 128).is_ok());
+        assert!(check_hash_params(128, 64).is_err());               // a/b length mismatch
+        assert!(check_hash_params(MAX_HASHES + 1, MAX_HASHES + 1).is_err());
+        assert!(check_finite("x", 1.0).is_ok());
+        assert!(check_finite("x", f64::NAN).is_err());              // NaN float → fail-closed
+        assert!(check_finite("x", f64::INFINITY).is_err());
     }
 }

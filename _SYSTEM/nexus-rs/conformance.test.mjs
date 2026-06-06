@@ -127,6 +127,11 @@ throws(() => rust.minhashSignature(Array.from({ length: 250001 }, () => 'x'), [1
 throws(() => rust.corpusMatchExact(Array.from({ length: 50001 }, (_, i) => String(i)), Array.from({ length: 50001 }, () => 't'), 'q', 0.2), 'corpusMatchExact(>50k items) rejected');
 ok(rust.makeHashes(4096, 1).a.length === 4096, 'makeHashes(4096=MAX) still valid');
 ok(rust.lshBands([1, 2, 3, 4], 2, 2).length === 2, 'lshBands b*r==sig.len (boundary) still valid');
+// A1 second-line guards (previously-unguarded params)
+throws(() => rust.estimateJaccard(new Array(9000).fill(1), [1]), 'estimateJaccard(a>MAX_SIG) rejected');
+throws(() => rust.minhashSignature(['x'], [1, 2], [1, 2, 3]), 'minhashSignature a/b length mismatch rejected');
+throws(() => rust.goldenSectionMinQuadratic(NaN, 0, 1), 'goldenSection NaN target rejected (non-finite)');
+throws(() => rust.phiSequence(5, NaN), 'phiSequence NaN x0 rejected (non-finite)');
 
 console.log(`\nnexus napi conformance: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -1,5 +1,6 @@
-//! napi binding — HARDENED FFI boundary (DR security review). Every untrusted size/length gates through
-//! guard:: (fail-closed) before touching the pure kernel; the pure modules stay UNCHANGED + bit-exact.
+//! napi binding — HARDENED FFI boundary (DR + A1 stress-test). Untrusted sizes/lengths/floats gate
+//! through guard:: (fail-closed) before touching the pure kernel; pure modules UNCHANGED + bit-exact.
+//! Rust guards are SECOND-LINE — the true first boundary is JS-side validation before marshalling.
 use napi_derive::napi;
 
 use crate::{corpus_match, guard, jaccard, minhash, phi};
@@ -20,11 +21,15 @@ pub fn make_hashes(k: u32, seed: u32) -> napi::Result<HashParams> {
 #[napi]
 pub fn minhash_signature(tokens: Vec<String>, a: Vec<u32>, b: Vec<u32>) -> napi::Result<Vec<u32>> {
     guard::check_minhash_tokens(tokens.len() as u32)?;
+    guard::check_hash_params(a.len() as u32, b.len() as u32)?;
     Ok(minhash::minhash_signature(tokens.iter().map(|s| s.as_str()), &a, &b))
 }
 
 #[napi]
-pub fn estimate_jaccard(a: Vec<u32>, b: Vec<u32>) -> f64 { minhash::estimate_jaccard(&a, &b) }
+pub fn estimate_jaccard(a: Vec<u32>, b: Vec<u32>) -> napi::Result<f64> {
+    guard::check_signature_pair(a.len() as u32, b.len() as u32)?;
+    Ok(minhash::estimate_jaccard(&a, &b))
+}
 
 #[napi]
 pub fn lsh_bands(sig: Vec<u32>, b: u32, r: u32) -> napi::Result<Vec<String>> {
@@ -59,6 +64,7 @@ pub fn fib(n: u32) -> napi::Result<f64> {
 #[napi]
 pub fn phi_sequence(count: u32, x0: f64) -> napi::Result<Vec<f64>> {
     guard::check_phi_sequence(count)?;
+    guard::check_finite("phi_sequence x0", x0)?;
     Ok(phi::phi_sequence(count as usize, x0))
 }
 
@@ -67,6 +73,9 @@ pub fn golden_angle_point(n: u32) -> f64 { phi::golden_angle_point(n as usize) }
 
 #[napi]
 pub fn golden_section_min_quadratic(target: f64, lo: f64, hi: f64) -> napi::Result<f64> {
+    guard::check_finite("target", target)?;
+    guard::check_finite("lo", lo)?;
+    guard::check_finite("hi", hi)?;
     phi::golden_section_search_default(|x| (x - target).powi(2), lo, hi)
         .map(|r| r.x).map_err(|e| napi::Error::from_reason(format!("{:?}", e)))
 }
@@ -76,6 +85,7 @@ pub struct MatchResult { pub ids: Vec<String>, pub total: u32 }
 
 fn run_match(ids: Vec<String>, texts: Vec<String>, query: String, threshold: f64, prefix: bool) -> napi::Result<MatchResult> {
     guard::check_corpus(ids.len() as u32)?;
+    guard::check_corpus(texts.len() as u32)?;
     let n = ids.len().min(texts.len()); // mismatched lengths would otherwise index-panic
     let items: Vec<corpus_match::CorpusItem> = ids[..n].iter().zip(texts[..n].iter())
         .map(|(i, t)| corpus_match::CorpusItem { id: i.as_str(), text: t.as_str() }).collect();

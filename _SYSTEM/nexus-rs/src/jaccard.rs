@@ -61,7 +61,8 @@ pub struct SaturationReport {
 }
 
 fn capped_prefix(text: &str) -> &str {
-    if text.chars().count() <= MAX_TOKENIZE_CHARS { return text; }
+    // O(min(n, MAX)) — do NOT pre-count the whole string (chars().count() on a huge input is an O(n)
+    // CPU cost just to measure); nth() stops at the cap. (A1 stress-test fix, 2026-06-06.)
     match text.char_indices().nth(MAX_TOKENIZE_CHARS) {
         Some((idx, _)) => &text[..idx],
         None => text,
