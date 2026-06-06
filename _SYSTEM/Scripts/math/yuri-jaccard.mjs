@@ -32,10 +32,14 @@ const STOP = new Set(['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'a
   'this', 'that', 'with', 'from', 'into', 'they', 'them', 'then', 'than', 'over', 'when',
   'what', 'were', 'will', 'your', 'have', 'been', 'also']);
 
+// RED-TEAM fix: hard input cap so an adversarial multi-MB query/doc can't allocate unbounded
+// token structures. 200k chars ≫ any real title/query; longer inputs are truncated, not refused.
+const MAX_TOKENIZE_CHARS = 200000;
 export function tokenize(text) {
   if (typeof text !== 'string' || text.length === 0) return new Set();
+  const s = text.length > MAX_TOKENIZE_CHARS ? text.slice(0, MAX_TOKENIZE_CHARS) : text;
   const out = new Set();
-  for (const raw of text.toLowerCase().split(/[^a-z0-9]+/)) {
+  for (const raw of s.toLowerCase().split(/[^a-z0-9]+/)) {
     if (raw.length >= 3 && !STOP.has(raw)) out.add(raw);
   }
   return out;
@@ -45,7 +49,8 @@ export function tokenize(text) {
 export function tokenFreq(text) {
   const map = new Map();
   if (typeof text !== 'string' || text.length === 0) return map;
-  for (const raw of text.toLowerCase().split(/[^a-z0-9]+/)) {
+  const s = text.length > MAX_TOKENIZE_CHARS ? text.slice(0, MAX_TOKENIZE_CHARS) : text; // RED-TEAM r2: cap (was tokenize-only)
+  for (const raw of s.toLowerCase().split(/[^a-z0-9]+/)) {
     if (raw.length >= 3 && !STOP.has(raw)) map.set(raw, (map.get(raw) || 0) + 1);
   }
   return map;
