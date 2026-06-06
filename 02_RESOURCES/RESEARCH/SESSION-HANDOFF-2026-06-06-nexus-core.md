@@ -7,7 +7,44 @@ tags: handoff, nexus_core, math_engine, continue_here
 
 # SESSION HANDOFF — 2026-06-06 → next session (NEXUS CORE math substrate)
 
-## ⚡ SESSION 2026-06-06e CLOSEOUT (LATEST — read first)
+## 🚀 NEXT-SESSION LAUNCH — READ THIS FIRST (state as of 2026-06-06, end)
+
+**Branch `main`, all green + pushed (HEAD 8b7e0fb5). Fresh fleet each session (5 Codex xhigh + 2 DeepSeek; lanes produce FULL code, advisory-until-verified-vs-live). Standing method: build → adversarial fleet → fix → re-test → fold. Lanes can WRITE files even with --sandbox read-only → `git status`-check after every dispatch.**
+
+### VERIFY (run from repo root — all green at handoff)
+```
+# JS NEXUS substrate (314 assertions)
+for t in math/yuri-phi math/yuri-minhash math/yuri-token-expand math/yuri-jaccard math/transfer-distance math/transfer-distance.prereq corpus-match corpus-match.sqlsec; do node _SYSTEM/Scripts/$t.test.mjs 2>&1 | tail -1; done
+node _SYSTEM/Scripts/math/transfer-distance.proof.mjs | tail -1            # 6/6
+node _SYSTEM/Scripts/corpus-match.collapse.mjs | tail -1                    # COLLAPSE FIXED
+node _SYSTEM/Scripts/self-improvement/cross-reference.test.mjs              # ok (matcher WIRED in)
+# NEXUS Rust kernel (_SYSTEM/nexus-rs) — needs PATH for wasm: export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
+cd _SYSTEM/nexus-rs && cargo test --quiet                                   # 23/23
+./node_modules/.bin/napi build --platform --features napi-binding && node conformance.test.mjs   # 86/86
+wasm-pack build --target nodejs --out-dir pkg -- --features wasm-binding && node wasm-conformance.test.mjs   # 60/60
+```
+
+### WHAT SHIPPED THIS SESSION (commits 212740f4 → 8b7e0fb5)
+- **NEXUS Rust kernel** `_SYSTEM/nexus-rs` (crate `nexus`): minhash/jaccard/phi/corpus_match ported BIT-EXACT from JS; **napi + wasm** bindings both conformance-proven; **fail-closed FFI guard** (guard.rs, DR+A1 hardened); rustup+wasm32 installed. The JS modules stay the reference; Rust is the fast/portable delivery.
+- **Cross-reference math WIRED into active use** — `cross-reference.mjs` now uses corpus-match (complete prefix-filter) over the lesson corpus (was built-but-unwired). The matcher + token-expand are live consumers.
+- **circuitry-auto-register.mjs** — matcher over the code+test corpus (orphan/tests-cover/similarity detection); the DETECTION substrate for the Nexus Guard.
+- **π/φ/Fib** (`yuri-phi.mjs`) + **2nd-order PPMI-cosine synonym** (token-expand `sem2:`) BUILT.
+- **Adversarial stress test folded** (A1 kernel + A3 engines: sqlite system-table deny, repo-containment, LIMIT validation, second-line guards); A2 gates: hard boundary HELD, fail-open lexical layer documented.
+
+### QUEUED — NEXT BUILDS (priority; designs ready in 02_RESOURCES/RESEARCH/)
+1. **Regenerative Nexus Guard** — read-only detector first (detect built-but-unwired artifacts → safe pre-wire → notify). Design: [[regenerative-nexus-guard-2026-06-06]] + [[regenerative-nexus-guard-vision]]. Substrate (circuitry-auto-register) exists. HIGH ROI: turns "is X wired?" into a standing check.
+2. **Circuitry auto-regen + math-board** on the EXISTING die (LOD microscope zoom, golden-angle layout) — design in [[nexus-core-design-queue-2026-06-06c]] (C6+C9). Owner-gated (live viz).
+3. **OSS-release security hardening** — canonical protected-path detector + block commit --no-verify + secret-scan concatenation/base64 ([[feedback-infra-gate-posture-stress-test-2026-06-06]]). Before going public.
+4. **MED hardening** (queued, not blocking): matchPrefixFilter below-buildThreshold throw; corpus-match degenerate-corpus budget knob.
+5. **NEXUS CORE rename** (math/ surface → NEXUS CORE, separate from research DB) + **OSS watermark** (Fibonacci provenance, [[oss-watermark-2026-06-06]]) + **Rust napi-rs hot-kernel swap** post-v1.
+6. **COWORK adoption** (Marcel: phone-driven, MacBook-continuous) — research in flight (claude-code-guide agent); fold the brief + decide adoption.
+
+### KEY DIRECTIVES (memory, this session)
+Standing-fleet-default orchestration (autonomous, full-code lanes) · full-prerequisite-closure (no wire-later) · important-primitive=build-in · circuitry auto-registration + math-board env + microscope-into-existing-die · regenerative-nexus-guard · codex-lane-not-truly-read-only · infra-gate-posture.
+
+---
+
+## ⚡ SESSION 2026-06-06e CLOSEOUT
 RUST TRANSITION + new visions. Committed+pushed (212740f4, 54dd2eff). Fleet: full-code lanes now standard (Marcel: stop restricting to snippets).
 - **NEXUS Rust kernel BUILT + PROVEN** at `_SYSTEM/nexus-rs` (crate `nexus`, renamed from nexus-core to disambiguate from the pre-existing `03_NEXUS-LINK/nexus-engine/crates/nexus-core` billing crate): minhash/jaccard/phi/corpus_match ported BIT-EXACT from JS. **napi + wasm bindings both proven** — cargo 19/19, napi conformance 72/72, wasm conformance 60/60 (Node loads the binding, asserts exact vs JS: fnv1a/MinHash-sigs/LSH-keys exact, matcher prefix==exact==JS). Owner directive: ported now while small. Toolchain: rustup + wasm32 installed (Homebrew rust lacked the target). pkg/ + target/ + *.node gitignored. Lanes R1/R2/R3 wrote the modules (full code); I assembled + verified + fixed (const-sqrt, wrong test expectation, separator).
 - **circuitry-auto-register.mjs (D3)** — matcher over the code+test corpus; orphan/tests-cover/similarity detection. The DETECTION substrate for the Nexus Guard.
