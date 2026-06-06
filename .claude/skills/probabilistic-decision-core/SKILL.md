@@ -1,6 +1,7 @@
 ---
 name: probabilistic-decision-core
 description: Operational probability, calibration, and expected-value discipline for Yuri OS decisions.
+invocation: model
 version: 1.0.0
 status: active
 enterprise_ready: true

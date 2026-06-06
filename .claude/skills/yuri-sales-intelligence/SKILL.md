@@ -1,6 +1,7 @@
 ---
 name: yuri-sales-intelligence
 description: "Unified sales and outreach intelligence skill. Generates cold outreach openers, social selling sequences, objection diagnosis with rebuttals, and ad creative for any paid platform. Multi-persona aware — adapts tone, hook, and offer frame to buyer type. Synthesized from corpus: cold-call-opener-builder, social-selling-touch-planner, objection-source-diagnoser, ad-creative, receipt-subscription-cleaner."
+invocation: user
 triggers:
   - "/sales-intelligence"
   - "/yuri-sales"

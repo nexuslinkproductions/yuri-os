@@ -1,6 +1,7 @@
 ---
 name: bankai-manifest
 description: Full Externalize Mode — on CRITICAL complexity tasks, Musubi fully externalizes its cognitive state as a structured manifest (goal tree, risk map, evidence chain, failure modes, advisor consensus) before acting. The manifest becomes ground truth for the session until task closes.
+invocation: model
 triggers:
   - /bankai
   - /yuri-bankai

@@ -2,58 +2,24 @@
   "version": 1,
   "phase": "1-read-only-detector",
   "summary": {
-    "total": 61,
+    "total": 37,
     "byClass": {
-      "D": 5,
       "F": 2,
-      "G": 15,
-      "A": 25,
-      "E": 14
+      "G": 10,
+      "A": 25
     },
-    "highConfidence": 36,
+    "highConfidence": 12,
     "lowConfidence": 25,
     "tension": {
-      "T": 16.968,
-      "hi": 6,
-      "med": 16,
-      "lo": 39
+      "T": 12.873,
+      "hi": 2,
+      "med": 10,
+      "lo": 25
     },
     "exemptionsApplied": 1,
-    "safeAutoWireProposed": 9
+    "safeAutoWireProposed": 0
   },
   "findings": [
-    {
-      "cls": "D",
-      "code": "math-module-unregistered",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-adapters.mjs",
-      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
-    },
-    {
-      "cls": "D",
-      "code": "math-module-unregistered",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-health.mjs",
-      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
-    },
-    {
-      "cls": "D",
-      "code": "math-module-unregistered",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
-      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
-    },
-    {
-      "cls": "D",
-      "code": "math-module-unregistered",
-      "severity": "high",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
-      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
-    },
     {
       "cls": "F",
       "code": "hook-not-in-settings",
@@ -73,50 +39,6 @@
       "ownerGated": "settings-registration"
     },
     {
-      "cls": "D",
-      "code": "math-module-unregistered",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
-      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-adapters.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-health.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
       "cls": "G",
       "code": "node-absent-from-graph",
       "severity": "medium",
@@ -131,15 +53,6 @@
       "severity": "medium",
       "confidence": "HIGH",
       "artifact": "_SYSTEM/Scripts/math/transfer-distance.mjs",
-      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
-      "ownerGated": "graph-node-add"
-    },
-    {
-      "cls": "G",
-      "code": "node-absent-from-graph",
-      "severity": "medium",
-      "confidence": "HIGH",
-      "artifact": "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
       "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
       "ownerGated": "graph-node-add"
     },
@@ -439,274 +352,9 @@
       "method": "textual-zero-reference",
       "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:resolveCanonicalTag",
       "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/bankai-manifest/SKILL.md",
-      "alias": "yuri-bankai",
-      "detail": "skill declares trigger /yuri-bankai but .claude/commands/yuri-bankai.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-bankai.md",
-        "alias": "yuri-bankai",
-        "skill": "bankai-manifest"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
-      "alias": "deepseek",
-      "detail": "skill declares trigger /deepseek but .claude/commands/deepseek.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/deepseek.md",
-        "alias": "deepseek",
-        "skill": "deepseek-offload"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
-      "alias": "nvidia",
-      "detail": "skill declares trigger /nvidia but .claude/commands/nvidia.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/nvidia.md",
-        "alias": "nvidia",
-        "skill": "deepseek-offload"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
-      "alias": "nvidia-deepseek",
-      "detail": "skill declares trigger /nvidia-deepseek but .claude/commands/nvidia-deepseek.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/nvidia-deepseek.md",
-        "alias": "nvidia-deepseek",
-        "skill": "deepseek-offload"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
-      "alias": "offload",
-      "detail": "skill declares trigger /offload but .claude/commands/offload.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/offload.md",
-        "alias": "offload",
-        "skill": "deepseek-offload"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/geass-lock/SKILL.md",
-      "alias": "yuri-geass",
-      "detail": "skill declares trigger /yuri-geass but .claude/commands/yuri-geass.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-geass.md",
-        "alias": "yuri-geass",
-        "skill": "geass-lock"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/haki-intent/SKILL.md",
-      "alias": "yuri-haki",
-      "detail": "skill declares trigger /yuri-haki but .claude/commands/yuri-haki.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-haki.md",
-        "alias": "yuri-haki",
-        "skill": "haki-intent"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/izanagi-simulator/SKILL.md",
-      "alias": "yuri-izanagi",
-      "detail": "skill declares trigger /yuri-izanagi but .claude/commands/yuri-izanagi.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-izanagi.md",
-        "alias": "yuri-izanagi",
-        "skill": "izanagi-simulator"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".agents/skills/nen-phase-detector/SKILL.md",
-      "alias": "yuri-nen",
-      "detail": "skill declares trigger /yuri-nen but .claude/commands/yuri-nen.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-nen.md",
-        "alias": "yuri-nen",
-        "skill": "nen-phase-detector"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".claude/skills/bankai-manifest/SKILL.md",
-      "alias": "yuri-bankai",
-      "detail": "skill declares trigger /yuri-bankai but .claude/commands/yuri-bankai.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-bankai.md",
-        "alias": "yuri-bankai",
-        "skill": "bankai-manifest"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".claude/skills/geass-lock/SKILL.md",
-      "alias": "yuri-geass",
-      "detail": "skill declares trigger /yuri-geass but .claude/commands/yuri-geass.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-geass.md",
-        "alias": "yuri-geass",
-        "skill": "geass-lock"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".claude/skills/haki-intent/SKILL.md",
-      "alias": "yuri-haki",
-      "detail": "skill declares trigger /yuri-haki but .claude/commands/yuri-haki.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-haki.md",
-        "alias": "yuri-haki",
-        "skill": "haki-intent"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".claude/skills/izanagi-simulator/SKILL.md",
-      "alias": "yuri-izanagi",
-      "detail": "skill declares trigger /yuri-izanagi but .claude/commands/yuri-izanagi.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-izanagi.md",
-        "alias": "yuri-izanagi",
-        "skill": "izanagi-simulator"
-      }
-    },
-    {
-      "cls": "E",
-      "code": "alias-no-command",
-      "severity": "low",
-      "confidence": "HIGH",
-      "artifact": ".claude/skills/nen-phase-detector/SKILL.md",
-      "alias": "yuri-nen",
-      "detail": "skill declares trigger /yuri-nen but .claude/commands/yuri-nen.md is absent",
-      "safeAutoWire": {
-        "kind": "missing-command-shim",
-        "target": ".claude/commands/yuri-nen.md",
-        "alias": "yuri-nen",
-        "skill": "nen-phase-detector"
-      }
     }
   ],
-  "safeAutoWire": [
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/yuri-bankai.md",
-      "alias": "yuri-bankai",
-      "skill": "bankai-manifest"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/deepseek.md",
-      "alias": "deepseek",
-      "skill": "deepseek-offload"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/nvidia.md",
-      "alias": "nvidia",
-      "skill": "deepseek-offload"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/nvidia-deepseek.md",
-      "alias": "nvidia-deepseek",
-      "skill": "deepseek-offload"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/offload.md",
-      "alias": "offload",
-      "skill": "deepseek-offload"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/yuri-geass.md",
-      "alias": "yuri-geass",
-      "skill": "geass-lock"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/yuri-haki.md",
-      "alias": "yuri-haki",
-      "skill": "haki-intent"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/yuri-izanagi.md",
-      "alias": "yuri-izanagi",
-      "skill": "izanagi-simulator"
-    },
-    {
-      "kind": "missing-command-shim",
-      "target": ".claude/commands/yuri-nen.md",
-      "alias": "yuri-nen",
-      "skill": "nen-phase-detector"
-    }
-  ],
+  "safeAutoWire": [],
   "exemptionsApplied": [
     {
       "cls": "C",
@@ -724,6 +372,6 @@
     "tension.T is log-compressed per severity tier (severity dominates count). tension.hi/med/lo are raw counts — the non-offsettable L∞ floor: a wired↔unwired swap within a tier cannot launder them. Read hi first.",
     "PHASE-2 (folded research, parked): git-derived age + Tarjan betweenness centrality + churn weighting (S_c = Σ confidence·age·centrality·churn); GitNexus DSM reachability promoting class A/B from textual→structural on the top-N batches; root-cause batching; exemption sunset/saturation alarm. Grounded in the reflexion-model conformance literature (DS1)."
   ],
-  "generatedAt": "2026-06-06T13:32:28.605Z",
+  "generatedAt": "2026-06-06T17:39:10.214Z",
   "scope": "core-roots"
 }

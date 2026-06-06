@@ -1,6 +1,7 @@
 ---
 name: end-of-transmission
 description: "Continuous background reflection engine. Auto-triggers mid-session at checkpoints (task completion, context ≥60%, after errors). Full 9-phase pipeline on manual /eot. All model workers route through DeepSeek lanes; no Haiku or Sonnet EOT workers."
+invocation: user
 triggers:
   - "end of transmission"
   - "/eot"

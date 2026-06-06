@@ -59,6 +59,41 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Right sequencing:** golden-section first (one scalar); Fibonacci search for finite ordered thresholds; φ-cadence before adding daemons; π/Fourier only after stable traces exist.
 - **Sources:** Kiefer 1953 (sequential minimax) · Roberts quasirandom · Schretter/Kobbelt golden-ratio low-discrepancy · three-distance theorem (ledger, session 2026-06-06).
 
+### 5. Math adapter contract — keep external math engines fenced
+- **Does:** validates math adapter manifests and the lab harness manifest so external engines (Python/labs/proofs/accelerators/research) remain declared, capability-scoped, and unable to write runtime truth.
+- **Math:** no numerical method; this is a fail-closed contract validator. It enforces closed sets for schema, runMode (`core|lab|proof|accelerator|research`), promotionStatus (`research|fixture|verified-baseline|owner-approved|blocked`), non-empty capabilities, and `writesRuntimeTruth:false`.
+- **Code:** `_SYSTEM/Scripts/math/math-adapters.mjs` exports `validateMathAdapterManifest(adapter)` and `validateMathLabManifest(manifest)`; reads no files itself. The lab manifest consumer is `_SYSTEM/labs/math/lab-manifest.json`.
+- **Proof:** `math-adapters.test.mjs` checks a valid adapter, rejects runtime-truth / empty-capability cases, and asserts every on-disk lab adapter is non-runtime and `writesRuntimeTruth:false`.
+- **Residual:** validator-only; owner-approved adapters still emit a warning and still need separate artifact-registry / release-gate evidence before trust.
+
+### 6. Math health — aggregate diagnostic over archive, adapters, formula banks, and core fixtures
+- **Does:** runs a read-only health report for the math substrate: archive completeness, source-registry counts, lab-adapter manifest validity, formula-bank structure, proof-gate execution traces, and core primitive smoke fixtures.
+- **Math:** composes existing certified primitives (`dijkstra`, `astar`, `brierScore`, `logLoss`, `bayesUpdate`, `weightedMean`, `dotProduct`, `softmax`) as smoke checks; it does not introduce new math.
+- **Code:** `_SYSTEM/Scripts/math/math-health.mjs` exports `runMathHealth()` and also works as a CLI (`node _SYSTEM/Scripts/math/math-health.mjs`) returning schema `yuri.math-health.v0`.
+- **Proof:** `math-health.test.mjs` asserts `ok:true`, 86 source-registry URLs, ≥3 formula banks, proof-gate ok with executable traces, adapter manifest ok, and A* matching Dijkstra on the pathfinding fixture.
+- **Residual:** diagnostic/read-only; a passing health report proves the checked surfaces are coherent, not that every downstream math consumer is wired live.
+
+### 7. Mechanism-pattern registry — closed v0 propagation verb taxonomy
+- **Does:** owns the closed set of 5 mechanism-pattern verbs used by propagation/cross-reference surfaces, and validates the on-disk registry file for schema, semver version, promotionStatus, advisoryOnly, required fields, duplicate verbs, and witness shape.
+- **Math:** no numerical method; this is a taxonomy integrity gate. The exported verb surface is immutable/read-only, and validation rebuilds a private Set each call so an importer cannot widen the closed enum.
+- **Code:** `_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs` exports `MECHANISM_PATTERN_VERBS`, `MIN_WITNESSES`, `validateMechanismPatternRegistry(registry)`, and `validateRegistryFile(registryPath)`; default CLI validates `_SYSTEM/data/math/mechanism-pattern-registry.json`.
+- **Proof:** `mechanism-pattern-registry.test.mjs` checks the on-disk registry has exactly 5 verbs, rejects unknown 6th verbs, <2 witnesses, malformed witnesses, wrong schema, duplicates, missing fields, empty verb arrays, whitespace-padded witnesses, non-string witnesses, and exported-surface mutation attempts.
+- **Residual:** advisory/read-only taxonomy; a new verb requires owner promotion plus ≥2 real `path:line` witnesses. Witnesses are shape-validated by this module, not existence-verified at runtime.
+
+### 8. Energy trace deferred outcomes — append-only labels joined to gate decisions
+- **Does:** adds a second append-only outcome stream for energy gate decisions, keyed by `runId`, then left-joins decision traces to the latest outcome per runId for replay/learning.
+- **Math:** closed-set binary outcome label `{0,1}` plus deterministic latest-label reduction by `resolvedAtMs`; unresolved decisions remain visible (`outcome:null`) unless the caller requests `resolvedOnly`.
+- **Code:** `_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs` exports `OUTCOME_VALUES`, `buildOutcomeRecord({runId,outcome,resolvedAt})`, `resolveOutcome(args, options)`, and `readJoinedDecisions(options)`; CLI prints a read-only join summary. It reuses `appendOutcome` / trace Privacy Gate from `yuri-energy-trace.mjs` and `readTraces` from `yuri-action-mode-study.mjs`.
+- **Proof:** `yuri-energy-trace-outcomes.test.mjs` checks gate-passing record shape, strict outcome/runId/date validation, Privacy Gate canaries for secret/toJSON smuggling, append-only outcome writes, left-join semantics, resolved-only filtering, `0` versus unresolved `null`, orphan-outcome rejection, latest outcome wins, empty dirs, and torn-line tolerance.
+- **Residual:** pure-additive observability; it does not change the live gate, breaker, or decision trace. Outcome truth is local/advisory until a separate process writes trustworthy labels.
+
+### 9. Operational math simulation — deterministic advisory report over synthetic YURI workflows
+- **Does:** builds a non-invasive report showing how existing math-kernel primitives could score memory ranking, context routing, RAG distribution shift, tool routing, release readiness, and creative scheduling.
+- **Math:** composes `confidenceDecay`, `cosineSimilarity`, `weightedMean`, `weightedVariance`, `dijkstra`, `topologicalSort`, `klDivergence`, `crossEntropy`, `expectedValue`, and `softmax` over owned synthetic fixtures; the report carries a stable SHA-256 hash over sorted JSON sections.
+- **Code:** `_SYSTEM/Scripts/math/math-operational-simulation.mjs` exports `buildOperationalSimulationReport()` and has a CLI that writes `_SYSTEM/reports/math-operational-simulation-2026-05-25.json` by default or prints with `--stdout`; registered in `_SYSTEM/labs/math/lab-manifest.json` as `operational-math-simulation-report`.
+- **Proof:** `math-formula-card-professionalization.test.mjs` asserts deterministic hash stability, `advisoryOnly:true`, `localTruthClaim:false`, `writesRuntimeTruth:false`, context-route cost 5, RAG status `review_distribution_shift`, and the expected creative dependency order.
+- **Residual:** synthetic/report-only; useful for demonstrating integration shape, not for promoting live routing/release decisions without real labelled data.
+
 ### Supporting math primitives
 - `math/yuri-jaccard.mjs` — tokenize, jaccard, tfCosine, saturationProbe (Hopfield/AGS).
 - `math/yuri-minhash.mjs` — deterministic MinHash + LSH banding + tuneBands.

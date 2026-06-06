@@ -1,6 +1,7 @@
 ---
 name: failure-evolution-loop
 description: Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior.
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true

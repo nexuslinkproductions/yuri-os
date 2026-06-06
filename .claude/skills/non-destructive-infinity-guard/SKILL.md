@@ -1,6 +1,7 @@
 ---
 name: non-destructive-infinity-guard
 description: Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / Yuri. Inspired by Limitless / Infinity, translated into enterprise-safe system behavior.
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true

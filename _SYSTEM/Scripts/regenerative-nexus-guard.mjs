@@ -115,10 +115,15 @@ export function isExempt(rel, cls, contract) {
 /** E — declared /aliases minus existing command files. skills: [{rel, name, aliases[]}], commandSet: Set<alias>. */
 export function detectAliasGap(skills, commandSet) {
   const out = [];
-  for (const s of skills) for (const alias of s.aliases) {
-    if (!commandSet.has(alias)) out.push({ cls: 'E', code: 'alias-no-command', severity: 'low', confidence: 'HIGH',
-      artifact: s.rel, alias, detail: `skill declares trigger /${alias} but .claude/commands/${alias}.md is absent`,
-      safeAutoWire: { kind: 'missing-command-shim', target: `.claude/commands/${alias}.md`, alias, skill: s.name } });
+  for (const s of skills) {
+    // INTERNALISED skills are invoked by the model/framework via the Skill tool, not typed by a user —
+    // their /aliases are model-routing handles, NOT user commands, so they need no .claude/commands file.
+    if (s.invocation === 'model' || s.invocation === 'gate') continue;
+    for (const alias of s.aliases) {
+      if (!commandSet.has(alias)) out.push({ cls: 'E', code: 'alias-no-command', severity: 'low', confidence: 'HIGH',
+        artifact: s.rel, alias, detail: `skill declares trigger /${alias} but .claude/commands/${alias}.md is absent`,
+        safeAutoWire: { kind: 'missing-command-shim', target: `.claude/commands/${alias}.md`, alias, skill: s.name } });
+    }
   }
   return out;
 }
@@ -257,6 +262,7 @@ export function validateExemptions(contract, now = null) {
 export function parseSkillFrontmatter(src) {
   const fm = src.match(/^---\n([\s\S]*?)\n---/);
   const name = (src.match(/^name:\s*(.+)$/m) || [])[1]?.trim() || null;
+  const invocation = fm ? ((fm[1].match(/^invocation:\s*(\w+)/m) || [])[1]?.trim().toLowerCase() || null) : null;
   const aliases = [];
   if (fm) {
     // collect under a `triggers:` block (list items) AND any inline `/alias` in the frontmatter
@@ -270,7 +276,7 @@ export function parseSkillFrontmatter(src) {
       }
     }
   }
-  return { name, aliases: [...new Set(aliases)] };
+  return { name, aliases: [...new Set(aliases)], invocation };
 }
 
 function collectSkills(contract) {
@@ -282,8 +288,8 @@ function collectSkills(contract) {
       if (!e.isDirectory()) continue;
       const rel = `${dir}/${e.name}/SKILL.md`;
       const src = readText(rel); if (!src) continue;
-      const { name, aliases } = parseSkillFrontmatter(src);
-      if (aliases.length) out.push({ rel, name: name || e.name, aliases });
+      const { name, aliases, invocation } = parseSkillFrontmatter(src);
+      if (aliases.length) out.push({ rel, name: name || e.name, aliases, invocation });
     }
   }
   return out;

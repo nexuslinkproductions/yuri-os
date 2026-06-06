@@ -876,6 +876,56 @@
       ],
       "triggeredBy": "CLI / import — unified retrieval front door feeding propagation-scan",
       "description": "Unified retrieval surface (_SYSTEM/Scripts/xref-query.mjs) over the corpus FTS5 index, the circuitry graph (1-hop graph-neighbors by edge.kind; writes edges excluded), and GitNexus — the single front door whose results feed the propagation-scan structural cross-reference."
+    },
+    {
+      "id": "math-adapters",
+      "label": "Math Adapter Contract (external engine fence)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-adapters.mjs"
+      ],
+      "triggeredBy": "import — validateMathAdapterManifest / validateMathLabManifest from health, tests, and lab-harness consumers",
+      "description": "Fail-closed manifest validator for external math engines and lab adapters. It enforces the v0 schema, allowed run modes and promotion states, non-empty capabilities, and writesRuntimeTruth:false so polyglot engines stay declared, scoped, and non-runtime unless a separate owner-approved gate promotes them."
+    },
+    {
+      "id": "math-health",
+      "label": "Math Health (archive/adapter/proof diagnostic)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-health.mjs"
+      ],
+      "triggeredBy": "CLI / import — node _SYSTEM/Scripts/math/math-health.mjs or runMathHealth()",
+      "description": "Read-only health probe for the math substrate. It checks archive files and source counts, validates the lab adapter manifest, inspects formula banks through the proof gate, and runs smoke fixtures over core math primitives such as Dijkstra, A*, Brier, log-loss, Bayes, weighted mean, dot product, and softmax."
+    },
+    {
+      "id": "mechanism-pattern-registry",
+      "label": "Mechanism Pattern Registry (closed propagation verbs)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs"
+      ],
+      "triggeredBy": "import / CLI — propagation-scan imports MECHANISM_PATTERN_VERBS; CLI validates _SYSTEM/data/math/mechanism-pattern-registry.json",
+      "description": "Closed-set validator for the v0 mechanism-pattern verb taxonomy. It exports a read-only five-verb membership surface and validates registry schema, semver, promotion status, advisoryOnly, required verb fields, duplicate entries, >=2 witnesses, and path:line witness shape; validation rebuilds a private Set so importers cannot self-mint verbs."
+    },
+    {
+      "id": "energy-trace-outcomes",
+      "label": "Energy Trace Outcomes (deferred label join)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs"
+      ],
+      "triggeredBy": "import / CLI — resolveOutcome appends labels; readJoinedDecisions and CLI summarize decision→outcome joins",
+      "description": "Pure-additive deferred-outcome layer for the energy decision trace. It builds Privacy-Gate-safe binary outcome records keyed by runId, appends them to a second JSONL stream, and left-joins decisions to the latest outcome per runId for replay while leaving unresolved rows visible."
+    },
+    {
+      "id": "math-operational-simulation",
+      "label": "Operational Math Simulation (synthetic advisory report)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-operational-simulation.mjs"
+      ],
+      "triggeredBy": "CLI / import — node _SYSTEM/Scripts/math/math-operational-simulation.mjs or buildOperationalSimulationReport(); listed in _SYSTEM/labs/math/lab-manifest.json",
+      "description": "Deterministic report generator over owned synthetic YURI workflows. It composes existing math-kernel primitives for memory ranking, context routing, RAG conflict detection, tool routing, release scoring, and creative scheduling, emits advisoryOnly/localTruthClaim:false/writesRuntimeTruth:false metadata, and hashes the stable JSON sections."
     }
   ],
   "edges": [

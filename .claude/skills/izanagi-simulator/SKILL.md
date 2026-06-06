@@ -1,6 +1,7 @@
 ---
 name: izanagi-simulator
 description: Counterfactual Simulation Engine — before committing to a high-stakes plan, generates 3 divergent alternate paths, evaluates each by EV/risk/reversibility, commits with explicit simulation record. Fires automatically on CRITICAL/HIGH complexity tiers with multiple viable paths.
+invocation: model
 triggers:
   - /izanagi
   - /yuri-izanagi

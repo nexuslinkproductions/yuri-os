@@ -1,6 +1,7 @@
 ---
 name: yuri-code-intelligence
 description: "Unified code quality intelligence layer synthesized from Fowler refactoring patterns, class responsibility realignment, web presentation pattern selection, and code review. Diagnoses Long Method, Feature Envy, and design pattern smells; prescribes targeted Fowler refactoring techniques; reviews code for security, performance, and clarity. Synthesized from corpus: method-decomposition-refactoring, class-responsibility-realignment, web-presentation-pattern-selector, code-review-skill-agent."
+invocation: user
 triggers:
   - "/code-intelligence"
   - "/yuri-refactor"

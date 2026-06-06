@@ -2,6 +2,7 @@
 name: sharingan
 disable-model-invocation: true
 description: "User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows. Observe deeply, extract underlying technique (not property), expose weaknesses, then rebuild as a legally clean, Yuri OS / Yuri-aligned diamond design via 9-phase pipeline."
+invocation: model
 triggers:
   - "/sharingan"
   - "sharingan"

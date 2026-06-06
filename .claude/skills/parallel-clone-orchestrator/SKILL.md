@@ -1,6 +1,7 @@
 ---
 name: parallel-clone-orchestrator
 description: Budgeted multi-agent decomposition, specialist execution, and synthesis — runs natively via the Workflow tool (parallel/pipeline fan-out under a shared token budget). Invoke (or /clone) to split complex work into specialist sub-agents and reconcile their outputs. Inspired by Shadow Clone Jutsu.
+invocation: model
 version: 1.0.0
 status: active
 enterprise_ready: true

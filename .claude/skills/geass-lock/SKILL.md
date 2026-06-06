@@ -1,6 +1,7 @@
 ---
 name: geass-lock
 description: One-Shot Constraint Lock — user invokes with a constraint phrase; that constraint becomes absolutely inviolable for the session, visible in the brain block on every turn, not overridable by any advisor. Auto-expires at session end. Single active lock per session.
+invocation: gate
 triggers:
   - /geass
   - /yuri-geass

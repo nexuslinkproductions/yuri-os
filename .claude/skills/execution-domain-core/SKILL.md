@@ -1,6 +1,7 @@
 ---
 name: execution-domain-core
 description: Scoped execution environment, task policy, and exit criteria system for Yuri OS / Yuri. Inspired by Domain Expansion, translated into enterprise-safe system behavior.
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true

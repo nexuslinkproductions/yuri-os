@@ -1,6 +1,7 @@
 ---
 name: yuri-shura
 description: 6-perspective adversarial review for high-stakes turns (architecture decisions, refactor planning, deployment review). Invoke (or /shura) to fan out 6 perspectives in parallel via the native Workflow tool — architect, adversary (7-vector attack), maintainer, ops, product, security — then consolidate. Model-invocable; advisory only.
+invocation: model
 triggers:
   - "/shura"
   - "strategic review"

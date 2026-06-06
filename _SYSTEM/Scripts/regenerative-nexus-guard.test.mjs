@@ -23,6 +23,10 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(out[0].alias === 'gap' && out[0].cls === 'E', 'E: flags the right alias');
   ok(out[0].safeAutoWire && out[0].safeAutoWire.target === '.claude/commands/gap.md', 'E: emits command-shim proposal');
   ok(detectAliasGap(skills, new Set(['have', 'gap'])).length === 0, 'E: no finding when all commands exist');
+  // internalised skills (model-invocable / gates) need no command file — their aliases are model-routing handles
+  ok(detectAliasGap([{ rel: 'm/SKILL.md', name: 'm', aliases: ['x'], invocation: 'model' }], new Set()).length === 0, 'E: model-invocable skill skipped');
+  ok(detectAliasGap([{ rel: 'g/SKILL.md', name: 'g', aliases: ['x'], invocation: 'gate' }], new Set()).length === 0, 'E: gate skill skipped');
+  ok(detectAliasGap([{ rel: 'u/SKILL.md', name: 'u', aliases: ['x'], invocation: 'user' }], new Set()).length === 1, 'E: user skill still requires a command file');
 }
 
 // ── F: hook gap ──────────────────────────────────────────────────────────────────────────────────
