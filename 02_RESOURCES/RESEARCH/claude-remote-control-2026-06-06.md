@@ -1,40 +1,31 @@
 ---
-name: claude-remote-control-2026-06-06
-description: The feature for phone-driven / MacBook-continuous Claude Code is REMOTE CONTROL (not "cowork"). Verified LIVE on this CLI (v2.1.158): `claude remote-control` / `--remote-control [name]`. Steer an always-on local MacBook session from claude.ai/code or the Claude mobile app.
-metadata: { node_type: reference, date: 2026-06-06, status: verified-actionable, citation_trust: docs-cited }
-tags: remote_control, cowork, mobile, claude_code, continuous, multi-project
+name: claude-cowork-and-remote-control-2026-06-06
+description: TWO complementary Claude features for "phone-driven / continuous, many large projects" — (1) Claude COWORK (Desktop-app agentic file/folder work; June 5–Jul 5 2026 promo DOUBLES the 5h limit) and (2) REMOTE CONTROL (steer a local Claude Code session from phone/web, verified live on this CLI v2.1.158). Cowork SKIPS folders overlapping protected locations / home-root — which is why YURI-OS-MUSUBI was refused.
+metadata: { node_type: reference, date: 2026-06-06, status: corrected, citation_trust: support-docs-fetched }
+tags: cowork, remote_control, mobile, desktop_app, continuous, protected_paths, june_promo
 ---
 
-> Researched by the claude-code-guide agent + VERIFIED against the live CLI (v2.1.158 — `claude remote-control --help` confirms it). Advisory on the rate-limit/preview specifics (verify on Marcel's plan); the command itself is confirmed present.
+> CORRECTION: an earlier draft wrongly said "it's Remote Control NOT cowork." Both are REAL + complementary. Sourced from support.claude.com (fetched) + verified vs the live CLI + Marcel's desktop-app screenshot.
 
-## The disambiguation (key)
-Boris Cherny's "manage many large projects from your phone" feature is **REMOTE CONTROL**, NOT a product called "cowork." ("Claude Cowork" is a SEPARATE non-developer file-management agent — unrelated.) Remote Control = steer an always-on Claude Code session running LOCALLY on the MacBook, from the phone (claude.ai/code or the Claude mobile app) or any browser. Work executes on the MacBook; the phone is a remote window + steering surface. Exactly Marcel's "phone-driven, MacBook-continuous" goal.
+## Claude COWORK (what Boris meant)
+- Agentic feature in the **Claude Desktop app** (macOS/Windows), paid plans (Pro/Max/Team/legacy Enterprise; NOT Free / consumption-Enterprise). Claude works on your computer with access to files, browser, connected services, apps.
+- **June 2026 usage promotion: Jun 5 → Jul 5 2026 (11:59pm PT), the 5-HOUR usage limit in Cowork is DOUBLED** (weekly limits unchanged), auto-applied, no action. → this is the limit increase Boris referenced for "manage many large projects at once."
+- SAFETY (support article 13364135): Cowork SKIPS folders that **overlap a protected location or are the home/root directory**. Guidance: "create a **dedicated working folder** for Claude rather than granting broad access" + "avoid granting access to local files with sensitive information." (The doc does NOT enumerate the exact protected list.)
 
-## Verified on this machine
-- `claude --version` → 2.1.158 (well past the ~2.1.51+ the feature needs).
-- `claude remote-control --help` → "Control local sessions from claude.ai/code or the Claude mobile app". `--name <name>` flag.
-- Also `claude --remote-control [name]` flag on a normal interactive session.
+## Why YURI-OS-MUSUBI was SKIPPED by Cowork (Marcel hit this)
+`/Users/marcelspatz/YURI-OS-MUSUBI` is a DIRECT CHILD of the home dir AND contains exactly the surfaces Cowork's guard protects — `.env`, `.claude/state`, `backend/data`, secrets, `node_modules`, OS-kernel DBs. So Cowork refused broad agentic access. This is CORRECT/safe behavior, not a bug (it mirrors YURI's own protected-path discipline).
 
-## Limit increase (Boris's point)
-2026-05-06 Anthropic ~DOUBLED Claude Code's 5-hour rate limits (Pro/Max/Team/Enterprise) — ~2× inference budget/session. Remote Control INHERITS the session limit. Concurrent sessions POOL the quota (3 parallel ≈ quota ÷ 3, NO per-session cost multiplier). Requires a Claude SUBSCRIPTION (not API key). Research-preview status (can change).
+### FIX OPTIONS (open it / work around the skip)
+1. **Scope Cowork to a clean SUBFOLDER** (recommended for Cowork specifically) — point it at a specific working area that does NOT contain .env/.claude/state/backend/data/secrets, e.g. a docs/research/draft subfolder, or a fresh `~/yuri-cowork-workspace`. A scoped non-protected folder won't trip the skip.
+2. **Use REMOTE CONTROL for the full-repo DEV work** (recommended for what Marcel does with the build) — `claude remote-control --name "YURI Control Plane"` opens the WHOLE repo as a normal Claude Code session (no Cowork folder-restriction; YURI's own settings.json protected-path deny still guards .env/state), steerable from the Claude mobile app. This is the phone-driven / MacBook-continuous path for the actual YURI build + the standing fleet.
+3. **Don't fight the guard** — Cowork blocking a secrets-laden home-child repo is the safe default; granting broad agentic access to it would be the riskier move.
 
-## Exact first steps (phone-driven, MacBook-continuous)
-```bash
-# MacBook (always-on terminal)
-cd ~/YURI-OS-MUSUBI
-claude remote-control --name "YURI Control Plane"     # (--capacity N for many parallel sessions; server mode)
-# Phone: install Claude app → sign in (same account) → Code → tap "YURI Control Plane" → steer
-# Notifications: /config → enable "push when Claude needs input / task done"
-# Many parallel large-project tasks: use git worktrees per session for filesystem isolation
-```
+## REMOTE CONTROL (verified live, v2.1.158)
+`claude remote-control --name "..."` / `claude --remote-control [name]` → "Control local sessions from claude.ai/code or the Claude mobile app." Work runs on the MacBook; phone steers. Quota POOLS across concurrent Claude sessions (the YURI Codex/DeepSeek fleet uses SEPARATE provider quotas, so it doesn't draw the Claude session budget).
 
-## Fit for YURI (multi-large-project) + the caveat
-- `--capacity` lets Marcel run many remote sessions (e.g. one per branch/module) and drive them from the phone.
-- ADVERSARIAL-ALLY CAVEAT: the Claude quota is POOLED across concurrent Remote Control sessions — heavy parallel work is quota-aggressive. (Note: the YURI standing FLEET — Codex/DeepSeek lanes — runs on SEPARATE provider quotas via codex-offload-runner/llm-lane, so it does NOT draw the Claude session quota; only parallel Claude sessions pool.) Tune capacity to the actual budget.
-- If the MacBook sleeps, the session suspends + resumes on wake (tolerates ≤~10min network blips).
+## Recommendation for YURI
+- **YURI build / fleet / git (what we do together): Remote Control** on the full repo, steered from the phone, MacBook always-on. First step: `claude remote-control --name "YURI Control Plane"` → connect from the Claude app.
+- **Cowork**: use for lighter file/document/folder agentic tasks on a DEDICATED scoped folder (not the protected-laden repo root); during Jun 5–Jul 5 the doubled 5h limit makes it cheap to try.
 
-## Sources (cited, verify before formal use)
-- code.claude.com/docs/en/remote-control · code.claude.com/docs/en/agent-teams · anthropic.com/news/higher-limits (2026-05-06) · simonwillison.net/2026/May/6/ (Code w/ Claude live blog).
-
-## Recommendation
-ADOPT Remote Control now (it's live on the CLI). It directly enables Marcel's phone-driven / MacBook-continuous workflow for steering the YURI build — the standing-fleet orchestration keeps running on the MacBook while Marcel steers from his phone. First experiment: `claude remote-control --name "YURI Control Plane"` on the MacBook, connect from the Claude mobile app, run one bounded task end-to-end from the phone.
+## Sources
+support.claude.com/en/articles/15400594 (June promo) · support.claude.com/en/articles/13364135 (use safely) · code.claude.com/docs/en/remote-control · live CLI `claude remote-control --help` (v2.1.158).
