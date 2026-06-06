@@ -183,15 +183,20 @@ export function resolveTestsCover(tests, modules, { confirmThreshold = 0.2 } = {
     if (importedMods.length === 1) { claimed = importedMods[0]; signal = 'import'; }
     else if (nameMatch) { claimed = nameMatch; signal = 'name'; }
     else if (importedMods.length > 1) {
-      // multiple imports: prefer the name-match among them, else leave to matcher
-      claimed = importedMods.find((m) => path.basename(m.rel) === base) || null; signal = claimed ? 'import+name' : null;
+      // multiple imports: prefer the name-match among them, else it's a multi-module integration test
+      claimed = importedMods.find((m) => path.basename(m.rel) === base) || null; signal = claimed ? 'import+name' : 'multi-import';
     }
-    // 3. matcher confirm
+    // 3. matcher confirm — an EXPLICIT import is AUTHORITATIVE; the matcher only confirms, and a
+    //    fingerprint disagreement is advisory, NOT a mismatch (Codex C1 false-positive fix).
     const top = matchPrefixFilter(mIndex, t.text, { threshold: confirmThreshold }).matches[0] || null;
+    const importAuthoritative = signal === 'import' || signal === 'import+name';
     if (claimed) {
       const confirmed = top && top.id === claimed.id;
-      edges.push({ test: t.id, module: claimed.id, signal, confidence: confirmed ? 'HIGH' : 'MEDIUM', matcherTop: top ? top.id : null });
-      if (top && !confirmed) mismatches.push({ test: t.id, claims: claimed.id, fingerprintTop: top.id, topScore: top.score });
+      edges.push({ test: t.id, module: claimed.id, signal, confidence: (confirmed || importAuthoritative) ? 'HIGH' : 'MEDIUM', matcherTop: top ? top.id : null });
+      if (top && !confirmed && !importAuthoritative) mismatches.push({ test: t.id, claims: claimed.id, fingerprintTop: top.id, topScore: top.score });
+    } else if (signal === 'multi-import') {
+      // integration test importing several modules — covered (no single owner); record all imported
+      edges.push({ test: t.id, module: importedMods[0].id, signal: 'multi-import', confidence: 'HIGH', covers: importedMods.map((m) => m.id), matcherTop: top ? top.id : null });
     } else if (top) {
       edges.push({ test: t.id, module: top.id, signal: 'similarity-only', confidence: 'LOW', matcherTop: top.id });
     } else {

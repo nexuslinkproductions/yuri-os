@@ -1,0 +1,729 @@
+{
+  "version": 1,
+  "phase": "1-read-only-detector",
+  "summary": {
+    "total": 61,
+    "byClass": {
+      "D": 5,
+      "F": 2,
+      "G": 15,
+      "A": 25,
+      "E": 14
+    },
+    "highConfidence": 36,
+    "lowConfidence": 25,
+    "tension": {
+      "T": 16.968,
+      "hi": 6,
+      "med": 16,
+      "lo": 39
+    },
+    "exemptionsApplied": 1,
+    "safeAutoWireProposed": 9
+  },
+  "findings": [
+    {
+      "cls": "D",
+      "code": "math-module-unregistered",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-adapters.mjs",
+      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
+    },
+    {
+      "cls": "D",
+      "code": "math-module-unregistered",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-health.mjs",
+      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
+    },
+    {
+      "cls": "D",
+      "code": "math-module-unregistered",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
+      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
+    },
+    {
+      "cls": "D",
+      "code": "math-module-unregistered",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
+      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph — yet a test exists (implementation promoted locally, never documented)"
+    },
+    {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/pulse-bus.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration"
+    },
+    {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/scout-runner.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration"
+    },
+    {
+      "cls": "D",
+      "code": "math-module-unregistered",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
+      "detail": "math module on disk but absent from MATH-SCIENCE-MANUAL.md AND the circuitry graph"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-adapters.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-health.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-jaccard.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-mdl.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-minhash.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-phi.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/yuri-token-expand.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/self-improvement/weekly-comp.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "G",
+      "code": "node-absent-from-graph",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs",
+      "detail": "core module not represented by any node in yuri-circuitry-graph.json (graph regen candidate — owner-gated add-only merge)",
+      "ownerGated": "graph-node-add"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:FIELD_LEXICONS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:FIELD_TO_SYSTEMS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:brotliNcd",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:cdmDistance",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:grammarNcd",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance.mjs:DISTANCE_WEIGHTS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:CONFIG_FILE",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:MIN_SURPRISE_WINDOW",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:MIN_VETO_WEIGHT",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:BATTERY_PUBLIC_LABEL",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:META_BY_CC",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:SYM_BY_CC",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:injectIntoDashboard",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:readLatestStudy",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs:isActionModeEnabled",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs:assertGatePasses",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs:safeLane",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-fsrs.mjs:FSRS_DECAY",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:CANONICAL_TAGS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:TAXONOMY",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:buildSimilarityCrossReference",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:classifyLesson",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:dedupeTags",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:normalizeToken",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:resolveCanonicalTag",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/bankai-manifest/SKILL.md",
+      "alias": "yuri-bankai",
+      "detail": "skill declares trigger /yuri-bankai but .claude/commands/yuri-bankai.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-bankai.md",
+        "alias": "yuri-bankai",
+        "skill": "bankai-manifest"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
+      "alias": "deepseek",
+      "detail": "skill declares trigger /deepseek but .claude/commands/deepseek.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/deepseek.md",
+        "alias": "deepseek",
+        "skill": "deepseek-offload"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
+      "alias": "nvidia",
+      "detail": "skill declares trigger /nvidia but .claude/commands/nvidia.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/nvidia.md",
+        "alias": "nvidia",
+        "skill": "deepseek-offload"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
+      "alias": "nvidia-deepseek",
+      "detail": "skill declares trigger /nvidia-deepseek but .claude/commands/nvidia-deepseek.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/nvidia-deepseek.md",
+        "alias": "nvidia-deepseek",
+        "skill": "deepseek-offload"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/deepseek-offload/SKILL.md",
+      "alias": "offload",
+      "detail": "skill declares trigger /offload but .claude/commands/offload.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/offload.md",
+        "alias": "offload",
+        "skill": "deepseek-offload"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/geass-lock/SKILL.md",
+      "alias": "yuri-geass",
+      "detail": "skill declares trigger /yuri-geass but .claude/commands/yuri-geass.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-geass.md",
+        "alias": "yuri-geass",
+        "skill": "geass-lock"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/haki-intent/SKILL.md",
+      "alias": "yuri-haki",
+      "detail": "skill declares trigger /yuri-haki but .claude/commands/yuri-haki.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-haki.md",
+        "alias": "yuri-haki",
+        "skill": "haki-intent"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/izanagi-simulator/SKILL.md",
+      "alias": "yuri-izanagi",
+      "detail": "skill declares trigger /yuri-izanagi but .claude/commands/yuri-izanagi.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-izanagi.md",
+        "alias": "yuri-izanagi",
+        "skill": "izanagi-simulator"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".agents/skills/nen-phase-detector/SKILL.md",
+      "alias": "yuri-nen",
+      "detail": "skill declares trigger /yuri-nen but .claude/commands/yuri-nen.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-nen.md",
+        "alias": "yuri-nen",
+        "skill": "nen-phase-detector"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".claude/skills/bankai-manifest/SKILL.md",
+      "alias": "yuri-bankai",
+      "detail": "skill declares trigger /yuri-bankai but .claude/commands/yuri-bankai.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-bankai.md",
+        "alias": "yuri-bankai",
+        "skill": "bankai-manifest"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".claude/skills/geass-lock/SKILL.md",
+      "alias": "yuri-geass",
+      "detail": "skill declares trigger /yuri-geass but .claude/commands/yuri-geass.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-geass.md",
+        "alias": "yuri-geass",
+        "skill": "geass-lock"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".claude/skills/haki-intent/SKILL.md",
+      "alias": "yuri-haki",
+      "detail": "skill declares trigger /yuri-haki but .claude/commands/yuri-haki.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-haki.md",
+        "alias": "yuri-haki",
+        "skill": "haki-intent"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".claude/skills/izanagi-simulator/SKILL.md",
+      "alias": "yuri-izanagi",
+      "detail": "skill declares trigger /yuri-izanagi but .claude/commands/yuri-izanagi.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-izanagi.md",
+        "alias": "yuri-izanagi",
+        "skill": "izanagi-simulator"
+      }
+    },
+    {
+      "cls": "E",
+      "code": "alias-no-command",
+      "severity": "low",
+      "confidence": "HIGH",
+      "artifact": ".claude/skills/nen-phase-detector/SKILL.md",
+      "alias": "yuri-nen",
+      "detail": "skill declares trigger /yuri-nen but .claude/commands/yuri-nen.md is absent",
+      "safeAutoWire": {
+        "kind": "missing-command-shim",
+        "target": ".claude/commands/yuri-nen.md",
+        "alias": "yuri-nen",
+        "skill": "nen-phase-detector"
+      }
+    }
+  ],
+  "safeAutoWire": [
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/yuri-bankai.md",
+      "alias": "yuri-bankai",
+      "skill": "bankai-manifest"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/deepseek.md",
+      "alias": "deepseek",
+      "skill": "deepseek-offload"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/nvidia.md",
+      "alias": "nvidia",
+      "skill": "deepseek-offload"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/nvidia-deepseek.md",
+      "alias": "nvidia-deepseek",
+      "skill": "deepseek-offload"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/offload.md",
+      "alias": "offload",
+      "skill": "deepseek-offload"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/yuri-geass.md",
+      "alias": "yuri-geass",
+      "skill": "geass-lock"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/yuri-haki.md",
+      "alias": "yuri-haki",
+      "skill": "haki-intent"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/yuri-izanagi.md",
+      "alias": "yuri-izanagi",
+      "skill": "izanagi-simulator"
+    },
+    {
+      "kind": "missing-command-shim",
+      "target": ".claude/commands/yuri-nen.md",
+      "alias": "yuri-nen",
+      "skill": "nen-phase-detector"
+    }
+  ],
+  "exemptionsApplied": [
+    {
+      "cls": "C",
+      "code": "test-no-cover",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-research-archive.test.mjs:",
+      "detail": "test resolves to no module by import, name, or matcher",
+      "exemptReason": "docs/archive consistency test — covers a markdown corpus, not an .mjs module"
+    }
+  ],
+  "notes": [
+    "READ-ONLY: no canonical surface was written. safeAutoWire entries are PROPOSALS for the owner-gated phase 2, not applied.",
+    "Classes C/D/E/F/G are deterministic set-differences (HIGH confidence). Class B is import-graph-derived (MEDIUM). Class A is a textual zero-reference scan (LOW) — GitNexus call-graph/in-degree is the phase-2 structural upgrade. Class H is exemption hygiene.",
+    "tension.T is log-compressed per severity tier (severity dominates count). tension.hi/med/lo are raw counts — the non-offsettable L∞ floor: a wired↔unwired swap within a tier cannot launder them. Read hi first.",
+    "PHASE-2 (folded research, parked): git-derived age + Tarjan betweenness centrality + churn weighting (S_c = Σ confidence·age·centrality·churn); GitNexus DSM reachability promoting class A/B from textual→structural on the top-N batches; root-cause batching; exemption sunset/saturation alarm. Grounded in the reflexion-model conformance literature (DS1)."
+  ],
+  "generatedAt": "2026-06-06T13:32:28.605Z",
+  "scope": "core-roots"
+}
