@@ -7,6 +7,7 @@
  */
 import { buildIndex, matchPrefixFilter } from './corpus-match.mjs';
 import { makeFeatureFn, plainFeatureFn } from './math/yuri-token-expand.mjs';
+import { buildContainmentIndex, matchContainment } from './yuri-containment-match.mjs';
 
 const DEFAULT_THRESHOLD = 0.3;
 const corpora = new Map();
@@ -74,6 +75,34 @@ function envelope(corpus, cue, requestedThreshold, result) {
   };
 }
 
+function asymEnvelope(corpus, cue, requestedThreshold, result) {
+  return {
+    corpusId: corpus.corpusId,
+    complete: result.complete === true,
+    totalAboveThreshold: result.totalAboveThreshold,
+    threshold: requestedThreshold,
+    buildThreshold: corpus.buildThreshold,
+    candidates: result.candidates,
+    scanned: result.scanned,
+    metric: result.metric,
+    requiredShared: result.requiredShared,
+    queryFeatures: result.queryFeatures,
+    matches: result.matches.map((match) => ({
+      id: match.id,
+      score: match.score,
+      corpusId: corpus.corpusId,
+      complete: result.complete === true,
+      totalAboveThreshold: result.totalAboveThreshold,
+      threshold: requestedThreshold,
+      buildThreshold: corpus.buildThreshold,
+      cue,
+      metric: result.metric,
+      sharedFeatures: match.sharedFeatures,
+      queryFeatures: match.queryFeatures,
+    })),
+  };
+}
+
 /**
  * Register one corpus as a deterministic prefix-filter index.
  * opts:
@@ -114,11 +143,13 @@ export function registerCorpus(corpusId, items, opts = {}) {
     lsh: false,
     prefixFilter: true,
   });
+  const containmentIndex = buildContainmentIndex(normalized, { featureFn });
   const corpus = {
     corpusId: id,
     items: normalized,
     itemById,
     index,
+    containmentIndex,
     featureFn,
     featureProvenance,
     featureStats,
@@ -144,6 +175,19 @@ export function recall(corpusId, cue, opts = {}) {
   const threshold = safeThreshold(opts.threshold, corpus.buildThreshold);
   const result = matchPrefixFilter(corpus.index, query, { threshold });
   return envelope(corpus, query, threshold, result);
+}
+
+export function recallAsym(corpusId, cue, opts = {}) {
+  const id = assertCorpusId(corpusId);
+  const corpus = corpora.get(id);
+  if (!corpus) throw new Error(`unknown corpus: ${id}`);
+  const query = String(cue ?? '').trim();
+  if (!query) throw new Error('cue is required');
+  const metric = opts.metric || 'containment';
+  if (metric !== 'containment') throw new Error(`unsupported asymmetric metric: ${metric}`);
+  const threshold = safeThreshold(opts.threshold, corpus.buildThreshold);
+  const result = matchContainment(corpus.containmentIndex, query, { threshold, top: opts.top });
+  return asymEnvelope(corpus, query, threshold, result);
 }
 
 export function recallAll(cue, opts = {}) {
