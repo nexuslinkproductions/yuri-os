@@ -51,14 +51,23 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Sources:** church-hanks PMI · levy-goldberg 2014 (PPMI≈word2vec) · kanerva/sahlgren RRI · jimenez soft-cardinality (ledger, session 2026-06-06).
 - **Residual / NEXT:** first-order PPMI + morphology only; true never-co-occurring synonyms need **second-order Reflective Random Indexing** (deterministic, seed-locked) — queued.
 
+### 4. π / φ / Fibonacci applied primitives — efficient comparisons, intervals & time-phases
+- **What:** the breakthrough is NOT "φ is magic" — φ/Fibonacci are the efficient way to spend COMPARISONS, INTERVALS, or TIME-PHASES when the structure is already 1-D, ordered, or resonance-prone (owner directive 2026-06-06: build these INTO NEXUS CORE, not park them).
+- **Math:** `goldenSectionSearch` (φ-ratio derivative-free unimodal minimization, one eval/step — Kiefer 1953) · `fibonacciSearchMin` (discrete unimodal argmin, φ-bracket + exact residual scan = EXACT argmin in sublinear evals) · `phiPoint`/`phiSequence` (additive recurrence frac(x0+n/φ); three-distance theorem → ≤3 gap sizes = optimally-even anti-resonant cadence, no RNG) · `goldenAngle`/`goldenAnglePoints` (phyllotaxis θ=π(3−√5)·n — fuses π and φ for even 2-D/angular spread) · `fib`/`fibBig` (Fibonacci generator; BigInt path is the watermark seed source).
+- **Code:** `_SYSTEM/Scripts/math/yuri-phi.mjs` · `math/yuri-phi.test.mjs` (42/42 — cold proofs + brute-force-verified Fibonacci search + three-distance check, all 3 core mutants killed).
+- **YURI targets:** golden-section → scalar-knob tuning (energy weights/thresholds β/η/θ, saturation thresholds) without gradients/labeler once an objective is frozen · φ-cadence → polling/backoff jitter + sampling that must not phase-lock · Fibonacci search → discrete threshold-band locating · golden-angle → even node/hue layout in the circuitry-die viz ([[circuitry-auto-registration-regen-vision]]).
+- **Right sequencing:** golden-section first (one scalar); Fibonacci search for finite ordered thresholds; φ-cadence before adding daemons; π/Fourier only after stable traces exist.
+- **Sources:** Kiefer 1953 (sequential minimax) · Roberts quasirandom · Schretter/Kobbelt golden-ratio low-discrepancy · three-distance theorem (ledger, session 2026-06-06).
+
 ### Supporting math primitives
 - `math/yuri-jaccard.mjs` — tokenize, jaccard, tfCosine, saturationProbe (Hopfield/AGS).
 - `math/yuri-minhash.mjs` — deterministic MinHash + LSH banding + tuneBands.
 - `math/yuri-mdl.mjs` — gzip marginal-bits (MDL redundancy; memory demotion).
 - `math/math-kernel.mjs` — 23 shipped primitives (the central engine; reuse first).
+- `math/yuri-phi.mjs` — π/φ/Fibonacci: goldenSectionSearch, fibonacciSearchMin, phiSequence, goldenAnglePoints, fib/fibBig (see registry #4).
 
 ## Parked / candidate math (not yet built — see math-primitive-candidates-parking.md)
-- π · golden ratio (φ) · Fibonacci — golden-section search (derivative-free knob tuning), φ anti-resonance for sequencing, Knuth multiplicative hashing. PARKED.
+- π · golden ratio (φ) · Fibonacci — **READY tier BUILT** (registry #4: golden-section search, Fibonacci search, φ low-discrepancy cadence, golden-angle, Fibonacci generator). STILL PARKED: Knuth/Fibonacci multiplicative hashing (no measured bucket-skew), Fibonacci heap (no profiled graph hot-path), π/FFT spectral probe (needs stable sanitized traces).
 - Second-order Reflective Random Indexing (token-expand synonym layer). QUEUED.
 
 ## ⚠️ ADVISORY-ONLY (transfer-distance) — read before trusting a score
@@ -74,5 +83,6 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - **Field-distance distances** (e.g. consensus_dist 0.42, survival 0.58) are a-priori judgments justified in the build plan, not yet calibrated from an external field-adjacency source.
 
 ## Changelog
+- 2026-06-06c — test-coverage hardening + π/φ/Fib BUILT. New suites: yuri-minhash (47), yuri-token-expand (45), corpus-match.sqlsec (75, real-temp-DB ident() injection), transfer-distance.prereq (24). Replaced brittle PREREQ_BLOCKER_RE with a structured clause+proximity detector (r3, evades-resistant, no over-fire; proof F intact 6/6). Folded mutation survivors M6/M12/M13/M14/M16/M18 + C8 cold-vector pins. **Registered #4: yuri-phi.mjs** (π/φ/Fibonacci primitives, 42/42, owner directive to build-in not park). Suite green; mutation-tested (break→red→revert).
 - 2026-06-06 — seeded; registered transfer-distance, matching engine, token-expand.
 - 2026-06-06b — 8-attacker red-team + 2nd round (3 Codex + 1 DeepSeek): fixed matchLSH featureFn, MinHash a===MERSENNE, proof→V2 ship-config, SQL identifier whitelist, structuralConf/NaN clamps, fieldClassify spurious-match + tie-break, mechanismFrame unknown-family floor, bakeoff WINNER P1-P4, cooc/threshold guards. Core math proven sound (50k-trial completeness, 3M modAffine, MinHash bias<0.001). Tests: transfer-distance 18/18, corpus-match 27/27, proof 5/5.

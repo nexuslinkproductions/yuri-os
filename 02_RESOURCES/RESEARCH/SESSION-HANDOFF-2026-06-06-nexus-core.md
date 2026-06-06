@@ -7,6 +7,19 @@ tags: handoff, nexus_core, math_engine, continue_here
 
 # SESSION HANDOFF — 2026-06-06 → next session (NEXUS CORE math substrate)
 
+## ⚡ SESSION 2026-06-06c CLOSEOUT (latest — read first)
+Standing fleet active (5 Codex xhigh + 2 DeepSeek, 3 dispatch rounds = 10 lanes; all collected, advisory-verified-vs-live before folding). **NOT committed — awaiting owner nod.**
+- **Test-coverage gaps CLOSED (queued #1):** NEW `math/yuri-minhash.test.mjs` (47), `math/yuri-token-expand.test.mjs` (45), `corpus-match.sqlsec.test.mjs` (75, real-temp-DB `ident()` injection, `ident()`-message-pinned). Folded mutants M6/M12/M13/M14/M16/M18 + C8 cold-vector pins (fnv1a/makeHashes/minhash-coords/lshBands/ppmi/tokenCharSim exact-pinned). **Mutation-tested** (break→red→revert: 7/7 mutants killed).
+- **PREREQ detector r3:** replaced brittle `PREREQ_BLOCKER_RE` with a structured clause+artifact-proximity detector in `transfer-distance.mjs` (evades-resistant: blocks 6/6 paraphrases, 0 over-fire incl. the "build-trust…workflow" trap). NEW `transfer-distance.prereq.test.mjs` (24, live-import). Proof F intact 6/6.
+- **π/φ/Fibonacci BUILT (owner directive — "must be IN nexus core functions, not parked"):** NEW `math/yuri-phi.mjs` + test (42) — `goldenSectionSearch`, `fibonacciSearchMin` (brute-force-verified), `phiSequence` (three-distance), `goldenAnglePoints` (π×φ → circuitry-die layout), `fib`/`fibBig`. Manual registry #4 + parking PULLED.
+- **Research captured (compounding moat, reindexed):** [[oss-watermark-2026-06-06]] (directive 2b), [[pi-phi-fibonacci-primitives-2026-06-06]], [[nexus-core-design-queue-2026-06-06c]] (C5 rename plan, C6 circuitry-autoregen arch, C7 RRI design, D3 matcher-on-code, C4 Rust-kernel memo). Ledger session 2026-06-06c appended.
+- **Full suite GREEN:** yuri-phi 42 · yuri-minhash 47 · yuri-token-expand 45 · yuri-jaccard 13 · transfer-distance 32 · prereq 24 · corpus-match 36 · sqlsec 75 · proof 6/6 · collapse FIXED.
+- **New standing directives (memory):** [[circuitry-auto-registration-regen-vision]] (auto-register everything incl. tests → math-regen the die → LOD-zoom viz), [[feedback-important-primitive-means-build-in]], [[feedback-standing-fleet-default-orchestration]] (autonomous lane orchestration is now default).
+- **NEXT (owner-gated, design ready in the design-queue doc):** Rust napi-rs hot-kernel (post-v1, C4 memo) · NEXUS CORE rename execution (C5) · circuitry auto-regen build (C6) · 2nd-order RRI synonym layer (C7, token-expand slot 3) · matcher-on-code adapter (D3) · OSS watermark build (D1, at release boundary).
+
+---
+
+
 > Marcel's directive: heavy building continues in a NEW session at this pace. This is the single entry point. The math/science substrate is the most crucial core in YURI; Marcel wants it renamed **NEXUS CORE** (ties to Nexus Link) — see queued work.
 
 ## ⚡ READ-ORDER (read these first, in order — the read-hints)

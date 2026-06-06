@@ -22,6 +22,8 @@ Concrete, embedding-free CS/math hooks (so the future look-in starts grounded, N
 
 **Why this fits the moat:** these are exactly the "apply known math in the right sequence to improve a mechanism" pattern the whole math logbook embodies. Park here; promote individual hooks into logbook cards (with the smallest-experiment + adversarial verification discipline) only when a target organ pulls them.
 
+> **STATUS — PULLED + BUILT 2026-06-06** (owner directive: π/φ/Fib must be IN the NEXUS CORE functions, not just researched). The READY tier shipped as `_SYSTEM/Scripts/math/yuri-phi.mjs` (42/42, mutation-tested) + MATH-SCIENCE-MANUAL registry #4: **goldenSectionSearch** (φ knob-tuning), **fibonacciSearchMin** (discrete unimodal argmin), **phiSequence** (anti-resonant cadence), **goldenAnglePoints** (π×φ even layout → circuitry-die viz), **fib/fibBig** (generator + watermark seed). STILL PARKED (no pulling organ yet): Knuth/Fibonacci multiplicative hashing, Fibonacci heap, π/FFT spectral probe (needs stable traces). Deep-dive + sequencing: E1 findings → science-source ledger.
+
 ## Entry 2 — PROJECT DIRECTIVES (Marcel 2026-06-06, PARKED — do NOT execute yet)
 
 ### 2a. Rename the math engine → **NEXUS CORE**

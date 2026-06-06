@@ -4,7 +4,8 @@
  * Asserts ROBUST properties (bounds, determinism, gate, far>near, theater-killed) that hold
  * regardless of lexicon tuning. Run: node _SYSTEM/Scripts/math/transfer-distance.test.mjs
  */
-import { ncd, jaccardDistance, distance, bridge, transferScore, v1BlendMetric, antiTheaterGate, GATE } from './transfer-distance.mjs';
+import { readFileSync } from 'node:fs';
+import { ncd, jaccardDistance, distance, bridge, transferScore, v1BlendMetric, antiTheaterGate, GATE, TIER, tierOf } from './transfer-distance.mjs';
 import { fieldClassify, fieldDistance, mechanismFrameDistance, scoreTransferV2, operatorSkeletonDistance } from './transfer-distance-cores.mjs';
 
 let pass = 0, fail = 0;
@@ -26,6 +27,22 @@ ok(ncd('hi', 'yo').lowQuality === true, 'ncd MIN_CHARS sentinel on short input')
 // ── fieldClassify sanity ──
 ok(fieldClassify(KALMAN).field === 'control_signal', 'Kalman → control_signal');
 ok(fieldClassify(HOPFIELD).field === 'physics_neuro', 'Hopfield → physics_neuro');
+
+// ── M6: tierOf banding boundaries are INCLUSIVE at the committed thresholds (>=) ──
+// kills `>= TIER.X` → `> TIER.X` (which would mis-tier a value sitting exactly on the boundary).
+ok(tierOf(TIER.INNOVATION) === 'INNOVATION', `tierOf(${TIER.INNOVATION}) === INNOVATION (inclusive)`);
+ok(tierOf(TIER.INNOVATION - 1e-9) === 'USEFUL', 'tierOf just below INNOVATION → USEFUL');
+ok(tierOf(TIER.USEFUL) === 'USEFUL', `tierOf(${TIER.USEFUL}) === USEFUL (inclusive)`);
+ok(tierOf(TIER.USEFUL - 1e-9) === 'NEAR_OR_THEATER', 'tierOf just below USEFUL → NEAR_OR_THEATER');
+
+// ── M12: pin the fieldClassify-tie cards (12/29/34) to their fields — a tie-break change would drift them ──
+{
+  const truth = JSON.parse(readFileSync(new URL('./logbook-truth.json', import.meta.url), 'utf8'));
+  const fieldOf = (n) => { const c = truth.find((x) => x.n === n); return fieldClassify(c.sourceTheory || c.sourceText).field; };
+  ok(fieldOf(12) === 'consensus_dist', 'card 12 (Split Conformal) → consensus_dist');
+  ok(fieldOf(29) === 'survival_reliab', 'card 29 (Renewal theory) → survival_reliab');
+  ok(fieldOf(34) === 'ml_bandit', 'card 34 (UCB1) → ml_bandit');
+}
 
 // ── fieldDistance: FAR field > NEAR field (the degree-of-farness axis) ──
 ok(fieldDistance(HOPFIELD).d > fieldDistance(KALMAN).d, 'Hopfield(far) distance > Kalman(near) distance');

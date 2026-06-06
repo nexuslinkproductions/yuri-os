@@ -107,5 +107,26 @@ ok(Math.abs(est - trueJ) < 0.15, `minhash est ${est.toFixed(2)} ≈ true ${trueJ
   ok(mismatches === 0, `prefix-filter == exact on ${trials} FUZZED random corpora (completeness; catches prefix off-by-one), mismatches=${mismatches}`);
 }
 
+// ── TOP-COUNT CONTRACT (mutation-sweep C3 #1–3): `top` truncates `matches` but NEVER the reported
+// `totalAboveThreshold` (the complete count). A mutant conflating them silently breaks completeness. ──
+{
+  const q = 'cross site scripting reflected login', t = 0.15;
+  ok(matchExact(index, q, { threshold: t }).totalAboveThreshold === 5, `exact total@${t} === 5 on the fixed corpus`);
+  const exTop = matchExact(index, q, { threshold: t, top: 2 });
+  ok(exTop.matches.length === 2 && exTop.totalAboveThreshold === 5, 'matchExact top=2: matches truncated to 2, totalAboveThreshold stays 5 (complete count)');
+  const pfTop = matchPrefixFilter(index, q, { threshold: t, top: 2 });
+  ok(pfTop.matches.length === 2 && pfTop.totalAboveThreshold === 5 && pfTop.complete === true, 'matchPrefixFilter top=2: matches truncated, complete count + complete flag preserved');
+  const lsTop = matchLSH(index, q, { threshold: t, top: 1 });
+  ok(lsTop.matches.length <= 1 && lsTop.totalAboveThreshold >= lsTop.matches.length, 'matchLSH top truncates matches; totalAboveThreshold is the pre-truncation count');
+}
+
+// ── EXACT-BOUNDARY INCLUSION (C3 #4–5): a score EXACTLY at threshold is included (s >= t, not s > t) ──
+{
+  const bidx = buildIndex([{ id: 'a', text: 'alpha beta' }], { threshold: 0.1, lsh: false });
+  // jaccard({alpha,beta},{alpha,beta,gamma}) = 2/3 exactly → at threshold 2/3 it MUST be included.
+  ok(matchExact(bidx, 'alpha beta gamma', { threshold: 2 / 3 }).matches.map((m) => m.id).join() === 'a', 'matchExact includes a score sitting exactly at threshold (>=)');
+  ok(matchPrefixFilter(bidx, 'alpha beta gamma', { threshold: 2 / 3 }).matches.map((m) => m.id).join() === 'a', 'matchPrefixFilter includes a score exactly at threshold (>=)');
+}
+
 console.log(`\ncorpus-match.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

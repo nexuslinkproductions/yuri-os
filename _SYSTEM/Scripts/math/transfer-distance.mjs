@@ -88,22 +88,53 @@ export const GATE = Object.freeze({
 // Value → tier banding (set from the logbook proof; see transfer-distance.proof.mjs).
 export const TIER = Object.freeze({ INNOVATION: 0.30, USEFUL: 0.12 });
 
-// IMPLEMENTATION-VIABILITY gate (red-team round 2): the metric scores structural transfer-VALUE,
-// but a transfer with a missing IMPLEMENTATION PREREQUISITE is not yet buildable (MPC needs an
-// unbuilt transition fn; VCG needs a dependency DAG). The prerequisite is stated in the card's
-// MISMATCH text — detect that hard-blocker language and route the transfer to a BLOCKED tier, so a
-// great-but-not-yet-buildable idea no longer ranks INNOVATION. Deterministic text signal.
-// STRONG prerequisite-of-the-core signals only. Deliberately NOT 'blocked by'/'needs…first' — those
-// over-fired on parked SUB-features (card 30 Hopfield: "blocked by the embedding-free constraint"
-// refers to a parked extension, not a hard prerequisite of the saturation-probe transfer).
-// RED-TEAM r2: dropped bare 'does not exist' (over-fires on prose: "does not exist in a vacuum").
-// MPC still catches via 'hard prerequisite'+'must be built first'; VCG via 'prerequisite'+'no input
-// data until'. Residual over-fire risk on a phrase like "trust must be built first" is bounded by
-// this running over the structured MISMATCH/RISK field, not arbitrary prose — pin with the prereq
-// barrage test (queued). It catches STATED prerequisites; a silently-missing one is not detectable.
-const PREREQ_BLOCKER_RE = /\b(hard prerequisite|prerequisite[^a-z]|not yet built|must (?:first )?be built|be built first|no input data until)\b/i;
+// IMPLEMENTATION-VIABILITY gate (red-team round 2; STRUCTURED-DETECTOR upgrade r3): the metric
+// scores structural transfer-VALUE, but a transfer with a missing IMPLEMENTATION PREREQUISITE is
+// not yet buildable (MPC needs an unbuilt transition fn; VCG needs a dependency DAG). The
+// prerequisite is stated in the card's MISMATCH text — detect that hard-blocker language and route
+// the transfer to a BLOCKED tier so a great-but-not-yet-buildable idea no longer ranks INNOVATION.
+//
+// r3 replaces the brittle literal whitelist (which a 6/6 paraphrase barrage EVADED — "has not been
+// implemented yet", "absent today", "is missing", "we must construct", "no … in place", "is not
+// implemented" — and which over-fired on 3/3 prose controls). The structured detector splits the
+// text into CLAUSES, skips any clause stating the artifact is ALREADY present (satisfied), then
+// blocks on: explicit "hard prerequisite"; a VCG-style "no (input)(data) until X" data dependency;
+// or a CONCRETE SYSTEM ARTIFACT bound (by proximity, not mere co-occurrence) to an unbuilt-state
+// ("X is not implemented / is missing / absent / does not exist / not in place") or a future-build
+// ("X must be built", "must construct the X"). Proximity-binding is what lets "trust must be built
+// first before teams accept the workflow" PASS (the artifact 'workflow' is not the thing being
+// built) while "the schema must be created" BLOCKS. Validated by the prereq-barrage test
+// (transfer-distance.prereq.test.mjs): 21/21 incl. the 6 evasions, 3 over-fire controls, and the
+// real cards 22/35 (→BLOCK) + 30/23 (→PASS). It catches STATED prerequisites; a silently-missing
+// one is not detectable. Deterministic; runs over the structured MISMATCH/RISK field.
+const PREREQ_ART = '(?:adapter|api|backend|cache|channel|checkpoint|client|config|connector|contract|corpus|dataset|dependency|dag|edge|engine|feature|field|file|function|graph|hook|index|input|interface|lane|layer|ledger|mapper|mapping|metric|model|module|parser|pipeline|registry|router|runtime|schema|script|service|signal|state|store|stream|system|table|transition function|validator|worker|workflow)';
+const PREREQ_SATISFIED = /\b(?:already|currently|now)\b[^.;]*\b(?:holds?|exists?|implemented|built|in place|satisfied|available|works?)\b|\bnot\s+(?:a\s+)?blocker\b|\balready satisfied\b/i;
+const PREREQ_HARD = /\bhard prerequisite\b/i;
+const PREREQ_NO_INPUT = /\bno\s+(?:input\s+)?(?:data\s+)?until\b|\bno\s+input\b[^.;]*\buntil\b/i;
+const PREREQ_WORD = /\bprerequisite\b/i;
+const PREREQ_ART_UNBUILT = new RegExp(
+  PREREQ_ART + '\\s+(?:\\w+\\s+){0,2}(?:is|are|was|were|has|have)\\s+(?:not\\s+(?:yet\\s+)?(?:been\\s+)?(?:implemented|built|created|constructed|wired|scaffolded|in place|available)|missing|absent)'
+  + '|' + PREREQ_ART + '\\s+(?:\\w+\\s+){0,2}does\\s+not\\s+exist'
+  + '|\\b(?:no|without)\\s+(?:\\w+\\s+){0,3}' + PREREQ_ART + '\\s+(?:in place|yet|available|exists?)\\b', 'i');
+const PREREQ_ART_FUTURE = new RegExp(
+  PREREQ_ART + '\\s+(?:\\w+\\s+){0,2}(?:must|needs?\\s+to|has\\s+to|have\\s+to|required\\s+to)\\s+(?:first\\s+)?be\\s+(?:implemented|built|created|constructed|wired|scaffolded|added)'
+  + '|\\b(?:must|need\\s+to|needs?\\s+to|we\\s+must|we\\s+need\\s+to|required\\s+to)\\s+(?:first\\s+)?(?:implement|create|construct|wire|scaffold|build|add)\\s+(?:a|an|the)?\\s*(?:\\w+\\s+){0,2}' + PREREQ_ART, 'i');
+/** Split MISMATCH/RISK text into clauses (sentence/dash/contrast boundaries) for per-clause analysis. */
+function prereqClauses(text) {
+  return String(text || '').toLowerCase()
+    .split(/[.;\n]|\s[—–-]\s|\s+but\s+|\s+however\s+/i)
+    .map((s) => s.trim()).filter(Boolean);
+}
 export function detectPrereqBlocked(mismatchText) {
-  return PREREQ_BLOCKER_RE.test(String(mismatchText || ''));
+  for (const s of prereqClauses(mismatchText)) {
+    if (PREREQ_SATISFIED.test(s)) continue;                                    // artifact already present → not a blocker
+    if (PREREQ_HARD.test(s)) return true;                                      // explicit "hard prerequisite"
+    if (PREREQ_NO_INPUT.test(s)) return true;                                  // VCG-style data dependency
+    if (PREREQ_WORD.test(s) && (PREREQ_ART_UNBUILT.test(s) || PREREQ_ART_FUTURE.test(s))) return true; // "prerequisite" + unbuilt/future
+    if (PREREQ_ART_UNBUILT.test(s)) return true;                               // artifact stated unbuilt/missing
+    if (PREREQ_ART_FUTURE.test(s)) return true;                                // artifact must-be-built
+  }
+  return false;
 }
 
 function gzipLen(text) {
@@ -233,7 +264,7 @@ export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structur
   return { value, gated: value < vr, reason: value < vr ? reason : 'ungated', cap };
 }
 
-function tierOf(value) {
+export function tierOf(value) {
   if (value >= TIER.INNOVATION) return 'INNOVATION';
   if (value >= TIER.USEFUL) return 'USEFUL';
   return 'NEAR_OR_THEATER';

@@ -76,3 +76,41 @@ test('edge: <2 entries, empty, garbage → no throw, empty merge set', () => {
   assert.equal(saturationProbe(null).n, 0);
   assert.equal(saturationProbe([{ id: 'a' }, { bad: true }]).n, 0, 'entries without text filtered');
 });
+
+// ── MUTATION-SURVIVOR FOLDS (handoff M13/M14/M16/M18 + mutation-sweep C3 #20–#22) ────────────────
+
+test('M-tokenize: length boundary is EXACTLY ">= 3" (drops len-2, keeps len-3)', () => {
+  // kills `>= 3` → `> 3` (would drop "abc") and `>= 3` → `>= 2` (would keep "ab"/"ai").
+  assert.deepEqual([...tokenize('ai abc ab abcd')].sort(), ['abc', 'abcd']);
+});
+
+test('M-tokenFreq: oversized input is truncated at MAX_TOKENIZE_CHARS (cosine-path cap)', () => {
+  // 'aaa '.repeat(100000) = 400000 chars → truncated to 200000 → at most 50000 'aaa' tokens.
+  // kills a mutant that drops the tokenFreq cap (the cosine metric path uses tokenFreq, not tokenize).
+  const s = 'aaa '.repeat(100000);
+  assert.ok(tokenFreq(s).get('aaa') <= 50000, `tokenFreq truncates oversized input (got ${tokenFreq(s).get('aaa')})`);
+});
+
+test('M-saturationProbe: load denominator is / n (entries), not / pairCount', () => {
+  // 4 entries, exactly ONE high-overlap pair → load = 1/4 = 0.25 (NOT 1/6 ≈ 0.167 if divided by pairCount).
+  const entries = [
+    { id: '1', text: 'session resume cortex decoder circuitry build plan next steps wire engine' },
+    { id: '2', text: 'session resume cortex decoder circuitry build plan next steps wire engine' },
+    { id: '3', text: 'cold call opener objection rebuttal social selling outreach buyer persona' },
+    { id: '4', text: 'persistent homology betti numbers filtration simplicial complex topology' },
+  ];
+  const res = saturationProbe(entries, { overlapThreshold: 0.6, loadThreshold: 0.2 });
+  assert.equal(res.load, 0.25, 'load = high-overlap-pairs / N(entries)');
+  assert.equal(res.overCapacity, true, 'overCapacity = load >= loadThreshold (0.25 >= 0.2)');
+});
+
+test('M-saturationProbe: overlap threshold is inclusive (>=), pair AT the threshold is flagged', () => {
+  // jaccard({aaa,bbb,ccc,ddd},{aaa,bbb,ccc,eee}) = 3/5 = 0.6 exactly. kills `>= overlap` → `> overlap`.
+  const entries = [
+    { id: 'p', text: 'aaa bbb ccc ddd' },
+    { id: 'q', text: 'aaa bbb ccc eee' },
+  ];
+  const res = saturationProbe(entries, { overlapThreshold: 0.6 });
+  assert.equal(res.mergePairs.length, 1, 'a pair exactly at overlapThreshold (0.6) is flagged (inclusive)');
+  assert.equal(res.mergePairs[0].overlap, 0.6);
+});

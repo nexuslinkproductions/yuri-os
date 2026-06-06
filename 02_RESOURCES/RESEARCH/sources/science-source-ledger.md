@@ -104,3 +104,34 @@ Fed: `yuri-token-expand.mjs` (Expanded Feature Jaccard). Question: bridge synony
 | sahlgren-2005-rri | Sahlgren (2005). An introduction to random indexing. SICS | diva-portal.org/smash/record.jsf?pid=diva2:1041170 | Reflective RI: feed context vectors back → higher-order co-occurrence captures synonyms that never co-occur | the true never-co-occur synonym fix (next layer) |
 | gabrilovich-2007-esa | Gabrilovich, Markovitch (2007). Computing semantic relatedness using Wikipedia-based ESA. IJCAI | ijcai.org/Proceedings/07/Papers/259.pdf | term → TF-IDF vector over Wikipedia concepts (explicit, corpus-agnostic) | corpus-agnostic bridge when source/target vocabularies differ (needs Wikipedia — external) |
 | jimenez-2010-softcard | Jiménez, Becerra, Gelbukh (2010). Soft cardinality. (SemEval/CICLing) | (CICLing 2010) | generalize set cardinality with fuzzy token membership via a token-similarity fn | soft-Jaccard scoring wrapper / reranker after complete candidate gen |
+
+---
+
+## Session 2026-06-06c — π/φ/Fibonacci applied primitives + OSS authorship watermark
+
+Fed: `math/yuri-phi.mjs` (NEXUS CORE registry #4, owner directive to build-in) + the OSS-watermark research (owner directive 2b). Full docs: [[pi-phi-fibonacci-primitives-2026-06-06]] · [[oss-watermark-2026-06-06]]. Citations lane-sourced (Codex E1 / DeepSeek D1), ADVISORY — verify DOIs before formal cite.
+
+### A. π / φ / Fibonacci applied optimization + sequencing
+
+| key | citation | url | mechanism (1-line) | YURI relevance |
+|---|---|---|---|---|
+| kiefer-1953-minimax-search | Kiefer (1953). Sequential minimax search for a maximum. Proc. AMS 4(3):502-506 | doi.org/10.1090/S0002-9939-1953-0055639-3 | golden/Fibonacci interval search is the comparison-optimal derivative-free 1-D optimizer | `goldenSectionSearch` + `fibonacciSearchMin` (yuri-phi) — knob tuning without gradients |
+| roberts-2018-quasirandom | Roberts (2018). The unreasonable effectiveness of quasirandom sequences | extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/ | additive recurrence frac(x0+n/φ) + R2 plastic constant = low-discrepancy, no RNG | `phiSequence` anti-resonant cadence; R2 for 2-D parked |
+| schretter-2012-golden-sampling | Schretter, Kobbelt, Dehaye (2012). Golden Ratio Sequences for Low-Discrepancy Sampling. J. Graphics Tools | graphics.rwth-aachen.de/publication/032/ | golden-ratio 1-D sampling beats jittered/Halton on discrepancy | basis for the φ cadence + golden-angle layout |
+| three-distance-theorem | Słomczyński/Steinhaus three-gap (three-distance) theorem | (classical) | points {n·α mod 1} take ≤3 distinct gap sizes; φ is the extremal most-even case | the proof property `yuri-phi.test` pins for optimal evenness |
+
+### B. Software watermarking / authorship provenance (OSS, ADVISORY — verify before formal cite)
+
+| key | citation | url | mechanism (1-line) | YURI relevance |
+|---|---|---|---|---|
+| collberg-1999-watermark-taxonomy | Collberg, Thomborson (1999). Software Watermarking: Models and Dynamic Embeddings. POPL'99 | cs.arizona.edu/~collberg/Research/Publications/CollbergThomborson99a/ | static(code/data) vs dynamic(trace/easter-egg/struct) watermark taxonomy | static-DATA marks chosen for YURI source-OSS release |
+| cox-1997-spread-spectrum | Cox, Kilian, Leighton, Shamoon (1997). Secure Spread Spectrum Watermarking. IEEE TIP 6(12) | doi.org/10.1109/83.650120 | spread mark across many carriers → partial removal still detectable | multi-site constant encoding survives partial scrub |
+| davidson-1996-constant-watermark | Davidson, Myhrvold (1996). US Patent 5,745,569 | (USPTO) | encode mark in operationally-necessary constants → survives rename/reformat | Fibonacci/φ-seeded constant sites |
+| haber-1991-timestamp | Haber, Stornetta (1991). How to Time-Stamp a Digital Document. J. Cryptology 3(2) | doi.org/10.1007/BF00196791 | hash-linked timestamps (blockchain predecessor) | pre-release SHA-256 commitment → one-sided authorship proof |
+| zhu-2018-watermark-survey | Zhu, Liu, Wu, Wu (2018). A Survey of Software Watermarking. J. Info Sec Appl 41 | doi.org/10.1016/j.jisa.2018.05.003 | modern static/dynamic survey + attack/resilience metrics | robustness assessment reference |
+
+### C. Second-order synonym bridge (queued — token-expand slot 3)
+
+| key | citation | url | mechanism (1-line) | YURI relevance |
+|---|---|---|---|---|
+| kanerva-2000-rri | Kanerva, Sahlgren — Random Indexing / Reflective Random Indexing | (Sahlgren 2005, RI survey) | deterministic sparse index vectors + reflective context accumulation = paradigmatic synonym similarity, embedding-free | C7-designed `sem2:` synonym layer for never-co-occurring terms (login≈signin) |
