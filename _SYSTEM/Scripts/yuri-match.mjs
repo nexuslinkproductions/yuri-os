@@ -87,9 +87,14 @@ function asymEnvelope(corpus, cue, requestedThreshold, result) {
     metric: result.metric,
     requiredShared: result.requiredShared,
     queryFeatures: result.queryFeatures,
+    precisionGated: result.precisionGated,
+    minQueryFeatures: result.minQueryFeatures,
+    sharpCount: result.sharpCount,
     matches: result.matches.map((match) => ({
       id: match.id,
       score: match.score,
+      idfScore: match.idfScore,
+      sharp: match.sharp,
       corpusId: corpus.corpusId,
       complete: result.complete === true,
       totalAboveThreshold: result.totalAboveThreshold,
@@ -186,7 +191,9 @@ export function recallAsym(corpusId, cue, opts = {}) {
   const metric = opts.metric || 'containment';
   if (metric !== 'containment') throw new Error(`unsupported asymmetric metric: ${metric}`);
   const threshold = safeThreshold(opts.threshold, corpus.buildThreshold);
-  const result = matchContainment(corpus.containmentIndex, query, { threshold, top: opts.top });
+  const result = matchContainment(corpus.containmentIndex, query, {
+    threshold, top: opts.top, minQueryFeatures: opts.minQueryFeatures, sharpFloor: opts.sharpFloor,
+  });
   return asymEnvelope(corpus, query, threshold, result);
 }
 

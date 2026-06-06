@@ -11,12 +11,24 @@
  */
 import { tokenize } from './math/yuri-jaccard.mjs';
 
+// Below this many query features, a short cue is "contained" in almost everything (DS3 frontier:
+// a 2-word cue floods). We never DROP results (that would silently break completeness) — we mark
+// them sharp:false so the fusion/consumer layer can down-weight without a silent miss.
+const DEFAULT_MIN_QUERY_FEATURES = 4;
+
 function safeThreshold(threshold, fallback = 0.3) {
   const t = threshold == null ? fallback : Number(threshold);
   if (!Number.isFinite(t) || t <= 0 || t > 1) {
     throw new Error(`threshold must be in (0,1], got ${threshold}`);
   }
   return t;
+}
+
+// IDF over the index's own document frequencies. A shared rare feature ("lyapunov") weighs heavily;
+// a shared common feature ("system") weighs ~nothing. IDF-weighted containment == BM25 with b=0 —
+// the natural bridge between raw containment (recall) and BM25 (precision).
+function idfOf(df, n) {
+  return Math.log((n + 1) / ((df || 0) + 0.5));
 }
 
 export function containment(queryFeatures, docFeatures) {
@@ -61,42 +73,65 @@ export function matchContainment(index, queryText, opts = {}) {
   }
   const threshold = safeThreshold(opts.threshold, 0.3);
   const top = Number.isInteger(opts.top) && opts.top > 0 ? opts.top : 0;
+  const minQueryFeatures = Number.isInteger(opts.minQueryFeatures) && opts.minQueryFeatures > 0
+    ? opts.minQueryFeatures : DEFAULT_MIN_QUERY_FEATURES;
+  // The IDF floor a hit must clear (on rare-feature mass) to count as "sharp". Defaults to the raw
+  // containment threshold so the precision gate is at least as strict as the recall gate.
+  const sharpFloor = opts.sharpFloor == null ? threshold : Number(opts.sharpFloor);
   const t0 = process.hrtime.bigint();
   const qset = (index.featureFn || tokenize)(String(queryText ?? ''));
   const requiredShared = qset.size === 0 ? Infinity : Math.ceil(threshold * qset.size);
   const counts = new Map();
+  const idfShared = new Map();           // per-candidate Σ idf(shared query feature)
+  let qIdfTotal = 0;                      // Σ idf(f) over all query features (the denominator)
 
   for (const feature of qset) {
     const list = index.postings.get(feature);
+    const df = list ? list.length : 0;
+    const w = idfOf(df, index.n);
+    qIdfTotal += w;
     if (!list) continue;
-    for (const idx of list) counts.set(idx, (counts.get(idx) || 0) + 1);
+    for (const idx of list) {
+      counts.set(idx, (counts.get(idx) || 0) + 1);
+      idfShared.set(idx, (idfShared.get(idx) || 0) + w);
+    }
   }
 
+  // A query short enough to be contained in everything: keep the results (completeness), flag soft.
+  const precisionGated = qset.size > 0 && qset.size < minQueryFeatures;
   const out = [];
   for (const [idx, shared] of counts) {
     if (shared < requiredShared) continue;
     const score = qset.size === 0 ? 0 : shared / qset.size;
     if (score >= threshold) {
+      const idfScore = qIdfTotal > 0 ? (idfShared.get(idx) || 0) / qIdfTotal : 0;
       out.push({
         id: index.ids[idx],
         score: Number(score.toFixed(4)),
+        idfScore: Number(idfScore.toFixed(4)),
+        sharp: !precisionGated && idfScore >= sharpFloor,
         sharedFeatures: shared,
         queryFeatures: qset.size,
       });
     }
   }
 
-  out.sort((a, b) => b.score - a.score || b.sharedFeatures - a.sharedFeatures || a.id.localeCompare(b.id));
+  // Primary order stays raw-score (determinism + completeness); idfScore is the precision tiebreak.
+  out.sort((a, b) => b.score - a.score || b.idfScore - a.idfScore
+    || b.sharedFeatures - a.sharedFeatures || a.id.localeCompare(b.id));
   const ms = Number(process.hrtime.bigint() - t0) / 1e6;
   return {
     matches: top > 0 ? out.slice(0, top) : out,
     totalAboveThreshold: out.length,
+    sharpCount: out.reduce((s, m) => s + (m.sharp ? 1 : 0), 0),
     candidates: counts.size,
     scanned: index.n,
     ms: Number(ms.toFixed(2)),
     mode: 'containment',
     metric: 'containment',
     threshold,
+    precisionGated,
+    minQueryFeatures,
     complete: true,
     requiredShared: Number.isFinite(requiredShared) ? requiredShared : 0,
     queryFeatures: qset.size,

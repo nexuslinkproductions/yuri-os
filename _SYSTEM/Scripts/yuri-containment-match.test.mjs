@@ -56,5 +56,19 @@ try {
 }
 ok(badMetric, 'recallAsym rejects unsupported asymmetric metrics');
 
+// — precision gate (DS3): IDF-weighted containment + length-gate + sharp flag, completeness intact —
+const sharpHit = recallAsym('docs', 'energy lyapunov gate veto', { threshold: 0.75, metric: 'containment' });
+ok(sharpHit.matches[0].sharp === true && typeof sharpHit.matches[0].idfScore === 'number',
+  'specific >=4-feature cue is marked sharp with an idfScore');
+ok(sharpHit.precisionGated === false && sharpHit.complete === true,
+  'a >=4-feature cue is not precision-gated and stays complete');
+
+// a 2-feature cue is "contained" broadly → results KEPT (completeness) but flagged soft, never dropped
+const shortCue = recallAsym('docs', 'energy gate', { threshold: 0.5, metric: 'containment' });
+ok(shortCue.precisionGated === true, 'a <4-feature cue raises precisionGated');
+ok(shortCue.matches.every((m) => m.sharp === false), 'precision-gated matches are all sharp:false');
+ok(shortCue.complete === true && shortCue.totalAboveThreshold === shortCue.matches.length,
+  'precision gate never silently drops a complete result (no silent miss)');
+
 console.log(`\nyuri-containment-match.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

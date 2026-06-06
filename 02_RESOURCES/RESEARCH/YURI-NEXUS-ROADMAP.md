@@ -22,24 +22,25 @@ with physics/info-theory/number-theory as the gears. North star: [[yuri-clockwor
 | **Nexus Guard** (built-but-unwired detector) Phase 1+2 + math-register trigger hook | BUILT, 57/57 + 22/22 + 12/12 | committed |
 | **protected-path consolidation** + bash-gate `./`-bypass CLOSED | BUILT + regression-locked | committed |
 | **enhancement backlog + moat audit** (math improvements ranked; pre-OSS checklist) | captured | [[yuri-improvement-backlog-2026-06-06]] · [[oss-release-moat-audit-2026-06-06]] |
+| **Cross-surface comparability CRACKED** (containment + RRF + shared-space + precision-gate) → `recallAll` ranks across surfaces | BUILT + CONFIRMED on real energy-L∞ triangle (targets 0.88–1.0, decoys ≤0.18); 15/15 + 8/8 + 17/17, regressions green | committed · [[yuri-cross-surface-synthesis-2026-06-07]] |
 
 ## 🔄 IN-PROGRESS (active wave, 2026-06-07)
-- **Cross-surface comparability** — making "0.4 in memory == 0.4 in code" so `recallAll` ranks across surfaces.
-  9-agent wave building: rank-fusion (RRF) · per-surface score-normalization · ONE shared global feature space ·
-  asymmetric/containment similarity (the length-band fix) · calibration design. Each build lane re-runs the `{}`
-  cross-surface test to confirm it now works.
+- *(none — cross-surface wave folded + committed. Next brick is item 1 below.)*
 
-## ⏭ NEXT (sequenced — the build order from the syntheses)
-1. **Cross-surface comparability** (this wave) → `recallAll` returns sensible cross-surface hits.
-2. **id-bridge table + `yuri-navigate.mjs`** — fuse matcher similarity edges ⊕ circuitry-graph structural edges
-   (via `nodes[].files[]`); navigate = deterministic personalized-PageRank, forward=consequences/reverse=causes,
-   bounded by budget/info-clock/decay/veto. The structural mainspring (sound today). [[yuri-mainspring-synthesis-2026-06-07]]
-3. **GVF calibration C-layer** (conformal/Platt over the matcher's complete set) — unlocks comparable cross-surface
-   SCORES + the full GPD ΔU loop + auto-calibration. THE keystone that unblocks the most downstream.
-4. **`yuri-decode.mjs`** — the LLM-WIELDED decoder instrument (`decode("<text>")→math object`; the LLM calls it).
-5. **auto-calibration** (C-first, owner PRIOR/CLAMP/PIN corridor, CUSUM drift-guard) — eliminate hand-tuning.
-6. **GPD observe→advisory→enforce** graduation (per-organ confirm-or-kills) — turn self-triggering live.
-7. **math backlog**: softmax recall · logistic/Bayesian salience · Youden thresholds · Kalman/CUSUM.
+## ⏭ NEXT (sequenced — the build order from the syntheses; frontier-unanimous: structure FIRST)
+1. **id-bridge table + `yuri-navigate.mjs`** — THE highest-leverage brick (CX5 `XS_INTEGRATION_DECISION_X_PASS`,
+   DS2, mainspring N1 all agree). Typed structural edges (a symbol's `files[]`, a node's deps) are deterministic
+   cross-surface edges that need NO shared feature space — they bypass the similarity-comparability problem
+   outright. navigate = deterministic personalized-PageRank, forward=consequences/reverse=causes, bounded by
+   budget/info-clock/decay/veto. Similarity (the shipped RRF+containment) rides on top. [[yuri-mainspring-synthesis-2026-06-07]]
+2. **GVF calibration C-layer** (conformal/Platt over the matcher's complete set) — the keystone; needs a label
+   harvest (shadow ledger + deterministic self-recall/title-cue generators, since memory has ~11 items). Unlocks
+   comparable cross-surface SCORES + score-fusion (CombMNZ, `P(overclaim)≤α`) + the full GPD ΔU loop + auto-calibration.
+3. **`yuri-decode.mjs`** — the LLM-WIELDED decoder instrument (`decode("<text>")→math object`; the LLM calls it).
+4. **auto-calibration** (C-first, owner PRIOR/CLAMP/PIN corridor, CUSUM drift-guard) — eliminate hand-tuning.
+5. **GPD observe→advisory→enforce** graduation (per-organ confirm-or-kills) — turn self-triggering live.
+6. **math backlog**: softmax recall · logistic/Bayesian salience · Youden thresholds · Kalman/CUSUM · BM25 cross-check sharpener for containment.
+7. **global feature space** (v2-of-similarity) — DEFERRED; build only if the C-layer proves insufficient (marginal gain over calibrated RRF).
 8. **OSS-release hardening**: git-history secret scan · LICENSE/README/SECURITY · dependency audit.
 9. **merges** (cyber-/rag-/worker-kernels) + **auto-registration** (every node joins the graph → navigation complete-on-structure).
 
