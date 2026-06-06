@@ -79,5 +79,33 @@ ok(Math.abs(est - trueJ) < 0.15, `minhash est ${est.toFixed(2)} ≈ true ${trueJ
   ok(fls.totalAboveThreshold > 0, 'matchLSH honors featureFn (recall>0 on expanded index, not 0%)'); // was vacuous when fex===0
 }
 
+// ── FUZZ completeness (mutation-test finding C1): the COMPLETE claim must hold on RANDOM corpora,
+// not just the hand-picked 12 above — a prefix-length off-by-one survives the fixed corpus but
+// yields ~10% false negatives under fuzzing. Seeded LCG → deterministic, reproducible (no RNG).
+{
+  let seed = 1234567;
+  const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 2 ** 32; };
+  const VOCAB = 'alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november'.split(' ');
+  let mismatches = 0, trials = 0;
+  for (let it = 0; it < 200; it++) {
+    const n = 3 + Math.floor(rnd() * 18);
+    const fz = [];
+    for (let i = 0; i < n; i++) {
+      const k = 1 + Math.floor(rnd() * 6);
+      const toks = [];
+      for (let j = 0; j < k; j++) toks.push(VOCAB[Math.floor(rnd() * VOCAB.length)]);
+      fz.push({ id: 'f' + it + '_' + i, text: toks.join(' ') });
+    }
+    const t = [0.15, 0.25, 0.4, 0.6][Math.floor(rnd() * 4)];
+    let idx; try { idx = buildIndex(fz, { threshold: t, lsh: false }); } catch { continue; }
+    const q = fz[Math.floor(rnd() * fz.length)].text;
+    const ex = matchExact(idx, q, { threshold: t }).matches.map((m) => m.id).sort();
+    const pf = matchPrefixFilter(idx, q, { threshold: t }).matches.map((m) => m.id).sort();
+    trials++;
+    if (ex.length !== pf.length || !ex.every((x, i) => x === pf[i])) mismatches++;
+  }
+  ok(mismatches === 0, `prefix-filter == exact on ${trials} FUZZED random corpora (completeness; catches prefix off-by-one), mismatches=${mismatches}`);
+}
+
 console.log(`\ncorpus-match.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;
