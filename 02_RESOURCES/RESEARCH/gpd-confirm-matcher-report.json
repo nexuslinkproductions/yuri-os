@@ -1,0 +1,64 @@
+{
+  "experiment": "gpd-confirm-matcher — ALL corpora (predict-vs-realize recall value)",
+  "nonCircular": "predictor = matchLSH (cheap approx); scorer = matchPrefixFilter (exact complete); held-out cues disjoint from index.",
+  "perCorpus": [
+    {
+      "name": "search-index (research+docs+code, 39k)",
+      "indexed": 1402,
+      "cues": 150,
+      "top1": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "meanAbsErr_top1": 0,
+      "coverage_0p15": 1,
+      "exactCompleteRate": 1,
+      "bestSignal": 1,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "name": "bug-bounty (9,487 disclosed reports)",
+      "indexed": 1402,
+      "cues": 150,
+      "top1": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 0.74,
+        "spearman": 0.9758
+      },
+      "meanAbsErr_top1": 0.0002,
+      "coverage_0p15": 1,
+      "exactCompleteRate": 1,
+      "bestSignal": 1,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "name": "code corpus (modules+symbols)",
+      "indexed": 1089,
+      "cues": 150,
+      "top1": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "meanAbsErr_top1": 0,
+      "coverage_0p15": 1,
+      "exactCompleteRate": 1,
+      "bestSignal": 1,
+      "verdict": "CONFIRMED"
+    }
+  ],
+  "aggregateBestSignal": 1,
+  "overallVerdict": "CONFIRMED across all corpora",
+  "honestCaveat": "LSH and exact-Jaccard estimate the same underlying similarity, so high correlation is strong-but-expected — it confirms the recall-grounding PREREQUISITE (cheap estimate ≈ true value) across diverse real data, not the full GPD ΔU loop.",
+  "interpretation": "The cheap pre-recall estimate tracks true complete-recall value across EVERY corpus → GPD recall self-trigger is grounded on all our real data, generator≠scorer."
+}
