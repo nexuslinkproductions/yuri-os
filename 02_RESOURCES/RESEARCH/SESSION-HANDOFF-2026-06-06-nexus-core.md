@@ -37,7 +37,7 @@ wasm-pack build --target nodejs --out-dir pkg -- --features wasm-binding && node
 3. **OSS-release security hardening** — canonical protected-path detector + block commit --no-verify + secret-scan concatenation/base64 ([[feedback-infra-gate-posture-stress-test-2026-06-06]]). Before going public.
 4. **MED hardening** (queued, not blocking): matchPrefixFilter below-buildThreshold throw; corpus-match degenerate-corpus budget knob.
 5. **NEXUS CORE rename** (math/ surface → NEXUS CORE, separate from research DB) + **OSS watermark** (Fibonacci provenance, [[oss-watermark-2026-06-06]]) + **Rust napi-rs hot-kernel swap** post-v1.
-6. **COWORK adoption** (Marcel: phone-driven, MacBook-continuous) — research in flight (claude-code-guide agent); fold the brief + decide adoption.
+6. **REMOTE CONTROL adoption** (Marcel: phone-driven, MacBook-continuous) — RESEARCHED: the feature is Claude Code **Remote Control** (NOT "cowork"), VERIFIED live on this CLI (v2.1.158: `claude remote-control --name "..."`). Full brief + exact setup: [[claude-remote-control-2026-06-06]] / [[claude-remote-control-not-cowork]]. First experiment: `claude remote-control --name "YURI Control Plane"` on the MacBook → steer from the Claude mobile app. Quota pools across concurrent Claude sessions (the Codex/DeepSeek fleet runs on separate quotas).
 
 ### KEY DIRECTIVES (memory, this session)
 Standing-fleet-default orchestration (autonomous, full-code lanes) · full-prerequisite-closure (no wire-later) · important-primitive=build-in · circuitry auto-registration + math-board env + microscope-into-existing-die · regenerative-nexus-guard · codex-lane-not-truly-read-only · infra-gate-posture.
