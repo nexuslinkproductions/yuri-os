@@ -79,9 +79,16 @@ try {
       `reserved word table passes regex but fails as unquoted SQL identifier: ${v}`);
   }
 
-  const sqliteMaster = loadFtsCorpus(dbPath, 'sqlite_master', { idCol: 'name', textCols: ['sql'] });
-  ok(sqliteMaster.some((row) => row.id === 'docs') && !JSON.stringify(sqliteMaster).includes('TOP_SECRET_SHOULD_NOT_LEAK'),
-    'sqlite_master is regex-valid + readable but exposes only schema, not table row data');
+  // HARDENED (A3 stress-test): system tables are now DENIED at the table boundary (schema-exfil closed).
+  throwsMsg(() => loadFtsCorpus(dbPath, 'sqlite_master', { idCol: 'name', textCols: ['sql'] }),
+    /disallowed SQLite system table/, 'sqlite_master now DENIED (was a schema/DDL exfil read)');
+  for (const sys of ['sqlite_schema', 'sqlite_sequence', 'SQLITE_MASTER']) {
+    throwsMsg(() => loadFtsCorpus(dbPath, sys, { idCol: 'report_id', textCols: ['title'] }),
+      /disallowed SQLite system table/, `system table denied (case-insensitive): ${sys}`);
+  }
+  // HARDENED (A3 #5): LIMIT validated as a positive integer.
+  throwsMsg(() => loadFtsCorpus(dbPath, 'docs', { idCol: 'report_id', textCols: ['title'], limit: -1 }), /invalid LIMIT/, 'LIMIT -1 rejected');
+  ok(loadFtsCorpus(dbPath, 'docs', { idCol: 'report_id', textCols: ['title'], limit: 1 }).length === 1, 'valid LIMIT 1 works');
 
   console.log(`\ncorpus-match.sqlsec.test: ${pass} passed, ${fail} failed`);
   process.exitCode = fail ? 1 : 0;

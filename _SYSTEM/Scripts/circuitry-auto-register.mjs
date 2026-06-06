@@ -27,6 +27,21 @@ import { makeFeatureFn } from './math/yuri-token-expand.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
+// ── repo containment + protected-path guard (A3 stress-test: roots like '../../../tmp' escaped the
+// repo; symlinks could too). assertContained uses realpath; readSafe rejects protected surfaces. ──
+const PROTECTED_PREFIXES = ['backend/data/', '.claude/state/', '.claude/history/', '.claude/file-history/', '.claude/projects/', '.env', 'node_modules/', '.amp/'];
+function isProtectedRel(rel) {
+  const n = rel.split(path.sep).join('/');
+  return PROTECTED_PREFIXES.some((p) => n === p.replace(/\/$/, '') || n.startsWith(p));
+}
+function assertContained(abs, label = 'path') {
+  const realRoot = fs.realpathSync(REPO_ROOT);
+  let real;
+  try { real = fs.realpathSync(abs); } catch { return abs; } // non-existent → caller's readSafe handles
+  if (real !== realRoot && !real.startsWith(realRoot + path.sep)) throw new Error(`${label} escapes repo: ${abs}`);
+  return real;
+}
+
 // ── parsing (regex, deterministic) ─────────────────────────────────────────────────────────────
 const EXPORT_DECL_RE = /^\s*export\s+(?:async\s+)?(?:function\*?|const|let|var|class)\s+([A-Za-z_$][\w$]*)/;
 const EXPORT_LIST_RE = /^\s*export\s*\{([^}]*)\}/;
@@ -55,7 +70,11 @@ export function listMjs(absRoot, { includeTests = true } = {}) {
   return out.sort();
 }
 
-function readSafe(rel) { try { return fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8'); } catch { return ''; } }
+function readSafe(rel) {
+  if (isProtectedRel(rel)) return '';                 // never read protected surfaces
+  const abs = path.join(REPO_ROOT, rel);
+  try { assertContained(abs, 'read'); return fs.readFileSync(abs, 'utf8'); } catch { return ''; }
+}
 function headerDoc(src) { const m = src.match(HEADER_DOC_RE); return m ? m[1].replace(/\*/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 600) : ''; }
 function localImports(src) {
   const out = []; let m;
@@ -105,7 +124,9 @@ export function extractCircuitryRecords({ roots = ['_SYSTEM/Scripts'] } = {}) {
   const modules = [], symbols = [], tests = [];
   const seen = new Set();
   for (const root of roots) {
-    for (const rel of listMjs(path.join(REPO_ROOT, root))) {
+    const absRoot = path.join(REPO_ROOT, root);
+    assertContained(absRoot, 'root'); // reject roots that escape the repo (e.g. ../../../tmp)
+    for (const rel of listMjs(absRoot)) {
       if (seen.has(rel)) continue; seen.add(rel);
       if (/\.test\.mjs$/.test(rel)) { tests.push(parseTest(rel)); }
       else { const { moduleRecord, symbolRecords } = parseModule(rel); modules.push(moduleRecord); symbols.push(...symbolRecords); }

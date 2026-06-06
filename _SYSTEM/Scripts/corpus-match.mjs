@@ -42,6 +42,22 @@ function ident(name, what = 'identifier') {
   if (!IDENT_RE.test(s)) throw new Error(`unsafe SQL ${what}: ${JSON.stringify(s)}`);
   return s;
 }
+// HARDEN (A3 stress-test): an IDENT-shaped name can still be a SQLite SYSTEM table whose read leaks
+// the whole DB schema/DDL (sqlite_master/schema). Deny system tables at the table boundary — the corpus
+// loader only reads real data tables. (Explicit deny-set, no over-broad shadow-suffix heuristic.)
+const DENY_TABLES = new Set(['sqlite_master', 'sqlite_schema', 'sqlite_temp_master', 'sqlite_temp_schema', 'sqlite_sequence', 'sqlite_stat1', 'sqlite_stat4']);
+function safeTable(name) {
+  const s = ident(name, 'table');
+  if (DENY_TABLES.has(s.toLowerCase())) throw new Error(`disallowed SQLite system table: ${JSON.stringify(s)}`);
+  return s;
+}
+// HARDEN (A3 #5): validate LIMIT is a positive integer (was `Number(limit)` → -1 = no-limit, NaN = SQL error).
+function safeLimit(limit) {
+  if (limit == null) return '';
+  const n = Number(limit);
+  if (!Number.isInteger(n) || n < 1 || n > 1_000_000) throw new Error(`invalid LIMIT: ${JSON.stringify(limit)}`);
+  return ` LIMIT ${n}`;
+}
 
 /**
  * Load a corpus as [{id, text}] from any FTS5 (or normal) table. Generalizes the engine across
@@ -50,11 +66,11 @@ function ident(name, what = 'identifier') {
 export function loadFtsCorpus(dbPath, table, { idCol, textCols, limit } = {}) {
   const db = new Database(dbPath, { readonly: true });
   try {
-    const tbl = ident(table, 'table');
+    const tbl = safeTable(table);
     const id = ident(idCol, 'idCol');
     const txt = (textCols || []).map((c) => ident(c, 'textCol'));
     const cols = [id, ...txt].join(', ');
-    const rows = db.prepare(`SELECT ${cols} FROM ${tbl}${limit ? ' LIMIT ' + Number(limit) : ''}`).all();
+    const rows = db.prepare(`SELECT ${cols} FROM ${tbl}${safeLimit(limit)}`).all();
     return rows.map((r) => ({
       id: String(r[idCol] ?? ''),
       text: textCols.map((c) => String(r[c] ?? '')).join(' ').trim(),
@@ -192,7 +208,7 @@ export function matchPrefixFilter(index, queryText, { threshold = 0.2, top = 0 }
 export function ftsQuery(dbPath, table, queryText, { top = 10 } = {}) {
   const db = new Database(dbPath, { readonly: true });
   try {
-    const tbl = ident(table, 'table'); // RED-TEAM fix: whitelist the interpolated table identifier
+    const tbl = safeTable(table); // whitelist shape + deny SQLite system tables (A3 stress-test)
     const t0 = process.hrtime.bigint();
     const safe = String(queryText).replace(/["']/g, ' ').split(/\s+/).filter((w) => w.length >= 3).map((w) => `"${w}"`).join(' OR ');
     if (!safe) return { matches: [], ms: 0, total: 0 };
