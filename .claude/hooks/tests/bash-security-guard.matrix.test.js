@@ -145,6 +145,10 @@ expectBlock('git rm -r .claude', 'git rm -r .claude');
 expectBlock('rm -rf .claude', 'rm -rf .claude');
 expectBlock('rm -rf ~/.claude', 'rm -rf ~/.claude');
 expectBlock('rm -rf $HOME/.claude', 'rm -rf $HOME/.claude');
+// dot-slash bypass class (C3 ./-prefix at the bash gate) — normTok must catch these:
+expectBlock('rm -rf ./.claude (dot-slash bypass)', 'rm -rf ./.claude');
+expectBlock('rm -rf ./.claude/state (dot-slash bypass)', 'rm -rf ./.claude/state');
+expectBlock('git rm ./.claude/settings.json (dot-slash bypass)', 'git rm ./.claude/settings.json');
 
 // --- E: advisory only ---
 console.log('\nE — advisory only:');

@@ -36,6 +36,11 @@ function unquote(s) {
   return s;
 }
 
+// Strip a leading ./ (or ././…) so a './.claude/...'-style token cannot dodge the literal/prefix
+// protected checks below. This is the C3 ./-prefix bypass class (verified live at the bash gate by the
+// protected-path consolidation lane, 2026-06-06): `'./.claude/state'.startsWith('.claude/')` is false.
+function normTok(s) { return String(s).replace(/^(?:\.\/)+/, ''); }
+
 function isEnvTarget(tok) {
   const s = unquote(tok);
   return s === '.env' || s === './.env';
@@ -178,7 +183,7 @@ function isBlockedClaudeRemove(cmd) {
   for (let i = 0; i < parts.length; i++) {
     if (parts[i] === 'rm') {
       for (let j = i + 1; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/' || t.startsWith('.claude/') ||
             t === '~/.claude' || t === '$HOME/.claude') {
           if (isClaudeScratchArtifact(t)) continue; // scratch cleanup, not destruction
@@ -195,7 +200,7 @@ function isBlockedBroadGitAdd(cmd) {
   for (let i = 0; i < parts.length - 1; i++) {
     if (parts[i] === 'git' && parts[i + 1] === 'add') {
       for (let j = i + 2; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/') return true;
       }
     }
@@ -208,7 +213,7 @@ function isBlockedGitRm(cmd) {
   for (let i = 0; i < parts.length - 1; i++) {
     if (parts[i] === 'git' && parts[i + 1] === 'rm') {
       for (let j = i + 2; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/' || t.startsWith('.claude/')) return true;
       }
     }
