@@ -1,0 +1,24 @@
+[package]
+name = "nexus-core"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS CORE — YURI's deterministic, embedding-free math substrate in Rust (bit-exact with the JS reference). MinHash/LSH + Jaccard prefix-filter matcher + φ/Fibonacci primitives."
+license = "MIT"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+napi = { version = "2", default-features = false, features = ["napi8"], optional = true }
+napi-derive = { version = "2", optional = true }
+
+[build-dependencies]
+napi-build = "2"
+
+[features]
+default = []
+napi-binding = ["dep:napi", "dep:napi-derive"]
+
+[profile.release]
+opt-level = 3
+lto = true

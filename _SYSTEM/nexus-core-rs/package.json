@@ -1,0 +1,19 @@
+{
+  "name": "nexus-core-rs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NEXUS CORE Rust kernel — napi binding + bit-exact conformance harness vs the JS reference.",
+  "main": "index.js",
+  "napi": {
+    "name": "nexus-core",
+    "triples": { "defaults": true }
+  },
+  "scripts": {
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "conformance": "node conformance.test.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.4"
+  }
+}
