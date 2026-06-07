@@ -4,13 +4,13 @@
 >
 > **Status legend:** ✅ built+verified · 🔨 in progress · ⏳ planned · ⚠️ has an open defect
 >
-> **Companion surfaces:** [`RUNBOOK.md`](RUNBOOK.md) (live ops) · [`.claude/config/models.json`](../.claude/config/models.json) → `llm_compat_lanes` (the roster) · `Scripts/llm-lane.mjs` (the core) · `Scripts/lane-core-hooks.mjs` (the seam) · `Scripts/llm-compat.sh` (the dispatcher) · `Scripts/llm-compat-contract.mjs` (routing) · the `routing_lanes` sector + `CMD_LLM` node in `yuri-graph-state.json`.
+> **Companion surfaces:** [`RUNBOOK.md`](RUNBOOK.md) (live ops) · [`.claude/config/models.json`](../.claude/config/models.json) → `llm_compat_lanes` (frontier roster) + `local` (local SLM policy) · `Scripts/llm-lane.mjs` (frontier core) · `Scripts/ollama-lane.mjs` (local SLM runner) · `Scripts/lane-core-hooks.mjs` (the seam) · `Scripts/llm-compat.sh` (the dispatcher) · `Scripts/llm-compat-contract.mjs` (routing) · the `routing_lanes` sector + `CMD_LLM` node in `yuri-graph-state.json`.
 
 ---
 
 ## 1. What it is
 
-The single, openai-compatible dispatch path that lets an **external frontier model operate as a native-equivalent YURI operator** — not a dumb API call. Three reasoning lanes today, all plain openai chat endpoints → **one code path** (`llm-lane.mjs`, ~405 lines), each call wired into the YURI core through `lane-core-hooks.mjs` so a lane call fires the *same* machinery a native operator turn fires (energy ΔU, memory recall, evidence ledger, symbiotic pulse) — from **inside** the dispatch. The model's mental model: *a lane call is an input into YURI; the only difference from a native turn is that the orchestrating lane supplies the input instead of the operator.*
+The single compatibility surface that lets an **external frontier model or local SLM operate as a native-equivalent YURI advisory lane** — not a dumb API call. Three frontier reasoning lanes today are plain openai chat endpoints → **one code path** (`llm-lane.mjs`, ~405 lines). Local Ollama SLMs use `ollama-lane.mjs`. Both runners wire calls into the YURI core through `lane-core-hooks.mjs` so a lane call fires the *same* machinery a native operator turn fires (energy ΔU, memory recall, evidence ledger, symbiotic pulse) — from **inside** the dispatch. The model's mental model: *a lane call is an input into YURI; the only difference from a native turn is that the orchestrating lane supplies the input instead of the operator.*
 
 The reframe (2026-06-05): it is **compatibility with external LLMs**, not offloading YURI's work onto something lesser. Hard-renamed from `offload` → `llm-compat`, no transitional alias.
 
@@ -27,14 +27,16 @@ The reframe (2026-06-05): it is **compatibility with external LLMs**, not offloa
 
 ## 3. Data contract (single source of truth)
 
-`.claude/config/models.json → llm_compat_lanes` — per lane: `{ model, provider, endpoint_env, endpoint_default, api_key_env, context_window, max_output{by-reasoning}, timeout_ms }`.
+`.claude/config/models.json → llm_compat_lanes` — per frontier lane: `{ model, provider, endpoint_env, endpoint_default, api_key_env, context_window, max_output{by-reasoning}, timeout_ms }`.
+
+`.claude/config/models.json → local` — local SLM policy. As of 2026-06-07, every routed local role (`primary`, `utility`, `code`, `deep_reasoning`, `fallback`, `gemma`, `multimodal`) is pinned to `gemma4:12b-it-qat`. Older local blobs such as Needle, Qwen, or `gemma4:e2b` may remain installed, but they are not active policy fallbacks.
 
 **Env wire grammar (`LLM_COMPAT_*`) — coordinated producer↔consumer:**
 
 | Token | Role | Set by | Read by |
 |---|---|---|---|
-| `LLM_COMPAT_PROMPT_TEXT` | prompt transport | ai · llm-compat.sh · task-queue · worker-bridge · kagami-* · deepseek-handoff · **codex-offload-runner** | llm-lane.mjs · codex-offload-runner.mjs |
-| `LLM_COMPAT_TASK_ID` / `LLM_COMPAT_INTENT` | session/intent correlation | `.codex/adapters/yuri-offload-mcp.mjs` | llm-lane/queue/needle/ollama/token-ledger/codex-runner |
+| `LLM_COMPAT_PROMPT_TEXT` | prompt transport | ai · llm-compat.sh · task-queue · worker-bridge · kagami-* · deepseek-handoff · **codex-offload-runner** | llm-lane.mjs · ollama-lane.mjs · codex-offload-runner.mjs |
+| `LLM_COMPAT_TASK_ID` / `LLM_COMPAT_INTENT` | session/intent correlation | `.codex/adapters/yuri-offload-mcp.mjs` | llm-lane/queue/ollama/token-ledger/codex-runner |
 | `LLM_COMPAT_QUEUE_WAIT_MS` / `_POLL_MS` / `_BYPASS` | concurrency lease tuning | llm-compat.sh | llm-compat-queue.mjs |
 | `LLM_COMPAT_MAX_CONCURRENT_LANES` / `_HARD_MAX_*` / `_LEASE_DIR` / `_LEASE_TTL_MS` | queue caps | operator env | llm-compat-queue.mjs |
 | `LLM_COMPAT_FAIL` / `LLM_COMPAT_WARN` | loud-fail markers | llm-lane.mjs · lane-core-hooks.mjs | (log/automation greppers) |
@@ -73,7 +75,15 @@ ai llm <lane> "<prompt>" [flags]            (CLI surface; hard rename of `ai off
 | `kimi` | `moonshotai/kimi-k2.6` | nvidia-nim · `integrate.api.nvidia.com` | 1,000,000 | 32,768 | 240s | ✅ |
 | `codex` (separate platform) | `gpt-5.5` | OpenAI Codex MCP · `codex-offload-runner.mjs` | — | — | up to 6h | ✅ **un-sandboxed (`danger-full-access`), guard-verified** · `--context` parity · spine via AGENTS.md · repo-wide. Not via the lane-core-hooks seam (open option). codex-spark stays read-only DRAFT; `--sandbox read-only` overrides any lane. |
 
-Context window = INPUT cap (all 1M). Max output = a **separate** per-reasoning-depth knob (`off/low`:2048 · `medium`:4096 · `high`:16384 · `xhigh`: per table). DeepSeek counts reasoning tokens against it. Legacy ~47 lanes (local/ollama/gpt-oss/swarm/old-nvidia) are **hard-removed** — invoking one fails loud (exit 3).
+Context window = INPUT cap (all 1M). Max output = a **separate** per-reasoning-depth knob (`off/low`:2048 · `medium`:4096 · `high`:16384 · `xhigh`: per table). DeepSeek counts reasoning tokens against it. Legacy remote/dead lanes (swarm/old-nvidia/etc.) are **hard-removed** — invoking one fails loud (exit 3).
+
+### 5a. Local SLM lane (Ollama, 2026-06-07)
+
+| Lane | Model | Runtime | Status |
+|---|---|---|---|
+| `gemma-local` / `gemma` / `ollama-local` / `triage-local` / `summarize-local` / `code-local` / `gpt-oss` | `gemma4:12b-it-qat` | Ollama via `ollama-lane.mjs` | 🔨 installed+routed local policy; viability benchmark pending |
+
+This is a local SLM compatibility lane, not a replacement for the 3 frontier reasoning lanes. Its role is active background/private utility: triage, summarization, bounded code analysis, cross-reference extraction, and math-kernel signal preparation. It inherits the core seam (`coreOnDispatch`/`coreOnResult`) through `ollama-lane.mjs`, but it has no repo-read tools by default; main-session verification remains mandatory.
 
 > **\*nemotron lane (renamed 2026-06-05):** the lane key is now `nemotron-3-super-120b-a12b` (was `nemotron-3-ultra-550b-a55b`; old id kept as a back-compat ALIAS). Reason: the 550b-ultra can't emit a first token within NVIDIA's free-endpoint **~40s no-output gateway wall** under load — proven by removing every client-side timeout (shell → AbortController → undici headers → socket) and still hitting it; the 120b-super fits. This lane uses the **`raw_https` streaming transport** (`config.raw_https=true` → `postChatHttps`, node:https SSE, no timeout) instead of the global fetch, since a slow reasoner's TTFB exceeds undici's ~5min headersTimeout. **Caveat:** the ~40s wall still caps prefill (~50KB), so dispatch this lane with **tool-read files, not big `--context` front-loads**. The duplicate lane tables (lane-kernel/llm-compat.sh/llm-compat-contract/kagami/shintai) still carry the old id — reconcile in the Wave-2 routing-fragmentation fix. kimi uses a sibling adapter (`parseKimiToolCalls`) for its native tool-call token format; nemotron's NIM tool format parses cleanly with no adapter.
 
@@ -160,8 +170,10 @@ Recall unavailable (cold store down) → `LLM_COMPAT_WARN code=0 ... reason=reca
 | 2026-06-05 | Exactly 3 reasoning lanes; DeepSeek DIRECT; Kimi+Nemotron via NIM; legacy ~47 hard-removed; all 1M context; output cap a separate knob | owner, binding |
 | 2026-06-05 | Rename `offload` → "LLM compatibility lane" (reframe: compatibility, not offloading); hard, no alias | `028e430f` |
 | earlier | openai-compatible single-path dispatch; endpoint ALLOWLIST SSRF guard; tool sandbox via yuri-safety-core | red-team converged findings |
+| 2026-06-07 | Add local SLM compatibility lane through Ollama; active local policy pinned to `gemma4:12b-it-qat`; Needle/Qwen/`gemma4:e2b` retired from routed local policy | owner, binding |
 
 ## Status / change log
 
 - **2026-06-05 (later, same session) — lanes hardened + Codex fully equipped.** Timeout-ghost root-caused (shell `timeout` truncates live calls — §10.1, never the lane). `--context` front-load added to both `llm-lane.mjs` + `codex-offload-runner.mjs` (§7a). Codex un-sandboxed (`danger-full-access`, guard-VERIFIED — it attempted `rm -rf`, yuri-safety-core blocked it), repoRoot off-by-one fixed (guard + spine load from repo-root), spine via AGENTS.md. kagami boot-hint noise gated (§10.2). All merged to main (`d800012c`, `21ddcaca`, `29e5b16c`). **Lanes are fan-out-ready.**
 - **2026-06-05 — manual created.** Captures the post-consolidation + post-rename reality + the day's operational findings (piped-stdout truncation, kagami noise, reliable `--out` capture). Lane core verified live (`PONG` via direct dispatch). Open defects: §10.1 (flush robustness), §10.2 (kagami noise). Codex-through-core-seam: open option (§11.4).
+- **2026-06-07 — local SLM route re-added under llm-compat, Gemma-only.** `ollama-lane.mjs` owns local Ollama execution and fires `lane-core-hooks`; `.claude/config/models.json` local policy is pinned to `gemma4:12b-it-qat`; `llm-compat.sh`, `llm-compat-contract.mjs`, local policy tests, and capability manifest updated so old Needle/Qwen/`gemma4:e2b` choices are no longer selected.

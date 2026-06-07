@@ -8,7 +8,6 @@ import {
   normalizeOllamaUsage,
   recordTokenEvent,
 } from './token-ledger.mjs';
-import { runNeedleLocalChat } from './needle-adapter.mjs';
 
 // Cold model loads need extended timeouts — native fetch headersTimeout is 10s (too short).
 // Use node:http directly for full socket + response timeout control.
@@ -44,37 +43,61 @@ function ollamaHttpPost(url, body, extraHeaders = {}) {
 
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const LOCAL_MODEL_POLICY = loadModelPolicy().local || {};
-const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'needle';
-const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'needle';
-const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
+const DEFAULT_LOCAL_GEMMA_MODEL = 'gemma4:12b-it-qat';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_CODE_MODEL = LOCAL_MODEL_POLICY.code || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY.code_fallback || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_GEMMA_MODEL = LOCAL_MODEL_POLICY.gemma || LOCAL_MODEL_POLICY.multimodal || DEFAULT_LOCAL_GEMMA_MODEL;
+const LOCAL_GEMMA_FALLBACK_MODEL = LOCAL_MODEL_POLICY.multimodal || DEFAULT_LOCAL_GEMMA_MODEL;
 
-export const OLLAMA_LOCAL_MODELS = Object.freeze([
+export const OLLAMA_LOCAL_MODELS = Object.freeze(uniqueModels([
   LOCAL_UTILITY_MODEL,
   LOCAL_PRIMARY_MODEL,
   LOCAL_FALLBACK_MODEL,
-]);
+  DEFAULT_LOCAL_GEMMA_MODEL,
+]));
+
+export const OLLAMA_CODE_MODELS = Object.freeze(uniqueModels([
+  LOCAL_CODE_MODEL,
+  LOCAL_CODE_FALLBACK_MODEL,
+  LOCAL_FALLBACK_MODEL,
+  DEFAULT_LOCAL_GEMMA_MODEL,
+]));
+
+export const OLLAMA_GEMMA_MODELS = Object.freeze(uniqueModels([
+  LOCAL_GEMMA_MODEL,
+  LOCAL_GEMMA_FALLBACK_MODEL,
+  DEFAULT_LOCAL_GEMMA_MODEL,
+]));
 
 export function resolveOllamaAdditiveLane(requestedLane, forcedModel, localModels, dryRun = false) {
-  const localModel = normalizeOllamaModelAlias(forcedModel || process.env.OLLAMA_LOCAL_MODEL || pickFirstInstalled(OLLAMA_LOCAL_MODELS, localModels));
-  const cloudModel = forcedModel || process.env.OLLAMA_CLOUD_MODEL || 'llama3.3:70b';
+  const lane = normalizeLaneName(requestedLane);
+  const localCandidates = localCandidatesForLane(lane);
+  const localEnvModel = lane.startsWith('gemma')
+    ? (process.env.GEMMA_LOCAL_MODEL || process.env.OLLAMA_GEMMA_MODEL || process.env.OLLAMA_LOCAL_MODEL)
+    : process.env.OLLAMA_LOCAL_MODEL;
+  const localModel = normalizeOllamaModelAlias(forcedModel || localEnvModel || pickFirstInstalled(localCandidates, localModels));
+  const cloudModel = forcedModel || cloudModelForLane(lane);
   const cloudEndpoint = process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat';
   const cloudApiKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
 
-  if (requestedLane === 'ollama-local') {
+  if (lane === 'ollama-local' || lane === 'gemma-local' || lane === 'triage-local' || lane === 'summarize-local' || lane === 'code-local' || lane === 'gpt-oss') {
     if (localModel && localModels.has(localModel)) return { kind: 'local', model: localModel, resolvedVia: 'local', additive: true };
     if (dryRun) {
       return {
         kind: 'local',
-        model: localModel || OLLAMA_LOCAL_MODELS[0],
+        model: localModel || localCandidates[0],
         executable: false,
         additive: true,
-        error: 'No matching local Ollama model installed. Pull one of: ' + OLLAMA_LOCAL_MODELS.join(', '),
+        error: 'No matching local Ollama model installed. Pull one of: ' + localCandidates.join(', '),
       };
     }
-    throw new Error('Lane "ollama-local": no matching local Ollama model installed. Pull one of: ' + OLLAMA_LOCAL_MODELS.join(', '));
+    throw new Error(`Lane "${lane}": no matching local Ollama model installed. Pull one of: ${localCandidates.join(', ')}`);
   }
 
-  if (requestedLane === 'ollama-cloud') {
+  if (lane === 'ollama-cloud' || lane === 'gemma-cloud' || lane === 'reason-cloud' || lane === 'code-cloud') {
     if (cloudApiKey) {
       return { kind: 'cloud', protocol: 'ollama-native', endpoint: cloudEndpoint, apiKey: cloudApiKey, model: cloudModel, resolvedVia: 'cloud', additive: true };
     }
@@ -119,20 +142,38 @@ export function resolveOllamaAdditiveLane(requestedLane, forcedModel, localModel
   throw new Error('Lane "ollama": no local model found and no OLLAMA_API_KEY for cloud fallback.');
 }
 
+function normalizeLaneName(lane) {
+  return String(lane || 'ollama').replace(/^@/, '').toLowerCase();
+}
+
+function localCandidatesForLane(lane) {
+  if (lane === 'code-local') return OLLAMA_CODE_MODELS;
+  if (lane.startsWith('gemma')) return OLLAMA_GEMMA_MODELS;
+  return OLLAMA_LOCAL_MODELS;
+}
+
+function uniqueModels(models) {
+  return [...new Set(models.map((model) => normalizeOllamaModelAlias(model)).filter(Boolean))];
+}
+
+function cloudModelForLane(lane) {
+  if (lane === 'code-cloud') return process.env.OLLAMA_CODE_CLOUD_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'qwen2.5-coder:32b';
+  if (lane === 'reason-cloud') return process.env.OLLAMA_REASON_CLOUD_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'qwen2.5:72b';
+  if (lane.startsWith('gemma')) return process.env.GEMMA_CLOUD_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'gemma4:12b-it-qat';
+  return process.env.OLLAMA_CLOUD_MODEL || 'llama3.3:70b';
+}
+
 function coerceHttpScheme(raw) {
   const trimmed = String(raw || '').replace(/\/$/, '');
-  if (!trimmed) return 'http://127.0.0.1:11434';
+  if (!trimmed) return 'http://localhost:11434';
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `http://${trimmed}`;
 }
 
 export async function runOllamaLocalChat(model, promptText, systemText, ledger = {}) {
-  if (isNeedleModel(model)) {
-    return runNeedleLocalChat(promptText, systemText, ledger);
-  }
-
-  const host = coerceHttpScheme(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434');
-  const additiveLane = String(ledger.lane || '').startsWith('ollama');
+  const host = coerceHttpScheme(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://localhost:11434');
+  const additiveLane = isAdditiveLane(ledger.lane);
+  const thinkEnabled = String(process.env.OLLAMA_THINK || 'true').toLowerCase() !== 'false';
   return runOllamaNativeChat({
     endpoint: `${host}/api/chat`,
     provider: 'ollama-local',
@@ -140,16 +181,17 @@ export async function runOllamaLocalChat(model, promptText, systemText, ledger =
     promptText,
     systemText,
     ledger,
-    metadata: { local_runtime: 'ollama', additive_lane: additiveLane },
+    think: thinkEnabled,
+    metadata: { local_runtime: 'ollama', additive_lane: additiveLane, think_enabled: thinkEnabled },
   });
 }
 
-function isNeedleModel(model) {
-  return String(model || '').toLowerCase() === 'needle';
+function isAdditiveLane(lane) {
+  return /^(ollama|gemma|triage-local|summarize-local|code-local|gpt-oss)/.test(String(lane || ''));
 }
 
 export async function runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger = {}) {
-  const additiveLane = String(ledger.lane || '').startsWith('ollama');
+  const additiveLane = isAdditiveLane(ledger.lane);
   return runOllamaNativeChat({
     endpoint,
     apiKey,
@@ -209,7 +251,7 @@ export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', 
   }
 }
 
-async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, promptText, systemText, ledger, metadata }) {
+async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, promptText, systemText, ledger, metadata, think }) {
   const startedAt = Date.now();
   const messages = [];
   if (systemText) messages.push({ role: 'system', content: systemText });
@@ -220,7 +262,9 @@ async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, pro
 
   let response;
   try {
-    response = await ollamaHttpPost(endpoint, { model, messages, stream: false }, apiKey ? { Authorization: `Bearer ${apiKey}` } : {});
+    const body = { model, messages, stream: false };
+    if (typeof think === 'boolean') body.think = think;
+    response = await ollamaHttpPost(endpoint, body, apiKey ? { Authorization: `Bearer ${apiKey}` } : {});
   } catch (error) {
     const errText = error?.message || String(error);
     await recordOllamaLedger({ provider, model, status: 'error', startedAt, promptText, systemText, endpoint, ledger, metadata, errorText: errText });
@@ -289,6 +333,10 @@ function loadModelPolicy() {
 
 function normalizeOllamaModelAlias(model) {
   const clean = String(model || '').toLowerCase();
+
+  if (['needle', 'gemma4:e2b', 'gemma4:latest', 'gemma4:12b', 'gemma4'].includes(clean)) {
+    return DEFAULT_LOCAL_GEMMA_MODEL;
+  }
 
   if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest', 'qwen-liberated', 'qwen-liberated:latest'].includes(clean)) {
     return LOCAL_UTILITY_MODEL;

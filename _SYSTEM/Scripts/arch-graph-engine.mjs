@@ -1,7 +1,7 @@
 // arch-graph-engine.mjs — YURI architecture-graph organ: READ-ONLY structural lens.
 //
-// Three composable analyzers over `_SYSTEM/yuri-graph-state.json` (124n / 273e,
-// giant component = 113), sharing ONE loader + ONE type-weight map:
+// Three composable analyzers over `_SYSTEM/yuri-graph-state.json` (128n / 280e,
+// giant component = 117), sharing ONE loader + ONE type-weight map:
 //
 //   card 4  — spectral clustering on the NORMALIZED symmetric Laplacian
 //             Lsym = I − D^{−1/2} W D^{−1/2} over the giant component; k-means on

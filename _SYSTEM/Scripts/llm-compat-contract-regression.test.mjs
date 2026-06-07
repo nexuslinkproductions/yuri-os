@@ -10,7 +10,8 @@ import { tmpdir } from 'node:os';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const contractPath = resolve(__dirname, 'llm-compat-contract.mjs');
-const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
+const llmCompatPath = resolve(__dirname, 'llm-compat.sh');
+const ollamaLanePath = resolve(__dirname, 'ollama-lane.mjs');
 
 function runContract(args) {
   return execFileSync(process.execPath, [contractPath, ...args], { encoding: 'utf8' }).trim();
@@ -37,6 +38,8 @@ assert.equal(contract.claudeProtocolGate.nativeFunctionGates.obliteratus, 'condi
 assert.ok(['bridge-only-advisory', 'native-integrated'].includes(contract.claudeProtocolGate.openClaw.authority), 'OpenClaw/Nisaba authority must be advisory or native-integrated');
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
+assert.equal(contract.lanes.gemmaLocal.alias, '@gemma-local', 'Gemma local lane metadata missing');
+assert.deepEqual(contract.lanes.gemmaLocal.dispatchTokens, ['gemma-local', 'gemma4:12b-it-qat'], 'Gemma local lane should expose only the QAT model token');
 assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
 assert.deepEqual(contract.lanes.nvidia.dispatchTokens, ['nvidia', 'nemotron', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'], 'NVIDIA offload dispatch tokens = the live forms the dispatcher emits (drift-check aligned; Nemotron-3-Ultra only)');
 assert.deepEqual(contract.lanes.nvidia.liveStatus.live, ['nemotron-3-ultra-550b-a55b'], 'NVIDIA live roster should expose only Nemotron 3 Ultra');
@@ -293,20 +296,19 @@ assert.ok(crossDomainScenario.lifecycle.some((step) => /Consolidate/i.test(step)
 assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
 
 const deepseekReasoningRoute = JSON.parse(execFileSync(
-  process.execPath,
-  [offloadRunnerPath, 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
+  llmCompatPath,
+  ['--model', 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
   { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
 assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek route should expose the bare YURI model id');
-assert.match(deepseekReasoningRoute.endpoint, /api\.deepseek\.com\/v1$/, 'DeepSeek V4 Pro should route through direct DeepSeek API');
-assert.equal(deepseekReasoningRoute.resolvedVia, 'deepseek-direct', 'NVIDIA DeepSeek fallback must stay retired');
-assert.equal(deepseekReasoningRoute.reasoningDepth, 'xhigh', 'max-reasoning suffix should become xhigh depth');
-assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must not force API tool mode by default');
+assert.match(deepseekReasoningRoute.endpoint, /api\.deepseek\.com\/chat\/completions$/, 'DeepSeek V4 Pro should route through direct DeepSeek API');
+assert.equal(deepseekReasoningRoute.provider, 'deepseek-direct', 'NVIDIA DeepSeek fallback must stay retired');
+assert.ok(Array.isArray(deepseekReasoningRoute.tools), 'DeepSeek dry-run should expose the full YURI tool loadout');
 
 const deepseekAliasRoute = JSON.parse(execFileSync(
-  process.execPath,
-  [offloadRunnerPath, 'code-deepseek', '--dry-run', 'review code architecture'],
+  llmCompatPath,
+  ['--model', 'code-deepseek', '--dry-run', 'review code architecture'],
   { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekAliasRoute.lane, 'deepseek-v4-pro', 'code-deepseek alias should normalize to canonical Pro lane');
@@ -346,25 +348,24 @@ try {
 
 const manifestRoot = mkdtempSync(join(tmpdir(), 'ollama-lane-regression-'));
 try {
-  // Primary local model is now llama3.2:latest — add it to the test manifest
-  mkdirSync(join(manifestRoot, 'qwen2.5'), { recursive: true });
-  writeFileSync(join(manifestRoot, 'qwen2.5', '7b'), '{}');
-  mkdirSync(join(manifestRoot, 'llama3.2'), { recursive: true });
-  writeFileSync(join(manifestRoot, 'llama3.2', 'latest'), '{}');
+  mkdirSync(join(manifestRoot, 'gemma4'), { recursive: true });
+  writeFileSync(join(manifestRoot, 'gemma4', '12b-it-qat'), '{}');
+  writeFileSync(join(manifestRoot, 'gemma4', 'e2b'), '{}');
   const ollamaLocal = JSON.parse(execFileSync(
     process.execPath,
-    [offloadRunnerPath, 'ollama-local', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'llama3.2:latest' } }
+    [ollamaLanePath, 'ollama-local', '--dry-run', 'private summary'],
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'gemma4:e2b' } }
   ));
   assert.equal(ollamaLocal.kind, 'local', 'ollama-local should resolve as local');
-  assert.equal(ollamaLocal.model, 'llama3.2:latest', 'ollama-local should pick the active primary local model');
+  assert.equal(ollamaLocal.model, 'gemma4:12b-it-qat', 'ollama-local should normalize retired local aliases to Gemma 4 12B QAT');
 
   const ollamaAuto = JSON.parse(execFileSync(
     process.execPath,
-    [offloadRunnerPath, 'ollama', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'llama3.2:latest' } }
+    [ollamaLanePath, 'ollama', '--dry-run', 'private summary'],
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'gemma4:e2b' } }
   ));
   assert.equal(ollamaAuto.resolvedVia, 'local', 'ollama auto lane should prefer local when available');
+  assert.equal(ollamaAuto.model, 'gemma4:12b-it-qat', 'ollama auto lane should stay on the Gemma-only local policy');
 } finally {
   rmSync(manifestRoot, { recursive: true, force: true });
 }

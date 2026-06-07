@@ -141,7 +141,8 @@
         "LANE_TRIAGE",
         "LANE_GPTOSS",
         "MINI_WRITE",
-        "CDX_FULL"
+        "CDX_FULL",
+        "LANE_GEMMA"
       ],
       "plane_radii": {
         "ROUTING": 400
@@ -796,7 +797,7 @@
       "tier": "section",
       "label": "ROUTING",
       "role": "llm-compat lanes",
-      "detail": "12 lanes / priority order",
+      "detail": "Gemma local + frontier lanes",
       "radius": 50,
       "color": "#00C896",
       "position": {
@@ -806,22 +807,24 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "LLM-compat lane router using priority and scenario rules from the shared contract.",
+        "purpose": "LLM-compat lane router using priority and scenario rules from the shared contract. Local Ollama lanes are pinned to gemma4:12b-it-qat through ollama-lane.",
         "files": [
-          "_SYSTEM/Scripts/llm-compat-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs"
         ],
         "capabilities": [
           "Select smallest reliable lane",
           "Prioritize Codex for implementation",
-          "Fallback to Amp/local/cloud lanes",
-          "Route analysis separately"
+          "Route local Gemma SLM tasks through llm-compat",
+          "Route frontier analysis separately"
         ],
         "dependencies": [
           "LLM_COMPAT_CONTRACT.routingPriority",
-          "LLM_COMPAT_CONTRACT.lanes"
+          "LLM_COMPAT_CONTRACT.lanes",
+          "ollama-lane.mjs"
         ],
         "state_files": [],
-        "notes": "Evidence: llm-compat-contract routingPriority and universalWorkflow.",
+        "notes": "Evidence: llm-compat-contract routingPriority plus 2026-06-07 Gemma-only local policy propagation.",
         "returns_to": "RESPONSE"
       },
       "parent": null,
@@ -834,7 +837,8 @@
         "LANE_KIMI",
         "LANE_NEMOTRON",
         "LANE_TRIAGE",
-        "LANE_GPTOSS"
+        "LANE_GPTOSS",
+        "LANE_GEMMA"
       ]
     },
     {
@@ -2310,7 +2314,7 @@
       "id": "LANE_LOCAL",
       "tier": "sub",
       "label": "code-local",
-      "role": "qwen:7b",
+      "role": "gemma4:12b-it-qat",
       "detail": "",
       "radius": 20,
       "color": "#00C896",
@@ -2321,22 +2325,25 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Qwen-backed local coding lane",
+        "purpose": "Gemma-backed local code-adjacent compatibility lane for bounded private drafts and implementation sketches.",
         "files": [
-          "_SYSTEM/Scripts/llm-compat-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to qwen:7b / code-local",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "LLM_COMPAT_CONTRACT.lanes",
-          "qwen:7b / code-local"
+          "LLM_COMPAT_CONTRACT.lanes.codeLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2566,7 +2573,7 @@
       "id": "LANE_TRIAGE",
       "tier": "sub",
       "label": "triage-local",
-      "role": "qwen:7b summarize",
+      "role": "gemma4:12b-it-qat",
       "detail": "",
       "radius": 14,
       "color": "#00C896",
@@ -2577,22 +2584,26 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Qwen-backed local triage and summarization lane",
+        "purpose": "Gemma-backed local triage and summarization lane.",
         "files": [
-          "_SYSTEM/Scripts/llm-compat-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to qwen:7b",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "LLM_COMPAT_CONTRACT.lanes",
-          "qwen:7b"
+          "LLM_COMPAT_CONTRACT.lanes.triageLocal",
+          "LLM_COMPAT_CONTRACT.lanes.summarizeLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "qwen:7b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2601,8 +2612,8 @@
     {
       "id": "LANE_GPTOSS",
       "tier": "sub",
-      "label": "gpt-oss 120b",
-      "role": "local GPU",
+      "label": "gpt-oss alias",
+      "role": "Gemma policy alias",
       "detail": "",
       "radius": 14,
       "color": "#00C896",
@@ -2613,22 +2624,25 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Formatting and synthesis local GPU lane",
+        "purpose": "Legacy formatting/synthesis token retained as a compatibility alias; active local policy routes it to gemma4:12b-it-qat.",
         "files": [
-          "_SYSTEM/Scripts/llm-compat-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to gpt-oss 120b",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "LLM_COMPAT_CONTRACT.lanes",
-          "gpt-oss 120b"
+          "LLM_COMPAT_CONTRACT.lanes.gptOss",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -3161,8 +3175,8 @@
     {
       "id": "SVC_OLLAMA",
       "tier": "sub",
-      "label": "ollama-kv",
-      "role": "cache idle",
+      "label": "ollama-runtime",
+      "role": "local Gemma runtime",
       "detail": "",
       "radius": 12,
       "color": "#94A3B8",
@@ -3173,22 +3187,24 @@
       },
       "sector": "services",
       "metadata": {
-        "purpose": "ollama-kv supports the services sector as cache idle.",
+        "purpose": "Ollama local runtime serving the Gemma 4 12B QAT llm-compat lane.",
         "files": [
-          "CLAUDE.md",
-          "_SYSTEM/yuri-origin.md",
-          "SOUL.md"
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs",
+          ".claude/config/models.json"
         ],
         "capabilities": [
-          "Represent cache idle",
-          "Connect under SERVICES",
-          "Expose architecture metadata to visual introspection"
+          "Serve gemma4:12b-it-qat locally",
+          "Expose /api/tags and /api/chat for llm-compat",
+          "Keep local model policy separate from frontier lanes"
         ],
         "dependencies": [
+          "ollama",
+          "gemma4:12b-it-qat",
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "notes": "Runtime service metadata only; model outputs remain advisory until verified.",
         "returns_to": "ENKI"
       },
       "parent": "SERVICES",
@@ -4191,9 +4207,9 @@
       "radius": 14,
       "color": "#76B900",
       "position": {
-        "x": -120.0,
+        "x": -120,
         "y": -1076,
-        "z": 120.0
+        "z": 120
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4225,9 +4241,9 @@
       "radius": 14,
       "color": "#76B900",
       "position": {
-        "x": -160.0,
+        "x": -160,
         "y": -1076,
-        "z": 80.0
+        "z": 80
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -5051,6 +5067,45 @@
         "returns_to": "ENKI_COMMANDS",
         "status": "applied-v15"
       }
+    },
+    {
+      "id": "LANE_GEMMA",
+      "tier": "sub",
+      "label": "gemma-local",
+      "role": "gemma4:12b-it-qat",
+      "detail": "Ollama local SLM",
+      "radius": 18,
+      "color": "#00C896",
+      "position": {
+        "x": 103.1,
+        "y": -756,
+        "z": -195.2
+      },
+      "sector": "routing_lanes",
+      "metadata": {
+        "purpose": "Gemma 4 12B QAT local SLM lane for private triage, summarization, code-adjacent sketching, and xref/math evidence preparation.",
+        "files": [
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
+        ],
+        "capabilities": [
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
+        ],
+        "dependencies": [
+          "LLM_COMPAT_CONTRACT.lanes.gemmaLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
+        ],
+        "state_files": [],
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
+        "returns_to": "RESPONSE"
+      },
+      "parent": "ROUTING",
+      "children": []
     }
   ],
   "edges": [
@@ -6761,6 +6816,18 @@
       "target": "ENKI_COMMANDS",
       "type": "return",
       "status": "applied-v15"
+    },
+    {
+      "source": "ROUTING",
+      "target": "LANE_GEMMA",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "LANE_GEMMA",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
     }
   ],
   "telemetry": {

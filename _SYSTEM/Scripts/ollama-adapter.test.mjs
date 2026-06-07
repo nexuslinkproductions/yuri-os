@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  OLLAMA_GEMMA_MODELS,
   OLLAMA_LOCAL_MODELS,
   postOllamaEmbedding,
   resolveOllamaAdditiveLane,
@@ -57,6 +58,25 @@ try {
   process.env.OLLAMA_HOST = 'http://127.0.0.1:11434';
 
   {
+    assert.deepEqual(OLLAMA_GEMMA_MODELS, ['gemma4:12b-it-qat']);
+  }
+
+  {
+    const lane = resolveOllamaAdditiveLane('gemma-local', '', new Set(['gemma4:12b-it-qat']), false);
+    assert.equal(lane.kind, 'local');
+    assert.equal(lane.model, 'gemma4:12b-it-qat');
+    assert.equal(lane.additive, true);
+  }
+
+  {
+    const lane = resolveOllamaAdditiveLane('gemma-local', '', new Set(), true);
+    assert.equal(lane.kind, 'local');
+    assert.equal(lane.model, 'gemma4:12b-it-qat');
+    assert.equal(lane.executable, false);
+    assert.doesNotMatch(lane.error, /needle|e2b/i);
+  }
+
+  {
     const policyModel = OLLAMA_LOCAL_MODELS.find((model) => model && model !== 'needle') || 'llama3.2:latest';
     const lane = resolveOllamaAdditiveLane('ollama-local', '', new Set([policyModel]), false);
     assert.equal(lane.kind, 'local');
@@ -91,14 +111,14 @@ try {
     await withMockOllama(() => ({
       status: 200,
       body: {
-        model: 'qwen2.5:7b',
+        model: 'gemma4:12b-it-qat',
         message: { content: 'local summary' },
         prompt_eval_count: 8,
         eval_count: 2,
       },
     }), async ({ baseUrl, requests }) => {
       process.env.OLLAMA_HOST = baseUrl;
-      const output = await runOllamaLocalChat('qwen2.5:7b', 'summarize', 'system', { lane: 'ollama-local', traceId: 'ollama-local-test' });
+      const output = await runOllamaLocalChat('gemma4:12b-it-qat', 'summarize', 'system', { lane: 'ollama-local', traceId: 'ollama-local-test' });
       assert.equal(output, 'local summary');
       assert.equal(requests[0].url, '/api/chat');
       assert.equal(requests[0].headers.authorization, undefined);
@@ -141,7 +161,7 @@ try {
   {
     process.env.OLLAMA_HOST = 'http://127.0.0.1:9';
     await assert.rejects(
-      () => runOllamaLocalChat('qwen2.5:7b', 'summarize', '', { lane: 'ollama-local', traceId: 'ollama-local-down-test' }),
+      () => runOllamaLocalChat('gemma4:12b-it-qat', 'summarize', '', { lane: 'ollama-local', traceId: 'ollama-local-down-test' }),
       /ECONNREFUSED/,
     );
   }

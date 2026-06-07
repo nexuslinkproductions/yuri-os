@@ -2,7 +2,7 @@
 
 # ── Key hydration (MUST run first — before any exec that replaces this process) ──
 # Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
-# pulse-lane-dispatch.mjs and offload-runner.mjs are Node child processes that
+# pulse-lane-dispatch.mjs and llm-lane.mjs are Node child processes that
 # inherit this process's env — hydrate before any exec so they always have keys.
 # Primary: source dedicated key file (no parsing, always reliable)
 # shellcheck source=/dev/null
@@ -17,13 +17,13 @@ hydrate_keychain_var() {
   value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
   [ -n "$value" ] && export "$key=$value"
 }
-for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY; do
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
   hydrate_keychain_var "$_lane_var"
 done
 unset _lane_var
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -46,7 +46,7 @@ if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
   fi
 fi
 
-# YURI Task Offloader (Enhanced)
+# YURI LLM Compatibility Dispatcher
 # Automatically assesses context or allows manual model selection.
 
 set -euo pipefail
@@ -55,15 +55,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LLM_COMPAT_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
 LLM_COMPAT_QUEUE="$SCRIPT_DIR/llm-compat-queue.mjs"
 LLM_COMPAT_CONTRACT="$SCRIPT_DIR/llm-compat-contract.mjs"
-# Ollama paths removed — lane deprecated
+OLLAMA_LANE_RUNNER="$SCRIPT_DIR/ollama-lane.mjs"
 
 usage() {
   cat <<EOF
-Usage: offload [options] <prompt>
+Usage: llm-compat [options] <prompt>
 
 Options:
   -l, --list             List available neural models in the registry
-  -m, --model <id>       Force offload to a specific model ID
+  -m, --model <id>       Force llm-compat to a specific model ID
   --intent <id>          Pass a router intent hint for auto routing
   --reasoning <depth>    Reasoning depth hint: low, medium, high, xhigh
   --tools                Force API tool-call mode only when explicitly requested
@@ -91,12 +91,12 @@ list_models() {
   echo "⬡ YURI_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
-  printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
+  printf '  [%-16s] %s\n' "gpt-oss" "active via Ollama local wrapper; policy model gemma4:12b-it-qat"
   printf '  [%-16s] %s\n' "deepseek" "active direct DeepSeek API; keychain/env hydrated"
-  printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
+  printf '  [%-16s] %s\n' "openrouter-free" "legacy compatibility token (requires explicit implementation before use)"
 
   echo
-  echo "Offload reasoning lanes:"
+  echo "LLM compatibility reasoning lanes:"
   printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via api.deepseek.com; reasoning depth via --reasoning"
   printf '  [%-30s] %s\n' "nemotron-3-ultra-550b-a55b" "Nemotron 3 Ultra via NVIDIA NIM"
   printf '  [%-30s] %s\n' "kimi-k2.6" "Kimi K2.6 via NVIDIA NIM"
@@ -105,10 +105,8 @@ list_models() {
   echo "Additive Ollama lanes:"
   printf '  [%-30s] %s\n' "ollama" "local-first utility lane, cloud fallback only if configured"
   printf '  [%-30s] %s\n' "ollama-local" "local-only private utility lane"
-
-  echo
-  echo "Needle local runtime:"
-  printf '  [%-30s] %s\n' "needle" "active local default for general tasks while qwen2.5:7b remains retired"
+  printf '  [%-30s] %s\n' "gemma-local" "local Gemma lane, prefers gemma4:12b-it-qat"
+  printf '  [%-30s] %s\n' "gemma" "Gemma lane, local-first with cloud fallback only if configured"
 
   echo
   echo "Codex lanes (Codex CLI; OpenAI Responses API disabled — no API key):"
@@ -139,7 +137,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-pro|nemotron|nemotron-3-ultra-550b-a55b|kimi|kimi-k2.6|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
+    deepseek|deepseek-v4-pro|nemotron|nemotron-3-ultra-550b-a55b|kimi|kimi-k2.6|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
       return 0
       ;;
   esac
@@ -190,6 +188,13 @@ run_offload_runner() {
       ;;
   esac
 
+  case "$lane" in
+    triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
+      env "${env_args[@]}" node "$OLLAMA_LANE_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
+      return
+      ;;
+  esac
+
   if [[ "$has_runner_args" -eq 1 ]]; then
     for arg in "${runner_args[@]}"; do
       if [[ "$arg" == "--dry-run" || "$arg" == "--route-only" ]]; then
@@ -199,7 +204,7 @@ run_offload_runner() {
     done
   fi
 
-  # Dispatch through the minimal llm-lane.mjs core (replaces the retired offload-runner.mjs).
+  # Dispatch through the minimal llm-lane.mjs core (replaces the retired legacy runner).
   # The 3 live lanes resolve; any dead legacy lane name loud-fails exit 3 (correct).
   if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${LLM_COMPAT_QUEUE_BYPASS:-0}" != "1" ]]; then
     env "${env_args[@]}" node "$LLM_COMPAT_QUEUE" run --lane "$lane" -- node "$SCRIPT_DIR/llm-lane.mjs" "$lane" ${runner_args[@]+"${runner_args[@]}"}
@@ -312,12 +317,17 @@ dry_run_model_override() {
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
         run_offload_runner openrouter-free "$prompt" --dry-run --model "$target_model"
         ;;
-      gpt-oss:20b|gpt-oss:120b|gpt-oss)
-        run_offload_runner gpt-oss "$prompt" --dry-run
-        ;;
       needle)
-        printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
+        printf '%s\n' "⬡ NEEDLE_RETIRED :: local policy is gemma4:12b-it-qat only" >&2
+        run_offload_runner gemma-local "$prompt" --dry-run --model gemma4:12b-it-qat
+        ;;
+      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|gpt-oss:20b|gpt-oss:120b|reason-cloud|code-cloud)
+        printf '%s\n' "⬡ DRY_RUN_OLLAMA_LANE..." >&2
+        run_offload_runner "${target_model%%:*}" "$prompt" --dry-run
+        ;;
+      gemma4:*|hf.co/*gemma*)
+        printf '%s\n' "⬡ DRY_RUN_GEMMA_LOCAL..." >&2
+        run_offload_runner gemma-local "$prompt" --dry-run --model "$target_model"
         ;;
       deepseek-v4-pro|deepseek)
         # DeepSeek dispatch: do not force CLI tool flags. Tool/skill intent belongs
@@ -381,8 +391,8 @@ dispatch_model() {
         run_offload_runner gpt-oss "$prompt"
         ;;
       needle)
-        printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        LLM_COMPAT_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.LLM_COMPAT_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
+        printf '%s\n' "⬡ NEEDLE_RETIRED :: routing to gemma4:12b-it-qat local policy" >&2
+        run_offload_runner gemma-local "$prompt" --model gemma4:12b-it-qat
         ;;
       deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
@@ -421,10 +431,15 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
         LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
-      triage-local|summarize-local|code-local|ollama|ollama-local|reason-cloud|code-cloud|gemma|gemma-local)
-        if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi
-        printf '%s\n' "⬡ ROUTING_TO_LLM_COMPAT_RUNNER..." >&2
+      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud)
+        if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [llm-compat] Ollama not responding on :11434 — lane may cold-start' >&2; fi
+        printf '%s\n' "⬡ ROUTING_TO_OLLAMA_LANE..." >&2
         run_offload_runner "$target_model" "$prompt"
+        ;;
+      gemma4:*|hf.co/*gemma*)
+        if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [llm-compat] Ollama not responding on :11434 — lane may cold-start' >&2; fi
+        printf '%s\n' "⬡ ROUTING_TO_GEMMA_LOCAL..." >&2
+        run_offload_runner gemma-local "$prompt" --model "$target_model"
         ;;
       self)
         printf '%s\n' "⬡ SELF_EXECUTION_RECOMMENDED — router selected Codex/self for this task." >&2
@@ -604,11 +619,10 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   fi
   echo "⬡ LOCAL_ROUTING — using direct DeepSeek lane ($FALLBACK_MODEL)." >&2
   echo "  Manual fallback options:" >&2
-  echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
-  echo "    offload --model codex-spark \"<prompt>\"          # bounded Codex Spark lane" >&2
-  echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
-  echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
-  echo "    ai @deepseek-v4-pro \"<prompt>\"                   # DeepSeek cloud pro" >&2
+  echo "    llm-compat --model <id> \"<prompt>\"              # direct model" >&2
+  echo "    llm-compat --model gemma-local \"<prompt>\"       # local Gemma SLM lane" >&2
+  echo "    llm-compat --model codex-spark \"<prompt>\"       # bounded Codex Spark lane" >&2
+  echo "    llm-compat --model deepseek-v4-pro \"<prompt>\"   # DeepSeek cloud pro" >&2
   MODEL="$FALLBACK_MODEL"
   RUNTIME="cloud"
 fi

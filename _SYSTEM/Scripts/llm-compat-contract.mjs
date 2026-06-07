@@ -25,7 +25,7 @@ const LLM_COMPAT_CONTRACT = {
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Shintai/NIM/DeepSeek advisory lanes.
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@kimi', '@deepseek'],
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@gemma-local', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@kimi', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -62,8 +62,8 @@ const LLM_COMPAT_CONTRACT = {
   lanes: {
     codeLocal: {
       alias: '@code-local',
-      dispatchTokens: ['code-local', 'code-cloud', 'reason-cloud', 'gemma', 'gemma-local'],
-      description: 'Qwen-backed local coding lane',
+      dispatchTokens: ['code-local'],
+      description: 'Gemma-backed local coding and analysis lane through llm-compat/Ollama',
       preferredUsage: ['implementation', 'debugging', 'patch planning', 'test repair']
     },
     deepseek: {
@@ -76,19 +76,31 @@ const LLM_COMPAT_CONTRACT = {
     triageLocal: {
       alias: '@triage-local',
       dispatchTokens: ['triage-local'],
-      description: 'Qwen-backed local triage lane',
+      description: 'Gemma-backed local triage lane',
       preferredUsage: ['classification', 'quick read', 'initial sort', 'small decisions']
     },
     summarizeLocal: {
       alias: '@summarize-local',
       dispatchTokens: ['summarize-local'],
-      description: 'Qwen-backed local summarization lane',
+      description: 'Gemma-backed local summarization lane',
       preferredUsage: ['summarization', 'extraction', 'condensation', 'note cleanup']
+    },
+    gemmaLocal: {
+      alias: '@gemma-local',
+      dispatchTokens: ['gemma-local', 'gemma4:12b-it-qat'],
+      description: 'Gemma 4 12B QAT local SLM lane through Ollama; the only routed local model policy.',
+      preferredUsage: ['active background local analysis', 'bounded private synthesis', 'cross-reference extraction', 'math-kernel assisted triage']
+    },
+    gemma: {
+      alias: '@gemma',
+      dispatchTokens: ['gemma'],
+      description: 'Gemma lane, local-first through Ollama with explicit cloud fallback only when configured.',
+      preferredUsage: ['explicit Gemma requests', 'local viability trials', 'private model comparison']
     },
     ollamaLocal: {
       alias: '@ollama-local',
-      dispatchTokens: ['ollama-local', 'needle'],
-      description: 'Additive Ollama local utility lane',
+      dispatchTokens: ['ollama-local'],
+      description: 'Additive Ollama local utility lane, currently pinned by policy to gemma4:12b-it-qat',
       preferredUsage: ['private utility work', 'bounded summarization', 'low-risk extraction', 'embeddings', 'offline-friendly triage']
     },
     ollama: {
@@ -96,6 +108,12 @@ const LLM_COMPAT_CONTRACT = {
       dispatchTokens: ['ollama'],
       description: 'Ollama auto lane, local first with cloud fallback',
       preferredUsage: ['explicit Ollama requests', 'local/private task trials', 'low-risk utility prompts']
+    },
+    ollamaCloud: {
+      alias: '@ollama-cloud',
+      dispatchTokens: ['ollama-cloud'],
+      description: 'Explicit Ollama cloud compatibility lane; requires OLLAMA_API_KEY or OLLAMA_CLOUD_API_KEY.',
+      preferredUsage: ['explicit Ollama cloud requests', 'remote model comparison', 'local-unavailable fallback with configured credentials']
     },
     gptOss: {
       alias: '@gpt-oss',
@@ -650,6 +668,20 @@ function selectSteeringLane(prompt) {
     return 'codex-spark';
   }
 
+  if (
+    text.includes('@gemma-local') ||
+    text.includes('gemma local') ||
+    text.includes('local gemma') ||
+    text.includes('gemma4:12b-it-qat') ||
+    text.includes('gemma 4 12b')
+  ) {
+    return 'gemma-local';
+  }
+
+  if (text.includes('@gemma') || text.includes('use gemma') || text.includes('try gemma')) {
+    return 'gemma';
+  }
+
   if (hasSandboxImprovementSignal(text)) {
     return 'native';
   }
@@ -720,7 +752,7 @@ function selectSteeringLane(prompt) {
     return 'deepseek';
   }
 
-  if (text.includes('@qwen') || text.includes('summarize') || text.includes('summary') || text.includes('condense') || text.includes('extract') || text.includes('extraction') || text.includes('triage') || text.includes('general task')) {
+  if (text.includes('@qwen') || text.includes('qwen') || text.includes('summarize') || text.includes('summary') || text.includes('condense') || text.includes('extract') || text.includes('extraction') || text.includes('triage') || text.includes('general task')) {
     return text.includes('summarize') || text.includes('summary') || text.includes('condense') ? 'summarize-local' : 'triage-local';
   }
 

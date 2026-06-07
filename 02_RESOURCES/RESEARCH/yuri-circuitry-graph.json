@@ -649,13 +649,13 @@
     },
     {
       "id": "llm-lane",
-      "label": "llm-lane (consolidated dispatch core — the single openai-compatible path)",
+      "label": "llm-lane (frontier dispatch core — openai-compatible path)",
       "layer": "Skills & Orchestration",
       "files": [
         "_SYSTEM/Scripts/llm-lane.mjs"
       ],
       "triggeredBy": "CLI/import — `ai llm <lane>`, `ai deepseek|kimi|nemotron`, llm-compat.sh -m, worker-bridge/task-queue/yuri-workhorse/deepseek-guarded-handoff",
-      "description": "The ENTIRE dispatch path for the 3 reasoning lanes (deepseek-v4-pro, nemotron-3-ultra-550b-a55b, kimi-k2.6), all openai-compatible. Replaced the ~4040-line offload-runner/reasoning-lane-dispatch/*-dispatch-adapter stack in the 2026-06-05 consolidation. ~420 lines: prompt in -> text out, with a full-YURI-stack system loadout (brain/persona/origin/INDEX) and read_file/grep/list_dir/search/context_router/fetch_url/bash tools so the lane operates BY the framework, not blind. Fail-closed guards: endpoint host ALLOWLIST (api.deepseek.com / integrate.api.nvidia.com), fetch_url private/loopback/metadata DENY, protected-surface + git-mutation deny on bash. Advisory-until-verified, and wired into the YURI core like a native lane via lane-core-hooks: every dispatch fires energy ΔU (traceDispatchEvent), memory recall (injected as a recall block so the lane carries episodic memory), evidence (lane_output -> control-plane memory-ledger), and the docked-output symbiotic pulse (advisory-until-verified). A lane call is an input into YURI that triggers the same core machinery a native operator turn does — the orchestrating lane just supplies the input. This is the seam any future frontier model plugs into to inherit the full core."
+      "description": "The frontier/openai-compatible dispatch path for deepseek-v4-pro, nemotron-3-ultra-550b-a55b, and kimi-k2.6. Replaced the ~4040-line offload-runner/reasoning-lane-dispatch/*-dispatch-adapter stack in the 2026-06-05 consolidation. It loads the YURI spine and guarded tools, then fires lane-core-hooks so dispatches enter energy ΔU, memory recall, evidence ledger, and docked-output pulse. Local Ollama/Gemma compatibility now uses ollama-lane.mjs, which inherits the same core-ingest seam instead of reusing the frontier runner."
     },
     {
       "id": "lane-core-hooks",
@@ -1026,6 +1026,41 @@
       ],
       "triggeredBy": "CLI `node _SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs`; import as a compatibility re-export of weekly-comp",
       "description": "Thin compatibility entrypoint for the weekly self-improvement consolidator. It imports main from weekly-comp, runs it when invoked directly, and re-exports the full weekly-comp surface so older callers can use the weekly-consolidation module without duplicating consolidation logic."
+    },
+    {
+      "id": "ollama-adapter",
+      "label": "ollama-adapter (Gemma-only local model policy)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/ollama-adapter.mjs",
+        ".claude/config/models.json"
+      ],
+      "triggeredBy": "import — called by ollama-lane and local policy tests",
+      "description": "Ollama model policy adapter. As of 2026-06-07 every routed local role resolves to gemma4:12b-it-qat. Retired local aliases such as needle, gemma4:e2b, gemma4:latest, and old Qwen-style local requests normalize to the Gemma 4 12B QAT policy model rather than becoming active fallbacks."
+    },
+    {
+      "id": "ollama-lane",
+      "label": "ollama-lane (local Gemma SLM compatibility runner)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/ollama-lane.mjs",
+        "_SYSTEM/Scripts/llm-compat.sh"
+      ],
+      "triggeredBy": "CLI/import — llm-compat.sh local lanes: gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss",
+      "description": "Local Ollama SLM compatibility runner pinned by policy to gemma4:12b-it-qat. It resolves local/cloud Ollama lanes through ollama-adapter and injects lane-core-hooks coreOnDispatch/coreOnResult so local Gemma calls enter energy ΔU, recall, evidence ledger, and docked-output pulse. No repo-read tools by default; output remains advisory until Codex/main verifies."
+    },
+    {
+      "id": "LANE_GEMMA",
+      "label": "gemma-local lane (active local SLM policy)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/llm-compat-contract.mjs",
+        "_SYSTEM/Scripts/ollama-lane.mjs",
+        "_SYSTEM/Scripts/ollama-adapter.mjs",
+        ".claude/config/models.json"
+      ],
+      "triggeredBy": "llm-compat lane tokens — gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss and retired local aliases",
+      "description": "The active local SLM lane under llm-compat. Its model policy is gemma4:12b-it-qat only; retired local identities such as Needle, Qwen, gemma4:e2b, and gpt-oss are compatibility aliases that normalize into Gemma rather than active model choices. Advisory output must be verified by Codex/main."
     }
   ],
   "edges": [
@@ -2046,7 +2081,49 @@
       "to": "yuri-search",
       "kind": "calls",
       "description": "xref-query queries the FTS5/BM25 corpus search engine as one of its retrieval surfaces, reusing the injection-hardened buildMatch() rather than re-implementing corpus search."
+    },
+    {
+      "from": "llm-compat-contract",
+      "to": "ollama-lane",
+      "kind": "routes",
+      "description": "The shared lane contract exposes gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss as local compatibility lanes routed through ollama-lane."
+    },
+    {
+      "from": "ollama-lane",
+      "to": "ollama-adapter",
+      "kind": "calls",
+      "description": "Resolves requested local model aliases against the Gemma-only Ollama policy before dispatch."
+    },
+    {
+      "from": "ollama-lane",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "Every local Gemma dispatch uses coreOnDispatch/coreOnResult so the local SLM enters the same energy, recall, evidence, and docked-output pulse path as frontier lanes."
+    },
+    {
+      "from": "ollama-adapter",
+      "to": "llm-compat-contract",
+      "kind": "implements",
+      "description": "Local Ollama model selection implements the llm-compat local lane contract and retires Needle/Qwen/gemma4:e2b as routed policy choices."
+    },
+    {
+      "from": "llm-compat-contract",
+      "to": "LANE_GEMMA",
+      "kind": "routes",
+      "description": "The lane contract exposes Gemma as the active local SLM policy and maps local utility/code/triage tokens onto it."
+    },
+    {
+      "from": "LANE_GEMMA",
+      "to": "ollama-lane",
+      "kind": "calls",
+      "description": "Gemma local lane dispatch is executed by the Ollama compatibility runner."
+    },
+    {
+      "from": "LANE_GEMMA",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "Gemma local lane enters the same core-ingest seam for energy, recall, evidence ledger, and docked-output pulse."
     }
   ],
-  "generatedAt": "2026-06-05"
+  "generatedAt": "2026-06-07"
 }

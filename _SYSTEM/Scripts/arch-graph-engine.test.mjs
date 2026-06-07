@@ -276,20 +276,20 @@ test("determinism: two analyses of the same graph are byte-identical", () => {
 // ============================================================================
 // LIVE GRAPH — runs over the real yuri-graph-state.json (read-only)
 // ============================================================================
-test("LIVE: real graph loads to the verified shape (127n, giant=116, 11 isolated)", () => {
+test("LIVE: real graph loads to the verified shape (128n, giant=117, 11 isolated)", () => {
   const j = JSON.parse(readFileSync("_SYSTEM/yuri-graph-state.json", "utf8"));
   const report = analyzeArchGraph(j);
-  // Shape updated when the xref/propagation organs were wired in: +3 nodes
-  // (LANE_NEMOTRON, PROPAGATION_SCAN, XREF_QUERY) all join the giant component
-  // (giant 113->116), no new isolated node (still 11), +5 real edges (250->255).
-  assert.equal(report.summary.nodes, 127, "127 nodes");
-  assert.equal(report.summary.giant, 116, "giant=116 (113 + 3 wired-in organs)");
+  // Shape updated when the xref/propagation organs and the Gemma local SLM lane
+  // were wired in: no new isolated nodes (still 11); all new routed organs join
+  // the giant component.
+  assert.equal(report.summary.nodes, 128, "128 nodes");
+  assert.equal(report.summary.giant, 117, "giant=117 (Gemma lane joins routed organs)");
   assert.equal(report.summary.isolatedNodes, 11, "11 isolated (matches catalog λ0 finding)");
-  assert.ok(report.summary.realEdges === 255, `realEdges=${report.summary.realEdges}`);
+  assert.ok(report.summary.realEdges === 257, `realEdges=${report.summary.realEdges}`);
   assert.ok(report.summary.bridges > 0, "real graph has bridges");
   assert.ok(report.summary.lambda2_fiedler >= 0, "λ2 non-negative");
   // every node has a metrics entry; none mutated into graph.
-  assert.equal(Object.keys(report.metrics).length, 127);
+  assert.equal(Object.keys(report.metrics).length, 128);
 });
 
 test("LIVE: analysis does NOT mutate the input graph object", () => {

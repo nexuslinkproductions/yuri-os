@@ -2,39 +2,29 @@
   "meta": {
     "schema_version": "1.0",
     "hardware": "macbook_m2_pro",
-    "updated": "2026-05-10T00:00:00Z",
-    "source_session": "2026-05-10_local-model-fit-audit",
+    "updated": "2026-06-07T00:00:00Z",
+    "source_session": "2026-06-07_gemma4-12b-it-qat-local-slm-policy",
     "notes": "Centralized Ollama model registry. Skills, MCP bridges, and local lanes reference this policy instead of hardcoding model names. Deterministic Yuri functions stay native; local models provide cheap judgment/extraction only."
   },
   "local": {
-    "primary": "needle",
-    "utility": "needle",
-    "code": "qwen2.5-coder:7b",
-    "code_fallback": "starcoder2:latest",
-    "deep_reasoning": "deepseek-r1:8b",
-    "multimodal": "gemma4:e2b",
+    "primary": "gemma4:12b-it-qat",
+    "utility": "gemma4:12b-it-qat",
+    "code": "gemma4:12b-it-qat",
+    "code_fallback": "gemma4:12b-it-qat",
+    "deep_reasoning": "gemma4:12b-it-qat",
+    "gemma": "gemma4:12b-it-qat",
+    "multimodal": "gemma4:12b-it-qat",
     "embeddings": "nomic-embed-text:latest",
-    "fallback": "llama3.2:latest",
-    "manual_only": [
-      "deepseek-r1:8b",
-      "deepseek-liberated:latest",
-      "deepseek-v2:16b",
-      "gemma4:latest"
-    ],
-    "frozen": [
-      "deepseek-r1:8b",
-      "deepseek-r1:latest",
-      "deepseek-liberated:latest",
-      "deepseek-v2:16b",
-      "gemma4:latest"
-    ],
-    "reasoning": "primary/utility: needle is installed locally and remains the active lightweight tool-call/default lane. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use DeepSeek V4 cloud lanes for serious reasoning. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
+    "fallback": "gemma4:12b-it-qat",
+    "manual_only": [],
+    "frozen": [],
+    "reasoning": "primary/utility/code/deep_reasoning/fallback: gemma4:12b-it-qat is the only routed local SLM. Needle, Qwen, gemma4:e2b, gemma4:latest, and other old local blobs are not policy fallbacks and are not enumerated by the benchmark. DeepSeek V4 cloud lanes remain separate llm-compat reasoning lanes."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {
       "max_ollama_memory_gb": 10,
       "unified_memory": true,
-      "note": "Models above 8B or around 9 GB quantized can cold-load slowly and compete with browser/editor/backend memory on this 16 GB MacBook. Prefer needle for general local work, qwen2.5-coder:7b for code-local, and keep 14B/16B-class models manual-only."
+      "note": "Gemma 4 12B QAT is the only routed local SLM policy. On this 16 GB MacBook it should be treated as a warm, bounded local lane rather than an always-heavy foreground replacement; old Needle/Qwen local choices are retired from llm-compat routing."
     }
   },
   "environment_override": {

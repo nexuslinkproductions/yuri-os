@@ -87,16 +87,20 @@ const payload = {
   acceptance: {
     lightweight_cold_start_ms_max: 30000,
     general_cold_start_ms_max: 45000,
-    no_heavy_models_auto: true,
-    code_local_requires_coder_model: true,
+    single_active_local_slm: true,
+    code_local_pinned_to_gemma_qat: true,
+    reasoning_enabled_by_default: thinkEnabledByDefault(),
+    retired_models_not_selected: true,
   },
   policy: {
+    local_slm: config.local?.primary || 'gemma4:12b-it-qat',
     utility: config.local?.utility,
     primary: config.local?.primary,
     code: config.local?.code,
     deep_reasoning: config.local?.deep_reasoning,
     multimodal: config.local?.multimodal,
-    manual_only: config.local?.manual_only || [],
+    active_routed_models: activeRoutedModels(config),
+    note: 'Benchmark reports active routed local policy only. Installed old Ollama blobs are ignored unless explicitly selected outside llm-compat policy.',
   },
   summary,
   results,
@@ -158,22 +162,22 @@ function buildScenarios(modelConfig) {
   const local = modelConfig.local || {};
   return [
     {
-      id: 'summarize_long_doc',
+      id: 'braindump_decoder_v2_summary',
       metric: 'cold-load/tokens/sec',
       role: 'utility',
-      model: local.utility || 'needle',
+      model: local.utility || 'gemma4:12b-it-qat',
       system: 'Return a compact factual summary.',
-      prompt: `Summarize the following orchestration note in five bullets:\n\n${'Yuri receives raw operator intent, normalizes it, compiles a graph plan, dispatches work, verifies artifacts, sanitizes tainted output, and promotes only reviewed facts. '.repeat(90)}`,
+      prompt: `Summarize the current YURI Brain Dump Decoder v2 in five bullets:\n\n${'Stage 0 matches depth to signal. Stage 1 ranks Haki intent. Stage 2 recalls continuity handles. Stage 4 routes nodes through ACTIVE OBJECTIVE, EVIDENCE, IMPLEMENTATION TASK, PARKED BRANCH, or REJECTED/NOISE. Stage 5 separates claims from evidence. Stage 6 preserves cross-domain transfer. Stage 7 keeps felt-core as signal. Stage 10 adversarially attacks the decode. Stage 11 returns one next move. '.repeat(36)}`,
       validatorName: 'non_empty_summary',
       validate: (output) => ({ ok: output.trim().length > 80, expected: 'non-empty summary over 80 chars' }),
     },
     {
-      id: 'route_plan_accuracy',
-      metric: 'route-plan accuracy',
+      id: 'input_genome_route_packet',
+      metric: 'input-genome route accuracy',
       role: 'utility',
-      model: local.utility || 'needle',
+      model: local.utility || 'gemma4:12b-it-qat',
       system: 'Return only strict JSON.',
-      prompt: 'Classify this Yuri request into a scenario: "brain dump to durable orchestration control plane with graph plan, verify, sanitize, promote". Return {"scenario":"...","confidence":0.0}.',
+      prompt: 'Allowed scenario values: control-plane-orchestration, local-summary, code-symbol-check. For this request, choose exactly control-plane-orchestration: "brain dump to durable orchestration control plane with graph plan, verify, sanitize, promote". Return {"scenario":"...","confidence":0.0}.',
       validatorName: 'control_plane_scenario_json',
       validate: (output) => {
         const json = parseJsonObject(output);
@@ -185,52 +189,52 @@ function buildScenarios(modelConfig) {
       },
     },
     {
-      id: 'typescript_symbol_accuracy',
+      id: 'llm_compat_gemma_policy_symbol',
       metric: 'code-symbol accuracy',
       role: 'code',
-      model: local.code || 'qwen2.5-coder:7b',
+      model: local.code || 'gemma4:12b-it-qat',
       system: 'Return only strict JSON.',
-      prompt: 'Given TypeScript `function resolveLane(lane: string) { return lane === "code-local" ? "qwen2.5-coder:7b" : "needle"; }`, return {"symbol":"...","code_local_model":"..."}.',
+      prompt: 'Given TypeScript `function resolveLocalSlm(lane: string) { return lane === "code-local" ? "gemma4:12b-it-qat" : "gemma4:12b-it-qat"; }`, return {"symbol":"...","code_local_model":"..."}.',
       validatorName: 'symbol_and_model_json',
       validate: (output) => {
         const json = parseJsonObject(output);
         return {
-          ok: json?.symbol === 'resolveLane' && json?.code_local_model === 'qwen2.5-coder:7b',
-          expected: 'resolveLane + qwen2.5-coder:7b',
+          ok: json?.symbol === 'resolveLocalSlm' && json?.code_local_model === 'gemma4:12b-it-qat',
+          expected: 'resolveLocalSlm + gemma4:12b-it-qat',
           observed: json || null,
         };
       },
     },
     {
-      id: 'native_function_candidate_json',
-      metric: 'JSON compliance',
+      id: 'claim_evidence_boundary_json',
+      metric: 'claim/evidence JSON compliance',
       role: 'utility',
-      model: local.utility || 'needle',
+      model: local.utility || 'gemma4:12b-it-qat',
       system: 'Return only valid JSON. No markdown.',
-      prompt: 'Evaluate whether "obliteratus QA gate" should be a deterministic native Yuri function or a model. Return {"native_function":true,"reason":"...","requires_model":false}.',
+      prompt: 'YURI decoder rule: unverified operational claims must be routed to verification before promotion. Return {"claim_status":"unverified","verify_before_promotion":true,"local_truth_claim":false}.',
       validatorName: 'strict_native_function_json',
       validate: (output) => {
         const json = parseJsonObject(output);
         return {
-          ok: json?.native_function === true && json?.requires_model === false,
-          expected: 'native_function=true and requires_model=false',
+          ok: json?.claim_status === 'unverified' && json?.verify_before_promotion === true && json?.local_truth_claim === false,
+          expected: 'claim_status=unverified, verify_before_promotion=true, local_truth_claim=false',
           observed: json || null,
         };
       },
     },
     {
-      id: 'gitnexus_file_inventory',
-      metric: 'file-inventory accuracy',
+      id: 'xref_first_file_inventory',
+      metric: 'xref file-inventory accuracy',
       role: 'primary',
-      model: local.primary || 'needle',
+      model: local.primary || 'gemma4:12b-it-qat',
       system: 'Return only strict JSON.',
-      prompt: 'Which repo file owns automatic offload lane selection? Choose one: _SYSTEM/Scripts/llm-compat-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
-      validatorName: 'llm_compat_contract_source_json',
+      prompt: 'Which repo file owns xref-first local navigation? Choose one: _SYSTEM/Scripts/xref-query.mjs, _SYSTEM/Scripts/context-router.mjs, README.md. Return {"source_of_truth":"..."}.',
+      validatorName: 'xref_query_source_json',
       validate: (output) => {
         const json = parseJsonObject(output);
         return {
-          ok: json?.source_of_truth === '_SYSTEM/Scripts/llm-compat-contract.mjs',
-          expected: '_SYSTEM/Scripts/llm-compat-contract.mjs',
+          ok: json?.source_of_truth === '_SYSTEM/Scripts/xref-query.mjs',
+          expected: '_SYSTEM/Scripts/xref-query.mjs',
           observed: json?.source_of_truth || null,
         };
       },
@@ -239,7 +243,7 @@ function buildScenarios(modelConfig) {
 }
 
 async function generateWithOllama(model, prompt, system, timeoutMs) {
-  const host = (process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
+  const host = coerceHttpScheme(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://localhost:11434');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -251,6 +255,7 @@ async function generateWithOllama(model, prompt, system, timeoutMs) {
         prompt,
         system,
         stream: false,
+        think: String(process.env.OLLAMA_THINK || 'true').toLowerCase() !== 'false',
         options: { temperature: 0 },
       }),
       signal: controller.signal,
@@ -264,6 +269,13 @@ async function generateWithOllama(model, prompt, system, timeoutMs) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function coerceHttpScheme(raw) {
+  const trimmed = String(raw || '').replace(/\/$/, '');
+  if (!trimmed) return 'http://localhost:11434';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `http://${trimmed}`;
 }
 
 function listInstalledModels() {
@@ -280,9 +292,7 @@ function listInstalledModels() {
   }
 
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
-  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), '_SYSTEM/tools/needle');
   if (!existsSync(manifestRoot)) {
-    if (existsSync(needleRepo)) models.add('needle');
     return models;
   }
 
@@ -301,10 +311,6 @@ function listInstalledModels() {
       const parts = rel.split(path.sep);
       if (parts.length >= 2) models.add(`${parts[0]}:${parts[1]}`);
     }
-  }
-
-  if (existsSync(needleRepo)) {
-    models.add('needle');
   }
 
   return models;
@@ -352,15 +358,38 @@ function ollamaVersion() {
 
 function summarize(items) {
   const failed = items.filter((item) => !['ok', 'planned'].includes(item.status)).length;
-  const heavyAutoModels = new Set(['deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
+  const activePolicyModels = new Set(['gemma4:12b-it-qat']);
   const automaticModels = items.map((item) => item.model).filter(Boolean);
   return {
     total: items.length,
     passed: items.length - failed,
     failed,
     missing_models: items.filter((item) => item.status === 'missing_model').map((item) => item.model),
-    heavy_models_selected: automaticModels.filter((model) => heavyAutoModels.has(model)),
+    non_policy_models_selected: automaticModels.filter((model) => !activePolicyModels.has(model)),
   };
+}
+
+function activeRoutedModels(modelConfig) {
+  const local = modelConfig.local || {};
+  return uniqueStrings([
+    local.primary,
+    local.utility,
+    local.code,
+    local.code_fallback,
+    local.deep_reasoning,
+    local.gemma,
+    local.multimodal,
+    local.fallback,
+    'gemma4:12b-it-qat',
+  ]);
+}
+
+function thinkEnabledByDefault() {
+  return String(process.env.OLLAMA_THINK || 'true').toLowerCase() !== 'false';
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter((value) => typeof value === 'string' && value.trim()).map((value) => value.trim()))];
 }
 
 function safeReadDir(dir) {
@@ -382,7 +411,7 @@ function safeStat(file) {
 function printHuman(payload) {
   console.log(`Yuri local model benchmark (${payload.dry_run ? 'dry-run' : 'execute'})`);
   console.log(`Ollama: ${payload.ollama_version}`);
-  console.log(`Policy: utility=${payload.policy.utility} primary=${payload.policy.primary} code=${payload.policy.code}`);
+  console.log(`Policy: local_slm=${payload.policy.local_slm} reasoning=${payload.acceptance.reasoning_enabled_by_default ? 'on' : 'off'} active=${payload.policy.active_routed_models.join(',')}`);
   for (const result of payload.results) {
     const rate = result.tokens_per_second == null ? '' : ` ${result.tokens_per_second} tok/s`;
     const load = result.cold_load_ms == null ? '' : ` cold=${result.cold_load_ms}ms`;
@@ -393,5 +422,5 @@ function printHuman(payload) {
 function printHelp() {
   console.log(`Usage: node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs [--dry-run|--execute] [--json] [--scenario-limit N] [--timeout-ms N]
 
-Dry-run is the default. Use --execute to call local Ollama and measure cold-load, tokens/sec, JSON compliance, route-plan accuracy, code-symbol accuracy, and memory snapshots.`);
+Dry-run is the default. Use --execute to call local Ollama and measure cold-load, tokens/sec, decoder summary, input-genome route accuracy, policy-symbol accuracy, claim/evidence JSON compliance, xref file-inventory accuracy, and memory snapshots.`);
 }
