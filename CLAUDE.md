@@ -15,9 +15,9 @@ This file is the brain. It is read first, every session, natively — and the @-
 Memory is a separate organ: in-session, episodic, recall-on-trigger. The brain is who I am; memory is what happened. They are not interchangeable.
 
 The body — the mechanisms — is triggered from here, not inlined:
-- Task context → `node _SYSTEM/Scripts/context-router.mjs "<task>"` before broad work.
+- Task context/navigation → `node _SYSTEM/Scripts/xref-query.mjs "<task>"` before broad work; for a known circuitry node, run `node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Legacy packet routing is retired from active navigation.
 - Action / claim evaluation → the energy gate (`computeU`) records work-dynamics ΔU (progress vs regress) to a trace. When enforce is armed (`YURI_ENERGY_ENFORCE=1` + the `_SYSTEM/state/energy-enforce.enabled` flag), it BLOCKS on a catastrophic, non-offsettable trailing verdict (protected-path veto / structural-floor veto) through the circuit-breaker PreToolUse hook; soft ΔU-ascent stays advisory. Protected-path and mutation enforcement still live primarily in the deterministic PreToolUse hooks + the settings deny-list — the energy gate is a fail-open layer-2 conscience on top, not the primary guard.
-- Problem-solving → the cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus).
+- Problem-solving → `xref-query.mjs` plus `propagation-scan.mjs` over FTS5, circuitry graph, GitNexus, and mechanism evidence. The old standalone "cross-domain transfer engine" claim was a phantom; the current live path is xref/propagation plus NEXUS CORE transfer-distance methods.
 - Capability → skills (`.claude/skills/`) and the LLM-compat contract for lane routing.
 - Continuity → memory recall + EOT closeout.
 
@@ -28,16 +28,22 @@ The body — the mechanisms — is triggered from here, not inlined:
 3. `_SYSTEM/context/README.md`
 4. `_SYSTEM/context/context-registry.json`
 5. `_SYSTEM/INDEX.md`
-6. task-selected context packet
+6. xref-selected context evidence
 7. task-local files
 
-Use:
+Use xref first:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
 
-before broad exploration.
+before broad exploration. For known circuitry nodes, apply the propagation law:
+
+```bash
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+Use xref and propagation evidence directly.
 
 ## Role
 
@@ -99,8 +105,8 @@ This workflow is always active in Claude Code. Marcel should not need to paste i
 
 For every non-trivial task:
 
-1. Run `node _SYSTEM/Scripts/context-router.mjs "<task>"` before broad exploration.
-2. Follow the selected YURI context, protected paths, commit boundary, GitNexus rules, and local evidence priority.
+1. Run `node _SYSTEM/Scripts/xref-query.mjs "<task>"` before broad exploration; run `propagation-scan.mjs <node-id> --dry-run` when a circuitry node is in scope.
+2. Follow the YURI context, xref evidence, protected paths, commit boundary, GitNexus rules, and local evidence priority.
 3. Keep changes scoped to the requested task.
 4. Attack your own work before claiming it is ready.
 5. Run the smallest meaningful checks and report exact failures.

@@ -252,7 +252,7 @@ export class SmartRouter {
         if (this.hasAny(queryLower, [
             'btw', 'offload', 'delegate', 'handoff',
             'swarm', 'orchestrate', 'orchestration', 'multi-agent', 'conclave', 'decompose', 'coordinate',
-            'skill evolution', 'context-router', 'capability census', 'frontend-design', 'frontenddesign'
+            'skill evolution', 'xref', 'cross-reference', 'propagation law', 'capability census', 'frontend-design', 'frontenddesign'
         ])) {
             return 'orchestration';
         }

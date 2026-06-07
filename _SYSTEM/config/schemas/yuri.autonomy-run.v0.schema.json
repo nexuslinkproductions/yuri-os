@@ -73,10 +73,10 @@
     },
     "baselineAnchor": {
       "type": "object",
-      "required": ["repoRoot", "contextRouter", "git", "sourceHashes"],
+      "required": ["repoRoot", "xrefPreflight", "git", "sourceHashes"],
       "properties": {
         "repoRoot": { "type": "string" },
-        "contextRouter": { "type": "object" },
+        "xrefPreflight": { "type": "object" },
         "git": { "type": "object" },
         "sourceHashes": { "type": "array" }
       },

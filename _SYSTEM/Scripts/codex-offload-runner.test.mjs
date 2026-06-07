@@ -74,22 +74,22 @@ try {
   });
   assert.equal(protectedAmpWrite.allowed, false, '.amp runtime mutation must stay blocked');
 
-  const pluginRouteStamp = path.join(tempRoot, 'context-router-last.json');
+  const pluginRouteStamp = path.join(tempRoot, 'context-preflight-last.json');
   const pluginBeforeRoute = evaluateToolCall('mcp__codex_apps__github._list_installed_accounts', {}, {
     routeStampPath: pluginRouteStamp,
     now: 1000,
   });
-  assert.equal(pluginBeforeRoute.allowed, false, 'Codex app/plugin tools must route through context-router first');
+  assert.equal(pluginBeforeRoute.allowed, false, 'Codex app/plugin tools must route through YURI xref/context preflight first');
 
   const routeCommand = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'node _SYSTEM/Scripts/context-router.mjs "github plugin task"',
+    command: 'node _SYSTEM/Scripts/xref-query.mjs "github plugin task"',
   }, {
     routeStampPath: pluginRouteStamp,
     now: 1000,
   });
-  assert.equal(routeCommand.allowed, true, 'context-router command should be allowed');
-  assert.equal(fs.existsSync(pluginRouteStamp), true, 'context-router command should stamp the plugin gate');
+  assert.equal(routeCommand.allowed, true, 'xref-query command should be allowed');
+  assert.equal(fs.existsSync(pluginRouteStamp), true, 'xref-query command should stamp the plugin gate');
 
   const pluginAfterRoute = evaluateToolCall('mcp__codex_apps__github._list_installed_accounts', {}, {
     routeStampPath: pluginRouteStamp,

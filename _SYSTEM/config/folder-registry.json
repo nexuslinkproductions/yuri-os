@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-26",
+  "updated": "2026-06-07",
   "purpose": "Machine-readable YURI OS folder classification map. This is navigation metadata, not a cleanup permission slip.",
   "rules": {
     "readByDefault": "Only canonical anchors and selected control-plane docs are read by default.",
@@ -63,7 +63,7 @@
       "readByDefault": true,
       "protected": false,
       "status": "active",
-      "notes": "Machine-readable task-to-context packet selector."
+      "notes": "Machine-readable bounded packet registry used by xref-aware navigation."
     },
     {
       "path": "_SYSTEM/config/artifact-registry.json",
@@ -84,13 +84,22 @@
       "notes": "Promoted skill-evolution patterns from retired research surfaces into YURI-owned architecture."
     },
     {
-      "path": "_SYSTEM/Scripts/context-router.mjs",
+      "path": "_SYSTEM/Scripts/xref-query.mjs",
       "class": "system_control_plane",
       "owner": "YURI context layer",
       "readByDefault": false,
       "protected": false,
       "status": "active",
-      "notes": "CLI that selects a context packet for a task before broad exploration."
+      "notes": "Unified xref-first navigation CLI across FTS5, circuitry graph, GitNexus, mechanism spectrum, and provenance scoring."
+    },
+    {
+      "path": "_SYSTEM/Scripts/propagation-scan.mjs",
+      "class": "system_control_plane",
+      "owner": "YURI context layer",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read-only propagation-law scanner for known circuitry nodes and sibling surfaces."
     },
     {
       "path": "_SYSTEM/Scripts/yuri",
@@ -450,7 +459,7 @@
       "readByDefault": false,
       "protected": false,
       "status": "removed_from_root",
-      "notes": "Generated graph output removed from the local root. GitNexus/context-router are the active navigation surfaces."
+      "notes": "Generated graph output removed from the local root. Xref-query, propagation-scan, and GitNexus are the active navigation surfaces."
     },
     {
       "path": "graphify-out",
@@ -485,8 +494,8 @@
       "owner": "YURI local models",
       "readByDefault": false,
       "protected": false,
-      "status": "active_ignored_runtime",
-      "notes": "Needle local language model/runtime checkout. Use through YURI routing/health contracts; keep out of Git and default context."
+      "status": "retired_ignored_runtime",
+      "notes": "Retired Needle local runtime checkout. Active routed local policy is Gemma through Ollama; keep this out of Git and default context."
     },
     {
       "path": "_SYSTEM/tools/gitnexus",

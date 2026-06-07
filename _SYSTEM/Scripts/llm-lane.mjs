@@ -69,7 +69,7 @@ const OPERATING_DIRECTIVE =
   + 'You are a fully-equipped YURI reasoning lane — a mini-me operator carrying the full stack above, '
   + 'NOT a bare chatbot and NOT blind to YURI. Traverse the ENTIRE system with your tools: read_file / '
   + 'grep / list_dir (the full repo, minus protected secrets), search (FTS5 corpus, ~26k docs+code), '
-  + 'context_router (pull the selected YURI context packet for a task), fetch_url (external refs). '
+  + 'xref_query (unified FTS5/graph/GitNexus/spectrum retrieval), propagation_scan (dry-run propagation-law sibling checks), fetch_url (external refs). '
   + 'Pull whatever you need — do not work from a sliver. Live state is authoritative over prose: read '
   + '.claude/config/models.json (llm_compat_lanes = the current lane roster), _SYSTEM/INDEX.md (architecture), '
   + 'and the memory indexes for current facts rather than inferring from older docs. Ground every claim '
@@ -92,7 +92,7 @@ function buildYuriLoadout() {
 }
 const LIGHT_SYSTEM =
   'You are a YURI-OS reasoning lane (dev-only, advisory). Operate BY the YURI framework: owner intent > '
-  + 'local evidence > contract. Use your tools (read_file/grep/list_dir/search/context_router/fetch_url) '
+  + 'local evidence > contract. Use your tools (read_file/grep/list_dir/search/xref_query/propagation_scan/fetch_url) '
   + 'to ground claims. Output is ADVISORY until YURI verifies it. Protected surfaces are refused. No padding.';
 
 // ── Lane-endpoint SSRF guard: ALLOWLIST (fail-closed) ──────────────────────────────────────────
@@ -177,11 +177,16 @@ const TOOLS = [
   { type: 'function', function: { name: 'list_dir', description: 'List entries of a repo directory.', parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } } },
   { type: 'function', function: { name: 'search', description: 'Full-text search the YURI knowledge corpus (FTS5 over ~26k docs+code). USE THIS to become aware of YURI.', parameters: { type: 'object', properties: { query: { type: 'string' }, top: { type: 'number' } }, required: ['query'] } } },
   { type: 'function', function: { name: 'fetch_url', description: 'HTTP GET a public https URL (external references). Private/loopback/metadata hosts are refused.', parameters: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] } } },
-  { type: 'function', function: { name: 'context_router', description: 'Run the YURI context-router for a task and get the selected context packet (which YURI context/files to load for that work). The canonical way to pull the right slice of the full stack.', parameters: { type: 'object', properties: { task: { type: 'string' } }, required: ['task'] } } },
+  { type: 'function', function: { name: 'xref_query', description: 'Run YURI xref-query across FTS5, circuitry graph, GitNexus, mechanism spectrum, and provenance scoring. Use before broad repo navigation; raise top/scan or set all=true for thousand-hit recall.', parameters: { type: 'object', properties: { query: { type: 'string' }, node: { type: 'string' }, top: { type: 'number' }, scan: { type: 'number' }, all: { type: 'boolean' } }, required: ['query'] } } },
+  { type: 'function', function: { name: 'propagation_scan', description: 'Run YURI propagation-scan in dry-run mode for a known circuitry node id to inspect sibling surfaces before edits.', parameters: { type: 'object', properties: { nodeId: { type: 'string' }, top: { type: 'number' }, force: { type: 'boolean' } }, required: ['nodeId'] } } },
   { type: 'function', function: { name: 'bash', description: 'Run a shell command in the repo to investigate, build, or RUN SCRIPTS/TESTS (e.g. node --test, npm test, git status, grep). Destructive commands, git mutation (commit/push/tag/...), and protected surfaces are blocked.', parameters: { type: 'object', properties: { cmd: { type: 'string' } }, required: ['cmd'] } } },
 ];
 
 function clip(s, n = 12000) { s = String(s ?? ''); return s.length > n ? `${s.slice(0, n)}\n…[truncated ${s.length - n} chars]` : s; }
+function xrefMaxBufferBytes() {
+  const mb = Number.parseInt(process.env.LLM_LANE_XREF_MAX_BUFFER_MB || '512', 10) || 512;
+  return Math.max(64, mb) * 1024 * 1024;
+}
 
 async function executeTool(name, argsRaw) {
   let args = {};
@@ -230,12 +235,29 @@ async function executeTool(name, argsRaw) {
         return clip(out.trim() || '(no results)');
       } catch (e) { return `search error: ${e.message}`; }
     }
-    if (name === 'context_router') {
-      if (!args.task) return 'ERROR: missing task';
+    if (name === 'xref_query') {
+      const query = args.query || args.task || args.request;
+      if (!query) return 'ERROR: missing query';
       try {
-        const out = execFileSync('node', [path.join(__dirname, 'context-router.mjs'), args.task], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
-        return clip(out.trim() || '(no context selected)');
-      } catch (e) { return `context_router error: ${e.message}`; }
+        const cmd = [path.join(__dirname, 'xref-query.mjs'), String(query), '--json'];
+        if (args.node) cmd.push('--node', String(args.node));
+        if (args.top) cmd.push('--top', String(args.top));
+        if (args.scan) cmd.push('--scan', String(args.scan));
+        if (args.all === true) cmd.push('--all');
+        const out = execFileSync('node', cmd, { encoding: 'utf8', maxBuffer: xrefMaxBufferBytes() });
+        return out.trim() || '(no xref results)';
+      } catch (e) { return `xref_query error: ${e.message}`; }
+    }
+    if (name === 'propagation_scan') {
+      const nodeId = args.nodeId || args.node_id || args.node || args.id;
+      if (!nodeId) return 'ERROR: missing nodeId';
+      try {
+        const cmd = [path.join(__dirname, 'propagation-scan.mjs'), String(nodeId), '--dry-run'];
+        if (args.force) cmd.push('--force');
+        if (args.top) cmd.push('--top', String(args.top));
+        const out = execFileSync('node', cmd, { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+        return clip(out.trim() || '(no propagation results)');
+      } catch (e) { return `propagation_scan error: ${e.message}`; }
     }
     if (name === 'fetch_url') {
       if (!args.url) return 'ERROR: missing url';
@@ -497,7 +519,7 @@ function buildContextPack(spec) {
 // across turns: `functions.read_file:0`, bare `read_file`, or even kimi echoing our own synthesized id
 // `kimi-tc-1-bash`. Rather than pin one format, resolve the real tool by scanning the spec for a KNOWN
 // tool name — robust to whatever wrapper kimi invents, and fail-closed on anything that resolves to none.
-const KIMI_KNOWN_TOOLS = ['read_file', 'list_dir', 'context_router', 'fetch_url', 'search', 'grep', 'bash'];
+const KIMI_KNOWN_TOOLS = ['read_file', 'list_dir', 'xref_query', 'propagation_scan', 'fetch_url', 'search', 'grep', 'bash'];
 const KIMI_CALL_RE = /<\|tool_call_begin\|>\s*([\s\S]*?)\s*<\|tool_call_argument_begin\|>\s*([\s\S]*?)\s*<\|tool_call_end\|>/g;
 // Mimicry-independent fallback: infer the tool from the argument SHAPE when the name-spec carries no
 // known tool name. kimi always serializes the args correctly even on turns where it echoes only our
@@ -507,8 +529,8 @@ function inferToolFromArgs(obj) {
   if ('cmd' in obj || 'command' in obj) return 'bash';
   if ('url' in obj) return 'fetch_url';
   if ('pattern' in obj) return 'grep';
-  if ('query' in obj) return 'search';
-  if ('task' in obj || 'request' in obj) return 'context_router';
+  if ('nodeId' in obj || 'node_id' in obj || 'node' in obj) return 'propagation_scan';
+  if ('query' in obj || 'task' in obj || 'request' in obj) return 'xref_query';
   if ('path' in obj) return 'read_file';  // list_dir shares `path`; read_file is the safe default sink
   return null;
 }

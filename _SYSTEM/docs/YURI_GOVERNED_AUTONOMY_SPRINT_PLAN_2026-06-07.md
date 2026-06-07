@@ -2,13 +2,23 @@
 
 Status: active implementation plan
 Owner: Codex/main
-Date: 2026-05-26
+Date: 2026-06-07
+Supersedes: prior 2026-05-26 governed-autonomy slice
 
 ## Purpose
 
-Turn YURI automation from helpful scripts into governed autonomy: planned work loops that can gather context, route lanes, collect evidence, propose memory/truth changes, and eventually perform scoped edits only after explicit approval gates.
+Turn YURI automation from helpful scripts into governed autonomy: planned work loops that can gather broad xref recall, route lanes, collect evidence, propose memory/truth changes, and eventually perform scoped edits only after explicit approval gates.
 
-The first implementation target is not a fully autonomous agent. It is a dry-run autonomy runner that can produce a baseline-anchored run manifest, prove which gates would apply, and emit optional Kagami events without mutating source or memory by default.
+The current implementation target is not a fully autonomous agent. It is a dry-run autonomy runner that can produce a baseline-anchored run manifest, prove which gates would apply, expose xref preflight evidence, and emit optional Kagami events without mutating source or memory by default.
+
+## Current State — 2026-06-07
+
+- Active navigation is xref-first. The runner records `xrefPreflight`, not a legacy packet route.
+- Xref defaults to a 200-result request floor and supports `--top N`, `--scan N`, and `--all` for thousand-hit workspace recall.
+- LLM lane `xref_query` output is not clipped by the tool wrapper; transport buffering is large and configurable through `LLM_LANE_XREF_MAX_BUFFER_MB`.
+- Baseline anchors hash xref, propagation, provenance, schema, registry, artifact registry, and surfaced xref paths.
+- Kagami event emission uses `XREF_PREFLIGHT_RECORDED`.
+- Local routed SLM policy is Gemma-only through Ollama: `gemma4:12b-it-qat`.
 
 ## Research Grounding
 
@@ -37,7 +47,7 @@ References:
 | Level | Label | Allowed default behavior |
 |---|---|---|
 | L0 | Manual | Human-directed commands only. |
-| L1 | Evidence runner | Build context, route packets, collect baseline evidence, and report. |
+| L1 | Evidence runner | Build xref context, collect baseline evidence, and report. |
 | L2 | Research loop | Add source freshness, contradiction checks, memory proposals, and truth-promotion candidates. |
 | L3 | Code autopilot | Propose and apply scoped edits only after explicit operator approval and rollback readiness. |
 | L4 | Timed run | Operate within a timebox with intervention logging, checkpoints, and pause/resume handoff. |
@@ -47,7 +57,7 @@ L1 and L2 are safe defaults. L3 and above require a hard approval boundary. A ta
 
 ## Implementation Plan
 
-1. Baseline anchor: capture git HEAD, dirty-file list, context-router result, protected-path status, and source hashes for selected control-plane files.
+1. Baseline anchor: capture git HEAD, dirty-file list, xref preflight result, protected-path status, and source hashes for selected control-plane files.
 2. Lane health preflight: record whether required worker lanes are available before dispatch or escalation.
 3. Kagami event spine: use YURI-owned `_SYSTEM/state/kagami-control/` events for optional runtime evidence, never Claude runtime state.
 4. Evidence runner: produce a run manifest that states goal, autonomy level, gates, approval boundary, decision, and evidence references.
@@ -62,7 +72,7 @@ L1 and L2 are safe defaults. L3 and above require a hard approval boundary. A ta
 13. Dry-run CLI: provide `yuri-autonomy-runner.mjs plan --goal ...` as the first operator surface.
 14. Event emission option: support `--emit-events` only when an explicit safe event root is provided or the canonical Kagami root is acceptable.
 15. Test harness: cover default dry-run, L2 research, L3 approval blocking, L4 timed runs, protected-root refusal, and optional event emission.
-16. Context packet: add an autonomy packet so future broad exploration routes to the runner, plan, automation, Kagami, memory, and math gates.
+16. Xref registry packet: keep the autonomy packet paths current so future broad exploration surfaces the runner, plan, automation, Kagami, memory, and math gates.
 17. Prime review lane: after local tests pass, send the completed slice to the live escalation lane for gap review before declaring the task done.
 18. Release gate integration: once stable, add autonomy checks to the supercharge gate after GitNexus impact review.
 19. First timed run: run a 15-minute L4 dry-run loop that records checkpoints and intervention counts but performs no mutation.
@@ -83,9 +93,9 @@ L1 and L2 are safe defaults. L3 and above require a hard approval boundary. A ta
 - No truth or memory promotion without evidence and contradiction checks.
 - No dashboard or scheduler work before the dry-run runner proves useful.
 
-## First Slice
+## Active Slice
 
-The first slice lands:
+The active slice maintains:
 
 - `_SYSTEM/Scripts/yuri-autonomy-runner.mjs`
 - `_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs`
@@ -97,6 +107,6 @@ Expected verification:
 ```bash
 node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs
 node _SYSTEM/Scripts/artifact-registry.mjs --validate
-node _SYSTEM/Scripts/context-router.mjs "governed autonomy evidence runner"
+node _SYSTEM/Scripts/xref-query.mjs "governed autonomy evidence runner" --top 200 --json
 git diff --check
 ```

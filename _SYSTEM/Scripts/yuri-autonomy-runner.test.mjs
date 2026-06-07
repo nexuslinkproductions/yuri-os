@@ -29,8 +29,10 @@ test('default plan builds an L1 dry-run manifest with baseline anchor', () => {
   assert.equal(manifest.autonomy.level, 'L1_EVIDENCE_RUNNER');
   assert.equal(manifest.approval.boundary, 'dry-run-only');
   assert.equal(manifest.approval.mutationAllowed, false);
-  assert.equal(manifest.baselineAnchor.contextRouter.ok, true);
+  assert.equal(manifest.baselineAnchor.xrefPreflight.ok, true);
+  assert.ok(manifest.gates.required.includes('xref-preflight'));
   assert.ok(manifest.baselineAnchor.sourceHashes.some((entry) => entry.path.endsWith('context-registry.json')));
+  assert.ok(manifest.baselineAnchor.sourceHashes.some((entry) => entry.path.endsWith('xref-query.mjs')));
   assert.equal(validateAutonomyRunManifest(manifest).ok, true);
 });
 
@@ -178,6 +180,7 @@ test('explicit event emission writes Kagami events to safe runtime root', () => 
   assert.ok(events.some((event) => event.kind === 'AUTHORIZATION_REQUIRED'));
   const text = readFileSync(path.join(root, 'events.jsonl'), 'utf8');
   assert.match(text, /INTAKE_RECORDED/);
+  assert.match(text, /XREF_PREFLIGHT_RECORDED/);
   assert.match(text, /AUTHORIZATION_REQUIRED/);
 });
 

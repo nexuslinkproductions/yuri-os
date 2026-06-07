@@ -21,16 +21,24 @@ This README is a factual orientation map. It is not a product claim, readiness c
 | `SOUL.md` | Collaboration and persona anchor. |
 | `_SYSTEM/yuri-origin.md` | Canonical operating contract. |
 | `_SYSTEM/context/README.md` | Context loading model. |
-| `_SYSTEM/context/context-registry.json` | Machine-readable context packet selector. |
+| `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
 | `_SYSTEM/INDEX.md` | System navigation index. |
 | `_SYSTEM/config/folder-registry.json` | Folder classification map. |
 | `_SYSTEM/config/artifact-registry.json` | Durable artifact placement rules. |
 
-Before broad exploration, use:
+Before broad exploration, use xref first:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
+
+For a known circuitry node, apply the propagation law:
+
+```bash
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+Legacy packet routing is retired from active navigation; use xref and propagation evidence directly.
 
 ## Root Map
 
@@ -52,7 +60,7 @@ The root is not a product package. It is an active workspace with canonical surf
 | `yuri-os-dashboard.html` | Tracked dashboard snapshot; source truth is the generator/spec layer, not the snapshot alone. |
 | `backend/` | Ignored legacy/protected local runtime surface. Active backend source is `_SYSTEM/backend/`; do not inspect `backend/data/` directly. |
 | `_SYSTEM/tools/gitnexus/` | Ignored local GitNexus checkout used by the MCP wrapper when present. |
-| `_SYSTEM/tools/needle/`, `_SYSTEM/data/models/needle/` | Ignored local Needle runtime and model payloads used by local-model routing when present. |
+| `_SYSTEM/Scripts/ollama-lane.mjs`, `_SYSTEM/Scripts/ollama-adapter.mjs`, `.claude/config/models.json` | Active local SLM routing surface. Current routed local policy is `gemma4:12b-it-qat` through Ollama. |
 | Generated roots such as `graph/`, `graphify-out/`, `logs/`, `output/`, `dist/`, `claude-palace-out/` | Not kept as root source truth. Regenerate only for scoped tasks. |
 | `.codex-worktrees/`, `.gitnexus/`, `.obsidian/`, `.smart-env/`, `.tmp/`, `.vscode/` | Local tool/runtime/editor state. Not canonical architecture. |
 | `.env`, `yuri.db` | Local secret/runtime data surfaces. Do not inspect directly. |
@@ -64,13 +72,13 @@ The root is not a product package. It is an active workspace with canonical surf
 | Frontend app | `_SYSTEM/src/` via Vite root configuration. |
 | Backend service | `_SYSTEM/backend/` with TypeScript/Express scripts. |
 | System scripts and tests | `_SYSTEM/Scripts/`. |
-| Context routing | `_SYSTEM/Scripts/context-router.mjs`, `_SYSTEM/context/`, `_SYSTEM/config/`. |
+| Cross-reference navigation | `_SYSTEM/Scripts/xref-query.mjs`, `_SYSTEM/Scripts/propagation-scan.mjs`, `_SYSTEM/Scripts/xref-drift-scan.mjs`, `_SYSTEM/context/`, `_SYSTEM/config/`. |
 | Artifact and folder governance | `_SYSTEM/config/folder-registry.json`, `_SYSTEM/config/artifact-registry.json`, `_SYSTEM/Scripts/artifact-registry.mjs`. |
-| Governed autonomy | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs`, `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md`. |
+| Governed autonomy | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs`, `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md`. |
 | Workcell orchestration | `_SYSTEM/Scripts/yuri-workcell.mjs`, `_SYSTEM/Scripts/yuri-workcell-capture.mjs`, `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md`. |
 | Math substrate | `_SYSTEM/Scripts/math/`, `_SYSTEM/research-archive/yuri-math-engine-2026-05/`, `_SYSTEM/data/math/`, `_SYSTEM/labs/math/`. |
 | Code intelligence | GitNexus MCP through `_SYSTEM/Scripts/gitnexus-mcp.mjs`; optional local checkout at `_SYSTEM/tools/gitnexus/`. |
-| Local model routing | Needle runtime at `_SYSTEM/tools/needle/` and model data at `_SYSTEM/data/models/needle/` when installed locally. |
+| Local model routing | Gemma local lane through `_SYSTEM/Scripts/ollama-lane.mjs`, `_SYSTEM/Scripts/ollama-adapter.mjs`, `_SYSTEM/Scripts/llm-compat.sh`, and `.claude/config/models.json`. Current routed local model: `gemma4:12b-it-qat`. |
 | RAG and knowledge health | `_SYSTEM/backend/src/scripts/`, `_SYSTEM/Scripts/*rag*`, `_SYSTEM/Scripts/*health*`. |
 | Reports and scenario artifacts | `_SYSTEM/reports/`, `_SYSTEM/labs/`, `_SYSTEM/research-archive/`. |
 

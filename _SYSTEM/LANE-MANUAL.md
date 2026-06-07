@@ -59,7 +59,8 @@ ai llm <lane> "<prompt>" [flags]            (CLI surface; hard rename of `ai off
      │     · MEMORY  recall() over cold store → recallBlock       │  one stable runId
      ├─ system = buildYuriLoadout()  (full YURI stack) + recallBlock   correlates all three
      ├─ postChat → fetch(${endpoint}/chat/completions)  (tool loop ≤ maxIters, convergence guards)
-     │     · tools: read_file·grep·list_dir·search·context_router·fetch_url·bash (safety-gated)
+     │     · tools: read_file·grep·list_dir·search·xref_query·propagation_scan·fetch_url·bash (safety-gated)
+     │       xref_query is not clipped by the wrapper; raise `top`/`scan` or set `all=true` for broad recall.
      ├─ coreOnResult({lane,output,exitCode,runId}) ─ lane-core-hooks ─┘
      │     · EVIDENCE → _SYSTEM/state/memory-ledger.jsonl
      │     · PULSE    → _SYSTEM/state/lane-pulse-trace.jsonl (advisory_only / verify|block)

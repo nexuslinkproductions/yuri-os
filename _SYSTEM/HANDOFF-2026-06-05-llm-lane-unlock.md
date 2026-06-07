@@ -10,7 +10,7 @@ Branch `feat/offload-consolidation`. Both commits PUSHED (origin up to date, 0 a
 - `_SYSTEM/Scripts/llm-lane.mjs` (~405 lines) — the single openai-compatible dispatch path for the 3
   reasoning lanes (deepseek-v4-pro / nemotron-3-ultra-550b-a55b / kimi-k2.6). Each lane is a
   native-equivalent operator: full YURI-stack system loadout (yuri-origin/SOUL/persona/CLAUDE.md/INDEX)
-  + tools read_file/grep/list_dir/search/context_router/fetch_url/bash. Fail-closed: endpoint host
+  + tools read_file/grep/list_dir/search/xref_query/propagation_scan/fetch_url/bash. Fail-closed: endpoint host
   ALLOWLIST (api.deepseek.com / integrate.api.nvidia.com — kills the IPv6/metadata SSRF bypass class),
   fetch_url private/loopback/metadata DENY, grep protected-surface exclude+post-filter, bash blocks
   destructive/git-mutation/protected-surface, loud-fail exit 0/1/3, truncation-visibility warn.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-30",
+  "updated": "2026-06-07",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -275,9 +275,9 @@
       "status": "active",
       "readByDefault": true,
       "protected": false,
-      "storageRule": "Machine-readable context selector.",
-      "rebuildRule": "Run context-router tests.",
-      "notes": "Task-to-context packet map."
+      "storageRule": "Machine-readable bounded packet registry used by xref-aware navigation.",
+      "rebuildRule": "Run xref navigation tests.",
+      "notes": "Maintained path sets for cross-reference navigation."
     },
     {
       "path": ".agents/README.md",
@@ -288,7 +288,7 @@
       "readByDefault": false,
       "protected": false,
       "storageRule": "Agent assembly docs live in .agents/ and reference root skills.",
-      "rebuildRule": "Run yuri-agent-index and context-router tests.",
+      "rebuildRule": "Run yuri-agent-index and xref navigation tests.",
       "notes": "Explains that agents are recipes built from context, role contracts, skill bundles, lane policy, and verification gates."
     },
     {
@@ -364,7 +364,7 @@
       "notes": "Seed for broader artifact/database navigation."
     },
     {
-      "path": "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
+      "path": "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md",
       "type": "doc",
       "class": "system_control_plane",
       "owner": "YURI autonomy",
@@ -544,7 +544,7 @@
       "notes": "Runtime output pool for worker packets, pane captures, Prime findings, integration artifacts, and verdicts."
     },
     {
-      "path": "_SYSTEM/Scripts/context-router.mjs",
+      "path": "_SYSTEM/Scripts/xref-query.mjs",
       "type": "script",
       "class": "system_control_plane",
       "owner": "YURI context layer",
@@ -552,8 +552,20 @@
       "readByDefault": false,
       "protected": false,
       "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run context-router tests.",
-      "notes": "Selects task context packets."
+      "rebuildRule": "Run xref navigation tests.",
+      "notes": "Unified xref-first navigation surface."
+    },
+    {
+      "path": "_SYSTEM/Scripts/propagation-scan.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI context layer",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run xref navigation tests.",
+      "notes": "Read-only propagation-law scanner for known circuitry nodes."
     },
     {
       "path": "_SYSTEM/Scripts/folder-census.mjs",
@@ -2294,6 +2306,198 @@
       "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
       "rebuildRule": "node --check _SYSTEM/Scripts/math/math-operational-simulation.mjs",
       "notes": "Operational math simulation harness (pre-existing; registered for must-register-zone completeness)."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/extract-logbook-truth.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/extract-logbook-truth.mjs",
+      "notes": "Extracts math/logbook truth candidates for governed review."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/logbook-truth.json",
+      "type": "data",
+      "class": "generated_artifact",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Derived math/logbook truth data lives beside the extracting script until promoted to _SYSTEM/data/.",
+      "rebuildRule": "node _SYSTEM/Scripts/math/extract-logbook-truth.mjs",
+      "notes": "Derived truth-candidate payload; advisory until promoted by evidence gates."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/mechanism-pattern-registry.mjs",
+      "notes": "Mechanism pattern registry used by transfer-distance and xref/propagation reasoning."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/nexus-numerology.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/nexus-numerology.mjs",
+      "notes": "NEXUS numerology/math-kernel bridge registered after xref propagation audit."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS transfer-distance scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/transfer-distance-cores.mjs",
+      "notes": "Core mechanism-transfer primitives for cross-surface comparability."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/transfer-distance.bakeoff.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS transfer-distance scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/transfer-distance.bakeoff.mjs",
+      "notes": "Transfer-distance bakeoff harness for comparing scoring approaches."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/transfer-distance.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS transfer-distance scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/transfer-distance.mjs",
+      "notes": "Executable transfer-distance surface for mechanism-level cross-domain comparison."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/transfer-distance.proof.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS transfer-distance scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/transfer-distance.proof.mjs",
+      "notes": "Proof harness for transfer-distance behavior."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/transfer-distance.v2demo.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS transfer-distance scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/transfer-distance.v2demo.mjs",
+      "notes": "V2 transfer-distance demonstration surface."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs",
+      "notes": "Energy trace outcome extraction for ΔU analysis."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-fsrs.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-fsrs.mjs",
+      "notes": "FSRS-style memory scheduling primitive."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-jaccard.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-jaccard.mjs",
+      "notes": "Jaccard similarity primitive for cross-surface comparability."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-mdl.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-mdl.mjs",
+      "notes": "Minimum-description-length primitive for compression/fit reasoning."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-minhash.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-minhash.mjs",
+      "notes": "MinHash primitive for approximate set similarity."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-phi.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-phi.mjs",
+      "notes": "Phi/structure primitive used by NEXUS math experiments."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math/yuri-token-expand.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "NEXUS mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "NEXUS math substrate scripts live in _SYSTEM/Scripts/math/.",
+      "rebuildRule": "node --check _SYSTEM/Scripts/math/yuri-token-expand.mjs",
+      "notes": "Token expansion primitive for mechanism/surface matching."
     },
     {
       "path": "_SYSTEM/Scripts/math/yuri-energy-trace-test-worker.mjs",

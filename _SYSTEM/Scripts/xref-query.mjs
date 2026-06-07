@@ -35,7 +35,8 @@
  *
  * Usage:
  *   node _SYSTEM/Scripts/xref-query.mjs "energy gate protected path veto"
- *   node _SYSTEM/Scripts/xref-query.mjs "<query>" --node energy-fn --top 15 --json
+ *   node _SYSTEM/Scripts/xref-query.mjs "<query>" --node energy-fn --top 1000 --scan 5000 --json
+ *   node _SYSTEM/Scripts/xref-query.mjs "<query>" --all --json
  *
  * ----------------------------------------------------------------------------------------------
  * VERIFIED FOOTGUNS (XREF-05 hardening — each closed below; do not "simplify" them away):
@@ -83,16 +84,18 @@ const SPECTRUM_PATH = path.join(
 );
 const GITNEXUS_CLI = path.join(REPO_ROOT, 'node_modules', 'gitnexus', 'dist', 'cli', 'index.js');
 
-// Bounded output (mirror yuri-search.mjs): default top 10, hard cap 50.
-const DEFAULT_TOP = 10;
-const HARD_CAP = 50;
+// Xref exists to cross-surface scan, not trickle out tiny search snippets. Default to a 200-result
+// request floor and let --top N / --scan N ask for thousands. There is no hard-coded 50-result
+// ceiling anymore; the natural limits are available evidence, surface engine limits, and local
+// memory. --all removes the FTS5/spectrum SQL slice so the LLM can ask for a broad recall aperture.
+const DEFAULT_TOP = 200;
+const MIN_SCAN_TOP = 200;
 
-// Per-surface candidate caps — keep each pass bounded so the merge stays cheap and the output
-// honest (no surface can flood the merge before grading).
-const FTS5_CANDIDATES = 30;
-const GRAPH_NODE_TOKEN_CANDIDATES = 20;
-const GITNEXUS_LIMIT = 8;
-const SPECTRUM_CANDIDATES = 20;
+// Per-surface candidate floors. Candidate pools scale with the requested top so `--top 500` really
+// widens the scan instead of slicing a tiny pre-filter.
+const FTS5_CANDIDATE_FLOOR = 1000;
+const GITNEXUS_CANDIDATE_FLOOR = 200;
+const SPECTRUM_CANDIDATE_FLOOR = 267;
 
 // --- tokenization (shared, deterministic) ----------------------------------------------------
 function tokenize(raw) {
@@ -135,7 +138,7 @@ export function resolveGitnexusStale(staleInfo) {
 // ============================================================================================
 // PASS 1 — FTS5 / BM25 corpus search (lexical-only)
 // ============================================================================================
-function passFts5(rawQuery, match, candidates = FTS5_CANDIDATES) {
+function passFts5(rawQuery, match, candidates = FTS5_CANDIDATE_FLOOR) {
   const out = [];
   if (!fs.existsSync(INDEX_DB_PATH)) {
     return { hits: out, available: false, reason: 'search index not built' };
@@ -149,12 +152,20 @@ function passFts5(rawQuery, match, candidates = FTS5_CANDIDATES) {
     return { hits: out, available: false, reason: `index open failed: ${err.message}` };
   }
   try {
-    const rows = db
-      .prepare(
-        `SELECT path, snippet(docs, 2, '[', ']', '...', 14) AS snip, bm25(docs) AS rank
-         FROM docs WHERE docs MATCH ? ORDER BY rank LIMIT ?`,
-      )
-      .all(match, candidates);
+    const unlimited = candidates === null || candidates === Infinity;
+    const rows = unlimited
+      ? db
+        .prepare(
+          `SELECT path, snippet(docs, 2, '[', ']', '...', 14) AS snip, bm25(docs) AS rank
+           FROM docs WHERE docs MATCH ? ORDER BY rank`,
+        )
+        .all(match)
+      : db
+        .prepare(
+          `SELECT path, snippet(docs, 2, '[', ']', '...', 14) AS snip, bm25(docs) AS rank
+           FROM docs WHERE docs MATCH ? ORDER BY rank LIMIT ?`,
+        )
+        .all(match, candidates);
     // bm25 is more-negative = better. Map the ordered rank to a 0..1 lexical signal by position
     // (1st hit -> ~1, last -> ~0). This is a recall-friendly lexical quality, NOT a confidence;
     // confidence is assigned by scoreHit (capped < floor for lexical-only).
@@ -192,7 +203,7 @@ function loadGraph() {
   }
 }
 
-function passGraph(tokens, nodeId, graph) {
+function passGraph(tokens, nodeId, graph, candidates = Number.MAX_SAFE_INTEGER) {
   const out = [];
   let writesExcluded = 0; // honest count of writes-edge (and unknown-edge) neighbors NEVER surfaced
   if (!graph) return { hits: out, writesExcluded, available: false, reason: 'graph parse failed' };
@@ -213,7 +224,7 @@ function passGraph(tokens, nodeId, graph) {
     }
   }
   scored.sort((a, b) => b.lexicalScore - a.lexicalScore);
-  for (const { node, lexicalScore } of scored.slice(0, GRAPH_NODE_TOKEN_CANDIDATES)) {
+  for (const { node, lexicalScore } of scored.slice(0, candidates)) {
     const files = Array.isArray(node.files) ? node.files : [];
     const repr = files.length ? files[0] : `circuitry-node:${node.id}`;
     out.push({
@@ -261,7 +272,7 @@ function passGraph(tokens, nodeId, graph) {
 // ============================================================================================
 // PASS 3 — GitNexus structural call-graph (gitnexus-structural; fail-CLOSED)
 // ============================================================================================
-function passGitnexus(rawQuery, { gitnexusStale }) {
+function passGitnexus(rawQuery, { gitnexusStale, limit = GITNEXUS_CANDIDATE_FLOOR }) {
   const out = [];
   // F4 (latency footgun): the gitnexus CLI ERRORS on an empty/whitespace query and the
   // execFileSync then burns the full timeout. If the query has no usable token, the structural
@@ -285,7 +296,7 @@ function passGitnexus(rawQuery, { gitnexusStale }) {
         '--repo',
         LIVE_REPO_ROOT, // F1 pinned
         '--limit',
-        String(GITNEXUS_LIMIT),
+        String(limit || GITNEXUS_CANDIDATE_FLOOR),
       ],
       // tight timeout: a slow/hung structural leg degrades fail-CLOSED, never hangs the query.
       { cwd: REPO_ROOT, encoding: 'utf8', timeout: 30_000, maxBuffer: 8 * 1024 * 1024 },
@@ -330,7 +341,7 @@ function passGitnexus(rawQuery, { gitnexusStale }) {
 // ============================================================================================
 // PASS 4 — mechanism-spectrum doc (lexical-only prose grep)
 // ============================================================================================
-function passSpectrum(tokens, candidates = SPECTRUM_CANDIDATES) {
+function passSpectrum(tokens, candidates = SPECTRUM_CANDIDATE_FLOOR) {
   const out = [];
   if (!fs.existsSync(SPECTRUM_PATH)) {
     return { hits: out, available: false, reason: 'spectrum doc not present' };
@@ -366,7 +377,7 @@ function passSpectrum(tokens, candidates = SPECTRUM_CANDIDATES) {
     }
   }
   scored.sort((a, b) => b.lexicalScore - a.lexicalScore);
-  out.push(...scored.slice(0, candidates));
+  out.push(...(candidates === null || candidates === Infinity ? scored : scored.slice(0, candidates)));
   return { hits: out, available: true };
 }
 
@@ -434,7 +445,15 @@ function mergeAndGate(candidates, ctx, top) {
     const { hit, gate, confidence } = graded;
 
     if (!gate.surfaced) {
-      sublog.push({ path: hit.path, surface: hit.surface, confidence, reason: gate.reason });
+      sublog.push({
+        path: hit.path,
+        surface: hit.surface,
+        snippet: hit.snippet,
+        score: hit.score,
+        provenance: hit.provenance,
+        confidence,
+        reason: gate.reason,
+      });
       continue;
     }
 
@@ -477,7 +496,7 @@ function mergeAndGate(candidates, ctx, top) {
 // PUBLIC API
 // ============================================================================================
 export function xrefQuery(rawQuery, opts = {}) {
-  const top = Math.max(1, Math.min(HARD_CAP, opts.top || DEFAULT_TOP));
+  const top = opts.all === true && opts.top == null ? Number.MAX_SAFE_INTEGER : normalizeTop(opts.top);
   const nodeId = opts.node || null;
 
   const match = buildMatch(rawQuery);
@@ -488,6 +507,7 @@ export function xrefQuery(rawQuery, opts = {}) {
 
   const tokens = tokenize(rawQuery);
   const graph = loadGraph();
+  const plan = candidatePlan(top, graph, { all: opts.all === true, scan: opts.scan });
 
   // Determine gitnexus staleness ONCE (shared with the structural scorer).
   // FAIL-CLOSED: indeterminate freshness (absent marker / git failure) is treated as STALE by
@@ -496,10 +516,10 @@ export function xrefQuery(rawQuery, opts = {}) {
   const gitnexusStale = resolveGitnexusStale(staleInfo);
 
   // Run the four bounded passes.
-  const fts5 = passFts5(rawQuery, match);
-  const graphRes = passGraph(tokens, nodeId, graph);
-  const gitnexus = passGitnexus(rawQuery, { gitnexusStale });
-  const spectrum = passSpectrum(tokens);
+  const fts5 = passFts5(rawQuery, match, plan.fts5);
+  const graphRes = passGraph(tokens, nodeId, graph, plan.graph);
+  const gitnexus = passGitnexus(rawQuery, { gitnexusStale, limit: plan.gitnexus });
+  const spectrum = passSpectrum(tokens, plan.spectrum);
 
   // F3: the structural leg is "available" only if the gitnexus pass actually RAN and returned
   // valid JSON. If it is down, would-be-structural hits get downgraded (none here, since a
@@ -519,6 +539,7 @@ export function xrefQuery(rawQuery, opts = {}) {
     { structuralLegAvailable },
     top,
   );
+  const recall = buildRecallSet({ surfaced, sublog, top });
 
   return {
     ok: true,
@@ -535,6 +556,9 @@ export function xrefQuery(rawQuery, opts = {}) {
       repoPinned: LIVE_REPO_ROOT,
     },
     knobs: XREF_PROVENANCE_KNOBS,
+    requestedTop: top,
+    all: opts.all === true,
+    candidatePlan: plan,
     counts: {
       fts5: fts5.hits.length,
       graph: graphRes.hits.length,
@@ -550,6 +574,58 @@ export function xrefQuery(rawQuery, opts = {}) {
     },
     merged: surfaced,
     sublog,
+    recall,
+  };
+}
+
+function buildRecallSet({ surfaced, sublog, top }) {
+  const high = surfaced.map((hit) => ({
+    tier: 'surfaced',
+    path: hit.path,
+    surface: hit.surface,
+    snippet: hit.snippet,
+    score: hit.score,
+    provenance: hit.provenance,
+    confidence: hit.provenance?.confidence ?? null,
+    reason: 'passed-provenance-gate',
+  }));
+  const low = sublog.map((hit) => ({
+    tier: 'suppressed',
+    path: hit.path,
+    surface: hit.surface,
+    snippet: hit.snippet,
+    score: hit.score,
+    provenance: hit.provenance,
+    confidence: hit.confidence,
+    reason: hit.reason,
+  }));
+  return [...high, ...low].slice(0, top);
+}
+
+function normalizeTop(raw) {
+  const parsed = Number.parseInt(String(raw || DEFAULT_TOP), 10);
+  if (!Number.isFinite(parsed) || parsed < 1) return DEFAULT_TOP;
+  return parsed;
+}
+
+function scaleTop(top, multiplier, floor) {
+  const scaled = top > Number.MAX_SAFE_INTEGER / multiplier
+    ? Number.MAX_SAFE_INTEGER
+    : top * multiplier;
+  return Math.max(floor, scaled);
+}
+
+function candidatePlan(top, graph, opts = {}) {
+  const requestedScan = Number.parseInt(String(opts.scan || 0), 10);
+  const all = opts.all === true;
+  const scanTop = all
+    ? Math.max(MIN_SCAN_TOP, Number.isFinite(requestedScan) && requestedScan > 0 ? requestedScan : 5000)
+    : Math.max(MIN_SCAN_TOP, top, Number.isFinite(requestedScan) ? requestedScan : 0);
+  return {
+    fts5: all ? null : scaleTop(scanTop, 5, FTS5_CANDIDATE_FLOOR),
+    graph: Array.isArray(graph?.nodes) ? graph.nodes.length : scanTop,
+    gitnexus: Math.max(GITNEXUS_CANDIDATE_FLOOR, scanTop),
+    spectrum: all ? null : Math.max(SPECTRUM_CANDIDATE_FLOOR, scanTop),
   };
 }
 
@@ -557,14 +633,20 @@ export function xrefQuery(rawQuery, opts = {}) {
 function run() {
   const argv = process.argv.slice(2);
   const json = argv.includes('--json');
-  let top = DEFAULT_TOP;
+  let top = null;
   let node = null;
+  let scan = null;
+  let all = false;
   const parts = [];
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--top' && argv[i + 1]) {
-      top = Math.max(1, Math.min(HARD_CAP, parseInt(argv[++i], 10) || DEFAULT_TOP));
+      top = normalizeTop(argv[++i]);
+    } else if (argv[i] === '--scan' && argv[i + 1]) {
+      scan = normalizeTop(argv[++i]);
     } else if (argv[i] === '--node' && argv[i + 1]) {
       node = argv[++i];
+    } else if (argv[i] === '--all') {
+      all = true;
     } else if (argv[i] === '--json') {
       /* flag */
     } else {
@@ -572,7 +654,7 @@ function run() {
     }
   }
   const rawQuery = parts.join(' ');
-  const result = xrefQuery(rawQuery, { top, node });
+  const result = xrefQuery(rawQuery, { top, node, scan, all });
 
   if (json) {
     console.log(JSON.stringify(result, null, 2));
@@ -581,7 +663,7 @@ function run() {
   }
 
   if (!result.ok) {
-    console.log(`⬡ usage: ai xref "<query>" [--node <id>] [--top N] [--json]`);
+    console.log(`⬡ usage: ai xref "<query>" [--node <id>] [--top N] [--scan N] [--all] [--json]`);
     process.exitCode = 1;
     return;
   }
@@ -597,7 +679,7 @@ function run() {
   console.log(`  ${struct}`);
   console.log(
     `  surfaces: fts5=${result.counts.fts5} graph=${result.counts.graph} gitnexus=${result.counts.gitnexus} spectrum=${result.counts.spectrum}` +
-      `  ->  merged=${result.counts.merged} deduped=${result.counts.deduped} suppressed=${result.counts.suppressed} writes-dropped=${result.counts.droppedWritesEdge}\n`,
+      `  ->  requested=${result.requestedTop}${result.all ? ' all-scan=true' : ''} merged=${result.counts.merged} deduped=${result.counts.deduped} suppressed=${result.counts.suppressed} writes-dropped=${result.counts.droppedWritesEdge}\n`,
   );
   for (const h of result.merged) {
     const p = h.provenance;
@@ -608,7 +690,7 @@ function run() {
   }
   if (result.sublog.length) {
     console.log(`  -- low-confidence sub-log (${result.sublog.length} suppressed, no named mismatch) --`);
-    for (const s of result.sublog.slice(0, 10)) {
+    for (const s of result.sublog.slice(0, result.requestedTop)) {
       console.log(`    ~ ${s.path}  (${s.surface}, conf=${s.confidence.toFixed(3)}, ${s.reason})`);
     }
   }

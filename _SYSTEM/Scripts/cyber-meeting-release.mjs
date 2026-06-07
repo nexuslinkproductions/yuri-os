@@ -25,7 +25,7 @@ export const DEFAULT_RELEASE_REPORT_PATH = path.join(
 );
 
 export const MEETING_RELEASE_TESTS = Object.freeze([
-  '_SYSTEM/Scripts/context-router.test.mjs',
+  '_SYSTEM/Scripts/xref-navigation.test.mjs',
   '_SYSTEM/Scripts/cyber-retest-proof.test.mjs',
   '_SYSTEM/Scripts/cyber-proof-cards.test.mjs',
   '_SYSTEM/Scripts/cyber-meeting-pack.test.mjs',

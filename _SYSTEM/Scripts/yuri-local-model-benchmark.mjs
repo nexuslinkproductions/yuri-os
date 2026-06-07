@@ -228,7 +228,7 @@ function buildScenarios(modelConfig) {
       role: 'primary',
       model: local.primary || 'gemma4:12b-it-qat',
       system: 'Return only strict JSON.',
-      prompt: 'Which repo file owns xref-first local navigation? Choose one: _SYSTEM/Scripts/xref-query.mjs, _SYSTEM/Scripts/context-router.mjs, README.md. Return {"source_of_truth":"..."}.',
+      prompt: 'Which repo file owns xref-first local navigation? Choose one: _SYSTEM/Scripts/xref-query.mjs, _SYSTEM/Scripts/propagation-scan.mjs, README.md. Return {"source_of_truth":"..."}.',
       validatorName: 'xref_query_source_json',
       validate: (output) => {
         const json = parseJsonObject(output);

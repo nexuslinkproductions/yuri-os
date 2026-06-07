@@ -22,11 +22,11 @@ OpenAI-developed Codex plugins may provide useful tools and skills, but they mus
 1. Before plugin capability is used, run:
 
    ```bash
-   node _SYSTEM/Scripts/context-router.mjs "<task>"
+   node _SYSTEM/Scripts/xref-query.mjs "<task>" --top 200 --json
    ```
 
-2. The Codex pre-tool hook stamps `_SYSTEM/state/context-router-last.json` when that router command is invoked.
-3. `mcp__codex_apps__*` tools are denied until a fresh context-router stamp exists.
+2. The Codex pre-tool hook stamps `_SYSTEM/state/context-preflight-last.json` when xref or propagation preflight runs.
+3. `mcp__codex_apps__*` tools are denied until a fresh xref/context preflight stamp exists.
 4. Protected paths remain blocked even when a plugin asks for the action.
 
 ## Boundaries

@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 
 const POLICY_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(POLICY_DIR, '../../..');
-const CONTEXT_ROUTE_STAMP_PATH = path.join(PROJECT_ROOT, '_SYSTEM/state/context-router-last.json');
-const CONTEXT_ROUTE_STAMP_TTL_MS = 30 * 60 * 1000;
+const CONTEXT_PREFLIGHT_STAMP_PATH = path.join(PROJECT_ROOT, '_SYSTEM/state/context-preflight-last.json');
+const CONTEXT_PREFLIGHT_STAMP_TTL_MS = 30 * 60 * 1000;
 
 const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, '.env'), type: 'file', label: '.env' },
@@ -59,14 +59,14 @@ export function evaluateToolCall(toolName, toolInput = {}, opts = {}) {
   const input = toolInput || {};
   const cwd = input.cwd || input.workdir || opts.cwd || PROJECT_ROOT;
 
-  if (isCodexAppPluginTool(rawToolName) && !hasFreshContextRoute(opts)) {
-    return block('Codex app/plugin tool blocked until YURI context-router runs for this task');
+  if (isCodexAppPluginTool(rawToolName) && !hasFreshContextPreflight(opts)) {
+    return block('Codex app/plugin tool blocked until YURI xref/context preflight runs for this task');
   }
 
   if (isShellTool(normalizedTool)) {
     const command = input.command || input.cmd || '';
     if (!command) return allow();
-    if (isContextRouterCommand(command)) markContextRoute(cwd, opts);
+    if (isYuriContextPreflightCommand(command)) markContextPreflight(cwd, opts);
     return evaluateShellCommand(command, cwd);
   }
 
@@ -173,15 +173,17 @@ function isCodexAppPluginTool(toolName) {
   return String(toolName || '').startsWith('mcp__codex_apps__');
 }
 
-function isContextRouterCommand(command) {
-  return /\bnode\s+_SYSTEM\/Scripts\/context-router\.mjs\b/u.test(command) ||
-    /\b_SYSTEM\/Scripts\/context-router\.mjs\b/u.test(command);
+function isYuriContextPreflightCommand(command) {
+  return /\bnode\s+_SYSTEM\/Scripts\/xref-query\.mjs\b/u.test(command) ||
+    /\b_SYSTEM\/Scripts\/xref-query\.mjs\b/u.test(command) ||
+    /\bnode\s+_SYSTEM\/Scripts\/propagation-scan\.mjs\b/u.test(command) ||
+    /\b_SYSTEM\/Scripts\/propagation-scan\.mjs\b/u.test(command);
 }
 
-function hasFreshContextRoute(opts = {}) {
+function hasFreshContextPreflight(opts = {}) {
   if (process.env.YURI_CODEX_CONTROL_PLANE_ROUTED === '1') return true;
 
-  const stampPath = opts.routeStampPath || CONTEXT_ROUTE_STAMP_PATH;
+  const stampPath = opts.routeStampPath || CONTEXT_PREFLIGHT_STAMP_PATH;
   if (!existsSync(stampPath)) return false;
 
   try {
@@ -189,19 +191,19 @@ function hasFreshContextRoute(opts = {}) {
     const routedAt = Date.parse(stamp.routedAt || '');
     if (!Number.isFinite(routedAt)) return false;
     const now = typeof opts.now === 'number' ? opts.now : Date.now();
-    return now - routedAt <= CONTEXT_ROUTE_STAMP_TTL_MS;
+    return now - routedAt <= CONTEXT_PREFLIGHT_STAMP_TTL_MS;
   } catch {
     return false;
   }
 }
 
-function markContextRoute(cwd, opts = {}) {
-  const stampPath = opts.routeStampPath || CONTEXT_ROUTE_STAMP_PATH;
+function markContextPreflight(cwd, opts = {}) {
+  const stampPath = opts.routeStampPath || CONTEXT_PREFLIGHT_STAMP_PATH;
   mkdirSync(path.dirname(stampPath), { recursive: true });
   writeFileSync(stampPath, `${JSON.stringify({
     routedAt: new Date(typeof opts.now === 'number' ? opts.now : Date.now()).toISOString(),
     cwd: path.resolve(cwd || PROJECT_ROOT),
-    source: 'codex-pre-tool-use',
+    source: 'codex-pre-tool-use:xref-context-preflight',
   }, null, 2)}\n`);
 }
 

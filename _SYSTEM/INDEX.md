@@ -11,7 +11,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/yuri-origin.md` | Canonical operating contract and authority hierarchy. |
 | `SOUL.md` | Persona, cognitive workflow, and collaboration style. |
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
-| `_SYSTEM/context/context-registry.json` | Machine-readable context packet selector. |
+| `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
 | `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
@@ -22,6 +22,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `skills/README.md` | Canonical root-visible skill library entrypoint. |
 | `skills/skill-index.json` | Machine-readable root skill index. |
 | `_SYSTEM/Scripts/llm-compat-contract.mjs` | Lane routing and model contract. |
+| `_SYSTEM/Scripts/xref-query.mjs` | Current xref-first navigation surface across FTS5, circuitry graph, GitNexus, spectrum, and provenance scoring. Defaults to a 200-result request floor; use `--top N`, `--scan N`, or `--all` for thousand-hit recall. |
+| `_SYSTEM/Scripts/propagation-scan.mjs` | Read-only propagation-law scan from a circuitry node to structural mechanism siblings. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 | `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives — the canonical harness script folder. |
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |
@@ -31,7 +33,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/worker-capture-once.mjs` | Delayed live worker pane capture into `_SYSTEM/state/worker-captures/` with Kagami evidence refs. |
 | `_SYSTEM/Scripts/yuri-workcell.mjs` | Workcell orchestration core: DAG validation hard gate via `topologicalSort()`, packet assembly, scope checking, and decomposition builder. |
 | `_SYSTEM/Scripts/yuri-workcell-capture.mjs` | Workcell intake bridge: captures live worker/Prime pane output into `_SYSTEM/state/workcell/<runId>/<role>/` as structured output. |
-| `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md` | Active governed-autonomy sprint plan: baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
+| `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md` | Active governed-autonomy sprint plan: xref preflight, broad recall, baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
 | `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md` | Multi-Sonnet workcell protocol: worker bundles, memory capsules/signals, Rick Prime supercharge, C-137 integration, and commit authorization. |
 | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs` | Dry-run-first autonomy runner that emits baseline-anchored run manifests and optional Kagami events. |
 | `_SYSTEM/Scripts/memory-proposal-autopilot.mjs` | Background-capable memory proposal processor: reviews pending proposals, records keep/rewrite/reject/defer decisions, and optionally commits/pushes scoped source/docs changes. |
@@ -61,7 +63,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp` plus task-scoped generated outputs | Do not read by default. Root generated dumps should be deleted or regenerated through a scoped task. |
 | Generated artifacts | Historical roots such as `graph`, `graphify-out`, `claude-palace-out` | Not source truth and not kept in the root. Regenerate only for graph/report tasks. |
 | External checkouts | `_SYSTEM/tools/gitnexus`, selected `01_PROJECTS/*`, selected `02_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
-| Local model runtimes | `_SYSTEM/tools/needle`, `_SYSTEM/data/models/needle` | Treat as model runtime/data, not generic research. Use through YURI routing/health contracts. |
+| Local model runtimes | Ollama via `_SYSTEM/Scripts/ollama-lane.mjs`, `_SYSTEM/Scripts/ollama-adapter.mjs`, `.claude/config/models.json` | Active routed local policy is `gemma4:12b-it-qat`; retired local identities are compatibility aliases only. |
 | Protected surfaces | `.env`, `backend/data`, `.claude/state`, `.claude/history`, `node_modules` | Never read directly. Use existing wrappers or explicit owner-approved operation. |
 
 ## Canonical Model Read Path
@@ -78,7 +80,7 @@ owner prompt
   -> _SYSTEM/config/artifact-registry.json
   -> .agents/README.md
   -> skills/README.md
-  -> selected context packet
+  -> xref-selected registry/context paths
   -> _SYSTEM/yuri-wiki/index.md when curated memory/context is needed
   -> task-specific local context
   -> implementation files
@@ -142,9 +144,9 @@ Agent recipes belong in `.agents/`. Canonical reusable skills belong in `skills/
 
 `_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/config/artifact-registry.json` is the durable artifact implementation. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
 
-## Mathematical Operating Substrate
+## NEXUS CORE / Mathematical Substrate
 
-Math work routes through the `mathematics` context packet. Use `_SYSTEM/research-archive/yuri-math-engine-2026-05/` for research intake and application playbooks, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
+Math work routes through the `mathematics` context packet and xref-first navigation. Use `02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md` as the living dock-on guide, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. The upcoming NEXUS CORE rename should keep code, data, registry, graph, and manual updates in one continuity-law migration. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
 
 ## Governed Autonomy
 
