@@ -12,6 +12,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `SOUL.md` | Persona, cognitive workflow, and collaboration style. |
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
 | `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
+| `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md` | Shared Originator entry point for LLMs to use YURI's math, energy, xref, memory, and llm-compat substrate. |
 | `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
@@ -76,6 +77,7 @@ owner prompt
   -> _SYSTEM/context/README.md
   -> _SYSTEM/context/context-registry.json
   -> _SYSTEM/INDEX.md
+  -> _SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md when the task involves math/energy/xref/LLM bridging
   -> _SYSTEM/config/folder-registry.json
   -> _SYSTEM/config/artifact-registry.json
   -> .agents/README.md
@@ -147,6 +149,10 @@ Agent recipes belong in `.agents/`. Canonical reusable skills belong in `skills/
 ## NEXUS CORE / Mathematical Substrate
 
 Math work routes through the `mathematics` context packet and xref-first navigation. Use `02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md` as the living dock-on guide, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. The upcoming NEXUS CORE rename should keep code, data, registry, graph, and manual updates in one continuity-law migration. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
+
+## YURI Originator Bridge
+
+LLM platform-switching and shared math/energy/xref entry-point work routes through `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md`, `_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md`, `_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md`, and the `originator-bridge` context packet. The bridge is the current canonical design for turning raw operator input into an input genome, broad xref recall, formula/mechanism selection, energy/GVF evaluation, llm-compat advisory routing, and local verification. The rapidfire originator handoff extends that design into a native one-port firing mechanism: decode, xref, formula/theorem synthesis, semantic-to-executable compilation, energy/proof gating, revision, and verified handoff. DeepSeek advisory lanes for this surface must use `ai llm deepseek ...` or the same llm-compat lane internals only.
 
 ## Governed Autonomy
 

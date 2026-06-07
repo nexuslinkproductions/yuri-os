@@ -4,7 +4,7 @@
 >
 > **Status legend:** ✅ built+verified · 🔨 in progress · ⏳ planned · ⚠️ has an open defect
 >
-> **Companion surfaces:** [`RUNBOOK.md`](RUNBOOK.md) (live ops) · [`.claude/config/models.json`](../.claude/config/models.json) → `llm_compat_lanes` (frontier roster) + `local` (local SLM policy) · `Scripts/llm-lane.mjs` (frontier core) · `Scripts/ollama-lane.mjs` (local SLM runner) · `Scripts/lane-core-hooks.mjs` (the seam) · `Scripts/llm-compat.sh` (the dispatcher) · `Scripts/llm-compat-contract.mjs` (routing) · the `routing_lanes` sector + `CMD_LLM` node in `yuri-graph-state.json`.
+> **Companion surfaces:** [`RUNBOOK.md`](RUNBOOK.md) (live ops) · [`docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md`](docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md) (LLM math/energy/xref entry point) · [`.claude/config/models.json`](../.claude/config/models.json) → `llm_compat_lanes` (frontier roster) + `local` (local SLM policy) · `Scripts/llm-lane.mjs` (frontier core) · `Scripts/ollama-lane.mjs` (local SLM runner) · `Scripts/lane-core-hooks.mjs` (the seam) · `Scripts/llm-compat.sh` (the dispatcher) · `Scripts/llm-compat-contract.mjs` (routing) · the `routing_lanes` sector + `CMD_LLM` node in `yuri-graph-state.json`.
 
 ---
 
@@ -24,6 +24,7 @@ The reframe (2026-06-05): it is **compatibility with external LLMs**, not offloa
 4. **TOOLS ARE SANDBOXED.** A lane's `bash`/`grep`/`fetch_url` runs via `execSync` and **bypasses the main session's PreToolUse hooks**, so the lane reuses YURI's audited `yuri-safety-core` gate directly: destructive ops (`rm -rf`, `dd`, `mkfs`, `git reset/clean`) blocked, protected surfaces denied, `fetch_url` private/loopback/metadata denied.
 5. **ONE SOURCE OF TRUTH.** Lane roster + per-lane config live ONLY in `.claude/config/models.json → llm_compat_lanes`. Read by `llm-lane.mjs` (`MODELS.llm_compat_lanes`). The contract/routing axis (`llm-compat-contract.mjs`) is separate from dispatch. Never duplicate the lane table into an adapter.
 6. **LOCKSTEP GRAMMAR.** The env wire + markers are a coordinated protocol (`LLM_COMPAT_*`). Producer and consumer rename together or the wire silently breaks. Zero `OFFLOAD_*` tokens remain (verified at rename).
+7. **DEEPSEEK ONLY THROUGH LLM-COMPAT.** DeepSeek advisory work uses `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `llm-lane.mjs deepseek`. Workhorse, parallel-clone, old offload skills, and `@deepseek-workhorse` are retired surfaces, not alternate routes.
 
 ## 3. Data contract (single source of truth)
 
@@ -48,7 +49,7 @@ The reframe (2026-06-05): it is **compatibility with external LLMs**, not offloa
 ```
 ai llm <lane> "<prompt>" [flags]            (CLI surface; hard rename of `ai offload`, no alias)
   └─ ai (key hydration: keychain → env.sh → .zshrc)
-       └─ llm-compat.sh  (optional: queue lease, --model/--swarm/--dry-run dispatch)  ──┐
+       └─ llm-compat.sh  (optional: queue lease, --model/--dry-run dispatch)  ──┐
        └─ node llm-lane.mjs <lane> "<prompt>"  (direct path; ai llm <lane> routes here) ─┤
                                                                                           ▼
    parseCli → dispatch(lane, prompt, opts)
@@ -127,7 +128,7 @@ task* (proportional — match the pack to the task's blast radius, never dump th
 the memory organs. The lane still has tools for anything beyond the pack.
 
 This is the single highest-leverage dispatch-quality lever: it converts "hope the lane finds the context"
-into "the lane has the context." Every non-trivial fan-out dispatch should carry a `--context` pack.
+into "the lane has the context." Every non-trivial multi-lane advisory dispatch should carry a `--context` pack.
 
 ## 8. Loud-fail exit contract + markers
 
@@ -172,6 +173,7 @@ Recall unavailable (cold store down) → `LLM_COMPAT_WARN code=0 ... reason=reca
 | 2026-06-05 | Rename `offload` → "LLM compatibility lane" (reframe: compatibility, not offloading); hard, no alias | `028e430f` |
 | earlier | openai-compatible single-path dispatch; endpoint ALLOWLIST SSRF guard; tool sandbox via yuri-safety-core | red-team converged findings |
 | 2026-06-07 | Add local SLM compatibility lane through Ollama; active local policy pinned to `gemma4:12b-it-qat`; Needle/Qwen/`gemma4:e2b` retired from routed local policy | owner, binding |
+| 2026-06-07 | DeepSeek lane rule tightened: use LLM-compat only; workhorse, parallel-clone, and old offload skill surfaces retired from active routing | owner, binding |
 
 ## Status / change log
 

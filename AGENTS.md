@@ -61,7 +61,7 @@ Forbidden for Claude routes:
 - no-session-persistence prompt calls
 - spawning a fresh paid prompt process for each advisory packet
 
-DeepSeek should also prefer a persistent session/lane when available so cache and continuity improve.
+DeepSeek must be routed only through the LLM compatibility lane: `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `_SYSTEM/Scripts/llm-lane.mjs deepseek ...`. Do not use workhorse, parallel-clone, old offload skills, direct DeepSeek wrappers, or ad hoc DeepSeek command surfaces. Any persistence/cache behavior must come from the llm-compat/lane-session internals.
 
 ## Protected Paths
 

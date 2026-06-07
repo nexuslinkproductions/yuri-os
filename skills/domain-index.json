@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-28",
+  "updated": "2026-06-07",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -26,7 +26,6 @@
       "label": "Agent Assembly",
       "purpose": "Compose agents from skill bundles, lanes, roles, and verification gates.",
       "skillIds": [
-        "parallel-clone-orchestrator",
         "dispatching-parallel-agents",
         "subagent-driven-development",
         "bg",

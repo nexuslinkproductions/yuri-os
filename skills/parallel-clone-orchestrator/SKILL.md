@@ -1,25 +1,28 @@
 ---
 name: parallel-clone-orchestrator
-description: Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / YURI. Inspired by Shadow Clone Jutsu, translated into enterprise-safe system behavior.
-version: 1.0.0
-status: active
-enterprise_ready: true
+description: Retired skill tombstone. Do not invoke; use native planning plus llm-compat lanes for advisory work.
+version: 1.0.1
+status: retired
+retired_on: 2026-06-07
+replacement: "native planning + _SYSTEM/Scripts/llm-compat.sh / ai llm <lane>"
+enterprise_ready: false
 non_destructive_default: true
-triggers:
-  - "/yuri clone"
-  - "/clone"
-  - "/pco"
+triggers: []
 requires:
   - enterprise-control-plane
   - audit-events
   - rollback-policy
 ---
 
-# Parallel Clone Orchestrator Skill
+# Parallel Clone Orchestrator Skill (Retired)
+
+## Retirement Notice
+
+Retired on 2026-06-07 by owner directive. Do not route work through clone orchestration, `/pco`, `/clone`, or this skill. Complex decomposition now stays in the native planning session; advisory model calls go through the LLM compatibility lane only. DeepSeek specifically uses `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `llm-lane.mjs deepseek`.
 
 ## When to use
 
-Use this skill when the user asks YURI OS to perform work involving:
+Do not use this skill. Historical material below is retained only to explain what was retired:
 
 - domain_manifest
 - task_breakdown
@@ -42,15 +45,9 @@ Do not use this skill when:
 - the task would require destructive action without approval
 - the extension would duplicate an already active domain without adding value
 
-## Trigger phrases
+## Retired Trigger Phrases
 
-- "run parallel-clone-orchestrator"
-- "use Parallel Clone Orchestrator"
-- "turn this into Yuri OS DNA"
-- "analyze and integrate this safely"
-- "enterprise-ready extension"
-- "non-destructive implementation plan"
-- "bake this into the system"
+These phrases used to activate the skill. They are no longer active triggers. Use native planning plus explicit llm-compat advisory lanes instead.
 
 ## Required inputs
 
@@ -136,11 +133,7 @@ failure:
 
 ## Examples
 
-```bash
-/yuri clone --target ./repo --mode audit --enterprise --non-destructive
-/yuri clone --target ./docs/system.md --mode integration --stage-only
-/yuri clone --target ./memory/session-journal.md --mode audit --no-mutation
-```
+No active examples. This skill is retired; use native planning plus explicit llm-compat advisory lanes.
 
 ## Session Notes
 

@@ -17,9 +17,9 @@ const LLM_COMPAT_CONTRACT = {
     triggerless: true,
     startupDefault: true,
     master: ['/tokenmaxxing', 'tokenmaxxing'],
-    legacyDelegation: ['btw offload this'],
+    legacyDelegation: [],
     steeringPrefixes: ['btw', '/btw'],
-    compatibilityOnly: ['@lane', '/tokenmaxxing', 'btw', '/btw', 'btw offload this']
+    compatibilityOnly: ['@lane', '/tokenmaxxing', 'btw', '/btw']
   },
   // HARD RULE (2026-05-14): Codex is Claude's permanent implementation co-pilot.
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
@@ -124,11 +124,11 @@ const LLM_COMPAT_CONTRACT = {
     nvidia: {
       alias: '@nvidia',
       dispatchTokens: ['nvidia', 'nemotron', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'],
-      description: 'NVIDIA NIM offload lane restricted to Nemotron 3 Ultra. Other NIM catalogue entries are removed from offload reasoning routing.',
+      description: 'NVIDIA NIM llm-compat lane restricted to Nemotron 3 Ultra. Other NIM catalogue entries are removed from reasoning routing.',
       envKey: 'NVIDIA_API_KEY',
       toolsByDefault: true,
       defaultModel: 'nvidia/nemotron-3-ultra-550b-a55b',
-      note: '2026-06-05 offload consolidation: no NVIDIA cross-lane fallback or catalogue expansion.',
+      note: '2026-06-05 llm-compat consolidation: no NVIDIA cross-lane fallback or catalogue expansion.',
       liveStatus: {
         live: ['nemotron-3-ultra-550b-a55b'],
         dead: [],
@@ -148,7 +148,7 @@ const LLM_COMPAT_CONTRACT = {
       models: {
         'nemotron-3-ultra-550b-a55b': 'nvidia/nemotron-3-ultra-550b-a55b',
       },
-      preferredUsage: ['frontier offload reasoning via Nemotron 3 Ultra']
+      preferredUsage: ['frontier llm-compat reasoning via Nemotron 3 Ultra']
     },
     codexSpark: {
       alias: '@codex-spark',
@@ -178,8 +178,8 @@ const LLM_COMPAT_CONTRACT = {
     native: {
       alias: '@native',
       dispatchTokens: ['native', 'main', 'workflow'],
-      description: 'Main-session Opus 4.8 dynamic Workflow orchestration — replaces the deprecated parallel swarm fan-out; spawns no parallel DeepSeek pair. Optional advisory is a single sequential DeepSeek-pro call.',
-      preferredUsage: ['consensus', 'orchestration', 'high-stakes review', 'native fan-out via the Workflow tool']
+      description: 'Main-session native workflow orchestration; retired swarm/workhorse routes are not active. Optional DeepSeek advisory must use the llm-compat lane.',
+      preferredUsage: ['consensus', 'orchestration', 'high-stakes review', 'native workflow with explicit llm-compat advisory lanes']
     },
     kimi: {
       alias: '@kimi',
@@ -444,7 +444,7 @@ const LLM_COMPAT_CONTRACT = {
         'Normalize: compile typed intent with constraints, risk, uncertainty, mutation policy, artifact policy, and verifier requirements.',
         'Graph plan: emit graph-plan.json with task nodes, dependencies, capabilities, permissions, artifacts, verifiers, and promotion gates.',
         'Route: bind each node to the smallest reliable lane through this shared contract.',
-        'Execute: run nodes through existing sandbox, guarded executor, offload lanes, and read-only skill context.',
+        'Execute: run nodes through existing sandbox, guarded executor, llm-compat lanes, and read-only skill context.',
         'Verify: require deterministic local evidence before upgrading any executor claim.',
         'Sanitize: hash raw output and summarize only verified facts.',
         'Promote: send only sanitized reviewed lessons through existing promotion gates.'
@@ -515,7 +515,7 @@ const LLM_COMPAT_CONTRACT = {
       defaultLane: 'native',
       lifecycle: [
         'Intake: identify the artifact, system, or question to be analyzed.',
-        'Fan-out: dispatch multi-model council (DeepSeek-pro + NVIDIA + SHURA) in parallel.',
+        'Advisory: dispatch explicitly scoped model lanes through llm-compat only; DeepSeek advisory uses the DeepSeek llm-compat lane.',
         'Verify: ground claims in source, git, or deterministic local evidence.',
         'Merge: main session synthesizes findings ordered by severity.',
         'Learn: promote repeated findings into prevention rules.'
@@ -555,7 +555,7 @@ const LLM_COMPAT_CONTRACT = {
       defaultLane: 'native',
       lifecycle: [
         'Intake: define verdict, risk categories, and files/processes in scope.',
-        'Advisory scan: main session runs a single sequential DeepSeek-pro advisory for an independent read; no parallel swarm pair.',
+        'Advisory scan: main session runs any DeepSeek independent read through the DeepSeek llm-compat lane; no workhorse or parallel-clone route.',
         'Verify: check claims with local source, tests, GitNexus, or browser evidence.',
         'Merge: main session reports findings first, ordered by severity.',
         'Learn: promote repeated risks into guardrails or scenario examples.'
@@ -605,7 +605,7 @@ const LLM_COMPAT_CONTRACT = {
     appliesTo: ['Codex', 'Claude Code', 'VS Code', 'Kagami', 'Rick', 'DeepSeek', 'Qwen/Alibaba', 'future CLI agents'],
     requiredBehavior: [
       'Load OPERATOR_PROTOCOL.md or an inheriting rule file at startup.',
-      'Treat offload routing as automatic for every non-trivial task.',
+      'Treat llm-compat routing as automatic for every non-trivial advisory lane task.',
       'Use _SYSTEM/Scripts/llm-compat-contract.mjs as the only lane and scenario source.',
       'Use ./_SYSTEM/Scripts/ai auto "<prompt>" as the execution entrypoint for automatic classification and dispatch.',
       'Keep explicit triggers as compatibility aliases only.',
@@ -653,10 +653,6 @@ function selectSteeringLane(prompt) {
   if (!text) return 'triage-local';
 
   if (text.includes('/tokenmaxxing') || text.includes('tokenmaxxing')) {
-    return 'native';
-  }
-
-  if (text.includes('btw offload this') || text.startsWith('offload this')) {
     return 'native';
   }
 
@@ -799,7 +795,7 @@ function assessDeepseekAdvisory(prompt, lane, scenario) {
     return {
       decision: 'use-native',
       models: [policy.roles.pro.model],
-      role: 'main-session native orchestration with a single sequential DeepSeek-pro advisory (no parallel fan-out)',
+      role: 'main-session native orchestration with any DeepSeek advisory routed through llm-compat',
       reason: scenario.id === 'protocol-change' ? 'protocol_or_routing_quality_risk' : 'high_stakes_review_threshold_met',
       preflight: true,
       postflight: true,
@@ -1418,15 +1414,13 @@ if (isCliEntrypoint()) {
       printJson(LLM_COMPAT_CONTRACT.scenarios);
       break;
     case 'swarm-default':
-    case 'swarm-workhorse':
-      // DEPRECATED compatibility shim (2026-05-29). The parallel swarm fan-out is retired; Opus 4.8's
-      // native Workflow orchestration replaces it. Emits a SINGLE advisory lane (no DeepSeek pair) so
-      // legacy `ai` callers (run_codex_swarm / triage) degrade safely without doubling DeepSeek.
-      // Full removal of the ai-CLI swarm surface is a flagged phase-2 follow-up.
       process.stdout.write('deepseek-v4-pro\n');
       break;
+    case 'swarm-workhorse':
+      console.error('Retired llm-compat contract command: swarm-workhorse. Use the DeepSeek llm-compat lane directly.');
+      process.exit(1);
     default:
-      console.error(`Unknown offload contract command: ${command}`);
+      console.error(`Unknown llm-compat contract command: ${command}`);
       process.exit(1);
   }
 }

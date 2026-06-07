@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-03",
+  "updated": "2026-06-07",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 99,
+  "count": 98,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -326,11 +326,6 @@
     {
       "id": "oracle-voice",
       "path": "skills/oracle-voice/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
-      "id": "parallel-clone-orchestrator",
-      "path": "skills/parallel-clone-orchestrator/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {

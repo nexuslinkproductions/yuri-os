@@ -8,6 +8,7 @@
     "_SYSTEM/context/README.md",
     "_SYSTEM/context/context-registry.json",
     "_SYSTEM/INDEX.md",
+    "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
     "_SYSTEM/config/folder-registry.json",
     "_SYSTEM/config/artifact-registry.json",
     ".agents/README.md",
@@ -23,6 +24,7 @@
         "SOUL.md",
         "_SYSTEM/context/README.md",
         "_SYSTEM/INDEX.md",
+        "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
         "_SYSTEM/config/folder-registry.json",
         "_SYSTEM/config/artifact-registry.json",
         "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
@@ -31,6 +33,28 @@
         "skills/README.md"
       ],
       "loadRule": "Read before broad filesystem exploration; use xref-query first when navigating current evidence."
+    },
+    {
+      "id": "originator-bridge",
+      "label": "YURI Originator / LLM Math Bridge Context",
+      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "llm unlock", "platform switching", "cross-platform"],
+      "paths": [
+        "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
+        "_SYSTEM/Scripts/yuri-input-genome.mjs",
+        "_SYSTEM/Scripts/llm-lane.mjs",
+        "_SYSTEM/Scripts/lane-core-hooks.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/math-kernel.mjs",
+        "_SYSTEM/Scripts/xref-query.mjs",
+        "_SYSTEM/Scripts/propagation-scan.mjs",
+        "_SYSTEM/LANE-MANUAL.md",
+        "02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md",
+        "02_RESOURCES/RESEARCH/yuri-clockwork-northstar-2026-06-06.md",
+        "02_RESOURCES/RESEARCH/yuri-mainspring-synthesis-2026-06-07.md"
+      ],
+      "loadRule": "Use when a model needs to understand or build the shared LLM entry point into YURI's math, energy, xref, memory, and llm-compat substrate. Keep local evidence above advisory lane output."
     },
     {
       "id": "llm-compat-lanes",

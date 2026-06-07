@@ -56,7 +56,6 @@
       "contextPackets": ["kagami-harness", "skills", "baseline"],
       "roleContract": "Classify intent, activate only relevant skills and lanes, keep model output advisory until local verification accepts it.",
       "skillIds": [
-        "parallel-clone-orchestrator",
         "haki-intent",
         "bankai-manifest",
         "failure-evolution-loop"

@@ -3,7 +3,7 @@ import type { SkillEntry } from './types';
 const NOW = Date.now();
 
 export const MOCK_SKILLS: SkillEntry[] = [
-  { id: 'deepseek-workhorse', name: 'deepseek-workhorse', description: 'General-purpose heavy-lift reasoning', invocationCount: 187, category: 'reasoning', triggers: ['/deepseek-workhorse'] },
+  { id: 'llm-compat-deepseek', name: 'llm-compat-deepseek', description: 'DeepSeek advisory lane through llm-compat only', invocationCount: 187, category: 'reasoning', triggers: ['ai llm deepseek'] },
   { id: 'swarm-coordination', name: 'swarm-coordination', description: 'Orchestrate multi-agent swarms', invocationCount: 94, category: 'orchestration', triggers: ['/swarm-coordination'] },
   { id: 'design-master', name: 'design-master', description: 'End-to-end design system generation', invocationCount: 63, category: 'design', triggers: ['/design-master'] },
   { id: 'frontend-design', name: 'frontend-design', description: 'UI component scaffolding', invocationCount: 142, category: 'design', triggers: ['/frontend-design'] },
@@ -15,7 +15,7 @@ export const MOCK_SKILLS: SkillEntry[] = [
   { id: 'schedule', name: 'schedule', description: 'Cron-based task scheduler for agents', invocationCount: 89, category: 'utility', triggers: ['/schedule'] },
   { id: 'compact-optimizer', name: 'compact-optimizer', description: 'Context-window token compaction', invocationCount: 155, category: 'optimization', triggers: ['/compact-optimizer', '/compact'] },
   { id: 'tokenmaxxing', name: 'tokenmaxxing', description: 'Aggressive token budgeting and forecasting', invocationCount: 43, category: 'finance', triggers: ['/tokenmaxxing'] },
-  { id: 'parallel-clone-orchestrator', name: 'parallel-clone-orchestrator', description: 'Fan-out identical tasks across N lanes', invocationCount: 29, category: 'orchestration', triggers: ['/parallel-clone-orchestrator', '/pco'] },
+  { id: 'native-workflow', name: 'native-workflow', description: 'Native decomposition with explicit llm-compat advisory lanes', invocationCount: 29, category: 'orchestration', triggers: ['native workflow'] },
   { id: 'failure-evolution-loop', name: 'failure-evolution-loop', description: 'Iterate on failure until success threshold', invocationCount: 17, category: 'meta', triggers: ['/failure-evolution-loop', '/fel'] },
   { id: 'pattern-mirror-core', name: 'pattern-mirror-core', description: 'Reflect agent decision trees for audit', invocationCount: 0, category: 'meta', triggers: ['/pattern-mirror-core', '/pmc'] },
 ];

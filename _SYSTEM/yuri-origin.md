@@ -112,7 +112,7 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 
 ## Safety / Gate Routing
 
-- Anime-DNA gates: domain expansion (`/yuri-domain`), infinity guard (`/yuri-guard`), zenkai loop (`/yuri-zenkai`), pattern mirror (`/yuri-pattern-mirror`), clone orchestrator (`/yuri-clone`).
+- Anime-DNA gates: domain expansion (`/yuri-domain`), infinity guard (`/yuri-guard`), zenkai loop (`/yuri-zenkai`), pattern mirror (`/yuri-pattern-mirror`), and native planning with advisory model lanes only through LLM compatibility.
 - No silent bypass of safety gates.
 - Symbiotic pulse is mandatory for every visible input: user input, assistant self-proposed action, tool result, docked LLM output, handoff, plan, and final claim. Use the lightweight pulse by default and escalate when risk, ambiguity, mutation, protected state, or model claims require it.
 - Docked LLM and model output is advisory until deterministic local evidence verifies it. Owner intent can override preferences, not safety gates or protected-surface restrictions.
