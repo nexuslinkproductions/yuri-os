@@ -1111,6 +1111,16 @@
       ],
       "triggeredBy": "CLI/import — fills the graph.impact_centrality formula-card executableHook in yuri-originator; registered discoveryTool yuri_navigate; OpenProcess Sum Pool dependency_centrality_i (OpenMass w_dep)",
       "description": "The deterministic structural navigation engine on top of yuri-id-bridge. T1 (default) = closed-form integer reachability over dual typed adjacency (dependsOn/dependedOnBy): DEPENDENCY = outgoing closure (what a node rests on), IMPACT = incoming closure (blast radius). Direction is pinned to function names + a math-kernel locking test (NOT forward/reverse, which observers invert). writes INCLUDED in the default edge set (the propagation-scan sibling set excludes it; inheriting that = 26% undercount). T2 opt-in deterministic PPR for distributional weight. Bounded (maxNodes/maxDepth + truncated flag), protected-vetoed at the spine, completeness-honest (structuralLegAvailable=false while the GitNexus fine-grained leg is deferred; unresolved vs grounded-isolated vs phantom kept distinct). Verified: math-kernel dependency=0, impact superset of {energy-fn, math-proof-gate}; exactly 17 protected I/O edges vetoed."
+    },
+    {
+      "id": "formula-foundry",
+      "label": "Formula Foundry (typing core: catalog + coverage + composition type-algebra)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/formula-foundry.mjs"
+      ],
+      "triggeredBy": "import/CLI — Foundry Core A (dimensional typing); reads the 6 formula-banks; the composition type-algebra gates illegal output→input combinations before math-proof-gate (Core B) runs",
+      "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate."
     }
   ],
   "edges": [
@@ -2241,6 +2251,19 @@
       "to": "yuri-navigate",
       "kind": "calls",
       "description": "graph.impact_centrality formula-card executableHook + the yuri_navigate discoveryTool dispatch (deterministic structural centrality for worker lanes)."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "coverageReport imports math-kernel exports to diff kernel primitives against bank-card implementedBy bindings."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "_SYSTEM/data/math/formula-banks",
+      "kind": "reads",
+      "target": true,
+      "description": "catalogFormulas reads the 6 typed formula-bank JSON files (the dimensional/units layer = Core A typing source)."
     }
   ],
   "generatedAt": "2026-06-08"

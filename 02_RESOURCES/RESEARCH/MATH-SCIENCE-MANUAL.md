@@ -108,6 +108,7 @@ tags: math_manual, science_manual, dock_on_guide, retrieval, distance, methods_r
 - `math/math-kernel.mjs` — 23 shipped primitives (the central engine; reuse first).
 - `math/yuri-phi.mjs` — π/φ/Fibonacci: goldenSectionSearch, fibonacciSearchMin, phiSequence, goldenAnglePoints, fib/fibBig (see registry #4).
 - `math/nexus-numerology.mjs` — deterministic numerology encoding channels: gematria hash, digital-root bucket, harmonic-ratio buckets (see registry #10).
+- `math/formula-foundry.mjs` — the Formula Foundry typing core: `catalogFormulas` (unified read-view over the 6 banks), `coverageReport` (kernel-fn ↔ bank-card binding worklist: UNBOUND-PRIMITIVE / ORPHAN-CARD), and the **composition type-algebra** `classifyDimension`/`dimensionsCompatible`/`composeCheck`/`composableTargets` — deterministic closed-set prose→dimension classification that rejects illegal output→input combinations (bits↛length). Core A (typing) of the Foundry; Core B (oracle) is math-proof-gate. Combine/synthesis + bakeoff are separate next-build modules.
 
 ## Parked / candidate math (not yet built — see math-primitive-candidates-parking.md)
 - π · golden ratio (φ) · Fibonacci — **READY tier BUILT** (registry #4: golden-section search, Fibonacci search, φ low-discrepancy cadence, golden-angle, Fibonacci generator). STILL PARKED: Knuth/Fibonacci multiplicative hashing (no measured bucket-skew), Fibonacci heap (no profiled graph hot-path), π/FFT spectral probe (needs stable sanitized traces).
