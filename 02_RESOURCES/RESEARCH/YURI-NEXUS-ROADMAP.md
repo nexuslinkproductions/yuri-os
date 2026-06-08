@@ -24,15 +24,22 @@ with physics/info-theory/number-theory as the gears. North star: [[yuri-clockwor
 | **enhancement backlog + moat audit** (math improvements ranked; pre-OSS checklist) | captured | [[yuri-improvement-backlog-2026-06-06]] · [[oss-release-moat-audit-2026-06-06]] |
 | **Cross-surface comparability CRACKED** (containment + RRF + shared-space + precision-gate) → `recallAll` ranks across surfaces | BUILT + CONFIRMED on real energy-L∞ triangle (targets 0.88–1.0, decoys ≤0.18); 15/15 + 8/8 + 17/17, regressions green | committed · [[yuri-cross-surface-synthesis-2026-06-07]] |
 
-## 🔄 IN-PROGRESS (active wave, 2026-06-07)
-- *(none — cross-surface wave folded + committed. Next brick is item 1 below.)*
+| **id-bridge + `yuri-navigate`** (deterministic structural centrality; fills the empty `graph.impact_centrality` formula-card hook; Originator discoveryTool `yuri_navigate`) | BUILT 28/28 + 28/28, dispatch regression-locked, +2 nodes/4 edges into the die (110/175), full propagation | committed `284fde3a` |
 
-## ⏭ NEXT (sequenced — the build order from the syntheses; frontier-unanimous: structure FIRST)
-1. **id-bridge table + `yuri-navigate.mjs`** — THE highest-leverage brick (CX5 `XS_INTEGRATION_DECISION_X_PASS`,
-   DS2, mainspring N1 all agree). Typed structural edges (a symbol's `files[]`, a node's deps) are deterministic
-   cross-surface edges that need NO shared feature space — they bypass the similarity-comparability problem
-   outright. navigate = deterministic personalized-PageRank, forward=consequences/reverse=causes, bounded by
-   budget/info-clock/decay/veto. Similarity (the shipped RRF+containment) rides on top. [[yuri-mainspring-synthesis-2026-06-07]]
+## 🔄 IN-PROGRESS
+- *(none — navigate organ folded + committed. Next big organ is the Formula Foundry, item 1 below.)*
+
+## 🆕 ORGANS QUEUED — Marcel vision (2026-06-08) ⊕ Codex rapidfire handoff (convergence: any LLM → one Originator port → whole die)
+- **Formula Foundry** (Marcel's explicit ask = Codex Build Slice 3): formula DATABASE → ENGINE that deciphers/pulls
+  any formula, COMBINES + SYNTHESISES new ones, tests them DIRECTLY on tasks. Builds on `FORMULA_CARDS` + MATH-SCIENCE-MANUAL.
+  Symbolic channels (numerology/alchemy/**music-theory/frequency/magnetism**) are CANDIDATE GENERATORS, never truth. [[marcel-vision-formula-foundry-universal-translation]]
+- **OpenProcess Sum Pool** (Codex handoff): track started-but-unclosed work; OpenMass = hazard-decay + **dependency-centrality (→ `yuri-navigate.aggregateProcessCentrality`)** + risk + value − closure; lane-agnostic.
+- **Lane Telemetry Cockpit** (Codex handoff): human-readable CLI over `YURI_LANE_TELEMETRY` (process_start/heartbeat/tool_iteration/exhausted/exit), not raw JSON.
+- **discoveryPrecisionGate** (Codex handoff): gate lane claims vs WorkSubstrate allowed-paths + discovery footprint before the energy gate; uses **`graph.impact_centrality` (→ `yuri-navigate`)** + bayes + entropy + hazard.
+- **Live visual→math feed** (Marcel, major research organ): active pixels → live metadata → math-processed continuous feedback an LLM monitors (vs snapshot-only computer-use); co-vision without image-training. Deep research.
+
+## ⏭ NEXT (sequenced)
+1. **Formula Foundry** (above) — the next big concrete organ (Marcel's explicit priority).
 2. **GVF calibration C-layer** (conformal/Platt over the matcher's complete set) — the keystone; needs a label
    harvest (shadow ledger + deterministic self-recall/title-cue generators, since memory has ~11 items). Unlocks
    comparable cross-surface SCORES + score-fusion (CombMNZ, `P(overclaim)≤α`) + the full GPD ΔU loop + auto-calibration.
