@@ -1128,10 +1128,11 @@
       "label": "Foundry candidate-source channels (music/frequency/magnetism)",
       "layer": "Energy & Math",
       "files": [
-        "02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md"
+        "02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md",
+        "02_RESOURCES/RESEARCH/astronomy-astrophysics-channel-2026-06-08.md"
       ],
       "triggeredBy": "research → Formula Foundry candidate generators: 23 deterministic, falsifiable formulas across music-theory (equal-temperament, Tenney-height consonance, Euclidean rhythm, polyrhythm-LCM, circle-of-fifths Z/12), frequency/wave (DFT, Goertzel, resonance/Q, beats, standing-wave modes), magnetism (Larmor, Maxwell curl/div, Biot-Savart, flux quantization) + cross-domain mechanism bridges",
-      "description": "Deep-research candidate-source channels for the Formula Foundry. Each formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test; all capped at promotionStatus:research — candidate generators, NEVER truth, until a real math-kernel binding + a green worked example through math-proof-gate promotes one. Routes into formula-foundry as candidate generators; the harmonic-ratio music channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket). Mechanisms in, mysticism out."
+      "description": "Deep-research candidate-source channels for the Formula Foundry. Each formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test; all capped at promotionStatus:research — candidate generators, NEVER truth, until a real math-kernel binding + a green worked example through math-proof-gate promotes one. Routes into formula-foundry as candidate generators; the harmonic-ratio music channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket). Mechanisms in, mysticism out. Astronomy/astrophysics added 2026-06-08 (Kepler, gravitation, orbital/escape velocity, Hubble, Pogson magnitude, Wien, Schwarzschild, Titius-Bode) — first-class, domain-blind."
     },
     {
       "id": "graph-unify",
