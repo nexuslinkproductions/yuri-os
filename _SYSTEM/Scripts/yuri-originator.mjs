@@ -19,6 +19,7 @@ const OLLAMA_LANE = path.join(__dirname, 'ollama-lane.mjs');
 const LLM_LANE = path.join(__dirname, 'llm-lane.mjs');
 const PROPAGATION_SCAN = path.join(__dirname, 'propagation-scan.mjs');
 const YURI_NAVIGATE = path.join(__dirname, 'yuri-navigate.mjs');
+import { synthesizeFormulaCandidates } from './math/formula-foundry.mjs'; // Formula Foundry synthesis verb (advisory)
 const TELEMETRY_PATH = path.join(REPO_ROOT, '_SYSTEM/state/originator-telemetry.jsonl');
 const DEFAULT_TOP = 200;
 const DEFAULT_SCAN = 1000;
@@ -142,6 +143,7 @@ export async function runOriginator({ op = 'decode', payload = {}, options = {} 
   if (normalizedOp === 'energy_gate') return runEnergyGate(normalizedPayload, options);
   if (['create_work_substrate', 'work_substrate'].includes(normalizedOp)) return runCreateWorkSubstrate(normalizedPayload, options);
   if (normalizedOp === 'candidate_actions') return runCandidateActions(normalizedPayload, options);
+  if (normalizedOp === 'synthesize_formula') return runSynthesizeFormula(normalizedPayload, options);
   if (normalizedOp === 'launch_substrate') return runLaunchSubstrate(normalizedPayload, options);
   if (normalizedOp === 'synthesize_formula_candidates') return runFormulaCandidateSeed(normalizedPayload);
   if (['worker_exoskeleton', 'llm_exoskeleton', 'gemma_exoskeleton'].includes(normalizedOp)) {
@@ -374,6 +376,31 @@ export function buildWorkSubstrate(payload = {}, options = {}) {
     advisory_only: true,
     local_truth_claim: false,
   };
+}
+
+// Formula Foundry synthesis through the one Originator port — read-only, advisory. Returns ranked
+// research-status candidate formulas; NEVER mutates a bank, NEVER promotes (every candidate is inert until
+// kernel-bound + green worked example). The upstream mutation/protected-path guards already protect this op.
+function runSynthesizeFormula(payload, options) {
+  const opts = {
+    maxCandidates: positiveInt(payload.maxCandidates, 64),
+    maxChainLength: positiveInt(payload.maxChainLength, 4),
+    includeSymbolic: payload.includeSymbolic !== false,
+    startIds: Array.isArray(payload.startIds) ? payload.startIds : undefined,
+    endIds: Array.isArray(payload.endIds) ? payload.endIds : undefined,
+  };
+  const { candidates, count, truncated } = synthesizeFormulaCandidates(opts);
+  return originatorEnvelope({
+    op: 'synthesize_formula',
+    status: 'ok',
+    result: { candidates, count, truncated },
+    completeness: {
+      candidateCount: count,
+      truncated,
+      allInert: candidates.every((c) => c.promotionStatus === 'research' && c.advisoryOnly === true && c.implementedBy === null),
+    },
+    verification: { reason: 'synthesized candidates are research-status, advisory-only, inert until kernel-bound + green worked example' },
+  });
 }
 
 function runCandidateActions(payload, options) {

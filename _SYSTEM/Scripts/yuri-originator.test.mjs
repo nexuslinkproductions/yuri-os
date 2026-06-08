@@ -476,4 +476,16 @@ const originatorPath = resolve(__dirname, 'yuri-originator.mjs');
   assert.equal(r3.reason, 'empty_navigate_target');
 }
 
+// synthesize_formula op — Formula Foundry reachable through the one port, advisory + inert by construction
+{
+  const r = await runOriginator({ op: 'synthesize_formula', payload: { maxCandidates: 10 } });
+  assert.equal(r.op, 'synthesize_formula');
+  assert.equal(r.status, 'ok');
+  assert.ok(r.result.count > 0, 'synthesize_formula returns candidates');
+  assert.equal(r.completeness.allInert, true, 'every synthesized candidate is inert (research + advisory + no binding)');
+  assert.equal(r.advisory_only, true);
+  assert.equal(r.local_truth_claim, false);
+  assert.ok(r.result.candidates.every((c) => c.implementedBy === null), 'no candidate carries a kernel binding through the port');
+}
+
 console.log('yuri-originator: pass');

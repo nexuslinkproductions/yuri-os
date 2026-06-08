@@ -2,6 +2,7 @@
 import {
   classifyDimension, dimensionsCompatible, catalogFormulas, coverageReport,
   composeCheck, composableTargets,
+  composeOperatorSequences, synthesizeFormulaCandidates, draftFormulaBankCard, proofPreflightCandidate,
 } from './formula-foundry.mjs';
 
 let pass = 0, fail = 0;
@@ -67,6 +68,48 @@ ok(cov.cardCount === cat.count && cov.kernelExportCount > 0, 'coverage spans the
 ok(cov.orphanCards.length === 0, 'no orphan cards (every implementedBy resolves to a real kernel export)');
 ok(Array.isArray(cov.unboundPrimitives) && cov.unboundPrimitives.every((s, i) => i === 0 || cov.unboundPrimitives[i - 1].localeCompare(s) <= 0),
   'unbound-primitive worklist is sorted');
+
+// --- SYNTHESIS VERB (CHUNK 2) — creativity unbounded, promotion gated ---
+const synCat = catalogFormulas();
+const seqs = composeOperatorSequences(synCat, { maxCandidates: 50 });
+ok(seqs.sequences.length > 0, 'composeOperatorSequences finds legal chains');
+// every hop in every sequence is dimensionally legal (composeCheck guaranteed)
+ok(seqs.sequences.every((s) => s.hops.every((h) => {
+  const a = synCat.cards.find((c) => c.id === h.from || c.id === s.chain[s.chain.indexOf(h.to) - 1]);
+  return dimensionsCompatible(h.fromDim, h.toDim).compatible;
+})), 'every synthesized hop is dimensionally compatible (no illegal combination escapes)');
+ok(seqs.sequences.every((s, i) => i === 0 || seqs.sequences[i - 1].chain.join('>').localeCompare(s.chain.join('>')) <= 0), 'sequences are deterministically sorted');
+
+const syn = synthesizeFormulaCandidates({ catalog: synCat, maxCandidates: 50 });
+ok(syn.candidates.length > 0, 'synthesizeFormulaCandidates produces candidates');
+// THE core guarantee: every candidate is INERT (research + advisory + no kernel binding)
+ok(syn.candidates.every((c) => c.promotionStatus === 'research' && c.advisoryOnly === true && c.implementedBy === null),
+  'EVERY synthesized candidate is inert: research + advisoryOnly + no implementedBy');
+ok(syn.candidates.every((c) => Array.isArray(c.synthesisProvenance) && c.synthesisProvenance.length >= 2),
+  'every candidate carries synthesisProvenance (parent card ids)');
+// determinism
+const idsA = JSON.stringify(synthesizeFormulaCandidates({ catalog: synCat, maxCandidates: 50 }).candidates.map((c) => c.id));
+const idsB = JSON.stringify(synthesizeFormulaCandidates({ catalog: synCat, maxCandidates: 50 }).candidates.map((c) => c.id));
+ok(idsA === idsB, 'synthesis is byte-deterministic (content-addressed ids, no RNG/clock)');
+
+// draftFormulaBankCard mints a research card that is structurally unable to promote
+const draft = draftFormulaBankCard(syn.candidates[0]);
+ok(draft.promotionStatus === 'research' && draft.advisoryOnly === true && draft.implementedBy === null,
+  'draftFormulaBankCard mints research + advisoryOnly + no implementedBy');
+ok(Array.isArray(draft.proofObligations) && draft.proofObligations.length >= 2, 'draft card carries proof obligations (bind a kernel symbol + green worked example)');
+
+// no-promotion-without-green-worked-example: preflight reports inert for a no-binding card
+const pf = proofPreflightCandidate(draft);
+ok(pf.inert === true && pf.hasBinding === false, 'preflight: a no-binding synthesized card is INERT by construction');
+
+// channels-never-promote: a candidate touching a symbolic domain is tagged + still inert
+const symCandidate = { id: 'synth.test.symbolic', promotionStatus: 'research', advisoryOnly: true, implementedBy: null, synthesisProvenance: ['a', 'b'], sourceDomains: ['music-theory'], outputDim: 'SCORE' };
+const symDraft = draftFormulaBankCard(symCandidate);
+ok(proofPreflightCandidate(symDraft).inert === true, 'a symbolic-channel candidate is inert (channels propose, never promote)');
+
+// a card claiming promoted status WITHOUT a binding is still caught inert (no fake promotion)
+const fakePromoted = { id: 'synth.fake', promotionStatus: 'verified-baseline', advisoryOnly: false, implementedBy: null, synthesisProvenance: ['a', 'b'], outputDim: 'SCORE' };
+ok(proofPreflightCandidate(fakePromoted).inert === true, 'a card claiming verified-baseline with NO binding is still inert (cannot fake promotion)');
 
 console.log(`\nformula-foundry.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

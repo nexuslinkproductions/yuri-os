@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validateFormulaBank } from './math-proof-gate.mjs'; // Core B oracle door (preflight)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // _SYSTEM/Scripts/math
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');     // repo root (math → Scripts → _SYSTEM → root)
@@ -172,6 +173,137 @@ export function composableTargets(cardA, catalog = null) {
   }
   out.sort((a, b) => a.to.localeCompare(b.to));
   return out;
+}
+
+// ------------------------------------------------------------------------------------------------
+// SYNTHESIS VERB — bounded, deterministic, dimensionally-legal chain enumeration → INERT research cards.
+// Generation is unbounded-creative at the hypothesis stage; only PROMOTION is gated. Every candidate is
+// promotionStatus:'research', advisoryOnly:true, implementedBy:null — it CANNOT promote until someone binds
+// a real math-kernel symbol AND it passes a green worked example through math-proof-gate (Core B).
+// ------------------------------------------------------------------------------------------------
+const SYNTH_DEFAULTS = Object.freeze({ maxChainLength: 4, maxBranchingPerNode: 24, maxCandidates: 256 });
+// Symbolic channels PROPOSE combinations but can NEVER promote past research — tagged for the gate/tests.
+const SYMBOLIC_DOMAINS = Object.freeze(['alchemy', 'frequency', 'hermetic', 'magnetism', 'music', 'music-theory', 'numerology']);
+function isSymbolicDomain(d) { const s = String(d || '').toLowerCase(); return SYMBOLIC_DOMAINS.some((c) => s === c || s.includes(c)); }
+// FNV-1a 32-bit — stable content-addressed id (no crypto, no clock; same chain → same id across runs).
+function fnv1a(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
+
+// Enumerate every DIMENSIONALLY-LEGAL operator chain (each hop passes composeCheck) — bounded + deterministic.
+export function composeOperatorSequences(catalog = null, opts = {}) {
+  const cat = catalog && Array.isArray(catalog.cards) ? catalog : catalogFormulas();
+  const cards = cat.cards.slice().sort((a, b) => a.id.localeCompare(b.id));
+  const byId = new Map(cards.map((c) => [c.id, c]));
+  const minLen = Math.max(2, Number.isFinite(opts.minChainLength) ? opts.minChainLength : 2);
+  const maxLen = Math.max(minLen, Number.isFinite(opts.maxChainLength) ? opts.maxChainLength : SYNTH_DEFAULTS.maxChainLength);
+  const maxBranch = Math.max(1, Number.isFinite(opts.maxBranchingPerNode) ? opts.maxBranchingPerNode : SYNTH_DEFAULTS.maxBranchingPerNode);
+  const maxCandidates = Math.max(1, Number.isFinite(opts.maxCandidates) ? opts.maxCandidates : SYNTH_DEFAULTS.maxCandidates);
+  const includeSymbolic = opts.includeSymbolic !== false;
+  const startSet = Array.isArray(opts.startIds) && opts.startIds.length
+    ? opts.startIds.filter((id) => byId.has(id)).sort((a, b) => a.localeCompare(b)) : cards.map((c) => c.id);
+  const endSet = Array.isArray(opts.endIds) && opts.endIds.length ? new Set(opts.endIds.filter((id) => byId.has(id))) : null;
+
+  const succ = (id) => {
+    const cardA = byId.get(id); if (!cardA) return [];
+    const out = [];
+    for (const t of composableTargets(cardA, { cards })) { // sorted by .to
+      if (t.to === id) continue;
+      const cardB = byId.get(t.to); if (!cardB) continue;
+      const slot = (t.slots || []).slice().sort((a, b) => a.localeCompare(b))[0]; if (!slot) continue;
+      out.push({ to: t.to, slot, fromDim: t.outputDim || 'UNKNOWN', toDim: (cardB.inputDims || {})[slot] || 'UNKNOWN' });
+      if (out.length >= maxBranch) break; // deterministic prefix of the sorted successor list
+    }
+    return out;
+  };
+
+  const sequences = []; let truncated = false;
+  const walk = (chain, hops) => {
+    if (sequences.length >= maxCandidates) { truncated = true; return; }
+    const last = chain[chain.length - 1];
+    if (chain.length >= minLen && (!endSet || endSet.has(last))) {
+      const domains = [...new Set(chain.flatMap((id) => byId.get(id).sourceDomains || []))].sort();
+      const containsSymbolic = domains.some(isSymbolicDomain);
+      if (includeSymbolic || !containsSymbolic) {
+        sequences.push({ chain: chain.slice(), hops: hops.slice(), outputDim: byId.get(last).outputDim || 'UNKNOWN', sourceDomains: domains, length: chain.length, containsSymbolic });
+      }
+    }
+    if (chain.length >= maxLen) return;
+    for (const s of succ(last)) {
+      if (chain.includes(s.to)) continue; // acyclic
+      walk([...chain, s.to], [...hops, s]);
+      if (sequences.length >= maxCandidates) { truncated = true; return; }
+    }
+  };
+  for (const startId of startSet) { if (sequences.length >= maxCandidates) { truncated = true; break; } walk([startId], []); }
+  sequences.sort((a, b) => a.chain.join('>').localeCompare(b.chain.join('>')));
+  return { sequences, count: sequences.length, truncated, params: { minLen, maxLen, maxBranch, maxCandidates } };
+}
+
+// Turn legal chains into INERT research candidate descriptors (no promotion, no binding).
+export function synthesizeFormulaCandidates(opts = {}) {
+  const cat = opts.catalog || catalogFormulas();
+  const { sequences, truncated } = composeOperatorSequences(cat, opts);
+  const byId = new Map(cat.cards.map((c) => [c.id, c]));
+  const candidates = sequences.map((seq) => ({
+    id: `synth.${seq.chain[0]}__${seq.chain[seq.chain.length - 1]}.${fnv1a(seq.chain.join('>'))}`,
+    promotionStatus: 'research',
+    advisoryOnly: true,
+    implementedBy: null, // INERT: no kernel binding → cannot promote
+    synthesisProvenance: seq.chain.slice(),
+    sourceDomains: seq.sourceDomains,
+    outputDim: seq.outputDim,
+    operators: seq.chain.map((cid) => byId.get(cid).implementedBy || cid),
+    hops: seq.hops,
+    containsSymbolic: seq.containsSymbolic,
+  }));
+  return { candidates, count: candidates.length, truncated };
+}
+
+// Mint a research-status, bank-card-shaped object from a candidate (still inert — no implementedBy).
+export function draftFormulaBankCard(candidate) {
+  if (!candidate || !Array.isArray(candidate.synthesisProvenance)) throw new Error('draftFormulaBankCard requires a synthesized candidate');
+  return {
+    id: candidate.id,
+    notation: `synthesized chain: ${candidate.synthesisProvenance.join(' > ')}`,
+    purpose: `candidate combination of ${candidate.synthesisProvenance.join(', ')} (research-status; inert until kernel-bound + green worked example)`,
+    domain: (candidate.sourceDomains || [])[0] || 'synthesis',
+    sourceDomains: candidate.sourceDomains || [],
+    promotionStatus: 'research',
+    advisoryOnly: true,
+    synthesisProvenance: candidate.synthesisProvenance.slice(),
+    implementedBy: null, // no binding → math-proof-gate cannot promote it
+    variables: [],
+    units: { inputs: {}, output: candidate.outputDim || 'UNKNOWN' },
+    proofObligations: [
+      'MUST bind a real math-kernel symbol via implementedBy',
+      'MUST pass a green worked example through runFormulaProofGate',
+    ],
+  };
+}
+
+// wrap a single draft card as a minimal bank so validateFormulaBank (the public door that fires the private
+// validateFormulaCard + assertImplementedBySymbolResolves) runs the full card contract on it.
+function wrapAsProofBank(card) {
+  return { schema: 'yuri.math.formula-bank.v0', id: `preflight.${card.id}`, version: '0.0.0', promotionStatus: 'research', advisoryOnly: true, formulas: [card] };
+}
+
+// Run a draft research card through the Core B oracle. A card with NO implementedBy is INERT by construction —
+// the symbol resolution has nothing to bind, so it can never pass the gate and can never promote.
+export function proofPreflightCandidate(card, opts = {}) {
+  let validation = null;
+  try { validation = validateFormulaBank(wrapAsProofBank(card), opts.validateOptions || {}); } catch (e) { validation = { ok: false, errors: [String((e && e.message) || e)] }; }
+  const hasBinding = Boolean(card && card.implementedBy);
+  const inert = !hasBinding || card.promotionStatus === 'research' || card.advisoryOnly === true;
+  return {
+    inert,
+    hasBinding,
+    reason: hasBinding
+      ? 'declares a kernel binding — still inert at research/advisory; real promotion needs a green worked example via runFormulaProofGate'
+      : 'no implementedBy binding → inert by construction (no kernel symbol to resolve, cannot pass the proof-gate)',
+    promotionStatus: (card && card.promotionStatus) || 'research',
+    advisoryOnly: !(card && card.advisoryOnly === false),
+    validationOk: Boolean(validation && validation.ok),
+    validationErrors: (validation && validation.errors) || [],
+  };
 }
 
 // ------------------------------------------------------------------------------------------------

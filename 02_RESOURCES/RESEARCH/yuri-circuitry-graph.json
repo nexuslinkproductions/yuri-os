@@ -2286,6 +2286,18 @@
       "to": "nexus-numerology",
       "kind": "routes",
       "description": "the music harmonic-ratio channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket); the Tenney-height ordering extends it."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "math-proof-gate",
+      "kind": "calls",
+      "description": "proofPreflightCandidate imports validateFormulaBank — Core A (typing) routes a draft research card to Core B (the executable validation oracle); a no-binding card is inert by construction."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "the synthesize_formula one-port op imports synthesizeFormulaCandidates — the Foundry is reachable through the Originator origin, advisory-only, returning inert research candidates."
     }
   ],
   "generatedAt": "2026-06-08"
