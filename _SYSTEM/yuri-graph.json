@@ -791,7 +791,8 @@
     "foundry-channels",
     "graph-unify",
     "formula-foundry-bakeoff",
-    "openprocess-pool"
+    "openprocess-pool",
+    "lane-telemetry-cockpit"
   ],
   "flowTopKeys": [
     "version",
@@ -4385,6 +4386,22 @@
         "description": "The protected-surface + control-file source of truth — exports isProtectedPath / safeRuntimePath / CONTROL_FILE_PREFIXES that the protocol guard, memory-kernel, and the search indexer all single-source. It is the shared library that defines which paths are off-limits and which files are control-plane files."
       },
       "label": "lane-kernel (protected-surface + control-file source)"
+    },
+    {
+      "id": "lane-telemetry-cockpit",
+      "tiers": [
+        "mechanism"
+      ],
+      "label": "Lane Telemetry Cockpit (human-readable view over YURI_LANE_TELEMETRY)",
+      "mechanism": {
+        "label": "Lane Telemetry Cockpit (human-readable view over YURI_LANE_TELEMETRY)",
+        "layer": "Skills & Orchestration",
+        "files": [
+          "_SYSTEM/Scripts/lane-telemetry-cockpit.mjs"
+        ],
+        "triggeredBy": "CLI — reads _SYSTEM/state/originator-telemetry.jsonl, groups by traceId, collapses stream/stderr/stdout chunk noise into counts, prints a compact per-lane timeline (start -> model call -> verification -> exit) with elapsed/heartbeats/streamed-chars/status",
+        "description": "Codex-handoff organ: JSONL is the audit substrate, this is the operator experience. No ugly raw JSON — a clean cockpit so the operator sees what a lane is doing live. Read-only."
+      }
     },
     {
       "id": "llm-compat-contract",
@@ -11769,6 +11786,14 @@
       "kind": "calls",
       "view": "mechanism",
       "description": "aggregateProcessCentrality supplies the w_dep dependency-centrality term"
+    },
+    {
+      "from": "lane-telemetry-cockpit",
+      "to": "_SYSTEM/state/originator-telemetry.jsonl",
+      "kind": "reads",
+      "target": true,
+      "view": "mechanism",
+      "description": "the YURI_LANE_TELEMETRY event stream it summarizes"
     }
   ]
 }
