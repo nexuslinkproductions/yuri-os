@@ -182,9 +182,12 @@ export function composableTargets(cardA, catalog = null) {
 // a real math-kernel symbol AND it passes a green worked example through math-proof-gate (Core B).
 // ------------------------------------------------------------------------------------------------
 const SYNTH_DEFAULTS = Object.freeze({ maxChainLength: 4, maxBranchingPerNode: 24, maxCandidates: 256 });
-// Symbolic channels PROPOSE combinations but can NEVER promote past research — tagged for the gate/tests.
-const SYMBOLIC_DOMAINS = Object.freeze(['alchemy', 'frequency', 'hermetic', 'magnetism', 'music', 'music-theory', 'numerology']);
-function isSymbolicDomain(d) { const s = String(d || '').toLowerCase(); return SYMBOLIC_DOMAINS.some((c) => s === c || s.includes(c)); }
+// ALL candidate domains are FIRST-CLASS — information-theory, graph, probability, physics, AND music-theory,
+// frequency/wave, magnetism, numerology, alchemy (fundamental resonance/harmony/field/ratio structures our
+// pioneers built real engineering on). The promotion gate is DOMAIN-BLIND: every candidate, whatever its source
+// domains, is inert until it binds a real math-kernel symbol AND passes a green worked example through
+// math-proof-gate. No domain is privileged; none is denied — we operate WITH all of them. (opts.domains is a
+// neutral allow-list filter, not a value judgment.)
 // FNV-1a 32-bit — stable content-addressed id (no crypto, no clock; same chain → same id across runs).
 function fnv1a(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
 
@@ -197,7 +200,9 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
   const maxLen = Math.max(minLen, Number.isFinite(opts.maxChainLength) ? opts.maxChainLength : SYNTH_DEFAULTS.maxChainLength);
   const maxBranch = Math.max(1, Number.isFinite(opts.maxBranchingPerNode) ? opts.maxBranchingPerNode : SYNTH_DEFAULTS.maxBranchingPerNode);
   const maxCandidates = Math.max(1, Number.isFinite(opts.maxCandidates) ? opts.maxCandidates : SYNTH_DEFAULTS.maxCandidates);
-  const includeSymbolic = opts.includeSymbolic !== false;
+  // neutral domain allow-list (focus synthesis on certain source domains); absent ⇒ all domains, equally.
+  const domainFilter = Array.isArray(opts.domains) && opts.domains.length
+    ? new Set(opts.domains.map((d) => String(d).toLowerCase())) : null;
   const startSet = Array.isArray(opts.startIds) && opts.startIds.length
     ? opts.startIds.filter((id) => byId.has(id)).sort((a, b) => a.localeCompare(b)) : cards.map((c) => c.id);
   const endSet = Array.isArray(opts.endIds) && opts.endIds.length ? new Set(opts.endIds.filter((id) => byId.has(id))) : null;
@@ -221,9 +226,8 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
     const last = chain[chain.length - 1];
     if (chain.length >= minLen && (!endSet || endSet.has(last))) {
       const domains = [...new Set(chain.flatMap((id) => byId.get(id).sourceDomains || []))].sort();
-      const containsSymbolic = domains.some(isSymbolicDomain);
-      if (includeSymbolic || !containsSymbolic) {
-        sequences.push({ chain: chain.slice(), hops: hops.slice(), outputDim: byId.get(last).outputDim || 'UNKNOWN', sourceDomains: domains, length: chain.length, containsSymbolic });
+      if (!domainFilter || domains.some((d) => domainFilter.has(String(d).toLowerCase()))) {
+        sequences.push({ chain: chain.slice(), hops: hops.slice(), outputDim: byId.get(last).outputDim || 'UNKNOWN', sourceDomains: domains, length: chain.length });
       }
     }
     if (chain.length >= maxLen) return;
@@ -253,7 +257,6 @@ export function synthesizeFormulaCandidates(opts = {}) {
     outputDim: seq.outputDim,
     operators: seq.chain.map((cid) => byId.get(cid).implementedBy || cid),
     hops: seq.hops,
-    containsSymbolic: seq.containsSymbolic,
   }));
   return { candidates, count: candidates.length, truncated };
 }

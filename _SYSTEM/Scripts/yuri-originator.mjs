@@ -385,7 +385,7 @@ function runSynthesizeFormula(payload, options) {
   const opts = {
     maxCandidates: positiveInt(payload.maxCandidates, 64),
     maxChainLength: positiveInt(payload.maxChainLength, 4),
-    includeSymbolic: payload.includeSymbolic !== false,
+    domains: Array.isArray(payload.domains) ? payload.domains : undefined,
     startIds: Array.isArray(payload.startIds) ? payload.startIds : undefined,
     endIds: Array.isArray(payload.endIds) ? payload.endIds : undefined,
   };

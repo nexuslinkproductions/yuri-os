@@ -7,7 +7,7 @@ tags: formula-foundry, music-theory, frequency, magnetism, candidate-channels, d
 
 # Music → Frequency → Magnetism — Foundry Candidate Channels (research)
 
-> DISCIPLINE: every formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test. It enters the Foundry at promotionStatus:research and can NEVER promote past that on the strength of the domain alone — only a real math-kernel binding + a green worked example through math-proof-gate promotes anything. Mechanisms in, mysticism out. Feeds the Foundry candidate-source channels + the composition type-algebra (formula-foundry.mjs).
+> FRAMING (corrected 2026-06-08): music-theory, frequency/wave, magnetism — and numerology, alchemy, plus astronomy (a future domain for astrophysics) — are FIRST-CLASS fundamental candidate domains, not "symbolic / second-class". Forefathers and pioneers built real engineering on this structure (resonance, harmony, rhythm, ratio, field); we operate WITH all of them. The proof discipline is unchanged but DOMAIN-BLIND: every formula here is deterministic + embedding-free + falsifiable, and promotes by the SAME bar as Shannon entropy — bind a real math-kernel symbol + pass a green worked example through math-proof-gate. No domain is privileged; none is denied. Feeds the Foundry candidate channels + the composition type-algebra (formula-foundry.mjs). See [[all-domains-first-class-domain-blind-gate]].
 
 ## music-theory → deterministic math (interval ratios, temperament, harmonic series, consonance/roughness, rhythm-as-integer-math, scales as Z/12, voice-leading geometry, circle of fifths as modular arithmetic)
 

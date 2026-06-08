@@ -102,10 +102,14 @@ ok(Array.isArray(draft.proofObligations) && draft.proofObligations.length >= 2, 
 const pf = proofPreflightCandidate(draft);
 ok(pf.inert === true && pf.hasBinding === false, 'preflight: a no-binding synthesized card is INERT by construction');
 
-// channels-never-promote: a candidate touching a symbolic domain is tagged + still inert
-const symCandidate = { id: 'synth.test.symbolic', promotionStatus: 'research', advisoryOnly: true, implementedBy: null, synthesisProvenance: ['a', 'b'], sourceDomains: ['music-theory'], outputDim: 'SCORE' };
-const symDraft = draftFormulaBankCard(symCandidate);
-ok(proofPreflightCandidate(symDraft).inert === true, 'a symbolic-channel candidate is inert (channels propose, never promote)');
+// DOMAIN-BLIND gate: a music/frequency/magnetism candidate is inert by the SAME rule as any other (no binding),
+// NOT because it is "symbolic" — and it would promote the SAME way (bind a kernel symbol + green worked example).
+const musicCandidate = { id: 'synth.test.music', promotionStatus: 'research', advisoryOnly: true, implementedBy: null, synthesisProvenance: ['a', 'b'], sourceDomains: ['music-theory'], outputDim: 'SCORE' };
+const infoCandidate = { id: 'synth.test.info', promotionStatus: 'research', advisoryOnly: true, implementedBy: null, synthesisProvenance: ['a', 'b'], sourceDomains: ['information-theory'], outputDim: 'INFORMATION' };
+const musicPf = proofPreflightCandidate(draftFormulaBankCard(musicCandidate));
+const infoPf = proofPreflightCandidate(draftFormulaBankCard(infoCandidate));
+ok(musicPf.inert === infoPf.inert && musicPf.inert === true && musicPf.reason === infoPf.reason,
+  'music-theory and information-theory candidates are gated IDENTICALLY (domain-blind: inert only for lack of binding, not for domain)');
 
 // a card claiming promoted status WITHOUT a binding is still caught inert (no fake promotion)
 const fakePromoted = { id: 'synth.fake', promotionStatus: 'verified-baseline', advisoryOnly: false, implementedBy: null, synthesisProvenance: ['a', 'b'], outputDim: 'SCORE' };
