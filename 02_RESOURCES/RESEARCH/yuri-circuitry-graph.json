@@ -18,7 +18,7 @@
         "_SYSTEM/Scripts/math/math-kernel.mjs"
       ],
       "triggeredBy": "import — foundational primitive layer",
-      "description": "The proven primitive library — 22 certified primitives (entropy, KL, cross-entropy, infoGain, confidenceDecay, brier, logLoss, bayes, softmax, dijkstra, A*, topo-sort, vector ops) with byte-stable rounding and sha256 result hashing. The foundational math layer the energy function and proof gate build on; stateless."
+      "description": "The proven primitive library — 22 certified primitives (entropy, KL, cross-entropy, infoGain, confidenceDecay, brier, logLoss, bayes, softmax, dijkstra, A*, topo-sort, vector ops) with byte-stable rounding and sha256 result hashing. The foundational math layer the energy function and proof gate build on; stateless. FOUNDRY ROLE: the deterministic operator library every Foundry formula card binds to via implementedBy; formula-foundry.coverageReport diffs these exports against bank-card bindings (UNBOUND-PRIMITIVE worklist)."
     },
     {
       "id": "energy-tick-core",
@@ -119,7 +119,7 @@
         "_SYSTEM/data/math/formula-banks/*.json"
       ],
       "triggeredBy": "on-demand CLI + tests; not a runtime hook",
-      "description": "Binds each formula-bank card to a real math-kernel primitive and runs worked examples plus counterexamples (strict error-pattern match) before a bank can be promoted to non-advisory. On-demand CLI and tests only — not a runtime hook; reads the formula-bank JSON banks."
+      "description": "Binds each formula-bank card to a real math-kernel primitive and runs worked examples plus counterexamples (strict error-pattern match) before a bank can be promoted to non-advisory. On-demand CLI and tests only — not a runtime hook; reads the formula-bank JSON banks. FOUNDRY ROLE: this IS Core B of the Formula Foundry — the executable validation oracle; formula-foundry (Core A, dimensional typing) pairs with it, and the synthesis preflight (CHUNK 2) routes candidate cards here for the green-worked-example gate. Both read the same formula-banks."
     },
     {
       "id": "fsrs",
@@ -665,7 +665,7 @@
         "_SYSTEM/Scripts/yuri-originator.mjs"
       ],
       "triggeredBy": "CLI/import — decode, xref, compile_state, energy_gate, create_work_substrate, candidate_actions, launch_substrate, synthesize_formula_candidates, worker_exoskeleton, telemetry",
-      "description": "The read-only native entry port that lets Codex/main, local Ollama workers, and llm-compat lanes traverse the same YURI procedure. It now compiles compact WorkSubstrate manifests, emits CandidateAction seeds, launches substrate lanes, and still supports xref recall, formulaSlate selection, worker output extraction, semantic-state compilation, formulaTrace verification, optional compiler-feedback revision, energy gate, and inspectable telemetry. Gemma is the default local worker; launch_substrate adds a YURI-controlled JSON tool-request loop with configurable tool budgets, per-iteration trace, child heartbeat, and Ollama stream telemetry for local lanes while DeepSeek/Kimi/Nemotron route through llm-lane, not retired offload/workhorse surfaces. The next memory bridge is OpenProcess Sum Pool tracking started-but-unclosed tasks/research/ideas/todos as xref-grounded process mass."
+      "description": "The read-only native entry port that lets Codex/main, local Ollama workers, and llm-compat lanes traverse the same YURI procedure. It now compiles compact WorkSubstrate manifests, emits CandidateAction seeds, launches substrate lanes, and still supports xref recall, formulaSlate selection, worker output extraction, semantic-state compilation, formulaTrace verification, optional compiler-feedback revision, energy gate, and inspectable telemetry. Gemma is the default local worker; launch_substrate adds a YURI-controlled JSON tool-request loop with configurable tool budgets, per-iteration trace, child heartbeat, and Ollama stream telemetry for local lanes while DeepSeek/Kimi/Nemotron route through llm-lane, not retired offload/workhorse surfaces. The next memory bridge is OpenProcess Sum Pool tracking started-but-unclosed tasks/research/ideas/todos as xref-grounded process mass. FOUNDRY ROLE: the one-port origin the Formula Foundry plugs into — graph.impact_centrality hook (via yuri-navigate) today; the synthesize_formula op (CHUNK 2) makes the Foundry callable advisory-only through runOriginator."
     },
     {
       "id": "semantic-state-compiler",
@@ -925,7 +925,7 @@
         "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs"
       ],
       "triggeredBy": "import / CLI — propagation-scan imports MECHANISM_PATTERN_VERBS; CLI validates _SYSTEM/data/math/mechanism-pattern-registry.json",
-      "description": "Closed-set validator for the v0 mechanism-pattern verb taxonomy. It exports a read-only five-verb membership surface and validates registry schema, semver, promotion status, advisoryOnly, required verb fields, duplicate entries, >=2 witnesses, and path:line witness shape; validation rebuilds a private Set so importers cannot self-mint verbs."
+      "description": "Closed-set validator for the v0 mechanism-pattern verb taxonomy. It exports a read-only five-verb membership surface and validates registry schema, semver, promotion status, advisoryOnly, required verb fields, duplicate entries, >=2 witnesses, and path:line witness shape; validation rebuilds a private Set so importers cannot self-mint verbs. FOUNDRY ROLE: the closed mechanism-verb taxonomy the Foundry synthesis verb (CHUNK 2) iterates to generate cross-domain transfer-triangle candidates."
     },
     {
       "id": "energy-trace-outcomes",
@@ -955,7 +955,7 @@
         "_SYSTEM/Scripts/math/transfer-distance.mjs"
       ],
       "triggeredBy": "import by transfer-distance-cores/proof/bakeoff/v2demo/tests; CLI self-demo when run directly",
-      "description": "Pure advisory scoring engine for cross-domain transfer triangles A→M→B: normalized compression distance plus Jaccard baseline distance, min-side mechanism reconstruction bridge, anti-theater caps, prerequisite-blocked detection, and value tiering. Exports MIN_CHARS, DISTANCE_WEIGHTS, GATE, TIER, detectPrereqBlocked, tokenize, jaccardDistance, ncd, recon, v1BlendMetric, distance, bridge, antiTheaterGate, tierOf, and transferScore; no I/O except its direct-run demo."
+      "description": "Pure advisory scoring engine for cross-domain transfer triangles A→M→B: normalized compression distance plus Jaccard baseline distance, min-side mechanism reconstruction bridge, anti-theater caps, prerequisite-blocked detection, and value tiering. Exports MIN_CHARS, DISTANCE_WEIGHTS, GATE, TIER, detectPrereqBlocked, tokenize, jaccardDistance, ncd, recon, v1BlendMetric, distance, bridge, antiTheaterGate, tierOf, and transferScore; no I/O except its direct-run demo. FOUNDRY ROLE: the A·M·B transfer-triangle scorer the Foundry synthesis verb (CHUNK 2) uses to rank cross-domain candidate formulas — advisory ranking only, never promotes a card."
     },
     {
       "id": "transfer-distance-cores",
@@ -1015,7 +1015,7 @@
         "_SYSTEM/Scripts/math/nexus-numerology.mjs"
       ],
       "triggeredBy": "import by yuri-token-expand optional numerology feature path; CLI self-demo when run directly",
-      "description": "Deterministic numerology-as-encoding channel for NEXUS recall features, not mysticism and not a truth metric. It supplies bounded, namespaced buckets: gematria(text) as a stable 32-bit symbol hash, digitalRoot(n) as a mod-9 ring bucket, harmonicSignature(text) as adjacent-token ratio buckets, and numerologyFeatures(text) as opt-in num:/dr:/harm: feature channels. Default matcher behavior remains off unless callers pass numerology:true."
+      "description": "Deterministic numerology-as-encoding channel for NEXUS recall features, not mysticism and not a truth metric. It supplies bounded, namespaced buckets: gematria(text) as a stable 32-bit symbol hash, digitalRoot(n) as a mod-9 ring bucket, harmonicSignature(text) as adjacent-token ratio buckets, and numerologyFeatures(text) as opt-in num:/dr:/harm: feature channels. Default matcher behavior remains off unless callers pass numerology:true. FOUNDRY ROLE: a partially-realized Foundry candidate channel — its HARMONIC_RATIOS + nearestRatioBucket already implement the music harmonic-ratio channel that foundry-channels routes in (the Tenney-height ordering extends it)."
     },
     {
       "id": "yuri-token-expand",
