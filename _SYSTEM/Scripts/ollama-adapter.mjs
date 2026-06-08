@@ -11,7 +11,12 @@ import {
 
 // Cold model loads need extended timeouts — native fetch headersTimeout is 10s (too short).
 // Use node:http directly for full socket + response timeout control.
-const OLLAMA_TIMEOUT_MS = Number(process.env.LLM_COMPAT_OLLAMA_TIMEOUT_MS) || 300_000;
+const DEFAULT_OLLAMA_TIMEOUT_MS = 300_000;
+
+export function resolveOllamaTimeoutMs(env = process.env) {
+  const parsed = Number(env.LLM_COMPAT_OLLAMA_TIMEOUT_MS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_OLLAMA_TIMEOUT_MS;
+}
 
 function ollamaHttpPost(url, body, extraHeaders = {}) {
   return new Promise((resolve, reject) => {
@@ -34,7 +39,100 @@ function ollamaHttpPost(url, body, extraHeaders = {}) {
         json:   () => Promise.resolve(JSON.parse(raw)),
       }));
     });
-    req.setTimeout(OLLAMA_TIMEOUT_MS, () => req.destroy(new Error(`ollama_timeout_${OLLAMA_TIMEOUT_MS}ms`)));
+    const timeoutMs = resolveOllamaTimeoutMs();
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`ollama_timeout_${timeoutMs}ms`)));
+    req.on('error', reject);
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
+function ollamaHttpPostStream(url, body, extraHeaders = {}, onEvent = () => {}) {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const bodyStr = JSON.stringify(body);
+    const req = mod.request({
+      hostname: parsed.hostname,
+      port:     parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+      path:     parsed.pathname + (parsed.search || ''),
+      method:   'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr), ...extraHeaders },
+    }, (res) => {
+      let raw = '';
+      let lineBuffer = '';
+      let output = '';
+      let lastPacket = null;
+      const ok = res.statusCode >= 200 && res.statusCode < 300;
+
+      res.on('data', (chunk) => {
+        const text = chunk.toString('utf8');
+        raw += text;
+        if (!ok) return;
+        lineBuffer += text;
+        const lines = lineBuffer.split(/\r?\n/);
+        lineBuffer = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const packet = JSON.parse(trimmed);
+            lastPacket = packet;
+            const content = packet.message?.content || packet.response || '';
+            if (content) output += content;
+            onEvent({
+              type: 'ollama_stream_chunk',
+              model: packet.model || body.model,
+              done: Boolean(packet.done),
+              chunkChars: content.length,
+              outputChars: output.length,
+              thinkingChars: String(packet.message?.thinking || packet.thinking || '').length,
+              evalCount: packet.eval_count,
+              promptEvalCount: packet.prompt_eval_count,
+            });
+          } catch (error) {
+            onEvent({
+              type: 'ollama_stream_parse_warning',
+              reason: error?.message || 'json_parse_failed',
+              lineChars: trimmed.length,
+            });
+          }
+        }
+      });
+
+      res.on('end', () => {
+        if (ok && lineBuffer.trim()) {
+          try {
+            const packet = JSON.parse(lineBuffer.trim());
+            lastPacket = packet;
+            const content = packet.message?.content || packet.response || '';
+            if (content) output += content;
+            onEvent({
+              type: 'ollama_stream_chunk',
+              model: packet.model || body.model,
+              done: Boolean(packet.done),
+              chunkChars: content.length,
+              outputChars: output.length,
+              thinkingChars: String(packet.message?.thinking || packet.thinking || '').length,
+              evalCount: packet.eval_count,
+              promptEvalCount: packet.prompt_eval_count,
+            });
+          } catch {
+            // Raw response is preserved below for error handling.
+          }
+        }
+        resolve({
+          ok,
+          status: res.statusCode,
+          raw,
+          output,
+          lastPacket,
+          text: () => Promise.resolve(raw),
+        });
+      });
+    });
+    const timeoutMs = resolveOllamaTimeoutMs();
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`ollama_timeout_${timeoutMs}ms`)));
     req.on('error', reject);
     req.write(bodyStr);
     req.end();
@@ -262,9 +360,17 @@ async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, pro
 
   let response;
   try {
-    const body = { model, messages, stream: false };
+    const streamTelemetry = shouldStreamOllamaTelemetry();
+    const body = { model, messages, stream: streamTelemetry };
     if (typeof think === 'boolean') body.think = think;
-    response = await ollamaHttpPost(endpoint, body, apiKey ? { Authorization: `Bearer ${apiKey}` } : {});
+    const streamEmitter = createOllamaStreamTelemetryEmitter({
+      provider,
+      lane: ledger.lane || 'ollama',
+      traceId: ledger.traceId || process.env.LLM_COMPAT_TASK_ID || '',
+    });
+    response = streamTelemetry
+      ? await ollamaHttpPostStream(endpoint, body, apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, streamEmitter)
+      : await ollamaHttpPost(endpoint, body, apiKey ? { Authorization: `Bearer ${apiKey}` } : {});
   } catch (error) {
     const errText = error?.message || String(error);
     await recordOllamaLedger({ provider, model, status: 'error', startedAt, promptText, systemText, endpoint, ledger, metadata, errorText: errText });
@@ -277,10 +383,47 @@ async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, pro
     throw new Error(`${provider.toUpperCase().replace(/-/g, '_')}_${response.status}: ${errText}`);
   }
 
-  const data = await response.json();
-  const output = data.message?.content || data.response || '';
+  const data = response.lastPacket || await response.json();
+  const output = response.output ?? (data.message?.content || data.response || '');
   await recordOllamaLedger({ provider, model, responseModel: data.model || model, status: 'ok', usage: data, output, startedAt, promptText, systemText, endpoint, ledger, metadata });
   return output;
+}
+
+function shouldStreamOllamaTelemetry(env = process.env) {
+  return String(env.LLM_COMPAT_OLLAMA_STREAM_TELEMETRY || 'true').toLowerCase() !== 'false';
+}
+
+function createOllamaStreamTelemetryEmitter({ provider, lane, traceId }, env = process.env) {
+  const intervalMs = Math.max(100, Number(env.LLM_COMPAT_STREAM_EVENT_MS || 1000) || 1000);
+  let lastEmit = 0;
+  let skippedChunks = 0;
+  let lastOutputChars = 0;
+  return (event = {}) => {
+    skippedChunks += 1;
+    const now = Date.now();
+    const outputMoved = Number(event.outputChars || 0) !== lastOutputChars || Number(event.chunkChars || 0) > 0;
+    const shouldEmit = Boolean(event.done) || outputMoved || now - lastEmit >= intervalMs;
+    if (!shouldEmit) return;
+    emitLaneTelemetry({
+      ...event,
+      provider,
+      lane,
+      traceId,
+      skippedChunks: Math.max(0, skippedChunks - 1),
+    });
+    skippedChunks = 0;
+    lastEmit = now;
+    lastOutputChars = Number(event.outputChars || lastOutputChars || 0);
+  };
+}
+
+function emitLaneTelemetry(event = {}) {
+  const safe = Object.fromEntries(
+    Object.entries(event)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [key, typeof value === 'string' ? value.slice(0, 500) : value]),
+  );
+  process.stderr.write(`YURI_LANE_TELEMETRY ${JSON.stringify(safe)}\n`);
 }
 
 async function recordOllamaLedger({ provider, model, responseModel, status, usage = {}, output = '', startedAt, promptText, systemText, endpoint, ledger = {}, metadata = {}, errorText = '', httpStatus = 0 }) {

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-07",
+  "updated": "2026-06-08",
   "purpose": "Bounded context packet registry for YURI OS. Active navigation is xref-query first, with propagation-scan for circuitry-node sibling checks; this registry supplies maintained path sets that xref-aware tools and humans can cross-reference.",
   "readOrder": [
     "_SYSTEM/yuri-origin.md",
@@ -37,11 +37,13 @@
     {
       "id": "originator-bridge",
       "label": "YURI Originator / LLM Math Bridge Context",
-      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "llm unlock", "platform switching", "cross-platform"],
+      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "semantic compiler", "state compiler", "WorkSubstrate", "work substrate", "create_work_substrate", "launch_substrate", "candidate_actions", "CandidateAction", "toolRequests", "tool loop", "streaming telemetry", "lane telemetry", "OpenProcess", "Open Process", "Open Process Sum Pool", "open mass", "unfinished tasks", "unfinished research", "exoskeleton", "worker_exoskeleton", "llm_exoskeleton", "formulaSlate", "formulaTrace", "originator telemetry", "ActionCapability", "SafeWriteSchema", "Execution Isolation Gap", "llm unlock", "platform switching", "cross-platform"],
       "paths": [
         "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
         "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
         "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
+        "_SYSTEM/Scripts/yuri-originator.mjs",
+        "_SYSTEM/Scripts/semantic-state-compiler.mjs",
         "_SYSTEM/Scripts/yuri-input-genome.mjs",
         "_SYSTEM/Scripts/llm-lane.mjs",
         "_SYSTEM/Scripts/lane-core-hooks.mjs",
@@ -54,14 +56,17 @@
         "02_RESOURCES/RESEARCH/yuri-clockwork-northstar-2026-06-06.md",
         "02_RESOURCES/RESEARCH/yuri-mainspring-synthesis-2026-06-07.md"
       ],
-      "loadRule": "Use when a model needs to understand or build the shared LLM entry point into YURI's math, energy, xref, memory, and llm-compat substrate. Keep local evidence above advisory lane output."
+      "loadRule": "Use when a model needs to understand or build the shared LLM entry point into YURI's math, energy, xref, memory, streaming telemetry, semantic compiler, WorkSubstrate/CandidateAction launcher, OpenProcess Sum Pool, and llm-compat substrate. Keep local evidence above advisory lane output."
     },
     {
       "id": "llm-compat-lanes",
       "label": "LLM Compatibility / Operator Lane Context",
-      "triggers": ["llm", "llm-compat", "gemma", "ollama", "local model", "local slm", "terminal", "harness", "tmux", "pty", "streaming", "lane", "lanes"],
+      "triggers": ["llm", "llm-compat", "worker_exoskeleton", "llm_exoskeleton", "launch_substrate", "WorkSubstrate", "toolRequests", "tool loop", "deepseek", "gemma", "ollama", "local model", "local slm", "terminal", "harness", "tmux", "pty", "streaming", "streaming telemetry", "heartbeat", "lane telemetry", "lane", "lanes", "formulaTrace", "telemetry"],
       "paths": [
         "_SYSTEM/LANE-MANUAL.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
+        "_SYSTEM/Scripts/yuri-originator.mjs",
         "_SYSTEM/Scripts/llm-compat.sh",
         "_SYSTEM/Scripts/llm-compat-contract.mjs",
         "_SYSTEM/Scripts/llm-lane.mjs",
@@ -78,7 +83,7 @@
         "_SYSTEM/Scripts/yuri/status-line.mjs",
         "_SYSTEM/Scripts/yuri/symbiotic-pulse.mjs"
       ],
-      "loadRule": "Use for LLM compatibility, Gemma/Ollama local routing, terminal lane routing, persistent CLI, and operator-surface work. Retired harnesses are not default context authorities."
+      "loadRule": "Use for LLM compatibility, worker_exoskeleton/launch_substrate routing, Gemma/Ollama local routing and JSON tool loop, DeepSeek/Kimi/Nemotron through llm-lane, terminal lane routing, persistent CLI, and operator-surface work. Retired harnesses are not default context authorities."
     },
     {
       "id": "xref-navigation",

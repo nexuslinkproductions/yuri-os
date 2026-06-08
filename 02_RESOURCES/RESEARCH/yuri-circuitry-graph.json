@@ -654,8 +654,28 @@
       "files": [
         "_SYSTEM/Scripts/llm-lane.mjs"
       ],
-      "triggeredBy": "CLI/import — `ai llm <lane>`, `ai deepseek|kimi|nemotron`, llm-compat.sh -m, worker-bridge/task-queue/yuri-workhorse/deepseek-guarded-handoff",
-      "description": "The frontier/openai-compatible dispatch path for deepseek-v4-pro, nemotron-3-ultra-550b-a55b, and kimi-k2.6. Replaced the ~4040-line offload-runner/reasoning-lane-dispatch/*-dispatch-adapter stack in the 2026-06-05 consolidation. It loads the YURI spine and guarded tools, then fires lane-core-hooks so dispatches enter energy ΔU, memory recall, evidence ledger, and docked-output pulse. Local Ollama/Gemma compatibility now uses ollama-lane.mjs, which inherits the same core-ingest seam instead of reusing the frontier runner."
+      "triggeredBy": "CLI/import — llm-compat.sh -m, direct llm-lane dispatch, and yuri-originator worker_exoskeleton backend llm-lane",
+      "description": "The frontier/openai-compatible dispatch path for deepseek-v4-pro, nemotron-3-ultra-550b-a55b, and kimi-k2.6. It loads the YURI spine and guarded tools, then fires lane-core-hooks so dispatches enter energy ΔU, memory recall, evidence ledger, and docked-output pulse. Local Ollama/Gemma compatibility uses ollama-lane.mjs, which inherits the same core-ingest path instead of reusing frontier dispatch."
+    },
+    {
+      "id": "yuri-originator",
+      "label": "YURI Originator (native worker exoskeleton entry port)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/yuri-originator.mjs"
+      ],
+      "triggeredBy": "CLI/import — decode, xref, compile_state, energy_gate, create_work_substrate, candidate_actions, launch_substrate, synthesize_formula_candidates, worker_exoskeleton, telemetry",
+      "description": "The read-only native entry port that lets Codex/main, local Ollama workers, and llm-compat lanes traverse the same YURI procedure. It now compiles compact WorkSubstrate manifests, emits CandidateAction seeds, launches substrate lanes, and still supports xref recall, formulaSlate selection, worker output extraction, semantic-state compilation, formulaTrace verification, optional compiler-feedback revision, energy gate, and inspectable telemetry. Gemma is the default local worker; launch_substrate adds a YURI-controlled JSON tool-request loop with configurable tool budgets, per-iteration trace, child heartbeat, and Ollama stream telemetry for local lanes while DeepSeek/Kimi/Nemotron route through llm-lane, not retired offload/workhorse surfaces. The next memory bridge is OpenProcess Sum Pool tracking started-but-unclosed tasks/research/ideas/todos as xref-grounded process mass."
+    },
+    {
+      "id": "semantic-state-compiler",
+      "label": "Semantic State Compiler (claim-to-energy contract guard)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/semantic-state-compiler.mjs"
+      ],
+      "triggeredBy": "import — called by yuri-originator before any model proposedState can reach energy gates",
+      "description": "Compiles advisory model packets into the closed executable energy-state surface. It rejects derived metric smuggling, arbitrary labels, object-shaped distributions, and malformed evidence, preserving human-readable claims under advisory laneClaims/handoff while allowing only canonical numeric stateBefore/stateAfter fields into gateProposal."
     },
     {
       "id": "lane-core-hooks",
@@ -988,6 +1008,16 @@
       "description": "Pure deterministic π, golden-ratio, golden-angle, and Fibonacci primitive set for 1-D minimization, discrete threshold search, anti-resonant cadence, and even 2-D/angular placement. Exports PHI, INV_PHI, INV_PHI_SQ, GOLDEN_ANGLE, fib, fibBig, fibSequence, goldenSectionSearch, fibonacciSearchMin, phiPoint, phiSequence, goldenAnglePoint, and goldenAnglePoints."
     },
     {
+      "id": "nexus-numerology",
+      "label": "NEXUS Numerology (bounded symbolic feature channels)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/nexus-numerology.mjs"
+      ],
+      "triggeredBy": "import by yuri-token-expand optional numerology feature path; CLI self-demo when run directly",
+      "description": "Deterministic numerology-as-encoding channel for NEXUS recall features, not mysticism and not a truth metric. It supplies bounded, namespaced buckets: gematria(text) as a stable 32-bit symbol hash, digitalRoot(n) as a mod-9 ring bucket, harmonicSignature(text) as adjacent-token ratio buckets, and numerologyFeatures(text) as opt-in num:/dr:/harm: feature channels. Default matcher behavior remains off unless callers pass numerology:true."
+    },
+    {
       "id": "yuri-token-expand",
       "label": "YURI Token Expand (embedding-free semantic feature bridge)",
       "layer": "Energy & Math",
@@ -1215,6 +1245,18 @@
       "to": "math-kernel",
       "kind": "calls",
       "description": "binds each formula-bank card to its real math-kernel primitive (FORMULA_IMPLEMENTATIONS) to run the worked-example and counterexample checks."
+    },
+    {
+      "from": "nexus-numerology",
+      "to": "yuri-jaccard",
+      "kind": "calls",
+      "description": "imports tokenize from yuri-jaccard so numerologyFeatures shares the same bounded tokenization surface as the embedding-free matcher stack."
+    },
+    {
+      "from": "yuri-token-expand",
+      "to": "nexus-numerology",
+      "kind": "calls",
+      "description": "optionally merges numerologyFeatures(text) into the feature surface when callers explicitly pass numerology:true; default matching remains unchanged."
     },
     {
       "from": "math-proof-gate",
@@ -2089,6 +2131,36 @@
       "description": "The shared lane contract exposes gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss as local compatibility lanes routed through ollama-lane."
     },
     {
+      "from": "yuri-originator",
+      "to": "XREF_QUERY",
+      "kind": "calls",
+      "description": "worker_exoskeleton starts from broad xref recall before any model generation; create_work_substrate stores xref policy as a compact recall envelope, and launch_substrate lets lanes discover through xref/tool requests instead of receiving a giant packet."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "semantic-state-compiler",
+      "kind": "calls",
+      "description": "Every worker model output is parsed and compiled before it can be treated as executable energy state."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "Only compiled stateBefore/stateAfter packets reach gateProposal for Lyapunov-style accept/reject checks."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "ollama-lane",
+      "kind": "routes",
+      "description": "Local worker_exoskeleton runs dispatch through the Ollama compatibility backend for gemma-local and other local lane aliases. launch_substrate adds the WorkSubstrate JSON tool loop around Ollama so Gemma can request xref/read/grep/list/propagation observations under YURI policy. Ollama local calls now emit stream/chunk lane telemetry through the adapter, while Originator records process heartbeat, tool iterations, exhaustion edges, and final compile/gate results."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "llm-lane",
+      "kind": "routes",
+      "description": "DeepSeek/Kimi/Nemotron worker_exoskeleton and launch_substrate runs dispatch through the llm-compat llm-lane backend with system packet/substrate, reasoning depth, native tools, and telemetry."
+    },
+    {
       "from": "ollama-lane",
       "to": "ollama-adapter",
       "kind": "calls",
@@ -2125,5 +2197,5 @@
       "description": "Gemma local lane enters the same core-ingest seam for energy, recall, evidence ledger, and docked-output pulse."
     }
   ],
-  "generatedAt": "2026-06-07"
+  "generatedAt": "2026-06-08"
 }

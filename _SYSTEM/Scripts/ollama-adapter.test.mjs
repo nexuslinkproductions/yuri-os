@@ -8,6 +8,7 @@ import {
   OLLAMA_GEMMA_MODELS,
   OLLAMA_LOCAL_MODELS,
   postOllamaEmbedding,
+  resolveOllamaTimeoutMs,
   resolveOllamaAdditiveLane,
   runOllamaCloudChat,
   runOllamaLocalChat,
@@ -59,6 +60,12 @@ try {
 
   {
     assert.deepEqual(OLLAMA_GEMMA_MODELS, ['gemma4:12b-it-qat']);
+  }
+
+  {
+    assert.equal(resolveOllamaTimeoutMs({}), 300_000);
+    assert.equal(resolveOllamaTimeoutMs({ LLM_COMPAT_OLLAMA_TIMEOUT_MS: '900000' }), 900_000);
+    assert.equal(resolveOllamaTimeoutMs({ LLM_COMPAT_OLLAMA_TIMEOUT_MS: '-1' }), 300_000);
   }
 
   {
@@ -122,7 +129,7 @@ try {
       assert.equal(output, 'local summary');
       assert.equal(requests[0].url, '/api/chat');
       assert.equal(requests[0].headers.authorization, undefined);
-      assert.equal(requests[0].body.stream, false);
+      assert.equal(requests[0].body.stream, true);
     });
   }
 
@@ -139,6 +146,7 @@ try {
       const output = await runOllamaCloudChat(`${baseUrl}/api/chat`, 'cloud-secret', 'llama3.3:70b', 'summarize', '', { lane: 'ollama-cloud', traceId: 'ollama-cloud-test' });
       assert.equal(output, 'cloud summary');
       assert.equal(requests[0].headers.authorization, 'Bearer cloud-secret');
+      assert.equal(requests[0].body.stream, true);
     });
   }
 
