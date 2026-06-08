@@ -1121,6 +1121,16 @@
       ],
       "triggeredBy": "import/CLI — Foundry Core A (dimensional typing); reads the 6 formula-banks; the composition type-algebra gates illegal output→input combinations before math-proof-gate (Core B) runs",
       "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate."
+    },
+    {
+      "id": "foundry-channels",
+      "label": "Foundry candidate-source channels (music/frequency/magnetism)",
+      "layer": "Energy & Math",
+      "files": [
+        "02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md"
+      ],
+      "triggeredBy": "research → Formula Foundry candidate generators: 23 deterministic, falsifiable formulas across music-theory (equal-temperament, Tenney-height consonance, Euclidean rhythm, polyrhythm-LCM, circle-of-fifths Z/12), frequency/wave (DFT, Goertzel, resonance/Q, beats, standing-wave modes), magnetism (Larmor, Maxwell curl/div, Biot-Savart, flux quantization) + cross-domain mechanism bridges",
+      "description": "Deep-research candidate-source channels for the Formula Foundry. Each formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test; all capped at promotionStatus:research — candidate generators, NEVER truth, until a real math-kernel binding + a green worked example through math-proof-gate promotes one. Routes into formula-foundry as candidate generators; the harmonic-ratio music channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket). Mechanisms in, mysticism out."
     }
   ],
   "edges": [
@@ -2264,6 +2274,18 @@
       "kind": "reads",
       "target": true,
       "description": "catalogFormulas reads the 6 typed formula-bank JSON files (the dimensional/units layer = Core A typing source)."
+    },
+    {
+      "from": "foundry-channels",
+      "to": "formula-foundry",
+      "kind": "routes",
+      "description": "the 23 channel formulas route into the Formula Foundry as deterministic candidate-generator operators (research-status only)."
+    },
+    {
+      "from": "foundry-channels",
+      "to": "nexus-numerology",
+      "kind": "routes",
+      "description": "the music harmonic-ratio channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket); the Tenney-height ordering extends it."
     }
   ],
   "generatedAt": "2026-06-08"
