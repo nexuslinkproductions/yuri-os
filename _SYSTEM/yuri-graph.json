@@ -790,7 +790,8 @@
     "formula-foundry",
     "foundry-channels",
     "graph-unify",
-    "formula-foundry-bakeoff"
+    "formula-foundry-bakeoff",
+    "openprocess-pool"
   ],
   "flowTopKeys": [
     "version",
@@ -5473,6 +5474,22 @@
       },
       "mechanism": null,
       "label": "OPENCLAW"
+    },
+    {
+      "id": "openprocess-pool",
+      "tiers": [
+        "mechanism"
+      ],
+      "label": "OpenProcess Sum Pool (mathematical memory for started-but-unclosed work)",
+      "mechanism": {
+        "label": "OpenProcess Sum Pool (mathematical memory for started-but-unclosed work)",
+        "layer": "Memory & Subconscious",
+        "files": [
+          "_SYSTEM/Scripts/openprocess-pool.mjs"
+        ],
+        "triggeredBy": "import/CLI — tracks every started-but-unclosed thread (task/research/idea/todo/skill/bug/experiment/handoff) as an OpenProcess; ranks by OpenMass = w_status*status_open + w_age*staleness(confidenceDecay) + w_dep*dependency_centrality(yuri-navigate.aggregateProcessCentrality) + w_risk*unfinished_risk + w_value*operator_value - w_verify*verified_closure_evidence",
+        "description": "Mathematical memory: answers \"what did we start but not finish?\" from indexed process MASS, not memory vibes. Stale-but-open threads rise back into attention; closed work loses mass (verify term subtracts). Deterministic (ages carried on evidence, no clock). UI-agnostic across Codex/Claude/Gemma/DeepSeek. The dependency-centrality term rides on yuri-navigate (the convergence — OpenProcess uses the structural centrality primitive)."
+      }
     },
     {
       "id": "operator-write-guard",
@@ -11738,6 +11755,20 @@
       "kind": "calls",
       "view": "mechanism",
       "description": "real non-truncated total counts for stage-3 real-data bakeoff"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "math-kernel",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "reuses confidenceDecay for the hazard/staleness term"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "aggregateProcessCentrality supplies the w_dep dependency-centrality term"
     }
   ]
 }

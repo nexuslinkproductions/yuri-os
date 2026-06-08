@@ -1152,6 +1152,16 @@
       ],
       "triggeredBy": "import/CLI — tests synthesized candidates (stages 0-3: intake, synthetic fixtures via runFormulaProofGate, adversarial counterexamples, real-data bakeoff) generator-not-scorer + real total counts; + the sidecar append-only promotion/demotion ledger (domain-blind mutator). The promotion side of Core B.",
       "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression."
+    },
+    {
+      "id": "openprocess-pool",
+      "label": "OpenProcess Sum Pool (mathematical memory for started-but-unclosed work)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/openprocess-pool.mjs"
+      ],
+      "triggeredBy": "import/CLI — tracks every started-but-unclosed thread (task/research/idea/todo/skill/bug/experiment/handoff) as an OpenProcess; ranks by OpenMass = w_status*status_open + w_age*staleness(confidenceDecay) + w_dep*dependency_centrality(yuri-navigate.aggregateProcessCentrality) + w_risk*unfinished_risk + w_value*operator_value - w_verify*verified_closure_evidence",
+      "description": "Mathematical memory: answers \"what did we start but not finish?\" from indexed process MASS, not memory vibes. Stale-but-open threads rise back into attention; closed work loses mass (verify term subtracts). Deterministic (ages carried on evidence, no clock). UI-agnostic across Codex/Claude/Gemma/DeepSeek. The dependency-centrality term rides on yuri-navigate (the convergence — OpenProcess uses the structural centrality primitive)."
     }
   ],
   "edges": [
@@ -2344,6 +2354,18 @@
       "to": "corpus-match",
       "kind": "calls",
       "description": "real non-truncated total counts for stage-3 real-data bakeoff"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "reuses confidenceDecay for the hazard/staleness term"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "aggregateProcessCentrality supplies the w_dep dependency-centrality term"
     }
   ],
   "generatedAt": "2026-06-08"
