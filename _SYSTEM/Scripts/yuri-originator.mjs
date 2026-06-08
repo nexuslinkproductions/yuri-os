@@ -1758,37 +1758,62 @@ export function buildWorkerRevisionPrompt({ objective = '', previousOutput = '',
 
 export function buildFormulaSlate(objective = '', recall = '') {
   const haystack = `${objective}\n${recall}`.toLowerCase();
+  // These cards are INJECTED into every slate regardless of the objective. That manufactures presence:
+  // a lane citing a mandatory card is NOT evidence it independently reached for it (verified false-
+  // convergence 2026-06-08). buildFormulaSlate therefore tags provenance so verifyFormulaUse can tell
+  // an injected citation from an earned one.
   const mandatory = new Set(['schema.type_algebra', 'lyapunov.energy_descent', 'bayes.evidence_update']);
   const scored = FORMULA_CARDS.map((card) => {
     const hits = card.useWhen.filter((term) => haystack.includes(term.toLowerCase())).length;
-    const mandatoryBoost = mandatory.has(card.id) ? 2 : 0;
-    return { card, score: hits + mandatoryBoost };
+    const isMandatory = mandatory.has(card.id);
+    const mandatoryBoost = isMandatory ? 2 : 0;
+    // 'mandatory' = present ONLY via the boost (0 real objective hits); 'selected' = the objective
+    // genuinely matched it (it earned its place, mandatory or not).
+    const provenance = isMandatory && hits === 0 ? 'mandatory' : 'selected';
+    return { card, score: hits + mandatoryBoost, hits, mandatoryBoost, provenance };
   })
     .filter(({ score }) => score > 0)
     .sort((left, right) => right.score - left.score || left.card.id.localeCompare(right.card.id));
 
-  return scored.slice(0, MAX_FORMULA_SLATE_CARDS).map(({ card, score }) => ({
+  return scored.slice(0, MAX_FORMULA_SLATE_CARDS).map(({ card, score, hits, mandatoryBoost, provenance }) => ({
     id: card.id,
     theoremFamily: card.theoremFamily,
     operator: card.operator,
     executableHook: card.executableHook,
     outputShape: card.outputShape,
     selectionScore: score,
+    hits,
+    mandatoryBoost,
+    provenance,
   }));
 }
 
 export function verifyFormulaUse(modelJson = {}, formulaSlate = []) {
   const allowed = new Set(formulaSlate.map((card) => card.id));
+  const slateById = new Map(formulaSlate.map((card) => [card.id, card]));
   const rawUse = modelJson?.laneClaims?.formulaUse ?? modelJson?.formulaUse ?? [];
   const used = Array.isArray(rawUse)
     ? rawUse.map(String)
     : String(rawUse || '').split(/[,;\s]+/).filter(Boolean);
   const uniqueUsed = [...new Set(used)];
+  // Per-citation provenance audit: a card cited only because it was INJECTED ('mandatory') is NOT
+  // evidence of lane independence. independentFormulaUse requires at least one EARNED ('selected') citation.
+  const citations = uniqueUsed.map((id) => {
+    const slateEntry = slateById.get(id);
+    const inSlate = Boolean(slateEntry);
+    const provenance = inSlate ? (slateEntry.provenance === 'selected' ? 'selected' : 'mandatory') : null;
+    return { id, inSlate, provenance, independentlyChosen: inSlate && provenance === 'selected' };
+  });
+  const independentFormulaUse = citations.some((c) => c.independentlyChosen);
+  const injectedOnlyCitations = citations.filter((c) => c.inSlate && c.provenance === 'mandatory').map((c) => c.id);
   if (uniqueUsed.length === 0) {
     return {
       status: 'missing',
       used: [],
       unknown: [],
+      citations: [],
+      independentFormulaUse: false,
+      injectedOnlyCitations: [],
       reason: 'model did not cite formula card IDs',
     };
   }
@@ -1797,6 +1822,9 @@ export function verifyFormulaUse(modelJson = {}, formulaSlate = []) {
     status: unknown.length > 0 ? 'rejected' : 'ok',
     used: uniqueUsed,
     unknown,
+    citations,
+    independentFormulaUse,
+    injectedOnlyCitations,
     reason: unknown.length > 0
       ? 'model cited formula cards outside selected formulaSlate'
       : 'formula card citations match selected formulaSlate',

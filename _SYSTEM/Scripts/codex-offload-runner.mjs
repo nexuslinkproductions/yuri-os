@@ -163,6 +163,7 @@ function parseArgs(rest) {
     smoke:         false,
     proveRoute:    false,
     sandboxOverride: null,    // --sandbox override (DRAFT read-only = the gate-on-the-gate)
+    sandboxReason: null,      // --sandbox-reason "<why>" — REQUIRED to actually apply a restrictive (read-only) sandbox
     promptParts:   [],
     artifactDir:   '',
     workspaceRoot: process.env.CODEX_TARGET_WORKTREE || process.env.CODEX_SPARK_WORKSPACE || repoRoot,
@@ -194,6 +195,7 @@ function parseArgs(rest) {
       continue;
     }
     if (token === '--sandbox' && args[i + 1]) { out.sandboxOverride = args[++i]; continue; }
+    if (token === '--sandbox-reason' && args[i + 1]) { out.sandboxReason = args[++i]; continue; }
     if (token === '--artifact-dir' && args[i + 1]) { out.artifactDir  = args[++i]; continue; }
     if (token === '--cd'           && args[i + 1]) { out.workspaceRoot = path.resolve(args[++i]); continue; }
     if (token === '--timeout-ms'   && args[i + 1]) { out.timeoutMs    = parseInt(args[++i], 10); continue; }
@@ -207,11 +209,27 @@ function parseArgs(rest) {
   if (out.context) { const pack = buildContextPack(out.context); if (pack) out.prompt = `${pack}\n\n===== TASK =====\n${out.prompt}`; }
 
   // --sandbox override: validate against the codex enum and clone the model config (order-
-  // independent vs --model, which resets modelConfig). DRAFT lanes pass read-only.
+  // independent vs --model, which resets modelConfig).
+  //
+  // YURI LANE POLICY (Marcel 2026-06-08): lanes run FULLY EQUIPPED by default — never sandbox a lane
+  // unless EXPLICITLY needed. A RESTRICTIVE sandbox ('read-only') blocks process control, so the lane
+  // cannot run `node`/tests (the exact failure that wasted a Foundry hardening pass). Therefore a
+  // restrictive sandbox is only applied when the caller justifies it with --sandbox-reason "<why>";
+  // a bare `--sandbox read-only` with no reason is IGNORED and the lane runs at the equipped default.
+  // 'workspace-write' and 'danger-full-access' are equipped build modes and pass through freely.
   if (out.sandboxOverride) {
     const allowedSandbox = new Set(['read-only', 'workspace-write', 'danger-full-access']);
-    if (allowedSandbox.has(out.sandboxOverride)) out.modelConfig = { ...out.modelConfig, sandbox: out.sandboxOverride };
-    else process.stderr.write(`[runner] ignoring invalid --sandbox '${out.sandboxOverride}'\n`);
+    const RESTRICTIVE = new Set(['read-only']);
+    if (!allowedSandbox.has(out.sandboxOverride)) {
+      process.stderr.write(`[runner] ignoring invalid --sandbox '${out.sandboxOverride}'\n`);
+    } else if (RESTRICTIVE.has(out.sandboxOverride) && !String(out.sandboxReason || '').trim()) {
+      process.stderr.write(`[runner] LANE POLICY: ignoring restrictive --sandbox '${out.sandboxOverride}' with no --sandbox-reason; running FULLY EQUIPPED (default '${out.modelConfig.sandbox}'). Pass --sandbox-reason "<why>" to deliberately restrict.\n`);
+    } else {
+      out.modelConfig = { ...out.modelConfig, sandbox: out.sandboxOverride };
+      if (RESTRICTIVE.has(out.sandboxOverride)) {
+        process.stderr.write(`[runner] LANE SANDBOXED (${out.sandboxOverride}) — explicit reason: ${String(out.sandboxReason).trim()}\n`);
+      }
+    }
   }
 
   // Resolve reasoning: caller arg → model default → null

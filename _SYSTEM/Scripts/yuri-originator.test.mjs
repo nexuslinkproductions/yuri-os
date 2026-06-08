@@ -93,6 +93,26 @@ const originatorPath = resolve(__dirname, 'yuri-originator.mjs');
   assert.equal(missing.status, 'missing');
   const rejected = verifyFormulaUse({ laneClaims: { formulaUse: ['made.up.card'] } }, slate);
   assert.equal(rejected.status, 'rejected');
+
+  // false-convergence audit: an INJECTED (mandatory, 0-hit) card cited by a lane is NOT independence.
+  const injectedSlate = buildFormulaSlate('zzzz', ''); // no objective term matches any useWhen
+  const injectedSchema = injectedSlate.find((card) => card.id === 'schema.type_algebra');
+  assert.equal(injectedSchema.hits, 0);
+  assert.equal(injectedSchema.mandatoryBoost, 2);
+  assert.equal(injectedSchema.provenance, 'mandatory');
+  const injectedTrace = verifyFormulaUse({ laneClaims: { formulaUse: ['schema.type_algebra'] } }, injectedSlate);
+  assert.equal(injectedTrace.status, 'ok');
+  assert.equal(injectedTrace.independentFormulaUse, false);
+  assert.deepEqual(injectedTrace.injectedOnlyCitations, ['schema.type_algebra']);
+
+  // an EARNED (selected, real-hit) citation of the same card IS independence.
+  const earnedSlate = buildFormulaSlate('schema compiler json contract state', '');
+  const earnedSchema = earnedSlate.find((card) => card.id === 'schema.type_algebra');
+  assert.ok(earnedSchema.hits > 0);
+  assert.equal(earnedSchema.provenance, 'selected');
+  const earnedTrace = verifyFormulaUse({ laneClaims: { formulaUse: ['schema.type_algebra'] } }, earnedSlate);
+  assert.equal(earnedTrace.independentFormulaUse, true);
+  assert.deepEqual(earnedTrace.injectedOnlyCitations, []);
 }
 
 {
