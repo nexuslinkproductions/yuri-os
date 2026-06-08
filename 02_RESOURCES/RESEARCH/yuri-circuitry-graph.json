@@ -1192,6 +1192,16 @@
       ],
       "triggeredBy": "CLI/import — classifies an artifact (research/scratch/schema/handoff/report/math-module/script/state) to its canonical zone via ordered first-match rules; flags misplaced + ephemeral-in-repo + unclassified; hazard-decay staleness (confidenceDecay) for purge candidates",
       "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report."
+    },
+    {
+      "id": "yuri-decode",
+      "label": "YURI Decode (LLM-wielded decoder instrument: text → math object)",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/Scripts/yuri-decode.mjs"
+      ],
+      "triggeredBy": "import/CLI — decode(\"<text>\") returns a deterministic math object (raw tokens + frequency + lexical density, numerology channels gematria/digital-root/harmonic, dimensional reading via the Foundry classifier, a compact feature surface) that the LLM reasons over directly",
+      "description": "The LLM-WIELDED decoder instrument (Marcel: the LLM uses the decoder directly, NOT an ingress pre-processor). Same engine, inverted control — the model calls it. Deterministic + embedding-free; reuses nexus-numerology + formula-foundry classifyDimension. Advisory: the returned math object is a representation, not a truth claim."
     }
   ],
   "edges": [
@@ -2433,6 +2443,18 @@
       "to": "yuri-id-bridge",
       "kind": "calls",
       "description": "normalizePath for canonical path comparison"
+    },
+    {
+      "from": "yuri-decode",
+      "to": "nexus-numerology",
+      "kind": "calls",
+      "description": "gematria/digital-root/harmonic numerology channels"
+    },
+    {
+      "from": "yuri-decode",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "classifyDimension for the dimensional reading of the text + tokens"
     }
   ],
   "generatedAt": "2026-06-08"
