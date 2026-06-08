@@ -1,4 +1,5 @@
 {
+  "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`.",
   "version": "v15",
   "generated_at": "2026-05-16T12:19:15.860Z",
   "commit": "381f9876",

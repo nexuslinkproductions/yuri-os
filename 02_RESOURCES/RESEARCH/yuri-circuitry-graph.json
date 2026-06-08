@@ -1,4 +1,5 @@
 {
+  "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`.",
   "nodes": [
     {
       "id": "energy-fn",
@@ -1131,6 +1132,16 @@
       ],
       "triggeredBy": "research → Formula Foundry candidate generators: 23 deterministic, falsifiable formulas across music-theory (equal-temperament, Tenney-height consonance, Euclidean rhythm, polyrhythm-LCM, circle-of-fifths Z/12), frequency/wave (DFT, Goertzel, resonance/Q, beats, standing-wave modes), magnetism (Larmor, Maxwell curl/div, Biot-Savart, flux quantization) + cross-domain mechanism bridges",
       "description": "Deep-research candidate-source channels for the Formula Foundry. Each formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test; all capped at promotionStatus:research — candidate generators, NEVER truth, until a real math-kernel binding + a green worked example through math-proof-gate promotes one. Routes into formula-foundry as candidate generators; the harmonic-ratio music channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket). Mechanisms in, mysticism out."
+    },
+    {
+      "id": "graph-unify",
+      "label": "YURI Graph Unify (canonical source + lossless projection)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/yuri-graph-unify.mjs"
+      ],
+      "triggeredBy": "CLI seed/project/verify; the ONE canonical graph _SYSTEM/yuri-graph.json is the single source; the flow (yuri-graph-state.json) + mechanism (yuri-circuitry-graph.json) views are GENERATED projections. Edit canonical, run project, both views regenerate; drift structurally impossible.",
+      "description": "Solves the two-graph fragmentation: one canonical tiered graph (flow + mechanism nodes), the two view files become lossless generated projections. seedCanonical unions both; projectFlow/projectMechanism regenerate the views in original order; verifyLossless proves the round-trip."
     }
   ],
   "edges": [
@@ -2298,6 +2309,13 @@
       "to": "formula-foundry",
       "kind": "calls",
       "description": "the synthesize_formula one-port op imports synthesizeFormulaCandidates — the Foundry is reachable through the Originator origin, advisory-only, returning inert research candidates."
+    },
+    {
+      "from": "graph-unify",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "writes",
+      "target": true,
+      "description": "projects the mechanism view from the canonical"
     }
   ],
   "generatedAt": "2026-06-08"
