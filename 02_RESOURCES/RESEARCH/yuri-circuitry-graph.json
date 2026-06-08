@@ -1142,6 +1142,16 @@
       ],
       "triggeredBy": "CLI seed/project/verify; the ONE canonical graph _SYSTEM/yuri-graph.json is the single source; the flow (yuri-graph-state.json) + mechanism (yuri-circuitry-graph.json) views are GENERATED projections. Edit canonical, run project, both views regenerate; drift structurally impossible.",
       "description": "Solves the two-graph fragmentation: one canonical tiered graph (flow + mechanism nodes), the two view files become lossless generated projections. seedCanonical unions both; projectFlow/projectMechanism regenerate the views in original order; verifyLossless proves the round-trip."
+    },
+    {
+      "id": "formula-foundry-bakeoff",
+      "label": "Formula Foundry Bakeoff + Promotion Ledger (Core B test layer)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/formula-foundry-bakeoff.mjs"
+      ],
+      "triggeredBy": "import/CLI — tests synthesized candidates (stages 0-3: intake, synthetic fixtures via runFormulaProofGate, adversarial counterexamples, real-data bakeoff) generator-not-scorer + real total counts; + the sidecar append-only promotion/demotion ledger (domain-blind mutator). The promotion side of Core B.",
+      "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression."
     }
   ],
   "edges": [
@@ -2316,6 +2326,24 @@
       "kind": "writes",
       "target": true,
       "description": "projects the mechanism view from the canonical"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "tests the candidates synthesizeFormulaCandidates produces"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "math-proof-gate",
+      "kind": "calls",
+      "description": "reuses runFormulaProofGate + runFormulaCounterexample for stages 1-2"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "corpus-match",
+      "kind": "calls",
+      "description": "real non-truncated total counts for stage-3 real-data bakeoff"
     }
   ],
   "generatedAt": "2026-06-08"

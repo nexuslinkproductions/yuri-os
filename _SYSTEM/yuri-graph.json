@@ -789,7 +789,8 @@
     "yuri-navigate",
     "formula-foundry",
     "foundry-channels",
-    "graph-unify"
+    "graph-unify",
+    "formula-foundry-bakeoff"
   ],
   "flowTopKeys": [
     "version",
@@ -3254,6 +3255,22 @@
         "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate."
       },
       "label": "Formula Foundry (typing core: catalog + coverage + composition type-algebra)"
+    },
+    {
+      "id": "formula-foundry-bakeoff",
+      "tiers": [
+        "mechanism"
+      ],
+      "label": "Formula Foundry Bakeoff + Promotion Ledger (Core B test layer)",
+      "mechanism": {
+        "label": "Formula Foundry Bakeoff + Promotion Ledger (Core B test layer)",
+        "layer": "Energy & Math",
+        "files": [
+          "_SYSTEM/Scripts/math/formula-foundry-bakeoff.mjs"
+        ],
+        "triggeredBy": "import/CLI — tests synthesized candidates (stages 0-3: intake, synthetic fixtures via runFormulaProofGate, adversarial counterexamples, real-data bakeoff) generator-not-scorer + real total counts; + the sidecar append-only promotion/demotion ledger (domain-blind mutator). The promotion side of Core B.",
+        "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression."
+      }
     },
     {
       "id": "foundry-channels",
@@ -11700,6 +11717,27 @@
       "target": true,
       "view": "mechanism",
       "description": "projects the mechanism view from the canonical"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "tests the candidates synthesizeFormulaCandidates produces"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "math-proof-gate",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "reuses runFormulaProofGate + runFormulaCounterexample for stages 1-2"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "corpus-match",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "real non-truncated total counts for stage-3 real-data bakeoff"
     }
   ]
 }
