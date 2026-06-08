@@ -793,7 +793,8 @@
     "formula-foundry-bakeoff",
     "openprocess-pool",
     "lane-telemetry-cockpit",
-    "discovery-precision-gate"
+    "discovery-precision-gate",
+    "filing-assessor"
   ],
   "flowTopKeys": [
     "version",
@@ -3240,6 +3241,22 @@
         "description": "Gates a swarm artifact dir's PASS claim by validating it contains the required deterministic grammar (TERM_COUNT / FILE_COUNT / MATCH), exiting 1 on a missing, invented, or empty verdict. Its three REQUIRED_EVIDENCE_PATTERNS regexes are the literal evidence grammar from yuri-origin.md."
       },
       "label": "Evidence Contract Validator (yuri-evidence-contract)"
+    },
+    {
+      "id": "filing-assessor",
+      "tiers": [
+        "mechanism"
+      ],
+      "label": "Filing Assessor (deterministic read-only placement + staleness)",
+      "mechanism": {
+        "label": "Filing Assessor (deterministic read-only placement + staleness)",
+        "layer": "Self-Improvement",
+        "files": [
+          "_SYSTEM/Scripts/filing-assessor.mjs"
+        ],
+        "triggeredBy": "CLI/import — classifies an artifact (research/scratch/schema/handoff/report/math-module/script/state) to its canonical zone via ordered first-match rules; flags misplaced + ephemeral-in-repo + unclassified; hazard-decay staleness (confidenceDecay) for purge candidates",
+        "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report."
+      }
     },
     {
       "id": "fingerprint",
@@ -11832,6 +11849,20 @@
       "kind": "routes",
       "view": "mechanism",
       "description": "runs upstream of the energy gate as a discovery pre-filter"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "math-kernel",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "confidenceDecay for the hazard-decay staleness/purge-pressure score"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "normalizePath for canonical path comparison"
     }
   ]
 }

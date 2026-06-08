@@ -1182,6 +1182,16 @@
       ],
       "triggeredBy": "import/CLI — gates a lane claim against its WorkSubstrate allowedPaths/deniedPaths + discovery footprint BEFORE the energy gate; hard veto on protected/denied/out-of-scope paths; reports precisionScore + graph.impact_centrality (yuri-navigate) blast radius",
       "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks."
+    },
+    {
+      "id": "filing-assessor",
+      "label": "Filing Assessor (deterministic read-only placement + staleness)",
+      "layer": "Self-Improvement",
+      "files": [
+        "_SYSTEM/Scripts/filing-assessor.mjs"
+      ],
+      "triggeredBy": "CLI/import — classifies an artifact (research/scratch/schema/handoff/report/math-module/script/state) to its canonical zone via ordered first-match rules; flags misplaced + ephemeral-in-repo + unclassified; hazard-decay staleness (confidenceDecay) for purge candidates",
+      "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report."
     }
   ],
   "edges": [
@@ -2411,6 +2421,18 @@
       "to": "energy-fn",
       "kind": "routes",
       "description": "runs upstream of the energy gate as a discovery pre-filter"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "confidenceDecay for the hazard-decay staleness/purge-pressure score"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "normalizePath for canonical path comparison"
     }
   ],
   "generatedAt": "2026-06-08"
