@@ -792,7 +792,8 @@
     "graph-unify",
     "formula-foundry-bakeoff",
     "openprocess-pool",
-    "lane-telemetry-cockpit"
+    "lane-telemetry-cockpit",
+    "discovery-precision-gate"
   ],
   "flowTopKeys": [
     "version",
@@ -2314,6 +2315,22 @@
       },
       "mechanism": null,
       "label": "DEEPSEEK"
+    },
+    {
+      "id": "discovery-precision-gate",
+      "tiers": [
+        "mechanism"
+      ],
+      "label": "Discovery Precision Gate (scope + footprint filter before the energy gate)",
+      "mechanism": {
+        "label": "Discovery Precision Gate (scope + footprint filter before the energy gate)",
+        "layer": "Governance & Safety",
+        "files": [
+          "_SYSTEM/Scripts/discovery-precision-gate.mjs"
+        ],
+        "triggeredBy": "import/CLI — gates a lane claim against its WorkSubstrate allowedPaths/deniedPaths + discovery footprint BEFORE the energy gate; hard veto on protected/denied/out-of-scope paths; reports precisionScore + graph.impact_centrality (yuri-navigate) blast radius",
+        "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks."
+      }
     },
     {
       "id": "DS_FLASH",
@@ -11794,6 +11811,27 @@
       "target": true,
       "view": "mechanism",
       "description": "the YURI_LANE_TELEMETRY event stream it summarizes"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "isProtectedPath + normalizePath for the protected/scope veto"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "view": "mechanism",
+      "description": "computeImpactCentrality supplies the blast-radius term"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "energy-fn",
+      "kind": "routes",
+      "view": "mechanism",
+      "description": "runs upstream of the energy gate as a discovery pre-filter"
     }
   ]
 }

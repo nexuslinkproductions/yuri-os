@@ -1172,6 +1172,16 @@
       ],
       "triggeredBy": "CLI — reads _SYSTEM/state/originator-telemetry.jsonl, groups by traceId, collapses stream/stderr/stdout chunk noise into counts, prints a compact per-lane timeline (start -> model call -> verification -> exit) with elapsed/heartbeats/streamed-chars/status",
       "description": "Codex-handoff organ: JSONL is the audit substrate, this is the operator experience. No ugly raw JSON — a clean cockpit so the operator sees what a lane is doing live. Read-only."
+    },
+    {
+      "id": "discovery-precision-gate",
+      "label": "Discovery Precision Gate (scope + footprint filter before the energy gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/discovery-precision-gate.mjs"
+      ],
+      "triggeredBy": "import/CLI — gates a lane claim against its WorkSubstrate allowedPaths/deniedPaths + discovery footprint BEFORE the energy gate; hard veto on protected/denied/out-of-scope paths; reports precisionScore + graph.impact_centrality (yuri-navigate) blast radius",
+      "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks."
     }
   ],
   "edges": [
@@ -2383,6 +2393,24 @@
       "kind": "reads",
       "target": true,
       "description": "the YURI_LANE_TELEMETRY event stream it summarizes"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "isProtectedPath + normalizePath for the protected/scope veto"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "computeImpactCentrality supplies the blast-radius term"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "energy-fn",
+      "kind": "routes",
+      "description": "runs upstream of the energy gate as a discovery pre-filter"
     }
   ],
   "generatedAt": "2026-06-08"
