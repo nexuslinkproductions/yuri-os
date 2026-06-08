@@ -27,6 +27,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/yuri-originator.mjs` | Read-only native Originator facade for decode, xref, semantic compile, energy gate, `create_work_substrate`, `candidate_actions`, `launch_substrate`, model-agnostic `worker_exoskeleton`, formulaSlate/formulaTrace, and telemetry. |
 | `_SYSTEM/Scripts/semantic-state-compiler.mjs` | Semantic-to-executable guard that rejects derived metric smuggling before model output reaches `computeU` / `gateProposal`. |
 | `_SYSTEM/Scripts/propagation-scan.mjs` | Read-only propagation-law scan from a circuitry node to structural mechanism siblings. |
+| `_SYSTEM/Scripts/yuri-id-bridge.mjs` | Deterministic cross-surface canonical-id (`surface::localId`) + file-path spine + EXTENDED protected veto. The hinge that joins the circuitry slug graph to code/doc/mem surfaces (the only join is `node.files[]`, many-to-many; slug vs rel:symbol ids share zero overlap). |
+| `_SYSTEM/Scripts/yuri-navigate.mjs` | Deterministic structural navigation/centrality on the id-bridge graph: closed-form integer DEPENDENCY (outgoing closure) + IMPACT (incoming closure / blast radius), opt-in PPR, bounded + protected-vetoed + completeness-honest. Fills the `graph.impact_centrality` formula-card hook + serves the OpenProcess Sum Pool `dependency_centrality`. Registered Originator discoveryTool `yuri_navigate`. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 | `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives — the canonical harness script folder. |
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |

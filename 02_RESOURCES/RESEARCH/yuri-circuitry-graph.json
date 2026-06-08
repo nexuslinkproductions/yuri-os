@@ -1091,6 +1091,26 @@
       ],
       "triggeredBy": "llm-compat lane tokens — gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss and retired local aliases",
       "description": "The active local SLM lane under llm-compat. Its model policy is gemma4:12b-it-qat only; retired local identities such as Needle, Qwen, gemma4:e2b, and gpt-oss are compatibility aliases that normalize into Gemma rather than active model choices. Advisory output must be verified by Codex/main."
+    },
+    {
+      "id": "yuri-id-bridge",
+      "label": "YURI ID Bridge (cross-surface canonical-id + file-path spine + protected veto)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-id-bridge.mjs"
+      ],
+      "triggeredBy": "import — yuri-navigate (loadRecords, canonicalize, parseCodeId, file-path spine, EXTENDED isProtectedPath)",
+      "description": "Deterministic cross-surface canonical-id layer. Canonical id = surface::localId (double-colon) defeats the verified slug-vs-rel:symbol namespace split + the doc/code/mem collision. Builds the file-path spine (the ONLY graph<->code hinge, many-to-many) from raw node.files[], applies the EXTENDED protected-prefix veto at id construction (catches the 3 .claude/projects/*/memory edges the inherited 4-prefix set leaks), and flags the 1 phantom node. Read-only."
+    },
+    {
+      "id": "yuri-navigate",
+      "label": "YURI Navigate (deterministic structural impact/dependency centrality)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-navigate.mjs"
+      ],
+      "triggeredBy": "CLI/import — fills the graph.impact_centrality formula-card executableHook in yuri-originator; registered discoveryTool yuri_navigate; OpenProcess Sum Pool dependency_centrality_i (OpenMass w_dep)",
+      "description": "The deterministic structural navigation engine on top of yuri-id-bridge. T1 (default) = closed-form integer reachability over dual typed adjacency (dependsOn/dependedOnBy): DEPENDENCY = outgoing closure (what a node rests on), IMPACT = incoming closure (blast radius). Direction is pinned to function names + a math-kernel locking test (NOT forward/reverse, which observers invert). writes INCLUDED in the default edge set (the propagation-scan sibling set excludes it; inheriting that = 26% undercount). T2 opt-in deterministic PPR for distributional weight. Bounded (maxNodes/maxDepth + truncated flag), protected-vetoed at the spine, completeness-honest (structuralLegAvailable=false while the GitNexus fine-grained leg is deferred; unresolved vs grounded-isolated vs phantom kept distinct). Verified: math-kernel dependency=0, impact superset of {energy-fn, math-proof-gate}; exactly 17 protected I/O edges vetoed."
     }
   ],
   "edges": [
@@ -2195,6 +2215,32 @@
       "to": "lane-core-hooks",
       "kind": "calls",
       "description": "Gemma local lane enters the same core-ingest seam for energy, recall, evidence ledger, and docked-output pulse."
+    },
+    {
+      "from": "yuri-navigate",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "imports loadRecords, loadGraphRaw, canonicalize, parseCanonical, normalizePath, isProtectedPath to build the unified graph + dual adjacency."
+    },
+    {
+      "from": "yuri-navigate",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "reads",
+      "target": true,
+      "description": "loadUnifiedGraph reads the circuitry die (108 nodes/171 edges) as the structural source."
+    },
+    {
+      "from": "yuri-id-bridge",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "reads",
+      "target": true,
+      "description": "loadGraphRaw reads raw node.files[] (structured, not the lossy adapter blob) to build the file-path spine."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "graph.impact_centrality formula-card executableHook + the yuri_navigate discoveryTool dispatch (deterministic structural centrality for worker lanes)."
     }
   ],
   "generatedAt": "2026-06-08"

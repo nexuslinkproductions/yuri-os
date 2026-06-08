@@ -18,6 +18,7 @@ const XREF_QUERY = path.join(__dirname, 'xref-query.mjs');
 const OLLAMA_LANE = path.join(__dirname, 'ollama-lane.mjs');
 const LLM_LANE = path.join(__dirname, 'llm-lane.mjs');
 const PROPAGATION_SCAN = path.join(__dirname, 'propagation-scan.mjs');
+const YURI_NAVIGATE = path.join(__dirname, 'yuri-navigate.mjs');
 const TELEMETRY_PATH = path.join(REPO_ROOT, '_SYSTEM/state/originator-telemetry.jsonl');
 const DEFAULT_TOP = 200;
 const DEFAULT_SCAN = 1000;
@@ -85,7 +86,7 @@ export const FORMULA_CARDS = Object.freeze([
     theoremFamily: 'graph_theory',
     useWhen: ['file', 'symbol', 'dependency', 'impact', 'lane', 'bridge'],
     operator: 'Rank candidate edits or checks by graph neighborhood, call impact, and cross-surface recurrence.',
-    executableHook: 'xref structural leg / GitNexus',
+    executableHook: 'yuri-navigate.mjs computeImpactCentrality (deterministic structural centrality over the id-bridge graph)',
     outputShape: 'impact_ranked_targets',
   },
   {
@@ -344,7 +345,7 @@ export function buildWorkSubstrate(payload = {}, options = {}) {
     allowedActions: normalizeStringList(payload.allowed_actions || payload.allowedActions, defaultAllowedActions(actionContract)),
     allowedPaths: normalizeStringList(payload.allowed_paths || payload.allowedPaths, defaultAllowedPaths(mode)),
     deniedPaths: PROTECTED_PATHS,
-    discoveryTools: normalizeStringList(payload.discovery_tools || payload.discoveryTools, ['xref_query', 'read_file', 'grep', 'list_dir', 'propagation_scan', 'bash_tests']),
+    discoveryTools: normalizeStringList(payload.discovery_tools || payload.discoveryTools, ['xref_query', 'read_file', 'grep', 'list_dir', 'propagation_scan', 'yuri_navigate', 'bash_tests']),
     recallPolicy: {
       strategy: 'xref_first',
       minResults,
@@ -404,7 +405,7 @@ export function buildCandidateActions(substrate = {}, payload = {}) {
       id: `${taskId}:discover-ground-truth`,
       type: 'discovery',
       objective: 'Establish live repo truth before proposing work.',
-      allowedActions: ['xref_query', 'read_file', 'grep', 'list_dir'],
+      allowedActions: ['xref_query', 'read_file', 'grep', 'list_dir', 'yuri_navigate'],
       allowedPaths,
       formulaUse: formulaUse.includes('information.context_entropy') ? ['information.context_entropy'] : formulaUse.slice(0, 1),
       expectedOutput: 'evidence_map_with_file_refs',
@@ -415,8 +416,8 @@ export function buildCandidateActions(substrate = {}, payload = {}) {
       type: 'candidate_action',
       objective: 'Find a scoped improvement, simulation, proof, or documentation update that follows from discovered evidence.',
       allowedActions: substrate.actionContract === 'read_only'
-        ? ['xref_query', 'read_file', 'grep']
-        : ['xref_query', 'read_file', 'grep', 'propose_patch', 'run_tests'],
+        ? ['xref_query', 'read_file', 'grep', 'yuri_navigate']
+        : ['xref_query', 'read_file', 'grep', 'yuri_navigate', 'propose_patch', 'run_tests'],
       allowedPaths,
       formulaUse,
       expectedOutput: 'CandidateAction_with_evidence_formulaUse_validation',
@@ -458,7 +459,8 @@ async function runLaunchSubstrate(payload, options) {
   const system = [
     'You are an advisory YURI WorkSubstrate lane.',
     'Do not assume all context is inside the prompt. Use available lane tools for discovery when available.',
-    'If you need local YURI tools, return strict JSON with toolRequests: [{ "id": "t1", "tool": "xref_query|read_file|grep|list_dir|propagation_scan", "args": {} }].',
+    'If you need local YURI tools, return strict JSON with toolRequests: [{ "id": "t1", "tool": "xref_query|read_file|grep|list_dir|propagation_scan|yuri_navigate", "args": {} }].',
+    'yuri_navigate gives deterministic structural impact/dependency centrality: args { "nodeId": "<graph-slug>" } or { "anchors": ["file or slug", ...], "metric": "impact|dependency|both" }.',
     'After ToolObservation results arrive, return final candidateActions, laneClaims, proposedState, and handoff.',
     'Return strict JSON only.',
     'Emit candidateActions and proposedState. proposedState must use canonical YURI executable fields only.',
@@ -994,7 +996,7 @@ export function collectSubstrateToolRequests(modelJson = {}) {
     .filter((request) => request.tool);
 }
 
-function executeSubstrateToolRequest(substrate = {}, request = {}, requestIndex = 0) {
+export function executeSubstrateToolRequest(substrate = {}, request = {}, requestIndex = 0) {
   const tool = normalizeToolName(request.tool);
   const id = String(request.id || `tool-${requestIndex + 1}`);
   const args = isPlainObject(request.args) ? request.args : {};
@@ -1063,6 +1065,25 @@ function executeSubstrateToolRequest(substrate = {}, request = {}, requestIndex 
       });
       return { id, tool, ok: true, output: clipToolOutput(output) };
     }
+    if (tool === 'yuri_navigate') {
+      // structural centrality (read-only). Either a single nodeId/slug or --anchors a,b,c.
+      const nodeId = String(args.nodeId || args.node_id || args.id || args.node || '').trim();
+      const anchors = Array.isArray(args.anchors) ? args.anchors.map((a) => String(a).trim()).filter(Boolean) : [];
+      if (!nodeId && !anchors.length) return { id, tool, ok: false, reason: 'empty_navigate_target', output: '' };
+      const metric = String(args.metric || 'both');
+      const cliArgs = [YURI_NAVIGATE];
+      if (anchors.length) cliArgs.push('--anchors', anchors.join(','));
+      else cliArgs.push(nodeId);
+      cliArgs.push('--metric', metric, '--json');
+      if (args.ppr) cliArgs.push('--ppr');
+      if (args.noWrites || args.no_writes) cliArgs.push('--no-writes');
+      const output = execFileSync(process.execPath, cliArgs, {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        maxBuffer: 12 * 1024 * 1024,
+      });
+      return { id, tool, ok: true, output: clipToolOutput(output) };
+    }
     return { id, tool, ok: false, reason: 'unknown_tool', output: '' };
   } catch (error) {
     return {
@@ -1124,6 +1145,7 @@ function normalizeToolName(value = '') {
   if (raw === 'read' || raw === 'readfile') return 'read_file';
   if (raw === 'ls' || raw === 'list') return 'list_dir';
   if (raw === 'propagation' || raw === 'propagation_scan') return 'propagation_scan';
+  if (raw === 'navigate' || raw === 'yuri_navigate' || raw === 'impact_centrality' || raw === 'centrality') return 'yuri_navigate';
   return raw;
 }
 

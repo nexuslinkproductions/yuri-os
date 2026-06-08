@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   buildSubstrateToolObservationPrompt,
+  executeSubstrateToolRequest,
   buildCandidateActions,
   buildFormulaSlate,
   buildWorkSubstrate,
@@ -433,6 +434,26 @@ const originatorPath = resolve(__dirname, 'yuri-originator.mjs');
   });
   assert.equal(blocked.status, 'rejected');
   assert.equal(blocked.verification.reason, 'protected_path_reference_refused');
+}
+
+// yuri_navigate tool dispatch — the graph.impact_centrality executableHook is now real (greenfield wiring)
+{
+  const sub = { discoveryTools: ['yuri_navigate'], allowedActions: ['yuri_navigate'], allowedPaths: [] };
+  // raw 'navigate' alias normalizes + dispatches to deterministic structural centrality
+  const r1 = executeSubstrateToolRequest(sub, { id: 't1', tool: 'navigate', args: { nodeId: 'math-kernel', metric: 'impact' } }, 0);
+  assert.equal(r1.ok, true);
+  assert.equal(r1.tool, 'yuri_navigate');
+  const o1 = typeof r1.output === 'string' ? JSON.parse(r1.output) : r1.output;
+  assert.ok(o1.result.impact.impactScore > 0, 'navigate returns a real impact score');
+  // anchors form (the OpenProcess Sum Pool call shape)
+  const r2 = executeSubstrateToolRequest(sub, { id: 't2', tool: 'yuri_navigate', args: { anchors: ['_SYSTEM/Scripts/math/yuri-energy.mjs'], metric: 'both' } }, 1);
+  assert.equal(r2.ok, true);
+  const o2 = typeof r2.output === 'string' ? JSON.parse(r2.output) : r2.output;
+  assert.equal(typeof o2.result.dependency_centrality, 'number');
+  // empty target refused
+  const r3 = executeSubstrateToolRequest(sub, { id: 't3', tool: 'yuri_navigate', args: {} }, 2);
+  assert.equal(r3.ok, false);
+  assert.equal(r3.reason, 'empty_navigate_target');
 }
 
 console.log('yuri-originator: pass');

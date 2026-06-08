@@ -37,12 +37,14 @@
     {
       "id": "originator-bridge",
       "label": "YURI Originator / LLM Math Bridge Context",
-      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "semantic compiler", "state compiler", "WorkSubstrate", "work substrate", "create_work_substrate", "launch_substrate", "candidate_actions", "CandidateAction", "toolRequests", "tool loop", "streaming telemetry", "lane telemetry", "OpenProcess", "Open Process", "Open Process Sum Pool", "open mass", "unfinished tasks", "unfinished research", "exoskeleton", "worker_exoskeleton", "llm_exoskeleton", "formulaSlate", "formulaTrace", "originator telemetry", "ActionCapability", "SafeWriteSchema", "Execution Isolation Gap", "llm unlock", "platform switching", "cross-platform"],
+      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "semantic compiler", "state compiler", "WorkSubstrate", "work substrate", "create_work_substrate", "launch_substrate", "candidate_actions", "CandidateAction", "toolRequests", "tool loop", "streaming telemetry", "lane telemetry", "OpenProcess", "Open Process", "Open Process Sum Pool", "open mass", "unfinished tasks", "unfinished research", "exoskeleton", "worker_exoskeleton", "llm_exoskeleton", "formulaSlate", "formulaTrace", "originator telemetry", "ActionCapability", "SafeWriteSchema", "Execution Isolation Gap", "llm unlock", "platform switching", "cross-platform", "navigate", "yuri_navigate", "id-bridge", "id bridge", "canonical id", "impact_centrality", "impact centrality", "dependency_centrality", "dependency centrality", "graph centrality", "blast radius", "file-path spine", "structural navigation"],
       "paths": [
         "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
         "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
         "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
         "_SYSTEM/Scripts/yuri-originator.mjs",
+        "_SYSTEM/Scripts/yuri-id-bridge.mjs",
+        "_SYSTEM/Scripts/yuri-navigate.mjs",
         "_SYSTEM/Scripts/semantic-state-compiler.mjs",
         "_SYSTEM/Scripts/yuri-input-genome.mjs",
         "_SYSTEM/Scripts/llm-lane.mjs",
