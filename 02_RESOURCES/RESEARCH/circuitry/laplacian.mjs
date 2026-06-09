@@ -103,7 +103,7 @@ function resolveCollisions(pos, minDist, maxPasses) {
 }
 
 // ---- 1) Laplacian ----------------------------------------------------------
-// Build the symmetric type-weighted weight matrix W over the 77 GRAPH edges.
+// Build the symmetric type-weighted weight matrix W over the current GRAPH edges.
 // Returns dense Float64 rows + id index. L = D - W is formed inside symEig.
 export function buildLaplacian(nodes, graphEdges, typeWeight = TYPE_WEIGHT) {
   const ids = nodes.map((n) => n.id).slice().sort(); // deterministic id order
@@ -404,7 +404,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(`giant bottom-4 eigenvalues: [${A.meta.lambdas.join(", ")}]`);
   console.log(`\n${pass} passed, ${fail} failed`);
 
-  // emit a styled debug atlas to eyeball (ground + hulls + the 77 wires + glowing nodes)
+  // emit a styled debug atlas to eyeball (ground + hulls + live wires + glowing nodes)
   const W = A.canvas.w, H = A.canvas.h;
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const edgeCol = { calls: "#C9A14A", writes: "#4FB3A6", reads: "#6E8FB0" };

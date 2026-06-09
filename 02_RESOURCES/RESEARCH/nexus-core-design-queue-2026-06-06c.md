@@ -1087,7 +1087,7 @@ The current chip-die aesthetic should render in this order:
 6. Test-node LOD layer.
 7. Labels and detail panel.
 
-If `yuri-circuitry-chip.svg` exists as the visual die skin, embed it as the first substrate layer and align generated coordinates to its viewBox. Do not fork a second visualization.
+The visual die skin is generated directly as `yuri-chip-die.html` (via `build-chip-die.mjs`). Do not fork a second visualization.
 
 **5. LOD / Microscope Layer**
 

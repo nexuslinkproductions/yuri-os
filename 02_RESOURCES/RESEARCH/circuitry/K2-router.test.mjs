@@ -247,7 +247,7 @@ function seededShuffle(arr, seed) {
 // ----------------------------------------------------------------------------
 // REAL GRAPH fixture: build a minimal real floorplan deterministically from the
 // graph (grid of layer-blocks). We don't have K1, so synthesize a layout that
-// has real cells + channels and run the router over all 77 real graph edges.
+// has real cells + channels and run the router over all live graph edges.
 // ----------------------------------------------------------------------------
 function buildRealFixture() {
   const graphPath = resolve(REPO, "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json");
@@ -257,7 +257,7 @@ function buildRealFixture() {
 
   const LAYER_ORDER = [
     "Cognition & Persona", "Energy & Math", "Memory & Subconscious",
-    "Retrieval & Knowledge", "Learning & Continuity", "Governance & Safety",
+    "Retrieval & Knowledge", "Learning & Continuity", "Self-Improvement", "Governance & Safety",
     "Skills & Orchestration", "Token-Efficiency & Session",
     "Hidden / Meta / Self-referential",
   ];
@@ -321,11 +321,11 @@ const synth = buildFixture();
 runChecks("SYNTHETIC FIXTURE", synth);
 
 const real = buildRealFixture();
-const realRoutes = runChecks("REAL GRAPH (77 graph edges, synthesized floorplan)", real);
-
-// report summary stats on the real run
 const ids = new Set(Object.keys(real.cells));
 const realEdges = real.graphEdges.filter((e) => ids.has(e.from) && ids.has(e.to) && e.from !== e.to);
+const realRoutes = runChecks(`REAL GRAPH (${realEdges.length} graph edges, synthesized floorplan)`, real);
+
+// report summary stats on the real run
 const totalBends = realRoutes.reduce((s, r) => s + r.bends, 0);
 const avgBends = (totalBends / realRoutes.length).toFixed(2);
 const maxBends = Math.max(...realRoutes.map((r) => r.bends));
