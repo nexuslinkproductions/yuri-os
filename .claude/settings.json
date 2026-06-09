@@ -281,6 +281,17 @@
             "statusMessage": "Checking GitNexus index freshness..."
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/arch-graph-watch.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking architecture-graph structural drift..."
+          }
+        ]
       }
     ],
     "Stop": [

@@ -756,20 +756,16 @@ function printReport(report) {
   console.log("=".repeat(72));
 }
 
-// ---- CLI entrypoint ---------------------------------------------------------
-const GRAPH_PATH = "_SYSTEM/yuri-graph-state.json";
-const OUT_PATH = "_SYSTEM/state/arch-graph-metrics.json";
+// ---- shared payload builder (reused by the CLI + arch-graph-watch) ----------
+export const GRAPH_PATH = "_SYSTEM/yuri-graph-state.json";
+export const OUT_PATH = "_SYSTEM/state/arch-graph-metrics.json";
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const graphJson = JSON.parse(readFileSync(GRAPH_PATH, "utf8"));
-  const report = analyzeArchGraph(graphJson);
-  printReport(report);
-  // emit node->metrics map to a SEPARATE file (never into the graph).
-  const payload = {
-    // no generated_at: this is a tracked golden structural-drift reference — a wall-clock
-    // stamp would diff on every run and bury real architecture changes in timestamp churn.
-    // Determinism contract (header): same graph -> byte-identical metrics.
-    source: GRAPH_PATH,
+// Deterministic metrics payload — NO generated_at: this is a tracked golden
+// structural-drift reference; a wall-clock stamp would diff on every run and bury
+// real architecture changes in timestamp churn. Contract: same graph -> identical bytes.
+export function buildMetricsPayload(report, source = GRAPH_PATH) {
+  return {
+    source,
     advisory: true,
     writesRuntimeTruth: false,
     summary: report.summary,
@@ -782,7 +778,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     diff: report.diff,
     metrics: report.metrics,
   };
-  writeFileSync(OUT_PATH, JSON.stringify(payload, null, 2));
+}
+
+// ---- CLI entrypoint ---------------------------------------------------------
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const graphJson = JSON.parse(readFileSync(GRAPH_PATH, "utf8"));
+  const report = analyzeArchGraph(graphJson);
+  printReport(report);
+  // emit node->metrics map to a SEPARATE file (never into the graph).
+  writeFileSync(OUT_PATH, JSON.stringify(buildMetricsPayload(report), null, 2));
   console.log(`\nwrote ${OUT_PATH} (advisory node->metrics map; graph schema untouched)`);
   process.exit(0); // advisory — never gates
 }

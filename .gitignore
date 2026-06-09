@@ -335,3 +335,6 @@ _SYSTEM/state/energy-enforce.enabled
 # Secret stores — keychain is canonical; these are defense-in-depth (never commit)
 secrets.env
 *.secrets
+
+# arch-graph-watch runtime state (regenerates; not golden)
+_SYSTEM/state/arch-graph-watch-state.json
