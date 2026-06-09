@@ -7,7 +7,7 @@
 //   - Concentric DESIGNED BANDS, each separated by a real ring GAP:
 //       Band 0  CORE        live energy gate kernel
 //       Band 1  MOAT        rest of Energy/Math + Memory + Cognition (the defensible core)
-//       Band 2  SYSTEMS     commodity layers ranked by coupling-to-moat
+//       Band 2  SYSTEMS     commodity/self-improvement layers ranked by coupling-to-moat
 //       Band 3  RIM         Governance & Safety (the safety perimeter) + Hidden/Meta
 //   - Within each band, every LAYER owns a contiguous angular WEDGE sized to
 //     its cell count. A layer therefore reads as ONE coherent radial region
@@ -51,6 +51,7 @@ const ACCENT = {
   // SYSTEMS band
   "Retrieval & Knowledge":    { h: "#5AD2FF", glow: "#2E6F8F", ink: "#d4f1ff" }, // cyan
   "Learning & Continuity":    { h: "#7FB8FF", glow: "#3f6fd0", ink: "#dbe9ff" }, // azure
+  "Self-Improvement":         { h: "#8CE66F", glow: "#4c9f3d", ink: "#e3ffd9" }, // regenerative green
   "Skills & Orchestration":   { h: "#FF9F6E", glow: "#c25a2a", ink: "#ffe1d0" }, // amber
   "Token-Efficiency & Session": { h: "#8FA9C9", glow: "#56708f", ink: "#dbe6f2" }, // steel
   // RIM band
@@ -69,6 +70,12 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
     clearance: 82,         // min empty space added to a cell's max footprint -> PITCH
     ...opts,
   };
+  // gap/clearance were tuned for cellBase 104 as ABSOLUTE px; at a smaller cellBase they become huge relative
+  // to the cells (the bands fling apart, leaving a big empty ring + outer nodes too far). Scale them with
+  // cellBase so the whole die stays proportionally compact unless the caller overrides explicitly.
+  const _sc = O.cellBase / 104;
+  if (opts.gap === undefined) O.gap = Math.round(64 * _sc);
+  if (opts.clearance === undefined) O.clearance = Math.round(82 * _sc);
 
   const layerOf = new Map(nodes.map((n) => [n.id, n.layer]));
   const deg = new Map(nodes.map((n) => [n.id, 0]));
@@ -95,7 +102,7 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
   // a band sets the angular sweep direction (deterministic, reasoned).
   const MOAT_LAYERS_REST = ["Memory & Subconscious", "Cognition & Persona", "Energy & Math"]
     .filter((L) => (byLayer.get(L) || []).length); // Energy remnant rides the moat band too
-  const SYSTEMS_LAYERS = ["Retrieval & Knowledge", "Learning & Continuity", "Skills & Orchestration", "Token-Efficiency & Session"]
+  const SYSTEMS_LAYERS = ["Retrieval & Knowledge", "Learning & Continuity", "Self-Improvement", "Skills & Orchestration", "Token-Efficiency & Session"]
     .filter((L) => (byLayer.get(L) || []).length)
     .sort((a, b) => coupToMoat(b) - coupToMoat(a)); // strongest pull sits first (clockwise from top)
   const RIM_LAYERS = ["Governance & Safety", "Hidden / Meta / Self-referential"]
@@ -125,8 +132,8 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
   // + package leads. RSEP separates sub-rings radially; ARCSEP is the min along-arc
   // spacing. Moderate so the die stays dense, not blown out.
   const CELLMAX = O.cellBase * 1.38;
-  const RSEP = Math.round(CELLMAX * 1.12);        // radial sub-ring separation
-  const ARCSEP = Math.round(O.cellBase * 1.34);   // min arc spacing (rotation-aware)
+  const RSEP = Math.round(CELLMAX * 1.20);        // radial sub-ring separation (pulls bands/rim inward; still clears the facing-rotation bbox at offset angles)
+  const ARCSEP = Math.round(O.cellBase * 1.86);   // min arc spacing (bbox-safe + rotation-aware, +margin at 244)
 
   // ---- CORE DISC --------------------------------------------------------
   // energy-fn at dead centre (the singular hub); the rest of the kernel on a
@@ -157,51 +164,56 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
   //      RSEP apart radially so nothing overlaps.
   let rIn = coreOuter + O.gap;
   for (const bd of bandDefs) {
-    const layers = bd.layers;
-    const counts = layers.map((L) => (byLayer.get(L) || []).length);
-    const totalCells = counts.reduce((a, b) => a + b, 0) || 1;
-    const nGaps = layers.length;
-    const gapRad = (O.wedgeGapDeg * Math.PI) / 180;
-    const usable = 2 * Math.PI - nGaps * gapRad;
+    const layers = bd.layers.filter((L) => (byLayer.get(L) || []).length);
+    if (!layers.length) continue;
+    const gapRadMin = (O.wedgeGapDeg * Math.PI) / 180;
     const rFirst = rIn + CELLMAX * 0.6 + CELLMAX * 0.5;
+    const pitchAt = (rr) => ARCSEP / rr;                       // angular pitch keeping ARCSEP arc spacing
 
+    // Each layer = a COMPACT square-ish GRID sized to ITS OWN cells (cols×rows). Then GROW rows (shrink cols)
+    // on the widest layer until every layer's sized wedge fits inside 2π (prevents inner-band angular overflow).
+    const budget = 2 * Math.PI - layers.length * gapRadMin;
     const plan = layers.map((L) => {
-      const ids = byLayer.get(L) || [];
-      const sweep = usable * (ids.length / totalCells);
-      const perRing = Math.max(1, Math.floor((sweep * rFirst) / ARCSEP));
-      const subRings = Math.max(1, Math.min(3, Math.ceil(ids.length / perRing)));
-      return { L, ids, sweep, subRings };
+      const ids = byLayer.get(L) || []; const n = ids.length;
+      const cols = Math.max(1, Math.min(10, Math.round(Math.sqrt(n) * 1.15)));
+      return { L, ids, n, subRings: Math.max(1, Math.ceil(n / cols)) };
     });
+    const sweepOf = (p) => Math.ceil(p.n / p.subRings) * pitchAt(rFirst);
+    let guard = 0;
+    while (plan.reduce((a, p) => a + sweepOf(p), 0) > budget && guard++ < 300) {
+      const big = plan.reduce((m, p) => (sweepOf(p) > sweepOf(m) ? p : m), plan[0]);
+      big.subRings += 1;
+    }
     const maxSub = Math.max(1, ...plan.map((p) => p.subRings));
     const bandH = (maxSub - 1) * RSEP + CELLMAX + RSEP * 0.5;
     const rOut = rIn + bandH;
     bands.push({ tier: bd.tier, rIn, rOut, rMid: (rIn + rOut) / 2, accent: bd.accent, name: bd.name });
 
+    // spread the sized grids EVENLY around the full ring — leftover arc shared as equal gaps (fills the disc).
+    const totalSweep = plan.reduce((a, p) => a + sweepOf(p), 0);
+    const gapRad = Math.max(gapRadMin, (2 * Math.PI - totalSweep) / layers.length);
     let aCursor = -Math.PI / 2 + gapRad / 2;
     for (const p of plan) {
-      const { L, ids, sweep, subRings } = p;
+      const { L, ids } = p;
+      const perRing = Math.ceil(ids.length / p.subRings);
+      const sweep = perRing * pitchAt(rFirst);
       const a0 = aCursor, a1 = aCursor + sweep, aMid = (a0 + a1) / 2;
       const acc = ACCENT[L] || { h: bd.accent, glow: bd.accent, ink: "#fff" };
-      const perRing = Math.ceil(ids.length / subRings);
-      const aEdge = sweep * 0.08;
-      const aSpan = Math.max(0, sweep - 2 * aEdge);
+      const aEdge = sweep * 0.05, aSpan = Math.max(0.00001, sweep - 2 * aEdge);
       ids.forEach((id, i) => {
-        const rk = Math.floor(i / perRing);                 // 0 = inner sub-ring (hubs)
+        const rk = Math.floor(i / perRing);
         const idxInRing = i % perRing;
         const ringCount = Math.min(perRing, ids.length - rk * perRing);
-        const rr = rFirst + rk * RSEP;                      // RSEP apart radially
+        const rr = rFirst + rk * RSEP;
         const frac = ringCount === 1 ? 0.5 : idxInRing / (ringCount - 1);
-        const a = a0 + aEdge + aSpan * frac;                // FILL the wedge evenly (no centre-bunch)
+        const a = a0 + aEdge + aSpan * frac;                  // fill the (cell-sized) wedge as a grid row
         const cx = rr * Math.cos(a), cy = rr * Math.sin(a);
         const s = sizeOf(id, false); const w = Math.round(O.cellBase * s), h = w;
         cells[id] = { x: cx - w / 2, y: cy - h / 2, w, h, cx, cy, layer: L, band: bd.tier, tier: bd.tier, ang: a, r: rr };
       });
       const labelR = rOut + 30;
-      blocks.push({
-        layer: L, band: bd.tier, tier: bd.tier, a0, a1, aMid, rIn, rOut, rMid: (rIn + rOut) / 2,
-        labelR, labelAngle: aMid, accent: acc, moat: MOAT.has(L), perimeter: L === "Governance & Safety",
-        core: false, n: ids.length,
-      });
+      blocks.push({ layer: L, band: bd.tier, tier: bd.tier, a0, a1, aMid, rIn, rOut, rMid: (rIn + rOut) / 2,
+        labelR, labelAngle: aMid, accent: acc, moat: MOAT.has(L), perimeter: L === "Governance & Safety", core: false, n: ids.length });
       aCursor = a1 + gapRad;
     }
     rIn = rOut + O.gap;

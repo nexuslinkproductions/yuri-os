@@ -21,7 +21,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..', '..');
 const CANONICAL = path.join(REPO, '_SYSTEM/yuri-graph.json');
 const FLOW_VIEW = path.join(REPO, '_SYSTEM/yuri-graph-state.json');                       // arch / operating-flow
-const MECH_VIEW = path.join(REPO, '02_RESOURCES/RESEARCH/yuri-circuitry-graph.json');     // code-mechanism die
+const MECH_VIEW = path.join(REPO, '02_RESOURCES/RESEARCH/yuri-circuitry-graph.json');     // code-mechanism graph (nav: xref/propagation/id-bridge)
+const DIE_VIEW = path.join(REPO, '02_RESOURCES/RESEARCH/yuri-die-graph.json');            // chip-die: the ENTIRE system (all 244 nodes), code organs + flow peripherals
 
 const read = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 // capture EVERY field except the listed ones — lossless by construction (no hardcoded field list to drift).
@@ -104,6 +105,42 @@ export function projectMechanism(canon) {
   return inKeyOrder(canon.mechTopKeys, canon.mechMeta || {}, nodes, edges);
 }
 
+// DIE view — the chip die renders the ENTIRE unified system (Marcel 2026-06-09: "the entire system represented
+// on it, not just dies but other rendered components placed on purpose, nothing random"). Two node families:
+// MECHANISM → kind:'die' (code organs as silicon blocks); FLOW → kind:'peripheral' (system-level functions as
+// board components). Flow nodes have no `layer`; SECTOR_TO_LAYER folds the 15 flow sectors into the die's 10
+// existing layers so the floorplan machinery is unchanged. Deterministic: sorted by id, edges unioned + deduped.
+export const SECTOR_TO_LAYER = {
+  operator_io: 'Cognition & Persona', pulse_cortex: 'Cognition & Persona', advisors: 'Cognition & Persona',
+  memory: 'Memory & Subconscious', classification: 'Retrieval & Knowledge', code_intelligence: 'Retrieval & Knowledge',
+  self_improvement: 'Self-Improvement', routing_lanes: 'Skills & Orchestration', command_registry: 'Skills & Orchestration',
+  services: 'Skills & Orchestration', codex_gate: 'Governance & Safety', control_plane: 'Governance & Safety',
+  prompt_hooks: 'Token-Efficiency & Session', initialization: 'Token-Efficiency & Session', unassigned: 'Hidden / Meta / Self-referential',
+};
+const DIE_FALLBACK_LAYER = 'Hidden / Meta / Self-referential';
+export function toDieNode(n) {
+  if ((n.tiers || []).includes('mechanism')) {
+    const m = n.mechanism || {};
+    return { id: n.id, kind: 'die', label: m.label || n.label || n.id, layer: m.layer || DIE_FALLBACK_LAYER,
+      files: m.files || [], triggeredBy: m.triggeredBy || '', description: m.description || '', sector: (n.flow && n.flow.sector) || null };
+  }
+  const f = n.flow || {}; const md = f.metadata || {};
+  return { id: n.id, kind: 'peripheral', label: f.label || n.label || n.id, layer: SECTOR_TO_LAYER[f.sector] || DIE_FALLBACK_LAYER,
+    files: Array.isArray(md.files) ? md.files : [], triggeredBy: [f.role, f.detail].filter(Boolean).join(' — '), description: md.purpose || f.detail || '', sector: f.sector || null };
+}
+export function projectDie(canon) {
+  const nodes = canon.nodes.map(toDieNode).sort((a, b) => a.id.localeCompare(b.id));
+  const seen = new Set(); const edges = [];
+  for (const e of canon.edges) { const k = `${e.from} ${e.to} ${e.kind || ''}`; if (seen.has(k)) continue; seen.add(k); const { view, ...rest } = e; edges.push(rest); }
+  edges.sort((a, b) => (a.from + a.to).localeCompare(b.from + b.to));
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  const kinds = {}; for (const n of nodes) kinds[n.kind] = (kinds[n.kind] || 0) + 1;
+  const layers = {}; for (const n of nodes) layers[n.layer] = (layers[n.layer] || 0) + 1;
+  return { _generated: GEN_MARK + ' — DIE VIEW: the entire unified system (all tiers).', schema: 'yuri.die-graph.v1',
+    nodeCount: nodes.length, edgeCount: edges.length, graphEdgeCount: edges.filter((e) => nodeIds.has(e.from) && nodeIds.has(e.to) && e.from !== e.to).length,
+    kinds, layers, nodes, edges };
+}
+
 // losslessness: a projection must reproduce the original view's node set + per-node fields.
 export function verifyLossless(canon) {
   const issues = [];
@@ -153,7 +190,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (stamp) canon.generatedAt = stamp;
     writeJson(FLOW_VIEW, projectFlow(canon));
     writeJson(MECH_VIEW, projectMechanism(canon));
-    process.stdout.write(`projected canonical → flow (${projectFlow(canon).nodes.length}) + mechanism (${projectMechanism(canon).nodes.length}) views.\n`);
+    const die = projectDie(canon);
+    writeJson(DIE_VIEW, die);
+    process.stdout.write(`projected canonical → flow (${projectFlow(canon).nodes.length}) + mechanism (${projectMechanism(canon).nodes.length}) + die (${die.nodeCount} = ${JSON.stringify(die.kinds)}) views.\n`);
   } else {
     const c = fs.existsSync(CANONICAL) ? loadCanonical() : null;
     process.stdout.write(c ? `canonical: ${c.nodes.length} nodes, ${c.edges.length} edges (${c.nodes.filter((n) => n.tiers.length > 1).length} shared flow∩mechanism)\n` : 'no canonical yet — run: yuri-graph-unify.mjs seed\n');

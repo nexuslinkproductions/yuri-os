@@ -1,41 +1,114 @@
 import { readFileSync } from "node:fs";
-import { buildFloorplan } from "./K1-floorplan.mjs";
-const g = JSON.parse(readFileSync("/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/yuri-circuitry-graph.json","utf8"));
-const fp = buildFloorplan(g.nodes);
-const cx = fp.canvas.w/2, cy = fp.canvas.h/2;
-const ctr = b => ({x:b.x+b.w/2, y:b.y+b.h/2});
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { buildTierFloorplan } from "./K1D-tiers.mjs";
 
-// A) Which block is closest to centre? Should be Energy & Math (central die region).
-const ranked = fp.blocks.map(b=>{const c=ctr(b);return {layer:b.layer, moat:b.moat, d:+Math.hypot(c.x-cx,c.y-cy).toFixed(1)};}).sort((a,b)=>a.d-b.d);
-console.log("A) blocks by distance from centre (closest first):");
-ranked.forEach(r=>console.log(`   ${r.d.toString().padStart(7)}  ${r.moat?"MOAT":"    "}  ${r.layer}`));
-console.log("   => central die region is:", ranked[0].layer, ranked[0].layer==="Energy & Math"?"OK (matches spec)":"!! NOT Energy&Math");
+const HERE = dirname(fileURLToPath(import.meta.url));
+const GRAPH = join(HERE, "..", "yuri-die-graph.json");   // the die renders the full unified system (244 nodes)
+const graph = JSON.parse(readFileSync(GRAPH, "utf8"));
 
-// B) worst-case cell slack to block right/bottom inner edge (must be >=0, want >0 margin)
-const blByL = new Map(fp.blocks.map(b=>[b.layer,b]));
-let minSlackR=1e9, minSlackB=1e9, minSlackL=1e9, minSlackT=1e9;
-for(const [id,c] of Object.entries(fp.cells)){
-  const b=blByL.get(c.layer);
-  minSlackR=Math.min(minSlackR, (b.x+b.w)-(c.x+c.w));
-  minSlackB=Math.min(minSlackB, (b.y+b.h)-(c.y+c.h));
-  minSlackL=Math.min(minSlackL, c.x-b.x);
-  minSlackT=Math.min(minSlackT, c.y-(b.y+b.labelH));
+const nodes = graph.nodes ?? [];
+const edges = graph.edges ?? [];
+const nodeById = new Map(nodes.map((n) => [n.id, n]));
+const nodeIds = new Set(nodeById.keys());
+const graphEdges = edges.filter((e) => nodeIds.has(e.from) && nodeIds.has(e.to) && e.from !== e.to);
+const floor = buildTierFloorplan(nodes, graphEdges, { cellBase: 120 });
+
+let failures = 0;
+function ok(cond, label, detail = "") {
+  if (cond) console.log(`PASS ${label}${detail ? " | " + detail : ""}`);
+  else {
+    console.log(`FAIL ${label}${detail ? " | " + detail : ""}`);
+    failures++;
+  }
 }
-console.log(`B) min cell slack -> right=${minSlackR} bottom=${minSlackB} left=${minSlackL} top=${minSlackT} (all must be >=0)`);
 
-// C) gutter centre-lines must fall in empty space: no block rect spans the line
-function blocksAcrossX(x){return fp.blocks.filter(b=>b.x < x && x < b.x+b.w).map(b=>b.layer);}
-function blocksAcrossY(y){return fp.blocks.filter(b=>b.y < y && y < b.y+b.h).map(b=>b.layer);}
-console.log("C) vGutters:", fp.channels.vGutters, "-> blocks crossing each (want []):", fp.channels.vGutters.map(blocksAcrossX));
-console.log("   hGutters:", fp.channels.hGutters, "-> blocks crossing each (want []):", fp.channels.hGutters.map(blocksAcrossY));
-
-// D) minimum gap between any two blocks (must be >0; should be ~gutter where adjacent)
-function gap(a,b){
-  const dx = Math.max(0, Math.max(b.x-(a.x+a.w), a.x-(b.x+b.w)));
-  const dy = Math.max(0, Math.max(b.y-(a.y+a.h), a.y-(b.y+b.h)));
-  if(dx>0&&dy>0) return Math.hypot(dx,dy);
-  return dx+dy; // axis-aligned separation
+function finiteNumber(v) {
+  return typeof v === "number" && Number.isFinite(v);
 }
-let mg=1e9, pair="";
-for(let i=0;i<fp.blocks.length;i++)for(let j=i+1;j<fp.blocks.length;j++){const gp=gap(fp.blocks[i],fp.blocks[j]);if(gp<mg){mg=gp;pair=fp.blocks[i].layer+" / "+fp.blocks[j].layer;}}
-console.log(`D) min inter-block gap = ${mg.toFixed(1)} between [${pair}] (want >0; touching=0 would be a fail)`);
+
+function overlap(a, b) {
+  const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+  const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+  return { ox, oy };
+}
+
+console.log("YURI circuitry adversarial check -- K1D live die");
+console.log(`nodes=${nodes.length} graphEdges=${graphEdges.length} blocks=${floor.blocks.length} canvas=${floor.canvas.w}x${floor.canvas.h}`);
+
+const cellIds = new Set(Object.keys(floor.cells));
+const missingCells = [...nodeIds].filter((id) => !cellIds.has(id));
+const extraCells = [...cellIds].filter((id) => !nodeIds.has(id));
+ok(missingCells.length === 0, "every graph node has a floorplan cell", missingCells.slice(0, 8).join(", "));
+ok(extraCells.length === 0, "floorplan has no non-graph cells", extraCells.slice(0, 8).join(", "));
+ok(cellIds.size === nodes.length, "cell count equals graph node count", `cells=${cellIds.size} nodes=${nodes.length}`);
+
+const invalidCells = [];
+const layerMismatches = [];
+const invalidBands = [];
+for (const [id, cell] of Object.entries(floor.cells)) {
+  const node = nodeById.get(id);
+  const fields = ["x", "y", "w", "h", "cx", "cy", "band", "tier", "ang", "r"];
+  if (!fields.every((field) => finiteNumber(cell[field]))) invalidCells.push(id);
+  if (cell.w <= 0 || cell.h <= 0) invalidCells.push(id);
+  if (node && cell.layer !== node.layer) layerMismatches.push(`${id}:${cell.layer}->${node.layer}`);
+  if (!Number.isInteger(cell.band) || !Number.isInteger(cell.tier) || cell.band !== cell.tier) invalidBands.push(id);
+}
+ok(invalidCells.length === 0, "all cells have finite positive geometry", invalidCells.slice(0, 8).join(", "));
+ok(layerMismatches.length === 0, "cell layers match graph node layers", layerMismatches.slice(0, 8).join(", "));
+ok(invalidBands.length === 0, "cell band/tier fields are executable", invalidBands.slice(0, 8).join(", "));
+
+const graphLayers = new Set(nodes.map((n) => n.layer));
+const blockLayers = new Set(floor.blocks.map((b) => b.layer.replace(/ · CORE$/, "")));
+const missingLayerBlocks = [...graphLayers].filter((layer) => !blockLayers.has(layer));
+ok(missingLayerBlocks.length === 0, "every graph layer has a visible die block", missingLayerBlocks.join(", "));
+ok(floor.blocks.some((b) => b.core && b.layer === "Energy & Math · CORE"), "energy core block is explicit");
+
+const badBlocks = floor.blocks.filter((b) =>
+  !Number.isInteger(b.band) ||
+  !Number.isInteger(b.tier) ||
+  !finiteNumber(b.rIn) ||
+  !finiteNumber(b.rOut) ||
+  b.rOut <= b.rIn ||
+  !b.accent
+);
+ok(badBlocks.length === 0, "all blocks carry valid K1D band geometry", badBlocks.map((b) => b.layer).join(", "));
+
+const orderedBands = floor.bands.slice().sort((a, b) => a.tier - b.tier);
+const bandOrderValid = orderedBands.every((b, i) =>
+  b.tier === i &&
+  finiteNumber(b.rIn) &&
+  finiteNumber(b.rOut) &&
+  b.rOut >= b.rIn &&
+  (i === 0 || b.rIn > orderedBands[i - 1].rOut)
+);
+ok(bandOrderValid, "bands are ordered with real radial gaps");
+
+const energyFn = floor.cells["energy-fn"];
+ok(
+  !!energyFn && Math.hypot(energyFn.cx - floor.center.x, energyFn.cy - floor.center.y) < 1e-6,
+  "energy-fn is the centered core hub"
+);
+
+const unresolvedEdges = graphEdges.filter((e) => !floor.cells[e.from] || !floor.cells[e.to]);
+ok(unresolvedEdges.length === 0, "every graph edge resolves to two rendered cells", unresolvedEdges.slice(0, 8).map((e) => `${e.from}->${e.to}`).join(", "));
+
+const cellEntries = Object.entries(floor.cells);
+const overlaps = [];
+for (let i = 0; i < cellEntries.length; i++) {
+  for (let j = i + 1; j < cellEntries.length; j++) {
+    const [aId, a] = cellEntries[i];
+    const [bId, b] = cellEntries[j];
+    const { ox, oy } = overlap(a, b);
+    if (ox > 1 && oy > 1) overlaps.push(`${aId}<->${bId} (${ox.toFixed(1)}x${oy.toFixed(1)})`);
+  }
+}
+ok(overlaps.length === 0, "no package bounding-box overlaps", overlaps.slice(0, 8).join("; "));
+
+const liveSystemLayer = floor.blocks.find((b) => b.layer === "Self-Improvement");
+// Assert PLACEMENT (rides the SYSTEMS band, tier 2), not a frozen node count — the die renders the whole
+// unified system, so a layer's cell count grows with the graph; pinning n would be stale on every regen.
+ok(!!liveSystemLayer && liveSystemLayer.band === 2 && liveSystemLayer.n >= 1, "Self-Improvement layer rides the SYSTEMS band", liveSystemLayer ? `band=${liveSystemLayer.band} n=${liveSystemLayer.n}` : "");
+
+console.log(`\n${failures === 0 ? "PASS K1D-CIRCUITRY-ADVERSARY-CLEAN" : `FAIL ${failures}-CHECKS-FAILED`}`);
+process.exit(failures === 0 ? 0 : 1);

@@ -49,6 +49,7 @@ const LANES = MODELS.llm_compat_lanes || {};
 
 // Env-gated stage trace for debugging the dispatch path (LLM_LANE_TRACE=/path). No-op unless set.
 const T = (m) => { try { if (process.env.LLM_LANE_TRACE) fs.appendFileSync(process.env.LLM_LANE_TRACE, `${m}\n`); } catch { /* never break dispatch */ } };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const ALIAS = {
   deepseek: 'deepseek-v4-pro', ds: 'deepseek-v4-pro', 'deepseek-v4-pro': 'deepseek-v4-pro',
@@ -357,18 +358,34 @@ function postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, 
 
 async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane, rawHttps) {
   if (rawHttps) return postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, lane);
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const body = JSON.stringify({ model, messages, max_tokens: maxTokens, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) });
+  // Transient transport failures (undici keep-alive socket reuse against a server that drops idle
+  // connections → "AggregateError: fetch failed", ECONNRESET, DNS blips) are RETRIED with a fresh
+  // connection + backoff. `Connection: close` opts out of pooled-socket reuse — the actual root cause
+  // of the intermittent AggregateError — so each one-shot lane call gets a clean socket. 5xx is retried
+  // (transient server); 4xx is terminal. This keeps the night's repeated dispatches from dying on a blip.
+  const ATTEMPTS = 3;
   let res;
-  try {
-    res = await fetch(`${endpoint}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model, messages, max_tokens: maxTokens, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) }),
-      signal: ctrl.signal,
-    });
-  } catch (err) { clearTimeout(timer); return fail(1, lane, `transport:${err?.cause?.code || err?.name || 'fetch_failed'}`); }
-  clearTimeout(timer);
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      res = await fetch(`${endpoint}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}`, Connection: 'close' },
+        body,
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+    } catch (err) {
+      clearTimeout(timer);
+      const reason = err?.cause?.code || err?.name || 'fetch_failed';
+      if (attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=transport_retry_${attempt}:${reason}\n`); await sleep(400 * attempt); continue; }
+      return fail(1, lane, `transport:${reason}`);
+    }
+    if (res.status >= 500 && attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=http5xx_retry_${attempt}:${res.status}\n`); await sleep(400 * attempt); continue; }
+    break;
+  }
   if (!res.ok) { const b = await res.text().catch(() => ''); return fail(res.status >= 500 ? 1 : 3, lane, `http_${res.status}:${b.slice(0, 160)}`); }
   const json = await res.json().catch(() => null);
   return json?.choices?.[0] || {};
@@ -609,6 +626,13 @@ async function main() {
 // Run the CLI only when executed directly — NOT when imported for its exports (tests, callers).
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
+  // A transient undici transport error can surface as a DETACHED rejection (a pooled socket erroring
+  // after the awaited fetch already settled) that escapes the postChat try/catch and would otherwise
+  // crash bare as "AggregateError". Convert any escaped rejection/exception into a CLEAN, categorized
+  // LLM_COMPAT_FAIL exit so the orchestrator detects a non-zero exit and retries, instead of a bare crash.
+  const onFatal = (err) => fail(1, 'llm-lane', `uncaught:${err?.cause?.code || err?.name || 'fatal'}`);
+  process.on('unhandledRejection', onFatal);
+  process.on('uncaughtException', onFatal);
   // Flush-safe exit: set exitCode and let the event loop drain stdout/stderr, instead of an eager
   // process.exit() that truncates async-buffered output when stdout is a pipe/file (non-TTY). A
   // short unref'd watchdog forces exit if a keep-alive socket lingers, so we never hang either.

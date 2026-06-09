@@ -16,9 +16,10 @@ test('ALIAS resolves every lane handle to its models.json key', () => {
   assert.equal(ALIAS.ds, 'deepseek-v4-pro');
   assert.equal(ALIAS.kimi, 'kimi-k2.6');
   assert.equal(ALIAS['moonshotai/kimi-k2.6'], 'kimi-k2.6');
-  assert.equal(ALIAS.nemotron, 'nemotron-3-ultra-550b-a55b');
-  assert.equal(ALIAS.nvidia, 'nemotron-3-ultra-550b-a55b');
-  assert.equal(ALIAS['nvidia/nemotron-3-ultra-550b-a55b'], 'nemotron-3-ultra-550b-a55b');
+  // nemotron lane was renamed 550b→120b; old ids remap forward for back-compat (see ALIAS in llm-lane.mjs).
+  assert.equal(ALIAS.nemotron, 'nemotron-3-super-120b-a12b');
+  assert.equal(ALIAS.nvidia, 'nemotron-3-super-120b-a12b');
+  assert.equal(ALIAS['nvidia/nemotron-3-ultra-550b-a55b'], 'nemotron-3-super-120b-a12b');
 });
 
 test('isPrivateHost blocks every loopback/private/metadata encoding (fetch_url SSRF deny)', () => {

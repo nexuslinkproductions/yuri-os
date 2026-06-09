@@ -2331,7 +2331,34 @@
           "_SYSTEM/Scripts/discovery-precision-gate.mjs"
         ],
         "triggeredBy": "import/CLI — gates a lane claim against its WorkSubstrate allowedPaths/deniedPaths + discovery footprint BEFORE the energy gate; hard veto on protected/denied/out-of-scope paths; reports precisionScore + graph.impact_centrality (yuri-navigate) blast radius",
-        "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks."
+        "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks.",
+        "guide": {
+          "purpose": "Gates a lane claim against its WorkSubstrate scope + discovery footprint BEFORE the energy gate runs. The energy gate scores a transition's quality; this is the upstream filter asking 'did the lane stay inside the authority it was granted, and how precise was its discovery?'. Rides on yuri-id-bridge (isProtectedPath/normalizePath — the protected veto) and yuri-navigate (impact centrality — the claim's blast radius).",
+          "exports": [
+            {
+              "name": "discoveryPrecisionGate",
+              "signature": "discoveryPrecisionGate(claim = {})",
+              "inputs": "a claim { targets, scope (allowed/denied), discovery records }",
+              "outputs": "{ verdict, vetoes, precision, footprint, advisory_only } — a hard protected/scope veto blocks; precision is reported"
+            },
+            {
+              "name": "withNavigate",
+              "signature": "async withNavigate(claim, substrate, opts = {})",
+              "inputs": "a claim + substrate + opts",
+              "outputs": "the gate verdict enriched with yuri-navigate impact centrality (blast radius of the claim's graph targets)"
+            }
+          ],
+          "cliSubcommands": [],
+          "invocation": "both",
+          "securityBoundary": "ADVISORY pre-filter with a HARD veto: a protected-path or out-of-scope target produces a blocking veto (fail-closed via isProtectedPath, which is traversal-hardened so '../'-escapes are caught). Precision + impact are advisory_only (reported for the downstream energy/proof gates + operator). Reads the graph via yuri-navigate; writes nothing. Deterministic (sorted, no RNG/clock).",
+          "whenToUse": "Before accepting a lane's claim/transition — to confirm it stayed inside granted authority (scope + protected paths) and to surface how precise/wide-blast its discovery was, upstream of the energy gate.",
+          "gotchas": [
+            "The verdict is ADVISORY except the protected/scope VETO, which is a hard block — do not treat the precision score as a gate by itself.",
+            "Protected-path detection is realpath/traversal-hardened (yuri-id-bridge), not lexical — '../' escapes are caught.",
+            "withNavigate is async (graph impact lookup); high impact_centrality means 'surface for review', not automatic block."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -3256,7 +3283,54 @@
           "_SYSTEM/Scripts/filing-assessor.mjs"
         ],
         "triggeredBy": "CLI/import — classifies an artifact (research/scratch/schema/handoff/report/math-module/script/state) to its canonical zone via ordered first-match rules; flags misplaced + ephemeral-in-repo + unclassified; hazard-decay staleness (confidenceDecay) for purge candidates",
-        "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report."
+        "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report.",
+        "guide": {
+          "purpose": "Deterministic, READ-ONLY placement assessor for YURI artifacts. As YURI grows, generated artifacts (research docs, /tmp scratch, memories, reports, lane outputs, telemetry) land in pools that aren't clean enough. This is the ASSESSMENT half of the filing system: classify an artifact → its canonical zone, score purge candidates by hazard-decay staleness, and dedup. It RECOMMENDS; it never moves or deletes a file.",
+          "exports": [
+            {
+              "name": "ZONE_RULES",
+              "signature": "ZONE_RULES (const)",
+              "inputs": "—",
+              "outputs": "the closed-set ordered rules mapping a path → its canonical zone"
+            },
+            {
+              "name": "classifyArtifact",
+              "signature": "classifyArtifact(filePath)",
+              "inputs": "a file path",
+              "outputs": "the canonical zone the artifact belongs in (closed-set)"
+            },
+            {
+              "name": "assess",
+              "signature": "assess(filePath)",
+              "inputs": "a file path",
+              "outputs": "{ zone, current, misfiled, staleness, recommendation, advisory_only } — protected paths are vetoed (never recommended for move/purge)"
+            },
+            {
+              "name": "stalenessScore",
+              "signature": "stalenessScore(ageHours, halfLifeHours = 168)",
+              "inputs": "age in hours + optional half-life",
+              "outputs": "a hazard-decay staleness score (math-kernel confidenceDecay)"
+            },
+            {
+              "name": "assessAll",
+              "signature": "assessAll(paths, opts = {})",
+              "inputs": "array of paths + opts",
+              "outputs": "a sorted assessment report over all paths"
+            }
+          ],
+          "cliSubcommands": [
+            "<path...> [--json]"
+          ],
+          "invocation": "both",
+          "securityBoundary": "Strictly READ-ONLY — RECOMMENDS placement/purge, never moves or deletes (the mutation half is a separate owner-gated build). PROTECTED VETO (fail-closed): a protected/secret path is NEVER recommended for relocation or purge, even if misfiled (isProtectedPath is traversal-hardened). Deterministic: closed-set zone rules, sorted output, no RNG.",
+          "whenToUse": "Deciding where a generated artifact canonically belongs, finding misfiled files, or scoring stale purge candidates — to produce a report the OWNER acts on. Never to actually move/delete (that is owner-gated).",
+          "gotchas": [
+            "READ-ONLY by contract — it recommends; the actual relocate/purge is a separate owner-gated mutation half, not here.",
+            "Protected/secret paths are NEVER recommended for move or purge, even when misfiled (fail-closed veto).",
+            "Zone classification is a CLOSED ordered ruleset (ZONE_RULES) — an artifact matching no rule gets the default zone, not an error."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -3289,7 +3363,92 @@
           "_SYSTEM/Scripts/math/formula-foundry.mjs"
         ],
         "triggeredBy": "import/CLI — Foundry Core A (dimensional typing); reads the 6 formula-banks; the composition type-algebra gates illegal output→input combinations before math-proof-gate (Core B) runs",
-        "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate."
+        "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate.",
+        "guide": {
+          "purpose": "Formula Foundry typing CORE A — the legal-move generator. Reads the typed formula-bank cards, classifies each card's input/output UNITS into a deterministic closed-set dimension, and decides whether one formula's output may legally feed another's input. Rejects dimensionally-incoherent compositions (bits→length, probability into an energy slot) — the silent-garbage hole the engine exists to close.",
+          "exports": [
+            {
+              "name": "classifyDimension",
+              "signature": "classifyDimension(unitText)",
+              "inputs": "a prose unit string (e.g. 'bits', 'joule', 'meters/second')",
+              "outputs": "{ dimension, witness } — closed-set dimension + the matched witness token (or null)"
+            },
+            {
+              "name": "dimensionsCompatible",
+              "signature": "dimensionsCompatible(a, b)",
+              "inputs": "two dimension strings (from classifyDimension)",
+              "outputs": "{ compatible, confidence, reason }"
+            },
+            {
+              "name": "catalogFormulas",
+              "signature": "catalogFormulas(opts = {})",
+              "inputs": "optional { bankDir }",
+              "outputs": "{ cards, count, banks, skipped } — unified read-view over the typed formula-banks; corrupt banks are listed in skipped"
+            },
+            {
+              "name": "coverageReport",
+              "signature": "async coverageReport()",
+              "inputs": "none (reads banks + math-kernel exports)",
+              "outputs": "{ boundCount, kernelExportCount, unboundPrimitives, orphanCards, cardCount } — the kernel-fn↔bank-card binding worklist"
+            },
+            {
+              "name": "composeCheck",
+              "signature": "composeCheck(cardA, cardB)",
+              "inputs": "two catalog card objects",
+              "outputs": "{ legal, compatibleSlots, reasons, from, to, outputDim } — whether A's output may legally feed B"
+            },
+            {
+              "name": "composableTargets",
+              "signature": "composableTargets(cardA, catalog = null)",
+              "inputs": "one card + optional pre-loaded catalog",
+              "outputs": "array of legal downstream targets { to, slots, outputDim }"
+            },
+            {
+              "name": "composeOperatorSequences",
+              "signature": "composeOperatorSequences(catalog = null, opts = {})",
+              "inputs": "optional catalog + { min/max chain length, branching, domain filters }",
+              "outputs": "{ sequences, count, truncated, truncation, params } — enumerated legal operator chains"
+            },
+            {
+              "name": "synthesizeFormulaCandidates",
+              "signature": "synthesizeFormulaCandidates(opts = {})",
+              "inputs": "optional catalog + synthesis constraints",
+              "outputs": "{ candidates, count, truncated } — research-status candidates"
+            },
+            {
+              "name": "draftFormulaBankCard",
+              "signature": "draftFormulaBankCard(candidate)",
+              "inputs": "a synthesized candidate",
+              "outputs": "a research-status bank card (promotionStatus:'research', advisoryOnly:true, implementedBy:null)"
+            },
+            {
+              "name": "proofPreflightCandidate",
+              "signature": "proofPreflightCandidate(card, opts = {})",
+              "inputs": "a draft card + optional overrides",
+              "outputs": "{ inert, hasBinding, reason, promotionStatus, advisoryOnly, validationOk, validationErrors }"
+            }
+          ],
+          "cliSubcommands": [
+            "catalog",
+            "coverage",
+            "compose",
+            "composable",
+            "sequences",
+            "synth",
+            "preflight"
+          ],
+          "invocation": "both",
+          "securityBoundary": "READ-ONLY over the formula-bank files; mints NO production cards. Synthesis output is INERT — promotionStatus:'research', advisoryOnly:true, no kernel binding — and cannot promote until someone binds a real kernel symbol AND a green worked example clears math-proof-gate (Core B). No protected-path access. Deterministic: no RNG, no clock, sorted iteration, closed-set classification.",
+          "whenToUse": "Auditing math coverage (which kernel primitives are unbound / which cards are orphaned), checking whether two formulas can legally compose, enumerating legal operator chains, or prototyping new formula candidates by dimensional rules. The upstream typing gate before math-proof-gate validates.",
+          "gotchas": [
+            "Dimension classification is keyword-based over a CLOSED set; short tokens (≤5 chars) require full word boundaries to avoid collisions with ordinary English (F-1 hardening).",
+            "UNKNOWN dimensions are treated as compatible-by-default (cannot be disproven) — an UNKNOWN slot is not a rejection.",
+            "Synthesized candidates are INERT and advisory; they NEVER auto-promote — binding + proof-gate is a separate manual step.",
+            "Corrupt bank files are silently skipped; the only visibility of lost cards is the `skipped` field of catalogFormulas.",
+            "Generator (synthesize) and scorer (bakeoff) are deliberately separate modules — this core does not grade its own candidates."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       },
       "label": "Formula Foundry (typing core: catalog + coverage + composition type-algebra)"
     },
@@ -3306,7 +3465,97 @@
           "_SYSTEM/Scripts/math/formula-foundry-bakeoff.mjs"
         ],
         "triggeredBy": "import/CLI — tests synthesized candidates (stages 0-3: intake, synthetic fixtures via runFormulaProofGate, adversarial counterexamples, real-data bakeoff) generator-not-scorer + real total counts; + the sidecar append-only promotion/demotion ledger (domain-blind mutator). The promotion side of Core B.",
-        "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression."
+        "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression.",
+        "guide": {
+          "purpose": "Foundry CHUNK 3 — the bakeoff harness + the promotion/demotion ledger (the SCORER + GOVERNANCE side of Core B). Takes already-synthesized candidates as INPUT and runs them up a staged promotion ladder, recording every gate verdict to an append-only ledger. Deliberately the GENERATOR≠SCORER boundary: it never imports the synthesizer, so a synthesizer can never grade its own candidate.",
+          "exports": [
+            {
+              "name": "stableHash",
+              "signature": "stableHash(obj)",
+              "inputs": "any JSON-serializable object",
+              "outputs": "a deterministic stable hash string (sorted-key, no clock)"
+            },
+            {
+              "name": "PROMOTION_LADDER",
+              "signature": "PROMOTION_LADDER (frozen const)",
+              "inputs": "—",
+              "outputs": "the ordered, frozen list of promotion rungs"
+            },
+            {
+              "name": "readLedger",
+              "signature": "readLedger(ledgerPath = LEDGER_PATH)",
+              "inputs": "optional ledger path",
+              "outputs": "array of gate records (malformed lines skipped)"
+            },
+            {
+              "name": "appendGateRecord",
+              "signature": "appendGateRecord(record, ledgerPath = LEDGER_PATH)",
+              "inputs": "a gate record + optional path",
+              "outputs": "appends one JSONL line to the ledger (mkdir-safe)"
+            },
+            {
+              "name": "canPromote",
+              "signature": "canPromote(formulaId, toRung, ledger = readLedger())",
+              "inputs": "formula id + target rung + optional ledger",
+              "outputs": "boolean — whether the ladder + evidence permit promotion to that rung"
+            },
+            {
+              "name": "promote",
+              "signature": "promote(card, toRung, ledger = readLedger())",
+              "inputs": "card + target rung + optional ledger",
+              "outputs": "the promotion result; records a gate entry"
+            },
+            {
+              "name": "demote",
+              "signature": "demote(formulaId, toRung, reason, opts = {})",
+              "inputs": "formula id + target rung + reason",
+              "outputs": "the demotion result; records a gate entry with the reason"
+            },
+            {
+              "name": "stage0Intake",
+              "signature": "stage0Intake(candidate)",
+              "inputs": "a candidate",
+              "outputs": "stage-0 intake verdict"
+            },
+            {
+              "name": "stage1Fixtures",
+              "signature": "stage1Fixtures(card)",
+              "inputs": "a card",
+              "outputs": "stage-1 fixture-test verdict"
+            },
+            {
+              "name": "stage2Counterexamples",
+              "signature": "async stage2Counterexamples(card, opts = {})",
+              "inputs": "a card + opts",
+              "outputs": "stage-2 counterexample-search verdict"
+            },
+            {
+              "name": "stage3RealData",
+              "signature": "stage3RealData(candidates, opts = {})",
+              "inputs": "candidates + opts",
+              "outputs": "stage-3 real-data verdict with ACTUAL corpus totals (no top-N laundering) or a refusal"
+            },
+            {
+              "name": "runBakeoff",
+              "signature": "async runBakeoff(candidates, opts = {})",
+              "inputs": "candidates + opts (incl. opts.stamp for determinism)",
+              "outputs": "the full staged bakeoff result"
+            }
+          ],
+          "cliSubcommands": [
+            "ledger"
+          ],
+          "invocation": "both",
+          "securityBoundary": "MUTATING but bounded: appends to the promotion/demotion LEDGER (_SYSTEM/state, append-only JSONL, mkdir-safe) — never deletes or rewrites. No protected-path access. DOMAIN-BLIND: nothing inspects a candidate's source domains to loosen/tighten a gate — music, frequency, magnetism, numerology, alchemy, information-theory clear the SAME rungs on the SAME evidence bar; a candidate fails only for insufficient evidence. Deterministic: no Math.random, no Date.now (timestamps via opts.stamp).",
+          "whenToUse": "Promoting/demoting a formula candidate through the evidence ladder, reading the gate-decision history, or running the full staged bakeoff over a candidate set. The governance/scoring counterpart to formula-foundry's generation.",
+          "gotchas": [
+            "GENERATOR≠SCORER: this module never imports synthesizeFormulaCandidates — keep that separation; do not wire the synthesizer in.",
+            "Determinism requires the caller to pass opts.stamp — there is no clock inside; a missing stamp loses reproducibility.",
+            "stage3RealData reports REAL corpus totals or REFUSES — it will not emit a top-N severity-laundered count.",
+            "The ledger is append-only; a later record for an id supersedes earlier ones (read reconstructs current state)."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -4436,7 +4685,42 @@
           "_SYSTEM/Scripts/lane-telemetry-cockpit.mjs"
         ],
         "triggeredBy": "CLI — reads _SYSTEM/state/originator-telemetry.jsonl, groups by traceId, collapses stream/stderr/stdout chunk noise into counts, prints a compact per-lane timeline (start -> model call -> verification -> exit) with elapsed/heartbeats/streamed-chars/status",
-        "description": "Codex-handoff organ: JSONL is the audit substrate, this is the operator experience. No ugly raw JSON — a clean cockpit so the operator sees what a lane is doing live. Read-only."
+        "description": "Codex-handoff organ: JSONL is the audit substrate, this is the operator experience. No ugly raw JSON — a clean cockpit so the operator sees what a lane is doing live. Read-only.",
+        "guide": {
+          "purpose": "Human-readable cockpit over the Originator lane-telemetry stream. JSONL is the audit substrate, not the operator experience: this reads originator-telemetry.jsonl, groups by traceId, COLLAPSES the noisy stream/stderr/stdout chunk events into counts, and prints a compact per-run timeline (start → model call → verification → exit) with elapsed, heartbeat count, chars streamed, and status — so the operator sees what a lane is doing without reading raw JSON.",
+          "exports": [
+            {
+              "name": "readTelemetry",
+              "signature": "readTelemetry(file = TELEMETRY, opts = {})",
+              "inputs": "optional telemetry file path + opts",
+              "outputs": "parsed telemetry events (malformed lines tolerated)"
+            },
+            {
+              "name": "summarizeByTrace",
+              "signature": "summarizeByTrace(events)",
+              "inputs": "telemetry events",
+              "outputs": "per-traceId summary collapsing chunk events into counts (elapsed, heartbeats, chars, status)"
+            },
+            {
+              "name": "renderCockpit",
+              "signature": "renderCockpit(traces, opts)",
+              "inputs": "summarized traces + render opts",
+              "outputs": "the compact human-readable cockpit string"
+            }
+          ],
+          "cliSubcommands": [
+            "(path) [--json] [--limit N]"
+          ],
+          "invocation": "both",
+          "securityBoundary": "Strictly READ-ONLY — reads the telemetry JSONL and renders it; never mutates telemetry. Input line-count is bounded (limit guard). No protected-path access.",
+          "whenToUse": "Inspecting what a dispatched lane run actually did (timeline, model call, verification, exit) without parsing raw originator-telemetry JSON; triaging a slow/failed lane run.",
+          "gotchas": [
+            "It collapses stream/stderr/stdout chunk events into COUNTS — individual chunk payloads are not shown (by design, to stay compact).",
+            "Grouping is by traceId; a run without a stable traceId will not group cleanly.",
+            "Read-only over a live-appended file — a snapshot reflects the moment it was read."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -5541,7 +5825,82 @@
           "_SYSTEM/Scripts/openprocess-pool.mjs"
         ],
         "triggeredBy": "import/CLI — tracks every started-but-unclosed thread (task/research/idea/todo/skill/bug/experiment/handoff) as an OpenProcess; ranks by OpenMass = w_status*status_open + w_age*staleness(confidenceDecay) + w_dep*dependency_centrality(yuri-navigate.aggregateProcessCentrality) + w_risk*unfinished_risk + w_value*operator_value - w_verify*verified_closure_evidence",
-        "description": "Mathematical memory: answers \"what did we start but not finish?\" from indexed process MASS, not memory vibes. Stale-but-open threads rise back into attention; closed work loses mass (verify term subtracts). Deterministic (ages carried on evidence, no clock). UI-agnostic across Codex/Claude/Gemma/DeepSeek. The dependency-centrality term rides on yuri-navigate (the convergence — OpenProcess uses the structural centrality primitive)."
+        "description": "Mathematical memory: answers \"what did we start but not finish?\" from indexed process MASS, not memory vibes. Stale-but-open threads rise back into attention; closed work loses mass (verify term subtracts). Deterministic (ages carried on evidence, no clock). UI-agnostic across Codex/Claude/Gemma/DeepSeek. The dependency-centrality term rides on yuri-navigate (the convergence — OpenProcess uses the structural centrality primitive).",
+        "guide": {
+          "purpose": "The OpenProcess Sum Pool — mathematical memory for started-but-unclosed work. Users + lanes start tasks/research/ideas/todos/skills/bugs/experiments/handoffs over days; many stay open and fall out of working memory. This ranks them by OPEN MASS (status + staleness hazard-decay + dependency centrality + risk + value) so 'what did we start but not finish?' gets a math-grounded answer, not a memory vibe. UI-agnostic and YURI-native (same across all lanes).",
+          "exports": [
+            {
+              "name": "OPEN_PROCESS_TYPES",
+              "signature": "OPEN_PROCESS_TYPES (frozen const)",
+              "inputs": "—",
+              "outputs": "['task','research','idea','todo','skill','bug','experiment','handoff']"
+            },
+            {
+              "name": "OPEN_PROCESS_STATES",
+              "signature": "OPEN_PROCESS_STATES (frozen const)",
+              "inputs": "—",
+              "outputs": "['open','active','blocked','stale','closed']"
+            },
+            {
+              "name": "DEFAULT_WEIGHTS",
+              "signature": "DEFAULT_WEIGHTS (frozen const)",
+              "inputs": "—",
+              "outputs": "the default OpenMass term weights (status/age/dep/risk/value)"
+            },
+            {
+              "name": "staleness",
+              "signature": "staleness(proc)",
+              "inputs": "an OpenProcess object",
+              "outputs": "a hazard-decay staleness score (stale-but-open rises back into attention)"
+            },
+            {
+              "name": "openMass",
+              "signature": "openMass(proc, opts = {})",
+              "inputs": "an OpenProcess + optional { weights }",
+              "outputs": "the scalar OpenMass for that process"
+            },
+            {
+              "name": "rankPool",
+              "signature": "rankPool(processes, opts = {})",
+              "inputs": "array of processes + opts",
+              "outputs": "processes ranked by descending OpenMass"
+            },
+            {
+              "name": "poolTotal",
+              "signature": "poolTotal(processes, opts = {})",
+              "inputs": "array of processes + opts",
+              "outputs": "the summed OpenMass over the pool"
+            },
+            {
+              "name": "categoryPools",
+              "signature": "categoryPools(processes, opts = {})",
+              "inputs": "array of processes + opts",
+              "outputs": "OpenMass grouped/summed by category"
+            },
+            {
+              "name": "whatIsUnfinished",
+              "signature": "whatIsUnfinished(processes, opts = {})",
+              "inputs": "array of processes + { top, weights }",
+              "outputs": "the top-N highest-mass open processes with their next candidate action"
+            },
+            {
+              "name": "navigateCentrality",
+              "signature": "async navigateCentrality()",
+              "inputs": "none",
+              "outputs": "dependency centrality per process via yuri-navigate.aggregateProcessCentrality"
+            }
+          ],
+          "cliSubcommands": [],
+          "invocation": "both",
+          "securityBoundary": "Pure / read-only ranking math — computes OpenMass over process objects supplied by the caller; persists nothing itself. navigateCentrality reads the canonical graph via yuri-navigate (also read-only). No protected-path access. Deterministic (sorted, hazard-decay, no RNG).",
+          "whenToUse": "Answering 'what did we start but not finish?', ranking open work by mass, summing pool/category load, or weighting a process by its dependency centrality. The math layer under the nervous system's afferent digest (yuri-nerve calls whatIsUnfinished).",
+          "gotchas": [
+            "Staleness uses hazard-decay: a stale-but-open item RISES back in rank over time — it is not penalized into invisibility.",
+            "navigateCentrality is async and depends on yuri-navigate over the canonical graph; a stale graph yields stale centrality.",
+            "The pool is data-in/score-out — it does not own storage; the caller supplies the process objects (e.g. from the nerve store)."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -7989,40 +8348,6 @@
       "label": "session-journal.md"
     },
     {
-      "id": "weekly-comp",
-      "tiers": [
-        "mechanism"
-      ],
-      "flow": null,
-      "mechanism": {
-        "label": "Weekly Comp (self-improvement consolidation writer)",
-        "layer": "Self-Improvement",
-        "files": [
-          "_SYSTEM/Scripts/self-improvement/weekly-comp.mjs"
-        ],
-        "triggeredBy": "CLI `node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs`; import by weekly-consolidation, cross-reference tests, and yuri-lifecycle-controller promotion_path reference",
-        "description": "Weekly self-improvement consolidation CLI/library: collects lessons from 02_EXTRACT entries and experiments, builds the cross-reference index, renders a weekly digest, prevention rules, markdown index, and JSON index, then archives raw lessons unless dry-run is set. Exports root/path constants, isoWeek, pickRoot, pickWeek, pickDryRun, collectLessons, consolidateWeek, renderWeeklyDigest, and main."
-      },
-      "label": "Weekly Comp (self-improvement consolidation writer)"
-    },
-    {
-      "id": "weekly-consolidation",
-      "tiers": [
-        "mechanism"
-      ],
-      "flow": null,
-      "mechanism": {
-        "label": "Weekly Consolidation (weekly-comp CLI alias)",
-        "layer": "Self-Improvement",
-        "files": [
-          "_SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs"
-        ],
-        "triggeredBy": "CLI `node _SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs`; import as a compatibility re-export of weekly-comp",
-        "description": "Thin compatibility entrypoint for the weekly self-improvement consolidator. It imports main from weekly-comp, runs it when invoked directly, and re-exports the full weekly-comp surface so older callers can use the weekly-consolidation module without duplicating consolidation logic."
-      },
-      "label": "Weekly Consolidation (weekly-comp CLI alias)"
-    },
-    {
       "id": "XREF_QUERY",
       "tiers": [
         "flow",
@@ -8173,7 +8498,30 @@
           "_SYSTEM/Scripts/yuri-decode.mjs"
         ],
         "triggeredBy": "import/CLI — decode(\"<text>\") returns a deterministic math object (raw tokens + frequency + lexical density, numerology channels gematria/digital-root/harmonic, dimensional reading via the Foundry classifier, a compact feature surface) that the LLM reasons over directly",
-        "description": "The LLM-WIELDED decoder instrument (Marcel: the LLM uses the decoder directly, NOT an ingress pre-processor). Same engine, inverted control — the model calls it. Deterministic + embedding-free; reuses nexus-numerology + formula-foundry classifyDimension. Advisory: the returned math object is a representation, not a truth claim."
+        "description": "The LLM-WIELDED decoder instrument (Marcel: the LLM uses the decoder directly, NOT an ingress pre-processor). Same engine, inverted control — the model calls it. Deterministic + embedding-free; reuses nexus-numerology + formula-foundry classifyDimension. Advisory: the returned math object is a representation, not a truth claim.",
+        "guide": {
+          "purpose": "The LLM-WIELDED decoder instrument: translate text → a deterministic math object. NOT an ingress pre-processor that mutates input before the LLM — it is an INSTRUMENT the LLM calls directly: decode('<text>') returns a structured math representation (tokens, numerology channels, dimensional reading, feature surface) the LLM then reasons over. The control inverts — the model wields the decode engine.",
+          "exports": [
+            {
+              "name": "decode",
+              "signature": "decode(text, opts = {})",
+              "inputs": "a text string + optional opts",
+              "outputs": "{ tokens, numerology (gematria hash / digital-root mod-9 / harmonic signature), dimension, features, advisory_only } — a deterministic math object for the same text"
+            }
+          ],
+          "cliSubcommands": [
+            "\"<text>\" [--json]"
+          ],
+          "invocation": "both",
+          "securityBoundary": "Pure / read-only and advisory_only — computes a math object from text; persists nothing, touches no protected paths. Deterministic + embedding-free: same text → same object. Reuses the shipped channels (yuri-jaccard tokenize, nexus-numerology, the Foundry dimension classifier).",
+          "whenToUse": "When the model wants a deterministic structural reading of a piece of text (token surface, numerology channels, dimensional classification) to reason over — e.g. decoding a brain dump's surface features into a stable object.",
+          "gotchas": [
+            "It is an INSTRUMENT the LLM calls, NOT an ingress mutator — it never rewrites the input before the model sees it.",
+            "Deterministic + embedding-free: identical text yields an identical object (no RNG, no clock) — good for caching/equality.",
+            "Output is advisory_only — a decoded reading is structure to reason over, not a verified claim."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
       }
     },
     {
@@ -8447,6 +8795,77 @@
         "description": "Shared library module (_SYSTEM/Scripts/yuri-user.mjs) exposing currentUserHandle, the single source of user attribution stamped onto energy traces and dispatch records."
       },
       "label": "yuri-user (current user handle attribution)"
+    },
+    {
+      "id": "yuri-nerve",
+      "tiers": [
+        "mechanism"
+      ],
+      "flow": null,
+      "mechanism": {
+        "label": "YURI Nerve (nervous-system spine + afferent digest)",
+        "layer": "Memory & Subconscious",
+        "files": [
+          "_SYSTEM/Scripts/yuri-nerve.mjs"
+        ],
+        "triggeredBy": "import/CLI + wired into .claude/hooks/brain-inject.js — recordEvent captures a detected event under ONE id; organStateDigest surfaces the compact open-work heartbeat the brain wakes with each turn",
+        "description": "The NERVOUS SYSTEM spine + afferent nerve. SPINE (one build, not three): a detected event is captured ONCE, gets ONE deterministic id (FNV-1a content hash, no clock), and is threaded across organs under that id — it becomes an OpenProcess-shaped entry (STATE/mass) AND carries a memory link (MEANING), cross-linked not duplicated. Closes three holes at once: auto-tracking, the memory↔task link, and durability (on disk the moment detected — the failure that lost the red-team findings). AFFERENT: organStateDigest() surfaces a COMPACT top-N organ-state the brain wakes with. Append-only store at _SYSTEM/state/nerve-events.jsonl; a later record for an id supersedes (reads as current state).",
+        "guide": {
+          "purpose": "The nervous-system spine + afferent nerve. A detected event is captured ONCE under ONE deterministic id and threaded across organs: it becomes an OpenProcess-shaped entry (STATE) carrying a memory link (MEANING), cross-linked not duplicated. organStateDigest() is the compact open-work heartbeat the brain wakes with each turn. Closes auto-tracking, the memory↔task link, and the durability hole in one spine.",
+          "exports": [
+            {
+              "name": "NERVE_KINDS",
+              "signature": "NERVE_KINDS (frozen const)",
+              "inputs": "—",
+              "outputs": "['task','decision','fix','finding','idea','correction','build','handoff']"
+            },
+            {
+              "name": "mintEventId",
+              "signature": "mintEventId(ev = {})",
+              "inputs": "an event { kind, title, content }",
+              "outputs": "a deterministic id 'nerve.<kind>.<fnv1a(title+content)>' — same input → same id (idempotent)"
+            },
+            {
+              "name": "recordEvent",
+              "signature": "recordEvent(ev = {}, opts = {})",
+              "inputs": "an event { kind, title, state, weight, evidence, refs, memoryLink, nextCandidateAction, closureCondition, stamp } + optional { store }",
+              "outputs": "{ id, entry } — appends one JSONL line to the nerve store (mkdir-safe)"
+            },
+            {
+              "name": "loadEvents",
+              "signature": "loadEvents(store = STORE)",
+              "inputs": "optional store path",
+              "outputs": "current events (de-duped by id: a later record supersedes; malformed lines skipped)"
+            },
+            {
+              "name": "closeEvent",
+              "signature": "closeEvent(id, opts = {})",
+              "inputs": "an event id + optional { kind, title, memoryLink, stamp }",
+              "outputs": "{ ok, id, entry } — records a state:'closed' transition under the same id, carrying the memory link forward"
+            },
+            {
+              "name": "organStateDigest",
+              "signature": "organStateDigest(opts = {})",
+              "inputs": "optional { top, weights, store }",
+              "outputs": "{ op:'organ_state_digest', openCount, closedCount, top:[{id,type,title,mass,next}], advisory_only } — the afferent heartbeat"
+            }
+          ],
+          "cliSubcommands": [
+            "digest"
+          ],
+          "invocation": "both",
+          "securityBoundary": "MUTATING but bounded: appends to the nerve store (_SYSTEM/state/nerve-events.jsonl, append-only JSONL, mkdir-safe) — never deletes or rewrites; a state transition is a NEW superseding record. No protected-path access. Deterministic: stable content-hash ids, caller-stamped time (no clock here). organStateDigest is advisory_only.",
+          "whenToUse": "Durably capturing a detected event (task/decision/fix/finding/idea/correction/build/handoff) the moment it occurs so it survives compaction; closing an event; or pulling the compact open-work digest the brain wakes with (`yuri-nerve.mjs digest`). The continuity spine — record-on-detect, recall-on-wake.",
+          "gotchas": [
+            "Ids are content-hashed (FNV-1a) so re-detecting the same event is idempotent — it supersedes, it does not duplicate.",
+            "No clock inside: the caller supplies stamp; without it, time-ordering relies on append order only.",
+            "The store is append-only and reads via de-dup-by-id — a later line for an id is the current state (closeEvent works this way).",
+            "Only `digest` is wired as a CLI subcommand; recordEvent/closeEvent are the import surface (callers stamp + supply the event)."
+          ],
+          "_authored": "2026-06-09 main-session (source-grounded)"
+        }
+      },
+      "label": "YURI Nerve (nervous-system spine + afferent digest)"
     }
   ],
   "edges": [
@@ -11896,5 +12315,6 @@
       "view": "mechanism",
       "description": "classifyDimension for the dimensional reading of the text + tokens"
     }
-  ]
+  ],
+  "_guidesSeededNote": "organ guides seeded by yuri-guide-seed.mjs from _SYSTEM/organ-guides.json"
 }
