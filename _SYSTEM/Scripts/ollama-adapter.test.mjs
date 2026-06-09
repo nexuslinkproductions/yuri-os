@@ -63,9 +63,9 @@ try {
   }
 
   {
-    assert.equal(resolveOllamaTimeoutMs({}), 300_000);
+    assert.equal(resolveOllamaTimeoutMs({}), 1_200_000);
     assert.equal(resolveOllamaTimeoutMs({ LLM_COMPAT_OLLAMA_TIMEOUT_MS: '900000' }), 900_000);
-    assert.equal(resolveOllamaTimeoutMs({ LLM_COMPAT_OLLAMA_TIMEOUT_MS: '-1' }), 300_000);
+    assert.equal(resolveOllamaTimeoutMs({ LLM_COMPAT_OLLAMA_TIMEOUT_MS: '-1' }), 1_200_000);
   }
 
   {

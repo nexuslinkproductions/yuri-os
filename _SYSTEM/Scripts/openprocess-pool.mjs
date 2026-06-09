@@ -29,15 +29,18 @@ export const OPEN_PROCESS_STATES = Object.freeze(['open', 'active', 'blocked', '
 export const DEFAULT_WEIGHTS = Object.freeze({ status: 1.0, age: 1.0, dep: 1.5, risk: 1.0, value: 1.2, verify: 2.0 });
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+const ZERO_TERMS = Object.freeze({ status: 0, age: 0, dep: 0, risk: 0, value: 0, verify: 0 });
+const isProcessObject = (proc) => Boolean(proc && typeof proc === 'object' && !Array.isArray(proc));
 
 // STALENESS of the freshest piece of evidence: 1 − base·0.5^(age/halfLife). A process whose evidence ages without
 // renewal accrues staleness → rises back into attention. No evidence ⇒ maximally stale (1).
 export function staleness(proc) {
-  const ev = Array.isArray(proc.evidence) ? proc.evidence : [];
+  const ev = isProcessObject(proc) && Array.isArray(proc.evidence) ? proc.evidence : [];
   if (!ev.length) return 1;
   // the most recently-grounded evidence (smallest age) sets freshness; staleness = 1 − that freshness.
   let bestFresh = 0;
   for (const e of ev) {
+    if (!e || typeof e !== 'object' || Array.isArray(e)) continue;
     const base = Number.isFinite(e.base) ? clamp01(e.base) : 0.5;
     const age = Number.isFinite(e.age) ? Math.max(0, e.age) : 0;
     const halfLife = Number.isFinite(e.halfLife) && e.halfLife > 0 ? e.halfLife : 14;
@@ -77,6 +80,10 @@ function dependencyCentrality(proc, opts) {
 }
 
 export function openMass(proc, opts = {}) {
+  if (!isProcessObject(proc)) {
+    // Malformed pool entries should degrade explicitly, not crash the whole OpenProcess ranking.
+    return { id: undefined, type: undefined, mass: 0, terms: { ...ZERO_TERMS }, invalid: true, reason: 'invalid process entry' };
+  }
   const w = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) };
   const terms = {
     status: w.status * statusOpen(proc),
@@ -91,7 +98,7 @@ export function openMass(proc, opts = {}) {
 }
 
 export function rankPool(processes, opts = {}) {
-  const scored = (Array.isArray(processes) ? processes : []).map((p) => openMass(p, opts));
+  const scored = (Array.isArray(processes) ? processes : []).map((p) => openMass(p, opts)).filter((x) => !x.invalid);
   scored.sort((a, b) => b.mass - a.mass || String(a.id).localeCompare(String(b.id)));
   return scored;
 }
@@ -108,16 +115,27 @@ export function categoryPools(processes, opts = {}) {
 
 // the operator's question: "what did we start but not finish?" → top-N open processes by mass, with the
 // next candidate action that would reduce each one's mass.
+// IMPORTANT: pair each process INSTANCE with its own score (no re-lookup by id). A prior version used
+// processes.find(q => q.id === x.id), which returns the FIRST match — so when two processes share an id and
+// the first is closed, the genuinely-open one was silently dropped (the continuity organ lying that work is
+// done). Scoring per-instance guarantees every open process surfaces, even under duplicate ids.
 export function whatIsUnfinished(processes, opts = {}) {
-  const ranked = rankPool(processes, opts).filter((x) => {
-    const p = processes.find((q) => q.id === x.id);
-    return p && p.state !== 'closed';
-  });
-  const top = ranked.slice(0, opts.top || 10);
-  return top.map((x) => {
-    const p = processes.find((q) => q.id === x.id);
-    return { id: x.id, type: x.type, title: p && p.title, mass: x.mass, state: p && p.state, nextCandidateAction: p && p.nextCandidateAction, closureCondition: p && p.closureCondition };
-  });
+  const list = Array.isArray(processes) ? processes : [];
+  const scored = list.map((p) => ({ p, score: openMass(p, opts) })).filter(({ score }) => !score.invalid);
+  const open = scored.filter(({ p }) => p && p.state !== 'closed');
+  open.sort((a, b) => b.score.mass - a.score.mass || String(a.score.id).localeCompare(String(b.score.id)));
+  // Honor top:0; falsy defaulting silently returned 10 rows when callers requested none.
+  const n = Number.isInteger(opts.top) && opts.top >= 0 ? opts.top : 10;
+  const top = open.slice(0, n);
+  return top.map(({ p, score }) => ({
+    id: score.id,
+    type: score.type,
+    title: p.title,
+    mass: score.mass,
+    state: p.state,
+    nextCandidateAction: p.nextCandidateAction,
+    closureCondition: p.closureCondition,
+  }));
 }
 
 // optional: a centralityOf() backed by yuri-navigate, for the w_dep term. Lazy so the pool stays self-contained.

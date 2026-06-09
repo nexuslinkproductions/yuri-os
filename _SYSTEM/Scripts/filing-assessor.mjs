@@ -14,30 +14,41 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { confidenceDecay } from './math/math-kernel.mjs';
-import { normalizePath } from './yuri-id-bridge.mjs';
+import { normalizePath, isProtectedPath } from './yuri-id-bridge.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..', '..');
 
+function inZone(rel, zone) {
+  return rel === zone || rel.startsWith(zone + '/');
+}
+
+const isEphemeralName = (name) => /\.(bak|tmp|scratch|swp)$/.test(name);
+
 // the canonical zones + the ORDERED rules that place an artifact. First match wins (deterministic).
 export const ZONE_RULES = [
-  { zone: 'EPHEMERAL', kind: 'scratch', test: (p, name, ext) => p.startsWith('/tmp/') || /\.(bak|tmp|scratch|swp)$/.test(name) || /\.bak-/.test(name), note: 'temporary scratch — purge candidate, should not persist in the repo' },
+  { zone: 'EPHEMERAL', kind: 'scratch', test: (p, name, ext) => p.startsWith('/tmp/') || isEphemeralName(name), note: 'temporary scratch — purge candidate, should not persist in the repo' },
   { zone: '_SYSTEM/config/schemas', kind: 'schema', test: (p, name) => /\.schema\.json$/.test(name) || (name.endsWith('.json') && /schema/.test(p)) },
-  { zone: '_SYSTEM/docs', kind: 'handoff/doc', test: (p, name) => name.endsWith('.md') && (/handoff|HANDOFF/.test(name) || p.includes('_SYSTEM/docs')) },
-  { zone: '02_RESOURCES/RESEARCH', kind: 'research', test: (p, name) => name.endsWith('.md') && (p.includes('02_RESOURCES') || /research|spec|synthesis|audit|brief|channels/i.test(name)) },
-  { zone: '_SYSTEM/reports', kind: 'report', test: (p, name) => (name.endsWith('.html') || name.endsWith('.md')) && (p.includes('_SYSTEM/reports') || /report|audit|dashboard/i.test(name)) },
-  { zone: '_SYSTEM/Scripts/math', kind: 'math-module', test: (p, name, ext) => /\.(mjs|js|cjs)$/.test(name) && (p.includes('_SYSTEM/Scripts/math') || /^(math-|yuri-(energy|jaccard|mdl|minhash|phi)|formula-|nexus-numerology)/.test(name)) },
-  { zone: '_SYSTEM/Scripts', kind: 'script', test: (p, name) => /\.(mjs|js|cjs|sh)$/.test(name) && p.includes('_SYSTEM/Scripts') },
-  { zone: '_SYSTEM/state', kind: 'state/telemetry', test: (p, name) => name.endsWith('.jsonl') || (name.endsWith('.json') && p.includes('_SYSTEM/state')) },
+  { zone: '_SYSTEM/docs', kind: 'handoff/doc', test: (p, name, ext, rel) => name.endsWith('.md') && (/handoff|HANDOFF/.test(name) || inZone(rel, '_SYSTEM/docs')) },
+  { zone: '02_RESOURCES/RESEARCH', kind: 'research', test: (p, name, ext, rel) => name.endsWith('.md') && (inZone(rel, '02_RESOURCES') || /research|spec|synthesis|audit|brief|channels/i.test(name)) },
+  { zone: '_SYSTEM/reports', kind: 'report', test: (p, name, ext, rel) => (name.endsWith('.html') || name.endsWith('.md')) && (inZone(rel, '_SYSTEM/reports') || /report|audit|dashboard/i.test(name)) },
+  { zone: '_SYSTEM/Scripts/math', kind: 'math-module', test: (p, name, ext, rel) => /\.(mjs|js|cjs)$/.test(name) && (inZone(rel, '_SYSTEM/Scripts/math') || /^(math-|yuri-(energy|jaccard|mdl|minhash|phi)|formula-|nexus-numerology)/.test(name)) },
+  { zone: '_SYSTEM/Scripts', kind: 'script', test: (p, name, ext, rel) => /\.(mjs|js|cjs|sh)$/.test(name) && inZone(rel, '_SYSTEM/Scripts') },
+  { zone: '_SYSTEM/state', kind: 'state/telemetry', test: (p, name, ext, rel) => name.endsWith('.jsonl') || (name.endsWith('.json') && inZone(rel, '_SYSTEM/state')) },
 ];
 
 export function classifyArtifact(filePath) {
+  if (typeof filePath !== 'string' || !filePath) {
+    // One malformed path should become an invalid row, not abort the whole filing report.
+    return { kind: 'invalid', zone: null, reason: 'non-string or empty path — cannot classify' };
+  }
   const rel = normalizePath(filePath);
   const p = filePath.startsWith('/') ? filePath : '/' + rel; // keep /tmp absolute detectable
   const name = path.basename(filePath);
   const ext = path.extname(name).toLowerCase();
   for (const rule of ZONE_RULES) {
-    if (rule.test(p, name, ext)) return { kind: rule.kind, zone: rule.zone, reason: rule.note || `matched ${rule.kind} rule`, note: rule.note };
+    // Zone membership must be segment-anchored; raw substring matching pulled fake sibling paths into real zones.
+    if (rule.test(p, name, ext, rel)) return { kind: rule.kind, zone: rule.zone, reason: rule.note || `matched ${rule.kind} rule`, note: rule.note };
   }
   return { kind: 'unclassified', zone: null, reason: 'no zone rule matched — needs owner placement decision' };
 }
@@ -51,6 +62,31 @@ function currentZoneOf(filePath) {
 }
 
 export function assess(filePath) {
+  if (typeof filePath !== 'string' || !filePath) {
+    return {
+      path: String(filePath ?? ''),
+      kind: 'invalid',
+      currentZone: null,
+      recommendedZone: null,
+      misplaced: false,
+      reason: 'non-string or empty path — cannot classify',
+    };
+  }
+  // PROTECTED VETO (fail closed): a protected/secret path is NEVER recommended for relocation or purge, even if a
+  // zone rule would otherwise match (e.g. '.env.bak' matches the EPHEMERAL .bak rule; '.claude/state/*.json' looks
+  // "misplaced"). Walking a protected/secret file out of its zone — or purging a secret backup — is the failure
+  // this assessor must not commit. isProtectedPath is traversal-hardened, so '../'-escapes are caught too.
+  if (isProtectedPath(filePath)) {
+    return {
+      path: normalizePath(filePath),
+      kind: 'protected',
+      currentZone: currentZoneOf(filePath),
+      recommendedZone: null,
+      misplaced: false,
+      protected: true,
+      reason: 'protected/secret path — never auto-relocated or purged; owner-only',
+    };
+  }
   const c = classifyArtifact(filePath);
   const current = currentZoneOf(filePath);
   const misplaced = c.zone !== null && c.zone !== current && !(c.zone === 'EPHEMERAL' && current === 'EPHEMERAL');
@@ -77,6 +113,7 @@ export function assessAll(paths, opts = {}) {
     misplaced: rows.filter((r) => r.misplaced).map((r) => ({ path: r.path, currentZone: r.currentZone, recommendedZone: r.recommendedZone })),
     unclassified: rows.filter((r) => r.kind === 'unclassified').map((r) => r.path),
     ephemeralInRepo: rows.filter((r) => r.recommendedZone === 'EPHEMERAL' && r.currentZone !== 'EPHEMERAL').map((r) => r.path),
+    protectedHeld: rows.filter((r) => r.protected).map((r) => r.path),
     rows,
     advisory_only: true,
     note: 'READ-ONLY assessment. Relocation/purge is owner-gated — this report is what the owner acts on.',

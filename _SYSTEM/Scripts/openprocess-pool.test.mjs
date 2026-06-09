@@ -45,12 +45,21 @@ ok(OPEN_PROCESS_TYPES.includes('research') && typeof cats.research === 'number',
 const unfinished = whatIsUnfinished(procs, { top: 5 });
 ok(!unfinished.some((u) => u.id === 'p-closed'), 'whatIsUnfinished EXCLUDES closed processes');
 ok(unfinished[0].id === 'p-blocked' && 'nextCandidateAction' in unfinished[0], 'whatIsUnfinished ranks open by mass + carries the next action');
+ok(whatIsUnfinished(procs, { top: 0 }).length === 0, 'O-4: whatIsUnfinished honors explicit top:0');
 
 // w_dep term is wired to yuri-navigate (the convergence: OpenProcess rides on navigate centrality)
 const cof = await navigateCentrality();
 const depTerm = openMass({ id: 'x', type: 'task', state: 'open', anchors: ['energy-fn'], evidence: [{ base: 0.5, age: 10, halfLife: 14 }] }, { centralityOf: cof }).terms.dep;
 ok(depTerm > 0, 'the dependency-centrality term is wired to yuri-navigate (real centrality for an energy-fn anchor)');
 ok(openMass({ id: 'y', type: 'task', state: 'open', anchors: [], evidence: [] }).terms.dep === 0, 'no centralityOf provided ⇒ dep term is honestly 0, not faked');
+
+// malformed pool entries degrade per-row instead of crashing the whole organ
+const invalidMass = openMass(null);
+ok(invalidMass.invalid === true && invalidMass.mass === 0 && invalidMass.terms.status === 0, 'O-3: openMass(null) returns explicit zero-mass invalid row');
+ok(rankPool([null, procs[0]]).length === 1 && rankPool([null, procs[0]])[0].id === 'p-fresh',
+  'O-3: rankPool filters malformed entries instead of throwing');
+ok(staleness({ id: 'bad-evidence', evidence: [null, 'x', { base: 1, age: 0, halfLife: 14 }] }) === 0,
+  'O-3: staleness skips malformed evidence entries instead of throwing');
 
 // weights are configurable
 ok(DEFAULT_WEIGHTS.verify > DEFAULT_WEIGHTS.status, 'verified-closure is weighted to decisively reduce mass');

@@ -29,7 +29,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const originatorPath = resolve(__dirname, 'yuri-originator.mjs');
 
 {
-  assert.equal(resolveOriginatorOllamaTimeoutMs({}, {}), 300_000);
+  assert.equal(resolveOriginatorOllamaTimeoutMs({}, {}), 1_200_000);
   assert.equal(resolveOriginatorOllamaTimeoutMs({ timeoutMs: 900000 }, {}), 900_000);
   assert.equal(resolveOriginatorOllamaTimeoutMs({}, { YURI_ORIGINATOR_OLLAMA_TIMEOUT_MS: '600000' }), 600_000);
   assert.equal(resolveRevisionAttempts({}, {}), 1);

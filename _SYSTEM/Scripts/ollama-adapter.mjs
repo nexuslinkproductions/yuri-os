@@ -11,7 +11,9 @@ import {
 
 // Cold model loads need extended timeouts — native fetch headersTimeout is 10s (too short).
 // Use node:http directly for full socket + response timeout control.
-const DEFAULT_OLLAMA_TIMEOUT_MS = 300_000;
+// 20min — reasoning/thinking models (gemma thinking ON) need >5min on big retrieved-context tasks;
+// 411s was observed live for a single organ red-team. 300s guillotined reasoning mid-thought. Env-overridable.
+const DEFAULT_OLLAMA_TIMEOUT_MS = 1_200_000;
 
 export function resolveOllamaTimeoutMs(env = process.env) {
   const parsed = Number(env.LLM_COMPAT_OLLAMA_TIMEOUT_MS);

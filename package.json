@@ -35,6 +35,7 @@
     "council:claims": "node _SYSTEM/Scripts/yuri-council-claim-evidence.mjs split",
     "test:token-ledger": "node _SYSTEM/Scripts/token-ledger.test.mjs",
     "test:local-model-policy": "node _SYSTEM/Scripts/yuri-local-model-policy.test.mjs",
+    "test:originator": "node _SYSTEM/Scripts/semantic-state-compiler.test.mjs && node _SYSTEM/Scripts/yuri-originator.test.mjs",
     "test:headless-control-plane": "_SYSTEM/backend/node_modules/.bin/ts-node --compiler-options '{\"types\":[\"node\"]}' _SYSTEM/backend/src/services/headlessControlPlaneService.test.ts && node _SYSTEM/Scripts/control-plane-plan-routes.test.mjs",
     "local-model:benchmark": "node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs --dry-run",
     "ollama:kv:apply": "node _SYSTEM/Scripts/ollama-kv-config.mjs apply",

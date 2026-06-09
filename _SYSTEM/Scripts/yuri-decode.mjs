@@ -16,6 +16,7 @@ import { digitalRoot, gematria, harmonicSignature, numerologyFeatures } from './
 import { classifyDimension } from './math/formula-foundry.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const NUMEROLOGY_MAX_CHARS = 200000;
 
 // raw tokenization (keeps duplicates + single chars, deterministic) — distinct from yuri-jaccard's deduped Set.
 function rawTokenize(t) { return String(t).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); }
@@ -24,7 +25,8 @@ export function decode(text, opts = {}) {
   const t = String(text ?? '');
   const tokens = rawTokenize(t);
   const uniq = [...new Set(tokens)].sort();
-  const freq = {};
+  // Null prototype prevents inherited keys like constructor/valueOf from corrupting frequency counts.
+  const freq = Object.create(null);
   for (const tok of tokens) freq[tok] = (freq[tok] || 0) + 1;
 
   // numerology channels (mechanisms, not mysticism): a hash, a mod-9 homomorphism, a harmonic ratio signature.
@@ -33,6 +35,10 @@ export function decode(text, opts = {}) {
     digitalRoot: digitalRoot(t),
     harmonicSignature: harmonicSignature(t),
     features: numerologyFeatures(t),
+    // nexus-numerology bounds work to 200k chars; expose that so callers do not treat it as full-text coverage.
+    truncated: t.length > NUMEROLOGY_MAX_CHARS,
+    coveredChars: Math.min(t.length, NUMEROLOGY_MAX_CHARS),
+    maxChars: NUMEROLOGY_MAX_CHARS,
   };
 
   // dimensional reading: the whole text + each significant token's dimension (the typing channel).
@@ -64,6 +70,7 @@ export function decode(text, opts = {}) {
       lexicalDensity: tokens.length ? Number((uniq.length / tokens.length).toFixed(4)) : 0,
       digitalRoot: numerology.digitalRoot,
       dominantDimension,
+      numerologyTruncated: numerology.truncated,
     },
     advisory_only: true,
     local_truth_claim: false,

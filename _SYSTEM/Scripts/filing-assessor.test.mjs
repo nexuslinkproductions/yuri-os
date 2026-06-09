@@ -17,6 +17,9 @@ ok(classifyArtifact('_SYSTEM/config/schemas/x.schema.json').zone === '_SYSTEM/co
 ok(classifyArtifact('_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md').zone === '_SYSTEM/docs', 'a handoff doc → _SYSTEM/docs');
 ok(classifyArtifact('_SYSTEM/state/originator-telemetry.jsonl').zone === '_SYSTEM/state', 'a jsonl telemetry → _SYSTEM/state');
 ok(classifyArtifact('some/random/thing.xyz').zone === null, 'an unknown artifact → unclassified (owner decision), not a guess');
+ok(classifyArtifact('notes.bak').zone === 'EPHEMERAL', 'literal .bak suffix remains ephemeral');
+ok(classifyArtifact('.claude/settings.json.bak-cwdfix').zone === null,
+  'A-4: repo-resident .bak-* config backup is not flagged as an ephemeral purge candidate');
 
 // determinism
 ok(JSON.stringify(classifyArtifact('a/b.mjs')) === JSON.stringify(classifyArtifact('a/b.mjs')), 'classification deterministic');
@@ -27,6 +30,10 @@ ok(!/Math\.random\(|Date\.now\(|new Date\(/.test(src), 'no Math.random/Date.now/
 const mis = assess('_SYSTEM/Scripts/some-spec-synthesis.md');
 ok(mis.recommendedZone === '02_RESOURCES/RESEARCH' && mis.misplaced === true, 'a research doc in _SYSTEM/Scripts is flagged misplaced');
 ok(assess('02_RESOURCES/RESEARCH/x-spec.md').misplaced === false, 'a research doc already in RESEARCH is NOT misplaced');
+ok(assess('evil/_SYSTEM/Scripts/path/totally-elsewhere.mjs').recommendedZone === null,
+  'A-2: fake _SYSTEM/Scripts substring outside the real zone is not classified as a script');
+ok(assess('my02_RESOURCES_notes/thing.md').recommendedZone === null,
+  'A-2: fake 02_RESOURCES substring outside the real zone is not classified as research');
 
 // staleness: hazard-decay, older ⇒ higher purge pressure
 ok(stalenessScore(0) === 0, 'a brand-new artifact has zero purge pressure');
@@ -38,6 +45,9 @@ const r = assessAll(['02_RESOURCES/RESEARCH/ok.md', '_SYSTEM/Scripts/wrongplace-
 ok(r.advisory_only === true, 'the report is advisory/read-only (no file is moved)');
 ok(r.misplaced.length === 1 && r.unclassified.length === 1, 'report surfaces misplaced + unclassified counts');
 ok(r.rows.every((x, i) => i === 0 || r.rows[i - 1].path.localeCompare(x.path) <= 0), 'report rows are sorted');
+const invalidBatch = assessAll(['02_RESOURCES/RESEARCH/ok.md', null, 123]);
+ok(invalidBatch.total === 3 && invalidBatch.rows.filter((row) => row.kind === 'invalid').length === 2,
+  'A-3: assessAll reports malformed path entries as invalid rows instead of throwing');
 
 console.log(`\nfiling-assessor.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

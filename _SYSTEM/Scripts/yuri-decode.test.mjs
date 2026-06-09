@@ -35,6 +35,13 @@ ok(decode(null).op === 'decode', 'null is coerced, no crash');
 // frequency map
 const fd = decode('a a b');
 ok(fd.frequency.a === 2 && fd.frequency.b === 1, 'frequency map counts token occurrences');
+const constructorFreq = decode('constructor constructor').frequency;
+ok(constructorFreq.constructor === 2 && typeof constructorFreq.constructor === 'number',
+  'Y-1: frequency map uses a null prototype so constructor counts numerically');
+const longDecode = decode('a'.repeat(200001));
+ok(longDecode.numerology.truncated === true && longDecode.numerology.coveredChars === 200000 && longDecode.featureSurface.numerologyTruncated === true,
+  'Y-2: decode surfaces numerology truncation for inputs over the 200k cap');
+ok(decode('short').numerology.truncated === false, 'Y-2: normal-length decode reports numerology as untruncated');
 
 console.log(`\nyuri-decode.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

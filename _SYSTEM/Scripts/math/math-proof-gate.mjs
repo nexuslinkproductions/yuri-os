@@ -308,6 +308,11 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
   requireArray(formula, 'proofObligations', formulaLabel, errors);
 
   if (bank.promotionStatus === 'fixture' || bank.advisoryOnly === true) {
+    // A DECLARED kernel binding is a CLAIM that must hold even on the advisory/fixture path — fail closed: if a
+    // card declares implementedBy=<path>#<symbol>, the symbol MUST resolve, or a fabricated binding sails through
+    // preflight reporting validationOk:true (the docstring claims it resolves the symbol; it didn't). No binding
+    // ⇒ legitimately inert; non-'#' / non-kernel implementedBy forms are unaffected (the resolver skips them).
+    if (formula.implementedBy) assertImplementedBySymbolResolves(formula.implementedBy, formulaLabel, errors);
     if (formula.implementedBy || FORMULA_IMPLEMENTATIONS[formula.id]) {
       warnings.push(`${formulaLabel} fixture has executable binding but remains advisory`);
     }

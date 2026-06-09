@@ -61,23 +61,40 @@ export function appendGateRecord(record, ledgerPath = LEDGER_PATH) {
   return rec;
 }
 
-// a promotionStatus change is REFUSED unless the ledger holds a gate record for that exact rung + formula.
+// Promotion to a rung is REFUSED unless the ledger holds a non-demotion gate record for EVERY rung from
+// index 1 up to the target (the full sequential chain). Checking only the target rung let a single forged
+// 'owner-approved' line jump a hypothesis card straight to the top — the ladder was decorative. Now every
+// intermediate rung must carry its own cleared gate; no rung-skipping, no jump-to-top. Domain-blind.
 export function canPromote(formulaId, toRung, ledger = readLedger()) {
-  if (!PROMOTION_LADDER.includes(toRung)) return { ok: false, reason: `unknown rung: ${toRung}` };
-  const has = ledger.some((r) => r.formulaId === formulaId && r.rung === toRung && r.gate && r.gate !== 'demotion');
-  return { ok: has, reason: has ? 'gate record present' : `no gate record for rung '${toRung}' — promotion refused` };
+  const toIdx = PROMOTION_LADDER.indexOf(toRung);
+  if (toIdx < 0) return { ok: false, reason: `unknown rung: ${toRung}` };
+  if (toIdx === 0) return { ok: true, reason: 'hypothesis is the entry rung — no gate needed' };
+  for (let i = 1; i <= toIdx; i += 1) {
+    const rung = PROMOTION_LADDER[i];
+    const cleared = ledger.some((r) => r.formulaId === formulaId && r.rung === rung && r.gate && r.gate !== 'demotion');
+    if (!cleared) return { ok: false, reason: `incomplete ladder: rung '${rung}' has no gate record (full chain hypothesis→${toRung} required; no rung-skipping)` };
+  }
+  return { ok: true, reason: `full sequential ladder chain present (hypothesis→${toRung})` };
 }
 
-// the MUTATOR: returns the new status only if the gate record exists; otherwise refuses. Domain-blind.
+// the MUTATOR: a card may advance EXACTLY ONE rung per call (sequential), and only if the full gate chain
+// exists. Checking the card's current rung is what stops a jump from hypothesis to owner-approved. Domain-blind.
 export function promote(card, toRung, ledger = readLedger()) {
+  const toIdx = PROMOTION_LADDER.indexOf(toRung);
+  const curRung = (card && card.promotionStatus) || PROMOTION_LADDER[0];
+  const curIdx = PROMOTION_LADDER.indexOf(curRung);
+  if (toIdx < 0 || curIdx < 0) return { ok: false, status: card && card.promotionStatus, reason: `unknown rung (${curRung}→${toRung})` };
+  if (toIdx !== curIdx + 1) return { ok: false, status: curRung, reason: `non-sequential promotion ${curRung}→${toRung}: the ladder advances exactly one rung at a time` };
   const c = canPromote(card && card.id, toRung, ledger);
   if (!c.ok) return { ok: false, status: card && card.promotionStatus, reason: c.reason };
-  return { ok: true, status: toRung, reason: 'promoted with gate evidence' };
+  return { ok: true, status: toRung, reason: 'promoted: one sequential rung with the full gate chain present' };
 }
 
 // demotion: a promoted formula that later regresses drops immediately, recorded, no owner-override.
 export function demote(formulaId, toRung, reason, opts = {}) {
-  const rung = PROMOTION_LADDER.includes(toRung) ? toRung : 'hypothesis';
+  // Typos must not silently rewrite the target rung; demotion is a governance mutation, so fail closed.
+  if (!PROMOTION_LADDER.includes(toRung)) return { ok: false, status: null, reason: `unknown demotion rung: ${toRung}` };
+  const rung = toRung;
   appendGateRecord({ formulaId, rung, gate: 'demotion', formulaHash: opts.formulaHash || null, evidenceHash: stableHash(String(reason || '')), stamp: opts.stamp || null }, opts.ledgerPath);
   return { ok: true, status: rung, reason: `demoted: ${reason}` };
 }

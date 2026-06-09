@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
 import {
   classifyDimension, dimensionsCompatible, catalogFormulas, coverageReport,
   composeCheck, composableTargets,
@@ -15,6 +16,10 @@ ok(classifyDimension('dimensionless probability weights; normalized internally')
 ok(classifyDimension('total path cost (sum of edge weights)').dimension === 'DISTANCE', 'path cost -> DISTANCE');
 ok(classifyDimension('').dimension === 'UNKNOWN', 'empty -> UNKNOWN');
 ok(classifyDimension('a completely novel xyzzy unit').dimension === 'UNKNOWN', 'unmatched -> UNKNOWN');
+ok(classifyDimension(['bit']).dimension === 'UNKNOWN' && classifyDimension(['bit']).malformed === true,
+  'non-string unit arrays are flagged malformed instead of coerced into dimensions');
+ok(classifyDimension({ toString: () => 'energy' }).dimension === 'UNKNOWN' && classifyDimension({ toString: () => 'energy' }).malformed === true,
+  'non-string unit objects are flagged malformed instead of coerced into dimensions');
 
 // --- compatibility relation (the silent-garbage closer) ---
 ok(dimensionsCompatible('INFORMATION', 'DISTANCE').compatible === false, 'INFORMATION -> DISTANCE REJECTED (bits != length)');
@@ -36,6 +41,20 @@ ok(kl && kl.inputDims.p === 'PROBABILITY' && kl.inputDims.q === 'PROBABILITY', '
 
 // --- determinism: two catalog runs byte-identical ---
 ok(JSON.stringify(catalogFormulas()) === JSON.stringify(catalogFormulas()), 'catalog byte-identical across runs');
+
+const corruptBankDir = '/private/tmp/yuri-formula-foundry-corrupt-test';
+fs.rmSync(corruptBankDir, { recursive: true, force: true });
+fs.mkdirSync(corruptBankDir, { recursive: true });
+fs.writeFileSync(`${corruptBankDir}/bad.json`, '{ not json', 'utf8');
+fs.writeFileSync(`${corruptBankDir}/good.json`, JSON.stringify({
+  id: 'good-bank',
+  formulas: [{ id: 'good-formula', units: { inputs: { x: 'score' }, output: 'score' } }],
+}), 'utf8');
+const corruptCat = catalogFormulas({ bankDir: corruptBankDir });
+ok(corruptCat.banks === 2 && corruptCat.count === 1, 'catalog keeps valid banks when one bank JSON is corrupt');
+ok(corruptCat.skipped.length === 1 && corruptCat.skipped[0].file === 'bad.json' && corruptCat.skipped[0].error,
+  'catalog reports corrupt bank JSON in skipped diagnostics');
+fs.rmSync(corruptBankDir, { recursive: true, force: true });
 
 // --- composition: a constructed INCOHERENT pair must be rejected at composition time (before any oracle) ---
 const infoCard = { id: 'synthetic-info-out', outputDim: 'INFORMATION', inputDims: {} };
@@ -79,6 +98,23 @@ ok(seqs.sequences.every((s) => s.hops.every((h) => {
   return dimensionsCompatible(h.fromDim, h.toDim).compatible;
 })), 'every synthesized hop is dimensionally compatible (no illegal combination escapes)');
 ok(seqs.sequences.every((s, i) => i === 0 || seqs.sequences[i - 1].chain.join('>').localeCompare(s.chain.join('>')) <= 0), 'sequences are deterministically sorted');
+
+const branchyCatalog = {
+  cards: [
+    { id: 'source', outputDim: 'SCORE', inputDims: {}, sourceDomains: ['test'] },
+    { id: 'target-a', outputDim: 'SCORE', inputDims: { x: 'SCORE' }, sourceDomains: ['test'] },
+    { id: 'target-b', outputDim: 'SCORE', inputDims: { x: 'SCORE' }, sourceDomains: ['test'] },
+    { id: 'target-c', outputDim: 'SCORE', inputDims: { x: 'SCORE' }, sourceDomains: ['test'] },
+  ],
+};
+const branchCut = composeOperatorSequences(branchyCatalog, {
+  startIds: ['source'],
+  maxChainLength: 2,
+  maxBranchingPerNode: 1,
+  maxCandidates: 10,
+});
+ok(branchCut.truncated === true && branchCut.truncation.branchDropped === 2,
+  'maxBranch drops legal successors loudly via truncated + branchDropped count');
 
 const syn = synthesizeFormulaCandidates({ catalog: synCat, maxCandidates: 50 });
 ok(syn.candidates.length > 0, 'synthesizeFormulaCandidates produces candidates');

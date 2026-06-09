@@ -47,7 +47,21 @@ export function normalizePath(p) {
   if (!p) return p;
   let rel = p;
   if (path.isAbsolute(p) && p.startsWith(REPO_ROOT)) rel = path.relative(REPO_ROOT, p);
-  return rel.split(path.sep).join('/').replace(/^\.\//, '');
+  rel = rel.split(path.sep).join('/').replace(/^\.\//, '');
+  // Collapse '.' and '..' segments lexically so a protected/denied/scope check can't be bypassed by traversal
+  // (e.g. '_SYSTEM/Scripts/math/../../../.env' → '.env'). Leading '..' that escapes the repo root is PRESERVED
+  // so isProtectedPath / scope checks can fail closed on out-of-tree references.
+  const stack = [];
+  for (const seg of rel.split('/')) {
+    if (seg === '' || seg === '.') continue;
+    if (seg === '..') {
+      if (stack.length && stack[stack.length - 1] !== '..') stack.pop();
+      else stack.push('..');
+    } else {
+      stack.push(seg);
+    }
+  }
+  return stack.join('/');
 }
 
 // A path is protected if it equals or sits under any EXTENDED prefix. Globs ('.claude/projects/*/memory/
@@ -55,6 +69,8 @@ export function normalizePath(p) {
 export function isProtectedPath(p) {
   if (!p) return false;
   const rel = normalizePath(String(p));
+  // Fail closed: a path that escapes the repo root via traversal ('../…') is out-of-tree and inherently suspect.
+  if (rel === '..' || rel.startsWith('../')) return true;
   return EXTENDED_PROTECTED_PREFIXES.some((pre) => rel === pre || rel.startsWith(pre));
 }
 

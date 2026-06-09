@@ -20,6 +20,7 @@ const LLM_LANE = path.join(__dirname, 'llm-lane.mjs');
 const PROPAGATION_SCAN = path.join(__dirname, 'propagation-scan.mjs');
 const YURI_NAVIGATE = path.join(__dirname, 'yuri-navigate.mjs');
 import { synthesizeFormulaCandidates } from './math/formula-foundry.mjs'; // Formula Foundry synthesis verb (advisory)
+import { isProtectedPath } from './yuri-id-bridge.mjs'; // hydration: protected-path-safe source loading
 const TELEMETRY_PATH = path.join(REPO_ROOT, '_SYSTEM/state/originator-telemetry.jsonl');
 const DEFAULT_TOP = 200;
 const DEFAULT_SCAN = 1000;
@@ -28,7 +29,7 @@ const DEFAULT_WORK_SUBSTRATE_MIN_RESULTS = 200;
 const DEFAULT_WORK_SUBSTRATE_SCAN = 8000;
 const DEFAULT_WORKER_LANE = 'gemma-local';
 const DEFAULT_WORKER_MODEL = 'gemma4:12b-it-qat';
-const DEFAULT_OLLAMA_TIMEOUT_MS = 300_000;
+const DEFAULT_OLLAMA_TIMEOUT_MS = 1_200_000; // 20min — reasoning models need >5min; propagated to the ollama adapter
 const WORKER_PROCESS_GRACE_MS = 15_000;
 const DEFAULT_REVISION_ATTEMPTS = 1;
 const MAX_REVISION_ATTEMPTS = 2;
@@ -680,6 +681,32 @@ async function runLaunchSubstrate(payload, options) {
   });
 }
 
+// HYDRATION — load the ACTUAL source of the files the objective references, so a worker lane is HYDRATED with its
+// materials (ground truth), not merely prompted. This is the system capability a lane needs to do real work on a
+// file: xref `recall` gives RELATED context; hydration gives the file ITSELF. Protected-path safe (never hydrates
+// secrets), bounded (total cap), de-duped. A referenced-but-protected/unreadable file is recorded as omitted.
+function hydrateFiles(objective, opts = {}) {
+  const pathRe = /\b((?:_SYSTEM|02_RESOURCES|03_NEXUS-LINK|00_COMMAND-CENTER|\.claude)\/[A-Za-z0-9._/-]+\.(?:mjs|js|cjs|ts|json|md|sh))\b/g;
+  const CAP = Number.isFinite(opts.hydrationCap) ? opts.hydrationCap : 80000;
+  const seen = new Set();
+  const files = [];
+  let total = 0;
+  let m;
+  while ((m = pathRe.exec(objective)) !== null) {
+    const rel = m[1];
+    if (seen.has(rel)) continue;
+    seen.add(rel);
+    if (isProtectedPath(rel)) { files.push({ path: rel, omitted: 'protected-path' }); continue; }
+    try {
+      let content = readFileSync(path.join(REPO_ROOT, rel), 'utf8');
+      if (total + content.length > CAP) content = content.slice(0, Math.max(0, CAP - total)) + '\n…(truncated at hydration cap)';
+      total += content.length;
+      files.push({ path: rel, content });
+    } catch { files.push({ path: rel, omitted: 'unreadable' }); }
+  }
+  return files;
+}
+
 async function runWorkerExoskeleton(payload, options, opName = 'worker_exoskeleton') {
   const objective = String(payload.objective || payload.query || payload.prompt || '').trim();
   if (!objective) {
@@ -708,6 +735,7 @@ async function runWorkerExoskeleton(payload, options, opName = 'worker_exoskelet
 
   const xref = runXref({ query: payload.query || objective, top: payload.top, scan: payload.scan }, options);
   const formulaSlate = buildFormulaSlate(objective, xref.result.raw);
+  const hydration = hydrateFiles(objective, payload);
   emitOriginatorTelemetry(payload, traceId, 'worker.context_ready', {
     xref: {
       query: xref.result.query,
@@ -716,6 +744,7 @@ async function runWorkerExoskeleton(payload, options, opName = 'worker_exoskelet
       rawChars: xref.result.raw.length,
     },
     formulaSlate,
+    hydration: { count: hydration.length, files: hydration.map((h) => h.path), chars: hydration.reduce((s, h) => s + (h.content ? h.content.length : 0), 0) },
   });
   const system = [
     'You are an advisory LLM worker lane inside YURI.',
@@ -725,11 +754,13 @@ async function runWorkerExoskeleton(payload, options, opName = 'worker_exoskelet
     `Executable state fields are only: ${CANONICAL_ENERGY_FIELDS.join(', ')}.`,
     'Executable evidence records are exactly { "base": number in [0,1], "age": non-negative number, "halfLife": positive number } under the field name "evidence".',
     'Use the provided formulaSlate as construction operators. Cite used formula card IDs under laneClaims.formulaUse.',
+    'The "hydration" field contains the FULL source of the files your objective references — treat it as ground truth. Never claim a referenced file is inaccessible if it appears in hydration.',
     'Put semantic claims under laneClaims. Put only canonical executable fields under proposedState.stateBefore/stateAfter.',
     `Use worker lane ${workerLane}, backend ${workerBackend}, and model policy ${workerModel}.`,
   ].join(' ');
   const prompt = JSON.stringify({
     objective,
+    hydration,
     recall: xref.result.raw.slice(0, 16000),
     formulaSlate,
     required_shape: {

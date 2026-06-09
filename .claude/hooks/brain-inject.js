@@ -398,9 +398,25 @@ function loadGeassLock() {
   } catch { return null; }
 }
 
+// ── Organ state — the AFFERENT nerve: the brain wakes knowing its open work ──
+// Source: yuri-nerve.mjs digest (OpenProcess-ranked open events). CJS hook → ESM module via spawnSync.
+// Fully defensive: any failure returns null → the section simply does not render → boot is never broken.
+function loadOrganState() {
+  try {
+    const r = spawnSync('node', [path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-nerve.mjs'), 'digest'], { cwd: REPO_ROOT, encoding: 'utf8', timeout: 5000 });
+    if (r.status !== 0 || !r.stdout) return null;
+    const d = JSON.parse(r.stdout);
+    if (!d || !Array.isArray(d.top) || !d.top.length) return null;
+    const rows = d.top.slice(0, 6)
+      .map(t => `  ⊙ [${t.type}] ${String(t.title).slice(0, 70)} (m=${t.mass})${t.next ? ' → ' + String(t.next).slice(0, 60) : ''}`)
+      .join('\n');
+    return `open: ${d.openCount} · closed: ${d.closedCount}\n${rows}`;
+  } catch { return null; }
+}
+
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore }) {
+function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore, organState }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
 
   const identityHashSection = identityHash
@@ -442,6 +458,10 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
     ? `\n### GEASS_LOCK — Active inviolable constraint\n🔴 ${geassLock}`
     : '';
 
+  const organStateSection = organState
+    ? `\n### ORGAN_STATE — open work (afferent nerve · OpenProcess-ranked)\n${organState}`
+    : '';
+
   // ── ZONE A: STABLE CORE — byte-identical across warm restarts → cacheable prefix ──
   // Zero volatile tokens (no dates/ages/session ids). Self-schema + persona identity + the
   // frozen invariants + Marcel's operating brain + stable behavioral modules + curated memory.
@@ -470,7 +490,7 @@ ${sessionCtx || '(checkpoint unavailable)'}
 ${laneHealth}
 
 ### GATE — Launch readiness
-${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${neuronSection}${roadmapSection}${geassSection}
+${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${neuronSection}${roadmapSection}${geassSection}${organStateSection}
 </yuri-brain>`;
 
   return stableCore + volatileFooter;
@@ -509,8 +529,9 @@ function main() {
   const geassLock     = loadGeassLock();
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
+  const organState    = loadOrganState();
 
-  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore });
+  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore, organState });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

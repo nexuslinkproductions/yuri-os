@@ -52,6 +52,7 @@ const T = (m) => { try { if (process.env.LLM_LANE_TRACE) fs.appendFileSync(proce
 
 const ALIAS = {
   deepseek: 'deepseek-v4-pro', ds: 'deepseek-v4-pro', 'deepseek-v4-pro': 'deepseek-v4-pro',
+  'deepseek-v4-flash': 'deepseek-v4-flash', 'ds-flash': 'deepseek-v4-flash', flash: 'deepseek-v4-flash',
   kimi: 'kimi-k2.6', 'kimi-k2.6': 'kimi-k2.6', 'moonshotai/kimi-k2.6': 'kimi-k2.6',
   nemotron: 'nemotron-3-super-120b-a12b', nvidia: 'nemotron-3-super-120b-a12b',
   'nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b', 'nvidia/nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b',

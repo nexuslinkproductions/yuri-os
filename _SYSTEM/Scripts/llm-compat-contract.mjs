@@ -194,11 +194,44 @@ const LLM_COMPAT_CONTRACT = {
       preferredUsage: ['architecture review', 'risk review', 'protocol review', 'model council']
     }
   },
+  // ── Lane Worker Model (Marcel 2026-06-09) ──────────────────────────────────────────────────────────
+  // Lanes are FULL-CAPABILITY WORKERS, not advisory-only. A lane (Codex / DeepSeek / Gemma / …) does the
+  // actual work at Claude-equivalent capability — writes the code, drafts, fixes, reports — and leaves a
+  // FINISHED work-product for the main session to review, double-check, and promote. THE ONLY limitation:
+  // a lane never manipulates the LIVE system directly. Every lane write is confined to a deterministic,
+  // categorized output location under stagingRoot; everything outside it is read-only to lanes. Promotion
+  // into the live system is main-session-only, after local-evidence verification. Buys parallel throughput
+  // + an independent second view, with the human/main-session promotion gate intact.
+  laneWorkerModel: {
+    principle: 'Lanes function like a normal Claude lane — they DO the work and leave a finished, reviewable work-product. Not advisory-only.',
+    hardConstraint: 'A lane never mutates the live system. All lane writes are confined to its deterministic output location under stagingRoot. Everything outside stagingRoot is read-only to lanes.',
+    stagingRoot: '_SYSTEM/lane-output',
+    // Deterministic categorization — every output has a determined home keyed by lane / task / operation / outputType.
+    outputLocationScheme: '{stagingRoot}/{lane}/{task}/{operation}/{outputType}/',
+    categories: {
+      lane: 'lane id — codex | deepseek-v4-pro | deepseek-v4-flash | gemma-local | native | …',
+      task: 'slugified task title or trace id (one directory per task)',
+      operation: 'fix | build | review | research | draft | audit | refactor | analysis | …',
+      outputType: 'diff | patch | report | findings | artifact | doc | data | log'
+    },
+    resolver: 'laneOutputLocation({ lane, task, operation, outputType, traceId }) — exported below; the single source for a lane output path.',
+    promotion: {
+      flow: [
+        'Lane writes its complete work-product to its output location (never the live tree).',
+        'Main session reviews + double-checks the work-product against deterministic local evidence (tests / shell / source).',
+        'Main session promotes (applies / merges) the verified work-product into the live system.',
+        'Lane output is retained as the audit trail of what was proposed vs what was promoted.'
+      ],
+      authority: 'main-session only',
+      gate: 'no promotion without local-evidence verification; lane work-product is local_truth_claim=false until then'
+    },
+    enforcement: 'The deterministic PreToolUse guards + protected-path deny still hold the live boundary. A lane that writes outside its output location is a hard violation.'
+  },
   deepseekCodexQualityGate: {
     authority: {
       executor: 'Codex/main-session',
       localTruth: 'shell/tests/GitNexus/source reads',
-      modelOutput: 'advisory_only=true; local_truth_claim=false'
+      modelOutput: 'worker_product=true; staged_for_review=true; local_truth_claim=false (until main-session verifies)'
     },
     roles: {
       flash: {
@@ -222,7 +255,7 @@ const LLM_COMPAT_CONTRACT = {
     ],
     discardWhenAny: [
       'Claims repo state without exact file/path evidence.',
-      'Suggests writes, staging, commits, broad search, secrets access, DB reads, or protected path access.',
+      'Writes to or stages into the LIVE system (anything outside the lane output location), commits, secrets access, DB reads, or protected path access.',
       'Contradicts deterministic local evidence.',
       'Produces unbounded prose instead of the requested schema.',
       'Expands scope beyond the user request.',
@@ -279,7 +312,7 @@ const LLM_COMPAT_CONTRACT = {
     ],
     discardWhenAny: [
       'Claims repo state without exact file/path evidence.',
-      'Suggests writes, staging, commits, broad search, secrets access, DB reads, or protected path access.',
+      'Writes to or stages into the LIVE system (anything outside the lane output location), commits, secrets access, DB reads, or protected path access.',
       'Contradicts deterministic local evidence.',
       'Expands scope beyond the requested risk review.',
       'Omits any required council section.',
@@ -1331,6 +1364,16 @@ function buildRoutePlan(prompt) {
 
 function printJson(value) {
   process.stdout.write(`${JSON.stringify(value)}\n`);
+}
+
+// Deterministic lane output location — the categorized staging path for a lane's work-product (Marcel 2026-06-09).
+// Every lane write lands here (never the live tree); the main session reviews + promotes. Keyed by
+// lane / task / operation / outputType so every output has a determined, reproducible home. Pure (no fs, no clock).
+export function laneOutputLocation({ lane, task, operation = 'work', outputType = 'artifact', traceId } = {}) {
+  const slug = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'unspecified';
+  const root = LLM_COMPAT_CONTRACT.laneWorkerModel?.stagingRoot || '_SYSTEM/lane-output';
+  const taskSeg = slug(traceId || task);
+  return [root, slug(lane), taskSeg, slug(operation), slug(outputType)].join('/');
 }
 
 export function healthProbe(laneName, options = {}) {

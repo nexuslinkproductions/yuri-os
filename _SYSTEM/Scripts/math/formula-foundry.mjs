@@ -48,12 +48,37 @@ const DIMENSION_PRIORITY = [
 // dimensions that behave as interchangeable bounded scalars (pure numbers) for composition purposes.
 const SCALAR_FAMILY = new Set(['DIMENSIONLESS', 'PROBABILITY', 'SCORE', 'BOOLEAN']);
 
+// Whole-word / phrase match (with optional plural) instead of raw substring. A prior version used
+// s.includes(kw), so short witnesses collided with ordinary English: 'bit'∈inhiBITory, 'nat'∈coordiNATe,
+// 'norm'∈NORMalized — silently retyping the dimension and defeating the composition legality gate (Core A).
+// Word boundaries are [^a-z0-9]; keywords are trimmed; a trailing 's' is tolerated (bit→bits, nat→nats).
+const DIM_KEYWORD_RE = new Map();
+function dimensionKeywordHit(s, kw) {
+  let re = DIM_KEYWORD_RE.get(kw);
+  if (!re) {
+    const t = kw.trim();
+    const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Short tokens (<=5) are the collision-prone ones (bit∈inhibitory, nat∈coordinate, bit∈bitcoin) → require a
+    // full word boundary on BOTH sides, tolerating a trailing plural 's' (bit→bits, nat→nats). Longer keywords are
+    // deliberate STEMS (probabilit→probability/probabilistic, likelihood→likelihoods) → left boundary only, so
+    // prefix/stem matching still works while still rejecting mid-word substrings.
+    re = t.length <= 5
+      ? new RegExp('(?:^|[^a-z0-9])' + esc + 's?(?:[^a-z0-9]|$)')
+      : new RegExp('(?:^|[^a-z0-9])' + esc);
+    DIM_KEYWORD_RE.set(kw, re);
+  }
+  return re.test(s);
+}
+
 export function classifyDimension(unitText) {
-  const s = String(unitText ?? '').toLowerCase();
+  if (unitText == null) return { dimension: 'UNKNOWN', witness: null };
+  // Unit fields are prose strings; object/array coercion could manufacture a false confident witness.
+  if (typeof unitText !== 'string') return { dimension: 'UNKNOWN', witness: null, malformed: true };
+  const s = unitText.toLowerCase();
   if (!s.trim()) return { dimension: 'UNKNOWN', witness: null };
   for (const [dimension, keywords] of DIMENSION_PRIORITY) {
     for (const kw of keywords) {
-      if (s.includes(kw)) return { dimension, witness: kw };
+      if (dimensionKeywordHit(s, kw)) return { dimension, witness: kw };
     }
   }
   return { dimension: 'UNKNOWN', witness: null };
@@ -72,16 +97,23 @@ export function dimensionsCompatible(a, b) {
 // ------------------------------------------------------------------------------------------------
 // CATALOG — unified read-view over the existing typed bank cards (does NOT mint cards)
 // ------------------------------------------------------------------------------------------------
-function readBankFiles() {
-  if (!fs.existsSync(BANK_DIR)) return [];
-  return fs.readdirSync(BANK_DIR).filter((f) => f.endsWith('.json')).sort();
+function readBankFiles(bankDir = BANK_DIR) {
+  if (!fs.existsSync(bankDir)) return [];
+  return fs.readdirSync(bankDir).filter((f) => f.endsWith('.json')).sort();
 }
 
-export function catalogFormulas() {
+export function catalogFormulas(opts = {}) {
+  const bankDir = opts.bankDir ? path.resolve(String(opts.bankDir)) : BANK_DIR;
+  const bankFiles = readBankFiles(bankDir);
   const cards = [];
-  for (const file of readBankFiles()) {
+  const skipped = [];
+  for (const file of bankFiles) {
     let bank;
-    try { bank = JSON.parse(fs.readFileSync(path.join(BANK_DIR, file), 'utf8')); } catch { continue; }
+    try { bank = JSON.parse(fs.readFileSync(path.join(bankDir, file), 'utf8')); } catch (e) {
+      // Corrupt bank files must be visible; silently shrinking the catalog hides coverage/composition loss.
+      skipped.push({ file, error: String((e && e.message) || e) });
+      continue;
+    }
     const bankId = bank.id || file.replace(/\.json$/, '');
     for (const f of Array.isArray(bank.formulas) ? bank.formulas : []) {
       const inputs = (f.units && typeof f.units.inputs === 'object' && f.units.inputs) || {};
@@ -103,7 +135,7 @@ export function catalogFormulas() {
     }
   }
   cards.sort((a, b) => a.id.localeCompare(b.id));
-  return { cards, count: cards.length, banks: readBankFiles().length };
+  return { cards, count: cards.length, banks: bankFiles.length, skipped };
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -207,6 +239,19 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
     ? opts.startIds.filter((id) => byId.has(id)).sort((a, b) => a.localeCompare(b)) : cards.map((c) => c.id);
   const endSet = Array.isArray(opts.endIds) && opts.endIds.length ? new Set(opts.endIds.filter((id) => byId.has(id))) : null;
 
+  let truncated = false;
+  const truncation = {
+    branchDropped: 0,
+    domainFiltered: 0,
+    endFiltered: 0,
+    startPruned: Array.isArray(opts.startIds) && opts.startIds.length ? Math.max(0, cards.length - startSet.length) : 0,
+    filtersApplied: {
+      domains: Boolean(domainFilter),
+      startIds: Array.isArray(opts.startIds) && opts.startIds.length > 0,
+      endIds: Boolean(endSet),
+    },
+  };
+
   const succ = (id) => {
     const cardA = byId.get(id); if (!cardA) return [];
     const out = [];
@@ -214,13 +259,14 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
       if (t.to === id) continue;
       const cardB = byId.get(t.to); if (!cardB) continue;
       const slot = (t.slots || []).slice().sort((a, b) => a.localeCompare(b))[0]; if (!slot) continue;
+      // A maxBranch cut drops legal successors; surface that incompleteness instead of claiming full enumeration.
+      if (out.length >= maxBranch) { truncation.branchDropped++; truncated = true; continue; }
       out.push({ to: t.to, slot, fromDim: t.outputDim || 'UNKNOWN', toDim: (cardB.inputDims || {})[slot] || 'UNKNOWN' });
-      if (out.length >= maxBranch) break; // deterministic prefix of the sorted successor list
     }
     return out;
   };
 
-  const sequences = []; let truncated = false;
+  const sequences = [];
   const walk = (chain, hops) => {
     if (sequences.length >= maxCandidates) { truncated = true; return; }
     const last = chain[chain.length - 1];
@@ -228,7 +274,9 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
       const domains = [...new Set(chain.flatMap((id) => byId.get(id).sourceDomains || []))].sort();
       if (!domainFilter || domains.some((d) => domainFilter.has(String(d).toLowerCase()))) {
         sequences.push({ chain: chain.slice(), hops: hops.slice(), outputDim: byId.get(last).outputDim || 'UNKNOWN', sourceDomains: domains, length: chain.length });
-      }
+      } else truncation.domainFiltered++;
+    } else if (chain.length >= minLen && endSet && !endSet.has(last)) {
+      truncation.endFiltered++;
     }
     if (chain.length >= maxLen) return;
     for (const s of succ(last)) {
@@ -239,7 +287,7 @@ export function composeOperatorSequences(catalog = null, opts = {}) {
   };
   for (const startId of startSet) { if (sequences.length >= maxCandidates) { truncated = true; break; } walk([startId], []); }
   sequences.sort((a, b) => a.chain.join('>').localeCompare(b.chain.join('>')));
-  return { sequences, count: sequences.length, truncated, params: { minLen, maxLen, maxBranch, maxCandidates } };
+  return { sequences, count: sequences.length, truncated, truncation, params: { minLen, maxLen, maxBranch, maxCandidates } };
 }
 
 // Turn legal chains into INERT research candidate descriptors (no promotion, no binding).
