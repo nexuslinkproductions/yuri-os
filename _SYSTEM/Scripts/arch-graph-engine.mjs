@@ -766,7 +766,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   printReport(report);
   // emit node->metrics map to a SEPARATE file (never into the graph).
   const payload = {
-    generated_at: new Date().toISOString(),
+    // no generated_at: this is a tracked golden structural-drift reference — a wall-clock
+    // stamp would diff on every run and bury real architecture changes in timestamp churn.
+    // Determinism contract (header): same graph -> byte-identical metrics.
     source: GRAPH_PATH,
     advisory: true,
     writesRuntimeTruth: false,
