@@ -72,6 +72,7 @@ playwright-visual-check, claude-plugin-parity-check, ecosystem.config.js.
   var-swapped to `${CLAUDE_PLUGIN_ROOT}`, skills→plugin layout, live `claude plugin add` test).
   Runs the full naming scrub (nudimmud/openclaw/hermes/obliteratus) on the EXPORT, not the private repo.
 - **W5 — launch:** README with the locked line, Threads/IG rollout.
+- **llm-lane Anthropic protocol (DONE 2026-06-10):** `llm-lane.mjs` now supports both OpenAI and Anthropic Messages API protocols. Added `toAnthropicMessages`, `toAnthropicTools`, `postMessagesAnthropicHttps` (SSE streaming, `x-api-key` + `anthropic-version` 2023-06-01). Dispatch loop branches on `cfg.protocol === 'anthropic'`. ALIAS + ALLOWED_HOSTS + 3 mimo lanes in `models.json llm_compat_lanes`. `ai llm mimo "<prompt>"` routes natively.
 
 ## Open decisions for the owner
 

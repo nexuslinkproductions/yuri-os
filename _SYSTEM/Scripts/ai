@@ -6,7 +6,7 @@ set -euo pipefail
 # shellcheck source=/dev/null
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -34,6 +34,10 @@ Commands:
 
   claude-full
       Start raw Claude interactively with full tool and scout behavior.
+
+  claude-mimo
+      Start Claude Code using Xiaomi Mimo (Anthropic-compatible proxy, token plan).
+      Default model: mimo-v2.5-pro[1m] (1M context, max effort).
 
   codex [prompt]
       Start Codex interactively, or run a one-shot prompt with codex exec.
@@ -466,6 +470,24 @@ join_prompt() {
   printf '%s' "$*"
 }
 
+run_claude_mimo() {
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _mimo_key="${MIMO_API_KEY:-}"
+  local _mimo_url="https://token-plan-ams.xiaomimimo.com/anthropic"
+  require_cmd "$_claude_bin"
+  if [ -z "$_mimo_key" ]; then
+    printf 'ERROR: MIMO_API_KEY not set.\nStore it: security add-generic-password -U -a "$USER" -s yuri-mimo-api-key -w "tp-..."\n' >&2
+    exit 1
+  fi
+  ANTHROPIC_BASE_URL="$_mimo_url" \
+  ANTHROPIC_AUTH_TOKEN="$_mimo_key" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="mimo-v2.5-pro[1m]" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="mimo-v2.5[1m]" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="mimo-v2-flash" \
+  ANTHROPIC_MODEL="mimo-v2.5-pro[1m]" \
+  exec "$_claude_bin" --model "mimo-v2.5-pro[1m]" --effort max "$@"
+}
+
 print_section() {
   local title="$1"
   local file="$2"
@@ -869,6 +891,31 @@ case "${1:-help}" in
     unset _G _G2 _AU _GR _CY _BD _RS
     export YURI_SPLASH_SHOWN=1
     run_claude_full
+    ;;
+  claude-mimo|@mimo-session|mimo-session)
+    shift || true
+    if [ "$#" -ne 0 ]; then
+      printf 'claude-mimo takes no arguments — it opens an interactive session.\n' >&2
+      exit 1
+    fi
+    _G="\033[38;2;255;120;0m"
+    _G2="\033[38;2;120;60;0m"
+    _AU="\033[38;2;255;180;60m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;255;200;80m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE — MIMO${_RS}  ${_G2}──────────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "PROVIDER"   "Xiaomi Mimo (token-plan)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "DEFAULT"    "mimo-v2.5-pro[1m]  (1M ctx · max effort)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODELS"     "mimo-v2.5-pro[1m] · mimo-v2.5[1m] · mimo-v2-flash"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE"  "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"    "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_mimo
     ;;
   moonshot|kimi|@moonshot)
     shift || true

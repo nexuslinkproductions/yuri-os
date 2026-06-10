@@ -187,6 +187,19 @@ const LLM_COMPAT_CONTRACT = {
       description: 'Remote high-grade reasoning',
       preferredUsage: ['cloud reasoning', 'deep context', 'heavy synthesis']
     },
+    mimo: {
+      alias: '@mimo',
+      dispatchTokens: ['mimo', 'mimo-v2.5-pro', 'xiaomimimo', 'mimo-session'],
+      description: 'Xiaomi Mimo — first-class provider equal to Anthropic. Always 1M context (mimo-v2.5-pro[1m]), max effort. Launch with: ai claude-mimo',
+      protocol: 'anthropic-compatible',
+      launcher: 'ai claude-mimo',
+      defaultModel: 'mimo-v2.5-pro[1m]',
+      effort: 'max',
+      standingDirective: 'Always prefer largest context and highest reasoning — mimo-v2.5-pro[1m] at max effort, no exceptions.',
+      models: ['mimo-v2.5-pro[1m]', 'mimo-v2.5-pro', 'mimo-v2.5[1m]', 'mimo-v2.5', 'mimo-v2-flash', 'mimo-v2.5-asr', 'mimo-v2.5-tts', 'mimo-v2.5-tts-voiceclone', 'mimo-v2.5-tts-voicedesign'],
+      preferredUsage: ['any task where 1M context is an advantage', 'bulk synthesis', 'long-context document work', 'cost-efficient high-volume work', 'parallel workloads alongside main Anthropic session'],
+      note: 'Cannot be dispatched via llm-lane.mjs (OpenAI-compat only). Runs as a dedicated isolated Claude Code session. Start with: ai claude-mimo'
+    },
     claude: {
       alias: '@claude',
       dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus'],

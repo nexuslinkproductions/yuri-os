@@ -59,6 +59,10 @@ const ALIAS = {
   'nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b', 'nvidia/nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b',
   'nemotron-3-ultra-550b-a55b': 'nemotron-3-super-120b-a12b',          // back-compat: old 550b lane id → renamed 120b lane
   'nvidia/nemotron-3-ultra-550b-a55b': 'nemotron-3-super-120b-a12b',
+  // Mimo (Anthropic-protocol, token-plan endpoint)
+  mimo: 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro': 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro[1m]': 'mimo-v2.5-pro[1m]',
+  'mimo-v2.5': 'mimo-v2.5[1m]', 'mimo-v2.5[1m]': 'mimo-v2.5[1m]',
+  'mimo-v2-flash': 'mimo-v2-flash', 'mimo-flash': 'mimo-v2-flash',
 };
 
 // FULL YURI STACK loadout (default): the lane is a fully-equipped mini-me operator that operates BY
@@ -98,7 +102,7 @@ const LIGHT_SYSTEM =
   + 'to ground claims. Output is ADVISORY until YURI verifies it. Protected surfaces are refused. No padding.';
 
 // ── Lane-endpoint SSRF guard: ALLOWLIST (fail-closed) ──────────────────────────────────────────
-const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'integrate.api.nvidia.com']);
+const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'integrate.api.nvidia.com', 'token-plan-ams.xiaomimimo.com']);
 function assertSafeEndpoint(endpoint, lane) {
   let url;
   try { url = new URL(endpoint); } catch { return fail(3, lane, `bad_endpoint_url:${endpoint || '(empty)'}`); }
@@ -356,6 +360,150 @@ function postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, 
   });
 }
 
+// ── Anthropic Messages API adapter ──────────────────────────────────────────────────────────────
+// Mimo (and any future lane with protocol: "anthropic") speaks the Messages API, not OpenAI chat/completions.
+// The dispatch loop accumulates messages in OpenAI format; these converters translate at the API boundary.
+
+// Convert OpenAI-format messages to Anthropic format.
+// - system role → extracted to top-level system string
+// - consecutive role:tool → merged into one user turn with tool_result content blocks
+// - assistant with tool_calls → content array with tool_use blocks
+// - nudge user message immediately after tool results → folded into the same user turn
+function toAnthropicMessages(messages) {
+  let system = '';
+  const filtered = [];
+  for (const m of messages) {
+    if (m.role === 'system') { system += (system ? '\n' : '') + (m.content || ''); continue; }
+    filtered.push(m);
+  }
+  const result = [];
+  let i = 0;
+  while (i < filtered.length) {
+    const m = filtered[i];
+    if (m.role === 'assistant') {
+      const content = [];
+      if (m.content) content.push({ type: 'text', text: m.content });
+      for (const tc of m.tool_calls || []) {
+        let input = {};
+        try { input = JSON.parse(tc.function?.arguments || '{}'); } catch { /* pass empty on bad json */ }
+        content.push({ type: 'tool_use', id: tc.id || `call_${i}`, name: tc.function?.name || '', input });
+      }
+      result.push({ role: 'assistant', content: content.length ? content : [{ type: 'text', text: '' }] });
+      i++;
+    } else if (m.role === 'tool') {
+      // Collect consecutive tool results; merge immediately following nudge user message to avoid consecutive user turns
+      const parts = [];
+      while (i < filtered.length && filtered[i].role === 'tool') {
+        parts.push({ type: 'tool_result', tool_use_id: filtered[i].tool_call_id, content: String(filtered[i].content ?? '') });
+        i++;
+      }
+      if (i < filtered.length && filtered[i].role === 'user') {
+        const nudge = filtered[i].content;
+        if (nudge) parts.push({ type: 'text', text: typeof nudge === 'string' ? nudge : JSON.stringify(nudge) });
+        i++;
+      }
+      result.push({ role: 'user', content: parts });
+    } else {
+      // role: 'user' standalone — merge into preceding user turn if one exists (avoids consecutive user turns)
+      const prev = result[result.length - 1];
+      if (prev && prev.role === 'user' && Array.isArray(prev.content)) {
+        const text = typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '');
+        prev.content.push({ type: 'text', text });
+      } else {
+        result.push({ role: 'user', content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '') });
+      }
+      i++;
+    }
+  }
+  return { messages: result, system };
+}
+
+// Convert OpenAI tool definitions to Anthropic tool definitions.
+function toAnthropicTools(tools) {
+  return tools.map((t) => ({
+    name: t.function.name,
+    description: t.function.description || '',
+    input_schema: t.function.parameters || { type: 'object', properties: {}, required: [] },
+  }));
+}
+
+// Streaming Anthropic Messages API over node:https (SSE).
+// Returns the same { message: { content, tool_calls? }, finish_reason } shape as postChatHttps,
+// so the dispatch loop is protocol-agnostic — just swap the call, not the loop.
+function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane) {
+  return new Promise((resolve) => {
+    let u;
+    try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
+    const body = { model, messages, max_tokens: maxTokens, stream: true };
+    if (system) body.system = system;
+    if (toolsList && toolsList.length) body.tools = toolsList;
+    const payload = JSON.stringify(body);
+    T(`ANTHROPIC_REQ_START lane=${lane} host=${u.hostname} bodyLen=${payload.length}`);
+    const req = https.request({
+      hostname: u.hostname,
+      port: u.port || 443,
+      path: u.pathname + u.search,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        Accept: 'text/event-stream',
+      },
+    }, (res) => {
+      T(`ANTHROPIC_HEADERS status=${res.statusCode}`);
+      if (res.statusCode && res.statusCode >= 400) {
+        let errBody = ''; res.setEncoding('utf8');
+        res.on('data', (c) => { errBody += c; });
+        res.on('end', () => resolve(fail(res.statusCode >= 500 ? 1 : 3, lane, `http_${res.statusCode}:${errBody.slice(0, 160)}`)));
+        return;
+      }
+      let buf = '', stopReason = '';
+      const blocks = new Map(); // index → { type, text, id, name, json }
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
+        buf += chunk;
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (!data || data === '[DONE]') continue;
+          let j; try { j = JSON.parse(data); } catch { continue; }
+          if (j.type === 'content_block_start') {
+            blocks.set(j.index, { type: j.content_block?.type || 'text', text: '', id: j.content_block?.id || '', name: j.content_block?.name || '', json: '' });
+          } else if (j.type === 'content_block_delta') {
+            const blk = blocks.get(j.index);
+            if (!blk) continue;
+            if (j.delta?.type === 'text_delta') blk.text += j.delta.text || '';
+            else if (j.delta?.type === 'input_json_delta') blk.json += j.delta.partial_json || '';
+          } else if (j.type === 'message_delta') {
+            stopReason = j.delta?.stop_reason || '';
+          }
+        }
+      });
+      res.on('end', () => {
+        let textContent = '';
+        const tool_calls = [];
+        for (const [, blk] of blocks) {
+          if (blk.type === 'text') textContent += blk.text;
+          else if (blk.type === 'tool_use') {
+            tool_calls.push({ id: blk.id || `call_${tool_calls.length}`, type: 'function', function: { name: blk.name, arguments: blk.json || '{}' } });
+          }
+        }
+        const finish = stopReason === 'tool_use' ? 'tool_calls' : (stopReason || 'stop');
+        resolve({ message: { content: textContent, ...(tool_calls.length ? { tool_calls } : {}) }, finish_reason: finish });
+      });
+    });
+    req.setTimeout(0);
+    req.on('socket', (s) => s.setTimeout(0));
+    req.on('error', (err) => { T(`ANTHROPIC_ERROR ${err?.code || err?.name}`); resolve(fail(1, lane, `transport:${err?.code || err?.name || 'https_failed'}`)); });
+    req.write(payload);
+    req.end();
+  });
+}
+
 async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane, rawHttps) {
   if (rawHttps) return postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, lane);
   const body = JSON.stringify({ model, messages, max_tokens: maxTokens, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) });
@@ -393,10 +541,11 @@ async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList,
 
 async function dispatch(laneArg, prompt, opts = {}) {
   const key = ALIAS[String(laneArg || '').toLowerCase()];
-  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|kimi|nemotron');
+  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|kimi|nemotron|mimo');
   const cfg = LANES[key];
   if (!cfg) return fail(3, key, 'lane_missing_from_models.json');
 
+  const isAnthropic = cfg.protocol === 'anthropic' || cfg.protocol === 'anthropic-compatible';
   const endpoint = (process.env[cfg.endpoint_env] || cfg.endpoint_default || '').replace(/\/+$/, '');
   const apiKey = process.env[cfg.api_key_env] || '';
   const maxTokens = maxTokensFor(cfg, opts.reasoning);
@@ -406,7 +555,8 @@ async function dispatch(laneArg, prompt, opts = {}) {
   if (opts.dryRun) {
     const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (opts.light ? 'light' : 'full-yuri-stack'));
     const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout().length : (loadoutMode === 'light' ? LIGHT_SYSTEM.length : (opts.system?.length || 0));
-    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, endpoint: `${endpoint}/chat/completions`, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    const apiPath = isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`;
+    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, protocol: cfg.protocol, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
@@ -438,7 +588,14 @@ async function dispatch(laneArg, prompt, opts = {}) {
   let lastChoice = {};
   for (let iter = 0; iter < maxIters; iter += 1) {
     T(`PRE_POSTCHAT iter=${iter}`);
-    const choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key, cfg.raw_https);
+    let choice;
+    if (isAnthropic) {
+      const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
+      const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
+      choice = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aMsgs, aSys, maxTokens, aTools, key);
+    } else {
+      choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key, cfg.raw_https);
+    }
     lastChoice = choice;
     T(`POST_POSTCHAT msglen=${(choice.message?.content || '').length} calls=${(choice.message?.tool_calls || []).length} finish=${choice.finish_reason}`);
     const msg = choice.message || {};
@@ -487,9 +644,14 @@ async function dispatch(laneArg, prompt, opts = {}) {
   }
   // Loop exhausted while still tool-calling: force ONE final no-tools call so a loop-prone model
   // can never exit empty, then emit whatever text it produces.
-  const forced = await postChat(endpoint, apiKey, cfg.model,
-    [...messages, { role: 'user', content: 'Stop using tools. Give your best final answer now as plain text.' }],
-    maxTokens, [], timeoutMs, key, cfg.raw_https);
+  const forcedMsgsRaw = [...messages, { role: 'user', content: 'Stop using tools. Give your best final answer now as plain text.' }];
+  let forced;
+  if (isAnthropic) {
+    const { messages: aFMsgs, system: aFSys } = toAnthropicMessages(forcedMsgsRaw);
+    forced = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aFMsgs, aFSys, maxTokens, [], key);
+  } else {
+    forced = await postChat(endpoint, apiKey, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key, cfg.raw_https);
+  }
   const ftext = stripKimiToolTokens(String(forced.message?.content ?? lastChoice.message?.content ?? '')).trim();
   if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0, runId }); return 0; }
   return fail(1, key, 'tool_loop_no_final_answer');
@@ -616,7 +778,7 @@ async function main() {
   const cli = parseCli(process.argv.slice(2));
   T(`MAIN_START lane=${cli.lane} promptLen=${(cli.prompt || '').length} dryRun=${cli.dryRun} list=${cli.list}`);
   if (cli.list) { console.log(JSON.stringify(Object.keys(LANES).filter((k) => k !== '_comment'), null, 2)); return 0; }
-  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|kimi|nemotron> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
+  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|kimi|nemotron|mimo> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
   let prompt = cli.prompt || process.env.LLM_COMPAT_PROMPT_TEXT || '';
   if (!prompt && !cli.dryRun && !process.stdin.isTTY) prompt = fs.readFileSync(0, 'utf8');
   T(`MAIN_RETURN_DISPATCH lane=${cli.lane} plen=${prompt.length} stdinTTY=${process.stdin.isTTY}`);
@@ -643,4 +805,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool, parseKimiToolCalls, stripKimiToolTokens };
+export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool, parseKimiToolCalls, stripKimiToolTokens, toAnthropicMessages, toAnthropicTools };

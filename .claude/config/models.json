@@ -95,8 +95,78 @@
       "deepseek-reasoner": "2026-07-24T15:59:00Z"
     }
   },
+  "mimo": {
+    "docs_as_of": "2026-06-10",
+    "provider": "xiaomi-mimo-token-plan",
+    "protocol": "anthropic-compatible",
+    "base_url_env": "MIMO_BASE_URL",
+    "base_url_token_plan": "https://token-plan-ams.xiaomimimo.com/anthropic",
+    "base_url_payg": "https://api.xiaomimimo.com/anthropic",
+    "api_key_env": "MIMO_API_KEY",
+    "api_key_format": "tp-xxxxx (token plan) | sk-xxxxx (pay-as-you-go)",
+    "keychain_service": "yuri-mimo-api-key",
+    "launcher": "ai claude-mimo",
+    "integration": "native Claude Code — sets ANTHROPIC_BASE_URL + ANTHROPIC_AUTH_TOKEN at session start; /model mimo-v2.5-pro works natively within that session",
+    "default_model": "mimo-v2.5-pro[1m]",
+    "standing_directive": "Always prefer largest context and max effort. Mimo is first-class equal to Anthropic.",
+    "models": {
+      "default": "mimo-v2.5-pro[1m]",
+      "flagship": {
+        "id": "mimo-v2.5-pro",
+        "id_1m": "mimo-v2.5-pro[1m]",
+        "context_window": 1000000,
+        "max_output": 131072,
+        "capabilities": ["deep thinking", "function calls", "streaming", "structured output", "web search"],
+        "use_for": ["reasoning", "coding", "synthesis", "long-context tasks"]
+      },
+      "multimodal": {
+        "id": "mimo-v2.5",
+        "id_1m": "mimo-v2.5[1m]",
+        "context_window": 1000000,
+        "max_output": 131072,
+        "capabilities": ["full-modal understanding", "vision", "text generation", "streaming"],
+        "use_for": ["image analysis", "multimodal tasks", "vision + reasoning"]
+      },
+      "flash": {
+        "id": "mimo-v2-flash",
+        "context_window": 262144,
+        "max_output": 65536,
+        "capabilities": ["text generation", "streaming", "fast"],
+        "use_for": ["fast turnaround", "cheap bulk generation", "triage", "low-latency tasks"]
+      },
+      "asr": {
+        "id": "mimo-v2.5-asr",
+        "context_window": 8192,
+        "capabilities": ["speech recognition", "Chinese + English"],
+        "use_for": ["audio transcription"]
+      },
+      "tts": {
+        "id": "mimo-v2.5-tts",
+        "context_window": 8192,
+        "capabilities": ["text-to-speech synthesis"],
+        "use_for": ["voice output"]
+      },
+      "tts_voiceclone": {
+        "id": "mimo-v2.5-tts-voiceclone",
+        "context_window": 8192,
+        "capabilities": ["TTS with voice timbre cloning"],
+        "use_for": ["custom voice cloning"]
+      },
+      "tts_voicedesign": {
+        "id": "mimo-v2.5-tts-voicedesign",
+        "context_window": 8192,
+        "capabilities": ["TTS with customized tone design"],
+        "use_for": ["bespoke voice design"]
+      },
+      "legacy_deprecated": ["mimo-v2-pro", "mimo-v2-omni"]
+    },
+    "model_selection_in_session": "Within ai claude-mimo, use /model <id> to switch — e.g. /model mimo-v2-flash for speed, /model mimo-v2.5[1m] for multimodal 1M",
+    "routing_note": "Anthropic-compatible proxy (NOT openai-compatible) — cannot be slotted into llm-lane.mjs. Use via dedicated claude-mimo session launcher.",
+    "recommended_use": ["any task where 1M context helps", "vision/multimodal via mimo-v2.5", "fast bulk via mimo-v2-flash", "audio via ASR/TTS models"],
+    "avoid_for": ["YURI infra reasoning (main session stays on Anthropic)", "Claude-specific extended thinking (unverified on Mimo)"]
+  },
   "llm_compat_lanes": {
-    "_comment": "SINGLE SOURCE OF TRUTH for the 3 live reasoning lanes (2026-06-05 consolidation). context_window = INPUT cap (all 1,000,000, owner-confirmed); max_output = per-reasoning-depth OUTPUT cap (a SEPARATE knob — DeepSeek counts reasoning_tokens against it). Consumed by llm-lane.mjs resolveReasoningBudget + the dispatch adapters. The legacy ~50-lane laneMap is being hard-removed; only these three remain.",
+    "_comment": "SINGLE SOURCE OF TRUTH for live reasoning lanes (consolidated 2026-06-05; Mimo added 2026-06-10). context_window = INPUT cap; max_output = per-reasoning-depth OUTPUT cap. Consumed by llm-lane.mjs. OpenAI-compatible lanes: deepseek, nemotron, kimi. Anthropic-compatible lanes: mimo (Messages API + SSE).",
     "deepseek-v4-pro": {
       "model": "deepseek-v4-pro",
       "provider": "deepseek-direct",
@@ -147,6 +217,46 @@
       "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
       "max_output_source": "OPEN — reviving the NIM kimi route (was flagged dead in live_status); ceiling UNVERIFIED, conservative 32768 until probed. Owner decision 2026-06-05: route kimi via NIM (not KIMI_BASE_URL/moonshot).",
       "timeout_ms": 240000
+    },
+    "mimo-v2.5-pro[1m]": {
+      "model": "mimo-v2.5-pro[1m]",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 1000000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Mimo v2.5-pro declared max_output 131072 (2026-06-10). Standing directive: always use largest context + max effort.",
+      "timeout_ms": 300000,
+      "raw_https": true,
+      "raw_https_reason": "Anthropic-protocol SSE streaming path (postMessagesAnthropicHttps) — uses node:https directly, no fetch/undici, no idle timeout. Mirrors the nemotron pattern for slow reasoning lanes."
+    },
+    "mimo-v2.5[1m]": {
+      "model": "mimo-v2.5[1m]",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 1000000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Mimo v2.5 multimodal 1M context. Vision + reasoning.",
+      "timeout_ms": 300000,
+      "raw_https": true
+    },
+    "mimo-v2-flash": {
+      "model": "mimo-v2-flash",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 262144,
+      "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
+      "max_output_source": "Mimo v2-flash 256K context, fast/cheap.",
+      "timeout_ms": 120000,
+      "raw_https": true
     }
   },
   "nvidia_nim": {

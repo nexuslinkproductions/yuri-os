@@ -1,5 +1,7 @@
 # Memory Index — Claude Auto-Memory (v3: stable-handle format)
 
+- [REF:MIMO-INTEGRATION](ref-mimo-integration.md) — Xiaomi Mimo native Claude Code integration; `ai claude-mimo` launcher; models mimo-v2.5-pro + [1m]; keychain key yuri-mimo-api-key; NOT a replacement for main Anthropic sessions
+- [REF:MATH-BASE-AUDIT-2026-06-10](math-base-audit-2026-06-10.md) — Full math audit: 2 P0 (astar strict, gate vacuous-pass) + ~24 P1; ledger at _SYSTEM/reports/math-base-audit-2026-06-10-checkpoint.md; arithmetic clean, adjectives rot
 - [PROJ:AGENT-ECONOMY-POSITIONING-THESIS](agent-economy-positioning-thesis.md) — "Marcel's positioning when native agents go global — operator-premium + own scarce assets; trading is the wrong dock; Mythos≠mainstream rollout"
 - [PROJ:AI-BUSINESS-ROLES-RESUME-2026-05-29](ai-business-roles-resume-2026-05-29.md) — AI-business + roles; backend removal DONE; Mike call done, contract in review
 - [FB:ALL-DOMAINS-FIRST-CLASS-DOMAIN-BLIND-GATE](all-domains-first-class-domain-blind-gate.md) — "Standing correction (Marcel 2026-06-08). Music-theory, frequency/wave, magnetism, numerology, alchemy (and astronomy, a future domain for astrophysics) are FIRST-CLASS fundamental candidate domains — NOT \"symbolic / mysticism / never-truth / second-class.\" The proof-gate is DOMAIN-BLIND: every candidate, any domain, promotes by the SAME bar (bind a real kernel symbol + green worked example). Operate WITH all domains, don't fight or disprove one."
