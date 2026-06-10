@@ -8,7 +8,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Explicit PATH — ensures homebrew, node, npx, ollama are found in LaunchAgent env
-export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/.bun/bin:$REPO_ROOT/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.bun/bin:$REPO_ROOT/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
 color_green() { printf '\033[32m%s\033[0m' "$1"; }

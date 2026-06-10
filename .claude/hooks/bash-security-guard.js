@@ -51,9 +51,9 @@ function isEnvTarget(tok) {
 // e.g. backend/.env → _SYSTEM/backend/.env after a folder restructure.
 // Both source and destination MUST:
 //   - end in `.env` (exact basename)
-//   - resolve under /Users/marcelspatz/YURI-OS-MUSUBI/
+//   - resolve under <YURI_ROOT>/
 // Read/write/mutate/remove of .env remain blocked outside this exemption.
-const REPO_ROOT_PREFIX = '/Users/marcelspatz/YURI-OS-MUSUBI/';
+const REPO_ROOT_PREFIX = (process.env.YURI_ROOT || path.resolve(__dirname, '..', '..')) + '/';
 function isPathInsideRepo(p) {
   const s = unquote(p);
   return s.startsWith(REPO_ROOT_PREFIX) && !s.includes('/..');

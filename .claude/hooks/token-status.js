@@ -3,10 +3,12 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 
-const SESSION_STATE_FILE = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json';
-const SESSION_FILE      = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-session.json';
-const WEEKLY_FILE       = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-weekly.json';
-const TOKEN_LEDGER      = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/token-ledger.mjs';
+const path = require('path');
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const SESSION_STATE_FILE = path.join(REPO_ROOT, '.claude/state/session-state.json');
+const SESSION_FILE      = path.join(REPO_ROOT, '.claude/state/token-session.json');
+const WEEKLY_FILE       = path.join(REPO_ROOT, '.claude/state/token-weekly.json');
+const TOKEN_LEDGER      = path.join(REPO_ROOT, '_SYSTEM/Scripts/token-ledger.mjs');
 
 // ANSI helpers
 const C = {

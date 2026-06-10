@@ -40,10 +40,10 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 ### On `/geass <constraint>`
 
 1. Parse constraint from the invocation arguments
-2. Check for existing lock in `nisaba/geass/active-lock.json`
+2. Check for existing lock in `.claude/yuri-sentinel/geass/active-lock.json`
    - If exists: surface current lock, ask for replacement confirmation
    - If none: proceed
-3. Write lock file:
+3. Write lock file (create `.claude/yuri-sentinel/geass/` if absent — this is the exact path brain-inject.js reads):
 ```json
 {
   "constraint": "<exact phrase>",
@@ -58,7 +58,7 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 
 ### On every subsequent turn (enforcement)
 
-brain-inject.js reads `nisaba/geass/active-lock.json`:
+brain-inject.js reads `.claude/yuri-sentinel/geass/active-lock.json`:
 - If `active: true` AND `session_id` matches: inject `### GEASS_LOCK` into brain block
 - Before any tool call that could violate the constraint: gate fires a WARN or BLOCK
 
@@ -107,6 +107,12 @@ Auto-expires at session end. Use /geass off to remove early.
 ---
 
 ## Session Notes
+
+### 2026-06-09
+- session: 123m | peak ctx: 40% | compacts: 0
+- tools: Bash×1003, Read×158, WebSearch×38, StructuredOutput×35, Edit×16, Write×11, WebFetch×10, ToolSearch×4, Workflow×3, TaskOutput×1, AskUserQuestion×1
+- corrections: none
+- errors: none
 
 ### 2026-05-16 — Created
 Tools: Write. Part of Musubi Hyper-Intelligence v2 sprint.

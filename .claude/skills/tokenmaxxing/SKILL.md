@@ -17,7 +17,7 @@ triggers:
 
 1. Run this Bash command to set the session flag:
    ```bash
-   node -e "const ss=require('/Users/marcelspatz/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=true;});"
+   node -e "const ss=require(process.cwd()+'/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=true;});"
    ```
 
 2. Output exactly one line: `⚡ TOKENMAXXING ACTIVE`
@@ -48,7 +48,7 @@ triggers:
 
 Type `tokenmaxxing off` to disable:
 ```bash
-node -e "const ss=require('/Users/marcelspatz/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=false;});"
+node -e "const ss=require(process.cwd()+'/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=false;});"
 ```
 Output: `TOKENMAXXING OFF`
 
@@ -70,6 +70,18 @@ Output: `TOKENMAXXING OFF`
 - DeepSeek reinforcement: compact evidence only. No raw dumps.
 
 ## Session Notes
+
+### 2026-06-10
+- session: 47m | peak ctx: 64% | compacts: 1
+- tools: Bash×278, Read×74, Write×15, Edit×11, WebFetch×2, Agent×1, TodoWrite×1
+- corrections: alright insane work rick, I need all the fixes you propose to get the entire mathematical, scientific, physics, numerology, energy gate and more to work as one precisely engineered clockwork wherever  | insane work rick. really absolutely insane. next up on the list (im looking at my yuri-chip-die for reference) is the entire 'memory/cognition/retrieval' which I need to be covered as a handover packa
+- errors: none
+
+### 2026-06-09
+- session: 106m | peak ctx: 55% | compacts: 0
+- tools: Bash×114, Read×104, Edit×40, WebFetch×9, Agent×6, Write×6, TodoWrite×4, ToolSearch×2
+- corrections: none
+- errors: none
 
 ### 2026-05-14
 - session: 78m | peak ctx: 0% | compacts: 0
@@ -95,37 +107,8 @@ Output: `TOKENMAXXING OFF`
 - corrections: none
 - errors: none
 
-### 2026-04-26 (session 2)
-- session: ollama-bridge validation | peak ctx: 11% | compacts: 0
-- tools: ToolSearch×1, mcp__ollama-bridge×5, Bash×9, Read×4, Write×3, Skill×1
-- corrections: MEMORY.md index missing after memory write — fixed in EOT
-- errors: deepseek-r1 cold-load → 3× MCP timeouts (120s each); /api/chat hung pre-restart
-- notes: deepseek/gpt-oss confirmed = Ollama proxies only. llama3.2 = correct default for skill fetch. 4 patches logged in eot/2026-04-26_1022/SKILL_REFINEMENT_PATCH.md
-
-### 2026-04-26
-- session: offload protocol enrichment | peak ctx: ~15% | compacts: 0
-- tools: Read×4, Edit×5, Write×6, Bash×6, Agent×2 (cloud Explore — MISTAKE), Skill×1
-- corrections: spawned 2 cloud Explore agents to read known file paths → 26k+57k tokens wasted; should have used Read+Bash directly
-- errors: Ultraplan failed (no git repo at /Users/marcelspatz)
-- notes: Haiku fallback + No-Cloud-Agents-for-File-Reads rules now encoded in ## Rules (auto-injected each session)
-
 ### 2026-04-25
 - session: 4m | peak ctx: 16% | compacts: 0
 - tools: Bash×4, Edit×4, ToolSearch×1, ExitPlanMode×1, Read×1
 - corrections: none
 - errors: none
-
-### 2026-04-25
-- change: hook now dynamically reads ## Rules from SKILL.md and injects into startup additionalContext
-- effect: full behavioral rules arrive in Claude context at turn 1, zero manual activation
-- files: token-session-init.js (hardlinked YURI↔global, single edit)
-- statusline: token-status.js updated to show ⚡ TM:ON / ○ TM:OFF explicitly
-- risk: if ## Rules heading renamed → injection silently breaks; null-check warn recommended
-- patch: HOOK_REGEX_001 — always use ^## with m flag for Markdown section extraction
-
-### 2026-04-25
-- session: planning + implementation | peak ctx: 18% | compacts: 0
-- tools: Bash×8, Read×7, Write×2, Edit×9, Agent×2 (explore), ExitPlanMode×1
-- corrections: none
-- errors: Edit failed on ai-pipeline-offloading + swarm-coordination (read-before-write guard missed during parallel edits)
-- notes: ctrl+b uses `chat:insertText` — unverified. Verify with /keybindings-help before relying on it. token-status.js ⚡ indicator was missed in initial plan, caught in reflection pass.

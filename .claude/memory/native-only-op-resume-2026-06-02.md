@@ -1,0 +1,12 @@
+---
+name: native-only-op-resume-2026-06-02
+description: Operation Native-Only: Ph1+2 done (offload+anime-DNA autofire retired); Ph4 engine next
+metadata:
+  type: project
+  tier: episodic
+  scope: main
+  trig: ["native-only", "operation native", "offload retire", "resume native"]
+  refs: ["[[session-resume-2026-06-01]]"]
+---
+
+GOAL: collapse YURI to native-Claude-only control plane; retire offload/external-lane apparatus + hook-auto-fire scaffolding (Opus 4.8 self-routes + native Workflow/Agent replace them). WHO: Marcel gates commits/deletions, Claude main executes. WHEN: 2026-06-02 (Marcel traveling). WHERE: plan=_SYSTEM/reports/native-only-control-plane-plan.md, research=_SYSTEM/reports/elite-claude-practice-reference.md. STATE: 6 commits pushed to main — 52e4d554 CLAUDE.md lean 330to213 + plan/research docs; 179db980 deleted 11 junk skills + guard shim; 3b40a37b killed offload session-rule in tokenmaxxing + DMI on bg/compact/gitnexus/sharingan; df3d3186 removed Haki+Nen hook-auto-fire from user-prompt-submit.js + brain-inject.js (also dead NVIDIA-lane injector); ce86aeaf scrapped 5 skills ai-pipeline-offloading/swarm-coordination/local-subagent/graphify/yuri-report + 6 commands; e0621ca1 shura+clone to native Workflow. KEY FACTS verified: DMI does NOT cut skill-description budget (only stops mis-routing) — budget win was from deletions 118pct to ~65pct. Cognitive-gate auto-fire was HOOK-driven not Skill-invocation; izanagi+bankai auto-fire already dead via retired pulse-orchestrator. infinity-guard ENFORCEMENT stays a hook (safety=hooks-guarantee); only reasoning gates become model-invocable skills. NEXT: (1) anime-DNA body hygiene strip dead-lane wiring from izanagi/bankai/geass/execution-domain-core/infinity-guard/failure-evolution/pattern-mirror/pdc bodies (doc-only, behavior already correct); (2) apparatus follow-up regen skill-hash-registry.json + clean shintai-dispatch.mjs line178 swarm string + yuri-memory-map graphify surface + graphify-run.sh orphan; (3) Phase 4 engine kill HIGH-blast test-gated offload-contract.mjs + offload-runner.mjs + spine importers lane-kernel/task-queue/memory-kernel untangle; (4) Phase-2 leftovers CLAUDE.md GitNexus block collapse 43to4 + strip settings.json wildcards OWNER-AWAKE-ONLY lockout-risk + scope PreToolUse empty-matcher; (5) gitnexus reindex stale at c5823a7. NOTE: .claude deletions need owner terminal git-rm (agent bash-guard blocks .claude destructive ops for all roles).

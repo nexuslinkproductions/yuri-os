@@ -730,7 +730,7 @@ function attachWebSocketServer(socketServer: WebSocketServer) {
                     const body = JSON.stringify({ command });
                     const proxyReq = http.request({
                         hostname: '127.0.0.1', port: 3098, path: '/run', method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'X-API-KEY': process.env.SHELL_SERVICE_KEY || 'yuri-master-key-2026-04-23' },
+                        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'X-API-KEY': process.env.SHELL_SERVICE_KEY || '' },
                     }, (proxyRes: any) => {
                         let buf = '';
                         proxyRes.on('data', (chunk: Buffer) => {

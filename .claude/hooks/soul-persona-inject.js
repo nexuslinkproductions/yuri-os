@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const YURI_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const YURI_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const SOUL_FILE = path.join(YURI_ROOT, 'SOUL.md');
 
 const REQUIRED_HEADINGS = [

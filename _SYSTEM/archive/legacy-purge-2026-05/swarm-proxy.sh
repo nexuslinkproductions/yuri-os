@@ -21,7 +21,7 @@ AGENT_LOWER=$(echo "$AGENT_NAME" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
 
 # 1. AUTH & CONFIG
 # We pull the master API key from the environment or local .env
-API_KEY="yuri-master-key-2026-04-23"
+API_KEY="${SHELL_SERVICE_KEY:-}"
 BACKEND_URL="http://127.0.0.1:3004"
 
 update_swarm_ui() {

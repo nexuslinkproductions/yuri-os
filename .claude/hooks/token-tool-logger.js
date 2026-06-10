@@ -3,7 +3,8 @@
 const fs = require('fs');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
-const TOKEN_LEDGER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/token-ledger.mjs';
+const path = require('path');
+const TOKEN_LEDGER = path.join(process.env.YURI_ROOT || path.resolve(__dirname, '..', '..'), '_SYSTEM/Scripts/token-ledger.mjs');
 
 const ESTIMATES = {
   Read: 800, Write: 600, Edit: 400, Bash: 300,

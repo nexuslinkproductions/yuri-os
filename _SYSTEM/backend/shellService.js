@@ -6,7 +6,14 @@ const http = require('http');
 const { spawn } = require('child_process');
 const ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const PORT = parseInt(process.env.SHELL_SERVICE_PORT || '3098', 10);
-const API_KEY = process.env.SHELL_SERVICE_KEY || 'yuri-master-key-2026-04-23';
+// The legacy hardcoded "dev login" key was removed (no longer needed, 2026-06-09).
+// The service is DISABLED BY DEFAULT: it refuses to start unless an explicit strong
+// SHELL_SERVICE_KEY is provided via the environment.
+const API_KEY = process.env.SHELL_SERVICE_KEY;
+if (!API_KEY) {
+  console.error('yuri-shell-service: SHELL_SERVICE_KEY not set — service disabled, exiting.');
+  process.exit(1);
+}
 const SHELL_ENV = { ...process.env, PATH: process.env.PATH || '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin' };
 
 const server = http.createServer((req, res) => {

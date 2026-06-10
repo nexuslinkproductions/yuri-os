@@ -84,7 +84,13 @@ export function openMass(proc, opts = {}) {
     // Malformed pool entries should degrade explicitly, not crash the whole OpenProcess ranking.
     return { id: undefined, type: undefined, mass: 0, terms: { ...ZERO_TERMS }, invalid: true, reason: 'invalid process entry' };
   }
-  const w = { ...DEFAULT_WEIGHTS, ...(opts.weights || {}) };
+  // Poisoned weights (Infinity / NaN / non-number) must not silently corrupt the whole ranking:
+  // accept an override only when it is a finite number, otherwise fall back to the default weight.
+  const overrides = (opts.weights && typeof opts.weights === 'object' && !Array.isArray(opts.weights)) ? opts.weights : {};
+  const w = {};
+  for (const k of Object.keys(DEFAULT_WEIGHTS)) {
+    w[k] = Number.isFinite(overrides[k]) ? overrides[k] : DEFAULT_WEIGHTS[k];
+  }
   const terms = {
     status: w.status * statusOpen(proc),
     age: w.age * staleness(proc),

@@ -60,7 +60,7 @@ import { validateRecord } from './yuri-energy-trace.mjs';
 /**
  * Canonical lane names. Any lane value not on this list is replaced with the
  * sentinel UNKNOWN_LANE rather than passed through — a raw lane-instance id
- * (e.g. "claude-pty-7f3a", "/Users/marcelspatz/...") must never survive as a
+ * (e.g. "claude-pty-7f3a", "/Users/<username>/...") must never survive as a
  * canonical name.
  */
 export const CANONICAL_LANES = Object.freeze([

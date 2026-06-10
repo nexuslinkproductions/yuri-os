@@ -5,7 +5,9 @@ const { execSync } = require('child_process');
 
 const sessionId = Date.now();
 const sessionFile = `/tmp/claude-session-${sessionId}.json`;
-const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
+const path = require('path');
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const STATE_DIR = path.join(REPO_ROOT, '.claude/state');
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
 
@@ -95,8 +97,8 @@ function getWeekStart() {
 // Check project path first (most up-to-date), fallback to global
 const TM_PATHS = [
   `${process.cwd()}/.claude/skills/tokenmaxxing/SKILL.md`,
-  '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/tokenmaxxing/SKILL.md',
-  '/Users/marcelspatz/.claude/skills/tokenmaxxing/SKILL.md',
+  path.join(REPO_ROOT, '.claude/skills/tokenmaxxing/SKILL.md'),
+  path.join(require('os').homedir(), '.claude/skills/tokenmaxxing/SKILL.md'),
 ];
 let tokenmaxxingRules = '';
 for (const tmPath of TM_PATHS) {

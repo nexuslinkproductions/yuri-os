@@ -11,7 +11,6 @@
       "Read(*)",
       "Write(*)",
       "Edit(*)",
-      "MultiEdit(*)",
       "Glob(*)",
       "Ls(*)",
       "WebFetch(*)",
@@ -22,29 +21,38 @@
     ],
     "deny": [
       "Read(.env)",
-      "Read(.env*)",
+      "Read(.env.local)",
+      "Read(.env.*.local)",
+      "Read(.env.production)",
+      "Read(.env.development)",
+      "Read(.env.staging)",
+      "Read(.env.test)",
       "Write(.env)",
-      "Write(.env*)",
+      "Write(.env.local)",
+      "Write(.env.*.local)",
+      "Write(.env.production)",
+      "Write(.env.development)",
+      "Write(.env.staging)",
+      "Write(.env.test)",
       "Edit(.env)",
-      "Edit(.env*)",
-      "MultiEdit(.env)",
-      "MultiEdit(.env*)",
+      "Edit(.env.local)",
+      "Edit(.env.*.local)",
+      "Edit(.env.production)",
+      "Edit(.env.development)",
+      "Edit(.env.staging)",
+      "Edit(.env.test)",
       "Read(backend/data/**)",
       "Write(backend/data/**)",
       "Edit(backend/data/**)",
-      "MultiEdit(backend/data/**)",
       "Read(.claude/state/**)",
       "Write(.claude/state/**)",
       "Edit(.claude/state/**)",
-      "MultiEdit(.claude/state/**)",
       "Read(.claude/history/**)",
       "Write(.claude/history/**)",
       "Edit(.claude/history/**)",
-      "MultiEdit(.claude/history/**)",
       "Read(.claude/file-history/**)",
       "Write(.claude/file-history/**)",
       "Edit(.claude/file-history/**)",
-      "MultiEdit(.claude/file-history/**)",
       "Read(.claude/projects/**/history/**)",
       "Read(.claude/projects/**/state/**)",
       "Read(.claude/projects/**/file-history/**)",
@@ -60,40 +68,28 @@
       "Edit(.claude/projects/**/file-history/**)",
       "Edit(.claude/projects/**/worktrees/**)",
       "Edit(.claude/projects/**/transcripts/**)",
-      "MultiEdit(.claude/projects/**/history/**)",
-      "MultiEdit(.claude/projects/**/state/**)",
-      "MultiEdit(.claude/projects/**/file-history/**)",
-      "MultiEdit(.claude/projects/**/worktrees/**)",
-      "MultiEdit(.claude/projects/**/transcripts/**)",
       "Read(.claude/history.jsonl)",
       "Write(.claude/history.jsonl)",
       "Edit(.claude/history.jsonl)",
-      "MultiEdit(.claude/history.jsonl)",
       "Read(node_modules/**)",
       "Write(node_modules/**)",
       "Edit(node_modules/**)",
-      "MultiEdit(node_modules/**)",
       "Read(.amp/**)",
       "Write(.amp/**)",
       "Edit(.amp/**)",
-      "MultiEdit(.amp/**)",
       "Write(.claude/state/session-state.json)",
       "Edit(.claude/state/session-state.json)",
-      "MultiEdit(.claude/state/session-state.json)",
       "Write(.claude/memory-bus.json)",
       "Edit(.claude/memory-bus.json)",
-      "MultiEdit(.claude/memory-bus.json)",
       "Write(.claude/state/scout-bus.json)",
       "Edit(.claude/state/scout-bus.json)",
-      "MultiEdit(.claude/state/scout-bus.json)",
       "Write(.claude/state/scout-errors.log)",
       "Edit(.claude/state/scout-errors.log)",
-      "MultiEdit(.claude/state/scout-errors.log)",
       "Write(.claude/state/token-session.json)",
-      "Edit(.claude/state/token-session.json)",
-      "MultiEdit(.claude/state/token-session.json)"
+      "Edit(.claude/state/token-session.json)"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -212,7 +208,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Enriching with GitNexus graph context..."
           }
@@ -276,14 +272,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Checking GitNexus index freshness..."
           }
         ]
       },
       {
-        "matcher": "Edit|Write|MultiEdit|Bash",
+        "matcher": "Edit|Write|Bash",
         "hooks": [
           {
             "type": "command",
@@ -334,7 +330,7 @@
     "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-status.js\""
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "xhigh",
+  "effortLevel": "max",
   "prefersReducedMotion": false,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",

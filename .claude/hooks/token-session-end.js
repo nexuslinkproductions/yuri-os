@@ -7,12 +7,13 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 
-const LEGACY_TRACKER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/token-tracker.md';
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const LEGACY_TRACKER = path.join(REPO_ROOT, '_SYSTEM/token-tracker.md');
 const WRITE_LEGACY_TRACKER = process.env.YURI_LEGACY_TOKEN_TRACKER === '1';
-const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
+const STATE_DIR = path.join(REPO_ROOT, '.claude/state');
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
-const TOKEN_LEDGER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/token-ledger.mjs';
+const TOKEN_LEDGER = path.join(REPO_ROOT, '_SYSTEM/Scripts/token-ledger.mjs');
 
 try {
   const sessionPath = '/tmp/claude-current-session';

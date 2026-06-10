@@ -6,7 +6,8 @@ const path = require('path');
 const bus = require('./memory-bus.js');
 const ss = require('./session-state.js');
 
-const MEMORY_FILE = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/design-master/design-memory.json';
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const MEMORY_FILE = path.join(REPO_ROOT, '.claude/skills/design-master/design-memory.json');
 const DESIGN_EXTS = ['.tsx', '.css', '.html', '.scss'];
 
 try {
@@ -36,7 +37,7 @@ try {
 
         // Track file writes
         if (['Edit', 'Write'].includes(toolName) && filePath) {
-            const rel = filePath.replace('/Users/marcelspatz/YURI-OS-MUSUBI/', '');
+            const rel = filePath.replace(REPO_ROOT + '/', '');
             if (!state.files_written.includes(rel)) state.files_written.push(rel);
         }
 
@@ -70,7 +71,7 @@ try {
         const entry = {
             date: new Date().toISOString().slice(0, 10),
             component: basename,
-            file: filePath.replace('/Users/marcelspatz/YURI-OS-MUSUBI/', ''),
+            file: filePath.replace(REPO_ROOT + '/', ''),
             action: isNew ? 'create' : 'edit',
             decision: isNew ? `New component created: ${basename}` : `Updated: ${basename}`
         };

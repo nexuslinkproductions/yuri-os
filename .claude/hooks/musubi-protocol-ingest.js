@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const stateModule = require('./session-state.js');
 
-const YURI_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const YURI_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const PROTOCOL_FILE = path.join(YURI_ROOT, '_SYSTEM', 'MUSUBI_PROTOCOL.md');
 
 /**

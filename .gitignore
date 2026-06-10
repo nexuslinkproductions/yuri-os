@@ -176,6 +176,8 @@ runtime-gate-*.log
 /backend*.log
 /frontend*.log
 /*.log
+# monitoring runtime logs (can grow to hundreds of MB; never commit)
+_SYSTEM/monitoring/*.log
 
 # Graphify symbol-graph emitter (auto-regenerated)
 graph/
@@ -253,6 +255,11 @@ _SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-framer-report.html
 logs/
 output/
 .claude/reinforcement/audit-output/
+
+# Claude Code runtime state — volatile, regenerates per session (match sibling .claude/ ignores)
+.claude/history/
+.claude/telemetry/
+.claude/tasks/
 
 # Root visibility cleanup — canonical source lives under _SYSTEM where applicable.
 # Keep these local/runtime roots out of Git and out of repo-facing review surfaces.

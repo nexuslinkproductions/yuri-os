@@ -566,7 +566,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     dry_run_model_override "$MODEL_OVERRIDE" "$PROMPT"
     exit 0
   fi
-  # Backend command center (NUDIMMUD-era, pre-ICM) retired 2026-05-29 — route locally only.
+  # Backend command center (legacy, pre-ICM) retired 2026-05-29 — route locally only.
   DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
   if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then

@@ -54,24 +54,9 @@ function check(name, fn) {
   }
 }
 
-// 1. Independence score
-// Gate: fail=0 (hard). Warns are tracked but intentional Claude/Codex
-// opt-ins are by design — YURI is local-first, Claude/Codex
-// are optional licensed add-ons customers bring. warn count is informational.
-check('independence', () => {
-  const r = run('node', ['_SYSTEM/Scripts/independence-check.mjs'], { timeout: 20000 });
-  const scoreMatch = r.stdout.match(/Independence score.*?:\s*(\d+)\s*\/\s*100/);
-  const failMatch  = r.stdout.match(/fail=(\d+)/);
-  const warnMatch  = r.stdout.match(/warn=(\d+)/);
-  const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-  const fail  = failMatch  ? parseInt(failMatch[1])  : 99;
-  const warn  = warnMatch  ? parseInt(warnMatch[1])  : 99;
-  return {
-    pass: fail === 0,
-    value: `${score}/100 fail=${fail} warn=${warn}`,
-    detail: fail > 0 ? `${fail} hard fails block launch` : warn > 0 ? `${warn} intentional warns (by design)` : 'GATE CLEAR',
-  };
-});
+// 1. Independence score — RETIRED 2026-06-09. The Anthropic-independence axis is
+// obsolete: YURI is the exoskeleton that rides ON Claude/Codex (offload lanes
+// retired, model self-select ratified). The check is no longer run or gated.
 
 // 2. Learning score
 // Informational only — corr component lags 15 sessions after M1-M5 correction
@@ -133,7 +118,8 @@ check('spawn-guard-safe', () => {
   return { pass: r.status === 0, value: r.status === 0 ? 'PASS' : 'FAIL', detail: '' };
 });
 
-// 7. Spawn guard — Anthropic blocked (hook protocol: deny via JSON output, exit 0)
+// 7. Spawn guard — Anthropic subagents ALLOWED, observability-only (owner directive 2026-05-30).
+// The guard must allow (exit 0) and emit an observability log to stderr, NOT a permissionDecision=deny.
 check('spawn-guard-block', () => {
   const hookPath = join(REPO, '.claude', 'hooks', 'agent-spawn-guard.js');
   if (!existsSync(hookPath)) return { pass: false, value: 'MISSING', detail: '' };
@@ -142,19 +128,24 @@ check('spawn-guard-block', () => {
     input: JSON.stringify({ tool_name: 'Agent', tool_input: { model: ['cl','aude-sonnet-4-6'].join('') } }),
     cwd: REPO, encoding: 'utf8', timeout: 5000,
   });
-  let blocking = false;
-  try { blocking = JSON.parse(r.stdout)?.hookSpecificOutput?.permissionDecision === 'deny'; } catch (_) {}
-  return { pass: blocking, value: blocking ? 'BLOCKING' : 'NOT BLOCKING', detail: blocking ? '' : 'permissionDecision !== deny in output' };
+  let denied = false;
+  try { denied = JSON.parse(r.stdout)?.hookSpecificOutput?.permissionDecision === 'deny'; } catch (_) {}
+  const observed = /agent-spawn-guard/.test(r.stderr || '');
+  const ok = r.status === 0 && !denied && observed;
+  return {
+    pass: ok,
+    value: ok ? 'OBSERVE+ALLOW' : (denied ? 'UNEXPECTED-DENY' : 'NO-OBSERVABILITY'),
+    detail: ok ? '' : (denied ? 'guard returned deny — policy reverted 2026-05-30 expects allow' : 'no observability log on stderr / non-zero exit'),
+  };
 });
 
 // ── gate logic ────────────────────────────────────────────────────────────────
 
 const allPass   = results.every(r => r.pass);
-const hardFail  = results.filter(r => ['independence','spawn-guard-block','spawn-guard-safe'].includes(r.name) && !r.pass);
+const hardFail  = results.filter(r => ['spawn-guard-block','spawn-guard-safe'].includes(r.name) && !r.pass);
 
 const gateStatus =
   hardFail.length > 0                                  ? 'NOT_READY' :
-  !results.find(r => r.name === 'independence')?.pass  ? 'NOT_READY' :
   !results.find(r => r.name === 'learning')?.pass      ? 'ALMOST'    :
   allPass                                              ? 'READY'     : 'PARTIAL';
 

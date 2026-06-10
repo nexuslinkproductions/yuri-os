@@ -22,7 +22,7 @@ const fs   = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const REPO_ROOT        = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const REPO_ROOT        = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
 const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
 const STATE_FILE       = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
