@@ -37,7 +37,6 @@ const LEGACY_CLAUDE_PROJECT_MEMORY_DIR = path.join(
 );
 
 export const CORE_EVIDENCE_FILES = Object.freeze([
-  { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', required: true, type: 'json' },
   { id: 'lane-kernel', path: '_SYSTEM/Scripts/lane-kernel.mjs', required: true, type: 'source' },
   { id: 'llm-compat-contract', path: '_SYSTEM/Scripts/llm-compat-contract.mjs', required: true, type: 'source' },
   { id: 'goal', path: '_SYSTEM/docs/YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md', required: true, type: 'doc' },
@@ -58,7 +57,6 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'neurodivergent-engine-handoff', path: '_SYSTEM/HANDOFF-musubi-intelligence-sprint-v2.md', type: 'neurodivergence' },
   { id: 'memory-kernel-source', path: '_SYSTEM/Scripts/memory-kernel.mjs', type: 'source' },
   { id: 'skill-loader-source', path: '_SYSTEM/Scripts/yuri-skill-loader.mjs', type: 'source' },
-  { id: 'shintai-dispatch-source', path: '_SYSTEM/Scripts/shintai-dispatch.mjs', type: 'source' },
   { id: 'rails-source', path: '_SYSTEM/Scripts/rails.mjs', type: 'source' },
   { id: 'cyber-company-goal', path: '_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md', type: 'doc' },
   { id: 'cyber-intel-matrix', path: '_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md', type: 'doc' },

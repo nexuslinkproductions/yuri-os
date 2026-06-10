@@ -96,7 +96,6 @@ for (const command of [
   ['node', '_SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs'],
   ['node', '_SYSTEM/Scripts/yuri-canonical-memory-import.test.mjs'],
   ['node', '_SYSTEM/Scripts/yuri-control-plane-schema.test.mjs'],
-  ['node', '_SYSTEM/Scripts/shintai-dispatch.test.mjs'],
   ['node', '_SYSTEM/Scripts/artifact-registry.mjs', '--validate'],
 ]) {
   run(command);

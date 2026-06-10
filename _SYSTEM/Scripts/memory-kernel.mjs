@@ -18,7 +18,6 @@ export const MEMORY_PROPOSAL_DECISION_LOG = path.join(REPO_ROOT, '_SYSTEM', 'sta
 export const SEMANTIC_MODES = Object.freeze(['lexical', 'embedding', 'msa']);
 
 export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
-  { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', type: 'roster', required: true },
   { id: 'yuri-memory-index', path: '_SYSTEM/memory/MEMORY.md', type: 'memory', required: true },
   { id: 'extraction-sprint-template', path: 'skills/extraction-sprint/SKILL.md', type: 'template', required: true },
   { id: 'llm-compat-contract', path: '_SYSTEM/Scripts/llm-compat-contract.mjs', type: 'source', required: true },
@@ -31,7 +30,6 @@ export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
   { id: 'msa-readme', path: '_SYSTEM/tools/MSA/README.md', type: 'upstream-source', required: true },
   { id: 'memory-kernel-source', path: '_SYSTEM/Scripts/memory-kernel.mjs', type: 'source', required: true },
   { id: 'skill-loader-source', path: '_SYSTEM/Scripts/yuri-skill-loader.mjs', type: 'source', required: true },
-  { id: 'shintai-dispatch-source', path: '_SYSTEM/Scripts/shintai-dispatch.mjs', type: 'source', required: true },
   { id: 'rails-source', path: '_SYSTEM/Scripts/rails.mjs', type: 'source', required: true },
 ]);
 

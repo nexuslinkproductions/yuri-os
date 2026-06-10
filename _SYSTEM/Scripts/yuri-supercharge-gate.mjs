@@ -28,7 +28,6 @@ export const BASELINE_COMMITS = Object.freeze([
 ]);
 
 const NETWORK_DEPENDENT_CHECKS = new Set([
-  'test:rick-harness-runtime',
   'test:offload-runner-rails',
   'browser-harness:health',
 ]);
@@ -73,7 +72,6 @@ export function buildChecks(options = {}) {
     ['syntax:health-status', process.execPath, ['--check', '_SYSTEM/Scripts/health-status.mjs']],
     ['syntax:yuri-supercharge-gate', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-gate.mjs']],
     ['syntax:yuri-supercharge-report', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-report.mjs']],
-    ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
     ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
     ['test:loopback-capability', process.execPath, ['--test', '_SYSTEM/Scripts/loopback-capability.test.mjs']],
     ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
@@ -124,7 +122,6 @@ export function buildChecks(options = {}) {
     ['test:yuri-supercharge-gate', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs']],
     ['test:yuri-supercharge-report', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-report.test.mjs']],
     ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
-    ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
     ['test:llm-lane', process.execPath, ['--test', '_SYSTEM/Scripts/llm-lane.test.mjs']],
     ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
     ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/llm-compat-contract-regression.test.mjs']],

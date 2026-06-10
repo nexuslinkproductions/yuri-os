@@ -3,7 +3,6 @@
 import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
 
 export const SHINTAI_REQUIRED_EVIDENCE_IDS = Object.freeze([
-  'shintai-roster',
   'yuri-memory-index',
   'extraction-sprint-template',
 ]);
@@ -18,7 +17,6 @@ export const MEMORY_RAG_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'msa-readme',
   'memory-kernel-source',
   'skill-loader-source',
-  'shintai-dispatch-source',
   'rails-source',
 ]);
 

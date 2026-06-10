@@ -340,7 +340,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
   // contract case). The node's own outgoing calls are sparse, so we discover the BINDING witness
   // through its mechanism cluster (hop-radius<=2, guard c):
   //   hop-1: query the node's mechanism vocabulary -> CLUSTER FILES that map to OTHER circuitry
-  //          nodes (the candidate siblings — offload-runner, shintai-dispatch, ...).
+  //          nodes (the candidate siblings — llm-lane, lane-kernel, ...).
   //   hop-2: harvest each cluster file's OUTGOING structural symbols (context <basename>) and keep
   //          a symbol as a WITNESS iff >=2 distinct cluster files structurally emit it — that is the
   //          shared mechanism the family is built on (e.g. traceDispatchEvent). A symbol only one

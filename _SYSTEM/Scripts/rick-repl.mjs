@@ -1004,7 +1004,6 @@ function createHarnessUi({ sessionId }) {
 
 function detectRoute(input) {
   const lower = input.toLowerCase();
-  if (lower.includes('@shintai')) return { tag: '@shintai' };
   for (const tag of Object.keys(ROUTES)) {
     if (lower.includes(tag)) return { tag, route: ROUTES[tag] };
   }
@@ -1411,60 +1410,6 @@ async function handleInput(ui, input, history) {
   });
 
   const detected = detectRoute(input);
-
-  if (detected?.tag === '@shintai') {
-    const task = input.replace(/@shintai/gi, '').trim() || input;
-    ui.appendDispatch('@shintai advisory dispatched');
-    ui.setLane('@shintai');
-    const dispatchId = startDispatchRecord('@shintai', 'Shintai advisory', 'Gate 0');
-    const { runAdvisory } = await import('./shintai-dispatch.mjs');
-    const stream = {
-      write(chunk) {
-        const text = normalizeText(chunk).trimEnd();
-        if (!text) return;
-        updateShintaiPhaseStatus(ui, text);
-        updateDispatchRecord(dispatchId, { state: stripAnsi(text).split('\n').at(-1)?.slice(0, 80) || 'running' });
-        ui.appendSystem(text);
-      },
-    };
-    ui.markActivity('loading YURI control-plane Gate 0');
-    let result;
-    try {
-      const shintaiInputGenome = buildInputGenome(task, {
-        source: 'rick-repl',
-        target: 'shintai',
-        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
-        artifactRoot: '_SYSTEM/state/rick-history',
-        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
-      });
-      result = await runAdvisory(buildPrompt(task, historyCtx, memories, {
-        target: 'shintai',
-        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
-        inputGenome: shintaiInputGenome,
-      }), {
-        stream,
-        inputGenome: shintaiInputGenome,
-        taskAlreadyGenomeWrapped: true,
-      });
-    } catch (err) {
-      result = { ok: false, error: err?.message || String(err) };
-    } finally {
-      finishDispatchRecord(dispatchId);
-    }
-    if (!result.ok) {
-      ui.appendError(result.error || 'Shintai advisory failed');
-      if (result.health) ui.appendSystem(JSON.stringify(result.health, null, 2));
-    } else {
-      ui.appendRick(result.synthesis);
-      if (result.artifacts?.markdown) ui.appendSystem(`advisory saved → ${result.artifacts.markdown}`);
-    }
-    const assistant = result.ok ? result.synthesis : `[Shintai advisory failed: ${result.error || 'unknown'}]`;
-    const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant };
-    appendHistory(entry);
-    history.push(entry);
-    await writeMemory(input, assistant);
-    return;
-  }
 
   if (detected) {
     const { tag, route } = detected;
