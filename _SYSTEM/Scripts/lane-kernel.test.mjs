@@ -22,8 +22,9 @@ test('lane kernel exposes the consolidated Shintai deployment without Spark', ()
   const lanes = deployment.members.map((member) => member.lane).join(' ');
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
-  assert.ok(ids.includes('nemotron'));
-  assert.ok(ids.includes('kimi'));
+  assert.ok(ids.includes('mimo'));
+  assert.equal(ids.includes('nemotron'), false);
+  assert.equal(ids.includes('kimi'), false);
   assert.equal(ids.includes('glm'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
   assert.equal(deployment.authority.coMain, 'claude-opus-4-7-comain');
@@ -58,27 +59,33 @@ test('DeepSeek Shintai lane routes through direct paid API with no NVIDIA fallba
   assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-pro'), false);
   assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-flash'), false);
   assert.doesNotMatch(deepseek.model, /deepseek-ai\//);
-  assert.match(deepseek.assignment, /NVIDIA DeepSeek fallback is retired/);
+  // NIM lanes fully retired 2026-06-10 — the retired-fallback note was dropped from the
+  // assignment text along with the NVIDIA path itself; assert it routes directly instead.
+  assert.match(deepseek.assignment, /direct DeepSeek V4 Pro/);
+  assert.doesNotMatch(deepseek.assignment, /NVIDIA|nvidia/);
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
-  assert.deepEqual(ACTIVE_NIM_LANES, ['nemotron-3-ultra-550b-a55b', 'kimi-k2.6']);
-  assert.deepEqual(DEAD_NIM_LANES, []);
+  // NIM lanes (nemotron + kimi) retired 2026-06-10 → no active NIM lanes remain; both moved to dead.
+  assert.deepEqual(ACTIVE_NIM_LANES, []);
+  assert.deepEqual(DEAD_NIM_LANES, ['nemotron-3-ultra-550b-a55b', 'kimi-k2.6']);
 });
 
 test('memory/RAG Shintai council uses large task-fit lanes without Spark fallback', () => {
   const ids = selectMemoryRagMemberIds({});
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
-  assert.ok(ids.includes('nemotron'));
-  assert.ok(ids.includes('kimi'));
+  assert.ok(ids.includes('mimo'));
+  assert.equal(ids.includes('nemotron'), false);
+  assert.equal(ids.includes('kimi'), false);
   assert.equal(ids.includes('glm'), false);
   assert.equal(ids.includes('codex-spark'), false);
   assert.deepEqual(ids, [...SHINTAI_MEMORY_RAG_MEMBER_IDS]);
 });
 
-test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'kimi']) {
+test('memory/RAG Shintai advisory lane keeps tool mode available under YURI rails', () => {
+  // NIM lanes (nemotron/kimi) retired 2026-06-10 → mimo is the replacement advisory reasoning lane.
+  for (const id of ['mimo']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
@@ -89,10 +96,10 @@ test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', (
   }
 });
 
-test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
+test('Shintai advisory lane keeps tool mode available under YURI rails', () => {
+  // NIM lanes (nemotron/kimi) retired 2026-06-10 → mimo is the replacement advisory reasoning lane.
   for (const id of [
-    'nemotron',
-    'kimi',
+    'mimo',
   ]) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);

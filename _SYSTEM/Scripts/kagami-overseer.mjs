@@ -13,13 +13,13 @@ export const QUARANTINE_THRESHOLD = 3;
 export const AUTO_UNQUARANTINE_MS = 120 * 60 * 1000;
 
 export const MODEL_TO_LANE = Object.freeze({
-  'nvidia/nemotron-3-ultra-550b-a55b': 'nemotron-3-ultra-550b-a55b',
-  'moonshotai/kimi-k2.6': 'kimi-k2.6',
+  'mimo-v2.5-pro[1m]': 'mimo-v2.5-pro[1m]',
+  'mimo-v2-flash': 'mimo-v2-flash',
 });
 
 const LANE_ALIASES = Object.freeze({
-  nemotron: 'nemotron-3-ultra-550b-a55b',
-  kimi: 'kimi-k2.6',
+  mimo: 'mimo-v2.5-pro[1m]',
+  'mimo-flash': 'mimo-v2-flash',
   codex: 'codex',
   'gpt-5.5': 'codex',
   'gpt-5.4': 'codex',

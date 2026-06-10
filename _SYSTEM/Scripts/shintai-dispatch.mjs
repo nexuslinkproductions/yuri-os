@@ -88,14 +88,13 @@ const SOURCE_PATHS = [
   '.claude/plans/shintai-has-to-fix-luminous-fountain.md',
 ];
 
-const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'kimi']);
+const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'mimo']);
 const HEAVY_HEALTH_IDS = new Set([]);
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
   'claude-opus-audit': ['claude-opus-audit', 'claude-opus-comain', 'claude-opus-4-7-comain', 'claude-opus-4-7', 'opus-4.7', 'claude'],
-  nemotron: ['nemotron-orchestrator', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'],
-  kimi: ['kimi-context-keeper', 'kimi-k2.6', 'moonshotai/kimi-k2.6'],
+  mimo: ['mimo-orchestrator', 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro', 'mimo'],
 };
 
 const ASSIGNMENTS = {
@@ -121,19 +120,12 @@ const ASSIGNMENTS = {
     assignment: 'Wake with Haiku, continue Opus 4.7 max-reasoning co-main session, draft or apply scoped code/tests/docs when explicitly tasked, and double-check Codex outputs. Codex must independently verify every Opus change before trust.',
     dispatchArgs: ['@claude-opus-comain'],
   },
-  nemotron: {
-    displayName: 'Nemotron Orchestrator',
-    lane: 'nemotron-3-ultra-550b-a55b',
-    skills: ['yuri-shura', 'bankai-manifest', 'visual-introspection', 'yuri-code-intelligence'],
-    assignment: 'Long-horizon architecture and rail mapping through Nemotron 3 Ultra.',
-    dispatchArgs: ['offload', '--model', 'nemotron-3-ultra-550b-a55b'],
-  },
-  kimi: {
-    displayName: 'Kimi Context-Keeper',
-    lane: 'kimi-k2.6',
-    skills: ['swarm-coordination', 'parallel-clone-orchestrator', 'gitnexus', 'visual-introspection', 'codebase-to-course'],
-    assignment: 'Context integrity: load Shintai templates, memory, roster rules, identify stale aliases, and define durable guardrails.',
-    dispatchArgs: ['offload', '--model', 'kimi-k2.6'],
+  mimo: {
+    displayName: 'Mimo Orchestrator',
+    lane: 'mimo-v2.5-pro[1m]',
+    skills: ['yuri-shura', 'bankai-manifest', 'visual-introspection', 'yuri-code-intelligence', 'parallel-clone-orchestrator'],
+    assignment: 'Long-horizon architecture, rail mapping, and long-context synthesis through Xiaomi Mimo (mimo-v2.5-pro[1m], Anthropic Messages API, 1M context, max effort).',
+    dispatchArgs: ['llm', 'mimo'],
   },
 };
 

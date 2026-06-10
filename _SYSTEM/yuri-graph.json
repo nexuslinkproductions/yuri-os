@@ -140,8 +140,8 @@
           "LANE_DSP",
           "LANE_MINI",
           "LANE_CODEX",
-          "LANE_KIMI",
-          "LANE_NEMOTRON",
+          "LANE_MIMO_FLASH",
+          "LANE_MIMO",
           "LANE_TRIAGE",
           "LANE_GPTOSS",
           "MINI_WRITE",
@@ -602,8 +602,8 @@
     "LANE_DSP",
     "LANE_MINI",
     "LANE_CODEX",
-    "LANE_KIMI",
-    "LANE_NEMOTRON",
+    "LANE_MIMO_FLASH",
+    "LANE_MIMO",
     "LANE_TRIAGE",
     "LANE_GPTOSS",
     "PROPOSE",
@@ -763,7 +763,7 @@
     "gitnexus-hook",
     "artifact-registry",
     "yuri-user",
-    "LANE_NEMOTRON",
+    "LANE_MIMO",
     "PROPAGATION_SCAN",
     "XREF_QUERY",
     "math-adapters",
@@ -4406,17 +4406,17 @@
       "label": "gpt-oss alias"
     },
     {
-      "id": "LANE_KIMI",
+      "id": "LANE_MIMO_FLASH",
       "tiers": [
         "flow"
       ],
       "flow": {
         "tier": "sub",
-        "label": "kimi",
-        "role": "fallback",
+        "label": "mimo-flash",
+        "role": "fast reasoning",
         "detail": "",
         "radius": 20,
-        "color": "#4A9EFF",
+        "color": "#FFC480",
         "position": {
           "x": -16.393,
           "y": -756,
@@ -4424,29 +4424,30 @@
         },
         "sector": "routing_lanes",
         "metadata": {
-          "purpose": "Remote high-grade fallback reasoning lane",
+          "purpose": "Xiaomi Mimo fast tier (mimo-v2-flash, 256K context) — cheap/low-latency reasoning lane",
           "files": [
+            "_SYSTEM/Scripts/llm-lane.mjs",
             "_SYSTEM/Scripts/llm-compat-contract.mjs"
           ],
           "capabilities": [
-            "Route to kimi-k2.6",
+            "Route to mimo-v2-flash",
             "Bound work by lane policy",
             "Return evidence to ENKI"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
-            "kimi-k2.6"
+            "mimo-v2-flash"
           ],
           "state_files": [],
-          "model": "kimi-k2.6",
-          "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
+          "model": "mimo-v2-flash",
+          "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-lane.mjs (native Anthropic Messages API adapter).",
           "returns_to": "RESPONSE"
         },
         "parent": "ROUTING",
         "children": []
       },
       "mechanism": null,
-      "label": "kimi"
+      "label": "mimo-flash"
     },
     {
       "id": "LANE_LOCAL",
@@ -4540,18 +4541,18 @@
       "label": "codex-mini"
     },
     {
-      "id": "LANE_NEMOTRON",
+      "id": "LANE_MIMO",
       "tiers": [
         "flow",
         "mechanism"
       ],
       "flow": {
         "tier": "sub",
-        "label": "nemotron",
-        "role": "advisory reasoning",
+        "label": "mimo",
+        "role": "first-class reasoning",
         "detail": "",
         "radius": 20,
-        "color": "#4A9EFF",
+        "color": "#FF9E4A",
         "position": {
           "x": 33.607,
           "y": -756,
@@ -4559,37 +4560,38 @@
         },
         "sector": "routing_lanes",
         "metadata": {
-          "purpose": "Advisory external reasoning lane (Nemotron-3-Ultra, DEV-ONLY, advisory-until-verified)",
+          "purpose": "Xiaomi Mimo first-class reasoning lane (Anthropic Messages API, mimo-v2.5-pro[1m], 1M context, max effort)",
           "files": [
-            "_SYSTEM/Scripts/nemotron-dispatch.mjs"
+            "_SYSTEM/Scripts/llm-lane.mjs",
+            "_SYSTEM/Scripts/llm-compat-contract.mjs"
           ],
           "capabilities": [
-            "Route to nemotron-3-ultra-550b-a55b",
+            "Route to mimo-v2.5-pro[1m]",
             "Bound work by lane policy",
             "Return evidence to ENKI"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
-            "nemotron-3-ultra-550b-a55b"
+            "mimo-v2.5-pro[1m]"
           ],
           "state_files": [],
-          "model": "nemotron-3-ultra-550b-a55b",
-          "notes": "Lane metadata evidence from _SYSTEM/Scripts/nemotron-dispatch.mjs. DEV-ONLY advisory lane; output advisory-until-verified.",
+          "model": "mimo-v2.5-pro[1m]",
+          "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-lane.mjs (native Anthropic Messages API adapter). First-class provider equal to Anthropic; advisory-until-verified.",
           "returns_to": "RESPONSE"
         },
         "parent": "ROUTING",
         "children": []
       },
       "mechanism": {
-        "label": "nemotron lane (advisory external reasoning, via llm-lane)",
+        "label": "mimo lane (first-class reasoning, Anthropic Messages API, via llm-lane)",
         "layer": "Skills & Orchestration",
         "files": [
           "_SYSTEM/Scripts/llm-lane.mjs"
         ],
-        "triggeredBy": "CLI / llm-lane dispatch — advisory external reasoning lane (DEV-ONLY)",
-        "description": "Advisory external reasoning lane (Nemotron-3-Ultra, nemotron-3-ultra-550b-a55b) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all 3 lanes (deepseek/kimi/nemotron); the standalone nemotron-dispatch.mjs adapter was retired 2026-06-05. DEV-ONLY; advisory-until-verified, returns evidence into the control plane — never a release gate."
+        "triggeredBy": "CLI / llm-lane dispatch — `ai llm mimo` (Anthropic Messages API, SSE streaming)",
+        "description": "First-class reasoning lane (Xiaomi Mimo, mimo-v2.5-pro[1m], 1M context) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all lanes. Mimo speaks the Anthropic Messages API (/v1/messages, SSE) selected by cfg.protocol; deepseek lanes speak OpenAI chat/completions. Advisory-until-verified, returns evidence into the control plane — never a release gate."
       },
-      "label": "nemotron"
+      "label": "mimo"
     },
     {
       "id": "LANE_TRIAGE",
@@ -6760,8 +6762,8 @@
           "LANE_DSP",
           "LANE_MINI",
           "LANE_CODEX",
-          "LANE_KIMI",
-          "LANE_NEMOTRON",
+          "LANE_MIMO_FLASH",
+          "LANE_MIMO",
           "LANE_TRIAGE",
           "LANE_GPTOSS",
           "LANE_GEMMA"
@@ -9217,14 +9219,14 @@
     },
     {
       "source": "ROUTING",
-      "target": "LANE_KIMI",
+      "target": "LANE_MIMO_FLASH",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
       "source": "ROUTING",
-      "target": "LANE_NEMOTRON",
+      "target": "LANE_MIMO",
       "type": "branch",
       "is_return": false,
       "view": "flow"
@@ -9676,14 +9678,14 @@
       "view": "flow"
     },
     {
-      "source": "LANE_KIMI",
+      "source": "LANE_MIMO_FLASH",
       "target": "RESPONSE",
       "type": "flow",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "LANE_NEMOTRON",
+      "source": "LANE_MIMO",
       "target": "RESPONSE",
       "type": "flow",
       "is_return": true,

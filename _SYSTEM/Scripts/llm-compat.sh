@@ -23,7 +23,7 @@ done
 unset _lane_var
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY MIMO_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -98,8 +98,9 @@ list_models() {
   echo
   echo "LLM compatibility reasoning lanes:"
   printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via api.deepseek.com; reasoning depth via --reasoning"
-  printf '  [%-30s] %s\n' "nemotron-3-ultra-550b-a55b" "Nemotron 3 Ultra via NVIDIA NIM"
-  printf '  [%-30s] %s\n' "kimi-k2.6" "Kimi K2.6 via NVIDIA NIM"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "V4 Flash via api.deepseek.com; fast triage tier"
+  printf '  [%-30s] %s\n' "mimo (mimo-v2.5-pro[1m])" "Xiaomi Mimo via token-plan (Anthropic Messages API); 1M context, max effort"
+  printf '  [%-30s] %s\n' "mimo-flash (mimo-v2-flash)" "Xiaomi Mimo fast tier; 256K context"
 
   echo
   echo "Additive Ollama lanes:"
@@ -128,7 +129,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-pro|nemotron-3-ultra-550b-a55b|kimi-k2.6|nvidia/nemotron-3-ultra-550b-a55b|moonshotai/kimi-k2.6|kimi|nemotron|deepseek|nvidia/*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
+    deepseek-v4-pro|deepseek-v4-flash|deepseek|mimo|mimo-v2.5-pro*|mimo-v2.5*|mimo-v2-flash|mimo-flash|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -137,13 +138,13 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-pro|nemotron|nemotron-3-ultra-550b-a55b|kimi|kimi-k2.6|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
+    deepseek|deepseek-v4-pro|deepseek-v4-flash|mimo|mimo-v2.5-pro|mimo-v2.5|mimo-flash|mimo-v2-flash|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
       return 0
       ;;
   esac
 
   case "$token" in
-    nvidia/nemotron-3-ultra-550b-a55b|moonshotai/kimi-k2.6|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
+    codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
       return 0
       ;;
   esac
@@ -300,18 +301,9 @@ dry_run_model_override() {
       gpt-5.5|codex|codex-high|codex-full)
         LLM_COMPAT_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
-      nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro" >&2
-        return 2
-        ;;
-      nemotron|nemotron-3-ultra-550b-a55b|nvidia/nemotron-3-ultra-550b-a55b)
-        _nim_model="nvidia/nemotron-3-ultra-550b-a55b"
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
-        run_offload_runner nvidia-nim "$prompt" --dry-run --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      kimi|kimi-k2.6|moonshotai/kimi-k2.6)
-        printf '%s\n' "⬡ ROUTING_TO_KIMI_NIM..." >&2
-        run_offload_runner kimi-k2.6 "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
+      mimo|mimo-v2.5-pro|mimo-v2.5-pro\[1m\]|mimo-v2.5|mimo-v2.5\[1m\]|mimo-flash|mimo-v2-flash)
+        printf '%s\n' "⬡ ROUTING_TO_MIMO [${target_model}]..." >&2
+        run_offload_runner "$target_model" "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -382,9 +374,9 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
         "$SCRIPT_DIR/ai" claude "$prompt"
         ;;
-      kimi-k2.6|kimi|moonshotai/kimi-k2.6)
-        printf '%s\n' "⬡ ROUTING_TO_KIMI_NIM..." >&2
-        run_offload_runner kimi-k2.6 "$prompt" ${tool_args[@]+"${tool_args[@]}"}
+      mimo|mimo-v2.5-pro|mimo-v2.5-pro\[1m\]|mimo-v2.5|mimo-v2.5\[1m\]|mimo-flash|mimo-v2-flash)
+        printf '%s\n' "⬡ ROUTING_TO_MIMO [${target_model}]..." >&2
+        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
@@ -405,15 +397,6 @@ dispatch_model() {
       deepseek)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [deepseek-v4-pro]..." >&2
         run_offload_runner deepseek-v4-pro "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
-        ;;
-      nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro" >&2
-        return 2
-        ;;
-      nemotron|nemotron-3-ultra-550b-a55b|nvidia/nemotron-3-ultra-550b-a55b)
-        _nim_model="nvidia/nemotron-3-ultra-550b-a55b"
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
-        run_offload_runner nvidia-nim "$prompt" --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2

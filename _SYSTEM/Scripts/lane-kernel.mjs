@@ -99,12 +99,13 @@ export const CONTROL_FILE_PREFIXES = Object.freeze([
   '_SYSTEM/Scripts/neuron-loop',
 ]);
 
-export const ACTIVE_NIM_LANES = Object.freeze([
-  'nemotron-3-ultra-550b-a55b',
-  'kimi-k2.6',
-]);
+// NVIDIA NIM lanes (nemotron, kimi) retired 2026-06-10 — the advisory reasoning lane is now
+// Xiaomi Mimo (token-plan, Anthropic Messages API), which is NOT a NIM lane. No active NIM lanes remain.
+export const ACTIVE_NIM_LANES = Object.freeze([]);
 
 export const DEAD_NIM_LANES = Object.freeze([
+  'nemotron-3-ultra-550b-a55b',
+  'kimi-k2.6',
 ]);
 
 export const NEMO_STYLE_RAILS = Object.freeze({
@@ -119,16 +120,14 @@ export const SHINTAI_SUPERAUDIT_MEMBER_IDS = Object.freeze([
   'codex',
   'deepseek',
   'claude-opus-audit',
-  'nemotron',
-  'kimi',
+  'mimo',
 ]);
 
 export const SHINTAI_MEMORY_RAG_MEMBER_IDS = Object.freeze([
   'codex',
   'deepseek',
   'claude-opus-audit',
-  'nemotron',
-  'kimi',
+  'mimo',
 ]);
 
 export const SHINTAI_REQUIRED_MEMBER_IDS = Object.freeze(['codex', 'deepseek']);
@@ -174,7 +173,7 @@ export const LANE_KERNEL = Object.freeze({
     reasoning: 'xhigh',
     contextTier: 'large',
     dispatchArgs: ['offload', '--model', 'deepseek-v4-pro'],
-    assignment: 'First synthesis gate via direct DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out. NVIDIA DeepSeek fallback is retired.',
+    assignment: 'First synthesis gate via direct DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: false },
   },
   'claude-opus-audit': {
@@ -190,28 +189,16 @@ export const LANE_KERNEL = Object.freeze({
     assignment: 'Wake Claude with Haiku, continue Opus 4.7 max-reasoning co-main session, draft or apply scoped code/tests/docs. Codex must independently verify every Opus change before trust.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: true, edit: true },
   },
-  nemotron: {
-    id: 'nemotron',
-    lane: 'nemotron-3-ultra-550b-a55b',
-    model: 'nvidia/nemotron-3-ultra-550b-a55b',
-    provider: 'nvidia',
+  mimo: {
+    id: 'mimo',
+    lane: 'mimo-v2.5-pro[1m]',
+    model: 'mimo-v2.5-pro[1m]',
+    provider: 'xiaomi-mimo-token-plan',
     role: 'long-horizon-orchestrator',
     reasoning: 'xhigh',
     contextTier: 'million',
-    dispatchArgs: ['offload', '--model', 'nemotron-3-ultra-550b-a55b'],
-    assignment: 'Long-horizon control-plane architecture and NeMo-style rail mapping through Nemotron 3 Ultra.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  kimi: {
-    id: 'kimi',
-    lane: 'kimi-k2.6',
-    model: 'moonshotai/kimi-k2.6',
-    provider: 'nvidia',
-    role: 'context-keeper',
-    reasoning: 'xhigh',
-    contextTier: 'million',
-    dispatchArgs: ['offload', '--model', 'kimi-k2.6'],
-    assignment: 'Long-context synthesis and continuity review through Kimi K2.6 on NVIDIA NIM.',
+    dispatchArgs: ['llm', 'mimo'],
+    assignment: 'Long-horizon control-plane architecture, long-context synthesis, and continuity review through Xiaomi Mimo (mimo-v2.5-pro[1m], Anthropic Messages API, 1M context, max effort). First-class advisory lane equal to Anthropic.',
     tools: FULL_ADVISORY_TOOLS,
   },
 });

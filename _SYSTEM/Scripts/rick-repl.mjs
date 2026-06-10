@@ -81,7 +81,7 @@ const ROUTES = {
   '@sonnet': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
   '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
   '@claude': { lane: '@claude', label: 'Claude' },
-  '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
+  '@mimo': { lane: '@mimo', label: 'Mimo' },
   '@ds': { lane: '@deepseek-v4-pro', label: 'Simple Rick' },
   '@flash': { lane: '@deepseek-v4-flash', label: 'Simple Rick Flash' },
 };
@@ -1240,7 +1240,7 @@ async function streamLaneWithShell(ui, lane, prompt, label, options = {}) {
 
 async function handleHealth(ui) {
   ui.setLane('health');
-  const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@nvidia-nemotron-120b', '@nvidia-qwen3-next']);
+  const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@deepseek-v4-flash', '@mimo']);
   appendRickEvent('LANE_HEALTH_PREFLIGHT', {
     source: 'rick:/health',
     lane: 'health',
@@ -1556,7 +1556,7 @@ async function main() {
   ui.reserveBottom();
   ui.redrawBottom();
   ui.appendSystem(`${history.length} turns loaded from last 24h · ${promptSafeHistory(history).length} usable for prompt · session ${SESSION_ID}`);
-  ui.appendSystem('Route: @deepseek(Simple Rick)  @codex  @codex-mini  @sonnet  @opus  @nvidia  @shintai');
+  ui.appendSystem('Route: @deepseek(Simple Rick)  @codex  @codex-mini  @sonnet  @opus  @mimo  @shintai');
 
   let busy = false;
 

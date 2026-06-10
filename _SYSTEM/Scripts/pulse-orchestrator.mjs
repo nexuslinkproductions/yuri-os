@@ -45,7 +45,7 @@ const OPENCLAW_BRIDGE = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'openclaw-b
 const TIMEOUT_DEEPSEEK_MS = 60_000;
 const TIMEOUT_OPENCLAW_MS = 60_000;
 const TIMEOUT_SWARM_MS    = 90_000;
-const TIMEOUT_NVIDIA_MS   = 60_000;
+const TIMEOUT_MIMO_MS     = 60_000;
 
 // Lazy require for the CommonJS pulse-bus module from ESM context
 const requireFromCjs = (await import('node:module')).createRequire(import.meta.url);
@@ -222,30 +222,29 @@ OUTPUT_CAP: 40 lines`;
   return { source: 'DEEPSEEK', runtimeKind: 'model_advisor', ...parsed };
 }
 
-async function dispatchNvidiaPreflight(prompt, plan, turnId) {
-  if (!process.env.NVIDIA_API_KEY) return null;
-  // semantic-memory/palace retrieval retired 2026-05-29
-  const nvidiaAmplified = String(prompt).slice(0, 300);
-  const preflightPrompt = `PULSE_PREFLIGHT nvidia-advisory. Scenario=${plan.scenario}, tier=${plan.complexityTier}.
+async function dispatchMimoPreflight(prompt, plan, turnId) {
+  if (!process.env.MIMO_API_KEY) return null;
+  const mimoAmplified = String(prompt).slice(0, 300);
+  const preflightPrompt = `PULSE_PREFLIGHT mimo-advisory. Scenario=${plan.scenario}, tier=${plan.complexityTier}.
 LANE: ${plan.lane}
 TIER: ${plan.complexityTier}
-PROMPT: "${nvidiaAmplified.slice(0, 600)}"
+PROMPT: "${mimoAmplified.slice(0, 600)}"
 
 QUESTION: From your perspective as a different model family than DeepSeek, what risk, blind spot, or alternative approach should the main thread consider? 1-3 lines, 30 lines max.
 OUTPUT_CAP: 30 lines`;
 
   const result = await execWithTimeout(
     'bash',
-    [LLM_COMPAT_SH, '@nvidia', '--tools', preflightPrompt],
+    [LLM_COMPAT_SH, '@mimo', '--tools', preflightPrompt],
     {},
-    TIMEOUT_NVIDIA_MS
+    TIMEOUT_MIMO_MS
   );
   if (result.code !== 0 || result.timedOut) {
-    logError(`NVIDIA preflight failed (code=${result.code} timeout=${!!result.timedOut})`);
+    logError(`Mimo preflight failed (code=${result.code} timeout=${!!result.timedOut})`);
     return null;
   }
   const parsed = parseAdvisorOutput(result.stdout);
-  return { source: 'NVIDIA', runtimeKind: 'model_advisor', ...parsed };
+  return { source: 'MIMO', runtimeKind: 'model_advisor', ...parsed };
 }
 
 async function dispatchOpenClawPreflight(prompt, plan, turnId) {
@@ -396,11 +395,11 @@ ${String(prompt).slice(0, 500)}
 TASK: 6-perspective strategic review. Return compact sections for architect, adversary, maintainer, ops, product, and security. Each section: assessment, risks, recommendation. Advisory only.`;
 
   const lanes = [
-    ['architect', '@nvidia-nemotron'],
+    ['architect', '@mimo'],
     ['adversary', '@deepseek-v4-pro'],
     ['maintainer', '@codex-spark'],
-    ['ops', '@kimi'],
-    ['product', '@deepseek-v4-flash'],
+    ['ops', '@deepseek-v4-flash'],
+    ['product', '@mimo-flash'],
     ['security', '@claude'],
   ];
 
@@ -620,7 +619,7 @@ function buildTaskMap(ensemble, prompt, plan, turnId, advisorPrompt = prompt) {
   const m = {};
   for (const slot of ensemble) {
     if (slot === 'deepseek-preflight') m.deepseek = () => dispatchDeepSeekPreflight(advisorPrompt, plan, turnId);
-    if (slot === 'nvidia-preflight')   m.nvidia   = () => dispatchNvidiaPreflight(advisorPrompt, plan, turnId);
+    if (slot === 'mimo-preflight')     m.mimo     = () => dispatchMimoPreflight(advisorPrompt, plan, turnId);
     if (slot === 'openclaw-preflight') m.openclaw = () => dispatchOpenClawPreflight(advisorPrompt, plan, turnId);
     if (slot === 'yuri-risk')          m.yuriRisk = () => dispatchYuriRisk(advisorPrompt, plan, turnId);
     if (slot === 'shura-review')       m.shura      = () => dispatchShuraReview(advisorPrompt, plan, turnId);

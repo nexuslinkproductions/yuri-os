@@ -35,10 +35,9 @@
   "deepseek_v4": {
     "docs_as_of": "2026-05-02",
     "base_urls": {
-      "nvidia_nim": "https://integrate.api.nvidia.com/v1",
       "direct": "https://api.deepseek.com/v1"
     },
-    "api_key_env": "NVIDIA_API_KEY",
+    "api_key_env": "DEEPSEEK_API_KEY",
     "direct_api_status": "active",
     "direct_api_key_env": "DEEPSEEK_API_KEY",
     "direct_base_url_env": "DEEPSEEK_BASE_URL",
@@ -161,12 +160,12 @@
       "legacy_deprecated": ["mimo-v2-pro", "mimo-v2-omni"]
     },
     "model_selection_in_session": "Within ai claude-mimo, use /model <id> to switch — e.g. /model mimo-v2-flash for speed, /model mimo-v2.5[1m] for multimodal 1M",
-    "routing_note": "Anthropic-compatible proxy (NOT openai-compatible) — cannot be slotted into llm-lane.mjs. Use via dedicated claude-mimo session launcher.",
+    "routing_note": "Anthropic Messages API (NOT openai-compatible). Two dispatch surfaces: (1) `ai llm mimo \"<prompt>\"` routes through llm-lane.mjs's native Anthropic adapter (/v1/messages, SSE); (2) `ai claude-mimo` launches a dedicated isolated Claude Code session with /model mimo-v2.5-pro working natively.",
     "recommended_use": ["any task where 1M context helps", "vision/multimodal via mimo-v2.5", "fast bulk via mimo-v2-flash", "audio via ASR/TTS models"],
     "avoid_for": ["YURI infra reasoning (main session stays on Anthropic)", "Claude-specific extended thinking (unverified on Mimo)"]
   },
   "llm_compat_lanes": {
-    "_comment": "SINGLE SOURCE OF TRUTH for live reasoning lanes (consolidated 2026-06-05; Mimo added 2026-06-10). context_window = INPUT cap; max_output = per-reasoning-depth OUTPUT cap. Consumed by llm-lane.mjs. OpenAI-compatible lanes: deepseek, nemotron, kimi. Anthropic-compatible lanes: mimo (Messages API + SSE).",
+    "_comment": "SINGLE SOURCE OF TRUTH for live reasoning lanes. NVIDIA NIM lanes (kimi, nemotron) retired 2026-06-10; Mimo added same day. context_window = INPUT cap; max_output = per-reasoning-depth OUTPUT cap. Consumed by llm-lane.mjs. OpenAI-compatible lanes: deepseek-v4-pro, deepseek-v4-flash. Anthropic-compatible lanes: mimo-v2.5-pro[1m], mimo-v2.5[1m], mimo-v2-flash (Messages API + SSE).",
     "deepseek-v4-pro": {
       "model": "deepseek-v4-pro",
       "provider": "deepseek-direct",
@@ -191,33 +190,6 @@
       "max_output_source": "flash tier — fast/cheap first-pass triage lane; bounded output (wired 2026-06-09).",
       "timeout_ms": 120000
     },
-    "nemotron-3-super-120b-a12b": {
-      "model": "nvidia/nemotron-3-super-120b-a12b",
-      "model_note": "Renamed 2026-06-05 from the nemotron-3-ultra-550b lane (owner-approved). The 550b can't emit a first token within NVIDIA's free-endpoint ~40s gateway wall under load, so the lane serves the 120b-super reasoner, which fits. Old id 'nemotron-3-ultra-550b-a55b' kept as a back-compat alias in llm-lane.mjs. The duplicate lane tables (lane-kernel/llm-compat.sh/llm-compat-contract/kagami/shintai) still carry the old id — reconcile in the Wave-2 routing-fragmentation fix.",
-      "provider": "nvidia-nim",
-      "endpoint_env": "NVIDIA_NIM_BASE_URL",
-      "endpoint_default": "https://integrate.api.nvidia.com/v1",
-      "api_key_env": "NVIDIA_API_KEY",
-      "protocol": "openai-compatible",
-      "context_window": 1000000,
-      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
-      "max_output_source": "OPEN — NIM write ceiling for nemotron-3-super-120b UNVERIFIED; conservative 32768 until a live --reasoning max probe reads finish_reason + usage. Do not raise blind.",
-      "timeout_ms": 1800000,
-      "raw_https": true,
-      "raw_https_reason": "Slow NIM reasoning lane: routed through node:https (streaming SSE, no built-in headers/body timeout) instead of the global fetch (undici ~5min headersTimeout) — its own connection; deepseek/kimi stay on fetch. NVIDIA's free-endpoint ~40s no-output gateway wall still caps prefill (~50KB), so keep dispatch context lean (tool-read files; avoid big --context front-loads)."
-    },
-    "kimi-k2.6": {
-      "model": "moonshotai/kimi-k2.6",
-      "provider": "nvidia-nim",
-      "endpoint_env": "NVIDIA_NIM_BASE_URL",
-      "endpoint_default": "https://integrate.api.nvidia.com/v1",
-      "api_key_env": "NVIDIA_API_KEY",
-      "protocol": "openai-compatible",
-      "context_window": 1000000,
-      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 32768 },
-      "max_output_source": "OPEN — reviving the NIM kimi route (was flagged dead in live_status); ceiling UNVERIFIED, conservative 32768 until probed. Owner decision 2026-06-05: route kimi via NIM (not KIMI_BASE_URL/moonshot).",
-      "timeout_ms": 240000
-    },
     "mimo-v2.5-pro[1m]": {
       "model": "mimo-v2.5-pro[1m]",
       "provider": "xiaomi-mimo-token-plan",
@@ -228,9 +200,7 @@
       "context_window": 1000000,
       "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
       "max_output_source": "Mimo v2.5-pro declared max_output 131072 (2026-06-10). Standing directive: always use largest context + max effort.",
-      "timeout_ms": 300000,
-      "raw_https": true,
-      "raw_https_reason": "Anthropic-protocol SSE streaming path (postMessagesAnthropicHttps) — uses node:https directly, no fetch/undici, no idle timeout. Mirrors the nemotron pattern for slow reasoning lanes."
+      "timeout_ms": 300000
     },
     "mimo-v2.5[1m]": {
       "model": "mimo-v2.5[1m]",
@@ -242,8 +212,7 @@
       "context_window": 1000000,
       "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
       "max_output_source": "Mimo v2.5 multimodal 1M context. Vision + reasoning.",
-      "timeout_ms": 300000,
-      "raw_https": true
+      "timeout_ms": 300000
     },
     "mimo-v2-flash": {
       "model": "mimo-v2-flash",
@@ -255,162 +224,7 @@
       "context_window": 262144,
       "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
       "max_output_source": "Mimo v2-flash 256K context, fast/cheap.",
-      "timeout_ms": 120000,
-      "raw_https": true
-    }
-  },
-  "nvidia_nim": {
-    "docs_as_of": "2026-05-17",
-    "base_url": "https://integrate.api.nvidia.com/v1",
-    "protocol": "openai-compatible",
-    "api_key_env": "NVIDIA_API_KEY",
-    "routing_note": "Use @nvidia dispatch token in llm-compat-contract. Pick model by CAPABILITY — never spam the catalogue. Each model has a primary purpose.",
-    "models": {
-      "default":            "meta/llama-3.3-70b-instruct",
-      "architect":          "nvidia/nemotron-3-super-120b-a12b",
-      "reasoning_heavy":    "qwen/qwen3.5-122b-a10b",
-      "code_mega":          "qwen/qwen3-coder-480b-a35b-instruct",
-      "code_fast":          "nvidia/llama-3.1-nemotron-70b-instruct",
-      "instruction_fast":   "meta/llama-3.3-70b-instruct",
-      "instruction_large":  "meta/llama-3.1-405b-instruct",
-      "chat_balanced":      "mistralai/mistral-medium-3.5-128b",
-      "frontier_chat":      "mistralai/mistral-large-3-675b-instruct-2512",
-      "multimodal_vision":  "meta/llama-3.2-11b-vision-instruct",
-      "kimi_reasoning":     "moonshotai/kimi-k2.6",
-      "mobile_efficient":   "microsoft/phi-4",
-      "qa_comprehension":   "google/gemma-4-31b-it",
-      "embeddings":         "nvidia/llama-nemotron-embed-1b-v2"
-    },
-    "capability_profiles": {
-      "architect": {
-        "model": "nvidia/nemotron-3-super-120b-a12b",
-        "dispatch": "@nvidia-nemotron-120b",
-        "best_for": ["system design", "architecture review", "multi-step planning", "yuri-shura architect lane"],
-        "avoid_for": ["quick lookups", "simple transforms"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "reasoning_heavy": {
-        "model": "qwen/qwen3.5-122b-a10b",
-        "dispatch": "@nvidia-qwen",
-        "best_for": ["complex multi-step reasoning", "long analysis chains", "deep research synthesis"],
-        "avoid_for": ["fast turnaround", "simple generation"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "code_mega": {
-        "model": "qwen/qwen3-coder-480b-a35b-instruct",
-        "dispatch": "@nvidia-qwen-coder",
-        "best_for": ["large codebase refactors", "complex algorithm implementation", "multi-file codegen"],
-        "avoid_for": ["prose", "reasoning-only tasks"],
-        "context_window": 256000,
-        "tools": true
-      },
-      "code_fast": {
-        "model": "nvidia/llama-3.1-nemotron-70b-instruct",
-        "dispatch": "@nvidia-nemotron",
-        "best_for": ["quick code fixes", "code review", "preflight checks", "advisory lane"],
-        "avoid_for": ["long context synthesis"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "instruction_fast": {
-        "model": "meta/llama-3.3-70b-instruct",
-        "dispatch": "@nvidia-llama-70b",
-        "best_for": ["general instruction following", "summaries", "triage", "fast response"],
-        "avoid_for": ["deep reasoning", "massive codebases"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "instruction_large": {
-        "model": "meta/llama-3.1-405b-instruct",
-        "dispatch": "@nvidia-llama-405b",
-        "best_for": ["high-stakes instruction tasks", "broad knowledge synthesis", "fallback when 70b insufficient"],
-        "avoid_for": ["latency-sensitive tasks"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "chat_balanced": {
-        "model": "mistralai/mistral-medium-3.5-128b",
-        "dispatch": "@nvidia-mistral-medium",
-        "best_for": ["balanced chat", "structured output", "moderate reasoning", "European compliance contexts"],
-        "avoid_for": ["pure code generation"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "frontier_chat": {
-        "model": "mistralai/mistral-large-3-675b-instruct-2512",
-        "dispatch": "@nvidia-mistral-large",
-        "best_for": ["frontier-tier reasoning", "long-form synthesis", "European compliance contexts at scale", "Codex / Sonnet failover", "multilingual high-stakes prose"],
-        "avoid_for": ["latency-sensitive tasks (≈12s round-trip on 80 tokens)", "trivial classification"],
-        "context_window": 128000,
-        "tools": true,
-        "probed": "2026-05-19",
-        "size_params": "675B"
-      },
-      "multimodal_vision": {
-        "model": "meta/llama-3.2-11b-vision-instruct",
-        "dispatch": "@nvidia-vision",
-        "best_for": ["image analysis", "screenshot review", "visual QA", "UI review from screenshots"],
-        "avoid_for": ["text-only tasks — wasteful"],
-        "context_window": 128000,
-        "tools": false
-      },
-      "kimi_reasoning": {
-        "model": "moonshotai/kimi-k2.6",
-        "dispatch": "@nvidia-kimi",
-        "best_for": ["long context reasoning", "document QA", "legal/contract review", "128k+ context tasks"],
-        "avoid_for": ["short tasks where context window is wasted"],
-        "context_window": 1000000,
-        "tools": true
-      },
-      "mobile_efficient": {
-        "model": "microsoft/phi-4",
-        "dispatch": "@nvidia-phi",
-        "best_for": ["fast classification", "routing decisions", "lightweight extraction", "budget-sensitive tasks"],
-        "avoid_for": ["complex reasoning", "large codebases"],
-        "context_window": 16384,
-        "tools": true
-      },
-      "qa_comprehension": {
-        "model": "google/gemma-4-31b-it",
-        "dispatch": "@nvidia-gemma",
-        "best_for": ["factual QA", "document comprehension", "summarization at scale"],
-        "avoid_for": ["code generation"],
-        "context_window": 128000,
-        "tools": false
-      },
-      "embeddings": {
-        "model": "nvidia/llama-nemotron-embed-1b-v2",
-        "dispatch": "@nvidia-embed",
-        "best_for": ["semantic search", "RAG embedding", "similarity scoring"],
-        "avoid_for": ["generation — embedding-only model"],
-        "context_window": 8192,
-        "tools": false,
-        "output": "2048-dimensional vectors"
-      }
-    },
-    "live_status": {
-      "tested": "2026-05-19",
-      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-mistral-large", "nvidia-nemotron-120b", "nvidia-dracarys", "nvidia-glm", "nvidia-ising", "nvidia-gemma", "nvidia-qwen-coder", "nvidia-qwen3-next", "nvidia-vision"],
-      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-embed", "nvidia-gpt-oss-120b", "nvidia-kimi"],
-      "untested": [],
-      "note": "Full parallel audit 2026-05-19. glm=stream:true required (hangs on non-stream). gemma recovered. qwen3-next LIVE but ~78s cold-start. gpt-oss-120b+kimi dead at 120s stream."
-    },
-    "routing_decision_guide": {
-      "note": "NIM lanes are for system/infra tasks only. Codex (gpt-5.5) is the default powerhouse for all impl, design, visual, and refactor work.",
-      "system_infra_quick_task":    "@nvidia-nemotron-120b ✓",
-      "system_infra_analysis":      "@nvidia-qwen ✓",
-      "system_triage_or_summary":   "@nvidia-llama-70b ✓",
-      "high_stakes_broad_knowledge":"@nvidia-mistral-large ✓ (675B frontier)",
-      "research_analysis":          "@nvidia-glm ✓ (z-ai/glm-5.1, flagship-tier, stream-only)",
-      "adversarial_second_opinion": "@nvidia-glm ✓ (stream-only)",
-      "image_or_screenshot_review": "@nvidia-vision ✓",
-      "long_document_over_128k":    "@nvidia-mistral-large ✓ (kimi dead)",
-      "cheap_fast_classification":  "@nvidia-mistral-medium ✓ (phi dead)",
-      "frontier_chat_synthesis":    "@nvidia-mistral-large ✓ (675B)",
-      "mega_codegen":               "@nvidia-qwen-coder ✓ (480B)",
-      "rag_or_similarity_search":   "@nvidia-embed (DEAD — 404 on current tier)"
+      "timeout_ms": 120000
     }
   },
   "codex": {

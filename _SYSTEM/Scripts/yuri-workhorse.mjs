@@ -16,8 +16,8 @@ const LLM_COMPAT_RUNNER_PATH = '_SYSTEM/Scripts/llm-lane.mjs' // 3-lane consolid
 const EXECUTOR_PATH = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
 const LIVE_PRO_LANE = process.env.YURI_WORKHORSE_PRO_LANE || 'deepseek-v4-pro'
 const LIVE_FLASH_LANE = process.env.YURI_WORKHORSE_FLASH_LANE || 'deepseek-v4-flash'
-// Set YURI_WORKHORSE_PRO_LANE=nvidia-nemotron (or any @nvidia variant) to use NVIDIA NIM
-// as the primary workhorse reasoning lane instead of DeepSeek.
+// Set YURI_WORKHORSE_PRO_LANE=mimo (mimo-v2.5-pro[1m]) to use the Xiaomi Mimo first-class
+// lane as the primary workhorse reasoning lane instead of DeepSeek.
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri', 'workhorse-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-workhorse-runs'
 const DEFAULT_MAX_LINES = 80

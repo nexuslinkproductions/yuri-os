@@ -2,7 +2,7 @@
 /**
  * lane-core-hooks.mjs — the CORE-INGEST layer for pluggable model lanes.
  *
- * Makes ANY frontier model plugged into the lane (deepseek / nemotron / kimi / a future GPT /
+ * Makes ANY frontier model plugged into the lane (deepseek / mimo / a future GPT /
  * Gemini / whatever) fire the SAME YURI core a native operator turn fires — from INSIDE the
  * dispatch, so a lane call is wired into the core no matter who invokes it. The model's mental
  * model: a lane call is an input into YURI; the only difference from a native turn is that the

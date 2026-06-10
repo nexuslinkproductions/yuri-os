@@ -4,7 +4,8 @@
  *
  * Replaces the offload-runner / reasoning-lane-dispatch / *-dispatch adapter stack for lane
  * DISPATCH. Routing ("which lane handles X" via llm-compat-contract route-plan) is a separate axis,
- * untouched. All three lanes are plain openai-compatible chat endpoints -> one code path.
+ * untouched. Two wire protocols: deepseek lanes speak OpenAI chat/completions; mimo lanes speak the
+ * Anthropic Messages API (/v1/messages, SSE streaming) — selected by cfg.protocol per lane.
  *
  * CAPABILITY: the lane is NOT a blind chatbot. It gets READ + FETCH tools (read_file, grep,
  * list_dir, search the YURI FTS5 corpus, fetch_url) and a YURI-aware system preamble, so it can
@@ -13,12 +14,12 @@
  * the YURI protected-surface deny-list, and (for fetch_url) a private/loopback/metadata SSRF deny.
  *
  * SECURITY: two distinct endpoint policies, by design —
- *   - the LANE endpoint is an ALLOWLIST (only api.deepseek.com / integrate.api.nvidia.com pass);
+ *   - the LANE endpoint is an ALLOWLIST (only api.deepseek.com / token-plan-ams.xiaomimimo.com pass);
  *   - the fetch_url TOOL is open web with a private/loopback/metadata DENY (block SSRF, allow public).
  *
  * Usage:
  *   node llm-lane.mjs <lane> "<prompt>" [flags]      ·   echo "<prompt>" | node llm-lane.mjs <lane>
- * Lanes:  deepseek | ds  ·  kimi  ·  nemotron | nvidia
+ * Lanes:  deepseek | ds  ·  ds-flash  ·  mimo (Anthropic-protocol, 1M context)
  * Flags:  --reasoning <low|medium|high|xhigh|max>   --system <str|@file>   --no-system
  *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 24)
  *         --context <f1,f2,..|@manifest> (front-load must-read files into the dispatch — guaranteed
@@ -54,12 +55,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const ALIAS = {
   deepseek: 'deepseek-v4-pro', ds: 'deepseek-v4-pro', 'deepseek-v4-pro': 'deepseek-v4-pro',
   'deepseek-v4-flash': 'deepseek-v4-flash', 'ds-flash': 'deepseek-v4-flash', flash: 'deepseek-v4-flash',
-  kimi: 'kimi-k2.6', 'kimi-k2.6': 'kimi-k2.6', 'moonshotai/kimi-k2.6': 'kimi-k2.6',
-  nemotron: 'nemotron-3-super-120b-a12b', nvidia: 'nemotron-3-super-120b-a12b',
-  'nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b', 'nvidia/nemotron-3-super-120b-a12b': 'nemotron-3-super-120b-a12b',
-  'nemotron-3-ultra-550b-a55b': 'nemotron-3-super-120b-a12b',          // back-compat: old 550b lane id → renamed 120b lane
-  'nvidia/nemotron-3-ultra-550b-a55b': 'nemotron-3-super-120b-a12b',
-  // Mimo (Anthropic-protocol, token-plan endpoint)
+  // Mimo (Anthropic-protocol, token-plan endpoint) — first-class lane, 1M context
   mimo: 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro': 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro[1m]': 'mimo-v2.5-pro[1m]',
   'mimo-v2.5': 'mimo-v2.5[1m]', 'mimo-v2.5[1m]': 'mimo-v2.5[1m]',
   'mimo-v2-flash': 'mimo-v2-flash', 'mimo-flash': 'mimo-v2-flash',
@@ -102,7 +98,7 @@ const LIGHT_SYSTEM =
   + 'to ground claims. Output is ADVISORY until YURI verifies it. Protected surfaces are refused. No padding.';
 
 // ── Lane-endpoint SSRF guard: ALLOWLIST (fail-closed) ──────────────────────────────────────────
-const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'integrate.api.nvidia.com', 'token-plan-ams.xiaomimimo.com']);
+const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'token-plan-ams.xiaomimimo.com']);
 function assertSafeEndpoint(endpoint, lane) {
   let url;
   try { url = new URL(endpoint); } catch { return fail(3, lane, `bad_endpoint_url:${endpoint || '(empty)'}`); }
@@ -293,73 +289,6 @@ async function executeTool(name, argsRaw) {
   } catch (e) { return `${name} error: ${e.message}`; }
 }
 
-// Streaming node:https transport for slow REASONING lanes (NIM nemotron-3-ultra-550b). The model emits a
-// long thinking trace before the answer; a NON-streaming call makes NIM buffer the ENTIRE completion server-
-// side before sending a single byte (>5min → undici's ~5min headersTimeout, then raw-socket ETIMEDOUT — every
-// wall we hit). Streaming (SSE) flushes tokens as generated: first byte in ~20s, no buffering wall. So this
-// path streams, reconstructs message.content + message.tool_calls from the deltas, and imposes NO timeout —
-// the slow reasoner must never be killed by a clock. Used ONLY when cfg.raw_https is set; the working lanes
-// (deepseek/kimi) keep their untouched fetch path — its own connection, zero blast radius.
-function postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, lane) {
-  return new Promise((resolve) => {
-    let u;
-    try { u = new URL(`${endpoint}/chat/completions`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
-    const payload = JSON.stringify({ model, messages, max_tokens: maxTokens, stream: true, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) });
-    T(`HTTPS_REQ_START lane=${lane} host=${u.hostname} bodyLen=${payload.length}`);
-    const req = https.request({
-      hostname: u.hostname,
-      port: u.port || 443,
-      path: u.pathname + u.search,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload), Authorization: `Bearer ${apiKey}`, Accept: 'text/event-stream' },
-    }, (res) => {
-      T(`HTTPS_HEADERS status=${res.statusCode}`);
-      if (res.statusCode && res.statusCode >= 400) {
-        let errBody = ''; res.setEncoding('utf8');
-        res.on('data', (c) => { errBody += c; });
-        res.on('end', () => resolve(fail(res.statusCode >= 500 ? 1 : 3, lane, `http_${res.statusCode}:${errBody.slice(0, 160)}`)));
-        return;
-      }
-      let buf = '', content = '', finish = '';
-      const toolAcc = new Map();  // index → { id, name, args } accumulated across delta chunks
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        buf += chunk;
-        let nl;
-        while ((nl = buf.indexOf('\n')) >= 0) {
-          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
-          if (!line.startsWith('data:')) continue;
-          const data = line.slice(5).trim();
-          if (!data || data === '[DONE]') continue;
-          let j; try { j = JSON.parse(data); } catch { continue; }
-          const ch = j.choices?.[0]; if (!ch) continue;
-          if (ch.delta?.content) content += ch.delta.content;
-          for (const tc of ch.delta?.tool_calls || []) {
-            const idx = tc.index ?? 0;
-            const cur = toolAcc.get(idx) || { id: tc.id || `call_${idx}`, name: '', args: '' };
-            if (tc.id) cur.id = tc.id;
-            if (tc.function?.name) cur.name += tc.function.name;
-            if (tc.function?.arguments) cur.args += tc.function.arguments;
-            toolAcc.set(idx, cur);
-          }
-          if (ch.finish_reason) finish = ch.finish_reason;
-        }
-      });
-      res.on('end', () => {
-        const tool_calls = [...toolAcc.values()].map((t) => ({ id: t.id, type: 'function', function: { name: t.name, arguments: t.args } }));
-        resolve({ message: { content, ...(tool_calls.length ? { tool_calls } : {}) }, finish_reason: finish });
-      });
-    });
-    // NO timeout — streaming makes the first byte prompt (~20s for the 550B); a slow reasoner must never be
-    // killed by a clock. A genuinely dead socket still surfaces as an OS-level error via 'error'.
-    req.setTimeout(0);                          // no request-level idle timeout
-    req.on('socket', (s) => s.setTimeout(0));   // no socket idle timeout either — the slow reasoner must not be clocked
-    req.on('error', (err) => { T(`HTTPS_ERROR ${err?.code || err?.name}`); resolve(fail(1, lane, `transport:${err?.code || err?.name || 'https_failed'}`)); });
-    req.write(payload);
-    req.end();
-  });
-}
-
 // ── Anthropic Messages API adapter ──────────────────────────────────────────────────────────────
 // Mimo (and any future lane with protocol: "anthropic") speaks the Messages API, not OpenAI chat/completions.
 // The dispatch loop accumulates messages in OpenAI format; these converters translate at the API boundary.
@@ -427,9 +356,10 @@ function toAnthropicTools(tools) {
   }));
 }
 
-// Streaming Anthropic Messages API over node:https (SSE).
-// Returns the same { message: { content, tool_calls? }, finish_reason } shape as postChatHttps,
-// so the dispatch loop is protocol-agnostic — just swap the call, not the loop.
+// Streaming Anthropic Messages API over node:https (SSE). No idle timeout — a slow reasoner must
+// never be killed by a clock; first byte is prompt under streaming. Returns the same
+// { message: { content, tool_calls? }, finish_reason } shape the OpenAI postChat path returns,
+// so the dispatch loop is protocol-agnostic — it just picks the transport by cfg.protocol.
 function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane) {
   return new Promise((resolve) => {
     let u;
@@ -504,8 +434,7 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
   });
 }
 
-async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane, rawHttps) {
-  if (rawHttps) return postChatHttps(endpoint, apiKey, model, messages, maxTokens, toolsList, lane);
+async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane) {
   const body = JSON.stringify({ model, messages, max_tokens: maxTokens, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) });
   // Transient transport failures (undici keep-alive socket reuse against a server that drops idle
   // connections → "AggregateError: fetch failed", ECONNRESET, DNS blips) are RETRIED with a fresh
@@ -541,7 +470,7 @@ async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList,
 
 async function dispatch(laneArg, prompt, opts = {}) {
   const key = ALIAS[String(laneArg || '').toLowerCase()];
-  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|kimi|nemotron|mimo');
+  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|ds-flash|mimo');
   const cfg = LANES[key];
   if (!cfg) return fail(3, key, 'lane_missing_from_models.json');
 
@@ -594,27 +523,15 @@ async function dispatch(laneArg, prompt, opts = {}) {
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
       choice = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aMsgs, aSys, maxTokens, aTools, key);
     } else {
-      choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key, cfg.raw_https);
+      choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key);
     }
     lastChoice = choice;
     T(`POST_POSTCHAT msglen=${(choice.message?.content || '').length} calls=${(choice.message?.tool_calls || []).length} finish=${choice.finish_reason}`);
     const msg = choice.message || {};
-    let calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
-    // kimi-k2.6 (NIM) emits tool calls as Moonshot-native control tokens INSIDE msg.content instead of
-    // the OpenAI msg.tool_calls array, so the standard loop never runs them and the raw tokens leak as
-    // the final answer. Translate them back into OpenAI shape. Self-scoping: only fires on the
-    // `<|tool_call_begin|>` signature, which deepseek/nemotron never emit — inert for every other lane.
-    if (calls.length === 0 && typeof msg.content === 'string' && msg.content.includes('<|tool_call_begin|>')) {
-      const translated = parseKimiToolCalls(msg.content);
-      if (translated.length) {
-        calls = translated;
-        msg.content = stripKimiToolTokens(msg.content);
-        process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=kimi_toolcalls_translated count=${translated.length}\n`);
-      }
-    }
+    const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
     if (activeTools.length && calls.length > 0) {
       messages.push({ role: 'assistant', content: msg.content || '', tool_calls: calls });
-      // Convergence guards for loop-prone models (kimi/NIM): detect a repeated tool+args batch and
+      // Convergence guards for loop-prone models: detect a repeated tool+args batch and
       // count tool-only turns, then nudge toward a final answer before the hard iteration cap.
       const sig = calls.map((c) => `${c.function?.name}:${c.function?.arguments}`).sort().join('|');
       const repeated = seenSigs.has(sig);
@@ -630,9 +547,8 @@ async function dispatch(laneArg, prompt, opts = {}) {
       }
       continue;
     }
-    // No tool calls -> final answer. Strip any stray kimi tool tokens so a leaked/unresolved block
-    // never reaches output as if it were the answer (no-op for every other lane).
-    const text = stripKimiToolTokens(String(msg.content ?? '')).trim();
+    // No tool calls -> final answer.
+    const text = String(msg.content ?? '').trim();
     const finish = String(choice.finish_reason || '').toLowerCase();
     const truncated = finish === 'length' || finish === 'incomplete';
     if (!text) return fail(1, key, `empty_output${finish ? `_${finish}` : ''}`);
@@ -650,9 +566,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
     const { messages: aFMsgs, system: aFSys } = toAnthropicMessages(forcedMsgsRaw);
     forced = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aFMsgs, aFSys, maxTokens, [], key);
   } else {
-    forced = await postChat(endpoint, apiKey, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key, cfg.raw_https);
+    forced = await postChat(endpoint, apiKey, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
   }
-  const ftext = stripKimiToolTokens(String(forced.message?.content ?? lastChoice.message?.content ?? '')).trim();
+  const ftext = String(forced.message?.content ?? lastChoice.message?.content ?? '').trim();
   if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0, runId }); return 0; }
   return fail(1, key, 'tool_loop_no_final_answer');
 }
@@ -688,64 +604,6 @@ function buildContextPack(spec) {
     : '';
 }
 
-// ── kimi-k2.6 (NIM) native tool-call adapter ─────────────────────────────────
-// kimi-k2.6 on NVIDIA NIM serializes tool calls as Moonshot control tokens in message.content:
-//   <|tool_calls_section_begin|> <|tool_call_begin|> functions.<name>:<idx>
-//     <|tool_call_argument_begin|> {<json args>} <|tool_call_end|> ... <|tool_calls_section_end|>
-// rather than the OpenAI message.tool_calls array. parseKimiToolCalls() translates that back into the
-// OpenAI shape the dispatch loop already understands; stripKimiToolTokens() removes the tokens from any
-// prose. Both are inert unless the `<|tool_call_begin|>` signature is present (kimi-only in practice).
-// The name-spec between <|tool_call_begin|> and <|tool_call_argument_begin|> arrives in many shapes
-// across turns: `functions.read_file:0`, bare `read_file`, or even kimi echoing our own synthesized id
-// `kimi-tc-1-bash`. Rather than pin one format, resolve the real tool by scanning the spec for a KNOWN
-// tool name — robust to whatever wrapper kimi invents, and fail-closed on anything that resolves to none.
-const KIMI_KNOWN_TOOLS = ['read_file', 'list_dir', 'xref_query', 'propagation_scan', 'fetch_url', 'search', 'grep', 'bash'];
-const KIMI_CALL_RE = /<\|tool_call_begin\|>\s*([\s\S]*?)\s*<\|tool_call_argument_begin\|>\s*([\s\S]*?)\s*<\|tool_call_end\|>/g;
-// Mimicry-independent fallback: infer the tool from the argument SHAPE when the name-spec carries no
-// known tool name. kimi always serializes the args correctly even on turns where it echoes only our
-// synthesized id and drops the name, so the arg keys are the reliable signal of last resort.
-function inferToolFromArgs(obj) {
-  if (!obj || typeof obj !== 'object') return null;
-  if ('cmd' in obj || 'command' in obj) return 'bash';
-  if ('url' in obj) return 'fetch_url';
-  if ('pattern' in obj) return 'grep';
-  if ('nodeId' in obj || 'node_id' in obj || 'node' in obj) return 'propagation_scan';
-  if ('query' in obj || 'task' in obj || 'request' in obj) return 'xref_query';
-  if ('path' in obj) return 'read_file';  // list_dir shares `path`; read_file is the safe default sink
-  return null;
-}
-function parseKimiToolCalls(content) {
-  if (typeof content !== 'string' || !content.includes('<|tool_call_begin|>')) return [];
-  const calls = [];
-  KIMI_CALL_RE.lastIndex = 0;
-  let m; let i = 0;
-  while ((m = KIMI_CALL_RE.exec(content)) !== null) {
-    const spec = (m[1] || '').toLowerCase();
-    let args = (m[2] || '').trim();
-    let parsed = null;
-    try { parsed = JSON.parse(args); }
-    catch { try { parsed = JSON.parse(args.replace(/,\s*([}\]])/g, '$1')); } catch { /* unparseable */ } }
-    if (parsed === null) { process.stderr.write(`LLM_COMPAT_WARN code=0 reason=kimi_toolcall_bad_json spec=${spec.slice(0, 40)}\n`); i += 1; continue; }
-    // Resolve the tool: prefer an explicit known-tool name in the spec (handles `functions.read_file:0`
-    // and the `kimi-tc-1-bash` echo); fall back to inferring from the argument keys (mimicry-independent).
-    const name = KIMI_KNOWN_TOOLS.find((t) => spec.includes(t)) || inferToolFromArgs(parsed);
-    if (!name) { process.stderr.write(`LLM_COMPAT_WARN code=0 reason=kimi_toolcall_unresolved spec=${spec.slice(0, 30)} keys=${Object.keys(parsed).join(',')}\n`); i += 1; continue; }
-    // The id carries the resolved tool name so a same-turn echo still self-heals via the name path; the
-    // arg-key inference covers the case where even that is lost. Both layers, so neither is load-bearing alone.
-    calls.push({ id: `kimi-tc-${i}-${name}`, type: 'function', function: { name, arguments: JSON.stringify(parsed) } });
-    i += 1;
-  }
-  return calls;
-}
-function stripKimiToolTokens(content) {
-  if (typeof content !== 'string') return '';
-  return content
-    .replace(/<\|tool_calls_section_begin\|>[\s\S]*?<\|tool_calls_section_end\|>/g, '')
-    .replace(/<\|tool_call[s]?(?:_section)?_(?:begin|end)\|>/g, '')
-    .replace(/<\|tool_call_argument_begin\|>/g, '')
-    .trim();
-}
-
 const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--route-only']);
 const LEGACY_SKIP_VALUE = new Set(['--model', '--session', '--write-scope', '--ts']);
 
@@ -778,7 +636,7 @@ async function main() {
   const cli = parseCli(process.argv.slice(2));
   T(`MAIN_START lane=${cli.lane} promptLen=${(cli.prompt || '').length} dryRun=${cli.dryRun} list=${cli.list}`);
   if (cli.list) { console.log(JSON.stringify(Object.keys(LANES).filter((k) => k !== '_comment'), null, 2)); return 0; }
-  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|kimi|nemotron|mimo> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
+  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|ds-flash|mimo> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
   let prompt = cli.prompt || process.env.LLM_COMPAT_PROMPT_TEXT || '';
   if (!prompt && !cli.dryRun && !process.stdin.isTTY) prompt = fs.readFileSync(0, 'utf8');
   T(`MAIN_RETURN_DISPATCH lane=${cli.lane} plen=${prompt.length} stdinTTY=${process.stdin.isTTY}`);
@@ -805,4 +663,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool, parseKimiToolCalls, stripKimiToolTokens, toAnthropicMessages, toAnthropicTools };
+export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool, toAnthropicMessages, toAnthropicTools };

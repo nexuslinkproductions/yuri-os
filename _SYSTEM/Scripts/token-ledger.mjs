@@ -68,8 +68,8 @@ const DEFAULT_POLICY = Object.freeze({
     'deepseek-v4-pro': { input: 0.27, output: 1.10, cache_read: 0.07, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'deepseek-v4-flash': { input: 0.07, output: 0.28, cache_read: 0.018, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'deepseek-r1:8b': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // local ollama - no cost
-    'kimi-k2.6': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
-    'nvidia/llama-3.1-nemotron-70b-instruct': { input: 0.20, output: 0.20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'mimo-v2.5-pro[1m]': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // token-plan flat subscription — no per-token cost (2026-06-10)
+    'mimo-v2-flash': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // token-plan flat subscription — no per-token cost (2026-06-10)
     'meta/llama-3.3-70b-instruct': { input: 0.15, output: 0.15, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'gpt-5.5': { input: 5, output: 20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'gpt-5.4-mini': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16

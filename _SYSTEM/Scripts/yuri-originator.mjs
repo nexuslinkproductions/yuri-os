@@ -1500,7 +1500,7 @@ export function resolveWorkerBackend(payload = {}) {
   const explicit = normalizeWorkerBackend(payload.backend || payload.workerBackend);
   if (explicit) return explicit;
   const lane = resolveWorkerLane(payload).toLowerCase();
-  if (/^(deepseek|ds|kimi|moonshot|nemotron|nvidia)/.test(lane)) return LLM_LANE_BACKEND;
+  if (/^(deepseek|ds|mimo)/.test(lane)) return LLM_LANE_BACKEND;
   return OLLAMA_BACKEND;
 }
 

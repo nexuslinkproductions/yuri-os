@@ -25,7 +25,7 @@ const LLM_COMPAT_CONTRACT = {
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Shintai/NIM/DeepSeek advisory lanes.
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@gemma-local', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@kimi', '@deepseek'],
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@codex-spark', '@gemma-local', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@mimo', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -69,7 +69,7 @@ const LLM_COMPAT_CONTRACT = {
     deepseek: {
       alias: '@deepseek',
       dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro'],
-      description: 'Direct paid DeepSeek V4 reasoning lane through api.deepseek.com. NVIDIA DeepSeek fallback is retired.',
+      description: 'Direct paid DeepSeek V4 reasoning lane through api.deepseek.com.',
       toolsByDefault: true,
       preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review', 'autonomous file edits', 'multi-file refactors', 'parallel implementer during Codex rate-limit windows']
     },
@@ -121,35 +121,6 @@ const LLM_COMPAT_CONTRACT = {
       description: 'Formatting and synthesis lane',
       preferredUsage: ['formatting', 'template generation', 'ui text']
     },
-    nvidia: {
-      alias: '@nvidia',
-      dispatchTokens: ['nvidia', 'nemotron', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'],
-      description: 'NVIDIA NIM llm-compat lane restricted to Nemotron 3 Ultra. Other NIM catalogue entries are removed from reasoning routing.',
-      envKey: 'NVIDIA_API_KEY',
-      toolsByDefault: true,
-      defaultModel: 'nvidia/nemotron-3-ultra-550b-a55b',
-      note: '2026-06-05 llm-compat consolidation: no NVIDIA cross-lane fallback or catalogue expansion.',
-      liveStatus: {
-        live: ['nemotron-3-ultra-550b-a55b'],
-        dead: [],
-      },
-      deadModelFallbacks: {},
-      modelTimeouts: {
-        default: 240000,
-        perModel: {
-          'nemotron-3-ultra-550b-a55b': 240000,
-        },
-      },
-      extremeLoadFallback: '',
-      longContextFallback: '',
-      routing: {
-        frontier_reasoning: 'nemotron-3-ultra-550b-a55b',
-      },
-      models: {
-        'nemotron-3-ultra-550b-a55b': 'nvidia/nemotron-3-ultra-550b-a55b',
-      },
-      preferredUsage: ['frontier llm-compat reasoning via Nemotron 3 Ultra']
-    },
     codexSpark: {
       alias: '@codex-spark',
       dispatchTokens: ['codex-spark', 'spark', 'fast-codex', 'gpt-5.3-codex-spark', 'gpt-5.3-codex'],
@@ -181,24 +152,20 @@ const LLM_COMPAT_CONTRACT = {
       description: 'Main-session native workflow orchestration; retired swarm/workhorse routes are not active. Optional DeepSeek advisory must use the llm-compat lane.',
       preferredUsage: ['consensus', 'orchestration', 'high-stakes review', 'native workflow with explicit llm-compat advisory lanes']
     },
-    kimi: {
-      alias: '@kimi',
-      dispatchTokens: ['kimi', 'kimi-k2.6', 'moonshotai/kimi-k2.6', 'kimi-k2.5-liberated', 'kimi-k2.5', 'moonshot'],
-      description: 'Remote high-grade reasoning',
-      preferredUsage: ['cloud reasoning', 'deep context', 'heavy synthesis']
-    },
     mimo: {
       alias: '@mimo',
-      dispatchTokens: ['mimo', 'mimo-v2.5-pro', 'xiaomimimo', 'mimo-session'],
-      description: 'Xiaomi Mimo — first-class provider equal to Anthropic. Always 1M context (mimo-v2.5-pro[1m]), max effort. Launch with: ai claude-mimo',
-      protocol: 'anthropic-compatible',
+      dispatchTokens: ['mimo', 'mimo-v2.5-pro', 'mimo-v2.5', 'mimo-flash', 'mimo-v2-flash', 'xiaomimimo', 'mimo-session'],
+      description: 'Xiaomi Mimo — first-class provider equal to Anthropic, Anthropic Messages API. Always 1M context (mimo-v2.5-pro[1m]), max effort.',
+      protocol: 'anthropic',
+      envKey: 'MIMO_API_KEY',
+      toolsByDefault: true,
       launcher: 'ai claude-mimo',
       defaultModel: 'mimo-v2.5-pro[1m]',
       effort: 'max',
       standingDirective: 'Always prefer largest context and highest reasoning — mimo-v2.5-pro[1m] at max effort, no exceptions.',
       models: ['mimo-v2.5-pro[1m]', 'mimo-v2.5-pro', 'mimo-v2.5[1m]', 'mimo-v2.5', 'mimo-v2-flash', 'mimo-v2.5-asr', 'mimo-v2.5-tts', 'mimo-v2.5-tts-voiceclone', 'mimo-v2.5-tts-voicedesign'],
       preferredUsage: ['any task where 1M context is an advantage', 'bulk synthesis', 'long-context document work', 'cost-efficient high-volume work', 'parallel workloads alongside main Anthropic session'],
-      note: 'Cannot be dispatched via llm-lane.mjs (OpenAI-compat only). Runs as a dedicated isolated Claude Code session. Start with: ai claude-mimo'
+      note: 'Two dispatch surfaces: `ai llm mimo "<prompt>"` (llm-lane.mjs native Anthropic adapter — /v1/messages, SSE) or `ai claude-mimo` (dedicated isolated Claude Code session, /model mimo-v2.5-pro native).'
     },
     claude: {
       alias: '@claude',
@@ -782,8 +749,8 @@ function selectSteeringLane(prompt) {
     return 'summarize-local';
   }
 
-  if (text.includes('@kimi') || text.includes('kimi') || text.includes('moonshot') || text.includes('cloud')) {
-    return 'kimi';
+  if (text.includes('@mimo') || text.includes('mimo') || text.includes('xiaomimimo') || text.includes('cloud')) {
+    return 'mimo';
   }
 
   if (text.includes('@code-local') || text.includes('implement') || text.includes('build') || text.includes('compile') || text.includes('typescript') || text.includes('javascript') || text.includes('function') || text.includes('class') || text.includes('test') || text.includes('debug') || text.includes('fix') || text.includes('refactor') || text.includes('patch') || text.includes('coding')) {
@@ -1082,7 +1049,7 @@ function classifyComplexity(prompt, lane, scenario) {
     return 'complex';
   }
 
-  // analysis: pure advisory questions without mutation — gets NVIDIA + DeepSeek, no heavy gates
+  // analysis: pure advisory questions without mutation — gets Mimo + DeepSeek, no heavy gates
   if ((hasQuestion || hasAnalysis) && !hasMutate && !hasFilePath) {
     return 'analysis';
   }
@@ -1135,10 +1102,10 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
 
   const t = normalizePrompt(prompt);
 
-  // analysis tier: advisory council only — DeepSeek + NVIDIA + optional SHURA + optional Codex
+  // analysis tier: advisory council only — DeepSeek + Mimo + optional SHURA + optional Codex
   if (complexityTier === 'analysis') {
     ensemble.push('deepseek-preflight');
-    ensemble.push('nvidia-preflight');
+    ensemble.push('mimo-preflight');
     // Codex advisory fires if code signals present even at analysis tier
     if (councilComposition && councilComposition.codexModel) {
       ensemble.push('codex-advisory');
@@ -1154,9 +1121,9 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
     return ensemble;
   }
 
-  // standard+: DeepSeek + NVIDIA + Codex advisory (when code signals present)
+  // standard+: DeepSeek + Mimo + Codex advisory (when code signals present)
   ensemble.push('deepseek-preflight');
-  ensemble.push('nvidia-preflight');
+  ensemble.push('mimo-preflight');
   if (councilComposition && councilComposition.codexModel) {
     ensemble.push('codex-advisory');
   }

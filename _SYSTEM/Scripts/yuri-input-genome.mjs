@@ -256,7 +256,7 @@ function inferRouteHints(rawInput, constraints, riskSignals, options = {}) {
   };
   if (text.includes('shintai')) hints.optionalReviewLanes.push('shintai');
   if (text.includes('deepseek')) hints.optionalReviewLanes.push('deepseek');
-  if (/\b(nim|nvidia|nemotron|qwen|mistral|minimax|gpt-oss)\b/iu.test(text)) hints.optionalReviewLanes.push('nim');
+  if (/\b(mimo|xiaomimimo)\b/iu.test(text)) hints.optionalReviewLanes.push('mimo');
   if (constraints.some((entry) => entry.id === 'local-first')) hints.suggestedLane = 'local';
   if (riskSignals.some((entry) => entry.level === 'high')) hints.scenario = 'high-risk-review';
   hints.optionalReviewLanes = uniqueStrings(hints.optionalReviewLanes);

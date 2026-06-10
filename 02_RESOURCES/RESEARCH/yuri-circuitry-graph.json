@@ -869,14 +869,14 @@
       "description": "Shared library module (_SYSTEM/Scripts/yuri-user.mjs) exposing currentUserHandle, the single source of user attribution stamped onto energy traces and dispatch records."
     },
     {
-      "id": "LANE_NEMOTRON",
-      "label": "nemotron lane (advisory external reasoning, via llm-lane)",
+      "id": "LANE_MIMO",
+      "label": "mimo lane (first-class reasoning, Anthropic Messages API, via llm-lane)",
       "layer": "Skills & Orchestration",
       "files": [
         "_SYSTEM/Scripts/llm-lane.mjs"
       ],
-      "triggeredBy": "CLI / llm-lane dispatch — advisory external reasoning lane (DEV-ONLY)",
-      "description": "Advisory external reasoning lane (Nemotron-3-Ultra, nemotron-3-ultra-550b-a55b) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all 3 lanes (deepseek/kimi/nemotron); the standalone nemotron-dispatch.mjs adapter was retired 2026-06-05. DEV-ONLY; advisory-until-verified, returns evidence into the control plane — never a release gate."
+      "triggeredBy": "CLI / llm-lane dispatch — `ai llm mimo` (Anthropic Messages API, SSE streaming)",
+      "description": "First-class reasoning lane (Xiaomi Mimo, mimo-v2.5-pro[1m], 1M context) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all lanes. Mimo speaks the Anthropic Messages API (/v1/messages, SSE) selected by cfg.protocol; deepseek lanes speak OpenAI chat/completions. Advisory-until-verified, returns evidence into the control plane — never a release gate."
     },
     {
       "id": "PROPAGATION_SCAN",

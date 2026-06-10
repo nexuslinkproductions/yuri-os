@@ -24,8 +24,7 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
     'codex',
     'deepseek',
     'claude-opus-audit',
-    'nemotron',
-    'kimi',
+    'mimo',
   ]);
   assert.equal(assembly.selectedIds.includes('codex-spark'), false);
 });
@@ -57,8 +56,8 @@ test('Claude Opus member prompt reflects co-main coding plus Codex verification 
 
 test('memory/RAG member prompt uses YURI memory objective and neuro rail evidence', () => {
   const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
-  const kimi = assembly.members.find((member) => member.id === 'kimi');
-  const prompt = buildMemberPrompt(MEMORY_TASK, kimi, {
+  const mimo = assembly.members.find((member) => member.id === 'mimo');
+  const prompt = buildMemberPrompt(MEMORY_TASK, mimo, {
     neuroRail: {
       evidence: {
         active: true,
@@ -140,8 +139,7 @@ test('critical Shintai dispatch fails closed when council degrades below minimum
     codex: { ok: true },
     deepseek: { ok: true },
     'claude-opus-audit': { ok: false, error: 'down' },
-    nemotron: { ok: false, error: 'down' },
-    kimi: { ok: false, error: 'down' },
+    mimo: { ok: false, error: 'down' },
   });
 
   assert.equal(assembly.ok, false);
@@ -159,9 +157,9 @@ test('Shintai health preflight has a bounded default timeout', () => {
   assert.equal(resolveShintaiStageTimeout('proposal', 45000, {}), 45000);
 });
 
-test('heavy Shintai lanes get a long health preflight window by default', () => {
-  assert.equal(resolveMemberTimeout({ id: 'nemotron' }, 'health', 0), 180000);
-  assert.equal(resolveMemberTimeout({ id: 'kimi' }, 'health', 0), 180000);
+test('Shintai lanes get the builtin health preflight window by default', () => {
+  assert.equal(resolveMemberTimeout({ id: 'mimo' }, 'health', 0), 180000);
+  assert.equal(resolveMemberTimeout({ id: 'deepseek' }, 'health', 0), 180000);
 });
 
 test('Shintai health probes do not persist into lane sessions', () => {
@@ -195,10 +193,10 @@ test('Shintai member calls run in parallel and preserve member order', async () 
 
 test('Shintai health preflight preserves scoped assembly instead of rebuilding from roster', () => {
   const member = {
-    id: 'kimi',
+    id: 'mimo',
     displayName: 'Timeout Probe Lane',
-    lane: 'kimi-k2.6',
-    model: 'moonshotai/kimi-k2.6',
+    lane: 'mimo-v2.5-pro[1m]',
+    model: 'mimo-v2.5-pro[1m]',
     health: { ok: true },
   };
   const assembly = {
@@ -207,7 +205,7 @@ test('Shintai health preflight preserves scoped assembly instead of rebuilding f
     tier: 'standard',
     minSize: 1,
     targetSize: 1,
-    selectedIds: ['kimi'],
+    selectedIds: ['mimo'],
     selected: [member],
     members: [member],
     skipped: [],
@@ -215,12 +213,12 @@ test('Shintai health preflight preserves scoped assembly instead of rebuilding f
   };
 
   const updated = applyHealthPreflightToAssembly(assembly, {
-    kimi: { ok: false, signal: 'SIGTERM', error: 'timeout' },
+    mimo: { ok: false, signal: 'SIGTERM', error: 'timeout' },
   });
 
   assert.equal(updated.ok, false);
   assert.deepEqual(updated.selectedIds, []);
-  assert.equal(updated.skipped[0].id, 'kimi');
+  assert.equal(updated.skipped[0].id, 'mimo');
   assert.equal(updated.members.some((entry) => entry.id === 'codex'), false);
 });
 
