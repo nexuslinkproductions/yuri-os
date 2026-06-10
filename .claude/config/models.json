@@ -107,7 +107,7 @@
     "launcher": "ai claude-mimo",
     "integration": "native Claude Code — sets ANTHROPIC_BASE_URL + ANTHROPIC_AUTH_TOKEN at session start; /model mimo-v2.5-pro works natively within that session",
     "default_model": "mimo-v2.5-pro[1m]",
-    "standing_directive": "Always prefer largest context and max effort. Mimo is first-class equal to Anthropic.",
+    "standing_directive": "Mimo is first-class equal to Anthropic with the SAME FULL CAPABILITIES as Claude Code — a complete agentic coding peer, NOT advisory/reasoning-only and NOT a bulk/cheap fallback. Always prefer largest context (mimo-v2.5-pro[1m]) and max effort.",
     "models": {
       "default": "mimo-v2.5-pro[1m]",
       "flagship": {
@@ -161,8 +161,10 @@
     },
     "model_selection_in_session": "Within ai claude-mimo, use /model <id> to switch — e.g. /model mimo-v2-flash for speed, /model mimo-v2.5[1m] for multimodal 1M",
     "routing_note": "Anthropic Messages API (NOT openai-compatible). Two dispatch surfaces: (1) `ai llm mimo \"<prompt>\"` routes through llm-lane.mjs's native Anthropic adapter (/v1/messages, SSE); (2) `ai claude-mimo` launches a dedicated isolated Claude Code session with /model mimo-v2.5-pro working natively.",
-    "recommended_use": ["any task where 1M context helps", "vision/multimodal via mimo-v2.5", "fast bulk via mimo-v2-flash", "audio via ASR/TTS models"],
-    "avoid_for": ["YURI infra reasoning (main session stays on Anthropic)", "Claude-specific extended thinking (unverified on Mimo)"]
+    "capability_note": "Mimo has the SAME FULL CAPABILITIES as Claude Code — not advisory/reasoning-only, not bulk/cheap-only. `ai claude-mimo` runs the real Claude Code binary, so a Mimo session is a complete agentic peer (full tool loop, coding, file edits) identical to a main Claude session with a different model backend.",
+    "recommended_use": ["full agentic coding sessions (ai claude-mimo) equal to a main Claude session", "any task where 1M context helps", "vision/multimodal via mimo-v2.5", "fast tier via mimo-v2-flash", "audio via ASR/TTS models"],
+    "avoid_for": ["Claude-specific extended thinking (unverified on Mimo)"],
+    "session_constraint": "One ANTHROPIC_BASE_URL per session — a Mimo session is separate from the main Anthropic session by architecture, NOT by capability. Run Mimo in its own `ai claude-mimo` session."
   },
   "llm_compat_lanes": {
     "_comment": "SINGLE SOURCE OF TRUTH for live reasoning lanes. NVIDIA NIM lanes (kimi, nemotron) retired 2026-06-10; Mimo added same day. context_window = INPUT cap; max_output = per-reasoning-depth OUTPUT cap. Consumed by llm-lane.mjs. OpenAI-compatible lanes: deepseek-v4-pro, deepseek-v4-flash. Anthropic-compatible lanes: mimo-v2.5-pro[1m], mimo-v2.5[1m], mimo-v2-flash (Messages API + SSE).",

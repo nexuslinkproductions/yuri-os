@@ -198,7 +198,7 @@ export const LANE_KERNEL = Object.freeze({
     reasoning: 'xhigh',
     contextTier: 'million',
     dispatchArgs: ['llm', 'mimo'],
-    assignment: 'Long-horizon control-plane architecture, long-context synthesis, and continuity review through Xiaomi Mimo (mimo-v2.5-pro[1m], Anthropic Messages API, 1M context, max effort). First-class advisory lane equal to Anthropic.',
+    assignment: 'Long-horizon control-plane architecture, long-context synthesis, coding, and continuity review through Xiaomi Mimo (mimo-v2.5-pro[1m], Anthropic Messages API, 1M context, max effort). First-class lane with the SAME FULL CAPABILITIES as Claude Code — a complete agentic peer (`ai claude-mimo`), not advisory-only.',
     tools: FULL_ADVISORY_TOOLS,
   },
 });
