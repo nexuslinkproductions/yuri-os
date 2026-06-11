@@ -27,6 +27,7 @@ FACTS:
 - Launcher: `ai claude-mimo` — starts isolated Claude Code session with ANTHROPIC_BASE_URL=Mimo endpoint
 - Default model: `mimo-v2.5-pro[1m]` (1M context) — ALL model slots (sonnet/opus/haiku) map here
 - Effort: always max
+- WIRE-ID GOTCHA (fixed 2026-06-11, ai:473 run_claude_mimo): `[1m]` is a CLIENT-side alias ONLY. Mimo's endpoint rejects it → http_400 "Not supported model mimo-v2.5-pro1m", which Claude Code surfaces as "model may not exist / no access". The native llm-lane adapter strips it on the wire (llm-lane.mjs:367-373) + sets `anthropic-beta: context-1m-2025-08-07` for the 1M window. The `ai claude-mimo` LAUNCHER had the same bug unfixed — it passed `--model mimo-v2.5-pro[1m]` + ANTHROPIC_*_MODEL aliases verbatim to a real Claude Code process. FIX: launcher now passes bare wire ids (`mimo-v2.5-pro`, `mimo-v2.5`, `mimo-v2-flash`) and requests 1M via `ANTHROPIC_CUSTOM_HEADERS="anthropic-beta: context-1m-2025-08-07"` (verified real CC env var: 12 refs in claude binary v2.1.173). RULE: ANY surface launching real Claude Code against Mimo must strip `[1m]` and use the custom-header for long-context.
 
 ARCHITECTURE CONSTRAINT:
 Claude Code uses ONE ANTHROPIC_BASE_URL per session. Mimo and Anthropic models cannot coexist in the same session. `ai claude-mimo` = dedicated isolated Mimo session; regular `ai claude` sessions stay on Anthropic untouched.

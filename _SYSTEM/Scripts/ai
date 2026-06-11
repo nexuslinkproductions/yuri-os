@@ -479,13 +479,19 @@ run_claude_mimo() {
     printf 'ERROR: MIMO_API_KEY not set.\nStore it: security add-generic-password -U -a "$USER" -s yuri-mimo-api-key -w "tp-..."\n' >&2
     exit 1
   fi
+  # [1m] is a CLIENT-side alias convention only — Mimo's endpoint rejects it with
+  # http_400 "Not supported model mimo-v2.5-pro1m". Pass the bare WIRE model ids and
+  # request the 1M context window via the anthropic-beta header instead, mirroring the
+  # native llm-lane adapter fix (llm-lane.mjs:367-373, 2026-06-11). Claude Code forwards
+  # ANTHROPIC_CUSTOM_HEADERS verbatim, so the long-context beta reaches Mimo.
   ANTHROPIC_BASE_URL="$_mimo_url" \
   ANTHROPIC_AUTH_TOKEN="$_mimo_key" \
-  ANTHROPIC_DEFAULT_OPUS_MODEL="mimo-v2.5-pro[1m]" \
-  ANTHROPIC_DEFAULT_SONNET_MODEL="mimo-v2.5[1m]" \
+  ANTHROPIC_CUSTOM_HEADERS="anthropic-beta: context-1m-2025-08-07" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="mimo-v2.5-pro" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="mimo-v2.5" \
   ANTHROPIC_DEFAULT_HAIKU_MODEL="mimo-v2-flash" \
-  ANTHROPIC_MODEL="mimo-v2.5-pro[1m]" \
-  exec "$_claude_bin" --model "mimo-v2.5-pro[1m]" --effort max "$@"
+  ANTHROPIC_MODEL="mimo-v2.5-pro" \
+  exec "$_claude_bin" --model "mimo-v2.5-pro" --effort max "$@"
 }
 
 print_section() {
@@ -787,6 +793,14 @@ run_auto_route() {
   fi
 
   lane="$(node -e 'const plan=JSON.parse(process.argv[1]); process.stdout.write(plan.lane)' "$plan_json")"
+
+  # wave-3 G.10: lane-table guard — an unrecognized lane name from route-plan falls
+  # through to the kagami catch-all SILENTLY without this. Warn (fail-open: never
+  # hard-fail on a future lane name; the catch-all must keep routing work).
+  local VALID_LANES=" claude deepseek-flash deepseek-pro deepseek codex swarm gemma local kimi nemotron triage gpt-oss mimo native "
+  if [[ "$VALID_LANES" != *" $lane "* ]]; then
+    printf '[auto-route] unrecognized lane '\''%s'\'' from route-plan — falling through to kagami. Check llm-compat-contract lane table.\n' "$lane" >&2
+  fi
 
   case "$lane" in
     swarm)
