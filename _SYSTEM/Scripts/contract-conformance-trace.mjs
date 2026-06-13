@@ -11,7 +11,7 @@
  *
  * Soak: _SYSTEM/state/contract-conformance-soak.jsonl  (state/ is writable, not protected).
  */
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkOutputConformance } from './contract-conformance.mjs';
@@ -19,6 +19,17 @@ import { checkOutputConformance } from './contract-conformance.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 export const SOAK_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'contract-conformance-soak.jsonl');
+
+// ENFORCEMENT ARM (mirrors energy-enforce): env YURI_CONFORMANCE_ENFORCE=1 OR a runtime flag-file.
+// Default OFF = advisory soak. The flag is LOCAL runtime state — `touch` it to arm, delete to stand
+// down; it is never committed. Enforcement keys on HARD checks only (scope-containment, label-grammar,
+// scope-input-malformed) — the low-false-positive structural checks. Soft checks stay advisory always.
+export const ENFORCE_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'contract-conformance-enforce.enabled');
+export function isEnforcing() {
+  if (process.env.YURI_CONFORMANCE_ENFORCE === '1') return true;
+  if (process.env.YURI_CONFORMANCE_ENFORCE === '0') return false;
+  try { return existsSync(ENFORCE_FLAG); } catch { return false; }
+}
 
 // Canonical YURI lane Output Contract (yuri-origin "Output Contract" + "Lane Result Grammar").
 // The protected-surface floor is ALWAYS-ON inside the gate, so forbidden_scope can stay empty here.
@@ -39,6 +50,8 @@ export function recordConformance(output, opts = {}) {
   try {
     const contract = opts.contract || CANONICAL_YURI_OUTPUT_CONTRACT;
     const result = checkOutputConformance(contract, typeof output === 'string' ? output : '', { invokedPaths: opts.invokedPaths });
+    const enforcing = opts.enforce ?? isEnforcing();
+    const enforceBlock = !!(enforcing && (result.hardFails || []).length > 0); // HARD checks only — low false-positive
     const entry = {
       ts: opts.ts ?? Date.now(),
       label: typeof opts.label === 'string' ? opts.label : 'unlabeled',
@@ -49,6 +62,8 @@ export function recordConformance(output, opts = {}) {
       notEnforced: result.notEnforced || [],
       vacuous: !!result.vacuous,
       blockedMode: !!result.blockedMode,
+      enforcing,
+      enforceBlock,
     };
     if (opts.record !== false) {
       try {
@@ -56,10 +71,10 @@ export function recordConformance(output, opts = {}) {
         appendFileSync(SOAK_FILE, JSON.stringify(entry) + '\n');
       } catch (_) { /* soak is best-effort; never let logging break the caller */ }
     }
-    return { ...result, soak: entry };
+    return { ...result, soak: entry, enforcing, enforceBlock };
   } catch (e) {
-    // DISARMED: never throw into the caller
-    return { ok: false, verdict: 'FAIL', error: String(e && e.message), soak: null };
+    // never throw into the caller (advisory layer)
+    return { ok: false, verdict: 'FAIL', error: String(e && e.message), soak: null, enforcing: false, enforceBlock: false };
   }
 }
 
@@ -72,17 +87,22 @@ export function scopeAudit(invokedPaths = [], opts = {}) {
 // ── CLI ──
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = process.argv[2];
+  const enforceMsg = (r) => { if (r.enforceBlock) { console.log('ENFORCED: HARD conformance failure → exit 2 (stand down: delete _SYSTEM/state/contract-conformance-enforce.enabled)'); process.exitCode = 2; } };
   if (cmd === 'scope') {
     const paths = process.argv.slice(3).filter(Boolean);
     const r = scopeAudit(paths, { label: 'cli-scope' });
-    console.log(`scope-audit verdict=${r.verdict} hardFails=${JSON.stringify(r.hardFails)} paths=${paths.length} (soak: ${SOAK_FILE})`);
+    console.log(`scope-audit verdict=${r.verdict} hardFails=${JSON.stringify(r.hardFails)} enforcing=${r.enforcing} paths=${paths.length}`);
+    enforceMsg(r);
   } else if (cmd === 'check') {
     const oi = process.argv.indexOf('--output');
     const fs2 = await import('node:fs');
     const out = oi > -1 ? fs2.readFileSync(process.argv[oi + 1], 'utf8') : '';
     const r = recordConformance(out, { label: 'cli-check' });
-    console.log(`check verdict=${r.verdict} score=${r.soak?.score} hardFails=${JSON.stringify(r.hardFails)} softFails=${JSON.stringify(r.softFails)}`);
+    console.log(`check verdict=${r.verdict} score=${r.soak?.score} hardFails=${JSON.stringify(r.hardFails)} softFails=${JSON.stringify(r.softFails)} enforcing=${r.enforcing}`);
+    enforceMsg(r);
+  } else if (cmd === 'status') {
+    console.log(`contract-conformance enforcement: ${isEnforcing() ? 'ARMED' : 'DISARMED (advisory soak)'}  flag=${ENFORCE_FLAG}`);
   } else {
-    console.log('contract-conformance-trace — DISARMED advisory soak recorder.\n  scope <path...>            scope-audit paths vs protected floor\n  check --output <file>      full conformance of a produced report');
+    console.log('contract-conformance-trace — advisory soak recorder (arm via flag-file / YURI_CONFORMANCE_ENFORCE=1).\n  scope <path...>          scope-audit paths vs protected floor (exit 2 if armed + HARD fail)\n  check --output <file>     full conformance of a produced report\n  status                    show ARMED/DISARMED');
   }
 }

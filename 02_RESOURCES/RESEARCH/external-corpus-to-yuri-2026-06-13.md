@@ -125,4 +125,16 @@ Owner sequenced: Codex check (ADVISORY, non-gating) → harden → wire, gated o
 - Gate gained `expects_result_label:false` (meta-report mode: scope-only, no label).
 - `yuri-closeout.mjs` wired: on a scoped `/eot` it runs an advisory scope-audit of the scoped paths vs the protected-surface floor (mirrors `claimIntegrity`; non-blocking; soak on real CLI runs only — `buildReport` stays pure). 37 tests green (31 gate + 4 trace + 2 closeout).
 
-**Held for owner:** (a) any ENFORCING arm (FAIL→veto); (b) the higher-value wire into backend orchestration where lane-output↔contract reconcile (owner-visible blast radius). The soak collects verdicts first — same data-gated pattern as the claim-gate.
+## ENFORCEMENT ARMED — pass 2 (2026-06-13, owner-approved)
+
+Owner approved both held items ("both approved, lets go"). Executed with an evidence correction:
+
+**Host correction (adversarial-ally):** the "backend orchestration" host I proposed is NOT live — `_SYSTEM/backend/src/*` (ConclaveOS/swarmOrchestrator) is referenced only by `.test.mjs`, never imported by live Scripts; the backend that would reconcile lane-output↔contract is dead. And `llm-lane.mjs` (the live dispatch) carries NO compiled contract and handles RAW outputs — so a blanket lane-output enforce is impossible AND unsafe (most outputs have no RESULT_LABEL → all would FAIL). Blanket llm-lane enforcement was deliberately NOT done.
+
+**Arm mechanism (shipped):** `isEnforcing()` = env `YURI_CONFORMANCE_ENFORCE=1` OR flag-file `_SYSTEM/state/contract-conformance-enforce.enabled` (mirrors energy-enforce; local runtime, never committed; delete to stand down). Enforcement is **HARD-checks-only** (scope-containment, result-label-grammar, scope-input-malformed) — the low-false-positive structural checks; soft checks (narration/broad-command/line-cap) stay advisory even when armed. `recordConformance`/`scopeAudit` return `enforcing`+`enforceBlock`.
+
+**Armed surfaces:** (1) `yuri-closeout` — a scoped `/eot` with an enforce-blocking scope verdict escalates to `BLOCKED:` + exit 2 (defense-in-depth; collectPaths already pre-guards most protected paths). (2) opt-in CLI `contract-conformance-trace.mjs scope|check` — exit 2 on HARD fail when armed (CI/lanes/hooks can gate a formal result on it). Status: `… trace.mjs status`.
+
+**Verified armed:** `.env` → FAIL+exit2; `../` traversal → FAIL+exit2; clean path → PASS+exit0; soft-only fail → never blocks. 38 tests green. **ARMED now** (flag-file present, local).
+
+**Still the deeper next step (not blocking):** a genuine lane-output↔contract *reconciliation feature* in the live flow (where the genome's `promptContract` meets the lane's final output) — that needs building, not wiring, since no such point exists today.

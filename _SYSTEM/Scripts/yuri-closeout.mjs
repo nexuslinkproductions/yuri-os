@@ -17,7 +17,7 @@ import { readKagamiEvents } from './kagami-event-bus.mjs';
 import { isProtectedPath } from './lane-kernel.mjs';
 import { scanClaimIntegrity } from './claim-integrity-gate.mjs';
 import { checkOutputConformance } from './contract-conformance.mjs';
-import { SCOPE_AUDIT_CONTRACT, recordConformance } from './contract-conformance-trace.mjs';
+import { SCOPE_AUDIT_CONTRACT, recordConformance, isEnforcing } from './contract-conformance-trace.mjs';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -47,6 +47,7 @@ export function buildReport(scopedPaths = [], options = {}) {
   // scans the whole repo and never blocks; a failure escalates the closeout verdict so the
   // operator/Codex sees unsupported claims before final-pass approval.
   const claimIntegrity = scopedPaths.length ? runClaimIntegrity(scopedPaths, options) : null;
+  const scopeConformance = scopedPaths.length ? runScopeConformance(scopedPaths) : null;
 
   return {
     schemaVersion: 'yuri.closeout.v1',
@@ -60,9 +61,9 @@ export function buildReport(scopedPaths = [], options = {}) {
     scoped,
     validation: scoped.length ? scoped.flatMap((entry) => entry.validation) : ['no scoped validation requested'],
     claimIntegrity,
-    scopeConformance: scopedPaths.length ? runScopeConformance(scopedPaths) : null,
+    scopeConformance,
     recentEvents,
-    verdict: closeoutVerdict(status, scoped, recentEvents, claimIntegrity),
+    verdict: closeoutVerdict(status, scoped, recentEvents, claimIntegrity, scopeConformance),
     nonClaims: [
       'no mutation performed',
       'no protected provider runtime read',
@@ -203,13 +204,23 @@ function runClaimIntegrity(scopedPaths, options = {}) {
 function runScopeConformance(scopedPaths) {
   try {
     const r = checkOutputConformance(SCOPE_AUDIT_CONTRACT, '', { invokedPaths: scopedPaths });
-    return { verdict: r.verdict, hardFails: r.hardFails, checks: (r.checks || []).filter((c) => c.name === 'scope-containment') };
+    const enforcing = isEnforcing();
+    return {
+      verdict: r.verdict,
+      hardFails: r.hardFails,
+      enforcing,
+      enforceBlock: !!(enforcing && (r.hardFails || []).length > 0),
+      checks: (r.checks || []).filter((c) => c.name === 'scope-containment'),
+    };
   } catch (err) {
-    return { verdict: 'FAIL', error: String(err.message || err) };
+    return { verdict: 'FAIL', error: String(err.message || err), enforceBlock: false };
   }
 }
 
-function closeoutVerdict(statusText, scoped, recentEvents, claimIntegrity) {
+function closeoutVerdict(statusText, scoped, recentEvents, claimIntegrity, scopeConformance) {
+  if (scopeConformance && scopeConformance.enforceBlock) {
+    return 'BLOCKED: scoped paths touch a protected surface (conformance enforce ARMED)';
+  }
   if (claimIntegrity && claimIntegrity.ok === false) {
     return 'attention-needed: claim-integrity issues found';
   }
@@ -249,6 +260,7 @@ function runCli(argv = process.argv.slice(2)) {
     const report = buildReport(scopedPaths);
     if (scopedPaths.length) recordConformance('', { contract: SCOPE_AUDIT_CONTRACT, invokedPaths: scopedPaths, label: 'closeout' });
     stdout.write(json ? `${JSON.stringify(report, null, 2)}\n` : formatReport(report));
+    if (report.scopeConformance && report.scopeConformance.enforceBlock) process.exitCode = 2;
   } catch (err) {
     stdout.write(`YURI_CLOSEOUT_ERROR: ${err.message}\n`);
     process.exitCode = 1;

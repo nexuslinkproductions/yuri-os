@@ -30,6 +30,21 @@ test('recordConformance: DISARMED — never throws on hostile/garbage input, ret
   }
 });
 
+test('enforce: HARD fail blocks only when armed; SOFT fails never block; disarmed never blocks', () => {
+  // armed (opts.enforce:true) + HARD fail (protected path) → enforceBlock
+  const hard = scopeAudit(['.env'], { record: false, enforce: true });
+  assert.equal(hard.enforcing, true);
+  assert.equal(hard.enforceBlock, true);
+  // armed + clean path → no block
+  assert.equal(scopeAudit(['_SYSTEM/Scripts/x.mjs'], { record: false, enforce: true }).enforceBlock, false);
+  // armed + SOFT-only fail (narration) → NOT blocked (HARD-only enforcement)
+  const softOnly = recordConformance('RESULT_LABEL: 08CW_X_GATE_X_PASS_COMMITTED\nLet me check the logs.', { record: false, enforce: true });
+  assert.equal(softOnly.verdict, 'PARTIAL');
+  assert.equal(softOnly.enforceBlock, false, 'soft failures never enforce-block');
+  // DISARMED (enforce:false) → never blocks even on a HARD fail
+  assert.equal(scopeAudit(['.env'], { record: false, enforce: false }).enforceBlock, false);
+});
+
 test('contracts: canonical requires a label; scope-audit does not', () => {
   // canonical on a labelless report → FAIL (label hard check)
   assert.equal(recordConformance('no label here', { record: false }).verdict, 'FAIL');
