@@ -1,6 +1,7 @@
 # Memory Index — Claude Auto-Memory (v3: stable-handle format)
 
-- [PROJ:FILING-AUTONOMY-LAYER](filing-autonomy-layer-2026-06-13.md) — Filing autonomy/scheduling BUILT 2026-06-13 (47 tests, ships DISARMED, dual-arm); investor-deck false-positive RESOLVED (added INVESTOR-DECK/CODE-BIBLE/References to assessor SETTLED, 73→78 tests); post-fix auto-tier 0, nothing moves
+- [PROJ:FILING-AUTONOMY-LAYER](filing-autonomy-layer-2026-06-13.md) — Filing system + autonomy/scheduling SHIPPED 2026-06-13 (commit e187450f, 209 tests, DISARMED, dual-arm); investor-deck false-positive fixed via assessor SETTLED; auto-tier 0 (reports self-suppress candidates)
+- [REF:COMMIT-GATE-RECONCILE](ref-commit-gate-reconcile.md) — Landing a clean commit here: working tree chronically dirty (no `git add .`); pre-commit gate is REPO-WIDE (root-arch scans untracked; skill-hash drift blocks); reconcile drift via `yuri-skill-loader --write-manifest`
 
 - [PROJ:NEXUS-LINK-INVESTOR-DECK](nexus-link-investor-deck-2026-06-13.md) — NEXUS LINK investor deck project; files in 02_RESOURCES/INVESTOR-DECK/; partnership model (NO equity), Vienna/Austria, €275K budget, Marcel burns 40M+ tokens/month
 - [FB:APPLE-LEVEL-COPYWRITING](apple-level-copywriting.md) — Apple-level copywriting: make them FEEL, not describe. No defensive framing. No corporate language. Think Steve Jobs.
