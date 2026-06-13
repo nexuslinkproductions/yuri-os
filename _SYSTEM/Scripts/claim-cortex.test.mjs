@@ -654,3 +654,90 @@ test('CLI --worked-example emits valid JSON with four verdicts', () => {
   assert.equal(parsed.verdicts.length, 4);
   assert.ok(Number.isFinite(parsed.aggregateU));
 });
+
+// --- claim-idreuse-8f: opt-in content-hash binding (math-base fix 2026-06-10) ---
+
+test('IDENTITY GATE — same id + changed contentHash at same depth is a VETOED swap', () => {
+  const g = gateClaimTransition(
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'aaa' }],
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'bbb' }],
+    { nowMs: NOW },
+  );
+  assert.equal(g.identityVeto, true);
+  assert.equal(g.worsened[0].contentSwapped, true);
+  assert.equal(g.worsened[0].from, 0); // treated as a NEW claim — prior depth disregarded
+  assert.match(g.reason, /content-swapped/);
+});
+
+test('IDENTITY GATE — absent contentHash preserves flagged-once behavior (opt-in boundary)', () => {
+  const g = gateClaimTransition(
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [] }],
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [] }],
+    { nowMs: NOW },
+  );
+  assert.equal(g.identityVeto, false, 'hash-less persistent over-claim stays flagged-once');
+});
+
+test('IDENTITY GATE — stable contentHash at stable depth does not veto', () => {
+  const g = gateClaimTransition(
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'aaa' }],
+    [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'aaa' }],
+    { nowMs: NOW },
+  );
+  assert.equal(g.identityVeto, false);
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// WAVE-3 PARTITION FLOOR (unsupported-inversion-mass) — red-team + Opus-verified 2026-06-13.
+// The cross-target/cross-claimType partition: many shallow sub-RETRACT advisory-backed
+// fabrications funded by resolving honest debt. Slips under identity veto (no RETRACT), the L∞
+// cap (each depth shallow), and the soft ΔU (advisory). Disarmed by default (cap=Infinity).
+// ───────────────────────────────────────────────────────────────────────────
+const advClaim = (id, t, ct) => ({ id, target: t, claimType: ct, claimedStatus: 'fixture_ready', contentHash: `h${id}`, evidence: [{ kind: 'advisory', capturedAt: NOW, reference: `a${id}` }] });
+const fixClaim = (id, t, ct) => ({ id, target: t, claimType: ct, claimedStatus: 'fixture_ready', contentHash: `h${id}`, evidence: [{ kind: 'fixture', capturedAt: NOW, reference: `${t}.mjs:1` }] });
+// the live gap: resolve 6 advisory debts on one target + add 6 fresh advisory fabrications across 6 targets.
+const GAP_BEFORE = Array.from({ length: 6 }, (_, i) => advClaim(`g:t${i}`, 'gtarget', `t${i}`));
+const GAP_AFTER = [
+  ...Array.from({ length: 6 }, (_, i) => fixClaim(`g:t${i}`, 'gtarget', `t${i}`)),
+  ...Array.from({ length: 6 }, (_, i) => advClaim(`f${i}:built`, `ftgt${i}`, 'built')),
+];
+
+test('WAVE3 partition floor — DISARMED (default) is byte-identical: the offset partition is accepted', () => {
+  const g = gateClaimTransition(GAP_BEFORE, GAP_AFTER, { nowMs: NOW, maxLadderInversionCap: 1 });
+  assert.equal(g.accept, true, 'with the floor disabled the live gap reproduces (accept=true)');
+  assert.equal(g.unsupportedMassVeto, false);
+});
+
+test('WAVE3 partition floor — ARMED (cap=0) catches the cross-target offset partition', () => {
+  const g = gateClaimTransition(GAP_BEFORE, GAP_AFTER, { nowMs: NOW, maxLadderInversionCap: 1, unsupportedMassAddedCap: 0 });
+  assert.equal(g.unsupportedMassVeto, true);
+  assert.equal(g.accept, false, 'the 6 fresh fabrications are caught despite resolving the 6 honest debts');
+  assert.ok(g.addedUnsupportedMass >= 6, `added unsupported mass counts the fresh fabrications, got ${g.addedUnsupportedMass}`);
+});
+
+test('WAVE3 partition floor — NON-OFFSETTABLE: resolving advisory debt cannot fund a fabrication', () => {
+  // a pure NET-delta floor would net to zero here (−6 resolved, +6 added); the per-claim new-or-deeper
+  // measure must still fire. This is the exact flaw self-verification caught in the converged prescription.
+  const g = gateClaimTransition(GAP_BEFORE, GAP_AFTER, { nowMs: NOW, unsupportedMassAddedCap: 0 });
+  assert.equal(g.unsupportedMassVeto, true, 'net-zero mass delta must NOT launder the partition');
+});
+
+test('WAVE3 partition floor — NO false-veto on honest pre-existing advisory WIP re-stated at same depth', () => {
+  const wb = Array.from({ length: 6 }, (_, i) => advClaim(`w${i}:built`, `w${i}`, 'built'));
+  const wa = wb.map((c) => ({ ...c, contentHash: `${c.contentHash}x` })); // edited prose, still advisory, same depth
+  const g = gateClaimTransition(wb, wa, { nowMs: NOW, unsupportedMassAddedCap: 0 });
+  assert.equal(g.unsupportedMassVeto, false, 'same-depth advisory WIP is not new-or-deeper → no veto');
+});
+
+test('WAVE3 partition floor — NO false-veto on honest executable-backed additions (mass 0)', () => {
+  const ha = Array.from({ length: 6 }, (_, i) => fixClaim(`n${i}:built`, `n${i}`, 'built'));
+  const g = gateClaimTransition([], ha, { nowMs: NOW, unsupportedMassAddedCap: 0 });
+  assert.equal(g.unsupportedMassVeto, false);
+  assert.equal(g.addedUnsupportedMass, 0, 'fixture-backed claims carry no unsupported mass');
+});
+
+test('WAVE3 partition floor — id-less unsupported inverting claims are fail-closed (always counted)', () => {
+  const a = [{ id: null, target: 'x', claimType: 'built', claimedStatus: 'runtime_tested', contentHash: 'z', evidence: [{ kind: 'advisory', capturedAt: NOW, reference: 'q' }] }];
+  const g = gateClaimTransition([], a, { nowMs: NOW, unsupportedMassAddedCap: 0 });
+  assert.ok(g.addedUnsupportedMass > 0, 'an id-less unbacked over-claim cannot be proven not-new → counted');
+});

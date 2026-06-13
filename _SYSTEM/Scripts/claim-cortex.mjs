@@ -41,17 +41,16 @@
  * (mirroring energy-tick-core's injected `nowIso`), so the resume journal and the
  * tests are deterministic. No Date.now() in the core.
  *
- * KNOWN LIMITATION (owner-gated, tracked) — delta-gate severity laundering:
- *   gateProposal is a DELTA (Lyapunov) gate: it vetoes an INCREASE in the structural
- *   inversion field, not an absolute level. The convex (depth²) penalty here closes
- *   count->depth fungibility, but a delta gate fundamentally cannot catch an
- *   EQUAL-MAGNITUDE swap (resolve one 5-rung over-claim honestly while smuggling a
- *   fresh 5-rung fabrication; field 25->25 conserved) or a Pythagorean partition
- *   (3²+4²=5²). Fully closing this needs an L∞ MAX-severity veto term added INSIDE
- *   gateProposal — the OWNER-GATED enforcing energy core. This module emits the
- *   `maxLadderInversion` signal (see cortexSnapshot return) as groundwork; any wiring
- *   of the cortex to the enforcing gate MUST land that core change first. Until then
- *   the cortex is an additive OBSERVABILITY sensor with no live consumer of its veto.
+ * SEVERITY LAUNDERING — current state (truth-repaired 2026-06-10):
+ *   gateProposal is a DELTA (Lyapunov) gate; the convex (depth²) penalty closes
+ *   count->depth fungibility but cannot catch an EQUAL-MAGNITUDE swap or a
+ *   Pythagorean partition (3²+4²=5²) at the delta level. The L∞ maxSeverityVeto
+ *   EXISTS inside gateProposal (yuri-energy.mjs) and the LIVE tick path arms it
+ *   (DEFAULT_MAX_LADDER_INVERSION_CAP, energy-tick-core.mjs) with the field fed via
+ *   claim-ledger.claimGateFields ← cortexSnapshot.maxLadderInversion. The breaker
+ *   verdict derives from the same traced evaluation (single book), so the claim
+ *   axis reaches the deny layer. Remaining residual: gateClaimTransition's wiring
+ *   status (test-only until the v2 prose-claim ledger — see its doc block).
  *
  * Related:
  *   - _SYSTEM/Scripts/math/yuri-energy.mjs        (computeU contract this feeds)
@@ -75,6 +74,11 @@ import { computeU, gateProposal, DEFAULT_WEIGHTS, maxEntBelief } from './math/yu
 // a deprecated claim is off the promotion ladder entirely, so it is excluded from
 // the ranked ladder and carries a sentinel rank. Everything else ranks by index.
 
+// @capability: claim-evidence-cortex
+// @serves: claim evidence ladder | promote a claim hypothesis to fact | evidence half-life decay | normalize evidence | claim promotion states | epistemic status ranking
+// @does: the Claim-Evidence Cortex — promotion ladder (LADDER/PROMOTION_STATES), normalizeEvidence, evidenceStatusRank, evidence half-life decay; tracks a claim's epistemic climb hypothesis→fact
+// @use: when handling claims that must separate from evidence and climb a promotion ladder under decaying evidence (the floor's claim-vs-evidence discipline); feeds the energy gate's α/β/ε/ζ/θ terms
+// @exports: LADDER, normalizeEvidence, evidenceStatusRank
 export const LADDER = Object.freeze(PROMOTION_STATES.filter((s) => s !== 'deprecated'));
 export const DEPRECATED = 'deprecated';
 
@@ -132,6 +136,13 @@ const EVIDENCE_CEILING = Object.freeze({
   test: RANK_OF.runtime_tested,         // a passing executable test
   operator_note: RANK_OF.operator_validated,
 });
+
+// EXECUTABLE evidence kinds — those that actually demonstrate a claim (a passing test, a runtime
+// trace, a resolvable fixture/schema, an owner sign-off) vs NON-executable narrative (advisory /
+// report). The Wave-3 unsupported-inversion-mass gate counts an inversion only when the claim is
+// NOT backed by an executable kind — so an attacker cannot fund a fresh advisory-backed fabrication
+// by resolving an executable-backed claim (the evidence-kind asymmetry that breaks magnitude-swap).
+const EXECUTABLE_EVIDENCE_KINDS = Object.freeze(new Set(['test', 'runtime_trace', 'fixture', 'schema', 'operator_note']));
 
 // Default evidence half-life (days). Recurring evidence decays so a once-passing
 // test cannot prop up a `trusted` claim forever — the research doc's "stale evidence
@@ -760,6 +771,16 @@ export function cortexSnapshot(claims, opts = {}) {
   let liveClaims = 0;
   let retractCount = 0;
   let maxLadderInversion = 0;
+  // Wave-3 partition defense: GLOBAL, target-agnostic, evidence-kind-weighted inversion mass —
+  // depth² (inversionPenalty) over inverting claims NOT backed by executable evidence. Global ⇒
+  // partition-immune on BOTH the target AND claimType axes. unsupportedInversionMass is the total
+  // (a metric); unsupportedDepthById is the PER-CLAIM unsupported depth so gateClaimTransition can
+  // compute a NON-OFFSETTABLE new-or-deeper floor (a net-delta floor is offsettable — verified:
+  // resolving advisory debt funds a fresh advisory fabrication at net-zero); untrackedUnsupportedMass
+  // is the id-less remainder (fail-closed — cannot prove not-new).
+  let unsupportedInversionMass = 0;
+  let untrackedUnsupportedMass = 0;
+  const unsupportedDepthById = new Map();
 
   const assessments = [];
   for (const claim of list) {
@@ -792,12 +813,29 @@ export function cortexSnapshot(claims, opts = {}) {
     // through a count-conserving swap (Cluster C). The structural floor reads this field.
     promotionLadderInversions += inversionPenalty(a.inversions);
     // Max per-claim inversion depth (L∞ severity signal). The convex SUM is still
-    // partition-fungible (3²+4²=5² — round-2 C-residual), and the energy gate is a
-    // DELTA gate that cannot see an equal-magnitude swap. Fully closing that requires
-    // an owner-gated max-severity veto INSIDE gateProposal; the cortex emits the signal
-    // here as groundwork so wiring the cortex to the enforcing gate can OR it into the
-    // structural floor. Not yet consumed by computeU — see header "Known limitation".
+    // partition-fungible (3²+4²=5² — round-2 C-residual), and the delta gate cannot
+    // see an equal-magnitude swap. Consumed LIVE: claim-ledger.claimGateFields
+    // carries this into the tick states; the trace/breaker gate vetoes when it
+    // exceeds the armed cap. computeU itself still has no L∞ term — the veto lives
+    // in gateProposal.
     maxLadderInversion = Math.max(maxLadderInversion, a.inversions);
+    // unsupported-inversion mass: count this inversion ONLY if no executable evidence backs it.
+    if (a.inversions > 0) {
+      let execBacked = false;
+      try {
+        const recs = Array.isArray(claim.evidence) ? claim.evidence : [];
+        execBacked = recs.some((e) => e && EXECUTABLE_EVIDENCE_KINDS.has(e.kind));
+      } catch { execBacked = false; } // poisoned evidence → treat as unsupported (fail-closed)
+      if (!execBacked) {
+        unsupportedInversionMass += inversionPenalty(a.inversions);
+        if (a.id != null) {
+          const id = String(a.id);
+          unsupportedDepthById.set(id, Math.max(unsupportedDepthById.get(id) || 0, a.inversions));
+        } else {
+          untrackedUnsupportedMass += inversionPenalty(a.inversions); // id-less → fail-closed
+        }
+      }
+    }
     if (a.verdict === VERDICTS.RETRACT) retractCount += 1;
     verifiedEvidenceCount += a.freshCount;
     if (a.assessmentError !== true) {
@@ -834,7 +872,7 @@ export function cortexSnapshot(claims, opts = {}) {
     verifiedEvidenceCount,
   };
 
-  return { state, assessments, liveClaims, retractCount, maxLadderInversion };
+  return { state, assessments, liveClaims, retractCount, maxLadderInversion, unsupportedInversionMass, unsupportedDepthById, untrackedUnsupportedMass };
 }
 
 // ---------------------------------------------------------------------------
@@ -865,9 +903,38 @@ export function cortexSnapshot(claims, opts = {}) {
 // still moves the delta gate's aggregate, which keys on the earned-rank discipline.
 // Claims MUST carry a stable `id` to be tracked across the transition; an inverting
 // RETRACT claim with no id cannot be proven not-new and fails CLOSED (veto).
+//
+// LIVE STATUS (2026-06-10): no runtime caller — live swap-immunity rests on the
+// armed L∞ cap through the tick path. The v1 proxy ledger cannot produce a
+// worsening transition within a single tick (applyClaimTransition only authors
+// fixture-backed claims, appends evidence, or evicts), so wiring this into
+// tickAndTrace would be dead code until the v2 prose-claim source lands — wire it
+// IN THE SAME CHANGE as that source, with separate try scopes (ledger evolution
+// must never be reverted by a gate fault).
+//
+// CONTENT-HASH BINDING (opt-in): claims MAY carry `contentHash` (caller-supplied
+// stable hash of the claim's SUBSTANCE — statement text, not the evidence array,
+// which legitimately accrues; owner decision D7: statement-only, v2 semantics
+// parked). Same id + changed contentHash while inverting ⇒ treated as a NEW claim
+// ⇒ identity veto (a swapped substance cannot inherit the old claim's
+// flagged-once grace). Either side lacking a hash → depth-only behavior — the
+// opt-in boundary, deliberately NOT fail-closed: vetoing every hash-less
+// persistent over-claim would break the flagged-once calibration.
 export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
   const before = cortexSnapshot(claimsBefore, opts);
   const after = cortexSnapshot(claimsAfter, opts);
+  // Hash maps come from the RAW claim arrays (assessments don't pass unknown fields).
+  const hashOf = (list) => {
+    const m = new Map();
+    for (const c of Array.isArray(list) ? list : []) {
+      try {
+        if (c && c.id != null && typeof c.contentHash === 'string' && c.contentHash) m.set(String(c.id), c.contentHash);
+      } catch { /* poisoned element: no hash binding */ }
+    }
+    return m;
+  };
+  const hb = hashOf(claimsBefore);
+  const ha = hashOf(claimsAfter);
 
   // Baseline: the deepest inversion depth per tracked claim-id BEFORE the transition.
   const beforeDepth = new Map();
@@ -883,6 +950,17 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
   const worsened = [];
   let untrackedRetract = 0;
   for (const a of after.assessments) {
+    // Content-swap check runs FIRST and for ANY inverting claim (a swapped 1-rung
+    // body is also caught when hashes are present); id-less inverting RETRACTs
+    // still fall through to the untrackedRetract fail-closed accounting below.
+    if (a.inversions > 0 && a.id != null) {
+      const id = String(a.id);
+      if (hb.has(id) && ha.has(id) && hb.get(id) !== ha.get(id)) {
+        // from:0 is deliberate — a swapped substance is a NEW claim; prior depth disregarded.
+        worsened.push({ id, from: 0, to: a.inversions, contentSwapped: true });
+        continue;
+      }
+    }
     if (a.verdict !== VERDICTS.RETRACT || a.inversions <= 0) continue;
     if (a.id == null) { untrackedRetract += 1; continue; } // cannot track -> fail-closed
     const prev = beforeDepth.get(String(a.id)) ?? 0;
@@ -905,18 +983,41 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
     maxLadderInversionCap: opts.maxLadderInversionCap ?? Infinity,
   });
 
-  const accept = !identityVeto && gate.result.accept;
+  // Wave-3 PARTITION FLOOR (non-offsettable, evidence-kind-weighted): the cross-target/cross-claimType
+  // partition (many shallow sub-RETRACT fabrications funded by resolving honest debt) slips under the
+  // identity veto (no RETRACT) AND the L∞ cap (each depth shallow) AND the soft ΔU (advisory). Sum
+  // inversionPenalty(depth²) over AFTER claims whose UNSUPPORTED inversion is NEW-or-DEEPER vs their
+  // own before-baseline (mirrors the identity veto's beforeDepth logic). NON-OFFSETTABLE by
+  // construction: resolving advisory debt elsewhere CANNOT fund a fresh fabrication (a net-delta floor
+  // can — verified, it nets to zero). Evidence-kind weighting (only NON-executable inversions count)
+  // breaks the magnitude-swap symmetry. id-less unsupported claims are fail-closed (always counted).
+  // opts.unsupportedMassAddedCap arms it (default Infinity = DISABLED, byte-identical to today).
+  const beforeUnsup = before.unsupportedDepthById instanceof Map ? before.unsupportedDepthById : new Map();
+  const afterUnsup = after.unsupportedDepthById instanceof Map ? after.unsupportedDepthById : new Map();
+  let addedUnsupportedMass = after.untrackedUnsupportedMass || 0; // id-less → can't prove not-new
+  for (const [id, depth] of afterUnsup) {
+    const prev = beforeUnsup.get(id) ?? 0;
+    if (depth > prev) addedUnsupportedMass += inversionPenalty(depth); // new-or-deeper → non-offsettable
+  }
+  const unsupportedMassCap = opts.unsupportedMassAddedCap ?? Infinity;
+  const unsupportedMassVeto = addedUnsupportedMass > unsupportedMassCap;
+
+  const accept = !identityVeto && !unsupportedMassVeto && gate.result.accept;
   const reason = identityVeto
     ? (worsened.length
-        ? `claim-identity veto: ${worsened.length} claim(s) became a new-or-deeper RETRACT over-claim (e.g. ${worsened[0].id}: ${worsened[0].from}→${worsened[0].to}) — non-offsettable by resolving others`
+        ? `claim-identity veto: ${worsened.length} claim(s) became a new-or-deeper RETRACT over-claim (e.g. ${worsened[0].id}: ${worsened[0].from}→${worsened[0].to}${worsened[0].contentSwapped ? ' — content-swapped, prior depth disregarded' : ''}) — non-offsettable by resolving others`
         : `claim-identity veto: ${untrackedRetract} RETRACT over-claim(s) with no stable id — cannot prove not-new (fail-closed)`)
-    : gate.result.reason;
+    : unsupportedMassVeto
+      ? `unsupported-inversion-mass floor: ${addedUnsupportedMass} new-or-deeper unbacked over-claim mass (> cap ${unsupportedMassCap}) — a partition of shallow unbacked fabrications, non-offsettable by resolving backed claims`
+      : gate.result.reason;
 
   return {
     accept,
     identityVeto,
     worsened,
     untrackedRetract,
+    unsupportedMassVeto,
+    addedUnsupportedMass,
     reason,
     deltaGate: {
       accept: gate.result.accept,

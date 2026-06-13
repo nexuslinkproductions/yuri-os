@@ -218,6 +218,137 @@ test('LIVE: energy-weights.json cannot disable the protected-path veto with eta=
   }
 });
 
+// --- Phase-3 wire regressions (math-base fix wave 2026-06-10) ---
+
+test('WIRE — claim-veto trace reject produces a catastrophic breaker verdict + trip + deny, same tick', async () => {
+  const { isCatastrophic, transitionOnVerdict, evaluateGate, freshBreaker, DEFAULT_BREAKER_CFG, BREAKER_STATE } = await import('./energy-breaker.mjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wire1-'));
+  const prevDir = process.env.YURI_STATE_DIR;
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    const ledger = { claims: [{ id: 'x.mjs', claimedStatus: 'trusted', evidence: [], updatedSeq: 0 }], seq: 1 };
+    const r = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-10T00:00:00.000Z', ledger });
+    assert.equal(r.traced, true);
+    assert.equal(r.verdict.accept, false, 'breaker verdict must see the claim veto');
+    assert.equal(r.verdict.maxSeverityVeto, true);
+    assert.equal(r.verdict.deltaU, r.deltaU, 'ONE book: breaker ΔU === trace ΔU');
+    assert.equal(isCatastrophic(r.verdict), true);
+    const t0 = Date.parse('2026-06-10T00:00:00.000Z');
+    const b = transitionOnVerdict(freshBreaker(), r.verdict, t0);
+    assert.equal(b.state, BREAKER_STATE.OPEN, 'trip');
+    assert.equal(evaluateGate(b, t0 + 1000, DEFAULT_BREAKER_CFG).decision, 'deny', 'enforce-armed deny');
+    // Negative control: a clean ledger accepts and the breaker stays CLOSED.
+    const clean = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-10T00:00:01.000Z' });
+    assert.equal(clean.verdict.accept, true);
+    assert.equal(transitionOnVerdict(freshBreaker(), clean.verdict, t0).state, BREAKER_STATE.CLOSED);
+    // cap=1 (owner decision D1): an honest 1-rung VERIFY-FIRST claim is workflow, not a veto.
+    const oneRung = { claims: [{ id: 'y.mjs', claimedStatus: 'runtime_tested', evidence: [{ kind: 'fixture', capturedAt: Date.parse('2026-06-10T00:00:00.000Z'), reference: 'y.mjs' }], updatedSeq: 0 }], seq: 1 };
+    const v1 = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-10T00:00:02.000Z', ledger: oneRung });
+    assert.equal(v1.verdict.accept, true, '1-rung VERIFY-FIRST passes under cap=1');
+    assert.equal(v1.verdict.maxSeverityVeto, false);
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('WIRE — verdict and trace share weights/threshold (no second book; tuned iota shifts both identically)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wire2-'));
+  const cfgFile = path.join(dir, 'cfg.json');
+  fs.writeFileSync(cfgFile, JSON.stringify({ weights: { iota: 1.0 } }));
+  const prevDir = process.env.YURI_STATE_DIR;
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    let st = freshState();
+    let ledger;
+    for (let i = 0; i < 3; i += 1) {
+      const r = tickAndTrace(st, editOk, { nowIso: `2026-06-10T00:00:0${i}.000Z`, ledger, configFile: cfgFile });
+      assert.equal(r.verdict.deltaU, r.deltaU, 'per-tick: verdict ΔU === trace ΔU exactly');
+      st = r.state;
+      ledger = r.ledger;
+    }
+    // Discriminator: iota 1.0 shifts the clean-edit first-tick ΔU to -0.693…; the
+    // old second-book verdictFromStates (default weights) would report -0.069….
+    const fresh = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-10T00:01:00.000Z', configFile: cfgFile });
+    assert.equal(fresh.verdict.deltaU, -0.693147181);
+    const noCfg = tickAndTrace(freshState(), editOk, { nowIso: '2026-06-10T00:01:01.000Z' });
+    assert.equal(noCfg.verdict.deltaU, -0.069314718); // negative control: default weights
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('toGateState does not alias forecasts/results — one malformed entry costs exactly λ once', async () => {
+  const { computeU } = await import('./math/yuri-energy.mjs');
+  const { toGateState } = await import('./energy-tick-core.mjs');
+  const s = toGateState({ predictions: [2], outcomes: [0] });
+  assert.equal('forecasts' in s, false);
+  assert.equal('results' in s, false);
+  const r = computeU(s).result;
+  assert.equal(r.components.malformedForecast.value, 1);
+  assert.equal(r.contributions.malformedForecast, 50);
+});
+
+test('ζ staleness: config-armed hydration lights the term; absent flag keeps it dead', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeta6-'));
+  const cfgFile = path.join(dir, 'cfg.json');
+  fs.writeFileSync(cfgFile, JSON.stringify({ staleness: { halfLifeDays: 7 } }));
+  const prevDir = process.env.YURI_STATE_DIR;
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    const prev = { ...freshState(), verifiedEvidenceCount: 1, evidence: [{ base: 1, age: 0, capturedAt: '2026-06-03T00:00:00.000Z' }] };
+    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:00.000Z', configFile: cfgFile });
+    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:01.000Z' }); // disarmed
+    const traceDir = path.join(dir, 'energy-trace');
+    const file = fs.readdirSync(traceDir).find((x) => x.endsWith('.jsonl'));
+    const recs = fs.readFileSync(path.join(traceDir, file), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+    // Armed: one record at exactly one half-life → ζ0.5 × (1−0.5) = 0.25 exact
+    // (the tick's fresh age-0 record contributes 0).
+    assert.equal(recs[0].componentContributions.staleness, 0.25);
+    // Disarmed: byte-current behavior — the term is skipped entirely.
+    assert.equal('staleness' in recs[1].componentContributions, false);
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('WIRE — 3 consecutive claimGateFields failures trip gateErrorVeto (bounded fail-open); SKIP ticks neither reset nor extend', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cff7c-'));
+  const prevDir = process.env.YURI_STATE_DIR;
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    const poisoned = { claims: [], seq: 0 };
+    Object.defineProperty(poisoned.claims, 0, { get() { throw new Error('poison'); } });
+    poisoned.claims.length = 1;
+    let cff = 0;
+    let st = freshState();
+    const vetoes = [];
+    for (let i = 0; i < 2; i += 1) {
+      const r = tickAndTrace(st, editOk, { nowIso: `2026-06-10T00:00:0${i}.000Z`, ledger: poisoned, claimFieldFailures: cff });
+      vetoes.push(r.verdict.gateErrorVeto);
+      cff = r.claimFieldFailures;
+      st = r.state;
+    }
+    // SKIP interleaving must not reset the 2-count (or the laundering window extends unboundedly).
+    const skip = tickAndTrace(st, { tool_name: 'Read', tool_input: {}, tool_response: {} }, { claimFieldFailures: cff });
+    assert.equal(skip.claimFieldFailures, 2, 'SKIP passthrough preserves the counter');
+    assert.equal(skip.verdict, null);
+    cff = skip.claimFieldFailures;
+    const r3 = tickAndTrace(st, editOk, { nowIso: '2026-06-10T00:00:03.000Z', ledger: poisoned, claimFieldFailures: cff });
+    vetoes.push(r3.verdict.gateErrorVeto);
+    assert.deepEqual(vetoes, [false, false, true], 'fail-open for 2 ticks, veto on the 3rd');
+    // Healthy ledger resets the counter.
+    const healthy = tickAndTrace(st, editOk, { nowIso: '2026-06-10T00:00:04.000Z', claimFieldFailures: r3.claimFieldFailures });
+    assert.equal(healthy.claimFieldFailures, 0);
+    assert.equal(healthy.verdict.gateErrorVeto, false);
+  } finally {
+    if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('applyTransition deep-copies evidence records — mutating the output cannot reach back into prev', () => {
   const s1 = applyTransition(freshState(), classifyTransition(editOk), '2026-01-01'); // 1 evidence record
   assert.equal(s1.evidence.length, 1);

@@ -121,8 +121,12 @@ export const DEFAULT_SALIENCE = Object.freeze({
 });
 
 function median(xs) {
-  if (!xs.length) return 0;
-  const s = [...xs].sort((a, b) => a - b);
+  // Boundary pre-filter (registry axis 9): a NaN in the |ΔU| window silently
+  // poisoned the sort comparator and the surprise band. Empty→0 fail-safe
+  // semantics deliberately differ from the kernel's throw (hook path).
+  const finite = xs.filter(Number.isFinite);
+  if (!finite.length) return 0;
+  const s = [...finite].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
@@ -275,7 +279,11 @@ export function applyTransition(prev, t, nowIso = '') {
   return s;
 }
 
-/** Map a snapshot to the shape computeU consumes (brier mirrors the calibration signal). */
+/** Map a snapshot to the shape computeU consumes. forecasts/results are NOT
+ * aliased from predictions/outcomes anymore: the alias double-counted λ per
+ * malformed entry (100 instead of 50) and lit the δ(brier) term with the same
+ * data γ(logLoss) already reads — observability theater. δ goes honestly dark
+ * until a real forecast source populates those fields. */
 export function toGateState(s) {
   const v = (s && typeof s === 'object') ? s : freshState();
   return {
@@ -286,12 +294,13 @@ export function toGateState(s) {
     maxLadderInversion: v.maxLadderInversion ?? 0,
     predictions: Array.isArray(v.predictions) ? v.predictions : [],
     outcomes: Array.isArray(v.outcomes) ? v.outcomes : [],
-    forecasts: Array.isArray(v.predictions) ? v.predictions : [],
-    results: Array.isArray(v.outcomes) ? v.outcomes : [],
   };
 }
 
-/** Pure gate read on a transition — returns {deltaU, accept, dominantTerm, nextState}. */
+/** Pure gate read on a transition — returns {deltaU, accept, dominantTerm, nextState}.
+ * TEST-ONLY surface: calls gateProposal with API defaults (cap Infinity, no claim
+ * fields, no tuned weights) — it is NOT the live gate; the live book is
+ * tickAndTrace's single traced evaluation. */
 export function evaluateTransition(prevState, event, nowIso = '') {
   const t = classifyTransition(event);
   const nextState = applyTransition(prevState, t, nowIso);
@@ -314,10 +323,13 @@ export function tickAndTrace(prevState, event, opts = {}) {
   const nowIso = opts.nowIso || new Date().toISOString();
   const nowMs = Date.parse(nowIso) || 0;
   // Claim ledger — the LIVE BRIDGE that finally gives the claim-cortex a consumer and
-  // lights the 4 starved dark terms (α/β/ε) on real work. Carried across ticks via the
-  // snapshot. claimGateFields is fail-open (errors → no claim fields → tool-event-only
-  // state, current behavior) and OMITS the veto fields, so it can raise U but can never
-  // introduce a protected-path / structural-floor veto. The breaker keys on the raw state.
+  // lights the starved dark terms (α/β/ε) on real work. Carried across ticks via the
+  // snapshot. claimGateFields omits promotionLadderInversions/protectedPathViolations
+  // (cannot fire the structural-floor or protected-path vetoes) but DOES carry
+  // maxLadderInversion — under the armed L∞ cap that IS a veto path, deliberately.
+  // Since the breaker verdict derives from this same traced evaluation, the claim
+  // axis reaches the deny layer too. Read failures are bounded-fail-open: a distinct
+  // FAILED sentinel feeds a consecutive-failure counter that trips gateErrorVeto at 3.
   const ledger = (opts.ledger && Array.isArray(opts.ledger.claims)) ? opts.ledger : freshLedger();
   // Live config: a value tuned in the cockpit and persisted to energy-weights.json
   // steers the real gate here. Absent/invalid → standards (fail-safe).
@@ -332,34 +344,83 @@ export function tickAndTrace(prevState, event, opts = {}) {
   if (tier === TIER.SKIP) {
     // SKIP = reads/navigation: no claim authored, ledger passes through unchanged.
     // recentSigned + shadowTrend are ADVISORY passthroughs (ENG-04/05) — inert here.
+    // claimFieldFailures passes through unchanged: a SKIP tick reads no claims, so
+    // it must neither reset nor extend the bounded fail-open window.
     return {
       state: prevState, tier, traced: false, depth: opts.depth ?? 0,
       recentAbs: opts.recentAbs ?? [], surpriseEngaged: false, deepEngaged: false, ledger,
       recentSigned: Array.isArray(opts.recentSigned) ? opts.recentSigned : [],
       shadowTrend: shadowTrendReadout(Array.isArray(opts.recentSigned) ? opts.recentSigned : []),
+      verdict: null,
+      claimFieldFailures: Number(opts.claimFieldFailures) || 0,
     };
   }
   const nextState = applyTransition(prevState, t, nowIso);
   // Fail-OPEN on the ledger axis too (not just claimGateFields). A throw from the claim
   // bridge must NEVER drop the persist/trace/breaker for the rest of the session (wire
   // red-team: a poisoned snapshot ledger wedged observability). On any fault, carry the
-  // prior ledger forward and keep ticking.
+  // prior ledger forward and keep ticking. (Deliberately NOT counted by the
+  // claimFieldFailures counter: the old ledger stays readable, so the floor stays armed.)
   let nextLedger;
   try { nextLedger = applyClaimTransition(ledger, t, nowMs); } catch { nextLedger = ledger; }
-  const { record } = traceGateEvaluation({
+  // ζ staleness (flag-gated, owner decision D6): when energy-weights.json carries
+  // staleness.halfLifeDays, hydrate evidence AT READ TIME — age from capturedAt vs
+  // nowMs, halfLife from config. The persisted snapshot keeps {base, age:0,
+  // capturedAt} untouched. Absent flag → byte-identical prior behavior (ζ skipped).
+  // HONESTY: both states hydrate at the SAME nowMs, so records common to
+  // before/after contribute EQUAL staleness — ζ lights U levels + trace component
+  // contributions but is ΔU-NEUTRAL for shared records; ΔU moves only when the
+  // CAP slice drops an old record.
+  const zHL = (fileCfg.staleness && Number.isFinite(fileCfg.staleness.halfLifeDays))
+    ? fileCfg.staleness.halfLifeDays : null;
+  const gateState = (s) => (zHL === null
+    ? toGateState(s)
+    : { ...toGateState(s), evidence: hydrateEvidence(s && s.evidence, nowMs, zHL) });
+  // Bounded fail-open (claim axis): read claim fields ONCE per ledger; a FAILED
+  // sentinel (distinct from legit-empty {}) increments the consecutive counter,
+  // any clean read resets it.
+  const cgfB = claimGateFields(ledger, nowMs);
+  const cgfA = claimGateFields(nextLedger, nowMs);
+  const claimReadFailed = cgfB.claimGateFieldsFailed === true || cgfA.claimGateFieldsFailed === true;
+  const claimFieldFailures = claimReadFailed ? (Number(opts.claimFieldFailures) || 0) + 1 : 0;
+  const clean = (f) => (f && f.claimGateFieldsFailed === true ? {} : f);
+  const { record, gateResult } = traceGateEvaluation({
     lane: 'session',
     runId: String(opts.runId || `session-${nowIso}`),
     user: opts.user || currentUserHandle(),
     regime: 'action', // everyday-workflow ΔU is always a real, distinct before/after
-    // Tool-event terms (iota/gamma/delta/eta) PLUS the cortex's claim-distribution terms
-    // (alpha entropy / beta KL / epsilon infoGain) from the live ledger — the missing wire.
-    stateBefore: { ...toGateState(prevState), ...claimGateFields(ledger, nowMs) },
-    stateAfter: { ...toGateState(nextState), ...claimGateFields(nextLedger, nowMs) },
+    // Tool-event terms (iota/gamma/eta) PLUS the cortex's claim-distribution terms
+    // (alpha entropy / beta KL / epsilon infoGain) from the live ledger. The claim
+    // spread carries no `evidence` key (claim-ledger omits it), so it can never
+    // clobber the ζ hydration above — load-bearing for the spread order.
+    stateBefore: { ...gateState(prevState), ...clean(cgfB) },
+    stateAfter: { ...gateState(nextState), ...clean(cgfA) },
     weights,
     threshold,
     maxLadderInversionCap: DEFAULT_MAX_LADDER_INVERSION_CAP,
     traceOptions: opts.traceOptions || {},
   });
+  // ONE BOOK: the breaker verdict derives from the SAME gateResult that produced
+  // the trace — claim fields, tuned weights, threshold, and cap included. The
+  // claim-blind second evaluation (verdictFromStates on raw states) is dead on the
+  // live path. gateErrorVeto here covers the bounded claim-read fail-open only;
+  // a traceGateEvaluation throw still kills the tick before any breaker write
+  // (fail-closed by absence).
+  const g = (gateResult && gateResult.result) ? gateResult.result : {};
+  const verdict = {
+    accept: g.accept === true,
+    protectedPathVeto: g.protectedPathVeto === true,
+    structuralFloorVeto: g.structuralFloorVeto === true,
+    maxSeverityVeto: g.maxSeverityVeto === true,
+    gateErrorVeto: false,
+    deltaU: Number.isFinite(g.deltaU) ? g.deltaU : 0,
+    dominantTerm: g.dominantTerm || null,
+  };
+  if (claimFieldFailures >= 3) {
+    verdict.gateErrorVeto = true;
+    verdict.accept = false;
+    verdict.reason = 'claim-ledger unreadable for 3 consecutive ticks — epistemic sensor down, fail-closed';
+  }
   // Layer C: depth-gated |ΔU| surprise. Judge THIS ΔU against the band BEFORE
   // adding it; then advance depth and roll the band forward.
   const deltaU = (record && Number.isFinite(record.deltaU)) ? record.deltaU : 0;
@@ -387,6 +448,16 @@ export function tickAndTrace(prevState, event, opts = {}) {
   return {
     state: nextState, tier, traced: true, deltaU, depth, recentAbs,
     surpriseEngaged: surprised, deepEngaged, ledger: nextLedger,
-    recentSigned, shadowTrend,
+    recentSigned, shadowTrend, verdict, claimFieldFailures,
   };
+}
+
+const MS_PER_DAY = 86400000;
+/** ζ hydration (read-time only): age from capturedAt vs nowMs, halfLife from config. */
+function hydrateEvidence(evidence, nowMs, halfLifeDays) {
+  return (Array.isArray(evidence) ? evidence : []).map((e) => {
+    const t = Date.parse((e && e.capturedAt) || '');
+    const age = Number.isFinite(t) ? Math.max(0, (nowMs - t) / MS_PER_DAY) : 0;
+    return { base: Number.isFinite(e && e.base) ? e.base : 1.0, age, halfLife: halfLifeDays };
+  });
 }

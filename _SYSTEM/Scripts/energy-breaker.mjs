@@ -78,6 +78,11 @@ export function normBreaker(b) {
  * Compact verdict for a transition (prev -> next control-plane state). Never throws:
  * a thrown gate (malformed states) fails CLOSED (red-team #2) — an enforcing layer that
  * cannot prove safety must treat the transition as catastrophic, not wave it through.
+ * (Garbage INPUTS are a different case: toGateState normalizes them into a clean
+ * fresh state → accept — input-normalization is fail-open by design, layer-2.)
+ * The LIVE tick path no longer calls this — tickAndTrace derives the verdict from
+ * its own traced gateResult (single evaluation, single book). Kept exported for
+ * tests/standalone callers.
  */
 export function verdictFromStates(prevState, nextState, opts = {}) {
   try {
