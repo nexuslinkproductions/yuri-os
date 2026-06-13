@@ -37,3 +37,13 @@ Built in 5 isolated git worktrees (parallel, no collision, no auto-commit), then
 ## COMMERCIAL-READINESS STATUS
 
 The verification-as-infrastructure moat (mimo's framing) is now materially stronger: foreign-skill security verdict, reversible token economics, cost admission, index-freshness honesty, optional human review. The launch-blocker (no install-time skill security) is addressed (advisory; flip to enforce on your word). The remaining commercial gates are owner-arming decisions, not engineering gaps.
+
+## ARMING APPLIED (2026-06-13 closeout — commit 6eb0df06)
+
+Owner directed the arming at session close ("arm it, keep both advisory" → refined to: cost advisory, human-review auto-block):
+- **cost-admission-gate → ARMED ADVISORY.** `_SYSTEM/state/cost-admission.armed` JSON `capUsd=50/day` (PLACEHOLDER — tune to real economics), warn-only (NO `YURI_COST_ADMISSION_HARDBLOCK`); `YURI_COST_ADMISSION_ENFORCE=1` added to `~/.config/yuri/env.sh` for durable advisory activation. Never hard-blocks.
+- **human-review-sublane → AUTO-BLOCK with reason.** `checkPlanReviewGate` now returns `block:true`; the `claude-protocol-guard` handler `emitBlock`s any `block:true` finding (requires `CLAUDE_SESSION_ID`, degrades to WARN absent). Per-attempt auto-open removed; TTL failsafe kept. Fires ONLY in opt-in review mode (default OFF) — autonomous sessions unaffected. Verified: hook parses, review-OFF flow does not block, 19/19 tests.
+- **skill-security stays ADVISORY** (auto-block-on-ingest remains a future owner flip).
+- Both commits pushed to `origin/main` (536b28f8 build, 6eb0df06 arming). `ai reindex` (41,655 docs) + GitNexus refresh (53,580 nodes) done. EOT closeout ran.
+
+Still optional/yours: tune the cost capUsd; flip skill-security auto-block; `git worktree remove` the 5 rollback worktrees.

@@ -53,7 +53,7 @@ Emits a BARE Lane Result Grammar label: `09PR_PLAN_REVIEW_<verb>_<X|P|F>_<PASS_C
 ## Session Notes
 
 ### 2026-06-13
-- session: 1m | peak ctx: 0% | compacts: 0
-- tools: Bash×3, Write×2, Read×2, TaskUpdate×2, Agent×1
-- corrections: why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact | why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact
+- session: 4m | peak ctx: 54% | compacts: 0
+- tools: Read×11, Bash×10, Edit×5, Write×4, TaskUpdate×2, Agent×1
+- corrections: none
 - errors: none
