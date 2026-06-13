@@ -603,6 +603,10 @@ export function measureClaims(claims, opts = {}) {
     pEmitEstimate: total > 0 ? +(retracts / total).toFixed(4) : 0,
     untrackedRetract,
     maxLadderInversion: snap.maxLadderInversion,
+    // Wave-3 partition-gate CALIBRATION signal (advisory, measure-only): the global
+    // evidence-kind-weighted unsupported-inversion mass. The soak's per-write time-series of this
+    // is what sets `unsupportedMassAddedCap` (honest p99) before the gate's veto is ever armed.
+    unsupportedInversionMass: snap.unsupportedInversionMass || 0,
     maxAggregateInversionPerTarget: maxAgg,
     aggregateInversionByTarget: Object.fromEntries(aggInversionByTarget),
     maxRetractsPerTarget,

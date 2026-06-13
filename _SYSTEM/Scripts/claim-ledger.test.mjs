@@ -57,22 +57,34 @@ test('claimGateFields on an empty ledger returns {} (cortex contributes nothing)
   assert.deepEqual(claimGateFields(freshLedger(), NOW), {});
 });
 
-test('claimGateFields returns ONLY the dark-term fields — never a veto field', () => {
+test('claimGateFields carries the dark-term fields + the deliberate L∞ enforcement signal', () => {
   let l = freshLedger();
   l = applyClaimTransition(l, t({ tool: 'Edit', filePath: 'a.mjs', isMutating: true, success: true }), NOW);
   const f = claimGateFields(l, NOW);
   assert.ok('claimPromotionDistribution' in f && 'claimedDistribution' in f && 'verifiedDistribution' in f && 'priorState' in f && 'posteriorState' in f);
-  // SAFETY INVARIANT: the veto fields must NEVER be present — merging this can raise U
-  // but can never introduce a protected-path or structural-floor veto.
+  // SAFETY INVARIANT: structural-floor / protected-path / tool-event fields must
+  // NEVER be present — merging this cannot fire those vetoes or double-count.
   assert.equal('promotionLadderInversions' in f, false);
   assert.equal('protectedPathViolations' in f, false);
   assert.equal('verifiedEvidenceCount' in f, false);
+  // DELIBERATE: maxLadderInversion IS exported — under the armed L∞ cap it is the
+  // claim axis's enforcement (veto) signal, by design.
+  assert.ok('maxLadderInversion' in f, 'maxLadderInversion deliberately present');
 });
 
-test('claimGateFields fails OPEN on a garbage ledger (never throws)', () => {
+test('claimGateFields fails OPEN on a degenerate ledger (never throws)', () => {
   assert.deepEqual(claimGateFields(null, NOW), {});
   assert.deepEqual(claimGateFields({ claims: 'nope' }, NOW), {});
   assert.deepEqual(claimGateFields({ claims: [] }, NOW), {});
+});
+
+test('claimGateFields distinguishes FAILED reads from legitimately-empty ledgers', () => {
+  assert.deepEqual(claimGateFields({ claims: [] }, NOW), {});
+  const poisoned = { claims: [], seq: 0 };
+  Object.defineProperty(poisoned.claims, 0, { get() { throw new Error('poison'); } });
+  poisoned.claims.length = 1;
+  assert.equal(claimGateFields(poisoned, NOW).claimGateFieldsFailed, true,
+    'a read failure returns the distinct sentinel, never a silent {}');
 });
 
 // --- the safety property that broke the energy-tick test, now pinned ---

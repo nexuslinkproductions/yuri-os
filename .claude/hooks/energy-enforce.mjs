@@ -7,9 +7,11 @@
  * ARCHITECTURE (PDP/PEP split, borrowed from OPA): the decision is computed by
  * the energy gate (gateProposal = PDP) in PostToolUse and persisted as a breaker
  * state in the session snapshot; this hook is the PEP that reads that state and
- * enforces it on the NEXT tool call. It is layer-2 defense-in-depth, registered
- * LAST in the PreToolUse chain so the deterministic guards (bash-security-guard,
- * operator-write-guard, …) always rule first.
+ * enforces it on the NEXT tool call. It is layer-2 defense-in-depth. NOTE (wave-3
+ * G.3 correction): PreToolUse hooks run in PARALLEL per harness spec — registration
+ * order does NOT impose execution order. The deterministic guards rule regardless
+ * because ANY hook's deny wins (deny is OR-composed across hooks), not because this
+ * hook runs last.
  *
  * SAFETY (non-negotiable):
  *   - Master switch: YURI_ENERGY_OBSERVABILITY=1 (no verdicts exist otherwise).

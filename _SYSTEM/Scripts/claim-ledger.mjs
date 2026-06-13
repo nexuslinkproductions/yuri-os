@@ -16,12 +16,12 @@
  * the agent's ACTUAL prose claims — is the v2 ([[claim-evidence-ledger]]); this is the
  * honest first wire that makes the cortex fire.
  *
- * SAFETY: `claimGateFields` returns ONLY the distribution/belief fields that light
- * α/β/ε — it deliberately OMITS promotionLadderInversions and protectedPathViolations,
- * so merging it into a gate state can RAISE U (observability) but can NEVER introduce
- * a structural-floor or protected-path veto. The over-claim→enforcement step (letting a
- * claim inversion actually block) is a separate, owner-gated change. Pure + deterministic
- * (nowMs injected), mirroring claim-cortex / energy-tick-core.
+ * SAFETY: `claimGateFields` returns the distribution/belief fields that light α/β/ε.
+ * It omits promotionLadderInversions and protectedPathViolations (cannot fire the
+ * structural-floor or protected-path vetoes, and never double-counts the tool-event
+ * axis), but it DOES carry maxLadderInversion — under the armed L∞ cap that IS a
+ * veto path, deliberately: it is the claim axis's enforcement signal. Pure +
+ * deterministic (nowMs injected), mirroring claim-cortex / energy-tick-core.
  *
  * Related:
  *   - _SYSTEM/Scripts/claim-cortex.mjs        (the pure claim model this feeds)
@@ -103,13 +103,18 @@ export function applyClaimTransition(prevLedger, t, nowMs) {
 
 // The empty/degenerate gate-field set: nothing to merge (cortex stays dark this tick).
 const EMPTY_FIELDS = Object.freeze({});
+// The FAILED read sentinel — distinguishable from legit-empty so the tick's bounded
+// fail-open counter can see a poisoned ledger instead of silently disarming the floor.
+const FAILED_FIELDS = Object.freeze({ claimGateFieldsFailed: true });
 
 /**
- * Project the ledger into the SAFE subset of computeU fields — the ones that light
- * α (entropy), β (KL drift), ε (info-gain). Deliberately omits promotionLadderInversions,
- * protectedPathViolations, evidence and verifiedEvidenceCount so merging this can never
- * add a veto path or double-count the tool-event axis's own terms. Fail-open: any error
- * or an empty ledger yields {} (the cortex contributes nothing, current behavior).
+ * Project the ledger into the computeU fields that light α (entropy), β (KL drift),
+ * ε (info-gain) plus the L∞ maxLadderInversion enforcement signal. Omits
+ * promotionLadderInversions, protectedPathViolations, evidence and
+ * verifiedEvidenceCount (no structural-floor/protected-path veto, no tool-event
+ * double-count). Legit-empty ledger → {} (cortex contributes nothing). A READ
+ * FAILURE returns the distinct FAILED_FIELDS sentinel — the caller's consecutive
+ * counter converts 3 of those into a gateErrorVeto (bounded fail-open).
  */
 export function claimGateFields(ledger, nowMs) {
   try {
@@ -125,7 +130,7 @@ export function claimGateFields(ledger, nowMs) {
       maxLadderInversion,
     };
   } catch {
-    return EMPTY_FIELDS; // fail-open: never break the tick
+    return FAILED_FIELDS; // bounded fail-open: distinguishable from legit-empty
   }
 }
 

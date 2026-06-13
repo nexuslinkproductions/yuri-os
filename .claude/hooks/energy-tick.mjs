@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tickAndTrace, freshState } from '../../_SYSTEM/Scripts/energy-tick-core.mjs';
-import { verdictFromStates, transitionOnVerdict, normBreaker } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
+import { transitionOnVerdict, normBreaker } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(_HERE, '..', '..');
@@ -60,9 +60,10 @@ function run() {
   const nowIso = new Date().toISOString();
 
   const ledger = (snap && snap.ledger && Array.isArray(snap.ledger.claims)) ? snap.ledger : undefined;
+  const claimFieldFailures = (snap && Number.isFinite(snap.claimFieldFailures)) ? snap.claimFieldFailures : 0;
 
   const result = tickAndTrace(prevState, event, {
-    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs, ledger,
+    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs, ledger, claimFieldFailures,
   });
 
   // SKIP transitions don't advance state/depth or write a record — nothing to persist.
@@ -75,10 +76,12 @@ function run() {
   // Fully error-isolated — a breaker fault must never affect the session.
   let breaker;
   try {
-    const verdict = verdictFromStates(prevState, result.state);
+    // ONE BOOK: the verdict comes from tickAndTrace's own traced gate evaluation
+    // (claim fields + tuned weights/threshold/cap included) — no second,
+    // claim-blind evaluation here.
     const prevBreaker = (snap && snap.breaker) ? snap.breaker : null;
     const nowMs = Date.parse(nowIso) || Date.now();
-    breaker = transitionOnVerdict(prevBreaker, verdict, nowMs);
+    breaker = transitionOnVerdict(prevBreaker, result.verdict, nowMs);
   } catch { breaker = normBreaker(snap && snap.breaker); }
 
   try {
@@ -90,6 +93,7 @@ function run() {
       deepEngaged: result.deepEngaged,
       breaker,
       ledger: result.ledger,
+      claimFieldFailures: result.claimFieldFailures,
       sessionId,
       updatedAt: nowIso,
     }) + '\n');
