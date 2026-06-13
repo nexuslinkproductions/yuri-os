@@ -28,6 +28,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { admit as costAdmit, readArmState as costArmState } from './cost-reservation-pool.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -118,6 +119,19 @@ async function cmdDrain() {
       if (!pending.length) { if (!watch) break; await sleep(interval * 1000); cycles += 1; continue; }
       for (const job of pending.slice(0, maxPerRun)) {
         if (fs.existsSync(STOP_FLAG)) break;
+        // COST-TO-COMPLETION ADMISSION (DISARMED BY DEFAULT — governs nothing until the owner dual-arms
+        // cost-reservation-pool + sets a real cap). The local SLM worker runs a FREE lane (qwen-local,
+        // $0), so even when armed the gate exempts it; this is wired forward-safe so a future PAID worker
+        // lane is budget-governed without re-plumbing. Advisory only here — never blocks a job; the
+        // per-call llm-lane dispatch already carries its own (also-disarmed) cost check. Fail-OPEN.
+        try {
+          if (costArmState().enforced) {
+            const decision = costAdmit({ lane, model: lane, promptChars: (job.payload || '').length, steps: 1, reasoning: 'low' });
+            if (!decision.admitted) {
+              process.stderr.write(`  SLM_COST_ADMISSION_WARN ${job.id} -> ${decision.decision} (advisory; not blocked)\n`);
+            }
+          }
+        } catch { /* fail-open: cost gate must never break the worker */ }
         const out = await dispatch(lane, job).catch((e) => `__ERR__:${String(e?.message || e).slice(0, 160)}`);
         // Governor backpressure: if the local concurrency cap is full (another lane/machine holds the
         // slots), leave the job PENDING and retry next cycle instead of burning it as an error.

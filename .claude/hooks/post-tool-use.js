@@ -87,15 +87,35 @@ try {
         }
     }
 
-    // ── Plan dispatch gate: arm after ExitPlanMode ────────────────────────────
+    // ── Plan gate arm after ExitPlanMode (MUTUAL-EXCLUSION site 1 of 3) ───────
+    // LOAD-BEARING SAFETY INVARIANT: plan_review_mode and the autonomous plan_dispatch_gate
+    // must NEVER both fire on the same ExitPlanMode event. When HITL plan-review mode is ON
+    // we arm `plan_review_gate` (paced by claude-protocol-guard.mjs checkPlanReviewGate) and
+    // DO NOT arm plan_dispatch_gate; when OFF, the autonomous gate arms exactly as before.
+    // The toggle (plan_review_mode) is the single source of truth, read here from the same
+    // session-state the guard reads — so the arm site and the fire sites can never disagree.
     if (toolName === 'ExitPlanMode' && !isError) {
         ss.update(state => {
-            state.plan_dispatch_gate = {
-                armed: true,
-                armed_at: Date.now(),
-                satisfied: false,
-                warn_count: 0,
-            };
+            const reviewModeOn = !!(state.plan_review_mode && state.plan_review_mode.enabled === true);
+            if (reviewModeOn) {
+                // HITL path: arm the review gate, force the autonomous gate OFF.
+                state.plan_review_gate = {
+                    armed: true,
+                    armed_at: Date.now(),
+                    satisfied: false,
+                    warn_count: 0,
+                };
+                if (state.plan_dispatch_gate) state.plan_dispatch_gate.armed = false;
+            } else {
+                // Autonomous path (unchanged behavior): arm the dispatch gate, force review gate OFF.
+                state.plan_dispatch_gate = {
+                    armed: true,
+                    armed_at: Date.now(),
+                    satisfied: false,
+                    warn_count: 0,
+                };
+                if (state.plan_review_gate) state.plan_review_gate.armed = false;
+            }
         });
     }
 

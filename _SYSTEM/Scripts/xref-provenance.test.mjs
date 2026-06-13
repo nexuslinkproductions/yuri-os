@@ -127,6 +127,30 @@ test('validateHit ACCEPTS the forward-compat structuralUnavailable flag (XREF-05
   assert.equal(validateHit(hit).ok, true);
 });
 
+// --- staleness-extension: heuristicEdge forward-wiring marker (additive closed-schema field) ---
+
+test('validateHit ACCEPTS a boolean heuristicEdge marker (forward-wiring; closed schema additive)', () => {
+  const hit = { path: 'a.mjs', surface: 'fn', snippet: 's', score: 0.6,
+    provenance: { evidenceKind: EVIDENCE_KIND.NEIGHBOR, confidence: 0.6, heuristicEdge: true } };
+  assert.equal(validateHit(hit).ok, true);
+  // round-trips through the canary too (this is what propagation-scan calls).
+  assert.equal(serializeRevalidate(hit).provenance.heuristicEdge, true);
+});
+
+test('validateHit REJECTS a non-boolean heuristicEdge (fail-closed on a smuggled non-bool)', () => {
+  for (const bad of ['yes', 1, 0, {}]) {
+    const hit = { path: 'a.mjs', surface: 'fn', snippet: 's', score: 0.6,
+      provenance: { evidenceKind: EVIDENCE_KIND.NEIGHBOR, confidence: 0.6, heuristicEdge: bad } };
+    assert.equal(validateHit(hit).ok, false, `heuristicEdge=${JSON.stringify(bad)} must be rejected`);
+  }
+});
+
+test('heuristicEdge is OPTIONAL — a hit WITHOUT it still validates (no new required key)', () => {
+  const hit = { path: 'a.mjs', surface: 'fn', snippet: 's', score: 0.6,
+    provenance: { evidenceKind: EVIDENCE_KIND.NEIGHBOR, confidence: 0.6 } };
+  assert.equal(validateHit(hit).ok, true, 'adding heuristicEdge to the schema must not make it required');
+});
+
 test('validateHit REJECTS confidence out of [0,1]', () => {
   for (const bad of [-0.01, 1.01, NaN, Infinity, 'high']) {
     const hit = { path: 'a.mjs', surface: 'fn', snippet: 's', score: 0.9,

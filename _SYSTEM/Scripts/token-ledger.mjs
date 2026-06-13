@@ -50,7 +50,12 @@ const DEFAULT_RECONCILIATION_DELAY_HOURS = Object.freeze({
   'ollama-cloud': 24,
 });
 
-const DEFAULT_POLICY = Object.freeze({
+// @capability: token-cost-math
+// @serves: token cost USD math | effective-token weighting | model pricing lookup | cost-to-completion estimation | currency parity for budget gates
+// @does: the file-private TokenOps cost math (effective tokens, USD cost, model pricing find, pricing policy) exported additively so budget/admission gates reuse the SAME formula instead of duplicating it
+// @use: import { calculateEffectiveTokens, calculateCostUsd, findModelPricing, getPricingPolicy, DEFAULT_POLICY } when you need to price a token usage shape — never re-derive the formula (currency parity)
+// @exports: calculateEffectiveTokens, calculateCostUsd, findModelPricing, getPricingPolicy, DEFAULT_POLICY
+export const DEFAULT_POLICY = Object.freeze({
   formula_version: DEFAULT_FORMULA_VERSION,
   description: 'Initial Yuri OS TokenOps effective-token policy.',
   effective_formula: 'model_multiplier * (fresh_input + 0.1 * cache_read + output_weight * output + reasoning_weight * reasoning)',
@@ -746,7 +751,7 @@ function getPolicy(db, formulaVersion) {
   };
 }
 
-function calculateEffectiveTokens(event, policy) {
+export function calculateEffectiveTokens(event, policy = getPricingPolicy()) {
   const weights = policy.weights || DEFAULT_POLICY.weights;
   const model = event.response_model || event.request_model || 'default';
   const modelMultiplier = policy.model_multipliers?.[model] || weights.model_multiplier || 1;
@@ -759,7 +764,7 @@ function calculateEffectiveTokens(event, policy) {
   );
 }
 
-function calculateCostUsd(event, policy) {
+export function calculateCostUsd(event, policy = getPricingPolicy()) {
   const pricing = policy.pricing_per_million || DEFAULT_POLICY.pricing_per_million;
   const model = event.response_model || event.request_model || 'default';
   const price = findModelPricing(pricing, model);
@@ -772,9 +777,24 @@ function calculateCostUsd(event, policy) {
   );
 }
 
-function findModelPricing(pricing, model) {
+export function findModelPricing(pricing, model) {
   const key = Object.keys(pricing).find((candidate) => candidate !== 'default' && String(model || '').includes(candidate));
   return pricing[key] || pricing.default || DEFAULT_POLICY.pricing_per_million.default;
+}
+
+// getPricingPolicy() — the DB-free accessor for the active pricing/weights policy. Budget and admission
+// gates need to price a usage shape WITHOUT opening the ledger DB (which may be absent in a worktree or
+// when better-sqlite3 is missing). It returns the frozen DEFAULT_POLICY shape that getPolicy() falls back
+// to, normalized to the { formula_version, weights, pricing_per_million, model_multipliers } contract that
+// calculateCostUsd/calculateEffectiveTokens consume. Callers that DO have a live DB can still pass a
+// db-loaded policy object explicitly. This is the currency-parity seam: one formula, one pricing table.
+export function getPricingPolicy() {
+  return {
+    formula_version: DEFAULT_POLICY.formula_version,
+    weights: { ...DEFAULT_POLICY.weights },
+    pricing_per_million: { ...DEFAULT_POLICY.pricing_per_million },
+    model_multipliers: { ...DEFAULT_POLICY.model_multipliers },
+  };
 }
 
 function safeFileSize(filePath) {

@@ -1,12 +1,28 @@
 ---
 name: feedback-ai-slop-catalog
-description: AI-slop catalog: no em-dashes, no 'real' crutch, no self-labeled honesty, no meta-narration/announcing/describe-the-visual; explain mechanism+meaning
-metadata:
+description: "AI-slop catalog: no em-dashes, no 'real' crutch, no self-labeled honesty, no meta-narration/announcing/describe-the-visual; explain mechanism+meaning"
+metadata: 
+  node_type: memory
   type: feedback
   tier: semantic
   scope: all
-  trig: ["ai slop", "slop", "copy", "dashboard text", "presentation copy", "real", "honest", "em dash", "writing", "marketing copy", "describe the visual"]
-  refs: ["[[feedback-copy-storytelling-mono-no-aware]]", "[[feedback-publication-voice-no-internals]]", "[[feedback-conversational-alive-style]]"]
+  trig: 
+    - ai slop
+    - slop
+    - copy
+    - dashboard text
+    - presentation copy
+    - real
+    - honest
+    - em dash
+    - writing
+    - marketing copy
+    - describe the visual
+  refs: 
+    - "[[feedback-copy-storytelling-mono-no-aware]]"
+    - "[[feedback-publication-voice-no-internals]]"
+    - "[[feedback-conversational-alive-style]]"
+  originSessionId: 53a52603-b3b9-4334-aa4a-1d18e47af592
 ---
 
 RULE: Write substance about the mechanism and what it means to the user. Never write meta-narration, self-justification, or descriptions of what is on screen. Cut AI slop ruthlessly.
@@ -21,6 +37,9 @@ DONT (the slop catalog, all caught in one review):
 - Empty poetic filler that sounds deep and says nothing ("evidence accruing faster than uncertainty, claims tracking what has actually been verified"). Cut.
 - Describing the visual instead of explaining the concept. Category labels like "surface: illustrative", "this view shows: descent", "motion: animated", "maps to: accept if it goes down" only narrate pixels. Instead explain what the elements ARE, why they are there, what they represent.
 - Hedging in ifs-and-maybes, padded with numbers to sound convincing, instead of explaining how the function actually works and is handled.
+- False agency: inanimate subjects performing human verbs ("the dashboard decides", "the data wants", "the complaint becomes a fix"). Name the human or system actor that acts.
+- Negative-listing / rhetorical striptease: the "it's not X, not Y, not Z, it's W" build-up. State W directly; cut the strip-tease.
+- Skipping the revise-gate: before shipping prose, score it on five axes (agency-honesty, tell-density, mechanism-over-label, filler-vs-substance, and structural truth of any dark humor); revise if any axis fails.
 DO: explain how it works, what each value means, why it matters to the user (especially how it protects an inexperienced user from grave mistakes). Mechanism and meaning over narration. Lead with the thing itself.
 STYLE: a knowledgeable engineer explaining the system to a sharp colleague (Dennis) who will immediately ask "but how does that actually work" — answer that, never perform around it.
 WHY: meta-narration, "real"-padding, and self-labeled honesty are the signature tells of untrained-AI writing; they consume space and reader trust while conveying nothing. The owner can spot every instance and will.

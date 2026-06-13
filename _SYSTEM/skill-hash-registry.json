@@ -395,6 +395,10 @@
     "source_path": "skills/zoom-out/SKILL.md",
     "hash": "2a6894c7f9b1c9c5"
   },
+  "cross-reference-navigation": {
+    "source_path": ".claude/skills/cross-reference-navigation/SKILL.md",
+    "hash": "bd498e4944c1faae"
+  },
   "organ-discovery-precision-gate": {
     "source_path": ".claude/skills/organ-discovery-precision-gate/SKILL.md",
     "hash": "e7ec99e96ae28611"
@@ -426,6 +430,18 @@
   "organ-yuri-nerve": {
     "source_path": ".claude/skills/organ-yuri-nerve/SKILL.md",
     "hash": "a46d610f683ddea7"
+  },
+  "plan-review": {
+    "source_path": ".claude/skills/plan-review/SKILL.md",
+    "hash": "f1f091a6ad5b5217"
+  },
+  "quantum-hypothesis-simulation": {
+    "source_path": ".claude/skills/quantum-hypothesis-simulation/SKILL.md",
+    "hash": "cc37f3d76a8237d5"
+  },
+  "remotion-motion-design": {
+    "source_path": ".claude/skills/remotion-motion-design/SKILL.md",
+    "hash": "3527316cfa15bef1"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

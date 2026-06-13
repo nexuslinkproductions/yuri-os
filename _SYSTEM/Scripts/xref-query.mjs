@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: code-navigation-search
+// @serves: search | navigate | find code | where is | cross reference | fts5 | corpus search | what is this | explore unfamiliar
+// @does: FTS5/BM25 + circuitry-graph + GitNexus fused search over the YURI corpus, confidence-gated suppression; auto-surfaces capability hits at the top of every query.
+// @use: Reach for this before broad exploration or grep.
+// @exports: run
 /**
  * xref-query.mjs — the UNIFIED cross-reference retrieval surface (XREF-01).
  *
@@ -10,7 +15,7 @@
  *   1. FTS5      corpus search (BM25) over _SYSTEM/OS_KERNEL/search-index.db.
  *                Imports buildMatch from yuri-search.mjs (the injection-hardened matcher — NOT
  *                reimplemented). evidenceKind = lexical-only (LOW, < 0.55, requireMismatch).
- *   2. GRAPH     the 83-node circuitry graph (02_RESOURCES/RESEARCH/yuri-circuitry-graph.json,
+ *   2. GRAPH     the 118-node circuitry graph (02_RESOURCES/RESEARCH/yuri-circuitry-graph.json,
  *                READ-ONLY). Token-overlap on (description + triggeredBy + label). If --node is
  *                given, 1-hop neighbors are surfaced tagged by edge.kind. calls|reads -> MED
  *                graph-neighbor; `writes` edges are EXCLUDED (verified data-flow != shared
@@ -65,8 +70,10 @@ import {
   serializeRevalidate,
   EVIDENCE_KIND,
   XREF_PROVENANCE_KNOBS,
+  structuralEligible,
+  TOKENIZE_MIN_LENGTH,
 } from './xref-provenance.mjs';
-import { gitnexusStaleness } from './xref-drift-scan.mjs';
+import { gitnexusStaleness, computeFileStaleSet } from './xref-drift-scan.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -76,12 +83,22 @@ const LIVE_REPO_ROOT = REPO_ROOT;
 
 const INDEX_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'search-index.db');
 const GRAPH_PATH = path.join(REPO_ROOT, '02_RESOURCES', 'RESEARCH', 'yuri-circuitry-graph.json');
-const SPECTRUM_PATH = path.join(
-  REPO_ROOT,
-  '02_RESOURCES',
-  'RESEARCH',
-  'yuri-mechanism-spectrum-267-2026-06-03.md',
-);
+// wave-2 R.12: spectrum doc auto-discovered by filename pattern — update the
+// spectrum doc's date suffix and this leg points at the new version automatically
+// (the old hardcoded dated filename silently went available:false on rename).
+// Lexicographic sort works because the suffix is count-then-ISO-date.
+function discoverSpectrumPath() {
+  const dir = path.join(REPO_ROOT, '02_RESOURCES', 'RESEARCH');
+  try {
+    const candidates = fs.readdirSync(dir)
+      .filter((f) => /^yuri-mechanism-spectrum-.*\.md$/.test(f))
+      .sort();
+    return candidates.length ? path.join(dir, candidates[candidates.length - 1]) : null;
+  } catch {
+    return null;
+  }
+}
+const SPECTRUM_PATH = discoverSpectrumPath();
 const GITNEXUS_CLI = path.join(REPO_ROOT, 'node_modules', 'gitnexus', 'dist', 'cli', 'index.js');
 
 // Xref exists to cross-surface scan, not trickle out tiny search snippets. Default to a 200-result
@@ -103,7 +120,7 @@ function tokenize(raw) {
     .toLowerCase()
     .replace(/["']/g, '')
     .split(/[^a-z0-9_-]+/)
-    .filter((t) => t.length >= 3);
+    .filter((t) => t.length >= TOKENIZE_MIN_LENGTH);
 }
 
 // Normalize a path for dedup: repo-relative, forward slashes, no leading ./ — a file hit in two
@@ -180,12 +197,27 @@ function passFts5(rawQuery, match, candidates = FTS5_CANDIDATE_FLOOR) {
         sourceLabel: 'fts5',
       });
     });
-  } catch {
-    // FTS5 MATCH syntax error on the (already-hardened) expression — fail-soft, zero hits.
+    // wave-2 R.5: true corpus match total alongside the capped pull — null on
+    // count failure (never 0, which would lie "no matches").
+    let totalMatches = null;
+    try { totalMatches = db.prepare('SELECT COUNT(*) c FROM docs WHERE docs MATCH ?').get(match).c; } catch { /* null */ }
+    return { hits: out, available: true, totalMatches };
+  } catch (err) {
+    // wave-2 R.8: distinguish a DB/runtime failure (SQLITE_BUSY, I/O) from an
+    // FTS5 MATCH syntax error. A busy/locked DB is a FALSE NEGATIVE the caller
+    // must see (available:false) — the old blanket catch returned
+    // {hits:[], available:true}: a silent false-positive availability.
+    const msg = String(err && err.message || err);
+    const busyOrRuntime = (err && (err.code === 'SQLITE_BUSY' || err.code === 'SQLITE_IOERR'))
+      || /database is locked|disk i\/o error/i.test(msg);
+    if (busyOrRuntime) {
+      return { hits: out, available: false, reason: 'db-error', error: err.code || msg.slice(0, 80) };
+    }
+    // genuine MATCH syntax error — a query problem, not a DB problem: soft-fail.
+    return { hits: out, available: true, reason: 'syntax-error' };
   } finally {
     db.close();
   }
-  return { hits: out, available: true };
 }
 
 // ============================================================================================
@@ -319,6 +351,9 @@ function passGitnexus(rawQuery, { gitnexusStale, limit = GITNEXUS_CANDIDATE_FLOO
   for (const s of [...sym, ...defs]) {
     const fp = s && s.filePath ? s.filePath : null;
     if (!fp) continue;
+    // wave-2 R.3 firewall: prose/data/archived paths must never surface at
+    // structural confidence (shared utility — propagation-scan has the same wall).
+    if (!structuralEligible(fp)) continue;
     const key = `${fp}#${s.startLine || 0}#${s.name || ''}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -327,7 +362,11 @@ function passGitnexus(rawQuery, { gitnexusStale, limit = GITNEXUS_CANDIDATE_FLOO
       snippet: `structural: ${s.name || '?'} @ ${fp}:${s.startLine ?? '?'} (${s.module || 'mod?'})`,
       surface: EVIDENCE_KIND.STRUCTURAL,
       structuralMatch: true,
-      lexicalScore: 0.85, // place within the structural band; staleness penalty applied in scoreHit
+      // wave-2 R.2: gitnexus ranks by process/PageRank, NOT per-query relevance —
+      // the old flat 0.85 minted conf=0.97 for ANY query (nonsense included).
+      // Base = bottom of the structural band; cross-corroboration by the lexical
+      // leg lifts it at grade time (see gradeCandidate).
+      lexicalScore: 0.0,
       gitnexusStale,
       sourceLabel: 'gitnexus',
     });
@@ -343,8 +382,8 @@ function passGitnexus(rawQuery, { gitnexusStale, limit = GITNEXUS_CANDIDATE_FLOO
 // ============================================================================================
 function passSpectrum(tokens, candidates = SPECTRUM_CANDIDATE_FLOOR) {
   const out = [];
-  if (!fs.existsSync(SPECTRUM_PATH)) {
-    return { hits: out, available: false, reason: 'spectrum doc not present' };
+  if (!SPECTRUM_PATH || !fs.existsSync(SPECTRUM_PATH)) {
+    return { hits: out, available: false, reason: 'no spectrum doc found' };
   }
   if (!tokens.length) return { hits: out, available: true };
 
@@ -384,7 +423,7 @@ function passSpectrum(tokens, candidates = SPECTRUM_CANDIDATE_FLOOR) {
 // ============================================================================================
 // GRADE + GATE a single candidate into a schema-valid hit (or a suppression record).
 // ============================================================================================
-function gradeCandidate(c, { structuralLegAvailable }) {
+function gradeCandidate(c, { structuralLegAvailable, fts5Paths, fileStaleSet }) {
   // F3 fail-closed: if the structural leg is DOWN, a would-be-structural candidate must NOT be
   // presented as structurally corroborated. Re-route it through the lexical path + tag.
   let surface = c.surface;
@@ -394,11 +433,23 @@ function gradeCandidate(c, { structuralLegAvailable }) {
     structuralUnavailable = true;
   }
 
+  // wave-2 R.2: a structural hit corroborated by the lexical leg (same path in
+  // the FTS5 result set) earned in-band query relevance; an uncorroborated one
+  // sits at the band floor and carries queryInvariant:true — conf must never
+  // read as "this hit matches the query" when it does not.
+  let lexicalScore = c.lexicalScore;
+  let queryInvariant = false;
+  if (surface === EVIDENCE_KIND.STRUCTURAL && c.sourceLabel === 'gitnexus') {
+    const corroborated = fts5Paths instanceof Set && fts5Paths.has(normalizePath(c.rawPath));
+    lexicalScore = corroborated ? 0.85 : 0.0;
+    queryInvariant = !corroborated;
+  }
+
   const graded = scoreHit({
     surface,
     structuralMatch: c.structuralMatch,
     edgeKind: c.edgeKind,
-    lexicalScore: c.lexicalScore,
+    lexicalScore,
     gitnexusStale: c.gitnexusStale,
   });
   // null === writes-edge (or contract-violating structural) — never a sibling, drop it.
@@ -410,21 +461,47 @@ function gradeCandidate(c, { structuralLegAvailable }) {
   };
   if (graded.stale) provenance.stale = true;
   if (structuralUnavailable) provenance.structuralUnavailable = true;
+  if (queryInvariant) provenance.queryInvariant = true;
+
+  // wave-2 R.1 (owner decision D-R1, Option A): a HIGH-BM25 lexical hit carries
+  // its measured relevance as the named mismatch — this is the existing
+  // mismatch-escape mechanism doing what it was always intended to do for
+  // strong lexical evidence. The surface still never INVENTS a shared-mechanism
+  // claim: the string names exactly what was measured (BM25 rank position).
+  // Below-threshold lexical hits keep going to the sub-log honestly (XREF-04).
+  if (graded.evidenceKind === EVIDENCE_KIND.LEXICAL && !structuralUnavailable
+    && Number.isFinite(c.lexicalScore) && c.lexicalScore >= 0.8) {
+    provenance.mismatch = `high-BM25-lexical (score=${c.lexicalScore.toFixed(2)})`;
+  }
 
   // For a lexical-only hit below the floor, the mechanism-fit-theater gate REQUIRES a named
   // mismatch or the hit is suppressed to the sub-log. The merged query is a retrieval surface,
   // not a claim author — it cannot invent a shared-mechanism justification it has not verified.
   // So a below-floor lexical hit with no mismatch goes to the sub-log honestly (per XREF-04).
+  // PER-FILE STALENESS BANNER (staleness-extension 2026-06-13): compute perFileStale via
+  // normalizePath(c.rawPath) against the committed-drift stale set. A stale FILE means the index is
+  // behind that file's committed content — the hit is still a real hit, so we do NOT silently
+  // downrank or suppress it (that would HIDE a relevant result). Instead we BANNER it in the
+  // human-readable snippet telling the consumer to read the file directly. Confidence + ranking are
+  // untouched — staleness is a freshness signal, not a relevance verdict. The closed schema has no
+  // banner field, so we use the same snippet-annotation idiom as the [corroborated by:] tag.
+  const normPath = normalizePath(c.rawPath);
+  const perFileStale = fileStaleSet instanceof Set && fileStaleSet.has(normPath);
+  let snippet = c.snippet || '';
+  if (perFileStale) {
+    snippet = `${snippet} [STALE FILE — index behind committed content; read ${normPath} directly]`.slice(0, 260);
+  }
+
   const hit = {
-    path: normalizePath(c.rawPath),
+    path: normPath,
     surface: c.sourceLabel || graded.evidenceKind,
-    snippet: c.snippet || '',
+    snippet,
     score: Number.isFinite(c.lexicalScore) ? c.lexicalScore : graded.confidence,
     provenance,
   };
 
   const gate = gateHit(hit);
-  return { hit, gate, evidenceKind: graded.evidenceKind, confidence: graded.confidence };
+  return { hit, gate, evidenceKind: graded.evidenceKind, confidence: graded.confidence, perFileStale };
 }
 
 // ============================================================================================
@@ -435,6 +512,7 @@ function mergeAndGate(candidates, ctx, top) {
   const sublog = [];
   let dropped = 0;
   let dedupedCount = 0;
+  const staleBanneredPaths = new Set(); // distinct paths that earned a staleness banner (CLI surface)
 
   for (const c of candidates) {
     const graded = gradeCandidate(c, ctx);
@@ -442,7 +520,8 @@ function mergeAndGate(candidates, ctx, top) {
       dropped += 1; // writes-edge / contract-violating structural
       continue;
     }
-    const { hit, gate, confidence } = graded;
+    const { hit, gate, confidence, perFileStale } = graded;
+    if (perFileStale) staleBanneredPaths.add(hit.path);
 
     if (!gate.surfaced) {
       sublog.push({
@@ -489,7 +568,7 @@ function mergeAndGate(candidates, ctx, top) {
   // A malformed provenance object (rogue field, out-of-range confidence) throws here, fail-closed.
   const surfaced = merged.slice(0, top).map((m) => serializeRevalidate(m.hit));
 
-  return { surfaced, sublog, dropped, dedupedCount };
+  return { surfaced, sublog, dropped, dedupedCount, totalSurfacedPaths: byPath.size, stalebannered: [...staleBanneredPaths].sort() };
 }
 
 // ============================================================================================
@@ -515,6 +594,17 @@ export function xrefQuery(rawQuery, opts = {}) {
   const staleInfo = gitnexusStaleness({ repoRoot: LIVE_REPO_ROOT });
   const gitnexusStale = resolveGitnexusStale(staleInfo);
 
+  // PER-FILE staleness set (staleness-extension): committed-drift only by default — the working-tree
+  // union is OPT-IN (opts.includeWorkingTree, default OFF) because the live tree's ~220 dirty files
+  // would banner almost everything. Fail-soft: if the leg is unavailable the set is empty and no hit
+  // is bannered (an absent signal is not a stale signal — we never INVENT staleness). This is a
+  // freshness BANNER, not a downrank: a stale file still surfaces at its true confidence.
+  const fileStaleInfo = computeFileStaleSet({
+    repoRoot: LIVE_REPO_ROOT,
+    includeWorkingTree: opts.includeWorkingTree === true,
+  });
+  const fileStaleSet = new Set(fileStaleInfo.available ? fileStaleInfo.staleFiles : []);
+
   // Run the four bounded passes.
   const fts5 = passFts5(rawQuery, match, plan.fts5);
   const graphRes = passGraph(tokens, nodeId, graph, plan.graph);
@@ -534,9 +624,12 @@ export function xrefQuery(rawQuery, opts = {}) {
     ...spectrum.hits,
   ];
 
-  const { surfaced, sublog, dropped, dedupedCount } = mergeAndGate(
+  // wave-2 R.2: the lexical leg's path set feeds structural cross-corroboration.
+  const fts5Paths = new Set(fts5.hits.map((h) => normalizePath(h.rawPath)));
+
+  const { surfaced, sublog, dropped, dedupedCount, totalSurfacedPaths, stalebannered } = mergeAndGate(
     candidates,
-    { structuralLegAvailable },
+    { structuralLegAvailable, fts5Paths, fileStaleSet },
     top,
   );
   const recall = buildRecallSet({ surfaced, sublog, top });
@@ -555,17 +648,35 @@ export function xrefQuery(rawQuery, opts = {}) {
       behind: staleInfo.behind ?? null,
       repoPinned: LIVE_REPO_ROOT,
     },
+    // PER-FILE staleness surface (staleness-extension): which surfaced files are behind their
+    // committed content (the index hasn't re-absorbed them). available=false means the leg couldn't
+    // compute a set (no marker / git failure) — NOT "everything fresh". `bannered` lists ONLY the
+    // surfaced/sublog paths that actually got a read-it-directly banner this query.
+    fileStaleness: {
+      available: fileStaleInfo.available,
+      reason: fileStaleInfo.reason || null,
+      includeWorkingTree: fileStaleInfo.includeWorkingTree === true,
+      indexedCommit: fileStaleInfo.indexedCommit ? String(fileStaleInfo.indexedCommit).slice(0, 8) : null,
+      driftCount: fileStaleInfo.available ? fileStaleInfo.staleFiles.length : null,
+      bannered: stalebannered,
+    },
     knobs: XREF_PROVENANCE_KNOBS,
     requestedTop: top,
     all: opts.all === true,
     candidatePlan: plan,
     counts: {
       fts5: fts5.hits.length,
+      // wave-2 R.5: true corpus totals (null = count unavailable, never 0-as-lie)
+      fts5TotalMatches: fts5.totalMatches ?? null,
       graph: graphRes.hits.length,
       gitnexus: gitnexus.hits.length,
       spectrum: spectrum.hits.length,
       candidates: candidates.length,
       merged: surfaced.length,
+      // wave-2 R.6: pre-slice path total — merged is post-slice and silently
+      // truncates when byPath.size > top.
+      totalSurfacedPaths: totalSurfacedPaths,
+      truncatedMerged: totalSurfacedPaths > surfaced.length,
       deduped: dedupedCount,
       suppressed: sublog.length,
       // writes-edge neighbors are excluded at graph-pass time (never become candidates); `dropped`
@@ -599,7 +710,11 @@ function buildRecallSet({ surfaced, sublog, top }) {
     confidence: hit.confidence,
     reason: hit.reason,
   }));
-  return [...high, ...low].slice(0, top);
+  // wave-2 R.7: a caller consuming `recall` must ALWAYS see some suppressed
+  // entries when suppression occurred — the old [...high, ...low].slice(0, top)
+  // cut every sublog entry whenever the surfaced set filled the budget.
+  const sublogSample = low.slice(0, Math.min(50, Math.max(1, top)));
+  return [...high.slice(0, top), ...sublogSample];
 }
 
 function normalizeTop(raw) {
@@ -637,6 +752,9 @@ function run() {
   let node = null;
   let scan = null;
   let all = false;
+  // --working-tree opts the per-file staleness banner into the uncommitted-change union (default
+  // OFF — committed-drift only; the live dirty tree would otherwise banner almost every hit).
+  let includeWorkingTree = false;
   const parts = [];
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--top' && argv[i + 1]) {
@@ -647,6 +765,8 @@ function run() {
       node = argv[++i];
     } else if (argv[i] === '--all') {
       all = true;
+    } else if (argv[i] === '--working-tree') {
+      includeWorkingTree = true;
     } else if (argv[i] === '--json') {
       /* flag */
     } else {
@@ -654,7 +774,7 @@ function run() {
     }
   }
   const rawQuery = parts.join(' ');
-  const result = xrefQuery(rawQuery, { top, node, scan, all });
+  const result = xrefQuery(rawQuery, { top, node, scan, all, includeWorkingTree });
 
   if (json) {
     console.log(JSON.stringify(result, null, 2));
@@ -663,7 +783,7 @@ function run() {
   }
 
   if (!result.ok) {
-    console.log(`⬡ usage: ai xref "<query>" [--node <id>] [--top N] [--scan N] [--all] [--json]`);
+    console.log(`⬡ usage: ai xref "<query>" [--node <id>] [--top N] [--scan N] [--all] [--working-tree] [--json]`);
     process.exitCode = 1;
     return;
   }
@@ -677,10 +797,22 @@ function run() {
 
   console.log(`⬡ xref "${result.query}"${result.node ? ` --node ${result.node}` : ''}`);
   console.log(`  ${struct}`);
+  const fsx = result.fileStaleness;
+  if (fsx && fsx.available && fsx.bannered.length) {
+    console.log(`  per-file staleness: ${fsx.bannered.length} surfaced file(s) behind committed content (read them directly)${fsx.includeWorkingTree ? ' [working-tree union ON]' : ''}`);
+  } else if (fsx && !fsx.available) {
+    console.log(`  per-file staleness: unavailable (${fsx.reason}) — no banner (absent signal != fresh)`);
+  }
   console.log(
     `  surfaces: fts5=${result.counts.fts5} graph=${result.counts.graph} gitnexus=${result.counts.gitnexus} spectrum=${result.counts.spectrum}` +
       `  ->  requested=${result.requestedTop}${result.all ? ' all-scan=true' : ''} merged=${result.counts.merged} deduped=${result.counts.deduped} suppressed=${result.counts.suppressed} writes-dropped=${result.counts.droppedWritesEdge}\n`,
   );
+  const caps = capabilityHits(result.query);
+  if (caps.length) {
+    console.log('  ⚡ YURI ALREADY HAS — capability-first (reach for these before building new code):');
+    for (const { c } of caps) console.log(`     ▸ ${c.id} → ${c.mechanism} [${(c.exports || []).join(', ')}]`);
+    console.log('');
+  }
   for (const h of result.merged) {
     const p = h.provenance;
     const flags =
@@ -690,9 +822,40 @@ function run() {
   }
   if (result.sublog.length) {
     console.log(`  -- low-confidence sub-log (${result.sublog.length} suppressed, no named mismatch) --`);
-    for (const s of result.sublog.slice(0, result.requestedTop)) {
+    // wave-2 R.17: the sublog is a DIAGNOSTIC budget, not a result budget — at
+    // --top 5 the suppressed-hit view stays useful (≥50 rows) instead of 5.
+    for (const s of result.sublog.slice(0, Math.max(result.requestedTop, 50))) {
       console.log(`    ~ ${s.path}  (${s.surface}, conf=${s.confidence.toFixed(3)}, ${s.reason})`);
     }
+  }
+}
+
+// Capability-first surfacing: before the file hits, surface any EXISTING YURI mechanism whose
+// declared `serves` terms match the query — so YURI's own capabilities are not forgotten or
+// rebuilt. Fail-open: any error (missing/invalid registry) returns [] and xref behaves as before.
+function capabilityHits(query) {
+  try {
+    const regPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'capabilities.json');
+    const reg = JSON.parse(fs.readFileSync(regPath, 'utf8'));
+    const norm = (s) => String(s || '').normalize('NFKC').toLowerCase()
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+    const nq = norm(query);
+    const qTokens = new Set(nq.split(' ').filter((t) => t.length > 2));
+    return (reg.capabilities || []).map((c) => {
+      let s = 0;
+      for (const phrase of c.serves || []) {
+        const p = norm(phrase);
+        if (!p) continue;
+        if (nq.includes(p) || p.includes(nq)) s += 3;
+        const pt = p.split(' ').filter((t) => t.length > 2);
+        let ov = 0;
+        for (const t of pt) if (qTokens.has(t)) ov++;
+        if (pt.length) s += ov / pt.length;
+      }
+      return { c, s };
+    }).filter((x) => x.s >= 1.0).sort((a, b) => b.s - a.s).slice(0, 2);
+  } catch {
+    return [];
   }
 }
 

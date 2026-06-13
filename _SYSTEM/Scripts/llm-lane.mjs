@@ -42,6 +42,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
+import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -586,6 +587,39 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const { recallBlock } = await coreOnDispatch({ lane: key, prompt, runId });
   T(`POST_CORE recall=${recallBlock ? recallBlock.length : 0}`);
 
+  // COST-TO-COMPLETION ADMISSION CHECK (DISARMED BY DEFAULT — governs nothing until the owner dual-arms
+  // it: env YURI_COST_ADMISSION_ENFORCE=1 + flag file _SYSTEM/state/cost-admission.armed + a real cap
+  // Marcel has NOT set). While disarmed, costAdmit() returns advisory_pass and this block is a no-op.
+  // When fully armed and the estimate cannot fit the budget, it emits a clear warning; it only REFUSES
+  // dispatch when the owner ALSO opts into hard-block via YURI_COST_ADMISSION_HARDBLOCK=1 (advisory by
+  // default so arming a budget never silently strands a lane mid-session). Wrapped fail-OPEN: any error
+  // in the gate must never break a real dispatch.
+  let __costReservationId = null;
+  try {
+    const armState = costArmState();
+    if (armState.enforced) {
+      const taskSpec = {
+        lane: key,
+        model: cfg.model,
+        promptChars: (prompt || '').length + (recallBlock ? recallBlock.length : 0),
+        steps: Math.max(1, Number(opts.maxIters) ? Math.ceil(Number(opts.maxIters) * 0.5) : 3),
+        reasoning: opts.reasoning || 'medium',
+      };
+      // Use the async actuals path so an armed decision reflects the real ledger (fail-conservative inside).
+      const actuals = await costActualsAsync().catch(() => undefined);
+      const decision = costAdmit(taskSpec, actuals ? { actuals } : {});
+      __costReservationId = decision.reservationId || null;
+      if (!decision.admitted) {
+        const hardBlock = process.env.YURI_COST_ADMISSION_HARDBLOCK === '1';
+        process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=cost_admission_${decision.decision} estUsd=${decision.estimate?.costUsd} cap=${decision.accounting?.capUsd}\n`);
+        if (hardBlock) return fail(3, key, `cost_admission_reject:${decision.decision}:estUsd=${decision.estimate?.costUsd}:cap=${decision.accounting?.capUsd}`);
+      }
+    }
+  } catch (e) {
+    // Fail-open: a cost-gate fault must never kill a live dispatch.
+    process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=cost_admission_gate_error msg=${String(e?.message || e).slice(0, 120)}\n`);
+  }
+
   // GLOBAL LOCAL-INFERENCE ADMISSION CONTROL: any caller (this lane, another main lane, the worker,
   // another machine on a shared slots dir) must hold a concurrency slot before firing a local model.
   // Over threshold -> refuse with a clear signal so the caller enqueues instead of crashing the host.
@@ -674,6 +708,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
     // Release the slot on clean return. fail()/process.exit paths leave a dead-pid lease that the
     // governor's prune() reclaims automatically, so capacity self-heals either way.
     if (__slotId) releaseLocalSlot(__slotId);
+    // Release any held cost reservation (armed path only; __costReservationId is null when disarmed).
+    // Fail-open: never let reservation cleanup break the return.
+    if (__costReservationId) { try { costRelease(__costReservationId); } catch { /* */ } }
   }
 }
 

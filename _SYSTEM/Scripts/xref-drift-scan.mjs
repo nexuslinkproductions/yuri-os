@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: xref-drift-staleness
+// @serves: staleness | drift detection | per-file content hash | index behind HEAD | stale seam | reconcile indexed commit | gitnexus stale
+// @does: READ-ONLY continuity-law drift detector + per-file content-hash staleness reconciliation (committed-drift default, working-tree opt-in) between the gitnexus-indexed commit and HEAD.
+// @use: Reach for this before building any staleness/drift/index-freshness detector over the circuitry graph or query corpus; computeFileStaleSet gives the per-file stale set a consumer can banner.
+// @exports: scanDrift, computeFileStaleSet, gitnexusStaleness, parseFileRef
 /**
  * xref-drift-scan.mjs — mechanize the continuity law as a READ-ONLY drift detector.
  *
@@ -30,7 +35,9 @@
  * Usage:
  *   node _SYSTEM/Scripts/xref-drift-scan.mjs
  *   node _SYSTEM/Scripts/xref-drift-scan.mjs --json
- *   node _SYSTEM/Scripts/xref-drift-scan.mjs --strict     # nonzero exit on any DRIFT
+ *   node _SYSTEM/Scripts/xref-drift-scan.mjs --strict        # nonzero exit on any DRIFT
+ *   node _SYSTEM/Scripts/xref-drift-scan.mjs --file-stale     # per-file content-hash staleness (committed-drift)
+ *   node _SYSTEM/Scripts/xref-drift-scan.mjs --file-stale --working-tree  # + uncommitted union (opt-in)
  *
  * Modeled on the in-repo idiom of yuri-search.mjs (REPO_ROOT resolve, --json/--top flags,
  * CLI guard) and the {repoRoot}-override testability of claim-integrity-gate.mjs.
@@ -159,9 +166,12 @@ export function gitnexusStaleness({ repoRoot }) {
 
   let head = null;
   try {
-    head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim();
-  } catch {
-    return { available: false, reason: 'git rev-parse failed', indexedCommit };
+    // wave-2 R.15: bounded — a hung git (lock, network mount) must not block
+    // the whole xref query. Timeout → indeterminate → fail-closed (stale).
+    head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8', timeout: 5000 }).trim();
+  } catch (err) {
+    const reason = err && err.code === 'ETIMEDOUT' ? 'git-timeout' : 'git rev-parse failed';
+    return { available: false, reason, indexedCommit };
   }
   if (!head) return { available: false, reason: 'empty HEAD', indexedCommit };
 
@@ -170,15 +180,153 @@ export function gitnexusStaleness({ repoRoot }) {
   let behind = null;
   try {
     const out = execFileSync('git', ['rev-list', '--count', `${indexedCommit}..HEAD`], {
-      cwd: repoRoot, encoding: 'utf8',
+      cwd: repoRoot, encoding: 'utf8', timeout: 5000,
     }).trim();
     behind = parseInt(out, 10);
     if (!Number.isFinite(behind)) behind = null;
-  } catch {
+  } catch (err) {
+    // wave-2 R.15: timeout → indeterminate, surface it (fail-closed downstream).
+    if (err && err.code === 'ETIMEDOUT') return { available: false, reason: 'git-timeout', indexedCommit };
     // Indexed commit unknown to this repo (e.g. detached fixture) — stale but delta unknown.
     behind = null;
   }
   return { available: true, stale: true, behind, indexedCommit, head };
+}
+
+// Normalize a repo-relative path for the stale set: forward slashes, no leading "./".
+// Git already emits repo-relative forward-slash paths, but a caller may pass an absolute path.
+function normalizeRel(repoRoot, p) {
+  if (!p) return p;
+  let rel = String(p);
+  if (path.isAbsolute(rel) && rel.startsWith(repoRoot)) rel = path.relative(repoRoot, rel);
+  return rel.split(path.sep).join('/').replace(/^\.\//, '');
+}
+
+// Run a bounded git command in repoRoot. Returns { ok, out } — NEVER throws. A timeout / non-git
+// dir / unknown commit yields { ok:false } so the caller fails-closed (treats the result as
+// indeterminate) rather than silently producing an empty "nothing is stale" answer.
+function gitCmd(repoRoot, args) {
+  try {
+    const out = execFileSync('git', args, { cwd: repoRoot, encoding: 'utf8', timeout: 5000 });
+    return { ok: true, out };
+  } catch (err) {
+    return { ok: false, reason: err && err.code === 'ETIMEDOUT' ? 'git-timeout' : 'git-failed' };
+  }
+}
+
+/**
+ * computeFileStaleSet — per-file CONTENT reconciliation between the gitnexus-indexed commit and the
+ * working state. Returns the set of repo-relative paths that have CHANGED since the index was built,
+ * so a consumer (xref-query) can warn that a SPECIFIC FILE (not just the whole index) is behind.
+ *
+ * SCOPE (the load-bearing default, per the staleness-extension build contract):
+ *   - DEFAULT (`includeWorkingTree:false`)  -> COMMITTED-DRIFT ONLY: `git diff --name-only
+ *       <indexedCommit>..HEAD`. This is the only sound default in this repo: the LIVE working tree
+ *       carries ~220 dirty files (INCLUDING xref-drift-scan.mjs itself), so unioning the working
+ *       tree in would mark almost everything stale and SELF-DEFEAT any decisive test (the file under
+ *       test is always "dirty against itself"). Committed drift is precise + reproducible: "the
+ *       file's COMMITTED content changed after the index was cut."
+ *   - OPT-IN (`includeWorkingTree:true`)     -> additionally unions uncommitted change: staged
+ *       (`git diff --name-only --cached`), unstaged (`git diff --name-only`), and untracked
+ *       (`git ls-files --others --exclude-standard`). Use only against a CONTROLLED tree.
+ *
+ * CONTENT-HASH layer: a name appearing in the committed diff is the primary signal. For a file the
+ * diff did NOT list but whose blob the caller wants verified (the `verifyPaths` set, e.g. a node's
+ * files), we compare the indexed-commit blob hash (`git rev-parse <indexedCommit>:<path>`) to the
+ * current on-disk hash (`git hash-object <path>`). A mismatch is content drift even if the name-diff
+ * missed it. This makes the reconciliation per-file CONTENT, not just a name list. The hash leg is
+ * bounded to `verifyPaths` (O(node-files)), never a whole-tree hash sweep.
+ *
+ * FAIL-CLOSED: if the indexed commit is missing/unknown to the repo, or the committed-diff git call
+ * fails, returns { available:false } with an empty set + a reason — the consumer must NOT read "no
+ * stale files" as proven-fresh (an absent signal is not a fresh signal).
+ *
+ * @param {object} opts
+ * @param {string} opts.repoRoot
+ * @param {string} [opts.indexedCommit]      defaults to the .gitnexus marker commit
+ * @param {boolean} [opts.includeWorkingTree=false]  OPT-IN working-tree union (default OFF)
+ * @param {string[]} [opts.verifyPaths]      repo-relative files to additionally content-hash verify
+ * @returns {{available:boolean, includeWorkingTree:boolean, indexedCommit:(string|null), staleFiles:string[], reason?:string}}
+ */
+export function computeFileStaleSet(opts = {}) {
+  const repoRoot = opts.repoRoot || DEFAULT_REPO_ROOT;
+  const includeWorkingTree = opts.includeWorkingTree === true;
+  const verifyPaths = Array.isArray(opts.verifyPaths) ? opts.verifyPaths : [];
+
+  // Resolve the indexed commit: explicit override, else the gitnexus marker.
+  let indexedCommit = opts.indexedCommit || null;
+  if (!indexedCommit) {
+    const metaPath = path.join(repoRoot, GITNEXUS_META_REL);
+    try {
+      if (fs.existsSync(metaPath)) {
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+        indexedCommit = meta.lastCommit || meta.indexedCommit || null;
+      }
+    } catch { indexedCommit = null; }
+  }
+  if (!indexedCommit) {
+    return { available: false, includeWorkingTree, indexedCommit: null, staleFiles: [], reason: 'no indexed commit (marker absent)' };
+  }
+
+  // Verify the indexed commit is known to THIS repo before diffing against it (a marker pinned to a
+  // commit foreign to the repo — e.g. a detached fixture — must fail-closed, not silently empty).
+  const known = gitCmd(repoRoot, ['cat-file', '-e', `${indexedCommit}^{commit}`]);
+  if (!known.ok) {
+    return { available: false, includeWorkingTree, indexedCommit, staleFiles: [], reason: 'indexed commit unknown to repo' };
+  }
+
+  const stale = new Set();
+
+  // (1) committed drift: indexedCommit..HEAD (ALWAYS — the default signal).
+  const committed = gitCmd(repoRoot, ['diff', '--name-only', `${indexedCommit}..HEAD`]);
+  if (!committed.ok) {
+    return { available: false, includeWorkingTree, indexedCommit, staleFiles: [], reason: committed.reason };
+  }
+  for (const line of committed.out.split('\n')) {
+    const f = line.trim();
+    if (f) stale.add(normalizeRel(repoRoot, f));
+  }
+
+  // (2) OPT-IN working-tree union (default OFF).
+  if (includeWorkingTree) {
+    for (const args of [
+      ['diff', '--name-only', '--cached'],                 // staged
+      ['diff', '--name-only'],                             // unstaged
+      ['ls-files', '--others', '--exclude-standard'],      // untracked
+    ]) {
+      const r = gitCmd(repoRoot, args);
+      if (!r.ok) continue; // a single sub-list failing is soft; committed drift already captured
+      for (const line of r.out.split('\n')) {
+        const f = line.trim();
+        if (f) stale.add(normalizeRel(repoRoot, f));
+      }
+    }
+  }
+
+  // (3) per-file CONTENT-HASH verification for the requested files — catches blob drift the
+  //     name-diff missed. Bounded to verifyPaths (O(node-files)), never a tree sweep.
+  for (const raw of verifyPaths) {
+    const rel = normalizeRel(repoRoot, raw);
+    if (!rel || stale.has(rel)) continue; // already flagged by the name-diff
+    const abs = path.join(repoRoot, rel);
+    if (!fs.existsSync(abs)) continue; // a missing file is the existence check's job, not content drift
+    const indexedBlob = gitCmd(repoRoot, ['rev-parse', `${indexedCommit}:${rel}`]);
+    if (!indexedBlob.ok) {
+      // The path did not exist at the indexed commit -> it is NEW since indexing -> content drift.
+      stale.add(rel);
+      continue;
+    }
+    const currentBlob = gitCmd(repoRoot, ['hash-object', abs]);
+    if (!currentBlob.ok) continue; // cannot hash -> indeterminate, don't false-flag
+    if (indexedBlob.out.trim() !== currentBlob.out.trim()) stale.add(rel);
+  }
+
+  return {
+    available: true,
+    includeWorkingTree,
+    indexedCommit,
+    staleFiles: [...stale].sort(),
+  };
 }
 
 export function scanDrift(opts = {}) {
@@ -187,6 +335,11 @@ export function scanDrift(opts = {}) {
   const phantomOk = opts.phantomOk || PHANTOM_OK;
   const checkGitnexus = opts.checkGitnexus !== false;
   const checkClaims = opts.checkClaims !== false;
+  // Per-file CONTENT-HASH staleness reconciliation. OFF by default (opt-in) so the existing
+  // checkGitnexus:false scan path makes ZERO git calls and the legacy tests stay deterministic.
+  // includeWorkingTree is the OPT-IN working-tree union (default OFF — the dirty-tree self-defeat).
+  const checkFileStale = opts.checkFileStale === true;
+  const includeWorkingTree = opts.includeWorkingTree === true;
   const homeRoot = opts.homeRoot || os.homedir();
 
   const report = {
@@ -198,6 +351,7 @@ export function scanDrift(opts = {}) {
     lines: [],     // Evidence Contract grammar lines (deterministic, machine-parseable)
     findings: [],  // structured per-node findings
     gitnexus: null,
+    fileStale: null, // per-file content-hash reconciliation result (null unless checkFileStale)
   };
 
   if (!fs.existsSync(graphPath)) {
@@ -219,6 +373,11 @@ export function scanDrift(opts = {}) {
 
   const nodes = Array.isArray(graph.nodes) ? graph.nodes : [];
   report.nodes = nodes.length;
+
+  // Collect every real (non-glob, non-home, non-line-suffixed) repo-relative file path for the
+  // optional per-file content-hash verify leg. Globs / ~/ seams / line suffixes are out of scope
+  // for blob hashing (the existence + path:line legs already cover those).
+  const verifyPaths = new Set();
 
   for (const node of nodes) {
     const id = node && node.id ? String(node.id) : '<no-id>';
@@ -245,6 +404,11 @@ export function scanDrift(opts = {}) {
         const { filePath, line, lineEnd, hasLine } = parseFileRef(ref);
         const matches = resolveRef(repoRoot, filePath, homeRoot);
         const present = matches.length > 0 ? 1 : 0;
+        // Eligible for the content-hash verify leg: a plain repo-relative path (not a glob, not a
+        // ~/ home seam). Line-suffixed refs verify on filePath (the suffix is a seam, not a blob).
+        if (checkFileStale && filePath && !filePath.includes('*') && !filePath.startsWith('~')) {
+          verifyPaths.add(filePath);
+        }
         report.lines.push(`FILE_COUNT node=${id} file=${filePath} count=${present}`);
         if (!present) {
           nodeDrift = true;
@@ -315,6 +479,22 @@ export function scanDrift(opts = {}) {
     }
   }
 
+  // (e) per-file content-hash staleness reconciliation — opt-in, advisory. NEVER escalates to
+  // nodeDrift (drift = the graph cites a wrong/missing seam; staleness = the index is behind a still-
+  // correct seam — different axes). A stale file is surfaced so the consumer can read it directly.
+  if (checkFileStale) {
+    const fs2 = computeFileStaleSet({ repoRoot, includeWorkingTree, verifyPaths: [...verifyPaths] });
+    report.fileStale = fs2;
+    if (!fs2.available) {
+      report.lines.push(`FILE_STALE_UNAVAILABLE reason="${fs2.reason}"`);
+    } else {
+      report.lines.push(
+        `FILE_STALE_SUMMARY count=${fs2.staleFiles.length} indexed=${(fs2.indexedCommit || '').slice(0, 8)} workingTree=${fs2.includeWorkingTree}`,
+      );
+      for (const f of fs2.staleFiles) report.lines.push(`FILE_STALE file=${f}`);
+    }
+  }
+
   report.ok = report.drift === 0;
   report.lines.push(`XREF_DRIFT summary nodes=${report.nodes} pass=${report.pass} drift=${report.drift}`);
   return report;
@@ -324,8 +504,12 @@ function run() {
   const argv = process.argv.slice(2);
   const json = argv.includes('--json');
   const strict = argv.includes('--strict');
+  // --file-stale enables the per-file content-hash reconciliation leg (committed-drift by default).
+  // --working-tree additionally unions uncommitted change — OPT-IN, default OFF (dirty-tree guard).
+  const checkFileStale = argv.includes('--file-stale');
+  const includeWorkingTree = argv.includes('--working-tree');
 
-  const report = scanDrift({});
+  const report = scanDrift({ checkFileStale, includeWorkingTree });
 
   if (json) {
     console.log(JSON.stringify(report, null, 2));

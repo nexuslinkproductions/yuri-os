@@ -54,6 +54,13 @@ export const EVIDENCE_KIND = Object.freeze({
   LEXICAL: 'lexical-only',
 });
 
+// wave-2 R.18: the single token floor shared by FTS5 buildMatch (yuri-search.mjs)
+// and xref tokenize (xref-query.mjs). Before unification, 2-char tokens (ai, ml,
+// db, id) hit FTS5 but were invisible to the graph/spectrum/gitnexus legs — the
+// surfaces disagreed about what a query even contained. 2-char lookups remain
+// possible via FTS5 phrase search ("ai").
+export const TOKENIZE_MIN_LENGTH = 3;
+
 // Edge kinds that count as a shared-mechanism sibling. `writes` is deliberately absent:
 // a verified data-flow write is NOT evidence of a shared mechanism.
 const SIBLING_EDGE_KINDS = new Set(['calls', 'reads']);
@@ -142,6 +149,25 @@ export function scoreHit(input = {}, knobs = XREF_PROVENANCE_KNOBS) {
   }
 }
 
+// ---------------------------------------------------------------------------------------------------
+// STRUCTURAL-ELIGIBILITY FIREWALL (wave-2 R.3, extracted as the shared utility):
+// only real source files can be structural siblings — prose/data/transcripts and
+// archived paths must never surface at structural confidence. .py/.rs ARE real
+// source here (gitnexus parses them); propagation-scan keeps its deliberately
+// narrower JS-only local set (call-edge origination domain).
+const XREF_STRUCTURAL_EXT = new Set(['.mjs', '.js', '.cjs', '.ts', '.tsx', '.jsx', '.py', '.rs']);
+const XREF_PROTECTED_PREFIXES = ['backend/data/', '.claude/state/', '.claude/history/', '.env'];
+const XREF_ARCHIVED_SEGMENTS = ['/archive/', '/legacy-purge'];
+export function structuralEligible(p) {
+  const rel = String(p || '').replace(/\\/g, '/');
+  const dot = rel.lastIndexOf('.');
+  const ext = dot >= 0 ? rel.slice(dot).toLowerCase() : '';
+  if (!XREF_STRUCTURAL_EXT.has(ext)) return false;
+  if (XREF_PROTECTED_PREFIXES.some((pre) => rel === pre || rel.startsWith(pre))) return false;
+  if (XREF_ARCHIVED_SEGMENTS.some((seg) => rel.includes(seg))) return false;
+  return true;
+}
+
 /**
  * gateHit — the mechanism-fit-theater gate. A low-confidence hit with no named mismatch is suppressed.
  *
@@ -176,6 +202,25 @@ const PROVENANCE_ALLOWED_KEYS = new Set([
   'stale',
   'mismatch',
   'structuralUnavailable',
+  // wave-2 R.2: honest structural labeling — true when a structural hit's rank
+  // comes from process/PageRank, NOT per-query relevance (uncorroborated by the
+  // lexical leg). Deliberate schema extension; boolean-validated below.
+  'queryInvariant',
+  // staleness-extension (2026-06-13): a provenance marker for a SYNTHESIZED / HEURISTIC graph hop —
+  // an edge a consumer (energy-gate, propagation backlog) should DISCOUNT because it was guessed,
+  // not verified. Deliberate, boolean-validated schema extension; closed-schema-safe (additive key).
+  //
+  // DISTINCT FROM `queryInvariant` (the flag main's xref-query carries on a gitnexus-structural hit
+  // ranked by PageRank rather than per-query relevance): that flag is about QUERY-RELEVANCE provenance
+  // of a REAL structural edge; `heuristicEdge` is about EDGE-ORIGIN TRUST (verified vs synthesized hop).
+  // The brief mandated reusing queryInvariant if it already encoded this — it does not (different axis),
+  // so this is a genuine new field, not a near-synonym duplicate.
+  //
+  // *** FORWARD-WIRING — NO LIVE CONSUMER YET. *** No runtime path sets or reads heuristicEdge today
+  // (verified: grep of _SYSTEM/Scripts + .claude/hooks shows the energy-gate does not consume xref/
+  // propagation provenance at all). This is the schema seam so a future energy-gate hop-discount can
+  // attach without re-opening the CLOSED schema later. Do NOT claim it as a live staleness fix.
+  'heuristicEdge',
 ]);
 const PROVENANCE_REQUIRED_KEYS = ['evidenceKind', 'confidence'];
 const EVIDENCE_KIND_VALUES = new Set(Object.values(EVIDENCE_KIND));
@@ -237,8 +282,15 @@ export function validateHit(hit = {}) {
       if ('stale' in provenance && typeof provenance.stale !== 'boolean') {
         errors.push('provenance.stale must be a boolean');
       }
+      if ('queryInvariant' in provenance && typeof provenance.queryInvariant !== 'boolean') {
+        errors.push('provenance.queryInvariant must be a boolean when present');
+      }
       if ('structuralUnavailable' in provenance && typeof provenance.structuralUnavailable !== 'boolean') {
         errors.push('provenance.structuralUnavailable must be a boolean');
+      }
+      // staleness-extension: heuristicEdge is boolean when present (forward-wiring, no live consumer).
+      if ('heuristicEdge' in provenance && typeof provenance.heuristicEdge !== 'boolean') {
+        errors.push('provenance.heuristicEdge must be a boolean when present');
       }
       if ('mismatch' in provenance && (typeof provenance.mismatch !== 'string' || provenance.mismatch.length < 1)) {
         errors.push('provenance.mismatch must be a non-empty string');

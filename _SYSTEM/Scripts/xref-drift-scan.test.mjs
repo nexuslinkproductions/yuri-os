@@ -3,7 +3,8 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { scanDrift, parseFileRef, gitnexusStaleness } from './xref-drift-scan.mjs';
+import { scanDrift, parseFileRef, gitnexusStaleness, computeFileStaleSet } from './xref-drift-scan.mjs';
+import { makeScratchRepo } from './xref-test-scratch.mjs';
 
 function tempRepo() {
   return mkdtempSync(path.join(os.tmpdir(), 'yuri-xref-drift-'));
@@ -309,4 +310,177 @@ test('gitnexus stale detected from marker (behind unknown in scratch repo)', () 
   const gx = gitnexusStaleness({ repoRoot: root });
   // No git in scratch => git rev-parse fails => available:false (fail-soft). Assert no throw + shape.
   assert.equal(typeof gx.available, 'boolean');
+});
+
+// =================================================================================================
+// computeFileStaleSet — per-file content-hash reconciliation (staleness-extension)
+// All tests pin to a CONTROLLED git scratch repo (NEVER the live dirty tree, which has ~220 dirty
+// files incl. xref-drift-scan.mjs itself — that self-defeats the assertion).
+// =================================================================================================
+
+test('computeFileStaleSet: committed drift between indexedCommit and HEAD is detected', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 1;\n');
+    repo.writeFile('_SYSTEM/Scripts/b.mjs', 'export const b = 1;\n');
+    const c0 = repo.commit('init a + b');
+    // The index was cut at c0. Now change a.mjs and commit -> a.mjs is COMMITTED drift.
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 2; // changed\n');
+    repo.commit('change a');
+
+    const r = computeFileStaleSet({ repoRoot: repo.root, indexedCommit: c0 });
+    assert.equal(r.available, true);
+    assert.deepEqual(r.staleFiles, ['_SYSTEM/Scripts/a.mjs'], 'only the committed-changed file is stale');
+    assert.equal(r.includeWorkingTree, false);
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: DEFAULT excludes the working tree (uncommitted change is NOT stale)', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 1;\n');
+    const c0 = repo.commit('init a');
+    // Dirty the working tree WITHOUT committing.
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 999; // uncommitted\n');
+
+    const r = computeFileStaleSet({ repoRoot: repo.root, indexedCommit: c0 });
+    assert.equal(r.available, true);
+    // HEAD == indexedCommit (no new commit) and working tree is excluded by default => empty.
+    assert.deepEqual(r.staleFiles, [], 'uncommitted change must NOT be flagged by default (dirty-tree guard)');
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: OPT-IN includeWorkingTree unions the uncommitted change', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 1;\n');
+    const c0 = repo.commit('init a');
+    repo.writeFile('_SYSTEM/Scripts/a.mjs', 'export const a = 999; // uncommitted\n');
+    repo.writeFile('_SYSTEM/Scripts/untracked.mjs', 'export const u = 1;\n'); // untracked too
+
+    const r = computeFileStaleSet({ repoRoot: repo.root, indexedCommit: c0, includeWorkingTree: true });
+    assert.equal(r.available, true);
+    assert.equal(r.includeWorkingTree, true);
+    assert.ok(r.staleFiles.includes('_SYSTEM/Scripts/a.mjs'), 'opt-in must catch the unstaged change');
+    assert.ok(r.staleFiles.includes('_SYSTEM/Scripts/untracked.mjs'), 'opt-in must catch the untracked file');
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: content-hash leg flags a verifyPath that is NEW since the indexed commit', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/old.mjs', 'export const old = 1;\n');
+    const c0 = repo.commit('init old');
+    // Add a NEW file and commit. It is in the name-diff AND did-not-exist-at-index (content drift).
+    repo.writeFile('_SYSTEM/Scripts/new.mjs', 'export const fresh = 1;\n');
+    repo.commit('add new');
+
+    const r = computeFileStaleSet({
+      repoRoot: repo.root,
+      indexedCommit: c0,
+      verifyPaths: ['_SYSTEM/Scripts/new.mjs', '_SYSTEM/Scripts/old.mjs'],
+    });
+    assert.equal(r.available, true);
+    assert.ok(r.staleFiles.includes('_SYSTEM/Scripts/new.mjs'), 'a file new since index is content drift');
+    assert.ok(!r.staleFiles.includes('_SYSTEM/Scripts/old.mjs'), 'an unchanged file is NOT stale');
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: identical blob is NOT stale (content-hash equality, no false positive)', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/stable.mjs', 'export const s = 1;\n');
+    const c0 = repo.commit('init stable');
+    // Make an UNRELATED commit so HEAD advances but stable.mjs is byte-identical to the indexed blob.
+    repo.writeFile('_SYSTEM/Scripts/other.mjs', 'export const o = 1;\n');
+    repo.commit('add other (stable untouched)');
+
+    const r = computeFileStaleSet({
+      repoRoot: repo.root,
+      indexedCommit: c0,
+      verifyPaths: ['_SYSTEM/Scripts/stable.mjs'],
+    });
+    assert.equal(r.available, true);
+    assert.ok(!r.staleFiles.includes('_SYSTEM/Scripts/stable.mjs'), 'byte-identical file must not be flagged');
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: FAIL-CLOSED when the marker is absent (no indexed commit)', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('x.mjs', 'x\n');
+    repo.commit('init');
+    // No .gitnexus/meta.json marker and no indexedCommit override.
+    const r = computeFileStaleSet({ repoRoot: repo.root });
+    assert.equal(r.available, false, 'absent marker must fail-closed, not return an empty fresh set');
+    assert.deepEqual(r.staleFiles, []);
+    assert.match(r.reason, /no indexed commit/);
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: FAIL-CLOSED when indexed commit is unknown to the repo', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('x.mjs', 'x\n');
+    repo.commit('init');
+    const r = computeFileStaleSet({
+      repoRoot: repo.root,
+      indexedCommit: '0000000000000000000000000000000000000000',
+    });
+    assert.equal(r.available, false, 'a foreign commit must fail-closed');
+    assert.match(r.reason, /unknown to repo/);
+  } finally { repo.cleanup(); }
+});
+
+test('computeFileStaleSet: reads the indexed commit from the .gitnexus marker when no override', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/m.mjs', 'export const m = 1;\n');
+    const c0 = repo.commit('init m');
+    // Pin the marker to c0, then advance HEAD with a change to m.mjs.
+    repo.writeMeta(c0);
+    repo.writeFile('_SYSTEM/Scripts/m.mjs', 'export const m = 2;\n');
+    repo.commit('change m + write marker');
+
+    const r = computeFileStaleSet({ repoRoot: repo.root }); // no indexedCommit -> marker
+    assert.equal(r.available, true);
+    assert.equal(r.indexedCommit, c0);
+    assert.ok(r.staleFiles.includes('_SYSTEM/Scripts/m.mjs'));
+  } finally { repo.cleanup(); }
+});
+
+// --- scanDrift integration: checkFileStale wiring emits FILE_STALE evidence lines ---
+
+test('scanDrift: checkFileStale emits FILE_STALE lines for a committed-drifted node file', () => {
+  const repo = makeScratchRepo();
+  try {
+    repo.writeFile('_SYSTEM/Scripts/node-file.mjs', 'export const x = 1;\n');
+    const graphPath = repo.writeGraph([
+      { id: 'n1', label: 'N', layer: 'L', files: ['_SYSTEM/Scripts/node-file.mjs'], triggeredBy: '', description: '' },
+    ]);
+    const c0 = repo.commit('init node file + graph');
+    repo.writeMeta(c0);
+    // Drift the node file in a NEW commit.
+    repo.writeFile('_SYSTEM/Scripts/node-file.mjs', 'export const x = 2; // drifted\n');
+    repo.commit('drift node file');
+
+    const r = scanDrift({ repoRoot: repo.root, graphPath, checkGitnexus: false, checkFileStale: true });
+    // File still EXISTS, so drift (missing-seam) stays 0; staleness is a separate axis.
+    assert.equal(r.drift, 0, 'a stale-but-present file is not missing-seam drift');
+    assert.ok(r.fileStale && r.fileStale.available, 'fileStale leg should be available');
+    assert.ok(r.lines.includes('FILE_STALE file=_SYSTEM/Scripts/node-file.mjs'), 'emits the FILE_STALE evidence line');
+    assert.ok(r.lines.some((l) => l.startsWith('FILE_STALE_SUMMARY count=')));
+  } finally { repo.cleanup(); }
+});
+
+test('scanDrift: default path makes ZERO git calls (checkFileStale OFF) — fileStale stays null', () => {
+  const root = tempRepo();
+  writeFixture(root, '_SYSTEM/Scripts/present.mjs', 'export const x = 1;\n');
+  const graphPath = writeGraph(root, [
+    { id: 'p', label: 'P', layer: 'L', files: ['_SYSTEM/Scripts/present.mjs'], triggeredBy: '', description: '' },
+  ]);
+  // No git in this plain temp dir; checkFileStale OFF must NOT attempt git -> no throw, null fileStale.
+  const r = scanDrift({ repoRoot: root, graphPath, checkGitnexus: false });
+  assert.equal(r.fileStale, null, 'fileStale must be null when the leg is not requested');
+  assert.equal(r.drift, 0);
 });
