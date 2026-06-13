@@ -82,6 +82,8 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const LIVE_REPO_ROOT = REPO_ROOT;
 
 const INDEX_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'search-index.db');
+// AFL organ store — alpha factors surface alongside code/corpus hits (PASS 1b). Fail-soft when absent.
+const ALPHA_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'alpha-factors.db');
 const GRAPH_PATH = path.join(REPO_ROOT, '02_RESOURCES', 'RESEARCH', 'yuri-circuitry-graph.json');
 // wave-2 R.12: spectrum doc auto-discovered by filename pattern — update the
 // spectrum doc's date suffix and this leg points at the new version automatically
@@ -214,6 +216,69 @@ function passFts5(rawQuery, match, candidates = FTS5_CANDIDATE_FLOOR) {
       return { hits: out, available: false, reason: 'db-error', error: err.code || msg.slice(0, 80) };
     }
     // genuine MATCH syntax error — a query problem, not a DB problem: soft-fail.
+    return { hits: out, available: true, reason: 'syntax-error' };
+  } finally {
+    db.close();
+  }
+}
+
+// ============================================================================================
+// PASS 1b — Alpha Factor Library (AFL organ) FTS5 / BM25 search over alpha-factors.db
+// ============================================================================================
+// Surfaces registered alpha factors alongside code/corpus hits. Lexical-only (FTS5/BM25): a factor
+// name/desc match is a lexical signal, same confidence treatment as passFts5 — never structural proof.
+// Fail-soft: if the AFL DB is absent (organ not built) the leg is available:false and surfaces nothing
+// (an absent organ is not an error for a general xref query). Mirrors passFts5's busy-vs-syntax split.
+function passAlphaFactors(rawQuery, candidates = FTS5_CANDIDATE_FLOOR) {
+  const out = [];
+  if (!fs.existsSync(ALPHA_DB_PATH)) {
+    return { hits: out, available: false, reason: 'alpha-factors.db not built' };
+  }
+  const tokens = tokenize(rawQuery);
+  if (!tokens.length) return { hits: out, available: true, reason: 'no tokens' };
+  // OR-join QUOTED tokens for recall over the small factor table. Quoting neutralizes FTS5 operator
+  // chars (a slug like "momentum-12m" or a stray quote) so user input can't break or inject MATCH.
+  const match = tokens.map((t) => `"${t.replace(/"/g, '')}"`).join(' OR ');
+
+  let db;
+  try {
+    db = new Database(ALPHA_DB_PATH, { readonly: true });
+  } catch (err) {
+    return { hits: out, available: false, reason: `alpha db open failed: ${err.message}` };
+  }
+  try {
+    const unlimited = candidates === null || candidates === Infinity;
+    const sql = `SELECT f.id AS id, f.name AS name, f.category AS cat, f.status AS status,
+                        snippet(alpha_factors_fts, 2, '[', ']', '...', 12) AS snip,
+                        bm25(alpha_factors_fts, 2.0, 1.5, 1.0) AS rank
+                 FROM alpha_factors_fts
+                 JOIN alpha_factors f ON f.rowid = alpha_factors_fts.rowid
+                 WHERE alpha_factors_fts MATCH ? ORDER BY rank${unlimited ? '' : ' LIMIT ?'}`;
+    const rows = unlimited ? db.prepare(sql).all(match) : db.prepare(sql).all(match, candidates);
+    // bm25 ascending = best first; map ordered position to a 0..1 lexical signal (same as passFts5).
+    const n = rows.length || 1;
+    rows.forEach((r, i) => {
+      const lexicalScore = (n - i) / n;
+      out.push({
+        rawPath: `alpha-factor:${r.id}`,
+        snippet: `alpha factor "${r.name}" [${r.cat}/${r.status}] — ${String(r.snip || '').replace(/\s+/g, ' ').trim()}`.slice(0, 200),
+        lexicalScore,
+        surface: EVIDENCE_KIND.LEXICAL,
+        sourceLabel: 'alpha-factor',
+      });
+    });
+    let totalMatches = null;
+    try {
+      totalMatches = db.prepare('SELECT COUNT(*) c FROM alpha_factors_fts WHERE alpha_factors_fts MATCH ?').get(match).c;
+    } catch { /* null — never 0-as-lie */ }
+    return { hits: out, available: true, totalMatches };
+  } catch (err) {
+    const msg = String((err && err.message) || err);
+    const busyOrRuntime = (err && (err.code === 'SQLITE_BUSY' || err.code === 'SQLITE_IOERR'))
+      || /database is locked|disk i\/o error/i.test(msg);
+    if (busyOrRuntime) {
+      return { hits: out, available: false, reason: 'db-error', error: err.code || msg.slice(0, 80) };
+    }
     return { hits: out, available: true, reason: 'syntax-error' };
   } finally {
     db.close();
@@ -605,8 +670,9 @@ export function xrefQuery(rawQuery, opts = {}) {
   });
   const fileStaleSet = new Set(fileStaleInfo.available ? fileStaleInfo.staleFiles : []);
 
-  // Run the four bounded passes.
+  // Run the bounded passes.
   const fts5 = passFts5(rawQuery, match, plan.fts5);
+  const alpha = passAlphaFactors(rawQuery, plan.fts5);
   const graphRes = passGraph(tokens, nodeId, graph, plan.graph);
   const gitnexus = passGitnexus(rawQuery, { gitnexusStale, limit: plan.gitnexus });
   const spectrum = passSpectrum(tokens, plan.spectrum);
@@ -619,6 +685,7 @@ export function xrefQuery(rawQuery, opts = {}) {
 
   const candidates = [
     ...fts5.hits,
+    ...alpha.hits,
     ...graphRes.hits,
     ...gitnexus.hits,
     ...spectrum.hits,
@@ -668,6 +735,10 @@ export function xrefQuery(rawQuery, opts = {}) {
       fts5: fts5.hits.length,
       // wave-2 R.5: true corpus totals (null = count unavailable, never 0-as-lie)
       fts5TotalMatches: fts5.totalMatches ?? null,
+      // AFL organ leg (PASS 1b) — alpha factors surfaced alongside code/corpus hits.
+      alphaFactors: alpha.hits.length,
+      alphaFactorsTotalMatches: alpha.totalMatches ?? null,
+      alphaFactorsAvailable: alpha.available === true,
       graph: graphRes.hits.length,
       gitnexus: gitnexus.hits.length,
       spectrum: spectrum.hits.length,
@@ -684,6 +755,15 @@ export function xrefQuery(rawQuery, opts = {}) {
       droppedWritesEdge: (graphRes.writesExcluded || 0) + dropped,
     },
     merged: surfaced,
+    // AFL dedicated surface (red-team fix: alpha factors are structurally drowned in the global
+    // top-N merge — only ~20% of a query's matches can ever surface there). This is a SEPARATE,
+    // honestly-labeled lexical lane (NOT gamed into the provenance-gated merge): the top alpha
+    // factors for the query, always visible regardless of how the code/corpus merge fills up.
+    alphaTop: alpha.hits.slice(0, 5).map((h) => ({
+      id: String(h.rawPath || '').replace(/^alpha-factor:/, ''),
+      snippet: h.snippet,
+      lexicalScore: h.lexicalScore,
+    })),
     sublog,
     recall,
   };
@@ -804,13 +884,20 @@ function run() {
     console.log(`  per-file staleness: unavailable (${fsx.reason}) — no banner (absent signal != fresh)`);
   }
   console.log(
-    `  surfaces: fts5=${result.counts.fts5} graph=${result.counts.graph} gitnexus=${result.counts.gitnexus} spectrum=${result.counts.spectrum}` +
+    `  surfaces: fts5=${result.counts.fts5} alpha=${result.counts.alphaFactors} graph=${result.counts.graph} gitnexus=${result.counts.gitnexus} spectrum=${result.counts.spectrum}` +
       `  ->  requested=${result.requestedTop}${result.all ? ' all-scan=true' : ''} merged=${result.counts.merged} deduped=${result.counts.deduped} suppressed=${result.counts.suppressed} writes-dropped=${result.counts.droppedWritesEdge}\n`,
   );
   const caps = capabilityHits(result.query);
   if (caps.length) {
     console.log('  ⚡ YURI ALREADY HAS — capability-first (reach for these before building new code):');
     for (const { c } of caps) console.log(`     ▸ ${c.id} → ${c.mechanism} [${(c.exports || []).join(', ')}]`);
+    console.log('');
+  }
+  // AFL dedicated lane — top alpha factors for the query, always shown when present (they would
+  // otherwise be drowned in the global merge). Lexical recall, not structural confidence.
+  if (Array.isArray(result.alphaTop) && result.alphaTop.length) {
+    console.log(`  📈 ALPHA FACTORS (${result.counts.alphaFactors} match${result.counts.alphaFactors === 1 ? '' : 'es'}; top ${result.alphaTop.length}):`);
+    for (const a of result.alphaTop) console.log(`     ▸ ${a.id} — ${a.snippet}`);
     console.log('');
   }
   for (const h of result.merged) {
