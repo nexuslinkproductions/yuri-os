@@ -43,6 +43,12 @@ export const KAGAMI_EVENT_KINDS = Object.freeze([
   'PROOF_ARTIFACT_PROMOTED',
   'COST_GOVERNOR_TRIPPED',
   'HANDOFF_RECORDED',
+  // NANO SWARM lease lifecycle (owner-approved 2026-06-13) — the audit trail of work-unit leases.
+  'LEASE_CLAIMED',
+  'LEASE_RELEASED',
+  'LEASE_RENEWED',
+  'LEASE_EXPIRED',
+  'LEASE_CONTENDED',
 ]);
 
 export const KAGAMI_DOMAIN_ROLES = Object.freeze({

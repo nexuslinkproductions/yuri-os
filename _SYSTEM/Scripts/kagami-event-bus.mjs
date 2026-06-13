@@ -89,6 +89,35 @@ export function readKagamiEvents(options = {}) {
   return limit > 0 ? rows.slice(-limit) : rows;
 }
 
+// Read events AFTER a cursor, oldest-first — the per-nano self-refresh + swarm-board tail primitive.
+// cursor = { afterId, afterTs, lane, kind, limit }. afterId gives an EXACT position (slice after that
+// event); afterTs filters by ISO timestamp (lexicographic compare is chronological for ISO-8601).
+// If afterId is given but not found (e.g. the log was rotated past it) we fall back to afterTs when
+// present, else start from the beginning — fail-open to VISIBILITY; callers pass BOTH afterId+afterTs
+// and dedup by id so a rotation can't silently drop or re-action events. `limit` here is FIRST-N
+// after the cursor (chronological), the opposite of readKagamiEvents' last-N. Scale note: this still
+// reads the whole file (see readKagamiEvents); an offset index + log rotation is the follow-up before
+// the swarm grows past a handful of nanos.
+export function readKagamiEventsSince(cursor = {}, options = {}) {
+  const all = readKagamiEvents({ root: options.root });
+  const { afterId, afterTs, lane, kind } = cursor;
+  let start = 0; let afterIdFound = false;
+  if (afterId) {
+    const idx = all.findIndex((e) => e && e.id === afterId);
+    if (idx >= 0) { start = idx + 1; afterIdFound = true; } // exact position known
+  }
+  let rows = all.slice(start);
+  // Red-team fix: afterTs is a FALLBACK narrowing for the ROTATION case only (afterId not found). When
+  // afterId WAS found, the positional slice is authoritative + complete — applying a strict `> afterTs`
+  // here would silently DROP a genuinely-new peer event sharing the cursor's millisecond (ISO ms is not
+  // a reliable ordering key at append speed: ~88% same-ms collisions measured under burst).
+  if (afterTs && !afterIdFound) rows = rows.filter((e) => e && typeof e.ts === 'string' && e.ts > afterTs);
+  if (lane) rows = rows.filter((e) => e && e.lane === lane);
+  if (kind) rows = rows.filter((e) => e && e.kind === kind);
+  const lim = Number(cursor.limit || 0);
+  return lim > 0 ? rows.slice(0, lim) : rows;
+}
+
 export function getKagamiEventBusHealth(options = {}) {
   const root = resolveKagamiEventRoot(options.root);
   const events = readKagamiEvents({ root });

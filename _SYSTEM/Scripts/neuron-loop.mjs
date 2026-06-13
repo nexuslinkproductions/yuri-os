@@ -23,10 +23,11 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { cusum, scalarKalman } from './math/math-kernel.mjs';
+import { computeScoreTrend } from './neuron-loop-trend.mjs';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
@@ -92,10 +93,6 @@ function runScript(scriptPath, extraArgs = [], options = {}) {
   });
 }
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 function loadPriorSynthesis() {
   return readJson(PATHS.synthesis);
@@ -110,29 +107,8 @@ function loadPriorSynthesis() {
 // adds fields to the synthesis object and a sentinel reason; it changes NO phase,
 // NO script invocation, and NOT the improvement_score itself. Pure, never throws.
 
-function medianOf(values) {
-  const finite = (Array.isArray(values) ? values : []).filter((x) => Number.isFinite(x));
-  if (finite.length === 0) return 0;
-  const sorted = finite.slice().sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
-
-function madOf(values) {
-  const finite = (Array.isArray(values) ? values : []).filter((x) => Number.isFinite(x));
-  if (finite.length === 0) return 0;
-  const med = medianOf(finite);
-  return medianOf(finite.map((x) => Math.abs(x - med)));
-}
-
-/** Population std-dev — the non-degenerate scale fallback when step-MAD collapses. */
-function stdOf(values) {
-  const finite = (Array.isArray(values) ? values : []).filter((x) => Number.isFinite(x));
-  if (finite.length < 2) return 0;
-  const mean = finite.reduce((a, b) => a + b, 0) / finite.length;
-  return Math.sqrt(finite.reduce((a, b) => a + (b - mean) ** 2, 0) / finite.length);
-}
-
+// medianOf/madOf/stdOf/computeScoreTrend live in neuron-loop-trend.mjs (extracted
+// so the suite tests the LIVE functions — this orchestrator executes at import).
 /** Read the last N improvement_score values from synthesis.jsonl (oldest->newest). */
 function readScoreStream(maxN = 20) {
   if (!existsSync(PATHS.synthLog)) return [];
@@ -152,47 +128,6 @@ function readScoreStream(maxN = 20) {
     } catch { /* skip malformed row */ }
   }
   return scores.slice(-maxN);
-}
-
-/**
- * ADVISORY-ONLY decline alarm on the improvement_score stream. A DECLINE is a
- * NEGATIVE drift, so feed CUSUM the NEGATED signed step deltas (upper-arm CUSUM
- * alarms on persistent positive drift => persistent score DROPS). Scale-free:
- * k = 0.5·MAD(steps), h = 5·MAD(steps), μ0 = median step. Returns a flat
- * in-control readout on too-few samples or degenerate scale. Never throws.
- */
-function computeScoreTrend(scores) {
-  const flat = { available: false, alarm: false, changeIndex: -1, statistic: 0, samples: 0, k: 0, h: 0, kalman_estimate: 0 };
-  try {
-    const s = (Array.isArray(scores) ? scores : []).filter((x) => Number.isFinite(x));
-    if (s.length < 5) return { ...flat, samples: s.length };
-    // Run-over-run signed steps; NEGATE so a sustained DECLINE is positive drift.
-    const declineSteps = [];
-    for (let i = 1; i < s.length; i += 1) declineSteps.push(-(s[i] - s[i - 1]));
-    // Scale-free dial: 0.5·scale slack / 5·scale threshold (catalog discipline).
-    // A pristine linear decline has step-MAD=0 (the mode dominates), which would
-    // blind the detector exactly when drift is cleanest — so floor the scale at
-    // 0.6745·step-std (= MAD for a Gaussian, so the two agree when steps are noisy;
-    // std is only 0 for a truly constant step series, which carries no drift signal).
-    const scale = Math.max(madOf(declineSteps), 0.6745 * stdOf(declineSteps), 1e-6);
-    const k = 0.5 * scale;
-    const h = 5 * scale;
-    const mu0 = 0; // in-control mean step is 0 (no run-over-run drift)
-    const c = cusum(declineSteps, { k, h, mu0 });
-    const ka = scalarKalman(s, { q: Math.max(0.3 * madOf(s), 1e-9), r: Math.max(madOf(s), 1e-9) });
-    return {
-      available: true,
-      alarm: c.alarm === true,
-      // changeIndex is into declineSteps (offset by 1 from the score series).
-      changeIndex: c.changeIndex >= 0 ? c.changeIndex + 1 : -1,
-      statistic: c.statistic,
-      samples: s.length,
-      k, h,
-      kalman_estimate: ka.estimate,
-    };
-  } catch {
-    return flat;
-  }
 }
 
 function collectJsonFiles(rootDir) {

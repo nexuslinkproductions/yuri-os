@@ -21,6 +21,7 @@
  * Import: { check, graphHash, spofFindingTitle, loadState }
  */
 import fs from 'node:fs';
+import { atomicWriteFile } from './_lib/fs.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyzeArchGraph, buildMetricsPayload } from './arch-graph-engine.mjs';
@@ -61,10 +62,7 @@ export function loadState(p) {
 }
 
 function writeAtomic(p, data) {
-  const tmp = `${p}.tmp`;
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(tmp, data);
-  fs.renameSync(tmp, p); // atomic on the same filesystem — never leaves a truncated live file
+  atomicWriteFile(p, data); // tmp+rename consolidated into _lib/fs.mjs (random-suffix collision fix)
 }
 
 /**

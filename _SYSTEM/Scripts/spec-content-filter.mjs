@@ -5,7 +5,8 @@
 
 'use strict';
 
-import { readFileSync, writeFileSync, renameSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { atomicWriteFile } from './_lib/fs.mjs';
 import path from 'node:path';
 
 const PATTERNS = [
@@ -58,9 +59,7 @@ if (redactions.length === 0) {
 
 // Atomic write
 try {
-  const tmpPath = `${specPath}.filter.tmp`;
-  writeFileSync(tmpPath, modified);
-  renameSync(tmpPath, specPath);
+  atomicWriteFile(specPath, modified, { mkdir: false });
 } catch (err) {
   console.error(`spec-content-filter: write failed for ${specPath}: ${err.message}`);
   process.exit(0);

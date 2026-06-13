@@ -7,7 +7,8 @@
  * being queried associatively, no deliberate search. Cue-dependent retrieval (Tulving
  * encoding-specificity) via BM25 + a 1-hop spreading-activation walk over the crosslink
  * graph (so conceptually-linked items that share no literal terms can still surface) +
- * recency/salience blend (ACT-R base-level activation). Bounded top-K keeps the conscious
+ * recency/salience blend (exponential half-life recency; ACT-R base-level is power-law
+ * over ALL past uses — deliberately not implemented). Bounded top-K keeps the conscious
  * set small. Surfacing an item BUMPS the recall ledger (testing effect → re-promotion).
  *
  * Pure ranking core (rankRecall) is unit-testable; recall() wires it to the live cold
@@ -15,6 +16,8 @@
  * surfaces advisory candidates; promotion-back stays gated (consolidation pass).
  */
 import fs from 'node:fs';
+import { atomicWriteFile } from './_lib/fs.mjs';
+import { confidenceDecay } from './math/math-kernel.mjs';
 import { queryCold, openColdStore, COLD_DB_PATH } from './memory-cold-store.mjs';
 import { buildUsageIndex, recordUse } from './memory-usage.mjs';
 
@@ -28,8 +31,16 @@ export function rankRecall(hits, { usageIndex = {}, nowMs = Date.now(), weights 
   const w = { bm25: 1.0, recency: 0.5, salience: 0.5, crosslink: 0.3, ...weights };
   const scored = hits.map((h) => {
     const usage = usageIndex[h.slug] || {};
-    const ageDays = usage.lastUsedMs ? Math.max(0, (nowMs - usage.lastUsedMs) / DAY_MS) : Infinity;
-    const recency = Number.isFinite(ageDays) ? Math.exp(-ageDays / Math.max(1, halfLifeDays)) : 0;
+    // typeof check (not falsy): lastUsedMs=0 is the epoch, not never-used.
+    const ageDays = (typeof usage.lastUsedMs === 'number' && Number.isFinite(usage.lastUsedMs))
+      ? Math.max(0, (nowMs - usage.lastUsedMs) / DAY_MS) : Infinity;
+    // TRUE half-life via the kernel: recency = 0.5 at age == halfLifeDays (the knob
+    // means what it says; the old exp(-age/hl) made knob 30 an effective 20.8-day
+    // half-life). Finite-guard: a NaN knob falls back to 30, never a NaN score.
+    const hl = Number.isFinite(halfLifeDays) && halfLifeDays > 0 ? halfLifeDays : 30;
+    const recency = Number.isFinite(ageDays)
+      ? confidenceDecay({ base: 1, age: ageDays, halfLife: Math.max(1, hl) })
+      : 0;
     const relevance = -Number(h.bm25 || 0);                 // SQLite bm25 is negative; flip so higher = better
     const base = w.bm25 * relevance + w.recency * recency + w.salience * Math.max(0, Number(h.salience) || 0);
     return { ...h, relevance, recency, score: base };
@@ -96,10 +107,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     // recall leaves no file, so the reader injects nothing. Never throws (detached child).
     try {
       if (block) {
-        const tmp = `${outFile}.${process.pid}.tmp`;
         const doc = { turnId: process.env.YURI_RECALL_TURN || null, ts: Date.now(), cue, block };
-        fs.writeFileSync(tmp, JSON.stringify(doc));
-        fs.renameSync(tmp, outFile);
+        atomicWriteFile(outFile, JSON.stringify(doc), { mkdir: false });
       }
     } catch { /* best-effort: recall must never crash the turn */ }
   } else {

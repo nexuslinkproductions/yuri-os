@@ -18,6 +18,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,10 +37,6 @@ const PATHS = {
 const args   = process.argv.slice(2);
 const STATUS = args.includes('--status');
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 if (STATUS) {
   const fp = readJson(PATHS.fingerprint);

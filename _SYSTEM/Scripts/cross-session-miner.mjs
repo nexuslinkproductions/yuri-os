@@ -15,6 +15,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,10 +34,6 @@ const args    = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const STATUS  = args.includes('--status');
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 function loadSynthLog() {
   if (!existsSync(PATHS.synthLog)) return [];
