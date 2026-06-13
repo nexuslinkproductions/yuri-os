@@ -75,7 +75,7 @@ export function mkAggregator({ reservoir = 1000, seed = 1, rng } = {}) {
  * Feeds the SAME params to both per draw → the shared-noise component cancels in (A−B). Returns the paired
  * delta + its CI, and the unpaired CI for contrast (varianceReductionFactor = unpairedVar/pairedVar, >1 ⇒ CRN helped).
  */
-export function pairedDelta(sampleParams, valueA, valueB, { draws = 2000, seed = 7, z = 1.96 } = {}) {
+export function pairedDelta(sampleParams, valueA, valueB, { draws = 2000, seed = 7, z = 1.96, computeUnpaired = true } = {}) {
   const rng = makeRng(seed);
   const deltas = new Array(draws);
   for (let i = 0; i < draws; i += 1) {
@@ -86,21 +86,25 @@ export function pairedDelta(sampleParams, valueA, valueB, { draws = 2000, seed =
   const pairedVar = deltas.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, draws - 1);
   const pairedSem = Math.sqrt(pairedVar / draws);
 
-  // unpaired baseline: independent draws for A and B → their variances ADD (no cancellation)
-  const rngA = makeRng(seed + 101), rngB = makeRng(seed + 202);
-  let mA = 0, mB = 0; const va = [], vb = [];
-  for (let i = 0; i < draws; i += 1) { const a = valueA(sampleParams(rngA)); va.push(a); mA += a; }
-  for (let i = 0; i < draws; i += 1) { const b = valueB(sampleParams(rngB)); vb.push(b); mB += b; }
-  mA /= draws; mB /= draws;
-  const varA = va.reduce((s, x) => s + (x - mA) ** 2, 0) / Math.max(1, draws - 1);
-  const varB = vb.reduce((s, x) => s + (x - mB) ** 2, 0) / Math.max(1, draws - 1);
-  const unpairedVar = varA + varB;
-  const unpairedSem = Math.sqrt(unpairedVar / draws);
+  // unpaired baseline = the PROOF that CRN helped, but it costs 2× extra value() calls.
+  // Skip it with computeUnpaired:false in production hot loops where you only need the delta CI.
+  let unpairedSem = null, varianceReductionFactor = null;
+  if (computeUnpaired) {
+    const rngA = makeRng(seed + 101), rngB = makeRng(seed + 202);
+    let mA = 0, mB = 0; const va = [], vb = [];
+    for (let i = 0; i < draws; i += 1) { const a = valueA(sampleParams(rngA)); va.push(a); mA += a; }
+    for (let i = 0; i < draws; i += 1) { const b = valueB(sampleParams(rngB)); vb.push(b); mB += b; }
+    mA /= draws; mB /= draws;
+    const varA = va.reduce((s, x) => s + (x - mA) ** 2, 0) / Math.max(1, draws - 1);
+    const varB = vb.reduce((s, x) => s + (x - mB) ** 2, 0) / Math.max(1, draws - 1);
+    const unpairedVar = varA + varB;
+    unpairedSem = Math.sqrt(unpairedVar / draws);
+    varianceReductionFactor = pairedVar > 0 ? unpairedVar / pairedVar : Infinity;
+  }
 
   const lo = mean - z * pairedSem, hi = mean + z * pairedSem;
   return {
-    meanDelta: mean, pairedCI: [lo, hi], pairedSem, unpairedSem,
-    varianceReductionFactor: pairedVar > 0 ? unpairedVar / pairedVar : Infinity,
+    meanDelta: mean, pairedCI: [lo, hi], pairedSem, unpairedSem, varianceReductionFactor,
     nDraws: draws,
     verdict: lo > 0 ? 'A>B' : hi < 0 ? 'B>A' : 'tie (CI spans 0)',
   };
@@ -120,14 +124,19 @@ export function pairedDelta(sampleParams, valueA, valueB, { draws = 2000, seed =
  * range = [a,b] bound on the values (for the Bernstein range term). push() then ci()/decided(threshold).
  */
 export function confidenceSequence({ alpha = 0.05, range = [0, 1], csConst = 1.0 } = {}) {
-  const span = range[1] - range[0];
+  const bounded = Array.isArray(range);          // range:[a,b] → empirical-Bernstein; range:null → sub-Gaussian fallback
+  const span = bounded ? range[1] - range[0] : null;
   let n = 0, mean = 0, M2 = 0;
   const radiusAt = () => {
     if (n < 2) return Infinity;
     const variance = M2 / (n - 1);
     // L_t carries an iterated-log term (1+log2 t) → time-uniformity (peek validity)
     const Lt = csConst * Math.log((2 / alpha) * (1 + Math.log2(Math.max(2, n))));
-    return Math.sqrt((2 * variance * Lt) / n) + (3 * span * Lt) / n;
+    const varTerm = Math.sqrt((2 * variance * Lt) / n);
+    // bounded: + range term (3·span·Lt/n) → tight + valid for any [a,b] (empirical-Bernstein).
+    // unbounded (range:null): variance term + an O(1/n) cushion → sub-Gaussian fallback. Valid for LIGHT-tailed
+    // (finite-variance, ~sub-Gaussian) data; NOT guaranteed for heavy tails — prefer a bounded range when you have one.
+    return bounded ? varTerm + (3 * span * Lt) / n : varTerm + (csConst * Lt) / n;
   };
   return {
     push(x) { if (isNum(x)) { n += 1; const d = x - mean; mean += d / n; M2 += d * (x - mean); } return this; },

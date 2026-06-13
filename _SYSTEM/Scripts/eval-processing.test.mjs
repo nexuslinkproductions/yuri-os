@@ -2,7 +2,7 @@
 // The critical adversarial test is alpha-control under peeking (the confidence sequence's whole correctness claim).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeRng } from './decision-sim.mjs';
+import { makeRng, gauss } from './decision-sim.mjs';
 import { mkAggregator, pairedDelta, confidenceSequence, sequentialDecide, heldOutSplit, conformalQuantile, inSampleVsHeldout } from './eval-processing.mjs';
 
 // --- 1. streaming-aggregator: Welford variance == naive two-pass (exact) ---
@@ -110,4 +110,27 @@ test('conformalQuantile: held-out calibration gives <= alpha miscoverage', () =>
   }
   const rate = miss / M;
   assert.ok(rate <= ALPHA + 0.04, `conformal miscoverage ${rate} should be <= alpha ${ALPHA} (+slack)`);
+});
+
+// --- 10. crn-paired-delta: computeUnpaired:false skips the 2× baseline, keeps the delta CI ---
+test('crn-paired-delta: computeUnpaired:false skips the baseline (null reduction), delta CI intact', () => {
+  const pd = pairedDelta((r) => ({ u: r() }), (p) => p.u + 0.05, (p) => p.u, { draws: 2000, computeUnpaired: false });
+  assert.equal(pd.varianceReductionFactor, null, 'no reduction factor when baseline skipped');
+  assert.equal(pd.unpairedSem, null, 'no unpaired baseline computed');
+  assert.ok(pd.pairedCI[0] > 0 && pd.verdict === 'A>B', 'delta + CI still valid');
+});
+
+// --- 11. sub-Gaussian CS (range:null): alpha-control on an unbounded Gaussian null ---
+test('sequential-stopping: sub-Gaussian variant (range:null) controls alpha on a Gaussian null', () => {
+  const ALPHA = 0.05, M = 300, MAXN = 1500;
+  let falseStops = 0;
+  for (let m = 0; m < M; m += 1) {
+    const r = makeRng(20000 + m);
+    const cs = confidenceSequence({ alpha: ALPHA, range: null }); // unbounded, sub-Gaussian fallback
+    let used = 0, stopped = false;
+    while (used < MAXN) { cs.push(gauss(r)); used += 1; if (used >= 2 && cs.decided(0) !== 'undecided') { stopped = true; break; } } // H0: mean 0 ON threshold 0
+    if (stopped) falseStops += 1;
+  }
+  const rate = falseStops / M;
+  assert.ok(rate <= 0.12, `sub-Gaussian false-stop rate ${rate} (${falseStops}/${M}) should stay near/under alpha`);
 });
