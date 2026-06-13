@@ -1,7 +1,21 @@
 # Memory Index — Claude Auto-Memory (v3: stable-handle format)
 
+- [PROJ:FILING-AUTONOMY-LAYER](filing-autonomy-layer-2026-06-13.md) — Filing autonomy/scheduling BUILT 2026-06-13 (47 tests, ships DISARMED, dual-arm); investor-deck false-positive RESOLVED (added INVESTOR-DECK/CODE-BIBLE/References to assessor SETTLED, 73→78 tests); post-fix auto-tier 0, nothing moves
+
+- [PROJ:NEXUS-LINK-INVESTOR-DECK](nexus-link-investor-deck-2026-06-13.md) — NEXUS LINK investor deck project; files in 02_RESOURCES/INVESTOR-DECK/; partnership model (NO equity), Vienna/Austria, €275K budget, Marcel burns 40M+ tokens/month
+- [FB:APPLE-LEVEL-COPYWRITING](apple-level-copywriting.md) — Apple-level copywriting: make them FEEL, not describe. No defensive framing. No corporate language. Think Steve Jobs.
+- [FB:DIAGNOSE-METRIC-BEFORE-SYSTEM](feedback-diagnose-metric-before-system.md) — Alarming chart/telemetry: diagnose the METRIC composition (baseline vs dynamics) before assuming the system broke or hiding it; honest re-derivation often beats the cover-up
+- [FB:INVESTOR-PARTNERSHIP-NO-EQUITY](investor-partnership-no-equity.md) — NO equity/revenue share/convertible notes. Active growing partnership where investment flows into investor's own company.
+- [PROJ:PARKED-YEGANEH-CANVAS](parked-yeganeh-canvas-2026-06-11.md) — Yeganeh canvas PARKED (NaN leaf, unrecognizable forms); **REMIND MARCEL 2026-06-16**; resume plan: fix pow-NaN, structure-aware scoring, target-first design
+- [PROJ:SESSION-BOOT-NOTE-2026-06-11](session-boot-note-2026-06-11.md) — NEXT SESSION: re-arm the 2 session-bound crons (dream drain nightly + homeostat 6h — specs in _SYSTEM/AGENTS/*-cron.md); Yeganeh due 06-16; all 5 organs live, gates green; both Track A proposals approved
+
+- [FB:RESEARCH-VIA-MIMO-LANE](feedback-research-via-mimo-lane.md) — HARD CAP: Anthropic fan-outs ≤15 agents, ALL pinned model:sonnet (never inherit main-loop model); bulk synthesis via llm-lane mimo (keychain key). One inherited-model research sprint burned 67% session / 50% weekly (Marcel 2026-06-11)
+
 - [REF:MIMO-INTEGRATION](ref-mimo-integration.md) — Xiaomi Mimo native Claude Code integration; `ai claude-mimo` launcher; models mimo-v2.5-pro + [1m]; keychain key yuri-mimo-api-key; NOT a replacement for main Anthropic sessions
+- [REF:MIMO-FIRING](ref-mimo-firing.md) — FIRE MIMO = `node _SYSTEM/Scripts/mimo.mjs "<prompt>"` UNSANDBOXED (dangerouslyDisableSandbox); llm-lane/ai-llm mimo is BROKEN (empty+AggregateError); model mimo-v2.5-pro; curl intercepted→use node
 - [REF:MATH-BASE-AUDIT-2026-06-10](math-base-audit-2026-06-10.md) — Full math audit: 2 P0 (astar strict, gate vacuous-pass) + ~24 P1; ledger at _SYSTEM/reports/math-base-audit-2026-06-10-checkpoint.md; arithmetic clean, adjectives rot
+- [PROJ:WAVE2-FIX-WAVE-2026-06-10](wave2-fix-wave-2026-06-10.md) — Wave-2 executed 47/47 WPs; ladder fired first promotion; xref suppression 1069→849; recurring disease: domain regression gates silently RED on HEAD — check tests vs HEAD first; RAG retirement pending owner go
+- [PROJ:WAVE3-FIX-WAVE-2026-06-11](wave3-fix-wave-2026-06-11.md) — Wave-3 executed 48/48 + ecosystem gate 149/149; STANDING: token monitoring NOT shipping (dashboards = cost surface), RAG fully retired (FTS5+xref), waves = ONE ecosystem w/ cross-wave battery at close; dream loop closed first time; −3,400 tok/boot
 - [PROJ:AGENT-ECONOMY-POSITIONING-THESIS](agent-economy-positioning-thesis.md) — "Marcel's positioning when native agents go global — operator-premium + own scarce assets; trading is the wrong dock; Mythos≠mainstream rollout"
 - [PROJ:AI-BUSINESS-ROLES-RESUME-2026-05-29](ai-business-roles-resume-2026-05-29.md) — AI-business + roles; backend removal DONE; Mike call done, contract in review
 - [FB:ALL-DOMAINS-FIRST-CLASS-DOMAIN-BLIND-GATE](all-domains-first-class-domain-blind-gate.md) — "Standing correction (Marcel 2026-06-08). Music-theory, frequency/wave, magnetism, numerology, alchemy (and astronomy, a future domain for astrophysics) are FIRST-CLASS fundamental candidate domains — NOT \"symbolic / mysticism / never-truth / second-class.\" The proof-gate is DOMAIN-BLIND: every candidate, any domain, promotes by the SAME bar (bind a real kernel symbol + green worked example). Operate WITH all domains, don't fight or disprove one."
@@ -89,6 +103,7 @@
 - [FB:TRIGGER-PHRASES](feedback-trigger-phrases.md) — Marcel phrase-to-mode catalog — remember/send/check/deeply/suggest/right-words map to behavioral switches
 - [FB:TUNING-COMPANION](feedback-tuning-companion.md) — Proactively flag any tunable that needs tuning w/ reasoning+evidence; teach Marcel to tune
 - [FB:TWO-TRACK-RULE](feedback-two-track-rule.md) — Two-track memory routing — YURI canonical for shared truth, Claude auto-memory for behavioral only
+- [FB:VISUAL-WORK-NEEDS-VISUAL-INSPECTION](feedback-visual-work-needs-visual-inspection.md) — Visual jobs verified by LOOKING at rendered screenshots (headless capture + image inspection), never by code probes alone
 - [FB:VERIFY-MAPS-BEFORE-DESTRUCTIVE](feedback-verify-maps-before-destructive.md) — Subagent maps are hypotheses — verify vs live runtime evidence before any destructive archive/migrate
 - [FB:VERIFY-TRACKED-BEFORE-PUSH](feedback-verify-tracked-before-push.md) — Before push, confirm imported files are TRACKED (no untracked source remains), not just test-green-on-disk — committed code can import untracked files; root-arch lint is repo-wide; separate source from noise+broken mods
 - [FB:YURI-NOT-AGENTIC](feedback-yuri-not-agentic.md) — YURI is NOT agentic — it GUIDES Claude through structured context + governs work-dynamics via Lyapunov energy fn; never frame as agent/swarm
@@ -183,3 +198,4 @@
 - [PROJ:YURI-MUSUBI-NAMING-CONVENTION](yuri-musubi-naming-convention.md) — "YURI = product name; MUSUBI = version line; this release ships as YURI \"MUSUBI ONE\"; version NAMES not numbers (Apple-Tahoe style), each update a fitting codename"
 - [USR:YURI-NAMED-FOR-LILLY](yuri-named-for-lilly.md) — YURI is named after Lilly (Marcel's girlfriend); yuri/百合 = lily in Japanese; treat the name with that weight
 - [PROJ:YURI-NAVIGATION-LAYER-GUIDES-ARE-SKILLS](yuri-navigation-layer-guides-are-skills.md) — "Marcel 2026-06-09 vision — per-organ GUIDES (= the skills he also asked to add) + a unified mathematical traversal door (yuri-traverse) making YURI domain- AND cross-domain-navigable at high precision + speed. The \"any LLM uses the whole NEXUS as one super-tool\" line, concrete. Build SOON."
+- [REF:QWEN-LOCAL-CURATED-LANE](qwen-local-curated-lane-2026-06-13.md) — qwen-local (Qwen3.5-9B-GLM5.1-Distill Q5_K_M) wired as a curated llm_compat lane via llm-lane.mjs, organ-gated like Claude (energy/recall/evidence/pulse+safety-core); 100% GPU on M2 Pro, faster+lighter than gemma; ollama server MUST be the .app binary (Homebrew CLI lacks llama-server); local lanes default tools-off (GGUF tool-loop 400s)

@@ -345,3 +345,15 @@ secrets.env
 
 # arch-graph-watch runtime state (regenerates; not golden)
 _SYSTEM/state/arch-graph-watch-state.json
+
+# wave-3 ecosystem gate (MiMo extension F18/F23): never let these enter git history
+_SYSTEM/monitoring/kagami-discipline.log
+03_NEXUS-LINK/bug-bounty/
+
+# filing autonomy runtime artifacts (regenerate every run; not golden). The arming flag mirrors
+# energy-enforce.enabled above — repo default = DISARMED, enabling is always a deliberate local act.
+_SYSTEM/reports/filing-autonomy-latest.md
+_SYSTEM/state/filing-autonomy-ledger.jsonl
+_SYSTEM/state/filing-autonomy.enabled
+_SYSTEM/state/filing-autonomy.log
+_SYSTEM/state/filing-autonomy.err
