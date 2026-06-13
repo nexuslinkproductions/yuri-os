@@ -7,18 +7,18 @@
     "notes": "Centralized Ollama model registry. Skills, MCP bridges, and local lanes reference this policy instead of hardcoding model names. Deterministic Yuri functions stay native; local models provide cheap judgment/extraction only."
   },
   "local": {
-    "primary": "gemma4:12b-it-qat",
-    "utility": "gemma4:12b-it-qat",
-    "code": "gemma4:12b-it-qat",
+    "primary": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "utility": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "code": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
     "code_fallback": "gemma4:12b-it-qat",
-    "deep_reasoning": "gemma4:12b-it-qat",
+    "deep_reasoning": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
     "gemma": "gemma4:12b-it-qat",
     "multimodal": "gemma4:12b-it-qat",
     "embeddings": "nomic-embed-text:latest",
     "fallback": "gemma4:12b-it-qat",
     "manual_only": [],
     "frozen": [],
-    "reasoning": "primary/utility/code/deep_reasoning/fallback: gemma4:12b-it-qat is the only routed local SLM. Needle, Qwen, gemma4:e2b, gemma4:latest, and other old local blobs are not policy fallbacks and are not enumerated by the benchmark. DeepSeek V4 cloud lanes remain separate llm-compat reasoning lanes."
+    "reasoning": "PROMOTED 2026-06-13: qwen-local (Qwen3.5-9B-GLM5.1-Distill Q5_K_M) is the default local SLM for primary/utility/code/deep_reasoning — 7/7 role-fit on bounded YURI jobs, ~22.6 tok/s, 6.3GB 100% GPU on the M2 Pro (faster+lighter than gemma; see 02_RESOURCES/research/qwen3.5-9b-glm5.1-distill-local-lane-eval-2026-06-13.md). gemma4:12b-it-qat retained as code_fallback + fallback + the multimodal/`gemma` slots (verified vision path; qwen mmproj not wired). All local dispatch is organ-gated through llm-lane.mjs (qwen-local lane). Autonomous background use via yuri-slm-worker.mjs (ships DISARMED). DeepSeek V4 / Mimo cloud lanes remain separate llm-compat reasoning lanes."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {
@@ -227,6 +227,34 @@
       "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
       "max_output_source": "Mimo v2-flash 256K context, fast/cheap.",
       "timeout_ms": 120000
+    },
+    "qwen-local": {
+      "model": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "Qwen3.5-9B-GLM5.1-Distill Q5_K_M (6.47GB, 100% GPU on M2 Pro). num_ctx capped at context_window to keep weights+KV under the 10GB Metal working-set policy. Curated local lane: dispatched through llm-lane.mjs so it fires coreOnDispatch (energy ΔU + recall) + coreOnResult (evidence + advisory pulse) + executeTool safety-core gating, identical governance to cloud lanes. Loadout defaults to --light (a 9B can't carry the full 675-line spine in 16k ctx).",
+      "timeout_ms": 300000
+    },
+    "gemma-local": {
+      "model": "gemma4:12b-it-qat",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "Gemma 4 12B QAT (7.15GB, 100% GPU on M2 Pro) — the incumbent local SLM, promoted to a curated llm_compat lane so it runs through the SAME governed dispatch as cloud + qwen-local instead of the thin ollama-lane.mjs bypass. Single-lane sequential per the gemma-lanes-strictly-sequential lock.",
+      "timeout_ms": 300000
     }
   },
   "codex": {

@@ -41,6 +41,7 @@ import https from 'node:https';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
+import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -364,11 +365,18 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
   return new Promise((resolve) => {
     let u;
     try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
-    const body = { model, messages, max_tokens: maxTokens, stream: true };
+    // [1m] is a CLIENT-side alias convention (Claude Code model picker), NOT a wire
+    // model id — Mimo's endpoint rejects it with http_400 "Not supported model
+    // mimo-v2.5-pro1m". Strip it for the request body and ask for the long-context
+    // window via the anthropic-beta header instead (first adapter red-team finding,
+    // 2026-06-11).
+    const longContext = /\[1m\]$/.test(model);
+    const wireModel = model.replace(/\[1m\]$/, '');
+    const body = { model: wireModel, messages, max_tokens: maxTokens, stream: true };
     if (system) body.system = system;
     if (toolsList && toolsList.length) body.tools = toolsList;
     const payload = JSON.stringify(body);
-    T(`ANTHROPIC_REQ_START lane=${lane} host=${u.hostname} bodyLen=${payload.length}`);
+    T(`ANTHROPIC_REQ_START lane=${lane} host=${u.hostname} model=${wireModel} longContext=${longContext} bodyLen=${payload.length}`);
     const req = https.request({
       hostname: u.hostname,
       port: u.port || 443,
@@ -379,6 +387,7 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
         'Content-Length': Buffer.byteLength(payload),
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        ...(longContext ? { 'anthropic-beta': 'context-1m-2025-08-07' } : {}),
         Accept: 'text/event-stream',
       },
     }, (res) => {
@@ -468,29 +477,105 @@ async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList,
   return json?.choices?.[0] || {};
 }
 
+// ── LOCAL lane endpoint guard: loopback-ONLY, fail-closed ───────────────────────────────────────
+// A curated local lane (ollama on this machine) is a DIFFERENT trust model from a remote cloud API:
+// the cloud allowlist (assertSafeEndpoint) exists to stop SSRF to remote/internal hosts and is left
+// untouched. A local lane MUST point at the loopback ollama daemon and nothing else — so an attacker
+// can't repoint a "local" lane at an arbitrary internal host. http is allowed for loopback only.
+function assertLoopback(endpoint, lane) {
+  let url;
+  try { url = new URL(endpoint); } catch { return fail(3, lane, `bad_local_endpoint:${endpoint || '(empty)'}`); }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return fail(3, lane, `local_endpoint_bad_proto:${url.protocol}`);
+  const host = url.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+  if (!(host === 'localhost' || host === '127.0.0.1' || host === '::1')) return fail(3, lane, `local_endpoint_not_loopback:${host}`);
+  return endpoint;
+}
+
+// ── LOCAL lane transport: ollama /api/chat, returns an OpenAI-`choice`-shaped object ─────────────
+// Mirrors postChat's return contract ({ message:{ content, tool_calls }, finish_reason }) so the
+// shared dispatch tool-loop is protocol-agnostic. No API key (loopback). Tools are passed through
+// when present (ollama speaks the same {type:function,function:{...}} schema); on a GGUF whose
+// template can't do tool-calling it 4xx's on `tools`/`think`, so we retry once stripped.
+async function postChatOllamaLocal(endpoint, model, messages, maxTokens, toolsList, timeoutMs, lane, cfg = {}) {
+  // KV-cache budget: a local 9B at Q5 must stay under the M2 Pro Metal working set. context_window
+  // from the lane config drives num_ctx; default 16k keeps weights+KV well under the 10GB policy cap.
+  const numCtx = Math.min(Number(cfg.context_window) || 16384, 32768);
+  const baseBody = { model, messages, stream: false, options: { temperature: 0, num_ctx: numCtx, num_predict: maxTokens } };
+  const withTools = toolsList && toolsList.length ? { ...baseBody, tools: toolsList } : baseBody;
+  const ATTEMPTS = 2;
+  let res; let body = withTools;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      res = await fetch(`${endpoint}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal });
+      clearTimeout(timer);
+    } catch (err) {
+      clearTimeout(timer);
+      const reason = err?.cause?.code || err?.name || 'fetch_failed';
+      if (attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=local_transport_retry_${attempt}:${reason}\n`); await sleep(400 * attempt); continue; }
+      return fail(1, lane, `local_transport:${reason}`);
+    }
+    if (!res.ok) {
+      const b = await res.text().catch(() => '');
+      // template can't tool-call → drop tools and retry once as a plain chat (parity-degrade, not fail)
+      if (/tool|function|template/i.test(b) && body.tools) { body = baseBody; process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=local_tools_unsupported_retry_plain\n`); continue; }
+      return fail(res.status >= 500 ? 1 : 3, lane, `local_http_${res.status}:${b.slice(0, 160)}`);
+    }
+    break;
+  }
+  const data = await res.json().catch(() => null);
+  if (!data) return fail(1, lane, 'local_bad_json');
+  // Normalize ollama tool_calls -> OpenAI shape the loop expects (string arguments + an id).
+  const rawCalls = Array.isArray(data.message?.tool_calls) ? data.message.tool_calls : [];
+  const tool_calls = rawCalls.map((c, i) => ({
+    id: c.id || `local_${i}`,
+    type: 'function',
+    function: { name: c.function?.name, arguments: typeof c.function?.arguments === 'string' ? c.function.arguments : JSON.stringify(c.function?.arguments || {}) },
+  }));
+  return { message: { role: 'assistant', content: data.message?.content || '', tool_calls }, finish_reason: data.done_reason || (tool_calls.length ? 'tool_calls' : 'stop') };
+}
+
 async function dispatch(laneArg, prompt, opts = {}) {
-  const key = ALIAS[String(laneArg || '').toLowerCase()];
-  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|ds-flash|mimo');
+  const laneLc = String(laneArg || '').toLowerCase();
+  // Resolve via the cloud alias table first; otherwise accept a direct llm_compat_lanes key (this is
+  // how curated LOCAL lanes — qwen-local, gemma-local — enter the SAME governed dispatch as cloud).
+  const key = ALIAS[laneLc] || (LANES[laneLc] ? laneLc : (LANES[laneArg] ? laneArg : null));
+  if (!key) return fail(3, laneArg, 'unknown_lane:valid=deepseek|ds-flash|mimo|<local-lane-key>');
   const cfg = LANES[key];
   if (!cfg) return fail(3, key, 'lane_missing_from_models.json');
 
+  const isLocal = cfg.local === true || cfg.provider === 'ollama-local';
   const isAnthropic = cfg.protocol === 'anthropic' || cfg.protocol === 'anthropic-compatible';
-  const endpoint = (process.env[cfg.endpoint_env] || cfg.endpoint_default || '').replace(/\/+$/, '');
+  let endpoint = (process.env[cfg.endpoint_env] || cfg.endpoint_default || '').replace(/\/+$/, '');
+  // OLLAMA_HOST is conventionally set scheme-less (127.0.0.1:11434); local lanes need a coerced
+  // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
+  if (isLocal && endpoint && !/^https?:\/\//i.test(endpoint)) endpoint = `http://${endpoint}`;
   const apiKey = process.env[cfg.api_key_env] || '';
   const maxTokens = maxTokensFor(cfg, opts.reasoning);
   // Active toolset: none (--no-tools), read+fetch only (--no-exec drops bash), or the full operator set.
-  const activeTools = opts.noTools === true ? [] : (opts.noExec ? TOOLS.filter((t) => t.function.name !== 'bash') : TOOLS);
+  // Governance parity holds either way — ANY tool a local lane calls still routes through executeTool
+  // -> evaluateToolCall (safety-core protected-path/mutation gate), proven live. But a small local GGUF's
+  // chat template is often unreliable on the multi-turn tool-result round-trip (ollama 400 "looks like
+  // object"), so LOCAL lanes default tools OFF (reliable governed reasoning — the local-lane role) and
+  // require explicit --tools to opt into the experimental gated loop. Cloud lanes keep tools on.
+  const wantTools = opts.noTools === true ? false : (isLocal ? opts.forceTools === true : true);
+  const activeTools = !wantTools ? [] : (opts.noExec ? TOOLS.filter((t) => t.function.name !== 'bash') : TOOLS);
+  // Loadout sizing: cloud lanes default to the full ~675-line stack (trivial vs 1M ctx). A local 9B
+  // can't fit that in 8-32k ctx, so it defaults to the LIGHT spine (still a YURI operator, not a bare
+  // chatbot) unless --full is forced. --system / --no-system override either way.
+  const useLight = opts.light || (isLocal && !opts.full && !opts.system && !opts.noSystem);
 
   if (opts.dryRun) {
-    const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (opts.light ? 'light' : 'full-yuri-stack'));
+    const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (useLight ? 'light' : 'full-yuri-stack'));
     const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout().length : (loadoutMode === 'light' ? LIGHT_SYSTEM.length : (opts.system?.length || 0));
-    const apiPath = isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`;
-    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, protocol: cfg.protocol, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    const apiPath = isLocal ? `${endpoint}/api/chat` : (isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`);
+    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
-  if (!apiKey) return fail(3, key, `missing_key:${cfg.api_key_env}`);
-  assertSafeEndpoint(endpoint, key);
+  if (!apiKey && !isLocal) return fail(3, key, `missing_key:${cfg.api_key_env}`);
+  if (isLocal) assertLoopback(endpoint, key); else assertSafeEndpoint(endpoint, key);
 
   // Fire the YURI core on dispatch (energy ΔU trace + memory recall) — every lane call is hooked
   // into the core like a native turn, no matter who invokes it. One stable runId correlates the
@@ -501,8 +586,18 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const { recallBlock } = await coreOnDispatch({ lane: key, prompt, runId });
   T(`POST_CORE recall=${recallBlock ? recallBlock.length : 0}`);
 
+  // GLOBAL LOCAL-INFERENCE ADMISSION CONTROL: any caller (this lane, another main lane, the worker,
+  // another machine on a shared slots dir) must hold a concurrency slot before firing a local model.
+  // Over threshold -> refuse with a clear signal so the caller enqueues instead of crashing the host.
+  let __slotId = null;
+  if (isLocal) {
+    const slot = tryAcquireLocalSlot({ lane: key, model: cfg.model });
+    if (!slot.ok) return fail(3, key, `local_capacity_reached:active=${slot.active}/max=${slot.max}:enqueue_via_ai_slm`);
+    __slotId = slot.slotId;
+  }
+  try {
   const messages = [];
-  let system = opts.noSystem ? '' : (opts.system || (opts.light ? LIGHT_SYSTEM : buildYuriLoadout()));
+  let system = opts.noSystem ? '' : (opts.system || (useLight ? LIGHT_SYSTEM : buildYuriLoadout()));
   if (system && recallBlock) system += `\n\n===== RECALLED YURI MEMORY (relevant to this task) =====\n${recallBlock}`;
   if (system) messages.push({ role: 'system', content: system });
   const contextPack = opts.context ? buildContextPack(opts.context) : '';
@@ -518,7 +613,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
   for (let iter = 0; iter < maxIters; iter += 1) {
     T(`PRE_POSTCHAT iter=${iter}`);
     let choice;
-    if (isAnthropic) {
+    if (isLocal) {
+      choice = await postChatOllamaLocal(endpoint, cfg.model, messages, maxTokens, activeTools, timeoutMs, key, cfg);
+    } else if (isAnthropic) {
       const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
       choice = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aMsgs, aSys, maxTokens, aTools, key);
@@ -562,7 +659,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // can never exit empty, then emit whatever text it produces.
   const forcedMsgsRaw = [...messages, { role: 'user', content: 'Stop using tools. Give your best final answer now as plain text.' }];
   let forced;
-  if (isAnthropic) {
+  if (isLocal) {
+    forced = await postChatOllamaLocal(endpoint, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key, cfg);
+  } else if (isAnthropic) {
     const { messages: aFMsgs, system: aFSys } = toAnthropicMessages(forcedMsgsRaw);
     forced = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aFMsgs, aFSys, maxTokens, [], key);
   } else {
@@ -571,6 +670,11 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const ftext = String(forced.message?.content ?? lastChoice.message?.content ?? '').trim();
   if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0, runId }); return 0; }
   return fail(1, key, 'tool_loop_no_final_answer');
+  } finally {
+    // Release the slot on clean return. fail()/process.exit paths leave a dead-pid lease that the
+    // governor's prune() reclaims automatically, so capacity self-heals either way.
+    if (__slotId) releaseLocalSlot(__slotId);
+  }
 }
 
 function readMaybeFile(v) { return v && v.startsWith('@') ? fs.readFileSync(path.resolve(v.slice(1)), 'utf8') : v; }
@@ -589,7 +693,7 @@ function buildContextPack(spec) {
   let used = 0; const parts = [];
   for (const f of list) {
     try {
-      if (isProtectedPath(path.relative(REPO_ROOT, path.resolve(f)))) { parts.push(`## ${f}\n[blocked: protected surface]`); continue; }
+      if (isProtectedPath(path.resolve(REPO_ROOT, f))) { parts.push(`## ${f}\n[blocked: protected surface]`); continue; }
       let body = fs.readFileSync(path.resolve(f), 'utf8');
       const remaining = BUDGET - used;
       if (remaining <= 0) { parts.push(`## ${f}\n[omitted — context budget reached]`); continue; }
@@ -608,7 +712,7 @@ const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--
 const LEGACY_SKIP_VALUE = new Set(['--model', '--session', '--write-scope', '--ts']);
 
 function parseCli(argv) {
-  const out = { reasoning: '', system: '', noSystem: false, light: false, noTools: false, noExec: false, maxIters: 24, out: '', dryRun: false, list: false };
+  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 24, out: '', dryRun: false, list: false };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -616,6 +720,8 @@ function parseCli(argv) {
     else if (a === '--system') out.system = readMaybeFile(argv[++i] || '');
     else if (a === '--no-system') out.noSystem = true;
     else if (a === '--light') out.light = true;
+    else if (a === '--full') out.full = true;
+    else if (a === '--tools') out.forceTools = true;
     else if (a === '--no-tools') out.noTools = true;
     else if (a === '--no-exec') out.noExec = true;
     else if (a === '--max-iters') out.maxIters = Number(argv[++i] || 24);
@@ -663,4 +769,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, executeTool, toAnthropicMessages, toAnthropicTools };
+export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools };

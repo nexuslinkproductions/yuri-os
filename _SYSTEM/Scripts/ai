@@ -964,6 +964,13 @@ case "${1:-help}" in
         ;;
     esac
     ;;
+  slm)
+    # Autonomous background local-SLM worker (governed queue/drain via the qwen-local lane). Ships DISARMED.
+    #   ai slm enqueue --type decode --payload "..."  ·  ai slm drain [--watch]  ·  ai slm status|arm|disarm|stop|clear
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/yuri-slm-worker.mjs" "$@"
+    ;;
   nemotron|kimi|ds-reason)
     # Convenience aliases -> the same minimal core. ds-reason maps to the deepseek lane.
     _llm_lane="$1"; [ "$_llm_lane" = "ds-reason" ] && _llm_lane="deepseek"

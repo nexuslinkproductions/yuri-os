@@ -358,7 +358,9 @@ function ollamaVersion() {
 
 function summarize(items) {
   const failed = items.filter((item) => !['ok', 'planned'].includes(item.status)).length;
-  const activePolicyModels = new Set(['gemma4:12b-it-qat']);
+  // Policy-driven (not hardcoded): the active local SLM set is whatever models.json -> local routes.
+  // qwen-local was promoted to primary 2026-06-13; gemma4 retained as fallback/multimodal.
+  const activePolicyModels = new Set(activeRoutedModels(config));
   const automaticModels = items.map((item) => item.model).filter(Boolean);
   return {
     total: items.length,
