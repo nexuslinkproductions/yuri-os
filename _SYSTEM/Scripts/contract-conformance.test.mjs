@@ -167,3 +167,50 @@ test('checkOutputConformance: scope check is skipped (not faked) when no invoked
   assert.ok(!r.checks.some((c) => c.name === 'scope-containment'));
   assert.equal(r.verdict, 'PASS');
 });
+
+// ═══════════════ REGRESSION: Codex gpt-5.5 pre-wiring review (2026-06-13) ═══════════════
+
+// CODEX-1: non-string invokedPaths must NOT silently drop scope. Coerce tool-records; fail-closed on non-coercible.
+test('REGRESSION codex-1: object tool-record invokedPaths are coerced (not dropped) and still scope-checked', () => {
+  assert.equal(checkOutputConformance(CONTRACT, GOOD, { invokedPaths: [{ path: '.env' }] }).verdict, 'FAIL', '{path:.env} coerced → caught');
+  assert.equal(checkOutputConformance(CONTRACT, GOOD, { invokedPaths: [{ file: '_SYSTEM/Scripts/x.mjs' }] }).verdict, 'PASS', 'legit record within scope');
+});
+test('REGRESSION codex-1: non-coercible invokedPaths fail CLOSED (scope-input-malformed), never silent PASS', () => {
+  const r = checkOutputConformance(CONTRACT, GOOD, { invokedPaths: [123, {}, Symbol('x')] });
+  assert.equal(r.verdict, 'FAIL'); assert.ok(r.hardFails.includes('scope-input-malformed'));
+  // ANY malformed entry fails closed, even alongside a valid one
+  const mixed = checkOutputConformance(CONTRACT, GOOD, { invokedPaths: ['_SYSTEM/Scripts/ok.mjs', 42] });
+  assert.equal(mixed.verdict, 'FAIL'); assert.ok(mixed.hardFails.includes('scope-input-malformed'));
+});
+
+// CODEX-2: prose (semantic) allowed_scope must NOT be treated as filesystem prefixes → no false HARD FAIL
+test('REGRESSION codex-2: prose allowed_scope (genome-style) does not false-fail a legitimate invoked path', () => {
+  const PROSE = { flags: {}, output_schema: { fields: ['RESULT_LABEL'] },
+    allowed_scope: ['Decode raw input into objective, constraints, risks.', 'Use YURI context and registry architecture before durable writes.'],
+    forbidden_scope: ['Direct Claude one-shot calls', '.env', 'backend/data/'] };
+  assert.equal(checkOutputConformance(PROSE, GOOD, { invokedPaths: ['_SYSTEM/Scripts/yuri-input-genome.mjs'] }).verdict, 'PASS', 'prose scope ignored for path-containment');
+  // but a path-like forbidden entry mixed into prose scope STILL enforces
+  assert.equal(checkOutputConformance(PROSE, GOOD, { invokedPaths: ['.env'] }).verdict, 'FAIL', 'path-like forbidden still bites');
+});
+test('REGRESSION codex-2: explicit allowed_paths/forbidden_paths are honored', () => {
+  const C = { flags: {}, output_schema: { fields: ['RESULT_LABEL'] }, allowed_paths: ['_SYSTEM/Scripts/'], forbidden_paths: ['_SYSTEM/Scripts/secret/'] };
+  assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['_SYSTEM/Scripts/ok.mjs'] }).verdict, 'PASS');
+  assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['_SYSTEM/Scripts/secret/key'] }).verdict, 'FAIL');
+});
+
+// CODEX-3: command_output_caps coarsely enforced; split_required_trigger surfaced as not-enforced (no over-claim)
+test('REGRESSION codex-3: a 20k-char line trips command-output-cap; split_required_trigger is surfaced not-enforced', () => {
+  const C = { flags: { command_output_caps: true, split_required_trigger: true }, output_schema: { fields: ['RESULT_LABEL'] } };
+  const out = 'RESULT_LABEL: 08CW_X_GATE_X_PASS_COMMITTED\n' + 'a'.repeat(20000);
+  const r = checkOutputConformance(C, out);
+  assert.equal(r.verdict, 'PARTIAL'); assert.ok(r.softFails.includes('command-output-cap'));
+  assert.ok(r.notEnforced.some((n) => n.startsWith('split_required_trigger')), 'honest about what it cannot check');
+});
+
+// dotfile-precision tradeoff (Codex note): .env.local caught, but .envrc / .amp-cache no longer false-flagged
+test('REGRESSION codex-note: dotfile match is precise — .env.local caught, .envrc/.amp-cache not false-flagged', () => {
+  const C = { flags: {}, output_schema: { fields: ['RESULT_LABEL'] } }; // floor only, no allowed_scope
+  assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['.env.local'] }).verdict, 'FAIL', '.env.local is a secret variant');
+  assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['.envrc'] }).verdict, 'PASS', '.envrc not a protected target');
+  assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['.amp-cache/x'] }).verdict, 'PASS', '.amp-cache not .amp');
+});

@@ -149,7 +149,7 @@ function hitsForbidden(p, entry) {
   if (es.length === 0) return false;
   if (es.length === 1) {
     const name = es[0];
-    if (name.startsWith('.')) return ps.some((s) => s === name || s.startsWith(name));
+    if (name.startsWith('.')) return ps.some((s) => s === name || s.startsWith(name + '.'));
     return ps.includes(name);
   }
   return containsSegs(ps, es);
@@ -160,6 +160,28 @@ function withinAllowed(p, entry) {
   const ne = normPath(entry);
   if (ne.length === 0) return false;
   return np === ne || np.startsWith(ne + '/');
+}
+// A contract's allowed_scope/forbidden_scope may carry SEMANTIC prose (e.g. "Decode raw input
+// into objective ...", as yuri-input-genome.mjs compiles) — NOT filesystem paths. Only path-shaped
+// entries participate in path-containment; prose is ignored for scope (it is not path-checkable).
+// Prose has whitespace; a path does not. (Codex finding 2, 2026-06-13.)
+function isPathLike(s) {
+  if (typeof s !== 'string') return false;
+  const t = s.trim();
+  if (t.length === 0 || /\s/.test(t)) return false;
+  return t.includes('/') || t.startsWith('.') || /^[\w.@-]+$/.test(t);
+}
+// Coerce an invokedPaths entry to a string path. Accepts a string or a tool-record object
+// ({path|file|filePath|file_path|target}). Returns null if non-coercible → caller fails CLOSED
+// rather than silently dropping it (Codex finding 1, 2026-06-13).
+function coercePath(p) {
+  if (typeof p === 'string') return p;
+  if (p && typeof p === 'object') {
+    for (const k of ['path', 'file', 'filePath', 'file_path', 'target']) {
+      if (typeof p[k] === 'string' && p[k].length) return p[k];
+    }
+  }
+  return null;
 }
 
 // ── output extraction (deterministic, marker-anchored) ──
@@ -221,7 +243,9 @@ function runConformance(contract, output, opts) {
   }
 
   const safeOpts = (opts && typeof opts === 'object') ? opts : {};
-  const invokedPaths = Array.isArray(safeOpts.invokedPaths) ? safeOpts.invokedPaths.filter((p) => typeof p === 'string') : [];
+  const rawInvoked = Array.isArray(safeOpts.invokedPaths) ? safeOpts.invokedPaths : [];
+  const invokedPaths = rawInvoked.map(coercePath).filter((p) => typeof p === 'string');
+  const malformedInvoked = rawInvoked.length - invokedPaths.length;
   const flags = (contract.flags && typeof contract.flags === 'object') ? contract.flags : {};
 
   // ── HARD 1: RESULT_LABEL (marker-anchored) + grammar parse ──
@@ -248,16 +272,28 @@ function runConformance(contract, output, opts) {
                            : `MISSING fields=${JSON.stringify(missing)} of ${schemaFields.length}`);
   }
 
-  // ── HARD 3: scope containment — segment-aware, with always-on protected floor ──
-  const allowed = (Array.isArray(contract.allowed_scope) ? contract.allowed_scope : []).filter((s) => typeof s === 'string');
-  const declaredForbidden = (Array.isArray(contract.forbidden_scope) ? contract.forbidden_scope : []).filter((s) => typeof s === 'string');
-  const forbidden = [...new Set([...declaredForbidden, ...PROTECTED_FLOOR])];
+  // ── HARD 3: scope containment — segment-aware, path-shaped entries only, always-on protected floor ──
+  // allowed_paths/forbidden_paths (explicit, filesystem) take precedence; allowed_scope/forbidden_scope
+  // contribute only their PATH-LIKE entries (prose semantic-scope ignored — Codex finding 2).
+  const allowedPaths = [
+    ...(Array.isArray(contract.allowed_paths) ? contract.allowed_paths : []),
+    ...(Array.isArray(contract.allowed_scope) ? contract.allowed_scope : []),
+  ].filter(isPathLike);
+  const forbiddenPaths = [
+    ...(Array.isArray(contract.forbidden_paths) ? contract.forbidden_paths : []),
+    ...(Array.isArray(contract.forbidden_scope) ? contract.forbidden_scope : []),
+  ].filter(isPathLike);
+  const forbidden = [...new Set([...forbiddenPaths, ...PROTECTED_FLOOR])];
   let scopeRan = false;
+  if (malformedInvoked > 0) {
+    // fail-CLOSED: non-string/non-coercible invoked entries → scope unverifiable, do NOT silently drop (Codex finding 1)
+    add('scope-input-malformed', 'hard', false, `${malformedInvoked} invokedPaths entr${malformedInvoked === 1 ? 'y' : 'ies'} not string/coercible — scope unverifiable (fail-closed)`);
+  }
   if (invokedPaths.length) {
     scopeRan = true;
     const hitForbidden = invokedPaths.filter((p) => forbidden.some((f) => hitsForbidden(p, f)));
-    const outsideAllowed = allowed.length
-      ? invokedPaths.filter((p) => !allowed.some((a) => withinAllowed(p, a)))
+    const outsideAllowed = allowedPaths.length
+      ? invokedPaths.filter((p) => !allowedPaths.some((a) => withinAllowed(p, a)))
       : [];
     const scopeOk = hitForbidden.length === 0 && outsideAllowed.length === 0;
     add('scope-containment', 'hard', scopeOk,
@@ -282,9 +318,18 @@ function runConformance(contract, output, opts) {
     add('report-line-cap', 'soft', lines <= cap, `lines=${lines} cap=${cap}`);
   }
 
+  // ── SOFT: command_output_caps (coarse) — a single absurdly-long line (e.g. an unbounded command
+  //    dump) violates the cap the contract declared; split_required_trigger stays out-of-band. (Codex finding 3) ──
+  if (flags.command_output_caps === true && !blockedMode) {
+    const MAX_LINE = 2000;
+    const longest = output.split('\n').reduce((m, l) => Math.max(m, l.length), 0);
+    add('command-output-cap', 'soft', longest <= MAX_LINE, `longest_line=${longest} coarse_cap=${MAX_LINE}`);
+  }
+
   // ── SOFT 6: contract-substance — a vacuous contract cannot certify a clean PASS ──
   const substantiveRan = schemaFields.length > 0 || scopeRan ||
     flags.no_stage_narration === true || flags.broad_command_ban === true ||
+    flags.command_output_caps === true ||
     (Number.isInteger(cap) && cap > 0 && flags.final_report_only === true);
   const vacuous = !substantiveRan;
   if (vacuous) {
@@ -296,12 +341,17 @@ function runConformance(contract, output, opts) {
   const passed = checks.filter((c) => c.ok).length;
   const verdict = hardFails.length ? 'FAIL' : (softFails.length ? 'PARTIAL' : 'PASS');
 
+  // honest enforcement scope: declared flags the gate CANNOT check from output text alone
+  const notEnforced = [];
+  if (flags.split_required_trigger === true) notEnforced.push('split_required_trigger (needs turn/call-graph context, not output-checkable)');
+
   return {
     ok: verdict === 'PASS',
     verdict,
     score: checks.length ? passed / checks.length : 0,
     blockedMode,
     vacuous,
+    notEnforced,
     labelAnchored: ex.anchored,
     hardFails: hardFails.map((c) => c.name),
     softFails: softFails.map((c) => c.name),
