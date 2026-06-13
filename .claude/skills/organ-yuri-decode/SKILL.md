@@ -38,4 +38,9 @@ When the model wants a deterministic structural reading of a piece of text (toke
 - Output is advisory_only — a decoded reading is structure to reason over, not a verified claim.
 
 ## Session Notes
-- 2026-06-09 — generated from canonical node `yuri-decode`.mechanism.guide (source-grounded; export list hard-gated against the live module by yuri-guide-seed.mjs). Authored source: _SYSTEM/organ-guides.json.
+
+### 2026-06-13
+- session: 40m | peak ctx: 0% | compacts: 0
+- tools: Bash×824, Read×163, Edit×17, StructuredOutput×16, Write×8, TodoWrite×4, ToolSearch×2, ScheduleWakeup×2, Workflow×1, mcp×1, AskUserQuestion×1
+- corrections: none
+- errors: none

@@ -72,4 +72,9 @@ Promoting/demoting a formula candidate through the evidence ladder, reading the 
 - The ledger is append-only; a later record for an id supersedes earlier ones (read reconstructs current state).
 
 ## Session Notes
-- 2026-06-09 — generated from canonical node `formula-foundry-bakeoff`.mechanism.guide (source-grounded; export list hard-gated against the live module by yuri-guide-seed.mjs). Authored source: _SYSTEM/organ-guides.json.
+
+### 2026-06-13
+- session: 40m | peak ctx: 0% | compacts: 0
+- tools: Bash×824, Read×163, Edit×17, StructuredOutput×16, Write×8, TodoWrite×4, ToolSearch×2, ScheduleWakeup×2, Workflow×1, mcp×1, AskUserQuestion×1
+- corrections: none
+- errors: none

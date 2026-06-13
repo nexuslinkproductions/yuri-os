@@ -41,4 +41,9 @@ Before accepting a lane's claim/transition — to confirm it stayed inside grant
 - withNavigate is async (graph impact lookup); high impact_centrality means 'surface for review', not automatic block.
 
 ## Session Notes
-- 2026-06-09 — generated from canonical node `discovery-precision-gate`.mechanism.guide (source-grounded; export list hard-gated against the live module by yuri-guide-seed.mjs). Authored source: _SYSTEM/organ-guides.json.
+
+### 2026-06-13
+- session: 40m | peak ctx: 0% | compacts: 0
+- tools: Bash×824, Read×163, Edit×17, StructuredOutput×16, Write×8, TodoWrite×4, ToolSearch×2, ScheduleWakeup×2, Workflow×1, mcp×1, AskUserQuestion×1
+- corrections: none
+- errors: none

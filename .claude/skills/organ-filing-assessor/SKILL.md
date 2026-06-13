@@ -50,4 +50,15 @@ Deciding where a generated artifact canonically belongs, finding misfiled files,
 - Zone classification is a CLOSED ordered ruleset (ZONE_RULES) — an artifact matching no rule gets the default zone, not an error.
 
 ## Session Notes
-- 2026-06-09 — generated from canonical node `filing-assessor`.mechanism.guide (source-grounded; export list hard-gated against the live module by yuri-guide-seed.mjs). Authored source: _SYSTEM/organ-guides.json.
+
+### 2026-06-13
+- session: 40m | peak ctx: 0% | compacts: 0
+- tools: Bash×824, Read×163, Edit×17, StructuredOutput×16, Write×8, TodoWrite×4, ToolSearch×2, ScheduleWakeup×2, Workflow×1, mcp×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-06-11
+- session: 24m | peak ctx: 28% | compacts: 0
+- tools: Bash×82, WebFetch×14, Edit×13, Write×10, WebSearch×5, TodoWrite×4, Agent×2, Read×1
+- corrections: none
+- errors: none
