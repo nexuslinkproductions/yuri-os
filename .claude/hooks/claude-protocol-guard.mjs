@@ -240,12 +240,13 @@ function checkPlanDispatchGate(input) {
 }
 
 // HITL plan-review gate (MUTUAL-EXCLUSION site C of 3). When plan_review_mode is ON, the
-// PostToolUse arm site armed `plan_review_gate` instead of plan_dispatch_gate. This paces the
-// first post-ExitPlanMode mutation with an ADVISORY warning (NOT emitBlock) — the operator is
-// nudged to capture/annotate the plan via `_SYSTEM/Scripts/plan-review.mjs` before mutating.
-// Same warn-budget + TTL escape valve as the dispatch gate so an interactive session is never
-// wedged. Whether the changes-requested verdict becomes a HARD block is an OWNER decision and
-// is NOT implemented here (advisory-pacing only this phase).
+// PostToolUse arm site armed `plan_review_gate` instead of plan_dispatch_gate.
+// OWNER DECISION 2026-06-13 (Marcel "auto block with a reason provided"): this is now a HARD BLOCK,
+// not advisory pacing. In review mode a post-ExitPlanMode mutation is DENIED until the plan is reviewed
+// and approved (satisfy the gate via `plan-review.mjs approve`). The per-attempt auto-open was removed
+// (a hard gate opens on APPROVAL, not on N denied attempts); a long TTL failsafe still auto-expires the
+// gate so a review-mode session left on cannot wedge permanently. Block requires CLAUDE_SESSION_ID — the
+// same degrade-to-WARN contract as every other block here. Fires ONLY when review mode is ON (default OFF).
 function checkPlanReviewGate(input) {
   const toolName = input?.tool_name || '';
   const isMutation = MUTATION_TOOLS.has(toolName) ||
@@ -259,15 +260,18 @@ function checkPlanReviewGate(input) {
     const gate = state?.plan_review_gate;
     if (!gate || !gate.armed || gate.satisfied) return null;
 
-    if (gate.warn_count >= PLAN_GATE_MAX_WARNS || Date.now() - gate.armed_at > PLAN_GATE_TTL_MS) {
+    // TTL failsafe ONLY (a long timeout) so a forgotten review-mode cannot wedge forever. No
+    // per-attempt auto-open: the hard gate is satisfied by APPROVAL, not by repeated denied attempts.
+    if (Date.now() - gate.armed_at > PLAN_GATE_TTL_MS) {
       ss.update(s => { if (s.plan_review_gate) s.plan_review_gate.satisfied = true; });
       return null;
     }
 
-    ss.update(s => { s.plan_review_gate.warn_count = (s.plan_review_gate.warn_count || 0) + 1; });
+    ss.update(s => { s.plan_review_gate.block_count = (s.plan_review_gate.block_count || 0) + 1; });
     return {
-      code: 'plan-review-pending',
-      message: 'HITL plan-review mode is ON: capture/annotate the plan before mutating — run: _SYSTEM/Scripts/plan-review.mjs capture "<id>" then review the structured feedback. (advisory pacing, not a hard block)',
+      code: 'plan-review-blocked',
+      block: true,
+      message: 'HITL plan-review mode is ON, so this mutation is BLOCKED until the plan is reviewed and approved. Reason: an operator turned on plan-review mode — agent plans require human sign-off before any mutation. Capture + review: `_SYSTEM/Scripts/plan-review.mjs capture "<id>"`, then approve (a changes-requested verdict keeps the block). Leave review mode: `_SYSTEM/Scripts/plan-review.mjs off`.',
     };
   } catch (_) {
     return null;
@@ -419,6 +423,23 @@ process.stdin.on('end', () => {
     // Visible degradation, not silent: log it when findings exist without a session id.
     if (!sessionId) {
       process.stderr.write('[protocol-guard] WARN: CLAUDE_SESSION_ID absent — critical-tier block downgraded to WARN\n');
+    }
+    // Owner-armed HARD gates (e.g. plan-review auto-block, Marcel 2026-06-13): a finding flagged
+    // block:true DENIES the tool regardless of complexity tier — same CLAUDE_SESSION_ID requirement
+    // as every other block (absent → degrades to WARN below, logged).
+    const forcedBlocks = warnings.filter((w) => w.block);
+    if (sessionId && forcedBlocks.length) {
+      appendAuditLog({
+        ts: new Date().toISOString(),
+        session_id: sessionId,
+        entry_point: 'claude',
+        tool: (input && input.tool_name) || 'unknown',
+        violation: forcedBlocks.map((w) => w.code).join(','),
+        blocked: true,
+      });
+      emitBlock(forcedBlocks);
+      process.exit(0);
+      return;
     }
     if (sessionId) {
       const packet = readSessionPacket(sessionId);

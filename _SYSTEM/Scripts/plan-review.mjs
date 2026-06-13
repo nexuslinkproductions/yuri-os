@@ -10,10 +10,11 @@
  *   back, and DIFF successive plan revisions so reviewer + author see what actually changed.
  *   This module is that surface, YURI-native + deterministic.
  *
- * POSTURE: ADVISORY (this phase). When plan_review_mode is ON, the PreToolUse guard emits a
- *   PACING WARNING (emitWarnings) on the first post-ExitPlanMode mutation — it does NOT hard
- *   block. Whether the changes-requested (F) verdict becomes a real R4 hard gate is an OWNER
- *   decision (see 03-SIM-REDTEAM.md owner-decisions) and is deliberately NOT implemented here.
+ * POSTURE: HARD BLOCK (owner decision 2026-06-13, Marcel "auto block with a reason provided").
+ *   When plan_review_mode is ON, the PreToolUse guard (checkPlanReviewGate) DENIES the next
+ *   post-ExitPlanMode mutation, with a reason, until the plan is reviewed + approved. Fires ONLY in
+ *   review mode (default OFF), requires CLAUDE_SESSION_ID (else degrades to WARN), and a long TTL
+ *   failsafe prevents a forgotten review-mode from wedging the session permanently.
  *
  * LOAD-BEARING SAFETY INVARIANT — MUTUAL EXCLUSION:
  *   plan_review_mode and the autonomous plan_dispatch_gate must NEVER both fire on the same
