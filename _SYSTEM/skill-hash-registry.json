@@ -433,7 +433,7 @@
   },
   "plan-review": {
     "source_path": ".claude/skills/plan-review/SKILL.md",
-    "hash": "b6aff3070f74cafc"
+    "hash": "85f00bbc211e13d2"
   },
   "quantum-hypothesis-simulation": {
     "source_path": ".claude/skills/quantum-hypothesis-simulation/SKILL.md",
