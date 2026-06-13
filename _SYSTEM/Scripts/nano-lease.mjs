@@ -3,7 +3,7 @@
 // @serves: work lease | file lock | nano collision | dont clobber | exclusive claim | who owns this file | partition work across lanes | stale lease reclaim
 // @does: the NANO SWARM anti-clobber keystone (G1) — per-resource ATOMIC leases via mkdir-EXCL (one winner, no TOCTOU), owner-verified release, heartbeat renew, TTL + dead/stale-holder reclaim (race-safe rename-then-delete). Resource IDs encode anything: file:src/x.ts | task:build | slot:gpu-2.
 // @use: a nano calls acquireLease(id, nanoId) before touching a shared resource; others skip what's held. Worktree-per-nano covers the 95% case (own-branch edits); leases cover the contended ~5%.
-// @exports: acquireLease, releaseLease, renewLease, reclaimLeases, acquireOrWait, listLeases, leaseDir, DEFAULT_TTL_MS
+// @exports: acquireLease, releaseLease, renewLease, reclaimLeases, acquireOrWait, listLeases, inspectLeases, leaseDir, DEFAULT_TTL_MS
 //
 // Generalizes local-concurrency.mjs's proven atomic-mkdir semaphore from fixed slot-0..N to arbitrary
 // resource-keyed leases. Staleness is keyed on renewedAt in the .owner JSON ONLY (a peer review mixed
@@ -44,14 +44,39 @@ function holderAlive(meta, now = Date.now()) {
   return fresh; // remote: unprobeable pid -> staleness-only
 }
 
-// Race-safe teardown: rename the dir to a unique staging name FIRST (atomic — exactly one winner),
-// then delete the staged copy. A concurrent reclaimer that loses the rename gets ENOENT → skips, so
-// a lease can never be double-freed out from under a fresh re-acquire.
-function destroyLeaseDir(dir) {
+// Take EXCLUSIVE custody of `dir` by renaming it to a unique staging name (atomic — exactly one winner;
+// losers get ENOENT and skip). While staged, no other process can see or claim `dir` until we destroy it
+// or restore it. The `.rcl-` prefix is age-swept by reclaimLeases if we die mid-teardown.
+function stageDir(dir) {
   const staged = `${dir}.rcl-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
-  try { fs.renameSync(dir, staged); } catch { return false; } // lost the race (already gone/renamed)
-  try { fs.rmSync(staged, { recursive: true, force: true }); } catch { /* orphan staged dir -> age-swept by reclaimLeases */ }
-  return true;
+  try { fs.renameSync(dir, staged); return staged; } catch { return null; }
+}
+
+// Red-team K2 fix — DEAD-ONLY teardown re-evaluated UNDER CUSTODY. The old path read the owner, judged it
+// dead, then destroyed the dir UNCONDITIONALLY: a process that claimed a fresh LIVE lease in that window
+// had it destroyed and re-granted to the reclaimer (double-acquire + lost updates). Here:
+//   1. PRE-CHECK — if the dir already turned over to a live owner, don't even take custody (cheap; avoids
+//      the common turnover eviction).
+//   2. Take exclusive custody (atomic stage rename — one winner).
+//   3. Re-read the owner UNDER CUSTODY; destroy ONLY if it is dead/ownerless RIGHT NOW. A live owner —
+//      a brand-new claim OR the same lease just RENEWED (same identity, fresh renewedAt) — is restored
+//      untouched, never torn down (dead-ness is judged fresh here, not from the stale inspect).
+// Residual (cooperative-lease floor; unavoidable on a plain POSIX FS with no lock manager): a 3-way race —
+// a lease goes live between the pre-check and the stage, and a third party claims the now-free dir before
+// our restore — can EVICT that live owner without granting it to us. NEVER a double-OWNER (we return
+// false); the evicted owner detects the loss on its next owner-checked renew/release.
+function reclaimDirIfDead(dir, now = Date.now()) {
+  const pre = readOwner(dir);
+  if (pre && holderAlive(pre, now)) return false; // already live again -> don't disturb it
+  const staged = stageDir(dir);
+  if (!staged) return false; // lost custody
+  const owner = readJsonOrNull(path.join(staged, '.owner'));
+  if (!owner || !holderAlive(owner, now)) { // dead/ownerless under custody -> safe to destroy
+    try { fs.rmSync(staged, { recursive: true, force: true }); } catch { /* orphan -> age-swept */ }
+    return true;
+  }
+  try { fs.renameSync(staged, dir); } catch { /* dir retaken; live owner evicted -> fails its next renew */ }
+  return false;
 }
 
 function writeOwner(dir, meta) { atomicWriteFile(ownerFile(dir), JSON.stringify(meta), { mkdir: false }); }
@@ -88,8 +113,13 @@ export function acquireLease(id, nanoId, { ttlMs = DEFAULT_TTL_MS } = {}) {
   // Lost the rename OR a holder already exists — inspect it.
   const cur = readOwner(dir);
   if (holderAlive(cur, now)) return { ok: false, heldBy: cur?.nanoId || 'unknown', since: cur?.acquiredAt };
-  // dead/stale holder → reclaim then retry the atomic claim ONCE (a third party may win the retry).
-  destroyLeaseDir(dir);
+  // dead/stale holder → reclaim ONLY the exact dead lease we inspected (owner-matched), then retry the
+  // atomic claim ONCE. If a live lease was claimed in the window, reclaim refuses → we report contended
+  // rather than stealing it.
+  if (!reclaimDirIfDead(dir, now)) {
+    const c0 = readOwner(dir);
+    return { ok: false, heldBy: c0?.nanoId || 'reacquire-race' };
+  }
   if (claimViaRename(dir, meta)) return { ok: true, leaseId: meta.leaseId, dir };
   const c2 = readOwner(dir);
   return { ok: false, heldBy: c2?.nanoId || 'reacquire-race' };
@@ -99,13 +129,23 @@ export function acquireLease(id, nanoId, { ttlMs = DEFAULT_TTL_MS } = {}) {
 export function releaseLease(id, nanoId) {
   if (!id || !nanoId) return false;
   const dir = leaseDir(id);
-  if (!fs.existsSync(dir)) return true; // already free
   const cur = readOwner(dir);
-  // Red-team #3 fix: FAIL-CLOSED — refuse if the owner is null/unparseable OR not us. (Was: a null
-  // owner skipped the guard, letting any caller free a dir another nano was mid-claiming. Reclaiming
-  // a genuinely dead owner-less dir is reclaimLeases'/the reaper's job, not a non-owner release.)
-  if (!cur || cur.nanoId !== String(nanoId)) return false;
-  return destroyLeaseDir(dir);
+  // FAIL-CLOSED — refuse if the owner is null/unparseable OR not us, WITHOUT disturbing the dir (a null
+  // owner is someone mid-claim; reclaiming a dead owner-less dir is the reaper's job, not a non-owner
+  // release). gone -> already released.
+  if (!cur) return !fs.existsSync(dir);
+  if (cur.nanoId !== String(nanoId)) return false;
+  // Believed ours → take custody and RE-CONFIRM before destroying. Kills the read→destroy TOCTOU where the
+  // lease was reclaimed + re-acquired by another nano in the window (we'd otherwise destroy THEIR lease).
+  const staged = stageDir(dir);
+  if (!staged) return true; // vanished after our read -> already released
+  const owner = readJsonOrNull(path.join(staged, '.owner'));
+  if (owner && owner.nanoId === String(nanoId)) {
+    try { fs.rmSync(staged, { recursive: true, force: true }); } catch { /* orphan -> age-swept */ }
+    return true;
+  }
+  try { fs.renameSync(staged, dir); } catch { /* dir retaken between our read and stage */ }
+  return false;
 }
 
 /** Heartbeat — bump renewedAt so the lease doesn't go stale. Owner-only. Returns true on success. */
@@ -137,9 +177,32 @@ export function reclaimLeases(now = Date.now()) {
     }
     const meta = readOwner(dir);
     if (holderAlive(meta, now)) continue;
-    if (destroyLeaseDir(dir)) reclaimed.push(meta?.leaseId || ent.name);
+    // dead-only teardown under custody: won't destroy a lease that went live between our read and reclaim.
+    if (reclaimDirIfDead(dir, now)) reclaimed.push(meta?.leaseId || ent.name);
   }
   return reclaimed;
+}
+
+/**
+ * Inspect every lease WITHOUT mutating — owner + computed alive flag, for the supervisor reaper and the
+ * swarm board. Unlike listLeases (which reclaims first), this is a pure read so the supervisor can
+ * attribute a soon-to-be-reaped lease to its owning nano BEFORE reclaimLeases destroys it. An ownerless
+ * dir (mid-claim / corrupt) reports alive:false + ownerless:true.
+ */
+export function inspectLeases(now = Date.now()) {
+  const out = [];
+  let entries = [];
+  try { entries = fs.readdirSync(LEASES_DIR, { withFileTypes: true }); } catch { return out; }
+  for (const ent of entries) {
+    if (!ent.isDirectory() || isStagingName(ent.name)) continue;
+    const meta = readOwner(path.join(LEASES_DIR, ent.name));
+    if (!meta) { out.push({ leaseId: null, nanoId: null, dirHash: ent.name, alive: false, ownerless: true }); continue; }
+    out.push({
+      leaseId: meta.leaseId, nanoId: meta.nanoId, pid: meta.pid, host: meta.host,
+      renewedAt: meta.renewedAt, alive: holderAlive(meta, now),
+    });
+  }
+  return out;
 }
 
 /** List currently-held (live) leases, pruning dead ones first. */

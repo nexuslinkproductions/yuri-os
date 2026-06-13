@@ -49,6 +49,8 @@ export const KAGAMI_EVENT_KINDS = Object.freeze([
   'LEASE_RENEWED',
   'LEASE_EXPIRED',
   'LEASE_CONTENDED',
+  // NANO SWARM supervisor cycle — reap/rotate/liveness summary for the swarm board.
+  'SWARM_SUPERVISION_CYCLE',
 ]);
 
 export const KAGAMI_DOMAIN_ROLES = Object.freeze({
