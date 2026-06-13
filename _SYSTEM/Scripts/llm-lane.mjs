@@ -41,6 +41,7 @@ import https from 'node:https';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
+import { gitMutationHit, protectedPathHit } from './_lib/lane-command-gate.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
 import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
 
@@ -155,14 +156,18 @@ function fail(code, lane, reason) {
 // bash gate: reuse YURI's audited safety core (blocks destructive: rm -rf, dd, mkfs, git reset/clean,
 // pipe-to-shell, ...) and add advisory-lane rules — no git mutation (commit/push/tag/merge/rebase/...)
 // and no protected-surface access — since a lane's execSync bypasses the main session's PreToolUse hooks.
-// Honest scope: lexical, defense-in-depth (not a bulletproof sandbox); the lane runs dev-only on the owner box.
+// The git-mutation + protected-surface checks are HARDENED in _lib/lane-command-gate.mjs: option-robust
+// git subcommand parsing (closes the `git -C dir commit` bypass) + realpath/basename protected detection
+// with quote-evasion stripping (closes `gi""t commit`, `cat ./.env`, symlink-into-protected). Honest scope:
+// still a static matcher / defense-in-depth (not a bulletproof sandbox — $VAR/$(...) indirection is the
+// documented floor); the lane runs dev-only on the owner box and destructive ops are caught by the core.
 function laneCommandAllowed(cmd) {
   const core = evaluateToolCall('bash', { cmd, cwd: REPO_ROOT }, { source: 'llm-lane' });
   if (!core.allowed) return { allowed: false, reason: core.reason || 'safety_core_blocked' };
-  if (/\bgit\s+(commit|push|tag|merge|rebase|reset|clean|checkout|restore|stash\s+drop|cherry-pick|am)\b/.test(cmd)) {
+  if (gitMutationHit(cmd)) {
     return { allowed: false, reason: 'lane is advisory: git mutation (commit/push/tag/...) is blocked' };
   }
-  if (/(^|[\s='"`/<>|])(\.env\b|\.env\.|backend\/data\/|secrets\/|\.claude\/(state|history|file-history|projects))/.test(cmd) || /\.(pem|key|p12|pfx)\b/.test(cmd)) {
+  if (protectedPathHit(cmd, { repoRoot: REPO_ROOT, isProtectedPath })) {
     return { allowed: false, reason: 'protected surface referenced in command' };
   }
   return { allowed: true };
@@ -806,4 +811,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools };
+export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, laneCommandAllowed };

@@ -7,10 +7,22 @@ The session that designed + began building the NANO SWARM autonomous-lane fabric
 Stack is **~135 tests green** + the durable multi-process I3 regression. Phase 0 (loop+observability), Phase 1 (500k gate, disarmed+unwired), G1 (lease registry), **Phase 3 (rotation + supervisor + fragment-assemble)** all DONE and red-team-hardened (3 Opus agents, real multi-process harnesses — see Phase 3 section below). Decisions LOCKED: native cron · lease-root = kagami guarded API · cost track-only-no-cap · fragment+assemble.
 
 **Next, in order:**
-1. **G4 — external nanos through `llm-lane`** (NOT raw `mimo.mjs`): llm-lane already gives the 24-iter agentic loop + spine preamble + the SAME safety core + energy trace. Work = route nanos through it + harden its *lexical* extra-rules (git-mutation/protected-surface) to realpath/closed-set. Egress for codex/deepseek is a separate environment fix. **This is the last structural gap before a real multi-nano run.**
-2. **Arm the supervisor cron** — spec written + disarmed at `_SYSTEM/AGENTS/swarm-supervisor-cron.md`. Owner picks launchd (recommended, session-independent) or native Claude cron. Run `kagami-swarm-supervisor.mjs once` by hand first to confirm a clean `{ok:true}` cycle.
-3. **Arm the compact gate** — only after a metrics-only burn-in confirms a live token signal in the PreToolUse payload (existing PreToolUse hooks read only `tool_name`/`session_id`; `context_window.used_percentage`/`transcript_path` confirmed in statusLine+Stop, NOT yet PreToolUse). Register in settings.json → watch `~/.yuri-audit.log` for real `would_deny` → flip `YURI_NANO_COMPACT_ENFORCE=1`.
-4. **Wire fragment+assemble into a real multi-nano doc run** when shared-doc output work arises (`nano-doc-assembler.mjs` is built + tested; just needs a live consumer).
+1. **Arm the supervisor cron** — spec written + disarmed at `_SYSTEM/AGENTS/swarm-supervisor-cron.md`. Owner picks launchd (recommended, session-independent) or native Claude cron. Run `kagami-swarm-supervisor.mjs once` by hand first to confirm a clean `{ok:true}` cycle.
+2. **Arm the compact gate** — only after a metrics-only burn-in confirms a live token signal in the PreToolUse payload (existing PreToolUse hooks read only `tool_name`/`session_id`; `context_window.used_percentage`/`transcript_path` confirmed in statusLine+Stop, NOT yet PreToolUse). Register in settings.json → watch `~/.yuri-audit.log` for real `would_deny` → flip `YURI_NANO_COMPACT_ENFORCE=1`.
+3. **First real multi-nano run** — all structural gaps are now closed (loop, lease, rotation, supervisor, external-lane routing, fragment-assemble). Launch a small bounded set of nanos (native + external via `nano-external.mjs`) on distinct shards against a real goal; watch the swarm board (bus events) + supervisor cycles.
+4. **Wire fragment+assemble into that run** when shared-doc output arises (`nano-doc-assembler.mjs` is built + tested; just needs a live consumer).
+5. **Egress for codex/deepseek** is a separate ENVIRONMENT fix (curl-gated in this sandbox) — the `nano-external` wiring + the equipped harness are proven; live external firing waits on egress.
+
+## Phase 4 (G4) — external-lane routing + gate hardening (2026-06-13, red-team-hardened)
+
+**Built:** `nano-external.mjs` — `externalNanoWork({lane,task})` turns mimo/deepseek/codex/local into a nano-tick work fn that routes through `llm-lane` (NOT raw mimo.mjs — structurally refused), so an external nano inherits the SAME equipped harness as a native one. Dry-run PROOF (no egress needed): routing reaches `loadout: full-yuri-stack` (63,796-char spine) + the gated tool set incl `bash`. T2 re-confirmed against live llm-lane (imports `policy/yuri-safety-core` + `lane-core-hooks`, 24-iter loop, full spine). Plus `_lib/lane-command-gate.mjs` — the llm-lane advisory bash gate hardened from two bypassable regexes to option-robust git-subcommand parsing + glob-expanding/realpath/basename protected detection; registered as a capability (added `_lib` to capability-scan DIRS).
+
+**1 Opus bypass red-team (refute-by-default, canary-proven leaks) found 5 in-scope bypass classes the first hardening still missed — all fixed + re-verified (19 in-scope BLOCK, 9 negatives ALLOW):**
+- **GLOB (CRITICAL):** gate resolved the literal glob token; `cat .e*` → bash expands → `.env` leaked. Fix: `fs.globSync` expansion against repoRoot + conservative dotfile-glob block + literal-prefix-inside-protected belt.
+- **Redirection (HIGH):** `cat <.env` tokenized as one junk token. Fix: split tokens on `<`/`>`.
+- **git stash push (MED):** destructive-only denylist missed `stash push`/bare. Fix: read-only ALLOWLIST {list, show}.
+- (option-prefix + quote-evasion were already closed by the first pass — the red-team's negative controls confirmed.)
+- **CRITICAL INVARIANT** banked: the gate's glob `repoRoot` MUST equal the command's exec `cwd` (llm-lane passes REPO_ROOT for both) or the gate checks a different FS view than bash. Lessons: [[feedback-command-gate-bypass-classes]]. Residual = the documented runtime-indirection floor ($VAR/$(...)).
 
 ## Phase 3 — rotation + supervisor + assembler (2026-06-13, red-team-hardened)
 

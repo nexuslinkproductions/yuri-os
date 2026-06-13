@@ -12,7 +12,12 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYS = path.resolve(HERE, '..');
 const ROOT = path.resolve(SYS, '..');
 const OUT = path.join(SYS, 'capabilities.json');
-const DIRS = [path.join(SYS, 'Scripts'), path.join(SYS, 'Scripts', 'math')];
+const DIRS = [
+  path.join(SYS, 'Scripts'),
+  path.join(SYS, 'Scripts', '_lib'),                  // shared helper libs (lane-command-gate, ...)
+  path.join(SYS, 'Scripts', 'math'),
+  path.join(SYS, 'Scripts', 'alpha-factor-library'),  // AFL organ subdir
+];
 
 const listMjs = (d) => {
   try {
