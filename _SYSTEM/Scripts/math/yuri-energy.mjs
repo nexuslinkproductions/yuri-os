@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: energy-gate-scoring
+// @serves: energy | composite score | weighted composite | gate | progress regress | lyapunov | delta U | claim evaluation | penalty reward | calibration | verification credit | should this block
+// @does: U = additive weighted composite of badness (entropy, miscalibration, staleness, protected-path violations +100, ladder-inversions +10) minus credits (information-gain, verified-evidence). Penalties raise U, credits lower it.
+// @use: Reach for this before building any composite/weighted scorer or gate. Audit new composites against its sign convention (penalties +, credits -).
+// @exports: computeU
 /**
  * YURI Energy Function — yuri-energy.mjs
  *
@@ -48,10 +53,12 @@ import {
 export { maxEntBelief, hazardMultiplier };
 
 // ENG-01 default baseline halfLife (days) for the SHADOW Cox-aging metric. The live
-// confidenceDecay path requires a per-record halfLife; the live evidence records
-// (energy-tick-core.applyTransition) carry none, so the live staleness term stays a
-// verified-dead branch (intentional — wiring it is owner-gated Wave-3). This default
-// is used ONLY by the advisory evalStalenessShadow below, never by computeU.
+// confidenceDecay path requires a per-record halfLife; persisted evidence records
+// (energy-tick-core.applyTransition) carry none. ζ arms via the FLAG-GATED config
+// key `staleness.halfLifeDays` in energy-weights.json (yuri-energy-config.mjs):
+// when set, energy-tick-core hydrates evidence at read time (age from capturedAt,
+// halfLife from config). Absent key → ζ stays a skipped term. This default is
+// used ONLY by the advisory evalStalenessShadow below, never by computeU.
 const SHADOW_BASE_HALF_LIFE_DAYS = 7;
 
 const ENERGY_PRECISION = 1e9;
@@ -80,7 +87,12 @@ export const DEFAULT_WEIGHTS = Object.freeze({
 
 // Live enforcing path: any per-claim ladder inversion above this absolute level trips the L∞
 // floor. gateProposal keeps Infinity as its API default for compatibility (red-team #5).
-export const DEFAULT_MAX_LADDER_INVERSION_CAP = 0;
+// cap=1 (owner decision D1, 2026-06-10): a single honest VERIFY-FIRST inversion is
+// workflow per the gate's own calibration text (claim-cortex.mjs); ≥2 rungs is
+// laundering and vetoes. Honest residual: a depth-1↔depth-1 content swap stays
+// uncaught at the L∞ level until the v2 claim ledger supplies content hashes.
+// NOTE: yuri-originator.mjs deliberately pins its own stricter cap=0 locally.
+export const DEFAULT_MAX_LADDER_INVERSION_CAP = 1;
 
 // Saturation cap for the verified-evidence credit (bounds U BELOW). The credit is
 // -iota·log1p(min(count, CAP)): logarithmic AND capped, so it has a finite infimum
@@ -158,6 +170,11 @@ function evalEntropy(distribution) {
   try {
     return { value: entropy(values), skipped: false };
   } catch (err) {
+    // FAIL-OPEN by acceptance: a negative/garbage count makes kernel entropy
+    // throw → the α term skips → contributes 0. The live feeder (cortexSnapshot)
+    // emits non-negative counts only, so this seam is reachable only by direct
+    // garbage-feeding callers — same accepted-risk family as the evalKL note
+    // (the β seam is the one closed with a poison predicate; α is documented).
     return { skipped: true, reason: `entropy failed: ${err.message}` };
   }
 }
@@ -174,6 +191,20 @@ function clampDistribution(arr) {
   });
 }
 
+// A distribution is POISONED when any entry is non-finite or negative, or when the
+// whole vector carries no real mass (every entry ≤ KL_EPSILON, e.g. all-zero):
+// clampDistribution would map those to 1e-12 vectors that kernel klDivergence
+// normalizes to uniform → KL=0 → the β term silently launders the worst case.
+function distributionPoisoned(arr) {
+  let mass = false;
+  for (const v of arr) {
+    const n = Number(v);
+    if (!Number.isFinite(n) || n < 0) return true; // type/sign poison
+    if (n > KL_EPSILON) mass = true;
+  }
+  return !mass; // zero-mass vector normalizes to uniform → KL launders to 0
+}
+
 function evalKL({ claimed, verified }) {
   if (!claimed || !verified) return { skipped: true, reason: 'no claimed/verified pair' };
   if (!Array.isArray(claimed) || !Array.isArray(verified)) {
@@ -188,6 +219,19 @@ function evalKL({ claimed, verified }) {
       value: Math.log(1 / KL_EPSILON),
       skipped: false,
       warnings: ['claimed/verified length mismatch — treated as maximal drift'],
+    };
+  }
+  // Fail-CLOSED on poisoned inputs (deliberate deviation from kernel-throw: a throw
+  // here would be caught → skipped → 0 contribution → fail-OPEN, the exact disease).
+  // The same throw→skip→0 family exists in sibling evaluators (evalEntropy /
+  // evalInfoGain / evalLogLoss / evalBrier) — this closes the β seam only; the live
+  // feeders (cortexSnapshot) floor + normalize their distributions, so those seams
+  // are reachable only by direct garbage-feeding callers (accepted risk, documented).
+  if (distributionPoisoned(claimed) || distributionPoisoned(verified)) {
+    return {
+      value: Math.log(1 / KL_EPSILON),
+      skipped: false,
+      warnings: ['poisoned claimed/verified distribution (non-finite/negative/zero-mass entry) — treated as maximal drift'],
     };
   }
   try {
@@ -216,6 +260,10 @@ function evalRepeatedFailure(preds, outs) {
     // Bucket fractional/out-of-range outcomes to the nearest label (0.0001 -> 0,
     // 0.9999 -> 1) so a near-miss report cannot evade the count. Strict, symmetric
     // boundary: the uninformative midpoint p=0.5 is counted on NEITHER side.
+    // NO confidence threshold: p=0.5001 counts as fully "confidently wrong" the
+    // same as p=0.99 — documented, not tuned (the live tick path always emits
+    // p=0.9, so the low-confidence band is dormant; a threshold knob is a future
+    // wired-knob decision, not a silent change).
     const oLabel = o >= 0.5 ? 1 : 0;
     if ((p > 0.5 && oLabel === 0) || (p < 0.5 && oLabel === 1)) count += 1;
   }
@@ -566,6 +614,10 @@ export function gateProposal({
   const delta = computeDeltaU(stateBefore, stateAfter, w);
   const deltaU = delta.result.deltaU;
   const passesThreshold = deltaU <= normalizedThreshold;
+  // KNOWN EDGE (documented, unreachable-from-live): allowOverride=true with a
+  // NaN ΔU accepts (NaN <= t is false → passesThreshold false → override arm).
+  // The live tick path never sets allowOverride and its +1 increments cannot
+  // produce a NaN ΔU; the render side maps non-finite to null (dash-round9-8e).
   const overrideAllowed = allowOverride === true;
 
   // HARD VETO (HIGH bug #4): a protected-path violation INCREASE is catastrophic
@@ -707,7 +759,10 @@ export function gateProposal({
     proof: {
       advisory_only: true,
       local_truth_claim: false,
-      lyapunovProperty: passesThreshold ? 'descending' : 'ascending',
+      // Keyed on the SIGN of ΔU (matching computeDeltaU): the accept decision is
+      // policy, the Lyapunov label is physics — they must not share a key. An
+      // accepted-under-positive-threshold transition with ΔU>0 is ascending.
+      lyapunovProperty: deltaU <= 0 ? 'descending' : 'ascending',
     },
   });
 }

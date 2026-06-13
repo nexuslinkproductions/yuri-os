@@ -102,6 +102,7 @@ export function loadEnergyConfig(file = CONFIG_FILE) {
     const rdf = num(raw.fsrs.redundancyFloor);        if (rdf !== null && rdf >= 0 && rdf <= 1) f.redundancyFloor = rdf;
     const sup = num(raw.fsrs.supersessionPenaltyDays); if (sup !== null && sup >= 0) f.supersessionPenaltyDays = sup;
     const rsc = num(raw.fsrs.renewalScale);            if (rsc !== null && rsc > 0) f.renewalScale = rsc;
+    const rcf = num(raw.fsrs.renewalCountFloor); if (rcf !== null && rcf >= 0 && rcf <= 1) f.renewalCountFloor = rcf;
     const rmw = num(raw.fsrs.renewalMinWindowDays);    if (rmw !== null && rmw >= 1) f.renewalMinWindowDays = rmw;
     if (Object.keys(f).length) out.fsrs = f;
   }
@@ -123,6 +124,15 @@ export function loadEnergyConfig(file = CONFIG_FILE) {
       if (Object.keys(w).length) r.weights = w;
     }
     if (Object.keys(r).length) out.recall = r;
+  }
+
+  // staleness — flag-gated ζ wiring (owner decision D6). When halfLifeDays is set
+  // (finite, >= 1, matching the recall convention), energy-tick-core hydrates
+  // evidence at read time and the ζ term lights. Absent → ζ stays skipped.
+  if (raw.staleness && typeof raw.staleness === 'object' && !Array.isArray(raw.staleness)) {
+    const z = {};
+    const zhl = num(raw.staleness.halfLifeDays); if (zhl !== null && zhl >= 1) z.halfLifeDays = zhl;
+    if (Object.keys(z).length) out.staleness = z;
   }
 
   return out;

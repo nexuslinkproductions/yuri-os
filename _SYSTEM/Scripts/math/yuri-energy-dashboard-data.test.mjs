@@ -94,8 +94,9 @@ test('round9 stabilizes floats and normalizes -0 to 0', () => {
   assert.equal(round9(0), 0);
   assert.equal(round9(-0), 0);
   assert.equal(Object.is(round9(-0.00000000001), 0), true); // collapses to +0
-  assert.equal(round9(Number.NaN), 0);
-  assert.equal(round9(Infinity), 0);
+  // Non-finite input renders as ABSENT (null), never a confident 0 (dash-round9-8e).
+  assert.equal(round9(Number.NaN), null);
+  assert.equal(round9(Infinity), null);
 });
 
 // ---------------------------------------------------------------------------

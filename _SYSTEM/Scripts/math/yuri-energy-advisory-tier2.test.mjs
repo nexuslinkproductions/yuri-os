@@ -208,7 +208,16 @@ test('ENG-09 KKT BARRIER invariant: η/θ are NEVER prune candidates even when t
   ];
   const out = buildKKTReadoutSection(records);
   for (const b of BARRIER_TERMS) {
+    // maxLadderInversion is a gate-level veto on a STATE FIELD with no
+    // componentContribution — it can never enter the KKT stat loop; its barrier
+    // status is enforced by membership in BARRIER_TERMS (no surface may mark the
+    // L∞ class prunable). The cc-backed barriers must appear and stay unprunable.
     const t = out.terms.find((x) => x.term === b);
+    if (b === 'maxLadderInversion') {
+      assert.equal(t, undefined, `${b} never enters the KKT per-term stat loop`);
+      assert.ok(!out.pruneCandidates.includes(b), `${b} must not appear in pruneCandidates`);
+      continue;
+    }
     assert.ok(t, `${b} present in readout`);
     assert.equal(t.barrier, true, `${b} flagged as barrier`);
     assert.equal(t.pruneCandidate, false, `${b} must never be a prune candidate`);

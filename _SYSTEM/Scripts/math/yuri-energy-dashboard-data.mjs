@@ -155,7 +155,9 @@ export function traceDirFor(stateRoot) {
 // ---------------------------------------------------------------------------
 
 export function round9(value) {
-  if (!Number.isFinite(value)) return 0;
+  // Absent/NaN/Infinity → null (render as a dash), never a confident 0. The
+  // null-as-absent convention pre-exists in this file (rejectReadouts deltaU).
+  if (!Number.isFinite(value)) return null;
   const r = Number(value.toFixed(9));
   // Normalize -0 to 0 so JSON output never carries a negative zero.
   return r === 0 ? 0 : r;
@@ -438,8 +440,8 @@ export function buildConfigSection(liveConfig = {}, defaults = DEFAULT_WEIGHTS) 
 //                      (this is the actual routed work; the hero curve)
 // The cumulative series walks dispatch records in chronological order (files are
 // read sorted, lines in order) accumulating ΔU. Sampled down for a compact emit.
-// Observe mode: every dispatch transition is recorded and accepted (0 rejections);
-// that honesty is carried in the note, not hidden.
+// The note/chip derive from the computed accepted/rejected counters — never a
+// hardcoded observe-mode claim (live action-regime traces contain claim-veto rejects).
 // ---------------------------------------------------------------------------
 
 export function buildRealTrafficSection(records, { sampleTo = 64 } = {}) {
@@ -468,7 +470,8 @@ export function buildRealTrafficSection(records, { sampleTo = 64 } = {}) {
     if (cum < deepest) deepest = cum;
     points.push([i, cum]);
     if (r?.decision === 'reject') rejected += 1;
-    else accepted += 1;
+    else if (r?.decision === 'accept') accepted += 1;
+    // missing/garbage decision: counted in neither (never inflate the accept count)
     const day = typeof r?.timestamp === 'string' ? r.timestamp.slice(0, 10) : 'unknown';
     days[day] = days[day] ?? { n: 0, sum: 0 };
     days[day].n += 1;
@@ -479,13 +482,15 @@ export function buildRealTrafficSection(records, { sampleTo = 64 } = {}) {
     .map(([d, v]) => ({ d, n: v.n, sum: v.sum }))
     .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
 
+  const modeNote = rejected === 0
+    ? 'Every transition recorded was accepted (0 rejections) — this proves the function and real descent, not rejection behaviour (that is the action-mode study).'
+    : `${rejected} of ${accepted + rejected} dispatch transitions were rejected by the live gate (claim/structural vetoes included); see the worked-math reject examples.`;
   return {
     provenance: PROVENANCE.REAL,
     note:
       'Cumulative ΔU over REAL routed dispatch transitions — real-traffic lanes excluding the synthetic experiment lane. ' +
-      'Read from _SYSTEM/state/energy-trace/*.jsonl. The gate runs in observe mode: every transition is recorded and accepted (0 rejections), ' +
-      'so this proves the function and real descent, not rejection behaviour (that is the action-mode study).',
-    chip: `${dispatch.length} dispatch transitions · observe mode`,
+      'Read from _SYSTEM/state/energy-trace/*.jsonl. ' + modeNote,
+    chip: `${dispatch.length} dispatch transitions · ${rejected === 0 ? 'observe mode' : `${rejected} rejected`}`,
     totalRecords: list.length,
     realTrafficRecords: real.length,
     dispatchRecords: dispatch.length,
@@ -584,7 +589,12 @@ export function buildAttributionSection(steps, studyReport, weights = DEFAULT_WE
     for (const [cc, v] of Object.entries(deltas)) add(cc, v);
   }
   for (const r of studyReport?.study?.rows ?? []) {
-    if (r?.dominantTerm) add(r.dominantTerm, r.deltaU);
+    if (r?.componentDeltas && typeof r.componentDeltas === 'object' && !Array.isArray(r.componentDeltas)) {
+      // Proportional: each term gets its OWN |delta|, not the dominant-winner-takes-all.
+      for (const [cc, v] of Object.entries(r.componentDeltas)) add(cc, v);
+    } else if (r?.dominantTerm) {
+      add(r.dominantTerm, r.deltaU); // legacy persisted report fallback (dominant-term-coarse)
+    }
   }
   const nodes = COMPONENT_META.map((c) => ({
     k: c.k,
@@ -627,10 +637,14 @@ export function buildAttributionSection(steps, studyReport, weights = DEFAULT_WE
 // caller (aggregate) supplies already-parsed, already-sanitized trace records.
 // ---------------------------------------------------------------------------
 
-// The two genuine non-offsettable BARRIER vetoes in gateProposal. Distinct from the
+// The three genuine non-offsettable BARRIER vetoes in gateProposal. Distinct from the
 // COMPONENT_META 'critical' kind (which also tags β/κ/λ — heavy SOFT penalties, still
-// offsettable). Only these two are hard floors that survive any soft-credit sum.
-export const BARRIER_TERMS = Object.freeze(['protectedPathViolations', 'promotionLadderInversions']);
+// offsettable). Only these three are hard floors that survive any soft-credit sum.
+// maxLadderInversion is a gate-level veto on a STATE FIELD with no
+// componentContribution: it surfaces via dominantTerm-driven readouts only, never
+// in the KKT per-term stat loop — listed so no future surface marks the L∞ class
+// prunable/offsettable.
+export const BARRIER_TERMS = Object.freeze(['protectedPathViolations', 'promotionLadderInversions', 'maxLadderInversion']);
 const BARRIER_SET = new Set(BARRIER_TERMS);
 
 export function buildKKTReadoutSection(records, { pruneEpsilon = 1e-9 } = {}) {

@@ -338,3 +338,29 @@ test('CLI worked example proves one accepted descent and one rejected protected-
   assert.equal(parsed.scenarioB_ascent_protected_path.accept, false);
   assert.equal(parsed.scenarioB_ascent_protected_path.dominantTerm, 'protectedPathViolations');
 });
+
+// --- Phase-3 wave regressions (math-base fix 2026-06-10) ---
+
+test('evalKL fail-closed: non-finite / negative / zero-mass distributions are maximal drift, never 0', () => {
+  for (const poison of [[Infinity, Infinity], [NaN, 1], [-1, -1], [0, 0]]) {
+    const g = gateProposal({
+      stateBefore: { claimedDistribution: [0.5, 0.5], verifiedDistribution: [0.5, 0.5] },
+      stateAfter: { claimedDistribution: poison, verifiedDistribution: [0.5, 0.5] },
+    });
+    assert.equal(g.result.accept, false, `poison ${poison} must reject`);
+    assert.ok(g.result.componentDeltas.klDivergence > 50, `poison ${poison} is maximal drift`);
+  }
+  // Negative control: finite-tiny-with-real-mass takes the CLAMP path, not the poison path.
+  const clamped = gateProposal({
+    stateBefore: { claimedDistribution: [0.5, 0.5], verifiedDistribution: [0.5, 0.5] },
+    stateAfter: { claimedDistribution: [1e-15, 1], verifiedDistribution: [0.5, 0.5] },
+  });
+  assert.ok(Number.isFinite(clamped.result.deltaU) && Math.abs(clamped.result.componentDeltas.klDivergence - 55.262042231857) > 1, 'real mass stays on the clamp path');
+});
+
+test('gateProposal proof.lyapunovProperty keys on ΔU sign, not on accept', () => {
+  const g = gateProposal({ stateBefore: {}, stateAfter: { predictions: [0.9], outcomes: [0] }, threshold: 100 });
+  assert.equal(g.result.accept, true);
+  assert.ok(g.result.deltaU > 0);
+  assert.equal(g.proof.lyapunovProperty, 'ascending');
+});

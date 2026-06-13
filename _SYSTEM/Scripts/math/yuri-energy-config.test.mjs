@@ -129,3 +129,8 @@ test('evict.ttlDays passes through when valid, drops + truncates per fail-closed
   assert.equal(loadEnergyConfig(tmp({ evict: { ttlDays: 'x' } })).evict, undefined);   // non-numeric dropped
   assert.equal(loadEnergyConfig(tmp({ evict: [1, 2] })).evict, undefined);             // array (not object) dropped
 });
+
+test('fsrs.renewalCountFloor validates 0<=v<=1; out-of-range dropped', () => {
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { renewalCountFloor: 0.4 } })).fsrs.renewalCountFloor, 0.4);
+  assert.equal(loadEnergyConfig(tmp({ fsrs: { renewalCountFloor: 2 } })).fsrs?.renewalCountFloor, undefined);
+});
