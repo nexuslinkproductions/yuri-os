@@ -6,6 +6,7 @@ import { synthesizeFormulaCandidates, draftFormulaBankCard } from './formula-fou
 import {
   runBakeoff, stage0Intake, stage1Fixtures, stage3RealData,
   canPromote, promote, demote, appendGateRecord, readLedger, PROMOTION_LADDER, stableHash,
+  RUNG_TO_STATUS, BANK_STATUS_TO_ENTRY_RUNG,
 } from './formula-foundry-bakeoff.mjs';
 
 let pass = 0, fail = 0;
@@ -68,6 +69,45 @@ try { fs.unlinkSync(tmpLedger); } catch { /* ignore */ }
 
 // --- stableHash is deterministic ---
 ok(stableHash({ a: 1 }) === stableHash({ a: 1 }), 'stableHash is deterministic');
+
+// --- gates-foundry-6: bakeoff end-to-end promotion of a known-good BOUND candidate ---
+const bound = {
+  id: 'kl-divergence',
+  synthesisProvenance: ['shannon-entropy', 'cross-entropy'],
+  implementedBy: '_SYSTEM/Scripts/math/math-kernel.mjs#klDivergence',
+  counterexamples: [{ name: 'reference zero where observed is positive', input: { p: [1, 0], q: [0, 1] }, expectedError: 'zero where p is positive' }],
+  sourceDomains: ['information-theory'],
+  outputDim: 'INFORMATION',
+};
+const rr = await runBakeoff([bound]);
+ok(rr.promotableCount === 1, 'a bound candidate with a registered implementation + passing counterexamples IS promotable end-to-end');
+ok(rr.perCandidate[0].stage2Ran === true, 'stage 2 actually ran');
+const rrNeg = await runBakeoff(synthesizeFormulaCandidates({ maxCandidates: 5 }).candidates);
+ok(rrNeg.promotableCount === 0, 'unbound synthesis candidates stay non-promotable');
+
+// --- gates-foundry-7 + clockwork-7: promotion vocabulary bridge ---
+const SCHEMA_ENUM = ['research', 'verified-baseline', 'stable', 'quarantined', 'fixture'];
+for (const rung of PROMOTION_LADDER) ok(SCHEMA_ENUM.includes(RUNG_TO_STATUS[rung]), `${rung} maps into the schema enum`);
+ok(RUNG_TO_STATUS['owner-approved'] === 'verified-baseline', "ladder top maps to verified-baseline ('stable' stays owner-manual, D9)");
+ok(promote({ id: 'r1', promotionStatus: 'research' }, 'simulated', [{ formulaId: 'r1', rung: 'simulated', gate: 'math-proof-gate', stamp: 't' }]).ok === true,
+  'bank-status research enters the ladder at hypothesis and can take rung 1');
+ok(promote({ id: 'r2', promotionStatus: 'verified-baseline' }, 'simulated', []).ok === false,
+  'an already-promoted bank card does not re-enter the candidate ladder');
+ok(BANK_STATUS_TO_ENTRY_RUNG.quarantined === 'hypothesis', 'quarantined re-enters at hypothesis (D9)');
+const bridged = promote({ id: 'r1', promotionStatus: 'research' }, 'simulated', [{ formulaId: 'r1', rung: 'simulated', gate: 'math-proof-gate', stamp: 't' }]);
+ok(bridged.rung === 'simulated' && bridged.status === 'research', 'promote returns ladder rung + bank-enum status separately (vocabularies bridged, never merged)');
+
+// --- demotion relapse closed: pre-demotion records never re-authorize promotion ---
+const relapseLedger = [
+  { formulaId: 'F', rung: 'simulated', gate: 'math-proof-gate' },
+  { formulaId: 'F', rung: 'counterexample-tested', gate: 'math-proof-gate' },
+  { formulaId: 'F', rung: 'proof-gated', gate: 'math-proof-gate' },
+  { formulaId: 'F', rung: 'hypothesis', gate: 'demotion' },
+];
+ok(canPromote('F', 'proof-gated', relapseLedger).ok === false, 'post-demotion: stale full chain does NOT re-authorize the old rung');
+ok(promote({ id: 'F', promotionStatus: 'hypothesis' }, 'simulated', relapseLedger).ok === false, 'post-demotion: re-promotion refused until rungs are re-cleared with fresh records');
+const recleared = [...relapseLedger, { formulaId: 'F', rung: 'simulated', gate: 'math-proof-gate' }];
+ok(promote({ id: 'F', promotionStatus: 'hypothesis' }, 'simulated', recleared).ok === true, 'fresh post-demotion gate record re-opens exactly one rung');
 
 console.log(`\nformula-foundry-bakeoff.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

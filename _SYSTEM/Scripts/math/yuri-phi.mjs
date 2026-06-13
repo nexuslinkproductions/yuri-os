@@ -37,6 +37,11 @@ export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // ≈ 2.39996323 rad 
 // ── 5. Fibonacci generator ───────────────────────────────────────────────────────────────────
 const FIB_NUMBER_MAX_N = 78; // F(79) > 2^53 → Number loses exactness; beyond this use fibBig().
 /** F(n): F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2). Number-exact for n ≤ 78. */
+// @capability: golden-ratio-primitives
+// @serves: golden ratio phi primitives | Fibonacci | golden angle sampling | pi/phi applied math | quasi-uniform spacing | phyllotaxis distribution
+// @does: NEXUS CORE π/φ/Fibonacci applied primitives (pure, deterministic, embedding-free) — PHI/INV_PHI/GOLDEN_ANGLE constants, fib/fibBig, golden-angle quasi-uniform spacing
+// @use: when you need golden-ratio / Fibonacci / golden-angle spacing (quasi-uniform low-discrepancy layouts, phyllotaxis, φ-weighting) — an applied primitive, not a curiosity (owner directive)
+// @exports: PHI, INV_PHI, GOLDEN_ANGLE, fib, fibBig
 export function fib(n) {
   if (!Number.isInteger(n) || n < 0) throw new Error(`fib: n must be a non-negative integer, got ${n}`);
   if (n > FIB_NUMBER_MAX_N) throw new Error(`fib: n>${FIB_NUMBER_MAX_N} loses Number precision — use fibBig(n)`);

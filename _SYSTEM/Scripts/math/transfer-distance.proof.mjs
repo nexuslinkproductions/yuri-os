@@ -12,6 +12,7 @@
  * Run: node _SYSTEM/Scripts/math/transfer-distance.proof.mjs [path-to-logbook-truth.json]
  */
 import { readFileSync } from 'node:fs';
+import { spearman } from './math-kernel.mjs';
 import { transferScore } from './transfer-distance.mjs';
 import { V2_CONFIG } from './transfer-distance-cores.mjs';
 
@@ -44,13 +45,8 @@ const med = (xs) => { const a = [...xs].sort((p, q) => p - q); const m = a.lengt
 const mean = (xs) => xs.reduce((s, x) => s + x, 0) / (xs.length || 1);
 const valuesOf = (set, key = 'value') => scored.filter((s) => set.has(s.n)).map((s) => s[key]);
 
-// Spearman rank correlation (value vs juice)
-function spearman(a, b) {
-  const rank = (arr) => { const idx = arr.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]); const r = Array(arr.length); idx.forEach(([, i], k) => { r[i] = k; }); return r; };
-  const ra = rank(a), rb = rank(b); const n = a.length;
-  let d2 = 0; for (let i = 0; i < n; i++) d2 += (ra[i] - rb[i]) ** 2;
-  return 1 - (6 * d2) / (n * (n * n - 1));
-}
+// Spearman rank correlation (value vs juice) — kernel tie-corrected implementation
+// (the local 6Σd² shortcut was invalid under ties; rho is reported, never asserted).
 
 // ── THEATER CONTROL: synthetic mismatched triangles (real source+target, WRONG mechanism) ──
 // Pair each FAR_HOLDS card's source/target with a DIFFERENT card's mechanism. A genuine metric

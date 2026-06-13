@@ -25,6 +25,9 @@ node _SYSTEM/Scripts/yuri-persona-check.mjs >/dev/null
 echo "[pre-commit] skill registry"
 node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate >/dev/null
 
+echo "[pre-commit] capability registry"
+node _SYSTEM/Scripts/capability-scan.mjs --check >/dev/null
+
 echo "[pre-commit] GitNexus staged scope"
 node _SYSTEM/Scripts/gitnexus-detect-changes.mjs yuri-os staged >/dev/null
 

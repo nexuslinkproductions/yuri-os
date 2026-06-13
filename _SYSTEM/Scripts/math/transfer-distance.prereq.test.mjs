@@ -39,6 +39,9 @@ const cases = [
   ['The adapter is not implemented.', true, 'evasion: is not implemented'],
   // ── over-fire controls (must PASS) ──
   ['This prerequisite intuition already holds in the current routing design.', false, 'overfire: prerequisite already holds'],
+  // LEXICALLY FRAGILE control: this passes because 'mechanism' is not in PREREQ_ART
+  // — if 'mechanism' ever joins the artifact list, this control flips and the
+  // detector over-fires on idiomatic prose. Known seam, documented (audit P2).
   ['The mechanism does not exist in a vacuum; it depends on surrounding context.', false, 'overfire: does not exist in a vacuum'],
   ['Trust must be built first before teams accept the workflow.', false, 'overfire: build-trust idiom + trailing artifact (proximity trap)'],
   ['Trust must be built first.', false, 'overfire: bare build-trust idiom'],

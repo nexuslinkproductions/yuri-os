@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { ncd, jaccardDistance, distance, bridge, transferScore, v1BlendMetric, antiTheaterGate, GATE, TIER, tierOf } from './transfer-distance.mjs';
-import { fieldClassify, fieldDistance, mechanismFrameDistance, scoreTransferV2, operatorSkeletonDistance } from './transfer-distance-cores.mjs';
+import { fieldClassify, fieldDistance, mechanismFrameDistance, scoreTransferV2, operatorSkeletonDistance, structuralSkeleton } from './transfer-distance-cores.mjs';
 
 let pass = 0, fail = 0;
 const ok = (cond, name) => { if (cond) { pass++; } else { fail++; console.log(`  FAIL ${name}`); } };
@@ -101,6 +101,50 @@ ok(inUnit(farHolds.value) && inUnit(noMech.value) && inUnit(nounOnly.value), 'al
   ok(mechanismFrameDistance('Kalman filter scalar adaptive recursive estimator predicts then updates an innovation variance folding samples', MEMORY_ORGAN).d > 0.55, 'wrong-domain mechanism is structurally far from target (>0.55)');
   // M2 (clamp drop): assert on valueRaw (NOT the always-clamped value) — conf>1 must not inflate raw.
   ok(scoreTransferV2({ sourceText: HOPFIELD, targetText: MEMORY_ORGAN, mechanismText: 'past an interference threshold mutual crosstalk between stored patterns degrades recall super-linearly', structuralConf: 5, mismatchText: 'use covariance intersection' }).valueRaw <= 1, 'structuralConf>1 → valueRaw <= 1 (clamp non-vacuous, checks valueRaw)');
+}
+
+
+// ── Math-base fix wave 2026-06-10 regressions (audit B1/B2/B3/B6/B7-ag) ──
+{
+  // B1: garbage input cannot mint a tier (V2 opts — fieldClassify hits=0 trips lowQuality)
+  const mint = transferScore({ sourceText: 'VCG Vickrey auction pivot', targetText: 'xq9 zzz qq!', mechanismText: 'a'.repeat(30) + ' ' + 'b'.repeat(30) + ' filler mechanism words here', structuralConf: 1, mismatchPresent: true }, { distFn: fieldDistance, reconFn: mechanismFrameDistance });
+  ok(mint.tier === 'LOW_QUALITY' && mint.value <= GATE.CAP_LOW_QUALITY, 'sub-minimum input cannot mint INNOVATION (LOW_QUALITY hard cap)');
+  // B2 (condition-keyed): an UNGATED value in the INNOVATION band under a
+  // no-mismatch condition must still demote — this is the discriminating case a
+  // gated-keyed implementation fails.
+  const mkD = (v) => () => ({ d: v, lowQuality: false });
+  const band = transferScore({ sourceText: 's'.repeat(80), targetText: 't'.repeat(80), mechanismText: 'm'.repeat(80), structuralConf: 1, mismatchPresent: false }, { distFn: mkD(0.72), reconFn: mkD(0.54) });
+  ok(band.tier !== 'INNOVATION' && band.gate.gated === false, 'ungated INNOVATION-band value under no-mismatch demotes (condition-keyed)');
+  const binding = transferScore({ sourceText: 's'.repeat(80), targetText: 't'.repeat(80), mechanismText: 'm'.repeat(80), structuralConf: 1, mismatchPresent: false }, { distFn: mkD(0.72), reconFn: mkD(0.30) });
+  ok(binding.tier === band.tier, 'no rank inversion: binding and sub-cap no-mismatch cases share a tier');
+  ok(tierOf(GATE.CAP_NO_MISMATCH) === 'INNOVATION', 'guard is in transferScore, not tierOf — pin the chain, not the band');
+}
+{
+  // B3: NCD symmetrized via MIN over both orders (exact order-invariance + the
+  // min-pin that distinguishes min from mean/max symmetrization).
+  const T = [
+    'Algebraic topology persistent homology sweeps a threshold over edge weights via union find emitting barcodes of stable clusters.',
+    'Memory governance clusters memories for consolidation by sweeping a filtration over recall strength edges into cold store.',
+    'A scalar adaptive recursive estimator predicts then updates an innovation variance folding each sample weighted by noise.',
+  ];
+  let maxAsym = 0;
+  for (const a of T) for (const b of T) maxAsym = Math.max(maxAsym, Math.abs(ncd(a, b).ncd - ncd(b, a).ncd));
+  ok(maxAsym === 0, 'ncd is exactly order-invariant (min symmetrization)');
+  ok(Math.abs(ncd(T[0], T[1]).ncd - 0.603448275862069) < 1e-9, 'symmetrization takes the SMALLER single-order value (min, not mean)');
+  ok(ncd(T[0], T[0]).ncd < 0.15, 'gzip self-NCD small but nonzero (bound, not 0)');
+}
+{
+  // B6: unicode tokenization — Greek prose no longer erased to identity-failure.
+  const GREEK = 'Η μηχανική των συστημάτων απαιτεί δομική ανάλυση και επαλήθευση των μηχανισμών με αυστηρά κριτήρια ποιότητας';
+  ok(jaccardDistance(GREEK, GREEK) === 0, 'unicode identity: jaccardDistance(greek, greek) === 0');
+  ok(jaccardDistance(GREEK, 'totally different latin text about gzip compression and graphs') === jaccardDistance('totally different latin text about gzip compression and graphs', GREEK), 'unicode symmetry');
+  ok(v1BlendMetric(GREEK, GREEK).d < 0.15, 'v1 self-distance bounded for non-ASCII');
+}
+{
+  // B7-'ag': stem-theft + register false-positive guards (discriminating per part).
+  ok(!structuralSkeleton('the system is aging and aged with age related decay').includes('aggreg'), 'aging-words no longer stolen by aggreg (fuzzy-clause guard)');
+  ok(!structuralSkeleton('the agents dispatch agent workflows to other agents').some((x) => x === 'ag'), "agent-words no longer land on the 'ag' stem (stem removed)");
+  ok(structuralSkeleton('decay halflife renewal burnin survival hazard probation horizon').length >= 5, 'genuine decay-axis stems still register');
 }
 
 console.log(`\ntransfer-distance.test: ${pass} passed, ${fail} failed`);

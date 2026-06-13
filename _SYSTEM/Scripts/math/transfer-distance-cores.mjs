@@ -47,8 +47,10 @@ const STRUCT_STEMS = new Set([
   'accumul','integr','sum','cumul','aggreg','sweep','scan','propag','cascad','flow','stream',
   // combination / merge / weighting / normalization
   'merg','fuse','combin','blend','weight','scale','normal','calibr','rank','sort','order','rate',
-  // decay / aging / survival / time
-  'decay','ag','stale','halflife','hazard','surviv','renew','burn','probation','horizon',
+  // decay / aging / survival / time — 'ag' removed: it only ever matched
+  // agent-words (pure noise) while genuine aging/aged/age stems were stolen by
+  // 'aggreg' through the fuzzy clause; the decay axis keeps its real stems.
+  'decay','stale','halflife','hazard','surviv','renew','burn','probation','horizon',
   // structure / graph / cluster / topology
   'graph','edg','node','path','cluster','partition','component','connect','bridg','cut','curvatur',
   'spectral','eigen','laplacian','persist','union','filtrat','topolog','isomorph',
@@ -69,14 +71,17 @@ function stemTok(t) {
     .replace(/(e)$/u, '');
 }
 
-function structuralSkeleton(text) {
+// Exported for audit (like FIELD_LEXICONS) — the stem-theft regressions assert on it.
+export function structuralSkeleton(text) {
   const toks = tokenize(text);
   const skel = [];
   for (const raw of toks) {
     const s = stemTok(raw);
-    // a token is structural if some lexicon stem is a prefix of it (or vice-versa)
+    // a token is structural if some lexicon stem is a prefix of it (or vice-versa).
+    // The reverse (fuzzy) clause requires s.length >= 3: a 2-char stemmed token
+    // ('aging'→'ag') used to steal longer lexicon stems ('aggreg'.startsWith('ag')).
     for (const stem of STRUCT_STEMS) {
-      if (s.startsWith(stem) || stem.startsWith(s.slice(0, Math.max(4, stem.length)))) { skel.push(stem); break; }
+      if (s.startsWith(stem) || (s.length >= 3 && stem.startsWith(s.slice(0, Math.max(4, stem.length))))) { skel.push(stem); break; }
     }
   }
   return skel;
@@ -92,7 +97,18 @@ export function operatorSkeletonDistance(x, y, opts = {}) {
   if (sx.length < 2 || sy.length < 2) return { d: 0.5, lowQuality: true }; // too few structural tokens
   // Jaccard over the skeleton SETS (structure presence) + multiset ncd over the skeleton STRINGS
   // (structure ordering/frequency). Blend: set-overlap dominant, ordering a corroborant.
-  const jac = jaccardDistance(sx.join(' '), sy.join(' '));
+  // Direct set-jaccard over the skeleton stems — no re-tokenize round-trip, which
+  // silently dropped any stem under tokenize's >=3-char floor.
+  const setJacDist = (X, Y) => {
+    const A = new Set(X);
+    const B = new Set(Y);
+    if (!A.size && !B.size) return 1;
+    let i = 0;
+    for (const t of A) if (B.has(t)) i += 1;
+    const u = A.size + B.size - i;
+    return u ? 1 - i / u : 1;
+  };
+  const jac = setJacDist(sx, sy);
   const sxStr = sx.join(' ');
   const syStr = sy.join(' ');
   // ncd over skeletons needs length; pad-guard via minChars relaxed (skeletons are short)
@@ -349,6 +365,6 @@ export const CANDIDATES = {
 
 // The verified V2 ship config: field-distance (DISTANCE axis — degree of farness) ×
 // mechanism-frame (BRIDGE axis — does the mechanism actually reconstruct on both sides).
-// Bake-off verified: P1=0.25 separation, P1/P2/P3/P4 all pass. Use this, not raw transferScore.
+// Bake-off verified: P1=0.280 separation, P1/P2/P3/P4 all pass. Use this, not raw transferScore.
 export const V2_CONFIG = Object.freeze({ distFn: fieldDistance, reconFn: mechanismFrameDistance });
 export function scoreTransferV2(t) { return transferScore(t, V2_CONFIG); }

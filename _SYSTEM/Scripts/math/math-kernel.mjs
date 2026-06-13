@@ -4,6 +4,11 @@ import { createHash } from 'node:crypto';
 const RESULT_SCHEMA = 'yuri.math.result.v0';
 const EPSILON = 1e-12;
 
+// @capability: math-kernel
+// @serves: core math primitives | entropy KL divergence | weighted variance | percentile quantile | normalize distribution | information-theoretic helpers
+// @does: the shared deterministic math kernel — normalizeDistribution, entropy, klDivergence, weightedVariance, weightedStdDev, percentile, median, rankWithTies (roundStable, finite-checked)
+// @use: reach here for any standard stats / info-theory primitive before hand-rolling one (21+ importers incl. the energy gate); the canonical home for variance / quantile / entropy
+// @exports: normalizeDistribution, entropy, klDivergence, weightedVariance, percentile, median
 export function normalizeDistribution(values) {
   assertNumberArray(values, 'distribution');
   for (const value of values) {
@@ -64,6 +69,10 @@ export function crossEntropy(p, q, options = {}) {
 }
 
 export function informationGain(before, after, options = {}) {
+  // Plain entropy delta H(before) − H(after), in the units of options.base
+  // (nats by default). NOT the weighted-children information gain of decision
+  // trees, and it CAN be negative when the posterior is more uncertain than
+  // the prior (informationGain([1,0],[0.5,0.5],{base:2}) = −1).
   return roundStable(entropy(before, options) - entropy(after, options));
 }
 
@@ -111,19 +120,25 @@ export function hazardMultiplier(sourceClass) {
 
 export function dotProduct(left, right) {
   assertVectorPair(left, right, 'dot product');
-  return roundStable(left.reduce((total, value, index) => total + value * right[index], 0));
+  return roundStable(assertFiniteResult(
+    left.reduce((total, value, index) => total + value * right[index], 0), 'dot product'));
 }
 
 export function pNorm(values, p = 2) {
   assertNumberArray(values, 'vector');
   assertFiniteNumber(p, 'p');
   if (p < 1) throw new Error('p-norm requires p >= 1');
-  return roundStable(Math.pow(values.reduce((total, value) => total + Math.abs(value) ** p, 0), 1 / p));
+  return roundStable(assertFiniteResult(
+    Math.pow(values.reduce((total, value) => total + Math.abs(value) ** p, 0), 1 / p), 'p-norm'));
 }
 
 export function cosineSimilarity(left, right) {
   assertVectorPair(left, right, 'cosine similarity');
-  const denominator = pNorm(left, 2) * pNorm(right, 2);
+  // Both norms can be individually finite while their product overflows —
+  // roundStable can round a norm of ~sqrt(MAX_VALUE) up past the exact
+  // square-root boundary, so the denominator must pass the same fail-closed
+  // invariant as the aggregates (otherwise finite-dot/Infinity → silent 0).
+  const denominator = assertFiniteResult(pNorm(left, 2) * pNorm(right, 2), 'cosine similarity denominator');
   if (denominator <= 0) throw new Error('cosine similarity requires non-zero vectors');
   const similarity = dotProduct(left, right) / denominator;
   if (Math.abs(similarity - 1) < EPSILON) return 1;
@@ -142,14 +157,83 @@ export function weightedMean(values, weights) {
 }
 
 export function weightedVariance(values, weights) {
+  // Population (biased) form: divides by the raw weight sum — no Bessel /
+  // effective-sample-size correction. Deliberate: full-population aggregate
+  // weights, not a sample estimator.
   assertVectorPair(values, weights, 'weighted variance');
   const weightSum = assertWeightVector(weights);
   const mean = weightedMean(values, weights);
-  return roundStable(values.reduce((total, value, index) => total + weights[index] * (value - mean) ** 2, 0) / weightSum);
+  return roundStable(assertFiniteResult(
+    values.reduce((total, value, index) => total + weights[index] * (value - mean) ** 2, 0) / weightSum, 'weighted variance'));
 }
 
 export function weightedStdDev(values, weights) {
   return roundStable(Math.sqrt(weightedVariance(values, weights)));
+}
+
+export function median(values) {
+  // Averaged-middle convention (house registry axis 8). Kernel-strict
+  // non-finite policy: throws on any NaN/Infinity entry via assertNumberArray;
+  // boundary callers pre-filter with Number.isFinite before calling in.
+  assertNumberArray(values, 'median input');
+  const s = [...values].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return roundStable(s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2);
+}
+
+export function percentile(values, p) {
+  // Nearest-rank (ceil) convention: sorted[ceil(p/100·n)−1], no interpolation.
+  // Under nearest-rank, p50 ≠ averaged median on even n BY DESIGN — both are
+  // correct; never "fix" them to agree. Kernel-strict on non-finite entries.
+  assertFiniteNumber(p, 'percentile');
+  if (p <= 0 || p > 100) throw new Error('percentile p must be in (0, 100]');
+  assertNumberArray(values, 'percentile input');
+  const s = [...values].sort((a, b) => a - b);
+  return roundStable(s[Math.ceil((p / 100) * s.length) - 1]);
+}
+
+/** Average ranks over tie blocks (1-based positions). Shared rank primitive. */
+export function rankWithTies(arr) {
+  assertNumberArray(arr, 'rankWithTies input');
+  const idx = arr.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const r = new Array(arr.length);
+  for (let i = 0; i < idx.length;) {
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j += 1;
+    const avg = (i + j + 2) / 2; // mean of the tied block's 1-based positions i+1..j+1
+    for (let k = i; k <= j; k += 1) r[idx[k][1]] = avg;
+    i = j + 1;
+  }
+  return r;
+}
+
+/** Pearson correlation; constant input on either side → 0 (no linear signal). */
+export function pearson(xs, ys) {
+  assertVectorPair(xs, ys, 'pearson');
+  const n = xs.length;
+  if (n < 2) return 0;
+  const mx = xs.reduce((a, b) => a + b) / n;
+  const my = ys.reduce((a, b) => a + b) / n;
+  let sxy = 0;
+  let sxx = 0;
+  let syy = 0;
+  for (let i = 0; i < n; i += 1) {
+    const dx = xs[i] - mx;
+    const dy = ys[i] - my;
+    sxy += dx * dy;
+    sxx += dx * dx;
+    syy += dy * dy;
+  }
+  return (sxx > 0 && syy > 0) ? roundStable(sxy / Math.sqrt(sxx * syy)) : 0;
+}
+
+export function spearman(xs, ys) {
+  // Spearman = Pearson over average-tied ranks — exact under ties. The
+  // 6Σd²/n(n²−1) shortcut is valid only for distinct ranks and is BANNED
+  // (registry axis 2). Degenerate input (zero rank variance on either side)
+  // returns 0: no monotone signal.
+  assertVectorPair(xs, ys, 'spearman');
+  return pearson(rankWithTies(xs), rankWithTies(ys));
 }
 
 export function brierScore(predictions, outcomes) {
@@ -201,6 +285,8 @@ export function softmax(values, options = {}) {
 export function expectedValue(values, probabilities) {
   assertVectorPair(values, probabilities, 'expected value');
   const distribution = normalizeDistribution(probabilities);
+  // Overflow-safe by construction: normalized probabilities bound every
+  // partial sum by max|value|, which assertNumberArray already proved finite.
   return roundStable(values.reduce((total, value, index) => total + value * distribution[index], 0));
 }
 
@@ -220,21 +306,29 @@ export function logScale(value, min, max, points = 1) {
 export function bregmanDivergence(p, q, psi) {
   // Bregman divergence D_psi(p||q) = psi(p) - psi(q) - <grad psi(q), p - q>.
   // psi.value(x) -> scalar potential; psi.grad(x) -> gradient vector.
-  // canary: psi = negEntropy reproduces klDivergence to the digit (see negEntropyPotential).
+  // canary: psi = negEntropy reproduces klDivergence to the digit — for raw
+  // counts too, because the potential's domain projection is applied ONCE here.
   if (!psi || typeof psi.value !== 'function' || typeof psi.grad !== 'function') {
     throw new Error('Bregman potential must expose value(x) and grad(x) functions');
   }
   assertVectorPair(p, q, 'Bregman divergence');
-  const psiP = psi.value(p);
-  const psiQ = psi.value(q);
+  // Domain projection: a potential may declare its domain (e.g. the simplex)
+  // via project(x). value, grad, AND the inner product consume the SAME
+  // projected vectors — mixing a normalizing potential with raw deltas was the
+  // silent-wrong bug (bregman([2,2],[1,3]) returned 0.9678, KL says 0.1438).
+  const hasProject = typeof psi.project === 'function';
+  const pp = hasProject ? psi.project(p) : p;
+  const qq = hasProject ? psi.project(q) : q;
+  const psiP = psi.value(pp);
+  const psiQ = psi.value(qq);
   assertFiniteNumber(psiP, 'Bregman potential at p');
   assertFiniteNumber(psiQ, 'Bregman potential at q');
-  const gradQ = psi.grad(q);
+  const gradQ = psi.grad(qq);
   assertNumberArray(gradQ, 'Bregman gradient at q');
-  assertSameLength(gradQ, p, 'Bregman gradient');
+  assertSameLength(gradQ, pp, 'Bregman gradient');
   let inner = 0;
-  for (let index = 0; index < p.length; index += 1) {
-    inner += gradQ[index] * (p[index] - q[index]);
+  for (let index = 0; index < pp.length; index += 1) {
+    inner += gradQ[index] * (pp[index] - qq[index]);
   }
   const divergence = psiP - psiQ - inner;
   // Bregman divergence is non-negative for convex psi; clamp tiny negative round-off to 0.
@@ -250,6 +344,10 @@ export function negEntropyPotential(options = {}) {
   assertLogBase(base);
   return {
     base,
+    // Simplex projection, applied once by bregmanDivergence. The internal
+    // normalizeDistribution in value/grad stays as defense for direct callers —
+    // idempotent to within 1 ulp on projected input; exact on dyadic fixtures.
+    project: (x) => normalizeDistribution(x),
     value: (x) => {
       const distribution = normalizeDistribution(x);
       return distribution.reduce((total, value) => {
@@ -281,6 +379,14 @@ export function maxEntBelief(meanRank, support, options = {}) {
   }
   const tolerance = options.tolerance ?? 1e-12;
   const maxIterations = options.maxIterations ?? 100;
+  // Validate solver options BEFORE the uniform early-return so bad options
+  // always throw (maxIterations:0 used to silently return the uniform
+  // distribution regardless of meanRank — a constraint-violating phantom).
+  assertFiniteNumber(tolerance, 'tolerance');
+  if (tolerance <= 0) throw new Error('tolerance must be positive');
+  if (!Number.isInteger(maxIterations) || maxIterations < 1) {
+    throw new Error('maxIterations must be an integer >= 1');
+  }
   const uniformMean = maxRank / 2;
   // Exact uniform case: lambda = 0 (avoids 0/0 in the Newton derivative).
   if (Math.abs(meanRank - uniformMean) < 1e-12) {
@@ -380,21 +486,30 @@ export function cusum(signedDeltas, options = {}) {
   if (k < 0) throw new Error('CUSUM slack k must be non-negative');
   if (h <= 0) throw new Error('CUSUM threshold h must be positive');
 
+  // changeIndex is the ALARM index (first S_t > h), NOT the change-point
+  // estimate. The canonical change-point estimate is lastZeroIndex + 1 —
+  // change onset right after the last time S sat at zero before the climb;
+  // lastZeroIndex = -1 means the climb began at stream start (or no alarm).
+  // lastZeroIndex is computed on the RAW statistic (exact zeros come from the
+  // max(0,..) clamp); in the sub-1e-12 band the roundStable series may display
+  // 0 where the raw statistic was a positive sliver — the raw value governs.
   let cumulative = 0;
   let alarm = false;
   let changeIndex = -1;
+  let lastZeroIndex = -1;
   let peak = 0;
   const series = [];
   for (let index = 0; index < signedDeltas.length; index += 1) {
     cumulative = Math.max(0, cumulative + (signedDeltas[index] - mu0) - k);
     series.push(roundStable(cumulative));
+    if (!alarm && cumulative === 0) lastZeroIndex = index;
     if (cumulative > peak) peak = cumulative;
     if (!alarm && cumulative > h) {
       alarm = true;
       changeIndex = index;
     }
   }
-  return { alarm, changeIndex, statistic: roundStable(cumulative), peak: roundStable(peak), series };
+  return { alarm, changeIndex, lastZeroIndex: alarm ? lastZeroIndex : -1, statistic: roundStable(cumulative), peak: roundStable(peak), series };
 }
 
 export function scalarKalman(stream, options = {}) {
@@ -522,8 +637,12 @@ export function astar(graph, source, target, heuristic = {}, options = {}) {
   const warnings = [];
 
   if (options.strict) {
+    // Under the no-reopen closed set below, consistency — not mere
+    // admissibility — is the property that guarantees a popped node's gScore
+    // is final. Admissibility is checked first to preserve its error contract.
     validateAdmissibleHeuristic(normalized, target, heuristicFn);
-    assumptions.push('admissible_heuristic_checked');
+    validateConsistentHeuristic(normalized, heuristicFn);
+    assumptions.push('admissible_heuristic_checked', 'consistent_heuristic_checked');
   } else {
     warnings.push('heuristic_admissibility_not_checked');
   }
@@ -554,7 +673,7 @@ export function astar(graph, source, target, heuristic = {}, options = {}) {
     }
   }
 
-  return buildPathResult({
+  const result = buildPathResult({
     algorithm: 'astar',
     source,
     target,
@@ -568,6 +687,26 @@ export function astar(graph, source, target, heuristic = {}, options = {}) {
       warnings,
     },
   });
+  if (result.reachable && result.path.length) {
+    // Defense-in-depth cost invariant: the reported cost must equal the
+    // edge-sum of the returned path. Both sides pass through the same
+    // 15-significant-digit roundStable quantization, compared under a relative
+    // tolerance — an absolute check would fire on its own rounding residue for
+    // |cost| > ~1e6 with non-dyadic weights. Post-consistency-check this is a
+    // dead assert in strict mode; it exists to catch future search-core
+    // regressions. Non-strict is the documented no-guarantee lane: the result
+    // stops lying about itself (cost reconciled to the actual path), warned.
+    const pathCost = computePathCost(normalized.adjacency, result.path);
+    const roundedPathCost = roundStable(pathCost);
+    if (Math.abs(roundedPathCost - result.cost) > 1e-9 * Math.max(1, Math.abs(result.cost))) {
+      if (options.strict) {
+        throw new Error(`astar invariant violation: reported cost ${result.cost} != reconstructed path cost ${roundedPathCost}`);
+      }
+      result.cost = roundedPathCost;
+      result.proof.warnings.push('cost_recomputed_from_reconstructed_path');
+    }
+  }
+  return result;
 }
 
 export function topologicalSort(dag) {
@@ -622,6 +761,30 @@ function validateAdmissibleHeuristic(normalized, target, heuristicFn) {
       throw new Error(`inadmissible heuristic for ${node}: ${estimate} > ${trueCost}`);
     }
   }
+}
+
+function validateConsistentHeuristic(normalized, heuristicFn) {
+  // Consistency (monotonicity): h(u) <= w(u,v) + h(v) for EVERY directed edge
+  // (normalized.edges already contains both directions for undirected graphs).
+  // Under the no-reopen closed set in astar, consistency — not mere
+  // admissibility — is what guarantees a popped node's gScore is final. O(E).
+  for (const edge of normalized.edges) {
+    const hFrom = heuristicFn(edge.from);
+    const hTo = heuristicFn(edge.to);
+    if (hFrom > edge.weight + hTo + EPSILON) {
+      throw new Error(`inconsistent heuristic at edge ${edge.from} -> ${edge.to}: h(${edge.from})=${hFrom} > ${edge.weight} + h(${edge.to})=${hTo}`);
+    }
+  }
+}
+
+function computePathCost(adjacency, path) {
+  let total = 0;
+  for (let i = 0; i + 1 < path.length; i += 1) {
+    const candidates = (adjacency.get(path[i]) || []).filter((e) => e.to === path[i + 1]);
+    if (!candidates.length) throw new Error(`reconstructed path uses missing edge ${path[i]} -> ${path[i + 1]}`);
+    total += Math.min(...candidates.map((e) => e.weight)); // min handles parallel edges
+  }
+  return total;
 }
 
 function buildPathResult({ algorithm, source, target, cost, previous, visitedOrder, proof }) {
@@ -704,7 +867,9 @@ function buildHeuristic(heuristic) {
   }
   if (!heuristic || typeof heuristic !== 'object') throw new Error('heuristic must be a function or object');
   return (node) => {
-    const value = heuristic[node] ?? 0;
+    // Object.hasOwn: a node named 'constructor'/'toString' must default to 0,
+    // not read the inherited prototype property.
+    const value = Object.hasOwn(heuristic, node) ? heuristic[node] : 0;
     assertFiniteNumber(value, `heuristic for ${node}`);
     return value;
   };
@@ -764,8 +929,12 @@ function assertFiniteResult(value, label) {
 }
 
 function assertLogBase(base) {
+  // Entropy-family bases must be > 1: a base in (0,1) silently flips the sign
+  // of every entropy/KL/cross-entropy (H([.5,.5], base .5) = −1), violating
+  // H >= 0. The finite check stays first — Infinity > 1 is true, and
+  // logBase(x, Infinity) would return 0 for every distribution.
   assertFiniteNumber(base, 'log base');
-  if (base <= 0 || base === 1) throw new Error('log base must be positive and not equal to 1');
+  if (base <= 1) throw new Error('log base must be a finite number greater than 1');
 }
 
 function logBase(value, base) {

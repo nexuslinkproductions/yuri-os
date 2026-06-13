@@ -27,8 +27,15 @@ ok(dimensionsCompatible('PROBABILITY', 'ENERGY').compatible === false, 'PROBABIL
 ok(dimensionsCompatible('INFORMATION', 'INFORMATION').compatible === true, 'exact match allowed');
 ok(dimensionsCompatible('PROBABILITY', 'SCORE').compatible === true && dimensionsCompatible('PROBABILITY', 'SCORE').confidence === 'scalar',
   'scalar-family pure numbers bridge (PROBABILITY ~ SCORE)');
-ok(dimensionsCompatible('UNKNOWN', 'ENERGY').compatible === true && dimensionsCompatible('UNKNOWN', 'ENERGY').confidence === 'low',
-  'UNKNOWN cannot be disproven -> allowed, low confidence');
+ok(dimensionsCompatible('UNKNOWN', 'ENERGY').compatible === false && dimensionsCompatible('UNKNOWN', 'ENERGY').confidence === 'speculative',
+  'UNKNOWN is speculative-only, never a legal move');
+
+// --- gates-foundry-3: keyword-table regressions ---
+ok(classifyDimension('mean negative log likelihood in nats').dimension === 'INFORMATION', 'log-loss output is INFORMATION not PROBABILITY');
+ok(classifyDimension('positive time constant in same units as age').dimension === 'TIME', 'half-life knob is TIME');
+ok(classifyDimension('outcome utility or cost units').dimension === 'UNKNOWN', 'generic caller-declared cost prose no longer steals DISTANCE');
+ok(classifyDimension('non-negative evidence likelihood').dimension === 'PROBABILITY', 'bare likelihood still PROBABILITY');
+ok(classifyDimension('same edge cost units as the graph edges').dimension === 'DISTANCE', 'astar heuristic keeps DISTANCE after generic-cost removal');
 
 // --- catalog over the real banks ---
 const cat = catalogFormulas();
@@ -71,6 +78,34 @@ ok(good.legal === true && good.compatibleSlots.length === 2, 'DISTANCE-out -> DI
 // --- self-composition rejected ---
 ok(composeCheck({ id: 'x', outputDim: 'SCORE', inputDims: { a: 'SCORE' } }, { id: 'x', outputDim: 'SCORE', inputDims: { a: 'SCORE' } }).legal === false,
   'self-composition rejected');
+
+// --- gates-foundry-4: UNKNOWN output cannot mint a legal move; speculative channel reports candidates ---
+const launder = composeCheck({ id: 'garbage', outputDim: 'UNKNOWN', inputDims: {} }, { id: 'sink', outputDim: 'ENERGY', inputDims: { u: 'ENERGY', v: 'UNKNOWN' } });
+ok(launder.legal === false, 'UNKNOWN output cannot mint a legal move into anything');
+ok((launder.speculativeSlots || []).length === 2, 'speculative channel still reports the candidates');
+// range containment runs on ALL confidence tiers (the exact-path [-1,1]->[0,1] hole)
+const catRange = catalogFormulas();
+const byId = (id) => catRange.cards.find((c) => c.id === id);
+const cosBayes = composeCheck(byId('cosine-similarity'), byId('bayes-update'));
+ok(cosBayes.legal === true && !cosBayes.compatibleSlots.some((s) => s.slot === 'prior'),
+  'cosine[-1,1] cannot silently feed the bayes prior [0,1] slot (range-excluded)');
+ok((cosBayes.excludedSlots || []).some((s) => s.slot === 'prior' && /range mismatch/.test(s.reason)),
+  'prior exclusion carries the range-mismatch reason');
+ok(cosBayes.compatibleSlots.every((s) => s.rangeUnverified === true),
+  'range-silent likelihood slots stay compatible but flagged rangeUnverified');
+const cosDecay = composeCheck(byId('cosine-similarity'), byId('confidence-decay'));
+ok(!cosDecay.compatibleSlots.some((s) => s.slot === 'base')
+  && (cosDecay.excludedSlots || []).some((s) => s.slot === 'base' && /range mismatch/.test(s.reason)),
+  'same-dimension exact path is range-checked too: SCORE[-1,1] cannot feed confidence-decay base SCORE[0,1]');
+
+// --- gates-foundry-5: parameter slots are never composition targets ---
+const klCe = composeCheck(byId('kl-divergence'), byId('cross-entropy'));
+ok(klCe.legal === false, 'KL output can no longer feed the entropy-family base knob');
+ok(klCe.reasons.some((x) => /parameter slot/.test(x)), 'base rejected as a parameter slot, not just dimension');
+const ctrl = composeCheck(byId('bayes-update'), byId('log-loss'));
+ok(ctrl.legal === true, 'data slots on a parameterSlots card stay composable');
+ok(ctrl.compatibleSlots.some((s) => s.slot === 'predictions') && !ctrl.compatibleSlots.some((s) => s.slot === 'epsilon'),
+  'predictions composable, epsilon excluded as parameter');
 
 // --- composableTargets over the real catalog is deterministic + sorted ---
 const astar = cat.cards.find((c) => c.id === 'astar-evaluation');

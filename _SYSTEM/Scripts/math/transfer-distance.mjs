@@ -65,6 +65,11 @@ const GZIP_LEVEL = 6; // pinned for cross-version determinism (matches yuri-mdl.
 // Below this many trimmed chars an input is too small for gzip to assert structure — the
 // header overhead dominates and NCD is spurious. Return a neutral sentinel so a tiny input
 // can neither inflate distance nor false-bridge. (Same discipline as yuri-mdl DEFAULT_QUALITY_FLOOR.)
+// @capability: transfer-distance
+// @serves: cross-domain transfer distance | how far is mechanism A from domain B | mechanism-bridged transfer surprise | is this analogy real | source target mismatch score
+// @does: NEXUS CORE Mechanism-Bridged Transfer Surprise (MBTS) — scores the distance/surprise of transferring a mechanism across domains (the numeric "mismatch" for an analogy); MDL+Jaccard blend, prereq-blocked gate
+// @use: when mapping a mechanism across domains (the persona's source/target/mismatch/confidence discipline) quantify the mismatch instead of guessing; feeds izanagi cross-domain branch scoring
+// @exports: detectPrereqBlocked, tokenize, DISTANCE_WEIGHTS, GATE, MIN_CHARS
 export const MIN_CHARS = 60;
 
 // Distance blend: MDL structural core dominant, Jaccard a stabilising corroborant for the
@@ -83,6 +88,8 @@ export const GATE = Object.freeze({
   CAP_FAR_WEAK: 0.25,        // ...is capped (far novelty without strong reconstruction)
   CAP_PREREQ_BLOCKED: 0.11,  // a transfer whose mismatch names a HARD unbuilt prerequisite is not
                              // yet implementation-VIABLE → capped below USEFUL (BLOCKED tier).
+  CAP_LOW_QUALITY: 0.11,     // sub-minimum/no-signal input cannot certify any tier (fail-closed);
+                             // keep both 0.11 caps < TIER.USEFUL if either band moves.
 });
 
 // Value → tier banding (set from the logbook proof; see transfer-distance.proof.mjs).
@@ -104,7 +111,8 @@ export const TIER = Object.freeze({ INNOVATION: 0.30, USEFUL: 0.12 });
 // ("X must be built", "must construct the X"). Proximity-binding is what lets "trust must be built
 // first before teams accept the workflow" PASS (the artifact 'workflow' is not the thing being
 // built) while "the schema must be created" BLOCKS. Validated by the prereq-barrage test
-// (transfer-distance.prereq.test.mjs): 21/21 incl. the 6 evasions, 3 over-fire controls, and the
+// (transfer-distance.prereq.test.mjs — run it for the current case count; 24/24 at 2026-06-10)
+// incl. the 6 evasions, 3 over-fire controls, and the
 // real cards 22/35 (→BLOCK) + 30/23 (→PASS). It catches STATED prerequisites; a silently-missing
 // one is not detectable. Deterministic; runs over the structured MISMATCH/RISK field.
 const PREREQ_ART = '(?:adapter|api|backend|cache|channel|checkpoint|client|config|connector|contract|corpus|dataset|dependency|dag|edge|engine|feature|field|file|function|graph|hook|index|input|interface|lane|layer|ledger|mapper|mapping|metric|model|module|parser|pipeline|registry|router|runtime|schema|script|service|signal|state|store|stream|system|table|transition function|validator|worker|workflow)';
@@ -143,9 +151,16 @@ function gzipLen(text) {
 }
 
 export function tokenize(text) {
+  // Unicode letters+digits (owner decision D12) — Greek/CJK prose (89 live
+  // logbook lines) is no longer erased to ∅/identity-failure. INSULATION: the V2
+  // path stays drift-free TODAY because STRUCT_STEMS prefix-matching and
+  // FIELD_LEXICONS terms are ASCII (non-Latin tokens match nothing) and mechStem
+  // re-strips [^a-z0-9] — a future non-ASCII lexicon changes that equation.
+  // Accented-Latin membership changes ('café' now survives whole). yuri-jaccard's
+  // tokenize is deliberately untouched (Rust conformance pin).
   return String(text || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
     .split(/\s+/)
     .filter((t) => t.length >= 3);
@@ -165,7 +180,8 @@ export function jaccardDistance(a, b) {
 }
 
 /**
- * Normalized Compression Distance via gzip. Symmetric, ∈ [0,1] after clamp.
+ * Normalized Compression Distance via gzip. Symmetrized (min over both
+ * concatenation orders — the tighter Kolmogorov upper bound), ∈ [0,1] after clamp.
  *   NCD(x,y) = (C(xy) − min(C(x),C(y))) / max(C(x),C(y))
  * 0 ≈ x,y share structure (y compresses into x); 1 ≈ no shared structure.
  * Returns { ncd, lowQuality } — lowQuality when either side is below MIN_CHARS (ncd = 0.5 sentinel).
@@ -178,7 +194,9 @@ export function ncd(x, y, { minChars = MIN_CHARS } = {}) {
   }
   const cx = gzipLen(a);
   const cy = gzipLen(b);
-  const cxy = gzipLen(a + '\n' + b); // newline so two bodies don't fuse a boundary token
+  // min over both orders — canonical NCD symmetrization (newline so two bodies
+  // don't fuse a boundary token); gzip concat length is order-dependent.
+  const cxy = Math.min(gzipLen(a + '\n' + b), gzipLen(b + '\n' + a));
   const denom = Math.max(cx, cy);
   if (denom === 0) return { ncd: 0.5, lowQuality: true };
   const raw = (cxy - Math.min(cx, cy)) / denom;
@@ -200,10 +218,11 @@ export function recon(mechanism, context, opts = {}) {
 /**
  * THE PLUGGABLE METRIC CONTRACT.  metric(x, y, opts) -> { d, lowQuality, ...signals }
  *   d ∈ [0,1]: 0 = identical STRUCTURE, 1 = maximally different. Deterministic, pure.
- *   The SAME metric powers both axes: distance(A,B) = metric(A,B).d;
- *   recon(M,X) = 1 − metric(M,X).d. So a good metric returns LOW d when X carries M's
- *   structure even if the vocabulary differs (the V1 surface-gzip metric does NOT — it
- *   measures register; the bake-off candidates in transfer-distance-cores.mjs replace it).
+ *   V2 runs TWO DISTINCT axes: the DISTANCE axis (opts.distFn) measures how far the
+ *   FIELDS are and MAY be unary — fieldDistance deliberately does not classify the
+ *   target (cores.mjs "We deliberately do NOT classify y"), so d(x,x)=0 identity is
+ *   NOT guaranteed for distFn. The BRIDGE axis (opts.reconFn) is binary — does the
+ *   MECHANISM reconstruct on each side — and '0 = identical structure' holds there.
  *
  * V1 default (proved structurally blind — kept only as the fallback/baseline):
  *   0.6·NCD_gzip + 0.4·Jaccard.
@@ -242,7 +261,7 @@ export function bridge(mechanismText, aText, bText, opts = {}) {
  * Fail-CLOSED anti-theater gate. Applies the strictest applicable cap. Distance never
  * promotes on its own. Returns { value, gated, reason }.
  */
-export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structuralConf, dist, hasMechanism, prereqBlocked }) {
+export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structuralConf, dist, hasMechanism, prereqBlocked, lowQuality }) {
   if (!hasMechanism) return { value: 0, gated: true, reason: 'no-mechanism' };
   // RED-TEAM fix: coerce non-finite inputs to 0 — `NaN ?? 0` is NaN (not nullish) and `NaN < x`
   // is false, which let a NaN structuralConf bypass the low-struct cap and propagate NaN to value.
@@ -260,6 +279,7 @@ export function antiTheaterGate(valueRaw, { bridgeVal, mismatchPresent, structur
   if (sc < GATE.STRUCT_FLOOR) apply(GATE.CAP_LOW_STRUCT, 'structural<MEDIUM');
   if (dv > GATE.FAR_WEAK_DIST && bv < GATE.FAR_WEAK_BRIDGE) apply(GATE.CAP_FAR_WEAK, 'far-but-weakly-bridged');
   if (prereqBlocked) apply(GATE.CAP_PREREQ_BLOCKED, 'prerequisite-blocked'); // not yet implementation-viable
+  if (lowQuality) apply(GATE.CAP_LOW_QUALITY, 'low-quality-input'); // sub-evidence input cannot certify
   const value = Math.min(vr, cap);
   return { value, gated: value < vr, reason: value < vr ? reason : 'ungated', cap };
 }
@@ -311,6 +331,7 @@ export function transferScore(t, opts = {}) {
     dist: d.distance,
     hasMechanism,
     prereqBlocked,
+    lowQuality: !!(d.lowQuality || br.lowQuality),
   });
 
   return {
@@ -318,9 +339,19 @@ export function transferScore(t, opts = {}) {
     bridge: br.bridge,
     valueRaw,
     value: gate.value,
-    // BLOCKED tier overrides value-banding: a prerequisite-blocked transfer is not yet viable,
-    // however high its structural value — it must never read as INNOVATION/USEFUL.
-    tier: prereqBlocked ? 'BLOCKED' : tierOf(gate.value),
+    // Tier chain — precedence BLOCKED > LOW_QUALITY > condition-keyed demotion.
+    // Demotion keys on the gating CONDITIONS (not on whether a cap happened to
+    // bind): an INNOVATION-band value under a theater bridge, an unstated
+    // mismatch, or sub-MEDIUM structure is by definition not proven innovation —
+    // keying on gate.gated alone left the sub-cap band minting INNOVATION and
+    // inverted ranks (higher raw evidence → lower tier). LOW_QUALITY includes the
+    // !hasMechanism relabel (every empty/short-mechanism transfer) — named,
+    // accepted widening.
+    tier: prereqBlocked ? 'BLOCKED'
+      : (d.lowQuality || br.lowQuality) ? 'LOW_QUALITY'
+      : (br.bridge < GATE.BRIDGE_FLOOR && tierOf(gate.value) === 'INNOVATION') ? 'NEAR_OR_THEATER'
+      : ((!mismatchPresent || structuralConf < GATE.STRUCT_FLOOR) && tierOf(gate.value) === 'INNOVATION') ? 'USEFUL'
+      : tierOf(gate.value),
     gate,
     signals: {
       ncd: d.ncd,

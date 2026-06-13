@@ -84,7 +84,7 @@ import {
   EVIDENCE_KIND,
   XREF_PROVENANCE_KNOBS,
 } from './xref-provenance.mjs';
-import { MECHANISM_PATTERN_VERBS } from './math/mechanism-pattern-registry.mjs';
+import { classifyMechanism, loadVerbRecords, buildVerbSymbolIndex, UNCLASSIFIED_MECHANISM } from './math/mechanism-pattern-registry.mjs';
 import { gitnexusStaleness } from './xref-drift-scan.mjs';
 import { resolveGitnexusStale } from './xref-query.mjs';
 
@@ -321,7 +321,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
   const witnesses = new Map(); // name -> { name, viaOutgoing:boolean }
   let structuralLegAvailable = false;
 
-  const nodeFiles = (Array.isArray(node.files) ? node.files : []).map(normalizePath);
+  const nodeFiles = new Set((Array.isArray(node.files) ? node.files : []).map(normalizePath));
 
   // Leg 1: outgoing calls/reads of the node's own file (direct mechanism primitives it uses).
   for (const f of nodeFiles) {
@@ -374,7 +374,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
     structuralLegAvailable = true;
     for (const s of filesFromQuery(qres.json)) {
       const p = normalizePath(s.filePath);
-      if (p && fileToNodes.has(p) && !nodeFiles.includes(p)) clusterFileSet.add(p);
+      if (p && fileToNodes.has(p) && !nodeFiles.has(p)) clusterFileSet.add(p);
     }
     if (clusterFileSet.size >= 8) break; // enough family files — stop spending queries
   }
@@ -413,7 +413,7 @@ function extractWitnesses(node, fileToNodes, gxCall = gitnexusCall) {
     const distinctNodeFiles = new Set(
       filesFromQuery(wq.json)
         .map((s) => normalizePath(s.filePath))
-        .filter((p) => p && fileToNodes.has(p) && !nodeFiles.includes(p)),
+        .filter((p) => p && fileToNodes.has(p) && !nodeFiles.has(p)),
     );
     if (distinctNodeFiles.size >= MIN_SHARED_WITNESS_FILES) witnesses.set(name, { name, viaOutgoing: false });
   }
@@ -559,21 +559,87 @@ function harvestSiblings(node, witnesses, fileToNodes, gxCall = gitnexusCall) {
 }
 
 // ------------------------------------------------------------------------------------------------
-// MECHANISM-PATTERN TAG — map a sibling's shared witnesses to a registry verb (single source of
-// truth). The registry verbs are pattern NAMES, not symbol names, so we tag by the witness/cascade
-// family heuristic: if a witness name appears (case-insensitive substring) in a verb's identity we
-// adopt that verb; otherwise `unclassified-mechanism`. The verb set is the closed MATH-01 enum —
-// we NEVER mint a verb here.
+// MECHANISM-SIGNATURE CLASSIFIER (cross-reference engine axis 2 — "the biggest lever").
+// The previous tagger matched a sibling to a verb by substring-matching the verb's OWN NAME TOKENS
+// against witness symbol names — "mechanism-fit theater" (e.g. `sharedFn` -> `shared`-prerequisite-
+// unlock). It is replaced by the witness-anchored `classifyMechanism` (single source of truth in the
+// registry module), which scores by STRUCTURE not words: file-anchor on an unambiguous witness site
+// (HIGH), ambiguous multi-verb site / import-hop (MED), lexical look-alike (LOW + antiWitness flag),
+// or unclassified. The full verb RECORDS (with real path:line witnesses) load fail-closed: a bad
+// registry yields [] -> every sibling is `unclassified-mechanism` and structural evidence stands.
 // ------------------------------------------------------------------------------------------------
-const REGISTRY_VERBS = [...MECHANISM_PATTERN_VERBS.values()];
-function tagMechanismPattern(witnessNames) {
-  const names = witnessNames.map((n) => n.toLowerCase());
-  for (const verb of REGISTRY_VERBS) {
-    const verbTokens = verb.split('-');
-    if (verbTokens.some((vt) => vt.length >= 4 && names.some((n) => n.includes(vt)))) return verb;
+const REGISTRY_VERB_RECORDS = loadVerbRecords().verbs;
+// Per-verb discriminating def-symbol index (stoplist + cross-verb-collision filtered), built once.
+// Feeds the symbol-anchor HIGH tier — the sibling sharing a verb's actual mechanism identifier.
+const VERB_SYMBOL_INDEX = buildVerbSymbolIndex(REGISTRY_VERB_RECORDS);
+// Red-team #5: records present but ZERO indexed verbs => every DEF witness was unreadable/moved at
+// load => the symbol-anchor tier is silently disabled. Signal it rather than degrade invisibly.
+if (REGISTRY_VERB_RECORDS.length > 0 && VERB_SYMBOL_INDEX.size === 0) {
+  process.stderr.write('[propagation-scan] WARN: verb symbol index empty despite verb records — symbol-anchor tier disabled (check witness file readability)\n');
+}
+
+// Cheap import-hop resolver (no call graph): the repo-relative files a sibling imports, so the
+// classifier can grant a MED "import-hop" bond when a sibling depends on a verb's witness file.
+// Memoised per file; fail-open to [] on any read/parse trouble (the backbone must not crash here).
+const SIBLING_IMPORTS_CACHE = new Map();
+// Quote chars include the backtick so a template-literal specifier is seen (red-team #1); a spec that
+// carries a `${...}` interpolation is unresolvable statically and is skipped below.
+const IMPORT_SPECIFIER_RE = /(?:import|export)[^'"`]*?from\s*['"`]([^'"`]+)['"`]|(?:require|import)\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g;
+// Pure (exported for test): extract the LOCAL/relative import specifiers from a source string.
+// Red-team F2/#1: strip comments BEFORE matching (a commented-out import is not a real dependency),
+// see template-literal specifiers, and skip a statically-unresolvable `${...}` interpolation.
+// @capability: propagation-scan
+// @serves: what does changing this node affect | propagation blast radius | downstream impact dry-run | cross-reference engine | import dependents of a mechanism
+// @does: READ-ONLY cross-reference / propagation engine (XREF-02) — parses the import graph + propagates a node's change effects to its dependents; --dry-run feeds predicted effects to the prediction-ledger
+// @use: before changing a circuitry node run propagation-scan <node> --dry-run to see what propagates; the structural complement to xref-query / code-navigation-search
+// @exports: parseImportSpecifiers, propagationScan
+export function parseImportSpecifiers(src) {
+  if (typeof src !== 'string' || !src) return [];
+  const scrubbed = src
+    .replace(/\/\*[\s\S]*?\*\//g, '') //                       block comments
+    .replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1'); //             line comments (spares `://` in URLs)
+  const out = [];
+  let m;
+  IMPORT_SPECIFIER_RE.lastIndex = 0;
+  while ((m = IMPORT_SPECIFIER_RE.exec(scrubbed)) !== null) {
+    const spec = m[1] || m[2];
+    if (!spec || spec.includes('${')) continue; //             unresolvable interpolated specifier
+    if (!(spec.startsWith('.') || spec.startsWith('/'))) continue; // relative/local only
+    out.push(spec);
   }
-  // dispatch/trace family has no dedicated v0 verb -> honest unclassified (structural evidence stands).
-  return 'unclassified-mechanism';
+  return out;
+}
+
+function resolveSiblingImports(relFile) {
+  if (typeof relFile !== 'string' || !relFile) return [];
+  if (SIBLING_IMPORTS_CACHE.has(relFile)) return SIBLING_IMPORTS_CACHE.get(relFile);
+  let out = [];
+  try {
+    const abs = path.join(REPO_ROOT, relFile);
+    const src = fs.readFileSync(abs, 'utf8');
+    const dir = path.dirname(abs);
+    const seen = new Set();
+    for (const spec of parseImportSpecifiers(src)) {
+      const resolvedAbs = path.resolve(dir, spec);
+      const rel = path.relative(REPO_ROOT, resolvedAbs).split(path.sep).join('/');
+      if (rel && !rel.startsWith('..')) seen.add(rel);
+    }
+    out = [...seen];
+  } catch {
+    out = [];
+  }
+  SIBLING_IMPORTS_CACHE.set(relFile, out);
+  return out;
+}
+
+function classifyForSibling(siblingFile, witnessNames) {
+  return classifyMechanism({
+    siblingFile,
+    witnessNames,
+    siblingImports: resolveSiblingImports(siblingFile),
+    verbs: REGISTRY_VERB_RECORDS,
+    symbolIndex: VERB_SYMBOL_INDEX,
+  });
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -678,7 +744,9 @@ export function propagationScan(rawNodeId, opts = {}) {
   for (const rec of harvest.byNode.values()) {
     const siblingNode = graph.nodes.find((n) => n.id === rec.nodeId);
     const witnessNames = [...rec.witnesses].sort();
-    const pattern = tagMechanismPattern(witnessNames);
+    // Axis-2 mechanism-signature: structural (witness-anchored), not lexical name-token theater.
+    const mech = classifyForSibling(rec.file, witnessNames);
+    const pattern = mech.verb; // verb string preserved as the cooldown / backlog key (back-compat)
 
     // Graceful degrade (severity-laundering guard): if the structural leg is DOWN, this would-be
     // structural sibling cannot be presented as structurally corroborated -> route through lexical,
@@ -692,6 +760,13 @@ export function propagationScan(rawNodeId, opts = {}) {
     // A per-record lexical nominee (query recall, no confirmed call edge — harvestSiblings tagged
     // rec.mismatch) is ALSO structurally-unavailable for THIS node even when the leg is up overall.
     if (rec.mismatch) structuralUnavailable = true;
+    // Red-team #3: a sibling we cannot structurally confirm (leg down, or a lexical-only nominee)
+    // must not advertise a HIGH mechanism verdict (incl. symbol-anchor) — that would read "HIGH
+    // symbol-anchor" next to an unconfirmed/lexical sibling. Demote the REPORTED mechanism confidence
+    // to MED in that case; verb + provenance are kept, only the confidence is capped.
+    const mechView = structuralUnavailable && mech.confidence === 'HIGH'
+      ? { ...mech, confidence: 'MED', structuralUnconfirmed: true }
+      : mech;
     const graded = structuralLegAvailable
       ? rec.best
       : scoreHit({ surface, lexicalScore: 0.85 });
@@ -711,7 +786,8 @@ export function propagationScan(rawNodeId, opts = {}) {
       snippet:
         `mechanism-sibling node "${rec.nodeId}" of "${node.id}" — shares ` +
         `${structuralRecord ? 'structural' : 'lexical (unconfirmed)'} witness(es): ` +
-        `${witnessNames.join(', ')} [${pattern}]`.slice(0, 220),
+        `${witnessNames.join(', ')} [${pattern}/${mechView.provenance}/${mechView.confidence}` +
+        `${mechView.antiWitness ? '/ANTI-WITNESS' : ''}]`.slice(0, 240),
       score: graded.confidence,
       provenance,
     };
@@ -722,6 +798,7 @@ export function propagationScan(rawNodeId, opts = {}) {
       file: rec.file,
       witnesses: witnessNames,
       pattern,
+      mechanism: mechView, // axis-2 (confidence capped to MED if structurally unconfirmed — red-team #3)
       confidence: graded.confidence,
       hit,
       surfaced: gate.surfaced,
@@ -750,10 +827,16 @@ export function propagationScan(rawNodeId, opts = {}) {
   const matchedCount = matchedRecords.length; // (e) N — every candidate that reached grading
   const surfacedCount = surfacedRecords.length; // (e) K — survivors above floor + gate
 
-  // mechanism-pattern of THIS scan (the dominant pattern across surfaced siblings) for cooldown key.
-  const scanPattern = surfacedRecords.length
-    ? surfacedRecords[0].pattern
-    : `node:${nodeId}`; // no surfaced siblings -> key the cooldown on the node id itself
+  // mechanism-pattern of THIS scan, for the 24h cooldown key. FORK 3 + red-team A/#7: key on the
+  // first surfaced sibling whose verb is TRUSTED — neither a flagged lexical look-alike (antiWitness)
+  // nor the catch-all 'unclassified-mechanism'. Checking only surfacedRecords[0] was wrong: if the top
+  // record is antiWitness but a LOWER one carries a real verb, that verb's window must still be taken;
+  // and 'unclassified-mechanism' as a literal key is SHARED across every unmatched node (one node's
+  // scan would silently block another for 24h). Fall back to the node key only when no trusted verb.
+  const trustedRecord = surfacedRecords.find(
+    (r) => !r.mechanism?.antiWitness && r.pattern !== UNCLASSIFIED_MECHANISM,
+  );
+  const scanPattern = trustedRecord ? trustedRecord.pattern : `node:${nodeId}`;
 
   // (b) cooldown check — pattern scanned < 24h ago is skipped unless --force.
   const cooldown = readCooldown(cooldownPath);
@@ -787,7 +870,18 @@ export function propagationScan(rawNodeId, opts = {}) {
         sourceNode: nodeId,
         siblingNode: r.nodeId,
         siblingFile: r.file,
-        mechanismPattern: r.pattern,
+        // FORK 3: an antiWitness record carries NO verified mechanism — its verb is a vocabulary
+        // look-alike, so the durable transfer row reports `unclassified-mechanism` (never a confident
+        // verb someone might transfer a cascade from). The original guess is preserved, clearly
+        // labelled, so the routing is transparent and a human can promote it if it IS real.
+        mechanismPattern: r.mechanism?.antiWitness ? 'unclassified-mechanism' : r.pattern,
+        ...(r.mechanism?.antiWitness ? { mechanismLexicalGuess: r.pattern } : {}),
+        // axis-2 mechanism-signature provenance (additive): how the verb was bound, and whether it
+        // is a flagged vocabulary look-alike (antiWitness) rather than a true mechanism sibling.
+        mechanismProvenance: r.mechanism?.provenance ?? 'none',
+        mechanismConfidence: r.mechanism?.confidence ?? 'NONE',
+        mechanismAntiWitness: r.mechanism?.antiWitness ?? false,
+        ...(r.mechanism?.whyMightNotTransfer ? { mechanismCaveat: r.mechanism.whyMightNotTransfer } : {}),
         sharedWitnesses: r.witnesses,
         confidence: r.confidence,
         evidenceKind: safeHit.provenance.evidenceKind,
@@ -933,7 +1027,8 @@ function run() {
 
   if (result.sublog.length) {
     console.log(`\n  -- low-confidence sub-log (${result.sublog.length} suppressed) --`);
-    for (const s of result.sublog.slice(0, 10)) {
+    // wave-2 R.16: diagnostic budget raised 10 → 50 (JSON output stays full).
+    for (const s of result.sublog.slice(0, Math.min(50, result.sublog.length))) {
       console.log(`    ~ node=${s.nodeId}  conf=${s.confidence.toFixed(3)}  (${s.reason})`);
     }
   }

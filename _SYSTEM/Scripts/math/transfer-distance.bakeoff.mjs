@@ -5,6 +5,7 @@
  * Run: node _SYSTEM/Scripts/math/transfer-distance.bakeoff.mjs [logbook-truth.json]
  */
 import { readFileSync } from 'node:fs';
+import { spearman } from './math-kernel.mjs';
 import { transferScore, v1BlendMetric } from './transfer-distance.mjs';
 import { CANDIDATES, fieldDistance, operatorSkeletonDistance, mechanismFrameDistance } from './transfer-distance-cores.mjs';
 
@@ -17,7 +18,7 @@ const FAR_ALL = new Set([...FAR_HOLDS, ...FAR_BROKEN]);
 const cards = JSON.parse(readFileSync(TRUTH, 'utf8')).filter((c) => c.sourceTheory && c.yuriTarget && c.structuralNum != null);
 const med = (xs) => { const a = [...xs].sort((p, q) => p - q); const m = a.length >> 1; return a.length ? (a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) : NaN; };
 const mean = (xs) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : NaN);
-function spearman(a, b) { const rank = (arr) => { const idx = arr.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]); const r = Array(arr.length); idx.forEach(([, i], k) => { r[i] = k; }); return r; }; const ra = rank(a), rb = rank(b), n = a.length; let d2 = 0; for (let i = 0; i < n; i++) d2 += (ra[i] - rb[i]) ** 2; return 1 - (6 * d2) / (n * (n * n - 1)); }
+// kernel tie-corrected spearman (the local 6Σd² shortcut was invalid under ties).
 
 function evalMetric(name, scoreOpts) {
   const scored = cards.map((c) => {
@@ -26,6 +27,7 @@ function evalMetric(name, scoreOpts) {
       targetText: `${c.yuriTarget} ${c.theTransfer || ''}`.trim(),
       mechanismText: c.borrowedMechanism || '',
       structuralConf: c.structuralNum,
+      mismatchText: c.mismatch, // unify with proof.mjs — the prereq gate now runs here too
       mismatchPresent: !!(c.mismatch && c.mismatch.length > 20),
     }, scoreOpts);
     return { n: c.n, juice: c.juice, ...s };

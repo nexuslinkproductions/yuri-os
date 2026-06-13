@@ -20,7 +20,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-import { propagationScan } from './propagation-scan.mjs';
+import { propagationScan, parseImportSpecifiers } from './propagation-scan.mjs';
 
 let passed = 0;
 let failed = 0;
@@ -421,6 +421,75 @@ test('T9 writes-only sibling via query-recall is NOT laundered to structural', (
   assert.equal(launderedHigh, undefined, 'writeonly must never reach the structural HIGH band');
   // the writes-edge drop must be COUNTED (the honest context-incoming writes exclusion still fires).
   assert.ok(res.writesExcluded >= 1, `writesExcluded must count the writer writes-edge (got ${res.writesExcluded})`);
+});
+
+// T10 — FORK 3 anti-witness routing: a lexical look-alike mechanism is NOT laundered into the
+// transfer backlog as a confident verb, and never consumes a real verb's cooldown slot.
+test('T10 antiWitness mechanism -> unclassified row + guess preserved + cooldown keys on node', () => {
+  const stateDir = freshStateDir();
+  const res = propagationScan('alpha', {
+    deps: { graph: fixtureGraph(), gitnexus: structuralStub(), stateDir },
+  });
+  assert.ok(res.written >= 1);
+  const recs = backlogLines(stateDir).map((l) => JSON.parse(l));
+  for (const rec of recs) {
+    // fixture witness `sharedFn` lexically hits `shared`-prerequisite-unlock with NO structural bond.
+    assert.equal(rec.mechanismAntiWitness, true, 'sharedFn sibling must be flagged antiWitness');
+    assert.equal(rec.mechanismProvenance, 'lexical-only');
+    assert.equal(rec.mechanismPattern, 'unclassified-mechanism', 'no confident verb in the transfer row');
+    assert.equal(rec.mechanismLexicalGuess, 'shared-prerequisite-unlock', 'the guess is preserved, labelled');
+  }
+  const cd = JSON.parse(fs.readFileSync(path.join(stateDir, 'pattern-cooldown.json'), 'utf8'));
+  assert.ok(Object.prototype.hasOwnProperty.call(cd, 'node:alpha'), `cooldown keyed on node:alpha (keys: ${Object.keys(cd)})`);
+  assert.ok(!Object.keys(cd).includes('shared-prerequisite-unlock'), 'a look-alike verb must NOT hold a cooldown slot');
+});
+
+// namedStub — structuralStub generalised over the witness symbol, so a test can force a sibling that
+// classifies as UNCLASSIFIED (a witness name sharing no registry verb token, file, or import edge).
+function namedStub(w) {
+  return (sub, target) => {
+    if (sub === 'context' && target === '_SYSTEM/Scripts/a.mjs') return { available: true, reason: null, json: { incoming: {}, outgoing: {} } };
+    if (sub === 'query' && /alpha|contract|dispatch/.test(target)) return { available: true, reason: null, json: { definitions: [{ name: 'someExport', filePath: '_SYSTEM/Scripts/b.mjs' }, { name: 'otherExport', filePath: '_SYSTEM/Scripts/c.mjs' }] } };
+    if (sub === 'context' && (target === 'b.mjs' || target === 'c.mjs')) return { available: true, reason: null, json: { incoming: {}, outgoing: { calls: [{ name: w, filePath: '_SYSTEM/Scripts/bridge.mjs' }] } } };
+    if (sub === 'context' && target === w) return { available: true, reason: null, json: { incoming: { calls: [{ name: w, filePath: '_SYSTEM/Scripts/b.mjs' }], reads: [{ name: w, filePath: '_SYSTEM/Scripts/c.mjs' }] } } };
+    if (sub === 'query' && target === w) return { available: true, reason: null, json: { definitions: [{ name: w, filePath: '_SYSTEM/Scripts/b.mjs' }, { name: w, filePath: '_SYSTEM/Scripts/c.mjs' }] } };
+    return { available: true, reason: null, json: { definitions: [] } };
+  };
+}
+
+// T11 — red-team F1/#7: an unclassified top sibling must NOT cool down on the shared literal
+// 'unclassified-mechanism' (which would make one node's scan block every other unmatched node 24h).
+test('T11 unclassified top sibling cools down on the node key, not the shared literal', () => {
+  const stateDir = freshStateDir();
+  const res = propagationScan('alpha', { deps: { graph: fixtureGraph(), gitnexus: namedStub('plainHelper'), stateDir } });
+  assert.ok(res.written >= 1);
+  for (const rec of backlogLines(stateDir).map((l) => JSON.parse(l))) {
+    assert.equal(rec.mechanismPattern, 'unclassified-mechanism');
+    assert.equal(rec.mechanismAntiWitness, false, 'plainHelper is unclassified, not a lexical look-alike');
+  }
+  const cd = JSON.parse(fs.readFileSync(path.join(stateDir, 'pattern-cooldown.json'), 'utf8'));
+  assert.ok(Object.prototype.hasOwnProperty.call(cd, 'node:alpha'), `must key on node:alpha (keys: ${Object.keys(cd)})`);
+  assert.ok(!Object.keys(cd).includes('unclassified-mechanism'), 'the shared literal must NEVER be a cooldown key (cross-node collision)');
+});
+
+// T12 — red-team F2/#1: the import parser ignores commented/block/external/interpolated specifiers
+// and still sees real static + resolvable template-literal imports.
+test('T12 parseImportSpecifiers ignores commented/block/external/interpolated, keeps real + template', () => {
+  const src = [
+    "import { a } from './real.mjs';",
+    "// import { x } from './line-commented.mjs';",
+    "/* import { y } from './block-commented.mjs'; */",
+    "import('./dynamic.mjs');",
+    'import(`./tmpl.mjs`);',
+    'import(`./${d}/interp.mjs`);',
+    "import { z } from 'external-pkg';",
+  ].join('\n');
+  const specs = parseImportSpecifiers(src);
+  assert.ok(specs.includes('./real.mjs') && specs.includes('./dynamic.mjs') && specs.includes('./tmpl.mjs'), `real/dynamic/template kept (got ${specs})`);
+  assert.ok(!specs.includes('./line-commented.mjs'), 'line-commented import ignored');
+  assert.ok(!specs.includes('./block-commented.mjs'), 'block-commented import ignored');
+  assert.ok(!specs.some((s) => s.includes('${')), 'interpolated specifier skipped');
+  assert.ok(!specs.includes('external-pkg'), 'non-local skipped');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -16,7 +16,9 @@ test('formula bank proof gate validates promoted banks and executes examples', (
   assert.ok(result.banks.length >= 5);
   assert.ok(result.traces.length >= 20);
   assert.ok(result.traces.every((trace) => trace.schema === 'yuri.math.proof-trace.v0'));
-  assert.ok(result.traces.every((trace) => trace.passed === true));
+  // Certification traces must all pass; advisory traces (research/fixture
+  // banks, gates-foundry-11) are reported-not-certified and may legitimately fail.
+  assert.ok(result.traces.filter((trace) => !trace.advisory).every((trace) => trace.passed === true));
   assert.ok(result.traces.some((trace) => trace.counterexample === true));
   assert.ok(result.banks.some((bank) => bank.executableCounterexamples > 0));
   for (const bank of result.banks.filter((entry) => entry.promotionStatus === 'verified-baseline')) {
@@ -231,4 +233,93 @@ test('validator accepts a real kernel symbol in implementedBy and all shipped ba
   const inspection = inspectFormulaBankDirectory();
   assert.equal(inspection.ok, true, inspection.errors.join('\n'));
   assert.equal(inspection.errors.some((error) => /not an exported function/.test(error)), false);
+});
+
+// Shared honest shannon card for the attack tests below.
+function shannonCard(overrides = {}) {
+  return {
+    id: 'shannon-entropy',
+    domain: 'information-theory',
+    notation: 'H(P) = -sum_i p_i log_b(p_i)',
+    purpose: 'Measure uncertainty.',
+    implementedBy: '_SYSTEM/Scripts/math/math-kernel.mjs#entropy',
+    variables: [{ symbol: 'p', meaning: 'probabilities', type: 'number[]', constraints: ['p >= 0'] }],
+    assumptions: ['normalizable'],
+    invalidInputs: ['empty array'],
+    failureModes: ['none'],
+    workedExamples: [{ name: 'valid', input: { probabilities: [0.5, 0.5], base: 2 }, expected: { entropy: 1 }, interpretation: 'one bit' }],
+    counterexamples: [{ name: 'negative weight', input: { probabilities: [1, -1], base: 2 }, expectedError: 'non-negative' }],
+    promotionStatus: 'verified-baseline',
+    advisoryOnly: false,
+    proofObligations: ['probabilities_non_negative'],
+    ...overrides,
+  };
+}
+
+// gates-foundry-1: vacuous certification closed in three layers.
+test('gate rejects a card that asserts nothing', () => {
+  assert.throws(() => runFormulaProofGate({ formulaId: 'shannon-entropy', input: { probabilities: [0.5, 0.5], base: 2 }, expected: {}, mode: 'strict' }), /vacuous/);
+  // MISSING expected is just as vacuous as expected:{} — both refuse to certify.
+  const adv = runFormulaProofGate({ formulaId: 'shannon-entropy', input: { probabilities: [0.5, 0.5], base: 2 }, mode: 'advisory' });
+  assert.equal(adv.passed, false);
+  assert.match(adv.error, /vacuous/);
+  const v = validateFormulaBank({
+    schema: 'yuri.math.formula-bank.v0', id: 'atk', version: '0.1.0', promotionStatus: 'verified-baseline', advisoryOnly: false,
+    formulas: [shannonCard({ workedExamples: [{ name: 'vacuous', input: { probabilities: [0.5, 0.5], base: 2 }, expected: {}, interpretation: 'asserts nothing' }] })],
+  });
+  assert.equal(v.ok, false);
+  assert.ok(v.errors.some((e) => /empty expected/.test(e)));
+});
+
+// gates-foundry-2: function-identity binding assertion (existence is not enough).
+test('validator rejects an implementedBy symbol that is not the executed binding', () => {
+  const result = validateFormulaBank({
+    schema: 'yuri.math.formula-bank.v0', id: 'desync-identity-bank', version: '0.1.0', promotionStatus: 'verified-baseline', advisoryOnly: false,
+    formulas: [shannonCard({ implementedBy: '_SYSTEM/Scripts/math/math-kernel.mjs#klDivergence' })],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => /binding desync/.test(e)));
+});
+
+// gates-foundry-8: worked-example expected values are the exact kernel doubles
+// (the 1e-12 gate tolerance must never launder a card literal drift).
+test('worked-example expected values are the exact kernel doubles', () => {
+  const exact = (result, expected, label) => {
+    if (typeof expected === 'number') {
+      assert.ok(Object.is(result, expected), `${label} is not the exact kernel double (${result} vs ${expected})`);
+    } else if (Array.isArray(expected)) {
+      expected.forEach((v, i) => exact(result?.[i], v, `${label}[${i}]`));
+    }
+  };
+  for (const trace of inspectFormulaBankDirectory().traces.filter((t) => !t.counterexample && t.expected && !t.advisory)) {
+    for (const [key, value] of Object.entries(trace.expected)) {
+      exact(trace.result?.[key], value, `${trace.formulaId}:${trace.exampleName} expected.${key}`);
+    }
+  }
+});
+
+// gates-foundry-11: research banks execute advisorily — reported, never certified.
+test('research banks execute advisorily: reported, never certified', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-adv-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'r.json'), JSON.stringify({
+      schema: 'yuri.math.formula-bank.v0', id: 'research-probe', version: '0.1.0', promotionStatus: 'research', advisoryOnly: true,
+      formulas: [{
+        id: 'shannon-entropy', notation: 'H', purpose: 'probe', proofObligations: ['x'],
+        workedExamples: [{ name: 'wrong', input: { probabilities: [0.5, 0.5], base: 2 }, expected: { entropy: 9 }, interpretation: 'deliberately wrong' }],
+      }],
+    }));
+    const r = inspectFormulaBankDirectory(dir);
+    assert.equal(r.ok, true); // advisory failures never block
+    assert.equal(r.traces.filter((t) => t.advisory).length, 1);
+    assert.equal(r.banks[0].executableExamples, 0); // certification counts stay promoted-only
+    assert.equal(r.warnings.filter((w) => /ADVISORY example fails/.test(w)).length, 1);
+    // total = the pre-existing fixture-binding warning + the advisory failure.
+    assert.equal(r.warnings.length, 2);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

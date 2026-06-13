@@ -21,12 +21,17 @@ import {
   logScale,
   makeMathResult,
   maxEntBelief,
+  median,
+  pearson,
+  rankWithTies,
   mergeLaneEvidence,
   negEntropyPotential,
   normalizeDistribution,
+  percentile,
   pNorm,
   scalarKalman,
   softmax,
+  spearman,
   topologicalSort,
   weightedMean,
   weightedStdDev,
@@ -83,8 +88,8 @@ test('aggregate primitives fail closed on 1e308-scale overflow instead of emitti
 test('computes logarithmic information primitives deterministically', () => {
   assert.equal(entropy([0.5, 0.5], { base: 2 }), 1);
   assert.equal(entropy([1, 0], { base: 2 }), 0);
-  assert.ok(Math.abs(klDivergence([0.5, 0.5], [0.25, 0.75], { base: 2 }) - 0.20751874963942185) < 1e-12);
-  assert.ok(Math.abs(crossEntropy([0.5, 0.5], [0.25, 0.75], { base: 2 }) - 1.207518749639422) < 1e-12);
+  assert.ok(Math.abs(klDivergence([0.5, 0.5], [0.25, 0.75], { base: 2 }) - 0.207518749639422) < 1e-12);
+  assert.ok(Math.abs(crossEntropy([0.5, 0.5], [0.25, 0.75], { base: 2 }) - 1.20751874963942) < 1e-12);
   assert.equal(informationGain([0.5, 0.5], [1, 0], { base: 2 }), 1);
 });
 
@@ -363,4 +368,143 @@ test('scalarKalman flags a one-sided spike and re-sensitizes via q within a coup
 test('scalarKalman rejects non-positive measurement noise and negative process noise', () => {
   assert.throws(() => scalarKalman([1, 2], { q: 0, r: 0 }), /measurement noise r must be positive/);
   assert.throws(() => scalarKalman([1, 2], { q: -1, r: 1 }), /process noise q must be non-negative/);
+});
+
+// F-K1: admissible-but-INCONSISTENT heuristic (audit counterexample). Under the
+// no-reopen closed set, strict must reject; non-strict must return an internally
+// consistent result (cost == edge-sum of the returned path), never a stale cost.
+test('A* strict rejects admissible-but-inconsistent heuristics; non-strict reconciles cost to the returned path', () => {
+  const graph = { nodes: ['S', 'P', 'Q', 'G'], edges: [
+    { from: 'S', to: 'P', weight: 1 }, { from: 'P', to: 'Q', weight: 1 },
+    { from: 'S', to: 'Q', weight: 2.5 }, { from: 'Q', to: 'G', weight: 1 },
+  ] };
+  const heuristic = { S: 0, P: 2, Q: 0, G: 0 }; // admissible (true costs 3,2,1,0); inconsistent at P->Q (2 > 1+0)
+  assert.throws(() => astar(graph, 'S', 'G', heuristic, { strict: true }), /inconsistent heuristic/);
+  const loose = astar(graph, 'S', 'G', heuristic);
+  assert.deepEqual(loose.path, ['S', 'P', 'Q', 'G']);
+  assert.equal(loose.cost, 3); // the path's true edge-sum, not the stale 3.5
+  assert.ok(loose.proof.warnings.includes('cost_recomputed_from_reconstructed_path'));
+  // Consistent heuristics certify both properties in strict mode.
+  const ok = astar(GRAPH, 'A', 'F', { A: 20, B: 21, C: 18, D: 11, E: 15, F: 0 }, { strict: true });
+  assert.ok(ok.proof.assumptions.includes('consistent_heuristic_checked'));
+  // Tolerance is RELATIVE in the roundStable domain: a consistent strict run over
+  // fractional weights summing to ~1e7 must NOT throw on its own rounding residue.
+  const big = {
+    nodes: Array.from({ length: 11 }, (_, i) => `n${i}`),
+    edges: Array.from({ length: 10 }, (_, i) => ({ from: `n${i}`, to: `n${i + 1}`, weight: 1234567.89 })),
+  };
+  const bigH = Object.fromEntries(big.nodes.map((n) => [n, 0]));
+  const bigResult = astar(big, 'n0', 'n10', bigH, { strict: true });
+  assert.equal(bigResult.cost, 12345678.9);
+});
+
+// F-K2: the post-aggregate finite invariant extends to the vector/statistics
+// primitives. Includes the denominator-product seam: both pNorms FINITE
+// (1.34078079299426e154) yet their product overflows — cosine used to emit a
+// silently wrong 0 where the true similarity is 0.5.
+test('vector and statistics primitives fail closed on aggregate overflow', () => {
+  const MAX = 1e308;
+  assert.throws(() => dotProduct([MAX, MAX], [MAX, MAX]), /non-finite|overflow/i);
+  assert.throws(() => pNorm([MAX, MAX]), /non-finite|overflow/i);
+  assert.throws(() => cosineSimilarity([MAX, MAX], [MAX, MAX]), /non-finite|overflow/i);
+  const x = Math.sqrt(Number.MAX_VALUE / 2);
+  const c1 = (1 + Math.sqrt(3)) / 2;
+  const c2 = (1 - Math.sqrt(3)) / 2;
+  // Both pNorms finite, dot finite (8.99e307), denominator product Infinity —
+  // HEAD returned 0, true cosine 0.5. Catches omission of the denominator assert.
+  assert.throws(() => cosineSimilarity([x, x], [x * c1, x * c2]), /non-finite|overflow/i);
+  assert.throws(() => weightedVariance([1e200, -1e200], [1, 1]), /non-finite|overflow/i);
+  assert.throws(() => weightedStdDev([1e200, -1e200], [1, 1]), /non-finite|overflow/i);
+  // Over-fix guard: legitimate inputs unaffected.
+  assert.equal(dotProduct([1, 2, 3], [4, 5, 6]), 32);
+  assert.equal(pNorm([3, 4]), 5);
+  assert.equal(cosineSimilarity([1, 1], [1, 1]), 1);
+  assert.equal(weightedVariance([1, 2, 3], [1, 1, 2]), 0.6875);
+  // expectedValue is overflow-safe by construction (normalized probabilities
+  // bound every partial sum by max|value|).
+  assert.equal(expectedValue([1e308, 1e308], [1, 1]), 1e308);
+});
+
+// F-K3: the KL canary must hold for RAW COUNTS too — the potential's simplex
+// projection is applied once, feeding value, grad, AND the inner product.
+// Pre-fix: bregman([2,2],[1,3]) = 0.967800252726973 (neither KL of raw nor of normalized).
+test('bregmanDivergence with negEntropy equals klDivergence for unnormalized inputs', () => {
+  const psi = negEntropyPotential();
+  assert.equal(bregmanDivergence([2, 2], [1, 3], psi), klDivergence([2, 2], [1, 3]));
+  assert.equal(bregmanDivergence([2, 2], [1, 3], psi), 0.14384103622589);
+  const psi2 = negEntropyPotential({ base: 2 });
+  assert.ok(Math.abs(bregmanDivergence([3, 1, 4], [2, 2, 4], psi2) - klDivergence([3, 1, 4], [2, 2, 4], { base: 2 })) < 1e-12);
+});
+
+test('cusum exposes the canonical change-point estimate via lastZeroIndex; changeIndex stays the alarm index', () => {
+  const r = cusum([0, 0, 5, 5, 5], { k: 1, h: 5 }); // S = [0,0,4,8,12]
+  assert.equal(r.alarm, true);
+  assert.equal(r.changeIndex, 3);   // ALARM index (back-compat, unchanged)
+  assert.equal(r.lastZeroIndex, 1); // last S===0 before the climb; change onset = 2
+  const quiet = cusum([0.01, -0.01, 0.01], { k: 0.1, h: 2 });
+  assert.equal(quiet.alarm, false);
+  assert.equal(quiet.lastZeroIndex, -1); // no alarm -> no change-point estimate
+  const immediate = cusum([10, 10], { k: 1, h: 5 }); // alarms at index 0, S never zero
+  assert.equal(immediate.lastZeroIndex, -1); // climb began at stream start
+});
+
+test('maxEntBelief validates solver options instead of silently returning a constraint-violating uniform', () => {
+  assert.throws(() => maxEntBelief(0.5, 3, { maxIterations: 0 }), /maxIterations must be an integer >= 1/);
+  assert.throws(() => maxEntBelief(0.5, 3, { maxIterations: 2.5 }), /maxIterations must be an integer >= 1/);
+  assert.throws(() => maxEntBelief(0.5, 3, { tolerance: 0 }), /tolerance must be positive/);
+  assert.throws(() => maxEntBelief(0.5, 3, { tolerance: -1 }), /tolerance must be positive/);
+  assert.deepEqual(maxEntBelief(1, 3, { maxIterations: 100, tolerance: 1e-12 }).length, 3); // valid options accepted
+});
+
+test('informationGain is a plain entropy delta and can be negative', () => {
+  assert.equal(informationGain([1, 0], [0.5, 0.5], { base: 2 }), -1);
+});
+
+// gates-foundry-9: entropy-family bases must be finite and > 1 — a base in
+// (0,1) flips the sign of every entropy (H >= 0 violated); Infinity silently
+// zeroes it.
+test('entropy-family log base must be finite and greater than 1', () => {
+  assert.throws(() => entropy([0.5, 0.5], { base: 0.5 }), /greater than 1/);
+  assert.throws(() => entropy([0.5, 0.5], { base: 1 }), /greater than 1/);
+  assert.throws(() => entropy([0.5, 0.5], { base: Infinity }), /finite/);
+  assert.throws(() => entropy([0.5, 0.5], { base: NaN }), /finite/);
+  assert.equal(entropy([0.5, 0.5], { base: 2 }), 1);
+});
+
+// clockwork-2: shared primitives — kernel-strict non-finite policy (throw on
+// NaN/Infinity entries; boundary callers pre-filter), house conventions:
+// spearman = Pearson over average-tied ranks, percentile = nearest-rank ceil,
+// median = averaged middle.
+test('spearman: tie-corrected — Pearson over average-tied ranks, degenerate input returns 0', () => {
+  assert.equal(spearman([1, 1, 1, 1], [1, 2, 3, 4]), 0);
+  assert.equal(spearman([1, 1, 1, 1], [4, 3, 2, 1]), 0);
+  assert.equal(spearman([1, 2, 2, 3], [1, 2, 3, 4]), 0.948683298050514); // Pearson([1,2.5,2.5,4],[1,2,3,4]) = 4.5/√22.5
+  assert.equal(spearman([1, 2, 3], [3, 2, 1]), -1);
+  assert.equal(spearman([1, 2, 3], [10, 20, 30]), 1);
+  assert.throws(() => spearman([1, NaN], [1, 2]), /finite/);
+});
+
+test('percentile: nearest-rank (ceil), no interpolation; p50 != averaged median by design', () => {
+  const xs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  assert.equal(percentile(xs, 90), 90); // sorted[ceil(9)-1] = sorted[8], NOT the max
+  assert.equal(percentile(xs, 100), 100);
+  assert.equal(percentile([1, 2, 3, 4], 50), 2); // nearest-rank p50 = 2; averaged median = 2.5
+  assert.equal(percentile([5, 1, 9, 3, 7, 2, 8, 4, 6, 10], 90), 9);
+  assert.throws(() => percentile([], 50));
+  assert.throws(() => percentile([1, 2], 0), /\(0, 100\]/);
+  assert.throws(() => percentile([1, NaN], 50), /finite/);
+});
+
+test('median: averaged middle; kernel-strict on empty and non-finite input', () => {
+  assert.equal(median([1, 2, 3, 4]), 2.5);
+  assert.equal(median([3, 1, 2]), 2);
+  assert.throws(() => median([]));
+  assert.throws(() => median([1, NaN]), /finite/);
+});
+
+test('pearson + rankWithTies: shared kernel primitives (constant input → 0, average tie ranks)', () => {
+  assert.equal(pearson([1, 2, 3], [2, 4, 6]), 1);
+  assert.equal(pearson([1, 1, 1], [1, 2, 3]), 0); // constant → 0, never NaN/±1
+  assert.deepEqual(rankWithTies([1, 1, 2]), [1.5, 1.5, 3]);
+  assert.ok(Math.abs(spearman([1, 1, 2], [1, 2, 3]) - Math.sqrt(3) / 2) < 1e-9);
 });

@@ -31,12 +31,17 @@ const BANK_DIR = path.join(REPO_ROOT, '_SYSTEM/data/math/formula-banks');
 // (e.g. "dimensionless probability weights" → PROBABILITY, not DIMENSIONLESS).
 // ------------------------------------------------------------------------------------------------
 const DIMENSION_PRIORITY = [
+  // INFORMATION above PROBABILITY: log-loss prose 'mean negative log likelihood
+  // in nats' must route via 'nat', not be stolen by 'likelihood'. Bare
+  // 'likelihood' stays in PROBABILITY (bayes likelihood slots depend on it).
+  ['INFORMATION', ['bit', 'nat', 'entropy', 'shannon', 'surprisal', 'information content', 'log base', 'logarithm base', 'log-base', 'negative log likelihood', 'log likelihood', 'log-likelihood']],
   ['PROBABILITY', ['probabilit', 'likelihood', 'mass function', 'normalized weight', 'distribution over', 'posterior', 'prior over']],
-  ['INFORMATION', ['bit', 'nat', 'entropy', 'shannon', 'surprisal', 'information content', 'log base', 'logarithm base', 'log-base']],
   ['ENERGY', ['energy', 'potential', 'lyapunov', 'joule', 'hamiltonian']],
-  ['TIME', ['half-life', 'halflife', 'duration', 'elapsed', 'age in', 'seconds', 'timestamp', 'time step']],
+  ['TIME', ['half-life', 'halflife', 'duration', 'elapsed', 'age in', 'seconds', 'timestamp', 'time step', 'time constant']],
   ['RATE', ['per second', 'hertz', ' hz', 'frequency', 'velocity', 'speed', 'rate of']],
-  ['DISTANCE', ['distance', 'cost', 'path length', 'metric distance', 'divergence', 'norm', 'displacement']],
+  // 'cost' alone was over-generic: 'outcome utility or cost units' stole
+  // DISTANCE for expected-value. Only graph-flavored cost prose qualifies.
+  ['DISTANCE', ['distance', 'path cost', 'edge cost', 'graph cost', 'path length', 'metric distance', 'divergence', 'norm', 'displacement']],
   ['ANGLE', ['radian', 'degree', 'phase angle', 'angular']],
   ['VECTOR', ['vector', 'embedding', 'coordinate', 'tensor', 'matrix']],
   ['COUNT', ['count', 'number of', 'cardinality', 'tally', 'integer count']],
@@ -70,6 +75,11 @@ function dimensionKeywordHit(s, kw) {
   return re.test(s);
 }
 
+// @capability: formula-foundry
+// @serves: generate and type-check candidate formulas | dimensional analysis | are these units composable | formula catalog coverage | auto-propose formula forms | composition type-algebra
+// @does: Formula Foundry typing core — classifyDimension, dimensionsCompatible, catalogFormulas, composeCheck, composableTargets; a dimensional/type algebra over formulas (catalog · coverage · composition)
+// @use: when proposing or validating a formula/value-model form (e.g. retiring a hand-encoded value() in a sim) type-check dimensional compatibility + enumerate composable targets; pair with math-proof-gate to promote
+// @exports: classifyDimension, dimensionsCompatible, parseRange, catalogFormulas, composeCheck, composableTargets
 export function classifyDimension(unitText) {
   if (unitText == null) return { dimension: 'UNKNOWN', witness: null };
   // Unit fields are prose strings; object/array coercion could manufacture a false confident witness.
@@ -84,14 +94,41 @@ export function classifyDimension(unitText) {
   return { dimension: 'UNKNOWN', witness: null };
 }
 
-// Two dimensions may bridge iff: equal; OR either is UNKNOWN (cannot be disproven — allowed, low confidence);
-// OR both are scalar-family pure numbers. A concrete mismatch (INFORMATION↔DISTANCE, PROBABILITY↔ENERGY, …) is
-// REJECTED — that rejection is the silent-garbage closer.
+// Two dimensions may bridge iff: equal; OR both are scalar-family pure numbers.
+// UNKNOWN on either side is SPECULATIVE-ONLY (fail-closed): a card with
+// unclassifiable units stops generating 'legal' moves and surfaces as a
+// units-prose worklist item instead. A concrete mismatch (INFORMATION↔DISTANCE,
+// PROBABILITY↔ENERGY, …) is REJECTED — that rejection is the silent-garbage closer.
 export function dimensionsCompatible(a, b) {
+  // UNKNOWN before equality: UNKNOWN === UNKNOWN must NOT mint an 'exact'
+  // bridge — two unclassifiable cards prove nothing about each other.
+  if (a === 'UNKNOWN' || b === 'UNKNOWN') return { compatible: false, confidence: 'speculative', reason: 'undetermined dimension — speculative only, not a legal move' };
   if (a === b) return { compatible: true, confidence: 'exact', reason: `both ${a}` };
-  if (a === 'UNKNOWN' || b === 'UNKNOWN') return { compatible: true, confidence: 'low', reason: 'undetermined dimension (cannot disprove)' };
   if (SCALAR_FAMILY.has(a) && SCALAR_FAMILY.has(b)) return { compatible: true, confidence: 'scalar', reason: 'both scalar-family pure numbers' };
   return { compatible: false, confidence: 'exact', reason: `dimensional mismatch: ${a} ↛ ${b}` };
+}
+
+// Parse a numeric range out of units prose: '[0,1]', 'from -1 to 1'. Closed
+// regex set covering all shipped range prose; null when the card is range-silent.
+export function parseRange(unitText) {
+  const s = String(unitText || '');
+  const m = s.match(/\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]/)
+    || s.match(/from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)/i);
+  return m ? { lo: Number(m[1]), hi: Number(m[2]) } : null;
+}
+
+// Derive the information unit of an INFORMATION-typed prose string: 'bits' /
+// 'nats' when unambiguous, 'conditional' when both appear ('bits when base=2,
+// nats when base=e'), null when silent.
+function deriveInfoUnit(unitText) {
+  if (typeof unitText !== 'string') return null;
+  const s = unitText.toLowerCase();
+  const hasBit = dimensionKeywordHit(s, 'bit');
+  const hasNat = dimensionKeywordHit(s, 'nat');
+  if (hasBit && hasNat) return 'conditional';
+  if (hasBit) return 'bits';
+  if (hasNat) return 'nats';
+  return null;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -118,7 +155,19 @@ export function catalogFormulas(opts = {}) {
     for (const f of Array.isArray(bank.formulas) ? bank.formulas : []) {
       const inputs = (f.units && typeof f.units.inputs === 'object' && f.units.inputs) || {};
       const inputDims = {};
-      for (const slot of Object.keys(inputs).sort()) inputDims[slot] = classifyDimension(inputs[slot]).dimension;
+      const inputRanges = {};
+      const inputInfoUnits = {};
+      for (const slot of Object.keys(inputs).sort()) {
+        inputDims[slot] = classifyDimension(inputs[slot]).dimension;
+        inputRanges[slot] = parseRange(inputs[slot]);
+        inputInfoUnits[slot] = deriveInfoUnit(inputs[slot]);
+      }
+      // Card-declared parameter slots (base/temperature/epsilon/halfLife/…) are
+      // never composition targets; entries that don't exist in units.inputs are
+      // skipped and surfaced via malformedParameterSlots.
+      const declaredParams = Array.isArray(f.units && f.units.parameterSlots) ? f.units.parameterSlots : [];
+      const parameterSlots = declaredParams.filter((s) => s in inputs).sort();
+      const malformedParameterSlots = declaredParams.filter((s) => !(s in inputs)).sort();
       cards.push({
         id: String(f.id || ''),
         bank: bankId,
@@ -129,7 +178,13 @@ export function catalogFormulas(opts = {}) {
         implementedBy: f.implementedBy || (f.implementationBinding && f.implementationBinding.binding) || null,
         variables: Array.isArray(f.variables) ? f.variables : [],
         outputDim: classifyDimension(f.units && f.units.output).dimension,
+        outputRange: parseRange(f.units && f.units.output),
+        outputInfoUnit: deriveInfoUnit(f.units && f.units.output),
         inputDims,
+        inputRanges,
+        inputInfoUnits,
+        parameterSlots,
+        ...(malformedParameterSlots.length ? { malformedParameterSlots } : {}),
         synthesisProvenance: Array.isArray(f.synthesisProvenance) ? f.synthesisProvenance : [],
       });
     }
@@ -174,20 +229,58 @@ export async function coverageReport() {
 // every slot of B that A's output can legally feed. Empty = illegal composition.
 export function composeCheck(cardA, cardB) {
   if (!cardA || !cardB) throw new Error('composeCheck requires two catalog cards');
-  if (cardA.id === cardB.id) return { legal: false, compatibleSlots: [], reasons: ['self-composition not allowed'], from: cardA.id, to: cardB.id };
+  if (cardA.id === cardB.id) return { legal: false, compatibleSlots: [], speculativeSlots: [], excludedSlots: [], reasons: ['self-composition not allowed'], from: cardA.id, to: cardB.id };
   const outDim = cardA.outputDim || 'UNKNOWN';
+  const outRange = cardA.outputRange || null;
+  const outInfoUnit = cardA.outputInfoUnit || null;
+  const paramSet = new Set(cardB.parameterSlots || []);
   const slots = Object.keys(cardB.inputDims || {}).sort();
   const compatibleSlots = [];
+  const speculativeSlots = []; // UNKNOWN-dimension candidates: visible, never legal
+  const excludedSlots = [];    // dimension-compatible but range/unit-unsound: visible, never legal
   const reasons = [];
+  // Slot-check ordering is load-bearing: parameter → dimension → range → bits/nats.
   for (const slot of slots) {
     const inDim = cardB.inputDims[slot];
+    if (paramSet.has(slot)) {
+      reasons.push(`slot '${slot}': parameter slot — composition may only feed data slots`);
+      continue;
+    }
     const c = dimensionsCompatible(outDim, inDim);
-    if (c.compatible) compatibleSlots.push({ slot, fromDim: outDim, toDim: inDim, confidence: c.confidence });
-    else reasons.push(`slot '${slot}': ${c.reason}`);
+    if (!c.compatible) {
+      if (c.confidence === 'speculative') speculativeSlots.push({ slot, fromDim: outDim, toDim: inDim });
+      else reasons.push(`slot '${slot}': ${c.reason}`);
+      continue;
+    }
+    // Range containment runs on ALL confidence tiers for scalar-family pairs
+    // (the [-1,1]→[0,1] hole lives on the 'exact' same-dimension path too).
+    // Range-silent cards keep the slot but carry rangeUnverified:true — a
+    // stated-units bridge cannot be disproven, only flagged.
+    const inRange = (cardB.inputRanges || {})[slot] || null;
+    const scalarPair = SCALAR_FAMILY.has(outDim) && SCALAR_FAMILY.has(inDim);
+    if (scalarPair && outRange && inRange && !(outRange.lo >= inRange.lo && outRange.hi <= inRange.hi)) {
+      excludedSlots.push({ slot, fromDim: outDim, toDim: inDim, reason: `range mismatch [${outRange.lo},${outRange.hi}] ↛ [${inRange.lo},${inRange.hi}]: needs explicit clamp/affine node` });
+      continue;
+    }
+    // bits ↛ nats without an explicit ln2 conversion node; 'conditional'/null
+    // info units cannot be disproven and stay compatible.
+    const inInfoUnit = (cardB.inputInfoUnits || {})[slot] || null;
+    if (outDim === 'INFORMATION' && inDim === 'INFORMATION'
+      && (outInfoUnit === 'bits' || outInfoUnit === 'nats')
+      && (inInfoUnit === 'bits' || inInfoUnit === 'nats')
+      && outInfoUnit !== inInfoUnit) {
+      excludedSlots.push({ slot, fromDim: outDim, toDim: inDim, reason: `${outInfoUnit} ↛ ${inInfoUnit}: requires explicit ln2 conversion node` });
+      continue;
+    }
+    const entry = { slot, fromDim: outDim, toDim: inDim, confidence: c.confidence };
+    if (scalarPair && (!outRange || !inRange)) entry.rangeUnverified = true;
+    compatibleSlots.push(entry);
   }
   return {
     legal: compatibleSlots.length > 0,
     compatibleSlots,
+    speculativeSlots,
+    excludedSlots,
     reasons: compatibleSlots.length > 0 ? [] : (reasons.length ? reasons : [`B has no input slots to receive ${outDim}`]),
     from: cardA.id,
     to: cardB.id,
@@ -321,7 +414,12 @@ export function draftFormulaBankCard(candidate) {
     promotionStatus: 'research',
     advisoryOnly: true,
     synthesisProvenance: candidate.synthesisProvenance.slice(),
-    implementedBy: null, // no binding → math-proof-gate cannot promote it
+    // Preserve a caller-supplied binding + counterexamples: without this,
+    // stage0 wiped the binding and bakeoff stage1 (hasBinding && validationOk)
+    // was unreachable for EVERY candidate — promotable was structurally dead.
+    // Default synthesis candidates still carry implementedBy:null (inert).
+    implementedBy: candidate.implementedBy || null,
+    counterexamples: Array.isArray(candidate.counterexamples) ? candidate.counterexamples.slice() : [],
     variables: [],
     units: { inputs: {}, output: candidate.outputDim || 'UNKNOWN' },
     proofObligations: [

@@ -41,6 +41,28 @@ export const PROMOTION_LADDER = Object.freeze([
   'hypothesis', 'simulated', 'counterexample-tested', 'proof-gated', 'real-data-bakeoff', 'owner-approved',
 ]);
 
+// VOCABULARY BRIDGE (conventions axis 7): the bank schema enum
+// (research/verified-baseline/stable/quarantined/fixture) is the CANONICAL card
+// lifecycle vocabulary; PROMOTION_LADDER is the PROCESS evidence-rung
+// vocabulary internal to this module. The two never occupy the same field —
+// they bridge through these frozen maps, never silently equate.
+// 'stable' is deliberately unreachable through the ladder: it stays an
+// owner-manual bank edit (owner decision D9).
+export const RUNG_TO_STATUS = Object.freeze({
+  hypothesis: 'research',
+  simulated: 'research',
+  'counterexample-tested': 'research',
+  'proof-gated': 'verified-baseline',
+  'real-data-bakeoff': 'verified-baseline',
+  'owner-approved': 'verified-baseline',
+});
+// Bank-status cards enter the candidate ladder at hypothesis (quarantined
+// re-enters at hypothesis per D9; fixture likewise). Promoted bank statuses
+// (verified-baseline/stable) do NOT re-enter the candidate ladder.
+export const BANK_STATUS_TO_ENTRY_RUNG = Object.freeze({
+  research: 'hypothesis', fixture: 'hypothesis', quarantined: 'hypothesis',
+});
+
 export function readLedger(ledgerPath = LEDGER_PATH) {
   if (!fs.existsSync(ledgerPath)) return [];
   return fs.readFileSync(ledgerPath, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
@@ -69,25 +91,58 @@ export function canPromote(formulaId, toRung, ledger = readLedger()) {
   const toIdx = PROMOTION_LADDER.indexOf(toRung);
   if (toIdx < 0) return { ok: false, reason: `unknown rung: ${toRung}` };
   if (toIdx === 0) return { ok: true, reason: 'hypothesis is the entry rung — no gate needed' };
+  // DEMOTION RESET: only gate records appended AFTER the latest demotion for
+  // this formula count as clearing evidence. Without this, a demoted card
+  // re-promoted rung-by-rung on its pre-demotion records with ZERO fresh
+  // evidence — demotion was governance theater.
+  let lastDemotionIdx = -1;
+  ledger.forEach((r, i) => { if (r.formulaId === formulaId && r.gate === 'demotion') lastDemotionIdx = i; });
   for (let i = 1; i <= toIdx; i += 1) {
     const rung = PROMOTION_LADDER[i];
-    const cleared = ledger.some((r) => r.formulaId === formulaId && r.rung === rung && r.gate && r.gate !== 'demotion');
-    if (!cleared) return { ok: false, reason: `incomplete ladder: rung '${rung}' has no gate record (full chain hypothesis→${toRung} required; no rung-skipping)` };
+    const cleared = ledger.some((r, idx) => idx > lastDemotionIdx
+      && r.formulaId === formulaId && r.rung === rung
+      && r.gate && r.gate !== 'demotion' && r.gate !== 'promotion');
+    if (!cleared) return { ok: false, reason: `incomplete ladder: rung '${rung}' has no gate record (full chain hypothesis→${toRung} required; no rung-skipping${lastDemotionIdx >= 0 ? '; records before the latest demotion do not count' : ''})` };
   }
   return { ok: true, reason: `full sequential ladder chain present (hypothesis→${toRung})` };
 }
 
+// Current rung = the LAST promotion-or-demotion record for the card (append
+// order wins; a demotion resets to its target rung). Gate records prove
+// evidence; they never move the rung by themselves. Null when no mutation
+// record exists yet.
+function currentRungFromLedger(formulaId, ledger) {
+  let rung = null;
+  for (const r of ledger) {
+    if (r.formulaId !== formulaId) continue;
+    if (r.gate === 'promotion' || r.gate === 'demotion') {
+      if (PROMOTION_LADDER.includes(r.rung)) rung = r.rung;
+    }
+  }
+  return rung;
+}
+
 // the MUTATOR: a card may advance EXACTLY ONE rung per call (sequential), and only if the full gate chain
-// exists. Checking the card's current rung is what stops a jump from hypothesis to owner-approved. Domain-blind.
-export function promote(card, toRung, ledger = readLedger()) {
+// exists. Current rung derives from the ledger's promotion/demotion records, falling back to the card's
+// own status — bank-enum statuses enter through BANK_STATUS_TO_ENTRY_RUNG. Domain-blind.
+// Returns { ok, rung, status } — `rung` is the ladder vocabulary, `status` the bank-enum vocabulary the
+// caller writes into card.promotionStatus. Pass opts.ledgerPath to have the promotion record appended;
+// otherwise the returned `record` is the caller's to append.
+export function promote(card, toRung, ledger = readLedger(), opts = {}) {
   const toIdx = PROMOTION_LADDER.indexOf(toRung);
-  const curRung = (card && card.promotionStatus) || PROMOTION_LADDER[0];
+  const raw = (card && card.promotionStatus) || PROMOTION_LADDER[0];
+  const entryRung = PROMOTION_LADDER.includes(raw) ? raw : (BANK_STATUS_TO_ENTRY_RUNG[raw] ?? raw);
+  const curRung = currentRungFromLedger(card && card.id, ledger) || entryRung;
   const curIdx = PROMOTION_LADDER.indexOf(curRung);
-  if (toIdx < 0 || curIdx < 0) return { ok: false, status: card && card.promotionStatus, reason: `unknown rung (${curRung}→${toRung})` };
+  if (toIdx < 0 || curIdx < 0) {
+    return { ok: false, status: card && card.promotionStatus, reason: `unknown rung (${raw}→${toRung}); bank statuses ${Object.keys(BANK_STATUS_TO_ENTRY_RUNG).join('/')} enter at hypothesis; promoted bank statuses do not re-enter the ladder` };
+  }
   if (toIdx !== curIdx + 1) return { ok: false, status: curRung, reason: `non-sequential promotion ${curRung}→${toRung}: the ladder advances exactly one rung at a time` };
   const c = canPromote(card && card.id, toRung, ledger);
   if (!c.ok) return { ok: false, status: card && card.promotionStatus, reason: c.reason };
-  return { ok: true, status: toRung, reason: 'promoted: one sequential rung with the full gate chain present' };
+  const record = { formulaId: String((card && card.id) || ''), rung: toRung, gate: 'promotion', stamp: opts.stamp || null };
+  if (opts.ledgerPath) appendGateRecord(record, opts.ledgerPath);
+  return { ok: true, rung: toRung, status: RUNG_TO_STATUS[toRung], record, reason: 'promoted: one sequential rung with the full gate chain present' };
 }
 
 // demotion: a promoted formula that later regresses drops immediately, recorded, no owner-override.
@@ -122,13 +177,24 @@ export function stage1Fixtures(card) {
 }
 
 // stage 2 — adversarial counterexamples (frozen set; author≠scorer). Reuses math-proof-gate when available.
+// Iterates the CARD'S counterexamples array against the gate's REAL call contract: bank+formula passed
+// explicitly (never the formulaId-lookup path), reading the trace's .passed field. Fail-closed: a card
+// with no authored counterexamples cannot clear stage 2.
 export async function stage2Counterexamples(card, opts = {}) {
   if (!card || !card.implementedBy) return { ran: false, pass: false, reason: 'no binding — counterexamples cannot run (inert)' };
+  const counterexamples = Array.isArray(card.counterexamples) ? card.counterexamples : [];
+  if (counterexamples.length === 0) return { ran: false, pass: false, reason: 'no counterexamples authored — stage 2 requires a frozen adversarial set' };
   try {
     const mod = await import('./math-proof-gate.mjs');
     if (typeof mod.runFormulaCounterexample !== 'function') return { ran: false, pass: false, reason: 'runFormulaCounterexample unavailable' };
-    const res = mod.runFormulaCounterexample({ formula: card, ...(opts.gateOpts || {}) });
-    return { ran: true, pass: Boolean(res && res.ok), result: res };
+    const bank = { schema: 'yuri.math.formula-bank.v0', id: `bakeoff.${card.id}`, version: '0.0.0', promotionStatus: card.promotionStatus || 'research', advisoryOnly: card.advisoryOnly !== false, formulas: [card] };
+    const results = [];
+    for (const ce of counterexamples) {
+      // gateOpts spreads AFTER bank/formula — a caller may override the synthetic bank deliberately.
+      const res = mod.runFormulaCounterexample({ bank, formula: card, input: ce.input, expectedError: ce.expectedError, exampleName: ce.name, mode: 'advisory', ...(opts.gateOpts || {}) });
+      results.push({ name: ce.name || null, passed: Boolean(res && res.passed), error: (res && res.error) || null });
+    }
+    return { ran: true, pass: results.every((r) => r.passed), results };
   } catch (e) { return { ran: false, pass: false, reason: String((e && e.message) || e) }; }
 }
 
