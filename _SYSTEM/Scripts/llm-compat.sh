@@ -7,6 +7,12 @@
 # Primary: source dedicated key file (no parsing, always reliable)
 # shellcheck source=/dev/null
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+# Per-lane override (gitignored): durable shared config in env.sh above; lane-local overrides
+# in the WORKTREE root so parallel lanes never churn the shared file (parallel-session-hardening
+# 2026-06-13). Anchored to the worktree root, not cwd — true per-lane isolation. Guarded.
+_yuri_wt="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "${_yuri_wt:-}" ] && [ -f "$_yuri_wt/.yuri-env.local.sh" ] && source "$_yuri_wt/.yuri-env.local.sh"
+unset _yuri_wt
 hydrate_keychain_var() {
   local key="$1"
   local service="${YURI_KEYCHAIN_SERVICE_PREFIX:-YURI_OS_MUSUBI}:$key"
@@ -17,7 +23,7 @@ hydrate_keychain_var() {
   value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
   [ -n "$value" ] && export "$key=$value"
 }
-for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY MIMO_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
   hydrate_keychain_var "$_lane_var"
 done
 unset _lane_var

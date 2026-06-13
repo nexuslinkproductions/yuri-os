@@ -5,6 +5,13 @@ set -euo pipefail
 # ── Key hydration (runs before any node exec — same pattern as llm-compat.sh) ──
 # shellcheck source=/dev/null
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+# Per-lane override (gitignored): durable shared config lives in env.sh above; lane-local
+# overrides live in the WORKTREE root so parallel lanes never churn the shared file
+# (parallel-session-hardening 2026-06-13). Anchored to the worktree root, not cwd — each
+# git worktree resolves to itself, giving true per-lane isolation. Guarded + fail-soft.
+_yuri_wt="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "${_yuri_wt:-}" ] && [ -f "$_yuri_wt/.yuri-env.local.sh" ] && source "$_yuri_wt/.yuri-env.local.sh"
+unset _yuri_wt
 if [ -f "$HOME/.zshrc" ]; then
   for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
@@ -76,7 +83,7 @@ Commands:
       Print embedded end-to-end routing scenarios (JSON).
 
   search|find "<query>" [--top N] [--json]
-      Corpus full-text search (FTS5/BM25) over ~26k docs/code. Finds things on demand.
+      Corpus full-text search (FTS5/BM25) over ~41k docs/code. Finds things on demand.
       This is SEARCH, not memory — results are file+snippet, never auto-injected.
 
   reindex|search-index [--full]
@@ -1039,7 +1046,7 @@ case "${1:-help}" in
     llm_compat_contract examples
     ;;
   search|find)
-    # Corpus SEARCH (FTS5/BM25) — find things across ~26k docs/code. NOT memory, NOT auto-injected.
+    # Corpus SEARCH (FTS5/BM25) — find things across ~41k docs/code. NOT memory, NOT auto-injected.
     shift || true
     require_cmd node
     exec node "$SCRIPT_DIR/yuri-search.mjs" "$@"

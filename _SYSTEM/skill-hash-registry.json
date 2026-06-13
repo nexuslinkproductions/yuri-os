@@ -13,7 +13,7 @@
   },
   "anime-dna-extensions": {
     "source_path": "skills/anime-dna-extensions/SKILL.md",
-    "hash": "ad40db533675dc12"
+    "hash": "377cb97c6c6f5543"
   },
   "anthropic-managed-agents": {
     "source_path": "skills/anthropic-managed-agents/SKILL.md",
@@ -25,11 +25,11 @@
   },
   "bankai-manifest": {
     "source_path": "skills/bankai-manifest/SKILL.md",
-    "hash": "c0bbcaec6eac1911"
+    "hash": "0e857b6551d5637e"
   },
   "bg": {
     "source_path": "skills/bg/SKILL.md",
-    "hash": "94d5b73aa8572aa5"
+    "hash": "f2666fa28470990c"
   },
   "brainstorming": {
     "source_path": "skills/brainstorming/SKILL.md",
@@ -61,7 +61,7 @@
   },
   "compact-optimizer": {
     "source_path": "skills/compact-optimizer/SKILL.md",
-    "hash": "b7904322544485dd"
+    "hash": "76a25bf4f677c2d0"
   },
   "design-assistant-inbox": {
     "source_path": "skills/design-assistant-inbox/SKILL.md",
@@ -93,15 +93,15 @@
   },
   "execution-domain-core": {
     "source_path": "skills/execution-domain-core/SKILL.md",
-    "hash": "7e11974713500fe4"
+    "hash": "f49086de1878503e"
   },
   "extraction-sprint": {
     "source_path": "skills/extraction-sprint/SKILL.md",
-    "hash": "8dd7fc4af88f186c"
+    "hash": "49bf41be02526dbb"
   },
   "failure-evolution-loop": {
     "source_path": "skills/failure-evolution-loop/SKILL.md",
-    "hash": "4723a405f150e061"
+    "hash": "4b5f9e8f91838cc0"
   },
   "finishing-a-development-branch": {
     "source_path": "skills/finishing-a-development-branch/SKILL.md",
@@ -113,7 +113,7 @@
   },
   "geass-lock": {
     "source_path": "skills/geass-lock/SKILL.md",
-    "hash": "37c3d91a8d7adcf8"
+    "hash": "bf1cc6ff28845491"
   },
   "git-guardrails-claude-code": {
     "source_path": "skills/git-guardrails-claude-code/SKILL.md",
@@ -165,7 +165,7 @@
   },
   "haki-intent": {
     "source_path": "skills/haki-intent/SKILL.md",
-    "hash": "f609fcb766645af9"
+    "hash": "6b6484c4e30d1091"
   },
   "hatch-pet": {
     "source_path": "skills/hatch-pet/SKILL.md",
@@ -181,7 +181,7 @@
   },
   "izanagi-simulator": {
     "source_path": "skills/izanagi-simulator/SKILL.md",
-    "hash": "3a83ff336e08e2e8"
+    "hash": "545418dbf472e221"
   },
   "kimi-k2-6-server-adapter": {
     "source_path": "skills/kimi-k2-6-server-adapter/SKILL.md",
@@ -201,7 +201,7 @@
   },
   "nen-phase-detector": {
     "source_path": "skills/nen-phase-detector/SKILL.md",
-    "hash": "7f119052007e473d"
+    "hash": "5350ff23942ddcab"
   },
   "nex-deliverables": {
     "source_path": "skills/nex-deliverables/SKILL.md",
@@ -213,7 +213,7 @@
   },
   "non-destructive-infinity-guard": {
     "source_path": "skills/non-destructive-infinity-guard/SKILL.md",
-    "hash": "47c19d1ee8f1bb85"
+    "hash": "425c467a611cac12"
   },
   "objection-source-diagnoser": {
     "source_path": "skills/objection-source-diagnoser/SKILL.md",
@@ -229,31 +229,31 @@
   },
   "oracle-adapters": {
     "source_path": "skills/oracle-adapters/SKILL.md",
-    "hash": "6bffd475738f6dba"
+    "hash": "f5bc56707653fa83"
   },
   "oracle-memory": {
     "source_path": "skills/oracle-memory/SKILL.md",
-    "hash": "e9f05dcf4c2e1e11"
+    "hash": "ec62fe2b85981109"
   },
   "oracle-registry": {
     "source_path": "skills/oracle-registry/SKILL.md",
-    "hash": "84f23e2e86fe0629"
+    "hash": "accda0e3214e419d"
   },
   "oracle-router": {
     "source_path": "skills/oracle-router/SKILL.md",
-    "hash": "a3257d2235e24cf9"
+    "hash": "2383c84c22583524"
   },
   "oracle-voice": {
     "source_path": "skills/oracle-voice/SKILL.md",
-    "hash": "a6f3a5a2fbca95b5"
+    "hash": "773a6db80cb00444"
   },
   "parallel-clone-orchestrator": {
     "source_path": "skills/parallel-clone-orchestrator/SKILL.md",
-    "hash": "2215f02846ed8695"
+    "hash": "fed55b0ac81b3373"
   },
   "pattern-mirror-core": {
     "source_path": "skills/pattern-mirror-core/SKILL.md",
-    "hash": "308189c4aac16881"
+    "hash": "1d76fdd3ac2d9eae"
   },
   "plugin-creator": {
     "source_path": "skills/plugin-creator/SKILL.md",
@@ -261,7 +261,7 @@
   },
   "probabilistic-decision-core": {
     "source_path": "skills/probabilistic-decision-core/SKILL.md",
-    "hash": "91ace6bab1ac3f44"
+    "hash": "787aabb2abbf1888"
   },
   "prompt-engineering": {
     "source_path": "skills/prompt-engineering/SKILL.md",
@@ -285,7 +285,7 @@
   },
   "research-artifact-factory": {
     "source_path": "skills/research-artifact-factory/SKILL.md",
-    "hash": "783dbe5ea4d974b5"
+    "hash": "7b833cbc1d2a6195"
   },
   "sales-psychology": {
     "source_path": "skills/sales-psychology/SKILL.md",
@@ -305,7 +305,7 @@
   },
   "sharingan": {
     "source_path": "skills/sharingan/SKILL.md",
-    "hash": "29f3e15f89767371"
+    "hash": "103f23ab44726d73"
   },
   "skill-creator": {
     "source_path": "skills/skill-creator/SKILL.md",
@@ -341,7 +341,7 @@
   },
   "tokenmaxxing": {
     "source_path": "skills/tokenmaxxing/SKILL.md",
-    "hash": "d422204eb6ab0af3"
+    "hash": "f6e3a3e0628d00ce"
   },
   "triage": {
     "source_path": "skills/triage/SKILL.md",
@@ -381,15 +381,15 @@
   },
   "yuri-code-intelligence": {
     "source_path": "skills/yuri-code-intelligence/SKILL.md",
-    "hash": "7c085eccdc4fec0a"
+    "hash": "3c49c76af5a63e6f"
   },
   "yuri-sales-intelligence": {
     "source_path": "skills/yuri-sales-intelligence/SKILL.md",
-    "hash": "1ec49b3c94b066f1"
+    "hash": "0946cc8db206bf1f"
   },
   "yuri-shura": {
     "source_path": "skills/yuri-shura/SKILL.md",
-    "hash": "a150ec961a1f0888"
+    "hash": "37e624b55505bf63"
   },
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",
@@ -397,51 +397,51 @@
   },
   "cross-reference-navigation": {
     "source_path": ".claude/skills/cross-reference-navigation/SKILL.md",
-    "hash": "bd498e4944c1faae"
+    "hash": "02df158d3cc52c29"
   },
   "organ-discovery-precision-gate": {
     "source_path": ".claude/skills/organ-discovery-precision-gate/SKILL.md",
-    "hash": "e7ec99e96ae28611"
+    "hash": "d3b26a0bedc11207"
   },
   "organ-filing-assessor": {
     "source_path": ".claude/skills/organ-filing-assessor/SKILL.md",
-    "hash": "97ac35a67924c2f0"
+    "hash": "abda4b27ce5fd3da"
   },
   "organ-formula-foundry": {
     "source_path": ".claude/skills/organ-formula-foundry/SKILL.md",
-    "hash": "c7d05a387d0a8998"
+    "hash": "6b1f64e2c4f75a37"
   },
   "organ-formula-foundry-bakeoff": {
     "source_path": ".claude/skills/organ-formula-foundry-bakeoff/SKILL.md",
-    "hash": "97d9865ae58001a5"
+    "hash": "6988f85e2f99aae4"
   },
   "organ-lane-telemetry-cockpit": {
     "source_path": ".claude/skills/organ-lane-telemetry-cockpit/SKILL.md",
-    "hash": "c5568086e56ae1f5"
+    "hash": "7d940d665c1381a5"
   },
   "organ-openprocess-pool": {
     "source_path": ".claude/skills/organ-openprocess-pool/SKILL.md",
-    "hash": "b292b59900aeb152"
+    "hash": "43ae252167436af8"
   },
   "organ-yuri-decode": {
     "source_path": ".claude/skills/organ-yuri-decode/SKILL.md",
-    "hash": "f8032eeb69615d72"
+    "hash": "f43dac682dca1fc6"
   },
   "organ-yuri-nerve": {
     "source_path": ".claude/skills/organ-yuri-nerve/SKILL.md",
-    "hash": "a46d610f683ddea7"
+    "hash": "0df3adc59fb85d3a"
   },
   "plan-review": {
     "source_path": ".claude/skills/plan-review/SKILL.md",
-    "hash": "85f00bbc211e13d2"
+    "hash": "88278336eed3c2f1"
   },
   "quantum-hypothesis-simulation": {
     "source_path": ".claude/skills/quantum-hypothesis-simulation/SKILL.md",
-    "hash": "cc37f3d76a8237d5"
+    "hash": "fc2e80c630ad2010"
   },
   "remotion-motion-design": {
     "source_path": ".claude/skills/remotion-motion-design/SKILL.md",
-    "hash": "3527316cfa15bef1"
+    "hash": "1d7c575451433942"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

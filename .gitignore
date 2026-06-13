@@ -19,6 +19,7 @@ CLAUDE.local.md
 .claude/settings.local.backup-unsafe-original.json
 .env
 .env.local
+.yuri-env.local.sh
 *.key
 *.pem
 
@@ -357,3 +358,4 @@ _SYSTEM/state/filing-autonomy-ledger.jsonl
 _SYSTEM/state/filing-autonomy.enabled
 _SYSTEM/state/filing-autonomy.log
 _SYSTEM/state/filing-autonomy.err
+_SYSTEM/state/ccr-cache/
