@@ -72,3 +72,33 @@ adoption and isolate the few genuine gaps — not to import.
 **Verdict:** YURI is AHEAD on the mechanizable dimensions (capability, guardrails, memory = already verifiable mechanisms where the 25 systems use prose). Transform value = (a) confirm that coverage as a measured diff, (b) formalize the 2-3 still-prose dimensions (output contract, tool-use contract) into checkable contracts. NOT prose adoption. Deep data-only reads of specific prompts deferred to the targeted-formalization step (minimize injection surface).
 
 **STATUS:** inventory done (structure + capability-first map, no injection-laden deep reads needed for it). The targeted transform (mine the ~4 gap phases + formalize the 2-3 prose dimensions) is the next focused build-stream — bounded by this map so it doesn't rebuild what YURI has.
+
+## TRANSFORM EXECUTED — pass 1 (2026-06-13)
+
+Ran the disciplined transform per the plan: capability-first + xref-confirm each target, build only the proven gap, adversarial-verify, register.
+
+### Gate results (what the capability-first + xref gate actually decided)
+| target | verdict | evidence |
+|---|---|---|
+| ai-eng 09 RL/calibration | **COVERED — no build** | capability-recall hit energy-gate-scoring (match 4.0) + streaming-aggregator; xref corroborated gpd-shadow `actionCost`, stabilityGuard, eval-processing sequential-stopping. OGD/energy logbook already mechanizes calibration/OCO. |
+| ai-eng 13 MCP/tool-protocol | covered (plumbing) | xref: gitnexus-mcp-check, llm-compat-contract, deepseek-guarded-handoff validate/sanitize. Protocol plumbing present; no clean greenfield gap. |
+| ai-eng 17 observability | partial — deferred | xref: rick-banner laneStatus, ollama-promotion-readiness, lane-calibration = lane-health exists. A per-mechanism trace primitive risks redundancy w/ energy-trace + prediction-ledger; NOT built (would manufacture work). |
+| CL4R1T4S #5 output/format contract (PROSE) | **GAP → BUILT** | prompt-compiler `compileOneTransactionContract` DECLARES output_schema + scope + flags but `validateCompiledContract` only checks the contract's own shape — no checker for a PRODUCED output. Declared-but-unenforced. |
+| CL4R1T4S #3 tool-use/scope contract (mixed) | **folded into the build** | the contract's allowed/forbidden_scope had no produced-output conformance check; mechanized as segment-aware scope containment + an always-on yuri-origin protected-surface floor. |
+
+### Built: `_SYSTEM/Scripts/contract-conformance.mjs` (+ .test.mjs, 24 tests green)
+A deterministic, fail-closed OUTPUT-vs-CONTRACT conformance gate. Closes the declared-but-unenforced loop in prompt-compiler AND gives YURI's prose **Lane Result Grammar** (yuri-origin) its first executable parser. `@capability: contract-conformance` (registry 26 → **27**). ADVISORY — not wired into any enforcing hook (owner-gated + Codex pass first, per standing rule).
+- Checks: RESULT_LABEL grammar (marker-anchored) · output_schema fields present · segment-aware scope containment + protected floor · stage-narration / broad-command (precision-first soft) · report line-cap · vacuous-contract guard.
+- HARD fail → FAIL; SOFT-only → PARTIAL; malformed/hostile input → FAIL (never throws).
+
+### Adversarial verification (5-lens Workflow red-team, runId wf_71ec662f-5c1)
+First-green was a hypothesis — the red-team confirmed **8 real flaws**, all fixed + locked as regression tests + re-attacked with the red-team's own repros:
+1. `../` path-traversal escaped scope (HARD bypass) → segment-aware normalize.
+2. nested `.env` / sibling-prefix (`_SYSTEM/Scripts-stash`) missed → segment-boundary match.
+3. aspirational label in prose graded over the real RESULT_LABEL line → marker-anchored extraction.
+4. `blockedMode` flipped on any mention of the blocked label → driven by the PARSED primary-label terminal.
+5–7. non-string scope entry / null opts / hostile getter THREW (fail-open) → top-level try/catch → FAIL.
+8. 40% false-positive narration scan on report-closing prose → precision-first, line-anchored scanners.
+Plus: always-on protected floor (kills the vacuous-contract rubber-stamp of `.env` access) + non-canonical lane-id now surfaced as a soft fail.
+
+**Honest verdict:** the inventory prediction held — YURI already mechanizes the corpus's teachings; the single defensible, non-redundant gap was the output/scope conformance gate, now built + hardened + registered. Observability (17) intentionally NOT built (redundancy risk). Pass 2 (if pursued): formalize remaining prose dims only where a checkable mechanism is genuinely absent.
