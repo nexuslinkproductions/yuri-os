@@ -249,17 +249,22 @@ function runConformance(contract, output, opts) {
   const flags = (contract.flags && typeof contract.flags === 'object') ? contract.flags : {};
 
   // ── HARD 1: RESULT_LABEL (marker-anchored) + grammar parse ──
+  // A meta-report (e.g. a closeout scope audit) sets contract.expects_result_label:false — then the
+  // label HARD check is skipped and only scope/schema/flags apply. Default: a lane result needs a label.
+  const expectsLabel = contract.expects_result_label !== false;
   const ex = extractResultLabel(output);
   const parsed = ex.label ? parseResultLabel(ex.label) : { ok: false, issues: ['no RESULT_LABEL found in output'] };
-  add('result-label-grammar', 'hard', parsed.ok,
-    parsed.ok ? `MATCH label=${parsed.label} lane=${parsed.laneId} pass=${parsed.passTypeNorm} terminal=${parsed.terminal} anchored=${ex.anchored}`
-              : `FAIL ${(parsed.issues || []).join('; ')}`);
+  if (expectsLabel) {
+    add('result-label-grammar', 'hard', parsed.ok,
+      parsed.ok ? `MATCH label=${parsed.label} lane=${parsed.laneId} pass=${parsed.passTypeNorm} terminal=${parsed.terminal} anchored=${ex.anchored}`
+                : `FAIL ${(parsed.issues || []).join('; ')}`);
+  }
 
   // blockedMode is driven by the PARSED primary label terminal — not output.includes()
   const blockedMode = !!(parsed.ok && (parsed.terminal === 'BLOCKED' || parsed.terminal === 'REPAIR_REQUIRED'));
 
   // ── SOFT: canonical-grammar surfacing (tolerant parse, but a non-canonical label is surfaced) ──
-  if (parsed.ok && parsed.variant) {
+  if (expectsLabel && parsed.ok && parsed.variant) {
     add('result-label-canonical', 'soft', false, `non-canonical: ${parsed.issues.join('; ')}`);
   }
 

@@ -16,6 +16,8 @@ import { fileURLToPath } from 'node:url';
 import { readKagamiEvents } from './kagami-event-bus.mjs';
 import { isProtectedPath } from './lane-kernel.mjs';
 import { scanClaimIntegrity } from './claim-integrity-gate.mjs';
+import { checkOutputConformance } from './contract-conformance.mjs';
+import { SCOPE_AUDIT_CONTRACT, recordConformance } from './contract-conformance-trace.mjs';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -58,6 +60,7 @@ export function buildReport(scopedPaths = [], options = {}) {
     scoped,
     validation: scoped.length ? scoped.flatMap((entry) => entry.validation) : ['no scoped validation requested'],
     claimIntegrity,
+    scopeConformance: scopedPaths.length ? runScopeConformance(scopedPaths) : null,
     recentEvents,
     verdict: closeoutVerdict(status, scoped, recentEvents, claimIntegrity),
     nonClaims: [
@@ -95,6 +98,18 @@ export function formatReport(report) {
       for (const finding of (ci.findings || []).filter((f) => f.severity === 'fail').slice(0, 5)) {
         lines.push(`- FAIL ${finding.path}:${finding.line} "${finding.term}" (${finding.supportStatus})`);
       }
+    }
+    lines.push('');
+  }
+  if (report.scopeConformance) {
+    const sc = report.scopeConformance;
+    lines.push('Scope conformance (advisory):');
+    if (sc.error) {
+      lines.push(`- check error (non-blocking): ${sc.error}`);
+    } else {
+      lines.push(`- verdict=${sc.verdict} (scoped paths vs protected-surface floor)`);
+      const v = (sc.checks || []).find((c) => c.name === 'scope-containment');
+      if (v && !v.ok) lines.push(`- ${v.evidence}`);
     }
     lines.push('');
   }
@@ -182,6 +197,18 @@ function runClaimIntegrity(scopedPaths, options = {}) {
   }
 }
 
+// Advisory, read-only scope conformance: do the scoped paths touch a protected surface?
+// Uses the conformance gate's segment-aware scope check (SCOPE_AUDIT_CONTRACT = no label, scope only).
+// DISARMED — reports a verdict, never blocks. Mirrors runClaimIntegrity. (wiring sim ruling 2026-06-13)
+function runScopeConformance(scopedPaths) {
+  try {
+    const r = checkOutputConformance(SCOPE_AUDIT_CONTRACT, '', { invokedPaths: scopedPaths });
+    return { verdict: r.verdict, hardFails: r.hardFails, checks: (r.checks || []).filter((c) => c.name === 'scope-containment') };
+  } catch (err) {
+    return { verdict: 'FAIL', error: String(err.message || err) };
+  }
+}
+
 function closeoutVerdict(statusText, scoped, recentEvents, claimIntegrity) {
   if (claimIntegrity && claimIntegrity.ok === false) {
     return 'attention-needed: claim-integrity issues found';
@@ -218,7 +245,9 @@ function gitExec(args) {
 function runCli(argv = process.argv.slice(2)) {
   const json = argv.includes('--json');
   try {
-    const report = buildReport(collectPaths(argv));
+    const scopedPaths = collectPaths(argv);
+    const report = buildReport(scopedPaths);
+    if (scopedPaths.length) recordConformance('', { contract: SCOPE_AUDIT_CONTRACT, invokedPaths: scopedPaths, label: 'closeout' });
     stdout.write(json ? `${JSON.stringify(report, null, 2)}\n` : formatReport(report));
   } catch (err) {
     stdout.write(`YURI_CLOSEOUT_ERROR: ${err.message}\n`);

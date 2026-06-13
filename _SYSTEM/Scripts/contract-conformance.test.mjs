@@ -214,3 +214,12 @@ test('REGRESSION codex-note: dotfile match is precise — .env.local caught, .en
   assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['.envrc'] }).verdict, 'PASS', '.envrc not a protected target');
   assert.equal(checkOutputConformance(C, GOOD, { invokedPaths: ['.amp-cache/x'] }).verdict, 'PASS', '.amp-cache not .amp');
 });
+
+// expects_result_label:false — meta-report (e.g. closeout scope audit) skips the label HARD check
+test('expects_result_label:false skips the label check but still enforces scope', () => {
+  const C = { expects_result_label: false, flags: {} };
+  const ok = checkOutputConformance(C, '', { invokedPaths: ['_SYSTEM/Scripts/x.mjs'] });
+  assert.equal(ok.verdict, 'PASS', 'no label required + clean scope → PASS');
+  assert.ok(!ok.checks.some((c) => c.name === 'result-label-grammar'), 'label check skipped');
+  assert.equal(checkOutputConformance(C, '', { invokedPaths: ['.env'] }).verdict, 'FAIL', 'scope still enforced without a label');
+});

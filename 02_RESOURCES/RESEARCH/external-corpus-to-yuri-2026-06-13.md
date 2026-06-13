@@ -102,3 +102,27 @@ First-green was a hypothesis — the red-team confirmed **8 real flaws**, all fi
 Plus: always-on protected floor (kills the vacuous-contract rubber-stamp of `.env` access) + non-canonical lane-id now surfaced as a soft fail.
 
 **Honest verdict:** the inventory prediction held — YURI already mechanizes the corpus's teachings; the single defensible, non-redundant gap was the output/scope conformance gate, now built + hardened + registered. Observability (17) intentionally NOT built (redundancy risk). Pass 2 (if pursued): formalize remaining prose dims only where a checkable mechanism is genuinely absent.
+
+## WIRING — pass 1 (2026-06-13, advisory/DISARMED)
+
+Owner sequenced: Codex check (ADVISORY, non-gating) → harden → wire, gated on full xref + quantum sim.
+
+**Codex gpt-5.5 (advisory) pre-wiring review** found 3 real blockers — all fixed + 6 regression tests (commit 4dbc2e53):
+1. non-string invokedPaths silently dropped scope → coerce tool-records + fail-closed on non-coercible.
+2. prose allowed_scope (yuri-input-genome compiles SEMANTIC scope, not paths) false-HARD-FAILed legit paths → path/prose separation + explicit allowed_paths/forbidden_paths.
+3. command_output_caps unenforced → coarse per-line cap + surface split_required_trigger as notEnforced.
+
+**Full xref** mapped the surface: contract is compiled at `yuri-input-genome.mjs:349` (input side, no output-finalize); no `.mjs`-layer point has contract+final-output together (reconciles in backend orchestration). Lane-result emitters: pulse-trace-ledger, yuri-repl.
+
+**Quantum sim** (quantum-hypothesis-tracker order-effects, recorded in /tmp/wiring-order-sim.mjs):
+- C (conformance) vs S (mutating sanitize): ‖[P_C,P_S]‖=0.70, order both-yes diff 0.13, qqStat≈0 → **NON-commuting** → conformance must run on the FINAL output, after any sanitize/transform.
+- C vs E (energy gate): ‖[P_C,P_E]‖=0.00 → **commuting** → placement vs energy/claim-cortex is free.
+- Schmidt: conformance↔output rank 2 (must see real output); conformance↔energy rank 1 (independent).
+- Converges with Codex's independent "wire only after final output capture." Two methods agree.
+
+**Implemented (advisory, DISARMED — enforce held for explicit owner arm):**
+- `contract-conformance-trace.mjs` — `recordConformance` soak recorder (never throws/blocks) + `CANONICAL_YURI_OUTPUT_CONTRACT` + `SCOPE_AUDIT_CONTRACT` + `scopeAudit`. Soak → `_SYSTEM/state/contract-conformance-soak.jsonl`. `@capability` (registry 27→28).
+- Gate gained `expects_result_label:false` (meta-report mode: scope-only, no label).
+- `yuri-closeout.mjs` wired: on a scoped `/eot` it runs an advisory scope-audit of the scoped paths vs the protected-surface floor (mirrors `claimIntegrity`; non-blocking; soak on real CLI runs only — `buildReport` stays pure). 37 tests green (31 gate + 4 trace + 2 closeout).
+
+**Held for owner:** (a) any ENFORCING arm (FAIL→veto); (b) the higher-value wire into backend orchestration where lane-output↔contract reconcile (owner-visible blast radius). The soak collects verdicts first — same data-gated pattern as the claim-gate.
