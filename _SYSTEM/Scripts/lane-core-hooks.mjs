@@ -25,6 +25,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { traceDispatchEvent } from './math/yuri-energy-dispatch-bridge.mjs';
+import { buildInputGenome } from './yuri-input-genome.mjs';
+import { recordConformance } from './contract-conformance-trace.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ledgerPath = () => process.env.YURI_MEMORY_LEDGER_PATH || path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-ledger.jsonl');
@@ -34,6 +36,12 @@ function appendJsonl(file, obj) {
   try { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, `${JSON.stringify(obj)}\n`); }
   catch { /* core hooks are best-effort; never throw into dispatch */ }
 }
+
+// Per-run contract stash (input-genome RE-ROUTED to the live path 2026-06-13 — its home is HERE, on the
+// live lane seam, not the retired rick-repl). coreOnDispatch compiles + stashes the per-task contract by
+// runId; coreOnResult reads it to conformance-SOAK the output against the contract its own input declared
+// (dispatch + result are the same process per lane call, so an in-process Map correlates them).
+const contractStash = new Map();
 
 // Dispatch-start hooks: energy ΔU trace + memory recall (returns a recall block to inject).
 export async function coreOnDispatch({ lane, prompt, runId } = {}) {
@@ -51,6 +59,13 @@ export async function coreOnDispatch({ lane, prompt, runId } = {}) {
     // dropping the lane's episodic memory while it still exits 0.
     process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=recall_unavailable:${String(err?.message || err).slice(0, 80).replace(/\s+/g, '_')}\n`);
   }
+  // CONTRACT PROVENANCE: the input-genome is the live contract producer. Compile the per-task contract
+  // from THIS input and stash it by runId so coreOnResult can soak the output against it. buildInputGenome
+  // is pure (no writes); best-effort — never let contract provenance break dispatch.
+  try {
+    const genome = buildInputGenome(String(prompt || ''), { source: 'lane', target: lane });
+    if (genome && genome.promptContract) contractStash.set(rid, genome.promptContract);
+  } catch { /* contract provenance is best-effort */ }
   return { recallBlock, runId: rid };
 }
 
@@ -83,6 +98,15 @@ export function coreOnResult({ lane, prompt, output, exitCode = 0, runId } = {})
     bytes,
     cue: String(prompt || '').slice(0, 120),
   });
+  // CONFORMANCE SOAK (DISARMED on the lane path — enforce:false ALWAYS). Soak the output against the
+  // per-task contract the input-genome compiled at dispatch. Lane outputs are advisory free-form and the
+  // contract expects a formal RESULT_LABEL, so arming HERE would block live lanes — this path soaks only
+  // until the genome→output contract semantics are validated. (Closeout keeps its own armed scope path.)
+  try {
+    const contract = contractStash.get(runId);
+    contractStash.delete(runId);
+    if (contract) recordConformance(text, { contract: { ...contract, expects_result_label: false }, enforce: false, label: `lane:${lane}:${contract.contract_id || 'na'}` });
+  } catch { /* best-effort */ }
 }
 
 export { ledgerPath, pulsePath };

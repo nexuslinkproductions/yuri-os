@@ -19,7 +19,8 @@ import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.
 import { appendKagamiEvent, appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
-import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
+// input-genome RE-ROUTED to the live lane path (lane-core-hooks coreOnDispatch) 2026-06-13 —
+// rick-repl is no longer the importer; that coupling was a wiring mistake.
 import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
 import { MEMORY_PROPOSAL_DECISIONS, listMemoryProposals, proposeMemoryWrite, recordMemoryProposalDecision } from './memory-kernel.mjs';
 import { enqueue as enqueueWorkerTask } from './worker-bridge.mjs';
@@ -337,25 +338,8 @@ function buildPrompt(input, historyCtx, memories, options = {}) {
   } catch {
     userProfile = '';
   }
-  if (options.inputGenome !== false) {
-    try {
-      const inputGenome = options.inputGenome || buildInputGenome(input, {
-        source: 'rick-repl',
-        target: options.target || options.routePlan?.lane || 'rick',
-        routePlan: options.routePlan || {},
-        artifactRoot: '_SYSTEM/state/rick-history',
-        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
-      });
-      inputGenomeBlock = renderInputGenomeBlock(inputGenome, { target: options.target || 'rick' });
-    } catch (err) {
-      inputGenomeBlock = [
-        '[YURI Input Genome v0]',
-        'degraded: true',
-        `reason: ${err?.message || err}`,
-        'fallback: preserve raw Marcel input and proceed conservatively.',
-      ].join('\n');
-    }
-  }
+  // input-genome RE-ROUTED to lane-core-hooks (live path) 2026-06-13 — rick-repl (retiring) no longer
+  // builds/renders a genome block; inputGenomeBlock stays '' so the prompt simply omits it.
   const parts = [
     '[Rick · Marcel · YURI]',
     'Rick full harness active. Evidence-first and conversational; use personality, warmth, and a bit of bite when it improves the work.',

@@ -19,6 +19,8 @@ import { checkOutputConformance } from './contract-conformance.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 export const SOAK_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'contract-conformance-soak.jsonl');
+// Resolved at call time so YURI_CONFORMANCE_SOAK_PATH can redirect the soak (e.g. tests → /tmp).
+function soakFile() { return process.env.YURI_CONFORMANCE_SOAK_PATH || SOAK_FILE; }
 
 // ENFORCEMENT ARM (mirrors energy-enforce): env YURI_CONFORMANCE_ENFORCE=1 OR a runtime flag-file.
 // Default OFF = advisory soak. The flag is LOCAL runtime state — `touch` it to arm, delete to stand
@@ -67,8 +69,9 @@ export function recordConformance(output, opts = {}) {
     };
     if (opts.record !== false) {
       try {
-        mkdirSync(path.dirname(SOAK_FILE), { recursive: true });
-        appendFileSync(SOAK_FILE, JSON.stringify(entry) + '\n');
+        const sf = soakFile();
+        mkdirSync(path.dirname(sf), { recursive: true });
+        appendFileSync(sf, JSON.stringify(entry) + '\n');
       } catch (_) { /* soak is best-effort; never let logging break the caller */ }
     }
     return { ...result, soak: entry, enforcing, enforceBlock };
