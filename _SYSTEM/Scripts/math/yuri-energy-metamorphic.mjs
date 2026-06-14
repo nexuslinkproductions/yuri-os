@@ -23,7 +23,7 @@
 // @serves: metamorphic testing computeU | oracle-free input transform relations | coverage fed fault campaign | shrink counterexamples | planted mutant negative controls
 // @does: 8 metamorphic relations over computeU (MR-scale, MR-permute, MR-ceiling-idempotence, MR-additivity, MR-prediction-symmetry, MR-drift-monotonicity, MR-weight-isolation, MR-term-completeness) + a coverage-tallying campaign runner + per-MR planted-mutant negative controls + a counterexample shrinker
 // @use: after ANY change to computeU / its evaluators / its weights, run this to prove the oracle-free input-transform relations still hold over the random state space — catches bugs the invariant prover's PBT might miss because MRs verify RELATIONS between calls rather than properties of a single call; the mutant battery guards the harness itself against vacuity
-// @exports: makeRng, genState, METAMORPHIC_RELATIONS, runCampaign, MUTANTS, runMutationCheck, shrinkCounterexample
+// @exports: makeRng, genState, METAMORPHIC_RELATIONS, runCampaign, MUTANTS, runMutationCheck, survivesMetamorphic, shrinkCounterexample
 //
 // Frontier-discipline transfer: metamorphic testing (Chen et al.) + coverage-
 // driven verification (UVM covergroups, chip DV functional coverage) → the YURI
@@ -802,6 +802,34 @@ export const MUTANTS = {
     return { U: r.U - dropped, contributions: c };
   }),
 };
+
+// survivesMetamorphic — run an ARBITRARY mutant scorer through the metamorphic relations (the
+// dependency-injection runMutationCheck does internally, exposed for the B5 mutation survivor sweep
+// so it can use the metamorphic layer as a second KILLER on top of the invariant prover). Returns
+// {survived, killedBy[]}. Mirrors the inject→run→restore pattern exactly; deterministic; never
+// leaves the module-level `score` pointed at the mutant (restored in finally).
+export function survivesMetamorphic(mutantScorer, { numStates = 300, seed = 0xBEEF } = {}) {
+  const realScore = score;
+  score = (s, w = DEFAULT_WEIGHTS) => mutantScorer(s, w);
+  try {
+    const rng = makeRng(seed);
+    const killedBy = [];
+    for (const mr of METAMORPHIC_RELATIONS) {
+      let broke = false;
+      for (let i = 0; i < numStates; i++) {
+        const s = genState(rng);
+        if (!mr.applicable(s)) continue;
+        let res;
+        try { const t = mr.transform(s, rng); res = mr.check(s, t, rng); } catch { continue; }
+        if (res && !res.ok) { broke = true; break; }
+      }
+      if (broke) killedBy.push(mr.name);
+    }
+    return { survived: killedBy.length === 0, killedBy };
+  } finally {
+    score = realScore;
+  }
+}
 
 /**
  * Run the campaign against every planted mutant.  Returns {allCaught, report}
