@@ -39,8 +39,8 @@ test('GREEN: every MR exercised on diverse state shapes (coverage)', () => {
   }
 });
 
-test('GREEN: all six MRs are present', () => {
-  assert.equal(METAMORPHIC_RELATIONS.length, 6);
+test('GREEN: all eight MRs are present', () => {
+  assert.equal(METAMORPHIC_RELATIONS.length, 8);
   const names = METAMORPHIC_RELATIONS.map((m) => m.name);
   assert.ok(names.some((n) => n.startsWith('MR-scale')));
   assert.ok(names.some((n) => n.startsWith('MR-permute')));
@@ -48,6 +48,8 @@ test('GREEN: all six MRs are present', () => {
   assert.ok(names.some((n) => n.startsWith('MR-additivity')));
   assert.ok(names.some((n) => n.startsWith('MR-prediction-symmetry')));
   assert.ok(names.some((n) => n.startsWith('MR-drift-monotonicity')));
+  assert.ok(names.some((n) => n.startsWith('MR-weight-isolation')), 'B2 behavioral replacement for MR-scale tautology');
+  assert.ok(names.some((n) => n.startsWith('MR-term-completeness')), 'B2 linear-omission catcher');
 });
 
 test('RED: every planted mutant is caught by >=1 MR (non-vacuous)', () => {
@@ -97,6 +99,30 @@ test('RED: every planted mutant is caught by >=1 MR (non-vacuous)', () => {
       assert.ok(
         result.violatedMRs.some((n) => n.startsWith('MR-drift-monotonicity')),
         `drift-monotonicity-breaker not caught by MR-drift-monotonicity: ${result.violatedMRs}`,
+      );
+    }
+    // B2: the cross-wire breaker must be caught by MR-weight-isolation and NOT by MR-scale —
+    // proving the behavioral MR sees a wiring bug the linear tautology is blind to (unique catcher).
+    if (name === 'weight-isolation-breaker') {
+      assert.ok(
+        result.violatedMRs.some((n) => n.startsWith('MR-weight-isolation')),
+        `weight-isolation-breaker not caught by MR-weight-isolation: ${result.violatedMRs}`,
+      );
+      assert.ok(
+        !result.violatedMRs.some((n) => n.startsWith('MR-scale')),
+        `MR-scale should be BLIND to the cross-wire (it is gated on β=0, uniform-scaling-safe): ${result.violatedMRs}`,
+      );
+    }
+    // B2: the unconditional-term drop must be caught by MR-term-completeness and NOT by MR-additivity
+    // (U==Σ is preserved) — proving term-completeness is the load-bearing unique catcher.
+    if (name === 'term-completeness-breaker') {
+      assert.ok(
+        result.violatedMRs.some((n) => n.startsWith('MR-term-completeness')),
+        `term-completeness-breaker not caught by MR-term-completeness: ${result.violatedMRs}`,
+      );
+      assert.ok(
+        !result.violatedMRs.some((n) => n.startsWith('MR-additivity')),
+        `MR-additivity should be BLIND (both sides drop equally, U==Σ holds): ${result.violatedMRs}`,
       );
     }
   }

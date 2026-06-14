@@ -21,7 +21,7 @@
 //
 // @capability: energy-metamorphic-campaign
 // @serves: metamorphic testing computeU | oracle-free input transform relations | coverage fed fault campaign | shrink counterexamples | planted mutant negative controls
-// @does: 6 metamorphic relations over computeU (MR-scale, MR-permute, MR-ceiling-idempotence, MR-additivity, MR-prediction-symmetry, MR-drift-monotonicity) + a coverage-tallying campaign runner + per-MR planted-mutant negative controls + a counterexample shrinker
+// @does: 8 metamorphic relations over computeU (MR-scale, MR-permute, MR-ceiling-idempotence, MR-additivity, MR-prediction-symmetry, MR-drift-monotonicity, MR-weight-isolation, MR-term-completeness) + a coverage-tallying campaign runner + per-MR planted-mutant negative controls + a counterexample shrinker
 // @use: after ANY change to computeU / its evaluators / its weights, run this to prove the oracle-free input-transform relations still hold over the random state space — catches bugs the invariant prover's PBT might miss because MRs verify RELATIONS between calls rather than properties of a single call; the mutant battery guards the harness itself against vacuity
 // @exports: makeRng, genState, METAMORPHIC_RELATIONS, runCampaign, MUTANTS, runMutationCheck, shrinkCounterexample
 //
@@ -127,6 +127,16 @@ let score = (state, weights = DEFAULT_WEIGHTS) => computeU(state, weights).resul
 // Tolerance
 // ---------------------------------------------------------------------------
 const EPS = 1e-6;
+
+// Weight key → its paired contribution key. computeU wires each weight to exactly ONE contribution
+// (yuri-energy.mjs computeU body); contributions are keyed by CONTRIBUTION name, NOT weight name —
+// so a weight-isolation MR must map alpha→entropy, not look up contributions['alpha'] (undefined).
+const WEIGHT_TO_CONTRIB = {
+  alpha: 'entropy', beta: 'wasserstein', gamma: 'logLoss', delta: 'brier',
+  epsilon: 'informationGain', zeta: 'staleness', eta: 'protectedPathViolations',
+  theta: 'promotionLadderInversions', iota: 'verifiedEvidenceCredit',
+  kappa: 'repeatedFailure', lambda: 'malformedForecast', mu: 'overconfidenceDrift',
+};
 
 // ===========================================================================
 // METAMORPHIC RELATIONS
@@ -383,6 +393,62 @@ export const METAMORPHIC_RELATIONS = [
         ok,
         detail: ok ? null : { wasserstein0: wA, wasserstein1: wB, diff: wB - wA, n, shift },
       };
+    },
+  },
+
+  // ---- MR-7: weight-isolation (behavioral) ----------------------------
+  // B2 (2026-06-14): the BEHAVIORAL replacement for the MR-scale tautology. MR-scale
+  // (U(k·w)==k·U(w)) is a pure algebraic identity of the summation loop — it cannot catch a
+  // mis-WIRED weight. This MR zeroes each positive weight in turn and asserts it zeroes ONLY its
+  // paired contribution, leaving every OTHER contribution bit-identical. That is the wiring property
+  // MR-scale is blind to: a cross-wired weight (zeroing β also affecting μ via shared internal state)
+  // is invisible to MR-scale but FAILS here. Loops all weights (deterministic, not a random sample).
+  {
+    name: 'MR-weight-isolation: zeroing one weight zeroes ONLY its paired contribution',
+    shape: 'behavioral',
+    applicable: () => true,
+    transform: (state) => state, // the transform is in weight-space (handled in check)
+    check(state) {
+      const w0 = DEFAULT_WEIGHTS;
+      const r0 = score(state, w0);
+      for (const target of Object.keys(w0)) {
+        if (!(w0[target] > 0) || !WEIGHT_TO_CONTRIB[target]) continue;
+        const contribKey = WEIGHT_TO_CONTRIB[target];
+        const rz = score(state, { ...w0, [target]: 0 });
+        const cz = rz.contributions[contribKey] ?? 0;
+        if (Math.abs(cz) > EPS) {
+          return { ok: false, detail: { target, contribKey, cz, reason: 'target contribution not zeroed' } };
+        }
+        const keys = new Set([...Object.keys(r0.contributions), ...Object.keys(rz.contributions)]);
+        for (const k of keys) {
+          if (k === contribKey) continue;
+          const a = r0.contributions[k] ?? 0;
+          const b = rz.contributions[k] ?? 0;
+          if (Math.abs(a - b) > EPS) {
+            return { ok: false, detail: { target, contribKey, offender: { k, a, b }, reason: 'a non-target contribution changed' } };
+          }
+        }
+      }
+      return { ok: true, detail: null };
+    },
+  },
+
+  // ---- MR-8: term-completeness (behavioral) ---------------------------
+  // B2 (2026-06-14): closes the linear-OMISSION escape. A scorer that drops a term from BOTH U and
+  // the contributions object keeps U==Σ, so MR-additivity (and every other MR) passes — only a
+  // presence check catches it. Keys on the 3 UNCONDITIONAL terms (emitted on every call,
+  // yuri-energy.mjs:693-700), NOT 'all 12' — the other 8 legitimately skip on clean/absent inputs
+  // (e.g. malformedForecast is absent whenever forecasts are valid), so 'all 12' would false-fail.
+  {
+    name: 'MR-term-completeness: the 3 unconditional terms are always emitted',
+    shape: 'behavioral',
+    applicable: () => true,
+    transform: (state) => state,
+    check(state) {
+      const UNCONDITIONAL = ['protectedPathViolations', 'promotionLadderInversions', 'verifiedEvidenceCredit'];
+      const c = score(state).contributions;
+      const missing = UNCONDITIONAL.filter((k) => !(k in c));
+      return { ok: missing.length === 0, detail: missing.length ? { missing } : null };
     },
   },
 ];
@@ -714,6 +780,26 @@ export const MUTANTS = {
     c.wasserstein = orig > 0 ? 1 / orig : 100;
     const sumContribs = Object.values(c).reduce((s, v) => s + v, 0);
     return { U: sumContribs, contributions: c };
+  }),
+
+  // MR-weight-isolation breaker: a CROSS-WIRED weight. overconfidenceDrift (μ) is illegally GATED on
+  // β being nonzero — so zeroing β wrongly zeroes overconfidenceDrift too (shared enable-flag bug).
+  // Gated on β===0 (not β's magnitude) so UNIFORM scaling keeps β nonzero ⇒ MR-scale stays linear and
+  // does NOT catch it; only MR-weight-isolation (which sets ONE weight to 0) triggers the cross-wire.
+  'weight-isolation-breaker': cloneAndBreak((r, _state, weights) => {
+    const c = { ...r.contributions };
+    if ('overconfidenceDrift' in c && !((weights.beta ?? 0) > 0)) c.overconfidenceDrift = 0;
+    const sumContribs = Object.values(c).reduce((s, v) => s + v, 0);
+    return { U: sumContribs, contributions: c };
+  }),
+
+  // MR-term-completeness breaker: drops an UNCONDITIONAL term from BOTH U and contributions, so
+  // U==Σ is preserved (MR-additivity + MR-scale pass) and ONLY MR-term-completeness catches it.
+  'term-completeness-breaker': cloneAndBreak((r) => {
+    const c = { ...r.contributions };
+    const dropped = c.verifiedEvidenceCredit ?? 0;
+    delete c.verifiedEvidenceCredit;
+    return { U: r.U - dropped, contributions: c };
   }),
 };
 
