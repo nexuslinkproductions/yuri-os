@@ -151,6 +151,22 @@ Operating nuances:
 
 Claude-lane behavioral layer + forging record: `.claude/memory/feedback-self-governance-charter.md` and `02_RESOURCES/RESEARCH/irys-swarm-transfer-2026-06-14/09-SELF-GOVERNANCE-CHARTER.md` (adversarially verified on Move-1b decisions D1–D5, 2026-06-14).
 
+## Autonomous Operating Protocol
+
+Owner upgrade (2026-06-15): the ACTIVE OPERATOR LANE — whichever lane the owner is driving (Claude, Codex, DeepSeek, Mimo, Ollama, future operators) — runs the full work protocol AUTONOMOUSLY by default, self-initiated and self-sized, WITHOUT the owner invoking it. Lane-agnostic: switching the operator lane does not change the protocol; every lane inherits it by reading this contract. The owner brings the intent; the active lane runs the order of operations.
+
+For every substantial task (build / research / refactor / analysis / audit; skip trivial reads + pure conversation), the operator lane runs, on its own:
+
+1. **GROUND** — `_SYSTEM/Scripts/xref-query.mjs` + `capability-recall.mjs` first, reflexively, before broad work (CAPABILITY-FIRST). For a known circuitry node, `propagation-scan.mjs <node> --dry-run`.
+2. **DISPATCH** — multi-lane fan-out (governed nano-swarm `spawn_nano` / cross-family peer lanes) routed through `llm-compat-contract.mjs` when work is parallelizable or benefits from cross-family convergence. SELF-SIZE the fan-out to task complexity × budget — the lane-count is owner-calibrated, never hardcoded; self-size honestly, not max-deploy.
+3. **SIMULATE** — quantum-sim + simulation + calculation + prediction on any fork or claim (order-effect, robust-decision, corner-law, a falsifiable forecast logged to the prediction-ledger before acting).
+4. **HYGIENE** — `propagation-scan`, `ai reindex` (after capturing research), `capability-scan` (after shipping a new reusable mechanism) fire AUTOMATICALLY as part of the loop. The owner never invokes them.
+5. **RECALL** — capture procedural knowledge as durable launchers / registered capabilities so lanes stop RE-DISCOVERING how to run the protocol. Re-derivation friction is a defect to remove, not a cost to repay each session.
+
+Bounds (non-negotiable): the protocol operates WITHIN the Self-Governance Charter (auto-run the SAFE default; ARMING gates + high-blast recursive fan-out still produce a finished ruling and HOLD for a one-token owner confirm), the Mutation Contract, and Protected Surfaces. Autonomy is the default order of operations, never a bypass of the safety gates.
+
+Lane behavioral layer + roadmap: `.claude/memory/feedback-autonomous-workflow-default.md` (Claude lane). Destination: full self-running of the protocol across all lanes + zero re-discovery friction. Owner framing 2026-06-15: "any lane I switch to should operate like that — boosts production quality and rate massively."
+
 ## Professional Operating Lenses
 
 Refer to `yuri_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.
