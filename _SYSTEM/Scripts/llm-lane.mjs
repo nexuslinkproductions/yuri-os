@@ -632,6 +632,11 @@ async function postChatOllamaLocal(endpoint, model, messages, maxTokens, toolsLi
 // assertSafeEndpoint before we ever get here; the model string is validated server-side (a bad model
 // → 4xx → clean fail). Tools are passed through (frontier cloud models tool-call); on a model whose
 // template can't, ollama 4xx's on `tools` and we retry once stripped (parity-degrade, not fail).
+// Per-model output-cap memo: ollama cloud models 400 when num_predict exceeds their real output
+// ceiling. capCeil was function-local, so an agentic tool-loop re-discovered the cap (one wasted 400
+// round-trip) on EVERY turn — what made nemotron-3-ultra look stuck/slow. Memoize discovered caps
+// across calls so the cap is paid at most once per process, then reused. (2026-06-14 fix.)
+const __OLLAMA_MODEL_CAP = new Map();
 function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane) {
   const wireModel = model.replace(/\[1m\]$/, ''); // [1m] is a client-side alias convention, not a wire id
   // Ollama /api/chat expects assistant tool_calls[].function.arguments as an OBJECT. The shared
@@ -680,10 +685,10 @@ function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, tools
     // table, parse the model's real cap from its 400 and retry AT that cap — so every model (current or
     // future) runs at ITS full capacity instead of being forced down to a one-size 'high'. capCeil persists
     // across a tool-strip rebuild so the two retry paths compose.
-    let capCeil = Infinity;
+    let capCeil = __OLLAMA_MODEL_CAP.get(wireModel) ?? Infinity;
     const applyCap = (b) => (capCeil === Infinity ? b
       : { ...b, options: { ...b.options, num_predict: Math.min(b.options?.num_predict ?? capCeil, capCeil) } });
-    let res; let body = toolsList && toolsList.length ? { ...baseBody, tools: toolsList } : baseBody;
+    let res; let body = applyCap(toolsList && toolsList.length ? { ...baseBody, tools: toolsList } : baseBody);
     for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
       try {
         res = await post(body);
@@ -702,7 +707,7 @@ function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, tools
       const capM = res.status === 400 ? /maximum[\W_]*output[\W_]*tokens[\W_]*(\d+)/i.exec(String(res.text)) : null;
       const cap = capM ? Number(capM[1]) : 0;
       if (cap > 0 && cap < (body.options?.num_predict ?? Infinity) && attempt < ATTEMPTS) {
-        capCeil = cap; body = applyCap(body);
+        capCeil = cap; __OLLAMA_MODEL_CAP.set(wireModel, cap); body = applyCap(body);
         process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_output_cap_retry:${cap}\n`);
         continue;
       }
@@ -743,7 +748,14 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
   if (isLocal && endpoint && !/^https?:\/\//i.test(endpoint)) endpoint = `http://${endpoint}`;
   const apiKey = process.env[cfg.api_key_env] || '';
-  const maxTokens = maxTokensFor(cfg, opts.reasoning);
+  let maxTokens = maxTokensFor(cfg, opts.reasoning);
+  // Per-model output-cap clamp: ollama-cloud models have differing real output ceilings the shared
+  // max_output map can't express (nemotron-3-ultra=65536 < lane xhigh=131072). Clamp to the model's
+  // declared cap (cfg.model_output_caps) so turn 1 never over-asks and eats a 400. Unknown models fall
+  // through to the discover+memoize path in postChatOllamaCloud. (2026-06-14: fixes the nemotron
+  // per-turn cap-retry storm that made it look stuck.)
+  const __modelCap = (cfg.model_output_caps || {})[model];
+  if (Number.isFinite(__modelCap) && __modelCap > 0 && maxTokens > __modelCap) maxTokens = __modelCap;
   // Active toolset: none (--no-tools), read+fetch only (--no-exec drops bash), or the full operator set.
   // Governance parity holds either way — ANY tool a local lane calls still routes through executeTool
   // -> evaluateToolCall (safety-core protected-path/mutation gate), proven live. But a small local GGUF's
