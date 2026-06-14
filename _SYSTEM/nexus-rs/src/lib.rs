@@ -4,6 +4,7 @@ pub mod minhash;
 pub mod jaccard;
 pub mod phi;
 pub mod corpus_match;
+pub mod stats;
 pub mod guard;
 
 #[cfg(feature = "napi-binding")]
