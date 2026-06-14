@@ -5,6 +5,17 @@
 > under it. Ruled + adversarially verified by a refutation panel (workflow `wf_867b6b21`, 21 agents) over the
 > simulation arsenal + local code evidence — not by preference. Memory handle: [[feedback-self-governance-charter]].
 
+## UPDATE 2026-06-14 (post-ruling execution + owner refinements)
+
+Owner reviewed the rulings and pushed the readiness forward. What changed after the first table:
+- **Node 1 (NEW, owner-requested):** llm-lane tool definitions made **provider-agnostic** (`normalizeTool` + per-provider render adapters) — kills the "OpenAI-shape-only" liability AND removes D4's crash vector. Shipped `064e9835`.
+- **D4 → DONE.** Re-ruled self-governable *after* Node 1 (blast HIGH→MEDIUM: shape-crash eliminated, DISARMED-degrade verified at the integration seam). `spawn_nano` wired into llm-lane (Anthropic descriptor verbatim, absorbed by `normalizeTool`), DISARMED. Shipped `5ebfb7e1`.
+- **D3 → DONE.** Owner corrected the hold ("another session's work isn't yours to hold on"). Contention reframed: it means *sweeping* their lines, not *touching* the file. Their hunks were in DISJOINT regions, so I committed ONLY my deny via index-only staging (`git apply --cached` → commit the index, NOT `git commit -- <file>`), their work left uncommitted+untouched. Verified black-box. Shipped `190a64cb`.
+- **D1 → DONE** (`d93d1ced`, async pool dispatch, DISARMED).
+- **D5 (arm) → READY.** All readiness deps (D1/D3/D4) now met. Still owner-gated (it's the arm), but **cost is no longer a gating factor** (owner waived it for his personal account — subscriptions + efficiency). Arming now gates only on non-cost blast (irreversible runtime state, process fan-out, shared-system breakage, outward-facing). Say **`D5 go`** to run the ordered arm sequence.
+
+Two charter refinements promoted from these (now canonical in `yuri-origin.md`): (a) **contention = sweeping, not touching** — disjoint-region index-only commit of own lines is clean; (b) **monetary cost is an owner-configurable blast factor**, waivable per account.
+
 ## THE CHARTER (the decision rule)
 
 A decision is **SELF-GOVERNABLE** (Claude/Rick decides AND executes, no owner confirm) **only when ALL SIX hold**:

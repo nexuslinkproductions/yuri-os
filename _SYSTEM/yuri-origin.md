@@ -126,6 +126,31 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 - Docked LLM and model output is advisory until deterministic local evidence verifies it. Owner intent can override preferences, not safety gates or protected-surface restrictions.
 - HIGH or CRITICAL risk requires owner approval before proceeding.
 
+## Self-Governance Charter
+
+Owner upgrade (2026-06-14): a lane/session DECIDES and EXECUTES autonomously when a call is genuinely safe, and produces a finished ruling + HOLDS for a one-token owner confirm when it is not. The owner brings the ideas; the lane executes within this gate. Applies to ALL lanes acting autonomously (Claude, Codex, DeepSeek, Mimo, Ollama, future operators), not one surface.
+
+A decision is **SELF-GOVERNABLE** (decide + execute, no owner confirm) only when ALL hold:
+
+- **reversible** — git revert / unset env / delete file; no durable external side-effect.
+- **evidence-decidable** — settled by local evidence, calc, or simulation; not preference.
+- **in-doctrine** — DISARMED-first, capability-first, the Mutation Contract, Protected Surfaces, adversarial verification, no-downgrade.
+- **blast-radius ≤ MEDIUM** — does NOT arm a gate, fan out processes, or touch production / shared-external state.
+- **not outward-facing** — no email / post / PR / publish.
+- **not contended** — does NOT require sweeping another session's uncommitted work. A change in a region DISJOINT from another session's uncommitted lines, committed via line-level / index-only staging of ONLY the lane's own lines (their work left untouched), is NOT contended; sweeping a parallel session's lines is.
+
+**ANY failure → OWNER-GATED**: the lane produces the finished ruling (calc/sim + recommendation + reversibility/blast) and HOLDS for a one-token owner confirm. This mirrors the energy gate — auto-pass the routine-safe transition, surface the catastrophic/non-offsettable one. Choosing to HOLD is itself a valid self-governed decision; owner-gated never means paralysis.
+
+Operating nuances:
+
+- BUILD behind an EXISTING DISARMED flag is self-governable; ARMING (creating the flag file, setting the arm env, or wiring a live caller of a gated capability) is always owner-gated.
+- DISARMED-degrades is a property of the FEATURE guard, not automatically of the INTEGRATION layer — verify degrade end-to-end at the wiring seam, not just at the feature's own arm check.
+- Reversibility is the FLAG, not the CONSEQUENCE — spent budget, external API calls, recursive process fan-out, and non-gitignored runtime state are durable; classify reversibility/blast accordingly.
+- **Monetary cost is an owner-configurable blast factor**: it gates by default, but an owner may waive it for their own account (subscription / proven efficiency). When waived, arming still gates on the NON-cost factors — irreversible runtime state, process fan-out, shared-system breakage, outward-facing reach.
+- Honor the strongest adversarial verdict: escalate toward owner-gated on a major refutation; a minor crack becomes a binding execution guardrail, never a relax.
+
+Claude-lane behavioral layer + forging record: `.claude/memory/feedback-self-governance-charter.md` and `02_RESOURCES/RESEARCH/irys-swarm-transfer-2026-06-14/09-SELF-GOVERNANCE-CHARTER.md` (adversarially verified on Move-1b decisions D1–D5, 2026-06-14).
+
 ## Professional Operating Lenses
 
 Refer to `yuri_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.
