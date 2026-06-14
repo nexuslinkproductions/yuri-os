@@ -30,7 +30,11 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 
 export const MAX_EVENT_BYTES = 4096;        // torn-write floor; one-writer-per-shard makes PIPE_BUF moot, this bounds skip-on-parse-fail recovery
 export const DRAIN_LEASE_ID = 'drainer:canonical-truth';
-const DRAIN_TTL_MS = 30_000;
+const DRAIN_TTL_DEFAULT_MS = 30_000;
+// Drain-lease TTL — env/opt-tunable (default 30s) so a deterministic multi-proc lease-loss test can force a tiny TTL.
+function drainTtlMs(opts = {}) {
+  return Number(opts.ttlMs || process.env.YURI_CANONICAL_DRAIN_TTL_MS) || DRAIN_TTL_DEFAULT_MS;
+}
 const SCHEMA_V = 1;
 const ROTATION_DEFAULT_BYTES = 50 * 1024 * 1024;   // 50MB per generation; keeps each gen readFileSync-safe
 const GEN_PREFIX = 'canonical.gen-';
@@ -303,7 +307,7 @@ function canonicalEventIds(base) {
 export function drainOnce(drainerId, opts = {}) {
   if (!drainerId) return { ok: false, reason: 'drainerId required' };
   const { base, shardsDir, canonicalLog, readViewPath, offsetsPath } = resolveDirs(opts);
-  const lease = acquireLease(DRAIN_LEASE_ID, drainerId, { ttlMs: DRAIN_TTL_MS });
+  const lease = acquireLease(DRAIN_LEASE_ID, drainerId, { ttlMs: drainTtlMs(opts) });
   if (!lease.ok) return { ok: false, heldBy: lease.heldBy, reason: 'drainer-held' };
   try {
     const seen = canonicalEventIds(base);                     // idempotency seed (all generations)
@@ -330,7 +334,7 @@ export function drainOnce(drainerId, opts = {}) {
     // the live drainer's fresher ones) + churn generations. Our appended canonical events are already
     // durable and the live drainer incorporates them via the dedup seed. A successful renew also resets
     // renewedAt, so the remaining (synchronous, no-await) publish+rotate completes inside a fresh TTL.
-    if (!renewLease(DRAIN_LEASE_ID, drainerId, { ttlMs: DRAIN_TTL_MS })) {
+    if (!renewLease(DRAIN_LEASE_ID, drainerId, { ttlMs: drainTtlMs(opts) })) {
       return { ok: false, reason: 'lease-lost-mid-drain', folded, skipped };
     }
     // Rebuild + publish read-view (atomic temp+rename), THEN checkpoint offsets LAST (durability ordering:

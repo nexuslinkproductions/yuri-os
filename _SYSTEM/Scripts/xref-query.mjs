@@ -74,6 +74,8 @@ import {
   TOKENIZE_MIN_LENGTH,
 } from './xref-provenance.mjs';
 import { gitnexusStaleness, computeFileStaleSet } from './xref-drift-scan.mjs';
+import { recallCanonical } from './canonical-recall.mjs';
+import { resolveDirs as canonicalDirs } from './memory-canonical-store.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -85,6 +87,9 @@ const INDEX_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'search-index
 // AFL organ store — alpha factors surface alongside code/corpus hits (PASS 1b). Fail-soft when absent.
 const ALPHA_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'alpha-factors.db');
 const GRAPH_PATH = path.join(REPO_ROOT, '02_RESOURCES', 'RESEARCH', 'yuri-circuitry-graph.json');
+// Canonical-truth memory leg (PASS 1c) — operator-approved + cross-lane claims surface alongside code/corpus
+// hits, advisory + LEXICAL-capped. Fail-soft when the store is absent/empty.
+const CANONICAL_BASE = canonicalDirs().base;
 // wave-2 R.12: spectrum doc auto-discovered by filename pattern — update the
 // spectrum doc's date suffix and this leg points at the new version automatically
 // (the old hardcoded dated filename silently went available:false on rename).
@@ -282,6 +287,34 @@ function passAlphaFactors(rawQuery, candidates = FTS5_CANDIDATE_FLOOR) {
     return { hits: out, available: true, reason: 'syntax-error' };
   } finally {
     db.close();
+  }
+}
+
+// ============================================================================================
+// PASS 1c — canonical-truth memory (operator-approved + cross-lane claims). Advisory, LEXICAL-capped:
+// canonical truth is a CLAIM, never structural proof, so scoreHit caps it below verified code evidence.
+// Fail-soft: an absent/empty store yields available:false and surfaces nothing. Reads the LIVE fold.
+// ============================================================================================
+function passCanonical(rawQuery, candidates = FTS5_CANDIDATE_FLOOR) {
+  const out = [];
+  if (!fs.existsSync(CANONICAL_BASE)) return { hits: out, available: false, reason: 'canonical store not initialized' };
+  const tokens = tokenize(rawQuery);
+  if (!tokens.length) return { hits: out, available: true, reason: 'no tokens' };
+  try {
+    const limit = candidates === null || candidates === Infinity ? 50 : Math.max(5, Math.min(candidates, 25));
+    for (const h of recallCanonical({ freeText: rawQuery, limit })) {
+      const objStr = typeof h.object === 'object' && h.object ? (h.object.content ?? JSON.stringify(h.object)) : String(h.object ?? '');
+      out.push({
+        rawPath: `canonical:${h.subject}::${h.predicate}`,
+        snippet: `canonical ${h.contested ? '⚠CONTESTED ' : ''}[${h.provenance?.lane || '?'}${h.tier ? '/' + h.tier : ''}] ${h.subject} · ${h.predicate} → ${objStr}`.replace(/\s+/g, ' ').trim().slice(0, 200),
+        lexicalScore: typeof h._score === 'number' ? h._score : 0.5,
+        surface: EVIDENCE_KIND.LEXICAL,        // claim, never structural -> capped below verified code evidence
+        sourceLabel: 'canonical-memory',
+      });
+    }
+    return { hits: out, available: true, totalMatches: out.length };
+  } catch (err) {
+    return { hits: out, available: false, reason: `canonical leg error: ${String(err?.message || err).slice(0, 80)}` };
   }
 }
 
@@ -673,6 +706,7 @@ export function xrefQuery(rawQuery, opts = {}) {
   // Run the bounded passes.
   const fts5 = passFts5(rawQuery, match, plan.fts5);
   const alpha = passAlphaFactors(rawQuery, plan.fts5);
+  const canonical = passCanonical(rawQuery, plan.fts5);
   const graphRes = passGraph(tokens, nodeId, graph, plan.graph);
   const gitnexus = passGitnexus(rawQuery, { gitnexusStale, limit: plan.gitnexus });
   const spectrum = passSpectrum(tokens, plan.spectrum);
@@ -686,6 +720,7 @@ export function xrefQuery(rawQuery, opts = {}) {
   const candidates = [
     ...fts5.hits,
     ...alpha.hits,
+    ...canonical.hits,
     ...graphRes.hits,
     ...gitnexus.hits,
     ...spectrum.hits,
@@ -739,6 +774,8 @@ export function xrefQuery(rawQuery, opts = {}) {
       alphaFactors: alpha.hits.length,
       alphaFactorsTotalMatches: alpha.totalMatches ?? null,
       alphaFactorsAvailable: alpha.available === true,
+      canonical: canonical.hits.length,
+      canonicalAvailable: canonical.available === true,
       graph: graphRes.hits.length,
       gitnexus: gitnexus.hits.length,
       spectrum: spectrum.hits.length,
@@ -761,6 +798,13 @@ export function xrefQuery(rawQuery, opts = {}) {
     // factors for the query, always visible regardless of how the code/corpus merge fills up.
     alphaTop: alpha.hits.slice(0, 5).map((h) => ({
       id: String(h.rawPath || '').replace(/^alpha-factor:/, ''),
+      snippet: h.snippet,
+      lexicalScore: h.lexicalScore,
+    })),
+    // Canonical-memory dedicated lane (same rationale as alphaTop — advisory claims get drowned in the
+    // provenance-gated code merge). Always-visible top canonical truths for the query.
+    canonicalTop: canonical.hits.slice(0, 6).map((h) => ({
+      claim: String(h.rawPath || '').replace(/^canonical:/, ''),
       snippet: h.snippet,
       lexicalScore: h.lexicalScore,
     })),
@@ -898,6 +942,13 @@ function run() {
   if (Array.isArray(result.alphaTop) && result.alphaTop.length) {
     console.log(`  📈 ALPHA FACTORS (${result.counts.alphaFactors} match${result.counts.alphaFactors === 1 ? '' : 'es'}; top ${result.alphaTop.length}):`);
     for (const a of result.alphaTop) console.log(`     ▸ ${a.id} — ${a.snippet}`);
+    console.log('');
+  }
+  // Canonical-memory dedicated lane — top canonical truths for the query (advisory; the caller verifies
+  // before citing). Always shown when present so operator-approved truth isn't drowned in the code merge.
+  if (Array.isArray(result.canonicalTop) && result.canonicalTop.length) {
+    console.log(`  ⬢ CANONICAL MEMORY (${result.counts.canonical} match${result.counts.canonical === 1 ? '' : 'es'}; top ${result.canonicalTop.length}; advisory):`);
+    for (const c of result.canonicalTop) console.log(`     ▸ ${c.snippet}`);
     console.log('');
   }
   for (const h of result.merged) {

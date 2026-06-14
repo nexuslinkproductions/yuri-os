@@ -85,6 +85,13 @@ YURI uses two distinct memory tracks. They are not interchangeable.
 - No duplication. Cross-link by label (e.g. `See YURI memory: jake-outreach-target`), do not mirror.
 - Track B may reference Track A entries; Track A entries do not depend on Track B.
 
+**Canonical convergence store (live, 2026-06-14).** Track A's operator-approved truth is materialized into ONE event-sourced convergence store that any lane reads at peer level — the concrete "shared truth across all lanes" surface.
+
+- Store: `_SYSTEM/Scripts/memory-canonical-store.mjs`; data at `_SYSTEM/state/memory-canonical/` (gitignored). A launchd maintenance beat (`mcs-maintenance.mjs` @300s) syncs new Track-A promotions in, then folds.
+- WRITE = shard-then-drain, serialized for SAFETY not privilege: every lane appends immutable claim events to its OWN shard; one elected drainer (nano-lease) folds shards into a generation-rotated canonical log + read-view (sha256 dedup, idempotent re-fold). No lane has write privilege over another. Operator-approved Track-A memory flows in via `memory-kernel-canonical-bridge.mjs` (READ-ONLY on the governed propose→decide→promote pipeline); advisory lanes (e.g. filing) opt in.
+- READ = peer-open: `loadCanonical` / `readView` / `recallCanonical` — no wrapper, no lease, ZERO privilege. Fused into the xref-query GROUND step (PASS 1c) so canonical truth surfaces in the step every lane already runs. Canonical claims are ADVISORY-until-locally-verified and confidence-capped BELOW verified code evidence: a claim is a claim, never structural proof.
+- The convergence layer sits ABOVE Track A's ledger, not as a replacement — Track A governs promotion; the canonical store makes the promoted truth queryable + consumed across lanes.
+
 ## Evidence Contract Grammar
 
 Deterministic evidence lines, machine-parseable:
