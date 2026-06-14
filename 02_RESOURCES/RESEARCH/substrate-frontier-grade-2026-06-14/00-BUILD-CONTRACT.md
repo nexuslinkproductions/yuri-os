@@ -107,11 +107,22 @@ being ~50% wrong (hallucinated `repeatedFailurePenalty`, `e.confidence` vs `e.ba
   fail-open/exit-0. Stale "NOT auto-wired" header fixed (hook IS live-wired, settings.json:309). observer
   test 12/12 (+7), integration smoke (synthetic payload → exit 0, guard fired observer, trace isolated).
   capabilities.json regen DEFERRED (shared file — @exports tag updated at source).
-- NEXT (remaining substrate wave): **B4 H ground-truth resolved-outcome log (KEYSTONE)** — minimax design in
-  /tmp/dl-minimax.out (advisory; verify against real gateProposal). Capture seam INSIDE gateProposal w/o
-  changing the clean-path return; signed weightHash captured inside the call (defends weight-drift between
-  fire and resolution); replay harness as the regression oracle; trace path must NOT be a protected
-  .claude/state dir (use _SYSTEM/state like the other traces). THEN B2 A/B/C/D control hardening (deepseek
-  design /tmp/dl-deepseek.out); A2 retire dead contracts (B3 confirmed gateProposal coverage). enforce stays
-  DISARMED; explicit-pathspec commits; **B4 is the riskiest item — clean-path byte-identical proof required
-  (use the B3 invariant prover as the ∀-input oracle to prove the seam didn't shift any accept decision).**
+- 2026-06-14 — **B4 H ground-truth resolved-outcome log SHIPPED (KEYSTONE) (34af2332, pushed).** New
+  yuri-energy-gate-trace.mjs: OPT-IN (YURI_GATE_TRACE, default OFF) + FAIL-OPEN capture seam — ONE no-op
+  line inside gateProposal before its return logs each verdict (stateBefore/After/weights/threshold/cap/
+  allowOverride/weightHash→decision) to _SYSTEM/state/energy-gate-trace.jsonl (NOT a protected .claude/state
+  dir). weightFingerprint = key-sorted SHA-256 content witness over the fire-time normalized weights
+  (drift-defense, a fingerprint NOT an HMAC). replayGateTrace = the REGRESSION ORACLE: re-runs logged
+  transitions on the LOGGED weights (hermetic ⇒ drift-IMMUNE), flags decision shifts / tampered logs /
+  weight drift. resolveGateVerdict = operator-stub resolution side (append-only, keyed by verdict id).
+  CLEAN-PATH BYTE-IDENTICAL PROVEN: trace ON return ≡ OFF (result+proof deep-equal) ∀ 774 B3 corpus rows,
+  and all 7 B3 invariants + spec cross-check stay GREEN with the trace armed — the B3 prover used as the
+  ∀-input oracle exactly as the contract required. RED-GREEN: a decision-flip mutant gate is caught by
+  replay; allowOverride capture proven load-bearing; fail-open on a circular input. test 13/13, full energy
+  suite 493/493, enforce DISARMED. minimax design was advisory — built against the REAL gateProposal; fixed
+  a top-level-await import-cycle deadlock in the CLI worked example.
+- NEXT (remaining substrate wave): **B2 A/B/C/D control hardening** (deepseek design /tmp/dl-deepseek.out,
+  advisory) — replace tautological controls (MR-scale formula-tautology, brokenEraCheck v3 algebraic arm,
+  reconstruction drop-both-sides), drop D's 14 phantom bins, fix binOf negative→'tiny', fix genState bias;
+  THEN **A2 retire the dead yuri-energy-contracts instrument** (B3 confirmed gateProposal coverage → do it
+  LAST, it's a deletion). enforce stays DISARMED; explicit-pathspec commits; RED-GREEN per fix.
