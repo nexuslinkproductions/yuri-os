@@ -125,9 +125,28 @@ describe('memory-canonical-store (P1)', () => {
     appendClaim('lane-a', 's1', { subject: 'fact://temp', predicate: 'holds', object: true }, { dir });
     drainOnce('d1', { dir });
     assert.equal(loadCanonical({ dir }).length, 1);
-    appendClaim('lane-a', 's1', { kind: 'retract', subject: 'fact://temp', predicate: 'holds' }, { dir });
+    appendClaim('lane-a', 's1', { kind: 'retract', subject: 'fact://temp', predicate: 'holds', object: true }, { dir });   // retract-by-content targets the asserted claim
     drainOnce('d1', { dir });
     assert.equal(loadCanonical({ dir }).length, 0, 'retracted claim is gone from current state');
+  });
+
+  // T-retract-targeted — a retract kills ONLY the named claim; a co-key survivor remains (no key-nuke). Order-independent.
+  it('T-retract-targeted: retract kills the named claim, a co-key survivor remains', () => {
+    const dir = tmp();
+    appendClaim('lane-a', 's', { subject: 'k', predicate: 'p', object: 'old' }, { dir });
+    appendClaim('lane-b', 's', { subject: 'k', predicate: 'p', object: 'new' }, { dir });   // conflict -> contested
+    drainOnce('d', { dir });
+    appendClaim('lane-a', 's', { kind: 'retract', subject: 'k', predicate: 'p', object: 'old' }, { dir });   // kill 'old' by content
+    drainOnce('d', { dir });
+    const live = loadCanonical({ dir });
+    assert.equal(live.length, 1, 'the un-retracted claim survives — retract does not nuke the key');
+    assert.equal(live[0].object, 'new');
+  });
+
+  // T-retract-needs-target — an untargeted retract is rejected (it was the order-dependent key-delete footgun).
+  it('T-retract-needs-target: object-less + supersedes-less retract is rejected', () => {
+    const dir = tmp();
+    assert.equal(appendClaim('lane-a', 's', { kind: 'retract', subject: 'k', predicate: 'p' }, { dir }).ok, false);
   });
 
   // hash determinism + open peer read shape
@@ -184,7 +203,7 @@ describe('memory-canonical-store (P1)', () => {
     appendClaim('lane-a', 's1', { subject: 'y', predicate: 'p', object: 2 }, noCompact);
     drainOnce('d1', noCompact);
     appendClaim('lane-a', 's1', { kind: 'update', subject: 'x', predicate: 'p', object: 99, supersedes: v1.eventId }, noCompact);
-    appendClaim('lane-a', 's1', { kind: 'retract', subject: 'y', predicate: 'p' }, noCompact);
+    appendClaim('lane-a', 's1', { kind: 'retract', subject: 'y', predicate: 'p', object: 2 }, noCompact);   // retract-by-content targets y=2
     drainOnce('d1', noCompact);
     const { base, canonicalLog } = resolveDirs({ dir });
     const r = compactGeneration(base, canonicalLog, { compactDeadRatio: 0, compactGenThreshold: 0 });

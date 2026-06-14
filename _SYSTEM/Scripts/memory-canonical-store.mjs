@@ -238,6 +238,10 @@ export function safeUnlinkSealedGens(base, canonicalLog, opts = {}) {
 export function appendClaim(laneId, sessionId, claim = {}, opts = {}) {
   if (!laneId || !sessionId) return { ok: false, reason: 'laneId and sessionId required' };
   if (claim.subject == null || claim.predicate == null) return { ok: false, reason: 'claim.subject and claim.predicate required' };
+  // A retract must TARGET a specific claim (explicit supersedes eventId, or the object it retracts = retract-by-content).
+  // An untargeted retract was a drain-order-dependent key-delete (commutativity sim 2026-06-14) — reject it, never no-op silently.
+  if (claim.kind === 'retract' && claim.supersedes == null && claim.object == null)
+    return { ok: false, reason: 'retract requires a target: supersedes eventId or the object it retracts' };
   const eventId = mintEventId(claim);
   const envelope = {
     v: SCHEMA_V,
@@ -391,21 +395,39 @@ function foldCanonical(base) {
       // folded (delete from byKey now) OR arrives later (the supersededIds guard skips it below). Keeps
       // last-write-wins correct under arbitrary shard read-order AND after compaction has dropped a superseded
       // event from canonical while its shard could still re-emit it on offset-loss recovery.
-      if (e.supersedes) {
-        supersededIds.add(e.supersedes);
-        const old = byEvent.get(e.supersedes);
+      // Order-INDEPENDENT dead-marking for BOTH supersede and retract. supersede(X) -> new value; retract(X) ->
+      // no replacement. Target = explicit `supersedes`, else (retract only) the content-hash of the asserted
+      // claim it names (retract-by-content). Routing retract through the SAME supersededIds set is what makes it
+      // COMMUTE — the old key-delete retract was drain-order-dependent (commutativity sim 2026-06-14: a retract
+      // landing mid-stream vs last produced different final state under permutation; foundation VIOLATED).
+      const deadTarget = e.supersedes
+        || (e.kind === 'retract' && e.object != null
+            ? mintEventId({ kind: 'assert', subject: e.subject, predicate: e.predicate, object: e.object })
+            : null);
+      if (deadTarget) {
+        supersededIds.add(deadTarget);
+        const old = byEvent.get(deadTarget);
         if (old) {
           const ok = keyOf(old);
-          if (byKey.get(ok)?.eventId === old.eventId) byKey.delete(ok);
-          // a cleanly superseded object is RESOLUTION, not conflict -> drop it from the competing set
           const om = objsByKey.get(ok);
-          if (om) { om.delete(`${old.provenance?.lane}|${JSON.stringify(old.object)}`); refreshContested(ok); }
+          const wasWinner = byKey.get(ok)?.eventId === old.eventId;
+          // a cleanly superseded/retracted object is RESOLUTION, not conflict -> drop it from the competing set
+          if (om) om.delete(`${old.provenance?.lane}|${JSON.stringify(old.object)}`);
+          // RE-ELECT a deterministic survivor (smallest eventId = order-independent) when the removed claim WAS
+          // the winner; else drop the key. Never leave byKey empty while live claims remain — the
+          // empty-byKey-with-survivors order-dependence the commutativity sim caught (2026-06-14, retract of a
+          // contested winner). byEvent holds every already-folded event, so a survivor is always resolvable.
+          if (wasWinner) {
+            const survivors = om ? [...om.values()].filter((v) => v.eventId).sort((a, b) => String(a.eventId).localeCompare(String(b.eventId))) : [];
+            if (survivors.length) byKey.set(ok, byEvent.get(survivors[0].eventId)); else byKey.delete(ok);
+          }
+          if (om) refreshContested(ok);
         }
       }
       const k = keyOf(e);
       byEvent.set(e.eventId, e);
-      if (e.kind === 'retract') { byKey.delete(k); objsByKey.delete(k); contested.delete(k); continue; }
-      if (supersededIds.has(e.eventId)) continue;                    // this event was superseded by another — never active
+      if (e.kind === 'retract') continue;                            // retract adds NO active claim; its target was dead-marked above (order-independent)
+      if (supersededIds.has(e.eventId)) continue;                    // this event was superseded/retracted by another — never active
       byKey.set(k, e);
       // contested tracking: accumulate distinct active objects per key in a PERSISTENT map (a momentary single object
       // must NOT discard the accumulator — else two lanes' conflicting asserts never co-exist long enough to be flagged),

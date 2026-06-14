@@ -54,26 +54,41 @@ export function fold(envelopes, { mutation = null } = {}) {
   for (const e of envelopes) {
     if (!e || !e.eventId || seen.has(e.eventId)) continue;     // dedup (log-level exactly-once tested elsewhere)
     seen.add(e.eventId);
-    if (e.supersedes && mutation !== 'IGNORE_SUPERSEDE') {
-      superseded.add(e.supersedes);
-      const old = byEvent.get(e.supersedes);
+    // dead-marking for supersede AND retract (retract-by-content), order-independent — MIRRORS foldCanonical.
+    // grey-sweep rule-breaks preserved: IGNORE_SUPERSEDE / IGNORE_RETRACT / NO_SUPERSEDE_REMOVAL.
+    let deadTarget = null;
+    if (e.kind === 'retract') {
+      if (mutation !== 'IGNORE_RETRACT') deadTarget = e.supersedes || (e.object != null ? mintEventId({ kind: 'assert', subject: e.subject, predicate: e.predicate, object: e.object }) : null);
+    } else if (e.supersedes && mutation !== 'IGNORE_SUPERSEDE') {
+      deadTarget = e.supersedes;
+    }
+    if (deadTarget) {
+      superseded.add(deadTarget);
+      const old = byEvent.get(deadTarget);
       if (old) {
         const ok = keyOf(old);
-        if (byKey.get(ok)?.eventId === old.eventId) byKey.delete(ok);
-        if (mutation !== 'NO_SUPERSEDE_REMOVAL') {
+        const wasWinner = byKey.get(ok)?.eventId === old.eventId;
+        if (mutation === 'NO_SUPERSEDE_REMOVAL') {
+          if (wasWinner) byKey.delete(ok);   // mutant: delete winner, DON'T clean the competing set or re-elect
+        } else {
           const om = objsByKey.get(ok);
-          if (om) { om.delete(`${old.provenance?.lane}|${JSON.stringify(old.object)}`); refresh(ok); }
+          if (om) om.delete(`${old.provenance?.lane}|${JSON.stringify(old.object)}`);
+          if (wasWinner) {   // re-elect a deterministic survivor (smallest eventId, order-independent) — mirrors foldCanonical
+            const survivors = om ? [...om.values()].filter((v) => v.eventId).sort((a, b) => String(a.eventId).localeCompare(String(b.eventId))) : [];
+            if (survivors.length) byKey.set(ok, byEvent.get(survivors[0].eventId)); else byKey.delete(ok);
+          }
+          if (om) refresh(ok);
         }
       }
     }
     const k = keyOf(e);
     byEvent.set(e.eventId, e);
-    if (e.kind === 'retract' && mutation !== 'IGNORE_RETRACT') { byKey.delete(k); objsByKey.delete(k); contested.delete(k); continue; }
+    if (e.kind === 'retract') continue;                // retract adds NO active claim; target dead-marked above (unless IGNORE_RETRACT)
     if (superseded.has(e.eventId)) continue;
     if (mutation === 'FWW') { if (!byKey.has(k)) byKey.set(k, e); }   // first-write-wins (break LWW)
     else byKey.set(k, e);
     const m = objsByKey.get(k) || new Map();
-    m.set(`${e.provenance?.lane}|${JSON.stringify(e.object)}`, { lane: e.provenance?.lane, object: e.object });
+    m.set(`${e.provenance?.lane}|${JSON.stringify(e.object)}`, { lane: e.provenance?.lane, object: e.object, eventId: e.eventId });   // eventId: re-election needs it (mirrors foldCanonical)
     objsByKey.set(k, m);
     refresh(k);
   }
@@ -85,16 +100,20 @@ export function fold(envelopes, { mutation = null } = {}) {
 // later assert re-sets. This is a SIMPLER oracle than the fold (no contested), so a bug in it makes the
 // reference fold FAIL its own invariant -> caught by the "reference passes all" assertion.
 function oracle(envelopes) {
+  // dead set = supersede targets + retract targets (content-hash), PRECOMPUTED -> order-independent.
   const superseded = new Set();
-  for (const e of envelopes) if (e.supersedes) superseded.add(e.supersedes);
+  for (const e of envelopes) {
+    if (e.supersedes) superseded.add(e.supersedes);
+    if (e.kind === 'retract' && e.object != null) superseded.add(mintEventId({ kind: 'assert', subject: e.subject, predicate: e.predicate, object: e.object }));
+  }
   const winner = new Map();         // key -> expected winning envelope (or absent)
-  const objsActive = new Map();     // key -> Set(JSON(object)) among non-superseded active asserts
+  const objsActive = new Map();     // key -> Set(JSON(object)) among non-dead active asserts
   const seen = new Set();
   for (const e of envelopes) {
     if (seen.has(e.eventId)) continue; seen.add(e.eventId);
+    if (e.kind === 'retract') continue;            // retract adds no claim
+    if (superseded.has(e.eventId)) continue;       // superseded or retracted -> never active
     const k = keyOf(e);
-    if (e.kind === 'retract') { winner.delete(k); objsActive.delete(k); continue; }
-    if (superseded.has(e.eventId)) continue;
     winner.set(k, e);
     const s = objsActive.get(k) || new Set(); s.add(JSON.stringify(e.object)); objsActive.set(k, s);
   }
