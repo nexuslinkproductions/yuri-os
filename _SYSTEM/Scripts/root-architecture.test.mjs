@@ -47,6 +47,14 @@ const ignoredDirs = new Set([
   'build',
   '.next',
   '.cache',
+  // .claude holds ephemeral runtime STATE (state/history/file-history/projects) whose JSON legitimately
+  // carries absolute paths (e.g. a session-checkpoint's `cwd`) — it is runtime DATA, not architecture. A
+  // stray nested .claude/ (e.g. _SYSTEM/Scripts/.claude/state/ written cwd-relative by a tool BEFORE the
+  // session-checkpoint hook was anchored to CLAUDE_PROJECT_DIR, 2026-06-14) must never block the repo-wide
+  // arch gate over and over. The .claude targets that ARE scanned (.claude/CLAUDE.md, .claude/launch.json,
+  // .claude/mcp-servers) are listed explicitly in activeRootFiles/activeScanRoots and resolve directly, so
+  // this recursion-skip does not lose any real coverage.
+  '.claude',
 ]);
 
 const textExtensions = new Set([
