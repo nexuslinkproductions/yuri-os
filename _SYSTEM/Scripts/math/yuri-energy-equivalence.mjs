@@ -20,7 +20,7 @@
 // @serves: cross-era equivalence checker | differential random testing energy eras | prove era migration co-ranks verdicts | quantify intended drift divergence | silicon LEC for the energy gate
 // @does: over a DRIFT-ISOLATING generator scores states with v2 (KL drift) and v3 (W₁+μ), GATES on co-ranking (Spearman ρ ≥ CORANK_MIN) + zero-drift exactness, CATCHES a sign-flipped era (ρ ≤ ANTI_MAX), and REPORTS top/bottom drift-tail agreement as the intended-divergence profile (W₁ distance-awareness vs KL saturation)
 // @use: after any drift-term change or era bump, run this to prove the new era still co-ranks states with the old (didn't invert/scramble verdicts) and to quantify how much it intentionally reorders the high-drift tail
-// @exports: v2Scorer, v3Scorer, equivalenceCheck, brokenEraCheck, zeroDriftIdentical, BROKEN_SCORER, genDriftState, spearmanRho, CORANK_MIN, ANTI_MAX
+// @exports: v2Scorer, v3Scorer, equivalenceCheck, brokenEraCheck, scrambledEraCheck, zeroDriftIdentical, BROKEN_SCORER, genDriftState, spearmanRho, CORANK_MIN, ANTI_MAX
 //
 // PROVENANCE: DeepSeek peer-built the LEC/DRT scaffold (v2/v3 scorers, Spearman,
 // sign-flip negative control). Claude-verify caught that its property was
@@ -178,6 +178,48 @@ export function brokenEraCheck({ trials = 3000, seed = 0x2eec, generator = genDr
   const rho_v2 = run(v2Scorer, seed);
   const rho_v3 = run(v3Scorer, seed + 1);
   return { caught: rho_v2 <= ANTI_MAX && rho_v3 <= ANTI_MAX, rho_v2, rho_v3 };
+}
+
+// scrambledEraCheck — the NON-TAUTOLOGICAL discrimination control (B2, 2026-06-14).
+//
+// brokenEraCheck above uses a sign-FLIP. On drift-isolated states the broken U is EXACTLY −v3.U
+// (broken = r.U − 2·drift, and r.U == drift there), so ρ(broken, v3) = −1 BY CONSTRUCTION — the v3
+// arm is algebraically inert: it can only ever confirm the ANTI_MAX extreme, never that the corank
+// gate discriminates a realistic, partial corruption. A perfect negation is the easiest possible
+// "broken era"; passing it proves almost nothing.
+//
+// A SCRAMBLE is the honest control: a seeded random permutation of a real era's scores is
+// DECORRELATED (ρ ≈ 0, value set by the permutation — NOT a fixed algebraic constant), so it tests
+// the gate at the boundary that matters: a corrupted era that is neither equivalent (ρ≥CORANK_MIN)
+// nor a tidy sign-flip (ρ≤ANTI_MAX) must STILL be rejected as non-equivalent (ρ < CORANK_MIN). It
+// also reports a partial-corruption sweep (mix fraction f of scrambled scores) so the gap between
+// "co-ranks" and "rejected" is visible across the whole grey middle, not just at the ρ≈0 extreme.
+export function scrambledEraCheck({ trials = 3000, seed = 0x2eec, generator = genDriftState, mix = 0.5 } = {}) {
+  const rng = makeRng(seed);
+  const real = new Array(trials);
+  for (let i = 0; i < trials; i++) real[i] = v3Scorer(generator(rng)).U;
+
+  // Fully scrambled copy via a seeded Fisher–Yates permutation (reproducible; NOT Math.random).
+  const scrambled = real.slice();
+  for (let i = trials - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [scrambled[i], scrambled[j]] = [scrambled[j], scrambled[i]]; }
+  const rhoFull = spearmanRho(scrambled, real);
+
+  // Partial corruption: replace a fraction `mix` of positions with the scrambled value (the grey
+  // middle between an intact era and a fully decorrelated one).
+  const partial = real.slice();
+  const k = Math.floor(trials * mix);
+  for (let i = 0; i < k; i++) partial[i] = scrambled[i];
+  const rhoPartial = spearmanRho(partial, real);
+
+  return {
+    rhoFull,
+    rhoPartial,
+    mix,
+    decorrelated: Math.abs(rhoFull) < 0.15,       // genuinely ~0 — neither co-ranks nor anti-correlates
+    rejectedByGate: rhoFull < CORANK_MIN,          // the equivalence gate refuses to call a scramble equivalent
+    notAntiCorrelated: rhoFull > ANTI_MAX,         // and it is NOT the trivial sign-flip extreme either
+    caught: rhoFull < CORANK_MIN,                  // a scramble must fail the co-ranking gate
+  };
 }
 
 // --- CLI --------------------------------------------------------------------
