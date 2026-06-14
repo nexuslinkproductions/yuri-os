@@ -3,8 +3,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { canFinalize, subtreeContested, hasEotClaim, contestedFromView, EOT_PREDICATE } from './nano-barrier.mjs';
+import { keyOf } from './memory-canonical-store.mjs';
 
 const ROOT = 'run1';
+const eotKey = (root, p) => keyOf({ subject: `${root}/${p}`, predicate: EOT_PREDICATE }); // store key (NUL-sep)
 // a deps factory: sensible empty defaults, override per test.
 function deps({ live = [], drain = { ok: true }, view = { claims: {}, contested: {} }, orphans = [], converge } = {}) {
   const calls = [];
@@ -52,7 +54,7 @@ test('orphan (no EOT claim) → barrier-critical EVEN when converge is DISARMED'
 });
 
 test('spawned-but-gone child WITH an EOT claim is NOT an orphan → clears', () => {
-  const view = { claims: { [`${ROOT}/r.0 ${EOT_PREDICATE}`]: { object: 'complete' } }, contested: {} };
+  const view = { claims: { [eotKey(ROOT, 'r.0')]: { object: 'complete' } }, contested: {} };
   const { d } = deps({ orphans: ['r.0'], view });
   const r = canFinalize(base({ opts: { armed: false, deps: d } }));
   assert.equal(r.converged, true);           // disarmed passthrough, no orphan
@@ -90,6 +92,6 @@ test('clean subtree, ARMED + unmet obligation floor → quality gate blocks', ()
 test('subtreeContested unit: root catches all of its tree', () => {
   const list = contestedFromView({ contested: { 'k1': { competing: [{ lane: `${ROOT}/r.0` }] }, 'k2': { competing: [{ lane: 'other-root/r.0' }] } } });
   assert.deepEqual(subtreeContested(ROOT, 'r', list).map((c) => c.key), ['k1']); // k2 is a different tree
-  assert.equal(hasEotClaim({ claims: { [`${ROOT}/r.0 eot`]: {} } }, ROOT, 'r.0'), true);
+  assert.equal(hasEotClaim({ claims: { [eotKey(ROOT, 'r.0')]: {} } }, ROOT, 'r.0'), true);
   assert.equal(hasEotClaim({ claims: {} }, ROOT, 'r.0'), false);
 });

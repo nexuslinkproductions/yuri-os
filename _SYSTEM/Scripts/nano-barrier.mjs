@@ -17,7 +17,7 @@
 //   (drainOnce, readView), swarm-convergence (converge). All deps injectable via opts.deps for hermetic tests.
 
 import { inflightDescendants, manifestOrphans, nanoIdOf, isAncestor } from './nano-tree.mjs';
-import { drainOnce, readView } from './memory-canonical-store.mjs';
+import { drainOnce, readView, keyOf } from './memory-canonical-store.mjs';
 import { converge } from './swarm-convergence.mjs';
 
 /** The marker predicate a nano's EOT writes (subject = its nanoId) so the barrier can prove completion. */
@@ -28,10 +28,11 @@ export function contestedFromView(view = {}) {
   return Object.entries(view.contested || {}).map(([key, v]) => ({ key, competing: (v && v.competing) || [] }));
 }
 
-/** Has child `p` landed its EOT marker claim in the (fresh) read-view? key = `${nanoId} eot`. */
+/** Has child `p` landed its EOT marker claim in the (fresh) read-view? Key via the store's keyOf (NUL-sep,
+ *  NOT a space — a space-joined key silently never matches; the e2e caught this). */
 export function hasEotClaim(view = {}, rootRunId, p) {
   const claims = view.claims || {};
-  return Boolean(claims[`${nanoIdOf(rootRunId, p)} ${EOT_PREDICATE}`]);
+  return Boolean(claims[keyOf({ subject: nanoIdOf(rootRunId, p), predicate: EOT_PREDICATE })]);
 }
 
 /**

@@ -42,13 +42,14 @@ export function buildExternalPrompt(task, ctx = {}, includeBrain = false) {
   return lines.join('\n');
 }
 
-/** Default runner: spawn the llm-lane CLI, capture its --out file (the lane's final text). */
-export function defaultLlmLaneRunner({ lane, prompt, reasoning, maxIters, contextFiles, timeoutMs }) {
+/** Default runner: spawn the llm-lane CLI, capture its --out file (the lane's final text). `env` is merged
+ *  over process.env so tree ctx (YURI_NANO_*) crosses the process boundary to a spawned child lane. */
+export function defaultLlmLaneRunner({ lane, prompt, reasoning, maxIters, contextFiles, timeoutMs, env = null }) {
   const outFile = path.join(os.tmpdir(), `nano-ext-${process.pid}-${crypto.randomBytes(4).toString('hex')}.txt`);
   const args = [LLM_LANE, lane, prompt, '--out', outFile, '--max-iters', String(maxIters || 24)];
   if (reasoning) args.push('--reasoning', reasoning);
   if (Array.isArray(contextFiles) && contextFiles.length) args.push('--context', contextFiles.join(','));
-  const res = spawnSync('node', args, { encoding: 'utf8', timeout: timeoutMs || 200000, maxBuffer: 16 * 1024 * 1024 });
+  const res = spawnSync('node', args, { encoding: 'utf8', timeout: timeoutMs || 200000, maxBuffer: 16 * 1024 * 1024, env: env ? { ...process.env, ...env } : process.env });
   let output = '';
   try { output = fs.readFileSync(outFile, 'utf8'); } catch { /* lane may have failed before writing */ }
   try { fs.unlinkSync(outFile); } catch { /* best-effort */ }
@@ -61,13 +62,13 @@ export function defaultLlmLaneRunner({ lane, prompt, reasoning, maxIters, contex
  */
 export function externalNanoWork({
   lane, task, reasoning = 'xhigh', maxIters = 24, contextFiles = [], includeBrain = false,
-  timeoutMs = 200000, runLane = defaultLlmLaneRunner,
+  timeoutMs = 200000, runLane = defaultLlmLaneRunner, env = null,
 } = {}) {
   const laneId = assertLlmLaneRouted(lane);
   return async function externalWork(ctx = {}) {
     const prompt = buildExternalPrompt(task, ctx, includeBrain);
     let r;
-    try { r = await runLane({ lane: laneId, prompt, reasoning, maxIters, contextFiles, timeoutMs }); }
+    try { r = await runLane({ lane: laneId, prompt, reasoning, maxIters, contextFiles, timeoutMs, env }); }
     catch (e) { return { ok: false, lane: laneId, via: 'llm-lane', error: String(e?.message || e) }; }
     const output = String(r?.output || '').trim();
     const ok = (r?.exitCode === 0 || r?.exitCode == null) && output.length > 0;
