@@ -14,6 +14,7 @@ import { fnv1a as jsFnv, makeHashes as jsMakeHashes, minhashSignature as jsMinha
 import { tokenize as jsTokenize, jaccard as jsJaccard } from '../Scripts/math/yuri-jaccard.mjs';
 import { fib as jsFib, phiSequence as jsPhiSeq, goldenAnglePoint as jsGoldenAngle, goldenSectionSearch as jsGolden } from '../Scripts/math/yuri-phi.mjs';
 import { buildIndex, matchExact, matchPrefixFilter } from '../Scripts/corpus-match.mjs';
+import { rankWithTies as jsRank, median as jsMedian, percentile as jsPercentile, weightedVariance as jsWVar } from '../Scripts/math/math-kernel.mjs';
 
 let pass = 0, fail = 0;
 const ok = (c, n) => { if (c) pass++; else { fail++; console.log(`  FAIL ${n}`); } };
@@ -45,6 +46,10 @@ for (const [k, seed] of [[4, 42], [16, 7], [128, 0x9e3779b1], [2000, 0xbeef]]) {
   const jh = jsMakeHashes(256, 1);
   const sA = [...jsMinhash(['a', 'b', 'c', 'd', 'e'], jh)], sB = [...jsMinhash(['c', 'd', 'e', 'f', 'g'], jh)];
   ok(close(rust.estimateJaccard(sA, sB), jsEstJaccard(Uint32Array.from(sA), Uint32Array.from(sB))), 'estimateJaccard');
+  // empty-set signature parity: both sides honor the house jaccard(∅,∅)=0 convention
+  const sE = [...jsMinhash([], jh)];
+  ok(rust.estimateJaccard(sE, sE) === 0 && jsEstJaccard(Uint32Array.from(sE), Uint32Array.from(sE)) === 0, 'estimateJaccard(∅-sig,∅-sig) === 0 parity');
+  ok(rust.estimateJaccard(sE, sA) === 0 && jsEstJaccard(Uint32Array.from(sE), Uint32Array.from(sA)) === 0, 'estimateJaccard(∅-sig,non-empty) === 0 parity');
 }
 
 // ── lshBands (EXACT) ──
@@ -115,6 +120,19 @@ for (const n of [0, 1, 5, 100]) ok(close(rust.goldenAnglePoint(n), jsGoldenAngle
   }
 }
 
+// ── stats (Phase-1 W1 clean set) — Rust == JS math-kernel, floats 1e-9 (NOT gate/prover-coupled) ──
+{
+  const closeArr = (a, b) => a.length === b.length && a.every((v, i) => close(v, b[i]));
+  const arrs = [[3, 1, 2], [5, 5, 5, 1], [1, 2, 2, 3, 3, 3], [-2.5, 0, 7.25, 7.25], [42], [1, 1, 2, 2, 2, 9]];
+  for (const a of arrs) {
+    ok(closeArr(rust.statsRankWithTies(a), jsRank(a)), `statsRankWithTies [${a.slice(0, 4).join(',')}]`);
+    ok(close(rust.statsMedian(a), jsMedian(a)), `statsMedian [${a.slice(0, 4).join(',')}]`);
+    for (const p of [1, 25, 50, 75, 100]) ok(close(rust.statsPercentile(a, p), jsPercentile(a, p)), `statsPercentile p=${p} [${a.slice(0, 3).join(',')}]`);
+  }
+  const wv = [[[1, 2, 3], [1, 1, 1]], [[10, 20, 30], [0.5, 0.25, 0.25]], [[5, 5], [3, 7]], [[-1, 0, 1], [2, 2, 2]]];
+  for (const [v, w] of wv) ok(close(rust.statsWeightedVariance(v, w), jsWVar(v, w)), `statsWeightedVariance [${v.join(',')}]`);
+}
+
 // ── FFI FAIL-CLOSED LIMITS (DR security hardening) — DoS inputs MUST throw, not OOM/panic/trap ──
 const throws = (fn, n) => { try { fn(); ok(false, `${n} (should throw)`); } catch { ok(true, n); } };
 throws(() => rust.makeHashes(0, 1), 'makeHashes(0) rejected (was a panic-across-FFI)');
@@ -132,6 +150,12 @@ throws(() => rust.estimateJaccard(new Array(9000).fill(1), [1]), 'estimateJaccar
 throws(() => rust.minhashSignature(['x'], [1, 2], [1, 2, 3]), 'minhashSignature a/b length mismatch rejected');
 throws(() => rust.goldenSectionMinQuadratic(NaN, 0, 1), 'goldenSection NaN target rejected (non-finite)');
 throws(() => rust.phiSequence(5, NaN), 'phiSequence NaN x0 rejected (non-finite)');
+// stats guard parity — JS throws, Rust must throw across FFI (same conditions)
+throws(() => rust.statsMedian([]), 'statsMedian([]) rejected (empty)');
+throws(() => rust.statsPercentile([1, 2, 3], 0), 'statsPercentile p=0 rejected (out of range)');
+throws(() => rust.statsPercentile([1, 2, 3], 150), 'statsPercentile p>100 rejected');
+throws(() => rust.statsWeightedVariance([1, 2], [1]), 'statsWeightedVariance length mismatch rejected');
+throws(() => rust.statsWeightedVariance([1, 2], [0, 0]), 'statsWeightedVariance zero-sum weights rejected');
 
 console.log(`\nnexus napi conformance: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

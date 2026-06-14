@@ -3,7 +3,7 @@
 //! Rust guards are SECOND-LINE — the true first boundary is JS-side validation before marshalling.
 use napi_derive::napi;
 
-use crate::{corpus_match, guard, jaccard, minhash, phi};
+use crate::{corpus_match, guard, jaccard, minhash, phi, stats};
 
 #[napi]
 pub fn fnv1a(s: String) -> u32 { minhash::fnv1a(&s) }
@@ -107,4 +107,29 @@ pub fn corpus_match_exact(ids: Vec<String>, texts: Vec<String>, query: String, t
 #[napi]
 pub fn corpus_match_prefix(ids: Vec<String>, texts: Vec<String>, query: String, threshold: f64) -> napi::Result<MatchResult> {
     run_match(ids, texts, query, threshold, true)
+}
+
+// ── stats (Phase-1 W1 clean set) — StatsError.message() is byte-identical to the JS Error string ──
+fn map_stats_err<T>(r: stats::StatsResult<T>) -> napi::Result<T> {
+    r.map_err(|e| napi::Error::from_reason(e.message().to_string()))
+}
+
+#[napi]
+pub fn stats_rank_with_ties(values: Vec<f64>) -> napi::Result<Vec<f64>> {
+    map_stats_err(stats::rank_with_ties(&values))
+}
+
+#[napi]
+pub fn stats_median(values: Vec<f64>) -> napi::Result<f64> {
+    map_stats_err(stats::median(&values))
+}
+
+#[napi]
+pub fn stats_percentile(values: Vec<f64>, p: f64) -> napi::Result<f64> {
+    map_stats_err(stats::percentile(&values, p))
+}
+
+#[napi]
+pub fn stats_weighted_variance(values: Vec<f64>, weights: Vec<f64>) -> napi::Result<f64> {
+    map_stats_err(stats::weighted_variance(&values, &weights))
 }

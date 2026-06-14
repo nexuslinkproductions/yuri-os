@@ -31,3 +31,7 @@ export interface MatchResult {
 }
 export declare function corpusMatchExact(ids: Array<string>, texts: Array<string>, query: string, threshold: number): MatchResult
 export declare function corpusMatchPrefix(ids: Array<string>, texts: Array<string>, query: string, threshold: number): MatchResult
+export declare function statsRankWithTies(values: Array<number>): Array<number>
+export declare function statsMedian(values: Array<number>): number
+export declare function statsPercentile(values: Array<number>, p: number): number
+export declare function statsWeightedVariance(values: Array<number>, weights: Array<number>): number

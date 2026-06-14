@@ -310,7 +310,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { fnv1A, makeHashes, minhashSignature, estimateJaccard, lshBands, tuneBands, tokenize, jaccardText, fib, phiSequence, goldenAnglePoint, goldenSectionMinQuadratic, corpusMatchExact, corpusMatchPrefix } = nativeBinding
+const { fnv1A, makeHashes, minhashSignature, estimateJaccard, lshBands, tuneBands, tokenize, jaccardText, fib, phiSequence, goldenAnglePoint, goldenSectionMinQuadratic, corpusMatchExact, corpusMatchPrefix, statsRankWithTies, statsMedian, statsPercentile, statsWeightedVariance } = nativeBinding
 
 module.exports.fnv1A = fnv1A
 module.exports.makeHashes = makeHashes
@@ -326,3 +326,7 @@ module.exports.goldenAnglePoint = goldenAnglePoint
 module.exports.goldenSectionMinQuadratic = goldenSectionMinQuadratic
 module.exports.corpusMatchExact = corpusMatchExact
 module.exports.corpusMatchPrefix = corpusMatchPrefix
+module.exports.statsRankWithTies = statsRankWithTies
+module.exports.statsMedian = statsMedian
+module.exports.statsPercentile = statsPercentile
+module.exports.statsWeightedVariance = statsWeightedVariance
