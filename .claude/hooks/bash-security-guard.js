@@ -1011,6 +1011,17 @@ function isBlockedForCoworker(cmd) {
   return null;
 }
 
+// Ungoverned nano-swarm spawn bypass (Move-1b D3). A lane must spawn ONLY through the governed spawn_nano
+// tool (depth/fan-out/budget/cost caps). Running nano-external / nano-tick as a RAW process from a lane's
+// bash skips all governance, so deny it. --dry (routing proof) is allowed. Matches the `bash -c "..."`
+// wrapped form too — the node...nano-external substring survives the wrapper. The soft mechanism guard
+// (governedFireDecision in nano-external.mjs) is the cooperative layer; this is the lane-proof hard stop.
+function isBlockedUngovernedNanoSpawn(cmd) {
+  const c = String(cmd || '');
+  if (!/\bnode\b[^|;&]*\bnano-(?:external|tick)\.mjs\b/.test(c)) return false;
+  if (/\s--dry(?:\s|$)/.test(c)) return false; // routing proof, no fire
+  return true;
+}
 function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
@@ -1018,6 +1029,8 @@ function inspectCommand(cmd) {
   const coworkerBlock = isBlockedForCoworker(cmd);
   if (coworkerBlock)
     return { type: 'block', reason: coworkerBlock };
+  if (isBlockedUngovernedNanoSpawn(cmd))
+    return { type: 'block', reason: 'Ungoverned nano spawn — route through the governed spawn_nano tool (depth/fan-out/budget/cost caps), not raw nano-external/nano-tick.' };
   // Owner-scoped exemption: intra-repo .env mirror (cp/mv between repo paths).
   // Documented + tested in this file; harness allowlist also explicitly enumerates
   // the canonical backend/.env <-> _SYSTEM/backend/.env mirror commands.
