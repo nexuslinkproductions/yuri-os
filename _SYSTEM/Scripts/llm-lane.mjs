@@ -634,7 +634,24 @@ async function postChatOllamaLocal(endpoint, model, messages, maxTokens, toolsLi
 // template can't, ollama 4xx's on `tools` and we retry once stripped (parity-degrade, not fail).
 function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane) {
   const wireModel = model.replace(/\[1m\]$/, ''); // [1m] is a client-side alias convention, not a wire id
-  const baseBody = { model: wireModel, messages, stream: false, options: { temperature: 0, num_predict: maxTokens } };
+  // Ollama /api/chat expects assistant tool_calls[].function.arguments as an OBJECT. The shared
+  // tool-loop normalizes arguments to a JSON STRING (the OpenAI convention, for executeTool's
+  // JSON.parse). Re-sending that string on turn 2+ makes ollama's parser throw HTTP 400
+  // "Value looks like object but can't find closing symbol" — breaking EVERY multi-turn tool run
+  // (all models, found 2026-06-14 red-team). Re-objectify outgoing assistant tool_call arguments.
+  const wireMessages = messages.map((m) => {
+    if (m.role !== 'assistant' || !Array.isArray(m.tool_calls) || m.tool_calls.length === 0) return m;
+    return {
+      ...m,
+      tool_calls: m.tool_calls.map((tc) => {
+        const a = tc.function?.arguments;
+        let argObj = a;
+        if (typeof a === 'string') { try { argObj = JSON.parse(a); } catch { argObj = {}; } }
+        return { ...tc, function: { ...tc.function, arguments: argObj && typeof argObj === 'object' ? argObj : {} } };
+      }),
+    };
+  });
+  const baseBody = { model: wireModel, messages: wireMessages, stream: false, options: { temperature: 0, num_predict: maxTokens } };
   const post = (body) => new Promise((resolve, reject) => {
     let u;
     try { u = new URL(`${endpoint}/api/chat`); } catch { reject(Object.assign(new Error('bad_url'), { code: 'BAD_URL' })); return; }
