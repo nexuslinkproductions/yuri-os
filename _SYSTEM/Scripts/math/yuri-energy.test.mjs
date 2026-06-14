@@ -271,6 +271,27 @@ test('gateProposal accepts when ΔU is exactly at threshold', () => {
   assert.equal(r.result.deltaU, 0);
 });
 
+test('gateProposal A4: a present-but-NEGATIVE protected/ladder field FAILS CLOSED (red-team neg-field)', () => {
+  // Verified seam: readNonNegativeField clamps a negative to 0, so `5 -> -5` read as a repair and the veto
+  // did NOT fire (accept was true). Now a present-but-negative count fails closed like a malformed one.
+  const negProtected = gateProposal({
+    stateBefore: { protectedPathViolations: 5, promotionLadderInversions: 0 },
+    stateAfter: { protectedPathViolations: -5, promotionLadderInversions: 0 },
+  });
+  assert.equal(negProtected.result.protectedPathVeto, true);
+  assert.equal(negProtected.result.accept, false);
+
+  const negLadder = gateProposal({
+    stateBefore: { protectedPathViolations: 0, promotionLadderInversions: 5 },
+    stateAfter: { protectedPathViolations: 0, promotionLadderInversions: -5 },
+  });
+  assert.equal(negLadder.result.structuralFloorVeto, true);
+  assert.equal(negLadder.result.accept, false);
+
+  // clean-path unchanged: a benign non-negative transition still accepts
+  assert.equal(gateProposal({ stateBefore: {}, stateAfter: {} }).result.accept, true);
+});
+
 test('gateProposal identifies the dominant rising component', () => {
   const r = gateProposal({
     stateBefore: { protectedPathViolations: 0, promotionLadderInversions: 0 },

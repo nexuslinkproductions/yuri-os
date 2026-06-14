@@ -263,9 +263,9 @@
       "endpoint_default": "https://ollama.com",
       "api_key_env": "OLLAMA_API_KEY",
       "protocol": "ollama-cloud",
-      "context_window": 262144,
-      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 131072 },
-      "max_output_source": "Ollama Cloud (ollama.com /api/chat, Bearer OLLAMA_API_KEY) — FIRST-CLASS PEER lane equal to deepseek/mimo: routed through llm-lane.mjs so it gets the full YURI NANO SWARM loadout + read/grep/search/xref/bash/write/edit toolset + coreOnDispatch/coreOnResult governance, NOT the thin ollama-lane.mjs path. Cloud model IDs carry a :cloud suffix (live-verified 2026-06-14). Default glm-5.1:cloud is overridable per call with --model. Pro plan = 3 concurrent → fan out 3 `ollama-cloud --model <X>:cloud` calls for a cross-family peer nano-swarm. Owner-selected build trio (research ollama-cloud-model-selection-2026-06-14.md): nemotron-3-ultra:cloud, glm-5.1:cloud, minimax-m3:cloud.",
+      "context_window": 1048576,
+      "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
+      "max_output_source": "Ollama Cloud (ollama.com /api/chat, Bearer OLLAMA_API_KEY) — FIRST-CLASS PEER lane equal to deepseek/mimo: routed through llm-lane.mjs so it gets the full YURI NANO SWARM loadout + read/grep/search/xref/bash/write/edit toolset + coreOnDispatch/coreOnResult governance, NOT the thin ollama-lane.mjs path. Cloud model IDs carry a :cloud suffix (live-verified 2026-06-14). Default glm-5.1:cloud is overridable per call with --model. Pro plan = 3 concurrent → fan out 3 `ollama-cloud --model <X>:cloud` calls for a cross-family peer nano-swarm. Owner-selected build trio (research ollama-cloud-model-selection-2026-06-14.md): nemotron-3-ultra:cloud, glm-5.1:cloud, minimax-m3:cloud. CAPABILITY (owner 2026-06-14, LIVE-VERIFIED via 400 errors): context pool up to 1M (input). OUTPUT caps differ per model: glm-5.1 = 131072, minimax-m3 = 131072 (xhigh), nemotron-3-ultra = 65536. 250k was an over-estimate — all three 400 above their real cap. So xhigh=131072 (glm/minimax real max); dispatch nemotron at --reasoning medium (65536), NEVER high/xhigh. Per-model output caps are not yet expressible in this single shared max_output map — follow-up: per-model override so nemotron can xhigh-at-65536 without a manual flag.",
       "timeout_ms": 600000
     }
   },

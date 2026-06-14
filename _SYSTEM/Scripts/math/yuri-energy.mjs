@@ -801,8 +801,12 @@ export function gateProposal({
   // non-offsettable veto by changing the field's TYPE instead of its magnitude. Treat a
   // PRESENT-but-unparseable value as "cannot prove no increase" -> veto.
   const rawAfter = stateAfter.protectedPathViolations;
+  // A4 (red-team, 2026-06-14): a PRESENT-but-NEGATIVE count is as invalid as a non-numeric one —
+  // readNonNegativeField silently clamps it to 0, so `5 → -5` read as a repair and slipped the veto
+  // (verified). Fail-CLOSED on negative too, same "cannot prove no increase" logic. Inert on the live
+  // path (cortexSnapshot counters are non-negative integers → Number(raw) < 0 is never true).
   const afterMalformed = rawAfter !== undefined && rawAfter !== null && rawAfter !== ''
-    && !Number.isFinite(Number(rawAfter));
+    && (!Number.isFinite(Number(rawAfter)) || Number(rawAfter) < 0);
   const protectedPathVeto = afterMalformed || (protectedAfter > protectedBefore);
 
   // STRUCTURAL FLOOR (info-gain buy-back fix, part b): a promotion-ladder inversion
@@ -834,8 +838,9 @@ export function gateProposal({
   const ladderAfter = readNonNegativeField(stateAfter, 'promotionLadderInversions', vetoWarnings);
   const ladderPenaltyDelta = delta.result.componentDeltas.promotionLadderInversions ?? 0;
   const rawLadderAfter = stateAfter.promotionLadderInversions;
+  // A4: present-but-negative is invalid too (clamped to 0 → slips the floor). Fail-CLOSED. Inert on live.
   const ladderAfterMalformed = rawLadderAfter !== undefined && rawLadderAfter !== null && rawLadderAfter !== ''
-    && !Number.isFinite(Number(rawLadderAfter));
+    && (!Number.isFinite(Number(rawLadderAfter)) || Number(rawLadderAfter) < 0);
   // Fire the floor when a ladder inversion was introduced (its own theta-weighted
   // penalty delta exceeds threshold AND the raw count rose) OR the ladder field is
   // present-but-unparseable (fail-CLOSED, same as the protected-path type-confusion
@@ -868,8 +873,9 @@ export function gateProposal({
   if (capArmed) {
     maxLadderAfter = readNonNegativeField(stateAfter, 'maxLadderInversion', vetoWarnings);
     const rawMaxAfter = stateAfter.maxLadderInversion;
+    // A4: present-but-negative is invalid too (clamped to 0 → slips the L∞ floor). Fail-CLOSED. Inert on live.
     maxLadderAfterMalformed = rawMaxAfter !== undefined && rawMaxAfter !== null && rawMaxAfter !== ''
-      && !Number.isFinite(Number(rawMaxAfter));
+      && (!Number.isFinite(Number(rawMaxAfter)) || Number(rawMaxAfter) < 0);
     maxSeverityVeto = maxLadderAfterMalformed || (maxLadderAfter > cap);
   }
 
