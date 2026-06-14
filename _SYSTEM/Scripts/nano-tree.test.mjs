@@ -107,3 +107,11 @@ test('manifestOrphans = spawned, no complete, no live lease', () => {
   assert.deepEqual(orphans, []);
   lease.releaseLease(nt.inflightLeaseId('treeF', 'r.1'), 'nano-r1b');
 });
+
+test('void marker clears a reserved-but-never-ran slot from orphan suspicion', () => {
+  nt.initTree('treeG', { budget: 64 });
+  nt.recordSpawn('treeG', { path: 'r.0', lane: 'a', depth: 1 });
+  assert.deepEqual(nt.manifestOrphans('treeG', 'r'), ['r.0']);   // spawned, no lease/complete → orphan
+  nt.recordVoid('treeG', 'r.0', 'cost-rejected');
+  assert.deepEqual(nt.manifestOrphans('treeG', 'r'), []);        // voided → accounted, not a gap
+});

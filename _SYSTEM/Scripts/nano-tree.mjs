@@ -13,8 +13,8 @@
 //   the budget lease to grant children atomically; inflightDescendants(rootRunId,path) for the barrier;
 //   recordComplete(rootRunId,path) on EOT; manifestOrphans(rootRunId,path) for orphan signals.
 // @exports: initTree, treeConfig, mintPath, depthOf, parentOf, isAncestor, nanoIdOf, inflightLeaseId,
-//   fanoutAt, depthCapFor, tierForParamsB, reserveSpawnSlots, recordSpawn, recordComplete, readManifest,
-//   nodeCount, inflightDescendants, manifestOrphans, treeDir, manifestPath, DEFAULTS
+//   fanoutAt, depthCapFor, tierForParamsB, reserveSpawnSlots, recordSpawn, recordComplete, recordVoid,
+//   readManifest, nodeCount, inflightDescendants, manifestOrphans, treeDir, manifestPath, DEFAULTS
 
 import { openSync, appendFileSync, fsyncSync, closeSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -106,6 +106,11 @@ export function recordSpawn(rootRunId, { path: p, lane, depth }) {
 export function recordComplete(rootRunId, p) {
   appendLine(manifestPath(rootRunId), { type: 'complete', path: p, ts: new Date().toISOString() });
 }
+/** Append a VOID marker — a reserved slot that never ran (cost-rejected / aborted). NOT an orphan: it is
+ *  accounted-but-intentionally-not-started, so the barrier must not flag it as incomplete work. */
+export function recordVoid(rootRunId, p, reason = null) {
+  appendLine(manifestPath(rootRunId), { type: 'void', path: p, reason, ts: new Date().toISOString() });
+}
 /** Parse the manifest, skipping torn/empty lines (crash-safe). */
 export function readManifest(rootRunId) {
   const file = manifestPath(rootRunId);
@@ -168,7 +173,8 @@ export function inflightDescendants(rootRunId, p, now = Date.now()) {
 export function manifestOrphans(rootRunId, parentPath = ROOT_PATH, now = Date.now()) {
   const man = readManifest(rootRunId);
   const spawned = man.filter((e) => e.type === 'spawn' && parentOf(e.path) === parentPath).map((e) => e.path);
-  const completed = new Set(man.filter((e) => e.type === 'complete').map((e) => e.path));
+  // a 'complete' (EOT landed) OR a 'void' (reserved-but-never-ran) marker clears a path from orphan suspicion.
+  const completed = new Set(man.filter((e) => e.type === 'complete' || e.type === 'void').map((e) => e.path));
   const liveLeaseIds = new Set(inspectLeases(now).filter((l) => l.alive).map((l) => String(l.leaseId || '')));
   return spawned.filter((p) => !completed.has(p) && !liveLeaseIds.has(inflightLeaseId(rootRunId, p)));
 }
