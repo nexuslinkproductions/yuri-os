@@ -3,7 +3,7 @@
 //! Rust guards are SECOND-LINE — the true first boundary is JS-side validation before marshalling.
 use napi_derive::napi;
 
-use crate::{corpus_match, guard, jaccard, minhash, phi, stats};
+use crate::{corpus_match, distrib, guard, jaccard, minhash, phi, stats};
 
 #[napi]
 pub fn fnv1a(s: String) -> u32 { minhash::fnv1a(&s) }
@@ -132,4 +132,40 @@ pub fn stats_percentile(values: Vec<f64>, p: f64) -> napi::Result<f64> {
 #[napi]
 pub fn stats_weighted_variance(values: Vec<f64>, weights: Vec<f64>) -> napi::Result<f64> {
     map_stats_err(stats::weighted_variance(&values, &weights))
+}
+
+// ── distrib (Phase-2 deep wave) — ONLY the 6 PROVEN-0-ULP fns are bound. The 4 transcendentals
+// (entropy/klDivergence/crossEntropy/softmax) STAY JS — libm != V8 at the last ULP, not gate-safe.
+fn map_distrib_err<T>(r: distrib::DistribResult<T>) -> napi::Result<T> {
+    r.map_err(|e| napi::Error::from_reason(e.message().to_string()))
+}
+
+#[napi]
+pub fn distrib_normalize(values: Vec<f64>) -> napi::Result<Vec<f64>> {
+    map_distrib_err(distrib::normalize_distribution(&values))
+}
+
+#[napi]
+pub fn distrib_p_norm(values: Vec<f64>, p: f64) -> napi::Result<f64> {
+    map_distrib_err(distrib::p_norm(&values, p))
+}
+
+#[napi]
+pub fn distrib_weighted_std_dev(values: Vec<f64>, weights: Vec<f64>) -> napi::Result<f64> {
+    map_distrib_err(distrib::weighted_std_dev(&values, &weights))
+}
+
+#[napi]
+pub fn distrib_cosine_similarity(left: Vec<f64>, right: Vec<f64>) -> napi::Result<f64> {
+    map_distrib_err(distrib::cosine_similarity(&left, &right))
+}
+
+#[napi]
+pub fn distrib_pearson(xs: Vec<f64>, ys: Vec<f64>) -> napi::Result<f64> {
+    map_distrib_err(distrib::pearson(&xs, &ys))
+}
+
+#[napi]
+pub fn distrib_spearman(xs: Vec<f64>, ys: Vec<f64>) -> napi::Result<f64> {
+    map_distrib_err(distrib::spearman(&xs, &ys))
 }

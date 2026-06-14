@@ -310,7 +310,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { fnv1A, makeHashes, minhashSignature, estimateJaccard, lshBands, tuneBands, tokenize, jaccardText, fib, phiSequence, goldenAnglePoint, goldenSectionMinQuadratic, corpusMatchExact, corpusMatchPrefix, statsRankWithTies, statsMedian, statsPercentile, statsWeightedVariance } = nativeBinding
+const { fnv1A, makeHashes, minhashSignature, estimateJaccard, lshBands, tuneBands, tokenize, jaccardText, fib, phiSequence, goldenAnglePoint, goldenSectionMinQuadratic, corpusMatchExact, corpusMatchPrefix, statsRankWithTies, statsMedian, statsPercentile, statsWeightedVariance, distribNormalize, distribPNorm, distribWeightedStdDev, distribCosineSimilarity, distribPearson, distribSpearman } = nativeBinding
 
 module.exports.fnv1A = fnv1A
 module.exports.makeHashes = makeHashes
@@ -330,3 +330,9 @@ module.exports.statsRankWithTies = statsRankWithTies
 module.exports.statsMedian = statsMedian
 module.exports.statsPercentile = statsPercentile
 module.exports.statsWeightedVariance = statsWeightedVariance
+module.exports.distribNormalize = distribNormalize
+module.exports.distribPNorm = distribPNorm
+module.exports.distribWeightedStdDev = distribWeightedStdDev
+module.exports.distribCosineSimilarity = distribCosineSimilarity
+module.exports.distribPearson = distribPearson
+module.exports.distribSpearman = distribSpearman

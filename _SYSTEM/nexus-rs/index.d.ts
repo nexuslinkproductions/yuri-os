@@ -35,3 +35,9 @@ export declare function statsRankWithTies(values: Array<number>): Array<number>
 export declare function statsMedian(values: Array<number>): number
 export declare function statsPercentile(values: Array<number>, p: number): number
 export declare function statsWeightedVariance(values: Array<number>, weights: Array<number>): number
+export declare function distribNormalize(values: Array<number>): Array<number>
+export declare function distribPNorm(values: Array<number>, p: number): number
+export declare function distribWeightedStdDev(values: Array<number>, weights: Array<number>): number
+export declare function distribCosineSimilarity(left: Array<number>, right: Array<number>): number
+export declare function distribPearson(xs: Array<number>, ys: Array<number>): number
+export declare function distribSpearman(xs: Array<number>, ys: Array<number>): number

@@ -15,6 +15,7 @@ import { tokenize as jsTokenize, jaccard as jsJaccard } from '../Scripts/math/yu
 import { fib as jsFib, phiSequence as jsPhiSeq, goldenAnglePoint as jsGoldenAngle, goldenSectionSearch as jsGolden } from '../Scripts/math/yuri-phi.mjs';
 import { buildIndex, matchExact, matchPrefixFilter } from '../Scripts/corpus-match.mjs';
 import { rankWithTies as jsRank, median as jsMedian, percentile as jsPercentile, weightedVariance as jsWVar } from '../Scripts/math/math-kernel.mjs';
+import { normalizeDistribution as jsNorm, pNorm as jsPNorm, weightedStdDev as jsWStd, cosineSimilarity as jsCos, pearson as jsPearson, spearman as jsSpearman } from '../Scripts/math/math-kernel.mjs';
 
 let pass = 0, fail = 0;
 const ok = (c, n) => { if (c) pass++; else { fail++; console.log(`  FAIL ${n}`); } };
@@ -131,6 +132,23 @@ for (const n of [0, 1, 5, 100]) ok(close(rust.goldenAnglePoint(n), jsGoldenAngle
   }
   const wv = [[[1, 2, 3], [1, 1, 1]], [[10, 20, 30], [0.5, 0.25, 0.25]], [[5, 5], [3, 7]], [[-1, 0, 1], [2, 2, 2]]];
   for (const [v, w] of wv) ok(close(rust.statsWeightedVariance(v, w), jsWVar(v, w)), `statsWeightedVariance [${v.join(',')}]`);
+}
+
+// ── distrib (Phase-2 deep wave) — the 6 PROVEN-0-ULP fns; assert EXACT through FFI vs real JS ──
+{
+  const exactArr = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+  const dists = [[0.2, 0.5, 0.3], [1, 2, 3, 4], [10, 0, 0, 5], [0.1, 0.1, 0.1, 0.1, 0.6]];
+  for (const d of dists) ok(exactArr(rust.distribNormalize(d), jsNorm(d)), `distribNormalize 0-ULP [${d.slice(0, 3)}]`);
+  const vecs = [[3, 1, 2], [1, 2, 3, 4, 5], [-2, 0, 2, 4]];
+  for (const v of vecs) { ok(rust.distribPNorm(v, 2) === jsPNorm(v, 2), `distribPNorm p=2 0-ULP [${v.slice(0, 3)}]`); }
+  const wv = [[[1, 2, 3], [1, 1, 1]], [[10, 20, 30], [0.5, 0.25, 0.25]], [[5, 5, 8], [3, 7, 2]]];
+  for (const [v, w] of wv) ok(rust.distribWeightedStdDev(v, w) === jsWStd(v, w), `distribWeightedStdDev 0-ULP [${v}]`);
+  const pairs = [[[1, 2, 3, 4], [2, 4, 6, 8]], [[1, 2, 3], [3, 1, 2]], [[1, 0, 1, 0], [0, 1, 0, 1]]];
+  for (const [a, b] of pairs) {
+    ok(rust.distribCosineSimilarity(a, b) === jsCos(a, b), `distribCosineSimilarity 0-ULP [${a.slice(0, 3)}]`);
+    ok(rust.distribPearson(a, b) === jsPearson(a, b), `distribPearson 0-ULP [${a.slice(0, 3)}]`);
+    ok(rust.distribSpearman(a, b) === jsSpearman(a, b), `distribSpearman 0-ULP [${a.slice(0, 3)}]`);
+  }
 }
 
 // ── FFI FAIL-CLOSED LIMITS (DR security hardening) — DoS inputs MUST throw, not OOM/panic/trap ──
