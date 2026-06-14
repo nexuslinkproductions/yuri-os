@@ -255,6 +255,18 @@
       "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 12288 },
       "max_output_source": "Gemma 4 12B QAT (7.15GB, 100% GPU on M2 Pro) — the incumbent local SLM, promoted to a curated llm_compat lane so it runs through the SAME governed dispatch as cloud + qwen-local instead of the thin ollama-lane.mjs bypass. Single-lane sequential per the gemma-lanes-strictly-sequential lock.",
       "timeout_ms": 300000
+    },
+    "ollama-cloud": {
+      "model": "glm-5.1:cloud",
+      "provider": "ollama-cloud",
+      "endpoint_env": "OLLAMA_CLOUD_ENDPOINT",
+      "endpoint_default": "https://ollama.com",
+      "api_key_env": "OLLAMA_API_KEY",
+      "protocol": "ollama-cloud",
+      "context_window": 262144,
+      "max_output": { "off": 2048, "low": 2048, "medium": 4096, "high": 16384, "xhigh": 131072 },
+      "max_output_source": "Ollama Cloud (ollama.com /api/chat, Bearer OLLAMA_API_KEY) — FIRST-CLASS PEER lane equal to deepseek/mimo: routed through llm-lane.mjs so it gets the full YURI NANO SWARM loadout + read/grep/search/xref/bash/write/edit toolset + coreOnDispatch/coreOnResult governance, NOT the thin ollama-lane.mjs path. Cloud model IDs carry a :cloud suffix (live-verified 2026-06-14). Default glm-5.1:cloud is overridable per call with --model. Pro plan = 3 concurrent → fan out 3 `ollama-cloud --model <X>:cloud` calls for a cross-family peer nano-swarm. Owner-selected build trio (research ollama-cloud-model-selection-2026-06-14.md): nemotron-3-ultra:cloud, glm-5.1:cloud, minimax-m3:cloud.",
+      "timeout_ms": 600000
     }
   },
   "codex": {

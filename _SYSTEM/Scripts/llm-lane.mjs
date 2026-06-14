@@ -19,8 +19,10 @@
  *
  * Usage:
  *   node llm-lane.mjs <lane> "<prompt>" [flags]      ·   echo "<prompt>" | node llm-lane.mjs <lane>
- * Lanes:  deepseek | ds  ·  ds-flash  ·  mimo (Anthropic-protocol, 1M context)
- * Flags:  --reasoning <low|medium|high|xhigh|max>   --system <str|@file>   --no-system
+ * Lanes:  deepseek | ds  ·  ds-flash  ·  mimo (Anthropic-protocol, 1M context)  ·  ollama-cloud | ollama | oc
+ *          (ollama.com peer lane — pick the model with --model; Pro plan = 3 concurrent → fan out 3 for a swarm)
+ * Flags:  --reasoning <low|medium|high|xhigh|max>   --model <id> (override the lane's default model)
+ *         --system <str|@file>   --no-system
  *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 24)
  *         --context <f1,f2,..|@manifest> (front-load must-read files into the dispatch — guaranteed
  *           context from turn 1 instead of the lane discovering it; budget LLM_LANE_CONTEXT_BUDGET=240k)
@@ -41,6 +43,12 @@ import https from 'node:https';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
+import dns from 'node:dns';
+// Node happy-eyeballs (autoSelectFamily) intermittently throws a bare "AggregateError" on outbound
+// https when IPv6 is flaky — survives Node 24/25, hits every node invocation, curl-immune. Prefer IPv4
+// (keeps the v6 fallback, can't regress a healthy window). If a bad window still flaps, escalate to
+// per-request autoSelectFamily:false (forces single-family). 2026-06-14 root-cause hardening.
+dns.setDefaultResultOrder('ipv4first');
 import { gitMutationHit, protectedPathHit } from './_lib/lane-command-gate.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
 import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
@@ -62,46 +70,74 @@ const ALIAS = {
   mimo: 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro': 'mimo-v2.5-pro[1m]', 'mimo-v2.5-pro[1m]': 'mimo-v2.5-pro[1m]',
   'mimo-v2.5': 'mimo-v2.5[1m]', 'mimo-v2.5[1m]': 'mimo-v2.5[1m]',
   'mimo-v2-flash': 'mimo-v2-flash', 'mimo-flash': 'mimo-v2-flash',
+  // Ollama cloud (ollama.com /api/chat, Bearer auth) — first-class PEER lane, full YURI loadout +
+  // operator toolset, equal to deepseek/mimo. One generic lane; the concrete model is chosen per call
+  // with --model (the live cloud catalog rotates, so it is NOT hardcoded). The Pro plan allows 3
+  // concurrent requests → fan out 3 `ollama-cloud --model <X>` invocations for a peer nano-swarm.
+  ollama: 'ollama-cloud', 'ollama-cloud': 'ollama-cloud', 'ollama-pro': 'ollama-cloud', oc: 'ollama-cloud',
 };
 
 // FULL YURI STACK loadout (default): the lane is a fully-equipped mini-me operator that operates BY
 // the framework, not a thin chatbot. The whole spine is injected as system context (~675 lines —
 // trivial against the 1M context window) so the lane IS a YURI operator from token 1, then it
 // traverses the rest of the stack with its tools. --light swaps in LIGHT_SYSTEM for trivial pings.
-const SPINE_FILES = ['_SYSTEM/yuri-origin.md', 'SOUL.md', '_SYSTEM/persona.md', 'CLAUDE.md', '_SYSTEM/INDEX.md'];
+// YURI NANO SWARM spine: the operating CONTRACT (yuri-origin) + cognition (SOUL) + the NODE persona
+// (identity = a peer model wearing YURI, NOT Claude) + architecture (INDEX). The Claude-lane identity
+// adapters (CLAUDE.md, persona.md — "I am Claude / Rick is this lane") are DELIBERATELY EXCLUDED: a
+// nano-swarm node injected with those answers "I'm Claude Sonnet", which is wrong. nano-swarm-persona.md
+// carries the same cognitive base with a node identity instead. (persona redesign, owner 2026-06-14.)
+const SPINE_FILES = ['_SYSTEM/yuri-origin.md', 'SOUL.md', '_SYSTEM/nano-swarm-persona.md', '_SYSTEM/INDEX.md'];
 const OPERATING_DIRECTIVE =
   '\n\n===== OPERATING DIRECTIVE =====\n'
-  + 'You are a fully-equipped YURI reasoning lane — a mini-me operator carrying the full stack above, '
-  + 'NOT a bare chatbot and NOT blind to YURI. Traverse the ENTIRE system with your tools: read_file / '
+  + 'You are a fully-equipped YURI NANO SWARM node — a peer build/reasoning model carrying the YURI '
+  + 'operating framework above, NOT a bare chatbot and NOT blind to YURI. Traverse the ENTIRE system with your tools: read_file / '
   + 'grep / list_dir (the full repo, minus protected secrets), search (FTS5 corpus, ~26k docs+code), '
-  + 'xref_query (unified FTS5/graph/GitNexus/spectrum retrieval), propagation_scan (dry-run propagation-law sibling checks), fetch_url (external refs). '
+  + 'xref_query (unified FTS5/graph/GitNexus/spectrum retrieval), propagation_scan (dry-run propagation-law sibling checks), fetch_url (verified, CITED online research). '
+  + 'Ground in evidence local-first (the YURI corpus is the compounding private research center), but the local store is still scaling — so verified, cited online research via fetch_url is legitimate grounding too, not just repo files. An uncited online claim is not verified. '
+  + 'You are a PEER BUILD lane: you also have write_file (author new modules), edit_file (exact-string surgical edits), and bash (run builds/tests/scripts) — so BUILD directly into the repo, then self-verify by running it. Destructive commands, git mutation (commit/push), and protected surfaces are blocked by design. '
   + 'Pull whatever you need — do not work from a sliver. Live state is authoritative over prose: read '
   + '.claude/config/models.json (llm_compat_lanes = the current lane roster), _SYSTEM/INDEX.md (architecture), '
   + 'and the memory indexes for current facts rather than inferring from older docs. Ground every claim '
-  + 'in something you actually read. Authority: owner intent > local evidence > this contract. Your output is ADVISORY until '
-  + 'YURI verifies it against live code — fluency is not verification. Protected surfaces (.env, '
-  + 'secrets, backend/data, .claude runtime state) are refused by design. No padding, no flattery. '
+  + 'in something you actually read. Authority: owner intent > local evidence > this contract. You are a full peer '
+  + 'operator (same grade as any lane, Claude included): build, decide, execute. Truth here is earned through the '
+  + 'shared verification system — local evidence, gates, GitNexus impact, owner approval for mutation — applied '
+  + 'equally to every lane including Claude; that is how work becomes trusted, not by fluency. Ground claims and mark '
+  + 'what is unverified. Protected surfaces (.env, secrets, backend/data, .claude runtime state) are refused by design. No padding, no flattery. '
   + 'When done investigating, give your final answer as plain text with no further tool calls.';
-function buildYuriLoadout() {
-  const parts = ['# YURI-OS FULL OPERATING STACK — you operate BY this framework as a YURI lane.'];
+// Identity anchor appended LAST (recency = strongest) so a node can never default to "I'm Claude" no
+// matter what the injected stack says. Names the actual backend model so the node knows what it runs on.
+function nanoSwarmIdentityAnchor(model) {
+  const backend = model ? model.replace(/\[1m\]$/, '') : 'an independent peer model';
+  return '\n\n===== YURI NANO SWARM — IDENTITY ANCHOR (authoritative; overrides every identity line above) =====\n'
+    + `You are a YURI NANO SWARM node running on the "${backend}" backend. You are NOT Claude, Sonnet, Opus, `
+    + 'Fable, or Rick — those name the Claude lane, not you. You wear the YURI operating framework (cognition, '
+    + 'gates, authority hierarchy, claim-vs-evidence discipline) but your identity is this node on its own model. '
+    + `If asked who or what you are, say you are a YURI NANO SWARM node (on ${backend}) — never claim to be Claude `
+    + 'or any Anthropic model. The operator is Marcel Spatz; address him by name, never as "Rick".';
+}
+function buildYuriLoadout(model) {
+  const parts = ['# YURI-OS OPERATING STACK — you operate BY this framework as a YURI NANO SWARM node (you are NOT Claude).'];
   const missing = [];
   for (const f of SPINE_FILES) {
     try { parts.push(`\n\n===== ${f} =====\n${fs.readFileSync(path.join(REPO_ROOT, f), 'utf8')}`); }
     catch { missing.push(f); }
   }
-  // A missing spine file means the lane would run cognitively decapitated (no contract/persona).
+  // A missing spine file means the node would run cognitively decapitated (no contract/persona).
   // Don't silently degrade — make it LOUD so a broken spine is never mistaken for a working lane.
   if (missing.length) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=llm-lane reason=spine_incomplete missing=${missing.join(',')}\n`);
   parts.push(OPERATING_DIRECTIVE);
+  parts.push(nanoSwarmIdentityAnchor(model));
   return parts.join('');
 }
 const LIGHT_SYSTEM =
-  'You are a YURI-OS reasoning lane (dev-only, advisory). Operate BY the YURI framework: owner intent > '
+  'You are a YURI NANO SWARM node — a full peer operator (NOT Claude). Operate BY the YURI framework: owner intent > '
   + 'local evidence > contract. Use your tools (read_file/grep/list_dir/search/xref_query/propagation_scan/fetch_url) '
-  + 'to ground claims. Output is ADVISORY until YURI verifies it. Protected surfaces are refused. No padding.';
+  + 'to ground every claim. Truth here is earned by the shared verification system (evidence, gates, owner approval) — '
+  + 'the same for every lane, Claude included — not by fluency; mark what is unverified and let the system confirm. '
+  + 'Protected surfaces are refused. No padding.';
 
 // ── Lane-endpoint SSRF guard: ALLOWLIST (fail-closed) ──────────────────────────────────────────
-const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'token-plan-ams.xiaomimimo.com']);
+const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'token-plan-ams.xiaomimimo.com', 'ollama.com']);
 function assertSafeEndpoint(endpoint, lane) {
   let url;
   try { url = new URL(endpoint); } catch { return fail(3, lane, `bad_endpoint_url:${endpoint || '(empty)'}`); }
@@ -189,6 +225,8 @@ const TOOLS = [
   { type: 'function', function: { name: 'xref_query', description: 'Run YURI xref-query across FTS5, circuitry graph, GitNexus, mechanism spectrum, and provenance scoring. Use before broad repo navigation; raise top/scan or set all=true for thousand-hit recall.', parameters: { type: 'object', properties: { query: { type: 'string' }, node: { type: 'string' }, top: { type: 'number' }, scan: { type: 'number' }, all: { type: 'boolean' } }, required: ['query'] } } },
   { type: 'function', function: { name: 'propagation_scan', description: 'Run YURI propagation-scan in dry-run mode for a known circuitry node id to inspect sibling surfaces before edits.', parameters: { type: 'object', properties: { nodeId: { type: 'string' }, top: { type: 'number' }, force: { type: 'boolean' } }, required: ['nodeId'] } } },
   { type: 'function', function: { name: 'bash', description: 'Run a shell command in the repo to investigate, build, or RUN SCRIPTS/TESTS (e.g. node --test, npm test, git status, grep). Destructive commands, git mutation (commit/push/tag/...), and protected surfaces are blocked.', parameters: { type: 'object', properties: { cmd: { type: 'string' } }, required: ['cmd'] } } },
+  { type: 'function', function: { name: 'write_file', description: 'Create or overwrite a repo file with full content (BUILD: author new modules/files here). Protected surfaces are refused. Refuses to overwrite an existing file unless overwrite:true (use edit_file for surgical changes).', parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' }, overwrite: { type: 'boolean' } }, required: ['path', 'content'] } } },
+  { type: 'function', function: { name: 'edit_file', description: 'Exact-string replace in an existing repo file. old_string must match uniquely unless replace_all:true. Protected surfaces are refused.', parameters: { type: 'object', properties: { path: { type: 'string' }, old_string: { type: 'string' }, new_string: { type: 'string' }, replace_all: { type: 'boolean' } }, required: ['path', 'old_string', 'new_string'] } } },
 ];
 
 function clip(s, n = 12000) { s = String(s ?? ''); return s.length > n ? `${s.slice(0, n)}\n…[truncated ${s.length - n} chars]` : s; }
@@ -291,6 +329,35 @@ async function executeTool(name, argsRaw) {
         const out = execSync(args.cmd, { cwd: REPO_ROOT, encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] });
         return clip(out.trim() || '(no output)');
       } catch (e) { return clip(`exit ${e.status ?? '?'}: ${(e.stdout || '') + (e.stderr || '') || e.message}`); }
+    }
+    if (name === 'write_file') {
+      if (!args.path) return 'ERROR: missing path';
+      if (typeof args.content !== 'string') return 'ERROR: missing content (must be a string)';
+      const abs = path.resolve(REPO_ROOT, args.path);
+      if (isProtectedPath(abs)) return `REFUSED: protected or out-of-repo path: ${args.path}`;
+      const dir = path.dirname(abs);
+      // symlink-escape defense: realpath the existing parent and re-check it resolves inside the repo + unprotected
+      try { if (fs.existsSync(dir) && isProtectedPath(path.join(fs.realpathSync(dir), path.basename(abs)))) return `REFUSED: protected (realpath): ${args.path}`; } catch { /* parent missing → mkdir below */ }
+      const existed = fs.existsSync(abs);
+      if (existed && !args.overwrite) return `REFUSED: ${args.path} already exists — pass overwrite:true to replace, or use edit_file for a surgical change`;
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(abs, args.content, 'utf8');
+      return `WROTE ${args.path} (${Buffer.byteLength(args.content, 'utf8')} bytes${existed ? ', overwrote' : ', new'})`;
+    }
+    if (name === 'edit_file') {
+      if (!args.path) return 'ERROR: missing path';
+      if (typeof args.old_string !== 'string' || typeof args.new_string !== 'string') return 'ERROR: old_string and new_string (strings) are required';
+      const abs = path.resolve(REPO_ROOT, args.path);
+      if (isProtectedPath(abs)) return `REFUSED: protected or out-of-repo path: ${args.path}`;
+      if (!fs.existsSync(abs)) return `ERROR: ${args.path} does not exist — use write_file to create it`;
+      if (args.old_string === args.new_string) return 'ERROR: old_string equals new_string (no-op)';
+      const cur = fs.readFileSync(abs, 'utf8');
+      const count = cur.split(args.old_string).length - 1;
+      if (count === 0) return `ERROR: old_string not found in ${args.path}`;
+      if (count > 1 && !args.replace_all) return `ERROR: old_string appears ${count}x — make it unique or pass replace_all:true`;
+      const next = args.replace_all ? cur.split(args.old_string).join(args.new_string) : cur.replace(args.old_string, args.new_string);
+      fs.writeFileSync(abs, next, 'utf8');
+      return `EDITED ${args.path} (${count} replacement${count > 1 ? 's' : ''})`;
     }
     return `ERROR: unknown tool ${name}`;
   } catch (e) { return `${name} error: ${e.message}`; }
@@ -449,37 +516,51 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
   });
 }
 
+// node:https POST (NOT undici fetch). Root-cause fix: on Node v25.9.0 undici's keep-alive socket
+// reuse throws a bare, deterministic "AggregateError" against api.deepseek.com — the Anthropic/mimo
+// path (postMessagesAnthropicHttps) and mimo.mjs both use https.request and DON'T hit it. So the
+// OpenAI path uses https.request too. Connection:close + a one-shot agent = clean socket per call.
+function httpsPostJson(urlStr, headers, bodyStr, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let u;
+    try { u = new URL(urlStr); } catch { reject(Object.assign(new Error('bad_url'), { code: 'BAD_URL' })); return; }
+    const req = https.request({
+      hostname: u.hostname, port: u.port || 443, path: `${u.pathname}${u.search}`, method: 'POST',
+      headers: { ...headers, 'Content-Length': Buffer.byteLength(bodyStr) }, agent: false,
+    }, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (d) => { data += d; });
+      res.on('end', () => resolve({ status: res.statusCode || 0, text: data }));
+    });
+    const to = setTimeout(() => req.destroy(Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' })), timeoutMs);
+    req.on('error', (e) => { clearTimeout(to); reject(e); });
+    req.on('close', () => clearTimeout(to));
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
 async function postChat(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane) {
   const body = JSON.stringify({ model, messages, max_tokens: maxTokens, ...(toolsList && toolsList.length ? { tools: toolsList, tool_choice: 'auto' } : {}) });
-  // Transient transport failures (undici keep-alive socket reuse against a server that drops idle
-  // connections → "AggregateError: fetch failed", ECONNRESET, DNS blips) are RETRIED with a fresh
-  // connection + backoff. `Connection: close` opts out of pooled-socket reuse — the actual root cause
-  // of the intermittent AggregateError — so each one-shot lane call gets a clean socket. 5xx is retried
-  // (transient server); 4xx is terminal. This keeps the night's repeated dispatches from dying on a blip.
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}`, Connection: 'close' };
+  // 5xx / transport blips are retried with backoff; 4xx is terminal.
   const ATTEMPTS = 3;
   let res;
   for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      res = await fetch(`${endpoint}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}`, Connection: 'close' },
-        body,
-        signal: ctrl.signal,
-      });
-      clearTimeout(timer);
+      res = await httpsPostJson(`${endpoint}/chat/completions`, headers, body, timeoutMs);
     } catch (err) {
-      clearTimeout(timer);
-      const reason = err?.cause?.code || err?.name || 'fetch_failed';
+      const reason = err?.code || err?.name || 'https_failed';
       if (attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=transport_retry_${attempt}:${reason}\n`); await sleep(400 * attempt); continue; }
       return fail(1, lane, `transport:${reason}`);
     }
     if (res.status >= 500 && attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=http5xx_retry_${attempt}:${res.status}\n`); await sleep(400 * attempt); continue; }
     break;
   }
-  if (!res.ok) { const b = await res.text().catch(() => ''); return fail(res.status >= 500 ? 1 : 3, lane, `http_${res.status}:${b.slice(0, 160)}`); }
-  const json = await res.json().catch(() => null);
+  if (res.status < 200 || res.status >= 300) { return fail(res.status >= 500 ? 1 : 3, lane, `http_${res.status}:${String(res.text).slice(0, 160)}`); }
+  let json = null;
+  try { json = JSON.parse(res.text); } catch { json = null; }
   return json?.choices?.[0] || {};
 }
 
@@ -542,6 +623,69 @@ async function postChatOllamaLocal(endpoint, model, messages, maxTokens, toolsLi
   return { message: { role: 'assistant', content: data.message?.content || '', tool_calls }, finish_reason: data.done_reason || (tool_calls.length ? 'tool_calls' : 'stop') };
 }
 
+// ── CLOUD ollama lane transport: ollama.com /api/chat, Bearer auth, returns an OpenAI-`choice`-shaped
+// object so the shared dispatch tool-loop is protocol-agnostic. Same wire schema as the local ollama
+// path (/api/chat, {message:{content,tool_calls}}) but over a remote https host with an API key — so it
+// gets the cloud-grade transport: node:https.request (NOT undici fetch — the documented AggregateError
+// keep-alive flap on Node 25), agent:false + Connection:close (one clean socket per call), and the
+// process-global dns ipv4first ordering set at module load. Host is allowlisted (ollama.com) by
+// assertSafeEndpoint before we ever get here; the model string is validated server-side (a bad model
+// → 4xx → clean fail). Tools are passed through (frontier cloud models tool-call); on a model whose
+// template can't, ollama 4xx's on `tools` and we retry once stripped (parity-degrade, not fail).
+function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, toolsList, timeoutMs, lane) {
+  const wireModel = model.replace(/\[1m\]$/, ''); // [1m] is a client-side alias convention, not a wire id
+  const baseBody = { model: wireModel, messages, stream: false, options: { temperature: 0, num_predict: maxTokens } };
+  const post = (body) => new Promise((resolve, reject) => {
+    let u;
+    try { u = new URL(`${endpoint}/api/chat`); } catch { reject(Object.assign(new Error('bad_url'), { code: 'BAD_URL' })); return; }
+    const payload = JSON.stringify(body);
+    const req = https.request({
+      hostname: u.hostname, port: u.port || 443, path: `${u.pathname}${u.search}`, method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}`, Connection: 'close', 'Content-Length': Buffer.byteLength(payload) },
+      agent: false,
+    }, (res) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (d) => { data += d; });
+      res.on('end', () => resolve({ status: res.statusCode || 0, text: data }));
+    });
+    const to = setTimeout(() => req.destroy(Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' })), timeoutMs);
+    req.on('error', (e) => { clearTimeout(to); reject(e); });
+    req.on('close', () => clearTimeout(to));
+    req.write(payload);
+    req.end();
+  });
+
+  return (async () => {
+    const ATTEMPTS = 3;
+    let res; let body = toolsList && toolsList.length ? { ...baseBody, tools: toolsList } : baseBody;
+    for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+      try {
+        res = await post(body);
+      } catch (err) {
+        const reason = err?.code || err?.name || 'https_failed';
+        if (attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_transport_retry_${attempt}:${reason}\n`); await sleep(400 * attempt); continue; }
+        return fail(1, lane, `cloud_transport:${reason}`);
+      }
+      if (res.status >= 200 && res.status < 300) break;
+      // template can't tool-call → drop tools and retry once as a plain chat (parity-degrade, not fail)
+      if (/tool|function|template/i.test(res.text) && body.tools) { body = baseBody; process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_tools_unsupported_retry_plain\n`); continue; }
+      if (res.status >= 500 && attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_http5xx_retry_${attempt}:${res.status}\n`); await sleep(400 * attempt); continue; }
+      return fail(res.status >= 500 ? 1 : 3, lane, `cloud_http_${res.status}:${String(res.text).slice(0, 160)}`);
+    }
+    let data = null;
+    try { data = JSON.parse(res.text); } catch { data = null; }
+    if (!data) return fail(1, lane, 'cloud_bad_json');
+    const rawCalls = Array.isArray(data.message?.tool_calls) ? data.message.tool_calls : [];
+    const tool_calls = rawCalls.map((c, i) => ({
+      id: c.id || `cloud_${i}`,
+      type: 'function',
+      function: { name: c.function?.name, arguments: typeof c.function?.arguments === 'string' ? c.function.arguments : JSON.stringify(c.function?.arguments || {}) },
+    }));
+    return { message: { role: 'assistant', content: data.message?.content || '', tool_calls }, finish_reason: data.done_reason || (tool_calls.length ? 'tool_calls' : 'stop') };
+  })();
+}
+
 async function dispatch(laneArg, prompt, opts = {}) {
   const laneLc = String(laneArg || '').toLowerCase();
   // Resolve via the cloud alias table first; otherwise accept a direct llm_compat_lanes key (this is
@@ -553,6 +697,11 @@ async function dispatch(laneArg, prompt, opts = {}) {
 
   const isLocal = cfg.local === true || cfg.provider === 'ollama-local';
   const isAnthropic = cfg.protocol === 'anthropic' || cfg.protocol === 'anthropic-compatible';
+  const isOllamaCloud = cfg.protocol === 'ollama-cloud' || cfg.provider === 'ollama-cloud';
+  // --model overrides the lane's default model (enables a 3-way peer swarm over one ollama-cloud lane:
+  // fan out 3 concurrent calls each picking a different model from the live cloud catalog). Falls back
+  // to cfg.model. The model is just a string the remote validates; the host stays allowlist-locked.
+  const model = opts.model || cfg.model;
   let endpoint = (process.env[cfg.endpoint_env] || cfg.endpoint_default || '').replace(/\/+$/, '');
   // OLLAMA_HOST is conventionally set scheme-less (127.0.0.1:11434); local lanes need a coerced
   // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
@@ -574,9 +723,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
 
   if (opts.dryRun) {
     const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (useLight ? 'light' : 'full-yuri-stack'));
-    const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout().length : (loadoutMode === 'light' ? LIGHT_SYSTEM.length : (opts.system?.length || 0));
-    const apiPath = isLocal ? `${endpoint}/api/chat` : (isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`);
-    console.log(JSON.stringify({ lane: key, model: cfg.model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout(model).length : (loadoutMode === 'light' ? (LIGHT_SYSTEM + nanoSwarmIdentityAnchor(model)).length : (opts.system?.length || 0));
+    const apiPath = (isLocal || isOllamaCloud) ? `${endpoint}/api/chat` : (isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`);
+    console.log(JSON.stringify({ lane: key, model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, cloud: isOllamaCloud, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
@@ -605,7 +754,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     if (armState.enforced) {
       const taskSpec = {
         lane: key,
-        model: cfg.model,
+        model,
         promptChars: (prompt || '').length + (recallBlock ? recallBlock.length : 0),
         steps: Math.max(1, Number(opts.maxIters) ? Math.ceil(Number(opts.maxIters) * 0.5) : 3),
         reasoning: opts.reasoning || 'medium',
@@ -636,7 +785,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   }
   try {
   const messages = [];
-  let system = opts.noSystem ? '' : (opts.system || (useLight ? LIGHT_SYSTEM : buildYuriLoadout()));
+  let system = opts.noSystem ? '' : (opts.system || (useLight ? (LIGHT_SYSTEM + nanoSwarmIdentityAnchor(model)) : buildYuriLoadout(model)));
   if (system && recallBlock) system += `\n\n===== RECALLED YURI MEMORY (relevant to this task) =====\n${recallBlock}`;
   if (system) messages.push({ role: 'system', content: system });
   const contextPack = opts.context ? buildContextPack(opts.context) : '';
@@ -653,13 +802,15 @@ async function dispatch(laneArg, prompt, opts = {}) {
     T(`PRE_POSTCHAT iter=${iter}`);
     let choice;
     if (isLocal) {
-      choice = await postChatOllamaLocal(endpoint, cfg.model, messages, maxTokens, activeTools, timeoutMs, key, cfg);
+      choice = await postChatOllamaLocal(endpoint, model, messages, maxTokens, activeTools, timeoutMs, key, cfg);
+    } else if (isOllamaCloud) {
+      choice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, activeTools, timeoutMs, key);
     } else if (isAnthropic) {
       const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
-      choice = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aMsgs, aSys, maxTokens, aTools, key);
+      choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key);
     } else {
-      choice = await postChat(endpoint, apiKey, cfg.model, messages, maxTokens, activeTools, timeoutMs, key);
+      choice = await postChat(endpoint, apiKey, model, messages, maxTokens, activeTools, timeoutMs, key);
     }
     lastChoice = choice;
     T(`POST_POSTCHAT msglen=${(choice.message?.content || '').length} calls=${(choice.message?.tool_calls || []).length} finish=${choice.finish_reason}`);
@@ -699,12 +850,14 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const forcedMsgsRaw = [...messages, { role: 'user', content: 'Stop using tools. Give your best final answer now as plain text.' }];
   let forced;
   if (isLocal) {
-    forced = await postChatOllamaLocal(endpoint, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key, cfg);
+    forced = await postChatOllamaLocal(endpoint, model, forcedMsgsRaw, maxTokens, [], timeoutMs, key, cfg);
+  } else if (isOllamaCloud) {
+    forced = await postChatOllamaCloud(endpoint, apiKey, model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
   } else if (isAnthropic) {
     const { messages: aFMsgs, system: aFSys } = toAnthropicMessages(forcedMsgsRaw);
-    forced = await postMessagesAnthropicHttps(endpoint, apiKey, cfg.model, aFMsgs, aFSys, maxTokens, [], key);
+    forced = await postMessagesAnthropicHttps(endpoint, apiKey, model, aFMsgs, aFSys, maxTokens, [], key);
   } else {
-    forced = await postChat(endpoint, apiKey, cfg.model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
+    forced = await postChat(endpoint, apiKey, model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
   }
   const ftext = String(forced.message?.content ?? lastChoice.message?.content ?? '').trim();
   if (ftext) { process.stdout.write(`${ftext}\n`); if (opts.out) fs.writeFileSync(path.resolve(opts.out), ftext); coreOnResult({ lane: key, prompt, output: ftext, exitCode: 0, runId }); return 0; }
@@ -751,14 +904,15 @@ function buildContextPack(spec) {
 }
 
 const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--route-only']);
-const LEGACY_SKIP_VALUE = new Set(['--model', '--session', '--write-scope', '--ts']);
+const LEGACY_SKIP_VALUE = new Set(['--session', '--write-scope', '--ts']);
 
 function parseCli(argv) {
-  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 24, out: '', dryRun: false, list: false };
+  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 24, out: '', dryRun: false, list: false, model: '' };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a === '--reasoning') out.reasoning = argv[++i] || '';
+    else if (a === '--model' || a === '-m') out.model = argv[++i] || '';
     else if (a === '--system') out.system = readMaybeFile(argv[++i] || '');
     else if (a === '--no-system') out.noSystem = true;
     else if (a === '--light') out.light = true;
@@ -811,4 +965,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, laneCommandAllowed };
+export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, postChatOllamaCloud, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, laneCommandAllowed };

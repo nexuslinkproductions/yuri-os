@@ -2,6 +2,11 @@ import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import http from 'node:http';
 import https from 'node:https';
+import dns from 'node:dns';
+// Cloud ollama (ollama.com) outbound https can hit the same Node happy-eyeballs IPv6-flap that throws
+// a bare "AggregateError" — prefer IPv4 (keeps v6 fallback). Harmless for the loopback local path.
+// Mirrors llm-lane.mjs/mimo.mjs. See ref-llm-lane-aggregateerror-ipv4. 2026-06-14.
+dns.setDefaultResultOrder('ipv4first');
 import {
   estimateTokensFromText,
   hashPayload,

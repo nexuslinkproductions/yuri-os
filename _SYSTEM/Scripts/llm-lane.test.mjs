@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ALIAS, isPrivateHost, isProtectedPath, maxTokensFor, executeTool } from './llm-lane.mjs';
+import { ALIAS, ALLOWED_HOSTS, LANES, isPrivateHost, isProtectedPath, maxTokensFor, executeTool, postChatOllamaCloud } from './llm-lane.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
 
 const REPO = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
@@ -28,6 +28,23 @@ test('ALIAS resolves every lane handle to its models.json key', () => {
   assert.equal(ALIAS.kimi, undefined);
   assert.equal(ALIAS.nemotron, undefined);
   assert.equal(ALIAS.nvidia, undefined);
+  // Ollama cloud peer lane — every handle resolves to the ollama-cloud models.json key.
+  assert.equal(ALIAS.ollama, 'ollama-cloud');
+  assert.equal(ALIAS['ollama-cloud'], 'ollama-cloud');
+  assert.equal(ALIAS['ollama-pro'], 'ollama-cloud');
+  assert.equal(ALIAS.oc, 'ollama-cloud');
+});
+
+test('ollama-cloud is a first-class peer lane: ollama.com allowlisted, cloud protocol, keyed, full toolset', () => {
+  // Host must be on the lane-endpoint SSRF allowlist or dispatch fails closed.
+  assert.ok(ALLOWED_HOSTS.has('ollama.com'));
+  const cfg = LANES['ollama-cloud'];
+  assert.ok(cfg, 'ollama-cloud lane present in models.json');
+  assert.equal(cfg.protocol, 'ollama-cloud');
+  assert.equal(cfg.provider, 'ollama-cloud');
+  assert.equal(cfg.api_key_env, 'OLLAMA_API_KEY'); // peer = keyed, unlike loopback local lanes
+  assert.notEqual(cfg.local, true);                // cloud, not loopback → full YURI loadout + tools
+  assert.equal(typeof postChatOllamaCloud, 'function');
 });
 
 test('isPrivateHost blocks every loopback/private/metadata encoding (fetch_url SSRF deny)', () => {

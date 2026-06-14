@@ -12,6 +12,28 @@ set -euo pipefail
 _yuri_wt="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [ -n "${_yuri_wt:-}" ] && [ -f "$_yuri_wt/.yuri-env.local.sh" ] && source "$_yuri_wt/.yuri-env.local.sh"
 unset _yuri_wt
+# macOS Keychain hydration — the canonical key store (service "<PREFIX>:<VAR>", account "$USER").
+# This block was previously missing here (only the .zshrc fallback below existed), so keychain-only
+# keys like OLLAMA_API_KEY never reached the lane and dispatch failed missing_key even though the
+# entry existed. Mirrors hydrate_keychain_var in llm-compat.sh. (ollama-cloud peer lane, 2026-06-14.)
+_yuri_hydrate_keychain_var() {
+  local key="$1"
+  local service="${YURI_KEYCHAIN_SERVICE_PREFIX:-YURI_OS_MUSUBI}:$key"
+  local value=""
+  if [ -n "${!key:-}" ] || ! command -v security >/dev/null 2>&1; then
+    return 0
+  fi
+  value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
+  # if/fi (not `&& export`) so an absent key returns 0 — under this script's `set -e` (line 3) a
+  # trailing `&&` that short-circuits would return 1 and kill the whole dispatch. llm-compat.sh dodges
+  # this only because its hydration runs before it enables set -e. (ollama-cloud debug, 2026-06-14.)
+  if [ -n "$value" ]; then export "$key=$value"; fi
+  return 0
+}
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
+  _yuri_hydrate_keychain_var "$_lane_var"
+done
+unset _lane_var
 if [ -f "$HOME/.zshrc" ]; then
   for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then

@@ -195,8 +195,12 @@ run_offload_runner() {
       ;;
   esac
 
+  # ollama-cloud is a FIRST-CLASS PEER lane (in models.json llm_compat_lanes) → it dispatches through
+  # llm-lane.mjs below for the full YURI loadout + operator toolset, NOT the thin ollama-lane.mjs runner.
+  # The rest stay on the thin runner: local utility lanes (loopback, no key) + the adapter-only cloud
+  # fallback lanes (reason/code/gemma-cloud, generic ollama, gpt-oss) that are not llm_compat lanes.
   case "$lane" in
-    triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
+    triage-local|summarize-local|code-local|ollama|ollama-local|gemma|gemma-local|gemma-cloud|gpt-oss|reason-cloud|code-cloud)
       env "${env_args[@]}" node "$OLLAMA_LANE_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
       return
       ;;
