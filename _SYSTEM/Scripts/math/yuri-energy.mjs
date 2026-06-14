@@ -52,6 +52,14 @@ import {
 // changes no live verdict.
 export { maxEntBelief, hazardMultiplier };
 
+// B4 ground-truth log seam (substrate-frontier-grade, 2026-06-14): an OPT-IN, FAIL-OPEN
+// capture of each gateProposal verdict. maybeTraceGateVerdict is a NO-OP unless
+// YURI_GATE_TRACE is set, so this import + its single call site below leave the clean
+// path byte-identical (proven ∀-input by yuri-energy-gate-invariants over genGateCorpus).
+// No cycle: the trace module imports nothing from here at top level (its only back-import
+// is a CLI-block dynamic import).
+import { maybeTraceGateVerdict } from './yuri-energy-gate-trace.mjs';
+
 // ENG-01 default baseline halfLife (days) for the SHADOW Cox-aging metric. The live
 // confidenceDecay path requires a per-record halfLife; persisted evidence records
 // (energy-tick-core.applyTransition) carry none. ζ arms via the FLAG-GATED config
@@ -908,6 +916,17 @@ export function gateProposal({
       .sort(([, a], [, b]) => b - a);
     dominantTerm = positive[0]?.[0] ?? null;
   }
+
+  // B4 GROUND-TRUTH SEAM (substrate-frontier-grade, 2026-06-14): record this verdict to
+  // the resolved-outcome log. OPT-IN (YURI_GATE_TRACE) + FAIL-OPEN: a no-op when disabled
+  // and never throws, so the return below is byte-identical whether or not tracing is on.
+  // The fire-time normalized weights `w` are passed so the weight fingerprint binds to the
+  // exact config used here (drift-defense for the later resolution). Placed AFTER the
+  // verdict is fully computed and BEFORE the return — it reads the decision, never alters it.
+  maybeTraceGateVerdict({
+    stateBefore, stateAfter, weights: w, threshold: normalizedThreshold, cap,
+    allowOverride, accept, reason, deltaU,
+  });
 
   return makeMathResult({
     operation: 'yuri-energy.gateProposal',
