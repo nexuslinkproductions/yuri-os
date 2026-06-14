@@ -242,4 +242,42 @@ describe('memory-canonical-store (P1)', () => {
     assert.equal(live.length, 1, 'still exactly one active claim');
     assert.equal(live[0].object, 'new', 'superseded value did NOT resurrect');
   });
+
+  // T-contested — regression for the contested-tracking bug: foldCanonical used to `contested.delete(k)`
+  // whenever a key was momentarily at one distinct object (ALWAYS true on a key's first event), discarding the
+  // accumulator so two lanes' conflicting asserts never co-existed to be flagged. Fixed with a PERSISTENT
+  // objsByKey accumulator + supersede-removal (a cleanly superseded object stops competing).
+  it('T-contested: cross-lane conflict is flagged; solo is clean; a self-supersede resolves', () => {
+    const dir = tmp();
+    appendClaim('laneA', 'sA', { subject: 'price', predicate: 'usd', object: 100 }, { dir });
+    appendClaim('laneB', 'sB', { subject: 'price', predicate: 'usd', object: 200 }, { dir });
+    appendClaim('laneC', 'sC', { subject: 'solo', predicate: 'p', object: 1 }, { dir });
+    drainOnce('d1', { dir });
+    const contested = readView({ dir }).contested;
+    assert.equal(Object.keys(contested).length, 1, 'exactly the conflicting key is contested (not the solo one)');
+    const competing = Object.values(contested)[0].competing;
+    assert.equal(new Set(competing.map((c) => JSON.stringify(c.object))).size, 2, 'both distinct objects recorded');
+
+    // one lane SUPERSEDING its own value (object change) is resolution, NOT conflict -> must not be contested
+    const dir2 = tmp();
+    const a1 = appendClaim('laneA', 'sA', { subject: 'q', predicate: 'p', object: 'v1' }, { dir: dir2 });
+    appendClaim('laneA', 'sA', { subject: 'q', predicate: 'p', object: 'v2', supersedes: a1.eventId }, { dir: dir2 });
+    drainOnce('d2', { dir: dir2 });
+    assert.equal(Object.keys(readView({ dir: dir2 }).contested).length, 0, 'self-supersede (value change) is not contested');
+    assert.equal(loadCanonical({ dir: dir2 })[0].object, 'v2', 'and it resolved to the new value');
+  });
+
+  // T-contested-survives-compaction — Mimo Inc-8 finding: compaction rescues only byKey WINNERS, so the LOSING
+  // object of a contested key was dropped and the disagreement signal silently cleared on re-fold. liveEventIds()
+  // now preserves contested-backing events through compaction + safe-unlink.
+  it('T-contested-survives-compaction: the disagreement signal survives compaction churn', () => {
+    const dir = tmp();
+    const o = { dir, rotationBytes: 300, compactDeadRatio: 0.1, compactGenThreshold: 1 };   // force aggressive compaction
+    appendClaim('laneA', 'sA', { subject: 'price', predicate: 'usd', object: 100 }, { dir });
+    appendClaim('laneB', 'sB', { subject: 'price', predicate: 'usd', object: 200 }, { dir });
+    drainOnce('d1', o);
+    assert.equal(Object.keys(readView(o).contested).length, 1, 'contested before compaction');
+    for (let i = 0; i < 6; i++) { appendClaim('laneC', 'sC', { subject: `f-${i}`, predicate: 'p', object: i }, { dir }); drainOnce(`d-${i}`, o); }
+    assert.equal(Object.keys(readView(o).contested).length, 1, 'contested STILL flagged after compaction churn (loser event preserved)');
+  });
 });

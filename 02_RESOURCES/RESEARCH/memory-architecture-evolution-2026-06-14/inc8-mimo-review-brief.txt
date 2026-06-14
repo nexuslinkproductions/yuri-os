@@ -1,0 +1,19 @@
+YURI canonical-truth memory store — P2 Inc 8 review. You are a YURI NANO SWARM peer (full operator, NOT Claude). Reason locally; output advisory, bounded.
+
+STORE CONTEXT: event-sourced canonical store — every lane appends immutable claim events to its OWN per-lane shard (append+fsync), an elected drainer (nano-lease) folds shards into a generation-rotated canonical.jsonl (symlink→gen-NNNNN), dedup by sha256 eventId = hash(kind,subject,predicate,object), peer-open read via loadCanonical()/readView(). keyOf(claim) = `subject` + NUL + `predicate`.
+
+WHAT I JUST BUILT / CHANGED — ATTACK IT:
+
+1. mcs-subconscious.mjs (NEW, DISARMED, READ-ONLY) — a "subconscious cold tier" WITHIN canonical (not Track-B). subconsciousView({dir}) partitions active claims into {hot, subconscious} by salience. salience = filing-assessor stalenessScore(ageHours, halfLife=168h) over the claim's NEWEST backing-generation mtime (0=fresh → 1=old). A claim is SUBCONSCIOUS if staleness>=0.6 AND not contested; otherwise HOT. CONTESTED claims (per the materialized read-view) are ALWAYS hot (unsettled never demotes). Pure projection: never mutates canonical or the read-view; cold claims REMAIN canonical truth, just out of default hot recall. eventGenAgeIndex(base): eventId→ageHours of the newest gen containing it (ENOENT-tolerant for a peer read racing leased compaction). Known caveat already documented: compaction rewrites gen-00001 (fresh mtime) so a compacted-then-settled claim reads younger than its true age.
+
+2. foldCanonical CONTESTED FIX — the old code ran `contested.delete(k)` whenever a key was momentarily at 1 distinct object, which is ALWAYS true on the first event for a key → the accumulator was discarded → two lanes asserting DIFFERENT objects for the same (subject,predicate) were NEVER flagged contested (broken feature). Fix: a PERSISTENT `objsByKey` accumulator + `refreshContested(k)` that flags when >1 distinct object remains; a cleanly SUPERSEDED object is removed from the competing set (supersede = resolution, not conflict); a retract deletes the key's accumulator. Exactly-once / dedup / byKey last-write-wins are unchanged (contested is a side-output only).
+
+3. keyOf is now EXPORTED from the store and IMPORTED by mcs-subconscious (it was duplicated there with a SPACE separator instead of NUL → silent mismatch where contested claims never matched and got wrongly demoted; now single source of truth).
+
+Tests: store 15/15, fault-injection 7/7, subconscious 6/6, persistence 7/7 — all green, all in temp dirs.
+
+ATTACK (<=55 lines, NUMBERED findings only, no preamble):
+1. SALIENCE/AGE: beyond the known compaction-freshens-gen-1 caveat, what breaks the "newest backing-gen mtime" age signal? clock skew, mtime not bumped on append (does appendDurable to an existing gen update its mtime?), a restore resetting mtimes, a fresh re-fold? Any case where a genuinely-hot claim reads cold or a cold one reads hot?
+2. CONTESTED FIX: find a hole in the persistent accumulator + supersede-removal. e.g. supersede chains spanning generations, offset-loss re-fold replaying events, a retract that should/shouldn't clear contested, lane A and B assert the SAME object then A changes its object, an event superseding a target whose key differs (subject/predicate changed). Where could contested now be WRONGLY set or WRONGLY cleared?
+3. TWO-TRACK SEPARATION: does subconsciousView anywhere read from or write to Claude's Track-B `.claude/memory`? It must be a tier strictly within canonical — confirm or find the leak.
+4. ONE concrete added test or assertion that catches the highest-value gap you found.

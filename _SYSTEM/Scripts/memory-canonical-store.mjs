@@ -3,7 +3,7 @@
 // @serves: canonical truth | one memory path all llms | converge memory | shared truth store | event-sourced memory | per-lane shard | drainer fold | peer-open memory read | concurrent memory write
 // @does: the CANONICAL TRUTH convergence store (Mission v2). Every lane/session/agent appends immutable claim events to its OWN shard file (one writer per file -> zero cross-writer interleave, PIPE_BUF-irrelevant). A single elected drainer (nano-lease) folds shards into a GENERATION-ROTATED append-only canonical log + a materialized read-view, dedup by sha256 content-hash, idempotent re-fold. READ is peer-open (no wrapper); WRITE is shard-append by all, fold serialized for safety not authority.
 // @use: appendClaim(lane,session,claim) to propose truth from any lane; drainOnce(drainerId) on a leased schedule to fold + rotate; readView()/loadCanonical() for open peer read. Reuses nano-lease (election+reclaim), _lib/fs atomicWriteFile (atomic publish), the memory-kernel append+fsync pattern, the yuri-nerve dedup-by-deterministic-id pattern (sha256, not FNV — scale).
-// @exports: appendClaim, drainOnce, loadCanonical, readView, contentHashOf, mintEventId, shardPath, resolveDirs, listGenerations, MAX_EVENT_BYTES, DRAIN_LEASE_ID, compactGeneration, compactionScore, safeUnlinkSealedGens
+// @exports: appendClaim, drainOnce, loadCanonical, readView, contentHashOf, mintEventId, shardPath, resolveDirs, listGenerations, MAX_EVENT_BYTES, DRAIN_LEASE_ID, compactGeneration, compactionScore, safeUnlinkSealedGens, keyOf
 //
 // DESIGN PROVENANCE: 02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/ (00..04). P0/P1 = shards
 // + drainer + dedup. P2 Inc-2 = GENERATION ROTATION (glm-5.1 design, cross-verified by nemotron + DeepSeek
@@ -143,8 +143,7 @@ function sealAndRotate(base, canonicalLog) {
 export function compactionScore(genPath, opts = {}) {
   const base = opts.base || path.dirname(genPath);
   if (!existsSync(genPath)) return { score: 0, ageHours: 0, totalEvents: 0, deadEvents: 0, deadRatio: 0, genPath };
-  const { byKey } = foldCanonical(base);
-  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  const liveIds = liveEventIds(base);   // winners + contested-backing events (compaction must not drop the disagreement signal)
   let total = 0, dead = 0;
   for (const ln of readFileSync(genPath, 'utf8').split('\n')) {
     const t = ln.trim(); if (!t) continue;
@@ -171,8 +170,7 @@ export function compactGeneration(base, canonicalLog, opts = {}) {
   const curLiveName = path.basename(curLive);   // compare by NAME: realpathSync resolves /var->/private/var; listGenerations does not
   const sealed = listGenerations(base).filter((g) => path.basename(g) !== curLiveName);
   if (sealed.length === 0) return { compacted: false, reason: 'no-sealed-gens' };
-  const { byKey } = foldCanonical(base);
-  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  const liveIds = liveEventIds(base);   // winners + contested-backing events (compaction must not drop the disagreement signal)
   let total = 0, dead = 0; const live = []; const seenLive = new Set();
   for (const gen of sealed) {
     if (!existsSync(gen)) continue;
@@ -206,8 +204,7 @@ export function safeUnlinkSealedGens(base, canonicalLog, opts = {}) {
   const now = Date.now();
   let curLive; try { curLive = realpathSync(canonicalLog); } catch { return { unlinked: [], skipped: [], reason: 'no-current-gen' }; }
   const curLiveName = path.basename(curLive);   // compare by NAME: realpathSync resolves /var->/private/var; listGenerations does not
-  const { byKey } = foldCanonical(base);
-  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  const liveIds = liveEventIds(base);   // winners + contested-backing events (compaction must not drop the disagreement signal)
   const unlinked = [], skipped = [];
   for (const gen of listGenerations(base)) {
     if (path.basename(gen) === curLiveName) { skipped.push({ path: gen, reason: 'current-live' }); continue; }
@@ -357,15 +354,22 @@ export function drainOnce(drainerId, opts = {}) {
   }
 }
 
-const keyOf = (e) => `${e.subject} ${e.predicate}`;   // NUL separator — collision-safe for spaces in subject/predicate
+export const keyOf = (e) => `${e.subject} ${e.predicate}`;   // NUL separator — collision-safe for spaces in subject/predicate
 
 /** Fold ALL canonical generations into current state: dedup by eventId, supersede + retract resolution, last-write-wins per (subject,predicate). */
 function foldCanonical(base) {
   const byKey = new Map();        // (subject|predicate) -> winning claim
   const byEvent = new Map();      // eventId -> claim (for supersede targeting)
-  const contested = new Map();    // key -> Map(lane -> object) when >1 distinct active object
+  const contested = new Map();    // key -> Map(lane|objJSON -> {lane,object}) when >1 distinct active object competes
+  const objsByKey = new Map();    // key -> PERSISTENT accumulator of competing (lane,object) — survives across events
   const seenEvents = new Set();
   const supersededIds = new Set();  // eventIds known superseded — order-independent dead-marking (compaction-safe)
+  // refresh the contested flag for key k from its persistent accumulator (flag only when >1 distinct object remains)
+  const refreshContested = (k) => {
+    const m = objsByKey.get(k);
+    const distinct = m ? new Set([...m.values()].map((v) => JSON.stringify(v.object))) : new Set();
+    if (distinct.size > 1) contested.set(k, m); else contested.delete(k);
+  };
   for (const gen of listGenerations(base)) {                 // oldest -> newest = causal (append) order
     let raw;
     // ENOENT-tolerant read: a PEER-OPEN live re-fold (loadCanonical) runs with NO lease, so a concurrent
@@ -386,21 +390,41 @@ function foldCanonical(base) {
       if (e.supersedes) {
         supersededIds.add(e.supersedes);
         const old = byEvent.get(e.supersedes);
-        if (old && byKey.get(keyOf(old))?.eventId === old.eventId) byKey.delete(keyOf(old));
+        if (old) {
+          const ok = keyOf(old);
+          if (byKey.get(ok)?.eventId === old.eventId) byKey.delete(ok);
+          // a cleanly superseded object is RESOLUTION, not conflict -> drop it from the competing set
+          const om = objsByKey.get(ok);
+          if (om) { om.delete(`${old.provenance?.lane}|${JSON.stringify(old.object)}`); refreshContested(ok); }
+        }
       }
       const k = keyOf(e);
       byEvent.set(e.eventId, e);
-      if (e.kind === 'retract') { byKey.delete(k); contested.delete(k); continue; }
+      if (e.kind === 'retract') { byKey.delete(k); objsByKey.delete(k); contested.delete(k); continue; }
       if (supersededIds.has(e.eventId)) continue;                    // this event was superseded by another — never active
       byKey.set(k, e);
-      // contested tracking: distinct active objects for the same key from (any) lane
-      const seenObjs = contested.get(k) || new Map();
-      seenObjs.set(`${e.provenance?.lane}|${JSON.stringify(e.object)}`, { lane: e.provenance?.lane, object: e.object });
-      const distinctObjs = new Set([...seenObjs.values()].map((v) => JSON.stringify(v.object)));
-      if (distinctObjs.size > 1) contested.set(k, seenObjs); else contested.delete(k);
+      // contested tracking: accumulate distinct active objects per key in a PERSISTENT map (a momentary single object
+      // must NOT discard the accumulator — else two lanes' conflicting asserts never co-exist long enough to be flagged),
+      // then refresh the flag from it.
+      const m = objsByKey.get(k) || new Map();
+      m.set(`${e.provenance?.lane}|${JSON.stringify(e.object)}`, { lane: e.provenance?.lane, object: e.object, eventId: e.eventId });
+      objsByKey.set(k, m);
+      refreshContested(k);
     }
   }
   return { byKey, contested };
+}
+
+/**
+ * Event IDs that compaction/unlink must PRESERVE: the current per-key winners (byKey) PLUS every event backing a
+ * CONTESTED key. Without the contested-backing events, compaction (which keeps only winners) drops the losing
+ * object and the "lanes disagree" signal silently clears on the next re-fold (Mimo Inc-8 finding, 2026-06-14).
+ */
+function liveEventIds(base) {
+  const { byKey, contested } = foldCanonical(base);
+  const ids = new Set([...byKey.values()].map((e) => e.eventId));
+  for (const m of contested.values()) for (const v of m.values()) if (v.eventId) ids.add(v.eventId);
+  return ids;
 }
 
 function buildReadView(base, stamp) {
