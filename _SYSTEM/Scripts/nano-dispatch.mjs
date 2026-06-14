@@ -47,7 +47,7 @@ export async function dispatchNano(spec = {}, childCtx = {}, opts = {}) {
   const childNanoId = nanoIdOf(childCtx.rootRunId, childCtx.myPath);
   const work = externalNanoWork({
     lane: spec.lane, task: spec.task, reasoning: spec.reasoning || 'xhigh',
-    env: ctxEnv(childCtx), runLane: opts.runLane,
+    env: ctxEnv(childCtx), runLane: opts.runLane, model: spec.model || null,
   });
   const r = await tick(childNanoId, {
     work, goalId: String(childCtx.rootRunId), root: opts.root, nowIso: opts.nowIso || '', ...(opts.tickOpts || {}),

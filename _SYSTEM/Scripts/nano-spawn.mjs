@@ -119,7 +119,7 @@ export async function spawnNano({ ctx = {}, args = {}, opts = {} } = {}) {
     if (!lease.ok) { try { D.recordVoid(rootRunId, g.path, 'lease-conflict'); } catch { /* */ } continue; } // path already registered — void this reservation
     const childCtx = { rootRunId, myPath: g.path, depth: g.depth, treeReservationId: ctx.treeReservationId || null, reservationId: (adm && adm.reservationId) || null };
     let disp;
-    try { disp = await D.dispatch({ lane: laneKey, task, reasoning: g.reasoning }, childCtx); }
+    try { disp = await D.dispatch({ lane: laneKey, task, reasoning: g.reasoning, model: args.model || null }, childCtx); }
     catch (e) { disp = { ok: false, error: String(e?.message || e) }; }
     spawned.push({ path: g.path, lane: laneKey, depth: g.depth, leaseOwner: childNanoId, reservationId: childCtx.reservationId, dispatched: Boolean(disp && disp.ok !== false) });
   }
@@ -143,6 +143,7 @@ export const SPAWN_NANO_TOOL = {
       lane: { type: 'string', description: 'llm-lane lane key for the child (e.g. deepseek-v4-pro, gemma4:31b:cloud)' },
       count: { type: 'integer', description: 'how many children to request (clamped to fan-out + budget)', default: 1 },
       reasoning: { type: 'string', description: 'reasoning depth (default xhigh)' },
+      model: { type: 'string', description: 'optional ollama-cloud model id for the child (e.g. nemotron-3-ultra:cloud, kimi-k2.7-code:cloud); defaults to the lane default' },
     },
     required: ['task', 'lane'],
   },
