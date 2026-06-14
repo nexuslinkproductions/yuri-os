@@ -30,8 +30,19 @@ train-from-scratch=NO; QLoRA fine-tune 7B on 16GB = *barely*, 12B=OOM (16GB is t
 serve locally via MLX + wrap with YURI. Hardware upgrade (64–128GB M3/M4 Max) later pulls training in-house;
 NOT required to start. Deep research IN FLIGHT (5-angle swarm A–E + 3 peers) → outputs land in the research dir.
 
-NEXT: (a) synthesize swarm + peers → cited corpus docs + `ai reindex`; (b) produce a ready-to-execute **7B
-build playbook** (base model pick, rent-GPU pipeline, quant, MLX serve, YURI-wrap architecture); (c) HOLD for
-"go". Do NOT install ML deps / start training before the go.
+RESEARCH COMPLETE (2026-06-14): 3 research waves captured + reindexed + committed — 10-SYNTHESIS+7B-PLAYBOOK,
+11-ARXIV-BIBLIOGRAPHY (46 papers, API-verified), 12-FINAL-SWEEP-SUMMARY + L1–L5 (releases/frameworks/novel/
+NVIDIA/eval, 27 IDs API-verified). DECISIONS: base = **Qwen3-8B** (primary, dual-mode, biggest ecosystem) +
+**OLMo 3 7B Think** (`2512.13961`, fully-open RLVR 7B = the recipe to clone + swap computeU as verifier).
+Bottleneck fix found: 2026 ZO frontier (Steering-the-Noise `2601.04710`, AGZO `2601.17261`) turns random
+perturbation into effective descent → verifier-guided ZO on-device more viable. Use GRPO successors GSPO
+`2507.18071`/LUSPO/VAPO, not vanilla GRPO. Pipeline settled: Unsloth+TRL GRPOTrainer(reward_fn=computeU)→
+RSLoRA→GGUF Q4_K_M→llama-server Metal. bitsandbytes CONFIRMED CUDA-only (MLX = on-device tool). NVIDIA branch
+scoped per-card (4090: QLoRA 7B 20-40min). Eval: BFCL V4 / τ-bench / LLMRouterBench / VerifyBench / TinyLLM.
+
+NEXT: **PLANNING phase** (owner: "before we get on with planning this slm build") — turn the playbook into a
+concrete staged plan + build the **training-method simulator** (memory×throughput×convergence; find/invent the
+verifier-guided ZO method for 16GB or the NVIDIA branch). Then HOLD for "go" to execute. Do NOT install ML deps
+/ start training before the go. NVIDIA card = PARKED MAYBE (awaiting friend's response).
 
 SEE: [[proj-language-consolidation-priorities]] (Rust/Mojo/ML feed this) · 00-SLM-RESEARCH-BRIEF.md · ASIAN_MOE_STRATEGIES.md · investor-deck slm_development

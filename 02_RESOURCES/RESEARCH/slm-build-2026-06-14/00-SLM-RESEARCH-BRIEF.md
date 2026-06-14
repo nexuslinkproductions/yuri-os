@@ -30,6 +30,11 @@ verification). Connects to the investor-deck "non-stochastic SLM" vision + `ASIA
     **quantize → serve locally on the M2 Pro** + wrap with the YURI spine. Hardware upgrade
     (64–128GB M3/M4 Max) later pulls *training* in-house; it is NOT required to start.
   - The **YURI-as-SLM-extension architecture is prototypable NOW** with a 7–8B served via MLX.
+  - **PARKED BRANCH (owner 2026-06-14, MAYBE — awaiting a friend's response):** a friend *might* lend a strong
+    **NVIDIA GPU** for the build. If it lands, it unlocks the CUDA-only stack the M2 Pro can't run (bitsandbytes
+    QLoRA, Unsloth, flash-attn, vLLM rollouts) + far faster training, and shifts the plan from "rent cloud" to
+    "train on the friend's card → quantize → serve on M2." Plan the on-device/cloud path as primary; keep the
+    NVIDIA path as a ready branch. Per-card ceilings are a research angle (L4) this sweep covers.
 
 ## 3. RESEARCH ANGLES (each → local-first then online, CITED, captured)
 
@@ -77,3 +82,8 @@ verification). Connects to the investor-deck "non-stochastic SLM" vision + `ASIA
 - 2026-06-14 — **Owner: TARGET = 7B (locked). BUILD is owner-gated — execute only on explicit "go", not yet.**
   This phase = research + prep + corpus capture, so we're ready to move the moment Marcel says go. NEXT:
   synthesize peers + swarm → cited corpus docs + `ai reindex` → a ready-to-execute 7B build playbook → HOLD.
+- 2026-06-14 — arXiv bibliography captured (46 papers, verified, `11-ARXIV-BIBLIOGRAPHY.md` + P1–P5). Then
+  **FINAL pre-planning sweep** launched (owner: "one last run … expand to peer-reviewed + releases + docs,
+  most-recent + novelty"): latest base-model releases, framework standards, novel SOTA, the **NVIDIA-GPU
+  maybe-branch** (L4), eval standards → `L1–L5` docs. NEXT after this: we move to **PLANNING the build**
+  (still owner-gated to execute). NVIDIA card = parked MAYBE (awaiting friend).
