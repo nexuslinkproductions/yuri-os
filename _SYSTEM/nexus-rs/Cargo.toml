@@ -12,6 +12,11 @@ crate-type = ["rlib", "cdylib"]
 napi = { version = "2", default-features = false, features = ["napi8"], optional = true }
 napi-derive = { version = "2", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
+# Phase-2 deep wave: pure-Rust fdlibm port for transcendentals (00-MASTER-BRIEF §6a) — libm::log/log2
+# shares V8's fdlibm fork on aarch64; insertion-ordered map so co-occurrence/df/neighbor iteration
+# matches V8 Map order (load-bearing for buildExpansionMap's tie-break-free stable sort + sum order).
+libm = "0.2"
+indexmap = "2"
 
 [build-dependencies]
 napi-build = "2"

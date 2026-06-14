@@ -194,3 +194,20 @@ NaN / -0 / large-array / known-answer cases; int+string EXACT; float ≤1e-9 (0-
   prover threshold is **1e-12** not 1e-9. Toolchain: cargo/wasm-pack ✅ (cargo-test bit-exact provable NOW,
   nexus-rs 23/23 green); **napi CLI absent** → live `.node` rebuild is owner-gated install; Phase-1 ships
   cargo-verified Rust modules, JS stays source-of-truth, DI default-JS. Next: Phase-1 implementation swarm.
+- 2026-06-14 — **Phase-1 SHIPPED+PUSHED** (`945bcb52`): W1 `stats.rs` (rank_with_ties/median/percentile/
+  weighted_variance) + W2 `corpus_match.rs` featureFn serializable contract; cargo 37/37, napi compiles,
+  FFI conformance intact. W3 quantum → `02-quantum-respec.md` (DEFER). W5 dropped.
+- 2026-06-14 — **Phase-1 W1 ARMED+PUSHED** (`4d04b9bd`, owner: "arm what's built"): `@napi-rs/cli` installed,
+  `binding.rs` exposes the 4 stats fns, conformance **napi 139/139** (+51 FFI assertions, error/throw parity),
+  + reversible DI seam `_SYSTEM/Scripts/math/nexus-stats.mjs` (default-JS, `YURI_NEXUS_RUST=1` flips to Rust,
+  fail-safe to JS, test 3/3). Armed-but-inert — no consumer flipped yet (per-consumer swap = further owner gate).
+  `.node` gitignored (built locally). wasm arming owner-gated (homebrew cargo lacks wasm32 `core`; .wasm still 60/60).
+- 2026-06-14 — **Phase-2 deep wave BUILT+INTEGRATED** (owner: "and deeper rust wave"; cargo **71/71** on main,
+  napi compiles, conformance 139/139 intact). `round.rs` = 0-ULP keystone (bit-exact V8 toPrecision(15), proven
+  308,249 vectors; caught stats.rs's naive helper failing exact-half ties). `distrib.rs` = **6/10 0-ULP**
+  (normalizeDistribution/pNorm₂/cosine/weightedStdDev/pearson/spearman), **4 honestly STAY-JS**
+  (entropy/kl/crossEntropy/softmax — libm≠V8 last-ULP). `ppmi.rs` = W4 (cooc EXACT, ppmi/idf 0-ULP aarch64).
+  `.cargo/config.toml` -fma pin (x86_64-scoped; aarch64 guarded by `(a*b)+c` discipline, disasm-verified).
+  Deps libm+indexmap (Cargo.lock pinned). All cargo-lib only — NOTHING wired to the live gate; JS source-of-truth.
+  Commit pending. NEXT (all owner-gated): FFI-bind + arm the 6 new 0-ULP distrib fns + W4; wasm rebuild;
+  stats.rs → delegate to round.rs (make it 0-ULP too); the 4 stay-JS need a V8-exact log/exp port to ever move.
