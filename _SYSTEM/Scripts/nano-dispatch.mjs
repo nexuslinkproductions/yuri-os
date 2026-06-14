@@ -14,6 +14,7 @@
 import { externalNanoWork } from './nano-external.mjs';
 import { nanoIdOf } from './nano-tree.mjs';
 import { tick } from './nano-tick.mjs';
+import { closeNano } from './nano-eot.mjs';
 
 export const CTX_ENV = {
   root: 'YURI_NANO_ROOT_RUN_ID', path: 'YURI_NANO_PATH', depth: 'YURI_NANO_DEPTH', res: 'YURI_NANO_RESERVATION_ID',
@@ -40,7 +41,7 @@ export function ctxEnv(childCtx = {}) {
 /**
  * Dispatch one granted child. externalNanoWork equips it with the full YURI exoskeleton routed through
  * llm-lane; nano-tick runs the loop body + emits lifecycle events. The child inherits its tree ctx via env.
- * opts.runLane (test) / opts.root (test bus dir) / opts.tickOpts override. Returns { ok, childNanoId, tick }.
+ * opts.runLane (test) / opts.root (test bus dir) / opts.tickOpts override. Returns { ok, childNanoId, tick, eot }.
  */
 export async function dispatchNano(spec = {}, childCtx = {}, opts = {}) {
   const childNanoId = nanoIdOf(childCtx.rootRunId, childCtx.myPath);
@@ -51,7 +52,27 @@ export async function dispatchNano(spec = {}, childCtx = {}, opts = {}) {
   const r = await tick(childNanoId, {
     work, goalId: String(childCtx.rootRunId), root: opts.root, nowIso: opts.nowIso || '', ...(opts.tickOpts || {}),
   });
-  return { ok: r?.result?.ok !== false, childNanoId, tick: r };
+  const ok = r?.result?.ok !== false;
+  // CLOSE THE CHILD OUT so the parent barrier can converge. In the blocking dispatch model the child runs as a
+  // subprocess (an ollama lane can't call closeNano itself); the parent closes it after the subprocess returns:
+  // write its result as a canonical claim → stamp the EOT marker → release the in-flight lease (acquired at
+  // spawn, INV-1). WITHOUT this the lease leaks → the child shows as a perpetual in-flight descendant →
+  // orphan→CRITICAL, never convergence. A FAILED child is deliberately LEFT UNCLOSED (no EOT marker) so it
+  // correctly surfaces as a done-with-gap (H2) CRITICAL signal — failure-path semantics unchanged. closeNano is
+  // the same per-nano closeout the e2e exercises. (Surfaced by the first live fire 2026-06-15: a child ran to
+  // exitCode 0 but never closed out, so canFinalize returned descendants-in-flight.)
+  let eot = null;
+  if (ok && childCtx.rootRunId && childCtx.myPath) {
+    let summary;
+    try { summary = JSON.stringify(r.result).slice(0, 2000); } catch { summary = '[unserializable result]'; }
+    try {
+      eot = closeNano({
+        rootRunId: childCtx.rootRunId, myPath: childCtx.myPath, resultLabel: spec.resultLabel || null,
+        claims: [{ subject: childNanoId, predicate: 'nano.result', object: { summary } }],
+      });
+    } catch (e) { eot = { ok: false, error: String(e?.message || e) }; }
+  }
+  return { ok, childNanoId, tick: r, eot };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
