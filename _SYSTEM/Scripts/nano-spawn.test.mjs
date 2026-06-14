@@ -56,6 +56,16 @@ test('tier routing: heavy frontier/unknown, light flash/nano', () => {
   assert.equal(sp.tierForLane('ds-flash'), 'light');
 });
 
+test('REGRESSION: unverified-param lanes pinned heavy via unknown-default (no fabricated number)', () => {
+  // dominated-safe: minimax-m3 + mimo-v2.5-pro have no evidenced param count → must route heavy (depth cap 5).
+  // pinning this catches a future LANE_PARAMS_B edit that silently flips either to light across the 200B line.
+  for (const lane of ['minimax-m3', 'mimo-v2.5-pro']) {
+    assert.equal(sp.tierForLane(lane), 'heavy', `${lane} must be heavy (dominated-safe)`);
+    assert.equal(nt.depthCapFor(sp.tierForLane(lane)), 5, `${lane} depth cap must be 5`);
+    assert.ok(!(lane in sp.LANE_PARAMS_B), `${lane} must carry NO fabricated param guess (route via unknown→heavy)`);
+  }
+});
+
 test('DEPTH cap: heavy lane blocked at depth 5, allowed at 4', async () => {
   nt.initTree('t-depth', { budget: 64 });
   const { d } = deps();

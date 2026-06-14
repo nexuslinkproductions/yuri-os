@@ -39,11 +39,14 @@ export function spawnArmed() {
   try { return fs.existsSync(SPAWN_FLAG_PATH); } catch { return false; }
 }
 
-// Best-effort trained-param counts (BILLIONS) for tier routing. >200B → heavy (depth 5), else light (10).
-// minimax-m3 + mimo-v2.5-pro = VERIFY (classified heavy = conservative until confirmed). Unknown → heavy.
+// Trained-param counts (BILLIONS) for tier routing. >200B → heavy (depth 5), else light (10).
+// Only EVIDENCED counts live here. minimax-m3 + mimo-v2.5-pro are deliberately ABSENT: their trained-param
+// counts are unverified (local corpus has none), so they route via the unknown→heavy default in tierForLane
+// — the dominated-safe tier (mislabel-light-as-heavy only restricts depth; the reverse loosens the
+// sim-validated bound). Add a real number ONLY with evidence, and only after confirming it doesn't flip the
+// tier across the 200B line. Pinned by a by-name regression test in nano-spawn.test.mjs.
 export const LANE_PARAMS_B = {
   'nemotron-3-ultra': 550, 'glm-5.1': 744, 'kimi-k2.7-code': 1000, 'deepseek-v4-pro': 671,
-  'minimax-m3': 230, 'mimo-v2.5-pro': 300, // VERIFY — heavy-side guesses
   'gemma4:31b': 31, 'nemotron-3-nano': 30, 'qwen-local': 9, 'gemma-local': 12,
 };
 /** tier for an llm-lane key; frontier/unknown lanes default HEAVY (conservative: lower depth cap). */
