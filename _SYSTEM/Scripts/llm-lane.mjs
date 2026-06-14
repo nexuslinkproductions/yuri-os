@@ -421,13 +421,33 @@ function toAnthropicMessages(messages) {
   return { messages: result, system };
 }
 
-// Convert OpenAI tool definitions to Anthropic tool definitions.
-function toAnthropicTools(tools) {
-  return tools.map((t) => ({
-    name: t.function.name,
-    description: t.function.description || '',
-    input_schema: t.function.parameters || { type: 'object', properties: {}, required: [] },
-  }));
+// ── Provider-agnostic tool definitions ──────────────────────────────────────────────────────────
+// llm-lane is NOT locked to one provider's tool shape. Tools are normalized to a canonical internal form
+// { name, description, parameters(JSON-Schema) } and RENDERED per provider at send time. normalizeTool
+// absorbs ANY provider's native shape — OpenAI {type:'function',function:{...}}, Anthropic
+// {name,input_schema}, or already-canonical/Gemini-flat — so a tool authored in any dialect, or a peer
+// module's descriptor (e.g. an Anthropic-shaped spawn_nano), works on EVERY transport instead of crashing a
+// consumer that assumed one shape. Adding a new provider = add ONE renderer below; no consumer changes.
+const EMPTY_TOOL_SCHEMA = { type: 'object', properties: {}, required: [] };
+function normalizeTool(t = {}) {
+  if (t && t.function) return { name: t.function.name, description: t.function.description || '', parameters: t.function.parameters || EMPTY_TOOL_SCHEMA }; // OpenAI/OpenAI-compatible
+  if (t && t.input_schema) return { name: t.name, description: t.description || '', parameters: t.input_schema };                                          // Anthropic
+  return { name: t.name, description: t.description || '', parameters: t.parameters || EMPTY_TOOL_SCHEMA };                                                // canonical / Gemini-flat
+}
+// OpenAI + Ollama (local & cloud) consume the OpenAI function-tool shape.
+function toOpenAITools(tools = []) {
+  return tools.map(normalizeTool).map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.parameters } }));
+}
+// Anthropic Messages tool shape.
+function toAnthropicTools(tools = []) {
+  return tools.map(normalizeTool).map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters }));
+}
+// Pick the renderer by lane protocol — the single switch a new provider extends. Accepts tools in any shape.
+function renderTools(tools = [], protocol = 'openai') {
+  switch (String(protocol)) {
+    case 'anthropic': return toAnthropicTools(tools);
+    default: return toOpenAITools(tools); // openai / deepseek / ollama / ollama-cloud / unknown → OpenAI shape
+  }
 }
 
 // Streaming Anthropic Messages API over node:https (SSE). No idle timeout — a slow reasoner must
@@ -763,7 +783,9 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // object"), so LOCAL lanes default tools OFF (reliable governed reasoning — the local-lane role) and
   // require explicit --tools to opt into the experimental gated loop. Cloud lanes keep tools on.
   const wantTools = opts.noTools === true ? false : (isLocal ? opts.forceTools === true : true);
-  const activeTools = !wantTools ? [] : (opts.noExec ? TOOLS.filter((t) => t.function.name !== 'bash') : TOOLS);
+  // Canonical-normalize the toolset once (absorbs whatever shape each TOOLS entry was authored in), so every
+  // downstream consumer + per-provider renderer is shape-agnostic. --no-exec drops bash by canonical name.
+  const activeTools = !wantTools ? [] : (opts.noExec ? TOOLS.map(normalizeTool).filter((t) => t.name !== 'bash') : TOOLS.map(normalizeTool));
   // Loadout sizing: cloud lanes default to the full ~675-line stack (trivial vs 1M ctx). A local 9B
   // can't fit that in 8-32k ctx, so it defaults to the LIGHT spine (still a YURI operator, not a bare
   // chatbot) unless --full is forced. --system / --no-system override either way.
@@ -773,7 +795,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (useLight ? 'light' : 'full-yuri-stack'));
     const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout(model).length : (loadoutMode === 'light' ? (LIGHT_SYSTEM + nanoSwarmIdentityAnchor(model)).length : (opts.system?.length || 0));
     const apiPath = (isLocal || isOllamaCloud) ? `${endpoint}/api/chat` : (isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`);
-    console.log(JSON.stringify({ lane: key, model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, cloud: isOllamaCloud, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.function.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    console.log(JSON.stringify({ lane: key, model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, cloud: isOllamaCloud, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
@@ -849,16 +871,17 @@ async function dispatch(laneArg, prompt, opts = {}) {
   for (let iter = 0; iter < maxIters; iter += 1) {
     T(`PRE_POSTCHAT iter=${iter}`);
     let choice;
+    // activeTools is canonical → render to each transport's native tool shape at the seam (provider-agnostic).
     if (isLocal) {
-      choice = await postChatOllamaLocal(endpoint, model, messages, maxTokens, activeTools, timeoutMs, key, cfg);
+      choice = await postChatOllamaLocal(endpoint, model, messages, maxTokens, toOpenAITools(activeTools), timeoutMs, key, cfg);
     } else if (isOllamaCloud) {
-      choice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, activeTools, timeoutMs, key);
+      choice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, toOpenAITools(activeTools), timeoutMs, key);
     } else if (isAnthropic) {
       const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
       choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key);
     } else {
-      choice = await postChat(endpoint, apiKey, model, messages, maxTokens, activeTools, timeoutMs, key);
+      choice = await postChat(endpoint, apiKey, model, messages, maxTokens, toOpenAITools(activeTools), timeoutMs, key);
     }
     lastChoice = choice;
     T(`POST_POSTCHAT msglen=${(choice.message?.content || '').length} calls=${(choice.message?.tool_calls || []).length} finish=${choice.finish_reason}`);
@@ -1013,4 +1036,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, postChatOllamaCloud, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, laneCommandAllowed };
+export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, postChatOllamaCloud, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, toOpenAITools, normalizeTool, renderTools, laneCommandAllowed };
