@@ -674,7 +674,15 @@ function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, tools
   });
 
   return (async () => {
-    const ATTEMPTS = 3;
+    const ATTEMPTS = 4;
+    // FULL-CAPACITY auto-adapt (2026-06-14): max_output is lane-wide, but each cloud model has its OWN
+    // output ceiling (nemotron-3-ultra=65536 < the lane xhigh=131072). Rather than a hardcoded per-model
+    // table, parse the model's real cap from its 400 and retry AT that cap — so every model (current or
+    // future) runs at ITS full capacity instead of being forced down to a one-size 'high'. capCeil persists
+    // across a tool-strip rebuild so the two retry paths compose.
+    let capCeil = Infinity;
+    const applyCap = (b) => (capCeil === Infinity ? b
+      : { ...b, options: { ...b.options, num_predict: Math.min(b.options?.num_predict ?? capCeil, capCeil) } });
     let res; let body = toolsList && toolsList.length ? { ...baseBody, tools: toolsList } : baseBody;
     for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
       try {
@@ -686,7 +694,18 @@ function postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, tools
       }
       if (res.status >= 200 && res.status < 300) break;
       // template can't tool-call → drop tools and retry once as a plain chat (parity-degrade, not fail)
-      if (/tool|function|template/i.test(res.text) && body.tools) { body = baseBody; process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_tools_unsupported_retry_plain\n`); continue; }
+      if (/tool|function|template/i.test(res.text) && body.tools) { body = applyCap(baseBody); process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_tools_unsupported_retry_plain\n`); continue; }
+      // output-cap auto-adapt: model's true max < requested num_predict → retry at the model's real ceiling
+      // Real ollama 400 shape: `max_tokens (131072) exceeds model's maximum output tokens (65536) for model …`
+      // — the cap sits in parentheses, so skip any run of non-alphanumerics (space/paren/underscore/colon)
+      // between the words and the number.
+      const capM = res.status === 400 ? /maximum[\W_]*output[\W_]*tokens[\W_]*(\d+)/i.exec(String(res.text)) : null;
+      const cap = capM ? Number(capM[1]) : 0;
+      if (cap > 0 && cap < (body.options?.num_predict ?? Infinity) && attempt < ATTEMPTS) {
+        capCeil = cap; body = applyCap(body);
+        process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_output_cap_retry:${cap}\n`);
+        continue;
+      }
       if (res.status >= 500 && attempt < ATTEMPTS) { process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=cloud_http5xx_retry_${attempt}:${res.status}\n`); await sleep(400 * attempt); continue; }
       return fail(res.status >= 500 ? 1 : 3, lane, `cloud_http_${res.status}:${String(res.text).slice(0, 160)}`);
     }
