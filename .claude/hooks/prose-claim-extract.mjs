@@ -27,6 +27,7 @@
 import {
   extractClaims, measureClaims, loadShadowLedger, persistShadow, mergeLedgers,
 } from '../../_SYSTEM/Scripts/prose-claim-extractor.mjs';
+import { observeClaimTransition, emitObservation } from '../../_SYSTEM/Scripts/claim-transition-observer.mjs';
 
 const MAX_CONTENT = 200_000; // never scan an enormous blob in a hook
 // Bounded ROLLING WINDOW for the shadow ledger (pre-arm safety audit, 2026-06-13): measureClaims
@@ -75,6 +76,24 @@ async function main() {
     metrics.filePath = filePath || null;
     metrics.freshClaims = fresh.length;
     persistShadow(merged, metrics);
+    // KEYSTONE OBSERVE (substrate-frontier-grade E, 2026-06-14): the per-claim non-offsettable
+    // identity veto (gateClaimTransition) had NO runtime caller — its docblock says wire it WITH
+    // the v2 prose-claim source, which is THIS live collector. Run it ADVISORY: caps stay disabled
+    // (observe-only), it NEVER blocks, and the hook's exit-0 / fail-open contract is preserved.
+    // Gated on a RETRACT already seen by the cheap measureClaims pass so the O(ledger) double
+    // cortex-snapshot only runs when an over-claim could actually exist.
+    if ((metrics.byVerdict?.RETRACT || 0) > 0) {
+      try {
+        const obs = observeClaimTransition(prior.claims, merged, { nowMs });
+        emitObservation(obs, {
+          nowIso: new Date(nowMs).toISOString(), source: 'prose-claim-extract', tool,
+          filePath: filePath || null, freshClaims: fresh.length,
+        });
+        if (obs.identityVeto) {
+          process.stderr.write(`[claim-transition-observe] advisory: identity veto WOULD fire (${obs.reason}); observe-mode, not blocking.\n`);
+        }
+      } catch { /* observe must never break the collector */ }
+    }
     // Advisory visibility only (PostToolUse stderr is surfaced but NON-blocking): note the
     // aggregate over-claim count in the shadow ledger when this write contributed claims.
     const retracts = metrics.byVerdict?.RETRACT || 0;
