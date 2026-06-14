@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { observeClaimTransition, emitObservation, observeTracePath } from './claim-transition-observer.mjs';
+import { observeClaimTransition, emitObservation, observeTracePath, shouldObserve } from './claim-transition-observer.mjs';
 
 const NOW = 1_700_000_000_000;
 
@@ -37,6 +37,57 @@ test('OBSERVE fails OPEN: a bad input never throws, returns identityVeto=false',
   let o;
   assert.doesNotThrow(() => { o = observeClaimTransition(null, undefined, { nowMs: NOW }); });
   assert.equal(o.identityVeto, false);
+});
+
+// ---- A3 (2026-06-14): widened pre-filter shouldObserve — the guard the live hook uses. ----
+
+test('shouldObserve — WIDENED guard fires on a content-hash swap (churnedAnchors>0, NO RETRACT)', () => {
+  // The exact gap A3 closes: a swap fires the identity veto but carries no RETRACT verdict, so the
+  // old `byVerdict.RETRACT>0` guard skipped the observer entirely. churnedAnchors is the live proxy.
+  assert.equal(shouldObserve({ retracts: 0, inversions: 0, churnedAnchors: 1, byVerdict: {} }), true);
+});
+
+test('shouldObserve — fires on a bare ladder inversion (inversions>0, no RETRACT)', () => {
+  assert.equal(shouldObserve({ retracts: 0, inversions: 2, churnedAnchors: 0, byVerdict: {} }), true);
+});
+
+test('shouldObserve — still fires on RETRACT (superset: old behavior preserved)', () => {
+  assert.equal(shouldObserve({ retracts: 1, inversions: 0, churnedAnchors: 0 }), true);
+  assert.equal(shouldObserve({ byVerdict: { RETRACT: 1 } }), true); // byVerdict fallback
+});
+
+test('shouldObserve — quiet on a clean write (no retract/inversion/swap) — keeps the cheap pre-filter', () => {
+  assert.equal(shouldObserve({ retracts: 0, inversions: 0, churnedAnchors: 0, byVerdict: {} }), false);
+});
+
+test('shouldObserve — fail-open: garbage/missing metrics never throw, default to no-observe', () => {
+  assert.doesNotThrow(() => shouldObserve(null));
+  assert.equal(shouldObserve(null), false);
+  assert.equal(shouldObserve(undefined), false);
+  assert.equal(shouldObserve({}), false);
+  assert.equal(shouldObserve({ retracts: 'x', inversions: NaN, churnedAnchors: undefined }), false);
+});
+
+test('VERIFY-FIRST content-swap — observer fires identityVeto; the guard would now run it', () => {
+  const before = [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'aaa' }];
+  const after = [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'bbb' }];
+  const o = observeClaimTransition(before, after, { nowMs: NOW });
+  assert.equal(o.identityVeto, true);
+  assert.equal(o.worsened[0].contentSwapped, true);
+  // the swap shows up in the metric the widened guard keys on
+  assert.equal(shouldObserve({ churnedAnchors: 1, retracts: 0, inversions: 0 }), true);
+});
+
+test('evidence-regression — trusted claim loses its evidence: soft mass detected, no hard veto', () => {
+  // Verified live behavior (2026-06-14 probe): evidence regression with an unchanged hash is NOT an
+  // identity veto — it surfaces as addedUnsupportedMass. Documents the boundary: the identity veto is
+  // for swaps/RETRACTs; evidence erosion is a separate (softer) channel.
+  const before = [{ id: 'm', claimedStatus: 'trusted', evidence: [{ kind: 'test' }], contentHash: 'h1' }];
+  const after = [{ id: 'm', claimedStatus: 'trusted', evidence: [], contentHash: 'h1' }];
+  const o = observeClaimTransition(before, after, { nowMs: NOW });
+  assert.equal(o.ok, true);
+  assert.equal(o.identityVeto, false);
+  assert.ok(o.addedUnsupportedMass > 0, 'evidence regression should register as added unsupported mass');
 });
 
 test('emitObservation writes a JSONL record to the trace (isolated temp state dir)', () => {

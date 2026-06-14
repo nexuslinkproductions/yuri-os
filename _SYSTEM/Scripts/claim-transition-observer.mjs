@@ -20,7 +20,7 @@
 // @serves: observe the per-claim identity veto on live claim transitions | wire gateClaimTransition advisory | swap-immune claim gate observability | runtime caller for the identity veto
 // @does: advisory observe-mode adapter for gateClaimTransition — computes the non-offsettable identity-veto verdict over a before/after claim pair with the enforcing caps DISABLED, appends an advisory JSONL trace, and NEVER blocks or throws into the caller
 // @use: from the prose-claim-extract advisory hook (or any live claim source) to record whether a transition WOULD trip the identity veto — the runtime observability the keystone gate lacked; arming the block stays a separate owner step
-// @exports: observeClaimTransition, emitObservation, observeTracePath
+// @exports: observeClaimTransition, emitObservation, observeTracePath, shouldObserve
 //
 // WHY OBSERVE FAILS-OPEN while the gate fails-CLOSED: gateClaimTransition vetoes an
 // untrackable RETRACT (fail-closed) because, when ENFORCING, an unprovable over-claim
@@ -65,6 +65,26 @@ export function observeClaimTransition(claimsBefore, claimsAfter, opts = {}) {
     // observe-mode fails OPEN: record the fault, never break the caller.
     return { ok: false, observeError: String((err && err.message) || err), identityVeto: false, wouldAccept: true };
   }
+}
+
+// Cheap PRE-FILTER for the prose-claim-extract hook: run the O(ledger) double cortex-snapshot
+// observer ONLY when a transition could actually trip the per-claim identity veto. The veto fires on
+//   (a) a RETRACT verdict,
+//   (b) a content-hash SWAP of an existing anchor (same id, changed hash) — the worked example's exact
+//       case, which carries NO RETRACT verdict, so the original RETRACT-only guard MISSED it, and
+//   (c) a ladder inversion.
+// measureClaims' live metrics map onto these: `churnedAnchors` is the swap proxy (b), `inversions` is
+// (c), `retracts` / `byVerdict.RETRACT` is (a). This predicate is a strict SUPERSET of the old
+// `byVerdict.RETRACT>0` guard — it never observes LESS, only catches the swap/inversion transitions the
+// narrow guard hid. Observe-only; the observer it gates never blocks. Defensive against missing/garbage
+// metric fields (defaults to 0 ⇒ no observe) so it cannot throw in the fail-open hot path.
+export function shouldObserve(metrics) {
+  if (!metrics || typeof metrics !== 'object') return false;
+  const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const retracts = num(metrics.retracts ?? metrics.byVerdict?.RETRACT);
+  const inversions = num(metrics.inversions);
+  const churned = num(metrics.churnedAnchors);
+  return retracts > 0 || inversions > 0 || churned > 0;
 }
 
 // Append one advisory record to the observe trace (JSONL). Never throws.

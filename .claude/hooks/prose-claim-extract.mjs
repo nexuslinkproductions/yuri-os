@@ -15,11 +15,11 @@
  *   - It only READS the written content (already on disk / in the payload) and WRITES to
  *     _SYSTEM/state/claim-extractor/ (a non-protected runtime-state dir). No protected path.
  *
- * NOT auto-wired into .claude/settings.json — wiring a PostToolUse hook changes session
- * behavior, so it is the OWNER-GATED step (same pattern as math-register-guard). To arm the
- * live collector, add to settings.json PostToolUse (matcher "Write|Edit|MultiEdit"):
- *     { "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prose-claim-extract.mjs\"" }
- * Until then, run the collector manually:  node _SYSTEM/Scripts/prose-claim-extractor.mjs measure <files>
+ * WIRED LIVE (settings.json PostToolUse, matcher "Write|Edit|MultiEdit") — the owner armed the live
+ * collector; it runs on every successful Write/Edit/MultiEdit. The advisory / fail-open / always-exit-0
+ * contract above is exactly what makes that safe: it can never deny, never throw into the session.
+ * To run the batch collector over history manually:
+ *     node _SYSTEM/Scripts/prose-claim-extractor.mjs measure <files>
  *
  * Related: _SYSTEM/Scripts/prose-claim-extractor.mjs (the core), ops plan §3③/§11/§12.
  */
@@ -27,7 +27,7 @@
 import {
   extractClaims, measureClaims, loadShadowLedger, persistShadow, mergeLedgers,
 } from '../../_SYSTEM/Scripts/prose-claim-extractor.mjs';
-import { observeClaimTransition, emitObservation } from '../../_SYSTEM/Scripts/claim-transition-observer.mjs';
+import { observeClaimTransition, emitObservation, shouldObserve } from '../../_SYSTEM/Scripts/claim-transition-observer.mjs';
 
 const MAX_CONTENT = 200_000; // never scan an enormous blob in a hook
 // Bounded ROLLING WINDOW for the shadow ledger (pre-arm safety audit, 2026-06-13): measureClaims
@@ -80,9 +80,13 @@ async function main() {
     // identity veto (gateClaimTransition) had NO runtime caller — its docblock says wire it WITH
     // the v2 prose-claim source, which is THIS live collector. Run it ADVISORY: caps stay disabled
     // (observe-only), it NEVER blocks, and the hook's exit-0 / fail-open contract is preserved.
-    // Gated on a RETRACT already seen by the cheap measureClaims pass so the O(ledger) double
-    // cortex-snapshot only runs when an over-claim could actually exist.
-    if ((metrics.byVerdict?.RETRACT || 0) > 0) {
+    // Gated on shouldObserve(metrics) — the cheap pre-filter that runs the O(ledger) double
+    // cortex-snapshot only when a transition could trip the identity veto. WIDENED (substrate A3,
+    // 2026-06-14): the old guard fired only on byVerdict.RETRACT>0, which MISSED a content-hash SWAP
+    // (same anchor, changed hash → identityVeto fires but NO RETRACT verdict — the observer's own
+    // worked example) and a bare ladder inversion. shouldObserve adds churnedAnchors>0 (swap proxy)
+    // and inversions>0; it is a strict superset, so it never observes less. Observe-only.
+    if (shouldObserve(metrics)) {
       try {
         const obs = observeClaimTransition(prior.claims, merged, { nowMs });
         emitObservation(obs, {
