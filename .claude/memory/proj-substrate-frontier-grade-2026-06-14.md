@@ -42,6 +42,8 @@ UPDATE 2026-06-14b: owner approved commit+push + said let DeepSeek/Mimo BUILD as
 
 PEER BUILDS: **I (Mimo) SHIPPED+VERIFIED** — `_SYSTEM/Scripts/math/yuri-energy-contracts.mjs` DbC layer (C1–C6 postconditions + W-* preconditions), 24/24 green, standalone, registered. **C (DeepSeek) DEFERRED** — good LEC/DRT scaffold but property BARRIER-CONFOUNDED (eta=100 swamps β·W₁; sign-flip control likely uncaught); v2/v3 intentionally non-equivalent on drift → needs drift-isolating generator + agree-on-clear + intended-divergence property. Raw at /tmp/ds-build-C.out, not on disk.
 
-VERIFIED TALLY: A,E,D,I (4 instruments). NEXT: clear commit blocker → push A+E+D+I → refine C → build G (contamination seal) + B (metamorphic campaign) → RED-TEAM EVERYTHING (owner directive) → owner decisions arm-E/H/M/N. Defer L+J. Peer-build→verify→ship loop proven (Mimo I); peer output is advisory-until-Claude-verifies (DeepSeek C caught pre-ship).
+UPDATE 2026-06-14c: commit+push wave 1 DONE (main a2fc0b84, A+E+D+I, 14 files; owner cleared the stray; capability-registry gate reconciled). **C SHIPPED+VERIFIED** (DeepSeek-built, Claude-refined): `_SYSTEM/Scripts/math/yuri-energy-equivalence.mjs` — barrier-confound fixed via genDriftState (drift-isolated pure-drift U); gates on co-ranking ρ=0.815≥0.5 + zero-drift exactness + sign-flip negative control caught (ρ_v3=−1.0); reports the intended divergence (high-drift tail reorders ~40%, the W₁-vs-KL gain quantified). 6/6 C tests, 701/701 full sweep.
+
+VERIFIED TALLY: A,E,D,I,C (5 instruments). NEXT: commit C → build G (contamination seal) + B (metamorphic campaign) → RED-TEAM EVERYTHING (owner directive) → owner decisions arm-E/H/M/N. Defer L+J. Peer-build→Claude-verify→ship loop proven (Mimo I shipped clean; DeepSeek C scaffold good but needed Claude refinement — the barrier-confound caught pre-ship = the advisory-until-verified discipline paying off).
 
 SEE: [[proj-energy-calibration-swarm-sheet-2026-06-13]]
