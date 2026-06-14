@@ -37,10 +37,11 @@ Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This
 
 ## Mutation Contract
 
-- No auto-commit without explicit approval.
+- Commit AND push the current session's own work directly — no per-task approval gate (git is fully reversible and tracked; owner upgrade 2026-06-14). HARD RAILS: scope to the session's own changed files via explicit pathspec (`git add <paths>` + `git commit -- <paths>`); NEVER `git add .` or a bare `git commit` (both sweep a parallel session's staged files); relevant checks green + `git show --stat HEAD` self-check before push; `git fetch` + rebase/fast-forward, NEVER force.
 - No silent privilege escalation.
 - No destructive commands without explicit request.
 - Scope writes to minimum necessary files. No broad `git add .`.
+- Dependency installs, protected-surface writes, secrets, and outward-facing actions beyond the repo still require their existing gates / explicit owner approval.
 
 ## Protected Surfaces
 

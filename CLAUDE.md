@@ -155,7 +155,7 @@ Use wrappers, health summaries, or explicit owner-approved migration steps.
 
 ## Execution Rules
 
-- Do not commit or push.
+- Commit and push the current session's own work directly — no per-task approval gate (owner upgrade 2026-06-14: git is reversible + tracked). Explicit pathspec only (`git add <paths>` + `git commit -- <paths>`); never `git add .` or a bare `git commit` (sweeps a parallel session's staged files); relevant checks green + `git show --stat` before push; `git fetch` + rebase/fast-forward, never force. See `_SYSTEM/yuri-origin.md` → Mutation Contract.
 - Do not read secrets.
 - Do not touch protected surfaces.
 - Do not install dependencies without explicit owner approval.
