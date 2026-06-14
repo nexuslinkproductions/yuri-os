@@ -43,6 +43,8 @@ import https from 'node:https';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
+import { spawnNano, SPAWN_NANO_TOOL } from './nano-spawn.mjs';
+import { dispatchNano, nanoCtxFromEnv } from './nano-dispatch.mjs';
 import dns from 'node:dns';
 // Node happy-eyeballs (autoSelectFamily) intermittently throws a bare "AggregateError" on outbound
 // https when IPv6 is flaky — survives Node 24/25, hits every node invocation, curl-immune. Prefer IPv4
@@ -227,6 +229,11 @@ const TOOLS = [
   { type: 'function', function: { name: 'bash', description: 'Run a shell command in the repo to investigate, build, or RUN SCRIPTS/TESTS (e.g. node --test, npm test, git status, grep). Destructive commands, git mutation (commit/push/tag/...), and protected surfaces are blocked.', parameters: { type: 'object', properties: { cmd: { type: 'string' } }, required: ['cmd'] } } },
   { type: 'function', function: { name: 'write_file', description: 'Create or overwrite a repo file with full content (BUILD: author new modules/files here). Protected surfaces are refused. Refuses to overwrite an existing file unless overwrite:true (use edit_file for surgical changes).', parameters: { type: 'object', properties: { path: { type: 'string' }, content: { type: 'string' }, overwrite: { type: 'boolean' } }, required: ['path', 'content'] } } },
   { type: 'function', function: { name: 'edit_file', description: 'Exact-string replace in an existing repo file. old_string must match uniquely unless replace_all:true. Protected surfaces are refused.', parameters: { type: 'object', properties: { path: { type: 'string' }, old_string: { type: 'string' }, new_string: { type: 'string' }, replace_all: { type: 'boolean' } }, required: ['path', 'old_string', 'new_string'] } } },
+  // spawn_nano is authored in its native ANTHROPIC shape {name,description,input_schema}; normalizeTool
+  // absorbs it on every transport (the provider-agnostic layer above). DISARMED-default: spawnNano returns
+  // a refusal/degrade unless the swarm is two-factor armed — so a lane sees the tool but it does nothing
+  // until the owner arms it. This is the Move-1b live-wire (D4), kept inert behind the spawn gate.
+  SPAWN_NANO_TOOL,
 ];
 
 function clip(s, n = 12000) { s = String(s ?? ''); return s.length > n ? `${s.slice(0, n)}\n…[truncated ${s.length - n} chars]` : s; }
@@ -358,6 +365,18 @@ async function executeTool(name, argsRaw) {
       const next = args.replace_all ? cur.split(args.old_string).join(args.new_string) : cur.replace(args.old_string, args.new_string);
       fs.writeFileSync(abs, next, 'utf8');
       return `EDITED ${args.path} (${count} replacement${count > 1 ? 's' : ''})`;
+    }
+    if (name === 'spawn_nano') {
+      // Governed recursive spawn (Move-1b D4). The caller's tree position comes from YURI_NANO_* env (set by
+      // a parent's dispatch); a top-level session has none → refuse (must seed a tree first). DISARMED-default:
+      // spawnNano degrades (returns reason 'spawn-disabled-DISARMED') until the two-factor swarm arm is on, so
+      // this is inert today. Returns a STRING (never throws into the tool loop).
+      const ctx = nanoCtxFromEnv();
+      if (!ctx) return 'REFUSED: spawn_nano requires a tree context (YURI_NANO_* env). A top-level session must seed a tree before spawning.';
+      const r = await spawnNano({ ctx, args, opts: { deps: { dispatch: dispatchNano } } });
+      if (r.degrade) return `spawn disabled (DISARMED) — do the work yourself. ${r.reason || ''}`.trim();
+      if (!r.spawned || !r.spawned.length) return `spawn refused: ${r.reason || 'no children'}${r.cap ? ` (cap ${r.cap}, tier ${r.tier})` : ''}`;
+      return `spawned ${r.spawned.length}: ${r.spawned.map((s) => `${s.path}@${s.lane}`).join(', ')}${r.rejected ? ` | rejected ${JSON.stringify(r.rejected)}` : ''}`;
     }
     return `ERROR: unknown tool ${name}`;
   } catch (e) { return `${name} error: ${e.message}`; }
@@ -785,7 +804,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const wantTools = opts.noTools === true ? false : (isLocal ? opts.forceTools === true : true);
   // Canonical-normalize the toolset once (absorbs whatever shape each TOOLS entry was authored in), so every
   // downstream consumer + per-provider renderer is shape-agnostic. --no-exec drops bash by canonical name.
-  const activeTools = !wantTools ? [] : (opts.noExec ? TOOLS.map(normalizeTool).filter((t) => t.name !== 'bash') : TOOLS.map(normalizeTool));
+  const activeTools = !wantTools ? [] : (opts.noExec ? TOOLS.map(normalizeTool).filter((t) => t.name !== 'bash' && t.name !== 'spawn_nano') : TOOLS.map(normalizeTool));
   // Loadout sizing: cloud lanes default to the full ~675-line stack (trivial vs 1M ctx). A local 9B
   // can't fit that in 8-32k ctx, so it defaults to the LIGHT spine (still a YURI operator, not a bare
   // chatbot) unless --full is forced. --system / --no-system override either way.
