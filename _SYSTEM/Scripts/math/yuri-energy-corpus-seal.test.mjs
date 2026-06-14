@@ -53,3 +53,35 @@ test('hashCorpusSlice is deterministic + handles empty/non-array', () => {
   assert.equal(hashCorpusSlice(corpus()), hashCorpusSlice(corpus()));
   assert.equal(hashCorpusSlice([]), hashCorpusSlice(null));
 });
+
+// RED-GREEN regression for red-team finding G-A (2026-06-14): the seal must DISTINGUISH
+// special floats. On the unpatched code JSON.stringify collapsed NaN/Infinity/-Infinity to
+// "null" and `undefined ?? null` to "null", so all of these hashed IDENTICALLY → the seal was
+// blind to the exact contamination a broken calibration candidate (NaN in U) produces.
+test('special floats hash DISTINCTLY — NaN/Infinity/-Infinity/null/undefined/0 all differ (G-A fix)', () => {
+  const h = (u) => hashCorpusSlice([{ id: 'r', U: u }]);
+  const variants = {
+    nan: h(NaN), posInf: h(Infinity), negInf: h(-Infinity), nul: h(null), undef: h(undefined), zero: h(0),
+  };
+  const hashes = Object.values(variants);
+  // every variant must be unique — on the OLD code nan===posInf===negInf===nul===undef ("null") and this FAILS
+  assert.equal(new Set(hashes).size, hashes.length, `special floats must hash distinctly, got ${JSON.stringify(variants)}`);
+});
+
+test('NaN contamination is DETECTED — a NaN-poisoned U vs a clean U is caught (G-A fix)', () => {
+  const clean = [{ id: 'r1', U: 1.2 }, { id: 'r2', U: 0.5 }];
+  const seal = sealCorpus(clean);
+  const poisoned = [{ id: 'r1', U: NaN }, { id: 'r2', U: 0.5 }];
+  assert.equal(verifyCorpusSeal(seal, poisoned).intact, false);
+  // and Infinity contamination too
+  const poisonedInf = [{ id: 'r1', U: Infinity }, { id: 'r2', U: 0.5 }];
+  assert.equal(verifyCorpusSeal(seal, poisonedInf).intact, false);
+});
+
+test('clean-value equivalence: the fix is INERT on finite/string/bool/null/object/array values', () => {
+  // a corpus with only clean values must hash to a stable, recomputable digest (no special-float path taken)
+  const c = [{ id: 'x', U: -0.3, accept: true, meta: { n: 5, tag: 'ok' }, seq: [1, 2, 3], note: null }];
+  assert.equal(hashCorpusSlice(c), hashCorpusSlice(c.map((r) => ({ ...r }))));
+  // canonicalRecord of a clean record contains no sentinel marker
+  assert.equal(/<<(NaN|[+-]Infinity|undefined)>>/.test(canonicalRecord(c[0])), false);
+});

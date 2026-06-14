@@ -38,8 +38,21 @@ export class ContaminationError extends Error {
 
 // Canonical, key-sorted JSON for one record — so key ORDER never changes the hash
 // but any VALUE change does. Recurses through nested objects/arrays.
+//
+// SPECIAL-FLOAT FIX (red-team finding G-A, 2026-06-14): JSON.stringify maps NaN,
+// Infinity, -Infinity, and (via `?? null`) undefined ALL to "null", so the seal
+// was BLIND to special-float contamination — exactly the class a broken calibration
+// candidate (NaN in U) produces. We now encode those to DISTINCT, UNQUOTED sentinels
+// BEFORE the primitive path. Unquoted is deliberate: JSON.stringify of any real string
+// is always quoted, so no string value can ever collide with `<<NaN>>` etc. Clean
+// values (finite numbers, strings, booleans, null, objects, arrays) take the unchanged
+// JSON.stringify path → every clean corpus hashes byte-identically to before.
 export function canonicalRecord(r) {
   const enc = (v) => {
+    if (v === undefined) return '<<undefined>>';
+    if (typeof v === 'number' && !Number.isFinite(v)) {
+      return Number.isNaN(v) ? '<<NaN>>' : (v > 0 ? '<<+Infinity>>' : '<<-Infinity>>');
+    }
     if (v === null || typeof v !== 'object') return JSON.stringify(v ?? null);
     if (Array.isArray(v)) return `[${v.map(enc).join(',')}]`;
     const keys = Object.keys(v).sort();
