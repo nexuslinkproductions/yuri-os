@@ -123,6 +123,7 @@ _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-kernel-audit.jsonl
 _SYSTEM/state/memory-canonical/
 _SYSTEM/state/memory-canonical-backup/
+_SYSTEM/state/nanoswarm-spawn.enabled
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/memory-proposals.jsonl
 _SYSTEM/state/memory-proposal-decisions.jsonl
