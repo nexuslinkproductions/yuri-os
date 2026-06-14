@@ -59,6 +59,22 @@ hardening wave the red-team ([02-redteam-findings.md](02-redteam-findings.md)) s
   Capture side buildable now; resolution side = operator stub initially. Include the **signed weightHash
   captured inside the gate call** (minimax residual: defends against weight-drift between fire and resolution).
 
+## Lane-quality wave (owner directive 2026-06-14: "full capacity + impeccable work")
+
+The llm-compat peer lanes must run at FULL CAPACITY and produce ACCURATE work. Triggered by glm's A5 design
+being ~50% wrong (hallucinated `repeatedFailurePenalty`, `e.confidence` vs `e.base`, F2/F3 redundant with λ).
+- **L1 · Full capacity — DONE (commit ae3cccf0).** Self-adapting per-model output cap in `postChatOllamaCloud`:
+  parse the 400's real cap and retry at it → every model runs at its true max, no manual per-model flag.
+  Composes with the parallel session's `models.json` tier bump (medium=65536, high=131072) which flagged this
+  exact follow-up. VERIFIED: nemotron --reasoning max → auto-adapts to 65536 → succeeds.
+- **L2 · Accuracy — DONE (persona contract).** Added a failure-anchored **code-change contract** to
+  `_SYSTEM/nano-swarm-persona.md`: read-before-propose, quote-don't-recall fields (cite path:line),
+  confirm-it-exists (grep), check-existing-handling-first, verbatim old_string, run-it. Directly targets glm's
+  3 failure modes. (Prompt-layer nudge; the hard guarantee remains Claude's integrate-verify step.)
+- **L3 · Parked follow-ups (owner-gated):** per-model output-cap map in models.json (so the request is right
+  up-front, not 400+retry); a tool-use precondition that a write/edit proposal must have read the file first
+  (structural accuracy guarantee vs the prompt nudge); design-task loadout that pre-loads the target files.
+
 ## Orchestration
 
 - Cross-family design lanes (llm-compat, max reasoning, leveraging what each learned this session):
@@ -70,3 +86,10 @@ hardening wave the red-team ([02-redteam-findings.md](02-redteam-findings.md)) s
 
 ## Status log
 - 2026-06-14 — contract written. Design lanes firing. Claude starting A1 (seal-NaN).
+- 2026-06-14 — A1 seal-NaN SHIPPED (7e920b65, 10/10). A5 poison-aware evaluators SHIPPED (ce19dbac, 467/467;
+  glm design verified+corrected: real surface 3 seams not 6). 4 design proposals received (minimax B4 /
+  nemotron B3 / glm A5 / deepseek B2) — advisory, to be integrated+verified for the remaining items.
+- 2026-06-14 — Lane-quality wave: L1 full-capacity SHIPPED (ae3cccf0, self-adapting output cap, composes with
+  the parallel models.json bump); L2 accuracy code-change contract SHIPPED to nano-swarm-persona.md.
+- NEXT (remaining substrate wave): A3 (E widen guard), A4 (gateProposal neg-field), B2/B3/B4 from the verified
+  designs, then A2 (retire contracts AFTER B3 confirms coverage). enforce stays DISARMED.
