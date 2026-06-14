@@ -100,7 +100,18 @@ being ~50% wrong (hallucinated `repeatedFailurePenalty`, `e.confidence` vs `e.ba
   caught by target (RED-GREEN). Transitively re-verifies A4. test 12/12, full energy suite 480/480, clean-path
   byte-identical (gate untouched), enforce DISARMED. Built against REAL code (nemotron design was lost — 1 line).
   B3 now confirms gateProposal coverage → A2 (retire dead contracts instrument) is unblocked.
-- NEXT (remaining substrate wave): B4 H ground-truth resolved-outcome log (KEYSTONE; minimax design in /tmp/dl-minimax.out,
-  advisory); B2 A/B/C/D control hardening (deepseek design /tmp/dl-deepseek.out); A3 (E widen observer guard at
-  .claude/hooks/prose-claim-extract.mjs:85, observe-only); A2 (retire contracts — B3 now confirms coverage).
-  enforce stays DISARMED; explicit-pathspec commits; clean-path byte-identical for any gate-core change.
+- 2026-06-14 — **A3 widen identity-veto observer guard SHIPPED (43ca793b, pushed).** New exported
+  shouldObserve(metrics) in claim-transition-observer.mjs fires the O(ledger) observer on retracts>0 OR
+  inversions>0 OR churnedAnchors>0 (was byVerdict.RETRACT>0 only — MISSED content-hash swaps, which fire
+  identityVeto with no RETRACT verdict, + bare inversions). Strict superset, observe-only, hook stays
+  fail-open/exit-0. Stale "NOT auto-wired" header fixed (hook IS live-wired, settings.json:309). observer
+  test 12/12 (+7), integration smoke (synthetic payload → exit 0, guard fired observer, trace isolated).
+  capabilities.json regen DEFERRED (shared file — @exports tag updated at source).
+- NEXT (remaining substrate wave): **B4 H ground-truth resolved-outcome log (KEYSTONE)** — minimax design in
+  /tmp/dl-minimax.out (advisory; verify against real gateProposal). Capture seam INSIDE gateProposal w/o
+  changing the clean-path return; signed weightHash captured inside the call (defends weight-drift between
+  fire and resolution); replay harness as the regression oracle; trace path must NOT be a protected
+  .claude/state dir (use _SYSTEM/state like the other traces). THEN B2 A/B/C/D control hardening (deepseek
+  design /tmp/dl-deepseek.out); A2 retire dead contracts (B3 confirmed gateProposal coverage). enforce stays
+  DISARMED; explicit-pathspec commits; **B4 is the riskiest item — clean-path byte-identical proof required
+  (use the B3 invariant prover as the ∀-input oracle to prove the seam didn't shift any accept decision).**
