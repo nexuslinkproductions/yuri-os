@@ -153,19 +153,23 @@ Claude-lane behavioral layer + forging record: `.claude/memory/feedback-self-gov
 
 ## Autonomous Operating Protocol
 
-Owner upgrade (2026-06-15): the ACTIVE OPERATOR LANE — whichever lane the owner is driving (Claude, Codex, DeepSeek, Mimo, Ollama, future operators) — runs the full work protocol AUTONOMOUSLY by default, self-initiated and self-sized, WITHOUT the owner invoking it. Lane-agnostic: switching the operator lane does not change the protocol; every lane inherits it by reading this contract. The owner brings the intent; the active lane runs the order of operations.
+Owner upgrade (2026-06-15): the ACTIVE OPERATOR LANE — whichever lane the owner is driving (Claude, Codex, DeepSeek, Mimo, Ollama, future operators) — runs this protocol AUTONOMOUSLY by default, self-initiated and self-sized, WITHOUT the owner invoking it. Lane-agnostic: switching the operator lane does not change the protocol; every lane inherits it by reading this contract. The owner brings the intent; the active lane runs the order of operations. The goal is the best possible outcome, and the ORDER below is what produces it.
 
-For every substantial task (build / research / refactor / analysis / audit; skip trivial reads + pure conversation), the operator lane runs, on its own:
+THE ORDERED SPINE — every substantial task (build, research, analysis, refactor, audit; skip trivial reads + pure conversation) runs these phases IN ORDER:
 
-1. **GROUND** — `_SYSTEM/Scripts/xref-query.mjs` + `capability-recall.mjs` first, reflexively, before broad work (CAPABILITY-FIRST). For a known circuitry node, `propagation-scan.mjs <node> --dry-run`.
-2. **DISPATCH** — multi-lane fan-out (governed nano-swarm `spawn_nano` / cross-family peer lanes) routed through `llm-compat-contract.mjs` when work is parallelizable or benefits from cross-family convergence. SELF-SIZE the fan-out to task complexity × budget — the lane-count is owner-calibrated, never hardcoded; self-size honestly, not max-deploy.
-3. **SIMULATE** — quantum-sim + simulation + calculation + prediction on any fork or claim (order-effect, robust-decision, corner-law, a falsifiable forecast logged to the prediction-ledger before acting).
-4. **HYGIENE** — `propagation-scan`, `ai reindex` (after capturing research), `capability-scan` (after shipping a new reusable mechanism) fire AUTOMATICALLY as part of the loop. The owner never invokes them.
-5. **RECALL** — capture procedural knowledge as durable launchers / registered capabilities so lanes stop RE-DISCOVERING how to run the protocol. Re-derivation friction is a defect to remove, not a cost to repay each session.
+1. **RESEARCH FIRST (always)** — local-first: `xref-query.mjs` + `capability-recall.mjs` (CAPABILITY-FIRST — never rebuild what already exists) + `ai search` the corpus; escalate online ONLY when the local corpus is provably insufficient, then capture cited findings + reindex. Understand the ground + prior art before touching anything.
+2. **SIMULATE & CALCULATE (before building)** — model the approach BEFORE committing effort: quantum-sim (order-effects / coupling), decision-sim (robust / CVaR), exact calculation (corner-law for affine/simplex objectives), and a falsifiable prediction logged to the prediction-ledger. Prove feasibility + choose the path HERE. A simulation that kills a doomed build is the highest-leverage step in the whole protocol.
+3. **BUILD** — implement the simulation-chosen path. DISARMED-first, scoped to the minimum files.
+4. **RED-TEAM / ADVERSARIALLY VERIFY** — attack the result before trusting it: name failure modes, run negative/mismatch tests, seek the strongest refutation. First-run success is a hypothesis, never proof; hermetic-green ≠ live-correct (verify at the real seam).
+
+CROSS-CUTTING (woven through every phase, never owner-invoked):
+- **DISPATCH** — multi-lane fan-out (governed nano-swarm `spawn_nano` / cross-family peer lanes via `llm-compat-contract.mjs`) inside any phase that benefits: research breadth, build parallelism, red-team diversity. SELF-SIZE to task × budget; lane-count is owner-calibrated, never hardcoded, never max-deploy-by-default.
+- **SELF-MAINTENANCE / FRESHNESS** — the system keeps ITSELF fresh; the owner must never have to ask "did X get updated?". After any change the relevant indexes + registries reconcile autonomously, and a CONTINUOUS staleness watch keeps the WHOLE of YURI never-stale: search DB (`ai reindex`), capability registry (`capability-scan`), GitNexus graph, skill-hash registry, circuitry registry + propagation, and the manuals. DETECT + flag ALWAYS (cheap, safe); AUTO-HEAL the safe-to-regenerate artifacts; SURFACE (never silently sweep) anything that touches shared / parallel-session state. Staleness is a defect the system removes on its own, not a thing the owner tracks.
+- **RECALL** — capture procedural knowledge as durable launchers / registered capabilities so the protocol stops being re-discovered each session.
 
 Bounds (non-negotiable): the protocol operates WITHIN the Self-Governance Charter (auto-run the SAFE default; ARMING gates + high-blast recursive fan-out still produce a finished ruling and HOLD for a one-token owner confirm), the Mutation Contract, and Protected Surfaces. Autonomy is the default order of operations, never a bypass of the safety gates.
 
-Lane behavioral layer + roadmap: `.claude/memory/feedback-autonomous-workflow-default.md` (Claude lane). Destination: full self-running of the protocol across all lanes + zero re-discovery friction. Owner framing 2026-06-15: "any lane I switch to should operate like that — boosts production quality and rate massively."
+Lane behavioral layer + roadmap: `.claude/memory/feedback-autonomous-workflow-default.md` (Claude lane). Destination: full self-running of the ordered spine across all lanes + a self-maintaining freshness daemon so nothing in YURI ever goes stale + zero re-discovery friction. Owner framing 2026-06-15: "any lane I switch to should operate like that — boosts production quality and rate massively"; "nothing is ever stale within the entirety of yuri … yuri is too big now for me to keep track of everything."
 
 ## Professional Operating Lenses
 
