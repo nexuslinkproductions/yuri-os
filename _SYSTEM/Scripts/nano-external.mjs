@@ -3,7 +3,7 @@
 // @serves: external nano | nano via llm-lane | mimo nano | deepseek nano | codex nano | route nano through llm-compat | fully agentic external lane | external lane work fn
 // @does: G4 — turns an external model lane (mimo / deepseek / codex / local) into a NANO SWARM work fn that routes through llm-lane, so an external nano gets the SAME equipped harness as a native one: the ~675-line YURI spine preamble, the evaluateToolCall safety core, the gated read+exec tool loop, the coreOnDispatch energy trace, and the 24-iter agentic loop — NOT a bare single-shot mimo.mjs call. The work fn plugs straight into nano-tick.
 // @use: externalNanoWork({lane:'deepseek-v4-pro', task:'...'}) returns a work(ctx) for tick(nanoId,{work,...}). Dispatch routes ONLY through llm-lane (enforced); raw mimo.mjs / script paths are refused. Live firing needs egress for the chosen lane (codex/deepseek curl-gated in this sandbox — an environment fix, separate from this wiring).
-// @exports: externalNanoWork, buildExternalPrompt, assertLlmLaneRouted, defaultLlmLaneRunner
+// @exports: externalNanoWork, buildExternalPrompt, assertLlmLaneRouted, defaultLlmLaneRunner, governedFireDecision
 //
 // WHY route through llm-lane and not mimo.mjs directly: raw mimo.mjs is a bare single-shot with no spine,
 // no tools, no safety core, no energy trace — a nano built on it would be "structurally blind". llm-lane
@@ -78,11 +78,32 @@ export function externalNanoWork({
   };
 }
 
+/**
+ * Bypass guard (Move 1b INC-5, 07-ARCHITECTURE.md §13 #7). Direct CLI fire of this module is the ungoverned
+ * spawn vector — a lane's bash running `node nano-external.mjs <lane> "<task>"` would skip spawn_nano's
+ * depth/fan-out/budget/cost caps entirely. The GOVERNED path (spawn_nano) calls externalNanoWork()
+ * PROGRAMMATICALLY and never touches this CLI, so the CLI fire path has no legitimate non-operator use.
+ * --dry (routing proof) is always allowed; an actual fire requires the operator escape hatch
+ * YURI_NANO_CLI_FIRE=1. The HARD stop against an adversarial lane is the bash-security-guard hook deny
+ * (deferred: that hook file is currently dirty with another session's work — must not be swept; ready patch
+ * lives in 02_RESOURCES/RESEARCH/irys-swarm-transfer-2026-06-14/inc5-bash-guard-deny.patch.md).
+ */
+export function governedFireDecision({ dry = false, env = process.env } = {}) {
+  if (dry) return { allow: true, mode: 'dry' };
+  if (env.YURI_NANO_CLI_FIRE === '1') return { allow: true, mode: 'operator-cli-fire' };
+  return {
+    allow: false, reason: 'ungoverned-cli-fire-refused',
+    message: 'Direct nano-external CLI fire is refused — spawn via the governed spawn_nano tool (depth/fan-out/budget/cost caps). Operator override: YURI_NANO_CLI_FIRE=1.',
+  };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [lane, ...rest] = process.argv.slice(2);
   const dry = rest.includes('--dry');
   const task = rest.filter((a) => a !== '--dry').join(' ') || 'Summarize what YURI is in two sentences.';
   if (!lane) { process.stdout.write('usage: nano-external.mjs <lane-key> "<task>" [--dry]\n'); process.exit(2); }
+  const gate = governedFireDecision({ dry });
+  if (!gate.allow) { process.stderr.write(`${JSON.stringify({ refused: true, ...gate }, null, 2)}\n`); process.exit(3); }
   if (dry) {
     // prove the routing without firing: show the prompt + that it targets llm-lane.
     process.stdout.write(`${JSON.stringify({ lane: assertLlmLaneRouted(lane), via: 'llm-lane', prompt: buildExternalPrompt(task, { nanoId: 'nano-ext-cli', goalId: 'cli' }) }, null, 2)}\n`);

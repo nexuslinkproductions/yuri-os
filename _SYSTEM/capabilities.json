@@ -1054,7 +1054,8 @@
         "externalNanoWork",
         "buildExternalPrompt",
         "assertLlmLaneRouted",
-        "defaultLlmLaneRunner"
+        "defaultLlmLaneRunner",
+        "governedFireDecision"
       ],
       "mechanism": "_SYSTEM/Scripts/nano-external.mjs"
     },
