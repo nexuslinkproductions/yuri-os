@@ -9,7 +9,12 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const REPO_ROOT = process.cwd();
+// REPO_ROOT must be ANCHORED to the repo, never process.cwd() — a PostToolUse hook
+// can fire with any cwd (background lanes, tools run from a subdir), and a cwd-relative
+// '.claude/state' breeds stray nested checkpoint dirs (e.g. _SYSTEM/Scripts/math/.claude)
+// that trip the repo-wide root-architecture gate. Anchor to CLAUDE_PROJECT_DIR, else
+// derive from this file's location (.claude/hooks/ -> repo root). [substrate-frontier fix 2026-06-14]
+const REPO_ROOT = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, '..', '..');
 const CHECKPOINT_PATH = path.join(REPO_ROOT, '.claude', 'state', 'session-checkpoint.json');
 const THROTTLE_MS = 30 * 60 * 1000; // 30 minutes
 
