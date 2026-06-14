@@ -73,7 +73,7 @@ const ENERGY_PRECISION = 1e9;
 
 export const DEFAULT_WEIGHTS = Object.freeze({
   alpha: 1.0,    // entropy(claimPromotionDistribution) — uncertainty about claim status
-  beta: 2.0,     // klDivergence(claimed, verified) — drift between claim and evidence
+  beta: 2.0,     // wasserstein1(claimed, verified) — ordinal drift between claim and evidence (energyFormulaVersion 3; was klDivergence ≤ v2)
   gamma: 1.0,    // logLoss(predictions, outcomes) — forecast calibration penalty
   delta: 1.0,    // brierScore(forecasts, results) — forecast accuracy penalty
   epsilon: 1.0,  // -informationGain(prior, posterior) — info gain LOWERS energy
@@ -83,6 +83,7 @@ export const DEFAULT_WEIGHTS = Object.freeze({
   iota: 0.1,    // -verifiedEvidenceCount — verified evidence subtracts from U (saturating)
   kappa: 5.0,   // repeatedFailurePenalty — per-event count of confidently-wrong predictions
   lambda: 50.0, // malformedForecastPenalty — out-of-range/non-finite forecast inputs fail CLOSED
+  mu: 0.5,      // overconfidenceDrift — μ·conc(claimed)·W₁: penalizes a CONCENTRATED claim DRIFTED from evidence (restores the confidence dimension W₁ dropped). μ=0.25·β by design → a fully-confident error costs 25% more than an uncertain one (cost-ratio derived). MAGNITUDE-only (no verdict flip at threshold 0); defense-in-depth (the exploit it guards is structurally unreachable on the live ≤6-class feeder). Keep μ ≤ β if calibrated.
 });
 
 // Live enforcing path: any per-claim ladder inversion above this absolute level trips the L∞
@@ -166,15 +167,25 @@ function evalEntropy(distribution) {
   if (!distribution) return { skipped: true, reason: 'no claimPromotionDistribution' };
   const values = Array.isArray(distribution) ? distribution : Object.values(distribution);
   if (values.length === 0) return { skipped: true, reason: 'empty distribution' };
+  // FAIL-CLOSED on poisoned entries (GAP-2 / red-team F1, 2026-06-14): a non-finite or
+  // negative count previously made kernel entropy throw → the α term skipped → contributed
+  // 0 (silent fail-OPEN: a garbage distribution scored as clean). Now a poisoned entry is
+  // treated as MAXIMUM entropy (ln N) — the conservative high-energy reading — so it RAISES
+  // U instead of vanishing. Inert on clean input: every-finite-non-negative passes this guard
+  // untouched and takes the unchanged all-zeros / entropy() path below (clean U byte-identical).
+  // (Closes the documented-accepted α seam the original comment named; the live cortexSnapshot
+  // feeder emits non-negative counts so the live verdict is unchanged.)
+  if (values.some((v) => { const n = Number(v); return !Number.isFinite(n) || n < 0; })) {
+    return {
+      value: Math.log(values.length),
+      skipped: false,
+      warnings: ['poisoned claimPromotionDistribution (non-finite/negative entry) — treated as maximum entropy'],
+    };
+  }
   if (values.every((v) => v === 0)) return { value: 0, skipped: false };
   try {
     return { value: entropy(values), skipped: false };
   } catch (err) {
-    // FAIL-OPEN by acceptance: a negative/garbage count makes kernel entropy
-    // throw → the α term skips → contributes 0. The live feeder (cortexSnapshot)
-    // emits non-negative counts only, so this seam is reachable only by direct
-    // garbage-feeding callers — same accepted-risk family as the evalKL note
-    // (the β seam is the one closed with a poison predicate; α is documented).
     return { skipped: true, reason: `entropy failed: ${err.message}` };
   }
 }
@@ -240,6 +251,127 @@ function evalKL({ claimed, verified }) {
   } catch (err) {
     return { skipped: true, reason: `KL failed: ${err.message}` };
   }
+}
+
+// ── Wasserstein-1 (Earth-Mover) ordinal drift — the LIVE β/drift term (energyFormulaVersion 3) ──
+// REPLACES evalKL. KL on concentrated beliefs SATURATED at the belief floor: a hard 1e-9 floor in
+// the claim-cortex feeders made KL(claimed‖verified) hit ln(1e9)=20.72 for ANY rung mismatch
+// (β·=41.45, 71% of the live reject corpus) and it was DISTANCE-BLIND — a 1-rung and a 5-rung
+// mismatch cost the same. The ε=0.02 floor-soften (v2) only capped the ceiling at ~11; still flat.
+// W₁ on a 1-D ORDINAL support is the L1 distance between CDFs: distance-aware (1-rung < 5-rung),
+// bounded by N-1, multimodal-native, and needs NO floor (no log, no zero-in-denominator → the
+// saturation that broke KL structurally cannot exist). For two one-hots at rungs i,j it equals |i-j|.
+//   W₁(P,Q) = Σ_{k=0}^{N-2} | CDF_P(k) − CDF_Q(k) |     (rung units)
+// evalKL + the klDivergence import are kept defined (NOT called by computeU) for legacy-record
+// reconstruction and A/B; the live drift term is evalWasserstein.
+function normalizeForW1(arr) {
+  let s = 0;
+  for (const v of arr) s += Number(v);
+  if (!(s > 0)) return null; // zero-mass → caller forces the poison sentinel
+  return arr.map((v) => Number(v) / s);
+}
+export function wasserstein1(p, q) {
+  const n = p.length;
+  let cp = 0;
+  let cq = 0;
+  let acc = 0;
+  for (let k = 0; k < n - 1; k += 1) {
+    cp += p[k];
+    cq += q[k];
+    acc += Math.abs(cp - cq);
+  }
+  return acc;
+}
+
+// The fail-CLOSED guard the un-saturatable W₁ term REQUIRES. KL could fail-closed by clamping to a
+// huge finite value (ln(1/1e-12)=27.63); W₁ structurally cannot blow up, so a poisoned / all-zero /
+// NaN / length-mismatched distribution would yield a MODEST W₁ → fail-OPEN (the exact disease the KL
+// poison guard was built to stop). Fix: detect poison on the RAW signal and force the MAXIMAL
+// legitimate W₁ = (support-1) so β·(N-1) ≈ 11 — identical to a oneHot(0)-vs-oneHot(top) worst case,
+// NOT 27.63 (which would contaminate the calibration percentile scale as an out-of-band outlier).
+// Garbage = maximal drift, indistinguishable from the worst real claim: correct fail-closed semantics.
+export function evalWasserstein({ claimed, verified }) {
+  if (!claimed || !verified) return { skipped: true, reason: 'no claimed/verified pair' };
+  if (!Array.isArray(claimed) || !Array.isArray(verified)) {
+    return { skipped: true, reason: 'claimed/verified must be arrays' };
+  }
+  const n = claimed.length;
+  if (verified.length !== n || n < 2) {
+    // length mismatch / degenerate support = structurally invalid claim → maximal drift over the
+    // widest declared support (derive the span from the inputs; no ladder import → no circular dep).
+    const span = Math.max(1, Math.max(claimed.length, verified.length) - 1);
+    return {
+      value: span,
+      skipped: false,
+      warnings: ['claimed/verified length mismatch or degenerate support — treated as maximal drift'],
+    };
+  }
+  // Fail-CLOSED on poisoned inputs (non-finite/negative/zero-mass) BEFORE the divergence, on the RAW
+  // signal — W₁ cannot self-saturate, so this is the only line standing between garbage and fail-open.
+  if (distributionPoisoned(claimed) || distributionPoisoned(verified)) {
+    return {
+      value: n - 1,
+      skipped: false,
+      warnings: ['poisoned claimed/verified distribution (non-finite/negative/zero-mass) — treated as maximal drift'],
+    };
+  }
+  const cn = normalizeForW1(claimed);
+  const vn = normalizeForW1(verified);
+  if (!cn || !vn) {
+    // Belt-and-suspenders: UNREACHABLE by design (distributionPoisoned above already returns true for any
+    // all-≤KL_EPSILON / zero-mass vector, so a survivor here has positive sum and normalizeForW1 cannot
+    // return null). Kept fail-CLOSED so that if the poison detector is ever loosened, a zero-mass survivor
+    // still forces the ceiling instead of crashing — never silently a small W₁.
+    return {
+      value: n - 1,
+      skipped: false,
+      warnings: ['zero-mass distribution — treated as maximal drift'],
+    };
+  }
+  return { value: wasserstein1(cn, vn), skipped: false };
+}
+
+// ── Overconfidence-coupling term (the μ weight) — restores the confidence dimension W₁ dropped ──
+// W₁ is distance-aware but CONFIDENCE-BLIND: it drops the dimension KL carried. This term penalizes the
+// DANGEROUS QUADRANT — a CONCENTRATED claimed belief that is DRIFTED from evidence ("confident AND wrong" is
+// worse than "uncertain AND wrong", because downstream actuators act decisively on concentrated beliefs).
+//   conc(claimed) = 1 − H(claimed)/ln(N) ∈ [0,1]: 0 for a uniform/uncertain claim (NOT overconfident → no
+//   penalty), 1 for a one-hot.   overconfidenceDrift = conc · W₁   →   μ·conc·W₁ in U.
+// μ DEFAULT = 0.5 = 0.25·β: a fully-confident error costs 25% more than an uncertain one (cost-ratio derived,
+// not tuned to a test). HONEST SCOPE (cross-family verify, 2026-06-14):
+//   • MAGNITUDE-ONLY, not a verdict-flipper. At threshold 0, β·W₁>0 already rejects ANY drift, so zeroing μ
+//     never flips a verdict — μ scales the ΔU MAGNITUDE (feeds the trace, salience/surprise encoding, and
+//     flips only at threshold>0). It is a severity aggravator, NOT an independent decider; the ablation
+//     measures it as an ENERGY-signal weight, not a decision-signal one.
+//   • DEFENSE-IN-DEPTH, not a live-hole fix. The entropy-collapse-funded-drift exploit it guards is already
+//     STRUCTURALLY UNREACHABLE on the live feeder (claimPromotionDistribution is keyed on the 6 ladder rungs
+//     → ≤6 classes → max entropy credit α·ln(6)=1.79 < β·1.0=2.0, so β alone rejects). No finite μ eliminates
+//     the exploit in general (entropy credit is unbounded in class-count); μ does not claim to.
+//   • conc is a GLOBAL concentration (1−H/lnN), not error-localized: the μ-COMPONENT alone under-rates a
+//     bimodal-far claim, but the TOTAL drift penalty still tracks danger because β·W₁ dominates and W₁
+//     captures the larger transport of bimodal mass. An error-localized conc (mass outside an evidence band)
+//     is a parked refinement. Cross-weight constraint for calibration: keep μ ≤ β (secondary ≤ primary).
+// ADDITIVE, not a σ-gate on the entropy term: the calibration contract reconstructs each term linearly
+// (basis = conc·W₁, recoverable as contribution/μ), which a multiplicative gate on entropy would break.
+// A NEW additive component (not a drift-scale change) → it does NOT bump energyFormulaVersion: v3 records
+// before/after the coupling stay drift-commensurable (W₁ unchanged); handled by reconstruction's absent-
+// component path (same as a newer record carrying κ/λ).
+export function claimedConcentration(arr) {
+  if (!Array.isArray(arr) || arr.length < 2) return 1;       // degenerate support → max concentration (fail-closed; also avoids 1−H/ln(1)=0/0)
+  if (distributionPoisoned(arr)) return 1;                   // poison → max overconfidence (fail-closed)
+  const norm = normalizeForW1(arr);
+  if (!norm) return 1;
+  let H = 0;
+  for (const p of norm) if (p > 0) H -= p * Math.log(p);     // Shannon entropy (nats)
+  const conc = 1 - H / Math.log(arr.length);                 // normalize by ln(N) → conc ∈ [0,1]
+  return Math.min(1, Math.max(0, conc));
+}
+
+export function evalOverconfidenceDrift({ claimed, verified }) {
+  const w = evalWasserstein({ claimed, verified });
+  if (w.skipped) return { skipped: true, reason: w.reason }; // no belief pair → no overconfidence signal
+  const conc = claimedConcentration(claimed);                // poison claimed → conc=1, w.value=n-1 → max penalty
+  return { value: conc * w.value, skipped: false };
 }
 
 // Per-event repeated-failure penalty (HIGH bug #6). logLoss/brier are MEANS, so
@@ -355,6 +487,20 @@ function infoGainCeiling(prior) {
 
 function evalInfoGain({ prior, posterior }) {
   if (!prior || !posterior) return { skipped: true, reason: 'no prior/posterior' };
+  // FAIL-CLOSED on poisoned prior/posterior (GAP-2 / red-team F4, 2026-06-14): infoGain is a
+  // CREDIT term (−ε·value subtracts from U). A poisoned distribution that did NOT happen to make
+  // kernel entropy throw could yield a garbage rawGain → an UNEARNED credit that lowers U. Suppress
+  // the credit explicitly (value 0) on any non-finite/negative/zero-mass input. Inert on clean
+  // input (distributionPoisoned is false for a positive-mass distribution → unchanged path below).
+  const priorArr = Array.isArray(prior) ? prior : Object.values(prior ?? {});
+  const posteriorArr = Array.isArray(posterior) ? posterior : Object.values(posterior ?? {});
+  if (distributionPoisoned(priorArr) || distributionPoisoned(posteriorArr)) {
+    return {
+      value: 0,
+      skipped: false,
+      warnings: ['poisoned prior/posterior (non-finite/negative/zero-mass) — info-gain credit suppressed'],
+    };
+  }
   try {
     const rawGain = informationGain(prior, posterior);
     const ceiling = infoGainCeiling(prior);
@@ -392,7 +538,16 @@ function evalStaleness(evidence) {
     }
   }
   if (warnings.length === evidence.length) {
-    return { skipped: true, reason: 'all evidence items malformed', warnings };
+    // FAIL-CLOSED (GAP-2 / red-team F5, 2026-06-14): a PRESENT evidence array whose items are ALL
+    // malformed previously skipped → contributed 0 staleness (silent fail-OPEN: unverifiable freshness
+    // scored as perfectly fresh). Treat each phantom item as maximally stale (1 unit) so it RAISES U.
+    // Bounded + count-based (mirrors the λ/repeatedFailure counting pattern), not an out-of-band ceiling.
+    // Inert on clean input: any valid item keeps warnings.length < evidence.length → normal sum path below.
+    return {
+      value: evidence.length,
+      skipped: false,
+      warnings: [...warnings, 'all evidence items malformed — treated as maximally stale'],
+    };
   }
   return { value: roundEnergy(total), skipped: false, warnings };
 }
@@ -457,7 +612,16 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
 
   const components = {
     entropy: evalEntropy(state.claimPromotionDistribution),
-    klDivergence: evalKL({
+    // β/drift term, energyFormulaVersion 3: Wasserstein-1 (distance-aware ordinal drift). Replaces
+    // the saturated/distance-blind klDivergence term; both bind to w.beta. Legacy records carry a
+    // `klDivergence` contribution; v3 records carry `wasserstein` — calibration partitions by era.
+    wasserstein: evalWasserstein({
+      claimed: state.claimedDistribution,
+      verified: state.verifiedDistribution,
+    }),
+    // Confidence-coupling (μ): penalizes a CONCENTRATED claimed belief that is DRIFTED from evidence —
+    // closes the W₁ confidence-blind residual. Reads the SAME feeders as the drift term; additive.
+    overconfidenceDrift: evalOverconfidenceDrift({
       claimed: state.claimedDistribution,
       verified: state.verifiedDistribution,
     }),
@@ -479,9 +643,13 @@ export function computeU(state = {}, weights = DEFAULT_WEIGHTS) {
     contributions.entropy = w.alpha * components.entropy.value;
     U += contributions.entropy;
   }
-  if (!components.klDivergence.skipped) {
-    contributions.klDivergence = w.beta * components.klDivergence.value;
-    U += contributions.klDivergence;
+  if (!components.wasserstein.skipped) {
+    contributions.wasserstein = w.beta * components.wasserstein.value;
+    U += contributions.wasserstein;
+  }
+  if (!components.overconfidenceDrift.skipped) {
+    contributions.overconfidenceDrift = w.mu * components.overconfidenceDrift.value;
+    U += contributions.overconfidenceDrift;
   }
   if (!components.logLoss.skipped) {
     contributions.logLoss = w.gamma * components.logLoss.value;
