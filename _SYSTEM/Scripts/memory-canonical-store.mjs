@@ -3,7 +3,7 @@
 // @serves: canonical truth | one memory path all llms | converge memory | shared truth store | event-sourced memory | per-lane shard | drainer fold | peer-open memory read | concurrent memory write
 // @does: the CANONICAL TRUTH convergence store (Mission v2). Every lane/session/agent appends immutable claim events to its OWN shard file (one writer per file -> zero cross-writer interleave, PIPE_BUF-irrelevant). A single elected drainer (nano-lease) folds shards into a GENERATION-ROTATED append-only canonical log + a materialized read-view, dedup by sha256 content-hash, idempotent re-fold. READ is peer-open (no wrapper); WRITE is shard-append by all, fold serialized for safety not authority.
 // @use: appendClaim(lane,session,claim) to propose truth from any lane; drainOnce(drainerId) on a leased schedule to fold + rotate; readView()/loadCanonical() for open peer read. Reuses nano-lease (election+reclaim), _lib/fs atomicWriteFile (atomic publish), the memory-kernel append+fsync pattern, the yuri-nerve dedup-by-deterministic-id pattern (sha256, not FNV — scale).
-// @exports: appendClaim, drainOnce, loadCanonical, readView, contentHashOf, mintEventId, shardPath, resolveDirs, listGenerations, MAX_EVENT_BYTES, DRAIN_LEASE_ID
+// @exports: appendClaim, drainOnce, loadCanonical, readView, contentHashOf, mintEventId, shardPath, resolveDirs, listGenerations, MAX_EVENT_BYTES, DRAIN_LEASE_ID, compactGeneration, compactionScore, safeUnlinkSealedGens
 //
 // DESIGN PROVENANCE: 02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/ (00..04). P0/P1 = shards
 // + drainer + dedup. P2 Inc-2 = GENERATION ROTATION (glm-5.1 design, cross-verified by nemotron + DeepSeek
@@ -24,6 +24,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { acquireLease, releaseLease, renewLease } from './nano-lease.mjs';
 import { atomicWriteFile, readJsonOrNull } from './_lib/fs.mjs';
+import { stalenessScore } from './filing-assessor.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -37,6 +38,12 @@ const genName = (n) => `${GEN_PREFIX}${String(n).padStart(5, '0')}.jsonl`;
 function rotationBytes(opts = {}) {
   return Number(opts.rotationBytes || process.env.YURI_CANONICAL_ROTATION_BYTES) || ROTATION_DEFAULT_BYTES;
 }
+
+// ── Compaction thresholds (Inc 3) ─────────────────────────────────────────────────────────────────
+const COMPACT_DEAD_RATIO = 0.3;        // compact sealed gens when >30% of their events are dead (superseded/retracted)
+const COMPACT_GEN_THRESHOLD = 5;       // …or when sealed-gen count exceeds this (bounds canonical read fan-out)
+const SEAL_TTL_MS = 86_400_000;        // 24h grace before an ALL-DEAD sealed gen is eligible for unlink
+const SEAL_STABLE_MS = 300_000;        // require mtime older than this (no recent writes) before unlink
 
 /** All canonical paths derive from ONE base dir (env-overridable -> tests run in a temp dir, live store untouched). */
 export function resolveDirs(opts = {}) {
@@ -125,6 +132,101 @@ function sealAndRotate(base, canonicalLog) {
   if (!existsSync(nextAbs)) closeSync(openSync(nextAbs, 'a'));
   swapSymlink(base, canonicalLog, nextName);
   return { sealed: n, current: n + 1 };
+}
+
+// ── Compaction + safe-unlink (Inc 3) ──────────────────────────────────────────────────────────────
+/**
+ * LOG-SIZE compaction observability for one generation: stalenessScore(age) × deadRatio. A size/health
+ * signal ONLY — it never decides truth and never retracts a decision. deadRatio = fraction of this gen's
+ * events that are no longer live (superseded/retracted) per the current fold.
+ */
+export function compactionScore(genPath, opts = {}) {
+  const base = opts.base || path.dirname(genPath);
+  if (!existsSync(genPath)) return { score: 0, ageHours: 0, totalEvents: 0, deadEvents: 0, deadRatio: 0, genPath };
+  const { byKey } = foldCanonical(base);
+  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  let total = 0, dead = 0;
+  for (const ln of readFileSync(genPath, 'utf8').split('\n')) {
+    const t = ln.trim(); if (!t) continue;
+    let e; try { e = JSON.parse(t); } catch { continue; }
+    if (!e?.eventId) continue;                                    // SEAL sentinels don't count
+    total += 1;
+    if (!liveIds.has(e.eventId)) dead += 1;
+  }
+  const deadRatio = total > 0 ? dead / total : 0;
+  const ageHours = Math.max(0, (Date.now() - statSync(genPath).mtimeMs) / 3_600_000);
+  return { score: stalenessScore(ageHours, opts.halfLifeHours ?? 168) * deadRatio, ageHours, totalEvents: total, deadEvents: dead, deadRatio, genPath };
+}
+
+/**
+ * Compact SEALED generations (never the live one): re-extract only events that are still live (in the
+ * current fold) into gen-00001, then drop the now-redundant older sealed gens. Live events are RESCUED
+ * into gen-00001 BEFORE any unlink, so no live claim is ever lost. Triggers when the sealed-gen dead
+ * ratio exceeds compactDeadRatio OR the sealed-gen count exceeds compactGenThreshold. Idempotent.
+ */
+export function compactGeneration(base, canonicalLog, opts = {}) {
+  const deadRatioTh = opts.compactDeadRatio ?? COMPACT_DEAD_RATIO;
+  const genTh = opts.compactGenThreshold ?? COMPACT_GEN_THRESHOLD;
+  let curLive; try { curLive = realpathSync(canonicalLog); } catch { return { compacted: false, reason: 'no-current-gen' }; }
+  const curLiveName = path.basename(curLive);   // compare by NAME: realpathSync resolves /var->/private/var; listGenerations does not
+  const sealed = listGenerations(base).filter((g) => path.basename(g) !== curLiveName);
+  if (sealed.length === 0) return { compacted: false, reason: 'no-sealed-gens' };
+  const { byKey } = foldCanonical(base);
+  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  let total = 0, dead = 0; const live = []; const seenLive = new Set();
+  for (const gen of sealed) {
+    if (!existsSync(gen)) continue;
+    for (const ln of readFileSync(gen, 'utf8').split('\n')) {
+      const t = ln.trim(); if (!t) continue;
+      let e; try { e = JSON.parse(t); } catch { continue; }
+      if (!e?.eventId) continue;
+      total += 1;
+      if (liveIds.has(e.eventId)) { if (!seenLive.has(e.eventId)) { live.push(t); seenLive.add(e.eventId); } }
+      else dead += 1;
+    }
+  }
+  const dr = total > 0 ? dead / total : 0;
+  if (dr < deadRatioTh && sealed.length <= genTh) return { compacted: false, deadRatio: dr, sealedGens: sealed.length };
+  const dst = path.join(base, genName(1));
+  atomicWriteFile(dst, live.map((l) => `${l}\n`).join(''), { fsync: true });    // rescue live events FIRST (atomic)
+  const rm = [];
+  for (const g of sealed) { if (g === dst) continue; try { rmSync(g, { force: true }); rm.push(g); } catch { /* best-effort */ } }
+  return { compacted: true, liveEvents: live.length, deadEvents: dead, totalEvents: total, deadRatio: dr, gensRemoved: rm.length };
+}
+
+/**
+ * Unlink SEALED generations that (a) hold ZERO live claims (their live contribution was already
+ * consolidated elsewhere, e.g. by compactGeneration) AND (b) are older than sealTtlMs. The live-claims
+ * guard is the real safety floor: a gen that still backs ANY live claim is NEVER unlinked, so truth is
+ * never lost — the TTL is only a grace window on top. The current (symlinked) generation is always kept.
+ */
+export function safeUnlinkSealedGens(base, canonicalLog, opts = {}) {
+  const ttl = opts.sealTtlMs ?? SEAL_TTL_MS;
+  const stable = opts.sealStableMs ?? SEAL_STABLE_MS;
+  const now = Date.now();
+  let curLive; try { curLive = realpathSync(canonicalLog); } catch { return { unlinked: [], skipped: [], reason: 'no-current-gen' }; }
+  const curLiveName = path.basename(curLive);   // compare by NAME: realpathSync resolves /var->/private/var; listGenerations does not
+  const { byKey } = foldCanonical(base);
+  const liveIds = new Set([...byKey.values()].map((e) => e.eventId));
+  const unlinked = [], skipped = [];
+  for (const gen of listGenerations(base)) {
+    if (path.basename(gen) === curLiveName) { skipped.push({ path: gen, reason: 'current-live' }); continue; }
+    try {
+      // PRIMARY GUARD: never unlink a gen that still backs a LIVE claim (would lose truth).
+      let holdsLive = false;
+      for (const ln of readFileSync(gen, 'utf8').split('\n')) {
+        const t = ln.trim(); if (!t) continue;
+        let e; try { e = JSON.parse(t); } catch { continue; }
+        if (e?.eventId && liveIds.has(e.eventId)) { holdsLive = true; break; }
+      }
+      if (holdsLive) { skipped.push({ path: gen, reason: 'holds-live-claims' }); continue; }
+      const ageMs = now - statSync(gen).mtimeMs;
+      if (ageMs < ttl) { skipped.push({ path: gen, reason: 'age<ttl' }); continue; }
+      if (ageMs < stable) { skipped.push({ path: gen, reason: 'mtime-unstable' }); continue; }
+      rmSync(gen, { force: true }); unlinked.push(gen);
+    } catch (e) { skipped.push({ path: gen, reason: e.message }); }
+  }
+  return { unlinked, skipped };
 }
 
 /**
@@ -242,7 +344,14 @@ export function drainOnce(drainerId, opts = {}) {
     // Rotation AFTER durable publish: if the current gen outgrew the threshold, seal it + open the next.
     let rotated = null;
     try { if (statSync(curGen).size > rotationBytes(opts)) rotated = sealAndRotate(base, canonicalLog); } catch { /* */ }
-    return { ok: true, folded, skipped, shards: shards.length, claims: Object.keys(view.claims).length, rotated };
+    // Inc 3: COMPACTION + SAFE-UNLINK — destructive structural ops on generation files, intentionally placed
+    // AFTER the renewLease guard above (we hold a fresh lease) so a second drainer can never co-mutate gens.
+    // Both non-fatal: a failure here never corrupts the canonical log/offsets already durably published above.
+    let compacted = null;
+    try { compacted = compactGeneration(base, canonicalLog, opts); } catch { /* non-fatal */ }
+    let unlinked = null;
+    try { unlinked = safeUnlinkSealedGens(base, canonicalLog, opts); } catch { /* non-fatal */ }
+    return { ok: true, folded, skipped, shards: shards.length, claims: Object.keys(view.claims).length, rotated, compacted, unlinked };
   } finally {
     releaseLease(DRAIN_LEASE_ID, drainerId);
   }
@@ -256,21 +365,34 @@ function foldCanonical(base) {
   const byEvent = new Map();      // eventId -> claim (for supersede targeting)
   const contested = new Map();    // key -> Map(lane -> object) when >1 distinct active object
   const seenEvents = new Set();
+  const supersededIds = new Set();  // eventIds known superseded — order-independent dead-marking (compaction-safe)
   for (const gen of listGenerations(base)) {                 // oldest -> newest = causal (append) order
-    if (!existsSync(gen)) continue;
-    for (const ln of readFileSync(gen, 'utf8').split('\n')) {
+    let raw;
+    // ENOENT-tolerant read: a PEER-OPEN live re-fold (loadCanonical) runs with NO lease, so a concurrent
+    // LEASED compaction can rmSync an old sealed gen between listGenerations() and this read. compaction
+    // rescues every live event into gen-00001 BEFORE unlinking, so a vanished gen never holds an un-rescued
+    // live claim — skipping it keeps the peer read crash-free (at worst a transient undercount THIS pass,
+    // never a lost claim; readView() is the atomic, fully-consistent peer surface).
+    try { raw = readFileSync(gen, 'utf8'); } catch (err) { if (err.code === 'ENOENT') continue; throw err; }
+    for (const ln of raw.split('\n')) {
       const t = ln.trim(); if (!t) continue;
       let e; try { e = JSON.parse(t); } catch { continue; }
       if (!e || !e.eventId || seenEvents.has(e.eventId)) continue;   // SEAL sentinels (no eventId) skipped here too
       seenEvents.add(e.eventId);
-      if (e.supersedes && byEvent.has(e.supersedes)) {
+      // Order-INDEPENDENT supersede: a superseding event marks its target dead whether the target was already
+      // folded (delete from byKey now) OR arrives later (the supersededIds guard skips it below). Keeps
+      // last-write-wins correct under arbitrary shard read-order AND after compaction has dropped a superseded
+      // event from canonical while its shard could still re-emit it on offset-loss recovery.
+      if (e.supersedes) {
+        supersededIds.add(e.supersedes);
         const old = byEvent.get(e.supersedes);
         if (old && byKey.get(keyOf(old))?.eventId === old.eventId) byKey.delete(keyOf(old));
       }
       const k = keyOf(e);
-      if (e.kind === 'retract') { byKey.delete(k); contested.delete(k); byEvent.set(e.eventId, e); continue; }
-      byKey.set(k, e);
       byEvent.set(e.eventId, e);
+      if (e.kind === 'retract') { byKey.delete(k); contested.delete(k); continue; }
+      if (supersededIds.has(e.eventId)) continue;                    // this event was superseded by another — never active
+      byKey.set(k, e);
       // contested tracking: distinct active objects for the same key from (any) lane
       const seenObjs = contested.get(k) || new Map();
       seenObjs.set(`${e.provenance?.lane}|${JSON.stringify(e.object)}`, { lane: e.provenance?.lane, object: e.object });

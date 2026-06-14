@@ -11,6 +11,7 @@ import path from 'node:path';
 import {
   appendClaim, drainOnce, loadCanonical, readView,
   contentHashOf, mintEventId, shardPath, MAX_EVENT_BYTES, DRAIN_LEASE_ID,
+  resolveDirs, listGenerations, compactGeneration, compactionScore, safeUnlinkSealedGens,
 } from './memory-canonical-store.mjs';
 import { acquireLease, releaseLease } from './nano-lease.mjs';
 
@@ -172,5 +173,73 @@ describe('memory-canonical-store (P1)', () => {
     const r = drainOnce('d1', { dir, rotationBytes: 300 });
     assert.equal(r.folded, 0, 're-fold across generations folds nothing new');
     assert.equal(loadCanonical({ dir }).length, 8, 'no duplication after multi-generation re-fold');
+  });
+
+  // T-compaction (P2 Inc 3) — compaction rewrites sealed gens to live-only; retracted+superseded dropped.
+  // Suppress the in-drain auto-compaction (high thresholds) so the MANUAL call is what folds out the dead events.
+  it('T-compaction: drops retracted+superseded events, keeps live state intact', () => {
+    const dir = tmp();
+    const noCompact = { dir, rotationBytes: 300, compactDeadRatio: 2, compactGenThreshold: 9999 };
+    const v1 = appendClaim('lane-a', 's1', { subject: 'x', predicate: 'p', object: 1 }, noCompact);
+    appendClaim('lane-a', 's1', { subject: 'y', predicate: 'p', object: 2 }, noCompact);
+    drainOnce('d1', noCompact);
+    appendClaim('lane-a', 's1', { kind: 'update', subject: 'x', predicate: 'p', object: 99, supersedes: v1.eventId }, noCompact);
+    appendClaim('lane-a', 's1', { kind: 'retract', subject: 'y', predicate: 'p' }, noCompact);
+    drainOnce('d1', noCompact);
+    const { base, canonicalLog } = resolveDirs({ dir });
+    const r = compactGeneration(base, canonicalLog, { compactDeadRatio: 0, compactGenThreshold: 0 });
+    assert.equal(r.compacted, true);
+    assert.ok(r.deadEvents > 0, 'compaction recognised dead events');
+    const live = loadCanonical({ dir });
+    assert.equal(live.length, 1, 'only the live claim survives');
+    assert.equal(live[0].object, 99, 'superseding value is the survivor');
+  });
+
+  // T-compaction-score — staleness × deadRatio, LOG-SIZE health signal only.
+  it('T-compaction-score: returns staleness × deadRatio in valid ranges', () => {
+    const dir = tmp();
+    appendClaim('lane-a', 's1', { subject: 'a', predicate: 'p', object: 1 }, { dir });
+    drainOnce('d1', { dir, rotationBytes: 300 });
+    const { base } = resolveDirs({ dir });
+    const s = compactionScore(listGenerations(base)[0], { base });
+    assert.equal(typeof s.score, 'number');
+    assert.ok(s.deadRatio >= 0 && s.deadRatio <= 1, 'deadRatio normalised');
+  });
+
+  // T-safe-unlink — an aged sealed gen holding ZERO live claims is unlinked; a live-holding gen is NEVER touched.
+  // Suppress auto-compaction so an all-dead sealed gen actually persists for safe-unlink to act on.
+  it('T-safe-unlink: aged all-dead sealed gen unlinked, live-holding gen protected, truth preserved', () => {
+    const dir = tmp();
+    const noCompact = { dir, rotationBytes: 200, compactDeadRatio: 2, compactGenThreshold: 9999 };
+    const v1 = appendClaim('lane-a', 's1', { subject: 'k', predicate: 'p', object: 'old' }, noCompact);
+    drainOnce('d1', noCompact);                                                    // gen-1=[old] -> rotate -> gen-2 live
+    appendClaim('lane-a', 's1', { kind: 'update', subject: 'k', predicate: 'p', object: 'new', supersedes: v1.eventId }, noCompact);
+    drainOnce('d1', noCompact);                                                    // gen-2=[new] -> rotate -> gen-3 live
+    const { base, canonicalLog } = resolveDirs({ dir });
+    const curLive = fs.realpathSync(canonicalLog);
+    const gen1 = listGenerations(base).find((g) => /gen-00001/.test(g));           // holds only the (now-dead) old value
+    fs.utimesSync(gen1, new Date(Date.now() - 2 * 86_400_000), new Date(Date.now() - 2 * 86_400_000));
+    const r = safeUnlinkSealedGens(base, canonicalLog, { sealTtlMs: 86_400_000, sealStableMs: 0 });
+    assert.ok(r.unlinked.some((g) => /gen-00001/.test(g)), 'all-dead aged gen was unlinked');
+    assert.ok(r.skipped.some((s) => /gen-00002/.test(s.path) && s.reason === 'holds-live-claims'), 'live-holding gen protected');
+    assert.ok(fs.existsSync(curLive), 'live generation is kept');
+    const live = loadCanonical({ dir });
+    assert.equal(live.length, 1, 'zero truth lost');
+    assert.equal(live[0].object, 'new', 'the live value survived the unlink');
+  });
+
+  // T-compaction-no-resurrect — compaction + lost offsets must NOT resurrect a superseded value (order-independent fold).
+  it('T-compaction-no-resurrect: compaction + offset loss never resurrects a superseded value', () => {
+    const dir = tmp();
+    const v1 = appendClaim('lane-a', 's1', { subject: 'k', predicate: 'p', object: 'old' }, { dir });
+    drainOnce('d1', { dir, rotationBytes: 200 });
+    appendClaim('lane-a', 's1', { kind: 'update', subject: 'k', predicate: 'p', object: 'new', supersedes: v1.eventId }, { dir });
+    drainOnce('d1', { dir, rotationBytes: 200, compactDeadRatio: 0, compactGenThreshold: 0 });  // compaction drops 'old' from canonical
+    assert.equal(loadCanonical({ dir })[0].object, 'new');
+    fs.rmSync(path.join(dir, 'drainer-offsets.json'), { force: true });            // crash: re-read shard from 0, re-emit 'old'
+    drainOnce('d1', { dir, rotationBytes: 200 });
+    const live = loadCanonical({ dir });
+    assert.equal(live.length, 1, 'still exactly one active claim');
+    assert.equal(live[0].object, 'new', 'superseded value did NOT resurrect');
   });
 });
