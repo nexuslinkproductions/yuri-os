@@ -91,5 +91,16 @@ being ~50% wrong (hallucinated `repeatedFailurePenalty`, `e.confidence` vs `e.ba
   nemotron B3 / glm A5 / deepseek B2) — advisory, to be integrated+verified for the remaining items.
 - 2026-06-14 — Lane-quality wave: L1 full-capacity SHIPPED (ae3cccf0, self-adapting output cap, composes with
   the parallel models.json bump); L2 accuracy code-change contract SHIPPED to nano-swarm-persona.md.
-- NEXT (remaining substrate wave): A3 (E widen guard), A4 (gateProposal neg-field), B2/B3/B4 from the verified
-  designs, then A2 (retire contracts AFTER B3 confirms coverage). enforce stays DISARMED.
+- 2026-06-14 — A4 gateProposal neg-field fail-closed SHIPPED (e9471aa2; note: that commit bundled a parallel
+  session's staged work via the shared index — contained, see feedback-shared-index-commit-pathspec; new rule:
+  explicit pathspec on every commit). Lane-quality L1/L2 SHIPPED (ae3cccf0 / d6650825).
+- 2026-06-14 — **B3 gateProposal property-verifier SHIPPED (b12e4ecc, pushed).** New yuri-energy-gate-invariants.mjs:
+  7 invariants over a 774-row corner-enumerated corpus (VETO-DOMINANCE non-offsettability / THRESHOLD / OVERRIDE /
+  CAP-DISABLED / FLAG-CONSISTENCY / LYAPUNOV / DETERMINISM) + crossCheckSpec (spec≡gate) + 9 planted mutants each
+  caught by target (RED-GREEN). Transitively re-verifies A4. test 12/12, full energy suite 480/480, clean-path
+  byte-identical (gate untouched), enforce DISARMED. Built against REAL code (nemotron design was lost — 1 line).
+  B3 now confirms gateProposal coverage → A2 (retire dead contracts instrument) is unblocked.
+- NEXT (remaining substrate wave): B4 H ground-truth resolved-outcome log (KEYSTONE; minimax design in /tmp/dl-minimax.out,
+  advisory); B2 A/B/C/D control hardening (deepseek design /tmp/dl-deepseek.out); A3 (E widen observer guard at
+  .claude/hooks/prose-claim-extract.mjs:85, observe-only); A2 (retire contracts — B3 now confirms coverage).
+  enforce stays DISARMED; explicit-pathspec commits; clean-path byte-identical for any gate-core change.
