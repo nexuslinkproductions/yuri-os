@@ -46,22 +46,45 @@ const randLabels = (rng, n) => Array.from({ length: n }, () => (rng() < 0.5 ? 0 
 
 // --- valid-state generator -------------------------------------------------
 // Produces well-formed states. Distributions are valid (computeU normalizes);
-// predictions/forecasts strictly inside (0,1) to avoid logLoss singularities;
-// evidence kept [] (its schema is exercised by candidate D, not here).
+// predictions/forecasts strictly inside (0,1) to avoid logLoss singularities.
+// B2 (2026-06-14): genState was BIASED — evidence:[] and always-valid forecasts meant the
+// staleness (ζ) and malformedForecast (λ) evaluators were NEVER exercised by the prover or by
+// the coverage meter that imports this generator, so their fail-closed seams went untested
+// (a permanent coverage hole + an untested property surface). Now ~65% of states carry aged
+// evidence (drives ζ) and ~20% carry one out-of-range forecast (drives λ). Everything is
+// rng-derived (NO wall-clock Date.now) so the generator stays seed-reproducible.
+
+// Aged evidence for the staleness (ζ) evaluator: confidenceDecay reads {base, age, halfLife}
+// (the same shape evalStalenessShadow constructs). rng-driven for reproducibility.
+function genEvidence(rng) {
+  if (rng() < 0.35) return []; // keep the 'absent'/skip path exercised too
+  const k = randInt(rng, 1, 3);
+  return Array.from({ length: k }, () => ({
+    base: 0.5 + rng() * 0.5,         // base confidence in (0.5, 1]
+    age: randInt(rng, 0, 400),       // days since capture (some >> halfLife → real staleness)
+    halfLife: randInt(rng, 30, 365), // decay half-life (days)
+  }));
+}
+
 export function genState(rng) {
   const nc = randInt(rng, 2, 6);   // class count for distributions
   const np = randInt(rng, 1, 5);   // forecast count
+  // ~20%: inject one out-of-range forecast so evalMalformedForecast (λ) fires (counts it,
+  // contributes +λ). Confined to `forecasts` so logLoss (predictions/outcomes) stays clean;
+  // brier skips only on that minority sample, leaving ample clean-brier coverage.
+  const forecasts = randProbs(rng, np);
+  if (rng() < 0.2) forecasts[0] = 1 + rng() * 5; // > 1 → invalid probability
   return {
     claimPromotionDistribution: randDist(rng, nc),
     claimedDistribution: randDist(rng, nc),
     verifiedDistribution: randDist(rng, nc),
     predictions: randProbs(rng, np),
     outcomes: randLabels(rng, np),
-    forecasts: randProbs(rng, np),
+    forecasts,
     results: randLabels(rng, np),
     priorState: randDist(rng, nc),
     posteriorState: randDist(rng, nc),
-    evidence: [],
+    evidence: genEvidence(rng),
     protectedPathViolations: randInt(rng, 0, 3),
     promotionLadderInversions: randInt(rng, 0, 3),
     verifiedEvidenceCount: randInt(rng, 0, 60),
@@ -200,6 +223,27 @@ export const INVARIANTS = [
       return { ok: true };
     },
   },
+  {
+    // B2 (2026-06-14): closes the reconstruction-drop-both-sides escape. `reconstruction`
+    // (U == Σcontributions) PASSES a mutant that drops a term from BOTH U and the contributions
+    // object (both sides lose the same mass). The 3 UNCONDITIONAL terms are emitted on every call
+    // (yuri-energy.mjs:693-696, no skip branch), so their presence is a true structural invariant
+    // and the unique catcher of that mutant. NOT "all 12 keys present" — entropy/wasserstein/
+    // logLoss/brier/infoGain/staleness/repeatedFailure/malformedForecast legitimately skip on
+    // clean/absent inputs (e.g. malformedForecast is absent whenever forecasts are valid).
+    name: 'term-presence: the 3 unconditional terms are always emitted',
+    run(scorer, rng, trials) {
+      const UNCONDITIONAL = ['protectedPathViolations', 'promotionLadderInversions', 'verifiedEvidenceCredit'];
+      for (let i = 0; i < trials; i++) {
+        const s = genState(rng);
+        const { contributions } = scorer(s);
+        for (const k of UNCONDITIONAL) {
+          if (!(k in contributions)) return { ok: false, counterexample: { state: s, missing: k } };
+        }
+      }
+      return { ok: true };
+    },
+  },
 ];
 
 export function runInvariants(scorer = real, { trials = 2000, seed = 0x5eed } = {}) {
@@ -246,6 +290,17 @@ export const MUTANTS = {
   'nonfinite': (state, weights = DEFAULT_WEIGHTS) => {
     const r = computeU(state, weights).result;
     return { U: state.protectedPathViolations > 1 ? Infinity : r.U, contributions: r.contributions };
+  },
+  'drop-unconditional-term': (state, weights = DEFAULT_WEIGHTS) => {
+    // Drops promotionLadderInversions from BOTH U and contributions (both sides lose theta*count).
+    // reconstruction (U==Σ) is PRESERVED, and monotone/sign/barrier/floor are unaffected (removing a
+    // non-negative penalty never makes U decrease-on-increase or go negative) — so ONLY term-presence
+    // catches it. The negative control proving the new invariant is non-vacuous.
+    const r = computeU(state, weights).result;
+    const c = { ...r.contributions };
+    const dropped = c.promotionLadderInversions ?? 0;
+    delete c.promotionLadderInversions;
+    return { U: r.U - dropped, contributions: c };
   },
 };
 

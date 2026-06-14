@@ -18,7 +18,7 @@
 // @serves: input-space coverage of computeU | which test regions are unexercised | coverage closure for the energy gate | covergroup bins + holes report
 // @does: a UVM-style covergroup over computeU's 12 contribution keys — sign-aware bins, per-component holes, overall coverage %, and cross-coverage over key pairs to find untested component interactions; can populate from example-test states or the random state space
 // @use: run after building/changing tests to see which input regions are never exercised (the holes the hand-authored suite misses); pairs with the invariant prover (proves correctness where coverage proves reach)
-// @exports: makeCoverage, hit, report, binOf, COMPONENT_KEYS, CREDIT_KEYS, coverageFromStates, coverageFromGenerator
+// @exports: makeCoverage, hit, report, binOf, COMPONENT_KEYS, CREDIT_KEYS, ALWAYS_EMITTED, STRUCTURAL_PHANTOMS, coverageFromStates, coverageFromGenerator
 //
 // Frontier transfer: coverage-driven verification (UVM covergroups / coverage
 // closure) → the YURI scoring function. Coverage proves REACH; the invariant
@@ -39,13 +39,39 @@ export const CREDIT_KEYS = new Set(['informationGain', 'verifiedEvidenceCredit']
 
 const PENALTY_BINS = ['absent', 'zero', 'tiny', 'small', 'med', 'large'];   // value ≥ 0
 const CREDIT_BINS = ['absent', 'zero', 'ntiny', 'nsmall', 'nlarge'];        // value ≤ 0
-// These three contributions are emitted UNCONDITIONALLY by computeU (yuri-energy.mjs:652-655),
+// These three contributions are emitted UNCONDITIONALLY by computeU (yuri-energy.mjs:693-700),
 // so 'absent' is structurally UNREACHABLE for them — counting it would be a permanent false
 // hole that dishonestly deflates coverage. Honest denominator: drop 'absent' for these keys.
 export const ALWAYS_EMITTED = new Set(['protectedPathViolations', 'promotionLadderInversions', 'verifiedEvidenceCredit']);
+
+// STRUCTURAL PHANTOM BINS (B2, 2026-06-14): bins NO valid computeU input can produce, by the
+// evaluator's IN-CODE structure — NOT by the generator's input domain. The distinction is the
+// whole anti-laundering point: entropy 'large' is unreachable for genState (≤6 classes) but
+// reachable for a real giant-support distribution → dropping it would relabel a GENERATOR gap as
+// impossibility and hide it. So only two structural classes are dropped, both verified against the
+// real code and re-proven by a falsifiable test (energy-coverage.test.mjs throws extreme inputs and
+// asserts nothing lands in a phantom):
+//   (a) DISCRETE quantization — contribution = weight × integer count, so only specific magnitudes
+//       occur and the gaps between them are unreachable;
+//   (b) IN-CODE magnitude CLAMP — the evaluator bounds its own output.
+// Net 14 bins (67→53). Conservative by design: when reachability is unbounded-in-principle the bin
+// is KEPT (an honest hole), never dropped.
+export const STRUCTURAL_PHANTOMS = {
+  // (a) discrete weight×integer-count evaluators:
+  malformedForecast: ['zero', 'tiny', 'small', 'med'],   // λ=50·count, skipped at 0 ⇒ {absent} ∪ {≥50='large'}
+  protectedPathViolations: ['tiny', 'small', 'med'],     // η=100·count, always emitted ⇒ {0='zero'} ∪ {≥100='large'}
+  repeatedFailure: ['tiny', 'small'],                    // κ=5·count ⇒ {0,5,10,15…}; nothing in (0,2]
+  promotionLadderInversions: ['tiny', 'small'],          // θ=10·count ⇒ {0,10,20…}; nothing in (0,2]
+  // (b) in-code magnitude-clamped credits:
+  verifiedEvidenceCredit: ['nsmall', 'nlarge'],          // −ι·log1p(min(ev,50)) ⇒ |m| ≤ 0.393
+  informationGain: ['nlarge'],                           // −ε·normalized, normalized clamped to [0,1] ⇒ |m| ≤ 1
+};
 const reachableBins = (key) => {
-  const base = CREDIT_KEYS.has(key) ? CREDIT_BINS : PENALTY_BINS;
-  return ALWAYS_EMITTED.has(key) ? base.filter((b) => b !== 'absent') : base;
+  let base = CREDIT_KEYS.has(key) ? CREDIT_BINS : PENALTY_BINS;
+  if (ALWAYS_EMITTED.has(key)) base = base.filter((b) => b !== 'absent');
+  const phantom = STRUCTURAL_PHANTOMS[key];
+  if (phantom) base = base.filter((b) => !phantom.includes(b));
+  return base;
 };
 
 // Which bin a contribution value lands in. `present` = the key appeared in
@@ -55,6 +81,14 @@ export function binOf(value, present, isCredit) {
   const v = Number(value);
   if (!Number.isFinite(v)) return isCredit ? 'nlarge' : 'large'; // non-finite → extreme bin
   if (Math.abs(v) < 1e-9) return 'zero';
+  // SIGN-VIOLATION guard (B2, 2026-06-14): a penalty contribution must be ≥0 and a credit ≤0 by
+  // construction. A wrong-signed value previously fell through to a magnitude bin ('tiny' for a
+  // negative penalty, 'ntiny' for a positive credit), LAUNDERING a sign bug as ordinary coverage.
+  // Surface it as a distinct error bin so a sign violation shows up loudly instead of hiding. These
+  // bins are in NO reachable set (report() ignores them in binsHit/holes) → a hit is an anomaly, and
+  // the sign-convention invariant in yuri-energy-invariants.mjs is the prover that should catch it.
+  if (!isCredit && v < 0) return 'err-negative';
+  if (isCredit && v > 0) return 'err-positive';
   if (isCredit) {
     const m = -v; // magnitude of the credit
     if (m <= 0.5) return 'ntiny';
