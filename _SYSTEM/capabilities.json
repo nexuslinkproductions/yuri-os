@@ -1880,7 +1880,10 @@
         "bestOfN",
         "ece",
         "rewardbenchReport",
-        "resolveRows"
+        "resolveRows",
+        "SURVIVE_OUTCOMES",
+        "REVERT_OUTCOMES",
+        "proposalSurvivesMatch"
       ],
       "mechanism": "_SYSTEM/Scripts/math/yuri-energy-rewardbench.mjs"
     },
