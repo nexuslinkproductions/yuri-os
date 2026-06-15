@@ -369,3 +369,7 @@ _SYSTEM/state/ccr-cache/
 02_RESOURCES/INVESTOR-DECK/motion/out/
 02_RESOURCES/INVESTOR-DECK/motion/public/
 02_RESOURCES/INVESTOR-DECK/genmedia/out/
+
+# keystone gate-trace capture arm (local, reversible: rm to disarm; repo default stays DISARMED)
+_SYSTEM/state/gate-trace.enabled
+_SYSTEM/state/gate-trace-corrid.enabled
