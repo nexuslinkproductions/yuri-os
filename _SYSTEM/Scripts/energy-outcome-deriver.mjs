@@ -27,18 +27,25 @@ function sha16(s) { return createHash('sha256').update(s).digest('hex').slice(0,
 // ── 1. readFirings ────────────────────────────────────────────────────────────
 export function readFirings(opts = {}) {
   const dir = opts.traceDir ?? DEFAULT_TRACE_DIR;
-  let files;
-  try { files = readdirSync(dir).filter(f => f.endsWith('.jsonl')).sort(); } catch { return []; }
   const records = [];
   let corrupt = 0;
-  for (const fname of files) {
-    let raw;
-    try { raw = readFileSync(join(dir, fname), 'utf8'); } catch { continue; }
+  const pushLines = (raw) => {
     for (const line of raw.split('\n')) {
       const t = line.trim();
       if (!t) continue;
       try { records.push(JSON.parse(t)); } catch { corrupt++; }
     }
+  };
+  // Historical daily trace dir (may be absent).
+  try {
+    for (const fname of readdirSync(dir).filter((f) => f.endsWith('.jsonl')).sort()) {
+      try { pushLines(readFileSync(join(dir, fname), 'utf8')); } catch { /* skip unreadable file */ }
+    }
+  } catch { /* dir absent — fine, the armed single-file may still exist below */ }
+  // ARMED single-file trace(s): the corrId/claimIds firings live in _SYSTEM/state/energy-gate-trace.jsonl
+  // (gateTracePath), NOT the historical daily dir. opts.traceFile (string) / opts.traceFiles (array) name them.
+  for (const fp of [].concat(opts.traceFiles || [], opts.traceFile ? [opts.traceFile] : [])) {
+    try { pushLines(readFileSync(fp, 'utf8')); } catch { /* absent — fine */ }
   }
   if (corrupt) process.stderr.write(`[energy-outcome-deriver] ${corrupt} corrupt line(s) skipped\n`);
   return records;
@@ -55,7 +62,7 @@ export function firingToPrediction(firing) {
     predictedEffects: [{ target: 'proposal-survives', effect, confidence }],
     source: 'energy-gate',
     change: { decision: firing.decision ?? null, regime: firing.regime ?? null, event: firing.event ?? null },
-    ts: firing.timestamp ?? null,
+    ts: firing.ts ?? firing.timestamp ?? null, // armed gate records use `ts`; historical use `timestamp`
   };
 }
 
@@ -73,7 +80,7 @@ const RULES = [
 
 export function deriveOutcome(firing, signals = {}) {
   const joinKey = firing.corrId || firing.runId;
-  const predictionId = sha16(`${joinKey}:${firing.timestamp}`);
+  const predictionId = sha16(`${joinKey}:${firing.ts ?? firing.timestamp}`);
   for (const rule of RULES) {
     if (rule.test(firing, signals)) {
       return { predictionId, observedEffects: [{ target: 'proposal-survives', effect: rule.effect }], status: 'derived', rule: rule.id };
@@ -101,7 +108,7 @@ export function runDeriver(opts = {}) {
     byRule[outcome.rule] = (byRule[outcome.rule] ?? 0) + 1;
 
     if (outcome.status === 'undeterminable') { undeterminable++; continue; }
-    recordOutcome({ predictionId: row.id, observedEffects: outcome.observedEffects, ts: f.timestamp }, { file: shadowFile });
+    recordOutcome({ predictionId: row.id, observedEffects: outcome.observedEffects, ts: f.ts ?? f.timestamp }, { file: shadowFile });
     outcomesDerived++;
   }
 
