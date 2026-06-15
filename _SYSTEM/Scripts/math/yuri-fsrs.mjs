@@ -141,7 +141,12 @@ export function evaluateRetention(item = {}, cfg = {}) {
  */
 export function bumpStability(stabilityDays, { growth = 1.6, maxDays = 3650 } = {}) {
   const S = (() => { const v = finite(stabilityDays, 0); return v > 0 ? v : 1; })();
-  return Math.min(finite(maxDays, 3650), S * finite(growth, 1.6));
+  // growth must be finite & > 0 (a recall STRENGTHENS): a non-positive/non-finite knob would
+  // corrupt S to ≤0 (finite(-2,1.6) passes -2 straight through → S*-2 < 0). Fall back to the
+  // canonical 1.6, mirroring retrievability's decay<0 / factor>0 domain guards. (math-base sim
+  // assessment 2026-06-16: parity hardening — bumpStability was the one fsrs path with no knob guard.)
+  const g = Number.isFinite(growth) && growth > 0 ? growth : 1.6;
+  return Math.min(finite(maxDays, 3650), S * g);
 }
 
 // PARKED-BRANCH (card 29 Half-2 — inspection-paradox / length-biased age debias): NOT shipped.

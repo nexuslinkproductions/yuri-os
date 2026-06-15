@@ -83,6 +83,11 @@ test('bumpStability: grows on recall (testing effect), capped', () => {
   assert.equal(bumpStability(10, { growth: 1.6 }), 16);
   assert.equal(bumpStability(1e9, { maxDays: 3650 }), 3650);      // capped
   assert.ok(bumpStability(0) > 0);                                // degenerate -> floored to 1 then grown
+  // knob guard (parity w/ retrievability decay<0/factor>0): a non-positive/non-finite growth must
+  // NOT corrupt S to ≤0 — it falls back to the canonical 1.6 (math-base sim assessment 2026-06-16).
+  assert.equal(bumpStability(10, { growth: -2 }), 16);            // negative growth → guarded (was S*-2 = -20)
+  assert.equal(bumpStability(10, { growth: 0 }), 16);             // zero growth → guarded
+  assert.equal(bumpStability(10, { growth: NaN }), 16);           // non-finite → guarded
 });
 
 test('invalid decay/factor fall back to canonical constants — never NaN, never a NaN reason', () => {
