@@ -198,7 +198,10 @@
           "values": "feature units",
           "p": "dimensionless norm parameter"
         },
-        "output": "same units as values when dimensions are homogeneous"
+        "output": "same units as values when dimensions are homogeneous",
+        "parameterSlots": [
+          "p"
+        ]
       },
       "inputConstraints": [
         "values must be a non-empty finite number array",

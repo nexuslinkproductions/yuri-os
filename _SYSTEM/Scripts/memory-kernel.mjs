@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, closeSync, existsSync, fsyncSync, mkdirSync, openSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { PROTECTED_SURFACE_EXCLUSIONS, requiredEvidenceIdsForTask } from './evidence-contract.mjs';
 import { appendKagamiEvent } from './kagami-event-bus.mjs';
 import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
+import { recordUse } from './memory-usage.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -26,8 +27,12 @@ export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
   { id: 'memory-rag-skill-research', path: '_SYSTEM/docs/YURI_MEMORY_RAG_SKILL_RESEARCH_2026-05-21.md', type: 'research', required: true },
   { id: 'protected-surfaces-plan', path: '_SYSTEM/docs/YURI_OS_PROTECTED_SURFACES_MIGRATION_PLAN_2026-05-21.md', type: 'doc', required: true },
   { id: 'soul-persona', path: 'SOUL.md', type: 'persona', required: true },
-  { id: 'neurodivergent-engine-handoff', path: '_SYSTEM/HANDOFF-musubi-intelligence-sprint-v2.md', type: 'neurodivergence', required: true },
-  { id: 'msa-readme', path: '_SYSTEM/tools/MSA/README.md', type: 'upstream-source', required: true },
+  // 'neurodivergent-engine-handoff' removed (wave-2): the doc was deliberately
+  // purged in babd5977 (stale-docs cleanup) — a required evidence source must
+  // never point at a deleted file.
+  // 'msa-readme' removed (wave-2): _SYSTEM/tools/MSA is a vendored repo whose
+  // .git dir trips the protected-path matcher — the loader has denied this
+  // 'required' source ever since, so requiring it was a standing lie.
   { id: 'memory-kernel-source', path: '_SYSTEM/Scripts/memory-kernel.mjs', type: 'source', required: true },
   { id: 'skill-loader-source', path: '_SYSTEM/Scripts/yuri-skill-loader.mjs', type: 'source', required: true },
   { id: 'rails-source', path: '_SYSTEM/Scripts/rails.mjs', type: 'source', required: true },
@@ -41,6 +46,10 @@ export const MEMORY_AUTHORITY = Object.freeze({
   deepseek: ['session', 'project'],
   'deepseek-v4-pro': ['session', 'project'],
   'deepseek-v4-flash': ['session', 'project'],
+  // D-M3 (owner 2026-06-10): explicit claude authority — 'permanent' requires a
+  // separate owner-approval step, never silently. Before this key existed,
+  // Claude-originated entries silently scope-downgraded to 'session'.
+  claude: ['session', 'project'],
 });
 
 export const MEMORY_ACTIONS = Object.freeze([
@@ -90,6 +99,22 @@ export const MEMORY_SURFACES = Object.freeze({
   },
 });
 
+// WP-M.15 posture: append-fsync. A bare appendFileSync leaves a torn-write
+// window on process kill; fsync after append flushes to the OS buffer
+// (reduces the window to disk failure). Corrupt tail lines are skipped by
+// readers WITH a stderr warning (never a silent drop) and are recoverable by
+// re-submitting.
+function appendLineDurable(logPath, line) {
+  mkdirSync(path.dirname(logPath), { recursive: true });
+  const fd = openSync(logPath, 'a');
+  try {
+    appendFileSync(fd, line);
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+}
+
 export function listMemorySurfaces() {
   return Object.values(MEMORY_SURFACES).map((surface) => ({
     ...surface,
@@ -115,7 +140,7 @@ export function recallMemory(query = '', options = {}) {
   }
 
   const tokens = tokenize(query);
-  const candidates = readdirSync(root, { withFileTypes: true })
+  const scored = readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isFile() && /\.(?:md|json|txt)$/i.test(entry.name))
     .map((entry) => {
       const absPath = path.join(root, entry.name);
@@ -132,13 +157,26 @@ export function recallMemory(query = '', options = {}) {
       };
     })
     .filter((entry) => entry.score > 0 || tokens.length === 0)
-    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-    .slice(0, maxFiles);
+    .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  // Honest truncation (house law): real total, never a silent top-N slice.
+  const totalCandidates = scored.length;
+  const candidates = scored.slice(0, maxFiles);
+
+  // Track A recall feeds the FSRS usage signal (mirrors yuri-recall): a recall
+  // IS a use. Only on a successful (non-empty) recall — failed recalls add no
+  // signal. recordUse never throws (fail-soft ledger append).
+  if (candidates.length > 0 && options.recordUse !== false) {
+    for (const ctx of candidates) {
+      recordUse(ctx.id.replace(/\.(?:md|json|txt)$/i, ''), { query });
+    }
+  }
 
   return {
     ok: true,
     query,
     contexts: candidates,
+    totalCandidates,
+    truncated: totalCandidates > maxFiles,
     policy: {
       recallBeforeDispatch: true,
       writeRequiresProposal: true,
@@ -308,8 +346,19 @@ export function appendMemoryEntry(entry = {}, options = {}) {
 
   const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', options.logPath || MEMORY_LEDGER_LOG);
   if (!logPath) return { ok: false, error: 'memory ledger path is protected' };
-  mkdirSync(path.dirname(logPath), { recursive: true });
-  appendFileSync(logPath, `${JSON.stringify(payload)}\n`);
+  // WP-M.14 dedup: scan the recent tail for the same content hash before
+  // appending — identical re-submissions are acknowledged, never re-appended.
+  const DEDUP_WINDOW = 50;
+  if (existsSync(logPath)) {
+    const recent = readJsonlRows(logPath).slice(-DEDUP_WINDOW);
+    if (recent.some((row) => row && row.contentSha256 === payload.contentSha256)) {
+      return { ok: true, duplicate: true, path: logPath, entry: payload, warnings };
+    }
+  }
+  // Ledger rotation: past this threshold, the caller should archive to
+  // memory-ledger-archive-YYYYMMDD.jsonl and truncate (manual/maintenance op —
+  // appends never rotate implicitly to avoid data loss in a hook path).
+  appendLineDurable(logPath, `${JSON.stringify(payload)}\n`);
   return { ok: true, path: logPath, entry: payload, warnings };
 }
 
@@ -395,8 +444,7 @@ export function recordMemoryProposal(proposal = {}, options = {}) {
     recordedAt: new Date().toISOString(),
     promotionRequiresApproval: true,
   };
-  mkdirSync(path.dirname(logPath), { recursive: true });
-  appendFileSync(logPath, `${JSON.stringify(payload)}\n`);
+  appendLineDurable(logPath, `${JSON.stringify(payload)}\n`);
   appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
     source: 'memory-kernel:record',
     session: options.session || 'memory-kernel',
@@ -520,15 +568,44 @@ export function promoteMemoryProposal(proposal = {}, options = {}) {
   }
   const surface = getMemorySurface(proposal.surface) || MEMORY_SURFACES.yuriMemory;
   if (!surface.writable) return { ok: false, error: `memory surface is import-only: ${surface.id}` };
+  const dryRun = options.dryRun !== false;
+  // D-M1 Option A (owner 2026-06-10): an approved non-dry promotion WRITES the
+  // memory to the surface root through this gate — the approval check above is
+  // no longer protecting a no-op. Atomic temp+rename; the surface index gains a
+  // row. NOTE the cross-track index split: _SYSTEM/memory/MEMORY.md is a
+  // hand-maintained TABLE (Track A) — we APPEND a row; regenerating it with the
+  // Track-B updateIndex would clobber the table.
+  let wroteToDisk = false;
+  let destRel = null;
+  if (!dryRun) {
+    const root = path.resolve(REPO_ROOT, surface.root);
+    if (isProtectedPath(root)) return { ok: false, error: `protected memory surface denied: ${surface.root}` };
+    const slug = sanitizeMemorySlug(proposal.slug || proposal.id);
+    if (!slug) return { ok: false, error: `cannot derive a safe slug from proposal: ${proposal.slug || proposal.id}` };
+    const destPath = path.join(root, `${slug}.md`);
+    mkdirSync(root, { recursive: true });
+    const tmpPath = `${destPath}.tmp-${process.pid}`;
+    writeFileSync(tmpPath, String(proposal.content).endsWith('\n') ? proposal.content : `${proposal.content}\n`);
+    renameSync(tmpPath, destPath);
+    appendTrackAIndexRow(root, {
+      slug,
+      file: `${slug}.md`,
+      note: String(proposal.reason || 'kernel-gated promotion').slice(0, 160),
+    });
+    wroteToDisk = true;
+    destRel = path.relative(REPO_ROOT, destPath);
+  }
   const result = {
     ok: true,
+    ...(dryRun ? {} : { wrote_to_disk: wroteToDisk, path: destRel }),
     event: auditMemoryEvent({
       action: 'promote',
       proposalId: proposal.id,
       surface: surface.id,
       contentHash: hashText(proposal.content),
-      dryRun: options.dryRun !== false,
-    }, { dryRun: options.dryRun !== false }),
+      dryRun,
+      ...(dryRun ? {} : { wrote_to_disk: wroteToDisk, path: destRel }),
+    }, { dryRun }),
   };
   appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
     source: 'memory-kernel:promote',
@@ -567,9 +644,39 @@ export function auditMemoryEvent(event = {}, options = {}) {
   }
   const logPath = safeRuntimePath('YURI_MEMORY_AUDIT_LOG', options.logPath || MEMORY_AUDIT_LOG);
   if (!logPath) return { ok: false, error: 'memory audit log path is protected' };
-  mkdirSync(path.dirname(logPath), { recursive: true });
-  appendFileSync(logPath, `${JSON.stringify(payload)}\n`);
+  appendLineDurable(logPath, `${JSON.stringify(payload)}\n`);
   return { ok: true, path: logPath, event: payload };
+}
+
+function sanitizeMemorySlug(raw) {
+  const slug = String(raw || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  return /^[a-z0-9][a-z0-9_-]*$/.test(slug) ? slug : '';
+}
+
+// Track A index (_SYSTEM/memory/MEMORY.md) is a hand-maintained markdown TABLE
+// ("| Date | Entry | Surface | Notes |"). Promotion appends one row under the
+// Active Entries table — never regenerates the file.
+function appendTrackAIndexRow(root, { slug, file, note }) {
+  const indexPath = path.join(root, 'MEMORY.md');
+  const date = new Date().toISOString().slice(0, 10);
+  const row = `| ${date} | ${slug} | \`${path.relative(REPO_ROOT, path.join(root, file))}\` | ${note.replace(/\|/g, '/')} |`;
+  if (!existsSync(indexPath)) {
+    writeFileSync(indexPath, `# Memory Index\n\n## Active Entries\n\n| Date | Entry | Surface | Notes |\n|---|---|---|---|\n${row}\n`);
+    return;
+  }
+  const text = readFileSync(indexPath, 'utf8');
+  const lines = text.split('\n');
+  // insert after the LAST existing table row (find the final line starting with '|')
+  let lastRow = -1;
+  for (let i = 0; i < lines.length; i += 1) if (lines[i].startsWith('|')) lastRow = i;
+  if (lastRow === -1) {
+    writeFileSync(indexPath, `${text.trimEnd()}\n\n| Date | Entry | Surface | Notes |\n|---|---|---|---|\n${row}\n`);
+    return;
+  }
+  lines.splice(lastRow + 1, 0, row);
+  const tmpPath = `${indexPath}.tmp-${process.pid}`;
+  writeFileSync(tmpPath, lines.join('\n'));
+  renameSync(tmpPath, indexPath);
 }
 
 function tokenize(value) {
@@ -581,17 +688,23 @@ function tokenize(value) {
 
 function readJsonlRows(logPath) {
   if (!existsSync(logPath)) return [];
-  return readFileSync(logPath, 'utf8')
+  let corruptedLinesSeen = 0;
+  const rows = readFileSync(logPath, 'utf8')
     .split('\n')
     .filter(Boolean)
     .map((line) => {
       try {
         return JSON.parse(line);
       } catch {
+        corruptedLinesSeen += 1;
         return null;
       }
     })
     .filter(Boolean);
+  if (corruptedLinesSeen > 0) {
+    process.stderr.write(`[memory-kernel] WARNING: ${corruptedLinesSeen} corrupt JSONL line(s) skipped in ${path.basename(logPath)} (recoverable by re-submitting)\n`);
+  }
+  return rows;
 }
 
 function applyMemoryProposalDecisions(proposals, decisions) {
@@ -743,6 +856,21 @@ if (isCliEntrypoint()) {
       decidedBy: 'operator',
       lane: 'memory-kernel',
     }));
+  } else if (cmd === 'promote') {
+    const idIdx = rest.indexOf('--id');
+    const id = idIdx >= 0 ? rest[idIdx + 1] : rest.find((a) => !a.startsWith('--'));
+    const dryRun = !rest.includes('--dry-run=false');
+    if (!id) {
+      printJson({ ok: false, error: 'promote requires --id <proposal-id>' });
+    } else {
+      const listed = listMemoryProposals('', {});
+      const proposal = (listed.proposals || []).find((pr) => pr.id === id);
+      if (!proposal) {
+        printJson({ ok: false, error: `unknown proposal id: ${id}` });
+      } else {
+        printJson(promoteMemoryProposal(proposal, { approved: true, dryRun }));
+      }
+    }
   } else if (cmd === 'decisions') {
     printJson(listMemoryProposalDecisions(rest.join(' ')));
   } else if (cmd === 'evidence') {

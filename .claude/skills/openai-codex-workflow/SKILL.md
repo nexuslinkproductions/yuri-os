@@ -1,6 +1,7 @@
 ---
 name: openai-codex-workflow
 description: "Research and apply OpenAI/Codex workflow guidance, including docs, config, subagents, skills, memory, and local gpt-oss usage. Use when you need a compact, reusable brief for how to work safely and effectively with OpenAI agent tools."
+triggers: ["/openai-codex-workflow", "codex workflow", "openai agent tools"]
 ---
 
 # OpenAI / Codex Workflow

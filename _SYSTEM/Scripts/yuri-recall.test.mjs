@@ -16,6 +16,9 @@ test('rankRecall: salience + recency lift score; recent beats stale at equal bm2
     { slug: 'recent', bm25: -1, salience: 0, crosslinks: '' },
     { slug: 'salient', bm25: -1, salience: 5, crosslinks: '' },
   ];
+  // lastUsedMs:0 is the EPOCH (used 10 days ago under this synthetic nowMs), not
+  // never-used — the falsy-zero fix changed this fixture's meaning; the ordinal
+  // assertion below is the re-pinned intent (recent > old still holds).
   const usageIndex = { recent: { lastUsedMs: now }, old: { lastUsedMs: 0 } };
   const ranked = rankRecall(hits, { usageIndex, nowMs: now, topK: 3 });
   assert.equal(ranked[0].slug, 'salient');
@@ -52,4 +55,22 @@ test('recall: surfaces from cold store AND bumps the ledger (reactivation streng
 test('renderRecallBlock: empty when nothing surfaced, wrapped otherwise', () => {
   assert.equal(renderRecallBlock([]), '');
   assert.ok(renderRecallBlock([{ slug: 'x', snip: 'hi' }]).includes('<subconscious-recall>'));
+});
+
+test('recency is a TRUE half-life: 0.5 at age==halfLifeDays, 0.25 at 2x (knob honesty)', () => {
+  const now = 60 * DAY + 1;
+  const mk = (age) => rankRecall([{ slug: 'x', bm25: 0, salience: 0, crosslinks: '' }], {
+    usageIndex: { x: { lastUsedMs: now - age * DAY } }, nowMs: now, halfLifeDays: 30,
+    weights: { bm25: 0, recency: 1, salience: 0, crosslink: 0 }, topK: 1,
+  })[0].recency;
+  assert.ok(Math.abs(mk(30) - 0.5) < 1e-9, `half-life point: ${mk(30)}`);
+  assert.ok(Math.abs(mk(60) - 0.25) < 1e-9, `double half-life: ${mk(60)}`);
+});
+
+test('NaN halfLifeDays falls back to the default — never a NaN score', () => {
+  const now = 10 * DAY;
+  const r = rankRecall([{ slug: 'x', bm25: -1, salience: 0, crosslinks: '' }], {
+    usageIndex: { x: { lastUsedMs: now - DAY } }, nowMs: now, halfLifeDays: NaN, topK: 1,
+  });
+  assert.ok(Number.isFinite(r[0].score));
 });

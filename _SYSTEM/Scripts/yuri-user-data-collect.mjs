@@ -26,7 +26,7 @@ function num(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
 // never the record's keys, so an out-of-set key is never read. (Keys are camelCase
 // term names, so a lowercase charset cannot be used — a closed set is required.)
 const ALLOWED_CONTRIBUTION_KEYS = new Set([
-  'entropy', 'klDivergence', 'logLoss', 'brier', 'repeatedFailure', 'malformedForecast',
+  'entropy', 'klDivergence', 'wasserstein', 'overconfidenceDrift', 'logLoss', 'brier', 'repeatedFailure', 'malformedForecast',
   'informationGain', 'staleness', 'protectedPathViolations', 'promotionLadderInversions',
   'verifiedEvidenceCredit',
 ]);

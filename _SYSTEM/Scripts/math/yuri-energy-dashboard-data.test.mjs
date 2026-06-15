@@ -41,19 +41,26 @@ function makeTmpStateDir() {
 }
 
 // Real ground-truth values from running descent-demo through the real gate.
-// Updated 2026-05-30: the verified-evidence credit is now SATURATING (-iota·log1p,
-// capped) instead of linear, so U descends in smaller, bounded steps (finalU no
-// longer plunges). Still strictly monotonically descending, 15/15 accepted.
+// Updated 2026-06-14 (energyFormulaVersion 3): the β/drift term is now Wasserstein-1 (was KL). The demo's
+// initial state carries real claim-vs-evidence drift, so the trajectory now STARTS higher (W₁ rung-units)
+// and descends in larger steps as the claim converges to the evidence. KNOWN_FINAL_U is UNCHANGED: the
+// demo's final state has claimed == verified (W₁ = 0 = drift-free), so the last U is identical across the
+// KL→W₁ swap. Still strictly monotonically descending, 15/15 accepted (invariant re-verified, not assumed).
+// (2026-05-30: the verified-evidence credit is SATURATING -iota·log1p, capped — bounded steps.)
+// energyFormulaVersion 3 + μ confidence-coupling (2026-06-14): the μ·conc·W₁ term now also fires on the
+// demo's drifted states, so the trajectory starts slightly higher and the steps shift; still strictly
+// monotonically descending, 15/15 accepted. KNOWN_FINAL_U unchanged (final state claimed==verified → W₁=0
+// → both the drift AND the μ-coupling term are 0 at the end).
 const KNOWN_DELTA_U = [
-  -0.062606848, -0.066671002, -0.068674425, -0.069713711, -0.07023025,
-  -0.070447374, -0.070504594, -0.070512521, -0.070584678, -0.070868229,
-  -0.071592534, -0.073175363, -0.076521517, -0.084209852, -0.115523238,
+  -0.091304475, -0.102075717, -0.11040005, -0.117557065, -0.124116847,
+  -0.130401567, -0.13663347, -0.142998567, -0.149685002, -0.156919652,
+  -0.165023143, -0.174524485, -0.186472157, -0.203641698, -0.245602767,
 ];
 const KNOWN_FINAL_U = 0.703364018;
 const KNOWN_U_TRAJECTORY = [
-  1.815200154, 1.752593306, 1.685922304, 1.617247879, 1.547534168,
-  1.477303918, 1.406856544, 1.33635195, 1.265839429, 1.195254751,
-  1.124386522, 1.052793988, 0.979618625, 0.903097108, 0.818887256,
+  2.94072068, 2.849416205, 2.747340488, 2.636940438, 2.519383373,
+  2.395266526, 2.264864959, 2.128231489, 1.985232922, 1.83554792,
+  1.678628268, 1.513605125, 1.33908064, 1.152608483, 0.948966785,
   0.703364018,
 ];
 
@@ -450,9 +457,9 @@ test('buildRealTrafficSection: empty records → honest zeroes, no crash', () =>
 // 15. buildComponentsSection.list — all eleven components with live weights.
 // ---------------------------------------------------------------------------
 
-test('buildComponentsSection emits all eleven components tied to live weights', () => {
+test('buildComponentsSection emits all twelve components tied to live weights', () => {
   const c = buildComponentsSection();
-  assert.equal(c.list.length, 11);
+  assert.equal(c.list.length, 12); // 11 + μ overconfidenceDrift (energyFormulaVersion 3 confidence-coupling)
   assert.equal(c.list.length, COMPONENT_META.length);
   for (const item of c.list) {
     assert.equal(item.w, DEFAULT_WEIGHTS[item.k], `${item.k} weight matches source`);
@@ -507,7 +514,7 @@ test('buildAttributionSection: marks fired components and carries weights', asyn
     { dominantTerm: 'protectedPathViolations', deltaU: 100 },
   ] } };
   const attr = buildAttributionSection(steps, study);
-  assert.equal(attr.nodes.length, 11);
+  assert.equal(attr.nodes.length, 12); // 11 + μ overconfidenceDrift
   const eta = attr.nodes.find((n) => n.cc === 'protectedPathViolations');
   assert.equal(eta.weight, 100);
   assert.equal(eta.fired, true);

@@ -97,7 +97,10 @@ export function selectRecall(scored, { budgetTokens = 1200, lambda = 0.7 } = {})
       const marginal = cand.salience - lambda * maxRed;
       if (marginal > bestVal || (marginal === bestVal && bestIdx >= 0 && String(cand.id) < String(pool[bestIdx].id))) { bestVal = marginal; bestIdx = i; }
     }
-    if (bestIdx < 0) break;
+    // Stay selective: stop when the best remaining marginal is non-positive
+    // (redundancy penalty >= salience). Zero-marginal items are dropped too —
+    // nothing is added just to fill budget.
+    if (bestIdx < 0 || bestVal <= 0) break;
     const pick = pool.splice(bestIdx, 1)[0];
     chosen.push({ ...pick, marginal: Number(bestVal.toFixed(6)) });
     used += pick.tokens;

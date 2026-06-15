@@ -350,6 +350,14 @@ export function buildTraceRecord({
     weights: { ...weights },
     advisory_only: true,
     local_truth_claim: false,
+    // Energy-formula epoch — lets calibration partition the burn-in corpus by drift-term scale instead
+    // of mixing incommensurable eras as one stationary distribution. v1/unversioned = KL with the hard
+    // 1e-9 belief floor (β·KL≈41 saturated, distance-blind). v2 = KL feeders mixture-smoothed (ceiling
+    // ~11, still distance-blind; 2026-06-13). v3 = drift term swapped KL→Wasserstein-1 on the ordinal
+    // ladder (distance-AWARE, β·W₁ ∈ [0, β·(N-1)]≈[0,11]; contribution key `wasserstein`, not
+    // `klDivergence`; 2026-06-14). The version READER (yuri-energy-analyze.resolveFormulaVersion /
+    // partitionByFormulaVersion) refuses to pool v1/v2/v3 records when rescoring.
+    energyFormulaVersion: 3,
   };
 }
 

@@ -8,16 +8,17 @@ import { buildTraceRecord, CANONICAL_PROMOTION_LABELS } from './yuri-energy-trac
 import { PROMOTION_LADDER_LABELS } from './yuri-energy-sanitize.mjs';
 import { LADDER } from '../claim-cortex.mjs';
 
-// --- Bug #3: KL non-monotonic -> maximal drift must REJECT, not skip-to-accept ---
-test('bug#3 — a provable-lie verified distribution yields a FINITE KL and REJECTS', () => {
+// --- Bug #3 (ported to energyFormulaVersion 3 / Wasserstein-1): provable-lie -> maximal drift REJECTS ---
+test('bug#3 — a provable-lie verified distribution yields a FINITE, MAXIMAL W₁ drift and REJECTS', () => {
   const before = { claimedDistribution: [0.5, 0.5], verifiedDistribution: [0.5, 0.5], verifiedEvidenceCount: 5 };
-  // claimed says [1,0] but verified evidence says [0,1] — maximal drift / provable lie.
+  // claimed says [1,0] but verified evidence says [0,1] — opposite one-hots = MAXIMAL drift on a 2-rung support.
   const after = { claimedDistribution: [1, 0], verifiedDistribution: [0, 1], verifiedEvidenceCount: 5 };
   const uAfter = computeU(after);
-  // Pre-fix: klDivergence threw "infinite" -> component skipped -> contributed 0.
-  // (serializeComponent omits `skipped` entirely when a component fires.)
-  assert.notEqual(uAfter.result.components.klDivergence.skipped, true, 'KL must not be skipped');
-  assert.ok(Number.isFinite(uAfter.result.components.klDivergence.value), 'KL must have a finite value');
+  // The drift term is now Wasserstein-1 (key `wasserstein`), which is always finite (no log/zero-denominator)
+  // AND distance-aware: opposite one-hots on a 2-rung support = W₁ = |0−1| = 1 = the support ceiling (N-1).
+  assert.notEqual(uAfter.result.components.wasserstein.skipped, true, 'drift must not be skipped');
+  assert.ok(Number.isFinite(uAfter.result.components.wasserstein.value), 'W₁ must have a finite value');
+  assert.equal(uAfter.result.components.wasserstein.value, 1, 'opposite one-hots = maximal W₁=1 on a 2-rung support');
   const g = gateProposal({ stateBefore: before, stateAfter: after });
   assert.ok(g.result.deltaU > 0, 'maximal drift must raise U');
   assert.equal(g.result.accept, false, 'the worst case must be rejected, not accepted');
@@ -94,11 +95,14 @@ test('bug#4 — zeroing the protected weight (eta=0) does not disable the struct
 // Round 2 — regressions for the 2026-05-30 multi-agent attack findings.
 // =====================================================================
 
-test('attack — KL length mismatch is treated as maximal drift and REJECTS', () => {
+test('attack — drift length mismatch is treated as maximal drift and REJECTS', () => {
   const before = { claimedDistribution: [0.34, 0.33, 0.33], verifiedDistribution: [0.34, 0.33, 0.33] };
   const after = { claimedDistribution: [0.999, 0.0005, 0.0005], verifiedDistribution: [0.5, 0.5] };
   const u = computeU(after);
-  assert.notEqual(u.result.components.klDivergence.skipped, true, 'length mismatch must not skip');
+  // evalWasserstein: a length-3 vs length-2 claim is structurally invalid → maximal drift over the widest
+  // declared support = max(3,2)−1 = 2 (NOT skipped → not silently 0 → REJECTS).
+  assert.notEqual(u.result.components.wasserstein.skipped, true, 'length mismatch must not skip');
+  assert.equal(u.result.components.wasserstein.value, 2, 'mismatch span = max(len)-1');
   assert.equal(gateProposal({ stateBefore: before, stateAfter: after }).result.accept, false);
 });
 

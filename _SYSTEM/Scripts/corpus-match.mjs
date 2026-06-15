@@ -28,7 +28,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tokenize, tokenFreq, jaccard, tfCosine } from './math/yuri-jaccard.mjs';
-import { makeHashes, minhashSignature, lshBands, tuneBands, estimateJaccard } from './math/yuri-minhash.mjs';
+import { makeHashes, minhashSignature, lshBands, tuneBands } from './math/yuri-minhash.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

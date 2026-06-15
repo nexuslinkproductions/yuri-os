@@ -19,7 +19,13 @@ const crypto = require('crypto');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const ROOT = REPO_ROOT;
-const ORCHESTRATOR = path.join(REPO_ROOT, 'Scripts', 'pulse-orchestrator.mjs');
+// WARNING (wave-2 C.12): even with PULSE_ORCHESTRATOR_RETIRED=false, restoring
+// the orchestrator requires (1) git-restoring _SYSTEM/Scripts/pulse-orchestrator.mjs
+// (DELETED in wave-2, owner decision D-C2 — recoverable from git history),
+// (2) creating the missing pulse-beacon.mjs, (3) verifying pulse-bus path
+// alignment, and (4) re-enabling the spawn here. The old constant pointed at
+// <repo>/Scripts/ which never existed — the restore path was broken-by-default.
+const ORCHESTRATOR = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'pulse-orchestrator.mjs');
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PULSE_PLAN_FILE = path.join(STATE_DIR, 'pulse-plan.json');
 const TELEMETRY_LOG = path.join(STATE_DIR, 'pulse-hook-telemetry.log');
@@ -63,6 +69,10 @@ function checkBrainStale() {
 // The hook can't block on recall (<50ms exit guarantee), so a recall always lands one turn late —
 // acceptable: consecutive prompts in a session stay topically related, so the prior cue is still
 // relevant. Consume-once (unlink on read) → a recall surfaces exactly once, never re-injects stale.
+// FIRST-TURN COLD-START is an ACCEPTED design constraint (owner decision D-R4, wave-2 2026-06-10):
+// the session's first prompt runs with zero recall injection by design. A synchronous 500ms
+// fallback was considered and rejected — first-prompt latency is not worth it while Track A
+// recallable content is thin. Revisit once WP-M.1 promotion traffic grows the cold store.
 function readPriorRecall() {
   try {
     if (!fs.existsSync(RECALL_FILE)) return null;

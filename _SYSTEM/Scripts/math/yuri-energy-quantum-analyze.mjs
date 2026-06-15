@@ -79,7 +79,7 @@ function median(values) {
 // ───────────────────────────────────────────────────────────────────
 //
 // Two binary questions over the trace:
-//   A = drift-dominant   (klDivergence contribution above its median)
+//   A = drift-dominant   (drift contribution above its median; klDivergence ≤v2 OR wasserstein ≥v3)
 //   B = penalty-dominant (staleness + repeatedFailure + malformedForecast above its median)
 // The faithful model of a LINEAR gate uses COMMUTING (diagonal) projectors → qqStatistic
 // is ≈ 0 (no order-effect). A non-commuting contrast (rotated rank-1 projectors) is run
@@ -89,7 +89,7 @@ export function orderEffectTest(records, { asymmetryThreshold = 0.05 } = {}) {
   const rows = records.map((r) => {
     const v = recordContribVector(r);
     return {
-      drift: v.klDivergence,
+      drift: v.klDivergence + v.wasserstein, // exactly one is nonzero per record (era-keyed); sum folds both
       penalty: v.staleness + v.repeatedFailure + v.malformedForecast,
       reject: (r.decision ?? r.verdict) === 'reject' || r.accept === false,
     };

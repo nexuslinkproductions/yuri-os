@@ -69,8 +69,8 @@ describe('YURI energy component ablation', () => {
     }
 
     assert.ok(
-      findNonZero(['T_b:kl-reject'], ['klDivergence', 'beta']),
-      'beta/klDivergence must have non-zero componentDeltas',
+      findNonZero(['T_b:drift-reject'], ['klDivergence', 'wasserstein', 'beta']),
+      'beta drift term must have non-zero componentDeltas (wasserstein ≥v3, klDivergence ≤v2)',
     );
     assert.ok(
       findNonZero(

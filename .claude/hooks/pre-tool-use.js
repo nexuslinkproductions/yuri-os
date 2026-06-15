@@ -36,7 +36,10 @@ function buildHint(state) {
 }
 
 function emitContext(msg) {
-  process.stderr.write(JSON.stringify({
+  // wave-3 G.2: stdout, not stderr — the PreToolUse structured advisory channel is
+  // stdout-only; stderr JSON was silently discarded, so every compaction-tier and
+  // token-economy advisory this hook computed never reached the model.
+  process.stdout.write(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: msg }
   }) + '\n');
 }

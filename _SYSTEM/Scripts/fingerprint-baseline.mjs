@@ -158,7 +158,12 @@ export function computeDelta({ noAppend = false } = {}) {
     as_of: new Date().toISOString(),
     sessions_total: current.session_count ?? history.length,
     history_entries: history.length,
-    baseline_window: `sessions 1-${baselineEntries.length}`,
+    // SLIDING baseline: history is capped keep-most-recent, so these are the
+    // oldest RETAINED entries, not the true first sessions; for history shorter
+    // than baseline+current windows the two OVERLAP, biasing drift → 0.
+    baseline_window: `oldest ${baselineEntries.length} of retained history (sliding after ${HISTORY_CAP}-entry cap)`,
+    baseline_is_sliding: history.length >= HISTORY_CAP,
+    windows_overlap: history.length < BASELINE_WINDOW + CURRENT_WINDOW,
     current_window: `last ${currentEntries.length}`,
     dimensions,
     calibration_trend: current.calibration_trend ?? null,

@@ -1,6 +1,7 @@
 ---
 name: adversarial-verification
 description: Use when verifying completed work, reviewing Claude or Codex output, wiring routes or adapters, relaunching lanes, committing, pushing, or avoiding first-run confidence.
+triggers: ["adversarial verification", "attack your own output", "verify completed work"]
 ---
 
 # Adversarial Verification

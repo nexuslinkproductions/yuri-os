@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "lastUpdated": "2026-06-03T12:03:59.401Z",
+  "lastUpdated": "2026-06-13T13:06:13.478Z",
   "templates": {
     "kagami-sprint-audit": {
       "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
@@ -44,183 +44,704 @@
   },
   "entries": [
     {
-      "date": "2026-06-03",
+      "date": "2026-06-13",
+      "component": "SceneVisionV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneVisionV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneVisionV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneSolutionV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneSolutionV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneSolutionV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "vfx",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vfx.tsx",
+      "action": "create",
+      "decision": "New component created: vfx"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitectureV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitectureV.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneArchitectureV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenV.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTokenV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneWhyNowV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneWhyNowV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneWhyNowV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneAskV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAskV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneAskV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeamV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeamV.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTeamV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeamV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeamV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTeamV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneBusinessV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneBusinessV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneBusinessV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFinancialV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFinancialV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneFinancialV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmapV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmapV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneRoadmapV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarketV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarketV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneMarketV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitiveV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitiveV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCompetitiveV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTokenV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitectureV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitectureV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneArchitectureV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneHowV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblemV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblemV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneProblemV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "vox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vox.tsx",
+      "action": "edit",
+      "decision": "Updated: vox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "vox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vox.tsx",
+      "action": "create",
+      "decision": "New component created: vox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "space3d",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/space3d.tsx",
+      "action": "edit",
+      "decision": "Updated: space3d"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "transitions",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/transitions.tsx",
+      "action": "edit",
+      "decision": "Updated: transitions"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneOpenVox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneOpenVox.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneOpenVox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneOpenVox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneOpenVox.tsx",
+      "action": "create",
+      "decision": "New component created: SceneOpenVox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "kinetic",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/kinetic.tsx",
+      "action": "edit",
+      "decision": "Updated: kinetic"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneIgniteVFX",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneIgniteVFX.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneIgniteVFX"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneIgniteVFX",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneIgniteVFX.tsx",
+      "action": "create",
+      "decision": "New component created: SceneIgniteVFX"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpenV4",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpenV4.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpenV4"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpenV3",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpenV3.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpenV3"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "space3d",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/space3d.tsx",
+      "action": "create",
+      "decision": "New component created: space3d"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "ProofClip",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/ProofClip.tsx",
+      "action": "create",
+      "decision": "New component created: ProofClip"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneScale3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneScale3D.tsx",
+      "action": "create",
+      "decision": "New component created: SceneScale3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen3D.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneColdOpen3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen3D.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpen3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "transitions",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/transitions.tsx",
+      "action": "create",
+      "decision": "New component created: transitions"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "kinetic",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/kinetic.tsx",
+      "action": "create",
+      "decision": "New component created: kinetic"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "three-env",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/three-env.tsx",
+      "action": "create",
+      "decision": "New component created: three-env"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "_ThreeTest",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/_ThreeTest.tsx",
+      "action": "create",
+      "decision": "New component created: _ThreeTest"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitive.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneCompetitive"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenSavings",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenSavings.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTokenSavings"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFourPillars",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFourPillars.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneFourPillars"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "Film",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Film.tsx",
+      "action": "create",
+      "decision": "New component created: Film"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneAsk",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAsk.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneAsk"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmap",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmap.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneRoadmap"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneVisionClose",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneVisionClose.tsx",
+      "action": "create",
+      "decision": "New component created: SceneVisionClose"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarket",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarket.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneMarket"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneAsk",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAsk.tsx",
+      "action": "create",
+      "decision": "New component created: SceneAsk"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmap",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmap.tsx",
+      "action": "create",
+      "decision": "New component created: SceneRoadmap"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeam",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeam.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTeam"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarket",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarket.tsx",
+      "action": "create",
+      "decision": "New component created: SceneMarket"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneEnergyGate",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneEnergyGate.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneEnergyGate"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneLayers",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneLayers.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneLayers"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitecture",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitecture.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneArchitecture"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneEnergyGate",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneEnergyGate.tsx",
+      "action": "create",
+      "decision": "New component created: SceneEnergyGate"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneLayers",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneLayers.tsx",
+      "action": "create",
+      "decision": "New component created: SceneLayers"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitive.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCompetitive"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowItWorks",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowItWorks.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneHowItWorks"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblem",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblem.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneProblem"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenSavings",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenSavings.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTokenSavings"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFourPillars",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFourPillars.tsx",
+      "action": "create",
+      "decision": "New component created: SceneFourPillars"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitecture",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitecture.tsx",
+      "action": "create",
+      "decision": "New component created: SceneArchitecture"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneWhyNow",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneWhyNow.tsx",
+      "action": "create",
+      "decision": "New component created: SceneWhyNow"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCostStat",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCostStat.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCostStat"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowItWorks",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowItWorks.tsx",
+      "action": "create",
+      "decision": "New component created: SceneHowItWorks"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblem",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblem.tsx",
+      "action": "create",
+      "decision": "New component created: SceneProblem"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
+      "action": "edit",
+      "decision": "Updated: Root"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneSolution",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneSolution.tsx",
+      "action": "create",
+      "decision": "New component created: SceneSolution"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpen"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "primitives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/primitives.tsx",
+      "action": "create",
+      "decision": "New component created: primitives"
+    },
+    {
+      "date": "2026-06-13",
       "component": "index",
-      "file": "_SYSTEM/backend/public/acquisition/index.html",
+      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck/index.html",
       "action": "edit",
       "decision": "Updated: index"
     },
     {
-      "date": "2026-06-02",
-      "component": "marketing-studio",
-      "file": "01_PROJECTS/yuri-command-center-demo/Dashboard-v2/static/marketing-studio.html",
+      "date": "2026-06-13",
+      "component": "nexus-link-investor-deck-v2",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-v2.html",
       "action": "edit",
-      "decision": "Updated: marketing-studio"
+      "decision": "Updated: nexus-link-investor-deck-v2"
     },
     {
-      "date": "2026-06-02",
-      "component": "AboutPage",
-      "file": "_SYSTEM/src/pages/AboutPage.tsx",
+      "date": "2026-06-13",
+      "component": "NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE",
+      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE.html",
       "action": "edit",
-      "decision": "Updated: AboutPage"
+      "decision": "Updated: NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE"
     },
     {
-      "date": "2026-06-02",
-      "component": "app",
-      "file": "01_PROJECTS/yuri-command-center-demo/Dashboard-v2/src/app.html",
+      "date": "2026-06-13",
+      "component": "ChaosOrder",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
       "action": "edit",
-      "decision": "Updated: app"
+      "decision": "Updated: ChaosOrder"
     },
     {
-      "date": "2026-06-02",
-      "component": "index",
-      "file": "00_COMMAND-CENTER/yuri-course/index.html",
+      "date": "2026-06-13",
+      "component": "BillArrives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
       "action": "edit",
-      "decision": "Updated: index"
+      "decision": "Updated: BillArrives"
     },
     {
-      "date": "2026-06-02",
-      "component": "_base",
-      "file": "00_COMMAND-CENTER/yuri-course/_base.html",
+      "date": "2026-06-13",
+      "component": "TokenBurn",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
       "action": "edit",
-      "decision": "Updated: _base"
+      "decision": "Updated: TokenBurn"
     },
     {
-      "date": "2026-06-02",
-      "component": "03-graph",
-      "file": "00_COMMAND-CENTER/yuri-course/modules/03-graph.html",
-      "action": "edit",
-      "decision": "Updated: 03-graph"
-    },
-    {
-      "date": "2026-06-02",
-      "component": "01-intro",
-      "file": "00_COMMAND-CENTER/yuri-course/modules/01-intro.html",
-      "action": "edit",
-      "decision": "Updated: 01-intro"
-    },
-    {
-      "date": "2026-05-31",
-      "component": "energy-landscape-dashboard",
-      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard.html",
-      "action": "edit",
-      "decision": "Updated: energy-landscape-dashboard"
-    },
-    {
-      "date": "2026-05-31",
-      "component": "energy-landscape-dashboard",
-      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard.html",
+      "date": "2026-06-13",
+      "component": "TheFork",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TheFork.tsx",
       "action": "create",
-      "decision": "New component created: energy-landscape-dashboard"
+      "decision": "New component created: TheFork"
     },
     {
-      "date": "2026-05-31",
-      "component": "energy-landscape-dashboard-v2-preview",
-      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard-v2-preview.html",
-      "action": "edit",
-      "decision": "Updated: energy-landscape-dashboard-v2-preview"
-    },
-    {
-      "date": "2026-05-31",
-      "component": "energy-landscape-dashboard-v2-preview",
-      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard-v2-preview.html",
+      "date": "2026-06-13",
+      "component": "HandsArrive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/HandsArrive.tsx",
       "action": "create",
-      "decision": "New component created: energy-landscape-dashboard-v2-preview"
+      "decision": "New component created: HandsArrive"
     },
     {
-      "date": "2026-05-31",
-      "component": "index",
-      "file": "_SYSTEM/reports/yuri-control/index.html",
-      "action": "edit",
-      "decision": "Updated: index"
-    },
-    {
-      "date": "2026-05-30",
-      "component": "nexus-design-system",
-      "file": "_SYSTEM/reports/assets/nexus-design-system.css",
-      "action": "edit",
-      "decision": "Updated: nexus-design-system"
-    },
-    {
-      "date": "2026-05-30",
-      "component": "nexus-design-system",
-      "file": "_SYSTEM/reports/assets/nexus-design-system.css",
+      "date": "2026-06-13",
+      "component": "BillArrives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
       "action": "create",
-      "decision": "New component created: nexus-design-system"
+      "decision": "New component created: BillArrives"
     },
     {
-      "date": "2026-05-30",
-      "component": "NEXUS_LINK_REVENUE_PLAN_2026-05-30",
-      "file": "_SYSTEM/reports/NEXUS_LINK_REVENUE_PLAN_2026-05-30.html",
-      "action": "edit",
-      "decision": "Updated: NEXUS_LINK_REVENUE_PLAN_2026-05-30"
-    },
-    {
-      "date": "2026-05-30",
-      "component": "index",
-      "file": "_SYSTEM/reports/yuri-control/index.html",
-      "action": "edit",
-      "decision": "Updated: index"
-    },
-    {
-      "date": "2026-05-30",
-      "component": "index",
-      "file": "_SYSTEM/reports/yuri-control/index.html",
+      "date": "2026-06-13",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
       "action": "create",
-      "decision": "New component created: index"
+      "decision": "New component created: Root"
     },
     {
-      "date": "2026-05-29",
-      "component": "AI-Ad-Management-Pitch-DE",
-      "file": "01_PROJECTS/melanie-ad-management/AI-Ad-Management-Pitch-DE.html",
-      "action": "create",
-      "decision": "New component created: AI-Ad-Management-Pitch-DE"
-    },
-    {
-      "date": "2026-05-28",
-      "component": "energy-landscape-dashboard",
-      "file": "_SYSTEM/reports/energy-landscape-paper-2026-07/energy-landscape-dashboard.html",
+      "date": "2026-06-12",
+      "component": "v2_body",
+      "file": "/tmp/v2_body.html",
       "action": "edit",
-      "decision": "Updated: energy-landscape-dashboard"
+      "decision": "Updated: v2_body"
     },
     {
-      "date": "2026-05-21",
-      "component": "YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21",
-      "file": "_SYSTEM/reports/YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21.html",
-      "action": "create",
-      "decision": "New component created: YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21"
-    },
-    {
-      "date": "2026-05-21",
-      "component": "YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21",
-      "file": "_SYSTEM/reports/YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21.html",
+      "date": "2026-06-12",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
       "action": "edit",
-      "decision": "Updated: YURI_OS_SUPERCHARGE_LOGBOOK_PRESENTATION_2026-05-21"
+      "decision": "Updated: Root"
     },
     {
-      "date": "2026-05-19",
-      "pass": "Pass 6 — density + How Yuri Functions mega-section",
-      "decision": "Each section S1-S10 gets a sidekick block with mini-stats/chart; new #s12 'How Yuri Functions' with 4 cards"
+      "date": "2026-06-12",
+      "component": "ChaosOrder",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
+      "action": "create",
+      "decision": "New component created: ChaosOrder"
     },
     {
-      "date": "2026-05-19",
-      "pass": "Pass 7 — contextual braille",
-      "decision": "Cover portal-orb 3.5x larger; semantic braille only in V3/V4/V6/V8/S12. NO duplicated portal across sections."
+      "date": "2026-06-12",
+      "component": "TokenBurn",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
+      "action": "create",
+      "decision": "New component created: TokenBurn"
     },
     {
-      "date": "2026-05-19",
-      "pass": "Pass 8 — TRUE pinned-scroll",
-      "decision": "GSAP ScrollTrigger pins 5 hero scenes with unique choreography. Lenis ticker integrated. Mobile <760px + prefers-reduced-motion disable all pins. aria-live on stats."
+      "date": "2026-06-12",
+      "component": "GateVerdict",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/GateVerdict.tsx",
+      "action": "create",
+      "decision": "New component created: GateVerdict"
     },
     {
-      "date": "2026-05-19",
-      "pass": "Pass 9 — 3D dashboard aesthetic",
-      "decision": "Killed ambient-braille-rings. V3 → Three.js torus stack. S12 loop → 3D node constellation. Lazy-init via IntersectionObserver. Reduced-motion + mobile SVG fallback."
+      "date": "2026-06-12",
+      "component": "v2_body",
+      "file": "/tmp/v2_body.html",
+      "action": "create",
+      "decision": "New component created: v2_body"
     },
     {
-      "date": "2026-05-19",
-      "pass": "Opus polish 1",
-      "decision": "Sankey rewired linear; flow card full-width centered; memory tiers depth-gradient with progress bars; V6 stacked vertically."
+      "date": "2026-06-12",
+      "component": "v2_style",
+      "file": "/tmp/v2_style.css",
+      "action": "create",
+      "decision": "New component created: v2_style"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "nexus-link-investor-deck",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
+      "action": "edit",
+      "decision": "Updated: nexus-link-investor-deck"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "nexus-link-investor-deck",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
+      "action": "create",
+      "decision": "New component created: nexus-link-investor-deck"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "create",
+      "decision": "New component created: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "edit",
+      "decision": "Updated: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "edit",
+      "decision": "Updated: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "create",
+      "decision": "New component created: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "nexus-link-investor-deck-planner-de",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-planner-de.html",
+      "action": "edit",
+      "decision": "Updated: nexus-link-investor-deck-planner-de"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c7",
+      "file": "/tmp/deck_de/c7.html",
+      "action": "edit",
+      "decision": "Updated: c7"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c6",
+      "file": "/tmp/deck_de/c6.html",
+      "action": "edit",
+      "decision": "Updated: c6"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c2",
+      "file": "/tmp/deck_de/c2.html",
+      "action": "edit",
+      "decision": "Updated: c2"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c5",
+      "file": "/tmp/deck_de/c5.html",
+      "action": "edit",
+      "decision": "Updated: c5"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c4",
+      "file": "/tmp/deck_de/c4.html",
+      "action": "edit",
+      "decision": "Updated: c4"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c3",
+      "file": "/tmp/deck_de/c3.html",
+      "action": "edit",
+      "decision": "Updated: c3"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "c1",
+      "file": "/tmp/deck_de/c1.html",
+      "action": "edit",
+      "decision": "Updated: c1"
     }
   ],
   "openIssues": [

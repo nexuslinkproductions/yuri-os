@@ -13,7 +13,7 @@ const d = decode('compute the entropy of the probability distribution in bits');
 ok(d.op === 'decode' && Array.isArray(d.tokens) && d.tokenCount > 0, 'decode returns tokens');
 ok(typeof d.numerology.gematria === 'number' && typeof d.numerology.digitalRoot === 'number', 'numerology channels present (gematria hash + digital-root)');
 ok(typeof d.dimension === 'string' && typeof d.dominantDimension === 'string', 'dimensional reading present');
-ok(d.featureSurface && typeof d.featureSurface.lexicalDensity === 'number', 'compact feature surface present');
+ok(d.featureSurface && typeof d.featureSurface.typeTokenRatio === 'number', 'compact feature surface present');
 ok(d.advisory_only === true && d.local_truth_claim === false, 'decode output is advisory (the LLM reasons over it)');
 
 // dimensional reading: an information-theoretic sentence reads as INFORMATION/PROBABILITY-flavored
@@ -21,7 +21,7 @@ ok(['INFORMATION', 'PROBABILITY'].includes(d.dominantDimension), `entropy/probab
 ok('bits' in d.tokenDimensions || 'entropy' in d.tokenDimensions || 'probability' in d.tokenDimensions, 'per-token dimensions captured for math terms');
 
 // lexical density math
-ok(d.featureSurface.lexicalDensity === Number((d.uniqueTokenCount / d.tokenCount).toFixed(4)), 'lexical density = unique/total');
+ok(d.featureSurface.typeTokenRatio === Number((d.uniqueTokenCount / d.tokenCount).toFixed(4)), 'type-token ratio = unique/total');
 
 // determinism — same text → byte-identical object
 ok(JSON.stringify(decode('hello world')) === JSON.stringify(decode('hello world')), 'decode is byte-deterministic');
@@ -29,7 +29,7 @@ const src = fs.readFileSync(path.join(__dirname, 'yuri-decode.mjs'), 'utf8');
 ok(!/Math\.random\(|Date\.now\(|new Date\(/.test(src), 'no Math.random/Date.now/new Date (deterministic instrument)');
 
 // empty + edge
-ok(decode('').tokenCount === 0 && decode('').featureSurface.lexicalDensity === 0, 'empty text decodes to a zero surface, no crash');
+ok(decode('').tokenCount === 0 && decode('').featureSurface.typeTokenRatio === 0, 'empty text decodes to a zero surface, no crash');
 ok(decode(null).op === 'decode', 'null is coerced, no crash');
 
 // frequency map

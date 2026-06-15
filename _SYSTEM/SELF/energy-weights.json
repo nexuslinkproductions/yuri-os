@@ -3,7 +3,7 @@
     "what": "Canonical knob surface for YURI's ICM/MWP energy gate, Layer-C salience/surprise encoder, the procedural-memory forgetting horizon, AND the subconscious memory loop (fsrs demote + recall blend + conscious-set cap). Read by loadEnergyConfig() in _SYSTEM/Scripts/math/yuri-energy-config.mjs; the weights/threshold/salience are merged over the hardcoded defaults in energy-tick-core.mjs (tickAndTrace), evict.ttlDays is read by memory-evict.mjs, fsrs:{} feeds memory-relocator/yuri-fsrs, recall:{} feeds yuri-recall, and recall.consciousSetCap is read by brain-inject.js. Editing a value here steers the live system; this is what the future tuning cockpit persists to.",
     "failsafe": "The loader is fail-closed: unknown keys are dropped, non-finite/negative weights are rejected, and an absent or malformed file falls back entirely to the in-code defaults. A typo here can never corrupt the gate or the evictor.",
     "values_are_defaults": "Every value below equals the current in-code default (DEFAULT_WEIGHTS in yuri-energy.mjs, DEFAULT_SALIENCE in energy-tick-core.mjs, threshold 0, evict TTL 90). Creating/editing this file with these values therefore changes NO behavior — it only externalizes the knobs so they can be tuned without a code edit.",
-    "evict_precedence": "memory-evict.mjs resolves its TTL as: env MEMORY_EVICT_TTL_DAYS (ops override, must be a finite number >= 1, truncated to whole days) > this file's evict.ttlDays > 90-day default.",
+    "evict_precedence": "SUPERSEDED consumer: memory-evict.mjs is a confirmed no-op on macOS (atime + zero pattern files) — memory-relocator.mjs is the live eviction surface (fsrs:{} knobs). The legacy precedence (env MEMORY_EVICT_TTL_DAYS > evict.ttlDays > 90) only matters if the patterns tier is ever repopulated.",
     "ranges": {
       "weights.*": "finite, >= 0 (fail-closed: violations dropped, gate uses default for that key)",
       "threshold": "finite (any sign); deltaU <= threshold accepts a transition; default 0",
@@ -18,7 +18,8 @@
       "fsrs.redundancyFloor": "finite, 0 <= x <= 1; MEM-02 MDL axis — normalized gzip marginal-bits below which a body is REDUNDANT (predicted by the rest of the kept store). Demote requires R<rFloor AND marginalBits<redundancyFloor. 0 disables the axis (pure-FSRS baseline). Higher = treat more bodies as redundant.",
       "fsrs.supersessionPenaltyDays": "finite, >= 0; MEM-05 — days by which OLDER same-family anchors (e.g. session-resume-*) are back-dated so they cross rFloor once a NEWER sibling exists; the newest stays warm. 0 disables the supersession pass.",
       "fsrs.renewalScale": "finite, > 0; MEM-06 card 29-H1 renewal-RATE scale — effectiveStability boosts by freq·log1p(r·scale), r=useCount/max(elapsedDays,minWindow). Frequency-per-time, not raw count.",
-      "fsrs.renewalMinWindowDays": "finite, >= 1; MEM-06 minimum elapsed-days window for the renewal rate (a 1-day burst can't inflate the rate); also the recall-count floor below which an item falls back to the count-based prior.",
+      "fsrs.renewalMinWindowDays": "finite, >= 1; MEM-06 minimum elapsed-days window for the renewal rate (a 1-day burst can't inflate the rate).",
+      "fsrs.renewalCountFloor": "finite, 0 <= v <= 1; kappa for the monotone freq blend max(log1p(rate*scale), kappa*log1p(useCount)) — sparse recall keeps a DISCOUNTED count floor (the old minRecalls form-switch cliff is retired).",
       "recall.relevanceFloor": "finite, >= 0; min BM25 relevance for a cold hit to surface (yuri-recall rankRecall).",
       "recall.topK": "integer >= 1; max cold traces surfaced per cue.",
       "recall.halfLifeDays": "finite, >= 1; recency half-life in the recall blend.",
@@ -40,22 +41,22 @@
     }
   },
   "weights": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "gamma": 1.0,
-    "delta": 1.0,
-    "epsilon": 1.0,
+    "alpha": 1,
+    "beta": 2.2,
+    "gamma": 1,
+    "delta": 1,
+    "epsilon": 1,
     "zeta": 0.5,
-    "eta": 100.0,
-    "theta": 10.0,
+    "eta": 100,
+    "theta": 10,
     "iota": 0.1,
-    "kappa": 5.0,
-    "lambda": 50.0
+    "kappa": 5,
+    "lambda": 50
   },
   "threshold": 0,
   "salience": {
     "depthThreshold": 6,
-    "surpriseK": 2.0,
+    "surpriseK": 2,
     "surpriseWindow": 20
   },
   "evict": {
@@ -64,14 +65,15 @@
   "fsrs": {
     "rFloor": 0.6,
     "decay": -0.5,
-    "factor": 0.23456790123456789,
-    "salience": 1.0,
+    "factor": 0.2345679012345679,
+    "salience": 1,
     "freq": 0.5,
     "deltaU": 0.3,
     "redundancyFloor": 0.15,
     "supersessionPenaltyDays": 30,
-    "renewalScale": 1.0,
-    "renewalMinWindowDays": 1
+    "renewalScale": 1,
+    "renewalMinWindowDays": 1,
+    "renewalCountFloor": 0.25
   },
   "recall": {
     "relevanceFloor": 0,
@@ -79,7 +81,7 @@
     "halfLifeDays": 30,
     "consciousSetCap": 12,
     "weights": {
-      "bm25": 1.0,
+      "bm25": 1,
       "recency": 0.5,
       "salience": 0.5,
       "crosslink": 0.3

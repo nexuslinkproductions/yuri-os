@@ -78,8 +78,17 @@ export function marginalBits(body, rest, { qualityFloorChars = DEFAULT_QUALITY_F
   // Empty rest: the body is the only thing in the store — irreducible by definition.
   if (r.length === 0) return { bits: 1, raw: soloBits, soloBits, lowQuality };
 
-  const restBits = gzipLen(r);
-  const jointBits = gzipLen(r + '\n' + m);   // newline separator so two bodies don't fuse a token
+  // DEFLATE WINDOW (prominent — owner decision D4): gzip conditions on only the
+  // LAST ~32KB of its input. For rest > 32KB, gzipLen(rest+body) measures
+  // redundancy vs the most RECENT 32KB only (audit: identical 1.6KB body at the
+  // END of a 104KB rest → bits 0.1543; at the START → 0.9630). MITIGATION:
+  // condition on a SAMPLED context anchored at BOTH ends (oldest 14KB + newest
+  // 14KB + body all fit in one window). Honest residual: middle-of-store content
+  // still escapes the window — full fix needs chunked max-similarity, parked.
+  const ANCHOR = 14 * 1024;
+  const ctx = r.length <= 2 * ANCHOR ? r : `${r.slice(0, ANCHOR)}\n${r.slice(-ANCHOR)}`;
+  const restBits = gzipLen(ctx);
+  const jointBits = gzipLen(ctx + '\n' + m);   // newline separator so two bodies don't fuse a token
   const raw = Math.max(0, jointBits - restBits);   // clamp compression noise to 0
   const bits = raw / soloBits;
   return { bits, raw, soloBits, lowQuality };
@@ -87,7 +96,14 @@ export function marginalBits(body, rest, { qualityFloorChars = DEFAULT_QUALITY_F
 
 /**
  * Redundancy verdict for the relocator's AND-condition. A body is REDUNDANT (safe to
- * demote on this axis) iff its normalized marginal bits fall below `redundancyFloor`
+ * demote on this axis) iff its normalized marginal bits fall below `redundancyFloor`.
+ *
+ * redundancyFloor=0.15 is NOT size-invariant: dictionary dilution raises marginal
+ * bits for true duplicates as rest grows (audit: duplicate 0.1296 in a small rest
+ * vs 0.1543 in a 104KB rest → NOT flagged at 0.15). The marginalBits anchor
+ * sampling bounds the effective dictionary (~28KB), which re-stabilizes this
+ * calibration; if the anchors are ever removed, raise the floor (~0.20) for
+ * stores >32KB or calibrate per size.
  * AND it is not low-quality (a low-quality body is neither protected nor flagged-redundant
  * here — the relocator's own quality floor already pins it fully-decayed, so this axis
  * stays neutral on it and lets the R-axis decide).

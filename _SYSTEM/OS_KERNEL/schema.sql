@@ -1,3 +1,10 @@
+-- SCHEMA OWNERSHIP (wave-2 M.12): this schema is owned by memory_governor.py.
+-- lane-memory.mjs co-tenants the SAME DB file via its own lane_findings family
+-- (bootstrapped by lane-memory.mjs ensureSchema / lane-memory-migrate.mjs).
+-- There are NO foreign-key relationships between the two schema families;
+-- write contention is managed via WAL + busy_timeout. The two processes do not
+-- know about each other's tables.
+
 -- Agents: Definition of the Conclave members and their states
 CREATE TABLE IF NOT EXISTS agents (
     agent_id TEXT PRIMARY KEY, -- ENLIL, NABU, ENKI, INANNA

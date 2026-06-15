@@ -30,7 +30,7 @@ import { compileSemanticStatePacket } from './semantic-state-compiler.mjs';
       deltaU: 'negative',
     },
     stateBefore: {
-      claimPromotionDistribution: [0.25, 0.25, 0.25, 0.25],
+      claimPromotionDistribution: { draft: 0.25, research: 0.25, fixture_ready: 0.25, trusted: 0.25 },
       claimedDistribution: [0.7, 0.1, 0.1, 0.1],
       verifiedDistribution: [0.25, 0.25, 0.25, 0.25],
       priorState: [0.25, 0.25, 0.25, 0.25],
@@ -40,7 +40,7 @@ import { compileSemanticStatePacket } from './semantic-state-compiler.mjs';
       verifiedEvidenceCount: 0,
     },
     stateAfter: {
-      claimPromotionDistribution: [0.7, 0.1, 0.1, 0.1],
+      claimPromotionDistribution: { draft: 0.7, research: 0.1, fixture_ready: 0.1, trusted: 0.1 },
       claimedDistribution: [0.7, 0.1, 0.1, 0.1],
       verifiedDistribution: [0.7, 0.1, 0.1, 0.1],
       priorState: [0.25, 0.25, 0.25, 0.25],
@@ -157,3 +157,17 @@ import { compileSemanticStatePacket } from './semantic-state-compiler.mjs';
 }
 
 console.log('semantic-state-compiler: pass');
+
+// Math-base wave 2026-06-10 (embedded-ops-4): object map is the canonical
+// claimPromotionDistribution shape; arrays stay kernel-legal; array-only fields
+// hold the line (an object there would silently zero kernel terms — fail-open).
+{
+  const obj = compileSemanticStatePacket({ state: { claimPromotionDistribution: { draft: 5, trusted: 1 } } });
+  assert.notEqual(obj.status, 'rejected');
+  const arr = compileSemanticStatePacket({ state: { claimPromotionDistribution: [0.5, 0.5] } });
+  assert.notEqual(arr.status, 'rejected');
+  const wrong = compileSemanticStatePacket({ state: { verifiedDistribution: { a: 1 } } });
+  assert.ok(wrong.result.rejectedFields.some((f) => f.field === 'verifiedDistribution' && f.reason === 'canonical_type_mismatch'));
+  const empty = compileSemanticStatePacket({ state: { claimPromotionDistribution: {} } });
+  assert.ok(empty.result.rejectedFields.some((f) => f.field === 'claimPromotionDistribution'));
+}

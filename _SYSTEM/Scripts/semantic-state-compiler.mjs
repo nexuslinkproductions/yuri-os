@@ -44,6 +44,8 @@ export const DERIVED_METRIC_FIELDS = Object.freeze([
   'entropy',
   'kl',
   'klDivergence',
+  'wasserstein',
+  'overconfidenceDrift',
   'logLoss',
   'brier',
   'brierScore',
@@ -233,24 +235,39 @@ export function compileExecutableState(state = {}, pointer = '$') {
 
 function validateCanonicalField(key, value) {
   if (DISTRIBUTION_FIELDS.has(key)) {
-    if (!Array.isArray(value)) {
-      return { ok: false, expected: 'array of finite non-negative numbers with positive finite sum' };
+    // OBJECT tolerance is restricted to claimPromotionDistribution ONLY — the
+    // shape claim-cortex actually emits and kernel evalEntropy consumes via
+    // Object.values. Do NOT loosen the other distribution fields: kernel evalKL
+    // and evalInfoGain→normalizeDistribution are array-ONLY and silently SKIP
+    // objects (term contributes 0 = fail-open laundering). Keep this restriction.
+    const objectTolerant = key === 'claimPromotionDistribution';
+    const entries = Array.isArray(value) ? value
+      : (objectTolerant && isPlainObject(value)) ? Object.values(value)
+        : null;
+    if (entries === null) {
+      return {
+        ok: false,
+        expected: objectTolerant
+          ? 'array or plain-object map of finite non-negative numbers with positive finite sum'
+          : 'array of finite non-negative numbers with positive finite sum',
+      };
     }
-    if (value.length === 0) {
-      return { ok: false, expected: 'non-empty distribution array' };
+    if (entries.length === 0) {
+      return { ok: false, expected: 'non-empty distribution' };
     }
     let sum = 0;
-    for (const entry of value) {
+    for (const entry of entries) {
       const number = Number(entry);
       if (!Number.isFinite(number) || number < 0) {
-        return { ok: false, expected: 'array of finite non-negative numbers' };
+        return { ok: false, expected: 'finite non-negative distribution values' };
       }
       sum += number;
     }
     if (!Number.isFinite(sum) || sum <= 0) {
       return { ok: false, expected: 'distribution sum must be positive and finite' };
     }
-    return { ok: true, value: value.map((entry) => Number(entry)) };
+    if (Array.isArray(value)) return { ok: true, value: value.map((entry) => Number(entry)) };
+    return { ok: true, value: Object.fromEntries(Object.entries(value).map(([k2, v2]) => [k2, Number(v2)])) };
   }
 
   if (PROBABILITY_VECTOR_FIELDS.has(key)) {

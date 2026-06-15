@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+// ============================================================================
+// SUPERSEDED — memory-relocator.mjs is the live eviction surface (wave-2 M.10).
+// This script targets _SYSTEM/memory/patterns/*.md, which currently contains
+// ZERO .md files (only index.json), AND macOS does not advance atime on file
+// reads by default — so planEvictions() always returns an empty set: a silent
+// no-op in practice. Do not invoke directly. Retained for historical reference
+// only (labeled SUPERSEDED in yuri-graph.json — label preserved).
+// ============================================================================
 // memory-evict.mjs — atime-based LRU evictor for the procedural memory tier (Tier 5).
 // Spec: _SYSTEM/memory-layer-spec.md
 //

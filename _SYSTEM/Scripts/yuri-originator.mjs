@@ -5,7 +5,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statS
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_MAX_LADDER_INVERSION_CAP, gateProposal } from './math/yuri-energy.mjs';
+import { gateProposal } from './math/yuri-energy.mjs';
 import {
   CANONICAL_ENERGY_FIELDS,
   compileSemanticStatePacket,
@@ -1567,9 +1567,14 @@ export function resolveRevisionAttempts(payload = {}, env = process.env) {
   return Math.min(MAX_REVISION_ATTEMPTS, Math.floor(parsed));
 }
 
+// The originator lane deliberately pins a STRICTER local cap than the session
+// tick path's DEFAULT_MAX_LADDER_INVERSION_CAP (now 1, owner decision D1):
+// dispatched-lane claims get no 1-rung VERIFY-FIRST grace — any inversion vetoes.
+const ORIGINATOR_MAX_LADDER_INVERSION_CAP = 0;
+
 export function resolveMaxLadderInversionCap(payload = {}) {
   if (Object.hasOwn(payload, 'maxLadderInversionCap')) return payload.maxLadderInversionCap;
-  return DEFAULT_MAX_LADDER_INVERSION_CAP;
+  return ORIGINATOR_MAX_LADDER_INVERSION_CAP;
 }
 
 export function shouldReviseWorkerOutput(verification = {}) {
@@ -1787,7 +1792,7 @@ export function buildWorkerRevisionPrompt({ objective = '', previousOutput = '',
       laneClaims: {},
       proposedState: {
         stateBefore: {
-          claimPromotionDistribution: [0.5, 0.5],
+          claimPromotionDistribution: { draft: 0.5, trusted: 0.5 },
           claimedDistribution: [0.8, 0.2],
           verifiedDistribution: [0.5, 0.5],
           priorState: [0.5, 0.5],
@@ -1798,7 +1803,7 @@ export function buildWorkerRevisionPrompt({ objective = '', previousOutput = '',
           promotionLadderInversions: 0,
         },
         stateAfter: {
-          claimPromotionDistribution: [0.8, 0.2],
+          claimPromotionDistribution: { draft: 0.8, trusted: 0.2 },
           claimedDistribution: [0.8, 0.2],
           verifiedDistribution: [0.8, 0.2],
           priorState: [0.5, 0.5],

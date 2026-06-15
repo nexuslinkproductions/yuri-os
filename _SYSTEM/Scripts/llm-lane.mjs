@@ -45,6 +45,7 @@ import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { coreOnDispatch, coreOnResult } from './lane-core-hooks.mjs';
 import { spawnNano, SPAWN_NANO_TOOL } from './nano-spawn.mjs';
 import { dispatchNano, nanoCtxFromEnv } from './nano-dispatch.mjs';
+import { verifierBestOfN } from './math/verifier-best-of-n.mjs';
 import dns from 'node:dns';
 // Node happy-eyeballs (autoSelectFamily) intermittently throws a bare "AggregateError" on outbound
 // https when IPv6 is flaky — survives Node 24/25, hits every node invocation, curl-immune. Prefer IPv4
@@ -929,10 +930,75 @@ async function dispatch(laneArg, prompt, opts = {}) {
     const finish = String(choice.finish_reason || '').toLowerCase();
     const truncated = finish === 'length' || finish === 'incomplete';
     if (!text) return fail(1, key, `empty_output${finish ? `_${finish}` : ''}`);
-    process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
-    if (opts.out) fs.writeFileSync(path.resolve(opts.out), text);
-    if (truncated) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=ok_truncated_${finish}\n`);
-    coreOnResult({ lane: key, prompt, output: text, exitCode: 0, runId });
+
+    // Best-of-N rerank: if YURI_VERIFIER_BESTOFN=1 AND bestOfN > 1, collect N candidates and rerank
+    const bestOfNEnabled = process.env.YURI_VERIFIER_BESTOFN === '1';
+    const requestN = Number.isFinite(Number(opts.bestOfN)) ? Math.max(1, Math.floor(Number(opts.bestOfN))) : 1;
+    const doBestOfN = bestOfNEnabled && requestN > 1;
+
+    if (!doBestOfN) {
+      // Default single-output path (BYTE-IDENTICAL when flag OFF)
+      process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
+      if (opts.out) fs.writeFileSync(path.resolve(opts.out), text);
+      if (truncated) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=ok_truncated_${finish}\n`);
+      coreOnResult({ lane: key, prompt, output: text, exitCode: 0, runId });
+      return 0;
+    }
+
+    // Best-of-N path: collect N candidates (including this first one)
+    const candidates = [{ id: 'cand-0', text, finish, truncated }];
+    for (let i = 1; i < requestN; i++) {
+      // Fresh call with same messages (no tool calls since we're at final answer)
+      let nextChoice;
+      if (isLocal) {
+        nextChoice = await postChatOllamaLocal(endpoint, model, messages, maxTokens, [], timeoutMs, key, cfg);
+      } else if (isOllamaCloud) {
+        nextChoice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
+      } else if (isAnthropic) {
+        const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
+        nextChoice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, [], key);
+      } else {
+        nextChoice = await postChat(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
+      }
+      const nextMsg = nextChoice.message || {};
+      const nextText = String(nextMsg.content ?? '').trim();
+      const nextFinish = String(nextChoice.finish_reason || '').toLowerCase();
+      const nextTruncated = nextFinish === 'length' || nextFinish === 'incomplete';
+      if (nextText) {
+        candidates.push({ id: `cand-${i}`, text: nextText, finish: nextFinish, truncated: nextTruncated });
+      }
+    }
+
+    // Score candidates using verifierBestOfN with a simple scoreFn
+    // Score by: prefer non-truncated, then by length (heuristic for completeness)
+    const scoreFn = (c) => {
+      if (!c.text || c.text.length === 0) return { score: Infinity, veto: true, vetoReason: 'empty' };
+      // Prefer non-truncated outputs
+      const truncatedPenalty = c.truncated ? 10000 : 0;
+      // Slight preference for longer (more complete) outputs, but capped
+      const lengthScore = -Math.min(c.text.length, 5000);
+      return { score: truncatedPenalty + lengthScore, veto: false };
+    };
+
+    const result = verifierBestOfN(candidates, scoreFn, {});
+    const winner = result.winner;
+    if (!winner) {
+      // Fallback: first non-empty candidate
+      const fallback = candidates.find(c => c.text && c.text.length > 0);
+      if (fallback) {
+        process.stdout.write(fallback.text + (fallback.text.endsWith('\n') ? '' : '\n'));
+        if (opts.out) fs.writeFileSync(path.resolve(opts.out), fallback.text);
+        coreOnResult({ lane: key, prompt, output: fallback.text, exitCode: 0, runId });
+        return 0;
+      }
+      return fail(1, key, 'best_of_n_all_empty');
+    }
+
+    const outText = winner.text;
+    process.stdout.write(outText + (outText.endsWith('\n') ? '' : '\n'));
+    if (opts.out) fs.writeFileSync(path.resolve(opts.out), outText);
+    if (winner.truncated) process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=ok_truncated_${winner.finish}\n`);
+    coreOnResult({ lane: key, prompt, output: outText, exitCode: 0, runId });
     return 0;
   }
   // Loop exhausted while still tool-calling: force ONE final no-tools call so a loop-prone model
@@ -997,7 +1063,7 @@ const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--
 const LEGACY_SKIP_VALUE = new Set(['--session', '--write-scope', '--ts']);
 
 function parseCli(argv) {
-  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 200, out: '', dryRun: false, list: false, model: '' };
+  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 200, out: '', dryRun: false, list: false, model: '', bestOfN: 1 };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -1013,6 +1079,7 @@ function parseCli(argv) {
     else if (a === '--max-iters') out.maxIters = Number(argv[++i] || 24);
     else if (a === '--out') out.out = argv[++i] || '';
     else if (a === '--context' || a === '--read') out.context = argv[++i] || '';
+    else if (a === '--best-of-n') out.bestOfN = Number(argv[++i] || 1);
     else if (a === '--dry-run' || a === '-d') out.dryRun = true;
     else if (a === '--list') out.list = true;
     else if (LEGACY_SKIP_VALUE.has(a)) i += 1;
@@ -1028,7 +1095,7 @@ async function main() {
   const cli = parseCli(process.argv.slice(2));
   T(`MAIN_START lane=${cli.lane} promptLen=${(cli.prompt || '').length} dryRun=${cli.dryRun} list=${cli.list}`);
   if (cli.list) { console.log(JSON.stringify(Object.keys(LANES).filter((k) => k !== '_comment'), null, 2)); return 0; }
-  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|ds-flash|mimo> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run]\n'); process.exit(2); }
+  if (!cli.lane) { process.stderr.write('Usage: llm-lane <deepseek|ds-flash|mimo> "<prompt>" [--reasoning d] [--no-tools] [--system s] [--out f] [--dry-run] [--best-of-n N]\n'); process.exit(2); }
   let prompt = cli.prompt || process.env.LLM_COMPAT_PROMPT_TEXT || '';
   if (!prompt && !cli.dryRun && !process.stdin.isTTY) prompt = fs.readFileSync(0, 'utf8');
   T(`MAIN_RETURN_DISPATCH lane=${cli.lane} plen=${prompt.length} stdinTTY=${process.stdin.isTTY}`);

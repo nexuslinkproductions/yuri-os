@@ -341,13 +341,30 @@ export function spectralCluster(g, giantIdxIds, opts = {}) {
   let k = opts.k ?? sectorsInGiant.size;
   k = Math.max(2, Math.min(k, m - 1));
 
-  // embed rows = bottom-k eigenvectors (skip trivial col 0), row-normalize (Ng-Jordan-Weiss).
+  // embed rows = the k SMALLEST eigenvectors, columns 0..k−1, row-normalize
+  // (canonical Ng-Jordan-Weiss). Mini-audit 2026-06-10 finding A: the old
+  // cols-1..k window ("skip trivial col 0") dropped the degree-carrying vector
+  // and pulled in eigenvector k from PAST the spectral gap — on a 3-cluster
+  // chain the shifted embedding failed clean recovery at all 5 seeds while
+  // canonical NJW succeeded at all 5. With col 0 = D^{1/2}·1 (strictly positive
+  // on the connected giant), degenerate zero rows are also impossible here.
   const rows = [];
+  const embeddingDegenerate = [];
   for (let i = 0; i < m; i++) {
     const r = [];
-    for (let c = 1; c <= k; c++) r.push(vectors[i][c]);
-    const norm = Math.sqrt(r.reduce((a, b) => a + b * b, 0)) || 1;
-    rows.push(r.map((x) => x / norm));
+    for (let c = 0; c < k; c++) r.push(vectors[i][c]);
+    const norm = Math.sqrt(r.reduce((a, b) => a + b * b, 0));
+    // Fail CLOSED on a numerically-zero row (audit finding B: exact zero used to
+    // sit at the k-means origin arbitrarily, and a 1e-16 noise row bypassed the
+    // old `|| 1` guard entirely and was amplified to an arbitrary unit vector).
+    // A node with no spectral identity at this k must not be fabricated into a
+    // cluster — it is reported in embeddingDegenerate and assigned null below.
+    if (norm < 1e-12) {
+      embeddingDegenerate.push(i);
+      rows.push(r.map(() => 0));
+    } else {
+      rows.push(r.map((x) => x / norm));
+    }
   }
 
   // Fiedler sweep -> Cheeger bottleneck cut on ψ2 (the canonical 2-way cut).
@@ -364,16 +381,22 @@ export function spectralCluster(g, giantIdxIds, opts = {}) {
   //    is the textbook normalized-cut answer (Shi-Malik).
   //  - k >= 3: k-means on the bottom-k eigenvector embedding (Ng-Jordan-Weiss).
   const clusters = {};
+  const degenerateSet = new Set(embeddingDegenerate);
   if (k === 2 && fiedlerSweep) {
     const orderedIds = order.map((o) => o.id);
     const sSet = new Set(orderedIds.slice(0, fiedlerSweep.sizeS));
     giantIdxIds.forEach((id) => { clusters[id] = sSet.has(id) ? 0 : 1; });
   } else {
     const assign = kmeans(rows, k, opts.seed ?? 1);
-    giantIdxIds.forEach((id, a) => { clusters[id] = assign[a]; });
+    // Degenerate-embedding nodes get null, never a fabricated assignment.
+    giantIdxIds.forEach((id, a) => { clusters[id] = degenerateSet.has(a) ? null : assign[a]; });
   }
 
-  return { clusters, lambdas, fiedler: Math.round(fiedler * 1e5) / 1e5, k, fiedlerSweep, psi2Order: order.map((o) => o.id) };
+  return {
+    clusters, lambdas, fiedler: Math.round(fiedler * 1e5) / 1e5, k, fiedlerSweep,
+    psi2Order: order.map((o) => o.id),
+    embeddingDegenerate: embeddingDegenerate.map((a) => giantIdxIds[a]),
+  };
 }
 
 // sweep the Fiedler-ordered prefix cuts; return the minimum-conductance cut

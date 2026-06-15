@@ -181,7 +181,6 @@
         "WARM_EOT",
         "WARM_JOURNAL",
         "WARM_ARCHIVE",
-        "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
       ],
@@ -196,7 +195,6 @@
         "SERVICES",
         "SVC_SHELL",
         "SVC_RUNTIME",
-        "SVC_RAG",
         "SVC_HEALTH",
         "SVC_EOT",
         "SVC_DIGEST",
@@ -974,7 +972,6 @@
       "children": [
         "SVC_SHELL",
         "SVC_RUNTIME",
-        "SVC_RAG",
         "SVC_HEALTH",
         "SVC_EOT",
         "SVC_DIGEST",
@@ -2885,7 +2882,6 @@
       },
       "parent": "MEMORY",
       "children": [
-        "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
       ]
@@ -3018,42 +3014,6 @@
         ],
         "capabilities": [
           "Represent PID 819",
-          "Connect under SERVICES",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "SERVICES"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
-      },
-      "parent": "SERVICES",
-      "children": []
-    },
-    {
-      "id": "SVC_RAG",
-      "tier": "sub",
-      "label": "wiki-rag",
-      "role": "PID 821",
-      "detail": "",
-      "radius": 20,
-      "color": "#00C896",
-      "position": {
-        "x": 82.937,
-        "y": -1348,
-        "z": -203.768
-      },
-      "sector": "services",
-      "metadata": {
-        "purpose": "wiki-rag supports the services sector as PID 821.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/yuri-origin.md",
-          "SOUL.md"
-        ],
-        "capabilities": [
-          "Represent PID 821",
           "Connect under SERVICES",
           "Expose architecture metadata to visual introspection"
         ],
@@ -3883,41 +3843,6 @@
         "returns_to": "MEM_WARM"
       },
       "parent": "MEM_WARM",
-      "children": []
-    },
-    {
-      "id": "COLD_WIKI",
-      "tier": "leaf",
-      "label": "karpathy wiki atoms",
-      "role": "semantic",
-      "detail": "",
-      "radius": 8,
-      "color": "#74B9FF",
-      "position": {
-        "x": 167.096,
-        "y": 536,
-        "z": 208.525
-      },
-      "sector": "memory",
-      "metadata": {
-        "purpose": "karpathy wiki atoms supports the memory sector as semantic.",
-        "files": [
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md",
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"
-        ],
-        "capabilities": [
-          "Represent semantic",
-          "Connect under MEM_COLD",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "MEM_COLD"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "MEM_COLD"
-      },
-      "parent": "MEM_COLD",
       "children": []
     },
     {
@@ -5484,12 +5409,6 @@
     },
     {
       "source": "SERVICES",
-      "target": "SVC_RAG",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "SERVICES",
       "target": "SVC_HEALTH",
       "type": "branch",
       "is_return": false
@@ -5620,12 +5539,6 @@
     {
       "source": "MEM_WARM",
       "target": "WARM_ARCHIVE",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "MEM_COLD",
-      "target": "COLD_WIKI",
       "type": "branch",
       "is_return": false
     },
@@ -6021,12 +5934,6 @@
       "routed_via": "ENKI_INBOX"
     },
     {
-      "source": "SVC_RAG",
-      "target": "MEM_COLD",
-      "type": "memory",
-      "is_return": true
-    },
-    {
       "source": "SVC_HEALTH",
       "target": "ENKI_INBOX",
       "type": "feedback",
@@ -6287,12 +6194,6 @@
     {
       "source": "WARM_ARCHIVE",
       "target": "MEM_WARM",
-      "type": "logs",
-      "is_return": true
-    },
-    {
-      "source": "COLD_WIKI",
-      "target": "MEM_COLD",
       "type": "logs",
       "is_return": true
     },

@@ -89,7 +89,7 @@
       "Edit(.claude/state/token-session.json)"
     ]
   },
-  "model": "claude-fable-5[1m]",
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -124,7 +124,12 @@
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/eot-background-start.js\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-skill-loader.mjs\" --validate",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/slm-producer.mjs\" sessionstart",
             "async": true
           }
         ]
@@ -195,11 +200,11 @@
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-budget-check.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/energy-enforce.mjs\""
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/energy-enforce.mjs\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/directive-guard.mjs\""
           }
         ]
       },
@@ -232,6 +237,12 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/math-register-guard.mjs\"",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/filing-gate.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Filing zone advisory (non-blocking)"
           }
         ]
       }
@@ -252,11 +263,6 @@
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-tool-logger.js\"",
-            "async": true
-          },
-          {
-            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-checkpoint.js\"",
             "async": true
           },
@@ -268,7 +274,7 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
@@ -288,6 +294,25 @@
             "statusMessage": "Checking architecture-graph structural drift..."
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/filing-ledger.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Filing ledger (zone classification)",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prose-claim-extract.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Prose-claim shadow collector (advisory)",
+            "async": true
+          }
+        ]
       }
     ],
     "Stop": [
@@ -297,11 +322,6 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/yuri-sentinel-stop.js\"",
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-session-end.js\"",
             "async": true
           },
           {
@@ -320,6 +340,11 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-reflect.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/slm-producer.mjs\" stop",
+            "async": true
           }
         ]
       }
@@ -330,15 +355,16 @@
     "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-status.js\""
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "max",
   "prefersReducedMotion": false,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",
   "verbose": true,
+  "switchModelsOnFlag": false,
   "autoScrollEnabled": true,
   "showTurnDuration": true,
   "terminalProgressBarEnabled": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "effortLevel": "max"
 }

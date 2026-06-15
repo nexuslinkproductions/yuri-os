@@ -157,5 +157,29 @@ threw = false; try { makeHashes('x'); } catch { threw = true; } ok(threw, 'makeH
   ok(approx(bestA.err, bruteErr, 1e-12), 'tuneBands returns the crossover-optimal (b,r)');
 }
 
+
+// ── Math-base fix wave 2026-06-10 (B4 empty-set convention + B7 guards) ──
+{
+  const h = makeHashes(64);
+  const sigEmpty = minhashSignature(new Set(), h);
+  const sigA = minhashSignature(new Set(['a', 'b', 'c']), h);
+  ok(estimateJaccard(sigEmpty, sigEmpty) === 0, 'estimateJaccard(∅-sig,∅-sig) === 0 — house jaccard(∅,∅)=0 convention');
+  ok(estimateJaccard(sigEmpty, sigA) === 0, '∅ vs non-empty → 0');
+  ok(estimateJaccard(sigA, sigA) === 1, 'identity non-empty stays 1');
+  // lshBands guard: overrun throws, boundary b*r === k stays VALID (Rust parity)
+  let overrunThrew = false;
+  try { lshBands(sigA, 10, 7); } catch { overrunThrew = true; }
+  ok(overrunThrew, 'lshBands throws on b*r > k (Rust parity, no silent fake keys)');
+  ok(lshBands(sigA, 8, 8).length === 8, 'boundary b*r === k stays valid');
+  // seed guard: mismatched seeds throw IN-PROCESS; sentinel check runs FIRST; copies disarm
+  const sigA2 = minhashSignature(new Set(['a', 'b', 'c']), makeHashes(64, 12345));
+  let seedThrew = false;
+  try { estimateJaccard(sigA, sigA2); } catch { seedThrew = true; }
+  ok(seedThrew, 'different-seed signatures are not comparable (in-process advisory guard)');
+  const sigEmpty2 = minhashSignature(new Set(), makeHashes(64, 12345));
+  ok(estimateJaccard(sigEmpty, sigEmpty2) === 0, 'sentinel check runs BEFORE the seed guard (two empty docs → 0, never a throw)');
+  ok(estimateJaccard(Uint32Array.from(sigA), Uint32Array.from(sigA)) === 1, 'plain copies stay comparable (guard disarms at boundaries — documented)');
+}
+
 console.log(`\nyuri-minhash.test: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

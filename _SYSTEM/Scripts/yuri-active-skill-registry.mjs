@@ -53,6 +53,12 @@ const CAPABILITY_TO_STAGE = Object.freeze({
   'output-organization': ['intake_classify', 'campaign_decompose', 'merge_learn'],
 });
 
+// PROFILE KEY CONTRACT (wave-2 C.4): every key must resolve to a SKILL.md in at
+// least ONE of the two skill roots — `.claude/skills/<id>/` (Claude-facing) or
+// `skills/<id>/` (agents-facing; the Matt Pocock pack, gitnexus deep-dives and
+// oracle-memory live there deliberately, referenced by CLAUDE.md as skills/…).
+// Zero-disk-presence keys are removed, never stubbed (a stub that does nothing
+// is deceptive). Lint: node _SYSTEM/Scripts/skills-registry-lint.mjs
 const SKILL_CAPABILITY_PROFILES = Object.freeze({
   'probabilistic-decision-core': {
     capabilities: ['risk-review', 'decision-calibration'],
@@ -154,11 +160,8 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['design', 'visual'],
     signals: ['design'],
   },
-  'swarm-coordination': {
-    capabilities: ['orchestration', 'deep-decomposition'],
-    traits: ['fanout', 'coordination'],
-    signals: ['campaign'],
-  },
+  // 'swarm-coordination' removed (wave-2 D-C4): zero disk presence anywhere —
+  // a profile key that cannot be dispatched fails closed by absence.
   'parallel-clone-orchestrator': {
     capabilities: ['orchestration', 'deep-decomposition'],
     traits: ['parallel', 'coordination'],
@@ -174,11 +177,7 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['subagents', 'execution'],
     signals: ['campaign', 'code'],
   },
-  'ai-pipeline-offloading': {
-    capabilities: ['orchestration', 'intent-normalization'],
-    traits: ['routing', 'capability-map'],
-    signals: ['campaign'],
-  },
+  // 'ai-pipeline-offloading' removed (wave-2 D-C4): zero disk presence anywhere.
   'claude-output-lane': {
     capabilities: ['output-organization', 'skill-recall', 'summarization'],
     traits: ['claude-output', 'lane-taxonomy', 'advisory-sorting'],
@@ -203,6 +202,88 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     capabilities: ['summarization', 'formatting'],
     traits: ['docs', 'teaching'],
     signals: ['docs'],
+  },
+  // wave-3 S.3: 16 .claude/skills dirs had no profile entry — capped at score=18 and
+  // suppressed in competitive contexts. Profiled from each SKILL.md description.
+  'anthropic-managed-agents': {
+    capabilities: ['skill-recall', 'orchestration'],
+    traits: ['agents', 'sessions'],
+    signals: ['docs', 'campaign'],
+  },
+  bg: {
+    capabilities: ['orchestration'],
+    traits: ['background', 'dispatch'],
+    signals: ['campaign'],
+  },
+  'design-source-pack': {
+    capabilities: ['design', 'skill-recall'],
+    traits: ['catalog', 'extraction'],
+    signals: ['design'],
+  },
+  'extraction-sprint': {
+    capabilities: ['orchestration', 'deep-decomposition'],
+    traits: ['extraction', 'synthesis'],
+    signals: ['campaign', 'docs'],
+  },
+  gitnexus: {
+    capabilities: ['code', 'risk-review'],
+    traits: ['code-intelligence', 'impact'],
+    signals: ['code'],
+  },
+  'organ-discovery-precision-gate': {
+    capabilities: ['risk-review', 'deterministic-verification'],
+    traits: ['gate', 'scope'],
+    signals: ['risk'],
+  },
+  'organ-filing-assessor': {
+    capabilities: ['output-organization'],
+    traits: ['filing', 'placement'],
+    signals: ['docs'],
+  },
+  'organ-formula-foundry': {
+    capabilities: ['decision-calibration', 'deterministic-verification'],
+    traits: ['math', 'typing'],
+    signals: ['code'],
+  },
+  'organ-formula-foundry-bakeoff': {
+    capabilities: ['decision-calibration', 'deterministic-verification'],
+    traits: ['math', 'promotion'],
+    signals: ['code', 'risk'],
+  },
+  'organ-lane-telemetry-cockpit': {
+    capabilities: ['output-organization', 'summarization'],
+    traits: ['telemetry', 'cockpit'],
+    signals: ['docs'],
+  },
+  'organ-openprocess-pool': {
+    capabilities: ['output-organization', 'skill-recall'],
+    traits: ['open-loops', 'memory'],
+    signals: ['campaign'],
+  },
+  'organ-yuri-decode': {
+    capabilities: ['decision-calibration'],
+    traits: ['decoder', 'math'],
+    signals: ['code'],
+  },
+  'organ-yuri-nerve': {
+    capabilities: ['orchestration', 'output-organization'],
+    traits: ['nerve', 'events'],
+    signals: ['campaign'],
+  },
+  'yuri-code-intelligence': {
+    capabilities: ['code', 'risk-review'],
+    traits: ['refactoring', 'review'],
+    signals: ['code'],
+  },
+  'yuri-sales-intelligence': {
+    capabilities: ['summarization', 'output-organization'],
+    traits: ['sales', 'outreach'],
+    signals: ['docs'],
+  },
+  'yuri-shura': {
+    capabilities: ['risk-review', 'orchestration'],
+    traits: ['adversarial', 'perspectives'],
+    signals: ['risk', 'campaign'],
   },
   brainstorming: {
     capabilities: ['intent-normalization', 'deep-decomposition'],

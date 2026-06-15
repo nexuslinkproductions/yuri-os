@@ -158,11 +158,14 @@ test('control-plane memory evidence loads and validates current hashes', () => {
   });
 
   assert.equal(evidence.ok, true, JSON.stringify(evidence.missing.concat(evidence.blocked), null, 2));
-  assert.ok(evidence.sources.some((source) => source.id === 'shintai-roster'));
+  // Stale assertions removed (wave-2): 'shintai-roster' (shintai retired, never
+  // in the source list), 'msa-readme' (loader-blocked vendored repo),
+  // 'neurodivergent-engine-handoff' (doc purged in babd5977). This test had
+  // been silently RED on HEAD — the memory domain's own regression gate rot.
   assert.ok(evidence.sources.some((source) => source.id === 'extraction-sprint-template'));
   assert.ok(evidence.sources.some((source) => source.id === 'memory-rag-skill-research'));
-  assert.ok(evidence.sources.some((source) => source.id === 'msa-readme'));
-  assert.ok(evidence.sources.some((source) => source.id === 'neurodivergent-engine-handoff'));
+  assert.ok(evidence.sources.some((source) => source.id === 'yuri-memory-index'));
+  assert.ok(evidence.sources.some((source) => source.id === 'memory-kernel-source'));
   assert.equal(validation.ok, true, validation.reasons.join('\n'));
 });
 

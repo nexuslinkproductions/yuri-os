@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: text-to-math-decode
+// @serves: decode text | text to math | structure extraction | parse intent | brain dump decode | turn text into object
+// @does: LLM-wielded instrument that translates text into a deterministic math object (the decoder organ). Instrument the LLM calls directly, not an ingress pre-processor.
+// @use: Reach for this before building any text->structure / intent-decoding primitive.
+// @exports: decode
 /**
  * yuri-decode.mjs — the LLM-WIELDED decoder instrument: translate text → a deterministic math object.
  *
@@ -67,7 +72,9 @@ export function decode(text, opts = {}) {
       length: t.length,
       tokens: tokens.length,
       unique: uniq.length,
-      lexicalDensity: tokens.length ? Number((uniq.length / tokens.length).toFixed(4)) : 0,
+      // type-token ratio (unique/total) — previously misnamed lexicalDensity
+      // (lexical density properly = content-words/total).
+      typeTokenRatio: tokens.length ? Number((uniq.length / tokens.length).toFixed(4)) : 0,
       digitalRoot: numerology.digitalRoot,
       dominantDimension,
       numerologyTruncated: numerology.truncated,
@@ -84,6 +91,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   else {
     const d = decode(text);
     process.stdout.write(json ? JSON.stringify(d, null, 2) + '\n'
-      : `decode "${text.slice(0, 40)}…"\n  tokens=${d.tokenCount} unique=${d.uniqueTokenCount} lexDensity=${d.featureSurface.lexicalDensity}\n  numerology: gematria=${d.numerology.gematria} digitalRoot=${d.numerology.digitalRoot}\n  dimension=${d.dimension} dominant=${d.dominantDimension}\n`);
+      : `decode "${text.slice(0, 40)}…"\n  tokens=${d.tokenCount} unique=${d.uniqueTokenCount} ttr=${d.featureSurface.typeTokenRatio}\n  numerology: gematria=${d.numerology.gematria} digitalRoot=${d.numerology.digitalRoot}\n  dimension=${d.dimension} dominant=${d.dominantDimension}\n`);
   }
 }

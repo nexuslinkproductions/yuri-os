@@ -76,6 +76,10 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     '.claude/hooks/pre-tool-gate.js',
     '.claude/hooks/musubi-protocol-enforce.js',
     '.claude/hooks/tirith-url-guard.js',
+    // wave-3 G.1 (D-G1): the hook REGISTRY itself — a coworker editing settings.json
+    // can delete every guard registration above, so the registry is a trust root too.
+    '.claude/settings.json',
+    '.claude/settings.local.json',
   ]),
   dirs: Object.freeze([
     '.claude/hooks/operator-guard',
@@ -93,7 +97,7 @@ export const CONTROL_FILE_PREFIXES = Object.freeze([
   'AGENTS.md',
   'CODEX_PROTOCOL.md',
   'CLAUDE.md',
-  '_SYSTEM/Scripts/pulse-orchestrator',
+  // pulse-orchestrator removed (wave-2 D-C2): file deleted — a dead file needs no mutation protection.
   '_SYSTEM/Scripts/llm-compat-contract',
   '_SYSTEM/Scripts/lane-kernel',
   '_SYSTEM/Scripts/neuron-loop',
@@ -266,7 +270,7 @@ export function buildSuperauditDeployment() {
       'codex-updates-deployment-packet',
       'claude-haiku-wake',
       'claude-opus-comain',
-      'parallel-nim-shintai-fanout',
+      'parallel-advisory-fanout',
       'codex-synthesis-local-verification-and-opus-double-check',
     ],
     members,

@@ -103,6 +103,12 @@ pub fn estimate_jaccard(sig_a: &[u32], sig_b: &[u32]) -> f64 {
         return 0.0;
     }
 
+    // Empty-set convention (house jaccard(emptyset,emptyset)=0): an all-sentinel
+    // signature represents the empty set — real coordinates are mod p < u32::MAX.
+    if sig_a[0] == u32::MAX || sig_b[0] == u32::MAX {
+        return 0.0;
+    }
+
     let matches = sig_a
         .iter()
         .zip(sig_b.iter())
@@ -198,6 +204,8 @@ mod tests {
     #[test]
     fn estimate_jaccard_matches_coordinate_fraction() {
         assert_eq!(estimate_jaccard(&[], &[]), 0.0);
+        // empty-set signatures agree with the house jaccard(emptyset,emptyset)=0 convention
+        assert_eq!(estimate_jaccard(&[u32::MAX; 4], &[u32::MAX; 4]), 0.0);
         assert_eq!(estimate_jaccard(&[1, 2, 3, 4], &[1, 9, 3]), 2.0 / 3.0);
     }
 

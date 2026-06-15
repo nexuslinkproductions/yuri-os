@@ -76,3 +76,14 @@ test('marginal bits never negative even when joint compresses below rest (noise 
   assert.ok(v.raw >= 0, 'raw clamped to >= 0');
   assert.ok(v.bits >= 0, 'bits clamped to >= 0');
 });
+
+test('position-independence within anchors: a duplicate at the START of a >32KB rest is still flagged (D4 mitigation)', () => {
+  const dup = 'x'.repeat(800) + ' the quick brown fox jumps over the lazy dog '.repeat(20);
+  const filler = Array.from({ length: 2000 }, (_, i) => `filler line ${i} ${Math.sin(i)}`).join('\n');
+  assert.ok(filler.length > 50000, 'fixture must exceed the deflate window with margin');
+  const start = marginalBits(dup, dup + '\n' + filler).bits;
+  const end = marginalBits(dup, filler + '\n' + dup).bits;
+  // Pre-fix: start ≈ 0.96 (invisible), end ≈ 0.15. Post-fix both anchored: low and near-equal.
+  assert.ok(start < 0.5 && end < 0.5, `both placements low (${start.toFixed(3)} / ${end.toFixed(3)})`);
+  assert.ok(Math.abs(start - end) < 0.1, `position-independent within anchors (Δ=${Math.abs(start - end).toFixed(3)})`);
+});

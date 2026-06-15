@@ -84,7 +84,7 @@ export const TEST_COUNTS = Object.freeze({
 
 export const COMPONENT_META = Object.freeze([
   { k: 'alpha',   sym: 'α', cc: 'entropy',                   name: 'entropy',    meta: 'how unsettled the claims are about where they stand',          kind: 'penalty' },
-  { k: 'beta',    sym: 'β', cc: 'klDivergence',              name: 'claim drift', meta: 'how far the claims have drifted from what is verified',       kind: 'critical' },
+  { k: 'beta',    sym: 'β', cc: 'wasserstein',               name: 'claim drift', meta: 'ordinal distance the claims have drifted from what is verified (Wasserstein-1; energyFormulaVersion 3, was klDivergence ≤v2)', kind: 'critical' },
   { k: 'gamma',   sym: 'γ', cc: 'logLoss',                   name: 'calibration', meta: 'the cost of a confident forecast that turns out wrong',       kind: 'penalty' },
   { k: 'delta',   sym: 'δ', cc: 'brier',                     name: 'accuracy',   meta: 'how far the forecasts land from what happened',                kind: 'penalty' },
   { k: 'epsilon', sym: 'ε', cc: 'informationGain',           name: 'progress',   meta: 'genuine new information lowers the number',                    kind: 'reward' },
@@ -94,6 +94,7 @@ export const COMPONENT_META = Object.freeze([
   { k: 'iota',    sym: 'ι', cc: 'verifiedEvidenceCredit',    name: 'verified',   meta: 'verified work, the one thing that lowers the number',          kind: 'reward' },
   { k: 'kappa',   sym: 'κ', cc: 'repeatedFailure',           name: 'repeats',    meta: 'the same confident mistake made again and again',              kind: 'critical' },
   { k: 'lambda',  sym: 'λ', cc: 'malformedForecast',         name: 'impossible', meta: 'a forecast outside the range a probability can take',          kind: 'critical' },
+  { k: 'mu',      sym: 'μ', cc: 'overconfidenceDrift',        name: 'overconfidence', meta: 'a confident claim that has drifted from the evidence — confidence × drift', kind: 'critical' },
 ]);
 
 export const SYM_BY_CC = Object.freeze(Object.fromEntries(COMPONENT_META.map((c) => [c.cc, c.sym])));

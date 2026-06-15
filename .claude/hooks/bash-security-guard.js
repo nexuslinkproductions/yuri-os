@@ -21,6 +21,16 @@ const BLOCKED_CLAUDE_FILES = new Set([
   '.claude/state/token-session.json',
 ]);
 
+// wave-3 G.1 (D-G1): settings.json is the hook REGISTRY — a bash write can delete
+// every guard registration, so writes are blocked for all roles (mutations go through
+// the Edit tool, where operator-write-guard role-gates via ROLE_TRUST_SURFACES).
+// WRITE-only: reads of the registry stay free — settings.json is config, not a secret,
+// and the blanket BLOCKED_CLAUDE_FILES set also drives the sensitive-READ block.
+const BLOCKED_CLAUDE_WRITE_FILES = new Set([
+  ...BLOCKED_CLAUDE_FILES,
+  '.claude/settings.json',
+]);
+
 const READ_CMDS = new Set(['cat', 'head', 'tail', 'less', 'more', 'bat', 'nl', 'view']);
 
 function toks(cmd) {
@@ -145,10 +155,10 @@ function isBlockedClaudeFileWrite(cmd) {
   const parts = toks(cmd);
   if (parts[0] === 'tee') {
     for (let i = 1; i < parts.length; i++) {
-      if (!parts[i].startsWith('-') && BLOCKED_CLAUDE_FILES.has(unquote(parts[i]))) return true;
+      if (!parts[i].startsWith('-') && BLOCKED_CLAUDE_WRITE_FILES.has(unquote(parts[i]))) return true;
     }
   }
-  for (const f of BLOCKED_CLAUDE_FILES) {
+  for (const f of BLOCKED_CLAUDE_WRITE_FILES) {
     const escaped = f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (new RegExp(`>\\s*${escaped}(\\s|$)`).test(cmd)) return true;
   }

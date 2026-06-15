@@ -1,6 +1,7 @@
 ---
 name: visual-introspection
 description: Engineering visual analysis of the Yuri OS architecture graph. Reads _SYSTEM/yuri-graph-state.json and reports structural insights, optimization opportunities, dead-ends, missing returns, duplicate functionality, and merge candidates. Use when reviewing system architecture, planning refactors, or assessing graph health.
+invocation: user
 triggers:
   - "/introspect"
   - "visual introspection"
@@ -144,9 +145,15 @@ Optional: write to `_SYSTEM/SELF-IMPROVEMENT/graph-introspection-{date}.md` for 
 
 ## Session Notes
 
+### 2026-06-13
+- session: 116m | peak ctx: 0% | compacts: 0
+- tools: Bash×947, Read×345, Edit×171, StructuredOutput×82, Write×63, TodoWrite×25, ToolSearch×8, Workflow×6, Agent×3, ScheduleWakeup×2, TaskStop×1, PushNotification×1, AskUserQuestion×1
+- corrections: rick i have a fun little task for you. I will be giving you the task of going through trending repos on github, scanning them, compare yuri to those, see what we can adopt and rebuild better in yuri u
+- errors: none
+
 ### 2026-06-04
-- session: 1081m | peak ctx: 0% | compacts: 0
-- tools: Bash×798, Read×626, Write×163, StructuredOutput×140, WebSearch×84, Edit×75, ToolSearch×39, WebFetch×16, Workflow×7, AskUserQuestion×1, Agent×1
+- session: 97m | peak ctx: 0% | compacts: 0
+- tools: Bash×547, Read×426, Edit×294, Write×27, StructuredOutput×23, Workflow×5, TodoWrite×4, mcp×3, AskUserQuestion×1, ToolSearch×1
 - corrections: none
 - errors: none
 

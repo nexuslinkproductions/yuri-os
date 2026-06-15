@@ -26,7 +26,7 @@ import { evaluateRetention } from './math/yuri-fsrs.mjs';
 import { redundancyVerdict } from './math/yuri-mdl.mjs';
 import { buildUsageIndex } from './memory-usage.mjs';
 import { openColdStore, upsertCold, getCold, removeCold, coldCount } from './memory-cold-store.mjs';
-import { memoryRoot } from './claude-memory-write.mjs';
+import { memoryRoot, updateIndex } from './claude-memory-write.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYSTEM_ROOT = path.resolve(_HERE, '..');
@@ -483,11 +483,18 @@ export function promoteHot(slug, { coldDb, root = DEFAULT_MEMORY_ROOT, nowMs = D
   const entry = index.relocated[slug];
   const destName = entry ? path.basename(entry.sourcePath || `${slug}.md`) : `${slug}.md`;
   const dest = path.join(root, destName);
-  fs.writeFileSync(dest, rec.body);                       // restore verbatim
+  // Atomic restore (crash window closed): temp + rename, same pattern as
+  // executeRelocation's atomicWriteJSON. Sequence: write-tmp → rename →
+  // removeCold → updateIndex (restored file immediately visible — no
+  // SessionStart wait) → unlink relocated copy → persist relocation-index.
+  const tmp = `${dest}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, rec.body);
+  fs.renameSync(tmp, dest);                               // restore verbatim, atomically
   removeCold(coldDb, slug);
+  try { updateIndex(root); } catch {}                     // MEMORY.md sees the restore NOW
   // remove the relocated/ copy if present, mark index promoted
   if (entry) { try { if (entry.relocatedFile && fs.existsSync(entry.relocatedFile)) fs.unlinkSync(entry.relocatedFile); } catch {} ; entry.promotedBackAt = Math.trunc(nowMs); index.relocated[slug] = entry; }
-  try { fs.writeFileSync(indexPath, JSON.stringify(index, null, 2) + '\n'); } catch {}
+  atomicWriteJSON(indexPath, index);
   return { ok: true, restored: dest };
 }
 

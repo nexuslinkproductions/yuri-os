@@ -63,7 +63,8 @@ function buildMemoryRanking() {
       halfLife: candidate.halfLifeDays,
     });
     const similarity = cosineSimilarity(candidate.queryVector, candidate.memoryVector);
-    const normalizedInformationGain = Math.min(candidate.informationGain / 0.5, 1);
+    // lower-clamp: a negative infoGain must not leak through a field named [0,1].
+    const normalizedInformationGain = Math.min(Math.max(Number(candidate.informationGain) || 0, 0) / 0.5, 1);
     const components = [
       recencyConfidence,
       candidate.sourceReliability,
@@ -152,11 +153,14 @@ function buildToolRouting() {
     expectedUtility: expectedValue(option.values, option.probabilities),
   }));
   const distribution = softmax(expected.map((option) => option.expectedUtility), { temperature: 0.1 });
+  // Real argmax (stable id tie-break for reportHash determinism) — the previous
+  // expected[0] was positional and only coincidentally the max.
+  const ranked = [...expected].sort((a, b) => (b.expectedUtility - a.expectedUtility) || String(a.id).localeCompare(String(b.id)));
   return {
     formulaIds: ['expected-value', 'softmax'],
     options: expected.map((option, index) => ({ ...option, displayWeight: distribution[index] })),
-    recommendation: expected[0].id,
-    interpretation: 'The Node kernel remains the trusted execution route; Python lab is useful for visual proof artifacts.',
+    recommendation: ranked[0].id,
+    interpretation: `${ranked[0].id} carries the highest expected utility (${ranked[0].expectedUtility}); ranking is computed, not positional.`,
   };
 }
 

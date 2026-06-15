@@ -25,8 +25,9 @@ function safeThreshold(threshold, fallback = 0.3) {
 }
 
 // IDF over the index's own document frequencies. A shared rare feature ("lyapunov") weighs heavily;
-// a shared common feature ("system") weighs ~nothing. IDF-weighted containment == BM25 with b=0 —
-// the natural bridge between raw containment (recall) and BM25 (precision).
+// a shared common feature ("system") weighs ~nothing. BM25-flavored always-positive
+// smoothed IDF + query-mass normalization — NOT BM25's RSJ idf (which goes negative
+// for df>N/2); no tf-saturation, no length norm. Registry: math/CONVENTIONS.md axis 1.
 function idfOf(df, n) {
   return Math.log((n + 1) / ((df || 0) + 0.5));
 }

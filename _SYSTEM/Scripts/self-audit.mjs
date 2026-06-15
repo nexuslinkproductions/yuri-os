@@ -44,7 +44,6 @@ function scanDeadHooks() {
       'browser-lane.js',      // browser routing utility module
       'yuri-dream.js',        // dream processor — called by EOT, not a hook
       'session-reflect.js',   // /reflect command runner — not a hook
-      'token-budget-check.js',// on-demand token check utility
     ];
     if (INTENTIONAL_NON_HOOKS.includes(file)) continue;
     if (!settingsText.includes(file)) {

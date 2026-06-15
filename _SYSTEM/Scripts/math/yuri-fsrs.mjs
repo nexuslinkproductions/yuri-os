@@ -31,7 +31,10 @@ function finite(n, fallback = 0) {
   return Number.isFinite(v) ? v : fallback;
 }
 function clamp01(n) {
-  return Math.max(0, Math.min(1, n));
+  const v = Number(n);
+  // NaN-safe fail-closed: a non-finite value clamps to 0 (demote-eligible), never
+  // launders through as NaN (NaN<floor is false → silent keep-forever).
+  return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
 }
 
 /**
@@ -42,9 +45,16 @@ function clamp01(n) {
 export function retrievability(stabilityDays, daysSinceUse, { decay = FSRS_DECAY, factor = FSRS_FACTOR } = {}) {
   const S = finite(stabilityDays, 0);
   const t = finite(daysSinceUse, 0);
+  // Domain guards: decay must be finite & < 0, factor finite & > 0 — invalid opts
+  // fall back to the canonical FSRS curve (with d<0, f>0, S>0, t>0 the base
+  // 1+f·t/S > 1, so pow(>1, neg) ∈ (0,1) and NaN is unreachable). The config
+  // layer already validates; this covers direct callers.
+  const d = Number.isFinite(decay) && decay < 0 ? decay : FSRS_DECAY;
+  const f = Number.isFinite(factor) && factor > 0 ? factor : FSRS_FACTOR;
   if (S <= 0) return 0;       // no stability → unretrievable
   if (t <= 0) return 1;       // just used → fully retrievable
-  return Math.pow(1 + factor * (t / S), decay);
+  const R = Math.pow(1 + f * (t / S), d);
+  return Number.isFinite(R) ? R : 0; // unreachable belt — never launder NaN
 }
 
 /**
@@ -58,28 +68,35 @@ export function retrievability(stabilityDays, daysSinceUse, { decay = FSRS_DECAY
  * When `elapsedDays` is provided AND useCount ≥ renewalMinRecalls, the freq boost becomes
  * freq·log1p(r·scale) so dense recall dures harder than sparse recall over a long span.
  *
- * FALLBACK (the card's <4-recall guard): if elapsedDays is absent, or fewer than
- * renewalMinRecalls recalls exist, we DO NOT trust a rate from too few samples — we fall
- * back to the original count-based freq·log1p(useCount). This makes the rate term a strict
- * superset: callers that pass no elapsedDays get byte-identical behavior to before.
+ * BLEND (math-base wave 2026-06-10, owner decision D3): whenever a window is known,
+ * freqTerm = max(log1p(r·scale), κ·log1p(uc)) with κ = renewalCountFloor (default
+ * 0.25). Max of two increasing concave functions of uc → monotone in uc and
+ * continuous everywhere — the old uc>=minRecalls form-switch made recall #4 CUT
+ * stability 40% (a monotonicity violation). Dense recall still dominates via the
+ * rate term; sparse-old items keep a DISCOUNTED count floor, never the full prior.
+ * No-window fallback stays log1p(uc) — byte-identical backward compat.
+ * renewalMinRecalls is RETIRED for form selection (accepted-but-unused for one
+ * release; it was never wired through yuri-energy-config anyway).
  *
  * Half-2 (inspection-paradox / length-biased age debias) is deliberately NOT implemented —
  * the catalog warns it rescues dead memories without a stationarity guard. PARKED.
  */
 export function effectiveStability(baseStabilityDays, { useCount = 0, salience = 0, deltaU = 0, elapsedDays } = {}, weights = {}) {
-  const w = { freq: 0.5, salience: 1.0, deltaU: 0.3, renewalScale: 1.0, renewalMinWindowDays: 1, renewalMinRecalls: 4, ...weights };
+  const w = { freq: 0.5, salience: 1.0, deltaU: 0.3, renewalScale: 1.0, renewalMinWindowDays: 1, renewalCountFloor: 0.25, ...weights };
   const S0 = (() => { const v = finite(baseStabilityDays, 0); return v > 0 ? v : 1; })();
   const uc = Math.max(0, finite(useCount));
-  // freq term: rate-based when we have a trustworthy elapsed window + enough recalls; else count.
   const ed = elapsedDays === undefined ? null : finite(elapsedDays, 0);
   const minWin = Math.max(1, finite(w.renewalMinWindowDays, 1));
-  const minRecalls = Math.max(0, finite(w.renewalMinRecalls, 4));
+  const kappa = Math.max(0, Math.min(1, finite(w.renewalCountFloor, 0.25)));
   let freqTerm;
-  if (ed !== null && ed > 0 && uc >= minRecalls) {
+  if (ed !== null && ed > 0) {
     const r = uc / Math.max(ed, minWin);                       // renewal RATE (recalls/day)
-    freqTerm = Math.log1p(Math.max(0, r) * Math.max(0, finite(w.renewalScale, 1)));
+    // monotone-continuous blend: rate signal with a DISCOUNTED count floor —
+    // dense recall dominates via the rate; sparse recall keeps κ·count, never
+    // the full count prior (the old cliff: recall #4 CUT stability 40%).
+    freqTerm = Math.max(Math.log1p(Math.max(0, r) * Math.max(0, finite(w.renewalScale, 1))), kappa * Math.log1p(uc));
   } else {
-    freqTerm = Math.log1p(uc);                                 // <minRecalls or no window → count prior
+    freqTerm = Math.log1p(uc);                                 // no window → count prior (compat)
   }
   const boost = 1
     + finite(w.freq) * freqTerm

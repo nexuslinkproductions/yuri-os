@@ -144,10 +144,46 @@ Reach for ccr-compress when the answer to "can I get this back if I need it?" mu
 
 ## Session Notes
 
+### 2026-06-15
+- session: 11m | peak ctx: 0% | compacts: 0
+- tools: Bash×19, Read×2, Edit×2, Skill×1, Write×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
+
+### 2026-06-14
+- session: 101m | peak ctx: 0% | compacts: 0
+- tools: Bash×455, Read×142, Edit×74, Write×44, WebSearch×31, WebFetch×19, StructuredOutput×17, ToolSearch×8, TodoWrite×5, Workflow×3, AskUserQuestion×2, Skill×2, TaskStop×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
+
 ### 2026-06-13
-- session: 109m | peak ctx: 0% | compacts: 0
-- tools: Bash×940, Read×345, Edit×171, StructuredOutput×82, Write×63, TodoWrite×25, ToolSearch×8, Workflow×6, Agent×3, ScheduleWakeup×2, TaskStop×1, PushNotification×1, AskUserQuestion×1
-- corrections: why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact | why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact
+- session: 9m | peak ctx: 0% | compacts: 0
+- tools: Bash×45, Write×16, Edit×13, Read×10, TaskStop×1, Skill×1
+- corrections: rick i have a fun little task for you. I will be giving you the task of going through trending repos on github, scanning them, compare yuri to those, see what we can adopt and rebuild better in yuri u
 - errors: none
 
 ### 2026-06-12

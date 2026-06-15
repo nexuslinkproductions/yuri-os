@@ -88,6 +88,23 @@
         "--yuri-kagami-ease-*"
       ],
       "pattern": "kagami-sprint-audit template"
+    },
+    {
+      "date": "2026-06-12",
+      "surface": "kagami",
+      "component": "NEXUS LINK investor deck presentation (nexus-link-investor-deck.html, new file)",
+      "decision": "One-realm scroll presentation: 12 acts in one continuous void, fixed parallax starfield canvas + data spine + act rail; hero is a procedural female digital nano suit (V-neck cutout, glyph rain, emitter ring, torii echo) drawn in pure Canvas 2D; palette canon inherited from yuri-concept-visualization (#040810 void / #00d4ff core / #e0f0ff warm); kagami used as METHOD only, bespoke --nx-* tokens; zero external dependencies (CDN lesson), system font stack, visible-by-default text with .settle enhancement, value-toggle data-open accordions, reduced-motion static renders",
+      "rationale": "Marcel directive: merge the Mimo visualization DNA with the refined planner into one cinematic realm with no page feeling; viz look is canon over any house surface; offline meeting-room reliability mandatory after the unpkg CDN silent-failure incident",
+      "tokens_used": [
+        "--nx-void",
+        "--nx-core",
+        "--nx-white",
+        "--nx-mist",
+        "--nx-line",
+        "--nx-mono",
+        "--nx-sans"
+      ],
+      "pattern": "nexus-realm-one-scroll"
     }
   ],
   "openIssues": [],

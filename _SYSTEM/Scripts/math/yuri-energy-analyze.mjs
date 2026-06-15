@@ -9,6 +9,9 @@ import {
   reconstructRawComponents,
   rescoreRecordU,
   BURN_IN_DEFAULT_SUBSET,
+  resolveFormulaVersion,
+  formulaVersionTally,
+  assertSingleEra,
   makeSeededRng,
   buildResultLabel,
   LANE_IDS,
@@ -211,7 +214,7 @@ export function seriesFromSteps(steps, metric) {
  * Load burn-in records from the trace directory.
  * @returns {{ records, total, subsetCount, traceDir }}
  */
-export function loadBurnInRecords({ traceDir, subset = BURN_IN_DEFAULT_SUBSET, maxRecords } = {}) {
+export function loadBurnInRecords({ traceDir, subset = BURN_IN_DEFAULT_SUBSET, maxRecords, sample = 'prefix', formulaVersion = 'all' } = {}) {
   const dir = traceDir || path.resolve(__dirname, '../../state/energy-trace');
 
   if (!fs.existsSync(dir)) {
@@ -241,17 +244,59 @@ export function loadBurnInRecords({ traceDir, subset = BURN_IN_DEFAULT_SUBSET, m
   let filtered = allRecords;
   if (subset === 'rejects' || subset === BURN_IN_DEFAULT_SUBSET) {
     filtered = allRecords.filter(r => r.decision === 'reject');
+  } else if (subset === 'accepts') {
+    // The strictness FP channel (yuri-energy-twosided) needs previously-ACCEPTED records to
+    // measure newly-introduced rejections (FP introduction) under a stricter candidate.
+    filtered = allRecords.filter(r => r.decision === 'accept');
   } else if (subset !== 'all') {
-    throw new Error(`loadBurnInRecords: unknown subset '${subset}'. Use 'rejects' or 'all'.`);
+    throw new Error(`loadBurnInRecords: unknown subset '${subset}'. Use 'rejects', 'accepts', or 'all'.`);
+  }
+
+  // Energy-formula era filter (migration safety; see contract §1b). 'all' = no filter (back-compat) but
+  // the era split is ALWAYS surfaced so a caller cannot silently pool incommensurable drift scales.
+  // 'current' = the single newest era present in THIS subset (what the live formula stamps now). A
+  // positive integer = that era only. The split before filtering is reported as subsetVersionTally so a
+  // 'current'/<n> caller sees exactly what was dropped (no silent truncation).
+  const subsetVersionTally = formulaVersionTally(filtered);
+  let resolvedVersion = formulaVersion;
+  if (formulaVersion === 'current') {
+    const eras = Object.keys(subsetVersionTally).map(Number);
+    resolvedVersion = eras.length ? Math.max(...eras) : null;
+  }
+  if (resolvedVersion != null && resolvedVersion !== 'all') {
+    if (!Number.isInteger(resolvedVersion) || resolvedVersion <= 0) {
+      throw new Error(`loadBurnInRecords: formulaVersion must be a positive integer, 'current', or 'all' (got ${JSON.stringify(formulaVersion)})`);
+    }
+    filtered = filtered.filter((r) => resolveFormulaVersion(r) === resolvedVersion);
   }
 
   const subsetCount = filtered.length;
-  const records =
-    maxRecords != null && filtered.length > maxRecords
-      ? filtered.slice(0, maxRecords)
-      : filtered;
+  let records;
+  if (maxRecords != null && filtered.length > maxRecords) {
+    if (sample === 'stride') {
+      // Deterministic evenly-spaced sample across the FULL (date-sorted) range so the subsample is not
+      // biased toward the oldest records (a prefix slice over date-sorted files scores only the oldest
+      // window — understating FP propensity on recent traffic).
+      const stride = filtered.length / maxRecords;
+      records = [];
+      for (let k = 0; k < maxRecords; k++) records.push(filtered[Math.floor(k * stride)]);
+    } else {
+      records = filtered.slice(0, maxRecords);
+    }
+  } else {
+    records = filtered;
+  }
 
-  return { records, total, subsetCount, traceDir: dir };
+  return {
+    records,
+    total,
+    subsetCount,
+    traceDir: dir,
+    sample,
+    formulaVersion: resolvedVersion === 'all' ? 'all' : resolvedVersion,
+    subsetVersionTally,                       // era split BEFORE the era filter (what was available)
+    versionTally: formulaVersionTally(records), // era split of what is actually RETURNED
+  };
 }
 
 /**
@@ -318,6 +363,11 @@ export function burnInRescoreDelta(
     maxRecords != null && records.length > maxRecords
       ? records.slice(0, maxRecords)
       : records;
+
+  // FAIL-CLOSED migration guard (contract §1b): refuse to rescore a set spanning >1 energy-formula era —
+  // the drift-term scales (v1 KL≈41, v2 KL≈11, v3 W₁∈[0,11] under a renamed key) are not commensurable,
+  // and pooling them folds migration noise into ΔU. Pin loadBurnInRecords({formulaVersion}) first.
+  assertSingleEra(workRecords, { context: 'burnInRescoreDelta' });
 
   const totalConsidered = workRecords.length;
   const perRecord = [];
@@ -404,7 +454,11 @@ if (isMainModule) {
   }
 
   if (command === 'burnin-coverage') {
-    const { records, total, subsetCount, traceDir } = loadBurnInRecords();
+    // Diagnostic coverage is intentionally FULL-corpus ('all' eras) — recoverability across every era is the
+    // migration-planning signal. But surface subsetVersionTally so the era split is EXPLICIT (contract §1b:
+    // no SILENT pooling). This path only counts field presence (reconstructBurnIn) — it does NOT rescore, so
+    // mixing eras here cannot corrupt a weight verdict; the silence was the only issue.
+    const { records, total, subsetCount, traceDir, subsetVersionTally } = loadBurnInRecords({ formulaVersion: 'all' });
     const coverage = reconstructBurnIn(records);
     const label = buildResultLabel({
       laneId: LANE_IDS.ANALYZE,
@@ -417,6 +471,7 @@ if (isMainModule) {
       `traceDir: ${traceDir}`,
       `total records: ${total}`,
       `subset (rejects): ${subsetCount}`,
+      `energyFormulaVersion split (rejects): ${JSON.stringify(subsetVersionTally)}  [v1=hard-floor KL · v2=mixture KL · v3=Wasserstein-1; scales NOT commensurable — do not pool for a verdict]`,
       `evidence.termCount: ${evidence.termCount}`,
       `evidence.fileCount: ${evidence.fileCount}`,
       `evidence.match: ${evidence.match}`,

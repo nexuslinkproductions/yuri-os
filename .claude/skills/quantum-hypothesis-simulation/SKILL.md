@@ -101,6 +101,20 @@ A model that "wins everywhere" is overfitting, not an effect. Gates are domain-b
 
 ## Session Notes
 
-- 2026-06-14 (refresh) — Marcel: "you need to update that skill, it wasnt updated." Audited drift vs the doc's `faeb5b67` baseline: one new commit `15cfc088` "outcome-resolver closes the loop + eval-processing residuals" — the doc still called the learn loop "half-closed / nothing scores predictions→outcomes," now STALE. Ground-truth checked: tracker 313 lines / 19 exports (public API unchanged → method-map intact), benchmark **VERDICT PASS** (G1–G4 true, re-run live), tracker tests **5/5**, eval-processing **11/11**. Updated: learn-loop CLOSED via `prediction-outcome-resolver.mjs` (on-demand; scheduled cadence still owner-config), eval funnel 9/9→11/11 + the two residuals, added the resolver to Pair-with, bumped commit refs + re-verify date. Touched only this skill doc. Context: invoked to run order-effect sims on the recursive-nanoswarm `spawn_nano` design (child-EOT→canonical vs parent-converge non-commuting pair) before building Move 1b.
-- 2026-06-13 (refresh) — Updated to the committed reality (`faeb5b67` "sim arsenal + eval-processing + enforced registry"). Tracker grew +313 lines (internal hardening; export API unchanged → method-map intact); arsenal now has tier 4 (`izanagi-bridge`) + an eval-processing layer + a half-closed learn loop. Re-verified on current code before documenting: tracker 5/0, eval-processing 9/0, decision-sim 7/0, quantum-vs-bayes benchmark **VERDICT PASS** (G1–G4 true). Marcel: "update the skill to the most current update of that whole process, it's juicy" + "still being built" → marked living; touched only this skill doc, not the tracker source. `@capability` block on the tracker survived his commit. Residual: izanagi-bridge has no unit test (demo-validated); roadmap at `02_RESOURCES/research/simulation-arsenal-wiring-2026-06-13.md`.
-- 2026-06-13 (create) — Built after "turn simulations into recallable skills," corrected from decision-sim onto the quantum tracker. Registered the tracker's `@capability` (was 0 → capability-recall now surfaces it).
+### 2026-06-14
+- session: 101m | peak ctx: 0% | compacts: 0
+- tools: Bash×455, Read×142, Edit×74, Write×44, WebSearch×31, WebFetch×19, StructuredOutput×17, ToolSearch×8, TodoWrite×5, Workflow×3, AskUserQuestion×2, Skill×2, TaskStop×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none

@@ -222,6 +222,14 @@ export function combMNZ(rows) {
 }
 
 export function normalizeFuse(perSurfaceResults, { method = 'zscore', combiner = 'combSUM' } = {}) {
+  if (combiner === 'combMNZ' && method === 'zscore') {
+    // CombMNZ multiplies the summed score by surfaceCount; over SIGNED z-scores
+    // this AMPLIFIES negative agreement (2 agreeing surfaces → −4.71 vs −1.18
+    // for 1). Canonical CombMNZ assumes non-negative normalized scores.
+    // (fuseRecallAll routes any fusion!=='rrf' here with method defaulting to
+    // 'zscore' — a config {fusion:'normalize', combiner:'combMNZ'} hits this.)
+    throw new Error('combMNZ requires a non-negative normalizer — use method:"minmax" or "quantile"');
+  }
   const normalized = normalizeInput(perSurfaceResults);
   if (normalized.totalAboveThreshold === 0) return emptyFusion(`normalize:${method}:${combiner}`, normalized);
   const rows = normalized.surfaces.flatMap((surface) => normalizedRows(surface, method));

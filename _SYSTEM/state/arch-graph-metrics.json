@@ -3,29 +3,29 @@
   "advisory": true,
   "writesRuntimeTruth": false,
   "summary": {
-    "nodes": 128,
-    "realEdges": 257,
-    "simpleEdges": 204,
+    "nodes": 126,
+    "realEdges": 253,
+    "simpleEdges": 201,
     "components": 12,
-    "giant": 117,
-    "giantFraction": 0.9141,
+    "giant": 115,
+    "giantFraction": 0.9127,
     "isolatedNodes": 11,
-    "lambda2_fiedler": 0.05257,
+    "lambda2_fiedler": 0.05225,
     "lambdas_bottom8": [
       0,
-      0.05257,
-      0.09478,
-      0.12307,
-      0.16466,
-      0.19235,
-      0.2237,
-      0.22858
+      0.05225,
+      0.09613,
+      0.12239,
+      0.17516,
+      0.19687,
+      0.22366,
+      0.229
     ],
     "k_clusters": 15,
     "articulationPoints": 19,
-    "bridges": 40,
-    "agree": 92,
-    "disagree": 25
+    "bridges": 39,
+    "agree": 86,
+    "disagree": 29
   },
   "isolated": [
     "AEONIC",
@@ -120,10 +120,6 @@
     },
     {
       "a": "COLD_TAXONOMY",
-      "b": "MEM_COLD"
-    },
-    {
-      "a": "COLD_WIKI",
       "b": "MEM_COLD"
     },
     {
@@ -224,8 +220,8 @@
     }
   ],
   "cheegerCut": {
-    "sizeS": 56,
-    "conductance": 0.0869,
+    "sizeS": 60,
+    "conductance": 0.09375,
     "crossingEdges": [
       {
         "a": "BEACON_OBSIDIAN",
@@ -253,11 +249,6 @@
         "w": 0.7
       },
       {
-        "a": "CODEX_GATE",
-        "b": "PRECOMMIT_REGRESS",
-        "w": 0.7
-      },
-      {
         "a": "ENKI_DECIDES",
         "b": "ENKI_INBOX",
         "w": 0.3
@@ -281,11 +272,6 @@
         "a": "HOOK_PIPELINE",
         "b": "PULSE_BUS",
         "w": 0.8
-      },
-      {
-        "a": "MEMORY",
-        "b": "MEM_COLD",
-        "w": 0.9
       },
       {
         "a": "MEMORY",
@@ -318,9 +304,19 @@
         "w": 0.6
       },
       {
+        "a": "MEM_COLD",
+        "b": "PULSE_ARCHIVE",
+        "w": 0.6
+      },
+      {
         "a": "NEXUSPULSE",
         "b": "PROMPT_HOOKS",
         "w": 1
+      },
+      {
+        "a": "PRECOMMIT_REGRESS",
+        "b": "PULSE_ARCHIVE",
+        "w": 0.9
       },
       {
         "a": "RESPONSE",
@@ -338,15 +334,6 @@
       "ricci": -2.00448,
       "degA": 25,
       "degB": 8
-    },
-    {
-      "a": "MEMORY",
-      "b": "MEM_COLD",
-      "w": 0.9,
-      "tri": 0,
-      "ricci": -1.88369,
-      "degA": 25,
-      "degB": 6
     },
     {
       "a": "ENKI",
@@ -376,6 +363,15 @@
       "degB": 8
     },
     {
+      "a": "MEMORY",
+      "b": "MEM_COLD",
+      "w": 0.9,
+      "tri": 0,
+      "ricci": -1.69829,
+      "degA": 25,
+      "degB": 4
+    },
+    {
       "a": "ENKI",
       "b": "SESSION_INIT",
       "w": 1,
@@ -389,9 +385,9 @@
       "b": "SERVICES",
       "w": 1,
       "tri": 0,
-      "ricci": -1.68483,
+      "ricci": -1.66857,
       "degA": 8,
-      "degB": 10
+      "degB": 9
     },
     {
       "a": "ADVISORS",
@@ -470,17 +466,16 @@
     "note": "VERIFIED: Forman ≈ Cheeger (high-traffic bottlenecks); Tarjan bridges are a DISTINCT disconnection channel (roadmap triple-equality corrected on live graph).",
     "cheegerCrossingThatAreNegForman": [
       "MEMORY|MEM_WARM",
-      "MEMORY|MEM_COLD",
       "HOOK_PIPELINE|PULSE_BUS",
       "CODEX_GATE|HOOK_PIPELINE",
       "NEXUSPULSE|PROMPT_HOOKS",
       "GITNEXUS|MEMORY",
       "MEMORY|SELF_IMPROVE"
     ],
-    "cheegerFormanOverlapCount": 7,
-    "formanCheegerAgreement": 0.35,
-    "tarjanBridgeCount": 40,
-    "tarjanBridgesWithTriZero": 40,
+    "cheegerFormanOverlapCount": 6,
+    "formanCheegerAgreement": 0.3,
+    "tarjanBridgeCount": 39,
+    "tarjanBridgesWithTriZero": 39,
     "formanNegEdgesThatAreBridges": [],
     "formanNegEdgesThatAreBridgesCount": 0,
     "cheegerCrossingThatAreBridges": []
@@ -496,161 +491,154 @@
     {
       "node": "APPLY_HEAD",
       "declaredSector": "codex_gate",
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "spectralSector": "codex_gate",
       "verdict": "AGREE"
     },
     {
       "node": "BEACON_OBSIDIAN",
       "declaredSector": "self_improvement",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "DISAGREE"
     },
     {
       "node": "CDX_FULL",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "CLASSIFIER",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CLF_ROUTE_PLAN",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CLF_SCENARIO",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_DEEPSEEK_FAMILY",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_DESIGN_FAMILY",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_EOT",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_GITNEXUS_FAMILY",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_LLM",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_PROBABILITY",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_REPORT",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_SHURA",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_SOLO",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CMD_SPEC_FAMILY",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
     {
       "node": "CODEX_FLOW",
       "declaredSector": "codex_gate",
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "spectralSector": "codex_gate",
       "verdict": "AGREE"
     },
     {
       "node": "CODEX_GATE",
       "declaredSector": "codex_gate",
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "spectralSector": "routing_lanes",
       "verdict": "DISAGREE"
     },
     {
       "node": "COLD_RULES",
       "declaredSector": "memory",
-      "spectralCluster": 0,
+      "spectralCluster": 7,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "COLD_TAXONOMY",
       "declaredSector": "memory",
-      "spectralCluster": 0,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
-    },
-    {
-      "node": "COLD_WIKI",
-      "declaredSector": "memory",
-      "spectralCluster": 0,
+      "spectralCluster": 7,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "COMPLEX",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CRITICAL",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
@@ -678,21 +666,21 @@
     {
       "node": "ED_FINAL",
       "declaredSector": "unassigned",
-      "spectralCluster": 1,
-      "spectralSector": "routing_lanes",
+      "spectralCluster": 13,
+      "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "ED_ROUTE",
       "declaredSector": "unassigned",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "DISAGREE"
     },
     {
       "node": "ED_SYNTH",
       "declaredSector": "unassigned",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "DISAGREE"
     },
@@ -700,20 +688,20 @@
       "node": "ENKI",
       "declaredSector": "control_plane",
       "spectralCluster": 12,
-      "spectralSector": "unassigned",
+      "spectralSector": "self_improvement",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_BUS",
       "declaredSector": "unassigned",
       "spectralCluster": 12,
-      "spectralSector": "unassigned",
-      "verdict": "AGREE"
+      "spectralSector": "self_improvement",
+      "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_COMMANDS",
       "declaredSector": "command_registry",
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "spectralSector": "command_registry",
       "verdict": "AGREE"
     },
@@ -721,20 +709,20 @@
       "node": "ENKI_CTX",
       "declaredSector": "unassigned",
       "spectralCluster": 12,
-      "spectralSector": "unassigned",
-      "verdict": "AGREE"
+      "spectralSector": "self_improvement",
+      "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_DECIDES",
       "declaredSector": "control_plane",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_INBOX",
       "declaredSector": "control_plane",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
@@ -742,13 +730,13 @@
       "node": "ENKI_PLAN",
       "declaredSector": "unassigned",
       "spectralCluster": 12,
-      "spectralSector": "unassigned",
-      "verdict": "AGREE"
+      "spectralSector": "self_improvement",
+      "verdict": "DISAGREE"
     },
     {
       "node": "EOT_PIPELINE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -811,82 +799,82 @@
     {
       "node": "HOT_BUS",
       "declaredSector": "memory",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "HOT_PLAN",
       "declaredSector": "memory",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "INTROSPECT",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_CODEX",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_DSF",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_DSP",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_GEMMA",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_GPTOSS",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
-      "spectralSector": "routing_lanes",
-      "verdict": "AGREE"
-    },
-    {
-      "node": "LANE_KIMI",
-      "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "LANE_LOCAL",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
-      "node": "LANE_MINI",
+      "node": "LANE_MIMO",
       "declaredSector": "routing_lanes",
       "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
-      "node": "LANE_NEMOTRON",
+      "node": "LANE_MIMO_FLASH",
+      "declaredSector": "routing_lanes",
+      "spectralCluster": 1,
+      "spectralSector": "routing_lanes",
+      "verdict": "AGREE"
+    },
+    {
+      "node": "LANE_MINI",
       "declaredSector": "routing_lanes",
       "spectralCluster": 5,
       "spectralSector": "routing_lanes",
@@ -895,7 +883,7 @@
     {
       "node": "LANE_TRIAGE",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
@@ -909,35 +897,35 @@
     {
       "node": "MEM_COLD",
       "declaredSector": "memory",
-      "spectralCluster": 0,
+      "spectralCluster": 7,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "MEM_HOT",
       "declaredSector": "memory",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "MEM_KERNEL",
       "declaredSector": "memory",
-      "spectralCluster": 13,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
+      "spectralCluster": 9,
+      "spectralSector": "initialization",
+      "verdict": "DISAGREE"
     },
     {
       "node": "MEM_WARM",
       "declaredSector": "memory",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "MINI_WRITE",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
@@ -951,7 +939,7 @@
     {
       "node": "MNEMOSYNE",
       "declaredSector": "initialization",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
@@ -965,21 +953,21 @@
     {
       "node": "NEXUSPULSE",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "NP_BEACON",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "DISAGREE"
     },
     {
       "node": "NP_CODEX_RUNNER",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
@@ -1007,36 +995,36 @@
     {
       "node": "ORCHESTRATOR",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "PALACE",
       "declaredSector": "initialization",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "PALACE_IDX",
       "declaredSector": "initialization",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "PB_CONSUME",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
-      "spectralSector": "classification",
+      "spectralCluster": 8,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
     },
     {
       "node": "PB_RING",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
-      "spectralSector": "classification",
+      "spectralCluster": 8,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
     },
     {
@@ -1049,14 +1037,14 @@
     {
       "node": "PRECOMMIT_REGRESS",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
     {
       "node": "PROMPT_HOOKS",
       "declaredSector": "prompt_hooks",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
@@ -1070,14 +1058,14 @@
     {
       "node": "PROP_DRYRUN",
       "declaredSector": "codex_gate",
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "spectralSector": "codex_gate",
       "verdict": "AGREE"
     },
     {
       "node": "PULSE_ARCHIVE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -1091,28 +1079,28 @@
     {
       "node": "PULSE_PLAN",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "RESPONSE",
       "declaredSector": "operator_io",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "DISAGREE"
     },
     {
       "node": "ROUTING",
       "declaredSector": "routing_lanes",
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "spectralSector": "routing_lanes",
       "verdict": "AGREE"
     },
     {
       "node": "SELF_IMPROVE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -1126,21 +1114,21 @@
     {
       "node": "SESSION_INIT",
       "declaredSector": "initialization",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "SKILL_REGISTRY",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
     {
       "node": "SOAK_LOOP",
       "declaredSector": "self_improvement",
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -1161,7 +1149,7 @@
     {
       "node": "STANDARD",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
@@ -1188,13 +1176,6 @@
     },
     {
       "node": "SVC_OLLAMA",
-      "declaredSector": "services",
-      "spectralCluster": 10,
-      "spectralSector": "services",
-      "verdict": "AGREE"
-    },
-    {
-      "node": "SVC_RAG",
       "declaredSector": "services",
       "spectralCluster": 10,
       "spectralSector": "services",
@@ -1238,49 +1219,49 @@
     {
       "node": "TOKEN_INIT",
       "declaredSector": "initialization",
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "TRIVIAL",
       "declaredSector": "classification",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "USER",
       "declaredSector": "operator_io",
-      "spectralCluster": 2,
-      "spectralSector": "self_improvement",
+      "spectralCluster": 9,
+      "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
     {
       "node": "USER_INPUT",
       "declaredSector": "operator_io",
-      "spectralCluster": 2,
-      "spectralSector": "self_improvement",
+      "spectralCluster": 9,
+      "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
     {
       "node": "WARM_ARCHIVE",
       "declaredSector": "memory",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "WARM_EOT",
       "declaredSector": "memory",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "WARM_JOURNAL",
       "declaredSector": "memory",
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
@@ -1344,7 +1325,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "minIncidentRicci": null
     },
     "APPROVED": {
@@ -1374,7 +1355,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.5665
     },
     "CDX_FULL": {
@@ -1384,7 +1365,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "minIncidentRicci": null
     },
     "CLASSIFIER": {
@@ -1394,7 +1375,7 @@
       "simpleDegree": 12,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.6536
     },
     "CLF_ROUTE_PLAN": {
@@ -1404,7 +1385,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -0.97223
     },
     "CLF_SCENARIO": {
@@ -1414,7 +1395,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -0.97223
     },
     "CMD_DEEPSEEK_FAMILY": {
@@ -1424,7 +1405,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_DESIGN_FAMILY": {
@@ -1434,7 +1415,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_EOT": {
@@ -1444,7 +1425,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_GITNEXUS_FAMILY": {
@@ -1454,7 +1435,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_LLM": {
@@ -1464,7 +1445,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_PROBABILITY": {
@@ -1474,7 +1455,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_REPORT": {
@@ -1484,7 +1465,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": null
     },
     "CMD_SHURA": {
@@ -1494,7 +1475,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": null
     },
     "CMD_SOLO": {
@@ -1504,7 +1485,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CMD_SPEC_FAMILY": {
@@ -1514,7 +1495,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -0.01635
     },
     "CODEX_FLOW": {
@@ -1524,7 +1505,7 @@
       "simpleDegree": 4,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "minIncidentRicci": -1.28405
     },
     "CODEX_GATE": {
@@ -1534,7 +1515,7 @@
       "simpleDegree": 11,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "minIncidentRicci": -1.54399
     },
     "COLD_RULES": {
@@ -1544,7 +1525,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 0,
+      "spectralCluster": 7,
       "minIncidentRicci": null
     },
     "COLD_TAXONOMY": {
@@ -1554,17 +1535,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 0,
-      "minIncidentRicci": null
-    },
-    "COLD_WIKI": {
-      "label": "karpathy wiki atoms",
-      "declaredSector": "memory",
-      "weightedDegree": 0.9,
-      "simpleDegree": 1,
-      "isArticulation": false,
-      "isIsolated": false,
-      "spectralCluster": 0,
+      "spectralCluster": 7,
       "minIncidentRicci": null
     },
     "COMPLEX": {
@@ -1574,7 +1545,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.08921
     },
     "CRITICAL": {
@@ -1584,7 +1555,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.08921
     },
     "DEEPSEEK_A": {
@@ -1624,7 +1595,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 1,
+      "spectralCluster": 13,
       "minIncidentRicci": -0.48668
     },
     "ED_ROUTE": {
@@ -1634,7 +1605,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.39407
     },
     "ED_SYNTH": {
@@ -1644,7 +1615,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.39407
     },
     "ENKI": {
@@ -1674,7 +1645,7 @@
       "simpleDegree": 12,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 7,
+      "spectralCluster": 2,
       "minIncidentRicci": -1.74069
     },
     "ENKI_CTX": {
@@ -1694,7 +1665,7 @@
       "simpleDegree": 19,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.6404
     },
     "ENKI_INBOX": {
@@ -1704,7 +1675,7 @@
       "simpleDegree": 25,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.35001
     },
     "ENKI_PLAN": {
@@ -1724,7 +1695,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.97556
     },
     "GITNEXUS": {
@@ -1824,7 +1795,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": null
     },
     "HOT_PLAN": {
@@ -1834,7 +1805,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": null
     },
     "INTROSPECT": {
@@ -1844,7 +1815,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.56671
     },
     "LANE_CODEX": {
@@ -1854,7 +1825,7 @@
       "simpleDegree": 3,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "minIncidentRicci": -1.24593
     },
     "LANE_DSF": {
@@ -1864,7 +1835,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.41467
     },
     "LANE_DSP": {
@@ -1874,7 +1845,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.41467
     },
     "LANE_GEMMA": {
@@ -1884,7 +1855,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.41467
     },
     "LANE_GPTOSS": {
@@ -1894,17 +1865,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
-      "minIncidentRicci": -0.41467
-    },
-    "LANE_KIMI": {
-      "label": "kimi",
-      "declaredSector": "routing_lanes",
-      "weightedDegree": 1.9,
-      "simpleDegree": 2,
-      "isArticulation": false,
-      "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.41467
     },
     "LANE_LOCAL": {
@@ -1914,7 +1875,27 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
+      "minIncidentRicci": -0.41467
+    },
+    "LANE_MIMO": {
+      "label": "mimo",
+      "declaredSector": "routing_lanes",
+      "weightedDegree": 1.9,
+      "simpleDegree": 2,
+      "isArticulation": false,
+      "isIsolated": false,
+      "spectralCluster": 1,
+      "minIncidentRicci": -0.41467
+    },
+    "LANE_MIMO_FLASH": {
+      "label": "mimo-flash",
+      "declaredSector": "routing_lanes",
+      "weightedDegree": 1.9,
+      "simpleDegree": 2,
+      "isArticulation": false,
+      "isIsolated": false,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.41467
     },
     "LANE_MINI": {
@@ -1924,18 +1905,8 @@
       "simpleDegree": 3,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 1,
-      "minIncidentRicci": -1.24593
-    },
-    "LANE_NEMOTRON": {
-      "label": "nemotron",
-      "declaredSector": "routing_lanes",
-      "weightedDegree": 1.9,
-      "simpleDegree": 2,
-      "isArticulation": false,
-      "isIsolated": false,
       "spectralCluster": 5,
-      "minIncidentRicci": -0.41467
+      "minIncidentRicci": -1.24593
     },
     "LANE_TRIAGE": {
       "label": "triage-local",
@@ -1944,7 +1915,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -0.38302
     },
     "MEMORY": {
@@ -1960,12 +1931,12 @@
     "MEM_COLD": {
       "label": "MEM COLD",
       "declaredSector": "memory",
-      "weightedDegree": 4.8,
-      "simpleDegree": 6,
+      "weightedDegree": 3.3,
+      "simpleDegree": 4,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 0,
-      "minIncidentRicci": -1.88369
+      "spectralCluster": 7,
+      "minIncidentRicci": -1.69829
     },
     "MEM_HOT": {
       "label": "MEM HOT",
@@ -1974,7 +1945,7 @@
       "simpleDegree": 4,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.39261
     },
     "MEM_KERNEL": {
@@ -1984,7 +1955,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.68527
     },
     "MEM_WARM": {
@@ -1994,7 +1965,7 @@
       "simpleDegree": 8,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": -2.00448
     },
     "MINI_WRITE": {
@@ -2004,7 +1975,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 1,
+      "spectralCluster": 5,
       "minIncidentRicci": null
     },
     "MLM_SANDBOX": {
@@ -2024,7 +1995,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.56671
     },
     "NATIVE_GATES": {
@@ -2044,7 +2015,7 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.50184
     },
     "NP_BEACON": {
@@ -2054,7 +2025,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": -1.34035
     },
     "NP_CODEX_RUNNER": {
@@ -2064,7 +2035,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -0.92372
     },
     "OBLITERATUS_A": {
@@ -2104,7 +2075,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -0.44558
     },
     "PALACE": {
@@ -2114,7 +2085,7 @@
       "simpleDegree": 3,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.07685
     },
     "PALACE_IDX": {
@@ -2124,7 +2095,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": null
     },
     "PB_CONSUME": {
@@ -2134,7 +2105,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 8,
       "minIncidentRicci": -0.33158
     },
     "PB_RING": {
@@ -2144,7 +2115,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 8,
       "minIncidentRicci": -0.33158
     },
     "PB_THROTTLE": {
@@ -2164,7 +2135,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.81438
     },
     "PROMPT_HOOKS": {
@@ -2174,7 +2145,7 @@
       "simpleDegree": 5,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.4258
     },
     "PROPAGATION_SCAN": {
@@ -2204,7 +2175,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 11,
       "minIncidentRicci": null
     },
     "PROT_GUARD": {
@@ -2224,7 +2195,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -1.27143
     },
     "PULSE_BUS": {
@@ -2244,7 +2215,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.09591
     },
     "RESPONSE": {
@@ -2254,7 +2225,7 @@
       "simpleDegree": 12,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -1.34035
     },
     "ROUTING": {
@@ -2264,7 +2235,7 @@
       "simpleDegree": 15,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 1,
       "minIncidentRicci": -1.6264
     },
     "SCOUT_ARGUS": {
@@ -2304,18 +2275,18 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -1.70045
     },
     "SERVICES": {
       "label": "SERVICES",
       "declaredSector": "services",
-      "weightedDegree": 8.5,
-      "simpleDegree": 10,
+      "weightedDegree": 7.6,
+      "simpleDegree": 9,
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -1.68483
+      "minIncidentRicci": -1.66857
     },
     "SESSION_INIT": {
       "label": "SESSION INIT",
@@ -2324,7 +2295,7 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.69368
     },
     "SKILL_REGISTRY": {
@@ -2334,7 +2305,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.56671
     },
     "SOAK_LOOP": {
@@ -2344,7 +2315,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 12,
       "minIncidentRicci": -1.11318
     },
     "SOUL_FILE": {
@@ -2374,7 +2345,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.08921
     },
     "SVC_DIGEST": {
@@ -2385,7 +2356,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.96331
+      "minIncidentRicci": -0.94674
     },
     "SVC_EOT": {
       "label": "eot-refresh",
@@ -2395,7 +2366,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.96331
+      "minIncidentRicci": -0.94674
     },
     "SVC_HEALTH": {
       "label": "lane-health",
@@ -2405,7 +2376,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.46848
+      "minIncidentRicci": -0.4402
     },
     "SVC_OLLAMA": {
       "label": "ollama-runtime",
@@ -2415,17 +2386,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.46848
-    },
-    "SVC_RAG": {
-      "label": "wiki-rag",
-      "declaredSector": "services",
-      "weightedDegree": 1.5,
-      "simpleDegree": 2,
-      "isArticulation": false,
-      "isIsolated": false,
-      "spectralCluster": 10,
-      "minIncidentRicci": -0.96331
+      "minIncidentRicci": -0.4402
     },
     "SVC_RUNTIME": {
       "label": "yuri-runtime",
@@ -2435,7 +2396,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.46848
+      "minIncidentRicci": -0.4402
     },
     "SVC_SHELL": {
       "label": "shellservice",
@@ -2445,7 +2406,7 @@
       "isArticulation": false,
       "isIsolated": false,
       "spectralCluster": 10,
-      "minIncidentRicci": -0.46848
+      "minIncidentRicci": -0.4402
     },
     "SWARM_A": {
       "label": "SWARM",
@@ -2494,7 +2455,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 14,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.56671
     },
     "TRIVIAL": {
@@ -2504,7 +2465,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.08921
     },
     "USER": {
@@ -2514,7 +2475,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.41287
     },
     "USER_INPUT": {
@@ -2524,7 +2485,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 2,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.35001
     },
     "WARM_ARCHIVE": {
@@ -2534,7 +2495,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": null
     },
     "WARM_EOT": {
@@ -2544,7 +2505,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": null
     },
     "WARM_JOURNAL": {
@@ -2554,7 +2515,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 11,
+      "spectralCluster": 0,
       "minIncidentRicci": null
     },
     "XREF_QUERY": {

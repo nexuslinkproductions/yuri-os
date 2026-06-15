@@ -160,9 +160,8 @@ test('ROLE_TRUST_SURFACES is the canonical single source for both role guards', 
 
 test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
   const offload = readFileSync(new URL('./llm-compat.sh', import.meta.url), 'utf8');
-  const pulse = readFileSync(new URL('./pulse-orchestrator.mjs', import.meta.url), 'utf8');
-
+  // pulse-orchestrator.mjs assertion removed (wave-2 D-C2): file deleted —
+  // a deleted dispatch surface cannot force tool mode.
   assert.doesNotMatch(offload, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
-  assert.doesNotMatch(pulse, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
   assert.match(offload, /Tool\/skill intent belongs\s+.*prompt contract/s);
 });

@@ -18,11 +18,14 @@ function rec(bases, decision = 'reject') {
   return { componentContributions: contrib, weights: W, decision };
 }
 
-test('SOFT_COMPONENTS = the 9 soft (non-barrier) components', () => {
-  assert.equal(SOFT_COMPONENTS.length, 9);
+test('SOFT_COMPONENTS = the 11 soft (non-barrier) components (both drift eras + the μ coupling)', () => {
+  // 11: both drift keys bind to β (klDivergence ≤v2, wasserstein ≥v3) + overconfidenceDrift binds μ.
+  assert.equal(SOFT_COMPONENTS.length, 11);
   assert.ok(!SOFT_COMPONENTS.includes('protectedPathViolations'));
   assert.ok(!SOFT_COMPONENTS.includes('promotionLadderInversions'));
   assert.ok(SOFT_COMPONENTS.includes('klDivergence'));
+  assert.ok(SOFT_COMPONENTS.includes('wasserstein'));
+  assert.ok(SOFT_COMPONENTS.includes('overconfidenceDrift'));
 });
 
 test('recordContribVector recovers soft basis; absent component → 0', () => {

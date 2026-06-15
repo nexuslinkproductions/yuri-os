@@ -75,5 +75,28 @@ ok(fused.fused.complete === true && fused.fused.completenessPreserved === true, 
 ok(fusedSurfaces.has('memory') && fusedSurfaces.has('docs') && fusedSurfaces.has('code'), 'fuseRecallAll fused result spans registered surfaces');
 ok(fused.fused.matches.length === fused.recall.totalAboveThreshold, 'fuseRecallAll keeps the complete per-surface result set');
 
+
+// Math-base wave 2026-06-10 (embedded-ops-5): combMNZ over signed z-scores
+// amplified negative agreement — now a fail-closed throw.
+{
+  let threw = false;
+  try {
+    normalizeFuse([{ corpusId: 'a', complete: true, totalAboveThreshold: 1, matches: [{ id: 'x', score: 1 }] }], { method: 'zscore', combiner: 'combMNZ' });
+  } catch (e) { threw = /non-negative normalizer/.test(e.message); }
+  ok(threw, 'zscore+combMNZ throws (canonical CombMNZ assumes non-negative scores)');
+  // non-penalizing agreement property for minmax+combMNZ: 2-surface presence never
+  // scores below the same doc's 1-surface fusedScore (the signed-z path violated this).
+  const one = normalizeFuse([
+    { corpusId: 'a', complete: true, totalAboveThreshold: 2, matches: [{ id: 'd', score: 0.2 }, { id: 'e', score: 0.9 }] },
+  ], { method: 'minmax', combiner: 'combMNZ' });
+  const two = normalizeFuse([
+    { corpusId: 'a', complete: true, totalAboveThreshold: 2, matches: [{ id: 'd', score: 0.2 }, { id: 'e', score: 0.9 }] },
+    { corpusId: 'b', complete: true, totalAboveThreshold: 2, matches: [{ id: 'd', score: 0.2 }, { id: 'e', score: 0.9 }] },
+  ], { method: 'minmax', combiner: 'combMNZ' });
+  const f1 = one.matches.find((m) => m.id === 'd').fusedScore;
+  const f2 = two.matches.find((m) => m.id === 'd').fusedScore;
+  ok(f2 >= f1, `agreement never penalizes under a non-negative normalizer (${f1} -> ${f2})`);
+}
+
 console.log(`\nyuri-match-fusion.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

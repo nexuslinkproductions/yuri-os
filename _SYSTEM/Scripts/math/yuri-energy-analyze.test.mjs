@@ -11,6 +11,10 @@ import {
   reconstructBurnIn,
   burnInRescoreDelta,
 } from './yuri-energy-analyze.mjs';
+import { DEFAULT_WEIGHTS } from './energy-calibration-contract.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import nodePath from 'node:path';
 
 // ── summarize ────────────────────────────────────────────────────
 
@@ -363,4 +367,55 @@ describe('burnInRescoreDelta (live trace, small slice)', () => {
       }
     });
   }
+});
+
+// ── energy-formula version reader: loader filter + rescore fail-closed guard (§1b) ──
+
+describe('version reader — loadBurnInRecords formulaVersion filter (synthetic temp trace)', () => {
+  const dir = fs.mkdtempSync(nodePath.join(os.tmpdir(), 'etrace-ver-'));
+  const rec = (v) => ({ decision: 'reject', energyFormulaVersion: v, componentContributions: { wasserstein: 2.2 }, weights: { ...DEFAULT_WEIGHTS } });
+  const unstamped = { decision: 'reject', componentContributions: { klDivergence: 41 }, weights: { ...DEFAULT_WEIGHTS } };
+  fs.writeFileSync(nodePath.join(dir, 'a.jsonl'), [JSON.stringify(unstamped), JSON.stringify(rec(2)), JSON.stringify(rec(3)), JSON.stringify(rec(3))].join('\n'));
+
+  it("'all' surfaces the full era split without filtering", () => {
+    const r = loadBurnInRecords({ traceDir: dir, subset: 'rejects', formulaVersion: 'all' });
+    assert.equal(r.records.length, 4);
+    assert.deepEqual(r.subsetVersionTally, { 1: 1, 2: 1, 3: 2 }); // unstamped → v1
+  });
+
+  it("'current' pins the newest era only + reports what was dropped", () => {
+    const r = loadBurnInRecords({ traceDir: dir, subset: 'rejects', formulaVersion: 'current' });
+    assert.equal(r.formulaVersion, 3);
+    assert.equal(r.records.length, 2);
+    assert.deepEqual(r.versionTally, { 3: 2 });
+    assert.deepEqual(r.subsetVersionTally, { 1: 1, 2: 1, 3: 2 }, 'pre-filter split visible (no silent truncation)');
+  });
+
+  it('a numeric era pins exactly that era (incl. v1 = unstamped)', () => {
+    assert.equal(loadBurnInRecords({ traceDir: dir, subset: 'rejects', formulaVersion: 1 }).records.length, 1);
+    assert.equal(loadBurnInRecords({ traceDir: dir, subset: 'rejects', formulaVersion: 2 }).records.length, 1);
+  });
+
+  it('an invalid formulaVersion throws', () => {
+    assert.throws(() => loadBurnInRecords({ traceDir: dir, subset: 'rejects', formulaVersion: -1 }), /positive integer/);
+  });
+  // NOTE: no cleanup here — node:test defers `it` bodies, so a sync rm in the describe body would delete the
+  // temp trace before the tests run. The temp dir lives under os.tmpdir() and is reclaimed by the OS.
+});
+
+describe('version reader — burnInRescoreDelta fail-closed across eras', () => {
+  const rec = (v, key, val) => ({ decision: 'reject', energyFormulaVersion: v, componentContributions: { [key]: val }, weights: { ...DEFAULT_WEIGHTS } });
+
+  const cand = { kind: 'delta', weights: { beta: 2.5 } };
+
+  it('single-era set rescoring works', () => {
+    const records = [rec(3, 'wasserstein', 2.2), rec(3, 'wasserstein', 4.4)];
+    const r = burnInRescoreDelta(records, cand, { seed: 1, resamples: 10 });
+    assert.ok(Number.isFinite(r.rescoredCount));
+  });
+
+  it('cross-era set THROWS (drift scales not commensurable)', () => {
+    const records = [rec(3, 'wasserstein', 2.2), rec(2, 'klDivergence', 11)];
+    assert.throws(() => burnInRescoreDelta(records, cand, { seed: 1, resamples: 10 }), /multiple energyFormulaVersion eras/);
+  });
 });

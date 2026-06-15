@@ -7,6 +7,9 @@ const path = require('path');
 const YURI_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const SOUL_FILE = path.join(YURI_ROOT, 'SOUL.md');
 
+// wave-3 H.8: this is now the SINGLE copy of the SOUL.md heading list (brain-inject's
+// duplicate was deleted with its IDENTITY block, H.2). A SOUL.md Core-Truth heading
+// rename must be mirrored here or the subagent persona injection silently drops it.
 const REQUIRED_HEADINGS = [
   'Be an adversarial ally.',
   'Use contextual edge without corrupting the work.',

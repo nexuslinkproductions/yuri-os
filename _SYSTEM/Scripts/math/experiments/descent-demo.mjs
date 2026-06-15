@@ -5,7 +5,11 @@
  * claim moves up the promotion ladder, evidence gets verified, and the
  * claimed distribution converges to the verified distribution. Under the
  * yuri-energy composition this drives U strictly downward: every transition
- * lowers entropy (claim mass concentrates), lowers KL drift (claimed → verified),
+ * descends strictly every transition because the KL drift term (→ 0) and the
+ * verified-evidence credit dominate; the normalized claim-distribution ENTROPY
+ * itself first RISES (1.1421 → 1.3834, peak near state 7/15) then falls
+ * (→ 1.0747) — do NOT tune the entropy weight against this scenario expecting
+ * monotone entropy descent. KL drift falls (claimed → verified),
  * and raises the verified-evidence credit. No protected-path violations, no
  * promotion-ladder inversions.
  *
@@ -56,7 +60,8 @@ function buildState(i) {
   const t = i / STEPS;
 
   // Claim promotion distribution: mass migrates draft → trusted as the workflow
-  // progresses. This lowers the entropy contribution step by step.
+  // progresses. Mass migration is non-monotone in entropy (rises to ~step 7,
+  // then falls); descent is carried by KL + evidence credit.
   const claimPromotionDistribution = {
     draft: 10 * (1 - t),
     research: 6,

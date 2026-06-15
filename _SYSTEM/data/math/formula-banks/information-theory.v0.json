@@ -28,8 +28,7 @@
           "meaning": "logarithm base",
           "type": "number",
           "constraints": [
-            "b > 0",
-            "b != 1"
+            "b > 1"
           ]
         }
       ],
@@ -72,12 +71,15 @@
           "probabilities": "dimensionless probability weights; normalized internally",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "probabilities must be finite non-negative numbers",
         "probability mass must have positive sum",
-        "base must be positive and not equal to 1"
+        "base must be greater than 1"
       ],
       "counterexamples": [
         {
@@ -90,6 +92,18 @@
             "base": 2
           },
           "expectedError": "non-negative"
+        },
+        {
+          "name": "fractional log base flips entropy sign",
+          "input": {
+            "probabilities": [
+              0.5,
+              0.5
+            ],
+            "base": 0.5
+          },
+          "expectedError": "greater than 1",
+          "interpretation": "A base in (0,1) silently negates entropy; the kernel rejects it as a permanent negative proof."
         }
       ],
       "selectionGuidance": {
@@ -189,7 +203,7 @@
             "base": 2
           },
           "expected": {
-            "divergence": 0.20751874963942185
+            "divergence": 0.207518749639422
           },
           "interpretation": "The observed distribution has measurable directional shift from the reference."
         }
@@ -205,7 +219,10 @@
           "q": "dimensionless probability weights for reference distribution",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "p and q must be finite non-negative equal-length vectors",
@@ -326,7 +343,7 @@
             "base": 2
           },
           "expected": {
-            "crossEntropy": 1.207518749639422
+            "crossEntropy": 1.20751874963942
           },
           "interpretation": "The encoding is worse than the one-bit entropy baseline by the KL divergence amount."
         }
@@ -342,7 +359,10 @@
           "q": "dimensionless predicted/reference probability weights",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "p and q must be finite non-negative equal-length vectors",
@@ -440,8 +460,7 @@
           "meaning": "logarithm base",
           "type": "number",
           "constraints": [
-            "b > 0",
-            "b != 1"
+            "b > 1"
           ]
         }
       ],
@@ -490,12 +509,15 @@
           "after": "dimensionless posterior probability weights; normalized internally",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "before and after must be finite non-negative non-empty arrays",
         "each distribution must have positive mass",
-        "base must be positive and not equal to 1"
+        "base must be greater than 1"
       ],
       "counterexamples": [
         {

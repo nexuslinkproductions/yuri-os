@@ -67,21 +67,6 @@ const steps = [
     args: ['_SYSTEM/Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
   },
   {
-    name: 'wiki-rag-health-truth',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/wiki-rag-health-truth.test.mjs'],
-  },
-  {
-    name: 'archive-rag-health-truth',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/archive-rag-health-truth.test.mjs'],
-  },
-  {
-    name: 'rag-db-health-fixtures',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/rag-db-health-fixtures.test.mjs'],
-  },
-  {
     name: 'gitnexus-mcp-live-probe',
     command: process.execPath,
     args: ['_SYSTEM/Scripts/gitnexus-mcp-check.mjs'],

@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// TRIGGER STATUS (wave-3 L.1, D-L1 owner-modified 2026-06-11): the live nightly
+// drain runs as a native Claude cron job spawning a SONNET agent that synthesizes
+// rules natively — NOT this script's DeepSeek path. This script stays as a MANUAL
+// fallback drain only; do not wire it into a LaunchAgent/hook. First validated
+// drain: 2026-06-11 (909 processed, 4 failed stale-path, 5 rules → global.md).
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';

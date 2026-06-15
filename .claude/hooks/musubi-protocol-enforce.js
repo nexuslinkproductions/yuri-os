@@ -28,11 +28,17 @@ function readToolEvent() {
 /**
  * Check for Offload Directive violations
  */
+// wave-3 G.4: tools_used is a SESSION-lifetime accumulator — without a lookback
+// window, 3 direct writes from hours ago fire this advisory forever. Bounding the
+// count to the most recent entries approximates a task boundary without new state.
+const MAX_DIRECT_WRITE_LOOKBACK = 20;
+
 function checkOffloadDefault(state, toolName) {
   if (toolName !== 'Bash' && toolName !== 'Edit') return null;
 
-  const directWrites = (state.tools_used || []).filter(t => t === 'Write' || t === 'Edit').length;
-  const agentDispatches = (state.tools_used || []).filter(t => t === 'Agent').length;
+  const recent = (state.tools_used || []).slice(-MAX_DIRECT_WRITE_LOOKBACK);
+  const directWrites = recent.filter(t => t === 'Write' || t === 'Edit').length;
+  const agentDispatches = recent.filter(t => t === 'Agent').length;
 
   if (directWrites > 3 && agentDispatches === 0) {
     return {

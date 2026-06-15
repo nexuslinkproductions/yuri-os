@@ -26,6 +26,10 @@
 
 ## Regression tests
 
+CLARIFICATION (wave-3 L.4): this skill outputs a regression test SPECIFICATION, not a
+test file — no test runner or `*.test.*` files exist under this skill. The specification
+must be implemented by a coding pass before it is runnable.
+
 - replay previous failure cases from `failure-evolution-loop`
 - verify blocked actions remain blocked
 - verify accepted safe operations still work

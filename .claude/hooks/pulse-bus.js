@@ -8,6 +8,10 @@
 const fs = require('fs');
 const path = require('path');
 
+// CANONICAL PATH NOTE (wave-2 C.5): this is the advisor RING (single JSON
+// object, self-bounded at MAX_ENTRIES — needs no rotation). The similarly-named
+// .claude/state/pulse-bus.jsonl is a DIFFERENT surface (JSONL event spine,
+// pulse-lane-dispatch.mjs writer, rotated by rotate-pulse-bus.mjs).
 const BUS_PATH = path.join(__dirname, '..', 'state', 'pulse-bus.json');
 const LOCK_PATH = BUS_PATH + '.lock';
 const MAX_ENTRIES = 30;
@@ -63,6 +67,12 @@ function createEmpty() {
       OPENCLAW:  { last_emit: 0 },
       YURI_RISK: { last_emit: 0 },
       SWARM:     { last_emit: 0 },
+      // wave-2 C.7: orchestrator-dispatched sources had no slots — appendFinding
+      // silently skipped last_emit recording, leaving their rate-limiting
+      // inoperative. Forward-safe (orchestrator currently retired).
+      NVIDIA:         { last_emit: 0 },
+      SHURA:          { last_emit: 0 },
+      CODEX_ADVISORY: { last_emit: 0 },
     },
     last_updated: new Date().toISOString(),
   };
@@ -108,6 +118,9 @@ function appendFinding(source, severity, runtimeKind, finding, opts = {}) {
       confidence: typeof opts.confidence === 'number' ? opts.confidence : null,
       consumed: false,
     };
+    // wave-2 C.6 audit note: TTL enforcement verified PRESENT on HEAD — the
+    // audit-era gap was closed by pruneExpired(bus) (expires_at-based) at the
+    // top of this function; no second filter needed (drift-resolved).
     bus.ring.push(entry);
     if (bus.ring.length > MAX_ENTRIES) bus.ring = bus.ring.slice(-MAX_ENTRIES);
 

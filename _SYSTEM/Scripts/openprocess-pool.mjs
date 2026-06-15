@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: unfinished-work-attention
+// @serves: unfinished work | open process | started but unclosed | todo backlog | staleness | hazard decay | convergence | is it done | auto close | attention ranking | resurface forgotten | composite scoring | weighted score
+// @does: OpenMass = config-weighted composite (status + hazard-decay staleness + dependency + risk + value - verified-closure). Stale-but-open work rises back into attention; verified-closure subtracts mass. Correctly signed.
+// @use: Reach for this before building convergence/staleness/done-detection or any attention-ranking composite over work items.
+// @exports: openMass, rankPool, staleness, whatIsUnfinished
 /**
  * openprocess-pool.mjs — the OpenProcess Sum Pool (mathematical memory for started-but-unclosed work).
  *

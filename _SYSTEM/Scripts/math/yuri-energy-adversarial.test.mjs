@@ -48,10 +48,10 @@ describe('yuri-energy-adversarial', () => {
   // ── Evasion detection ─────────────────────────────────
 
   it('candidate with raised alpha causes soft evasion → ok:false', () => {
-    // Masking budget for class1 (entropy-vs-kl):
-    //   entropy credit ≈ 2.303·α;  KL penalty ≈ 3.516.
-    //   Break-even α ≈ 1.527.  At α=1.6 the credit exceeds the penalty,
-    //   causing the class1 transition to be accepted (evasion).
+    // Masking budget for class1 (entropy-vs-drift, energyFormulaVersion 3 / Wasserstein-1):
+    //   entropy credit ≈ 2.303·α;  drift penalty = β·W₁ = 2·1.5 = 3.0.
+    //   Break-even α ≈ 3.0/2.303 ≈ 1.303.  At α=1.6 the credit (3.685) exceeds the
+    //   penalty (3.0), causing the class1 transition to be accepted (evasion).
     const candidate = { ...DEFAULT_WEIGHTS, alpha: 1.6 };
     const r = compareEvasion(DEFAULT_WEIGHTS, candidate);
     assert.equal(r.ok, false, 'Candidate with α=1.6 should raise evasion');

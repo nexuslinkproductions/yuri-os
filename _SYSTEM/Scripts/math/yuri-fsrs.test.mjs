@@ -27,14 +27,27 @@ test('renewal-rate: same useCount, denser recall window → higher effective sta
   assert.ok(dense > sparse, `dense-recall slug should be more durable (${dense.toFixed(2)} vs ${sparse.toFixed(2)})`);
 });
 
-// MEM-06 — the <renewalMinRecalls (default 4) fallback: too few recalls → count-based prior,
-// NOT a rate from a tiny sample. With useCount < 4, elapsedDays must be ignored.
-test('renewal-rate fallback: <4 recalls ignores elapsedDays (count-based prior, no rate)', () => {
-  const fewWithWindow = effectiveStability(10, { useCount: 3, elapsedDays: 1 });
-  const fewNoWindow   = effectiveStability(10, { useCount: 3 });
-  assert.equal(fewWithWindow, fewNoWindow, 'under the min-recalls floor the rate term is not used');
-  // and it equals the original count-based formula 10*(1 + 0.5*log1p(3))
-  assert.ok(Math.abs(fewWithWindow - 10 * (1 + 0.5 * Math.log1p(3))) < 1e-9);
+// Math-base wave 2026-06-10 (D3): the minRecalls form-switch is RETIRED — the old
+// test here stayed green-but-stale (its uc=3/ed=1 fixture sat exactly where both
+// forms agree), so replacing it was mandatory even though nothing turned red.
+test('freqTerm is monotone in useCount at fixed window (no recall-#4 cliff)', () => {
+  for (let uc = 0; uc < 12; uc++) {
+    assert.ok(
+      effectiveStability(10, { useCount: uc + 1, elapsedDays: 100 }) >= effectiveStability(10, { useCount: uc, elapsedDays: 100 }) - 1e-12,
+      `monotone at uc=${uc}`,
+    );
+  }
+});
+
+test('sparse recall keeps only the DISCOUNTED count floor (kappa=0.25 winning branch)', () => {
+  const s = effectiveStability(10, { useCount: 3, elapsedDays: 100 });
+  assert.ok(Math.abs(s - 10 * (1 + 0.5 * 0.25 * Math.log1p(3))) < 1e-9, `got ${s}`);
+});
+
+test('continuity: rate and floor blend smoothly across the old cliff boundary', () => {
+  const s3 = effectiveStability(10, { useCount: 3, elapsedDays: 100 });
+  const s4 = effectiveStability(10, { useCount: 4, elapsedDays: 100 });
+  assert.ok(s4 >= s3, `recall #4 must not cut stability (S3=${s3}, S4=${s4})`);
 });
 
 // MEM-06 — backward-compat: no elapsedDays at all → byte-identical to the pre-MEM-06 formula.
@@ -70,4 +83,12 @@ test('bumpStability: grows on recall (testing effect), capped', () => {
   assert.equal(bumpStability(10, { growth: 1.6 }), 16);
   assert.equal(bumpStability(1e9, { maxDays: 3650 }), 3650);      // capped
   assert.ok(bumpStability(0) > 0);                                // degenerate -> floored to 1 then grown
+});
+
+test('invalid decay/factor fall back to canonical constants — never NaN, never a NaN reason', () => {
+  assert.equal(retrievability(10, 10, { factor: -3 }), retrievability(10, 10));
+  assert.equal(retrievability(10, 10, { decay: 2 }), retrievability(10, 10));
+  const ev = evaluateRetention({ baseStabilityDays: 10, lastUsedMs: 0 }, { nowMs: 40 * 86400000, factor: NaN });
+  assert.ok(Number.isFinite(ev.R));
+  assert.ok(!ev.reason.includes('NaN'));
 });

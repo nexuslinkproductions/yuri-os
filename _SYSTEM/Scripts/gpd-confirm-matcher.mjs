@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { loadFtsCorpus, buildIndex, matchPrefixFilter, matchLSH } from './corpus-match.mjs';
 import { extractCircuitryRecords } from './circuitry-auto-register.mjs';
+import { pearson, spearman } from './math/math-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..', '..');
@@ -47,19 +48,13 @@ function recallValue(matches) {
   return { top1, concentration: sum > 0 ? top1 / sum : 0 };
 }
 
-function pearson(xs, ys) {
-  const n = xs.length; if (n < 2) return 0;
-  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
-  let sxy = 0, sxx = 0, syy = 0;
-  for (let i = 0; i < n; i++) { const dx = xs[i] - mx, dy = ys[i] - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
-  return (sxx > 0 && syy > 0) ? sxy / Math.sqrt(sxx * syy) : 0;
-}
-function spearman(xs, ys) {
-  const rank = (arr) => { const idx = arr.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]); const r = new Array(arr.length); idx.forEach(([, i], k) => { r[i] = k; }); return r; };
-  return pearson(rank(xs), rank(ys));
-}
+// pearson/spearman come from the kernel (tie-corrected average ranks; the old
+// local encounter-order ranking returned ±1 on constant-vs-monotone input).
+// NOTE: kernel pearson returns 0 for constant vectors — under the median headline
+// a half-constant signal set pulls the median DOWN (correct direction); those 0s
+// are degenerate-input markers, not measured decorrelation.
 
-function runCorpus(name, all) {
+export function runCorpus(name, all) {
   const idxN = Math.min(INDEX_N, Math.floor(all.length * 0.85)); // proportional split so small corpora keep held-out cues
   const corpus = all.slice(0, idxN);
   const cues = all.slice(idxN, idxN + CUE_M).filter((c) => c.text && c.text.length > 8);
@@ -73,13 +68,61 @@ function runCorpus(name, all) {
     const rv = recallValue(real.matches), pv = recallValue(pred.matches);
     realTop1.push(rv.top1); predTop1.push(pv.top1); realConc.push(rv.concentration); predConc.push(pv.concentration);
   }
-  const rTop1 = pearson(predTop1, realTop1), sTop1 = spearman(predTop1, realTop1);
-  const rConc = pearson(predConc, realConc), sConc = spearman(predConc, realConc);
+  const judged = judgeSignals({ predTop1, realTop1, predConc, realConc });
   const mae = predTop1.reduce((a, p, i) => a + Math.abs(p - realTop1[i]), 0) / (predTop1.length || 1);
   const cover = predTop1.filter((p, i) => Math.abs(p - realTop1[i]) <= 0.15).length / (predTop1.length || 1);
-  const best = Math.max(rTop1, sTop1, rConc, sConc);
-  const verdict = best >= 0.6 ? 'CONFIRMED' : best >= 0.35 ? 'PARTIAL' : 'KILLED';
-  return { name, indexed: corpus.length, cues: cues.length, top1: { pearson: +rTop1.toFixed(4), spearman: +sTop1.toFixed(4) }, concentration: { pearson: +rConc.toFixed(4), spearman: +sConc.toFixed(4) }, meanAbsErr_top1: +mae.toFixed(4), coverage_0p15: +cover.toFixed(4), exactCompleteRate: +(exactComplete / (cues.length || 1)).toFixed(4), bestSignal: +best.toFixed(4), verdict };
+  return {
+    name, indexed: corpus.length, cues: cues.length,
+    meanAbsErr_top1: +mae.toFixed(4), coverage_0p15: +cover.toFixed(4),
+    exactCompleteRate: +(exactComplete / (cues.length || 1)).toFixed(4),
+    ...judged,
+  };
+}
+
+// HEADLINE = median of the 4 estimates (max-of-4 correlated estimates was a
+// selection-biased headline). tieFraction GATES the verdict: heavy tie mass
+// inflates even tie-corrected rho, so a tie-dominated run caps at PARTIAL —
+// a wrong-direction predictor on a zero-heavy corpus must not ship CONFIRMED.
+// Exported so the verdict logic is node --test reachable (the file no longer
+// self-executes at import).
+export function judgeSignals({ predTop1, realTop1, predConc, realConc }) {
+  const rTop1 = pearson(predTop1, realTop1), sTop1 = spearman(predTop1, realTop1);
+  const rConc = pearson(predConc, realConc), sConc = spearman(predConc, realConc);
+  const signals = [rTop1, sTop1, rConc, sConc].slice().sort((a, b) => a - b);
+  const medianSignal = (signals[1] + signals[2]) / 2;
+  const maxSignal = signals[3];
+  const counts = new Map();
+  for (const v of predTop1) counts.set(v, (counts.get(v) || 0) + 1);
+  const modalCount = Math.max(0, ...counts.values());
+  const modalValue = [...counts.entries()].find(([, c]) => c === modalCount)?.[0];
+  const tieFraction = predTop1.length ? modalCount / predTop1.length : 1;
+  const tieDominated = tieFraction > 0.5;
+  let nonModalSignals = null;
+  if (tieDominated) {
+    const keep = predTop1.map((v, i) => i).filter((i) => predTop1[i] !== modalValue);
+    if (keep.length >= 10) {
+      const sub = (xs) => keep.map((i) => xs[i]);
+      nonModalSignals = {
+        top1: { pearson: +pearson(sub(predTop1), sub(realTop1)).toFixed(4), spearman: +spearman(sub(predTop1), sub(realTop1)).toFixed(4) },
+        concentration: { pearson: +pearson(sub(predConc), sub(realConc)).toFixed(4), spearman: +spearman(sub(predConc), sub(realConc)).toFixed(4) },
+        n: keep.length,
+      };
+    }
+  }
+  const verdict = (medianSignal >= 0.6 && !tieDominated) ? 'CONFIRMED'
+    : (medianSignal >= 0.6 && tieDominated) ? 'PARTIAL'
+    : medianSignal >= 0.35 ? 'PARTIAL' : 'KILLED';
+  return {
+    top1: { pearson: +rTop1.toFixed(4), spearman: +sTop1.toFixed(4) },
+    concentration: { pearson: +rConc.toFixed(4), spearman: +sConc.toFixed(4) },
+    signals: { rTop1: +rTop1.toFixed(4), sTop1: +sTop1.toFixed(4), rConc: +rConc.toFixed(4), sConc: +sConc.toFixed(4) },
+    medianSignal: +medianSignal.toFixed(4),
+    maxSignal: +maxSignal.toFixed(4),
+    tieFraction: +tieFraction.toFixed(4),
+    ...(tieDominated ? { tieDominated: true, tieReason: 'tie-dominated signal — modal pred value covers >50% of cues; verdict capped at PARTIAL' } : {}),
+    ...(nonModalSignals ? { nonModalSignals } : {}),
+    verdict,
+  };
 }
 
 function run() {
@@ -88,14 +131,14 @@ function run() {
     try { results.push(runCorpus(c.name, c.load())); }
     catch (e) { results.push({ name: c.name, error: String(e?.message || e).slice(0, 140) }); }
   }
-  const scored = results.filter((r) => typeof r.bestSignal === 'number');
-  const agg = scored.length ? scored.reduce((a, r) => a + r.bestSignal, 0) / scored.length : 0;
+  const scored = results.filter((r) => typeof r.medianSignal === 'number');
+  const agg = scored.length ? scored.reduce((a, r) => a + r.medianSignal, 0) / scored.length : 0;
   const allConfirmed = scored.length > 0 && scored.every((r) => r.verdict === 'CONFIRMED');
   const overall = {
     experiment: 'gpd-confirm-matcher — ALL corpora (predict-vs-realize recall value)',
     nonCircular: 'predictor = matchLSH (cheap approx); scorer = matchPrefixFilter (exact complete); held-out cues disjoint from index.',
     perCorpus: results,
-    aggregateBestSignal: +agg.toFixed(4),
+    aggregateMedianSignal: +agg.toFixed(4),
     overallVerdict: allConfirmed ? 'CONFIRMED across all corpora' : agg >= 0.6 ? 'CONFIRMED (aggregate)' : agg >= 0.35 ? 'PARTIAL' : 'KILLED',
     honestCaveat: 'LSH and exact-Jaccard estimate the same underlying similarity, so high correlation is strong-but-expected — it confirms the recall-grounding PREREQUISITE (cheap estimate ≈ true value) across diverse real data, not the full GPD ΔU loop.',
     interpretation: allConfirmed
@@ -107,4 +150,9 @@ function run() {
   console.log(JSON.stringify(overall, null, 2));
   console.log('\n→ report:', outRel);
 }
-run();
+
+// CLI guard: the full multi-corpus experiment must not fire at import — runCorpus
+// is exported so the verdict logic is node --test reachable.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  run();
+}

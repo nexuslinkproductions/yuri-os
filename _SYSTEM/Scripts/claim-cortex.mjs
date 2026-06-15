@@ -312,6 +312,17 @@ function recurringEvidenceKey(e) {
 
 const LADDER_N = LADDER.length;
 
+// β/drift feeders (claimedDistribution / verifiedDistribution + oneHot). The drift term is Wasserstein-1 on
+// the ordinal ladder (energyFormulaVersion 3): distance-aware, bounded by N-1, multimodal-native, and needing
+// no positivity floor (no log / zero-denominator). HISTORY: ≤ v1 floored these at a hard 1e-9 → KL saturated
+// at ln(1e9)=20.72 (β·=41.45, distance-blind, 71% of the live reject corpus). v2 floor-soften (mixtureSmooth
+// ε=0.02 toward uniform) only capped the KL ceiling at ~11; still distance-blind. v3 swaps KL→W₁ in
+// yuri-energy.evalWasserstein and RETIRES the v2 mixture. The BASE 1e-9 floor inside normalizeHist remains
+// (shared with prior/posterior; must not change for the ε/info-gain path) but is HARMLESS to W₁ — it perturbs
+// W₁ by ~N·1e-9, whereas that same floor is exactly what saturated KL. Robustness to a small floor is the W₁
+// advantage. SCOPE UNCHANGED: prior/posterior (maxEnt/jeffrey) + claimPromotionDistribution were never
+// floor-softened — the ε/info-gain + α/entropy terms are untouched by the drift swap.
+
 /** A normalized belief vector (length = ladder rungs) peaked at `center`, spread `width`. */
 export function beliefVector(center, width) {
   const c = Number.isFinite(center) ? center : 0;
@@ -856,8 +867,16 @@ export function cortexSnapshot(claims, opts = {}) {
 
   // Normalize the histograms / belief aggregates into valid distributions. Empty
   // ledger -> uniform (max entropy, "we know nothing"), the honest prior.
+  // β/drift feeders: the v2 mixtureSmooth (ε=0.02 toward uniform, which capped KL saturation) is RETIRED —
+  // the drift term is now Wasserstein-1 (energyFormulaVersion 3), distance-aware and bounded by N-1, needing
+  // no positivity floor. normalizeHist's BASE 1e-9 floor remains (it is shared with prior/posterior below and
+  // must not change for the ε/info-gain path), but unlike KL — where that exact 1e-9 floor caused the
+  // ln(1e9)=20.72 saturation — it perturbs W₁ by only ~N·1e-9 (negligible). That robustness to a small floor
+  // IS the W₁ advantage. (distributionPoisoned still guards DIRECT garbage callers on the raw signal; the live
+  // feeder never emits an all-zero vector — all-zero normalizes to uniform — so no laundering path opens.)
   const claimedDistribution = normalizeHist(claimedHist);
   const verifiedDistribution = normalizeHist(verifiedHist);
+  // ε/info-gain feeders: UNCHANGED (1e-9 floor never binds for maxEnt shapes; smoothing them kills info-gain).
   const priorState = normalizeHist(priorAgg);
   const posteriorState = normalizeHist(posteriorAgg);
 
@@ -1034,9 +1053,13 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
 // ---------------------------------------------------------------------------
 
 function oneHot(rank) {
-  const v = new Array(LADDER_N).fill(1e-9); // clamped away from 0 for KL/entropy safety
+  const v = new Array(LADDER_N).fill(0);
   const r = Number.isInteger(rank) && rank >= 0 && rank < LADDER_N ? rank : 0;
   v[r] = 1;
+  // RAW one-hot. The β/drift term is Wasserstein-1 (energyFormulaVersion 3): W₁(oneHot i, oneHot j) = |i−j|
+  // exactly, no floor needed (W₁ has no log/zero-denominator → the 1e-9 KL saturation cannot exist). The
+  // v2 mixtureSmooth floor-soften is retired here. (Aggregate feeders still pass through normalizeHist's base
+  // 1e-9 floor, harmless to W₁; this per-claim oneHot is the exact-integer-distance form.)
   return v;
 }
 

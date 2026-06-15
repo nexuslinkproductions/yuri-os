@@ -49,8 +49,8 @@ run_phase() {
       ;;
     2)
       echo "── Phase 2: pulse-bus.js + orchestrator (PATCH 031)"
-      node --check _SYSTEM/Scripts/pulse-orchestrator.mjs 2>&1
-      assert_contains "orchestrator syntax" "" "$(node --check _SYSTEM/Scripts/pulse-orchestrator.mjs && echo OK)"
+      # orchestrator syntax check removed (wave-2 D-C2): file deleted, never ran in production
+      # orchestrator syntax check removed (wave-2 D-C2): file deleted, never ran in production
       assert_contains "pulse-bus exports" "appendFinding" "$(node -e "console.log(Object.keys(require('./.claude/hooks/pulse-bus.js')).join(','))")"
       assert_contains "lock helper exported" "withLock" "$(node -e "console.log(Object.keys(require('./.claude/hooks/pulse-bus.js')).join(','))")"
       ;;

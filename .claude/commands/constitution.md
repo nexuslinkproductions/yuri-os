@@ -81,7 +81,7 @@ If `--write _SYSTEM/CONSTITUTION.md` is passed, write the rendered constitution 
   - MEMORY.md index (loaded at SessionStart)
   - bash-security-guard.js (hard blocks)
   - tirith-url-guard.js (URL risk)
-  - claude-protocol-guard.js (control packet checks)
+  - claude-protocol-guard.mjs (control packet checks)
 
 ## Spec Kit Equivalence
 

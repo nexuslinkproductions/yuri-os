@@ -137,6 +137,27 @@ probabilistic_decision:
 - Use after `failure-evolution-loop` when a wrong estimate caused bad routing, priority, or action.
 - Use alongside market intelligence, operational planning, research prioritization, and other work where outcome probabilities drive decisions.
 
+## Quantum-probability instrument (gate-passed 2026-06-11)
+
+For ORDER-SENSITIVE or frame-dependent evidence, classical Bayes is provably blind to
+sequence effects. The quantum-probability layer passed its falsification gate
+(`node _SYSTEM/Scripts/quantum-vs-bayes-benchmark.mjs` → exit 0; 4/4 gates: machinery
+exact, QQ-coincidence <1% under the classical family on Gallup order-effect data, no
+spurious win on order-free control). Module: `_SYSTEM/Scripts/quantum-hypothesis-tracker.mjs`.
+
+- WHEN: combining evidence whose framing/order changes the judgment (sequential
+  advisor opinions, owner corrections after partial conclusions, poll-style A-then-B
+  assessments). With commuting/compatible evidence it reduces EXACTLY to Bayes — use
+  plain Bayes there.
+- API: `stateVector`, `projector`, `hypothesisPosteriors(psi, hypotheses, evidenceSeq)`
+  (order-aware), `qqEquality` (the structural test), `schmidtDecomposition` (coupling
+  test for "are these two variables genuinely entangled or independent").
+- KNOWN LIMITS (recorded in the benchmark): 2D models force p(yy)/p(yn)=p(nn)/p(ny)
+  per order — quantitative joint fits of heterogeneous populations need dim>2; the
+  Clinton/Gore joint cells used by gates G2/G4 are literature-recalled and flagged
+  OWNER-VERIFY; one real dataset so far (literature has 72 — extend when verified
+  tables are available).
+
 ## Research basis
 
 - Forecasting practice should distinguish forecasts, goals, and plans; planning responds to forecasts and goals.
@@ -186,6 +207,12 @@ failure:
 
 ## Session Notes
 
+### 2026-06-11
+- session: 50m | peak ctx: 100% | compacts: 8
+- tools: Bash×66, Read×24, Edit×15, Write×14, WebFetch×7, WebSearch×3, TodoWrite×3, ToolSearch×2, Agent×1
+- corrections: none
+- errors: none
+
 ### 2026-05-16
 - session: 41m | peak ctx: 0% | compacts: 0
 - tools: Bash×44, Write×25, Edit×21, TodoWrite×6, Read×5, mcp×1, Skill×1
@@ -196,12 +223,6 @@ failure:
 Continuous background reflection engine for YURI. Runs **two modes**:
 
 1. **Micro-EOT**
-- errors: none
-
-### 2026-05-16
-- session: 37m | peak ctx: 0% | compacts: 0
-- tools: Bash×40, Write×23, Edit×21, TodoWrite×6, Read×5, mcp×1
-- corrections: none
 - errors: none
 
 ### 2026-05-10

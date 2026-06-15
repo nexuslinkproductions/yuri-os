@@ -33,6 +33,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { median as kernelMedian, percentile as kernelPercentile } from './math/math-kernel.mjs';
 import { readFeedback } from './lane-feedback-record.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,28 +42,35 @@ const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const OUTPUT_PATH = path.join(STATE_DIR, 'lane-calibration.json');
 const WINDOW_PER_LANE = 200;
 
-function median(values) {
-  if (!values.length) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+// Boundary wrappers over the kernel primitives (registry axes 8/9): the kernel is
+// strict (throws on non-finite entries / empty input); this boundary PRE-FILTERS
+// with Number.isFinite — one NaN latency_ms must never crash the LaunchAgent run —
+// and keeps the null-on-empty contract.
+export function median(values) {
+  const finite = values.filter(Number.isFinite);
+  return finite.length ? kernelMedian(finite) : null;
 }
 
-function percentile(values, p) {
-  if (!values.length) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
-  return sorted[idx];
+// Nearest-rank (ceil) via the kernel: p90 of 10 latencies is sorted[8] (the 9th
+// value), not sorted[9] (= max = p100, the old off-by-one). NOTE: nearest-rank
+// returns an actual SAMPLE, so p50 of [1,2,3,4] = 2 while median() interpolates
+// (2.5) — inherent convention divergence, documented, never "fixed" to agree.
+export function percentile(values, p) {
+  const finite = values.filter(Number.isFinite);
+  return finite.length ? kernelPercentile(finite, p) : null;
 }
 
-function computeTrend(records) {
-  // Bucket last 7 chunks of ~equal size, compute success rate per bucket
+export function computeTrend(records) {
+  // Bucket last 7 chunks of ~equal size, compute success rate per bucket.
   if (records.length < 14) return 'flat';
   const bucketCount = 7;
   const bucketSize = Math.floor(records.length / bucketCount);
+  // Anchor buckets at the NEW end: the dropped n-mod-7 remainder is the OLDEST
+  // records, never the newest — a trend must see its newest data.
+  const start = records.length - bucketCount * bucketSize;
   const rates = [];
   for (let i = 0; i < bucketCount; i++) {
-    const slice = records.slice(i * bucketSize, (i + 1) * bucketSize);
+    const slice = records.slice(start + i * bucketSize, start + (i + 1) * bucketSize);
     const ok = slice.filter(r => r.downstream_verified_ok === true).length;
     rates.push(ok / Math.max(slice.length, 1));
   }
@@ -74,8 +82,11 @@ function computeTrend(records) {
   return 'flat';
 }
 
-export function computeCalibration() {
-  const allRecords = readFeedback();
+// wave-3 L.5b (D-L3-B): lane-feedback.jsonl has NO live producer — nothing calls
+// lane-feedback-record.mjs --record. readFeedback() reads a permanently-empty log,
+// so calibration returns neutral values. Wire --record into a route-plan consumer
+// only after the calibration signal is validated as useful.
+export function computeCalibration(allRecords = readFeedback()) {
   const byLane = {};
   for (const r of allRecords) {
     if (!r.lane) continue;

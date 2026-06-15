@@ -54,6 +54,7 @@ export function runStudy({ weights = DEFAULT_WEIGHTS, threshold = 0, battery = S
     return {
       id: t.id, kind: t.kind, label: t.label, expect: t.expect, decision,
       correct: decision === t.expect, deltaU: g.result.deltaU, dominantTerm: g.result.dominantTerm,
+      componentDeltas: g.result.componentDeltas,
     };
   });
   const adv = rows.filter((r) => r.kind === 'adversarial');

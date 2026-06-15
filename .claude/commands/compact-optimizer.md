@@ -1,7 +1,7 @@
 ---
 name: compact-optimizer
 description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, perplexity-based pruning, attention-sink preservation)."
-trigger: /compact
+trigger: /compact-hint
 aliases: [/compact-optimizer]
 skill: compact-optimizer
 ---

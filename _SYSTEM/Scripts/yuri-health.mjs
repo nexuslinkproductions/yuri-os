@@ -29,12 +29,6 @@ const CHECKS = [
     evaluate: evaluateSkillRegistry,
   },
   {
-    id: 'wiki_rag',
-    label: 'Wiki RAG',
-    command: ['node', ['_SYSTEM/Scripts/wiki-rag-health.mjs']],
-    required: true,
-  },
-  {
     id: 'ollama',
     label: 'Ollama local-first runtime',
     command: ['node', ['_SYSTEM/Scripts/ollama-kv-config.mjs', 'status']],

@@ -9,55 +9,14 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { cusum, scalarKalman } from './math/math-kernel.mjs';
+// LIVE import (math-base wave 2026-06-10, embedded-ops-10d): the suite now tests
+// the production computeScoreTrend — the 45-line mirror previously hid live
+// regressions. Mutation canary run at extraction time: flipping the 0.6745 scale
+// floor in neuron-loop-trend.mjs turned this suite red (proof the watch is live).
+import { computeScoreTrend } from './neuron-loop-trend.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SYNTH_LOG = path.join(__dirname, '..', '..', '.claude', 'yuri-sentinel', 'learning', 'synthesis.jsonl');
-
-// Mirror of neuron-loop's computeScoreTrend (decline = NEGATED signed step deltas,
-// scale-free k/h from MAD of the steps, μ0 = median step). Kept identical here so a
-// drift in the production logic surfaces as a test diff.
-function medianOf(values) {
-  const f = values.filter((x) => Number.isFinite(x));
-  if (f.length === 0) return 0;
-  const s = f.slice().sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m];
-}
-function madOf(values) {
-  const f = values.filter((x) => Number.isFinite(x));
-  if (f.length === 0) return 0;
-  const med = medianOf(f);
-  return medianOf(f.map((x) => Math.abs(x - med)));
-}
-function stdOf(values) {
-  const f = values.filter((x) => Number.isFinite(x));
-  if (f.length < 2) return 0;
-  const mean = f.reduce((a, b) => a + b, 0) / f.length;
-  return Math.sqrt(f.reduce((a, b) => a + (b - mean) ** 2, 0) / f.length);
-}
-function computeScoreTrend(scores) {
-  const flat = { available: false, alarm: false, changeIndex: -1, statistic: 0, samples: 0, k: 0, h: 0, kalman_estimate: 0 };
-  const s = (Array.isArray(scores) ? scores : []).filter((x) => Number.isFinite(x));
-  if (s.length < 5) return { ...flat, samples: s.length };
-  const declineSteps = [];
-  for (let i = 1; i < s.length; i += 1) declineSteps.push(-(s[i] - s[i - 1]));
-  const scale = Math.max(madOf(declineSteps), 0.6745 * stdOf(declineSteps), 1e-6);
-  const k = 0.5 * scale;
-  const h = 5 * scale;
-  const mu0 = 0;
-  const c = cusum(declineSteps, { k, h, mu0 });
-  const ka = scalarKalman(s, { q: Math.max(0.3 * madOf(s), 1e-9), r: Math.max(madOf(s), 1e-9) });
-  return {
-    available: true,
-    alarm: c.alarm === true,
-    changeIndex: c.changeIndex >= 0 ? c.changeIndex + 1 : -1,
-    statistic: c.statistic,
-    samples: s.length,
-    k, h,
-    kalman_estimate: ka.estimate,
-  };
-}
 
 test('computeScoreTrend: sustained decline (70->50 over 8 runs) ALARMS and pins changeIndex', () => {
   // Stable head then a monotone decline — no single step is a wild outlier.

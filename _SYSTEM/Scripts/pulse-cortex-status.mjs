@@ -161,7 +161,7 @@ function activeProcesses() {
     { label: 'codex exec',        re: /codex.*exec/i },
     { label: 'offload-runner',    re: /offload-runner\.mjs/i },
     { label: 'pulse-lane-dispatch', re: /pulse-lane-dispatch\.mjs/i },
-    { label: 'nvidia-nim request',  re: /offload.*nvidia|nvidia.*offload/i },
+    { label: 'mimo request',        re: /mimo\.mjs|offload.*mimo|mimo.*offload/i },
     { label: 'deepseek request',    re: /offload.*deepseek|deepseek.*offload/i },
   ];
   try {

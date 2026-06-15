@@ -46,5 +46,14 @@ const ideaRank = tr.items.findIndex((x) => x.kind === 'idea');
 ok(fixRank >= 0 && (ideaRank < 0 || fixRank < ideaRank), 'the important fix recalls above the trivial idea');
 try { fs.unlinkSync(STORE); } catch { /* ignore */ }
 
+// 10f (math-base wave): MMR stops at non-positive marginal — a redundant
+// duplicate is never added just to fill budget.
+{
+  const a = { id: 'a', title: 'alpha beta gamma', terms: ['alpha', 'beta', 'gamma'], salience: 1, tokens: 10 };
+  const b = { id: 'b', title: 'alpha beta gamma', terms: ['alpha', 'beta', 'gamma'], salience: 0.5, tokens: 10 };
+  const r = selectRecall([a, b], { budgetTokens: 1000, lambda: 0.7 });
+  ok(r.items.length === 1, `negative-marginal duplicate excluded (got ${r.items.length})`);
+}
+
 console.log(`\nyuri-total-recall.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

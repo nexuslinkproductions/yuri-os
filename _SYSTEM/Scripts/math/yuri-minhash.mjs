@@ -4,13 +4,15 @@
  *
  * THE PROBLEM IT SOLVES — the corpus matcher needs to find, for a task query, the COMPLETE set
  * of candidate corpus items similar to it, deterministically and in a fraction of the compute of
- * a full O(N) Jaccard scan or a BM25 re-rank-and-truncate. MinHash gives an unbiased estimator of
+ * a full O(N) Jaccard scan or a BM25 re-rank-and-truncate. MinHash gives an approximately unbiased estimator of
  * Jaccard set-similarity from a fixed-length signature; LSH banding turns "find all items with
  * Jaccard ≥ t" into O(1)-ish bucket lookups instead of N pairwise comparisons.
  *
  * SOURCE THEORY:
  *   - MinHash (Broder 1997): for a random permutation π of the universe, P[min π(A) = min π(B)] =
- *     Jaccard(A,B). Average over k permutations → an unbiased Jaccard estimate with stderr ~1/√k.
+ *     Jaccard(A,B). Average over k permutations → an approximately unbiased Jaccard estimate
+ *     (2-universal affine family, not min-wise independent; measured bias −0.001 at 192k draws)
+ *     with stderr ~1/√k.
  *   - LSH banding (Indyk-Motwani 1998 / Leskovec-Rajaraman-Ullman MMDS ch.3): split the k-length
  *     signature into b bands of r rows (k=b·r); two sets collide in ≥1 band with probability
  *     1−(1−s^r)^b — an S-curve with threshold ≈ (1/b)^(1/r). Tune (b,r) to the desired t.
@@ -20,7 +22,7 @@
  * no-embedding / FTS5-only house law (this is set-similarity over tokens, not vector search).
  *
  * Universal-hashing permutation family: h_i(x) = ((a_i · x + b_i) mod p), p = 2^31−1 (Mersenne
- * prime), a_i odd. min over tokens of h_i(hash(token)) = the i-th MinHash coordinate.
+ * prime). min over tokens of h_i(hash(token)) = the i-th MinHash coordinate.
  */
 
 const MERSENNE = 2147483647; // 2^31 − 1, prime — the modulus for the permutation family
@@ -63,13 +65,22 @@ export function makeHashes(k, seed = 0x9e3779b1) {
   return { k, a, b, seed };
 }
 
+// Empty-set signature coordinate. Real coordinates are mod p < 2^31-1 < 0xffffffff,
+// so sig[0] === SENTINEL iff the input set was empty (signatures are all-or-nothing).
+// Contract: applies to signatures produced by minhashSignature.
+const SENTINEL = 0xffffffff;
+
 /**
  * MinHash signature of a token Set (or array). Returns a Uint32Array of length k.
- * Empty input → all-MAX sentinel signature (collides with nothing meaningful).
+ * Empty input → all-SENTINEL signature; estimateJaccard treats it as ∅ (similarity 0).
+ * Carries a `seed` comparability stamp (plain property — dropped at FFI/serialization
+ * boundaries, where the seed guard silently disarms: an in-process advisory guard,
+ * documented-not-chased).
  */
 export function minhashSignature(tokens, hashes) {
   const { k, a, b } = hashes;
-  const sig = new Uint32Array(k).fill(0xffffffff);
+  const sig = new Uint32Array(k).fill(SENTINEL);
+  sig.seed = hashes.seed; // comparability stamp
   const iter = tokens instanceof Set ? tokens : new Set(tokens);
   if (iter.size === 0) return sig;
   // Pre-hash each token once (FNV), then apply the k affine permutations.
@@ -99,10 +110,18 @@ function modAffine(a, x, b) {
   return r >>> 0;
 }
 
-/** Estimate Jaccard from two signatures = fraction of matching coordinates. */
+/** Estimate Jaccard from two signatures = fraction of matching coordinates.
+ * Empty-set convention: agrees with house jaccard(∅,∅)=0 — no signal is not identity.
+ * Throws on a seed mismatch when BOTH signatures carry the in-process seed stamp. */
 export function estimateJaccard(sigA, sigB) {
   const k = Math.min(sigA.length, sigB.length);
   if (!k) return 0;
+  // Sentinel check BEFORE the seed guard: two empty docs are incomparable-but-harmless
+  // (0), never a throw — regardless of which hash family produced them.
+  if (sigA[0] === SENTINEL || sigB[0] === SENTINEL) return 0;
+  if (sigA.seed !== undefined && sigB.seed !== undefined && sigA.seed !== sigB.seed) {
+    throw new Error(`estimateJaccard: signatures built from different seeds (${sigA.seed} vs ${sigB.seed}) are not comparable`);
+  }
   let m = 0;
   for (let i = 0; i < k; i++) if (sigA[i] === sigB[i]) m++;
   return m / k;
@@ -113,6 +132,12 @@ export function estimateJaccard(sigA, sigB) {
  * "band#:hash". Two items sharing ANY band key are LSH candidates. Returns b keys.
  */
 export function lshBands(sig, b, r) {
+  // Rust-parity guard (nexus-rs rejects the same call): silent out-of-range bands
+  // hashed `undefined >>> 0` = 0 and returned fake keys. Boundary b*r === sig.length
+  // stays VALID (conformance pin).
+  if (!sig || !Number.isInteger(sig.length) || !Number.isInteger(b) || !Number.isInteger(r) || b < 1 || r < 1 || b * r > sig.length) {
+    throw new Error(`lshBands: need integer b,r >= 1 with b*r <= sig.length (got b=${b}, r=${r}, k=${sig && sig.length})`);
+  }
   const keys = new Array(b);
   for (let band = 0; band < b; band++) {
     let h = FNV_OFFSET >>> 0;

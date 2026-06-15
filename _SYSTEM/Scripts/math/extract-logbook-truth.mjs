@@ -26,14 +26,16 @@ function field(body, label) {
 function conf(body, which) {
   // CONFIDENCE — Structural HIGH (...); literal MEDIUM (...)
   const c = field(body, 'CONFIDENCE');
-  // tolerate "literal-mapping MEDIUM", "literal HIGH", "Structural HIGH", and "ZERO on ..." → LOW
+  // tolerate "literal-mapping MEDIUM", "literal HIGH", "Structural HIGH"; declared
+  // "ZERO on ..." maps to NONE (0.0) — declared-zero is not weak-positive (LOW 0.3).
   const re = new RegExp(`${which}[a-z-]*\\s*(HIGH|MEDIUM|MED|LOW|ZERO)`, 'i');
   const mm = c.match(re);
-  if (mm && mm[1].toUpperCase() === 'ZERO') return 'LOW';
+  if (mm && mm[1].toUpperCase() === 'ZERO') return 'NONE';
   const v = mm ? mm[1].toUpperCase() : null;
   return v === 'MED' ? 'MEDIUM' : v;
 }
-const CONF_NUM = { HIGH: 1.0, MEDIUM: 0.6, LOW: 0.3 };
+// NONE = declared-zero confidence (0.0); null stays null (unparseable ≠ declared-zero).
+const CONF_NUM = { HIGH: 1.0, MEDIUM: 0.6, LOW: 0.3, NONE: 0.0 };
 
 const cards = blocks.map((b) => {
   const body = raw.slice(b.start, b.end);

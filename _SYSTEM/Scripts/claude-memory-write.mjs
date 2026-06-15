@@ -22,6 +22,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { isProtectedPath } from './lane-kernel.mjs';
 
 const VALID_TYPES = new Set(['feedback', 'reference', 'project', 'user']);
 const VALID_TIERS = new Set(['working', 'episodic', 'semantic']);
@@ -101,6 +102,10 @@ function readBody(args) {
   if (typeof args.body === 'string') return args.body;
   if (typeof args['body-file'] === 'string') {
     const filePath = path.resolve(args['body-file']);
+    // Fail-closed: refuse to slurp a protected/secret surface (.env, credentials, backend/data,
+    // .claude/state, *.pem/*.key) into a memory entry — exfiltration-via-memory guard. Checked
+    // BEFORE existence so a secret path's presence is never even confirmed.
+    if (isProtectedPath(filePath)) throw new Error(`body-file refused (protected/secret surface): ${filePath}`);
     if (!fs.existsSync(filePath)) throw new Error(`body-file not found: ${filePath}`);
     return fs.readFileSync(filePath, 'utf8');
   }
@@ -218,10 +223,13 @@ function parseEntryMeta(content) {
   };
 }
 
-function updateIndex(root) {
+export function updateIndex(root) {
   if (!fs.existsSync(root)) return;
   const files = fs.readdirSync(root)
-    .filter((f) => f.endsWith('.md') && f !== 'MEMORY.md')
+    // session-journal.md is a 1.5 MB append journal — excluded from the index
+    // (it was synchronously read in full on every SessionStart reindex and
+    // returned '(no description)' anyway).
+    .filter((f) => f.endsWith('.md') && f !== 'MEMORY.md' && f !== 'session-journal.md')
     .sort();
   const lines = ['# Memory Index — Claude Auto-Memory (v3: stable-handle format)', ''];
   for (const f of files) {
@@ -239,7 +247,13 @@ function updateIndex(root) {
     // Markdown link preserves IDE clickability; handle stays grep-able.
     lines.push(`- [${handle}](${f}) — ${hook}`);
   }
-  fs.writeFileSync(path.join(root, 'MEMORY.md'), lines.join('\n') + '\n', 'utf8');
+  // Atomic temp+rename (the :16 'atomically' claim is now true — a crash
+  // mid-write can never leave a torn MEMORY.md; same pattern as the
+  // relocator's atomicWriteJSON).
+  const dest = path.join(root, 'MEMORY.md');
+  const tmp = `${dest}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, lines.join('\n') + '\n', 'utf8');
+  fs.renameSync(tmp, dest);
 }
 
 function cmdReindex() {

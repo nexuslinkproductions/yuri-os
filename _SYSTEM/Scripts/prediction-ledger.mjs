@@ -68,11 +68,17 @@ export function recordOutcome(input, opts) {
  * Per observed-but-unpredicted target: miss with Brier penalty 1.0.
  * Mean Brier over the union of all scored targets.
  */
-export function scorePrediction(prediction, outcome) {
+export function scorePrediction(prediction, outcome, opts = {}) {
   const pred = prediction.predictedEffects ?? [];
   const obs = outcome.observedEffects ?? [];
   const predMap = new Map(pred.map(p => [p.target, p]));
   const obsMap = new Map(obs.map(o => [o.target, o]));
+  // Match signature is (target, predictedEffect, observedEffect). Default ignores
+  // the target and uses strict equality. Callers that need target-aware semantics
+  // (e.g. the canonical proposal-survives verb/past-tense normalization in
+  // yuri-energy-rewardbench.mjs) can pass a 3-arg match. The 2-arg shape is
+  // preserved as a backward-compatible subset: (p.effect, o.effect) still works.
+  const matchFn = opts.match ?? ((_target, a, b) => a === b);
 
   let hits = 0, misses = 0, falseAlarms = 0;
   let brierSum = 0, count = 0;
@@ -81,7 +87,7 @@ export function scorePrediction(prediction, outcome) {
   // Score each predicted effect against observations
   for (const p of pred) {
     const o = obsMap.get(p.target);
-    const matched = !!(o && o.effect === p.effect);
+    const matched = !!(o && matchFn(p.target, p.effect, o.effect));
     if (matched) hits++; else falseAlarms++;
     const b = (p.confidence - (matched ? 1 : 0)) ** 2;
     brierSum += b;
@@ -190,7 +196,7 @@ export function calibrationReport(opts) {
       continue;
     }
 
-    const sc = scorePrediction(pred, out);
+    const sc = scorePrediction(pred, out, { match: opts.match });
 
     for (const d of sc.detail) {
       gBrier += d.brier;

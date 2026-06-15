@@ -203,7 +203,7 @@ test('snapshot emits every field computeU consumes, with equal-length distributi
   // A fired component carries a `value`; a skipped one carries `skipped: true`.
   const fired = (c) => c.skipped !== true && Number.isFinite(c.value);
   assert.ok(fired(res.components.entropy), 'alpha fires');
-  assert.ok(fired(res.components.klDivergence), 'beta fires');
+  assert.ok(fired(res.components.wasserstein), 'beta drift fires (W₁, energyFormulaVersion 3)');
   assert.ok(fired(res.components.informationGain), 'epsilon fires');
   assert.ok(fired(res.components.staleness), 'zeta fires');
 });
@@ -740,4 +740,41 @@ test('WAVE3 partition floor — id-less unsupported inverting claims are fail-cl
   const a = [{ id: null, target: 'x', claimType: 'built', claimedStatus: 'runtime_tested', contentHash: 'z', evidence: [{ kind: 'advisory', capturedAt: NOW, reference: 'q' }] }];
   const g = gateClaimTransition([], a, { nowMs: NOW, unsupportedMassAddedCap: 0 });
   assert.ok(g.addedUnsupportedMass > 0, 'an id-less unbacked over-claim cannot be proven not-new → counted');
+});
+
+// ── Drift-term evolution: v1 hard-floor KL (saturated @41) → v2 mixture-soften KL (~11, flat) →
+// v3 Wasserstein-1 (distance-aware, RAW feeders, no floor). 2026-06-14. ──
+// Root cause history: a hard 1e-9 belief floor made KL(claimed‖verified) saturate at ln(1e9)=20.72 → β·=41.45
+// for ANY concentrated rung mismatch (71% of the live reject corpus, distance-BLIND). v2's mixture capped it
+// at ~11 but stayed flat. v3 swaps the drift term to W₁ and retires the mixture: feeders are RAW.
+test('v3 — the v2 ε/N mixture floor is RETIRED (feeders fall back to the base 1e-9, harmless to W₁)', () => {
+  const snap = cortexSnapshot([{ id: 'x', claimedStatus: 'trusted', evidence: [] }], { nowMs: NOW });
+  const st = snap.state ?? snap;
+  // The v2 mixtureSmooth added an ε/N≈0.00333 background to every bin. v3 removes it: the empty bins fall
+  // back to normalizeHist's BASE 1e-9 floor (shared with prior/posterior; harmless to W₁ — it perturbs W₁ by
+  // only ~N·1e-9, vs the ln(1e9) saturation it caused for KL). Proof the mixture is gone: min ≪ ε/N.
+  const minClaimed = Math.min(...st.claimedDistribution);
+  assert.equal(minClaimed, 1e-9, 'empty bins are the base 1e-9 floor, NOT the retired v2 ε/N≈0.00333 mixture');
+  assert.ok(minClaimed < 1e-3, 'min ≪ the v2 ε/N — the mixture is retired');
+});
+
+test('KL fix — SCOPE: prior/posterior (ε/info-gain feeders) keep the 1e-9 floor, untouched', () => {
+  const snap = cortexSnapshot([{ id: 'x', claimedStatus: 'trusted', evidence: [] }], { nowMs: NOW });
+  const st = snap.state ?? snap;
+  // priorState comes from maxEntBeliefVector (1e-9 floor); smoothing it would kill info-gain. Must stay tiny.
+  assert.ok(Math.min(...st.priorState) < 1e-6, 'priorState retains the ~1e-9 floor (ε path unchanged)');
+});
+
+test('v3 — concentrated claim vs no-evidence yields a DISTANCE-AWARE W₁ drift at the ceiling (firm reject)', () => {
+  // A `trusted` claim (rung 5) with NO evidence → verified defaults to draft (rung 0). So claimed≈oneHot(5),
+  // verified≈oneHot(0): the FULL-span gap. W₁ ≈ |5−0| = 5 → β·W₁ ≈ 10 = the ceiling β·(N-1). This is the
+  // honest distance-aware maximum (claiming "trusted" with zero evidence = maximal claim-vs-evidence drift),
+  // NOT the old flat 41.45/11.15 KL saturation. (≈, not ==, because of the shared base 1e-9 floor.)
+  const snap = cortexSnapshot([{ id: 'x', claimedStatus: 'trusted', evidence: [] }], { nowMs: NOW });
+  const st = snap.state ?? snap;
+  const r = computeU(st, undefined);
+  const betaW1 = r.result.components.wasserstein.value * 2; // DEFAULT_WEIGHTS.beta = 2
+  const ceiling = 2 * (LADDER.length - 1); // β·(N-1) = 10
+  assert.ok(Math.abs(betaW1 - ceiling) < 1e-6, `β·W₁ ≈ ceiling ${ceiling} for oneHot(5)-vs-oneHot(0), got ${betaW1.toFixed(6)}`);
+  assert.ok(betaW1 > 0 && betaW1 <= ceiling + 1e-9, 'firm reject, bounded by β·(N-1) (no saturation possible)');
 });

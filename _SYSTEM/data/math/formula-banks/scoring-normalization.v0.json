@@ -616,7 +616,12 @@
           "max": "upper bound in same units as value",
           "points": "score cap units"
         },
-        "output": "bounded score units from 0 to points"
+        "output": "bounded score units from 0 to points",
+        "parameterSlots": [
+          "min",
+          "max",
+          "points"
+        ]
       },
       "inputConstraints": [
         "min must be positive",
@@ -691,7 +696,10 @@
           "age": "time elapsed in same units as halfLife",
           "halfLife": "positive time constant in same units as age"
         },
-        "output": "dimensionless confidence in [0,1]"
+        "output": "dimensionless confidence in [0,1]",
+        "parameterSlots": [
+          "halfLife"
+        ]
       },
       "inputConstraints": [
         "base must be between 0 and 1 inclusive",
@@ -703,19 +711,25 @@
           "symbol": "c_0",
           "meaning": "base confidence at time zero",
           "type": "number",
-          "constraints": ["0 <= c_0 <= 1"]
+          "constraints": [
+            "0 <= c_0 <= 1"
+          ]
         },
         {
           "symbol": "t",
           "meaning": "age since the confidence was established",
           "type": "number",
-          "constraints": ["t >= 0"]
+          "constraints": [
+            "t >= 0"
+          ]
         },
         {
           "symbol": "h",
           "meaning": "half-life: time for confidence to halve",
           "type": "number",
-          "constraints": ["h > 0"]
+          "constraints": [
+            "h > 0"
+          ]
         }
       ],
       "assumptions": [
@@ -731,12 +745,20 @@
       "counterexamples": [
         {
           "name": "negative age",
-          "input": { "base": 0.8, "age": -1, "halfLife": 10 },
+          "input": {
+            "base": 0.8,
+            "age": -1,
+            "halfLife": 10
+          },
           "expectedError": "age must be non-negative"
         },
         {
           "name": "zero halfLife",
-          "input": { "base": 0.8, "age": 5, "halfLife": 0 },
+          "input": {
+            "base": 0.8,
+            "age": 5,
+            "halfLife": 0
+          },
           "expectedError": "halfLife must be positive"
         }
       ],
@@ -762,14 +784,26 @@
       "workedExamples": [
         {
           "name": "memory item at one half-life",
-          "input": { "base": 0.9, "age": 10, "halfLife": 10 },
-          "expected": { "decay": 0.45 },
+          "input": {
+            "base": 0.9,
+            "age": 10,
+            "halfLife": 10
+          },
+          "expected": {
+            "decay": 0.45
+          },
           "interpretation": "After exactly one half-life, the confidence halves from 0.9 to 0.45."
         },
         {
           "name": "fresh item with zero age",
-          "input": { "base": 0.8, "age": 0, "halfLife": 14 },
-          "expected": { "decay": 0.8 },
+          "input": {
+            "base": 0.8,
+            "age": 0,
+            "halfLife": 14
+          },
+          "expected": {
+            "decay": 0.8
+          },
           "interpretation": "At age zero the confidence is unchanged."
         }
       ],

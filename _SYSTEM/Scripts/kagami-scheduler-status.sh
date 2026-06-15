@@ -42,7 +42,7 @@ check_agent "com.yuri-os-musubi.gitnexus-weekly"    "com.yuri-os-musubi.gitnexus
 
 echo ""
 echo "  LAST RUN LOGS"
-for f in heartbeat memory-pipeline memory-consolidator rag-curator session-synthesizer; do
+for f in heartbeat memory-pipeline memory-consolidator session-synthesizer; do
   log="/tmp/kagami-${f}.log"
   if [ -f "$log" ]; then
     last=$(tail -1 "$log" 2>/dev/null | cut -c1-90)
@@ -65,13 +65,4 @@ else
   echo "  (not yet run)"
 fi
 
-echo ""
-echo "  RAG INDEX"
-idx="$REPO/_SYSTEM/training/data/rag-index.jsonl"
-if [ -f "$idx" ]; then
-  count=$(wc -l < "$idx" | tr -d ' ')
-  echo "  $count entries in rag-index.jsonl"
-else
-  echo "  (empty)"
-fi
 echo "═══════════════════════════════════════════════════════════"

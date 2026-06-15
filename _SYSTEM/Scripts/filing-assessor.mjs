@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// @capability: artifact-placement-staleness
+// @serves: filing | placement | where does this go | classify artifact | zone | routing by content | staleness purge | hazard decay age | cleanup candidate
+// @does: Deterministic, read-only placement (artifact -> canonical zone) via ZONE_RULES + hazard-decay staleness score (older => higher purge pressure, half-life configurable).
+// @use: Reach for this before building any artifact classification, placement, or staleness/purge scoring.
+// @exports: assess, stalenessScore, ZONE_RULES, CANONICAL_ZONES
 /**
  * filing-assessor.mjs — deterministic, READ-ONLY placement assessor for YURI artifacts.
  *

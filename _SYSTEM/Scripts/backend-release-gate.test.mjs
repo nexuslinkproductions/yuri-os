@@ -60,9 +60,9 @@ assert.match(result.stdout, /backend-observability-truth\.test\.mjs/, 'release g
 assert.match(result.stdout, /backend-db-readiness-migration-status\.test\.mjs/, 'release gate should include readiness migration test');
 assert.match(result.stdout, /backend-db-readiness-recovery-metadata\.test\.mjs/, 'release gate should include readiness recovery metadata test');
 assert.match(result.stdout, /backend-gitnexus-status-truth\.test\.mjs/, 'release gate should include GitNexus truth test');
-assert.match(result.stdout, /wiki-rag-health-truth\.test\.mjs/, 'release gate should include wiki RAG health truth test');
-assert.match(result.stdout, /archive-rag-health-truth\.test\.mjs/, 'release gate should include archive RAG health truth test');
-assert.match(result.stdout, /rag-db-health-fixtures\.test\.mjs/, 'release gate should include fixture-backed RAG DB health test');
 assert.match(result.stdout, /gitnexus-mcp-check\.mjs/, 'release gate should include live GitNexus MCP probe');
+// RAG retired (owner, 2026-06-10): wiki/archive/fixture RAG health steps removed with the
+// rag-health script family — live retrieval truth is FTS5 (ai search) + xref.
+assert.doesNotMatch(result.stdout, /rag-health|rag-db-health/, 'release gate must not reference retired RAG health steps');
 
 process.stdout.write('backend-release-gate: pass\n');

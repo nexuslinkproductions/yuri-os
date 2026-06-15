@@ -8,9 +8,9 @@
  * Design: DeepSeek nexus-guard trigger lane (2026-06-06), corrected to the YURI `permissionDecision`
  * hook format (the lane's draft used `{continue:false}`, which is not how YURI hooks deny).
  *
- * NOT wired into .claude/settings.json — registering a blocking gate mutates behavior, so the
- * settings wiring is the OWNER-GATED step (the Nexus Guard's own class-F rule). This file is the
- * ready mechanism; the owner flips it on.
+ * WIRED into .claude/settings.json (PreToolUse Write|Edit, settings.json:233) — the OWNER-GATED
+ * settings step (the Nexus Guard's class-F rule) is satisfied; the owner flipped it on. This is
+ * the live mechanism, not a staged one.
  *
  * Residual (documented): a module written via Bash (`cat > .../x.mjs`) bypasses the Write|Edit matcher;
  * the periodic `regenerative-nexus-guard.mjs` scan catches that. Matcher→Write|Edit|Bash is phase-2.

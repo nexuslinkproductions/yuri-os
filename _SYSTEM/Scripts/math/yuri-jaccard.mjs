@@ -9,7 +9,8 @@
  * THE TRANSFER — a deterministic hot-tier saturation probe over MEMORY.md hot entries:
  *   (1) token-set vectorize each entry (embedding-free — no shared coordinate space);
  *   (2) pairwise Jaccard (or tf-cosine) overlap;
- *   (3) load = (count of pairs above an overlap threshold) / N;
+ *   (3) load = (count of pairs above an overlap threshold) / N — an AGS-shaped
+ *       saturation RATIO in [0, (n-1)/2], NOT a probability (it can exceed 1);
  *   (4) flag "over-capacity → consolidate/dedup before recall degrades" when load crosses
  *       an EMPIRICALLY-CALIBRATED threshold, and surface the most-overlapping pairs as
  *       DETERMINISTIC merge candidates.

@@ -36,7 +36,6 @@ const HAIKU_AGENT_RE = /Agent\(\{[^}]*haiku/i;
 const ALLOWLIST_FILES = new Set([
   '.claude/hooks/agent-spawn-guard.js',
   '.claude/hooks/token-status.js',
-  '.claude/hooks/token-session-end.js',
   '.claude/hooks/pre-tool-use.js',
   '_SYSTEM/Scripts/token-ledger.mjs',
   '_SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs',
