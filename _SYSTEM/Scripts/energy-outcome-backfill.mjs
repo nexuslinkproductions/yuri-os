@@ -216,8 +216,10 @@ export function runBackfill(opts = {}) {
 
   const { signals, source: signalsSource } = loadSignalsOrStub(signalsPath);
 
-  // Read firings from the real trace dir (the deriver's readFirings handles corrupt lines + missing dir).
-  const firings = readFirings({ traceDir: firingsDir });
+  // Read firings from the historical trace dir AND the armed single-file trace: the corrId/claimIds
+  // firings (the keystone's joinable ones) live in energy-gate-trace.jsonl, not the daily dir.
+  // opts.armedTrace overrides; default is the live gate-trace path. readFirings handles missing/corrupt.
+  const firings = readFirings({ traceDir: firingsDir, traceFile: opts.armedTrace ?? '_SYSTEM/state/energy-gate-trace.jsonl' });
 
   // Hand off to runDeriver — this is the integration seam. The deriver owns the
   // prediction/outcome row shape; we own wiring (signals, shadow path, idempotence).
