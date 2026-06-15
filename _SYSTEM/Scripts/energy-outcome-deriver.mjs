@@ -51,7 +51,7 @@ export function firingToPrediction(firing) {
   const confidence = Math.max(0.05, Math.min(0.99, 1 / (1 + Math.exp(-absDelta))));
   const effect = firing.decision === 'accept' ? 'survives' : 'rejected-correctly';
   return {
-    subject: String(firing.runId ?? ''),
+    subject: String((firing.corrId || firing.runId) ?? ''),
     predictedEffects: [{ target: 'proposal-survives', effect, confidence }],
     source: 'energy-gate',
     change: { decision: firing.decision ?? null, regime: firing.regime ?? null, event: firing.event ?? null },
@@ -66,13 +66,14 @@ export function firingToPrediction(firing) {
 // for a given (firing, signals), the result is a pure function of (firing, signals).
 // Evaluation order cannot change which rule has the lowest precedence number among matches.
 const RULES = [
-  { id: 'R1', effect: 'reverted',             test: (f, s) => !!s.isReverted?.(f.runId) },
-  { id: 'R2', effect: 'retried-and-succeeded', test: (f, s) => !!s.isRetriedAndSucceeded?.(f.runId) },
-  { id: 'R3', effect: 'survived',              test: (f, s) => !!s.isPromoted?.(f.runId) },
+  { id: 'R1', effect: 'reverted',             test: (f, s) => !!s.isReverted?.(f.corrId || f.runId) },
+  { id: 'R2', effect: 'retried-and-succeeded', test: (f, s) => !!s.isRetriedAndSucceeded?.(f.corrId || f.runId) },
+  { id: 'R3', effect: 'survived',              test: (f, s) => !!s.isPromoted?.(f.corrId || f.runId) },
 ];
 
 export function deriveOutcome(firing, signals = {}) {
-  const predictionId = sha16(`${firing.runId}:${firing.timestamp}`);
+  const joinKey = firing.corrId || firing.runId;
+  const predictionId = sha16(`${joinKey}:${firing.timestamp}`);
   for (const rule of RULES) {
     if (rule.test(firing, signals)) {
       return { predictionId, observedEffects: [{ target: 'proposal-survives', effect: rule.effect }], status: 'derived', rule: rule.id };

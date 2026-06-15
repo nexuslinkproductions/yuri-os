@@ -24,7 +24,7 @@
 // @serves: ground-truth resolved-outcome log for the energy gate | gateProposal verdict trace | replay regression oracle for gate decisions | weight-drift detection between fire and resolution | gate decision audit log
 // @does: opt-in (default OFF) fail-open capture seam for gateProposal verdicts — appends each (stateBefore,stateAfter,weights,threshold,cap,allowOverride,weightHash)->decision to a JSONL trace; replayGateTrace re-runs logged transitions through the real gate (with the LOGGED weights, so it is drift-immune) as a regression oracle and flags decision shifts, tampered logs, and weight drift; resolveGateVerdict is the operator stub for the resolution side
 // @use: set YURI_GATE_TRACE=1 to record live gate verdicts; run replayGateTrace(gateProposal) as a regression oracle in CI / after any gate-core change; resolveGateVerdict to attach the operator's ground-truth outcome to a logged verdict
-// @exports: gateTraceEnabled, gateTracePath, weightFingerprint, captureGateVerdict, maybeTraceGateVerdict, resolveGateVerdict, readGateTrace, replayGateTrace
+// @exports: gateTraceEnabled, gateTracePath, corrIdEnabled, deriveCorrId, weightFingerprint, captureGateVerdict, maybeTraceGateVerdict, resolveGateVerdict, readGateTrace, replayGateTrace
 //
 // WHY THIS IS SAFE TO PUT INSIDE THE LIVE GATE: the only change to gateProposal is a
 // single `maybeTraceGateVerdict({...})` call placed AFTER the return value is fully
@@ -59,6 +59,31 @@ export function gateTracePath() {
 export function gateTraceEnabled() {
   const v = process.env.YURI_GATE_TRACE;
   return v === '1' || v === 'true';
+}
+
+// OPT-IN corrId switch. Default OFF ⇒ byte-identical to today (no corrId field).
+// When ON, captureGateVerdict stamps a forward correlation id on every verdict.
+export function corrIdEnabled() {
+  const v = process.env.YURI_GATE_TRACE_CORRID;
+  return v === '1' || v === 'true';
+}
+
+// deriveCorrId — build a forward-joinable correlation id from the MOST-SPECIFIC
+// available source. Precedence (highest first):
+//   claimId (gate is scoring a claim) > traceId (lane output trace id) >
+//   gitTrailer (commit-sha from a file-edit verdict) >
+//   FALLBACK = stable content hash of {subject, kind, ts-bucket}
+// The fallback hash uses the hour-bucket of ts so the same subject+kind in the
+// same hour gets the same corrId (stable across re-capture), while different
+// subjects are discriminated by the hash.
+export function deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts } = {}) {
+  if (claimId != null && String(claimId).trim()) return String(claimId).trim();
+  if (traceId != null && String(traceId).trim()) return String(traceId).trim();
+  if (gitTrailer != null && String(gitTrailer).trim()) return String(gitTrailer).trim();
+  // FALLBACK: stable content hash of {subject, kind, ts-bucket}
+  const bucket = ts ? String(ts).slice(0, 13) : '0000'; // hour bucket
+  const basis = JSON.stringify({ s: subject ?? '', k: kind ?? '', b: bucket });
+  return crypto.createHash('sha256').update(basis).digest('hex').slice(0, 16);
 }
 
 // weightFingerprint — a fire-time content WITNESS over the weights the gate used.
@@ -115,6 +140,8 @@ function verdictId(rec) {
 export function captureGateVerdict({
   stateBefore, stateAfter, weights, threshold, cap, allowOverride = false,
   accept, reason, deltaU, nowIso = null,
+  // corrId sources (only used when YURI_GATE_TRACE_CORRID is ON)
+  claimId, traceId, gitTrailer, subject, kind,
 } = {}) {
   try {
     const weightHash = weightFingerprint(weights);
@@ -136,6 +163,10 @@ export function captureGateVerdict({
       resolvedBy: null,
       resolvedAtIso: null,
     };
+    // Stamp corrId when the flag is ON (DISARMED by default)
+    if (corrIdEnabled()) {
+      rec.corrId = deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts: rec.ts });
+    }
     rec.id = verdictId(rec);
     const p = gateTracePath();
     fs.mkdirSync(path.dirname(p), { recursive: true });
@@ -159,16 +190,17 @@ export function maybeTraceGateVerdict(args) {
 }
 
 // resolveGateVerdict — OPERATOR STUB for the resolution side. Appends an append-only
-// RESOLUTION record keyed by the fired verdict's id (resolving in place would rewrite
-// an audit log). The replay harness / a future reconciler joins fire→resolution by id.
+// RESOLUTION record keyed by the fired verdict's id (or corrId when corrId is provided
+// and id is not). The replay harness / a future reconciler joins fire→resolution by id.
 // Fail-open; returns the resolution record or null.
 export function resolveGateVerdict({
-  id, resolvedDecision, resolvedBy = 'operator', nowIso = null, tracePath = gateTracePath(),
+  id, corrId, resolvedDecision, resolvedBy = 'operator', nowIso = null, tracePath = gateTracePath(),
 } = {}) {
   try {
     const rec = {
       kind: 'resolution',
       id: id ?? null,
+      corrId: corrId ?? null,
       resolvedDecision: resolvedDecision === undefined ? null : resolvedDecision,
       resolvedBy,
       resolvedAtIso: nowIso || new Date().toISOString(),

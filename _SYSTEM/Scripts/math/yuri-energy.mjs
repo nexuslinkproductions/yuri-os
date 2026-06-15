@@ -770,6 +770,7 @@ export function gateProposal({
   threshold = 0,
   allowOverride = false,
   maxLadderInversionCap = Infinity,
+  conformalCalibration = null,
 } = {}) {
   if (!stateBefore || !stateAfter || Array.isArray(stateBefore) || Array.isArray(stateAfter)) {
     throw new Error('gateProposal requires stateBefore and stateAfter');
@@ -795,6 +796,23 @@ export function gateProposal({
   // The live tick path never sets allowOverride and its +1 increments cannot
   // produce a NaN ΔU; the render side maps non-finite to null (dash-round9-8e).
   const overrideAllowed = allowOverride === true;
+
+  // ── Conformal-calibrated pReject (DISARMED: YURI_CONFORMAL_GATE env flag) ──
+  // When the env flag is set AND a conformalCalibration object with a pReject
+  // function is provided, compute a calibrated rejection probability from |deltaU|.
+  // The pReject is surfaced in the result but does NOT change the accept/reject
+  // decision — it is advisory-only for the caller. When the flag is OFF or no
+  // calibration is provided, the gate is byte-identical to the unmodified path.
+  let conformalPReject = null;
+  const conformalGateArmed = process.env.YURI_CONFORMAL_GATE === '1';
+  if (conformalGateArmed && conformalCalibration && typeof conformalCalibration.pReject === 'function') {
+    try {
+      const raw = conformalCalibration.pReject(deltaU);
+      conformalPReject = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : null;
+    } catch {
+      conformalPReject = null; // fail-open: calibration error does not crash the gate
+    }
+  }
 
   // HARD VETO (HIGH bug #4): a protected-path violation INCREASE is catastrophic
   // and NON-offsettable — no evidence credit (masking) and no override may accept
@@ -948,6 +966,7 @@ export function gateProposal({
             ? 'maxLadderInversion'
             : dominantTerm,
       componentDeltas: delta.result.componentDeltas,
+      conformalPReject,
     },
     proof: {
       advisory_only: true,

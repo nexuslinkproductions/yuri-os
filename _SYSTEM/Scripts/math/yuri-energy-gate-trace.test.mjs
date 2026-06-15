@@ -12,7 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
-  gateTraceEnabled, gateTracePath, weightFingerprint, captureGateVerdict,
+  gateTraceEnabled, gateTracePath, corrIdEnabled, deriveCorrId, weightFingerprint, captureGateVerdict,
   maybeTraceGateVerdict, resolveGateVerdict, readGateTrace, replayGateTrace,
 } from './yuri-energy-gate-trace.mjs';
 import { gateProposal, DEFAULT_WEIGHTS } from './yuri-energy.mjs';
@@ -262,5 +262,144 @@ test('all 7 B3 gate invariants + spec cross-check stay GREEN with the trace ARME
     }));
     assert.equal(green.ok, true, `a gate invariant broke with tracing on: ${JSON.stringify(green.results)}`);
     assert.equal(cross.ok, true, 'spec≡gate cross-check must still hold with tracing on');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+// --- corrId: forward-loop keystone (DISARMED behind YURI_GATE_TRACE_CORRID) ---
+
+test('corrId OFF by default — captureGateVerdict does NOT stamp corrId (byte-identical degrade)', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: undefined, YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      claimId: 'claim-abc', subject: 'test', kind: 'gate',
+    }));
+    assert.ok(rec, 'capture succeeds');
+    assert.equal(rec.corrId, undefined, 'corrId must be absent when flag is OFF');
+    assert.equal(corrIdEnabled(), false);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId ON — claimId precedence: claimId is used when present', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      claimId: 'claim-xyz-123', traceId: 'trace-ignored', subject: 'test', kind: 'gate',
+    }));
+    assert.equal(rec.corrId, 'claim-xyz-123', 'claimId wins over traceId');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId ON — traceId precedence: traceId used when claimId absent', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      traceId: 'trace-abc-456', subject: 'test', kind: 'gate',
+    }));
+    assert.equal(rec.corrId, 'trace-abc-456', 'traceId used when claimId absent');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId ON — gitTrailer precedence: gitTrailer used when claimId+traceId absent', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      gitTrailer: 'abc123def456', subject: 'test', kind: 'gate',
+    }));
+    assert.equal(rec.corrId, 'abc123def456', 'gitTrailer used when claimId+traceId absent');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId ON — FALLBACK: stable content hash when no source provided', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      subject: 'my-subject', kind: 'my-kind',
+    }));
+    assert.ok(rec.corrId, 'fallback corrId is generated');
+    assert.match(rec.corrId, /^[0-9a-f]{16}$/, 'fallback is a 16-hex hash');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId STABILITY — same subject+kind in same hour bucket ⇒ same corrId', () => {
+  const tmp = mkTmp();
+  try {
+    const ts = '2026-06-15T12:34:56.789Z';
+    const r1 = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      subject: 'same-subject', kind: 'same-kind', nowIso: ts,
+    }));
+    const r2 = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      subject: 'same-subject', kind: 'same-kind', nowIso: '2026-06-15T12:59:59.999Z', // same hour bucket
+    }));
+    assert.equal(r1.corrId, r2.corrId, 'same subject+kind in same hour ⇒ same corrId');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId DISCRIMINATION — different subjects get different fallback corrIds', () => {
+  const tmp = mkTmp();
+  try {
+    const r1 = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      subject: 'subject-A', kind: 'gate',
+    }));
+    const r2 = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      subject: 'subject-B', kind: 'gate',
+    }));
+    assert.notEqual(r1.corrId, r2.corrId, 'different subjects ⇒ different corrIds (no collision)');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId NEGATIVE — empty/whitespace claimId falls through to next precedence', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      claimId: '   ', traceId: 'trace-fallback', subject: 'test', kind: 'gate',
+    }));
+    assert.equal(rec.corrId, 'trace-fallback', 'whitespace claimId falls through to traceId');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId NEGATIVE — missing corrId (all sources absent) still produces a valid fallback', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      // no claimId, traceId, gitTrailer, subject, or kind
+    }));
+    assert.ok(rec.corrId, 'fallback corrId is always generated');
+    assert.match(rec.corrId, /^[0-9a-f]{16}$/);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('resolveGateVerdict accepts corrId for forward-joinable resolution', () => {
+  const tmp = mkTmp();
+  try {
+    const fired = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+      claimId: 'claim-resolve-test',
+    }));
+    const res = resolveGateVerdict({ corrId: fired.corrId, resolvedDecision: true, tracePath: tracePathIn(tmp) });
+    assert.equal(res.corrId, fired.corrId);
+    assert.equal(res.resolvedDecision, true);
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
