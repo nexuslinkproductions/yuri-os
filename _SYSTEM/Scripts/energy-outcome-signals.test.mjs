@@ -115,11 +115,11 @@ describe('isReverted claim-path (claim-transition join)', () => {
     ] });
     assert.equal(sig('cc', { ts: '2026-06-15T12:00:00Z', claimIds: ['claimX'] }), false);
   });
-  test('firing with no parseable ts => any worsening of a judged claim counts', () => {
+  test('firing with no parseable ts => FAIL-CLOSED, not reverted (cannot establish "after")', () => {
     const sig = makeRevertedSignal({ preloadedClaimTransitions: [
       { nowIso: '2026-06-15T13:00:00Z', worsened: [{ id: 'claimX' }] },
     ] });
-    assert.equal(sig('cc', { claimIds: ['claimX'] }), true);
+    assert.equal(sig('cc', { claimIds: ['claimX'] }), false);
   });
   test('non-claim firing (no claimIds) falls back to the git path', () => {
     const sig = makeRevertedSignal({

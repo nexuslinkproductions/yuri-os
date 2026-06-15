@@ -131,7 +131,7 @@ function buildRevertedReader({ gitLogCacheFile = DEFAULT_GIT_LOG_CACHE_FILE, git
       for (const cid of claimIds) {
         const times = idx.get(String(cid));
         if (!times || !times.length) continue;
-        if (!Number.isFinite(firedAt)) return true; // firing has no parseable ts → any worsening of a judged claim counts
+        if (!Number.isFinite(firedAt)) return false; // no parseable firing ts → cannot establish "after" → FAIL-CLOSED (matches the reader's empty-key/missing-file→false contract; never emit a false revert label). Real firings always carry rec.ts.
         if (times.some((t) => t > firedAt)) return true;
       }
       return false; // claim path evaluated, no SUBSEQUENT retract — do NOT fall through to the git path
