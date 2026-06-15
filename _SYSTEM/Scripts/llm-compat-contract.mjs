@@ -25,6 +25,12 @@ const LLM_COMPAT_CONTRACT = {
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Shintai/NIM/DeepSeek advisory lanes.
+  // CODEX_GATE sector pruned 2026-06-11 (wave-3 G.8, D-G2): the two-phase
+  // propose/approve/HEAD-SHA/apply gate was architecture-only — no implementation
+  // ever existed (zero hits for propose/approved/headSha in codex-offload-runner or
+  // ai). The 7 die nodes were removed from wave3-scope-die-extract.json; Codex
+  // dispatches go directly via run_kagami_or_fallback. Revisit only in a future
+  // dispatch-governance build sprint (Codex itself retired to optional lane, wave-2).
   routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@codex-spark', '@gemma-local', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@native', '@mimo', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
@@ -337,6 +343,10 @@ const LLM_COMPAT_CONTRACT = {
       launchAgent: 'com.yuri-os-musubi.yuri-sentinel'
     },
     hardBlocksRemainOwnedBy: 'bash-security-guard.js',
+    // ARCHITECTURAL (wave-3 G.9, D-G3): gate is warn-only BY DESIGN; blockInfluenceWhenAny
+    // is a behavioral-contract condition, not a runtime DENY. The hard floor stays the
+    // settings.json deny-list + operator-write-guard. Arming this requires reliable
+    // CLAUDE_SESSION_ID propagation to subagent contexts first (governance SEV-HIGH-2).
     denyPermissionDecision: false
   },
   nativeFunctionGates: {
@@ -349,7 +359,7 @@ const LLM_COMPAT_CONTRACT = {
     alwaysOn: {
       argus: {
         runtime: 'native_function',
-        activation: 'PostToolUse scout dispatcher',
+        activation: 'PostToolUse scout dispatcher (async — observes only; cannot prevent tool execution)',
         role: 'logic and sequencing check for meaningful tool calls',
         linkedSkills: ['oracle-router', 'gitnexus-impact-analysis', 'non-destructive-infinity-guard']
       }
@@ -960,12 +970,16 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // =====================================================================
 // Adds the four cortex fields (complexityTier, ensemble, beaconLevel,
 // codexPolicy) plus the OpenClaw advisory assessor. All advisory-only;
-// none of these grant write or canonical authority. The orchestrator
-// at _SYSTEM/Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
+// none of these grant write or canonical authority. (The pulse-orchestrator
+// consumer was DELETED in wave-2 D-C2 — these assessors now serve route-plan
+// inspection only; no automatic fan-out consumes them.)
 
 function assessOpenClawAdvisory(prompt, lane, scenario) {
   const ocConfig = LLM_COMPAT_CONTRACT.claudeProtocolGate.openClaw;
-  // OpenClaw absorbed as Nisaba Sentinel (native-integrated) — no longer a separate bridge lane
+  // DEAD BRANCH (wave-3 G.7): authority='native-integrated' is hardcoded in the contract,
+  // so this assessor ALWAYS returns {decision:'skip'} — openclaw-preflight never enters any
+  // ensemble and the OC_BRIDGE die node is a ghost. OpenClaw is absorbed into native
+  // function routing (Yuri Sentinel); the code below the early return is unreachable config.
   if (ocConfig.authority === 'native-integrated') {
     return {
       decision: 'skip',
@@ -1272,9 +1286,13 @@ function selectScenario(prompt, lane = '') {
 
 function readCalibration() {
   try {
+    // Default = the WRITER's real output (lane-calibration.mjs →
+    // .claude/state/lane-calibration.json). The old ~/.yuri default never
+    // existed → readCalibration returned {} forever (dead wiring; the orphan
+    // ~/.yuri/lane-feedback.jsonl is a retired-writer artifact, not a live log).
     const calibPath = safeRuntimePath(
       'YURI_LANE_CALIBRATION_PATH',
-      path.join(process.env.HOME || '/tmp', '.yuri', 'lane-calibration.json'),
+      path.join(REPO_ROOT, '.claude', 'state', 'lane-calibration.json'),
     );
     if (!calibPath) return {};
     if (!existsSync(calibPath)) return {};
@@ -1294,6 +1312,43 @@ function applyCalibrationToLane(lane, calibData) {
   return { degraded: warnings.some(w => w.includes('DEGRADED')), warnings };
 }
 
+/**
+ * wave-3 G.9 — advisory-boundary observability helper (warning-only, NOT a gate).
+ * The discardWhenAny conditions are semantic prose; only a mechanically-checkable
+ * subset is screened here (forbidden-operation markers in advisory output). Matches
+ * log to stderr and return so a caller can decide; nothing is blocked.
+ */
+export function validateAdvisoryBoundary(routePlan, advisoryOutputText = '') {
+  const matched = [];
+  const conditions = [
+    ...(routePlan?.deepseekAdvisory?.discardWhenAny || []),
+    ...(routePlan?.claudeAdvisory?.discardWhenAny || []),
+  ];
+  if (!conditions.length) return { matched, screened: false };
+  const text = String(advisoryOutputText);
+  const forbiddenOps = [
+    [/\bgit\s+(commit|push)\b/i, 'recommends commit/push (forbidden operation)'],
+    [/\.env\b/i, 'references .env (secrets surface)'],
+    [/backend\/data\//i, 'references protected path backend/data/'],
+    [/\bnode_modules\//i, 'references protected path node_modules/'],
+  ];
+  for (const [re, label] of forbiddenOps) {
+    if (re.test(text)) matched.push(label);
+  }
+  for (const m of matched) {
+    process.stderr.write(`[advisory-boundary] discard-condition signal: ${m}\n`);
+  }
+  return { matched, screened: true, conditionsConfigured: conditions.length };
+}
+
+/**
+ * @governance (wave-3 G.9): the advisory boundary is SELF-ENFORCING via behavioral
+ * contract (CLAUDE.md + SOUL.md). `discardWhenAny` and `blockInfluenceWhenAny` are
+ * model-readable data fields; NO hook mechanically enforces them at dispatch time.
+ * Runtime enforcement would require a route-plan consumer scanner — see PARKED-G.A.
+ * Use validateAdvisoryBoundary(routePlan, advisoryOutput) to make matching discard
+ * conditions observable in logs (warning-only helper, not a gate).
+ */
 function buildRoutePlan(prompt) {
   const calibData = readCalibration();
   const lane = selectSteeringLane(prompt);
@@ -1336,6 +1391,10 @@ function buildRoutePlan(prompt) {
     pulseGovernanceSkeleton,
     lifecycle: scenario.lifecycle,
     crossReference: LLM_COMPAT_CONTRACT.crossReference,
+    // wave-3 L.7: learningCapture is declared in route-plan output but NO downstream
+    // consumer reads it (0 readers repo-wide as of 2026-06-11). Wiring it means a
+    // route-plan consumer writing entries to _SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/
+    // — blocked on the 02_EXTRACT DORMANT status (D-L2; see its README).
     learningCapture: LLM_COMPAT_CONTRACT.learningLoop.capture,
     memorySurface: LLM_COMPAT_CONTRACT.learningLoop.memorySurface,
     calibrationStatus: calibStatus,

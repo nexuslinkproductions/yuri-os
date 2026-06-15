@@ -26,7 +26,7 @@ assert.equal(contract.version, 3, 'contract version should be pinned');
 assert.equal(contract.activation.mode, 'automatic', 'contract should remain automatic');
 assert.equal(contract.activation.triggerless, true, 'contract should remain triggerless');
 assert.equal(contract.deepseekCodexQualityGate.authority.executor, 'Codex/main-session', 'Codex must remain executor/final authority');
-assert.equal(contract.deepseekCodexQualityGate.authority.modelOutput, 'advisory_only=true; local_truth_claim=false', 'DeepSeek output must remain advisory');
+assert.equal(contract.deepseekCodexQualityGate.authority.modelOutput, 'worker_product=true; staged_for_review=true; local_truth_claim=false (until main-session verifies)', 'DeepSeek lane output is a staged worker-product, advisory until main-session verifies');
 assert.ok(contract.deepseekCodexQualityGate.discardWhenAny.includes('Contradicts deterministic local evidence.'), 'degradation guard missing');
 assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'), 'quality metrics missing');
 assert.equal(contract.claudeProtocolGate.mode, 'warn-first', 'Claude protocol gate should warn first');
@@ -41,11 +41,14 @@ assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local 
 assert.equal(contract.lanes.gemmaLocal.alias, '@gemma-local', 'Gemma local lane metadata missing');
 assert.deepEqual(contract.lanes.gemmaLocal.dispatchTokens, ['gemma-local', 'gemma4:12b-it-qat'], 'Gemma local lane should expose only the QAT model token');
 assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
-assert.deepEqual(contract.lanes.nvidia.dispatchTokens, ['nvidia', 'nemotron', 'nemotron-3-ultra-550b-a55b', 'nvidia/nemotron-3-ultra-550b-a55b'], 'NVIDIA offload dispatch tokens = the live forms the dispatcher emits (drift-check aligned; Nemotron-3-Ultra only)');
-assert.deepEqual(contract.lanes.nvidia.liveStatus.live, ['nemotron-3-ultra-550b-a55b'], 'NVIDIA live roster should expose only Nemotron 3 Ultra');
-assert.deepEqual(contract.lanes.nvidia.deadModelFallbacks, {}, 'NVIDIA dead-lane fallback map should be removed');
-assert.equal(contract.lanes.nvidia.routing.frontier_reasoning, 'nemotron-3-ultra-550b-a55b', 'frontier NIM routing should point at Nemotron 3 Ultra');
-assert.equal(contract.lanes.nvidia.models['nemotron-3-ultra-550b-a55b'], 'nvidia/nemotron-3-ultra-550b-a55b', 'Nemotron 3 Ultra model mapping missing');
+// NVIDIA NIM (kimi + nemotron) lanes were retired and replaced by the first-class Xiaomi Mimo lane
+// (Anthropic Messages protocol, MIMO_API_KEY). The nvidia/kimi lanes must be fully gone.
+assert.equal(contract.lanes.nvidia, undefined, 'retired NVIDIA NIM lane must be removed from the contract');
+assert.equal(contract.lanes.kimi, undefined, 'retired Kimi NIM lane must be removed from the contract');
+assert.equal(contract.lanes.mimo.alias, '@mimo', 'Mimo lane metadata missing');
+assert.equal(contract.lanes.mimo.protocol, 'anthropic', 'Mimo lane must speak the Anthropic Messages protocol');
+assert.equal(contract.lanes.mimo.envKey, 'MIMO_API_KEY', 'Mimo lane must read MIMO_API_KEY');
+assert.deepEqual(contract.lanes.mimo.dispatchTokens, ['mimo', 'mimo-v2.5-pro', 'mimo-v2.5', 'mimo-flash', 'mimo-v2-flash', 'xiaomimimo', 'mimo-session'], 'Mimo dispatch tokens = the live forms the dispatcher emits');
 assert.equal(contract.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', 'cross-reference taxonomy surface missing');
 assert.equal(contract.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', 'cross-reference rules surface missing');
 assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');
@@ -199,6 +202,24 @@ for (const testCase of cases) {
   assert.equal(dryPlan.scenario, testCase.scenario, `auto scenario mismatch for "${testCase.prompt}"`);
 }
 
+// WP-C.2 (wave-2): `analysis` tier coverage — previously ZERO of the cases hit
+// this tier. NOTE adapted to HEAD: the audit's expected ensemble (deepseek +
+// nvidia) predates the lane consolidation (8ca6c254) — the live analysis
+// council is deepseek-preflight + mimo-preflight.
+const analysisPlan = routePlan('which knob matters more for recall, recency or salience?');
+assert.equal(analysisPlan.complexityTier, 'analysis', 'pure advisory question should classify as analysis tier');
+assert.ok(analysisPlan.ensemble.includes('deepseek-preflight'), 'analysis ensemble includes deepseek');
+assert.ok(analysisPlan.ensemble.includes('mimo-preflight'), 'analysis ensemble includes mimo');
+assert.ok(!analysisPlan.ensemble.some((e) => e.startsWith('codex')), 'analysis tier is advisory-only — no codex execution/queue lanes');
+const analysisPlan2 = routePlan('does the soak loop doc still describe the live flow?');
+assert.equal(analysisPlan2.complexityTier, 'analysis', 'doc-currency question stays analysis tier');
+// Deliberate shadowing pin: analysis-VERB prompts route to the analysis-council
+// SCENARIO, which classifyComplexity escalates to `complex` (heavier council with
+// yuri-risk + shura). The `analysis` TIER is reachable only by question prompts
+// outside that scenario — pinned here so a future change is a decision, not drift.
+const councilVerbPlan = routePlan('assess the tradeoffs of our recall blend weights, thoughts on what to tune?');
+assert.equal(councilVerbPlan.complexityTier, 'complex', 'analysis-council scenario escalates to complex by design');
+
 const councilPlan = routePlan('large Yuri OS beta proving run with model council architecture risk review');
 assert.equal(councilPlan.claudeAdvisory.decision, 'use-sonnet', 'Claude should join high-stakes model council');
 assert.deepEqual(councilPlan.claudeAdvisory.models, ['deepseek-v4-pro'], 'Claude council model mismatch — updated to deepseek-v4-pro per sovereignty sprint P6');
@@ -301,9 +322,9 @@ const deepseekReasoningRoute = JSON.parse(execFileSync(
   { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
-assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek route should expose the bare YURI model id');
-assert.match(deepseekReasoningRoute.endpoint, /api\.deepseek\.com\/chat\/completions$/, 'DeepSeek V4 Pro should route through direct DeepSeek API');
-assert.equal(deepseekReasoningRoute.provider, 'deepseek-direct', 'NVIDIA DeepSeek fallback must stay retired');
+assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro:cloud', 'DeepSeek route exposes the ollama-cloud wire model id (repointed 2026-06-15 off api.deepseek.com; lane KEY stays bare deepseek-v4-pro)');
+assert.match(deepseekReasoningRoute.endpoint, /ollama\.com\/api\/chat$/, 'DeepSeek V4 Pro now routes through Ollama Cloud (repointed 2026-06-15 off api.deepseek.com)');
+assert.equal(deepseekReasoningRoute.provider, 'ollama-cloud', 'DeepSeek V4 Pro now routes through the ollama-cloud provider (repointed 2026-06-15)');
 assert.ok(Array.isArray(deepseekReasoningRoute.tools), 'DeepSeek dry-run should expose the full YURI tool loadout');
 
 const deepseekAliasRoute = JSON.parse(execFileSync(
