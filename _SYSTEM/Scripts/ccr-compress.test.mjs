@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   compress, retrieve, makeSentinel, parseSentinel, classifyContent, pruneCache, cachePathFor,
+  ccrCompress,
 } from './ccr-compress.mjs';
 
 let pass = 0, fail = 0;
@@ -108,6 +109,142 @@ ok(/yuri-sentinel.*learning.*global\.md/.test(selfSrc) && /memory.*MEMORY\.md/.t
 
 // ── determinism: no Math.random in the transform path ──
 ok(!/Math\.random\(/.test(selfSrc), 'no Math.random (deterministic transform)');
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// ── Wave-1 spec: 04-ccr-compress-spec.md — 8 required test cases for ccrCompress(body,remaining) ──
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+
+// ── TEST 1: Structural — 50 trailing blank lines collapse to a single newline ─────────────────────
+{
+  const head = '# Module X\n\nThis is real content.\nWith a second line.\n';
+  const body = head + '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'; // 50+ blank lines
+  const r = ccrCompress(body, body.length); // remaining = full length → should fit after structural
+  ok(r.strategy === 'none' || r.strategy === 'structural', `T1 strategy: ${r.strategy} (none or structural)`);
+  // The structural pass must not allow the trailing-blank-run to survive in the output.
+  ok(!/\n\n\n/.test(r.compressed), 'T1: 50 trailing blank lines collapsed (no triple-newline run remains)');
+  ok(r.compressed.length < body.length, 'T1: output is shorter than input (collapsing happened)');
+}
+
+// ── TEST 2: Footer stripping — `## Related` footer is removed; body fits after stripping ─────────
+{
+  const head = '# Module Y\n\nReal body content here.\n## Section\n- item\n';
+  const body = head + '\n## Related\n- foo\n- bar\n- baz\n';
+  const r = ccrCompress(body, body.length);
+  ok(r.strategy === 'none' || r.strategy === 'structural', `T2 strategy: ${r.strategy}`);
+  ok(!/## Related/.test(r.compressed), 'T2: "## Related" footer stripped');
+  ok(/Real body content here/.test(r.compressed), 'T2: real body content preserved');
+}
+
+// ── TEST 3: Semantic — implementation code blocks dropped; interface blocks kept; budget respects ─
+{
+  const interfaceBlock = '```js\nexport function keepThis(x) { return x + 1; }\n```';
+  const implBlockA = '```js\nconst a = 1;\nconst b = 2;\nconst c = a + b;\nconsole.log(c);\n```';
+  const implBlockB = '```js\nlet total = 0;\nfor (let i = 0; i < 100; i++) { total += i; }\n```';
+  const prose = 'PROSE_INTRO_PROSE_INTRO\n';
+  const body = prose + interfaceBlock + '\n' + implBlockA + '\n' + implBlockB + '\nPROSE_OUTRO_PROSE_OUTRO\n';
+  // Pick a remaining value that forces the structural pass to be insufficient → semantic kicks in.
+  const rem = body.length - 30; // need a real shrink
+  const r = ccrCompress(body, rem);
+  ok(['semantic', 'section-aware', 'blind-fallback'].includes(r.strategy), `T3 strategy (semantic+): ${r.strategy}`);
+  ok(/export function keepThis/.test(r.compressed), 'T3: interface block (export) preserved');
+  ok(!/const c = a \+ b/.test(r.compressed) || r.strategy === 'blind-fallback', 'T3: implementation block A dropped (or fallback hit, which is allowed)');
+  ok(Buffer.byteLength(r.compressed, 'utf8') <= rem, `T3: budget respected (${Buffer.byteLength(r.compressed, 'utf8')} <= ${rem})`);
+}
+
+// ── TEST 4: Section-aware fallback — 4 sections, budget 50% → each section gets ~50% of itself ───
+{
+  const sec = (n, fill) => `## Section ${n}\n${fill.map((l, i) => `line ${n}.${i} ${l}`).join('\n')}\n\n`;
+  const fill4 = Array.from({ length: 80 }, (_, i) => `content-${i}-` + 'x'.repeat(20));
+  const fill1 = Array.from({ length: 80 }, (_, i) => `content-${i}-` + 'x'.repeat(20));
+  const fill2 = Array.from({ length: 80 }, (_, i) => `content-${i}-` + 'x'.repeat(20));
+  const fill3 = Array.from({ length: 80 }, (_, i) => `content-${i}-` + 'x'.repeat(20));
+  const body = sec(1, fill1) + sec(2, fill2) + sec(3, fill3) + sec(4, fill4);
+  const half = Math.floor(body.length / 2);
+  const r = ccrCompress(body, half);
+  ok(Buffer.byteLength(r.compressed, 'utf8') <= half, `T4: budget respected (${Buffer.byteLength(r.compressed, 'utf8')} <= ${half})`);
+  // Each section header should be present in a section-aware / semantic / structural result.
+  const headersKept = ['## Section 1', '## Section 2', '## Section 3', '## Section 4'].filter((h) => r.compressed.includes(h));
+  ok(headersKept.length >= 2, `T4: at least 2 of 4 section headers preserved (got ${headersKept.length}, strategy=${r.strategy})`);
+}
+
+// ── TEST 5: Budget respect — compressed length ≤ remaining in ALL cases (fuzz-ish) ──────────────
+{
+  const samples = [
+    'short',
+    'a'.repeat(2000),
+    '# H\n\n' + 'lorem ipsum '.repeat(500),
+    'export function f(){\n' + '  const x = 1;\n'.repeat(200) + '}\n',
+    JSON.stringify({ a: 1, b: [1,2,3], c: { d: 'hello' } }, null, 2) + '\n' + 'x'.repeat(1000),
+    'noise '.repeat(1000) + '\n## Related\n- foo\n- bar\n',
+  ];
+  for (let i = 0; i < samples.length; i++) {
+    for (const rem of [1, 10, 100, 500, samples[i].length, samples[i].length + 100]) {
+      const r = ccrCompress(samples[i], rem);
+      ok(Buffer.byteLength(r.compressed, 'utf8') <= Math.max(0, rem),
+        `T5: budget respected sample[${i}] rem=${rem} (got ${Buffer.byteLength(r.compressed, 'utf8')})`);
+    }
+  }
+}
+
+// ── TEST 6: Reversibility — `retrieve` of the cached hash returns the byte-exact original ────────
+{
+  const body = '# Module Z\n\nCritical implementation detail:\n' + 'detail-'.repeat(500) + '\n## Related\n- noise\n';
+  const r = ccrCompress(body, body.length - 20, { cacheDir }); // forces a shrink → hash present
+  ok(r.hash, 'T6: hash present when over-budget and cacheDir provided');
+  const got = retrieve(r.hash, { cacheDir });
+  ok(got === body, 'T6: retrieve(hash) returns byte-exact original (reversibility)');
+}
+
+// ── TEST 7: Regression — remaining ≥ body.length is a no-op (strategy 'none', lossy false) ───────
+{
+  const body = 'unchanged-please\n'.repeat(50);
+  const r = ccrCompress(body, body.length);
+  ok(r.compressedLength <= r.originalLength, 'T7: compressedLength ≤ originalLength (no expansion)');
+  ok(r.strategy === 'none', `T7: strategy is 'none' (got '${r.strategy}')`);
+  ok(r.lossy === false, 'T7: lossy=false when remaining ≥ body.length');
+  // Load-bearing content must survive the structural pass; trailing whitespace may be normalized.
+  ok(/unchanged-please/.test(r.compressed), 'T7: load-bearing content preserved');
+}
+
+// ── TEST 8: Edge cases — empty body & body shorter than remaining → strategy 'none', lossy false ─
+{
+  const r1 = ccrCompress('', 1000);
+  ok(r1.compressed === '' && r1.strategy === 'none' && r1.originalLength === 0, 'T8a: empty body → empty, strategy=none, origBytes=0');
+  const short = 'tiny';
+  const r2 = ccrCompress(short, 1000);
+  ok(r2.strategy === 'none' && r2.lossy === false && r2.compressedLength <= r2.originalLength,
+    'T8b: body shorter than remaining → strategy=none, lossy=false, no expansion');
+  // Extra edge: remaining=0 → empty out, strategy='none'
+  const r3 = ccrCompress('something', 0);
+  ok(r3.compressed === '' && r3.strategy === 'none', 'T8c: remaining=0 → empty out, strategy=none');
+  // Extra edge: null/undefined body → empty, no crash
+  const r4 = ccrCompress(null, 100);
+  ok(r4.compressed === '' && r4.originalLength === 0, 'T8d: null body → empty, no crash');
+}
+
+// ── BONUS: structural pass is non-lossy when it CAN handle the budget ──────────────────────────
+{
+  // Body with 20 trailing blank lines + ## Related footer; budget = body.length - 5 (small over).
+  // After structural stripping, it should fit. The "load-bearing" content must survive.
+  const body = 'real content\nreal line 2\n' + '\n\n\n\n\n## Related\n- x\n- y\n';
+  const r = ccrCompress(body, body.length - 5);
+  ok(['structural', 'none'].includes(r.strategy), `BONUS: small-over budget resolved at structural/none (got '${r.strategy}')`);
+  if (r.strategy !== 'blind-fallback') {
+    ok(r.lossy === false, `BONUS: structural/none path is non-lossy (got lossy=${r.lossy})`);
+  }
+  ok(/real content/.test(r.compressed), 'BONUS: load-bearing content preserved');
+  ok(Buffer.byteLength(r.compressed, 'utf8') <= body.length - 5, 'BONUS: budget respected');
+}
+
+// ── BONUS: hard slice of a body with no compressible structure falls through to blind-fallback ──
+{
+  // A body with no blank runs, no code blocks, no sections, no footer — the only way to fit is slice.
+  const body = 'x'.repeat(1000);
+  const r = ccrCompress(body, 100);
+  ok(r.strategy === 'blind-fallback', `BONUS: incompressible body → blind-fallback (got '${r.strategy}')`);
+  ok(Buffer.byteLength(r.compressed, 'utf8') <= 100, 'BONUS: blind-fallback respects budget');
+  ok(r.lossy === true, 'BONUS: blind-fallback is honestly marked lossy=true');
+}
 
 // cleanup
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch { /* best-effort */ }

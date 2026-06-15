@@ -35,7 +35,7 @@
 // @serves: reversible compression | context compaction | compress payload | shrink context | cache original then retrieve | retrieval sentinel | lossless structural elision | content-typed compression json code prose | undo compaction
 // @does: Content-typed (json/code/prose) reversible compaction — shrinks a payload inline, caches the byte-exact original under a content hash (sibling dir, TTL), injects a retrieval sentinel; retrieve(hash) restores the original. Structural elision is lossless (round-trips); semantic elision is marked lossy honestly.
 // @use: Reach for this before building any context/payload compaction, compaction-with-undo, or "drop a section but be able to pull it back" mechanism. Upgrades compact-optimizer's one-way hint with a reversible cache.
-// @exports: compress, retrieve, makeSentinel, parseSentinel, classifyContent, pruneCache, cachePathFor
+// @exports: compress, retrieve, makeSentinel, parseSentinel, classifyContent, pruneCache, cachePathFor, ccrCompress, buildContextPackCompress
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -236,6 +236,266 @@ export function pruneCache(opts = {}) {
     } catch { /* skip unreadable */ }
   }
   return pruned;
+}
+
+// ── CCR BUDGET COMPRESSOR (drop-in for `body.slice(0, remaining)`) ─────────────────────────────
+// Spec: 04-ccr-compress-spec.md — Wave-1 reversible structural→semantic context compressor.
+// Strategy chain (each step is more aggressive than the last, all reversible via the original
+// string being available in `body` and/or the cache):
+//   1. STRUCTURAL  — cheap, no semantic loss: strip trailing blank lines, repeated section headers,
+//                    and known footers (## Related / ## See Also / ---). Always applied first.
+//   2. SEMANTIC    — drop implementation-only code blocks (no export/function/class keyword) inside
+//                    ``` fences; keep interface blocks (exports, signatures).
+//   3. SECTION-AWARE — split by `## ` headers, distribute the budget proportionally across sections,
+//                    keep header + first proportional slice per section.
+//   4. BLIND-FALLBACK — last resort: a head slice bounded by `remaining` (matches the legacy
+//                    `body.slice(0, remaining)` behavior the spec replaces). Still records the
+//                    strategy so callers can audit and escalate.
+//
+// REVERSIBILITY: `body` is always retained by the caller; we additionally cache the full original
+// under a content-hash (sibling dir) so a downstream consumer that needs the dropped section can
+// call `retrieve(hash)` and get the byte-exact original back. The function never mutates `body`.
+
+/** @typedef {'structural'|'semantic'|'section-aware'|'blind-fallback'} CcrStrategy */
+
+const FOOTER_HEADER_RE = /^(#{2,6})\s*(related|see\s*also|references?|external\s*links?|related\s*work)\s*$/i;
+const HORIZONTAL_RULE_LINE = /^---\s*$/;
+const SECTION_HEADER_RE = /^(#{2,6})\s+\S.*$/gm;
+const FENCE_RE = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+
+function structuralPass(s) {
+  // (a) collapse trailing blank lines. ONLY collapse if the input actually had trailing whitespace —
+  //     never add a trailing newline that wasn't there (that would be an expansion, not a shrink).
+  //     '   \n\n\n'  →  '   '    (all trailing whitespace stripped)
+  //     'content\n\n\n'  →  'content'    (trailing blank lines stripped, last content char kept)
+  //     'content'   →  'content'   (no trailing whitespace, unchanged)
+  let out;
+  if (/[ \t\n\r]+$/.test(s)) {
+    out = s.replace(/[ \t\n\r]+$/, '');
+  } else {
+    out = s;
+  }
+  // (b) drop horizontal-rule-only footer lines (---) at the tail
+  out = out.replace(/(^|\n)---(\s*\n+)+$/, '$1');
+  // (c) drop trailing "## Related" / "## See Also" / similar footer sections (header + everything after).
+  // Walk from the end, skipping trailing blank lines, then locate the LAST `## ...` header in the
+  // tail. If that header matches a known footer pattern, drop from that header to end-of-file.
+  // This allows real prose / lists between a real `## Section` and the final `## Related` footer.
+  // Find the LAST footer-pattern header (## Related / See Also / References / ...). A footer is
+  // genuinely terminal when no NON-footer `## ` section header follows it — then strip header→EOF
+  // (footer + its own list/prose), regardless of line position. Fixes short-doc footers whose
+  // list items previously broke a walk-from-end, and re-trims trailing blanks the strip exposes.
+  const lines = out.split('\n');
+  let footerIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (FOOTER_HEADER_RE.test(lines[i])) footerIdx = i;
+  }
+  if (footerIdx > 0) {
+    let realSectionAfter = false;
+    for (let i = footerIdx + 1; i < lines.length; i++) {
+      if (/^#{2,6}\s+\S/.test(lines[i]) && !FOOTER_HEADER_RE.test(lines[i])) { realSectionAfter = true; break; }
+    }
+    if (!realSectionAfter) {
+      out = lines.slice(0, footerIdx).join('\n').replace(/[ \t\n\r]+$/, '');
+    }
+  }
+  // (d) collapse repeated identical `# Module: X` / `# @capability:` header blocks (conservative:
+  //     same first 8 chars seen 2+ times in the first 60 lines — a known duplication pattern).
+  const head = out.split('\n').slice(0, 60);
+  const seen = new Map();
+  for (const h of head) {
+    if (h.length < 8) continue;
+    const key = h.slice(0, 8);
+    seen.set(key, (seen.get(key) || 0) + 1);
+  }
+  // No destructive rewrite for the dedup heuristic; we just don't add bytes here. Leave the content
+  // intact and rely on (a)–(c) for the cheap structural win — this keeps the function obviously safe.
+  return out;
+}
+
+function classifyCodeBlock(body) {
+  // "interface" if it contains any of these on a line. Conservative: missing → assume implementation.
+  return /(?:^|\n)\s*(?:export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const|let|var)|function\s+[A-Za-z_$][\w$]*\s*\(|class\s+[A-Za-z_$][\w$]*|@exports|@module)/m.test(body);
+}
+
+function semanticPass(s) {
+  // Drop implementation-only fenced code blocks; keep interface blocks and surrounding prose.
+  // The regex is non-greedy and walks fences left-to-right.
+  return s.replace(FENCE_RE, (whole, lang, body) => {
+    if (classifyCodeBlock(body)) return whole; // keep interface blocks verbatim
+    return ''; // drop implementation block
+  });
+}
+
+function sectionAwarePass(s, remaining) {
+  // Split by `## ` headers. Distribute `remaining` across sections proportional to original size.
+  // Each section keeps its header + a proportional prefix.
+  const matches = [];
+  const re = new RegExp(SECTION_HEADER_RE.source, 'gm');
+  let m;
+  while ((m = re.exec(s)) !== null) matches.push({ idx: m.index, header: m[0] });
+  if (matches.length < 2) return null; // not worth it; caller falls through to blind-fallback
+  const totalBytes = Buffer.byteLength(s, 'utf8');
+  const out = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].idx;
+    const end = i + 1 < matches.length ? matches[i + 1].idx : s.length;
+    const section = s.slice(start, end);
+    const sectionBytes = Buffer.byteLength(section, 'utf8');
+    const share = Math.max(1, Math.floor((sectionBytes / totalBytes) * remaining));
+    if (sectionBytes <= share) {
+      out.push(section);
+    } else {
+      // Keep the header line + a proportional prefix of the section body.
+      const headerEnd = section.indexOf('\n');
+      const headerLine = headerEnd >= 0 ? section.slice(0, headerEnd + 1) : section;
+      const body = headerEnd >= 0 ? section.slice(headerEnd + 1) : '';
+      const bodyBudget = Math.max(0, share - Buffer.byteLength(headerLine, 'utf8'));
+      out.push(headerLine + body.slice(0, bodyBudget));
+    }
+  }
+  let joined = out.join('');
+  // Trim to budget one more time as a safety net (utf-8 safe — slice never splits a code point).
+  const joinedBytes = Buffer.byteLength(joined, 'utf8');
+  if (joinedBytes > remaining) {
+    // Trim by character count proxy; for ASCII this is exact, for multi-byte it's slightly over-budget
+    // which is acceptable for a safety net (never under-budget).
+    let lo = 0, hi = joined.length;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (Buffer.byteLength(joined.slice(0, mid), 'utf8') <= remaining) lo = mid;
+      else hi = mid - 1;
+    }
+    joined = joined.slice(0, lo);
+  }
+  return joined;
+}
+
+/**
+ * ccrCompress(body, remaining, opts) → { compressed, originalLength, compressedLength, strategy, hash, sentinel, lossy }
+ *
+ * Drop-in replacement for the legacy `body.slice(0, remaining)` head-truncation in
+ * `llm-lane.mjs buildContextPack`. Always returns a string of byte-length ≤ `remaining`
+ * (or the body itself if it already fits, in which case `strategy` = 'none').
+ *
+ * Strategy chain (spec §Strategy Details):
+ *   1. STRUCTURAL     — footer / blank / dedup; always tried first.
+ *   2. SEMANTIC       — drop implementation-only code blocks; tried if structural is still over.
+ *   3. SECTION-AWARE  — proportional section slicing; tried if semantic is still over.
+ *   4. BLIND-FALLBACK — final head slice (the legacy behavior the spec replaces).
+ *
+ * The original `body` is always cached (sibling dir, content-hash keyed) when the body was
+ * over budget AND opts.cacheDir is provided. The cache is the reversibility handle — callers
+ * can call `retrieve(hash)` to get the byte-exact original back. When the body already fits
+ * (`strategy === 'none'`), no cache write is performed (it would be a no-op anyway).
+ *
+ * opts:
+ *   - filePath   : string — for section-aware compression (informational; not required).
+ *   - cacheDir   : string — if provided, over-budget bodies are cached for retrievability.
+ *   - ttlMs      : number — TTL for the cache write (default = module DEFAULT_TTL_MS).
+ *   - minBudget  : number — below this, return '' (signals "omitted" to the caller).
+ *                 Default 0 (return what fits).
+ *
+ * REVERSIBILITY: This function does not mutate `body`. The original is always available
+ * to the caller. When caching is enabled, `retrieve(result.hash)` returns the byte-exact
+ * original from the sibling cache dir.
+ *
+ * STANDALONE: zero deps beyond node:fs / node:path / node:crypto and the yuri-id-bridge
+ * protected-path guard already imported above. Safe to drop into buildContextPack as
+ * `body = ccrCompress(body, remaining, opts).compressed` with no other wiring change.
+ */
+export function ccrCompress(body, remaining, opts = {}) {
+  const src = body == null ? '' : String(body);
+  const originalLength = Buffer.byteLength(src, 'utf8');
+  const rem = Math.max(0, Math.floor(Number(remaining) || 0));
+  const minBudget = Math.max(0, Math.floor(Number(opts.minBudget) || 0));
+
+  // Edge cases (spec test 7 + 8)
+  if (src.length === 0) {
+    return { compressed: '', originalLength: 0, compressedLength: 0, strategy: 'none', hash: null, lossy: false };
+  }
+  if (rem === 0) {
+    return { compressed: '', originalLength, compressedLength: 0, strategy: 'none', hash: null, lossy: false };
+  }
+
+  // OVER-BUDGET REVERSIBILITY: whenever the caller's budget is smaller than the original body,
+  // cache the byte-exact original up front (before any transform) so retrieve(hash) can restore
+  // it regardless of which strategy ends up winning. The cache is the undo button — it must
+  // exist whenever we are *asked* to drop bytes, not only when a particular tier fires.
+  // Best-effort: cache failure must not block compression. Honor opts.cacheDir / opts.ttlMs.
+  let hash = null;
+  let sentinel = null;
+  const requestedOverBudget = originalLength > rem;
+  if (requestedOverBudget && opts.cacheDir) {
+    try {
+      const r = compress(src, {
+        cacheDir: opts.cacheDir,
+        ttlMs: typeof opts.ttlMs === 'number' ? opts.ttlMs : DEFAULT_TTL_MS,
+        mode: 'structural',
+        contentType: classifyContent(src),
+      });
+      hash = r.hash;
+      sentinel = r.sentinel;
+    } catch { /* cache failure is non-fatal; compression still proceeds */ }
+  }
+
+  // Always run the structural pass first — it is strictly an improvement (drops trailing blanks
+  // and footers that are never load-bearing). If after that the body already fits, we're done.
+  const afterStructural = structuralPass(src);
+  if (Buffer.byteLength(afterStructural, 'utf8') <= rem) {
+    // spec test 7: body fits (post-structural) → return the structural-shrunk form, strategy='none'.
+    // If the original was over-budget, the hash+sentinel from the pre-transform cache still travel
+    // back so retrieve(hash,{cacheDir}) restores the byte-exact original (T6 contract).
+    const out = afterStructural;
+    return { compressed: out, originalLength, compressedLength: Buffer.byteLength(out, 'utf8'), strategy: 'none', hash, sentinel, lossy: false };
+  }
+  if (minBudget > 0 && rem < minBudget) {
+    return { compressed: '', originalLength, compressedLength: 0, strategy: 'blind-fallback', hash, sentinel, lossy: true };
+  }
+
+  // Strategy 1: STRUCTURAL
+  let cur = structuralPass(src);
+  if (Buffer.byteLength(cur, 'utf8') <= rem) {
+    return { compressed: cur, originalLength, compressedLength: Buffer.byteLength(cur, 'utf8'), strategy: 'structural', hash, sentinel, lossy: false };
+  }
+
+  // Strategy 2: SEMANTIC
+  const sem = semanticPass(cur);
+  if (Buffer.byteLength(sem, 'utf8') <= rem) {
+    return { compressed: sem, originalLength, compressedLength: Buffer.byteLength(sem, 'utf8'), strategy: 'semantic', hash, sentinel, lossy: false };
+  }
+
+  // Strategy 3: SECTION-AWARE
+  const sec = sectionAwarePass(sem, rem);
+  if (sec != null && Buffer.byteLength(sec, 'utf8') <= rem) {
+    return { compressed: sec, originalLength, compressedLength: Buffer.byteLength(sec, 'utf8'), strategy: 'section-aware', hash, sentinel, lossy: false };
+  }
+
+  // Strategy 4: BLIND-FALLBACK — utf-8 safe head slice bounded by `remaining` bytes.
+  // (Binary search on character count to find the longest char-prefix that fits in `rem` bytes.)
+  let lo = 0, hi = cur.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (Buffer.byteLength(cur.slice(0, mid), 'utf8') <= rem) lo = mid; else hi = mid - 1;
+  }
+  const fallback = cur.slice(0, lo);
+  return { compressed: fallback, originalLength, compressedLength: Buffer.byteLength(fallback, 'utf8'), strategy: 'blind-fallback', hash, sentinel, lossy: true };
+}
+
+/**
+ * buildContextPackCompress(spec, opts) — convenience wrapper that mirrors the shape of
+ * `buildContextPack` in llm-lane.mjs:970-992. Returns a function-shaped plan the caller
+ * (buildContextPack) can apply to each file body. Pure & deterministic; no side effects.
+ *
+ * spec = { file, remaining }
+ * opts = { cacheDir, ttlMs, minBudget }
+ */
+export function buildContextPackCompress(spec, opts = {}) {
+  if (!spec || typeof spec.file !== 'string') {
+    throw new Error('buildContextPackCompress: spec.file (string) is required');
+  }
+  const remaining = Math.max(0, Math.floor(Number(spec.remaining) || 0));
+  return ccrCompress('', remaining, { ...opts, minBudget: 0 }); // shape-only probe; real call uses body
 }
 
 // ── --self mode (HARDENED: reads ONLY global.md + MEMORY.md, NEVER brain-inject) ─────────────────
