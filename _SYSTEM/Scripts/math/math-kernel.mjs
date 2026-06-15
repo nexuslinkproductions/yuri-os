@@ -224,7 +224,9 @@ export function pearson(xs, ys) {
     sxx += dx * dx;
     syy += dy * dy;
   }
-  return (sxx > 0 && syy > 0) ? roundStable(sxy / Math.sqrt(sxx * syy)) : 0;
+  // Clamp to [-1,1] (mirrors cosineSimilarity) — float accumulation on wide-magnitude inputs can push
+  // |r| a hair past 1; correlation is defined on [-1,1]. spearman delegates here, so this covers both.
+  return (sxx > 0 && syy > 0) ? roundStable(clampNumber(sxy / Math.sqrt(sxx * syy), -1, 1)) : 0;
 }
 
 export function spearman(xs, ys) {

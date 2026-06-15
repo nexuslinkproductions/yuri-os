@@ -40,5 +40,18 @@ All findings below are DETERMINISTIC harness output (evidence), not model opinio
 3. **Resolve the quantum G2/G4 OWNER-VERIFY flag** — verify or down-scope the literature-recalled joints.
 4. **(optional) nano-swarm deep-sim the non-energy clusters** — extend the sim coverage to the full 56.
 
+## Non-Energy Cluster Findings (nano-swarm pass, 2026-06-15)
+Dispatched 2 peer lanes: NS1 (minimax) + NS2 (deepseek-flash).
+- **NS1 — nexus-stats/distrib, math-kernel (stats half), yuri-phi, yuri-mdl — DELIVERED** (findings salvaged from the lane log; it skipped persisting its file):
+  - nexus-stats / nexus-distrib: shims, solid, no defects. yuri-phi: clean. yuri-mdl: well-defended, documented limits.
+  - **math-kernel REAL DEFECT (verified + FIXED):** `pearson`/`spearman` did NOT clamp to [-1,1] (unlike `cosineSimilarity`) → float accumulation on wide-magnitude inputs could push |r| past 1. Fixed with `clampNumber(.,-1,1)` on pearson's return (spearman delegates). 844/844 green; pearson +1/-1 exact.
+  - math-kernel noted edge-cases (follow-up; mostly caller-contract/documented): empty median/percentile guard, weightedStdDev NaN guard, goldenAngle overflow at n≈4.2e307.
+- **NS2 — similarity/hashing (jaccard/minhash/fsrs/eml-tree) — FAILED** (lane `empty_output_stop`); this cluster is still UNASSESSED → remaining follow-up (re-dispatch).
+
+## POST-ASSESSMENT ACTIONS (2026-06-15)
+- Headline 44 mutation survivors → **CLOSED to 0 (mutation score 42.1% → 100%)** via per-term value/sign invariants in yuri-energy-invariants (commit be74a989). computeU's term-mutation grey-zone is exhaustive.
+- math-kernel pearson/spearman [-1,1] clamp added.
+- REMAINING: re-dispatch NS2 (similarity/hashing); the two-sided ground-truth-label gap (the armed keystone loop fills it over time); quantum G2/G4 OWNER-VERIFY.
+
 ## RESULT_LABEL
-`09AS_MATH_BASE_SIM_ASSESSMENT_P_PASS` — assessment complete for the energy/transfer clusters (deterministic-evidence-backed); non-energy deep-sims flagged as follow-up. Headline: 44 mutation survivors = the top hardening target; the rest of the base is invariant-/proof-/falsification-gate GREEN.
+`09AS_MATH_BASE_SIM_ASSESSMENT_X_PASS` — energy + transfer clusters deep-sim-assessed; the headline grey-zone (44 mutation survivors) CLOSED to 100% kill; NS1 non-energy cluster assessed + its one real defect (pearson/spearman clamp) fixed; NS2 similarity cluster pending re-dispatch. Base is invariant-/proof-/falsification-gate GREEN with computeU's mutation layer now exhaustive.
