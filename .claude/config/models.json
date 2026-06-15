@@ -177,7 +177,7 @@
       "protocol": "ollama-cloud",
       "context_window": 1048576,
       "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
-      "max_output_source": "REPOINTED 2026-06-15 (owner): the `deepseek`/`ds`/`deepseek-v4-pro` lane now routes through Ollama Cloud (deepseek-v4-pro:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Owner: deepseek-v4-pro is a favourite — powerful, fine for very high complexity + long runs. Real output cap unprobed → high/xhigh set to the proven glm/minimax ceiling 131072; postChatOllamaCloud memoizes any cap a 400 reveals.",
+      "max_output_source": "REPOINTED 2026-06-15 (owner): the `deepseek`/`ds`/`deepseek-v4-pro` lane now routes through Ollama Cloud (deepseek-v4-pro:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Owner: deepseek-v4-pro is a favourite — powerful, fine for very high complexity + long runs. Output cap PROBED 2026-06-15 via live 400: ollama-cloud caps deepseek-v4-pro:cloud OUTPUT at 65536 (xhigh request 131072 → 400 → memoized 65536, same ceiling as nemotron); model_output_caps clamps to 65536 at dispatch. Input pool still ~1M (deepseek is the only ollama-cloud family delivering true 1M input).",
       "timeout_ms": 600000
     },
     "deepseek-v4-flash": {
@@ -189,7 +189,7 @@
       "protocol": "ollama-cloud",
       "context_window": 1048576,
       "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
-      "max_output_source": "REPOINTED 2026-06-15 (owner): the `ds-flash`/`flash`/`deepseek-v4-flash` lane now routes through Ollama Cloud (deepseek-v4-flash:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Fast tier; real cap unprobed → 131072 default, memoized on 400.",
+      "max_output_source": "REPOINTED 2026-06-15 (owner): the `ds-flash`/`flash`/`deepseek-v4-flash` lane now routes through Ollama Cloud (deepseek-v4-flash:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Fast tier; output cap PROBED 2026-06-15 via live 400 = 65536 (not 131072); model_output_caps clamps to 65536 at dispatch.",
       "timeout_ms": 600000
     },
     "mimo-v2.5-pro[1m]": {
@@ -265,7 +265,7 @@
       "protocol": "ollama-cloud",
       "context_window": 1048576,
       "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
-      "model_output_caps": { "nemotron-3-ultra:cloud": 65536, "deepseek-v4-pro:cloud": 131072, "deepseek-v4-flash:cloud": 131072 },
+      "model_output_caps": { "nemotron-3-ultra:cloud": 65536, "deepseek-v4-pro:cloud": 65536, "deepseek-v4-flash:cloud": 65536 },
       "max_output_source": "Ollama Cloud (ollama.com /api/chat, Bearer OLLAMA_API_KEY) — FIRST-CLASS PEER lane equal to deepseek/mimo: routed through llm-lane.mjs so it gets the full YURI NANO SWARM loadout + read/grep/search/xref/bash/write/edit toolset + coreOnDispatch/coreOnResult governance, NOT the thin ollama-lane.mjs path. Cloud model IDs carry a :cloud suffix (live-verified 2026-06-14). Default glm-5.1:cloud is overridable per call with --model. Pro plan = 3 concurrent → fan out 3 `ollama-cloud --model <X>:cloud` calls for a cross-family peer nano-swarm. Owner-selected build roster (research ollama-cloud-model-selection-2026-06-14.md): nemotron-3-ultra:cloud, glm-5.1:cloud, minimax-m3:cloud, kimi-k2.7-code:cloud (added 2026-06-14, live-verified in catalog; ollama-native full-Claude-Code bridge: `ollama launch claude --model kimi-k2.7-code:cloud`), gemma4:31b-cloud (added 2026-06-14, owner-selected; catalog lists base `gemma4:31b`, cloud variant addressed via the `-cloud` suffix per `ollama run gemma4:31b-cloud`; live-smoke-verified), deepseek-v4-pro:cloud + deepseek-v4-flash:cloud (added 2026-06-15, owner — these REPLACE the retired paid api.deepseek.com lane; the `deepseek`/`ds`/`ds-flash` aliases now resolve to Ollama Cloud; full 6-model blast roster = nemotron-3-ultra + glm-5.1 + minimax-m3 + kimi-k2.7-code + deepseek-v4-pro + deepseek-v4-flash, all usable for very high complexity + long runs). CAPABILITY (owner 2026-06-14, LIVE-VERIFIED via 400 errors): context pool up to 1M (input). CONTEXT NUANCE (owner 2026-06-15): deepseek-v4-pro:cloud / deepseek-v4-flash:cloud appear to be the ONLY ollama-cloud models that actually deliver the full 1M INPUT context — the others (glm-5.1, minimax-m3, nemotron-3-ultra, kimi-k2.7-code) advertise 1M natively at their own providers but Ollama appears to cap them earlier; treat non-deepseek 1M as UNVERIFIED (real per-model input cap discovered+memoized on 400). OUTPUT caps differ per model: glm-5.1 = 131072, minimax-m3 = 131072 (xhigh), nemotron-3-ultra = 65536. 250k was an over-estimate — all three 400 above their real cap. So xhigh=131072 (glm/minimax real max). RESOLVED 2026-06-14 (the per-model follow-up): per-model output caps now expressed in `model_output_caps` above — llm-lane clamps maxTokens to the model's cap at dispatch so nemotron runs at 65536 from turn 1 (no manual --reasoning flag), AND postChatOllamaCloud memoizes any cap discovered via a 400 across the whole tool-loop (kills the per-turn re-discovery 400 that made nemotron look stuck). Unknown models (e.g. kimi-k2.7-code, cap not yet probed) fall through to discovery+memo.",
       "timeout_ms": 600000
     }
