@@ -66,7 +66,7 @@ export function firingToPrediction(firing) {
 // for a given (firing, signals), the result is a pure function of (firing, signals).
 // Evaluation order cannot change which rule has the lowest precedence number among matches.
 const RULES = [
-  { id: 'R1', effect: 'reverted',             test: (f, s) => !!s.isReverted?.(f.corrId || f.runId) },
+  { id: 'R1', effect: 'reverted',             test: (f, s) => !!s.isReverted?.(f.corrId || f.runId, f) },
   { id: 'R2', effect: 'retried-and-succeeded', test: (f, s) => !!s.isRetriedAndSucceeded?.(f.corrId || f.runId) },
   { id: 'R3', effect: 'survived',              test: (f, s) => !!s.isPromoted?.(f.corrId || f.runId) },
 ];

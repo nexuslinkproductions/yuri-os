@@ -75,8 +75,9 @@ function normalizeRunId(runId) {
 // Best-effort: did a commit subject/body mention this runId (i.e. did the work get reverted)?
 // Reads git log (capped) once per process and caches to disk so repeated calls are cheap.
 // FAIL-CLOSED: empty runId → false. Not in a git repo → false. Git log unreadable → false.
-function buildRevertedReader({ gitLogCacheFile = DEFAULT_GIT_LOG_CACHE_FILE, gitLogMax = DEFAULT_GIT_LOG_MAX, gitCwd = process.cwd() } = {}) {
+function buildRevertedReader({ gitLogCacheFile = DEFAULT_GIT_LOG_CACHE_FILE, gitLogMax = DEFAULT_GIT_LOG_MAX, gitCwd = process.cwd(), claimTransitionFile = DEFAULT_CLAIM_TRANSITION_FILE, preloadedClaimTransitions } = {}) {
   let cache = null; // string blob of git log; null = not yet built
+  let revertIdx = null; // Map<claimId, number[]> — ts(ms) at which the claim was `worsened` (new/deeper RETRACT)
   function ensureCache() {
     if (cache !== null) return cache;
     if (existsSync(gitLogCacheFile)) {
@@ -97,7 +98,45 @@ function buildRevertedReader({ gitLogCacheFile = DEFAULT_GIT_LOG_CACHE_FILE, git
       return cache;
     }
   }
-  return function isReverted(runId) {
+  // Claim-path index (keystone step 2): map each claim id → ts(ms) of every claim-transition-trace
+  // record in which it appeared as `worsened` (became a new-or-deeper RETRACT over-claim). Built once,
+  // cached, pure read. FAIL-CLOSED: unreadable/missing file → empty index → no claim ever reverts.
+  function ensureRevertIdx() {
+    if (revertIdx !== null) return revertIdx;
+    revertIdx = new Map();
+    let records;
+    try { records = preloadedClaimTransitions ?? readJSONLFile(claimTransitionFile); } catch { records = []; }
+    for (const rec of records) {
+      if (!rec || !Array.isArray(rec.worsened)) continue;
+      const t = Date.parse(rec.nowIso || rec.ts || '');
+      if (!Number.isFinite(t)) continue;
+      for (const w of rec.worsened) {
+        const id = w && w.id != null ? String(w.id) : null;
+        if (!id) continue;
+        if (!revertIdx.has(id)) revertIdx.set(id, []);
+        revertIdx.get(id).push(t);
+      }
+    }
+    return revertIdx;
+  }
+  return function isReverted(runId, firing) {
+    // CLAIM PATH (forward outcome join): a firing that judged specific claims (rec.claimIds, stamped by
+    // gateClaimTransition) is "reverted" iff any judged claim LATER became a new-or-deeper RETRACT
+    // (appeared in a claim-transition-trace `worsened` array) STRICTLY AFTER this firing. Strict-after
+    // excludes the firing's own coincident observer record.
+    const claimIds = firing && Array.isArray(firing.claimIds) ? firing.claimIds : null;
+    if (claimIds && claimIds.length) {
+      const idx = ensureRevertIdx();
+      const firedAt = Date.parse((firing && firing.ts) || '');
+      for (const cid of claimIds) {
+        const times = idx.get(String(cid));
+        if (!times || !times.length) continue;
+        if (!Number.isFinite(firedAt)) return true; // firing has no parseable ts → any worsening of a judged claim counts
+        if (times.some((t) => t > firedAt)) return true;
+      }
+      return false; // claim path evaluated, no SUBSEQUENT retract — do NOT fall through to the git path
+    }
+    // NON-CLAIM PATH: best-effort git-substring on the runId (unchanged).
     const rid = normalizeRunId(runId);
     if (!rid) return false;
     const blob = ensureCache();

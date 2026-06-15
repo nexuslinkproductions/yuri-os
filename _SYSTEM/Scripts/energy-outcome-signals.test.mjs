@@ -95,6 +95,41 @@ describe('isReverted', () => {
   });
 });
 
+// ── isReverted claim-path (keystone step 2) ──────────────────────────────────
+describe('isReverted claim-path (claim-transition join)', () => {
+  test('judged claim later worsened (after firing) => reverted', () => {
+    const sig = makeRevertedSignal({ preloadedClaimTransitions: [
+      { nowIso: '2026-06-15T13:00:00Z', worsened: [{ id: 'claimX', from: 0, to: 3 }] },
+    ] });
+    assert.equal(sig('cc', { ts: '2026-06-15T12:00:00Z', claimIds: ['claimX'] }), true);
+  });
+  test('judged claim never worsened => not reverted', () => {
+    const sig = makeRevertedSignal({ preloadedClaimTransitions: [
+      { nowIso: '2026-06-15T13:00:00Z', worsened: [{ id: 'other', from: 0, to: 2 }] },
+    ] });
+    assert.equal(sig('cc', { ts: '2026-06-15T12:00:00Z', claimIds: ['claimX'] }), false);
+  });
+  test('worsening STRICTLY BEFORE the firing does not count (excludes own coincident record)', () => {
+    const sig = makeRevertedSignal({ preloadedClaimTransitions: [
+      { nowIso: '2026-06-15T11:00:00Z', worsened: [{ id: 'claimX', from: 0, to: 3 }] },
+    ] });
+    assert.equal(sig('cc', { ts: '2026-06-15T12:00:00Z', claimIds: ['claimX'] }), false);
+  });
+  test('firing with no parseable ts => any worsening of a judged claim counts', () => {
+    const sig = makeRevertedSignal({ preloadedClaimTransitions: [
+      { nowIso: '2026-06-15T13:00:00Z', worsened: [{ id: 'claimX' }] },
+    ] });
+    assert.equal(sig('cc', { claimIds: ['claimX'] }), true);
+  });
+  test('non-claim firing (no claimIds) falls back to the git path', () => {
+    const sig = makeRevertedSignal({
+      preloadedClaimTransitions: [{ nowIso: '2026-06-15T13:00:00Z', worsened: [{ id: 'claimX', from: 0, to: 3 }] }],
+      gitLogCacheFile: join(tmp, 'no-such-cache.txt'), gitCwd: tmp,
+    });
+    assert.equal(sig('claimX'), false); // no firing => git path; empty cache => false
+  });
+});
+
 // ── isRetriedAndSucceeded ────────────────────────────────────────────────────
 describe('isRetriedAndSucceeded', () => {
   test('reject then later accept for the same runId ⇒ true', () => {
