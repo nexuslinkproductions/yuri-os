@@ -18,18 +18,55 @@
 // @serves: reliable lane dispatch | force a nano lane to EXECUTE not just plan | artifact-gated design-execute split | re-prompt a plan-stopping lane | author tests / thread integration via peers reliably
 // @does: 2-stage (design->execute) ollama-cloud dispatch that GATES on a produced artifact (file exists+fresh + node --test green) and auto-re-prompts the execute lane until the artifact appears or K attempts exhaust.
 // @use: dispatchGated({ task, designModel, executeModel, artifactPath, testCmd, contextFiles }) when a single lane keeps returning a plan instead of writing the file/tests. NOT for bounded build-a-module tasks (those already execute — dispatch them directly).
-// HYDRATION (known gap, 2026-06-15 first live use): the default runLane = nano-external.defaultLlmLaneRunner spawns `node llm-lane.mjs` DIRECTLY, which does NOT hydrate the keychain OLLAMA_API_KEY the `ai` wrapper provides. So the design lane fails missing-key (no spec) unless called from an ALREADY-HYDRATED env (the live nano-swarm tick, or a shell with OLLAMA_API_KEY exported). FOLLOW-UP: inject a runLane that routes through `_SYSTEM/Scripts/ai llm <lane> --model <m> --reasoning <r>` (which hydrates) + inlines contextFiles into the prompt (ai llm does not forward --out/--context). The design->execute+artifact-gate CONTROL FLOW is proven (10/10 hermetic); only the runner's hydration needs this adapter.
-// @exports: dispatchGated, defaultCheckArtifact, buildDesignPrompt, buildExecutePrompt, OLLAMA_LANE
+// @exports: dispatchGated, defaultCheckArtifact, buildDesignPrompt, buildExecutePrompt, aiHydratedLlmRunner, defaultLlmLaneRunner, OLLAMA_LANE
+// HYDRATION (FIXED 2026-06-16): the default runLane is now `aiHydratedLlmRunner`, which spawns
+// `bash <repo>/_SYSTEM/Scripts/ai llm <lane> <prompt> --out <f> [--model --reasoning --max-iters --context]`.
+// The `ai` wrapper hydrates the macOS-Keychain OLLAMA_API_KEY BEFORE exec-ing llm-lane.mjs, then forwards
+// EVERY remaining arg verbatim (`exec node llm-lane.mjs "$@"`), so --out/--context/--model/--reasoning/--max-iters
+// all pass through unchanged — the earlier "ai llm drops --out/--context" assumption was WRONG (disproven by a
+// dry-run: hasKey:true + contextChars>0 with --context fed). This module NEVER reads the key itself; the wrapper
+// owns hydration. The original `defaultLlmLaneRunner` (spawns `node llm-lane.mjs` directly, NO hydration) stays
+// exported for an already-hydrated caller (the live nano-swarm tick). Control flow proven (10/10 hermetic).
 
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { defaultLlmLaneRunner } from './nano-external.mjs';
+// re-exported: the NON-hydrated runner (spawns `node llm-lane.mjs` directly), for callers already in a
+// hydrated env (the live nano-swarm tick). dispatchGated defaults to aiHydratedLlmRunner instead.
+export { defaultLlmLaneRunner } from './nano-external.mjs';
 
 const REPO_ROOT = process.env.YURI_REPO_ROOT
   || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
 export const OLLAMA_LANE = 'ollama-cloud';
+
+const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname);
+const AI_WRAPPER = path.join(SCRIPT_DIR, 'ai');
+let _runSeq = 0;
+
+// ── hydrated runner ────────────────────────────────────────────────────────────
+// Routes through the `ai` bash wrapper so the macOS-Keychain OLLAMA_API_KEY is hydrated before
+// llm-lane.mjs runs. Same arg surface + same `--out` file capture as nano-external.defaultLlmLaneRunner;
+// the wrapper forwards every flag verbatim. This module never reads the key — the wrapper owns hydration.
+// `deps` (spawn/readFile/aiWrapper) exist ONLY for hermetic tests; dispatchGated calls it with one arg.
+export function aiHydratedLlmRunner(opts = {}, deps = {}) {
+  const { lane, prompt, reasoning, maxIters, contextFiles, timeoutMs, env = null, model = null } = opts;
+  const { spawn = spawnSync, readFile = (p) => fs.readFileSync(p, 'utf8'), aiWrapper = AI_WRAPPER } = deps;
+  const outFile = path.join(os.tmpdir(), `gated-lane-${process.pid}-${_runSeq += 1}.out`);
+  try { fs.rmSync(outFile, { force: true }); } catch { /* ensure fresh */ }
+  const args = ['llm', lane, prompt, '--out', outFile, '--max-iters', String(maxIters || 200)];
+  if (reasoning) args.push('--reasoning', reasoning);
+  if (model) args.push('--model', model);
+  if (Array.isArray(contextFiles) && contextFiles.length) args.push('--context', contextFiles.join(','));
+  const res = spawn('bash', [aiWrapper, ...args], {
+    encoding: 'utf8', timeout: timeoutMs || 600000, maxBuffer: 32 * 1024 * 1024,
+    env: env ? { ...process.env, ...env } : process.env,
+  });
+  let output = '';
+  try { output = readFile(outFile); } catch { /* lane may have failed before writing */ }
+  try { fs.rmSync(outFile, { force: true }); } catch { /* best-effort */ }
+  return { exitCode: res?.status ?? null, output: output || (res?.stdout || ''), stderr: res?.stderr || '', signal: res?.signal || null };
+}
 
 // ── prompts ──────────────────────────────────────────────────────────────────
 export function buildDesignPrompt(task, { artifactPath, testCmd } = {}) {
@@ -95,7 +132,7 @@ export async function dispatchGated(opts = {}, deps = {}) {
     maxExecuteAttempts = 3, reasoning = 'xhigh', maxIters = 200, timeoutMs = 600000,
     specDir = os.tmpdir(), cwd = REPO_ROOT,
   } = opts;
-  const { runLane = defaultLlmLaneRunner, checkArtifact = defaultCheckArtifact, now = () => Date.now(), log = () => {} } = deps;
+  const { runLane = aiHydratedLlmRunner, checkArtifact = defaultCheckArtifact, now = () => Date.now(), log = () => {} } = deps;
 
   if (!task) return { ok: false, stage: 'precondition', error: 'task required' };
   if (!artifactPath) return { ok: false, stage: 'precondition', error: 'artifactPath required (the gate)' };
@@ -149,7 +186,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const ctx = get('--context');
   dispatchGated({
     task, artifactPath, testCmd: get('--test'),
-    designModel: get('--design') || 'deepseek-v4-pro:cloud',
+    designModel: get('--design') || 'nemotron-3-ultra:cloud', // cost-routing (owner 2026-06-15): cheap peers by default
     executeModel: get('--execute') || 'minimax-m3:cloud',
     contextFiles: ctx ? ctx.split(',') : [],
   }, { log: (m) => process.stderr.write(m + '\n') }).then((r) => {

@@ -1151,6 +1151,8 @@
         "defaultCheckArtifact",
         "buildDesignPrompt",
         "buildExecutePrompt",
+        "aiHydratedLlmRunner",
+        "defaultLlmLaneRunner",
         "OLLAMA_LANE"
       ],
       "mechanism": "_SYSTEM/Scripts/nano-dispatch-gated.mjs"
