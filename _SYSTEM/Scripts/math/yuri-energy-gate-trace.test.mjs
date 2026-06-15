@@ -270,14 +270,18 @@ test('all 7 B3 gate invariants + spec cross-check stay GREEN with the trace ARME
 test('corrId OFF by default — captureGateVerdict does NOT stamp corrId (byte-identical degrade)', () => {
   const tmp = mkTmp();
   try {
-    const rec = withEnv({ YURI_GATE_TRACE_CORRID: undefined, YURI_STATE_DIR: tmp }, () => captureGateVerdict({
-      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
-      cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
-      claimId: 'claim-abc', subject: 'test', kind: 'gate',
-    }));
+    let enabledInScope;
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: undefined, YURI_STATE_DIR: tmp }, () => {
+      enabledInScope = corrIdEnabled(); // MUST be read INSIDE the scope — outside, env is restored and the
+      return captureGateVerdict({       // real (possibly armed) _SYSTEM/state flag would be seen instead.
+        stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+        cap: Infinity, allowOverride: false, accept: true, reason: 'ok', deltaU: -1,
+        claimId: 'claim-abc', subject: 'test', kind: 'gate',
+      });
+    });
     assert.ok(rec, 'capture succeeds');
     assert.equal(rec.corrId, undefined, 'corrId must be absent when flag is OFF');
-    assert.equal(corrIdEnabled(), false);
+    assert.equal(enabledInScope, false, 'corrIdEnabled() false with no env + clean state dir (degrade holds; not a real arm flag)');
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
 
