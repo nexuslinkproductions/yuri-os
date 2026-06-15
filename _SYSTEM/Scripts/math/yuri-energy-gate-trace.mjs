@@ -72,17 +72,31 @@ export function corrIdEnabled() {
 // available source. Precedence (highest first):
 //   claimId (gate is scoring a claim) > traceId (lane output trace id) >
 //   gitTrailer (commit-sha from a file-edit verdict) >
-//   FALLBACK = stable content hash of {subject, kind, ts-bucket}
-// The fallback hash uses the hour-bucket of ts so the same subject+kind in the
-// same hour gets the same corrId (stable across re-capture), while different
-// subjects are discriminated by the hash.
-export function deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts } = {}) {
+//   FALLBACK = proposal-level content hash of {stateBefore, stateAfter, reason, deltaU, subject, kind}
+// The fallback is ts-INDEPENDENT: re-firings of the same proposal share one corrId (so the
+// outcome joins to the proposal), while different proposals are discriminated by their content.
+// This replaced an hour-bucket fallback that collided every identity-less firing in an hour.
+export function deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts,
+  stateBefore, stateAfter, reason, deltaU } = {}) {
   if (claimId != null && String(claimId).trim()) return String(claimId).trim();
   if (traceId != null && String(traceId).trim()) return String(traceId).trim();
   if (gitTrailer != null && String(gitTrailer).trim()) return String(gitTrailer).trim();
-  // FALLBACK: stable content hash of {subject, kind, ts-bucket}
-  const bucket = ts ? String(ts).slice(0, 13) : '0000'; // hour bucket
-  const basis = JSON.stringify({ s: subject ?? '', k: kind ?? '', b: bucket });
+  // FALLBACK: PROPOSAL-level content hash. Different proposals (even with no external
+  // identity) get distinct corrIds via their state delta + reason + deltaU, killing the
+  // old hour-bucket degeneracy where every identity-less firing collided. ts is
+  // deliberately EXCLUDED: re-firings of the SAME proposal must share ONE corrId so the
+  // eventual outcome joins to the proposal, not to a wall-clock instant (including ts
+  // would make every re-evaluation a fresh id and break the firing->outcome join — the
+  // whole point of the forward loop). An external claimId/traceId/gitTrailer still wins
+  // by precedence above; this content hash is the best-effort proxy when none is supplied.
+  const basis = JSON.stringify({
+    sb: stateBefore ?? null,
+    sa: stateAfter ?? null,
+    r: reason ?? '',
+    du: Number.isFinite(deltaU) ? deltaU : null,
+    s: subject ?? '',
+    k: kind ?? '',
+  });
   return crypto.createHash('sha256').update(basis).digest('hex').slice(0, 16);
 }
 
@@ -165,7 +179,8 @@ export function captureGateVerdict({
     };
     // Stamp corrId when the flag is ON (DISARMED by default)
     if (corrIdEnabled()) {
-      rec.corrId = deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts: rec.ts });
+      rec.corrId = deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts: rec.ts,
+        stateBefore, stateAfter, reason, deltaU });
     }
     rec.id = verdictId(rec);
     const p = gateTracePath();

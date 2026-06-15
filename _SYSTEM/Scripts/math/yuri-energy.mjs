@@ -771,6 +771,7 @@ export function gateProposal({
   allowOverride = false,
   maxLadderInversionCap = Infinity,
   conformalCalibration = null,
+  corrSources = {},
 } = {}) {
   if (!stateBefore || !stateAfter || Array.isArray(stateBefore) || Array.isArray(stateAfter)) {
     throw new Error('gateProposal requires stateBefore and stateAfter');
@@ -944,6 +945,7 @@ export function gateProposal({
   maybeTraceGateVerdict({
     stateBefore, stateAfter, weights: w, threshold: normalizedThreshold, cap,
     allowOverride, accept, reason, deltaU,
+    ...corrSources,
   });
 
   return makeMathResult({

@@ -365,6 +365,31 @@ test('corrId DISCRIMINATION — different subjects get different fallback corrId
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
 
+test('corrId LIVE-SEAM anti-degeneracy — identity-less different proposals ⇒ different corrId', () => {
+  // Regression for the keystone bug: the live gateProposal payload carries NO
+  // claimId/traceId/subject/kind — only state+reason+deltaU. The old fallback hashed
+  // {subject,kind,hour-bucket}, so every identity-less firing in an hour collided to one
+  // corrId (a join key as dead as the runId). Proposal-level content hashing fixes it.
+  const tmp = mkTmp();
+  try {
+    const mk = (sb, sa, du) => withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: sb, stateAfter: sa, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'gate', deltaU: du,
+      nowIso: '2026-06-15T12:00:00.000Z', // SAME hour — the old degeneracy trigger
+    }));
+    const a = mk({ x: 1 }, { x: 2 }, -1);
+    const b = mk({ x: 5 }, { x: 9 }, -3);
+    assert.notEqual(a.corrId, b.corrId, 'different identity-less proposals in the same hour ⇒ different corrId');
+    // And re-firing the SAME proposal in a DIFFERENT hour ⇒ SAME corrId (proposal-level join).
+    const a2 = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { x: 1 }, stateAfter: { x: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: true, reason: 'gate', deltaU: -1,
+      nowIso: '2026-06-15T15:30:00.000Z',
+    }));
+    assert.equal(a.corrId, a2.corrId, 'same proposal content ⇒ same corrId regardless of ts');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test('corrId NEGATIVE — empty/whitespace claimId falls through to next precedence', () => {
   const tmp = mkTmp();
   try {
