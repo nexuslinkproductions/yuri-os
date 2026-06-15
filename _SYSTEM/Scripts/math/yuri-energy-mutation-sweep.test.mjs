@@ -54,15 +54,15 @@ test('RED — every gate mutant is KILLED by the gate property prover (non-vacuo
   assert.deepEqual(survivedGate, [], `gate mutants must all be killed by runGateInvariants; survived: ${JSON.stringify(survivedGate)}`);
 });
 
-test('GREY — the sweep SURFACES genuine survivors the planted suites miss', () => {
+test('GREY — the sweep confirms the grey-zone is CLOSED (0 survivors after hardening)', () => {
   const r = runSweep({ trials: 200 });
-  assert.ok(r.mutationScore > 0 && r.mutationScore <= 1, `score in (0,1]: ${r.mutationScore}`);
-  assert.ok(r.survived > 0, 'the sweep must surface grey survivors (its whole purpose)');
-  // a soft-term SIGN flip is genuine grey: no per-term sign invariant exists, and the symmetric MRs
-  // (permute/scale) survive a uniform negation → it passes BOTH provers. This is the actionable
-  // finding (→ add a per-soft-term sign invariant in the failure-anchored loop).
-  const softSignSurvivor = r.survivors.some((s) => s.kind === 'computeU' && s.op === 'NEGATE');
-  assert.ok(softSignSurvivor, 'a soft-term NEGATE should survive — the per-term-sign gap the sweep exists to reveal');
+  // 2026-06-15 (failure-anchored loop): the per-term value/sign invariants the old comment anticipated
+  // were added to yuri-energy-invariants — they close EVERY grey gap (42.1% -> 100% kill). The sweep must
+  // now report full coverage; a reappearing survivor = an invariant regressed, and this test catches it.
+  // mutationScore === 1 over a non-empty mutant grid is the non-vacuity proof (an empty grid => NaN, not 1).
+  assert.equal(r.mutationScore, 1, `mutation score must be 100% (every term mutant killed): got ${r.mutationScore}`);
+  assert.equal(r.survived, 0, 'zero grey survivors remain — the invariant layer catches every term mutant');
+  assert.equal(r.survivors.length, 0, 'survivor list is empty');
 });
 
 test('determinism: the sweep is reproducible', () => {

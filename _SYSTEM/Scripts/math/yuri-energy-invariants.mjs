@@ -244,6 +244,204 @@ export const INVARIANTS = [
       return { ok: true };
     },
   },
+
+  // ===========================================================================
+  // PER-TERM VALUE-PIN INVARIANTS (B5 grey-zone killers, 2026-06-15)
+  //
+  // For each of the 12 computeU contribution keys, pin the contribution to an
+  // analytic expected value on a fixed, hand-crafted state. A value-pin kills
+  // the grey-zone operator mutants for that term at the `contributions.<term>`
+  // value level: NEGATE flips sign, ZERO zeroes it, SCALE doubles it, BIAS
+  // adds 1, DROP_KEY makes the key absent, SWAP_NEXT replaces it with the
+  // neighbour's value — every operator diverges from the pinned expected.
+  //
+  // The state is deliberately minimal (only the fields that drive the term)
+  // so the term is GUARANTEED to fire with a non-zero value — no skip path,
+  // no zero-mass poisoning. Each `contributions.<term>` value is verified
+  // to the digit on the REAL computeU (see the sanity check in this session)
+  // before the invariant is registered.
+  //
+  // DO NOT weaken these to "is the term present" — that is what term-presence
+  // (above) already pins for the 3 unconditional terms. A per-term value pin
+  // is a load-bearing QUALITY invariant, not a presence check.
+  //
+  // Tolerance: 1e-9 — computeU's roundEnergy leaves contributions stable to
+  // 12 digits on the chosen states (verified empirically). 1e-9 is the
+  // existing-mutant tolerance scale (1e-6 elsewhere) and 3 orders stricter.
+  // ===========================================================================
+  {
+    // α/entropy: uniform 3-class distribution → entropy = ln(3), contribution = α·ln(3) ≈ 1.0986
+    // Kills: entropy NEGATE (-1.0986), ZERO (0), DROP_KEY (undefined), SCALE (2.1972).
+    name: 'term-pin: entropy contribution on uniform 3-class = alpha*ln(3)',
+    run(scorer, _rng, _trials) {
+      const s = { claimPromotionDistribution: [1, 1, 1] };
+      const expected = DEFAULT_WEIGHTS.alpha * Math.log(3);
+      const got = scorer(s).contributions.entropy;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // β/wasserstein: one-hots at opposite ends (3-class) → W₁ = 2, contribution = β·2 = 4
+    // Kills: wasserstein ZERO (0), DROP_KEY (undefined), SCALE (8).
+    name: 'term-pin: wasserstein contribution on opposite-end one-hots (3-class) = beta*2',
+    run(scorer, _rng, _trials) {
+      const s = { claimedDistribution: [0, 0, 1], verifiedDistribution: [1, 0, 0] };
+      const expected = DEFAULT_WEIGHTS.beta * 2;
+      const got = scorer(s).contributions.wasserstein;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // μ/overconfidenceDrift: one-hot claimed (conc=1) + W₁=2 → conc·W₁ = 2, contribution = μ·2 = 1
+    // Kills: overconfidenceDrift NEGATE (-1), ZERO (0), DROP_KEY (undefined), SCALE (2).
+    name: 'term-pin: overconfidenceDrift on one-hot claimed + opposite-end verified = mu*2',
+    run(scorer, _rng, _trials) {
+      const s = { claimedDistribution: [0, 0, 1], verifiedDistribution: [1, 0, 0] };
+      const expected = DEFAULT_WEIGHTS.mu * 2;
+      const got = scorer(s).contributions.overconfidenceDrift;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // γ/logLoss: predictions=[0.5], outcomes=[1] → logLoss = -ln(0.5) ≈ 0.6931, contribution = γ·0.6931
+    // Kills: logLoss NEGATE (-0.6931), ZERO (0), DROP_KEY (undefined), SCALE (1.3863).
+    name: 'term-pin: logLoss on pred=0.5, out=1 = gamma*-ln(0.5)',
+    run(scorer, _rng, _trials) {
+      const s = { predictions: [0.5], outcomes: [1] };
+      const expected = DEFAULT_WEIGHTS.gamma * -Math.log(0.5);
+      const got = scorer(s).contributions.logLoss;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // δ/brier: forecasts=[1], results=[0] → brier = 1, contribution = δ·1 = 1
+    // Kills: brier NEGATE (-1), ZERO (0), DROP_KEY (undefined), SCALE (2).
+    name: 'term-pin: brier on fc=1, res=0 = delta*1',
+    run(scorer, _rng, _trials) {
+      const s = { forecasts: [1], results: [0] };
+      const expected = DEFAULT_WEIGHTS.delta * 1;
+      const got = scorer(s).contributions.brier;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // κ/repeatedFailure: predictions=[0.9], outcomes=[0] → confidently-wrong count = 1, contribution = κ·1 = 5
+    // Kills: repeatedFailure ZERO (0), DROP_KEY (undefined), SCALE (10), SWAP_NEXT (swaps with
+    // malformedForecast which is ABSENT on this clean state → 0, not 5).
+    name: 'term-pin: repeatedFailure on pred=0.9, out=0 = kappa*1',
+    run(scorer, _rng, _trials) {
+      const s = { predictions: [0.9], outcomes: [0] };
+      const expected = DEFAULT_WEIGHTS.kappa * 1;
+      const got = scorer(s).contributions.repeatedFailure;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // λ/malformedForecast: forecasts=[2] (out-of-range) → malformed count = 1, contribution = λ·1 = 50
+    // Kills: malformedForecast ZERO (0), DROP_KEY (undefined), SCALE (100), BIAS (51), SWAP_NEXT
+    // (swaps with staleness which is ABSENT → 0, not 50).
+    name: 'term-pin: malformedForecast on fc=2 (out-of-range) = lambda*1',
+    run(scorer, _rng, _trials) {
+      const s = { forecasts: [2], results: [1] };
+      const expected = DEFAULT_WEIGHTS.lambda * 1;
+      const got = scorer(s).contributions.malformedForecast;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // ζ/staleness: evidence=[{base:1, age:1e9, halfLife:30}] → confidenceDecay → 0, staleness = 1,
+    //   contribution = ζ·1 = 0.5
+    // Kills: staleness NEGATE (-0.5), ZERO (0), DROP_KEY (undefined), SCALE (1), BIAS (1.5),
+    // SWAP_NEXT (swaps with protectedPathViolations which is the unconditional 0 here → 0, not 0.5).
+    name: 'term-pin: staleness on maximally-aged evidence = zeta*1',
+    run(scorer, _rng, _trials) {
+      const s = { evidence: [{ base: 1, age: 1e9, halfLife: 30 }] };
+      const expected = DEFAULT_WEIGHTS.zeta * 1;
+      const got = scorer(s).contributions.staleness;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // η/protectedPathViolations: violations=2 → contribution = η·2 = 200
+    // Kills: protectedPathViolations ZERO (0), SCALE (400). DROP_KEY caught by term-presence (above).
+    name: 'term-pin: protectedPathViolations on count=2 = eta*2',
+    run(scorer, _rng, _trials) {
+      const s = { protectedPathViolations: 2 };
+      const expected = DEFAULT_WEIGHTS.eta * 2;
+      const got = scorer(s).contributions.protectedPathViolations;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // θ/promotionLadderInversions: inversions=1 → contribution = θ·1 = 10
+    // Kills: promotionLadderInversions ZERO (0), SCALE (20). DROP_KEY caught by term-presence (above).
+    name: 'term-pin: promotionLadderInversions on count=1 = theta*1',
+    run(scorer, _rng, _trials) {
+      const s = { promotionLadderInversions: 1 };
+      const expected = DEFAULT_WEIGHTS.theta * 1;
+      const got = scorer(s).contributions.promotionLadderInversions;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // ε/informationGain (CREDIT, ≤0): prior=uniform[0.5,0.5], posterior=one-hot[1,0] →
+    //   gain = ln(2) − 0 = ln(2), normalized = 1, contribution = -ε·1 = -1
+    // Kills: informationGain NEGATE (+1), ZERO (0), DROP_KEY (undefined), SCALE (-2).
+    name: 'term-pin: informationGain on uniform prior → one-hot posterior = -epsilon*1',
+    run(scorer, _rng, _trials) {
+      const s = { priorState: [0.5, 0.5], posteriorState: [1, 0] };
+      const expected = -DEFAULT_WEIGHTS.epsilon * 1;
+      const got = scorer(s).contributions.informationGain;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
+  {
+    // ι/verifiedEvidenceCredit (CREDIT, ≤0): count=5 → -ι·log1p(5) = -0.1·ln(6) ≈ -0.17918
+    // Kills: verifiedEvidenceCredit ZERO (0), SCALE (-0.35835). DROP_KEY caught by term-presence.
+    name: 'term-pin: verifiedEvidenceCredit on count=5 = -iota*log1p(5)',
+    run(scorer, _rng, _trials) {
+      const s = { verifiedEvidenceCount: 5 };
+      const expected = -DEFAULT_WEIGHTS.iota * Math.log1p(5);
+      const got = scorer(s).contributions.verifiedEvidenceCredit;
+      if (typeof got !== 'number' || Math.abs(got - expected) > 1e-9) {
+        return { ok: false, counterexample: { state: s, expected, got } };
+      }
+      return { ok: true };
+    },
+  },
 ];
 
 export function runInvariants(scorer = real, { trials = 2000, seed = 0x5eed } = {}) {
