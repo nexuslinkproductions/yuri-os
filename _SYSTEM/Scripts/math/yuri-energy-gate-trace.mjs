@@ -55,17 +55,27 @@ export function gateTracePath() {
   return path.join(stateDir(), 'energy-gate-trace.jsonl');
 }
 
+// A flag FILE in the (non-protected) state dir is the PERSISTENT, reversible arm — mirrors the
+// energy-enforce.enabled pattern: env OR flag-file enables; absence of BOTH = OFF, so the DISARMED
+// degrade contract holds when neither is present. Test isolation: stateDir() honors YURI_STATE_DIR,
+// so a suite pointing at a tmp dir never sees the real arm flags.
+function flagFileArmed(basename) {
+  try { return fs.existsSync(path.join(stateDir(), basename)); } catch { return false; }
+}
+
 // OPT-IN switch. Default OFF ⇒ the gate seam is a no-op ⇒ clean path untouched.
+// Armed by env YURI_GATE_TRACE=1 OR the flag file _SYSTEM/state/gate-trace.enabled.
 export function gateTraceEnabled() {
   const v = process.env.YURI_GATE_TRACE;
-  return v === '1' || v === 'true';
+  return v === '1' || v === 'true' || flagFileArmed('gate-trace.enabled');
 }
 
 // OPT-IN corrId switch. Default OFF ⇒ byte-identical to today (no corrId field).
-// When ON, captureGateVerdict stamps a forward correlation id on every verdict.
+// When ON, captureGateVerdict stamps a forward correlation id + claimIds on every verdict.
+// Armed by env YURI_GATE_TRACE_CORRID=1 OR the flag file _SYSTEM/state/gate-trace-corrid.enabled.
 export function corrIdEnabled() {
   const v = process.env.YURI_GATE_TRACE_CORRID;
-  return v === '1' || v === 'true';
+  return v === '1' || v === 'true' || flagFileArmed('gate-trace-corrid.enabled');
 }
 
 // deriveCorrId — build a forward-joinable correlation id from the MOST-SPECIFIC
