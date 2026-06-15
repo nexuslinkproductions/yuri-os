@@ -28,6 +28,6 @@ DONT:
 - Let an online claim OVERRIDE a local execution result for OUR code. Run the test; the run wins.
 - Full-crawl or hit non-allowlisted domains without owner approval.
 
-WHY: Marcel 2026-06-16 — "since we confirm based on local evidence, it is time to upgrade that to online verification and evidence — one extra layer of certainty moving forward." This ELEVATES online from research_pipeline's "escalate only when local provably insufficient" to a standard verification layer for external claims. Canonical propagation (research_pipeline.md / yuri-origin Output Contract) is owner-gated wording — proposed, pending confirm.
+WHY: Marcel 2026-06-16 — "since we confirm based on local evidence, it is time to upgrade that to online verification and evidence — one extra layer of certainty moving forward." This ELEVATES online from research_pipeline's "escalate only when local provably insufficient" to a standard verification layer for external claims. Canonical propagation DONE 2026-06-16 (owner-confirmed): `.claude/rules/research_pipeline.md` → ONLINE-VERIFICATION LAYER section + `_SYSTEM/yuri-origin.md` → Evidence Contract Grammar clause. All lanes now inherit it.
 
 SEE: research_pipeline.md (LOCAL-FIRST MANDATE + research ladder); yuri-origin Output Contract (model output advisory_only until a local verifier proves otherwise); [[feedback-nano-swarm-orchestration]] (verify-every-claim).

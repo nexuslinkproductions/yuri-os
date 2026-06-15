@@ -104,6 +104,7 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 - PASS requires deterministic local evidence. No PASS without TERM_COUNT / FILE_COUNT / MATCH proof.
 - Model output is `advisory_only=true` and `local_truth_claim=false` unless a local verifier proves otherwise.
 - Domains without TERM_COUNT support must be marked `no_evidence` and not prioritized.
+- ONLINE VERIFICATION LAYER (owner directive 2026-06-16): for EXTERNAL / FACTUAL claims (library/API behavior, CVE, prior-art, benchmarks, upstream-current), online verification is a STANDARD certainty layer — verify against ≥2 PRIMARY sources, cite + reindex. It is layered ON TOP of local execution, NEVER replacing it: local execution stays ground truth for our own code, and a confident online source is `advisory_only` until corroborated (the web hallucinates, stales, is gameable). Detail: `.claude/rules/research_pipeline.md` → ONLINE-VERIFICATION LAYER.
 
 ## LLM Compatibility Routing
 

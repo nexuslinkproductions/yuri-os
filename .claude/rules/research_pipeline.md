@@ -13,6 +13,14 @@ Every research task — design, technical, copy, physics, prior-art, references 
 
 Going online before querying the local corpus is a process violation, not a shortcut. This persists across all sessions and lanes.
 
+## ONLINE-VERIFICATION LAYER (standard certainty layer — owner directive 2026-06-16)
+
+Local-first (above) governs DISCOVERY. This governs VERIFICATION. Online verification is now a STANDARD layer of certainty for EXTERNAL / FACTUAL claims — not merely an escalation when the local corpus is insufficient. After local evidence, cross-check external claims against authoritative online sources as one extra layer before trusting them.
+
+- SCOPE: external/factual claims only — library/API behavior, CVE/security facts, prior-art, benchmark numbers, "is this still current upstream," third-party contracts. NOT "does our own code work."
+- BOUNDARY (strict): local EXECUTION stays GROUND TRUTH for our own system's correctness. Online NEVER overrides a local run for our code — run the test, the run wins.
+- DISCIPLINE: verify against PRIMARY sources (official docs, the source repo via raw.githubusercontent / api.github), not random blogs; ≥2 independent primary sources for a load-bearing external claim; treat a confident source like a confident lane — advisory until corroborated (the web hallucinates, stales, and is gameable). Cite + capture genuinely-useful findings to `02_RESOURCES/research/<topic>-<date>.md` + `ai reindex` (the local-first capture bridge). Route through sanctioned tools; honor the STOP CONDITIONS below.
+
 ## TOKEN COST HARD RULES
 
 - No subagents for routine package or web research. Direct shell tools only.
