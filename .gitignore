@@ -362,3 +362,10 @@ _SYSTEM/state/filing-autonomy.enabled
 _SYSTEM/state/filing-autonomy.log
 _SYSTEM/state/filing-autonomy.err
 _SYSTEM/state/ccr-cache/
+
+# Failed remotion/motion-graphics media experiment — renders untracked (owner 2026-06-15)
+02_RESOURCES/INVESTOR-DECK/seq/
+02_RESOURCES/INVESTOR-DECK/send/**/seq/
+02_RESOURCES/INVESTOR-DECK/motion/out/
+02_RESOURCES/INVESTOR-DECK/motion/public/
+02_RESOURCES/INVESTOR-DECK/genmedia/out/
