@@ -22,7 +22,7 @@ MODEL COST ROUTING (owner 2026-06-15): deepseek-v4-pro is HIGH-usage when called
 
 DO:
 - BEFORE dispatch, resolve each task's TARGET FILE (xref / gitnexus / grep the symbol). If two pending lanes hit the same file, fire one, let it finish + commit, THEN fire the next. (The gitnexus PreToolUse hook will flag the symbol's file — read it.)
-- VERIFY every lane claim locally: run `node --test` yourself + `git diff`. Lanes over-claim (one said 19/19, was 18/19; another claimed done, made zero edits).
+- VERIFY every lane claim locally: run `node --test` yourself + `git diff`. Lanes over-claim (one said 19/19, was 18/19; another claimed done, made zero edits). **2026-06-16 — the sharpest anchor yet: an NS2 similarity-cluster assessment returned 4 confident P0s, ALL FALSE (incl. a raw arithmetic hallucination — "minhash a·hi > 2^53" when a·hi≈7e13 is 128× BELOW 2^53 and a safe int), AND it missed the cluster's one real defect (eml-tree pow2). A lane will state a confident P0 backed by a flat arithmetic falsehood. NEVER fold a lane finding without re-deriving it; an independent main-session read in parallel is the cross-check oracle.**
 - Check the lane's real tool-count vs the cap: `grep -c "\[tool\]" lane-X.log` against maxIters (200, llm-lane.mjs:886). 23-or-65-of-200 = it QUIT early, not a real limit.
 - Re-dispatch a plan-stopper with an execution-forcing brief ("APPLY edits + RUN node --test; a report without real test output is a FAIL") and/or a DIFFERENT family (deepseek plan-stopped twice on a multi-file task; minimax/nemotron executed).
 - Give each lane the contention guardrails explicitly (e.g. "DO NOT edit <parked file>").
