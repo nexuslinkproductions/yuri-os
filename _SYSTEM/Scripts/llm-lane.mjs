@@ -23,7 +23,7 @@
  *          (ollama.com peer lane — pick the model with --model; Pro plan = 3 concurrent → fan out 3 for a swarm)
  * Flags:  --reasoning <low|medium|high|xhigh|max>   --model <id> (override the lane's default model)
  *         --system <str|@file>   --no-system
- *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 24)
+ *         --no-tools (bare prompt, no read/fetch)   --max-iters <n> (default 200)
  *         --context <f1,f2,..|@manifest> (front-load must-read files into the dispatch — guaranteed
  *           context from turn 1 instead of the lane discovering it; budget LLM_LANE_CONTEXT_BUDGET=240k)
  *         --out <file>   --dry-run   --list
@@ -882,7 +882,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   messages.push({ role: 'user', content: contextPack ? `${contextPack}\n\n===== TASK =====\n${prompt}` : prompt });
 
   const timeoutMs = Number(cfg.timeout_ms || 180000);
-  const maxIters = Math.max(1, Number(opts.maxIters || 24));
+  const maxIters = Math.max(1, Number(opts.maxIters || 200));
   const nudgeAt = Math.max(3, Math.floor(maxIters * 0.6));
   const seenSigs = new Set();
   let toolTurns = 0;
@@ -997,7 +997,7 @@ const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--
 const LEGACY_SKIP_VALUE = new Set(['--session', '--write-scope', '--ts']);
 
 function parseCli(argv) {
-  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 24, out: '', dryRun: false, list: false, model: '' };
+  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 200, out: '', dryRun: false, list: false, model: '' };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
