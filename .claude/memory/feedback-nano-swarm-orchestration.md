@@ -18,6 +18,8 @@ RULE: When fanning out `ai llm ollama-cloud --model <X>:cloud` nano-swarm lanes 
 
 WHEN: parallel overnight/autonomous swarm builds across the 6-model ollama-cloud roster (nemotron-3-ultra, glm-5.1, minimax-m3, kimi-k2.7-code, deepseek-v4-pro, deepseek-v4-flash).
 
+MODEL COST ROUTING (owner 2026-06-15): deepseek-v4-pro is HIGH-usage when called — PREFER minimax-m3 / kimi-k2.7-code / nemotron-3-ultra / glm-5.1 / deepseek-v4-flash for default dispatch; reach for deepseek-v4-pro ONLY when its extra reasoning is specifically justified. nano-dispatch-gated now defaults to nemotron-3-ultra (design) + minimax-m3 (execute).
+
 DO:
 - BEFORE dispatch, resolve each task's TARGET FILE (xref / gitnexus / grep the symbol). If two pending lanes hit the same file, fire one, let it finish + commit, THEN fire the next. (The gitnexus PreToolUse hook will flag the symbol's file — read it.)
 - VERIFY every lane claim locally: run `node --test` yourself + `git diff`. Lanes over-claim (one said 19/19, was 18/19; another claimed done, made zero edits).

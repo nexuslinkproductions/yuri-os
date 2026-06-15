@@ -18,6 +18,7 @@
 // @serves: reliable lane dispatch | force a nano lane to EXECUTE not just plan | artifact-gated design-execute split | re-prompt a plan-stopping lane | author tests / thread integration via peers reliably
 // @does: 2-stage (design->execute) ollama-cloud dispatch that GATES on a produced artifact (file exists+fresh + node --test green) and auto-re-prompts the execute lane until the artifact appears or K attempts exhaust.
 // @use: dispatchGated({ task, designModel, executeModel, artifactPath, testCmd, contextFiles }) when a single lane keeps returning a plan instead of writing the file/tests. NOT for bounded build-a-module tasks (those already execute — dispatch them directly).
+// HYDRATION (known gap, 2026-06-15 first live use): the default runLane = nano-external.defaultLlmLaneRunner spawns `node llm-lane.mjs` DIRECTLY, which does NOT hydrate the keychain OLLAMA_API_KEY the `ai` wrapper provides. So the design lane fails missing-key (no spec) unless called from an ALREADY-HYDRATED env (the live nano-swarm tick, or a shell with OLLAMA_API_KEY exported). FOLLOW-UP: inject a runLane that routes through `_SYSTEM/Scripts/ai llm <lane> --model <m> --reasoning <r>` (which hydrates) + inlines contextFiles into the prompt (ai llm does not forward --out/--context). The design->execute+artifact-gate CONTROL FLOW is proven (10/10 hermetic); only the runner's hydration needs this adapter.
 // @exports: dispatchGated, defaultCheckArtifact, buildDesignPrompt, buildExecutePrompt, OLLAMA_LANE
 
 import fs from 'node:fs';
@@ -87,7 +88,8 @@ export function defaultCheckArtifact({ artifactPath, testCmd = null, sinceMs = 0
 export async function dispatchGated(opts = {}, deps = {}) {
   const {
     task,
-    designLane = OLLAMA_LANE, designModel = 'deepseek-v4-pro:cloud',
+    // Cost-routing (owner 2026-06-15): default to the cheaper peers; deepseek-v4-pro is high-usage, opt in explicitly.
+    designLane = OLLAMA_LANE, designModel = 'nemotron-3-ultra:cloud',
     executeLane = OLLAMA_LANE, executeModel = 'minimax-m3:cloud',
     contextFiles = [], artifactPath, testCmd = null,
     maxExecuteAttempts = 3, reasoning = 'xhigh', maxIters = 200, timeoutMs = 600000,
