@@ -402,6 +402,30 @@ test('corrId NEGATIVE — empty/whitespace claimId falls through to next precede
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
 
+test('corrId ON — claimIds (aggregate gate) stored on the firing for the per-claim outcome join', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_GATE_TRACE_CORRID: '1', YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: false, reason: 'veto', deltaU: 2,
+      claimIds: ['claim-7', 'claim-9'], kind: 'claim-transition',
+    }));
+    assert.deepEqual(rec.claimIds, ['claim-7', 'claim-9'], 'worsened claim ids stored for the outcome join');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('corrId OFF — claimIds NOT stored (byte-identical degrade)', () => {
+  const tmp = mkTmp();
+  try {
+    const rec = withEnv({ YURI_STATE_DIR: tmp }, () => captureGateVerdict({
+      stateBefore: { a: 1 }, stateAfter: { a: 2 }, weights: DEFAULT_WEIGHTS, threshold: 0,
+      cap: Infinity, allowOverride: false, accept: false, reason: 'veto', deltaU: 2,
+      claimIds: ['claim-7'], kind: 'claim-transition',
+    }));
+    assert.equal(rec.claimIds, undefined, 'claimIds absent when corrId flag OFF');
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 test('corrId NEGATIVE — missing corrId (all sources absent) still produces a valid fallback', () => {
   const tmp = mkTmp();
   try {

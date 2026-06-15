@@ -1000,6 +1000,9 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
     threshold: opts.threshold,
     allowOverride: opts.allowOverride,
     maxLadderInversionCap: opts.maxLadderInversionCap ?? Infinity,
+    // Forward the worsened claim ids so the gate-trace firing (when YURI_GATE_TRACE_CORRID is on)
+    // carries per-claim identity for the forward outcome join against claim-transition-trace.
+    corrSources: { claimIds: worsened.map((w) => w.id), kind: 'claim-transition' },
   });
 
   // Wave-3 PARTITION FLOOR (non-offsettable, evidence-kind-weighted): the cross-target/cross-claimType

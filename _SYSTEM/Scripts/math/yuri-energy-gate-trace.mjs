@@ -155,7 +155,7 @@ export function captureGateVerdict({
   stateBefore, stateAfter, weights, threshold, cap, allowOverride = false,
   accept, reason, deltaU, nowIso = null,
   // corrId sources (only used when YURI_GATE_TRACE_CORRID is ON)
-  claimId, traceId, gitTrailer, subject, kind,
+  claimId, traceId, gitTrailer, subject, kind, claimIds,
 } = {}) {
   try {
     const weightHash = weightFingerprint(weights);
@@ -181,6 +181,13 @@ export function captureGateVerdict({
     if (corrIdEnabled()) {
       rec.corrId = deriveCorrId({ claimId, traceId, gitTrailer, subject, kind, ts: rec.ts,
         stateBefore, stateAfter, reason, deltaU });
+      // Per-claim outcome join: an AGGREGATE gate firing (e.g. gateClaimTransition) judges a
+      // batch of claims at once, so there is no single claimId. Store the worsened claim ids so
+      // the outcome side (buildSignals.isReverted over claim-transition-trace) can label the
+      // verdict by "did any of these claims revert" — the firing->outcome bridge for the claim path.
+      if (Array.isArray(claimIds) && claimIds.length) {
+        rec.claimIds = claimIds.map(String);
+      }
     }
     rec.id = verdictId(rec);
     const p = gateTracePath();
