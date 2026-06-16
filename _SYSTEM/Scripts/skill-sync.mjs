@@ -52,6 +52,10 @@ export const DAILY_DRIVERS = [
   'improve-codebase-architecture', 'diagnose', 'tdd', 'handoff', 'teach', 'prototype',
   'setup-matt-pocock-skills', 'skill-creator', 'skill-installer', 'write-a-skill',
   'finishing-a-development-branch', 'using-superpowers',
+  // YURI-native infrastructure that was stranded (built in skills/ but never harness-loaded);
+  // surfaced by skill-architecture-audit 2026-06-16. gitnexus-guide completes the gitnexus
+  // family (5 siblings already published); the rest are core YURI subsystems, not foreign imports.
+  'anime-dna-extensions', 'gitnexus-guide', 'oracle-adapters', 'oracle-voice', 'math-curve-loaders',
 ];
 
 /** skill dir names (those containing a SKILL.md) under an absolute-or-repo-relative root. */
