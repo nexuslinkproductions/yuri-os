@@ -55,6 +55,8 @@ import * as PolymarketDiscovery from '../adapters/polymarket-discovery.mjs';
 import { computePerpSignals } from '../perp-signals.mjs';
 import { circuitInputFromBars } from '../factor-return-vectors.mjs';
 import { optimizeFactorCircuit } from '../factor-circuit.mjs';
+import { webSearch as agentReachSearch, available as agentReachAvailable } from '../../agent-reach.mjs';
+import { scorePost, aggregateSentiment } from '../adapters/social-adapter.mjs';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit aware
@@ -357,6 +359,37 @@ export function setHttpGet(fn) {
  * advisory overlay signal. Suppressed when near-neutral or low-magnitude.
  * Confidence is intentionally capped below the price signals (overlay, not driver).
  */
+// ── Agent-Reach real-web sentiment (preferred over RSS; cached 5min) ────────
+const _arCache = new Map();   // asset → { sent, ts }
+const _AR_TTL = 300;          // 5-minute cache (news is slow-moving; keeps the cycle light)
+let _arAvail = null;          // cached availability check (one subprocess, not per-cycle)
+/**
+ * agentReachSentiment(asset) — real-web news sentiment via Agent-Reach (Exa search)
+ * scored with the social lexicon. Cached 5min, fail-open (null). Skipped when
+ * agent-reach is unavailable. This is the live "internet access" sentiment path.
+ */
+async function agentReachSentiment(asset) {
+  const now = Math.floor(Date.now() / 1000);
+  const cached = _arCache.get(asset);
+  if (cached && now - cached.ts < _AR_TTL) return cached.sent;
+  if (_arAvail === null) { try { _arAvail = await agentReachAvailable(); } catch { _arAvail = false; } }
+  if (!_arAvail) return null;
+  try {
+    const results = await agentReachSearch(`${asset} cryptocurrency price news sentiment`, { numResults: 6, timeoutMs: 12_000 });
+    if (!results || results.length === 0) return null;
+    const scored = results.map((r) => {
+      const s = scorePost({ title: r.title, body: r.text });
+      return { postScore: s.score, engagement: { score: 1, comments: 0 }, matchedWords: s.matchedWords };
+    });
+    const agg = aggregateSentiment(scored);
+    const sent = { asset: asset.toUpperCase(), ts: now, score: agg.score, magnitude: agg.magnitude, sampleCount: agg.sampleCount, sources: ['agent-reach'] };
+    _arCache.set(asset, { sent, ts: now });
+    return sent;
+  } catch (_e) {
+    return null;
+  }
+}
+
 function sentimentToSignal(sentiment, market) {
   if (!sentiment || typeof sentiment !== 'object') return null;
   const score = Number(sentiment.score);
@@ -469,7 +502,10 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   if (cfg.enableSocial !== false) {
     try {
       const asset = market.split('-')[0];
-      const sentiment = await SocialAdapter.getSentiment(asset);
+      // Prefer Agent-Reach real-web news (Exa) when enabled+available; fall back to RSS.
+      let sentiment = null;
+      if (cfg.enableAgentReachNews !== false) sentiment = await agentReachSentiment(asset);
+      if (!sentiment || sentiment.sampleCount === 0) sentiment = await SocialAdapter.getSentiment(asset);
       const sig = sentimentToSignal(sentiment, market);
       if (sig) overlaySignals.push(sig);
     } catch (_e) { /* fail-open — social overlay never breaks the crypto cycle */ }
@@ -708,6 +744,7 @@ export const DEFAULT_CONFIG = {
   // Wave-4 overlays (advisory telemetry; fail-open; do NOT drive paper P&L):
   enablePerp: true,            // funding/basis positioning overlay on crypto markets
   enableSocial: true,          // public-source sentiment overlay per asset
+  enableAgentReachNews: true,  // prefer Agent-Reach real-web news (Exa) for sentiment over RSS
   autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live
   polymarketLimit: 3,          // how many liquid Polymarket markets to auto-discover
 };
@@ -974,7 +1011,7 @@ async function runSelfTest() {
   // Run one cycle with BTC-USD only
   let snapshot;
   try {
-    snapshot = await runCycle({ cryptoMarkets: ['BTC-USD'], polymarkets: [], intervalMs: 0 });
+    snapshot = await runCycle({ cryptoMarkets: ['BTC-USD'], polymarkets: [], intervalMs: 0, enableAgentReachNews: false });
   } catch (err) {
     console.error('FAIL: runCycle threw:', err);
     process.exit(1);
