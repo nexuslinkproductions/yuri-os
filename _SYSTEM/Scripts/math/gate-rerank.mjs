@@ -244,6 +244,7 @@ export function evaluateCandidate(candidate, currentState, opts = {}) {
   // implements the 3-veto family + the threshold pass + override) — we just
   // re-key on the veto family for clarity, and we never OVERRIDE the gate.
   const verdict = gateProposal({
+    origin: 'rerank',
     stateBefore: currentState,
     stateAfter: candidateState,
     weights,

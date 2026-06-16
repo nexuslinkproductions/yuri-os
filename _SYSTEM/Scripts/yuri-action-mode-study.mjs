@@ -49,7 +49,7 @@ export const STUDY_BATTERY = [
 /** PURE: run the battery through the real gate in enforce semantics. Returns rows + confusion matrix. */
 export function runStudy({ weights = DEFAULT_WEIGHTS, threshold = 0, battery = STUDY_BATTERY } = {}) {
   const rows = battery.map((t) => {
-    const g = gateProposal({ stateBefore: t.before, stateAfter: t.after, weights, threshold });
+    const g = gateProposal({ stateBefore: t.before, stateAfter: t.after, weights, threshold, origin: 'study' });
     const decision = g.result.accept ? 'accept' : 'reject';
     return {
       id: t.id, kind: t.kind, label: t.label, expect: t.expect, decision,

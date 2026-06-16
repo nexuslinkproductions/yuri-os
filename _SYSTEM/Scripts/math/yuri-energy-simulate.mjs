@@ -67,7 +67,7 @@ export function evaluateGate(scenarios = SCENARIOS, { weights = DEFAULT_WEIGHTS,
     if (veto && vetoes(s)) {
       accept = false; deltaU = Infinity; dominantTerm = 'protectedPathViolations(veto)';
     } else {
-      const g = gateProposal({ stateBefore: s.before, stateAfter: s.after, weights, threshold });
+      const g = gateProposal({ stateBefore: s.before, stateAfter: s.after, weights, threshold, origin: 'simulate' });
       accept = g.result.accept; deltaU = g.result.deltaU; dominantTerm = g.result.dominantTerm ?? null;
     }
     const got = accept ? 'accept' : 'reject';

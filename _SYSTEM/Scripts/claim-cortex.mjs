@@ -994,6 +994,7 @@ export function gateClaimTransition(claimsBefore, claimsAfter, opts = {}) {
   // the identity veto catches a NEW-or-deeper per-claim over-claim, the level floor
   // refuses any after-state whose deepest inversion exceeds the cap regardless of id.
   const gate = gateProposal({
+    origin: 'claim',
     stateBefore: { ...before.state, maxLadderInversion: before.maxLadderInversion },
     stateAfter: { ...after.state, maxLadderInversion: after.maxLadderInversion },
     weights: opts.weights || DEFAULT_WEIGHTS,

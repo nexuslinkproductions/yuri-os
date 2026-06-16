@@ -194,6 +194,7 @@ export function verifierBestOfNGated(candidates, currentState, opts = {}) {
     let verdict;
     try {
       verdict = gateProposal({
+        origin: 'best-of-n',
         stateBefore: currentState,
         stateAfter: candidateState,
         weights,

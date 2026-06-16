@@ -87,6 +87,7 @@ export function normBreaker(b) {
 export function verdictFromStates(prevState, nextState, opts = {}) {
   try {
     const g = gateProposal({
+      origin: 'breaker',
       stateBefore: toGateState(prevState),
       stateAfter: toGateState(nextState),
       maxLadderInversionCap: opts.maxLadderInversionCap ?? DEFAULT_MAX_LADDER_INVERSION_CAP,

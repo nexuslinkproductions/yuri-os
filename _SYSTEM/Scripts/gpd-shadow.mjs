@@ -131,6 +131,7 @@ export function gScore(action, x, opts = {}) {
   const g = C * predictedDescent / kappa;
 
   const veto = gateProposal({
+    origin: 'shadow',
     stateBefore,
     stateAfter,
     weights: opts.weights,

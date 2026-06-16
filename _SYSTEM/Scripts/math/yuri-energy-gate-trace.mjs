@@ -164,6 +164,10 @@ function verdictId(rec) {
 export function captureGateVerdict({
   stateBefore, stateAfter, weights, threshold, cap, allowOverride = false,
   accept, reason, deltaU, nowIso = null,
+  // trace-hygiene discriminator (2026-06-16): 'session' = live tool-transition tick; synthetic
+  // callers (sim/experiment/shadow/study/breaker/best-of-n/mutation/claim/test) stamp their own.
+  // Lets a soak filter origin==='session' to the LIVE population (mixed-population trace was a soak trap).
+  origin = 'session',
   // corrId sources (only used when YURI_GATE_TRACE_CORRID is ON)
   claimId, traceId, gitTrailer, subject, kind, claimIds,
 } = {}) {
@@ -171,6 +175,7 @@ export function captureGateVerdict({
     const weightHash = weightFingerprint(weights);
     const rec = {
       ts: nowIso || new Date().toISOString(),
+      origin: typeof origin === 'string' && origin ? origin : 'session', // trace-hygiene tag (live vs synthetic)
       threshold,
       cap: capToWire(cap),
       allowOverride: allowOverride === true,
