@@ -24,8 +24,8 @@
     "k_clusters": 15,
     "articulationPoints": 19,
     "bridges": 39,
-    "agree": 86,
-    "disagree": 29
+    "agree": 78,
+    "disagree": 37
   },
   "isolated": [
     "AEONIC",
@@ -54,10 +54,10 @@
     "MEM_COLD",
     "MEM_HOT",
     "MEM_WARM",
-    "OPENCLAW_A",
     "PALACE",
     "PROPAGATION_SCAN",
     "PULSE_BUS",
+    "SENTINEL_A",
     "SOUL_INJECT",
     "SWARM_A"
   ],
@@ -187,10 +187,6 @@
       "b": "WARM_JOURNAL"
     },
     {
-      "a": "OC_BRIDGE",
-      "b": "OPENCLAW_A"
-    },
-    {
       "a": "PALACE",
       "b": "PALACE_IDX"
     },
@@ -201,6 +197,10 @@
     {
       "a": "PROPAGATION_SCAN",
       "b": "XREF_QUERY"
+    },
+    {
+      "a": "SENTINEL_A",
+      "b": "SENTINEL_BRIDGE"
     },
     {
       "a": "SOUL_FILE",
@@ -499,7 +499,7 @@
       "node": "BEACON_OBSIDIAN",
       "declaredSector": "self_improvement",
       "spectralCluster": 0,
-      "spectralSector": "memory",
+      "spectralSector": "services",
       "verdict": "DISAGREE"
     },
     {
@@ -512,21 +512,21 @@
     {
       "node": "CLASSIFIER",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CLF_ROUTE_PLAN",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CLF_SCENARIO",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
@@ -610,8 +610,8 @@
     {
       "node": "CODEX_GATE",
       "declaredSector": "codex_gate",
-      "spectralCluster": 5,
-      "spectralSector": "routing_lanes",
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
     },
     {
@@ -631,15 +631,22 @@
     {
       "node": "COMPLEX",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "CRITICAL",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
+      "verdict": "AGREE"
+    },
+    {
+      "node": "CRUCIBLE_A",
+      "declaredSector": "advisors",
+      "spectralCluster": 8,
+      "spectralSector": "advisors",
       "verdict": "AGREE"
     },
     {
@@ -666,8 +673,8 @@
     {
       "node": "ED_FINAL",
       "declaredSector": "unassigned",
-      "spectralCluster": 13,
-      "spectralSector": "classification",
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
     },
     {
@@ -687,14 +694,14 @@
     {
       "node": "ENKI",
       "declaredSector": "control_plane",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_BUS",
       "declaredSector": "unassigned",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "DISAGREE"
     },
@@ -708,35 +715,35 @@
     {
       "node": "ENKI_CTX",
       "declaredSector": "unassigned",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_DECIDES",
       "declaredSector": "control_plane",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_INBOX",
       "declaredSector": "control_plane",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
     {
       "node": "ENKI_PLAN",
       "declaredSector": "unassigned",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "DISAGREE"
     },
     {
       "node": "EOT_PIPELINE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -750,9 +757,9 @@
     {
       "node": "GN_DETECT",
       "declaredSector": "code_intelligence",
-      "spectralCluster": 3,
-      "spectralSector": "code_intelligence",
-      "verdict": "AGREE"
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
+      "verdict": "DISAGREE"
     },
     {
       "node": "GN_FLOW_TRACE",
@@ -792,28 +799,28 @@
     {
       "node": "HOOK_PIPELINE",
       "declaredSector": "prompt_hooks",
-      "spectralCluster": 3,
-      "spectralSector": "code_intelligence",
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
     },
     {
       "node": "HOT_BUS",
       "declaredSector": "memory",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "HOT_PLAN",
       "declaredSector": "memory",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "INTROSPECT",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -904,14 +911,14 @@
     {
       "node": "MEM_HOT",
       "declaredSector": "memory",
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "spectralSector": "memory",
       "verdict": "AGREE"
     },
     {
       "node": "MEM_KERNEL",
       "declaredSector": "memory",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
@@ -919,8 +926,8 @@
       "node": "MEM_WARM",
       "declaredSector": "memory",
       "spectralCluster": 0,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
+      "spectralSector": "services",
+      "verdict": "DISAGREE"
     },
     {
       "node": "MINI_WRITE",
@@ -939,79 +946,58 @@
     {
       "node": "MNEMOSYNE",
       "declaredSector": "initialization",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "NATIVE_GATES",
       "declaredSector": "advisors",
-      "spectralCluster": 3,
-      "spectralSector": "code_intelligence",
-      "verdict": "DISAGREE"
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
+      "verdict": "AGREE"
     },
     {
       "node": "NEXUSPULSE",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "NP_BEACON",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 0,
-      "spectralSector": "memory",
+      "spectralCluster": 1,
+      "spectralSector": "routing_lanes",
       "verdict": "DISAGREE"
     },
     {
       "node": "NP_CODEX_RUNNER",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 13,
-      "spectralSector": "classification",
+      "spectralCluster": 12,
+      "spectralSector": "advisors",
       "verdict": "DISAGREE"
-    },
-    {
-      "node": "OBLITERATUS_A",
-      "declaredSector": "advisors",
-      "spectralCluster": 8,
-      "spectralSector": "advisors",
-      "verdict": "AGREE"
-    },
-    {
-      "node": "OC_BRIDGE",
-      "declaredSector": "advisors",
-      "spectralCluster": 8,
-      "spectralSector": "advisors",
-      "verdict": "AGREE"
-    },
-    {
-      "node": "OPENCLAW_A",
-      "declaredSector": "advisors",
-      "spectralCluster": 8,
-      "spectralSector": "advisors",
-      "verdict": "AGREE"
     },
     {
       "node": "ORCHESTRATOR",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
     {
       "node": "PALACE",
       "declaredSector": "initialization",
-      "spectralCluster": 9,
-      "spectralSector": "initialization",
-      "verdict": "AGREE"
+      "spectralCluster": 10,
+      "spectralSector": "code_intelligence",
+      "verdict": "DISAGREE"
     },
     {
       "node": "PALACE_IDX",
       "declaredSector": "initialization",
-      "spectralCluster": 9,
-      "spectralSector": "initialization",
-      "verdict": "AGREE"
+      "spectralCluster": 10,
+      "spectralSector": "code_intelligence",
+      "verdict": "DISAGREE"
     },
     {
       "node": "PB_CONSUME",
@@ -1037,21 +1023,21 @@
     {
       "node": "PRECOMMIT_REGRESS",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
-      "spectralSector": "self_improvement",
-      "verdict": "AGREE"
+      "spectralCluster": 7,
+      "spectralSector": "memory",
+      "verdict": "DISAGREE"
     },
     {
       "node": "PROMPT_HOOKS",
       "declaredSector": "prompt_hooks",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "DISAGREE"
     },
     {
       "node": "PROPAGATION_SCAN",
       "declaredSector": "code_intelligence",
-      "spectralCluster": 3,
+      "spectralCluster": 10,
       "spectralSector": "code_intelligence",
       "verdict": "AGREE"
     },
@@ -1065,9 +1051,9 @@
     {
       "node": "PULSE_ARCHIVE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
-      "spectralSector": "self_improvement",
-      "verdict": "AGREE"
+      "spectralCluster": 7,
+      "spectralSector": "memory",
+      "verdict": "DISAGREE"
     },
     {
       "node": "PULSE_BUS",
@@ -1079,7 +1065,7 @@
     {
       "node": "PULSE_PLAN",
       "declaredSector": "pulse_cortex",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "DISAGREE"
     },
@@ -1100,35 +1086,49 @@
     {
       "node": "SELF_IMPROVE",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
+      "verdict": "AGREE"
+    },
+    {
+      "node": "SENTINEL_A",
+      "declaredSector": "advisors",
+      "spectralCluster": 8,
+      "spectralSector": "advisors",
+      "verdict": "AGREE"
+    },
+    {
+      "node": "SENTINEL_BRIDGE",
+      "declaredSector": "advisors",
+      "spectralCluster": 8,
+      "spectralSector": "advisors",
       "verdict": "AGREE"
     },
     {
       "node": "SERVICES",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SESSION_INIT",
       "declaredSector": "initialization",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "SKILL_REGISTRY",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
     {
       "node": "SOAK_LOOP",
       "declaredSector": "self_improvement",
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "spectralSector": "self_improvement",
       "verdict": "AGREE"
     },
@@ -1149,49 +1149,49 @@
     {
       "node": "STANDARD",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_DIGEST",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_EOT",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_HEALTH",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_OLLAMA",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_RUNTIME",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
     {
       "node": "SVC_SHELL",
       "declaredSector": "services",
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "spectralSector": "services",
       "verdict": "AGREE"
     },
@@ -1219,56 +1219,56 @@
     {
       "node": "TOKEN_INIT",
       "declaredSector": "initialization",
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "spectralSector": "initialization",
       "verdict": "AGREE"
     },
     {
       "node": "TRIVIAL",
       "declaredSector": "classification",
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "spectralSector": "classification",
       "verdict": "AGREE"
     },
     {
       "node": "USER",
       "declaredSector": "operator_io",
-      "spectralCluster": 9,
-      "spectralSector": "initialization",
+      "spectralCluster": 10,
+      "spectralSector": "code_intelligence",
       "verdict": "DISAGREE"
     },
     {
       "node": "USER_INPUT",
       "declaredSector": "operator_io",
-      "spectralCluster": 9,
-      "spectralSector": "initialization",
+      "spectralCluster": 10,
+      "spectralSector": "code_intelligence",
       "verdict": "DISAGREE"
     },
     {
       "node": "WARM_ARCHIVE",
       "declaredSector": "memory",
       "spectralCluster": 0,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
+      "spectralSector": "services",
+      "verdict": "DISAGREE"
     },
     {
       "node": "WARM_EOT",
       "declaredSector": "memory",
       "spectralCluster": 0,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
+      "spectralSector": "services",
+      "verdict": "DISAGREE"
     },
     {
       "node": "WARM_JOURNAL",
       "declaredSector": "memory",
       "spectralCluster": 0,
-      "spectralSector": "memory",
-      "verdict": "AGREE"
+      "spectralSector": "services",
+      "verdict": "DISAGREE"
     },
     {
       "node": "XREF_QUERY",
       "declaredSector": "code_intelligence",
-      "spectralCluster": 3,
+      "spectralCluster": 10,
       "spectralSector": "code_intelligence",
       "verdict": "AGREE"
     },
@@ -1375,7 +1375,7 @@
       "simpleDegree": 12,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.6536
     },
     "CLF_ROUTE_PLAN": {
@@ -1385,7 +1385,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -0.97223
     },
     "CLF_SCENARIO": {
@@ -1395,7 +1395,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -0.97223
     },
     "CMD_DEEPSEEK_FAMILY": {
@@ -1515,7 +1515,7 @@
       "simpleDegree": 11,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 5,
+      "spectralCluster": 12,
       "minIncidentRicci": -1.54399
     },
     "COLD_RULES": {
@@ -1545,7 +1545,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.08921
     },
     "CRITICAL": {
@@ -1555,8 +1555,18 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.08921
+    },
+    "CRUCIBLE_A": {
+      "label": "CRUCIBLE",
+      "declaredSector": "advisors",
+      "weightedDegree": 2.3,
+      "simpleDegree": 3,
+      "isArticulation": false,
+      "isIsolated": false,
+      "spectralCluster": 8,
+      "minIncidentRicci": -0.29705
     },
     "DEEPSEEK_A": {
       "label": "DEEPSEEK",
@@ -1595,7 +1605,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.48668
     },
     "ED_ROUTE": {
@@ -1625,7 +1635,7 @@
       "simpleDegree": 8,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.74069
     },
     "ENKI_BUS": {
@@ -1635,7 +1645,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": null
     },
     "ENKI_COMMANDS": {
@@ -1655,7 +1665,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": null
     },
     "ENKI_DECIDES": {
@@ -1665,7 +1675,7 @@
       "simpleDegree": 19,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.6404
     },
     "ENKI_INBOX": {
@@ -1675,7 +1685,7 @@
       "simpleDegree": 25,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -1.35001
     },
     "ENKI_PLAN": {
@@ -1685,7 +1695,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": null
     },
     "EOT_PIPELINE": {
@@ -1695,7 +1705,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.97556
     },
     "GITNEXUS": {
@@ -1725,7 +1735,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 3,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.9313
     },
     "GN_FLOW_TRACE": {
@@ -1785,7 +1795,7 @@
       "simpleDegree": 6,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 3,
+      "spectralCluster": 12,
       "minIncidentRicci": -1.52443
     },
     "HOT_BUS": {
@@ -1795,7 +1805,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": null
     },
     "HOT_PLAN": {
@@ -1805,7 +1815,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": null
     },
     "INTROSPECT": {
@@ -1815,7 +1825,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.56671
     },
     "LANE_CODEX": {
@@ -1945,7 +1955,7 @@
       "simpleDegree": 4,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 6,
+      "spectralCluster": 13,
       "minIncidentRicci": -1.39261
     },
     "MEM_KERNEL": {
@@ -1955,7 +1965,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -0.68527
     },
     "MEM_WARM": {
@@ -1995,7 +2005,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -0.56671
     },
     "NATIVE_GATES": {
@@ -2005,7 +2015,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 3,
+      "spectralCluster": 12,
       "minIncidentRicci": null
     },
     "NEXUSPULSE": {
@@ -2015,7 +2025,7 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.50184
     },
     "NP_BEACON": {
@@ -2025,7 +2035,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 0,
+      "spectralCluster": 1,
       "minIncidentRicci": -1.34035
     },
     "NP_CODEX_RUNNER": {
@@ -2035,38 +2045,8 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 12,
       "minIncidentRicci": -0.92372
-    },
-    "OBLITERATUS_A": {
-      "label": "OBLITERATUS",
-      "declaredSector": "advisors",
-      "weightedDegree": 2.3,
-      "simpleDegree": 3,
-      "isArticulation": false,
-      "isIsolated": false,
-      "spectralCluster": 8,
-      "minIncidentRicci": -0.29705
-    },
-    "OC_BRIDGE": {
-      "label": "openclaw-bridge.sh",
-      "declaredSector": "advisors",
-      "weightedDegree": 0.9,
-      "simpleDegree": 1,
-      "isArticulation": false,
-      "isIsolated": false,
-      "spectralCluster": 8,
-      "minIncidentRicci": null
-    },
-    "OPENCLAW_A": {
-      "label": "OPENCLAW",
-      "declaredSector": "advisors",
-      "weightedDegree": 3.2,
-      "simpleDegree": 4,
-      "isArticulation": true,
-      "isIsolated": false,
-      "spectralCluster": 8,
-      "minIncidentRicci": -0.62763
     },
     "ORCHESTRATOR": {
       "label": "orchestrator.mjs",
@@ -2075,7 +2055,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -0.44558
     },
     "PALACE": {
@@ -2085,7 +2065,7 @@
       "simpleDegree": 3,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 10,
       "minIncidentRicci": -1.07685
     },
     "PALACE_IDX": {
@@ -2095,7 +2075,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 10,
       "minIncidentRicci": null
     },
     "PB_CONSUME": {
@@ -2135,7 +2115,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 7,
       "minIncidentRicci": -0.81438
     },
     "PROMPT_HOOKS": {
@@ -2145,7 +2125,7 @@
       "simpleDegree": 5,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -1.4258
     },
     "PROPAGATION_SCAN": {
@@ -2155,7 +2135,7 @@
       "simpleDegree": 3,
       "isArticulation": true,
       "isIsolated": false,
-      "spectralCluster": 3,
+      "spectralCluster": 10,
       "minIncidentRicci": -1.11497
     },
     "PROPOSE": {
@@ -2195,7 +2175,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 7,
       "minIncidentRicci": -1.27143
     },
     "PULSE_BUS": {
@@ -2215,7 +2195,7 @@
       "simpleDegree": 3,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.09591
     },
     "RESPONSE": {
@@ -2275,8 +2255,28 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.70045
+    },
+    "SENTINEL_A": {
+      "label": "YURI SENTINEL",
+      "declaredSector": "advisors",
+      "weightedDegree": 3.2,
+      "simpleDegree": 4,
+      "isArticulation": true,
+      "isIsolated": false,
+      "spectralCluster": 8,
+      "minIncidentRicci": -0.62763
+    },
+    "SENTINEL_BRIDGE": {
+      "label": "yuri-sentinel-bridge.sh",
+      "declaredSector": "advisors",
+      "weightedDegree": 0.9,
+      "simpleDegree": 1,
+      "isArticulation": false,
+      "isIsolated": false,
+      "spectralCluster": 8,
+      "minIncidentRicci": null
     },
     "SERVICES": {
       "label": "SERVICES",
@@ -2285,7 +2285,7 @@
       "simpleDegree": 9,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -1.66857
     },
     "SESSION_INIT": {
@@ -2295,7 +2295,7 @@
       "simpleDegree": 8,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -1.69368
     },
     "SKILL_REGISTRY": {
@@ -2305,7 +2305,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -0.56671
     },
     "SOAK_LOOP": {
@@ -2315,7 +2315,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 12,
+      "spectralCluster": 9,
       "minIncidentRicci": -1.11318
     },
     "SOUL_FILE": {
@@ -2345,7 +2345,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.08921
     },
     "SVC_DIGEST": {
@@ -2355,7 +2355,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.94674
     },
     "SVC_EOT": {
@@ -2365,7 +2365,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.94674
     },
     "SVC_HEALTH": {
@@ -2375,7 +2375,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.4402
     },
     "SVC_OLLAMA": {
@@ -2385,7 +2385,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.4402
     },
     "SVC_RUNTIME": {
@@ -2395,7 +2395,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.4402
     },
     "SVC_SHELL": {
@@ -2405,7 +2405,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 10,
+      "spectralCluster": 0,
       "minIncidentRicci": -0.4402
     },
     "SWARM_A": {
@@ -2455,7 +2455,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 14,
       "minIncidentRicci": -0.56671
     },
     "TRIVIAL": {
@@ -2465,7 +2465,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 13,
+      "spectralCluster": 6,
       "minIncidentRicci": -1.08921
     },
     "USER": {
@@ -2475,7 +2475,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 10,
       "minIncidentRicci": -0.41287
     },
     "USER_INPUT": {
@@ -2485,7 +2485,7 @@
       "simpleDegree": 2,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 9,
+      "spectralCluster": 10,
       "minIncidentRicci": -1.35001
     },
     "WARM_ARCHIVE": {
@@ -2525,7 +2525,7 @@
       "simpleDegree": 1,
       "isArticulation": false,
       "isIsolated": false,
-      "spectralCluster": 3,
+      "spectralCluster": 10,
       "minIncidentRicci": null
     },
     "YURI_COG": {
