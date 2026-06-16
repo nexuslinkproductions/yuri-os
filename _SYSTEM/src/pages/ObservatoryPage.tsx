@@ -88,7 +88,7 @@ export default function ObservatoryPage() {
   }, []);
 
   const cycleStr    = String(obs.health.cycleCount ?? 0);
-  const ageStr      = fmtAge(obs.health.lastCycle ?? obs.health.ts);
+  const ageStr      = fmtAge(obs.lastTick ?? obs.health.lastCycle ?? obs.health.ts);
   const uptimeStr   = fmtUptime(obs.health.uptime);
   const mktCount    = String(Object.keys(obs.markets).length);
   const totalPnl    = obs.paper.pnl ?? 0;

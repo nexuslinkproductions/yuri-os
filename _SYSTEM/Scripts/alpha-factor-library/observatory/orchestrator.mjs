@@ -60,7 +60,12 @@ import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit aware
 
 // Default tracked markets — crypto PRIMARY, Polymarket secondary
-const DEFAULT_CRYPTO_MARKETS = ['BTC-USD', 'ETH-USD'];
+// BTC/ETH anchors + fast movers (live vol scan 2026-06-16: WIF ~6.8%/day, SOL/SUI/AVAX ~3.6%
+// vs BTC ~2.1%). Readable-price coins only (sub-cent memecoins need adaptive decimals first).
+// Override with OBSERVATORY_CRYPTO_MARKETS=BTC-USD,SOL-USD,...
+const DEFAULT_CRYPTO_MARKETS = (process.env.OBSERVATORY_CRYPTO_MARKETS
+  ? process.env.OBSERVATORY_CRYPTO_MARKETS.split(',').map((s) => s.trim()).filter(Boolean)
+  : ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SUI-USD', 'WIF-USD', 'AVAX-USD']);
 const COINBASE_GRANULARITY = 'FIVE_MINUTE';
 
 // Number of candles to fetch per cycle for crypto
@@ -622,7 +627,60 @@ const _state = {
   energy: null,           // latest energy telemetry (cross-market)
   lastCycle: null,        // unix-seconds
   cycleCount: 0,
+  ticks: new Map(),       // market key → { market, venue, price, bid, ask, ts } (1s fast-tick)
+  lastTick: null,         // unix-seconds of the last fast-tick poll
 };
+
+// ── Fast price tick (1s) — lightweight last-price poll, SEPARATE from runCycle ──
+/**
+ * fastTick(config?) — poll ONLY the latest price for each tracked market and
+ * update the in-memory tick state + each market snapshot's lastPrice/lastTickTs.
+ * This is the per-SECOND live pulse: cheap (one getTicker/getPrice per market),
+ * fail-open per market, NEVER runs the heavy factor/sizing/paper pipeline.
+ * Returns the tick array (for SSE price.tick events).
+ */
+export async function fastTick(config = {}) {
+  const cfg = { ...DEFAULT_CONFIG, ...config };
+  const now = Math.floor(Date.now() / 1000);
+  const out = [];
+
+  // Crypto — coinbase last trade price
+  for (const market of cfg.cryptoMarkets) {
+    try {
+      const t = await CoinbaseAdapter.getTicker(market, { limit: 1 });
+      const price = Number.isFinite(t.last) ? t.last : (Number.isFinite(t.mid) ? t.mid : null);
+      if (price == null) continue;
+      const tick = { market, venue: 'coinbase', price, bid: t.bid ?? null, ask: t.ask ?? null, ts: now };
+      _state.ticks.set(market, tick);
+      const snap = _state.snapshots.get(market);
+      if (snap) { snap.lastPrice = price; snap.lastTickTs = now; }
+      out.push(tick);
+    } catch (_e) { /* fail-open per market */ }
+  }
+
+  // Polymarket — CLOB mid/buy price
+  for (const { tokenId } of (cfg.polymarkets || [])) {
+    const key = `poly-${tokenId}`;
+    try {
+      const p = await PolymarketAdapter.getPrice(tokenId, 'buy');
+      const price = Number.isFinite(p?.price) ? p.price : null;
+      if (price == null) continue;
+      const tick = { market: key, venue: 'polymarket', price, bid: null, ask: null, ts: now };
+      _state.ticks.set(key, tick);
+      const snap = _state.snapshots.get(key);
+      if (snap) { snap.lastPrice = price; snap.lastTickTs = now; }
+      out.push(tick);
+    } catch (_e) { /* fail-open per market */ }
+  }
+
+  _state.lastTick = now;
+  return out;
+}
+
+/** getTicks() — current fast-tick price map for REST. */
+export function getTicks() {
+  return Object.fromEntries(_state.ticks);
+}
 
 /**
  * getSnapshot() — current full state snapshot for REST endpoints.
@@ -633,7 +691,9 @@ export function getSnapshot() {
     factors: _state.factors,
     regimes: Object.fromEntries(_state.regimes),
     energy: _state.energy,
+    ticks: Object.fromEntries(_state.ticks),
     lastCycle: _state.lastCycle,
+    lastTick: _state.lastTick,
     cycleCount: _state.cycleCount,
   };
 }
@@ -757,6 +817,7 @@ export function getHealth() {
     ok,
     cycleCount: _state.cycleCount,
     lastCycle: _state.lastCycle,
+    lastTick: _state.lastTick,
     marketCount: markets.length,
     errorCount: errCount,
     uptime: process.uptime(),

@@ -59,7 +59,7 @@ function MarketChart({ snapshot, tfs, isPrimary, regime }: ChartProps) {
   const [candlesData, setCandlesData] = useState<OHLCVBar[] | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const lastPrice = snapshot.lastBar?.close;
+  const lastPrice = snapshot.lastPrice ?? snapshot.lastBar?.close;
   const isPolymarket = snapshot.venue === 'polymarket';
   const displayTitle = isPolymarket && snapshot.question ? snapshot.question : snapshot.market;
   const priceDisplay = lastPrice != null

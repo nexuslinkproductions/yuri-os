@@ -55,6 +55,8 @@ import {
   buildSSEEvents,
   setHttpGet,
   bootstrapPolymarkets,
+  fastTick,
+  getTicks,
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
@@ -63,6 +65,7 @@ import { getCandlesAtTimeframe, availableTimeframes } from './timeframes.mjs';
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
 const INTERVAL_MS = Number(process.env.OBSERVATORY_INTERVAL_MS) || DEFAULT_CONFIG.intervalMs;
+const TICK_MS = Number(process.env.OBSERVATORY_TICK_MS) || 1000; // per-second fast price tick
 const HOST = '127.0.0.1'; // localhost only
 
 // CORS allowed origins — localhost only
@@ -191,6 +194,10 @@ function routeRequest(req, res) {
       jsonResponse(res, getHealth());
       break;
 
+    case '/api/observatory/ticks':
+      jsonResponse(res, getTicks());
+      break;
+
     case '/api/observatory/timeframes':
       jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
       break;
@@ -293,6 +300,25 @@ async function startServe(config = {}) {
     console.error('[observatory-server] polymarket bootstrap failed (continuing):', e.message);
   }
 
+  // Fast price-tick loop — START IMMEDIATELY (before/independent of the heavy cycle) so the
+  // per-SECOND live pulse flows from second one, even while the first cycle is still running.
+  let tickBusy = false;
+  const doTick = async () => {
+    if (tickBusy) return;
+    tickBusy = true;
+    try {
+      const ticks = await fastTick(cfg);
+      if (ticks.length) broadcastSSE(ticks.map((t) => ({ type: 'price.tick', ...t })));
+    } catch (err) {
+      console.error('[observatory-server] tick error:', err.message);
+    } finally {
+      tickBusy = false;
+    }
+  };
+  doTick(); // immediate first tick (don't wait the interval)
+  const tickInterval = setInterval(doTick, TICK_MS);
+  console.log(`[observatory-server] fast price-tick @ ${TICK_MS}ms`);
+
   // Run first cycle immediately
   // emit cycle.start before INITIAL cycle too (BUG-5: was only emitted on interval cycles)
   broadcastSSE([{ type: 'cycle.start', cycleCount: 1, ts: Math.floor(Date.now() / 1000) }]);
@@ -325,6 +351,7 @@ async function startServe(config = {}) {
   const shutdown = () => {
     console.log('[observatory-server] shutting down...');
     clearInterval(interval);
+    clearInterval(tickInterval);
     server.close(() => process.exit(0));
   };
   process.on('SIGTERM', shutdown);

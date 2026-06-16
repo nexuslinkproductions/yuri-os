@@ -51,6 +51,9 @@ export interface MarketSnapshot {
   market: string;
   venue: string;
   updatedAt?: number;
+  /** Latest fast-tick price (1s loop) — preferred live price over lastBar.close. */
+  lastPrice?: number;
+  lastTickTs?: number;
   lastBar?: OHLCVBar;
   bars?: OHLCVBar[];
   qualityGate?: QualityGate;
@@ -174,6 +177,8 @@ export interface ObservatoryState {
   regimes: Record<string, RegimeState>;
   energy: EnergyState;
   health: HealthState;
+  /** unix-seconds of the latest fast price-tick (1s loop) — drives the live "last tick" age. */
+  lastTick?: number;
   connected: boolean;
   loading: boolean;
   error: string | null;
@@ -287,13 +292,14 @@ export function useObservatoryStream(): ObservatoryState {
     (async () => {
       // /paper and /regime return per-market wrappers: { "<market>": { ... } }
       // Use unknown for the raw fetch so we can do safe narrowing below.
-      const [marketsRaw, factors, paperRaw, regimeRaw, energy, health] = await Promise.all([
+      const [marketsRaw, factors, paperRaw, regimeRaw, energy, health, ticksRaw] = await Promise.all([
         safeFetch<Record<string, MarketSnapshot> | MarketSnapshot[]>(`${BASE}/markets`, {}),
         safeFetch<FactorSignal[]>(`${BASE}/factors`, []),
         safeFetch<unknown>(`${BASE}/paper`, {}),
         safeFetch<unknown>(`${BASE}/regime`, {}),
         safeFetch<EnergyState>(`${BASE}/energy`, {}),
         safeFetch<HealthState>(`${BASE}/health`, {}),
+        safeFetch<Record<string, { market: string; price: number; ts: number }>>(`${BASE}/ticks`, {}),
       ]);
 
       if (cancelled) return;
@@ -312,6 +318,14 @@ export function useObservatoryStream(): ObservatoryState {
       // so every consumer (MarketChart, aggregate) gets a number, never an object.
       for (const k of Object.keys(markets)) {
         markets[k] = { ...markets[k], pnl: pnlToNumber(markets[k].pnl) };
+      }
+      // Apply initial fast-tick prices (/ticks) so the live price shows immediately.
+      if (ticksRaw && typeof ticksRaw === 'object') {
+        for (const [k, t] of Object.entries(ticksRaw as Record<string, { price?: number; ts?: number }>)) {
+          if (markets[k] && typeof t?.price === 'number') {
+            markets[k] = { ...markets[k], lastPrice: t.price, lastTickTs: t.ts };
+          }
+        }
       }
 
       // BUG-2 fix: /paper returns { "<market>": {positions, pnl, drawdown} }
@@ -382,6 +396,7 @@ export function useObservatoryStream(): ObservatoryState {
         regimes,
         energy,
         health,
+        lastTick: (health as HealthState)?.lastTick,
         loading: false,
       }));
     })();
@@ -446,6 +461,24 @@ export function useObservatoryStream(): ObservatoryState {
                       }
                       return [...existing, tick.lastBar];
                     })(),
+                  },
+                },
+              };
+            }
+
+            case 'price.tick': {
+              // Per-second live price pulse — update the market's lastPrice + the global lastTick age.
+              const t = ev as unknown as { market?: string; venue?: string; price?: number; ts?: number };
+              if (!t.market || typeof t.price !== 'number') return prev;
+              return {
+                ...prev,
+                lastTick: typeof t.ts === 'number' ? t.ts : prev.lastTick,
+                markets: {
+                  ...prev.markets,
+                  [t.market]: {
+                    ...(prev.markets[t.market] ?? { market: t.market, venue: t.venue ?? 'unknown' }),
+                    lastPrice: t.price,
+                    lastTickTs: t.ts,
                   },
                 },
               };
