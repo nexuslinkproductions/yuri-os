@@ -22,9 +22,10 @@ export default defineConfig({
     port: 4200,
     host: '127.0.0.1',
     proxy: {
-      // Dev-proxy: forward /api/observatory/* to the observatory server (default port 4242)
+      // Dev-proxy: forward /api/observatory/* to the observatory server.
+      // Default 4243 (4242 is the YURI health-aggregator); override with OBSERVATORY_PORT.
       '/api/observatory': {
-        target: 'http://127.0.0.1:4242',
+        target: `http://127.0.0.1:${process.env.OBSERVATORY_PORT || 4243}`,
         changeOrigin: false,
         // Preserve EventSource connections (SSE) — disable response buffering
         configure: (proxy) => {

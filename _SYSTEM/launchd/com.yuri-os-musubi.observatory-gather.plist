@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TRACKED TEMPLATE (repo record / reproducibility) for the YURI Observatory
+  headless data-gather + dashboard server. The LIVE copy must live in
+  ~/Library/LaunchAgents/ for launchd to load it (macOS requirement).
+
+  Install:  cp _SYSTEM/launchd/com.yuri-os-musubi.observatory-gather.plist ~/Library/LaunchAgents/
+            launchctl load ~/Library/LaunchAgents/com.yuri-os-musubi.observatory-gather.plist
+  Stop:     launchctl unload ~/Library/LaunchAgents/com.yuri-os-musubi.observatory-gather.plist
+  Status:   launchctl list | grep observatory-gather   ·   cat _SYSTEM/state/observatory-gather-status.json
+  Runs `observatory-server.mjs --serve` (paper-only): gathers ledgers AND serves the
+  dashboard REST/SSE on :4243. Adjust the node path if not homebrew.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.yuri-os-musubi.observatory-gather</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/alpha-factor-library/observatory/observatory-server.mjs</string>
+    <string>--serve</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>OBSERVATORY_PORT</key><string>4243</string>
+    <key>OBSERVATORY_INTERVAL_MS</key><string>30000</string>
+    <key>OBSERVATORY_AUTO_POLYMARKET</key><string>1</string>
+    <key>OBSERVATORY_PERP</key><string>1</string>
+    <key>OBSERVATORY_SOCIAL</key><string>1</string>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/observatory-gather.log</string>
+  <key>StandardErrorPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/observatory-gather.log</string>
+</dict>
+</plist>

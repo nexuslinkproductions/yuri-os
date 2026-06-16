@@ -32,6 +32,8 @@ const ALLOWED_HOSTS = new Set([
   'oauth.reddit.com',        // future keyed path
   'cryptopanic.com',         // optional keyed
   'newsapi.org',             // optional keyed
+  'cointelegraph.com',       // keyless RSS (default working source)
+  'www.coindesk.com',        // keyless RSS (default working source)
 ]);
 
 // Curated subreddits for crypto sentiment (public, high-signal).
@@ -41,6 +43,32 @@ const DEFAULT_SUBREDDITS = [
   'ethereum',
   'CryptoMarkets',
 ];
+
+// Keyless RSS news feeds (the DEFAULT working source — Reddit .json now 403s
+// unauthenticated). Public XML, no token. Each feed is general crypto news;
+// getSentiment filters items to the queried asset via ASSET_KEYWORDS.
+const RSS_FEEDS = [
+  'https://cointelegraph.com/rss',
+  'https://www.coindesk.com/arc/outboundfeeds/rss/',
+];
+
+// asset symbol → match keywords (lowercased) for filtering general news feeds.
+// Falls back to [symbol.toLowerCase()] for unlisted assets.
+const ASSET_KEYWORDS = {
+  BTC: ['bitcoin', 'btc'],
+  ETH: ['ethereum', 'ether', 'eth'],
+  SOL: ['solana', 'sol'],
+  XRP: ['xrp', 'ripple'],
+  DOGE: ['dogecoin', 'doge'],
+  ADA: ['cardano', 'ada'],
+  AVAX: ['avalanche', 'avax'],
+  LINK: ['chainlink', 'link'],
+};
+
+function assetKeywords(asset) {
+  const up = String(asset || '').toUpperCase();
+  return ASSET_KEYWORDS[up] ?? [up.toLowerCase()];
+}
 
 const DEFAULT_LIMIT = 25;
 
@@ -188,6 +216,56 @@ async function fetchJson(urlStr, headers = {}) {
     throw new MappingError(`social: non-JSON body from ${urlStr}`, res.body?.slice?.(0, 200));
   }
   return parsed;
+}
+
+/** fetchText(url) — SSRF-guarded raw-body fetch (for XML/RSS; no JSON parse). */
+async function fetchText(urlStr, headers = {}) {
+  const u = new URL(urlStr);
+  guardHost(u.hostname);
+  const res = await httpGet(urlStr, headers);
+  if (res.status < 200 || res.status >= 300) {
+    throw new VenueApiError(res.status, res.body);
+  }
+  return res.body ?? '';
+}
+
+/**
+ * parseRssItems(xml) -> Array<{ title, description, pubDate, link }>  (pure, exported for test)
+ * Minimal dependency-free RSS/Atom parser: pulls <item> (or <entry>) blocks and
+ * extracts title/description/pubDate/link. Strips CDATA + HTML tags + decodes the
+ * common XML entities. Tolerant of malformed feeds (skips unextractable items).
+ */
+export function parseRssItems(xml) {
+  if (!xml || typeof xml !== 'string') return [];
+  const items = [];
+  const blocks = xml.match(/<(item|entry)\b[\s\S]*?<\/\1>/gi) || [];
+  for (const block of blocks) {
+    const pick = (tag) => {
+      const m = block.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+      return m ? cleanXmlText(m[1]) : '';
+    };
+    const title = pick('title');
+    const description = pick('description') || pick('summary') || pick('content');
+    const pubDate = pick('pubDate') || pick('published') || pick('updated');
+    let link = pick('link');
+    if (!link) {
+      const lm = block.match(/<link\b[^>]*href=["']([^"']+)["']/i); // Atom <link href=...>
+      if (lm) link = lm[1];
+    }
+    if (title || description) items.push({ title, description, pubDate, link });
+  }
+  return items;
+}
+
+/** Strip CDATA, HTML tags, and decode common XML entities; collapse whitespace. */
+function cleanXmlText(s) {
+  return String(s)
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -419,16 +497,53 @@ export function aggregateSentiment(posts) {
 export async function getSentiment(asset, opts = {}) {
   if (!asset || typeof asset !== 'string') throw new MappingError('getSentiment: asset required', asset);
 
-  const sources = opts.sources ?? ['reddit'];
+  // RSS is the DEFAULT working keyless source (Reddit .json now 403s); Reddit is
+  // kept as a fallback (silently skips on 403) and works again with a token.
+  const sources = opts.sources ?? ['rss', 'reddit'];
   const subreddits = opts.subreddits ?? DEFAULT_SUBREDDITS;
   const limit = opts.limit ?? DEFAULT_LIMIT;
   const includeRaw = opts.includeRaw ?? false;
+  const feeds = opts.feeds ?? RSS_FEEDS;
 
   const allPosts = [];
   const usedSources = [];
 
   for (const src of sources) {
-    if (src === 'reddit') {
+    if (src === 'rss') {
+      // Keyless RSS news feeds, filtered to the asset via keyword match.
+      const kws = assetKeywords(asset);
+      let rssMatched = 0;
+      for (const feedUrl of feeds) {
+        try {
+          const xml = await fetchText(feedUrl);
+          const items = parseRssItems(xml);
+          for (const it of items) {
+            const hay = `${it.title} ${it.description}`.toLowerCase();
+            if (!kws.some((k) => hay.includes(k))) continue; // not about this asset
+            let createdAt = Date.parse(it.pubDate || '');
+            createdAt = Number.isFinite(createdAt) ? Math.floor(createdAt / 1000) : Math.floor(Date.now() / 1000);
+            try {
+              allPosts.push(mapPost({
+                title: it.title,
+                body: it.description ?? '',
+                created_at: createdAt,
+                source: 'rss',
+                id: it.link || it.title,
+                url: it.link || null,
+                // RSS has no native engagement — assign a nominal weight of 1 so
+                // coverage VOLUME + consensus (not zero) drive the magnitude.
+                engagement_score: 1,
+                comment_count: 0,
+              }));
+              rssMatched++;
+              if (rssMatched >= limit) break;
+            } catch (_) { /* skip malformed item */ }
+          }
+        } catch (_) { /* skip this feed on error (fail-open) */ }
+        if (rssMatched >= limit) break;
+      }
+      if (rssMatched > 0) usedSources.push('rss');
+    } else if (src === 'reddit') {
       // Keyless Reddit search across curated subreddits
       for (const sr of subreddits) {
         const q = encodeURIComponent(asset);
@@ -676,7 +791,7 @@ if (_runAsMain && process.argv.includes('--test')) {
     return { status: 200, headers: {}, body: JSON.stringify(emptyListing) };
   });
 
-  const result = await getSentiment('BTC');
+  const result = await getSentiment('BTC', { sources: ['reddit'] });
   assert(callCount === 4, 'getSentiment called 4 subreddits');
   assert(result.asset === 'BTC', 'getSentiment asset');
   assert(typeof result.ts === 'number' && result.ts > 1_700_000_000, 'getSentiment ts unix-seconds');
@@ -687,7 +802,7 @@ if (_runAsMain && process.argv.includes('--test')) {
   assert(result.sources.length === 1, 'getSentiment sources length 1 (keyless only)');
 
   // ── getSentiment with includeRaw ──
-  const resultRaw = await getSentiment('ETH', { includeRaw: true });
+  const resultRaw = await getSentiment('ETH', { includeRaw: true, sources: ['reddit'] });
   assert(Array.isArray(resultRaw.raw), 'getSentiment includeRaw → raw array');
   assert(resultRaw.raw.length === 0, 'getSentiment ETH → 0 posts (empty mocks)');
   assert(resultRaw.sampleCount === 0, 'getSentiment ETH → sampleCount 0');
@@ -699,6 +814,39 @@ if (_runAsMain && process.argv.includes('--test')) {
 
   // ── setHttpGet type guard ──
   try { setHttpGet('not-a-function'); assert(false, 'should throw'); } catch (e) { assert(e instanceof TypeError, 'setHttpGet non-function → TypeError'); }
+
+  // ── RSS: parseRssItems (pure) ──
+  const sampleRss = `<?xml version="1.0"?><rss><channel>
+    <item><title><![CDATA[Bitcoin breaks out, bullish rally to new highs]]></title><description>BTC surges on ETF inflows</description><pubDate>Mon, 16 Jun 2025 10:00:00 GMT</pubDate><link>https://cointelegraph.com/a</link></item>
+    <item><title>Ethereum upgrade ships</title><description>ETH network improves</description><link>https://cointelegraph.com/b</link></item>
+    <item><title>Stock market commentary</title><description>unrelated equities news</description><link>https://cointelegraph.com/c</link></item>
+  </channel></rss>`;
+  const rssItems = parseRssItems(sampleRss);
+  assert(rssItems.length === 3, `parseRssItems → 3 items (got ${rssItems.length})`);
+  assert(rssItems[0].title.includes('Bitcoin'), 'parseRssItems strips CDATA from title');
+  assert(rssItems[0].link === 'https://cointelegraph.com/a', 'parseRssItems extracts link');
+  assert(parseRssItems('').length === 0, 'parseRssItems empty → []');
+  assert(parseRssItems(null).length === 0, 'parseRssItems null → []');
+
+  // ── RSS getSentiment path (injected mock feed) ──
+  setHttpGet(async (url) => {
+    if (url.includes('cointelegraph.com') || url.includes('coindesk.com')) {
+      return { status: 200, headers: {}, body: sampleRss };
+    }
+    return { status: 200, headers: {}, body: '<rss></rss>' };
+  });
+  const rssRes = await getSentiment('BTC', { sources: ['rss'] });
+  assert(rssRes.sources.includes('rss'), 'rss source used');
+  assert(rssRes.sampleCount >= 1, `rss filtered BTC items (got ${rssRes.sampleCount})`);
+  assert(rssRes.score >= -1 && rssRes.score <= 1, 'rss score ∈ [-1,1]');
+  assert(rssRes.magnitude > 0, `rss magnitude > 0 via nominal weight (got ${rssRes.magnitude})`);
+  // asset filter: BTC query should NOT pull the Ethereum-only or equities item
+  const rssEth = await getSentiment('ETH', { sources: ['rss'] });
+  assert(rssEth.sampleCount >= 1, 'rss ETH filter matches ethereum item');
+  // RSS 403 → fail-open neutral (no throw)
+  setHttpGet(async () => ({ status: 403, headers: {}, body: 'blocked' }));
+  const rss403 = await getSentiment('BTC', { sources: ['rss'] });
+  assert(rss403.sampleCount === 0 && rss403.score === 0, 'rss 403 → fail-open neutral (no throw)');
 
   // ── FINAL ──
   console.log(`social-adapter self-test: ${pass} pass, ${fail} fail`);

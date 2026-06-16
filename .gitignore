@@ -120,6 +120,12 @@ _SYSTEM/state/energy-session/
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
+# Observatory runtime (paper ledgers + gather heartbeat/log — local, regenerable)
+_SYSTEM/state/observatory-paper*.jsonl
+_SYSTEM/state/observatory-pred*.jsonl
+_SYSTEM/state/observatory-predictions.jsonl
+_SYSTEM/state/observatory-gather-status.json
+_SYSTEM/state/observatory-gather.log
 _SYSTEM/state/memory-kernel-audit.jsonl
 _SYSTEM/state/memory-canonical/
 _SYSTEM/state/memory-canonical-backup/

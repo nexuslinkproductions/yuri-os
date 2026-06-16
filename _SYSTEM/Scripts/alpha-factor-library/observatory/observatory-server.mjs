@@ -41,6 +41,7 @@
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
 import {
   runCycle,
@@ -59,7 +60,7 @@ import {
 import { applyAuth } from './observatory-auth.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
-const PORT = Number(process.env.OBSERVATORY_PORT) || 4242;
+const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
 const INTERVAL_MS = Number(process.env.OBSERVATORY_INTERVAL_MS) || DEFAULT_CONFIG.intervalMs;
 const HOST = '127.0.0.1'; // localhost only
 
@@ -318,6 +319,66 @@ async function runOnce(config = {}) {
   console.log(JSON.stringify(snap, null, 2));
 }
 
+// ── --gather mode (headless data accumulation; NO HTTP server) ──────────────
+// Runs the live cycle on an interval, writing paper + prediction ledgers (the
+// orchestrator handles those) plus a heartbeat status file, so the energy/circuit
+// learn loops accumulate real outcomes over time. All overlays + Polymarket
+// auto-discovery default ON. Paper-only, read-only venues, fail-open per cycle.
+const GATHER_STATE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..', 'state');
+const GATHER_STATUS = path.join(GATHER_STATE_DIR, 'observatory-gather-status.json');
+const GATHER_INTERVAL_MS = Number(process.env.OBSERVATORY_GATHER_INTERVAL_MS) || 30_000;
+
+function writeGatherStatus(snap, errMsg) {
+  try {
+    if (!existsSync(GATHER_STATE_DIR)) mkdirSync(GATHER_STATE_DIR, { recursive: true });
+    const markets = Object.entries(snap?.markets || {}).map(([m, s]) => ({
+      market: m, venue: s.venue, bars: s.bars?.length || 0,
+      signals: (s.signals || []).length, equity: s.pnl?.equity ?? null,
+      positions: (s.paperPositions || []).length, drawdown: s.drawdown ?? null,
+      circuitRatio: s.circuit?.ratio ?? null, regime: s.regime?.recommendation ?? null,
+      error: s.error ?? null,
+    }));
+    writeFileSync(GATHER_STATUS, JSON.stringify({
+      pid: process.pid, mode: 'gather', cycleCount: snap?.cycleCount ?? null,
+      lastCycle: snap?.lastCycle ?? null, factors: snap?.factors?.length ?? 0,
+      markets, lastError: errMsg ?? null, updatedAt: Math.floor(Date.now() / 1000),
+    }, null, 2));
+  } catch (_) { /* status file is best-effort */ }
+}
+
+async function runGather() {
+  let cfg = {
+    autoDiscoverPolymarkets: process.env.OBSERVATORY_AUTO_POLYMARKET !== '0', // default ON for gather
+    enablePerp: process.env.OBSERVATORY_PERP !== '0',
+    enableSocial: process.env.OBSERVATORY_SOCIAL !== '0',
+    polymarketLimit: Number(process.env.OBSERVATORY_POLY_LIMIT) || 3,
+  };
+  console.log(`[gather] headless data-gather starting (pid ${process.pid}, interval ${GATHER_INTERVAL_MS}ms, paper-only)`);
+  try {
+    const pm = await bootstrapPolymarkets(cfg);
+    if (pm.length) { cfg = { ...cfg, polymarkets: pm }; console.log(`[gather] tracking ${pm.length} Polymarket market(s)`); }
+  } catch (e) { console.error('[gather] polymarket bootstrap failed (continuing):', e.message); }
+
+  const cycle = async () => {
+    try {
+      const snap = await runCycle(cfg);
+      const eqs = Object.values(snap.markets).map((s) => s.pnl?.equity).filter(Number.isFinite);
+      const totalEq = eqs.length ? eqs.reduce((a, b) => a + b, 0) : 0;
+      console.log(`[gather] cycle ${snap.cycleCount} @ ${snap.lastCycle} — markets=${Object.keys(snap.markets).length} factors=${snap.factors.length} totalEquity=${totalEq.toFixed(0)}`);
+      writeGatherStatus(snap, null);
+    } catch (err) {
+      console.error('[gather] cycle error (continuing):', err.message);
+      writeGatherStatus(null, err.message);
+    }
+  };
+
+  await cycle(); // initial cycle immediately
+  const interval = setInterval(cycle, GATHER_INTERVAL_MS);
+  const shutdown = () => { console.log('[gather] shutting down'); clearInterval(interval); process.exit(0); };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+}
+
 // ── --test mode (delegates to orchestrator --test via its own argv check) ──
 // The orchestrator's --test self-test runs when `process.argv.includes('--test')`,
 // which is already set when we reach here. We import the module which triggers it.
@@ -334,6 +395,8 @@ if (args.includes('--test')) {
   // orchestrator.mjs runs runSelfTest() and process.exit(0/1). We just wait.
 } else if (args.includes('--once')) {
   runOnce().catch((err) => { console.error(err); process.exit(1); });
+} else if (args.includes('--gather')) {
+  runGather().catch((err) => { console.error(err); process.exit(1); });
 } else if (args.includes('--serve')) {
   startServe().catch((err) => { console.error(err); process.exit(1); });
 } else {
