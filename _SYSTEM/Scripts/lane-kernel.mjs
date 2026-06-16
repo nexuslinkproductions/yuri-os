@@ -76,6 +76,12 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     '.claude/hooks/pre-tool-gate.js',
     '.claude/hooks/musubi-protocol-enforce.js',
     '.claude/hooks/tirith-url-guard.js',
+    // B3 (peer red-team catch): the energy gate's own enforcement code — PEP + tick. A coworker
+    // could Edit these to neuter the breaker (the rm vector is already caught by the blanket
+    // .claude destructive-op rule, but the Edit-tool vector was open). Same enforcement class as
+    // the guards above, so they belong in the trust surface; dev/owner edits freely.
+    '.claude/hooks/energy-enforce.mjs',
+    '.claude/hooks/energy-tick.mjs',
     // wave-3 G.1 (D-G1): the hook REGISTRY itself — a coworker editing settings.json
     // can delete every guard registration above, so the registry is a trust root too.
     '.claude/settings.json',

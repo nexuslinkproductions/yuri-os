@@ -54,3 +54,12 @@ test('B3-4 ROLE_TRUST_SURFACES single-sources the two energy-arm paths (lock aga
   assert.ok(ROLE_TRUST_SURFACES.files.includes('_SYSTEM/state/energy-enforce.enabled'), 'arm flag must stay in ROLE_TRUST_SURFACES.files');
   assert.ok(ROLE_TRUST_SURFACES.dirs.includes('_SYSTEM/state/energy-session'), 'snap dir must stay in ROLE_TRUST_SURFACES.dirs');
 });
+
+test('B3-5 (peer red-team catch) the energy gate enforcement CODE is role-protected — coworker cannot Edit-neuter it', async () => {
+  const { ROLE_TRUST_SURFACES } = await import('../../_SYSTEM/Scripts/lane-kernel.mjs');
+  assert.ok(ROLE_TRUST_SURFACES.files.includes('.claude/hooks/energy-enforce.mjs'), 'the PEP code must be trust-protected');
+  assert.ok(ROLE_TRUST_SURFACES.files.includes('.claude/hooks/energy-tick.mjs'), 'the tick (sole writer) code must be trust-protected');
+  // The rm vector is caught by the blanket .claude rule; this guards the Edit/write-tool vector.
+  const r = await guardDecision('echo neutered | tee .claude/hooks/energy-enforce.mjs');
+  assert.equal(r.denied, true, 'a coworker write to the enforcement code must be blocked');
+});
