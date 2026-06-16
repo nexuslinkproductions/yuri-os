@@ -73,7 +73,7 @@ function fmtAge(ts?: number): string {
 }
 
 function fmtPnl(v?: number): string {
-  if (v == null) return '—';
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
   return (v >= 0 ? '+$' : '-$') + Math.abs(v).toFixed(2);
 }
 

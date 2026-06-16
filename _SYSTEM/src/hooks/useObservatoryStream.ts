@@ -242,6 +242,24 @@ function normalizePaperFillPositions(
   return out;
 }
 
+/**
+ * pnlToNumber — the server emits paper P&L as the engine's pnl() OBJECT
+ * ({equity, initialEquity, grossRealizedPnl, unrealizedPnl, ...}), but the UI
+ * renders a scalar. Normalize at the boundary: net total P&L = equity - initialEquity
+ * (falls back to realized+unrealized). A plain number passes through. Anything else → 0.
+ */
+export function pnlToNumber(p: unknown): number {
+  if (typeof p === 'number') return Number.isFinite(p) ? p : 0;
+  if (p && typeof p === 'object') {
+    const o = p as Record<string, unknown>;
+    if (typeof o.equity === 'number' && typeof o.initialEquity === 'number') return o.equity - o.initialEquity;
+    const ur = typeof o.unrealizedPnl === 'number' ? o.unrealizedPnl : 0;
+    const re = typeof o.grossRealizedPnl === 'number' ? o.grossRealizedPnl : 0;
+    return ur + re;
+  }
+  return 0;
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useObservatoryStream(): ObservatoryState {
@@ -290,6 +308,11 @@ export function useObservatoryStream(): ObservatoryState {
       } else if (marketsRaw && typeof marketsRaw === 'object') {
         Object.assign(markets, marketsRaw);
       }
+      // Server sends per-market pnl as the engine pnl() OBJECT — coerce to a scalar
+      // so every consumer (MarketChart, aggregate) gets a number, never an object.
+      for (const k of Object.keys(markets)) {
+        markets[k] = { ...markets[k], pnl: pnlToNumber(markets[k].pnl) };
+      }
 
       // BUG-2 fix: /paper returns { "<market>": {positions, pnl, drawdown} }
       // Extract aggregate paper state: merge positions from all markets and
@@ -315,7 +338,7 @@ export function useObservatoryStream(): ObservatoryState {
               }
             }
           }
-          if (typeof mktData?.pnl === 'number') totalPnl += mktData.pnl;
+          totalPnl += pnlToNumber(mktData?.pnl);
           if (typeof mktData?.drawdown === 'number' && mktData.drawdown > maxDrawdown) {
             maxDrawdown = mktData.drawdown;
           }
@@ -439,28 +462,40 @@ export function useObservatoryStream(): ObservatoryState {
               // (instrument/quantity/avgEntryPrice/unrealizedPnl); normalize to PaperPosition.
               const fillRaw = ev as unknown as {
                 type: string; market?: string;
-                positions?: RawServerPosition[]; pnl?: number; drawdown?: number; ts: number;
+                positions?: RawServerPosition[]; pnl?: unknown; drawdown?: number; ts: number;
               };
               const normalizedPositions = normalizePaperFillPositions(fillRaw.positions);
-              const fill: PaperFill = {
-                market: fillRaw.market ?? 'unknown',
-                positions: normalizedPositions,
-                pnl: fillRaw.pnl,
-                drawdown: fillRaw.drawdown,
-                ts: fillRaw.ts,
+              const mkt = fillRaw.market ?? 'unknown';
+              const fillPnl = pnlToNumber(fillRaw.pnl); // server sends the engine pnl() OBJECT
+              const fillDd = typeof fillRaw.drawdown === 'number' ? fillRaw.drawdown : undefined;
+              // Update the target market snapshot's scalar pnl/drawdown, then aggregate.
+              const nextMarkets: Record<string, MarketSnapshot> = {
+                ...prev.markets,
+                [mkt]: {
+                  ...(prev.markets[mkt] ?? { market: mkt, venue: 'unknown' }),
+                  pnl: fillPnl,
+                  drawdown: fillDd ?? prev.markets[mkt]?.drawdown,
+                },
               };
-              // Merge normalized positions into the aggregate paper state
+              const aggPnl = Object.values(nextMarkets)
+                .reduce((s, m) => s + (typeof m.pnl === 'number' ? m.pnl : 0), 0);
+              const aggDd = Object.values(nextMarkets)
+                .reduce((mx, m) => Math.max(mx, typeof m.drawdown === 'number' ? m.drawdown : 0), 0);
+              const fill: PaperFill = {
+                market: mkt, positions: normalizedPositions, pnl: fillPnl, drawdown: fillDd, ts: fillRaw.ts,
+              };
               const mergedPositions: Record<string, PaperPosition> = {
                 ...(prev.paper.positions ?? {}),
                 ...(normalizedPositions ?? {}),
               };
               return {
                 ...prev,
+                markets: nextMarkets,
                 paper: {
                   ...prev.paper,
                   positions: mergedPositions,
-                  pnl: fill.pnl ?? prev.paper.pnl,
-                  drawdown: fill.drawdown ?? prev.paper.drawdown,
+                  pnl: aggPnl,
+                  drawdown: aggDd || undefined,
                   fills: [fill, ...(prev.paper.fills ?? [])].slice(0, MAX_FILLS),
                 },
               };

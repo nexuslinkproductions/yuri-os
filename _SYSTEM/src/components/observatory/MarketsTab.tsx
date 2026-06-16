@@ -282,7 +282,7 @@ function MarketChart({ snapshot, tfs, isPrimary, regime }: ChartProps) {
             </span>
           </div>
         )}
-        {snapshot.pnl != null && (
+        {typeof snapshot.pnl === 'number' && (
           <div className="d-mkt-meta-item">
             <span className="d-section-tag">P&amp;L</span>
             <span style={{ fontFamily: 'var(--mono)', fontSize: '.7rem', color: snapshot.pnl >= 0 ? 'var(--d-jade)' : 'var(--d-verm)' }}>
@@ -336,8 +336,8 @@ function PaperTable({ paper }: { paper: PaperState }) {
       <div className="obs-paper-stats">
         <div className="obs-stat">
           <span className="obs-stat-label">P&amp;L</span>
-          <span className={`obs-stat-value ${(paper.pnl ?? 0) >= 0 ? 'obs-green' : 'obs-red'}`}>
-            {paper.pnl != null ? `$${paper.pnl.toFixed(2)}` : '—'}
+          <span className={`obs-stat-value ${(typeof paper.pnl === 'number' ? paper.pnl : 0) >= 0 ? 'obs-green' : 'obs-red'}`}>
+            {typeof paper.pnl === 'number' ? `$${paper.pnl.toFixed(2)}` : '—'}
           </span>
         </div>
         <div className="obs-stat">
