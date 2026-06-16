@@ -290,7 +290,12 @@ test('toGateState does not alias forecasts/results — one malformed entry costs
   assert.equal(r.contributions.malformedForecast, 50);
 });
 
-test('ζ staleness: config-armed hydration lights the term; absent flag keeps it dead', () => {
+test('ζ staleness: config halfLifeDays sets the aging rate; default (live config) keeps ζ ENGAGED measuring real age (B4: no phantom fail-closed)', () => {
+  // B4 FIX: ζ is now ALWAYS engaged — applyTransition records self-describe a halfLife and the live
+  // energy-weights.json carries staleness.halfLifeDays, so there is no "dead" state. The per-tick
+  // configFile OVERRIDES the halfLife (shorter halfLife → faster aging → MORE staleness for the same
+  // age). The old "absent flag keeps it dead" behavior was the bug (bare records → fail-closed phantom
+  // +0.5·N on healthy work); this asserts the engaged real-age behavior instead.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeta6-'));
   const cfgFile = path.join(dir, 'cfg.json');
   fs.writeFileSync(cfgFile, JSON.stringify({ staleness: { halfLifeDays: 7 } }));
@@ -298,16 +303,20 @@ test('ζ staleness: config-armed hydration lights the term; absent flag keeps it
   process.env.YURI_STATE_DIR = dir;
   try {
     const prev = { ...freshState(), verifiedEvidenceCount: 1, evidence: [{ base: 1, age: 0, capturedAt: '2026-06-03T00:00:00.000Z' }] };
-    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:00.000Z', configFile: cfgFile });
-    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:01.000Z' }); // disarmed
+    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:00.000Z', configFile: cfgFile }); // halfLife 7
+    tickAndTrace(prev, bashOk, { nowIso: '2026-06-10T00:00:01.000Z' });                       // default → live config halfLife 30
     const traceDir = path.join(dir, 'energy-trace');
     const file = fs.readdirSync(traceDir).find((x) => x.endsWith('.jsonl'));
     const recs = fs.readFileSync(path.join(traceDir, file), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
-    // Armed: one record at exactly one half-life → ζ0.5 × (1−0.5) = 0.25 exact
+    // Config halfLife 7: the 7-day-old prev record is at exactly one half-life → ζ0.5 × (1−0.5) = 0.25
     // (the tick's fresh age-0 record contributes 0).
     assert.equal(recs[0].componentContributions.staleness, 0.25);
-    // Disarmed: byte-current behavior — the term is skipped entirely.
-    assert.equal('staleness' in recs[1].componentContributions, false);
+    // Default (live config halfLife 30): ζ stays ENGAGED, measuring REAL age — the same 7-day record
+    // ages more slowly, so 0 < staleness < 0.25, and crucially it is NOT the fail-closed phantom (0.5).
+    const def = recs[1].componentContributions.staleness;
+    assert.equal(typeof def, 'number', 'ζ must be engaged (present) under the default live config, not dead');
+    assert.ok(def > 0 && def < 0.25, `default-halfLife staleness must measure real age (0 < x < 0.25), got ${def}`);
+    assert.notEqual(def, 0.5, 'must NOT be the bare-record fail-closed phantom (0.5·N)');
   } finally {
     if (prevDir === undefined) delete process.env.YURI_STATE_DIR; else process.env.YURI_STATE_DIR = prevDir;
     fs.rmSync(dir, { recursive: true, force: true });

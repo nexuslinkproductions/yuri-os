@@ -100,9 +100,12 @@ function run() {
   try { res = evaluateGate(snap.breaker, Date.now(), loadBreakerCfg()); }
   catch { return; } // fail-open on any breaker error
 
-  // Persist the (possibly advanced) breaker so the state machine evolves whether or
-  // not we enforce — this is what gives a true METRICS_ONLY burn-in in the snapshot.
-  try { snap.breaker = res.breaker; atomicWrite(snapPath, JSON.stringify(snap) + '\n'); } catch { /* ignore */ }
+  // B1 (RMW-race fix): enforce is a PURE-READ PEP. It computes the decision from an
+  // in-memory evaluateGate (time-decay applied) and NEVER writes the session snapshot.
+  // energy-tick (PostToolUse) is the SOLE writer and now owns the time-decay too, so
+  // the breaker evolves identically armed/unarmed and enforce can never clobber tick's
+  // just-written OPEN trip (the confirmed read-modify-write race). The only intentional
+  // enforce write is the operator RESET above (a rare, idempotent force-close).
 
   if (res.decision === 'deny') {
     if (enforce) {

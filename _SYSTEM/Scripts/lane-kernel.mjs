@@ -80,9 +80,15 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     // can delete every guard registration above, so the registry is a trust root too.
     '.claude/settings.json',
     '.claude/settings.local.json',
+    // B3 (energy-enforce arm hardening): the arm flag itself — a coworker must not be able to
+    // `rm` it to silently self-disarm a live armed gate. dev/owner flips it freely (the arm act).
+    '_SYSTEM/state/energy-enforce.enabled',
   ]),
   dirs: Object.freeze([
     '.claude/hooks/operator-guard',
+    // B3: the breaker snapshot dir — a coworker must not inject a forged CLOSED-breaker snap via
+    // Bash to self-bypass the armed gate. The hooks write here via fs (unaffected by the bash guard).
+    '_SYSTEM/state/energy-session',
   ]),
 });
 

@@ -11,6 +11,7 @@
       "salience.surpriseK": ">= 0; |deltaU| must exceed median + K*MAD of the recent band to count as surprise (lower -> encode more, higher -> only shocks)",
       "salience.surpriseWindow": "integer >= 3; how many recent |deltaU| samples define the band (below 3, isSurprise can never form a band and the surprise tier silently disables — the loader enforces the >= 3 floor)",
       "evict.ttlDays": "integer >= 1; procedural-memory pattern files whose atime age exceeds this are archived (memory-evict.mjs)",
+      "staleness.halfLifeDays": "finite, >= 1; ENGAGES the zeta term. Evidence age is computed from each record's capturedAt; staleness per record = base*(1-0.5^(age/halfLife)). Absent => zeta is SKIPPED (bare records hit confidenceDecay's fail-closed path). NOT a no-op default: setting this changes live verdicts by activating real-age staleness instead of the phantom all-malformed penalty.",
       "fsrs.rFloor": "finite, 0 < x <= 1; retrievability floor below which a memory demotes to the subconscious cold store (memory-relocator via yuri-fsrs evaluateRetention). Lower = forget less.",
       "fsrs.decay": "finite, < 0; FSRS power-law decay exponent (default -0.5 → R(t=S)=0.9).",
       "fsrs.factor": "finite, > 0; FSRS power-law factor (default 19/81).",
@@ -28,11 +29,11 @@
     },
     "weight_meanings": {
       "alpha": "entropy(claimPromotionDistribution) — uncertainty about claim status",
-      "beta": "klDivergence(claimed, verified) — drift between claim and evidence (strong penalty)",
+      "beta": "wasserstein1(claimed, verified) — ordinal distance-aware drift between claim and evidence, energyFormulaVersion 3 (strong penalty)",
       "gamma": "logLoss(predictions, outcomes) — forecast calibration penalty",
       "delta": "brierScore(forecasts, results) — forecast accuracy penalty",
       "epsilon": "-informationGain(prior, posterior) — info gain LOWERS energy",
-      "zeta": "sum(staleness) — stale evidence dragging state up",
+      "zeta": "sum(staleness) — stale evidence dragging state up; ENGAGED via staleness.halfLifeDays (age computed from each record's capturedAt; fresh evidence age~0 contributes 0, shared records cancel in deltaU)",
       "eta": "protectedPathViolations — catastrophic, non-offsettable (high weight)",
       "theta": "promotionLadderInversions — high weight",
       "iota": "-verifiedEvidenceCount — verified evidence subtracts from U (logarithmic, saturating)",
@@ -52,6 +53,9 @@
     "iota": 0.1,
     "kappa": 5,
     "lambda": 50
+  },
+  "staleness": {
+    "halfLifeDays": 30
   },
   "threshold": 0,
   "salience": {

@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tickAndTrace, freshState } from '../../_SYSTEM/Scripts/energy-tick-core.mjs';
-import { transitionOnVerdict, normBreaker } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
+import { transitionOnVerdict, normBreaker, evaluateGate, loadBreakerCfg } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(_HERE, '..', '..');
@@ -81,7 +81,11 @@ function run() {
     // claim-blind evaluation here.
     const prevBreaker = (snap && snap.breaker) ? snap.breaker : null;
     const nowMs = Date.parse(nowIso) || Date.now();
-    breaker = transitionOnVerdict(prevBreaker, result.verdict, nowMs);
+    // B1 (RMW-race fix): tick is the SOLE breaker writer. Apply the TIME-driven decay
+    // (OPEN->HALF_OPEN->CLOSED) — formerly persisted by the PreToolUse enforce hook —
+    // BEFORE the outcome transition, so making enforce pure-read cannot lose the decay.
+    const decayed = evaluateGate(prevBreaker, nowMs, loadBreakerCfg()).breaker;
+    breaker = transitionOnVerdict(decayed, result.verdict, nowMs);
   } catch { breaker = normBreaker(snap && snap.breaker); }
 
   try {

@@ -34,6 +34,14 @@ export const REPO_ROOT = path.resolve(_HERE, '..', '..');
 // Bound the rolling arrays so a long session never grows the snapshot unbounded.
 const CAP = 50;
 
+// B4 (ζ source fix): every evidence record carries a halfLife so the ζ staleness term
+// works on EVERY consumer (evaluateTransition + raw gateProposal callers, not only the
+// tickAndTrace path that hydrates from config). A bare record (no halfLife) makes
+// confidenceDecay throw → evalStaleness fail-closes to a phantom +ζ on healthy work.
+// The config key staleness.halfLifeDays OVERRIDES this at read-time (hydrateEvidence)
+// for tuning; this is the self-describing default so records are never bare at the source.
+const DEFAULT_EVIDENCE_HALFLIFE_DAYS = 30;
+
 // Protected-path patterns — mirror yuri-origin.md "Protected Surfaces".
 export const PROTECTED_PATTERNS = [
   /(^|\/)\.env$/,
@@ -269,7 +277,7 @@ export function applyTransition(prev, t, nowIso = '') {
     // logLoss/brier of a confident-correct claim is small but nonzero and would
     // otherwise drown the credit — so a correct claim is simply not penalized.
     s.verifiedEvidenceCount += 1;
-    s.evidence = capped([...s.evidence, { base: 1.0, age: 0, capturedAt: String(nowIso) }]);
+    s.evidence = capped([...s.evidence, { base: 1.0, age: 0, halfLife: DEFAULT_EVIDENCE_HALFLIFE_DAYS, capturedAt: String(nowIso) }]);
   } else if (meaningful && !t.success) {
     // Confidently-wrong: the action implicitly claimed success (p=0.9) and failed
     // (outcome 0) → logLoss (gamma) + brier (delta) raise U (ΔU↑).
