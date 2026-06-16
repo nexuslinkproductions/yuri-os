@@ -122,6 +122,7 @@
     "gitnexus": "^1.6.4",
     "gsap": "^3.13.0",
     "lenis": "^1.1.18",
+    "lightweight-charts": "^5.2.0",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

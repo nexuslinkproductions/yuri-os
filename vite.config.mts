@@ -18,6 +18,25 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 4200, host: '127.0.0.1' },
+  server: {
+    port: 4200,
+    host: '127.0.0.1',
+    proxy: {
+      // Dev-proxy: forward /api/observatory/* to the observatory server (default port 4242)
+      '/api/observatory': {
+        target: 'http://127.0.0.1:4242',
+        changeOrigin: false,
+        // Preserve EventSource connections (SSE) — disable response buffering
+        configure: (proxy) => {
+          proxy.on('proxyRes', (_proxyRes, _req, res) => {
+            // Flush SSE chunks immediately
+            if (typeof (res as { flushHeaders?: () => void }).flushHeaders === 'function') {
+              (res as { flushHeaders: () => void }).flushHeaders();
+            }
+          });
+        },
+      },
+    },
+  },
   appType: 'spa',
 });

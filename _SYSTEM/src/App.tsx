@@ -17,6 +17,7 @@ import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import OperatorShell from './operator/OperatorShell';
+import ObservatoryPage from './pages/ObservatoryPage';
 
 class PageErrorBoundary extends Component<{ children: React.ReactNode; name: string }, { hasError: boolean; error: string }> {
   state = { hasError: false, error: '' };
@@ -171,7 +172,8 @@ function App() {
           <Route path="/work" element={<PageErrorBoundary name="work"><WorkPage /></PageErrorBoundary>} />
           <Route path="/services" element={<PageErrorBoundary name="services"><ServicesPage /></PageErrorBoundary>} />
           <Route path="/about" element={<PageErrorBoundary name="about"><AboutPage /></PageErrorBoundary>} />
-          <Route path="/contact" element={<PageErrorBoundary name="contact"><ContactPage /></PageErrorBoundary>} />
+            <Route path="/contact" element={<PageErrorBoundary name="contact"><ContactPage /></PageErrorBoundary>} />
+          <Route path="/observatory" element={<PageErrorBoundary name="observatory"><ObservatoryPage /></PageErrorBoundary>} />
         </Route>
       </Routes>
     </BrowserRouter>

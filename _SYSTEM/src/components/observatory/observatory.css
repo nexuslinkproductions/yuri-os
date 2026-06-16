@@ -1,0 +1,526 @@
+/*
+ * observatory.css — YURI Observatory Dashboard styles
+ *
+ * Self-contained dark CSS. NO --yuri-hud-* or --yuri-kagami-* tokens.
+ * Uses purpose-built local custom properties only.
+ */
+
+/* ── Local tokens (observatory-only) ───────────────────────────────────────── */
+.obs-root {
+  --obs-bg:        #0a0a0f;
+  --obs-surface:   #11111a;
+  --obs-surface-2: #16162080;
+  --obs-border:    rgba(255, 255, 255, 0.08);
+  --obs-border-hi: rgba(255, 255, 255, 0.14);
+
+  --obs-text:      #e2e8f0;
+  --obs-text-dim:  #64748b;
+  --obs-text-xs:   0.68rem;
+
+  --obs-green:     #22c55e;
+  --obs-red:       #ef4444;
+  --obs-amber:     #f59e0b;
+  --obs-blue:      #3b82f6;
+  --obs-cyan:      #06b6d4;
+
+  --obs-tab-h:     44px;
+  --obs-radius:    6px;
+  --obs-radius-sm: 3px;
+
+  --obs-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* ── Page shell ─────────────────────────────────────────────────────────────── */
+.obs-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--obs-bg);
+  color: var(--obs-text);
+  font-family: var(--obs-mono);
+  font-size: 13px;
+  padding: 24px 28px 40px;
+  box-sizing: border-box;
+}
+
+.obs-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.obs-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--obs-text);
+}
+
+.obs-subtitle {
+  margin: 4px 0 0;
+  font-size: var(--obs-text-xs);
+  color: var(--obs-text-dim);
+  letter-spacing: 0.08em;
+}
+
+/* ── Connection badge ───────────────────────────────────────────────────────── */
+.obs-conn-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--obs-border);
+  background: var(--obs-surface-2);
+  font-size: var(--obs-text-xs);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.obs-conn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--obs-text-dim);
+}
+.obs-conn-badge[data-connected="true"] .obs-conn-dot {
+  background: var(--obs-green);
+  box-shadow: 0 0 6px var(--obs-green);
+  animation: obs-pulse-dot 2s ease-in-out infinite;
+}
+@keyframes obs-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────────── */
+.obs-tabs-bar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--obs-border);
+  margin-bottom: 24px;
+}
+
+.obs-tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--obs-text-dim);
+  font-family: var(--obs-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  position: relative;
+  bottom: -1px;
+}
+.obs-tab-btn:hover {
+  color: var(--obs-text);
+}
+.obs-tab-btn[aria-selected="true"] {
+  color: var(--obs-cyan);
+  border-bottom-color: var(--obs-cyan);
+}
+
+/* ── Tab content ────────────────────────────────────────────────────────────── */
+.obs-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Generic helpers ────────────────────────────────────────────────────────── */
+.obs-green { color: var(--obs-green); }
+.obs-red   { color: var(--obs-red); }
+.obs-amber { color: var(--obs-amber); }
+
+.obs-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--obs-text-dim);
+  padding: 40px 0;
+  font-size: var(--obs-text-xs);
+  letter-spacing: 0.1em;
+}
+
+.obs-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--obs-cyan);
+  border-radius: 50%;
+  animation: obs-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes obs-spin { to { transform: rotate(360deg); } }
+
+.obs-empty {
+  color: var(--obs-text-dim);
+  font-size: var(--obs-text-xs);
+  padding: 12px 0;
+  letter-spacing: 0.08em;
+}
+
+.obs-section-title {
+  font-size: var(--obs-text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+  margin-bottom: 10px;
+}
+.obs-section-title--sm {
+  font-size: 0.6rem;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+/* ── Badge ──────────────────────────────────────────────────────────────────── */
+.obs-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--obs-radius-sm);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.obs-badge--error   { background: rgba(239,68,68,0.15);  color: var(--obs-red);   border: 1px solid rgba(239,68,68,0.3); }
+.obs-badge--warn    { background: rgba(245,158,11,0.15); color: var(--obs-amber); border: 1px solid rgba(245,158,11,0.3); }
+.obs-badge--neutral { background: rgba(100,116,139,0.15); color: var(--obs-text-dim); border: 1px solid rgba(100,116,139,0.2); }
+
+/* ── Stat display ───────────────────────────────────────────────────────────── */
+.obs-stat       { display: flex; flex-direction: column; gap: 2px; }
+.obs-stat-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--obs-text-dim); }
+.obs-stat-value { font-size: 1rem; font-weight: 700; }
+
+/* ── Table ──────────────────────────────────────────────────────────────────── */
+.obs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+.obs-table th {
+  text-align: left;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--obs-border);
+  white-space: nowrap;
+}
+.obs-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--obs-text);
+  white-space: nowrap;
+}
+.obs-table tr:hover td { background: rgba(255,255,255,0.025); }
+
+/* ── Surface card ───────────────────────────────────────────────────────────── */
+.obs-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 16px 18px;
+}
+
+/* ── MARKETS TAB ────────────────────────────────────────────────────────────── */
+
+.obs-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.obs-candle-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  overflow: hidden;
+}
+
+.obs-candle-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--obs-border);
+  background: rgba(255,255,255,0.015);
+}
+
+.obs-market-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.obs-venue-label {
+  font-size: 0.6rem;
+  color: var(--obs-text-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.obs-price-label {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--obs-cyan);
+}
+
+.obs-chart-container {
+  width: 100%;
+  height: 220px;
+}
+.obs-chart-error {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--obs-text-dim);
+  font-size: var(--obs-text-xs);
+}
+
+/* Paper section */
+.obs-paper-section {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 16px 18px;
+}
+
+.obs-paper-stats {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* No-trade log */
+.obs-no-trade-section { margin-top: 16px; }
+.obs-no-trade-list    { display: flex; flex-direction: column; gap: 6px; }
+.obs-no-trade-item    { display: flex; align-items: center; gap: 8px; font-size: var(--obs-text-xs); color: var(--obs-text-dim); }
+
+/* ── MECHANISM TAB ──────────────────────────────────────────────────────────── */
+
+.obs-mechanism-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .obs-mechanism-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .obs-mechanism-grid { grid-template-columns: 1fr; }
+}
+
+/* Energy gauge */
+.obs-gauge-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 14px 16px;
+}
+.obs-gauge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.obs-gauge-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: -4px;
+}
+.obs-gauge-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+}
+.obs-gauge-reason {
+  font-size: 0.65rem;
+  color: var(--obs-text-dim);
+  text-align: center;
+  margin-top: 4px;
+  max-width: 160px;
+  line-height: 1.4;
+}
+
+/* Regime */
+.obs-regime-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 14px 16px;
+}
+.obs-regime-rec {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.obs-regime-market {
+  font-size: var(--obs-text-xs);
+  color: var(--obs-text-dim);
+  margin-bottom: 10px;
+}
+.obs-regime-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.obs-regime-layer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.7rem;
+}
+.obs-regime-layer-key { color: var(--obs-text-dim); letter-spacing: 0.1em; }
+.obs-regime-layer-val { font-weight: 600; }
+.obs-regime-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.obs-regime-reason {
+  font-size: 0.68rem;
+  color: var(--obs-text-dim);
+  border-left: 2px solid var(--obs-border-hi);
+  padding-left: 8px;
+}
+
+/* Calibration */
+.obs-calibration-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 14px 16px;
+}
+.obs-calib-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.obs-calib-stat    { display: flex; flex-direction: column; gap: 2px; }
+.obs-calib-bars    { display: flex; flex-direction: column; gap: 8px; }
+.obs-calib-bar-row { display: flex; align-items: center; gap: 8px; }
+.obs-calib-bar-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+  width: 52px;
+  flex-shrink: 0;
+}
+.obs-calib-bar-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.obs-calib-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  opacity: 0.85;
+}
+.obs-calib-bar-count {
+  font-size: 0.68rem;
+  color: var(--obs-text-dim);
+  width: 20px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Factor table */
+.obs-factor-card {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 14px 16px;
+}
+.obs-factor-scroll {
+  overflow-x: auto;
+}
+.obs-factor-id {
+  font-family: var(--obs-mono);
+  font-size: 0.72rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── MIND TAB ───────────────────────────────────────────────────────────────── */
+
+.obs-mind-content { gap: 16px; }
+
+.obs-mind-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.obs-scene-frame {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  overflow: hidden;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.obs-scene-label {
+  padding: 10px 14px;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+  border-bottom: 1px solid var(--obs-border);
+  background: rgba(255,255,255,0.015);
+  flex-shrink: 0;
+}
+
+.obs-scene-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--obs-text-dim);
+}
+.obs-scene-placeholder-icon {
+  font-size: 2rem;
+  opacity: 0.3;
+  animation: obs-scene-breathe 3s ease-in-out infinite;
+}
+@keyframes obs-scene-breathe {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.06); }
+}
+.obs-scene-placeholder-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.obs-scene-placeholder-sub {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
