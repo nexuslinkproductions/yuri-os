@@ -155,8 +155,12 @@ export interface EnergyState {
 
 export interface HealthState {
   status?: string;
+  ok?: boolean;
   cycleCount?: number;
   uptime?: number;
+  lastCycle?: number;   // unix-seconds of the last completed cycle (server field)
+  marketCount?: number;
+  errorCount?: number;
   ts?: number;
 }
 
