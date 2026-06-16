@@ -132,10 +132,29 @@ test('verdictFromStates: a protected-path transition produces protectedPathVeto 
 
 test('verdictFromStates: clean progress accepts, no veto', () => {
   const before = { protectedPathViolations: 0, verifiedEvidenceCount: 0, evidence: [], promotionLadderInversions: 0, predictions: [], outcomes: [] };
-  const after = { ...before, verifiedEvidenceCount: 1, evidence: [{ base: 1, age: 0 }] };
+  // halfLife is REQUIRED on every record — confidenceDecay throws without it, and evalStaleness
+  // then fail-closes to maximal staleness (a bare record would reject as +0.5 ΔU, not "clean").
+  // The live path always hydrates it (config staleness.halfLifeDays:30); mirror that here so the
+  // record is the fresh, well-formed shape the gate actually sees. age:0 → zero staleness → accepts.
+  const after = { ...before, verifiedEvidenceCount: 1, evidence: [{ base: 1, age: 0, halfLife: 30 }] };
   const v = verdictFromStates(before, after);
   assert.equal(v.protectedPathVeto, false);
   assert.equal(v.accept, true);
+});
+
+test('RED: a bare evidence record (no halfLife) fail-CLOSES to a soft reject, not a silent accept', () => {
+  // The trap that bit the clean-progress test: confidenceDecay throws without halfLife → evalStaleness
+  // treats the all-malformed array as maximally stale (+0.5 ΔU) → reject. That is the DESIGNED fail-closed
+  // behavior (unverifiable freshness must not score as fresh). Lock it: bare record → accept:false via the
+  // staleness term, but NOT a catastrophic veto (it's a soft energy reject, the breaker must not trip on it).
+  const before = { protectedPathViolations: 0, verifiedEvidenceCount: 0, evidence: [], promotionLadderInversions: 0, predictions: [], outcomes: [] };
+  const after = { ...before, verifiedEvidenceCount: 1, evidence: [{ base: 1, age: 0 }] }; // missing halfLife
+  const v = verdictFromStates(before, after);
+  assert.equal(v.accept, false, 'bare record must fail-closed reject, never silently accept');
+  assert.equal(v.protectedPathVeto, false);
+  assert.equal(v.structuralFloorVeto, false);
+  assert.equal(v.maxSeverityVeto, false);
+  assert.equal(isCatastrophic(v), false, 'a staleness soft-reject must NOT trip the breaker');
 });
 
 test('verdictFromStates never throws on garbage -> fail-open clean verdict', () => {
