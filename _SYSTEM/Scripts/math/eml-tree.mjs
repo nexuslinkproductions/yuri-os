@@ -28,8 +28,8 @@ import { makeRng } from '../decision-sim.mjs';
 // ---------------------------------------------------------------------------
 // Grammar definition
 // ---------------------------------------------------------------------------
-const BINARY_OPS = ['add', 'sub', 'mul', 'div', 'eml', 'pow2'];
-const UNARY_OPS  = ['exp', 'ln', 'sqrt', 'neg'];
+const BINARY_OPS = ['add', 'sub', 'mul', 'div', 'eml'];
+const UNARY_OPS  = ['exp', 'ln', 'sqrt', 'neg', 'pow2'];
 const ALL_OPS    = [...BINARY_OPS, ...UNARY_OPS];
 
 const DEFAULT_CONSTANTS = [0.1, 0.5, 1.0, 2.0, Math.E, 3.0, 5.0, 10.0];
@@ -134,7 +134,7 @@ export function treeToString(tree) {
       case 'mul': return `(${treeToString(tree.left)}*${treeToString(tree.right)})`;
       case 'div': return `(${treeToString(tree.left)}/${treeToString(tree.right)})`;
       case 'eml': return `eml(${treeToString(tree.left)},${treeToString(tree.right)})`;
-      case 'pow2': return `(${treeToString(tree.left)}^2)`;
+      case 'pow2': return `(${treeToString(tree.arg)}^2)`;
       case 'exp': return `exp(${treeToString(tree.arg)})`;
       case 'ln':  return `ln(${treeToString(tree.arg)})`;
       case 'sqrt': return `sqrt(${treeToString(tree.arg)})`;
@@ -187,8 +187,8 @@ export function evalTree(tree, point) {
         return Math.exp(l) - Math.log(r);
       }
       case 'pow2': {
-        const l = evalTree(tree.left, point);
-        return l * l;
+        const a = evalTree(tree.arg, point);
+        return a * a;
       }
       case 'exp': {
         const a = evalTree(tree.arg, point);
