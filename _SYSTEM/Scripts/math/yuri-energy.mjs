@@ -945,8 +945,9 @@ export function gateProposal({
   // verdict is fully computed and BEFORE the return — it reads the decision, never alters it.
   maybeTraceGateVerdict({
     stateBefore, stateAfter, weights: w, threshold: normalizedThreshold, cap,
-    allowOverride, accept, reason, deltaU, origin,
+    allowOverride, accept, reason, deltaU,
     ...corrSources,
+    origin, // LAST so the explicit caller origin always wins over any corrSources.origin (verify 2026-06-16)
   });
 
   return makeMathResult({

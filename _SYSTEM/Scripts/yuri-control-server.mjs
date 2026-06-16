@@ -109,7 +109,7 @@ function preview(body) {
   const weights = { ...DEFAULT_WEIGHTS, ...(cfg.weights || {}) };
   const threshold = Number.isFinite(cfg.threshold) ? cfg.threshold : 0;
   return SCN.map((s) => {
-    const g = gateProposal({ stateBefore: s.before, stateAfter: s.after, weights, threshold });
+    const g = gateProposal({ stateBefore: s.before, stateAfter: s.after, weights, threshold, origin: 'control-server' });
     return {
       name: s.name,
       uBefore: computeU(s.before, weights).result.U,

@@ -247,6 +247,7 @@ function runEnergyGate(payload, options) {
   const stateBefore = compiled.result.compiled.stateBefore || {};
   const stateAfter = compiled.result.compiled.stateAfter || {};
   const gate = gateProposal({
+    origin: 'originator',
     stateBefore,
     stateAfter,
     weights: payload.weights,
@@ -1928,6 +1929,7 @@ export function tryGateCompiledModelOutput(postModelCompile = null, payload = {}
   }
   try {
     const gate = gateProposal({
+      origin: 'originator',
       stateBefore,
       stateAfter,
       weights: payload.weights,

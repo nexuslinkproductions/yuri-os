@@ -304,7 +304,7 @@ export function toGateState(s) {
 export function evaluateTransition(prevState, event, nowIso = '') {
   const t = classifyTransition(event);
   const nextState = applyTransition(prevState, t, nowIso);
-  const gate = gateProposal({ stateBefore: toGateState(prevState), stateAfter: toGateState(nextState) });
+  const gate = gateProposal({ stateBefore: toGateState(prevState), stateAfter: toGateState(nextState), origin: 'test' });
   return {
     transition: t,
     nextState,

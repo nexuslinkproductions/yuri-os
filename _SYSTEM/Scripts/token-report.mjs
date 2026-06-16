@@ -14,7 +14,7 @@
  */
 export function renderReport(rollups) {
   const emptyMsg = 'No token usage recorded.';
-  if (!rollups || rollups.length === 0) return emptyMsg;
+  if (!Array.isArray(rollups) || rollups.length === 0) return emptyMsg;
 
   // ---- Session totals (sum across all rows) ----
   let totalInput = 0;
