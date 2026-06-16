@@ -27,7 +27,7 @@ const args = process.argv.slice(2);
 const JSON_MODE = args.includes('--json');
 const WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-const ADVISOR_SOURCES = ['DEEPSEEK', 'NVIDIA', 'OPENCLAW', 'YURI_RISK', 'SWARM', 'CODEX_ADVISORY'];
+const ADVISOR_SOURCES = ['DEEPSEEK', 'NVIDIA', 'YURI_SENTINEL', 'YURI_RISK', 'SWARM', 'CODEX_ADVISORY'];
 const F1_DROP_THRESHOLD = 0.15; // flag if F1 drops >15% since last calibration
 
 // ── Load prior state ──────────────────────────────────────────────────────────

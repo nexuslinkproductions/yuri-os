@@ -1,12 +1,12 @@
 {
   "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`. — DIE VIEW: the entire unified system (all tiers).",
   "schema": "yuri.die-graph.v1",
-  "nodeCount": 242,
+  "nodeCount": 240,
   "edgeCount": 196,
   "graphEdgeCount": 113,
   "kinds": {
     "die": 118,
-    "peripheral": 124
+    "peripheral": 122
   },
   "layers": {
     "Energy & Math": 39,
@@ -16,8 +16,8 @@
     "Retrieval & Knowledge": 26,
     "Governance & Safety": 18,
     "Self-Improvement": 10,
-    "Skills & Orchestration": 42,
-    "Memory & Subconscious": 28,
+    "Skills & Orchestration": 41,
+    "Memory & Subconscious": 27,
     "Learning & Continuity": 5
   },
   "nodes": [
@@ -433,19 +433,6 @@
       "sector": "memory"
     },
     {
-      "id": "COLD_WIKI",
-      "kind": "peripheral",
-      "label": "karpathy wiki atoms",
-      "layer": "Memory & Subconscious",
-      "files": [
-        "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md",
-        "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"
-      ],
-      "triggeredBy": "semantic",
-      "description": "karpathy wiki atoms supports the memory sector as semantic.",
-      "sector": "memory"
-    },
-    {
       "id": "COMPLEX",
       "kind": "peripheral",
       "label": "COMPLEX",
@@ -504,6 +491,19 @@
       "triggeredBy": "CLAUDE.md claims problem-solving; NO executable trigger exists",
       "description": "PHANTOM node: CLAUDE.md claims a live 'cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus)' for problem-solving, but grep finds zero implementing module — it exists only as the future-build YURI memory PROJ:CROSS-DOMAIN-TRANSFER-ENGINE. The corpus search (yuri-search) is real; the mechanism-tagged transfer layer on top of it is not, so this node carries no executable trigger and no files.",
       "sector": null
+    },
+    {
+      "id": "CRUCIBLE_A",
+      "kind": "peripheral",
+      "label": "CRUCIBLE",
+      "layer": "Cognition & Persona",
+      "files": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "triggeredBy": "adv. gate",
+      "description": "Advanced gate hint for critical work; hard stop surface for high-risk operations.",
+      "sector": "advisors"
     },
     {
       "id": "DEEPSEEK_A",
@@ -1797,32 +1797,6 @@
       "sector": "pulse_cortex"
     },
     {
-      "id": "OBLITERATUS_A",
-      "kind": "peripheral",
-      "label": "OBLITERATUS",
-      "layer": "Cognition & Persona",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md"
-      ],
-      "triggeredBy": "adv. gate",
-      "description": "Advanced gate hint for critical work; hard stop surface for high-risk operations.",
-      "sector": "advisors"
-    },
-    {
-      "id": "OC_BRIDGE",
-      "kind": "peripheral",
-      "label": "openclaw-bridge.sh",
-      "layer": "Cognition & Persona",
-      "files": [
-        "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-        "CLAUDE.md"
-      ],
-      "triggeredBy": "127.0.0.1:18789",
-      "description": "openclaw-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
-      "sector": "advisors"
-    },
-    {
       "id": "ollama-adapter",
       "kind": "die",
       "label": "ollama-adapter (Gemma-only local model policy)",
@@ -1847,20 +1821,6 @@
       "triggeredBy": "CLI/import — llm-compat.sh local lanes: gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss",
       "description": "Local Ollama SLM compatibility runner pinned by policy to gemma4:12b-it-qat. It resolves local/cloud Ollama lanes through ollama-adapter and injects lane-core-hooks coreOnDispatch/coreOnResult so local Gemma calls enter energy ΔU, recall, evidence ledger, and docked-output pulse. No repo-read tools by default; output remains advisory until Codex/main verifies.",
       "sector": null
-    },
-    {
-      "id": "OPENCLAW_A",
-      "kind": "peripheral",
-      "label": "OPENCLAW",
-      "layer": "Cognition & Persona",
-      "files": [
-        "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-        "_SYSTEM/OS_KERNEL/openclaw-bridge.sh",
-        "CLAUDE.md"
-      ],
-      "triggeredBy": "bridge_advisory",
-      "description": "OpenClaw bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
-      "sector": "advisors"
     },
     {
       "id": "openprocess-pool",
@@ -2270,6 +2230,33 @@
       "sector": null
     },
     {
+      "id": "SENTINEL_A",
+      "kind": "peripheral",
+      "label": "YURI SENTINEL",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/Scripts/pulse-orchestrator.mjs",
+        "_SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh",
+        "CLAUDE.md"
+      ],
+      "triggeredBy": "bridge_advisory",
+      "description": "Yuri Sentinel bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
+      "sector": "advisors"
+    },
+    {
+      "id": "SENTINEL_BRIDGE",
+      "kind": "peripheral",
+      "label": "yuri-sentinel-bridge.sh",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/Scripts/pulse-orchestrator.mjs",
+        "CLAUDE.md"
+      ],
+      "triggeredBy": "127.0.0.1:18789",
+      "description": "yuri-sentinel-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
+      "sector": "advisors"
+    },
+    {
       "id": "SERVICES",
       "kind": "peripheral",
       "label": "SERVICES",
@@ -2489,20 +2476,6 @@
       ],
       "triggeredBy": "local Gemma runtime",
       "description": "Ollama local runtime serving the Gemma 4 12B QAT llm-compat lane.",
-      "sector": "services"
-    },
-    {
-      "id": "SVC_RAG",
-      "kind": "peripheral",
-      "label": "wiki-rag",
-      "layer": "Skills & Orchestration",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md",
-        "SOUL.md"
-      ],
-      "triggeredBy": "PID 821",
-      "description": "wiki-rag supports the services sector as PID 821.",
       "sector": "services"
     },
     {

@@ -5,7 +5,7 @@
 if [ "$#" -lt 4 ]; then
     echo "Usage: $0 <TASK_ID> <FROM_AGENT> <TO_AGENT> \"<COMPRESSED_CONTEXT>\" [--lane 09OC]"
     echo "Agents: ENLIL, NABU, ENKI, INANNA, OPENCLAW"
-    echo "Lane 09OC routes through openclaw-bridge.sh"
+    echo "Lane 09OC routes through yuri-sentinel-bridge.sh"
     exit 1
 fi
 
@@ -27,7 +27,7 @@ print(json.dumps({
     'origin': '$FROM_AGENT'
 }))
 ")
-    echo "$PAYLOAD_JSON" | "$BRIDGE_DIR/openclaw-bridge.sh"
+    echo "$PAYLOAD_JSON" | "$BRIDGE_DIR/yuri-sentinel-bridge.sh"
     exit $?
 fi
 

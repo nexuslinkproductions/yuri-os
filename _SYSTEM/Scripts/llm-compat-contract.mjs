@@ -332,12 +332,12 @@ const LLM_COMPAT_CONTRACT = {
     },
     nativeFunctionGates: {
       argus: 'always-on',
-      obliteratus: 'conditional-high-risk'
+      crucible: 'conditional-high-risk'
     },
-    openClaw: {
+    sentinel: {
       authority: 'native-integrated',
       status: 'absorbed-2026-05-17',
-      note: 'OpenClaw/09OC fully absorbed into Musubi as Yuri Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/yuri-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Yuri Sentinel operates under the same native gates as all other Musubi components.',
+      note: 'Yuri Sentinel/09OC fully absorbed into Musubi as Yuri Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/yuri-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Yuri Sentinel operates under the same native gates as all other Musubi components.',
       gatewayPort: 18789,
       sentinel: '_SYSTEM/Scripts/yuri-sentinel.mjs',
       launchAgent: 'com.yuri-os-musubi.yuri-sentinel'
@@ -364,10 +364,10 @@ const LLM_COMPAT_CONTRACT = {
         linkedSkills: ['oracle-router', 'gitnexus-impact-analysis', 'non-destructive-infinity-guard']
       }
     },
-    obliteratus: {
+    crucible: {
       runtime: 'native_function',
-      alias: 'obliteratus',
-      doc: '.claude/agents/obliteratus-qa.md',
+      alias: 'crucible',
+      doc: '.claude/agents/crucible-qa.md',
       stage: 'pre-promotion',
       role: 'adversarial promotion gate for high-stakes artifacts',
       output: 'structured_adversarial_audit',
@@ -383,7 +383,7 @@ const LLM_COMPAT_CONTRACT = {
   },
   pulseGovernanceSkeleton: {
     id: 'pulse-governance-skeleton',
-    description: 'Shared lifecycle skeleton for native gates and OpenClaw-derived operating patterns. Profiles attach checkpoints to the same main-session pulse spine instead of acting as standalone agents.',
+    description: 'Shared lifecycle skeleton for native gates and Yuri Sentinel-derived operating patterns. Profiles attach checkpoints to the same main-session pulse spine instead of acting as standalone agents.',
     authority: {
       entryBranch: 'main',
       entrySession: 'main-session',
@@ -410,7 +410,7 @@ const LLM_COMPAT_CONTRACT = {
           { phase: 'merge_learn', action: 'scope_and_commit_evidence_integrity', severity: 'guard' }
         ]
       },
-      obliteratus: {
+      crucible: {
         kind: 'native_gate_profile',
         activation: 'conditional-high-risk',
         focus: 'adversarial pre-promotion review for high-stakes, protected, protocol, sandbox, and canonical memory changes',
@@ -421,7 +421,7 @@ const LLM_COMPAT_CONTRACT = {
           { phase: 'merge_learn', action: 'durable_promotion_gate', severity: 'blocker' }
         ]
       },
-      'openclaw-derived': {
+      'sentinel-derived': {
         kind: 'pattern_profile',
         activation: 'reference-pattern',
         focus: 'manifest-first capabilities, SKILL.md convention, tool profiles, session isolation, sandbox doctrine',
@@ -933,7 +933,7 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
     'high-stakes-review',
     'protocol-change'
   ];
-  const useObliteratus = gatedScenarios.includes(scenario.id) ||
+  const useCrucible = gatedScenarios.includes(scenario.id) ||
     lane === 'native' ||
     includesAny(text, promotionSignals);
 
@@ -942,10 +942,10 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
       decision: 'always-on',
       ...policy.alwaysOn.argus
     },
-    obliteratus: useObliteratus
+    crucible: useCrucible
       ? {
           decision: 'use-native-gate',
-          ...policy.obliteratus,
+          ...policy.crucible,
           localTruthRequired: true,
           codexFinalAuthority: true,
           reason: gatedScenarios.includes(scenario.id)
@@ -954,10 +954,10 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
         }
       : {
           decision: 'skip',
-          runtime: policy.obliteratus.runtime,
-          alias: policy.obliteratus.alias,
-          stage: policy.obliteratus.stage,
-          role: policy.obliteratus.role,
+          runtime: policy.crucible.runtime,
+          alias: policy.crucible.alias,
+          stage: policy.crucible.stage,
+          role: policy.crucible.role,
           localTruthRequired: true,
           codexFinalAuthority: true,
           reason: 'below_native_promotion_gate_threshold'
@@ -969,16 +969,16 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // PATCH 030 — Pulse Cortex classifier extensions
 // =====================================================================
 // Adds the four cortex fields (complexityTier, ensemble, beaconLevel,
-// codexPolicy) plus the OpenClaw advisory assessor. All advisory-only;
+// codexPolicy) plus the Yuri Sentinel advisory assessor. All advisory-only;
 // none of these grant write or canonical authority. (The pulse-orchestrator
 // consumer was DELETED in wave-2 D-C2 — these assessors now serve route-plan
 // inspection only; no automatic fan-out consumes them.)
 
-function assessOpenClawAdvisory(prompt, lane, scenario) {
-  const ocConfig = LLM_COMPAT_CONTRACT.claudeProtocolGate.openClaw;
+function assessSentinelAdvisory(prompt, lane, scenario) {
+  const ocConfig = LLM_COMPAT_CONTRACT.claudeProtocolGate.sentinel;
   // DEAD BRANCH (wave-3 G.7): authority='native-integrated' is hardcoded in the contract,
-  // so this assessor ALWAYS returns {decision:'skip'} — openclaw-preflight never enters any
-  // ensemble and the OC_BRIDGE die node is a ghost. OpenClaw is absorbed into native
+  // so this assessor ALWAYS returns {decision:'skip'} — sentinel-preflight never enters any
+  // ensemble and the OC_BRIDGE die node is a ghost. Yuri Sentinel is absorbed into native
   // function routing (Yuri Sentinel); the code below the early return is unreachable config.
   if (ocConfig.authority === 'native-integrated') {
     return {
@@ -988,7 +988,7 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
       postflight: false,
       runtimeKind: 'native_integrated',
       authority: 'native-integrated',
-      reason: 'openclaw_absorbed_as_nisaba_sentinel'
+      reason: 'absorbed_into_yuri_sentinel'
     };
   }
   // Legacy bridge-only-advisory path (kept for backward compat)
@@ -1023,7 +1023,7 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
     runtimeKind: 'bridge_advisory',
     authority: ocConfig.authority,
     reason: lane === 'native' ? 'native_orchestration_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
-    bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh',
+    bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh',
     localTruthRequired: true,
     codexFinalAuthority: true
   };
@@ -1110,7 +1110,7 @@ function assessCouncilComposition(prompt, complexityTier, scenario) {
   return { deepseekModel, codexModel, codexReason, reason };
 }
 
-function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', codexDispatch = null, councilComposition = null) {
+function buildEnsemble(complexityTier, scenario, sentinelAdvisory, prompt = '', codexDispatch = null, councilComposition = null) {
   const ensemble = [];
   if (complexityTier === 'trivial') return ensemble;
 
@@ -1143,8 +1143,8 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
   }
 
   if (complexityTier === 'complex' || complexityTier === 'critical') {
-    if (openClawAdvisory && openClawAdvisory.decision !== 'skip') {
-      ensemble.push('openclaw-preflight');
+    if (sentinelAdvisory && sentinelAdvisory.decision !== 'skip') {
+      ensemble.push('sentinel-preflight');
     }
     ensemble.push('yuri-risk');
     // SHURA fires at complex+ (was: strategic-review only)
@@ -1166,7 +1166,7 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', 
   }
 
   if (complexityTier === 'critical') {
-    ensemble.push('obliteratus-hint');
+    ensemble.push('crucible-hint');
   }
   return ensemble;
 }
@@ -1232,8 +1232,8 @@ function buildPulseGovernanceSkeleton(nativeFunctionGates) {
   const skeleton = LLM_COMPAT_CONTRACT.pulseGovernanceSkeleton;
   const profileStatus = {
     argus: nativeFunctionGates.argus?.decision || 'skip',
-    obliteratus: nativeFunctionGates.obliteratus?.decision || 'skip',
-    'openclaw-derived': 'reference-pattern'
+    crucible: nativeFunctionGates.crucible?.decision || 'skip',
+    'sentinel-derived': 'reference-pattern'
   };
   const activeProfiles = Object.entries(profileStatus)
     .filter(([, status]) => status !== 'skip')
@@ -1359,11 +1359,11 @@ function buildRoutePlan(prompt) {
   const nativeFunctionGates = assessNativeFunctionGates(prompt, lane, scenario);
   const pulseGovernanceSkeleton = buildPulseGovernanceSkeleton(nativeFunctionGates);
   // PATCH 030 — Pulse Cortex extensions
-  const openClawAdvisory = assessOpenClawAdvisory(prompt, lane, scenario);
+  const sentinelAdvisory = assessSentinelAdvisory(prompt, lane, scenario);
   const complexityTier = classifyComplexity(prompt, lane, scenario);
   const codexDispatch = buildCodexDispatch(prompt, complexityTier, scenario);
   const councilComposition = assessCouncilComposition(prompt, complexityTier, scenario);
-  const ensemble = buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt, codexDispatch, councilComposition);
+  const ensemble = buildEnsemble(complexityTier, scenario, sentinelAdvisory, prompt, codexDispatch, councilComposition);
   const beaconLevel = pickBeaconLevel(complexityTier, scenario);
   const codexPolicy = pickCodexPolicy(prompt, scenario, complexityTier);
   return {
@@ -1382,7 +1382,7 @@ function buildRoutePlan(prompt) {
     codexPolicy,
     codexDispatch,
     councilComposition,
-    openClawAdvisory,
+    sentinelAdvisory,
     // existing fields
     deepseekAdvisory,
     claudeAdvisory,

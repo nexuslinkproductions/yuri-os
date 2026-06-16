@@ -110,14 +110,14 @@
       "nodes": [
         "ADVISORS",
         "DEEPSEEK_A",
-        "OPENCLAW_A",
+        "SENTINEL_A",
         "HERMES_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A",
+        "CRUCIBLE_A",
         "DS_FLASH",
         "DS_PRO",
-        "OC_BRIDGE",
+        "SENTINEL_BRIDGE",
         "SWARM_FLASH",
         "SWARM_PRO",
         "NATIVE_GATES"
@@ -593,7 +593,7 @@
         "dependencies": [
           "_SYSTEM/Scripts/llm-compat-contract.mjs",
           "LLM_COMPAT_SH",
-          "OPENCLAW_BRIDGE"
+          "SENTINEL_BRIDGE"
         ],
         "state_files": [
           ".claude/state/pulse-plan.json",
@@ -684,7 +684,7 @@
         ],
         "dependencies": [
           "DeepSeek",
-          "OpenClaw bridge",
+          "Yuri Sentinel bridge",
           "native functions",
           "swarm fanout"
         ],
@@ -697,11 +697,11 @@
       "parent": null,
       "children": [
         "DEEPSEEK_A",
-        "OPENCLAW_A",
+        "SENTINEL_A",
         "HERMES_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A"
+        "CRUCIBLE_A"
       ]
     },
     {
@@ -1898,9 +1898,9 @@
       ]
     },
     {
-      "id": "OPENCLAW_A",
+      "id": "SENTINEL_A",
       "tier": "sub",
-      "label": "OPENCLAW",
+      "label": "YURI SENTINEL",
       "role": "bridge_advisory",
       "detail": "",
       "radius": 26,
@@ -1912,10 +1912,10 @@
       },
       "sector": "advisors",
       "metadata": {
-        "purpose": "OpenClaw bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
+        "purpose": "Yuri Sentinel bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/OS_KERNEL/openclaw-bridge.sh",
+          "_SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1924,7 +1924,7 @@
           "Severity capped below critical"
         ],
         "dependencies": [
-          "OPENCLAW_BRIDGE",
+          "SENTINEL_BRIDGE",
           "local bridge JSON envelope"
         ],
         "state_files": [],
@@ -1935,7 +1935,7 @@
       },
       "parent": "ADVISORS",
       "children": [
-        "OC_BRIDGE"
+        "SENTINEL_BRIDGE"
       ]
     },
     {
@@ -2058,9 +2058,9 @@
       ]
     },
     {
-      "id": "OBLITERATUS_A",
+      "id": "CRUCIBLE_A",
       "tier": "sub",
-      "label": "OBLITERATUS",
+      "label": "CRUCIBLE",
       "role": "adv. gate",
       "detail": "",
       "radius": 24,
@@ -2089,7 +2089,7 @@
         "state_files": [],
         "runtime_kind": "gate_advisory",
         "authority_bounds": "conditional gate; owner/local evidence remain decisive",
-        "notes": "CLAUDE.md names Obliteratus as gate hint under critical-tier manual implementation.",
+        "notes": "CLAUDE.md names Crucible as gate hint under critical-tier manual implementation.",
         "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
@@ -3428,9 +3428,9 @@
       "children": []
     },
     {
-      "id": "OC_BRIDGE",
+      "id": "SENTINEL_BRIDGE",
       "tier": "leaf",
-      "label": "openclaw-bridge.sh",
+      "label": "yuri-sentinel-bridge.sh",
       "role": "127.0.0.1:18789",
       "detail": "",
       "radius": 8,
@@ -3442,24 +3442,24 @@
       },
       "sector": "advisors",
       "metadata": {
-        "purpose": "openclaw-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
+        "purpose": "yuri-sentinel-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
           "Represent 127.0.0.1:18789",
-          "Connect under OPENCLAW_A",
+          "Connect under SENTINEL_A",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "OPENCLAW_A"
+          "SENTINEL_A"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "OPENCLAW_A"
+        "returns_to": "SENTINEL_A"
       },
-      "parent": "OPENCLAW_A",
+      "parent": "SENTINEL_A",
       "children": []
     },
     {
@@ -4823,7 +4823,7 @@
           "math-curve-loaders",
           "non-destructive-infinity-guard",
           "openai-codex-workflow",
-          "openclaw-offload",
+          "sentinel-offload",
           "parallel-clone-orchestrator",
           "pattern-mirror-core",
           "reflect",
@@ -5240,7 +5240,7 @@
     },
     {
       "source": "ADVISORS",
-      "target": "OPENCLAW_A",
+      "target": "SENTINEL_A",
       "type": "branch",
       "is_return": false
     },
@@ -5264,7 +5264,7 @@
     },
     {
       "source": "ADVISORS",
-      "target": "OBLITERATUS_A",
+      "target": "CRUCIBLE_A",
       "type": "branch",
       "is_return": false
     },
@@ -5469,8 +5469,8 @@
       "is_return": false
     },
     {
-      "source": "OPENCLAW_A",
-      "target": "OC_BRIDGE",
+      "source": "SENTINEL_A",
+      "target": "SENTINEL_BRIDGE",
       "type": "branch",
       "is_return": false
     },
@@ -5561,7 +5561,7 @@
       "is_return": false
     },
     {
-      "source": "OPENCLAW_A",
+      "source": "SENTINEL_A",
       "target": "PULSE_BUS",
       "type": "data",
       "is_return": false
@@ -5585,7 +5585,7 @@
       "is_return": false
     },
     {
-      "source": "OBLITERATUS_A",
+      "source": "CRUCIBLE_A",
       "target": "PULSE_BUS",
       "type": "data",
       "is_return": false
@@ -5688,7 +5688,7 @@
       "routed_via": "ENKI_INBOX"
     },
     {
-      "source": "OPENCLAW_A",
+      "source": "SENTINEL_A",
       "target": "PULSE_BUS",
       "type": "advises",
       "is_return": true
@@ -6124,8 +6124,8 @@
       "is_return": true
     },
     {
-      "source": "OC_BRIDGE",
-      "target": "OPENCLAW_A",
+      "source": "SENTINEL_BRIDGE",
+      "target": "SENTINEL_A",
       "type": "logs",
       "is_return": true
     },
@@ -6476,7 +6476,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "OPENCLAW_A",
+      "target": "SENTINEL_A",
       "type": "memory",
       "is_return": false
     },
@@ -6500,7 +6500,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "OBLITERATUS_A",
+      "target": "CRUCIBLE_A",
       "type": "memory",
       "is_return": false
     },
@@ -6785,11 +6785,11 @@
         "GITNEXUS",
         "SELF_IMPROVE",
         "DEEPSEEK_A",
-        "OPENCLAW_A",
+        "SENTINEL_A",
         "HERMES_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A"
+        "CRUCIBLE_A"
       ],
       "applied_in": "v15"
     },

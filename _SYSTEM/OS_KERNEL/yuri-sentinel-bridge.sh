@@ -1,8 +1,8 @@
 #!/bin/bash
-# openclaw-bridge.sh — Yuri OS ↔ OpenClaw execution bridge
-# Lane: 09OC (OPENCLAW)
-# Usage: echo '<json>' | ./openclaw-bridge.sh
-#        ./openclaw-bridge.sh '<json>'
+# yuri-sentinel-bridge.sh — Yuri OS ↔ Yuri Sentinel execution bridge
+# Lane: 09OC (YURI_SENTINEL)
+# Usage: echo '<json>' | ./yuri-sentinel-bridge.sh
+#        ./yuri-sentinel-bridge.sh '<json>'
 #
 # Input JSON shape:
 # {
@@ -10,7 +10,7 @@
 #   "from_agent": "ENKI|DISCORD|SYSTEM",
 #   "channel": "discord:<channel_id>",
 #   "model_override": "deepseek/deepseek-v4-flash|null",
-#   "message": "prompt text for OpenClaw",
+#   "message": "prompt text for Yuri Sentinel",
 #   "context_files": ["/path/to/file", ...],
 #   "origin": "ENKI|DISCORD|SYSTEM"
 # }
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 KERNEL_PY="$(cd "$(dirname "$0")" && pwd)/syscalls/kernel.py"
-OPENCLAW_CLI="${OPENCLAW_CLI:-openclaw}"
+SENTINEL_CLI="${SENTINEL_CLI:-openclaw}"
 LANE_PREFIX="09OC"
 DEFAULT_MODEL="deepseek/deepseek-v4-flash"
 # PATCH 041 — derive repo root for debug logging; never fail if path missing
@@ -39,32 +39,32 @@ FROM_AGENT=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdi
 CHANNEL=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('channel',''))")
 MODEL=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('model_override','') or '${DEFAULT_MODEL}')")
 # PATCH 041 — env var override lets us swap model without touching script or payload
-MODEL="${OPENCLAW_FALLBACK_MODEL:-$MODEL}"
+MODEL="${SENTINEL_FALLBACK_MODEL:-$MODEL}"
 MESSAGE=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('message',''))")
 ORIGIN=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('origin','${FROM_AGENT}'))")
 
 # --- Gateway health gate ---
-if ! $OPENCLAW_CLI gateway status > /dev/null 2>&1; then
-    echo "{\"status\":\"FAILED\",\"error\":\"OpenClaw gateway not reachable\"}"
+if ! $SENTINEL_CLI gateway status > /dev/null 2>&1; then
+    echo "{\"status\":\"FAILED\",\"error\":\"Yuri Sentinel gateway not reachable\"}"
     exit 1
 fi
 
 # --- Create task if no task_id provided ---
 if [ -z "$TASK_ID" ] || [ "$TASK_ID" = "null" ]; then
     TASK_ID=$(python3 "$KERNEL_PY" task-create \
-        "OpenClaw task from ${FROM_AGENT}" \
-        --agent OPENCLAW 2>&1 | sed -n 's/.*Task \([0-9]*\) created.*/\1/p')
+        "Yuri Sentinel task from ${FROM_AGENT}" \
+        --agent YURI_SENTINEL 2>&1 | sed -n 's/.*Task \([0-9]*\) created.*/\1/p')
 fi
 
 # --- Build lane label ---
 LANE_LABEL="${LANE_PREFIX}_$(echo "$MESSAGE" | head -c 40 | tr '[:space:]' '_' | tr -cd 'A-Za-z0-9_')_DIRECT_COMMITTED"
 
-# --- Execute OpenClaw agent ---
+# --- Execute Yuri Sentinel agent ---
 # PATCH 043 — removed --model override: gateway rejects caller-specified model overrides
 # (GatewayClientRequestError: provider/model overrides are not authorized for this caller).
-# Model is now controlled by the OpenClaw agent config, not the caller.
-OC_OUTPUT=$($OPENCLAW_CLI agent --agent main --json --timeout 120 \
-    --message "$MESSAGE" 2>&1 || echo '{"error":"openclaw agent call failed"}')
+# Model is now controlled by the Yuri Sentinel agent config, not the caller.
+OC_OUTPUT=$($SENTINEL_CLI agent --agent main --json --timeout 120 \
+    --message "$MESSAGE" 2>&1 || echo '{"error":"yuri-sentinel agent call failed"}')
 
 # --- Parse result ---
 RESULT_TEXT=$(echo "$OC_OUTPUT" | python3 -c "
@@ -102,7 +102,7 @@ if [ -z "$RESULT_TEXT" ]; then
     STATUS="FAILED"
     # PATCH 041 — log raw OC_OUTPUT snippet so next session can diagnose model/prompt failure
     _OC_SNIPPET=$(printf '%s' "$OC_OUTPUT" | head -c 200 | tr '\n' ' ' 2>/dev/null || echo "(unreadable)")
-    printf '%s [openclaw-bridge] openclaw_empty_result model="%s" raw_oc_output="%s"\n' \
+    printf '%s [yuri-sentinel-bridge] sentinel_empty_result model="%s" raw_oc_output="%s"\n' \
         "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" "$MODEL" "$_OC_SNIPPET" \
         >> "$_PULSE_ERRORS_LOG" 2>/dev/null || true
 fi
@@ -114,7 +114,7 @@ MEMORY_PAYLOAD=$(python3 -c "
 import json
 d = {
     'task_id': '${TASK_ID}',
-    'source': 'OPENCLAW',
+    'source': 'YURI_SENTINEL',
     'channel': '${CHANNEL}',
     'summary': '${SUMMARY}',
     'content': ${CONTENT_JSON},
@@ -124,7 +124,7 @@ print(json.dumps(d))
 ")
 python3 "$KERNEL_PY" mem-log "$MEMORY_PAYLOAD" \
     --type episodic \
-    --agent OPENCLAW >/dev/null 2>&1 || true
+    --agent YURI_SENTINEL >/dev/null 2>&1 || true
 
 # --- Update task ---
 python3 "$KERNEL_PY" task-update "$TASK_ID" "$STATUS" \
@@ -132,8 +132,8 @@ python3 "$KERNEL_PY" task-update "$TASK_ID" "$STATUS" \
     >/dev/null 2>&1 || true
 
 # --- Log handoff if from another agent ---
-if [ "$FROM_AGENT" != "OPENCLAW" ]; then
-    python3 "$KERNEL_PY" handoff 0 "$FROM_AGENT" "OPENCLAW" \
+if [ "$FROM_AGENT" != "YURI_SENTINEL" ]; then
+    python3 "$KERNEL_PY" handoff 0 "$FROM_AGENT" "YURI_SENTINEL" \
         "bridge: ${LANE_LABEL}" >/dev/null 2>&1 || true
 fi
 
@@ -143,7 +143,7 @@ cat << EOF
   "status": "${STATUS}",
   "task_id": "${TASK_ID}",
   "lane_label": "${LANE_LABEL}",
-  "agent": "OPENCLAW",
+  "agent": "YURI_SENTINEL",
   "channel": "${CHANNEL}",
   "model": "${MODEL}",
   "summary": "${SUMMARY}",

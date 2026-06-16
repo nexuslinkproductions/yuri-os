@@ -6,7 +6,7 @@
  * Discovers skill files from Yuri's doctrine surfaces and normalises
  * them into a structured in-memory registry.
  *
- * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
+ * Reference pattern: external-agent ~/.agent/workspace/skills/<name>/SKILL.md
  * Substrate: YURI-native root skills/, provider reference skills, and local
  * Codex compatibility skill shims. Retired provider surfaces are not
  * authoritative.

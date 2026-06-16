@@ -33,9 +33,9 @@ assert.equal(contract.claudeProtocolGate.mode, 'warn-first', 'Claude protocol ga
 assert.equal(contract.claudeProtocolGate.mainSessionFinalAuthority, true, 'Claude main session must keep final authority');
 assert.equal(contract.claudeProtocolGate.codexSpecCompatibility.requiredSpec, '## CODEX TASK SPEC', 'Claude gate must preserve Codex spec compatibility');
 assert.equal(contract.claudeProtocolGate.nativeFunctionGates.argus, 'always-on', 'Claude gate should keep Argus native gate always-on');
-assert.equal(contract.claudeProtocolGate.nativeFunctionGates.obliteratus, 'conditional-high-risk', 'Claude gate should make Obliteratus conditional');
-// OpenClaw absorbed into Musubi as Nisaba Sentinel (2026-05-17) — authority updated to native-integrated
-assert.ok(['bridge-only-advisory', 'native-integrated'].includes(contract.claudeProtocolGate.openClaw.authority), 'OpenClaw/Nisaba authority must be advisory or native-integrated');
+assert.equal(contract.claudeProtocolGate.nativeFunctionGates.crucible, 'conditional-high-risk', 'Claude gate should make Crucible conditional');
+// Yuri Sentinel absorbed into Musubi as Nisaba Sentinel (2026-05-17) — authority updated to native-integrated
+assert.ok(['bridge-only-advisory', 'native-integrated'].includes(contract.claudeProtocolGate.sentinel.authority), 'Yuri Sentinel/Nisaba authority must be advisory or native-integrated');
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.gemmaLocal.alias, '@gemma-local', 'Gemma local lane metadata missing');
@@ -70,8 +70,8 @@ assert.deepEqual(contract.pulseGovernanceSkeleton.phaseOrder, [
   'merge_learn',
 ], 'pulse governance phase spine changed');
 assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.argus, 'Argus checkpoint profile missing');
-assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.obliteratus, 'Obliteratus checkpoint profile missing');
-assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles['openclaw-derived'], 'OpenClaw-derived pattern profile missing');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.crucible, 'Crucible checkpoint profile missing');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles['sentinel-derived'], 'Yuri Sentinel-derived pattern profile missing');
 
 const yuriSelftest = execFileSync(
   process.execPath,
@@ -184,9 +184,9 @@ for (const testCase of cases) {
   assert.equal(plan.pulseGovernanceSkeleton.authority.entryBranch, 'main', `pulse intake should start on main for "${testCase.prompt}"`);
   assert.equal(plan.pulseGovernanceSkeleton.authority.exitBranch, 'main', `pulse output should return to main for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('argus'), `Argus profile should be active for "${testCase.prompt}"`);
-  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), `OpenClaw-derived profile should be available for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('sentinel-derived'), `Yuri Sentinel-derived profile should be available for "${testCase.prompt}"`);
   assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.verify_local_truth.some((checkpoint) => checkpoint.profile === 'argus'), `verify phase should include Argus checkpoint for "${testCase.prompt}"`);
-  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.intake_classify.some((checkpoint) => checkpoint.profile === 'openclaw-derived'), `intake phase should include OpenClaw-derived manifest pattern for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.intake_classify.some((checkpoint) => checkpoint.profile === 'sentinel-derived'), `intake phase should include Yuri Sentinel-derived manifest pattern for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.lifecycle) && plan.lifecycle.length >= 5, `lifecycle missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.learningCapture) && plan.learningCapture.includes('next_rule_candidate'), `learning capture missing for "${testCase.prompt}"`);
   if (testCase.scenario === 'cross-domain-lesson-work') {
@@ -224,39 +224,39 @@ const councilPlan = routePlan('large Yuri OS beta proving run with model council
 assert.equal(councilPlan.claudeAdvisory.decision, 'use-sonnet', 'Claude should join high-stakes model council');
 assert.deepEqual(councilPlan.claudeAdvisory.models, ['deepseek-v4-pro'], 'Claude council model mismatch — updated to deepseek-v4-pro per sovereignty sprint P6');
 assert.equal(councilPlan.claudeAdvisory.outputCapLines, 80, 'Claude council line cap missing from route plan');
-assert.equal(councilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate high-stakes council work');
-assert.equal(councilPlan.nativeFunctionGates.obliteratus.runtime, 'native_function', 'Obliteratus should be a native function gate');
-assert.equal(councilPlan.nativeFunctionGates.obliteratus.alias, 'obliteratus', 'Obliteratus alias should stay stable');
-assert.ok(councilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'high-stakes plan should activate Obliteratus profile');
-assert.ok(councilPlan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'obliteratus' && checkpoint.action === 'durable_promotion_gate'), 'high-stakes plan should include Obliteratus durable promotion checkpoint');
-const claudeUltraPlan = routePlan('claude ultra deep hardening protocol promotion OpenClaw symbioticPulse routing');
+assert.equal(councilPlan.nativeFunctionGates.crucible.decision, 'use-native-gate', 'Crucible should gate high-stakes council work');
+assert.equal(councilPlan.nativeFunctionGates.crucible.runtime, 'native_function', 'Crucible should be a native function gate');
+assert.equal(councilPlan.nativeFunctionGates.crucible.alias, 'crucible', 'Crucible alias should stay stable');
+assert.ok(councilPlan.pulseGovernanceSkeleton.activeProfiles.includes('crucible'), 'high-stakes plan should activate Crucible profile');
+assert.ok(councilPlan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'crucible' && checkpoint.action === 'durable_promotion_gate'), 'high-stakes plan should include Crucible durable promotion checkpoint');
+const claudeUltraPlan = routePlan('claude ultra deep hardening protocol promotion Yuri Sentinel symbioticPulse routing');
 assert.equal(claudeUltraPlan.scenario, 'protocol-change', 'Claude ultra hardening should classify as protocol-change');
 assert.equal(claudeUltraPlan.lane, 'native', 'Claude ultra hardening should route to native main-session orchestration');
 assert.equal(claudeUltraPlan.deepseekAdvisory.decision, 'use-native', 'Claude ultra hardening should use the native single-advisory decision');
 assert.deepEqual(claudeUltraPlan.deepseekAdvisory.models, ['deepseek-v4-pro'], 'native advisory must be a single sequential DeepSeek-pro call (no parallel pair)');
 assert.equal(claudeUltraPlan.nativeFunctionGates.argus.decision, 'always-on', 'Claude ultra hardening should keep Argus always-on');
-assert.equal(claudeUltraPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Claude ultra hardening should activate Obliteratus');
-assert.ok(claudeUltraPlan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), 'Claude ultra hardening should expose OpenClaw-derived profile');
+assert.equal(claudeUltraPlan.nativeFunctionGates.crucible.decision, 'use-native-gate', 'Claude ultra hardening should activate Crucible');
+assert.ok(claudeUltraPlan.pulseGovernanceSkeleton.activeProfiles.includes('sentinel-derived'), 'Claude ultra hardening should expose Yuri Sentinel-derived profile');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
 assert.equal(sandboxCouncilPlan.lane, 'native', 'sandbox proving runs should not auto-route to Spark without explicit request');
 assert.equal(sandboxCouncilPlan.codexDispatch.model, 'gpt-5.5', 'non-explicit sandbox work should stay on primary Codex');
 assert.equal(sandboxCouncilPlan.codexDispatch.reasoning, 'xhigh', 'non-explicit sandbox work should use high-power Codex reasoning');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
-assert.equal(sandboxCouncilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate sandbox promotion-risk work');
-assert.ok(sandboxCouncilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'sandbox promotion-risk plan should activate Obliteratus profile');
+assert.equal(sandboxCouncilPlan.nativeFunctionGates.crucible.decision, 'use-native-gate', 'Crucible should gate sandbox promotion-risk work');
+assert.ok(sandboxCouncilPlan.pulseGovernanceSkeleton.activeProfiles.includes('crucible'), 'sandbox promotion-risk plan should activate Crucible profile');
 const explicitSparkPlan = routePlan('use @codex-spark for a bounded read-only sandbox proving run');
 assert.equal(explicitSparkPlan.lane, 'codex-spark', 'explicit Spark request should preserve Spark lane');
 assert.equal(explicitSparkPlan.codexDispatch.model, 'gpt-5.3-codex-spark', 'explicit Spark request should use Spark model');
 assert.equal(explicitSparkPlan.codexDispatch.sandbox, 'read-only', 'explicit Spark request should stay read-only');
 
 const promotionGatePlan = routePlan('promote verified artifact into canonical memory after review');
-assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'promotion candidate should use Obliteratus gate');
-assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.localTruthRequired, true, 'Obliteratus gate must require local truth');
-assert.ok(promotionGatePlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'promotion candidate should activate Obliteratus profile');
+assert.equal(promotionGatePlan.nativeFunctionGates.crucible.decision, 'use-native-gate', 'promotion candidate should use Crucible gate');
+assert.equal(promotionGatePlan.nativeFunctionGates.crucible.localTruthRequired, true, 'Crucible gate must require local truth');
+assert.ok(promotionGatePlan.pulseGovernanceSkeleton.activeProfiles.includes('crucible'), 'promotion candidate should activate Crucible profile');
 const smallCodePlan = routePlan('fix typo in one known helper test');
-assert.equal(smallCodePlan.nativeFunctionGates.obliteratus.decision, 'skip', 'small code task should not invoke Obliteratus gate');
-assert.equal(smallCodePlan.pulseGovernanceSkeleton.profileStatus.obliteratus, 'skip', 'small code task should skip Obliteratus profile');
-assert(!smallCodePlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'small code task should not activate Obliteratus profile');
+assert.equal(smallCodePlan.nativeFunctionGates.crucible.decision, 'skip', 'small code task should not invoke Crucible gate');
+assert.equal(smallCodePlan.pulseGovernanceSkeleton.profileStatus.crucible, 'skip', 'small code task should skip Crucible profile');
+assert(!smallCodePlan.pulseGovernanceSkeleton.activeProfiles.includes('crucible'), 'small code task should not activate Crucible profile');
 
 const advisoryCases = [
   {

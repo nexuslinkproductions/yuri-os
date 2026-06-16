@@ -159,8 +159,15 @@ export function verifyLossless(canon) {
   };
   cmpNodes(origFlow, projFlow, 'flow');
   cmpNodes(origMech, projMech, 'mechanism');
+  // DIE drift check (added 2026-06-16): the die-view was NEVER verified, so it silently
+  // diverged from canonical (+2 out-of-band nodes COLD_WIKI/SVC_RAG). Without this, `verify`
+  // reports lossless=true while the die lies. This closes the blind spot that caused the drift.
+  const origDie = fs.existsSync(DIE_VIEW) ? read(DIE_VIEW) : { nodes: [], edges: [] };
+  const projDie = projectDie(canon);
+  cmpNodes(origDie, projDie, 'die');
   if ((origFlow.edges || []).length !== projFlow.edges.length) issues.push(`flow edges ${origFlow.edges.length} -> ${projFlow.edges.length}`);
   if ((origMech.edges || []).length !== projMech.edges.length) issues.push(`mech edges ${origMech.edges.length} -> ${projMech.edges.length}`);
+  if ((origDie.edges || []).length !== projDie.edges.length) issues.push(`die edges ${origDie.edges?.length || 0} -> ${projDie.edges.length}`);
   return { lossless: issues.length === 0, issues: issues.slice(0, 30) };
 }
 

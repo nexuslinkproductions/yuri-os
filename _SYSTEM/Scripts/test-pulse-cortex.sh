@@ -42,7 +42,7 @@ run_phase() {
       assert_contains "standard ensemble has deepseek" '"deepseek-preflight"' "$standard"
       assert_contains "standard codexPolicy dry-run" '"codexPolicy":"dry-run-only"' "$standard"
       assert_contains "critical tier" '"complexityTier":"critical"' "$critical"
-      assert_contains "critical ensemble has openclaw" '"openclaw-preflight"' "$critical"
+      assert_contains "critical ensemble has crucible gate" '"crucible-hint"' "$critical"
       assert_contains "critical ensemble has yuri-risk" '"yuri-risk"' "$critical"
       assert_contains "critical beacon notify+obsidian" 'beaconLevel":"notify+obsidian' "$critical"
       assert_contains "critical codexPolicy none" '"codexPolicy":"none"' "$critical"
@@ -66,12 +66,7 @@ run_phase() {
       # (PULSE_ORCHESTRATOR_RETIRED in user-prompt-submit.js), so the cortexHint is suppressed.
       ;;
     4)
-      echo "── Phase 4: OpenClaw assessor + bridge quarantine (PATCH 033)"
-      local critical
-      critical=$(node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "refactor protocol architecture")
-      assert_contains "openClawAdvisory present" '"openClawAdvisory"' "$critical"
-      assert_contains "openclaw runtimeKind bridge_advisory" '"runtimeKind":"bridge_advisory"' "$critical"
-      assert_contains "openclaw quarantine list" '"Must not directly edit code' "$critical"
+      echo "── Phase 4: protocol-guard pulse-plan recognition (PATCH 033; legacy assessor retired — absorbed into Yuri Sentinel)"
       assert_contains "protocol-guard recognizes pulse-plan.json" 'pulseCortexEvidence' "$(cat .claude/hooks/claude-protocol-guard.js)"
       ;;
     5)
@@ -97,10 +92,9 @@ run_phase() {
       assert_contains "header present" 'PULSE CORTEX STATUS' "$cortex_out"
       assert_contains "bus section" 'Bus:' "$cortex_out"
       assert_contains "beacon section" 'Beacon:' "$cortex_out"
-      assert_contains "openclaw gateway shown" 'OpenClaw gateway' "$cortex_out"
       local cortex_json
       cortex_json=$(_SYSTEM/Scripts/ai cortex --json)
-      assert_contains "json mode works" 'openclaw_gateway' "$cortex_json"
+      assert_contains "json mode works" 'timestamp' "$cortex_json"
       ;;
     10)
       echo "── Phase 10: EOT Phase 10 + tokenmaxxing + CLAUDE.md (PATCH 039)"
