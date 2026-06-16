@@ -1,6 +1,6 @@
 ---
 name: organ-yuri-decode
-description: "The LLM-WIELDED decoder instrument: translate text → a deterministic math object. NOT an ingress pre-processor that mutates input before the LLM — it is an INSTRUMENT the LLM calls directly…"
+description: "LLM-wielded decoder instrument: translate text into a deterministic math object (tokens, numerology channels, dimensional classification). Use when the model needs a deterministic structural reading of text to reason over — e.g. decoding a brain dump's surface features, analyzing token patterns, or extracting numerology/dimensional signatures from input."
 triggers:
   - "organ-yuri-decode"
   - "how do I use yuri-decode"

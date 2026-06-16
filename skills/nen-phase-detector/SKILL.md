@@ -1,6 +1,7 @@
 ---
 name: nen-phase-detector
-description: Adaptive Phase Specialization — detects Marcel's current work phase (deep_code, design, strategy, research, admin, rest) from session context and auto-configures ensemble composition, lane priority, verbosity, and response depth for that phase. Nen category alignment for optimal energy use.
+description: "Adaptive phase specialization that sets the work-phase mode (deep_code, design, strategy, research, admin, rest) to tune depth, verbosity, and approach to match what the current phase needs. Use when starting a new work phase, when the user says \"/nen deep_code\", \"switch to research mode\", \"I need strategy thinking\", or when the task type changes and the approach needs realignment."
+invocation: model
 triggers:
   - /nen
   - /yuri-nen
@@ -54,23 +55,9 @@ confidence = phase_score[detected_phase] / sum(phase_score.values())
 
 ## Execution Steps
 
-1. Read session-state.json + recent git commits + current prompt
-2. Run detection algorithm
-3. Write `nen_phase` to session-state.json
-4. Configure: ensemble composition, lane priority, verbosity
-5. Emit `### NEN_PHASE` block in brain (read by brain-inject.js)
-
----
-
-## brain-inject.js Integration
-
-`loadNenPhase()` function reads `session-state.json.nen_phase` and injects into brain block:
-
-```
-### NEN_PHASE — Active work phase
-Phase: deep_code | Confidence: 0.82
-Config: Codex-first ensemble, max depth, gpt-5.5 priority, minimal prose
-```
+1. Read recent git commits + current task context
+2. Run the detection heuristic (signals → phase)
+3. Adopt the phase config for the turn: depth, verbosity, approach
 
 ---
 
@@ -86,6 +73,18 @@ Config: Codex-first ensemble, max depth, gpt-5.5 priority, minimal prose
 ---
 
 ## Session Notes
+
+### 2026-06-02
+- session: 22m | peak ctx: 0% | compacts: 0
+- tools: Bash×64, Read×23, WebFetch×4, StructuredOutput×4, Workflow×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
+
+### 2026-06-02
+- session: 18m | peak ctx: 0% | compacts: 0
+- tools: Bash×56, Read×20, WebFetch×4, StructuredOutput×3, Workflow×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.)
+- errors: none
 
 ### 2026-05-16 — Created
 Tools: Write. Part of Musubi Hyper-Intelligence v2 sprint.

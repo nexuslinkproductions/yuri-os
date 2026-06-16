@@ -1,6 +1,6 @@
 ---
 name: pattern-mirror-core
-description: Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Yuri. Inspired by Sharingan / Copy Technique, translated into enterprise-safe system behavior.
+description: "Artifact perception, pattern extraction, weakness detection, and YURI-native reconstruction — inspired by Sharingan/Copy Technique, translated into enterprise-safe system behavior. Use when analyzing and integrating an external artifact (repo, document, PDF, prompt, codebase, system spec, workflow, memory log) into YURI without blind copying — e.g. 'analyze and integrate this safely', 'turn this into YURI OS DNA', or '/yuri pattern-mirror'."
 invocation: gate
 version: 1.0.0
 status: active

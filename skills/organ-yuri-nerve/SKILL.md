@@ -1,6 +1,6 @@
 ---
 name: organ-yuri-nerve
-description: "The nervous-system spine + afferent nerve. A detected event is captured ONCE under ONE deterministic id and threaded across organs: it becomes an OpenProcess-shaped entry (STATE) carrying a memory…"
+description: "Nervous-system spine + afferent nerve: captures detected events once under a deterministic id and threads them across organs as OpenProcess entries. Use when durably recording an event (task/decision/fix/finding/idea/correction/build/handoff) so it survives compaction, closing an event, or pulling the open-work digest — e.g. after detecting something needing session continuity."
 triggers:
   - "organ-yuri-nerve"
   - "how do I use yuri-nerve"

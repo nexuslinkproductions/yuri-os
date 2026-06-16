@@ -1,6 +1,6 @@
 ---
 name: cross-reference-navigation
-description: Use BEFORE broad exploration, grep, or any "where is / what is this / find the code / what already exists" question — the upgraded xref-query fuses FTS5 + circuitry-graph + GitNexus + the mechanism-spectrum into one confidence-graded read front-door, faster and more precise than scanning. Also covers propagation-scan and capability-recall.
+description: "Fuse FTS5 + circuitry-graph + GitNexus + mechanism-spectrum into one confidence-graded retrieval front-door, faster than scanning each surface separately. Use this before broad exploration, grep, or any 'where is / what is this / find the code / what already exists' question. Also covers propagation-scan and capability-recall."
 invocation: model
 triggers:
   - "/xref"

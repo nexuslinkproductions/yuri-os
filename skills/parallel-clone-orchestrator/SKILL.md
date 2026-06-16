@@ -1,6 +1,6 @@
 ---
 name: parallel-clone-orchestrator
-description: Retired skill tombstone. Do not invoke; use native planning plus llm-compat lanes for advisory work.
+description: "Retired skill tombstone. Do not invoke — use native planning plus llm-compat lanes for advisory work instead. Use when encountering a reference to /pco, /clone, or parallel-clone-orchestrator and need to redirect to the current replacement: native planning + llm-compat lanes."
 version: 1.0.1
 status: retired
 retired_on: 2026-06-07

@@ -26,3 +26,6 @@ Use this skill when the task is to browse or reuse math-based loader patterns as
 - Prefer structured reference data over prose.
 - Preserve the original motion vocabulary.
 
+## Session Notes
+
+- 2026-06-16 — References a read-only catalog of math-based loading animations, formulas, and motion patterns for browsing or reuse.

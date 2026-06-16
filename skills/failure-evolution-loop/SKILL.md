@@ -1,6 +1,7 @@
 ---
 name: failure-evolution-loop
-description: Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / YURI. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior.
+description: "Real failure capture, root-cause analysis, regression design (outputs a runnable-test SPECIFICATION — does not write test files directly), and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior. Use when the user says 'capture this failure', 'analyze root cause', 'prevent regression', or 'learn from this bug'."
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +20,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks YURI OS to perform work involving:
+Use this skill when the user asks Yuri OS / Yuri to perform work involving:
 
 - failure_event
 - test_output
@@ -145,23 +146,34 @@ failure:
 
 ## Session Notes
 
+### 2026-06-14
+- session: 119m | peak ctx: 0% | compacts: 0
+- tools: Bash×299, WebSearch×160, Read×157, WebFetch×150, Edit×47, Write×39, StructuredOutput×33, ToolSearch×14, TodoWrite×11, Workflow×5, AskUserQuestion×1
+- corrections: im confused as to why we are encountering this issue over and over again, its a pain that needs to be fixed before we continue | im confused as to why we are encountering this issue over and over again, its a pain that needs to be fixed before we continue | im confused as to why we are encountering this issue over and over again, its a pain that needs to be fixed before we continue
+- errors: none
+
+### 2026-06-11
+- session: 273m | peak ctx: 0% | compacts: 0
+- tools: WebFetch×212, WebSearch×119, ToolSearch×92, StructuredOutput×83, Bash×79, Edit×30, Read×28, Write×8, TodoWrite×3, CronCreate×2, Workflow×2, TaskStop×2, Agent×1, CronDelete×1, Skill×1
+- corrections: insane work, absolutely not comparable to any other model i have worked with. I had MiMo V2.5-pro check it out and the work you did is spotless
+
+commence wave 2 refactoring, im watching again.
+- errors: none
+
+### 2026-06-10
+- session: 847m | peak ctx: 62% | compacts: 1
+- tools: Bash×776, Read×365, Edit×55, Write×27, StructuredOutput×12, TodoWrite×11, WebFetch×9, Agent×7, Workflow×3, ToolSearch×2
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 62m | peak ctx: 0% | compacts: 0
+- tools: Bash×23, Write×21, Edit×17, Read×14, TodoWrite×9, mcp×3, ToolSearch×2, Agent×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1
 - corrections: none
 - errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
-- corrections: none
-- errors: none
-
-### 2026-04-27 — Schema hardening (Marcel)
-- **Tools used:** Edit (schema migration), Read (validation)
-- **Changes:**
-  1. Replaced `primary_command: /yuri zenkai` with `triggers: ["/yuri zenkai", "/zenkai", "/fel"]`
-  2. Changed `status: proposed` → `status: active`
-  3. Added `## Session Notes` section (required by `.Codex/rules/skill-creation.md`)
-- **Validation:** Schema now matches NUDIMMUD skill-creation checklist
-- **Status:** Ready for command file registration

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YURI Circuitry — 3D Die (stacked layers)</title>
+<style>
+  :root{ --bg:#04060c; --ink:#eaf1ff; --muted:#7e93ba; --line:#1a2740; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(130% 130% at 50% 30%,#0a1326,#04060c 72%);color:var(--ink);overflow:hidden;
+    font:13px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+  #labels{position:fixed;inset:0;pointer-events:none;z-index:6}
+  .llab{position:absolute;transform:translateY(-50%);font:11px ui-sans-serif;white-space:nowrap;text-shadow:0 0 8px #000c;font-weight:600}
+  .llab .c{color:var(--muted);font-weight:400;font-size:10px}
+  #panel{position:fixed;top:0;left:0;width:228px;height:100%;padding:16px 16px 26px;overflow-y:auto;
+    background:linear-gradient(180deg,#0a1020,#05080f);border-right:1px solid var(--line);backdrop-filter:blur(6px)}
+  h1{font-size:15px;margin:0;font-weight:650}
+  .sub{color:#4dabf7;font-weight:650;font-size:11.5px;margin-top:2px}
+  .spot{color:var(--muted);font-size:11px;margin-bottom:14px}
+  .grp{margin-bottom:13px}
+  .grp>label{display:block;color:var(--muted);font-size:11px;letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+  input[type=range]{width:100%;accent-color:#4dabf7}
+  .chk{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:12.5px;cursor:pointer}
+  .chk input{accent-color:#4dabf7;width:15px;height:15px}
+  .val{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+  button{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;font-weight:600;color:var(--ink);background:#12203a;cursor:pointer;margin-top:6px}
+  button:hover{filter:brightness(1.12)}
+  .hint{color:var(--muted);font-size:10.5px;margin-top:14px;line-height:1.5;opacity:.85}
+  #focus{position:fixed;bottom:14px;right:18px;z-index:8;text-align:right;min-height:30px}
+  #focus .fl{color:var(--muted);font-size:10.5px} #focus b{font-size:12px}
+  #title{position:fixed;top:14px;left:244px;z-index:8;color:var(--muted);font-size:11px}
+  #title b{color:var(--ink);font-size:13px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<div id="title"><b>YURI Circuitry — 3D Die</b> &nbsp;·&nbsp; 242 organs stacked across 10 layers &nbsp;·&nbsp; wiring arcs between strata</div>
+
+<div id="panel">
+  <h1>YURI 3D Die</h1>
+  <div class="sub">STACKED-LAYER CHIP VIEW</div>
+  <div class="spot">10 layers · 242 nodes · real wiring</div>
+
+  <div class="grp"><label>Layer spacing <span class="val" id="gapV">22</span></label><input type="range" id="gap" min="8" max="46" value="22"></div>
+  <div class="grp"><label>Bundle (pull to spine) <span class="val" id="bundV">0.55</span></label><input type="range" id="bund" min="0" max="0.9" step="0.05" value="0.55"></div>
+  <div class="grp"><label>Bloom <span class="val" id="blV">0.9</span></label><input type="range" id="bloom" min="0" max="2.2" step="0.05" value="0.9"></div>
+  <div class="grp">
+    <label class="chk"><span>Auto-spin</span><input type="checkbox" id="spin" checked></label>
+    <label class="chk"><span>Layer discs</span><input type="checkbox" id="discs" checked></label>
+  </div>
+  <button id="resetCam">Reset Camera</button>
+  <div class="hint">Each stratum is a YURI layer; node height = which layer it lives in. Hover an organ → <span style="color:#ff6b6b">outgoing</span> / <span style="color:#4dd2ff">incoming</span> wiring lights up. Drag to orbit · scroll to zoom.</div>
+</div>
+<div id="focus"></div>
+
+<!-- real merged graph (window.GRAPH), from yuri-die-graph.json -->
+<script src="data/circuitry-graph.js"></script>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const G = window.GRAPH;
+if (!G) { document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:grid;place-items:center;color:#f66">circuitry-graph.js failed — run: node demos/build/gen-circuitry-data.mjs</div>'); throw new Error('no data'); }
+
+const R = 54;                       // ring radius per layer
+const nLayers = G.groups.length;
+const layerIdx = new Map(G.groups.map((g,i)=>[g,i]));
+const col = g => new THREE.Color(G.groupColor[g] || '#8aa0c6');
+const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio));
+renderer.setSize(innerWidth,innerHeight);
+stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x04060c);
+scene.fog=new THREE.Fog(0x04060c, 260, 620);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,3000);
+const CAM0=new THREE.Vector3(150,70,180);
+camera.position.copy(CAM0);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=0.08;controls.autoRotate=true;controls.autoRotateSpeed=0.55;
+scene.add(new THREE.AmbientLight(0x8098c8,0.7));
+const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(80,120,60);scene.add(dl);
+
+const rig = new THREE.Group(); scene.add(rig);
+
+// ---- per-layer node placement (ring on each stratum) ----
+const perLayer = {}; G.groups.forEach(g=>perLayer[g]=[]);
+for (const n of G.nodes) perLayer[n.group].push(n);
+const nodeObj = new Map();   // id -> { node, pos(base, gap=1), mesh, li }
+function layerY(li, gap){ return (li - (nLayers-1)/2) * gap; }
+
+const nodeMeshes = [];
+const discRings = [];
+const sphereGeoDie = new THREE.SphereGeometry(1.5,16,12);
+const sphereGeoPer = new THREE.SphereGeometry(1.05,14,10);
+for (const g of G.groups){
+  const li = layerIdx.get(g);
+  const arr = perLayer[g];
+  const start = li * GOLDEN;          // stagger so vertical edges aren't aligned
+  arr.forEach((n,k)=>{
+    const a = start + 2*Math.PI*k/arr.length;
+    const base = new THREE.Vector3(R*Math.cos(a), 0, R*Math.sin(a));   // y added per-frame from gap
+    const c = col(g);
+    const mat = new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.85,roughness:0.4});
+    const mesh = new THREE.Mesh(n.kind==='die'?sphereGeoDie:sphereGeoPer, mat);
+    mesh.userData.id = n.id;
+    rig.add(mesh); nodeMeshes.push(mesh);
+    nodeObj.set(n.id, { node:n, base, mesh, li });
+  });
+  // layer disc ring
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.18, 8, 96),
+    new THREE.MeshBasicMaterial({color:col(g),transparent:true,opacity:0.32}));
+  ring.rotation.x=Math.PI/2; ring.userData.li=li; rig.add(ring); discRings.push(ring);
+}
+
+// ---- edges as bundled 3D curves ----
+const edgeObjs = [];
+const edgeIncident = new Map();
+for (const e of G.edges){
+  const s=nodeObj.get(e.source), t=nodeObj.get(e.target);
+  if(!s||!t) continue;
+  const geo=new THREE.BufferGeometry();
+  const c=col(s.node.group);
+  const line=new THREE.Line(geo, new THREE.LineBasicMaterial({color:c,transparent:true,opacity:0.34}));
+  rig.add(line);
+  const obj={ e, s, t, line, base:c.clone() };
+  edgeObjs.push(obj);
+  (edgeIncident.get(e.source)||edgeIncident.set(e.source,{out:[],inc:[]}).get(e.source)).out.push(obj);
+  (edgeIncident.get(e.target)||edgeIncident.set(e.target,{out:[],inc:[]}).get(e.target)).inc.push(obj);
+}
+
+// rebuild geometry (positions depend on gap + bundle)
+const $=id=>document.getElementById(id);
+function rebuild(){
+  const gap=+$('gap').value, bund=+$('bund').value;
+  for(const [,o] of nodeObj){ o.mesh.position.set(o.base.x, layerY(o.li,gap), o.base.z); }
+  for(const r of discRings){ r.position.y=layerY(r.userData.li,gap); r.visible=$('discs').checked; }
+  const tmp=new THREE.Vector3();
+  for(const o of edgeObjs){
+    const A=o.s.mesh.position, B=o.t.mesh.position;
+    const mid=tmp.copy(A).add(B).multiplyScalar(0.5);
+    // pull control toward the central spine (x,z→0) for a bundled arc
+    const ctrl=new THREE.Vector3(mid.x*(1-bund), mid.y, mid.z*(1-bund));
+    const curve=new THREE.QuadraticBezierCurve3(A.clone(), ctrl, B.clone());
+    o.line.geometry.setFromPoints(curve.getPoints(26));
+  }
+}
+
+// ---- bloom ----
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.9,0.55,0.18);
+composer.addPass(bloom); composer.addPass(new OutputPass());
+
+// ---- layer labels (HTML overlay) ----
+const labelLayer=document.getElementById('labels');
+const layerLabels=G.groups.map(g=>{
+  const d=document.createElement('div'); d.className='llab';
+  const ct=G.nodes.filter(n=>n.group===g).length;
+  d.innerHTML=`<span style="color:${G.groupColor[g]}">${g}</span> <span class="c">${ct}</span>`;
+  labelLayer.appendChild(d); return {g,el:d,li:layerIdx.get(g)};
+});
+
+// ---- hover ----
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(); ray.params.Line=undefined;
+let hover=null;
+const focus=document.getElementById('focus');
+renderer.domElement.addEventListener('pointermove',ev=>{
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((ev.clientX-r.left)/r.width)*2-1; mouse.y=-((ev.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const hit=ray.intersectObjects(nodeMeshes,false)[0];
+  const id=hit?hit.object.userData.id:null;
+  if(id!==hover){ hover=id; applyHover(); }
+});
+function applyHover(){
+  if(!hover){
+    for(const o of edgeObjs){ o.line.material.color.copy(o.base); o.line.material.opacity=0.34; }
+    for(const m of nodeMeshes){ m.material.emissiveIntensity=0.85; m.scale.setScalar(1); }
+    focus.innerHTML=''; return;
+  }
+  const inc=edgeIncident.get(hover)||{out:[],inc:[]};
+  const touched=new Set([hover]);
+  inc.out.forEach(o=>touched.add(o.e.target)); inc.inc.forEach(o=>touched.add(o.e.source));
+  for(const o of edgeObjs){
+    const isOut=inc.out.includes(o), isInc=inc.inc.includes(o);
+    if(isOut){o.line.material.color.set(0xff6b6b);o.line.material.opacity=0.95;}
+    else if(isInc){o.line.material.color.set(0x4dd2ff);o.line.material.opacity=0.95;}
+    else{o.line.material.color.copy(o.base);o.line.material.opacity=0.05;}
+  }
+  for(const [id,o] of nodeObj){
+    const on=touched.has(id);
+    o.mesh.material.emissiveIntensity=on?1.6:0.18;
+    o.mesh.scale.setScalar(id===hover?1.9:on?1.3:1);
+  }
+  const n=nodeObj.get(hover).node;
+  focus.innerHTML=`<div class="fl">${n.group} · ${n.kind}</div><b>${n.label}</b><div class="fl">${inc.out.length} out · ${inc.inc.length} in</div>`;
+}
+
+['gap','bund'].forEach(id=>$(id).addEventListener('input',e=>{$(id==='gap'?'gapV':'bundV').textContent=e.target.value;rebuild();}));
+$('discs').addEventListener('change',rebuild);
+$('spin').addEventListener('change',e=>controls.autoRotate=e.target.checked);
+$('bloom').addEventListener('input',e=>{$('blV').textContent=(+e.target.value).toFixed(2);bloom.strength=+e.target.value;});
+$('resetCam').addEventListener('click',()=>{camera.position.copy(CAM0);controls.target.set(0,0,0);controls.update();});
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);});
+
+rebuild();
+const wv=new THREE.Vector3();
+function projectLabels(){
+  const gap=+$('gap').value;
+  for(const L of layerLabels){
+    wv.set(R+12, layerY(L.li,gap), 0).project(camera);   // fixed world anchor at this stratum
+    if(wv.z>1){L.el.style.display='none';continue;}
+    L.el.style.display='block';
+    L.el.style.left=((wv.x*0.5+0.5)*innerWidth)+'px';
+    L.el.style.top=((-wv.y*0.5+0.5)*innerHeight)+'px';
+  }
+}
+function loop(){
+  requestAnimationFrame(loop);
+  controls.update();   // autoRotate orbits the CAMERA; node/edge world-pos is static → no per-frame rebuild
+  projectLabels();
+  composer.render();
+}
+loop();
+</script>
+</body>
+</html>

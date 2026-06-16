@@ -1,6 +1,6 @@
 ---
 name: tokenmaxxing
-description: "Native token efficiency mode (auto-activated at SessionStart). Rules below are loaded automatically by token-session-init.js — no manual command needed. /tokenmaxxing is a re-activate alias for the rare case of mid-session deactivation."
+description: "Native token efficiency mode that compresses output, minimizes verbosity, and enables caveman-style communication. Use when the user wants to save tokens, reduce output length, work in minimal-verbosity mode, or mentions token budgets or caveman mode."
 triggers:
   - "tokenmaxxing"
 ---

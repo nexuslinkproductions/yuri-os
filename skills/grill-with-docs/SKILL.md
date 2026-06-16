@@ -86,3 +86,7 @@ Only offer to create an ADR when all three are true:
 If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
 
 </supporting-info>
+
+## Session Notes
+
+- 2026-06-16 — Grilling session that challenges plans against the existing domain model and updates documentation inline; use when stress-testing a plan against project language and ADRs.

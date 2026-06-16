@@ -150,3 +150,7 @@ Before treating Claude output as accepted:
 ## Failure Mode
 
 If Claude tries to use raw plugin internals, protected paths, credentials, live services, or unscoped writes, stop the packet and reissue it with the correct capability class.
+
+## Session Notes
+
+- 2026-06-16 — Bridges Claude lanes to Codex-developed plugins, MCP tools, and Codex-only workflow knowledge; reach for it when Claude needs plugin capability without giving plugins raw Claude authority.

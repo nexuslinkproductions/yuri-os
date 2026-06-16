@@ -101,3 +101,7 @@ You: [Fix progress indicators]
 - Request clarification
 
 See template at: requesting-code-review/code-reviewer.md
+
+## Session Notes
+
+- 2026-06-16 — Dispatches a code reviewer subagent with precisely crafted context to catch issues before they cascade; reach for it when finishing a task, before merging, or when you need a fresh pair of eyes on implementation quality.

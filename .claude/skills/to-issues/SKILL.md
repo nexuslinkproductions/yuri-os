@@ -79,3 +79,7 @@ Or "None - can start immediately" if no blockers.
 </issue-template>
 
 Do NOT close or modify any parent issue.
+
+## Session Notes
+
+- 2026-06-16 — Breaks plans, specs, or PRDs into independently-grabbable issues using tracer-bullet vertical slices. Reach for it when converting a plan into issues or creating implementation tickets.

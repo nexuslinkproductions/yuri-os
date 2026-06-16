@@ -180,3 +180,7 @@ From debugging session (2025-10-03):
 - All investigations completed concurrently
 - All fixes integrated successfully
 - Zero conflicts between agent changes
+
+## Session Notes
+
+- 2026-06-16 — Delegates independent tasks to specialized agents with isolated context, keeping them focused and avoiding shared-state conflicts; reach for it when you have 2+ tasks with no sequential or state dependencies.

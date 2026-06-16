@@ -1,6 +1,7 @@
 ---
 name: yuri-code-intelligence
-description: "Unified code quality intelligence layer synthesized from Fowler refactoring patterns, class responsibility realignment, web presentation pattern selection, and code review. Diagnoses Long Method, Feature Envy, and design pattern smells; prescribes targeted Fowler refactoring techniques; reviews code for security, performance, and clarity. Synthesized from corpus: method-decomposition-refactoring, class-responsibility-realignment, web-presentation-pattern-selector, code-review-skill-agent."
+description: "Unified code quality intelligence layer that diagnoses code smells (Long Method, Feature Envy, design pattern issues), prescribes targeted Fowler refactoring techniques, and reviews code for security, performance, and clarity. Use when user says 'review this code', 'refactor this', 'what's wrong with this method', 'code smells', or 'clean this up'."
+invocation: user
 triggers:
   - "/code-intelligence"
   - "/yuri-refactor"
@@ -130,6 +131,12 @@ Always return:
 4. **Review checklist** result for the final state
 
 ## Session Notes
+
+### 2026-05-29
+- session: 349m | peak ctx: 71% | compacts: 4
+- tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
 
 ### 2026-05-17
 - Created from corpus synthesis: 4 code quality skills merged into Musubi-native form

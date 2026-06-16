@@ -1,6 +1,6 @@
 ---
 name: claude-output-lane
-description: Use whenever Claude produces reusable output inside YURI-OS-MUSUBI, including plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, or evidence packets that Codex/main must later inspect.
+description: "Routes reusable Claude output (plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, evidence packets) for Codex/main inspection. Use when Claude produces structured output that another lane must inspect, or when mentioning 'Claude output', 'lane handoff', 'output routing', or 'cross-lane artifact'."
 triggers: ["claude output lane", "reusable review output", "draft artifact lane"]
 ---
 

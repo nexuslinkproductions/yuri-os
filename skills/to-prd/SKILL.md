@@ -72,3 +72,7 @@ A description of the things that are out of scope for this PRD.
 Any further notes about the feature.
 
 </prd-template>
+
+## Session Notes
+
+- 2026-06-16 — Synthesizes the current conversation context and codebase understanding into a PRD and publishes it to the project issue tracker. Reach for it when the user wants to create a PRD from current context.

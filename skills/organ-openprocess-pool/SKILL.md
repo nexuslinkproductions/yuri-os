@@ -1,6 +1,6 @@
 ---
 name: organ-openprocess-pool
-description: "The OpenProcess Sum Pool — mathematical memory for started-but-unclosed work. Users + lanes start tasks/research/ideas/todos/skills/bugs/experiments/handoffs over days; many stay open and fall out…"
+description: "Mathematical memory for started-but-unclosed work that ranks open tasks, research, ideas, todos, skills, bugs, experiments, and handoffs by open mass (status, staleness, dependency centrality, risk, and value). Use when you need a math-grounded answer to 'what did we start but not finish?', or when invoking openprocess-pool to surface and prioritize unclosed work across all lanes."
 triggers:
   - "organ-openprocess-pool"
   - "how do I use openprocess-pool"

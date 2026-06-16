@@ -115,3 +115,7 @@ After drafting, verify:
 - [ ] Consistent terminology
 - [ ] Concrete examples included
 - [ ] References one level deep
+
+## Session Notes
+
+- 2026-06-16 — Creates new agent skills with proper structure, progressive disclosure, and bundled resources — reach for it when the user says 'create a skill', 'write a skill', or 'build a new skill'.

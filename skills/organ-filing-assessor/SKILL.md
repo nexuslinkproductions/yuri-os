@@ -1,6 +1,6 @@
 ---
 name: organ-filing-assessor
-description: "Deterministic, READ-ONLY placement assessor for YURI artifacts. As YURI grows, generated artifacts (research docs, /tmp scratch, memories, reports, lane outputs, telemetry) land in pools that aren't…"
+description: "Deterministic, read-only placement assessor that classifies YURI artifacts into canonical zones, scores purge candidates by hazard-decay staleness, and deduplicates. Use when generated artifacts (research docs, memories, reports, lane outputs, telemetry) need zone classification, staleness scoring, or dedup — or when invoking filing-assessor to recommend where an artifact belongs."
 triggers:
   - "organ-filing-assessor"
   - "how do I use filing-assessor"

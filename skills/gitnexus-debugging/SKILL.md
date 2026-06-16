@@ -87,3 +87,7 @@ RETURN [n IN nodes(path) | n.name] AS chain
 
 4. Root cause: fetchRates calls external API without proper timeout
 ```
+
+## Session Notes
+
+- 2026-06-16 — Traces bugs, errors, and failures through the codebase using GitNexus. Reach for this when the user says 'why is X failing', 'trace this error', or 'debug this issue'.

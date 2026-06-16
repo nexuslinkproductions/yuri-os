@@ -1,6 +1,6 @@
 ---
 name: nex-deliverables
-description: Client deliverable tracking and project management system for web agencies, design studios, marketing firms, and freelancers managing multiple simultaneous projects and client relationships. Track diverse project deliverables (websites, landing pages, logos, branding guidelines, copywriting, design assets, email campaigns, SEO optimization work, maintenance tasks, testing, documentation) through their complete lifecycle with flexible status tracking (planned, in progress, review, delivered, approved, rejected) and automatic timestamp recording. Monitor deadlines with visual urgency indicators and automatically highlight overdue items for immediate attention. Manage workload across all active clients with built-in statistics on overall delivery rates, average time-to-delivery, overdue percentages, and workload distribution. Generate professional, customizable client status update emails automatically, summarizing what's currently open, what's been recently delivered, and what's overdue to maintain transparency. Search deliverables by title, client name, deliverable type, or priority level with full-text search capabilities. Set priorities (urgent, high, normal, low) and focus on high-priority work. Support for custom deliverable types beyond presets. Perfect for Belgian agency operators who need to stay meticulously organized, communicate transparently with clients about progress, and track project commitments systematically. All deliverable data remains secure and private on your machine.
+description: "Client deliverable tracking and project management system for web agencies, design studios, marketing firms, and freelancers managing multiple simultaneous projects and client relationships. Use when the user says \"track deliverables\", \"what's overdue\", \"send a status update to client\", \"add a new project deliverable\", \"I need to see what's in review\", or when managing multiple client projects with deadlines and status tracking."
 version: 1.0.0
 metadata:
   clawdbot:
@@ -264,3 +264,7 @@ The system uses SQLite with the following main tables:
 
 Built by Nex AI (https://nex-ai.be) - Digital transformation for Belgian SMEs.
 Author: Kevin Blancaflor
+
+## Session Notes
+
+- 2026-06-16 — Tracks client deliverables, deadlines, and status across multiple projects for agency operators and freelancers needing systematic project management.

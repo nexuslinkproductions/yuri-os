@@ -1,6 +1,7 @@
 ---
 name: claude-output-lane
-description: Use whenever Claude produces reusable output inside YURI-OS-MUSUBI, including plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, or evidence packets that Codex/main must later inspect.
+description: "Routes reusable Claude output (plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, evidence packets) for Codex/main inspection. Use when Claude produces structured output that another lane must inspect, or when mentioning 'Claude output', 'lane handoff', 'output routing', or 'cross-lane artifact'."
+triggers: ["claude output lane", "reusable review output", "draft artifact lane"]
 ---
 
 # Claude Output Lane
@@ -47,8 +48,8 @@ YYYY-MM-DD_<task-slug>_<lane>_<sublane>.md
 Examples:
 
 ```text
-2026-05-28_memory-adapter_quantum_plan.md
-2026-05-28_memory-adapter_prime_review.md
+2026-05-28_search-adapter_quantum_plan.md
+2026-05-28_search-adapter_prime_review.md
 2026-05-28_plugin-bridge_quantum_ideas.md
 ```
 
@@ -118,3 +119,16 @@ Codex/main should consume the lane by category:
 
 If Claude writes the wrong category, Codex/main should leave the original intact and create or request a corrected categorized output. Do not silently merge unrelated output types.
 
+## Session Notes
+
+### 2026-06-03
+- session: 1307m | peak ctx: 0% | compacts: 0
+- tools: Edit×462, Read×351, Bash×259, WebFetch×99, WebSearch×92, StructuredOutput×29, ToolSearch×14, Workflow×5, Write×5, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-06-02
+- session: 61m | peak ctx: 0% | compacts: 0
+- tools: Edit×263, Read×218, Bash×102, WebSearch×51, WebFetch×36, StructuredOutput×12, ToolSearch×7, Write×5, Workflow×2
+- corrections: none
+- errors: none

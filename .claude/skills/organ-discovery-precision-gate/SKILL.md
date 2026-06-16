@@ -1,6 +1,6 @@
 ---
 name: organ-discovery-precision-gate
-description: "Gates a lane claim against its WorkSubstrate scope + discovery footprint BEFORE the energy gate runs. The energy gate scores a transition's quality; this is the upstream filter asking 'did the lane…"
+description: "Gates a lane claim against its WorkSubstrate scope and discovery footprint before the energy gate runs, verifying the lane stayed inside its granted authority. Use when a lane produces a claim that needs scope-and-footprint verification, or when invoking discovery-precision-gate to filter claims before energy evaluation."
 triggers:
   - "organ-discovery-precision-gate"
   - "how do I use discovery-precision-gate"

@@ -85,3 +85,7 @@ For deterministic analysis, use `backend/src/services/salesPsychologyEngine.ts`.
 ## References
 
 See `REFERENCE.md` and `_SYSTEM/research-archive/yuri-sales-psychology-1980-2026/`.
+
+## Session Notes
+
+- 2026-06-16 — Reads buyer signals, objections, and psychological patterns in sales conversations with ethical guardrails; reach for it when analyzing sales strategy, crafting scripts, handling objections, or applying buyer psychology frameworks like NEPQ or Jungian reads.

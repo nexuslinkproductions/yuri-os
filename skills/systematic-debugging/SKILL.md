@@ -294,3 +294,7 @@ From debugging sessions:
 - Random fixes approach: 2-3 hours of thrashing
 - First-time fix rate: 95% vs 40%
 - New bugs introduced: Near zero vs common
+
+## Session Notes
+
+- 2026-06-16 — Applies structured root-cause analysis before proposing fixes to avoid random patches that mask underlying issues; reach for it on any bug, test failure, or unexpected behavior before writing a fix.

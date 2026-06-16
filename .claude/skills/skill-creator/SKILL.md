@@ -1,6 +1,6 @@
 ---
 name: skill-creator
-description: Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations.
+description: "Guides creation and update of Codex skills with specialized knowledge, workflows, or tool integrations. Use when the user says \"create a new skill\", \"make a skill for X\", \"update this skill\", or wants to extend Codex capabilities with a reusable custom skill."
 metadata:
   short-description: Create or update a skill
 ---
@@ -414,3 +414,7 @@ Considerations when forward-testing:
 
 If forward-testing only succeeds when subagents see leaked context, tighten the skill or the
 forward-testing setup before trusting the result.
+
+## Session Notes
+
+- 2026-06-16 — Guides creation and update of Codex skills with specialized knowledge, workflows, or tool integrations; reach for it when the user wants to build a new reusable capability or extend an existing skill.

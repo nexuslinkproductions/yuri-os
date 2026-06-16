@@ -1,6 +1,6 @@
 ---
 name: organ-lane-telemetry-cockpit
-description: "Human-readable cockpit over the Originator lane-telemetry stream. JSONL is the audit substrate, not the operator experience: this reads originator-telemetry.jsonl, groups by traceId, COLLAPSES the…"
+description: "Human-readable cockpit that reads originator-telemetry.jsonl, groups by traceId, and prints a compact per-run timeline with elapsed time, heartbeat count, chars streamed, and status. Use when you need to see what a lane is doing without reading raw JSONL, or when invoking lane-telemetry-cockpit to inspect lane run summaries."
 triggers:
   - "organ-lane-telemetry-cockpit"
   - "how do I use lane-telemetry-cockpit"

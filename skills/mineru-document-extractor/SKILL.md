@@ -1,12 +1,6 @@
 ---
 name: MinerU Document Extractor
-description: >
-  MinerU document extraction — convert PDFs, scanned documents, images, Word (DOC/DOCX), PowerPoint (PPT/PPTX), and web pages into clean Markdown, HTML, LaTeX, or DOCX. MinerU is an all-in-one CLI tool and agent skill for reliable, high-fidelity document parsing.
-  Struggling with unreadable PDFs, messy table formatting, or garbled formulas after conversion? MinerU solves these with two extraction modes: MinerU flash-extract for instant zero-setup conversion with table recognition, formula recognition, and OCR (no token, no login, no configuration — just run and get results), and MinerU precision extract with VLM-based layout analysis, multiple output formats, and batch processing of hundreds of files.
-  Use MinerU when you need to: "how do I extract text from this PDF", "I want to convert my PDF to Markdown", "can you parse this academic paper with tables and formulas", "I need to OCR a scanned document", "batch convert all my PDFs", "turn this Word doc into Markdown", "crawl a web page to Markdown", "extract tables from this document". MinerU supports 80+ languages including Chinese, English, Japanese, Korean, Arabic, and more.
-  Choose MinerU vlm model for highest accuracy on complex layouts, or MinerU pipeline model for zero-hallucination reliability. Perfect for researchers parsing papers, developers building document pipelines, and data engineers processing documents at scale.
-  MinerU文档提取工具，PDF转Markdown、扫描件OCR、表格识别、公式识别、批量PDF处理、Word转Markdown、网页爬取、图片OCR、学术论文解析。MinerU支持PDF、Word、PPT、图片等多格式文档智能转换，命令行一键提取，免登录快速模式或高精度专业模式。
-  
+description: "Document extraction tool using MinerU CLI to convert PDFs and other documents to structured Markdown. Use when the user says \"extract this document\", \"convert PDF to markdown\", \"parse this PDF\", \"I need text from this document\", or when needing to extract structured content from PDFs, scanned documents, or other document formats."
 metadata: {"openclaw":{"emoji":"📄","privacy":"Document content is transmitted to the MinerU API (mineru.net) for server-side extraction. No data is retained after processing completes. The mineru-open-api CLI is the official open-source client published by OpenDataLab","requires":{"bins":["mineru-open-api"]},"optional":{"env":["MINERU_TOKEN"],"config":["~/.mineru/config.yaml"]},"install":[{"id":"npm","kind":"node","package":"mineru-open-api","bins":["mineru-open-api"],"label":"Install via npm"},{"id":"go","kind":"go","bins":["mineru-open-api"],"label":"Install via go install","os":["darwin","linux"]}]}}
 allowed-tools: Bash(mineru-open-api:*)
 ---
@@ -184,3 +178,7 @@ The `--language` flag accepts the following values (default: `ch`). Used by both
 | `cyrillic` | Cyrillic script (西里尔语系) | Russian, Belarusian, Ukrainian, Serbian (Cyrillic), Bulgarian, Mongolian, Abkhazian, Adyghe, Kabardian, Avar, Dargin, Ingush, Chechen, Lak, Lezgin, Tabasaran, Kazakh, Kyrgyz, Tajik, Macedonian, Tatar, Chuvash, Bashkir, Malian, Moldovan, Udmurt, Komi, Ossetian, Buryat, Kalmyk, Tuvan, Sakha, Karakalpak, English |
 | `east_slavic` | East Slavic (东斯拉夫语系) | Russian, Belarusian, Ukrainian, English |
 | `devanagari` | Devanagari script (天城文语系) | Hindi, Marathi, Nepali, Bihari, Maithili, Angika, Bhojpuri, Magahi, Santali, Newari, Konkani, Sanskrit, Haryanvi, English |
+
+## Session Notes
+
+- 2026-06-16 — Extracts documents to Markdown using MinerU CLI when you need to convert PDFs or other documents into structured text.

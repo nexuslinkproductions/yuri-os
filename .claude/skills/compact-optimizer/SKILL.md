@@ -1,7 +1,7 @@
 ---
 name: compact-optimizer
 disable-model-invocation: true
-description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, perplexity-based pruning, attention-sink preservation). Use before every /compact call to prevent loss of session-critical state."
+description: "Construct the minimum-viable /compact hint using selective context compression (self-information scoring, perplexity-based pruning, attention-sink preservation). Use when about to call /compact, when context is nearing capacity, or when you need to preserve session-critical state through a compression boundary."
 invocation: user
 triggers:
   - "/compact-hint"
@@ -143,6 +143,24 @@ This skill builds a ONE-WAY hint — the tokens it tells `/compact` to drop are 
 Reach for ccr-compress when the answer to "can I get this back if I need it?" must be yes. Use the plain `/compact` hint above when the dropped content is genuinely reconstructable from the codebase.
 
 ## Session Notes
+
+### 2026-06-16
+- session: 8m | peak ctx: 0% | compacts: 0
+- tools: Bash×48, Read×19, Edit×6, Write×3, Agent×3, Skill×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
 
 ### 2026-06-15
 - session: 11m | peak ctx: 0% | compacts: 0

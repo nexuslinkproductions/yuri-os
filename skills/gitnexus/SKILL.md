@@ -1,6 +1,6 @@
 ---
 name: gitnexus
-description: Unified GitNexus dispatcher for CLI, guide, exploration, debugging, PR review, impact analysis, and refactoring workflows.
+description: "Unified GitNexus dispatcher for CLI, guide, exploration, debugging, PR review, impact analysis, and refactoring workflows. Use when the user says 'run gitnexus', 'analyze this repo', 'check impact', 'trace dependencies', or 'review this PR'."
 ---
 
 # GitNexus Dispatcher
@@ -18,3 +18,7 @@ Use the matching submode for the task:
 | refactor | graph-aware rename/extract/split/move |
 
 Before editing any function, class, or method, run impact analysis and report blast radius. Before commit, run detect-changes when available.
+
+## Session Notes
+
+- 2026-06-16 — Unified dispatcher for GitNexus workflows across CLI, debugging, exploration, and PR review. Reach for this when the task involves GitNexus tooling or codebase analysis.

@@ -1,6 +1,6 @@
 ---
 name: organ-formula-foundry
-description: "Formula Foundry typing CORE A — the legal-move generator. Reads the typed formula-bank cards, classifies each card's input/output UNITS into a deterministic closed-set dimension, and decides whether…"
+description: "Formula Foundry typing Core A — the legal-move generator that classifies formula input/output units into closed-set dimensions and rejects dimensionally-incoherent compositions. Use when composing formulas and needing to verify dimensional compatibility, cataloging formula banks, or checking whether one formula's output can legally feed another's input."
 triggers:
   - "organ-formula-foundry"
   - "how do I use formula-foundry"

@@ -1,6 +1,6 @@
 ---
 name: nen-phase-detector
-description: Adaptive Phase Specialization — model-invocable. Sets the work-phase mode (deep_code, design, strategy, research, admin, rest) to tune depth, verbosity, and approach to what the phase needs. Invoke (or /nen) to align effort to the phase.
+description: "Adaptive phase specialization that sets the work-phase mode (deep_code, design, strategy, research, admin, rest) to tune depth, verbosity, and approach to match what the current phase needs. Use when starting a new work phase, when the user says \"/nen deep_code\", \"switch to research mode\", \"I need strategy thinking\", or when the task type changes and the approach needs realignment."
 invocation: model
 triggers:
   - /nen

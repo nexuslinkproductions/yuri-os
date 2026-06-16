@@ -213,3 +213,7 @@ Ready to implement <feature-name>
 - Verify directory is ignored for project-local
 - Auto-detect and run project setup
 - Verify clean test baseline
+
+## Session Notes
+
+- 2026-06-16 — Ensures work happens in an isolated workspace using native tools or git worktree fallback. Reach for it when starting feature work that needs isolation from the current workspace.

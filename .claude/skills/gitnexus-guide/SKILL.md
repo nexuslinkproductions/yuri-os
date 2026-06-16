@@ -62,3 +62,7 @@ Lightweight reads (~100-500 tokens) for navigation:
 MATCH (caller)-[:CodeRelation {type: 'CALLS'}]->(f:Function {name: "myFunc"})
 RETURN caller.name, caller.filePath
 ```
+
+## Session Notes
+
+- 2026-06-16 — Quick reference for all GitNexus MCP tools, resources, and the knowledge graph schema; reach for this when the user asks about GitNexus tools, queries, or graph schema.

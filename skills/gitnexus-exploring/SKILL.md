@@ -76,3 +76,7 @@ gitnexus_context({name: "validateUser"})
    → Outgoing: validateCard, chargeStripe, saveTransaction
 4. Read src/payments/processor.ts for implementation details
 ```
+
+## Session Notes
+
+- 2026-06-16 — Explores code architecture, execution flows, and unfamiliar code using GitNexus. Reach for this when the user says 'how does X work', 'trace this flow', or 'understand this code'.

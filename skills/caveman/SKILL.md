@@ -47,3 +47,7 @@ Example -- destructive op:
 > ```
 >
 > Caveman resume. Verify backup exist first.
+
+## Session Notes
+
+- 2026-06-16 — Responds with ultra-terse technical substance and no fluff; reach for it when token budget is tight or the user wants minimal-verbosity output.

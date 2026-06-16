@@ -1,6 +1,6 @@
 ---
 name: organ-formula-foundry-bakeoff
-description: "Foundry CHUNK 3 — the bakeoff harness + the promotion/demotion ledger (the SCORER + GOVERNANCE side of Core B). Takes already-synthesized candidates as INPUT and runs them up a staged promotion…"
+description: "Foundry Core B bakeoff harness and promotion/demotion ledger that runs synthesized formula candidates up a staged promotion ladder and records every gate verdict to an append-only ledger. Use when formula candidates need scoring, promotion, or demotion through the staged ladder, or when invoking the bakeoff to test and govern formula quality."
 triggers:
   - "organ-formula-foundry-bakeoff"
   - "how do I use formula-foundry-bakeoff"

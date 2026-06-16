@@ -81,3 +81,7 @@ Lists all repositories registered in `~/.gitnexus/registry.json`. The MCP `list_
 - **"Not inside a git repository"**: Run from a directory inside a git repo
 - **Index is stale after re-analyzing**: Restart Claude Code to reload the MCP server
 - **Embeddings slow**: Omit `--embeddings` (it's off by default) or set `OPENAI_API_KEY` for faster API-based embedding
+
+## Session Notes
+
+- 2026-06-16 — Runs GitNexus CLI commands like analyze, index, status, and wiki generation. Reach for this when the user says 'index this repo', 'reanalyze', or 'generate a wiki'.

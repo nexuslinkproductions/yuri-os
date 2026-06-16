@@ -1,6 +1,6 @@
 ---
 name: probabilistic-decision-core
-description: Operational probability, calibration, and expected-value discipline for Yuri OS decisions.
+description: "Operational probability, calibration, and expected-value discipline for YURI OS decisions under uncertainty. Use when making or supporting a decision involving task priority, route selection, risk acceptance, opportunity ranking, forecast-backed planning, resource allocation, go/no-go judgment, escalation threshold, or postmortem calibration — e.g. '/yuri probability', '/probability', or '/pdc'."
 invocation: model
 version: 1.0.0
 status: active
@@ -206,6 +206,30 @@ failure:
 ```
 
 ## Session Notes
+
+### 2026-06-16
+- session: 183m | peak ctx: 0% | compacts: 0
+- tools: Bash×400, Read×122, Edit×62, Write×19, WebSearch×19, Agent×10, WebFetch×8, ToolSearch×5, TodoWrite×4, ExitPlanMode×3, AskUserQuestion×2, Workflow×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-06-15
+- session: 136m | peak ctx: 0% | compacts: 0
+- tools: Bash×272, Read×67, Edit×26, WebSearch×19, Write×9, WebFetch×8, Agent×7, ToolSearch×5, ExitPlanMode×2, TodoWrite×2, AskUserQuestion×1, Workflow×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
 
 ### 2026-06-11
 - session: 50m | peak ctx: 100% | compacts: 8

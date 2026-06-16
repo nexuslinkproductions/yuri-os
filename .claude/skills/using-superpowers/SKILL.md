@@ -1,6 +1,6 @@
 ---
 name: using-superpowers
-description: Use after the workspace authority chain is loaded to resolve task-relevant skills from the canonical local skill root.
+description: "Resolves and loads task-relevant skills from the canonical local skill root after the workspace authority chain is loaded. Use when the user wants to discover available skills, load skill capabilities, or needs to know what skills are available for a task."
 ---
 
 <SUBAGENT-STOP>
@@ -116,3 +116,7 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Session Notes
+
+- 2026-06-16 — Resolves and loads task-relevant skills from the canonical local skill root after the workspace authority chain is loaded. Reach for it when discovering available skills or loading skill capabilities for a task.

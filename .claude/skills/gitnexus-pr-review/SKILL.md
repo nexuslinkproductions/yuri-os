@@ -161,3 +161,7 @@ Structure your review as:
 ### Recommendation
 APPROVE / REQUEST CHANGES / NEEDS DISCUSSION
 ```
+
+## Session Notes
+
+- 2026-06-16 — PR review and risk assessment; use when the user wants to review a pull request, understand changes, or check merge safety.

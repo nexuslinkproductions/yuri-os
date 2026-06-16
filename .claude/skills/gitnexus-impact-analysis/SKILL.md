@@ -1,0 +1,1 @@
+../../../skills/gitnexus-impact-analysis/SKILL.md

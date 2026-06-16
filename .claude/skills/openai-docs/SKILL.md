@@ -86,3 +86,7 @@ Read only what you need:
 - Always use MCP doc tools before any web search for OpenAI-related questions.
 - If the MCP server is installed but returns no meaningful results, then use web search as a fallback.
 - When falling back to web search, restrict to official OpenAI domains (developers.openai.com, platform.openai.com) and cite sources.
+
+## Session Notes
+
+- 2026-06-16 — Provides authoritative, current OpenAI developer documentation guidance via the developers.openai.com MCP server; reach for this when the user asks about building with OpenAI APIs, choosing the latest model, or upgrading models or prompts.

@@ -56,3 +56,7 @@ All of these scripts use network, so when running in the sandbox, request escala
 - Git fallback tries HTTPS first, then SSH.
 - The skills at https://github.com/openai/skills/tree/main/skills/.system are preinstalled, so no need to help users install those. If they ask, just explain this. If they insist, you can download and overwrite.
 - Installed annotations come from `$CODEX_HOME/skills`.
+
+## Session Notes
+
+- 2026-06-16 — Installs Codex skills from the curated list or a GitHub repo path into $CODEX_HOME/skills; reach for it when the user asks to list, install, or source a skill from another repository.

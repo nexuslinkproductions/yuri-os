@@ -101,3 +101,7 @@ Capture everything resolved during grilling under "established so far" so the wo
 ## Resuming a previous session
 
 If prior triage notes exist on the issue, read them, check whether the reporter has answered any outstanding questions, and present an updated picture before continuing. Don't re-ask resolved questions.
+
+## Session Notes
+
+- 2026-06-16 — Triage issues through a state machine driven by triage roles. Reach for it when creating issues, triaging incoming bugs or feature requests, or preparing issues for an AFK agent.

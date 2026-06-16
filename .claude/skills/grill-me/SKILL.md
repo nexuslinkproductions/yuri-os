@@ -8,3 +8,7 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 Ask the questions one at a time.
 
 If a question can be answered by exploring the codebase, explore the codebase instead.
+
+## Session Notes
+
+- 2026-06-16 — Relentless design interview that walks down every branch of the decision tree; use when the user wants to stress-test a plan or says 'grill me'.

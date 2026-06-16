@@ -189,3 +189,7 @@ Before handing back a generated plugin, run:
 ```bash
 python3 skills/plugin-creator/scripts/validate_plugin.py <plugin-path>
 ```
+
+## Session Notes
+
+- 2026-06-16 — Creates and scaffolds Codex plugin directories with valid plugin.json manifests, optional companion folders (skills/hooks/scripts/assets/mcp/apps), and personal-marketplace entries by default. Use when Codex needs a new personal plugin, optional plugin structure, or marketplace entry generation/update.

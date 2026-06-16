@@ -369,3 +369,7 @@ Otherwise → not TDD
 ```
 
 No exceptions without your human partner's permission.
+
+## Session Notes
+
+- 2026-06-16 — Write the test first, watch it fail, then write minimal code to pass. Reach for it when implementing any feature or bugfix before writing implementation code.

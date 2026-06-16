@@ -1,6 +1,6 @@
 ---
 name: probabilistic-decision-core
-description: Operational probability, calibration, and expected-value discipline for Yuri OS decisions.
+description: "Operational probability, calibration, and expected-value discipline for YURI OS decisions under uncertainty. Use when making or supporting a decision involving task priority, route selection, risk acceptance, opportunity ranking, forecast-backed planning, resource allocation, go/no-go judgment, escalation threshold, or postmortem calibration — e.g. '/yuri probability', '/probability', or '/pdc'."
 version: 1.0.0
 status: active
 enterprise_ready: true

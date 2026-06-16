@@ -537,3 +537,7 @@ For extraction-induced motion popping, do not regenerate imagery first. If the s
 - Motion previews do not show unintended size popping, reversed directional cadence, or wrong row semantics.
 - Non-pixel styles are accepted when readable at pet size and consistent across rows.
 - `${CODEX_HOME:-$HOME/.codex}/pets/<pet-name>/pet.json` and `${CODEX_HOME:-$HOME/.codex}/pets/<pet-name>/spritesheet.webp` are staged together for custom pets.
+
+## Session Notes
+
+- 2026-06-16 — Codex-compatible animated pet creation from character art, brand cues, or references; use when the user wants a custom pet, spritesheet, or pet.json packaging.

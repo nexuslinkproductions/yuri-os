@@ -1,6 +1,6 @@
 ---
 name: failure-evolution-loop
-description: Real failure capture, root-cause analysis, regression design (outputs a runnable-test SPECIFICATION — does not write test files directly), and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior.
+description: "Real failure capture, root-cause analysis, regression design (outputs a runnable-test SPECIFICATION — does not write test files directly), and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior. Use when the user says 'capture this failure', 'analyze root cause', 'prevent regression', or 'learn from this bug'."
 invocation: gate
 version: 1.0.0
 status: active

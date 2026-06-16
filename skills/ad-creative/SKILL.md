@@ -362,3 +362,7 @@ node tools/clis/google-ads.js reports get --type ad_performance --date-range las
 - **ab-test-setup**: For structuring creative tests with statistical rigor
 - **marketing-psychology**: For psychological principles behind high-performing creative
 - **copy-editing**: For polishing ad copy before launch
+
+## Session Notes
+
+- 2026-06-16 — Generates and iterates ad creative (headlines, descriptions, primary text, variations) for paid platforms; reach for it when producing or scaling ad copy for Facebook, Google, LinkedIn, or any paid channel.

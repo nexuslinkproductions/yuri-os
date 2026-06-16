@@ -26,3 +26,6 @@ Use this skill when the task is to convert a design reference into a reusable sk
 - Prefer stable design archetypes over one-off visuals.
 - Preserve compatibility with multiple agent surfaces.
 
+## Session Notes
+
+- 2026-06-16 — Converts a design reference (docs, PDFs, curated sources) into a reusable skill and reference pack for build/style/audit workflows; reach for it when extracting visual language from a design system.

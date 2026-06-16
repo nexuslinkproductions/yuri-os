@@ -1,6 +1,6 @@
 ---
 name: haki-intent
-description: Intent Pre-cognition Engine — model-invocable. Builds a probability-ranked map of the 5 most likely underlying intents (not just the literal request), surfacing hidden constraints (P4) and meta-needs (P5). Invoke (or /haki) when a request's true intent is ambiguous or high-stakes.
+description: "Intent Pre-cognition Engine — builds a probability-ranked map of the 5 most likely underlying intents, surfacing hidden constraints (P4) and meta-needs (P5). Use when a request's true intent is ambiguous or high-stakes, or when the user invokes /haki."
 invocation: model
 triggers:
   - /haki

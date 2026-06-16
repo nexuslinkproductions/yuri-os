@@ -249,3 +249,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - Clean up worktree for Options 1 & 4 only
 - `cd` to main repo root before worktree removal
 - Run `git worktree prune` after removal
+
+## Session Notes
+
+- 2026-06-16 — Guides completion of development work by presenting structured options for merge, PR, or cleanup. Reach for this when implementation is done and you need to decide how to integrate.

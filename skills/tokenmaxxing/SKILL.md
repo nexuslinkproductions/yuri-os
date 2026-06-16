@@ -1,24 +1,23 @@
 ---
 name: tokenmaxxing
-description: "Master token efficiency mode. Activates ultra-caveman, full offload-default, auto-compact, and ctrl+b background task routing. One command to engage everything."
+description: "Native token efficiency mode that compresses output, minimizes verbosity, and enables caveman-style communication. Use when the user wants to save tokens, reduce output length, work in minimal-verbosity mode, or mentions token budgets or caveman mode."
 triggers:
-  - "/tokenmaxxing"
   - "tokenmaxxing"
 ---
 
 # TOKENMAXXING MODE
 
-## Auto-Activation (full bake — 2026-04-25)
+## Auto-Activation (full bake — 2026-04-25, verified 2026-05-14 PATCH 039)
 
-`token-session-init.js` sets `tokenmaxxing: true` AND injects the full `## Rules` block from this SKILL.md into Codex's startup context on every SessionStart. No manual command needed. Rules are live from turn 1.
+`token-session-init.js` sets `tokenmaxxing: true` (L56) AND injects the full `## Rules` block from this SKILL.md into Claude's startup context (L127) on every SessionStart. **No manual command needed. Rules are live from turn 1.**
 
-Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-session.
+`/tokenmaxxing` is preserved only as a re-activate alias after `tokenmaxxing off` mid-session. Subsequent docs should describe tokenmaxxing as "native default" rather than as a triggerable command.
 
 ## Activation Steps (re-activate only — run when skill fires after `tokenmaxxing off`)
 
 1. Run this Bash command to set the session flag:
    ```bash
-   node -e "const ss=require('/Users/marcelspatz/.Codex/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=true;});"
+   node -e "const ss=require(process.cwd()+'/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=true;});"
    ```
 
 2. Output exactly one line: `⚡ TOKENMAXXING ACTIVE`
@@ -30,38 +29,15 @@ Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-sessi
 - Single-sentence updates. Headers only for multi-section outputs.
 - Code stays deep. Docs stay thorough. Speech stays minimal.
 
-### Offload-Default (automatic, no trigger word needed)
-- Every non-trivial task → delegate to smallest lane first, without being asked.
-- Main thread = overseer + finalizer only. Never researcher or implementer.
-- Routing source of truth: `Scripts/llm-compat-contract.mjs`.
-- Routing priority: @code-local → @deepseek → @triage-local/@summarize-local → @gpt-oss → @swarm → @kimi → @claude (last resort).
-- `btw`, `btw offload this`, `/tokenmaxxing`, and explicit `@lane` mentions are compatibility aliases, not required triggers.
-- Use `./Scripts/ai route-plan "<request>"` when another IDE or harness needs the lane, lifecycle scenario, and learning capture plan.
-- Do not narrate work that can run in a lane.
-
 ### Auto-Compact
 - When context hits tier 2 (60%+), run /compact immediately — do not suggest, do not wait.
 - Use the pre-built hint injected by pre-tool-use.js context.
 - Never compact without preserving: branch, files touched, last user correction, next step.
 
-### Local-First Subagent
-- Before any `Agent()` call, assess: can `mcp__ollama-bridge__ollama_run` handle this?
-- Lightweight tasks (lookup, explore, summarize, analyze ≤5 files, skill check) → use `mcp__ollama-bridge__ollama_run` or `mcp__ollama-bridge__ollama_explore_files` first.
-- Only escalate to `Agent()` if local result is insufficient or task needs write/tool-loop.
-- Skill: `/local-subagent` — full routing decision tree and model selection.
-- **Default local model:** See `.Codex/config/models.json` → `local.primary` (currently `qwen2.5:7b`, M2 Pro optimized). Code tasks: see `local.code` in same file (currently `qwen2.5-coder:latest`).
-
-### No Cloud Agents for File Reads
-- Known file paths → `Read` tool directly, or `mcp__ollama-bridge__ollama_explore_files`
-- Directory exploration → `Bash find/grep` or ollama-bridge
-- NEVER spawn `Agent(Explore)` or `Agent(general-purpose)` to read known files — costs 26k–57k tokens
-- Only escalate to cloud Agent for: unknown paths + local insufficient + cross-file reasoning required
-
-### Local-Fail Fallback
-- Local (Ollama) fails → fetch/read/skill-lookup tasks → `Agent({ model: "haiku" })`
-- Subagents and background agents → always `model: "haiku"`, no exception
-- Planning, implementation, testing → Sonnet 4.6 (main thread only)
-- Never escalate a failed fetch task to Sonnet — Haiku is the fallback ceiling for utility work
+### Tool Routing (native-first)
+- Self-select model and fan-out per task — Opus 4.8 reasons the fit. No lane ladder, no external/local-model offload; those mechanisms are retired.
+- Known/trivial reads → `Read`/`Grep`/`Bash` directly. Never spawn an Agent to read a known file.
+- Reserve `Agent`/`Workflow` for genuine fan-out, cross-file reasoning, or write/tool-loops — sized to the task, no fixed cap.
 
 ### Background Tasks (`ctrl+b` / `[bg]` prefix)
 - If user input starts with `[bg]` or `/bg`: spawn as `Agent({ run_in_background: true })` immediately.
@@ -72,51 +48,62 @@ Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-sessi
 
 Type `tokenmaxxing off` to disable:
 ```bash
-node -e "const ss=require('/Users/marcelspatz/.Codex/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=false;});"
+node -e "const ss=require(process.cwd()+'/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=false;});"
 ```
 Output: `TOKENMAXXING OFF`
 
+## Token Budget Policy
+
+- Master enforcement: every active session enforces 5k–15k soft / 40k hard transcript budget.
+- No command outputs > 60–80 lines.
+- Dirty repos: no broad `git status` or `find .`; scoped and marker-only only.
+- Reports: pass = one label line; failure = failure-only verbose block.
+- Runtime script flags planned separately; docs-only patches committed first.
+
+## Hard Token Rules — Research
+
+- No routine subagents for package or web research. Direct shell only.
+- No rendered GitHub WebFetch. Use raw.githubusercontent.com with line cap.
+- Evidence pack max: 80 lines.
+- Final report max: 120 lines unless explicitly blocked.
+- Split before broad crawl. Full crawl requires explicit owner approval.
+- DeepSeek reinforcement: compact evidence only. No raw dumps.
+
 ## Session Notes
+
+### 2026-06-13
+- session: 116m | peak ctx: 0% | compacts: 0
+- tools: Bash×947, Read×345, Edit×171, StructuredOutput×82, Write×63, TodoWrite×25, ToolSearch×8, Workflow×6, Agent×3, ScheduleWakeup×2, TaskStop×1, PushNotification×1, AskUserQuestion×1
+- corrections: rick i have a fun little task for you. I will be giving you the task of going through trending repos on github, scanning them, compare yuri to those, see what we can adopt and rebuild better in yuri u
+- errors: none
+
+### 2026-06-10
+- session: 47m | peak ctx: 64% | compacts: 1
+- tools: Bash×278, Read×74, Write×15, Edit×11, WebFetch×2, Agent×1, TodoWrite×1
+- corrections: alright insane work rick, I need all the fixes you propose to get the entire mathematical, scientific, physics, numerology, energy gate and more to work as one precisely engineered clockwork wherever  | insane work rick. really absolutely insane. next up on the list (im looking at my yuri-chip-die for reference) is the entire 'memory/cognition/retrieval' which I need to be covered as a handover packa
+- errors: none
+
+### 2026-06-09
+- session: 106m | peak ctx: 55% | compacts: 0
+- tools: Bash×114, Read×104, Edit×40, WebFetch×9, Agent×6, Write×6, TodoWrite×4, ToolSearch×2
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 78m | peak ctx: 0% | compacts: 0
+- tools: Bash×94, Read×20, Write×18, Edit×18, TodoWrite×6, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-02
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 3m | peak ctx: 50% | compacts: 0
 - tools: Bash×8, Read×5
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 2m | peak ctx: 47% | compacts: 0
-- tools: Bash×8, Read×5
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 1m | peak ctx: 43% | compacts: 0
-- tools: Bash×15, Read×12
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 2m | peak ctx: 45% | compacts: 0
-- tools: Read×12, Bash×8, Write×4
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 1m | peak ctx: 40% | compacts: 0
-- tools: Read×10, Bash×2
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 6m | peak ctx: 53% | compacts: 0
-- tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
 - corrections: none
 - errors: none
 
@@ -126,79 +113,8 @@ Output: `TOKENMAXXING OFF`
 - corrections: none
 - errors: none
 
-### 2026-04-26
-- session: 6m | peak ctx: 0% | compacts: 0
-- tools: Bash×15, Read×9, Write×4, Agent×1, ToolSearch×1, ExitPlanMode×1, Edit×1
-- corrections: none
-- errors: none
-
-### 2026-04-26
-- session: 17m | peak ctx: 11% | compacts: 0
-- tools: Read×26, Edit×4, Bash×2, Agent×2, Write×2, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-04-26
-- session: 16m | peak ctx: 11% | compacts: 0
-- tools: Read×26, Edit×4, Bash×2, Agent×2, Write×2, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-04-26
-- session: 37m | peak ctx: 13% | compacts: 0
-- tools: Write×6, Bash×2, Read×1, Edit×1
-- corrections: none
-- errors: none
-
-### 2026-04-26 (session 2)
-- session: ollama-bridge validation | peak ctx: 11% | compacts: 0
-- tools: ToolSearch×1, mcp__ollama-bridge×5, Bash×9, Read×4, Write×3, Skill×1
-- corrections: MEMORY.md index missing after memory write — fixed in EOT
-- errors: deepseek-r1 cold-load → 3× MCP timeouts (120s each); /api/chat hung pre-restart
-- notes: deepseek/gpt-oss confirmed = Ollama proxies only. llama3.2 = correct default for skill fetch. 4 patches logged in eot/2026-04-26_1022/SKILL_REFINEMENT_PATCH.md
-
-### 2026-04-26
-- session: offload protocol enrichment | peak ctx: ~15% | compacts: 0
-- tools: Read×4, Edit×5, Write×6, Bash×6, Agent×2 (cloud Explore — MISTAKE), Skill×1
-- corrections: spawned 2 cloud Explore agents to read known file paths → 26k+57k tokens wasted; should have used Read+Bash directly
-- errors: Ultraplan failed (no git repo at /Users/marcelspatz)
-- notes: Haiku fallback + No-Cloud-Agents-for-File-Reads rules now encoded in ## Rules (auto-injected each session)
-
-### 2026-04-26
-- session: 5m | peak ctx: 9% | compacts: 0
-- tools: Bash×31, Read×19, Edit×2, Agent×1
-- corrections: none
-- errors: none
-
 ### 2026-04-25
 - session: 4m | peak ctx: 16% | compacts: 0
 - tools: Bash×4, Edit×4, ToolSearch×1, ExitPlanMode×1, Read×1
 - corrections: none
 - errors: none
-
-### 2026-04-25
-- change: hook now dynamically reads ## Rules from SKILL.md and injects into startup additionalContext
-- effect: full behavioral rules arrive in Codex context at turn 1, zero manual activation
-- files: token-session-init.js (hardlinked YURI↔global, single edit)
-- statusline: token-status.js updated to show ⚡ TM:ON / ○ TM:OFF explicitly
-- risk: if ## Rules heading renamed → injection silently breaks; null-check warn recommended
-- patch: HOOK_REGEX_001 — always use ^## with m flag for Markdown section extraction
-
-### 2026-04-25
-- session: 2m | peak ctx: 8% | compacts: 0
-- tools: Read×2, Bash×2, Agent×2, Edit×1
-- corrections: none
-- errors: none
-
-### 2026-04-25
-- session: 12m | peak ctx: 14% | compacts: 0
-- tools: Bash×10, Read×9, Write×4, Edit×3, ToolSearch×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-04-25
-- session: planning + implementation | peak ctx: 18% | compacts: 0
-- tools: Bash×8, Read×7, Write×2, Edit×9, Agent×2 (explore), ExitPlanMode×1
-- corrections: none
-- errors: Edit failed on ai-pipeline-offloading + swarm-coordination (read-before-write guard missed during parallel edits)
-- notes: ctrl+b uses `chat:insertText` — unverified. Verify with /keybindings-help before relying on it. token-status.js ⚡ indicator was missed in initial plan, caught in reflection pass.
