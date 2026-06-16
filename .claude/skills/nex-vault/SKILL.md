@@ -1,5 +1,3 @@
-# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/nexaiguy/nex-vault | scanned: 2026-05-17 | score: 20
-
 ---
 name: nex-vault
 description: Secure local contract and document vault for managing all business agreements and important documents with automatic expiration tracking and compliance alerts. Track diverse documents including contracts (contracten), leases (huurovereenkomsten), insurance policies (verzekeringen), service-level agreements (SLAs), warranties (garanties), software licenses (licenties), subscriptions (abonnementen), maintenance agreements, permits, and certifications. Automatically extract expiration dates, renewal deadlines, termination notice periods (opzegingstermijn), payment terms, and auto-renewal clauses from uploaded documents using intelligent OCR and natural language processing. Receive automatic alerts before expiration (configurable warning windows) so you never miss a renewal deadline or critical termination notice deadline. Optional Telegram notifications keep you continuously informed of upcoming expirations, auto-renewal events, and required actions. Track total monthly and yearly costs across all contracts and subscriptions for budgeting and cost optimization. Search and filter documents by type, contracting party name, date range, or extract key clauses (payment terms, liability limits, confidentiality, termination conditions). Monitor document lifecycle with status tracking (active, expired, pending, terminated). Perfect for agency operators, SME owners, directors, and business managers in Belgium who need systematic contract management, compliance maintenance, and avoidance of costly unexpected renewals.
@@ -20,6 +18,8 @@ metadata:
       - "lib/*"
       - "setup.sh"
 ---
+
+<!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/nexaiguy/nex-vault | scanned: 2026-05-17 | score: 20 -->
 
 # Nex Vault
 

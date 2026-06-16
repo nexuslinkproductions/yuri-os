@@ -1,7 +1,7 @@
 {
   "ad-creative": {
     "source_path": "skills/ad-creative/SKILL.md",
-    "hash": "97b41c50d2da97ab"
+    "hash": "649d9490ea717a37"
   },
   "adversarial-verification": {
     "source_path": "skills/adversarial-verification/SKILL.md",
@@ -9,7 +9,7 @@
   },
   "agent-scout": {
     "source_path": "skills/agent-scout/SKILL.md",
-    "hash": "39a5e0f6cf2df073"
+    "hash": "801afeb99ba8d3c2"
   },
   "anime-dna-extensions": {
     "source_path": "skills/anime-dna-extensions/SKILL.md",
@@ -21,7 +21,7 @@
   },
   "audit-log-firewall": {
     "source_path": "skills/audit-log-firewall/SKILL.md",
-    "hash": "a3c3f80aadd3df4e"
+    "hash": "b22c3ad0fbcba1eb"
   },
   "bankai-manifest": {
     "source_path": "skills/bankai-manifest/SKILL.md",
@@ -201,7 +201,7 @@
   },
   "mineru-document-extractor": {
     "source_path": "skills/mineru-document-extractor/SKILL.md",
-    "hash": "8d7135679636305c"
+    "hash": "94d02e752d380c55"
   },
   "nen-phase-detector": {
     "source_path": "skills/nen-phase-detector/SKILL.md",
@@ -209,11 +209,11 @@
   },
   "nex-deliverables": {
     "source_path": "skills/nex-deliverables/SKILL.md",
-    "hash": "da34d824d29cafa5"
+    "hash": "292adbf921e6d844"
   },
   "nex-vault": {
     "source_path": "skills/nex-vault/SKILL.md",
-    "hash": "e62f6f584973ebfe"
+    "hash": "7966558880ff5bf5"
   },
   "non-destructive-infinity-guard": {
     "source_path": "skills/non-destructive-infinity-guard/SKILL.md",
@@ -221,7 +221,7 @@
   },
   "objection-source-diagnoser": {
     "source_path": "skills/objection-source-diagnoser/SKILL.md",
-    "hash": "cb79c23ed96a352d"
+    "hash": "1a62d36fe9d7c0ac"
   },
   "openai-codex-workflow": {
     "source_path": "skills/openai-codex-workflow/SKILL.md",
@@ -313,7 +313,7 @@
   },
   "receipt-subscription-cleaner": {
     "source_path": "skills/receipt-subscription-cleaner/SKILL.md",
-    "hash": "d6198064c817c458"
+    "hash": "61bc804670d70801"
   },
   "receiving-code-review": {
     "source_path": "skills/receiving-code-review/SKILL.md",

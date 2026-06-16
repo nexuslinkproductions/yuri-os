@@ -1,9 +1,9 @@
-# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/codedao12/receipt-subscription-cleaner | scanned: 2026-05-17 | score: 0
-
 ---
 name: receipt-subscription-cleaner
 description: Identify recurring charges and subscriptions from receipts or email exports, and produce a clean summary with renewal dates, price changes, and cancellation drafts. Use when a user wants to audit spending without initiating payments or cancellations.
 ---
+
+<!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/codedao12/receipt-subscription-cleaner | scanned: 2026-05-17 | score: 0 -->
 
 # Receipt and Subscription Cleaner
 
