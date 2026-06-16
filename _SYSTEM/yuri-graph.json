@@ -8777,6 +8777,25 @@
         }
       },
       "label": "YURI Nerve (nervous-system spine + afferent digest)"
+    },
+    {
+      "id": "telos-core",
+      "tiers": [
+        "mechanism"
+      ],
+      "flow": null,
+      "mechanism": {
+        "label": "Telos Core - purpose / meaning apex",
+        "layer": "Telos & Meaning",
+        "files": [
+          "SOUL.md",
+          "_SYSTEM/yuri-origin.md",
+          "_SYSTEM/persona.md"
+        ],
+        "triggeredBy": "read-first every session - the WHY behind every action",
+        "description": "YURI telos: the meaning/purpose apex. Owner intent + the SOUL/persona spine + the yuri-origin contract define WHY the system acts. The transcendent cap above the operational stack - the 14th layer."
+      },
+      "label": "Telos Core - purpose / meaning apex"
     }
   ],
   "edges": [

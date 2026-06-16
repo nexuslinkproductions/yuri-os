@@ -1,24 +1,28 @@
 {
   "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`. — DIE VIEW: the entire unified system (all tiers).",
   "schema": "yuri.die-graph.v1",
-  "nodeCount": 240,
+  "nodeCount": 241,
   "edgeCount": 196,
   "graphEdgeCount": 113,
   "kinds": {
-    "die": 118,
+    "die": 119,
     "peripheral": 122
   },
   "layers": {
     "Energy & Math": 39,
-    "Cognition & Persona": 31,
+    "Relational & Peer": 13,
     "Token-Efficiency & Session": 27,
     "Hidden / Meta / Self-referential": 16,
     "Retrieval & Knowledge": 26,
     "Governance & Safety": 18,
     "Self-Improvement": 10,
-    "Skills & Orchestration": 41,
+    "Cognition & Persona": 15,
+    "Skills & Orchestration": 34,
     "Memory & Subconscious": 27,
-    "Learning & Continuity": 5
+    "Learning & Continuity": 5,
+    "Perception & Interface": 3,
+    "Actuation & Embodiment": 7,
+    "Telos & Meaning": 1
   },
   "nodes": [
     {
@@ -37,7 +41,7 @@
       "id": "ADVISORS",
       "kind": "peripheral",
       "label": "ADVISOR FANOUT",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md",
@@ -496,7 +500,7 @@
       "id": "CRUCIBLE_A",
       "kind": "peripheral",
       "label": "CRUCIBLE",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md"
@@ -509,7 +513,7 @@
       "id": "DEEPSEEK_A",
       "kind": "peripheral",
       "label": "DEEPSEEK",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "_SYSTEM/Scripts/llm-compat-contract.mjs"
@@ -534,7 +538,7 @@
       "id": "DS_FLASH",
       "kind": "peripheral",
       "label": "deepseek-v4-flash",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
@@ -547,7 +551,7 @@
       "id": "DS_PRO",
       "kind": "peripheral",
       "label": "deepseek-v4-pro",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
@@ -1130,7 +1134,7 @@
       "id": "HERMES_A",
       "kind": "peripheral",
       "label": "HERMES",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs"
       ],
@@ -1727,7 +1731,7 @@
       "id": "NATIVE_GATES",
       "kind": "peripheral",
       "label": "NATIVE GATES",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [],
       "triggeredBy": "native advisory gates — Promise.allSettled / 60-90s timeout",
       "description": "Aggregate native HERMES forecast and ARGUS tool-sequencing gates.",
@@ -2107,7 +2111,7 @@
       "id": "RESPONSE",
       "kind": "peripheral",
       "label": "RESPONSE",
-      "layer": "Cognition & Persona",
+      "layer": "Perception & Interface",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md"
@@ -2233,7 +2237,7 @@
       "id": "SENTINEL_A",
       "kind": "peripheral",
       "label": "YURI SENTINEL",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "_SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh",
@@ -2247,7 +2251,7 @@
       "id": "SENTINEL_BRIDGE",
       "kind": "peripheral",
       "label": "yuri-sentinel-bridge.sh",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
@@ -2260,7 +2264,7 @@
       "id": "SERVICES",
       "kind": "peripheral",
       "label": "SERVICES",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2426,7 +2430,7 @@
       "id": "SVC_DIGEST",
       "kind": "peripheral",
       "label": "token-digest",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2440,7 +2444,7 @@
       "id": "SVC_EOT",
       "kind": "peripheral",
       "label": "eot-refresh",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2454,7 +2458,7 @@
       "id": "SVC_HEALTH",
       "kind": "peripheral",
       "label": "lane-health",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2468,7 +2472,7 @@
       "id": "SVC_OLLAMA",
       "kind": "peripheral",
       "label": "ollama-runtime",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "_SYSTEM/Scripts/ollama-lane.mjs",
         "_SYSTEM/Scripts/ollama-adapter.mjs",
@@ -2482,7 +2486,7 @@
       "id": "SVC_RUNTIME",
       "kind": "peripheral",
       "label": "yuri-runtime",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2496,7 +2500,7 @@
       "id": "SVC_SHELL",
       "kind": "peripheral",
       "label": "shellservice",
-      "layer": "Skills & Orchestration",
+      "layer": "Actuation & Embodiment",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2510,7 +2514,7 @@
       "id": "SWARM_A",
       "kind": "peripheral",
       "label": "SWARM",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "_SYSTEM/Scripts/llm-compat-contract.mjs"
@@ -2523,7 +2527,7 @@
       "id": "SWARM_FLASH",
       "kind": "peripheral",
       "label": "swarm flash lane",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
@@ -2536,7 +2540,7 @@
       "id": "SWARM_PRO",
       "kind": "peripheral",
       "label": "swarm pro lane",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
@@ -2544,6 +2548,20 @@
       "triggeredBy": "pro fan-out",
       "description": "swarm pro lane supports the advisors sector as pro fan-out.",
       "sector": "advisors"
+    },
+    {
+      "id": "telos-core",
+      "kind": "die",
+      "label": "Telos Core - purpose / meaning apex",
+      "layer": "Telos & Meaning",
+      "files": [
+        "SOUL.md",
+        "_SYSTEM/yuri-origin.md",
+        "_SYSTEM/persona.md"
+      ],
+      "triggeredBy": "read-first every session - the WHY behind every action",
+      "description": "YURI telos: the meaning/purpose apex. Owner intent + the SOUL/persona spine + the yuri-origin contract define WHY the system acts. The transcendent cap above the operational stack - the 14th layer.",
+      "sector": null
     },
     {
       "id": "TIRITH",
@@ -2673,7 +2691,7 @@
       "id": "USER",
       "kind": "peripheral",
       "label": "USER",
-      "layer": "Cognition & Persona",
+      "layer": "Perception & Interface",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2687,7 +2705,7 @@
       "id": "USER_INPUT",
       "kind": "peripheral",
       "label": "USER INPUT",
-      "layer": "Cognition & Persona",
+      "layer": "Perception & Interface",
       "files": [
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md",
@@ -2778,7 +2796,7 @@
       "id": "YURI_RISK_A",
       "kind": "peripheral",
       "label": "YURI-RISK",
-      "layer": "Cognition & Persona",
+      "layer": "Relational & Peer",
       "files": [
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"

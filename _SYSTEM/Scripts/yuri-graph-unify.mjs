@@ -110,11 +110,15 @@ export function projectMechanism(canon) {
 // MECHANISM → kind:'die' (code organs as silicon blocks); FLOW → kind:'peripheral' (system-level functions as
 // board components). Flow nodes have no `layer`; SECTOR_TO_LAYER folds the 15 flow sectors into the die's 10
 // existing layers so the floorplan machinery is unchanged. Deterministic: sorted by id, edges unioned + deduped.
+// 2026-06-16: the 4 world-facing/transcendent layers completing YURI 10->14. The old map dumped
+// operator_io + advisors into 'Cognition & Persona' (the pollution the owner flagged) and services
+// into Skills. Now: operator_io->Perception, advisors->Relational, services->Actuation. Telos is a
+// dedicated mechanism organ (telos-core), not a sector. pulse_cortex stays Cognition (the true cortex).
 export const SECTOR_TO_LAYER = {
-  operator_io: 'Cognition & Persona', pulse_cortex: 'Cognition & Persona', advisors: 'Cognition & Persona',
+  operator_io: 'Perception & Interface', pulse_cortex: 'Cognition & Persona', advisors: 'Relational & Peer',
   memory: 'Memory & Subconscious', classification: 'Retrieval & Knowledge', code_intelligence: 'Retrieval & Knowledge',
   self_improvement: 'Self-Improvement', routing_lanes: 'Skills & Orchestration', command_registry: 'Skills & Orchestration',
-  services: 'Skills & Orchestration', codex_gate: 'Governance & Safety', control_plane: 'Governance & Safety',
+  services: 'Actuation & Embodiment', codex_gate: 'Governance & Safety', control_plane: 'Governance & Safety',
   prompt_hooks: 'Token-Efficiency & Session', initialization: 'Token-Efficiency & Session', unassigned: 'Hidden / Meta / Self-referential',
 };
 const DIE_FALLBACK_LAYER = 'Hidden / Meta / Self-referential';

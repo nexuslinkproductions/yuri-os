@@ -57,6 +57,12 @@ const ACCENT = {
   // RIM band
   "Governance & Safety":      { h: "#E0776B", glow: "#b03a30", ink: "#ffd9d2" }, // red (the guard rim)
   "Hidden / Meta / Self-referential": { h: "#A9B6C2", glow: "#5f7689", ink: "#e2e9f0" }, // grey-meta
+  // INTERFACE band (world-facing — YURI 10->14)
+  "Perception & Interface":   { h: "#FF8FB0", glow: "#c43e74", ink: "#ffd9e8" }, // rose — sensing the world
+  "Actuation & Embodiment":   { h: "#FF7A4D", glow: "#c24a22", ink: "#ffe0d2" }, // coral — acting on the world
+  "Relational & Peer":        { h: "#9D7BFF", glow: "#5f3fd0", ink: "#e4dcff" }, // indigo — other minds / peers
+  // TELOS cap (transcendent apex)
+  "Telos & Meaning":          { h: "#F2E9C0", glow: "#bfa94f", ink: "#fbf6e2" }, // luminous — the why
 };
 
 export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
@@ -66,7 +72,7 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
     coreR: 252,            // (legacy) nominal core radius; actual is now spacing-derived
     gap: 120,              // ring gap between bands (the breathing space)
     bandH: 262,            // (legacy) bands now size to fit their sub-rings at PITCH
-    wedgeGapDeg: 6,        // angular gap between adjacent layer wedges in a band
+    wedgeGapDeg: 8,        // angular gap between adjacent layer wedges in a band (6->8 2026-06-16: the 14-layer repack)
     clearance: 82,         // min empty space added to a cell's max footprint -> PITCH
     ...opts,
   };
@@ -107,11 +113,20 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
     .sort((a, b) => coupToMoat(b) - coupToMoat(a)); // strongest pull sits first (clockwise from top)
   const RIM_LAYERS = ["Governance & Safety", "Hidden / Meta / Self-referential"]
     .filter((L) => (byLayer.get(L) || []).length);
+  // 2026-06-16: the 4 world-facing/transcendent layers completing YURI 10->14. INTERFACE = the
+  // system's outer edge to the world (perceive/act/relate); TELOS = the meaning apex, outermost cap.
+  // Empty layers self-filter, so Telos renders only once it has an organ (telos-core seeds it).
+  const INTERFACE_LAYERS = ["Perception & Interface", "Actuation & Embodiment", "Relational & Peer"]
+    .filter((L) => (byLayer.get(L) || []).length);
+  const TELOS_LAYERS = ["Telos & Meaning"]
+    .filter((L) => (byLayer.get(L) || []).length);
 
   const bandDefs = [
-    { tier: 1, name: "MOAT",    layers: MOAT_LAYERS_REST,  accent: "#C9A14A" },
-    { tier: 2, name: "SYSTEMS", layers: SYSTEMS_LAYERS,    accent: "#5AD2FF" },
-    { tier: 3, name: "RIM",     layers: RIM_LAYERS,        accent: "#E0776B" },
+    { tier: 1, name: "MOAT",      layers: MOAT_LAYERS_REST, accent: "#C9A14A" },
+    { tier: 2, name: "SYSTEMS",   layers: SYSTEMS_LAYERS,   accent: "#5AD2FF" },
+    { tier: 3, name: "RIM",       layers: RIM_LAYERS,       accent: "#E0776B" },
+    { tier: 4, name: "INTERFACE", layers: INTERFACE_LAYERS, accent: "#9D7BFF" },
+    { tier: 5, name: "TELOS",     layers: TELOS_LAYERS,     accent: "#F2E9C0" },
   ];
 
   const cells = {};
@@ -132,8 +147,8 @@ export function buildTierFloorplan(nodes, graphEdges = [], opts = {}) {
   // + package leads. RSEP separates sub-rings radially; ARCSEP is the min along-arc
   // spacing. Moderate so the die stays dense, not blown out.
   const CELLMAX = O.cellBase * 1.38;
-  const RSEP = Math.round(CELLMAX * 1.20);        // radial sub-ring separation (pulls bands/rim inward; still clears the facing-rotation bbox at offset angles)
-  const ARCSEP = Math.round(O.cellBase * 1.86);   // min arc spacing (bbox-safe + rotation-aware, +margin at 244)
+  const RSEP = Math.round(CELLMAX * 1.34);        // radial sub-ring separation (1.20->1.34 2026-06-16: dense Memory wedge sub-rings collided after the 14-layer repack)
+  const ARCSEP = Math.round(O.cellBase * 2.06);   // min arc spacing (bbox-safe + rotation-aware; 1.86->2.06 2026-06-16 for the denser 14-layer repack)
 
   // ---- CORE DISC --------------------------------------------------------
   // energy-fn at dead centre (the singular hub); the rest of the kernel on a
