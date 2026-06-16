@@ -304,6 +304,7 @@ Volumes
 
 # Build and generated output
 dist/
+dist-observatory/
 graph/
 graphify-out/
 logs/
