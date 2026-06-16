@@ -331,7 +331,10 @@ export function admit(taskSpec = {}, overrides = {}) {
   // beats risking a double-spend. (Cost admission ships DISARMED/watcher; this hardens the armed path.)
   const leaseId = `cost-pool-admit:${resolvePaths(overrides).reserveDir}`;
   const nanoId = `cost-admit-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
-  const lease = acquireLease(leaseId, nanoId, { ttlMs: 10_000 });
+  // Fail-closed on a lease-infra error (perms/ENOSPC on the lease dir) — surface a structured
+  // conservative-reject, not a raw fs throw (peer red-team LOW; mirrors token-ledger's wrap).
+  let lease;
+  try { lease = acquireLease(leaseId, nanoId, { ttlMs: 10_000 }); } catch (_) { lease = null; }
   if (!lease || !lease.ok) {
     return {
       admitted: false,
