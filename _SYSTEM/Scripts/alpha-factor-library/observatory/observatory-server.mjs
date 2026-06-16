@@ -58,6 +58,7 @@ import {
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
+import { getCandlesAtTimeframe, availableTimeframes } from './timeframes.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
@@ -189,6 +190,21 @@ function routeRequest(req, res) {
     case '/api/observatory/health':
       jsonResponse(res, getHealth());
       break;
+
+    case '/api/observatory/timeframes':
+      jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
+      break;
+
+    case '/api/observatory/candles': {
+      const market = url.searchParams.get('market');
+      const tf = url.searchParams.get('tf') || '5m';
+      const venue = url.searchParams.get('venue') || undefined;
+      if (!market) { jsonResponse(res, { error: 'market required' }, 400); break; }
+      getCandlesAtTimeframe(market, tf, { venue })
+        .then((r) => jsonResponse(res, r))
+        .catch((e) => jsonResponse(res, { market, tf, supported: false, candles: [], error: e.message }));
+      break;
+    }
 
     case '/api/observatory/stream': {
       // SSE push stream — client uses EventSource
