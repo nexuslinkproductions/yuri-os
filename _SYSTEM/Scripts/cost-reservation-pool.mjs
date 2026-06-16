@@ -34,6 +34,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { acquireLease, releaseLease } from './nano-lease.mjs';
 import {
   calculateCostUsd,
   calculateEffectiveTokens,
@@ -321,48 +322,73 @@ export function admit(taskSpec = {}, overrides = {}) {
     return { admitted: true, enforced: true, reservationId: null, decision: 'free_lane_exempt', estimate, arm };
   }
 
-  const actuals = overrides.actuals || actualsToDate(overrides);
-  const active = sumActiveReservations(overrides);
-  const projectedTotal = actuals.spentUsd + active.reservedUsd + estimate.costUsd;
-  const fits = Number.isFinite(projectedTotal) && projectedTotal <= arm.capUsd;
-
-  const accounting = {
-    capUsd: arm.capUsd,
-    actualsUsd: actuals.spentUsd,
-    actualsReliable: actuals.reliable,
-    actualsReason: actuals.reason,
-    activeReservedUsd: active.reservedUsd,
-    estimateUsd: estimate.costUsd,
-    projectedTotalUsd: Number.isFinite(projectedTotal) ? round6(projectedTotal) : 'Infinity',
-    headroomUsd: Number.isFinite(projectedTotal) ? round6(arm.capUsd - projectedTotal) : 'Infinity',
-  };
-
-  if (!fits) {
+  // B1-ext-1 (race-class kill): the armed read→check→write below is a TOCTOU — two concurrent
+  // admits can both read the same active-reservation sum, both see "fits", and both writeReservation
+  // → double-spend past the cap. CAPABILITY-FIRST: reuse nano-lease to serialize the critical section,
+  // scoped to the reservations dir so isolated (test) pools never cross-serialize with the live one.
+  // admit() is sync with one dispatch-path caller, so we do NOT block: on lease contention we REJECT
+  // CONSERVATIVE (same spirit as the unreliable-actuals reject) — rejecting a rare concurrent admit
+  // beats risking a double-spend. (Cost admission ships DISARMED/watcher; this hardens the armed path.)
+  const leaseId = `cost-pool-admit:${resolvePaths(overrides).reserveDir}`;
+  const nanoId = `cost-admit-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
+  const lease = acquireLease(leaseId, nanoId, { ttlMs: 10_000 });
+  if (!lease || !lease.ok) {
     return {
       admitted: false,
       enforced: true,
       reservationId: null,
-      decision: actuals.reliable ? 'reject_over_budget' : 'reject_conservative_unreliable_actuals',
-      reason: actuals.reliable
-        ? 'projected actuals+reservations+estimate exceeds cap'
-        : `actuals unreliable (${actuals.reason}) — fail conservative, reject`,
+      decision: 'reject_conservative_lease_contention',
+      reason: 'another admission holds the budget lease — reject rather than risk a double-spend (TOCTOU guard)',
       estimate,
-      accounting,
       arm,
     };
   }
+  try {
+    const actuals = overrides.actuals || actualsToDate(overrides);
+    const active = sumActiveReservations(overrides);
+    const projectedTotal = actuals.spentUsd + active.reservedUsd + estimate.costUsd;
+    const fits = Number.isFinite(projectedTotal) && projectedTotal <= arm.capUsd;
 
-  const reservation = writeReservation(estimate, arm, overrides, taskSpec);
-  return {
-    admitted: true,
-    enforced: true,
-    reservationId: reservation.id,
-    decision: 'admit_reserved',
-    estimate,
-    accounting,
-    reservation,
-    arm,
-  };
+    const accounting = {
+      capUsd: arm.capUsd,
+      actualsUsd: actuals.spentUsd,
+      actualsReliable: actuals.reliable,
+      actualsReason: actuals.reason,
+      activeReservedUsd: active.reservedUsd,
+      estimateUsd: estimate.costUsd,
+      projectedTotalUsd: Number.isFinite(projectedTotal) ? round6(projectedTotal) : 'Infinity',
+      headroomUsd: Number.isFinite(projectedTotal) ? round6(arm.capUsd - projectedTotal) : 'Infinity',
+    };
+
+    if (!fits) {
+      return {
+        admitted: false,
+        enforced: true,
+        reservationId: null,
+        decision: actuals.reliable ? 'reject_over_budget' : 'reject_conservative_unreliable_actuals',
+        reason: actuals.reliable
+          ? 'projected actuals+reservations+estimate exceeds cap'
+          : `actuals unreliable (${actuals.reason}) — fail conservative, reject`,
+        estimate,
+        accounting,
+        arm,
+      };
+    }
+
+    const reservation = writeReservation(estimate, arm, overrides, taskSpec);
+    return {
+      admitted: true,
+      enforced: true,
+      reservationId: reservation.id,
+      decision: 'admit_reserved',
+      estimate,
+      accounting,
+      reservation,
+      arm,
+    };
+  } finally {
+    releaseLease(leaseId, nanoId);
+  }
 }
 
 function writeReservation(estimate, arm, overrides, taskSpec) {

@@ -16,6 +16,7 @@ import {
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { acquireLease, releaseLease } from './nano-lease.mjs';
 
 const require = createRequire(import.meta.url);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -991,30 +992,26 @@ function hashMaterial(row) {
   };
 }
 
+// B1-ext-2 (race-class kill): the drain single-writer lock. CAPABILITY-FIRST — reuse the
+// red-teamed nano-lease (atomic rename claim + dead-only-under-custody reclaim) instead of the
+// former hand-rolled mtime-stale mkdir lock, whose stale-reclaim (two drains both see >120s stale
+// → both rmSync → both mkdir-acquire) was a double-acquire race. The lease id is path-scoped from
+// paths.lockDir so isolated (test) ledgers never collide with the live one; the holder id is
+// per-process so release matches acquire. Same {acquired} contract — drainTokenLedger is unchanged.
+const drainLeaseId = (paths) => `token-ledger-drain:${path.resolve(paths.lockDir)}`;
+const drainNanoId = () => `tldrain-${process.pid}`;
+
 function acquireLock(paths) {
-  mkdirSync(path.dirname(paths.lockDir), { recursive: true });
   try {
-    mkdirSync(paths.lockDir);
-    writeFileSync(path.join(paths.lockDir, 'lock.json'), JSON.stringify({
-      pid: process.pid,
-      acquired_at: new Date().toISOString(),
-    }));
-    return { acquired: true };
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error;
-    try {
-      const stat = statSync(paths.lockDir);
-      if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
-        rmSync(paths.lockDir, { recursive: true, force: true });
-        return acquireLock(paths);
-      }
-    } catch (_) {}
-    return { acquired: false };
+    const r = acquireLease(drainLeaseId(paths), drainNanoId(), { ttlMs: LOCK_STALE_MS });
+    return { acquired: !!(r && r.ok) }; // acquireLease returns {ok:true,...} | {ok:false,heldBy,...}
+  } catch (_) {
+    return { acquired: false }; // fail-closed: cannot lock → skip this drain, events stay safely queued
   }
 }
 
 function releaseLock(paths) {
-  rmSync(paths.lockDir, { recursive: true, force: true });
+  try { releaseLease(drainLeaseId(paths), drainNanoId()); } catch (_) { /* best-effort; TTL-reclaim backstops */ }
 }
 
 function writeFault(faultType, error, event, paths = resolveTokenLedgerPaths()) {
