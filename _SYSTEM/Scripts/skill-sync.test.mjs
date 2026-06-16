@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, existsSync, readFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, existsSync, readFileSync, readdirSync, symlinkSync, lstatSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { listSkillDirs, planSync, runSync, publishedSet } from './skill-sync.mjs';
@@ -72,6 +72,35 @@ test('runSync publishes stranded skills into the harness root (makes them invoka
   for (const n of ['A', 'C', 'D']) assert.ok(existsSync(path.join(repo, '.claude/skills', n, 'SKILL.md')), `${n} in harness`);
 });
 
+// regression (DeepSeek-flash red-team 2026-06-16, BUG 1): a dispatcher skill with a NESTED
+// sub-skill (its own SKILL.md) must NOT have that sub-skill copied as if it were kit content.
+test('mirrorDir skips nested-skill subdirs (no gitnexus-style dispatcher pollution)', () => {
+  const repo = mkdtempSync(path.join(tmpdir(), 'skillsync-nest-'));
+  mkdirSync(path.join(repo, 'skills'), { recursive: true });
+  mkdirSync(path.join(repo, '.claude/skills'), { recursive: true });
+  mkSkill(path.join(repo, 'skills'), 'disp', 'disp\n', 2000, {});
+  mkdirSync(path.join(repo, 'skills/disp/refs'), { recursive: true });
+  writeFileSync(path.join(repo, 'skills/disp/refs/note.md'), 'kit');     // real kit content
+  mkdirSync(path.join(repo, 'skills/disp/sub'), { recursive: true });
+  writeFileSync(path.join(repo, 'skills/disp/sub/SKILL.md'), 'nested');  // a NESTED skill
+  mkSkill(path.join(repo, '.claude/skills'), 'disp', 'disp-old\n', 1000); // in published set (harness name)
+  runSync(repo, {});
+  assert.ok(existsSync(path.join(repo, '.claude/skills/disp/refs/note.md')), 'kit subdir IS copied');
+  assert.ok(!existsSync(path.join(repo, '.claude/skills/disp/sub/SKILL.md')), 'nested skill must NOT be copied as kit content');
+});
+
+// regression (DeepSeek-flash red-team 2026-06-16, BUG 2): a symlink destination is the live mirror
+// link — overwriting it would break .claude/skills mirror semantics.
+test('mirrorDir preserves a symlink destination instead of clobbering it', () => {
+  const repo = mkdtempSync(path.join(tmpdir(), 'skillsync-sym-'));
+  mkdirSync(path.join(repo, 'skills/X'), { recursive: true });
+  mkdirSync(path.join(repo, '.claude/skills/X'), { recursive: true });
+  writeFileSync(path.join(repo, 'skills/X/SKILL.md'), 'real\n');
+  symlinkSync('../../../skills/X/SKILL.md', path.join(repo, '.claude/skills/X/SKILL.md'));
+  runSync(repo, {});
+  assert.ok(lstatSync(path.join(repo, '.claude/skills/X/SKILL.md')).isSymbolicLink(), 'symlink dest preserved');
+});
+
 test('idempotent: second runSync produces identical trees', () => {
   const repo = fixture();
   runSync(repo, {});
@@ -80,4 +109,38 @@ test('idempotent: second runSync produces identical trees', () => {
   runSync(repo, {});
   const b = snap('skills') + '##' + snap('.claude/skills');
   assert.equal(a, b);
+});
+
+// ============================ RED (mutation) ============================
+// Proves the nested-skill guard in mirrorDir is load-bearing: the UNGUARDED logic demonstrably
+// pollutes (copies a nested sub-skill as kit content — the exact gitnexus bug). The guarded
+// runSync (covered above) does NOT — that contrast is the kill.
+test('RED: an unguarded recursive mirror WOULD copy a nested skill as kit content (the bug the guard kills)', () => {
+  const repo = mkdtempSync(path.join(tmpdir(), 'skillsync-red-'));
+  const src = path.join(repo, 'skills/disp'); mkdirSync(path.join(src, 'sub'), { recursive: true });
+  writeFileSync(path.join(src, 'SKILL.md'), 'disp');
+  writeFileSync(path.join(src, 'sub/SKILL.md'), 'nested'); // a NESTED skill, not kit content
+  const dst = path.join(repo, '.claude/skills/disp');
+  const naive = (s, d) => { mkdirSync(d, { recursive: true });
+    for (const e of readdirSync(s, { withFileTypes: true })) {
+      const sp = path.join(s, e.name); const dp = path.join(d, e.name);
+      if (e.isDirectory()) naive(sp, dp); else writeFileSync(dp, readFileSync(sp)); } };
+  naive(src, dst); // the mutant
+  assert.ok(existsSync(path.join(dst, 'sub/SKILL.md')), 'mutant pollutes — proves the bug class is real and the guard necessary');
+});
+
+// ============================ GREY (independent oracle) ============================
+// The mirror INVARIANT as a property over ALL published skills (not the hand-picked A/C/D): after
+// sync, every published skill's harness copy is byte-identical to its source. Kills any per-skill
+// copy mutant (truncation, wrong-source, partial write) the enumerated green tests don't name.
+test('GREY oracle: after runSync EVERY published skill mirrors its source byte-for-byte', () => {
+  const repo = fixture();
+  const { plan } = runSync(repo, {});
+  let checked = 0;
+  for (const n of plan.publish) {
+    const s = path.join(repo, 'skills', n, 'SKILL.md');
+    const h = path.join(repo, '.claude/skills', n, 'SKILL.md');
+    if (existsSync(s) && existsSync(h)) { assert.equal(readFileSync(h, 'utf8'), readFileSync(s, 'utf8'), `${n}: harness must mirror source`); checked += 1; }
+  }
+  assert.ok(checked > 0, 'invariant must actually be exercised on ≥1 published skill');
 });

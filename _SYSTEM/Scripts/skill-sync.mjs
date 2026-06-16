@@ -35,7 +35,7 @@
  *   node _SYSTEM/Scripts/skill-sync.mjs --json        # machine-readable plan
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync, mkdirSync, copyFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, lstatSync, mkdirSync, copyFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -156,21 +156,34 @@ export function planSync(repoRoot = REPO_ROOT) {
   };
 }
 
+const isSymlink = (p) => { try { return lstatSync(p).isSymbolicLink(); } catch { return false; } };
+const isNestedSkill = (dir) => existsSync(path.join(dir, 'SKILL.md')); // a dispatcher's sub-skill, not kit content
+
 // OVERLAY copy (never deletes dest-only files) — copying the newer version's files over the
 // destination, adding new ones, PRESERVING any reference/template/kit file that exists only in
-// the destination. Avoids the rm+recopy data-loss footgun on multi-file kit skills.
+// the destination. Avoids the rm+recopy data-loss footgun on multi-file kit skills. Two guards
+// from the DeepSeek-flash red-team (2026-06-16): (a) NEVER overwrite a symlink dest — it is the
+// live mirror link, copying through it would break .claude/skills mirror semantics; (b) NEVER
+// recurse into a subdir that is itself a skill (has its own SKILL.md) — that is a nested
+// dispatcher sub-skill (e.g. .claude/skills/gitnexus/gitnexus-cli/), not THIS dir's kit content.
+function copyFiles(srcDir, dstDir) {
+  mkdirSync(dstDir, { recursive: true });
+  for (const f of skillFiles(srcDir)) {
+    const dst = path.join(dstDir, f);
+    if (isSymlink(dst)) continue; // preserve live mirror symlink — its target is already current
+    copyFileSync(path.join(srcDir, f), dst);
+  }
+}
 function mirrorDir(name, fromRoot, toRoot, repoRoot, dry) {
   const fromAbs = path.join(repoRoot, fromRoot, name);
   const toAbs = path.join(repoRoot, toRoot, name);
   if (dry) return;
-  mkdirSync(toAbs, { recursive: true });
-  // shallow overlay (skills are flat: SKILL.md + sibling reference/template files)
-  for (const f of skillFiles(fromAbs)) copyFileSync(path.join(fromAbs, f), path.join(toAbs, f));
-  // one level of subdirs (e.g. scripts/, references/)
+  copyFiles(fromAbs, toAbs);
+  // one level of NON-skill subdirs (e.g. scripts/, references/) — skip nested skills
   for (const d of readdirSync(fromAbs, { withFileTypes: true }).filter((x) => x.isDirectory())) {
-    const sub = path.join(fromAbs, d.name), dst = path.join(toAbs, d.name);
-    mkdirSync(dst, { recursive: true });
-    for (const f of skillFiles(sub)) copyFileSync(path.join(sub, f), path.join(dst, f));
+    const sub = path.join(fromAbs, d.name);
+    if (isNestedSkill(sub)) continue; // nested sub-skill → managed as its own top-level skill, not copied here
+    copyFiles(sub, path.join(toAbs, d.name));
   }
 }
 

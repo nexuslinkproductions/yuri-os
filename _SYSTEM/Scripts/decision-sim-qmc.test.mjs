@@ -78,3 +78,45 @@ test('negative: QMC advantage SHRINKS on a discontinuous integrand (documented l
   assert.ok(smoothRatio > discontRatio, `QMC edge must be larger on smooth (${smoothRatio.toFixed(2)}) than discontinuous (${discontRatio.toFixed(2)})`);
   assert.ok(Number.isFinite(discontRatio) && discontRatio > 0, 'QMC still produces valid bounded estimates (graceful degradation)');
 });
+
+// ============================ RED (mutation / discrimination) ============================
+// Proves the effect-size GREEN test is NOT vacuous: a mutant "QMC" that is secretly iid MC (no
+// low-discrepancy structure) must FAIL the ratio>2 bar. If this passed, the green test would
+// rubber-stamp a broken sampler. This is the mutant the green test must kill.
+test('RED: a fake-QMC (iid uniform, no low-discrepancy) does NOT clear the >2 variance-reduction bar', () => {
+  const N = 400;
+  const seeds = Array.from({ length: 12 }, (_, i) => 1000 + i * 137);
+  const mc = avgErr(false, N, seeds);
+  const fake = seeds.reduce((t, sd) => {
+    const rng = makeRng(sd + 9991);               // mutant: plain MC masquerading as QMC
+    let s = 0; for (let i = 0; i < N; i += 1) s += rng() * rng();
+    return t + Math.abs(s / N - 0.25);
+  }, 0) / seeds.length;
+  const ratio = mc / fake;
+  assert.ok(ratio < 2, `mutant (fake QMC) must NOT clear >2 (got ${ratio.toFixed(2)}) — green test discriminates`);
+});
+
+// ============================ GREY (independent oracle + metamorphic) =====================
+// Independent oracle: low star-discrepancy is the DEFINING property of QMC — measured directly,
+// integrand-agnostic. Kills mutants that happen to reduce variance on x*y but aren't truly uniform.
+function starDiscrepancy1D(points) {
+  const xs = [...points].sort((a, b) => a - b); const N = xs.length;
+  let d = 0; for (let i = 0; i < N; i += 1) d = Math.max(d, Math.abs(xs[i] - (i + 0.5) / N));
+  return d;
+}
+test('GREY oracle: QMC 1-D points are more uniform than random by the star-discrepancy measure', () => {
+  const N = 512;
+  const q = makeQmcRng({ dim: 1, draws: N, seed: 1 });
+  const qp = Array.from({ length: N }, () => q());
+  const r = makeRng(1);
+  const rp = Array.from({ length: N }, () => r());
+  const dq = starDiscrepancy1D(qp), dr = starDiscrepancy1D(rp);
+  assert.ok(dq < dr, `QMC discrepancy ${dq.toExponential(2)} must be < random ${dr.toExponential(2)}`);
+});
+test('GREY metamorphic: error shrinks as N grows, and the sequence is seed-deterministic', () => {
+  const errAt = (n) => { const g = makeQmcRng({ dim: 2, draws: n, seed: 1 }); let s = 0; for (let i = 0; i < n; i += 1) s += g() * g(); return Math.abs(s / n - 0.25); };
+  assert.ok(errAt(2000) < errAt(125), 'metamorphic: 16x draws → strictly smaller error');
+  const a = makeQmcRng({ dim: 2, draws: 8, seed: 3 });
+  const b = makeQmcRng({ dim: 2, draws: 8, seed: 3 });
+  assert.deepEqual(Array.from({ length: 16 }, () => a()), Array.from({ length: 16 }, () => b()), 'same seed → identical sequence (deterministic)');
+});
