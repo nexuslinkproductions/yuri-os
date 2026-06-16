@@ -189,14 +189,25 @@ function RegimeTimeline({ regime }: { regime: RegimeState }) {
           )}
           {layers.length > 0 && (
             <div className="obs-regime-layers">
-              {layers.map(([key, val]) => (
-                <div key={key} className="obs-regime-layer">
-                  <span className="obs-regime-layer-key">{key}</span>
-                  <span className="obs-regime-layer-val" style={{ color: recColor[(val as string).toUpperCase()] ?? '#94a3b8' }}>
-                    {val as string}
-                  </span>
-                </div>
-              ))}
+              {layers.map(([key, val]) => {
+                // layer values are structured objects (e.g. { alarm, statistic, ... }) — NOT strings.
+                const display =
+                  typeof val === 'string' ? val
+                  : val && typeof val === 'object' && 'alarm' in (val as object)
+                    ? ((val as { alarm?: boolean; statistic?: number }).alarm
+                        ? `ALARM${typeof (val as { statistic?: number }).statistic === 'number' ? ` · ${(val as { statistic: number }).statistic.toFixed(1)}` : ''}`
+                        : 'ok')
+                    : typeof val === 'number' ? String(val) : '—';
+                const colorKey = display.split(' ')[0].toUpperCase();
+                return (
+                  <div key={key} className="obs-regime-layer">
+                    <span className="obs-regime-layer-key">{key}</span>
+                    <span className="obs-regime-layer-val" style={{ color: colorKey === 'ALARM' ? '#e8453a' : recColor[colorKey] ?? '#94a3b8' }}>
+                      {display}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
           {reasons.length > 0 && (

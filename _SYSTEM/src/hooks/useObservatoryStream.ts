@@ -140,7 +140,9 @@ export interface RegimeState {
   market?: string;
   recommendation?: string;
   reasons?: string[];
-  layers?: Record<string, string>;
+  /** Structured detector layers (e.g. { changePoint: { alarm, statistic, ... } }) — NOT strings. */
+  layers?: Record<string, unknown>;
+  regimeShift?: boolean;
   ts?: number;
 }
 
@@ -162,7 +164,10 @@ export interface ObservatoryState {
   markets: Record<string, MarketSnapshot>;
   factors: FactorSignal[];
   paper: PaperState;
+  /** Flattened first-market regime (legacy convenience). */
   regime: RegimeState;
+  /** Full per-market regime map — { "<market>": RegimeState } (layers are structured objects). */
+  regimes: Record<string, RegimeState>;
   energy: EnergyState;
   health: HealthState;
   connected: boolean;
@@ -172,7 +177,11 @@ export interface ObservatoryState {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const BASE = '/api/observatory';
+// Base host for REST + SSE. The standalone observatory app sets VITE_OBSERVATORY_BASE
+// to the backend (e.g. http://127.0.0.1:4243) so it connects DIRECT (CORS-allowed) —
+// the Vite dev-proxy mangles SSE keep-alive. Empty string = same-origin (proxy) fallback.
+const HOST = (import.meta.env.VITE_OBSERVATORY_BASE as string | undefined) || '';
+const BASE = `${HOST}/api/observatory`;
 const RECONNECT_DELAY_MS = 3000;
 const MAX_FACTORS = 50;
 const MAX_FILLS = 20;
@@ -237,6 +246,7 @@ export function useObservatoryStream(): ObservatoryState {
     factors: [],
     paper: {},
     regime: {},
+    regimes: {},
     energy: {},
     health: {},
     connected: false,
@@ -325,14 +335,16 @@ export function useObservatoryStream(): ObservatoryState {
 
       // BUG-3 fix: /regime returns { "<market>": {regimeShift, layers, reasons, recommendation} }
       // Pick the first market's regime for the flat RegimeState (MechanismTab shows one regime).
-      const regime: RegimeState = (() => {
+      // /regime returns the full per-market map. Keep the map AND a flattened first entry.
+      const regimes: Record<string, RegimeState> = (() => {
         if (!regimeRaw || typeof regimeRaw !== 'object' || Array.isArray(regimeRaw)) return {};
-        const regimeMap = regimeRaw as Record<string, RegimeState>;
-        const entries = Object.entries(regimeMap);
-        if (entries.length === 0) return {};
-        const [market, r] = entries[0];
-        return { ...r, market };
+        const m = regimeRaw as Record<string, RegimeState>;
+        const out: Record<string, RegimeState> = {};
+        for (const [mk, r] of Object.entries(m)) out[mk] = { ...r, market: mk };
+        return out;
       })();
+      const regimeEntries = Object.entries(regimes);
+      const regime: RegimeState = regimeEntries.length ? regimeEntries[0][1] : {};
 
       setState(prev => ({
         ...prev,
@@ -340,6 +352,7 @@ export function useObservatoryStream(): ObservatoryState {
         factors: Array.isArray(factors) ? factors : [],
         paper,
         regime,
+        regimes,
         energy,
         health,
         loading: false,
@@ -479,8 +492,15 @@ export function useObservatoryStream(): ObservatoryState {
               };
             }
 
-            case 'regime.shift':
-              return { ...prev, regime: ev as unknown as RegimeState };
+            case 'regime.shift': {
+              const r = ev as unknown as RegimeState;
+              const mk = r.market;
+              return {
+                ...prev,
+                regime: r,
+                regimes: mk ? { ...prev.regimes, [mk]: r } : prev.regimes,
+              };
+            }
 
             case 'energy.state':
               return { ...prev, energy: ev as unknown as EnergyState };

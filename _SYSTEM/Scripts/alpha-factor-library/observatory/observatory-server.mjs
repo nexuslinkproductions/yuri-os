@@ -69,9 +69,11 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'http://localhost:4242',
   'http://localhost:5173',
+  'http://localhost:4250',   // standalone observatory app (vite.observatory.config)
   'http://127.0.0.1:3000',
   'http://127.0.0.1:4242',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:4250',   // standalone observatory app (direct SSE/REST, no proxy)
 ]);
 
 // ── SSE client registry ──────────────────────────────────────────────────

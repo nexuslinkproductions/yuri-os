@@ -8,9 +8,16 @@ const repoRoot = fileURLToPath(new URL('.', import.meta.url));
 
 // Standalone YURI Trading Observatory frontend — SEPARATE from the root site (:4200).
 // Its own root dir, own port (4250), own build (dist-observatory), own /api proxy.
+const OBS_PORT = process.env.OBSERVATORY_PORT || 4243;
+
 export default defineConfig({
   plugins: [react()],
   root: '_SYSTEM/observatory-ui',
+  // Connect the standalone app DIRECT to the backend (CORS-allowed) — the Vite
+  // dev-proxy mangles SSE keep-alive, so the live stream needs a direct EventSource.
+  define: {
+    'import.meta.env.VITE_OBSERVATORY_BASE': JSON.stringify(`http://127.0.0.1:${OBS_PORT}`),
+  },
   build: {
     outDir: '../../dist-observatory',
     emptyOutDir: true,
