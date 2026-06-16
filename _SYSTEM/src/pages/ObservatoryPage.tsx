@@ -92,6 +92,7 @@ export default function ObservatoryPage() {
             factors={obs.factors}
             regime={obs.regime}
             energy={obs.energy}
+            markets={obs.markets}
           />
         )}
         {activeTab === 'mind' && (

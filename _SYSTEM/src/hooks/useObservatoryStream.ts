@@ -62,6 +62,34 @@ export interface MarketSnapshot {
   energyDeltaU?: number;
   signals?: FactorSignal[];
   error?: string;
+  /** Polymarket-specific: human-readable question text (key poly-<tokenId>) */
+  question?: string;
+  /**
+   * Quantum factor-circuit state for this market.
+   * Present when the observatory has computed the circuit ordering.
+   * null when not yet computed or not applicable.
+   */
+  circuit?: CircuitState | null;
+}
+
+/**
+ * Per-market quantum factor-circuit ordering state.
+ * Emitted by `circuit.state` SSE events.
+ *
+ * ratio > 1  → genuine non-commutative order advantage:
+ *              sequencing factors in bestOrdering order beats order-blind
+ *              by (ratio - 1) (e.g. 1.67 → 67% advantage).
+ * ratio == 1 / allCommute == true → factors commute, no ordering advantage.
+ * injected == true → computed on REAL return vectors (not metadata).
+ * degenerate == true → circuit is degenerate, ratio/allCommute not meaningful.
+ */
+export interface CircuitState {
+  ratio: number | null;
+  allCommute: boolean | null;
+  bestOrdering: number[] | null;
+  factorIds: string[];
+  injected: boolean;
+  degenerate: boolean;
 }
 
 export interface FactorSignal {
@@ -72,6 +100,14 @@ export interface FactorSignal {
   ts: number;
   market?: string;
   deltaU?: number;
+  /**
+   * Overlay signal source. Absent for standard price signals.
+   * 'perp'   → perpetual funding/basis overlay (advisory, NOT paper-traded)
+   * 'social' → social sentiment overlay (advisory, NOT paper-traded)
+   */
+  source?: 'perp' | 'social';
+  /** Sample count — present on social overlay signals (sampleCount of aggregated posts/data). */
+  sampleCount?: number;
 }
 
 export interface PaperPosition {
@@ -409,6 +445,36 @@ export function useObservatoryStream(): ObservatoryState {
                   pnl: fill.pnl ?? prev.paper.pnl,
                   drawdown: fill.drawdown ?? prev.paper.drawdown,
                   fills: [fill, ...(prev.paper.fills ?? [])].slice(0, MAX_FILLS),
+                },
+              };
+            }
+
+            case 'circuit.state': {
+              // Update the circuit field on the target market snapshot.
+              // Payload: { type, market, ratio, allCommute, bestOrdering, factorIds, injected, ts }
+              const cs = ev as unknown as {
+                type: string; market?: string;
+                ratio: number | null; allCommute: boolean | null;
+                bestOrdering: number[] | null; factorIds: string[];
+                injected: boolean; ts: number;
+              };
+              const csKey = cs.market ?? 'unknown';
+              const circuit: CircuitState = {
+                ratio: cs.ratio ?? null,
+                allCommute: cs.allCommute ?? null,
+                bestOrdering: cs.bestOrdering ?? null,
+                factorIds: Array.isArray(cs.factorIds) ? cs.factorIds : [],
+                injected: Boolean(cs.injected),
+                degenerate: false,
+              };
+              return {
+                ...prev,
+                markets: {
+                  ...prev.markets,
+                  [csKey]: {
+                    ...(prev.markets[csKey] ?? { market: csKey, venue: 'unknown' }),
+                    circuit,
+                  },
                 },
               };
             }

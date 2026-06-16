@@ -53,8 +53,10 @@ import {
   getSnapshot,
   buildSSEEvents,
   setHttpGet,
+  bootstrapPolymarkets,
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
+import { applyAuth } from './observatory-auth.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4242;
@@ -147,6 +149,10 @@ function routeRequest(req, res) {
     return;
   }
 
+  // Auth gate — DISARMED unless OBSERVATORY_AUTH_TOKEN is set; loopback always open.
+  // (Lets Mike reach the dashboard remotely with a bearer token; localhost dev stays open.)
+  if (!applyAuth(req, res)) return;
+
   // Only GET is supported
   if (req.method !== 'GET') {
     jsonResponse(res, { error: 'Method Not Allowed' }, 405);
@@ -238,6 +244,17 @@ function createServer() {
 async function startServe(config = {}) {
   const server = createServer();
 
+  // Resolve effective config from env toggles (overlays are advisory + fail-open):
+  //   OBSERVATORY_AUTO_POLYMARKET=1  → live Gamma auto-discovery of liquid markets
+  //   OBSERVATORY_PERP=0             → disable the perp funding/basis overlay
+  //   OBSERVATORY_SOCIAL=0           → disable the social-sentiment overlay
+  let cfg = {
+    ...config,
+    autoDiscoverPolymarkets: config.autoDiscoverPolymarkets ?? (process.env.OBSERVATORY_AUTO_POLYMARKET === '1'),
+    enablePerp: config.enablePerp ?? (process.env.OBSERVATORY_PERP !== '0'),
+    enableSocial: config.enableSocial ?? (process.env.OBSERVATORY_SOCIAL !== '0'),
+  };
+
   await new Promise((resolve, reject) => {
     server.listen(PORT, HOST, () => {
       console.log(`[observatory-server] listening on http://${HOST}:${PORT}`);
@@ -246,12 +263,23 @@ async function startServe(config = {}) {
     server.once('error', reject);
   });
 
+  // Resolve the live Polymarket watch-list (auto-discovery when enabled; fail-open).
+  try {
+    const polymarkets = await bootstrapPolymarkets(cfg);
+    if (polymarkets && polymarkets.length) {
+      cfg = { ...cfg, polymarkets };
+      console.log(`[observatory-server] tracking ${polymarkets.length} Polymarket market(s)`);
+    }
+  } catch (e) {
+    console.error('[observatory-server] polymarket bootstrap failed (continuing):', e.message);
+  }
+
   // Run first cycle immediately
   // emit cycle.start before INITIAL cycle too (BUG-5: was only emitted on interval cycles)
   broadcastSSE([{ type: 'cycle.start', cycleCount: 1, ts: Math.floor(Date.now() / 1000) }]);
   console.log('[observatory-server] running initial cycle...');
   try {
-    const snap = await runCycle(config);
+    const snap = await runCycle(cfg);
     broadcastSSE([{ type: 'cycle.end', cycleCount: snap.cycleCount, ts: snap.lastCycle }]);
     console.log(`[observatory-server] cycle 1 done. markets: ${Object.keys(snap.markets).join(', ')}`);
   } catch (err) {
@@ -264,7 +292,7 @@ async function startServe(config = {}) {
     broadcastSSE([{ type: 'cycle.start', cycleCount, ts: Math.floor(Date.now() / 1000) }]);
 
     try {
-      const snap = await runCycle(config);
+      const snap = await runCycle(cfg);
       const events = buildSSEEvents(snap);
       broadcastSSE(events);
       broadcastSSE([{ type: 'cycle.end', cycleCount: snap.cycleCount, ts: snap.lastCycle }]);

@@ -126,20 +126,35 @@ function CandleChart({ snapshot }: { snapshot: MarketSnapshot }) {
   const hasError = Boolean(snapshot.error);
   // BUG-1 fix: server emits qualityGate.pass (not .passed)
   const notPassed = snapshot.qualityGate && snapshot.qualityGate.pass === false;
+  // Polymarket markets have venue:'polymarket' — show odds (0..1) not $ price
+  const isPolymarket = snapshot.venue === 'polymarket';
+  // Polymarket: use question as display title when available
+  const displayTitle = isPolymarket && snapshot.question
+    ? snapshot.question
+    : snapshot.market;
+  // Price display: Polymarket shows odds (e.g. "0.62 odds"), crypto shows $price
+  const priceDisplay = lastPrice != null
+    ? isPolymarket
+      ? `${(lastPrice * 100).toFixed(1)}% (odds ${lastPrice.toFixed(3)})`
+      : `$${lastPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : null;
 
   return (
     <div className="obs-candle-card">
       <div className="obs-candle-header">
-        <span className="obs-market-label">{snapshot.market}</span>
+        <span className="obs-market-label" title={snapshot.market}>{displayTitle}</span>
         <span className="obs-venue-label">{snapshot.venue}</span>
+        {isPolymarket && (
+          <span className="obs-badge obs-badge--poly">POLY</span>
+        )}
         {hasError && (
           <span className="obs-badge obs-badge--error">ERR</span>
         )}
         {notPassed && !hasError && (
           <span className="obs-badge obs-badge--warn">DQ</span>
         )}
-        {lastPrice != null && (
-          <span className="obs-price-label">${lastPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        {priceDisplay != null && (
+          <span className="obs-price-label">{priceDisplay}</span>
         )}
       </div>
 

@@ -170,10 +170,18 @@ export function commutatorNorm(P_i, P_j) {
  * default here (1e-9) is the STRICT mathematical threshold — pass a larger tol (e.g. 0.15) to
  * treat near-commuting same-category factors as commuting for the degenerate short-circuit.
  */
-export function buildCommutativityMatrix(factors, { tol = 1e-9 } = {}) {
+export function buildCommutativityMatrix(factors, { tol = 1e-9, vectors: vIn = null } = {}) {
   const fs = Array.isArray(factors) ? factors : [];
   const n = fs.length;
-  const vectors = fs.map(factorVector);
+  // ── REAL-VECTOR INJECTION (Wave-4 live-wire) ──────────────────────────────
+  // When the caller supplies precomputed vectors (e.g. real per-factor RETURN
+  // series instead of the metadata one-hot embedding), use them — provided the
+  // count matches the factor count and every row is a non-empty array of the
+  // SAME length (square, well-formed projectors). Otherwise fall back to the
+  // metadata embedding (factorVector). normalize() keeps projectors unit-trace.
+  const injectionValid = Array.isArray(vIn) && vIn.length === n && n > 0 &&
+    vIn.every((v) => Array.isArray(v) && v.length > 0 && v.length === vIn[0].length);
+  const vectors = injectionValid ? vIn.map(normalize) : fs.map(factorVector);
   const projectors = vectors.map(projector);
 
   const matrix = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -647,7 +655,9 @@ export function optimizeFactorCircuit(factors, opts = {}) {
     energyBefore, recordEnergy = true,
   } = opts;
   const fs = Array.isArray(factors) ? factors : [];
-  const commMatrix = buildCommutativityMatrix(fs, { tol });
+  // opts.vectors (optional): precomputed real return-vectors for the live-wire —
+  // forwarded to buildCommutativityMatrix, which validates + falls back on mismatch.
+  const commMatrix = buildCommutativityMatrix(fs, { tol, vectors: opts.vectors });
   const projectors = commMatrix.projectors;
   const dim = projectors.length ? projectors[0].length : N;
   const psi = psiIn || defaultPsi(dim);

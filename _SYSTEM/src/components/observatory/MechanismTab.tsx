@@ -6,7 +6,7 @@
  */
 
 import { useId } from 'react';
-import type { EnergyState, FactorSignal, RegimeState } from '../../hooks/useObservatoryStream';
+import type { CircuitState, EnergyState, FactorSignal, MarketSnapshot, RegimeState } from '../../hooks/useObservatoryStream';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +14,8 @@ interface Props {
   factors: FactorSignal[];
   regime: RegimeState;
   energy: EnergyState;
+  /** All market snapshots — used for the per-market Factor Circuit panel. */
+  markets?: Record<string, MarketSnapshot>;
 }
 
 // ── Energy ΔU Gauge (SVG arc) ─────────────────────────────────────────────────
@@ -212,7 +214,119 @@ function RegimeTimeline({ regime }: { regime: RegimeState }) {
   );
 }
 
+// ── Factor Circuit panel ──────────────────────────────────────────────────────
+
+/**
+ * Displays the quantum factor-circuit ordering state for a single market.
+ * - ratio > 1: non-commutative order advantage exists → show ratio + ordering sequence
+ * - ratio == 1 / allCommute == true: no ordering advantage
+ * - injected flag indicates real return vectors (not metadata-only)
+ */
+function FactorCircuitCard({ market, circuit }: { market: string; circuit: CircuitState }) {
+  const hasAdvantage = circuit.ratio != null && circuit.ratio > 1;
+  const commuting    = circuit.allCommute === true || (circuit.ratio != null && circuit.ratio === 1);
+  const degenerate   = circuit.degenerate;
+
+  const ratioColor = hasAdvantage ? '#22c55e' : '#94a3b8';
+  const ratioLabel = degenerate
+    ? 'degenerate'
+    : commuting
+    ? 'commuting — no order edge'
+    : hasAdvantage && circuit.ratio != null
+    ? `${circuit.ratio.toFixed(2)}× order advantage`
+    : '—';
+
+  // Render bestOrdering as sequence of factorId abbreviations (or indices as fallback)
+  const ordering = circuit.bestOrdering ?? [];
+  const ids       = circuit.factorIds ?? [];
+
+  return (
+    <div className="obs-circuit-card">
+      <div className="obs-circuit-header">
+        <span className="obs-circuit-market">{market}</span>
+        {circuit.injected && (
+          <span className="obs-circuit-chip obs-circuit-chip--injected">REAL VECTORS</span>
+        )}
+      </div>
+
+      <div className="obs-circuit-ratio" style={{ color: ratioColor }}>
+        {ratioLabel}
+      </div>
+
+      {!commuting && !degenerate && ordering.length > 0 && (
+        <div className="obs-circuit-ordering">
+          <span className="obs-circuit-ordering-label">Best order</span>
+          <div className="obs-circuit-ordering-seq">
+            {ordering.map((idx, i) => (
+              <span key={i} className="obs-circuit-ordering-item">
+                {ids[idx] != null
+                  ? ids[idx].replace(/^(obs-|perp-|social-)/, '').slice(0, 14)
+                  : `#${idx}`}
+                {i < ordering.length - 1 && (
+                  <span className="obs-circuit-ordering-arrow">→</span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FactorCircuitPanel({ markets }: { markets: Record<string, MarketSnapshot> }) {
+  const marketsWithCircuit = Object.entries(markets).filter(
+    ([, snap]) => snap.circuit != null,
+  );
+
+  if (marketsWithCircuit.length === 0) {
+    return (
+      <div className="obs-circuit-panel">
+        <div className="obs-section-title">Factor Circuit</div>
+        <div className="obs-empty">Awaiting circuit data...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="obs-circuit-panel">
+      <div className="obs-section-title">Factor Circuit</div>
+      <div className="obs-circuit-grid">
+        {marketsWithCircuit.map(([market, snap]) =>
+          snap.circuit != null ? (
+            <FactorCircuitCard key={market} market={market} circuit={snap.circuit} />
+          ) : null,
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Factor Signals table ──────────────────────────────────────────────────────
+
+/**
+ * Returns true if the factor is a price-driving signal (paper-traded).
+ * perp and social signals are overlay-only (advisory, NOT paper-traded).
+ */
+function isPriceSignal(f: FactorSignal): boolean {
+  if (f.source === 'perp' || f.source === 'social') return false;
+  // Legacy heuristic: factorId prefix also identifies overlay signals even
+  // when `source` isn't explicitly set (forward-compat with older server versions).
+  const id = f.factorId ?? '';
+  if (id.startsWith('perp-') || id.startsWith('social-')) return false;
+  return true;
+}
+
+function OverlayChip({ source }: { source: 'perp' | 'social' }) {
+  return (
+    <span
+      className={`obs-overlay-chip obs-overlay-chip--${source}`}
+      title="Advisory overlay — not paper-traded"
+    >
+      {source === 'perp' ? 'PERP' : 'SOCIAL'}
+    </span>
+  );
+}
 
 function FactorTable({ factors }: { factors: FactorSignal[] }) {
   if (factors.length === 0) {
@@ -227,6 +341,13 @@ function FactorTable({ factors }: { factors: FactorSignal[] }) {
   const sideColor = (side: string) =>
     side === 'long' ? '#22c55e' : side === 'short' ? '#ef4444' : '#94a3b8';
 
+  // Determine overlay source from explicit field OR factorId prefix
+  function overlaySource(f: FactorSignal): 'perp' | 'social' | null {
+    if (f.source === 'perp' || f.factorId?.startsWith('perp-')) return 'perp';
+    if (f.source === 'social' || f.factorId?.startsWith('social-')) return 'social';
+    return null;
+  }
+
   return (
     <div className="obs-factor-card">
       <div className="obs-section-title">Factor Signals</div>
@@ -235,6 +356,7 @@ function FactorTable({ factors }: { factors: FactorSignal[] }) {
           <thead>
             <tr>
               <th>Factor</th>
+              <th>Type</th>
               <th>Side</th>
               <th>Value</th>
               <th>Conf</th>
@@ -243,18 +365,38 @@ function FactorTable({ factors }: { factors: FactorSignal[] }) {
             </tr>
           </thead>
           <tbody>
-            {factors.slice(0, 20).map(f => (
-              <tr key={f.factorId}>
-                <td className="obs-factor-id">{f.factorId}</td>
-                <td style={{ color: sideColor(f.side) }}>{f.side.toUpperCase()}</td>
-                <td>{typeof f.value === 'number' ? f.value.toFixed(4) : '—'}</td>
-                <td>{typeof f.confidence === 'number' ? `${(f.confidence * 100).toFixed(1)}%` : '—'}</td>
-                <td className={f.deltaU != null && f.deltaU >= 0 ? 'obs-green' : 'obs-red'}>
-                  {f.deltaU != null ? (f.deltaU >= 0 ? '+' : '') + f.deltaU.toFixed(4) : '—'}
-                </td>
-                <td>{f.market ?? '—'}</td>
-              </tr>
-            ))}
+            {factors.slice(0, 20).map(f => {
+              const source = overlaySource(f);
+              const isOverlay = source !== null;
+              return (
+                <tr
+                  key={f.factorId}
+                  className={isOverlay ? 'obs-factor-row--overlay' : undefined}
+                >
+                  <td className="obs-factor-id">{f.factorId}</td>
+                  <td>
+                    {isOverlay ? (
+                      <div className="obs-factor-type-cell">
+                        <OverlayChip source={source!} />
+                        <span className="obs-factor-advisory">advisory</span>
+                      </div>
+                    ) : (
+                      <span className="obs-factor-type-price">price</span>
+                    )}
+                    {source === 'social' && f.sampleCount != null && (
+                      <span className="obs-factor-sample-count">n={f.sampleCount}</span>
+                    )}
+                  </td>
+                  <td style={{ color: sideColor(f.side) }}>{f.side.toUpperCase()}</td>
+                  <td>{typeof f.value === 'number' ? f.value.toFixed(4) : '—'}</td>
+                  <td>{typeof f.confidence === 'number' ? `${(f.confidence * 100).toFixed(1)}%` : '—'}</td>
+                  <td className={f.deltaU != null && f.deltaU >= 0 ? 'obs-green' : 'obs-red'}>
+                    {f.deltaU != null ? (f.deltaU >= 0 ? '+' : '') + f.deltaU.toFixed(4) : '—'}
+                  </td>
+                  <td>{f.market ?? '—'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -264,7 +406,7 @@ function FactorTable({ factors }: { factors: FactorSignal[] }) {
 
 // ── Mechanism Tab ─────────────────────────────────────────────────────────────
 
-export default function MechanismTab({ factors, regime, energy }: Props) {
+export default function MechanismTab({ factors, regime, energy, markets }: Props) {
   return (
     <div className="obs-tab-content">
       <div className="obs-mechanism-grid">
@@ -272,6 +414,9 @@ export default function MechanismTab({ factors, regime, energy }: Props) {
         <RegimeTimeline regime={regime} />
         <CalibrationPanel factors={factors} />
       </div>
+      {markets && Object.keys(markets).length > 0 && (
+        <FactorCircuitPanel markets={markets} />
+      )}
       <FactorTable factors={factors} />
     </div>
   );

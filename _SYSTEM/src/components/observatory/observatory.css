@@ -524,3 +524,175 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* ── W4: POLYMARKET BADGE ───────────────────────────────────────────────────── */
+.obs-badge--poly {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--obs-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* ── W4: FACTOR CIRCUIT PANEL ───────────────────────────────────────────────── */
+
+.obs-circuit-panel {
+  background: var(--obs-surface);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius);
+  padding: 14px 16px;
+}
+
+.obs-circuit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+/* Individual market circuit card */
+.obs-circuit-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--obs-border);
+  border-radius: var(--obs-radius-sm);
+  padding: 10px 12px;
+}
+
+.obs-circuit-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.obs-circuit-market {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--obs-text);
+  text-transform: uppercase;
+}
+
+/* REAL VECTORS chip — green, indicates computed on actual return vectors */
+.obs-circuit-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--obs-radius-sm);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.obs-circuit-chip--injected {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--obs-green);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+/* Ratio display — primary readout */
+.obs-circuit-ratio {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+/* Factor ordering sequence */
+.obs-circuit-ordering {
+  margin-top: 6px;
+}
+.obs-circuit-ordering-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+  margin-bottom: 4px;
+  display: block;
+}
+.obs-circuit-ordering-seq {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-items: center;
+}
+.obs-circuit-ordering-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  color: var(--obs-text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--obs-border);
+  border-radius: 2px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.obs-circuit-ordering-arrow {
+  color: var(--obs-text-dim);
+  font-size: 0.6rem;
+  margin: 0 1px;
+  display: inline-block;
+}
+
+/* ── W4: OVERLAY SIGNAL CHIPS ───────────────────────────────────────────────── */
+
+/* Mute overlay rows slightly compared to price rows */
+.obs-factor-row--overlay td {
+  opacity: 0.82;
+}
+
+/* Type cell for overlay signals — chip + "advisory" label side by side */
+.obs-factor-type-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* "price" type label for non-overlay signals */
+.obs-factor-type-price {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--obs-text-dim);
+}
+
+/* "advisory" suffix on overlay chips */
+.obs-factor-advisory {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: var(--obs-text-dim);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* Sample count (n=X) for social signals */
+.obs-factor-sample-count {
+  display: block;
+  font-size: 0.58rem;
+  color: var(--obs-text-dim);
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+}
+
+/* Perp overlay chip — amber */
+.obs-overlay-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.obs-overlay-chip--perp {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--obs-amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Social overlay chip — blue/cyan */
+.obs-overlay-chip--social {
+  background: rgba(6, 182, 212, 0.12);
+  color: var(--obs-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+}

@@ -49,6 +49,12 @@ import { detectRegimeShift } from '../regime-detector.mjs';
 // Adapter imports — we re-export setHttpGet from each to inject mocks
 import * as CoinbaseAdapter from '../adapters/coinbase-adapter.mjs';
 import * as PolymarketAdapter from '../adapters/polymarket-adapter.mjs';
+import * as PerpAdapter from '../adapters/perp-adapter.mjs';
+import * as SocialAdapter from '../adapters/social-adapter.mjs';
+import * as PolymarketDiscovery from '../adapters/polymarket-discovery.mjs';
+import { computePerpSignals } from '../perp-signals.mjs';
+import { circuitInputFromBars } from '../factor-return-vectors.mjs';
+import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit aware
@@ -201,6 +207,39 @@ function computeEnergyDelta(signal, paperSnap) {
   }
 }
 
+// ── Quantum factor-circuit (real return-vector live-wire) ──────────────────
+/**
+ * computeCircuit(bars, signals) — order-optimal factor sequencing on REAL return
+ * vectors (via factor-return-vectors.circuitInputFromBars → the opts.vectors
+ * injection in factor-circuit). Returns compact telemetry or null. FAIL-OPEN.
+ *   ratio > 1  ⇒ a genuine non-commutative ORDER advantage exists.
+ *   ratio == 1 ⇒ the factors commute (no sequencing advantage — never faked).
+ * Only the price-derived obs-* signals carry a real return-vector mapping; perp/
+ * social overlays are excluded (they map to zero vectors by construction).
+ */
+function computeCircuit(bars, signals) {
+  const priceSignals = (signals || []).filter(
+    (s) => s && String(s.factorId).startsWith('obs-') && s.side !== 'flat',
+  );
+  if (priceSignals.length < 2) return null;
+  try {
+    const { factors, opts, injected, degenerate } = circuitInputFromBars(bars, priceSignals, {
+      recordEnergy: false, sampleCount: 50, draws: 30, iters: 2, seed: 42,
+    });
+    const r = optimizeFactorCircuit(factors, opts);
+    return {
+      ratio: r.quality?.ratio ?? null,
+      allCommute: r.allCommute ?? null,
+      bestOrdering: r.bestOrdering ?? null,
+      factorIds: factors.map((f) => f.id),
+      injected: injected === true,
+      degenerate: degenerate === true,
+    };
+  } catch (_e) {
+    return null; // fail-open — circuit telemetry never breaks the cycle
+  }
+}
+
 // ── Snapshot state (in-memory, per market) ────────────────────────────────
 /**
  * createMarketSnapshot() — empty snapshot template for one market.
@@ -218,6 +257,7 @@ function createMarketSnapshot(market, venue) {
     regime: null,             // detectRegimeShift output
     energyDeltaU: null,       // last gateProposal ΔU (advisory)
     qualityGate: null,        // last dataQualityGate result
+    circuit: null,            // quantum factor-circuit telemetry (ratio/ordering, advisory)
     error: null,              // last cycle error for this market
   };
 }
@@ -288,15 +328,47 @@ function _realHttpGet(urlStr, headers = {}) {
 export function setHttpGet(fn) {
   if (fn === null || fn === undefined) {
     // Clear: restore real HTTPS default on all adapters.
-    // coinbase-adapter.setHttpGet rejects null — pass the real default function instead.
+    // coinbase/perp adapters reject null — pass the real default function instead.
     _httpGetOverride = null;
     CoinbaseAdapter.setHttpGet(_realHttpGet);
     PolymarketAdapter.setHttpGet(_realHttpGet);
+    PerpAdapter.setHttpGet(_realHttpGet);
+    SocialAdapter.setHttpGet(_realHttpGet);
+    PolymarketDiscovery.setHttpGet(_realHttpGet);
     return;
   }
   _httpGetOverride = fn;
   CoinbaseAdapter.setHttpGet(fn);
   PolymarketAdapter.setHttpGet(fn);
+  PerpAdapter.setHttpGet(fn);
+  SocialAdapter.setHttpGet(fn);
+  PolymarketDiscovery.setHttpGet(fn);
+}
+
+// ── Sentiment → signal mapping (advisory overlay) ──────────────────────────
+/**
+ * sentimentToSignal(sentiment, market) -> signal | null
+ * Maps social-adapter getSentiment() {score∈[-1,1], magnitude∈[0,1]} to an
+ * advisory overlay signal. Suppressed when near-neutral or low-magnitude.
+ * Confidence is intentionally capped below the price signals (overlay, not driver).
+ */
+function sentimentToSignal(sentiment, market) {
+  if (!sentiment || typeof sentiment !== 'object') return null;
+  const score = Number(sentiment.score);
+  const magnitude = Number(sentiment.magnitude);
+  if (!Number.isFinite(score) || !Number.isFinite(magnitude)) return null;
+  if (Math.abs(score) < 0.10 || magnitude < 0.05) return null; // no edge / no volume
+  const side = score > 0 ? 'long' : 'short';
+  const confidence = Math.min(0.65, 0.40 + magnitude * 0.25);
+  return {
+    factorId: `social-sentiment-${market}`,
+    value: score,
+    side,
+    confidence,
+    ts: Number.isFinite(sentiment.ts) ? sentiment.ts : Math.floor(Date.now() / 1000),
+    source: 'social',
+    sampleCount: sentiment.sampleCount ?? null,
+  };
 }
 
 // ── SSRF-safe public host check ───────────────────────────────────────────
@@ -309,7 +381,7 @@ function isPrivateHost(hostname) {
 }
 
 // ── Market cycle: crypto (Coinbase candles) ────────────────────────────────
-async function runCryptoCycle(market, snap) {
+async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 60 * 60; // 1 hour back
   const end = now;
@@ -372,11 +444,38 @@ async function runCryptoCycle(market, snap) {
     snap.regime = { recommendation: 'UNKNOWN', error: _e.message };
   }
 
-  // Live factor signals
+  // Live factor signals (price-derived → sized + paper-filled below)
   const signals = computeLiveSignals(bars, market);
-  snap.signals = signals;
 
-  // Sizing + paper fill for each signal
+  // ── Perp + social OVERLAY signals (advisory telemetry; NOT sized/paper-filled:
+  //    their edge units — funding APR / sentiment score — differ from the
+  //    price-return edge the sizer expects; they inform positioning, not P&L) ──
+  const overlaySignals = [];
+  const lastClose = bars.length ? bars[bars.length - 1].close : null;
+  if (cfg.enablePerp !== false) {
+    try {
+      const perpSigs = await computePerpSignals(market, {
+        // spot proxy = latest bar close (no extra network call)
+        getSpotPrice: Number.isFinite(lastClose) ? async () => lastClose : undefined,
+      });
+      if (Array.isArray(perpSigs)) overlaySignals.push(...perpSigs);
+    } catch (_e) { /* fail-open — perp overlay never breaks the crypto cycle */ }
+  }
+  if (cfg.enableSocial !== false) {
+    try {
+      const asset = market.split('-')[0];
+      const sentiment = await SocialAdapter.getSentiment(asset);
+      const sig = sentimentToSignal(sentiment, market);
+      if (sig) overlaySignals.push(sig);
+    } catch (_e) { /* fail-open — social overlay never breaks the crypto cycle */ }
+  }
+  // Telemetry = price signals + overlays; paper sizing below uses price signals only.
+  snap.signals = [...signals, ...overlaySignals];
+
+  // Quantum factor-circuit telemetry on the REAL return-vectors of the price signals
+  snap.circuit = computeCircuit(bars, signals);
+
+  // Sizing + paper fill for each PRICE signal
   const returns = closeReturns(bars);
   const lastBar = bars[bars.length - 1];
   const equity = engine.pnl().equity || 100_000;
@@ -484,6 +583,7 @@ async function runPolymarketCycle(tokenId, question, snap) {
   // Live signals
   const signals = computeLiveSignals(bars, `poly-${tokenId}`);
   snap.signals = signals;
+  snap.circuit = computeCircuit(bars, signals);
 
   // Paper fills
   const returns = closeReturns(bars);
@@ -543,9 +643,33 @@ export function getSnapshot() {
 /** Observable market definition */
 export const DEFAULT_CONFIG = {
   cryptoMarkets: DEFAULT_CRYPTO_MARKETS,
-  polymarkets: [], // [{tokenId, question}] — configured by caller
+  polymarkets: [], // [{tokenId, question}] — configured by caller / bootstrapPolymarkets
   intervalMs: DEFAULT_CYCLE_INTERVAL_MS,
+  // Wave-4 overlays (advisory telemetry; fail-open; do NOT drive paper P&L):
+  enablePerp: true,            // funding/basis positioning overlay on crypto markets
+  enableSocial: true,          // public-source sentiment overlay per asset
+  autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live
+  polymarketLimit: 3,          // how many liquid Polymarket markets to auto-discover
 };
+
+/**
+ * bootstrapPolymarkets(cfg) -> Promise<Array<{tokenId, question}>>
+ * Resolves the live Polymarket watch-list. If autoDiscoverPolymarkets is set and
+ * no explicit list was given, queries the Gamma API (via polymarket-discovery) for
+ * the top-N liquid active markets. FAIL-OPEN: discovery failure returns [] so the
+ * crypto loop is never blocked. Called once by the server on --serve startup.
+ */
+export async function bootstrapPolymarkets(cfg = {}) {
+  const c = { ...DEFAULT_CONFIG, ...cfg };
+  if (Array.isArray(c.polymarkets) && c.polymarkets.length > 0) return c.polymarkets;
+  if (!c.autoDiscoverPolymarkets) return [];
+  try {
+    const found = await PolymarketDiscovery.discoverMarkets({ limit: c.polymarketLimit || 3 });
+    return (found || []).map((m) => ({ tokenId: m.tokenId, question: m.question }));
+  } catch (_e) {
+    return []; // fail-open — discovery must not break the loop
+  }
+}
 
 // ── Main runCycle ──────────────────────────────────────────────────────────
 /**
@@ -567,7 +691,7 @@ export async function runCycle(config = {}) {
       _state.snapshots.set(market, createMarketSnapshot(market, 'coinbase'));
     }
     const snap = _state.snapshots.get(market);
-    await runCryptoCycle(market, snap);
+    await runCryptoCycle(market, snap, cfg);
     if (snap.regime) _state.regimes.set(market, snap.regime);
   }
 
@@ -694,6 +818,22 @@ export function buildSSEEvents(snapshot) {
         recommendation: regime.recommendation,
         reasons: regime.reasons,
         layers: regime.layers,
+        ts,
+      });
+    }
+  }
+
+  // circuit.state — one per market with quantum factor-circuit telemetry
+  for (const [market, snap] of Object.entries(snapshot.markets || {})) {
+    if (snap.circuit) {
+      events.push({
+        type: 'circuit.state',
+        market,
+        ratio: snap.circuit.ratio,
+        allCommute: snap.circuit.allCommute,
+        bestOrdering: snap.circuit.bestOrdering,
+        factorIds: snap.circuit.factorIds,
+        injected: snap.circuit.injected,
         ts,
       });
     }
