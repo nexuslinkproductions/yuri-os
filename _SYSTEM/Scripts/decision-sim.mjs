@@ -51,7 +51,7 @@
 // @serves: robust decision under uncertainty | CVaR worst-case score | minimax regret | when does a choice flip | flip-rule witness | info-gap robustness | does the winner survive spec changes | quasi-Monte-Carlo sampler
 // @does: the robust-optimization engine — robustScore (0.5·mean+0.5·CVaR), crossEntropyOptimize, minimaxRegret, pgdWitness (flip rule), infoGapHorizon, multiverse, + halton/sobolish QMC samplers; seeded/reproducible
 // @use: a decision with 2+ paths whose outcome depends on uncertain params — reach here for the COMPUTED EV/worst-case (the quantitative tier under izanagi-bridge); pair with eval-processing for streaming/CRN/stopping
-// @exports: robustScore, crossEntropyOptimize, minimaxRegret, pgdWitness, infoGapHorizon, multiverse, makeRng, halton
+// @exports: robustScore, crossEntropyOptimize, minimaxRegret, pgdWitness, infoGapHorizon, multiverse, makeRng, halton, makeQmcRng
 export function makeRng(seed = 1) {
   let a = seed >>> 0;
   return function rng() {
@@ -78,6 +78,30 @@ export function halton(i, base) {
 }
 const PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53];
 
+/**
+ * QMC sampler — the "sobolish (QMC)" the header advertised, now implemented (Halton-based).
+ * Returns Uniform[0,1) values from a multi-dimensional Halton sequence: rng() yields the next
+ * dimension; after `dim` calls the draw index advances. Each uncertainty realization MUST consume
+ * EXACTLY `dim` draws — the low-discrepancy property dies if sampleParams calls rng() a variable
+ * number of times (Box-Muller gauss() uses 2 draws, so dim must account for that). Degrades to
+ * seeded pseudo-random when dim exceeds the prime table. QMC beats MC (O(1/N) vs O(1/√N)) ONLY for
+ * low-effective-dimension, SMOOTH integrands; it can LOSE on high-dim/discontinuous payoffs — so it
+ * is OPT-IN ONLY (verified peer-built w/ Kimi-k2.6, 2026-06-16; quantum-amplitude-estimation's only
+ * near-term classical spinoff per qae-feasibility-2026-06-16.md).
+ */
+export function makeQmcRng({ dim = 1, draws = 200, seed = 1, force = false } = {}) {
+  void draws; // advisory (Halton is infinite; kept for caller symmetry / future degrade heuristics)
+  if (!force && dim > PRIMES.length) return makeRng(seed); // high-dim → Halton degrades → use MC
+  const start = (seed >>> 0) % 0x7fffffff;
+  let draw = 0; let comp = 0;
+  return function qmcRng() {
+    const val = halton(start + draw + 1, PRIMES[comp % dim]);
+    comp += 1;
+    if (comp >= dim) { comp = 0; draw += 1; }
+    return val;
+  };
+}
+
 export function clamp(x, lo = 0, hi = 1) { return Math.max(lo, Math.min(hi, x)); }
 
 // ---------------------------------------------------------------------------
@@ -95,8 +119,10 @@ function sampleConfig(problem, rng) {
  * Robust score of a config = 0.5·mean + 0.5·CVaR(tailFrac) over `draws` uncertainty realizations.
  * CVaR (expected value of the worst tailFrac fraction) replaces a hand-tuned risk λ.
  */
-export function robustScore(problem, config, { draws = 200, tailFrac = 0.1, rng } = {}) {
-  const r = rng || makeRng(12345);
+export function robustScore(problem, config, { draws = 200, tailFrac = 0.1, rng, qmc = false, qmcDim = 1, qmcSeed = 12345 } = {}) {
+  // DISARMED opt-in QMC (default off → byte-identical to prior behavior). When qmc=true the caller
+  // asserts sampleParams consumes exactly qmcDim rng() draws per realization (see makeQmcRng caveat).
+  const r = (qmc && qmcDim > 0) ? makeQmcRng({ dim: qmcDim, draws, seed: qmcSeed }) : (rng || makeRng(12345));
   const vs = new Array(draws);
   for (let i = 0; i < draws; i += 1) vs[i] = problem.value(config, problem.sampleParams(r));
   vs.sort((a, b) => a - b);
@@ -265,6 +291,6 @@ export function multiverse(problem, variants, pickWinner, { keyDims } = {}) {
 }
 
 export default {
-  makeRng, gauss, halton, clamp, robustScore, crossEntropyOptimize,
+  makeRng, gauss, halton, makeQmcRng, clamp, robustScore, crossEntropyOptimize,
   minimaxRegret, pgdWitness, infoGapHorizon, multiverse,
 };
