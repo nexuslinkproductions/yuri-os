@@ -76,6 +76,7 @@ import {
 import { gitnexusStaleness, computeFileStaleSet } from './xref-drift-scan.mjs';
 import { recallCanonical } from './canonical-recall.mjs';
 import { resolveDirs as canonicalDirs } from './memory-canonical-store.mjs';
+import { rankSkills } from './skill-recall.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -937,6 +938,15 @@ function run() {
     for (const { c } of caps) console.log(`     ▸ ${c.id} → ${c.mechanism} [${(c.exports || []).join(', ')}]`);
     console.log('');
   }
+  // Skill-recall lane — surface the LIVE skill (skills/ + .claude/skills/) that fits this task,
+  // BM25 over its frontmatter. Distinct from file hits (a skill is a packaged how-to, not a code
+  // location) and from archive copies (those rank top in the raw merge). Fail-open: any error skips.
+  const skillsForTask = skillRecallHits(result.query);
+  if (skillsForTask.length) {
+    console.log('  🎯 SKILL FOR THIS TASK — reach for an existing skill before doing it by hand:');
+    for (const s of skillsForTask) console.log(`     ▸ /${s.name}${s.description ? ` — ${s.description}` : ''}`);
+    console.log('');
+  }
   // AFL dedicated lane — top alpha factors for the query, always shown when present (they would
   // otherwise be drowned in the global merge). Lexical recall, not structural confidence.
   if (Array.isArray(result.alphaTop) && result.alphaTop.length) {
@@ -965,6 +975,17 @@ function run() {
     for (const s of result.sublog.slice(0, Math.max(result.requestedTop, 50))) {
       console.log(`    ~ ${s.path}  (${s.surface}, conf=${s.confidence.toFixed(3)}, ${s.reason})`);
     }
+  }
+}
+
+// Skill-recall surfacing: rank the LIVE skill corpus by BM25 over frontmatter and surface the
+// top fit for the task. Confidence-gated (score >= 4) so only a genuine match shows, not noise.
+// Fail-open: any error (module/read failure) returns [] and xref behaves exactly as before.
+function skillRecallHits(query) {
+  try {
+    return rankSkills(query, { top: 2 }).filter((s) => s.score >= 4);
+  } catch {
+    return [];
   }
 }
 
