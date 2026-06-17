@@ -46,18 +46,28 @@ def _track(key, down):
     elif key == keyboard.Key.enter: _state["enter"] = down
 
 print(f"loading Parakeet… (PTT = hold {COMBO})", flush=True)
+# dtype: float32 is measured FASTER than bfloat16 on this Apple-Silicon build (83ms vs 97ms /2s clip)
+# and the lib default's only edge is memory, which is irrelevant for short commands. Keep float32.
 model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v2", dtype=mx.float32)
 preproc = model.preprocessor_config
+# WARMUP: the first transcribe pays a ~1.5s MLX kernel-compile (measured 1473ms vs 60-200ms after).
+# Burn it here so your FIRST spoken command is already fast.
+try:
+    model.generate(get_logmel(mx.array(np.zeros(SAMPLE_RATE * 2, dtype=np.float32)), preproc)); mx.eval(model.parameters())
+    print("  (kernels warm — first command will be fast)", flush=True)
+except Exception:
+    pass
 
-_buf = []; _rec = [False]; _lock = threading.Lock()
+_buf = []; _lock = threading.Lock(); _stream = [None]
 
 def _cb(indata, frames, t, status):
-    if _rec[0]:
-        with _lock: _buf.append(indata[:, 0].copy())
+    with _lock: _buf.append(indata[:, 0].copy())
 
-dev = (int(MIC) if MIC and MIC.isdigit() else MIC) if MIC else None
-stream = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", blocksize=BLOCK, callback=_cb, device=dev)
-stream.start()
+def _open_stream():
+    dev = (int(MIC) if MIC and MIC.isdigit() else MIC) if MIC else None
+    s = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", blocksize=BLOCK, callback=_cb, device=dev)
+    s.start()
+    return s
 
 def _osa(script):
     r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
@@ -74,12 +84,12 @@ def _osa(script):
 def _inject(text):
     prev = subprocess.run(["pbpaste"], capture_output=True).stdout      # save clipboard
     subprocess.run(["pbcopy"], input=text.encode(), check=False)
-    time.sleep(0.05)
+    time.sleep(0.03)                                                    # let pbcopy settle before paste
     ok = _osa('tell application "System Events" to keystroke "v" using command down')
     if ok and SUBMIT:
-        time.sleep(0.15)
+        time.sleep(0.08)                                               # paste must land before Return submits
         _osa('tell application "System Events" to key code 36')         # Return
-    time.sleep(0.2)
+    time.sleep(0.12)                                                    # paste must finish reading clipboard before restore
     subprocess.run(["pbcopy"], input=prev, check=False)                 # restore clipboard
     print(f"→ {text}" + ("" if ok else "  (paste did NOT fire — see error above)"), flush=True)
 
@@ -88,6 +98,10 @@ def _transcribe_and_inject():
         if not _buf: return
         audio = np.concatenate(_buf); _buf.clear()
     if len(audio) / SAMPLE_RATE < 0.2: return                           # ignore key-taps
+    rms = float(np.sqrt(np.mean(audio ** 2)))
+    if rms < 0.0008:                                                    # captured silence, not speech
+        print(f"⚠ mic silent (rms={rms:.5f}) — input device likely changed; relaunch ptt or set VOICE_MIC_DEVICE", flush=True)
+        return
     txt = (model.generate(get_logmel(mx.array(audio), preproc))[0].text or "").strip()
     if len(txt) >= MIN_CHARS:
         _inject(txt)
@@ -96,15 +110,20 @@ def _transcribe_and_inject():
 
 def on_press(key):
     _track(key, True)
-    if _combo_active() and not _rec[0]:
+    if _combo_active() and _stream[0] is None:
         with _lock: _buf.clear()
-        _rec[0] = True
-        print("● listening…", flush=True)
+        try:
+            _stream[0] = _open_stream()                                 # bind to the CURRENT default mic each press
+            print("● listening…", flush=True)
+        except Exception as e:
+            print(f"  ✗ mic open failed: {e}", flush=True)
 
 def on_release(key):
     _track(key, False)
-    if _rec[0] and not _combo_active():
-        _rec[0] = False
+    if _stream[0] is not None and not _combo_active():
+        s = _stream[0]; _stream[0] = None
+        try: s.stop(); s.close()
+        except Exception: pass
         print("○ transcribing…", flush=True)
         threading.Thread(target=_transcribe_and_inject, daemon=True).start()
 
