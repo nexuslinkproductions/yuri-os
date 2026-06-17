@@ -380,3 +380,6 @@ _SYSTEM/state/ccr-cache/
 # keystone gate-trace capture arm (local, reversible: rm to disarm; repo default stays DISARMED)
 _SYSTEM/state/gate-trace.enabled
 _SYSTEM/state/gate-trace-corrid.enabled
+
+# voice loop runtime state — venvs, Rick audio (IP), EQ config, model caches: never commit
+_SYSTEM/state/voice/
