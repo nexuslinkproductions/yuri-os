@@ -655,7 +655,12 @@ export function createPaperEngine(config) {
       return r;
     }
 
-    const bh = S.bars.get(instrument) || [];
+    // Bar history for sigma/ADV/impact + the history-sufficiency check. Prefer a caller-supplied
+    // ctx.barHistory (lets many namespaced factor books share ONE market bar series without
+    // per-instrument ingest + a global-lastTs monotonicity clash); fall back to S.bars[instrument].
+    const bh = (Array.isArray(ctx?.barHistory) && ctx.barHistory.length >= 3)
+      ? ctx.barHistory
+      : (S.bars.get(instrument) || []);
     const bar = ctx?.bar || (bh.length ? bh[bh.length - 1] : null);
     // bar must pass validateBar (canonical field `timestamp`)
     if (!bar || !validateBar(bar).ok) {

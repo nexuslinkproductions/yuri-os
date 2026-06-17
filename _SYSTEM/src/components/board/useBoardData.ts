@@ -14,6 +14,7 @@ import {
   type GraduationResponse,
   type PaperResponse,
   type AccountResponse,
+  type TradesResponse,
 } from './api';
 
 // ── Indicator math (ported from mockup) ────────────────────────────────────
@@ -114,6 +115,7 @@ export interface BoardDataState {
   graduation: GraduationResponse | null;
   paper: PaperResponse;
   account: AccountResponse | null;
+  trades: TradesResponse;
 }
 
 const EMPTY_INDICATORS: ComputedIndicators = {
@@ -136,17 +138,18 @@ export function useBoardData(market: string, tf: string): BoardDataState {
   const [graduation, setGraduation] = useState<GraduationResponse | null>(null);
   const [paper, setPaper] = useState<PaperResponse>({});
   const [account, setAccount] = useState<AccountResponse | null>(null);
+  const [trades, setTrades] = useState<TradesResponse>({ trades: [], total: 0 });
 
-  // Paper P&L + real account — authoritative REST, ~4s poll (don't rely on SSE-merged pnl).
+  // Paper P&L + real account + live trade tape — authoritative REST, ~3s poll.
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
       if (cancelled) return;
-      const [pp, ac] = await Promise.all([api.paper(), api.account()]);
-      if (!cancelled) { setPaper(pp); setAccount(ac); }
+      const [pp, ac, tr] = await Promise.all([api.paper(), api.account(), api.trades(40)]);
+      if (!cancelled) { setPaper(pp); setAccount(ac); setTrades(tr); }
     };
     poll();
-    const id = setInterval(poll, 4000);
+    const id = setInterval(poll, 3000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
@@ -225,5 +228,6 @@ export function useBoardData(market: string, tf: string): BoardDataState {
     graduation,
     paper,
     account,
+    trades,
   };
 }

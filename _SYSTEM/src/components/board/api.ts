@@ -209,6 +209,24 @@ export interface AccountResponse {
   ts?: number;
 }
 
+// /trades — live trade tape (orchestrator.getRecentTrades)
+export interface TradeEntry {
+  market: string;
+  factorId: string | null;
+  side: string | null;
+  entryPx: number | null;
+  exitPx: number | null;
+  netPnl: number | null;
+  qty: number | null;
+  reason: string | null;
+  ts: number;
+}
+export interface TradesResponse {
+  trades: TradeEntry[];
+  total: number;
+  advisory?: string;
+}
+
 // /quantum — DISARMED A/B shadow verdict (orchestrator.getQuantum)
 export interface QuantumVerdict {
   n: number;
@@ -267,4 +285,7 @@ export const api = {
 
   account: () =>
     safeFetch<AccountResponse | null>(`${BASE}/account`, null),
+
+  trades: (limit = 40) =>
+    safeFetch<TradesResponse>(`${BASE}/trades?limit=${limit}`, { trades: [], total: 0 }),
 };

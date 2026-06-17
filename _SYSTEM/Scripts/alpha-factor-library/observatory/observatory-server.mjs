@@ -66,6 +66,7 @@ import {
   getCalibration,
   getGraduation,
   getQuantum,
+  getRecentTrades,
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
@@ -255,6 +256,13 @@ function routeRequest(req, res) {
         .catch((e) => jsonResponse(res, { verdict: null, advisory: e.message }));
       break;
 
+    case '/api/observatory/trades': {
+      // Live trade tape — newest-first closed paper trades across all factor books.
+      const lim = Number(url.searchParams.get('limit')) || 40;
+      jsonResponse(res, getRecentTrades(lim));
+      break;
+    }
+
     case '/api/observatory/timeframes':
       jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
       break;
@@ -307,6 +315,7 @@ function routeRequest(req, res) {
           'GET /api/observatory/calibration',
           'GET /api/observatory/graduation',
           'GET /api/observatory/quantum',
+          'GET /api/observatory/trades?limit=',
           'GET /api/observatory/ticks',
           'GET /api/observatory/timeframes',
           'GET /api/observatory/candles?market=&tf=&venue=',
@@ -397,8 +406,13 @@ async function startServe(config = {}) {
     console.error('[observatory-server] initial cycle error:', err.message);
   }
 
-  // Interval loop
+  // Interval loop — OVERLAP-GUARDED. With dozens of factors + 6 candle fetches a cycle can run
+  // longer than INTERVAL_MS; without a guard setInterval would stack concurrent runCycles (double
+  // API calls + paper-engine races). _cycleRunning skips a tick while the previous cycle is in flight.
+  let _cycleRunning = false;
   const interval = setInterval(async () => {
+    if (_cycleRunning) return; // previous cycle still running — skip this tick
+    _cycleRunning = true;
     const cycleCount = (getHealth().cycleCount || 0) + 1;
     broadcastSSE([{ type: 'cycle.start', cycleCount, ts: Math.floor(Date.now() / 1000) }]);
 
@@ -410,6 +424,8 @@ async function startServe(config = {}) {
     } catch (err) {
       console.error('[observatory-server] cycle error:', err.message);
       broadcastSSE([{ type: 'cycle.end', error: err.message, ts: Math.floor(Date.now() / 1000) }]);
+    } finally {
+      _cycleRunning = false;
     }
   }, INTERVAL_MS);
 

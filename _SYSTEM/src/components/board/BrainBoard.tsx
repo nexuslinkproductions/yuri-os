@@ -19,7 +19,7 @@ import ConvictionPanel from './ConvictionPanel';
 import PerfPanel from './PerfPanel';
 import CalibrationPanel from './CalibrationPanel';
 import GraduationPanel from './GraduationPanel';
-import NewsPanel from './NewsPanel';
+import TradesPanel from './TradesPanel';
 
 import './board.css';
 
@@ -376,7 +376,7 @@ export default function BrainBoard({ obs }: Props) {
 
           {/* ══ ROW 4: NEWS & CATALYSTS ══ */}
           <div className="bb-panel">
-            <NewsPanel />
+            <TradesPanel data={board.trades} />
           </div>
 
           {/* ══ GAINERS TICKER ══ */}

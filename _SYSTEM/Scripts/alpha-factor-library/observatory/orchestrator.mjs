@@ -23,7 +23,7 @@ import path from 'node:path';
 import https from 'node:https';
 import { URL as NodeURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, existsSync, readFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 
 // ── Path resolution ────────────────────────────────────────────────────────
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +44,7 @@ import { computeSize } from '../afl-sizing.mjs';
 import { createPaperEngine } from '../afl-paper.mjs';
 import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
+import { computeAllStrategies } from '../strategy-registry.mjs';
 // factorQualityScore removed — not wired in W2 observatory (BUG-3: dead import)
 // PerpAdapter removed — W2 is crypto-primary; perp market loop not yet wired (BUG-4: inert import)
 
@@ -70,10 +71,10 @@ const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit a
 const DEFAULT_CRYPTO_MARKETS = (process.env.OBSERVATORY_CRYPTO_MARKETS
   ? process.env.OBSERVATORY_CRYPTO_MARKETS.split(',').map((s) => s.trim()).filter(Boolean)
   : ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SUI-USD', 'WIF-USD', 'AVAX-USD']);
-const COINBASE_GRANULARITY = 'FIVE_MINUTE';
+const COINBASE_GRANULARITY = 'ONE_MINUTE'; // 1-min bars: ~5× more signal-change points → more trades + faster learning (paper)
 
 // Number of candles to fetch per cycle for crypto
-const CANDLES_FETCH_LIMIT = 200;   // ~200 bars: clears the deepest indicator warmup (ADX 27, MACD 26) + history for factors/regime. Coinbase cap is 350/req.
+const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for factors/regime. Coinbase cap is 350/req.
 
 // Learn loop: how often (in cycles) to decode closed paper trades → AFL_LEDGER. 10 cycles
 // ≈ a few minutes; the decode is idempotent so cadence only affects calibration freshness.
@@ -147,6 +148,12 @@ function computeLiveSignals(bars, market) {
       });
     }
   }
+
+  // The full strategy library (trend + mean-reversion + volume/volatility families — dozens of
+  // strategies, each its own factor). Fail-soft: a throwing family never zeroes the base signals.
+  try {
+    signals.push(...computeAllStrategies(bars, market));
+  } catch (_e) { /* strategy library is advisory; never break the cycle */ }
 
   return signals;
 }
@@ -290,9 +297,12 @@ function getPaperEngine(market) {
     predictionLedgerPath: predLedger,
     caps: {
       initialEquity: 100_000,
+      // Generous gross/net for PAPER discovery across DOZENS of factors per market (each factor
+      // trades its own small 5% book; dozens of them need a high aggregate ceiling). Paper-only,
+      // reversible; real-money sizing re-tightens these.
       maxPositionPct: 0.05,
-      maxGrossExposurePct: 0.30,
-      maxNetExposurePct: 0.20,
+      maxGrossExposurePct: 6.0,
+      maxNetExposurePct: 4.0,
     },
   });
   _paperEngines.set(market, engine);
@@ -427,7 +437,7 @@ function isPrivateHost(hostname) {
 // ── Market cycle: crypto (Coinbase candles) ────────────────────────────────
 async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
-  const start = now - 17 * 60 * 60; // ~17h back → ~200 FIVE_MINUTE bars (was 1h=12 bars, too few for indicator warmup)
+  const start = now - 5 * 60 * 60; // ~5h back → ~300 ONE_MINUTE bars (under Coinbase's ~350/req cap)
   const end = now;
 
   let candles;
@@ -471,11 +481,10 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   snap.bars = bars.slice(-50); // keep last 50 bars in snapshot
   snap.updatedAt = now;
 
-  // Feed bars to paper engine
+  // Paper engine (one per market). Each factor trades its OWN namespaced book inside it; bar
+  // history is supplied per-onSignal via ctx.barHistory. We deliberately do NOT ingest a market
+  // bar series — a single global lastTs would reject the per-factor books and spam non-monotone logs.
   const engine = getPaperEngine(market);
-  for (const bar of bars) {
-    engine.ingestBar(bar, market);
-  }
 
   // Regime detection
   try {
@@ -563,12 +572,14 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     const paperSnap = engine.pnl();
     snap.energyDeltaU = computeEnergyDelta(sig, paperSnap);
 
-    // Paper fill via onSignal — pass notional so the engine resolves qty
-    // fractionally (notional/mid) without integer-flooring crypto quantities.
+    // Paper fill via onSignal. Each factor trades its OWN namespaced book (instrument = factorId,
+    // already market-scoped, e.g. rsi-meanrev-BTC-USD) so per-factor P&L is cleanly attributable
+    // for the learn loop — a shared market position would let one factor close/flip another's.
+    // Ingest the latest bar under that instrument so the position marks-to-market.
     if (sizing.targetNotional > 0) {
       engine.onSignal(
         { ...sig, notional: sizing.targetNotional },
-        { instrument: market, bar: lastBar },
+        { instrument: sig.factorId, bar: lastBar, barHistory: bars },
       );
     }
   }
@@ -979,6 +990,51 @@ export async function getQuantum() {
   }
 }
 const DISARMED_NOTE = 'DISARMED telemetry: quantum ordering does NOT drive live sizing. This measures whether it WOULD lift outcomes before anyone arms it.';
+
+// ── Recent paper trades (the live trade tape) ───────────────────────────────
+let _tradesCache = null;
+const TRADES_TTL_MS = 3000;
+/**
+ * getRecentTrades(limit?) — newest-first closed paper trades across all market books, for the
+ * live trade tape. Reads the tail of each observatory-paper-*.jsonl. TTL-cached, fail-soft.
+ */
+export function getRecentTrades(limit = 40) {
+  const now = Date.now();
+  if (_tradesCache && now - _tradesCache.ts < TRADES_TTL_MS) return _tradesCache.data;
+  const out = [];
+  try {
+    const files = readdirSync(STATE_DIR).filter((f) => /^observatory-paper-.*\.jsonl$/.test(f));
+    for (const f of files) {
+      const market = f.replace(/^observatory-paper-/, '').replace(/\.jsonl$/, '');
+      let lines;
+      try { lines = readFileSync(path.join(STATE_DIR, f), 'utf8').split('\n'); } catch { continue; }
+      for (const ln of lines.slice(-400)) {
+        const t = ln.trim();
+        if (!t) continue;
+        let o; try { o = JSON.parse(t); } catch { continue; }
+        if (o && (o.type === 'close' || o.type === 'partial_close')) {
+          out.push({
+            market,
+            factorId: o.fid ?? o.inst ?? null,
+            side: o.side ?? null,
+            entryPx: Number.isFinite(o.entryPx) ? o.entryPx : null,
+            exitPx: Number.isFinite(o.exitPx) ? o.exitPx : (Number.isFinite(o.fp) ? o.fp : null),
+            netPnl: Number.isFinite(o.netPnl) ? o.netPnl : (Number.isFinite(o.grossPnl) ? o.grossPnl : null),
+            qty: Number.isFinite(o.qty) ? o.qty : (Number.isFinite(o.closeQty) ? o.closeQty : null),
+            reason: o.reason ?? null,
+            ts: o.cts ?? o.ts ?? 0,
+          });
+        }
+      }
+    }
+    out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    const data = { trades: out.slice(0, limit), total: out.length };
+    _tradesCache = { ts: now, data };
+    return data;
+  } catch (e) {
+    return { trades: [], total: 0, advisory: e.message };
+  }
+}
 
 /**
  * getSnapshot() — current full state snapshot for REST endpoints.
