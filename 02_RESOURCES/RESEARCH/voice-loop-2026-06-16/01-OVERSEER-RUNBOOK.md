@@ -44,8 +44,18 @@ The Stop hook speaks when armed by **env `VOICE_AGENT_ACTIVE=1`** OR the flag fi
 - Real surface refs from `cmux list-pane-surfaces` (a plain `claude` in a cmux tab should show as a pane surface — confirm it's addressable).
 - Overseer speaks but workers don't (env gating worked).
 
-## Phase B (next build): hands-free always-on mic
-Adapt `claude-brain-proxy.py` (`tmux send-keys` → `cmux send --surface <overseer>`) + run Pipecat `bot.py` (mic → MLX Whisper → brain-proxy → overseer). Then you talk and never touch the keyboard. Full architecture: `00-MASTER-BRIEF.md`.
+## Talk to it — the always-on mic (BUILT, Parakeet MLX)
+After the overseer is up, run `listen` (or `bash _SYSTEM/Scripts/voice/voice-listen.sh`) in any other terminal. It captures your mic, transcribes with **Parakeet TDT (parakeet-mlx, ≈100× real-time on Apple Silicon)**, and injects each utterance into the overseer's cmux tab when you pause. It **echo-gates**: while Rick is speaking it ignores the mic, so it never transcribes its own voice into a loop.
+
+- Engine pick (research → `02-STT-MODEL-RESEARCH.md`): Parakeet beats whisper.cpp large-v3-turbo by ~100× on speed; whisper.cpp stays as the zero-dep fallback (`VOICE_STT_ENGINE=whisper`).
+- Surface targeting: `overseer.sh` records its `$CMUX_SURFACE_ID` to `_SYSTEM/state/overseer/overseer.surface`; the listener reads it. So `listen` works from any terminal once the overseer is up.
+- Tune live (like the EQ): `VOICE_SILENCE_RMS` (mic sensitivity — raise if it triggers on noise), `VOICE_SILENCE_HANG` (pause length that ends an utterance, default 0.8s), `VOICE_MIN_SPEECH`, `VOICE_MIC_DEVICE`. List mic devices: `_SYSTEM/state/voice/.venv-stt/bin/python -c "import sounddevice;print(sounddevice.query_devices())"`.
+- venv: `_SYSTEM/state/voice/.venv-stt` (parakeet-mlx + sounddevice; gitignored under `_SYSTEM/state/voice`).
+
+Full loop now closed: you talk → Parakeet → overseer tab → overseer dispatches workers + replies → Rick speaks → mic re-opens. Hands-free.
+
+## Phase C (optional polish): lower-latency streaming + barge-in
+The current listener is VAD-segmented (injects on pause). Future: true token-streaming via Parakeet `transcribe_stream` for live partials, barge-in (interrupt Rick mid-sentence), and a wake-word gate. Full architecture: `00-MASTER-BRIEF.md`.
 
 ## Files
 - `_SYSTEM/Scripts/voice/overseer.sh` — one-word launcher (server-up + flag-off + voice-armed claude + role + board read).

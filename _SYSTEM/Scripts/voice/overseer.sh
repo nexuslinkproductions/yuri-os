@@ -34,7 +34,15 @@ if [ ! -f "$BOARD" ]; then
   echo "✓ seeded fleet board: $BOARD"
 fi
 
-# 4. launch the voice-armed overseer with its role loaded — NO forced opening turn
+# 4. record THIS session's cmux surface so the mic listener (voice-listen.sh) can target it
+if [ -n "${CMUX_SURFACE_ID:-}" ]; then
+  printf '%s\n' "$CMUX_SURFACE_ID" > "$REPO/_SYSTEM/state/overseer/overseer.surface"
+  echo "✓ overseer surface recorded — run \`listen\` in another tab to talk to it"
+else
+  echo "⚠ CMUX_SURFACE_ID not set (run inside a cmux tab so the mic listener can find this session)"
+fi
+
+# 5. launch the voice-armed overseer with its role loaded — NO forced opening turn
 #    (an auto-prompt would hang the boot on an API 529; the role says "read the board
 #     at session start", so the overseer reads it on Marcel's first message instead).
 echo "▶ launching OVERSEER (voice ON) — speak/type to begin; say \"status\" for a board read."
