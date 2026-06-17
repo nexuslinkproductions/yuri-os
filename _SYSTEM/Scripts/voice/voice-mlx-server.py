@@ -41,11 +41,28 @@ except Exception as e:
 print(f"[mlx-tts] READY model={MODEL_NAME} sr={SR} ref={REF} ref_text={'yes' if REF_TEXT else 'no'}", flush=True)
 
 _lock = threading.Lock()
+_last_req = [0.0]
 
 def synth(text):
+    import time as _t
+    _last_req[0] = _t.time()
     with _lock:  # serialize: MLX model state is not reentrant
         audio = _gen(text)
     return wav_bytes(audio, SR)
+
+# Keep-warm: idle MLX gets paged/recompiled -> the first reply after idle pays a ~6s
+# cold-start. A tiny periodic synth keeps the graph + weights hot so every reply is ~1s.
+def _keepwarm():
+    import time as _t
+    while True:
+        _t.sleep(20)
+        if _t.time() - _last_req[0] > 18:
+            try:
+                with _lock:
+                    _gen("ok")
+            except Exception:
+                pass
+threading.Thread(target=_keepwarm, daemon=True).start()
 
 def wav_bytes(x, sr):
     x = np.clip(x, -1.0, 1.0)

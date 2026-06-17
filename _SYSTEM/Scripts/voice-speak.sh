@@ -51,6 +51,10 @@ if [ -z "$URL" ]; then
 fi
 [ -z "$URL" ] && { say_fallback; exit 0; }
 
+# The EQ in eq-bands.conf was hand-tuned for Chatterbox's 24kHz voice; it mangles MOSS
+# (different timbre + 48kHz). Skip EQ for MOSS unless explicitly re-enabled (VOICE_EQ_MLX=1).
+case "$URL" in *:8005*) [ "${VOICE_EQ_MLX:-0}" = "1" ] || VOICE_EQ="";; esac
+
 # --- chunked + pipelined: synth sentence 1 (~2s) and PLAY it while the rest synthesize,
 #     so first-sound is the first sentence, not the whole reply (~5s on Chatterbox). ---
 synth_one(){  # $1=text $2=outfile -> 0 if a wav was produced
