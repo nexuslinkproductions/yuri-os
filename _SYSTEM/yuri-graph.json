@@ -63,7 +63,6 @@
           "TIRITH",
           "BASH_GUARD",
           "GITNEX_PRE",
-          "SCOUT_HERMES",
           "SCOUT_ARGUS",
           "HOOK_PIPELINE"
         ],
@@ -114,7 +113,6 @@
           "ADVISORS",
           "DEEPSEEK_A",
           "SENTINEL_A",
-          "HERMES_A",
           "YURI_RISK_A",
           "SWARM_A",
           "CRUCIBLE_A",
@@ -150,23 +148,6 @@
         ],
         "plane_radii": {
           "ROUTING": 400
-        }
-      },
-      {
-        "name": "codex_gate",
-        "color": "#FF6835",
-        "nodes": [
-          "CODEX_GATE",
-          "PROPOSE",
-          "APPROVED",
-          "APPLY",
-          "PROP_DRYRUN",
-          "APPLY_HEAD",
-          "CODEX_FLOW"
-        ],
-        "plane_radii": {
-          "CODEX_GATE": 300,
-          "CODEX_FLOW": 220
         }
       },
       {
@@ -322,7 +303,7 @@
           "twist": 4.065590492880908
         },
         {
-          "id": "CODEX_GATE",
+          "id": null,
           "y": -860,
           "twist": 4.435189628597355
         },
@@ -383,7 +364,6 @@
         "NEXUSPULSE→ENKI_DECIDES",
         "CLASSIFIER→ENKI",
         "ROUTING→RESPONSE",
-        "CODEX_GATE→RESPONSE",
         "SERVICES→ENKI",
         "GITNEXUS→ENKI",
         "SELF_IMPROVE→ENKI"
@@ -415,12 +395,10 @@
           "ADVISORS",
           "ENKI_DECIDES",
           "ROUTING",
-          "CODEX_GATE",
           "GITNEXUS",
           "SELF_IMPROVE",
           "DEEPSEEK_A",
           "SENTINEL_A",
-          "HERMES_A",
           "YURI_RISK_A",
           "SWARM_A",
           "CRUCIBLE_A"
@@ -528,8 +506,7 @@
         "wp3_memory_report": "_SYSTEM/SELF-IMPROVEMENT/memory-placement-impact.md",
         "wp4_node_merges": [
           "NATIVE_GATES",
-          "HOOK_PIPELINE",
-          "CODEX_FLOW"
+          "HOOK_PIPELINE"
         ],
         "collapsed_rendering": true,
         "skill_pruning": "gitnexus compatibility mirrors pruned",
@@ -556,7 +533,6 @@
     "PULSE_BUS",
     "ENKI_DECIDES",
     "ROUTING",
-    "CODEX_GATE",
     "MEMORY",
     "SERVICES",
     "RESPONSE",
@@ -585,7 +561,6 @@
     "CLF_ROUTE_PLAN",
     "DEEPSEEK_A",
     "SENTINEL_A",
-    "HERMES_A",
     "YURI_RISK_A",
     "SWARM_A",
     "CRUCIBLE_A",
@@ -604,9 +579,6 @@
     "LANE_MIMO",
     "LANE_TRIAGE",
     "LANE_GPTOSS",
-    "PROPOSE",
-    "APPROVED",
-    "APPLY",
     "MEM_HOT",
     "MEM_WARM",
     "MEM_COLD",
@@ -621,7 +593,6 @@
     "SOUL_FILE",
     "YURI_COG",
     "PALACE_IDX",
-    "SCOUT_HERMES",
     "SCOUT_ARGUS",
     "DS_FLASH",
     "DS_PRO",
@@ -630,8 +601,6 @@
     "SWARM_PRO",
     "MINI_WRITE",
     "CDX_FULL",
-    "PROP_DRYRUN",
-    "APPLY_HEAD",
     "HOT_PLAN",
     "HOT_BUS",
     "WARM_EOT",
@@ -667,7 +636,6 @@
     "ENKI_INBOX",
     "NATIVE_GATES",
     "HOOK_PIPELINE",
-    "CODEX_FLOW",
     "CMD_SHURA",
     "CMD_REPORT",
     "LANE_GEMMA"
@@ -875,7 +843,6 @@
         "children": [
           "DEEPSEEK_A",
           "SENTINEL_A",
-          "HERMES_A",
           "YURI_RISK_A",
           "SWARM_A",
           "CRUCIBLE_A"
@@ -962,140 +929,6 @@
         "description": "The single bash dispatcher and true ingress of the retrieval layer — exec-style pure routing where 'ai search|find' → yuri-search, 'ai reindex|search-index' → yuri-search-index, and 'ai triage|research' → run_triage. Must be invoked as bash 'ai …', never 'node ai'."
       },
       "label": "ai CLI Facade (retrieval front door)"
-    },
-    {
-      "id": "APPLY",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "sub",
-        "label": "apply",
-        "role": "HEAD SHA verify",
-        "detail": "",
-        "radius": 22,
-        "color": "#FF6835",
-        "position": {
-          "x": 191.701,
-          "y": -916,
-          "z": -107.94
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "apply supports the codex gate sector as HEAD SHA verify.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Represent HEAD SHA verify",
-            "Connect under CODEX_GATE",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "CODEX_GATE"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "RESPONSE",
-          "collapsed_into": "CODEX_FLOW",
-          "status": "collapsed-v15"
-        },
-        "parent": "CODEX_GATE",
-        "children": [
-          "APPLY_HEAD"
-        ],
-        "collapsed_into": "CODEX_FLOW"
-      },
-      "mechanism": null,
-      "label": "apply"
-    },
-    {
-      "id": "APPLY_HEAD",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "leaf",
-        "label": "HEAD SHA verify",
-        "role": "stale-protection",
-        "detail": "",
-        "radius": 8,
-        "color": "#FF6835",
-        "position": {
-          "x": 252.696,
-          "y": -944,
-          "z": -142.284
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "HEAD SHA verify supports the codex gate sector as stale-protection.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Represent stale-protection",
-            "Connect under APPLY",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "APPLY"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "APPLY"
-        },
-        "parent": "CODEX_FLOW",
-        "children": []
-      },
-      "mechanism": null,
-      "label": "HEAD SHA verify"
-    },
-    {
-      "id": "APPROVED",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "sub",
-        "label": ".approved",
-        "role": "user marker",
-        "detail": "",
-        "radius": 22,
-        "color": "#FF6835",
-        "position": {
-          "x": -60.206,
-          "y": -916,
-          "z": -211.602
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": ".approved supports the codex gate sector as user marker.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Represent user marker",
-            "Connect under CODEX_GATE",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "CODEX_GATE"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "RESPONSE",
-          "collapsed_into": "CODEX_FLOW",
-          "status": "collapsed-v15"
-        },
-        "parent": "CODEX_GATE",
-        "children": [],
-        "collapsed_into": "CODEX_FLOW"
-      },
-      "mechanism": null,
-      "label": ".approved"
     },
     {
       "id": "artifact-registry",
@@ -1921,92 +1754,6 @@
       "label": "SPEC family"
     },
     {
-      "id": "CODEX_FLOW",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "sub",
-        "label": "CODEX FLOW",
-        "role": "propose approve apply",
-        "detail": "propose / .approved / HEAD SHA / apply",
-        "radius": 38,
-        "color": "#FF6835",
-        "position": {
-          "x": 220,
-          "y": -860,
-          "z": 100
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "Merged Codex two-phase gate with visible propose, approve, and apply phase badge.",
-          "returns_to": "RESPONSE",
-          "status": "applied-v15",
-          "collapsed_count": 3,
-          "collapsed_sources": [
-            "PROPOSE",
-            "APPROVED",
-            "APPLY"
-          ]
-        },
-        "parent": "CODEX_GATE",
-        "children": []
-      },
-      "mechanism": null,
-      "label": "CODEX FLOW"
-    },
-    {
-      "id": "CODEX_GATE",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "section",
-        "label": "CODEX GATE",
-        "role": "two-phase gate",
-        "detail": "propose / .approved / HEAD SHA / apply",
-        "radius": 50,
-        "color": "#FF6835",
-        "position": {
-          "x": 0,
-          "y": -860,
-          "z": 0
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Propose dry-run diff",
-            "Require approval marker",
-            "Verify HEAD SHA",
-            "Apply after gate passes"
-          ],
-          "dependencies": [
-            "pulse-codex-runner",
-            ".approved marker",
-            "git rev-parse HEAD"
-          ],
-          "state_files": [
-            ".claude/state/pulse-codex-pending.json"
-          ],
-          "notes": "Protected state path referenced only; not read.",
-          "returns_to": "RESPONSE"
-        },
-        "parent": null,
-        "children": [
-          "PROPOSE",
-          "APPROVED",
-          "APPLY"
-        ]
-      },
-      "mechanism": null,
-      "label": "CODEX GATE"
-    },
-    {
       "id": "COLD_RULES",
       "tiers": [
         "flow"
@@ -2098,7 +1845,7 @@
       "flow": {
         "tier": "sub",
         "label": "COMPLEX",
-        "role": "+OC+HERMES+CASS",
+        "role": "+OC+CASS",
         "detail": "",
         "radius": 22,
         "color": "#48C3D8",
@@ -2109,13 +1856,13 @@
         },
         "sector": "classification",
         "metadata": {
-          "purpose": "COMPLEX supports the classification sector as +OC+HERMES+CASS.",
+          "purpose": "COMPLEX supports the classification sector as +OC+CASS.",
           "files": [
             "_SYSTEM/Scripts/pulse-orchestrator.mjs",
             "CLAUDE.md"
           ],
           "capabilities": [
-            "Represent +OC+HERMES+CASS",
+            "Represent +OC+CASS",
             "Connect under CLASSIFIER",
             "Expose architecture metadata to visual introspection"
           ],
@@ -3623,8 +3370,7 @@
             "trace flows"
           ],
           "dependencies": [
-            "ENKI",
-            "CODEX_GATE"
+            "ENKI"
           ],
           "state_files": [],
           "notes": "New v12 sector closes code-impact checks back into ENKI and Codex gate validation.",
@@ -3687,8 +3433,7 @@
             "changed-symbol detection"
           ],
           "dependencies": [
-            "GITNEXUS",
-            "CODEX_GATE"
+            "GITNEXUS"
           ],
           "state_files": [],
           "notes": "",
@@ -3877,52 +3622,6 @@
         "triggeredBy": "CLI seed/project/verify; the ONE canonical graph _SYSTEM/yuri-graph.json is the single source; the flow (yuri-graph-state.json) + mechanism (yuri-circuitry-graph.json) views are GENERATED projections. Edit canonical, run project, both views regenerate; drift structurally impossible.",
         "description": "Solves the two-graph fragmentation: one canonical tiered graph (flow + mechanism nodes), the two view files become lossless generated projections. seedCanonical unions both; projectFlow/projectMechanism regenerate the views in original order; verifyLossless proves the round-trip."
       }
-    },
-    {
-      "id": "HERMES_A",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "sub",
-        "label": "HERMES",
-        "role": "native_fn",
-        "detail": "",
-        "radius": 24,
-        "color": "#9B6EFF",
-        "position": {
-          "x": -197.922,
-          "y": -266,
-          "z": 96.056
-        },
-        "sector": "advisors",
-        "metadata": {
-          "purpose": "Native forecast advisor for context pressure, scope breadth, and session drift.",
-          "files": [
-            "_SYSTEM/Scripts/pulse-orchestrator.mjs"
-          ],
-          "capabilities": [
-            "Predict context pressure",
-            "Detect broad prompt scope",
-            "Warn on accumulated writes"
-          ],
-          "dependencies": [
-            "session-state path reference",
-            "prompt path mentions"
-          ],
-          "state_files": [
-            ".claude/state/session-state.json"
-          ],
-          "runtime_kind": "native_function",
-          "authority_bounds": "advisory heuristic only",
-          "notes": "dispatchHermesForecast returns runtimeKind native_function; protected state path referenced only.",
-          "returns_to": "PULSE_BUS"
-        },
-        "parent": "ADVISORS",
-        "children": []
-      },
-      "mechanism": null,
-      "label": "HERMES"
     },
     {
       "id": "HOOK_PIPELINE",
@@ -5408,12 +5107,12 @@
         },
         "sector": "advisors",
         "metadata": {
-          "purpose": "Aggregate native HERMES forecast and ARGUS tool-sequencing gates.",
+          "purpose": "Aggregate native ARGUS tool-sequencing gates.",
           "returns_to": "PULSE_BUS",
           "status": "applied-v15",
           "collapsed_count": 2,
           "collapsed_sources": [
-            "SCOUT_HERMES",
+            "SCOUT_",
             "SCOUT_ARGUS"
           ]
         },
@@ -6228,8 +5927,7 @@
             "regression gate"
           ],
           "dependencies": [
-            "PULSE_ARCHIVE",
-            "CODEX_GATE"
+            "PULSE_ARCHIVE"
           ],
           "state_files": [],
           "notes": "",
@@ -6289,48 +5987,6 @@
       "label": "PROMPT HOOKS"
     },
     {
-      "id": "PROP_DRYRUN",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "leaf",
-        "label": "dry-run diff",
-        "role": "no writes",
-        "detail": "",
-        "radius": 8,
-        "color": "#FF6835",
-        "position": {
-          "x": -289.75,
-          "y": -944,
-          "z": 12.054
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "dry-run diff supports the codex gate sector as no writes.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Represent no writes",
-            "Connect under PROPOSE",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "PROPOSE"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "PROPOSE"
-        },
-        "parent": "CODEX_FLOW",
-        "children": []
-      },
-      "mechanism": null,
-      "label": "dry-run diff"
-    },
-    {
       "id": "PROPAGATION_SCAN",
       "tiers": [
         "flow",
@@ -6379,53 +6035,6 @@
         "description": "Read-only cross-reference engine V1 (_SYSTEM/Scripts/propagation-scan.mjs): resolves a circuitry node-id and surfaces its structural mechanism-siblings via shared node.files membership and GitNexus structural relations (writes-edges excluded). Pure analyzer — reads the circuitry graph + GitNexus and writes nothing to either graph."
       },
       "label": "propagation-scan"
-    },
-    {
-      "id": "PROPOSE",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "sub",
-        "label": "propose",
-        "role": "dry-run diff",
-        "detail": "",
-        "radius": 22,
-        "color": "#FF6835",
-        "position": {
-          "x": -219.81,
-          "y": -916,
-          "z": 9.145
-        },
-        "sector": "codex_gate",
-        "metadata": {
-          "purpose": "propose supports the codex gate sector as dry-run diff.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/Scripts/llm-compat-contract.mjs"
-          ],
-          "capabilities": [
-            "Represent dry-run diff",
-            "Connect under CODEX_GATE",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "CODEX_GATE"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "RESPONSE",
-          "collapsed_into": "CODEX_FLOW",
-          "status": "collapsed-v15"
-        },
-        "parent": "CODEX_GATE",
-        "children": [
-          "PROP_DRYRUN"
-        ],
-        "collapsed_into": "CODEX_FLOW"
-      },
-      "mechanism": null,
-      "label": "propose"
     },
     {
       "id": "PROT_GUARD",
@@ -6771,51 +6380,6 @@
       "label": "ARGUS"
     },
     {
-      "id": "SCOUT_HERMES",
-      "tiers": [
-        "flow"
-      ],
-      "flow": {
-        "tier": "leaf",
-        "label": "HERMES_FC",
-        "role": "context check",
-        "detail": "",
-        "radius": 8,
-        "color": "#A398B8",
-        "position": {
-          "x": 53.974,
-          "y": 216,
-          "z": 261.708
-        },
-        "sector": "prompt_hooks",
-        "metadata": {
-          "purpose": "HERMES_FC supports the prompt hooks sector as context check.",
-          "files": [
-            "CLAUDE.md",
-            "_SYSTEM/yuri-origin.md"
-          ],
-          "capabilities": [
-            "Represent context check",
-            "Connect under SCOUT_SPAWN",
-            "Expose architecture metadata to visual introspection"
-          ],
-          "dependencies": [
-            "SCOUT_SPAWN"
-          ],
-          "state_files": [],
-          "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "SCOUT_SPAWN",
-          "collapsed_into": "NATIVE_GATES",
-          "status": "collapsed-v15"
-        },
-        "parent": "SCOUT_SPAWN",
-        "children": [],
-        "collapsed_into": "NATIVE_GATES"
-      },
-      "mechanism": null,
-      "label": "HERMES_FC"
-    },
-    {
       "id": "SCOUT_SPAWN",
       "tiers": [
         "flow"
@@ -6823,7 +6387,7 @@
       "flow": {
         "tier": "sub",
         "label": "scout-spawn",
-        "role": "HERMES+ARGUS",
+        "role": "ARGUS",
         "detail": "",
         "radius": 22,
         "color": "#A398B8",
@@ -6834,13 +6398,13 @@
         },
         "sector": "prompt_hooks",
         "metadata": {
-          "purpose": "scout-spawn supports the prompt hooks sector as HERMES+ARGUS.",
+          "purpose": "scout-spawn supports the prompt hooks sector as ARGUS.",
           "files": [
             "CLAUDE.md",
             "_SYSTEM/yuri-origin.md"
           ],
           "capabilities": [
-            "Represent HERMES+ARGUS",
+            "Represent ARGUS",
             "Connect under PROMPT_HOOKS",
             "Expose architecture metadata to visual introspection"
           ],
@@ -6855,7 +6419,6 @@
         },
         "parent": "PROMPT_HOOKS",
         "children": [
-          "SCOUT_HERMES",
           "SCOUT_ARGUS"
         ],
         "collapsed_into": "HOOK_PIPELINE"
@@ -8871,13 +8434,6 @@
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
       "source": "ROUTING",
       "target": "MEMORY",
       "type": "memory",
@@ -9042,13 +8598,6 @@
     },
     {
       "source": "ADVISORS",
-      "target": "HERMES_A",
-      "type": "branch",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "ADVISORS",
       "target": "YURI_RISK_A",
       "type": "branch",
       "is_return": false,
@@ -9171,14 +8720,6 @@
       "target": "LANE_GPTOSS",
       "type": "branch",
       "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_GATE",
-      "target": "CODEX_FLOW",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": [],
       "view": "flow"
     },
     {
@@ -9337,22 +8878,6 @@
       "view": "flow"
     },
     {
-      "source": "CODEX_FLOW",
-      "target": "PROP_DRYRUN",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": [],
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPLY_HEAD",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": [],
-      "view": "flow"
-    },
-    {
       "source": "MEM_HOT",
       "target": "HOT_PLAN",
       "type": "branch",
@@ -9416,13 +8941,6 @@
       "view": "flow"
     },
     {
-      "source": "HERMES_A",
-      "target": "PULSE_BUS",
-      "type": "data",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
       "source": "YURI_RISK_A",
       "target": "PULSE_BUS",
       "type": "data",
@@ -9455,20 +8973,6 @@
       "source": "MEM_HOT",
       "target": "ENKI_DECIDES",
       "type": "memory",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "LANE_MINI",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "LANE_CODEX",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": false,
       "view": "flow"
     },
@@ -9541,13 +9045,6 @@
       "view": "flow"
     },
     {
-      "source": "CODEX_GATE",
-      "target": "RESPONSE",
-      "type": "return",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
       "source": "SERVICES",
       "target": "ENKI_INBOX",
       "type": "feedback",
@@ -9560,14 +9057,6 @@
       "target": "PULSE_BUS",
       "type": "advises",
       "is_return": true,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "RESPONSE",
-      "type": "flow",
-      "is_return": true,
-      "redirected_from": [],
       "view": "flow"
     },
     {
@@ -9632,14 +9121,6 @@
       "source": "HOOK_PIPELINE",
       "target": "PULSE_BUS",
       "type": "data",
-      "is_return": true,
-      "redirected_from": [],
-      "view": "flow"
-    },
-    {
-      "source": "HOOK_PIPELINE",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": true,
       "redirected_from": [],
       "view": "flow"
@@ -9761,13 +9242,6 @@
       "view": "flow"
     },
     {
-      "source": "NP_CODEX_RUNNER",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
       "source": "PB_RING",
       "target": "ENKI_DECIDES",
       "type": "data",
@@ -9799,13 +9273,6 @@
       "source": "ED_ROUTE",
       "target": "ROUTING",
       "type": "flow",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
-      "source": "ED_FINAL",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": true,
       "view": "flow"
     },
@@ -9889,13 +9356,6 @@
       "source": "GN_IMPACT",
       "target": "GITNEXUS",
       "type": "data",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
-      "source": "GN_DETECT",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": true,
       "view": "flow"
     },
@@ -10004,13 +9464,6 @@
       "view": "flow"
     },
     {
-      "source": "PRECOMMIT_REGRESS",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
       "source": "BEACON_OBSIDIAN",
       "target": "MEM_WARM",
       "type": "memory",
@@ -10093,22 +9546,6 @@
       "target": "LANE_CODEX",
       "type": "logs",
       "is_return": true,
-      "view": "flow"
-    },
-    {
-      "source": "PROP_DRYRUN",
-      "target": "CODEX_FLOW",
-      "type": "logs",
-      "is_return": true,
-      "redirected_from": [],
-      "view": "flow"
-    },
-    {
-      "source": "APPLY_HEAD",
-      "target": "CODEX_FLOW",
-      "type": "logs",
-      "is_return": true,
-      "redirected_from": [],
       "view": "flow"
     },
     {
@@ -10443,13 +9880,6 @@
     },
     {
       "source": "MEMORY",
-      "target": "CODEX_GATE",
-      "type": "memory",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "MEMORY",
       "target": "GITNEXUS",
       "type": "memory",
       "is_return": false,
@@ -10472,13 +9902,6 @@
     {
       "source": "MEMORY",
       "target": "SENTINEL_A",
-      "type": "memory",
-      "is_return": false,
-      "view": "flow"
-    },
-    {
-      "source": "MEMORY",
-      "target": "HERMES_A",
       "type": "memory",
       "is_return": false,
       "view": "flow"
@@ -10548,13 +9971,6 @@
     },
     {
       "source": "ENKI_DECIDES",
-      "target": "MEMORY",
-      "type": "feedback",
-      "is_return": true,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_GATE",
       "target": "MEMORY",
       "type": "feedback",
       "is_return": true,
@@ -10669,62 +10085,6 @@
     {
       "source": "GITNEX_PRE",
       "target": "HOOK_PIPELINE",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "PROPOSE",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "PROPOSE",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPROVED",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "APPROVED",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPLY",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "APPLY",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "NATIVE_GATES",
-      "target": "SCOUT_HERMES",
-      "type": "collapsed-membership",
-      "hidden": true,
-      "view": "flow"
-    },
-    {
-      "source": "SCOUT_HERMES",
-      "target": "NATIVE_GATES",
       "type": "collapsed-membership",
       "hidden": true,
       "view": "flow"

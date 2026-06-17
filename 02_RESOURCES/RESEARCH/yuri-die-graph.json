@@ -1,20 +1,20 @@
 {
   "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`. — DIE VIEW: the entire unified system (all tiers).",
   "schema": "yuri.die-graph.v1",
-  "nodeCount": 241,
+  "nodeCount": 232,
   "edgeCount": 196,
   "graphEdgeCount": 113,
   "kinds": {
     "die": 119,
-    "peripheral": 122
+    "peripheral": 113
   },
   "layers": {
     "Energy & Math": 39,
-    "Relational & Peer": 13,
-    "Token-Efficiency & Session": 27,
+    "Relational & Peer": 12,
+    "Token-Efficiency & Session": 26,
     "Hidden / Meta / Self-referential": 16,
     "Retrieval & Knowledge": 26,
-    "Governance & Safety": 18,
+    "Governance & Safety": 11,
     "Self-Improvement": 10,
     "Cognition & Persona": 15,
     "Skills & Orchestration": 34,
@@ -87,45 +87,6 @@
       "triggeredBy": "CLI — `ai search|find|reindex|triage` (bash; never `node ai`)",
       "description": "The single bash dispatcher and true ingress of the retrieval layer — exec-style pure routing where 'ai search|find' → yuri-search, 'ai reindex|search-index' → yuri-search-index, and 'ai triage|research' → run_triage. Must be invoked as bash 'ai …', never 'node ai'.",
       "sector": null
-    },
-    {
-      "id": "APPLY",
-      "kind": "peripheral",
-      "label": "apply",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "HEAD SHA verify",
-      "description": "apply supports the codex gate sector as HEAD SHA verify.",
-      "sector": "codex_gate"
-    },
-    {
-      "id": "APPLY_HEAD",
-      "kind": "peripheral",
-      "label": "HEAD SHA verify",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "stale-protection",
-      "description": "HEAD SHA verify supports the codex gate sector as stale-protection.",
-      "sector": "codex_gate"
-    },
-    {
-      "id": "APPROVED",
-      "kind": "peripheral",
-      "label": ".approved",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "user marker",
-      "description": ".approved supports the codex gate sector as user marker.",
-      "sector": "codex_gate"
     },
     {
       "id": "artifact-registry",
@@ -388,29 +349,6 @@
       "sector": "command_registry"
     },
     {
-      "id": "CODEX_FLOW",
-      "kind": "peripheral",
-      "label": "CODEX FLOW",
-      "layer": "Governance & Safety",
-      "files": [],
-      "triggeredBy": "propose approve apply — propose / .approved / HEAD SHA / apply",
-      "description": "Merged Codex two-phase gate with visible propose, approve, and apply phase badge.",
-      "sector": "codex_gate"
-    },
-    {
-      "id": "CODEX_GATE",
-      "kind": "peripheral",
-      "label": "CODEX GATE",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "two-phase gate — propose / .approved / HEAD SHA / apply",
-      "description": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
-      "sector": "codex_gate"
-    },
-    {
       "id": "COLD_RULES",
       "kind": "peripheral",
       "label": "prevention-rules.md",
@@ -445,8 +383,8 @@
         "_SYSTEM/Scripts/pulse-orchestrator.mjs",
         "CLAUDE.md"
       ],
-      "triggeredBy": "+OC+HERMES+CASS",
-      "description": "COMPLEX supports the classification sector as +OC+HERMES+CASS.",
+      "triggeredBy": "+OC+CASS",
+      "description": "COMPLEX supports the classification sector as +OC+CASS.",
       "sector": "classification"
     },
     {
@@ -1131,18 +1069,6 @@
       "sector": null
     },
     {
-      "id": "HERMES_A",
-      "kind": "peripheral",
-      "label": "HERMES",
-      "layer": "Relational & Peer",
-      "files": [
-        "_SYSTEM/Scripts/pulse-orchestrator.mjs"
-      ],
-      "triggeredBy": "native_fn",
-      "description": "Native forecast advisor for context pressure, scope breadth, and session drift.",
-      "sector": "advisors"
-    },
-    {
       "id": "HOOK_PIPELINE",
       "kind": "peripheral",
       "label": "HOOK PIPELINE",
@@ -1734,7 +1660,7 @@
       "layer": "Relational & Peer",
       "files": [],
       "triggeredBy": "native advisory gates — Promise.allSettled / 60-90s timeout",
-      "description": "Aggregate native HERMES forecast and ARGUS tool-sequencing gates.",
+      "description": "Aggregate native ARGUS tool-sequencing gates.",
       "sector": "advisors"
     },
     {
@@ -2006,19 +1932,6 @@
       "sector": "prompt_hooks"
     },
     {
-      "id": "PROP_DRYRUN",
-      "kind": "peripheral",
-      "label": "dry-run diff",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "no writes",
-      "description": "dry-run diff supports the codex gate sector as no writes.",
-      "sector": "codex_gate"
-    },
-    {
       "id": "PROPAGATION_SCAN",
       "kind": "die",
       "label": "propagation-scan (cross-reference engine V1)",
@@ -2029,19 +1942,6 @@
       "triggeredBy": "CLI — `propagation-scan <node-id>`; read-only structural cross-reference",
       "description": "Read-only cross-reference engine V1 (_SYSTEM/Scripts/propagation-scan.mjs): resolves a circuitry node-id and surfaces its structural mechanism-siblings via shared node.files membership and GitNexus structural relations (writes-edges excluded). Pure analyzer — reads the circuitry graph + GitNexus and writes nothing to either graph.",
       "sector": "code_intelligence"
-    },
-    {
-      "id": "PROPOSE",
-      "kind": "peripheral",
-      "label": "propose",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/llm-compat-contract.mjs"
-      ],
-      "triggeredBy": "dry-run diff",
-      "description": "propose supports the codex gate sector as dry-run diff.",
-      "sector": "codex_gate"
     },
     {
       "id": "PROT_GUARD",
@@ -2147,19 +2047,6 @@
       "sector": "prompt_hooks"
     },
     {
-      "id": "SCOUT_HERMES",
-      "kind": "peripheral",
-      "label": "HERMES_FC",
-      "layer": "Token-Efficiency & Session",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md"
-      ],
-      "triggeredBy": "context check",
-      "description": "HERMES_FC supports the prompt hooks sector as context check.",
-      "sector": "prompt_hooks"
-    },
-    {
       "id": "SCOUT_SPAWN",
       "kind": "peripheral",
       "label": "scout-spawn",
@@ -2168,8 +2055,8 @@
         "CLAUDE.md",
         "_SYSTEM/yuri-origin.md"
       ],
-      "triggeredBy": "HERMES+ARGUS",
-      "description": "scout-spawn supports the prompt hooks sector as HERMES+ARGUS.",
+      "triggeredBy": "ARGUS",
+      "description": "scout-spawn supports the prompt hooks sector as ARGUS.",
       "sector": "prompt_hooks"
     },
     {

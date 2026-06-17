@@ -118,7 +118,7 @@ export const SECTOR_TO_LAYER = {
   operator_io: 'Perception & Interface', pulse_cortex: 'Cognition & Persona', advisors: 'Relational & Peer',
   memory: 'Memory & Subconscious', classification: 'Retrieval & Knowledge', code_intelligence: 'Retrieval & Knowledge',
   self_improvement: 'Self-Improvement', routing_lanes: 'Skills & Orchestration', command_registry: 'Skills & Orchestration',
-  services: 'Actuation & Embodiment', codex_gate: 'Governance & Safety', control_plane: 'Governance & Safety',
+  services: 'Actuation & Embodiment', control_plane: 'Governance & Safety',
   prompt_hooks: 'Token-Efficiency & Session', initialization: 'Token-Efficiency & Session', unassigned: 'Hidden / Meta / Self-referential',
 };
 const DIE_FALLBACK_LAYER = 'Hidden / Meta / Self-referential';
