@@ -163,9 +163,15 @@ export function makeJwt({ keyName, privateKeyPem, method, requestPath }) {
 
   let key;
   try {
-    key = crypto.createPrivateKey(privateKeyPem);
+    // Normalize PEMs carried as single-line strings (env vars, JSON `privateKey` fields, copy-paste
+    // all escape newlines to a literal "\n"). A real PEM body never contains a backslash-n, so this
+    // is a no-op for already-correct PEMs and the fix for the escaped case (DECODER 'unsupported').
+    const normalizedPem = typeof privateKeyPem === 'string' && privateKeyPem.includes('\\n')
+      ? privateKeyPem.replace(/\\n/g, '\n')
+      : privateKeyPem;
+    key = crypto.createPrivateKey(normalizedPem);
   } catch (e) {
-    throw new MappingError(`makeJwt: invalid PEM: ${e.message}`, privateKeyPem.substring(0, 20) + '...');
+    throw new MappingError(`makeJwt: invalid PEM: ${e.message}`, String(privateKeyPem).substring(0, 20) + '...');
   }
 
   const isEd25519 = key.asymmetricKeyType === 'ed25519';
@@ -201,7 +207,13 @@ export function makeJwt({ keyName, privateKeyPem, method, requestPath }) {
   const payloadB64 = b64u(payload);
   const signingInput = `${headerB64}.${payloadB64}`;
 
-  const sig = crypto.sign(null, Buffer.from(signingInput), key);
+  // Ed25519: algorithm MUST be null (no prehash); sig is already raw 64-byte EdDSA.
+  // EC/ES256: MUST digest with SHA-256 AND emit RAW R‖S (IEEE-P1363) — Node defaults to DER-encoded
+  // ECDSA, which the JWT/JWS ES256 spec (and Coinbase) reject → 401. This branch was never exercised
+  // because Ed25519 is Coinbase's default key type.
+  const sig = isEd25519
+    ? crypto.sign(null, Buffer.from(signingInput), key)
+    : crypto.sign('sha256', Buffer.from(signingInput), { key, dsaEncoding: 'ieee-p1363' });
   const sigB64 = sig.toString('base64url');
 
   return `${signingInput}.${sigB64}`;
