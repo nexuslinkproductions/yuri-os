@@ -348,6 +348,7 @@ export default function BrainBoard({ obs }: Props) {
                 market={activeMkt}
                 marketData={mktData}
                 allPositions={allPositions}
+                account={board.account}
               />
             </div>
           </div>

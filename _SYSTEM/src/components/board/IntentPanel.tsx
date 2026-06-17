@@ -3,12 +3,13 @@
  * Wired to real signal/paper data. Account shows VIEW-ONLY.
  */
 
-import type { MarketData, PaperPosition } from './api';
+import type { MarketData, PaperPosition, AccountResponse } from './api';
 
 interface Props {
   market: string;
   marketData: MarketData | null;
   allPositions: PaperPosition[];
+  account?: AccountResponse | null;
 }
 
 function fmtUSD(v: number, decimals = 2): string {
@@ -31,7 +32,7 @@ function fmtAge(ts: number): string {
   return `${Math.floor(diff / 86400)}d ${Math.floor((diff % 86400) / 3600)}h`;
 }
 
-export default function IntentPanel({ market, marketData, allPositions }: Props) {
+export default function IntentPanel({ market, marketData, allPositions, account }: Props) {
   const signals = marketData?.signals ?? [];
   // Primary signal: prefer main momentum (no source), fall back to first
   const primarySignal = signals.find(s => !s.source) ?? signals[0] ?? null;
@@ -164,9 +165,28 @@ export default function IntentPanel({ market, marketData, allPositions }: Props)
         <span className="bb-sub-eyebrow">Real Account</span>
         <span className="bb-viewonly">VIEW-ONLY</span>
       </div>
-      <div className="bb-acct-pending">
-        Connect Coinbase API key (view-only) to show real balances.
-      </div>
+      {account?.connected ? (
+        <div className="bb-acct">
+          <div className="bb-acct-row head"><span>Asset</span><span>Amount</span><span className="r">USD</span></div>
+          {(account.holdings ?? []).slice(0, 6).map((h) => (
+            <div key={h.currency} className="bb-acct-row">
+              <span className="bb-acct-cur">{h.currency}</span>
+              <span className="bb-acct-amt">{h.total}</span>
+              <span className="bb-acct-val">{h.priced ? fmtUSD(h.usdValue ?? 0) : '—'}</span>
+            </div>
+          ))}
+          <div className="bb-acct-total">
+            <span className="bb-acct-total-label">Real equity · {account.accountCount ?? 0} accts</span>
+            <span className="bb-acct-val">{fmtUSD(account.realEquityUsd ?? 0)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="bb-acct-pending">
+          {account?.advisory === 'no-key'
+            ? 'Connect Coinbase API key (view-only) to show real balances.'
+            : (account?.advisory ?? 'Connecting to view-only account…')}
+        </div>
+      )}
     </div>
   );
 }
