@@ -46,6 +46,7 @@ import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
 import { computeAllStrategies } from '../strategy-registry.mjs';
 import { combineSignals } from '../ensemble.mjs';
+import { recordForecasts } from '../strategy-weights.mjs';
 // factorQualityScore removed — not wired in W2 observatory (BUG-3: dead import)
 // PerpAdapter removed — W2 is crypto-primary; perp market loop not yet wired (BUG-4: inert import)
 
@@ -89,6 +90,7 @@ const PER_FACTOR_MAX_PCT = 0.001;
 // markets keeps fee drag tiny while trading continuously.
 const ENSEMBLE_MAX_PCT = 0.10;
 const ENSEMBLE_WEIGHTS_PATH = path.join(STATE_DIR, 'ensemble-weights.json');
+const FORECAST_LEDGER = path.join(STATE_DIR, 'strategy-forecasts.jsonl');
 
 /**
  * getEnsembleWeights() — per-strategy weights for the ensemble vote, written by the slower
@@ -586,6 +588,12 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     confidence: ensemble.confidence, longVotes: ensemble.longVotes,
     shortVotes: ensemble.shortVotes, contributors: ensemble.contributors, top: ensemble.top,
   };
+
+  // Record per-strategy forecasts (leak-free) so the re-weighting brain can score which strategies
+  // actually predict → adaptive ensemble weights. Telemetry only, never trades. Fail-soft.
+  if (cfg.enableStrategyForecasts !== false) {
+    try { recordForecasts(market, signals, lastBar.close, now, FORECAST_LEDGER); } catch (_e) { /* never break the cycle */ }
+  }
 
   const inst = `ensemble-${market}`;
   const existing = engine.positions().find((p) => p.instrument === inst);
@@ -1098,6 +1106,7 @@ export const DEFAULT_CONFIG = {
   enableAccount: true,         // read the real VIEW-ONLY Coinbase account each cycle (no-op without creds)
   enableLearnLoop: true,       // decode closed paper trades → AFL_LEDGER (data accrual only; promotion stays owner-gated)
   enableQuantumShadow: true,   // record classical-vs-quantum A/B shadow each cycle (telemetry only; never sizes)
+  enableStrategyForecasts: true, // record per-strategy forecasts each cycle → the re-weighting brain's data
 };
 
 /**
