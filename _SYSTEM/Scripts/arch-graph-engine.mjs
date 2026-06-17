@@ -685,7 +685,7 @@ export function analyzeArchGraph(graphJson, opts = {}) {
 // triple: Forman and Cheeger agree strongly (both find high-traffic, low-
 // redundancy BOTTLENECK edges — e.g. MEMORY→MEM_WARM, HOOK_PIPELINE→PULSE_BUS),
 // but Tarjan bridges are a DISTINCT channel — here they are leaf-to-hub cut
-// edges (CMD_*→ENKI_COMMANDS), whose low-degree endpoint gives them HIGH (least-
+// edges (CMD_*→NEXUS_COMMANDS), whose low-degree endpoint gives them HIGH (least-
 // negative) Forman curvature. Forman/Cheeger measure over-squashing bottlenecks;
 // Tarjan measures disconnection points. They answer different questions, so the
 // report states the two genuine agreements and keeps Tarjan as an orthogonal

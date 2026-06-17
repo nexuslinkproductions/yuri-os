@@ -1023,7 +1023,7 @@ function assessSentinelAdvisory(prompt, lane, scenario) {
     runtimeKind: 'bridge_advisory',
     authority: ocConfig.authority,
     reason: lane === 'native' ? 'native_orchestration_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
-    bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh',
+    bridgeCommand: null, // retired 2026-06-17: bridge deleted with the dead Conclave
     localTruthRequired: true,
     codexFinalAuthority: true
   };

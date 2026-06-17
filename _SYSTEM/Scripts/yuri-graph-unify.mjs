@@ -3,7 +3,7 @@
  * yuri-graph-unify.mjs — ONE canonical graph; the two graph files become GENERATED PROJECTIONS.
  *
  * THE PROBLEM (Marcel 2026-06-08): YURI carried two separately-maintained graph artifacts of the same system
- * at different altitudes — `_SYSTEM/yuri-graph-state.json` (the conceptual operating-FLOW map: USER→ENKI→ROUTING,
+ * at different altitudes — `_SYSTEM/yuri-graph-state.json` (the conceptual operating-FLOW map: USER→NEXUS_CORE→ROUTING,
  * with layout/sectors/telemetry/metrics) and `02_RESOURCES/RESEARCH/yuri-circuitry-graph.json` (the code-MECHANISM
  * die: energy-fn/math-kernel/formula-foundry, with files[]). They share only ~4 node ids, so they are NOT clones —
  * but two editable sources invite drift (edit one, the other goes stale; the die was still "108" while the source

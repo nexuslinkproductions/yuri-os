@@ -11,14 +11,14 @@
         "name": "control_plane",
         "color": "#00D4FF",
         "nodes": [
-          "ENKI",
-          "ENKI_INBOX",
-          "ENKI_DECIDES"
+          "NEXUS_CORE",
+          "NEXUS_INBOX",
+          "NEXUS_DECIDES"
         ],
         "plane_radii": {
-          "ENKI": 360,
-          "ENKI_DECIDES": 300,
-          "ENKI_INBOX": 220
+          "NEXUS_CORE": 360,
+          "NEXUS_DECIDES": 300,
+          "NEXUS_INBOX": 220
         }
       },
       {
@@ -226,7 +226,7 @@
         "name": "command_registry",
         "color": "#00D4FF",
         "nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_GITNEXUS_FAMILY",
           "CMD_DEEPSEEK_FAMILY",
           "CMD_DESIGN_FAMILY",
@@ -253,7 +253,7 @@
           "twist": 0.36959913571644626
         },
         {
-          "id": "ENKI",
+          "id": "NEXUS_CORE",
           "y": 760,
           "twist": 0.7391982714328925
         },
@@ -293,7 +293,7 @@
           "twist": 3.326392221448016
         },
         {
-          "id": "ENKI_DECIDES",
+          "id": "NEXUS_DECIDES",
           "y": -540,
           "twist": 3.6959913571644627
         },
@@ -357,16 +357,16 @@
       "leaf_count": 26,
       "closed_loops": [
         "RESPONSE→USER",
-        "ENKI_DECIDES→ENKI",
-        "MEMORY→ENKI",
-        "SESSION_INIT→ENKI",
-        "PROMPT_HOOKS→ENKI",
-        "NEXUSPULSE→ENKI_DECIDES",
-        "CLASSIFIER→ENKI",
+        "NEXUS_DECIDES→NEXUS_CORE",
+        "MEMORY→NEXUS_CORE",
+        "SESSION_INIT→NEXUS_CORE",
+        "PROMPT_HOOKS→NEXUS_CORE",
+        "NEXUSPULSE→NEXUS_DECIDES",
+        "CLASSIFIER→NEXUS_CORE",
         "ROUTING→RESPONSE",
-        "SERVICES→ENKI",
-        "GITNEXUS→ENKI",
-        "SELF_IMPROVE→ENKI"
+        "SERVICES→NEXUS_CORE",
+        "GITNEXUS→NEXUS_CORE",
+        "SELF_IMPROVE→NEXUS_CORE"
       ],
       "dead_ends_eliminated": "v11→v12 reduced from 73 to 0",
       "v13": {
@@ -393,7 +393,7 @@
           "NEXUSPULSE",
           "CLASSIFIER",
           "ADVISORS",
-          "ENKI_DECIDES",
+          "NEXUS_DECIDES",
           "ROUTING",
           "GITNEXUS",
           "SELF_IMPROVE",
@@ -415,7 +415,7 @@
           ".claude/commands/gitnexus*.md"
         ],
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_GITNEXUS_FAMILY"
         ],
         "applied_in": "v15"
@@ -427,7 +427,7 @@
         "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /llm.",
         "severity": "low",
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_DEEPSEEK_FAMILY"
         ],
         "applied_in": "v15"
@@ -439,7 +439,7 @@
         "description": "/probabilistic-decision-core, /probability, /pdc are aliases. Pick one canonical.",
         "severity": "low",
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_PROBABILITY"
         ],
         "applied_in": "v15"
@@ -451,7 +451,7 @@
         "description": "Both point to the same skill. /eot is the short alias; make /end-of-transmission a synonym only.",
         "severity": "low",
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_EOT"
         ],
         "applied_in": "v15"
@@ -463,19 +463,19 @@
         "description": "/design-master, /design-source-pack, /frontend-design have different scopes but overlapping entry points. Consider unified /design with --mode flag.",
         "severity": "low",
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_DESIGN_FAMILY"
         ],
         "applied_in": "v15"
       },
       {
         "id": "enki-density",
-        "title": "ENKI has 30 incoming edges - high choke risk",
+        "title": "NEXUS_CORE has 30 incoming edges - high choke risk",
         "status": "applied-v15",
-        "description": "ENKI is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before ENKI.",
+        "description": "NEXUS_CORE is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before NEXUS_CORE.",
         "severity": "medium",
         "affected_nodes": [
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "applied_in": "v15"
       },
@@ -486,7 +486,7 @@
         "description": "/spec-intake, /spec-clarify, /spec-analyze, /spec-promote are 4 sequential pipeline stages. Could be /spec <stage> with --next flag.",
         "severity": "low",
         "affected_nodes": [
-          "ENKI_COMMANDS",
+          "NEXUS_COMMANDS",
           "CMD_SPEC_FAMILY"
         ],
         "applied_in": "v15"
@@ -524,21 +524,21 @@
   "flowOrder": [
     "USER",
     "USER_INPUT",
-    "ENKI",
+    "NEXUS_CORE",
     "SESSION_INIT",
     "PROMPT_HOOKS",
     "NEXUSPULSE",
     "CLASSIFIER",
     "ADVISORS",
     "PULSE_BUS",
-    "ENKI_DECIDES",
+    "NEXUS_DECIDES",
     "ROUTING",
     "MEMORY",
     "SERVICES",
     "RESPONSE",
-    "ENKI_PLAN",
-    "ENKI_BUS",
-    "ENKI_CTX",
+    "NEXUS_PLAN",
+    "NEXUS_BUS",
+    "NEXUS_CTX",
     "SOUL_INJECT",
     "PALACE",
     "MNEMOSYNE",
@@ -624,7 +624,7 @@
     "SKILL_REGISTRY",
     "PRECOMMIT_REGRESS",
     "BEACON_OBSIDIAN",
-    "ENKI_COMMANDS",
+    "NEXUS_COMMANDS",
     "CMD_GITNEXUS_FAMILY",
     "CMD_DEEPSEEK_FAMILY",
     "CMD_DESIGN_FAMILY",
@@ -633,7 +633,7 @@
     "CMD_EOT",
     "CMD_LLM",
     "CMD_SOLO",
-    "ENKI_INBOX",
+    "NEXUS_INBOX",
     "NATIVE_GATES",
     "HOOK_PIPELINE",
     "CMD_SHURA",
@@ -885,7 +885,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -981,7 +981,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -1178,7 +1178,7 @@
             ".claude/state/pulse-plan.json"
           ],
           "notes": "Tuning file documents advisor disagreement and classifier calibration.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -1261,7 +1261,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -1303,7 +1303,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -1348,11 +1348,11 @@
           "current_size": "4 overlapping deepseek commands",
           "ideal_size": "2 direct lane commands plus /llm routing",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1393,11 +1393,11 @@
           "current_size": "3 design command surfaces",
           "ideal_size": "1 /design dispatcher with modes",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1436,11 +1436,11 @@
           "current_size": "2 command files",
           "ideal_size": "1 command plus alias",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1490,11 +1490,11 @@
           "current_size": "8 separate /commands files",
           "ideal_size": "1 /gitnexus with subcommands",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1533,11 +1533,11 @@
           "current_size": "2 command surfaces",
           "ideal_size": "1 /llm command",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1578,11 +1578,11 @@
           "current_size": "3 aliases",
           "ideal_size": "1 canonical command",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1598,7 +1598,7 @@
         "role": "report generator",
         "tier": "leaf",
         "sector": "command_registry",
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "radius": 18,
         "color": "#00D4FF",
         "position": {
@@ -1609,7 +1609,7 @@
         "children": [],
         "metadata": {
           "purpose": "Command registry entry for /report.",
-          "returns_to": "ENKI_COMMANDS",
+          "returns_to": "NEXUS_COMMANDS",
           "status": "applied-v15"
         }
       },
@@ -1626,7 +1626,7 @@
         "role": "strategic review",
         "tier": "leaf",
         "sector": "command_registry",
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "radius": 18,
         "color": "#00D4FF",
         "position": {
@@ -1637,7 +1637,7 @@
         "children": [],
         "metadata": {
           "purpose": "Command registry entry for /shura.",
-          "returns_to": "ENKI_COMMANDS",
+          "returns_to": "NEXUS_COMMANDS",
           "status": "applied-v15"
         }
       },
@@ -1696,11 +1696,11 @@
           "current_size": "24 standalone commands",
           "ideal_size": "24 standalone commands",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1743,11 +1743,11 @@
           "current_size": "4 sequential spec commands",
           "ideal_size": "1 /spec pipeline dispatcher",
           "dependencies": [
-            "ENKI_COMMANDS"
+            "NEXUS_COMMANDS"
           ],
-          "returns_to": "ENKI_COMMANDS"
+          "returns_to": "NEXUS_COMMANDS"
         },
-        "parent": "ENKI_COMMANDS",
+        "parent": "NEXUS_COMMANDS",
         "children": []
       },
       "mechanism": null,
@@ -1871,7 +1871,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -1947,7 +1947,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -2173,17 +2173,17 @@
           ],
           "capabilities": [
             "Represent act or defer",
-            "Connect under ENKI_DECIDES",
+            "Connect under NEXUS_DECIDES",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI_DECIDES"
+            "NEXUS_DECIDES"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
-        "parent": "ENKI_DECIDES",
+        "parent": "NEXUS_DECIDES",
         "children": []
       },
       "mechanism": null,
@@ -2216,17 +2216,17 @@
           ],
           "capabilities": [
             "Represent lane select",
-            "Connect under ENKI_DECIDES",
+            "Connect under NEXUS_DECIDES",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI_DECIDES"
+            "NEXUS_DECIDES"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
-        "parent": "ENKI_DECIDES",
+        "parent": "NEXUS_DECIDES",
         "children": []
       },
       "mechanism": null,
@@ -2259,17 +2259,17 @@
           ],
           "capabilities": [
             "Represent merge findings",
-            "Connect under ENKI_DECIDES",
+            "Connect under NEXUS_DECIDES",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI_DECIDES"
+            "NEXUS_DECIDES"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
-        "parent": "ENKI_DECIDES",
+        "parent": "NEXUS_DECIDES",
         "children": []
       },
       "mechanism": null,
@@ -2566,13 +2566,13 @@
       "label": "Energy Weights Drift Test (config↔code invariant)"
     },
     {
-      "id": "ENKI",
+      "id": "NEXUS_CORE",
       "tiers": [
         "flow"
       ],
       "flow": {
         "tier": "section",
-        "label": "ENKI",
+        "label": "NEXUS_CORE",
         "role": "main session",
         "detail": "Claude Code control plane / final authority",
         "radius": 60,
@@ -2615,17 +2615,17 @@
         },
         "parent": null,
         "children": [
-          "ENKI_PLAN",
-          "ENKI_BUS",
-          "ENKI_CTX",
-          "ENKI_COMMANDS"
+          "NEXUS_PLAN",
+          "NEXUS_BUS",
+          "NEXUS_CTX",
+          "NEXUS_COMMANDS"
         ]
       },
       "mechanism": null,
-      "label": "ENKI"
+      "label": "NEXUS_CORE"
     },
     {
-      "id": "ENKI_BUS",
+      "id": "NEXUS_BUS",
       "tiers": [
         "flow"
       ],
@@ -2651,24 +2651,24 @@
           ],
           "capabilities": [
             "Represent findings ring",
-            "Connect under ENKI",
+            "Connect under NEXUS_CORE",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
           "returns_to": "RESPONSE"
         },
-        "parent": "ENKI",
+        "parent": "NEXUS_CORE",
         "children": []
       },
       "mechanism": null,
       "label": "pulse-bus.json"
     },
     {
-      "id": "ENKI_COMMANDS",
+      "id": "NEXUS_COMMANDS",
       "tiers": [
         "flow"
       ],
@@ -2694,11 +2694,11 @@
             "Propose consolidation paths"
           ],
           "dependencies": [
-            "ENKI"
+            "NEXUS_CORE"
           ],
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
-        "parent": "ENKI",
+        "parent": "NEXUS_CORE",
         "children": [
           "CMD_GITNEXUS_FAMILY",
           "CMD_DEEPSEEK_FAMILY",
@@ -2714,7 +2714,7 @@
       "label": "COMMANDS"
     },
     {
-      "id": "ENKI_CTX",
+      "id": "NEXUS_CTX",
       "tiers": [
         "flow"
       ],
@@ -2740,30 +2740,30 @@
           ],
           "capabilities": [
             "Represent active window",
-            "Connect under ENKI",
+            "Connect under NEXUS_CORE",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
           "returns_to": "RESPONSE"
         },
-        "parent": "ENKI",
+        "parent": "NEXUS_CORE",
         "children": []
       },
       "mechanism": null,
       "label": "session context"
     },
     {
-      "id": "ENKI_DECIDES",
+      "id": "NEXUS_DECIDES",
       "tiers": [
         "flow"
       ],
       "flow": {
         "tier": "section",
-        "label": "ENKI DECIDES",
+        "label": "NEXUS DECIDES",
         "role": "synthesizes findings",
         "detail": "reads bus / routes / acts / final call",
         "radius": 55,
@@ -2775,7 +2775,7 @@
         },
         "sector": "control_plane",
         "metadata": {
-          "purpose": "Decision stage where ENKI consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
+          "purpose": "Decision stage where NEXUS_CORE consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
           "files": [
             "CLAUDE.md",
             "_SYSTEM/Scripts/pulse-orchestrator.mjs"
@@ -2784,7 +2784,7 @@
             "Merge findings",
             "Choose route",
             "Apply final authority",
-            "Return control to ENKI"
+            "Return control to NEXUS_CORE"
           ],
           "dependencies": [
             "pulse-bus findings",
@@ -2794,8 +2794,8 @@
             ".claude/state/pulse-bus.json",
             ".claude/state/pulse-plan.json"
           ],
-          "notes": "Closed-loop return to ENKI models main-thread authority after advisor fanout.",
-          "returns_to": "ENKI"
+          "notes": "Closed-loop return to NEXUS_CORE models main-thread authority after advisor fanout.",
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -2805,27 +2805,27 @@
         ]
       },
       "mechanism": null,
-      "label": "ENKI DECIDES"
+      "label": "NEXUS DECIDES"
     },
     {
-      "id": "ENKI_INBOX",
+      "id": "NEXUS_INBOX",
       "tiers": [
         "flow"
       ],
       "flow": {
-        "label": "ENKI INBOX",
+        "label": "NEXUS INBOX",
         "role": "feedback aggregator",
         "tier": "sub",
         "sector": "control_plane",
         "stage": 0,
         "radius": 34,
         "color": "#00D4FF",
-        "parent": "ENKI",
+        "parent": "NEXUS_CORE",
         "metadata": {
           "purpose": "Aggregates service feedback and memory-write returns before control-plane synthesis.",
           "status": "applied-v15",
-          "reduces_incoming_edges_for": "ENKI",
-          "returns_to": "ENKI"
+          "reduces_incoming_edges_for": "NEXUS_CORE",
+          "returns_to": "NEXUS_CORE"
         },
         "position": {
           "x": 260,
@@ -2834,10 +2834,10 @@
         }
       },
       "mechanism": null,
-      "label": "ENKI INBOX"
+      "label": "NEXUS INBOX"
     },
     {
-      "id": "ENKI_PLAN",
+      "id": "NEXUS_PLAN",
       "tiers": [
         "flow"
       ],
@@ -2863,17 +2863,17 @@
           ],
           "capabilities": [
             "Represent turn state",
-            "Connect under ENKI",
+            "Connect under NEXUS_CORE",
             "Expose architecture metadata to visual introspection"
           ],
           "dependencies": [
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
           "returns_to": "RESPONSE"
         },
-        "parent": "ENKI",
+        "parent": "NEXUS_CORE",
         "children": []
       },
       "mechanism": null,
@@ -2912,7 +2912,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SELF_IMPROVE",
         "children": []
@@ -3328,7 +3328,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -3370,11 +3370,11 @@
             "trace flows"
           ],
           "dependencies": [
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
-          "notes": "New v12 sector closes code-impact checks back into ENKI and Codex gate validation.",
-          "returns_to": "ENKI"
+          "notes": "New v12 sector closes code-impact checks back into NEXUS_CORE and Codex gate validation.",
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -3437,7 +3437,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "GITNEXUS",
         "children": []
@@ -3516,7 +3516,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "GITNEXUS",
         "children": []
@@ -3557,7 +3557,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "GITNEXUS",
         "children": [
@@ -3643,7 +3643,7 @@
         "sector": "prompt_hooks",
         "metadata": {
           "purpose": "Collapsed prompt-hook pipeline: aeonic, protection guard, scout spawn, Tirith, bash guard, and GitNexus preflight.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "status": "applied-v15",
           "collapsed_count": 6,
           "collapsed_sources": [
@@ -3775,11 +3775,11 @@
           ],
           "dependencies": [
             "SELF_IMPROVE",
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SELF_IMPROVE",
         "children": []
@@ -3849,7 +3849,7 @@
           "capabilities": [
             "Route to gpt-5.5",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -3894,7 +3894,7 @@
           "capabilities": [
             "Route to deepseek-v4-flash",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -3937,7 +3937,7 @@
           "capabilities": [
             "Route to deepseek-v4-pro",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -4085,7 +4085,7 @@
           "capabilities": [
             "Route to mimo-v2-flash",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -4174,7 +4174,7 @@
           "capabilities": [
             "Route to gpt-5.4-mini",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -4221,7 +4221,7 @@
           "capabilities": [
             "Route to mimo-v2.5-pro[1m]",
             "Bound work by lane policy",
-            "Return evidence to ENKI"
+            "Return evidence to NEXUS_CORE"
           ],
           "dependencies": [
             "LLM_COMPAT_CONTRACT.lanes",
@@ -4550,7 +4550,7 @@
           ],
           "state_files": [],
           "notes": "Cold layer feeds future architecture and classifier tuning.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "MEMORY",
         "children": [
@@ -4598,7 +4598,7 @@
             ".claude/state/pulse-bus.json"
           ],
           "notes": "Hot memory paths referenced only.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "MEMORY",
         "children": [
@@ -4642,7 +4642,7 @@
           ],
           "state_files": [],
           "notes": "Represented as metadata surface only; no database read performed.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "MEMORY",
         "children": []
@@ -4685,7 +4685,7 @@
           ],
           "state_files": [],
           "notes": "Warm evidence from self-improvement archive.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "MEMORY",
         "children": [
@@ -4740,8 +4740,8 @@
             ".claude/state/pulse-plan.json",
             ".claude/state/pulse-bus.json"
           ],
-          "notes": "v13 relocates MEMORY immediately after ENKI so palace, soul, Mnemosyne, classifiers, advisors, routing, GitNexus, and self-improvement can read context before acting.",
-          "returns_to": "ENKI",
+          "notes": "v13 relocates MEMORY immediately after NEXUS_CORE so palace, soul, Mnemosyne, classifiers, advisors, routing, GitNexus, and self-improvement can read context before acting.",
+          "returns_to": "NEXUS_CORE",
           "lifecycle_position": "early",
           "access_pattern": "global - read by all sections, written by EOT/services/archive"
         },
@@ -5003,7 +5003,7 @@
           ],
           "state_files": [],
           "notes": "Matches yuri-origin local evidence hierarchy.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "MEMORY",
         "children": []
@@ -5046,7 +5046,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SESSION_INIT",
         "children": []
@@ -5196,7 +5196,7 @@
             ".claude/state/pulse-bus.json"
           ],
           "notes": "Evidence: pulse-orchestrator comments and main() flow.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": null,
         "children": [
@@ -5243,7 +5243,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "NEXUSPULSE",
         "children": [
@@ -5287,7 +5287,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "NEXUSPULSE",
         "children": []
@@ -5608,7 +5608,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "NEXUSPULSE",
         "children": []
@@ -5651,7 +5651,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SESSION_INIT",
         "children": [
@@ -5738,7 +5738,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "PULSE_BUS",
         "children": []
@@ -5780,7 +5780,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "PULSE_BUS",
         "children": []
@@ -5822,7 +5822,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "PULSE_BUS",
         "children": []
@@ -5971,7 +5971,7 @@
           "dependencies": [],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -6020,7 +6020,7 @@
           ],
           "state_files": [],
           "notes": "Read-only over the circuitry graph + GitNexus; resolves node-ids and surfaces mechanism-siblings.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "GITNEXUS",
         "children": []
@@ -6070,7 +6070,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -6114,7 +6114,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SELF_IMPROVE",
         "children": [
@@ -6162,7 +6162,7 @@
             ".claude/state/pulse-bus.json"
           ],
           "notes": "CLAUDE.md says main thread reads pulse-bus before non-trivial tool calls.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": null,
         "children": [
@@ -6208,7 +6208,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI_DECIDES"
+          "returns_to": "NEXUS_DECIDES"
         },
         "parent": "NEXUSPULSE",
         "children": []
@@ -6264,7 +6264,7 @@
             "Close user loop"
           ],
           "dependencies": [
-            "ENKI final decision",
+            "NEXUS_CORE final decision",
             "routing output",
             "memory context"
           ],
@@ -6413,7 +6413,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -6479,7 +6479,7 @@
         },
         "sector": "self_improvement",
         "metadata": {
-          "purpose": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to ENKI.",
+          "purpose": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to NEXUS_CORE.",
           "files": [
             "_SYSTEM/SELF-IMPROVEMENT/",
             "CLAUDE.md"
@@ -6491,13 +6491,13 @@
             "skill registry"
           ],
           "dependencies": [
-            "ENKI",
+            "NEXUS_CORE",
             "MEMORY",
             "CLASSIFIER"
           ],
           "state_files": [],
-          "notes": "New v12 sector makes learning loops explicit and closes them back into ENKI.",
-          "returns_to": "ENKI"
+          "notes": "New v12 sector makes learning loops explicit and closes them back into NEXUS_CORE.",
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -6578,7 +6578,7 @@
           "dependencies": [],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -6626,7 +6626,7 @@
           "dependencies": [],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": null,
         "children": [
@@ -6737,11 +6737,11 @@
           ],
           "dependencies": [
             "SELF_IMPROVE",
-            "ENKI"
+            "NEXUS_CORE"
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SELF_IMPROVE",
         "children": []
@@ -6782,7 +6782,7 @@
           ],
           "state_files": [],
           "notes": "",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SELF_IMPROVE",
         "children": []
@@ -6868,7 +6868,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SESSION_INIT",
         "children": [
@@ -6930,7 +6930,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -6990,7 +6990,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7033,7 +7033,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7076,7 +7076,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7121,7 +7121,7 @@
           ],
           "state_files": [],
           "notes": "Runtime service metadata only; model outputs remain advisory until verified.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7164,7 +7164,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7207,7 +7207,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SERVICES",
         "children": []
@@ -7381,7 +7381,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI",
+          "returns_to": "NEXUS_CORE",
           "collapsed_into": "HOOK_PIPELINE",
           "status": "collapsed-v15"
         },
@@ -7444,7 +7444,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "SESSION_INIT",
         "children": []
@@ -7588,7 +7588,7 @@
           ],
           "state_files": [],
           "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "CLASSIFIER",
         "children": []
@@ -7854,7 +7854,7 @@
           ],
           "state_files": [],
           "notes": "Unified retrieval front door feeding PROPAGATION_SCAN.",
-          "returns_to": "ENKI"
+          "returns_to": "NEXUS_CORE"
         },
         "parent": "GITNEXUS",
         "children": []
@@ -8371,14 +8371,14 @@
     },
     {
       "source": "USER_INPUT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "flow",
       "is_return": false,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SESSION_INIT",
       "type": "flow",
       "is_return": false,
@@ -8421,13 +8421,13 @@
     },
     {
       "source": "PULSE_BUS",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ROUTING",
       "type": "flow",
       "is_return": false,
@@ -8442,10 +8442,10 @@
     },
     {
       "source": "SERVICES",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": false,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -8456,22 +8456,22 @@
       "view": "flow"
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_PLAN",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_PLAN",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_BUS",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_BUS",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_CTX",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_CTX",
       "type": "branch",
       "is_return": false,
       "view": "flow"
@@ -8639,21 +8639,21 @@
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_SYNTH",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_ROUTE",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_FINAL",
       "type": "branch",
       "is_return": false,
@@ -8963,15 +8963,15 @@
     },
     {
       "source": "PULSE_PLAN",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": false,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "MEM_HOT",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "memory",
       "is_return": false,
       "view": "flow"
@@ -8985,56 +8985,56 @@
     },
     {
       "source": "PULSE_BUS",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
-      "target": "ENKI_INBOX",
+      "source": "NEXUS_DECIDES",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "MEMORY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "SESSION_INIT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "PROMPT_HOOKS",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "NEXUSPULSE",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "CLASSIFIER",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9046,10 +9046,10 @@
     },
     {
       "source": "SERVICES",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9110,11 +9110,11 @@
     },
     {
       "source": "HOOK_PIPELINE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "validates",
       "is_return": true,
       "redirected_from": [],
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9127,97 +9127,97 @@
     },
     {
       "source": "TRIVIAL",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "STANDARD",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "COMPLEX",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "CRITICAL",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "CLF_SCENARIO",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "CLF_ROUTE_PLAN",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_PLAN",
-      "target": "ENKI",
+      "source": "NEXUS_PLAN",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_BUS",
-      "target": "ENKI",
+      "source": "NEXUS_BUS",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_CTX",
-      "target": "ENKI",
+      "source": "NEXUS_CTX",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "SOUL_INJECT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "PALACE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "MNEMOSYNE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "TOKEN_INIT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9229,7 +9229,7 @@
     },
     {
       "source": "PULSE_PLAN",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true,
       "view": "flow"
@@ -9243,14 +9243,14 @@
     },
     {
       "source": "PB_RING",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true,
       "view": "flow"
     },
     {
       "source": "PB_CONSUME",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true,
       "view": "flow"
@@ -9278,10 +9278,10 @@
     },
     {
       "source": "MEM_KERNEL",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "memory",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9293,26 +9293,26 @@
     },
     {
       "source": "SVC_SHELL",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "SVC_RUNTIME",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "SVC_HEALTH",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9331,14 +9331,14 @@
     },
     {
       "source": "SVC_OLLAMA",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "GITNEXUS",
       "type": "flow",
       "is_return": false,
@@ -9346,10 +9346,10 @@
     },
     {
       "source": "GITNEXUS",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9361,10 +9361,10 @@
     },
     {
       "source": "GN_QUERY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9383,10 +9383,10 @@
     },
     {
       "source": "PROPAGATION_SCAN",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9412,7 +9412,7 @@
       "view": "flow"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SELF_IMPROVE",
       "type": "flow",
       "is_return": false,
@@ -9420,10 +9420,10 @@
     },
     {
       "source": "SELF_IMPROVE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9449,18 +9449,18 @@
     },
     {
       "source": "INTROSPECT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
       "source": "SKILL_REGISTRY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
@@ -9696,29 +9696,29 @@
       "view": "flow"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SERVICES",
       "type": "flow",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_COMMANDS",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_COMMANDS",
       "type": "branch",
       "is_return": false,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
-      "target": "ENKI_INBOX",
+      "source": "NEXUS_COMMANDS",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX",
+      "routed_via": "NEXUS_INBOX",
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_GITNEXUS_FAMILY",
       "type": "branch",
       "is_return": false,
@@ -9726,13 +9726,13 @@
     },
     {
       "source": "CMD_GITNEXUS_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_DEEPSEEK_FAMILY",
       "type": "branch",
       "is_return": false,
@@ -9740,13 +9740,13 @@
     },
     {
       "source": "CMD_DEEPSEEK_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_DESIGN_FAMILY",
       "type": "branch",
       "is_return": false,
@@ -9754,13 +9754,13 @@
     },
     {
       "source": "CMD_DESIGN_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_SPEC_FAMILY",
       "type": "branch",
       "is_return": false,
@@ -9768,13 +9768,13 @@
     },
     {
       "source": "CMD_SPEC_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_PROBABILITY",
       "type": "branch",
       "is_return": false,
@@ -9782,13 +9782,13 @@
     },
     {
       "source": "CMD_PROBABILITY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_EOT",
       "type": "branch",
       "is_return": false,
@@ -9796,13 +9796,13 @@
     },
     {
       "source": "CMD_EOT",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_LLM",
       "type": "branch",
       "is_return": false,
@@ -9810,13 +9810,13 @@
     },
     {
       "source": "CMD_LLM",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_SOLO",
       "type": "branch",
       "is_return": false,
@@ -9824,7 +9824,7 @@
     },
     {
       "source": "CMD_SOLO",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true,
       "view": "flow"
@@ -9866,7 +9866,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "memory",
       "is_return": false,
       "view": "flow"
@@ -9970,7 +9970,7 @@
       "view": "flow"
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "MEMORY",
       "type": "feedback",
       "is_return": true,
@@ -9998,8 +9998,8 @@
       "view": "flow"
     },
     {
-      "source": "ENKI_INBOX",
-      "target": "ENKI",
+      "source": "NEXUS_INBOX",
+      "target": "NEXUS_CORE",
       "type": "feedback-aggregate",
       "strength": 0.95,
       "status": "applied-v15",
@@ -10105,14 +10105,14 @@
     },
     {
       "source": "CMD_SHURA",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "status": "applied-v15",
       "view": "flow"
     },
     {
       "source": "CMD_REPORT",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "status": "applied-v15",
       "view": "flow"

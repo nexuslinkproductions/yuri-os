@@ -746,95 +746,6 @@
       "sector": null
     },
     {
-      "id": "ENKI",
-      "kind": "peripheral",
-      "label": "ENKI",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "SOUL.md",
-        "_SYSTEM/Scripts/pulse-orchestrator.mjs"
-      ],
-      "triggeredBy": "main session — Claude Code control plane / final authority",
-      "description": "Main session control plane and final authority over actions; reads advisor findings, routes implementation, and vetoes unsafe output.",
-      "sector": "control_plane"
-    },
-    {
-      "id": "ENKI_BUS",
-      "kind": "peripheral",
-      "label": "pulse-bus.json",
-      "layer": "Hidden / Meta / Self-referential",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md",
-        "SOUL.md"
-      ],
-      "triggeredBy": "findings ring",
-      "description": "pulse-bus.json supports the unassigned sector as findings ring.",
-      "sector": "unassigned"
-    },
-    {
-      "id": "ENKI_COMMANDS",
-      "kind": "peripheral",
-      "label": "COMMANDS",
-      "layer": "Skills & Orchestration",
-      "files": [],
-      "triggeredBy": "slash registry — 50 active commands grouped by domain",
-      "description": "Slash command registry - 50 active commands grouped by domain",
-      "sector": "command_registry"
-    },
-    {
-      "id": "ENKI_CTX",
-      "kind": "peripheral",
-      "label": "session context",
-      "layer": "Hidden / Meta / Self-referential",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md",
-        "SOUL.md"
-      ],
-      "triggeredBy": "active window",
-      "description": "session context supports the unassigned sector as active window.",
-      "sector": "unassigned"
-    },
-    {
-      "id": "ENKI_DECIDES",
-      "kind": "peripheral",
-      "label": "ENKI DECIDES",
-      "layer": "Governance & Safety",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/Scripts/pulse-orchestrator.mjs"
-      ],
-      "triggeredBy": "synthesizes findings — reads bus / routes / acts / final call",
-      "description": "Decision stage where ENKI consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
-      "sector": "control_plane"
-    },
-    {
-      "id": "ENKI_INBOX",
-      "kind": "peripheral",
-      "label": "ENKI INBOX",
-      "layer": "Governance & Safety",
-      "files": [],
-      "triggeredBy": "feedback aggregator",
-      "description": "Aggregates service feedback and memory-write returns before control-plane synthesis.",
-      "sector": "control_plane"
-    },
-    {
-      "id": "ENKI_PLAN",
-      "kind": "peripheral",
-      "label": "pulse-plan.json",
-      "layer": "Hidden / Meta / Self-referential",
-      "files": [
-        "CLAUDE.md",
-        "_SYSTEM/yuri-origin.md",
-        "SOUL.md"
-      ],
-      "triggeredBy": "turn state",
-      "description": "pulse-plan.json supports the unassigned sector as turn state.",
-      "sector": "unassigned"
-    },
-    {
       "id": "EOT_PIPELINE",
       "kind": "peripheral",
       "label": "EOT pipeline",
@@ -1677,6 +1588,95 @@
       "sector": null
     },
     {
+      "id": "NEXUS_BUS",
+      "kind": "peripheral",
+      "label": "pulse-bus.json",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md",
+        "SOUL.md"
+      ],
+      "triggeredBy": "findings ring",
+      "description": "pulse-bus.json supports the unassigned sector as findings ring.",
+      "sector": "unassigned"
+    },
+    {
+      "id": "NEXUS_COMMANDS",
+      "kind": "peripheral",
+      "label": "COMMANDS",
+      "layer": "Skills & Orchestration",
+      "files": [],
+      "triggeredBy": "slash registry — 50 active commands grouped by domain",
+      "description": "Slash command registry - 50 active commands grouped by domain",
+      "sector": "command_registry"
+    },
+    {
+      "id": "NEXUS_CORE",
+      "kind": "peripheral",
+      "label": "NEXUS_CORE",
+      "layer": "Governance & Safety",
+      "files": [
+        "CLAUDE.md",
+        "SOUL.md",
+        "_SYSTEM/Scripts/pulse-orchestrator.mjs"
+      ],
+      "triggeredBy": "main session — Claude Code control plane / final authority",
+      "description": "Main session control plane and final authority over actions; reads advisor findings, routes implementation, and vetoes unsafe output.",
+      "sector": "control_plane"
+    },
+    {
+      "id": "NEXUS_CTX",
+      "kind": "peripheral",
+      "label": "session context",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md",
+        "SOUL.md"
+      ],
+      "triggeredBy": "active window",
+      "description": "session context supports the unassigned sector as active window.",
+      "sector": "unassigned"
+    },
+    {
+      "id": "NEXUS_DECIDES",
+      "kind": "peripheral",
+      "label": "NEXUS DECIDES",
+      "layer": "Governance & Safety",
+      "files": [
+        "CLAUDE.md",
+        "_SYSTEM/Scripts/pulse-orchestrator.mjs"
+      ],
+      "triggeredBy": "synthesizes findings — reads bus / routes / acts / final call",
+      "description": "Decision stage where NEXUS_CORE consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
+      "sector": "control_plane"
+    },
+    {
+      "id": "NEXUS_INBOX",
+      "kind": "peripheral",
+      "label": "NEXUS INBOX",
+      "layer": "Governance & Safety",
+      "files": [],
+      "triggeredBy": "feedback aggregator",
+      "description": "Aggregates service feedback and memory-write returns before control-plane synthesis.",
+      "sector": "control_plane"
+    },
+    {
+      "id": "NEXUS_PLAN",
+      "kind": "peripheral",
+      "label": "pulse-plan.json",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md",
+        "SOUL.md"
+      ],
+      "triggeredBy": "turn state",
+      "description": "pulse-plan.json supports the unassigned sector as turn state.",
+      "sector": "unassigned"
+    },
+    {
       "id": "nexus-numerology",
       "kind": "die",
       "label": "NEXUS Numerology (bounded symbolic feature channels)",
@@ -2093,7 +2093,7 @@
         "CLAUDE.md"
       ],
       "triggeredBy": "learning loop — EOT / soak / introspect",
-      "description": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to ENKI.",
+      "description": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to NEXUS_CORE.",
       "sector": "self_improvement"
     },
     {
