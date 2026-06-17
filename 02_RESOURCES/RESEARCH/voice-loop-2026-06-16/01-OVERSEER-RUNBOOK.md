@@ -44,8 +44,12 @@ The Stop hook speaks when armed by **env `VOICE_AGENT_ACTIVE=1`** OR the flag fi
 - Real surface refs from `cmux list-pane-surfaces` (a plain `claude` in a cmux tab should show as a pane surface — confirm it's addressable).
 - Overseer speaks but workers don't (env gating worked).
 
-## Talk to it — the always-on mic (BUILT, Parakeet MLX)
-After the overseer is up, run `listen` (or `bash _SYSTEM/Scripts/voice/voice-listen.sh`) in any other terminal. It captures your mic, transcribes with **Parakeet TDT (parakeet-mlx, ≈100× real-time on Apple Silicon)**, and injects each utterance into the overseer's cmux tab when you pause. It **echo-gates**: while Rick is speaking it ignores the mic, so it never transcribes its own voice into a loop.
+## Talk to it — the always-on mic (BUILT, Parakeet MLX) — ONE command
+Just type **`overseer`** in a cmux tab. It now **auto-starts the mic listener in its own cmux context** — you do NOT run `listen` separately. Speak; each utterance is transcribed with **Parakeet TDT (parakeet-mlx, ≈100× real-time)** and injected into the overseer when you pause. It **echo-gates**: while Rick is speaking it ignores the mic, so it never transcribes its own voice into a loop.
+
+CRITICAL (why a separate `listen` failed before): `cmux send` is ONLY authorized from a shell cmux itself spawned. Running `listen` in plain Terminal.app — or typing "listen" as a prompt INTO a Claude session — transcribes but silently can't inject. That's why the overseer auto-starts the mic from inside its own tab. The `listen` alias still works, but ONLY if run inside a cmux tab (it now self-tests cmux reachability and says so in its first line).
+
+- Mic log: `_SYSTEM/state/voice/listener.log` (shows the cmux self-test + each transcribed line). Stop the mic: `pkill -f parakeet-listen`. Silent overseer (no mic): `OVERSEER_NO_LISTEN=1 overseer`.
 
 - Engine pick (research → `02-STT-MODEL-RESEARCH.md`): Parakeet beats whisper.cpp large-v3-turbo by ~100× on speed; whisper.cpp stays as the zero-dep fallback (`VOICE_STT_ENGINE=whisper`).
 - Surface targeting: `overseer.sh` records its `$CMUX_SURFACE_ID` to `_SYSTEM/state/overseer/overseer.surface`; the listener reads it. So `listen` works from any terminal once the overseer is up.

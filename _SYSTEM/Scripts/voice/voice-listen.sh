@@ -14,6 +14,15 @@ MIN_CHARS="${VOICE_MIN_CHARS:-3}"                            # drop transcripts 
 SURFACE_FILE="$REPO/_SYSTEM/state/overseer/overseer.surface"
 SURFACE="${VOICE_OVERSEER_SURFACE:-$(cat "$SURFACE_FILE" 2>/dev/null || true)}"
 
+# ── cmux reachability self-test: injection (cmux send) only works from a cmux-spawned
+#    shell. If this fails, the mic transcribes but text goes nowhere. ──
+if cmux list-pane-surfaces >/dev/null 2>&1; then
+  echo "✓ cmux reachable from here — injection into surface $SURFACE will work"
+else
+  echo "✗ cmux UNREACHABLE from this shell (broken pipe). The mic will transcribe but CANNOT inject."
+  echo "  → this must run inside a cmux tab. Easiest: just launch \`overseer\` (it auto-starts the mic in-context)."
+fi
+
 # ── prefer Parakeet MLX (≈100× real-time, true VAD streaming) when its venv exists ──
 #    override with VOICE_STT_ENGINE=whisper to force the whisper.cpp fallback below.
 PARAKEET_PY="$REPO/_SYSTEM/state/voice/.venv-stt/bin/python"
