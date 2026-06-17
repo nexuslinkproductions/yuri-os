@@ -75,6 +75,16 @@
       "owner": "cloudinary",
       "requiredFor": ["cloudinary"],
       "missing": "optional"
+    },
+    "COINBASE_KEY_NAME": {
+      "owner": "coinbase",
+      "requiredFor": ["observatory-account-view-only"],
+      "missing": "optional"
+    },
+    "COINBASE_API_SECRET": {
+      "owner": "coinbase",
+      "requiredFor": ["observatory-account-view-only"],
+      "missing": "optional"
     }
   }
 }

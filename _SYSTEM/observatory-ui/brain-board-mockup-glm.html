@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YURI · Brain Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ════════════════════════════════════════════════════════════════════════════
+   YURI BRAIN BOARD — design mockup (glm-5.2 creative lead)
+   Concept: "The Cognitive Deck" — layered glass on an ambient void.
+   Story flow: see → think → working? → trust?
+   NO --yuri-hud-* / --yuri-kagami-* tokens. Purpose-built palette only.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── void + surfaces ── */
+  --void-0: #04060d;
+  --void-1: #060912;
+  --panel-bg: linear-gradient(168deg, rgba(16,24,42,0.62) 0%, rgba(8,12,24,0.5) 100%);
+  --panel-bg-hi: linear-gradient(168deg, rgba(22,32,54,0.7) 0%, rgba(10,16,30,0.55) 100%);
+  --panel-solid: #0a0f1c;
+
+  /* ── borders + hairlines ── */
+  --hair: rgba(130,160,210,0.07);
+  --hair-hi: rgba(130,160,210,0.13);
+  --edge: rgba(0,200,240,0.16);
+  --edge-soft: rgba(0,200,240,0.08);
+
+  /* ── text ── */
+  --ink: #eaf2ff;
+  --soft: #aebfd8;
+  --mist: #6e87a3;
+  --faint: #42546b;
+
+  /* ── brand accent ── */
+  --cyan: #00c8f0;
+  --cyan-hi: #9df2ff;
+  --cyan-dim: rgba(0,200,240,0.28);
+  --glow: rgba(0,212,255,0.10);
+
+  /* ── semantic ── */
+  --long: #34e6a0;
+  --long-dim: rgba(52,230,160,0.14);
+  --long-glow: rgba(52,230,160,0.35);
+  --short: #ff5470;
+  --short-dim: rgba(255,84,112,0.14);
+  --short-glow: rgba(255,84,112,0.35);
+  --neutral: #8a9bb8;
+  --neutral-dim: rgba(138,155,184,0.10);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.14);
+  --amber-glow: rgba(245,166,35,0.4);
+  --violet: #9b8aff;
+
+  /* ── type ── */
+  --display: 'Space Grotesk', -apple-system, system-ui, sans-serif;
+  --sans: 'Inter', -apple-system, system-ui, sans-serif;
+
+  /* ── motion ── */
+  --ease: cubic-bezier(.22,.8,.24,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --r: 16px;
+  --r-sm: 10px;
+}
+
+/* ── reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--void-0);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ═══ ambient void ═══ */
+.bb-ambient {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 12% 0%, rgba(0,200,240,0.055), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 88% 100%, rgba(90,70,200,0.045), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(52,230,160,0.018), transparent 70%),
+    var(--void-0);
+}
+.bb-ambient::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 100% 60% at 50% -10%, rgba(0,200,240,0.04), transparent 50%);
+  animation: ambient-breathe 14s ease-in-out infinite;
+}
+@keyframes ambient-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ═══ shell ═══ */
+.bb-shell { position: relative; z-index: 1; min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ═══ header ═══ */
+.bb-header {
+  display: flex; align-items: center; gap: 0;
+  padding: 0 36px; height: 60px; flex-shrink: 0;
+  border-bottom: 1px solid var(--hair);
+  background: rgba(4,6,13,0.72);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  position: sticky; top: 0; z-index: 50;
+}
+.bb-brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.bb-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0,200,240,0.18), rgba(52,230,160,0.12));
+  border: 1px solid var(--edge);
+  display: grid; place-items: center;
+  box-shadow: 0 0 18px rgba(0,200,240,0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.bb-mark svg { width: 16px; height: 16px; }
+.bb-brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+.bb-brand-name {
+  font-family: var(--display); font-weight: 600; font-size: 15px;
+  letter-spacing: .14em; color: var(--ink);
+}
+.bb-brand-sub {
+  font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--cyan-hi); font-weight: 500; margin-top: 1px;
+}
+
+.bb-header-stats { display: flex; align-items: center; gap: 0; }
+.bb-hstat {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 0 18px; border-left: 1px solid var(--hair); min-width: 72px;
+}
+.bb-hstat-label {
+  font-size: 8px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--mist); line-height: 1.2;
+}
+.bb-hstat-val {
+  font-family: var(--display); font-size: 13px; font-weight: 500;
+  color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.3;
+  transition: color .4s var(--ease);
+}
+.bb-hstat-val.pulse { animation: val-pulse .9s var(--ease) forwards; }
+@keyframes val-pulse {
+  0% { color: var(--cyan-hi); text-shadow: 0 0 12px var(--cyan); }
+  100% { color: var(--ink); text-shadow: none; }
+}
+
+.bb-live {
+  display: flex; align-items: center; gap: 8px; margin-left: 24px;
+  padding-left: 20px; border-left: 1px solid var(--hair);
+}
+.bb-live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--long); box-shadow: 0 0 10px var(--long-glow);
+  animation: live-pulse 2.2s ease-in-out infinite;
+}
+@keyframes live-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.bb-live-text {
+  font-size: 9px; letter-spacing: .24em; font-weight: 600; color: var(--long);
+}
+.bb-live-time {
+  font-size: 11px; color: var(--mist); font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+
+/* ═══ main grid ═══ */
+.bb-main {
+  flex: 1; padding: 28px 36px 40px;
+  display: flex; flex-direction: column; gap: 22px;
+  max-width: 1680px; width: 100%; margin: 0 auto;
+}
+
+/* ═══ panel base (glass) ═══ */
+.bb-panel {
+  position: relative;
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  border: 1px solid var(--hair);
+  border-radius: var(--r);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.045) inset,
+    0 20px 44px -16px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(0,0,0,0.15);
+  padding: 22px 24px;
+  transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
+}
+.bb-panel::before {
+  content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge-soft), transparent);
+  border-radius: 1px;
+}
+.bb-panel:hover {
+  border-color: var(--hair-hi);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 24px 52px -16px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(0,0,0,0.15),
+    0 0 30px -8px var(--glow);
+}
+
+.bb-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px;
+}
+.bb-eyebrow {
+  font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--cyan-hi); font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.bb-eyebrow::before {
+  content: ''; width: 14px; height: 1px; background: var(--cyan-dim); border-radius: 1px;
+}
+.bb-panel-sub {
+  font-size: 10px; color: var(--mist); letter-spacing: .02em;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ROW 1 — hero market + conviction
+   ════════════════════════════════════════════════════════════════════════════ */
+.bb-row-1 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; }
+
+/* ── hero market ── */
+.bb-hero { display: flex; flex-direction: column; gap: 16px; }
+.bb-hero-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.bb-hero-id { display: flex; flex-direction: column; gap: 2px; }
+.bb-hero-sym {
+  font-family: var(--display); font-weight: 600; font-size: 22px;
+  letter-spacing: .02em; color: var(--ink);
+}
+.bb-hero-name { font-size: 12px; color: var(--mist); letter-spacing: .04em; }
+.bb-hero-price-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.bb-hero-price {
+  font-family: var(--display); font-weight: 300; font-size: 38px;
+  color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1;
+  letter-spacing: -.01em;
+  transition: color .4s var(--ease);
+}
+.bb-hero-price.tick-up { animation: tick-up .8s var(--ease) forwards; }
+.bb-hero-price.tick-dn { animation: tick-dn .8s var(--ease) forwards; }
+@keyframes tick-up {
+  0% { color: var(--long); text-shadow: 0 0 16px var(--long-glow); }
+  100% { color: var(--ink); text-shadow: none; }
+}
+@keyframes tick-dn {
+  0% { color: var(--short); text-shadow: 0 0 16px var(--short-glow); }
+  100% { color: var(--ink); text-shadow: none; }
+}
+.bb-hero-change {
+  font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+  letter-spacing: .02em; padding: 2px 8px; border-radius: 6px;
+}
+.bb-hero-change.pos { color: var(--long); background: var(--long-dim); }
+.bb-hero-change.neg { color: var(--short); background: var(--short-dim); }
+
+.bb-hero-chart {
+  height: 120px; border-radius: var(--r-sm); overflow: hidden;
+  background: linear-gradient(180deg, rgba(0,200,240,0.02), transparent);
+  border: 1px solid var(--hair);
+}
+.bb-hero-chart svg { width: 100%; height: 100%; display: block; }
+
+.bb-hero-signal {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 16px; border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--long-dim), transparent 70%);
+  border: 1px solid var(--hair-hi);
+}
+.bb-signal-side {
+  font-family: var(--display); font-weight: 700; font-size: 16px;
+  letter-spacing: .14em; padding: 4px 12px; border-radius: 6px;
+}
+.bb-signal-side.long { color: var(--long); background: var(--long-dim); border: 1px solid var(--long-glow); }
+.bb-signal-side.short { color: var(--short); background: var(--short-dim); border: 1px solid var(--short-glow); }
+.bb-signal-side.neutral { color: var(--neutral); background: var(--neutral-dim); border: 1px solid var(--hair-hi); }
+.bb-signal-conf { display: flex; flex-direction: column; line-height: 1.1; }
+.bb-signal-conf-label { font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.bb-signal-conf-val { font-family: var(--display); font-size: 20px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bb-regime-badge {
+  margin-left: auto; font-size: 9px; font-weight: 600; letter-spacing: .16em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
+}
+.bb-regime-badge.trending { color: var(--cyan-hi); background: var(--edge-soft); border: 1px solid var(--edge); }
+.bb-regime-badge.ranging { color: var(--neutral); background: var(--neutral-dim); border: 1px solid var(--hair-hi); }
+.bb-regime-badge.volatile { color: var(--amber); background: var(--amber-dim); border: 1px solid var(--amber-glow); }
+
+/* hero indicators row */
+.bb-hero-ind {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+}
+.bb-ind-cell {
+  padding: 12px; border-radius: var(--r-sm);
+  background: rgba(8,12,24,0.4); border: 1px solid var(--hair);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.bb-ind-cell-label {
+  font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist);
+}
+.bb-ind-cell-viz { height: 36px; display: flex; align-items: center; }
+.bb-ind-cell-viz svg { width: 100%; height: 100%; }
+.bb-ind-cell-val {
+  font-family: var(--display); font-size: 15px; font-weight: 500;
+  color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1;
+}
+.bb-ind-cell-val .dir { font-size: 11px; margin-left: 4px; }
+.bb-ind-cell-val .dir.up { color: var(--long); }
+.bb-ind-cell-val .dir.dn { color: var(--short); }
+
+/* ── conviction panel ── */
+.bb-conviction { display: flex; flex-direction: column; }
+.bb-conv-list { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.bb-conv-row {
+  display: grid; grid-template-columns: 52px 1fr 92px;
+  align-items: center; gap: 14px;
+}
+.bb-conv-sym {
+  font-family: var(--display); font-weight: 600; font-size: 14px;
+  color: var(--ink); letter-spacing: .02em;
+}
+.bb-conv-meter {
+  position: relative; height: 7px; border-radius: 4px;
+  background: rgba(130,160,210,0.06); overflow: hidden;
+}
+.bb-conv-meter-fill {
+  position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px;
+  transition: width .6s var(--ease-out);
+}
+.bb-conv-meter-fill.long {
+  background: linear-gradient(90deg, var(--long), rgba(52,230,160,0.5));
+  box-shadow: 0 0 10px var(--long-glow);
+}
+.bb-conv-meter-fill.short {
+  background: linear-gradient(90deg, var(--short), rgba(255,84,112,0.5));
+  box-shadow: 0 0 10px var(--short-glow);
+}
+.bb-conv-meter-fill.neutral {
+  background: linear-gradient(90deg, var(--neutral), rgba(138,155,184,0.4));
+}
+.bb-conv-meter-pulse {
+  position: absolute; top: 0; height: 100%; width: 24px; border-radius: 4px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation: meter-sweep 3s var(--ease) infinite;
+}
+@keyframes meter-sweep {
+  0% { left: -24px; } 100% { left: 100%; }
+}
+.bb-conv-read {
+  display: flex; align-items: center; gap: 6px; justify-content: flex-end;
+}
+.bb-conv-side {
+  font-size: 9px; font-weight: 700; letter-spacing: .1em;
+}
+.bb-conv-side.long { color: var(--long); }
+.bb-conv-side.short { color: var(--short); }
+.bb-conv-side.neutral { color: var(--neutral); }
+.bb-conv-pct {
+  font-family: var(--display); font-size: 13px; font-weight: 500;
+  color: var(--soft); font-variant-numeric: tabular-nums;
+}
+
+/* thinking indicator */
+.bb-thinking {
+  display: flex; align-items: center; gap: 6px; margin-top: 14px;
+  padding-top: 14px; border-top: 1px solid var(--hair);
+}
+.bb-thinking-label { font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.bb-thinking-wave { display: flex; align-items: center; gap: 2px; height: 14px; }
+.bb-thinking-wave span {
+  width: 2px; border-radius: 1px; background: var(--cyan);
+  animation: wave 1.4s ease-in-out infinite;
+}
+.bb-thinking-wave span:nth-child(1) { animation-delay: 0s; }
+.bb-thinking-wave span:nth-child(2) { animation-delay: .12s; }
+.bb-thinking-wave span:nth-child(3) { animation-delay: .24s; }
+.bb-thinking-wave span:nth-child(4) { animation-delay: .36s; }
+.bb-thinking-wave span:nth-child(5) { animation-delay: .48s; }
+@keyframes wave {
+  0%, 100% { height: 3px; opacity: .4; }
+  50% { height: 12px; opacity: 1; box-shadow: 0 0 6px var(--cyan); }
+}
+.bb-thinking-text { font-size: 10px; color: var(--mist); margin-left: auto; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ROW 2 — market strip
+   ════════════════════════════════════════════════════════════════════════════ */
+.bb-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.bb-mcard {
+  position: relative; padding: 16px; border-radius: var(--r);
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--hair);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 28px -10px rgba(0,0,0,0.5);
+  transition: border-color .3s var(--ease), transform .3s var(--ease), box-shadow .3s var(--ease);
+  display: flex; flex-direction: column; gap: 10px;
+  overflow: hidden;
+}
+.bb-mcard::before {
+  content: ''; position: absolute; top: 0; left: 12px; right: 12px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge-soft), transparent);
+}
+.bb-mcard:hover {
+  border-color: var(--hair-hi); transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 36px -10px rgba(0,0,0,0.6), 0 0 24px -6px var(--glow);
+}
+.bb-mcard-top { display: flex; align-items: baseline; justify-content: space-between; }
+.bb-mcard-sym { font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--ink); }
+.bb-mcard-change { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bb-mcard-change.pos { color: var(--long); }
+.bb-mcard-change.neg { color: var(--short); }
+.bb-mcard-price { font-family: var(--display); font-size: 18px; font-weight: 400; color: var(--ink); font-variant-numeric: tabular-nums; transition: color .4s var(--ease); }
+.bb-mcard-price.tick-up { animation: tick-up .7s var(--ease) forwards; }
+.bb-mcard-price.tick-dn { animation: tick-dn .7s var(--ease) forwards; }
+.bb-mcard-spark { height: 36px; }
+.bb-mcard-spark svg { width: 100%; height: 100%; }
+.bb-mcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bb-mcard-signal { display: flex; align-items: center; gap: 5px; }
+.bb-mcard-side { font-size: 8px; font-weight: 700; letter-spacing: .08em; }
+.bb-mcard-side.long { color: var(--long); }
+.bb-mcard-side.short { color: var(--short); }
+.bb-mcard-side.neutral { color: var(--neutral); }
+.bb-mcard-conf { font-size: 10px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.bb-mcard-regime {
+  font-size: 7px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px;
+}
+.bb-mcard-regime.trending { color: var(--cyan-hi); background: var(--edge-soft); }
+.bb-mcard-regime.ranging { color: var(--neutral); background: var(--neutral-dim); }
+.bb-mcard-regime.volatile { color: var(--amber); background: var(--amber-dim); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ROW 3 — indicators + calibration
+   ════════════════════════════════════════════════════════════════════════════ */
+.bb-row-3 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; }
+
+/* ── indicators ── */
+.bb-ind-hero { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.bb-ind-rest { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 16px; border-top: 1px solid var(--hair); }
+.bb-ind-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 7px;
+  background: rgba(8,12,24,0.4); border: 1px solid var(--hair);
+  transition: border-color .2s var(--ease);
+}
+.bb-ind-pill:hover { border-color: var(--hair-hi); }
+.bb-ind-pill-name { font-size: 9px; letter-spacing: .04em; color: var(--mist); }
+.bb-ind-pill-val { font-size: 11px; font-weight: 500; color: var(--soft); font-variant-numeric: tabular-nums; }
+.bb-ind-pill-dir { font-size: 9px; }
+.bb-ind-pill-dir.up { color: var(--long); }
+.bb-ind-pill-dir.dn { color: var(--short); }
+.bb-ind-pill-dir.flat { color: var(--neutral); }
+
+/* ── calibration ── */
+.bb-cal-list { display: flex; flex-direction: column; gap: 2px; }
+.bb-cal-row {
+  display: grid; grid-template-columns: 1.2fr 70px 1fr 78px;
+  align-items: center; gap: 12px;
+  padding: 11px 0; border-bottom: 1px solid var(--hair);
+}
+.bb-cal-row:last-child { border-bottom: none; }
+.bb-cal-factor { font-size: 12px; color: var(--ink); font-weight: 500; letter-spacing: .01em; }
+.bb-cal-brier { display: flex; flex-direction: column; gap: 4px; }
+.bb-cal-brier-val { font-size: 12px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.bb-cal-brier-bar { height: 3px; border-radius: 2px; background: rgba(130,160,210,0.06); overflow: hidden; }
+.bb-cal-brier-fill { height: 100%; border-radius: 2px; transition: width .6s var(--ease-out); }
+.bb-cal-brier-fill.good { background: linear-gradient(90deg, var(--long), rgba(52,230,160,0.4)); }
+.bb-cal-brier-fill.mid { background: linear-gradient(90deg, var(--amber), rgba(245,166,35,0.4)); }
+.bb-cal-brier-fill.poor { background: linear-gradient(90deg, var(--short), rgba(255,84,112,0.4)); }
+.bb-cal-sharpe { font-size: 12px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.bb-cal-sharpe .label { font-size: 8px; color: var(--mist); letter-spacing: .1em; display: block; margin-bottom: 1px; }
+.bb-cal-lifecycle {
+  font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 5px; text-align: center; justify-self: end;
+}
+.bb-cal-lifecycle.live { color: var(--long); background: var(--long-dim); border: 1px solid var(--long-glow); }
+.bb-cal-lifecycle.paper { color: var(--cyan-hi); background: var(--edge-soft); border: 1px solid var(--edge); }
+.bb-cal-lifecycle.hypothesis { color: var(--mist); background: var(--neutral-dim); border: 1px solid var(--hair-hi); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ROW 4 — P&L + graduation
+   ════════════════════════════════════════════════════════════════════════════ */
+.bb-row-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+/* ── P&L ── */
+.bb-pnl-stats { display: flex; gap: 28px; margin-bottom: 16px; }
+.bb-pnl-stat { display: flex; flex-direction: column; gap: 3px; }
+.bb-pnl-stat-label { font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.bb-pnl-stat-val { font-family: var(--display); font-size: 22px; font-weight: 400; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.bb-pnl-stat-val.pos { color: var(--long); }
+.bb-pnl-stat-val.neg { color: var(--short); }
+.bb-pnl-stat-sub { font-size: 10px; color: var(--mist); font-variant-numeric: tabular-nums; }
+.bb-pnl-chart { height: 130px; border-radius: var(--r-sm); overflow: hidden; margin-bottom: 12px; }
+.bb-pnl-chart svg { width: 100%; height: 100%; }
+.bb-pnl-legend { display: flex; gap: 20px; }
+.bb-legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--soft); font-variant-numeric: tabular-nums; }
+.bb-dot { width: 8px; height: 8px; border-radius: 50%; }
+.bb-dot.paper { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-dim); }
+.bb-dot.real { background: var(--violet); box-shadow: 0 0 8px rgba(155,138,255,0.3); }
+
+/* ── graduation ladder ── */
+.bb-grad-ladder { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 8px 4px 0; }
+.bb-grad-line {
+  position: absolute; top: 20px; left: 8%; right: 8%; height: 2px;
+  background: rgba(130,160,210,0.08); border-radius: 1px; z-index: 0;
+}
+.bb-grad-line-fill {
+  position: absolute; top: 20px; left: 8%; height: 2px;
+  background: linear-gradient(90deg, var(--long), var(--amber));
+  border-radius: 1px; z-index: 1; transition: width .8s var(--ease-out);
+  box-shadow: 0 0 8px var(--amber-glow);
+}
+.bb-grad-rung { display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2; flex: 1; }
+.bb-grad-node {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 12px; font-weight: 700;
+  border: 2px solid; transition: all .3s var(--ease);
+}
+.bb-grad-node.met { background: var(--long-dim); border-color: var(--long); color: var(--long); box-shadow: 0 0 12px var(--long-glow); }
+.bb-grad-node.current { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 16px var(--amber-glow); animation: grad-pulse 2s ease-in-out infinite; }
+@keyframes grad-pulse { 0%,100% { box-shadow: 0 0 16px var(--amber-glow); } 50% { box-shadow: 0 0 28px var(--amber-glow); } }
+.bb-grad-node.unmet { background: rgba(130,160,210,0.04); border-color: var(--faint); color: var(--faint); }
+.bb-grad-label { font-family: var(--display); font-size: 11px; font-weight: 600; color: var(--soft); letter-spacing: .02em; text-align: center; }
+.bb-grad-label.current { color: var(--amber); }
+.bb-grad-gate { font-size: 9px; color: var(--mist); text-align: center; line-height: 1.4; max-width: 130px; }
+.bb-grad-gate .status { display: block; font-weight: 600; margin-top: 2px; letter-spacing: .04em; }
+.bb-grad-gate .status.met { color: var(--long); }
+.bb-grad-gate .status.current { color: var(--amber); }
+.bb-grad-gate .status.unmet { color: var(--faint); }
+
+.bb-grad-current {
+  margin-top: 20px; padding: 14px 16px; border-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--amber-dim), transparent 80%);
+  border: 1px solid var(--amber-glow);
+  display: flex; align-items: center; gap: 20px;
+}
+.bb-grad-current-label { font-size: 8px; letter-spacing: .2em; text-transform: uppercase; color: var(--mist); }
+.bb-grad-current-val { font-family: var(--display); font-size: 16px; font-weight: 600; color: var(--amber); }
+.bb-grad-current-detail { font-size: 11px; color: var(--soft); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* ═══ responsive ═══ */
+@media (max-width: 1180px) {
+  .bb-row-1, .bb-row-3, .bb-row-4 { grid-template-columns: 1fr; }
+  .bb-strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .bb-main { padding: 20px 16px 32px; }
+  .bb-header { padding: 0 16px; }
+  .bb-header-stats { display: none; }
+  .bb-strip { grid-template-columns: repeat(2, 1fr); }
+  .bb-hero-ind, .bb-ind-hero { grid-template-columns: repeat(2, 1fr); }
+  .bb-hero-price { font-size: 30px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bb-ambient"></div>
+<div class="bb-shell">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="bb-header">
+    <div class="bb-brand">
+      <div class="bb-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 3 L12 21 M6 7 L18 17 M18 7 L6 17" stroke="#9df2ff" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/>
+          <circle cx="12" cy="12" r="2.4" fill="#00c8f0" opacity="0.85"/>
+        </svg>
+      </div>
+      <div class="bb-brand-text">
+        <span class="bb-brand-name">YURI</span>
+        <span class="bb-brand-sub">Brain Board</span>
+      </div>
+    </div>
+    <div class="bb-header-stats">
+      <div class="bb-hstat"><span class="bb-hstat-label">Cycle</span><span class="bb-hstat-val" id="h-cycle">4,218</span></div>
+      <div class="bb-hstat"><span class="bb-hstat-label">Uptime</span><span class="bb-hstat-val">37h 12m</span></div>
+      <div class="bb-hstat"><span class="bb-hstat-label">Markets</span><span class="bb-hstat-val">6</span></div>
+      <div class="bb-hstat"><span class="bb-hstat-label">Factors</span><span class="bb-hstat-val">18</span></div>
+      <div class="bb-hstat"><span class="bb-hstat-label">Paper P&amp;L</span><span class="bb-hstat-val" id="h-pnl" style="color:var(--long)">+€1,847</span></div>
+    </div>
+    <div class="bb-live">
+      <span class="bb-live-dot"></span>
+      <span class="bb-live-text">LIVE</span>
+      <span class="bb-live-time" id="clock">14:32:07</span>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="bb-main">
+
+    <!-- ROW 1: hero + conviction -->
+    <div class="bb-row-1">
+      <!-- hero market -->
+      <div class="bb-panel bb-hero">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">Primary Market</span>
+          <span class="bb-panel-sub">Coinbase · BTC-USD</span>
+        </div>
+        <div class="bb-hero-top">
+          <div class="bb-hero-id">
+            <span class="bb-hero-sym">BTC</span>
+            <span class="bb-hero-name">Bitcoin</span>
+          </div>
+          <div class="bb-hero-price-block">
+            <span class="bb-hero-price" id="hero-price">€56,585</span>
+            <span class="bb-hero-change neg" id="hero-change">−1.20% · 24h</span>
+          </div>
+        </div>
+        <div class="bb-hero-chart" id="hero-chart"></div>
+        <div class="bb-hero-signal">
+          <div class="bb-signal-side long">LONG</div>
+          <div class="bb-signal-conf">
+            <span class="bb-signal-conf-label">Conviction</span>
+            <span class="bb-signal-conf-val">72%</span>
+          </div>
+          <div class="bb-regime-badge trending">Trending</div>
+        </div>
+        <div class="bb-hero-ind" id="hero-ind"></div>
+      </div>
+
+      <!-- conviction -->
+      <div class="bb-panel bb-conviction">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">YURI's Read</span>
+          <span class="bb-panel-sub">Conviction across watchlist</span>
+        </div>
+        <div class="bb-conv-list" id="conv-list"></div>
+        <div class="bb-thinking">
+          <span class="bb-thinking-label">Cortex</span>
+          <div class="bb-thinking-wave"><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="bb-thinking-text" id="think-text">evaluating regime · 6 markets · 18 factors</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: market strip -->
+    <div class="bb-strip" id="strip"></div>
+
+    <!-- ROW 3: indicators + calibration -->
+    <div class="bb-row-3">
+      <div class="bb-panel">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">Technical Surface</span>
+          <span class="bb-panel-sub">18 indicators · BTC-USD · 5m</span>
+        </div>
+        <div class="bb-ind-hero" id="ind-hero"></div>
+        <div class="bb-ind-rest" id="ind-rest"></div>
+      </div>
+      <div class="bb-panel">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">Calibration</span>
+          <span class="bb-panel-sub">Are our methods working</span>
+        </div>
+        <div class="bb-cal-list" id="cal-list"></div>
+      </div>
+    </div>
+
+    <!-- ROW 4: P&L + graduation -->
+    <div class="bb-row-4">
+      <div class="bb-panel">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">Paper Performance</span>
+          <span class="bb-panel-sub">Simulated vs live capital</span>
+        </div>
+        <div class="bb-pnl-stats">
+          <div class="bb-pnl-stat">
+            <span class="bb-pnl-stat-label">Paper Equity</span>
+            <span class="bb-pnl-stat-val">€104,287</span>
+            <span class="bb-pnl-stat-sub">started €100,000</span>
+          </div>
+          <div class="bb-pnl-stat">
+            <span class="bb-pnl-stat-label">Today</span>
+            <span class="bb-pnl-stat-val pos">+€1,847</span>
+            <span class="bb-pnl-stat-sub">+1.80%</span>
+          </div>
+          <div class="bb-pnl-stat">
+            <span class="bb-pnl-stat-label">Max Drawdown</span>
+            <span class="bb-pnl-stat-val neg">−4.2%</span>
+            <span class="bb-pnl-stat-sub">peak €106,890</span>
+          </div>
+        </div>
+        <div class="bb-pnl-chart" id="pnl-chart"></div>
+        <div class="bb-pnl-legend">
+          <span class="bb-legend-item"><span class="bb-dot paper"></span>Paper €104,287</span>
+          <span class="bb-legend-item"><span class="bb-dot real"></span>Live micro €12,450</span>
+        </div>
+      </div>
+
+      <div class="bb-panel">
+        <div class="bb-panel-head">
+          <span class="bb-eyebrow">Graduation Ladder</span>
+          <span class="bb-panel-sub">Prove it before real money</span>
+        </div>
+        <div class="bb-grad-ladder" id="grad-ladder">
+          <div class="bb-grad-line"></div>
+          <div class="bb-grad-line-fill" id="grad-fill" style="width:62%"></div>
+        </div>
+        <div class="bb-grad-current">
+          <span class="bb-grad-current-label">Current Rung</span>
+          <span class="bb-grad-current-val">R2 · Micro</span>
+          <span class="bb-grad-current-detail">47 / 90 days · live Sharpe 0.91 · target 0.80</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   PLACEHOLDER DATA + RENDER
+   ════════════════════════════════════════════════════════════════════════════ */
+const $ = (s) => document.querySelector(s);
+const fmtEUR = (v) => '€' + Math.round(v).toLocaleString('en-US');
+const fmtPrice = (v) => v >= 100 ? '€' + v.toLocaleString('en-US', {maximumFractionDigits:0}) : '€' + v.toFixed(2);
+
+/* ── random walk generator (realistic-looking price action) ── */
+function genWalk(n, start, vol, drift) {
+  const pts = [start];
+  for (let i = 1; i < n; i++) {
+    const v = pts[i-1] + (Math.random() - 0.5) * vol + drift;
+    pts.push(Math.max(v, start * 0.5));
+  }
+  return pts;
+}
+
+/* ── SVG path helpers ── */
+function linePath(pts, w, h, pad) {
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const range = (max - min) || 1;
+  const step = (w - pad*2) / (pts.length - 1);
+  return pts.map((p, i) => {
+    const x = pad + i * step;
+    const y = h - pad - ((p - min) / range) * (h - pad*2);
+    return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+}
+function areaPath(pts, w, h, pad) {
+  const min = Math.min(...pts), max = Math.max(...pts);
+  const range = (max - min) || 1;
+  const step = (w - pad*2) / (pts.length - 1);
+  const lastX = pad + (pts.length - 1) * step;
+  const baseY = h - pad;
+  return linePath(pts, w, h, pad) + ' L' + lastX.toFixed(1) + ',' + baseY + ' L' + pad + ',' + baseY + ' Z';
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MARKETS DATA
+   ════════════════════════════════════════════════════════════════════════════ */
+const markets = [
+  { sym:'BTC',  name:'Bitcoin',  price:56585,   chg:-1.2, side:'long',  conf:72, regime:'trending', walk:null },
+  { sym:'ETH',  name:'Ethereum', price:2847,    chg:-0.8, side:'neutral',conf:48, regime:'ranging',  walk:null },
+  { sym:'SOL',  name:'Solana',   price:142.30,  chg: 3.6, side:'long',  conf:81, regime:'trending', walk:null },
+  { sym:'SUI',  name:'Sui',      price:1.84,     chg:-2.1, side:'short', conf:64, regime:'volatile', walk:null },
+  { sym:'WIF',  name:'dogwifhat',price:2.41,     chg: 6.8, side:'long',  conf:88, regime:'trending', walk:null },
+  { sym:'AVAX', name:'Avalanche',price:27.85,   chg: 3.6, side:'long',  conf:67, regime:'volatile', walk:null },
+];
+// generate walks
+markets.forEach(m => {
+  const drift = m.chg > 0 ? m.price * 0.001 : m.chg < 0 ? -m.price * 0.0008 : 0;
+  m.walk = genWalk(64, m.price * (1 - m.chg/100 * 0.3), m.price * 0.004, drift);
+  m.walk[m.walk.length-1] = m.price; // end at current
+});
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: hero chart
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderHeroChart() {
+  const btc = markets[0];
+  const w = 600, h = 120, pad = 6;
+  const lp = linePath(btc.walk, w, h, pad);
+  const ap = areaPath(btc.walk, w, h, pad);
+  const min = Math.min(...btc.walk), max = Math.max(...btc.walk);
+  const range = max - min;
+  $('#hero-chart').innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="hero-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(0,200,240,0.22)"/>
+          <stop offset="100%" stop-color="rgba(0,200,240,0)"/>
+        </linearGradient>
+        <linearGradient id="hero-line" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00c8f0"/>
+          <stop offset="100%" stop-color="#34e6a0"/>
+        </linearGradient>
+      </defs>
+      <path d="${ap}" fill="url(#hero-grad)"/>
+      <path d="${lp}" fill="none" stroke="url(#hero-line)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${pad + (btc.walk.length-1) * ((w-pad*2)/(btc.walk.length-1))}" cy="${h - pad - ((btc.price - min)/range)*(h-pad*2)}" r="3" fill="#34e6a0" opacity="0.9">
+        <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: hero indicators (4 with mini-viz)
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderHeroInd() {
+  // RSI gauge (semicircle), MACD histogram, ADX bar, ATR
+  const rsi = 50.4;
+  const rsiAngle = (rsi / 100) * 180; // 0-180 deg
+  const rsiRad = (180 - rsiAngle) * Math.PI / 180;
+  const rsiX = 50 + 38 * Math.cos(rsiRad);
+  const rsiY = 50 - 38 * Math.sin(rsiRad);
+  const rsiColor = rsi > 70 ? '#ff5470' : rsi < 30 ? '#34e6a0' : '#8a9bb8';
+
+  const macdBars = [0.3, 0.5, 0.7, 0.9, 1.1, 0.8, 0.6, 0.4, 0.2, -0.1, -0.2, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 0.8];
+  const macdW = 100, macdH = 36;
+  const macdBW = (macdW - 4) / macdBars.length;
+  const macdMax = Math.max(...macdBars.map(Math.abs));
+  const macdSvg = macdBars.map((b, i) => {
+    const bh = Math.abs(b) / macdMax * 14;
+    const x = 2 + i * macdBW;
+    const y = b >= 0 ? 18 - bh : 18;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(macdBW*0.7).toFixed(1)}" height="${bh.toFixed(1)}" rx="1" fill="${b>=0?'#34e6a0':'#ff5470'}" opacity="${0.4 + Math.abs(b)/macdMax*0.6}"/>`;
+  }).join('');
+
+  const adx = 10.5;
+  const adxPct = Math.min(adx / 50, 1) * 100;
+
+  const atr = 1240;
+  const atrPct = 62; // relative to range
+
+  $('#hero-ind').innerHTML = `
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">RSI · 14</span>
+      <div class="bb-ind-cell-viz">
+        <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+          <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="rgba(130,160,210,0.1)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 12 50 A 38 38 0 0 1 ${rsiX.toFixed(1)} ${rsiY.toFixed(1)}" fill="none" stroke="${rsiColor}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="50" y1="50" x2="${rsiX.toFixed(1)}" y2="${rsiY.toFixed(1)}" stroke="${rsiColor}" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <circle cx="${rsiX.toFixed(1)}" cy="${rsiY.toFixed(1)}" r="2.5" fill="${rsiColor}"/>
+        </svg>
+      </div>
+      <span class="bb-ind-cell-val">${rsi.toFixed(1)}<span class="dir flat">·</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">MACD · 12 26 9</span>
+      <div class="bb-ind-cell-viz">
+        <svg viewBox="0 0 ${macdW} ${macdH}" preserveAspectRatio="none">
+          <line x1="0" y1="18" x2="${macdW}" y2="18" stroke="rgba(130,160,210,0.1)" stroke-width="0.5"/>
+          ${macdSvg}
+        </svg>
+      </div>
+      <span class="bb-ind-cell-val">▲<span class="dir up">bull cross</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">ADX · 14</span>
+      <div class="bb-ind-cell-viz">
+        <div style="width:100%;height:7px;border-radius:4px;background:rgba(130,160,210,0.06);overflow:hidden;position:relative">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${adxPct}%;border-radius:4px;background:linear-gradient(90deg,#f5a623,#34e6a0);box-shadow:0 0 8px rgba(245,166,35,0.3)"></div>
+          <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(130,160,210,0.2)"></div>
+        </div>
+      </div>
+      <span class="bb-ind-cell-val">${adx.toFixed(1)}<span class="dir" style="color:var(--amber)">weak</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">ATR · 14</span>
+      <div class="bb-ind-cell-viz">
+        <div style="width:100%;height:7px;border-radius:4px;background:rgba(130,160,210,0.06);overflow:hidden;position:relative">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${atrPct}%;border-radius:4px;background:linear-gradient(90deg,#00c8f0,#9df2ff);box-shadow:0 0 8px rgba(0,200,240,0.25)"></div>
+        </div>
+      </div>
+      <span class="bb-ind-cell-val">€${atr.toLocaleString()}<span class="dir flat">·</span></span>
+    </div>
+  `;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: conviction list
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderConviction() {
+  $('#conv-list').innerHTML = markets.map(m => {
+    const sideLabel = m.side === 'long' ? 'LONG' : m.side === 'short' ? 'SHORT' : 'NEUT';
+    return `
+      <div class="bb-conv-row">
+        <span class="bb-conv-sym">${m.sym}</span>
+        <div class="bb-conv-meter">
+          <div class="bb-conv-meter-fill ${m.side}" style="width:${m.conf}%"></div>
+          <div class="bb-conv-meter-pulse"></div>
+        </div>
+        <div class="bb-conv-read">
+          <span class="bb-conv-side ${m.side}">${sideLabel}</span>
+          <span class="bb-conv-pct">${m.conf}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: market strip (5 cards, skip BTC which is hero)
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderStrip() {
+  const w = 200, h = 36, pad = 3;
+  $('#strip').innerHTML = markets.slice(1).map(m => {
+    const lp = linePath(m.walk, w, h, pad);
+    const ap = areaPath(m.walk, w, h, pad);
+    const lineColor = m.chg >= 0 ? '#34e6a0' : '#ff5470';
+    const fillColor = m.chg >= 0 ? 'rgba(52,230,160,0.12)' : 'rgba(255,84,112,0.12)';
+    const sideLabel = m.side === 'long' ? 'L' : m.side === 'short' ? 'S' : 'N';
+    return `
+      <div class="bb-mcard" data-sym="${m.sym}">
+        <div class="bb-mcard-top">
+          <span class="bb-mcard-sym">${m.sym}</span>
+          <span class="bb-mcard-change ${m.chg>=0?'pos':'neg'}">${m.chg>=0?'+':''}${m.chg.toFixed(1)}%</span>
+        </div>
+        <span class="bb-mcard-price" data-sym="${m.sym}">${fmtPrice(m.price)}</span>
+        <div class="bb-mcard-spark">
+          <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+            <path d="${ap}" fill="${fillColor}"/>
+            <path d="${lp}" fill="none" stroke="${lineColor}" stroke-width="1.4" stroke-linejoin="round" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="bb-mcard-foot">
+          <div class="bb-mcard-signal">
+            <span class="bb-mcard-side ${m.side}">${sideLabel}</span>
+            <span class="bb-mcard-conf">${m.conf}%</span>
+          </div>
+          <span class="bb-mcard-regime ${m.regime}">${m.regime}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: indicators (hero 4 + rest 14)
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderIndicators() {
+  // hero 4 already in hero panel; here is the indicators panel hero 4 + rest
+  const heroInds = [
+    { name:'RSI · 14', val:'50.4', dir:'flat', dirText:'·' },
+    { name:'MACD', val:'▲', dir:'up', dirText:'bull cross' },
+    { name:'ADX · 14', val:'10.5', dir:'flat', dirText:'weak' },
+    { name:'ATR · 14', val:'€1,240', dir:'flat', dirText:'·' },
+  ];
+  // reuse the same viz approach but in the indicators panel
+  const rsi = 50.4;
+  const rsiAngle = (rsi / 100) * 180;
+  const rsiRad = (180 - rsiAngle) * Math.PI / 180;
+  const rsiX = 50 + 38 * Math.cos(rsiRad);
+  const rsiY = 50 - 38 * Math.sin(rsiRad);
+  const rsiColor = '#8a9bb8';
+
+  const macdBars = [0.3,0.5,0.7,0.9,1.1,0.8,0.6,0.4,0.2,-0.1,-0.2,-0.1,0.1,0.3,0.5,0.7,0.9,1.0,0.8];
+  const macdW = 100, macdH = 36, macdBW = (macdW-4)/macdBars.length;
+  const macdMax = Math.max(...macdBars.map(Math.abs));
+  const macdSvg = macdBars.map((b,i) => {
+    const bh = Math.abs(b)/macdMax*14;
+    const x = 2 + i*macdBW;
+    const y = b>=0 ? 18-bh : 18;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(macdBW*0.7).toFixed(1)}" height="${bh.toFixed(1)}" rx="1" fill="${b>=0?'#34e6a0':'#ff5470'}" opacity="${0.4+Math.abs(b)/macdMax*0.6}"/>`;
+  }).join('');
+
+  $('#ind-hero').innerHTML = `
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">RSI · 14</span>
+      <div class="bb-ind-cell-viz">
+        <svg viewBox="0 0 100 50" preserveAspectRatio="xMidYMid meet">
+          <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="rgba(130,160,210,0.1)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M 12 50 A 38 38 0 0 1 ${rsiX.toFixed(1)} ${rsiY.toFixed(1)}" fill="none" stroke="${rsiColor}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="${rsiX.toFixed(1)}" cy="${rsiY.toFixed(1)}" r="2.5" fill="${rsiColor}"/>
+        </svg>
+      </div>
+      <span class="bb-ind-cell-val">50.4<span class="dir flat">·</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">MACD · 12 26 9</span>
+      <div class="bb-ind-cell-viz">
+        <svg viewBox="0 0 ${macdW} ${macdH}" preserveAspectRatio="none">
+          <line x1="0" y1="18" x2="${macdW}" y2="18" stroke="rgba(130,160,210,0.1)" stroke-width="0.5"/>
+          ${macdSvg}
+        </svg>
+      </div>
+      <span class="bb-ind-cell-val">▲<span class="dir up">cross</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">ADX · 14</span>
+      <div class="bb-ind-cell-viz">
+        <div style="width:100%;height:7px;border-radius:4px;background:rgba(130,160,210,0.06);overflow:hidden;position:relative">
+          <div style="position:absolute;left:0;top:0;height:100%;width:21%;border-radius:4px;background:linear-gradient(90deg,#f5a623,#34e6a0);box-shadow:0 0 8px rgba(245,166,35,0.3)"></div>
+          <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(130,160,210,0.2)"></div>
+        </div>
+      </div>
+      <span class="bb-ind-cell-val">10.5<span class="dir" style="color:var(--amber)">weak</span></span>
+    </div>
+    <div class="bb-ind-cell">
+      <span class="bb-ind-cell-label">Bollinger</span>
+      <div class="bb-ind-cell-viz">
+        <svg viewBox="0 0 100 36" preserveAspectRatio="none">
+          <path d="M 4 8 Q 30 6 50 10 T 96 8" fill="none" stroke="rgba(130,160,210,0.2)" stroke-width="1" stroke-dasharray="2 2"/>
+          <path d="M 4 18 Q 30 16 50 20 T 96 18" fill="none" stroke="#00c8f0" stroke-width="1.4" opacity="0.7"/>
+          <path d="M 4 28 Q 30 26 50 30 T 96 28" fill="none" stroke="rgba(130,160,210,0.2)" stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>
+      </div>
+      <span class="bb-ind-cell-val">mid<span class="dir flat">·</span></span>
+    </div>
+  `;
+
+  // rest 14 as pills
+  const rest = [
+    {n:'CCI',           v:'−85',   d:'dn'},
+    {n:"Williams %R",   v:'−22',   d:'up'},
+    {n:'ROC',           v:'0.8',   d:'up'},
+    {n:'OBV',           v:'rising',d:'up'},
+    {n:'MFI',           v:'58',    d:'flat'},
+    {n:'Stochastic',    v:'64',    d:'up'},
+    {n:'VWAP',          v:'above', d:'up'},
+    {n:'WMA',           v:'55,920',d:'up'},
+    {n:'TRIX',          v:'−0.03', d:'dn'},
+    {n:'ForceIndex',    v:'pos',   d:'up'},
+    {n:'PSAR',          v:'below', d:'up'},
+    {n:'EMA-50',        v:'55,410',d:'up'},
+    {n:'Ichimoku',      v:'cloud', d:'flat'},
+    {n:'ElderRay',      v:'bull',  d:'up'},
+  ];
+  $('#ind-rest').innerHTML = rest.map(i => `
+    <div class="bb-ind-pill">
+      <span class="bb-ind-pill-name">${i.n}</span>
+      <span class="bb-ind-pill-val">${i.v}</span>
+      <span class="bb-ind-pill-dir ${i.d}">${i.d==='up'?'▲':i.d==='dn'?'▼':'·'}</span>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: calibration scorecard
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderCalibration() {
+  const factors = [
+    { name:'volatility-breakout', brier:0.195, sharpe:1.78, life:'live',       brierPct:39 },
+    { name:'momentum-14',          brier:0.218, sharpe:1.42, life:'live',       brierPct:44 },
+    { name:'regime-adaptive',     brier:0.203, sharpe:1.55, life:'paper',      brierPct:41 },
+    { name:'mean-reversion-9',    brier:0.241, sharpe:0.91, life:'paper',      brierPct:48 },
+    { name:'volume-flow',         brier:0.267, sharpe:0.64, life:'hypothesis', brierPct:53 },
+  ];
+  const brierClass = (b) => b < 0.22 ? 'good' : b < 0.25 ? 'mid' : 'poor';
+  $('#cal-list').innerHTML = factors.map(f => `
+    <div class="bb-cal-row">
+      <span class="bb-cal-factor">${f.name}</span>
+      <div class="bb-cal-brier">
+        <span class="bb-cal-brier-val">${f.brier.toFixed(3)}</span>
+        <div class="bb-cal-brier-bar"><div class="bb-cal-brier-fill ${brierClass(f.brier)}" style="width:${f.brierPct}%"></div></div>
+      </div>
+      <div class="bb-cal-sharpe"><span class="label">Deflated Sharpe</span>${f.sharpe.toFixed(2)}</div>
+      <span class="bb-cal-lifecycle ${f.life}">${f.life}</span>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: P&L dual-track chart
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderPnlChart() {
+  const w = 520, h = 130, pad = 8;
+  // paper equity: climbing from 100k to 104.3k with a drawdown dip
+  const paper = genWalk(80, 100000, 600, 55);
+  paper[0] = 100000;
+  // insert a drawdown around index 40-50
+  for (let i = 40; i < 52; i++) paper[i] -= (i < 46 ? (46-i)*400 : (i-46)*300);
+  paper[paper.length-1] = 104287;
+  // real (micro): much smaller scale, flatter — scale to fit same chart
+  const real = genWalk(80, 100000, 200, 30);
+  real[0] = 100000;
+  real[real.length-1] = 104500; // proportionally +4.5% on micro
+
+  const allMin = Math.min(...paper, ...real);
+  const allMax = Math.max(...paper, ...real);
+  const range = allMax - allMin;
+
+  const paperLine = linePath(paper, w, h, pad);
+  const paperArea = areaPath(paper, w, h, pad);
+  const realLine = linePath(real, w, h, pad);
+
+  $('#pnl-chart').innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="pnl-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(0,200,240,0.18)"/>
+          <stop offset="100%" stop-color="rgba(0,200,240,0)"/>
+        </linearGradient>
+      </defs>
+      <path d="${paperArea}" fill="url(#pnl-grad)"/>
+      <path d="${realLine}" fill="none" stroke="#9b8aff" stroke-width="1.3" stroke-linejoin="round" opacity="0.7" stroke-dasharray="0"/>
+      <path d="${paperLine}" fill="none" stroke="#00c8f0" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${pad + (paper.length-1)*((w-pad*2)/(paper.length-1))}" cy="${h-pad-((paper[paper.length-1]-allMin)/range)*(h-pad*2)}" r="3" fill="#00c8f0">
+        <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   RENDER: graduation ladder
+   ════════════════════════════════════════════════════════════════════════════ */
+function renderGraduation() {
+  const rungs = [
+    { id:'R0', name:'Shadow',  status:'met',     gate:'30d shadow corr > 0.85', detail:'0.91 · passed' },
+    { id:'R1', name:'Paper',   status:'met',     gate:'60d paper Sharpe > 1.0', detail:'1.42 · passed' },
+    { id:'R2', name:'Micro',   status:'current', gate:'90d live Sharpe > 0.80', detail:'47/90d · 0.91' },
+    { id:'R3', name:'Scaled',  status:'unmet',   gate:'180d Sharpe > 1.2, DD < 8%', detail:'locked' },
+  ];
+  const ladder = $('#grad-ladder');
+  // keep the line elements, add rungs
+  const lineHtml = ladder.innerHTML;
+  ladder.innerHTML = lineHtml + rungs.map(r => {
+    const icon = r.status === 'met' ? '✓' : r.status === 'current' ? '◐' : '○';
+    return `
+      <div class="bb-grad-rung">
+        <div class="bb-grad-node ${r.status}">${icon}</div>
+        <span class="bb-grad-label ${r.status==='current'?'current':''}">${r.id} · ${r.name}</span>
+        <div class="bb-grad-gate">${r.gate}<span class="status ${r.status}">${r.detail}</span></div>
+      </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   LIVE TICK SIMULATION (1s)
+   ════════════════════════════════════════════════════════════════════════════ */
+let cycle = 4218;
+const thinkTexts = [
+  'evaluating regime · 6 markets · 18 factors',
+  'CUSUM regime shift detected · SOL trending',
+  'recalibrating conviction · WIF 88%',
+  'factor health check · volatility-breakout live',
+  'paper equity +1.80% · within DD budget',
+  'R2 micro gate · 47/90 days · on track',
+];
+let thinkIdx = 0;
+
+function tick() {
+  cycle++;
+  $('#h-cycle').textContent = cycle.toLocaleString('en-US');
+  $('#h-cycle').classList.remove('pulse'); void $('#h-cycle').offsetWidth;
+  $('#h-cycle').classList.add('pulse');
+
+  // jitter hero price
+  const btc = markets[0];
+  const delta = (Math.random() - 0.48) * btc.price * 0.0006;
+  const newPrice = btc.price + delta;
+  const up = newPrice > btc.price;
+  btc.price = newPrice;
+  const hp = $('#hero-price');
+  hp.textContent = fmtPrice(btc.price);
+  hp.classList.remove('tick-up','tick-dn'); void hp.offsetWidth;
+  hp.classList.add(up ? 'tick-up' : 'tick-dn');
+
+  // jitter strip prices
+  markets.slice(1).forEach(m => {
+    const d = (Math.random() - 0.48) * m.price * 0.0008;
+    const np = m.price + d;
+    const u = np > m.price;
+    m.price = np;
+    const el = document.querySelector(`.bb-mcard-price[data-sym="${m.sym}"]`);
+    if (el) {
+      el.textContent = fmtPrice(m.price);
+      el.classList.remove('tick-up','tick-dn'); void el.offsetWidth;
+      el.classList.add(u ? 'tick-up' : 'tick-dn');
+    }
+  });
+
+  // rotate thinking text every ~5s
+  if (cycle % 5 === 0) {
+    thinkIdx = (thinkIdx + 1) % thinkTexts.length;
+    $('#think-text').textContent = thinkTexts[thinkIdx];
+  }
+}
+
+function tickClock() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2,'0');
+  $('#clock').textContent = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds());
+}
+
+/* ═══ INIT ═══ */
+renderHeroChart();
+renderHeroInd();
+renderConviction();
+renderStrip();
+renderIndicators();
+renderCalibration();
+renderPnlChart();
+renderGraduation();
+tickClock();
+setInterval(tick, 1000);
+setInterval(tickClock, 1000);
+</script>
+</body>
+</html>

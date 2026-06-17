@@ -23,7 +23,7 @@ import path from 'node:path';
 import https from 'node:https';
 import { URL as NodeURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, existsSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync } from 'node:fs';
 
 // ── Path resolution ────────────────────────────────────────────────────────
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +35,7 @@ const SYSTEM_ROOT = path.resolve(SCRIPTS_ROOT, '..');
 // ── Ledger paths (under _SYSTEM/state/ only) ──────────────────────────────
 const STATE_DIR = path.join(SYSTEM_ROOT, 'state');
 const PAPER_LEDGER = path.join(STATE_DIR, 'observatory-paper.jsonl');
+const QUANTUM_SHADOW_LEDGER = path.join(STATE_DIR, 'observatory-quantum-shadow.jsonl');
 const PRED_LEDGER = path.join(STATE_DIR, 'observatory-predictions.jsonl');
 
 // ── AFL spine imports ──────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ import { circuitInputFromBars } from '../factor-return-vectors.mjs';
 import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 import { webSearch as agentReachSearch, available as agentReachAvailable } from '../../agent-reach.mjs';
 import { scorePost, aggregateSentiment } from '../adapters/social-adapter.mjs';
+import { computeIndicators, listIndicators as registryListIndicators } from '../indicator-registry.mjs';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit aware
@@ -71,7 +73,11 @@ const DEFAULT_CRYPTO_MARKETS = (process.env.OBSERVATORY_CRYPTO_MARKETS
 const COINBASE_GRANULARITY = 'FIVE_MINUTE';
 
 // Number of candles to fetch per cycle for crypto
-const CANDLES_FETCH_LIMIT = 20;
+const CANDLES_FETCH_LIMIT = 200;   // ~200 bars: clears the deepest indicator warmup (ADX 27, MACD 26) + history for factors/regime. Coinbase cap is 350/req.
+
+// Learn loop: how often (in cycles) to decode closed paper trades → AFL_LEDGER. 10 cycles
+// ≈ a few minutes; the decode is idempotent so cadence only affects calibration freshness.
+const LEARN_DECODE_EVERY = 10;
 
 // ── Timestamp normalization (single chokepoint) ────────────────────────────
 /**
@@ -421,7 +427,7 @@ function isPrivateHost(hostname) {
 // ── Market cycle: crypto (Coinbase candles) ────────────────────────────────
 async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
-  const start = now - 60 * 60; // 1 hour back
+  const start = now - 17 * 60 * 60; // ~17h back → ~200 FIVE_MINUTE bars (was 1h=12 bars, too few for indicator warmup)
   const end = now;
 
   let candles;
@@ -515,6 +521,22 @@ async function runCryptoCycle(market, snap, cfg = {}) {
 
   // Quantum factor-circuit telemetry on the REAL return-vectors of the price signals
   snap.circuit = computeCircuit(bars, signals);
+
+  // Quantum A/B SHADOW (DISARMED telemetry): record the classical-vs-quantum directional call
+  // for this cycle so we can MEASURE whether order-optimal sequencing would lift outcomes — without
+  // ever touching live sizing. Arming ordering→sizing is a separate owner-gated step. Fail-soft.
+  if (cfg.enableQuantumShadow !== false && snap.circuit) {
+    try {
+      const { shadowCompare, recordShadowPrediction } = await import('../quantum-ab-shadow.mjs');
+      const cmp = shadowCompare({ signals, circuit: snap.circuit });
+      snap.circuit.shadow = cmp;
+      recordShadowPrediction(cmp, {
+        market,
+        ts: snap.updatedAt || Math.floor(Date.now() / 1000),
+        ledgerPath: QUANTUM_SHADOW_LEDGER,
+      });
+    } catch (_e) { /* shadow telemetry never breaks the cycle */ }
+  }
 
   // Sizing + paper fill for each PRICE signal
   const returns = closeReturns(bars);
@@ -665,6 +687,7 @@ const _state = {
   cycleCount: 0,
   ticks: new Map(),       // market key → { market, venue, price, bid, ask, ts } (1s fast-tick)
   lastTick: null,         // unix-seconds of the last fast-tick poll
+  account: null,          // real (view-only) Coinbase account state — null until refreshAccount runs
 };
 
 // ── Fast price tick (1s) — lightweight last-price poll, SEPARATE from runCycle ──
@@ -718,6 +741,245 @@ export function getTicks() {
   return Object.fromEntries(_state.ticks);
 }
 
+// ── Real (view-only) account state ─────────────────────────────────────────
+// USD-pegged stablecoins counted at face value toward realEquityUsd.
+const USD_STABLE = new Set(['USD', 'USDC', 'USDT', 'DAI', 'PYUSD', 'USDP', 'GUSD']);
+
+/**
+ * refreshAccount(config?) — read the REAL Coinbase account VIEW-ONLY via the
+ * authed getAccounts() path. READ-ONLY: never builds/places an order (INV-1).
+ * NO-KEY FAIL-OPEN: with no COINBASE_KEY_NAME/SECRET set, getAccounts returns
+ * { advisory:'no-key' } and we store a `connected:false` marker — the cycle is
+ * never blocked, no secret is ever read from disk (creds come from env, INV-2).
+ * realEquityUsd is a best-effort sum: stablecoins at face value + any crypto
+ * holding priceable from the LIVE TICK MAP (zero extra API calls). Holdings we
+ * cannot price are reported (priced:false) and excluded from the equity sum.
+ */
+export async function refreshAccount(config = {}) {
+  const cfg = { ...DEFAULT_CONFIG, ...config };
+  if (cfg.enableAccount === false) return _state.account;
+  const now = Math.floor(Date.now() / 1000);
+  let res;
+  try {
+    res = await CoinbaseAdapter.getAccounts({ limit: 250 });
+  } catch (e) {
+    _state.account = { connected: false, advisory: 'error', error: String(e?.message || e), ts: now };
+    return _state.account;
+  }
+  if (res?.advisory === 'no-key') {
+    _state.account = { connected: false, advisory: 'no-key', holdings: [], realEquityUsd: null, ts: now };
+    return _state.account;
+  }
+  const holdings = [];
+  let realEquityUsd = 0;
+  let unpricedCount = 0;
+  for (const a of (res.accounts || [])) {
+    const total = a.total || 0;
+    if (!(total > 0)) continue;                       // skip zero/dust + non-finite
+    if (USD_STABLE.has(a.currency)) {
+      realEquityUsd += total;
+      holdings.push({ currency: a.currency, total, usdValue: total, priced: true });
+    } else {
+      const tick = _state.ticks.get(`${a.currency}-USD`);
+      const px = Number.isFinite(tick?.price) ? tick.price : null;
+      if (px != null) {
+        const usd = total * px;
+        realEquityUsd += usd;
+        holdings.push({ currency: a.currency, total, usdValue: usd, price: px, priced: true });
+      } else {
+        unpricedCount++;
+        holdings.push({ currency: a.currency, total, usdValue: null, priced: false });
+      }
+    }
+  }
+  _state.account = {
+    connected: true,
+    realEquityUsd,
+    holdings: holdings.sort((x, y) => (y.usdValue || 0) - (x.usdValue || 0)),
+    unpricedCount,
+    accountCount: res.size ?? (res.accounts || []).length,
+    ts: now,
+  };
+  return _state.account;
+}
+
+/** getAccount() — current real (view-only) account state for REST. */
+export function getAccount() {
+  return _state.account;
+}
+
+/**
+ * getIndicators(market, ids?) — technical indicators (the Hybrid registry: 8 verified builtins
+ * + technicalindicators long-tail) computed on a tracked market's CURRENT bars. On-demand from
+ * the in-memory snapshot; ids = optional subset (default all). Fail-soft: no bars → empty.
+ */
+export function getIndicators(market, ids) {
+  const snap = _state.snapshots.get(market);
+  const bars = snap?.bars;
+  if (!Array.isArray(bars) || bars.length === 0) return { market, indicators: {}, advisory: 'no-bars' };
+  const idList = Array.isArray(ids) && ids.length ? ids : undefined;
+  let indicators = {};
+  try { indicators = computeIndicators(bars, idList); } catch (_e) { /* registry is fail-soft; never break REST */ }
+  return { market, venue: snap.venue, count: bars.length, indicators };
+}
+
+/** listAvailableIndicators() — registry catalog metadata (id/label/category/source/params). */
+export function listAvailableIndicators() {
+  try { return registryListIndicators(); } catch (_e) { return []; }
+}
+
+// ── Live order book (on-demand, TTL-coalesced) ─────────────────────────────
+// The board polls the focus market's book fast (~1-2s). Coinbase /product_book is
+// keyless market data; a short TTL cache coalesces rapid polls so we never hammer the
+// venue (rate-limit aware). FAIL-SOFT: error → last cached book (marked stale) or null.
+const _bookCache = new Map(); // market -> { ts:ms, book }
+const BOOK_TTL_MS = 1200;
+
+/**
+ * fetchOrderBook(market, opts?) — unified L2 order book for a crypto market.
+ * { market, book:{venue,symbol,bids:[{price,size}],asks:[{price,size}],mid,spreadBps}|null, cachedMs, advisory? }
+ * Polymarket keys (poly-*) have no Coinbase book → advisory null. READ-ONLY, never throws.
+ */
+export async function fetchOrderBook(market, { limit = 25 } = {}) {
+  if (!market) return { market: null, book: null, advisory: 'market-required' };
+  if (market.startsWith('poly-')) return { market, book: null, advisory: 'no-book-for-polymarket' };
+  const now = Date.now();
+  const cached = _bookCache.get(market);
+  if (cached && now - cached.ts < BOOK_TTL_MS) return { market, book: cached.book, cachedMs: now - cached.ts };
+  try {
+    const book = await CoinbaseAdapter.getOrderBook(market, { limit });
+    _bookCache.set(market, { ts: now, book });
+    return { market, book, cachedMs: 0 };
+  } catch (e) {
+    if (cached) return { market, book: cached.book, advisory: `stale: ${e.message}`, cachedMs: now - cached.ts };
+    return { market, book: null, advisory: e.message };
+  }
+}
+
+// ── Learn-loop read surfaces: calibration + graduation (TTL-cached, fail-soft) ──
+// Lazy-imported so the native better-sqlite3 / evaluator deps load only when a
+// calibration/graduation read is actually requested — never on the hot cycle path.
+let _calCache = null;  // { ts:ms, data }
+let _gradCache = null; // { ts:ms, data }
+const CAL_TTL_MS = 10_000;
+const GRAD_TTL_MS = 15_000;
+
+/**
+ * getCalibration() — per-factor reliability scorecard from the accrued outcome ledger
+ * (DSR, Brier, mean realized return, promotion verdict). DRY-RUN (apply:false → zero DB writes).
+ * Empty ledger → { evaluated:0, factors:[], advisory:'accruing…' } (the honest pre-edge state).
+ */
+export async function getCalibration() {
+  const now = Date.now();
+  if (_calCache && now - _calCache.ts < CAL_TTL_MS) return _calCache.data;
+  try {
+    const { reevaluateFactors } = await import('../factor-reeval.mjs');
+    // minN:2 so the scorecard shows every factor accruing (with its current n); the
+    // promotion verdict stays honest (thin/edge-less factors → promote:false). The
+    // nightly lifecycle apply uses the stricter default minN.
+    const r = await reevaluateFactors({ apply: false, minN: 2 });
+    const data = {
+      evaluated: r.evaluated,
+      factors: (r.factors || []).map((f) => ({
+        factorId: f.factorId,
+        n: f.stats?.n ?? null,
+        sharpe: f.stats?.sharpe ?? null,
+        dsr: f.stats?.dsr ?? null,
+        brier: f.stats?.brier ?? null,
+        meanReturn: f.stats?.meanReturn ?? null,
+        promote: f.gate?.promote ?? null,
+        reasons: f.gate?.reasons ?? [],
+      })),
+      advisory: r.evaluated === 0 ? 'accruing: no factor outcomes in the ledger yet — run the trade-outcome decoder' : undefined,
+    };
+    _calCache = { ts: now, data };
+    return data;
+  } catch (e) {
+    return { evaluated: 0, factors: [], advisory: `calibration-error: ${e.message}` };
+  }
+}
+
+/**
+ * getGraduation() — R0→R3 reliability verdict (the "do we genuinely know it works" answer).
+ * Feeds the calibration stats we HAVE (dsr/brier/n) into the graduation ladder; the metrics not
+ * yet wired (dataQuality, fleet-FDR, mddBps, energy ΔU, sign-agreement) stay null → fail-CLOSED,
+ * so real-money R2 stays correctly out of reach until those are proven. Honest by construction.
+ */
+export async function getGraduation() {
+  const now = Date.now();
+  if (_gradCache && now - _gradCache.ts < GRAD_TTL_MS) return _gradCache.data;
+  try {
+    const cal = await getCalibration();
+    const { assembleGraduation } = await import('../graduation.mjs');
+    const factorStats = (cal.factors || []).map((f) => ({
+      factorId: f.factorId,
+      n: f.n, dsr: f.dsr, brier: f.brier,
+      // Not yet wired into the per-factor learn loop → null → graduation fail-closes the gate:
+      dataQuality: null, fdrPass: null, mddBps: null, energyDeltaU: null, signAgreement: null, cusumBreak: null,
+    }));
+    const g = await assembleGraduation({ factorStats });
+    const data = {
+      ...g,
+      generatedAt: Math.floor(now / 1000),
+      advisory: cal.advisory
+        || 'rungs are conservative: dataQuality / fleet-FDR / drawdown / energy / sign-agreement not yet wired per-factor (real-money R2 stays gated)',
+    };
+    _gradCache = { ts: now, data };
+    return data;
+  } catch (e) {
+    return { portfolio: { rung: 'R0', byRung: {}, factorCount: 0, blockers: [] }, factors: [], advisory: `graduation-error: ${e.message}` };
+  }
+}
+
+/**
+ * getQuantum() — the quantum A/B shadow verdict: does running the factor-circuit's order-optimal
+ * sequencing in the background actually lift outcomes vs the classical blend? DISARMED — this is
+ * pure measurement; the ordering does NOT drive live sizing. Builds leak-free forward returns from
+ * each market's live bars (~5min horizon) and scores the accrued shadow predictions. Fail-soft.
+ */
+let _quantumCache = null;
+const QUANTUM_TTL_MS = 15_000;
+const QUANTUM_HORIZON_S = 300; // ~5min forward return to score a per-cycle directional call
+export async function getQuantum() {
+  const now = Date.now();
+  if (_quantumCache && now - _quantumCache.ts < QUANTUM_TTL_MS) return _quantumCache.data;
+  try {
+    const { scoreShadow } = await import('../quantum-ab-shadow.mjs');
+    if (!existsSync(QUANTUM_SHADOW_LEDGER)) {
+      return { verdict: null, advisory: 'no shadow data yet — accruing per-cycle A/B predictions', note: DISARMED_NOTE };
+    }
+    const lines = readFileSync(QUANTUM_SHADOW_LEDGER, 'utf8').split('\n').filter(Boolean);
+    const realizedByKey = {};
+    for (const l of lines) {
+      let r; try { r = JSON.parse(l); } catch { continue; }
+      if (!r || r.type !== 'shadow') continue;
+      const snap = _state.snapshots.get(r.market);
+      const bars = snap?.bars;
+      if (!Array.isArray(bars) || bars.length < 2) continue;
+      // entry = close of the last bar at/before r.ts; exit = close of the first bar ≥ r.ts+horizon.
+      let p0 = null, p1 = null;
+      for (const b of bars) { if (Number.isFinite(b.timestamp) && b.timestamp <= r.ts) p0 = b.close; }
+      for (const b of bars) { if (Number.isFinite(b.timestamp) && b.timestamp >= r.ts + QUANTUM_HORIZON_S) { p1 = b.close; break; } }
+      if (Number.isFinite(p0) && Number.isFinite(p1) && p0 > 0) realizedByKey[r.key] = (p1 - p0) / p0;
+    }
+    const verdict = scoreShadow({ ledgerPath: QUANTUM_SHADOW_LEDGER, realizedByKey });
+    const data = {
+      verdict,
+      advisory: verdict.n === 0
+        ? 'shadow predictions recorded — forward returns not yet realized (need ≥5min elapsed)'
+        : (verdict.disagree.n === 0
+          ? 'classical and quantum agree on every scored cycle so far — ordering has not changed a single call yet'
+          : undefined),
+      note: DISARMED_NOTE,
+    };
+    _quantumCache = { ts: now, data };
+    return data;
+  } catch (e) {
+    return { verdict: null, advisory: `quantum-shadow-error: ${e.message}`, note: DISARMED_NOTE };
+  }
+}
+const DISARMED_NOTE = 'DISARMED telemetry: quantum ordering does NOT drive live sizing. This measures whether it WOULD lift outcomes before anyone arms it.';
+
 /**
  * getSnapshot() — current full state snapshot for REST endpoints.
  */
@@ -728,6 +990,7 @@ export function getSnapshot() {
     regimes: Object.fromEntries(_state.regimes),
     energy: _state.energy,
     ticks: Object.fromEntries(_state.ticks),
+    account: _state.account,
     lastCycle: _state.lastCycle,
     lastTick: _state.lastTick,
     cycleCount: _state.cycleCount,
@@ -747,6 +1010,9 @@ export const DEFAULT_CONFIG = {
   enableAgentReachNews: true,  // prefer Agent-Reach real-web news (Exa) for sentiment over RSS
   autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live
   polymarketLimit: 3,          // how many liquid Polymarket markets to auto-discover
+  enableAccount: true,         // read the real VIEW-ONLY Coinbase account each cycle (no-op without creds)
+  enableLearnLoop: true,       // decode closed paper trades → AFL_LEDGER (data accrual only; promotion stays owner-gated)
+  enableQuantumShadow: true,   // record classical-vs-quantum A/B shadow each cycle (telemetry only; never sizes)
 };
 
 /**
@@ -803,6 +1069,22 @@ export async function runCycle(config = {}) {
     await runPolymarketCycle(tokenId, question, snap);
   }
 
+  // Real view-only account (Coinbase) — READ-ONLY, fail-open no-key, never breaks the cycle
+  if (cfg.enableAccount !== false) {
+    try { await refreshAccount(cfg); } catch (_e) { /* account read must never break the cycle */ }
+  }
+
+  // Learn loop: decode CLOSED paper trades → per-factor AFL_LEDGER (idempotent, throttled,
+  // fail-soft). This ACCRUES outcome data only — lifecycle promotion (apply:true) stays
+  // owner-gated. First cycle (count 0) backfills the full on-disk trade history.
+  if (cfg.enableLearnLoop !== false && _state.cycleCount % LEARN_DECODE_EVERY === 0) {
+    try {
+      const { decodeAll } = await import('../trade-outcome-decoder.mjs');
+      const r = await decodeAll({ stateDir: STATE_DIR });
+      if (r && r.decoded) console.log(`[learn-loop] decoded ${r.decoded} new outcome(s) → AFL_LEDGER (${r.factors?.length || 0} factors)`);
+    } catch (_e) { /* learn loop must never break the cycle */ }
+  }
+
   // Aggregate signals
   _state.factors = [];
   for (const [, snap] of _state.snapshots) {
@@ -857,6 +1139,8 @@ export function getHealth() {
     lastTick: _state.lastTick,
     marketCount: markets.length,
     errorCount: errCount,
+    accountConnected: !!_state.account?.connected,
+    realEquityUsd: _state.account?.realEquityUsd ?? null,
     uptime: process.uptime(),
   };
 }

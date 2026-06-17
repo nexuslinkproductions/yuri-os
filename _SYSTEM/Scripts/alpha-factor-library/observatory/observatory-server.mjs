@@ -42,6 +42,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 
 import {
   runCycle,
@@ -57,6 +58,14 @@ import {
   bootstrapPolymarkets,
   fastTick,
   getTicks,
+  refreshAccount,
+  getAccount,
+  getIndicators,
+  listAvailableIndicators,
+  fetchOrderBook,
+  getCalibration,
+  getGraduation,
+  getQuantum,
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
@@ -198,6 +207,54 @@ function routeRequest(req, res) {
       jsonResponse(res, getTicks());
       break;
 
+    case '/api/observatory/account':
+      // Real VIEW-ONLY Coinbase account state (no key → connected:false). No secret ever echoed.
+      jsonResponse(res, getAccount() ?? { connected: false, advisory: 'no-cycle-yet' });
+      break;
+
+    case '/api/observatory/indicators': {
+      // Technical indicators (Hybrid registry) for a market's current bars. ?market=BTC-USD&ids=rsi,macd,adx (ids optional).
+      const mkt = url.searchParams.get('market');
+      if (!mkt) { jsonResponse(res, { error: 'market required', available: listAvailableIndicators() }, 400); break; }
+      const idsParam = url.searchParams.get('ids');
+      const ids = idsParam ? idsParam.split(',').map((x) => x.trim()).filter(Boolean) : undefined;
+      jsonResponse(res, getIndicators(mkt, ids));
+      break;
+    }
+
+    case '/api/observatory/orderbook': {
+      // Live L2 order book for a market (TTL-coalesced). ?market=BTC-USD&limit=25
+      const market = url.searchParams.get('market');
+      if (!market) { jsonResponse(res, { error: 'market required' }, 400); break; }
+      const lim = Number(url.searchParams.get('limit')) || 25;
+      fetchOrderBook(market, { limit: lim })
+        .then((r) => jsonResponse(res, r))
+        .catch((e) => jsonResponse(res, { market, book: null, advisory: e.message }));
+      break;
+    }
+
+    case '/api/observatory/calibration':
+      // Per-factor reliability scorecard (DSR/Brier/promotion verdict) from the accrued outcome ledger.
+      getCalibration()
+        .then((r) => jsonResponse(res, r))
+        .catch((e) => jsonResponse(res, { evaluated: 0, factors: [], advisory: e.message }));
+      break;
+
+    case '/api/observatory/graduation':
+      // R0→R3 reliability verdict — the computed "do we genuinely know it works" gate.
+      getGraduation()
+        .then((r) => jsonResponse(res, r))
+        .catch((e) => jsonResponse(res, { portfolio: { rung: 'R0' }, factors: [], advisory: e.message }));
+      break;
+
+    case '/api/observatory/quantum':
+      // Quantum A/B shadow verdict — DISARMED measurement of whether order-optimal factor
+      // sequencing would lift outcomes vs the classical blend (never drives live sizing).
+      getQuantum()
+        .then((r) => jsonResponse(res, r))
+        .catch((e) => jsonResponse(res, { verdict: null, advisory: e.message }));
+      break;
+
     case '/api/observatory/timeframes':
       jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
       break;
@@ -244,6 +301,15 @@ function routeRequest(req, res) {
           'GET /api/observatory/regime',
           'GET /api/observatory/energy',
           'GET /api/observatory/health',
+          'GET /api/observatory/account',
+          'GET /api/observatory/indicators?market=&ids=',
+          'GET /api/observatory/orderbook?market=&limit=',
+          'GET /api/observatory/calibration',
+          'GET /api/observatory/graduation',
+          'GET /api/observatory/quantum',
+          'GET /api/observatory/ticks',
+          'GET /api/observatory/timeframes',
+          'GET /api/observatory/candles?market=&tf=&venue=',
           'GET /api/observatory/stream (SSE)',
         ],
       });
@@ -429,7 +495,55 @@ async function runGather() {
 // which is already set when we reach here. We import the module which triggers it.
 // We just need to NOT start the server or loop.
 
+// ── --verify mode (connect a real VIEW-ONLY Coinbase account) ───────────────
+// Confirms the authed read works + prints a balances summary. NEVER echoes key
+// material; creds read from env only (COINBASE_KEY_NAME + COINBASE_API_SECRET).
+async function runVerifyAccount() {
+  console.log('[connect] verifying VIEW-ONLY Coinbase account (creds from env only, never disk)...');
+  try { await fastTick({}); } catch (_) { /* price tracked holdings if possible; ignore */ }
+  const acct = await refreshAccount({ enableAccount: true });
+  if (!acct || acct.advisory === 'no-key') {
+    console.log('[connect] NO KEY SET — export COINBASE_KEY_NAME + COINBASE_API_SECRET (PEM) to connect a view-only account.');
+    console.log('[connect] (the engine runs fine without it; account telemetry just stays disconnected)');
+    process.exit(0);
+  }
+  if (acct.connected === false || acct.advisory === 'error') {
+    console.error('[connect] FAILED:', acct.error || 'unknown error');
+    process.exit(1);
+  }
+  console.log(`[connect] VIEW-ONLY OK — ${acct.accountCount} accounts · realEquity ≈ $${(acct.realEquityUsd || 0).toFixed(2)} · ${acct.unpricedCount} unpriced`);
+  for (const h of (acct.holdings || []).slice(0, 15)) {
+    const v = h.priced ? `$${(h.usdValue || 0).toFixed(2)}` : '(unpriced)';
+    console.log(`  ${String(h.currency).padEnd(8)} ${String(h.total).padEnd(22)} ${v}`);
+  }
+  process.exit(0);
+}
+
+// ── Credential hydration (Keychain → env, INV-2-safe) ───────────────────────
+// The daemon launches `node` directly under launchd, and a multi-line PEM secret
+// can't live cleanly in the plist. So if COINBASE_* aren't already in the
+// environment, load them from the macOS Keychain — the SAME secure store as the
+// OLLAMA key (service `YURI_OS_MUSUBI:<KEY>`, account = $USER). ENV ALWAYS WINS;
+// never reads .env/disk secrets, never logs key material; fail-soft (no entry →
+// keyless, INV-4). Store with: `node _SYSTEM/Scripts/yuri-keychain.mjs set <KEY> <VALUE>`.
+function hydrateCoinbaseCredsFromKeychain() {
+  let acct = process.env.USER || '';
+  if (!acct) { try { acct = execFileSync('id', ['-un'], { encoding: 'utf8' }).trim(); } catch { /* no user */ } }
+  if (!acct) return;
+  for (const key of ['COINBASE_KEY_NAME', 'COINBASE_API_SECRET']) {
+    if (process.env[key]) continue; // env wins — never override an explicit env var
+    try {
+      const v = execFileSync('security',
+        ['find-generic-password', '-a', acct, '-s', `YURI_OS_MUSUBI:${key}`, '-w'],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const val = v.replace(/\n$/, ''); // strip the trailing newline `security` appends; keep internal PEM newlines
+      if (val) process.env[key] = val;
+    } catch { /* no keychain entry → stay keyless (fail-soft) */ }
+  }
+}
+
 // ── CLI entry point ───────────────────────────────────────────────────────
+hydrateCoinbaseCredsFromKeychain();
 const args = process.argv.slice(2);
 
 if (args.includes('--test')) {
@@ -438,6 +552,8 @@ if (args.includes('--test')) {
   // However, since orchestrator uses top-level await for the test, we need to let it run.
   // The import at the top already triggered the orchestrator module; if --test is set,
   // orchestrator.mjs runs runSelfTest() and process.exit(0/1). We just wait.
+} else if (args.includes('--verify') || args.includes('--verify-account')) {
+  runVerifyAccount().catch((err) => { console.error('[connect] error:', err.message); process.exit(1); });
 } else if (args.includes('--once')) {
   runOnce().catch((err) => { console.error(err); process.exit(1); });
 } else if (args.includes('--gather')) {
