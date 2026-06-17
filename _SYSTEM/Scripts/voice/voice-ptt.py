@@ -10,36 +10,39 @@ from parakeet_mlx import from_pretrained
 from parakeet_mlx.audio import get_logmel
 
 SAMPLE_RATE = 16000; BLOCK = 1600
-# PTT trigger. Default: hold Ctrl+Enter. "mod+key" = combo; a single name (e.g. "alt_r") = single key.
-COMBO    = os.environ.get("VOICE_PTT_KEY", "ctrl+enter").lower().strip()
+# PTT trigger. Default: hold right-option. Tokens are split on "+" and matched EXACTLY:
+#   bare modifiers -> ctrl|shift|alt|option ; main key -> enter|return OR a pynput Key name (alt_r, f13, ...).
+#   e.g. "alt_r" (right-option, single) · "ctrl+enter" (combo) · "alt+enter" (combo)
+COMBO    = os.environ.get("VOICE_PTT_KEY", "alt_r").lower().strip()
 SUBMIT   = os.environ.get("VOICE_PTT_SUBMIT", "1") == "1"    # paste + Enter, or paste only (you hit Enter)
 MIC      = os.environ.get("VOICE_MIC_DEVICE")
 MIN_CHARS = 2
 
-CTRL_KEYS = {keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}
-NEED_CTRL  = "ctrl" in COMBO
-NEED_SHIFT = "shift" in COMBO
-NEED_ALT   = "alt" in COMBO or "option" in COMBO
-NEED_ENTER = "enter" in COMBO or "return" in COMBO
-# single non-modifier key (when no enter and a bare key name is given, e.g. "alt_r", "f13")
-SINGLE = None
-if not (NEED_CTRL or NEED_SHIFT or NEED_ALT or NEED_ENTER):
-    SINGLE = getattr(keyboard.Key, COMBO, None)
+CTRL_KEYS  = {keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}
+SHIFT_KEYS = {keyboard.Key.shift, keyboard.Key.shift_l, keyboard.Key.shift_r}
+ALT_KEYS   = {keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r}
+_parts = [p.strip() for p in COMBO.split("+") if p.strip()]
+_MODS  = {"ctrl", "shift", "alt", "option"}
+NEED_CTRL  = "ctrl" in _parts
+NEED_SHIFT = "shift" in _parts
+NEED_ALT   = ("alt" in _parts) or ("option" in _parts)
+NEED_ENTER = ("enter" in _parts) or ("return" in _parts)
+_singles   = [p for p in _parts if p not in _MODS and p not in ("enter", "return")]
+SINGLE     = getattr(keyboard.Key, _singles[0], None) if _singles else None  # e.g. alt_r, f13
 _state = {"ctrl": False, "shift": False, "alt": False, "enter": False, "single": False}
 
 def _combo_active():
+    ok = ((_state["ctrl"] or not NEED_CTRL) and (_state["shift"] or not NEED_SHIFT)
+          and (_state["alt"] or not NEED_ALT) and (_state["enter"] or not NEED_ENTER))
     if SINGLE is not None:
-        return _state["single"]
-    return ((_state["ctrl"] or not NEED_CTRL) and (_state["shift"] or not NEED_SHIFT)
-            and (_state["alt"] or not NEED_ALT) and (_state["enter"] or not NEED_ENTER))
+        ok = ok and _state["single"]
+    return ok
 
 def _track(key, down):
-    if SINGLE is not None:
-        if key == SINGLE: _state["single"] = down
-        return
-    if key in CTRL_KEYS: _state["ctrl"] = down
-    elif key in (keyboard.Key.shift, keyboard.Key.shift_r): _state["shift"] = down
-    elif key in (keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r): _state["alt"] = down
+    if SINGLE is not None and key == SINGLE: _state["single"] = down   # exact key (e.g. right-option only)
+    if key in CTRL_KEYS:  _state["ctrl"]  = down
+    elif key in SHIFT_KEYS: _state["shift"] = down
+    elif key in ALT_KEYS:   _state["alt"]   = down
     elif key == keyboard.Key.enter: _state["enter"] = down
 
 print(f"loading Parakeet… (PTT = hold {COMBO})", flush=True)
