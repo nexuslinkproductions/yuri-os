@@ -581,6 +581,11 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   // SINGLE ensemble position per market, transition-aware, every cycle (≤10s). Per-strategy weights
   // come from the slower re-weighting beat (Sonnet brain + learn loop); default uniform.
   const lastBar = bars[bars.length - 1];
+  const inst = `ensemble-${market}`;
+  // Mark-to-market the combined position so live unrealized P&L MOVES (one ensemble instrument per
+  // market engine → monotone bar series, no global-lastTs clash). Without this a held position shows
+  // 0 P&L until it closes and the board looks dead. Fail-soft.
+  try { engine.ingestBar(lastBar, inst); } catch (_e) { /* ingest fail-soft */ }
   const equity = engine.pnl().equity || 100_000;
   const ensemble = combineSignals(signals, { weights: getEnsembleWeights() });
   snap.ensemble = {
@@ -595,7 +600,6 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     try { recordForecasts(market, signals, lastBar.close, now, FORECAST_LEDGER); } catch (_e) { /* never break the cycle */ }
   }
 
-  const inst = `ensemble-${market}`;
   const existing = engine.positions().find((p) => p.instrument === inst);
   if (ensemble.side === 'flat') {
     // No conviction → flatten the combined position if open.
