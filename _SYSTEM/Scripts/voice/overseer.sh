@@ -34,9 +34,10 @@ if [ ! -f "$BOARD" ]; then
   echo "✓ seeded fleet board: $BOARD"
 fi
 
-# 4. launch the voice-armed overseer with its role + an opening board read
-echo "▶ launching OVERSEER (voice ON) …"
+# 4. launch the voice-armed overseer with its role loaded — NO forced opening turn
+#    (an auto-prompt would hang the boot on an API 529; the role says "read the board
+#     at session start", so the overseer reads it on Marcel's first message instead).
+echo "▶ launching OVERSEER (voice ON) — speak/type to begin; say \"status\" for a board read."
 cd "$REPO"
 exec env VOICE_AGENT_ACTIVE=1 claude \
-  --append-system-prompt "$(cat "$ROLE")" \
-  "Read your fleet board at $BOARD, then tell me in one short sentence the current fleet state and what you need from me. List the worker surfaces you can see with: bash _SYSTEM/Scripts/voice/cmux-dispatch.sh workers"
+  --append-system-prompt "$(cat "$ROLE")"
