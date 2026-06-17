@@ -45,6 +45,7 @@ import { createPaperEngine } from '../afl-paper.mjs';
 import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
 import { computeAllStrategies } from '../strategy-registry.mjs';
+import { combineSignals } from '../ensemble.mjs';
 // factorQualityScore removed — not wired in W2 observatory (BUG-3: dead import)
 // PerpAdapter removed — W2 is crypto-primary; perp market loop not yet wired (BUG-4: inert import)
 
@@ -80,10 +81,28 @@ const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for facto
 // ≈ a few minutes; the decode is idempotent so cadence only affects calibration freshness.
 const LEARN_DECODE_EVERY = 10;
 
-// Per-factor paper position cap (fraction of book equity). afl-sizing's targetNotional can be large
-// and the engine's maxPositionPct is bypassed on the caller-notional path, so we clamp here. TINY
-// (0.1%) so dozens of factor books survive the night under realistic fees.
+// Per-factor paper position cap (legacy per-factor path; kept for reference).
 const PER_FACTOR_MAX_PCT = 0.001;
+
+// ENSEMBLE: the strategies trade TOGETHER as ONE fused position per market. Max size for that single
+// combined position (fraction of book equity), scaled down by conviction. One position/market × 6
+// markets keeps fee drag tiny while trading continuously.
+const ENSEMBLE_MAX_PCT = 0.10;
+const ENSEMBLE_WEIGHTS_PATH = path.join(STATE_DIR, 'ensemble-weights.json');
+
+/**
+ * getEnsembleWeights() — per-strategy weights for the ensemble vote, written by the slower
+ * re-weighting beat (Sonnet brain + learn loop). Accepts {weights:{id:w}} or a flat {id:w}.
+ * Default {} = uniform. Fail-soft (missing/corrupt file → uniform).
+ */
+function getEnsembleWeights() {
+  try {
+    if (!existsSync(ENSEMBLE_WEIGHTS_PATH)) return {};
+    const w = JSON.parse(readFileSync(ENSEMBLE_WEIGHTS_PATH, 'utf8'));
+    if (w && typeof w === 'object') return (w.weights && typeof w.weights === 'object') ? w.weights : w;
+    return {};
+  } catch { return {}; }
+}
 
 // ── Timestamp normalization (single chokepoint) ────────────────────────────
 /**
@@ -555,48 +574,44 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     } catch (_e) { /* shadow telemetry never breaks the cycle */ }
   }
 
-  // Sizing + paper fill for each PRICE signal
-  const returns = closeReturns(bars);
+  // ── ENSEMBLE EXECUTION ─────────────────────────────────────────────────────
+  // Fuse ALL strategy signals into ONE combined decision (the strategies work TOGETHER) and trade a
+  // SINGLE ensemble position per market, transition-aware, every cycle (≤10s). Per-strategy weights
+  // come from the slower re-weighting beat (Sonnet brain + learn loop); default uniform.
   const lastBar = bars[bars.length - 1];
   const equity = engine.pnl().equity || 100_000;
+  const ensemble = combineSignals(signals, { weights: getEnsembleWeights() });
+  snap.ensemble = {
+    side: ensemble.side, net: ensemble.net, strength: ensemble.strength,
+    confidence: ensemble.confidence, longVotes: ensemble.longVotes,
+    shortVotes: ensemble.shortVotes, contributors: ensemble.contributors, top: ensemble.top,
+  };
 
-  for (const sig of signals) {
-    if (sig.side === 'flat') continue;
-
-    // computeSize (afl-sizing)
-    const sizing = computeSize({
-      edgeMean: Math.abs(sig.value),
-      edgeLowerCI: Math.abs(sig.value) * 0.7,
-      winProb: sig.confidence,
-      payoff: 1.0,
-      returns,
-      equity,
-      targetVol: 0.20,
-    });
-
-    if (sizing.targetNotional <= 0) continue;
-
-    // Energy ΔU — advisory, observe-only
-    const paperSnap = engine.pnl();
-    snap.energyDeltaU = computeEnergyDelta(sig, paperSnap);
-
-    // Paper fill via onSignal. Each factor trades its OWN namespaced book (instrument = factorId,
-    // already market-scoped) so per-factor P&L is cleanly attributable for the learn loop.
-    // TRANSITION-ONLY: skip when this factor already holds a same-side position — otherwise ~100
-    // factors re-ADD every cycle (the engine's "add" path) → runaway position growth + fee blowup.
-    // Only a new open or a flip trades.
-    const existingPos = engine.positions().find((p) => p.instrument === sig.factorId);
-    if (existingPos && existingPos.side === sig.side) continue;
-
-    // Clamp per-factor notional (the engine's maxPositionPct is bypassed on the caller-notional path).
-    const notional = Math.min(sizing.targetNotional, equity * PER_FACTOR_MAX_PCT);
+  const inst = `ensemble-${market}`;
+  const existing = engine.positions().find((p) => p.instrument === inst);
+  if (ensemble.side === 'flat') {
+    // No conviction → flatten the combined position if open.
+    if (existing) {
+      engine.onSignal(
+        { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
+        { instrument: inst, bar: lastBar, barHistory: bars },
+      );
+    }
+  } else if (!existing || existing.side !== ensemble.side) {
+    // New conviction or a flip → size by conviction (strength), trade ONE combined position.
+    snap.energyDeltaU = computeEnergyDelta(
+      { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence },
+      engine.pnl(),
+    );
+    const notional = equity * ENSEMBLE_MAX_PCT * Math.min(1, ensemble.strength * 2);
     if (notional > 0) {
       engine.onSignal(
-        { ...sig, notional },
-        { instrument: sig.factorId, bar: lastBar, barHistory: bars },
+        { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
+        { instrument: inst, bar: lastBar, barHistory: bars },
       );
     }
   }
+  // else: same-side conviction already held → hold (no churn).
 
   // Capture final paper state
   snap.paperPositions = engine.positions();
@@ -1192,6 +1207,15 @@ export function getPaper() {
 
 export function getRegime() {
   return Object.fromEntries(_state.regimes);
+}
+
+/** getEnsemble() — the fused combined decision per market (all strategies voting together). */
+export function getEnsemble() {
+  const out = {};
+  for (const [k, snap] of _state.snapshots) {
+    if (snap.ensemble) out[k] = snap.ensemble;
+  }
+  return out;
 }
 
 export function getEnergy() {

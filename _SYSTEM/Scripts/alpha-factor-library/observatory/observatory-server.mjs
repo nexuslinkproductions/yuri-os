@@ -67,6 +67,7 @@ import {
   getGraduation,
   getQuantum,
   getRecentTrades,
+  getEnsemble,
   DEFAULT_CONFIG,
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
@@ -263,6 +264,11 @@ function routeRequest(req, res) {
       break;
     }
 
+    case '/api/observatory/ensemble':
+      // The fused combined decision per market (all strategies voting together).
+      jsonResponse(res, getEnsemble());
+      break;
+
     case '/api/observatory/timeframes':
       jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
       break;
@@ -316,6 +322,7 @@ function routeRequest(req, res) {
           'GET /api/observatory/graduation',
           'GET /api/observatory/quantum',
           'GET /api/observatory/trades?limit=',
+          'GET /api/observatory/ensemble',
           'GET /api/observatory/ticks',
           'GET /api/observatory/timeframes',
           'GET /api/observatory/candles?market=&tf=&venue=',
