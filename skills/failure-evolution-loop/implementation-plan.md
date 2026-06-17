@@ -2,7 +2,7 @@
 
 ## Phase 0: Definition
 
-Objective: confirm where `failure-evolution-loop` fits inside existing Yuri OS architecture.
+Objective: confirm where `failure-evolution-loop` fits inside existing Yuri OS / Yuri architecture.
 
 Tasks:
 

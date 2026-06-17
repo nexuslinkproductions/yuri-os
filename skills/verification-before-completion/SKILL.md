@@ -1,6 +1,7 @@
 ---
 name: verification-before-completion
 description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+triggers: ["before claiming done", "verification before completion", "evidence before assertions"]
 ---
 
 # Verification Before Completion
@@ -137,3 +138,17 @@ From 24 failure memories:
 Run the command. Read the output. THEN claim the result.
 
 This is non-negotiable.
+
+## Session Notes
+
+### 2026-06-02
+- session: 196m | peak ctx: 0% | compacts: 0
+- tools: Bash×101, WebSearch×68, WebFetch×67, Read×45, StructuredOutput×18, ToolSearch×13, Write×11, Edit×7, TodoWrite×5, mcp×4, Workflow×3
+- corrections: none
+- errors: none
+
+### 2026-05-29
+- session: 349m | peak ctx: 71% | compacts: 4
+- tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none

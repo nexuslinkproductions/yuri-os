@@ -42,7 +42,7 @@ The output is a **single HTML file** — no dependencies, no setup, works offlin
 
 ### As a Claude Code skill
 
-1. Keep the `codebase-to-course` folder in YURI's root `skills/` library, or copy it into a provider-specific skill directory only as a compatibility projection.
+1. Copy the `codebase-to-course` folder into `~/.claude/skills/`
 2. Open any project in Claude Code
 3. Say: *"Turn this codebase into an interactive course"*
 

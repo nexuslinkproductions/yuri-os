@@ -1,6 +1,7 @@
 ---
 name: anthropic-managed-agents
 description: "Research Anthropic managed agents, sessions, events, tools, and skills, then distill the architecture into a portable agent brief. Use when you need a concise reference for agent/session/event design and long-running workflows."
+triggers: ["/anthropic-managed-agents", "managed agents", "agent sessions architecture"]
 ---
 
 # Anthropic Managed Agents
@@ -26,3 +27,10 @@ Use this skill when the task is to understand how managed agents should be model
 - Put detail in references only when it helps progressive disclosure.
 - Preserve portability across agent surfaces.
 
+## Session Notes
+
+### 2026-04-27
+- session: 6m | peak ctx: 53% | compacts: 0
+- tools: Read×27, Bash×8, Write×2, mcp×1
+- corrections: none
+- errors: none

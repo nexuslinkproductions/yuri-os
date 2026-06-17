@@ -42,4 +42,8 @@ Default JS stack (drops into the existing three.js@0.173 + R3F + Vite): **three.
 
 ## Session Notes
 
-- 2026-06-16 — Created from the demos session (vol-surface → energy-surface / qsphere / circuitry-heb / circuitry-die-3d). Tools: three.js@0.173 + R3F + postprocessing (UnrealBloomPass), D3 v7, real generators against `yuri-energy.mjs` / `quantum-hypothesis-tracker.mjs` / `yuri-die-graph.json`. Corrections folded in: (1) best-tool, not least-friction; (2) ground in the MOST COMPLETE real source (die/merge 242 nodes, not the 126-node projection); (3) no HUD/Kagami tokens. Verified: energy cell recomputes byte-identical to real `computeU` (3.695782855); quantum order-effect live (0.19 vs 0.06, qq ≈ 0); three independent render-reviewers returned ship-clean.
+### 2026-06-16
+- session: 155m | peak ctx: 0% | compacts: 0
+- tools: Bash×338, Read×113, Edit×60, Write×21, Agent×14, TodoWrite×5, AskUserQuestion×3, ToolSearch×2, WebSearch×2
+- corrections: none
+- errors: none

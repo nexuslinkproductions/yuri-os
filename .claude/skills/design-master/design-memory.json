@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "lastUpdated": "2026-06-13T13:06:13.478Z",
+  "lastUpdated": "2026-06-16T15:05:00.447Z",
   "templates": {
     "kagami-sprint-audit": {
       "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
@@ -43,6 +43,188 @@
     }
   },
   "entries": [
+    {
+      "date": "2026-06-16",
+      "component": "main",
+      "file": "_SYSTEM/observatory-ui/main.tsx",
+      "action": "create",
+      "decision": "New component created: main"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "index",
+      "file": "_SYSTEM/observatory-ui/index.html",
+      "action": "create",
+      "decision": "New component created: index"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "nexus-link-uebersicht",
+      "file": "/Users/marcelspatz/Desktop/nexus-link-uebersicht.html",
+      "action": "edit",
+      "decision": "Updated: nexus-link-uebersicht"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "observatory",
+      "file": "_SYSTEM/src/components/observatory/observatory.css",
+      "action": "edit",
+      "decision": "Updated: observatory"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "ObservatoryPage",
+      "file": "_SYSTEM/src/pages/ObservatoryPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ObservatoryPage"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "nexus-link-uebersicht",
+      "file": "/Users/marcelspatz/Desktop/nexus-link-uebersicht.html",
+      "action": "create",
+      "decision": "New component created: nexus-link-uebersicht"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MechanismTab",
+      "file": "_SYSTEM/src/components/observatory/MechanismTab.tsx",
+      "action": "edit",
+      "decision": "Updated: MechanismTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MarketsTab",
+      "file": "_SYSTEM/src/components/observatory/MarketsTab.tsx",
+      "action": "edit",
+      "decision": "Updated: MarketsTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "QSphereScene",
+      "file": "_SYSTEM/src/scenes/QSphereScene.tsx",
+      "action": "edit",
+      "decision": "Updated: QSphereScene"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "EnergySurfaceScene",
+      "file": "_SYSTEM/src/scenes/EnergySurfaceScene.tsx",
+      "action": "edit",
+      "decision": "Updated: EnergySurfaceScene"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "QSphereScene",
+      "file": "_SYSTEM/src/scenes/QSphereScene.tsx",
+      "action": "create",
+      "decision": "New component created: QSphereScene"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "EnergySurfaceScene",
+      "file": "_SYSTEM/src/scenes/EnergySurfaceScene.tsx",
+      "action": "create",
+      "decision": "New component created: EnergySurfaceScene"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MindTab",
+      "file": "_SYSTEM/src/components/observatory/MindTab.tsx",
+      "action": "edit",
+      "decision": "Updated: MindTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "App",
+      "file": "_SYSTEM/src/App.tsx",
+      "action": "edit",
+      "decision": "Updated: App"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "ObservatoryPage",
+      "file": "_SYSTEM/src/pages/ObservatoryPage.tsx",
+      "action": "create",
+      "decision": "New component created: ObservatoryPage"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "observatory",
+      "file": "_SYSTEM/src/components/observatory/observatory.css",
+      "action": "create",
+      "decision": "New component created: observatory"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MindTab",
+      "file": "_SYSTEM/src/components/observatory/MindTab.tsx",
+      "action": "create",
+      "decision": "New component created: MindTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MechanismTab",
+      "file": "_SYSTEM/src/components/observatory/MechanismTab.tsx",
+      "action": "create",
+      "decision": "New component created: MechanismTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "MarketsTab",
+      "file": "_SYSTEM/src/components/observatory/MarketsTab.tsx",
+      "action": "create",
+      "decision": "New component created: MarketsTab"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "circuitry-die-3d",
+      "file": "demos/circuitry-die-3d.html",
+      "action": "edit",
+      "decision": "Updated: circuitry-die-3d"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "circuitry-die-3d",
+      "file": "demos/circuitry-die-3d.html",
+      "action": "create",
+      "decision": "New component created: circuitry-die-3d"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "qsphere",
+      "file": "demos/qsphere.html",
+      "action": "create",
+      "decision": "New component created: qsphere"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "circuitry-heb",
+      "file": "demos/circuitry-heb.html",
+      "action": "create",
+      "decision": "New component created: circuitry-heb"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "energy-surface",
+      "file": "demos/energy-surface.html",
+      "action": "create",
+      "decision": "New component created: energy-surface"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "vol-surface",
+      "file": "demos/vol-surface.html",
+      "action": "edit",
+      "decision": "Updated: vol-surface"
+    },
+    {
+      "date": "2026-06-16",
+      "component": "vol-surface",
+      "file": "demos/vol-surface.html",
+      "action": "create",
+      "decision": "New component created: vol-surface"
+    },
     {
       "date": "2026-06-13",
       "component": "SceneVisionV",
@@ -560,188 +742,6 @@
       "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
       "action": "edit",
       "decision": "Updated: BillArrives"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "TokenBurn",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
-      "action": "edit",
-      "decision": "Updated: TokenBurn"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "TheFork",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TheFork.tsx",
-      "action": "create",
-      "decision": "New component created: TheFork"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "HandsArrive",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/HandsArrive.tsx",
-      "action": "create",
-      "decision": "New component created: HandsArrive"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "BillArrives",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
-      "action": "create",
-      "decision": "New component created: BillArrives"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "Root",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
-      "action": "create",
-      "decision": "New component created: Root"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "v2_body",
-      "file": "/tmp/v2_body.html",
-      "action": "edit",
-      "decision": "Updated: v2_body"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "Root",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
-      "action": "edit",
-      "decision": "Updated: Root"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "ChaosOrder",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
-      "action": "create",
-      "decision": "New component created: ChaosOrder"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "TokenBurn",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
-      "action": "create",
-      "decision": "New component created: TokenBurn"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "GateVerdict",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/GateVerdict.tsx",
-      "action": "create",
-      "decision": "New component created: GateVerdict"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "v2_body",
-      "file": "/tmp/v2_body.html",
-      "action": "create",
-      "decision": "New component created: v2_body"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "v2_style",
-      "file": "/tmp/v2_style.css",
-      "action": "create",
-      "decision": "New component created: v2_style"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "nexus-link-investor-deck",
-      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
-      "action": "edit",
-      "decision": "Updated: nexus-link-investor-deck"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "nexus-link-investor-deck",
-      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
-      "action": "create",
-      "decision": "New component created: nexus-link-investor-deck"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "yuri-concept-visualization",
-      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
-      "action": "create",
-      "decision": "New component created: yuri-concept-visualization"
-    },
-    {
-      "date": "2026-06-12",
-      "component": "yuri-concept-visualization",
-      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
-      "action": "edit",
-      "decision": "Updated: yuri-concept-visualization"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "yuri-concept-visualization",
-      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
-      "action": "edit",
-      "decision": "Updated: yuri-concept-visualization"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "yuri-concept-visualization",
-      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
-      "action": "create",
-      "decision": "New component created: yuri-concept-visualization"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "nexus-link-investor-deck-planner-de",
-      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-planner-de.html",
-      "action": "edit",
-      "decision": "Updated: nexus-link-investor-deck-planner-de"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c7",
-      "file": "/tmp/deck_de/c7.html",
-      "action": "edit",
-      "decision": "Updated: c7"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c6",
-      "file": "/tmp/deck_de/c6.html",
-      "action": "edit",
-      "decision": "Updated: c6"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c2",
-      "file": "/tmp/deck_de/c2.html",
-      "action": "edit",
-      "decision": "Updated: c2"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c5",
-      "file": "/tmp/deck_de/c5.html",
-      "action": "edit",
-      "decision": "Updated: c5"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c4",
-      "file": "/tmp/deck_de/c4.html",
-      "action": "edit",
-      "decision": "Updated: c4"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c3",
-      "file": "/tmp/deck_de/c3.html",
-      "action": "edit",
-      "decision": "Updated: c3"
-    },
-    {
-      "date": "2026-06-11",
-      "component": "c1",
-      "file": "/tmp/deck_de/c1.html",
-      "action": "edit",
-      "decision": "Updated: c1"
     }
   ],
   "openIssues": [

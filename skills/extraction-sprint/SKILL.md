@@ -80,7 +80,7 @@ Trigger this when:
 - **Rick persona anchor is REQUIRED** in every lane brief — without it workers default to AI-tell voice
 
 ### Dispatch Mechanics
-- **GLM timeout fix:** `bash _SYSTEM/Scripts/ai offload --model nvidia-glm "$(cat prompt.txt)"` with `run_in_background: true` and 300s timeout
+- **GLM timeout fix:** `bash _SYSTEM/Scripts/ai llm --model nvidia-glm "$(cat prompt.txt)"` with `run_in_background: true` and 300s timeout
 - **DS-Pro is the reliable adversarial lane** — has tools, confirmed live, 8192 max tokens, 6hr timeout
 - **Lane prompts with placeholders:** write prompt files with `[AUDIT_CONTENT_PLACEHOLDER]`, inject actual content after Lane 1 completes before firing Lanes 3+4
 
@@ -174,15 +174,15 @@ Output: [exact file path]
 
 ```bash
 # Lane 1 — DS-Pro audit
-bash _SYSTEM/Scripts/ai offload --model deepseek-v4-pro "$(cat /tmp/lane1-prompt.txt)" > .claude/state/audit-output.md 2>&1
+bash _SYSTEM/Scripts/ai llm --model deepseek-v4-pro "$(cat /tmp/lane1-prompt.txt)" > .claude/state/audit-output.md 2>&1
 
 # Lane 5 — Mistral-Large doctrine  
-bash _SYSTEM/Scripts/ai offload --model nvidia-mistral-large "$(cat /tmp/lane5-prompt.txt)" > .claude/state/doctrine-output.md 2>&1
+bash _SYSTEM/Scripts/ai llm --model nvidia-mistral-large "$(cat /tmp/lane5-prompt.txt)" > .claude/state/doctrine-output.md 2>&1
 
 # Lane 3 — Nemotron spec (after audit ready)
 AUDIT=$(cat .claude/state/audit-output.md)
 # inject into prompt, then:
-bash _SYSTEM/Scripts/ai offload --model nvidia-nemotron-120b "$(cat /tmp/lane3-prompt-with-audit.txt)" > _SYSTEM/DESIGN-v2-draft.md 2>&1
+bash _SYSTEM/Scripts/ai llm --model nvidia-nemotron-120b "$(cat /tmp/lane3-prompt-with-audit.txt)" > _SYSTEM/DESIGN-v2-draft.md 2>&1
 
 # Codex final commit (after all lanes complete)
 bash _SYSTEM/Scripts/ai auto "CODEX TASK SPEC: [read all lane outputs, resolve conflicts, commit]"

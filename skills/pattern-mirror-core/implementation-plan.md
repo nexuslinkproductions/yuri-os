@@ -2,7 +2,7 @@
 
 ## Phase 0: Definition
 
-Objective: confirm where `pattern-mirror-core` fits inside existing Yuri OS architecture.
+Objective: confirm where `pattern-mirror-core` fits inside existing Yuri OS / Yuri architecture.
 
 Tasks:
 

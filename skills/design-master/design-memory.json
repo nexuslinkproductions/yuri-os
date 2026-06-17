@@ -1,581 +1,752 @@
 {
-  "version": "2.0",
-  "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-10T20:00:45.293Z",
-  "note": "Canonical YURI design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
+  "version": "1.1",
+  "lastUpdated": "2026-06-13T13:06:13.478Z",
+  "templates": {
+    "kagami-sprint-audit": {
+      "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
+      "purpose": "Reusable template for Yuri sprint audits — depth/luxury/density patterns, mixing 2D + 3D",
+      "designTokens": {
+        "colors": {
+          "bg": "#0A0A0A",
+          "accent": "#47C01B (portal-gun green)",
+          "sec": "#1AFFE4 (data cyan)",
+          "danger": "#FF3333",
+          "amber": "#FF8800",
+          "txt": "#E8E8E8",
+          "muted": "#666"
+        },
+        "fonts": {
+          "sans": "Inter Variable + system fallback",
+          "mono": "Geist Mono + IBM Plex Mono fallback",
+          "weights_dark_mode": "body 380, emphasis 520, display 660, headline 720"
+        },
+        "easing": {
+          "snap": "cubic-bezier(.42, .0, .58, 1) — headings, quick-punch",
+          "glide": "cubic-bezier(.25, .8, .5, 1) — panels/cards, soft-lag",
+          "pop": "cubic-bezier(.68, -0.4, .265, 1.4) — badges/buttons, snappy-with-overshoot"
+        },
+        "radius": "lg 22px, md 16px, sm 10px",
+        "shadow": "soft (idle) → lift (hover), with --ring-soft inset"
+      },
+      "lockedDecisions": [
+        "Pin scenes get unique distances (V3 3.2vh, V4 2.8vh, V10 2.4vh, S12 3.4vh, Results 2.0vh) — asymmetry intentional",
+        "3D limited to V3 rings + S12 self-improvement loop. All other sections stay 2D. Mixing is the principle.",
+        "No bloom pass on Three.js scenes (dashboard v15 hotfix lesson — MRT alpha-clipping)",
+        "3-light rig (cyan key #00D4FF + accent fill #47C01B + amber rim #FF8800) from yuri-os-dashboard reference",
+        "Ambient text replaced with real data patterns — no keyword soup, no Rick-meme decoration",
+        "Sankey is LINEAR (CLI → BrainDump → Router → fan-out → SSE), not parallel branches — matches actual ReflectionService.start() flow",
+        "Memory tiers visualized as depth-gradient stack (HOT green → WARM lime → COLD cyan → PULSE orange) with progress bars",
+        "Cover braille portal at clamp(1.6rem, 3.6vw, 3.2rem) — 350% larger than initial. Slow rotation 110s.",
+        "Contextual braille only — V3/V4/V6/V8/S12. Each pattern semantically tied to section meaning.",
+        "Truth fixes: tagline 'Built conscious. Not babysat.' (not 'while you were sleeping'). 63% measured KV cache hit ratio (not aspirational 98%)."
+      ]
+    }
+  },
   "entries": [
     {
-      "date": "2026-04-24",
-      "component": "ChatInput",
-      "decision": "Plus icon bottom-left (file picker), textarea center, model select, reasoning level button, mic button, send button. All 34px height for alignment.",
-      "tokens_used": [
-        "--bg-surface",
-        "--cyan-glow",
-        "--red-fusion"
-      ],
-      "pattern": "Unified chat bar pattern — replicate across any agent interface"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "NetworkGraph",
-      "file": "src/components/Oracle/NotebookTab/NetworkGraph.tsx",
-      "action": "edit",
-      "decision": "Updated: NetworkGraph"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "NotebookTab",
-      "file": "src/components/Oracle/NotebookTab/NotebookTab.tsx",
-      "action": "edit",
-      "decision": "Updated: NotebookTab"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "NotebookTab",
-      "file": "src/components/Oracle/NotebookTab/NotebookTab.tsx",
+      "date": "2026-06-13",
+      "component": "SceneVisionV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneVisionV.tsx",
       "action": "create",
-      "decision": "New component created: NotebookTab"
+      "decision": "New component created: SceneVisionV"
     },
     {
-      "date": "2026-04-24",
-      "component": "OraclePage",
-      "file": "src/components/Oracle/OraclePage.tsx",
-      "action": "edit",
-      "decision": "Updated: OraclePage"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "OraclePage",
-      "decision": "Three-column layout: 88px tab rail left, flex-1 center with orbs + chat, collapsible terminal pane at bottom. Avoids scattered tool UIs.",
-      "tokens_used": [
-        "--bg-void",
-        "--cyan-glow",
-        "--gold-solar",
-        "--bg-glass"
-      ],
-      "pattern": "Tab rail left + content right + collapsible bottom — reuse for any multi-tool page"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "OracleTerminal",
-      "file": "src/components/Oracle/OracleTerminal.tsx",
-      "action": "edit",
-      "decision": "Updated: OracleTerminal"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "OracleToolOrbs",
-      "decision": "Circular orbs (68px) with animated orbit ring, hover scale + glow. Arranged in flex-wrap grid. Type-coded: cyan=skill, gold=tool, red=danger. Tooltip on hover.",
-      "tokens_used": [
-        "--cyan-glow",
-        "--gold-solar",
-        "--red-fusion"
-      ],
-      "pattern": "Orb cluster — use for any tool/capability catalog display"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "PixelArtLogo",
-      "decision": "32x32 base SVG, cuneiform tablet motif, circuit trace overlay. Cyan/gold on void. Scanline overlay animation, glitch on hover. No rounded corners.",
-      "tokens_used": [
-        "--cyan-glow",
-        "--gold-solar",
-        "--bg-void"
-      ],
-      "pattern": "Pixel art sigil — repeat grid-based SVG approach for any icon in the HUD"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "SentimentGauge",
-      "file": "src/components/Oracle/NotebookTab/SentimentGauge.tsx",
-      "action": "edit",
-      "decision": "Updated: SentimentGauge"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "TokenStatusBar",
-      "decision": "Dual bar (session + weekly) in footer. Bar turns gold >55%, red >80%. Monospace token counts with up/down arrows. Cost in gold. Polls every 5s.",
-      "tokens_used": [
-        "--cyan-glow",
-        "--gold-solar",
-        "--red-fusion"
-      ],
-      "pattern": "Dual-metric status bar — reuse for any live telemetry display"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "VisualSynthesisLane",
-      "file": "src/components/Oracle/VisualSynthesisLane.tsx",
-      "action": "edit",
-      "decision": "Updated: VisualSynthesisLane"
-    },
-    {
-      "date": "2026-04-24",
-      "component": "VisualSynthesisLane",
-      "decision": "Collapsible dropdowns per provider (KIE primary expanded, remote collapsed). Model pills for selection. Generate button inline with prompt. Results grid below.",
-      "tokens_used": [
-        "--cyan-glow",
-        "--gold-solar"
-      ],
-      "pattern": "Layered provider dropdown — KIE first, remote second, always same pattern"
-    },
-    {
-      "date": "2026-04-25",
-      "component": "App Shell — VSCode Layout",
-      "decision": "Replaced flat header+pill-nav layout with VSCode spatial grammar: activity-bar (48px, col 1) | sidebar/explorer (220px, col 2) | editor-area (flex col: title-bar + tab-bar + breadcrumb + content, col 3) + status-bar (22px, row 2, full width). Grid: `var(--vsc-activity-w) var(--sidebar-w) 1fr / 1fr var(--vsc-status-h)`. Nav nodes moved from inline pill tabs to vertical list items in sidebar with left-border active indicator. Status bar background uses `rgba(0,100,160,0.92)` (VSCode blue adapted to HUD opacity model). All existing JS IDs preserved (`#module-content`, `#sidebar-nav`, `.nav-node[data-module]`, all footer IDs). MutationObserver inline script syncs tab-bar and breadcrumb with active nav-node class changes.",
-      "tokens_used": [
-        "--vsc-activity-w",
-        "--vsc-status-h",
-        "--vsc-tab-h",
-        "--vsc-breadcrumb-h",
-        "--vsc-sidebar-bg",
-        "--vsc-activity-bg",
-        "--vsc-editor-bg",
-        "--vsc-titlebar-bg",
-        "--vsc-tab-bg",
-        "--vsc-status-bg",
-        "--vsc-border",
-        "--vsc-border-active",
-        "--sidebar-w",
-        "--cyan-glow",
-        "--gold-solar",
-        "--text-dim",
-        "--silver-albedo",
-        "--font-mono"
-      ],
-      "pattern": "VSCode layout shell: grid(activity | sidebar | editor / content | statusbar). Editor area = flex-col with title-bar, tab-bar, breadcrumb, scrollable content. Activity bar = icon-only with left-border active state. Sidebar = vertical nav list with grouped sections + dividers. Status bar = 22px full-width strip."
-    },
-    {
-      "date": "2026-04-25",
-      "component": "AuditHUD",
-      "file": "src/components/DesignAuditHUD/AuditHUD.tsx",
+      "date": "2026-06-13",
+      "component": "SceneSolutionV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneSolutionV.tsx",
       "action": "create",
-      "decision": "New component created: AuditHUD"
+      "decision": "New component created: SceneSolutionV"
     },
     {
-      "date": "2026-04-25",
-      "component": "ConfirmScreen",
-      "file": "src/components/DesignAuditHUD/ConfirmScreen.tsx",
+      "date": "2026-06-13",
+      "component": "vfx",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vfx.tsx",
       "action": "create",
-      "decision": "New component created: ConfirmScreen"
+      "decision": "New component created: vfx"
     },
     {
-      "date": "2026-04-25",
-      "component": "DesignCatalog",
-      "file": "src/components/DesignAuditHUD/DesignCatalog.tsx",
+      "date": "2026-06-13",
+      "component": "SceneArchitectureV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitectureV.tsx",
       "action": "edit",
-      "decision": "Updated: DesignCatalog"
+      "decision": "Updated: SceneArchitectureV"
     },
     {
-      "date": "2026-04-25",
-      "component": "DesignCatalog",
-      "file": "src/components/DesignAuditHUD/DesignCatalog.tsx",
+      "date": "2026-06-13",
+      "component": "SceneTokenV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenV.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTokenV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneWhyNowV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneWhyNowV.tsx",
       "action": "create",
-      "decision": "New component created: DesignCatalog"
+      "decision": "New component created: SceneWhyNowV"
     },
     {
-      "date": "2026-04-25",
+      "date": "2026-06-13",
+      "component": "SceneAskV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAskV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneAskV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeamV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeamV.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTeamV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeamV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeamV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTeamV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneBusinessV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneBusinessV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneBusinessV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFinancialV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFinancialV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneFinancialV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmapV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmapV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneRoadmapV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarketV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarketV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneMarketV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitiveV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitiveV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCompetitiveV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTokenV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitectureV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitectureV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneArchitectureV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneHowV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblemV",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblemV.tsx",
+      "action": "create",
+      "decision": "New component created: SceneProblemV"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "vox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vox.tsx",
+      "action": "edit",
+      "decision": "Updated: vox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "vox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/vox.tsx",
+      "action": "create",
+      "decision": "New component created: vox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "space3d",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/space3d.tsx",
+      "action": "edit",
+      "decision": "Updated: space3d"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "transitions",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/transitions.tsx",
+      "action": "edit",
+      "decision": "Updated: transitions"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneOpenVox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneOpenVox.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneOpenVox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneOpenVox",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneOpenVox.tsx",
+      "action": "create",
+      "decision": "New component created: SceneOpenVox"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "kinetic",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/kinetic.tsx",
+      "action": "edit",
+      "decision": "Updated: kinetic"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneIgniteVFX",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneIgniteVFX.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneIgniteVFX"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneIgniteVFX",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneIgniteVFX.tsx",
+      "action": "create",
+      "decision": "New component created: SceneIgniteVFX"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpenV4",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpenV4.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpenV4"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpenV3",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpenV3.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpenV3"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "space3d",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/space3d.tsx",
+      "action": "create",
+      "decision": "New component created: space3d"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "ProofClip",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/ProofClip.tsx",
+      "action": "create",
+      "decision": "New component created: ProofClip"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneScale3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneScale3D.tsx",
+      "action": "create",
+      "decision": "New component created: SceneScale3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen3D.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneColdOpen3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen3D",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen3D.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpen3D"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "transitions",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/transitions.tsx",
+      "action": "create",
+      "decision": "New component created: transitions"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "kinetic",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/kinetic.tsx",
+      "action": "create",
+      "decision": "New component created: kinetic"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "three-env",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/three-env.tsx",
+      "action": "create",
+      "decision": "New component created: three-env"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "_ThreeTest",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/_ThreeTest.tsx",
+      "action": "create",
+      "decision": "New component created: _ThreeTest"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitive.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneCompetitive"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenSavings",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenSavings.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneTokenSavings"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFourPillars",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFourPillars.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneFourPillars"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "Film",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Film.tsx",
+      "action": "create",
+      "decision": "New component created: Film"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneAsk",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAsk.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneAsk"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmap",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmap.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneRoadmap"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneVisionClose",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneVisionClose.tsx",
+      "action": "create",
+      "decision": "New component created: SceneVisionClose"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarket",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarket.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneMarket"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneAsk",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneAsk.tsx",
+      "action": "create",
+      "decision": "New component created: SceneAsk"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneRoadmap",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneRoadmap.tsx",
+      "action": "create",
+      "decision": "New component created: SceneRoadmap"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTeam",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTeam.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTeam"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneMarket",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneMarket.tsx",
+      "action": "create",
+      "decision": "New component created: SceneMarket"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneEnergyGate",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneEnergyGate.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneEnergyGate"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneLayers",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneLayers.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneLayers"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitecture",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitecture.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneArchitecture"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneEnergyGate",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneEnergyGate.tsx",
+      "action": "create",
+      "decision": "New component created: SceneEnergyGate"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneLayers",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneLayers.tsx",
+      "action": "create",
+      "decision": "New component created: SceneLayers"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCompetitive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCompetitive.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCompetitive"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowItWorks",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowItWorks.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneHowItWorks"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblem",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblem.tsx",
+      "action": "edit",
+      "decision": "Updated: SceneProblem"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneTokenSavings",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneTokenSavings.tsx",
+      "action": "create",
+      "decision": "New component created: SceneTokenSavings"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneFourPillars",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneFourPillars.tsx",
+      "action": "create",
+      "decision": "New component created: SceneFourPillars"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneArchitecture",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneArchitecture.tsx",
+      "action": "create",
+      "decision": "New component created: SceneArchitecture"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneWhyNow",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneWhyNow.tsx",
+      "action": "create",
+      "decision": "New component created: SceneWhyNow"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneCostStat",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneCostStat.tsx",
+      "action": "create",
+      "decision": "New component created: SceneCostStat"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneHowItWorks",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneHowItWorks.tsx",
+      "action": "create",
+      "decision": "New component created: SceneHowItWorks"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneProblem",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblem.tsx",
+      "action": "create",
+      "decision": "New component created: SceneProblem"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
+      "action": "edit",
+      "decision": "Updated: Root"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneSolution",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneSolution.tsx",
+      "action": "create",
+      "decision": "New component created: SceneSolution"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "SceneColdOpen",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen.tsx",
+      "action": "create",
+      "decision": "New component created: SceneColdOpen"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "primitives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/primitives.tsx",
+      "action": "create",
+      "decision": "New component created: primitives"
+    },
+    {
+      "date": "2026-06-13",
       "component": "index",
-      "file": "index.html",
+      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck/index.html",
       "action": "edit",
       "decision": "Updated: index"
     },
     {
-      "date": "2026-04-25",
-      "component": "index",
-      "file": "src/index.tsx",
+      "date": "2026-06-13",
+      "component": "nexus-link-investor-deck-v2",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-v2.html",
       "action": "edit",
-      "decision": "Updated: index"
+      "decision": "Updated: nexus-link-investor-deck-v2"
     },
     {
-      "date": "2026-04-25",
-      "component": "index",
-      "file": "src/components/DesignAuditHUD/index.tsx",
+      "date": "2026-06-13",
+      "component": "NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE",
+      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE.html",
+      "action": "edit",
+      "decision": "Updated: NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "ChaosOrder",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
+      "action": "edit",
+      "decision": "Updated: ChaosOrder"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "BillArrives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
+      "action": "edit",
+      "decision": "Updated: BillArrives"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "TokenBurn",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
+      "action": "edit",
+      "decision": "Updated: TokenBurn"
+    },
+    {
+      "date": "2026-06-13",
+      "component": "TheFork",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TheFork.tsx",
       "action": "create",
-      "decision": "New component created: index"
+      "decision": "New component created: TheFork"
     },
     {
-      "date": "2026-04-25",
-      "component": "OraclePage",
-      "file": "src/components/Oracle/OraclePage.tsx",
-      "action": "edit",
-      "decision": "Updated: OraclePage"
-    },
-    {
-      "date": "2026-04-25",
-      "component": "ParticleBackground",
-      "file": "src/components/DesignAuditHUD/ParticleBackground.tsx",
+      "date": "2026-06-13",
+      "component": "HandsArrive",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/HandsArrive.tsx",
       "action": "create",
-      "decision": "New component created: ParticleBackground"
+      "decision": "New component created: HandsArrive"
     },
     {
-      "date": "2026-05-05",
-      "component": "AboutPage",
-      "file": "src/pages/AboutPage.tsx",
+      "date": "2026-06-13",
+      "component": "BillArrives",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
       "action": "create",
-      "decision": "New component created: AboutPage"
+      "decision": "New component created: BillArrives"
     },
     {
-      "date": "2026-05-05",
-      "component": "AboutPage",
-      "file": "src/pages/AboutPage.tsx",
-      "action": "edit",
-      "decision": "Updated: AboutPage"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "Button",
-      "file": "src/components/ui/Button.tsx",
-      "action": "edit",
-      "decision": "Updated: Button"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "ContactPage",
-      "file": "src/pages/ContactPage.tsx",
-      "action": "edit",
-      "decision": "Updated: ContactPage"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "MobileMenuDrawer",
-      "file": "src/components/MobileMenuDrawer.tsx",
-      "action": "edit",
-      "decision": "Updated: MobileMenuDrawer"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "Navigation",
-      "file": "src/components/Navigation.tsx",
-      "action": "edit",
-      "decision": "Updated: Navigation"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "ServicesPage",
-      "file": "src/pages/ServicesPage.tsx",
-      "action": "edit",
-      "decision": "Updated: ServicesPage"
-    },
-    {
-      "date": "2026-05-05",
-      "component": "WorkPage",
-      "file": "src/pages/WorkPage.tsx",
-      "action": "edit",
-      "decision": "Updated: WorkPage"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "AboutPage",
-      "file": "src/pages/AboutPage.tsx",
+      "date": "2026-06-13",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
       "action": "create",
-      "decision": "New component created: AboutPage"
+      "decision": "New component created: Root"
     },
     {
-      "date": "2026-05-06",
-      "component": "App",
-      "file": "src/App.tsx",
+      "date": "2026-06-12",
+      "component": "v2_body",
+      "file": "/tmp/v2_body.html",
+      "action": "edit",
+      "decision": "Updated: v2_body"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "Root",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
+      "action": "edit",
+      "decision": "Updated: Root"
+    },
+    {
+      "date": "2026-06-12",
+      "component": "ChaosOrder",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
       "action": "create",
-      "decision": "New component created: App"
+      "decision": "New component created: ChaosOrder"
     },
     {
-      "date": "2026-05-06",
-      "component": "App",
-      "file": "src/App.tsx",
-      "action": "edit",
-      "decision": "Updated: App"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "CelticBackground",
-      "file": "src/components/ui/CelticBackground.tsx",
+      "date": "2026-06-12",
+      "component": "TokenBurn",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/TokenBurn.tsx",
       "action": "create",
-      "decision": "New component created: CelticBackground"
+      "decision": "New component created: TokenBurn"
     },
     {
-      "date": "2026-05-06",
-      "component": "ContactPage",
-      "file": "src/pages/ContactPage.tsx",
+      "date": "2026-06-12",
+      "component": "GateVerdict",
+      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/GateVerdict.tsx",
       "action": "create",
-      "decision": "New component created: ContactPage"
+      "decision": "New component created: GateVerdict"
     },
     {
-      "date": "2026-05-06",
-      "component": "CTABanner",
-      "file": "src/components/CTABanner.tsx",
+      "date": "2026-06-12",
+      "component": "v2_body",
+      "file": "/tmp/v2_body.html",
       "action": "create",
-      "decision": "New component created: CTABanner"
+      "decision": "New component created: v2_body"
     },
     {
-      "date": "2026-05-06",
-      "component": "global",
-      "file": "src/styles/global.css",
-      "action": "edit",
-      "decision": "Updated: global"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "HeroSection",
-      "file": "src/components/HeroSection.tsx",
-      "action": "edit",
-      "decision": "Updated: HeroSection"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "HeroSection",
-      "file": "src/components/HeroSection.tsx",
+      "date": "2026-06-12",
+      "component": "v2_style",
+      "file": "/tmp/v2_style.css",
       "action": "create",
-      "decision": "New component created: HeroSection"
+      "decision": "New component created: v2_style"
     },
     {
-      "date": "2026-05-06",
-      "component": "HomePage",
-      "file": "src/pages/HomePage.tsx",
+      "date": "2026-06-12",
+      "component": "nexus-link-investor-deck",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
       "action": "edit",
-      "decision": "Updated: HomePage"
+      "decision": "Updated: nexus-link-investor-deck"
     },
     {
-      "date": "2026-05-06",
-      "component": "HomePage",
-      "file": "src/pages/HomePage.tsx",
+      "date": "2026-06-12",
+      "component": "nexus-link-investor-deck",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck.html",
       "action": "create",
-      "decision": "New component created: HomePage"
+      "decision": "New component created: nexus-link-investor-deck"
     },
     {
-      "date": "2026-05-06",
-      "component": "index",
-      "file": "index.html",
-      "action": "edit",
-      "decision": "Updated: index"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "LightCursor",
-      "file": "src/components/ui/LightCursor.tsx",
-      "action": "edit",
-      "decision": "Updated: LightCursor"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "LightCursor",
-      "file": "src/components/ui/LightCursor.tsx",
+      "date": "2026-06-12",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
       "action": "create",
-      "decision": "New component created: LightCursor"
+      "decision": "New component created: yuri-concept-visualization"
     },
     {
-      "date": "2026-05-06",
-      "component": "MagneticCursor",
-      "file": "src/components/ui/MagneticCursor.tsx",
+      "date": "2026-06-12",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "edit",
+      "decision": "Updated: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
+      "action": "edit",
+      "decision": "Updated: yuri-concept-visualization"
+    },
+    {
+      "date": "2026-06-11",
+      "component": "yuri-concept-visualization",
+      "file": "02_RESOURCES/INVESTOR-DECK/yuri-concept-visualization.html",
       "action": "create",
-      "decision": "New component created: MagneticCursor"
+      "decision": "New component created: yuri-concept-visualization"
     },
     {
-      "date": "2026-05-06",
-      "component": "Navigation",
-      "file": "src/components/Navigation.tsx",
+      "date": "2026-06-11",
+      "component": "nexus-link-investor-deck-planner-de",
+      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-planner-de.html",
       "action": "edit",
-      "decision": "Updated: Navigation"
+      "decision": "Updated: nexus-link-investor-deck-planner-de"
     },
     {
-      "date": "2026-05-06",
-      "component": "ServicesPage",
-      "file": "src/pages/ServicesPage.tsx",
+      "date": "2026-06-11",
+      "component": "c7",
+      "file": "/tmp/deck_de/c7.html",
       "action": "edit",
-      "decision": "Updated: ServicesPage"
+      "decision": "Updated: c7"
     },
     {
-      "date": "2026-05-06",
-      "component": "ServicesPage",
-      "file": "src/pages/ServicesPage.tsx",
-      "action": "create",
-      "decision": "New component created: ServicesPage"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "tokens",
-      "file": "src/styles/tokens.css",
+      "date": "2026-06-11",
+      "component": "c6",
+      "file": "/tmp/deck_de/c6.html",
       "action": "edit",
-      "decision": "Updated: tokens"
+      "decision": "Updated: c6"
     },
     {
-      "date": "2026-05-06",
-      "component": "tokens",
-      "file": "src/styles/tokens.css",
-      "action": "create",
-      "decision": "New component created: tokens"
-    },
-    {
-      "date": "2026-05-06",
-      "component": "WorkPage",
-      "file": "src/pages/WorkPage.tsx",
+      "date": "2026-06-11",
+      "component": "c2",
+      "file": "/tmp/deck_de/c2.html",
       "action": "edit",
-      "decision": "Updated: WorkPage"
+      "decision": "Updated: c2"
     },
     {
-      "date": "2026-05-06",
-      "component": "WorkPage",
-      "file": "src/pages/WorkPage.tsx",
-      "action": "create",
-      "decision": "New component created: WorkPage"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "AnimatedCounter",
-      "file": "src/components/ui/AnimatedCounter.tsx",
-      "action": "create",
-      "decision": "New component created: AnimatedCounter"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "App",
-      "file": "src/App.tsx",
+      "date": "2026-06-11",
+      "component": "c5",
+      "file": "/tmp/deck_de/c5.html",
       "action": "edit",
-      "decision": "Updated: App"
+      "decision": "Updated: c5"
     },
     {
-      "date": "2026-05-07",
-      "component": "Footer",
-      "file": "src/components/Footer.tsx",
+      "date": "2026-06-11",
+      "component": "c4",
+      "file": "/tmp/deck_de/c4.html",
       "action": "edit",
-      "decision": "Updated: Footer"
+      "decision": "Updated: c4"
     },
     {
-      "date": "2026-05-07",
-      "component": "global",
-      "file": "src/styles/global.css",
+      "date": "2026-06-11",
+      "component": "c3",
+      "file": "/tmp/deck_de/c3.html",
       "action": "edit",
-      "decision": "Updated: global"
+      "decision": "Updated: c3"
     },
     {
-      "date": "2026-05-07",
-      "component": "HeroSection",
-      "file": "src/components/HeroSection.tsx",
+      "date": "2026-06-11",
+      "component": "c1",
+      "file": "/tmp/deck_de/c1.html",
       "action": "edit",
-      "decision": "Updated: HeroSection"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "HomePage",
-      "file": "src/pages/HomePage.tsx",
-      "action": "edit",
-      "decision": "Updated: HomePage"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "LightCursor",
-      "file": "src/components/ui/LightCursor.tsx",
-      "action": "edit",
-      "decision": "Updated: LightCursor"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "LogoAtmosphere",
-      "file": "src/components/ui/LogoAtmosphere.tsx",
-      "action": "edit",
-      "decision": "Updated: LogoAtmosphere"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "Navigation",
-      "file": "src/components/Navigation.tsx",
-      "action": "edit",
-      "decision": "Updated: Navigation"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "NexusLinkHermeticLayer",
-      "file": "src/App.tsx, src/components/ui/HermeticVeil.tsx, src/components/ui/CineGlow.tsx, src/components/ui/ArchitecturalGrid.tsx, src/styles/global.css",
-      "action": "edit",
-      "decision": "Added route reset for SPA navigation, replaced bloom cursor with a precise sigil reticle, and layered hermetic line art plus route constellation navigation across all pages.",
-      "tokens_used": [
-        "--color-crimson",
-        "--color-crimson-border",
-        "--color-text-primary",
-        "--color-text-tertiary",
-        "--color-border-default"
-      ],
-      "pattern": "Use a global crimson-only hermetic veil for visual storytelling, with per-route symbols and nonblocking page-sequence guidance."
-    },
-    {
-      "date": "2026-05-07",
-      "component": "NexusLinkLogoAtmosphere",
-      "file": "src/components/ui/LogoAtmosphere.tsx, src/components/Navigation.tsx, src/App.tsx, src/styles/global.css",
-      "action": "create",
-      "decision": "Integrated the real Nexus Link SVG logo assets from 03_NEXUS-LINK/Identity/NLP LOGO as a first-load animated lockup, scroll-reactive background mark, ghost elements, construction lines, and navigation wordmark. Added hard CSS override so data-magnetic elements cannot be translated by stale cursor behavior.",
-      "tokens_used": [
-        "--color-crimson",
-        "--color-bg-abzu",
-        "--color-text-primary",
-        "--color-border-default"
-      ],
-      "pattern": "Brand mark as atmosphere: first-load lockup resolves into scroll-reactive background construction system."
-    },
-    {
-      "date": "2026-05-07",
-      "component": "NexusLinkSystemBoard",
-      "file": "src/App.tsx, src/components/ui/CineGlow.tsx, src/components/ui/HermeticVeil.tsx, src/styles/global.css",
-      "action": "edit",
-      "decision": "Replaced route exit-wait with immediate route rendering, made the cursor visual-only with hover brackets and no DOM transform mutation, and expanded the visual system into a route/scroll-reactive board of nodes, edges, move counters, animated guide paths, and floating concept-art glyphs.",
-      "tokens_used": [
-        "--color-crimson",
-        "--color-crimson-border",
-        "--color-bg-abzu",
-        "--color-text-primary",
-        "--color-text-tertiary"
-      ],
-      "pattern": "Chaotic systematic site layer: route equals board state, scroll equals move progression, visual edges reveal relationships without moving clickable UI."
-    },
-    {
-      "date": "2026-05-07",
-      "component": "NexusLinkWebsite",
-      "file": "src/App.tsx, src/styles/tokens.css, src/styles/global.css, src/pages/*",
-      "action": "rebuild",
-      "decision": "Rebuilt Nexus Link Productions as a crimson-only spatial room: fixed perspective floor grid, pulsing triquetra vanishing point, floating Z-depth panels, magnetic tilt, bento work grid, compact services stations, CV-driven about narrative, and multi-step contact flow.",
-      "tokens_used": [
-        "--color-bg-void",
-        "--color-bg-abzu",
-        "--color-bg-raised",
-        "--color-crimson",
-        "--color-text-primary",
-        "--color-text-secondary"
-      ],
-      "pattern": "Crimson-only architectural depth system for premium brand-content pages; no green, cyan, teal, or purple accents."
-    },
-    {
-      "date": "2026-05-07",
-      "component": "ParticleCanvas",
-      "file": "src/components/ParticleCanvas.tsx",
-      "action": "edit",
-      "decision": "Updated: ParticleCanvas"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "ServicesPage",
-      "file": "src/pages/ServicesPage.tsx",
-      "action": "edit",
-      "decision": "Updated: ServicesPage"
-    },
-    {
-      "date": "2026-05-07",
-      "component": "tokens",
-      "file": "src/styles/tokens.css",
-      "action": "edit",
-      "decision": "Updated: tokens"
-    },
-    {
-      "date": "2026-05-10T20:00:45.290Z",
-      "component": "Frontier Design Intelligence layer",
-      "file": "DESIGN.md, design-memory.json, skills/frontend-design/SKILL.md, skills/design-master/SKILL.md, RESEARCH/DESIGN-RADAR/design-radar.ts, 02_RESOURCES/References/design-packs/frontier-design-intelligence/README.md",
-      "action": "upgrade",
-      "decision": "Unified design activation around root design-memory.json, installed frontend-design as an active skill, added source-selection and motion-budget rules, and represented the frontier and Framer packs in Design Radar executable catalog form.",
-      "tokens_used": [
-        "DESIGN.md",
-        "design-memory.json",
-        "frontier-design-intelligence",
-        "framer-university-resource-atlas",
-        "designRadar"
-      ],
-      "pattern": "Design task activation pipeline: DESIGN.md -> canonical memory -> frontier atlas -> relevant pack -> implementation constraints -> screenshot/browser verification."
+      "decision": "Updated: c1"
     }
+  ],
+  "openIssues": [
+    "V3 pin start position — Marcel feedback: should pin higher up",
+    "Mobile responsive testing on real device pending",
+    "Three.js bundle adds ~160KB gzip — acceptable per Marcel's explicit 3D OK"
   ]
 }
