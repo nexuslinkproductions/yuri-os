@@ -57,6 +57,7 @@ import * as PerpAdapter from '../adapters/perp-adapter.mjs';
 import * as SocialAdapter from '../adapters/social-adapter.mjs';
 import * as PolymarketDiscovery from '../adapters/polymarket-discovery.mjs';
 import { computePerpSignals } from '../perp-signals.mjs';
+import { computeCrossAssetSignals } from '../cross-asset-signal.mjs';
 import { circuitInputFromBars } from '../factor-return-vectors.mjs';
 import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 import { webSearch as agentReachSearch, available as agentReachAvailable } from '../../agent-reach.mjs';
@@ -520,6 +521,11 @@ function isPrivateHost(hostname) {
 }
 
 // ── Market cycle: crypto (Coinbase candles) ────────────────────────────────
+// Rolling per-market close cache for the cross-asset lead/lag overlay (leaders like BTC lead alts).
+// Bounded window; updated each cycle as each market is processed. Module-scoped so a lagger can read
+// the leader's series populated earlier in the same cycle (market order = config order, BTC first).
+const _recentCloses = new Map(); // market -> [[tsSeconds, close], ...]
+
 async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
   const start = now - 5 * 60 * 60; // ~5h back → ~300 ONE_MINUTE bars (under Coinbase's ~350/req cap)
@@ -610,6 +616,25 @@ async function runCryptoCycle(market, snap, cfg = {}) {
       if (sig) overlaySignals.push(sig);
     } catch (_e) { /* fail-open — social overlay never breaks the crypto cycle */ }
   }
+  // ── Cross-asset lead/lag OVERLAY (BTC/ETH lead alts → directional tilt on the lagger) ──
+  //    Advisory like perp/social: recorded for multi-horizon scoring, NOT sized into P&L.
+  //    Reads a rolling cross-market close cache (the leader's series is populated earlier this cycle).
+  if (cfg.enableCrossAsset !== false) {
+    try {
+      const xseries = bars
+        .map((b) => [b.timestamp, b.close])
+        .filter(([t, c]) => Number.isFinite(t) && Number.isFinite(c) && c > 0);
+      if (xseries.length) _recentCloses.set(market, xseries.slice(-120));
+      const marketSeries = {};
+      for (const [m, s] of _recentCloses) marketSeries[m] = s;
+      const xaSigs = computeCrossAssetSignals(marketSeries, {});
+      // Keep only THIS market's lagger signal (each lagger is recorded on its own cycle pass).
+      for (const sig of xaSigs) {
+        if (sig && sig.factorId === `xasset-lead-${market}`) overlaySignals.push(sig);
+      }
+    } catch (_e) { /* fail-open — cross-asset never breaks the crypto cycle */ }
+  }
+
   // Telemetry = price signals + overlays; paper sizing below uses price signals only.
   snap.signals = [...signals, ...overlaySignals];
 
@@ -664,10 +689,14 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     _ensSideHist.set(market, hist);
   }
 
-  // Record per-strategy forecasts (leak-free) so the re-weighting brain can score which strategies
-  // actually predict → adaptive ensemble weights. Telemetry only, never trades. Fail-soft.
+  // Record per-strategy forecasts (leak-free) so the re-weighting brain + horizon ladder can score
+  // which strategies actually predict → adaptive per-horizon weights. Overlays (funding/basis/
+  // cross-asset/social) are recorded too: their DIRECTION is scorable against the spot forward move
+  // even though they are not sized into P&L (the "different edge units" caveat is about sizing, not
+  // directional prediction — and funding/carry only show edge at the longer rungs). Telemetry only,
+  // never trades. Fail-soft.
   if (cfg.enableStrategyForecasts !== false) {
-    try { recordForecasts(market, signals, lastBar.close, now, FORECAST_LEDGER); } catch (_e) { /* never break the cycle */ }
+    try { recordForecasts(market, [...signals, ...overlaySignals], lastBar.close, now, FORECAST_LEDGER); } catch (_e) { /* never break the cycle */ }
   }
 
   const existing = engine.positions().find((p) => p.instrument === inst);
@@ -1267,6 +1296,7 @@ export const DEFAULT_CONFIG = {
   intervalMs: DEFAULT_CYCLE_INTERVAL_MS,
   // Wave-4 overlays (advisory telemetry; fail-open; do NOT drive paper P&L):
   enablePerp: true,            // funding/basis positioning overlay on crypto markets
+  enableCrossAsset: true,      // cross-asset lead/lag overlay (BTC/ETH lead alts), advisory/scored-only
   enableSocial: true,          // public-source sentiment overlay per asset
   enableAgentReachNews: true,  // prefer Agent-Reach real-web news (Exa) for sentiment over RSS
   autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live

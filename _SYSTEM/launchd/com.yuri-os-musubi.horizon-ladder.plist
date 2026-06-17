@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  DISARMED template — the MULTI-HORIZON LADDER refresh beat. NOT loaded by anything; lives in the repo
+  only. Arming is OWNER-GATED (a recurring background process):
+
+    cp _SYSTEM/launchd/com.yuri-os-musubi.horizon-ladder.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.yuri-os-musubi.horizon-ladder.plist
+    # disarm:  launchctl bootout gui/$(id -u)/com.yuri-os-musubi.horizon-ladder ; rm ~/Library/LaunchAgents/com.yuri-os-musubi.horizon-ladder.plist
+
+  Every 300s it scores the SAME strategy-forecasts ledger at every rung (15m/30m/60m/3h/12h/weekly) and
+  writes _SYSTEM/state/ensemble-weights-ladder.json (per-horizon weights). READ-ONLY scoring — it never
+  trades and nothing consumes the ladder file for sizing yet (per-rung trading is a separate owner-gated
+  increment). Until armed, run on demand:  node _SYSTEM/Scripts/alpha-factor-library/horizon-ladder.mjs --ladder
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yuri-os-musubi.horizon-ladder</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/alpha-factor-library/horizon-ladder.mjs</string>
+        <string>--ladder</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/marcelspatz</string>
+        <key>YURI_ROOT</key>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+    </dict>
+
+    <!-- Every 5min. Re-scoring the whole ledger is cheap (~100ms); launchd skips a fire if the prior
+         run is still in flight. -->
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/horizon-ladder.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/horizon-ladder.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>
