@@ -8,6 +8,7 @@ import { PROTECTED_SURFACE_EXCLUSIONS, requiredEvidenceIdsForTask } from './evid
 import { appendKagamiEvent } from './kagami-event-bus.mjs';
 import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 import { recordUse } from './memory-usage.mjs';
+import { scoreEmbedding } from './static-encoder.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -40,6 +41,10 @@ export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
 
 export const MEMORY_ENTRY_TYPES = Object.freeze(['rule', 'feedback', 'contract', 'evidence', 'task']);
 export const MEMORY_SCOPES = Object.freeze(['session', 'project', 'permanent']);
+// DBarr3/aether-context provenance (2026-06-17): WHO authored the content, distinct from
+// originLane (which lane wrote it). 'model' = agent-self-authored (NOT authoritative — the
+// guard against agent-spill-becoming-policy); 'user' = operator-planted; 'tool' = tool output.
+export const MEMORY_SOURCES = Object.freeze(['user', 'model', 'tool']);
 export const MEMORY_AUTHORITY = Object.freeze({
   codex: ['session', 'project', 'permanent'],
   'gpt-5.5': ['session', 'project', 'permanent'],
@@ -292,12 +297,14 @@ function resolveMemoryScorer(mode) {
     };
   }
   if (normalized === 'embedding') {
+    // 2026-06-17: wired the deterministic static encoder (static-encoder.mjs) — dense cosine
+    // recall with no embedding-model round-trip. Was a lexical-fallback stub before.
     return {
       mode: 'embedding',
-      active: false,
-      fallback: true,
-      warning: 'embedding scorer not configured; lexical fallback used',
-      score: scoreText,
+      active: true,
+      fallback: false,
+      warning: null,
+      score: scoreEmbedding,
     };
   }
   return {
@@ -332,9 +339,13 @@ export function appendMemoryEntry(entry = {}, options = {}) {
   const allowedScopes = MEMORY_AUTHORITY[originLane] || ['session'];
   const scope = allowedScopes.includes(requestedScope) ? requestedScope : strongestAllowedScope(requestedScope, allowedScopes);
   const warnings = scope === requestedScope ? [] : [`scope downgraded from ${requestedScope} to ${scope} for ${originLane}`];
+  const source = MEMORY_SOURCES.includes(String(entry.source || '').toLowerCase())
+    ? String(entry.source).toLowerCase()
+    : 'model'; // DBarr3 guard: unmarked content defaults to agent-authored (not authoritative)
   const payload = {
     timestamp: entry.timestamp || new Date().toISOString(),
     originLane,
+    source,
     type,
     scope,
     requestedScope,

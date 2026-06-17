@@ -43,7 +43,7 @@ test('recall reads YURI-owned memory root and ranks matching context', () => {
   }
 });
 
-test('memory scorer modes expose lexical fallback for embedding and MSA research modes', () => {
+test('memory scorer modes: embedding is live (static encoder), MSA stays research-only fallback', () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-scorer-'));
   try {
     writeFileSync(path.join(dir, 'a.md'), 'MSA sparse memory research and RAG recall.');
@@ -53,8 +53,8 @@ test('memory scorer modes expose lexical fallback for embedding and MSA research
     assert.deepEqual(SEMANTIC_MODES, ['lexical', 'embedding', 'msa']);
     assert.equal(embedding.contexts[0].id, 'a.md');
     assert.equal(embedding.policy.scorer, 'embedding');
-    assert.equal(embedding.policy.scorerFallback, true);
-    assert.match(embedding.policy.scorerWarning, /lexical fallback/);
+    assert.equal(embedding.policy.scorerFallback, false);
+    assert.equal(embedding.policy.scorerWarning, null);
     assert.equal(msa.policy.scorer, 'msa');
     assert.match(msa.policy.scorerWarning, /research-only/);
   } finally {
