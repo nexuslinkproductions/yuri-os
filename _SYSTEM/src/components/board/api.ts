@@ -151,29 +151,62 @@ export interface HealthResponse {
   uptime: number;
 }
 
-// /calibration — does not exist yet; will 404
+// /calibration — per-factor reliability scorecard (real shape from orchestrator.getCalibration)
 export interface CalibrationFactor {
-  name: string;
-  brier: number;
-  sharpe: number;
-  lifecycle: 'live' | 'paper' | 'hypothesis';
+  factorId: string;
+  n: number | null;
+  sharpe: number | null;
+  dsr: number | null;
+  brier: number | null;
+  meanReturn: number | null;
+  promote: boolean | null;
+  reasons?: string[];
 }
 export interface CalibrationResponse {
+  evaluated: number;
   factors: CalibrationFactor[];
+  advisory?: string;
 }
 
-// /graduation — does not exist yet; will 404
-export interface GraduationRung {
-  id: string;
-  name: string;
-  status: 'met' | 'current' | 'unmet';
+// /graduation — R0→R3 reliability verdict (real shape from orchestrator.getGraduation)
+export interface GradeGate {
   gate: string;
-  detail: string;
+  need: string;
+  have: string;
+}
+export interface FactorGrade {
+  factorId: string;
+  rung: 'R0' | 'R1' | 'R2' | 'R3';
+  met?: string[];
+  unmet?: GradeGate[];
+}
+export interface GraduationPortfolio {
+  rung: 'R0' | 'R1' | 'R2' | 'R3';
+  byRung?: Record<string, number>;
+  factorCount?: number;
+  blockers?: Array<{ factorId: string; nextRung?: string; unmet?: GradeGate[] }>;
 }
 export interface GraduationResponse {
-  rungs: GraduationRung[];
-  current: string;
-  progressPct: number;
+  portfolio: GraduationPortfolio;
+  factors?: FactorGrade[];
+  generatedAt?: number | null;
+  advisory?: string;
+}
+
+// /quantum — DISARMED A/B shadow verdict (orchestrator.getQuantum)
+export interface QuantumVerdict {
+  n: number;
+  classicalHitRate: number | null;
+  quantumHitRate: number | null;
+  classicalMeanRet: number | null;
+  quantumMeanRet: number | null;
+  quantumLift: number | null;
+  disagree?: { n: number; classicalHitRate: number | null; quantumHitRate: number | null };
+}
+export interface QuantumResponse {
+  verdict: QuantumVerdict | null;
+  advisory?: string;
+  note?: string;
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
@@ -212,4 +245,7 @@ export const api = {
 
   graduation: () =>
     safeFetch<GraduationResponse | null>(`${BASE}/graduation`, null),
+
+  quantum: () =>
+    safeFetch<QuantumResponse | null>(`${BASE}/quantum`, null),
 };
