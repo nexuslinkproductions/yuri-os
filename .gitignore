@@ -383,3 +383,5 @@ _SYSTEM/state/gate-trace-corrid.enabled
 
 # voice loop runtime state — venvs, Rick audio (IP), EQ config, model caches: never commit
 _SYSTEM/state/voice/
+# overseer runtime state — the live fleet board (per-session, not source); template lives in Scripts/voice
+_SYSTEM/state/overseer/
