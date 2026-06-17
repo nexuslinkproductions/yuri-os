@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # @capability: voice-ptt-control
 # @serves: push to talk | voice control claude | hold key speak inject | voice into vscode claude | hands-on voice command
-# @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. No always-on, no VAD wait, no TTS: intentional voice INPUT only. Sidesteps the no-injection-API wall by typing like a human into whatever's focused.
-# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default ctrl+enter), speak, release. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE.
-import os, sys, time, threading, subprocess
+# @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes (STREAMING: live, while you talk) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. No always-on, no VAD wait, no TTS: intentional voice INPUT only. Sidesteps the no-injection-API wall by typing like a human into whatever's focused.
+# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=live streaming [default], 0=batch-on-release fallback), VOICE_PTT_CHUNK_S (stream chunk seconds, default 0.4).
+import os, sys, time, threading, queue, subprocess
 import numpy as np, sounddevice as sd, mlx.core as mx
 from pynput import keyboard
 from parakeet_mlx import from_pretrained
@@ -16,6 +16,10 @@ SAMPLE_RATE = 16000; BLOCK = 1600
 COMBO    = os.environ.get("VOICE_PTT_KEY", "alt_r").lower().strip()
 SUBMIT   = os.environ.get("VOICE_PTT_SUBMIT", "1") == "1"    # paste + Enter, or paste only (you hit Enter)
 MIC      = os.environ.get("VOICE_MIC_DEVICE")
+STREAM   = os.environ.get("VOICE_PTT_STREAM", "1") == "1"    # live streaming transcription vs batch-on-release
+CHUNK    = int(SAMPLE_RATE * float(os.environ.get("VOICE_PTT_CHUNK_S", "0.4")))
+CTX      = (256, 256); DEPTH = 2          # measured: depth=2 keeps real-time (≤0.3s/0.4s chunk) AND matches batch text exactly
+RMS_FLOOR = 0.0008                        # below this, the mic handed us silence (device changed) — warn, don't transcribe
 MIN_CHARS = 2
 
 CTRL_KEYS  = {keyboard.Key.ctrl, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}
@@ -45,23 +49,28 @@ def _track(key, down):
     elif key in ALT_KEYS:   _state["alt"]   = down
     elif key == keyboard.Key.enter: _state["enter"] = down
 
-print(f"loading Parakeet… (PTT = hold {COMBO})", flush=True)
-# dtype: float32 is measured FASTER than bfloat16 on this Apple-Silicon build (83ms vs 97ms /2s clip)
-# and the lib default's only edge is memory, which is irrelevant for short commands. Keep float32.
+print(f"loading Parakeet… (PTT = hold {COMBO}, mode={'stream' if STREAM else 'batch'})", flush=True)
+# dtype: float32 is measured FASTER than bfloat16 on this Apple-Silicon build (83ms vs 97ms /2s clip); keep it.
 model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v2", dtype=mx.float32)
 preproc = model.preprocessor_config
-# WARMUP: the first transcribe pays a ~1.5s MLX kernel-compile (measured 1473ms vs 60-200ms after).
-# Burn it here so your FIRST spoken command is already fast.
+# WARMUP: the first transcribe pays a ~1.5s MLX kernel-compile. Burn it here (batch + stream paths)
+# so your FIRST spoken command is already fast (measured 1473ms cold -> 78ms warm).
 try:
     model.generate(get_logmel(mx.array(np.zeros(SAMPLE_RATE * 2, dtype=np.float32)), preproc)); mx.eval(model.parameters())
+    if STREAM:
+        with model.transcribe_stream(context_size=CTX, depth=DEPTH) as _w:
+            _w.add_audio(mx.array(np.zeros(int(SAMPLE_RATE * 0.4), dtype=np.float32))); _ = _w.result.text
     print("  (kernels warm — first command will be fast)", flush=True)
 except Exception:
     pass
 
-_buf = []; _lock = threading.Lock(); _stream = [None]
+_SENTINEL = object()
+_qref   = [queue.Queue()]            # fresh queue per recording — isolates back-to-back presses
+_stream = [None]                     # the live mic InputStream
+_inject_lock = threading.Lock()      # serialize pastes so two recordings can't interleave keystrokes
 
 def _cb(indata, frames, t, status):
-    with _lock: _buf.append(indata[:, 0].copy())
+    _qref[0].put(indata[:, 0].copy())
 
 def _open_stream():
     dev = (int(MIC) if MIC and MIC.isdigit() else MIC) if MIC else None
@@ -82,41 +91,78 @@ def _osa(script):
     return True
 
 def _inject(text):
-    prev = subprocess.run(["pbpaste"], capture_output=True).stdout      # save clipboard
-    subprocess.run(["pbcopy"], input=text.encode(), check=False)
-    time.sleep(0.03)                                                    # let pbcopy settle before paste
-    ok = _osa('tell application "System Events" to keystroke "v" using command down')
-    if ok and SUBMIT:
-        time.sleep(0.08)                                               # paste must land before Return submits
-        _osa('tell application "System Events" to key code 36')         # Return
-    time.sleep(0.12)                                                    # paste must finish reading clipboard before restore
-    subprocess.run(["pbcopy"], input=prev, check=False)                 # restore clipboard
+    with _inject_lock:
+        prev = subprocess.run(["pbpaste"], capture_output=True).stdout      # save clipboard
+        subprocess.run(["pbcopy"], input=text.encode(), check=False)
+        time.sleep(0.03)                                                    # let pbcopy settle before paste
+        ok = _osa('tell application "System Events" to keystroke "v" using command down')
+        if ok and SUBMIT:
+            time.sleep(0.08)                                               # paste must land before Return submits
+            _osa('tell application "System Events" to key code 36')         # Return
+        time.sleep(0.12)                                                    # paste must finish reading clipboard before restore
+        subprocess.run(["pbcopy"], input=prev, check=False)                 # restore clipboard
     print(f"→ {text}" + ("" if ok else "  (paste did NOT fire — see error above)"), flush=True)
 
-def _transcribe_and_inject():
-    with _lock:
-        if not _buf: return
-        audio = np.concatenate(_buf); _buf.clear()
-    if len(audio) / SAMPLE_RATE < 0.2: return                           # ignore key-taps
-    rms = float(np.sqrt(np.mean(audio ** 2)))
-    if rms < 0.0008:                                                    # captured silence, not speech
+def _finish(txt, n_samp, sumsq):
+    """Shared tail: guard tiny taps + silent mic, then inject the transcript."""
+    if n_samp / SAMPLE_RATE < 0.2: return                                   # ignore key-taps
+    rms = (sumsq / max(n_samp, 1)) ** 0.5
+    if rms < RMS_FLOOR:                                                     # captured silence, not speech
         print(f"⚠ mic silent (rms={rms:.5f}) — input device likely changed; relaunch ptt or set VOICE_MIC_DEVICE", flush=True)
         return
-    txt = (model.generate(get_logmel(mx.array(audio), preproc))[0].text or "").strip()
+    txt = (txt or "").strip()
     if len(txt) >= MIN_CHARS:
         _inject(txt)
     else:
         print("(too short / no speech)", flush=True)
 
+def _pump_stream(myq):
+    """STREAMING: consume mic chunks live and feed Parakeet's incremental encoder WHILE you talk.
+    On release (sentinel) only the final <chunk tail needs transcribing -> near-constant felt latency."""
+    pending = []; pend_n = 0; n_samp = 0; sumsq = 0.0; txt = ""
+    try:
+        with model.transcribe_stream(context_size=CTX, depth=DEPTH) as st:
+            while True:
+                item = myq.get()
+                if item is _SENTINEL: break
+                pending.append(item); ln = len(item)
+                pend_n += ln; n_samp += ln; sumsq += float(np.dot(item, item))
+                if pend_n >= CHUNK:
+                    st.add_audio(mx.array(np.concatenate(pending))); pending = []; pend_n = 0
+            if pending:
+                st.add_audio(mx.array(np.concatenate(pending)))            # flush the release tail
+            txt = st.result.text
+    except Exception as e:
+        print(f"  ✗ stream error: {e}", flush=True); return
+    _finish(txt, n_samp, sumsq)
+
+def _drain_batch(myq):
+    """BATCH fallback (VOICE_PTT_STREAM=0): transcribe the whole clip on release."""
+    chunks = []
+    try:
+        while True: chunks.append(myq.get_nowait())
+    except queue.Empty: pass
+    if not chunks: return
+    audio = np.concatenate(chunks)
+    txt = ""
+    try:
+        txt = model.generate(get_logmel(mx.array(audio), preproc))[0].text
+    except Exception as e:
+        print(f"  ✗ transcribe error: {e}", flush=True); return
+    _finish(txt, len(audio), float(np.dot(audio, audio)))
+
 def on_press(key):
     _track(key, True)
     if _combo_active() and _stream[0] is None:
-        with _lock: _buf.clear()
+        _qref[0] = queue.Queue()                                           # fresh queue isolates this recording
+        myq = _qref[0]
         try:
-            _stream[0] = _open_stream()                                 # bind to the CURRENT default mic each press
-            print("● listening…", flush=True)
+            _stream[0] = _open_stream()                                    # bind to the CURRENT default mic each press
         except Exception as e:
-            print(f"  ✗ mic open failed: {e}", flush=True)
+            print(f"  ✗ mic open failed: {e}", flush=True); return
+        if STREAM:
+            threading.Thread(target=_pump_stream, args=(myq,), daemon=True).start()
+        print("● listening…", flush=True)
 
 def on_release(key):
     _track(key, False)
@@ -125,9 +171,13 @@ def on_release(key):
         try: s.stop(); s.close()
         except Exception: pass
         print("○ transcribing…", flush=True)
-        threading.Thread(target=_transcribe_and_inject, daemon=True).start()
+        myq = _qref[0]
+        if STREAM:
+            myq.put(_SENTINEL)                                             # pump flushes tail, reads result, injects
+        else:
+            threading.Thread(target=_drain_batch, args=(myq,), daemon=True).start()
 
-print(f"🎙  PTT READY — HOLD {COMBO}, speak, release → text drops into the focused app (submit={SUBMIT}). Ctrl-C to quit.", flush=True)
+print(f"🎙  PTT READY — HOLD {COMBO}, speak, release → text drops into the focused app (submit={SUBMIT}, mode={'stream' if STREAM else 'batch'}). Ctrl-C to quit.", flush=True)
 print("    (first run: macOS will ask to grant Accessibility — allow it for the terminal + System Events)", flush=True)
 try:
     with keyboard.Listener(on_press=on_press, on_release=on_release) as l:
