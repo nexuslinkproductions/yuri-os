@@ -27,8 +27,6 @@ if [ -f "$BANDS_CONF" ]; then
   VOICE_EQ="$_eq"   # bands are the source of truth; empty = flat (no EQ)
 fi
 
-URL="${VOICE_TTS_URL:-http://127.0.0.1:8004/v1/audio/speech}"
-HEALTH="${URL%/v1/audio/speech}/health"
 VOICE="${VOICE_TTS_VOICE:-rick}"
 MODEL="${VOICE_TTS_MODEL:-tts-1}"
 FMT="${VOICE_TTS_FORMAT:-wav}"
@@ -40,8 +38,18 @@ say_fallback(){ command -v say >/dev/null 2>&1 && printf '%s' "$text" | say -r "
 
 command -v curl >/dev/null 2>&1 || { say_fallback; exit 0; }
 command -v jq   >/dev/null 2>&1 || { say_fallback; exit 0; }
-# server up? else degrade to `say` (never go silent)
-curl -sS -m 2 -o /dev/null "$HEALTH" 2>/dev/null || { say_fallback; exit 0; }
+# pick the live TTS engine: MLX/MOSS (:8005, ~4x faster) -> Chatterbox (:8004) -> say.
+# force one with VOICE_TTS_ENGINE=mlx|chatterbox, or pin a URL with VOICE_TTS_URL.
+ENG="${VOICE_TTS_ENGINE:-auto}"
+URL="${VOICE_TTS_URL:-}"
+if [ -z "$URL" ]; then
+  if [ "$ENG" != "chatterbox" ] && curl -sf -m 2 -o /dev/null http://127.0.0.1:8005/health 2>/dev/null; then
+    URL="http://127.0.0.1:8005/v1/audio/speech"
+  elif [ "$ENG" != "mlx" ] && curl -sf -m 2 -o /dev/null http://127.0.0.1:8004/health 2>/dev/null; then
+    URL="http://127.0.0.1:8004/v1/audio/speech"
+  fi
+fi
+[ -z "$URL" ] && { say_fallback; exit 0; }
 
 # --- chunked + pipelined: synth sentence 1 (~2s) and PLAY it while the rest synthesize,
 #     so first-sound is the first sentence, not the whole reply (~5s on Chatterbox). ---

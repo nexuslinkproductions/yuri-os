@@ -7,22 +7,27 @@
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-VENV_PY="$REPO/_SYSTEM/state/voice/.venv/bin/python"
-SERVER="$REPO/_SYSTEM/Scripts/voice/voice-rick-server.py"
 ROLE="$REPO/_SYSTEM/Scripts/voice/overseer-role.md"
 BOARD="$REPO/_SYSTEM/state/overseer/board.md"
 TEMPLATE="$REPO/_SYSTEM/Scripts/voice/board.template.md"
-HEALTH="http://127.0.0.1:8004/health"
 
+# TTS engine: mlx/MOSS (:8005, ~4x faster, default) or chatterbox (:8004). Switch with VOICE_TTS_ENGINE.
+ENGINE="${VOICE_TTS_ENGINE:-mlx}"
+if [ "$ENGINE" = "chatterbox" ]; then
+  TTS_PY="$REPO/_SYSTEM/state/voice/.venv/bin/python";     TTS_SERVER="$REPO/_SYSTEM/Scripts/voice/voice-rick-server.py"; TTS_PORT=8004; TTS_NAME="Chatterbox Rick"
+else
+  TTS_PY="$REPO/_SYSTEM/state/voice/.venv-tts/bin/python"; TTS_SERVER="$REPO/_SYSTEM/Scripts/voice/voice-mlx-server.py";  TTS_PORT=8005; TTS_NAME="MOSS Rick (fast)"
+fi
+HEALTH="http://127.0.0.1:$TTS_PORT/health"
 up(){ curl -sf -m 2 "$HEALTH" >/dev/null 2>&1; }
 
-# 1. Rick voice server up? (start if not)
+# 1. TTS voice server up? (start the selected engine if not)
 if ! up; then
-  echo "▶ starting Rick voice server on :8004 …"
-  ( "$VENV_PY" "$SERVER" >"$REPO/_SYSTEM/state/voice/server.log" 2>&1 & )
-  for _ in $(seq 1 90); do up && break; sleep 1; done
+  echo "▶ starting $TTS_NAME on :$TTS_PORT … (first run loads the model, ~30s)"
+  ( "$TTS_PY" "$TTS_SERVER" >"$REPO/_SYSTEM/state/voice/tts-server.log" 2>&1 & )
+  for _ in $(seq 1 120); do up && break; sleep 1; done
 fi
-up && echo "✓ Rick voice server live" || echo "⚠ voice server not responding — overseer still runs, just silent (log: _SYSTEM/state/voice/server.log)"
+up && echo "✓ $TTS_NAME live on :$TTS_PORT" || echo "⚠ voice server not responding — overseer still runs, just silent (log: _SYSTEM/state/voice/tts-server.log)"
 
 # 2. silence workers: global flag OFF so ONLY this env-armed session speaks
 bash "$REPO/_SYSTEM/Scripts/voice-seam.sh" off >/dev/null 2>&1 || true
