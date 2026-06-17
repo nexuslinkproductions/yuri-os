@@ -4,6 +4,11 @@
 # @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes the clip on release (~39ms per second of audio, doesn't degrade with length) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. No always-on, no VAD wait, no TTS: intentional voice INPUT only. Sidesteps the no-injection-API wall by typing like a human into whatever's focused.
 # @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands, falls behind on long ones; default 0=batch), VOICE_PTT_CHUNK_S (stream chunk seconds, default 0.4).
 import os, sys, time, threading, queue, subprocess
+# The 2.3G model is cached locally after first download — never phone the HF Hub again.
+# Kills the "unauthenticated requests to the HF Hub" warning AND skips a network round-trip
+# on every launch (faster start, works fully offline). Override with HF_HUB_OFFLINE=0 to re-check.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 import numpy as np, sounddevice as sd, mlx.core as mx
 from pynput import keyboard
 from parakeet_mlx import from_pretrained
