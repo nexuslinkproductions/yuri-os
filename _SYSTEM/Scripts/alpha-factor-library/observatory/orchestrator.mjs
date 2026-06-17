@@ -80,6 +80,11 @@ const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for facto
 // ≈ a few minutes; the decode is idempotent so cadence only affects calibration freshness.
 const LEARN_DECODE_EVERY = 10;
 
+// Per-factor paper position cap (fraction of book equity). afl-sizing's targetNotional can be large
+// and the engine's maxPositionPct is bypassed on the caller-notional path, so we clamp here. TINY
+// (0.1%) so dozens of factor books survive the night under realistic fees.
+const PER_FACTOR_MAX_PCT = 0.001;
+
 // ── Timestamp normalization (single chokepoint) ────────────────────────────
 /**
  * toUnixSeconds(ts) — normalize any timestamp (ms or seconds) to unix-SECONDS.
@@ -297,10 +302,13 @@ function getPaperEngine(market) {
     predictionLedgerPath: predLedger,
     caps: {
       initialEquity: 100_000,
-      // Generous gross/net for PAPER discovery across DOZENS of factors per market (each factor
-      // trades its own small 5% book; dozens of them need a high aggregate ceiling). Paper-only,
-      // reversible; real-money sizing re-tightens these.
-      maxPositionPct: 0.05,
+      // PAPER discovery across DOZENS of factors churning every cycle on 1-min noise = very high
+      // turnover. The learn loop scores per-factor RETURNS (size-independent), so we keep positions
+      // TINY (0.1%) → the book drains slowly and SURVIVES the night → trades continuously → maximum
+      // per-factor samples accrue, while each factor's return still honestly carries the ~0.2%
+      // round-trip cost it must beat. As equity drains, positions auto-shrink (self-limiting).
+      // Paper-only, reversible; real-money sizing re-tightens all of these hard.
+      maxPositionPct: 0.001,
       maxGrossExposurePct: 6.0,
       maxNetExposurePct: 4.0,
     },
@@ -573,12 +581,18 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     snap.energyDeltaU = computeEnergyDelta(sig, paperSnap);
 
     // Paper fill via onSignal. Each factor trades its OWN namespaced book (instrument = factorId,
-    // already market-scoped, e.g. rsi-meanrev-BTC-USD) so per-factor P&L is cleanly attributable
-    // for the learn loop — a shared market position would let one factor close/flip another's.
-    // Ingest the latest bar under that instrument so the position marks-to-market.
-    if (sizing.targetNotional > 0) {
+    // already market-scoped) so per-factor P&L is cleanly attributable for the learn loop.
+    // TRANSITION-ONLY: skip when this factor already holds a same-side position — otherwise ~100
+    // factors re-ADD every cycle (the engine's "add" path) → runaway position growth + fee blowup.
+    // Only a new open or a flip trades.
+    const existingPos = engine.positions().find((p) => p.instrument === sig.factorId);
+    if (existingPos && existingPos.side === sig.side) continue;
+
+    // Clamp per-factor notional (the engine's maxPositionPct is bypassed on the caller-notional path).
+    const notional = Math.min(sizing.targetNotional, equity * PER_FACTOR_MAX_PCT);
+    if (notional > 0) {
       engine.onSignal(
-        { ...sig, notional: sizing.targetNotional },
+        { ...sig, notional },
         { instrument: sig.factorId, bar: lastBar, barHistory: bars },
       );
     }
