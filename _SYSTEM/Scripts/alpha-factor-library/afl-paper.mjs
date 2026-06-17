@@ -466,11 +466,13 @@ export function createPaperEngine(config) {
    * a DISTINCT reason ('stop-loss' | 'take-profit' | 'max-hold' | ...). Pure simulation (INV-1: no
    * network/order). Lets the orchestrator enforce P&L/time stops that show up taggable in the tape.
    */
-  function closePosition(inst, reason = 'manual', ts = S.lastTs || Math.floor(Date.now() / 1000)) {
+  function closePosition(inst, reason = 'manual', ts = S.lastTs || Math.floor(Date.now() / 1000), priceOverride = null) {
     const pos = S.positions.get(inst);
     if (!pos) return { ok: false, reason: 'no_position' };
     const bh = S.bars.get(inst);
-    const px = bh && bh.length ? bh[bh.length - 1].close : pos.avg;
+    // priceOverride lets a FAST tick-driven exit close at the live tick price (tighter stop) instead of
+    // the stale 1-min bar close. Falls back to last bar, then entry.
+    const px = (isNum(priceOverride) && priceOverride > 0) ? priceOverride : (bh && bh.length ? bh[bh.length - 1].close : pos.avg);
     const xf = feeModel(caps.venue, px, pos.qty);
     const tr = execClose(inst, px, xf, ts, reason);
     return { ok: true, ...tr };

@@ -908,6 +908,50 @@ export async function fastTick(config = {}) {
   return out;
 }
 
+/**
+ * fastRiskExit() — the FAST risk loop. Runs on the per-second tick cadence (NOT the slow signal
+ * cycle), checks every open ensemble position against the LIVE TICK price, and closes any that breach
+ * stop-loss / take-profit / max-hold — at the tick price. This is what makes the stop actually bite:
+ * the slow cycle (~60s, 1-min bars) let losses overshoot to -0.4% before a check; this catches the
+ * -0.15% breach within ~1-2s. Config-gated (all default-off). Returns the exits taken (for SSE/log).
+ */
+export function fastRiskExit() {
+  const oc = getOverseerConfig();
+  const stopLossPct = (typeof oc.stopLossPct === 'number' && oc.stopLossPct > 0) ? oc.stopLossPct : 0;
+  const takeProfitPct = (typeof oc.takeProfitPct === 'number' && oc.takeProfitPct > 0) ? oc.takeProfitPct : 0;
+  const maxHoldSec = (typeof oc.maxHoldSec === 'number' && oc.maxHoldSec > 0) ? oc.maxHoldSec : 0;
+  if (!stopLossPct && !takeProfitPct && !maxHoldSec) return [];
+  const now = Math.floor(Date.now() / 1000);
+  const exits = [];
+  for (const [market, engine] of _paperEngines) {
+    const inst = `ensemble-${market}`;
+    let pos;
+    try { pos = engine.positions().find((p) => p.instrument === inst); } catch { continue; }
+    if (!pos) continue;
+    const tick = _state.ticks.get(market);
+    const px = tick && Number.isFinite(tick.price) ? tick.price : null;
+    if (px == null) continue; // no live tick → leave for the slow cycle (bar-priced)
+    const dir = pos.side === 'long' ? 1 : -1;
+    const notionalVal = Math.abs((pos.avgEntryPrice || 0) * (pos.quantity || 0));
+    const livePnl = dir * (px - (pos.avgEntryPrice || px)) * (pos.quantity || 0); // P&L at the LIVE tick
+    const pnlFrac = notionalVal > 0 ? livePnl / notionalVal : 0;
+    const ageS = Number.isFinite(pos.openedTs) ? (now - pos.openedTs) : 0;
+    let reason = null;
+    if (stopLossPct && pnlFrac <= -stopLossPct) reason = 'stop-loss';
+    else if (takeProfitPct && pnlFrac >= takeProfitPct) reason = 'take-profit';
+    else if (maxHoldSec && ageS >= maxHoldSec) reason = 'max-hold';
+    if (reason) {
+      try {
+        engine.closePosition(inst, reason, now, px); // close at the LIVE tick price
+        const snap = _state.snapshots.get(market);
+        if (snap && snap.ensemble) snap.ensemble.closed = `${reason}@tick(${ageS}s,${(pnlFrac * 100).toFixed(2)}%)`;
+        exits.push({ market, reason, pnlFrac: +(pnlFrac * 100).toFixed(3), livePnl: +livePnl.toFixed(2), ageS });
+      } catch (_e) { /* fail-soft */ }
+    }
+  }
+  return exits;
+}
+
 /** getTicks() — current fast-tick price map for REST. */
 export function getTicks() {
   return Object.fromEntries(_state.ticks);

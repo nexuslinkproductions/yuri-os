@@ -57,6 +57,7 @@ import {
   setHttpGet,
   bootstrapPolymarkets,
   fastTick,
+  fastRiskExit,
   getTicks,
   refreshAccount,
   getAccount,
@@ -391,6 +392,14 @@ async function startServe(config = {}) {
     try {
       const ticks = await fastTick(cfg);
       if (ticks.length) broadcastSSE(ticks.map((t) => ({ type: 'price.tick', ...t })));
+      // FAST RISK EXIT: with fresh ticks in hand, close any position breaching stop-loss/take-profit/
+      // max-hold AT THE LIVE TICK — every second, not on the slow signal cycle. This is what makes the
+      // stop actually bite (caps losses near -0.15% instead of letting them overshoot to -0.4%).
+      const exits = fastRiskExit();
+      if (exits.length) {
+        broadcastSSE(exits.map((e) => ({ type: 'risk.exit', ...e })));
+        console.log('[observatory-server] fast risk-exit:', exits.map((e) => `${e.market} ${e.reason} ${e.pnlFrac}%`).join(', '));
+      }
     } catch (err) {
       console.error('[observatory-server] tick error:', err.message);
     } finally {
