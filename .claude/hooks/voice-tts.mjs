@@ -76,6 +76,10 @@ try {
   })();
   if (!armed) ok();
 
+  // PAUSE: while focusing on voice-CONTROL (input), suppress Rick TTS output.
+  // Re-enable by deleting _SYSTEM/state/voice/tts.paused (or `voice-seam.sh` later).
+  try { if (fs.existsSync(`${base}/_SYSTEM/state/voice/tts.paused`)) ok(); } catch {}
+
   let raw = '';
   try { raw = fs.readFileSync(0, 'utf8'); } catch { ok(); }
   if (!raw.trim()) ok();
