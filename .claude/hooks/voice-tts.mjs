@@ -52,7 +52,9 @@ function toSpeech(text) {
     .replace(/\s+/g, ' ')
     .trim();
   const sentences = speech.match(/[^.!?]+[.!?]+/g) || (speech ? [speech] : []);
-  const maxSentences = parseInt(process.env.VOICE_MAX_SENTENCES || '5', 10);
+  // No arbitrary truncation — speak the whole answer. VOICE_MAX_SENTENCES is just a
+  // sanity backstop against a pathological wall of text; the char clamp governs in practice.
+  const maxSentences = parseInt(process.env.VOICE_MAX_SENTENCES || '99', 10);
   return clamp(sentences.slice(0, maxSentences).join(' ').trim());
 }
 
@@ -60,7 +62,7 @@ function collapse(s) {
   return s.replace(/[`*_>#~|]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 function clamp(s) {
-  const cap = parseInt(process.env.VOICE_MAX_CHARS || '450', 10);
+  const cap = parseInt(process.env.VOICE_MAX_CHARS || '2000', 10);
   if (s.length > cap) s = s.slice(0, cap).replace(/\s+\S*$/, '') + '…';
   return s;
 }
@@ -125,6 +127,17 @@ try {
     } catch {}
   }
 
+  // LATEST-WINS guard: bump a seq each reply; voice-speak.sh drops playback if a newer
+  // reply fired while it was synthesizing (so you never hear a reply after you moved on).
+  const seqFile = `${base}/_SYSTEM/state/voice/speak.seq`;
+  let mySeq = Date.now();
+  try {
+    const prev = parseInt(fs.readFileSync(seqFile, 'utf8'), 10) || 0;
+    mySeq = Math.max(mySeq, prev + 1);
+    fs.writeFileSync(seqFile, String(mySeq));
+  } catch {}
+  const childEnv = { ...process.env, VOICE_SEQ: String(mySeq), VOICE_SEQ_FILE: seqFile };
+
   let child;
   if (ttsCmd) {
     // feed text via a temp-file fd as stdin (detached child + immediate exit drops a pipe)
@@ -134,12 +147,12 @@ try {
       fs.writeFileSync(tmp, out);
       stdinFd = fs.openSync(tmp, 'r');
     } catch {}
-    child = spawn('/bin/sh', ['-c', ttsCmd], { stdio: [stdinFd, 'ignore', 'ignore'], detached: true });
+    child = spawn('/bin/sh', ['-c', ttsCmd], { stdio: [stdinFd, 'ignore', 'ignore'], detached: true, env: childEnv });
   } else {
     const args = [];
     if (process.env.VOICE_SAY_VOICE) args.push('-v', process.env.VOICE_SAY_VOICE);
     args.push('-r', process.env.VOICE_SAY_RATE || '210', out);
-    child = spawn('say', args, { stdio: 'ignore', detached: true });
+    child = spawn('say', args, { stdio: 'ignore', detached: true, env: childEnv });
   }
   child.unref();
 } catch {

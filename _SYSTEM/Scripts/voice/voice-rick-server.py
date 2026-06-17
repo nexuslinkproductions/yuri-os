@@ -25,7 +25,20 @@ except Exception as e:
     DEVICE = "cpu"
     MODEL = ChatterboxTurboTTS.from_pretrained(device="cpu")
 SR = MODEL.sr
-print(f"[rick-tts] READY device={DEVICE} sr={SR} ref={REF} exists={os.path.exists(REF)}", flush=True)
+
+# Cache the Rick speaker conditioning ONCE. Passing audio_prompt_path on every
+# generate() re-embeds the reference clip each call (voice-encoder + s3gen conditioning)
+# — that fixed cost was a large chunk of the per-synth latency. prepare_conditionals
+# does it a single time; generate(text) then reuses the cached conds.
+HAVE_CONDS = False
+if os.path.exists(REF):
+    try:
+        MODEL.prepare_conditionals(REF, exaggeration=EXAG)
+        HAVE_CONDS = True
+        print("[rick-tts] Rick ref conditioning cached (no per-call re-embed)", flush=True)
+    except Exception as e:
+        print(f"[rick-tts] prepare_conditionals failed ({e}); will pass ref per-call", flush=True)
+print(f"[rick-tts] READY device={DEVICE} sr={SR} ref={REF} exists={os.path.exists(REF)} cached={HAVE_CONDS}", flush=True)
 
 
 _lock = threading.Lock()
@@ -33,8 +46,8 @@ _lock = threading.Lock()
 
 def synth(text):
     kw = {"exaggeration": EXAG, "cfg_weight": CFG}
-    if os.path.exists(REF):
-        kw["audio_prompt_path"] = REF
+    if os.path.exists(REF) and not HAVE_CONDS:
+        kw["audio_prompt_path"] = REF      # fallback only if caching failed
     with _lock:  # Chatterbox model is not thread-safe — serialize synth to avoid corruption/crashes
         wav = MODEL.generate(text, **kw)
     return wav_bytes(wav, SR)

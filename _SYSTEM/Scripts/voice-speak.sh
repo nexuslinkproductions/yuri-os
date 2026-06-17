@@ -50,6 +50,12 @@ http="$(curl -sS -m 120 -o "$TMP" -w '%{http_code}' \
         -H 'Content-Type: application/json' -d "$body" "$URL" 2>/dev/null)" || http="000"
 
 if [ "$http" = "200" ] && [ -s "$TMP" ]; then
+  # LATEST-WINS: if a newer reply was queued while we synthesized, drop this stale one.
+  if [ -n "${VOICE_SEQ:-}" ] && [ -n "${VOICE_SEQ_FILE:-}" ]; then
+    cur="$(cat "$VOICE_SEQ_FILE" 2>/dev/null || echo "$VOICE_SEQ")"
+    if [ "${cur:-0}" -gt "${VOICE_SEQ:-0}" ] 2>/dev/null; then rm -f "$TMP" "$TMP.eq.wav" 2>/dev/null; exit 0; fi
+    pkill -x afplay 2>/dev/null   # we are the newest — cut off any older Rick still playing
+  fi
   PLAY="$TMP"
   # Optional EQ (boost lows / add body so Rick doesn't sound highpassed). Tune via VOICE_EQ.
   if [ -n "${VOICE_EQ:-}" ] && command -v ffmpeg >/dev/null 2>&1; then
