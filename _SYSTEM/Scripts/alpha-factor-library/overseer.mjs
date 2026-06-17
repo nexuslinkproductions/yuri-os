@@ -242,7 +242,7 @@ async function runLlmAdvisory(state, lane, board) {
       } catch { /* not in chain */ }
     }
     const out = execFileSync('node', [runner, 'ollama-cloud', '--model', lane], {
-      env, encoding: 'utf8', timeout: 60000, maxBuffer: 4 * 1024 * 1024,
+      env, encoding: 'utf8', timeout: 120000, maxBuffer: 4 * 1024 * 1024, // 120s: slow lanes (nemotron) need room; fast lanes (flash) finish in seconds regardless
     });
     const m = out.match(/```json\s*([\s\S]*?)```/i) || out.match(/(\{[\s\S]*\})/);
     if (!m) return { observations: [], note: 'llm: no json' };
