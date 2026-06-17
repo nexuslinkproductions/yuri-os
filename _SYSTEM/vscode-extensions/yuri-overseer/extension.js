@@ -97,7 +97,10 @@ async function doInject(sessionId, prompt, submit) {
   await vscode.env.clipboard.writeText(prompt);
   await sleep(70);
 
-  // 5. paste (Cmd-V), then optionally submit (Return). Scoped to process "Code".
+  // 5. select-all existing input (Cmd-A) so the paste REPLACES any leftover text instead of
+  //    appending, then paste (Cmd-V), then optionally submit (Return). Scoped to process "Code".
+  await osascript('tell application "System Events" to tell process "Code" to keystroke "a" using command down');
+  await sleep(40);
   const pasteOk = await osascript('tell application "System Events" to tell process "Code" to keystroke "v" using command down');
   let submitted = false;
   if (submit && pasteOk) {
