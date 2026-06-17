@@ -193,6 +193,22 @@ export interface GraduationResponse {
   advisory?: string;
 }
 
+// /account — real VIEW-ONLY Coinbase account (orchestrator.getAccount)
+export interface AccountHolding {
+  currency: string;
+  total: number;
+  usdValue?: number;
+  priced?: boolean;
+}
+export interface AccountResponse {
+  connected: boolean;
+  accountCount?: number;
+  realEquityUsd?: number | null;
+  holdings?: AccountHolding[];
+  advisory?: string;
+  ts?: number;
+}
+
 // /quantum — DISARMED A/B shadow verdict (orchestrator.getQuantum)
 export interface QuantumVerdict {
   n: number;
@@ -248,4 +264,7 @@ export const api = {
 
   quantum: () =>
     safeFetch<QuantumResponse | null>(`${BASE}/quantum`, null),
+
+  account: () =>
+    safeFetch<AccountResponse | null>(`${BASE}/account`, null),
 };

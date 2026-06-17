@@ -132,22 +132,9 @@ export default function BrainBoard({ obs }: Props) {
   const pnlFmt = fmtPnl(totalPnl);
   const baseSym = activeMkt.replace('-USD', '');
 
-  // Build paperData map for PerfPanel
-  const paperData: Record<string, { positions: PaperPosition[]; pnl: { equity: number; initialEquity: number; grossRealizedPnl: number; unrealizedPnl: number; totalFees: number; totalFunding: number; totalReturnBps: number; maxDrawdownBps: number; circuitBreaker: string; openPositions: number; completedTrades: number; noTrades: number }; drawdown: number }> = {};
-  for (const mkt of visibleMarkets) {
-    const d = obs.markets[mkt];
-    if (!d) continue;
-    const pnlObj = d.pnl as typeof paperData[string]['pnl'] | undefined;
-    paperData[mkt] = {
-      positions: (d.paperPositions ?? []) as PaperPosition[],
-      pnl: pnlObj ?? {
-        equity: 0, initialEquity: 100000, grossRealizedPnl: 0, unrealizedPnl: 0,
-        totalFees: 0, totalFunding: 0, totalReturnBps: 0, maxDrawdownBps: 0,
-        circuitBreaker: 'CLOSED', openPositions: 0, completedTrades: 0, noTrades: 0,
-      },
-      drawdown: d.drawdown ?? 0,
-    };
-  }
+  // Paper P&L from the authoritative /paper endpoint — the SSE-merged market state does NOT
+  // reliably carry the pnl object (that produced NaN/—). board.paper is polled ~4s direct from REST.
+  const paperData = board.paper;
 
   // Gainers ticker: compute % change from first to last bar for each market
   const tickerItems = visibleMarkets.map(mkt => {
@@ -377,7 +364,7 @@ export default function BrainBoard({ obs }: Props) {
             </div>
             {/* Paper Performance */}
             <div className="bb-panel">
-              <PerfPanel paperData={paperData} visibleMarkets={visibleMarkets} />
+              <PerfPanel paperData={paperData} visibleMarkets={visibleMarkets} account={board.account} />
             </div>
           </div>
 

@@ -4,11 +4,12 @@
  * Draws a simple SVG equity curve from per-market equity values.
  */
 
-import type { PaperMarketData } from './api';
+import type { PaperMarketData, AccountResponse } from './api';
 
 interface Props {
   paperData: Record<string, PaperMarketData>;
   visibleMarkets: string[];
+  account?: AccountResponse | null;
 }
 
 function linePath(pts: number[], w: number, h: number, pad: number): string {
@@ -38,7 +39,7 @@ function fmtBps(bps: number): string {
   return (bps >= 0 ? '+' : '') + bps.toFixed(0) + ' bps';
 }
 
-export default function PerfPanel({ paperData, visibleMarkets }: Props) {
+export default function PerfPanel({ paperData, visibleMarkets, account }: Props) {
   const cryptoMarkets = visibleMarkets.filter(m => !m.startsWith('poly-'));
 
   // Aggregate across crypto markets
@@ -131,7 +132,9 @@ export default function PerfPanel({ paperData, visibleMarkets }: Props) {
         </span>
         <span className="bb-legend-item" style={{ color: 'var(--mist)' }}>
           <span className="bb-dot real" />
-          Real account — pending API key
+          {account?.connected
+            ? `Real account (view-only) $${(account.realEquityUsd ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+            : 'Real account — pending API key'}
         </span>
       </div>
     </>

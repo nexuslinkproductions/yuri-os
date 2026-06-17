@@ -12,6 +12,8 @@ import {
   type TimeframeEntry,
   type CalibrationResponse,
   type GraduationResponse,
+  type PaperResponse,
+  type AccountResponse,
 } from './api';
 
 // ── Indicator math (ported from mockup) ────────────────────────────────────
@@ -110,6 +112,8 @@ export interface BoardDataState {
   timeframes: TimeframeEntry[];
   calibration: CalibrationResponse | null;
   graduation: GraduationResponse | null;
+  paper: PaperResponse;
+  account: AccountResponse | null;
 }
 
 const EMPTY_INDICATORS: ComputedIndicators = {
@@ -130,6 +134,21 @@ export function useBoardData(market: string, tf: string): BoardDataState {
   const [timeframes, setTimeframes] = useState<TimeframeEntry[]>([]);
   const [calibration, setCalibration] = useState<CalibrationResponse | null>(null);
   const [graduation, setGraduation] = useState<GraduationResponse | null>(null);
+  const [paper, setPaper] = useState<PaperResponse>({});
+  const [account, setAccount] = useState<AccountResponse | null>(null);
+
+  // Paper P&L + real account — authoritative REST, ~4s poll (don't rely on SSE-merged pnl).
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      if (cancelled) return;
+      const [pp, ac] = await Promise.all([api.paper(), api.account()]);
+      if (!cancelled) { setPaper(pp); setAccount(ac); }
+    };
+    poll();
+    const id = setInterval(poll, 4000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   // Fetch timeframes once
   useEffect(() => {
@@ -204,5 +223,7 @@ export function useBoardData(market: string, tf: string): BoardDataState {
     timeframes,
     calibration,
     graduation,
+    paper,
+    account,
   };
 }
