@@ -103,6 +103,8 @@ export function decide(state = {}, opts = {}) {
   if (isNum(opts.maxPct)) configPatch.maxPct = opts.maxPct;
   if (isNum(opts.minHoldCycles)) configPatch.minHoldCycles = opts.minHoldCycles;
   if (isNum(opts.maxHoldSec)) configPatch.maxHoldSec = opts.maxHoldSec;
+  if (isNum(opts.stopLossPct)) configPatch.stopLossPct = opts.stopLossPct;
+  if (isNum(opts.takeProfitPct)) configPatch.takeProfitPct = opts.takeProfitPct;
 
   // 2. Drawdown circuit with hysteresis: pause new exposure when bleeding, resume only after recovery.
   const dd = readDrawdownBps(state.paper);
@@ -280,6 +282,10 @@ export async function runOnce(opts = {}) {
     : (isNum(currentConfig.minHoldCycles) ? currentConfig.minHoldCycles : undefined);
   const maxHoldSec = isNum(opts.maxHoldSec) ? opts.maxHoldSec
     : (isNum(currentConfig.maxHoldSec) ? currentConfig.maxHoldSec : undefined);
+  const stopLossPct = isNum(opts.stopLossPct) ? opts.stopLossPct
+    : (isNum(currentConfig.stopLossPct) ? currentConfig.stopLossPct : undefined);
+  const takeProfitPct = isNum(opts.takeProfitPct) ? opts.takeProfitPct
+    : (isNum(currentConfig.takeProfitPct) ? currentConfig.takeProfitPct : undefined);
   // vetoHurdle is SEPARATE from feeHurdle: reweight decides which strategies PREDICT DIRECTION (a
   // strategy can carry directional info even if a single trade won't beat fees), so it vetoes only
   // NEGATIVE-edge strategies by default (0). The fee economics live in the per-trade EDGE GATE
@@ -291,7 +297,7 @@ export async function runOnce(opts = {}) {
   const rw = reweightWeights({ forecastLedger: opts.forecastLedger, weightsPath, feeHurdle: vetoHurdle });
 
   // Deterministic steering.
-  const d = decide(state, { feeHurdle, currentConfig, board, threshold, maxPct: opts.maxPct, minHoldCycles, maxHoldSec });
+  const d = decide(state, { feeHurdle, currentConfig, board, threshold, maxPct: opts.maxPct, minHoldCycles, maxHoldSec, stopLossPct, takeProfitPct });
 
   // LLM lane = ADVISORY ONLY. Lanes over-claim (observed live: deepseek misread 0.08% drawdown as 8%
   // and urged a PAUSE). Its judgment becomes a flagged PROPOSAL on the board for the human / Sonnet lane
@@ -338,7 +344,9 @@ if (_main && process.argv.includes('--once')) {
   const thArg = arg('--threshold', null); const threshold = thArg !== null ? Number(thArg) : undefined;
   const mhArg = arg('--minHold', null); const minHoldCycles = mhArg !== null ? Number(mhArg) : undefined;
   const xhArg = arg('--maxHold', null); const maxHoldSec = xhArg !== null ? Number(xhArg) : undefined;
-  const r = await runOnce({ lane, baseUrl, llm, feeHurdle, threshold, minHoldCycles, maxHoldSec });
+  const slArg = arg('--stopLoss', null); const stopLossPct = slArg !== null ? Number(slArg) : undefined;
+  const tpArg = arg('--takeProfit', null); const takeProfitPct = tpArg !== null ? Number(tpArg) : undefined;
+  const r = await runOnce({ lane, baseUrl, llm, feeHurdle, threshold, minHoldCycles, maxHoldSec, stopLossPct, takeProfitPct });
   console.log(`overseer[${r.lane}] reweight=${JSON.stringify(r.reweight)} paused=${r.config.paused} feeHurdle=${r.config.feeHurdle} regimeGate=${r.config.regimeGate}`);
   if (r.alerts.length) console.log('ALERTS:', r.alerts.join(' | '));
   if (r.llm && (r.llm.reason || r.llm.note)) console.log('LLM:', r.llm.reason || r.llm.note);

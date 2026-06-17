@@ -108,6 +108,8 @@ const OVERSEER_DEFAULTS = {
                          //   executes (0 = off). Longer holds → bigger moves → clears the fixed fee.
   maxHoldSec: 0,         // TIME-STOP: force-close a position older than this many seconds (0 = off).
                          //   Caps hold time → faster, horizon-aligned outcomes for the learn loop.
+  stopLossPct: 0,        // STOP-LOSS: close when unrealized loss ≥ this fraction of position value (0=off).
+  takeProfitPct: 0,      // TAKE-PROFIT: close when unrealized gain ≥ this fraction of position value (0=off).
 };
 
 // Per-market recent ensemble-side history for hold-time hysteresis (module state, survives cycles).
@@ -669,69 +671,79 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   }
 
   const existing = engine.positions().find((p) => p.instrument === inst);
-  const maxHoldSec = (typeof oc.maxHoldSec === 'number' && oc.maxHoldSec > 0) ? oc.maxHoldSec : 0;
-  const heldFor = existing && Number.isFinite(existing.openedTs) ? (now - existing.openedTs) : 0;
-  if (existing && maxHoldSec > 0 && heldFor >= maxHoldSec) {
-    // TIME-STOP: realize the outcome at the max-hold window (owner: cap holds ~5min for faster, cleaner
-    // data). De-risk close is always allowed; re-entry can follow next cycle if conviction persists.
-    engine.onSignal(
-      { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
-      { instrument: inst, bar: lastBar, barHistory: bars },
-    );
-    snap.ensemble.closed = `max-hold(${heldFor}s)`;
-  } else if (ensemble.side === 'flat') {
-    // No conviction → flatten the combined position if open. De-risking is ALWAYS allowed (even when
-    // paused/disabled/regime-blocked — those gate new EXPOSURE, never the exit to cash).
-    if (existing) {
-      engine.onSignal(
-        { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
-        { instrument: inst, bar: lastBar, barHistory: bars },
-      );
+
+  // ── RISK EXITS (every cycle, on the OPEN position; tagged with DISTINCT reasons in the tape) ──────
+  // Close FIRST on stop-loss / take-profit / max-hold — independent of conviction. Caps losses, locks
+  // profits-in-plus, and bounds hold time (owner: reduce big losses, take profits, ~5min hold cap).
+  // Position is MTM'd by the ingestBar above, so existing.unrealizedPnl is current.
+  let exited = null;
+  if (existing) {
+    const ageS = Number.isFinite(existing.openedTs) ? (now - existing.openedTs) : 0;
+    const notionalVal = Math.abs((existing.avgEntryPrice || 0) * (existing.quantity || 0));
+    const pnlFrac = notionalVal > 0 ? (existing.unrealizedPnl || 0) / notionalVal : 0; // P&L as a fraction of position value
+    const maxHoldSec = (typeof oc.maxHoldSec === 'number' && oc.maxHoldSec > 0) ? oc.maxHoldSec : 0;
+    const stopLossPct = (typeof oc.stopLossPct === 'number' && oc.stopLossPct > 0) ? oc.stopLossPct : 0;
+    const takeProfitPct = (typeof oc.takeProfitPct === 'number' && oc.takeProfitPct > 0) ? oc.takeProfitPct : 0;
+    if (stopLossPct > 0 && pnlFrac <= -stopLossPct) exited = 'stop-loss';          // cap the downside
+    else if (takeProfitPct > 0 && pnlFrac >= takeProfitPct) exited = 'take-profit'; // lock the upside
+    else if (maxHoldSec > 0 && ageS >= maxHoldSec) exited = 'max-hold';            // time stop
+    if (exited) {
+      try { engine.closePosition(inst, exited, now); } catch (_e) { /* fail-soft */ }
+      snap.ensemble.closed = `${exited}(${ageS}s,${(pnlFrac * 100).toFixed(2)}%)`;
     }
-  } else if (!existing || existing.side !== ensemble.side) {
-    // New conviction or a flip → an OPENING of exposure. Run the overseer gates (all default-off →
-    // identical to pre-overseer behavior). Each block records WHY a trade was skipped for telemetry.
-    const marketEnabled = oc.perMarketEnable[market] !== false;
-    const regimeBlocked = oc.regimeGate === true && snap.regime && snap.regime.recommendation === 'RECOMPUTE_CIRCUIT';
-    let skipped = null;
-    if (oc.paused === true) skipped = 'paused';
-    else if (!marketEnabled) skipped = 'market-disabled';
-    else if (regimeBlocked) skipped = 'regime';
-    else if (minHold > 0) {
-      // Hold-time hysteresis: only open/flip once the new side has PERSISTED minHold cycles. Filters
-      // 1-min noise flips so positions are held longer → moves grow past the fixed fee (Mimo+local).
-      const hist = _ensSideHist.get(market) || [];
-      const recent = hist.slice(-minHold);
-      const persisted = recent.length >= minHold && recent.every((s) => s === ensemble.side);
-      if (!persisted) skipped = `hysteresis(${recent.filter((s) => s === ensemble.side).length}/${minHold})`;
-    }
-    if (!skipped && oc.edgeGate === true) {
-      // Expected-move-vs-fee gate: the conviction-scaled move OVER THE TYPICAL HOLD must clear the
-      // round-trip fee. Position is held until a flip (~ forecast horizon, 5 bars), so scale the 1-bar
-      // vol by √5 (random-walk) — using raw 1-bar vol would skip almost everything at 1-min bars.
-      const expMove = recentVolPct(bars) * Math.sqrt(5) * Math.min(1, ensemble.strength * 2);
-      const hurdle = (typeof oc.feeHurdle === 'number' && Number.isFinite(oc.feeHurdle)) ? oc.feeHurdle : 0;
-      if (expMove < hurdle) skipped = `edge<fee(${(expMove * 100).toFixed(3)}%<${(hurdle * 100).toFixed(2)}%)`;
-    }
-    if (skipped) {
-      snap.ensemble.skipped = skipped; // gated out this cycle — surfaced in /ensemble + /markets
-    } else {
-      // Size by conviction (strength), trade ONE combined position.
-      snap.energyDeltaU = computeEnergyDelta(
-        { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence },
-        engine.pnl(),
-      );
-      const maxPct = (typeof oc.maxPct === 'number' && Number.isFinite(oc.maxPct)) ? oc.maxPct : ENSEMBLE_MAX_PCT;
-      const notional = equity * maxPct * Math.min(1, ensemble.strength * 2);
-      if (notional > 0) {
+  }
+
+  if (!exited) {
+    if (ensemble.side === 'flat') {
+      // No conviction → flatten the combined position if open. De-risking is ALWAYS allowed.
+      if (existing) {
         engine.onSignal(
-          { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
+          { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
           { instrument: inst, bar: lastBar, barHistory: bars },
         );
       }
+    } else if (!existing || existing.side !== ensemble.side) {
+      // New conviction or a flip → an OPENING of exposure. Run the overseer gates (all default-off →
+      // identical to pre-overseer behavior). Each block records WHY a trade was skipped for telemetry.
+      const marketEnabled = oc.perMarketEnable[market] !== false;
+      const regimeBlocked = oc.regimeGate === true && snap.regime && snap.regime.recommendation === 'RECOMPUTE_CIRCUIT';
+      let skipped = null;
+      if (oc.paused === true) skipped = 'paused';
+      else if (!marketEnabled) skipped = 'market-disabled';
+      else if (regimeBlocked) skipped = 'regime';
+      else if (minHold > 0) {
+        // Hold-time hysteresis: only open/flip once the new side has PERSISTED minHold cycles.
+        const hist = _ensSideHist.get(market) || [];
+        const recent = hist.slice(-minHold);
+        const persisted = recent.length >= minHold && recent.every((s) => s === ensemble.side);
+        if (!persisted) skipped = `hysteresis(${recent.filter((s) => s === ensemble.side).length}/${minHold})`;
+      }
+      if (!skipped && oc.edgeGate === true) {
+        // Expected-move-vs-fee gate: conviction-scaled √5·1-bar-vol move must clear the round-trip fee.
+        const expMove = recentVolPct(bars) * Math.sqrt(5) * Math.min(1, ensemble.strength * 2);
+        const hurdle = (typeof oc.feeHurdle === 'number' && Number.isFinite(oc.feeHurdle)) ? oc.feeHurdle : 0;
+        if (expMove < hurdle) skipped = `edge<fee(${(expMove * 100).toFixed(3)}%<${(hurdle * 100).toFixed(2)}%)`;
+      }
+      if (skipped) {
+        snap.ensemble.skipped = skipped; // gated out this cycle — surfaced in /ensemble + /markets
+      } else {
+        // Size by conviction (strength), trade ONE combined position.
+        snap.energyDeltaU = computeEnergyDelta(
+          { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence },
+          engine.pnl(),
+        );
+        const maxPct = (typeof oc.maxPct === 'number' && Number.isFinite(oc.maxPct)) ? oc.maxPct : ENSEMBLE_MAX_PCT;
+        const notional = equity * maxPct * Math.min(1, ensemble.strength * 2);
+        if (notional > 0) {
+          engine.onSignal(
+            { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
+            { instrument: inst, bar: lastBar, barHistory: bars },
+          );
+        }
+      }
     }
+    // else: same-side conviction already held → hold (no churn).
   }
-  // else: same-side conviction already held → hold (no churn).
 
   // Capture final paper state
   snap.paperPositions = engine.positions();

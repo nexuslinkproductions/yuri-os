@@ -461,6 +461,21 @@ export function createPaperEngine(config) {
     }
   }
 
+  /**
+   * closePosition(inst, reason, ts) — RISK-EXIT a single position at the last ingested bar price with
+   * a DISTINCT reason ('stop-loss' | 'take-profit' | 'max-hold' | ...). Pure simulation (INV-1: no
+   * network/order). Lets the orchestrator enforce P&L/time stops that show up taggable in the tape.
+   */
+  function closePosition(inst, reason = 'manual', ts = S.lastTs || Math.floor(Date.now() / 1000)) {
+    const pos = S.positions.get(inst);
+    if (!pos) return { ok: false, reason: 'no_position' };
+    const bh = S.bars.get(inst);
+    const px = bh && bh.length ? bh[bh.length - 1].close : pos.avg;
+    const xf = feeModel(caps.venue, px, pos.qty);
+    const tr = execClose(inst, px, xf, ts, reason);
+    return { ok: true, ...tr };
+  }
+
   function applyFunding(ts) {
     for (const [inst, pos] of S.positions) {
       const rate = caps.fundingRates[inst];
@@ -975,7 +990,7 @@ export function createPaperEngine(config) {
     return snapshot();
   }
 
-  return { ingestBar, submitPaperOrder, onSignal, mark, positions, pnl, snapshot, replay };
+  return { ingestBar, submitPaperOrder, onSignal, mark, positions, pnl, snapshot, replay, closePosition };
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1302,6 +1317,21 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(_SELF) && process.ar
       `T7f qty is fractional BTC (got: ${r7b.quantity})`);
 
     console.log(`  T7: fractional notional qty=${pos7[0]?.quantity}  explicit-qty qty=${r7b.quantity}`);
+  }
+
+  /* ── T8: closePosition risk-exit tags a distinct reason (stop-loss/take-profit/max-hold) ── */
+  console.log('\nT8: closePosition risk-exit');
+  {
+    const eng8 = createPaperEngine({ paperLedgerPath: paperPath, predictionLedgerPath: predPath, feeModel: cryptoFeeModel('taker') });
+    for (let i = 0; i < 5; i++) eng8.ingestBar({ timestamp: 8_000_000 + i * 60, open: 100, high: 100, low: 100, close: 100, volume: 500 }, 'ensemble-X');
+    eng8.onSignal({ factorId: 'ensemble-X', ts: 8_000_300, value: 0.5, side: 'long', confidence: 0.9, notional: 10000 }, { instrument: 'ensemble-X' });
+    assert(eng8.positions().some((p) => p.instrument === 'ensemble-X'), 'T8a position opens');
+    const res = eng8.closePosition('ensemble-X', 'stop-loss', 8_000_360);
+    assert(res.ok === true, 'T8b closePosition returns ok');
+    assert(eng8.positions().length === 0, 'T8c position closed');
+    const closes = readFileSync(paperPath, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).filter((x) => x.type === 'close');
+    assert(closes[closes.length - 1]?.reason === 'stop-loss', `T8d trade tagged reason=stop-loss (got ${closes[closes.length - 1]?.reason})`);
+    assert(eng8.closePosition('ensemble-X', 'x').ok === false, 'T8e closePosition on missing position → ok:false');
   }
 
   /* ── Summary ── */
