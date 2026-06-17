@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # @capability: voice-ptt-control
 # @serves: push to talk | voice control claude | hold key speak inject | voice into vscode claude | hands-on voice command
-# @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes (STREAMING: live, while you talk) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. No always-on, no VAD wait, no TTS: intentional voice INPUT only. Sidesteps the no-injection-API wall by typing like a human into whatever's focused.
-# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=live streaming [default], 0=batch-on-release fallback), VOICE_PTT_CHUNK_S (stream chunk seconds, default 0.4).
+# @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes the clip on release (~39ms per second of audio, doesn't degrade with length) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. No always-on, no VAD wait, no TTS: intentional voice INPUT only. Sidesteps the no-injection-API wall by typing like a human into whatever's focused.
+# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands, falls behind on long ones; default 0=batch), VOICE_PTT_CHUNK_S (stream chunk seconds, default 0.4).
 import os, sys, time, threading, queue, subprocess
 import numpy as np, sounddevice as sd, mlx.core as mx
 from pynput import keyboard
@@ -16,7 +16,12 @@ SAMPLE_RATE = 16000; BLOCK = 1600
 COMBO    = os.environ.get("VOICE_PTT_KEY", "alt_r").lower().strip()
 SUBMIT   = os.environ.get("VOICE_PTT_SUBMIT", "1") == "1"    # paste + Enter, or paste only (you hit Enter)
 MIC      = os.environ.get("VOICE_MIC_DEVICE")
-STREAM   = os.environ.get("VOICE_PTT_STREAM", "1") == "1"    # live streaming transcription vs batch-on-release
+# BATCH is the default and the right tool: it transcribes the whole clip on release at ~39ms per
+# second of audio (834ms for a 21.5s dictation) and does NOT degrade with length. The "live streaming"
+# path (VOICE_PTT_STREAM=1) reprocesses a growing encoder context per chunk, so per-chunk cost climbs
+# as you talk and long requests fall catastrophically behind (5.7s for that same 21.5s clip). Streaming
+# only wins for SHORT commands on an idle machine — left behind the flag, off by default.
+STREAM   = os.environ.get("VOICE_PTT_STREAM", "0") == "1"    # batch-on-release (default) vs live streaming
 CHUNK    = int(SAMPLE_RATE * float(os.environ.get("VOICE_PTT_CHUNK_S", "0.4")))
 CTX      = (256, 256); DEPTH = 2          # measured: depth=2 keeps real-time (≤0.3s/0.4s chunk) AND matches batch text exactly
 RMS_FLOOR = 0.0008                        # below this, the mic handed us silence (device changed) — warn, don't transcribe
