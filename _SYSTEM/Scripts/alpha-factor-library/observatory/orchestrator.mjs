@@ -58,6 +58,7 @@ import * as SocialAdapter from '../adapters/social-adapter.mjs';
 import * as PolymarketDiscovery from '../adapters/polymarket-discovery.mjs';
 import { computePerpSignals } from '../perp-signals.mjs';
 import { computeCrossAssetSignals } from '../cross-asset-signal.mjs';
+import { computeCarryVolSignals } from '../carry-vol-signal.mjs';
 import { circuitInputFromBars } from '../factor-return-vectors.mjs';
 import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 import { webSearch as agentReachSearch, available as agentReachAvailable } from '../../agent-reach.mjs';
@@ -634,6 +635,21 @@ async function runCryptoCycle(market, snap, cfg = {}) {
         if (sig && sig.factorId === `xasset-lead-${market}`) overlaySignals.push(sig);
       }
     } catch (_e) { /* fail-open — cross-asset never breaks the crypto cycle */ }
+  }
+  // ── Funding-carry-to-vol OVERLAY (vol-normalized perp carry → long-rung tilt) ──
+  //    Advisory like perp/cross-asset: recorded for multi-horizon ladder scoring
+  //    (belongs on 3h/12h/weekly rungs — funding accrues over 8h), NOT sized into P&L.
+  if (cfg.enableCarryVol !== false) {
+    try {
+      const cvSeries = bars
+        .map((b) => [b.timestamp, b.close])
+        .filter(([t, c]) => Number.isFinite(t) && Number.isFinite(c) && c > 0)
+        .slice(-120);
+      if (cvSeries.length) {
+        const cvSigs = await computeCarryVolSignals(market, cvSeries, {});
+        if (Array.isArray(cvSigs)) overlaySignals.push(...cvSigs);
+      }
+    } catch (_e) { /* fail-open — carry-vol never breaks the crypto cycle */ }
   }
 
   // Telemetry = price signals + overlays; paper sizing below uses price signals only.
