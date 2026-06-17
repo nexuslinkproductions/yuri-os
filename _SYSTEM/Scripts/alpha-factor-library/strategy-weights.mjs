@@ -93,11 +93,14 @@ export function scoreForecasts({ ledgerPath, horizonS = 300 } = {}) {
 export function deriveWeights(stats, opts = {}) {
   const minN = isNum(opts.minN) ? opts.minN : 20;
   const maxW = isNum(opts.maxW) ? opts.maxW : 3;
+  // feeHurdle: a strategy must beat the round-trip COST, not merely break even. Veto when its mean
+  // directional return ≤ the hurdle (default 0 = old "beats zero" behavior; ~0.002 = a taker round-trip).
+  const feeHurdle = isNum(opts.feeHurdle) ? opts.feeHurdle : 0;
   const weights = {};
   for (const [fid, s] of Object.entries(stats || {})) {
     if (!s || !isNum(s.n) || s.n < minN || !isNum(s.meanDirRet)) { weights[fid] = 1; continue; } // neutral until enough data
-    if (s.meanDirRet <= 0) { weights[fid] = 0; continue; }                                       // no edge after costs → veto
-    // positive edge → scale weight by edge (bounded). 0.001 dirRet ≈ weight ~1; bigger → up to maxW.
+    if (s.meanDirRet <= feeHurdle) { weights[fid] = 0; continue; }                                // no edge after costs → veto
+    // positive edge ABOVE the hurdle → scale weight by edge (bounded). 0.001 dirRet ≈ weight ~1; bigger → up to maxW.
     weights[fid] = Math.max(0.1, Math.min(maxW, 1 + s.meanDirRet * 500));
   }
   return weights;
@@ -107,9 +110,9 @@ export function deriveWeights(stats, opts = {}) {
  * reweight({ ledgerPath, weightsPath, horizonS, minN }) — score accrued forecasts → derive weights →
  * write weightsPath (the file the ensemble reads). Returns { weights, stats, evaluated }. Fail-soft.
  */
-export function reweight({ ledgerPath, weightsPath, horizonS = 300, minN = 20 } = {}) {
+export function reweight({ ledgerPath, weightsPath, horizonS = 300, minN = 20, feeHurdle = 0 } = {}) {
   const stats = scoreForecasts({ ledgerPath, horizonS });
-  const weights = deriveWeights(stats, { minN });
+  const weights = deriveWeights(stats, { minN, feeHurdle });
   const evaluated = Object.values(stats).filter((s) => s && s.n >= minN).length;
   if (weightsPath) {
     try {
@@ -130,7 +133,13 @@ if (_main && process.argv.includes('--reweight')) {
   const STATE = pathMod.resolve(dir, '..', '..', 'state');
   const ledgerPath = pathMod.join(STATE, 'strategy-forecasts.jsonl');
   const weightsPath = pathMod.join(STATE, 'ensemble-weights.json');
-  const r = reweight({ ledgerPath, weightsPath, horizonS: 300, minN: 20 });
+  // Fee hurdle comes from the overseer config (the team's steering surface) when present.
+  let feeHurdle = 0;
+  try {
+    const ocPath = pathMod.join(STATE, 'overseer-config.json');
+    if (existsSync(ocPath)) { const oc = JSON.parse(readFileSync(ocPath, 'utf8')); if (isNum(oc.feeHurdle)) feeHurdle = oc.feeHurdle; }
+  } catch { /* default 0 */ }
+  const r = reweight({ ledgerPath, weightsPath, horizonS: 300, minN: 20, feeHurdle });
   const ranked = Object.entries(r.weights).sort((a, b) => b[1] - a[1]);
   const up = ranked.filter(([, w]) => w > 1).length;
   const vetoed = ranked.filter(([, w]) => w === 0).length;
@@ -171,6 +180,12 @@ if (_main && process.argv.includes('--test')) {
   const w = deriveWeights(stats, { minN: 5 });
   ok(w['good-X'] > 1, `good strategy weighted up (${w['good-X']})`);
   ok(w['bad-Y'] === 0, 'bad strategy vetoed (weight 0)');
+  // fee-hurdle: a small-positive-edge strategy is vetoed when it can't clear the round-trip cost,
+  // but kept when it does. (Default hurdle 0 → old "beats zero" behavior, covered by bad-Y above.)
+  ok(deriveWeights({ tiny: { n: 30, hitRate: 0.6, meanDirRet: 0.0005 } }, { minN: 20, feeHurdle: 0.002 }).tiny === 0,
+    'fee-hurdle vetoes a strategy whose edge < round-trip cost');
+  ok(deriveWeights({ real: { n: 30, hitRate: 0.6, meanDirRet: 0.004 } }, { minN: 20, feeHurdle: 0.002 }).real > 1,
+    'fee-hurdle keeps a strategy whose edge clears the cost');
   // thin data → neutral
   const wThin = deriveWeights({ thin: { n: 2, hitRate: 1, meanDirRet: 0.01 } }, { minN: 20 });
   ok(wThin.thin === 1, 'thin strategy → neutral weight 1');

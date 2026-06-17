@@ -92,6 +92,58 @@ const ENSEMBLE_MAX_PCT = 0.10;
 const ENSEMBLE_WEIGHTS_PATH = path.join(STATE_DIR, 'ensemble-weights.json');
 const FORECAST_LEDGER = path.join(STATE_DIR, 'strategy-forecasts.jsonl');
 
+// OVERSEER CONTROL SURFACE: a hot-reloaded config the overseer team (Sonnet + deepseek-flash) writes
+// to steer trading WITHOUT touching execution code. Absent file → these defaults → IDENTICAL to the
+// pre-overseer behavior (DISARMED by construction). INV-1-safe: config only, never an order path.
+const OVERSEER_CONFIG_PATH = path.join(STATE_DIR, 'overseer-config.json');
+const OVERSEER_DEFAULTS = {
+  threshold: null,       // null → ensemble.mjs DEFAULT_THRESHOLD (0.05). Raise → fewer noise trades.
+  maxPct: null,          // null → ENSEMBLE_MAX_PCT (0.10). Max notional fraction per combined position.
+  feeHurdle: 0,          // round-trip fee fraction the expected move must clear (edgeGate). 0 = no hurdle.
+  edgeGate: false,       // require conviction-scaled expected move ≥ feeHurdle before opening/flipping.
+  regimeGate: false,     // freeze new entries on a market when regime says RECOMPUTE_CIRCUIT.
+  perMarketEnable: {},   // { 'BTC-USD': false } freezes new entries for that market; absent → enabled.
+  paused: false,         // true → no new entries/flips anywhere (de-risk flatten + MTM still run).
+  minHoldCycles: 0,      // hold-time hysteresis: a NEW side must persist this many cycles before a flip
+                         //   executes (0 = off). Longer holds → bigger moves → clears the fixed fee.
+};
+
+// Per-market recent ensemble-side history for hold-time hysteresis (module state, survives cycles).
+const _ensSideHist = new Map();
+
+/**
+ * getOverseerConfig() — the overseer team's hot-reloaded steering config, merged over safe defaults.
+ * Read cold each cycle (no cache) so an overseer write lands on the very next cycle, no restart.
+ * Missing/corrupt → defaults = current behavior. Fail-soft.
+ */
+function getOverseerConfig() {
+  try {
+    if (!existsSync(OVERSEER_CONFIG_PATH)) return { ...OVERSEER_DEFAULTS };
+    const c = JSON.parse(readFileSync(OVERSEER_CONFIG_PATH, 'utf8'));
+    if (c && typeof c === 'object') {
+      const pm = (c.perMarketEnable && typeof c.perMarketEnable === 'object') ? c.perMarketEnable : {};
+      return { ...OVERSEER_DEFAULTS, ...c, perMarketEnable: pm };
+    }
+    return { ...OVERSEER_DEFAULTS };
+  } catch { return { ...OVERSEER_DEFAULTS }; }
+}
+
+/**
+ * recentVolPct(bars, n) — mean absolute 1-bar return over the last n bars (typical per-bar move).
+ * The expected-move estimate for the edge-vs-fee gate: trade only when conviction-scaled vol clears
+ * the round-trip fee. Conservative (single-bar vol under-counts multi-bar holds → fewer trades).
+ */
+function recentVolPct(bars, n = 14) {
+  if (!Array.isArray(bars) || bars.length < 2) return 0;
+  const slice = bars.slice(-(n + 1));
+  let sum = 0, k = 0;
+  for (let i = 1; i < slice.length; i++) {
+    const p0 = slice[i - 1].close, p1 = slice[i].close;
+    if (p0 > 0 && Number.isFinite(p0) && Number.isFinite(p1)) { sum += Math.abs(p1 / p0 - 1); k++; }
+  }
+  return k ? sum / k : 0;
+}
+
 /**
  * getEnsembleWeights() — per-strategy weights for the ensemble vote, written by the slower
  * re-weighting beat (Sonnet brain + learn loop). Accepts {weights:{id:w}} or a flat {id:w}.
@@ -587,12 +639,26 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   // 0 P&L until it closes and the board looks dead. Fail-soft.
   try { engine.ingestBar(lastBar, inst); } catch (_e) { /* ingest fail-soft */ }
   const equity = engine.pnl().equity || 100_000;
-  const ensemble = combineSignals(signals, { weights: getEnsembleWeights() });
+  // Overseer steering (hot-reloaded; defaults = current behavior).
+  const oc = getOverseerConfig();
+  const ensemble = combineSignals(signals, {
+    weights: getEnsembleWeights(),
+    threshold: (typeof oc.threshold === 'number' && Number.isFinite(oc.threshold)) ? oc.threshold : undefined,
+  });
   snap.ensemble = {
     side: ensemble.side, net: ensemble.net, strength: ensemble.strength,
     confidence: ensemble.confidence, longVotes: ensemble.longVotes,
     shortVotes: ensemble.shortVotes, contributors: ensemble.contributors, top: ensemble.top,
   };
+
+  // Hold-time hysteresis bookkeeping: record this cycle's side so a flip can require persistence.
+  const minHold = (typeof oc.minHoldCycles === 'number' && oc.minHoldCycles > 0) ? Math.floor(oc.minHoldCycles) : 0;
+  if (minHold > 0) {
+    let hist = _ensSideHist.get(market) || [];
+    hist.push(ensemble.side);
+    if (hist.length > minHold + 3) hist = hist.slice(-(minHold + 3));
+    _ensSideHist.set(market, hist);
+  }
 
   // Record per-strategy forecasts (leak-free) so the re-weighting brain can score which strategies
   // actually predict → adaptive ensemble weights. Telemetry only, never trades. Fail-soft.
@@ -602,7 +668,8 @@ async function runCryptoCycle(market, snap, cfg = {}) {
 
   const existing = engine.positions().find((p) => p.instrument === inst);
   if (ensemble.side === 'flat') {
-    // No conviction → flatten the combined position if open.
+    // No conviction → flatten the combined position if open. De-risking is ALWAYS allowed (even when
+    // paused/disabled/regime-blocked — those gate new EXPOSURE, never the exit to cash).
     if (existing) {
       engine.onSignal(
         { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
@@ -610,17 +677,46 @@ async function runCryptoCycle(market, snap, cfg = {}) {
       );
     }
   } else if (!existing || existing.side !== ensemble.side) {
-    // New conviction or a flip → size by conviction (strength), trade ONE combined position.
-    snap.energyDeltaU = computeEnergyDelta(
-      { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence },
-      engine.pnl(),
-    );
-    const notional = equity * ENSEMBLE_MAX_PCT * Math.min(1, ensemble.strength * 2);
-    if (notional > 0) {
-      engine.onSignal(
-        { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
-        { instrument: inst, bar: lastBar, barHistory: bars },
+    // New conviction or a flip → an OPENING of exposure. Run the overseer gates (all default-off →
+    // identical to pre-overseer behavior). Each block records WHY a trade was skipped for telemetry.
+    const marketEnabled = oc.perMarketEnable[market] !== false;
+    const regimeBlocked = oc.regimeGate === true && snap.regime && snap.regime.recommendation === 'RECOMPUTE_CIRCUIT';
+    let skipped = null;
+    if (oc.paused === true) skipped = 'paused';
+    else if (!marketEnabled) skipped = 'market-disabled';
+    else if (regimeBlocked) skipped = 'regime';
+    else if (minHold > 0) {
+      // Hold-time hysteresis: only open/flip once the new side has PERSISTED minHold cycles. Filters
+      // 1-min noise flips so positions are held longer → moves grow past the fixed fee (Mimo+local).
+      const hist = _ensSideHist.get(market) || [];
+      const recent = hist.slice(-minHold);
+      const persisted = recent.length >= minHold && recent.every((s) => s === ensemble.side);
+      if (!persisted) skipped = `hysteresis(${recent.filter((s) => s === ensemble.side).length}/${minHold})`;
+    }
+    if (!skipped && oc.edgeGate === true) {
+      // Expected-move-vs-fee gate: the conviction-scaled move OVER THE TYPICAL HOLD must clear the
+      // round-trip fee. Position is held until a flip (~ forecast horizon, 5 bars), so scale the 1-bar
+      // vol by √5 (random-walk) — using raw 1-bar vol would skip almost everything at 1-min bars.
+      const expMove = recentVolPct(bars) * Math.sqrt(5) * Math.min(1, ensemble.strength * 2);
+      const hurdle = (typeof oc.feeHurdle === 'number' && Number.isFinite(oc.feeHurdle)) ? oc.feeHurdle : 0;
+      if (expMove < hurdle) skipped = `edge<fee(${(expMove * 100).toFixed(3)}%<${(hurdle * 100).toFixed(2)}%)`;
+    }
+    if (skipped) {
+      snap.ensemble.skipped = skipped; // gated out this cycle — surfaced in /ensemble + /markets
+    } else {
+      // Size by conviction (strength), trade ONE combined position.
+      snap.energyDeltaU = computeEnergyDelta(
+        { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence },
+        engine.pnl(),
       );
+      const maxPct = (typeof oc.maxPct === 'number' && Number.isFinite(oc.maxPct)) ? oc.maxPct : ENSEMBLE_MAX_PCT;
+      const notional = equity * maxPct * Math.min(1, ensemble.strength * 2);
+      if (notional > 0) {
+        engine.onSignal(
+          { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
+          { instrument: inst, bar: lastBar, barHistory: bars },
+        );
+      }
     }
   }
   // else: same-side conviction already held → hold (no churn).

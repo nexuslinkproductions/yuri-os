@@ -2165,7 +2165,15 @@
       ],
       "does": "the TEAM BRAIN both trading overseers run (a Sonnet max-reasoning lane + a deepseek-flash",
       "use": "runOnce({lane, baseUrl, ...paths}) on a beat (Sonnet ~10s, deepseek ~30s). decide(state) is",
-      "exports": [],
+      "exports": [
+        "decide",
+        "gatherState",
+        "readBoard",
+        "postBoard",
+        "reweightWeights",
+        "runOnce",
+        "DEFAULTS"
+      ],
       "mechanism": "_SYSTEM/Scripts/alpha-factor-library/overseer.mjs"
     },
     {

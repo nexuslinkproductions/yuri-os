@@ -37,7 +37,7 @@ export default function CalibrationPanel({ data }: Props) {
           <span style={{ color: 'var(--faint)', fontSize: 9 }}>/api/observatory/calibration</span>
         </div>
       ) : (
-        <div className="bb-cal-list">
+        <div className="bb-cal-list" style={{ maxHeight: 280, overflowY: 'auto' }}>
           {factors.map((f) => {
             const b = typeof f.brier === 'number' ? f.brier : null;
             return (
