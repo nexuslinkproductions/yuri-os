@@ -70,13 +70,7 @@ function clamp(s) {
 try {
   const base = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
-  // DISARMED by default. Arm via flag file (`voice-seam.sh on`) OR VOICE_AGENT_ACTIVE=1.
-  const armed = process.env.VOICE_AGENT_ACTIVE === '1' || (() => {
-    try { return fs.existsSync(`${base}/_SYSTEM/state/voice-loop.enabled`); } catch { return false; }
-  })();
-  if (!armed) ok();
-
-  // PAUSE: while focusing on voice-CONTROL (input), suppress Rick TTS output.
+  // PAUSE: suppress ALL voice (full TTS + worker chime) while focusing on voice-CONTROL (input).
   // Re-enable by deleting _SYSTEM/state/voice/tts.paused (or `voice-seam.sh` later).
   try { if (fs.existsSync(`${base}/_SYSTEM/state/voice/tts.paused`)) ok(); } catch {}
 
@@ -85,7 +79,33 @@ try {
   if (!raw.trim()) ok();
   let payload;
   try { payload = JSON.parse(raw); } catch { ok(); }
-  if (payload.agent_id || payload.agent_type) ok();   // main lane only
+  if (payload.agent_id || payload.agent_type) ok();   // main lane only (no subagent chatter)
+
+  // ptt-held: never make a sound over Marcel's LIVE dictation (flag fresh < 12s = currently held).
+  const pttHeld = (() => {
+    try {
+      const f = `${base}/_SYSTEM/state/voice/ptt-held.flag`;
+      if (!fs.existsSync(f)) return false;
+      return (Date.now() - fs.statSync(f).mtimeMs) / 1000 < 12;
+    } catch { return false; }
+  })();
+
+  // ARMING: the OVERSEER (VOICE_AGENT_ACTIVE=1 or voice-loop.enabled) speaks full Rick TTS.
+  // A WORKER (not armed) under an active fleet (_SYSTEM/state/voice/fleet-active) gets a short
+  // non-verbal DONE chime so you hear it finish without looking. Neither armed nor fleet -> silent.
+  const armed = process.env.VOICE_AGENT_ACTIVE === '1' || (() => {
+    try { return fs.existsSync(`${base}/_SYSTEM/state/voice-loop.enabled`); } catch { return false; }
+  })();
+  if (!armed) {
+    try {
+      const fleet = fs.existsSync(`${base}/_SYSTEM/state/voice/fleet-active`);
+      if (fleet && !pttHeld) {
+        const chime = process.env.VOICE_DONE_CHIME || '/System/Library/Sounds/Glass.aiff';
+        const c = spawn('afplay', [chime], { stdio: 'ignore', detached: true }); c.unref();
+      }
+    } catch {}
+    ok();
+  }
 
   const tpath = payload.transcript_path;
   if (!tpath || !fs.existsSync(tpath)) ok();

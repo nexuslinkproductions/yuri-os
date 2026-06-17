@@ -90,6 +90,18 @@ while IFS= read -r _l; do [ -n "${_l// /}" ] && SENTS+=("$_l"); done < <(
 )
 [ "${#SENTS[@]}" -eq 0 ] && SENTS=("$text")
 
+# ptt-held gate: don't talk over Marcel's LIVE dictation. Defer while the ptt-held flag is FRESH
+# (mtime < 12s — crash/long-hold guard) AND the ptt PID that wrote it is still alive. Newest-reply-
+# wins still applies during the wait, so a stale reply won't queue up behind a long hold.
+PTT_HELD="$REPO/_SYSTEM/state/voice/ptt-held.flag"
+_ptt_held(){
+  [ -f "$PTT_HELD" ] || return 1
+  local _m _pid; _m="$(stat -f %m "$PTT_HELD" 2>/dev/null || echo 0)"
+  [ "$(( $(date +%s) - _m ))" -lt 12 ] || return 1
+  _pid="$(cat "$PTT_HELD" 2>/dev/null)"; [ -n "$_pid" ] && kill -0 "$_pid" 2>/dev/null
+}
+_w=0; while _ptt_held && [ "$_w" -lt 300 ]; do is_stale && exit 0; sleep 0.2; _w=$((_w+1)); done
+
 is_stale && exit 0
 pkill -x afplay 2>/dev/null   # newest reply cuts off any older Rick still playing
 
