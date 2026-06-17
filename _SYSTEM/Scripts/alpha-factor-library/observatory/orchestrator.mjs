@@ -106,6 +106,8 @@ const OVERSEER_DEFAULTS = {
   paused: false,         // true → no new entries/flips anywhere (de-risk flatten + MTM still run).
   minHoldCycles: 0,      // hold-time hysteresis: a NEW side must persist this many cycles before a flip
                          //   executes (0 = off). Longer holds → bigger moves → clears the fixed fee.
+  maxHoldSec: 0,         // TIME-STOP: force-close a position older than this many seconds (0 = off).
+                         //   Caps hold time → faster, horizon-aligned outcomes for the learn loop.
 };
 
 // Per-market recent ensemble-side history for hold-time hysteresis (module state, survives cycles).
@@ -667,7 +669,17 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   }
 
   const existing = engine.positions().find((p) => p.instrument === inst);
-  if (ensemble.side === 'flat') {
+  const maxHoldSec = (typeof oc.maxHoldSec === 'number' && oc.maxHoldSec > 0) ? oc.maxHoldSec : 0;
+  const heldFor = existing && Number.isFinite(existing.openedTs) ? (now - existing.openedTs) : 0;
+  if (existing && maxHoldSec > 0 && heldFor >= maxHoldSec) {
+    // TIME-STOP: realize the outcome at the max-hold window (owner: cap holds ~5min for faster, cleaner
+    // data). De-risk close is always allowed; re-entry can follow next cycle if conviction persists.
+    engine.onSignal(
+      { factorId: inst, side: 'flat', value: 0, confidence: 0.5, ts: now },
+      { instrument: inst, bar: lastBar, barHistory: bars },
+    );
+    snap.ensemble.closed = `max-hold(${heldFor}s)`;
+  } else if (ensemble.side === 'flat') {
     // No conviction → flatten the combined position if open. De-risking is ALWAYS allowed (even when
     // paused/disabled/regime-blocked — those gate new EXPOSURE, never the exit to cash).
     if (existing) {

@@ -102,6 +102,7 @@ export function decide(state = {}, opts = {}) {
   if (isNum(opts.threshold)) configPatch.threshold = opts.threshold;
   if (isNum(opts.maxPct)) configPatch.maxPct = opts.maxPct;
   if (isNum(opts.minHoldCycles)) configPatch.minHoldCycles = opts.minHoldCycles;
+  if (isNum(opts.maxHoldSec)) configPatch.maxHoldSec = opts.maxHoldSec;
 
   // 2. Drawdown circuit with hysteresis: pause new exposure when bleeding, resume only after recovery.
   const dd = readDrawdownBps(state.paper);
@@ -277,6 +278,8 @@ export async function runOnce(opts = {}) {
     : (isNum(currentConfig.threshold) ? currentConfig.threshold : undefined);
   const minHoldCycles = isNum(opts.minHoldCycles) ? opts.minHoldCycles
     : (isNum(currentConfig.minHoldCycles) ? currentConfig.minHoldCycles : undefined);
+  const maxHoldSec = isNum(opts.maxHoldSec) ? opts.maxHoldSec
+    : (isNum(currentConfig.maxHoldSec) ? currentConfig.maxHoldSec : undefined);
   // vetoHurdle is SEPARATE from feeHurdle: reweight decides which strategies PREDICT DIRECTION (a
   // strategy can carry directional info even if a single trade won't beat fees), so it vetoes only
   // NEGATIVE-edge strategies by default (0). The fee economics live in the per-trade EDGE GATE
@@ -288,7 +291,7 @@ export async function runOnce(opts = {}) {
   const rw = reweightWeights({ forecastLedger: opts.forecastLedger, weightsPath, feeHurdle: vetoHurdle });
 
   // Deterministic steering.
-  const d = decide(state, { feeHurdle, currentConfig, board, threshold, maxPct: opts.maxPct, minHoldCycles });
+  const d = decide(state, { feeHurdle, currentConfig, board, threshold, maxPct: opts.maxPct, minHoldCycles, maxHoldSec });
 
   // LLM lane = ADVISORY ONLY. Lanes over-claim (observed live: deepseek misread 0.08% drawdown as 8%
   // and urged a PAUSE). Its judgment becomes a flagged PROPOSAL on the board for the human / Sonnet lane
@@ -334,7 +337,8 @@ if (_main && process.argv.includes('--once')) {
   const fhArg = arg('--feeHurdle', null); const feeHurdle = fhArg !== null ? Number(fhArg) : undefined;
   const thArg = arg('--threshold', null); const threshold = thArg !== null ? Number(thArg) : undefined;
   const mhArg = arg('--minHold', null); const minHoldCycles = mhArg !== null ? Number(mhArg) : undefined;
-  const r = await runOnce({ lane, baseUrl, llm, feeHurdle, threshold, minHoldCycles });
+  const xhArg = arg('--maxHold', null); const maxHoldSec = xhArg !== null ? Number(xhArg) : undefined;
+  const r = await runOnce({ lane, baseUrl, llm, feeHurdle, threshold, minHoldCycles, maxHoldSec });
   console.log(`overseer[${r.lane}] reweight=${JSON.stringify(r.reweight)} paused=${r.config.paused} feeHurdle=${r.config.feeHurdle} regimeGate=${r.config.regimeGate}`);
   if (r.alerts.length) console.log('ALERTS:', r.alerts.join(' | '));
   if (r.llm && (r.llm.reason || r.llm.note)) console.log('LLM:', r.llm.reason || r.llm.note);

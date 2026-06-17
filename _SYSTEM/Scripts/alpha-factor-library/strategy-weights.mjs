@@ -42,7 +42,7 @@ export function recordForecasts(market, signals, refPrice, ts, ledgerPath) {
  * Leak-free: a forecast is scored only against a price strictly AFTER it. Returns
  * { [factorId]: { n, hitRate, meanDirRet } }. meanDirRet = mean(dir·forwardReturn). Fail-soft → {}.
  */
-export function scoreForecasts({ ledgerPath, horizonS = 300 } = {}) {
+export function scoreForecasts({ ledgerPath, horizonS = 300, strideS = 0 } = {}) {
   let rows = [];
   try {
     if (!ledgerPath || !existsSync(ledgerPath)) return {};
@@ -67,8 +67,23 @@ export function scoreForecasts({ ledgerPath, horizonS = 300 } = {}) {
     return null; // no realized price yet → exclude (leak-free)
   };
 
+  // Optional NON-OVERLAPPING subsample (strideS>0): keep only forecasts spaced ≥ strideS apart per
+  // strategy, so the survival count uses ~independent observations (overlapping forecasts at a 15s
+  // cadence scored over a 300s horizon are 20× autocorrelated → inflated counts). Default 0 = off.
+  let scoreRows = rows;
+  if (isNum(strideS) && strideS > 0) {
+    const byFid = new Map();
+    for (const r of rows) { if (!byFid.has(r.factorId)) byFid.set(r.factorId, []); byFid.get(r.factorId).push(r); }
+    scoreRows = [];
+    for (const arr of byFid.values()) {
+      arr.sort((a, b) => a.ts - b.ts);
+      let lastTs = -Infinity;
+      for (const r of arr) { if (r.ts - lastTs >= strideS) { scoreRows.push(r); lastTs = r.ts; } }
+    }
+  }
+
   const agg = new Map(); // factorId -> {n, hits, sumDirRet}
-  for (const r of rows) {
+  for (const r of scoreRows) {
     const p1 = fwd(r.market, r.ts);
     if (!isNum(p1) || !isNum(r.price) || r.price <= 0) continue;
     const ret = (p1 - r.price) / r.price;
