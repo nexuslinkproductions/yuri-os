@@ -59,17 +59,29 @@ dev = (int(MIC) if MIC and MIC.isdigit() else MIC) if MIC else None
 stream = sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype="float32", blocksize=BLOCK, callback=_cb, device=dev)
 stream.start()
 
+def _osa(script):
+    r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+    if r.returncode != 0:
+        err = (r.stderr or "").strip()
+        if "1002" in err or "not allowed" in err or "authoriz" in err.lower() or "assistive" in err.lower():
+            print(f"  ✗ PERMISSION DENIED for keystrokes — grant Accessibility + Automation to THIS app "
+                  f"(System Settings → Privacy & Security → Accessibility, and Automation → System Events). [{err[:80]}]", flush=True)
+        else:
+            print(f"  ✗ osascript error: {err[:120]}", flush=True)
+        return False
+    return True
+
 def _inject(text):
     prev = subprocess.run(["pbpaste"], capture_output=True).stdout      # save clipboard
     subprocess.run(["pbcopy"], input=text.encode(), check=False)
     time.sleep(0.05)
-    subprocess.run(["osascript", "-e", 'tell application "System Events" to keystroke "v" using command down'], check=False)
-    if SUBMIT:
+    ok = _osa('tell application "System Events" to keystroke "v" using command down')
+    if ok and SUBMIT:
         time.sleep(0.15)
-        subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 36'], check=False)  # Return
+        _osa('tell application "System Events" to key code 36')         # Return
     time.sleep(0.2)
     subprocess.run(["pbcopy"], input=prev, check=False)                 # restore clipboard
-    print(f"→ {text}", flush=True)
+    print(f"→ {text}" + ("" if ok else "  (paste did NOT fire — see error above)"), flush=True)
 
 def _transcribe_and_inject():
     with _lock:
