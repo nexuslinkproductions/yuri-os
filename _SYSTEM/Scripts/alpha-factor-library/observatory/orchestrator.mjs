@@ -102,7 +102,8 @@ const OVERSEER_DEFAULTS = {
   maxPct: null,          // null → ENSEMBLE_MAX_PCT (0.10). Max notional fraction per combined position.
   feeHurdle: 0,          // round-trip fee fraction the expected move must clear (edgeGate). 0 = no hurdle.
   edgeGate: false,       // require conviction-scaled expected move ≥ feeHurdle before opening/flipping.
-  regimeGate: false,     // freeze new entries on a market when regime says RECOMPUTE_CIRCUIT.
+  regimeGate: false,     // when ON + regime=RECOMPUTE_CIRCUIT, TRIM entry size by regimeTrimFactor (NOT freeze).
+  regimeTrimFactor: 0.5, // size multiplier during regime instability (owner decision 'A' 2026-06-17 — de-risk, don't block).
   perMarketEnable: {},   // { 'BTC-USD': false } freezes new entries for that market; absent → enabled.
   paused: false,         // true → no new entries/flips anywhere (de-risk flatten + MTM still run).
   minHoldCycles: 0,      // hold-time hysteresis: a NEW side must persist this many cycles before a flip
@@ -735,11 +736,16 @@ async function runCryptoCycle(market, snap, cfg = {}) {
       // New conviction or a flip → an OPENING of exposure. Run the overseer gates (all default-off →
       // identical to pre-overseer behavior). Each block records WHY a trade was skipped for telemetry.
       const marketEnabled = oc.perMarketEnable[market] !== false;
-      const regimeBlocked = oc.regimeGate === true && snap.regime && snap.regime.recommendation === 'RECOMPUTE_CIRCUIT';
+      // regimeGate TRIMS size during instability instead of FREEZING entries: a RECOMPUTE_CIRCUIT is a
+      // "rebuild the factor ordering / de-risk" signal, NOT a "stop trading" one. Hard-freezing starved a
+      // whole market of data (BTC opened 0 positions while regime-blocked while SOL traded). Owner 'A' 2026-06-17.
+      const regimeUnstable = !!(snap.regime && snap.regime.recommendation === 'RECOMPUTE_CIRCUIT');
+      const regimeTrim = (oc.regimeGate === true && regimeUnstable)
+        ? (typeof oc.regimeTrimFactor === 'number' && oc.regimeTrimFactor > 0 ? Math.min(1, oc.regimeTrimFactor) : 0.5)
+        : 1;
       let skipped = null;
       if (oc.paused === true) skipped = 'paused';
       else if (!marketEnabled) skipped = 'market-disabled';
-      else if (regimeBlocked) skipped = 'regime';
       else if (minHold > 0) {
         // Hold-time hysteresis: only open/flip once the new side has PERSISTED minHold cycles.
         const hist = _ensSideHist.get(market) || [];
@@ -762,7 +768,8 @@ async function runCryptoCycle(market, snap, cfg = {}) {
           engine.pnl(),
         );
         const maxPct = (typeof oc.maxPct === 'number' && Number.isFinite(oc.maxPct)) ? oc.maxPct : ENSEMBLE_MAX_PCT;
-        const notional = equity * maxPct * Math.min(1, ensemble.strength * 2);
+        const notional = equity * maxPct * Math.min(1, ensemble.strength * 2) * regimeTrim;
+        if (regimeTrim < 1) snap.ensemble.regimeTrim = regimeTrim; // de-risked by regime, not frozen (telemetry)
         if (notional > 0) {
           engine.onSignal(
             { factorId: inst, side: ensemble.side, value: ensemble.net, confidence: ensemble.confidence, ts: now, notional },
