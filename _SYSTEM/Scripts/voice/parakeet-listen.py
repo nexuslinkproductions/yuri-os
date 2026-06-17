@@ -28,6 +28,10 @@ SURFACE      = os.environ.get("VOICE_OVERSEER_SURFACE") or (
 NOISE = {"", "you", "thank you", "thanks", "thanks for watching", "bye", "bye.", "so",
          "um", "uh", "okay", "ok", "yeah", "hmm", "[blank_audio]", "music", "applause", "."}
 
+MUTE_FLAG   = os.path.join(REPO, "_SYSTEM/state/voice/mic.muted")
+MUTE_WORDS  = {"mute", "muteyourself", "stoplistening", "stoplisten", "rickstop", "gotosleep", "pausemic"}
+UNMUTE_WORDS = {"unmute", "startlistening", "ricklisten", "wakeup", "resumemic", "imback"}
+
 def rick_speaking() -> bool:
     return subprocess.run(["pgrep", "-x", "afplay"], capture_output=True).returncode == 0
 
@@ -90,6 +94,18 @@ def main():
                     if dur >= MIN_SPEECH:
                         res = model.generate(get_logmel(mx.array(audio), preproc))
                         txt = (res[0].text if res else "").strip()
+                        norm = "".join(c for c in txt.lower() if c.isalnum())
+                        # voice mute/unmute (works even while muted, so you can unmute by voice)
+                        if norm in UNMUTE_WORDS:
+                            if os.path.exists(MUTE_FLAG):
+                                try: os.remove(MUTE_FLAG)
+                                except OSError: pass
+                            print("🎙 unmuted (voice)", flush=True); continue
+                        if os.path.exists(MUTE_FLAG):
+                            continue   # muted: ignore everything except the unmute word above
+                        if norm in MUTE_WORDS:
+                            open(MUTE_FLAG, "w").close()
+                            print("🔇 muted (voice) — say 'unmute' to resume", flush=True); continue
                         if txt and not is_noise(txt):
                             inject(txt)
 

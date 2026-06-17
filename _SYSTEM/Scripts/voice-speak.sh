@@ -43,30 +43,52 @@ command -v jq   >/dev/null 2>&1 || { say_fallback; exit 0; }
 # server up? else degrade to `say` (never go silent)
 curl -sS -m 2 -o /dev/null "$HEALTH" 2>/dev/null || { say_fallback; exit 0; }
 
-TMP="$(mktemp "${TMPDIR:-/tmp}/vspk.XXXXXX")"
-body="$(jq -nc --arg m "$MODEL" --arg i "$text" --arg v "$VOICE" --arg f "$FMT" \
-        '{model:$m, input:$i, voice:$v, response_format:$f}')"
-http="$(curl -sS -m 120 -o "$TMP" -w '%{http_code}' \
-        -H 'Content-Type: application/json' -d "$body" "$URL" 2>/dev/null)" || http="000"
-
-if [ "$http" = "200" ] && [ -s "$TMP" ]; then
-  # LATEST-WINS: if a newer reply was queued while we synthesized, drop this stale one.
-  if [ -n "${VOICE_SEQ:-}" ] && [ -n "${VOICE_SEQ_FILE:-}" ]; then
-    cur="$(cat "$VOICE_SEQ_FILE" 2>/dev/null || echo "$VOICE_SEQ")"
-    if [ "${cur:-0}" -gt "${VOICE_SEQ:-0}" ] 2>/dev/null; then rm -f "$TMP" "$TMP.eq.wav" 2>/dev/null; exit 0; fi
-    pkill -x afplay 2>/dev/null   # we are the newest — cut off any older Rick still playing
-  fi
-  PLAY="$TMP"
-  # Optional EQ (boost lows / add body so Rick doesn't sound highpassed). Tune via VOICE_EQ.
+# --- chunked + pipelined: synth sentence 1 (~2s) and PLAY it while the rest synthesize,
+#     so first-sound is the first sentence, not the whole reply (~5s on Chatterbox). ---
+synth_one(){  # $1=text $2=outfile -> 0 if a wav was produced
+  [ -z "${1// /}" ] && return 1
+  local b h
+  b="$(jq -nc --arg m "$MODEL" --arg i "$1" --arg v "$VOICE" --arg f "$FMT" \
+       '{model:$m, input:$i, voice:$v, response_format:$f}')"
+  h="$(curl -sS -m 120 -o "$2" -w '%{http_code}' -H 'Content-Type: application/json' -d "$b" "$URL" 2>/dev/null)" || h="000"
+  [ "$h" = "200" ] && [ -s "$2" ]
+}
+play_one(){  # $1=wav -> EQ, play, remove
+  local p="$1"
   if [ -n "${VOICE_EQ:-}" ] && command -v ffmpeg >/dev/null 2>&1; then
-    if ffmpeg -nostdin -hide_banner -loglevel error -y -i "$TMP" -af "$VOICE_EQ" "$TMP.eq.wav" 2>/dev/null; then PLAY="$TMP.eq.wav"; fi
+    ffmpeg -nostdin -hide_banner -loglevel error -y -i "$1" -af "$VOICE_EQ" "$1.eq" 2>/dev/null && p="$1.eq"
   fi
-  if   command -v afplay >/dev/null 2>&1; then afplay "$PLAY"
-  elif command -v ffplay >/dev/null 2>&1; then ffplay -nodisp -autoexit -loglevel quiet "$PLAY"
-  else say_fallback; fi
-  rm -f "$TMP.eq.wav" 2>/dev/null
-else
-  say_fallback
-fi
-rm -f "$TMP" 2>/dev/null
+  if   command -v afplay >/dev/null 2>&1; then afplay "$p" 2>/dev/null
+  elif command -v ffplay >/dev/null 2>&1; then ffplay -nodisp -autoexit -loglevel quiet "$p"; fi
+  rm -f "$1" "$1.eq" 2>/dev/null
+}
+is_stale(){  # a newer reply queued since we started?
+  [ -n "${VOICE_SEQ:-}" ] && [ -n "${VOICE_SEQ_FILE:-}" ] || return 1
+  local c; c="$(cat "$VOICE_SEQ_FILE" 2>/dev/null || echo "$VOICE_SEQ")"
+  [ "${c:-0}" -gt "${VOICE_SEQ:-0}" ] 2>/dev/null
+}
+
+TMPD="$(mktemp -d "${TMPDIR:-/tmp}/vspk.XXXXXX")"
+trap 'rm -rf "$TMPD" 2>/dev/null' EXIT
+
+# split into sentences (octal sentinel after .!? + space, then tr -> newlines; BSD-safe)
+SENTS=()
+while IFS= read -r _l; do [ -n "${_l// /}" ] && SENTS+=("$_l"); done < <(
+  printf '%s' "$text" | awk '{gsub(/[.!?]+[ \t]+/,"&\001"); print}' | tr '\001' '\n'
+)
+[ "${#SENTS[@]}" -eq 0 ] && SENTS=("$text")
+
+is_stale && exit 0
+pkill -x afplay 2>/dev/null   # newest reply cuts off any older Rick still playing
+
+if ! synth_one "${SENTS[0]}" "$TMPD/0.wav"; then say_fallback; exit 0; fi
+N=${#SENTS[@]}; i=0
+while [ "$i" -lt "$N" ]; do
+  ni=$((i+1)); pf=""
+  if [ "$ni" -lt "$N" ]; then ( synth_one "${SENTS[$ni]}" "$TMPD/$ni.wav" ) & pf=$!; fi
+  if is_stale; then [ -n "$pf" ] && kill "$pf" 2>/dev/null; break; fi
+  [ -s "$TMPD/$i.wav" ] && play_one "$TMPD/$i.wav"
+  [ -n "$pf" ] && wait "$pf" 2>/dev/null
+  i="$ni"
+done
 exit 0
