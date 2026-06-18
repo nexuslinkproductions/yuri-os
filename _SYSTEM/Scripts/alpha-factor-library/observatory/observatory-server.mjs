@@ -58,6 +58,7 @@ import {
   bootstrapPolymarkets,
   fastTick,
   fastRiskExit,
+  applyTick,
   getTicks,
   refreshAccount,
   getAccount,
@@ -73,11 +74,13 @@ import {
 } from './orchestrator.mjs';
 import { applyAuth } from './observatory-auth.mjs';
 import { getCandlesAtTimeframe, availableTimeframes } from './timeframes.mjs';
+import { startTickStream } from './tick-stream.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
 const INTERVAL_MS = Number(process.env.OBSERVATORY_INTERVAL_MS) || DEFAULT_CONFIG.intervalMs;
 const TICK_MS = Number(process.env.OBSERVATORY_TICK_MS) || 1000; // per-second fast price tick
+const TICK_STREAM_ARMED = process.env.OBSERVATORY_TICK_STREAM === '1'; // DISARMED by default — owner arms the real-time WS tick feed
 const HOST = '127.0.0.1'; // localhost only
 
 // CORS allowed origins — localhost only
@@ -410,6 +413,37 @@ async function startServe(config = {}) {
   const tickInterval = setInterval(doTick, TICK_MS);
   console.log(`[observatory-server] fast price-tick @ ${TICK_MS}ms`);
 
+  // ── DISARMED real-time tick stream (owner-armed via OBSERVATORY_TICK_STREAM=1) ──
+  // When armed, a Coinbase PUBLIC websocket feeds _state.ticks in REAL TIME (event-driven, sub-second)
+  // and fires fastRiskExit at the actual touch — capping the overshoot losers the 1s REST poll lets slip.
+  // The REST doTick loop above stays running as the fallback floor (a dropped socket degrades to 1s).
+  let tickStream = null;
+  if (TICK_STREAM_ARMED) {
+    const tsMarkets = (cfg.cryptoMarkets || []).filter(Boolean);
+    let lastRiskMs = 0;
+    const RISK_THROTTLE_MS = 100; // fire the (sync, cheap) risk check at most ~10x/s during tick bursts
+    tickStream = startTickStream({
+      markets: tsMarkets,
+      onTick: (t) => {
+        applyTick(t.market, t.price, { bid: t.bid, ask: t.ask, venue: 'coinbase' });
+        broadcastSSE([{ type: 'price.tick', market: t.market, venue: 'coinbase', price: t.price, bid: t.bid, ask: t.ask, ts: Math.floor(Date.now() / 1000) }]);
+        const nowMs = Date.now();
+        if (nowMs - lastRiskMs >= RISK_THROTTLE_MS) {
+          lastRiskMs = nowMs;
+          try {
+            const exits = fastRiskExit();
+            if (exits.length) {
+              broadcastSSE(exits.map((e) => ({ type: 'risk.exit', ...e })));
+              console.log('[observatory-server] WS risk-exit:', exits.map((e) => `${e.market} ${e.reason} ${e.pnlFrac}%`).join(', '));
+            }
+          } catch (_e) { /* fail-open — risk exit never kills the stream */ }
+        }
+      },
+      onStatus: (s) => console.log(`[observatory-server] tick-stream: ${s}`),
+    });
+    console.log(`[observatory-server] REAL-TIME tick-stream ARMED (Coinbase WS) for ${tsMarkets.join(',')}`);
+  }
+
   // Run first cycle immediately
   // emit cycle.start before INITIAL cycle too (BUG-5: was only emitted on interval cycles)
   broadcastSSE([{ type: 'cycle.start', cycleCount: 1, ts: Math.floor(Date.now() / 1000) }]);
@@ -450,6 +484,7 @@ async function startServe(config = {}) {
     console.log('[observatory-server] shutting down...');
     clearInterval(interval);
     clearInterval(tickInterval);
+    if (tickStream) try { tickStream.stop(); } catch (_e) { /* noop */ }
     server.close(() => process.exit(0));
   };
   process.on('SIGTERM', shutdown);

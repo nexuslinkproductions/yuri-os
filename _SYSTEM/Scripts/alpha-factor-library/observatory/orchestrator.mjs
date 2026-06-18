@@ -1004,6 +1004,22 @@ export function fastRiskExit() {
   return exits;
 }
 
+/**
+ * applyTick(market, price, opts?) — write ONE externally-sourced LIVE tick into the
+ * in-memory tick state + market snapshot, identical to fastTick's per-market update.
+ * Lets an event-driven feed (the websocket tick-stream) keep _state.ticks real-time so
+ * fastRiskExit fires at the actual touch. Returns the stored tick, or null if invalid.
+ */
+export function applyTick(market, price, opts = {}) {
+  if (!market || !Number.isFinite(price) || price <= 0) return null;
+  const now = Math.floor(Date.now() / 1000);
+  const tick = { market, venue: opts.venue || 'coinbase', price, bid: opts.bid ?? null, ask: opts.ask ?? null, ts: now };
+  _state.ticks.set(market, tick);
+  const snap = _state.snapshots.get(market);
+  if (snap) { snap.lastPrice = price; snap.lastTickTs = now; }
+  return tick;
+}
+
 /** getTicks() — current fast-tick price map for REST. */
 export function getTicks() {
   return Object.fromEntries(_state.ticks);
@@ -1328,6 +1344,7 @@ export const DEFAULT_CONFIG = {
   enableLearnLoop: true,       // decode closed paper trades → AFL_LEDGER (data accrual only; promotion stays owner-gated)
   enableQuantumShadow: true,   // record classical-vs-quantum A/B shadow each cycle (telemetry only; never sizes)
   enableStrategyForecasts: true, // record per-strategy forecasts each cycle → the re-weighting brain's data
+  enableTickStream: false,     // DISARMED: when armed (OBSERVATORY_TICK_STREAM=1), a Coinbase websocket feeds _state.ticks in real-time + fires fastRiskExit at the actual touch (sub-second exits). Default off → the 1s REST poll stays the floor.
 };
 
 /**
