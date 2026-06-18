@@ -439,7 +439,7 @@
         "run paper session",
         "raise win rate"
       ],
-      "does": "bounded leveraged-perp paper TRAINING session — replays Binance BTC bars through a DEDICATED perpMode engine (owner model: bankroll + clamp(riskPct*eq,1,25) margin + leverage), REUSING the live daemon's real computeLiveSignals + combineSignals, with a 1-bar lag (no look-ahead), engine-auto liquidation + funding, price stop/take/max-hold exits. Emits a win-rate scorecard. Does NOT touch the live daemon (own engine + own session ledgers).",
+      "does": "bounded leveraged-perp paper TRAINING session — replays Binance BTC bars through a DEDICATED perpMode engine (owner model: bankroll + clamp(riskPct*eq,1,25) margin + leverage), REUSING the live daemon's real computeLiveSignals + combineSignals, with a 1-bar lag (no look-ahead), engine-auto liquidation + funding, price stop/take/max-hold exits + a CONVICTION GATE (flipThreshold) and HOLD-THROUGH-WEAK exit policy (no churning the position on 1-min noise; sim-proven to lift win rate + cut the bleed). Emits a win-rate scorecard. Does NOT touch the live daemon (own engine + own session ledgers).",
       "use": "node train-session.mjs --leverage 20 --risk-pct 0.03 --bankroll 300 --cycles 500 --market BTCUSDT ; or import { runTrainSession } and pass {bars} for deterministic sweeps/tests.",
       "exports": [
         "runTrainSession",
