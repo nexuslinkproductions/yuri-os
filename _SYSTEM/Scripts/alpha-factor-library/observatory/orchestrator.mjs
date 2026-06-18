@@ -790,6 +790,7 @@ async function runCryptoCycle(market, snap, cfg = {}) {
             _horizonPlan.set(market, { holdSec: sel.holdSec, stopPct: sel.expMove * stopFrac, takePct: sel.expMove });
             snap.ensemble.horizon = sel.horizon;
             snap.ensemble.horizonExpMove = +(sel.expMove * 100).toFixed(3);
+            console.log(`[observatory] multi-horizon ${market} ${ensemble.side} @ ${sel.horizon}: expMove ${(sel.expMove * 100).toFixed(2)}% clears fee ${(rtCost * 100).toFixed(2)}% → hold ${Math.round(sel.holdSec / 60)}m, stop ${(sel.expMove * stopFrac * 100).toFixed(2)}%/take ${(sel.expMove * 100).toFixed(2)}%`);
           }
         } else {
           // Legacy single-horizon (√5) gate.
