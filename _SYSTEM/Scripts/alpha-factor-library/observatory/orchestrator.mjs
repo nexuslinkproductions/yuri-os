@@ -41,7 +41,8 @@ const PRED_LEDGER = path.join(STATE_DIR, 'observatory-predictions.jsonl');
 // ── AFL spine imports ──────────────────────────────────────────────────────
 import { dataQualityGate } from '../data-quality-gate.mjs';
 import { computeSize } from '../afl-sizing.mjs';
-import { createPaperEngine } from '../afl-paper.mjs';
+import { createPaperEngine, cryptoFeeModel } from '../afl-paper.mjs';
+import { selectHorizon, realisticRoundTripCost } from '../multi-horizon-gate.mjs';
 import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
 import { computeAllStrategies } from '../strategy-registry.mjs';
@@ -527,6 +528,7 @@ function isPrivateHost(hostname) {
 // Bounded window; updated each cycle as each market is processed. Module-scoped so a lagger can read
 // the leader's series populated earlier in the same cycle (market order = config order, BTC first).
 const _recentCloses = new Map(); // market -> [[tsSeconds, close], ...]
+const _horizonPlan = new Map(); // market -> { holdSec, stopPct, takePct } chosen by the multi-horizon gate (DISARMED unless oc.multiHorizon)
 
 async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
@@ -770,10 +772,31 @@ async function runCryptoCycle(market, snap, cfg = {}) {
         if (!persisted) skipped = `hysteresis(${recent.filter((s) => s === ensemble.side).length}/${minHold})`;
       }
       if (!skipped && oc.edgeGate === true) {
-        // Expected-move-vs-fee gate: conviction-scaled √5·1-bar-vol move must clear the round-trip fee.
-        const expMove = recentVolPct(bars) * Math.sqrt(5) * Math.min(1, ensemble.strength * 2);
-        const hurdle = (typeof oc.feeHurdle === 'number' && Number.isFinite(oc.feeHurdle)) ? oc.feeHurdle : 0;
-        if (expMove < hurdle) skipped = `edge<fee(${(expMove * 100).toFixed(3)}%<${(hurdle * 100).toFixed(2)}%)`;
+        const conviction = Math.min(1, ensemble.strength * 2);
+        if (oc.multiHorizon === true) {
+          // MULTI-HORIZON gate (Marcel's 3-5 timeframes): trade on the SHORTEST horizon whose expected
+          // move clears the REALISTIC round-trip fee; the chosen horizon then drives the hold-time AND a
+          // wider stop/take (via _horizonPlan, honored by fastRiskExit) so the long trade isn't knifed by
+          // the 1-min stop or closed at maxHold before its move can materialize.
+          const takerRate = cryptoFeeModel('taker')(undefined, 1, 1); // fee on $1 notional = the rate
+          const rtCost = realisticRoundTripCost({ takerRate, spreadFrac: 0.0005 });
+          const margin = Number.isFinite(oc.horizonMargin) ? oc.horizonMargin : 1.0;
+          const sel = selectHorizon({ volPerBar: recentVolPct(bars), conviction, roundTripCost: rtCost, marginFactor: margin });
+          if (!sel) {
+            skipped = `no-horizon-clears-fee(rt=${(rtCost * 100).toFixed(2)}%)`;
+            _horizonPlan.delete(market);
+          } else {
+            const stopFrac = Number.isFinite(oc.horizonStopFrac) ? oc.horizonStopFrac : 0.5;
+            _horizonPlan.set(market, { holdSec: sel.holdSec, stopPct: sel.expMove * stopFrac, takePct: sel.expMove });
+            snap.ensemble.horizon = sel.horizon;
+            snap.ensemble.horizonExpMove = +(sel.expMove * 100).toFixed(3);
+          }
+        } else {
+          // Legacy single-horizon (√5) gate.
+          const expMove = recentVolPct(bars) * Math.sqrt(5) * conviction;
+          const hurdle = (typeof oc.feeHurdle === 'number' && Number.isFinite(oc.feeHurdle)) ? oc.feeHurdle : 0;
+          if (expMove < hurdle) skipped = `edge<fee(${(expMove * 100).toFixed(3)}%<${(hurdle * 100).toFixed(2)}%)`;
+        }
       }
       if (skipped) {
         snap.ensemble.skipped = skipped; // gated out this cycle — surfaced in /ensemble + /markets
@@ -989,9 +1012,15 @@ export function fastRiskExit() {
     const pnlFrac = notionalVal > 0 ? livePnl / notionalVal : 0;
     const ageS = Number.isFinite(pos.openedTs) ? (now - pos.openedTs) : 0;
     let reason = null;
-    if (stopLossPct && pnlFrac <= -stopLossPct) reason = 'stop-loss';
-    else if (takeProfitPct && pnlFrac >= takeProfitPct) reason = 'take-profit';
-    else if (maxHoldSec && ageS >= maxHoldSec) reason = 'max-hold';
+    // Multi-horizon (when armed): honor the per-market horizon plan — wider stop/take + longer hold scaled
+    // to the chosen horizon — so a 3h-horizon trade isn't knifed by the 1-min stop or closed at maxHold.
+    const plan = (oc.multiHorizon === true) ? _horizonPlan.get(market) : null;
+    const effStop = (plan && plan.stopPct > 0) ? plan.stopPct : stopLossPct;
+    const effTake = (plan && plan.takePct > 0) ? plan.takePct : takeProfitPct;
+    const effHold = (plan && plan.holdSec > 0) ? plan.holdSec : maxHoldSec;
+    if (effStop && pnlFrac <= -effStop) reason = 'stop-loss';
+    else if (effTake && pnlFrac >= effTake) reason = 'take-profit';
+    else if (effHold && ageS >= effHold) reason = 'max-hold';
     if (reason) {
       try {
         engine.closePosition(inst, reason, now, px); // close at the LIVE tick price
