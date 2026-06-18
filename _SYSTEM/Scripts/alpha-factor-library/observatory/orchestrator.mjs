@@ -125,15 +125,20 @@ const _ensSideHist = new Map();
  * Missing/corrupt → defaults = current behavior. Fail-soft.
  */
 function getOverseerConfig() {
+  let cfg = { ...OVERSEER_DEFAULTS };
   try {
-    if (!existsSync(OVERSEER_CONFIG_PATH)) return { ...OVERSEER_DEFAULTS };
-    const c = JSON.parse(readFileSync(OVERSEER_CONFIG_PATH, 'utf8'));
-    if (c && typeof c === 'object') {
-      const pm = (c.perMarketEnable && typeof c.perMarketEnable === 'object') ? c.perMarketEnable : {};
-      return { ...OVERSEER_DEFAULTS, ...c, perMarketEnable: pm };
+    if (existsSync(OVERSEER_CONFIG_PATH)) {
+      const c = JSON.parse(readFileSync(OVERSEER_CONFIG_PATH, 'utf8'));
+      if (c && typeof c === 'object') {
+        const pm = (c.perMarketEnable && typeof c.perMarketEnable === 'object') ? c.perMarketEnable : {};
+        cfg = { ...OVERSEER_DEFAULTS, ...c, perMarketEnable: pm };
+      }
     }
-    return { ...OVERSEER_DEFAULTS };
-  } catch { return { ...OVERSEER_DEFAULTS }; }
+  } catch { /* fall through to defaults */ }
+  // OPERATOR ARM via env (stable — survives the overseer beats' config rewrites; the beats own the
+  // config FILE for dynamic steering, so a durable arm like multi-horizon belongs in env, not the file).
+  if (process.env.OBSERVATORY_MULTI_HORIZON === '1') cfg.multiHorizon = true;
+  return cfg;
 }
 
 /**

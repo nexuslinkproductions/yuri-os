@@ -31,6 +31,8 @@
     <key>OBSERVATORY_CRYPTO_MARKETS</key><string>BTC-USD,SOL-USD,ETH-USD</string>
     <!-- real-time WS tick-stream ARMED (paper) — event-driven sub-second risk exits via Coinbase public ws -->
     <key>OBSERVATORY_TICK_STREAM</key><string>1</string>
+    <!-- multi-horizon entry gate ARMED: trade the timeframe whose move beats the realistic fee -->
+    <key>OBSERVATORY_MULTI_HORIZON</key><string>1</string>
     <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>
   <key>RunAtLoad</key><true/>
