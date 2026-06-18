@@ -23,9 +23,43 @@ SYS_DEFAULT = os.environ.get(
     "and human; if you don't know, say so briefly.",
 )
 
+WORKER_TARGET = os.environ.get("YURI_WORKER_TARGET", "yuri-worker:0.0")  # tmux session:window.pane
+DISPATCH = os.environ.get("YURI_DISPATCH", "0") == "1"
+DISPATCH_NOTE = (
+    "\n\nYou ALSO command a separate 'worker' Claude running in a terminal that Marcel watches. When "
+    "Marcel clearly wants the worker to DO development work (build, edit, run, fix, or investigate code), "
+    "emit EXACTLY one line beginning 'DISPATCH:' followed by a complete, self-contained prompt for the "
+    "worker, then a separate ONE short spoken sentence telling Marcel what you sent it. If he is only "
+    "talking with you or asking a question, do NOT dispatch — just reply normally."
+)
+
+
+def _handle_dispatch(reply):
+    """Pull any 'DISPATCH:' line out of the reply, inject it into the worker tmux pane via send-keys,
+    and return only the spoken remainder. Headless dispatch: Yuri (claude -p) composes the worker
+    prompt, this wrapper does the deterministic injection (no focus war — terminal send-keys)."""
+    if not DISPATCH or "DISPATCH:" not in reply.upper():
+        return reply
+    spoken, tasks = [], []
+    for line in reply.splitlines():
+        if line.strip().upper().startswith("DISPATCH:"):
+            task = line.split(":", 1)[1].strip()
+            if task:
+                tasks.append(task)
+        else:
+            spoken.append(line)
+    for task in tasks:
+        try:
+            subprocess.run(["tmux", "send-keys", "-t", WORKER_TARGET, "-l", task], check=False)
+            subprocess.run(["tmux", "send-keys", "-t", WORKER_TARGET, "Enter"], check=False)
+        except Exception:
+            pass
+    out = " ".join(s.strip() for s in spoken if s.strip()).strip()
+    return out or ("Sent it to the worker." if tasks else reply)
+
 
 def run_claude(messages):
-    sys_txt = SYS_DEFAULT
+    sys_txt = SYS_DEFAULT + (DISPATCH_NOTE if DISPATCH else "")
     convo = []
     for m in messages or []:
         role = m.get("role")
@@ -48,7 +82,8 @@ def run_claude(messages):
     args.append(prompt)
     try:
         r = subprocess.run(args, capture_output=True, text=True, timeout=TIMEOUT)
-        return (r.stdout or "").strip() or (r.stderr or "").strip() or "I didn't catch that."
+        out = (r.stdout or "").strip() or (r.stderr or "").strip() or "I didn't catch that."
+        return _handle_dispatch(out)
     except subprocess.TimeoutExpired:
         return "Sorry, I took too long thinking on that one."
     except Exception as e:
