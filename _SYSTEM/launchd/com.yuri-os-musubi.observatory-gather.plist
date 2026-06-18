@@ -33,6 +33,9 @@
     <key>OBSERVATORY_TICK_STREAM</key><string>1</string>
     <!-- multi-horizon entry gate ARMED: trade the timeframe whose move beats the realistic fee -->
     <key>OBSERVATORY_MULTI_HORIZON</key><string>1</string>
+    <!-- perp mode ARMED (owner 2026-06-18): Binance USDsM leveraged economics — binanceFeeModel (0.02/0.05) + leverage + isolated-margin liquidation -->
+    <key>OBSERVATORY_PERP_MODE</key><string>1</string>
+    <key>OBSERVATORY_LEVERAGE</key><string>20</string>
     <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>
   <key>RunAtLoad</key><true/>

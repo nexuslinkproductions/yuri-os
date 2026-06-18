@@ -701,6 +701,10 @@ async function runCryptoCycle(market, snap, cfg = {}) {
   // market engine → monotone bar series, no global-lastTs clash). Without this a held position shows
   // 0 P&L until it closes and the board looks dead. Fail-soft.
   try { engine.ingestBar(lastBar, inst); } catch (_e) { /* ingest fail-soft */ }
+  // Mark-to-market step: accrues funding and (perp) ENFORCES liquidation when the mark crosses liqPx —
+  // without this a leveraged position could sink past its liquidation price unrealistically. Fail-soft;
+  // ~no-op in spot (0 funding rate, perpMode off). Fast risk exits (stop/take) still run separately below.
+  try { engine.mark(lastBar.timestamp, { [inst]: lastBar.close }); } catch (_e) { /* mark fail-soft */ }
   const equity = engine.pnl().equity || 100_000;
   // Overseer steering (hot-reloaded; defaults = current behavior).
   const oc = getOverseerConfig();
