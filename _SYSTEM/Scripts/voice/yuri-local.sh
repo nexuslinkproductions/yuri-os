@@ -11,7 +11,7 @@ set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 VOICE="$REPO/_SYSTEM/Scripts/voice"
 VP="$REPO/_SYSTEM/state/voice/.venv-pipecat/bin/python"
-MODEL="${YURI_LOCAL_MODEL:-llama3.2:latest}"
+MODEL="${YURI_LOCAL_MODEL:-hf.co/prithivMLmods/VibeThinker-3B-GGUF:Q4_K_M}"
 mkdir -p "$REPO/_SYSTEM/state/voice"
 rm -f "$REPO/_SYSTEM/state/voice/tts.paused" 2>/dev/null || true   # never let the pause flag mute her
 [ -x "$VP" ] || { echo "❌ venv missing — run setup-pipecat.sh"; exit 1; }

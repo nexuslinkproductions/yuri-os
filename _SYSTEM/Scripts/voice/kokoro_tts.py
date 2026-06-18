@@ -122,6 +122,21 @@ class KokoroTTSService(TTSService):
             pass
         _clear_mlx_cache()
 
+    def _synth_robust(self, norm: str):
+        """Synthesize in Yuri's voice. Kokoro's broadcast_shapes bug crashes on some short single
+        sentences; retry with a trailing clause (a 2nd segment dodges it). NO macOS fallback — owner
+        hard-blocked it (2026-06-18); return None (stay silent) if every attempt fails, never another voice."""
+        if not norm:
+            return None
+        for attempt in (norm, norm + " Okay.", norm + " Mm. Okay."):
+            try:
+                a = _synth(self._model, attempt, self._voice, self._lang, self._speed)
+                if a is not None and a.size:
+                    return a
+            except Exception as e:
+                logger.warning(f"[kokoro] synth attempt failed ({str(e)[:40]}): {attempt[:50]!r}")
+        return None
+
     def can_generate_metrics(self) -> bool:
         return False
 
@@ -132,18 +147,10 @@ class KokoroTTSService(TTSService):
 
         def produce():
             try:
-                # Synthesize PER SENTENCE: each generate() call is short + single-segment, which
-                # sidesteps Kokoro's multi-segment concat that throws "broadcast_shapes" on longer
-                # replies. One bad sentence is skipped, not the whole reply (graceful degradation).
-                # Synthesize the WHOLE normalized reply in one call. Multi-sentence/multi-clause text
-                # works fine; only some very short single sentences hit Kokoro's broadcast_shapes bug
-                # — those fall through to the macOS-voice fallback below (intelligible, never clipped).
-                norm = _normalize(text)
-                audio = None
-                try:
-                    audio = _synth(self._model, norm, self._voice, self._lang, self._speed)
-                except Exception as e:
-                    logger.warning(f"[kokoro] synth failed -> macOS fallback ({str(e)[:50]}): {norm[:60]!r}")
+                # Synthesize the WHOLE normalized reply in Yuri's voice. Some short single sentences
+                # hit Kokoro's broadcast_shapes bug — _synth_robust retries with a 2nd clause to dodge
+                # it. NO macOS fallback (owner hard-blocked it); if Kokoro still can't, stay silent.
+                audio = self._synth_robust(_normalize(text))
                 if audio is not None and audio.size:
                     pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
                     loop.call_soon_threadsafe(q.put_nowait, pcm)
@@ -175,11 +182,6 @@ class KokoroTTSService(TTSService):
                 yield TTSAudioRawFrame(resampled[i:i + bpf], self.sample_rate, 1, context_id=context_id)
                 produced = True
         if not produced:
-            # Kokoro produced nothing (the intermittent broadcast_shapes bug, even on short text) —
-            # NEVER go silent: speak the reply with the macOS voice so Marcel always hears a response.
-            try:
-                import subprocess
-                subprocess.Popen(["say", _normalize(text)[:2000]],
-                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:
-                pass
+            # macOS `say` fallback HARD-BLOCKED (owner directive 2026-06-18): one voice only. If
+            # Kokoro produced nothing after the robust retries, stay silent — never switch voices.
+            logger.warning("[kokoro] no audio after retries — staying silent (macOS fallback hard-blocked)")

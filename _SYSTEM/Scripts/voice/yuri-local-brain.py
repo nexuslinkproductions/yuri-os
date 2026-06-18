@@ -14,21 +14,22 @@ import os, json, uuid, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("YURI_LOCAL_BRAIN_PORT", "8013"))
-MODEL = os.environ.get("YURI_LOCAL_MODEL", "llama3.2:latest")
+MODEL = os.environ.get("YURI_LOCAL_MODEL", "hf.co/prithivMLmods/VibeThinker-3B-GGUF:Q4_K_M")
 OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 if not OLLAMA.startswith(("http://", "https://")):  # OLLAMA_HOST is often bare host:port
     OLLAMA = "http://" + OLLAMA
 NUM_CTX = int(os.environ.get("YURI_LOCAL_NUM_CTX", "4096"))   # cap LOW — the 128k default ballooned to 10GB
 TEMP = float(os.environ.get("YURI_LOCAL_TEMP", "0.7"))
-TIMEOUT = float(os.environ.get("YURI_LOCAL_TIMEOUT", "60"))
+TIMEOUT = float(os.environ.get("YURI_LOCAL_TIMEOUT", "120"))  # headroom for a reasoning model's cold load + CoT
 TURNS = int(os.environ.get("YURI_LOCAL_CONTEXT_TURNS", "12"))  # rolling history depth (each turn = 2 msgs)
 SYS_DEFAULT = os.environ.get(
     "YURI_LOCAL_SYSTEM",
     "You are Yuri, a spoken voice assistant talking out loud to Marcel. Reply in ONE or two natural, "
     "conversational sentences — no markdown, no lists, no headings, no reasoning aloud. Be concise, "
-    "direct, warm, and human. You run fully on-device. You have tools/capabilities: when Marcel asks "
-    "you to DO something you have a tool for (like opening a worker terminal), call the tool — don't "
-    "just talk about it. After a tool runs, tell him briefly what you did.",
+    "direct, warm, and human. You run fully on-device. You have tools, but call a tool ONLY when Marcel "
+    "EXPLICITLY asks for that exact action (e.g. he literally says to open or spawn a terminal or worker). "
+    "For questions, chit-chat, acknowledgements, or anything else, just talk — do NOT call any tool. "
+    "After a tool runs, tell him briefly what you did.",
 )
 
 # Persisted rolling transcript = Yuri's memory across turns AND restarts (the local-SLM stand-in for
@@ -46,9 +47,9 @@ TOOLS = [{
     "type": "function",
     "function": {
         "name": "spawn_worker",
-        "description": ("Open a worker terminal: a visible macOS Terminal window running a Claude Code "
-                        "session that Marcel can watch and that can be handed coding tasks. Call this "
-                        "when Marcel asks to open / spawn / launch / start a terminal, worker, or session."),
+        "description": ("Open a NEW worker terminal (a visible Terminal window running a Claude Code "
+                        "session). Call this ONLY when Marcel EXPLICITLY asks to open/spawn/launch/start a "
+                        "terminal, worker, or session. Do NOT call it for questions, acknowledgements, or talk."),
         "parameters": {
             "type": "object",
             "properties": {
@@ -147,7 +148,7 @@ def run_brain(req_messages):
             fn = tc.get("function") or {}
             send.append({"role": "tool", "content": _exec_tool(fn.get("name", ""), fn.get("arguments") or {})})
         try:
-            msg = _ollama_chat(send, tools=TOOLS)
+            msg = _ollama_chat(send)   # NO tools on the confirm pass -> she just speaks, can't re-spawn in a loop
         except Exception:
             msg = {"content": "Done."}
 
