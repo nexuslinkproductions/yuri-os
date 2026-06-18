@@ -48,6 +48,43 @@ def _normalize(t: str) -> str:
     return t.strip()
 
 
+def _synth(model, text, voice, lang, speed):
+    """Generate mono float32 audio for one piece of text."""
+    cs = []
+    for seg in model.generate(text=text, voice=voice, lang_code=lang, speed=speed):
+        a = seg.audio if hasattr(seg, "audio") else seg
+        a = np.asarray(a, dtype=np.float32).squeeze()
+        a = a.mean(axis=1) if a.ndim > 1 else a
+        cs.append(a)
+    return np.concatenate(cs) if cs else np.zeros(0, dtype=np.float32)
+
+
+def _trim_filler(audio, sr):
+    """We append ' hm.' to dodge Kokoro's single-sentence broadcast_shapes bug — cut it back off.
+    Search ONLY the last ~1.4s (where the filler lives) so we never trim into earlier real words."""
+    if audio.size < int(sr * 0.8):
+        return audio
+    region = int(sr * 1.4)
+    start = max(0, audio.size - region)
+    win = int(sr * 0.02)
+    seg = audio[start:]
+    n = seg.size // win
+    if n < 4:
+        return audio
+    energy = np.abs(seg[:n * win]).reshape(n, win).max(axis=1)
+    sil = energy < 0.02
+    i = n - 1
+    while i > 0 and sil[i]:
+        i -= 1          # trailing silence
+    while i > 0 and not sil[i]:
+        i -= 1          # the filler word ("hm")
+    while i > 0 and sil[i]:
+        i -= 1          # the gap before the filler -> back to the real speech end
+    cut = start + (i + 1) * win
+    cut = max(audio.size - region, min(cut, audio.size - int(sr * 0.3)))  # bound to the filler region
+    return audio[:cut]
+
+
 class KokoroTTSService(TTSService):
     """Preset-voice TTS via mlx-audio Kokoro-82M. Synthesizes the full reply on a dedicated MLX
     thread, then yields fixed-size TTSAudioRawFrame chunks for smooth playback + barge-in."""
@@ -98,26 +135,20 @@ class KokoroTTSService(TTSService):
                 # Synthesize PER SENTENCE: each generate() call is short + single-segment, which
                 # sidesteps Kokoro's multi-segment concat that throws "broadcast_shapes" on longer
                 # replies. One bad sentence is skipped, not the whole reply (graceful degradation).
+                # Synthesize the WHOLE normalized reply in one call. Multi-sentence/multi-clause text
+                # works fine; only some very short single sentences hit Kokoro's broadcast_shapes bug
+                # — those fall through to the macOS-voice fallback below (intelligible, never clipped).
                 norm = _normalize(text)
-                sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", norm) if s.strip()] or [norm]
-                produced = False
-                for sent in sentences:
-                    try:
-                        cs = []
-                        for seg in self._model.generate(text=sent, voice=self._voice, lang_code=self._lang, speed=self._speed):
-                            a = seg.audio if hasattr(seg, "audio") else seg
-                            a = np.asarray(a, dtype=np.float32).squeeze()
-                            a = a.mean(axis=1) if a.ndim > 1 else a
-                            cs.append(a)
-                        if cs:
-                            audio = np.concatenate(cs)
-                            pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
-                            loop.call_soon_threadsafe(q.put_nowait, pcm)
-                            produced = True
-                    except Exception as e:
-                        logger.warning(f"[kokoro] skipped a sentence ({e}): {sent!r}")
-                if not produced:
-                    loop.call_soon_threadsafe(q.put_nowait, RuntimeError("no audio produced"))
+                audio = None
+                try:
+                    audio = _synth(self._model, norm, self._voice, self._lang, self._speed)
+                except Exception as e:
+                    logger.warning(f"[kokoro] synth failed -> macOS fallback ({str(e)[:50]}): {norm[:60]!r}")
+                if audio is not None and audio.size:
+                    pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
+                    loop.call_soon_threadsafe(q.put_nowait, pcm)
+                else:
+                    loop.call_soon_threadsafe(q.put_nowait, RuntimeError("no audio"))
             except Exception as e:  # surface synth errors as a frame, never crash the pipeline
                 loop.call_soon_threadsafe(q.put_nowait, e)
             finally:
@@ -128,18 +159,27 @@ class KokoroTTSService(TTSService):
 
         # Consume per-sentence audio pieces (produce emits one pcm chunk per synthesized sentence).
         first = True
+        produced = False
         bpf = max(2, int(self.sample_rate * self._frame_ms / 1000) * 2)  # bytes/frame (mono int16)
         while True:
             item = await q.get()
             if item is None:
                 break
             if isinstance(item, Exception):
-                if first:
-                    yield ErrorFrame(error=f"Kokoro TTS error: {item}")
-                break
+                break  # fall through to the never-silent fallback below
             if first:
                 await self.stop_ttfb_metrics()
                 first = False
             resampled = await self._resampler.resample(item, self._model_sr, self.sample_rate)
             for i in range(0, len(resampled), bpf):
                 yield TTSAudioRawFrame(resampled[i:i + bpf], self.sample_rate, 1, context_id=context_id)
+                produced = True
+        if not produced:
+            # Kokoro produced nothing (the intermittent broadcast_shapes bug, even on short text) —
+            # NEVER go silent: speak the reply with the macOS voice so Marcel always hears a response.
+            try:
+                import subprocess
+                subprocess.Popen(["say", _normalize(text)[:2000]],
+                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                pass

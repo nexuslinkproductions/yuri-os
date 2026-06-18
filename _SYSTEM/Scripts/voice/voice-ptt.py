@@ -79,12 +79,22 @@ def _track(key, down):
 print(f"loading Parakeet… (PTT = hold {COMBO}, cancel = {_cancel_name}, mode={'stream' if STREAM else 'batch'})", flush=True)
 model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v2", dtype=mx.float32)
 preproc = model.preprocessor_config
+# MLX pools Metal GPU buffers across calls; if never cleared, every transcription's intermediate
+# arrays stay resident -> unbounded memory growth (this was the >10GB PTT leak). Clear after each
+# generate. The API moved between MLX versions (mx.clear_cache vs mx.metal.clear_cache) — try both.
+def _clear_mlx_cache():
+    try: mx.clear_cache()
+    except Exception:
+        try: mx.metal.clear_cache()
+        except Exception: pass
+
 # WARMUP: burn the one-time ~1.5s MLX kernel-compile here so the FIRST spoken command is fast.
 try:
     model.generate(get_logmel(mx.array(np.zeros(SAMPLE_RATE * 2, dtype=np.float32)), preproc)); mx.eval(model.parameters())
     if STREAM:
         with model.transcribe_stream(context_size=CTX, depth=DEPTH) as _w:
             _w.add_audio(mx.array(np.zeros(int(SAMPLE_RATE * 0.4), dtype=np.float32))); _ = _w.result.text
+    _clear_mlx_cache()
     print("  (kernels warm — first command will be fast)", flush=True)
 except Exception:
     pass
@@ -179,6 +189,7 @@ def _pump_stream(myq):
             txt = st.result.text
     except Exception as e:
         print(f"  ✗ stream error: {e}", flush=True); _pending[0] = False; return
+    _clear_mlx_cache()            # free this transcription's Metal buffers
     _finish(txt, n_samp, sumsq)
 
 def _drain_batch(myq):
@@ -193,6 +204,7 @@ def _drain_batch(myq):
         txt = model.generate(get_logmel(mx.array(audio), preproc))[0].text
     except Exception as e:
         print(f"  ✗ transcribe error: {e}", flush=True); _pending[0] = False; return
+    _clear_mlx_cache()            # free this transcription's Metal buffers (prevents the >10GB leak)
     _finish(txt, len(audio), float(np.dot(audio, audio)))
 
 def _cancel():

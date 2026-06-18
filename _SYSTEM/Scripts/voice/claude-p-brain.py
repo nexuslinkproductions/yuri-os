@@ -9,7 +9,7 @@
 #        no-headless rule is LIFTED for this voice companion lane (Anthropic restriction postponed);
 #        uses the Max subscription, never an API key. Reply stays conversational (spoken register).
 # @exports: (http server :8012)
-import os, json, subprocess
+import os, json, subprocess, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("CLAUDE_P_BRAIN_PORT", "8012"))
@@ -58,32 +58,57 @@ def _handle_dispatch(reply):
     return out or ("Sent it to the worker." if tasks else reply)
 
 
+# Persistent Yuri session: resume the SAME claude session every turn so she keeps real memory +
+# continuity (claude holds the whole conversation natively — no 12-turn fold), with headless
+# reliability and the natural -p voice. The session id persists across restarts too.
+SESSION_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "yuri-session-id")
+
+
+def _latest_user(messages):
+    for m in reversed(messages or []):
+        if m.get("role") == "user":
+            c = m.get("content")
+            return (c if isinstance(c, str) else " ".join(
+                p.get("text", "") for p in (c or []) if isinstance(p, dict))).strip()
+    return ""
+
+
+def _run(args, user_msg):
+    r = subprocess.run(args + [user_msg], capture_output=True, text=True, timeout=TIMEOUT)
+    return r.returncode, ((r.stdout or "").strip() or (r.stderr or "").strip())
+
+
 def run_claude(messages):
-    sys_txt = SYS_DEFAULT + (DISPATCH_NOTE if DISPATCH else "")
-    convo = []
-    for m in messages or []:
-        role = m.get("role")
-        c = m.get("content")
-        txt = c if isinstance(c, str) else " ".join(
-            p.get("text", "") for p in (c or []) if isinstance(p, dict))
-        txt = (txt or "").strip()
-        if not txt:
-            continue
-        if role == "system":
-            sys_txt = (sys_txt + "\n" + txt).strip()
-        elif role in ("user", "assistant"):
-            convo.append(("You" if role == "user" else "Yuri") + ": " + txt)
-    prompt = "\n".join(convo[-TURNS:]) if convo else "(no input)"
-    args = ["claude", "-p"]
-    if MODEL:
-        args += ["--model", MODEL]
-    if sys_txt:
-        args += ["--append-system-prompt", sys_txt]
-    args.append(prompt)
+    user_msg = _latest_user(messages) or "(no input)"
+    sys_full = SYS_DEFAULT + (DISPATCH_NOTE if DISPATCH else "")
+    sid = ""
     try:
-        r = subprocess.run(args, capture_output=True, text=True, timeout=TIMEOUT)
-        out = (r.stdout or "").strip() or (r.stderr or "").strip() or "I didn't catch that."
-        return _handle_dispatch(out)
+        with open(SESSION_FILE) as f:
+            sid = f.read().strip()
+    except Exception:
+        pass
+    try:
+        # Resume the existing session (real memory). Send ONLY the new turn — claude has the history.
+        if sid:
+            rc, out = _run(["claude", "-p", "--resume", sid], user_msg)
+            if rc == 0:
+                return _handle_dispatch(out or "I didn't catch that.")
+            # stale/missing session id -> fall through and create a fresh one
+        sid = str(uuid.uuid4())
+        create = ["claude", "-p", "--session-id", sid]
+        if MODEL:
+            create += ["--model", MODEL]
+        if sys_full:
+            create += ["--append-system-prompt", sys_full]
+        rc, out = _run(create, user_msg)
+        if rc == 0:
+            try:
+                os.makedirs(os.path.dirname(SESSION_FILE), exist_ok=True)
+                with open(SESSION_FILE, "w") as f:
+                    f.write(sid)
+            except Exception:
+                pass
+        return _handle_dispatch(out or "I didn't catch that.")
     except subprocess.TimeoutExpired:
         return "Sorry, I took too long thinking on that one."
     except Exception as e:

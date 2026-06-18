@@ -4,7 +4,7 @@
 # @does: the Pipecat realtime pipeline — local mic -> Silero VAD + smart-turn -> MLX Whisper STT -> brain-proxy (drives the live Claude Code tmux session) -> Marvis streaming Rick TTS -> speaker. Always-on, barge-in.
 # @use: R3 of the voice rebuild. Run (venv-pipecat) alongside a tmux `claude` (bridge armed) + claude-brain-proxy.py.
 # @exports: (async main)
-import os, sys, asyncio, re
+import os, sys, asyncio, re, time
 sys.path.insert(0, os.path.dirname(__file__))
 
 from loguru import logger
@@ -29,7 +29,6 @@ from pipecat.frames.frames import (
 )
 from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
 from pipecat.processors.audio.vad_processor import VADProcessor
-from pipecat.processors.filters.wake_check_filter import WakeCheckFilter
 
 from kokoro_tts import KokoroTTSService
 
@@ -64,6 +63,45 @@ class CancelFilter(FrameProcessor):
             if any(t == p or t.startswith(p + " ") or t.endswith(" " + p) for p in self._phrases):
                 logger.info(f"🚫 cancel — discarded (restate your request): {frame.text!r}")
                 return  # swallow: do not forward downstream
+        await self.push_frame(frame, direction)
+
+
+class WakeGate(FrameProcessor):
+    """Gates transcriptions behind a wake word that may appear ANYWHERE — start, middle, or end of
+    the sentence. On a hit it strips ONLY the wake word and forwards the WHOLE rest of what you said
+    (so '...do X, Yuri' sends 'do X', not just 'Yuri'). Stays awake for a keepalive window so
+    follow-ups don't need the word again. Asleep + no wake word => dropped (she stays quiet)."""
+
+    def __init__(self, phrases, keepalive=5.0):
+        super().__init__()
+        self._patterns = [
+            re.compile(r"\b" + r"\s*".join(re.escape(w) for w in p.split()) + r"\b", re.IGNORECASE)
+            for p in phrases if p.strip()
+        ]
+        self._keepalive = keepalive
+        self._awake_until = 0.0
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, TranscriptionFrame) and (frame.text or "").strip():
+            txt = frame.text.strip()
+            now = time.time()
+            if any(p.search(txt) for p in self._patterns):
+                cleaned = txt
+                for p in self._patterns:
+                    cleaned = p.sub(" ", cleaned)
+                cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,.?!-")
+                self._awake_until = now + self._keepalive
+                frame.text = cleaned or txt   # bare wake word -> keep it (just activates)
+                logger.info(f"⚡ Yuri (wake) -> {frame.text!r}")
+                await self.push_frame(frame, direction)
+                return
+            if now < self._awake_until:
+                self._awake_until = now + self._keepalive   # follow-up extends the window
+                await self.push_frame(frame, direction)
+                return
+            logger.info(f"💤 ignored (no wake word): {txt!r}")
+            return  # asleep + no wake word -> drop
         await self.push_frame(frame, direction)
 
 
@@ -204,12 +242,14 @@ async def main():
 
     # Voice activation: Yuri stays asleep until you say the wake word, then stays awake for a
     # follow-up window (keepalive) so you don't repeat it every turn. YURI_WAKE_DISABLE=1 = hot mic.
-    wake_on = os.environ.get("YURI_WAKE_DISABLE", "0") != "1"
+    # Hot mic by default — no wake word. Marcel mutes the mic to control when she listens.
+    # Re-enable the wake gate with YURI_WAKE_ENABLE=1 if ever wanted.
+    wake_on = os.environ.get("YURI_WAKE_ENABLE", "0") == "1"
     # No overlapping phrases (the filter pushes once per matching pattern → dupes). "yuri" already
     # catches "hey yuri". Whisper may mishear the name — add variants here if it does.
     wake_phrases = [p.strip() for p in os.environ.get("YURI_WAKE_PHRASES", "yuri,rick").split(",") if p.strip()]
-    wake = WakeCheckFilter(wake_phrases=wake_phrases,
-                           keepalive_timeout=float(os.environ.get("YURI_WAKE_KEEPALIVE", "3"))) if wake_on else None
+    wake = WakeGate(wake_phrases,
+                    keepalive=float(os.environ.get("YURI_WAKE_KEEPALIVE", "5"))) if wake_on else None
     if wake:
         logger.info(f"🔒 voice activation ON — wake word(s): {wake_phrases} (say one, then talk; YURI_WAKE_DISABLE=1 for hot mic)")
 
@@ -230,7 +270,9 @@ async def main():
     stages.append(cancel)
     stages += [HeardLogger(), agg.user(), llm, tts, transport.output(), agg.assistant()]
     pipeline = Pipeline(stages)
-    task = PipelineTask(pipeline)
+    # Don't let an idle stretch (Yuri thinking, or just quiet) cancel the pipeline + kill the bot.
+    # Always-on assistant: it stays up until you Ctrl-C, no matter how long between turns.
+    task = PipelineTask(pipeline, cancel_on_idle_timeout=False, cancel_runner_on_idle_timeout=False)
 
     # Yuri speaks first: proves the output path end-to-end on launch (if you hear this, the
     # speaker + TTS work and any later silence is an input problem), and is the first

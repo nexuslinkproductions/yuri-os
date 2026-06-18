@@ -133,11 +133,16 @@ try {
     try { return fs.existsSync(`${base}/_SYSTEM/state/voice/bridge.enabled`); } catch { return false; }
   })();
   if (bridgeOn) {
+    // Drop the reply as an ATOMIC per-turn file (tmp + rename) the proxy polls — race-free, unlike
+    // the old FIFO whose O_WRONLY|O_NONBLOCK write was silently lost (ENXIO) when no reader was open
+    // yet (fast replies fired the Stop hook before the proxy opened the pipe).
     try {
-      const fifo = `${base}/_SYSTEM/state/voice/reply.fifo`;
-      const fd = fs.openSync(fifo, fs.constants.O_WRONLY | fs.constants.O_NONBLOCK);
-      fs.writeSync(fd, out + '\n');
-      fs.closeSync(fd);
+      const dir = `${base}/_SYSTEM/state/voice/replies`;
+      fs.mkdirSync(dir, { recursive: true });
+      const id = `${Date.now()}-${process.pid}-${Math.random().toString(36).slice(2, 7)}`;
+      const tmp = `${dir}/.${id}.json.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify({ text: out, ts: Date.now() }));
+      fs.renameSync(tmp, `${dir}/${id}.json`);
     } catch {}
     ok();
   }
