@@ -124,6 +124,9 @@ const OVERSEER_DEFAULTS = {
                          //   (weekly→1m) + 1h regime, record snap.confluence + the shadow ledger
                          //   (bias vs forward move) WITHOUT touching sizing. Owner arms gating later (phase 3).
   confluenceAnchor: '1h',// regime-state anchor TF for the confluence read (reuses already-fetched bars).
+  confluenceGate: false, // when ON (auto-enables confluence), BLOCK an entry/flip that CONFLICTS with the
+                         //   higher-TF bias (1m wants long while weekly/4h/1h are short = the counter-trend
+                         //   bug). Directional veto only — ALIGNED + neutral entries flow; exits never blocked.
 };
 
 // Per-market recent ensemble-side history for hold-time hysteresis (module state, survives cycles).
@@ -151,6 +154,9 @@ function getOverseerConfig() {
   // DISARMED-by-default confluence MEASUREMENT arm (durable env arm, like multiHorizon): records the
   // higher-TF bias + 1h regime vs the live ensemble WITHOUT touching sizing. Safe to arm — measurement only.
   if (process.env.OBSERVATORY_CONFLUENCE === '1') cfg.confluence = true;
+  // The confluence ENTRY GATE (blocks counter-higher-TF entries) — auto-enables the confluence read so the
+  // gate always has data. Reversible env arm (improvement: stops the counter-trend bug). Owner 2026-06-18.
+  if (process.env.OBSERVATORY_CONFLUENCE_GATE === '1') { cfg.confluence = true; cfg.confluenceGate = true; }
   return cfg;
 }
 
@@ -839,6 +845,13 @@ async function runCryptoCycle(market, snap, cfg = {}) {
         const recent = hist.slice(-minHold);
         const persisted = recent.length >= minHold && recent.every((s) => s === ensemble.side);
         if (!persisted) skipped = `hysteresis(${recent.filter((s) => s === ensemble.side).length}/${minHold})`;
+      }
+      // CONFLUENCE GATE: veto an entry/flip that fights the higher-TF bias (the counter-trend bug). A
+      // DIRECTIONAL block only — aligned + neutral entries flow, exits/flatten are never blocked, so a
+      // market is never starved (it just can't open AGAINST weekly/4h/1h). Requires the confluence read
+      // (snap.confluence, set when oc.confluence is on); inert if absent. Armed via OBSERVATORY_CONFLUENCE_GATE.
+      if (!skipped && oc.confluenceGate === true && snap.confluence && snap.confluence.conflicts === true) {
+        skipped = `confluence-conflict(1m ${ensemble.side} vs ${snap.confluence.bias}/${snap.confluence.regime || '?'})`;
       }
       if (!skipped && oc.edgeGate === true) {
         const conviction = Math.min(1, ensemble.strength * 2);
