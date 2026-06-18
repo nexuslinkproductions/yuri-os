@@ -186,7 +186,10 @@ async def main():
         # real pipeline stage (VADProcessor, added below). That mis-wiring is why VAD never fired.
         audio_in_sample_rate=16000,
     ))
-    stt = WhisperSTTServiceMLX(model=MLXModel.LARGE_V3_TURBO_Q4)
+    # stop_secs (turn-end silence) defined up here so the STT's ttfs_p99_latency can exceed it —
+    # otherwise the turn-stop timeout math collapses to 0s ("delayed turn detection" warning).
+    stop_secs = float(os.environ.get("YURI_STOP_SECS", "2.0"))
+    stt = WhisperSTTServiceMLX(model=MLXModel.LARGE_V3_TURBO_Q4, ttfs_p99_latency=stop_secs + 0.5)
     llm = OpenAILLMService(api_key="local", model="claude-code", base_url=PROXY, max_tokens=4096)
     tts = KokoroTTSService(voice=VOICE, lang_code=VOICE_LANG)
 
@@ -194,9 +197,8 @@ async def main():
     # the STT service consumes to segment + transcribe. This is the fix — the transport never ran VAD.
     # confidence 0.5 (Silero scores your speech ~0.99 in isolation); min_volume=0 (no volume gate).
     # confidence 0.6 + start_secs 0.3: reject street-noise blips (stops false barge-in mid-sentence).
-    # stop_secs 1.5s (generous): pauses BETWEEN your words don't prematurely end the turn + transcribe
-    # a fragment while you're still talking. Raise YURI_STOP_SECS if you buffer longer between words.
-    stop_secs = float(os.environ.get("YURI_STOP_SECS", "1.5"))
+    # stop_secs (2.0s, defined above): pauses BETWEEN your words don't prematurely end the turn +
+    # transcribe a fragment while you're still talking. Raise YURI_STOP_SECS if you buffer longer.
     vad = VADProcessor(vad_analyzer=SileroVADAnalyzer(
         params=VADParams(confidence=0.6, start_secs=0.3, stop_secs=stop_secs, min_volume=0.0)))
 

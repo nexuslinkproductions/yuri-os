@@ -34,11 +34,18 @@ def _clear_mlx_cache():
 
 
 def _normalize(t: str) -> str:
-    """Replace punctuation that trips the Kokoro phonemizer (→ 'words count mismatch' →
-    broadcast_shapes crash): em/en dashes, ellipses, smart quotes → plain ASCII."""
-    return (t.replace("—", ", ").replace("–", ", ").replace("…", ". ")
-            .replace("“", '"').replace("”", '"')
-            .replace("‘", "'").replace("’", "'"))
+    """Make text speakable + phonemizer-safe. The Kokoro phonemizer chokes on markdown and fancy
+    punctuation (→ 'words count mismatch' → broadcast_shapes crash) — and you don't speak asterisks
+    anyway. Strip markdown, normalize dashes/quotes, turn newlines into sentence breaks (which also
+    lets the sentence-splitter chunk long bulleted replies into short, safe pieces)."""
+    t = (t.replace("—", ", ").replace("–", ", ").replace("…", ". ")
+         .replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'"))
+    t = re.sub(r"[*#`_~]+", "", t)              # bold/italic/headers/code/strikethrough markers
+    t = re.sub(r"(?m)^\s*[-•·]\s*", "", t)       # leading bullet markers
+    t = re.sub(r"\s*\n+\s*", ". ", t)            # newlines → sentence breaks
+    t = re.sub(r"\s+", " ", t)                   # collapse whitespace
+    t = re.sub(r"(\.\s*){2,}", ". ", t)          # de-dupe runs of periods
+    return t.strip()
 
 
 class KokoroTTSService(TTSService):
