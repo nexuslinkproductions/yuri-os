@@ -108,14 +108,24 @@ function appendJsonl(p, obj) {
  * @returns {(venue: string, price: number, size: number) => number}
  */
 export function cryptoFeeModel(role = 'taker', monthlyVolume = 0) {
+  // REALISTIC Coinbase Advanced Trade tiered rates (paper "like the real deal", owner 2026-06-18).
+  // Entry tier ~maker 0.40% / taker 0.60% — where a small retail/API account actually sits. These are
+  // ~6x the old optimistic 0.10% placeholder so paper P&L reflects the true cost. ADVISORY (the Coinbase
+  // fee page is Cloudflare-gated → unverified online); confirm the exact tier against the funded account's
+  // transaction_summary. Env-overridable for exact calibration: OBSERVATORY_FEE_MAKER / OBSERVATORY_FEE_TAKER.
   const tiers = [
-    { max: 1_000_000, maker: 0.0010, taker: 0.0010 },
-    { max: 5_000_000, maker: 0.0009, taker: 0.0010 },
-    { max: 10_000_000, maker: 0.0008, taker: 0.0009 },
-    { max: Infinity,  maker: 0.0006, taker: 0.0008 },
+    { max: 10_000,      maker: 0.0040, taker: 0.0060 }, // <$10k/30d — retail entry tier (where we'd actually be)
+    { max: 50_000,      maker: 0.0035, taker: 0.0050 },
+    { max: 1_000_000,   maker: 0.0025, taker: 0.0035 },
+    { max: 10_000_000,  maker: 0.0015, taker: 0.0025 },
+    { max: Infinity,    maker: 0.0008, taker: 0.0012 },
   ];
   const tier = tiers.find(t => monthlyVolume < t.max) ?? tiers[tiers.length - 1];
-  const rate = tier[role] ?? tier.taker;
+  let rate = tier[role] ?? tier.taker;
+  const envMaker = Number(process.env.OBSERVATORY_FEE_MAKER);
+  const envTaker = Number(process.env.OBSERVATORY_FEE_TAKER);
+  if (role === 'maker' && Number.isFinite(envMaker) && envMaker >= 0) rate = envMaker;
+  if (role === 'taker' && Number.isFinite(envTaker) && envTaker >= 0) rate = envTaker;
   return (_venue, price, size) => {
     if (!isNum(price) || !isNum(size)) return 0;
     return round2(Math.abs(price * size) * rate);
@@ -1085,9 +1095,9 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(_SELF) && process.ar
     assert(isNum(sellFill) && sellFill < mid, `T3b sell fill (${sellFill}) < mid (${mid})`);
     assert(buyFill > sellFill, 'T3c buy fill > sell fill');
 
-    // crypto fee: taker at 0.001 on $100 notional → $0.10
+    // crypto fee: REALISTIC Coinbase Advanced Trade taker 0.6% on $100 notional → $0.60 (was 0.10 placeholder)
     const fee = cryptoFeeModel('taker')(undefined, 100, 1);
-    assert(Math.abs(fee - 0.1) < 0.001, `T3d crypto taker fee = ${fee} (expect 0.10)`);
+    assert(Math.abs(fee - 0.6) < 0.001, `T3d crypto taker fee = ${fee} (expect 0.60 realistic)`);
 
     // Polymarket quadratic fee at p=0.5 (maximum)
     const polyFee = predictionMarketFeeModel(1, 0.07)(undefined, 0.5, 1);

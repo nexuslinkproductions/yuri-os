@@ -419,7 +419,7 @@ async function startServe(config = {}) {
   // The REST doTick loop above stays running as the fallback floor (a dropped socket degrades to 1s).
   let tickStream = null;
   if (TICK_STREAM_ARMED) {
-    const tsMarkets = (cfg.cryptoMarkets || []).filter(Boolean);
+    const tsMarkets = (cfg.cryptoMarkets || DEFAULT_CONFIG.cryptoMarkets || []).filter(Boolean); // server cfg doesn't merge DEFAULT_CONFIG; runCycle does — fall back to the env-parsed default
     let lastRiskMs = 0;
     const RISK_THROTTLE_MS = 100; // fire the (sync, cheap) risk check at most ~10x/s during tick bursts
     tickStream = startTickStream({

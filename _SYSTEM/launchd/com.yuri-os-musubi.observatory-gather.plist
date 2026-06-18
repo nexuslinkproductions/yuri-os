@@ -28,6 +28,9 @@
     <key>OBSERVATORY_AUTO_POLYMARKET</key><string>1</string>
     <key>OBSERVATORY_PERP</key><string>1</string>
     <key>OBSERVATORY_SOCIAL</key><string>1</string>
+    <key>OBSERVATORY_CRYPTO_MARKETS</key><string>BTC-USD,SOL-USD,ETH-USD</string>
+    <!-- real-time WS tick-stream ARMED (paper) — event-driven sub-second risk exits via Coinbase public ws -->
+    <key>OBSERVATORY_TICK_STREAM</key><string>1</string>
     <key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>
   <key>RunAtLoad</key><true/>
