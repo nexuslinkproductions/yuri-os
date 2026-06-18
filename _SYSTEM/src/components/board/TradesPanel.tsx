@@ -56,7 +56,7 @@ export default function TradesPanel({ data }: Props) {
             return (
               <div
                 key={`${t.market}-${t.factorId}-${t.ts}-${i}`}
-                style={{ display: 'grid', gridTemplateColumns: '46px 1fr auto auto', gap: 8, alignItems: 'center', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontVariantNumeric: 'tabular-nums' }}
+                style={{ display: 'grid', gridTemplateColumns: '46px 1fr auto auto auto', gap: 8, alignItems: 'center', padding: '3px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontVariantNumeric: 'tabular-nums' }}
               >
                 <span style={{ color: longSide ? '#19c37d' : '#e8453a', fontWeight: 600 }}>
                   {longSide ? 'LONG' : 'SHORT'}
@@ -65,6 +65,11 @@ export default function TradesPanel({ data }: Props) {
                   <span style={{ color: '#cdd9e8' }}>{t.market.replace('-USD', '')}</span> {shortFactor(t.factorId, t.market)}
                 </span>
                 <span style={{ color: '#6e87a3' }}>{fmtPx(t.entryPx)}→{fmtPx(t.exitPx)}</span>
+                <span style={{ color: '#42546b', textAlign: 'right', minWidth: 52 }}>
+                  {(t.qty != null && t.entryPx != null && isFinite(t.qty) && isFinite(t.entryPx))
+                    ? ('$' + (t.qty * t.entryPx).toLocaleString('en-US', { maximumFractionDigits: 0 }))
+                    : '—'}
+                </span>
                 <span style={{ color: win ? '#19c37d' : '#e8453a', textAlign: 'right', minWidth: 64 }}>
                   {fmtPnl(t.netPnl)} <span style={{ color: '#42546b' }}>{fmtAge(t.ts)}</span>
                 </span>

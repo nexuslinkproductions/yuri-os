@@ -97,6 +97,22 @@ export default function IntentPanel({ market, marketData, allPositions, account 
               <span className="bb-intent-label">Entries</span>
               <span className="bb-intent-val dim">{pos.entryCount ?? 1}×</span>
             </div>
+            {(() => {
+              const notional = pos.quantity * pos.avgEntryPrice;
+              const margin = (typeof pos.leverage === 'number' && pos.leverage > 1) ? notional / pos.leverage : notional;
+              return (
+                <>
+                  <div className="bb-intent-cell">
+                    <span className="bb-intent-label">Margin</span>
+                    <span className="bb-intent-val">{fmtUSD(margin)} <span className="sub">in</span></span>
+                  </div>
+                  <div className="bb-intent-cell">
+                    <span className="bb-intent-label">Notional</span>
+                    <span className="bb-intent-val">{fmtUSD(notional)} <span className="sub">size</span></span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         );
       })() : (
@@ -129,6 +145,7 @@ export default function IntentPanel({ market, marketData, allPositions, account 
               <th>Sym</th>
               <th>Side</th>
               <th className="r">Lev</th>
+              <th className="r">Margin</th>
               <th>Entry</th>
               <th className="r">Cur</th>
               <th className="r">Liq</th>
@@ -147,11 +164,14 @@ export default function IntentPanel({ market, marketData, allPositions, account 
               const age = pos.openedTs ? fmtAge(pos.openedTs) : '—';
               const levStr = typeof pos.leverage === 'number' && pos.leverage > 1 ? `${pos.leverage}×` : '—';
               const liqStr = typeof pos.liquidationPrice === 'number' && isFinite(pos.liquidationPrice) ? fmtPrice(pos.liquidationPrice) : '—';
+              const notional = pos.quantity * pos.avgEntryPrice;
+              const margin = (typeof pos.leverage === 'number' && pos.leverage > 1) ? notional / pos.leverage : notional;
               return (
                 <tr key={pos.instrument}>
                   <td className="sym">{sym}</td>
                   <td className={sideCls}>{sideLabel}</td>
                   <td className="r" style={{ color: 'var(--mist)' }}>{levStr}</td>
+                  <td className="r" style={{ color: 'var(--mist)' }}>{fmtUSD(margin)}</td>
                   <td>{fmtPrice(pos.avgEntryPrice)}</td>
                   <td className="r">{pos.currentPrice ? fmtPrice(pos.currentPrice) : '—'}</td>
                   <td className="r" style={{ color: 'var(--short)' }}>{liqStr}</td>
