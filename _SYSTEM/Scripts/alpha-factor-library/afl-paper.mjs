@@ -2,7 +2,7 @@
 // @serves: paper trading | paper engine | simulated fills | market impact | almgren-chriss | circuit breaker | position tracking | P&L | drawdown | AFL paper order | replay | backtest
 // @does: YURI AFL paper-trading engine — pure simulation, NO real orders. Simulates fills via Almgren-Chriss impact + half-spread + venue fee (crypto tiered maker/taker; polymarket quadratic). Tracks positions, realized+unrealized P&L, max drawdown, 3-state circuit breaker. Append-only JSONL ledgers. Deterministic + replayable. Bars validated by validateBar (data-quality-gate). Prediction outcomes wired via prediction-ledger recordPrediction/recordOutcome.
 // @use: createPaperEngine(opts) → engine; call ingestBar(bar, instrument) to feed canonical {timestamp,open,high,low,close,volume} bars; call submitPaperOrder({venue,symbol,side,qty|notional,refPrice}) for size-explicit fills; call onSignal(signal, ctx) for factor-signal-driven orders. Never POSTs real orders (PAPER-ONLY, INV-1).
-// @exports: createPaperEngine, cryptoFeeModel, predictionMarketFeeModel
+// @exports: createPaperEngine, cryptoFeeModel, binanceFeeModel, liquidationPrice, predictionMarketFeeModel
 
 /**
  * afl-paper.mjs — YURI AFL Paper-Trading Engine (PURE SIMULATION)
@@ -130,6 +130,58 @@ export function cryptoFeeModel(role = 'taker', monthlyVolume = 0) {
     if (!isNum(price) || !isNum(size)) return 0;
     return round2(Math.abs(price * size) * rate);
   };
+}
+
+/**
+ * Binance USDⓈ-M perpetual-futures tiered maker / taker fee model.
+ * Base (VIP0) ~maker 0.020% / taker 0.050% — where a small retail account sits; ~30x cheaper than the
+ * Coinbase spot taker, which is exactly why maker-default leveraged micro-trades are only viable on a
+ * perp venue (research: crypto-day-trading-reality-2026-06-18.md). Base tier verified ≥2 primary
+ * pathways (2026-06-18). Env-overridable for exact calibration: OBSERVATORY_FEE_MAKER / OBSERVATORY_FEE_TAKER.
+ * Note: rates are FRACTIONS (0.000200 = 0.020%). Funding is separate (see applyFunding / fundingRates).
+ * @param {'maker'|'taker'} role
+ * @param {number} [monthlyVolume=0] 30-day USD volume for VIP-tier lookup.
+ * @returns {(venue: string, price: number, size: number) => number}
+ */
+export function binanceFeeModel(role = 'taker', monthlyVolume = 0) {
+  const tiers = [
+    { max: 15_000_000,   maker: 0.000200, taker: 0.000500 }, // VIP0 — base retail (where a $300 account sits)
+    { max: 50_000_000,   maker: 0.000160, taker: 0.000400 }, // VIP1
+    { max: 100_000_000,  maker: 0.000140, taker: 0.000350 }, // VIP2
+    { max: Infinity,     maker: 0.000120, taker: 0.000320 }, // VIP3+
+  ];
+  const tier = tiers.find(t => monthlyVolume < t.max) ?? tiers[tiers.length - 1];
+  let rate = tier[role] ?? tier.taker;
+  const envMaker = Number(process.env.OBSERVATORY_FEE_MAKER);
+  const envTaker = Number(process.env.OBSERVATORY_FEE_TAKER);
+  if (role === 'maker' && Number.isFinite(envMaker) && envMaker >= 0) rate = envMaker;
+  if (role === 'taker' && Number.isFinite(envTaker) && envTaker >= 0) rate = envTaker;
+  return (_venue, price, size) => {
+    if (!isNum(price) || !isNum(size)) return 0;
+    return round2(Math.abs(price * size) * rate);
+  };
+}
+
+/**
+ * Isolated-margin liquidation price for a leveraged perp position (Binance USDⓈ-M model).
+ * Derived from LP = (P·EP − WB − cum)/(P·(1−MMR)) with isolated margin WB = notional/leverage and
+ * cum = 0 (Tier-1, notional < $50k — always true at our €1–25-margin × leverage scale). Simplifies to:
+ *   long:  avg·(1 − 1/lev)/(1 − mmr)
+ *   short: avg·(1 + 1/lev)/(1 + mmr)
+ * Verified vs Binance worked examples (20×@$60k → $57,229 = −4.62%; 50× → $59,036 = −1.61%). Higher
+ * notionals shift MMR + add maintenance-amount (cum) — pull live /fapi/v1/leverageBracket before real money.
+ * @param {'long'|'short'} side
+ * @param {number} avg entry price
+ * @param {number} leverage (>1; ≤1 → no liquidation → null)
+ * @param {number} [mmr=0.004] maintenance margin rate (Tier-1 BTCUSDT = 0.4%)
+ * @returns {number|null} liquidation price, or null at ≤1× / bad input
+ */
+export function liquidationPrice(side, avg, leverage, mmr = 0.004) {
+  if (!isNum(avg) || avg <= 0 || !isNum(leverage) || leverage <= 1 || !isNum(mmr) || mmr < 0 || mmr >= 1) return null;
+  const lp = side === 'long'
+    ? avg * (1 - 1 / leverage) / (1 - mmr)
+    : avg * (1 + 1 / leverage) / (1 + mmr);
+  return isNum(lp) && lp > 0 ? round2(lp) : null;
 }
 
 /**
@@ -320,6 +372,10 @@ export function createPaperEngine(config) {
     fundingRates:        c.fundingRates ?? {},
     qtyStep:             safeNum(c.qtyStep, 1e-8),
     minNotional:         safeNum(c.minNotional, 1),
+    // PERP MODE (opt-in): leveraged USDⓈ-M perp economics. Default OFF → spot behavior unchanged.
+    perpMode:            c.perpMode === true,
+    leverage:            safeNum(c.leverage, 1),
+    maintenanceMarginRate: safeNum(c.maintenanceMarginRate, 0.004), // Tier-1 BTCUSDT
   };
 
   // ── Internal state ─────────────────────────────────────────────
@@ -417,17 +473,21 @@ export function createPaperEngine(config) {
   // ── Position helpers ───────────────────────────────────────────
   function execOpen(inst, side, qty, px, fee, ts, fid, conf) {
     S.cumFees += fee;
+    const lev = caps.perpMode ? caps.leverage : 1;
     const ex = S.positions.get(inst);
     if (ex && ex.side === side) {
       const tq = ex.qty + qty;
       ex.avg = round2((ex.avg * ex.qty + px * qty) / tq);
       ex.qty = tq;
       ex.ents.push({ px, qty, ts, fee });
+      // recompute liquidation off the new average entry (perp only)
+      ex.liqPx = caps.perpMode ? liquidationPrice(side, ex.avg, lev, caps.maintenanceMarginRate) : null;
     } else {
       S.positions.set(inst, {
         inst, side, qty, avg: px,
         ents: [{ px, qty, ts, fee }],
         ots: ts, fid: fid || 'unknown', conf: conf ?? 0,
+        lev, liqPx: caps.perpMode ? liquidationPrice(side, px, lev, caps.maintenanceMarginRate) : null,
       });
       S.fundTs.set(inst, ts);
     }
@@ -468,6 +528,26 @@ export function createPaperEngine(config) {
       const px = bh && bh.length ? bh[bh.length - 1].close : pos.avg;
       const xf = feeModel(caps.venue, px, pos.qty);
       execClose(inst, px, xf, ts, 'flatten');
+    }
+  }
+
+  /**
+   * PERP: force-close any position whose mark has crossed its isolated-margin liquidation price.
+   * The exchange liquidates, not the strategy — so this lives in the engine's MTM step (mark), not in
+   * an orchestrator risk-exit. Closes AT liqPx (price-based loss ≈ the posted margin); real Binance also
+   * charges a small liquidation fee on top — a known, documented optimism for now (cents at €1–25 margin).
+   */
+  function liquidateBreaches(ts, prices = {}) {
+    for (const [inst, pos] of [...S.positions.entries()]) {
+      if (!isNum(pos.liqPx)) continue;
+      const bh = S.bars.get(inst);
+      const px = isNum(prices[inst]) ? prices[inst] : (bh && bh.length ? bh[bh.length - 1].close : null);
+      if (!isNum(px)) continue;
+      const crossed = pos.side === 'long' ? px <= pos.liqPx : px >= pos.liqPx;
+      if (crossed) {
+        const xf = feeModel(caps.venue, pos.liqPx, pos.qty);
+        execClose(inst, pos.liqPx, xf, ts, 'liquidation');
+      }
     }
   }
 
@@ -613,7 +693,8 @@ export function createPaperEngine(config) {
     // Clamp to max position cap (INV-1 safety: don't allow runaway paper positions).
     // Use raw (non-floored) clamp to support fractional-unit crypto (e.g. 0.1 BTC).
     const { eq } = snapDd();
-    const maxQtyFromCap = (caps.maxPositionPct * eq) / mid;
+    const levCap = caps.perpMode ? Math.max(1, caps.leverage) : 1; // perp: notional may exceed equity
+    const maxQtyFromCap = (caps.maxPositionPct * eq * levCap) / mid;
     const clampedQty = Math.min(resolvedQty, maxQtyFromCap);
     if (clampedQty <= 0) {
       logPaper({ type: 'rejected', reason: 'qty_clamped_to_zero', symbol, side, ts: S.lastTs });
@@ -787,7 +868,8 @@ export function createPaperEngine(config) {
       // Explicit qty path — round to step (do NOT floor — that zeroes crypto)
       callerQty = roundToStep(signal.qty, caps.qtyStep);
     }
-    const maxNot = caps.maxPositionPct * eq;
+    const levCap = caps.perpMode ? Math.max(1, caps.leverage) : 1; // perp: notional may exceed equity
+    const maxNot = caps.maxPositionPct * eq * levCap;
     let baseQty = callerQty ?? roundToStep(maxNot / mid, caps.qtyStep);
     if (baseQty <= 0) {
       const r = { action: 'NO_TRADE', reason: 'zero_base_qty', factorId, ts };
@@ -828,11 +910,11 @@ export function createPaperEngine(config) {
       netExp += p2.side === 'long' ? n : -n;
     }
     const sSign = side === 'long' ? 1 : -1;
-    const mg = caps.maxGrossExposurePct * eq;
+    const mg = caps.maxGrossExposurePct * eq * levCap;
     if (grossExp + mid * adjQty > mg) {
       adjQty = roundToStep(Math.max(0, mg - grossExp) / mid, caps.qtyStep);
     }
-    const mn = caps.maxNetExposurePct * eq;
+    const mn = caps.maxNetExposurePct * eq * levCap;
     if (Math.abs(netExp + sSign * mid * adjQty) > mn) {
       adjQty = roundToStep(Math.max(0, mn - Math.abs(netExp)) / mid, caps.qtyStep);
     }
@@ -903,6 +985,7 @@ export function createPaperEngine(config) {
     }
     S.lastTs = Math.max(S.lastTs, ts);
     applyFunding(ts);
+    if (caps.perpMode) liquidateBreaches(ts, prices); // perp: exchange liquidation before equity/DD snap
     const { eq, dd } = snapDd();
     checkCb(dd, ts);
     return { equity: round2(eq), drawdownBps: round2(dd * 1e4), circuitBreaker: S.cbState };
@@ -924,6 +1007,8 @@ export function createPaperEngine(config) {
         unrealizedPnl: round2(dir * (px - pos.avg) * pos.qty),
         fundingPaid: round2(S.fundMap.get(inst) || 0),
         factorId: pos.fid, openedTs: pos.ots, entryCount: pos.ents.length,
+        liquidationPrice: isNum(pos.liqPx) ? pos.liqPx : null,
+        leverage: pos.lev ?? 1,
       });
     }
     return out;

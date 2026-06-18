@@ -73,6 +73,8 @@
       "exports": [
         "createPaperEngine",
         "cryptoFeeModel",
+        "binanceFeeModel",
+        "liquidationPrice",
         "predictionMarketFeeModel"
       ],
       "mechanism": "_SYSTEM/Scripts/alpha-factor-library/afl-paper.mjs"
