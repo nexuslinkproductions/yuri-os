@@ -59,10 +59,36 @@ class CancelFilter(FrameProcessor):
         if isinstance(frame, TranscriptionFrame):
             t = re.sub(r"[^a-z\s]", "", (frame.text or "").lower()).strip()
             t = re.sub(r"^(yuri|rick)\s+", "", t).strip()  # drop a leading wake word
-            if any(t == p or t.startswith(p + " ") for p in self._phrases):
+            # Match a cancel phrase at the START, END, or as the whole sentence — people naturally
+            # trail off with "...never mind, scratch that" at the end of a ramble.
+            if any(t == p or t.startswith(p + " ") or t.endswith(" " + p) for p in self._phrases):
                 logger.info(f"🚫 cancel — discarded (restate your request): {frame.text!r}")
                 return  # swallow: do not forward downstream
         await self.push_frame(frame, direction)
+
+
+def _clear_mlx_cache():
+    try:
+        import mlx.core as mx
+        if hasattr(mx, "clear_cache"):
+            mx.clear_cache()
+        elif hasattr(mx, "metal") and hasattr(mx.metal, "clear_cache"):
+            mx.metal.clear_cache()
+    except Exception:
+        pass
+
+
+class MLXCacheCleaner(FrameProcessor):
+    """Frees MLX's Metal buffer pool after every transcription. Whisper-MLX allocates GPU buffers per
+    transcribe and never frees them — including wake-gate-dropped speech that runs STT but never
+    reaches TTS's cache-clear — so without this, transcription slows then hangs over a long session.
+    Placed right after STT so it catches ALL transcriptions (gated or not)."""
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        await self.push_frame(frame, direction)
+        if isinstance(frame, TranscriptionFrame):
+            _clear_mlx_cache()
 
 
 class InputLevelLogger(FrameProcessor):
@@ -167,10 +193,12 @@ async def main():
     # VAD as a REAL pipeline stage (Pipecat 1.3.0): emits VADUser{Started,Stopped}SpeakingFrame that
     # the STT service consumes to segment + transcribe. This is the fix — the transport never ran VAD.
     # confidence 0.5 (Silero scores your speech ~0.99 in isolation); min_volume=0 (no volume gate).
-    # confidence 0.6 + start_secs 0.3: reject loud street-noise blips as speech (stops false barge-in
-    # cutting Yuri off mid-sentence). Your real speech scores ~0.99 so it still triggers instantly.
+    # confidence 0.6 + start_secs 0.3: reject street-noise blips (stops false barge-in mid-sentence).
+    # stop_secs 1.5s (generous): pauses BETWEEN your words don't prematurely end the turn + transcribe
+    # a fragment while you're still talking. Raise YURI_STOP_SECS if you buffer longer between words.
+    stop_secs = float(os.environ.get("YURI_STOP_SECS", "1.5"))
     vad = VADProcessor(vad_analyzer=SileroVADAnalyzer(
-        params=VADParams(confidence=0.6, start_secs=0.3, stop_secs=0.8, min_volume=0.0)))
+        params=VADParams(confidence=0.6, start_secs=0.3, stop_secs=stop_secs, min_volume=0.0)))
 
     # Voice activation: Yuri stays asleep until you say the wake word, then stays awake for a
     # follow-up window (keepalive) so you don't repeat it every turn. YURI_WAKE_DISABLE=1 = hot mic.
@@ -194,7 +222,7 @@ async def main():
 
     # stt → [wake gate] → HeardLogger: 👂 YOU SAID only logs speech that PASSED the wake gate, so the
     # terminal shows exactly what Yuri acted on (talk without the wake word → 🎤 hearing you but no reply).
-    stages = [transport.input(), vad, InputLevelLogger(), stt]
+    stages = [transport.input(), vad, InputLevelLogger(), stt, MLXCacheCleaner()]
     if wake:
         stages.append(wake)
     stages.append(cancel)

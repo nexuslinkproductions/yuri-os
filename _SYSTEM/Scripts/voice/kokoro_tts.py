@@ -33,6 +33,14 @@ def _clear_mlx_cache():
         pass
 
 
+def _normalize(t: str) -> str:
+    """Replace punctuation that trips the Kokoro phonemizer (→ 'words count mismatch' →
+    broadcast_shapes crash): em/en dashes, ellipses, smart quotes → plain ASCII."""
+    return (t.replace("—", ", ").replace("–", ", ").replace("…", ". ")
+            .replace("“", '"').replace("”", '"')
+            .replace("‘", "'").replace("’", "'"))
+
+
 class KokoroTTSService(TTSService):
     """Preset-voice TTS via mlx-audio Kokoro-82M. Synthesizes the full reply on a dedicated MLX
     thread, then yields fixed-size TTSAudioRawFrame chunks for smooth playback + barge-in."""
@@ -83,7 +91,8 @@ class KokoroTTSService(TTSService):
                 # Synthesize PER SENTENCE: each generate() call is short + single-segment, which
                 # sidesteps Kokoro's multi-segment concat that throws "broadcast_shapes" on longer
                 # replies. One bad sentence is skipped, not the whole reply (graceful degradation).
-                sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()] or [text]
+                norm = _normalize(text)
+                sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", norm) if s.strip()] or [norm]
                 produced = False
                 for sent in sentences:
                     try:
