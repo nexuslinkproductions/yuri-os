@@ -117,8 +117,11 @@ const OVERSEER_DEFAULTS = {
                          //   executes (0 = off). Longer holds → bigger moves → clears the fixed fee.
   maxHoldSec: 0,         // TIME-STOP: force-close a position older than this many seconds (0 = off).
                          //   Caps hold time → faster, horizon-aligned outcomes for the learn loop.
-  stopLossPct: 0,        // STOP-LOSS: close when unrealized loss ≥ this fraction of position value (0=off).
-  takeProfitPct: 0,      // TAKE-PROFIT: close when unrealized gain ≥ this fraction of position value (0=off).
+  stopLossPct: 0.015,    // STOP-LOSS (de-risk default 2026-06-18): close at 1.5% adverse move of position
+                         //   value. At 20x that's ~30% of margin — WELL inside the ~4.6% isolated-liq
+                         //   distance, so no position can ride to liquidation. Was 0 (unbounded loss). Tunable
+                         //   via overseer-config; the funding-carry harvester will use settlement-based exits.
+  takeProfitPct: 0.025,  // TAKE-PROFIT: bank at 2.5% favorable move (~1.7:1 R:R). Was 0 (rode to signal-flip).
   confluence: false,     // DISARMED multi-TF confluence + 1h regime MEASUREMENT layer. false → zero
                          //   extra network + zero behavior change. true → compute the higher-TF bias
                          //   (weekly→1m) + 1h regime, record snap.confluence + the shadow ledger
@@ -860,7 +863,10 @@ async function runCryptoCycle(market, snap, cfg = {}) {
           // move clears the REALISTIC round-trip fee; the chosen horizon then drives the hold-time AND a
           // wider stop/take (via _horizonPlan, honored by fastRiskExit) so the long trade isn't knifed by
           // the 1-min stop or closed at maxHold before its move can materialize.
-          const takerRate = cryptoFeeModel('taker')(undefined, 1, 1); // fee on $1 notional = the rate
+          // Cost basis MUST match the engine's actual fill fee, else the gate mis-selects horizons. The
+          // live perp engine fills at binanceFeeModel('taker')=0.05% (getPaperEngine:416); using Coinbase
+          // 0.60% here overstated the round-trip ~12× and forced wrongly-long horizons / false skips.
+          const takerRate = (PERP_MODE ? binanceFeeModel('taker') : cryptoFeeModel('taker'))(undefined, 1, 1); // fee on $1 notional = the rate
           const rtCost = realisticRoundTripCost({ takerRate, spreadFrac: 0.0005 });
           const margin = Number.isFinite(oc.horizonMargin) ? oc.horizonMargin : 1.0;
           const sel = selectHorizon({ volPerBar: recentVolPct(bars), conviction, roundTripCost: rtCost, marginFactor: margin });

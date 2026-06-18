@@ -571,14 +571,26 @@ export function createPaperEngine(config) {
   function applyFunding(ts) {
     for (const [inst, pos] of S.positions) {
       const rate = caps.fundingRates[inst];
-      if (!rate || !isNum(rate) || rate <= 0) continue;
+      // 0 = no funding; a NEGATIVE rate is valid (it's a credit, not "skip"). Only bail on non-finite/zero.
+      if (!isNum(rate) || rate === 0) continue;
       const lt = S.fundTs.get(inst);
       if (!lt || ts <= lt) continue;
-      const hrs = (ts - lt) / 3_600; // ts in seconds → hours
+      const hrs = (ts - lt) / 3_600; // ts in seconds → hours (caps.fundingRates is an HOURLY rate)
       if (hrs <= 0) continue;
-      const cost = round2(rate * hrs * pos.avg * pos.qty);
-      if (cost <= 0) continue;
-      S.cumFunding += cost;
+      // MARK price (current), not entry — Binance charges funding on the mark, and a moved position must
+      // accrue on its current notional. Fall back to entry only when no bar has been ingested.
+      const bh = S.bars.get(inst);
+      const mark = (bh && bh.length && isNum(bh[bh.length - 1].close) && bh[bh.length - 1].close > 0)
+        ? bh[bh.length - 1].close : pos.avg;
+      // SIGNED by side: positive rate ⇒ longs PAY shorts, negative ⇒ shorts PAY longs.
+      //   long  + rate>0 → +cost (pay) ;  short + rate>0 → −cost (receive)
+      //   long  + rate<0 → −cost (receive); short + rate<0 → +cost (pay)
+      // This is what makes funding-CARRY harvestable: the side that gets paid sees cumFunding go negative
+      // → equity() (= … − cumFunding …) rises. The old code charged every position and never paid.
+      const sideSign = pos.side === 'long' ? 1 : -1;
+      const cost = round2(sideSign * rate * hrs * mark * pos.qty);
+      if (cost === 0) continue;
+      S.cumFunding += cost; // may be negative (a net funding CREDIT)
       S.fundMap.set(inst, (S.fundMap.get(inst) || 0) + cost);
       S.fundTs.set(inst, ts);
     }
