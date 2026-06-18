@@ -23,7 +23,7 @@ import path from 'node:path';
 import https from 'node:https';
 import { URL as NodeURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, existsSync, readFileSync, readdirSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, readdirSync, appendFileSync } from 'node:fs';
 
 // ── Path resolution ────────────────────────────────────────────────────────
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -65,6 +65,7 @@ import { optimizeFactorCircuit } from '../factor-circuit.mjs';
 import { webSearch as agentReachSearch, available as agentReachAvailable } from '../../agent-reach.mjs';
 import { scorePost, aggregateSentiment } from '../adapters/social-adapter.mjs';
 import { computeIndicators, listIndicators as registryListIndicators } from '../indicator-registry.mjs';
+import { getConfluence } from '../multi-tf-confluence.mjs';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit aware
@@ -94,6 +95,10 @@ const PER_FACTOR_MAX_PCT = 0.001;
 const ENSEMBLE_MAX_PCT = 0.10;
 const ENSEMBLE_WEIGHTS_PATH = path.join(STATE_DIR, 'ensemble-weights.json');
 const FORECAST_LEDGER = path.join(STATE_DIR, 'strategy-forecasts.jsonl');
+// DISARMED multi-TF confluence + 1h regime SHADOW ledger: records the higher-TF bias vs the live 1m
+// ensemble decision (agree/conflict) + forward price, so confluence-gating can be PROVEN on real data
+// before it ever touches sizing. Append-only telemetry, like the quantum A/B shadow ledger.
+const CONFLUENCE_SHADOW_LEDGER = path.join(STATE_DIR, 'observatory-confluence-shadow.jsonl');
 
 // OVERSEER CONTROL SURFACE: a hot-reloaded config the overseer team (Sonnet + deepseek-flash) writes
 // to steer trading WITHOUT touching execution code. Absent file → these defaults → IDENTICAL to the
@@ -114,6 +119,11 @@ const OVERSEER_DEFAULTS = {
                          //   Caps hold time → faster, horizon-aligned outcomes for the learn loop.
   stopLossPct: 0,        // STOP-LOSS: close when unrealized loss ≥ this fraction of position value (0=off).
   takeProfitPct: 0,      // TAKE-PROFIT: close when unrealized gain ≥ this fraction of position value (0=off).
+  confluence: false,     // DISARMED multi-TF confluence + 1h regime MEASUREMENT layer. false → zero
+                         //   extra network + zero behavior change. true → compute the higher-TF bias
+                         //   (weekly→1m) + 1h regime, record snap.confluence + the shadow ledger
+                         //   (bias vs forward move) WITHOUT touching sizing. Owner arms gating later (phase 3).
+  confluenceAnchor: '1h',// regime-state anchor TF for the confluence read (reuses already-fetched bars).
 };
 
 // Per-market recent ensemble-side history for hold-time hysteresis (module state, survives cycles).
@@ -138,6 +148,9 @@ function getOverseerConfig() {
   // OPERATOR ARM via env (stable — survives the overseer beats' config rewrites; the beats own the
   // config FILE for dynamic steering, so a durable arm like multi-horizon belongs in env, not the file).
   if (process.env.OBSERVATORY_MULTI_HORIZON === '1') cfg.multiHorizon = true;
+  // DISARMED-by-default confluence MEASUREMENT arm (durable env arm, like multiHorizon): records the
+  // higher-TF bias + 1h regime vs the live ensemble WITHOUT touching sizing. Safe to arm — measurement only.
+  if (process.env.OBSERVATORY_CONFLUENCE === '1') cfg.confluence = true;
   return cfg;
 }
 
@@ -717,6 +730,43 @@ async function runCryptoCycle(market, snap, cfg = {}) {
     confidence: ensemble.confidence, longVotes: ensemble.longVotes,
     shortVotes: ensemble.shortVotes, contributors: ensemble.contributors, top: ensemble.top,
   };
+
+  // ── MULTI-TF CONFLUENCE + 1h REGIME (DISARMED measurement layer) ─────────────────────────────────
+  // The live engine sizes off 1-minute signals → it trades counter to the dominant higher-TF trend on
+  // noise (the primary losing pattern). This computes the higher-TF bias HIERARCHY (weekly→4h→1h→15m→
+  // 5m→1m, higher TFs heavier) + a 1h regime state, and MEASURES whether the 1m ensemble AGREES or
+  // CONFLICTS with it — recorded to snap + a shadow ledger so confluence-gating can be PROVEN on real
+  // forward outcomes BEFORE it ever touches sizing. DISARMED: oc.confluence defaults false → this whole
+  // block is skipped (zero extra network, zero behavior change). Sizing below is UNTOUCHED regardless;
+  // arming confluence→sizing is a separate owner-gated step (phase 3). Fail-soft end to end.
+  if (oc.confluence) {
+    try {
+      const symbol = `${market.split('-')[0]}USDT`; // BTC-USD → BTCUSDT (Binance multi-TF context feed)
+      const conf = await getConfluence({ symbol, regimeAnchor: oc.confluenceAnchor || '1h' });
+      const eSide = ensemble.side;
+      const aligned = eSide !== 'flat' && conf.bias !== 'neutral' && conf.bias === eSide;
+      const conflicts = eSide !== 'flat' && conf.bias !== 'neutral' && conf.bias !== eSide;
+      const reg = conf.regime || null;
+      snap.confluence = {
+        bias: conf.bias, confluence: conf.confluence, confidence: conf.confidence,
+        agreement: conf.agreement, activeTfs: conf.activeTfs, weightedScore: conf.weightedScore,
+        perTf: conf.perTf,
+        regime: reg ? reg.regime : null, regimeDir: reg ? reg.trendDir : null, adx: reg ? reg.adx : null,
+        aligned, conflicts,
+      };
+      // Compact shadow line for later scoring (confluence.bias vs forward price move). Fail-soft.
+      try {
+        appendFileSync(CONFLUENCE_SHADOW_LEDGER, JSON.stringify({
+          market, ts: snap.updatedAt || now, close: lastBar.close,
+          ensembleSide: eSide, ensembleNet: ensemble.net,
+          bias: conf.bias, confluence: conf.confluence, confidence: conf.confidence,
+          agreement: conf.agreement, activeTfs: conf.activeTfs, weightedScore: conf.weightedScore,
+          regime: reg ? reg.regime : null, regimeDir: reg ? reg.trendDir : null, adx: reg ? reg.adx : null,
+          aligned, conflicts,
+        }) + '\n');
+      } catch { /* ledger append never breaks the cycle */ }
+    } catch (_e) { /* confluence is advisory telemetry — never break the cycle */ }
+  }
 
   // Hold-time hysteresis bookkeeping: record this cycle's side so a flip can require persistence.
   const minHold = (typeof oc.minHoldCycles === 'number' && oc.minHoldCycles > 0) ? Math.floor(oc.minHoldCycles) : 0;
