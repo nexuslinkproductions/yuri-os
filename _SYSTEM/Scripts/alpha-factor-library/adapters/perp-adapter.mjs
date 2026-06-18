@@ -2,8 +2,8 @@
 // @capability: perp-adapter
 // @serves: crypto perpetuals | perp venue | funding rate | open interest | mark price | basis | term structure | crypto-native factors
 // @does: READ-ONLY crypto perpetuals adapter (Binance USDⓈ-M public REST as the default venue) — funding rate, open interest, and basis (perp vs spot) are mapped to AFL-unified shapes that match the crypto factors' data_inputs (funding_rate, open_interest, future_price, spot_price, basis). SSRF-guarded, keyless by default (env-gated when venue requires it), injected HTTP for offline tests, injected spot-getter for the basis calc so it does not hard-couple to the coinbase adapter. INV-1 (no order path), INV-2 (no key reads), INV-3 (live reads OK), INV-6 (parseNum at boundary, ''→null), INV-7 (deterministic + offline-testable) all honored.
-// @use: Reach for this before any code that needs perp funding / OI / basis to feed the crypto-native factors (crypto-funding-price-reaction, crypto-price-oi-quadrant, crypto-basis-term-structure-carry, crypto-lvr-aware-lp). All exports pure except the four HTTP-bound ones (getFunding/getOpenInterest/getBasis/getMarkets), which route through setHttpGet.
-// @exports: getFunding, getOpenInterest, getBasis, getMarkets, mapFunding, mapOpenInterest, annualizeFunding, setHttpGet, parseNum, hasCreds, VenueApiError, MappingError, SsrfError
+// @use: Reach for this before any code that needs perp funding / OI / basis to feed the crypto-native factors (crypto-funding-price-reaction, crypto-price-oi-quadrant, crypto-basis-term-structure-carry, crypto-lvr-aware-lp). All exports pure except the HTTP-bound ones (getFunding/getOpenInterest/getBasis/getMarkets/getCandles), which route through setHttpGet.
+// @exports: getFunding, getOpenInterest, getBasis, getMarkets, getCandles, mapFunding, mapOpenInterest, mapKline, annualizeFunding, setHttpGet, parseNum, hasCreds, VenueApiError, MappingError, SsrfError
 
 import https from 'node:https';
 import { URL } from 'node:url';
@@ -350,6 +350,54 @@ export async function getMarkets() {
       quantityPrecision: s.quantityPrecision ?? null,
       onboardDate: s.onboardDate != null ? Number(s.onboardDate) : null,
     }));
+}
+
+/**
+ * mapKline(k) -> unified Candle { timestamp(unix-sec), open, high, low, close, volume }
+ *
+   Binance USDⓈ-M futures kline array shape (indices):
+     [0]=openTime(ms) [1]=open [2]=high [3]=low [4]=close [5]=volume
+     [6]=closeTime [7]=quoteVol [8]=trades [9]=takerBuyBase [10]=takerBuyQuote [11]=ignore
+   timestamp is converted ms→unix-SECONDS to match the coinbase-adapter candle shape, so the
+   orchestrator + data-quality-gate consume Binance bars through the SAME unified
+   {timestamp,open,high,low,close,volume} contract (drop-in venue swap).
+ */
+export function mapKline(k) {
+  if (!Array.isArray(k) || k.length < 6) throw new MappingError('mapKline: expected kline array', k);
+  const tMs = Number(k[0]);
+  if (!Number.isFinite(tMs)) throw new MappingError(`mapKline: non-finite openTime "${k[0]}"`, k);
+  return {
+    timestamp: Math.floor(tMs / 1000), // ms → unix-seconds (match coinbase candle shape)
+    open: parseNum(k[1]),
+    high: parseNum(k[2]),
+    low: parseNum(k[3]),
+    close: parseNum(k[4]),
+    volume: parseNum(k[5]),
+  };
+}
+
+/**
+ * getCandles(symbol, { interval?, limit?, startTime?, endTime? }) -> { candles: Candle[] }
+ *
+   Hits `GET /fapi/v1/klines` — Binance USDⓈ-M futures OHLCV. Binance returns klines
+   ASCENDING by openTime (oldest-first) = the chronological order the data-quality-gate +
+   factor warmup expect, so NO reverse is needed (unlike coinbase's newest-first candles).
+   Default interval '1m', default limit 300 (the engine's CANDLES_FETCH_LIMIT warmup), Binance
+   max 1500. startTime/endTime are unix-MILLISECONDS per the Binance API. READ-ONLY (INV-1),
+   keyless public endpoint (INV-2), SSRF-guarded via fetchJson.
+ */
+export async function getCandles(symbol, opts = {}) {
+  if (!symbol || typeof symbol !== 'string') throw new MappingError('getCandles: symbol required', symbol);
+  const params = new URLSearchParams();
+  params.set('symbol', symbol);
+  params.set('interval', opts.interval || '1m');
+  params.set('limit', String(opts.limit != null ? Math.min(Math.max(1, Number(opts.limit)), 1500) : 300));
+  if (opts.startTime != null) params.set('startTime', String(opts.startTime));
+  if (opts.endTime != null) params.set('endTime', String(opts.endTime));
+  const url = `https://${BASE_HOST}${PREFIX}/klines?${params.toString()}`;
+  const json = await fetchJson(url);
+  if (!Array.isArray(json)) throw new MappingError('getCandles: expected kline array', json);
+  return { candles: json.map(mapKline) };
 }
 
 /**
