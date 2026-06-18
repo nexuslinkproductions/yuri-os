@@ -19,6 +19,17 @@ const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const STATE_DIR = path.join(_HERE, '..', '..', 'state');
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+const round2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
+
+/** Evenly downsample a {t,eq} series to at most `max` points (keeps first + last). */
+function downsample(series, max = 150) {
+  if (series.length <= max) return series;
+  const step = (series.length - 1) / (max - 1);
+  const out = [];
+  for (let i = 0; i < max; i += 1) out.push(series[Math.round(i * step)]);
+  out[out.length - 1] = series[series.length - 1];
+  return out;
+}
 
 export const DEFAULTS = {
   leverage: 20, riskPct: 0.03, bankroll: 300, cycles: 500,
@@ -69,9 +80,12 @@ export async function runTrainSession(opts = {}) {
     candles = res.candles;
   }
   if (!Array.isArray(candles) || candles.length <= cfg.warmup + 1) {
-    return computeSessionReport({ closes: [], startingEquity: cfg.bankroll, pnl: engine.pnl(), config: pubCfg(cfg) });
+    const r = computeSessionReport({ closes: [], startingEquity: cfg.bankroll, pnl: engine.pnl(), config: pubCfg(cfg) });
+    r.equityCurve = [];
+    return r;
   }
 
+  const equitySamples = []; // {t, eq} per marked bar → downsampled into report.equityCurve
   let openIdx = -1; // bar index the current position opened on (for max-hold-in-bars)
   const end = candles.length;
   for (let i = cfg.warmup; i < end; i += 1) {
@@ -88,6 +102,7 @@ export async function runTrainSession(opts = {}) {
     // MTM + engine-side liquidation + funding accrual at this bar.
     try { engine.ingestBar(execBar, inst); } catch { /* fail-soft */ }
     engine.mark(execBar.timestamp, { [inst]: execBar.close });
+    equitySamples.push({ t: execBar.timestamp, eq: round2(engine.pnl().equity || cfg.bankroll) });
 
     // Price stop / take / max-hold on the open position (the engine's liquidation sits further out).
     let pos = engine.positions().find((p) => p.instrument === inst);
@@ -122,8 +137,11 @@ export async function runTrainSession(opts = {}) {
   const lastBar = candles[end - 1];
   const stillOpen = engine.positions().find((p) => p.instrument === inst);
   if (stillOpen && lastBar) { try { engine.closePosition(inst, 'session-end', lastBar.timestamp, lastBar.close); } catch { /* ok */ } }
+  if (lastBar) equitySamples.push({ t: lastBar.timestamp, eq: round2(engine.pnl().equity || cfg.bankroll) });
 
-  return computeSessionReport({ paperLedgerPath, startingEquity: cfg.bankroll, pnl: engine.pnl(), config: pubCfg(cfg) });
+  const report = computeSessionReport({ paperLedgerPath, startingEquity: cfg.bankroll, pnl: engine.pnl(), config: pubCfg(cfg) });
+  report.equityCurve = downsample(equitySamples, 150);
+  return report;
 }
 
 function pubCfg(cfg) {

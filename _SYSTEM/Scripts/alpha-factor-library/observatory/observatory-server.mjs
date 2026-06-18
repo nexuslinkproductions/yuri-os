@@ -41,7 +41,7 @@
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 import {
@@ -195,6 +195,11 @@ function routeRequest(req, res) {
 
     case '/api/observatory/paper':
       jsonResponse(res, getPaper());
+      break;
+
+    case '/api/observatory/trainer':
+      // Perp Trainer scorecard — latest bounded train-session + leverage sweep + equity curve (paper).
+      jsonResponse(res, readTrainerSnapshot());
       break;
 
     case '/api/observatory/regime':
@@ -504,7 +509,22 @@ async function runOnce(config = {}) {
 // auto-discovery default ON. Paper-only, read-only venues, fail-open per cycle.
 const GATHER_STATE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..', 'state');
 const GATHER_STATUS = path.join(GATHER_STATE_DIR, 'observatory-gather-status.json');
+const TRAINER_SNAPSHOT = path.join(GATHER_STATE_DIR, 'train-session-latest.json');
 const GATHER_INTERVAL_MS = Number(process.env.OBSERVATORY_GATHER_INTERVAL_MS) || 30_000;
+
+/**
+ * Perp Trainer snapshot — the latest bounded train-session scorecard + leverage sweep + equity curve,
+ * produced on demand by train-publish.mjs (paper analysis; never written by the live gather loop).
+ * Fail-soft: missing/corrupt file → a null-headline shape the Perp Trainer panel renders as "no run yet".
+ */
+function readTrainerSnapshot() {
+  try {
+    if (!existsSync(TRAINER_SNAPSHOT)) return { headline: null, sweep: [], best: null, advisory: 'no training session yet — run train-publish.mjs' };
+    return JSON.parse(readFileSync(TRAINER_SNAPSHOT, 'utf8'));
+  } catch (e) {
+    return { headline: null, sweep: [], best: null, advisory: `trainer snapshot unreadable: ${e.message}` };
+  }
+}
 
 function writeGatherStatus(snap, errMsg) {
   try {

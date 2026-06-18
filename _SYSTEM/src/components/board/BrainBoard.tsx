@@ -20,6 +20,7 @@ import PerfPanel from './PerfPanel';
 import CalibrationPanel from './CalibrationPanel';
 import GraduationPanel from './GraduationPanel';
 import TradesPanel from './TradesPanel';
+import PerpTrainerPanel from './PerpTrainerPanel';
 
 import './board.css';
 
@@ -367,6 +368,11 @@ export default function BrainBoard({ obs }: Props) {
             <div className="bb-panel">
               <PerfPanel paperData={paperData} visibleMarkets={visibleMarkets} account={board.account} />
             </div>
+          </div>
+
+          {/* ══ ROW: PERP TRAINER ══ */}
+          <div className="bb-panel">
+            <PerpTrainerPanel data={board.trainer} />
           </div>
 
           {/* ══ ROW 3: GRADUATION LADDER ══ */}

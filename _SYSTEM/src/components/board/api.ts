@@ -53,6 +53,8 @@ export interface PaperPosition {
   factorId?: string;
   openedTs?: number;
   entryCount?: number;
+  leverage?: number;                 // perp: isolated-margin leverage (1 = spot)
+  liquidationPrice?: number | null;  // perp: isolated-margin liquidation price (null = spot / no liq)
 }
 
 export interface MarketData {
@@ -243,6 +245,53 @@ export interface QuantumResponse {
   note?: string;
 }
 
+// /trainer — Perp Trainer scorecard (train-publish.mjs snapshot: headline session + sweep + equity curve)
+export interface EquityPoint {
+  t: number;   // unix seconds
+  eq: number;  // equity at that bar
+}
+export interface TrainerReport {
+  config: { leverage: number; riskPct: number; bankroll: number; cycles: number; market: string; interval?: string };
+  closedTrades: number;
+  winRate: number;       // 0..1
+  wins: number;
+  losses: number;
+  avgWin: number;
+  avgLoss: number;
+  profitFactor: number | null;   // JSON nulls Infinity
+  netPnl: number;
+  returnPct: number;
+  finalEquity: number;
+  maxDrawdownPct: number | null;
+  totalFees: number | null;
+  totalFunding: number | null;
+  liquidations: number;
+  byReason: Record<string, number>;  // exit-reason → count (take-profit / stop-loss / max-hold / liquidation / …)
+  equityCurve?: EquityPoint[];
+}
+export interface TrainerSweepRow {
+  leverage: number;
+  riskPct: number;
+  winRate: number;
+  profitFactor: number | null;
+  netPnl: number;
+  returnPct: number;
+  maxDrawdownPct: number | null;
+  closedTrades: number;
+  liquidations: number;
+}
+export interface TrainerResponse {
+  generatedAt?: number;
+  market?: string;
+  interval?: string;
+  bankroll?: number;
+  barCount?: number;
+  headline: TrainerReport | null;     // null → no training session run yet
+  sweep: TrainerSweepRow[];           // ranked by winRate then netPnl
+  best: { leverage: number; riskPct: number; winRate: number; netPnl: number; returnPct: number } | null;
+  advisory?: string;
+}
+
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
@@ -288,4 +337,7 @@ export const api = {
 
   trades: (limit = 40) =>
     safeFetch<TradesResponse>(`${BASE}/trades?limit=${limit}`, { trades: [], total: 0 }),
+
+  trainer: () =>
+    safeFetch<TrainerResponse>(`${BASE}/trainer`, { headline: null, sweep: [], best: null }),
 };

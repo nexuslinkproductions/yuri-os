@@ -128,8 +128,10 @@ export default function IntentPanel({ market, marketData, allPositions, account 
             <tr>
               <th>Sym</th>
               <th>Side</th>
+              <th className="r">Lev</th>
               <th>Entry</th>
               <th className="r">Cur</th>
+              <th className="r">Liq</th>
               <th className="r">P&amp;L</th>
               <th className="r">Age</th>
             </tr>
@@ -143,12 +145,16 @@ export default function IntentPanel({ market, marketData, allPositions, account 
               const sym = pos.instrument.replace('-USD', '');
               const pnlStr = pnl > 0 ? '+' + fmtUSD(pnl) : pnl < 0 ? fmtUSD(pnl) : '—';
               const age = pos.openedTs ? fmtAge(pos.openedTs) : '—';
+              const levStr = typeof pos.leverage === 'number' && pos.leverage > 1 ? `${pos.leverage}×` : '—';
+              const liqStr = typeof pos.liquidationPrice === 'number' && isFinite(pos.liquidationPrice) ? fmtPrice(pos.liquidationPrice) : '—';
               return (
                 <tr key={pos.instrument}>
                   <td className="sym">{sym}</td>
                   <td className={sideCls}>{sideLabel}</td>
+                  <td className="r" style={{ color: 'var(--mist)' }}>{levStr}</td>
                   <td>{fmtPrice(pos.avgEntryPrice)}</td>
                   <td className="r">{pos.currentPrice ? fmtPrice(pos.currentPrice) : '—'}</td>
+                  <td className="r" style={{ color: 'var(--short)' }}>{liqStr}</td>
                   <td className={`r pnl ${pnlCls}`}>{pnlStr}</td>
                   <td className="r" style={{ color: 'var(--mist)' }}>{age}</td>
                 </tr>

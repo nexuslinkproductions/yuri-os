@@ -15,6 +15,7 @@ import {
   type PaperResponse,
   type AccountResponse,
   type TradesResponse,
+  type TrainerResponse,
 } from './api';
 
 // ── Indicator math (ported from mockup) ────────────────────────────────────
@@ -116,6 +117,7 @@ export interface BoardDataState {
   paper: PaperResponse;
   account: AccountResponse | null;
   trades: TradesResponse;
+  trainer: TrainerResponse | null;
 }
 
 const EMPTY_INDICATORS: ComputedIndicators = {
@@ -139,6 +141,7 @@ export function useBoardData(market: string, tf: string): BoardDataState {
   const [paper, setPaper] = useState<PaperResponse>({});
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [trades, setTrades] = useState<TradesResponse>({ trades: [], total: 0 });
+  const [trainer, setTrainer] = useState<TrainerResponse | null>(null);
 
   // Paper P&L + real account + live trade tape — authoritative REST, ~3s poll.
   useEffect(() => {
@@ -171,6 +174,19 @@ export function useBoardData(market: string, tf: string): BoardDataState {
     };
     poll();
     const id = setInterval(poll, 15000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  // Trainer scorecard — 30s poll (snapshot data; no need for faster cadence)
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      if (cancelled) return;
+      const res = await api.trainer();
+      if (!cancelled) setTrainer(res);
+    };
+    poll();
+    const id = setInterval(poll, 30000);
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
@@ -229,5 +245,6 @@ export function useBoardData(market: string, tf: string): BoardDataState {
     paper,
     account,
     trades,
+    trainer,
   };
 }
