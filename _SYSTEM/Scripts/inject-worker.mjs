@@ -110,14 +110,17 @@ function verifyLanded(workerId, prompt) {
 }
 
 function parseArgs(argv) {
-  const o = { submit: true, sessions: false, verify: false, session: '', prompt: '' };
+  const o = { submit: true, sessions: false, verify: false, session: '', prompt: '', delay: 0, armed: 0, clip: false };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--no-submit') o.submit = false;
     else if (a === '--sessions') o.sessions = true;
     else if (a === '--verify') o.verify = true;
+    else if (a === '--clip') o.clip = true; // clipboard handoff — no focus/keystroke injection, cannot spazz
     else if (a === '--session') o.session = argv[++i] || '';
+    else if (a === '--delay') o.delay = parseInt(argv[++i], 10) || 0;
+    else if (a === '--_armed') o.armed = parseInt(argv[++i], 10) || 0; // internal: detached child's wait
     else rest.push(a);
   }
   o.prompt = rest.join(' ').trim();
@@ -126,6 +129,36 @@ function parseArgs(argv) {
 
 async function main() {
   const o = parseArgs(process.argv.slice(2));
+
+  // --delay N: re-spawn a DETACHED child that waits N seconds — until THIS overseer session has
+  // gone idle — then injects. Firing while idle is the fix for the focus-war: an active overseer
+  // panel competes with editor.open for OS keyboard focus and Cmd-V mis-lands. Parent returns now.
+  if (o.delay > 0 && o.armed === 0) {
+    const src = process.argv.slice(2);
+    const childArgs = [];
+    for (let i = 0; i < src.length; i++) {
+      if (src[i] === '--delay') { childArgs.push('--_armed', String(o.delay)); i++; }
+      else childArgs.push(src[i]);
+    }
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...childArgs], { detached: true, stdio: 'ignore' });
+    child.unref();
+    console.log(`✓ inject armed — firing in ${o.delay}s once the overseer is idle (${o.submit ? 'auto-submit' : 'paste-hold'}). Result lands in dispatch-ledger.jsonl.`);
+    process.exit(0);
+  }
+  if (o.armed > 0) await new Promise((r) => setTimeout(r, o.armed * 1000));
+
+  // --clip: clipboard handoff. NO editor.open, NO claude-vscode.focus, NO osascript keystrokes →
+  // it physically cannot cause the focus-flicker. Marcel pastes (Cmd-V) into the worker + Enter.
+  if (o.clip) {
+    if (!o.prompt) { console.error('usage: inject-worker.mjs --clip "<prompt>"'); process.exit(64); }
+    await new Promise((res) => { const p = spawn('pbcopy'); p.on('error', res); p.on('close', res); p.stdin.write(o.prompt); p.stdin.end(); });
+    console.log('✓ instruction copied to clipboard — click the worker tab, paste (Cmd-V), hit Enter. (No focus-grab, no spazz.)');
+    try {
+      const sh = path.join(REPO, '_SYSTEM', 'Scripts', 'voice-speak.sh');
+      if (fs.existsSync(sh)) { const c = spawn('bash', [sh], { stdio: ['pipe', 'ignore', 'ignore'], detached: true }); c.stdin.write('Worker instruction is on your clipboard. Paste it into the worker and send.'); c.stdin.end(); c.unref(); }
+    } catch (_) {}
+    process.exit(0);
+  }
 
   // health first — a clear message beats an ECONNREFUSED stack if the extension isn't loaded.
   try { await request('GET', '/health'); }
