@@ -41,7 +41,7 @@ const PRED_LEDGER = path.join(STATE_DIR, 'observatory-predictions.jsonl');
 // ── AFL spine imports ──────────────────────────────────────────────────────
 import { dataQualityGate } from '../data-quality-gate.mjs';
 import { computeSize } from '../afl-sizing.mjs';
-import { createPaperEngine, cryptoFeeModel } from '../afl-paper.mjs';
+import { createPaperEngine, cryptoFeeModel, binanceFeeModel } from '../afl-paper.mjs';
 import { selectHorizon, realisticRoundTripCost } from '../multi-horizon-gate.mjs';
 import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
@@ -376,6 +376,14 @@ function createMarketSnapshot(market, venue) {
 // ── Paper engine factory (lazy, per-market) ────────────────────────────────
 const _paperEngines = new Map();
 
+// PERP MODE (DISARMED by default): with OBSERVATORY_PERP_MODE=1 the paper engine models Binance USDⓈ-M
+// LEVERAGED economics (binanceFeeModel 0.02/0.05 + leverage + isolated-margin liquidation) instead of
+// Coinbase spot. Leverage via OBSERVATORY_LEVERAGE (default 20×). Owner-armed in the plist env — identical
+// DISARMED pattern to OBSERVATORY_TICK_STREAM / OBSERVATORY_MULTI_HORIZON. Default off → spot unchanged.
+const PERP_MODE = process.env.OBSERVATORY_PERP_MODE === '1';
+const PERP_LEVERAGE = (Number.isFinite(Number(process.env.OBSERVATORY_LEVERAGE)) && Number(process.env.OBSERVATORY_LEVERAGE) > 0)
+  ? Number(process.env.OBSERVATORY_LEVERAGE) : 20;
+
 function getPaperEngine(market) {
   if (_paperEngines.has(market)) return _paperEngines.get(market);
   const safe = market.replace(/[^a-zA-Z0-9-]/g, '_');
@@ -386,8 +394,10 @@ function getPaperEngine(market) {
   const engine = createPaperEngine({
     paperLedgerPath: paperLedger,
     predictionLedgerPath: predLedger,
+    feeModel: PERP_MODE ? binanceFeeModel('taker') : undefined, // undefined → default Coinbase cryptoFeeModel('taker')
     caps: {
       initialEquity: 100_000,
+      ...(PERP_MODE ? { perpMode: true, leverage: PERP_LEVERAGE, maintenanceMarginRate: 0.004 } : {}),
       // PAPER discovery across DOZENS of factors churning every cycle on 1-min noise = very high
       // turnover. The learn loop scores per-factor RETURNS (size-independent), so we keep positions
       // TINY (0.1%) → the book drains slowly and SURVIVES the night → trades continuously → maximum
