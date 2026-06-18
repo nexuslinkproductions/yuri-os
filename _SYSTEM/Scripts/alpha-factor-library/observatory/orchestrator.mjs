@@ -199,7 +199,7 @@ function normalizeBarTimestamp(bar) {
  * Lightweight and self-contained — does NOT hit the network.
  * Returns an array of {factorId, value, side, confidence, ts} signal objects.
  */
-function computeLiveSignals(bars, market) {
+export function computeLiveSignals(bars, market) {
   if (!bars || bars.length < 5) return [];
   const signals = [];
   const now = bars[bars.length - 1].timestamp;
