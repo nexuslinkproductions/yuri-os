@@ -4,13 +4,17 @@
 # @does: the Pipecat realtime pipeline — local mic -> Silero VAD + smart-turn -> MLX Whisper STT -> brain-proxy (drives the live Claude Code tmux session) -> Marvis streaming Rick TTS -> speaker. Always-on, barge-in.
 # @use: R3 of the voice rebuild. Run (venv-pipecat) alongside a tmux `claude` (bridge armed) + claude-brain-proxy.py.
 # @exports: (async main)
-import os, sys, asyncio
+import os, sys, asyncio, re
 sys.path.insert(0, os.path.dirname(__file__))
 
 from loguru import logger
+# Quiet the terminal: only INFO+ (kills pipecat's per-frame DEBUG firehose). YURI_LOG_LEVEL=DEBUG to restore.
+logger.remove()
+logger.add(sys.stderr, level=os.environ.get("YURI_LOG_LEVEL", "INFO"))
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
-from pipecat.audio.turn.smart_turn.local_smart_turn_v2 import LocalSmartTurnAnalyzerV2
+from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
+from pipecat.audio.filters.base_audio_filter import BaseAudioFilter
 from pipecat.services.whisper.stt import WhisperSTTServiceMLX, MLXModel
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.transports.local.audio import LocalAudioTransport, LocalAudioTransportParams
@@ -19,43 +23,193 @@ from pipecat.processors.aggregators.llm_response_universal import LLMContextAggr
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.task import PipelineTask
 from pipecat.pipeline.runner import PipelineRunner
+from pipecat.frames.frames import (
+    TranscriptionFrame, TTSSpeakFrame, InputAudioRawFrame,
+    VADUserStartedSpeakingFrame, VADUserStoppedSpeakingFrame,
+)
+from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
+from pipecat.processors.audio.vad_processor import VADProcessor
+from pipecat.processors.filters.wake_check_filter import WakeCheckFilter
 
-from marvis_tts import MarvisTTSService
+from kokoro_tts import KokoroTTSService
+
+
+class HeardLogger(FrameProcessor):
+    """Prints every finalized transcription so you can SEE when STT actually heard you —
+    the fastest way to tell an input (mic/VAD) problem from an output (TTS) one."""
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, TranscriptionFrame) and (frame.text or "").strip():
+            logger.info(f"👂 YOU SAID: {frame.text!r}")
+        await self.push_frame(frame, direction)
+
+
+class CancelFilter(FrameProcessor):
+    """Swallows a cancel command so it never becomes a request. You speaking already triggers
+    barge-in (cancels Yuri's in-flight response + speech); this stops the word 'cancel' itself from
+    reaching the brain, so you can immediately restate. Place AFTER the wake gate."""
+
+    def __init__(self, phrases):
+        super().__init__()
+        self._phrases = [p.strip().lower() for p in phrases if p.strip()]
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, TranscriptionFrame):
+            t = re.sub(r"[^a-z\s]", "", (frame.text or "").lower()).strip()
+            t = re.sub(r"^(yuri|rick)\s+", "", t).strip()  # drop a leading wake word
+            if any(t == p or t.startswith(p + " ") for p in self._phrases):
+                logger.info(f"🚫 cancel — discarded (restate your request): {frame.text!r}")
+                return  # swallow: do not forward downstream
+        await self.push_frame(frame, direction)
+
+
+class InputLevelLogger(FrameProcessor):
+    """Logs incoming mic level periodically — proves audio is reaching the pipeline (vs a dead
+    capture) and shows the level relative to the VAD min_volume gate so we can calibrate."""
+
+    def __init__(self):
+        super().__init__()
+        self._n = 0
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        # VAD events from the VADProcessor (emitted just upstream) — the truthful place to see them.
+        if isinstance(frame, VADUserStartedSpeakingFrame):
+            logger.info("🗣  VAD FIRED: speech STARTED")
+        elif isinstance(frame, VADUserStoppedSpeakingFrame):
+            logger.info("🤐 VAD: speech STOPPED → STT transcribing…")
+        elif isinstance(frame, InputAudioRawFrame):
+            import numpy as np
+            a = np.frombuffer(frame.audio, dtype=np.int16).astype("float32") / 32768.0
+            peak = float(np.max(np.abs(a))) if a.size else 0.0
+            self._n += 1
+            # Only speak up when you're actually talking (peak above noise floor), throttled — no spam.
+            if peak > 0.08 and self._n % 20 == 0:
+                logger.info(f"🎤 hearing you (peak {peak:.2f})")
+        await self.push_frame(frame, direction)
+
+
+class GainAudioFilter(BaseAudioFilter):
+    """Boosts the mic signal BEFORE VAD/STT — the DJI's hardware gain is so low that normal speech
+    sits near the noise floor, so VAD never fires. Applied in the transport's input filter slot, so
+    both Silero VAD and Whisper see the amplified audio. Clips safely on loud peaks."""
+
+    def __init__(self, gain: float = 8.0):
+        self._gain = gain
+
+    async def start(self, sample_rate: int):
+        pass
+
+    async def stop(self):
+        pass
+
+    async def process_frame(self, frame):
+        pass
+
+    async def filter(self, audio: bytes) -> bytes:
+        import numpy as np
+        a = np.frombuffer(audio, dtype=np.int16).astype("float32") * self._gain
+        return np.clip(a, -32768, 32767).astype("<i2").tobytes()
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-REF = os.environ.get("RICK_REF", os.path.join(REPO, "_SYSTEM", "state", "voice", "rick-ref.wav"))
-PROXY = os.environ.get("BRAIN_PROXY_URL", "http://127.0.0.1:8011/v1")
+# Yuri's voice: Kokoro preset bf_isabella (British female). Override via YURI_VOICE / YURI_VOICE_LANG
+# (a=American, b=British — e.g. YURI_VOICE=bf_alice, or af_heart with YURI_VOICE_LANG=a).
+VOICE = os.environ.get("YURI_VOICE", "bf_isabella")
+VOICE_LANG = os.environ.get("YURI_VOICE_LANG", "b")
+# Free brain default: claude-p-brain :8012 (claude -p headless on the Max subscription, $0).
+# Fallback to the tmux live-session brain-proxy :8011 via BRAIN_PROXY_URL.
+PROXY = os.environ.get("BRAIN_PROXY_URL", "http://127.0.0.1:8012/v1")
 
-# The brain proxy only consumes the latest user turn (it drives the real Claude session),
+# The brain proxy folds the conversation itself (claude -p) / drives the real Claude session,
 # but Pipecat needs a context/system seed.
-SYSTEM = "You are the spoken voice of the user's Claude Code session. Keep replies short and conversational."
+SYSTEM = "You are Yuri, the spoken voice assistant. Keep replies short and conversational."
+
+
+def _log_audio_devices():
+    """Show the ACTUAL mic/speaker Pipecat will use — a wrong/silent default input device
+    is the #1 reason 'I talked and nothing happened'."""
+    try:
+        import sounddevice as sd
+        devs = sd.query_devices()
+        din, dout = sd.default.device  # (input_idx, output_idx)
+        iname = devs[din]["name"] if isinstance(din, int) and din >= 0 else "?"
+        oname = devs[dout]["name"] if isinstance(dout, int) and dout >= 0 else "?"
+        logger.info(f"🎤 input  (mic):     [{din}] {iname}")
+        logger.info(f"🔊 output (speaker): [{dout}] {oname}")
+        logger.info("   (wrong device? set it in System Settings ▸ Sound, then relaunch)")
+    except Exception as e:
+        logger.warning(f"could not query audio devices: {e}")
 
 
 async def main():
+    _log_audio_devices()
+    mic_gain = float(os.environ.get("YURI_MIC_GAIN", "0.7"))  # another ~7dB down (loud street-noise rejection)
     transport = LocalAudioTransport(LocalAudioTransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
-        vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.2)),
-        turn_analyzer=LocalSmartTurnAnalyzerV2(smart_turn_model_path=""),
+        # Boost the quiet DJI mic ~8x before VAD/STT so normal speech clears Silero (no shouting).
+        # Tune with YURI_MIC_GAIN (lower if it picks up too much / clips, higher if still missed).
+        audio_in_filter=GainAudioFilter(gain=mic_gain),
+        # Run output at Kokoro's native 24kHz so the in-pipeline resampler is a no-op (no per-frame
+        # seams) and CoreAudio handles any device conversion.
+        audio_out_sample_rate=24000,
+        # Silero VAD needs 16kHz; pin input there (Pipecat resamples the device correctly).
+        # NOTE: in Pipecat 1.3.0 the transport does NOT run vad_analyzer on input — VAD must be a
+        # real pipeline stage (VADProcessor, added below). That mis-wiring is why VAD never fired.
+        audio_in_sample_rate=16000,
     ))
     stt = WhisperSTTServiceMLX(model=MLXModel.LARGE_V3_TURBO_Q4)
     llm = OpenAILLMService(api_key="local", model="claude-code", base_url=PROXY, max_tokens=4096)
-    tts = MarvisTTSService(ref_audio=REF)
+    tts = KokoroTTSService(voice=VOICE, lang_code=VOICE_LANG)
+
+    # VAD as a REAL pipeline stage (Pipecat 1.3.0): emits VADUser{Started,Stopped}SpeakingFrame that
+    # the STT service consumes to segment + transcribe. This is the fix — the transport never ran VAD.
+    # confidence 0.5 (Silero scores your speech ~0.99 in isolation); min_volume=0 (no volume gate).
+    # confidence 0.6 + start_secs 0.3: reject loud street-noise blips as speech (stops false barge-in
+    # cutting Yuri off mid-sentence). Your real speech scores ~0.99 so it still triggers instantly.
+    vad = VADProcessor(vad_analyzer=SileroVADAnalyzer(
+        params=VADParams(confidence=0.6, start_secs=0.3, stop_secs=0.8, min_volume=0.0)))
+
+    # Voice activation: Yuri stays asleep until you say the wake word, then stays awake for a
+    # follow-up window (keepalive) so you don't repeat it every turn. YURI_WAKE_DISABLE=1 = hot mic.
+    wake_on = os.environ.get("YURI_WAKE_DISABLE", "0") != "1"
+    # No overlapping phrases (the filter pushes once per matching pattern → dupes). "yuri" already
+    # catches "hey yuri". Whisper may mishear the name — add variants here if it does.
+    wake_phrases = [p.strip() for p in os.environ.get("YURI_WAKE_PHRASES", "yuri,rick").split(",") if p.strip()]
+    wake = WakeCheckFilter(wake_phrases=wake_phrases,
+                           keepalive_timeout=float(os.environ.get("YURI_WAKE_KEEPALIVE", "3"))) if wake_on else None
+    if wake:
+        logger.info(f"🔒 voice activation ON — wake word(s): {wake_phrases} (say one, then talk; YURI_WAKE_DISABLE=1 for hot mic)")
+
+    # Cancel command: say one of these to abort the current request + restate (your speech also
+    # barge-in-stops Yuri). Configurable via YURI_CANCEL_PHRASES.
+    cancel_phrases = [p.strip() for p in os.environ.get(
+        "YURI_CANCEL_PHRASES", "cancel,never mind,nevermind,scratch that,forget it,start over").split(",") if p.strip()]
+    cancel = CancelFilter(cancel_phrases)
 
     context = LLMContext(messages=[{"role": "system", "content": SYSTEM}])
     agg = LLMContextAggregatorPair(context)
 
-    pipeline = Pipeline([
-        transport.input(),
-        stt,
-        agg.user(),
-        llm,
-        tts,
-        transport.output(),
-        agg.assistant(),
-    ])
+    # stt → [wake gate] → HeardLogger: 👂 YOU SAID only logs speech that PASSED the wake gate, so the
+    # terminal shows exactly what Yuri acted on (talk without the wake word → 🎤 hearing you but no reply).
+    stages = [transport.input(), vad, InputLevelLogger(), stt]
+    if wake:
+        stages.append(wake)
+    stages.append(cancel)
+    stages += [HeardLogger(), agg.user(), llm, tts, transport.output(), agg.assistant()]
+    pipeline = Pipeline(stages)
     task = PipelineTask(pipeline)
-    logger.info("🎙  voice loop live — just talk. Ctrl-C to stop.")
+
+    # Yuri speaks first: proves the output path end-to-end on launch (if you hear this, the
+    # speaker + TTS work and any later silence is an input problem), and is the first
+    # "JARVIS speaks unprompted" primitive.
+    greeting = os.environ.get("YURI_GREETING", "Yuri online. Say my name whenever you need me.")
+    if greeting.strip():
+        await task.queue_frame(TTSSpeakFrame(greeting))
+
+    logger.info("🎙  voice loop live — just talk (no wake word yet). Ctrl-C to stop.")
     await PipelineRunner().run(task)
 
 
