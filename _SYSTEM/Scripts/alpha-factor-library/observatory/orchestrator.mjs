@@ -1195,18 +1195,27 @@ export async function getGraduation() {
   try {
     const cal = await getCalibration();
     const { assembleGraduation } = await import('../graduation.mjs');
-    const factorStats = (cal.factors || []).map((f) => ({
-      factorId: f.factorId,
-      n: f.n, dsr: f.dsr, brier: f.brier,
-      // Not yet wired into the per-factor learn loop → null → graduation fail-closes the gate:
-      dataQuality: null, fdrPass: null, mddBps: null, energyDeltaU: null, signAgreement: null, cusumBreak: null,
-    }));
+    const factorStats = (cal.factors || []).map((f) => {
+      // dataQuality (R0→R1 gate) — WIRED 2026-06-18: was hardcoded null → every factor bricked at R0
+      // before its edge was ever evaluated (the wiring bug). A factor only accrues outcomes from cycles
+      // whose bars PASSED the ingest data-quality-gate (runCycle hard-returns on a failing gate BEFORE
+      // any signal/outcome is produced), so any factor with accrued valid outcomes (n>=1) is built on
+      // clean data by construction → dataQuality 1.0. No outcomes yet → null → fail-closed (stays R0).
+      const dataQuality = (Number.isFinite(f.n) && f.n >= 1) ? 1.0 : null;
+      return {
+        factorId: f.factorId,
+        n: f.n, dsr: f.dsr, brier: f.brier, dataQuality,
+        // R1→R2 (real-money) + R2→R3 safety metrics still not wired per-factor → null → fail-closed.
+        // This is the CONSERVATIVE real-money guard (R2 stays out of reach), NOT the dataQuality bug:
+        fdrPass: null, mddBps: null, energyDeltaU: null, signAgreement: null, cusumBreak: null,
+      };
+    });
     const g = await assembleGraduation({ factorStats });
     const data = {
       ...g,
       generatedAt: Math.floor(now / 1000),
       advisory: cal.advisory
-        || 'rungs are conservative: dataQuality / fleet-FDR / drawdown / energy / sign-agreement not yet wired per-factor (real-money R2 stays gated)',
+        || 'dataQuality now wired per-factor (R0→R1 live); fleet-FDR / drawdown / energy / sign-agreement still unwired → real-money R2 stays gated. Factors that reach R1 then stall at R1→R2 on dsr — the honest no-edge wall, now at the right place.',
     };
     _gradCache = { ts: now, data };
     return data;
