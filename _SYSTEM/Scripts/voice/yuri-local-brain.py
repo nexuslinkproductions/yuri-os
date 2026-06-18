@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # @capability: voice-local-slm-brain
-# @serves: free local brain for voice | ollama openai endpoint for yuri | snappy on-device voice brain | local slm becomes yuri with memory
-# @does: OpenAI-compatible /v1/chat/completions that drives a LOCAL Ollama model (default llama3.2 —
-#        0.7s warm, true chat model) as Yuri's brain. On-device, $0, private, snappy. Keeps a rolling
-#        conversation transcript persisted to disk (memory across turns AND restarts — the local-SLM
-#        equivalent of `claude -p --resume`), caps num_ctx LOW so it stays featherweight, and strips
-#        any <think> CoT so a reasoning model never speaks its reasoning aloud.
+# @serves: free local brain for voice | ollama openai endpoint for yuri | snappy on-device voice brain | local slm becomes yuri with memory | slm tool calling capabilities
+# @does: OpenAI-compatible /v1/chat/completions that drives a LOCAL Ollama model (default llama3.2) as
+#        Yuri's brain. On-device, $0, private, snappy. Keeps a rolling conversation transcript persisted
+#        to disk (memory across turns AND restarts — the local-SLM equivalent of `claude -p --resume`),
+#        caps num_ctx LOW so it stays light, strips any <think> CoT, and exposes CAPABILITIES as
+#        model-driven tools (the model itself decides when to call them — e.g. spawn a worker terminal).
 # @use: the snappy local brain stage of the Pipecat voice loop. `python yuri-local-brain.py` then point
-#        bot.py at http://127.0.0.1:8013/v1 (yuri-local.sh does this). Swap the model with
-#        YURI_LOCAL_MODEL (e.g. a reasoning model — <think> is stripped automatically).
+#        bot.py at http://127.0.0.1:8013/v1 (yuri-local.sh does this). Add capabilities to TOOLS +
+#        _exec_tool. Swap the model with YURI_LOCAL_MODEL.
 # @exports: (http server :8013)
-import os, json, uuid, re, urllib.request
+import os, json, uuid, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("YURI_LOCAL_BRAIN_PORT", "8013"))
@@ -25,8 +25,10 @@ TURNS = int(os.environ.get("YURI_LOCAL_CONTEXT_TURNS", "12"))  # rolling history
 SYS_DEFAULT = os.environ.get(
     "YURI_LOCAL_SYSTEM",
     "You are Yuri, a spoken voice assistant talking out loud to Marcel. Reply in ONE or two natural, "
-    "conversational sentences — no markdown, no code blocks, no lists, no headings, no reasoning aloud. "
-    "Be concise, direct, warm, and human. If you don't know, say so briefly. You run fully on-device.",
+    "conversational sentences — no markdown, no lists, no headings, no reasoning aloud. Be concise, "
+    "direct, warm, and human. You run fully on-device. You have tools/capabilities: when Marcel asks "
+    "you to DO something you have a tool for (like opening a worker terminal), call the tool — don't "
+    "just talk about it. After a tool runs, tell him briefly what you did.",
 )
 
 # Persisted rolling transcript = Yuri's memory across turns AND restarts (the local-SLM stand-in for
@@ -35,11 +37,31 @@ HIST_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice"
 
 _THINK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
+SPAWN_HELPER = os.path.join(os.path.dirname(__file__), "yuri-spawn-worker.sh")
+WORKER_NAME = os.environ.get("YURI_WORKER_NAME", "worker1")
+
+# CAPABILITIES — the model CHOOSES to call these (real tool calling, not a wrapper regex). This is the
+# surface to grow: add a tool schema here + a branch in _exec_tool. Marcel tests how reliably she uses them.
+TOOLS = [{
+    "type": "function",
+    "function": {
+        "name": "spawn_worker",
+        "description": ("Open a worker terminal: a visible macOS Terminal window running a Claude Code "
+                        "session that Marcel can watch and that can be handed coding tasks. Call this "
+                        "when Marcel asks to open / spawn / launch / start a terminal, worker, or session."),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "task": {"type": "string",
+                         "description": "Optional first task/prompt to send the worker. Omit if he only wants it opened."}
+            },
+        },
+    },
+}]
+
 
 def _strip_think(t: str) -> str:
-    """Remove a reasoning model's <think> CoT so it's never spoken. If a trace opened but never
-    closed (truncated), drop everything from <think> on. llama3.2 emits none — this future-proofs
-    swapping in a reasoning model via YURI_LOCAL_MODEL."""
+    """Remove a reasoning model's <think> CoT so it's never spoken (llama3.2 emits none; future-proofs a swap)."""
     t = _THINK.sub("", t)
     i = t.lower().find("<think>")
     if i != -1:
@@ -76,19 +98,31 @@ def _save_history(hist):
         pass
 
 
-def _ollama_chat(messages):
-    """Call Ollama's NATIVE /api/chat (honors options.num_ctx, unlike the OpenAI-compat shim)."""
-    payload = json.dumps({
-        "model": MODEL,
-        "messages": messages,
-        "stream": False,
-        "options": {"num_ctx": NUM_CTX, "temperature": TEMP},
-    }).encode()
-    req = urllib.request.Request(f"{OLLAMA}/api/chat", data=payload,
+def _exec_tool(name, args):
+    """Run a capability the model chose to call; return a short result string fed back to the model."""
+    if name == "spawn_worker":
+        task = ((args or {}).get("task") or "").strip()
+        try:
+            cmd = ["bash", SPAWN_HELPER, WORKER_NAME] + ([task] if task else [])
+            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # non-blocking (4s boot)
+            return f"worker '{WORKER_NAME}' terminal is opening" + (f" with task: {task}" if task else "")
+        except Exception as e:
+            return f"failed to open worker: {str(e)[:60]}"
+    return f"unknown tool: {name}"
+
+
+def _ollama_chat(messages, tools=None):
+    """Call Ollama native /api/chat (honors options.num_ctx). Returns the assistant message dict
+    (may carry tool_calls)."""
+    payload = {"model": MODEL, "messages": messages, "stream": False,
+               "options": {"num_ctx": NUM_CTX, "temperature": TEMP}}
+    if tools:
+        payload["tools"] = tools
+    req = urllib.request.Request(f"{OLLAMA}/api/chat", data=json.dumps(payload).encode(),
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         d = json.loads(r.read())
-    return (d.get("message", {}) or {}).get("content", "").strip()
+    return d.get("message", {}) or {}
 
 
 def run_brain(req_messages):
@@ -96,11 +130,28 @@ def run_brain(req_messages):
     hist = _load_history()
     send = [{"role": "system", "content": SYS_DEFAULT}] + hist[-(2 * TURNS):] + [
         {"role": "user", "content": user_msg}]
+
     try:
-        raw = _ollama_chat(send)
-    except Exception as e:
-        return f"My local brain hiccuped: {str(e)[:80]}"
-    reply = _strip_think(raw) or "I didn't catch that."
+        msg = _ollama_chat(send, tools=TOOLS)
+    except Exception:
+        try:                                  # model without tool support -> still let her talk
+            msg = _ollama_chat(send)
+        except Exception as e:
+            return f"My local brain hiccuped: {str(e)[:80]}"
+
+    # She chose a capability: run it, feed the result back, let her speak the outcome.
+    tool_calls = msg.get("tool_calls") or []
+    if tool_calls:
+        send.append(msg)
+        for tc in tool_calls:
+            fn = tc.get("function") or {}
+            send.append({"role": "tool", "content": _exec_tool(fn.get("name", ""), fn.get("arguments") or {})})
+        try:
+            msg = _ollama_chat(send, tools=TOOLS)
+        except Exception:
+            msg = {"content": "Done."}
+
+    reply = _strip_think(msg.get("content", "")) or "Okay."
     hist.append({"role": "user", "content": user_msg})
     hist.append({"role": "assistant", "content": reply})
     _save_history(hist)
@@ -116,7 +167,8 @@ class H(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok": True, "brain": "ollama-local", "model": MODEL}).encode())
+            self.wfile.write(json.dumps({"ok": True, "brain": "ollama-local", "model": MODEL,
+                                         "tools": [t["function"]["name"] for t in TOOLS]}).encode())
         else:
             self.send_response(404)
             self.end_headers()
@@ -154,5 +206,6 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"[yuri-local-brain] :{PORT} -> ollama {MODEL} (on-device, free, num_ctx={NUM_CTX})", flush=True)
+    print(f"[yuri-local-brain] :{PORT} -> ollama {MODEL} (on-device, free, num_ctx={NUM_CTX}, "
+          f"tools={[t['function']['name'] for t in TOOLS]})", flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
