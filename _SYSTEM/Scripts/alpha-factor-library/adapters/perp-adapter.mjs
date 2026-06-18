@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: perp-adapter
 // @serves: crypto perpetuals | perp venue | funding rate | open interest | mark price | basis | term structure | crypto-native factors
-// @does: READ-ONLY crypto perpetuals adapter (Binance USDⓈ-M public REST as the default venue) — funding rate, open interest, and basis (perp vs spot) are mapped to AFL-unified shapes that match the crypto factors' data_inputs (funding_rate, open_interest, future_price, spot_price, basis). SSRF-guarded, keyless by default (env-gated when venue requires it), injected HTTP for offline tests, injected spot-getter for the basis calc so it does not hard-couple to the coinbase adapter. INV-1 (no order path), INV-2 (no key reads), INV-3 (live reads OK), INV-6 (parseNum at boundary, ''→null), INV-7 (deterministic + offline-testable) all honored.
+// @does: READ-ONLY crypto perpetuals adapter (Binance USDⓈ-M public REST as the default venue) — funding rate, open interest (snapshot + hist), and basis (perp vs spot) are mapped to AFL-unified shapes that match the crypto factors' data_inputs (funding_rate, open_interest, future_price, spot_price, basis). SSRF-guarded, keyless by default (env-gated when venue requires it), injected HTTP for offline tests, injected spot-getter for the basis calc so it does not hard-couple to the coinbase adapter. INV-1 (no order path), INV-2 (no key reads), INV-3 (live reads OK), INV-6 (parseNum at boundary, ''→null), INV-7 (deterministic + offline-testable) all honored.
 // @use: Reach for this before any code that needs perp funding / OI / basis to feed the crypto-native factors (crypto-funding-price-reaction, crypto-price-oi-quadrant, crypto-basis-term-structure-carry, crypto-lvr-aware-lp). All exports pure except the HTTP-bound ones (getFunding/getOpenInterest/getBasis/getMarkets/getCandles), which route through setHttpGet.
 // @exports: getFunding, getOpenInterest, getBasis, getMarkets, getCandles, mapFunding, mapOpenInterest, mapKline, annualizeFunding, setHttpGet, parseNum, hasCreds, VenueApiError, MappingError, SsrfError
 
@@ -310,18 +310,49 @@ export async function getFundingHistory(symbol, opts = {}) {
 }
 
 /**
- * getOpenInterest(symbol) -> unified OpenInterestRecord
+ * getOpenInterest(symbol, { hist?, period?, limit? }) -> unified OpenInterestRecord | OpenInterestRecord[]
  *
-   Hits `GET /fapi/v1/openInterest?symbol=...`. OI in CONTRACTS. For base or
-   quote notional, multiply by contractSize (from getMarkets) and markPrice
-   (from getFunding.markPrice).
+   Snapshot (hist=false, default):
+     Hits `GET /fapi/v1/openInterest?symbol=...` — current OI in CONTRACTS.
+     Returns one unified OpenInterestRecord { symbol, timestamp(ms), openInterest, openInterestNotional }.
+
+   History (hist=true):
+     Hits `GET /futures/data/openInterestHist?symbol=...&period=PERIOD&limit=LIMIT`.
+     Valid periods: 5m 15m 30m 1h 2h 4h 6h 12h 1d (Binance default 5m).
+     Returns ascending array of OpenInterestRecord (oldest-first, matches kline convention).
+     Hist rows from Binance: { timestamp(unix-ms), sumOpenInterest, sumOpenInterestValue }.
+     sumOpenInterestValue (quote notional) is stored in openInterestNotional when present.
+
+   OI is in CONTRACTS (not base or quote). For base or quote notional, multiply by
+   contractSize (from getMarkets) and markPrice (from getFunding.markPrice).
  */
-export async function getOpenInterest(symbol) {
+export async function getOpenInterest(symbol, { hist = false, period = '1h', limit = 30 } = {}) {
   if (!symbol || typeof symbol !== 'string') throw new MappingError('getOpenInterest: symbol required', symbol);
   const sym = encodeURIComponent(symbol);
-  const url = `https://${BASE_HOST}${PREFIX}/openInterest?symbol=${sym}`;
+
+  if (!hist) {
+    // Snapshot: /fapi/v1/openInterest
+    const url = `https://${BASE_HOST}${PREFIX}/openInterest?symbol=${sym}`;
+    const json = await fetchJson(url);
+    return mapOpenInterest(json);
+  }
+
+  // History: /futures/data/openInterestHist (different path prefix, same host)
+  const lim = Math.min(Math.max(1, Number(limit) || 30), 500); // Binance max 500
+  const params = new URLSearchParams({ symbol, period, limit: String(lim) });
+  const url = `https://${BASE_HOST}/futures/data/openInterestHist?${params.toString()}`;
   const json = await fetchJson(url);
-  return mapOpenInterest(json);
+  if (!Array.isArray(json)) throw new MappingError('getOpenInterest hist: expected array', json);
+
+  // Hist rows: { timestamp(unix-ms), sumOpenInterest, sumOpenInterestValue } — no symbol field
+  // Inject symbol + map through mapOpenInterest (which handles sumOpenInterest fallback).
+  // Preserve Binance ascending order (oldest-first).
+  return json.map((row) => {
+    const rec = mapOpenInterest({ ...row, symbol });
+    // Enrich notional from sumOpenInterestValue if present
+    const notional = parseNum(row.sumOpenInterestValue ?? null);
+    return { ...rec, openInterestNotional: notional ?? rec.openInterestNotional };
+  });
 }
 
 /**

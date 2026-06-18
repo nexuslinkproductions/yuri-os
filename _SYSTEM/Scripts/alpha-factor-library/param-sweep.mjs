@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: crypto-perp-param-sweep
-// @serves: sweep leverage | optimize win rate | parameter grid search | tune trading config | find best leverage risk
-// @does: runs the train-session across a leverage × riskPct grid on ONE shared bar set (fetched once → deterministic + cheap), collects each run's win-rate scorecard, and ranks by win rate then net P&L to surface the best config. The optimize step of the train→refine→optimize loop.
+// @serves: sweep leverage | optimize expectancy | parameter grid search | tune trading config | find best leverage risk | calmar sweep
+// @does: runs the train-session across a leverage × riskPct grid on ONE shared bar set (fetched once → deterministic + cheap), collects each run's expectancy-first scorecard, and ranks by expectancy then calmar then net P&L to surface the best config. The optimize step of the train→refine→optimize loop.
 // @use: node param-sweep.mjs --cycles 400 --market BTCUSDT ; or import { paramSweep } and pass {bars} for a deterministic offline sweep.
 // @exports: paramSweep, formatSweep
 import { fileURLToPath } from 'node:url';
@@ -43,25 +43,35 @@ export async function paramSweep(opts = {}) {
       results.push({ leverage, riskPct, report });
     }
   }
-  // Rank: win rate desc, then net P&L desc.
-  results.sort((a, b) => (b.report.winRate - a.report.winRate) || (b.report.netPnl - a.report.netPnl));
+  // Rank: expectancy desc, then calmar desc (null calmar sorts last), then net P&L desc.
+  // Win-rate is invariant to leverage scaling and is the wrong sort key for a leveraged book.
+  results.sort((a, b) => {
+    const expDiff = (b.report.expectancy ?? -Infinity) - (a.report.expectancy ?? -Infinity);
+    if (expDiff !== 0) return expDiff;
+    const calmarA = a.report.calmar ?? -Infinity;
+    const calmarB = b.report.calmar ?? -Infinity;
+    const calmarDiff = calmarB - calmarA;
+    if (calmarDiff !== 0) return calmarDiff;
+    return (b.report.netPnl ?? 0) - (a.report.netPnl ?? 0);
+  });
   return results;
 }
 
 /** formatSweep(results) -> ranked table + winning config. */
 export function formatSweep(results) {
   const lines = [
-    '=== PARAM SWEEP — ranked by win rate, then net P&L ===',
-    'rank  lev   risk   trades  winRate    PF    netP&L   return%  maxDD%  liq',
+    '=== PARAM SWEEP — ranked by expectancy, then calmar, then net P&L ===',
+    'rank  lev   risk   trades  expect  calmar  winRate    PF    netP&L   return%  maxDD%  liq',
   ];
   results.forEach((r, i) => {
     const x = r.report;
+    const calmarStr = (x.calmar !== null && x.calmar !== undefined) ? String(x.calmar) : 'n/a';
     lines.push(
-      `${String(i + 1).padStart(3)}  ${String(r.leverage).padStart(3)}x  ${(r.riskPct * 100).toFixed(0).padStart(3)}%  ${String(x.closedTrades).padStart(6)}  ${(x.winRate * 100).toFixed(1).padStart(6)}%  ${String(r2(x.profitFactor)).padStart(5)}  ${String(x.netPnl).padStart(7)}  ${String(x.returnPct).padStart(6)}  ${String(x.maxDrawdownPct).padStart(5)}  ${x.liquidations}`,
+      `${String(i + 1).padStart(3)}  ${String(r.leverage).padStart(3)}x  ${(r.riskPct * 100).toFixed(0).padStart(3)}%  ${String(x.closedTrades).padStart(6)}  ${String(x.expectancy).padStart(6)}  ${calmarStr.padStart(6)}  ${(x.winRate * 100).toFixed(1).padStart(6)}%  ${String(r2(x.profitFactor)).padStart(5)}  ${String(x.netPnl).padStart(7)}  ${String(x.returnPct).padStart(6)}  ${String(x.maxDrawdownPct).padStart(5)}  ${x.liquidations}`,
     );
   });
   const w = results[0];
-  if (w) lines.push(`\nWINNING CONFIG: leverage=${w.leverage}x  riskPct=${w.riskPct}  →  winRate ${(w.report.winRate * 100).toFixed(1)}%  netP&L ${w.report.netPnl}  return ${w.report.returnPct}%`);
+  if (w) lines.push(`\nWINNING CONFIG: leverage=${w.leverage}x  riskPct=${w.riskPct}  →  expectancy ${w.report.expectancy}  calmar ${w.report.calmar ?? 'n/a'}  winRate ${(w.report.winRate * 100).toFixed(1)}%  netP&L ${w.report.netPnl}  return ${w.report.returnPct}%`);
   return lines.join('\n');
 }
 
