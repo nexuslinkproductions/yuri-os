@@ -185,10 +185,40 @@ export class Tape {
     try {
       if (!isNum(t0) || !isNum(t1) || !isNum(stepMs) || stepMs <= 0) return [];
       const result = [];
+      // Incremental walk: one full reconstruction at t0, then advance snaps+diffs
+      // forward across steps instead of a fresh bookAt per step (was O(steps×diffs)
+      // and the dominant cost in adverse-attribution). Equivalent to the prior
+      // [bookAt(ts) for ts in steps] loop. 2026-06-19.
+      const seed = this.bookAt(t0);
+      let bids = seed ? new Map(seed.bids) : new Map();
+      let asks = seed ? new Map(seed.asks) : new Map();
+      let haveBook = !!seed;
+      let si = upperBoundByTs(this._snaps, t0);
+      let di = upperBoundByTs(this._diffs, t0);
+      const advanceTo = (upto) => {
+        while (si < this._snaps.length && this._snaps[si].ts <= upto) {
+          const snap = this._snaps[si];
+          bids = new Map(); asks = new Map();
+          applyLevels(bids, snap.bids);
+          applyLevels(asks, snap.asks);
+          haveBook = true;
+          di = upperBoundByTs(this._diffs, snap.ts);
+          si++;
+        }
+        while (di < this._diffs.length && this._diffs[di].ts <= upto) {
+          applyLevels(bids, this._diffs[di].b);
+          applyLevels(asks, this._diffs[di].a);
+          di++;
+        }
+      };
       for (let ts = t0; ts <= t1; ts += stepMs) {
-        const book = this.bookAt(ts);
-        if (!book || !isNum(book.mid)) continue;
-        result.push({ ts, mid: book.mid, spreadBps: book.spreadBps });
+        advanceTo(ts);
+        if (!haveBook) continue; // no snap ≤ ts → bookAt would have been null
+        const { bids: tb, asks: ta } = extractTopN(bids, asks, 20);
+        const mid = (tb.length > 0 && ta.length > 0) ? (tb[0].price + ta[0].price) / 2 : null;
+        if (!isNum(mid)) continue;
+        const spreadBps = (mid > 0) ? ((ta[0].price - tb[0].price) / mid) * 1e4 : null;
+        result.push({ ts, mid, spreadBps });
       }
       return result;
     } catch {
