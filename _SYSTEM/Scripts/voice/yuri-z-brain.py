@@ -32,14 +32,39 @@ def _zai_key():
         return ""
 
 
-SYS_DEFAULT = os.environ.get(
-    "YURI_Z_SYSTEM",
-    "You are Yuri, a spoken voice assistant talking out loud to Marcel. Reply in ONE or two natural, "
-    "conversational sentences — no markdown, no lists, no headings, no reasoning aloud. Be concise, "
-    "direct, warm, and human. You have tools, but call a tool ONLY when Marcel EXPLICITLY asks for that "
-    "exact action (e.g. he literally says to open or spawn a terminal or worker). For questions, "
-    "chit-chat, or anything else, just talk — do NOT call any tool. After a tool runs, say briefly what you did.",
-)
+PERSONA_FILE = os.path.join(os.path.dirname(__file__), "yuri-voice-brain.md")
+MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude", "memory", "MEMORY.md")
+MEM_CAP = int(os.environ.get("YURI_Z_MEM_CAP", "14000"))  # bound the memory injection so a turn stays snappy
+TOOL_NOTE = ("You have tools, but call a tool ONLY when Marcel EXPLICITLY asks for that exact action "
+             "(e.g. he literally says to open or spawn a terminal or worker). For questions, chit-chat, "
+             "or anything else, just talk — do NOT call any tool. After a tool runs, say briefly what you did.")
+
+
+def _build_system():
+    """Yuri's brain = her voice persona + YURI's ACTUAL curated memory (the Track-B index), loaded
+    from the real files at startup. Wired into the existing system, not a new memory type."""
+    parts = []
+    try:
+        with open(PERSONA_FILE) as f:
+            parts.append(f.read().strip())
+    except Exception:
+        parts.append("You are Yuri, Marcel's adversarial-ally voice assistant — reply in one or two "
+                     "natural spoken sentences, full personality, no filler.")
+    try:
+        with open(MEMORY_FILE) as f:
+            mem = f.read().strip()
+        if len(mem) > MEM_CAP:
+            mem = mem[:MEM_CAP].rsplit("\n", 1)[0] + "\n…(more in the memory system)"
+        parts.append("## YURI MEMORY — what you already know about Marcel and the work "
+                     "(recall and use it; don't re-ask what's here)\n" + mem)
+    except Exception:
+        pass
+    parts.append(TOOL_NOTE)
+    return "\n\n".join(parts)
+
+
+# Built once at startup (stable across turns). Override wholesale with YURI_Z_SYSTEM if ever needed.
+SYSTEM = os.environ.get("YURI_Z_SYSTEM") or _build_system()
 
 HIST_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "yuri-z-history.json")
 _THINK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -137,7 +162,7 @@ def run_brain(req_messages):
     hist = _load_history()
     messages = hist[-(2 * TURNS):] + [{"role": "user", "content": user_msg}]
     try:
-        resp = _messages_call(messages, SYS_DEFAULT)
+        resp = _messages_call(messages, SYSTEM)
     except Exception as e:
         return f"My GLM brain hiccuped: {str(e)[:90]}"
 
@@ -149,7 +174,7 @@ def run_brain(req_messages):
                     "content": _exec_tool(b.get("name", ""), b.get("input") or {})} for b in tool_uses]
         followup = messages + [{"role": "assistant", "content": content}, {"role": "user", "content": results}]
         try:
-            resp = _messages_call(followup, SYS_DEFAULT)
+            resp = _messages_call(followup, SYSTEM)
         except Exception:
             resp = {"content": [{"type": "text", "text": "Done."}]}
 
