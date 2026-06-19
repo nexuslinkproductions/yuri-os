@@ -3,7 +3,7 @@
 // @serves: BTC tape recording | JSONL replay feed | depth diff capture | trade stream capture | order book snapshot | replay harness | backtesting feed | market data archive
 // @does: Records the live BTC feed (diff-depth + trades + periodic L2 snapshots) to gzip-rotated JSONL files for replay. Writes {"t":"diff"...}, {"t":"trade"...}, {"t":"snap"...} lines to <dataDir>/tape-<SYM>-YYYYMMDD.jsonl; auto-rotates previous-day files to .jsonl.gz on first write of a new UTC date. Fail-open — recorder errors never throw to the caller or kill the daemon. ~300MB/day raw BTCUSDT.
 // @use: startRecorder({symbols,dataDir,snapshotIntervalMs,topN,WebSocketImpl,httpGet,onBook,onTrade}) for durable replay capture. stop() to shut down cleanly.
-// @exports: startRecorder, utcDateTag, buildSnapLine, buildDiffLine, buildTradeLine
+// @exports: startRecorder, utcDateTag, buildSnapLine, buildDiffLine, buildTradeLine, fetchFullDepthSnap
 //
 // CONSTRAINTS: view-only market data (INV-1 no order path; INV-2 no keys — public keyless feeds only),
 // fail-open (any recorder error is swallowed — caller never sees a throw), no new npm deps
@@ -15,7 +15,14 @@ import zlib from 'node:zlib';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { startDepthBook, parseDiffDepthMessage, FSTREAM_WS_URL } from './depth-book.mjs';
+import { startDepthBook, parseDiffDepthMessage, FSTREAM_WS_URL, FAPI_HOST } from './depth-book.mjs';
+
+// Deep-snap depth: the periodic full-depth REST snap captures this many levels for a
+// clean replay seed. Binance /fapi/v1/depth accepts limit ∈ {5,10,20,50,100,500,1000}.
+// This is SEPARATE from `topN` (the live onBook passthrough cap, default 20) because
+// depth-book's emit() slices to topN BEFORE handing to onBook — so the only way to get
+// real depth into the snap is an independent REST fetch at the source.
+const DEFAULT_SNAP_TOP_N = 1000;
 
 // trades-stream is written by a sibling lane; import at runtime (fail-open if absent).
 // Expected exports: startTradesStream({symbols, onTrade, WebSocketImpl})
@@ -66,6 +73,28 @@ export function buildDiffLine(ev) {
 /** buildTradeLine(tr) — tr from onTrade callback */
 export function buildTradeLine(tr) {
   return JSON.stringify({ t: 'trade', ts: tr.ts, s: tr.symbol, a: tr.aggId, p: tr.price, q: tr.qty, m: tr.isBuyerMaker });
+}
+
+/**
+ * fetchFullDepthSnap(symbol, httpGet, snapTopN) -> { lastUpdateId, bids, asks } | null
+ * Fetches a full-depth L2 snapshot from /fapi/v1/depth (public, keyless) and normalizes
+ * to {price,size}[]. Fail-open: any error → null (caller falls back to the onBook snap).
+ * `httpGet` is the SAME injectable fetcher depth-book uses (test-injectable, SSRF-guarded).
+ */
+export async function fetchFullDepthSnap(symbol, httpGet, snapTopN = DEFAULT_SNAP_TOP_N) {
+  if (typeof httpGet !== 'function') return null;
+  const url = `https://${FAPI_HOST}/fapi/v1/depth?symbol=${encodeURIComponent(symbol)}&limit=${snapTopN}`;
+  let res;
+  try { res = await httpGet(url); } catch { return null; }
+  if (!res || res.status < 200 || res.status >= 300) return null;
+  let json;
+  try { json = JSON.parse(res.body); } catch { return null; }
+  if (!json || typeof json.lastUpdateId !== 'number') return null;
+  const norm = (arr) => (Array.isArray(arr) ? arr : [])
+    .filter((l) => Array.isArray(l) && l.length >= 2)
+    .map((l) => ({ price: Number(l[0]), size: Number(l[1]) }))
+    .filter((l) => Number.isFinite(l.price) && Number.isFinite(l.size) && l.size > 0);
+  return { lastUpdateId: json.lastUpdateId, bids: norm(json.bids), asks: norm(json.asks) };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -162,7 +191,8 @@ function startDiffStream({ symbols, url = FSTREAM_WS_URL, WebSocketImpl, onDiff 
  *   symbols = ['BTCUSDT'],
  *   dataDir,                          // required — directory to write tapes into
  *   snapshotIntervalMs = 120_000,    // how often to write a snap line per symbol
- *   topN = 20,                        // levels in the snap line
+ *   topN = 20,                        // levels in the onBook passthrough snap (live signal consumers)
+ *   snapTopN = 1000,                  // levels in the periodic full-depth REST snap (clean replay seed)
  *   WebSocketImpl,                    // injectable WebSocket (for tests)
  *   httpGet,                          // injectable snapshot fetcher (for tests)
  *   onBook?,                          // optional passthrough: called after each depth-book update
@@ -176,6 +206,7 @@ export async function startRecorder({
   dataDir,
   snapshotIntervalMs = 120_000,
   topN = 20,
+  snapTopN = DEFAULT_SNAP_TOP_N,
   WebSocketImpl,
   httpGet,
   onBook,
@@ -224,7 +255,36 @@ export async function startRecorder({
     },
   });
 
-  // ── B. own diff-stream (raw diff events, independent of depth-book's internal state) ──
+  // ── B. periodic full-depth REST snap (clean deep seed for replay) ─────────
+  // depth-book's emit() slices onBook to topN (20) BEFORE we see it, so the
+  // onBook-driven snap above only captures 20 levels. This independent timer fetches
+  // the FULL book (limit=snapTopN, default 1000) directly from /fapi/v1/depth every
+  // snapshotIntervalMs and writes a deep snap line. Fail-open: no httpGet or fetch
+  // error → silently skipped (the shallow onBook snap remains as fallback).
+  let snapTimer = null;
+  const writeDeepSnap = async () => {
+    for (const sym of syms) {
+      try {
+        const snap = await fetchFullDepthSnap(sym, httpGet, snapTopN);
+        if (!snap || !snap.bids.length || !snap.asks.length) continue; // fail-open
+        const now = Date.now();
+        lastSnapAt.set(sym, now); // co-throttle the onBook snap so we don't double-write
+        const line = buildSnapLine({
+          ts: now, s: sym, lastUpdateId: snap.lastUpdateId,
+          bids: snap.bids, asks: snap.asks,
+        });
+        writeLine(writeState.get(sym), dataDir, sym, line, now);
+      } catch { /* fail-open — deep-snap error never throws */ }
+    }
+  };
+  if (typeof httpGet === 'function' && snapTopN > topN) {
+    // Fire one immediately (clean seed on startup), then every snapshotIntervalMs.
+    void writeDeepSnap();
+    snapTimer = setInterval(() => { void writeDeepSnap(); }, snapshotIntervalMs);
+    if (typeof snapTimer.unref === 'function') snapTimer.unref(); // never keep the loop alive
+  }
+
+  // ── C. own diff-stream (raw diff events, independent of depth-book's internal state) ──
   const diffHandle = startDiffStream({
     symbols,
     WebSocketImpl,
@@ -261,6 +321,7 @@ export async function startRecorder({
 
   return {
     stop() {
+      try { if (snapTimer) clearInterval(snapTimer); } catch { /* fail-open */ }
       try { depthHandle.stop(); } catch { /* fail-open */ }
       try { diffHandle.stop(); } catch { /* fail-open */ }
       try { tradesHandle.stop(); } catch { /* fail-open */ }
@@ -289,6 +350,42 @@ if (_main && process.argv.includes('--test')) {
   ok(Array.isArray(snap.bids) && snap.bids[0][0] === '100' && snap.bids[0][1] === '1', 'snap bids as string pairs');
   ok(Array.isArray(snap.asks) && snap.asks[0][0] === '101', 'snap asks as string pairs');
 
+  // ── deep-snap round-trip: 100+ levels survive buildSnapLine + JSON.parse ──
+  {
+    const deepN = 150;
+    const deepBids = Array.from({ length: deepN }, (_, i) => ({ price: 100 - i * 0.1, size: i + 1 }));
+    const deepAsks = Array.from({ length: deepN }, (_, i) => ({ price: 101 + i * 0.1, size: i + 1 }));
+    const deepLine = buildSnapLine({ ts: 5000, s: 'BTCUSDT', lastUpdateId: 999, bids: deepBids, asks: deepAsks });
+    const deep = JSON.parse(deepLine);
+    ok(deep.t === 'snap' && deep.bids.length === deepN && deep.asks.length === deepN, `deep snap preserves ${deepN} levels (got bids=${deep.bids.length} asks=${deep.asks.length})`);
+    ok(deep.bids[0][0] === '100' && deep.bids[deepN - 1][0] === String(100 - (deepN - 1) * 0.1), 'deep snap bid ordering + last price intact');
+    ok(deep.asks[0][0] === '101' && deep.asks[deepN - 1][0] === String(101 + (deepN - 1) * 0.1), 'deep snap ask ordering + last price intact');
+    ok(deep.bids[42][1] === '43' && deep.asks[42][1] === '43', 'deep snap mid-level sizes round-trip as strings');
+  }
+
+  // ── fetchFullDepthSnap: mock httpGet → normalized {price,size}[] ──────────
+  {
+    const mockDeep = async () => ({
+      status: 200,
+      body: JSON.stringify({
+        lastUpdateId: 555,
+        bids: [['99.5', '1.5'], ['99.0', '0'], ['99.4', '2.0'], ['bad']],
+        asks: [['100.5', '3.0'], ['100.6', '0'], ['100.7', '4.0']],
+      }),
+    });
+    const r = await fetchFullDepthSnap('BTCUSDT', mockDeep, 1000);
+    ok(r !== null && r.lastUpdateId === 555, 'fetchFullDepthSnap returns lastUpdateId');
+    ok(r.bids.length === 2 && r.asks.length === 2, `fetchFullDepthSnap filters zero-size + malformed (bids=${r?.bids.length} asks=${r?.asks.length})`);
+    ok(r.bids[0].price === 99.5 && r.bids[0].size === 1.5 && typeof r.bids[0].price === 'number', 'fetchFullDepthSnap normalizes to numeric {price,size}');
+    const rNoHttp = await fetchFullDepthSnap('BTCUSDT', null, 1000);
+    ok(rNoHttp === null, 'fetchFullDepthSnap fail-open returns null when no httpGet');
+    const rBadStatus = await fetchFullDepthSnap('BTCUSDT', async () => ({ status: 500, body: '' }), 1000);
+    ok(rBadStatus === null, 'fetchFullDepthSnap fail-open returns null on bad status');
+  }
+
+  // ── deep-snap wired into startRecorder (mock httpGet returns 1000 levels) ─
+  // (covered in the e2e block below via the snapTopN + deep mockHttpGet)
+
   const diffLine = buildDiffLine({ E: 2000, T: 1999, s: 'BTCUSDT', U: 10, u: 15, pu: 9, b: [['100', '5']], a: [['101', '3']] });
   const diff = JSON.parse(diffLine);
   ok(diff.t === 'diff' && diff.ts === 2000 && diff.s === 'BTCUSDT' && diff.U === 10 && diff.u === 15, 'buildDiffLine shape');
@@ -310,11 +407,24 @@ if (_main && process.argv.includes('--test')) {
     }
     MockWS.instances = [];
 
-    // Mock httpGet for depth-book snapshot
-    const mockHttpGet = async () => ({
-      status: 200,
-      body: JSON.stringify({ lastUpdateId: 100, bids: [['100', '5']], asks: [['101', '5']] }),
-    });
+    // Mock httpGet: returns a DEEP book (120 levels) so the full-depth snap path
+    // writes a deep seed. depth-book's internal snapshot also uses this (harmless —
+    // it slices to topN internally before emit).
+    const deepLevels = (base, step, n) => Array.from({ length: n }, (_, i) => [String(base - i * step), String(i + 1)]);
+    const mockHttpGet = async (urlStr) => {
+      // Both depth-book's snapshot and the recorder's deep-snap call this; return deep
+      // levels for /fapi/v1/depth regardless of the limit param.
+      const isDepth = urlStr && urlStr.includes('/fapi/v1/depth');
+      const n = isDepth ? 120 : 1;
+      return {
+        status: 200,
+        body: JSON.stringify({
+          lastUpdateId: 100,
+          bids: deepLevels(100, 0.1, n),
+          asks: Array.from({ length: n }, (_, i) => [String(101 + i * 0.1), String(i + 1)]),
+        }),
+      };
+    };
 
     // trades-stream.mjs is the real sibling — we inject trade frames via its aggTrade socket below.
     const onBooks = [], onTrades = [];
@@ -323,6 +433,7 @@ if (_main && process.argv.includes('--test')) {
       dataDir: tmpDir,
       snapshotIntervalMs: 50, // short threshold so a snap fires quickly
       topN: 5,
+      snapTopN: 1000, // enable the deep-snap timer (mock returns 120 levels)
       WebSocketImpl: MockWS,
       httpGet: mockHttpGet,
       onBook: (b) => onBooks.push(b),
@@ -372,6 +483,15 @@ if (_main && process.argv.includes('--test')) {
     if (diffLines[0]) ok(diffLines[0].U === 98 && diffLines[0].u === 102, 'diff line has correct U/u');
     if (tradeLines[0]) ok(tradeLines[0].a === 77 && tradeLines[0].p === 100.5, 'trade line has correct aggId/price');
     if (snapLines[0]) ok(Array.isArray(snapLines[0].bids), 'snap line has bids array');
+
+    // Deep-snap assertion: at least one snap must carry >topN levels (the full-depth
+    // REST snap from writeDeepSnap, not the shallow onBook snap).
+    const deepSnaps = snapLines.filter((s) => s.bids && s.bids.length > 5);
+    ok(deepSnaps.length >= 1, `≥1 DEEP snap (>topN=5 levels) written via full-depth REST (got ${deepSnaps.length}, max bids=${snapLines.reduce((m, s) => Math.max(m, s.bids?.length || 0), 0)})`);
+    if (deepSnaps[0]) {
+      ok(deepSnaps[0].bids.length === 120 && deepSnaps[0].asks.length === 120, `deep snap carries full 120 levels (bids=${deepSnaps[0].bids.length} asks=${deepSnaps[0].asks.length})`);
+      ok(deepSnaps[0].bids[0][0] === '100' && deepSnaps[0].asks[0][0] === '101', 'deep snap top-of-book prices correct');
+    }
 
     handle.stop();
     fs.rmSync(tmpDir, { recursive: true, force: true });
