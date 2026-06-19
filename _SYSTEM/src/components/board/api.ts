@@ -292,6 +292,33 @@ export interface TrainerResponse {
   advisory?: string;
 }
 
+// /as-quote — live Avellaneda-Stoikov PAPER quoter state (as-quote-live.getState)
+export interface AsQuoteResponse {
+  armed: boolean;
+  paper?: boolean;
+  symbol?: string;
+  quoting?: boolean;
+  kappaPrice?: number | null;
+  kappaSource?: string;
+  q?: number;
+  qLots?: number;
+  maxInventoryLots?: number;
+  sigmaPrice?: number | null;
+  lastQuote?: { bidPx: number; askPx: number; halfSpread: number; reservation: number; anchor: number; ts: number } | null;
+  quoteCount?: number;
+  fills?: number;
+  netBps?: number;
+  grossSpreadBps?: number;
+  adverseSelBps?: number;
+  feeBps?: number;
+  regime?: { haltCount: number; widenCount: number; lastAction: string };
+  funding?: { rate: number | null; secsToFunding: number | null; skewTicks: number };
+  ofi?: { lambda: number | null; r2: number | null; n: number; levels: number | null };
+  uptimeMs?: number;
+  lastError?: string | null;
+  note?: string;
+}
+
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 
 async function safeFetch<T>(url: string, fallback: T): Promise<T> {
@@ -340,4 +367,7 @@ export const api = {
 
   trainer: () =>
     safeFetch<TrainerResponse>(`${BASE}/trainer`, { headline: null, sweep: [], best: null }),
+
+  asQuote: () =>
+    safeFetch<AsQuoteResponse | null>(`${BASE}/as-quote`, null),
 };

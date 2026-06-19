@@ -21,6 +21,7 @@ import CalibrationPanel from './CalibrationPanel';
 import GraduationPanel from './GraduationPanel';
 import TradesPanel from './TradesPanel';
 import PerpTrainerPanel from './PerpTrainerPanel';
+import AsQuotePanel from './AsQuotePanel';
 
 import './board.css';
 
@@ -352,6 +353,11 @@ export default function BrainBoard({ obs }: Props) {
                 account={board.account}
               />
             </div>
+          </div>
+
+          {/* ══ ROW: A-S MAKER (Engine-2, live paper quoter) ══ */}
+          <div className="bb-panel">
+            <AsQuotePanel data={board.asQuote} />
           </div>
 
           {/* ══ ROW 2: COGNITIVE LAYER ══ */}

@@ -16,6 +16,7 @@ import {
   type AccountResponse,
   type TradesResponse,
   type TrainerResponse,
+  type AsQuoteResponse,
 } from './api';
 
 // ── Indicator math (ported from mockup) ────────────────────────────────────
@@ -118,6 +119,7 @@ export interface BoardDataState {
   account: AccountResponse | null;
   trades: TradesResponse;
   trainer: TrainerResponse | null;
+  asQuote: AsQuoteResponse | null;
 }
 
 const EMPTY_INDICATORS: ComputedIndicators = {
@@ -142,14 +144,15 @@ export function useBoardData(market: string, tf: string): BoardDataState {
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [trades, setTrades] = useState<TradesResponse>({ trades: [], total: 0 });
   const [trainer, setTrainer] = useState<TrainerResponse | null>(null);
+  const [asQuote, setAsQuote] = useState<AsQuoteResponse | null>(null);
 
-  // Paper P&L + real account + live trade tape — authoritative REST, ~3s poll.
+  // Paper P&L + real account + live trade tape + A-S quoter — authoritative REST, ~3s poll.
   useEffect(() => {
     let cancelled = false;
     const poll = async () => {
       if (cancelled) return;
-      const [pp, ac, tr] = await Promise.all([api.paper(), api.account(), api.trades(40)]);
-      if (!cancelled) { setPaper(pp); setAccount(ac); setTrades(tr); }
+      const [pp, ac, tr, aq] = await Promise.all([api.paper(), api.account(), api.trades(40), api.asQuote()]);
+      if (!cancelled) { setPaper(pp); setAccount(ac); setTrades(tr); setAsQuote(aq); }
     };
     poll();
     const id = setInterval(poll, 3000);
@@ -246,5 +249,6 @@ export function useBoardData(market: string, tf: string): BoardDataState {
     account,
     trades,
     trainer,
+    asQuote,
   };
 }
