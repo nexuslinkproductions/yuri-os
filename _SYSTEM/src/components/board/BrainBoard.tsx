@@ -20,7 +20,7 @@ import PerfPanel from './PerfPanel';
 import CalibrationPanel from './CalibrationPanel';
 import GraduationPanel from './GraduationPanel';
 import TradesPanel from './TradesPanel';
-import PerpTrainerPanel from './PerpTrainerPanel';
+import AsForwardPanel from './AsForwardPanel';
 import AsQuotePanel from './AsQuotePanel';
 
 import './board.css';
@@ -376,9 +376,9 @@ export default function BrainBoard({ obs }: Props) {
             </div>
           </div>
 
-          {/* ══ ROW: PERP TRAINER ══ */}
+          {/* ══ ROW: A-S MAKER FORWARD TEST (repurposed from Perp Trainer) ══ */}
           <div className="bb-panel">
-            <PerpTrainerPanel data={board.trainer} />
+            <AsForwardPanel data={board.asQuote} />
           </div>
 
           {/* ══ ROW 3: GRADUATION LADDER ══ */}

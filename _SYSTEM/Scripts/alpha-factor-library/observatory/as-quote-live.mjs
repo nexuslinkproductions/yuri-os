@@ -133,6 +133,7 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
     kappaPrice: null, kappaSource: 'init',
     restingBid: null, restingAsk: null,
     fills: [], recentFills: [], regimeHaltCount: 0, regimeWidenCount: 0,
+    cumNetBps: 0, cumPnlUsd: 0, equityCurve: [], lastSampleTs: 0, // forward-test history
     prevOfiBook: null, ofiRecords: [], midRing: [],
     lastQuote: null, quoteCount: 0, lastError: null, lastAction: 'normal',
   };
@@ -202,6 +203,11 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
             adverseBpsParam: cfg.adverseBps, feeRtBps: cfg.feeRtBps, mid: fin(mid) ? mid : order.price,
           });
           if (attr) { attr.side = side; state.fills.push(attr); if (state.fills.length > cfg.fillsMax) state.fills.shift(); }
+          // forward-test accumulators (all-time cumulative paper PnL)
+          if (attr && fin(attr.netBps)) {
+            state.cumNetBps += attr.netBps;
+            state.cumPnlUsd += (attr.netBps / 1e4) * (order.price * cfg.size); // bps × order notional
+          }
           // per-fill record (the visible A-S fill tape) — proves each fill is a real trade match
           state.recentFills.push({ side, price: order.price, midAtFill: fin(mid) ? mid : order.price, netBps: attr ? attr.netBps : null, ts: fin(tr.ts) ? tr.ts : now() });
           if (state.recentFills.length > 30) state.recentFills.shift();
@@ -225,6 +231,13 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
   function requote() {
     try {
       if (!state.book || !fin(state.kappaPrice) || state.kappaPrice <= 0) return;
+      // forward-test equity sample every ~30s (regular time axis, independent of fills/halts)
+      const tSample = now();
+      if (tSample - state.lastSampleTs >= 30000) {
+        state.lastSampleTs = tSample;
+        state.equityCurve.push({ t: tSample, fills: state.fills.length, cumNetBps: state.cumNetBps, cumPnlUsd: state.cumPnlUsd });
+        if (state.equityCurve.length > 300) state.equityCurve.shift();
+      }
       const qd = computeLiveQuote(state, cfg);
       if (!qd) return;
       if (qd.halted) { state.regimeHaltCount++; state.lastAction = 'halt'; state.restingBid = null; state.restingAsk = null; return; }
@@ -266,6 +279,7 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
       recentFills: state.recentFills.slice(-12).reverse(),
       fills: summary.fills ?? 0, netBps: summary.netBps ?? 0, grossSpreadBps: summary.grossSpreadBps ?? 0,
       adverseSelBps: summary.adverseSelBps ?? 0, feeBps: summary.feeBps ?? 0,
+      cumNetBps: state.cumNetBps, cumPnlUsd: state.cumPnlUsd, equityCurve: state.equityCurve.slice(-200),
       regime: { haltCount: state.regimeHaltCount, widenCount: state.regimeWidenCount, lastAction: state.lastAction },
       funding: { rate: state.fundingRate, secsToFunding: state.secsToFunding, skewTicks: state.fundingSkewTicks },
       ofi: computeOfiLambda(state, cfg),

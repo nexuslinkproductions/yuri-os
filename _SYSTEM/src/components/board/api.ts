@@ -313,6 +313,9 @@ export interface AsQuoteResponse {
   grossSpreadBps?: number;
   adverseSelBps?: number;
   feeBps?: number;
+  cumNetBps?: number;
+  cumPnlUsd?: number;
+  equityCurve?: { t: number; fills: number; cumNetBps: number; cumPnlUsd: number }[];
   regime?: { haltCount: number; widenCount: number; lastAction: string };
   funding?: { rate: number | null; secsToFunding: number | null; skewTicks: number };
   ofi?: { lambda: number | null; r2: number | null; n: number; levels: number | null };
