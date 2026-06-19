@@ -59,6 +59,30 @@ def _synth(model, text, voice, lang, speed):
     return np.concatenate(cs) if cs else np.zeros(0, dtype=np.float32)
 
 
+def _chunks(text, maxlen=60):
+    """Split a reply into short, synth-safe pieces: by sentence, then by comma for long sentences
+    (merging tiny fragments). The mlx-audio Kokoro vocoder throws broadcast_shapes on some longer
+    single generate() calls; short pieces synth reliably, so we feed it short pieces and stitch."""
+    out = []
+    for s in re.split(r"(?<=[.!?])\s+", (text or "").strip()):
+        s = s.strip()
+        if not s:
+            continue
+        if len(s) <= maxlen:
+            out.append(s)
+            continue
+        cur = ""
+        for part in re.split(r"(?<=,)\s+", s):
+            if cur and len(cur) + len(part) + 1 > maxlen:
+                out.append(cur.strip())
+                cur = part
+            else:
+                cur = (cur + " " + part).strip() if cur else part
+        if cur.strip():
+            out.append(cur.strip())
+    return out or ([text.strip()] if (text or "").strip() else [])
+
+
 def _trim_filler(audio, sr):
     """We append ' hm.' to dodge Kokoro's single-sentence broadcast_shapes bug — cut it back off.
     Search ONLY the last ~1.4s (where the filler lives) so we never trim into earlier real words."""
@@ -122,20 +146,46 @@ class KokoroTTSService(TTSService):
             pass
         _clear_mlx_cache()
 
+    def _try_synth(self, t):
+        """One synth attempt; returns audio, or None on the broadcast_shapes crash (no raise)."""
+        try:
+            a = _synth(self._model, t, self._voice, self._lang, self._speed)
+            return a if (a is not None and a.size) else None
+        except Exception as e:
+            logger.warning(f"[kokoro] chunk synth failed ({str(e)[:40]}): {t[:50]!r}")
+            return None
+
     def _synth_robust(self, norm: str):
-        """Synthesize in Yuri's voice. Kokoro's broadcast_shapes bug crashes on some short single
-        sentences; retry with a trailing clause (a 2nd segment dodges it). NO macOS fallback — owner
-        hard-blocked it (2026-06-18); return None (stay silent) if every attempt fails, never another voice."""
+        """Synthesize in Yuri's voice by stitching short, synth-safe chunks — dodges the mlx-audio
+        Kokoro broadcast_shapes bug WITHOUT any spoken filler (NO ' okay' pad, NO macOS — owner
+        2026-06-19). A chunk that still crashes is re-split into word groups; a group that still
+        crashes is skipped (rare, tiny). Returns None only if EVERYTHING crashes."""
         if not norm:
             return None
-        for attempt in (norm, norm + " Okay.", norm + " Mm. Okay."):
-            try:
-                a = _synth(self._model, attempt, self._voice, self._lang, self._speed)
-                if a is not None and a.size:
-                    return a
-            except Exception as e:
-                logger.warning(f"[kokoro] synth attempt failed ({str(e)[:40]}): {attempt[:50]!r}")
-        return None
+        gap = np.zeros(int(self._model_sr * 0.08), dtype=np.float32)  # ~80ms natural pause between pieces
+        out = []
+
+        def emit(t):
+            a = self._try_synth(t)
+            if a is not None:
+                out.append(a)
+                out.append(gap)
+                return True
+            return False
+
+        # maxlen=32 + 4-word -> 2-word fallback gives full coverage on the crasher set (verified
+        # 2026-06-19, DROPS=0). A 2-word pair that STILL crashes is skipped (rare, ~tiny).
+        for chunk in _chunks(norm, maxlen=32):
+            if emit(chunk):
+                continue
+            words = chunk.split()
+            for i in range(0, len(words), 4):
+                grp = words[i:i + 4]
+                if emit(" ".join(grp)):
+                    continue
+                for j in range(0, len(grp), 2):
+                    emit(" ".join(grp[j:j + 2]))
+        return np.concatenate(out) if out else None
 
     def can_generate_metrics(self) -> bool:
         return False
