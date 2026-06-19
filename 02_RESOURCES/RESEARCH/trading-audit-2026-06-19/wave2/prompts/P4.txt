@@ -1,0 +1,35 @@
+You are PEER 4 of 5 GLM-5.2 peers. READ FIRST: the master brief at
+/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/00-MASTER-BRIEF.md
+and the audit §3 A10 (quantum/energy "theater") + §1 keystone. Honor HARD CONSTRAINTS.
+
+YOUR LANE: QUANTUM ORDER-EFFECT SIMULATION — actually RUN the machinery and decide cut-vs-wire.
+The audit's load-bearing claim (A10, [V]): the quantum factor-circuit's 2 live inputs (obs-momentum,
+obs-vol-regime) are near-parallel price-derivatives → commutatorNorm≈0 → circuitQuality ratio=1 BY CONSTRUCTION
+→ the "non-commutative ordering advantage" is noise on collinear inputs. Your job: PROVE OR REFUTE this with a
+real simulation, then quantify whether orthogonality ever makes the quantum path worth its CPU.
+
+Do this (READ-ONLY; you may RUN existing scripts, never edit them):
+1. Read `_SYSTEM/Scripts/alpha-factor-library/factor-circuit.mjs` and `factor-return-vectors.mjs` fully. Understand
+   `factorVector`, `commutatorNorm(a,b)`, `buildCommutativityMatrix`, `sampleOrderings`, `scoreOrdering`,
+   `robustOptimalOrdering`, `circuitQuality`, `optimizeFactorCircuit`, `cornerGuard`. Read the phase-2 test
+   `_SYSTEM/Scripts/alpha-factor-library/afl-phase2.test.mjs` to see intended usage.
+2. Write a THROWAWAY harness in /tmp (NOT the repo) that imports factor-circuit and runs:
+   (a) COLLINEAR INPUTS: 2 vectors both monotone transforms of a random-walk price series (e.g. log-returns and
+       high-minus-low of the same bars) → mimic obs-momentum vs obs-vol-regime. Measure commutatorNorm, condition
+       number of the commutativity matrix, circuitQuality ratio. Confirm it ≈ ratio 1 (theater).
+   (b) ORTHOGONAL INPUTS: 2-5 vectors from INDEPENDENT sources (e.g. funding-rate series, OFI series, a momentum
+       series, a vol series, a sentiment series — synthesize plausible independent AR(1) series if no real tape).
+       Measure commutatorNorm / circuitQuality ratio for each pair and the optimal ordering. Does ratio exceed 1.0?
+       By how much? Does `optimizeFactorCircuit` find a non-trivial best ordering?
+   (c) SENSITIVITY: how does circuitQuality scale with input correlation (sweep pairwise ρ from 0 to 0.9)? Find the
+       ρ threshold below which ordering "matters" (ratio > ~1.05).
+3. Run `_SYSTEM/Scripts/quantum-hypothesis-tracker.mjs`'s `qqEquality` order-effect test on a sequential-evidence
+   series where ORDER genuinely matters (construct one) vs one where it doesn't. Confirm qqEquality detects the
+   difference. This validates the tracker is sound even if the factor-circuit's live use is theater.
+4. Verdict per the brief's §3-A10 fixes: is the quantum path (i) CUT (delete computeCircuit from hot loop),
+   (ii) CONDITIONALLY-WIRED (only after ≥3 orthogonal factors survive DSR), or (iii) KEEP? Give the CPU cost per
+   cycle (time the harness) and the realistic edge lift (if any). Cite Schmidt/orthogonality theory honestly.
+
+Deliver the OUTPUT FORMAT block with the actual measured numbers (commutatorNorm, ratio, ρ-threshold, CPU ms/cycle).
+"WHAT WE ARE MISSING" = the orthogonal factor inputs required before quantum ordering has ANY content (ties to P2),
+and an honest keep/cut ruling. Show the /tmp harness code in an appendix in your output so the author can re-run.

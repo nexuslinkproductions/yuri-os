@@ -1,0 +1,17 @@
+You are PEER 2 of 5 GLM-5.2 peers. READ FIRST: the master brief at
+/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/00-MASTER-BRIEF.md
+and the audit §3 (A02/A03 rows). Honor HARD CONSTRAINTS.
+
+YOUR LANE: FACTOR ORTHOGONALITY + EFFECTIVE-N AUDIT.
+The audit found effective-N≈2 (32 TA strategies collapse to 2 correlated echo-chambers). Your job: quantify
+the TRUE information diversity and define the orthogonal spine YURI should build toward.
+
+Do this:
+1. Enumerate EVERY factor/signal YURI computes. Grep the code: `grep -rn "factorId\|signals.push\|overlaySignals\|compute\|export function" _SYSTEM/Scripts/alpha-factor-library/ | grep -iE "momentum|funding|ofi|imbalance|vpin|carry|skew|cross|regime|trend|meanrev|vol|rsi|macd|vwap|atr|supertrend"`. List them grouped by FAMILY (price-TA / microstructure / funding-carry / cross-asset / volatility / sentiment).
+2. For each family, classify the underlying INFORMATION SOURCE (close-to-close price? order-book L2? funding rate? OI? trade-flow?). Two factors driven by the same source are correlated by construction. Build the family→source map.
+3. Compute EFFECTIVE-N conceptually + as far as the code/data allows: read `_SYSTEM/Scripts/alpha-factor-library/factor-return-vectors.mjs` and `factor-circuit.mjs` (commutatorNorm, buildCommutativityMatrix). If there's a script to generate factor return vectors (e.g. tape-replay.mjs over a recorded tape, or trade-edge-audit.mjs), describe how to run it to get the empirical correlation matrix. If you can run it safely READ-ONLY, do so and report the pairwise correlation / condition number. Otherwise construct a principled estimate of effective-N from the family→source map and state it as `[A]` with reasoning.
+4. Leadoit-Wolf shrinkage / clustering: describe the correct method to get effective-N from a noisy factor-return matrix, and what target effective-N a credible engine needs (≥5? ≥8?). Cite the method (Ledoit-Wolf 2004; Bailey/López de Prado on backtest-overfitting & deflated Sharpe).
+5. Define the MINIMAL ORTHOGONAL SPINE: the smallest set of factors spanning independent information sources (e.g. funding-carry + OFI + cross-asset-momentum + vol-regime + sentiment) that reaches the target effective-N. State which already exist in YURI's code (unwired) vs must be built.
+
+Deliver the OUTPUT FORMAT block. "WHAT WE ARE MISSING" = the orthogonal factor slots not yet present + the
+wiring to bring unwired ones (funding/OFI) into the sizing path. Be numeric on effective-N targets.

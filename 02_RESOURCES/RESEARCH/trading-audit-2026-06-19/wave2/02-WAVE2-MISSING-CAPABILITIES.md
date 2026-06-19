@@ -1,0 +1,226 @@
+# Wave-2 — What We Are Missing to Be Functional (primary-grounded)
+
+**Date:** 2026-06-19 · **Owner:** Marcel · **Lane:** Claude/main (Rick), cross-checked by 5 GLM-5.2 @xhigh peers
+**Mission:** refine+extend the trading platform toward functional — FIRST gather what we're *missing*; run sims + calcs; compare to how professionals trade; design the 24/7 agent fleet.
+**Status:** context/sim/pro-comparison wave. Build (#7 Coinbase scrap + ranked redirect path) is owner-gated and comes *after* this informs it.
+
+## Evidence-tier legend
+- **[V]** verified against our own code/runtime (strongest tier — local execution is ground truth for our system).
+- **[V-online]** verified against ≥2 primary external sources this wave (fees, funding avg, LVR paper).
+- **[R]** advisory — from the prior playbook swarm or a single source, **not** re-verified this wave; treat as hypothesis.
+- **[A]** asserted, unverified.
+
+---
+
+## §0 — HEADLINE: what we are missing (one screen)
+
+The platform is **rigorous scaffolding around zero live edge**, wired to the wrong fee tier and sized at a gross exposure ~60× what the edge justifies. Concretely, to be *functional* we are missing exactly five things — four are **wiring of already-built code**, one is measurement:
+
+| # | Missing capability | Evidence | Fix size |
+|---|---|---|---|
+| **M1** | **Independent information sources wired to sizing.** 32 TA strategies are algebraic shadows of one price series (eff-N ≈ 1.0–1.7). 5 orthogonal sources (funding/OFI/cross-asset/sentiment/vol-regime) are **built but push telemetry only, never reach the sizer.** | [V] orchestrator.mjs:640-700 (code comment admits it); [V] P2 effective-N from 6,328-row ledger | **S–M** (wire + unit-normalize) |
+| **M2** | **Disciplined sizing actually attached to the crypto path.** `computeSize` (fractional-Kelly-on-lower-CI, vol-targeted, CVaR-capped, fail-closed) is sound but **only wired to the Polymarket sleeve**; the crypto ensemble uses a flat `equity × maxPct × strength × regimeTrim` heuristic up to **6.0× gross (600%)**. | [V] orchestrator.mjs:904 (crypto) vs :999 (poly computeSize); :437 `maxGrossExposurePct:6.0` | **S** (route crypto through computeSize) |
+| **M3** | **Correct fee model + an open-loop measurement instrument.** Maker-edge math still runs against a **stale Coinbase 60bps** tier; Binance USDⓈM VIP0 is **2bps maker / 5bps taker** (primary-verified). And there is no closed feedback loop that ties a *forecast* to its *realized outcome* end-to-end (the audit's keystone). | [V-online] Binance fee page; [V] maker-fill-sim.mjs:30-34 stale Coinbase tiers | **S** (fee table) + **M** (keystone measurer) |
+| **M4** | **The 24/7 agent fleet doesn't exist as a fleet** — one monolithic daemon does everything sequentially per cycle, so latency-critical work (risk-exit, requote) shares a loop with latency-tolerant work (learn-loop, news). | [V] orchestrator.mjs single-cycle structure; [R] P3 topology (pending) | **M–L** (partition + bus) |
+| **M5** | **A *real, net-of-cost edge* to compound.** The €300→€10k growth path is **mathematically near-certain IF a p≈0.55 edge holds out-of-sample** (MC §2: 100% reach at full/half/quarter Kelly, weeks not years). The open variable is **not the compounding math — it's whether we have the edge.** Verified data shows **no factor yet clears \|t\|>2.3** (eff-N 1.2, 14/32 negative after fees) → the live edge is closer to **p≈0.50 (none)** than p=0.55 right now. Aggressive sizing on an unverified edge = over-Kelly = the textbook retail death. | [V] MC §2; [V] P2 ledger; [V-online] 2026 retail Sharpe | **gating** |
+
+**Net:** the gap to functional is **not invention, it is wiring + measurement + a fee fix.** Everything load-bearing already exists as code or as a known number.
+
+---
+
+## §1 — Primary-verified external facts (this wave, not the playbook)
+
+| Fact | Value | Source tier |
+|---|---|---|
+| Binance USDⓈ-M **VIP0 maker** | **0.0200% (2 bps/side)** | [V-online] official `binance.com/en/fee/futureFee` + Binance Support FAQ 360033544231 + Finder (Jun'26) + 2 Binance Square posts — all agree; BNB pays 10% off |
+| Binance USDⓈ-M **VIP0 taker** | **0.0500% (5 bps/side)** | [V-online] same sources |
+| BTC perp **avg funding (cycle)** | ≈ **0.01%/8h → ~10.95% APR gross** | [V-online] Binance funding-history + CoinGlass + Binance Square analysis 30298233678962 |
+| BTC perp **funding *right now*** | ≈ **+0.0028%/8h → ~3% APR** | [V-online] Coinalyze live dashboard — **we are in a low-funding regime; current carry is ~3× thinner than the cycle average** |
+| **LVR** (Loss-Versus-Rebalancing) | adverse-selection cost = ~σ²/8 per unit time; toxic/informed flow drives it, retail flow does not | [V-online] Milionis-Moallemi-Roughgarden-Zhang 2022 (arXiv 2208.06046, primary PDF) — **but this is an AMM (Uniswap) result; the CLOB-maker analog is queue-adverse-selection (κ), modeled in maker-fill-sim.mjs. Do not apply σ²/8 to a resting Binance order.** |
+
+**Corrections to the prior playbook (`afl-crypto-trading-playbook-2026-06-14.md`), now stripped to [R]:** the attributed quotes (Cumberland/DRW "Bobby Cho", Wintermute "$1.2M/employee", Robot Wealth "Kris Longore", "Oct 2025 ADL force-close", "IV>RV ~70% 2019-2022") are **single-source/unverified** → demoted to [R]. The *consensus* they point at (discipline > signal) survives; the specific stats do not. Owner flagged the playbook's accuracy; this wave re-grounds the load-bearing numbers from primary.
+
+---
+
+## §2 — Own calcs (Claude/main, execution-verified — `/tmp/yuri-edge-calc.mjs`)
+
+**Kelly sizing** at the audit's honest edge ceiling (p=0.55, b=1):
+- Full Kelly `f* = (b·p−q)/b = 0.10` (10%).
+- **Quarter-Kelly = 2.50%** uncorrelated.
+- Correlation-adjusted (n=3 markets, ρ̄≈0.8, from P2's ETH obs-pair ρ=+0.766): `f_adj = f*/(1+(n−1)ρ) = 0.10/2.6 = 3.85%` → **quarter = 0.96% per bet**.
+- Sane gross at 8× leverage = **7.7% of equity** — vs the configured **600%**. The live config is sized ~**78× too large** for the edge.
+
+**Funding-carry** (refute audit "+5–15%/mo"):
+- Gross: 0.01%/8h × 3 × 365 = **10.95%/yr**; current-regime ~3%/yr.
+- Net of perp fees (2bps×2=4bps) + spot leg (10bps×2=20bps, the dominant cost) = **~10.7%/yr ≈ 0.89%/mo**.
+- Audit's 5–15%/mo is **~11–60× overstated**. It is a *short-vol / limits-to-arbitrage premium that decays and breaks on deleveraging cascades* — not free yield.
+
+**Maker edge** (Binance 2bps vs stale Coinbase 60bps), half-spread captured 2.5bps/side:
+- **Binance VIP0:** net/side = +0.50bps → **+1.0bps round-trip pre-κ** (POSITIVE — flips the audit's negative verdict).
+- **Coinbase t0 (stale):** −57.5bps/side → −115bps rt (the number the audit used).
+- **Reality gate:** retail κ (queue adverse-selection, co-lo front-run) is ≫1bps → maker is **marginal-to-negative even at Binance 2bps *without a toxicity gate* (VPIN).** The fee fix narrows but does not alone flip maker viability; the κ gate is the real lever.
+
+**Honest monthly expectancy on €300 — TWO postures, not one (owner correction 2026-06-19):**
+
+The earlier "€0–8/mo, research book not income" was the **risk-parity (quarter-Kelly) number** — *one* point on the frontier, wrongly headlined as a ceiling. The **aggressive compounding** path (small leveraged trades, €1–30 each, high frequency — exactly Marcel's scenario) is mathematically viable. Monte Carlo, 20k paths, even-money proxy at a **real p=0.55 edge** (`/tmp/yuri-growth-ruin.mjs`):
+
+| Kelly frac | P(reach €10k = 33×) | median bets | timeline @30 bets/day | P(>50% drawdown en route) | P(ruin −95%) |
+|---|---|---|---|---|---|
+| Full (10%/bet) | **100%** | 432 | **~14 days** | 95% | 0% |
+| Half (5%) | 100% | 682 | ~23 days | 65% | 0% |
+| Quarter (2.5%) | 100% | 1277 | ~43 days | 0% | 0% |
+
+**The 0% ruin is a mathematical property of *having a real edge + fractional sizing*** — positive drift can't bankrupt a fractional bettor; you always bet a slice, never the whole stake. So the growth path is real and Marcel is right.
+
+**But the entire table is CONDITIONAL on p=0.55 being a real, out-of-sample, net-of-cost edge.** That is the single load-bearing unverified assumption, and it is where retail actually dies — not in the drawdowns (survivable), in **overestimating p**:
+
+1. **No edge yet, verified.** P2: every live TA factor \|t\|<2.3, 14/32 negative after fees, eff-N≈1.2. The live edge is closer to **p≈0.50 (none)** than p=0.55. At p=0.50, *any* Kelly fraction → zero drift → bleed by fees → slow ruin. At p=0.49, aggressive sizing → fast ruin.
+2. **The cost cliff (2026, primary).** Gross backtest Sharpe 2–3 collapses to **net 0.5–1.0** once Binance fees + slippage + funding + API latency hit (EliteTrader 2026 deep-dive; SSRN perp-futures paper). That compression is exactly what flips a backtest p=0.55 into a live p=0.51.
+3. **Over-Kelly = guaranteed ruin.** Size for p=0.55 when true p=0.51 → you are past the growth-optimal fraction → growth rate goes *negative* (MacLean-Ziemba; Berkeley "Good and Bad Properties of the Kelly Criterion"). The #1 retail death is betting full-Kelly on an overstated edge.
+4. **Leverage adds a DISCONTINUOUS ruin mode the MC can't show.** The even-money sim has no single-bar −100%; a leveraged perp position gets **liquidated on one wick** (3σ stop-run + cascade = −100% of position in one bar). That is the real "high risk" — not the 50% drawdown (survivable), the full-position liquidation at high leverage (not).
+
+**Honest synthesis:** the €300→€10k path is real and the owner's risk appetite is respected — the job is to **earn the right to run it** by proving a real net-of-cost edge first (M3 measurement), wiring sane fractional-Kelly sizing (M2) so we never accidentally over-Kelly, and capping per-position leverage so a single wick can't liquidate the book. Then the aggressive posture is a *deliberate choice on the frontier*, not a gamble on an unverified p.
+
+---
+
+## §3 — Quantum factor-circuit: A10's mechanism is wrong, its conclusion survives
+
+Audit A10 claimed `circuitQuality.ratio = 1` *by construction* because obs-momentum + obs-vol-regime are "near-parallel price-derivatives." **My independent sim (`/tmp/yuri-quantum-sim.mjs`) refutes the mechanism:**
+
+| Case | cosine(mom,vol) | commutatorNorm | allCommute | **ratio** |
+|---|---|---|---|---|
+| A1 live 200-bar (mom long/vol short) | **−0.026** | 3.7e-2 | false | **1.077** |
+| A2 (mom long/vol long) | +0.026 | 3.7e-2 | false | 1.077 |
+| A3 short 50-bar | +0.276 | 3.7e-1 | false | **1.995** |
+| A4 diff seed | +0.008 | 1.1e-2 | false | 1.189 |
+| sweep cosine→1.0 exact | →1.0 | →0 | →true | →1.0 |
+
+- The two vectors are **near-orthogonal (cosine ≈ 0.003–0.28), NOT near-parallel.** A10/P2 both reasoned from the false premise that signed-log-returns and high−low-range are collinear. `ratio ≠ 1`; it is 1.08–2.0 on live-like inputs.
+- **But the deeper finding:** the sensitivity sweep shows ratio is **non-monotone & noise-dominated in cosine** (1.06 at ρ=0.85, 1.74 at ρ=0.95, 1.14 at ρ=0.99) — it does not cleanly track orthogonality. So A10's *conclusion* (don't trust the ratio as an edge signal) **survives, for a different reason than stated.**
+- **Ruling for the build (#6 cut-theater):** **CONDITIONALLY-WIRED, not cut.** Keep `computeCircuit` as DISARMED telemetry (it's already an A/B shadow, orchestrator.mjs:705-719); do not let it touch sizing until (a) ≥3 genuinely-orthogonal factors survive DSR *and* (b) the ratio is shown to be a stable, monotone function of input orthogonality on real tape. P4 (GLM lane) OOM'd and produced nothing — my sim is the cross-check, and it's sufficient.
+
+---
+
+## §4 — Effective-N crisis is real, empirically confirmed, and the fix is wiring
+
+P2 (verified): 32 TA strategies = **24/75% pure close-to-close price** + 8 volume/vol derivatives. EMA-cross and MACD-trend are the same function at different parameterizations; trend/meanrev families are **anti-correlated by construction**. True independent-information count ≈ **1.0–1.5**.
+
+Empirical effective-N from the 6,328-row live ledger (per-market, ≥10 overlapping obs):
+- ETH: obs-momentum vs obs-vol-regime ρ=**+0.766** → eff-N **1.26**
+- SOL: ρ=+0.389 → 1.74
+- SUI: ρ=**−0.983** → **1.02** (smoking gun — near-perfect anti-correlation)
+- **99.2% of timestamps have exactly 1 factor firing.** 14/32 factors have *negative* mean return after fees; none reach |t|>2.3.
+
+**The 5 orthogonal sources already exist as code but are telemetry-only** [V orchestrator.mjs:640-700, comment: *"advisory telemetry; NOT sized/paper-filled: their edge units differ from the price-return edge the sizer expects"*]:
+1. **Funding carry** — `funding-carry.mjs`, `perp-signals.mjs`, `carry-vol-signal.mjs` (built, DISARMED)
+2. **OFI / order-flow imbalance** — `ofi.mjs` (Cont-Kukanov-Stoikov; feeds λ-calc only, not sizing) — **the one structural edge that could lift eff-N; needs predictive R² validation on real tape first**
+3. **Cross-asset lead/lag** — `cross-asset-signal.mjs` (BTC→alt)
+4. **Sentiment/news** — social adapter + Agent-Reach
+5. **Vol-regime** — `market-regime.mjs` (as a *modulator*, not a directional bet)
+
+**Target: eff-N ≥ 5** (Sharpe ∝ √N_eff for orthogonal bets → portfolio Sharpe ~1.0 needs ≥5 independent bets). Below 3 it's "one bet wearing a costume." **None of the 5 need to be invented — the work is wiring + a unit-normalization seam** (funding-APR / OFI / sentiment must be converted to a comparable price-return-edge scalar before the sizer can sum them). P2's "50 lines" undersells this seam; call it **S–M, reversible.**
+
+---
+
+## §5 — The crypto path bypasses the disciplined sizer
+
+[V] `computeSize` is imported (orchestrator.mjs:43) and IS sound: fractional-Kelly on the **lower-CI** edge, vol-targeted (Carver divisor 16), CVaR-robust cap, fail-closed at `edgeLowerCI ≤ 0`. **But it is only called on the Polymarket sleeve (orchestrator.mjs:999-1011).** The crypto/ensemble path (orchestrator.mjs:904) sizes as:
+
+```
+notional = equity × maxPct × min(1, ensemble.strength × 2) × regimeTrim
+```
+
+— a flat conviction heuristic with no Kelly, no lower-CI gate, capped only by `maxGrossExposurePct: 6.0` (600%) [V :437]. So the engine trades crypto at up to 6× book with a sizing rule that has **no relationship to the verified edge**. **This is the single highest-leverage wiring fix:** route the crypto ensemble through `computeSize`. S, reversible, fail-closed-by-construction.
+
+---
+
+## §6 — Pro benchmark: what actually separates winners (consensus, [R]-tagged)
+
+**2026 realistic-net-Sharpe benchmarks (primary this wave):**
+
+| Strategy class | Net Sharpe (2026, after costs) | Source tier |
+|---|---|---|
+| Buy-and-hold BTC | ~0.5–1.0 | [V-online] r/quant practitioner consensus; IBKR 2026 allocation analysis |
+| **Retail systematic crypto on perps** | **1.0–1.5 realistic; 2.0+ elite/rare** | [V-online] EliteTrader 2026 deep-dive; Altrady; XBTO |
+| Trend-following (multi-coin, OOS) | 2.41 (AdaptiveTrend arXiv 2602.11708), realistically 1.2–1.8 forward as alpha decays | [V-online] |
+| **Delta-neutral funding harvest** | **~3.35 (retail costs); 11.65 low-cost-venue (unrealistic post-fees)** — but CROWDED/compressing | [V-online] SSRN perp-futures fundamentals 4301150 |
+| HFT / market-making desks | high-single-digit to low-double-digit — **requires colo + maker rebates + ms latency, NOT retail-accessible** | [V-online] EliteTrader |
+
+**The cost cliff (load-bearing):** gross backtest Sharpe 2–3 → **net 0.5–1.0** once taker fees + funding + slippage + API latency are included. This is the central retail tension and the mechanism by which a backtested p=0.55 becomes a live p=0.51. **Honest target for YURI at retail: net Sharpe 1.0–1.5.** Funding-harvest (~3.35) is the most accessible *structural* edge but is crowded; HFT double-digits is off the table without infrastructure we don't have.
+
+The convergent truth across the practitioner literature (the *consensus* is [R]-grounded; specific attributed quotes stripped): **risk management and execution discipline ARE the edge; signal cleverness is not.** Alpha is "relatively easy; *preservation* is the hard part." Six concrete gaps to a top-2% disciplined desk (mapped to YURI):
+
+| Pro practice | YURI state | Gap |
+|---|---|---|
+| **Economic-rationale gate** per factor ("who's on the other side, why do they pay me?") | absent | add — a factor can pass FDR with zero real edge |
+| **Promote sizing/risk from sim → live** | `computeSize` exists, **disconnected from crypto** (M2) | **wire it** |
+| **Regime-router** (style selection off the detector) | regime detector exists, not a router | add switch (trend default; meanrev in range; flat in chaos) |
+| **Execution as cheap alpha** (maker-default, toxicity-gated) | maker logic exists, **no VPIN gate, wrong fee tier** (M3) | fix fee + add VPIN gate |
+| **Honest trial-counter feeding DSR** | DSR exists; trial-count discipline unverified | audit the counter |
+| **Per-factor alpha-decay clock** | absent | funding carry already decayed (36–108%→<10% [R]); underwrite decay as certainty |
+
+**Edge durability ranking for a disciplined small/mid operator** ([R] — not primary-verified this wave, but directionally stable across sources):
+- ★★★ delta-neutral funding/basis carry — workhorse, **but decaying (~3–11%/yr now, was 36–108%) and breaks on deleveraging**
+- ★★ time-series momentum, regime-gated — the most robust *directional* edge (**time-series, not cross-sectional** — cross-sectional is weak in crypto)
+- ★★ cross-sectional portfolio of uncorrelated mediocre edges (requires honest eff-N — we're at 1.2)
+- ★★ MM / defensive LP — **only with toxicity gates (VPIN)**, else "pennies in front of a steamroller"
+- ☆ arb / MEV / copy-trade — latency arms races a software operator loses; posture is **defense**, not extraction
+
+---
+
+## §7 — Agent topology (Claude/main design; **P3 GLM lane still running — will cross-check**)
+
+Marcel's explicit ask: *"how many effective trading agents to run 24/7, each owning a set of roles."* Current state: **one monolithic daemon** (orchestrator.mjs) does ingest → 24 TA + overlays → ensemble → regime → size → paper-execute → recordForecasts → risk-exits → (throttled) decode/score, **all in one per-cycle loop**. The problem: latency-critical and latency-tolerant work share a thread.
+
+**Minimal viable fleet (4 agents) — partition by latency budget:**
+
+| Agent | Owns | Latency budget | Inputs | Outputs | Shape |
+|---|---|---|---|---|---|
+| **A1 Market-Maker / A-S quoter** | reservation price, requote, fill-detect | per-tick (≤1s) | L2 depth, OFI, κ | quotes, fills | launchd daemon (hot) |
+| **A2 Risk & liquidation sentinel** | per-tick exposure, drawdown breaker, kill-switch | per-tick (fastest, <1 cycle) | positions, mark, VPIN | flat/kill any position | launchd daemon (hot, isolated) |
+| **A3 Alpha / ensemble + sizer** | factor signals, ensemble, **computeSize**, regime-router | per-cycle (≤10s) | bars, overlays wired-in | sized signals | launchd daemon |
+| **A4 Learn-loop / graduation** | decode forecasts→outcomes, DSR/Brier, promote/graduate factors | slow (minutes) | prediction ledger | factor weights, decay clocks | launchd beat |
+
+**Extended fleet (+3): A5 Execution/fill-sim**, **A6 News-intel/sentiment**, **A7 Funding-carry harvester** (disarmed measurer). → **7 agents total** at full build.
+
+**Inter-agent contract (simplest correct on one M2-Pro machine):** a **shared SQLite bus** (the existing afl-paper/afl-prediction-ledger pattern) + an in-memory pub/sub ring for the hot path. **Invariant: A2 (risk sentinel) can kill any position in <1 cycle; everything else is advisory.** A2 is the only agent with a hard veto; A1/A3 write, A4 reads.
+
+**Capacity (M2-Pro):** Binance fstream ≈ 15 msg/s/symbol (@depth@100ms + @aggTrade + @markPrice). JSON-parse + diff-book-apply is cheap; **3–6 markets (our scope) is nowhere near the binding constraint** — edge is. Capacity becomes relevant only past ~50–100 symbols. (Numeric capacity calc is P5's lane; topology is mine. P5 still running.)
+
+---
+
+## §8 — Refined ranked path (informed by this wave)
+
+Re-ordered vs wave-1's #0–#8, because the fee fix (M3) and sizing wire (M2) now rank above funding-carry (which is ~3–11%/yr, not the moonshot):
+
+| # | Step | Why it moved | Size | Gate |
+|---|---|---|---|---|
+| **0** | **Scrap Coinbase** (task #7) — finish Binance-only migration, fix the stale 60bps fee table, kill PERP_MODE conditional | fee assumption is load-bearing + wrong; unblocks honest maker math | S | owner-gated BUILD |
+| **1** | **Wire `computeSize` to the crypto path** (M2) — kill the 600% gross, route through fractional-Kelly-on-lower-CI | single highest-leverage wiring fix; fail-closed by construction | S | self-gov (reversible, DISARMED-adjacent) |
+| **2** | **Build the open-loop measurement instrument** (keystone, M3) — tie every forecast to its realized outcome, author-verified trace | without this, every "edge" number is unfalsifiable | M | owner-gated (changes what's measured) |
+| **3** | **Wire the 5 orthogonal sources** to the sizer (M1) — funding/OFI/cross-asset/sentiment/vol-regime + unit-normalization seam | lifts eff-N 1.2 → 5; the real diversification | S–M | self-gov per-source |
+| **4** | **Validate OFI predictive R² on real tape** before directional commitment | the one structural edge; unverified on our feed | M | self-gov (measurement) |
+| **5** | **Add the economic-rationale gate + regime-router + VPIN toxicity gate** | discipline layer the pros run; maker viability | S–M | self-gov |
+| **6** | **Quantum path: CONDITIONALLY-WIRED** (not cut) — keep as DISARMED A/B shadow until ≥3 orthogonal factors + stable ratio | A10 mechanism refuted, conclusion survives | S | owner-gated arm |
+| **7** | **Partition the fleet** (M4) — split the daemon into A1–A4 (MM/risk/alpha/learn) + SQLite bus | separates hot from slow paths | M–L | owner-gated (architecture) |
+| **8** | News-intel + funding-carry harvester (disarmed measurer) | extended fleet; carry is ~3–11%/yr | M | owner-gated |
+
+---
+
+## §9 — Residual risk / unverified
+- **[A]** Funding-carry *current* regime (~3%/yr) vs cycle-average (~11%/yr): which prevails over a holding window is regime-dependent; the harvester must gate on the live funding rate, not a static assumption.
+- **[A]** OFI predictive R² on Binance perp L2 is unverified (Cont-Kukanov's 0.25–0.35 @1s is equities; crypto may differ). Must measure before sizing on it.
+- **[A]** The `ensemble` factor's ledger t=+20.11 is suspiciously high (83% win) — likely the circular-confidence artifact (audit A02); needs isotonic calibration before trusting.
+- **[R]** Agent topology fleet size (4 minimal / 7 extended) is my first-principles design; **P3 GLM lane is still running and will cross-check** — fold in if it surfaces a better partition.
+- **[R]** Pro edge-durability rankings (§6) are consensus-but-not-primary-verified this wave; the *direction* is stable, the *magnitudes* are not pinned.
+- **[V→]** The audit's wave-1 "VIP0 = −2.16bps negative maker edge" is **refuted by the fee correction** — recompute maker-fill-sim against Binance 2bps before trusting any prior maker verdict.
+
+---
+
+## §10 — Provenance
+- **Own sims (execution-verified):** `/tmp/yuri-quantum-sim.mjs` (A10 verdict), `/tmp/yuri-edge-calc.mjs` (Kelly/carry/maker), `/tmp/yuri-growth-ruin.mjs` (€300→€10k MC, 20k paths, P(reach)/P(ruin)/drawdown by Kelly fraction).
+- **Code-verified [V]:** orchestrator.mjs:638-720, 904, 999-1011, 437; maker-fill-sim.mjs:30-34; funding-carry.mjs:36-38; adverse-attribution.mjs:43; afl-sizing.mjs:56-213.
+- **Primary-online [V-online]:** Binance fee page + Support FAQ 360033544231 + Finder + Binance Square (VIP0 2/5bps); Binance funding-history + CoinGlass + Coinalyze + Binance Square 30298233678962 (funding ~0.01%/8h avg, ~0.0028%/8h live); Milionis et al arXiv 2208.06046 (LVR); EliteTrader 2026 Sharpe deep-dive + SSRN 4301150 (perp fundamentals) + arXiv 2602.11708 (AdaptiveTrend) + Altrady/XBTO (2026 net Sharpe benchmarks); MacLean-Ziemba / Berkeley "Good and Bad Properties of Kelly" (over-Kelly ruin); Downey (fractional-Kelly + ruin constraint).
+- **GLM peers:** P2 (orthogonality) clean + verified; P1 (pro-benchmark) ECONNRESET-crashed (re-done from primary above); P4 (quantum) OOM-crashed (my sim replaces it); P3 (topology) + P5 (calcs) still running at write-time — folded in where landed, flagged [R] otherwise.
+- **Demoted [R]:** `afl-crypto-trading-playbook-2026-06-14.md` attributed quotes/stats (owner flagged accuracy; load-bearing numbers re-grounded primary this wave).
+- **Owner correction (2026-06-19):** the initial "€0–8/mo research book" framing understated the aggressive-compounding upside; corrected to the full risk-posture frontier (§2). The path to €10k is real **conditional on a proven net edge** — the open variable is the edge, not the math.
