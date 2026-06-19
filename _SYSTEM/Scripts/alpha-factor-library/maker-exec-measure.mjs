@@ -1,6 +1,6 @@
 // @capability: maker-exec-measure
 // @serves: queue-honest maker fill | queue position | order fill model | GTX post-only | adverse selection | OFI predictivity | order flow imbalance measurement | maker execution measurement | fill model
-// @does: (A) Queue-honest GTX maker fill model — tracks queueAhead at join, consumes it via opposing aggressor trades, fires fill only when queue exhausted, measures adverse selection bps. (B) OFI predictivity harness — Pearson correlation(ofi, futureΔmid) per lag, R², directional hit-rate, meaningful/marginal/noise verdict. Pure compute, fail-open.
+// @does: (A) Queue-honest GTX maker fill model — tracks queueAhead at join, consumes it via opposing aggressor trades, fires fill only when queue exhausted, measures adverse selection bps. Opt-in queueDecay model additionally credits queueAhead for cancellations observed via level-size shrinkage not explained by trades. (B) OFI predictivity harness — Pearson correlation(ofi, futureΔmid) per lag, R², directional hit-rate, meaningful/marginal/noise verdict. Pure compute, fail-open.
 // @use: newMakerOrder + onTrade + onBookUpdate + trackAdverseSelection for per-order queue sim; measureOfiPredictivity + summarizeOfi for offline OFI edge measurement before promoting to live sizing.
 // @exports: newMakerOrder, onTrade, onBookUpdate, trackAdverseSelection, measureOfiPredictivity, summarizeOfi
 
@@ -58,21 +58,60 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
  *   filled:        boolean         — true once queueAhead ≤ 0 AND a trade reaches our price
  *   fillQty:       number          — total filled so far
  *   _tradeConsumed: number         — total trade size already used to drain queueAhead (for cancel inference)
+ *
+ *   ── QUEUE-DECAY MODEL (opt-in via queueDecay:true or decayModel on newMakerOrder) ──
+ *   _queueDecay:        boolean             — true when the cancel-aware decay model is active
+ *   _cancelAheadShare:  number (0..1)       — fraction of inferred cancels credited to queue-ahead (default 0.5)
+ *   _levelSizeTracked:  number              — last observed total level size (queueAhead + our remaining, updated each book update)
+ *   _tradeSinceBook:    number              — trade volume consumed from our level since the last onBookUpdate call
+ *                                             (lets onBookUpdate split a level-size drop into traded vs cancelled)
  * }
+ *
+ * QUEUE-DECAY ATTRIBUTION RULE (when _queueDecay === true):
+ *   On each onBookUpdate(levelSizeNow):
+ *     rawDrop = _levelSizeTracked - levelSizeNow          // how much the visible level shrank
+ *     if rawDrop <= 0: _levelSizeTracked = levelSizeNow; no-op (level grew or held)   [size-INCREASE = no spurious advance]
+ *     cancelVolume = max(0, rawDrop - _tradeSinceBook)    // shrinkage NOT explained by trades at our level = cancels
+ *     cancelAhead  = cancelVolume × _cancelAheadShare      // only the ahead-portion helps our queue position
+ *     queueAhead  -= cancelAhead  (floored at 0)
+ *     _levelSizeTracked = levelSizeNow; _tradeSinceBook = 0
+ *
+ *   WHY: real maker queues shrink from BOTH executions AND cancellations of orders ahead of us.
+ *   The OFF path only drains queueAhead on trades (plus a pro-rata book heuristic). The ON path
+ *   isolates the cancel portion precisely by subtracting trades-at-our-level (tracked in
+ *   _tradeSinceBook) from the raw level-size drop, then credits only _cancelAheadShare of those
+ *   cancels to our queue. _cancelAheadShare defaults to 0.5 (uniform/pro-rata); raise it toward 1.0
+ *   to model cancels clustering ahead of us (we advance faster); lower toward 0 to model cancels
+ *   clustering behind us (cancels behind us do NOT help our fill). A cancel behind us never helps;
+ *   a cancel ahead always helps — the share parameterizes our uncertainty about WHERE in the queue
+ *   the cancels landed. This corrects the OFF-path drift (which recomputes "expected level" from an
+ *   already-reduced queueAhead) by tracking the level size independently.
  */
 
 /**
- * newMakerOrder({ side, price, size, queueAheadAtJoin })
+ * newMakerOrder({ side, price, size, queueAheadAtJoin, queueDecay, decayModel })
  *
  * Creates a new GTX post-only maker order state. The order joins the BACK of the
  * queue at `price`. `queueAheadAtJoin` is the visible resting size at that level
  * at the moment we submit. Fail-open: bad inputs produce a sentinel with filled=true
  * and remaining=0 so callers can safely ignore it.
  *
- * @param {{ side: 'buy'|'sell', price: number, size: number, queueAheadAtJoin: number }} opts
+ * QUEUE-DECAY (opt-in, default OFF = byte-identical current behavior):
+ *   queueDecay: true            — enable the cancel-aware queue-decay model with defaults
+ *                                 (cancelAheadShare = 0.5, i.e. cancels credited pro-rata).
+ *   decayModel: { enabled, cancelAheadShare }
+ *                               — richer form. enabled:true turns it on; cancelAheadShare ∈ [0,1]
+ *                                 sets the fraction of inferred cancels credited to queue-ahead.
+ *                                 If both queueDecay and decayModel are given, decayModel wins.
+ *
+ * When OFF (neither given, or enabled falsy), the order state carries NO decay fields and
+ * onBookUpdate/onTrade execute the exact legacy code path — tape-replay.simulateOrder is
+ * unaffected unless the caller explicitly opts in.
+ *
+ * @param {{ side: 'buy'|'sell', price: number, size: number, queueAheadAtJoin: number, queueDecay?: boolean, decayModel?: { enabled?: boolean, cancelAheadShare?: number } }} opts
  * @returns {object} order state
  */
-export function newMakerOrder({ side, price, size, queueAheadAtJoin } = {}) {
+export function newMakerOrder({ side, price, size, queueAheadAtJoin, queueDecay, decayModel } = {}) {
   try {
     const s = side === 'buy' || side === 'sell' ? side : null;
     const p = isNum(price) && price > 0 ? price : null;
@@ -82,7 +121,26 @@ export function newMakerOrder({ side, price, size, queueAheadAtJoin } = {}) {
       // Fail-open sentinel: treated as already done / invalid
       return { side: s || 'buy', price: p || 0, size: sz || 0, queueAhead: 0, remaining: 0, filled: true, fillQty: 0, _tradeConsumed: 0, _invalid: true };
     }
-    return { side: s, price: p, size: sz, queueAhead: qa, remaining: sz, filled: false, fillQty: 0, _tradeConsumed: 0 };
+    // Resolve the queue-decay option. decayModel (if provided and well-formed) takes precedence
+    // over the simple queueDecay boolean. Bad decayModel → silently degrades to OFF (fail-open).
+    let decayOn = false;
+    let cancelAheadShare = 0.5;
+    if (decayModel && typeof decayModel === 'object') {
+      if (decayModel.enabled === true) decayOn = true;
+      if (isNum(decayModel.cancelAheadShare) && decayModel.cancelAheadShare >= 0 && decayModel.cancelAheadShare <= 1) {
+        cancelAheadShare = decayModel.cancelAheadShare;
+      }
+    } else if (queueDecay === true) {
+      decayOn = true;
+    }
+    const base = { side: s, price: p, size: sz, queueAhead: qa, remaining: sz, filled: false, fillQty: 0, _tradeConsumed: 0 };
+    if (decayOn) {
+      base._queueDecay = true;
+      base._cancelAheadShare = cancelAheadShare;
+      base._levelSizeTracked = qa + sz;   // total visible level size at join
+      base._tradeSinceBook = 0;
+    }
+    return base;
   } catch (_) {
     return { side: 'buy', price: 0, size: 0, queueAhead: 0, remaining: 0, filled: true, fillQty: 0, _tradeConsumed: 0, _invalid: true };
   }
@@ -128,6 +186,7 @@ export function onTrade(order, { tradePrice, tradeSize, aggressorSide } = {}) {
       const drainQueue = Math.min(order.queueAhead, tradeLeft);
       order.queueAhead -= drainQueue;
       order._tradeConsumed += drainQueue;
+      if (order._queueDecay) order._tradeSinceBook += drainQueue;
       tradeLeft -= drainQueue;
     }
 
@@ -138,6 +197,7 @@ export function onTrade(order, { tradePrice, tradeSize, aggressorSide } = {}) {
       order.remaining -= fillQty;
       order.fillQty += fillQty;
       order._tradeConsumed += fillQty;
+      if (order._queueDecay) order._tradeSinceBook += fillQty;
       if (order.remaining <= 0) {
         order.filled = true;
       }
@@ -152,19 +212,22 @@ export function onTrade(order, { tradePrice, tradeSize, aggressorSide } = {}) {
 /**
  * onBookUpdate(order, levelSizeNow)
  *
- * Called when the book snapshot for our price level is updated. If the level's
- * visible size shrank MORE than trades alone explain (i.e., cancellations ahead
- * of us), we proportionally reduce queueAhead.
+ * Called when the book snapshot for our price level is updated.
  *
- * MODEL ASSUMPTION (proportional pro-rata cancel inference):
- *   We don't know whether cancels happened ahead of or behind us in the queue.
- *   We assume cancels are uniformly distributed across the level's resting size.
- *   The fraction of the level that was cancelled applies equally to queueAhead.
- *   This is a CONSERVATIVE assumption: if cancels cluster ahead, queueAhead
- *   shrinks faster → we fill sooner. If cancels cluster behind, this overestimates
- *   our queue position. With authenticated user-data stream, replace with exact events.
+ * OFF path (order._queueDecay falsy — the default): legacy pro-rata cancel inference.
+ *   If the level's visible size shrank MORE than trades alone explain, we proportionally
+ *   reduce queueAhead. This is the original behavior; tape-replay.simulateOrder hits this
+ *   path unless it explicitly opts into queueDecay.
  *
- * FAIL-OPEN: mutates order in place; returns safe default on bad input.
+ * ON path (order._queueDecay === true): cancel-aware queue-decay model. Tracks the level
+ *   size independently (_levelSizeTracked) and the trade volume consumed since the last
+ *   book update (_tradeSinceBook), so a level-size drop is split precisely into
+ *   traded vs cancelled. Only the cancel-ahead portion (_cancelAheadShare of cancels)
+ *   is credited to queueAhead. See the QUEUE-DECAY ATTRIBUTION RULE in the ORDER STATE
+ *   SHAPE doc above.
+ *
+ * FAIL-OPEN: mutates order in place; returns safe default on bad input. A malformed
+ * update (non-number, negative) is a no-op — never throws, never spurious-advances.
  *
  * @param {object} order — mutable order state
  * @param {number} levelSizeNow — current visible resting size at our price level
@@ -179,6 +242,41 @@ export function onBookUpdate(order, levelSizeNow) {
       return { queueAhead: order.queueAhead, cancelledInferred: 0 };
     }
 
+    // ── ON PATH: cancel-aware queue-decay model ──────────────────────────────
+    if (order._queueDecay) {
+      // Fail-open guard: if decay bookkeeping is somehow missing/corrupt, degrade to a
+      // safe no-op rather than computing on undefined.
+      if (!isNum(order._levelSizeTracked) || !isNum(order._tradeSinceBook) || !isNum(order._cancelAheadShare)) {
+        return { queueAhead: order.queueAhead, cancelledInferred: 0 };
+      }
+      const rawDrop = order._levelSizeTracked - levelSizeNow;
+      // Resync the tracked level size regardless (so the next call compares against this snapshot).
+      order._levelSizeTracked = levelSizeNow;
+      const tradedSince = order._tradeSinceBook;
+      order._tradeSinceBook = 0;
+
+      if (rawDrop <= 0) {
+        // Level grew or held (new orders joined, or no net shrink) → no cancel to credit.
+        // A size INCREASE must NEVER spuriously advance our queue.
+        return { queueAhead: order.queueAhead, cancelledInferred: 0 };
+      }
+
+      // cancelVolume = shrinkage not explained by trades at our level.
+      // Clamp at 0: if trades alone explain more than the drop (e.g. a trade hit a level
+      // that also got new orders), there is no cancel to credit.
+      const cancelVolume = Math.max(0, rawDrop - tradedSince);
+      if (cancelVolume <= 0) {
+        return { queueAhead: order.queueAhead, cancelledInferred: 0 };
+      }
+
+      // Only the ahead-portion of the cancels helps our queue position.
+      const cancelAhead = Math.min(order.queueAhead, cancelVolume * order._cancelAheadShare);
+      order.queueAhead = Math.max(0, order.queueAhead - cancelAhead);
+
+      return { queueAhead: order.queueAhead, cancelledInferred: cancelAhead };
+    }
+
+    // ── OFF PATH: legacy pro-rata cancel inference (byte-identical to prior behavior) ──
     // Total level size that SHOULD be present based on what we've seen:
     // original queueAhead + our own remaining, minus what trades consumed.
     // If levelSizeNow is less than what trades explain, the difference is cancels.
@@ -527,6 +625,133 @@ if (_isMain && process.argv.includes('--test')) {
   // A15: Bad input to adverse selection → NaN
   const adv3 = trackAdverseSelection(null, []);
   ok(!isNum(adv3) || isNaN(adv3), 'A15: null fill → NaN');
+
+  // ── PART A2: QUEUE-DECAY MODEL (opt-in cancel-aware queue advancement) ────
+
+  // D1 (GREEN): level-size drop with NO trade → queueDecay ON advances queueAhead;
+  //             queueDecay OFF leaves queueAhead unchanged (current behavior).
+  //   Setup: queueAhead=40, size=10, total level=50. cancelAheadShare=1.0 (all cancels ahead).
+  //   Book update: level 50→30 (20 cancelled, zero trades). cancelVolume=20, cancelAhead=20*1.0=20.
+  //   ON: queueAhead 40→20. OFF: queueAhead stays 40.
+  const dOn = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: true, cancelAheadShare: 1.0 } });
+  ok(dOn._queueDecay === true && dOn._cancelAheadShare === 1.0 && dOn._levelSizeTracked === 50 && dOn._tradeSinceBook === 0,
+    'D1: decay order seeded with _levelSizeTracked=50, _tradeSinceBook=0');
+  const rD1on = onBookUpdate(dOn, 30);
+  ok(near(dOn.queueAhead, 20, 1e-6) && near(rD1on.cancelledInferred, 20, 1e-6),
+    `D1-ON: no-trade drop 50→30 with share=1.0 → queueAhead 40→20 (got qa=${dOn.queueAhead}, cancelled=${rD1on.cancelledInferred})`);
+
+  const dOff = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40 });
+  ok(dOff._queueDecay === undefined, 'D1: default order has no _queueDecay field (OFF)');
+  const rD1off = onBookUpdate(dOff, 30);
+  // OFF path: expectedFromTrades=40+10=50, levelChange=50-30=20, queueFrac=40/50=0.8, cancelAhead=20*0.8=16 → qa=24
+  ok(near(dOff.queueAhead, 24, 1e-6) && near(rD1off.cancelledInferred, 16, 1e-6),
+    `D1-OFF: same drop via legacy pro-rata → queueAhead 40→24, cancelled=16 (got qa=${dOff.queueAhead}, cancelled=${rD1off.cancelledInferred})`);
+  // The ON and OFF paths give DIFFERENT results for the same book event — confirms the model diverges as designed.
+  ok(dOn.queueAhead !== dOff.queueAhead, 'D1: ON (qa=20) ≠ OFF (qa=24) for same drop — models diverge');
+
+  // D2 (GREEN, default share 0.5): queueDecay:true shorthand seeds cancelAheadShare=0.5.
+  const dHalf = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, queueDecay: true });
+  ok(dHalf._queueDecay === true && dHalf._cancelAheadShare === 0.5, 'D2: queueDecay:true → cancelAheadShare defaults to 0.5');
+  // Book 50→30, no trade: cancelVolume=20, cancelAhead=20*0.5=10 → qa=30.
+  onBookUpdate(dHalf, 30);
+  ok(near(dHalf.queueAhead, 30, 1e-6), `D2: share=0.5 → queueAhead 40→30 (got ${dHalf.queueAhead})`);
+
+  // D3 (cancelAheadShare=0): cancels credited to zero ahead → queueAhead UNCHANGED (all cancels behind us).
+  const dZero = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: true, cancelAheadShare: 0 } });
+  onBookUpdate(dZero, 30);
+  ok(near(dZero.queueAhead, 40, 1e-6), `D3: share=0 (cancels behind us) → queueAhead unchanged at 40 (got ${dZero.queueAhead})`);
+
+  // D4 (RED — size INCREASE): level grows → no spurious advance on either path.
+  const dGrow = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, queueDecay: true });
+  const rD4 = onBookUpdate(dGrow, 80); // level grew 50→80 (new orders joined ahead/behind)
+  ok(near(dGrow.queueAhead, 40, 1e-6) && rD4.cancelledInferred === 0,
+    `D4-RED: size increase 50→80 → no advance, cancelled=0 (got qa=${dGrow.queueAhead}, cancelled=${rD4.cancelledInferred})`);
+  ok(dGrow._levelSizeTracked === 80, 'D4: _levelSizeTracked resynced to 80 after growth');
+
+  // D5 (RED — malformed update): non-number / negative → fail-open no-op, no throw.
+  const dBad = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, queueDecay: true });
+  const rNaN = onBookUpdate(dBad, NaN);
+  const rNeg = onBookUpdate(dBad, -5);
+  const rStr = onBookUpdate(dBad, 'big');
+  ok(near(dBad.queueAhead, 40, 1e-6) && rNaN.cancelledInferred === 0 && rNeg.cancelledInferred === 0 && rStr.cancelledInferred === 0,
+    'D5-RED: NaN/negative/string levelSize → fail-open no-op, queueAhead unchanged');
+  // Calling onBookUpdate with a valid number after bad inputs still works (no state corruption).
+  const rRecover = onBookUpdate(dBad, 30);
+  ok(dBad.queueAhead < 40 && rRecover.cancelledInferred > 0, 'D5: valid update after bad inputs still infers cancels (state intact)');
+
+  // D6 (RED — bad decayModel): malformed decayModel → silently OFF (fail-open).
+  const dBadModel = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: 'yes' } });
+  ok(dBadModel._queueDecay === undefined, 'D6: decayModel.enabled="yes" (non-bool) → decays to OFF');
+  const dBadShare = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: true, cancelAheadShare: 1.5 } });
+  ok(dBadShare._cancelAheadShare === 0.5, 'D6: cancelAheadShare=1.5 (out of range) → falls back to default 0.5');
+
+  // D7 (trade+cancel split): a level drop partly from trades, partly from cancels — only the cancel
+  //     portion credits queueAhead beyond what the trade already drained.
+  //   queueAhead=40, size=10, share=1.0. Trade of 8 (sell aggressor) drains queue 40→32, _tradeSinceBook=8.
+  //   Then book update: level 50→36. rawDrop=50-36=14. tradedSince=8. cancelVolume=max(0,14-8)=6. cancelAhead=6*1.0=6.
+  //   queueAhead = 32 - 6 = 26.  (The trade already drained 8; the cancel drains 6 more; total drop 14 = 8 trade + 6 cancel.)
+  const dSplit = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: true, cancelAheadShare: 1.0 } });
+  const rT = onTrade(dSplit, { tradePrice: 100, tradeSize: 8, aggressorSide: 'sell' });
+  ok(near(dSplit.queueAhead, 32, 1e-6) && rT.fillQty === 0, `D7: trade 8 drains queue 40→32 (got ${dSplit.queueAhead})`);
+  ok(dSplit._tradeSinceBook === 8, 'D7: _tradeSinceBook=8 after trade');
+  const rSplit = onBookUpdate(dSplit, 36);
+  ok(near(dSplit.queueAhead, 26, 1e-6) && near(rSplit.cancelledInferred, 6, 1e-6),
+    `D7: drop 50→36 with 8 traded → cancelVolume=6, queueAhead 32→26 (got qa=${dSplit.queueAhead}, cancelled=${rSplit.cancelledInferred})`);
+  ok(dSplit._tradeSinceBook === 0, 'D7: _tradeSinceBook reset to 0 after book update');
+
+  // D8 (cancel fully exhausts queue, then a trade fills us): cancels can clear queueAhead to 0,
+  //     then the next trade at our price fills our order (decay accelerates fill).
+  const dFill = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 40, decayModel: { enabled: true, cancelAheadShare: 1.0 } });
+  onBookUpdate(dFill, 10); // level 50→10: rawDrop=40, no trade, cancelVolume=40, cancelAhead=40 → queueAhead=0
+  ok(near(dFill.queueAhead, 0, 1e-6), `D8: 40 cancelled ahead → queueAhead 40→0 (got ${dFill.queueAhead})`);
+  ok(!dFill.filled, 'D8: queue exhausted by cancels alone does NOT auto-fill (still needs a trade to cross)');
+  const rFill = onTrade(dFill, { tradePrice: 100, tradeSize: 5, aggressorSide: 'sell' });
+  ok(rFill.filled === false && rFill.fillQty === 5 && dFill.remaining === 5,
+    `D8: after queue cleared by cancels, trade fills 5 of 10 (got fillQty=${rFill.fillQty}, remaining=${dFill.remaining})`);
+
+  // D9 (METAMORPHIC): more cancels-ahead → fill at an earlier/equal trade index vs trades-only.
+  //   Scenario: queueAhead=100, size=10. Feed a sequence of 5 trades of size 15 each (sell aggressors).
+  //   - Pure-trades order (OFF): each trade drains 15 from queue. After 7 trades (105) queue hits 0,
+  //     but we only have 5 trades → queueAhead = 100 - 75 = 25, never fills.
+  //   - Decay order (ON, share=1.0): after each trade, a book update shows the level shrank by
+  //     MORE than the trade (extra = cancels). We inject 20 cancel-volume per step. After 5 steps:
+  //     trades drain 75, cancels drain 5*20=100 → queue drained 175 → queueAhead=0 well before trade 5 ends.
+  //     The decay order fills; the trades-only order does NOT. More cancels → faster fill. ✓
+  const tradesSeq = Array.from({ length: 5 }, () => ({ tradePrice: 100, tradeSize: 15, aggressorSide: 'sell' }));
+  // Pure trades (OFF):
+  const mOff = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 100 });
+  let offFilled = false;
+  for (const t of tradesSeq) { const r = onTrade(mOff, t); if (r.filled) { offFilled = true; break; } }
+  ok(!offFilled, `D9: trades-only (OFF) does NOT fill in 5×15=75 < 100 queue (queueAhead=${mOff.queueAhead})`);
+  // Decay (ON) with cancels injected between trades:
+  const mOn = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 100, decayModel: { enabled: true, cancelAheadShare: 1.0 } });
+  // level starts at 110 (100 queue + 10 ours). After trade 15 + cancel 20, level drops 35 each step.
+  let onFilledTick = -1;
+  let level = 110;
+  for (let i = 0; i < tradesSeq.length; i++) {
+    const r = onTrade(mOn, tradesSeq[i]);
+    if (r.filled) { onFilledTick = i; break; }
+    level -= 15 + 20; // trade 15 + cancel 20
+    onBookUpdate(mOn, level);
+    if (mOn.filled) { onFilledTick = i; break; }
+  }
+  ok(mOn.filled && onFilledTick >= 0,
+    `D9: decay (ON) with cancels FILLS at trade index ${onFilledTick} (queueAhead=${mOn.queueAhead}, remaining=${mOn.remaining})`);
+  ok(!offFilled && mOn.filled, 'D9 METAMORPHIC: more cancels-ahead → faster fill (ON fills, OFF does not)');
+
+  // D10 (IDENTITY): OFF path reproduces the exact legacy fill outcomes for a full trade sequence.
+  //     Run the same {trade, book} sequence through an OFF order and a pre-change reference; since we
+  //     can't import the old version, we assert the OFF arithmetic matches the documented legacy formula
+  //     on a known sequence (queueAhead=30, two trades + one book update).
+  const idOff = newMakerOrder({ side: 'buy', price: 100, size: 10, queueAheadAtJoin: 30 });
+  onTrade(idOff, { tradePrice: 100, tradeSize: 10, aggressorSide: 'sell' }); // queue 30→20
+  onBookUpdate(idOff, 25); // expected=20+10=30, change=30-25=5, frac=20/30=0.667, cancelAhead=5*0.667=3.333 → qa=16.667
+  onTrade(idOff, { tradePrice: 100, tradeSize: 20, aggressorSide: 'sell' }); // queue 16.667→0 (drain 16.667), fill 3.333 of 10
+  ok(near(idOff.queueAhead, 0, 1e-6), `D10: OFF queueAhead=0 after drain (got ${idOff.queueAhead})`);
+  // Precise identity check: fillQty should be 20 - 16.6667 = 3.3333
+  ok(near(idOff.fillQty, 3.333333, 1e-3), `D10: OFF fillQty=3.3333 matches legacy formula (got ${idOff.fillQty})`);
+  ok(idOff._queueDecay === undefined && idOff._levelSizeTracked === undefined && idOff._tradeSinceBook === undefined,
+    'D10: OFF order has ZERO decay fields (byte-identical state shape)');
 
   // ── PART B: OFI PREDICTIVITY MEASUREMENT HARNESS ──────────────────────────
 
