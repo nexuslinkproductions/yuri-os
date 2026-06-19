@@ -16,7 +16,12 @@ import { resolve, dirname } from 'node:path';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DEFAULT_OPTS = {
-  levelOffsets: [0, 1, 2, 3, 5, 10], // ticks from best on our side
+  // ticks from best on our side. MUST span the κ-relevant region for kappa-fit:
+  // at BTC ~$62.7k / tick $0.1, 1 bps ≈ 6.27 ticks, so 0–400 ticks ≈ 0–6.4 bps.
+  // glm's optimal δ* is a few bps → ~tens-to-hundreds of ticks. A shallow 0–10
+  // tick grid (≤0.16 bps) shows NO κ decay (R²≈0) — the offset is negligible vs
+  // BTC's own moves. Deep offsets are where the arrival-decay signal lives. (2026-06-19)
+  levelOffsets: [0, 1, 2, 3, 5, 10, 20, 50, 100, 200, 400],
   sizes: [0.001, 0.01, 0.05, 0.1],   // BTC
   horizonSecs: [5, 10, 30, 60],
   sampleEverySec: 60,
@@ -482,8 +487,9 @@ async function runReal(tapeFile) {
 
   const tape = await loadTape(tapeFile);
   const result = computeFillSurface(tape, {
-    // Real tape: BTC/USDT with 0.1 tick
-    levelOffsets: [0, 1, 2, 3, 5, 10],
+    // Real tape: BTC/USDT with 0.1 tick. DEEP offset grid (0–400 ticks ≈ 0–6.4 bps)
+    // so kappa-fit can see the arrival-decay — a 0–10 tick (≤0.16 bps) grid shows no κ.
+    levelOffsets: [0, 1, 2, 3, 5, 10, 20, 50, 100, 200, 400],
     sizes: [0.001, 0.01, 0.05, 0.1],
     horizonSecs: [5, 10, 30, 60],
     sampleEverySec: 60,
