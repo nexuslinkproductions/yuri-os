@@ -16,6 +16,37 @@ import { newMakerOrder, onTrade, onBookUpdate } from './maker-exec-measure.mjs';
 
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 
+// ── insideMarket — uncrossed top-of-book in O(L) per side (no full sort) ──────
+// The book Map can accumulate stale crossed extremes (diffs pile levels that are
+// never pruned within the 120s snap window). extractTopN sorts ALL levels and
+// takes top-N, so a stale high bid leaks into topBids[0] and crosses the ask.
+// insideMarket scans asks for the min-price level with qty>0, then scans bids for
+// the max-price level with qty>0 STRICTLY below that ask — guaranteeing an
+// uncrossed inside. Returns null for any side with no valid levels (fail-open).
+/**
+ * @param {Map} bidsMap  price-string → size-number
+ * @param {Map} asksMap  price-string → size-number
+ * @returns {{ bestBid:number|null, bestAsk:number|null, bidSize:number|null, askSize:number|null }}
+ */
+function insideMarket(bidsMap, asksMap) {
+  let bestAsk = null, askSize = null;
+  for (const [p, s] of asksMap) {
+    if (!isNum(s) || s <= 0) continue;
+    const price = Number(p);
+    if (!isNum(price)) continue;
+    if (bestAsk === null || price < bestAsk) { bestAsk = price; askSize = s; }
+  }
+  let bestBid = null, bidSize = null;
+  for (const [p, s] of bidsMap) {
+    if (!isNum(s) || s <= 0) continue;
+    const price = Number(p);
+    if (!isNum(price)) continue;
+    if (bestAsk !== null && price >= bestAsk) continue; // uncross: bid must be < best ask
+    if (bestBid === null || price > bestBid) { bestBid = price; bidSize = s; }
+  }
+  return { bestBid, bestAsk, bidSize, askSize };
+}
+
 // ── ts-sorted binary search ───────────────────────────────────────────────────
 // All event arrays (_snaps/_diffs/_trades) are time-sorted ascending. These
 // replace O(n) prefix scans that made replay quadratic on large tapes
@@ -131,13 +162,30 @@ export class Tape {
         applyLevels(asks, diff.a);
       }
 
-      // Derive top levels + mid
-      const { bids: topBids, asks: topAsks } = extractTopN(bids, asks, 20);
-      const mid = (topBids.length > 0 && topAsks.length > 0)
-        ? (topBids[0].price + topAsks[0].price) / 2
+      // Derive top levels + mid (uncrossed via insideMarket so stale crossed
+      // extremes buried in the Map never leak into top-of-book).
+      const { bids: rawBids, asks: rawAsks } = extractTopN(bids, asks, 20);
+      const im = insideMarket(bids, asks);
+      // Post-filter: drop crossed levels from the sorted top-N arrays so
+      // topBids[0]/topAsks[0] reflect the uncrossed inside, not stale extremes.
+      // Filter to the uncrossed side, then GUARANTEE index 0 = the true inside
+      // (insideMarket). The stale top-20-by-price (rawBids) can be entirely crossed
+      // extremes — esp. the bid side (stale high bids) — that filter to empty and
+      // starve consumers reading topBids[0]. Prepending the inside is O(1) on top of
+      // insideMarket's existing O(L) scan (no full re-sort → perf preserved). (2026-06-19)
+      let topBids = im.bestAsk !== null ? rawBids.filter((l) => l.price < im.bestAsk) : rawBids.slice();
+      let topAsks = im.bestBid !== null ? rawAsks.filter((l) => l.price > im.bestBid) : rawAsks.slice();
+      if (im.bestBid !== null && (topBids.length === 0 || topBids[0].price !== im.bestBid)) {
+        topBids = [{ price: im.bestBid, size: im.bidSize }, ...topBids.filter((l) => l.price !== im.bestBid)];
+      }
+      if (im.bestAsk !== null && (topAsks.length === 0 || topAsks[0].price !== im.bestAsk)) {
+        topAsks = [{ price: im.bestAsk, size: im.askSize }, ...topAsks.filter((l) => l.price !== im.bestAsk)];
+      }
+      const mid = (im.bestBid !== null && im.bestAsk !== null)
+        ? (im.bestBid + im.bestAsk) / 2
         : null;
-      const spreadBps = (mid && mid > 0 && topBids.length > 0 && topAsks.length > 0)
-        ? ((topAsks[0].price - topBids[0].price) / mid) * 1e4
+      const spreadBps = (mid && mid > 0 && im.bestBid !== null && im.bestAsk !== null)
+        ? ((im.bestAsk - im.bestBid) / mid) * 1e4
         : null;
 
       return { bids, asks, mid, spreadBps, topBids, topAsks };
@@ -214,10 +262,11 @@ export class Tape {
       for (let ts = t0; ts <= t1; ts += stepMs) {
         advanceTo(ts);
         if (!haveBook) continue; // no snap ≤ ts → bookAt would have been null
-        const { bids: tb, asks: ta } = extractTopN(bids, asks, 20);
-        const mid = (tb.length > 0 && ta.length > 0) ? (tb[0].price + ta[0].price) / 2 : null;
+        const im = insideMarket(bids, asks);
+        if (im.bestBid === null || im.bestAsk === null) continue;
+        const mid = (im.bestBid + im.bestAsk) / 2;
         if (!isNum(mid)) continue;
-        const spreadBps = (mid > 0) ? ((ta[0].price - tb[0].price) / mid) * 1e4 : null;
+        const spreadBps = (mid > 0) ? ((im.bestAsk - im.bestBid) / mid) * 1e4 : null;
         result.push({ ts, mid, spreadBps });
       }
       return result;
@@ -502,6 +551,28 @@ if (_isMain && process.argv.includes('--test')) {
   const tapeFromArray = loadTape([JSON.parse(jsonlLine)]);
   const b2000 = tapeFromArray.bookAt(2000);
   ok(b2000 && near(b2000.mid, 50000.5), `T10: loadTape from array, bookAt round-trip mid=50000.5 (got ${b2000?.mid})`);
+
+  // ── T11: bookAt uncrosses stale crossed bid (root-cause regression) ──────────
+  //
+  // Snap at t=2000: clean book 99.9/100.1. Then a diff piles a stale high bid at
+  // 101 (crossing the ask) that is never pruned. bookAt must return the TRUE
+  // inside (99.9/100.1), NOT the stale 101, and bestBid < bestAsk.
+  const crossedEvents = [
+    { t: 'snap', ts: 2000, s: 'BTCUSDT', lastUpdateId: 600,
+      bids: [['99.9', '5'], ['99.8', '3']], asks: [['100.1', '4'], ['100.2', '2']] },
+    // diff at t=2100: a stale crossed bid at 101 appears (never pruned in window)
+    { t: 'diff', ts: 2100, s: 'BTCUSDT', U: 601, u: 610, pu: 600,
+      b: [['101', '8']], a: [] },
+  ];
+  const ctape = loadTape(crossedEvents);
+  const cb = ctape.bookAt(2100);
+  ok(cb !== null, 'T11a: bookAt(2100) not null with crossed bid present');
+  ok(cb && cb.mid !== null, `T11b: mid is not null (got ${cb?.mid})`);
+  ok(cb && cb.mid !== null && near(cb.mid, 100.0), `T11c: mid=100.0 (true inside 99.9/100.1), not crossed (got ${cb?.mid})`);
+  ok(cb && cb.spreadBps !== null && cb.spreadBps > 0, `T11d: spreadBps positive (uncrossed) (got ${cb?.spreadBps})`);
+  // The stale 101 bid must NOT be the best bid — best bid must be 99.9
+  ok(cb && cb.topBids[0].price === 99.9, `T11e: best bid=99.9 not stale 101 (got ${cb?.topBids[0]?.price})`);
+  ok(cb && cb.topAsks[0].price === 100.1, `T11f: best ask=100.1 (got ${cb?.topAsks[0]?.price})`);
 
   // ── Result ───────────────────────────────────────────────────────────────────
   console.log(`tape-replay --test: ${pass} pass, ${fail} fail`);
