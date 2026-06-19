@@ -22,6 +22,23 @@
 import os, re, sqlite3
 from datetime import datetime, timezone
 
+# T1 + T2 SEAMS — the brain wired INTO the YURI OS substrate (main-lane serial wiring, 2026-06-19).
+# Both are sibling modules; guarded imports so this store stays import-clean in isolation (tests/cold start).
+# Each degrades to no-op at its seam: energy absent/disabled → write_strength == plain clamp;
+# spreading absent/disabled/empty → associative fill skipped → pure FTS recall (unchanged behavior).
+try:
+    import jarvis_energy as je      # T1: write_strength = base·(1+surprise)·precision — REAL ΔU salience
+    _HAS_ENERGY = True
+except Exception:
+    je = None
+    _HAS_ENERGY = False
+try:
+    import jarvis_spreading as jsp  # T2: associative (PPR) recall — surfaces episodes connected to the cues
+    _HAS_SPREADING = True
+except Exception:
+    jsp = None
+    _HAS_SPREADING = False
+
 # DB lives next to the rolling history (state/voice/) — runtime state, gitignored, NOT a protected surface.
 DB_PATH = os.environ.get(
     "YURI_Z_MEMORY_DB",
@@ -93,9 +110,20 @@ def remember(summary, cues="", kind="episode", tags="", weight=1.0, transcript_r
     if not summary:
         return "nothing to remember"
     try:
-        w = max(0.1, min(float(weight or 1.0), 5.0))
+        base = float(weight or 1.0)
     except (TypeError, ValueError):
-        w = 1.0
+        base = 1.0
+    # T1 SEAM: enrich the model-judged weight with the system's REAL energy surprise
+    # (write_strength = base·(1+surprise)·precision, clamped [0.1,5]). surprise_score() reads the
+    # energy-gate ΔU trace (READ-ONLY). When jarvis_energy is absent/disabled, surprise=0 →
+    # write_strength(base) reduces to the plain clamp, so behavior is unchanged (non-fatal degrade).
+    if _HAS_ENERGY:
+        try:
+            w = je.write_strength(base)
+        except Exception:
+            w = max(0.1, min(base, 5.0))
+    else:
+        w = max(0.1, min(base, 5.0))
     # Auto-extract cues from the summary if the model didn't supply any (defensive — don't lose the signal).
     cues = (cues or "").strip() or _extract_cues(summary)
     kind = kind if kind in ("fact", "preference", "commitment", "episode") else "episode"
@@ -137,13 +165,18 @@ def _fts_query(text):
 
 
 def recall_raw(query, limit=5, db=None):
-    """Ranked recall as a list of dicts (id, summary, kind, tags, weight, reinforced, ts, score). Empty on
-    no-match / disabled / malformed query (recall is NON-FATAL — the brain works without it)."""
+    """Ranked recall as a list of dicts (id, summary, kind, tags, weight, reinforced, ts, score).
+
+    FTS5 BM25 × weight ranks DIRECT cue matches (authoritative). Then the T2 ASSOCIATIVE layer fills
+    remaining slots with episodes CONNECTED to the query's cues via personalized PageRank that FTS did
+    NOT directly match — the spreading-activation value FTS alone misses. Degrades to pure FTS when
+    spreading is absent/disabled/empty (identical to pre-V2 behavior). Empty on no-match / disabled /
+    malformed query (recall is NON-FATAL — the brain works without it)."""
     if not ENABLED:
         return []
     fts = _fts_query(query)
     if not fts:
-        return []
+        return []   # no content words → no FTS match AND no PPR seeds
     c = _connect(db)
     try:
         # bm25 lower (more negative) = better match; multiply by effective weight (weight × reinforcement boost)
@@ -163,6 +196,33 @@ def recall_raw(query, limit=5, db=None):
              "reinforced": r[5], "ts": r[6], "score": round(r[7], 3)}
             for r in rows
         ]
+        # T2 SEAM — associative fill: PPR over the episode graph surfaces episodes that SHARE cues/tags with
+        # a matched episode but didn't directly match the query (the spreading recall FTS misses). FTS direct
+        # matches stay authoritative + weight-ranked; associative items fill remaining slots, ranked by PPR
+        # activation. READ-ONLY on the store. Non-fatal: any fault → FTS results stand unchanged.
+        if _HAS_SPREADING and len(out) < int(limit):
+            try:
+                if jsp.is_enabled():
+                    assoc = jsp.associative_recall(query, db=db, limit=int(limit) * 3)
+                    if assoc:
+                        seen = {str(o["id"]) for o in out}
+                        act = {str(r["id"]): float(r.get("activation") or 0.0) for r in assoc}
+                        assoc_only = [eid for eid in act if eid not in seen]
+                        if assoc_only:
+                            ph = ",".join("?" for _ in assoc_only)
+                            extra = c.execute(
+                                f"SELECT id, summary, kind, tags, weight, reinforced, ts "
+                                f"FROM episodes WHERE id IN ({ph})",
+                                assoc_only,
+                            ).fetchall()
+                            for r in sorted(extra, key=lambda x: -act.get(str(x[0]), 0.0)):
+                                out.append({"id": r[0], "summary": r[1], "kind": r[2], "tags": r[3],
+                                            "weight": r[4], "reinforced": r[5], "ts": r[6],
+                                            "score": round(act.get(str(r[0]), 0.0), 3)})
+                                if len(out) >= int(limit):
+                                    break
+            except Exception:
+                pass   # associative fill is non-fatal — FTS results stand
         # RECALL IS A WRITE (reconsolidation): reinforce the recalled ids + stamp last_recalled_ts.
         if out:
             ids = ",".join(str(o["id"]) for o in out)

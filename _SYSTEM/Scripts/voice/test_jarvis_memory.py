@@ -123,6 +123,99 @@ class TestDisabledMode(unittest.TestCase):
         self.assertEqual(jm.recall_raw("x"), [])
 
 
+class TestEnergySeam(unittest.TestCase):
+    """T1 seam: remember() routes the model weight THROUGH jarvis_energy.write_strength (real ΔU salience),
+    and degrades to the plain clamp when the energy seam is absent. Uses a temp db."""
+    def setUp(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        self.db = self.tmp.name
+        self._had_energy = jm._HAS_ENERGY
+        self._je = jm.je
+        # save the REAL write_strength function — monkeypatching it mutates the module attribute, so we
+        # must restore the function itself (not just the module ref) or the sentinel leaks across tests.
+        self._orig_ws = jm.je.write_strength if jm.je is not None else None
+
+    def tearDown(self):
+        if jm.je is not None and self._orig_ws is not None:
+            jm.je.write_strength = self._orig_ws
+        jm._HAS_ENERGY = self._had_energy
+        jm.je = self._je
+        try:
+            os.unlink(self.db)
+        except OSError:
+            pass
+
+    # GREEN — when the seam is live, the STORED weight is exactly what write_strength returns (proves the
+    # wiring routes THROUGH write_strength, not the plain clamp).
+    def test_remember_routes_through_write_strength(self):
+        if not self._had_energy:
+            self.skipTest("jarvis_energy not importable in this env")
+        jm.je.write_strength = lambda base, precision=1.0: 2.77   # deterministic sentinel
+        jm.remember("a fact", cues="fact", weight=1.0, db=self.db)
+        import sqlite3
+        c = sqlite3.connect(self.db)
+        w = c.execute("SELECT weight FROM episodes").fetchone()[0]
+        c.close()
+        self.assertAlmostEqual(w, 2.77, places=5)
+
+    # RED — when the energy seam is absent, remember degrades to the plain clamp (no surprise multiplier)
+    def test_energy_absent_degrades_to_clamp(self):
+        jm._HAS_ENERGY = False
+        jm.je = None
+        jm.remember("big note", cues="note", weight=999, db=self.db)
+        import sqlite3
+        c = sqlite3.connect(self.db)
+        w = c.execute("SELECT weight FROM episodes").fetchone()[0]
+        c.close()
+        self.assertEqual(w, 5.0)   # plain clamp, no enrichment
+
+
+class TestAssociativeSeam(unittest.TestCase):
+    """T2 seam: recall fuses FTS direct matches with associative (PPR) fill. An episode CONNECTED to a
+    direct match via a shared cue — but not itself a direct cue match — surfaces through spreading activation.
+    """
+    def setUp(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        self.db = self.tmp.name
+        self._had_spreading = jm._HAS_SPREADING
+        self._jsp = jm.jsp
+        # A = direct match (query cue 'marcel'); B = connected to A via shared 'rust', NOT a direct match
+        jm.remember("Marcel deployed the rust service.", cues="marcel deployed rust service", kind="fact", db=self.db)
+        jm.remember("The rust deployment failed on port 8080.", cues="rust deployment failed port", kind="episode", db=self.db)
+
+    def tearDown(self):
+        jm._HAS_SPREADING = self._had_spreading
+        jm.jsp = self._jsp
+        try:
+            jm.jsp._GRAPH_CACHE.pop(self.db, None)   # bust the spreading cache for this path (no cross-test leak)
+        except Exception:
+            pass
+        try:
+            os.unlink(self.db)
+        except OSError:
+            pass
+
+    # GREEN — recall('marcel') direct-matches A; B (connected via shared 'rust', not a direct match) fills via PPR
+    def test_associative_fill_surfaces_connected_episode(self):
+        if not self._had_spreading:
+            self.skipTest("jarvis_spreading not importable in this env")
+        rows = jm.recall_raw("what about marcel", db=self.db, limit=5)
+        summaries = [r["summary"] for r in rows]
+        self.assertTrue(any("deployed the rust service" in s for s in summaries), "A (direct match) must surface")
+        self.assertTrue(any("failed on port 8080" in s for s in summaries), "B (associative fill) must surface")
+
+    # RED — with the spreading seam off, recall is pure FTS: B (no 'marcel' cue) does NOT surface
+    def test_spreading_off_is_pure_fts(self):
+        jm._HAS_SPREADING = False
+        jm.jsp = None
+        rows = jm.recall_raw("what about marcel", db=self.db, limit=5)
+        summaries = [r["summary"] for r in rows]
+        self.assertTrue(any("deployed the rust service" in s for s in summaries), "A still direct-matches")
+        self.assertFalse(any("failed on port 8080" in s for s in summaries), "B must be absent (no associative fill)")
+
+
 class TestBrainWiring(unittest.TestCase):
     """Confirm the brain wired the remember tool + recall injection without importing the server.
     Parses the brain source (hyphenated filename isn't importable) and checks the integration points."""
@@ -140,6 +233,19 @@ class TestBrainWiring(unittest.TestCase):
 
     def test_remember_handled_in_exec(self):
         self.assertIn('if name == "remember":', self._src())
+
+    # T3 seam — the brain imports jarvis_xref, injects canonical truth at startup, and exposes an xref tool
+    def test_imports_jarvis_xref(self):
+        self.assertIn("import jarvis_xref as jx", self._src())
+
+    def test_xref_tool_declared(self):
+        self.assertIn('"name": "xref"', self._src())
+
+    def test_xref_handled_in_exec(self):
+        self.assertIn('if name == "xref":', self._src())
+
+    def test_canonical_block_injected_at_startup(self):
+        self.assertIn("canonical_block()", self._src())
 
     def test_recall_injected_per_turn(self):
         s = self._src()

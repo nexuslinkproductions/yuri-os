@@ -13,6 +13,10 @@
 import os, json, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import jarvis_memory as jm   # persistent episodic store — model-driven `remember` + per-turn FTS5 recall
+try:
+    import jarvis_xref as jx   # YURI-OS navigation seam — canonical truth at startup + native `xref` tool
+except Exception:              # guarded: the brain must NEVER fail to start on an import fault
+    jx = None
 
 PORT = int(os.environ.get("YURI_Z_BRAIN_PORT", "8014"))
 MODEL = os.environ.get("ZAI_MODEL", "glm-5.2")   # glm-5.2 = the flagship in-plan model; RELIABLY emits
@@ -108,6 +112,17 @@ def _build_system():
                      "(recall and use it; don't re-ask what's here)\n" + mem)
     except Exception:
         pass
+    # T3 SEAM: inject the system's canonical truth (peer-open readView from memory-canonical-store.mjs,
+    # cached via a one-shot node call at jarvis_xref import). Degrades to "" when the store is absent /
+    # disabled — startup stays node-free in that case. The brain draws on the SAME operator-grade truth
+    # every other YURI lane reads.
+    if jx is not None:
+        try:
+            canon = jx.canonical_block()
+            if canon:
+                parts.append(canon)
+        except Exception:
+            pass
     parts.append(TOOL_NOTE)
     return "\n\n".join(parts)
 
@@ -312,6 +327,16 @@ TOOLS = [
                              "weight": {"type": "number",
                                  "description": "Salience 0.1–5; higher = more likely to surface in recall. Default 1; use 2–3 for core preferences/commitments, <1 for minor notes."},
                          }},
+    },
+    {
+        "name": "xref",
+        "description": ("Navigate YURI's own knowledge the way every other lane does — search the code/docs "
+                        "corpus (FTS5), the circuitry graph, and mechanism evidence for a query. Use when Marcel "
+                        "asks how something in YURI works, where a capability lives, whether we already have X, "
+                        "or for prior art. READ-ONLY; returns compact ranked evidence. This is you navigating "
+                        "your own system, not the web."),
+        "input_schema": {"type": "object", "required": ["query"],
+                         "properties": {"query": {"type": "string", "description": "What to navigate YURI's knowledge for."}}},
     },
     # ---- macOS CONTROL PRIMITIVES (general computer use — she composes these per request) ----
     {
@@ -556,6 +581,13 @@ def _exec_tool(name, args):
         if name == "remember":
             return jm.remember(args.get("summary"), cues=args.get("cues", ""), kind=args.get("kind", "episode"),
                                tags=args.get("tags", ""), weight=args.get("weight", 1.0))
+        if name == "xref":
+            q = (args.get("query") or "").strip()
+            if not q:
+                return "no query given"
+            if jx is None:
+                return "xref unavailable (navigation seam not loaded)"
+            return _cap(jx.xref(q))
         # ---- macOS CONTROL PRIMITIVES ----
         if name == "applescript":
             script = (args.get("script") or "").strip()
