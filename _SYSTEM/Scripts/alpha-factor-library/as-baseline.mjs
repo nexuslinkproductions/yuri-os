@@ -31,13 +31,17 @@
 // This is a RECORDING artifact to REPORT, not a bug in this module.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join as pathJoin } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { loadTape } from './tape-replay.mjs';
 import { sigmaEwma, sigmaPrice, reservationPrice, optimalSpread, quotes } from './avellaneda-stoikov.mjs';
 import { computeMicroprice } from './orderbook-imbalance.mjs';
 import { fitKappa } from './kappa-fit.mjs';
+import { regimeBreaker } from './regime-breaker.mjs';
+import { fundingSkew } from './funding-skew.mjs';
 
 // ── GUARDS ───────────────────────────────────────────────────────────────────
 
@@ -203,6 +207,19 @@ export async function runBaseline(opts = {}) {
     requoteSec = 5, sampleEverySec = 5, feeRtBps = 4.0, size = 0.001,
     mid = 62700, tickSize = 0.1, tau = 1, volHalfLifeSec = 30,
     maxSamples = Infinity,
+    // ── PASS-1 DISARMED hardening opts (all default undefined = OFF) ──
+    // WIRE 1: A-S quote guards. Threaded into quotes() ONLY when finite.
+    //   minHalfSpreadBps/maxHalfSpreadBps: spread floor/ceiling (bps).
+    //   maxSkewTicks: clamp the reservation-price inventory-skew (passed to quotes()).
+    //   quoteQMax: quotes()'s OWN price-suppression qMax (distinct from the harness qmax).
+    //     When |q|≥quoteQMax, quotes() nulls the inventory-increasing side's px.
+    minHalfSpreadBps, maxHalfSpreadBps, maxSkewTicks, quoteQMax,
+    // WIRE 2: regime-breaker. Truthy object {zWiden,zHalt,widenMult} or true → ON.
+    //   halt → skip quoting this sample; widen → multiply halfSpread by widenMult (default 1.5).
+    regimeBreak,
+    // WIRE 3: funding-skew. fundingRate finite & nonzero → add reservationAdjPrice to anchor.
+    //   secsToFunding default undefined → fundingSkew treats as at-settlement (max proximity).
+    fundingRate, secsToFunding,
   } = opts;
 
   // ── fail-open param checks ──
@@ -213,6 +230,22 @@ export async function runBaseline(opts = {}) {
   if (!fin(sampleEverySec) || sampleEverySec <= 0) return null;
 
   const useAdverseParam = fin(adverseBps) && adverseBps > 0;
+
+  // ── PASS-1 hardening flag resolution (DISARMED: all default OFF) ──
+  const useMinSpread = fin(minHalfSpreadBps);
+  const useMaxSpread = fin(maxHalfSpreadBps);
+  const useMaxSkew = fin(maxSkewTicks) && fin(tickSize) && tickSize > 0;
+  const useQuoteQMax = fin(quoteQMax);
+  // regimeBreak: truthy object (or true) → ON. Resolve widenMult (default 1.5) + thresholds.
+  const regimeOn = !!regimeBreak;
+  const widenMult = (regimeOn && regimeBreak !== true && fin(regimeBreak.widenMult) && regimeBreak.widenMult > 0)
+    ? regimeBreak.widenMult : 1.5;
+  const rbZWiden = (regimeOn && regimeBreak !== true && fin(regimeBreak.zWiden) && regimeBreak.zWiden > 0)
+    ? regimeBreak.zWiden : 2;
+  const rbZHalt = (regimeOn && regimeBreak !== true && fin(regimeBreak.zHalt) && regimeBreak.zHalt > 0)
+    ? regimeBreak.zHalt : 3;
+  // fundingRate: finite & nonzero → ON. secsToFunding default undefined → at-settlement.
+  const useFunding = fin(fundingRate) && fundingRate !== 0;
 
   // ── load tape ──
   let tape;
@@ -243,6 +276,9 @@ export async function runBaseline(opts = {}) {
   let crossedCount = 0;
   let nullBookCount = 0;
   let skipInventoryCount = 0;
+  let regimeHaltCount = 0;     // PASS-1 WIRE 2: samples skipped by regime halt
+  let regimeWidenCount = 0;    // PASS-1 WIRE 2: samples widened by regime widen
+  let fundingSkewTicksAccum = 0; // PASS-1 WIRE 3: sum of |reservationAdjPrice|/tickSize (mean reported)
 
   // EWMA vol state
   let prevMidForRet = null;
@@ -269,8 +305,9 @@ export async function runBaseline(opts = {}) {
     if (isCrossed) crossedCount++;
 
     // ── update EWMA vol from 1s log-return ──
+    let r = NaN; // hoisted: PASS-1 WIRE 2 regime-breaker reads r (1s log-return)
     if (prevMidForRet && prevMidForRet > 0) {
-      const r = Math.log(currentMid / prevMidForRet);
+      r = Math.log(currentMid / prevMidForRet);
       if (fin(r)) {
         const ew = sigmaEwma(r * r, prevVar, volHalfLifeSec);
         if (ew) prevVar = ew.variance;
@@ -291,12 +328,52 @@ export async function runBaseline(opts = {}) {
       anchor = fin(mp) && mp > 0 ? mp : currentMid;
     }
 
-    // ── A-S quotes ──
+    // ── WIRE 3: funding-skew nudge to anchor (DISARMED: OFF → anchor unchanged) ──
+    // Add fundingSkew's signed reservationAdjPrice to the anchor BEFORE quotes().
+    // Positive funding → negative adj → reservation DOWN (mirrors A-S reservationPrice).
+    if (useFunding) {
+      const fs = fundingSkew({ fundingRate, q, secsToFunding, tickSize });
+      if (fs && fin(fs.reservationAdjPrice)) {
+        anchor += fs.reservationAdjPrice;
+        fundingSkewTicksAccum += Math.abs(fs.skewTicks);
+      }
+    }
+
+    // ── WIRE 2: regime-breaker (DISARMED: OFF → no call, action='normal') ──
+    // Uses the loop's own r (1s log-return) and sigmaRet (per-second return vol).
+    let regimeAction = 'normal';
+    if (regimeOn && fin(r) && fin(sigmaRet) && sigmaRet > 0) {
+      const rb = regimeBreaker({ ret: r, sigma: sigmaRet }, { zWiden: rbZWiden, zHalt: rbZHalt });
+      regimeAction = rb && rb.action ? rb.action : 'normal';
+    }
+    if (regimeAction === 'halt') { regimeHaltCount++; continue; } // skip quoting this sample
+
+    // ── A-S quotes (WIRE 1: guards threaded only when finite) ──
     const qres = quotes({
       microprice: anchor, q, gamma, sigma: sigmaP, tau, kappa: kappa.kappaPrice,
+      ...(useMinSpread ? { minHalfSpreadBps } : {}),
+      ...(useMaxSpread ? { maxHalfSpreadBps } : {}),
+      ...(useMaxSkew ? { maxSkewTicks, tickSize } : {}),
+      ...(useQuoteQMax ? { qMax: quoteQMax } : {}),
     });
-    if (!qres || !fin(qres.bidPx) || !fin(qres.askPx) || !fin(qres.halfSpread)) continue;
-    const { bidPx, askPx, halfSpread } = qres;
+    // SEAM FIX (was line ≈298): quotes()'s qMax guard deliberately nulls ONE side
+    // (bidPx XOR askPx) to suppress an inventory-breaching leg. The old guard
+    // skipped the WHOLE sample if either side was null. New guard: require qres +
+    // finite halfSpread + AT LEAST ONE finite side; each leg below checks its own px.
+    // When NO guards passed, quotes() returns both sides finite → identical to today.
+    if (!qres || !fin(qres.halfSpread) || (!fin(qres.bidPx) && !fin(qres.askPx))) continue;
+
+    let { bidPx, askPx } = qres;
+    let halfSpread = qres.halfSpread;
+
+    // ── WIRE 2 (widen): recompute bid/ask around qres.reservation with widened half ──
+    // Keep halfSpread consistent with what was actually quoted (attributePnl uses it).
+    if (regimeAction === 'widen' && fin(qres.reservation)) {
+      halfSpread = halfSpread * widenMult;
+      bidPx = qres.reservation - halfSpread;
+      askPx = qres.reservation + halfSpread;
+      regimeWidenCount++;
+    }
 
     // ── inventory hard-limit: skip the side that would breach ──
     let canBuy = true, canSell = true;
@@ -304,8 +381,10 @@ export async function runBaseline(opts = {}) {
     if (q - size < -qmax * size) canSell = false;  // would exceed -short limit
     if (!canBuy && !canSell) { skipInventoryCount++; continue; }
 
-    // ── simulate BOTH legs (only those allowed by inventory limit) ──
-    if (canBuy) {
+    // ── simulate BOTH legs (only those allowed by inventory limit + finite px) ──
+    // Per-leg finite-px check: a leg whose px is null (quotes() qMax suppression)
+    // is skipped, not the whole sample. When no guards passed, both px are finite.
+    if (canBuy && fin(bidPx)) {
       const sim = tape.simulateOrder({ side: 'buy', price: bidPx, size, joinTs: ts, horizonSec: requoteSec });
       if (sim && sim.filled && fin(sim.fillTs)) {
         const midAtFill = tape.bookAt(sim.fillTs)?.mid ?? currentMid;
@@ -319,7 +398,7 @@ export async function runBaseline(opts = {}) {
       }
     }
 
-    if (canSell) {
+    if (canSell && fin(askPx)) {
       const sim = tape.simulateOrder({ side: 'sell', price: askPx, size, joinTs: ts, horizonSec: requoteSec });
       if (sim && sim.filled && fin(sim.fillTs)) {
         const midAtFill = tape.bookAt(sim.fillTs)?.mid ?? currentMid;
@@ -365,6 +444,10 @@ export async function runBaseline(opts = {}) {
   summary.crossedBookRatio = sampleCount > 0 ? crossedCount / sampleCount : 0;
   summary.nullBookCount = nullBookCount;
   summary.skipInventoryCount = skipInventoryCount;
+  // ── PASS-1 hardening summary fields (0 when OFF → DISARMED-degrade) ──
+  summary.regimeHaltCount = regimeHaltCount;
+  summary.regimeWidenCount = regimeWidenCount;
+  summary.fundingSkewTicks = sampleCount > 0 ? fundingSkewTicksAccum / sampleCount : 0; // mean |skewTicks|/sample
   summary.gamma = gamma;
   summary.kappaSource = kappa.source;
   summary.kappaPrice = kappa.kappaPrice;
@@ -559,6 +642,102 @@ if (_isMain && process.argv.includes('--test')) {
   assert(fin(sigP) && near(sigP, 1e-5 * 62700), `sigmaPrice: return-vol × mid = price-vol (got ${sigP})`);
   assert(sigmaPrice(-1, 62700) === null, 'sigmaPrice: negative sigma → null');
   assert(sigmaPrice(1e-5, -5) === null, 'sigmaPrice: negative mid → null');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PASS-1 WIRING TESTS (the DISARMED-degrade proof + each-flag-on behavioral)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Build a tiny DETERMINISTIC synthetic tape: a clean uncrossed book around
+  // mid=62700, drifting slightly so vol>0, with sell-aggressor trades that sweep
+  // deep enough to fill resting bids and buy-aggressor trades that lift asks.
+  {
+    const tapePath = pathJoin(tmpdir(), `asb-test-${process.pid}-${Date.now()}.jsonl`);
+    // Book brackets the A-S quote region (halfSpread≈6.6 → bid≈62693, ask≈62707).
+    // Mid DRIFTS each step (nonzero returns → regime-breaker can trip). Aggressive
+    // trades sweep DEEP enough to cross the resting quotes regardless of drift.
+    const events = [];
+    events.push({ t: 'snap', ts: 0, s: 'BTCUSDT', lastUpdateId: 1,
+      bids: [['62695', '5'], ['62693', '10'], ['62690', '20']],
+      asks: [['62705', '5'], ['62707', '10'], ['62710', '20']] });
+    for (let s = 1; s <= 40; s++) {
+      const ts = s * 1000;
+      // asymmetric drift via FRESH SNAPS (replaces the whole book → mid actually moves).
+      // This creates nonzero log-returns between samples → regime-breaker can trip.
+      const drift = (s % 4 === 0) ? -3 : (s % 3 === 0 ? 3 : 0);
+      if (drift !== 0) {
+        const bb = 62695 + drift, ba = 62705 + drift;
+        events.push({ t: 'snap', ts: ts + 50, s: 'BTCUSDT', lastUpdateId: 999 + s,
+          bids: [[String(bb), '5'], ['62690', '20']], asks: [[String(ba), '5'], ['62710', '20']] });
+      }
+      // every 5s: a sell-aggressor trade deep enough to sweep bids (62690)
+      if (s % 5 === 0) events.push({ t: 'trade', ts, s: 'BTCUSDT', p: '62690', q: '8', m: true });
+      // every 7s: a buy-aggressor trade deep enough to lift asks (62710)
+      if (s % 7 === 0) events.push({ t: 'trade', ts: ts + 100, s: 'BTCUSDT', p: '62710', q: '8', m: false });
+    }
+    writeFileSync(tapePath, events.map((e) => JSON.stringify(e)).join('\n'));
+
+    const baseOpts = {
+      tapePath, gamma: 0.2, kappaPrice: 0.0736, adverseBps: 0.16,
+      qmax: 3, requoteSec: 5, sampleEverySec: 5, feeRtBps: 4.0, size: 0.001,
+      mid: 62700, tickSize: 0.1, maxSamples: 5,
+    };
+
+    try {
+      const base = await runBaseline(baseOpts);
+      assert(base !== null && !base.error, `WIRING: baseline run produces a summary (got ${base?.error ?? 'null'})`);
+      assert(base && base.fills >= 1, `WIRING: baseline has ≥1 fill (got ${base?.fills})`);
+
+      // ── OFF-IDENTITY (the core DISARMED-degrade proof) ──
+      // flags-omitted vs flags-explicitly-OFF must be DEEP-EQUAL.
+      const offExplicit = await runBaseline({
+        ...baseOpts,
+        minHalfSpreadBps: undefined, maxHalfSpreadBps: undefined, maxSkewTicks: undefined,
+        quoteQMax: undefined, regimeBreak: undefined, fundingRate: undefined, secsToFunding: undefined,
+      });
+      const deepEq = JSON.stringify(base) === JSON.stringify(offExplicit);
+      assert(deepEq, 'WIRING OFF-IDENTITY: flags-omitted === flags-explicitly-OFF (DEEP-EQUAL)');
+
+      // NEUTRAL-flag identity: regimeBreak with impossible thresholds + no funding → same net/fills.
+      const neutral = await runBaseline({
+        ...baseOpts, regimeBreak: { zWiden: 999, zHalt: 1000 }, fundingRate: undefined,
+      });
+      assert(neutral && neutral.fills === base.fills && near(neutral.netBps, base.netBps, 1e-9),
+        `WIRING NEUTRAL-IDENTITY: regimeBreak untrippable + no funding → same fills/net (fills ${neutral?.fills}/${base.fills})`);
+
+      // DISARMED summary fields are 0/absent when OFF.
+      assert(base.regimeHaltCount === 0 && base.regimeWidenCount === 0 && base.fundingSkewTicks === 0,
+        `WIRING DISARMED: regime/funding summary fields are 0 when OFF (got halt=${base.regimeHaltCount} widen=${base.regimeWidenCount} fund=${base.fundingSkewTicks})`);
+
+      // ── EACH-FLAG-ON behavioral (the RED layer — proves the wire does something) ──
+
+      // (1) minHalfSpreadBps set above natural → spread-capture floor rises (grossSpreadBps ≥ floor, on fills).
+      const minSp = await runBaseline({ ...baseOpts, minHalfSpreadBps: 2 });
+      assert(minSp && minSp.fills >= 1 && minSp.grossSpreadBps >= 2 - 1e-9,
+        `WIRING minHalfSpreadBps=2: grossSpreadBps ≥ floor on fills (${minSp?.grossSpreadBps.toFixed(4)} bps, ${minSp?.fills} fills)`);
+
+      // (2) regimeBreak trips on everything (zWiden/zHalt tiny) → halts/widens, fills ≤ baseline.
+      const regTrip = await runBaseline({ ...baseOpts, regimeBreak: { zWiden: 0.0001, zHalt: 0.0002 } });
+      assert(regTrip && (regTrip.regimeHaltCount > 0 || regTrip.regimeWidenCount > 0),
+        `WIRING regimeBreak trips: halt=${regTrip?.regimeHaltCount} widen=${regTrip?.regimeWidenCount}`);
+      assert(regTrip && regTrip.fills <= base.fills,
+        `WIRING regimeBreak trips: fills ≤ baseline (${regTrip?.fills} vs ${base.fills})`);
+
+      // (3) fundingRate → fundingSkewTicks≠0, run still completes (netBps finite).
+      const fund = await runBaseline({ ...baseOpts, fundingRate: 0.001, secsToFunding: 60 });
+      assert(fund && fund.fundingSkewTicks !== 0,
+        `WIRING fundingRate=0.001: fundingSkewTicks≠0 (got ${fund?.fundingSkewTicks})`);
+      assert(fund && fin(fund.netBps),
+        `WIRING fundingRate: run completes, netBps finite (got ${fund?.netBps})`);
+
+      // (4) quoteQMax=0 → one-sided suppression engages, fills ≤ baseline, no crash.
+      const qQm = await runBaseline({ ...baseOpts, quoteQMax: 0 });
+      assert(qQm !== null && !qQm.error,
+        `WIRING quoteQMax=0: no crash from relaxed line-298 seam (got ${qQm?.error ?? 'ok'})`);
+      assert(qQm && qQm.fills <= base.fills,
+        `WIRING quoteQMax=0: fills ≤ baseline (${qQm?.fills} vs ${base.fills})`);
+    } finally {
+      try { unlinkSync(tapePath); } catch { /* best-effort cleanup */ }
+    }
+  }
 
   // ── summary ──
   console.log(`\n─── as-baseline --test: ${pass} PASS, ${fail} FAIL ───`);
