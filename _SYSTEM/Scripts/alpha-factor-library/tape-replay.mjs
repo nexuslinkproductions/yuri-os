@@ -282,19 +282,31 @@ export class Tape {
    *
    * Steps:
    *   1. bookAt(joinTs) → queueAheadAtJoin = visible size at `price` on our side.
-   *   2. newMakerOrder({side, price, size, queueAheadAtJoin}).
+   *   2. newMakerOrder({side, price, size, queueAheadAtJoin, ...decayOpts}).
    *   3. Feed tradesBetween(joinTs, joinTs + horizonSec*1000) through onTrade.
    *   4. After each trade, call onBookUpdate with the current level size for our price.
    *
    * Returns { filled, fillTs, fillQty, timeInBookMs, queueAheadAtJoin }.
    * If the order never fills within the horizon, filled=false, fillTs=null.
    *
+   * QUEUE-DECAY (PASS-2 WIRE A, opt-in, DISARMED-DEGRADE):
+   *   decayModel: { enabled, cancelAheadShare } — richer form, forwarded to newMakerOrder.
+   *   queueDecay: true — simple boolean form, forwarded to newMakerOrder.
+   *   When BOTH are absent/undefined → newMakerOrder receives neither → decayOn=false → the
+   *   order carries NO decay fields → onTrade/onBookUpdate execute the exact legacy code path.
+   *   This makes the OFF case byte-identical to pre-PASS-2 behavior (proven in --test T12).
+   *   The decay model can only make fills MORE conservative (delay/remove) — it credits
+   *   queue-ahead for inferred cancellations, which shrinks queueAhead SLOWER than the OFF path
+   *   when cancels are real (the OFF path's pro-rata heuristic already credits some cancel-like
+   *   shrinkage; the ON path isolates the cancel portion explicitly and may credit less). The
+   *   invariant is: decay-ON fillQty ≤ decay-OFF fillQty for any fixture.
+   *
    * Fail-open: bad inputs → { filled:false, fillTs:null, fillQty:0, timeInBookMs:null, queueAheadAtJoin:0 }
    *
-   * @param {{ side:'buy'|'sell', price:number, size:number, joinTs:number, horizonSec:number }} opts
+   * @param {{ side:'buy'|'sell', price:number, size:number, joinTs:number, horizonSec:number, decayModel?:{ enabled?:boolean, cancelAheadShare?:number }, queueDecay?:boolean }} opts
    * @returns {{ filled:boolean, fillTs:number|null, fillQty:number, timeInBookMs:number|null, queueAheadAtJoin:number }}
    */
-  simulateOrder({ side, price, size, joinTs, horizonSec } = {}) {
+  simulateOrder({ side, price, size, joinTs, horizonSec, decayModel, queueDecay } = {}) {
     const noFill = { filled: false, fillTs: null, fillQty: 0, timeInBookMs: null, queueAheadAtJoin: 0 };
     try {
       if (!isNum(price) || !isNum(size) || !isNum(joinTs) || !isNum(horizonSec)) return noFill;
@@ -318,7 +330,12 @@ export class Tape {
         sideLevels = new Map(sm); // seeded at joinTs
       }
 
-      const order = newMakerOrder({ side, price, size, queueAheadAtJoin });
+      const order = newMakerOrder({ side, price, size, queueAheadAtJoin,
+        // PASS-2 WIRE A: forward decay opts ONLY when provided (DISARMED-DEGRADE:
+        // absent → newMakerOrder gets neither → decayOn=false → legacy path).
+        ...(decayModel ? { decayModel } : {}),
+        ...(queueDecay ? { queueDecay } : {}),
+      });
       if (order._invalid) return { ...noFill, queueAheadAtJoin };
 
       // Forward cursors into snaps/diffs for events in (joinTs, horizonEnd].
@@ -573,6 +590,60 @@ if (_isMain && process.argv.includes('--test')) {
   // The stale 101 bid must NOT be the best bid — best bid must be 99.9
   ok(cb && cb.topBids[0].price === 99.9, `T11e: best bid=99.9 not stale 101 (got ${cb?.topBids[0]?.price})`);
   ok(cb && cb.topAsks[0].price === 100.1, `T11f: best ask=100.1 (got ${cb?.topAsks[0]?.price})`);
+
+  // ── T12: PASS-2 WIRE A — simulateOrder decay opt (DISARMED-DEGRADE) ──────────
+  //
+  // T12a (OFF-IDENTITY): simulateOrder(args) must DEEP-EQUAL
+  //   simulateOrder({...args, decayModel:undefined, queueDecay:undefined}).
+  //   Both forward nothing to newMakerOrder → decayOn=false → identical fill path.
+  const simBaseT12 = tape.simulateOrder({ side: 'buy', price: 100, size: 5, joinTs: 1000, horizonSec: 1 });
+  const simOffT12 = tape.simulateOrder({ side: 'buy', price: 100, size: 5, joinTs: 1000, horizonSec: 1, decayModel: undefined, queueDecay: undefined });
+  ok(JSON.stringify(simBaseT12) === JSON.stringify(simOffT12),
+    `T12a: simulateOrder OFF-IDENTITY (decayModel/queueDecay undefined → deep-equal to base)`);
+
+  // Also: queueDecay:undefined AND decayModel:undefined explicitly given ≠ decayModel:{enabled:false}
+  // (the latter forwards a well-formed-but-disabled decayModel → newMakerOrder still sets decayOn=false).
+  // Verify the disabled-decayModel case ALSO matches base (fail-open on enabled:false).
+  const simDisabledT12 = tape.simulateOrder({ side: 'buy', price: 100, size: 5, joinTs: 1000, horizonSec: 1, decayModel: { enabled: false } });
+  ok(JSON.stringify(simBaseT12) === JSON.stringify(simDisabledT12),
+    `T12b: simulateOrder decayModel:{enabled:false} → deep-equal to base (disabled decays to OFF)`);
+
+  // T12c (DECAY-ON behavioral): on a fixture where the decay model's cancel-inference
+  // changes the outcome, decay-ON must be ≤ decay-OFF (more conservative: later fillTs
+  // OR fewer fills). We build a tape with a level-size shrinkage WITHOUT a matching trade
+  // (a pure cancel) between two trades, so the diff is applied via advanceTo() before the
+  // decisive second trade reaches onTrade().
+  //
+  // Fixture: buy order at price=100, size=1, join at t=0. queueAhead=10 at join.
+  //   t=100: diff shrinks level 100 from 10 → 1 (a 9-unit drop = pure cancels).
+  //   t=150: trade price=100, qty=1, sell aggressor (small — triggers advanceTo(150)
+  //          which applies the diff, then onBookUpdate. OFF: pro-rata credits the 9-unit
+  //          cancel to queueAhead → queueAhead shrinks dramatically. ON (share=0): the
+  //          cancel is modeled as landing BEHIND us → queueAhead stays high.)
+  //   t=200: trade price=100, qty=2, sell aggressor (decisive — OFF: queueAhead already
+  //          reduced → drains + fills. ON: queueAhead still ~9 → no fill.)
+  //
+  // This is the fixture that proves decay-ON is more conservative: OFF fills, ON does NOT.
+  const decayEvents = [
+    { t: 'snap', ts: 0, s: 'BTCUSDT', lastUpdateId: 1,
+      bids: [['100', '10']], asks: [['101', '5']] },           // queueAhead=10 at join
+    { t: 'diff', ts: 100, s: 'BTCUSDT', U: 2, u: 3, pu: 1,
+      b: [['100', '1']], a: [] },                              // level shrinks 10→1 (cancel-heavy)
+    { t: 'trade', ts: 150, s: 'BTCUSDT', p: '100', q: '1', m: true }, // sell aggressor (triggers advanceTo)
+    { t: 'trade', ts: 200, s: 'BTCUSDT', p: '100', q: '2', m: true }, // sell aggressor (decisive)
+  ];
+  const dtape = loadTape(decayEvents);
+  const simDecayOff = dtape.simulateOrder({ side: 'buy', price: 100, size: 1, joinTs: 0, horizonSec: 1 });
+  const simDecayOn = dtape.simulateOrder({ side: 'buy', price: 100, size: 1, joinTs: 0, horizonSec: 1,
+    decayModel: { enabled: true, cancelAheadShare: 0 } });     // cancels modeled behind us → no queue credit
+  // decay-ON fillQty ≤ decay-OFF fillQty (the conservative invariant)
+  ok(simDecayOn.fillQty <= simDecayOff.fillQty,
+    `T12c: DECAY-ON fillQty ≤ DECAY-OFF fillQty (on=${simDecayOn.fillQty} off=${simDecayOff.fillQty}, conservative)`);
+  // On THIS fixture the divergence is structural: OFF fills (pro-rata credited the cancel),
+  // ON does NOT fill (cancelAheadShare=0 → no queue credit → queue stays high).
+  // Assert the directional effect is real (they differ) — proving the decay wire does something.
+  ok(JSON.stringify(simDecayOn) !== JSON.stringify(simDecayOff),
+    `T12d: DECAY-ON differs from DECAY-OFF on cancel-heavy fixture (wire is active, not a no-op)`);
 
   // ── Result ───────────────────────────────────────────────────────────────────
   console.log(`tape-replay --test: ${pass} pass, ${fail} fail`);

@@ -42,6 +42,7 @@ import { computeMicroprice } from './orderbook-imbalance.mjs';
 import { fitKappa } from './kappa-fit.mjs';
 import { regimeBreaker } from './regime-breaker.mjs';
 import { fundingSkew } from './funding-skew.mjs';
+import { computeMultiLevelOFI, estimateLambda } from './ofi.mjs';
 
 // ── GUARDS ───────────────────────────────────────────────────────────────────
 
@@ -220,6 +221,15 @@ export async function runBaseline(opts = {}) {
     // WIRE 3: funding-skew. fundingRate finite & nonzero → add reservationAdjPrice to anchor.
     //   secsToFunding default undefined → fundingSkew treats as at-settlement (max proximity).
     fundingRate, secsToFunding,
+    // ── PASS-2 DISARMED capabilities (all default undefined = OFF) ──
+    // WIRE A: queue-decay fill model. Truthy bool → {enabled:true} (default cancelAheadShare
+    //   0.5), or a {enabled, cancelAheadShare} object. Threaded as decayModel into BOTH
+    //   simulateOrder legs. OFF → no decayModel param → newMakerOrder decayOn=false → identical.
+    queueDecay,
+    // WIRE B: multi-level OFI λ-MEASUREMENT (does NOT change quotes/fills). Truthy → measure
+    //   multi-level OFI per sample, store {ts, mid, ofi}, then estimateLambda post-loop.
+    //   Accept {levels:N} (default 5) or true → {levels:5}. OFF → no OFI fields in output.
+    measureOfi,
   } = opts;
 
   // ── fail-open param checks ──
@@ -246,6 +256,26 @@ export async function runBaseline(opts = {}) {
     ? regimeBreak.zHalt : 3;
   // fundingRate: finite & nonzero → ON. secsToFunding default undefined → at-settlement.
   const useFunding = fin(fundingRate) && fundingRate !== 0;
+
+  // ── PASS-2 flag resolution (DISARMED: all default OFF) ──
+  // queueDecay: truthy → resolve to a decayModel object for newMakerOrder.
+  //   true → {enabled:true} (cancelAheadShare defaults to 0.5 in newMakerOrder).
+  //   {enabled, cancelAheadShare} → pass through (enabled defaults to true if object given).
+  //   falsy/undefined → OFF (useQueueDecay=false → no decayModel forwarded).
+  const useQueueDecay = !!queueDecay;
+  const queueDecayResolved = useQueueDecay
+    ? (queueDecay === true
+        ? { enabled: true }
+        : { enabled: queueDecay.enabled !== false, ...(fin(queueDecay.cancelAheadShare) ? { cancelAheadShare: queueDecay.cancelAheadShare } : {}) })
+    : null;
+  // measureOfi: truthy → {levels:N}. true → {levels:5}. {levels:N} → {levels:max(1,N)}.
+  //   falsy/undefined → OFF (no OFI computation, no OFI fields in summary).
+  const useMeasureOfi = !!measureOfi;
+  const ofiLevelsResolved = useMeasureOfi
+    ? (measureOfi === true
+        ? 5
+        : (fin(measureOfi.levels) && measureOfi.levels >= 1 ? Math.floor(measureOfi.levels) : 5))
+    : 0;
 
   // ── load tape ──
   let tape;
@@ -279,6 +309,10 @@ export async function runBaseline(opts = {}) {
   let regimeHaltCount = 0;     // PASS-1 WIRE 2: samples skipped by regime halt
   let regimeWidenCount = 0;    // PASS-1 WIRE 2: samples widened by regime widen
   let fundingSkewTicksAccum = 0; // PASS-1 WIRE 3: sum of |reservationAdjPrice|/tickSize (mean reported)
+
+  // PASS-2 WIRE B: OFI measurement state (only allocated when useMeasureOfi)
+  let prevOfiBook = null;      // previous sample's multi-level book (null on first → OFI=0)
+  const ofiRecords = [];       // { ts, mid, ofi } per sample (post-loop → estimateLambda)
 
   // EWMA vol state
   let prevMidForRet = null;
@@ -314,6 +348,24 @@ export async function runBaseline(opts = {}) {
       }
     }
     prevMidForRet = currentMid;
+
+    // ── WIRE B: multi-level OFI measurement (DISARMED: OFF → no computation) ──
+    // Map bookAt's topBids/topAsks into ofi's {bidPx,bidSz,askPx,askSz} level objects.
+    // bookAt guarantees topBids[0]=inside, sorted by price desc; topAsks[0]=inside, sorted asc.
+    // computeMultiLevelOFI returns ofi:0 on first sample (prevOfiBook=null → fine).
+    if (useMeasureOfi) {
+      const N = Math.min(ofiLevelsResolved, book.topBids.length, book.topAsks.length);
+      const currOfiBook = [];
+      for (let n = 0; n < N; n++) {
+        currOfiBook.push({
+          bidPx: book.topBids[n].price, bidSz: book.topBids[n].size,
+          askPx: book.topAsks[n].price, askSz: book.topAsks[n].size,
+        });
+      }
+      const { ofi } = computeMultiLevelOFI(prevOfiBook, currOfiBook, { levels: ofiLevelsResolved });
+      ofiRecords.push({ ts, mid: currentMid, ofi: ofi ?? 0 });
+      prevOfiBook = currOfiBook;
+    }
 
     // per-second PRICE vol
     const sigmaRet = prevVar != null ? Math.sqrt(prevVar) : null;
@@ -385,7 +437,8 @@ export async function runBaseline(opts = {}) {
     // Per-leg finite-px check: a leg whose px is null (quotes() qMax suppression)
     // is skipped, not the whole sample. When no guards passed, both px are finite.
     if (canBuy && fin(bidPx)) {
-      const sim = tape.simulateOrder({ side: 'buy', price: bidPx, size, joinTs: ts, horizonSec: requoteSec });
+      const sim = tape.simulateOrder({ side: 'buy', price: bidPx, size, joinTs: ts, horizonSec: requoteSec,
+        ...(useQueueDecay ? { decayModel: queueDecayResolved } : {}) });
       if (sim && sim.filled && fin(sim.fillTs)) {
         const midAtFill = tape.bookAt(sim.fillTs)?.mid ?? currentMid;
         const midAtWindow = tape.bookAt(sim.fillTs + advWindowMs)?.mid ?? midAtFill;
@@ -399,7 +452,8 @@ export async function runBaseline(opts = {}) {
     }
 
     if (canSell && fin(askPx)) {
-      const sim = tape.simulateOrder({ side: 'sell', price: askPx, size, joinTs: ts, horizonSec: requoteSec });
+      const sim = tape.simulateOrder({ side: 'sell', price: askPx, size, joinTs: ts, horizonSec: requoteSec,
+        ...(useQueueDecay ? { decayModel: queueDecayResolved } : {}) });
       if (sim && sim.filled && fin(sim.fillTs)) {
         const midAtFill = tape.bookAt(sim.fillTs)?.mid ?? currentMid;
         const midAtWindow = tape.bookAt(sim.fillTs + advWindowMs)?.mid ?? midAtFill;
@@ -448,6 +502,24 @@ export async function runBaseline(opts = {}) {
   summary.regimeHaltCount = regimeHaltCount;
   summary.regimeWidenCount = regimeWidenCount;
   summary.fundingSkewTicks = sampleCount > 0 ? fundingSkewTicksAccum / sampleCount : 0; // mean |skewTicks|/sample
+  // ── PASS-2 WIRE B: OFI λ-measurement summary (absent when OFF → DISARMED-degrade) ──
+  // Compute forward Δmid per record, then OLS via estimateLambda. minWindow=30 → short
+  // test tapes (n<30) yield null λ/R² (expected); ofiN is still populated.
+  if (useMeasureOfi && ofiRecords.length > 0) {
+    const pairs = [];
+    for (const rec of ofiRecords) {
+      const fwdMid = tape.bookAt(rec.ts + horizonMs)?.mid;
+      if (fin(fwdMid) && fin(rec.mid)) {
+        pairs.push({ ofi: rec.ofi, deltaMid: fwdMid - rec.mid });
+      }
+    }
+    const lambdaFit = estimateLambda(pairs);
+    summary.ofiLambda = lambdaFit.lambda;
+    summary.ofiR2 = lambdaFit.rSquared;
+    summary.ofiN = lambdaFit.n;       // = valid pairs count (may be < ofiRecords if mid missing)
+    summary.ofiLevels = ofiLevelsResolved;
+  }
+  // When measureOfi OFF → ofiLambda/ofiR2/ofiN/ofiLevels are ABSENT (DISARMED-degrade).
   summary.gamma = gamma;
   summary.kappaSource = kappa.source;
   summary.kappaPrice = kappa.kappaPrice;
@@ -734,6 +806,59 @@ if (_isMain && process.argv.includes('--test')) {
         `WIRING quoteQMax=0: no crash from relaxed line-298 seam (got ${qQm?.error ?? 'ok'})`);
       assert(qQm && qQm.fills <= base.fills,
         `WIRING quoteQMax=0: fills ≤ baseline (${qQm?.fills} vs ${base.fills})`);
+
+      // ════════════════════════════════════════════════════════════════════════
+      // PASS-2 WIRING TESTS (queueDecay + measureOfi, both DISARMED-degrade)
+      // ════════════════════════════════════════════════════════════════════════
+
+      // ── PASS-2 OFF-IDENTITY: queueDecay/measureOfi undefined → deep-equal to base ──
+      const p2off = await runBaseline({
+        ...baseOpts,
+        queueDecay: undefined, measureOfi: undefined,
+      });
+      assert(JSON.stringify(p2off) === JSON.stringify(base),
+        `PASS-2 OFF-IDENTITY: queueDecay/measureOfi undefined === deep-equal to base`);
+
+      // ── PASS-2 measureOfi MEASUREMENT-ONLY invariant (CRITICAL) ──
+      // measureOfi ON must NOT change quotes/fills/PnL — it only ADDS report fields.
+      // Assert: same fills, netBps, grossSpreadBps as baseline AND ofiN populated.
+      const mOfi = await runBaseline({ ...baseOpts, measureOfi: { levels: 3 } });
+      assert(mOfi !== null && !mOfi.error,
+        `PASS-2 measureOfi={levels:3}: run completes (got ${mOfi?.error ?? 'ok'})`);
+      assert(mOfi && mOfi.fills === base.fills,
+        `PASS-2 measureOfi MEASUREMENT-ONLY: fills unchanged (${mOfi?.fills} vs ${base.fills})`);
+      assert(mOfi && near(mOfi.netBps, base.netBps, 1e-9),
+        `PASS-2 measureOfi MEASUREMENT-ONLY: netBps unchanged (${mOfi?.netBps} vs ${base.netBps})`);
+      assert(mOfi && near(mOfi.grossSpreadBps, base.grossSpreadBps, 1e-9),
+        `PASS-2 measureOfi MEASUREMENT-ONLY: grossSpreadBps unchanged (${mOfi?.grossSpreadBps} vs ${base.grossSpreadBps})`);
+      // ofi fields populated: ofiN is a number, ofiLevels=3.
+      assert(mOfi && fin(mOfi.ofiN) && mOfi.ofiN >= 0,
+        `PASS-2 measureOfi populates ofiN (got ${mOfi.ofiN})`);
+      assert(mOfi && mOfi.ofiLevels === 3,
+        `PASS-2 measureOfi populates ofiLevels=3 (got ${mOfi.ofiLevels})`);
+      // on a short tape n<30 → λ/R² are null (minWindow=30). That's expected; assert
+      // the FIELDS exist (possibly null), not a specific λ.
+      assert(mOfi && ('ofiLambda' in mOfi) && ('ofiR2' in mOfi),
+        `PASS-2 measureOfi populates ofiLambda/ofiR2 fields (λ=${mOfi?.ofiLambda}, R²=${mOfi?.ofiR2})`);
+      // base (OFF) must NOT have ofi fields at all.
+      assert(!('ofiLambda' in base) && !('ofiN' in base),
+        `PASS-2 measureOfi OFF: ofi fields ABSENT from baseline (DISARMED-degrade)`);
+
+      // ── PASS-2 queueDecay behavioral: more conservative → fills ≤ baseline ──
+      // queueDecay ON with cancelAheadShare=0 models cancels as landing behind us →
+      // queue shrinks slower → fills can only be ≤ baseline. Run completes (netBps finite).
+      const qDecay = await runBaseline({ ...baseOpts, queueDecay: { enabled: true, cancelAheadShare: 0 } });
+      assert(qDecay !== null && !qDecay.error,
+        `PASS-2 queueDecay ON: run completes (got ${qDecay?.error ?? 'ok'})`);
+      assert(qDecay && fin(qDecay.netBps),
+        `PASS-2 queueDecay ON: netBps finite (got ${qDecay?.netBps})`);
+      assert(qDecay && qDecay.fills <= base.fills,
+        `PASS-2 queueDecay ON: fills ≤ baseline (${qDecay?.fills} vs ${base.fills}, conservative)`);
+
+      // ── PASS-2 queueDecay boolean shorthand: true → {enabled:true} (cancelAheadShare=0.5) ──
+      const qDecayBool = await runBaseline({ ...baseOpts, queueDecay: true });
+      assert(qDecayBool !== null && fin(qDecayBool.netBps),
+        `PASS-2 queueDecay=true: boolean shorthand works, netBps finite (got ${qDecayBool?.netBps})`);
     } finally {
       try { unlinkSync(tapePath); } catch { /* best-effort cleanup */ }
     }
