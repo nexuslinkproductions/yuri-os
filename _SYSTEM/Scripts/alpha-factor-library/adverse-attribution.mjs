@@ -490,7 +490,11 @@ async function runOnTape(tapeFile) {
 
   console.log('Running attribution (this may take a moment on a large tape)...');
   const result = attributeFills(tape, {
-    levelOffsets:   [0, 1, 2, 3, 5],
+    // DEEP offset grid (ticks from mid) to measure adverse-selection where δ* lives
+    // (~266 ticks ≈ 4.25 bps at BTC ~$62.7k), not just at the touch. The +4.3bps
+    // net per fill assumed AS≈0.16bps from SHALLOW offsets; toxic flow hitting deep
+    // resting liquidity may be higher and flip the net. 0 = touch anchor. (2026-06-19)
+    levelOffsets:   [0, 50, 150, 266, 400],
     sizes:          [0.001, 0.01, 0.05],
     windowsMs:      [1000, 5000, 30000],
     sampleEverySec: 60,
