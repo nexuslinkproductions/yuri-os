@@ -216,6 +216,63 @@ if (_runAsMain && process.argv.includes('--test')) {
     ok('MM reservationAdjPrice doubles with tickSize', approx(b.reservationAdjPrice, 2 * a.reservationAdjPrice));
   }
 
+  // GREEN 7 — INVENTORY-AWARENESS: maxQabs>0 shrinks skew by (1 - |q|/maxQabs).
+  // At-settlement (prox=1), f=0.0005, sensitivity=50: raw = -f·1·50·invFactor.
+  // q=0.5, maxQabs=1 → invFactor=0.5 → skew=-0.0125. KILLS the invFactor-branch mutants
+  // (maxQabs default 0→1, *→/, Math.max→Math.min, +/- sign, > 0→> 1, === → !== on typeof q, q=0→1 default).
+  {
+    const r = fundingSkew({ fundingRate: 0.0005, q: 0.5, secsToFunding: 0, tickSize: tick, opts: { maxQabs: 1 } });
+    ok('G7 invFactor=0.5 shrinks skew to -0.0125', approx(r.skewTicks, -0.0125));
+    ok('G7 invFactor path still short-bias', r.bias === 'short');
+  }
+  // GREEN 7b — q = maxQabs → invFactor = 0 → skew fully suppressed (flat magnitude, bias still 'short').
+  // KILLS Math.max(0,...)→Math.max(1,...) (would give invFactor=1 instead of 0) and Math.min→... variants.
+  {
+    const r = fundingSkew({ fundingRate: 0.0005, q: 1, secsToFunding: 0, tickSize: tick, opts: { maxQabs: 1 } });
+    ok('G7b q=maxQabs → invFactor=0 → skewTicks=0', approx(r.skewTicks, 0));
+    ok('G7b bias still short (funding sign, not skew magnitude)', r.bias === 'short');
+  }
+  // GREEN 7c — omitted q with maxQabs>0 defaults q=0 → invFactor=1 (no shrink). KILLS q=0→1 default mutant.
+  {
+    const r = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { maxQabs: 1 } });
+    ok('G7c omitted q (default 0) with maxQabs>0 → invFactor=1, skew=-0.025', approx(r.skewTicks, -0.025));
+  }
+  // GREEN 7d — q between 0 and maxQabs shrinks proportionally (metamorphic: q=0.25 → invFactor=0.75).
+  {
+    const r = fundingSkew({ fundingRate: 0.0005, q: 0.25, secsToFunding: 0, tickSize: tick, opts: { maxQabs: 1 } });
+    ok('G7d q=0.25 → invFactor=0.75 → skew=-0.01875', approx(r.skewTicks, -0.01875));
+  }
+
+  // GREEN 8 — INTERVAL-GUARD: invalid fundingIntervalSec (≤0, NaN) → fallback to 28800.
+  // With secsToFunding=0: proximity = 1 - 0/28800 = 1 → skew = -f·1·50 = -0.025.
+  // KILLS the > → ≥ interval mutant (interval=0 would div-by-zero → NaN) and > 0 → > 1 mutant.
+  {
+    const r0 = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { fundingIntervalSec: 0 } });
+    ok('G8 interval=0 → fallback 28800 → skew=-0.025', approx(r0.skewTicks, -0.025));
+    const rNaN = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { fundingIntervalSec: NaN } });
+    ok('G8b interval=NaN → fallback 28800 → skew=-0.025', approx(rNaN.skewTicks, -0.025));
+    const rNeg = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { fundingIntervalSec: -100 } });
+    ok('G8c interval<0 → fallback 28800 → skew=-0.025', approx(rNeg.skewTicks, -0.025));
+  }
+
+  // GREEN 9 — CLAMP-FALLBACK: invalid maxSkewTicks (NaN, ≤0) → fallback to 0 → flat skew magnitude.
+  // KILLS the :0→:1 fallback mutant (would clamp to ±1 instead of 0) and > → ≥ mutant.
+  {
+    const rNaN = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { maxSkewTicks: NaN } });
+    ok('G9 maxSkewTicks=NaN → fallback 0 → skewTicks=0', approx(rNaN.skewTicks, 0));
+    const rNeg = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { maxSkewTicks: -1 } });
+    ok('G9b maxSkewTicks<0 → fallback 0 → skewTicks=0', approx(rNeg.skewTicks, 0));
+    const rZero = fundingSkew({ fundingRate: 0.0005, secsToFunding: 0, tickSize: tick, opts: { maxSkewTicks: 0 } });
+    ok('G9c maxSkewTicks=0 → clamp 0 → skewTicks=0', approx(rZero.skewTicks, 0));
+  }
+
+  // Equivalent-mutant notes (mutations that produce identical behavior on all reachable inputs):
+  //   L72 ||→&& tickSize guard (typeof!==number && !isFinite → always true when reached for non-numbers)
+  //   L80/L97 comment-literal / fallback-literal 0→1 where value unreachable or masked by downstream
+  //   L104/103 fundingRate sign: >0 vs ≥0 and <0 vs <1 identical since fundingRate=0 is guarded at L71
+  //   L77/L78 finite-guard &&↔|| identical for finite-positive vs NaN operands on the guarded paths
+  //   L71 fundingRate===0→===1: zero funding yields zero raw skew → flat-by-collision (output identical)
+
   console.log(`funding-skew --test: ${pass} pass, ${fail} fail`);
   process.exit(fail === 0 ? 0 : 1);
 }
