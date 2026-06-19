@@ -3,7 +3,7 @@
 // @serves: AS maker quoting | reservation price | optimal spread | limit order placement | market making | bid ask quotes | inventory skew | volatility adaptive spread | VPIN toxicity widen
 // @does: Avellaneda-Stoikov (2008) MAKER quoting — reservation price, optimal spread, and bid/ask quote placement anchored on microprice with vol-adaptive width, VPIN-toxicity widen, and λ market-impact term. Fail-open (bad params → nulls, never throws).
 // @use: Reach for this when you need to place two-sided maker quotes around a microprice anchor. Primary value at ~€300 book size is (a) vol-adaptive spread width and (b) microprice anchor — NOT inventory skew (q is ±1 lot → near-zero skew). The VPIN widen and λ impact terms matter more than q·γ·σ²·τ at this scale.
-// @exports: reservationPrice, optimalSpread, quotes, computeASQuotes
+// @exports: reservationPrice, optimalSpread, quotes, computeASQuotes, sigmaEwma
 //
 // ── SCALE CAVEAT (peer-reviewed for ~€300 book) ───────────────────────────────
 // At the scale of a small retail crypto book (q ∈ {0, ±1} base-lot max), the
@@ -18,6 +18,13 @@
 //
 // Reference: Avellaneda, M. & Stoikov, S. (2008). "High-frequency trading in a
 // limit order book." Quantitative Finance, 8(3), 217–224.
+//
+// ── σ UNITS (CRITICAL — flagged by glm-5.2 math audit, 2026-06-19) ─────────────
+// σ and τ MUST share the SAME time unit. We quote at 500ms–5s, so τ is in SECONDS
+// and σ MUST be PER-SECOND realized vol — NEVER annualized. Feeding an annualized σ
+// (e.g. carry-vol-signal's realizedVol, which ×√(periods/yr)) into γ·σ²·τ blows the
+// spread up by σ²-of-the-annualization-factor (~3e7×). Use sigmaEwma() below to
+// produce the correct per-second σ from 1-second log returns. Do NOT annualize.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { pathToFileURL } from 'node:url';
@@ -29,6 +36,27 @@ export { computeMicroprice } from './orderbook-imbalance.mjs';
  * Returns true if x is a finite number.
  */
 function fin(x) { return typeof x === 'number' && Number.isFinite(x); }
+
+// ── sigmaEwma (per-second vol for A-S; glm-5.2 math audit 2026-06-19) ──────────
+/**
+ * sigmaEwma(r2, prevVar, halfLifeSec) → { variance, sigma } | null
+ * EWMA of squared 1-SECOND log returns → the PER-SECOND vol A-S requires:
+ *   σ²_t = λ·σ²_{t-1} + (1−λ)·r_t² ,  λ = 0.5^(1/halfLifeSec)
+ * Half-life 30s for ~500ms quoting (fast, catches regime shifts), 60s for 2–5s
+ * quoting (smoother). Seed prevVar with the first r² . NEVER annualize the output.
+ * @param {number} r2 - squared 1s log return, r = ln(S_t/S_{t-1})
+ * @param {number} [prevVar] - previous EWMA variance (undefined → seed with r2)
+ * @param {number} [halfLifeSec=30] - EWMA half-life in seconds
+ * @returns {{variance:number, sigma:number}|null}
+ */
+export function sigmaEwma(r2, prevVar, halfLifeSec = 30) {
+  if (!fin(r2) || r2 < 0 || !fin(halfLifeSec) || halfLifeSec <= 0) return null;
+  const lambda = Math.pow(0.5, 1 / halfLifeSec);
+  const seed = fin(prevVar) && prevVar >= 0 ? prevVar : r2;
+  const variance = lambda * seed + (1 - lambda) * r2;
+  if (!fin(variance) || variance < 0) return null;
+  return { variance, sigma: Math.sqrt(variance) };
+}
 
 // ── reservationPrice ──────────────────────────────────────────────────────────
 
@@ -322,6 +350,20 @@ if (_runAsMain && process.argv.includes('--test')) {
   const qAlias = computeASQuotes(baseParams);
   assert(qAlias.bidPx !== null && near(qAlias.bidPx, qBase.bidPx, 1e-10),
     'computeASQuotes: alias produces same result as quotes()');
+
+  // ── sigmaEwma (per-second vol; glm audit) ────────────────────────────────────
+  const se1 = sigmaEwma(0.0004, undefined, 30); // first call seeds with r2 → variance == r2
+  assert(se1 !== null && near(se1.variance, 0.0004) && near(se1.sigma, 0.02),
+    `sigmaEwma: first call seeds with r2 (σ got ${se1?.sigma})`);
+  const se2 = sigmaEwma(0, 0.0004, 30); // r2=0 → variance decays below the seed
+  assert(se2 !== null && se2.variance < 0.0004 && se2.variance > 0,
+    `sigmaEwma: zero return decays variance (got ${se2?.variance})`);
+  const seShort = sigmaEwma(0.01, 0.0001, 5);   // shorter half-life reacts faster to the new (larger) r²
+  const seLong  = sigmaEwma(0.01, 0.0001, 60);
+  assert(seShort !== null && seLong !== null && seShort.variance > seLong.variance,
+    `sigmaEwma: shorter half-life reacts faster (${seShort?.variance} > ${seLong?.variance})`);
+  assert(sigmaEwma(NaN, 0.0004, 30) === null && sigmaEwma(0.0004, 0.0004, 0) === null,
+    'sigmaEwma: bad input → null');
 
   console.log(`avellaneda-stoikov --test: ${pass} pass, ${fail} fail`);
   if (fail > 0) process.exit(1);
