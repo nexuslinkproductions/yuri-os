@@ -9,6 +9,7 @@
 #        runtime with YURI_VOICE / YURI_VOICE_LANG. Voice list: af_*/am_* (American), bf_*/bm_* (British).
 # @exports: KokoroTTSService
 import asyncio
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from typing import AsyncGenerator
@@ -114,13 +115,13 @@ class KokoroTTSService(TTSService):
     thread, then yields fixed-size TTSAudioRawFrame chunks for smooth playback + barge-in."""
 
     def __init__(self, *, model_path: str = "prince-canuma/Kokoro-82M", voice: str = "bf_isabella",
-                 lang_code: str = "b", speed: float = 1.0, frame_ms: int = 300,
+                 lang_code: str = "b", speed: float | None = None, frame_ms: int = 300,
                  sample_rate: int | None = None, **kwargs):
         kwargs.setdefault("settings", TTSSettings(model=None, voice=None, language=None))
         super().__init__(sample_rate=sample_rate, **kwargs)
         self._voice = voice
         self._lang = lang_code
-        self._speed = speed
+        self._speed = speed if speed is not None else float(os.environ.get("YURI_VOICE_SPEED", "1.15"))
         self._frame_ms = frame_ms
         self._model_sr = 24000  # Kokoro native
         # MLX's Metal GPU stream is THREAD-LOCAL — the thread that loads the model must also run
@@ -162,7 +163,7 @@ class KokoroTTSService(TTSService):
         crashes is skipped (rare, tiny). Returns None only if EVERYTHING crashes."""
         if not norm:
             return None
-        gap = np.zeros(int(self._model_sr * 0.08), dtype=np.float32)  # ~80ms natural pause between pieces
+        gap = np.zeros(int(self._model_sr * 0.01), dtype=np.float32)  # ~10ms seam cushion only (chunks already carry punctuation pauses; 80ms read as 'exhaling')
         out = []
 
         def emit(t):
