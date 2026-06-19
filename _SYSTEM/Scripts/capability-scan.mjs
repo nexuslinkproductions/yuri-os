@@ -19,10 +19,10 @@ const DIRS = [
   path.join(SYS, 'Scripts', 'alpha-factor-library'),  // AFL organ subdir
 ];
 
-const listMjs = (d) => {
+const listFiles = (d, exts = ['.mjs']) => {
   try {
     return fs.readdirSync(d)
-      .filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')
+      .filter((f) => exts.some((e) => f.endsWith(e)) && !f.endsWith('.test.mjs') && !f.endsWith('.test.py')
         && !['capability-scan.mjs', 'capability-recall.mjs'].includes(f))  // the tooling mentions @capability; not mechanisms
       .map((f) => path.join(d, f));
   }
@@ -33,7 +33,7 @@ function parse(file) {
   const lines = fs.readFileSync(file, 'utf8').split('\n');
   const out = [];
   for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(/^\s*\/\/\s*@capability:\s*(\S+)/);  // must be a real // comment line, not a string/regex literal
+    const m = lines[i].match(/^\s*(?:\/\/|#)\s*@capability:\s*(\S+)/);  // a real // (js) or # (py/sh) comment line, not a string/regex literal
     if (!m) continue;
     const cap = { id: m[1].trim(), serves: [], does: '', use: '', exports: [], mechanism: path.relative(ROOT, file) };
     for (let j = i + 1; j < Math.min(i + 12, lines.length); j++) {
@@ -43,14 +43,18 @@ function parse(file) {
       else if ((g = l.match(/@does:\s*(.+)/))) cap.does = g[1].trim();
       else if ((g = l.match(/@use:\s*(.+)/))) cap.use = g[1].trim();
       else if ((g = l.match(/@exports:\s*(.+)/))) cap.exports = g[1].split(',').map((s) => s.trim()).filter(Boolean);
-      else if (!l.includes('//') && l.trim()) break; // left the comment block
+      else if (!l.includes('//') && !l.includes('#') && l.trim()) break; // left the comment block (js or py/sh)
     }
     out.push(cap);
   }
   return out;
 }
 
-const caps = DIRS.flatMap(listMjs).flatMap(parse).sort((a, b) => a.id.localeCompare(b.id));
+// Voice subsystem is Python + shell (not .mjs) — scan it for @capability in # comments too, so the
+// whole voice stack is recall-discoverable (capability-first). .mjs dirs scan as before.
+const VOICE_DIR = path.join(SYS, 'Scripts', 'voice');
+const caps = [...DIRS.flatMap((d) => listFiles(d)), ...listFiles(VOICE_DIR, ['.mjs', '.py', '.sh'])]
+  .flatMap(parse).sort((a, b) => a.id.localeCompare(b.id));
 
 // Safety net: never nuke a working registry to empty if annotations aren't in place yet.
 if (!caps.length) {
