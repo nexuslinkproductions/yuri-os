@@ -182,9 +182,9 @@ class KokoroTTSService(TTSService):
 
     def _synth_robust(self, norm: str):
         """Synthesize in Yuri's voice by stitching short, synth-safe chunks — dodges the mlx-audio
-        Kokoro broadcast_shapes bug WITHOUT any spoken filler (NO ' okay' pad, NO macOS — owner
-        2026-06-19). A chunk that still crashes is re-split into word groups; a group that still
-        crashes is skipped (rare, tiny). Returns None only if EVERYTHING crashes."""
+        Kokoro broadcast_shapes bug with no spoken filler (owner 2026-06-19). A chunk that still
+        crashes is re-split into word groups; a group that still crashes is skipped (rare, tiny).
+        Returns None only if EVERYTHING crashes."""
         if not norm:
             return None
         gap = np.zeros(int(self._model_sr * 0.01), dtype=np.float32)  # ~10ms seam cushion only (chunks already carry punctuation pauses; 80ms read as 'exhaling')
@@ -224,7 +224,7 @@ class KokoroTTSService(TTSService):
             try:
                 # Synthesize the WHOLE normalized reply in Yuri's voice. Some short single sentences
                 # hit Kokoro's broadcast_shapes bug — _synth_robust retries with a 2nd clause to dodge
-                # it. NO macOS fallback (owner hard-blocked it); if Kokoro still can't, stay silent.
+                # it. Kokoro is the only voice; if it still can't synth, stay silent.
                 audio = self._synth_robust(_normalize(text))
                 if audio is not None and audio.size:
                     pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
@@ -248,7 +248,7 @@ class KokoroTTSService(TTSService):
             if item is None:
                 break
             if isinstance(item, Exception):
-                break  # fall through to the never-silent fallback below
+                break  # fall through to the silent-on-failure handler below
             if first:
                 await self.stop_ttfb_metrics()
                 first = False
@@ -257,6 +257,6 @@ class KokoroTTSService(TTSService):
                 yield TTSAudioRawFrame(resampled[i:i + bpf], self.sample_rate, 1, context_id=context_id)
                 produced = True
         if not produced:
-            # macOS `say` fallback HARD-BLOCKED (owner directive 2026-06-18): one voice only. If
-            # Kokoro produced nothing after the robust retries, stay silent — never switch voices.
-            logger.warning("[kokoro] no audio after retries — staying silent (macOS fallback hard-blocked)")
+            # Kokoro is the only voice (owner 2026-06-19). If the robust retries produced nothing,
+            # stay silent — never substitute another engine or voice.
+            logger.warning("[kokoro] no audio after retries — staying silent")

@@ -87,10 +87,22 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "episode worth recalling later — NOT routine commands, chit-chat, or things you merely looked up. You "
              "are the judge of what's worth keeping; supply sharp cue words Marcel would later say. This is how you "
              "stay continuous with him across restarts.\n\n"
-             "## VOICE DISCIPLINE\n"
-             "ALWAYS summarize tool results in one or two spoken sentences — never read raw output or file contents "
-             "aloud. If a protected path or catastrophic command is refused, say so briefly. Chain tools as needed "
-             "for complex multi-step operations. For pure questions or chit-chat, just talk.")
+             "## VOICE DISCIPLINE — outcomes only, NEVER narration\n"
+             "You are TALKING to Marcel, not reading a terminal aloud. The rule: ACT first, then say the "
+             "OUTCOME in plain speech — never the process.\n"
+             "- NEVER announce a command before or while running it. No 'let me check', 'I'll run <command>', "
+             "'running that now', 'let me see', 'hold on while I…'. Call the tool silently and speak only the RESULT.\n"
+             "- NEVER speak literal command text, code, long file paths, or raw tool output. Translate everything "
+             "into plain speech — 'the build's green', not 'npm test exited 0 with 79 passing'.\n"
+             "- Your spoken answer is the RESULT in one or two sentences: what it MEANS, what you DID (in plain "
+             "words), what's next. Not what you typed, not the output dump, not a play-by-play.\n"
+             "- The ONLY time you speak BEFORE acting is a CRITICAL confirm (delete / send / publish / overwrite / "
+             "git push) — and even then, plain intent ('I'll delete that file', 'I'll send the email to Atilla'), "
+             "NEVER the raw command. Routine actions (read, open, search, check, navigate, play) get NO pre-speech.\n"
+             "- A long multi-step task earns ONE brief progress line at most ('on it' / 'still working') — never a "
+             "narration of each step.\n"
+             "- Refusal (protected path / catastrophic command): one short line why, then move on.\n"
+             "- Pure questions or chit-chat: just talk — no tools, no narration.")
 
 
 def _build_system():
@@ -255,22 +267,27 @@ def _clear_pending():
 
 
 def _describe_action(name: str, args: dict) -> str:
-    """A short human-spoken description of what a pending tool call will do — so Marcel hears what
-    he's confirming, not a JSON blob."""
+    """A short PLAIN-LANGUAGE description of what a pending tool call will do — Marcel hears the INTENT
+    of what he's confirming, never a raw command/script read aloud. Truncated so a long pipeline or
+    AppleScript isn't narrated verbatim (owner 2026-06-19: stop speaking commands out loud)."""
     if name == "bash":
-        return f"run the command: {args.get('command', '')}"
+        cmd = (args.get("command") or "").strip().replace("\n", " ")
+        tail = cmd[:70] + ("…" if len(cmd) > 70 else "")
+        return f"run a shell command ({tail})" if cmd else "run a shell command"
     if name == "write_file":
         return f"write to {args.get('path', '')}"
     if name == "edit_file":
         return f"edit {args.get('path', '')}"
     if name == "applescript":
-        s = args.get("script", "").replace("\n", " ")
-        return f"run an AppleScript: {s[:120]}"
+        s = (args.get("script") or "").replace("\n", " ").strip()
+        tail = s[:50] + ("…" if len(s) > 50 else "")
+        return f"run an AppleScript ({tail})" if s else "run an AppleScript"
     if name == "gui_script":
-        s = args.get("script", "").replace("\n", " ")
-        return f"run a GUI script: {s[:120]}"
+        s = (args.get("script") or "").replace("\n", " ").strip()
+        tail = s[:50] + ("…" if len(s) > 50 else "")
+        return f"run a GUI script ({tail})" if s else "run a GUI script"
     if name == "open_app":
-        return f"{args.get('action', '')} {args.get('app', '')}"
+        return f"{args.get('action', '')} {args.get('app', '')}".strip()
     return f"run {name}"
 
 # Capabilities the model CHOOSES to call (Anthropic tool schema: name/description/input_schema).

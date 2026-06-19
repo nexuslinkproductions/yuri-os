@@ -247,6 +247,22 @@ class TestBrainWiring(unittest.TestCase):
     def test_canonical_block_injected_at_startup(self):
         self.assertIn("canonical_block()", self._src())
 
+    # Refinement (owner 2026-06-19): stop narrating commands — outcomes only, never raw read-aloud
+    def test_voice_discipline_forbids_command_narration(self):
+        s = self._src()
+        self.assertIn("NEVER announce a command", s)
+        self.assertIn("outcomes only", s)
+
+    def test_describe_action_no_raw_command_readaloud(self):
+        s = self._src()
+        # the old verbose read-aloud patterns are gone …
+        self.assertNotIn("run the command: {args.get('command'", s)
+        self.assertNotIn("AppleScript: {s[:120]}", s)
+        self.assertNotIn("GUI script: {s[:120]}", s)
+        # … replaced by truncated plain glosses (bash ≤70, applescript/gui ≤50)
+        self.assertIn("[:70]", s)
+        self.assertIn("[:50]", s)
+
     def test_recall_injected_per_turn(self):
         s = self._src()
         self.assertIn("jm.recall(user_msg)", s)
