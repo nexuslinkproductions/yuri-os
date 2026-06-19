@@ -63,12 +63,16 @@ export function computeOBI(bids, asks, levels = DEFAULT_LEVELS) {
   const n = Math.max(0, Math.floor(levels));
 
   let bidVol = 0;
+  // equivalent-mutant: Math.min→max and <→<= on loop bound — bids[i]?.size on out-of-range i is
+  //   undefined → Number(undefined)=NaN → filtered by isFinite, so extra iterations are no-ops.
   for (let i = 0; i < Math.min(n, bids.length); i++) {
     const sz = Number(bids[i]?.size);
+    // equivalent-mutant: sz>0→sz>=0 — bidVol += 0 is a no-op, output unchanged.
     if (Number.isFinite(sz) && sz > 0) bidVol += sz;
   }
 
   let askVol = 0;
+  // equivalent-mutant: same as bid loop — Math.min→max / <→<= / sz>0→sz>=0 all no-op via ?.+isFinite.
   for (let i = 0; i < Math.min(n, asks.length); i++) {
     const sz = Number(asks[i]?.size);
     if (Number.isFinite(sz) && sz > 0) askVol += sz;
@@ -107,6 +111,8 @@ export function computeMicroprice(bids, asks) {
   const bestAskSize = Number(asks[0]?.size);
 
   if (
+    // equivalent-mutant: ||→&& in this 4-term chain — a non-finite bestBid/Ask[Size] makes the
+    //   division below produce NaN anyway (Inf/Inf or NaN propagation), so the RETURN is identical.
     !Number.isFinite(bestBid) || !Number.isFinite(bestBidSize) ||
     !Number.isFinite(bestAsk) || !Number.isFinite(bestAskSize)
   ) return NaN;
@@ -211,6 +217,8 @@ export function obiToSignals(obi, microprice, book, opts = {}) {
  */
 export function computeOrderBookImbalance(book, opts = {}) {
   try {
+    // equivalent-mutant: ||→&& here — asymmetric non-array (bids ok, asks not) makes the mutant
+    //   continue and throw on .length, caught by the try/catch below → [] same as the direct return.
     if (!book || !Array.isArray(book.bids) || !Array.isArray(book.asks)) return [];
     if (book.bids.length === 0 || book.asks.length === 0) return [];
 
@@ -219,6 +227,9 @@ export function computeOrderBookImbalance(book, opts = {}) {
       : DEFAULT_LEVELS;
     const threshold = Number.isFinite(opts.threshold) ? opts.threshold : DEFAULT_THRESHOLD;
     const market = typeof opts.market === 'string' ? opts.market : '';
+    // equivalent-mutant: ts>0 → ts>=0 and &&→|| — if ts=0 slips past (mutant), obiToSignals'
+    //   own ts guard falls back again, so the emitted signal.ts is the same. Only `0→1` (ts>1)
+    //   is distinguishable for fractional ts in (0,1), covered in --test.
     const ts = Number.isFinite(opts.ts) && opts.ts > 0
       ? opts.ts
       : Math.floor(Date.now() / 1000);
@@ -423,6 +434,192 @@ if (_runAsMain && process.argv.includes('--test')) {
   const sigsMissingBids = computeOrderBookImbalance({ asks: [{ price: 101, size: 10 }], mid: 100.5, spreadBps: 5 }, {});
   assert(Array.isArray(sigsMissingBids) && sigsMissingBids.length === 0,
     'computeOrderBookImbalance: missing bids key → []');
+
+  // ── MUTATION-HARDENING: boundary + targeted math cases ──────────────────────
+
+  // === computeOBI: levels=0 with sized entries → NaN (kills L63 `Math.max(0,...)` 0→1) ===
+  // Mutant makes n=1 → sums 1 level each side → OBI=0 instead of NaN.
+  assert(!Number.isFinite(computeOBI([{ price: 100, size: 10 }], [{ price: 101, size: 10 }], 0)),
+    'computeOBI: levels=0 → NaN (n clamped to 0, zero volume summed)');
+
+  // === computeOBI: fractional sizes below 1 → INCLUDED (kills L68/L74 `sz > 0` → `sz > 1`) ===
+  // sizes 0.5 each side: bidVol=0.5, askVol=0.5 → OBI=0. Mutant excludes them → NaN.
+  const obiFrac = computeOBI([{ price: 100, size: 0.5 }], [{ price: 101, size: 0.5 }], 1);
+  assert(Number.isFinite(obiFrac) && Math.abs(obiFrac) < 1e-10,
+    `computeOBI: fractional size 0.5 included → OBI=0 (got ${obiFrac})`);
+
+  // === computeOBI: Infinity size filtered → uses finite side only (kills &&→|| on sz guard) ===
+  // bid Infinity → filtered (isFinite false), ask 10 → askVol=10, bidVol=0 → OBI=-1.
+  // Mutant (isFinite || sz>0): Infinity>0 true → bidVol=Inf → OBI=NaN. Differs.
+  const obiInf = computeOBI([{ price: 100, size: Infinity }], [{ price: 101, size: 10 }], 1);
+  assert(Number.isFinite(obiInf) && obiInf === -1,
+    `computeOBI: Infinity size filtered → -1 (got ${obiInf})`);
+
+  // === computeMicroprice: single-entry book computes valid microprice (kills L102/L107 0→1) ===
+  // Mutant: bids.length===1 or asks[1] → NaN. Original: valid.
+  const mpSingle = computeMicroprice([{ price: 100, size: 10 }], [{ price: 102, size: 10 }]);
+  // microprice = (100×10 + 102×10)/20 = 101
+  assert(Number.isFinite(mpSingle) && Math.abs(mpSingle - 101) < 1e-10,
+    `computeMicroprice: single-entry book → 101 (got ${mpSingle})`);
+
+  // === computeMicroprice: asymmetric invalid input → NaN, no throw (kills L101/L105 ||→&&) ===
+  // bids non-empty array + asks non-array: L105 mutant `false && true`=false → continues →
+  //   L106 bids.length>0, then asks.length throws (no try/catch in computeMicroprice). Original → NaN.
+  const mpAsymInvalid = (() => { try { return computeMicroprice([{price:100,size:10}], null); } catch { return 'THREW'; } })();
+  assert(mpAsymInvalid !== 'THREW' && !Number.isFinite(mpAsymInvalid),
+    `computeMicroprice: bids ok + asks=null → NaN no-throw (got ${mpAsymInvalid})`);
+  const mpAsymStr = (() => { try { return computeMicroprice([{price:100,size:10}], 'not-array'); } catch { return 'THREW'; } })();
+  assert(mpAsymStr !== 'THREW' && !Number.isFinite(mpAsymStr),
+    `computeMicroprice: asks=string → NaN no-throw (got ${mpAsymStr})`);
+
+  // === obiToSignals: OBI exactly at +threshold → long (kills L150 >= → >) ===
+  const sigAtThresh = obiToSignals(0.2, NaN, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const obiAtT = sigAtThresh.find(s => s.factorId === 'crypto-obi-T');
+  assert(obiAtT !== undefined && obiAtT.side === 'long',
+    `obiToSignals: obi=+0.2=threshold → long (got ${obiAtT?.side})`);
+
+  // === obiToSignals: OBI exactly at -threshold → short (kills L155 <= → <) ===
+  const sigAtNegThresh = obiToSignals(-0.2, NaN, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const obiAtNegT = sigAtNegThresh.find(s => s.factorId === 'crypto-obi-T');
+  assert(obiAtNegT !== undefined && obiAtNegT.side === 'short',
+    `obiToSignals: obi=-0.2=-threshold → short (got ${obiAtNegT?.side})`);
+
+  // === obiToSignals: exact confidence value (kills L159 Math.min→max, +→-, *→/) ===
+  // obi=0.5, threshold=0.2: excess=0.3, confidence = min(0.6, 0.25 + 0.3×0.5) = min(0.6, 0.4) = 0.4
+  const sigConf = obiToSignals(0.5, NaN, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const obiConf = sigConf.find(s => s.factorId === 'crypto-obi-T');
+  assert(Number.isFinite(obiConf?.confidence) && Math.abs(obiConf.confidence - 0.4) < 1e-10,
+    `obiToSignals: obi=0.5 confidence = 0.4 exactly (got ${obiConf?.confidence})`);
+
+  // === obiToSignals: confidence cap hit (kills Math.min→max returning uncapped value) ===
+  // obi=1.0, threshold=0.2: excess=0.8, 0.25+0.4=0.65 → capped at 0.60
+  const sigCap = obiToSignals(1.0, NaN, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const obiCap = sigCap.find(s => s.factorId === 'crypto-obi-T');
+  assert(Number.isFinite(obiCap?.confidence) && Math.abs(obiCap.confidence - OBI_CONFIDENCE_CAP) < 1e-10,
+    `obiToSignals: obi=1.0 confidence capped at ${OBI_CONFIDENCE_CAP} (got ${obiCap?.confidence})`);
+
+  // === obiToSignals: microprice == mid → flat (kills L177 > → >=) ===
+  // mp=100, mid=100: original mpSide='flat'; mutant '>=' → 'long'.
+  const sigMpEq = obiToSignals(0.5, 100, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const mpEqSig = sigMpEq.find(s => s.factorId === 'crypto-microprice-T');
+  assert(mpEqSig !== undefined && mpEqSig.side === 'flat',
+    `obiToSignals: microprice==mid → flat (got ${mpEqSig?.side})`);
+
+  // === obiToSignals: microprice < mid → short (direction coverage) ===
+  const sigMpBelow = obiToSignals(0.5, 99.5, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const mpBelowSig = sigMpBelow.find(s => s.factorId === 'crypto-microprice-T');
+  assert(mpBelowSig !== undefined && mpBelowSig.side === 'short',
+    `obiToSignals: microprice<mid → short (got ${mpBelowSig?.side})`);
+
+  // === obiToSignals: mpConfidence exact value (kills L180 Math.min→max) ===
+  // mp=100.001, mid=100: |0.001|/100*200 = 0.002 → min(0.35, 0.002) = 0.002
+  // Mutant Math.max → returns 0.35.
+  const sigMpConf = obiToSignals(0.5, 100.001, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const mpConfSig = sigMpConf.find(s => s.factorId === 'crypto-microprice-T');
+  assert(Number.isFinite(mpConfSig?.confidence) && Math.abs(mpConfSig.confidence - 0.002) < 1e-6,
+    `obiToSignals: small mp deviation confidence = 0.002 (got ${mpConfSig?.confidence})`);
+
+  // === obiToSignals: mid=0 → no microprice signal (kills L175 mid>0 → mid>=0, 0→1, &&→||) ===
+  // With mid=0: original skips (mid>0 false). Mutants: mid>=0 true, mid>1 false, Number.isFinite||...
+  const sigMid0 = obiToSignals(0.5, 100, { mid: 0 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const mpMid0 = sigMid0.find(s => s.factorId === 'crypto-microprice-T');
+  assert(mpMid0 === undefined,
+    `obiToSignals: mid=0 → no microprice signal (got ${mpMid0})`);
+
+  // === obiToSignals: ts=0 → falls back to Date.now() (kills L146 ts>0 → ts>=0, &&→||, 0→1) ===
+  // ts=0: original (0>0 false) → fallback. Mutants: ts>=0 → returns 0; &&→|| → returns 0.
+  const sigTs0 = obiToSignals(0.5, NaN, { mid: 100 }, { threshold: 0.2, market: 'T', ts: 0 });
+  const obiTs0 = sigTs0.find(s => s.factorId === 'crypto-obi-T');
+  // Fallback ts should be ~now (within last 5 min), NOT 0.
+  assert(Number.isFinite(obiTs0?.ts) && obiTs0.ts > 0 && obiTs0.ts <= Math.floor(Date.now() / 1000) + 1,
+    `obiToSignals: ts=0 → fallback to Date.now() (got ${obiTs0?.ts})`);
+
+  // === obiToSignals: non-string market → '' (kills L145 && → ||) ===
+  // market=123: original → ''. Mutant: (typeof==='string' || 123) → 123 → factorId=crypto-obi-123.
+  const sigNumMarket = obiToSignals(0.5, NaN, { mid: 100 }, { threshold: 0.2, market: 123, ts: 1 });
+  const obiNumMarket = sigNumMarket.find(s => s.factorId === 'crypto-obi-');
+  assert(obiNumMarket !== undefined,
+    `obiToSignals: numeric market → '' factorId (got ${sigNumMarket.map(s=>s.factorId).join(',')})`);
+
+  // === computeOrderBookImbalance: single-entry book → signals (kills L215 0→1) ===
+  // bids.length===1 mutant → []. Original proceeds → computes OBI.
+  const sigsSingleEntry = computeOrderBookImbalance(
+    { bids: [{ price: 100, size: 20 }], asks: [{ price: 101, size: 4 }], mid: 100.5, spreadBps: 100 },
+    { levels: 5, market: 'S', ts: 1718000000 },
+  );
+  assert(Array.isArray(sigsSingleEntry) && sigsSingleEntry.length >= 1,
+    `computeOrderBookImbalance: single-entry book → signals (got ${sigsSingleEntry.length})`);
+
+  // === computeOrderBookImbalance: levels=0 → DEFAULT_LEVELS, signals (kills L217 levels>0 mutants) ===
+  // levels=0: `isFinite(0) && 0>0` = false → DEFAULT_LEVELS=10 → computes. Mutants that accept 0
+  //   (>=0, &&→||) → levels=0 → NaN → []. Assert original produces signals to kill them.
+  const sigsLevels0 = computeOrderBookImbalance(
+    { bids: [{ price: 100, size: 20 }], asks: [{ price: 101, size: 4 }], mid: 100.5, spreadBps: 100 },
+    { levels: 0, market: 'S', ts: 1718000000 },
+  );
+  assert(Array.isArray(sigsLevels0) && sigsLevels0.length >= 1,
+    `computeOrderBookImbalance: levels=0 → DEFAULT_LEVELS signals (got ${sigsLevels0.length})`);
+
+  // === computeOrderBookImbalance: levels=1 → uses exactly 1 level (kills L217 0→1, levels>0→>1) ===
+  // levels=1: original Math.floor(1)=1 → sums 1 level. Mutant `>1`: 1>1=false → DEFAULT=10 → sums all.
+  // Book: bid L0=20, L1=5; ask L0=4, L1=20. levels=1 → OBI=(20-4)/24=0.667. levels=10 → (25-24)/49≈0.02.
+  // At threshold=0.2: levels=1 fires (0.667>0.2), levels=10 also fires but weaker. Check side + value.
+  const sigsLevels1 = computeOrderBookImbalance(
+    { bids: [{ price: 100, size: 20 }, { price: 99, size: 5 }],
+      asks: [{ price: 101, size: 4 }, { price: 102, size: 20 }],
+      mid: 100.5, spreadBps: 100 },
+    { levels: 1, market: 'S', ts: 1718000000, threshold: 0.2 },
+  );
+  const obiL1 = sigsLevels1.find(s => s.factorId === 'crypto-obi-S');
+  // With levels=1: OBI=0.667 → confidence=0.25+(0.667-0.2)*0.5=0.4835.
+  // With levels=10 (mutant): OBI=0.0204 → below threshold → no signal at all.
+  assert(obiL1 !== undefined && obiL1.side === 'long' && Math.abs(obiL1.value - 0.6667) < 0.001,
+    `computeOrderBookImbalance: levels=1 → OBI=0.667 (got ${obiL1?.value})`);
+
+  // === computeOrderBookImbalance: ts=0 → fallback ts (kills L222 ts>0 → >=0, &&→||, 0→1) ===
+  const sigsTs0 = computeOrderBookImbalance(
+    { bids: [{ price: 100, size: 20 }], asks: [{ price: 101, size: 4 }], mid: 100.5, spreadBps: 100 },
+    { levels: 5, market: 'S', ts: 0 },
+  );
+  const obiTs0Top = sigsTs0.find(s => s.factorId === 'crypto-obi-S');
+  assert(obiTs0Top !== undefined && obiTs0Top.ts > 0 && obiTs0Top.ts <= Math.floor(Date.now() / 1000) + 1,
+    `computeOrderBookImbalance: ts=0 → fallback ts (got ${obiTs0Top?.ts})`);
+
+  // === computeMicroprice: totalSize === 1 → valid microprice (kills L121 0→1) ===
+  // bestBidSize=0.5, bestAskSize=0.5 → totalSize=1. Mutant returns NaN. Original computes.
+  const mpTotal1 = computeMicroprice([{ price: 100, size: 0.5 }], [{ price: 102, size: 0.5 }]);
+  // microprice = (100×0.5 + 102×0.5)/1 = 101
+  assert(Number.isFinite(mpTotal1) && Math.abs(mpTotal1 - 101) < 1e-10,
+    `computeMicroprice: totalSize=1 → 101 (got ${mpTotal1})`);
+
+  // === obiToSignals: 0 < mid < 1 → microprice signal emitted (kills L181 mid>0 → mid>1) ===
+  // mid=0.5: original (0.5>0) → emits. Mutant (0.5>1 false) → skips.
+  const sigMidSmall = obiToSignals(0.5, 0.6, { mid: 0.5 }, { threshold: 0.2, market: 'T', ts: 1 });
+  const mpMidSmall = sigMidSmall.find(s => s.factorId === 'crypto-microprice-T');
+  assert(mpMidSmall !== undefined,
+    `obiToSignals: mid=0.5 → microprice signal emitted (got ${mpMidSmall})`);
+
+  // === computeOrderBookImbalance: fractional ts in (0,1) → preserved (kills L230 0→1) ===
+  // ts=0.5: original `0.5>0` true → returns 0.5 → obiToSignal preserves. Mutant `0.5>1` false → fallback.
+  const sigsTsFrac = computeOrderBookImbalance(
+    { bids: [{ price: 100, size: 20 }], asks: [{ price: 101, size: 4 }], mid: 100.5, spreadBps: 100 },
+    { levels: 5, market: 'S', ts: 0.5 },
+  );
+  const obiTsFrac = sigsTsFrac.find(s => s.factorId === 'crypto-obi-S');
+  assert(obiTsFrac !== undefined && obiTsFrac.ts === 0.5,
+    `computeOrderBookImbalance: ts=0.5 preserved (got ${obiTsFrac?.ts})`);
+
+  // === computeOBI: Infinity ask size filtered (kills L78 &&→||, sz>0→>=0) ===
+  // ask Infinity → filtered; bid 10 → bidVol=10. OBI = 10/10 = 1. Mutant (isFinite || sz>0):
+  //   Infinity>0 true → askVol=Inf → OBI=NaN. `sz>=0`: 0-included but += 0 no-op... need Infinity.
+  const obiAskInf = computeOBI([{ price: 100, size: 10 }], [{ price: 101, size: Infinity }], 1);
+  assert(Number.isFinite(obiAskInf) && obiAskInf === 1,
+    `computeOBI: ask Infinity filtered → +1 (got ${obiAskInf})`);
+
+  // === computeOBI: bid Infinity filtered (mirror, kills L71 &&→||) ===
+  const obiBidInf = computeOBI([{ price: 100, size: Infinity }], [{ price: 101, size: 10 }], 1);
+  assert(Number.isFinite(obiBidInf) && obiBidInf === -1,
+    `computeOBI: bid Infinity filtered → -1 (got ${obiBidInf})`);
 
   console.log(`orderbook-imbalance --test: ${pass} pass, ${fail} fail`);
   if (fail > 0) process.exit(1);
