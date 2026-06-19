@@ -75,12 +75,14 @@ import {
 import { applyAuth } from './observatory-auth.mjs';
 import { getCandlesAtTimeframe, availableTimeframes } from './timeframes.mjs';
 import { startTickStream } from './tick-stream.mjs';
+import { startRecorder } from './tape-recorder.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
 const INTERVAL_MS = Number(process.env.OBSERVATORY_INTERVAL_MS) || DEFAULT_CONFIG.intervalMs;
 const TICK_MS = Number(process.env.OBSERVATORY_TICK_MS) || 1000; // per-second fast price tick
 const TICK_STREAM_ARMED = process.env.OBSERVATORY_TICK_STREAM === '1'; // DISARMED by default — owner arms the real-time WS tick feed
+const RECORDER_ARMED = process.env.OBSERVATORY_RECORDER === '1'; // DISARMED by default — owner arms the BTC L2+trades tape recorder (read-only, for the fill/adverse-sel replay sim)
 const HOST = '127.0.0.1'; // localhost only
 
 // CORS allowed origins — localhost only
@@ -449,6 +451,23 @@ async function startServe(config = {}) {
     console.log(`[observatory-server] REAL-TIME tick-stream ARMED (Coinbase WS) for ${tsMarkets.join(',')}`);
   }
 
+  // ── DISARMED L2+trades TAPE RECORDER (owner-armed via OBSERVATORY_RECORDER=1) ──
+  // Records BTC Binance USDⓈ-M L2 diffs + periodic book snapshots + aggTrades to JSONL
+  // for the fill-probability + adverse-selection replay sim (glm-5.2 roadmap). Read-only
+  // market data, NO order path (INV-1), fail-open — a recorder fault never touches the cycle.
+  let recorder = null;
+  if (RECORDER_ARMED) {
+    try {
+      recorder = await startRecorder({
+        symbols: ['BTCUSDT'], // BTC-only
+        dataDir: path.join(GATHER_STATE_DIR, 'tape'),
+      });
+      console.log(`[observatory-server] TAPE RECORDER ARMED → ${path.join(GATHER_STATE_DIR, 'tape')} (BTCUSDT L2+trades)`);
+    } catch (e) {
+      console.error('[observatory-server] tape-recorder start failed (continuing):', e?.message || e);
+    }
+  }
+
   // Run first cycle immediately
   // emit cycle.start before INITIAL cycle too (BUG-5: was only emitted on interval cycles)
   broadcastSSE([{ type: 'cycle.start', cycleCount: 1, ts: Math.floor(Date.now() / 1000) }]);
@@ -490,6 +509,7 @@ async function startServe(config = {}) {
     clearInterval(interval);
     clearInterval(tickInterval);
     if (tickStream) try { tickStream.stop(); } catch (_e) { /* noop */ }
+    if (recorder) try { recorder.stop(); } catch (_e) { /* noop */ }
     server.close(() => process.exit(0));
   };
   process.on('SIGTERM', shutdown);

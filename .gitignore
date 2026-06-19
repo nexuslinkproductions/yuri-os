@@ -117,6 +117,7 @@ _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/energy-trace/
 _SYSTEM/state/energy-session/
+_SYSTEM/state/tape/
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
