@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @capability: order-flow-imbalance
 // @serves: OFI | order flow imbalance | Cont Kukanov Stoikov | price impact | flow measure | short-horizon alpha | bid lift | ask drop | microstructure
-// @does: Computes per-event OFI contributions (e_n = B_n + C_n) from consecutive best-level snapshots, buckets them with depth-normalized/raw/z-scored variants, and estimates the contemporaneous λ (price-impact coefficient) via rolling OLS. Pure math, fail-open, no network.
-// @use: Feed consecutive {ts,bidPx,bidSz,askPx,askSz} snapshots to ofiContribution(); aggregate with computeOFI(); calibrate λ with estimateLambda(). Validation targets: contemporaneous R² ~0.65–0.87, predictive ~0.25–0.35 @1s; predictive R²>0.15 @100–500ms = meaningful, <0.10 = noise.
-// @exports: ofiContribution, computeOFI, estimateLambda
+// @does: Computes per-event OFI contributions (e_n = B_n + C_n) from consecutive best-level snapshots, buckets them with depth-normalized/raw/z-scored variants, estimates the contemporaneous λ (price-impact coefficient) via rolling OLS, and optionally aggregates multi-level OFI across the top-N book levels (CKS §4). Pure math, fail-open, no network.
+// @use: Feed consecutive {ts,bidPx,bidSz,askPx,askSz} snapshots to ofiContribution(); aggregate with computeOFI(); calibrate λ with estimateLambda(). For multi-level edge: computeMultiLevelOFI(prevBook, currBook, {levels:5}) sums per-level e_n across the top-N bids/asks to lift predictive R² (~0.65 L1 → ~0.85 top-3-5). Validation targets: contemporaneous R² ~0.65–0.87, predictive ~0.25–0.35 @1s; predictive R²>0.15 @100–500ms = meaningful, <0.10 = noise.
+// @exports: ofiContribution, computeOFI, computeMultiLevelOFI, estimateLambda
 //
 // REFERENCE: Cont, Kukanov & Stoikov (2014) "The Price Impact of Order Book Events."
 //   Journal of Financial Econometrics 12(1):47–88.
@@ -210,6 +210,171 @@ export function computeOFI(snapshots, opts = {}) {
 
   const sign = ofi > 0 ? 1 : ofi < 0 ? -1 : 0;
   return { ofi, sign, bucketsUsed, avgDepth, normalize };
+}
+
+// ── computeMultiLevelOFI ──────────────────────────────────────────────────────
+
+/**
+ * _ofiLevelContribution(pLevel, cLevel) -> number  (internal, fail-open)
+ *
+ * Computes the CKS e_n contribution for ONE book level from two consecutive
+ * snapshots of that level. This is the EXACT same B_n + C_n logic as
+ * ofiContribution(), factored to operate on a single {bidPx,bidSz,askPx,askSz}
+ * level object so it can be applied uniformly to level 0..N-1.
+ *
+ * Level-0 (best level) is byte-identical to ofiContribution().e — the
+ * metamorphic identity guarantee depends on this: do NOT diverge the math.
+ *
+ * Fail-open: any non-finite field → 0 contribution for that level (never throws).
+ *
+ * @param {object} pLevel - previous snapshot of this level {bidPx,bidSz,askPx,askSz}
+ * @param {object} cLevel - current  snapshot of this level {bidPx,bidSz,askPx,askSz}
+ * @returns {number} signed e_n for this level (0 on any invalidity)
+ */
+function _ofiLevelContribution(pLevel, cLevel) {
+  const cBidPx = Number(cLevel?.bidPx);
+  const cBidSz = Number(cLevel?.bidSz);
+  const cAskPx = Number(cLevel?.askPx);
+  const cAskSz = Number(cLevel?.askSz);
+
+  // Fail-open: invalid curr level → 0 contribution
+  if (
+    !Number.isFinite(cBidPx) || !Number.isFinite(cBidSz) ||
+    !Number.isFinite(cAskPx) || !Number.isFinite(cAskSz)
+  ) {
+    return 0;
+  }
+
+  // Crossed/locked at this level → skip (0 contribution). Note: deeper levels
+  // can transiently lock during fast updates; we treat them as no-information.
+  if (cBidPx >= cAskPx) return 0;
+
+  // No previous level at this depth (book grew shallower before) → 0
+  if (pLevel === null || pLevel === undefined) return 0;
+
+  const pBidPx = Number(pLevel.bidPx);
+  const pBidSz = Number.isFinite(Number(pLevel.bidSz)) ? Number(pLevel.bidSz) : 0;
+  const pAskPx = Number(pLevel.askPx);
+  const pAskSz = Number.isFinite(Number(pLevel.askSz)) ? Number(pLevel.askSz) : 0;
+
+  const prevBidPxValid = Number.isFinite(pBidPx);
+  const prevAskPxValid = Number.isFinite(pAskPx);
+
+  // B_n: bid contribution (identical branching to ofiContribution)
+  let B = 0;
+  if (prevBidPxValid) {
+    if (cBidPx > pBidPx) {
+      B = +cBidSz;
+    } else if (cBidPx === pBidPx) {
+      B = +(cBidSz - pBidSz);
+    } else {
+      B = -pBidSz;
+    }
+  }
+
+  // C_n: ask contribution (identical branching to ofiContribution)
+  let C = 0;
+  if (prevAskPxValid) {
+    if (cAskPx < pAskPx) {
+      C = -cAskSz;
+    } else if (cAskPx === pAskPx) {
+      C = -(cAskSz - pAskSz);
+    } else {
+      C = +pAskSz;
+    }
+  }
+
+  return B + C;
+}
+
+/**
+ * computeMultiLevelOFI(prevBook, currBook, opts) -> { ofi, levels, weights, perLevel, sign }
+ *
+ * MULTI-LEVEL Order Flow Imbalance per Cont, Kukanov & Stoikov (2014) §4.
+ *
+ * Aggregates the per-level e_n contribution across the top N price levels of the
+ * book:
+ *
+ *     OFI^N = Σ_{n=0}^{N-1}  w_n · e_n
+ *
+ * where each e_n is the CKS B_n + C_n contribution computed independently for
+ * level n from its consecutive {bidPx,bidSz,askPx,askSz} snapshots. The
+ * cumulative sum (equal-weight) is the CKS canonical multi-level OFI; supplying
+ * a `weights` array applies optional level-decay (e.g. exponential) without an
+ * API change.
+ *
+ * Book shape: each snapshot is an array of level objects, top-of-book first:
+ *   prevBook = [ {bidPx,bidSz,askPx,askSz}, {bidPx,bidSz,askPx,askSz}, ... ]
+ *   currBook = [ {bidPx,bidSz,askPx,askSz}, {bidPx,bidSz,askPx,askSz}, ... ]
+ * This is the same {price,size}[] shape bookAt/extractTopN return, mapped to the
+ * ofiContribution field names (bidPx/bidSz/askPx/askSz).
+ *
+ * WEIGHTING (justification):
+ *   Default = equal weight (w_n = 1 for all n) → pure sum of e_n, the CKS
+ *   canonical cumulative multi-level OFI. We do NOT force a decay default
+ *   because level-decay is empirically fit per instrument/exchange (CKS Table 5
+ *   fit it on the data); hardcoding a decay would be an unverified guess. The
+ *   `weights: number[]` opt-in lets the caller plug fitted decay (e.g.
+ *   weights=[1, 0.6, 0.3]) once λ-calibration produces it.
+ *
+ * IDENTITY GUARANTEE (metamorphic): with levels=1 (or N=1), level 0 IS the best
+ * level and uses the same _ofiLevelContribution math as ofiContribution(), so
+ * computeMultiLevelOFI(b,c,{levels:1}).ofi === ofiContribution(b[0],c[0]).e
+ * exactly (verified by the --test metamorphic case).
+ *
+ * Fail-open: bad/empty/one-sided books → { ofi: null, ... } or 0 contributions,
+ * never throws. A level present in curr but missing in prev (book grew deeper)
+ * contributes 0 for that level. A level missing in curr (book shallowed) is
+ * skipped (it contributes nothing — the depth vanished, no queue change to
+ * measure).
+ *
+ * @param {object[]|null} prevBook   - previous top-N book levels (top-of-book first), null = first event
+ * @param {object[]}      currBook   - current  top-N book levels (top-of-book first)
+ * @param {{ levels?: number, weights?: number[] }} [opts]
+ *   levels  - number of top levels to aggregate (default 5). Clamped to [1, available].
+ *   weights - optional per-level weights array (length >= levels); equal weight if omitted/null.
+ * @returns {{ ofi: number|null, levels: number, weights: number[]|null, perLevel: number[], sign: 1|-1|0 }}
+ *   ofi = null if currBook is empty/malformed; sign derived from weighted sum.
+ */
+export function computeMultiLevelOFI(prevBook, currBook, opts = {}) {
+  const levels = Math.max(1, Number.isFinite(opts.levels) ? Math.floor(opts.levels) : 5);
+  const weights = Array.isArray(opts.weights) ? opts.weights : null;
+
+  // Fail-open: empty/non-array currBook
+  if (!Array.isArray(currBook) || currBook.length === 0) {
+    return { ofi: null, levels, weights, perLevel: [], sign: 0 };
+  }
+
+  // First event (no prev) → OFI undefined; return 0 sum (consistent with
+  // ofiContribution first-snapshot semantics where e=0).
+  if (prevBook === null || prevBook === undefined) {
+    return { ofi: 0, levels, weights, perLevel: new Array(levels).fill(0), sign: 0 };
+  }
+  if (!Array.isArray(prevBook)) {
+    return { ofi: null, levels, weights, perLevel: [], sign: 0 };
+  }
+
+  // Number of levels actually aggregable = min(requested, curr depth, prev depth+1)
+  // A curr level with no prev counterpart contributes 0 (handled in _ofiLevelContribution).
+  const N = Math.min(levels, currBook.length);
+
+  const perLevel = new Array(N).fill(0);
+  let ofi = 0;
+
+  for (let n = 0; n < N; n++) {
+    const e = _ofiLevelContribution(prevBook[n] ?? null, currBook[n]);
+    perLevel[n] = e;
+    const w = (weights && n < weights.length && Number.isFinite(weights[n])) ? weights[n] : 1;
+    ofi += w * e;
+  }
+
+  // If all per-level contributions were 0 due to invalidity AND N=0, fail-open.
+  if (N < 1) {
+    return { ofi: null, levels, weights, perLevel: [], sign: 0 };
+  }
+
+  const sign = ofi > 0 ? 1 : ofi < 0 ? -1 : 0;
+  return { ofi, levels, weights, perLevel, sign };
 }
 
 // ── estimateLambda ────────────────────────────────────────────────────────────
@@ -480,6 +645,117 @@ if (_runAsMain && process.argv.includes('--test')) {
   );
   assert(Math.abs(mp - 101) < 1e-10,
     `T21 computeMicroprice import → 101 (got ${mp})`);
+
+  // ── computeMultiLevelOFI (multi-level OFI, CKS §4) ─────────────────────────
+
+  // Helper: build a book level object
+  const lvl = (bidPx, bidSz, askPx, askSz) => ({ bidPx, bidSz, askPx, askSz });
+
+  // M1 (GREEN): hand-computed 3-level book delta → expected multi-level OFI.
+  // prev levels:                  curr levels:
+  //   L0: bid 100/10  ask 101/10    L0: bid 100.5/12 ask 101/10   (bid lift)
+  //   L1: bid  99/20  ask 102/20    L1: bid  99.5/22 ask 102/20   (bid lift at L1)
+  //   L2: bid  98/30  ask 103/30    L2: bid  98/30   ask 103/25   (ask queue shrink at L2)
+  //
+  // Hand-compute each level's e_n (same CKS B_n + C_n as ofiContribution):
+  //   L0: B: 100.5>100 → +12; C: ask same → -(10-10)=0       → e_0 = +12
+  //   L1: B:  99.5>99  → +22; C: ask same → -(20-20)=0       → e_1 = +22
+  //   L2: B:  98=98    → +(30-30)=0; C: ask same → -(25-30)=+5 → e_2 = +5
+  //   Sum (equal weight) = 12 + 22 + 5 = +39
+  const prevBook3 = [ lvl(100, 10, 101, 10), lvl(99, 20, 102, 20), lvl(98, 30, 103, 30) ];
+  const currBook3 = [ lvl(100.5, 12, 101, 10), lvl(99.5, 22, 102, 20), lvl(98, 30, 103, 25) ];
+  const ml1 = computeMultiLevelOFI(prevBook3, currBook3, { levels: 3 });
+  assert(ml1.ofi !== null,
+    `M1 multi-level OFI non-null (got ${ml1.ofi})`);
+  assert(Math.abs(ml1.ofi - 39) < 1e-9,
+    `M1 3-level sum = +39 (got ${ml1.ofi})`);
+  assert(Math.abs(ml1.perLevel[0] - 12) < 1e-9,
+    `M1 L0 e_0=+12 (got ${ml1.perLevel[0]})`);
+  assert(Math.abs(ml1.perLevel[1] - 22) < 1e-9,
+    `M1 L1 e_1=+22 (got ${ml1.perLevel[1]})`);
+  assert(Math.abs(ml1.perLevel[2] - 5) < 1e-9,
+    `M1 L2 e_2=+5 (got ${ml1.perLevel[2]})`);
+  assert(ml1.sign === 1, `M1 sign=+1 (got ${ml1.sign})`);
+
+  // M2 (METAMORPHIC — identity): levels=1 reproduces single-level ofiContribution EXACTLY.
+  // The opt-in/identity guarantee: computeMultiLevelOFI(...,{levels:1}).ofi === ofiContribution(b0,c0).e
+  const prevBook1 = [ lvl(100, 10, 101, 10), lvl(99, 20, 102, 20), lvl(98, 30, 103, 30) ];
+  const currBook1 = [ lvl(100.5, 12, 101, 10), lvl(99.5, 22, 102, 20), lvl(98, 30, 103, 25) ];
+  const ml2 = computeMultiLevelOFI(prevBook1, currBook1, { levels: 1 });
+  const single = ofiContribution(prevBook1[0], currBook1[0]);
+  assert(Math.abs(ml2.ofi - single.e) < 1e-12,
+    `M2 levels=1 === ofiContribution.e EXACT (ml=${ml2.ofi} single=${single.e})`);
+  assert(Math.abs(ml2.ofi - 12) < 1e-9,
+    `M2 levels=1 = +12 (best-level bid lift) (got ${ml2.ofi})`);
+  assert(ml2.perLevel.length === 1,
+    `M2 levels=1 → perLevel has 1 entry (got ${ml2.perLevel.length})`);
+
+  // M3 (METAMORPHIC — monotonic): more levels with flow in the same direction →
+  // larger-magnitude OFI. The 3-level book (M1) has all buy-positive flow, so
+  // |OFI(levels=3)| > |OFI(levels=1)|.
+  const ml3a = computeMultiLevelOFI(prevBook3, currBook3, { levels: 1 });
+  const ml3b = computeMultiLevelOFI(prevBook3, currBook3, { levels: 3 });
+  assert(ml3b.ofi > ml3a.ofi && ml3b.ofi > 0,
+    `M3 more levels same-direction → larger OFI (1L=${ml3a.ofi} 3L=${ml3b.ofi})`);
+  assert(Math.abs(ml3a.ofi - 12) < 1e-9 && Math.abs(ml3b.ofi - 39) < 1e-9,
+    `M3 1L=+12 < 3L=+39 (got ${ml3a.ofi}, ${ml3b.ofi})`);
+
+  // M4 (WEIGHTS): custom weights scale the per-level sum.
+  // weights=[1, 0.5, 0] → 1·12 + 0.5·22 + 0·5 = 12 + 11 + 0 = +23
+  const ml4 = computeMultiLevelOFI(prevBook3, currBook3, { levels: 3, weights: [1, 0.5, 0] });
+  assert(Math.abs(ml4.ofi - 23) < 1e-9,
+    `M4 weighted [1,0.5,0] → 1·12+0.5·22+0·5=+23 (got ${ml4.ofi})`);
+
+  // M5 (WEIGHTS decay): exponential decay weights=[1, 0.6, 0.36]
+  // → 1·12 + 0.6·22 + 0.36·5 = 12 + 13.2 + 1.8 = +27
+  const ml5 = computeMultiLevelOFI(prevBook3, currBook3, { levels: 3, weights: [1, 0.6, 0.36] });
+  assert(Math.abs(ml5.ofi - 27) < 1e-9,
+    `M5 exp-decay [1,0.6,0.36] → +27 (got ${ml5.ofi})`);
+
+  // M6 (RED — empty currBook): → ofi=null, no throw
+  const ml6 = computeMultiLevelOFI(prevBook3, [], { levels: 3 });
+  assert(ml6.ofi === null,
+    `M6 empty currBook → null (got ${ml6.ofi})`);
+
+  // M7 (RED — null prevBook = first event): → ofi=0, no throw
+  const ml7 = computeMultiLevelOFI(null, currBook3, { levels: 3 });
+  assert(ml7.ofi === 0,
+    `M7 null prevBook (first event) → ofi=0 (got ${ml7.ofi})`);
+
+  // M8 (RED — malformed levels with NaN): NaN fields → 0 contribution, no throw
+  const badPrev = [ lvl(100, 10, 101, 10), lvl(NaN, 20, 102, 20) ];
+  const badCurr = [ lvl(100, 10, 101, 10), lvl(99, NaN, 102, 20) ];
+  const ml8 = computeMultiLevelOFI(badPrev, badCurr, { levels: 2 });
+  assert(ml8.ofi === 0,
+    `M8 malformed/NaN levels → 0 contribution, no throw (got ${ml8.ofi})`);
+  assert(ml8.perLevel[0] === 0 && ml8.perLevel[1] === 0,
+    `M8 perLevel all 0 (got [${ml8.perLevel}])`);
+
+  // M9 (RED — one-sided / crossed level): crossed level skipped → 0 contribution
+  const crossedPrev = [ lvl(100, 10, 101, 10) ];
+  const crossedCurr = [ lvl(101, 10, 101, 10) ]; // locked (bid>=ask)
+  const ml9 = computeMultiLevelOFI(crossedPrev, crossedCurr, { levels: 1 });
+  assert(ml9.ofi === 0,
+    `M9 crossed/locked level → 0 contribution (got ${ml9.ofi})`);
+
+  // M10 (deeper curr than prev): level present in curr but not prev → 0 for that level
+  // prev has 1 level, curr has 3. L0 = bid lift (+12); L1,L2 have no prev → 0.
+  const ml10 = computeMultiLevelOFI(
+    [ lvl(100, 10, 101, 10) ],
+    [ lvl(100.5, 12, 101, 10), lvl(99, 20, 102, 20), lvl(98, 30, 103, 30) ],
+    { levels: 3 }
+  );
+  assert(Math.abs(ml10.ofi - 12) < 1e-9,
+    `M10 curr-deeper-than-prev → only L0 contributes +12 (got ${ml10.ofi})`);
+  assert(ml10.perLevel[1] === 0 && ml10.perLevel[2] === 0,
+    `M10 L1,L2 = 0 (no prev) (got [${ml10.perLevel}])`);
+
+  // M11 (default levels=5 when omitted): clamps to available depth
+  const ml11 = computeMultiLevelOFI(prevBook3, currBook3); // no opts
+  assert(ml11.levels === 5 && ml11.ofi !== null,
+    `M11 default levels=5, clamped to 3 available → non-null (levels=${ml11.levels} ofi=${ml11.ofi})`);
+  assert(Math.abs(ml11.ofi - 39) < 1e-9,
+    `M11 clamped to 3 levels → +39 (got ${ml11.ofi})`);
 
   // ── summary ───────────────────────────────────────────────────────────────
   console.log(`ofi --test: ${pass} pass, ${fail} fail`);
