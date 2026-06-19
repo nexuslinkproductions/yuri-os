@@ -66,6 +66,10 @@ Commands:
 
   claude-mimo
       Start Claude Code using Xiaomi Mimo (Anthropic-compatible proxy, token plan).
+
+  claude-zai
+      Start Claude Code using Z.ai GLM Coding Plan (Anthropic-compatible, subscription).
+      Default glm-4.7; set ZAI_MODEL=glm-5.2 for the Opus-tier flagship.
       Default model: mimo-v2.5-pro[1m] (1M context, max effort).
 
   codex [prompt]
@@ -230,6 +234,7 @@ Examples:
   ai code .
   ai claude
   ai claude-full
+  ai claude-zai
   ai codex "Find the riskiest file in backend/src"
   ai btw "review this with the right lane"
   ai moonshot "deep architecture review"
@@ -521,6 +526,29 @@ run_claude_mimo() {
   ANTHROPIC_DEFAULT_HAIKU_MODEL="mimo-v2-flash" \
   ANTHROPIC_MODEL="mimo-v2.5-pro" \
   exec "$_claude_bin" --model "mimo-v2.5-pro" --effort max "$@"
+}
+
+run_claude_zai() {
+  # Z.ai GLM Coding Plan as a native Claude Code session — mirrors run_claude_mimo. Sets the
+  # Anthropic-compatible Z.ai endpoint + auth token; /model glm-5.2 etc. work natively in-session.
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _zai_key="${ZAI_API_KEY:-}"
+  [ -z "$_zai_key" ] && _zai_key="$(security find-generic-password -a "$USER" -s yuri-zai-api-key -w 2>/dev/null || true)"
+  local _zai_url="${ZAI_BASE_URL:-https://api.z.ai/api/anthropic}"
+  local _zai_model="${ZAI_MODEL:-glm-4.7}"        # coding default; set ZAI_MODEL=glm-5.2 for the Opus-tier flagship
+  require_cmd "$_claude_bin"
+  if [ -z "$_zai_key" ]; then
+    printf 'ERROR: Z.ai key not found.\nStore it once: security add-generic-password -U -a "$USER" -s yuri-zai-api-key -w "<your-z.ai-key>"\n' >&2
+    exit 1
+  fi
+  ANTHROPIC_BASE_URL="$_zai_url" \
+  ANTHROPIC_AUTH_TOKEN="$_zai_key" \
+  API_TIMEOUT_MS="${ZAI_TIMEOUT_MS:-3000000}" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.2" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air" \
+  ANTHROPIC_MODEL="$_zai_model" \
+  exec "$_claude_bin" --model "$_zai_model" --effort max "$@"
 }
 
 print_section() {
@@ -959,6 +987,31 @@ case "${1:-help}" in
     unset _G _G2 _AU _GR _CY _RS
     export YURI_SPLASH_SHOWN=1
     run_claude_mimo
+    ;;
+  claude-zai|@zai-session|zai-session|claude-glm|glm-session)
+    shift || true
+    if [ "$#" -ne 0 ]; then
+      printf 'claude-zai takes no arguments — it opens an interactive session.\n' >&2
+      exit 1
+    fi
+    _G="\033[38;2;90;180;255m"
+    _G2="\033[38;2;40;90;140m"
+    _AU="\033[38;2;120;200;255m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;150;210;255m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE — Z.AI / GLM${_RS}  ${_G2}────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "PROVIDER"   "Z.ai GLM Coding Plan (subscription)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "DEFAULT"    "${ZAI_MODEL:-glm-4.7}  (set ZAI_MODEL=glm-5.2 for Opus-tier)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODELS"     "glm-5.2 · glm-5-turbo · glm-4.7 · glm-4.5-air"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE"  "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"    "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_zai
     ;;
   moonshot|kimi|@moonshot)
     shift || true
