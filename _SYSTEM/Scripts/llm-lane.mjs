@@ -479,7 +479,7 @@ function renderTools(tools = [], protocol = 'openai') {
 // never be killed by a clock; first byte is prompt under streaming. Returns the same
 // { message: { content, tool_calls? }, finish_reason } shape the OpenAI postChat path returns,
 // so the dispatch loop is protocol-agnostic — it just picks the transport by cfg.protocol.
-function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
+function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
   return new Promise((resolve) => {
     let u;
     try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
@@ -500,6 +500,7 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
       port: u.port || 443,
       path: u.pathname + u.search,
       method: 'POST',
+      agent: false,
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload),
@@ -509,6 +510,7 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
         'anthropic-version': '2023-06-01',
         ...(longContext ? { 'anthropic-beta': 'context-1m-2025-08-07' } : {}),
         Accept: 'text/event-stream',
+        Connection: 'close',
       },
     }, (res) => {
       T(`ANTHROPIC_HEADERS status=${res.statusCode}`);
@@ -565,6 +567,32 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
 
 // node:https POST (NOT undici fetch). Root-cause fix: on Node v25.9.0 undici's keep-alive socket
 // reuse throws a bare, deterministic "AggregateError" against api.deepseek.com — the Anthropic/mimo
+// Retry wrapper for the Anthropic streaming path: 3 attempts with backoff (matches postChat's
+// transport-retry contract). The inner function resolves with fail(1,...) on transport errors
+// (EPIPE, ECONNRESET, ETIMEDOUT, etc.) before any response data arrives — safe to retry because
+// no partial output was emitted. Success or HTTP 4xx/5xx resolve with a choice-shaped object
+// (no .exitCode === 'transport' marker) and are returned as-is. 2026-06-17 defense-in-depth.
+async function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
+  const ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+    const result = await _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader);
+    // Success or non-transport failure — return immediately.
+    // fail() produces a choice-like object WITHOUT finish_reason for transport errors; valid
+    // responses have .message or .finish_reason. Check .message to distinguish: transport fail
+    // returns an object with .code but no .message.
+    if (result && result.message) return result;
+    const isTransport = !result?.message && (typeof result?.exitCode !== 'undefined' ? result.exitCode === 1 : true);
+    if (attempt < ATTEMPTS && isTransport) {
+      const reason = result?.finish_reason || result?.reason || 'transport_unknown';
+      process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${lane} reason=anthropic_transport_retry_${attempt}:${reason}\n`);
+      await sleep(400 * attempt);
+      continue;
+    }
+    return result;
+  }
+}
+
+// ── OpenAI-path transport helper: https POST with agent:false (one-shot socket) ──────────────────
 // path (postMessagesAnthropicHttps) and mimo.mjs both use https.request and DON'T hit it. So the
 // OpenAI path uses https.request too. Connection:close + a one-shot agent = clean socket per call.
 function httpsPostJson(urlStr, headers, bodyStr, timeoutMs) {
