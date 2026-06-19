@@ -78,6 +78,11 @@ const ALIAS = {
   // with --model (the live cloud catalog rotates, so it is NOT hardcoded). The Pro plan allows 3
   // concurrent requests → fan out 3 `ollama-cloud --model <X>` invocations for a peer nano-swarm.
   ollama: 'ollama-cloud', 'ollama-cloud': 'ollama-cloud', 'ollama-pro': 'ollama-cloud', oc: 'ollama-cloud',
+  // Z.ai GLM Coding Plan (api.z.ai Anthropic-compatible, Bearer auth) — first-class lane, like Mimo
+  glm: 'glm-4.7', zai: 'glm-4.7', 'z-ai': 'glm-4.7', 'glm-4.7': 'glm-4.7', 'glm-4.6': 'glm-4.7',
+  'glm-air': 'glm-4.5-air', 'glm-4.5-air': 'glm-4.5-air', 'glm-flash': 'glm-4.5-air',
+  'glm-5.2': 'glm-5.2', 'glm-max': 'glm-5.2', 'glm-5': 'glm-5.2',
+  'glm-5-turbo': 'glm-5-turbo', 'glm-turbo': 'glm-5-turbo', turbo: 'glm-5-turbo', 'glm-5.1': 'glm-5.1',
 };
 
 // FULL YURI STACK loadout (default): the lane is a fully-equipped mini-me operator that operates BY
@@ -140,7 +145,7 @@ const LIGHT_SYSTEM =
   + 'Protected surfaces are refused. No padding.';
 
 // ── Lane-endpoint SSRF guard: ALLOWLIST (fail-closed) ──────────────────────────────────────────
-const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'token-plan-ams.xiaomimimo.com', 'ollama.com']);
+const ALLOWED_HOSTS = new Set(['api.deepseek.com', 'token-plan-ams.xiaomimimo.com', 'ollama.com', 'api.z.ai']);
 function assertSafeEndpoint(endpoint, lane) {
   let url;
   try { url = new URL(endpoint); } catch { return fail(3, lane, `bad_endpoint_url:${endpoint || '(empty)'}`); }
@@ -474,7 +479,7 @@ function renderTools(tools = [], protocol = 'openai') {
 // never be killed by a clock; first byte is prompt under streaming. Returns the same
 // { message: { content, tool_calls? }, finish_reason } shape the OpenAI postChat path returns,
 // so the dispatch loop is protocol-agnostic — it just picks the transport by cfg.protocol.
-function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane) {
+function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
   return new Promise((resolve) => {
     let u;
     try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
@@ -498,7 +503,9 @@ function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, m
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload),
-        'x-api-key': apiKey,
+        // Z.ai's Anthropic-compatible endpoint authenticates with Authorization: Bearer (the
+        // ANTHROPIC_AUTH_TOKEN convention); Mimo + real Anthropic use x-api-key. Pick per lane cfg.auth_header.
+        ...(authHeader === 'bearer' ? { Authorization: `Bearer ${apiKey}` } : { 'x-api-key': apiKey }),
         'anthropic-version': '2023-06-01',
         ...(longContext ? { 'anthropic-beta': 'context-1m-2025-08-07' } : {}),
         Accept: 'text/event-stream',
@@ -787,7 +794,12 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // OLLAMA_HOST is conventionally set scheme-less (127.0.0.1:11434); local lanes need a coerced
   // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
   if (isLocal && endpoint && !/^https?:\/\//i.test(endpoint)) endpoint = `http://${endpoint}`;
-  const apiKey = process.env[cfg.api_key_env] || '';
+  let apiKey = process.env[cfg.api_key_env] || '';
+  if (!apiKey && cfg.keychain_service) {
+    // Hydrate from the macOS keychain so a lane authenticates even when the env export hasn't run
+    // (e.g. `ai llm glm-5.2` from a shell that never sourced the ZAI_API_KEY export). Fail-soft.
+    try { apiKey = execFileSync('security', ['find-generic-password', '-a', process.env.USER || '', '-s', cfg.keychain_service, '-w'], { encoding: 'utf8' }).trim(); } catch { /* no keychain entry */ }
+  }
   let maxTokens = maxTokensFor(cfg, opts.reasoning);
   // Per-model output-cap clamp: ollama-cloud models have differing real output ceilings the shared
   // max_output map can't express (nemotron-3-ultra=65536 < lane xhigh=131072). Clamp to the model's
@@ -885,7 +897,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   const timeoutMs = Number(cfg.timeout_ms || 180000);
   const maxIters = Math.max(1, Number(opts.maxIters || 200));
   const nudgeAt = Math.max(3, Math.floor(maxIters * 0.6));
-  const seenSigs = new Set();
+  const seenSigs = new Map();   // tool-sig -> occurrence count; only a GENUINE loop (3+ identical) nudges
   let toolTurns = 0;
   let lastChoice = {};
   for (let iter = 0; iter < maxIters; iter += 1) {
@@ -899,7 +911,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     } else if (isAnthropic) {
       const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
-      choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key);
+      choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key, cfg.auth_header);
     } else {
       choice = await postChat(endpoint, apiKey, model, messages, maxTokens, toOpenAITools(activeTools), timeoutMs, key);
     }
@@ -912,15 +924,27 @@ async function dispatch(laneArg, prompt, opts = {}) {
       // Convergence guards for loop-prone models: detect a repeated tool+args batch and
       // count tool-only turns, then nudge toward a final answer before the hard iteration cap.
       const sig = calls.map((c) => `${c.function?.name}:${c.function?.arguments}`).sort().join('|');
-      const repeated = seenSigs.has(sig);
-      seenSigs.add(sig);
+      // BUILD-SAFE loop guard (2026-06-16, v2): the "stop using tools, give final answer" nudge is a
+      // RESEARCH loop-breaker (stuck re-fetching) — it must NOT fire on a BUILD lane's normal iteration.
+      // Re-running `node --check`/`--test` after a fix, or re-writing a file, is legitimate and repeats
+      // by design. v1 (nudge on 1st repeat) killed builds before write_file (glm died at 5 turns); even
+      // counting bash repeats (3+) still cut kimi off mid-build and made it DUMP the file as text.
+      // v2: only a repeated READ/FETCH batch (genuine stuck-gathering) counts toward the loop nudge;
+      // any batch containing bash/write_file/edit_file is a build action — bounded ONLY by the hard
+      // turn backstop (nudgeAt), never by the repeat detector.
+      // @anchor: v2 | failure: nano-swarm build lanes never wrote / dumped artifact as text (W5.1 indicators, 2026-06-16) | regression: feedback-nano-swarm-orchestration.md
+      const BUILD_TOOLS = new Set(['bash', 'write_file', 'edit_file', 'apply_patch']);
+      const isBuildBatch = calls.some((c) => BUILD_TOOLS.has(c.function?.name));
+      const sigCount = (seenSigs.get(sig) || 0) + 1;
+      seenSigs.set(sig, sigCount);
       toolTurns += 1;
       for (const tc of calls) {
         const result = await executeTool(tc.function?.name, tc.function?.arguments);
         process.stderr.write(`\x1b[2m[tool] ${tc.function?.name}\x1b[0m\n`);
         messages.push({ role: 'tool', tool_call_id: tc.id, content: clip(result, 16000) });
       }
-      if (repeated || toolTurns >= nudgeAt) {
+      const stuckGather = !isBuildBatch && sigCount >= 3;   // repeated read/fetch = genuinely stuck
+      if (stuckGather || toolTurns >= nudgeAt) {
         messages.push({ role: 'user', content: 'You have gathered enough. Provide your final answer now as plain text — no further tool calls.' });
       }
       continue;
@@ -956,7 +980,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
         nextChoice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
       } else if (isAnthropic) {
         const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
-        nextChoice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, [], key);
+        nextChoice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, [], key, cfg.auth_header);
       } else {
         nextChoice = await postChat(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
       }
