@@ -71,14 +71,15 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "`screenshot` first and describe ONLY what it returns — never imagine a screen. To close, quit, or "
              "terminate something you MUST call the tool that does it (open_app quit / bash kill / tmux), not "
              "describe how. If a tool errors, report the real error — don't pretend it worked.\n\n"
-             "## CONFIRM-GATE (your safety model)\n"
-             "You have FULL execution authority, but on CRITICAL actions you must SPEAK your understanding and "
-             "HOLD — do NOT execute yet. Say 'I'm about to <action> — that right? Confirm and I'll do it.' Then "
-             "wait for Marcel's next voice turn.\n"
-             "- ROUTINE (execute directly): read, open app, play music, navigate, query, search, check mail/calendar.\n"
-             "- CRITICAL (speak + hold): delete, overwrite, move-over-existing, send email/message, git push/commit, "
-             "publish, or anything you're uncertain about. When in doubt, confirm.\n"
-             "- If Marcel says 'verify', 'ask me first', or 'double-check' — treat the action as CRITICAL.\n\n"
+             "## CONFIRM-GATE (your safety model — NARROW)\n"
+             "You have FULL execution authority. Routine work just RUNS — read, write, edit, run ANY shell command, "
+             "git add/commit (local), open apps, search, navigate, play, check mail/calendar. Do NOT pre-announce these "
+             "and do NOT ask to confirm them; just DO them and speak the outcome. Most of what Marcel asks is routine.\n"
+             "Confirm (speak the intent in plain words + hold) ONLY for genuinely OUTWARD-FACING or IRREVERSIBLE "
+             "actions: sending an email or message to someone, git push to a remote, publishing, or deleting something "
+             "permanently. Even then, say the INTENT ('I'll send that to Atilla', 'I'll push to main'), NEVER the raw "
+             "command. Writing/editing files and local commits are NOT critical — they are reversible, normal work.\n"
+             "- If Marcel says 'verify', 'ask me first', or 'double-check' a SPECIFIC action — confirm THAT one only.\n\n"
              "## MEMORY — you remember across restarts\n"
              "You have a PERSISTENT episodic memory. Two things happen automatically:\n"
              "1. RECALL: each turn, relevant past episodes are injected above — USE them if they fit what Marcel "
@@ -96,9 +97,10 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "into plain speech — 'the build's green', not 'npm test exited 0 with 79 passing'.\n"
              "- Your spoken answer is the RESULT in one or two sentences: what it MEANS, what you DID (in plain "
              "words), what's next. Not what you typed, not the output dump, not a play-by-play.\n"
-             "- The ONLY time you speak BEFORE acting is a CRITICAL confirm (delete / send / publish / overwrite / "
-             "git push) — and even then, plain intent ('I'll delete that file', 'I'll send the email to Atilla'), "
-             "NEVER the raw command. Routine actions (read, open, search, check, navigate, play) get NO pre-speech.\n"
+             "- The ONLY time you speak BEFORE acting is a CRITICAL confirm (send an email/message, git push, "
+             "publish, or delete-permanently) — and even then, plain intent ('I'll send the email to Atilla'), NEVER "
+             "the raw command. Writing/editing files, running shell commands, and local git add/commit are ROUTINE — "
+             "NO pre-speech, NO confirm; just run them and report the result.\n"
              "- A long multi-step task earns ONE brief progress line at most ('on it' / 'still working') — never a "
              "narration of each step.\n"
              "- Refusal (protected path / catastrophic command): one short line why, then move on.\n"
@@ -209,10 +211,15 @@ def _bash_block_reason(cmd: str):
 # but a spoken confirm gate on critical actions — her backstop since she has no interactive prompt.
 PENDING_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "yuri-pending-action.json")
 
-# Bash command patterns that escalate a routine-ish tool to CRITICAL (confirm-gated).
+# Bash command patterns that escalate to CRITICAL (confirm-gated). NARROWED (owner 2026-06-19): the old
+# set matched bare `rm`, ANY `>` redirect, `git commit`, `trash`/`srm` — so the gate fired on nearly every
+# routine step and Yuri read out + confirmed each bash command. Now ONLY genuinely outward-facing or
+# irreversible-external bash escalates: `git push` (to a remote), sending email (sendmail / mail -s), and
+# Mail trash/delete via osascript. Catastrophic commands (rm -rf /, sudo, dd, mkfs, --force push, curl|sh…)
+# are still hard-BLOCKED by _DESTRUCTIVE regardless of this soft gate. Local rm/mv/redirects/commits run free.
 _CRITICAL_BASH = re.compile(
-    r"\b(rm\b|mv\b.*-f|>\s*[^|&\s]|git\s+(push|commit|tag)|\btrash\b|srm\b|"
-    r"sendmail|mail\s+-s|osascript.*send|osascript.*delete|osascript.*empty)",
+    r"\bgit\s+push\b|\bsendmail\b|\bmail\s+-s\b|"
+    r"osascript.*\b(send|delete|empty\s+trash)\b",
     re.IGNORECASE)
 # AppleScript keywords that are critical (send/create/delete/trash in Mail, Calendar, Messages).
 _CRITICAL_APPLESCRIPT = re.compile(
@@ -225,12 +232,17 @@ _NEGATE = re.compile(r"\b(no|nope|cancel|stop|don'?t|never\s+mind|forget it|wait
 
 
 def _is_critical_call(name: str, args: dict) -> bool:
-    """Classify a tool call as routine vs critical. write_file/edit_file/spawn_worker with action
-    are inherently mutating → critical. bash/applescript/gui_script escalate on content patterns."""
-    if name in ("write_file", "edit_file"):
-        return True
-    if name == "spawn_worker":
-        return False  # spawning a watched terminal is routine; the worker itself has its own prompts
+    """Classify a tool call as routine vs critical. Only OUTWARD-FACING or genuinely IRREVERSIBLE
+    actions confirm-gate (owner 2026-06-19: stop gating every routine step — she was reading out +
+    confirming each bash/edit/write before running it). Routine work just RUNS; the _DESTRUCTIVE hard
+    block still refuses catastrophic commands regardless of this soft gate.
+
+    Not gated (routine): edit_file, spawn_worker, read_file, open_app, screenshot, remember, xref, and
+    bash/applescript whose content misses the critical patterns. write_file gates ONLY when it would
+    OVERWRITE an existing file (potential data loss); writing a brand-new file is routine."""
+    if name == "write_file":
+        p = (args.get("path") or "").strip()
+        return bool(p) and os.path.exists(os.path.join(REPO, p))   # critical only if overwriting
     if name == "bash":
         return bool(_CRITICAL_BASH.search(args.get("command", "")))
     if name in ("applescript", "gui_script"):

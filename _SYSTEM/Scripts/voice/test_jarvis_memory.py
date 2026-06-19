@@ -273,5 +273,53 @@ class TestBrainWiring(unittest.TestCase):
         ast.parse(self._src())   # raises on syntax error
 
 
+class TestConfirmGateNarrowed(unittest.TestCase):
+    """Bug-1 regression (owner 2026-06-19): the confirm-gate fired on EVERY routine step — any edit/write,
+    bare `rm`, any `>` redirect, `git commit` — so Yuri read each command out loud + asked to confirm before
+    running it. Now ONLY outward-facing / irreversible actions gate. Loads yuri-z-brain.py via importlib
+    (the hyphen filename isn't importable) with JARVIS_XREF=0 to skip the canonical node call at import."""
+    BRAIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yuri-z-brain.py")
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ["JARVIS_XREF"] = "0"   # skip the canonical node call when the brain module builds SYSTEM
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("yzb_gate_test", cls.BRAIN)
+        cls.yzb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.yzb)
+
+    # RED — routine ops MUST NOT gate (the bug was that they all did)
+    def test_edit_file_not_gated(self):
+        self.assertFalse(self.yzb._is_critical_call(
+            "edit_file", {"path": "src/x.py", "old_string": "a", "new_string": "b"}))
+
+    def test_write_new_file_not_gated(self):
+        # a path that does NOT exist → creating, not overwriting → routine
+        self.assertFalse(self.yzb._is_critical_call(
+            "write_file", {"path": "brand_new_unlikely_xyz_12345.py", "content": "x"}))
+
+    def test_routine_bash_not_gated(self):
+        for cmd in ("git status", "npm test", "ls -la", "grep foo bar.txt", "echo hi",
+                    "rm /tmp/some-cache-file", "mv a.txt b.txt", "node script.js > out.log",
+                    "git commit -m wip", "git add -A", "cat <<'EOF' > /tmp/x\nhi\nEOF"):
+            self.assertFalse(self.yzb._is_critical_call("bash", {"command": cmd}),
+                             f"routine bash should NOT gate: {cmd!r}")
+
+    def test_spawn_worker_not_gated(self):
+        self.assertFalse(self.yzb._is_critical_call("spawn_worker", {"task": "run the tests"}))
+
+    # GREEN — genuinely outward / irreversible ops STILL gate (guard against over-narrowing)
+    def test_git_push_still_gated(self):
+        self.assertTrue(self.yzb._is_critical_call("bash", {"command": "git push origin main"}))
+
+    def test_overwrite_existing_file_gated(self):
+        # an existing file → overwrite = potential data loss → critical
+        self.assertTrue(self.yzb._is_critical_call(
+            "write_file", {"path": "_SYSTEM/Scripts/voice/yuri-z-brain.py", "content": "x"}))
+
+    def test_sendmail_still_gated(self):
+        self.assertTrue(self.yzb._is_critical_call("bash", {"command": "sendmail someone@mail.com"}))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
