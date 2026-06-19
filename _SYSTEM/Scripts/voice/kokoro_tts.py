@@ -45,17 +45,22 @@ def _clear_mlx_cache():
 
 
 def _normalize(t: str) -> str:
-    """Make text speakable + phonemizer-safe. The Kokoro phonemizer chokes on markdown and fancy
-    punctuation (→ 'words count mismatch' → broadcast_shapes crash) — and you don't speak asterisks
-    anyway. Strip markdown, normalize dashes/quotes, turn newlines into sentence breaks (which also
-    lets the sentence-splitter chunk long bulleted replies into short, safe pieces)."""
+    """Make text speakable + phonemizer-safe. Kokoro's g2p (misaki) emits 'words count mismatch'
+    (→ broadcast_shapes vocoder crash) when a whitespace-split token contains an embedded symbol or a
+    no-space dot — IPs (127.0.0.1), versions (v1.2.3), URLs/paths (foo.com, a/b/c), code refs, and stray
+    non-ASCII all do this. Normalize so every token is a clean speakable word/number the g2p can align."""
     t = (t.replace("—", ", ").replace("–", ", ").replace("…", ". ")
          .replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'"))
     t = re.sub(r"[*#`_~]+", "", t)              # bold/italic/headers/code/strikethrough markers
     t = re.sub(r"(?m)^\s*[-•·]\s*", "", t)       # leading bullet markers
     t = re.sub(r"\s*\n+\s*", ". ", t)            # newlines → sentence breaks
-    t = re.sub(r"\s+", " ", t)                   # collapse whitespace
+    # g2p-alignment guards (the broadcast_shapes / 'words count mismatch' root cause, owner 2026-06-19):
+    t = re.sub(r"(?<=[A-Za-z0-9])\.(?=[A-Za-z0-9])", " ", t)  # no-space dots (IPs/URLs/versions) → space
+    t = re.sub(r"[^0-9A-Za-z\s.,!?'-]", " ", t)  # drop symbols (keep alnum + basic punct + hyphen) → space
+    t = re.sub(r"\s+", " ", t)                   # collapse whitespace (from all the →space replacements)
     t = re.sub(r"(\.\s*){2,}", ". ", t)          # de-dupe runs of periods
+    if not re.search(r"[A-Za-z0-9]", t):
+        return ""   # whitespace/punctuation-only → nothing to speak; never feed the model an empty string
     return t.strip()
 
 
