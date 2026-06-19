@@ -16,6 +16,24 @@ import { newMakerOrder, onTrade, onBookUpdate } from './maker-exec-measure.mjs';
 
 const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 
+// ── ts-sorted binary search ───────────────────────────────────────────────────
+// All event arrays (_snaps/_diffs/_trades) are time-sorted ascending. These
+// replace O(n) prefix scans that made replay quadratic on large tapes
+// (bookAt/tradesBetween were re-scanning from index 0 on every call → 22-min
+// runs on an 80k-event tape). O(log n) each. 2026-06-19.
+/** First index with arr[i].ts >= target (arr.length if none). */
+function lowerBoundByTs(arr, target) {
+  let lo = 0, hi = arr.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (arr[mid].ts < target) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+/** First index with arr[i].ts > target (arr.length if none). */
+function upperBoundByTs(arr, target) {
+  let lo = 0, hi = arr.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (arr[mid].ts <= target) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
 /** Parse a single JSONL line; return null on any error. */
 function parseLine(line) {
   const s = line.trim();
@@ -93,13 +111,10 @@ export class Tape {
     try {
       if (!isNum(ts)) return null;
 
-      // Find latest snap with snap.ts ≤ ts (snaps are time-sorted ascending)
-      let snap = null;
-      for (let i = this._snaps.length - 1; i >= 0; i--) {
-        if (this._snaps[i].ts <= ts) { snap = this._snaps[i]; break; }
-      }
-      if (!snap) return null;
-
+      // Latest snap with snap.ts ≤ ts (binary search; snaps time-sorted ascending)
+      const si = upperBoundByTs(this._snaps, ts) - 1;
+      if (si < 0) return null;
+      const snap = this._snaps[si];
       const snapTs = snap.ts;
 
       // Seed book from snap
@@ -108,9 +123,9 @@ export class Tape {
       applyLevels(bids, snap.bids);
       applyLevels(asks, snap.asks);
 
-      // Apply diffs: snapTs < diff.ts ≤ ts (diffs are absolute level sets, qty=0 = delete)
-      for (const diff of this._diffs) {
-        if (diff.ts <= snapTs) continue;
+      // Apply diffs: snapTs < diff.ts ≤ ts (binary-search the start; absolute level sets, qty=0 = delete)
+      for (let di = upperBoundByTs(this._diffs, snapTs); di < this._diffs.length; di++) {
+        const diff = this._diffs[di];
         if (diff.ts > ts) break; // sorted, so we can stop early
         applyLevels(bids, diff.b);
         applyLevels(asks, diff.a);
@@ -144,8 +159,8 @@ export class Tape {
     try {
       if (!isNum(t0) || !isNum(t1)) return [];
       const result = [];
-      for (const ev of this._trades) {
-        if (ev.ts < t0) continue;
+      for (let i = lowerBoundByTs(this._trades, t0); i < this._trades.length; i++) {
+        const ev = this._trades[i];
         if (ev.ts > t1) break; // sorted, early exit
         result.push({ ts: ev.ts, tradePrice: ev.p, tradeSize: ev.q, aggressorSide: ev.aggressorSide });
       }
@@ -207,52 +222,66 @@ export class Tape {
       if (side !== 'buy' && side !== 'sell') return noFill;
 
       const horizonEnd = joinTs + horizonSec * 1000;
+      const priceKey = String(price);
+      const useBids = side === 'buy';
 
-      // Determine queueAhead at join time from the book snapshot
+      // Queue-ahead at join from one full book reconstruction. This is the ONLY
+      // full bookAt; per-trade book state below is maintained incrementally
+      // instead of reconstructing the whole book per trade (was O(trades×diffs)).
       const joinBook = this.bookAt(joinTs);
       let queueAheadAtJoin = 0;
+      let haveBook = false;
+      let sideLevels = new Map(); // mutable our-side level map (price→size)
       if (joinBook) {
-        const priceKey = String(price);
-        const sideMap = side === 'buy' ? joinBook.bids : joinBook.asks;
-        queueAheadAtJoin = sideMap.has(priceKey) ? sideMap.get(priceKey) : 0;
+        haveBook = true;
+        const sm = useBids ? joinBook.bids : joinBook.asks;
+        queueAheadAtJoin = sm.has(priceKey) ? sm.get(priceKey) : 0;
+        sideLevels = new Map(sm); // seeded at joinTs
       }
 
       const order = newMakerOrder({ side, price, size, queueAheadAtJoin });
       if (order._invalid) return { ...noFill, queueAheadAtJoin };
 
-      // Feed trades + book updates through the fill model
-      const trades = this.tradesBetween(joinTs, horizonEnd);
+      // Forward cursors into snaps/diffs for events in (joinTs, horizonEnd].
+      // advanceTo(upto) brings sideLevels to exactly what bookAt(upto) would give
+      // for our side: reseed at the latest snap ≤ upto, then apply diffs ≤ upto.
+      let si = upperBoundByTs(this._snaps, joinTs);
+      let di = upperBoundByTs(this._diffs, joinTs);
+      const advanceTo = (upto) => {
+        while (si < this._snaps.length && this._snaps[si].ts <= upto) {
+          const snap = this._snaps[si];
+          sideLevels = new Map();
+          applyLevels(sideLevels, useBids ? snap.bids : snap.asks);
+          haveBook = true;
+          di = upperBoundByTs(this._diffs, snap.ts); // diffs ≤ snap.ts are subsumed by the reseed
+          si++;
+        }
+        while (di < this._diffs.length && this._diffs[di].ts <= upto) {
+          applyLevels(sideLevels, useBids ? this._diffs[di].b : this._diffs[di].a);
+          di++;
+        }
+      };
 
-      // We also track the last-known level size so we can call onBookUpdate
-      // after each trade (using the book state at that trade's timestamp).
+      // Walk trades in [joinTs, horizonEnd] (matches tradesBetween's inclusive range).
       let fillTs = null;
-
-      for (const trade of trades) {
+      for (let i = lowerBoundByTs(this._trades, joinTs); i < this._trades.length; i++) {
+        const trade = this._trades[i];
+        if (trade.ts > horizonEnd) break;
         if (order.filled) break;
 
         const result = onTrade(order, {
-          tradePrice: trade.tradePrice,
-          tradeSize: trade.tradeSize,
+          tradePrice: trade.p,
+          tradeSize: trade.q,
           aggressorSide: trade.aggressorSide,
         });
-
-        if (result.fillQty > 0 && fillTs === null) {
-          fillTs = trade.ts; // first trade that produces any fill
-        }
-
+        if (result.fillQty > 0 && fillTs === null) fillTs = trade.ts;
         if (order.filled) break;
 
-        // Infer book-level size at this trade's timestamp for cancel inference
-        try {
-          const bookNow = this.bookAt(trade.ts);
-          if (bookNow) {
-            const priceKey = String(price);
-            const sideMapNow = side === 'buy' ? bookNow.bids : bookNow.asks;
-            const levelSizeNow = sideMapNow.has(priceKey) ? sideMapNow.get(priceKey) : 0;
-            onBookUpdate(order, levelSizeNow);
-          }
-        } catch {
-          /* cancel inference failure is non-fatal */
+        // Book-level size at this trade's ts for cancel inference (incremental).
+        advanceTo(trade.ts);
+        if (haveBook) {
+          const levelSizeNow = sideLevels.has(priceKey) ? sideLevels.get(priceKey) : 0;
+          onBookUpdate(order, levelSizeNow);
         }
       }
 
