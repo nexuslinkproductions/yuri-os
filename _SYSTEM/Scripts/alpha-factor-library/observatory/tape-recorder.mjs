@@ -426,7 +426,7 @@ if (_main && process.argv.includes('--test')) {
       };
     };
 
-    // trades-stream.mjs is the real sibling — we inject trade frames via its aggTrade socket below.
+    // trades-stream.mjs is the real sibling — we inject trade frames via its @trade socket below.
     const onBooks = [], onTrades = [];
     const handle = await startRecorder({
       symbols: ['BTCUSDT'],
@@ -453,12 +453,17 @@ if (_main && process.argv.includes('--test')) {
     });
     for (const ws of depthSockets) ws.onmessage?.({ data: diffFrame });
 
-    // Push a trade via the aggTrade socket (real trades-stream.mjs is the sibling)
-    const tradeWS = MockWS.instances.find((ws) => ws._url && ws._url.includes('aggTrade'));
+    // Push a trade via the @trade socket (real trades-stream.mjs is the sibling).
+    // NOTE: trades-stream.mjs subscribes to the @trade channel, NOT @aggTrade —
+    // @aggTrade returns ZERO frames on this fstream endpoint (verified 2026-06-19).
+    // The socket URL therefore contains '@trade', so we match that substring.
+    // The injected frame uses e:'trade' + id field 't' (the live @trade form);
+    // parseAggTrade accepts e:'trade' | e:'aggTrade' and id from t|a.
+    const tradeWS = MockWS.instances.find((ws) => ws._url && ws._url.includes('@trade'));
     if (tradeWS) {
       tradeWS.onmessage?.({ data: JSON.stringify({
-        stream: 'btcusdt@aggTrade',
-        data: { e: 'aggTrade', s: 'BTCUSDT', T: 1718000001000, p: '100.5', q: '0.25', m: true, a: 77 },
+        stream: 'btcusdt@trade',
+        data: { e: 'trade', s: 'BTCUSDT', T: 1718000001000, p: '100.5', q: '0.25', m: true, t: 77 },
       }) });
     }
 
