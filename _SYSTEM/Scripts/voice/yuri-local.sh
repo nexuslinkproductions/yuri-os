@@ -20,6 +20,7 @@ command -v ollama >/dev/null || { echo "❌ ollama not installed"; exit 1; }
 # Only ONE brain at a time (lesson: simultaneous models thrash an M2 Pro). Retire any other brain.
 pkill -f claude-p-brain.py 2>/dev/null || true
 pkill -f claude-brain-proxy.py 2>/dev/null || true
+pkill -f yuri-z-brain.py 2>/dev/null || true
 pkill -f yuri-local-brain.py 2>/dev/null || true
 
 export YURI_LOCAL_MODEL="$MODEL"

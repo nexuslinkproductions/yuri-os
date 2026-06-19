@@ -23,13 +23,23 @@ from pipecat.services.settings import TTSSettings
 
 
 def _clear_mlx_cache():
-    """Release pooled Metal buffers after each synth — keeps an always-on bot memory-bounded."""
+    """Release pooled Metal buffers after each synth — keeps an always-on bot memory-bounded.
+    Uses mx.metal.clear_cache (the Metal-specific path) when available, falling back to mx.clear_cache.
+    Also forces a GC pass so Python-side references to freed MLX arrays don't pin the GPU memory."""
     try:
         import mlx.core as mx
-        if hasattr(mx, "clear_cache"):
-            mx.clear_cache()
-        elif hasattr(mx, "metal") and hasattr(mx.metal, "clear_cache"):
+        if hasattr(mx, "metal") and hasattr(mx.metal, "clear_cache"):
             mx.metal.clear_cache()
+        elif hasattr(mx, "clear_cache"):
+            mx.clear_cache()
+    except Exception:
+        pass
+    # GC pass: MLX arrays freed on the Python side may still hold Metal buffer references until GC
+    # collects them. Without this, a long session accumulates freed-but-not-collected arrays that
+    # keep GPU memory pinned even after clear_cache. This is the degradation fix for long sessions.
+    try:
+        import gc
+        gc.collect()
     except Exception:
         pass
 
@@ -139,6 +149,20 @@ class KokoroTTSService(TTSService):
     @staticmethod
     def _load(model_path: str):
         import mlx.core as mx  # noqa: F401  — initialize MLX on THIS (the dedicated) thread
+        # Bound Metal memory so a long-lived bot.py session doesn't grow unbounded. MLX's default
+        # is to let the Metal allocator grab as much GPU memory as it wants; capping it forces the
+        # allocator to recycle pooled buffers (together with _clear_mlx_cache per turn) instead of
+        # growing forever — the degradation fix for "stacks shapes over time".
+        try:
+            if hasattr(mx, "metal") and hasattr(mx.metal, "set_memory_limit"):
+                # 2GB cap — Kokoro-82M + Whisper-LARGE both fit well under this on an M2 Pro (16GB).
+                # Override with YURI_MLX_MEM_LIMIT_MB (0 = unlimited / MLX default).
+                _cap = int(os.environ.get("YURI_MLX_MEM_LIMIT_MB", "2048"))
+                if _cap > 0:
+                    mx.metal.set_memory_limit(_cap * 1024 * 1024)
+                    logger.info(f"[kokoro] Metal memory limit set to {_cap}MB")
+        except Exception as e:
+            logger.warning(f"[kokoro] could not set Metal memory limit: {e}")
         from mlx_audio.tts.utils import load_model
         return load_model(model_path)
 

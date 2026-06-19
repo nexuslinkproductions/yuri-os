@@ -14,20 +14,36 @@ mkdir -p "$REPO/_SYSTEM/state/voice"
 rm -f "$REPO/_SYSTEM/state/voice/tts.paused" 2>/dev/null || true   # never let the pause flag mute her
 [ -x "$VP" ] || { echo "❌ venv missing — run setup-pipecat.sh"; exit 1; }
 
+# Clean slate: kill the FULL voice process set (brains, bot, orphan MLX servers, stray kokoro) so a
+# relaunch doesn't compete with stale GPU memory from a previous session or the retired marvis path.
+# This is the fix for "TTS degrades over time + killing the terminal doesn't clear it."
+bash "$VOICE/voice-stop.sh"
+
 # Brain: Z.ai GLM-5-Turbo (:8014) — Claude-class + snappy (~2s warm, no claude -p spawn lag).
 # Persisted memory + model-driven tool-calling (spawn_worker). Key self-hydrates from keychain
-# yuri-zai-api-key. Fallbacks on disk: claude-p-brain.py (:8012) + yuri-local-brain.py (:8013) —
-# to switch back, point the line below + BRAIN_PROXY_URL at one of them.
-pkill -f claude-brain-proxy.py 2>/dev/null || true   # retire the fragile live-session bridge
-pkill -f claude-p-brain.py 2>/dev/null || true
-pkill -f yuri-local-brain.py 2>/dev/null || true
+# yuri-zai-api-key. This is the ONE brain for ALL launchers (claude-p-brain.py is retired).
 pkill -f yuri-z-brain.py 2>/dev/null || true
-( python3 "$VOICE/yuri-z-brain.py" >"$REPO/_SYSTEM/state/voice/yuri-z-brain.log" 2>&1 & )
+# Brain as a TRACKED background child (not a detached ( … & ) subshell). The trap below kills the
+# FULL voice set on ANY exit — Ctrl-C (INT), terminal close (HUP), or normal exit — so nothing is
+# ever left orphaned (owner 2026-06-19: "if I close the terminal all of it should end right with it").
+python3 "$VOICE/yuri-z-brain.py" >"$REPO/_SYSTEM/state/voice/yuri-z-brain.log" 2>&1 &
+
+cleanup() {
+  trap - EXIT INT TERM HUP                 # disarm so the sweep runs exactly once
+  echo ""; echo "stopping Yuri — full voice cleanup…"
+  bash "$VOICE/voice-stop.sh" >/dev/null 2>&1 || true   # kills brain + bot + MLX/kokoro, nothing survives
+  exit 0
+}
+trap cleanup EXIT INT TERM HUP
+
 sleep 1
 curl -s --max-time 5 http://127.0.0.1:8014/health >/dev/null 2>&1 \
   && echo "brain -> Z.ai GLM-5-Turbo (:8014, GLM Coding Plan, \$0)" \
   || echo "⚠ brain not answering on :8014 — check _SYSTEM/state/voice/yuri-z-brain.log"
 
 export BRAIN_PROXY_URL="http://127.0.0.1:8014/v1"
-echo "loading the voice loop (mic/speaker, MLX warm-up ~15s)…  Ctrl-C stops."
-exec "$VP" "$VOICE/bot.py"
+echo "loading the voice loop (mic/speaker, MLX warm-up ~15s)…  Ctrl-C or closing this terminal stops everything."
+# Foreground via background + wait (NOT exec) so the trap fires on terminal close / Ctrl-C. `exec`
+# would replace this shell and the trap could never run — that's what orphaned the brain + MLX before.
+"$VP" "$VOICE/bot.py" &
+wait $!

@@ -182,9 +182,10 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")
 # (a=American, b=British — e.g. YURI_VOICE=bf_alice, or af_heart with YURI_VOICE_LANG=a).
 VOICE = os.environ.get("YURI_VOICE", "bf_isabella")
 VOICE_LANG = os.environ.get("YURI_VOICE_LANG", "b")
-# Free brain default: claude-p-brain :8012 (claude -p headless on the Max subscription, $0).
-# Fallback to the tmux live-session brain-proxy :8011 via BRAIN_PROXY_URL.
-PROXY = os.environ.get("BRAIN_PROXY_URL", "http://127.0.0.1:8012/v1")
+# Brain: GLM Z.ai brain (yuri-z-brain.py :8014, Z.ai GLM Coding Plan, $0). This is the ONE brain —
+# claude-p-brain.py (:8012) is retired (claude -p is a forbidden launch shape). Override with
+# BRAIN_PROXY_URL only if you know what you're doing.
+PROXY = os.environ.get("BRAIN_PROXY_URL", "http://127.0.0.1:8014/v1")
 
 # The brain proxy folds the conversation itself (claude -p) / drives the real Claude session,
 # but Pipecat needs a context/system seed.

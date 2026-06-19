@@ -265,9 +265,9 @@
       "keychain_service": "yuri-zai-api-key",
       "protocol": "anthropic",
       "auth_header": "bearer",
-      "context_window": 200000,
+      "context_window": 1000000,
       "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
-      "max_output_source": "Z.ai glm-5.2 = Opus-tier flagship (premium on the plan). Context set conservative at 200K; bump to 1M once the Z.ai long-context header convention is verified live.",
+      "max_output_source": "Z.ai glm-5.2 = Opus-tier flagship (premium on the plan). Context bumped 200K->1M (owner directive 2026-06-19; Z.ai blog confirms 1M max context, 128K max output). max_output tiers left as probe-verified envelope. NOTE: 1M is the model max; if the Anthropic-compat endpoint 400s on a >200K request, a long-context header convention may still be needed (live-probe to confirm).",
       "timeout_ms": 600000
     },
     "glm-5-turbo": {
