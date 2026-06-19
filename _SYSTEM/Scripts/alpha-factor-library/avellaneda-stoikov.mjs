@@ -109,11 +109,23 @@ export function sigmaPrice(sigmaReturnPerSec, midPrice) {
  * skew term is ~1e-7 to ~1e-4 — effectively zero against a €300 position.
  * The formula is kept intact for correctness; its edge lives at larger q.
  */
-export function reservationPrice({ s, q, gamma, sigma, tau } = {}) {
+export function reservationPrice({ s, q, gamma, sigma, tau, maxSkewTicks, tickSize } = {}) {
   if (!fin(s) || !fin(q) || !fin(gamma) || !fin(sigma) || !fin(tau)) return null;
   if (gamma <= 0 || sigma < 0) return null;
   // tau can be 0 (horizon passed; spread collapses to zero, reservation = s)
-  return s - q * gamma * sigma * sigma * tau;
+
+  // ── SKEW CLAMP (opt-in; glm-5.2 hardening 2026-06-19) ─────────────────────────
+  // Clamp the inventory-skew term q·γ·σ²·τ to ±maxSkewTicks·tickSize so a large
+  // inventory can't push the reservation price off the book. Omitted params → no
+  // clamp (identical to the original formula). Bad params (tickSize ≤ 0,
+  // maxSkewTicks < 0, or non-finite) → no clamp (fail-open to the formula).
+  let skew = q * gamma * sigma * sigma * tau;
+  if (fin(maxSkewTicks) && fin(tickSize) && maxSkewTicks >= 0 && tickSize > 0) {
+    const cap = maxSkewTicks * tickSize;
+    if (skew >  cap) skew =  cap;
+    if (skew < -cap) skew = -cap;
+  }
+  return s - skew;
 }
 
 // ── optimalSpread ─────────────────────────────────────────────────────────────
@@ -149,16 +161,21 @@ export function optimalSpread({ gamma, sigma, tau, kappa } = {}) {
 // ── quotes ────────────────────────────────────────────────────────────────────
 
 /**
- * quotes({ microprice, q, gamma, sigma, tau, kappa, lambda, orderSize, vpinToxic, toxicWiden })
+ * quotes({ microprice, q, gamma, sigma, tau, kappa, lambda, orderSize, vpinToxic, toxicWiden,
+ *          minHalfSpreadBps, maxHalfSpreadBps, maxSkewTicks, tickSize, qMax })
  *   → { bidPx, askPx, halfSpread, reservation } | null-fields object on bad params
  *
  * Full quote placement following AS (2008):
- *   1. reservation  = reservationPrice(microprice, q, γ, σ, τ)
+ *   1. reservation  = reservationPrice(microprice, q, γ, σ, τ)  [with opt-in skew clamp]
  *   2. halfSpread   = optimalSpread / 2
  *   3. [optional] widen by market-impact:  halfSpread += λ · orderSize
  *   4. [optional] widen for VPIN toxicity: halfSpread *= toxicWiden  (when vpinToxic=true)
- *   5. bidPx = reservation − halfSpread
+ *   5. [optional] clamp half to [minHalfSpreadBps, maxHalfSpreadBps] (converted via microprice)
+ *   6. bidPx = reservation − halfSpread
  *      askPx = reservation + halfSpread
+ *   7. [optional] inventory hard-limit (qMax): when |q| ≥ qMax, suppress the side
+ *      that would increase |q| (set its px to null) so the quoter can only reduce
+ *      inventory, never grow it past the limit.
  *
  * @param {number}  microprice  - Fair-value anchor (from computeMicroprice)
  * @param {number}  q           - Inventory in base units (signed)
@@ -170,6 +187,19 @@ export function optimalSpread({ gamma, sigma, tau, kappa } = {}) {
  * @param {number}  [orderSize] - Order size for impact term (optional, ≥ 0)
  * @param {boolean} [vpinToxic] - True when VPIN signals toxic flow (default false)
  * @param {number}  [toxicWiden]- Spread multiplier under toxic flow (default 1.5)
+ *
+ * OPT-IN HARDENING GUARDS (omitted → byte-identical current behavior; glm-5.2, 2026-06-19):
+ * @param {number}  [minHalfSpreadBps] - Spread FLOOR in bps; half never falls below
+ *   (minHalfSpreadBps/1e4)·microprice. Protects against quoting inside the round-trip fee.
+ * @param {number}  [maxHalfSpreadBps] - Spread CEILING in bps; half never exceeds
+ *   (maxHalfSpreadBps/1e4)·microprice. Caps runaway spreads in high-σ regimes.
+ *   If min > max → fail-open null (invalid clamp range).
+ * @param {number}  [maxSkewTicks] - Clamp the inventory-skew component of reservation
+ *   to ±maxSkewTicks·tickSize (passed to reservationPrice).
+ * @param {number}  [tickSize]    - Tick size in price units (used with maxSkewTicks).
+ * @param {number}  [qMax]        - Inventory hard-limit in lots. When |q| ≥ qMax,
+ *   the inventory-INCREASING side is suppressed (its px → null). qMax ≤ 0 → suppress
+ *   both sides (RED edge).
  * @returns {{ bidPx: number|null, askPx: number|null, halfSpread: number|null, reservation: number|null }}
  *
  * Fail-open: any bad param → all four fields null, never throws.
@@ -185,11 +215,22 @@ export function quotes({
   orderSize,
   vpinToxic = false,
   toxicWiden = 1.5,
+  minHalfSpreadBps,
+  maxHalfSpreadBps,
+  maxSkewTicks,
+  tickSize,
+  qMax,
 } = {}) {
   const NULL_RESULT = { bidPx: null, askPx: null, halfSpread: null, reservation: null };
 
   try {
-    const r = reservationPrice({ s: microprice, q, gamma, sigma, tau });
+    // ── SPREAD FLOOR/CEILING: fail-open on invalid clamp range ──────────────────
+    // If both bounds are present and floor > ceiling, the clamp is ill-posed → null.
+    const hasFloor = fin(minHalfSpreadBps);
+    const hasCeil  = fin(maxHalfSpreadBps);
+    if (hasFloor && hasCeil && minHalfSpreadBps > maxHalfSpreadBps) return NULL_RESULT;
+
+    const r = reservationPrice({ s: microprice, q, gamma, sigma, tau, maxSkewTicks, tickSize });
     if (r === null) return NULL_RESULT;
 
     const spread = optimalSpread({ gamma, sigma, tau, kappa });
@@ -208,11 +249,50 @@ export function quotes({
       half *= tw;
     }
 
+    // ── SPREAD FLOOR/CEILING CLAMP (opt-in; glm-5.2 2026-06-19) ─────────────────
+    // bps → price via microprice. 1 bps = (bps/1e4)·mid. Applied AFTER widen so the
+    // post-impact, post-toxicity spread is what gets clamped. Floor protects against
+    // quoting inside the fee; ceiling caps runaway high-σ spreads.
+    if (hasFloor) {
+      const floorPx = (minHalfSpreadBps / 1e4) * microprice;
+      if (half < floorPx) half = floorPx;
+    }
+    if (hasCeil) {
+      const ceilPx = (maxHalfSpreadBps / 1e4) * microprice;
+      if (half > ceilPx) half = ceilPx;
+    }
+
     if (!fin(half) || half < 0) return NULL_RESULT;
 
+    let bidPx = r - half;
+    let askPx = r + half;
+
+    // ── INVENTORY HARD-LIMIT GUARD (opt-in; glm-5.2 2026-06-19) ─────────────────
+    // When |q| ≥ qMax, suppress the side that would INCREASE |q|:
+    //   - q > 0 (long) → buying more widens long → suppress bid (only allow sells)
+    //   - q < 0 (short) → selling more widens short → suppress ask (only allow buys)
+    //   - qMax ≤ 0 → both sides at/over limit → suppress BOTH (RED edge)
+    // Bidding lifts inventory toward long; asking lifts inventory toward short.
+    if (fin(qMax)) {
+      const overLimit = Math.abs(q) >= qMax;
+      if (overLimit) {
+        if (qMax <= 0) {
+          // RED edge: qMax=0 (or negative) with any |q|≥qMax → both sides suppressed
+          bidPx = null;
+          askPx = null;
+        } else if (q > 0) {
+          bidPx = null;  // long: suppress the buy side
+        } else if (q < 0) {
+          askPx = null;  // short: suppress the sell side
+        } else {
+          // q === 0 but |0| ≥ qMax requires qMax ≤ 0, handled above; defensive no-op
+        }
+      }
+    }
+
     return {
-      bidPx:      r - half,
-      askPx:      r + half,
+      bidPx,
+      askPx,
       halfSpread: half,
       reservation: r,
     };
@@ -411,6 +491,131 @@ if (_runAsMain && process.argv.includes('--test')) {
   const widthPrice  = optimalSpread({ ...gtk, sigma: sigmaPrice(0.0001, 62000) }) - floor; // correct
   assert(widthPrice > widthReturn * 1e6,
     `sigmaPrice contract: price-vol width >> return-vol width (price ${widthPrice}, return ${widthReturn})`);
+
+  // ══ HARDENING GUARDS (glm-5.2, 2026-06-19) ════════════════════════════════════
+  // Each guard: GREEN (clamp works), RED (fail-open), METAMORPHIC (monotonicity).
+
+  // ── GUARD 1: SPREAD FLOOR / CEILING ──────────────────────────────────────────
+  // GREEN floor: a tiny computed spread is raised to the floor.
+  // baseParams at mid=100 → halfSpread ≈ (γσ²τ + ln-term)/2. Force a tiny spread by
+  // using σ≈0,τ=0 so only the ln(1+γ/κ) term survives → very small half.
+  const tinyBase = { microprice: 100, q: 0, gamma: 0.01, sigma: 0.0001, tau: 0, kappa: 10 };
+  const tinyNoFloor = quotes(tinyBase);
+  const floorBps = 50; // 50 bps half-spread floor = 0.5 price units at mid=100
+  const tinyFloored = quotes({ ...tinyBase, minHalfSpreadBps: floorBps });
+  const expectedFloorPx = (floorBps / 1e4) * 100; // 0.5
+  assert(tinyFloored.halfSpread !== null && near(tinyFloored.halfSpread, expectedFloorPx, 1e-12),
+    `floor: tiny spread raised to floor (raw ${tinyNoFloor.halfSpread?.toExponential(3)} → ${tinyFloored.halfSpread})`);
+  assert(tinyFloored.halfSpread !== null && tinyFloored.halfSpread > (tinyNoFloor.halfSpread ?? 0),
+    'floor: floored halfSpread > raw computed halfSpread');
+
+  // GREEN ceiling: a huge σ spread is capped.
+  const hugeBase = { microprice: 100, q: 0, gamma: 0.01, sigma: 100, tau: 1, kappa: 1 };
+  const hugeNoCeil = quotes(hugeBase);
+  const ceilBps = 100; // 100 bps ceiling = 1.0 price unit at mid=100
+  const hugeCapped = quotes({ ...hugeBase, maxHalfSpreadBps: ceilBps });
+  const expectedCeilPx = (ceilBps / 1e4) * 100; // 1.0
+  assert(hugeCapped.halfSpread !== null && near(hugeCapped.halfSpread, expectedCeilPx, 1e-9),
+    `ceiling: huge σ spread capped (raw ${hugeNoCeil.halfSpread?.toExponential(3)} → ${hugeCapped.halfSpread})`);
+  assert(hugeCapped.halfSpread !== null && hugeCapped.halfSpread < (hugeNoCeil.halfSpan ?? Infinity),
+    'ceiling: capped halfSpread < raw computed halfSpread');
+
+  // RED: floor > ceiling → fail-open null
+  const clampBadRange = quotes({ ...baseParams, minHalfSpreadBps: 200, maxHalfSpreadBps: 50 });
+  assert(clampBadRange.bidPx === null && clampBadRange.askPx === null && clampBadRange.halfSpread === null,
+    'RED floor/ceiling: min>max → all null (fail-open)');
+
+  // GREEN both bounds within range → no change to halfSpread
+  const wideBase = { microprice: 100, q: 0, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1 };
+  const wideNoClamp = quotes(wideBase);
+  const wideLoose = quotes({ ...wideBase, minHalfSpreadBps: 0.001, maxHalfSpreadBps: 1e6 });
+  assert(wideLoose.halfSpread !== null && near(wideLoose.halfSpread, wideNoClamp.halfSpread, 1e-12),
+    'floor/ceiling: loose bounds → halfSpread unchanged');
+
+  // ── GUARD 2: SKEW CLAMP (reservationPrice + quotes passthrough) ──────────────
+  // GREEN: a large q that would skew > maxSkewTicks is clamped to exactly the limit.
+  // Build a case where raw skew is large: q=100, γ=0.01, σ=2 (price vol), τ=1.
+  // raw skew = 100·0.01·4·1 = 4.0 price units. maxSkewTicks=10, tickSize=0.1 → cap=1.0.
+  const skewBase = { s: 100, q: 100, gamma: 0.01, sigma: 2, tau: 1 };
+  const rawSkewRp = reservationPrice(skewBase); // 100 - 4 = 96
+  const clampedRp = reservationPrice({ ...skewBase, maxSkewTicks: 10, tickSize: 0.1 }); // 100 - 1 = 99
+  assert(rawSkewRp !== null && near(rawSkewRp, 96, 1e-10),
+    `skew clamp: raw reservation = 96 (got ${rawSkewRp})`);
+  assert(clampedRp !== null && near(clampedRp, 99, 1e-10),
+    `skew clamp GREEN: skew clamped from 4.0 to 1.0 → r=99 (got ${clampedRp})`);
+
+  // METAMORPHIC: tighter maxSkewTicks → reservation closer to microprice (s=100).
+  const rpLoose  = reservationPrice({ ...skewBase, maxSkewTicks: 50,  tickSize: 0.1 }); // cap=5.0 → raw 4.0, no clamp
+  const rpTight  = reservationPrice({ ...skewBase, maxSkewTicks: 5,   tickSize: 0.1 }); // cap=0.5
+  const rpTighter= reservationPrice({ ...skewBase, maxSkewTicks: 1,   tickSize: 0.1 }); // cap=0.1
+  assert(rpLoose !== null && rpTight !== null && rpTighter !== null,
+    'skew clamp metamorphic: all finite');
+  assert(rpTight > rpLoose && rpTighter > rpTight,
+    `skew clamp METAMORPHIC: tighter clamp → reservation closer to s (loose ${rpLoose}, tight ${rpTight}, tighter ${rpTighter})`);
+  assert(Math.abs(100 - rpTighter) < Math.abs(100 - rpTight) && Math.abs(100 - rpTight) <= Math.abs(100 - rpLoose),
+    'skew clamp METAMORPHIC: |s - r| shrinks monotonically as clamp tightens');
+
+  // RED: bad clamp params (tickSize ≤ 0) → no clamp (fail-open to formula)
+  const skewBadTick = reservationPrice({ ...skewBase, maxSkewTicks: 10, tickSize: 0 });
+  assert(skewBadTick !== null && near(skewBadTick, 96, 1e-10),
+    `RED skew clamp: tickSize=0 → no clamp (raw r=96, got ${skewBadTick})`);
+  // negative maxSkewTicks → no clamp
+  const skewNeg = reservationPrice({ ...skewBase, maxSkewTicks: -5, tickSize: 0.1 });
+  assert(skewNeg !== null && near(skewNeg, 96, 1e-10),
+    `RED skew clamp: maxSkewTicks<0 → no clamp (raw r=96, got ${skewNeg})`);
+
+  // quotes() passes maxSkewTicks/tickSize through to reservationPrice
+  const qSkewRaw = quotes({ microprice: 100, q: 100, gamma: 0.01, sigma: 2, tau: 1, kappa: 1 });
+  const qSkewClamped = quotes({ microprice: 100, q: 100, gamma: 0.01, sigma: 2, tau: 1, kappa: 1, maxSkewTicks: 10, tickSize: 0.1 });
+  assert(qSkewRaw.reservation !== null && near(qSkewRaw.reservation, 96, 1e-10),
+    `skew clamp via quotes: raw reservation 96 (got ${qSkewRaw.reservation})`);
+  assert(qSkewClamped.reservation !== null && near(qSkewClamped.reservation, 99, 1e-10),
+    `skew clamp via quotes: clamped reservation 99 (got ${qSkewClamped.reservation})`);
+
+  // ── GUARD 3: INVENTORY HARD-LIMIT ────────────────────────────────────────────
+  // GREEN: q ≥ qMax (long) → bid suppressed (buy side), ask allowed (sell side).
+  const invLong = quotes({ microprice: 100, q: 5, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, qMax: 5 });
+  assert(invLong.bidPx === null && invLong.askPx !== null,
+    `inv-limit GREEN: q=5≥qMax=5 long → bid null, ask quoted (bid ${invLong.bidPx}, ask ${invLong.askPx})`);
+  // GREEN: q ≤ −qMax (short) → ask suppressed (sell side), bid allowed (buy side).
+  const invShort = quotes({ microprice: 100, q: -5, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, qMax: 5 });
+  assert(invShort.askPx === null && invShort.bidPx !== null,
+    `inv-limit GREEN: q=-5≤-qMax short → ask null, bid quoted (bid ${invShort.bidPx}, ask ${invShort.askPx})`);
+
+  // GREEN: |q| < qMax → both sides quoted (guard inactive)
+  const invUnder = quotes({ microprice: 100, q: 3, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, qMax: 5 });
+  assert(invUnder.bidPx !== null && invUnder.askPx !== null,
+    'inv-limit GREEN: |q|<qMax → both sides quoted');
+
+  // RED edge: qMax=0 → |q|≥0 always true → both sides suppressed (with q≠0).
+  const invQmax0 = quotes({ microprice: 100, q: 1, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, qMax: 0 });
+  assert(invQmax0.bidPx === null && invQmax0.askPx === null,
+    `RED inv-limit: qMax=0, q=1 → both sides null (bid ${invQmax0.bidPx}, ask ${invQmax0.askPx})`);
+  // qMax=0, q=0 → |0|≥0 true but qMax≤0 path → both null (defensive total suppression)
+  const invQmax0q0 = quotes({ microprice: 100, q: 0, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, qMax: 0 });
+  assert(invQmax0q0.bidPx === null && invQmax0q0.askPx === null,
+    'RED inv-limit: qMax=0, q=0 → both sides null');
+
+  // METAMORPHIC: reservation is still reported even when a side is suppressed
+  // (the inventory guard affects placement, not the reservation computation).
+  assert(invLong.reservation !== null && invLong.halfSpread !== null,
+    'inv-limit METAMORPHIC: reservation + halfSpread reported even when bid suppressed');
+
+  // ── OPT-IN REGRESSION: omitting all new params → byte-identical current behavior
+  const optInBase = { microprice: 100, q: 2, gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1, lambda: 0.001, orderSize: 5 };
+  const withNewParamsUndefined = quotes(optInBase);
+  // Recompute the legacy path by hand: reservation = s - q·γ·σ²·τ
+  const legacyR = 100 - 2 * 0.01 * 0.02 * 0.02 * 1;
+  const legacySpread = optimalSpread({ gamma: 0.01, sigma: 0.02, tau: 1, kappa: 1 });
+  const legacyHalf = legacySpread / 2 + 0.001 * 5;
+  assert(withNewParamsUndefined.reservation !== null && near(withNewParamsUndefined.reservation, legacyR, 1e-12),
+    `opt-in regression: reservation matches legacy (${withNewParamsUndefined.reservation} vs ${legacyR})`);
+  assert(withNewParamsUndefined.halfSpread !== null && near(withNewParamsUndefined.halfSpread, legacyHalf, 1e-12),
+    `opt-in regression: halfSpread matches legacy (${withNewParamsUndefined.halfSpread} vs ${legacyHalf})`);
+  assert(withNewParamsUndefined.bidPx !== null && near(withNewParamsUndefined.bidPx, legacyR - legacyHalf, 1e-12),
+    'opt-in regression: bidPx matches legacy');
+  assert(withNewParamsUndefined.askPx !== null && near(withNewParamsUndefined.askPx, legacyR + legacyHalf, 1e-12),
+    'opt-in regression: askPx matches legacy');
 
   console.log(`avellaneda-stoikov --test: ${pass} pass, ${fail} fail`);
   if (fail > 0) process.exit(1);
