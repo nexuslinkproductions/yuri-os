@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: trades-stream
 // @serves: aggTrade stream | live trade feed | tape recording | trade flow | buyer maker | aggressor side | BTC trade collector | Engine 2 recorder
-// @does: Connects to the Binance USDⓈ-M futures aggTrade combined WebSocket and calls onTrade({symbol,price,qty,ts,isBuyerMaker,aggressorSide,aggId}) on every aggTrade frame. Engine 2 recorder lane — BTC-only by design but multi-symbol capable. Mirrors tick-stream.mjs (fail-open, exp-backoff reconnect, injectable WebSocketImpl, --test + --smoke). Zero new npm dependency (Node built-in WebSocket). View-only market data — no orders, no auth.
+// @does: Connects to the Binance USDⓈ-M futures @trade combined WebSocket (individual trades — @aggTrade returns no frames on this fstream endpoint, verified 2026-06-19) and calls onTrade({symbol,price,qty,ts,isBuyerMaker,aggressorSide,aggId}) on every trade frame. Engine 2 recorder lane — BTC-only by design but multi-symbol capable. Mirrors tick-stream.mjs (fail-open, exp-backoff reconnect, injectable WebSocketImpl, --test + --smoke). Zero new npm dependency (Node built-in WebSocket). View-only market data — no orders, no auth.
 // @use: startTradesStream({symbols,onTrade}) from observatory-server when the trade-flow recorder is armed. parseAggTrade is pure + unit-tested. DISARMED standalone — wiring into the live daemon is a separate owner-gated step.
 // @exports: FSTREAM_WS_URL, parseAggTrade, startTradesStream
 //
@@ -30,14 +30,14 @@ export function parseAggTrade(raw) {
   if (!m || typeof m !== 'object') return null;
   // unwrap combined-stream envelope: {stream, data:{...}}
   const d = m.data && typeof m.data === 'object' ? m.data : m;
-  if (d.e !== 'aggTrade') return null;
+  if (d.e !== 'trade' && d.e !== 'aggTrade') return null; // @trade (live here) or @aggTrade (fallback)
   if (typeof d.s !== 'string' || !d.s) return null;
   const price = Number(d.p);
   const qty   = Number(d.q);
   if (!Number.isFinite(price) || price <= 0) return null;
   if (!Number.isFinite(qty)   || qty   <= 0) return null;
   const ts    = Number(d.T);
-  const aggId = Number(d.a);
+  const aggId = Number(d.t ?? d.a); // @trade uses t (tradeId); @aggTrade uses a (aggId)
   const isBuyerMaker = d.m === true;
   return {
     symbol:        d.s,
@@ -73,7 +73,10 @@ export function startTradesStream({
   }
 
   const syms = symbols.map((s) => String(s).toUpperCase());
-  const streamPath = '/stream?streams=' + syms.map((s) => `${s.toLowerCase()}@aggTrade`).join('/');
+  // @trade (individual trades) — @aggTrade returns ZERO frames on this fstream endpoint
+  // (verified 2026-06-19: depth + @trade stream fine, @aggTrade is silent here). @trade is
+  // finer-grained (better for VPIN bulk-volume + queue-consumption) and carries the same fields.
+  const streamPath = '/stream?streams=' + syms.map((s) => `${s.toLowerCase()}@trade`).join('/');
 
   let ws      = null;
   let stopped = false;
@@ -136,6 +139,10 @@ if (_main && process.argv.includes('--test')) {
   const t4 = parseAggTrade({ e: 'aggTrade', s: 'ETHUSDT', p: '3500', q: '0.5', T: 3, a: 3, m: true });
   ok(t4 && t4.symbol === 'ETHUSDT' && t4.aggressorSide === 'sell', 'object input parses');
 
+  // @trade (individual) frame — the LIVE USDⓈ-M form on this endpoint (aggTrade is silent here)
+  const tTrd = parseAggTrade(JSON.stringify({ stream: 'btcusdt@trade', data: { e: 'trade', s: 'BTCUSDT', p: '69000', q: '0.003', T: 5, t: 7, m: true } }));
+  ok(tTrd && tTrd.price === 69000 && tTrd.aggId === 7 && tTrd.aggressorSide === 'sell', '@trade frame parses (id from t, side from m)');
+
   // ── null cases: non-aggTrade, garbage, bad price
   ok(parseAggTrade(JSON.stringify({ e: 'depthUpdate', s: 'BTCUSDT' })) === null,      'non-aggTrade → null');
   ok(parseAggTrade('not json')                                          === null,      'garbage → null');
@@ -161,7 +168,7 @@ if (_main && process.argv.includes('--test')) {
   });
   await new Promise((r) => setTimeout(r, 5)); // let mock "open" fire
   ok(statuses.includes('open'), 'mock open status fired');
-  ok(MockWS.last.url.includes('btcusdt@aggTrade'), 'stream URL contains correct channel path');
+  ok(MockWS.last.url.includes('btcusdt@trade'), 'stream URL contains correct channel path (@trade)');
 
   // feed a valid aggTrade frame → onTrade fires
   MockWS.last.onmessage({ data: JSON.stringify({ stream: 'btcusdt@aggTrade', data: { e: 'aggTrade', s: 'BTCUSDT', p: '67000', q: '0.05', T: 9, a: 10, m: false } }) });
