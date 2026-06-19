@@ -119,8 +119,9 @@ export function attributeFills(tape, opts = {}) {
   if (!allTs.length) {
     return { fills: [], aggregate: {}, verdict: { bleedDetected: false, details: 'empty tape' } };
   }
-  const tapeStart = Math.min(...allTs);
-  const tapeEnd   = Math.max(...allTs);
+  // Loop min/max — Math.min(...allTs) overflows V8's arg-stack on large tapes (live-seam crash, 2026-06-19).
+  let tapeStart = allTs[0], tapeEnd = allTs[0];
+  for (let i = 1; i < allTs.length; i++) { const v = allTs[i]; if (v < tapeStart) tapeStart = v; if (v > tapeEnd) tapeEnd = v; }
   const stepMs    = sampleEverySec * 1000;
   const horizonSec = Math.max(...windowsMs) / 1000 + 1; // fill sim horizon covers the widest window
 
@@ -481,8 +482,9 @@ async function runOnTape(tapeFile) {
     console.error('Tape is empty or contains no valid events.');
     process.exit(0);
   }
-  const tapeStart = Math.min(...allTs);
-  const tapeEnd   = Math.max(...allTs);
+  // Loop min/max — Math.min(...allTs) overflows V8's arg-stack on large tapes (live-seam crash, 2026-06-19).
+  let tapeStart = allTs[0], tapeEnd = allTs[0];
+  for (let i = 1; i < allTs.length; i++) { const v = allTs[i]; if (v < tapeStart) tapeStart = v; if (v > tapeEnd) tapeEnd = v; }
   const durationMin = ((tapeEnd - tapeStart) / 60000).toFixed(1);
   console.log(`Tape span: ${new Date(tapeStart).toISOString()} → ${new Date(tapeEnd).toISOString()} (${durationMin} min, ${tape._all.length} events)`);
 

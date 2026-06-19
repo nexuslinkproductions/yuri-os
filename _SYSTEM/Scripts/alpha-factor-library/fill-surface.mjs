@@ -109,8 +109,9 @@ export function computeFillSurface(tape, opts = {}) {
   if (allTs.length === 0) {
     return { surface: [], samples: 0, span: null, warn: 'empty tape' };
   }
-  const t0 = Math.min(...allTs);
-  const t1 = Math.max(...allTs);
+  // Loop min/max — Math.min(...allTs) overflows V8's arg-stack on large tapes (live-seam crash, 2026-06-19).
+  let t0 = allTs[0], t1 = allTs[0];
+  for (let i = 1; i < allTs.length; i++) { const v = allTs[i]; if (v < t0) t0 = v; if (v > t1) t1 = v; }
   const span = { t0, t1, durationMs: t1 - t0 };
 
   // ── Pass 1: collect mid series for vol computation + tercile cuts ──────────
