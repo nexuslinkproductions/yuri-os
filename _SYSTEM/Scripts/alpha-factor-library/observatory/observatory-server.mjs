@@ -76,6 +76,7 @@ import { applyAuth } from './observatory-auth.mjs';
 import { getCandlesAtTimeframe, availableTimeframes } from './timeframes.mjs';
 import { startTickStream } from './tick-stream.mjs';
 import { startRecorder } from './tape-recorder.mjs';
+import { startAsQuoteLive, DEFAULT_AS_QUOTE_CONFIG } from './as-quote-live.mjs';
 
 // ── Config ────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.OBSERVATORY_PORT) || 4243; // 4242 is the YURI health-aggregator
@@ -83,7 +84,12 @@ const INTERVAL_MS = Number(process.env.OBSERVATORY_INTERVAL_MS) || DEFAULT_CONFI
 const TICK_MS = Number(process.env.OBSERVATORY_TICK_MS) || 1000; // per-second fast price tick
 const TICK_STREAM_ARMED = process.env.OBSERVATORY_TICK_STREAM === '1'; // DISARMED by default — owner arms the real-time WS tick feed
 const RECORDER_ARMED = process.env.OBSERVATORY_RECORDER === '1'; // DISARMED by default — owner arms the BTC L2+trades tape recorder (read-only, for the fill/adverse-sel replay sim)
+const AS_QUOTE_ARMED = process.env.OBSERVATORY_AS_QUOTE === '1'; // DISARMED by default — owner arms the LIVE A-S PAPER quoter (INV-1: paper, no orders; composes view-only depth/trades/mark feeds)
 const HOST = '127.0.0.1'; // localhost only
+
+// LIVE A-S PAPER quoter handle (module-scope so the /as-quote route can read its state).
+let asQuoteEngine = null;
+function getAsQuote() { try { return asQuoteEngine ? asQuoteEngine.getState() : { armed: false }; } catch (e) { return { armed: false, error: e?.message || String(e) }; } }
 
 // CORS allowed origins — localhost only
 const ALLOWED_ORIGINS = new Set([
@@ -280,6 +286,11 @@ function routeRequest(req, res) {
       jsonResponse(res, getEnsemble());
       break;
 
+    case '/api/observatory/as-quote':
+      // LIVE A-S PAPER quoter state (DISARMED unless OBSERVATORY_AS_QUOTE=1). INV-1: paper, no orders.
+      jsonResponse(res, getAsQuote());
+      break;
+
     case '/api/observatory/timeframes':
       jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
       break;
@@ -334,6 +345,7 @@ function routeRequest(req, res) {
           'GET /api/observatory/quantum',
           'GET /api/observatory/trades?limit=',
           'GET /api/observatory/ensemble',
+          'GET /api/observatory/as-quote',
           'GET /api/observatory/ticks',
           'GET /api/observatory/timeframes',
           'GET /api/observatory/candles?market=&tf=&venue=',
@@ -468,6 +480,21 @@ async function startServe(config = {}) {
     }
   }
 
+  // ── DISARMED LIVE A-S PAPER QUOTER (owner-armed via OBSERVATORY_AS_QUOTE=1) ──
+  // Composes the view-only depth-book + trades-stream + mark-price feeds into a live
+  // Avellaneda-Stoikov PAPER maker engine (all wired modules: guards, regime-breaker,
+  // funding-skew, queue-decay fills, OFI λ-measurement). INV-1: PAPER ONLY — fills are
+  // simulated against the live PUBLIC trade stream, NO order path. Fail-open — a quoter
+  // fault never touches the cycle. State exposed at GET /api/observatory/as-quote.
+  if (AS_QUOTE_ARMED) {
+    try {
+      asQuoteEngine = await startAsQuoteLive({ symbol: 'BTCUSDT', config: DEFAULT_AS_QUOTE_CONFIG });
+      console.log('[observatory-server] A-S PAPER QUOTER ARMED (INV-1: paper, no orders) — GET /api/observatory/as-quote');
+    } catch (e) {
+      console.error('[observatory-server] as-quote start failed (continuing):', e?.message || e);
+    }
+  }
+
   // Run first cycle immediately
   // emit cycle.start before INITIAL cycle too (BUG-5: was only emitted on interval cycles)
   broadcastSSE([{ type: 'cycle.start', cycleCount: 1, ts: Math.floor(Date.now() / 1000) }]);
@@ -510,6 +537,7 @@ async function startServe(config = {}) {
     clearInterval(tickInterval);
     if (tickStream) try { tickStream.stop(); } catch (_e) { /* noop */ }
     if (recorder) try { recorder.stop(); } catch (_e) { /* noop */ }
+    if (asQuoteEngine) try { asQuoteEngine.stop(); } catch (_e) { /* noop */ }
     server.close(() => process.exit(0));
   };
   process.on('SIGTERM', shutdown);
