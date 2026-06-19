@@ -25,6 +25,12 @@ async function one() {
   console.log(`│ PnL/fill  net ${f(s.netBps, 3)} bps  =  spread ${f(s.grossSpreadBps)}  − adv ${f(s.adverseSelBps)}  − fee ${f(s.feeBps, 1)}`);
   console.log(`│ regime  ${s.regime?.lastAction}   halts ${s.regime?.haltCount}   widens ${s.regime?.widenCount}`);
   console.log(`│ funding ${s.funding?.rate ?? '—'}  skewTicks ${f(s.funding?.skewTicks, 4)}   OFI λ ${s.ofi?.lambda != null ? s.ofi.lambda.toExponential(2) : '—'} R² ${f(s.ofi?.r2, 4)} n ${s.ofi?.n}`);
+  if (Array.isArray(s.recentFills) && s.recentFills.length) {
+    console.log(`│ recent fills (Binance perp, mid ${f(s.bookMid, 1)}):`);
+    for (const fl of s.recentFills.slice(0, 8)) {
+      console.log(`│   ${fl.side === 'buy' ? 'BID' : 'ASK'} ${f(fl.price, 1)}  ${fl.netBps != null ? f(fl.netBps) + 'bps' : ''}  ${fl.ts ? new Date(fl.ts).toLocaleTimeString() : ''}`);
+    }
+  }
   if (s.lastError) console.log(`│ ⚠ lastError: ${s.lastError}`);
   console.log(`└─ ${s.note || ''}`);
 }

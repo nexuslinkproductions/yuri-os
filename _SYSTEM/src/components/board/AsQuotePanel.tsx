@@ -116,6 +116,25 @@ export default function AsQuotePanel({ data }: Props) {
         <span>κ src <span style={{ color: '#cfe', fontSize: 9 }}>{(data.kappaSource || '').replace('fitKappa', 'fit').slice(0, 22)}</span></span>
       </div>
 
+      {/* A-S FILL TAPE — each row is a real paper fill (trade match against the live stream) */}
+      {data.recentFills && data.recentFills.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ fontSize: 9, color: 'var(--mist)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>
+            Recent fills · Binance BTCUSDT perp{num(data.bookMid) ? ` · mid ${f(data.bookMid, 1)}` : ''}
+          </div>
+          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, lineHeight: 1.7, maxHeight: 120, overflowY: 'auto' }}>
+            {data.recentFills.map((fl, i) => (
+              <div key={i} style={{ display: 'flex', gap: 10 }}>
+                <span style={{ color: fl.side === 'buy' ? '#00e0a4' : '#ff7a90', width: 30, fontWeight: 600 }}>{fl.side === 'buy' ? 'BID' : 'ASK'}</span>
+                <span style={{ color: '#cfe' }}>{f(fl.price, 1)}</span>
+                <span style={{ color: 'var(--mist)' }}>{num(fl.netBps) ? `${fl.netBps.toFixed(2)} bps` : ''}</span>
+                <span style={{ color: 'var(--mist)', marginLeft: 'auto', opacity: 0.7 }}>{fl.ts ? new Date(fl.ts).toLocaleTimeString() : ''}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {data.lastError && (
         <div style={{ marginTop: 8, fontSize: 10, color: '#ff5470' }}>⚠ {data.lastError}</div>
       )}

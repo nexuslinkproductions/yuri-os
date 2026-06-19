@@ -132,7 +132,7 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
     fundingRate: null, secsToFunding: null, fundingSkewTicks: 0,
     kappaPrice: null, kappaSource: 'init',
     restingBid: null, restingAsk: null,
-    fills: [], regimeHaltCount: 0, regimeWidenCount: 0,
+    fills: [], recentFills: [], regimeHaltCount: 0, regimeWidenCount: 0,
     prevOfiBook: null, ofiRecords: [], midRing: [],
     lastQuote: null, quoteCount: 0, lastError: null, lastAction: 'normal',
   };
@@ -202,6 +202,9 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
             adverseBpsParam: cfg.adverseBps, feeRtBps: cfg.feeRtBps, mid: fin(mid) ? mid : order.price,
           });
           if (attr) { attr.side = side; state.fills.push(attr); if (state.fills.length > cfg.fillsMax) state.fills.shift(); }
+          // per-fill record (the visible A-S fill tape) — proves each fill is a real trade match
+          state.recentFills.push({ side, price: order.price, midAtFill: fin(mid) ? mid : order.price, netBps: attr ? attr.netBps : null, ts: fin(tr.ts) ? tr.ts : now() });
+          if (state.recentFills.length > 30) state.recentFills.shift();
           state[sideKey] = null; // consumed — re-placed next requote
           state.q += side === 'buy' ? cfg.size : -cfg.size;
           if (Math.abs(state.q) > state.maxQ) state.maxQ = Math.abs(state.q);
@@ -259,7 +262,8 @@ export async function startAsQuoteLive({ symbol = 'BTCUSDT', config = {}, deps =
       armed: true, paper: true, symbol: SYM, quoting: fin(state.kappaPrice) && state.kappaPrice > 0,
       kappaPrice: state.kappaPrice, kappaSource: state.kappaSource,
       q: state.q, qLots: state.q / cfg.size, maxInventoryLots: state.maxQ / cfg.size,
-      sigmaPrice: state.sigmaP, lastQuote: state.lastQuote, quoteCount: state.quoteCount,
+      sigmaPrice: state.sigmaP, bookMid: state.book?.mid ?? null, lastQuote: state.lastQuote, quoteCount: state.quoteCount,
+      recentFills: state.recentFills.slice(-12).reverse(),
       fills: summary.fills ?? 0, netBps: summary.netBps ?? 0, grossSpreadBps: summary.grossSpreadBps ?? 0,
       adverseSelBps: summary.adverseSelBps ?? 0, feeBps: summary.feeBps ?? 0,
       regime: { haltCount: state.regimeHaltCount, widenCount: state.regimeWidenCount, lastAction: state.lastAction },

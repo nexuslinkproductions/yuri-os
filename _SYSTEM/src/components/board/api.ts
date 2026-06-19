@@ -304,7 +304,9 @@ export interface AsQuoteResponse {
   qLots?: number;
   maxInventoryLots?: number;
   sigmaPrice?: number | null;
+  bookMid?: number | null;
   lastQuote?: { bidPx: number; askPx: number; halfSpread: number; reservation: number; anchor: number; ts: number } | null;
+  recentFills?: { side: 'buy' | 'sell'; price: number; midAtFill: number; netBps: number | null; ts: number }[];
   quoteCount?: number;
   fills?: number;
   netBps?: number;
