@@ -14,7 +14,10 @@ import os, json, uuid, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("YURI_LOCAL_BRAIN_PORT", "8013"))
-MODEL = os.environ.get("YURI_LOCAL_MODEL", "hf.co/prithivMLmods/VibeThinker-3B-GGUF:Q4_K_M")
+MODEL = os.environ.get("YURI_LOCAL_MODEL", "llama3.2:latest")  # parked default: the snappy NON-reasoning one
+# NOTE (2026-06-18): local-SLM voice PARKED until a hardware upgrade. Reasoning models (VibeThinker)
+# speak their <think> CoT aloud — unusable for voice. The future path is a LARGER non-reasoning instruct
+# model with enough RAM to run it fast. `yuri` (claude -p) is the active voice brain meanwhile.
 OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 if not OLLAMA.startswith(("http://", "https://")):  # OLLAMA_HOST is often bare host:port
     OLLAMA = "http://" + OLLAMA
