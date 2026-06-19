@@ -210,7 +210,8 @@
         "optimalSpread",
         "quotes",
         "computeASQuotes",
-        "sigmaEwma"
+        "sigmaEwma",
+        "sigmaPrice"
       ],
       "mechanism": "_SYSTEM/Scripts/alpha-factor-library/avellaneda-stoikov.mjs"
     },

@@ -3,15 +3,17 @@
 // @serves: AS maker quoting | reservation price | optimal spread | limit order placement | market making | bid ask quotes | inventory skew | volatility adaptive spread | VPIN toxicity widen
 // @does: Avellaneda-Stoikov (2008) MAKER quoting — reservation price, optimal spread, and bid/ask quote placement anchored on microprice with vol-adaptive width, VPIN-toxicity widen, and λ market-impact term. Fail-open (bad params → nulls, never throws).
 // @use: Reach for this when you need to place two-sided maker quotes around a microprice anchor. Primary value at ~€300 book size is (a) vol-adaptive spread width and (b) microprice anchor — NOT inventory skew (q is ±1 lot → near-zero skew). The VPIN widen and λ impact terms matter more than q·γ·σ²·τ at this scale.
-// @exports: reservationPrice, optimalSpread, quotes, computeASQuotes, sigmaEwma
+// @exports: reservationPrice, optimalSpread, quotes, computeASQuotes, sigmaEwma, sigmaPrice
 //
 // ── SCALE CAVEAT (peer-reviewed for ~€300 book) ───────────────────────────────
 // At the scale of a small retail crypto book (q ∈ {0, ±1} base-lot max), the
-// inventory-skew term  q·γ·σ²·τ  is near-zero:
-//   Example: q=1, γ=0.001, σ=0.02 (2% per period), τ=0.5 → skew ≈ 0.0000002
-// So the reservation price is essentially the microprice. KEEP the formula
-// correct and intact — it matters at larger scales — but the PRIMARY value here is:
-//   (a) VOL-ADAPTIVE SPREAD WIDTH via γ·σ²·τ + (2/γ)·ln(1 + γ/κ)
+// inventory-SKEW term  q·γ·σ²·τ  is near-zero because q is tiny — genuine scale.
+// (Do NOT confuse this with the σ-units bug below: the vol-WIDTH term γσ²τ also
+//  looks near-zero if you feed RETURN vol, but that is a units error, not scale —
+//  with correct PRICE vol the width term is a real few-bps spread. See σ UNITS.)
+// So with correct units the reservation price ≈ microprice (skew negligible at q≈0)
+// while the SPREAD WIDTH is the live lever. KEEP the formula intact. PRIMARY value:
+//   (a) VOL-ADAPTIVE SPREAD WIDTH via γ·σ²·τ + (2/γ)·ln(1 + γ/κ)  [needs PRICE vol]
 //   (b) MICROPRICE ANCHOR instead of raw mid (removes stale-quote risk)
 // The VPIN-toxicity multiplier (toxicWiden) and the λ·orderSize impact term
 // contribute more usable edge than inventory skew at this scale.
@@ -19,12 +21,20 @@
 // Reference: Avellaneda, M. & Stoikov, S. (2008). "High-frequency trading in a
 // limit order book." Quantitative Finance, 8(3), 217–224.
 //
-// ── σ UNITS (CRITICAL — flagged by glm-5.2 math audit, 2026-06-19) ─────────────
-// σ and τ MUST share the SAME time unit. We quote at 500ms–5s, so τ is in SECONDS
-// and σ MUST be PER-SECOND realized vol — NEVER annualized. Feeding an annualized σ
-// (e.g. carry-vol-signal's realizedVol, which ×√(periods/yr)) into γ·σ²·τ blows the
-// spread up by σ²-of-the-annualization-factor (~3e7×). Use sigmaEwma() below to
-// produce the correct per-second σ from 1-second log returns. Do NOT annualize.
+// ── σ UNITS (CRITICAL — two independent axes; glm-5.2 math audit, 2026-06-19) ───
+// σ must be correct on BOTH axes or the γσ²τ spread term is wrong:
+//
+// AXIS 1 — TIME: σ and τ MUST share the SAME time unit. We quote at 500ms–5s, so τ
+// is in SECONDS and σ MUST be PER-SECOND vol — NEVER annualized. An annualized σ
+// (carry-vol-signal's realizedVol ×√(periods/yr)) blows the spread up ~3e7×.
+//
+// AXIS 2 — SCALE: reservationPrice/optimalSpread need PRICE vol ($ per √sec), NOT
+// the dimensionless RETURN vol sigmaEwma() produces. σ_price = σ_return × S.
+// γ·σ²·τ subtracts from / adds to a PRICE, so σ must carry price units; feeding
+// return-vol (~1e-4) where price-vol (~$6/√s on BTC) belongs shrinks the vol term
+// by S² (~3.8e9 on BTC) — it silently vanishes and γ cannot be pinned analytically.
+// PIPELINE: sigmaEwma(1s log-return²) → per-second RETURN vol → sigmaPrice(σ, mid)
+// → per-second PRICE vol → reservationPrice/optimalSpread. Do both conversions.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { pathToFileURL } from 'node:url';
@@ -58,6 +68,28 @@ export function sigmaEwma(r2, prevVar, halfLifeSec = 30) {
   return { variance, sigma: Math.sqrt(variance) };
 }
 
+// ── sigmaPrice (return-vol → PRICE-vol; glm-5.2 audit AXIS 2, 2026-06-19) ──────
+/**
+ * sigmaPrice(sigmaReturnPerSec, midPrice) → price vol ($ per √sec) | null
+ *
+ * reservationPrice/optimalSpread require PRICE volatility, NOT the dimensionless
+ * RETURN vol that sigmaEwma() produces:  σ_price = σ_return × S.
+ *
+ * Feeding return-vol directly shrinks the γ·σ²·τ spread term by a factor of S²
+ * (~3.8e9 on BTC at $62k) — the vol-adaptive width silently vanishes and γ cannot
+ * be pinned analytically against a breakeven spread. ALWAYS convert at the call
+ * site where the mid is known, after sigmaEwma and before reservationPrice/optimalSpread.
+ *
+ * @param {number} sigmaReturnPerSec - per-second RETURN vol (sigmaEwma().sigma)
+ * @param {number} midPrice          - current mid/microprice (price scale, > 0)
+ * @returns {number|null} per-second PRICE vol, or null on bad params
+ */
+export function sigmaPrice(sigmaReturnPerSec, midPrice) {
+  if (!fin(sigmaReturnPerSec) || sigmaReturnPerSec < 0) return null;
+  if (!fin(midPrice) || midPrice <= 0) return null;
+  return sigmaReturnPerSec * midPrice;
+}
+
 // ── reservationPrice ──────────────────────────────────────────────────────────
 
 /**
@@ -69,7 +101,7 @@ export function sigmaEwma(r2, prevVar, halfLifeSec = 30) {
  * @param {number} s     - Fair-value anchor (microprice from computeMicroprice)
  * @param {number} q     - Inventory in base units (signed; positive = long)
  * @param {number} gamma - Risk-aversion coefficient (γ > 0)
- * @param {number} sigma - Volatility (σ ≥ 0, same units as s per time unit)
+ * @param {number} sigma - PRICE volatility ($ per √sec) = sigmaPrice(sigmaEwma σ, mid); per-second & price-scaled, NOT return vol
  * @param {number} tau   - Time-to-horizon normalised to [0, 1]
  * @returns {number | null} reservation price, or null on bad/NaN params
  *
@@ -95,7 +127,7 @@ export function reservationPrice({ s, q, gamma, sigma, tau } = {}) {
  * This is the FULL two-sided spread (bid-to-ask distance).
  *
  * @param {number} gamma - Risk-aversion (γ > 0)
- * @param {number} sigma - Volatility (σ ≥ 0)
+ * @param {number} sigma - PRICE volatility ($ per √sec) = sigmaPrice(sigmaEwma σ, mid); per-second & price-scaled, NOT return vol
  * @param {number} tau   - Time-to-horizon ∈ [0, 1]
  * @param {number} kappa - Order-book liquidity/intensity parameter (κ > 0).
  *                         Higher κ = deeper book = tighter spread.
@@ -364,6 +396,21 @@ if (_runAsMain && process.argv.includes('--test')) {
     `sigmaEwma: shorter half-life reacts faster (${seShort?.variance} > ${seLong?.variance})`);
   assert(sigmaEwma(NaN, 0.0004, 30) === null && sigmaEwma(0.0004, 0.0004, 0) === null,
     'sigmaEwma: bad input → null');
+
+  // ── sigmaPrice + the σ-units contract (glm-5.2 AXIS 2 audit) ─────────────────
+  // sigmaPrice converts per-second RETURN vol → PRICE vol (× S).
+  const spx = sigmaPrice(0.0001, 62000); // 1bps/s return vol on $62k BTC → $6.2/√s
+  assert(spx !== null && near(spx, 6.2, 1e-9), `sigmaPrice: σ_return × S (got ${spx})`);
+  assert(sigmaPrice(-1, 62000) === null && sigmaPrice(0.0001, 0) === null && sigmaPrice(NaN, 1) === null,
+    'sigmaPrice: bad input → null');
+  // CONTRACT (regression for the bug): feeding RETURN vol makes the γσ²τ width term
+  // vanish vs PRICE vol — by ~S². Same γ,τ,κ; only σ differs.
+  const gtk = { gamma: 0.2, tau: 10, kappa: 0.5 };
+  const floor = (2 / gtk.gamma) * Math.log(1 + gtk.gamma / gtk.kappa); // κ term, σ-independent
+  const widthReturn = optimalSpread({ ...gtk, sigma: 0.0001 }) - floor;                 // WRONG units
+  const widthPrice  = optimalSpread({ ...gtk, sigma: sigmaPrice(0.0001, 62000) }) - floor; // correct
+  assert(widthPrice > widthReturn * 1e6,
+    `sigmaPrice contract: price-vol width >> return-vol width (price ${widthPrice}, return ${widthReturn})`);
 
   console.log(`avellaneda-stoikov --test: ${pass} pass, ${fail} fail`);
   if (fail > 0) process.exit(1);
