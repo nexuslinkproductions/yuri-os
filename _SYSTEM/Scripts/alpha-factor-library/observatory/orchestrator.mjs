@@ -79,6 +79,13 @@ const DEFAULT_CRYPTO_MARKETS = (process.env.OBSERVATORY_CRYPTO_MARKETS
   : ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SUI-USD', 'WIF-USD', 'AVAX-USD']);
 const COINBASE_GRANULARITY = 'ONE_MINUTE'; // 1-min bars: ~5× more signal-change points → more trades + faster learning (paper)
 
+// BINANCE-ONLY (2026-06-19, owner directive "get away from coinbase, binance only in the daemon"):
+// all crypto market data (candles/book/ticks) now routes through PerpAdapter (Binance USDⓈ-M perp),
+// matching the A-S maker engine's instrument so board prices == the quoter's prices. Market keys keep
+// the 'BTC-USD' display form (the daemon's split('-') logic stays valid); toBinanceSymbol maps to the
+// Binance symbol for the API call. 'ONE_MINUTE' → Binance interval '1m'.
+const toBinanceSymbol = (m) => { const s = String(m).toUpperCase(); return s.includes('-') ? s.split('-')[0] + 'USDT' : s; };
+
 // Number of candles to fetch per cycle for crypto
 const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for factors/regime. Coinbase cap is 350/req.
 
@@ -574,10 +581,8 @@ async function runCryptoCycle(market, snap, cfg = {}) {
 
   let candles;
   try {
-    const result = await CoinbaseAdapter.getCandles(market, {
-      start,
-      end,
-      granularity: COINBASE_GRANULARITY,
+    const result = await PerpAdapter.getCandles(toBinanceSymbol(market), {
+      interval: '1m',                 // ONE_MINUTE bars (Binance returns the latest `limit`)
       limit: CANDLES_FETCH_LIMIT,
     });
     candles = result.candles;
@@ -1039,13 +1044,13 @@ export async function fastTick(config = {}) {
   const now = Math.floor(Date.now() / 1000);
   const out = [];
 
-  // Crypto — coinbase last trade price
+  // Crypto — Binance perp best bid/ask (mid) via bookTicker
   for (const market of cfg.cryptoMarkets) {
     try {
-      const t = await CoinbaseAdapter.getTicker(market, { limit: 1 });
-      const price = Number.isFinite(t.last) ? t.last : (Number.isFinite(t.mid) ? t.mid : null);
+      const t = await PerpAdapter.getTicker(toBinanceSymbol(market));
+      const price = Number.isFinite(t.price) ? t.price : ((Number.isFinite(t.bid) && Number.isFinite(t.ask)) ? (t.bid + t.ask) / 2 : null);
       if (price == null) continue;
-      const tick = { market, venue: 'coinbase', price, bid: t.bid ?? null, ask: t.ask ?? null, ts: now };
+      const tick = { market, venue: 'binance', price, bid: t.bid ?? null, ask: t.ask ?? null, ts: now };
       _state.ticks.set(market, tick);
       const snap = _state.snapshots.get(market);
       if (snap) { snap.lastPrice = price; snap.lastTickTs = now; }
@@ -1131,7 +1136,7 @@ export function fastRiskExit() {
 export function applyTick(market, price, opts = {}) {
   if (!market || !Number.isFinite(price) || price <= 0) return null;
   const now = Math.floor(Date.now() / 1000);
-  const tick = { market, venue: opts.venue || 'coinbase', price, bid: opts.bid ?? null, ask: opts.ask ?? null, ts: now };
+  const tick = { market, venue: opts.venue || 'binance', price, bid: opts.bid ?? null, ask: opts.ask ?? null, ts: now };
   _state.ticks.set(market, tick);
   const snap = _state.snapshots.get(market);
   if (snap) { snap.lastPrice = price; snap.lastTickTs = now; }
@@ -1161,47 +1166,11 @@ export async function refreshAccount(config = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   if (cfg.enableAccount === false) return _state.account;
   const now = Math.floor(Date.now() / 1000);
-  let res;
-  try {
-    res = await CoinbaseAdapter.getAccounts({ limit: 250 });
-  } catch (e) {
-    _state.account = { connected: false, advisory: 'error', error: String(e?.message || e), ts: now };
-    return _state.account;
-  }
-  if (res?.advisory === 'no-key') {
-    _state.account = { connected: false, advisory: 'no-key', holdings: [], realEquityUsd: null, ts: now };
-    return _state.account;
-  }
-  const holdings = [];
-  let realEquityUsd = 0;
-  let unpricedCount = 0;
-  for (const a of (res.accounts || [])) {
-    const total = a.total || 0;
-    if (!(total > 0)) continue;                       // skip zero/dust + non-finite
-    if (USD_STABLE.has(a.currency)) {
-      realEquityUsd += total;
-      holdings.push({ currency: a.currency, total, usdValue: total, priced: true });
-    } else {
-      const tick = _state.ticks.get(`${a.currency}-USD`);
-      const px = Number.isFinite(tick?.price) ? tick.price : null;
-      if (px != null) {
-        const usd = total * px;
-        realEquityUsd += usd;
-        holdings.push({ currency: a.currency, total, usdValue: usd, price: px, priced: true });
-      } else {
-        unpricedCount++;
-        holdings.push({ currency: a.currency, total, usdValue: null, priced: false });
-      }
-    }
-  }
-  _state.account = {
-    connected: true,
-    realEquityUsd,
-    holdings: holdings.sort((x, y) => (y.usdValue || 0) - (x.usdValue || 0)),
-    unpricedCount,
-    accountCount: res.size ?? (res.accounts || []).length,
-    ts: now,
-  };
+  // BINANCE-ONLY (2026-06-19, owner directive "get away from coinbase"): the Coinbase
+  // view-only account path is removed. No Binance view-only account is wired (optional,
+  // owner-gated). Report disconnected — INV-1/INV-2 intact (no keys read, no orders, no
+  // network). Paper P&L is the engine's own book; this is the REAL-account placeholder.
+  _state.account = { connected: false, advisory: 'coinbase-removed (binance-only); no real account wired', holdings: [], realEquityUsd: null, ts: now };
   return _state.account;
 }
 
@@ -1249,7 +1218,7 @@ export async function fetchOrderBook(market, { limit = 25 } = {}) {
   const cached = _bookCache.get(market);
   if (cached && now - cached.ts < BOOK_TTL_MS) return { market, book: cached.book, cachedMs: now - cached.ts };
   try {
-    const book = await CoinbaseAdapter.getOrderBook(market, { limit });
+    const book = await PerpAdapter.getOrderBook(toBinanceSymbol(market), { limit });
     _bookCache.set(market, { ts: now, book });
     return { market, book, cachedMs: 0 };
   } catch (e) {
@@ -1510,7 +1479,7 @@ export async function runCycle(config = {}) {
   // Crypto markets (Coinbase)
   for (const market of cfg.cryptoMarkets) {
     if (!_state.snapshots.has(market)) {
-      _state.snapshots.set(market, createMarketSnapshot(market, 'coinbase'));
+      _state.snapshots.set(market, createMarketSnapshot(market, 'binance'));
     }
     const snap = _state.snapshots.get(market);
     await runCryptoCycle(market, snap, cfg);

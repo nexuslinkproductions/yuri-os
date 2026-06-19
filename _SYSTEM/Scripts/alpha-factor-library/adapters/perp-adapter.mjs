@@ -3,7 +3,7 @@
 // @serves: crypto perpetuals | perp venue | funding rate | open interest | mark price | basis | term structure | crypto-native factors
 // @does: READ-ONLY crypto perpetuals adapter (Binance USDⓈ-M public REST as the default venue) — funding rate, open interest (snapshot + hist), and basis (perp vs spot) are mapped to AFL-unified shapes that match the crypto factors' data_inputs (funding_rate, open_interest, future_price, spot_price, basis). SSRF-guarded, keyless by default (env-gated when venue requires it), injected HTTP for offline tests, injected spot-getter for the basis calc so it does not hard-couple to the coinbase adapter. INV-1 (no order path), INV-2 (no key reads), INV-3 (live reads OK), INV-6 (parseNum at boundary, ''→null), INV-7 (deterministic + offline-testable) all honored.
 // @use: Reach for this before any code that needs perp funding / OI / basis to feed the crypto-native factors (crypto-funding-price-reaction, crypto-price-oi-quadrant, crypto-basis-term-structure-carry, crypto-lvr-aware-lp). All exports pure except the HTTP-bound ones (getFunding/getOpenInterest/getBasis/getMarkets/getCandles), which route through setHttpGet.
-// @exports: getFunding, getOpenInterest, getBasis, getMarkets, getCandles, mapFunding, mapOpenInterest, mapKline, annualizeFunding, setHttpGet, parseNum, hasCreds, VenueApiError, MappingError, SsrfError
+// @exports: getFunding, getOpenInterest, getBasis, getMarkets, getCandles, getOrderBook, getTicker, mapFunding, mapOpenInterest, mapKline, annualizeFunding, setHttpGet, parseNum, hasCreds, VenueApiError, MappingError, SsrfError
 
 import https from 'node:https';
 import { URL } from 'node:url';
@@ -429,6 +429,43 @@ export async function getCandles(symbol, opts = {}) {
   const json = await fetchJson(url);
   if (!Array.isArray(json)) throw new MappingError('getCandles: expected kline array', json);
   return { candles: json.map(mapKline) };
+}
+
+/**
+ * getOrderBook(symbol, { limit }) -> unified L2 book (matches coinbase-adapter.mapBook shape)
+ *   { venue:'binance-um', symbol, bids:[{price,size}], asks:[{price,size}], mid, spreadBps }
+ * Binance USDⓈ-M REST depth (fapi/v1/depth). Keyless public endpoint (INV-2), SSRF-guarded via fetchJson.
+ */
+export async function getOrderBook(symbol, opts = {}) {
+  if (!symbol || typeof symbol !== 'string') throw new MappingError('getOrderBook: symbol required', symbol);
+  // Binance USDⓈ-M depth accepts ONLY enumerated limits — snap up to the nearest allowed (else HTTP 400).
+  const ALLOWED_DEPTH = [5, 10, 20, 50, 100, 500, 1000];
+  const want = opts.limit != null ? Math.max(1, Number(opts.limit)) : 20;
+  const limit = ALLOWED_DEPTH.find((v) => v >= want) || 1000;
+  const url = `https://${BASE_HOST}${PREFIX}/depth?symbol=${encodeURIComponent(symbol)}&limit=${limit}`;
+  const json = await fetchJson(url);
+  if (!json || !Array.isArray(json.bids) || !Array.isArray(json.asks)) throw new MappingError('getOrderBook: expected {bids,asks}', json);
+  const bids = json.bids.map((l) => ({ price: parseNum(l[0]), size: parseNum(l[1]) })).filter((l) => Number.isFinite(l.price));
+  const asks = json.asks.map((l) => ({ price: parseNum(l[0]), size: parseNum(l[1]) })).filter((l) => Number.isFinite(l.price));
+  const bestBid = bids[0]?.price, bestAsk = asks[0]?.price;
+  const mid = (Number.isFinite(bestBid) && Number.isFinite(bestAsk)) ? (bestBid + bestAsk) / 2 : null;
+  const spreadBps = (mid && mid > 0) ? ((bestAsk - bestBid) / mid) * 1e4 : null;
+  return { venue: 'binance-um', symbol, bids, asks, mid, spreadBps };
+}
+
+/**
+ * getTicker(symbol) -> { symbol, price, bid, ask } (matches the fastTick consumer shape)
+ * Binance USDⓈ-M REST bookTicker (fapi/v1/ticker/bookTicker). price = mid of best bid/ask.
+ * Keyless public endpoint (INV-2), SSRF-guarded via fetchJson.
+ */
+export async function getTicker(symbol, _opts = {}) {
+  if (!symbol || typeof symbol !== 'string') throw new MappingError('getTicker: symbol required', symbol);
+  const url = `https://${BASE_HOST}${PREFIX}/ticker/bookTicker?symbol=${encodeURIComponent(symbol)}`;
+  const json = await fetchJson(url);
+  if (!json || (json.bidPrice == null && json.askPrice == null)) throw new MappingError('getTicker: expected bookTicker', json);
+  const bid = parseNum(json.bidPrice), ask = parseNum(json.askPrice);
+  const price = (Number.isFinite(bid) && Number.isFinite(ask)) ? (bid + ask) / 2 : (Number.isFinite(bid) ? bid : ask);
+  return { symbol, price, bid: Number.isFinite(bid) ? bid : null, ask: Number.isFinite(ask) ? ask : null };
 }
 
 /**

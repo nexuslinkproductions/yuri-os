@@ -8,6 +8,7 @@
 import { pathToFileURL } from 'node:url';
 import * as Coinbase from '../adapters/coinbase-adapter.mjs';
 import * as Polymarket from '../adapters/polymarket-adapter.mjs';
+import * as PerpAdapter from '../adapters/perp-adapter.mjs';
 
 // ── Timeframe ladder (owner spec) ──────────────────────────────────────────
 // sec   = bar interval in seconds
@@ -38,7 +39,11 @@ export const TIMEFRAMES = [
   { id: '1Y',  label: '1Y',  sec: 31536000, src: G.D1,  agg: 365, bars: 5  },
 ];
 
-const COINBASE_MAX_CANDLES = 350; // venue per-request cap
+const COINBASE_MAX_CANDLES = 350; // venue per-request cap (legacy; chart now on Binance)
+// BINANCE-ONLY (2026-06-19): chart candles route through PerpAdapter (Binance USDⓈ-M klines).
+const G_TO_BINANCE = { ONE_MINUTE: '1m', FIVE_MINUTE: '5m', FIFTEEN_MINUTE: '15m', THIRTY_MINUTE: '30m', ONE_HOUR: '1h', TWO_HOUR: '2h', SIX_HOUR: '6h', ONE_DAY: '1d' };
+const BINANCE_MAX_CANDLES = 1500; // Binance klines per-request cap
+const toBinanceSymbol = (m) => { const s = String(m).toUpperCase(); return s.includes('-') ? s.split('-')[0] + 'USDT' : s; };
 
 export function getTimeframe(id) {
   return TIMEFRAMES.find((t) => t.id === id) || null;
@@ -48,14 +53,14 @@ export function getTimeframe(id) {
  * availableTimeframes(venue) -> [{ id, label, supported, reason? }]
  * Drives the selector — disable unsupported (venue,tf) combos.
  */
-export function availableTimeframes(venue = 'coinbase') {
+export function availableTimeframes(venue = 'binance') {
   return TIMEFRAMES.map((t) => {
     let supported = true;
     let reason;
     if (t.src === null) { supported = false; reason = 'sub-minute needs tick recording (not yet available)'; }
-    else if (t.agg * t.bars > COINBASE_MAX_CANDLES && venue === 'coinbase') {
+    else if (t.agg * t.bars > BINANCE_MAX_CANDLES && venue !== 'polymarket') {
       // Still supported, just fewer bars than ideal — flag the cap honestly.
-      reason = `history capped at ${COINBASE_MAX_CANDLES} source candles`;
+      reason = `history capped at ${BINANCE_MAX_CANDLES} source candles`;
     }
     if (venue === 'polymarket' && t.sec < 60) { supported = false; reason = 'prediction-market trades are sparse below 1m'; }
     return { id: t.id, label: t.label, sec: t.sec, supported, ...(reason ? { reason } : {}) };
@@ -94,12 +99,12 @@ export function aggregateCandles(bars, bucketSec) {
  * FAIL-OPEN: on any venue/mapping error returns supported:false with [] candles.
  */
 export async function getCandlesAtTimeframe(market, tfId, opts = {}) {
-  const venue = opts.venue || (String(market).startsWith('poly-') ? 'polymarket' : 'coinbase');
+  const venue = opts.venue || (String(market).startsWith('poly-') ? 'polymarket' : 'binance');
   const tf = getTimeframe(tfId);
   if (!tf) return { market, venue, tf: tfId, sec: null, supported: false, candles: [], reason: 'unknown timeframe' };
 
-  // Sub-minute: not yet available (no tick recorder).
-  if (tf.src === null && venue === 'coinbase') {
+  // Sub-minute: not yet available (no tick recorder) — Binance klines floor is 1m.
+  if (tf.src === null && venue !== 'polymarket') {
     return { market, venue, tf: tfId, sec: tf.sec, supported: false, candles: [], reason: 'sub-minute needs tick recording (not yet available)' };
   }
 
@@ -117,16 +122,15 @@ export async function getCandlesAtTimeframe(market, tfId, opts = {}) {
       return { market, venue, tf: tfId, sec: tf.sec, supported: true, candles };
     }
 
-    // coinbase
-    const srcSec = tf.sec / tf.agg;             // native bar interval
-    const need = Math.min(tf.agg * tf.bars, COINBASE_MAX_CANDLES);
-    const start = now - need * srcSec;
-    const { candles: raw } = await Coinbase.getCandles(market, { start, end: now, granularity: tf.src, limit: COINBASE_MAX_CANDLES });
+    // binance (USDⓈ-M perp klines) — fetch native interval, aggregate up (venue-agnostic)
+    const need = Math.min(tf.agg * tf.bars, BINANCE_MAX_CANDLES);
+    const interval = G_TO_BINANCE[tf.src] || '1m';
+    const { candles: raw } = await PerpAdapter.getCandles(toBinanceSymbol(market), { interval, limit: need });
     const bars = (raw || [])
       .map((b) => ({ ...b, timestamp: b.timestamp > 1e11 ? Math.floor(b.timestamp / 1000) : b.timestamp }))
       .sort((a, b) => a.timestamp - b.timestamp);
     const candles = tf.agg > 1 ? aggregateCandles(bars, tf.sec) : bars;
-    const capped = candles.length >= tf.bars && tf.agg * tf.bars > COINBASE_MAX_CANDLES;
+    const capped = candles.length >= tf.bars && tf.agg * tf.bars > BINANCE_MAX_CANDLES;
     return { market, venue, tf: tfId, sec: tf.sec, supported: true, candles: candles.slice(-tf.bars), ...(capped ? { reason: 'history capped' } : {}) };
   } catch (e) {
     return { market, venue, tf: tfId, sec: tf.sec, supported: false, candles: [], reason: `fetch failed: ${e.message}` };
