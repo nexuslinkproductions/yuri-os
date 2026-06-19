@@ -12,6 +12,7 @@
 # @exports: (http server :8014)
 import os, json, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import jarvis_memory as jm   # persistent episodic store — model-driven `remember` + per-turn FTS5 recall
 
 PORT = int(os.environ.get("YURI_Z_BRAIN_PORT", "8014"))
 MODEL = os.environ.get("ZAI_MODEL", "glm-5.2")   # glm-5.2 = the flagship in-plan model; RELIABLY emits
@@ -74,6 +75,14 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "- CRITICAL (speak + hold): delete, overwrite, move-over-existing, send email/message, git push/commit, "
              "publish, or anything you're uncertain about. When in doubt, confirm.\n"
              "- If Marcel says 'verify', 'ask me first', or 'double-check' — treat the action as CRITICAL.\n\n"
+             "## MEMORY — you remember across restarts\n"
+             "You have a PERSISTENT episodic memory. Two things happen automatically:\n"
+             "1. RECALL: each turn, relevant past episodes are injected above — USE them if they fit what Marcel "
+             "just said (continue a thread, recall a preference/commitment, don't re-ask what you already know).\n"
+             "2. WRITE: call `remember` when Marcel states a durable FACT, PREFERENCE, COMMITMENT, or a noteworthy "
+             "episode worth recalling later — NOT routine commands, chit-chat, or things you merely looked up. You "
+             "are the judge of what's worth keeping; supply sharp cue words Marcel would later say. This is how you "
+             "stay continuous with him across restarts.\n\n"
              "## VOICE DISCIPLINE\n"
              "ALWAYS summarize tool results in one or two spoken sentences — never read raw output or file contents "
              "aloud. If a protected path or catastrophic command is refused, say so briefly. Chain tools as needed "
@@ -284,6 +293,25 @@ TOOLS = [
                         "open/spawn/launch a terminal or worker. For quick actions, just use bash yourself."),
         "input_schema": {"type": "object",
                          "properties": {"task": {"type": "string", "description": "Optional first task to send the worker."}}},
+    },
+    {
+        "name": "remember",
+        "description": ("Commit a memory to your PERSISTENT episodic store so you recall it across restarts. "
+                        "Call this when Marcel states a durable FACT, PREFERENCE, COMMITMENT, or a noteworthy "
+                        "episode worth recalling later — NOT routine commands, chit-chat, or things you just looked "
+                        "up and can re-fetch. You are the judge of what's worth keeping. Be concise and specific."),
+        "input_schema": {"type": "object", "required": ["summary"],
+                         "properties": {
+                             "summary": {"type": "string",
+                                 "description": "One self-contained sentence stating the fact/preference/commitment/episode. e.g. 'Marcel's favorite color is teal.' or 'Marcel wants Nexus Link launched before July.'"},
+                             "cues": {"type": "string",
+                                 "description": "Space-separated cue words/phrases Marcel would later say that should trigger recall of this. e.g. 'favorite color teal preference'"},
+                             "kind": {"type": "string", "enum": ["fact", "preference", "commitment", "episode"],
+                                 "description": "fact = durable truth; preference = how Marcel likes things; commitment = a goal/deadline/promise; episode = a noteworthy event. Default episode."},
+                             "tags": {"type": "string", "description": "Optional space-separated tags for grouping."},
+                             "weight": {"type": "number",
+                                 "description": "Salience 0.1–5; higher = more likely to surface in recall. Default 1; use 2–3 for core preferences/commitments, <1 for minor notes."},
+                         }},
     },
     # ---- macOS CONTROL PRIMITIVES (general computer use — she composes these per request) ----
     {
@@ -525,6 +553,9 @@ def _exec_tool(name, args):
             cmd = ["bash", SPAWN_HELPER, WORKER_NAME] + ([task] if task else [])
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # non-blocking
             return f"worker '{WORKER_NAME}' terminal is opening" + (f" with task: {task}" if task else "")
+        if name == "remember":
+            return jm.remember(args.get("summary"), cues=args.get("cues", ""), kind=args.get("kind", "episode"),
+                               tags=args.get("tags", ""), weight=args.get("weight", 1.0))
         # ---- macOS CONTROL PRIMITIVES ----
         if name == "applescript":
             script = (args.get("script") or "").strip()
@@ -635,10 +666,15 @@ def _run_agent_loop(messages, user_msg, hist):
     answer. Critical tool calls are intercepted by the CONFIRM-GATE: instead of executing, we store
     the pending action and force a spoken confirmation. Fixes the original double-call bug (the first
     _messages_call was wasted — overwritten by the loop's first iteration)."""
+    # Per-turn RECALL: surface relevant past episodes into the system prompt. The frozen startup
+    # MEMORY.md is static across the process; this is what makes Yuri CONTINUOUS across restarts.
+    # recall() is non-fatal — empty/none means no recall block, brain runs normally.
+    recalled = jm.recall(user_msg)
+    sys_prompt = SYSTEM + ("\n\n" + recalled if recalled else "")
     final = ""
     for _ in range(MAX_TOOL_ITERS):
         try:
-            resp = _messages_call(messages, SYSTEM)
+            resp = _messages_call(messages, sys_prompt)
         except Exception as e:
             final = f"My GLM brain hiccuped: {str(e)[:90]}"
             break
@@ -680,7 +716,7 @@ def _run_agent_loop(messages, user_msg, hist):
         try:
             final = _text_of(_messages_call(
                 messages + [{"role": "user", "content": "Stop and tell me in one or two spoken sentences what you did or found."}],
-                SYSTEM, with_tools=False).get("content"))
+                sys_prompt, with_tools=False).get("content"))
         except Exception:
             final = "That ran long — ask me what happened."
 
