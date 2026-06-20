@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 // @capability: observatory-timeframes
 // @serves: timeframe ladder | candle granularity | multi-timeframe OHLCV | chart timeframe selector | aggregate candles | 5s 1m 1h 1d 1w view
-// @does: Maps the Observatory's 16-preset timeframe ladder (5s,10s,30s,1m,5m,30m,1h,3h,5h,12h,1D,3D,1W,1M,1Q,1Y) onto the venues' native candle granularities + aggregates native candles up into the larger buckets. Returns canonical OHLCV with an honest `supported` flag per (venue,tf) — sub-minute is unsupported until a tick recorder exists; coinbase serves 1m→native and 3h+ via aggregation (capped by the 350-candle source limit); Polymarket reconstructs from trades at the bucket size. Pure aggregation (aggregateCandles) is exported + unit-tested; the one network-bound entry (getCandlesAtTimeframe) routes entirely through the adapters' injected httpGet.
+// @does: Maps the Observatory's 16-preset timeframe ladder (5s,10s,30s,1m,5m,30m,1h,3h,5h,12h,1D,3D,1W,1M,1Q,1Y) onto the venues' native candle granularities + aggregates native candles up into the larger buckets. Returns canonical OHLCV with an honest `supported` flag per (venue,tf) — sub-minute is unsupported until a tick recorder exists; Binance USDⓈ-M serves 1m→native and 3h+ via aggregation (capped by the 1500-kline source limit); Polymarket reconstructs from trades at the bucket size. Pure aggregation (aggregateCandles) is exported + unit-tested; the one network-bound entry (getCandlesAtTimeframe) routes entirely through the adapters' injected httpGet.
 // @use: Reach for this from the observatory server's /candles endpoint (or any chart) to fetch OHLCV at a chosen timeframe. Use availableTimeframes(venue) to drive a selector (disable unsupported tfs); aggregateCandles(bars, bucketSec) to roll fine candles into coarser ones anywhere.
 // @exports: TIMEFRAMES, getTimeframe, availableTimeframes, aggregateCandles, getCandlesAtTimeframe
 
 import { pathToFileURL } from 'node:url';
-import * as Coinbase from '../adapters/coinbase-adapter.mjs';
 import * as Polymarket from '../adapters/polymarket-adapter.mjs';
 import * as PerpAdapter from '../adapters/perp-adapter.mjs';
+// BINANCE-ONLY (2026-06-19, owner directive "binance only, scrap coinbase completely"):
+// coinbase-adapter import REMOVED — chart candles route through PerpAdapter (Binance USDⓈ-M klines).
+// The `G` granularity enum below is a legacy source-key set mapped to Binance intervals via G_TO_BINANCE.
 
 // ── Timeframe ladder (owner spec) ──────────────────────────────────────────
 // sec   = bar interval in seconds
-// src   = coinbase native granularity to fetch (null = needs sub-second tick recording, not yet available)
+// src   = native kline granularity to fetch, mapped to a Binance interval via G_TO_BINANCE (null = sub-second tick recording, not yet available)
 // agg   = how many src candles fold into one bar (1 = native)
 // bars  = target number of bars to show
 const G = {
@@ -39,7 +41,6 @@ export const TIMEFRAMES = [
   { id: '1Y',  label: '1Y',  sec: 31536000, src: G.D1,  agg: 365, bars: 5  },
 ];
 
-const COINBASE_MAX_CANDLES = 350; // venue per-request cap (legacy; chart now on Binance)
 // BINANCE-ONLY (2026-06-19): chart candles route through PerpAdapter (Binance USDⓈ-M klines).
 const G_TO_BINANCE = { ONE_MINUTE: '1m', FIVE_MINUTE: '5m', FIFTEEN_MINUTE: '15m', THIRTY_MINUTE: '30m', ONE_HOUR: '1h', TWO_HOUR: '2h', SIX_HOUR: '6h', ONE_DAY: '1d' };
 const BINANCE_MAX_CANDLES = 1500; // Binance klines per-request cap
@@ -156,22 +157,23 @@ if (_runAsMain && process.argv.includes('--test')) {
   ok(agg3[0].volume === 30, 'bucket volume = sum');
   ok(agg3[0].timestamp % 10800 === 0, 'bucket ts aligned');
 
-  // availableTimeframes: sub-minute unsupported, 1h supported
-  const av = availableTimeframes('coinbase');
+  // availableTimeframes: sub-minute unsupported, 1h supported (binance venue)
+  const av = availableTimeframes('binance');
   ok(av.length === 16, `16 timeframes (got ${av.length})`);
   ok(av.find((t) => t.id === '5s').supported === false, '5s unsupported (no tick recorder)');
   ok(av.find((t) => t.id === '1h').supported === true, '1h supported');
   ok(availableTimeframes('polymarket').find((t) => t.id === '30s').supported === false, 'poly 30s unsupported');
 
-  // getCandlesAtTimeframe coinbase 1h via mock
+  // getCandlesAtTimeframe binance 1h via mock (PerpAdapter.getCandles → fapi/v1/klines)
   await (async () => {
-    const base = 1_700_000_000;
-    const mk = (n) => ({ candles: Array.from({ length: n }, (_, i) => ({
-      start: String(base + i * 3600), open: '100', high: '110', low: '90', close: '105', volume: '5',
-    })) });
-    Coinbase.setHttpGet(async (url) => {
-      if (url.includes('candles')) return { status: 200, headers: {}, body: JSON.stringify(mk(120)) };
-      return { status: 200, headers: {}, body: '{}' };
+    const base = 1_700_000_000; // unix-seconds
+    // Binance kline row: [openTime(ms), open, high, low, close, volume, ...] — mapKline floors ms→s.
+    const mk = (n) => Array.from({ length: n }, (_, i) => [
+      (base + i * 3600) * 1000, '100', '110', '90', '105', '5',
+    ]);
+    PerpAdapter.setHttpGet(async (url) => {
+      if (url.includes('klines')) return { status: 200, headers: {}, body: JSON.stringify(mk(120)) };
+      return { status: 200, headers: {}, body: '[]' };
     });
     const r = await getCandlesAtTimeframe('BTC-USD', '1h');
     ok(r.supported === true, '1h supported result');

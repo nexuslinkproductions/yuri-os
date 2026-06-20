@@ -2191,7 +2191,7 @@
         "aggregate candles",
         "5s 1m 1h 1d 1w view"
       ],
-      "does": "Maps the Observatory's 16-preset timeframe ladder (5s,10s,30s,1m,5m,30m,1h,3h,5h,12h,1D,3D,1W,1M,1Q,1Y) onto the venues' native candle granularities + aggregates native candles up into the larger buckets. Returns canonical OHLCV with an honest `supported` flag per (venue,tf) — sub-minute is unsupported until a tick recorder exists; coinbase serves 1m→native and 3h+ via aggregation (capped by the 350-candle source limit); Polymarket reconstructs from trades at the bucket size. Pure aggregation (aggregateCandles) is exported + unit-tested; the one network-bound entry (getCandlesAtTimeframe) routes entirely through the adapters' injected httpGet.",
+      "does": "Maps the Observatory's 16-preset timeframe ladder (5s,10s,30s,1m,5m,30m,1h,3h,5h,12h,1D,3D,1W,1M,1Q,1Y) onto the venues' native candle granularities + aggregates native candles up into the larger buckets. Returns canonical OHLCV with an honest `supported` flag per (venue,tf) — sub-minute is unsupported until a tick recorder exists; Binance USDⓈ-M serves 1m→native and 3h+ via aggregation (capped by the 1500-kline source limit); Polymarket reconstructs from trades at the bucket size. Pure aggregation (aggregateCandles) is exported + unit-tested; the one network-bound entry (getCandlesAtTimeframe) routes entirely through the adapters' injected httpGet.",
       "use": "Reach for this from the observatory server's /candles endpoint (or any chart) to fetch OHLCV at a chosen timeframe. Use availableTimeframes(venue) to drive a selector (disable unsupported tfs); aggregateCandles(bars, bucketSec) to roll fine candles into coarser ones anywhere.",
       "exports": [
         "TIMEFRAMES",
