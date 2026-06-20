@@ -3,7 +3,7 @@
 // @serves: funding carry | delta neutral harvest | cash and carry | basis trade | funding rate harvest | perp spot carry | engine 1
 // @does: DISARMED paper funding-carry harvester (Engine 1). Delta-neutral long-spot/short-perp lifecycle — 7d-avg funding + carry-to-vol entry gate, hold to 8h settlement, exit on funding-flip / crowding / regime-break. Built as an HONEST MEASUREMENT instrument, not a profit engine: it accounts the REAL asymmetric leg fees (Binance perp 0.02% + a configurable spot venue), the entry+exit BASIS cost, and discrete 8h-settlement funding — then prints the overstatement caveats. Reuses perp-adapter (data), carry-vol-signal (vol-normalized gate), crypto-structural-signals + multi-tf-confluence (exit-intel), afl-paper (the carry book). NEVER sizes the live daemon.
 // @use: Reach for this to MEASURE whether crypto funding-carry clears its real cost stack in the CURRENT regime on a small book, BEFORE any capital. CLI: --probe <market> (live snapshot+gate), --backtest (offline synthetic), --test. Wiring into the live orchestrator/daemon, and raising the spot threshold, are SEPARATE owner-gated arming steps.
-// @exports: computeSevenDayAvgFunding, entryGate, exitDecision, clampFundingRate, createCarryBook, openCarryPair, settleCarry, closeCarryPair, carryReport, runCarryBacktest, CARRY_DEFAULTS, CARRY_CAVEAT
+// @exports: computeSevenDayAvgFunding, entryGate, exitDecision, clampFundingRate, createCarryBook, openCarryPair, modelGtxFill, settleCarryPair, settleCarry, closeCarryPair, carryReport, runCarryBacktest, CARRY_DEFAULTS, CARRY_CAVEAT
 //
 // CONSTRAINTS: paper-only (INV-1 — NO order path anywhere; all execution is afl-paper, all venue I/O is the read-only keyless perp-adapter), no key reads (INV-2), fail-open (gate/exit never throw on bad data → safe default), no new npm dep.
 // PROVENANCE (per research grounding, 2026-06-18): thresholds tagged [SOURCED]/[INTERNAL]/[VERIFY]. Sharpe ~6.45 / ~8% APY are a 2020–2025 FULL-SAMPLE artifact — carry went NEGATIVE in 2025 (arXiv:2510.14435). This module makes NO forward-return promise; it measures the live regime.
@@ -194,15 +194,77 @@ export function createCarryBook({ market, rate8h, pool = CARRY_DEFAULTS.pool, pe
 }
 
 /**
- * openCarryPair(book, { perpSide, notional, perpBar, spotBar, perpBars, spotBars, ts }) -> { ok, reason }
+ * modelGtxFill({ side, price, book }) -> { fill, reason }
+ * Paper-GTX (post-only / maker-only) fill model — the blueprint's UNIVERSAL GATE.
+ *
+ * A GTX (Binance timeInForce=GTX) limit order is REJECTED by the venue if it would
+ * CROSS the book (i.e. take liquidity) at placement. In paper, we mirror that:
+ *   - BUY  at >= best ask → would cross → REJECT (would have been a taker fill)
+ *   - SELL at <= best bid  → would cross → REJECT (would have been a taker fill)
+ *   - otherwise (maker side of the book, or no book) → FILL at `price`
+ *
+ * When `book` is null/missing (e.g. the offline backtest), the leg always FILLS —
+ * backward-compatible with the existing test suite (which has no venue book). The
+ * carry-harvester daemon beat passes the real perp/spot L2 depth (perp-adapter +
+ * spot-adapter) so the paper sim is faithful to the maker-only constraint.
+ *
+ * @param {'long'|'short'} side  the leg's intended direction
+ * @param {number|null}   price the intended maker fill price (e.g. the bar close)
+ * @param {{bids?:Array,asks?:Array}|null} book  unified L2 depth ({bids,asks} of {price,size})
+ * @returns {{fill:boolean, reason:string, nakedLeg?:boolean}}
+ */
+export function modelGtxFill({ side, price, book }) {
+  if (!Number.isFinite(Number(price))) return { fill: false, reason: 'no_price' };
+  const p = Number(price);
+  // No book injected → backward-compatible: assume maker fills (the offline backtest path).
+  if (!book || !Array.isArray(book.bids) || !Array.isArray(book.asks) || book.bids.length === 0 || book.asks.length === 0) {
+    return { fill: true, reason: 'maker_fill_no_book' };
+  }
+  const bestBid = Number(book.bids[0]?.price);
+  const bestAsk = Number(book.asks[0]?.price);
+  if (!Number.isFinite(bestBid) || !Number.isFinite(bestAsk) || bestAsk <= bestBid) {
+    return { fill: true, reason: 'maker_fill_degenerate_book' };
+  }
+  // A maker BUY rests on the bid side (price < best ask); a crossing BUY (price >= best ask) takes liquidity → GTX REJECT.
+  // A maker SELL rests on the ask side (price > best bid); a crossing SELL (price <= best bid) takes liquidity → GTX REJECT.
+  if (side === 'long' && p >= bestAsk) return { fill: false, reason: `gtx_reject_buy_crosses_ask(${p}>=${bestAsk})`, nakedLeg: true };
+  if (side === 'short' && p <= bestBid) return { fill: false, reason: `gtx_reject_sell_crosses_bid(${p}<=${bestBid})`, nakedLeg: true };
+  return { fill: true, reason: 'maker_fill' };
+}
+
+/**
+ * openCarryPair(book, { perpSide, notional, perpBar, spotBar, perpBars, spotBars, ts, perpBook, spotBook, gtx }) -> { ok, reason }
  * Opens the PERP leg FIRST (net-exposure cap ordering), then the SPOT leg, at equal notional.
  * Records the explicit asymmetric entry fees + the entry half of the basis cost.
+ *
+ * PAPER-GTX (maker-only) MODEL: when `gtx` is true (default) AND a venue L2 book is
+ * injected for a leg (perpBook/spotBook from perp-adapter/spot-adapter), each leg is
+ * checked via modelGtxFill before the paper engine fills it. A leg that would CROSS
+ * the book is REJECTED (post-only behavior) and surfaced as a NAKED-LEG state — the
+ * pair is NOT opened, because a delta-neutral carry with one unfilled leg is naked
+ * directional risk (the blueprint's whole point). When no book is injected, legs fill
+ * at maker (backward-compatible with the offline backtest).
  */
-export function openCarryPair(book, { perpSide, notional = CARRY_DEFAULTS.legNotional, perpBar, spotBar, perpBars, spotBars, ts }) {
+export function openCarryPair(book, { perpSide, notional = CARRY_DEFAULTS.legNotional, perpBar, spotBar, perpBars, spotBars, ts, perpBook = null, spotBook = null, gtx = true }) {
   if (!book || book.acc.opened) return { ok: false, reason: 'already_open_or_no_book' };
   if (!['long', 'short'].includes(perpSide)) return { ok: false, reason: 'bad_perpSide' };
   const spotSide = perpSide === 'short' ? 'long' : 'short';
   const { engine, perpInst, spotInst, cfg } = book;
+
+  // PAPER-GTX: check each leg against the injected venue book BEFORE opening. A rejected
+  // leg means the pair is NOT opened (delta-neutral carry with one naked leg = directional risk).
+  // book.acc.gtx captures the naked-leg state for the report/ledger so the daemon can surface it.
+  const perpPx = perpBar && Number.isFinite(perpBar.close) ? perpBar.close : null;
+  const spotPx = spotBar && Number.isFinite(spotBar.close) ? spotBar.close : null;
+  const perpGtx = gtx ? modelGtxFill({ side: perpSide, price: perpPx, book: perpBook }) : { fill: true, reason: 'gtx_disabled' };
+  const spotGtx = gtx ? modelGtxFill({ side: spotSide, price: spotPx, book: spotBook }) : { fill: true, reason: 'gtx_disabled' };
+  book.acc.gtx = { perp: perpGtx, spot: spotGtx };
+  if (!perpGtx.fill || !spotGtx.fill) {
+    const rejected = !perpGtx.fill ? 'perp' : 'spot';
+    const open = !perpGtx.fill ? 'spot' : 'perp';
+    return { ok: false, reason: `naked_leg:${rejected}_rejected(${arguments_rejected_reason(perpGtx, spotGtx)})_${open}_would_be_naked`, nakedLeg: true };
+  }
+
   engine.ingestBar(perpBar, perpInst);
   engine.ingestBar(spotBar, spotInst);
   const rPerp = engine.onSignal(
@@ -221,6 +283,11 @@ export function openCarryPair(book, { perpSide, notional = CARRY_DEFAULTS.legNot
   book.acc.notional = notional;
   book.acc.opened = true;
   return { ok: true, reason: 'opened' };
+}
+
+// tiny helper to extract the rejection reason for the naked-leg message without array deps
+function arguments_rejected_reason(perpGtx, spotGtx) {
+  return !perpGtx.fill ? perpGtx.reason : spotGtx.reason;
 }
 
 /**
@@ -488,6 +555,60 @@ if (_isMain && process.argv.includes('--test')) {
     ok(approx(clampFundingRate(-0.05), -0.0075), 'clamp −5% → −0.75%');
     ok(approx(clampFundingRate(0.0003), 0.0003), 'in-range unchanged');
     ok(clampFundingRate(NaN) === 0, 'NaN → 0');
+  }
+
+  // modelGtxFill (paper-GTX / maker-only gate)
+  {
+    const book = { bids: [{ price: 99.5, size: 1 }], asks: [{ price: 100.5, size: 1 }] };
+    // BUY at 100 (mid-side, maker) → fill
+    ok(modelGtxFill({ side: 'long', price: 100, book }).fill === true, 'gtx: maker buy fills');
+    // BUY at 100.5 (>= best ask) → crosses → REJECT (naked leg)
+    const cross = modelGtxFill({ side: 'long', price: 100.5, book });
+    ok(cross.fill === false && cross.nakedLeg === true, `gtx: crossing buy rejected (got ${JSON.stringify(cross)})`);
+    // SELL at 99.5 (<= best bid) → crosses → REJECT (naked leg)
+    const crossS = modelGtxFill({ side: 'short', price: 99.5, book });
+    ok(crossS.fill === false && crossS.nakedLeg === true, `gtx: crossing sell rejected (got ${JSON.stringify(crossS)})`);
+    // SELL at 100 (maker side) → fill
+    ok(modelGtxFill({ side: 'short', price: 100, book }).fill === true, 'gtx: maker sell fills');
+    // No book injected → always fill (backward-compat with the offline backtest)
+    ok(modelGtxFill({ side: 'long', price: 100, book: null }).fill === true, 'gtx: no-book → fill (backtest path)');
+    ok(modelGtxFill({ side: 'short', price: 100, book: null }).fill === true, 'gtx: no-book → fill (backtest path)');
+    // Degenerate book (ask <= bid) → fill (don't trust a broken book to reject)
+    const deg = { bids: [{ price: 101, size: 1 }], asks: [{ price: 100, size: 1 }] };
+    ok(modelGtxFill({ side: 'long', price: 100, book: deg }).fill === true, 'gtx: degenerate book → fill');
+    // NaN price → no fill
+    ok(modelGtxFill({ side: 'long', price: NaN, book }).fill === false, 'gtx: NaN price → no fill');
+  }
+
+  // openCarryPair — PAPER-GTX naked-leg rejection when a venue book is injected and a leg crosses
+  {
+    const book = createCarryBook({ market: 'BTC-USD', rate8h: 0.0005 });
+    const bar = (px) => ({ timestamp: 1700000000, open: px, high: px, low: px, close: px, volume: 1000 });
+    const mkBars = (px) => Array.from({ length: 5 }, () => bar(px));
+    // Maker book: best bid 99, best ask 101 → a SELL@100 (>= bid) and BUY@100 (< ask) are BOTH maker → pair fills
+    const makerBook = { bids: [{ price: 99, size: 1 }], asks: [{ price: 101, size: 1 }] };
+    const r = openCarryPair(book, {
+      perpSide: 'short', notional: 150,
+      perpBar: bar(100), spotBar: bar(100), perpBars: mkBars(100), spotBars: mkBars(100), ts: 1700000000,
+      perpBook: makerBook, spotBook: makerBook,
+    });
+    // perpSide='short' → SELL perp@100 (100 > bid 99 → maker fill) + BUY spot@100 (100 < ask 101 → maker fill)
+    ok(r.ok === true, `gtx: both-legs maker vs bid99/ask101 → fill (got ok=${r.ok}, reason=${r.reason})`);
+    // Rejection path: short perp at 99 (== best bid → crosses, 99<=99) with the spot leg at a maker price
+    const book2 = createCarryBook({ market: 'BTC-USD', rate8h: 0.0005 });
+    const reject = openCarryPair(book2, {
+      perpSide: 'short', notional: 150,
+      perpBar: bar(99), spotBar: bar(100), perpBars: mkBars(99), spotBars: mkBars(100), ts: 1700000000,
+      perpBook: makerBook, spotBook: makerBook,
+    });
+    ok(reject.ok === false && reject.nakedLeg === true, `gtx: short-perp@99 vs bid99 → naked-leg reject (got ${JSON.stringify({ ok: reject.ok, nakedLeg: reject.nakedLeg, reason: reject.reason })})`);
+    // No book injected → backward-compatible fill (the backtest path)
+    const book3 = createCarryBook({ market: 'BTC-USD', rate8h: 0.0005 });
+    const plain = openCarryPair(book3, {
+      perpSide: 'short', notional: 150,
+      perpBar: bar(100), spotBar: bar(100), perpBars: mkBars(100), spotBars: mkBars(100), ts: 1700000000,
+    });
+    ok(plain.ok === true, 'gtx: no-book openCarryPair fills (backtest path unchanged)');
   }
 
   // runCarryBacktest — flat price (pure carry), short on +funding
