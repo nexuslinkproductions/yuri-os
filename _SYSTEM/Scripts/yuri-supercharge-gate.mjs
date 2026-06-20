@@ -109,7 +109,6 @@ export function buildChecks(options = {}) {
     ['test:yuri-user', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user.test.mjs']],
     ['test:yuri-user-data-collect', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-data-collect.test.mjs']],
     ['test:yuri-control-server', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-server.test.mjs']],
-    ['test:operator-write-guard', process.execPath, ['.claude/hooks/tests/operator-write-guard.test.js']],
     ['test:lane-session', process.execPath, ['--test', '_SYSTEM/Scripts/lane-session.test.mjs']],
     ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
     ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],

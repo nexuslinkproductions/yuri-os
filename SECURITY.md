@@ -42,8 +42,7 @@ anonymity is requested.
 **In scope:**
 
 - The hook execution pipeline (`PreToolUse`, `PostToolUse`, `SessionStart`, `Stop`),
-  especially `bash-security-guard.js`, `operator-write-guard.js`, and protected-path enforcement
-- The operator role / credential resolver (`coworker` vs `dev` elevation)
+  especially `bash-security-guard.js` and protected-path enforcement
 - Energy-gate and gate-bypass vectors
 - Memory kernel and memory-bus trust boundaries
 - `yuri-init` merge behavior (hook injection into a host `~/.claude` setup)
@@ -84,19 +83,13 @@ backend/data/        .claude/state/        .claude/history/
 YURI's own hooks never read or write these under normal operation. Any hook or agent
 behavior reaching for them is a signal worth investigating.
 
-### 2. Keep the operator dev key secret
+### 2. The bash guard is flat and role-free (as of 2026-06-20)
 
-YURI resolves a session **role**: `coworker` (restricted — the safe default) or `dev`
-(full owner trust). Elevation to `dev` is gated by `YURI_DEV_KEY` and the credential
-resolver. Treat that key like any other secret:
+`bash-security-guard.js` is a single-operator, role-free hook. There is no `coworker` vs `dev` distinction, no `YURI_DEV_KEY`, and no credential resolver in the guard path — the two-role operator system was removed by owner directive on 2026-06-20.
 
-- Generate a strong, random `YURI_DEV_KEY`; never commit it (set it in `.env`, which is
-  a protected path the hooks will not read).
-- The `coworker` default exists so an untrusted or automated session cannot mutate the
-  guard surface, role resolver, or credentials. Do not weaken that default to silence a prompt.
-- The static command-string guards (`bash-security-guard`) are a fail-open layer-2
-  conscience, not a sandbox. The hard boundary is the deterministic PreToolUse hooks plus
-  the `settings.json` deny-list plus the owner-role trust root. Defense in depth, not a single wall.
+- It HARD-BLOCKS only `.env` secret read / write / mutate / remove (including `.env` accessed inside a `bash -c \"…\"` wrapper). This is the one rail kept against accidental secret exfiltration.
+- Everything else it used to gate — removing `.claude` config, broad `git add .claude`, `git rm .claude`, and `curl … | bash` / decode-pipe-to-shell chains — now emits a NON-BLOCKING ADVISORY heads-up and proceeds.
+- The static command-string guards are a fail-open layer-2 conscience, not a sandbox. The hard boundary is the deterministic PreToolUse hooks plus the `settings.json` deny-list. Defense in depth, not a single wall.
 
 ### 3. The install merge touches your `~/.claude`
 

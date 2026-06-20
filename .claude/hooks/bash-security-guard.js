@@ -1035,41 +1035,46 @@ function isBlockedUngovernedNanoSpawn(cmd) {
 function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
-  // Two-role gate: coworker is denied repo-mutation + owner-surface ops.
-  const coworkerBlock = isBlockedForCoworker(cmd);
-  if (coworkerBlock)
-    return { type: 'block', reason: coworkerBlock };
+  // ROLES REMOVED (owner directive 2026-06-20): no dev/coworker gate. Flat policy —
+  // HARD BLOCK only .env secret access; the .claude-config + download/decode-exec rules
+  // the owner found too strict are now ADVISORY (warn, never block). isBlockedForCoworker /
+  // isRolePathMutation / activeRole are no longer called (dead code, safe to delete later).
   if (isBlockedUngovernedNanoSpawn(cmd))
     return { type: 'block', reason: 'Ungoverned nano spawn — route through the governed spawn_nano tool (depth/fan-out/budget/cost caps), not raw nano-external/nano-tick.' };
-  // Owner-scoped exemption: intra-repo .env mirror (cp/mv between repo paths).
-  // Documented + tested in this file; harness allowlist also explicitly enumerates
-  // the canonical backend/.env <-> _SYSTEM/backend/.env mirror commands.
+  // Intra-repo .env mirror exemption (cp/mv between repo paths).
   if (isAllowedEnvMirror(cmd))
-    return { type: 'advisory', message: 'Intra-repo .env mirror allowed (owner-scoped exemption).' };
+    return { type: 'advisory', message: 'Intra-repo .env mirror allowed.' };
+  // ── HARD BLOCK: .env secret read / write / mutate / remove (the one rail kept) ──
   if (isBlockedEnvRead(cmd))
-    return { type: 'block', reason: 'Reading .env is blocked.' };
-  if (isBlockedSensitiveClaudeRead(cmd))
-    return { type: 'block', reason: 'Reading sensitive .claude file is blocked.' };
+    return { type: 'block', reason: 'Reading .env (secrets) is blocked.' };
   if (isBlockedEnvWrite(cmd))
     return { type: 'block', reason: 'Writing to .env is blocked.' };
   if (isBlockedEnvMutate(cmd))
     return { type: 'block', reason: 'Mutating .env is blocked.' };
   if (isBlockedEnvRemove(cmd))
     return { type: 'block', reason: 'Removing .env is blocked.' };
+  // .env hidden inside a shell wrapper (bash -c "cat .env") still hard-blocks.
+  {
+    const innerEnv = extractShellWrapper(cmd);
+    if (innerEnv && (isBlockedEnvRead(innerEnv) || isBlockedEnvWrite(innerEnv) ||
+        isBlockedEnvMutate(innerEnv) || isBlockedEnvRemove(innerEnv)))
+      return { type: 'block', reason: '.env (secrets) access inside a shell wrapper is blocked.' };
+  }
+  // ── WARN-ONLY (owner relaxed): .claude config ops + download/decode-exec chains ──
+  if (isBlockedSensitiveClaudeRead(cmd))
+    return { type: 'advisory', message: 'Heads-up: reading a sensitive .claude file.' };
   if (isBlockedClaudeFileWrite(cmd))
-    return { type: 'block', reason: 'Writing to sensitive .claude file is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: writing a .claude config file (use the Edit tool for hook-safety).' };
   if (isBlockedClaudeRemove(cmd))
-    return { type: 'block', reason: 'Destructive operation targeting .claude is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: removing .claude config (git-recoverable).' };
   if (isBlockedBroadGitAdd(cmd))
-    return { type: 'block', reason: 'Broad git add targeting .claude is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: broad git add of .claude — verify scope.' };
   if (isBlockedGitRm(cmd))
-    return { type: 'block', reason: 'git rm targeting .claude is blocked.' };
-  if (isBlockedShellWrapper(cmd))
-    return { type: 'block', reason: 'Shell wrapper contains a blocked command.' };
+    return { type: 'advisory', message: 'Heads-up: git rm of .claude.' };
   if (isDownloadExecuteChain(cmd))
-    return { type: 'block', reason: 'Download-and-execute chain is blocked (HI-12).' };
+    return { type: 'advisory', message: 'Heads-up: download-and-execute (curl|bash) chain — verify the source.' };
   if (isDecodeExecuteChain(cmd))
-    return { type: 'block', reason: 'Decode-and-execute pipe chain is blocked (HI-12 class).' };
+    return { type: 'advisory', message: 'Heads-up: decode-and-execute pipe chain — verify the payload.' };
 
   const parts = toks(cmd);
   const first = parts[0];
