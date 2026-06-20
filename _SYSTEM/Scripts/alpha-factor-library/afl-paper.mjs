@@ -354,9 +354,14 @@ export function createPaperEngine(config) {
     }
   }
 
+  // BINANCE-ONLY default (2026-06-19): a paper engine with no explicit feeModel falls back to
+  // Binance USDⓈ-M VIP0 taker (0.05%), NOT the legacy Coinbase 0.60% cryptoFeeModel. Every live
+  // caller (orchestrator runCryptoCycle, train-session, funding-carry, afl-paper-perp tests)
+  // passes feeModel explicitly already — this default is hit by nothing live; it just makes the
+  // last-resort fallback binance-honest. cryptoFeeModel stays exported for explicit legacy/test use.
   const feeModel = typeof config.feeModel === 'function'
     ? config.feeModel
-    : cryptoFeeModel('taker');
+    : binanceFeeModel('taker');
 
   const c = config.caps ?? {};
   const caps = {
