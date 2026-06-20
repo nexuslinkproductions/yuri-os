@@ -1,0 +1,158 @@
+<RichText id="title">
+
+# Engine Rethink — Simplification Plan
+
+The engine is **86 files / 37,201 LOC** but proven (3 ways) to have no predictive edge. This is the de-complication plan: cut the dead weight, park the no-edge stacks, keep the value-core, and pivot to the one simple structural edge that's already 90% built. Audited by 4 parallel reviewers; every claim below is file:line evidenced.
+
+</RichText>
+
+<Callout id="verdict" tone="decision">
+
+**The live engine is only ~7 files:** `orchestrator + afl-paper + afl-sizing + ensemble + strategies + data-quality + prediction-ledger`. Everything else is theater, parked, or the value-core. The bloat lives in the *apparatus around* the engine, not the engine itself.
+
+</Callout>
+
+<RichText id="actions-h">
+
+## The three actions
+
+</RichText>
+
+<Columns id="actions">
+<Column id="cut-col" label="① CUT — pure theater (zero live readers)">
+
+<Table
+  id="cut-table"
+  columns={["File", "LOC", "Evidence"]}
+  rows={[
+    ["vpin.mjs", "710", "zero importers repo-wide (grep-confirmed)"],
+    ["factor-circuit.mjs", "881", "snap.circuit feeds NO sizing reader (A10 theater)"],
+    ["quantum-ab-shadow.mjs", "263", "shadow ledger, no sizing reader"],
+    ["overseer.mjs + launcher", "405", "DISARMED, no .mjs importer"],
+    ["mutation-sweep.mjs", "615", "zero importers"],
+    ["adverse-attribution.mjs", "546", "offline-only (tape-replay diag)"],
+  ]}
+/>
+
+<RichText id="cut-net">**~3,420 LOC — zero-risk deletions.** Breaks nothing live (the board loses a cosmetic quantum pane). Cut first.</RichText>
+
+</Column>
+<Column id="park-col" label="② PARK — no-edge stacks (behind flags, keep code)">
+
+<RichText id="park-body">
+
+**Microstructure + maker-exec (~5,200 LOC):** `ofi`, `orderbook-imbalance`, `maker-exec-measure`, `fill-surface`, `as-baseline`, `avellaneda-stoikov`, `kappa-fit`, `as-quote-live`. OFI just validated R²~0.006 (no edge at Mac+WS latency). Already DISARMED behind `OBSERVATORY_AS_QUOTE=1`. Quarantine — reusable if latency drops.
+
+**Polymarket (~1,500 LOC):** scope drift (prediction markets, not crypto perp). Dormant behind `polymarkets:[]`. Stop maintaining.
+
+**Overlays:** 0/5 validated but correctly fenced — leave (the validation harness wants to re-test them later).
+
+</RichText>
+
+</Column>
+</Columns>
+
+<Callout id="keep" tone="success">
+
+**③ KEEP — the value-core (the discipline that saved you from a fake edge):** `factor-evaluator` (DSR/BH-FDR/deflated-Sharpe), `graduation` (R0→R3 real-money gate), `factor-reeval`, `afl-paper` (1456 LOC — lean, load-bearing), `trade-outcome-decoder`, `data-quality-gate`, `spread-correction`, `trade-edge-audit`, the edge-validators, `perp-adapter` (Binance feed). **Consolidate ~55 LOC of duplicates** (Brier, AFL_LEDGER, status-map) + optionally shelf `factor-scorer` (283, advisory-only).
+
+</Callout>
+
+<RichText id="pivot-h">
+
+## The pivot — funding-carry is already 90% built
+
+</RichText>
+
+<Callout id="pivot" tone="info">
+
+**`funding-carry.mjs` (547 LOC) is a complete, honest PAPER HARVESTER** — `entryGate`, `openCarryPair`, `settleCarry`, `exitDecision` (funding-flip/crowding/regime), `runCarryBacktest`, `probeLive`. It reuses `perp-adapter` + `carry-vol-signal` + `afl-paper`. **It is NOT wired to the daemon** (CLI-only), has **no maker-only/GTX gate**, and the **spot leg is simulated** (synthetic instrument, no spot adapter). The gap to "running on Binance paper" is **~300-400 LOC of glue**, not a rewrite.
+
+</Callout>
+
+<Callout id="honesty" tone="risk">
+
+**Honest caveat — the harvester's own file admits it:** the Sharpe ~6.45 / ~8% APY is a **2020-2025 artifact**; **2025 carry went negative** in elevated-funding regimes (crowding — Ethena $14B compressed yields). So even the pivot edge is **regime-dependent, not guaranteed.** This is exactly why we verify (30+ real settlements) before trusting it — and why the harvester's honesty block is worth more than the entire 1-min TA ensemble.
+
+</Callout>
+
+<RichText id="path-h">
+
+## Minimal path to "funding-carry running on Binance paper" (~300-400 LOC, all DISARMED/self-governable to build)
+
+</RichText>
+
+<Table
+  id="path-table"
+  columns={["Step", "What", "LOC", "Gate"]}
+  rows={[
+    ["1", "Wire harvester into a daemon beat (probeLive → openCarryPair → settleCarry → exitDecision)", "~100-150", "DISARMED flag; arming owner-gated"],
+    ["2", "Paper-GTX model (reject a crossing leg → surface naked-leg state)", "~30-50", "sim-only"],
+    ["3", "Binance SPOT read-adapter (/api/v3/depth) so the spot leg fills against real book", "~200", "read-only, no orders"],
+    ["4", "Run paper 30 days; log (fundingReceived, fees, basis, netHonest) per settlement", "—", "proof obligation"],
+  ]}
+/>
+
+<RichText id="questions-h">
+
+## Decisions for you
+
+</RichText>
+
+<QuestionForm
+  id="rethink-decisions"
+  questions={[
+    {
+      id: "cut-theater",
+      title: "Cut the ~3,420 LOC of pure theater (vpin, factor-circuit/quantum, overseer, mutation-sweep, adverse-attribution)? Zero live readers, zero risk.",
+      mode: "single",
+      options: [
+        { id: "yes", label: "Cut it all now", detail: "clean ~3.4k LOC of dead code; reversible via git", recommended: true },
+        { id: "review", label: "Show me the diffs first", detail: "I prepare the cuts, you review before commit" },
+        { id: "no", label: "Leave it", detail: "keep the theater (not recommended)" },
+      ],
+      required: false,
+    },
+    {
+      id: "park-stacks",
+      title: "Park the microstructure + Polymarket stacks behind flags (keep code, stop treating as active)?",
+      mode: "single",
+      options: [
+        { id: "yes", label: "Park both", detail: "quarantine ~6.7k LOC behind DISARMED flags", recommended: true },
+        { id: "polymarket-only", label: "Only Polymarket", detail: "keep microstructure visible" },
+        { id: "no", label: "Leave active", detail: "no change" },
+      ],
+      required: false,
+    },
+    {
+      id: "pivot-build",
+      title: "Build the funding-carry wiring (~300-400 LOC) to run it on Binance paper? This is the 'really get this going' step.",
+      mode: "single",
+      options: [
+        { id: "build", label: "Build the wiring (DISARMED)", detail: "wire harvester + paper-GTX + spot read-adapter; run paper 30 days", recommended: true },
+        { id: "verify-first", label: "Verify the edge first", detail: "run --backtest on real funding history before building wiring" },
+        { id: "wait", label: "Wait for the trader call", detail: "her input on carry/sizing first" },
+      ],
+      required: false,
+    },
+    {
+      id: "scope",
+      title: "Confirm scope: Binance crypto perp ONLY (Polymarket + multi-asset out of scope for now)?",
+      mode: "single",
+      options: [
+        { id: "perp-only", label: "Binance perp only", detail: "focused; Polymarket parked", recommended: true },
+        { id: "keep-poly", label: "Keep Polymarket in scope", detail: "maintain both" },
+      ],
+      required: false,
+    },
+  ]}
+  submitLabel="Send decisions"
+/>
+
+<RichText id="footer">
+
+## Verification
+
+Audit grounded in 4 parallel reviewers reading the actual files (file:line cited throughout). Live-path proof: `computeSize` (orchestrator.mjs:930,1043) reads only `ensemble.net/sig.value/confidence` — NOT circuit/quantum/vpin/OFI, confirming the theater verdict. Engine: `_SYSTEM/Scripts/alpha-factor-library/`. Paper-only (INV-1).
+
+</RichText>
