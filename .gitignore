@@ -400,3 +400,7 @@ _SYSTEM/state/gate-trace-corrid.enabled
 _SYSTEM/state/voice/
 # overseer runtime state — the live fleet board (per-session, not source); template lives in Scripts/voice
 _SYSTEM/state/overseer/
+
+# Agent-Native plans app local-files bridge token (per-serve, local-only; NEVER commit)
+.plan-url
+.agent-native/

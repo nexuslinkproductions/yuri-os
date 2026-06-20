@@ -6,12 +6,19 @@ Two formats of the same honest overview of the YURI paper-trading engine.
 Open directly in any browser (`open trading-engine-overview.html`). Self-contained (no internet, no app, no setup).
 This is the reliable one — it will render identically on any machine.
 
-## `trading-engine-overview.mdx` ← the visual-plan format
+## `plan.mdx` ← the visual-plan format (interactive)
 Viewable in the [Agent-Native plans app](https://www.agent-native.com/docs/template-plan) in **local-files mode**
-(no sharing of engine internals to a hosted DB). Install the viewer skill if not present:
-`npx @agent-native/skills@latest add --skill visual-plan --mode local-files`.
-The MDX uses visual-plan's documented component conventions (`Callout`, `Columns`, `Card`, `OpenQuestions`);
-minor tag-casing tweaks may be needed for pixel-perfect app rendering — the HTML is the source of truth for content.
+(no sharing of engine internals — `AGENT_NATIVE_PLANS_MODE=local-files`, content stays local). To serve + open in Chrome:
+
+```bash
+cd /Users/marcelspatz/YURI-OS-MUSUBI
+AGENT_NATIVE_PLANS_MODE=local-files npx -y @agent-native/core@latest \
+  plan local serve --dir 02_RESOURCES/RESEARCH/trading-engine-overview-2026-06-20 --kind plan --open
+```
+
+Validate first with `plan local check --dir <dir>`. Uses the real block schema (`Callout`, `Columns`/`Column`,
+`Diagram`, `Table`, `QuestionForm`). The **QuestionForm at the bottom is the interactive surface** — answers route
+the next build steps. The `.plan-url` token file is gitignored (local-only).
 
 ## What's in it
 1. The honest headline — why the tape is red (inverted 0.08:1 reward:risk + no validated edge + short bias).
