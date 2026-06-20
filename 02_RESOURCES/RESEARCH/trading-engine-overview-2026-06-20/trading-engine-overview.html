@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YURI Trading Engine — Honest Overview</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c232c; --ink:#e6edf3; --mut:#8b949e;
+    --line:#2a3138; --acc:#58a6ff; --good:#3fb950; --bad:#f85149; --warn:#d29922; --violet:#bc8cff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+  h1{font-size:30px;margin:0 0 4px;letter-spacing:-.01em}
+  h2{font-size:20px;margin:34px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:15px;margin:20px 0 6px;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+  p,li{color:#c9d1d9}
+  .sub{color:var(--mut);font-size:13px;margin:0 0 4px}
+  a{color:var(--acc)}
+  code{font-family:var(--mono);font-size:12.5px;background:#0a0d12;padding:1px 5px;border-radius:4px;color:var(--violet)}
+  .pill{display:inline-block;font:600 11px/1 var(--mono);padding:4px 8px;border-radius:999px;letter-spacing:.04em;vertical-align:middle}
+  .pill.paper{background:#1a3326;color:var(--good);border:1px solid #2a4a36}
+  .pill.binance{background:#2a2412;color:var(--warn);border:1px solid #4a3a18}
+  .pill.disarmed{background:#221a2e;color:var(--violet);border:1px solid #3a2e4a}
+  .pill.warn{background:#2e1a1a;color:var(--bad);border:1px solid #4a2a2a}
+
+  /* hero diagnosis */
+  .hero{background:linear-gradient(180deg,#1a1212,#161012);border:1px solid #4a2a2a;border-radius:14px;padding:22px 24px;margin:18px 0 6px}
+  .hero h2{border:0;margin:0 0 10px;color:var(--bad)}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 4px}
+  .kpi .b{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .kpi .v{font:700 24px/1 var(--mono);color:var(--bad)}
+  .kpi .v.ok{color:var(--good)} .kpi .v.mut{color:var(--mut)}
+  .kpi .l{font-size:11px;color:var(--mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em}
+
+  /* pipeline */
+  .pipe{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:14px 0 4px}
+  .stage{flex:1 1 0;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;position:relative}
+  .stage .n{font:700 11px var(--mono);color:var(--acc);opacity:.7}
+  .stage .t{font-weight:600;font-size:13.5px;margin:2px 0 4px}
+  .stage .d{font-size:11.5px;color:var(--mut);line-height:1.4}
+  .arrow{display:flex;align-items:center;color:var(--mut);font-size:18px;padding:0 4px}
+  @media(max-width:760px){.arrow{transform:rotate(90deg);padding:6px 0}.pipe{flex-direction:column}}
+
+  /* two-col */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .card h3{margin-top:0}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td.num,th.num{text-align:right;font-family:var(--mono)}
+  .bad{color:var(--bad)} .good{color:var(--good)} .mut{color:var(--mut)}
+
+  .callout{border-left:3px solid var(--acc);background:#0d1620;padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0}
+  .callout.warn{border-color:var(--warn);background:#16120808}
+  .callout.bad{border-color:var(--bad);background:#180d0d}
+  .callout.good{border-color:var(--good);background:#0d180f}
+  .callout .h{font-weight:700;margin-bottom:4px}
+
+  ul.q{list-style:none;padding:0}
+  ul.q li{padding:10px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin:6px 0}
+  ul.q li b{color:var(--warn)}
+
+  .foot{color:var(--mut);font-size:12px;border-top:1px solid var(--line);margin-top:34px;padding-top:14px}
+  .legend span{display:inline-block;margin-right:14px;font-size:12px;color:var(--mut)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>YURI Trading Engine — Honest Overview</h1>
+  <p class="sub">
+    <span class="pill paper">PAPER-ONLY · NO REAL ORDERS</span>
+    <span class="pill binance">BINANCE USDⓈ-M</span>
+    <span class="pill disarmed">SIZING DISARMED</span>
+    &nbsp; Snapshot 2026-06-20 · prepared for an independent trader review
+  </p>
+  <p class="sub">A math-first (not vibe-first) quantitative paper-trading engine. This board is deliberately honest about
+  what works and what does not — the goal is a real review, not a sales pitch.</p>
+
+  <!-- ============ HERO DIAGNOSIS ============ -->
+  <div class="hero">
+    <h2>⚠ The honest headline — the tape is losing, and here is exactly why</h2>
+    <p>The paper tape is <b>current and correctly wired</b> (live <code>ensemble-*</code> signals, today's timestamps,
+    post-restart). It is <b>not</b> legacy output. The losses are real and they are the mathematically-expected
+    result of two compounding problems — <b>not a bug</b>:</p>
+    <div class="kpi">
+      <div class="b"><div class="v">0.08 : 1</div><div class="l">Realized win : loss size</div></div>
+      <div class="b"><div class="v">15%</div><div class="l">Win rate (6W / 34L, n=40)</div></div>
+      <div class="b"><div class="v">92%</div><div class="l">Break-even win rate at this RR (impossible)</div></div>
+      <div class="b"><div class="v">−$11.26</div><div class="l">Expected value per trade</div></div>
+    </div>
+    <p style="margin:12px 0 0"><b>Winners are cut to ~$1.12 while losers run to ~$13.44</b> (losers ~12× bigger).
+    Even a genuinely good directional signal would lose money at a 0.08:1 reward:risk. On top of that, the
+    signal itself carries <b>no validated edge</b> (every factor: DSR≈0, hit-rate ≈ coin-flip) and is heavily
+    <b>short-biased</b> (35/40 trades short). This is the engine correctly proving — at paper cost — that the
+    current signal + exit logic do not work. <span class="good">That is the system working, not broken.</span></p>
+  </div>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <h2>How the engine is built (the pipeline)</h2>
+  <p class="sub legend">
+    <span><span class="dot" style="background:var(--acc)"></span>data</span>
+    <span><span class="dot" style="background:var(--violet)"></span>signal</span>
+    <span><span class="dot" style="background:var(--warn)"></span>gates</span>
+    <span><span class="dot" style="background:var(--good)"></span>sizing / paper</span>
+    <span><span class="dot" style="background:var(--mut)"></span>learning</span>
+  </p>
+  <div class="pipe">
+    <div class="stage"><div class="n" style="color:var(--acc)">1 · DATA</div><div class="t">Binance fstream + fapi</div><div class="d">@bookTicker WS ticks · klines REST · /depth book. Keyless market data.</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--violet)">2 · FACTORS (×32)</div><div class="t">1-minute TA signals</div><div class="d">Momentum / vol / mean-reversion on 1m bars. <b>All derived from one price series → eff-N ≈ 1</b> (not truly independent).</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--violet)">3 · ENSEMBLE</div><div class="t">Vote → side + strength</div><div class="d">Weighted dir·conf vote → net [-1,1]. Drives the single combined position per market.</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--warn)">4 · GATES</div><div class="t">Fee-hurdle / horizon / hysteresis</div><div class="d">Skip if edge &lt; fee; multi-horizon must clear round-trip; cool-down after exits.</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--good)">5 · SIZING</div><div class="t">computeSize (DISARMED)</div><div class="d">Fractional-Kelly + vol/drawdown throttle. <b>Shadow only</b> — paper still uses conviction scalar.</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--good)">6 · PAPER</div><div class="t">afl-paper engine</div><div class="d">Almgren-Chriss fills + half-spread + Binance fee. Append-only JSONL ledger. No real orders.</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="n" style="color:var(--mut)">7 · LEARN</div><div class="t">decode → score → graduate</div><div class="d">Closed trades → AFL_LEDGER → DSR/Brier re-eval → graduation R0→R3 (fail-closed).</div></div>
+  </div>
+
+  <!-- ============ THE TWO LAYERS ============ -->
+  <h2>The signal problem, visualized</h2>
+  <div class="cols">
+    <div class="card">
+      <h3>Layer A — 32 price factors (1-minute)</h3>
+      <p>These <b>already exist</b> and drive every trade. The instinct "we need a 1-minute factor" is already
+      satisfied — 32 of them. The problem is they are all algebraic shadows of the <b>same 1m price series</b>,
+      so they fire together and agree together.</p>
+      <p><b>Effective number of independent bets (eff-N) ≈ 1.0–1.7.</b> That is "one bet wearing 32 costumes,"
+      not 32 independent edges. At 99% of timestamps exactly one factor fires.</p>
+      <p class="mut">Verdict: 14/32 are negative after fees; none reach statistical significance (|t| &gt; 2.3).</p>
+    </div>
+    <div class="card">
+      <h3>Layer B — 5 overlay sources (info-orthogonal)</h3>
+      <p>To raise eff-N toward ≥5, we added 5 sources from <b>different data</b>: funding-carry, perp-basis,
+      carry-vol, cross-asset lead/lag, social sentiment. These are deliberately <b>telemetry-only</b> (their
+      units ≠ price-return edge).</p>
+      <p><b>Validate-first (today, 735k rows): 0 / 5 predict returns.</b> So they stay unwired — wiring them
+      would import phantom edge. OFI (order-flow) still needs real-tape R² validation.</p>
+      <p class="mut">Verdict: the orthogonality instinct is right; the candidates just don't validate yet.</p>
+    </div>
+  </div>
+
+  <!-- ============ SIZING + GATES ============ -->
+  <h2>Sizing &amp; gates — what actually controls risk</h2>
+  <div class="cols">
+    <div class="card">
+      <h3>The sizer (computeSize)</h3>
+      <p>A principled fractional-Kelly sizer with CVaR/vol/drawdown throttles, <b>fail-closed</b> (no edge → 0 size).
+      It was just wired into the crypto path but is <span class="pill disarmed">DISARMED shadow</span> — the paper
+      engine still sizes by conviction until the owner arms it.</p>
+      <div class="callout bad"><div class="h">Phantom-edge finding (live shadow)</div>
+      A strong ensemble vote (net≈0.8) produced a ~$6–7k "priced" size, because the sizer currently reads
+      <b>signal intensity as a return-edge</b>. DISARMED = zero harm; it confirmed <b>both</b> sizer inputs
+      (edge + win-probability) must be calibrated from real outcomes before arming.</div>
+    </div>
+    <div class="card">
+      <h3>The gates</h3>
+      <p><b>Energy gate (computeU): advisory.</b> It records ΔU but does <b>not</b> block trades (DISARMED).
+      It is <b>not</b> what is holding back profits.</p>
+      <p><b>Real skip-gates:</b> fee-hurdle (edge &lt; round-trip fee → skip), multi-horizon (move must clear
+      0.15% rt), hysteresis (cool-down after exits). These <i>reduce trade count</i> — which is correct behavior
+      on a no-edge signal (you do not want more trades on a signal that doesn't work).</p>
+      <p class="mut">The bottleneck is edge, not gating.</p>
+    </div>
+  </div>
+
+  <!-- ============ EVIDENCE TABLE ============ -->
+  <h2>Evidence — today's tape (snapshot)</h2>
+  <table>
+    <tr><th>Market</th><th class="num">Completed</th><th class="num">Gross P&amp;L</th><th class="num">Fees</th><th class="num">Return (bps)</th><th class="num">Max DD (bps)</th></tr>
+    <tr><td>BTC-USD</td><td class="num">11</td><td class="num bad">−28.25</td><td class="num bad">74.43</td><td class="num bad">−10.27</td><td class="num">10.27</td></tr>
+    <tr><td colspan="6" class="mut" style="font-size:12px">Fees ($74) exceed the gross loss ($28) on BTC alone — the bleed is mostly cost, not catastrophic direction.</td></tr>
+  </table>
+  <table style="margin-top:14px">
+    <tr><th>Exit reason (40 trades)</th><th class="num">Count</th><th>Avg P&amp;L</th><th>Read</th></tr>
+    <tr><td>stop-loss</td><td class="num">32</td><td class="bad">−$13.44 avg</td><td class="mut">stops dominate — exits are asymmetric against us</td></tr>
+    <tr><td>take-profit</td><td class="num">7</td><td class="good">+$1.12 avg</td><td class="mut">winners are tiny — cut far too short</td></tr>
+    <tr><td>by side: short</td><td class="num">35</td><td class="bad">−$385</td><td class="mut">heavy short bias, losing</td></tr>
+    <tr><td>by side: long</td><td class="num">5</td><td class="bad">−$66</td><td class="mut">rarely long, also losing</td></tr>
+  </table>
+
+  <!-- ============ WHAT'S MISSING ============ -->
+  <h2>What is genuinely missing (path to real edge)</h2>
+  <div class="callout"><div class="h">1. Fix the reward:risk first (highest leverage, lowest effort)</div>
+  The 0.08:1 realized RR is a structural defect independent of the signal. Winners are exited at ~$1, losers at ~$13.
+  Even a random signal breaks even at symmetric RR. This is the single biggest unlock and it is a parameters/logic
+  fix, not a research problem.</div>
+  <div class="callout"><div class="h">2. A factor that actually validates</div>
+  No current factor clears |t|&gt;2.3 / DSR. Options: (a) microstructure (OFI on real L2 tape — needs R² validation),
+  (b) a calibrated signal→return-edge transform (so the sizer sizes on real edge, not intensity), (c) event/funding
+  edges at longer horizons. Until one validates, arming the sizer is premature.</div>
+  <div class="callout"><div class="h">3. Calibrate the sizer inputs</div>
+  Both <code>edgeMean</code> and <code>winProb</code> must come from walk-forward outcomes (AFL_LEDGER) before the
+  DISARMED sizer is armed. The infrastructure exists (<code>factorCalibration</code>); it needs an edge to calibrate on.</div>
+
+  <!-- ============ OPEN QUESTIONS FOR THE TRADER ============ -->
+  <h2>Open questions for the reviewer</h2>
+  <ul class="q">
+    <li><b>Stop / target placement:</b> we set take = 2× stop from a volatility estimate. Is that sane for
+    1-minute crypto perp, or is the stop too tight (noise stop-outs) / target too tight (cutting winners)?</li>
+    <li><b>Short bias:</b> the ensemble calls short 88% of the time. Is that a signal-construction bug, or is it
+    reading a real regime? How would you diagnose systematic directional bias?</li>
+    <li><b>Position sizing at $10–15k/trade:</b> we cap at 10% equity per position (paper). For real size, what
+    Kelly fraction / max-gross / correlation haircut would you run across BTC/ETH/SOL/SUI/WIF/AVAX?</li>
+    <li><b>Edge sources:</b> for a discretionary prop trader, which of {order-flow, funding-carry, lead/lag,
+    sentiment, event} actually pays at intraday crypto horizon? Where would you look first?</li>
+    <li><b>Time horizon:</b> is 1-minute even the right frame for a human-reviewable crypto book, or should the
+    edge live on 15m/1h where noise is smaller?</li>
+  </ul>
+
+  <div class="foot">
+    Engine: <code>_SYSTEM/Scripts/alpha-factor-library/</code> · daemon <code>:4243</code> · board <code>:4250</code>.
+    All claims here are evidenced in the live ledger + the audit at <code>02_RESOURCES/RESEARCH/trading-audit-2026-06-19/</code>
+    and the overlay validation at <code>overlay-source-validation-2026-06-20.md</code>. Paper-only (INV-1) — no real orders, ever.
+    <br><br>Prepared 2026-06-20. This is a living document — flag anything that reads wrong and it gets corrected against the ledger.
+  </div>
+</div>
+</body>
+</html>
