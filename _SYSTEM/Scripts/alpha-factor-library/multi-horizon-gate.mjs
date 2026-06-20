@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: multi-horizon-gate
 // @serves: multi-horizon entry gate | which horizon beats the fee | 3-5 time horizon edge | horizon selection | trade-the-right-timeframe | fee-aware horizon
-// @does: Picks the trading horizon whose expected price move actually clears the REALISTIC round-trip fee. At each candidate horizon the expected move = per-bar vol * sqrt(bars) * conviction; a horizon "clears" if that move >= the round-trip cost. Returns the SHORTEST clearing horizon (fastest edge realization, least time-at-risk) or null = stay flat. This is why realistic fees FORCE multi-horizon: at real fees a 1-min move can't beat the cost, but a 3h/12h move dwarfs it.
+// @does: Picks the trading horizon whose expected price move actually clears the REALISTIC round-trip fee. At each candidate horizon the expected move = per-bar vol * sqrt(bars) * conviction; a horizon "clears" if that move >= the round-trip cost. Returns the SHORTEST clearing horizon (fastest edge realization, least time-at-risk) or null = stay flat. The fee level sets the regime: at a HIGH-fee venue (legacy Coinbase 0.60% taker, rt~1.25%) realistic fees FORCE multi-horizon (a 1-min move can't beat the cost, a 3h/12h move dwarfs it); at the Binance-only default (VIP0 taker 0.05%, rt~0.15%) even a 5m move clears. Either way the gate picks the shortest clearing horizon.
 // @use: call selectHorizon({volPerBar, conviction, roundTripCost}) in the entry gate when oc.multiHorizon is armed — DISARMED by default, the legacy single-horizon (sqrt 5) path stays the floor. realisticRoundTripCost() derives the hurdle from the live fee model. The chosen horizon must ALSO drive the position hold-time (a 3h-horizon trade held 5min defeats the point).
 // @exports: DEFAULT_HORIZONS, expectedMove, realisticRoundTripCost, selectHorizon
 //
@@ -37,11 +37,12 @@ export function expectedMove(volPerBar, bars, conviction = 1) {
 /**
  * realisticRoundTripCost({ takerRate, spreadFrac }) -> fraction
  * The hurdle a trade must clear to be worth taking: pay the taker fee on BOTH sides
- * plus cross the spread once. Defaults match the realistic Coinbase Advanced Trade entry
- * tier (taker 0.60%) + the engine's DEFAULT_SPREAD_FRAC (0.05%). rt ≈ 1.25%.
+ * plus cross the spread once. Defaults match the Binance USDⓈ-M VIP0 taker tier
+ * (0.05%) + the engine's DEFAULT_SPREAD_FRAC (0.05%). rt ≈ 0.15%. (Pre-2026-06-19 this
+ * defaulted to the Coinbase 0.60% tier, rt~1.25% — Coinbase is scrapped, binance-only.)
  */
-export function realisticRoundTripCost({ takerRate = 0.006, spreadFrac = 0.0005 } = {}) {
-  const t = Number.isFinite(takerRate) && takerRate >= 0 ? takerRate : 0.006;
+export function realisticRoundTripCost({ takerRate = 0.0005, spreadFrac = 0.0005 } = {}) {
+  const t = Number.isFinite(takerRate) && takerRate >= 0 ? takerRate : 0.0005;
   const s = Number.isFinite(spreadFrac) && spreadFrac >= 0 ? spreadFrac : 0.0005;
   return 2 * t + s;
 }
@@ -101,9 +102,12 @@ if (_main && process.argv.includes('--test')) {
   ok(expectedMove(-1, 180, 1) === 0, 'negative vol → 0');
 
   // realisticRoundTripCost
-  ok(Math.abs(realisticRoundTripCost() - 0.0125) < 1e-9, 'default rt = 2*0.006+0.0005 = 0.0125');
-  ok(Math.abs(realisticRoundTripCost({ takerRate: 0.001, spreadFrac: 0 }) - 0.002) < 1e-9, 'in-code rt = 0.002');
-  ok(realisticRoundTripCost({ takerRate: NaN }) === 0.0125, 'bad taker → default');
+  ok(Math.abs(realisticRoundTripCost() - 0.0015) < 1e-9, 'default rt = 2*0.0005+0.0005 = 0.0015 (binance VIP0 taker)');
+  ok(Math.abs(realisticRoundTripCost({ takerRate: 0.001, spreadFrac: 0 }) - 0.002) < 1e-9, 'explicit args rt = 0.002');
+  ok(realisticRoundTripCost({ takerRate: NaN }) === 0.0015, 'bad taker → binance default');
+  // binance default (rt 0.0015) is LOW enough that even a 5m move clears → short-horizon regime
+  // (5m: 0.0015*sqrt(5)=0.00335 > 0.0015). Contrast the HIGH-fee Coinbase regime where 3h was the floor.
+  ok(selectHorizon({ volPerBar: 0.0015, conviction: 1, roundTripCost: realisticRoundTripCost() })?.horizon === '5m', 'binance default rt → 5m clears (low-fee short-horizon regime, vs the old 3h Coinbase floor)');
 
   // selectHorizon — THE KEY ASSERTION: realistic fees force long horizons.
   // vol 0.0015/bar, conviction 1, rt 0.0125:

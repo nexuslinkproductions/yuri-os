@@ -1815,7 +1815,7 @@
         "trade-the-right-timeframe",
         "fee-aware horizon"
       ],
-      "does": "Picks the trading horizon whose expected price move actually clears the REALISTIC round-trip fee. At each candidate horizon the expected move = per-bar vol * sqrt(bars) * conviction; a horizon \"clears\" if that move >= the round-trip cost. Returns the SHORTEST clearing horizon (fastest edge realization, least time-at-risk) or null = stay flat. This is why realistic fees FORCE multi-horizon: at real fees a 1-min move can't beat the cost, but a 3h/12h move dwarfs it.",
+      "does": "Picks the trading horizon whose expected price move actually clears the REALISTIC round-trip fee. At each candidate horizon the expected move = per-bar vol * sqrt(bars) * conviction; a horizon \"clears\" if that move >= the round-trip cost. Returns the SHORTEST clearing horizon (fastest edge realization, least time-at-risk) or null = stay flat. The fee level sets the regime: at a HIGH-fee venue (legacy Coinbase 0.60% taker, rt~1.25%) realistic fees FORCE multi-horizon (a 1-min move can't beat the cost, a 3h/12h move dwarfs it); at the Binance-only default (VIP0 taker 0.05%, rt~0.15%) even a 5m move clears. Either way the gate picks the shortest clearing horizon.",
       "use": "call selectHorizon({volPerBar, conviction, roundTripCost}) in the entry gate when oc.multiHorizon is armed — DISARMED by default, the legacy single-horizon (sqrt 5) path stays the floor. realisticRoundTripCost() derives the hurdle from the live fee model. The chosen horizon must ALSO drive the position hold-time (a 3h-horizon trade held 5min defeats the point).",
       "exports": [
         "DEFAULT_HORIZONS",
