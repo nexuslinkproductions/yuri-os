@@ -113,7 +113,7 @@ export function factorEdgeStats(recall, { horizonS = 3600, strideS = 0 } = {}) {
  * bid-ask-bounce family. Plus ledger-level spread-bounce + maker-fee falsification. Fail-soft per
  * section. Returns a structured verdict (advisory — confidence-capped below a live run, as always).
  */
-export function auditEdge({ ledgerPath, q = 0.1, rungs = RUNGS, makerSchedule = 'real-tier0' } = {}) {
+export function auditEdge({ ledgerPath, q = 0.1, rungs = RUNGS, makerSchedule = 'binance-vip0' } = {}) {
   const recall = recallFactors(ledgerPath);
   const rungOut = {};
   // PASS 1 — score every rung first, so the deflated-Sharpe selection-bias count can be the FULL
@@ -187,7 +187,16 @@ if (_main && process.argv.includes('--audit')) {
   const sv = audit.falsification.spread && audit.falsification.spread.verdict;
   if (sv) console.log(`spread-bounce: artifact=${sv.bounceArtifact} mr-spread-survival=${sv.meanrevSpreadSurvivalRate} negAutocorr=${sv.marketsNegativeAutocorr}`);
   const mk = audit.falsification.maker;
-  if (mk && mk.n) console.log(`maker(${audit.falsification.makerSchedule}, n=${mk.n}): taker ${mk.meanTakerBps} / maker ${mk.meanMakerBps} bps · breakeven adverse-sel ${mk.adverseBreakEvenBps}bps`);
+  if (mk && mk.n) {
+    console.log(`maker(${audit.falsification.makerSchedule}, n=${mk.n}): taker ${mk.meanTakerBps} / maker ${mk.meanMakerBps} bps · gross ${mk.meanGrossBps}bps · breakeven adverse-sel ${mk.adverseBreakEvenBps}bps`);
+    // Fee-sensitivity: the same gross edge at the legacy Coinbase tier (proves fee tier is not the blocker).
+    let mkLegacy = null;
+    try { mkLegacy = makerAnalyze({ ledgerPath, horizonS: 900, strideS: 900, schedule: 'real-tier0', fillProb: 0.4 }); } catch { /* fail-soft */ }
+    if (mkLegacy && mkLegacy.n) console.log(`maker(real-tier0 LEGACY, n=${mkLegacy.n}): taker ${mkLegacy.meanTakerBps} / maker ${mkLegacy.meanMakerBps} bps · gross ${mkLegacy.meanGrossBps}bps`);
+    console.log(mk.meanMakerBps > 0
+      ? `⇒ maker NET-POSITIVE at ${audit.falsification.makerSchedule} (break-even adverse-sel ${mk.adverseBreakEvenBps}bps — profitable only if real adverse-sel < this).`
+      : `⇒ maker NEGATIVE at ${audit.falsification.makerSchedule}: gross edge (${mk.meanGrossBps}bps) too small vs cost — a lower fee tier does NOT rescue a ~0 gross edge.`);
+  }
   console.log(`VERDICT: ${audit.verdict.summary}`);
   process.exit(0);
 }

@@ -27,11 +27,16 @@ export const SPREAD_RT = 0.0005;
 // Coinbase fee pages are auth/Cloudflare-gated → UNVERIFIED online, treat as advisory). A retail/paper
 // account sits at the BOTTOM tier (real-tier0). No maker rebates below $300M/30d volume.
 export const FEE_SCHEDULES = {
-  'in-code':    { maker: 0.0010, taker: 0.0010 }, // what the paper engine currently charges (~6× too low)
-  'real-tier0': { maker: 0.0060, taker: 0.0120 }, // Coinbase Advanced bottom tier (<$10k/30d) — where we'd actually be
-  'real-tier1': { maker: 0.0040, taker: 0.0075 }, // ~$10k-50k/30d
-  'real-tier2': { maker: 0.0025, taker: 0.0040 }, // ~$50k-100k/30d
-  'real-tier4': { maker: 0.0010, taker: 0.0025 }, // ~$1M-10M/30d (high volume)
+  // Binance USDⓈM futures — the LIVE venue (Coinbase scrapped, owner directive 2026-06-19).
+  // VIP0 = where a retail/paper account sits. 2bps maker / 5bps taker per side.
+  // Verified wave-2 P5 + MEMORY proj-yuri-trading-engine (Binance USDⓈM VIP0 fee page).
+  'binance-vip0': { maker: 0.0002, taker: 0.0005 },
+  'in-code':    { maker: 0.0010, taker: 0.0010 }, // what the paper engine currently charges (~5× Binance taker)
+  // Legacy Coinbase Advanced tiers — venue SCRAPPED (migration task #7). Kept for historical fee-sensitivity comparison.
+  'real-tier0': { maker: 0.0060, taker: 0.0120 }, // Coinbase Advanced bottom tier (<$10k/30d) — LEGACY
+  'real-tier1': { maker: 0.0040, taker: 0.0075 }, // ~$10k-50k/30d — LEGACY
+  'real-tier2': { maker: 0.0025, taker: 0.0040 }, // ~$50k-100k/30d — LEGACY
+  'real-tier4': { maker: 0.0010, taker: 0.0025 }, // ~$1M-10M/30d (high volume) — LEGACY
 };
 
 // Realistic post-only fill at the touch on 1-min bars (minimax): BTC ~0.3-0.5, SOL ~0.2-0.4 typical.
