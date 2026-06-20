@@ -41,7 +41,7 @@ const PRED_LEDGER = path.join(STATE_DIR, 'observatory-predictions.jsonl');
 // ── AFL spine imports ──────────────────────────────────────────────────────
 import { dataQualityGate } from '../data-quality-gate.mjs';
 import { computeSize } from '../afl-sizing.mjs';
-import { createPaperEngine, cryptoFeeModel, binanceFeeModel } from '../afl-paper.mjs';
+import { createPaperEngine, binanceFeeModel } from '../afl-paper.mjs';
 import { selectHorizon, realisticRoundTripCost } from '../multi-horizon-gate.mjs';
 import { gateProposal } from '../../math/yuri-energy.mjs';
 import { detectRegimeShift } from '../regime-detector.mjs';
@@ -869,9 +869,10 @@ async function runCryptoCycle(market, snap, cfg = {}) {
           // wider stop/take (via _horizonPlan, honored by fastRiskExit) so the long trade isn't knifed by
           // the 1-min stop or closed at maxHold before its move can materialize.
           // Cost basis MUST match the engine's actual fill fee, else the gate mis-selects horizons. The
-          // live perp engine fills at binanceFeeModel('taker')=0.05% (getPaperEngine:416); using Coinbase
-          // 0.60% here overstated the round-trip ~12× and forced wrongly-long horizons / false skips.
-          const takerRate = (PERP_MODE ? binanceFeeModel('taker') : cryptoFeeModel('taker'))(undefined, 1, 1); // fee on $1 notional = the rate
+          // live perp engine fills at binanceFeeModel('taker')=0.05% (getPaperEngine:428). BINANCE-ONLY
+          // (2026-06-19): the legacy Coinbase 0.60% cryptoFeeModel branch is scrapped — it overstated the
+          // round-trip ~12× and forced wrongly-long horizons / false skips.
+          const takerRate = binanceFeeModel('taker')(undefined, 1, 1); // fee on $1 notional = the rate
           const rtCost = realisticRoundTripCost({ takerRate, spreadFrac: 0.0005 });
           const margin = Number.isFinite(oc.horizonMargin) ? oc.horizonMargin : 1.0;
           const sel = selectHorizon({ volPerBar: recentVolPct(bars), conviction, roundTripCost: rtCost, marginFactor: margin });
