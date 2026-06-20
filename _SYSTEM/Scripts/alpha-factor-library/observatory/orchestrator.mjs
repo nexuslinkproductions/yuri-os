@@ -414,6 +414,20 @@ const PERP_MODE = process.env.OBSERVATORY_PERP_MODE === '1';
 const PERP_LEVERAGE = (Number.isFinite(Number(process.env.OBSERVATORY_LEVERAGE)) && Number(process.env.OBSERVATORY_LEVERAGE) > 0)
   ? Number(process.env.OBSERVATORY_LEVERAGE) : 20;
 
+// PRICED SIZE (DISARMED by default, OBSERVATORY_PRICED_SIZE=1 to arm): route the crypto sizing seam
+// through the principled computeSize sizer the polymarket sleeve already uses (fractional-Kelly +
+// vol/drawdown throttles, fail-closed: edgeLowerCI≤0→0). Mirrors the quantum A/B shadow — the priced
+// decision is computed + recorded every cycle (snap.ensemble.pricedNotional/pricedReason) but the
+// paper engine keeps the DISARMED conviction-scalar notional until the owner arms the flag. Armed,
+// caps.maxFraction=maxPct (0.10) per position → structurally kills the configured 6.0 (600%) gross.
+// With the honest no-edge verdict (factors R0, DSR≈0) the priced path stays ~0 → correct (no edge →
+// no trade). HARD ARM-PRECONDITION: winProb is an UNCALIBRATED v0 prior, NOT ensemble.confidence
+// (that's circular: conf=0.5+|net|/2, A05 [B|HIGH]). Replace with AFL_LEDGER walk-forward calibrated
+// winProb (factorCalibration) before arming for real. Until then this is plumbing-only shadow.
+const PRICED_SIZE = process.env.OBSERVATORY_PRICED_SIZE === '1';
+const PRICED_SIZE_WINPROB_PRIOR = 0.52;   // uncalibrated v0 prior; TODO calibrate from AFL_LEDGER before arming
+const PRICED_SIZE_TARGETVOL = 0.20;       // annualized vol target; poly uses 0.15 (binary), crypto continuous → 0.20
+
 function getPaperEngine(market) {
   if (_paperEngines.has(market)) return _paperEngines.get(market);
   const safe = market.replace(/[^a-zA-Z0-9-]/g, '_');
@@ -901,7 +915,33 @@ async function runCryptoCycle(market, snap, cfg = {}) {
           engine.pnl(),
         );
         const maxPct = (typeof oc.maxPct === 'number' && Number.isFinite(oc.maxPct)) ? oc.maxPct : ENSEMBLE_MAX_PCT;
-        const notional = equity * maxPct * Math.min(1, ensemble.strength * 2) * regimeTrim;
+
+        // PRICED SIZE shadow (DISARMED): compute the principled computeSize decision every cycle so the
+        // sizer is live-in-shadow + A/B-readable, even while the paper engine still uses the conviction
+        // scalar below. Same inputs as the polymarket sleeve, crypto-tuned (targetVol 0.20, drawdown from
+        // the live engine). DISARMED it only records what the sizer WOULD have done; armed it caps each
+        // position to maxFraction=maxPct (0.10) — the structural 600%-gross kill.
+        const pricedReturns = closeReturns(bars);
+        const pricedDrawdown = (engine.pnl().drawdownBps || 0) / 10000;
+        const pricedSize = computeSize({
+          edgeMean: Math.abs(ensemble.net),
+          edgeLowerCI: Math.abs(ensemble.net) * 0.7,
+          winProb: PRICED_SIZE_WINPROB_PRIOR,            // uncalibrated v0; see PRICED_SIZE arm-precondition
+          payoff: 1.0,
+          returns: pricedReturns,
+          equity,
+          targetVol: PRICED_SIZE_TARGETVOL,
+          caps: { maxFraction: maxPct, currentDrawdown: pricedDrawdown },
+        });
+        snap.ensemble.pricedNotional = +pricedSize.targetNotional.toFixed(2);
+        snap.ensemble.pricedFraction = +pricedSize.fraction.toFixed(4);
+        snap.ensemble.pricedReason = pricedSize.reason;
+
+        // Live notional: ARMED (OBSERVATORY_PRICED_SIZE=1) → priced sizer (×regimeTrim for the regime
+        // de-risk); DISARMED → legacy conviction scalar, byte-identical to pre-wire behavior.
+        const notional = PRICED_SIZE
+          ? pricedSize.targetNotional * regimeTrim
+          : equity * maxPct * Math.min(1, ensemble.strength * 2) * regimeTrim;
         if (regimeTrim < 1) snap.ensemble.regimeTrim = regimeTrim; // de-risked by regime, not frozen (telemetry)
         if (notional > 0) {
           engine.onSignal(
