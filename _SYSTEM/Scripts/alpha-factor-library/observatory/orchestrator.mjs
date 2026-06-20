@@ -421,9 +421,13 @@ const PERP_LEVERAGE = (Number.isFinite(Number(process.env.OBSERVATORY_LEVERAGE))
 // paper engine keeps the DISARMED conviction-scalar notional until the owner arms the flag. Armed,
 // caps.maxFraction=maxPct (0.10) per position → structurally kills the configured 6.0 (600%) gross.
 // With the honest no-edge verdict (factors R0, DSR≈0) the priced path stays ~0 → correct (no edge →
-// no trade). HARD ARM-PRECONDITION: winProb is an UNCALIBRATED v0 prior, NOT ensemble.confidence
-// (that's circular: conf=0.5+|net|/2, A05 [B|HIGH]). Replace with AFL_LEDGER walk-forward calibrated
-// winProb (factorCalibration) before arming for real. Until then this is plumbing-only shadow.
+// no trade). HARD ARM-PRECONDITION (BOTH inputs uncalibrated — the live shadow confirms the phantom):
+//  - winProb is a v0 prior (0.52), NOT ensemble.confidence (circular: conf=0.5+|net|/2, A05 [B|HIGH]).
+//  - edgeMean=|ensemble.net| is SIGNAL INTENSITY, not a validated forward-return edge. The live shadow
+//    shows a strong ensemble (net~0.8) → pricedNotional~$6-7k = PHANTOM sizing (an 0.8 vote is not an
+//    80% expected return). Both must come from AFL_LEDGER walk-forward calibration (factorCalibration /
+//    a validated signal→return-edge transform) before arming. Until then: plumbing-only shadow, never a
+//    basis for real sizing. (Same signal→edge unit-mismatch class as the overlays — see overlay-edge-validate.)
 const PRICED_SIZE = process.env.OBSERVATORY_PRICED_SIZE === '1';
 const PRICED_SIZE_WINPROB_PRIOR = 0.52;   // uncalibrated v0 prior; TODO calibrate from AFL_LEDGER before arming
 const PRICED_SIZE_TARGETVOL = 0.20;       // annualized vol target; poly uses 0.15 (binary), crypto continuous → 0.20
