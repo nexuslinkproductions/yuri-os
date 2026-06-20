@@ -1,84 +1,45 @@
-# Wave-2 Resume Checkpoint (2026-06-19) — IN FLIGHT
+# Wave-2 Resume Checkpoint (2026-06-20) — ALL 5 PEERS DONE + VERIFIED + FOLDED · AWAITING BUILD GREENLIGHT
 
-> Context hit 60% mid-wave → compacted. Peers run detached during compact. Read this FIRST on resume.
+> Compacted 2026-06-20. Read this FIRST on resume.
 
 ## STATE
-- Guard: pwd=repo root, branch=`main`. (HEAD was e0a99036 at wave-2 start; re-verify on resume — a parallel
-  voice session landed kokoro/voice commits, disjoint from this work.)
-- Wave-1 audit DONE + committed (d495d02f): `02_RESOURCES/RESEARCH/trading-audit-2026-06-19/01-AUDIT-PLAN.md`.
-  Verdict = STRATEGIC REDIRECT; ranked path #0 Coinbase→#1 learn-loop→#2 funding-carry→#3 Kelly→#4 parallel
-  →#5 calibrate→#6 cut-theater→#7 news→#8 stats.
+- Guard: `pwd=/Users/marcelspatz/YURI-OS-MUSUBI`, `branch=main` (verified 2026-06-20 05:52 CEST).
+- **Wave-2 peer cross-check committed + pushed: `59a4d2b3`** (origin/main, FF). Doc: `02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/02-WAVE2-MISSING-CAPABILITIES.md` (+ §11 peer cross-check; lane outputs `out/P1.md`, `out/P2.md`, `out/P5.md`).
 
-## WAVE-2 MISSION (owner 2026-06-19)
-"Launch next wave, refine+extend the trading platform to get it functional — FIRST gather more context on
-what we're effectively MISSING. Run several quantum simulations + calculations, compare how professionals
-trade (indicators/factors), how many effective trading agents 24/7 each owning roles. Do it together with
-5 GLM-5.2 peers at xhigh reasoning, work side by side."
-→ Wave-2 = CONTEXT + SIMS + PRO COMPARISON (NOT the build yet). Build (#7 Coinbase scrap + redirect path)
-comes after this wave informs it.
+## PEER LANES — FINAL STATUS
+| Peer | Lane | Status |
+|---|---|---|
+| P1 | pro-benchmark | ✓ verified clean (212 lines); 3 crux claims confirmed locally (funding-carry unwired @ orchestrator:130; computeFundingPriceReaction test-only callers; k[9] taker-buy dropped @ perp-adapter mapKline:396). Committed. |
+| P2 | factor orthogonality | ✓ committed (`7c82e3d6`). |
+| P5 | edge/Kelly/capacity calc | ✓ verified clean (122 lines); every number checked (Kelly 10%/2.5%, corr-adj divisor 2.6 / eff-N 1.15, funding 0.003%/8h→3.28%/yr, break-even 37.8d, maker κ-tier). Committed. |
+| P4 | quantum order-effect | replaced by own sim §3 (`/tmp/yuri-quantum-sim.mjs`): ratio 1.08–1.99, non-monotone in cosine, noise-dominated. A10 mechanism refuted, conclusion survives. |
+| P3 | agent topology | ✓ **verified clean** (3rd scoped re-attempt @ `high` solo, 18.9KB, 4 primary citations: LMAX/Thompson/Aeron/arXiv). **Highest-quality lane of the five** — REFUTED 3 points of §7: (D1) A2 must be a *pre-trade* gate at the egress seam, not a reactive killer; (D2) hot bus = lock-free `SharedArrayBuffer` ring NOT SQLite; (D3) supervision/OMS/drop-copy missing. Folded into §7/§8/§9/§10/§11. |
 
-## DELIVERABLES WRITTEN (uncommitted, in wave2/)
-- `wave2/00-MASTER-BRIEF.md` — read-first brief all peers consume (mission, constraints, output format).
-- `wave2/prompts/P1..P5.txt` — the 5 peer prompts.
+**4 verified deltas P1/P5 added (doc §11):** (1) sizing fix → **~26–42× portfolio basis** (was "~78×", mixed per-bet with the portfolio cap; eff-N 1.15); (2) maker blocker = **κ not fee tier** (negative at every VIP incl. VIP9 at retail κ); (3) live funding **0.003%/8h = 3.28%/yr** (confirms "+5–15%/mo" is per-year, 20–61× overstated); (4) new gaps VPIN/BH-FDR/PBO-CSCV/k[9]/GTX-maker/OI-feed/5–10d-momentum/purged-k-fold + primary citations (Harvey-Liu-Zhu 313→9, Cont-Kukanov OFI R² 65–87%, Dobrynskaya 1–2wk).
 
-## 5 GLM PEERS — DISPATCHED, RUNNING DETACHED (bg-NO-tee, `--reasoning xhigh`, staggered 0/8/16/24/32s)
-| Peer | Lane | bg task ID | output | stderr |
-|---|---|---|---|---|
-| P1 | pro-benchmark (how pros trade, indicators/factors that survive DSR, Binance fee tiers) | bfxe4rrd2 | wave2/out/P1.md | wave2/out/P1.err |
-| P2 | factor orthogonality + effective-N audit | b3vmbhva9 | wave2/out/P2.md | wave2/out/P2.err |
-| P3 | agent topology / role design (how many agents 24/7, role matrix, messaging, latency) | bswt7a719 | wave2/out/P3.md | wave2/out/P3.err |
-| P4 | quantum order-effect sim (collinear vs orthogonal circuitQuality) | b3n649kf9 | wave2/out/P4.md | wave2/out/P4.err |
-| P5 | edge/Kelly/capacity/fee calc sheet (does the math close, honest monthly expectancy) | bxjgii881 | wave2/out/P5.md | wave2/out/P5.err |
+## GREENLIGHT READY — the live decision point
+P3 returned, **verified locally** (critiqued §7, not rubber-stamped; 4 real primary citations; every refutation sound), and folded into §7/§8/§9/§10/§11. **All 5 peers done.** The complete picture is committed (see below).
+**Next = Marcel green-lights the BUILD wave** (his gate, verbatim: *"I give the greenlight once they return and we have a full picture"*). On greenlight → fire the **self-gov batch first** (class-A measurement, no live-output change):
+1. Wire the dead `scoreForecasts` + cost cliff → edge readout on the **574k existing forecast rows** (answers "do we have a net edge?" in minutes).
+2. Cut hot-loop theater (`computeCircuit`/`computeEnergyDelta`/legacy √5/zombie-conformal — read by nothing).
+Then owner-gated: route `computeSize`→crypto (#1, kills 600% gross) · wire 5 orthogonal sources (#3) · `apply:true` promote beat (#8, currently DEAD not gated) · scrap Coinbase (#7).
 
-Check status: `ls -la 02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/out/` (files appear as each
-lands; `.err` empty/non-EPIPE = healthy). TaskOutput on the bg IDs also works. **VERIFY every load-bearing
-peer claim locally** (lanes over-claim — precedent 18/19 reported done w/ 0 edits).
+## BUILD WAVE (next, owner-gated) — ranked path (doc §8)
+- **Self-governable first move:** wire the dead `scoreForecasts` + cost cliff → edge readout on **574k existing forecast rows** (answers "do we have a net edge?" in minutes, class-A measurement, no live-output change). `scoreForecasts` exists + leak-free + NEVER CALLED (dead import in `strategy-weights.mjs`).
+- **Then (self-gov):** cut hot-loop theater — `computeCircuit` (orchestrator:703,990) + `computeEnergyDelta` (:899,1009) + legacy √5 multi-horizon (:866-897) + zombie `yuri-energy-conformal.mjs`. Read by nothing = pure win.
+- **Owner-gated after:** route `computeSize`→crypto (#1, kills the 600% gross); wire 5 orthogonal sources (#3); `apply:true` promote beat (#8, currently DEAD not gated).
+- **Task #7 (pending, owner-gated BUILD):** scrap Coinbase entirely (delete coinbase-adapter, kill `PERP_MODE` conditional orchestrator:426, repoint tick-stream→Binance, drop Coinbase fee tiers maker-fill-sim:31).
 
-## MY OWN INDEPENDENT SIM (Claude/main cross-check of P4) — HALF-RUN, NEEDS 1-LINE FIX
-- Harness: `/tmp/yuri-quantum-sim.mjs` (READ-ONLY; imports factor-return-vectors + factor-circuit from _SYSTEM).
-- **FAILED ONLY because `timeout` is not on macOS** (command-not-found; sim never ran, no harm).
-- RE-RUN: `node /tmp/yuri-quantum-sim.mjs` (drop `timeout 120`; the harness self-times, ~5-10s).
-- Tests: (A) LIVE config (obs-momentum + obs-vol-regime on 200 GBM bars) → cosine + commutatorNorm +
-  circuitQuality.ratio, 4 sub-cases; (B) orthogonal synthetic AR(1) factors at rho 0/0.3/0.8; (C) sensitivity
-  sweep: ratio vs pairwise cosine [0→1.0].
-- **LOAD-BEARING QUESTION it answers:** Is audit A10's "circuit ratio=1 by construction (obs-momentum +
-  obs-vol-regime are near-parallel)" TRUE? I traced that the live path DOES inject real vectors
-  (`computeCircuit` orchestrator.mjs:360-381 → `circuitInputFromBars` :366 → `opts.vectors`). obs-momentum
-  vector = sign×log-returns×conf; obs-vol-regime = sign×(high−low)×conf. These are DIFFERENT series
-  (signed returns vs always-≥0 range) → likely NOT collinear → **A10 may be an OVER-CLAIM (ratio≠1).**
-  The sim settles it empirically. This directly informs the quantum cut-vs-wire ruling (#6).
+## OWN SIM HARNESSES (execution-verified, `/tmp`, READ-ONLY on repo, re-runnable)
+`/tmp/yuri-quantum-sim.mjs` (A10 verdict) · `/tmp/yuri-edge-calc.mjs` (Kelly/carry/maker) · `/tmp/yuri-growth-ruin.mjs` (€300→€10k MC, 20k paths) · `/tmp/yuri-edge-power.mjs` (trades-to-significance).
 
-## KEY GROUND-TRUTH (verified this wave, re-usable)
-- `computeCircuit` orchestrator.mjs:360 — filters `obs-*` + `side!=='flat'`, injects REAL vectors, FAIL-OPEN.
-  Only price-derived obs-* signals carry a return-vector mapping; perp/social overlays → zero vectors (excluded).
-- factor-circuit `circuitQuality.ratio` = quantumScore/classicalScore (meanOrderingScore = honest random-order
-  baseline, same k-fold units). allCommute → ratio=1 by construction (degenerate short-circuit, no fake lift).
-- `factorVector` metadata embedding (category one-hot + cluster + inputs + tier) is the FALLBACK when no real
-  vectors; real vectors win when count+dim valid (buildCommutativityMatrix injectionValid check).
-- computeLiveSignals orchestrator.mjs:231 → exactly 2 obs-* signals (momentum EMA5/10, vol-regime ATR),
-  then computeAllStrategies (the ~24 TA). Only the 2 obs-* feed the circuit (strategies aren't obs-* prefixed).
-
-## TASKS
-- #9 (dispatch peers) → mark completed (dispatched, running).
-- #10 (own sims+calcs) → in_progress: quantum sim half-run (re-run node cmd); Kelly/fee/capacity calcs NOT
-  started yet — do after sim (cross-check P5).
-- #11 (synthesize "what we're missing" → wave2/02-WAVE2-MISSING-CAPABILITIES.md + commit) → pending.
-- #7 (Coinbase scrap) → pending, BUILD step, owner-gated go (NOT this wave).
-
-## NEXT ON RESUME (in order)
-1. `git branch --show-current` (guard) + `ls wave2/out/` (peer status).
-2. `node /tmp/yuri-quantum-sim.mjs` — get the ratio=1 verdict (settles A10).
-3. Read each landed out/P*.md; verify load-bearing claims locally; note over-claims.
-4. Run my own Kelly + fee-tier + capacity calcs (cross-check P5): quarter-Kelly f* at 55%/Sharpe 0.5;
-   Binance VIP0-9 maker/taker bps (cite official doc); correlation-adjusted gross cap vs configured 6.0;
-   M2-Pro WS msg-rate capacity; A-S maker edge per tier (confirm/refute "VIP0 −2.16bps/fill").
-5. Synthesize `wave2/02-WAVE2-MISSING-CAPABILITIES.md` (missing-capability map + pro benchmark gap +
-   agent-role matrix + sim verdicts + refined ranked path). Commit explicit pathspec `wave2/`, show-stat, push.
-6. Hand the verdict + decision point to Marcel (start build #0+#1, or revise).
+## OPEN HOUSEKEEPING
+- Two of Marcel's detached claude sessions look hung — **43032** (glm-4.7, 12h, 0% CPU) + **69011** (glm-5.2, 6.5h, 0% CPU) — his call to kill. **18239** (glm-4.7, 11.4% CPU) is ACTIVE — leave it.
+- Memory updated: `feedback-glm-zai-build-lane` now captures the **`xhigh`→z.ai-transport-crash linkage** (ECONNRESET/OOM/socket-stall under concurrent nano-swarm; evidence 3/5 crashed @ xhigh, 2/3 clean @ high; owner correction "stick with high").
 
 ## HARD CONSTRAINTS (persist)
-- READ-ONLY audit/sim on the repo this wave (no _SYSTEM/ edits until build wave; build is owner-gated).
-- Commit/push OWN work only: explicit pathspec (`git add <paths>` + `git commit -m msg -- <paths>`),
-  never `git add .`/bare commit; show-stat before push; fetch+FF never force.
-- No Workflow tool (binding memory) — GLM nano-swarm via `ai llm glm-5.2` + native Agent for any Sonnet fan-out.
-- Online = verification layer for external claims (≥2 primary, cite+date); local exec = ground truth for our code.
+- Wave-2 was READ-ONLY on `_SYSTEM` engine code; the BUILD wave is owner-gated (Marcel green-lights after P3).
+- Commit/push OWN work only: explicit pathspec (`git add <paths>` + `git commit -m msg -- <paths>`), NEVER `git add .`/bare commit; `git show --stat HEAD` before push; fetch+FF never force.
+- No Workflow tool (binding memory `feedback-no-workflow-tool-use-agent-only`) — GLM nano-swarm via `ai llm glm-5.2` (default `--reasoning high`, NEVER `xhigh` for concurrent fan-out); native `Agent` (model:sonnet) for Sonnet fan-out.
+- Online = verification layer for external claims (≥2 primary, cite+date); local execution = ground truth for our code.
+- GLM peers: verify EVERY claim locally (lanes over-claim); bg-NO-tee; **exit-0 ≠ success — read the artifact**.

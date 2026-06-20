@@ -1,0 +1,34 @@
+You are PEER 3 (topology, re-attempt) — GLM-5.2. **SCOPED brief: the context is PRE-FED below. Do NOT re-read orchestrator.mjs or the master brief from scratch — that heavy multi-file read chain stalled the prior two attempts.** Your job is to CRITIQUE + REFINE a concrete fleet design (already drafted), citing professional topology.
+
+## HARD CONSTRAINTS
+- READ-ONLY on the repo. PAPER-ONLY trading (no live sends). No Claude SDK / `claude -p`.
+- Cite ≥2 PRIMARY sources for pro-topology claims (quant/MM firm engineering writeups, textbooks — give URLs).
+- BOUNDED tool use: reason from the pre-fed context; at most 1–2 targeted online lookups. Do NOT crawl orchestrator.mjs.
+
+## PRE-FED GROUND TRUTH (already verified this wave — trust it, don't re-derive)
+- **Current state:** ONE monolithic daemon (`observatory/orchestrator.mjs`) does per cycle: ingest WS feeds → compute ~24 TA strategies + 5 overlays → ensemble → regime → size → paper-execute → recordForecasts → risk-exits → (throttled) decode/score. ALL in one per-cycle loop. Latency-critical work (risk-exit, A-S requote, fill-detect) shares a thread with latency-tolerant work (learn-loop, news, research).
+- **Hardware:** M2-Pro (6P+4E cores), single machine, retail internet (~50–100ms RTT to Binance AWS), public-WS only (no co-location).
+- **WS msg rate:** Binance fstream ≈15 msg/s/symbol (@depth@100ms + @aggTrade + @markPrice). Current 3 symbols = trivial; effective capacity ceiling ~10–30 symbols (network, not CPU, is binding).
+- **Cycle reality:** sequential 6-market for-loop ≈9s (near the 10s limit); `Promise.allSettled` → ~1.5s (target ≤1s at ≤6 symbols). WS parse is NOT the bottleneck at current scale; the sequential for-loop is.
+- **Risk reality:** crypto path bypasses `computeSize`; `maxGrossExposurePct=6.0` (600%); eff-N=1.15 at ρ=0.8 (3 correlated markets ≈ 1.15 independent bets).
+
+## MY FIRST-PASS FLEET DESIGN (the frame to critique/refine — do NOT re-derive)
+**Minimal viable (4 agents), partitioned by LATENCY BUDGET:**
+- **A1 Market-Maker / A-S quoter** — reservation price, requote, fill-detect — per-tick ≤1s — inputs L2 depth/OFI/κ → quotes/fills — launchd daemon (hot).
+- **A2 Risk & liquidation sentinel** — per-tick exposure, drawdown breaker, kill-switch — fastest (<1 cycle) — inputs positions/mark/VPIN → flat/kill — launchd daemon (hot, isolated). **INVARIANT: A2 can kill any position in <1 cycle; only agent with a hard veto.**
+- **A3 Alpha / ensemble + sizer** — factor signals, ensemble, `computeSize`, regime-router — per-cycle ≤10s — inputs bars/overlays → sized signals — launchd daemon.
+- **A4 Learn-loop / graduation** — decode forecasts→outcomes, DSR/Brier, promote/graduate — slow (minutes) — inputs prediction ledger → factor weights/decay clocks — launchd beat.
+
+**Extended (+3):** A5 Execution/fill-sim, A6 News-intel/sentiment, A7 Funding-carry harvester (disarmed measurer). → **7 total.**
+
+**Inter-agent contract (draft):** shared SQLite bus (existing `afl-paper` / `afl-prediction-ledger` pattern) + an in-memory pub/sub ring for the hot path.
+
+## YOUR JOB — critique + refine (do NOT just rubber-stamp)
+1. **PRO TOPOLOGY (cite ≥2 primary):** Does the 4+3 latency-budget partition match how real systematic desks split responsibilities (the classic strategy / execution / risk / OMS / drop-copy separation; e.g. HFT-rtbook, Apache Arrow/IPC, Aeron, named firm engineering blogs)? Where does my partition DIVERGE from industry norm? Is splitting MM (A1) from Risk (A2) correct, or should risk live inside every agent?
+2. **ROLE MATRIX (fill precisely):** for each A1–A7 — name | owns | latency budget (ms/s/cycle) | inputs | outputs | deployment shape (launchd daemon / tmux lane / GLM-native) | failover. **Flag which slots are UNIMPLEMENTED today** (= "what we're missing").
+3. **INTER-AGENT CONTRACT:** defend OR replace my "SQLite bus + pub/sub ring" for M2-Pro single-machine. Is a lock-free ring-buffer / shared-memory / Aeron-style IPC better for the hot path? State the A2-kill invariant crisply + how the bus guarantees it lands in <1 cycle.
+4. **FLEET SIZE (a number):** minimal 4? extended 7? Give the number + reasoning grounded in latency-budget separation + M2-Pro capacity (does 7 contend on the hot path?). Is 4 too few (MM+alpha share a daemon → MM latency suffers) or 7 too many?
+5. **SUPERVISION:** how are they supervised/restarted (launchd KeepAlive? a watchdog process? an overseer agent?) — name the deployment/supervision layer that does NOT exist today.
+
+## OUTPUT FORMAT
+Structured markdown: PRO-TOPOLOGY verdict (with citations) → ROLE MATRIX (table, flag unimplemented) → INTER-AGENT CONTRACT (defend/replace + invariant) → FLEET SIZE (number + reasoning) → SUPERVISION layer → **"WHAT WE ARE MISSING"** (unimplemented role slots + bus + supervision). End with `**RESULT_LABEL:** P3_AGENT_TOPOLOGY_FLEET_DESIGN_X_PASS_COMMITTED`. Bounded output — reason, don't re-read.
