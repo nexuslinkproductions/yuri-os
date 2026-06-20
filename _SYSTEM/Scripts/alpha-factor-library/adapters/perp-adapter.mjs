@@ -166,7 +166,10 @@ export function hasCreds() {
 async function fetchJson(urlStr, headers = {}) {
   const u = new URL(urlStr);
   guardHost(u.hostname);
-  const res = await httpGet(urlStr, headers);
+  // Owner's view-only key (hydrated by binance-creds at startup) → X-MBX-APIKEY header for higher rate limits.
+  // INV-2: read from env, never logged. Absent → keyless public path.
+  const h = process.env.PERP_API_KEY ? { ...headers, 'X-MBX-APIKEY': process.env.PERP_API_KEY } : headers;
+  const res = await httpGet(urlStr, h);
   if (res.status < 200 || res.status >= 300) {
     throw new VenueApiError(res.status, res.body);
   }

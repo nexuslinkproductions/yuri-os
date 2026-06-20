@@ -372,6 +372,9 @@ function createServer() {
  * @param {object} [config] — overrides for orchestrator DEFAULT_CONFIG
  */
 async function startServe(config = {}) {
+  // Hydrate owner's Binance view-only key from keychain → env (X-MBX-APIKEY for higher rate limits on market
+  // data; enables account reads). INV-2: reads into env only, never logs/commits the value. Fail-open → keyless.
+  try { (await import('../adapters/binance-creds.mjs')).hydrateBinanceCreds(); } catch { /* fail-open */ }
   const server = createServer();
 
   // Resolve effective config from env toggles (overlays are advisory + fail-open):
