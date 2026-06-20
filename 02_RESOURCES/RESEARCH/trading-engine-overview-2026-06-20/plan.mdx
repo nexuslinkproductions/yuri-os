@@ -145,7 +145,7 @@ Fractional-Kelly + CVaR/vol/drawdown throttles, **fail-closed** (no edge → 0).
 
 <Callout id="fix1" tone="decision">
 
-**① Fix the reward:risk first — highest leverage, lowest effort.** The 0.08:1 realized RR is a structural defect independent of the signal. Even a random signal breaks even at symmetric RR. This is a parameters/logic fix, not research — the single biggest unlock.
+**① ROOT CAUSE CONFIRMED — the stops are inside the 1-minute noise band.** The multi-horizon gate (ARMED: `OBSERVATORY_MULTI_HORIZON=1`) picks the shortest fee-clearing horizon (**5m**), whose expected move is tiny (~0.18%). The stop is set to `expMove × 0.5 ≈ 0.09%` — **smaller than typical 1-minute crypto noise (0.1–0.3%)**. The fast risk-exit checks at the 1-second tick, so any noise spike trips the stop before the trade can develop. Result in the latest window: **0 winners / 40 losers**, every trade noise-stopped at full size (~$13), avg adverse move only −0.045%. **The fix:** floor the stop at a noise-aware minimum — `stopPct = max(expMove × stopFrac, 2–3 × recentVolPct)` — so it always sits outside the 1-bar noise band. A stop inside the noise is objectively defective (not a judgment call); the exact multiple is the reviewer's Q1 below.
 
 </Callout>
 
