@@ -17,6 +17,8 @@ const DIRS = [
   path.join(SYS, 'Scripts', '_lib'),                  // shared helper libs (lane-command-gate, ...)
   path.join(SYS, 'Scripts', 'math'),
   path.join(SYS, 'Scripts', 'alpha-factor-library'),  // AFL organ subdir
+  path.join(SYS, 'Scripts', 'alpha-factor-library', 'adapters'),    // AFL venue/exe adapters (readdirSync is non-recursive — subdirs must be listed explicitly)
+  path.join(SYS, 'Scripts', 'alpha-factor-library', 'observatory'), // AFL observatory realtime feeds (tick-stream/trades-stream/depth-book/mark-price/...)
 ];
 
 const listFiles = (d, exts = ['.mjs']) => {
