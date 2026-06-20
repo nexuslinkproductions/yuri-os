@@ -79,17 +79,16 @@ const DEFAULT_CYCLE_INTERVAL_MS = 15_000;  // 15s — conservative, rate-limit a
 const DEFAULT_CRYPTO_MARKETS = (process.env.OBSERVATORY_CRYPTO_MARKETS
   ? process.env.OBSERVATORY_CRYPTO_MARKETS.split(',').map((s) => s.trim()).filter(Boolean)
   : ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SUI-USD', 'WIF-USD', 'AVAX-USD']);
-const COINBASE_GRANULARITY = 'ONE_MINUTE'; // 1-min bars: ~5× more signal-change points → more trades + faster learning (paper)
 
 // BINANCE-ONLY (2026-06-19, owner directive "get away from coinbase, binance only in the daemon"):
 // all crypto market data (candles/book/ticks) now routes through PerpAdapter (Binance USDⓈ-M perp),
 // matching the A-S maker engine's instrument so board prices == the quoter's prices. Market keys keep
 // the 'BTC-USD' display form (the daemon's split('-') logic stays valid); toBinanceSymbol maps to the
-// Binance symbol for the API call. 'ONE_MINUTE' → Binance interval '1m'.
+// Binance symbol for the API call. 1-min bars → Binance kline interval '1m'.
 const toBinanceSymbol = (m) => { const s = String(m).toUpperCase(); return s.includes('-') ? s.split('-')[0] + 'USDT' : s; };
 
 // Number of candles to fetch per cycle for crypto
-const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for factors/regime. Coinbase cap is 350/req.
+const CANDLES_FETCH_LIMIT = 300;   // ~300 bars: deep warmup + history for factors/regime. Binance fapi/v1/klines limit is 1500/req.
 
 // Learn loop: how often (in cycles) to decode closed paper trades → AFL_LEDGER. 10 cycles
 // ≈ a few minutes; the decode is idempotent so cadence only affects calibration freshness.
@@ -409,7 +408,7 @@ const _paperEngines = new Map();
 
 // PERP MODE (DISARMED by default): with OBSERVATORY_PERP_MODE=1 the paper engine models Binance USDⓈ-M
 // LEVERAGED economics (binanceFeeModel 0.02/0.05 + leverage + isolated-margin liquidation) instead of
-// Coinbase spot. Leverage via OBSERVATORY_LEVERAGE (default 20×). Owner-armed in the plist env — identical
+// Binance USDⓈ-M perp spot-linear economics. Leverage via OBSERVATORY_LEVERAGE (default 20×). Owner-armed in the plist env — identical
 // DISARMED pattern to OBSERVATORY_TICK_STREAM / OBSERVATORY_MULTI_HORIZON. Default off → spot unchanged.
 const PERP_MODE = process.env.OBSERVATORY_PERP_MODE === '1';
 const PERP_LEVERAGE = (Number.isFinite(Number(process.env.OBSERVATORY_LEVERAGE)) && Number(process.env.OBSERVATORY_LEVERAGE) > 0)
@@ -567,7 +566,7 @@ function isPrivateHost(hostname) {
     hostname === '::1' || hostname === '[::1]';
 }
 
-// ── Market cycle: crypto (Coinbase candles) ────────────────────────────────
+// ── Market cycle: crypto (Binance USDⓈ-M klines) ────────────────────────────
 // Rolling per-market close cache for the cross-asset lead/lag overlay (leaders like BTC lead alts).
 // Bounded window; updated each cycle as each market is processed. Module-scoped so a lagger can read
 // the leader's series populated earlier in the same cycle (market order = config order, BTC first).
@@ -576,7 +575,7 @@ const _horizonPlan = new Map(); // market -> { holdSec, stopPct, takePct } chose
 
 async function runCryptoCycle(market, snap, cfg = {}) {
   const now = Math.floor(Date.now() / 1000);
-  const start = now - 5 * 60 * 60; // ~5h back → ~300 ONE_MINUTE bars (under Coinbase's ~350/req cap)
+  const start = now - 5 * 60 * 60; // ~5h back → ~300 1m klines (well under Binance fapi/v1/klines 1500/req limit)
   const end = now;
 
   let candles;
@@ -1029,7 +1028,7 @@ const _state = {
   cycleCount: 0,
   ticks: new Map(),       // market key → { market, venue, price, bid, ask, ts } (1s fast-tick)
   lastTick: null,         // unix-seconds of the last fast-tick poll
-  account: null,          // real (view-only) Coinbase account state — null until refreshAccount runs
+  account: null,          // real (view-only) account state placeholder — null until refreshAccount runs (coinbase-removed stub; no Binance view-only account wired)
 };
 
 // ── Fast price tick (1s) — lightweight last-price poll, SEPARATE from runCycle ──
@@ -1154,11 +1153,10 @@ export function getTicks() {
 const USD_STABLE = new Set(['USD', 'USDC', 'USDT', 'DAI', 'PYUSD', 'USDP', 'GUSD']);
 
 /**
- * refreshAccount(config?) — read the REAL Coinbase account VIEW-ONLY via the
- * authed getAccounts() path. READ-ONLY: never builds/places an order (INV-1).
- * NO-KEY FAIL-OPEN: with no COINBASE_KEY_NAME/SECRET set, getAccounts returns
- * { advisory:'no-key' } and we store a `connected:false` marker — the cycle is
- * never blocked, no secret is ever read from disk (creds come from env, INV-2).
+ * refreshAccount(config?) — coinbase-removed stub (BINANCE-ONLY 2026-06-19).
+ * No Binance view-only account is wired (optional, owner-gated). READ-ONLY:
+ * never builds/places an order (INV-1). Stores a `connected:false` marker — the
+ * cycle is never blocked, no secret is ever read from disk (INV-2).
  * realEquityUsd is a best-effort sum: stablecoins at face value + any crypto
  * holding priceable from the LIVE TICK MAP (zero extra API calls). Holdings we
  * cannot price are reported (priced:false) and excluded from the equity sum.
@@ -1201,7 +1199,7 @@ export function listAvailableIndicators() {
 }
 
 // ── Live order book (on-demand, TTL-coalesced) ─────────────────────────────
-// The board polls the focus market's book fast (~1-2s). Coinbase /product_book is
+// The board polls the focus market's book fast (~1-2s). Binance fapi/v1/depth is
 // keyless market data; a short TTL cache coalesces rapid polls so we never hammer the
 // venue (rate-limit aware). FAIL-SOFT: error → last cached book (marked stale) or null.
 const _bookCache = new Map(); // market -> { ts:ms, book }
@@ -1210,7 +1208,7 @@ const BOOK_TTL_MS = 1200;
 /**
  * fetchOrderBook(market, opts?) — unified L2 order book for a crypto market.
  * { market, book:{venue,symbol,bids:[{price,size}],asks:[{price,size}],mid,spreadBps}|null, cachedMs, advisory? }
- * Polymarket keys (poly-*) have no Coinbase book → advisory null. READ-ONLY, never throws.
+ * Polymarket keys (poly-*) have no Binance book → advisory null. READ-ONLY, never throws.
  */
 export async function fetchOrderBook(market, { limit = 25 } = {}) {
   if (!market) return { market: null, book: null, advisory: 'market-required' };
@@ -1437,11 +1435,11 @@ export const DEFAULT_CONFIG = {
   enableAgentReachNews: true,  // prefer Agent-Reach real-web news (Exa) for sentiment over RSS
   autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live
   polymarketLimit: 3,          // how many liquid Polymarket markets to auto-discover
-  enableAccount: true,         // read the real VIEW-ONLY Coinbase account each cycle (no-op without creds)
+  enableAccount: true,         // coinbase-removed stub each cycle (no-op; no Binance view-only account wired)
   enableLearnLoop: true,       // decode closed paper trades → AFL_LEDGER (data accrual only; promotion stays owner-gated)
   enableQuantumShadow: true,   // record classical-vs-quantum A/B shadow each cycle (telemetry only; never sizes)
   enableStrategyForecasts: true, // record per-strategy forecasts each cycle → the re-weighting brain's data
-  enableTickStream: false,     // DISARMED: when armed (OBSERVATORY_TICK_STREAM=1), a Coinbase websocket feeds _state.ticks in real-time + fires fastRiskExit at the actual touch (sub-second exits). Default off → the 1s REST poll stays the floor.
+  enableTickStream: false,     // DISARMED: when armed (OBSERVATORY_TICK_STREAM=1), a Binance fstream @bookTicker websocket feeds _state.ticks in real-time + fires fastRiskExit at the actual touch (sub-second exits). Default off → the 1s REST poll stays the floor.
 };
 
 /**
@@ -1477,7 +1475,7 @@ export async function runCycle(config = {}) {
 
   ensureDir(PAPER_LEDGER);
 
-  // Crypto markets (Coinbase)
+  // Crypto markets (Binance USDⓈ-M perp)
   for (const market of cfg.cryptoMarkets) {
     if (!_state.snapshots.has(market)) {
       _state.snapshots.set(market, createMarketSnapshot(market, 'binance'));
@@ -1498,7 +1496,7 @@ export async function runCycle(config = {}) {
     await runPolymarketCycle(tokenId, question, snap);
   }
 
-  // Real view-only account (Coinbase) — READ-ONLY, fail-open no-key, never breaks the cycle
+  // Real view-only account placeholder (coinbase-removed stub; no Binance account wired) — READ-ONLY, fail-open, never breaks the cycle
   if (cfg.enableAccount !== false) {
     try { await refreshAccount(cfg); } catch (_e) { /* account read must never break the cycle */ }
   }
