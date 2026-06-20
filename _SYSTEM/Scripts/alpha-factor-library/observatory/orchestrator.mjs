@@ -51,8 +51,10 @@ import { recordForecasts } from '../strategy-weights.mjs';
 // factorQualityScore removed — not wired in W2 observatory (BUG-3: dead import)
 // PerpAdapter removed — W2 is crypto-primary; perp market loop not yet wired (BUG-4: inert import)
 
-// Adapter imports — we re-export setHttpGet from each to inject mocks
-import * as CoinbaseAdapter from '../adapters/coinbase-adapter.mjs';
+// Adapter imports — we re-export setHttpGet from each to inject mocks.
+// BINANCE-ONLY (2026-06-19, owner directive "get away from coinbase, binance only"):
+// CoinbaseAdapter import REMOVED — the venue is Binance USDⓈ-M (PerpAdapter). coinbase-adapter.mjs
+// is deleted in a later step of this migration; no live code references it.
 import * as PolymarketAdapter from '../adapters/polymarket-adapter.mjs';
 import * as PerpAdapter from '../adapters/perp-adapter.mjs';
 import * as SocialAdapter from '../adapters/social-adapter.mjs';
@@ -423,7 +425,7 @@ function getPaperEngine(market) {
   const engine = createPaperEngine({
     paperLedgerPath: paperLedger,
     predictionLedgerPath: predLedger,
-    feeModel: PERP_MODE ? binanceFeeModel('taker') : undefined, // undefined → default Coinbase cryptoFeeModel('taker')
+    feeModel: binanceFeeModel('taker'), // BINANCE-ONLY (2026-06-19): always Binance USDM-M taker fees (0.05%). Coinbase scrapped; PERP_MODE now only gates leverage/perp economics, not the venue fee.
     caps: {
       initialEquity: 100_000,
       ...(PERP_MODE ? { perpMode: true, leverage: PERP_LEVERAGE, maintenanceMarginRate: 0.004 } : {}),
@@ -455,7 +457,7 @@ let _httpGetOverride = null;
  * fn(url, headers?) -> Promise<{status, headers, body}>
  * Pass null/undefined to clear the override and restore the real HTTPS default.
  *
- * NOTE: coinbase-adapter.setHttpGet requires a function (throws on null).
+ * NOTE: perp-adapter.setHttpGet requires a function (throws on null).
  * To restore the default we pass a thin wrapper around node:https so adapters
  * get a real function, not null. This is the correct "clear" path.
  */
@@ -484,9 +486,8 @@ function _realHttpGet(urlStr, headers = {}) {
 export function setHttpGet(fn) {
   if (fn === null || fn === undefined) {
     // Clear: restore real HTTPS default on all adapters.
-    // coinbase/perp adapters reject null — pass the real default function instead.
+    // perp adapter rejects null — pass the real default function instead.
     _httpGetOverride = null;
-    CoinbaseAdapter.setHttpGet(_realHttpGet);
     PolymarketAdapter.setHttpGet(_realHttpGet);
     PerpAdapter.setHttpGet(_realHttpGet);
     SocialAdapter.setHttpGet(_realHttpGet);
@@ -494,7 +495,6 @@ export function setHttpGet(fn) {
     return;
   }
   _httpGetOverride = fn;
-  CoinbaseAdapter.setHttpGet(fn);
   PolymarketAdapter.setHttpGet(fn);
   PerpAdapter.setHttpGet(fn);
   SocialAdapter.setHttpGet(fn);
@@ -1697,23 +1697,28 @@ async function runSelfTest() {
     volume: 100 + i,
   }));
 
-  // Candles returned newest-first by Coinbase (adapter reverses them, but mock returns chronological)
-  // Mock returns oldest-first (adapter's mapCandle output is already chronological)
-  const mockCandlesBody = JSON.stringify({
-    candles: [...mockBars].reverse().map((b) => ({
-      start: String(b.timestamp),
-      open: String(b.open),
-      high: String(b.high),
-      low: String(b.low),
-      close: String(b.close),
-      volume: String(b.volume),
-    })),
-  });
+  // Binance USDⓈ-M klines response shape: a JSON ARRAY of kline arrays, ASCENDING by openTime
+  // (oldest-first) — the chronological order mapKline/perp-adapter PRESERVES (no reverse, unlike
+  // coinbase's newest-first candles). Each row: [openTime(ms), open, high, low, close, volume, ...].
+  // mapKline floors openTime(ms)/1000 back to unix-seconds, matching the {timestamp,...} bar contract.
+  const mockKlinesBody = JSON.stringify(
+    mockBars.map((b) => [
+      b.timestamp * 1000, // openTime in MS (mapKline → floor(/1000) → unix-seconds)
+      String(b.open),
+      String(b.high),
+      String(b.low),
+      String(b.close),
+      String(b.volume),
+    ]),
+  );
 
-  // Mock httpGet — returns canned data for known URL patterns
+  // Mock httpGet — returns canned data for known URL patterns.
+  // BINANCE-ONLY (2026-06-19): candle fetch routes through PerpAdapter.getCandles →
+  // GET https://fapi.binance.com/fapi/v1/klines (array response). The old coinbase.com/candles
+  // branch is DEAD (coinbase scrapped) — match the binance klines endpoint instead.
   const mockHttpGet = async (url) => {
-    if (url.includes('coinbase.com') && url.includes('candles')) {
-      return { status: 200, headers: {}, body: mockCandlesBody };
+    if (url.includes('fapi.binance.com') && url.includes('klines')) {
+      return { status: 200, headers: {}, body: mockKlinesBody };
     }
     // Default: empty 200
     return { status: 200, headers: {}, body: '{}' };
