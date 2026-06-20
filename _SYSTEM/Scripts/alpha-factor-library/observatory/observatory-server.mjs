@@ -42,7 +42,6 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 
 import {
   runCycle,
@@ -60,7 +59,6 @@ import {
   fastRiskExit,
   applyTick,
   getTicks,
-  refreshAccount,
   getAccount,
   getIndicators,
   listAvailableIndicators,
@@ -227,7 +225,8 @@ function routeRequest(req, res) {
       break;
 
     case '/api/observatory/account':
-      // Real VIEW-ONLY Coinbase account state (no key → connected:false). No secret ever echoed.
+      // Account state — no authed venue exists (Binance USDⓈ-M is view-only, no keys;
+      // Coinbase scrapped 2026-06-19) → degrades to { connected:false }. No secret ever echoed.
       jsonResponse(res, getAccount() ?? { connected: false, advisory: 'no-cycle-yet' });
       break;
 
@@ -292,7 +291,7 @@ function routeRequest(req, res) {
       break;
 
     case '/api/observatory/timeframes':
-      jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'coinbase'));
+      jsonResponse(res, availableTimeframes(url.searchParams.get('venue') || 'binance'));
       break;
 
     case '/api/observatory/candles': {
@@ -433,8 +432,8 @@ async function startServe(config = {}) {
   console.log(`[observatory-server] fast price-tick @ ${TICK_MS}ms`);
 
   // ── DISARMED real-time tick stream (owner-armed via OBSERVATORY_TICK_STREAM=1) ──
-  // When armed, a Coinbase PUBLIC websocket feeds _state.ticks in REAL TIME (event-driven, sub-second)
-  // and fires fastRiskExit at the actual touch — capping the overshoot losers the 1s REST poll lets slip.
+  // When armed, a Binance USDⓈ-M @bookTicker websocket feeds _state.ticks in REAL TIME (event-driven,
+  // sub-second) and fires fastRiskExit at the actual touch — capping the overshoot losers the 1s REST poll lets slip.
   // The REST doTick loop above stays running as the fallback floor (a dropped socket degrades to 1s).
   let tickStream = null;
   if (TICK_STREAM_ARMED) {
@@ -444,8 +443,8 @@ async function startServe(config = {}) {
     tickStream = startTickStream({
       markets: tsMarkets,
       onTick: (t) => {
-        applyTick(t.market, t.price, { bid: t.bid, ask: t.ask, venue: 'coinbase' });
-        broadcastSSE([{ type: 'price.tick', market: t.market, venue: 'coinbase', price: t.price, bid: t.bid, ask: t.ask, ts: Math.floor(Date.now() / 1000) }]);
+        applyTick(t.market, t.price, { bid: t.bid, ask: t.ask, venue: 'binance' });
+        broadcastSSE([{ type: 'price.tick', market: t.market, venue: 'binance', price: t.price, bid: t.bid, ask: t.ask, ts: Math.floor(Date.now() / 1000) }]);
         const nowMs = Date.now();
         if (nowMs - lastRiskMs >= RISK_THROTTLE_MS) {
           lastRiskMs = nowMs;
@@ -460,7 +459,7 @@ async function startServe(config = {}) {
       },
       onStatus: (s) => console.log(`[observatory-server] tick-stream: ${s}`),
     });
-    console.log(`[observatory-server] REAL-TIME tick-stream ARMED (Coinbase WS) for ${tsMarkets.join(',')}`);
+    console.log(`[observatory-server] REAL-TIME tick-stream ARMED (Binance fstream @bookTicker WS) for ${tsMarkets.join(',')}`);
   }
 
   // ── DISARMED L2+trades TAPE RECORDER (owner-armed via OBSERVATORY_RECORDER=1) ──
@@ -630,55 +629,12 @@ async function runGather() {
 // which is already set when we reach here. We import the module which triggers it.
 // We just need to NOT start the server or loop.
 
-// ── --verify mode (connect a real VIEW-ONLY Coinbase account) ───────────────
-// Confirms the authed read works + prints a balances summary. NEVER echoes key
-// material; creds read from env only (COINBASE_KEY_NAME + COINBASE_API_SECRET).
-async function runVerifyAccount() {
-  console.log('[connect] verifying VIEW-ONLY Coinbase account (creds from env only, never disk)...');
-  try { await fastTick({}); } catch (_) { /* price tracked holdings if possible; ignore */ }
-  const acct = await refreshAccount({ enableAccount: true });
-  if (!acct || acct.advisory === 'no-key') {
-    console.log('[connect] NO KEY SET — export COINBASE_KEY_NAME + COINBASE_API_SECRET (PEM) to connect a view-only account.');
-    console.log('[connect] (the engine runs fine without it; account telemetry just stays disconnected)');
-    process.exit(0);
-  }
-  if (acct.connected === false || acct.advisory === 'error') {
-    console.error('[connect] FAILED:', acct.error || 'unknown error');
-    process.exit(1);
-  }
-  console.log(`[connect] VIEW-ONLY OK — ${acct.accountCount} accounts · realEquity ≈ $${(acct.realEquityUsd || 0).toFixed(2)} · ${acct.unpricedCount} unpriced`);
-  for (const h of (acct.holdings || []).slice(0, 15)) {
-    const v = h.priced ? `$${(h.usdValue || 0).toFixed(2)}` : '(unpriced)';
-    console.log(`  ${String(h.currency).padEnd(8)} ${String(h.total).padEnd(22)} ${v}`);
-  }
-  process.exit(0);
-}
-
-// ── Credential hydration (Keychain → env, INV-2-safe) ───────────────────────
-// The daemon launches `node` directly under launchd, and a multi-line PEM secret
-// can't live cleanly in the plist. So if COINBASE_* aren't already in the
-// environment, load them from the macOS Keychain — the SAME secure store as the
-// OLLAMA key (service `YURI_OS_MUSUBI:<KEY>`, account = $USER). ENV ALWAYS WINS;
-// never reads .env/disk secrets, never logs key material; fail-soft (no entry →
-// keyless, INV-4). Store with: `node _SYSTEM/Scripts/yuri-keychain.mjs set <KEY> <VALUE>`.
-function hydrateCoinbaseCredsFromKeychain() {
-  let acct = process.env.USER || '';
-  if (!acct) { try { acct = execFileSync('id', ['-un'], { encoding: 'utf8' }).trim(); } catch { /* no user */ } }
-  if (!acct) return;
-  for (const key of ['COINBASE_KEY_NAME', 'COINBASE_API_SECRET']) {
-    if (process.env[key]) continue; // env wins — never override an explicit env var
-    try {
-      const v = execFileSync('security',
-        ['find-generic-password', '-a', acct, '-s', `YURI_OS_MUSUBI:${key}`, '-w'],
-        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-      const val = v.replace(/\n$/, ''); // strip the trailing newline `security` appends; keep internal PEM newlines
-      if (val) process.env[key] = val;
-    } catch { /* no keychain entry → stay keyless (fail-soft) */ }
-  }
-}
-
 // ── CLI entry point ───────────────────────────────────────────────────────
-hydrateCoinbaseCredsFromKeychain();
+// BINANCE-ONLY (2026-06-19, owner directive "scrap coinbase completely"):
+// --verify account-connect + macOS Keychain COINBASE_* credential hydration REMOVED —
+// no authed venue exists anymore (Binance USDⓈ-M is view-only, no keys). The
+// /api/observatory/account route stays and degrades to { connected:false } via
+// orchestrator.getAccount() (refreshAccount is already a 'coinbase-removed' stub).
 const args = process.argv.slice(2);
 
 if (args.includes('--test')) {
@@ -687,8 +643,6 @@ if (args.includes('--test')) {
   // However, since orchestrator uses top-level await for the test, we need to let it run.
   // The import at the top already triggered the orchestrator module; if --test is set,
   // orchestrator.mjs runs runSelfTest() and process.exit(0/1). We just wait.
-} else if (args.includes('--verify') || args.includes('--verify-account')) {
-  runVerifyAccount().catch((err) => { console.error('[connect] error:', err.message); process.exit(1); });
 } else if (args.includes('--once')) {
   runOnce().catch((err) => { console.error(err); process.exit(1); });
 } else if (args.includes('--gather')) {
