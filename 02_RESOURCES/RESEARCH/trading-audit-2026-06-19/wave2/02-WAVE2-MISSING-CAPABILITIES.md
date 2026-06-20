@@ -1,6 +1,6 @@
 # Wave-2 — What We Are Missing to Be Functional (primary-grounded)
 
-**Date:** 2026-06-19 · **Owner:** Marcel · **Lane:** Claude/main (Rick), cross-checked by 5 GLM-5.2 @xhigh peers
+**Date:** 2026-06-19 · **Owner:** Marcel · **Lane:** Claude/main (Rick), cross-checked by GLM-5.2 peers — **P1 pro-benchmark ✓ verified, P2 orthogonality ✓ verified, P5 calc-sheet ✓ verified** (all re-run @ `high` after `xhigh` crashed batch-1 on z.ai transport); P3 topology **hung twice** (socket stall, covered by main §7); P4 quantum **replaced by own sim** §3. See §11 for the peer cross-check.
 **Mission:** refine+extend the trading platform toward functional — FIRST gather what we're *missing*; run sims + calcs; compare to how professionals trade; design the 24/7 agent fleet.
 **Status:** context/sim/pro-comparison wave. Build (#7 Coinbase scrap + ranked redirect path) is owner-gated and comes *after* this informs it.
 
@@ -14,7 +14,7 @@
 
 ## §0 — HEADLINE: what we are missing (one screen)
 
-The platform is **rigorous scaffolding around zero live edge**, wired to the wrong fee tier and sized at a gross exposure ~60× what the edge justifies. Concretely, to be *functional* we are missing exactly five things — four are **wiring of already-built code**, one is measurement:
+The platform is **rigorous scaffolding around zero live edge**, wired to the wrong fee tier and sized at a gross exposure **~26–42× what the edge justifies** (portfolio basis, quarter-Kelly, ρ0.8 — P5-verified; the earlier "~60×" mixed per-bet with the portfolio cap). Concretely, to be *functional* we are missing exactly five things — four are **wiring of already-built code**, one is measurement:
 
 | # | Missing capability | Evidence | Fix size |
 |---|---|---|---|
@@ -48,7 +48,7 @@ The platform is **rigorous scaffolding around zero live edge**, wired to the wro
 - Full Kelly `f* = (b·p−q)/b = 0.10` (10%).
 - **Quarter-Kelly = 2.50%** uncorrelated.
 - Correlation-adjusted (n=3 markets, ρ̄≈0.8, from P2's ETH obs-pair ρ=+0.766): `f_adj = f*/(1+(n−1)ρ) = 0.10/2.6 = 3.85%` → **quarter = 0.96% per bet**.
-- Sane gross at 8× leverage = **7.7% of equity** — vs the configured **600%**. The live config is sized ~**78× too large** for the edge.
+- **Portfolio-basis sane gross (P5-verified):** per-asset quarter-Kelly (corr-adj) = 0.96% margin → 3-asset portfolio 2.88% margin → at 5× lev **14.4% portfolio gross** (at 8× = 23%). vs configured **600%** → the live config is **~26–42× too large** (not "aggressive" — **ruin-class**: eff-N=1.15 at ρ0.8, one correlated 17% down-move liquidates the book). The earlier per-bet "7.7% / ~78×" mixed bases; portfolio-vs-portfolio is the honest comparison.
 
 **Funding-carry** (refute audit "+5–15%/mo"):
 - Gross: 0.01%/8h × 3 × 365 = **10.95%/yr**; current-regime ~3%/yr.
@@ -168,7 +168,7 @@ The convergent truth across the practitioner literature (the *consensus* is [R]-
 
 ---
 
-## §7 — Agent topology (Claude/main design; **P3 GLM lane still running — will cross-check**)
+## §7 — Agent topology (Claude/main design; **P3 GLM lane hung twice on z.ai transport — topology covered by this main design**)
 
 Marcel's explicit ask: *"how many effective trading agents to run 24/7, each owning a set of roles."* Current state: **one monolithic daemon** (orchestrator.mjs) does ingest → 24 TA + overlays → ensemble → regime → size → paper-execute → recordForecasts → risk-exits → (throttled) decode/score, **all in one per-cycle loop**. The problem: latency-critical and latency-tolerant work share a thread.
 
@@ -221,6 +221,34 @@ Re-ordered vs wave-1's #0–#8, because the fee fix (M3) and sizing wire (M2) no
 - **Own sims (execution-verified):** `/tmp/yuri-quantum-sim.mjs` (A10 verdict), `/tmp/yuri-edge-calc.mjs` (Kelly/carry/maker), `/tmp/yuri-growth-ruin.mjs` (€300→€10k MC, 20k paths, P(reach)/P(ruin)/drawdown by Kelly fraction).
 - **Code-verified [V]:** orchestrator.mjs:638-720, 904, 999-1011, 437; maker-fill-sim.mjs:30-34; funding-carry.mjs:36-38; adverse-attribution.mjs:43; afl-sizing.mjs:56-213.
 - **Primary-online [V-online]:** Binance fee page + Support FAQ 360033544231 + Finder + Binance Square (VIP0 2/5bps); Binance funding-history + CoinGlass + Coinalyze + Binance Square 30298233678962 (funding ~0.01%/8h avg, ~0.0028%/8h live); Milionis et al arXiv 2208.06046 (LVR); EliteTrader 2026 Sharpe deep-dive + SSRN 4301150 (perp fundamentals) + arXiv 2602.11708 (AdaptiveTrend) + Altrady/XBTO (2026 net Sharpe benchmarks); MacLean-Ziemba / Berkeley "Good and Bad Properties of Kelly" (over-Kelly ruin); Downey (fractional-Kelly + ruin constraint).
-- **GLM peers:** P2 (orthogonality) clean + verified; P1 (pro-benchmark) ECONNRESET-crashed (re-done from primary above); P4 (quantum) OOM-crashed (my sim replaces it); P3 (topology) + P5 (calcs) still running at write-time — folded in where landed, flagged [R] otherwise.
+- **GLM peers (final):** re-launched @ `high` after `xhigh` crashed batch-1 on z.ai transport (ECONNRESET/OOM). **P1 pro-benchmark ✓** (212 lines, 3 crux claims verified locally: funding-carry unwired @ orchestrator:130, computeFundingPriceReaction test-only-callers, k[9] taker-buy dropped @ perp-adapter mapKline:396). **P2 orthogonality ✓** committed. **P5 calc-sheet ✓** (122 lines, every number verified: Kelly 10%/2.5%, corr-adj divisor 2.6 / eff-N 1.15, funding 0.003%/8h→3.28%/yr, break-even 37.8d, maker κ-tier table). **P3 topology** hung twice on a socket stall (first read_file, killed). **P4 quantum** OOM'd → own sim §3 replaces it. Lane outputs: `wave2/out/P1.md`, `P2.md`, `P5.md`.
 - **Demoted [R]:** `afl-crypto-trading-playbook-2026-06-14.md` attributed quotes/stats (owner flagged accuracy; load-bearing numbers re-grounded primary this wave).
 - **Owner correction (2026-06-19):** the initial "€0–8/mo research book" framing understated the aggressive-compounding upside; corrected to the full risk-posture frontier (§2). The path to €10k is real **conditional on a proven net edge** — the open variable is the edge, not the math.
+
+---
+
+## §11 — Peer cross-check (P1 pro-benchmark + P5 calc-sheet, both verified clean @ `high`)
+
+Re-launched the crashed/stalled peers at `--reasoning high` (owner fix for the z.ai transport crashes that killed batch-1 at `xhigh`); P1 + P5 landed clean and their load-bearing claims were verified locally. They **confirm the doc's spine** and add four pieces worth folding in.
+
+**P5 — calc-sheet (every number verified; confirms the cost arithmetic, fixes one framing error):**
+
+- **Sizing correction (the one real fix to §2):** the "~78× too large" mixed per-bet (7.7% @8×) with the portfolio cap (600%). Apples-to-apples **portfolio basis: ~26–42× too large** (14.4% sane @5× / 23% @8×, 3 assets, ρ0.8, quarter-Kelly). Eff-N = **1.15** — "3 markets" is ~1.15 independent bets.
+- **Maker edge by κ (the sharpener):** the blocker for maker income is **κ (queue adverse-selection), NOT the fee tier.** Per-side net bps = `halfSpread(2.5) − makerFee − κ/2`:
+
+  | tier | maker bps | κ=0 | κ=5 | κ=10 (retail) |
+  |---|---|---|---|---|
+  | VIP0 | 2.0 | +0.50 | −2.00 | −4.50 |
+  | VIP9 | 0.0 | +2.50 | 0.00 | −2.50 |
+
+  Retail on a 100ms-stale public L2 queues **last** (κ≈8–12bps) → maker is **negative at EVERY VIP tier incl. VIP9**. "Reach VIP3" is not the answer; co-lo (impossible on M2-Pro) is. **Reframes §5/§8 maker items: the lever is the VPIN toxicity gate + low-κ regime selection, not fee-tier escalation.**
+- **Live funding (measured this session, Binance `/fapi/v1/fundingRate`):** BTCUSDT **0.003%/8h = 3.28%/yr** (current low regime; cycle-avg ~10.95%/yr in §1). Break-even hold = **37.8 days** at live rate (vs 11.3d at cycle-avg) after the 34bps entry+exit stack. Net on €300 ≈ **€0.73/mo live / €0.89/mo cycle-avg** → confirms "+5–15%/mo" is **20–61× overstated** (it is per-*year*). The module's own `CARRY_CAVEAT` agrees (Sharpe 6.45 / 8% APY = 2020-25 full-sample; 2025 went negative).
+- **Honest expectancy:** ~€1.98/mo (€1.25 directional @ Sharpe 0.5 + €0.73 carry) on €300 — **this is the quarter-Kelly risk-parity number, NOT a ceiling** (the aggressive MC in §2 reaches €10k at p=0.55). Open variable stays "is the edge real", not "is the math viable."
+
+**P1 — pro-benchmark (primary-cited, 3 crux claims verified locally; upgrades §6 [R]→cited):**
+
+- **Factor survival, primary citations:** Harvey-Liu-Zhu (*RFS* 2014, NBER w20592): **313 catalogued factors, only 9 survive t>3.0** → justifies a BH-FDR fleet gate (absent — 60 factors × 5% FPR ≈ 3 false promotions). Cont-Kukanov-Stoikov (*JFE* 2014): **OFI explains 65–87% of short-term mid variance** (multi-level 80–87%). Dobrynskaya (HSE 2023, ~2000 cryptos): **momentum is 1–2 weeks, not 1-min** — YURI's 12 trend strategies are the wrong horizon. Bieganowski-Ślepaczuk (arXiv 2602.00776, Jan 2026, Binance perps): engineered-book features stable across market-cap orders of magnitude. Wang (arXiv 2506.05764, Jun 2025): XGBoost matches deep nets — **feature engineering > model depth**.
+- **Genuinely missing (adds to §0/§8, with sizing):** **VPIN toxicity gate** (M — aggTrade volume-clock + BVC; spiked 0.65 pre-2010 Flash Crash); **BH-FDR fleet gate** (M); **PBO/CSCV** (M — probability-of-backtest-overfit, gold-standard, absent); **cross-asset momentum 5–10d** (M — correct-horizon directional edge; current 1-min trend is wrong horizon); **walk-forward purged k-fold** (M — `heldOutSplit` is random shuffle, no purging/embargo); **taker-buy k[9]** (S — [V] dropped in `perp-adapter` mapKline:396; free OFI proxy); **maker GTX post-only path** (L — engine does taker fills, 2.5× maker cost); **open-interest feed** (M — `/fapi/v1/openInterest`; crowding/liquidation-proximity, absent).
+- **P1's verdict:** "the gap is **70% wiring** (S–M, reversible) + **30% genuinely missing** (VPIN, PBO, BH-FDR, OI feed, GTX maker path, correct-horizon momentum)." Confirms this doc's §0 net.
+
+**P3 (topology) — hung twice, covered by §7.** Stalled on the first `read_file` at both `xhigh` and `high` (z.ai socket stall, 0% CPU, 6.5–7.5h alive, killed). The 4-agent-minimal / 7-extended fleet + SQLite-bus design in §7 stands as the topology answer; a third re-launch is low-EV (same stall window). The honest expectation is that topology is a first-principles design question answerable from the codebase — which §7 already is.
