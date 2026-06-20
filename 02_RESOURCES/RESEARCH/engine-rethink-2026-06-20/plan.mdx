@@ -93,61 +93,28 @@ The engine is **86 files / 37,201 LOC** but proven (3 ways) to have no predictiv
   ]}
 />
 
-<RichText id="questions-h">
+<RichText id="decisions-resolved">
 
-## Decisions for you
+## Decisions — RESOLVED (owner, 2026-06-20)
 
 </RichText>
 
-<QuestionForm
-  id="rethink-decisions"
-  questions={[
-    {
-      id: "cut-theater",
-      title: "Cut the ~3,420 LOC of pure theater (vpin, factor-circuit/quantum, overseer, mutation-sweep, adverse-attribution)? Zero live readers, zero risk.",
-      mode: "single",
-      options: [
-        { id: "yes", label: "Cut it all now", detail: "clean ~3.4k LOC of dead code; reversible via git", recommended: true },
-        { id: "review", label: "Show me the diffs first", detail: "I prepare the cuts, you review before commit" },
-        { id: "no", label: "Leave it", detail: "keep the theater (not recommended)" },
-      ],
-      required: false,
-    },
-    {
-      id: "park-stacks",
-      title: "Park the microstructure + Polymarket stacks behind flags (keep code, stop treating as active)?",
-      mode: "single",
-      options: [
-        { id: "yes", label: "Park both", detail: "quarantine ~6.7k LOC behind DISARMED flags", recommended: true },
-        { id: "polymarket-only", label: "Only Polymarket", detail: "keep microstructure visible" },
-        { id: "no", label: "Leave active", detail: "no change" },
-      ],
-      required: false,
-    },
-    {
-      id: "pivot-build",
-      title: "Build the funding-carry wiring (~300-400 LOC) to run it on Binance paper? This is the 'really get this going' step.",
-      mode: "single",
-      options: [
-        { id: "build", label: "Build the wiring (DISARMED)", detail: "wire harvester + paper-GTX + spot read-adapter; run paper 30 days", recommended: true },
-        { id: "verify-first", label: "Verify the edge first", detail: "run --backtest on real funding history before building wiring" },
-        { id: "wait", label: "Wait for the trader call", detail: "her input on carry/sizing first" },
-      ],
-      required: false,
-    },
-    {
-      id: "scope",
-      title: "Confirm scope: Binance crypto perp ONLY (Polymarket + multi-asset out of scope for now)?",
-      mode: "single",
-      options: [
-        { id: "perp-only", label: "Binance perp only", detail: "focused; Polymarket parked", recommended: true },
-        { id: "keep-poly", label: "Keep Polymarket in scope", detail: "maintain both" },
-      ],
-      required: false,
-    },
+<Table
+  id="execution-status"
+  columns={["Decision", "Answer", "Status"]}
+  rows={[
+    ["Cut theater (~3.4k LOC)", "Cut it all now", "✅ 4 files cut, ~2.3k LOC (vpin, overseer, mutation-sweep, adverse-attribution). 2 parked honestly (factor-circuit, quantum-ab-shadow — have live importers). commit 36614cdb"],
+    ["Park microstructure + Polymarket", "Park both", "🔄 Polymarket already off. Microstructure AS_QUOTE was ARMED in plist — disarm staged; restart deferred until the build agent finishes (avoid racing daemon edits)."],
+    ["Build funding-carry wiring", "Build (DISARMED)", "🔄 In progress — background agent wiring harvester into a daemon beat + paper-GTX + Binance spot read-adapter, DISARMED behind OBSERVATORY_CARRY_HARVEST=1. Verify pending."],
+    ["Scope", "Binance perp only", "✅ Confirmed — Polymarket parked, multi-asset out."],
   ]}
-  submitLabel="Send decisions"
 />
+
+<Callout id="honest-correction" tone="info">
+
+**Honest correction to the audit:** the reviewers over-claimed "zero importers" on 2 of 6 files. `factor-circuit` is imported by `trade-decision-sim.mjs` (the decision-lens capability); `quantum-ab-shadow` is dynamically imported by `orchestrator.mjs` (DISARMED shadow telemetry). Cutting those would have broken the daemon. Verified-by-grep before any deletion — only the truly orphaned 4 were cut; the other 2 are parked (DISARMED), not deleted.
+
+</Callout>
 
 <RichText id="footer">
 
