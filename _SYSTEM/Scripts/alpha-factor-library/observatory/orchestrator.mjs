@@ -57,6 +57,8 @@ import { recordForecasts } from '../strategy-weights.mjs';
 // is deleted in a later step of this migration; no live code references it.
 import * as PolymarketAdapter from '../adapters/polymarket-adapter.mjs';
 import * as PerpAdapter from '../adapters/perp-adapter.mjs';
+import * as AccountAdapter from '../adapters/account-adapter.mjs';
+import { hydrateBinanceCreds, hasBinanceCreds } from '../adapters/binance-creds.mjs';
 import * as SocialAdapter from '../adapters/social-adapter.mjs';
 import * as PolymarketDiscovery from '../adapters/polymarket-discovery.mjs';
 import { computePerpSignals } from '../perp-signals.mjs';
@@ -1072,7 +1074,7 @@ const _state = {
   cycleCount: 0,
   ticks: new Map(),       // market key → { market, venue, price, bid, ask, ts } (1s fast-tick)
   lastTick: null,         // unix-seconds of the last fast-tick poll
-  account: null,          // real (view-only) account state placeholder — null until refreshAccount runs (coinbase-removed stub; no Binance view-only account wired)
+  account: null,          // real (view-only) Binance account state — null until refreshAccount runs (account-adapter HMAC-signed read; fail-open)
 };
 
 // ── Fast price tick (1s) — lightweight last-price poll, SEPARATE from runCycle ──
@@ -1197,23 +1199,45 @@ export function getTicks() {
 const USD_STABLE = new Set(['USD', 'USDC', 'USDT', 'DAI', 'PYUSD', 'USDP', 'GUSD']);
 
 /**
- * refreshAccount(config?) — coinbase-removed stub (BINANCE-ONLY 2026-06-19).
- * No Binance view-only account is wired (optional, owner-gated). READ-ONLY:
- * never builds/places an order (INV-1). Stores a `connected:false` marker — the
- * cycle is never blocked, no secret is ever read from disk (INV-2).
- * realEquityUsd is a best-effort sum: stablecoins at face value + any crypto
- * holding priceable from the LIVE TICK MAP (zero extra API calls). Holdings we
- * cannot price are reported (priced:false) and excluded from the equity sum.
+ * refreshAccount(config?) — REAL Binance account read via account-adapter (2026-06-20).
+ * Reads the owner's view-only key from process.env.PERP_API_KEY/SECRET (hydrated by
+ * binance-creds at daemon startup). READ-ONLY: account-adapter calls ONLY
+ * /fapi/v2/balance + /fapi/v2/positionRisk (futures) with a spot /api/v3/account
+ * fallback when the key lacks futures permission. NEVER an order endpoint (INV-1).
+ * Fail-open: no creds / any error → {connected:false,advisory}; the cycle is never
+ * blocked, the secret is never logged (INV-2). realEquityUsd = USD-pegged stablecoins
+ * at face value (zero extra API calls); non-stable balances appear in balances[] but
+ * are not priced here.
  */
 export async function refreshAccount(config = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   if (cfg.enableAccount === false) return _state.account;
   const now = Math.floor(Date.now() / 1000);
-  // BINANCE-ONLY (2026-06-19, owner directive "get away from coinbase"): the Coinbase
-  // view-only account path is removed. No Binance view-only account is wired (optional,
-  // owner-gated). Report disconnected — INV-1/INV-2 intact (no keys read, no orders, no
-  // network). Paper P&L is the engine's own book; this is the REAL-account placeholder.
-  _state.account = { connected: false, advisory: 'coinbase-removed (binance-only); no real account wired', holdings: [], realEquityUsd: null, ts: now };
+  // Fail-open when no creds are hydrated (e.g. the --test self-test has no keychain).
+  if (!hasBinanceCreds()) {
+    _state.account = { connected: false, venue: null, balances: [], positions: [], realEquityUsd: null, advisory: 'no binance creds (keyless; hydrate binance-creds)', ts: now };
+    return _state.account;
+  }
+  try {
+    const view = await AccountAdapter.getAccountView();
+    // Preserve the orchestrator's holdings[] alias (board consumers may read either) —
+    // balances[] is the canonical normalized shape; holdings[] mirrors it for back-compat.
+    const holdings = view.balances.map((b) => ({ asset: b.asset, amount: (b.free || 0) + (b.locked || 0), priced: false }));
+    _state.account = {
+      connected: view.connected,
+      venue: view.venue,
+      balances: view.balances,
+      holdings,
+      positions: view.positions,
+      realEquityUsd: view.realEquityUsd,
+      advisory: view.advisory,
+      ts: now,
+    };
+  } catch (_e) {
+    // account-adapter never throws (it returns {connected:false} on error), but defend
+    // the cycle contract explicitly: account read must never break the cycle.
+    _state.account = { connected: false, venue: null, balances: [], holdings: [], positions: [], realEquityUsd: null, advisory: 'account read error (fail-open)', ts: now };
+  }
   return _state.account;
 }
 
@@ -1479,7 +1503,7 @@ export const DEFAULT_CONFIG = {
   enableAgentReachNews: true,  // prefer Agent-Reach real-web news (Exa) for sentiment over RSS
   autoDiscoverPolymarkets: false, // when true, bootstrapPolymarkets() fills polymarkets live
   polymarketLimit: 3,          // how many liquid Polymarket markets to auto-discover
-  enableAccount: true,         // coinbase-removed stub each cycle (no-op; no Binance view-only account wired)
+  enableAccount: true,         // real Binance view-only account read each cycle (account-adapter; fail-open, no key → connected:false)
   enableLearnLoop: true,       // decode closed paper trades → AFL_LEDGER (data accrual only; promotion stays owner-gated)
   enableQuantumShadow: true,   // record classical-vs-quantum A/B shadow each cycle (telemetry only; never sizes)
   enableStrategyForecasts: true, // record per-strategy forecasts each cycle → the re-weighting brain's data
@@ -1540,7 +1564,7 @@ export async function runCycle(config = {}) {
     await runPolymarketCycle(tokenId, question, snap);
   }
 
-  // Real view-only account placeholder (coinbase-removed stub; no Binance account wired) — READ-ONLY, fail-open, never breaks the cycle
+  // Real view-only Binance account read (HMAC-signed; account-adapter) — READ-ONLY, fail-open, never breaks the cycle
   if (cfg.enableAccount !== false) {
     try { await refreshAccount(cfg); } catch (_e) { /* account read must never break the cycle */ }
   }

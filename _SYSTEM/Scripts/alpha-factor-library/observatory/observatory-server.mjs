@@ -225,8 +225,9 @@ function routeRequest(req, res) {
       break;
 
     case '/api/observatory/account':
-      // Account state — no authed venue exists (Binance USDⓈ-M is view-only, no keys;
-      // Coinbase scrapped 2026-06-19) → degrades to { connected:false }. No secret ever echoed.
+      // Real Binance view-only account state (HMAC-signed read via account-adapter; hydrated by
+      // binance-creds at startup). Futures-first with spot fallback. No creds / API error →
+      // {connected:false, advisory}. No secret ever echoed (INV-2).
       jsonResponse(res, getAccount() ?? { connected: false, advisory: 'no-cycle-yet' });
       break;
 
