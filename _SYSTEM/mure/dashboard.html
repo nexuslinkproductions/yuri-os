@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MURE 群れ — Company Overview</title>
+<style>
+/* ════════════════════════════════════════════════════════════════
+   MURE — mission-control palette
+   Self-contained. No external design tokens. No emoji. Two weights.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── DARK (default) ─────────────────────────────────────────────── */
+:root {
+  --bg:           #06080c;
+  --bg-grad-a:    #080a10;
+  --bg-grad-b:    #0b0e16;
+  --surface:      #0e1219;
+  --surface-2:    #131823;
+  --surface-3:    #1a2030;
+  --border:       #1f2735;
+  --border-hi:    #2d3850;
+  --hairline:     rgba(255,255,255,0.04);
+
+  --text:         #e4e8f0;
+  --text-2:       #9aa3b4;
+  --text-3:       #5a6580;
+  --text-dim:     #3d4660;
+
+  --accent:       #00e0b8;   /* primary signal teal */
+  --accent-glow:  rgba(0,224,184,0.18);
+  --amber:        #ffb020;
+  --amber-glow:   rgba(255,176,32,0.18);
+  --green:        #4ade80;
+  --green-glow:   rgba(74,222,128,0.18);
+  --red:          #f43f5e;
+  --red-glow:     rgba(244,63,94,0.18);
+  --purple:       #a78bfa;
+  --gray-sig:     #94a3b8;
+
+  /* substrate color codes */
+  --sub-native:   #2dd4bf;   /* teal  */
+  --sub-glm:      #c084fc;   /* purple */
+  --sub-either:   #94a3b8;   /* gray  */
+
+  --armed:        #f43f5e;
+  --armed-glow:   rgba(244,63,94,0.28);
+  --disarmed:     #4a5570;
+
+  --grid-line:    rgba(255,255,255,0.025);
+  --shadow:       0 4px 24px rgba(0,0,0,0.4);
+
+  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+
+  --radius: 4px;
+  --radius-lg: 6px;
+
+  --r-sm: 400;
+  --r-md: 500;
+  --r-bd: 600;
+  --r-bk: 700;
+}
+
+/* ── LIGHT ──────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:           #f4f6fa;
+    --bg-grad-a:    #eef1f7;
+    --bg-grad-b:    #f7f9fc;
+    --surface:      #ffffff;
+    --surface-2:    #f1f4f9;
+    --surface-3:    #e7ebf3;
+    --border:       #d8dee9;
+    --border-hi:    #b8c2d4;
+    --hairline:     rgba(0,0,0,0.04);
+
+    --text:         #1a2030;
+    --text-2:       #4a5570;
+    --text-3:       #7a8499;
+    --text-dim:     #b0bacd;
+
+    --accent:       #00a88e;
+    --accent-glow:  rgba(0,168,142,0.12);
+    --amber:        #d97706;
+    --amber-glow:   rgba(217,119,6,0.14);
+    --green:        #16a34a;
+    --green-glow:   rgba(22,163,74,0.14);
+    --red:          #dc2626;
+    --red-glow:     rgba(220,38,38,0.14);
+    --purple:       #7c3aed;
+    --gray-sig:     #64748b;
+
+    --sub-native:   #0d9488;
+    --sub-glm:      #7c3aed;
+    --sub-either:   #64748b;
+
+    --armed:        #dc2626;
+    --armed-glow:   rgba(220,38,38,0.18);
+    --disarmed:     #94a3b8;
+
+    --grid-line:    rgba(0,0,0,0.035);
+    --shadow:       0 4px 16px rgba(20,30,60,0.08);
+  }
+}
+
+/* ── RESET ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  font-weight: var(--r-md);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  background-image:
+    linear-gradient(180deg, var(--bg-grad-a), var(--bg-grad-b) 60vh, var(--bg));
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* faint engineering grid backdrop */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 90%);
+}
+
+button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: var(--radius); }
+
+/* ── LAYOUT SHELL ───────────────────────────────────────────────── */
+.app {
+  position: relative; z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0 18px 48px;
+}
+
+/* ═══ HEADER ═════════════════════════════════════════════════════ */
+.masthead {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 18px;
+  padding: 13px 0 13px;
+  margin-bottom: 14px;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.brand {
+  display: flex; align-items: baseline; gap: 10px;
+  flex-shrink: 0;
+}
+.brand .wordmark {
+  font-weight: var(--r-bk);
+  font-size: 20px;
+  letter-spacing: 0.18em;
+  color: var(--text);
+}
+.brand .kanji {
+  font-family: var(--sans);
+  font-weight: var(--r-md);
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.brand .tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: var(--r-md);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  border-left: 1px solid var(--border-hi);
+  padding-left: 10px;
+  margin-left: 4px;
+}
+
+/* arm pill */
+.arm-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 5px 11px 5px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--disarmed);
+  color: var(--text-3);
+  transition: all .25s ease;
+}
+.arm-pill.armed {
+  border-color: var(--armed);
+  color: var(--armed);
+  background: var(--armed-glow);
+  box-shadow: 0 0 0 0 var(--armed-glow);
+  animation: armGlow 2.4s ease-in-out infinite;
+}
+@keyframes armGlow {
+  0%,100% { box-shadow: 0 0 0 0 var(--armed-glow); }
+  50%     { box-shadow: 0 0 14px 2px var(--armed-glow); }
+}
+.arm-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+}
+.arm-pill.armed .dot { animation: pulse 1.1s ease-in-out infinite; }
+
+/* clock + pulse */
+.live-clock {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.live-pulse {
+  position: relative;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+}
+.live-pulse::after {
+  content: ''; position: absolute; inset: -3px;
+  border-radius: 50%; border: 1px solid var(--accent);
+  animation: ringPulse 2s ease-out infinite;
+}
+@keyframes ringPulse {
+  0%   { opacity: .8; transform: scale(.6); }
+  100% { opacity: 0;  transform: scale(2.2); }
+}
+.live-clock .ago { color: var(--text-3); }
+.live-clock.error .live-pulse { background: var(--red); }
+.live-clock.error .live-pulse::after { border-color: var(--red); }
+
+/* ═══ KPI STRIP ══════════════════════════════════════════════════ */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.kpi {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 13px 14px 12px;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.kpi:hover { border-color: var(--border-hi); }
+.kpi::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--accent); opacity: .5;
+}
+.kpi.amber::before { background: var(--amber); }
+.kpi.green::before { background: var(--green); }
+.kpi.purple::before { background: var(--purple); }
+.kpi .label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: var(--r-md);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.kpi .value {
+  font-family: var(--mono);
+  font-weight: var(--r-bd);
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.kpi .sub {
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-top: 4px;
+  font-family: var(--mono);
+}
+.kpi .value.flash { animation: valFlash .5s ease; }
+@keyframes valFlash {
+  0%   { color: var(--accent); }
+  100% { color: var(--text); }
+}
+
+/* ═══ SECTION GRID ═══════════════════════════════════════════════ */
+.grid-main {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.grid-lower {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 1180px) {
+  .grid-main, .grid-lower { grid-template-columns: 1fr; }
+  .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .masthead { flex-wrap: wrap; }
+  .live-clock { margin-left: 0; }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface-2), transparent);
+}
+.panel-head h2 {
+  font-size: 11px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-2);
+}
+.panel-head .count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: var(--surface-3);
+  padding: 1px 7px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+}
+.panel-head .spacer { flex: 1; }
+.panel-body { padding: 4px; }
+
+/* ═══ ROSTER ═════════════════════════════════════════════════════ */
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 8px;
+}
+@media (max-width: 1500px) { .roster-grid { grid-template-columns: 1fr; } }
+
+.group-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.group-block + .group-block { }
+.group-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 11px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-2);
+}
+.group-head .gcount {
+  margin-left: auto;
+  color: var(--text-3);
+  font-weight: var(--r-md);
+}
+.group-head .swatch {
+  width: 8px; height: 8px; border-radius: 2px;
+  background: var(--accent);
+}
+.role-list { display: flex; flex-direction: column; }
+.role {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  text-align: left;
+  width: 100%;
+  transition: background .12s;
+  position: relative;
+}
+.role:last-child { border-bottom: none; }
+.role:hover { background: var(--surface-2); }
+.role.active-now { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+.role .rstatus {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-dim);
+  justify-self: center;
+}
+.role.active-now .rstatus {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: .5; transform: scale(.78); }
+}
+.role .rmeta { min-width: 0; }
+.role .rname {
+  font-weight: var(--r-bd);
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.role .rarch {
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.role .rsub {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+}
+.role .rsub.native { color: var(--sub-native); }
+.role .rsub.glm    { color: var(--sub-glm); }
+.role .rsub.either { color: var(--sub-either); }
+.role .rlock {
+  display: flex; align-items: center;
+  color: var(--amber);
+  opacity: .85;
+}
+.role .rlock.not-gated { visibility: hidden; }
+.role .rruns {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  min-width: 28px; text-align: right;
+}
+
+/* ═══ RUNS TIMELINE ══════════════════════════════════════════════ */
+.runs-list {
+  max-height: 580px;
+  overflow-y: auto;
+  padding: 6px;
+}
+.runs-list::-webkit-scrollbar { width: 6px; }
+.runs-list::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+.run-item {
+  padding: 10px 11px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+  transition: border-color .15s, background .15s;
+}
+.run-item:hover { background: var(--surface-2); border-color: var(--border); }
+.run-item:last-child { margin-bottom: 0; }
+.run-top {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+.run-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--surface-3);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.run-summary {
+  font-size: 12.5px;
+  font-weight: var(--r-bd);
+  color: var(--text);
+  margin: 0 0 5px;
+  line-height: 1.35;
+}
+.run-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+}
+.badge .bdot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.badge.running  { color: var(--amber); }
+.badge.running .bdot { animation: pulse 1.1s ease-in-out infinite; }
+.badge.converged{ color: var(--green); }
+.badge.forced   { color: var(--gray-sig); }
+.badge.failed   { color: var(--red); }
+
+.badge.kind {
+  color: var(--text-3);
+  background: var(--surface-3);
+}
+
+.run-meta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+.run-meta .sep { color: var(--text-dim); }
+.role-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-2);
+  background: var(--surface-3);
+  padding: 1.5px 6px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+}
+.finalize-flag {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 1px 5px; border-radius: 3px;
+}
+
+/* ═══ ARTIFACTS TABLE ════════════════════════════════════════════ */
+.filters {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.filter-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-right: 2px;
+}
+.fchip {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: var(--r-md);
+  padding: 3px 8px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface-2);
+  transition: all .12s;
+}
+.fchip:hover { border-color: var(--border-hi); color: var(--text); }
+.fchip.active {
+  background: var(--accent);
+  color: #06080c;
+  border-color: var(--accent);
+  font-weight: var(--r-bd);
+}
+@media (prefers-color-scheme: light) {
+  .fchip.active { color: #fff; }
+}
+.fchip .fc { color: inherit; opacity: .7; margin-left: 4px; font-size: 9px; }
+.fsep { width: 1px; height: 14px; background: var(--border); margin: 0 4px; }
+
+.table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+table.artifacts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+table.artifacts thead {
+  position: sticky; top: 0;
+  background: var(--surface-2);
+  z-index: 2;
+}
+table.artifacts th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+table.artifacts th:hover { color: var(--text); }
+table.artifacts th .sort-ind { opacity: .5; margin-left: 3px; font-size: 8px; }
+table.artifacts th.sorted .sort-ind { opacity: 1; color: var(--accent); }
+table.artifacts td {
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: top;
+}
+table.artifacts tr:hover td { background: var(--surface-2); }
+td .a-title { font-weight: var(--r-bd); color: var(--text); }
+td .a-path { font-family: var(--mono); font-size: 10px; color: var(--text-3); display: block; margin-top: 1px; }
+td .kind-tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.kind-doc       { color: #60a5fa; background: rgba(96,165,250,.1); }
+.kind-module    { color: #2dd4bf; background: rgba(45,212,191,.1); }
+.kind-test      { color: #fbbf24; background: rgba(251,191,36,.1); }
+.kind-report    { color: #f472b6; background: rgba(244,114,182,.1); }
+.kind-blueprint { color: #a78bfa; background: rgba(167,139,250,.1); }
+.kind-manifest  { color: #94a3b8; background: rgba(148,163,184,.1); }
+.status-sup { opacity: .55; text-decoration: line-through; text-decoration-thickness: 1px; }
+.status-active { color: var(--green); }
+.status-sup-text { color: var(--text-3); }
+
+.tag-mini {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-3);
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-right: 3px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ═══ INSIGHTS / CHARTS ══════════════════════════════════════════ */
+.chart-block { padding: 14px; }
+.chart-block + .chart-block { border-top: 1px solid var(--border); }
+.chart-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.chart-title .ct-sub { color: var(--text-3); font-weight: var(--r-md); }
+.spark-svg { width: 100%; height: 70px; display: block; }
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.breakdown-row:last-child { margin-bottom: 0; }
+.bd-label { color: var(--text-2); text-transform: capitalize; }
+.bd-bar-track {
+  height: 7px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bd-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .5s ease;
+}
+.bd-val { color: var(--text); text-align: right; font-weight: var(--r-bd); }
+
+/* ═══ EMPTY / ERROR STATES ═══════════════════════════════════════ */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-3);
+}
+.empty-state .es-spinner {
+  width: 26px; height: 26px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state .es-title {
+  font-size: 13px; font-weight: var(--r-bd); color: var(--text-2);
+  margin-bottom: 4px;
+}
+.empty-state .es-sub { font-size: 11px; font-family: var(--mono); color: var(--text-3); }
+
+.error-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px;
+  background: var(--red-glow);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-family: var(--mono);
+  font-size: 11px;
+  margin: 0 0 14px;
+}
+.error-banner .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1s infinite; }
+
+/* ═══ ROLE DETAIL DRAWER ═════════════════════════════════════════ */
+.scrim {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.scrim.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 420px; max-width: 92vw;
+  background: var(--surface);
+  border-left: 1px solid var(--border-hi);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.35);
+  z-index: 101;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.2,.7,.2,1);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-head .dh-main { flex: 1; min-width: 0; }
+.drawer-head .dh-name {
+  font-size: 18px; font-weight: var(--r-bk); letter-spacing: -0.01em;
+}
+.drawer-head .dh-arch { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.drawer-close {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  transition: all .15s;
+}
+.drawer-close:hover { color: var(--text); border-color: var(--border-hi); background: var(--surface-2); }
+
+.drawer-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.dm-cell {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+.dm-cell .dm-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+.dm-cell .dm-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  font-weight: var(--r-bd);
+}
+.dm-cell .dm-val.big { font-size: 18px; }
+
+.drawer-section { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.drawer-section h3 {
+  font-size: 10px;
+  font-weight: var(--r-bd);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  font-family: var(--mono);
+}
+.mini-run {
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 5px;
+}
+.mini-run .mr-sum { font-size: 11.5px; font-weight: var(--r-bd); margin-bottom: 3px; }
+.mini-run .mr-meta { font-family: var(--mono); font-size: 9.5px; color: var(--text-3); }
+.mini-art {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 11px;
+}
+.mini-art:last-child { border-bottom: none; }
+.mini-art .ma-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ═══ UTIL ═══════════════════════════════════════════════════════ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+.hidden { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ MASTHEAD ═══ -->
+  <header class="masthead" role="banner">
+    <div class="brand">
+      <span class="wordmark">MURE</span>
+      <span class="kanji">群れ</span>
+      <span class="tag">autonomous collective</span>
+    </div>
+    <div class="arm-pill" id="armPill" role="status" aria-live="polite">
+      <span class="dot"></span>
+      <span id="armText">DISARMED</span>
+    </div>
+    <div class="live-clock" id="liveClock">
+      <span class="live-pulse" aria-hidden="true"></span>
+      <span class="ago" id="agoText">waiting…</span>
+    </div>
+  </header>
+
+  <!-- error banner slot -->
+  <div id="errorSlot"></div>
+
+  <!-- ═══ KPI STRIP ═══ -->
+  <section class="kpi-strip" id="kpiStrip" aria-label="Key performance indicators">
+    <div class="kpi"><div class="label">Total runs</div><div class="value mono" data-kpi="totalRuns">—</div><div class="sub">all time</div></div>
+    <div class="kpi"><div class="label">Artifacts</div><div class="value mono" data-kpi="totalArtifacts">—</div><div class="sub">produced</div></div>
+    <div class="kpi amber"><div class="label">Active runs</div><div class="value mono" data-kpi="activeRuns">—</div><div class="sub">in flight</div></div>
+    <div class="kpi green"><div class="label">Roles active</div><div class="value mono" data-kpi="rolesActive">—</div><div class="sub" data-kpi-rolesub>of 20</div></div>
+    <div class="kpi purple"><div class="label">Artifacts today</div><div class="value mono" data-kpi="artifactsToday">—</div><div class="sub">last 24h</div></div>
+    <div class="kpi"><div class="label">Convergence</div><div class="value mono" data-kpi="convergenceRate">—</div><div class="sub">success rate</div></div>
+  </section>
+
+  <!-- ═══ MAIN GRID ═══ -->
+  <div class="grid-main">
+    <!-- ROSTER -->
+    <section class="panel" aria-label="Role roster">
+      <div class="panel-head">
+        <h2>Roster</h2>
+        <span class="count" id="rosterCount">— roles</span>
+      </div>
+      <div class="panel-body">
+        <div class="roster-grid" id="rosterGrid"></div>
+      </div>
+    </section>
+
+    <!-- RUNS -->
+    <section class="panel" aria-label="Active and recent runs">
+      <div class="panel-head">
+        <h2>Runs</h2>
+        <span class="count" id="runsCount">—</span>
+      </div>
+      <div class="runs-list" id="runsList"></div>
+    </section>
+  </div>
+
+  <!-- ═══ LOWER GRID ═══ -->
+  <div class="grid-lower">
+    <!-- ARTIFACTS -->
+    <section class="panel" aria-label="Work products">
+      <div class="panel-head">
+        <h2>Work products</h2>
+        <span class="count" id="artCount">—</span>
+      </div>
+      <div class="filters" id="filters"></div>
+      <div class="table-wrap">
+        <table class="artifacts" id="artTable">
+          <thead>
+            <tr>
+              <th data-sort="kind">Kind<span class="sort-ind">▾</span></th>
+              <th data-sort="title">Title<span class="sort-ind"></span></th>
+              <th data-sort="role">Role<span class="sort-ind"></span></th>
+              <th data-sort="run">Run<span class="sort-ind"></span></th>
+              <th data-sort="created" class="sorted">Created<span class="sort-ind">▾</span></th>
+              <th>Tags</th>
+            </tr>
+          </thead>
+          <tbody id="artBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="panel" aria-label="Insights and breakdowns">
+      <div class="panel-head">
+        <h2>Insights</h2>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">Throughput <span class="ct-sub">artifacts / day</span></div>
+        <svg class="spark-svg" id="throughputChart" preserveAspectRatio="none" aria-label="Artifact throughput chart"></svg>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">By kind</div>
+        <div id="byKindBreak"></div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title">By group</div>
+        <div id="byGroupBreak"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ═══ DRAWER ═══ -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Role detail" aria-hidden="true">
+  <div class="drawer-head">
+    <div class="dh-main">
+      <div class="dh-name" id="dhName">—</div>
+      <div class="dh-arch" id="dhArch">—</div>
+    </div>
+    <button class="drawer-close" id="drawerClose" aria-label="Close detail panel">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l10 10M12 2L2 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-meta" id="drawerMeta"></div>
+  <div class="drawer-section">
+    <h3>Recent runs</h3>
+    <div id="drawerRuns"></div>
+  </div>
+  <div class="drawer-section">
+    <h3>Artifacts</h3>
+    <div id="drawerArts"></div>
+  </div>
+</aside>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   MURE OVERVIEW — realtime dashboard logic
+   Polls /api/overview every 3000ms; diffs in place.
+   ════════════════════════════════════════════════════════════════ */
+
+const POLL_MS = 3000;
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+const STATE = {
+  data: null,
+  lastDataAt: null,
+  pollError: false,
+  // artifact filters
+  fKind: null,      // null = all
+  fGroup: null,     // null = all
+  sortKey: 'created',
+  sortDir: -1,      // -1 desc, 1 asc
+  selectedRole: null,
+};
+
+/* ── SVG glyph helpers (no emoji) ─────────────────────────────── */
+const GLYPH = {
+  lock: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="5.5" width="7" height="5" rx="1"/><path d="M4 5.5V3.5a2 2 0 0 1 4 0v2"/></svg>',
+  leaf: '<svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M1 9L5 5m0 0a3 3 0 1 0-4-4 3 3 0 0 0 0 4L5 5zm0 0l4-4"/></svg>',
+  round: '<svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.1"><circle cx="5" cy="5" r="3.5"/><path d="M5 3v2l1.5 1"/></svg>',
+};
+
+/* ── Fetch loop ───────────────────────────────────────────────── */
+async function poll() {
+  try {
+    const res = await fetch('/api/overview', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    STATE.data = json;
+    STATE.lastDataAt = Date.now();
+    STATE.pollError = false;
+    hideError();
+    render();
+  } catch (e) {
+    STATE.pollError = true;
+    showError(e.message || 'connection lost');
+    updateClock(); // update the "last updated" even on error
+  }
+}
+
+function showError(msg) {
+  const slot = $('#errorSlot');
+  if (!slot.children.length) {
+    const b = document.createElement('div');
+    b.className = 'error-banner';
+    b.innerHTML = '<span class="dot"></span><span>Connection lost — retrying every ' + (POLL_MS/1000) + 's</span>';
+    slot.appendChild(b);
+  }
+  $('#liveClock').classList.add('error');
+}
+function hideError() {
+  $('#errorSlot').innerHTML = '';
+  $('#liveClock').classList.remove('error');
+}
+
+/* ── Render orchestrator ──────────────────────────────────────── */
+function render() {
+  const d = STATE.data;
+  if (!d) return;
+
+  renderArm(d.company);
+  renderKpis(d.kpis, d.company);
+  renderRoster(d.roles, d.groups);
+  renderRuns(d.runs);
+  renderArtifacts(d.artifacts);
+  renderInsights(d.stats);
+  updateClock();
+}
+
+/* ── Arm pill ─────────────────────────────────────────────────── */
+function renderArm(co) {
+  const pill = $('#armPill');
+  const txt = $('#armText');
+  if (co.armed) {
+    pill.classList.add('armed');
+    txt.textContent = 'ARMED';
+    pill.setAttribute('aria-label', 'System armed');
+  } else {
+    pill.classList.remove('armed');
+    txt.textContent = 'DISARMED';
+    pill.setAttribute('aria-label', 'System disarmed');
+  }
+}
+
+/* ── KPIs ─────────────────────────────────────────────────────── */
+function renderKpis(k, co) {
+  const flash = (el, val) => {
+    const cur = el.textContent;
+    if (cur !== String(val)) {
+      el.classList.remove('flash');
+      void el.offsetWidth;
+      el.classList.add('flash');
+    }
+    el.textContent = val;
+  };
+  flash($('[data-kpi="totalRuns"]'), fmtNum(k.totalRuns));
+  flash($('[data-kpi="totalArtifacts"]'), fmtNum(k.totalArtifacts));
+  flash($('[data-kpi="activeRuns"]'), fmtNum(k.activeRuns));
+  flash($('[data-kpi="rolesActive"]'), fmtNum(k.rolesActive));
+  $('[data-kpi-rolesub]').textContent = 'of ' + (co.roleCount || 20);
+  flash($('[data-kpi="artifactsToday"]'), fmtNum(k.artifactsToday));
+  const conv = (k.convergenceRate * 100);
+  flash($('[data-kpi="convergenceRate"]'), (conv === 0 ? '0' : conv.toFixed(conv < 10 ? 1 : 0)) + '%');
+}
+
+/* ── Roster ───────────────────────────────────────────────────── */
+function renderRoster(roles, groups) {
+  const grid = $('#rosterGrid');
+  $('#rosterCount').textContent = (roles.length) + ' roles';
+
+  // group order from data; fallback if missing
+  const order = (groups && groups.length) ? groups : [];
+  const byGroup = {};
+  order.forEach(g => byGroup[g] = []);
+  roles.forEach(r => {
+    if (!byGroup[r.group]) byGroup[r.group] = [];
+    byGroup[r.group].push(r);
+  });
+
+  // Diff-aware: only rebuild if group structure changed; otherwise update in place.
+  const existingGroups = new Map();
+  $$('.group-block', grid).forEach(el => existingGroups.set(el.dataset.group, el));
+
+  const wantedGroups = Object.keys(byGroup);
+  const structChanged = wantedGroups.length !== existingGroups.size ||
+    !wantedGroups.every(g => existingGroups.has(g));
+
+  if (structChanged) {
+    grid.innerHTML = '';
+    wantedGroups.forEach(g => {
+      const block = document.createElement('div');
+      block.className = 'group-block';
+      block.dataset.group = g;
+      block.innerHTML =
+        '<div class="group-head"><span class="swatch"></span>' + esc(g) +
+        '<span class="gcount">' + byGroup[g].length + '</span></div>' +
+        '<div class="role-list"></div>';
+      grid.appendChild(block);
+      existingGroups.set(g, block);
+    });
+  }
+
+  wantedGroups.forEach(g => {
+    const block = existingGroups.get(g);
+    const list = $('.role-list', block);
+    const wanted = byGroup[g];
+    const existing = new Map();
+    $$('.role', list).forEach(el => existing.set(el.dataset.rid, el));
+
+    const idsChanged = wanted.length !== existing.size ||
+      !wanted.every(r => existing.has(r.id));
+
+    if (idsChanged) {
+      list.innerHTML = '';
+      wanted.forEach(r => {
+        const btn = document.createElement('button');
+        btn.className = 'role';
+        btn.dataset.rid = r.id;
+        btn.setAttribute('aria-label', 'View ' + esc(r.name) + ' details');
+        btn.innerHTML =
+          '<span class="rstatus"></span>' +
+          '<span class="rmeta"><span class="rname"></span><span class="rarch"></span></span>' +
+          '<span class="rsub ' + esc(r.substrate) + '">' + esc(r.substrate) + '</span>' +
+          '<span class="rlock ' + (r.autonomyClass === 'owner-gated' ? '' : 'not-gated') + '">' + GLYPH.lock + '</span>';
+        btn.addEventListener('click', () => openDrawer(r.id));
+        list.appendChild(btn);
+        existing.set(r.id, btn);
+      });
+    }
+
+    // update values in place
+    wanted.forEach(r => {
+      const el = existing.get(r.id);
+      if (!el) return;
+      el.classList.toggle('active-now', r.status === 'active');
+      $('.rname', el).textContent = r.name;
+      $('.rarch', el).textContent = r.archetype || '—';
+      // runs count appended to archetype if present
+      if (r.runs) {
+        const runsEl = document.createElement('span');
+      }
+    });
+  });
+}
+
+/* ── Runs ─────────────────────────────────────────────────────── */
+function renderRuns(runs) {
+  const list = $('#runsList');
+  const sorted = (runs || []).slice().sort((a,b) =>
+    new Date(b.started || 0) - new Date(a.started || 0));
+
+  $('#runsCount').textContent = sorted.length + ' runs';
+
+  if (!sorted.length) {
+    list.innerHTML = emptyStateHTML('No runs yet', 'runs will appear here');
+    return;
+  }
+
+  const existing = new Map();
+  $$('.run-item', list).forEach(el => existing.set(el.dataset.rid, el));
+
+  const ids = sorted.map(r => r.id);
+  const idsChanged = ids.length !== existing.size ||
+    !ids.every(id => existing.has(id));
+
+  if (idsChanged) {
+    list.innerHTML = '';
+    sorted.forEach(r => {
+      const el = document.createElement('div');
+      el.className = 'run-item';
+      el.dataset.rid = r.id;
+      list.appendChild(el);
+      existing.set(r.id, el);
+    });
+  }
+
+  // ensure order
+  sorted.forEach((r, i) => {
+    const el = existing.get(r.id);
+    if (el && list.children[i] !== el) {
+      list.insertBefore(el, list.children[i]);
+    }
+  });
+
+  sorted.forEach(r => {
+    const el = existing.get(r.id);
+    if (!el) return;
+    const statusCls = r.status || 'running';
+    const chips = (r.roles || []).map(rid =>
+      '<span class="chip">' + esc(rid) + '</span>').join('');
+    const finalizeHtml = r.finalizeOk ? '<span class="finalize-flag">finalize ok</span>' : '';
+    const relTime = relTimeFrom(r.started);
+    const finishRel = r.finished ? ' · ended ' + relTimeFrom(r.finished) : '';
+
+    el.innerHTML =
+      '<div class="run-top">' +
+        '<span class="run-id">' + esc(truncId(r.id)) + '</span>' +
+        '<span class="badge kind">' + esc(r.kind || 'mure') + '</span>' +
+      '</div>' +
+      '<div class="run-summary">' + esc(r.summary || '(no summary)') + '</div>' +
+      '<div class="run-badges">' +
+        '<span class="badge ' + statusCls + '"><span class="bdot"></span>' + esc(statusCls) + '</span>' +
+        finalizeHtml +
+      '</div>' +
+      '<div class="run-meta">' +
+        '<span>' + GLYPH.round + ' ' + (r.rounds ?? 0) + ' rounds</span>' +
+        '<span class="sep">·</span>' +
+        '<span>' + GLYPH.leaf + ' ' + (r.leafCount ?? 0) + ' leaves</span>' +
+        '<span class="sep">·</span>' +
+        '<span>' + relTime + finishRel + '</span>' +
+      '</div>' +
+      (chips ? '<div class="role-chips">' + chips + '</div>' : '');
+  });
+}
+
+/* ── Artifacts ────────────────────────────────────────────────── */
+function renderArtifacts(arts) {
+  const all = arts || [];
+  $('#artCount').textContent = all.length + ' items';
+  renderFilters(all);
+  const filtered = applyFilters(all);
+  const sorted = applySort(filtered);
+  const body = $('#artBody');
+
+  if (!sorted.length) {
+    body.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--text-3);font-family:var(--mono);font-size:11px;">' +
+      (all.length ? 'no artifacts match filters' : 'no artifacts yet') + '</td></tr>';
+    return;
+  }
+
+  // build a role-id → role lookup for group resolution
+  const roleMap = new Map();
+  (STATE.data.roles || []).forEach(r => roleMap.set(r.id, r));
+
+  body.innerHTML = sorted.map(a => {
+    const supCls = a.status === 'superseded' ? ' status-sup' : '';
+    const role = a.role ? (roleMap.get(a.role) || {name: a.role, group: '—'}) : null;
+    const tags = (a.tags || []).slice(0, 4).map(t =>
+      '<span class="tag-mini">' + esc(t) + '</span>').join('');
+    return '<tr>' +
+      '<td><span class="kind-tag kind-' + esc(a.kind || 'doc') + '">' + esc(a.kind || 'doc') + '</span></td>' +
+      '<td class="' + supCls + '"><span class="a-title">' + esc(a.title || a.id) + '</span>' +
+        '<span class="a-path">' + esc(a.path || '') + '</span></td>' +
+      '<td>' + (role ? esc(role.name) : '—') + '</td>' +
+      '<td>' + (a.run ? '<span class="chip">' + esc(truncId(a.run)) + '</span>' : '—') + '</td>' +
+      '<td class="mono" style="white-space:nowrap;">' + esc(relTimeFrom(a.created)) + '</td>' +
+      '<td>' + tags + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderFilters(arts) {
+  const wrap = $('#filters');
+  const kinds = {};
+  const groups = {};
+  const roleMap = new Map();
+  (STATE.data.roles || []).forEach(r => roleMap.set(r.id, r));
+  arts.forEach(a => {
+    kinds[a.kind] = (kinds[a.kind]||0)+1;
+    const role = a.role ? roleMap.get(a.role) : null;
+    const g = role ? role.group : null;
+    if (g) groups[g] = (groups[g]||0)+1;
+  });
+
+  const kindKeys = Object.keys(kinds).sort();
+  const groupKeys = Object.keys(groups).sort();
+
+  let html = '<span class="filter-label">kind</span>';
+  html += fchipHTML('kind', null, 'all', arts.length, STATE.fKind === null);
+  kindKeys.forEach(k => {
+    html += fchipHTML('kind', k, k, kinds[k], STATE.fKind === k);
+  });
+  html += '<span class="fsep"></span><span class="filter-label">group</span>';
+  html += fchipHTML('group', null, 'all', arts.length, STATE.fGroup === null);
+  groupKeys.forEach(g => {
+    html += fchipHTML('group', g, g, groups[g], STATE.fGroup === g);
+  });
+
+  wrap.innerHTML = html;
+
+  $$('.fchip', wrap).forEach(c => {
+    c.addEventListener('click', () => {
+      const dim = c.dataset.dim;
+      const val = c.dataset.val || null;
+      if (dim === 'kind') STATE.fKind = (STATE.fKind === val ? null : val);
+      if (dim === 'group') STATE.fGroup = (STATE.fGroup === val ? null : val);
+      renderArtifacts(STATE.data.artifacts || []);
+    });
+  });
+}
+function fchipHTML(dim, val, label, count, active) {
+  return '<button class="fchip ' + (active ? 'active' : '') + '" data-dim="' + dim + '" data-val="' + (val||'') + '">' +
+    esc(label) + '<span class="fc">' + count + '</span></button>';
+}
+
+function applyFilters(arts) {
+  const roleMap = new Map();
+  (STATE.data.roles || []).forEach(r => roleMap.set(r.id, r));
+  return arts.filter(a => {
+    if (STATE.fKind && a.kind !== STATE.fKind) return false;
+    if (STATE.fGroup) {
+      const role = a.role ? roleMap.get(a.role) : null;
+      if (!role || role.group !== STATE.fGroup) return false;
+    }
+    return true;
+  });
+}
+function applySort(arts) {
+  const k = STATE.sortKey, dir = STATE.sortDir;
+  return arts.slice().sort((a, b) => {
+    let av, bv;
+    if (k === 'created') { av = new Date(a.created||0).getTime(); bv = new Date(b.created||0).getTime(); }
+    else if (k === 'title') { av = (a.title||'').toLowerCase(); bv = (b.title||'').toLowerCase(); }
+    else if (k === 'role') { av = a.role||''; bv = b.role||''; }
+    else if (k === 'run') { av = a.run||''; bv = b.run||''; }
+    else { av = a[k]||''; bv = b[k]||''; }
+    if (av < bv) return -1 * dir;
+    if (av > bv) return  1 * dir;
+    return 0;
+  });
+}
+
+// table sort handlers
+$$('#artTable th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (STATE.sortKey === k) {
+      STATE.sortDir *= -1;
+    } else {
+      STATE.sortKey = k;
+      STATE.sortDir = (k === 'created') ? -1 : 1;
+    }
+    // update header UI
+    $$('#artTable th[data-sort]').forEach(t => {
+      t.classList.remove('sorted');
+      $('.sort-ind', t).textContent = '';
+    });
+    th.classList.add('sorted');
+    $('.sort-ind', th).textContent = STATE.sortDir === -1 ? '▾' : '▴';
+    if (STATE.data) renderArtifacts(STATE.data.artifacts || []);
+  });
+});
+
+/* ── Insights / charts ────────────────────────────────────────── */
+function renderInsights(stats) {
+  renderThroughput(stats?.throughput || []);
+  renderBreakdown('#byKindBreak', stats?.byKind || {});
+  renderBreakdown('#byGroupBreak', stats?.byGroup || {});
+}
+
+function renderThroughput(data) {
+  const svg = $('#throughputChart');
+  if (!data.length) {
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="var(--text-3)" font-size="11" font-family="var(--mono)">no data</text>';
+    return;
+  }
+  const W = 100, H = 100; // viewBox; preserveAspectRatio none stretches
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const counts = data.map(d => d.count || 0);
+  const max = Math.max(...counts, 1);
+  const n = data.length;
+  const bw = W / n;
+  const gap = Math.max(0.6, bw * 0.12);
+
+  let bars = '';
+  counts.forEach((c, i) => {
+    const h = (c / max) * (H - 8);
+    const x = i * bw + gap/2;
+    const y = H - h;
+    const w = bw - gap;
+    const isLast = i === n - 1;
+    bars += '<rect x="' + x.toFixed(2) + '" y="' + y.toFixed(2) +
+      '" width="' + w.toFixed(2) + '" height="' + h.toFixed(2) +
+      '" rx="0.6" fill="' + (isLast ? 'var(--accent)' : 'var(--accent)') +
+      '" opacity="' + (isLast ? 1 : 0.35 + 0.5 * (i/n)) + '"/>';
+  });
+
+  // baseline
+  const baseLine = '<line x1="0" y1="' + (H-0.5) + '" x2="' + W + '" y2="' + (H-0.5) + '" stroke="var(--border)" stroke-width="0.4"/>';
+
+  svg.innerHTML = baseLine + bars +
+    '<text x="2" y="6" font-size="5" fill="var(--text-3)" font-family="var(--mono)">' + max + '</text>' +
+    '<text x="' + (W-2) + '" y="6" font-size="4.5" fill="var(--text-3)" font-family="var(--mono)" text-anchor="end">' +
+      (data[n-1]?.date || '').slice(5) + '</text>';
+}
+
+function renderBreakdown(sel, obj) {
+  const wrap = $(sel);
+  const entries = Object.entries(obj).filter(([k,v]) => v > 0);
+  if (!entries.length) {
+    wrap.innerHTML = '<div style="font-family:var(--mono);font-size:10.5px;color:var(--text-3);padding:4px 0;">no data</div>';
+    return;
+  }
+  const sorted = entries.sort((a,b) => b[1] - a[1]);
+  const max = sorted[0][1];
+  const colors = ['var(--accent)','var(--purple)','var(--amber)','var(--green)','var(--gray-sig)','var(--red)'];
+  wrap.innerHTML = sorted.map(([k,v], i) => {
+    const pct = (v / max) * 100;
+    const color = colors[i % colors.length];
+    return '<div class="breakdown-row">' +
+      '<span class="bd-label">' + esc(k) + '</span>' +
+      '<span class="bd-bar-track"><span class="bd-bar" style="width:' + pct.toFixed(1) + '%;background:' + color + ';"></span></span>' +
+      '<span class="bd-val">' + v + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+/* ── Drawer (role detail) ─────────────────────────────────────── */
+function openDrawer(roleId) {
+  const d = STATE.data;
+  if (!d) return;
+  const role = (d.roles || []).find(r => r.id === roleId);
+  if (!role) return;
+  STATE.selectedRole = roleId;
+
+  $('#dhName').textContent = role.name;
+  $('#dhArch').textContent = role.archetype || '—';
+
+  const lastActive = role.lastActive ? relTimeFrom(role.lastActive) : 'never';
+  $('#drawerMeta').innerHTML =
+    cell('Substrate', '<span style="color:var(--sub-' + role.substrate + ')">' + esc(role.substrate) + '</span>') +
+    cell('Lane', esc(role.lane || '—')) +
+    cell('Autonomy', esc(role.autonomyClass || '—')) +
+    cell('Status', '<span style="color:' + (role.status==='active'?'var(--green)':'var(--text-3)') + '">' + esc(role.status||'idle') + '</span>') +
+    cell('Runs', '<span class="big">' + (role.runs ?? 0) + '</span>', true) +
+    cell('Artifacts', '<span class="big">' + (role.artifacts ?? 0) + '</span>', true) +
+    cell('Last active', esc(lastActive), true) +
+    cell('Group', esc(role.group || '—'), true);
+
+  // role's runs
+  const roleRuns = (d.runs || []).filter(r => (r.roles || []).includes(roleId))
+    .sort((a,b) => new Date(b.started||0) - new Date(a.started||0)).slice(0, 6);
+  $('#drawerRuns').innerHTML = roleRuns.length ? roleRuns.map(r =>
+    '<div class="mini-run">' +
+      '<div class="mr-sum">' + esc(r.summary || '(no summary)') + '</div>' +
+      '<div class="mr-meta">' + esc(r.status||'') + ' · ' + (r.rounds??0) + ' rounds · ' + relTimeFrom(r.started) + '</div>' +
+    '</div>'
+  ).join('') : '<div style="font-family:var(--mono);font-size:10.5px;color:var(--text-3);">none</div>';
+
+  // role's artifacts
+  const roleArts = (d.artifacts || []).filter(a => a.role === roleId)
+    .sort((a,b) => new Date(b.created||0) - new Date(a.created||0)).slice(0, 10);
+  $('#drawerArts').innerHTML = roleArts.length ? roleArts.map(a =>
+    '<div class="mini-art">' +
+      '<span class="kind-tag kind-' + esc(a.kind||'doc') + '" style="font-size:8.5px;">' + esc(a.kind||'doc') + '</span>' +
+      '<span class="ma-title">' + esc(a.title||a.id) + '</span>' +
+      '<span class="mono" style="font-size:9.5px;color:var(--text-3);">' + relTimeFrom(a.created) + '</span>' +
+    '</div>'
+  ).join('') : '<div style="font-family:var(--mono);font-size:10.5px;color:var(--text-3);">none</div>';
+
+  $('#drawer').classList.add('open');
+  $('#drawer').setAttribute('aria-hidden', 'false');
+  $('#scrim').classList.add('open');
+}
+function closeDrawer() {
+  $('#drawer').classList.remove('open');
+  $('#drawer').setAttribute('aria-hidden', 'true');
+  $('#scrim').classList.remove('open');
+  STATE.selectedRole = null;
+}
+function cell(label, val, big) {
+  return '<div class="dm-cell"><div class="dm-label">' + label + '</div><div class="dm-val' + (big?'':'') + '">' + val + '</div></div>';
+}
+$('#drawerClose').addEventListener('click', closeDrawer);
+$('#scrim').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+/* ── Clock / relative time ────────────────────────────────────── */
+function updateClock() {
+  const el = $('#agoText');
+  if (STATE.pollError) {
+    el.textContent = STATE.lastDataAt ? 'last seen ' + relTimeFromTs(STATE.lastDataAt) : 'waiting for data…';
+    return;
+  }
+  if (!STATE.lastDataAt) { el.textContent = 'waiting for data…'; return; }
+  el.textContent = 'updated ' + relTimeFromTs(STATE.lastDataAt);
+}
+setInterval(updateClock, 1000);
+
+function relTimeFrom(iso) {
+  if (!iso) return '—';
+  return relTimeFromTs(new Date(iso).getTime());
+}
+function relTimeFromTs(ts) {
+  const diff = Date.now() - ts;
+  const s = Math.floor(diff / 1000);
+  if (s < 2) return 'just now';
+  if (s < 60) return s + 's ago';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 30) return d + 'd ago';
+  return new Date(ts).toISOString().slice(0,10);
+}
+
+/* ── Formatters / utils ───────────────────────────────────────── */
+function fmtNum(n) {
+  if (n == null) return '—';
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k';
+  return String(n);
+}
+function truncId(id) {
+  if (!id) return '—';
+  if (id.length <= 16) return id;
+  return id.slice(0, 10) + '…' + id.slice(-4);
+}
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function emptyStateHTML(title, sub) {
+  return '<div class="empty-state" style="padding:40px 20px;">' +
+    '<div class="es-title">' + esc(title) + '</div>' +
+    '<div class="es-sub">' + esc(sub) + '</div></div>';
+}
+
+/* ── Boot ─────────────────────────────────────────────────────── */
+// initial empty state
+(function initialEmpty() {
+  $('#runsList').innerHTML =
+    '<div class="empty-state"><div class="es-spinner"></div>' +
+    '<div class="es-title">Waiting for data</div>' +
+    '<div class="es-sub">fetching /api/overview</div></div>';
+  $('#rosterGrid').innerHTML =
+    '<div class="empty-state" style="grid-column:1/-1;padding:40px 20px;">' +
+    '<div class="es-spinner"></div></div>';
+  $('#artBody').innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--text-3);">—</td></tr>';
+})();
+
+poll();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

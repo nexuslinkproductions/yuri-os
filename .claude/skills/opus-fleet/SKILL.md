@@ -193,11 +193,26 @@ Arm the quality gate with `YURI_SWARM_CONVERGENCE=1`; the `nano-barrier` safety 
 
 **Runnable now — `_SYSTEM/Scripts/runSwarm.mjs`** (the audit's missing "orchestrator binary"). The GLM-substrate version of this loop is wired into one entry point: `runSwarm({leaves:[{id,lane,prompt}]}, {rounds,concurrency})` runs decompose-ledger → `glmFleet` dispatch → `aggregatePoolOutputs` → `runAdversarialPass` (glm-max) → `converge` → re-dispatch only the gap leaves (obligation-floor failures **and** adversarial gaps; null-leaf gaps re-run all; ≤rounds) → `finalizeGuard` → manifest. CLI: `node _SYSTEM/Scripts/runSwarm.mjs --leaves-file leaves.json --rounds 3`. **ARMED** via the gitignored flags `_SYSTEM/state/swarm-convergence.enabled` + `_SYSTEM/state/glm-fleet.enabled` (env vars still work). Live-verified end-to-end (a 2-leaf armed run converged round 1; hermetic tests cover gap re-dispatch, floor-failure re-dispatch, and disarmed-no-spend). The NATIVE substrate stays Opus-orchestrated (Agent tool) and pairs with this at the top. The recursive (Level-B) `nano-spawn`/`dispatchPool` depth is wired but its deep-arm is deferred to hardening (the audit's livelock/lease seams).
 
-## Specialized roles (roadmap seam)
+## Specialized roles — MURE (built 2026-06-22)
 
-Named, callable roles (e.g. `adversarial-reviewer`, `code-gen`, `security-auditor`) will register in `_SYSTEM/config/fleet-roles.json` — each `{id, description, substrate, defaultLane|model, defaultReasoning, promptTemplate}`. The orchestrator selects a role by id, loads its template, routes to the right substrate. Not built in V1 — the seam is the schema, so the next session adds roles without touching `glm-fleet.mjs` or this skill.
+The roles seam is now realized as **MURE** (群れ) — a 20-role self-governing agent collective in `_SYSTEM/config/fleet-roles.json` + `_SYSTEM/mure/`. Each role = `{id, archetype, capabilities, substrate, lane, autonomyClass, mathHooks, goalScope, independentOf}`. Use it instead of hand-casting lanes when a task wants named roles:
+
+```bash
+node _SYSTEM/mure/mure.mjs --roster        # the 20 roles, 6 groups
+node _SYSTEM/mure/mure.mjs --demo           # DISARMED plan of a sample task → roles → leaves (zero spend)
+node _SYSTEM/mure/company.mjs --task-file t.json   # cast a real task; armed (YURI_MURE_ARMED / _SYSTEM/state/mure.enabled) → live GLM dispatch
+```
+
+`company.runCompany(task)` casts each subtask to its best-matching role (capability match), gates every decision through the 6-gate self-governance charter (`governance.mjs`), and splits the work: GLM roles → runSwarm leaves (dispatched), native roles → Agent specs (for THIS Opus session to spawn). The math layer is wired into role decisions via `math-bridge.mjs` (decision-sim goal-scoring, quantum order-effect, energy veto, prediction Brier). DISARMED by default; arming is owner-gated; finalize stays Opus/owner. Full manual: `_SYSTEM/mure/README.md`.
 
 ## Session Notes
 
-- **2026-06-22 (v1.0.0, created):** Built via the model itself — Sonnet research lane (overlap audit + discoverability mechanics: byte-0 frontmatter, `skill-recall` ranks `description` not `triggers`, `skill-sync --sync` publishes `skills/`→`.claude/skills/`), Opus synthesized + registered, Haiku testing lane verified discoverability. Corrections caught this session: Haiku WARN/BLOCK misguess (→ verify-agent-output rule), research found an ENOENT solo missed. Tools: Agent (Explore/sonnet, general-purpose/haiku), Write, Edit, Bash, skill-sync, skill-recall. Errors: none on build. Registered in `skills/domain-index.json` → `01-agent-assembly`; alias `commands/opus-fleet.md`.
-- **2026-06-22 (v1.1.0, dual-substrate):** Added the z.ai GLM fleet as the second substrate. Built `_SYSTEM/Scripts/glm-fleet.mjs` (parallel GLM dispatcher on `lane-dispatch.mjs` retry + semaphore, DISARMED dry-run default, `@capability: glm-fleet-dispatch`, `FLEET_PROTOCOL_PREAMBLE` for sub-orchestrators). Wired GLM tier roster into `models.json` (+glm-4.7-flash/flashx, glm-4.6v, glm-ocr) + `llm-lane.mjs` aliases (glm-max=5.2, glm=4.7, glm-flash→4.7-flash remapped off 4.5-air, glm-sub-orch=5.1, glm-vision=4.6v, glm-ocr). Added 5 sections (GLM fleet, dual-substrate routing, sub-orchestrator injection, governed autonomous loop, roles seam) + 4 hard rules + 3 anti-rat rows. GLM reasoning ceiling = `high`. Verified: models.json valid, `glm-flash`→`glm-4.7-flash` resolves, `glm-fleet --list`/`--smoke --dry-run` clean. Built by Opus directly (integration-critical); research via 3 Sonnet Explore lanes (zai internals, governance inventory, online GLM benchmarks) + 1 Sonnet Plan lane (build design); HTML viz approved pre-build. Arming the loop stays owner-gated.
+### 2026-06-22
+- session: 128m | peak ctx: 0% | compacts: 0
+- tools: Bash×87, Read×51, Edit×37, WebFetch×31, WebSearch×27, Write×26, mcp×14, Agent×8, ToolSearch×5, AskUserQuestion×3
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/opus-fleet
+
+# opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute
+
+The default way to run any non-trivial task. The main **Opus
+- errors: none

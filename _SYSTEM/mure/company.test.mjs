@@ -1,7 +1,7 @@
 // MURE company orchestrator — red/grey/green over plan/cast/govern/split. All hermetic (armed:false).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planCompany, runCompany, castRole, buildRolePrompt, decisionFor, MURE_NAME } from './company.mjs';
+import { planCompany, runCompany, castRole, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME } from './company.mjs';
 import { loadRoster, getRole } from './role-registry.mjs';
 import { CLASS } from './governance.mjs';
 
