@@ -26,6 +26,7 @@
       "label": "Agent Assembly",
       "purpose": "Compose agents from skill bundles, lanes, roles, and verification gates.",
       "skillIds": [
+        "opus-fleet",
         "dispatching-parallel-agents",
         "subagent-driven-development",
         "bg",
