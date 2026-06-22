@@ -19,6 +19,7 @@ const DIRS = [
   path.join(SYS, 'Scripts', 'alpha-factor-library'),  // AFL organ subdir
   path.join(SYS, 'Scripts', 'alpha-factor-library', 'adapters'),    // AFL venue/exe adapters (readdirSync is non-recursive — subdirs must be listed explicitly)
   path.join(SYS, 'Scripts', 'alpha-factor-library', 'observatory'), // AFL observatory realtime feeds (tick-stream/trades-stream/depth-book/mark-price/...)
+  path.join(SYS, 'mure'),                             // MURE agentic-collective modules (role-registry, governance, goal-engine, math-bridge, company)
 ];
 
 const listFiles = (d, exts = ['.mjs']) => {
