@@ -78,9 +78,16 @@ const ALIAS = {
   // with --model (the live cloud catalog rotates, so it is NOT hardcoded). The Pro plan allows 3
   // concurrent requests → fan out 3 `ollama-cloud --model <X>` invocations for a peer nano-swarm.
   ollama: 'ollama-cloud', 'ollama-cloud': 'ollama-cloud', 'ollama-pro': 'ollama-cloud', oc: 'ollama-cloud',
-  // Z.ai GLM Coding Plan (api.z.ai Anthropic-compatible, Bearer auth) — first-class lane, like Mimo
+  // Z.ai GLM Coding Plan (api.z.ai Anthropic-compatible, Bearer auth) — first-class lane, like Mimo.
+  // opus-fleet tier roster (2026-06-22): glm-max=Opus · glm=Sonnet · glm-flash=Haiku · +flashx/sub-orch/vision/ocr.
   glm: 'glm-4.7', zai: 'glm-4.7', 'z-ai': 'glm-4.7', 'glm-4.7': 'glm-4.7', 'glm-4.6': 'glm-4.7',
-  'glm-air': 'glm-4.5-air', 'glm-4.5-air': 'glm-4.5-air', 'glm-flash': 'glm-4.5-air',
+  'glm-air': 'glm-4.5-air', 'glm-4.5-air': 'glm-4.5-air',
+  // glm-flash remapped 2026-06-22 off glm-4.5-air -> glm-4.7-flash (Haiku-equiv: 200K ctx, faster, free tier)
+  'glm-flash': 'glm-4.7-flash', 'glm-4.7-flash': 'glm-4.7-flash', 'glm-free': 'glm-4.7-flash',
+  'glm-flashx': 'glm-4.7-flashx', 'glm-4.7-flashx': 'glm-4.7-flashx',
+  'glm-vision': 'glm-4.6v', 'glm-v': 'glm-4.6v', 'glm-4.6v': 'glm-4.6v',
+  'glm-ocr': 'glm-ocr',
+  'glm-sub-orch': 'glm-5.1', 'glm-overflow': 'glm-5.1',
   'glm-5.2': 'glm-5.2', 'glm-max': 'glm-5.2', 'glm-5': 'glm-5.2',
   'glm-5-turbo': 'glm-5-turbo', 'glm-turbo': 'glm-5-turbo', turbo: 'glm-5-turbo', 'glm-5.1': 'glm-5.1',
 };

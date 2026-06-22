@@ -34,6 +34,7 @@ CLAUDE.local.md
 
 # Claude runtime/debug snapshots
 .claude/debug/
+.claude/jobs/
 .claude/state/scout-bus.json
 .claude/state/scout-errors.log
 .claude/state/session-state.json
