@@ -11,6 +11,10 @@
  *
  * Usage: node lane-dispatch.mjs <lane> "<prompt>" [any llm-lane flags...]
  *   env: LANE_DISPATCH_ATTEMPTS (default 4), LANE_DISPATCH_TIMEOUT_MS (default 1320000 = 22min)
+ *        LANE_DISPATCH_BACKOFF_MS (default 800)  — base for exponential-with-jitter backoff
+ *        LANE_DISPATCH_BACKOFF_CAP_MS (default 20000) — hard cap on computed delay before jitter
+ *        LANE_DISPATCH_RL_FACTOR (default 3) — multiplier applied on 429/rate-limit detection
+ *        LANE_DISPATCH_IDEMPOTENCY_KEY (optional) — if set, prints a breadcrumb on each attempt
  * Exit 0 + clean output on stdout when a fresh process succeeds; exit 1 after exhausting attempts.
  * Honors --out: when set, the wrapper verifies the out-file is non-empty as the success signal.
  */
@@ -23,7 +27,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LANE_SCRIPT = path.join(__dirname, 'llm-lane.mjs');
 const ATTEMPTS = Number(process.env.LANE_DISPATCH_ATTEMPTS || 4);
 const TIMEOUT_MS = Number(process.env.LANE_DISPATCH_TIMEOUT_MS || 1320000);
+const BACKOFF_BASE = Math.max(1, Number(process.env.LANE_DISPATCH_BACKOFF_MS || 800));
+const BACKOFF_CAP = Math.max(BACKOFF_BASE, Number(process.env.LANE_DISPATCH_BACKOFF_CAP_MS || 20000));
+const RL_FACTOR = Math.max(1, Number(process.env.LANE_DISPATCH_RL_FACTOR || 3));
+const IDEMPOTENCY_KEY = process.env.LANE_DISPATCH_IDEMPOTENCY_KEY || '';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Exponential-with-jitter backoff, capped.
+ *  delay = min(BASE * 2^(attempt-1), CAP); sleep(delay/2 + random(delay/2))
+ *  Guarantees: positive, never NaN, bounded by CAP. */
+function backoffMs(attempt, factor = 1) {
+  const exp = Math.min(BACKOFF_BASE * Math.pow(2, attempt - 1), BACKOFF_CAP);
+  const half = exp / 2;
+  return Math.round((half + Math.random() * half) * factor);
+}
+
+/** True if child output contains a 429 / rate-limit signal. */
+function isRateLimit(out, err) {
+  const hay = ((out || '') + (err || '')).toLowerCase();
+  return /429/.test(hay) || /rate.?limit/.test(hay);
+}
 
 const args = process.argv.slice(2);
 if (!args.length) { process.stderr.write('Usage: lane-dispatch <lane> "<prompt>" [llm-lane flags...]\n'); process.exit(2); }
@@ -55,6 +78,9 @@ function isBad(r) {
 
 let last = null;
 for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
+  if (IDEMPOTENCY_KEY) {
+    process.stderr.write(`LANE_DISPATCH_IDEMPOTENCY key=${IDEMPOTENCY_KEY} attempt=${attempt}\n`);
+  }
   last = await runOnce();
   if (!isBad(last)) {
     // fs.writeSync (not process.stdout.write) — a buffered async write to a pipe/file is TRUNCATED by an
@@ -62,9 +88,15 @@ for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
     if ((last.out || '').trim()) fs.writeSync(1, last.out.trim() + '\n');
     process.exit(0);
   }
-  const why = last.code !== 0 ? `exit_${last.code}` : (/AggregateError/.test((last.out || '') + (last.err || '')) ? 'aggregate_error' : 'empty');
+  const rl = isRateLimit(last.out, last.err);
+  const why = rl ? 'rate_limit'
+    : last.code !== 0 ? `exit_${last.code}`
+    : (/AggregateError/.test((last.out || '') + (last.err || '')) ? 'aggregate_error' : 'empty');
   process.stderr.write(`LANE_DISPATCH_RETRY ${attempt}/${ATTEMPTS} lane=${args[0]} reason=${why}\n`);
-  if (attempt < ATTEMPTS) await sleep(800 * attempt);
+  if (attempt < ATTEMPTS) {
+    const delay = backoffMs(attempt, rl ? RL_FACTOR : 1);
+    await sleep(delay);
+  }
 }
 fs.writeSync(2, `LANE_DISPATCH_FAIL lane=${args[0]} attempts=${ATTEMPTS}\n`);
 if ((last?.err || '').trim()) fs.writeSync(2, last.err.trim().slice(-400) + '\n');

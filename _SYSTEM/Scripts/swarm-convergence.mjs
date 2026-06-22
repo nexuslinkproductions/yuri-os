@@ -3,20 +3,28 @@
 // @serves: swarm convergence | when is the swarm done | stop the nano-swarm loop | convergence gate | loop-until-converged | swarm damping | recursive swarm governor | did the fan-out finish | obligation floor | adversarial done-check
 // @does: the 3-layer convergence GATE + damping for YURI nano-swarm round loops — transferred from irys-stateful-swarms (the GATE, not their LLM-as-controller; wraps YURI's native fan-out). Layer 1: deterministic obligation-ledger floor (every decomposition leaf has a conforming RESULT_LABEL via contract-conformance, passTypeNorm in {X,P}, non-empty). Layer 2: deterministic critical-signal block (any unresolved CRITICAL signal — e.g. a canonical-store contested claim). Layer 3: adversarial peer pass ("swarm says done — find what's missing: verification/edge-case/test/integration"), gaps re-injected as next-round work. Damping (circuit breaker): marginal-value cutoff + budget governor force-stop a blocked-but-not-progressing loop; seen-finding dedup + action cooldown stop oscillation. DISARMED by default (passthrough converged:true) until YURI_SWARM_CONVERGENCE=1.
 // @use: const ledger = buildObligationLedger(decomposition) once; each round call converge({ledger, poolOutputs, signals, adversarialResult, damping, round}); if !converged dispatch nextRoundWork and loop. This is the GOVERNOR a recursive spawn_nano tool needs — depth/cost/oscillation bounds. Adversarial pass runs via runAdversarialPass({runner}) (runner injectable; default would dispatch a non-work peer lane via nano-external).
-// @exports: buildObligationLedger, checkObligationFloor, checkCriticalSignalBlock, runAdversarialPass, checkDamping, dedupeWork, converge, isArmed, hashFinding, ADVERSARIAL_PROMPT, CONVERGENCE_STATE_DIR, ARM_ENV
+// @exports: buildObligationLedger, checkObligationFloor, checkCriticalSignalBlock, runAdversarialPass, defaultAdversarialRunner, finalizeGuard, checkDamping, dedupeWork, converge, isArmed, hashFinding, isConformingPass, ADVERSARIAL_PROMPT, CONVERGENCE_STATE_DIR, ARM_ENV
 //
 // Authority: ADVISORY gate. Converge verdicts never mutate source/commits/protected surfaces — a pure
 // decision + ephemeral per-run damping state. DISARMED-default + reversible (delete this file + its test).
 // Provenance: 02_RESOURCES/RESEARCH/irys-swarm-transfer-2026-06-14/04-MOVE1-PLAN.md (4-lane converged).
 
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseResultLabel } from './contract-conformance.mjs';
 
 export const CONVERGENCE_STATE_DIR = '_SYSTEM/state/swarm-convergence'; // ephemeral per-run damping state
 export const ARM_ENV = 'YURI_SWARM_CONVERGENCE';
+export const ARM_FLAG = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), '_SYSTEM', 'state', 'swarm-convergence.enabled');
 
-/** Armed only when the env flag is set. DISARMED → converge() is a passthrough that never blocks a run. */
-export function isArmed() { return process.env[ARM_ENV] === '1'; }
+/** Armed via the env flag OR a local (gitignored) flag file — mirrors glm-fleet's arm idiom (owner-gated to
+ *  create; reversible by `rm`). DISARMED → converge() is a passthrough that never blocks a run. */
+export function isArmed() {
+  if (process.env[ARM_ENV] === '1') return true;
+  try { return fs.existsSync(ARM_FLAG); } catch { return false; }
+}
 
 /** Stable short hash of a finding/gap string — dedup key so the same gap isn't re-chased every round. */
 export function hashFinding(text) {
@@ -44,14 +52,33 @@ export function buildObligationLedger(decomposition = {}) {
   return { leafTasks, leafCount: leafTasks.length };
 }
 
-/** A pool output is a conforming PASS iff it has non-empty text AND a parseable RESULT_LABEL with passTypeNorm in {X,P}. */
-function isConformingPass(output) {
+/**
+ * A pool output is a conforming PASS iff it has non-empty text AND a parseable RESULT_LABEL with
+ * passTypeNorm in {X,P}. Hardened: P-class passes additionally require text.length >= 200 to filter
+ * trivial stub outputs that technically parse but carry no real content. X-passes are unchanged.
+ * Exported for testability.
+ */
+export function isConformingPass(output) {
   if (!output) return false;
   const text = String(output.text ?? output.output ?? '').trim();
   if (text.length === 0) return false;
   const p = parseResultLabel(output.label ?? '');
   if (!p || !p.ok) return false;
-  return p.passTypeNorm === 'X' || p.passTypeNorm === 'P';
+  if (p.passTypeNorm === 'X') return true;
+  if (p.passTypeNorm === 'P') return text.length >= 200;
+  return false;
+}
+
+/**
+ * Finalize guard — the gate that prevents finalizing on a damping force-stop or with outstanding
+ * blockers. Call with the verdict returned by converge(). Returns { ok, reason }.
+ * ok is true iff verdict.converged===true AND verdict.forced!==true AND no blocking items.
+ */
+export function finalizeGuard(verdict = {}) {
+  if (verdict.converged !== true) return { ok: false, reason: 'not-converged' };
+  if (verdict.forced === true) return { ok: false, reason: 'forced-stop' };
+  if ((verdict.blocking || []).length > 0) return { ok: false, reason: 'blockers-present' };
+  return { ok: true, reason: 'finalize-allowed' };
 }
 
 /** Layer 1: deterministic obligation-ledger floor. poolOutputs = { [leafId]: { label, text } }. */
@@ -75,6 +102,103 @@ export function checkCriticalSignalBlock(signals = []) {
 }
 
 export const ADVERSARIAL_PROMPT = 'The swarm reports its work COMPLETE. Find what is MISSING: verification gaps, untested edge cases, integration breaks, incomplete evidence. Return only gaps that are material AND specific AND actionable.';
+
+/**
+ * Default production adversarial runner. Dispatches ONE glm-max non-work review lane via lane-dispatch.mjs,
+ * reads the tmp output, and parses the model reply into { rejections: [{leafId, gap, actionable:true}] }.
+ *
+ * The model is instructed to reply ONLY with a JSON array of {leafId, gap} objects describing
+ * material+specific+actionable gaps, or [] if none. Parsing is lenient (first [...] block wins).
+ * Fail-soft: any dispatch or parse error returns { rejections: [] } — the gate must never hard-fail
+ * on an LLM call.
+ *
+ * @param {object} opts — passed through to the runner closure; currently unused (reserved for overrides).
+ * @returns {function({prompt, poolOutputs, lanes}): Promise<{rejections: Array}>}
+ */
+export function defaultAdversarialRunner(opts = {}) {
+  return async function runner({ prompt = ADVERSARIAL_PROMPT, poolOutputs = {}, lanes = [] } = {}) {
+    const { execFileSync, mkdtempSync, readFileSync, unlinkSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { tmpdir } = await import('node:os');
+    const { execSync } = await import('node:child_process');
+    const { spawnSync } = await import('node:child_process');
+
+    // Serialize pool outputs — bounded to ≤~6k chars total to keep the prompt in range.
+    const POOL_CHAR_CAP = 6000;
+    const EXCERPT_LEN = 400;
+    let serialized;
+    try {
+      const entries = Object.entries(poolOutputs).map(([id, out]) => ({
+        leafId: id,
+        label: out?.label ?? '',
+        text: String(out?.text ?? out?.output ?? '').slice(0, EXCERPT_LEN),
+      }));
+      const raw = JSON.stringify(entries);
+      serialized = raw.length > POOL_CHAR_CAP ? raw.slice(0, POOL_CHAR_CAP) + '...(truncated)' : raw;
+    } catch (_) {
+      serialized = '[]';
+    }
+
+    const lanesLabel = Array.isArray(lanes) && lanes.length
+      ? `Active lanes: ${lanes.map((l) => l?.id ?? l).join(', ')}.`
+      : '';
+
+    const fullPrompt = [
+      prompt,
+      lanesLabel,
+      `Pool outputs (leafId + first ${EXCERPT_LEN} chars): ${serialized}`,
+      'Reply with ONLY a JSON array: [{\"leafId\":\"<id or null>\",\"gap\":\"<one-line gap>\"}] or [] if none. No prose, no markdown fences.',
+    ].filter(Boolean).join('\n\n');
+
+    let tmpFile;
+    try {
+      const dir = mkdtempSync(join(tmpdir(), 'yuri-adv-'));
+      tmpFile = join(dir, 'out.json');
+    } catch (e) {
+      return { rejections: [] };
+    }
+
+    try {
+      // Dispatch glm-max review lane — non-work (review only, no mutations).
+      const result = spawnSync(
+        'node',
+        [
+          '_SYSTEM/Scripts/lane-dispatch.mjs',
+          'glm-max',
+          fullPrompt,
+          '--out', tmpFile,
+          '--reasoning', 'high',
+        ],
+        { encoding: 'utf8', timeout: 120_000, cwd: process.cwd() },
+      );
+      if (result.error) return { rejections: [] };
+    } catch (_) {
+      return { rejections: [] };
+    }
+
+    let rawText;
+    try { rawText = readFileSync(tmpFile, 'utf8'); }
+    catch (_) { return { rejections: [] }; }
+    try { unlinkSync(tmpFile); } catch (_) { /* best-effort cleanup */ }
+
+    // Parse leniently: find the first JSON array in the response text.
+    let parsed;
+    try {
+      const match = rawText.match(/\[[\s\S]*?\]/);
+      parsed = match ? JSON.parse(match[0]) : [];
+    } catch (_) {
+      return { rejections: [] };
+    }
+
+    if (!Array.isArray(parsed)) return { rejections: [] };
+
+    const rejections = parsed
+      .filter((r) => r && typeof r.gap === 'string' && r.gap.trim())
+      .map((r) => ({ leafId: r.leafId ?? null, gap: r.gap.trim(), actionable: true }));
+
+    return { rejections };
+  };
+}
 
 /**
  * Layer 3: adversarial peer pass. `runner` is injectable (default production runner dispatches a
@@ -179,7 +303,7 @@ export function converge({ ledger, poolOutputs = {}, signals = [], adversarialRe
 if (import.meta.url === `file://${process.argv[1]}`) {
   process.stdout.write(`${JSON.stringify({
     module: 'swarm-convergence', armed: isArmed(), armEnv: ARM_ENV,
-    exports: ['buildObligationLedger', 'checkObligationFloor', 'checkCriticalSignalBlock', 'runAdversarialPass', 'checkDamping', 'dedupeWork', 'converge'],
+    exports: ['buildObligationLedger', 'checkObligationFloor', 'checkCriticalSignalBlock', 'runAdversarialPass', 'defaultAdversarialRunner', 'finalizeGuard', 'isConformingPass', 'checkDamping', 'dedupeWork', 'converge'],
     note: 'DISARMED-default 3-layer nano-swarm convergence gate + damping. Set YURI_SWARM_CONVERGENCE=1 to arm.',
   }, null, 2)}\n`);
 }

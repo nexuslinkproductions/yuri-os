@@ -3,7 +3,7 @@
 // @serves: glm fleet | spawn glm agents | z.ai fleet | parallel glm lanes | fan out glm | glm swarm | dual-substrate fleet | opus-fleet glm substrate
 // @does: parallel fan-out of N z.ai GLM lanes at --reasoning high through lane-dispatch.mjs (4-attempt EPIPE/429 retry), each lane's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore. DISARMED by default = dry-run (zero spend, zero fan-out); YURI_GLM_FLEET=1 arms the real fire.
 // @use: glmFleet([{lane:'glm',label:'R1',prompt:'...'}], {concurrency:3}) — the GLM substrate of the opus-fleet model. Native Claude Agents are the other substrate (Agent tool). CLI: node glm-fleet.mjs --list | --dry-run --tasks '<json>' | --smoke (armed needs YURI_GLM_FLEET=1).
-// @exports: glmFleet, buildRunDir, extractResultLabel, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
+// @exports: glmFleet, buildRunDir, extractResultLabel, aggregatePoolOutputs, validatePacket, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
 //
 // WHY built on lane-dispatch.mjs (not llm-lane directly): lane-dispatch re-invokes llm-lane in a FRESH
 // process up to 4× with backoff, treating AggregateError / empty / non-zero exit as transient — the exact
@@ -84,6 +84,61 @@ async function runPool(items, limit, worker) {
   return results;
 }
 
+/**
+ * Returns true iff the packet has the minimum fields required for pool convergence.
+ * Called before writing each result packet; on failure the packet is still written but
+ * status is forced to 'malformed' so the aggregator/floor treats it as non-conforming.
+ * @param {object} packet
+ * @returns {boolean}
+ */
+export function validatePacket(packet) {
+  return (
+    typeof packet === 'object' && packet !== null &&
+    typeof packet.laneId === 'string' && packet.laneId.length > 0 &&
+    typeof packet.role === 'string' && packet.role.length > 0 &&
+    typeof packet.status === 'string' && packet.status.length > 0 &&
+    typeof packet.resultLabel === 'string'  // may be '' (empty is allowed); must exist
+  );
+}
+
+/**
+ * Reads every *.json file in runDir (the per-run results dir returned by glmFleet),
+ * parses each packet, and returns the pool keyed by packet.role (the leafId).
+ * Malformed or unreadable files are collected into `skipped` rather than thrown.
+ * @param {string} runDir  absolute path to the results directory
+ * @returns {{ pool: { [leafId: string]: { label: string, text: string, status: string } }, skipped: Array<{file:string,error:string}> }}
+ */
+export function aggregatePoolOutputs(runDir) {
+  const pool = {};
+  const skipped = [];
+  let files;
+  try {
+    files = fs.readdirSync(runDir).filter((f) => f.endsWith('.json'));
+  } catch (e) {
+    // runDir doesn't exist or isn't readable — return empty rather than throw
+    return { pool, skipped: [{ file: runDir, error: String(e?.message || e) }] };
+  }
+  for (const f of files) {
+    const full = path.join(runDir, f);
+    try {
+      const raw = fs.readFileSync(full, 'utf8');
+      const packet = JSON.parse(raw);
+      if (typeof packet !== 'object' || packet === null || typeof packet.role !== 'string' || !packet.role) {
+        skipped.push({ file: f, error: 'missing or invalid packet.role' });
+        continue;
+      }
+      pool[packet.role] = {
+        label: typeof packet.resultLabel === 'string' ? packet.resultLabel : '',
+        text: typeof packet.text === 'string' ? packet.text : '',
+        status: typeof packet.status === 'string' ? packet.status : 'fail',
+      };
+    } catch (e) {
+      skipped.push({ file: f, error: String(e?.message || e) });
+    }
+  }
+  return { pool, skipped };
+}
+
 function fireTask(task, label, runDir, runId) {
   return new Promise((resolve) => {
     const outFile = path.join(runDir, `${label}.out`);
@@ -123,6 +178,15 @@ function fireTask(task, label, runDir, runId) {
         durationMs: Date.now() - t0,
         runId,
       };
+      // Cross-run tracing: inject traceId/spanId when the fleet session sets YURI_FLEET_TRACE_ID.
+      if (process.env.YURI_FLEET_TRACE_ID) {
+        packet.traceId = process.env.YURI_FLEET_TRACE_ID;
+        packet.spanId = task.label || label;
+      }
+      // Validate conformance — on failure mark malformed (still write for diagnostics; do not throw).
+      if (!validatePacket(packet)) {
+        packet.status = 'malformed';
+      }
       try { fs.writeFileSync(path.join(runDir, `${label}.json`), `${JSON.stringify(packet, null, 2)}\n`); } catch { /* best-effort */ }
       resolve({ label, lane: task.lane, text, exitCode: code, file: outFile, resultLabel, ok, durationMs: Date.now() - t0, stderr: ok ? '' : err.slice(-400) });
     });
