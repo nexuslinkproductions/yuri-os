@@ -52,10 +52,11 @@ function safeLabel(s, i = 0) {
 export const FLEET_PROTOCOL_PREAMBLE = [
   'YURI opus-fleet protocol — you are a SUB-ORCHESTRATOR, not a grunt.',
   'Operate: decompose -> dispatch peer lanes -> aggregate -> adversarially verify -> finalize. You orchestrate; peers do the work.',
+  'Every peer carries the FULL operator harness — read/grep/search/xref AND write_file/edit_file/bash. Peers BUILD directly (design, code, write, run, self-verify), NOT read-only. glm-5.2 is an Opus-peer.',
   'GLM tier roster (z.ai), all at --reasoning high:',
   '  glm-max (glm-5.2)   = heavy orchestrator / synthesis / final review (1M ctx, premium)',
   '  glm (glm-4.7)       = workhorse: code-gen, analysis, judgment',
-  '  glm-flash (4.7-flash)= mechanical: census, scan, read (fast/free)',
+  '  glm-flash (4.7-flash)= fast build: census, scan, fast edits, test-runs (free)',
   '  glm-sub-orch (5.1)  = overflow when glm-max is quota-gated',
   '  glm-vision (4.6v)   = image/screenshot   ·   glm-ocr = document extraction',
   'Dispatch a peer fleet (needs YURI_GLM_FLEET=1):',

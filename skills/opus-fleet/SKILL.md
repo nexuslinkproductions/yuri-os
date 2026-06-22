@@ -107,7 +107,7 @@ Agent(
 | "The agent said it passed, ship it." | Agent output is a hypothesis. The Haiku lane *guessed wrong* this session. Verify against a local run before trusting. |
 | "Max reasoning costs too much." | Sonnet bills a separate weekly pool. The cost concern is inverted — fan out liberally. |
 | "I'll skip the context, the agent will figure it out." | It can't — it has no conversation history. Underspecified → confident garbage. Self-contained prompt every time. |
-| "GLM is cheaper, route everything there." | GLM bills z.ai but still spends durable budget + needs arming. Native Agents (separate Sonnet pool) are also free leverage. Route by capability — writes/tools → native, read-only breadth → GLM — not by reflex. |
+| "GLM is the read-only / advisory lane." | Wrong — GLM lanes carry the full harness (write / edit / bash) and build exactly like native Agents; `glm-5.2` is an Opus-peer. Route by quota / context / recursion / native-tool-need, never by a capability tier that doesn't exist. |
 | "I'll pipe the GLM call through `tee` to watch it." | That triggers transport:EPIPE. Use `--out` and read the file. Never a second stream reader on the lane. |
 | "Arm the autonomous loop so it just runs unattended." | Arming spends durable budget + fans out processes — owner-gated, always. Build + smoke DISARMED; the owner flips the flag. |
 
@@ -117,7 +117,9 @@ For unknown-size discovery, wrap rounds with the convergence governor `_SYSTEM/S
 
 ## z.ai GLM fleet — the second substrate
 
-The native Claude fleet has a twin: a **z.ai GLM lane fleet**, dispatched through `_SYSTEM/Scripts/glm-fleet.mjs`. It bills the z.ai Coding Plan (not the Anthropic quota), so it is free leverage for read-only breadth, >3-way fan-out, 1M-context jobs, vision/OCR, and the adversarial pass. GLM agents run at **`--reasoning high`** (the GLM max-equivalent).
+The native Claude fleet has a full **twin**, not a sidekick: a **z.ai GLM lane fleet** dispatched through `_SYSTEM/Scripts/glm-fleet.mjs`. Every GLM lane runs the complete YURI operator harness via `llm-lane.mjs` — `read`/`grep`/`search`/`xref` **and** `write_file`/`edit_file`/`bash` — so it **develops, designs, codes, writes files, and runs/self-verifies** exactly like a native Agent. It is a peer build substrate — never read-only or advisory. `glm-max` (glm-5.2, 1M context) is an **Opus-peer**: on par or better at reasoning, coding, and visual design. It bills the z.ai plan (independent of the Anthropic quota), runs at **`--reasoning high`** (the GLM max-equivalent), and the same three lanes mirror onto it — Research, Code-generation, Testing — all doing real work.
+
+The fullest mirror is **`ai claude-zai`**: a complete Claude Code session running on GLM (`OPUS→glm-5.2`, `SONNET→glm-4.7`, `HAIKU→glm-flash`) — the exact same setup as this one, on z.ai. Reach for it for a full interactive GLM build session; use `glm-fleet.mjs` to fan GLM peers out in parallel from here.
 
 DISARMED by default → **dry-run** (prints the plan, spends nothing). Arm (owner-gated) via EITHER the session env `YURI_GLM_FLEET=1` OR a persistent local flag `touch _SYSTEM/state/glm-fleet.enabled` (gitignored, reversible by `rm`). `glm-fleet.mjs --list` shows the current arm state.
 
@@ -125,9 +127,9 @@ GLM tier roster (mirrors Opus/Sonnet/Haiku):
 
 | Tier | alias | model | ctx | use |
 |------|-------|-------|-----|-----|
-| Opus · orchestrator | `glm-max` | glm-5.2 | 1M | decompose, synthesis, final review (premium) |
-| Sonnet · workhorse | `glm` | glm-4.7 | 200K | code-gen, analysis, judgment |
-| Haiku · mechanical | `glm-flash` | glm-4.7-flash | 200K | census, scan, read (free) |
+| Opus-peer · orchestrator | `glm-max` | glm-5.2 | 1M | heavy reasoning, design, architecture, code, synthesis (premium) |
+| Sonnet · workhorse | `glm` | glm-4.7 | 200K | code-gen, refactor, analysis, judgment |
+| Haiku · fast build | `glm-flash` | glm-4.7-flash | 200K | census, scan, fast edits, test-runs (free) |
 | Haiku+ · concurrency | `glm-flashx` | glm-4.7-flashx | 200K | wide cheap fan-out (paid) |
 | Sub-orch overflow | `glm-sub-orch` | glm-5.1 | 200K | when glm-max is quota-gated |
 | Reactive · voice | `glm-turbo` | glm-5-turbo | 200K | sub-4s interactive |
@@ -141,8 +143,9 @@ Dispatch programmatically:
 ```js
 import { glmFleet } from './glm-fleet.mjs'; // path relative to the importing file; the shell form below is location-independent
 const { results, runDir } = await glmFleet([
-  { lane: 'glm',       label: 'RESEARCH', prompt: `Use MAXIMUM reasoning depth. ROLE: research lane ... RETURN: evidence + RESULT_LABEL` },
-  { lane: 'glm-flash', label: 'SCAN',     prompt: `Use MAXIMUM reasoning depth. ROLE: mechanical scan ... RETURN: findings + RESULT_LABEL` },
+  { lane: 'glm-max',   label: 'DESIGN',  prompt: `Use MAXIMUM reasoning depth. ROLE: design + architecture lane ... RETURN: design doc + RESULT_LABEL` },
+  { lane: 'glm',       label: 'CODEGEN', prompt: `Use MAXIMUM reasoning depth. ROLE: code-generation lane — write/edit the files directly and self-verify by running them ... RETURN: diff summary + RESULT_LABEL` },
+  { lane: 'glm-flash', label: 'TEST',    prompt: `Use MAXIMUM reasoning depth. ROLE: testing lane — run the suite, parse logs, report ... RETURN: results + RESULT_LABEL` },
 ], { concurrency: 3 });   // needs YURI_GLM_FLEET=1, else dry-run
 ```
 
@@ -153,20 +156,21 @@ YURI_GLM_FLEET=1 node _SYSTEM/Scripts/glm-fleet.mjs --tasks '[{"lane":"glm-max",
 # results land in .claude/jobs/<run>/results/<label>.json   ·   dry-run plan: drop YURI_GLM_FLEET or add --dry-run
 ```
 
-## Dual-substrate routing — native Agents vs GLM lanes
+## Dual-substrate routing — two equal build fleets
 
-Not a hierarchy — a billing/quota/capability tradeoff. Both are first-class.
+NOT a capability tier. Both fleets have the SAME powers — read, write, edit, bash, design, code, test, self-verify. GLM is a peer extension of Claude Code, not an advisory or read-only lane. Route by operational fit, then spread work across BOTH for max throughput on independent quotas:
 
-| Use NATIVE Agents (Agent tool) when | Use GLM lanes (glm-fleet) when |
-|---|---|
-| the lane must WRITE / edit / commit / honor protected paths | pure read-only reasoning, research, synthesis |
-| native tool fidelity needed (MCP, browser, computer-use) | you want >3 concurrent lanes (z.ai throughput) |
-| the Sonnet weekly pool has headroom | the Sonnet pool is under pressure → spend z.ai instead |
-| latency of a native Agent is acceptable | a 1M-context job without Opus-tier cost (`glm-max`) |
-| | vision / OCR (`glm-vision` / `glm-ocr`) |
-| | the adversarial-verify pass (`glm-max` reviewer = zero Anthropic spend) |
+| factor | native Claude Agents | z.ai GLM lanes |
+|---|---|---|
+| build powers | read · write · edit · bash · test | read · write · edit · bash · test (identical) |
+| quota pool | Claude / Sonnet weekly | z.ai plan (independent → run both at once for ~2× throughput) |
+| recursion | FLAT (leaf-only) | recursive via `nano-spawn`, depth ≤ 5 |
+| max context | per-model | `glm-5.2` = 1M |
+| reasoning / coding / design tier | Opus / Sonnet / Haiku | `glm-5.2` (Opus-peer) / `glm-4.7` / `glm-flash` |
+| native MCP / browser / computer-use | yes | no (repo tools only) |
+| finalize (commit / push) | no — orchestrator only | no — orchestrator only (same gate, NOT a GLM limit) |
 
-The lever for "insane amounts more work": run the **adversarial-verify pass on `glm-max`** — independent Opus-tier red-team at zero Anthropic quota.
+The only hard native-only needs are MCP tools, browser, and computer-use. Everything else — designing, coding, refactoring, writing, running tests — either fleet does equally. Default to spreading a large build across both: native lanes on the Anthropic quota, GLM lanes on the z.ai quota, in parallel. `glm-max` is a first-class orchestrator and red-teamer, not just a reviewer.
 
 ## Spawning a sub-orchestrator (Opus-equivalent fan-out)
 
