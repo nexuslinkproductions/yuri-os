@@ -27,7 +27,9 @@ Canonical rule: [`.claude/memory/feedback-opus-orchestrates-sonnet-haiku-agents.
 
 ## When this fires
 
-Every substantial task — build, research, multi-file edit, audit, verification, refactor. Skip only trivial single reads and pure conversation. Self-size the fleet to the task; never max-deploy by reflex.
+Every substantial task — build, research, multi-file edit, audit, verification, refactor. Skip only trivial single reads and pure conversation.
+
+**Fleet sizing — don't under-spawn.** Native Agents are FLAT (they can't spawn sub-agents — `Explore` has no Agent tool, and the model keeps them leaf-only). So trade depth for BREADTH: fanning out **up to ~12 parallel native Agents in one message is encouraged** when the work divides that way (Sonnet bills a separate weekly pool — breadth is cheap). Recursion depth is the GLM / `nano-spawn` substrate's job, capped at **depth 5** (heavy tier) with decaying per-level fan-out. Self-size to the task — but the failure mode here is timidity, not excess.
 
 ## The model at a glance
 
@@ -117,7 +119,7 @@ For unknown-size discovery, wrap rounds with the convergence governor `_SYSTEM/S
 
 The native Claude fleet has a twin: a **z.ai GLM lane fleet**, dispatched through `_SYSTEM/Scripts/glm-fleet.mjs`. It bills the z.ai Coding Plan (not the Anthropic quota), so it is free leverage for read-only breadth, >3-way fan-out, 1M-context jobs, vision/OCR, and the adversarial pass. GLM agents run at **`--reasoning high`** (the GLM max-equivalent).
 
-DISARMED by default: without `YURI_GLM_FLEET=1`, `glm-fleet.mjs` is a **dry-run** (prints the plan, spends nothing). Arming is owner-gated (durable z.ai spend + process fan-out).
+DISARMED by default → **dry-run** (prints the plan, spends nothing). Arm (owner-gated) via EITHER the session env `YURI_GLM_FLEET=1` OR a persistent local flag `touch _SYSTEM/state/glm-fleet.enabled` (gitignored, reversible by `rm`). `glm-fleet.mjs --list` shows the current arm state.
 
 GLM tier roster (mirrors Opus/Sonnet/Haiku):
 
@@ -170,7 +172,7 @@ The lever for "insane amounts more work": run the **adversarial-verify pass on `
 
 A spawned orchestrator — a native `general-purpose` Agent OR a `glm-max` lane — can run this fleet model itself if handed the protocol. Inject `FLEET_PROTOCOL_PREAMBLE` (exported from `glm-fleet.mjs`) as the first block of its prompt; glm-5.2's 1M context also lets you paste this whole SKILL.md verbatim. That is how "the Opus and Opus-equivalent spawns sub-dispatch with this knowledge."
 
-Honest caveat: native Claude subagents are **flat** — `Explore` has no Agent tool and the standing model keeps the native fleet leaf-only (Opus is the sole native spawner). Real recursion lives on the GLM substrate via the governed `nano-spawn` path (`YURI_NANOSWARM_SPAWN=1`, owner-gated). Until that is armed, "sub-orchestration" means a `glm-max` lane calling `glm-fleet.mjs` for its own peer round.
+Honest caveat: native Claude subagents are **flat** — `Explore` has no Agent tool and the standing model keeps the native fleet leaf-only (Opus is the sole native spawner). Compensate with breadth (up to ~12 parallel; see Fleet sizing). Real recursion lives on the GLM substrate via the governed `nano-spawn` path (`YURI_NANOSWARM_SPAWN=1`, owner-gated) at **depth ≤ 5**. Until that is armed, "sub-orchestration" means a `glm-max` lane calling `glm-fleet.mjs` for its own peer round.
 
 ## The governed autonomous loop
 

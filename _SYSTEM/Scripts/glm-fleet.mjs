@@ -23,6 +23,13 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 const LANE_DISPATCH = path.join(HERE, 'lane-dispatch.mjs');
 
 export const ARM_ENV = 'YURI_GLM_FLEET';
+export const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'glm-fleet.enabled');
+// Armed via EITHER the session env var OR a local (gitignored) flag file — the YURI energy-enforce/nano-spawn
+// arming idiom. Owner-gated to create; reversible by `rm`. Disarmed default = dry-run (zero spend/fan-out).
+export function isArmed() {
+  if (process.env[ARM_ENV] === '1') return true;
+  try { return fs.existsSync(ARM_FLAG); } catch { return false; }
+}
 
 // Lane Result Grammar (yuri-origin): NNxx_DESCRIPTION_(X|P|F)_..._COMMITTED. Lenient — first match wins.
 const RESULT_LABEL_RE = /\b\d{2}[A-Z]{2}_[A-Z0-9_]{2,70}_(?:X|P|F)_[A-Z0-9_]*COMMITTED\b/;
@@ -131,7 +138,7 @@ function fireTask(task, label, runDir, runId) {
  * @returns {Promise<{runId,runDir,armed,concurrency,results?,dryRun?,plan?}>}
  */
 export async function glmFleet(tasks = [], opts = {}) {
-  const armed = opts.armed != null ? !!opts.armed : (process.env[ARM_ENV] === '1');
+  const armed = opts.armed != null ? !!opts.armed : isArmed();
   const runId = opts.runId || `glmf-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}`;
   const runDir = opts.runDir || buildRunDir(runId);
   const cRaw = Number(opts.concurrency);
@@ -162,9 +169,10 @@ function listRoster() {
     lanes = m.llm_compat_lanes || {};
   } catch { /* */ }
   const glm = Object.keys(lanes).filter((k) => k.startsWith('glm-'));
-  const armed = process.env[ARM_ENV] === '1';
+  const armed = isArmed();
+  const how = process.env[ARM_ENV] === '1' ? 'env YURI_GLM_FLEET=1' : (fs.existsSync(ARM_FLAG) ? 'flag _SYSTEM/state/glm-fleet.enabled' : '');
   const out = [];
-  out.push(`glm-fleet — ${armed ? 'ARMED (YURI_GLM_FLEET=1)' : 'DISARMED (default dry-run; set YURI_GLM_FLEET=1 to fire)'}`);
+  out.push(`glm-fleet — ${armed ? `ARMED (${how})` : 'DISARMED (dry-run; arm via YURI_GLM_FLEET=1 or: touch _SYSTEM/state/glm-fleet.enabled)'}`);
   out.push('GLM lanes registered in models.json:');
   for (const k of glm) out.push(`  ${k}  ctx=${lanes[k].context_window}`);
   out.push('Aliases (llm-lane.mjs): glm-max=5.2 · glm=4.7 · glm-flash=4.7-flash · glm-flashx · glm-sub-orch=5.1 · glm-turbo=5-turbo · glm-vision=4.6v · glm-ocr');
