@@ -144,6 +144,12 @@ Reach for ccr-compress when the answer to "can I get this back if I need it?" mu
 
 ## Session Notes
 
+### 2026-06-16
+- session: 7m | peak ctx: 0% | compacts: 0
+- tools: Bash×9, Read×6, Edit×5, WebSearch×3, Write×1, Skill×1, ToolSearch×1
+- corrections: none
+- errors: none
+
 ### 2026-06-15
 - session: 11m | peak ctx: 0% | compacts: 0
 - tools: Bash×19, Read×2, Edit×2, Skill×1, Write×1
