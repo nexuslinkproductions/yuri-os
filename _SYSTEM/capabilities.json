@@ -3979,6 +3979,7 @@
         "recordActivity",
         "ingestJobs",
         "ingestOutputs",
+        "pruneMissing",
         "ingestAll",
         "overview",
         "DB_PATH",

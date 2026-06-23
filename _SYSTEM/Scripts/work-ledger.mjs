@@ -3,7 +3,7 @@
 // @serves: work ledger | organize all created work | artifact funnel | run registry | company work index | track agentic output | what work was produced | work database
 // @does: the auto-funnel for everything the agentic system (MURE / runSwarm / sessions) produces — a SQLite relational store (runs × artifacts × role_outputs × activity × links) that auto-captures from three sources (.claude/jobs/*/manifest.json run records, per-run results packets, and a bounded sweep of the durable output dirs), and exposes a single overview() query matching the dashboard data contract. The missing unified funnel on top of YURI's filing-system + artifact-registry + search corpus (capability-first: those handle placement/catalog/full-text; this is the run+output ledger that ties them together). The archivist role's backing organ.
 // @use: import { openLedger, ingestAll, overview } from work-ledger.mjs. CLI: node work-ledger.mjs --ingest | --overview | --stats | --recent. DB at _SYSTEM/OS_KERNEL/work-ledger.db (gitignored). Read-only on the repo; only writes its own DB.
-// @exports: openLedger, ensureSchema, ingestRun, ingestArtifact, recordActivity, ingestJobs, ingestOutputs, ingestAll, overview, DB_PATH, OUTPUT_ROOTS
+// @exports: openLedger, ensureSchema, ingestRun, ingestArtifact, recordActivity, ingestJobs, ingestOutputs, pruneMissing, ingestAll, overview, DB_PATH, OUTPUT_ROOTS
 //
 // Authority: descriptive index. The ledger RECORDS what was produced; it never mutates the artifacts it
 // indexes and never finalizes. Idempotent (INSERT OR REPLACE on stable keys) — safe to re-ingest every poll.
@@ -166,10 +166,23 @@ export function ingestOutputs(db, roots = OUTPUT_ROOTS) {
 }
 
 /** Full incremental ingest (idempotent — safe every poll). */
+// Drop artifact rows whose file no longer exists on disk — the funnel must reflect REALITY (deleted /
+// relocated work disappears), not accumulate ghosts. Runs are historical (their manifests persist) and are
+// left intact.
+export function pruneMissing(db) {
+  let removed = 0;
+  const del = db.prepare('DELETE FROM artifacts WHERE path = ?');
+  for (const { path: p } of db.prepare('SELECT path FROM artifacts').all()) {
+    if (!fs.existsSync(path.join(REPO_ROOT, p))) { del.run(p); removed += 1; }
+  }
+  return removed;
+}
+
 export function ingestAll(db) {
   const runs = ingestJobs(db);
   const arts = ingestOutputs(db);
-  return { runs, artifacts: arts };
+  const pruned = pruneMissing(db);
+  return { runs, artifacts: arts, pruned };
 }
 
 /** The single overview() query — matches the dashboard data contract exactly. */
@@ -185,6 +198,7 @@ export function overview(db) {
   const roles = roster.roles.map((r) => ({
     id: r.id, name: r.name, group: r.group, archetype: r.archetype,
     substrate: r.substrate, lane: r.lane, autonomyClass: r.autonomyClass,
+    capabilities: Array.isArray(r.capabilities) ? r.capabilities : [], mission: r.mission || '',
     runs: runRoleCounts[r.id] || 0, artifacts: artRoleCounts[r.id] || 0,
     lastActive: roleLast[r.id] || null, status: activeRoleIds.has(r.id) ? 'active' : 'idle',
   }));
