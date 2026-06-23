@@ -212,7 +212,7 @@ export async function reconcileAfterBuild({ jobId, nodeId, query, targets = [], 
     '',
     '## gitnexus impact',
     results.gitnexus?.length > 0
-      ? results.gitnexus.map((g) => `- ${g.target}: ${g.ok ? `OK (level: ${g.impactLevel}, changes: ${g.changesDetected})` : `FAILED: ${g.error}`).join('\n')
+      ? results.gitnexus.map((g) => `- ${g.target}: ${g.ok ? `OK (level: ${g.impactLevel}, changes: ${g.changesDetected})` : `FAILED: ${g.error}`}`).join('\n')
       : '- skipped (no targets)',
     '',
     '## recommended actions',
