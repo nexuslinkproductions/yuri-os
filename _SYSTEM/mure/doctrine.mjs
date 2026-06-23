@@ -3,7 +3,7 @@
 // @serves: build doctrine | direction fit | improvement axes | grade build report | which direction is improvement | company strategy lens | under-served axes | advancement assessment | direction of improvement
 // @does: reads the NEXUS LINK Build Doctrine (config/improvement-doctrine.json) and exposes the executable lens — directionFit(job) to SELECT work by vector-weighted axis contribution, grade(claim) to ASSESS finished work (evidence-gated advanced/partial/none/regressed), underServedAxes() to steer the recommender. Schema-generic: axes/vector/rubrics come from the JSON, not hardcoded. READ-ONLY: it never writes the doctrine — the self-grading guardrail (company proposes, owner ratifies) enforced at the code level.
 // @use: import { loadDoctrine, directionFit, grade, underServedAxes } from mure/doctrine.mjs. directionFit(job).score blends with OpenMass in the ranker; grade(claim) runs on a build report's axis claim; never call from a cycle to EDIT the json (owner-gated).
-// @exports: loadDoctrine, directionFit, grade, axisCoverage, underServedAxes, weightOf, blend, shouldAutoExec, TYPE_AXIS_HINTS, DOCTRINE_PATH
+// @exports: loadDoctrine, directionFit, grade, axisCoverage, underServedAxes, weightOf, blend, shouldAutoExec, rankByDirection, TYPE_AXIS_HINTS, DOCTRINE_PATH
 //
 // Authority: this is the *reader* of direction doctrine. It computes; it does not decide authority or safety —
 // governance.mjs owns the safety gate, openprocess-pool owns urgency. Doctrine changes stay owner-gated.
@@ -173,6 +173,28 @@ export function shouldAutoExec(openMass = 0, fitResult = {}, opts = {}) {
   return true;
 }
 
+/**
+ * Re-rank already-OpenMass-ranked jobs (from job-pool.rankJobs — each carrying `.mass`) by the doctrine's
+ * selection priority: priority = OpenMass + wDir·directionFit, sorted desc. Annotates each job with its
+ * directionFit, per-axis breakdown, blended priority, and the auto-exec direction veto. This is the SELECTION
+ * half of the doctrine — pure, non-mutating; the ranker/cycle consumes it. (job-pool stays a pure store.)
+ */
+export function rankByDirection(rankedJobs = [], opts = {}) {
+  const doctrine = opts.doctrine || loadDoctrine(opts);
+  return rankedJobs.map((j) => {
+    const mass = Number(j.mass) || 0;
+    const fit = directionFit(j, { doctrine });
+    return {
+      ...j,                                      // keeps the job's own fields incl. `priority` (the label)
+      directionFit: fit.score,
+      directionByAxis: fit.byAxis,
+      floorViolation: fit.floorViolation,
+      priorityScore: Number(blend(mass, fit, { doctrine }).toFixed(4)),  // blended selection score
+      autoExec: shouldAutoExec(mass, fit, { doctrine }),
+    };
+  }).sort((a, b) => b.priorityScore - a.priorityScore);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const argv = process.argv.slice(2);
   const val = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
@@ -183,6 +205,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else if (argv.includes('--grade')) {
     const claim = JSON.parse(val('--grade'));
     process.stdout.write(`${JSON.stringify(grade(claim, { doctrine: d }), null, 2)}\n`);
+  } else if (argv.includes('--rank')) {
+    const { openPool, rankJobs } = await import('../Scripts/job-pool.mjs');
+    const ranked = rankByDirection(rankJobs(openPool()), { doctrine: d });
+    process.stdout.write(`Doctrine-ranked pool (priority = OpenMass + ${d.selectionRubric?.wDir ?? 1}·directionFit):\n`);
+    for (const j of ranked.slice(0, 15)) {
+      const axes = Object.entries(j.directionByAxis || {}).map(([a, v]) => `${a}+${v.fit}`).join(' ');
+      process.stdout.write(`  pr=${String(j.priorityScore).padStart(7)} mass=${String(j.mass).padStart(6)} dir=${String(j.directionFit).padStart(4)} ${j.autoExec ? 'auto' : 'HOLD'} [${j.type}/${j.priority}] ${j.title.slice(0, 52)}  {${axes}}\n`);
+    }
   } else {
     const vec = d.currentVector;
     process.stdout.write(`Build Doctrine v${d.version} · ratified=${d.ratified}\naxes: ${d.axes.map((a) => a.id + '=' + a.name).join(', ')}\nvector: ${JSON.stringify(vec)}\nunder-served (empty coverage): ${JSON.stringify(underServedAxes({}, { doctrine: d }).map((u) => u.axis + '(' + u.deficit + ')'))}\n`);

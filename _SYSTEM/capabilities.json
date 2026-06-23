@@ -716,6 +716,7 @@
         "weightOf",
         "blend",
         "shouldAutoExec",
+        "rankByDirection",
         "TYPE_AXIS_HINTS",
         "DOCTRINE_PATH"
       ],
