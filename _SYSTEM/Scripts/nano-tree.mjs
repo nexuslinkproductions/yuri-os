@@ -24,7 +24,7 @@ import { inspectLeases, acquireOrWait, releaseLease } from './nano-lease.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const TREES_DIR = process.env.YURI_NANO_TREES_DIR || path.join(REPO_ROOT, '_SYSTEM/state/nano/trees');
-export const DEFAULTS = { budget: 64, f0: 4, decay: 0.5, heavyDepth: 5, lightDepth: 10, heavyParamsB: 200 };
+export const DEFAULTS = { budget: 64, f0: 4, decay: 0.5, heavyDepth: 5, lightDepth: 10, heavyParamsB: 200, treeTimeoutMs: 30 * 60 * 1000 };
 const ROOT_PATH = 'r';
 
 // ── PATH IDENTITY (lineage decodes from the string — no parent-pointer store) ──────────────────────
@@ -86,9 +86,9 @@ function appendLine(file, obj) {
 }
 
 /** Initialize a tree: write meta (bounds) + record the root spawn. Idempotent-ish (re-init re-records meta). */
-export function initTree(rootRunId, { budget = DEFAULTS.budget, f0 = DEFAULTS.f0, decay = DEFAULTS.decay, heavyDepth, lightDepth } = {}) {
+export function initTree(rootRunId, { budget = DEFAULTS.budget, f0 = DEFAULTS.f0, decay = DEFAULTS.decay, heavyDepth, lightDepth, treeTimeoutMs } = {}) {
   mkdirSync(treeDir(rootRunId), { recursive: true });
-  const cfg = { rootRunId, budget, f0, decay, heavyDepth: heavyDepth ?? DEFAULTS.heavyDepth, lightDepth: lightDepth ?? DEFAULTS.lightDepth, createdAt: new Date().toISOString() };
+  const cfg = { rootRunId, budget, f0, decay, heavyDepth: heavyDepth ?? DEFAULTS.heavyDepth, lightDepth: lightDepth ?? DEFAULTS.lightDepth, treeTimeoutMs: treeTimeoutMs ?? DEFAULTS.treeTimeoutMs, createdAt: new Date().toISOString() };
   atomicWriteFile(metaPath(rootRunId), `${JSON.stringify(cfg, null, 2)}\n`);
   if (nodeCount(rootRunId) === 0) recordSpawn(rootRunId, { path: ROOT_PATH, lane: 'root', depth: 0 });
   return { rootRunId, rootPath: ROOT_PATH, ...cfg };
@@ -134,9 +134,10 @@ export function nodeCount(rootRunId) {
  * Each granted spec is assigned a path (mintPath under parentPath) and written to the manifest.
  * Returns { granted:[{...spec, path, depth}], rejected:[...spec], used, budget }.
  */
-export async function reserveSpawnSlots(rootRunId, childSpecs = [], spawnerId, { parentPath = ROOT_PATH, maxWaitMs = 5000 } = {}) {
-  const cfg = treeConfig(rootRunId);
-  const lease = await acquireOrWait(`treebudget:${rootRunId}`, spawnerId || `spawner-${process.pid}`, { maxWaitMs });
+export async function reserveSpawnSlots(rootRunId, childSpecs = [], spawnerId, { parentPath = ROOT_PATH, maxWaitMs } = {}) {
+  const cfg = treeConfig(rootRunId) || {};
+  const maxWaitResolved = maxWaitMs ?? (cfg.budgetLeaseMaxWaitMs ?? 15000);
+  const lease = await acquireOrWait(`treebudget:${rootRunId}`, spawnerId || `spawner-${process.pid}`, { maxWaitMs: maxWaitResolved });
   if (!lease.ok) return { granted: [], rejected: childSpecs.slice(), used: nodeCount(rootRunId), budget: cfg.budget, reason: 'budget-lease-timeout' };
   try {
     const used = nodeCount(rootRunId);

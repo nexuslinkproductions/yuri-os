@@ -45,8 +45,10 @@ export function spawnArmed() {
 // — the dominated-safe tier (mislabel-light-as-heavy only restricts depth; the reverse loosens the
 // sim-validated bound). Add a real number ONLY with evidence, and only after confirming it doesn't flip the
 // tier across the 200B line. Pinned by a by-name regression test in nano-spawn.test.mjs.
+// glm-5.2:cloud (succeeds the retired glm-5.1:cloud, 2026-06-16) carries NO entry: its trained-param
+// count is unevidenced → routes via the unknown→heavy default (dominated-safe; a frontier GLM is >200B).
 export const LANE_PARAMS_B = {
-  'nemotron-3-ultra': 550, 'glm-5.1': 744, 'kimi-k2.7-code': 1000, 'deepseek-v4-pro': 671,
+  'nemotron-3-ultra': 550, 'kimi-k2.7-code': 1000, 'deepseek-v4-pro': 671,
   'gemma4:31b': 31, 'nemotron-3-nano': 30, 'qwen-local': 9, 'gemma-local': 12,
 };
 /** tier for an llm-lane key; frontier/unknown lanes default HEAVY (conservative: lower depth cap). */
@@ -83,6 +85,12 @@ export async function spawnNano({ ctx = {}, args = {}, opts = {} } = {}) {
   try { laneKey = assertLlmLaneRouted(args.lane); } catch (e) { return { spawned: [], rejected: {}, reason: 'bad-lane', detail: String(e?.message || e) }; }
   const want = Math.max(1, Math.floor(Number(args.count) || 1));
   const cfg = D.treeConfig(rootRunId);
+
+  // H3 tree kill-switch: wall-clock guard. Env override YURI_NANO_TREE_TIMEOUT_MS > 0 wins over persisted cfg.
+  const ttMs = Number(process.env.YURI_NANO_TREE_TIMEOUT_MS) > 0 ? Number(process.env.YURI_NANO_TREE_TIMEOUT_MS) : cfg.treeTimeoutMs;
+  if (cfg.createdAt && ttMs && (Date.now() - Date.parse(cfg.createdAt) > ttMs)) {
+    return { spawned: [], rejected: {}, reason: 'tree-timeout', elapsedMs: Date.now() - Date.parse(cfg.createdAt), treeTimeoutMs: ttMs };
+  }
 
   // (1) DEPTH cap by the CHILD lane's tier.
   const tier = tierForLane(laneKey, cfg);
