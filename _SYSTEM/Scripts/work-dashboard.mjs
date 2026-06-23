@@ -13,6 +13,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openLedger, ingestAll, overview } from './work-ledger.mjs';
+import { openPool, rankJobs, jobStats } from './job-pool.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -28,6 +29,7 @@ const PLACEHOLDER = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>MUR
 
 function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
   const db = openLedger();
+  const jdb = openPool(); // jobs table (same work-ledger.db) — opened once, reused per request
   let lastIngest = 0;
   ingestAll(db); // warm once at boot
 
@@ -37,9 +39,10 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
       if (url === '/api/overview') {
         const now = Date.now();
         if (now - lastIngest > INGEST_THROTTLE_MS) { ingestAll(db); lastIngest = now; } // throttled live refresh
-        const body = JSON.stringify(overview(db));
+        const ov = overview(db);
+        try { ov.jobs = rankJobs(jdb).slice(0, 50); ov.jobStats = jobStats(jdb); } catch (e) { ov.jobs = []; ov.jobStats = { error: String(e?.message || e) }; }
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
-        res.end(body);
+        res.end(JSON.stringify(ov));
         return;
       }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }

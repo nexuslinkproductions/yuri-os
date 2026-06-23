@@ -172,6 +172,21 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
 .art-t{color:var(--tx-primary)}
 .art-p{font-family:"SF Mono",monospace;font-size:10px;color:var(--tx-faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:440px}
 
+/* ── job pool ── */
+.joblist{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto;padding-right:4px}
+.job{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:12px 14px;border-radius:10px;
+  background:var(--surf-1);border:1px solid var(--border-subtle);border-left:2px solid var(--jc,var(--c-cyan));box-shadow:inset 0 1px 0 var(--hl-top);transition:transform .14s}
+.job:hover{transform:translateX(2px)}
+.job .jmass{font-family:"SF Mono",monospace;font-size:16px;font-weight:200;color:var(--jc,var(--tx-primary));text-align:center;font-variant-numeric:tabular-nums}
+.job .jmid{min-width:0}
+.job .jt{font-size:14px;color:var(--tx-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job .jmeta{display:flex;gap:7px;margin-top:5px;align-items:center;flex-wrap:wrap}
+.jtag{font-family:"SF Mono",monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--jc) 16%,transparent);color:var(--jc)}
+.jtag.t{background:color-mix(in srgb,var(--tx-muted) 14%,transparent);color:var(--tx-secondary)}
+.jsrc{font-family:"SF Mono",monospace;font-size:9px;color:var(--tx-faint);text-transform:uppercase;letter-spacing:.08em}
+.jsrc.own{color:var(--c-amber)}
+.job .jstate{text-align:right}
+
 /* ── role drawer ── */
 .scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--bg-base) 55%,transparent);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s;z-index:200}
 .scrim.show{opacity:1;pointer-events:auto}
@@ -224,6 +239,11 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
       <div class="panel-h"><div class="pt">Runs</div><div class="pc" id="runsCount">— runs</div></div>
       <div class="runstream" id="runstream"></div>
     </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:18px">
+    <div class="panel-h"><div class="pt">Job pool</div><div class="pc" id="jobCount">— jobs</div></div>
+    <div class="joblist" id="jobList"></div>
   </div>
 
   <div class="lower">
@@ -424,6 +444,28 @@ function animNum(node,from,to,suf){
   requestAnimationFrame(step);
 }
 
+// ── job pool ──
+function renderJobs(d){
+  const jobs=d.jobs||[];const st=d.jobStats||{};
+  const c=document.getElementById('jobCount');
+  c.textContent=`${st.total||jobs.length} jobs · ${st.open||0} open · ${st.done||0} done`+(st.recommended?` · ${st.recommended} recommended`:'');
+  const PC={critical:'var(--c-vermillion)',high:'var(--c-cyan)',medium:'var(--c-amber)',low:'var(--tx-muted)'};
+  const SP={done:'ok',recommended:'run',blocked:'err',active:'run',open:'forced'};
+  const box=document.getElementById('jobList');box.innerHTML="";
+  if(!jobs.length){box.append(H('div','empty','no jobs in the pool'));return}
+  for(const j of jobs){
+    const jc=PC[j.priority]||'var(--c-cyan)';
+    const owner=(j.source==='owner'||j.type==='blender'||j.type==='arm');
+    const row=H('div','job');row.style.setProperty('--jc',jc);
+    row.innerHTML=`<div class="jmass">${j.mass??''}</div>`+
+      `<div class="jmid"><div class="jt">${esc(j.title)}</div><div class="jmeta">`+
+        `<span class="jtag">${esc(j.priority)}</span><span class="jtag t">${esc(j.type)}</span>`+
+        `<span class="jsrc${owner?' own':''}">${owner?'⌂ owner-gated · ':''}${esc(j.source)}</span></div></div>`+
+      `<div class="jstate"><span class="pill ${SP[j.state]||'forced'}"><span class="pd"></span>${esc(j.state)}</span></div>`;
+    box.append(row);
+  }
+}
+
 // ── work products ──
 function renderWP(d){
   const arts=(d.artifacts||[]);
@@ -482,7 +524,7 @@ async function tick(){
     document.getElementById('statustext').textContent=armed?'armed':'disarmed';
     document.getElementById('updated').textContent='updated '+rel(d.company?.generatedAt||new Date().toISOString());
     document.getElementById('rosterCount').textContent=(d.roleCount||(d.roles||[]).length)+' roles · 6 groups';
-    renderKpis(d);buildStar(d);renderRuns(d);renderInsights(d);renderWP(d);
+    renderKpis(d);buildStar(d);renderRuns(d);renderJobs(d);renderInsights(d);renderWP(d);
     document.title='NEXUS LINK — '+(d.kpis?.totalRuns||0)+' runs';
   }catch(e){document.getElementById('updated').textContent='connection lost — retrying';}
 }

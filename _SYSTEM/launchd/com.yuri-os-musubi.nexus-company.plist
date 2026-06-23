@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  NEXUS LINK autonomous company beat — DISARMED TEMPLATE (not installed).
+
+  This file lives in the repo as a template ONLY. It does NOTHING until the owner installs it:
+      cp _SYSTEM/launchd/com.yuri-os-musubi.nexus-company.plist ~/Library/LaunchAgents/
+      launchctl load ~/Library/LaunchAgents/com.yuri-os-musubi.nexus-company.plist
+
+  TWO independent owner-gated arms are required for any autonomous action:
+    1. Installing this plist (above) — the BEAT.
+    2. The runner flag: touch _SYSTEM/state/company.enabled — the EXECUTE switch.
+  With the beat installed but the flag absent, each cycle only PLANS + RECOMMENDS (zero spend, zero mutation).
+  Kill-switch (dominates both): touch _SYSTEM/state/company.halt   ·   uninstall: launchctl unload + rm.
+
+  Even ARMED, the runner NEVER commits/pushes (finalize stays owner), holds owner-gated/blender/arm jobs,
+  and is budget-capped (<=3 jobs/cycle). It dispatches the GLM substrate + deterministic work only — no
+  headless `claude` session (forbidden launch shape); native-Agent jobs are planned for an Opus session.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.yuri-os-musubi.nexus-company</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nexus-company.mjs</string>
+    <string>--cycle</string>
+    <string>--max</string>
+    <string>2</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key><string>/Users/marcelspatz</string>
+    <key>YURI_ROOT</key><string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Hour</key><integer>15</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>StandardOutPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/daemon.log</string>
+  <key>StandardErrorPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/daemon.log</string>
+  <key>RunAtLoad</key><false/>
+</dict>
+</plist>

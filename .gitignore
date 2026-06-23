@@ -149,6 +149,10 @@ _SYSTEM/state/nanoswarm-spawn.enabled
 _SYSTEM/state/glm-fleet.enabled
 _SYSTEM/state/swarm-convergence.enabled
 _SYSTEM/state/mure.enabled
+_SYSTEM/state/company.enabled
+_SYSTEM/state/company.halt
+_SYSTEM/state/company-reports/
+_SYSTEM/mure/dashboard-reports/
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/memory-proposals.jsonl
 _SYSTEM/state/memory-proposal-decisions.jsonl
