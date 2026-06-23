@@ -1,6 +1,6 @@
 ---
 name: opus-fleet
-description: "Standing operating model — Opus (and its glm-5.2 Opus-equivalent) orchestrates while spawned workers do the work across two substrates: native Sonnet/Haiku Agents AND z.ai GLM lanes (glm-fleet.mjs), ALWAYS at max reasoning / --reasoning high, then the orchestrator reviews, corrects, and finalizes. Ships copy-paste dispatch templates, the GLM tier roster, dual-substrate routing, the governed autonomous loop, and Agent-not-Workflow discipline. Use to start or run this model on any non-trivial build, research, multi-file edit, audit, refactor, or fan-out task."
+description: "Standing operating model — Opus (and its glm-5.2 Opus-equivalent) orchestrates while spawned workers do the work across three substrates: native Sonnet/Haiku Agents, z.ai GLM lanes (glm-fleet.mjs), AND ollama-cloud peer lanes (ollama-fleet.mjs), ALWAYS at max reasoning / --reasoning high, then the orchestrator reviews, corrects, and finalizes. Ships copy-paste dispatch templates, the GLM tier roster, dual-substrate routing, the governed autonomous loop, and Agent-not-Workflow discipline. Use to start or run this model on any non-trivial build, research, multi-file edit, audit, refactor, or fan-out task."
 invocation: user
 version: 1.1.0
 status: active
@@ -156,21 +156,40 @@ YURI_GLM_FLEET=1 node _SYSTEM/Scripts/glm-fleet.mjs --tasks '[{"lane":"glm-max",
 # results land in .claude/jobs/<run>/results/<label>.json   ·   dry-run plan: drop YURI_GLM_FLEET or add --dry-run
 ```
 
-## Dual-substrate routing — two equal build fleets
+## ollama-cloud fleet — the third substrate
 
-NOT a capability tier. Both fleets have the SAME powers — read, write, edit, bash, design, code, test, self-verify. GLM is a peer extension of Claude Code, not an advisory or read-only lane. Route by operational fit, then spread work across BOTH for max throughput on independent quotas:
+The third peer fleet: **ollama-cloud lanes** dispatched through `_SYSTEM/Scripts/ollama-fleet.mjs` — cross-family models (not Claude, not GLM) carrying the full YURI operator harness via `llm-lane.mjs`, so they build, code, write, and self-verify like any other lane. ONE base `ollama-cloud` lane fans out across the roster by `--model <X>:cloud`; the ollama Pro plan allows **3 concurrent**. It bills the ollama plan (independent of both the Anthropic and z.ai quotas) and is the **cheapest bulk fan-out** — reach for it to spread wide, cheap, parallel work.
 
-| factor | native Claude Agents | z.ai GLM lanes |
-|---|---|---|
-| build powers | read · write · edit · bash · test | read · write · edit · bash · test (identical) |
-| quota pool | Claude / Sonnet weekly | z.ai plan (independent → run both at once for ~2× throughput) |
-| recursion | FLAT (leaf-only) | recursive via `nano-spawn`, depth ≤ 5 |
-| max context | per-model | `glm-5.2` = 1M |
-| reasoning / coding / design tier | Opus / Sonnet / Haiku | `glm-5.2` (Opus-peer) / `glm-4.7` / `glm-flash` |
-| native MCP / browser / computer-use | yes | no (repo tools only) |
-| finalize (commit / push) | no — orchestrator only | no — orchestrator only (same gate, NOT a GLM limit) |
+Roster (tier → model), all at `--reasoning high`:
+- `flash` → `deepseek-v4-flash:cloud` — **default bulk**, best quality-per-usage, blast freely
+- `minimax` → `minimax-m3:cloud` · `kimi` → `kimi-k2.7-code:cloud` — the efficient working trio
+- `nemotron` → `nemotron-3-ultra:cloud` (heavy reasoning) · `deepseek-pro` → `deepseek-v4-pro:cloud` (true-1M input; ~2× usage — avoid for bulk) · `gemma` → `gemma4:31b-cloud`
 
-The only hard native-only needs are MCP tools, browser, and computer-use. Everything else — designing, coding, refactoring, writing, running tests — either fleet does equally. Default to spreading a large build across both: native lanes on the Anthropic quota, GLM lanes on the z.ai quota, in parallel. `glm-max` is a first-class orchestrator and red-teamer, not just a reviewer.
+DISARMED by default → **dry-run** (prints the plan, spends nothing). Arm (owner-gated) via EITHER `YURI_OLLAMA_FLEET=1` OR `touch _SYSTEM/state/ollama-fleet.enabled` (gitignored, reversible by `rm`). `ollama-fleet.mjs --list` shows the arm state + roster.
+
+```bash
+# 3-model peer fan-out (needs YURI_OLLAMA_FLEET=1, else dry-run)
+YURI_OLLAMA_FLEET=1 node _SYSTEM/Scripts/ollama-fleet.mjs --tasks '[{"tier":"flash","label":"R1","prompt":"..."},{"tier":"kimi","label":"R2","prompt":"..."}]' --concurrency 3
+# results → .claude/jobs/<run>/results/<label>.json   ·   live smoke: --smoke   ·   dry-run: drop the env / add --dry-run
+```
+
+The key hydrates from the macOS keychain at the LANE layer (`models.json` `keychain_service: YURI_OS_MUSUBI:OLLAMA_API_KEY`), so a spawned lane authenticates without the `ai` wrapper or an exported `OLLAMA_API_KEY` (root-cause fix 2026-06-23 — every caller benefits, not just the wrapper).
+
+## Multi-substrate routing — three equal build fleets
+
+NOT a capability tier. All three fleets have the SAME powers — read, write, edit, bash, design, code, test, self-verify. GLM and ollama-cloud are peer extensions of Claude Code, never advisory or read-only. Route by operational fit, then spread work across ALL THREE for max throughput on independent quotas:
+
+| factor | native Claude Agents | z.ai GLM lanes | ollama-cloud lanes |
+|---|---|---|---|
+| build powers | read · write · edit · bash · test | identical | identical |
+| quota pool | Claude / Sonnet weekly | z.ai plan | ollama Pro (independent — run all three at once) |
+| recursion | FLAT (leaf-only) | recursive via `nano-spawn`, depth ≤ 5 | FLAT (peer fan-out, 3 concurrent) |
+| max context | per-model | `glm-5.2` = 1M | 1M input (deepseek-v4 family) |
+| reasoning / coding tier | Opus / Sonnet / Haiku | `glm-5.2` / `glm-4.7` / `glm-flash` | nemotron / minimax / kimi / deepseek-v4 |
+| native MCP / browser / computer-use | yes | no | no |
+| finalize (commit / push) | no — orchestrator only | no — orchestrator only | no — orchestrator only |
+
+The only hard native-only needs are MCP tools, browser, and computer-use. Everything else either fleet does equally. Default to spreading a large build across all three on their independent quotas, in parallel: native (Anthropic), GLM (z.ai), ollama-cloud (ollama Pro) — three quota pools = up to ~3× throughput. `glm-max` is a first-class orchestrator/red-teamer; the ollama lane is the cheap bulk muscle (`deepseek-v4-flash` for breadth, `deepseek-v4-pro` reserved for true-1M / hardest jobs).
 
 ## Spawning a sub-orchestrator (Opus-equivalent fan-out)
 
@@ -209,3 +228,4 @@ node _SYSTEM/mure/company.mjs --task-file t.json   # cast a real task; armed (YU
 
 - **2026-06-22 (v1.0.0, created):** Built via the model itself — Sonnet research lane (overlap audit + discoverability mechanics: byte-0 frontmatter, `skill-recall` ranks `description` not `triggers`, `skill-sync --sync` publishes `skills/`→`.claude/skills/`), Opus synthesized + registered, Haiku testing lane verified discoverability. Corrections caught this session: Haiku WARN/BLOCK misguess (→ verify-agent-output rule), research found an ENOENT solo missed. Tools: Agent (Explore/sonnet, general-purpose/haiku), Write, Edit, Bash, skill-sync, skill-recall. Errors: none on build. Registered in `skills/domain-index.json` → `01-agent-assembly`; alias `commands/opus-fleet.md`.
 - **2026-06-22 (v1.1.0, dual-substrate):** Added the z.ai GLM fleet as the second substrate. Built `_SYSTEM/Scripts/glm-fleet.mjs` (parallel GLM dispatcher on `lane-dispatch.mjs` retry + semaphore, DISARMED dry-run default, `@capability: glm-fleet-dispatch`, `FLEET_PROTOCOL_PREAMBLE` for sub-orchestrators). Wired GLM tier roster into `models.json` (+glm-4.7-flash/flashx, glm-4.6v, glm-ocr) + `llm-lane.mjs` aliases (glm-max=5.2, glm=4.7, glm-flash→4.7-flash remapped off 4.5-air, glm-sub-orch=5.1, glm-vision=4.6v, glm-ocr). Added 5 sections (GLM fleet, dual-substrate routing, sub-orchestrator injection, governed autonomous loop, roles seam) + 4 hard rules + 3 anti-rat rows. GLM reasoning ceiling = `high`. Verified: models.json valid, `glm-flash`→`glm-4.7-flash` resolves, `glm-fleet --list`/`--smoke --dry-run` clean. Built by Opus directly (integration-critical); research via 3 Sonnet Explore lanes (zai internals, governance inventory, online GLM benchmarks) + 1 Sonnet Plan lane (build design); HTML viz approved pre-build. Arming the loop stays owner-gated.
+- **2026-06-23 (v1.2.0, third substrate):** Added the **ollama-cloud peer fleet** — `_SYSTEM/Scripts/ollama-fleet.mjs` (mirrors glm-fleet on `lane-dispatch.mjs` retry + semaphore; ONE base `ollama-cloud` lane + `--model <X>:cloud`; roster tiers flash/minimax/kimi/nemotron/deepseek-pro/gemma; DISARMED dry-run default; `@capability: ollama-fleet-dispatch`) + `ollama-fleet.test.mjs` (9/9 red/grey/green). Root-cause RELIABILITY fix: the 3 ollama-cloud lanes in `models.json` lacked `keychain_service`, so `llm-lane.mjs` keychain hydration was skipped for any non-`ai`-wrapper caller → `missing_key`; added `keychain_service: YURI_OS_MUSUBI:OLLAMA_API_KEY` to all 3 (lane-layer fix → every caller benefits). Verified: armed 3-model LIVE smoke (flash 2s + minimax 9s + kimi 33s, all ok, key UNSET → keychain hydrated end-to-end at concurrency 3). Sections added: "ollama-cloud fleet" + "Multi-substrate routing" (dual→triple). Built by Opus directly. Arming stays owner-gated (flag NOT created; smoke via transient env only). Tools: Bash, Read, Edit, Write, capability-scan, llm-lane, keychain probes.
