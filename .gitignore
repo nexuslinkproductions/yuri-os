@@ -147,6 +147,7 @@ _SYSTEM/state/memory-canonical/
 _SYSTEM/state/memory-canonical-backup/
 _SYSTEM/state/nanoswarm-spawn.enabled
 _SYSTEM/state/glm-fleet.enabled
+_SYSTEM/state/ollama-fleet.enabled
 _SYSTEM/state/swarm-convergence.enabled
 _SYSTEM/state/mure.enabled
 _SYSTEM/state/company.enabled
