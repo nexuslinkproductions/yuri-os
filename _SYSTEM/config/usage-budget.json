@@ -1,0 +1,16 @@
+{
+  "_doc": "Claude MAX 20x usage ceilings for usage-governor.mjs pace/throttle. USAGE-not-cost (flat-usage plan, no $). Values are WEIGHTED tokens = input + output + cacheCreate + 0.1*cacheRead, matching usage-governor.weightedTokens. Only the 4 *Tokens keys are read by loadBudget(); the _* keys are documentation and are ignored.",
+  "_pool_model": "MAIN = every Claude model EXCEPT Sonnet (Opus + Haiku + ...), one shared weekly + one 5-hour limit. SONNET = the only excluded model, its OWN separate weekly (owner-confirmed from his /usage screen, 2026-06-23). 'other' (GLM/non-Claude) is not Claude quota.",
+  "_anthropic_exact_numbers": "DUG DEEP 2026-06-23 across primary sources (support.claude.com Max-plan + Claude-Code-limits + usage-and-length-limits articles, anthropic.com news). VERDICT: Anthropic NO LONGER publishes concrete token/hour/message ceilings for Max 20x. Official docs give ONLY the relative '20x Pro usage per session' multiplier + the dual-weekly + 5h-rolling structure. The only concrete figures that ever existed are the now-STALE July-28-2025 launch ESTIMATES (Max 20x: 240-480 Sonnet hrs/wk + 24-40 Opus hrs/wk; ~900 msgs per 5h window). May-6-2026 change: 5-hour limits DOUBLED (Pro/Max/Team/Ent), peak-hour throttle REMOVED, WEEKLY caps UNCHANGED. Hours/messages do not map to a fixed token count (varies by context/model/cache), which is why no token number is publishable.",
+  "_calibration_status": "PROVISIONAL - seeded from the heaviest observed week measured by usage-governor (MAIN ~1.78B wk / ~76.8M per 5h; SONNET ~52M wk). SNAP-TO-EXACT: run /usage in Claude Code, read the % for each bucket, then true_ceiling = (governor measured weighted tokens for that same window) / (that %). One reading per bucket calibrates each value exactly. The % is NOT locally readable (not in transcripts, not cached under ~/.claude) - only the owner's /usage screen has it.",
+  "mainWeeklyTokens": 2000000000,
+  "main5hTokens": 90000000,
+  "sonnetWeeklyTokens": 2000000000,
+  "sonnet5hTokens": 100000000,
+  "_provisional_basis": {
+    "mainWeeklyTokens": "~1.78B measured at marathon pace + ~12% headroom -> marathon week reads ~89% (HOLD/near-wall, honest). If a marathon week never hit the weekly wall the true ceiling is higher; snap via /usage.",
+    "main5hTokens": "~76.8M heaviest observed 5h (already post-May-2026-doubling) + headroom.",
+    "sonnetWeeklyTokens": "Sonnet sits on a SEPARATE large pool, only ~52M used -> reads ~3% = scale UP (matches the more-Sonnet directive). Historically Sonnet hrs >> Opus hrs (240-480 vs 24-40), so 2B is CONSERVATIVE; real ceiling likely higher.",
+    "sonnet5hTokens": "headroom over the ~2.9M observed heaviest Sonnet 5h."
+  }
+}
