@@ -3756,22 +3756,27 @@
     {
       "id": "usage-governor",
       "serves": [
-        "weekly token budget",
-        "claude usage reporting",
+        "weekly usage tracking",
+        "claude max subscription usage",
         "fan-out throttle signal",
         "quota governor",
-        "per-tier usage"
+        "per-tier token usage",
+        "how much usage left",
+        "pace the week"
       ],
-      "does": "reads Claude Code transcripts, aggregates per-tier weekly token usage, computes cost via token-ledger, emits pace+throttle advisory",
-      "use": "import { weeklyUsage, scanTranscripts, tierOf, paceSignal, loadBudget } when you need weekly quota awareness before spawning agents",
+      "does": "reads Claude Code transcripts READ-ONLY and aggregates weekly TOKEN USAGE per model tier + per quota POOL (Opus on its own / Standard = Sonnet+Haiku combined — how MAX weekly limits actually split), then emits a pace + throttle advisory vs a configured weekly USAGE budget. USAGE-not-COST by design: MAX is a flat 20x USAGE subscription, NOT pay-per-token — token usage is the quota signal, there is NO dollar figure. Self-contained (no cost-ledger dependency).",
+      "use": "import { weeklyUsage, scanTranscripts, tierOf, poolOf, paceSignal, loadBudget } for quota awareness before scaling fan-out. CLI: node usage-governor.mjs [--json]. Calibrate _SYSTEM/config/usage-budget.json with the weekly token ceilings you observe.",
       "exports": [
         "tierOf",
+        "poolOf",
+        "weightedTokens",
         "scanTranscripts",
+        "aggregateRows",
         "weeklyUsage",
         "loadBudget",
         "paceSignal",
-        "aggregateRows",
-        "DEFAULT_BUDGET"
+        "DEFAULT_BUDGET",
+        "POOLS"
       ],
       "mechanism": "_SYSTEM/Scripts/usage-governor.mjs"
     },
