@@ -208,13 +208,16 @@ export function overview(db) {
     id: r.id, kind: r.kind, summary: r.summary, status: r.status, started: r.started, finished: r.finished,
     rounds: r.rounds, leafCount: r.leaf_count, roles: JSON.parse(r.roles || '[]'), finalizeOk: !!r.finalize_ok,
   }));
-  const artifacts = db.prepare('SELECT * FROM artifacts ORDER BY created DESC LIMIT 200').all().map((a) => ({
+  // Recent list for the table (bounded for payload size); the dashboard renders the most recent of these.
+  const artifacts = db.prepare('SELECT * FROM artifacts ORDER BY created DESC LIMIT 500').all().map((a) => ({
     id: a.id, kind: a.kind, title: a.title, path: a.path, run: a.run, role: a.role,
     created: a.created, tags: JSON.parse(a.tags || '[]'), status: a.status, bytes: a.bytes,
   }));
-  const byKind = {}; for (const a of artifacts) byKind[a.kind] = (byKind[a.kind] || 0) + 1;
-  const byGroup = {}; for (const a of artifacts) { const g = a.role ? groupOf[a.role] : null; if (g) byGroup[g] = (byGroup[g] || 0) + 1; }
-  const throughMap = {}; for (const a of artifacts) { const d = (a.created || '').slice(0, 10); if (d) throughMap[d] = (throughMap[d] || 0) + 1; }
+  // Counts / bars / throughput aggregate over the FULL artifacts table (not the capped recent list) so the
+  // panel reflects everything, not just the last N. (Fix: the 200-cap made counts wrong vs totalArtifacts.)
+  const byKind = {}; for (const a of db.prepare("SELECT COALESCE(kind,'file') k, COUNT(*) c FROM artifacts GROUP BY k").all()) byKind[a.k] = a.c;
+  const byGroup = {}; for (const [rid, c] of Object.entries(artRoleCounts)) { const g = groupOf[rid]; if (g) byGroup[g] = (byGroup[g] || 0) + c; }
+  const throughMap = {}; for (const a of db.prepare("SELECT substr(created,1,10) d, COUNT(*) c FROM artifacts WHERE created IS NOT NULL GROUP BY d").all()) throughMap[a.d] = a.c;
   const throughput = Object.entries(throughMap).sort().slice(-21).map(([date, count]) => ({ date, count }));
   const today = nowIso().slice(0, 10);
 
@@ -229,7 +232,7 @@ export function overview(db) {
     kpis: {
       totalRuns, totalArtifacts, activeRuns,
       rolesActive: roles.filter((r) => r.status === 'active').length,
-      artifactsToday: artifacts.filter((a) => (a.created || '').slice(0, 10) === today).length,
+      artifactsToday: db.prepare('SELECT COUNT(*) c FROM artifacts WHERE substr(created,1,10)=?').get(today).c,
       convergenceRate: totalRuns ? +(convergedRuns / totalRuns).toFixed(2) : 0,
     },
     roles, groups: ['orchestration', 'research', 'engineering', 'verification', 'knowledge', 'operations'],

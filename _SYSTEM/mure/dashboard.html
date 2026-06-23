@@ -323,7 +323,11 @@ function reconcile(box,items,keyOf,create,update){
   const prev=new Map(); for(const ch of Array.from(box.children)) prev.set(ch.dataset.k,ch);
   const seen=new Set();
   items.forEach((it,i)=>{ const k=String(keyOf(it,i)); seen.add(k);
-    let n=prev.get(k); if(!n){ n=create(it,i); n.dataset.k=k; } update(n,it,i); box.appendChild(n); }); // appendChild re-orders without rebuilding
+    let n=prev.get(k); const isNew=!n; if(isNew){ n=create(it,i); n.dataset.k=k; } update(n,it,i);
+    // Position-aware: only MOVE a node when it's actually out of order. Re-inserting an in-DOM node restarts its
+    // CSS animation (the runs' viewIn) → moving every node every tick = the "reload" flicker. Don't move unchanged.
+    const ref=box.children[i]; if(ref!==n) box.insertBefore(n,ref||null);
+  });
   for(const [k,n] of prev) if(!seen.has(k)) n.remove();
 }
 const setText=(n,t)=>{ if(!n)return; t=String(t==null?"":t); if(n.textContent!==t)n.textContent=t; };
@@ -510,14 +514,15 @@ function renderJobs(d){
 // ── work products ──
 function renderWP(d){
   const arts=(d.artifacts||[]);
-  setText(document.getElementById('wpCount'),arts.length+' items');
-  const counts={};arts.forEach(a=>counts[a.kind]=(counts[a.kind]||0)+1);
-  const filters=[['all','all',arts.length],...Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,k,n])];
+  const byKind=(d.stats&&d.stats.byKind)||{};                         // FULL-table per-kind counts (not capped)
+  const total=(d.kpis&&d.kpis.totalArtifacts!=null)?d.kpis.totalArtifacts:arts.length;
+  setText(document.getElementById('wpCount'),total+' items'+(arts.length<total?` · ${arts.length} recent`:''));
+  const filters=[['all','all',total],...Object.entries(byKind).sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,k,n])];
   reconcile(document.getElementById('kindFilters'),filters,f=>f[0],
     ()=>H('div','fchip'),
     (c,f)=>{ c.classList.toggle('on',kindFilter===f[0]); c.innerHTML=esc(f[1])+(f[2]!=null?`<span class="n">${f[2]}</span>`:''); c.onclick=()=>{kindFilter=f[0];renderWP(DATA);}; });
   const body=document.getElementById('wpBody');
-  const rows=arts.filter(a=>kindFilter==='all'||a.kind===kindFilter).slice(0,120);
+  const rows=arts.filter(a=>kindFilter==='all'||a.kind===kindFilter).slice(0,200);
   if(!rows.length){ body.replaceChildren(); const tr=document.createElement('tr');tr.innerHTML='<td colspan="4" style="text-align:center;color:var(--tx-faint);padding:24px">no items</td>';body.append(tr);return; }
   reconcile(body,rows,a=>a.path||a.title,
     ()=>document.createElement('tr'),
