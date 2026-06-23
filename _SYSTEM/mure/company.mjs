@@ -15,7 +15,7 @@ import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, getRol
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
-import { spawn } from 'node:child_process';
+import { spawnNativeLoop } from './native-spawn-loop.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -130,97 +130,23 @@ export function planCompany(task = {}, opts = {}) {
 }
 
 /**
- * Dispatch native-lane specs to runSwarm's shared results directory. Each native lane runs via
- * lane-dispatch.mjs (same retry wrapper GLM uses) and writes a packet to runDir/results/native-{id}.json
- * in the substrate-agnostic packet schema aggregatePoolOutputs already reads.
+ * Dispatch native-lane specs to the shared results directory via the Opus-top native spawn loop.
  *
- * DISARMED-safe: only executes when MURE is armed; otherwise returns an empty nativeResults map.
+ * Native Claude Agents are ONLY spawnable via the Agent tool from an Opus session, NOT via
+ * lane-dispatch/llm-lane (which only supports cloud lanes). This function delegates to
+ * native-spawn-loop.mjs, which defines the Opus-side execution seam.
+ *
+ * In a GLM-side run (no Opus session), native agents are stubbed/disarmed — the run completes
+ * with dry-run packets and a 'disarmed' status. In an Opus-side run, the stub is replaced with
+ * actual Agent tool calls.
+ *
+ * DISARMED-safe: only spawns when MURE is armed; otherwise returns dry-run packets.
  * @param {Array<{id,role,model,prompt}>} nativeSpecs - specs from planCompany
  * @param {string} runDir - absolute path to the results directory (shared with GLM leaves)
  * @returns {Promise<{ pool: { [leafId: string]: {...} }, skipped: Array<{file,error}> }>}
  */
 export async function dispatchNative(nativeSpecs = [], runDir = '') {
-  const pool = {};
-  const skipped = [];
-  if (!Array.isArray(nativeSpecs) || nativeSpecs.length === 0) {
-    return { pool, skipped: [{ file: '(none)', error: 'no native specs' }] };
-  }
-  if (!runDir || !fs.existsSync(runDir)) {
-    return { pool, skipped: [{ file: runDir, error: 'runDir does not exist' }] };
-  }
-
-  const LANE_DISPATCH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'lane-dispatch.mjs');
-
-  for (const spec of nativeSpecs) {
-    const id = spec.id || spec.role || 'native';
-    const outFile = path.join(runDir, `native-${id}.out`);
-    const jsonFile = path.join(runDir, `native-${id}.json`);
-    const lane = spec.model || 'sonnet';  // native lane key (opus/sonnet/haiku)
-
-    try {
-      // Dispatch via lane-dispatch (same retry wrapper GLM uses)
-      await new Promise((resolve, reject) => {
-        const child = spawn('node', [LANE_DISPATCH, lane, String(spec.prompt || ''), '--out', outFile, '--reasoning', 'high'], {
-          cwd: REPO_ROOT,
-          encoding: 'utf8',
-        });
-        let out = '';
-        let err = '';
-        const timeout = setTimeout(() => {
-          try { child.kill('SIGKILL'); } catch { /* */ }
-          reject(new Error('native dispatch timeout'));
-        }, 300000); // 5 min per native leaf
-        child.stdout.on('data', (d) => { out += d; });
-        child.stderr.on('data', (d) => { err += d; });
-        child.on('close', (code) => {
-          clearTimeout(timeout);
-          if (code === 0 && fs.existsSync(outFile) && fs.statSync(outFile).size > 0) {
-            resolve();
-          } else {
-            reject(new Error(`lane-dispatch failed: code=${code}, err=${err}`));
-          }
-        });
-        child.on('error', (e) => {
-          clearTimeout(timeout);
-          reject(e);
-        });
-      });
-
-      // Read the output and write the substrate-agnostic packet
-      const text = fs.readFileSync(outFile, 'utf8');
-      const resultLabel = extractResultLabel(text) || '';
-      const packet = {
-        laneId: lane,
-        role: id,  // leafId for convergence
-        task: spec.prompt,
-        resultLabel,
-        evidence: '',
-        status: resultLabel ? 'ok' : 'fail',
-        text,
-        durationMs: Date.now() - Date.now(), // coarse; not critical
-        runId: path.basename(path.dirname(runDir)),
-        traceId: 'native-dispatch',
-        spanId: id,
-      };
-
-      if (validatePacket(packet)) {
-        fs.writeFileSync(jsonFile, JSON.stringify(packet, null, 2));
-        pool[id] = {
-          label: resultLabel,
-          text,
-          status: packet.status,
-        };
-      } else {
-        packet.status = 'malformed';
-        fs.writeFileSync(jsonFile, JSON.stringify(packet, null, 2));
-        skipped.push({ file: jsonFile, error: 'packet validation failed' });
-      }
-    } catch (e) {
-      skipped.push({ file: jsonFile, error: String(e?.message || e) });
-    }
-  }
-
-  return { pool, skipped };
+  return spawnNativeLoop(nativeSpecs, runDir);
 }
 
 /**

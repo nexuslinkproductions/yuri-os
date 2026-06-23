@@ -77,17 +77,17 @@ owner input
 [envoy]   decode brain-dump → spec / goal tree (Haki: rank intents, surface hidden constraint)
   │
   ▼
-[helmsman]  decompose → sub-tasks → capability-match roles → build runSwarm leaves
+[helmsman]  decompose → sub-tasks → capability-match roles → build runSwarm leaves + native specs
   │                              │
   │                     [steward]  6-gate each decision
   │                              ├─ SELF-GOVERNABLE → execute
   │                              └─ OWNER-GATED     → finished ruling + hold packet
   ▼
-DISPATCH (dual substrate)
-  ├─ native lanes → Opus orchestrates Agent(sonnet/haiku)  [writes, tools, commit discipline]
-  └─ glm lanes   → runSwarm → glmFleet (z.ai)              [breadth, 1M ctx, zero-Anthropic-spend]
+DISPATCH (dual substrate, unified blackboard)
+  ├─ native lanes → spawnNativeLoop (Opus Agent tool) → .claude/jobs/<run>/results/native-*.json
+  └─ glm lanes   → runSwarm → glmFleet → .claude/jobs/<run>/results/*.json
   │
-  ▼  typed result packets → .claude/jobs/<run>/results/*.json   (BLACKBOARD)
+  ▼  typed result packets (shared schema) → .claude/jobs/<run>/results/*.json   (BLACKBOARD)
   │
   ▼
 [adjudicator]  adversarial critic — independent of ideator/engineer/mechanic/synthesist
@@ -202,7 +202,7 @@ node _SYSTEM/mure/mure.mjs --status
 ### Programmatic
 
 ```js
-import { runCompany, planCompany, loadRoster, evaluateGovernance, runGoalCycle, MATH_HOOKS }
+import { runCompany, planCompany, loadRoster, evaluateGovernance, runGoalCycle, dispatchNative, MATH_HOOKS }
   from './_SYSTEM/mure/mure.mjs';
 
 // DISARMED plan (dry-run, zero spend — always safe)
@@ -210,9 +210,18 @@ const plan = await planCompany(task);
 
 // armed dispatch (requires MURE armed — owner-gated)
 const result = await runCompany(task);
+// result.nativeResults.pool contains native-lane outputs in the same schema as GLM
 ```
 
 `task` shape: `{ summary, subtasks: [{ id, need: [caps], prompt, blastRadius?, reversible?, ... }], tags? }`.
+
+### Native substrate execution (dual-substrate)
+
+When MURE is armed, `runCompany` dispatches **both substrates**, both writing to the **same `runDir`** in the **same packet schema** (`{laneId,role,resultLabel,text,status}`) — one unified blackboard the convergence gate reads:
+- **GLM leaves**: `runSwarm` → `glmFleet` (z.ai) → `.claude/jobs/<run>/results/*.json`
+- **Native specs**: `dispatchNative` → `spawnNativeLoop` (`native-spawn-loop.mjs`) → `.claude/jobs/<run>/results/native-*.json`
+
+Native Claude Agents are **Agent-tool-only** — a script / GLM-side run cannot spawn them, so `spawnNativeLoop` is a **SEAM**: it writes DISARMED/dry-run **stub** packets, not live results. The REAL native execution is the **Opus session**: it reads `result.nativeSpecs` (role / model / prompt) from `planCompany`/`runCompany`, spawns one `Agent` per spec (`subagent_type` + `model`), and writes the result packets back into the same `runDir` in the shared schema. Packet handling reuses `glm-fleet.mjs`'s `validatePacket` / `extractResultLabel`, so both substrates converge identically.
 
 ### Arming (owner-gated)
 
