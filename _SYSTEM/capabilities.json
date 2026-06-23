@@ -2466,13 +2466,15 @@
         "tackle open work",
         "build reports"
       ],
-      "does": "the autonomous NEXUS LINK company loop — one cycle: rank the job pool (OpenMass) → governance-gate each candidate (MURE 6-gate) → owner-gated/high-blast jobs are HELD (planned, never auto-run) → self-governable jobs are PLANNED (disarmed) or EXECUTED via MURE runCompany (armed) → write a build report → recommend new improvement jobs. DISARMED by default = plan + recommend only (zero spend, zero mutation). ARMED still NEVER auto-commits/pushes (finalize = owner) and obeys a budget cap + kill-switch. The cron beat runs this.",
+      "does": "the autonomous NEXUS LINK company loop — one cycle: rank the job pool (OpenMass × Build-Doctrine direction-fit) → governance-gate each candidate (MURE 6-gate) → owner-gated/high-blast jobs are HELD (planned, never auto-run) → self-governable jobs are PLANNED (disarmed) or EXECUTED via MURE runCompany (armed) → GRADE each executed job against the doctrine axes → write a build report (with a doctrine self-assessment: axis coverage + under-served directions) → recommend new improvement jobs incl. one targeting the most under-served axis. DISARMED by default = plan + recommend only (zero spend, zero mutation). ARMED still NEVER auto-commits/pushes (finalize = owner) and obeys a budget cap + kill-switch. The cron beat runs this.",
       "use": "node nexus-company.mjs [--cycle] [--max 1] [--armed] [--dry-run]. Armed via YURI_COMPANY_ARMED=1 OR flag _SYSTEM/state/company.enabled; halt via _SYSTEM/state/company.halt. Reports → _SYSTEM/state/company-reports/.",
       "exports": [
         "runJobCycle",
         "jobDecision",
         "isCompanyArmed",
         "isHalted",
+        "jobAxes",
+        "gradeJob",
         "ARM_ENV",
         "ARM_FLAG",
         "HALT_FLAG",
