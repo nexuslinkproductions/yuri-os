@@ -13,7 +13,8 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openLedger, ingestAll, overview } from './work-ledger.mjs';
-import { openPool, rankJobs, jobStats } from './job-pool.mjs';
+import { openPool, rankJobs, jobStats, listJobs } from './job-pool.mjs';
+import { loadDoctrine, rankByDirection, underServedAxes, axisCoverage, grade, TYPE_AXIS_HINTS } from '../mure/doctrine.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -40,7 +41,25 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
         const now = Date.now();
         if (now - lastIngest > INGEST_THROTTLE_MS) { ingestAll(db); lastIngest = now; } // throttled live refresh
         const ov = overview(db);
-        try { ov.jobs = rankJobs(jdb).slice(0, 50); ov.jobStats = jobStats(jdb); } catch (e) { ov.jobs = []; ov.jobStats = { error: String(e?.message || e) }; }
+        try {
+          ov.jobStats = jobStats(jdb);
+          let doctrine = null; try { doctrine = loadDoctrine(); } catch { /* doctrine optional */ }
+          const ranked = rankJobs(jdb);
+          ov.jobs = (doctrine ? rankByDirection(ranked, { doctrine }) : ranked).slice(0, 50);
+          if (doctrine) {
+            // coverage = each completed job advanced its primary axis (mirrors nexus-company gradeJob v1)
+            const grades = listJobs(jdb, { state: 'done', limit: 200 }).map((j) => {
+              const ax = (j.fit ? Object.keys(j.fit) : (TYPE_AXIS_HINTS[j.type] || []))[0];
+              return ax ? grade({ axis: ax, verdict: 'advanced', evidence: 'done' }, { doctrine }) : null;
+            }).filter(Boolean);
+            const coverage = axisCoverage(grades, { doctrine });
+            ov.doctrine = {
+              version: doctrine.version, ratified: doctrine.ratified, vector: doctrine.currentVector,
+              axes: doctrine.axes.map((a) => ({ id: a.id, name: a.name })),
+              coverage, underServed: underServedAxes(coverage, { doctrine }),
+            };
+          }
+        } catch (e) { ov.jobs = ov.jobs || []; ov.jobStats = ov.jobStats || { error: String(e?.message || e) }; }
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
         res.end(JSON.stringify(ov));
         return;
