@@ -3758,14 +3758,15 @@
       "serves": [
         "weekly usage tracking",
         "claude max subscription usage",
+        "5-hour burst usage",
         "fan-out throttle signal",
         "quota governor",
-        "per-tier token usage",
+        "per-pool token usage",
         "how much usage left",
         "pace the week"
       ],
-      "does": "reads Claude Code transcripts READ-ONLY and aggregates weekly TOKEN USAGE per model tier + per quota POOL (Opus on its own / Standard = Sonnet+Haiku combined — how MAX weekly limits actually split), then emits a pace + throttle advisory vs a configured weekly USAGE budget. USAGE-not-COST by design: MAX is a flat 20x USAGE subscription, NOT pay-per-token — token usage is the quota signal, there is NO dollar figure. Self-contained (no cost-ledger dependency).",
-      "use": "import { weeklyUsage, scanTranscripts, tierOf, poolOf, paceSignal, loadBudget } for quota awareness before scaling fan-out. CLI: node usage-governor.mjs [--json]. Calibrate _SYSTEM/config/usage-budget.json with the weekly token ceilings you observe.",
+      "does": "reads Claude Code transcripts READ-ONLY and aggregates TOKEN USAGE per Claude MAX quota POOL over BOTH the weekly and the 5-hour window, then emits an advisory throttle vs a configured budget. THE MAX 20x MODEL: ALL Anthropic models EXCEPT Sonnet share ONE 'main' pool (a weekly limit + a 5-hour limit); SONNET has its OWN separate weekly pool; 'other' = non-Anthropic lanes (GLM/deepseek), not Claude quota. USAGE-not-COST by design — MAX is flat usage, not pay-per-token; there is NO dollar figure. Self-contained.",
+      "use": "import { weeklyUsage, scanTranscripts, tierOf, poolOf, paceSignal, loadBudget } for quota awareness before scaling fan-out. CLI: node usage-governor.mjs [--json]. Calibrate _SYSTEM/config/usage-budget.json {mainWeeklyTokens, main5hTokens, sonnetWeeklyTokens, sonnet5hTokens}.",
       "exports": [
         "tierOf",
         "poolOf",
