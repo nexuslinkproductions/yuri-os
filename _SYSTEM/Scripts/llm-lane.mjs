@@ -988,7 +988,24 @@ async function dispatch(laneArg, prompt, opts = {}) {
     const text = String(msg.content ?? '').trim();
     const finish = String(choice.finish_reason || '').toLowerCase();
     const truncated = finish === 'length' || finish === 'incomplete';
-    if (!text) return fail(1, key, `empty_output${finish ? `_${finish}` : ''}`);
+    if (!text) {
+      // EMPTY-FINAL-TURN-AFTER-TOOL-WORK is NOT a failure (2026-06-24): a build lane that wrote files /
+      // ran bash this run and then ends its turn with empty text is DONE — the deliverable lives in the
+      // side effects, not in a closing message. GLM-5.2 (and other tool-first models) routinely emit no
+      // final prose after a write_file, which the old hard-fail mis-reported as `empty_output_stop` even
+      // though the file WAS written (e.g. the 11KB plan that "failed"). Only a genuinely empty run
+      // (zero tool turns) is a real empty_output failure.
+      // @anchor: v1 | failure: glm-5.2 blocking lane empty_output_stop x3 while files were written 2026-06-24 | regression: feedback-nano-swarm-orchestration.md
+      if (toolTurns > 0) {
+        const note = `LANE_DONE tool_turns=${toolTurns} (model ended with no final text${finish ? `, finish=${finish}` : ''}; deliverable in tool side-effects)`;
+        process.stdout.write(note + '\n');
+        if (opts.out) fs.writeFileSync(path.resolve(opts.out), note);
+        process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=empty_final_after_tools toolTurns=${toolTurns}\n`);
+        coreOnResult({ lane: key, prompt, output: note, exitCode: 0, runId });
+        return 0;
+      }
+      return fail(1, key, `empty_output${finish ? `_${finish}` : ''}`);
+    }
 
     // Best-of-N rerank: if YURI_VERIFIER_BESTOFN=1 AND bestOfN > 1, collect N candidates and rerank
     const bestOfNEnabled = process.env.YURI_VERIFIER_BESTOFN === '1';
