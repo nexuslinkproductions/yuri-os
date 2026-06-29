@@ -465,7 +465,7 @@ not put shared secrets in skill files.
 ## Session Notes
 
 ### 2026-06-29
-- session: 143m | peak ctx: 0% | compacts: 0
-- tools: Read×6751, Grep×223, Shell×215, Write×109, mcp×12, Bash×11
+- session: 157m | peak ctx: 0% | compacts: 0
+- tools: Read×6783, Grep×253, Shell×232, Write×120, mcp×16, Bash×15
 - corrections: none
 - errors: none

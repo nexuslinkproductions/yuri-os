@@ -15,11 +15,17 @@ const CLONE_DIR = path.join(REPO_ROOT, 'integrations', 'agent-native');
 const UPSTREAM = 'https://github.com/BuilderIO/agent-native';
 const PLAN_URL = 'https://plan.agent-native.com';
 
+/** npx from repo root hits ERESOLVE: YURI has react-router-dom@7, core@0.80 wants react-router@>=8. */
+const NPX_ENV = {
+  ...process.env,
+  NPM_CONFIG_LEGACY_PEER_DEPS: 'true',
+};
+
 function run(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, {
     stdio: 'inherit',
     cwd: opts.cwd || REPO_ROOT,
-    env: process.env,
+    env: opts.env || process.env,
   });
   if (r.status !== 0) {
     process.exit(r.status ?? 1);
@@ -27,7 +33,7 @@ function run(cmd, args, opts = {}) {
 }
 
 function npx(args) {
-  run('npx', ['-y', '@agent-native/core@latest', ...args]);
+  run('npx', ['-y', '@agent-native/core@latest', ...args], { env: NPX_ENV });
 }
 
 function clone() {

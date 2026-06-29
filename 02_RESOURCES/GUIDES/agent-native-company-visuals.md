@@ -82,12 +82,13 @@ You do **not** need to paste skill instructions or type slash commands every ses
 | **Canonical index** | `skills/visual-plan/` + `skills/skill-index.json` — picked up by `yuri-skill-loader.mjs` and fused swarm evidence |
 | **MURE helmsman** | Large company runs should treat visual plan as the approval gate before code (agent loads skill; calls Plan MCP tools directly) |
 | **Slash command** | `.claude/commands/visual-plan.md` exists for Claude Code if you want explicit invocation — optional |
-| **One-time setup** | MCP auth only: `npx @agent-native/core@latest connect https://plan.agent-native.com --client all --scope user` then reload client |
+| **One-time setup** | `node _SYSTEM/Scripts/agent-native-bootstrap.mjs connect` then reload Cursor. Plain `npx` from repo root fails on peer deps — use bootstrap or `NPM_CONFIG_LEGACY_PEER_DEPS=true` |
 
 **Fresh machine:**
 
 ```bash
 node _SYSTEM/Scripts/agent-native-bootstrap.mjs all
+# or separately: install-skills + connect
 ```
 
 **What you still control manually:** approving the plan before implementation (by design — the skill is an approval gate, not silent autopilot).
