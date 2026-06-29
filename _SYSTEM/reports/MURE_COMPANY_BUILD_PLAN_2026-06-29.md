@@ -3,6 +3,9 @@
 **Date:** 2026-06-29  
 **Authority:** Owner Marcel + MURE 20-role model  
 **Label:** `MURE_BUILD_PLAN_00_SCOPE_LOCKED_X_PASS_COMMITTED`  
+
+> **Phase 6 complete (2026-06-29):** Adjudicator verification recorded in [MURE_BUILDOUT_VERIFICATION_2026-06-29.md](./MURE_BUILDOUT_VERIFICATION_2026-06-29.md).
+
 **Baseline commits:** `7c2540ab` (release prep) · `86e381fb` (agent-native) · `64d3b306` (bootstrap fix)
 
 ---
@@ -83,7 +86,7 @@ Substrates: **native** (Opus/Sonnet/Haiku Agent tool) · **glm** (z.ai via runSw
    ├── P3 Helmsman decomposition (20-role task packets per workstream)
    ├── P4 Fleet arm ceremony (ordered arming with keys)
    ├── P5 Visual company control (dashboard + dispatch + visual-plan gates)
-   └── P6 Adjudicator verification + residual risk
+   ├── P6 Adjudicator verification + residual risk ✓ → [MURE_BUILDOUT_VERIFICATION_2026-06-29.md](./MURE_BUILDOUT_VERIFICATION_2026-06-29.md) (`06V1_MURE_BUILDOUT_X_PASS_COMMITTED`)
    ```
 4. **Out-of-scope boundary:** no public repo push, no invite-repo creation, no evolver self-modification, no governance.mjs edits without oracle gate
 
