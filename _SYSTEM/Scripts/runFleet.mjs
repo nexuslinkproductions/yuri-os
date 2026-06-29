@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { recordMlpFeedbackStub, recordMlpPredictions } from './fleet-mlp-feedback.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '../..');
@@ -114,25 +115,8 @@ export function buildClineSidecar(plan, task = {}) {
   };
 }
 
-/** Advisory MLP feedback stub — computes error but does not persist weights (DISARMED-safe). */
-export async function recordMlpFeedbackStub(plan) {
-  const router = await import('./fleet-router-mlp.mjs').catch(() => null);
-  if (!router?.updateFromOutcome || !router?.extractFeatures) return { skipped: true, reason: 'router unavailable' };
-  const ctx = { quotaPressure: 0.4 };
-  const records = [];
-  for (const leaf of [...(plan.glmLeaves ?? []), ...(plan.nativeSpecs ?? [])]) {
-    if (!leaf.routerSuggestion) continue;
-    const feats = router.extractFeatures({ ...leaf, role: leaf.role, prompt: leaf.prompt || '' }, ctx);
-    const res = await router.updateFromOutcome(
-      feats,
-      leaf.routerSuggestion,
-      { success: 0, quality: 0.5, converged: false, dryRun: true },
-      { persist: false, learningRate: 0.02 },
-    );
-    records.push({ id: leaf.id, substrate: leaf.routerSuggestion.substrate, error: res.error });
-  }
-  return { advisory: true, persisted: false, count: records.length, records };
-}
+/** @deprecated use recordMlpFeedbackStub from fleet-mlp-feedback.mjs */
+export { recordMlpFeedbackStub } from './fleet-mlp-feedback.mjs';
 
 async function loadCompany() {
   return import('../mure/company.mjs');
@@ -191,12 +175,21 @@ export async function runFleet(task, opts = {}) {
 
   if (dryRun) {
     result.plan = plan;
-    result.mlpFeedback = await recordMlpFeedbackStub(plan);
+    result.mlpFeedback = await recordMlpFeedbackStub(plan, { quotaPressure: opts.quotaPressure ?? 0.4 });
     return result;
   }
 
-  const run = await company.runCompany(task, { ...opts, armed: opts.armed !== false });
-  return { ...result, dryRun: false, run };
+  const mlpOpts = {
+    dryRun: false,
+    mlpLearn: opts.mlpLearn,
+    quotaPressure: opts.quotaPressure ?? 0.4,
+    ledgerFile: opts.ledgerFile,
+    trainEpochs: opts.trainEpochs,
+  };
+  const { ids: predictionIds } = await recordMlpPredictions(plan, { quotaPressure: mlpOpts.quotaPressure }, mlpOpts);
+
+  const run = await company.runCompany(task, { ...opts, armed: opts.armed !== false, predictionIds, mlpLearn: opts.mlpLearn });
+  return { ...result, dryRun: false, run, mlpFeedback: run.mlpFeedback };
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
@@ -205,7 +198,7 @@ if (isMain) {
   const tfIdx = args.indexOf('--task-file');
   const taskFile = tfIdx >= 0 ? args[tfIdx + 1] : null;
   if (!taskFile) {
-    console.error('Usage: runFleet.mjs --task-file <json> [--dry-run|--apply] [--ollama-sidecar] [--cline-sidecar]');
+    console.error('Usage: runFleet.mjs --task-file <json> [--dry-run|--apply] [--ollama-sidecar] [--cline-sidecar] [--mlp-learn]');
     process.exit(1);
   }
   const task = readTask(join(process.cwd(), taskFile));
@@ -215,6 +208,7 @@ if (isMain) {
     apply: !dryRun,
     ollamaSidecar: args.includes('--ollama-sidecar'),
     clineSidecar: args.includes('--cline-sidecar'),
+    mlpLearn: args.includes('--mlp-learn'),
   }).then((r) => {
     console.log(JSON.stringify(r, null, 2));
   }).catch((e) => {

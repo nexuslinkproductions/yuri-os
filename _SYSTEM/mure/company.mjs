@@ -16,6 +16,8 @@ import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
+import { runMlpFeedbackLoop, recordMlpFeedbackStub } from '../Scripts/fleet-mlp-feedback.mjs';
+import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
 
 // MLP Router integration point (advisory only – never overrides governance)
 let _router = null;
@@ -146,19 +148,31 @@ export async function planCompany(task = {}, opts = {}) {
   const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
   const casts = subtasks.map((s) => castRole(roster, { ...s, tags: s.tags || task.tags }, opts));
 
-  const glmLeaves = []; const nativeSpecs = []; const inlineSpecs = []; const held = [];
+  const glmLeaves = []; const nativeSpecs = []; const inlineSpecs = []; const held = []; const clearedHeld = [];
+  const rulings = opts.rulings || loadHeldRulings();
   for (let i = 0; i < casts.length; i += 1) {
     const c = casts[i];
     const role = getRole(roster, c.role);
     const subtask = subtasks[i];
-    if (c.ruling.class === CLASS.OWNER) { held.push({ ...c, reason: c.ruling.ruling }); continue; }
+    if (c.ruling.class === CLASS.OWNER) {
+      if (isSubtaskClearedByOwner(subtask.id, subtask, rulings)) {
+        clearedHeld.push({ ...c, reason: c.ruling.ruling, clearedBy: rulings.source });
+        if (c.target.dispatch === 'glm-lane') glmLeaves.push(buildLeaf(role, subtask, c.target));
+        else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
+        else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
+      } else {
+        held.push({ ...c, reason: c.ruling.ruling });
+      }
+      continue;
+    }
     if (c.target.dispatch === 'glm-lane') glmLeaves.push(buildLeaf(role, subtask, c.target));
     else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
     else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
   }
   const summary = {
     subtasks: subtasks.length, cast: casts.length,
-    glm: glmLeaves.length, native: nativeSpecs.length, inline: inlineSpecs.length, held: held.length,
+    glm: glmLeaves.length, native: nativeSpecs.length, inline: inlineSpecs.length,
+    held: held.length, clearedHeld: clearedHeld.length,
   };
 
   // === MLP Router integration point (advisory) ===
@@ -220,7 +234,7 @@ export async function planCompany(task = {}, opts = {}) {
     budgetDoc: '_SYSTEM/reports/CLINE_CREDIT_BUDGET.md',
   };
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary, ollamaSidecar, clineSidecar };
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, ollamaSidecar, clineSidecar, heldRulingsSource: rulings.source };
 }
 
 /**
@@ -257,7 +271,8 @@ export async function runCompany(task = {}, opts = {}) {
   // must never be gated by a caller-supplied boolean.)
   const armed = isMureArmed() && opts.armed !== false;
   if (!armed) {
-    return { name: plan.name, armed: false, dryRun: true, plan, swarm: null, nativeResults: { pool: {}, skipped: [] }, nativeSpecs: plan.nativeSpecs, held: plan.held };
+    const mlpFeedback = await recordMlpFeedbackStub(plan, { quotaPressure: opts.quotaPressure ?? 0.4 });
+    return { name: plan.name, armed: false, dryRun: true, plan, swarm: null, nativeResults: { pool: {}, skipped: [] }, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback };
   }
 
   let swarm = null;
@@ -278,7 +293,20 @@ export async function runCompany(task = {}, opts = {}) {
     nativeResults = await dispatchNative(plan.nativeSpecs, swarm.runDir);
   }
 
-  return { name: plan.name, armed: true, plan, swarm, nativeResults, nativeSpecs: plan.nativeSpecs, held: plan.held };
+  const runPayload = { swarm, nativeResults };
+  let mlpFeedback = null;
+  if (opts.mlpFeedback !== false) {
+    mlpFeedback = await runMlpFeedbackLoop(plan, runPayload, {
+      dryRun: false,
+      mlpLearn: opts.mlpLearn,
+      quotaPressure: opts.quotaPressure ?? 0.4,
+      ledgerFile: opts.ledgerFile,
+      trainEpochs: opts.trainEpochs,
+      predictionIds: opts.predictionIds,
+    });
+  }
+
+  return { name: plan.name, armed: true, plan, swarm, nativeResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
