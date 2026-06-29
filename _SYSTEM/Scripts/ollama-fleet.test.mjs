@@ -8,7 +8,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import {
   resolveModel, OLLAMA_ROSTER, DEFAULT_MODEL, extractResultLabel, validatePacket,
-  aggregatePoolOutputs, ollamaFleet, isArmed, buildRunDir,
+  aggregatePoolOutputs, ollamaFleet, isArmed, buildRunDir, ARM_FLAG,
 } from './ollama-fleet.mjs';
 
 // ── GREEN ───────────────────────────────────────────────────────────────────
@@ -65,10 +65,8 @@ test('GREY: collided labels are de-duped to distinct plan entries', async () => 
 test('GREY: isArmed is false with no env + no flag (DISARMED is the default)', () => {
   const prev = process.env.YURI_OLLAMA_FLEET;
   delete process.env.YURI_OLLAMA_FLEET;
-  const flag = path.join(path.dirname(buildRunDir('x')), '..', '..', '_SYSTEM', 'state', 'ollama-fleet.enabled');
   const armed = isArmed();
   if (prev !== undefined) process.env.YURI_OLLAMA_FLEET = prev;
-  // armed reflects whether the flag file happens to exist; with no env it must not be forced true.
   assert.equal(typeof armed, 'boolean');
-  if (!fs.existsSync(flag)) assert.equal(armed, false);
+  if (!fs.existsSync(ARM_FLAG)) assert.equal(armed, false);
 });

@@ -111,15 +111,41 @@ Cline has no repo flag file — disarm = stop spawning CLI; OAuth remains in `~/
 
 ---
 
-## Phase 4 smoke evidence (2026-06-29 session)
+## Phase 4 dry-run evidence (2026-06-29)
 
-| Check | Command | Result |
-|-------|---------|--------|
-| helmsman dry-run-all | `node _SYSTEM/mure/helmsman-run.mjs --dry-run-all` | **PASS** — 6 task files, 3 held, 0 errors |
-| WS-A dry-run | `company.mjs --task-file mure-buildout-ws-a-governance.json --dry-run` | **PASS** — 1 held (steward), 2 glm, 1 native |
-| runFleet + ollama metadata | `runFleet.mjs --task-file ws-b-fleet.json --dry-run` | **PASS** — ollamaSidecar + mlpFeedback stub |
-| MLP advisory | planCompany routerSuggestion on leaves | **PASS** — attached per leaf |
-| MURE status | `mure.mjs --status` | **ARMED** (named exception) |
+Ordered **DRY-RUN ONLY** smokes — no live Cline/GLM/Ollama spend; sidecar JSON shows `armed: false` where applicable.
+
+| # | Check | Command | Result |
+|---|-------|---------|--------|
+| 1 | MURE / GLM company plan tests | `node --test _SYSTEM/mure/*.test.mjs` | **PASS** — 128 tests, 0 fail (~2.3s) |
+| 2 | runFleet WS-B + sidecars | `node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-buildout-ws-b-fleet.json --dry-run --ollama-sidecar --cline-sidecar` | **PASS** — exit 0; 6 casts, 6 glmLeaves, 0 held; ollamaSidecar discoverable, eligibleCount 0; clineSidecar eligibleCount 2; mlpFeedback advisory×6 |
+| 3a | Ollama fleet list | `node _SYSTEM/Scripts/ollama-fleet.mjs --list` | **PASS** — exit 0; roster + usage (flag file may show ARMED in banner; dry-run still DISARMED) |
+| 3b | Ollama fleet dry-run | `node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks '[{"tier":"flash","label":"P4","prompt":"phase4 dry"}]'` | **PASS** — `dryRun: true`, `armed: false`, lane P4 → deepseek-v4-flash:cloud |
+| 4a | Cline fleet list | `node _SYSTEM/Scripts/cline-fleet.mjs --list` | **PASS** — exit 0; DISARMED banner, clinepass roster |
+| 4b | Cline fleet dry-run | `node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks '[{"tier":"glm","label":"P4","prompt":"phase4 dry"}]'` | **PASS** — `dryRun: true`, `armed: false`, lane P4 → glm-5.2 |
+| 5 | Helmsman dry-run-all | `node _SYSTEM/mure/helmsman-run.mjs --dry-run-all --ollama-sidecar --cline-sidecar` | **PASS** — 6 task files, `errors: []`, `ollamaEligible: 0`; held: WS-A-S1 steward, P4-S1 steward, P8-H1 helmsman |
+| 6 | Sidecar unit tests | `node --test _SYSTEM/Scripts/cline-fleet.test.mjs _SYSTEM/Scripts/ollama-fleet.test.mjs` | **PASS** — 17 tests, 0 fail |
+
+### Helmsman summary (smoke #5)
+
+| Task file | held | glm | native |
+|-----------|------|-----|--------|
+| mure-buildout-ws-a-governance.json | 1 | 2 | 1 |
+| mure-buildout-ws-b-fleet.json | 0 | 6 | 0 |
+| mure-buildout-ws-c-visual.json | 0 | 4 | 1 |
+| mure-buildout-ws-d-knowledge.json | 0 | 3 | 0 |
+| mure-buildout-ws-f-router.json | 0 | 2 | 0 |
+| yuri-public-release-phase2-8.json | 2 | 4 | 0 |
+
+### Test totals (this session)
+
+- MURE suite: **128** pass / **0** fail  
+- cline-fleet + ollama-fleet: **17** pass / **0** fail  
+- **Combined: 145** pass / **0** fail  
+
+### Code fix bundled
+
+- `_SYSTEM/Scripts/ollama-fleet.test.mjs` — `isArmed` GREY test uses exported `ARM_FLAG` instead of a fragile relative path.
 
 ---
 
