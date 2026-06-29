@@ -1,9 +1,30 @@
-// MURE company orchestrator — red/grey/green over plan/cast/govern/split. All hermetic (armed:false).
+// MURE company orchestrator — red/grey/green over plan/cast/govern/split. Hermetic: force-disarm per test.
+import fs from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planCompany, runCompany, castRole, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME } from './company.mjs';
+import { planCompany, runCompany, castRole, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME, ARM_ENV, ARM_FLAG } from './company.mjs';
 import { loadRoster, getRole } from './role-registry.mjs';
 import { CLASS } from './governance.mjs';
+
+/** Temporarily clear owner arm signals so governance tests stay hermetic while fleet stays armed globally. */
+async function withDisarmed(fn) {
+  const savedEnv = process.env[ARM_ENV];
+  delete process.env[ARM_ENV];
+  let hadFlag = false;
+  let flagContent = null;
+  if (fs.existsSync(ARM_FLAG)) {
+    hadFlag = true;
+    flagContent = fs.readFileSync(ARM_FLAG);
+    fs.unlinkSync(ARM_FLAG);
+  }
+  try {
+    return await fn();
+  } finally {
+    if (savedEnv != null) process.env[ARM_ENV] = savedEnv;
+    else delete process.env[ARM_ENV];
+    if (hadFlag && flagContent != null) fs.writeFileSync(ARM_FLAG, flagContent);
+  }
+}
 
 const roster = loadRoster();
 const TASK = {
@@ -17,8 +38,8 @@ const TASK = {
 };
 
 // ── GREEN ───────────────────────────────────────────────────────────────────
-test('GREEN: planCompany casts every subtask to a role and splits across substrates', () => {
-  const p = planCompany(TASK);
+test('GREEN: planCompany casts every subtask to a role and splits across substrates', async () => {
+  const p = await planCompany(TASK);
   assert.equal(p.casts.length, 4);
   assert.equal(p.summary.cast, 4);
   // research → scout (native), build → engineer (glm), verify → adjudicator (glm), ship → evolver (held)
@@ -27,8 +48,8 @@ test('GREEN: planCompany casts every subtask to a role and splits across substra
   assert.equal(castRole(roster, TASK.subtasks[2]).role, 'adjudicator');
 });
 
-test('GREEN: an arming subtask is HELD owner-gated, never dispatched', () => {
-  const p = planCompany(TASK);
+test('GREEN: an arming subtask is HELD owner-gated, never dispatched', async () => {
+  const p = await planCompany(TASK);
   assert.equal(p.held.length, 1);
   assert.equal(p.held[0].subtaskId, 'ship');
 });
@@ -49,18 +70,19 @@ test('RED: an explicit owner-gated role floor holds the subtask even if gates wo
   assert.ok(d.failures.includes('role-floor:owner-gated'));
 });
 
-test('RED: a protected-path subtask is held (not cast into a leaf)', () => {
-  const p = planCompany({ subtasks: [{ id: 'p', need: ['implementation'], prompt: 'edit', files: ['.env'] }] });
+test('RED: a protected-path subtask is held (not cast into a leaf)', async () => {
+  const p = await planCompany({ subtasks: [{ id: 'p', need: ['implementation'], prompt: 'edit', files: ['.env'] }] });
   assert.equal(p.held.length, 1);
   assert.equal(p.glmLeaves.length + p.nativeSpecs.length, 0);
 });
 
 // ── RED (regression — adversarial-verification round, 2026-06-22) ──────────────
 test('RED regression (GLM#2): runCompany({armed:true}) does NOT self-arm while DISARMED (owner flag is the authority)', async () => {
-  // No YURI_MURE_ARMED env + no _SYSTEM/state/mure.enabled flag in the test env → caller cannot self-arm.
-  const r = await runCompany(TASK, { armed: true });
-  assert.equal(r.armed, false, 'opts.armed:true must not arm without the owner flag');
-  assert.equal(r.swarm, null, 'no live GLM dispatch while disarmed');
+  await withDisarmed(async () => {
+    const r = await runCompany(TASK, { armed: true });
+    assert.equal(r.armed, false, 'opts.armed:true must not arm without the owner flag');
+    assert.equal(r.swarm, null, 'no live GLM dispatch while disarmed');
+  });
 });
 
 test('RED regression (native#5): an empty subtask (no prompt) is owner-gated, not auto-self-governable', () => {
@@ -68,29 +90,29 @@ test('RED regression (native#5): an empty subtask (no prompt) is owner-gated, no
   assert.equal(decisionFor({ id: 'x' }, getRole(roster, 'engineer')).class, CLASS.OWNER);
 });
 
-test('RED regression (GLM-MED): a finalize subtask is held (finalize is owner-only)', () => {
-  const p = planCompany({ subtasks: [{ id: 'fin', need: ['implementation'], prompt: 'commit and push', finalize: true }] });
+test('RED regression (GLM-MED): a finalize subtask is held (finalize is owner-only)', async () => {
+  const p = await planCompany({ subtasks: [{ id: 'fin', need: ['implementation'], prompt: 'commit and push', finalize: true }] });
   assert.equal(p.held.length, 1);
   assert.ok(p.held[0].reason.includes('finalize'));
 });
 
 // ── GREY ───────────────────────────────────────────────────────────────────
-test('GREY (substrate invariant): every glm leaf has a glm lane; every native spec a native model', () => {
-  const p = planCompany(TASK);
+test('GREY (substrate invariant): every glm leaf has a glm lane; every native spec a native model', async () => {
+  const p = await planCompany(TASK);
   const GLM = new Set(['glm-max', 'glm', 'glm-flash', 'glm-flashx', 'glm-sub-orch', 'glm-turbo', 'glm-vision', 'glm-ocr']);
   const NAT = new Set(['opus', 'sonnet', 'haiku']);
   for (const l of p.glmLeaves) assert.ok(GLM.has(l.lane), `glm leaf lane ${l.lane}`);
   for (const n of p.nativeSpecs) assert.ok(NAT.has(n.model), `native spec model ${n.model}`);
 });
 
-test('GREY (conservation): held + glm + native + inline == cast count', () => {
-  const p = planCompany(TASK);
+test('GREY (conservation): held + glm + native + inline == cast count', async () => {
+  const p = await planCompany(TASK);
   assert.equal(p.summary.held + p.summary.glm + p.summary.native + p.summary.inline, p.summary.cast);
 });
 
-test('GREY (determinism): the same task plans identically', () => {
-  const a = planCompany(TASK);
-  const b = planCompany(TASK);
+test('GREY (determinism): the same task plans identically', async () => {
+  const a = await planCompany(TASK);
+  const b = await planCompany(TASK);
   assert.deepEqual(a.casts.map((c) => [c.subtaskId, c.role, c.ruling.class]), b.casts.map((c) => [c.subtaskId, c.role, c.ruling.class]));
 });
 
