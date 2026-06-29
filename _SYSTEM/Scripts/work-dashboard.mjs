@@ -21,19 +21,37 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 export const DEFAULT_PORT = 4270;
 export const HTML_PATH = path.join(REPO_ROOT, '_SYSTEM', 'mure', 'dashboard.html');
 const INGEST_THROTTLE_MS = 5000;
-const HELMSMAN_HELD_PATH = path.join(REPO_ROOT, '_SYSTEM', 'lane-output', 'phase3', 'helmsman-summary.json');
+const LANE_OUTPUT_DIR = path.join(REPO_ROOT, '_SYSTEM', 'lane-output');
+
+/** Newest helmsman-summary.json under lane-output (phase5 > phase4 > phase3 by mtime). */
+function findLatestHelmsmanSummary() {
+  let best = null;
+  try {
+    for (const phase of fs.readdirSync(LANE_OUTPUT_DIR)) {
+      const candidate = path.join(LANE_OUTPUT_DIR, phase, 'helmsman-summary.json');
+      if (!fs.existsSync(candidate)) continue;
+      const mtime = fs.statSync(candidate).mtimeMs;
+      if (!best || mtime > best.mtime) {
+        best = { abs: candidate, rel: path.relative(REPO_ROOT, candidate), mtime };
+      }
+    }
+  } catch { /* lane-output missing */ }
+  return best;
+}
 
 function loadHeldQueue() {
   try {
-    if (!fs.existsSync(HELMSMAN_HELD_PATH)) return { source: null, items: [], generatedAt: null };
-    const raw = JSON.parse(fs.readFileSync(HELMSMAN_HELD_PATH, 'utf8'));
+    const latest = findLatestHelmsmanSummary();
+    if (!latest) return { source: null, items: [], generatedAt: null, visualPlanGates: [] };
+    const raw = JSON.parse(fs.readFileSync(latest.abs, 'utf8'));
     return {
-      source: '_SYSTEM/lane-output/phase3/helmsman-summary.json',
+      source: latest.rel,
       items: Array.isArray(raw.held) ? raw.held : [],
-      generatedAt: fs.statSync(HELMSMAN_HELD_PATH).mtime.toISOString(),
+      visualPlanGates: Array.isArray(raw.visualPlanGates) ? raw.visualPlanGates : [],
+      generatedAt: fs.statSync(latest.abs).mtime.toISOString(),
     };
   } catch {
-    return { source: null, items: [], generatedAt: null };
+    return { source: null, items: [], visualPlanGates: [], generatedAt: null };
   }
 }
 
@@ -200,4 +218,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 }
 
-export { startServer, loadVisualPlanRegistry };
+export { startServer, loadVisualPlanRegistry, findLatestHelmsmanSummary, loadHeldQueue };
