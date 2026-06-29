@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { openLedger, ingestAll, overview, getRunDetail, getArtifactsByRole, getRoleProductivityTrends, getConvergenceTrend, getThroughputTrend } from './work-ledger.mjs';
 import { openPool, rankJobs, jobStats, listJobs } from './job-pool.mjs';
 import { loadDoctrine, rankByDirection, underServedAxes, axisCoverage, grade, TYPE_AXIS_HINTS } from '../mure/doctrine.mjs';
+import { readLedger, calibrationReport } from './prediction-ledger.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -104,6 +105,29 @@ function loadVisualPlanRegistry() {
   return plans;
 }
 
+/** Router MLP + prediction-ledger summary for dashboard panel. */
+async function loadRouterStats() {
+  try {
+    const router = await import('./fleet-router-mlp.mjs');
+    const w = await router.loadWeights();
+    const ledger = readLedger();
+    const preds = ledger.filter((r) => r.type === 'prediction' && r.source === 'fleet-router-mlp');
+    const cal = calibrationReport();
+    return {
+      weightVersion: w?.version ?? 1,
+      hiddenSize: 8,
+      ledgerEntries: ledger.length,
+      fleetPredictions: preds.length,
+      meanBrier: cal.n > 0 ? cal.meanBrier : null,
+      resolvedPredictions: cal.n,
+      unresolved: cal.unresolved?.length ?? 0,
+      mlpLearnArmed: process.env.YURI_MLP_LEARN === '1',
+    };
+  } catch (e) {
+    return { error: String(e?.message || e) };
+  }
+}
+
 const PLACEHOLDER = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>MURE</title>
 <style>body{font-family:system-ui;background:#1a1a18;color:#f1efe8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
 .b{text-align:center}.b h1{font-weight:500}.b code{background:#30302e;padding:.2rem .5rem;border-radius:6px}</style></head>
@@ -152,6 +176,16 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
         const plans = loadVisualPlanRegistry();
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
         res.end(JSON.stringify(plans));
+        return;
+      }
+      if (url === '/api/router-stats') {
+        loadRouterStats().then((stats) => {
+          res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+          res.end(JSON.stringify(stats));
+        }).catch((e) => {
+          res.writeHead(500, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(e?.message || e) }));
+        });
         return;
       }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }

@@ -277,6 +277,11 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
     <div class="joblist" id="jobList"></div>
   </div>
 
+  <div class="panel" style="margin-bottom:18px" id="routerPanel">
+    <div class="panel-h"><div class="pt">Router</div><div class="pc" id="routerMeta">MLP · read-only</div></div>
+    <div class="joblist" id="routerStats"></div>
+  </div>
+
   <div class="panel" style="margin-bottom:18px" id="heldPanel">
     <div class="panel-h"><div class="pt">Held queue</div><div class="pc" id="heldCount">— owner-gated</div></div>
     <div class="joblist" id="heldList"></div>
@@ -543,6 +548,27 @@ function animNum(node,from,to,suf){
   requestAnimationFrame(step);
 }
 
+// ── router stats (fleet-router-mlp + prediction-ledger) ──
+async function loadRouterPanel(){
+  try{
+    const r=await fetch('/api/router-stats',{cache:'no-store'});
+    if(!r.ok)return;
+    const s=await r.json();
+    const box=document.getElementById('routerStats');
+    setText(document.getElementById('routerMeta'),`v${s.weightVersion??'—'} · ${s.fleetPredictions??0} preds`);
+    const rows=[
+      ['weight version',s.weightVersion??'—'],
+      ['fleet predictions',s.fleetPredictions??0],
+      ['ledger entries',s.ledgerEntries??0],
+      ['mean Brier',s.meanBrier!=null?Number(s.meanBrier).toFixed(4):'—'],
+      ['resolved',s.resolvedPredictions??0],
+      ['MLP learn',s.mlpLearnArmed?'armed (env)':'disarmed'],
+    ];
+    reconcile(box,rows,x=>x[0],()=>{const row=H('div','job');row.style.cursor='default';return row;},
+      (row,[k,v])=>{row.innerHTML=`<div class="jmid"><div class="jt">${esc(k)}</div><div class="mono" style="font-size:11px;color:var(--tx-muted)">${esc(String(v))}</div></div>`;});
+  }catch{/* optional panel */}
+}
+
 // ── held queue (read-only stub from helmsman-summary) ──
 function renderHeld(d){
   const hq=d.heldQueue||{}; const items=hq.items||[];
@@ -751,7 +777,7 @@ async function tick(){
     document.getElementById('statustext').textContent=armed?'armed':'disarmed';
     document.getElementById('updated').textContent='updated '+rel(d.company?.generatedAt||new Date().toISOString());
     setText(document.getElementById('rosterCount'),(d.roleCount||(d.roles||[]).length)+' roles · 6 groups');
-    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);renderHeld(d);renderVisualPlans(d);renderInsights(d);renderWP(d);renderDoctrine(d);
+    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);loadRouterPanel();renderHeld(d);renderVisualPlans(d);renderInsights(d);renderWP(d);renderDoctrine(d);
     document.title='NEXUS LINK — '+(d.kpis?.totalRuns||0)+' runs';
   }catch(e){document.getElementById('updated').textContent='connection lost — retrying';}
 }
