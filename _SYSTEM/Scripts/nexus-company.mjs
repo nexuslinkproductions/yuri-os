@@ -17,6 +17,7 @@ import { execFileSync } from 'node:child_process';
 import { openPool, rankJobs, claimJob, completeJob, recommendJob, jobStats, listJobs } from './job-pool.mjs';
 import { evaluateGovernance, CLASS } from '../mure/governance.mjs';
 import { loadDoctrine, rankByDirection, grade, underServedAxes, axisCoverage, TYPE_AXIS_HINTS } from '../mure/doctrine.mjs';
+import { reconcileAfterBuild } from './post-build-reconciliation.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -337,8 +338,28 @@ export async function runJobCycle(opts = {}) {
       const g = gradeJob(job, !!r.swarm?.converged, doctrine);
       const report = `# ${job.title}\n\ncycle ${cycleId} · executed ${new Date().toISOString()}\n\n- swarm: ${r.swarm?.runId || '(none)'} converged=${r.swarm?.converged}\n- doctrine: ${g ? `${g.axis} → ${g.verdict} (net ${g.net})` : 'n/a'}\n- native specs (for Opus): ${(r.nativeSpecs || []).map((n) => n.id).join(', ') || '(none)'}\n- held: ${(r.held || []).map((h) => h.subtaskId).join(', ') || '(none)'}\n\nNEXT: owner review — finalize (commit) is gated.`;
       completeJob(db, job.id, report);
+      // POST-BUILD RECONCILIATION: propagation-scan + xref reconciliation after job completion
+      const reconciliation = await reconcileAfterBuild({
+        jobId: job.id,
+        nodeId: job.nodeId || null, // optional: job can specify a circuitry node
+        query: job.title || '', // use job title as xref query base
+        targets: job.targets || [], // optional: GitNexus impact targets
+        dryRun: true, // always dry-run first; owner can promote to wet-run
+      });
       executed += 1;
-      results.push({ job: job.id, title: job.title, action: 'executed', swarm: r.swarm?.runId, converged: r.swarm?.converged, grade: g ? { axis: g.axis, verdict: g.verdict, net: g.net } : null });
+      results.push({
+        job: job.id,
+        title: job.title,
+        action: 'executed',
+        swarm: r.swarm?.runId,
+        converged: r.swarm?.converged,
+        grade: g ? { axis: g.axis, verdict: g.verdict, net: g.net } : null,
+        reconciliation: reconciliation.ok ? {
+          propagationOk: reconciliation.propagation?.ok,
+          xrefHits: reconciliation.xref?.hits || 0,
+          gitnexusChecks: reconciliation.gitnexus?.length || 0,
+        } : { error: reconciliation.summary?.slice(0, 100) },
+      });
     } catch (e) {
       results.push({ job: job.id, title: job.title, action: 'error', error: String(e?.message || e) });
     }
@@ -353,7 +374,19 @@ export async function runJobCycle(opts = {}) {
     `armed=${armed} halted=${halted} · ${new Date().toISOString()}`,
     `executed=${executed} · ${results.length} jobs touched`,
     '', '## actions',
-    ...results.map((r) => `- [${r.action}] ${r.title}${r.grade ? ` · ${r.grade.axis} ${r.grade.verdict}` : ''}${r.swarm ? ` (swarm ${r.swarm})` : ''}`),
+    ...results.map((r) => {
+      let line = `- [${r.action}] ${r.title}`;
+      if (r.grade) line += ` · ${r.grade.axis} ${r.grade.verdict}`;
+      if (r.swarm) line += ` (swarm ${r.swarm})`;
+      if (r.reconciliation) {
+        if (r.reconciliation.error) line += ` · reconciliation: ${r.reconciliation.error}`;
+        else line += ` · reconciliation: prop=${r.reconciliation.propagationOk}, xref=${r.reconciliation.xrefHits} hits, gitnexus=${r.reconciliation.gitnexusChecks} checks`;
+      }
+      return line;
+    }),
+    '', '## post-build reconciliation (propagation-scan + xref + GitNexus)',
+    'Reconciliation runs automatically after each completed build job (dry-run by default).',
+    'Per-job reconciliation results are shown above. For detailed reconciliation reports, see individual job reports.',
     '', '## doctrine (direction self-assessment)',
     doctrine ? `- current vector: ${JSON.stringify(doctrine.currentVector)}` : '- doctrine: (unreadable — selection fell back to pure OpenMass)',
     `- axis coverage: ${JSON.stringify(coverage)}`,
