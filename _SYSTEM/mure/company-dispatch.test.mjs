@@ -14,6 +14,8 @@ test('GREEN: WS-G partial dispatch when only arming subtask held', async () => {
   assert.equal(entry.held, 1);
   assert.equal(entry.blocked, false);
   assert.ok(entry.glm >= 1);
+});
+
 test('GREEN: companyDispatch dry-run-all produces manifest', async () => {
   const outDir = '_SYSTEM/lane-output/dispatch-test';
   const m = await companyDispatch({
