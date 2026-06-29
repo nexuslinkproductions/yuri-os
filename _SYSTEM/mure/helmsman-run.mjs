@@ -27,10 +27,11 @@ const DEFAULT_WS_GLOB = [
 ];
 
 function parseArgs(argv) {
-  const out = { dryRunAll: false, ollamaSidecar: false, outDir: join(REPO_ROOT, '_SYSTEM', 'lane-output', 'phase3'), taskFiles: [] };
+  const out = { dryRunAll: false, ollamaSidecar: false, clineSidecar: false, outDir: join(REPO_ROOT, '_SYSTEM', 'lane-output', 'phase3'), taskFiles: [] };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--dry-run-all') out.dryRunAll = true;
     else if (argv[i] === '--ollama-sidecar') out.ollamaSidecar = true;
+    else if (argv[i] === '--cline-sidecar') out.clineSidecar = true;
     else if (argv[i] === '--out' && argv[i + 1]) { out.outDir = join(REPO_ROOT, argv[++i]); }
     else if (argv[i] === '--task-file' && argv[i + 1]) out.taskFiles.push(join(REPO_ROOT, argv[++i]));
   }
@@ -56,6 +57,7 @@ export async function helmsmanRun(opts = {}) {
     const company = runNode(companyScript, ['--task-file', rel, '--dry-run']);
     const fleetArgs = ['--task-file', rel, '--dry-run'];
     if (opts.ollamaSidecar) fleetArgs.push('--ollama-sidecar');
+    if (opts.clineSidecar) fleetArgs.push('--cline-sidecar');
     const fleet = runNode(fleetScript, fleetArgs);
 
     const companyPath = join(opts.outDir, `dryrun-${bn}.json`);
@@ -86,8 +88,8 @@ const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.arg
 if (isMain) {
   const opts = parseArgs(process.argv.slice(2));
   if (!opts.taskFiles.length) {
-    console.error('Usage: helmsman-run.mjs --dry-run-all [--ollama-sidecar] [--out dir]');
-    console.error('       helmsman-run.mjs --task-file <json> [--ollama-sidecar]');
+    console.error('Usage: helmsman-run.mjs --dry-run-all [--ollama-sidecar] [--cline-sidecar] [--out dir]');
+    console.error('       helmsman-run.mjs --task-file <json> [--ollama-sidecar] [--cline-sidecar]');
     process.exit(1);
   }
   helmsmanRun(opts).then((s) => {

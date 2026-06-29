@@ -110,6 +110,15 @@ test('GREY (conservation): held + glm + native + inline == cast count', async ()
   assert.equal(p.summary.held + p.summary.glm + p.summary.native + p.summary.inline, p.summary.cast);
 });
 
+test('GREY (sidecar metadata): planCompany exposes ollama + cline sidecar blocks', async () => {
+  const p = await planCompany(TASK);
+  assert.ok(p.ollamaSidecar?.discoverable);
+  assert.ok(p.clineSidecar?.discoverable);
+  assert.equal(typeof p.ollamaSidecar.eligibleCount, 'number');
+  assert.equal(typeof p.clineSidecar.eligibleCount, 'number');
+  assert.ok(p.clineSidecar.spawn.includes('cline-fleet.mjs'));
+});
+
 test('GREY (determinism): the same task plans identically', async () => {
   const a = await planCompany(TASK);
   const b = await planCompany(TASK);

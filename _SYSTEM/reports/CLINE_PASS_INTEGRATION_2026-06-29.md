@@ -118,12 +118,12 @@ flowchart TB
 |------|-------|-------|---------|
 | **M0 — Metadata** | Document Cline as advisory substrate; task packet | `company.mjs` ADVISORY_SUBSTRATES, this report, WS-G task JSON | **Done (this session)** |
 | **M1 — Quartermaster ledger** | Log ClinePass window usage from CLI `--json` output | `token-ledger.mjs`, quartermaster hooks | DISARMED read-only |
-| **M2 — runFleet sidecar** | Generate `cline-tasks.json` like ollama sidecar; spawn via `cline --json` | `runFleet.mjs`, `cline-fleet.mjs` (new) | DISARMED default; `--cline-sidecar` flag |
+| **M2 — runFleet sidecar** | Generate `cline-tasks.json` like ollama sidecar; spawn via `cline --json` | `runFleet.mjs`, `cline-fleet.mjs`, `company.mjs`, `helmsman-run.mjs` | **Done (2026-06-29)** — DISARMED default; `--cline-sidecar`; `planCompany.clineSidecar`; tests 145/145; dry-run `cline-fleet.mjs` + `runFleet.mjs` on `mure-buildout-ws-b-fleet.json` emits `clineSidecar` |
 | **M3 — llm-compat bridge** | Optional `cline-pass` lane in models.json if Cline exposes stable HTTP | `.claude/config/models.json`, `llm-lane.mjs` | Only if API contract stable |
 | **M4 — MLP feature + roster** | Add `cline` substrate to role-registry; extend `encodeOption` | `role-registry.mjs`, `fleet-router-mlp.mjs`, `fleet-roles.json` | Advisory scoring |
 | **M5 — MURE role assignment** | Cast engineer/mechanic/scout to Cline when quotaPressure high + bulk work | `company.mjs` planCompany | Owner-gated live dispatch |
 
-**Recommendation:** Ship M0 now; M2 after arm ceremony (Phase 4+); defer M3 until Cline documents a headless API beyond CLI spawn.
+**Recommendation:** M0–M2 shipped (metadata + sidecar wiring DISARMED); live arm ceremony (Phase 4+) before spend; defer M3 until Cline documents a headless API beyond CLI spawn.
 
 ---
 

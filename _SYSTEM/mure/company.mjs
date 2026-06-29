@@ -55,12 +55,13 @@ export const ADVISORY_SUBSTRATES = Object.freeze({
     dispatch: 'cline-cli',
     status: 'DISARMED',
     install: 'npm i -g cline',
-    auth: 'cline auth → select ClinePass provider',
+    auth: 'cline auth clinepass',
     provider: 'clinepass',
-    armFlag: null,
+    armFlag: '_SYSTEM/state/cline-fleet.enabled',
     models: ['glm-5.2', 'kimi-k2.7-code', 'deepseek-v4-pro', 'mimo-v2.5', 'qwen3.7-max'],
     doc: '_SYSTEM/reports/CLINE_PASS_INTEGRATION_2026-06-29.md',
-    note: 'Separate from llm-compat; flat $9.99/mo; owner credit budget required before live dispatch',
+    budgetDoc: '_SYSTEM/reports/CLINE_CREDIT_BUDGET.md',
+    note: 'Sidecar via cline-fleet.mjs; runFleet --cline-sidecar writes cline-tasks.json',
   },
 });
 
@@ -172,6 +173,7 @@ export async function planCompany(task = {}, opts = {}) {
         { id: leaf.id, substrate: 'glm', lane: leaf.lane || 'glm', role: leaf.role },
         { id: `${leaf.id}-native`, substrate: 'native', lane: 'sonnet', role: leaf.role },
         { id: `${leaf.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: leaf.role },
+        { id: `${leaf.id}-cline`, substrate: 'cline', lane: 'glm-5.2', role: leaf.role },
       ];
       for (const leaf of glmLeaves) {
         const feats = routerMod.extractFeatures({ ...leaf, role: leaf.role, prompt: leaf.prompt }, ctx);
@@ -185,6 +187,7 @@ export async function planCompany(task = {}, opts = {}) {
           { id: spec.id, substrate: 'native', lane: spec.model || 'sonnet', role: spec.role },
           { id: `${spec.id}-glm`, substrate: 'glm', lane: 'glm-max', role: spec.role },
           { id: `${spec.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: spec.role },
+          { id: `${spec.id}-cline`, substrate: 'cline', lane: 'glm-5.2', role: spec.role },
         ]);
         spec.routerSuggestion = suggestion.best;
         spec.routerConfidence = suggestion.confidence;
@@ -205,7 +208,19 @@ export async function planCompany(task = {}, opts = {}) {
     note: 'Parallel bulk sidecar — manual spawn; runFleet.mjs generates tasks when --ollama-sidecar',
   };
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary, ollamaSidecar };
+  const clineEligible = [...glmLeaves, ...nativeSpecs]
+    .filter((l) => ['scout', 'artificer', 'engineer', 'mechanic'].includes(l.role) || l.routerSuggestion?.substrate === 'cline')
+    .map((l) => ({ id: l.id, role: l.role, lane: l.lane || 'glm-5.2', provider: 'clinepass' }));
+  const clineSidecar = {
+    discoverable: true,
+    eligibleCount: clineEligible.length,
+    eligible: clineEligible,
+    spawn: 'node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <cline-tasks.json>',
+    note: 'ClinePass CLI sidecar — runFleet.mjs --cline-sidecar; arm via cline-fleet.enabled',
+    budgetDoc: '_SYSTEM/reports/CLINE_CREDIT_BUDGET.md',
+  };
+
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary, ollamaSidecar, clineSidecar };
 }
 
 /**

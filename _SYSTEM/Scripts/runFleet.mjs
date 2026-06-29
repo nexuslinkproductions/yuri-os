@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * runFleet.mjs — tri-substrate fleet conductor (GLM + Ollama + native plan).
+ * runFleet.mjs — quad-substrate fleet conductor (GLM + Ollama + Cline + native plan).
  *
- * DISARMED by default. Plans all three pools; dispatches GLM via runSwarm when armed.
- * Ollama runs as parallel sidecar. Native specs returned for Cursor/Opus spawn.
+ * DISARMED by default. Plans all pools; dispatches GLM via runSwarm when armed.
+ * Ollama and Cline run as parallel sidecars. Native specs returned for Cursor/Opus spawn.
  *
  * Usage:
  *   node _SYSTEM/Scripts/runFleet.mjs --task-file task.json --dry-run
  *   node _SYSTEM/Scripts/runFleet.mjs --task-file task.json --apply
- *   node _SYSTEM/Scripts/runFleet.mjs --task-file task.json --dry-run --ollama-sidecar
+ *   node _SYSTEM/Scripts/runFleet.mjs --task-file task.json --dry-run --ollama-sidecar --cline-sidecar
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -17,6 +17,30 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '../..');
 const BULK_ROLES = new Set(['scout', 'artificer']);
+const CLINE_IMPL_ROLES = new Set(['engineer', 'mechanic']);
+
+function collectSidecarLeaves(plan) {
+  const leaves = [];
+  for (const leaf of plan.glmLeaves ?? []) leaves.push(leaf);
+  for (const spec of plan.nativeSpecs ?? []) leaves.push(spec);
+  return leaves;
+}
+
+/** Write sidecar task JSON — primary .claude/jobs, fallback _SYSTEM/lane-output. */
+function writeSidecarTasksFile(runId, subdir, filename, payload) {
+  const body = JSON.stringify(payload, null, 2);
+  const primaryPath = join(REPO_ROOT, '.claude', 'jobs', runId, filename);
+  const fallbackPath = join(REPO_ROOT, '_SYSTEM', 'lane-output', subdir, runId, filename);
+  try {
+    mkdirSync(dirname(primaryPath), { recursive: true });
+    writeFileSync(primaryPath, body);
+    return { path: primaryPath, fallback: false };
+  } catch {
+    mkdirSync(dirname(fallbackPath), { recursive: true });
+    writeFileSync(fallbackPath, body);
+    return { path: fallbackPath, fallback: true };
+  }
+}
 
 /** Build ollama-fleet task list from plan casts (bulk roles + router ollama hints). */
 export function buildOllamaSidecar(plan, task = {}) {
@@ -36,8 +60,7 @@ export function buildOllamaSidecar(plan, task = {}) {
       prompt: leaf.prompt || `${task.summary || 'fleet task'} — ${leaf.role} (${id})`,
     });
   };
-  for (const leaf of plan.glmLeaves ?? []) add(leaf);
-  for (const spec of plan.nativeSpecs ?? []) add(spec);
+  for (const leaf of collectSidecarLeaves(plan)) add(leaf);
   const sidecar = plan.ollamaSidecar || {};
   return {
     discoverable: true,
@@ -50,6 +73,44 @@ export function buildOllamaSidecar(plan, task = {}) {
       : null,
     tasksFileHint: '.claude/jobs/<runId>/ollama-tasks.json',
     note: 'Parallel bulk sidecar — not auto-dispatched; spawn manually or pass --ollama-sidecar to write tasks file',
+  };
+}
+
+/** Build cline-fleet task list (bulk + engineer/mechanic + router cline hints). */
+export function buildClineSidecar(plan, task = {}) {
+  const tasks = [];
+  const seen = new Set();
+  const add = (leaf) => {
+    const id = leaf.id || leaf.role;
+    if (!id || seen.has(id)) return;
+    const bulk = BULK_ROLES.has(leaf.role);
+    const impl = CLINE_IMPL_ROLES.has(leaf.role);
+    const routerCline = leaf.routerSuggestion?.substrate === 'cline';
+    if (!bulk && !impl && !routerCline) return;
+    seen.add(id);
+    tasks.push({
+      label: id,
+      tier: impl ? 'glm' : 'glm',
+      model: 'glm-5.2',
+      role: leaf.role,
+      prompt: leaf.prompt || `${task.summary || 'fleet task'} — ${leaf.role} (${id}) via ClinePass`,
+    });
+  };
+  for (const leaf of collectSidecarLeaves(plan)) add(leaf);
+  const sidecar = plan.clineSidecar || {};
+  return {
+    discoverable: true,
+    armed: false,
+    provider: 'clinepass',
+    eligibleCount: tasks.length,
+    tasks,
+    eligible: sidecar.eligible ?? tasks.map((t) => ({ id: t.label, role: t.role })),
+    command: tasks.length
+      ? 'node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <cline-tasks.json>'
+      : null,
+    tasksFileHint: '.claude/jobs/<runId>/cline-tasks.json',
+    note: 'ClinePass CLI sidecar — manual spawn or pass --cline-sidecar; requires cline auth + cline-fleet.enabled',
+    budgetDoc: '_SYSTEM/reports/CLINE_CREDIT_BUDGET.md',
   };
 }
 
@@ -87,24 +148,27 @@ export async function runFleet(task, opts = {}) {
 
   const plan = await company.planCompany(task, opts);
   const ollamaSidecar = buildOllamaSidecar(plan, task);
+  const clineSidecar = buildClineSidecar(plan, task);
+  const runId = task.runId || `fleet-${Date.now()}`;
 
   if (opts.ollamaSidecar && ollamaSidecar.tasks.length) {
-    const runId = task.runId || `fleet-${Date.now()}`;
-    const payload = JSON.stringify({ summary: task.summary, tasks: ollamaSidecar.tasks }, null, 2);
-    const primaryPath = join(REPO_ROOT, '.claude', 'jobs', runId, 'ollama-tasks.json');
-    const fallbackPath = join(REPO_ROOT, '_SYSTEM', 'lane-output', 'ollama-sidecar', runId, 'ollama-tasks.json');
-    let tasksPath = primaryPath;
-    try {
-      mkdirSync(dirname(primaryPath), { recursive: true });
-      writeFileSync(primaryPath, payload);
-    } catch {
-      mkdirSync(dirname(fallbackPath), { recursive: true });
-      writeFileSync(fallbackPath, payload);
-      tasksPath = fallbackPath;
-      ollamaSidecar.tasksFileFallback = true;
-    }
+    const { path: tasksPath, fallback } = writeSidecarTasksFile(runId, 'ollama-sidecar', 'ollama-tasks.json', {
+      summary: task.summary,
+      tasks: ollamaSidecar.tasks,
+    });
+    if (fallback) ollamaSidecar.tasksFileFallback = true;
     ollamaSidecar.tasksFile = tasksPath;
     ollamaSidecar.command = `node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file ${tasksPath}`;
+  }
+
+  if (opts.clineSidecar && clineSidecar.tasks.length) {
+    const { path: tasksPath, fallback } = writeSidecarTasksFile(runId, 'cline-sidecar', 'cline-tasks.json', {
+      summary: task.summary,
+      tasks: clineSidecar.tasks,
+    });
+    if (fallback) clineSidecar.tasksFileFallback = true;
+    clineSidecar.tasksFile = tasksPath;
+    clineSidecar.command = `node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file ${tasksPath}`;
   }
 
   const result = {
@@ -115,6 +179,7 @@ export async function runFleet(task, opts = {}) {
     nativeSpecs: plan.nativeSpecs?.length ?? 0,
     held: plan.held ?? [],
     ollamaSidecar,
+    clineSidecar,
     routerSuggestions: [],
   };
 
@@ -140,12 +205,17 @@ if (isMain) {
   const tfIdx = args.indexOf('--task-file');
   const taskFile = tfIdx >= 0 ? args[tfIdx + 1] : null;
   if (!taskFile) {
-    console.error('Usage: runFleet.mjs --task-file <json> [--dry-run|--apply] [--ollama-sidecar]');
+    console.error('Usage: runFleet.mjs --task-file <json> [--dry-run|--apply] [--ollama-sidecar] [--cline-sidecar]');
     process.exit(1);
   }
   const task = readTask(join(process.cwd(), taskFile));
   const dryRun = !args.includes('--apply');
-  runFleet(task, { dryRun, apply: !dryRun, ollamaSidecar: args.includes('--ollama-sidecar') }).then((r) => {
+  runFleet(task, {
+    dryRun,
+    apply: !dryRun,
+    ollamaSidecar: args.includes('--ollama-sidecar'),
+    clineSidecar: args.includes('--cline-sidecar'),
+  }).then((r) => {
     console.log(JSON.stringify(r, null, 2));
   }).catch((e) => {
     console.error(e);
