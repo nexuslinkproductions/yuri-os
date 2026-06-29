@@ -247,6 +247,16 @@ node --test _SYSTEM/mure/*.test.mjs
 node _SYSTEM/mure/mure.mjs --demo --dry-run
 ```
 
+### Helmsman packet runner (Phase 3+)
+
+Dry-run all workstream task files and capture plan metadata:
+
+```bash
+node _SYSTEM/mure/helmsman-run.mjs --dry-run-all --ollama-sidecar --out _SYSTEM/lane-output/phase3
+```
+
+See `_SYSTEM/reports/MURE_COMPANY_BUILD_03_HELMSMAN.md` for held register, substrate routing, and GLM/Ollama parallel patterns.
+
 Rollback: delete `_SYSTEM/mure/` + `_SYSTEM/config/fleet-roles.json`; git-revert SKILL.md / MEMORY.md / `capabilities.json` edits. No durable external state (DISARMED = no spend).
 
 ---

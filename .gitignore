@@ -38,6 +38,8 @@ CLAUDE.local.md
 # Claude runtime/debug snapshots
 .claude/debug/
 .claude/jobs/
+# MURE lane outputs (GLM/Ollama advisory runs — local evidence, not shipped)
+_SYSTEM/lane-output/
 .claude/state/scout-bus.json
 .claude/state/scout-errors.log
 .claude/state/session-state.json

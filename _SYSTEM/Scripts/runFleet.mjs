@@ -90,10 +90,19 @@ export async function runFleet(task, opts = {}) {
 
   if (opts.ollamaSidecar && ollamaSidecar.tasks.length) {
     const runId = task.runId || `fleet-${Date.now()}`;
-    const outDir = join(REPO_ROOT, '.claude', 'jobs', runId);
-    mkdirSync(outDir, { recursive: true });
-    const tasksPath = join(outDir, 'ollama-tasks.json');
-    writeFileSync(tasksPath, JSON.stringify({ summary: task.summary, tasks: ollamaSidecar.tasks }, null, 2));
+    const payload = JSON.stringify({ summary: task.summary, tasks: ollamaSidecar.tasks }, null, 2);
+    const primaryPath = join(REPO_ROOT, '.claude', 'jobs', runId, 'ollama-tasks.json');
+    const fallbackPath = join(REPO_ROOT, '_SYSTEM', 'lane-output', 'ollama-sidecar', runId, 'ollama-tasks.json');
+    let tasksPath = primaryPath;
+    try {
+      mkdirSync(dirname(primaryPath), { recursive: true });
+      writeFileSync(primaryPath, payload);
+    } catch {
+      mkdirSync(dirname(fallbackPath), { recursive: true });
+      writeFileSync(fallbackPath, payload);
+      tasksPath = fallbackPath;
+      ollamaSidecar.tasksFileFallback = true;
+    }
     ollamaSidecar.tasksFile = tasksPath;
     ollamaSidecar.command = `node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file ${tasksPath}`;
   }
