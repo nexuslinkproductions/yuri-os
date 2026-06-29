@@ -44,9 +44,46 @@ function runNode(script, args) {
   return { ok: r.status === 0, stdout: r.stdout || '', stderr: r.stderr || '', status: r.status ?? 1 };
 }
 
+/**
+ * Visual-plan gate convention (Phase 5):
+ * - Task JSON may carry visualPlanUrl (local slash path), visualPlanSlug (hosted recap id),
+ *   visualPlanHostedUrl (full share URL), visualPlanApproved (owner sign-off), visualRecapUrl (local recap path).
+ * - Required before multi-role UI dispatch when any trigger fires; satisfied by approval OR hosted slug/URL.
+ */
+const VISUAL_TAGS = new Set(['visual', 'dashboard', 'ui']);
+
+export function checkVisualPlanGate(task = {}) {
+  const tags = Array.isArray(task.tags) ? task.tags : [];
+  const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
+  const visualPlanUrl = task.visualPlanUrl || null;
+  const visualPlanSlug = task.visualPlanSlug || null;
+  const visualPlanHostedUrl = task.visualPlanHostedUrl || null;
+  const visualRecapUrl = task.visualRecapUrl || null;
+
+  const tagVisual = tags.some((t) => VISUAL_TAGS.has(String(t).toLowerCase()));
+  const largeVisual = subtasks.length >= 4 && tagVisual;
+  const required = task.requiresVisualPlan === true
+    || Boolean(visualPlanUrl)
+    || largeVisual;
+
+  const satisfied = task.visualPlanApproved === true
+    || Boolean(visualPlanSlug)
+    || Boolean(visualPlanHostedUrl);
+
+  let reason = 'not required';
+  if (required && satisfied) reason = 'visual plan present';
+  else if (required && !satisfied) {
+    if (task.requiresVisualPlan === true) reason = 'requiresVisualPlan without approval or hosted slug';
+    else if (visualPlanUrl) reason = 'visualPlanUrl set but no approval or hosted slug';
+    else reason = 'large visual/dashboard/ui task without approval or hosted slug';
+  }
+
+  return { required, satisfied, reason, visualPlanUrl, visualPlanSlug, visualRecapUrl };
+}
+
 export async function helmsmanRun(opts = {}) {
   mkdirSync(opts.outDir, { recursive: true });
-  const summary = { files: [], held: [], ollamaEligible: 0, errors: [] };
+  const summary = { files: [], held: [], ollamaEligible: 0, visualPlanGates: [], errors: [] };
 
   for (const taskFile of opts.taskFiles) {
     const bn = basename(taskFile, '.json');
@@ -67,6 +104,17 @@ export async function helmsmanRun(opts = {}) {
 
     let parsed = {};
     try { parsed = JSON.parse(company.stdout); } catch { /* keep empty */ }
+
+    let taskMeta = {};
+    try { taskMeta = JSON.parse(readFileSync(taskFile, 'utf8')); } catch { /* keep empty */ }
+    const gate = checkVisualPlanGate(taskMeta);
+    if (gate.required) {
+      summary.visualPlanGates.push({ file: rel, ...gate });
+      if (!gate.satisfied) {
+        summary.errors.push({ file: rel, step: 'visual-plan-gate', status: 'advisory' });
+      }
+    }
+
     summary.files.push({
       taskFile: rel,
       companyOut: companyPath.replace(`${REPO_ROOT}/`, ''),
@@ -74,6 +122,7 @@ export async function helmsmanRun(opts = {}) {
       held: parsed.held?.length ?? 0,
       glm: parsed.summary?.glm ?? parsed.glmLeaves?.length ?? 0,
       native: parsed.summary?.native ?? parsed.nativeSpecs?.length ?? 0,
+      visualPlanGate: gate,
     });
     for (const h of parsed.held ?? []) summary.held.push({ file: rel, ...h });
     if (!company.ok) summary.errors.push({ file: rel, step: 'company', status: company.status });
@@ -93,7 +142,17 @@ if (isMain) {
     process.exit(1);
   }
   helmsmanRun(opts).then((s) => {
-    console.log(JSON.stringify(s, null, 2));
-    process.exit(s.errors.length ? 1 : 0);
+    const hints = (s.visualPlanGates || []).map((g) => ({
+      file: g.file,
+      required: g.required,
+      satisfied: g.satisfied,
+      reason: g.reason,
+      visualPlanSlug: g.visualPlanSlug,
+      visualRecapUrl: g.visualRecapUrl,
+    }));
+    const out = hints.length ? { ...s, visualPlanGateHints: hints } : s;
+    console.log(JSON.stringify(out, null, 2));
+    const hardErrors = (s.errors || []).filter((e) => e.status !== 'advisory');
+    process.exit(hardErrors.length ? 1 : 0);
   }).catch((e) => { console.error(e); process.exit(1); });
 }

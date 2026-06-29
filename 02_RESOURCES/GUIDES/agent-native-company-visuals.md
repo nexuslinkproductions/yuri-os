@@ -33,6 +33,20 @@ node _SYSTEM/Scripts/work-dashboard.mjs --serve
 
 Open **http://localhost:4270** — realtime runs, job pool, doctrine axes, 20-role constellation.
 
+**Drill-down (shipped Phase 5):**
+
+| Click target | API | Drawer content |
+|--------------|-----|----------------|
+| Run row | `GET /api/run?id=` | rounds, leaves, converged, role outputs, artifacts |
+| Constellation node | `GET /api/artifacts?role=` | role meta + recent artifacts |
+| Job row | — | job detail (mass, doctrine axes, closure) |
+
+**Insights trends:** `GET /api/trends?type=throughput|convergence|productivity` — sparkline + convergence running-rate label.
+
+**Visual plans panel:** `visualPlans[]` on `/api/overview` (also `GET /api/visual-plans`) — scans task JSON for `visualPlanSlug`, hosted URL, recap hint.
+
+**Held queue:** read-only items from helmsman summary; **Request owner approve** is a disabled Phase 5 stub (not live dispatch).
+
 Static org swimlane:
 
 ```bash
@@ -51,17 +65,35 @@ Browse templates: `templates/dispatch`, `templates/analytics`, `templates/plan`,
 ## Recommended workflow
 
 1. **Plan** — `/visual-plan` with your MURE task packet or phase doc
-2. **Dispatch** — `node _SYSTEM/mure/mure.mjs --demo` or `runFleet.mjs --dry-run` (DISARMED)
-3. **Watch** — work dashboard on :4270 while runs execute
-4. **Recap** — `/visual-recap` after merge
+2. **Register** — add `visualPlanSlug` + `visualPlanHostedUrl` (+ `visualPlanApproved: true` after owner review) to task JSON
+3. **Gate** — `node _SYSTEM/mure/helmsman-run.mjs --dry-run-all` documents `visualPlanGates[]` (advisory if unsatisfied)
+4. **Dispatch** — `node _SYSTEM/mure/mure.mjs --demo` or `runFleet.mjs --dry-run` (DISARMED)
+5. **Watch** — work dashboard on :4270 while runs execute (visual plans strip + held queue)
+6. **Recap** — `/visual-recap` after merge
+
+### visualPlanSlug convention
+
+```json
+{
+  "visualPlanUrl": "/visual-plan",
+  "visualPlanSlug": "recap-fb61bca8b66d4ba8",
+  "visualPlanHostedUrl": "https://plan.agent-native.com/recap-fb61bca8b66d4ba8",
+  "visualPlanApproved": true,
+  "visualRecapUrl": "/visual-recap"
+}
+```
+
+- **Slug** is the hosted recap id from Agent-Native Plan MCP (`recap-…`).
+- **Gate** (`checkVisualPlanGate` in `helmsman-run.mjs`): required when `visualPlanUrl` set, `requiresVisualPlan: true`, or large visual/UI task (≥4 subtasks + visual/dashboard/ui tag). Satisfied by approval OR slug/URL.
+- Non-visual workstreams may set `"requiresVisualPlan": false` explicitly.
 
 ## What's coming (roadmap)
 
 | Priority | Surface | Benefit |
 | --- | --- | --- |
-| Next | Dashboard drill-down to blackboard JSON | See exactly what each role produced |
+| ~~Next~~ | ~~Dashboard drill-down to blackboard JSON~~ | **Shipped** — run/role/job drawers |
 | High | Dispatch-template fork | Approvals, audit, metrics, direct job control |
-| Med | Analytics over fleet/token ledger | Cost, throughput, router confidence charts |
+| Med | Analytics over fleet/token ledger | Cost, throughput, router confidence charts (P5-D deferred) |
 | Med | Design template | Prototype dashboard panels before shipping HTML |
 
 Full integration spec: `_SYSTEM/reports/AGENT_NATIVE_INTEGRATION_2026-06-29.md`
@@ -80,7 +112,7 @@ You do **not** need to paste skill instructions or type slash commands every ses
 | --- | --- |
 | **Cursor / Claude** | `visual-plan` is in `.claude/skills/` — agents load `SKILL.md` when the task is multi-file, UI-heavy, architectural, or risky (same rule as other skills) |
 | **Canonical index** | `skills/visual-plan/` + `skills/skill-index.json` — picked up by `yuri-skill-loader.mjs` and fused swarm evidence |
-| **MURE helmsman** | Large company runs should treat visual plan as the approval gate before code (agent loads skill; calls Plan MCP tools directly) |
+| **MURE helmsman** | `checkVisualPlanGate` in `helmsman-run.mjs` — dry-run documents gaps; unsatisfied gates are advisory only (Phase 5) |
 | **Slash command** | `.claude/commands/visual-plan.md` exists for Claude Code if you want explicit invocation — optional |
 | **One-time setup** | `node _SYSTEM/Scripts/agent-native-bootstrap.mjs connect` then reload Cursor. Plain `npx` from repo root fails on peer deps — use bootstrap or `NPM_CONFIG_LEGACY_PEER_DEPS=true` |
 

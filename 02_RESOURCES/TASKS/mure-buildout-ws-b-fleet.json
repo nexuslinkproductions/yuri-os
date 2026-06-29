@@ -1,6 +1,7 @@
 {
   "summary": "WS-B: MURE company build-out — fleet substrate rewire",
   "tags": ["mure", "buildout", "fleet", "substrate"],
+  "requiresVisualPlan": false,
   "subtasks": [
     {
       "id": "WS-B-R1-ollama-sidecar",

@@ -37,6 +37,55 @@ function loadHeldQueue() {
   }
 }
 
+const TASK_GLOB = [
+  '02_RESOURCES/TASKS/mure-buildout-ws-*.json',
+  '02_RESOURCES/TASKS/yuri-public-release-phase2-8.json',
+];
+
+function loadVisualPlanRegistry() {
+  const plans = [];
+  const seen = new Set();
+  for (const pattern of TASK_GLOB) {
+    const dir = path.dirname(pattern);
+    const base = path.basename(pattern);
+    const absDir = path.join(REPO_ROOT, dir);
+    let files = [];
+    if (base.includes('*')) {
+      const prefix = base.replace('*.json', '');
+      const suffix = '.json';
+      try {
+        files = fs.readdirSync(absDir)
+          .filter((f) => f.startsWith(prefix) && f.endsWith(suffix))
+          .map((f) => path.join(dir, f));
+      } catch { /* missing dir */ }
+    } else {
+      files = [pattern];
+    }
+    for (const rel of files) {
+      const abs = path.join(REPO_ROOT, rel);
+      if (!fs.existsSync(abs) || seen.has(rel)) continue;
+      seen.add(rel);
+      try {
+        const task = JSON.parse(fs.readFileSync(abs, 'utf8'));
+        const hasVisual = task.visualPlanSlug || task.visualPlanHostedUrl || task.visualPlanUrl
+          || task.visualPlanApproved || task.visualRecapUrl;
+        if (!hasVisual) continue;
+        plans.push({
+          taskFile: rel,
+          summary: task.summary || null,
+          visualPlanSlug: task.visualPlanSlug || null,
+          visualPlanHostedUrl: task.visualPlanHostedUrl || null,
+          visualPlanUrl: task.visualPlanUrl || null,
+          visualRecapUrl: task.visualRecapUrl || null,
+          visualPlanApproved: task.visualPlanApproved === true,
+          requiresVisualPlan: task.requiresVisualPlan === true,
+        });
+      } catch { /* skip malformed */ }
+    }
+  }
+  return plans;
+}
+
 const PLACEHOLDER = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>MURE</title>
 <style>body{font-family:system-ui;background:#1a1a18;color:#f1efe8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
 .b{text-align:center}.b h1{font-weight:500}.b code{background:#30302e;padding:.2rem .5rem;border-radius:6px}</style></head>
@@ -76,8 +125,15 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
           }
         } catch (e) { ov.jobs = ov.jobs || []; ov.jobStats = ov.jobStats || { error: String(e?.message || e) }; }
         ov.heldQueue = loadHeldQueue();
+        ov.visualPlans = loadVisualPlanRegistry();
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
         res.end(JSON.stringify(ov));
+        return;
+      }
+      if (url === '/api/visual-plans') {
+        const plans = loadVisualPlanRegistry();
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify(plans));
         return;
       }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }
@@ -144,4 +200,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 }
 
-export { startServer };
+export { startServer, loadVisualPlanRegistry };

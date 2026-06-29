@@ -2,6 +2,10 @@
   "summary": "WS-C: MURE company build-out — visual control surface",
   "tags": ["mure", "buildout", "dashboard", "visual"],
   "visualPlanUrl": "/visual-plan",
+  "visualPlanSlug": "recap-fb61bca8b66d4ba8",
+  "visualPlanHostedUrl": "https://plan.agent-native.com/recap-fb61bca8b66d4ba8",
+  "visualPlanApproved": true,
+  "visualRecapUrl": "/visual-recap",
   "subtasks": [
     {
       "id": "WS-C-R1-dashboard-drilldown",

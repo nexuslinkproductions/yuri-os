@@ -217,6 +217,20 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
 .axis .abar>i{display:block;height:100%;border-radius:99px;background:var(--axc,var(--c-cyan));transition:width .7s cubic-bezier(.22,1,.36,1)}
 .axis.under{border-left-color:var(--c-amber)}.axis.under .aw{color:var(--c-amber)}
 .axis.floor{opacity:.62}
+/* ── visual plans strip ── */
+.vplans{display:flex;flex-direction:column;gap:8px}
+.vplan{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:10px;
+  background:var(--surf-1);border:1px solid var(--border-subtle);border-left:2px solid var(--c-violet);box-shadow:inset 0 1px 0 var(--hl-top)}
+.vplan .vpt{font-size:13px;color:var(--tx-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vplan .vpm{font-family:"SF Mono",monospace;font-size:10px;color:var(--tx-faint);margin-top:4px}
+.vplan .vlinks{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.vlink{font-family:"SF Mono",monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:99px;
+  border:1px solid var(--border-accent);color:var(--c-cyan);text-decoration:none;background:color-mix(in srgb,var(--c-cyan) 8%,transparent)}
+.vlink:hover{color:var(--c-ice)}
+.vlink.off{opacity:.45;pointer-events:none;border-color:var(--border-subtle);color:var(--tx-muted)}
+.convsub{font-family:"SF Mono",monospace;font-size:10px;color:var(--tx-faint);text-align:center;margin-top:6px;letter-spacing:.04em}
+.approve-stub{font-family:"SF Mono",monospace;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:99px;
+  border:1px solid var(--border-subtle);background:var(--surf-2);color:var(--tx-faint);cursor:not-allowed;opacity:.55;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -268,6 +282,11 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
     <div class="joblist" id="heldList"></div>
   </div>
 
+  <div class="panel" style="margin-bottom:18px;display:none" id="vplanPanel">
+    <div class="panel-h"><div class="pt">Visual plans</div><div class="pc" id="vplanCount">— registered</div></div>
+    <div class="vplans" id="vplanList"></div>
+  </div>
+
   <div class="lower">
     <div class="panel">
       <div class="panel-h"><div class="pt">Work products</div><div class="pc" id="wpCount">— items</div></div>
@@ -284,6 +303,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
         <div class="gaugebig">
           <svg width="170" height="170" viewBox="0 0 170 170" id="convGauge"></svg>
           <div class="gv"><div class="gn" id="convNum">—</div><div class="gl">convergence</div></div>
+          <div class="convsub" id="convTrend">—</div>
         </div>
         <div>
           <div class="insub" style="margin-top:0">throughput · artifacts / day</div>
@@ -309,7 +329,7 @@ const SVGNS="http://www.w3.org/2000/svg";
 const GROUPS=["orchestration","research","engineering","verification","knowledge","operations"];
 const SUBCOL={native:"var(--c-cyan)",glm:"var(--c-violet)",either:"var(--c-ice)"};
 const KINDCOL={doc:"var(--c-cyan)",module:"var(--c-green)",test:"var(--c-amber)",report:"var(--c-violet)",blueprint:"var(--c-violet)",manifest:"var(--tx-muted)",config:"var(--tx-muted)",file:"var(--tx-faint)"};
-let DATA=null, kindFilter="all", prevConv=0, TRENDS=null, trendsAt=0;
+let DATA=null, kindFilter="all", runFilter=null, prevConv=0, TRENDS=null, trendsAt=0;
 
 async function fetchJson(url){
   const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(r.status); return r.json();
@@ -484,6 +504,16 @@ function renderInsights(d){
   }
   g._arc.setAttribute('stroke-dashoffset',c*(1-pct));
   const target=Math.round(pct*100); if(target!==prevConv){ animNum(document.getElementById('convNum'),prevConv,target,'%'); prevConv=target; }
+  const cv=(TRENDS&&TRENDS.convergence)||[];
+  const convSub=document.getElementById('convTrend');
+  if(cv.length>1){
+    const last=cv[cv.length-1], prev=cv[cv.length-2];
+    const lr=Math.round((last.runningRate||0)*100), pr=Math.round((prev.runningRate||0)*100);
+    const delta=lr-pr;
+    setText(convSub,`trend ${lr}% · ${delta>=0?'+':''}${delta}pp vs prior run`);
+  }else if(cv.length===1){
+    setText(convSub,`trend ${Math.round((cv[0].runningRate||0)*100)}% running rate`);
+  }else setText(convSub,'trend accumulating…');
   // throughput area — prefer /api/trends when loaded, else overview stats
   const tp=(TRENDS&&TRENDS.throughput)||st.throughput||[];const sp=document.getElementById('spark');const tpSig=tp.map(x=>x.count??x.value??0).join(',');
   if(sp.dataset.sig!==tpSig){ sp.dataset.sig=tpSig; sp.replaceChildren();
@@ -531,7 +561,33 @@ function renderHeld(d){
           `<span class="jtag">${esc(h.role||'—')}</span>`+
           `<span class="jsrc own">${esc((h.file||'').split('/').pop()||'—')}</span></div>`+
           `<div class="mono" style="font-size:10px;color:var(--tx-faint);margin-top:6px;line-height:1.5">${esc(h.reason||'')}</div></div>`+
-        `<div class="jstate"><span class="pill err"><span class="pd"></span>held</span></div>`;
+        `<div class="jstate"><button type="button" class="approve-stub" disabled title="Owner-gated — Phase 5 stub">Request owner approve</button></div>`;
+    });
+}
+
+// ── visual plans strip ──
+function renderVisualPlans(d){
+  const plans=d.visualPlans||[];
+  const panel=document.getElementById('vplanPanel');
+  setText(document.getElementById('vplanCount'),plans.length?`${plans.length} registered`:'none · task JSON metadata');
+  if(!plans.length){ panel.style.display='none'; return; }
+  panel.style.display='';
+  const box=document.getElementById('vplanList'); box._emptyMsg='no visual plans';
+  reconcile(box,plans,p=>p.taskFile||p.summary,
+    ()=>H('div','vplan'),
+    (row,p)=>{
+      const sig=[p.taskFile,p.visualPlanSlug,p.visualPlanHostedUrl,p.visualPlanApproved].join('|');
+      if(row.dataset.sig===sig)return; row.dataset.sig=sig;
+      const slug=p.visualPlanSlug||'—';
+      const hosted=p.visualPlanHostedUrl;
+      const recap=p.visualRecapUrl||'/visual-recap';
+      const approved=p.visualPlanApproved?'approved':'pending';
+      row.innerHTML=`<div><div class="vpt">${esc(p.summary||slug)}</div>`+
+        `<div class="vpm mono">${esc((p.taskFile||'').split('/').pop()||'—')} · slug ${esc(slug)} · ${approved}</div></div>`+
+        `<div class="vlinks">`+
+          (hosted?`<a class="vlink" href="${esc(hosted)}" target="_blank" rel="noopener">hosted</a>`:`<span class="vlink off">hosted</span>`)+
+          `<span class="vlink off" title="local recap path">${esc(recap)}</span>`+
+        `</div>`;
     });
 }
 
@@ -563,11 +619,16 @@ function renderWP(d){
   const total=(d.kpis&&d.kpis.totalArtifacts!=null)?d.kpis.totalArtifacts:arts.length;
   setText(document.getElementById('wpCount'),total+' items'+(arts.length<total?` · ${arts.length} recent`:''));
   const filters=[['all','all',total],...Object.entries(byKind).sort((a,b)=>b[1]-a[1]).map(([k,n])=>[k,k,n])];
+  if(runFilter) filters.unshift(['run','run: '+runFilter.slice(0,12),null]);
   reconcile(document.getElementById('kindFilters'),filters,f=>f[0],
     ()=>H('div','fchip'),
-    (c,f)=>{ c.classList.toggle('on',kindFilter===f[0]); c.innerHTML=esc(f[1])+(f[2]!=null?`<span class="n">${f[2]}</span>`:''); c.onclick=()=>{kindFilter=f[0];renderWP(DATA);}; });
+    (c,f)=>{ const on=f[0]==='run'?!!runFilter:(f[0]==='all'?!runFilter&&kindFilter==='all':kindFilter===f[0]&&!runFilter);
+      c.classList.toggle('on',on); c.innerHTML=esc(f[1])+(f[2]!=null?`<span class="n">${f[2]}</span>`:''); c.onclick=()=>{if(f[0]==='run'){runFilter=null;kindFilter='all';}else{runFilter=null;kindFilter=f[0];}renderWP(DATA);}; });
   const body=document.getElementById('wpBody');
-  const rows=arts.filter(a=>kindFilter==='all'||a.kind===kindFilter).slice(0,200);
+  const rows=arts.filter(a=>{
+    if(runFilter&&a.runId!==runFilter&&a.run!==runFilter)return false;
+    return kindFilter==='all'||a.kind===kindFilter;
+  }).slice(0,200);
   if(!rows.length){ body.replaceChildren(); const tr=document.createElement('tr');tr.innerHTML='<td colspan="4" style="text-align:center;color:var(--tx-faint);padding:24px">no items</td>';body.append(tr);return; }
   reconcile(body,rows,a=>a.path||a.title,
     ()=>document.createElement('tr'),
@@ -587,6 +648,8 @@ function showDrawer(html){
 }
 async function openRun(run){
   if(!run||!run.id)return;
+  runFilter=run.id;
+  if(DATA) renderWP(DATA);
   showDrawer(`<div class="dnm" style="font-size:16px">Run</div><div class="darch mono">${esc(run.id)}</div><div class="empty">loading…</div>`);
   try{
     const d=await fetchJson('/api/run?id='+encodeURIComponent(run.id));
@@ -688,7 +751,7 @@ async function tick(){
     document.getElementById('statustext').textContent=armed?'armed':'disarmed';
     document.getElementById('updated').textContent='updated '+rel(d.company?.generatedAt||new Date().toISOString());
     setText(document.getElementById('rosterCount'),(d.roleCount||(d.roles||[]).length)+' roles · 6 groups');
-    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);renderHeld(d);renderInsights(d);renderWP(d);renderDoctrine(d);
+    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);renderHeld(d);renderVisualPlans(d);renderInsights(d);renderWP(d);renderDoctrine(d);
     document.title='NEXUS LINK — '+(d.kpis?.totalRuns||0)+' runs';
   }catch(e){document.getElementById('updated').textContent='connection lost — retrying';}
 }
