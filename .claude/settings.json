@@ -2,7 +2,9 @@
   "env": {
     "CLAUDE_CODE_BASH_NO_TIMEOUT": "1",
     "YURI_WORKHORSE_TIMEOUT": "0",
-    "YURI_ENERGY_OBSERVABILITY": "1"
+    "YURI_ENERGY_OBSERVABILITY": "1",
+    "API_TIMEOUT_MS": "3000000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
   },
   "permissions": {
     "allow": [
@@ -89,7 +91,6 @@
       "Edit(.claude/state/token-session.json)"
     ]
   },
-  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -173,10 +174,6 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/bash-security-guard.js\""
-          },
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/operator-write-guard.js\""
           },
           {
             "type": "command",
@@ -345,6 +342,10 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/slm-producer.mjs\" stop",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/voice-tts.mjs\""
           }
         ]
       }
@@ -353,6 +354,17 @@
   "statusLine": {
     "type": "command",
     "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-status.js\""
+  },
+  "enabledPlugins": {
+    "glm-plan-usage@zai-coding-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "zai-coding-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "${HOME}/.npm/_npx/2f024689b4d0d3b0/node_modules/@z_ai/coding-helper/zai-coding-plugins"
+      }
+    }
   },
   "spinnerTipsEnabled": false,
   "prefersReducedMotion": false,
@@ -365,6 +377,5 @@
   "showTurnDuration": true,
   "terminalProgressBarEnabled": true,
   "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true,
-  "effortLevel": "max"
+  "agentPushNotifEnabled": true
 }

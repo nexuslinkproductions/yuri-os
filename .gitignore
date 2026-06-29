@@ -23,6 +23,9 @@ CLAUDE.local.md
 *.key
 *.pem
 
+# Claude Track-B auto-memory — operator-private, never ship (public release W4)
+.claude/memory/
+
 # Claude ephemeral session artifacts
 .claude/memory-sessions/
 .claude/sessions/
@@ -384,6 +387,21 @@ _SYSTEM/state/arch-graph-watch-state.json
 # wave-3 ecosystem gate (MiMo extension F18/F23): never let these enter git history
 _SYSTEM/monitoring/kagami-discipline.log
 03_NEXUS-LINK/bug-bounty/
+# Nexus Link product/business — export ships Identity/ only
+03_NEXUS-LINK/business/
+03_NEXUS-LINK/nexus-app/
+03_NEXUS-LINK/nexus-engine/
+
+# Operator-private surfaces — never in public export
+_SYSTEM/persona.md
+_SYSTEM/monitoring/health.json
+_SYSTEM/campaigns/
+00_COMMAND-CENTER/
+01_PROJECTS/
+
+# MLP learned weights — per-machine, advisory only
+_SYSTEM/state/fleet-router-weights.json
+_SYSTEM/state/prediction-ledger.jsonl
 
 # filing autonomy runtime artifacts (regenerate every run; not golden). The arming flag mirrors
 # energy-enforce.enabled above — repo default = DISARMED, enabling is always a deliberate local act.

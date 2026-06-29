@@ -1287,6 +1287,7 @@
         "extractResultLabel",
         "aggregatePoolOutputs",
         "validatePacket",
+        "defaultTimeoutMsForLane",
         "FLEET_PROTOCOL_PREAMBLE",
         "ARM_ENV"
       ],

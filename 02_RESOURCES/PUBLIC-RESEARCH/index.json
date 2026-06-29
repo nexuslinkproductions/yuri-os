@@ -1,0 +1,240 @@
+{
+  "generatedAt": "2026-06-29T13:35:38.382Z",
+  "count": 39,
+  "entries": [
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/README.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/circuit-breaker-3-state-fail-open.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/closed-set-fail-closed-validator.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/cytoscape-ego-focus-zoom.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/d3-catmull-rom-spline.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/d3-convex-hull.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/fsrs-retrievability-demotion.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/graded-confidence-provenance-gate.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/orthogonal-edge-routing.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/privacy-gate-serialize-revalidate-canary.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/semantic-zoom-transform.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/single-resolver-env-override-path.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/mechanisms/symmetric-laplacian-eigensolve.md",
+      "source": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/GUIDES/cursor-primary-fleet-delegation-guide.md",
+      "source": "02_RESOURCES/GUIDES/",
+      "score": 0.9,
+      "reason": "Adopter onboarding, fleet delegation, first-30-min"
+    },
+    {
+      "path": "02_RESOURCES/GUIDES/fleet-router-adopter-guide.md",
+      "source": "02_RESOURCES/GUIDES/",
+      "score": 0.9,
+      "reason": "Adopter onboarding, fleet delegation, first-30-min"
+    },
+    {
+      "path": "02_RESOURCES/GUIDES/yuri-first-30-minutes.md",
+      "source": "02_RESOURCES/GUIDES/",
+      "score": 0.9,
+      "reason": "Adopter onboarding, fleet delegation, first-30-min"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/00-MASTER-BRIEF.md",
+      "source": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/01-SCAN-REPORT.md",
+      "source": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/02-ADOPTION-BLUEPRINTS.md",
+      "source": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/03-SIM-REDTEAM.md",
+      "source": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/04-COMMERCIAL-ROADMAP.md",
+      "source": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/00-MASTER-BRIEF.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/01-SYNTHESIS.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/02-CONVERGENCE-DESIGN.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/03-BUILD-SPEC.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/04-P2-BUILD-PLAN.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/deepseek-recall-grounding.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/deepseek-reliability-v2.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/inc5-peer-review-synthesis.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/inc8-mimo-review-synthesis.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/lane-deepseek-rotation-attack.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/lane-glm-compaction.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/lane-minimax-filing-seam.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/lane-nemotron-daemon-tests.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/mimo-architecture.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/mimo-convergence-v2.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/ollama-glm-5.1-hardening.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/ollama-minimax-m3-integration.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/ollama-nemotron-3-ultra-persistence.md",
+      "source": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    }
+  ]
+}

@@ -19,6 +19,18 @@ import {
   converge, finalizeGuard, isArmed as convergenceArmed,
 } from './swarm-convergence.mjs';
 
+// Aggressive MLP router integration (advisory only)
+let _routerMod = null;
+async function getRouter() {
+  if (_routerMod !== null) return _routerMod;
+  try {
+    _routerMod = await import('./fleet-router-mlp.mjs');
+  } catch {
+    _routerMod = false;
+  }
+  return _routerMod || null;
+}
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 
@@ -48,6 +60,41 @@ export async function runSwarm(decomposition = {}, opts = {}) {
   // when the global swarm-convergence flag is on.)
   const armedNow = (opts.armed !== undefined) ? !!opts.armed : convergenceArmed();
   const runDir = buildRunDir(runId);
+
+  // === Aggressive router wiring ===
+  // Consult MLP router for every leaf. Attach suggestion + confidence.
+  // Use router to bias soft params (timeoutMs) for heavy reasoning leaves when confidence is decent.
+  // Router is always advisory; hard governance / flags still control arming and dispatch.
+  const router = await getRouter();
+  const routerSuggestions = [];
+  if (router && typeof router.extractFeatures === 'function' && typeof router.predictRoute === 'function') {
+    for (const leaf of leaves) {
+      const ctx = {
+        complexity: (leaf.prompt || '').length > 800 ? 0.8 : 0.55,
+        quotaPressure: 0.35,
+        evidenceDecidability: 0.85,
+        roleHeavy: /adjudicator|architect|deliberator|helmsman/.test(String(leaf.role || leaf.id)),
+      };
+      const feats = router.extractFeatures(leaf, ctx);
+      const suggestion = await router.predictRoute(feats, [{
+        id: leaf.id,
+        substrate: 'glm',
+        lane: leaf.lane || 'glm',
+        role: leaf.role || leaf.id,
+      }]);
+      leaf.routerSuggestion = suggestion.best;
+      leaf.routerConfidence = suggestion.confidence;
+      routerSuggestions.push({ id: leaf.id, best: suggestion.best, confidence: suggestion.confidence });
+
+      // Bias timeout for heavy work when router is reasonably confident
+      if (suggestion.confidence > 0.25 && suggestion.best && /max|heavy|adjudicator/.test(String(suggestion.best.lane || ''))) {
+        const suggestedTimeout = Math.max(leaf.timeoutMs || 0, 1200000); // at least 20 min for heavy
+        if (!leaf.timeoutMs || leaf.timeoutMs < suggestedTimeout) {
+          leaf.timeoutMs = suggestedTimeout;
+        }
+      }
+    }
+  }
 
   // Injectable deps (hermetic tests pass fakes; defaults are the real wired functions).
   const _glmFleet = opts.deps?.glmFleet || glmFleet;
@@ -145,6 +192,7 @@ export async function runSwarm(decomposition = {}, opts = {}) {
     converged: !!(lastVerdict && lastVerdict.converged), forced: !!(lastVerdict && lastVerdict.forced),
     finalizeOk: guard.ok, finalizeReason: guard.reason,
     convergenceArmed: convergenceArmed(), budgetUsed, roundYields, roundLog, runDir, verdict: lastVerdict,
+    routerSuggestions,   // MLP router suggestions attached to leaves (advisory)
   };
   try {
     fs.mkdirSync(path.join(REPO_ROOT, '.claude', 'jobs', runId), { recursive: true });

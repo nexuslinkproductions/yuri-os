@@ -1,0 +1,39 @@
+{
+  "summary": "Phase 1: Full census and leak inventory for YURI public invite-only release",
+  "tags": ["release", "census", "security", "read-only"],
+  "subtasks": [
+    {
+      "id": "P1-R1-ip-secret-census",
+      "role": "sentinel",
+      "need": ["security-review", "safety-audit"],
+      "prompt": "READ-ONLY census of TRACKED files for IP strings (Rick&Morty, Deadpool, Marvel, Disney), secrets (API keys, bearer tokens), PII beyond authorship, private journals. Use git ls-files + ripgrep only. Never read protected path CONTENT. Return evidence table + 01R1_IP_SECRET_CENSUS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "P1-R2-telemetry-leak",
+      "role": "scout",
+      "need": ["local-first-search", "security-review"],
+      "prompt": "READ-ONLY scan TRACKED files for telemetry/state leaks: health.json, .claude/memory, .claude/state, campaigns, command-center, tracked DBs, hardcoded /Users paths. Return evidence table + 01R2_TELEMETRY_LEAK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "P1-V1-adversarial-gaps",
+      "role": "adjudicator",
+      "need": ["adversarial-verify", "gap-detection"],
+      "prompt": "Independent adversarial pass: git history exposure, gitignore gaps, 03_NEXUS-LINK venture tree, submodules, config keys. Default REFUTED-AS-SAFE only with evidence. timeoutMs 1320000. Return gap findings + 01V1_ADVERSARIAL_GAP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "timeoutMs": 1320000
+    },
+    {
+      "id": "P1-N1-cross-verify",
+      "role": "sentinel",
+      "need": ["security-review", "safety-audit"],
+      "prompt": "Cross-verify R1/R2/V1 findings. Classify each as BLOCKER, DEV-ONLY, FALSE-POSITIVE. Produce remediation list (no execution). Return verdict table + 01N1_CROSS_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

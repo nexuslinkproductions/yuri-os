@@ -3,7 +3,7 @@
 // @serves: glm fleet | spawn glm agents | z.ai fleet | parallel glm lanes | fan out glm | glm swarm | dual-substrate fleet | opus-fleet glm substrate
 // @does: parallel fan-out of N z.ai GLM lanes at --reasoning high through lane-dispatch.mjs (4-attempt EPIPE/429 retry), each lane's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore. DISARMED by default = dry-run (zero spend, zero fan-out); YURI_GLM_FLEET=1 arms the real fire.
 // @use: glmFleet([{lane:'glm',label:'R1',prompt:'...'}], {concurrency:3}) — the GLM substrate of the opus-fleet model. Native Claude Agents are the other substrate (Agent tool). CLI: node glm-fleet.mjs --list | --dry-run --tasks '<json>' | --smoke (armed needs YURI_GLM_FLEET=1).
-// @exports: glmFleet, buildRunDir, extractResultLabel, aggregatePoolOutputs, validatePacket, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
+// @exports: glmFleet, buildRunDir, extractResultLabel, aggregatePoolOutputs, validatePacket, defaultTimeoutMsForLane, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
 //
 // WHY built on lane-dispatch.mjs (not llm-lane directly): lane-dispatch re-invokes llm-lane in a FRESH
 // process up to 4× with backoff, treating AggregateError / empty / non-zero exit as transient — the exact
@@ -45,6 +45,32 @@ export function buildRunDir(runId) {
 function safeLabel(s, i = 0) {
   const v = String(s || `lane${i + 1}`).replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 60);
   return v || `lane${i + 1}`;
+}
+
+// Tier-aware outer timeout for lane-dispatch (LANE_DISPATCH_TIMEOUT_MS). The old flat 5min default
+// SIGKILL'd glm-max tool loops before --out was written (V1 adversarial audit, 2026-06-29).
+const LANE_TIMEOUT_MS = Object.freeze({
+  'glm-max': 1320000,      // 22min — matches lane-dispatch default; heavy multi-tool orchestration
+  'glm-sub-orch': 1320000,
+  glm: 900000,             // 15min — workhorse code-gen / judgment
+  'glm-turbo': 600000,
+  'glm-flash': 600000,     // align with ollama-fleet default
+  'glm-flashx': 600000,
+  'glm-vision': 600000,
+  'glm-ocr': 600000,
+});
+const LANE_DISPATCH_ATTEMPTS_HEAVY = 2; // glm-max/sub-orch: fewer retries, longer per-attempt budget
+
+/** Resolve outer lane-dispatch timeout from explicit task.timeoutMs or lane tier. */
+export function defaultTimeoutMsForLane(lane) {
+  const key = String(lane || 'glm');
+  return LANE_TIMEOUT_MS[key] ?? 600000;
+}
+
+function dispatchAttemptsForLane(lane) {
+  const key = String(lane || '');
+  if (key === 'glm-max' || key === 'glm-sub-orch') return LANE_DISPATCH_ATTEMPTS_HEAVY;
+  return undefined; // lane-dispatch default (4)
 }
 
 // Compact protocol a glm-5.2 sub-orchestrator (or a native general-purpose Agent) is handed so it can
@@ -143,19 +169,22 @@ function fireTask(task, label, runDir, runId) {
   return new Promise((resolve) => {
     const outFile = path.join(runDir, `${label}.out`);
     const reasoning = task.reasoning || 'high';
-    const timeoutMs = Number(task.timeoutMs || 300000);
+    const timeoutMs = Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : defaultTimeoutMsForLane(task.lane);
+    const dispatchAttempts = dispatchAttemptsForLane(task.lane);
     const args = [LANE_DISPATCH, task.lane, String(task.prompt || ''), '--out', outFile, '--reasoning', reasoning];
     const t0 = Date.now();
     let err = '';
     let child;
     try {
+      const dispatchEnv = { ...process.env, LANE_DISPATCH_TIMEOUT_MS: String(timeoutMs) };
+      if (dispatchAttempts != null) dispatchEnv.LANE_DISPATCH_ATTEMPTS = String(dispatchAttempts);
       child = spawn('node', args, {
         cwd: REPO_ROOT,
         // stdout IGNORED on purpose: the lane's text is read from its --out FILE, never the pipe. A piped-but-
         // unread stdout DEADLOCKS lane-dispatch's synchronous fs.writeSync(1,...) once output exceeds the
         // ~64KB OS pipe buffer (real on any reasoning-high synthesis). stderr stays piped for error capture.
         stdio: ['ignore', 'ignore', 'pipe'],
-        env: { ...process.env, LANE_DISPATCH_TIMEOUT_MS: String(timeoutMs) },
+        env: dispatchEnv,
       });
     } catch (e) {
       resolve({ label, lane: task.lane, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, durationMs: Date.now() - t0, stderr: String(e?.message || e) });

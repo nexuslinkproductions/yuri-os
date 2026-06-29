@@ -113,6 +113,31 @@ was.
 
 ---
 
+## Fleet & MURE (optional, DISARMED by default)
+
+YURI includes a 20-role governed company (MURE) for multi-lane work. **Nothing spends API quota until you arm.**
+
+```bash
+node _SYSTEM/mure/mure.mjs --validate
+node _SYSTEM/mure/mure.mjs --demo
+node _SYSTEM/Scripts/runFleet.mjs --task-file task.json --dry-run
+```
+
+**Arming ceremony (owner-only):**
+
+```bash
+touch _SYSTEM/state/mure.enabled
+touch _SYSTEM/state/glm-fleet.enabled
+touch _SYSTEM/state/swarm-convergence.enabled
+# optional: touch _SYSTEM/state/ollama-fleet.enabled
+```
+
+Requires z.ai / Ollama / Cursor keys for live lanes. See [`02_RESOURCES/GUIDES/yuri-first-30-minutes.md`](02_RESOURCES/GUIDES/yuri-first-30-minutes.md) and [`02_RESOURCES/GUIDES/fleet-router-adopter-guide.md`](02_RESOURCES/GUIDES/fleet-router-adopter-guide.md).
+
+**Disarm after use:** `rm _SYSTEM/state/*.enabled` (fleet flags only).
+
+---
+
 ## What it does and does not touch
 
 **Touches (reversibly):** `~/.claude/settings.json` (backed up, additively merged),

@@ -1,8 +1,25 @@
 # YURI-OS-MUSUBI
 
-Private repository for the YURI OS / MUSUBI workspace.
+**The deterministic gateway for AI.** Governance, safety, and continuity that hold on any model.
 
-This README is a factual orientation map. It is not a product claim, readiness claim, sales page, or architecture guarantee. For current operating rules, read the canonical system files listed below.
+This repository has two surfaces:
+
+| Surface | Audience |
+|---------|----------|
+| **Private monorepo** (this tree) | Author / operator development workspace |
+| **YURI Core export** | Invite-only adopters — exoskeleton + curated research DB |
+
+For adopters: clone the **invite repo**, run `./yuri-init.sh`, follow [`02_RESOURCES/GUIDES/yuri-first-30-minutes.md`](02_RESOURCES/GUIDES/yuri-first-30-minutes.md).
+
+For maintainers: materialize the export with:
+
+```bash
+node _SYSTEM/Scripts/yuri-export.mjs --dry-run
+node _SYSTEM/Scripts/yuri-export.mjs --out /tmp/yuri-core-export --apply
+node _SYSTEM/Scripts/packaging-check.mjs --export-dir /tmp/yuri-core-export
+```
+
+This README is a factual orientation map. It is not a product claim or readiness guarantee.
 
 ## Current State
 

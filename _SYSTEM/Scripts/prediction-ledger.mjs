@@ -43,6 +43,7 @@ export function recordPrediction(input, opts) {
     subject: input.subject,
     change: input.change,
     predictedEffects: input.predictedEffects ?? [],
+    features: input.features ?? null,
     source: input.source,
     ts: input.ts,
   };

@@ -1,0 +1,128 @@
+{
+  "version": "1.0.0",
+  "name": "yuri-core-invite-export",
+  "description": "Allowlist manifest for YURI Core invite-only user repo. Source: YURI_RELEASE_SPEC_2026-06-09.md",
+  "scrub": {
+    "pathPatterns": [
+      "/Users/marcelspatz",
+      "/Users/marcel",
+      "marcelspatz"
+    ],
+    "namePatterns": [
+      "nudimmud",
+      "openclaw",
+      "hermes",
+      "obliteratus"
+    ],
+    "ipPatterns": [
+      "Rick Sanchez",
+      "Rick & Morty",
+      "Rick and Morty",
+      "Deadpool",
+      "Rick C-137"
+    ],
+    "replacePathWith": "${YURI_ROOT}",
+    "replaceHomeWith": "${HOME}"
+  },
+  "include": {
+    "roots": [
+      "LICENSE",
+      "SECURITY.md",
+      "INSTALL.md",
+      "README.md",
+      "GEMINI.md",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "SOUL.md",
+      "persona.template.md",
+      "yuri-init.sh",
+      ".env.example",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tsconfig.node.json"
+    ],
+    "directories": [
+      ".claude/hooks/",
+      ".claude/commands/",
+      ".claude/rules/",
+      ".claude/config/",
+      "skills/",
+      "_SYSTEM/yuri-origin.md",
+      "_SYSTEM/persona.template.md",
+      "_SYSTEM/context/",
+      "_SYSTEM/INDEX.md",
+      "_SYSTEM/config/fleet-roles.json",
+      "_SYSTEM/config/export-manifest.json",
+      "_SYSTEM/config/folder-registry.json",
+      "_SYSTEM/config/artifact-registry.json",
+      "_SYSTEM/mure/",
+      "_SYSTEM/public/",
+      "02_RESOURCES/GUIDES/",
+      "02_RESOURCES/CODE-BIBLE/",
+      "02_RESOURCES/PUBLIC-RESEARCH/",
+      "03_NEXUS-LINK/Identity/"
+    ],
+    "globs": [
+      "_SYSTEM/Scripts/**/*.mjs",
+      "_SYSTEM/Scripts/**/*.js",
+      "_SYSTEM/Scripts/**/*.sh",
+      "_SYSTEM/Scripts/math/**",
+      "_SYSTEM/Scripts/tests/**",
+      ".claude/skills/**/SKILL.md",
+      "skills/**/SKILL.md"
+    ]
+  },
+  "exclude": {
+    "directories": [
+      ".claude/memory/",
+      ".claude/state/",
+      ".claude/history/",
+      ".claude/jobs/",
+      "_SYSTEM/backend/",
+      "_SYSTEM/campaigns/",
+      "_SYSTEM/reports/",
+      "_SYSTEM/research-archive/",
+      "_SYSTEM/SELF-IMPROVEMENT/",
+      "_SYSTEM/state/",
+      "_SYSTEM/monitoring/",
+      "_SYSTEM/persona.md",
+      "00_COMMAND-CENTER/",
+      "01_PROJECTS/",
+      "03_NEXUS-LINK/business/",
+      "03_NEXUS-LINK/nexus-app/",
+      "03_NEXUS-LINK/nexus-engine/",
+      "03_NEXUS-LINK/bug-bounty/",
+      "04_ARCHIVE/",
+      "backend/",
+      "node_modules/",
+      "dist/",
+      "graphify-out/"
+    ],
+    "globs": [
+      "**/*.blend",
+      "**/*.stl",
+      "**/*.db",
+      "**/*.sqlite",
+      "**/*.jsonl",
+      "**/INVESTOR-DECK/**",
+      "**/jake-van-klief/**"
+    ],
+    "files": [
+      "_SYSTEM/persona.md",
+      "_SYSTEM/monitoring/health.json",
+      "CLAUDE.local.md",
+      ".env"
+    ]
+  },
+  "soulStub": "SOUL.md.export-stub",
+  "postExportChecks": [
+    "no-marcelspatz-paths",
+    "no-tracked-secrets",
+    "no-rick-deadpool-ip",
+    "no-claude-memory",
+    "identity-only-nexus-link",
+    "yuri-init-dry-run",
+    "mure-demo-dry-run"
+  ]
+}

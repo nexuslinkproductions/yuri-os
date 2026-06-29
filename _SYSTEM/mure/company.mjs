@@ -17,6 +17,18 @@ import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
 
+// MLP Router integration point (advisory only – never overrides governance)
+let _router = null;
+async function getRouter() {
+  if (_router) return _router;
+  try {
+    _router = await import('../Scripts/fleet-router-mlp.mjs');
+  } catch {
+    _router = null;
+  }
+  return _router;
+}
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 export const ARM_ENV = 'YURI_MURE_ARMED';
@@ -79,13 +91,15 @@ export function buildRolePrompt(role, subtask) {
 
 /** Build a runSwarm leaf (GLM substrate) for a role-cast subtask. */
 export function buildLeaf(role, subtask, target) {
-  return {
+  const leaf = {
     id: subtask.id || role.id,
     lane: target.lane,
     reasoning: 'high',
     prompt: buildRolePrompt(role, subtask),
     role: role.id,
   };
+  if (subtask.timeoutMs != null) leaf.timeoutMs = subtask.timeoutMs;
+  return leaf;
 }
 
 /** Cast a single subtask to its best-matching role + resolved dispatch target + governance ruling. */
@@ -105,7 +119,7 @@ export function castRole(roster, subtask, opts = {}) {
  * self-governable work into GLM leaves + native Agent specs + inline specs. Owner-gated subtasks are HELD.
  * @returns {{name, valid, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary}}
  */
-export function planCompany(task = {}, opts = {}) {
+export async function planCompany(task = {}, opts = {}) {
   const roster = _roster || loadRoster();
   const validation = validateRoster(roster);
   if (!validation.ok) throw new Error(`MURE roster invalid: ${validation.errors.join('; ')}`);
@@ -126,6 +140,41 @@ export function planCompany(task = {}, opts = {}) {
     subtasks: subtasks.length, cast: casts.length,
     glm: glmLeaves.length, native: nativeSpecs.length, inline: inlineSpecs.length, held: held.length,
   };
+
+  // === MLP Router integration point (advisory) ===
+  // Does not change dispatch. Attaches routerSuggestion + confidence to leaves/specs for logging & later training.
+  // Real call to predictRoute lives here so every plan sees the learned policy.
+  try {
+    // dynamic so we don't hard-fail if the module is missing during early dev
+    const routerMod = await import('../Scripts/fleet-router-mlp.mjs').catch(() => null);
+    if (routerMod?.predictRoute && routerMod?.extractFeatures) {
+      const ctx = { quotaPressure: opts.quotaPressure ?? 0.4 };
+      const defaultCandidates = (leaf) => [
+        { id: leaf.id, substrate: 'glm', lane: leaf.lane || 'glm', role: leaf.role },
+        { id: `${leaf.id}-native`, substrate: 'native', lane: 'sonnet', role: leaf.role },
+        { id: `${leaf.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: leaf.role },
+      ];
+      for (const leaf of glmLeaves) {
+        const feats = routerMod.extractFeatures({ ...leaf, role: leaf.role, prompt: leaf.prompt }, ctx);
+        const suggestion = await routerMod.predictRoute(feats, defaultCandidates(leaf));
+        leaf.routerSuggestion = suggestion.best;
+        leaf.routerConfidence = suggestion.confidence;
+      }
+      for (const spec of nativeSpecs) {
+        const feats = routerMod.extractFeatures({ ...spec, role: spec.role, prompt: spec.prompt }, ctx);
+        const suggestion = await routerMod.predictRoute(feats, [
+          { id: spec.id, substrate: 'native', lane: spec.model || 'sonnet', role: spec.role },
+          { id: `${spec.id}-glm`, substrate: 'glm', lane: 'glm-max', role: spec.role },
+          { id: `${spec.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: spec.role },
+        ]);
+        spec.routerSuggestion = suggestion.best;
+        spec.routerConfidence = suggestion.confidence;
+      }
+    }
+  } catch (e) {
+    // router is best-effort
+  }
+
   return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary };
 }
 
@@ -156,7 +205,7 @@ export async function dispatchNative(nativeSpecs = [], runDir = '') {
  * @returns {{name, armed, plan, swarm, nativeSpecs, held}}
  */
 export async function runCompany(task = {}, opts = {}) {
-  const plan = planCompany(task, opts);
+  const plan = await planCompany(task, opts);
   // Arming requires the OWNER gate (env YURI_MURE_ARMED or flag _SYSTEM/state/mure.enabled). A caller may
   // only force-DISARM (opts.armed:false, for tests/dry-run); opts.armed:true alone can NOT self-arm — the
   // owner flag is the sole arming authority. (GLM-5.2 final-gate HIGH-2: monetary/irreversible GLM spend
@@ -172,9 +221,10 @@ export async function runCompany(task = {}, opts = {}) {
   // Dispatch GLM substrate through runSwarm (governed loop)
   if (plan.glmLeaves.length) {
     // MURE-armed → runSwarm armed (couple the arm state; do NOT rely on runSwarm's separate flag — native
-    // red-team #4). We only reach here when `armed===true` (owner flag set).
+    // red-team #4). We only reach here when `armed===true` (owner flag set). Propagate the resolved armed state
+    // to ensure tests can force disarm even when fleet flags exist.
     swarm = await runSwarm({ leaves: plan.glmLeaves }, {
-      rounds: Number(opts.rounds || 2), concurrency: Number(opts.concurrency || 3), armed: true,
+      rounds: Number(opts.rounds || 2), concurrency: Number(opts.concurrency || 3), armed,
     });
   }
 
