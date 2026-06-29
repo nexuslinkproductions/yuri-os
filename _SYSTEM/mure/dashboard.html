@@ -117,7 +117,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;op
 .runstream{display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding-right:4px;flex:1}
 .run{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:10px;
   background:var(--surf-1);border:1px solid var(--border-subtle);border-left:2px solid var(--rc,var(--c-cyan));
-  box-shadow:inset 0 1px 0 var(--hl-top);transition:transform .14s,border-color .14s;animation:viewIn .4s ease both}
+  box-shadow:inset 0 1px 0 var(--hl-top);transition:transform .14s,border-color .14s;animation:viewIn .4s ease both;cursor:pointer}
 .run:hover{transform:translateX(2px)}
 .run .gauge{width:46px;height:46px}
 .run .rmid{min-width:0}
@@ -248,7 +248,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
         <span class="li"><span class="lg" style="background:var(--c-violet)"></span>glm</span>
         <span class="li"><span class="lg" style="background:var(--c-ice)"></span>either</span>
         <span class="li"><svg width="11" height="11" viewBox="0 0 12 12" class="lockico"><path d="M3 5V3.5a3 3 0 016 0V5h.5v6h-7V5z" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>owner-gated</span>
-        <span class="li" style="margin-left:auto;color:var(--tx-faint)">click a node for detail</span>
+        <span class="li" style="margin-left:auto;color:var(--tx-faint)">click run or node for detail</span>
       </div>
     </div>
 
@@ -304,7 +304,23 @@ const SVGNS="http://www.w3.org/2000/svg";
 const GROUPS=["orchestration","research","engineering","verification","knowledge","operations"];
 const SUBCOL={native:"var(--c-cyan)",glm:"var(--c-violet)",either:"var(--c-ice)"};
 const KINDCOL={doc:"var(--c-cyan)",module:"var(--c-green)",test:"var(--c-amber)",report:"var(--c-violet)",blueprint:"var(--c-violet)",manifest:"var(--tx-muted)",config:"var(--tx-muted)",file:"var(--tx-faint)"};
-let DATA=null, kindFilter="all", prevConv=0;
+let DATA=null, kindFilter="all", prevConv=0, TRENDS=null, trendsAt=0;
+
+async function fetchJson(url){
+  const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error(r.status); return r.json();
+}
+async function loadTrends(force){
+  const now=Date.now(); if(!force&&TRENDS&&now-trendsAt<30000) return TRENDS;
+  try{
+    const [tp,cv,pr]=await Promise.all([
+      fetchJson('/api/trends?type=throughput'),
+      fetchJson('/api/trends?type=convergence'),
+      fetchJson('/api/trends?type=productivity'),
+    ]);
+    TRENDS={throughput:tp,convergence:cv,productivity:pr}; trendsAt=now;
+  }catch{ /* keep prior */ }
+  return TRENDS;
+}
 
 document.querySelectorAll('.tog button').forEach(b=>b.onclick=()=>{
   document.documentElement.setAttribute('data-theme',b.dataset.th);
@@ -434,9 +450,10 @@ function renderRuns(d){
   const box=document.getElementById('runstream'); box._emptyMsg='no runs yet';
   const STAT={converged:['ok','converged'],running:['run','running'],forced:['forced','forced'],failed:['err','failed']};
   reconcile(box,runs,r=>r.id,
-    ()=>{ const row=H('div','run'); const mid=H('div','rmid'); mid.append(H('div','rid'),H('div','rmeta'),H('div','rchips'));
+    ()=>{ const row=H('div','run'); row.onclick=()=>openRun(row._run); const mid=H('div','rmid'); mid.append(H('div','rid'),H('div','rmeta'),H('div','rchips'));
       row.append(H('span','gholder'),mid,H('div','rstat')); return row; },
     (row,r)=>{
+      row._run=r;
       const col=r.status==='converged'?'var(--c-green)':r.status==='running'?'var(--c-amber)':r.status==='failed'?'var(--c-vermillion)':'var(--tx-muted)';
       const pct=r.status==='converged'?1:r.status==='failed'?0.18:r.status==='running'?0.5:0.62;
       setVar(row,'--rc',col);
@@ -462,18 +479,19 @@ function renderInsights(d){
   }
   g._arc.setAttribute('stroke-dashoffset',c*(1-pct));
   const target=Math.round(pct*100); if(target!==prevConv){ animNum(document.getElementById('convNum'),prevConv,target,'%'); prevConv=target; }
-  // throughput area — rebuild only when the series changes
-  const tp=st.throughput||[];const sp=document.getElementById('spark');const tpSig=tp.map(x=>x.count).join(',');
+  // throughput area — prefer /api/trends when loaded, else overview stats
+  const tp=(TRENDS&&TRENDS.throughput)||st.throughput||[];const sp=document.getElementById('spark');const tpSig=tp.map(x=>x.count??x.value??0).join(',');
   if(sp.dataset.sig!==tpSig){ sp.dataset.sig=tpSig; sp.replaceChildren();
     if(tp.length>1){
-      const max=Math.max(1,...tp.map(x=>x.count)),W=320,Hh=74,n=tp.length;
+      const vals=tp.map(x=>x.count??x.value??0);
+      const max=Math.max(1,...vals),W=320,Hh=74,n=tp.length;
       const X=i=>i*(W/(n-1)),Y=v=>Hh-6-(v/max)*(Hh-14);
-      let dd='M'+X(0)+' '+Y(tp[0].count);tp.forEach((p,i)=>{if(i)dd+=' L'+X(i)+' '+Y(p.count)});
+      let dd='M'+X(0)+' '+Y(vals[0]);vals.forEach((v,i)=>{if(i)dd+=' L'+X(i)+' '+Y(v)});
       const grad=svgEl('linearGradient',{id:'spg',x1:0,y1:0,x2:0,y2:1});
       grad.append(svgEl('stop',{offset:'0%','stop-color':'var(--c-cyan)','stop-opacity':.35}));grad.append(svgEl('stop',{offset:'100%','stop-color':'var(--c-cyan)','stop-opacity':0}));sp.append(grad);
       sp.append(svgEl('path',{d:dd+` L${W} ${Hh} L0 ${Hh} Z`,fill:'url(#spg)'}));
       sp.append(svgEl('path',{d:dd,fill:'none',stroke:'var(--c-cyan)','stroke-width':1.6,'stroke-linejoin':'round'}));
-      sp.append(svgEl('circle',{cx:X(n-1),cy:Y(tp[n-1].count),r:3,fill:'var(--c-ice)'}));
+      sp.append(svgEl('circle',{cx:X(n-1),cy:Y(vals[n-1]),r:3,fill:'var(--c-ice)'}));
     } else { const t=svgEl('text',{x:160,y:40,'text-anchor':'middle'});t.setAttribute('style','fill:var(--tx-faint);font-size:11px;font-family:SF Mono,monospace');t.textContent='accumulating…';sp.append(t); }
   }
   // by kind bars — reconcile + animate the fill width in place
@@ -534,12 +552,45 @@ function renderWP(d){
         `<td class="mono" style="font-size:11px;color:var(--tx-faint)">${rel(a.created)}</td>`; });
 }
 
-// ── role drawer ──
-function openRole(role){
-  const b=document.getElementById('drawerBody');
+// ── role / run drawer drill-down ──
+function showDrawer(html){
+  document.getElementById('drawerBody').innerHTML=html;
+  document.getElementById('scrim').classList.add('show');
+  document.getElementById('drawer').classList.add('open');
+}
+async function openRun(run){
+  if(!run||!run.id)return;
+  showDrawer(`<div class="dnm" style="font-size:16px">Run</div><div class="darch mono">${esc(run.id)}</div><div class="empty">loading…</div>`);
+  try{
+    const d=await fetchJson('/api/run?id='+encodeURIComponent(run.id));
+    const r=d.run||{}; const arts=(d.artifacts||[]).slice(0,12);
+    const roles=(r.roles||[]).map(x=>`<span class="tg">${esc(x)}</span>`).join('')||'—';
+    const outs=(d.roleOutputs||[]).slice(0,8).map(o=>`<div class="dm" style="margin-bottom:8px"><div class="dk">${esc(o.role)}</div><div class="dvv" style="font-size:12px">${esc(o.label||o.status||'—')}</div></div>`).join('');
+    showDrawer(
+      `<div class="dnm" style="font-size:16px;line-height:1.3">${esc(r.summary||run.id)}</div>`+
+      `<div class="darch mono">${esc(r.id)} · ${esc(r.status||'—')}</div>`+
+      `<div class="dmeta">`+
+        `<div class="dm"><div class="dk">rounds</div><div class="dvv">${r.rounds??'—'}</div></div>`+
+        `<div class="dm"><div class="dk">leaves</div><div class="dvv">${r.leafCount??'—'}</div></div>`+
+        `<div class="dm"><div class="dk">converged</div><div class="dvv" style="color:${r.converged?'var(--c-green)':'var(--tx-muted)'}">${r.converged?'yes':'no'}</div></div>`+
+        `<div class="dm"><div class="dk">finished</div><div class="dvv" style="font-size:12px">${rel(r.finished||r.started)}</div></div>`+
+      `</div>`+
+      `<div class="dsec">roles</div><div class="tags">${roles}</div>`+
+      (outs?`<div class="dsec">role outputs</div>${outs}`:'')+
+      (arts.length?`<div class="dsec">artifacts (${arts.length})</div>`+
+        arts.map(a=>`<div class="mono" style="font-size:11px;color:var(--tx-secondary);margin-bottom:6px"><span style="color:var(--c-cyan)">${esc(a.kind)}</span> · ${esc(a.title)}<div style="color:var(--tx-faint);margin-top:2px">${esc(a.path)}</div></div>`).join(''):'')
+    );
+  }catch{
+    showDrawer(`<div class="dnm">Run</div><div class="darch mono">${esc(run.id)}</div><div class="empty">failed to load run detail</div>`);
+  }
+}
+async function openRole(role){
+  showDrawer(`<div class="dnm">${esc(role.name)}</div><div class="empty">loading…</div>`);
+  let arts=[];
+  try{ arts=await fetchJson('/api/artifacts?role='+encodeURIComponent(role.id)+'&limit=8'); }catch{ /* optional */ }
   const col=SUBCOL[role.substrate]||'var(--tx-muted)';
   const lock=role.autonomyClass==='owner-gated'?' <svg width="15" height="15" viewBox="0 0 12 12" class="lockico" style="vertical-align:-1px"><path d="M3 5V3.5a3 3 0 016 0V5h.5v6h-7V5z" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>':'';
-  b.innerHTML=`<div class="dnm">${esc(role.name)}${lock}</div><div class="darch">${esc(role.archetype)}</div>`+
+  showDrawer(`<div class="dnm">${esc(role.name)}${lock}</div><div class="darch">${esc(role.archetype)}</div>`+
     `<div class="dmeta">`+
       `<div class="dm"><div class="dk">group</div><div class="dvv">${esc(role.group)}</div></div>`+
       `<div class="dm"><div class="dk">substrate</div><div class="dvv" style="color:${col};font-size:14px">${esc(role.substrate)} / ${esc(role.lane)}</div></div>`+
@@ -551,19 +602,18 @@ function openRole(role){
       `<div class="dm"><div class="dk">artifacts</div><div class="dvv">${role.artifacts||0}</div></div>`+
     `</div>`+
     (role.capabilities&&role.capabilities.length?`<div class="dsec">capabilities</div><div class="tags">${role.capabilities.map(c=>`<span class="tg">${esc(c)}</span>`).join('')}</div>`:'')+
-    (role.lastActive?`<div class="dsec">last active</div><div class="mono" style="color:var(--tx-muted);font-size:12px">${rel(role.lastActive)}</div>`:'');
-  document.getElementById('scrim').classList.add('show');
-  document.getElementById('drawer').classList.add('open');
+    (role.lastActive?`<div class="dsec">last active</div><div class="mono" style="color:var(--tx-muted);font-size:12px">${rel(role.lastActive)}</div>`:'')+
+    (Array.isArray(arts)&&arts.length?`<div class="dsec">recent artifacts</div>`+
+      arts.map(a=>`<div class="mono" style="font-size:11px;color:var(--tx-secondary);margin-bottom:6px"><span style="color:var(--c-violet)">${esc(a.kind)}</span> · ${esc(a.title)}<div style="color:var(--tx-faint);margin-top:2px">${esc(a.path)}</div></div>`).join(''):''));
 }
 function openJob(j){
   if(!j)return;
-  const b=document.getElementById('drawerBody');
   const PC={critical:'var(--c-vermillion)',high:'var(--c-cyan)',medium:'var(--c-amber)',low:'var(--tx-muted)'};
   const jc=PC[j.priority]||'var(--c-cyan)';
   const owner=(j.source==='owner'||j.type==='blender'||j.type==='arm');
   const axes=j.directionByAxis?Object.keys(j.directionByAxis):[];
   const fld=(k,v)=>v?`<div class="dsec">${k}</div><div class="mono" style="color:var(--tx-secondary);font-size:12px;line-height:1.65;white-space:pre-wrap">${esc(v)}</div>`:'';
-  b.innerHTML=`<div class="dnm" style="font-size:18px;line-height:1.32">${esc(j.title)}</div>`+
+  showDrawer(`<div class="dnm" style="font-size:18px;line-height:1.32">${esc(j.title)}</div>`+
     `<div class="darch">${esc(j.type)} · ${esc(j.state)}${owner?' · ⌂ owner-gated':''}</div>`+
     `<div class="dmeta">`+
       `<div class="dm"><div class="dk">openmass</div><div class="dvv" style="color:${jc}">${j.mass??'—'}</div></div>`+
@@ -572,9 +622,7 @@ function openJob(j){
       `<div class="dm"><div class="dk">source</div><div class="dvv" style="font-size:13px">${esc(j.source)}</div></div>`+
     `</div>`+
     (axes.length?`<div class="dsec">doctrine axes (direction-fit)</div><div class="tags">${axes.map(a=>`<span class="tg" style="color:var(--c-cyan)">${esc(a)} +${j.directionByAxis[a].fit}</span>`).join('')}</div>`:'')+
-    fld('detail',j.detail)+fld('next action',j.nextAction)+fld('done when',j.closureCondition)+fld('report',j.report);
-  document.getElementById('scrim').classList.add('show');
-  document.getElementById('drawer').classList.add('open');
+    fld('detail',j.detail)+fld('next action',j.nextAction)+fld('done when',j.closureCondition)+fld('report',j.report));
 }
 function closeDrawer(){document.getElementById('scrim').classList.remove('show');document.getElementById('drawer').classList.remove('open')}
 document.getElementById('scrim').onclick=closeDrawer;document.getElementById('dx').onclick=closeDrawer;
@@ -605,6 +653,7 @@ function renderDoctrine(d){
 // ── poll ──
 async function tick(){
   try{
+    await loadTrends(false);
     const r=await fetch('/api/overview',{cache:'no-store'});if(!r.ok)throw 0;
     const d=await r.json();DATA=d;
     const sp=document.getElementById('status');const armed=d.company?.armed;

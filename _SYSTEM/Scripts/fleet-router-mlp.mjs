@@ -267,8 +267,8 @@ export async function updateFromOutcome(features, decision, outcome, opts = {}) 
     }
   }
 
-  await saveWeights(w);
-  return { updated: true, error: err };
+  if (opts.persist !== false) await saveWeights(w);
+  return { updated: true, error: err, persisted: opts.persist !== false };
 }
 
 // ---------------------------------------------------------------------------

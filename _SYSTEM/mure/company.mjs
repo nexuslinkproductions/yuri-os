@@ -175,7 +175,18 @@ export async function planCompany(task = {}, opts = {}) {
     // router is best-effort
   }
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary };
+  const ollamaEligible = [...glmLeaves, ...nativeSpecs]
+    .filter((l) => ['scout', 'artificer'].includes(l.role) || l.routerSuggestion?.substrate === 'ollama')
+    .map((l) => ({ id: l.id, role: l.role, lane: l.lane || l.model || 'ollama-flash' }));
+  const ollamaSidecar = {
+    discoverable: true,
+    eligibleCount: ollamaEligible.length,
+    eligible: ollamaEligible,
+    spawn: 'node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file <ollama-tasks.json>',
+    note: 'Parallel bulk sidecar — manual spawn; runFleet.mjs generates tasks when --ollama-sidecar',
+  };
+
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, summary, ollamaSidecar };
 }
 
 /**

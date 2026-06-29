@@ -1,0 +1,38 @@
+{
+  "summary": "WS-F: MURE company build-out — router learning loop",
+  "tags": ["mure", "buildout", "router", "mlp"],
+  "subtasks": [
+    {
+      "id": "WS-F-R1-mlp-stub",
+      "role": "kernelsmith",
+      "need": ["integration", "implementation"],
+      "prompt": "Wire fleet-router-mlp updateFromOutcome advisory stub from runFleet dry-run with persist:false. Document real training path via train-fleet-router-from-ledger.mjs. Return 02F1_MLP_STUB_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-F-Q1-cost-signals",
+      "role": "quartermaster",
+      "need": ["local-first-search"],
+      "prompt": "Snapshot token-ledger and llm-compat admission signals for router feature extraction context. Read-only. Return 02F2_COST_SIGNALS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-F-C1-calibrator-brier",
+      "role": "calibrator",
+      "need": ["adversarial-verify"],
+      "prompt": "Assess router confidence vs outcomes (Brier/honesty check on prediction ledger if present). Advisory only — governance wins. Return 02F3_BRIER_CHECK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-F-D1-deliberator-policy",
+      "role": "deliberator",
+      "need": ["adversarial-verify"],
+      "prompt": "Confirm MLP router remains advisory-only; no auto-override of governance.mjs or 6-gate charter. Return 02F4_ROUTER_POLICY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}
