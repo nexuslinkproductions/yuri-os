@@ -263,6 +263,11 @@ tbody tr:hover{background:color-mix(in srgb,var(--tx-secondary) 4%,transparent)}
     <div class="joblist" id="jobList"></div>
   </div>
 
+  <div class="panel" style="margin-bottom:18px" id="heldPanel">
+    <div class="panel-h"><div class="pt">Held queue</div><div class="pc" id="heldCount">— owner-gated</div></div>
+    <div class="joblist" id="heldList"></div>
+  </div>
+
   <div class="lower">
     <div class="panel">
       <div class="panel-h"><div class="pt">Work products</div><div class="pc" id="wpCount">— items</div></div>
@@ -508,6 +513,28 @@ function animNum(node,from,to,suf){
   requestAnimationFrame(step);
 }
 
+// ── held queue (read-only stub from helmsman-summary) ──
+function renderHeld(d){
+  const hq=d.heldQueue||{}; const items=hq.items||[];
+  const panel=document.getElementById('heldPanel');
+  setText(document.getElementById('heldCount'),items.length?`${items.length} held · read-only`: 'none · run helmsman --dry-run-all');
+  if(!items.length){ panel.style.display='none'; return; }
+  panel.style.display='';
+  const box=document.getElementById('heldList'); box._emptyMsg='no held subtasks';
+  reconcile(box,items,(h,i)=>h.subtask||String(i),
+    ()=>{const row=H('div','job');row.style.cursor='default';return row;},
+    (row,h)=>{
+      const sig=[h.file,h.subtask,h.role,h.reason].join('|');
+      if(row.dataset.sig===sig)return; row.dataset.sig=sig;
+      row.innerHTML=`<div class="jmass" style="color:var(--c-vermillion)">⌂</div>`+
+        `<div class="jmid"><div class="jt">${esc(h.subtask||'—')}</div><div class="jmeta">`+
+          `<span class="jtag">${esc(h.role||'—')}</span>`+
+          `<span class="jsrc own">${esc((h.file||'').split('/').pop()||'—')}</span></div>`+
+          `<div class="mono" style="font-size:10px;color:var(--tx-faint);margin-top:6px;line-height:1.5">${esc(h.reason||'')}</div></div>`+
+        `<div class="jstate"><span class="pill err"><span class="pd"></span>held</span></div>`;
+    });
+}
+
 // ── job pool ──
 function renderJobs(d){
   const jobs=d.jobs||[];const st=d.jobStats||{};
@@ -661,7 +688,7 @@ async function tick(){
     document.getElementById('statustext').textContent=armed?'armed':'disarmed';
     document.getElementById('updated').textContent='updated '+rel(d.company?.generatedAt||new Date().toISOString());
     setText(document.getElementById('rosterCount'),(d.roleCount||(d.roles||[]).length)+' roles · 6 groups');
-    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);renderInsights(d);renderWP(d);renderDoctrine(d);
+    renderKpis(d);updateStar(d);renderRuns(d);renderJobs(d);renderHeld(d);renderInsights(d);renderWP(d);renderDoctrine(d);
     document.title='NEXUS LINK — '+(d.kpis?.totalRuns||0)+' runs';
   }catch(e){document.getElementById('updated').textContent='connection lost — retrying';}
 }

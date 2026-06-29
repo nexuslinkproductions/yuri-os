@@ -35,6 +35,12 @@
  *         1 empty output / transient transport / 5xx       3 unknown lane / missing key / bad endpoint / 4xx
  *
  * Single source of truth for lane config: .claude/config/models.json -> llm_compat_lanes.
+ *
+ * CLINE PASS (separate axis — NOT an llm_compat_lane yet):
+ *   ClinePass is the Cline IDE/CLI provider (`cline -P clinepass -m <model>`). It bundles open coding
+ *   models with flat monthly billing and is wired as an advisory substrate in company.mjs
+ *   (ADVISORY_SUBSTRATES.cline). Future M2 sidecar: spawn via `cline --json`, not llm-lane HTTP.
+ *   See _SYSTEM/reports/CLINE_PASS_INTEGRATION_2026-06-29.md.
  */
 import fs from 'node:fs';
 import path from 'node:path';

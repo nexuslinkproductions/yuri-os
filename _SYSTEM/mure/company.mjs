@@ -45,6 +45,25 @@ export const MURE_NAME = (() => {
   try { _roster = loadRoster(); return _roster.meta?.name || 'MURE'; } catch { return 'MURE'; }
 })();
 
+/** Advisory execution substrates (catalog only — not live dispatch until wired + armed). Governance wins. */
+export const ADVISORY_SUBSTRATES = Object.freeze({
+  native: { label: 'Cursor / Claude Agent', dispatch: 'agent', armFlag: null },
+  glm: { label: 'z.ai GLM Coding Plan', dispatch: 'glm-lane', armFlag: '_SYSTEM/state/glm-fleet.enabled' },
+  ollama: { label: 'Ollama Cloud sidecar', dispatch: 'parallel-sidecar', armFlag: '_SYSTEM/state/ollama-fleet.enabled' },
+  cline: {
+    label: 'Cline Pass (IDE/CLI peer)',
+    dispatch: 'cline-cli',
+    status: 'DISARMED',
+    install: 'npm i -g cline',
+    auth: 'cline auth → select ClinePass provider',
+    provider: 'clinepass',
+    armFlag: null,
+    models: ['glm-5.2', 'kimi-k2.7-code', 'deepseek-v4-pro', 'mimo-v2.5', 'qwen3.7-max'],
+    doc: '_SYSTEM/reports/CLINE_PASS_INTEGRATION_2026-06-29.md',
+    note: 'Separate from llm-compat; flat $9.99/mo; owner credit budget required before live dispatch',
+  },
+});
+
 /** Map a subtask + its cast role to a governance decision. Role autonomyClass is a FLOOR: an owner-gated
  * role (helmsman/steward/evolver) keeps its subtasks owner-gated even if the six gates would pass. */
 export function decisionFor(subtask = {}, role = {}) {

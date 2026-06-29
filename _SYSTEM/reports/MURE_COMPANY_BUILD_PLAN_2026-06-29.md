@@ -385,7 +385,7 @@ node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-buildout-w
 
 ### Deliverables
 
-1. **Arm ceremony runbook** (section in this doc + `_SYSTEM/mure/README.md` cross-link)
+1. **Arm ceremony runbook** — `_SYSTEM/reports/MURE_COMPANY_BUILD_04_ARM_CEREMONY.md` (+ `_SYSTEM/mure/README.md` cross-link)
 2. **Smoke RESULT_LABELs** per substrate
 3. **Disarm script:**
    ```bash
@@ -644,6 +644,8 @@ flowchart TD
 - `_SYSTEM/Scripts/runFleet.mjs` — tri-substrate conductor
 - `_SYSTEM/Scripts/fleet-router-mlp.mjs` — advisory MLP router
 - `_SYSTEM/Scripts/work-dashboard.mjs` — dashboard `:4270`
+- `_SYSTEM/reports/MURE_COMPANY_BUILD_04_ARM_CEREMONY.md`
+- `_SYSTEM/reports/CLINE_PASS_INTEGRATION_2026-06-29.md`
 - `_SYSTEM/reports/AGENT_NATIVE_INTEGRATION_2026-06-29.md`
 - `_SYSTEM/reports/YURI_PUBLIC_RELEASE_00_SCOPE_LOCKED.md`
 - `02_RESOURCES/GUIDES/agent-native-company-visuals.md`

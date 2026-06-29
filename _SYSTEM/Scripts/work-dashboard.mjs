@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openLedger, ingestAll, overview } from './work-ledger.mjs';
+import { openLedger, ingestAll, overview, getRunDetail, getArtifactsByRole, getRoleProductivityTrends, getConvergenceTrend, getThroughputTrend } from './work-ledger.mjs';
 import { openPool, rankJobs, jobStats, listJobs } from './job-pool.mjs';
 import { loadDoctrine, rankByDirection, underServedAxes, axisCoverage, grade, TYPE_AXIS_HINTS } from '../mure/doctrine.mjs';
 
@@ -21,6 +21,21 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 export const DEFAULT_PORT = 4270;
 export const HTML_PATH = path.join(REPO_ROOT, '_SYSTEM', 'mure', 'dashboard.html');
 const INGEST_THROTTLE_MS = 5000;
+const HELMSMAN_HELD_PATH = path.join(REPO_ROOT, '_SYSTEM', 'lane-output', 'phase3', 'helmsman-summary.json');
+
+function loadHeldQueue() {
+  try {
+    if (!fs.existsSync(HELMSMAN_HELD_PATH)) return { source: null, items: [], generatedAt: null };
+    const raw = JSON.parse(fs.readFileSync(HELMSMAN_HELD_PATH, 'utf8'));
+    return {
+      source: '_SYSTEM/lane-output/phase3/helmsman-summary.json',
+      items: Array.isArray(raw.held) ? raw.held : [],
+      generatedAt: fs.statSync(HELMSMAN_HELD_PATH).mtime.toISOString(),
+    };
+  } catch {
+    return { source: null, items: [], generatedAt: null };
+  }
+}
 
 const PLACEHOLDER = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>MURE</title>
 <style>body{font-family:system-ui;background:#1a1a18;color:#f1efe8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
@@ -60,11 +75,44 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
             };
           }
         } catch (e) { ov.jobs = ov.jobs || []; ov.jobStats = ov.jobStats || { error: String(e?.message || e) }; }
+        ov.heldQueue = loadHeldQueue();
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
         res.end(JSON.stringify(ov));
         return;
       }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }
+      if (url === '/api/run') {
+        const params = new URLSearchParams(req.url.split('?')[1] || '');
+        const runId = params.get('id');
+        if (!runId) { res.writeHead(400); res.end('{"error":"missing id"}'); return; }
+        const detail = getRunDetail(db, runId);
+        if (!detail) { res.writeHead(404); res.end('{"error":"run not found"}'); return; }
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify(detail));
+        return;
+      }
+      if (url === '/api/artifacts') {
+        const params = new URLSearchParams(req.url.split('?')[1] || '');
+        const roleId = params.get('role') || null;
+        const runId = params.get('run') || null;
+        const limit = Math.min(Number(params.get('limit')) || 100, 500);
+        const arts = getArtifactsByRole(db, { roleId, runId, limit });
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify(arts));
+        return;
+      }
+      if (url === '/api/trends') {
+        const params = new URLSearchParams(req.url.split('?')[1] || '');
+        const type = params.get('type') || 'throughput';
+        let data;
+        if (type === 'throughput') data = getThroughputTrend(db, 30, 7);
+        else if (type === 'convergence') data = getConvergenceTrend(db, 60);
+        else if (type === 'productivity') data = getRoleProductivityTrends(db, 30);
+        else { res.writeHead(400); res.end('{"error":"unknown type"}'); return; }
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify(data));
+        return;
+      }
       if (url === '/' || url === '/index.html') {
         let html = PLACEHOLDER;
         try { if (fs.existsSync(htmlPath)) html = fs.readFileSync(htmlPath, 'utf8'); } catch { /* placeholder */ }
