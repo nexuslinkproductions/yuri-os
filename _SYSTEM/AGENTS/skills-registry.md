@@ -112,6 +112,7 @@ The 8 `organ-*` skills are Claude-only (no `.agents/skills/` mirror).
 | tokenmaxxing | `tokenmaxxing` | Native token efficiency mode (auto-activated at SessionStart) |
 | verification-before-completion | `model-invocable` | Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and  |
 | visual-introspection | `/introspect` | Engineering visual analysis of the Yuri OS architecture graph |
+| visual-plan | `/visual-plan` | Agent-Native structured visual planning — diagrams, wireframes, file maps; load automatically for multi-file, UI-heavy, or MURE helmsman packets before code |
 | writing-plans | `model-invocable` | Use when you have a spec or requirements for a multi-step task, before touching code |
 | yuri-code-intelligence | `/code-intelligence` | Unified code quality intelligence layer synthesized from Fowler refactoring patterns, class responsibility realignment, web presentation pat |
 | yuri-sales-intelligence | `/sales-intelligence` | Unified sales and outreach intelligence skill |

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-07",
+  "updated": "2026-06-23",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 98,
+  "count": 100,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -304,6 +304,11 @@
       "sourceFamily": "codex_import"
     },
     {
+      "id": "opus-fleet",
+      "path": "skills/opus-fleet/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
       "id": "oracle-adapters",
       "path": "skills/oracle-adapters/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -474,6 +479,14 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
+      "id": "visual-plan",
+      "path": "skills/visual-plan/SKILL.md",
+      "sourceFamily": "agent_native",
+      "appSkillId": "visual-plans",
+      "mcpUrl": "https://plan.agent-native.com/_agent-native/mcp",
+      "autoTrigger": "multi-file, UI-heavy, architecture, or MURE helmsman packets before code"
+    },
+    {
       "id": "write-a-skill",
       "path": "skills/write-a-skill/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -502,6 +515,11 @@
       "id": "yuri-shura",
       "path": "skills/yuri-shura/SKILL.md",
       "sourceFamily": "claude_import"
+    },
+    {
+      "id": "viz-lab",
+      "path": "skills/viz-lab/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "zoom-out",

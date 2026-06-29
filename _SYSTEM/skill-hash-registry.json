@@ -437,7 +437,7 @@
   },
   "visual-plan": {
     "source_path": "skills/visual-plan/SKILL.md",
-    "hash": "ab338305aec49461"
+    "hash": "d3cf8ab717f82d39"
   },
   "viz-lab": {
     "source_path": "skills/viz-lab/SKILL.md",
@@ -470,6 +470,10 @@
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",
     "hash": "2a6894c7f9b1c9c5"
+  },
+  "cgs-mold": {
+    "source_path": ".claude/skills/cgs-mold/SKILL.md",
+    "hash": "97e761e81662ffaf"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",
