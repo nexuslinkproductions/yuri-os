@@ -307,7 +307,12 @@ Each workstream gets a JSON task file under `02_RESOURCES/TASKS/`:
    node _SYSTEM/mure/company.mjs --task-file 02_RESOURCES/TASKS/mure-buildout-ws-a-governance.json --dry-run
    node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-buildout-ws-b-fleet.json --dry-run
    ```
-3. Held-subtask register (owner-gated items: evolver, finalize, arm actions, outward release)
+3. Held-subtask register (owner-gated — locked 2026-06-29):
+   - `WS-A-S1-steward-gate`
+   - `P4-S1-steward-gate` (WS-E)
+   - `P8-H1-helmsman-finalize`
+   - `evolver` (oracle gate)
+   - `sentinel arm actions`
 4. **Visual-plan gate:** `/visual-plan` on WS-C before UI implementation (Agent-Native approval)
 5. **RESULT_LABEL:** `03R1_MURE_DECOMPOSE_X_PASS_COMMITTED`
 
@@ -334,6 +339,8 @@ Each workstream gets a JSON task file under `02_RESOURCES/TASKS/`:
 ---
 
 ## Phase 4 — Fleet arm ceremony (what to arm, in what order, with what keys)
+
+**Owner lock (2026-06-29):** **Keep named ARMED exception** — do **not** disarm for this build-out session. Phase 4 work documents the ordered ceremony (smoke commands, rollback, held dispatch log) **under the current armed posture**, not a return to DISARMED-first.
 
 **Purpose:** Controlled, documented arming for live multi-substrate dispatch. **Never auto-arm.**
 
@@ -412,7 +419,9 @@ node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-buildout-w
 
 ## Phase 5 — Visual company control (dashboard, dispatch, visual-plan gates)
 
-**Purpose:** Operator-facing control surface — see runs, approve held items, link visual plans, eventual Dispatch fork.
+**Owner lock (2026-06-29):** **Extend `dashboard.html` incrementally** — approval queue stub, visual-plan URL metadata, `/visual-recap` after workstreams. **Out of scope:** full Agent-Native Dispatch template fork.
+
+**Purpose:** Operator-facing control surface — see runs, approve held items, link visual plans via incremental dashboard work (not a Dispatch fork).
 
 ### Roles involved
 
@@ -444,20 +453,9 @@ node _SYSTEM/Scripts/work-dashboard.mjs --serve   # :4270
 - [ ] `/visual-recap` after each workstream lands
 - [ ] Owner auth (optional): `node _SYSTEM/Scripts/agent-native-bootstrap.mjs connect`
 
-#### P5-C — Company Console fork (multi-session, bounded)
+#### P5-C — ~~Company Console fork~~ **DEFERRED (owner lock 2026-06-29)**
 
-Scaffold from `integrations/agent-native/templates/dispatch/` (local clone, gitignored):
-
-| Dispatch route | YURI action |
-|----------------|-------------|
-| overview | work-ledger overview + MURE status |
-| agents | role constellation + last run per role |
-| approvals | held subtasks (owner-gated roles) |
-| audit | blackboard JSON + RESULT_LABELs |
-| metrics | trends API + MLP confidence |
-| chat | (defer — use Cursor/Opus session) |
-
-Wire read paths only until Phase 4 arm ceremony complete. Live dispatch buttons → owner-gated.
+Dispatch template fork is **explicitly out of scope**. Held-subtask approval UI ships as an incremental `dashboard.html` panel (P5-A extension), not a separate Dispatch scaffold.
 
 #### P5-D — Analytics layer (med priority)
 
@@ -481,15 +479,17 @@ Wire read paths only until Phase 4 arm ceremony complete. Live dispatch buttons 
 ### Execution order
 
 1. P5-A dashboard drill-down (quick win)
-2. P5-B visual-plan gates in helmsman workflow
-3. P5-C Dispatch fork (scoped)
+2. P5-A extension: held-subtask approval queue stub in `dashboard.html`
+3. P5-B visual-plan gates in helmsman workflow
 4. P5-D analytics (when ledger feedback loop exists from Phase 2)
 
 ---
 
 ## Phase 6 — Adjudicator verification + residual risk
 
-**Purpose:** Adversarial pass before claiming "MURE company operational."
+**Owner lock (2026-06-29):** **Dry-run only + residual risk doc** — no live end-to-end armed company dispatch in Phase 6.
+
+**Purpose:** Adversarial pass before claiming "MURE company operational" via read-only and dry-run evidence only.
 
 ### Roles involved
 
@@ -529,17 +529,17 @@ Wire read paths only until Phase 4 arm ceremony complete. Live dispatch buttons 
 | Native substrate requires Opus/Cursor — GLM-side runs get stubs | MEDIUM | Document seam; Opus session spawns nativeSpecs |
 | Ollama not in company.mjs — manual sidecar | MEDIUM | Phase 2 rewire + runFleet hook |
 | MLP cold weights — advisory only | LOW | Phase 2 feedback loop; don't auto-override governance |
-| All arm flags currently set — accidental spend | HIGH | Phase 0 disarm reset (owner action) |
+| All arm flags currently set — accidental spend | MEDIUM | Named ARMED exception + ceremony docs (owner lock 2026-06-29); 6-gate + owner-gated roles |
 | 8 failing governance tests | HIGH | Phase 2 before any arm ceremony |
-| Dispatch fork scope creep | MEDIUM | Headless-first; bounded to YURI actions |
+| Dispatch fork scope creep | MEDIUM | **Deferred** — incremental dashboard.html only (owner lock 2026-06-29) |
 | GitNexus stale | LOW | Re-index Phase 2 |
 
 ### DISARMED vs ARMED
 
 | Action | Posture |
 |--------|---------|
-| Verification reads, dry-runs | DISARMED |
-| Live end-to-end company run | ARMED (final demo only, owner present) |
+| Verification reads, dry-runs, dashboard click-through | **In scope (Phase 6)** |
+| Live end-to-end armed company dispatch | **Out of scope (Phase 6)** — deferred beyond dry-run verification |
 
 ### Dependencies
 
@@ -548,11 +548,23 @@ Wire read paths only until Phase 4 arm ceremony complete. Live dispatch buttons 
 
 ---
 
+## Held register — owner action required (2026-06-29)
+
+| Subtask ID | Gate | Owner action |
+|------------|------|--------------|
+| `WS-A-S1-steward-gate` | steward | Confirm WS-A governance gate before finalize |
+| `P4-S1-steward-gate` (WS-E) | steward | Confirm release-tail phase 4 steward gate |
+| `P8-H1-helmsman-finalize` | helmsman | Owner-only finalize on public release phase 8 |
+| `evolver` | oracle | Oracle green + explicit evolver authorization |
+| `sentinel arm actions` | sentinel | Owner confirm on sentinel arm actions |
+
+---
+
 ## Prioritized backlog
 
 | ID | Priority | Item | Tag | Phase | Owner action? |
 |----|----------|------|-----|-------|---------------|
-| B01 | **P0** | DISARM reset — remove `mure.enabled`, `glm-fleet.enabled`, `ollama-fleet.enabled` | owner-gated | 0 | **Yes** — execute checklist |
+| B01 | **P0** | ~~DISARM reset~~ **Named ARMED exception holds** — document ceremony under armed posture (owner lock 2026-06-29) | owner-gated | 4 | **Yes** — ceremony docs |
 | B02 | **P0** | Fix 8 failing `company.test.mjs` governance regressions | self-governable | 2 | No |
 | B03 | **P0** | Confirm build-out scope (company ops vs release tail vs both) | owner-gated | 0 | **Yes** — scope decision |
 | B04 | **P0** | Create missing task packets (WS-A through WS-F + release phases 2–8) | self-governable | 3 | No |
@@ -562,7 +574,7 @@ Wire read paths only until Phase 4 arm ceremony complete. Live dispatch buttons 
 | B08 | P1 | MLP outcome feedback loop (`updateFromOutcome`) | self-governable | 2 | No |
 | B09 | P1 | Arm ceremony runbook + smoke scripts | self-governable | 4 | Arm steps: **Yes** |
 | B10 | P1 | Visual-plan gate in helmsman workflow | self-governable | 5 | Optional auth: **Yes** |
-| B11 | P2 | Dispatch template fork (Company Console) | self-governable | 5 | Live dispatch: **Yes** |
+| B11 | P2 | ~~Dispatch template fork~~ **Deferred** — incremental dashboard only (owner lock 2026-06-29) | self-governable | 5 | Live dispatch: **Yes** |
 | B12 | P2 | Analytics dashboard (fleet/token ledger) | self-governable | 5 | No |
 | B13 | P2 | Public release phases 2–8 execution | mixed | 3/E | Finalize/push: **Yes** |
 | B14 | P2 | Plan MCP owner auth for shareable links | owner-gated | 5 | **Yes** (optional) |
@@ -600,7 +612,7 @@ flowchart TD
 
 ## Suggested execution order (master sequence)
 
-1. **Owner:** Scope decision (B03) + disarm reset (B01)
+1. **Owner:** Scope decision (B03) ✓ + ARMED exception lock (B01) ✓
 2. **Sentinel/Scout audit** (Phase 1) — 1 session, DISARMED
 3. **Engineer rewire** (Phase 2) — tests green, ollama hook, GitNexus — 1–2 sessions
 4. **Helmsman task packets** (Phase 3) — 1 session
