@@ -71,6 +71,7 @@ export async function planWorkstream(rel, opts = {}) {
     const sub = task.subtasks?.find((s) => s.id === h.subtaskId);
     return !sub?.finalize;
   });
+  const castable = (plan.summary?.glm ?? 0) + (plan.summary?.native ?? 0) + (plan.summary?.inline ?? 0);
   return {
     taskFile: rel,
     summary: task.summary,
@@ -79,7 +80,7 @@ export async function planWorkstream(rel, opts = {}) {
     glm: plan.summary?.glm ?? 0,
     native: plan.summary?.native ?? 0,
     blockingHeld: blockingHeld.length,
-    blocked: blockingHeld.length > 0 && !opts.forceHeldSkip,
+    blocked: castable === 0 && blockingHeld.length > 0 && !opts.forceHeldSkip,
     visualGate,
     ready: !visualGate.required || visualGate.satisfied,
     heldRulingsSource: plan.heldRulingsSource,
