@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { planCompany, isMureArmed } from './company.mjs';
 import { checkVisualPlanGate } from './helmsman-run.mjs';
 import { loadHeldRulings } from './held-rulings.mjs';
@@ -47,6 +47,7 @@ function parseArgs(argv) {
     ollamaSidecar: argv.includes('--ollama-sidecar'),
     clineSidecar: argv.includes('--cline-sidecar'),
     zaiSidecar: argv.includes('--zai-sidecar'),
+    detach: argv.includes('--detach'),
     outDir: (() => {
       const i = argv.indexOf('--out');
       return i >= 0 && argv[i + 1]
@@ -165,6 +166,11 @@ export async function companyDispatch(opts = {}) {
           persisted: result.mlpFeedback?.persisted,
           count: result.mlpFeedback?.count,
           advisory: result.mlpFeedback?.advisory,
+          // WS-J-C1 (MURE §B.2 P0.3): held-out Brier from train-fleet-router-from-ledger.
+          // Advisory only — surfaces router calibration quality on the manifest.
+          evalMeanBrier: result.mlpFeedback?.trainSummary?.evalMeanBrier ?? null,
+          evalExampleCount: result.mlpFeedback?.trainSummary?.evalExampleCount ?? 0,
+          skippedOutcomes: result.mlpFeedback?.skippedOutcomes ?? 0,
         };
         entry.swarm = result.run?.swarm
           ? {
@@ -210,6 +216,34 @@ export async function companyDispatch(opts = {}) {
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
   const opts = parseArgs(process.argv.slice(2));
+
+  // Detach mode: spawn self without --detach as a detached child, then exit immediately.
+  // The child runs the real dispatch independently; wait-for-job.mjs polls the manifest.
+  if (opts.detach && opts.apply) {
+    const childArgs = process.argv.slice(2).filter((a) => a !== '--detach');
+    const outDir = opts.outDir;
+    fs.mkdirSync(outDir, { recursive: true });
+    const logPath = path.join(outDir, 'run.log');
+    const logFd = fs.openSync(logPath, 'a');
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...childArgs], {
+      cwd: REPO_ROOT,
+      stdio: ['ignore', logFd, logFd],
+      detached: true,
+      env: { ...process.env, YURI_DETACHED_CHILD: '1' },
+    });
+    child.unref();
+    fs.writeFileSync(path.join(outDir, 'dispatch.pid'), String(child.pid));
+    console.log(JSON.stringify({
+      detached: true,
+      pid: child.pid,
+      outDir: path.relative(REPO_ROOT, outDir),
+      logFile: path.relative(REPO_ROOT, logPath),
+      monitor: `node _SYSTEM/Scripts/wait-for-job.mjs --run-id <swarm-run-id> --expect finishedAt --timeout 7200000 --poll-ms 10000`,
+      note: 'Parent exited. Child runs independently. Tail run.log or poll manifest with wait-for-job.mjs.',
+    }, null, 2));
+    process.exit(0);
+  }
+
   companyDispatch({
     dryRunAll: opts.dryRunAll,
     apply: opts.apply,
