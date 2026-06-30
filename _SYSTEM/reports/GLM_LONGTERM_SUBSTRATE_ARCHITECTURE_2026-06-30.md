@@ -231,12 +231,12 @@ Not overengineered — each phase has **exit criteria** and **stop conditions**.
 
 **Goal:** GLM heavy work on proven CC runtime.
 
-| Deliverable | Exit criteria |
-|-------------|---------------|
-| `zai-tmux-fleet.mjs` spec + impl | DISARMED unit test; packet shape matches `glm-fleet` |
-| `runFleet` substratePolicy hook | `glm-max` / `glm-sub-orch` → tmux when `YURI_ZAI_TMUX_FLEET=1` |
-| Manual tmux baseline | Marcel one-shot documented in bakeoff §J |
-| Wire `substrateHint` → `castRole` | P1 wiring audit item |
+| Deliverable | Exit criteria | Status |
+|-------------|---------------|--------|
+| `zai-tmux-fleet.mjs` spec + impl | DISARMED unit test; packet shape matches `glm-fleet` | **SHIPPED** 2026-06-30 (`WS-LT-L1`) |
+| `runFleet` `--zai-sidecar` hook | `glm-max` / heavy roles → zai-tasks.json + spawn command | **SHIPPED** 2026-06-30 |
+| Manual tmux baseline | Marcel one-shot documented in bakeoff §J | pending (`WS-LT-L1-tmux-baseline-smoke`) |
+| Wire `substrateHint` → `castRole` | P1 wiring audit item | **SHIPPED** (`applySubstrateHint`; `tmux-zai` → `dispatch: zai-tmux`) |
 
 **Exit:** One armed MURE leaf (e.g. kernelsmith stub) completes via tmux with `RESULT_LABEL` and `finalizeOk: true` (or honest `forced` with labels).
 
@@ -553,7 +553,18 @@ Optional corner-law guard on discrete substrate enum; log via `probabilistic-dec
 
 **Master task file:** `02_RESOURCES/TASKS/glm-longterm-substrate-ws-l-master.json`
 
-**First GLM build subtask after docs land:** `WS-LT-L1-zai-tmux-fleet-adapter` (implement `zai-tmux-fleet.mjs` per §4)
+**First GLM build subtask after docs land:** `WS-LT-L1-zai-tmux-fleet-adapter` (implement `zai-tmux-fleet.mjs` per §4) — **DONE** 2026-06-30
+
+### WS-LT-L1 ship log (2026-06-30)
+
+| Artifact | Path |
+|----------|------|
+| Adapter | `_SYSTEM/Scripts/zai-tmux-fleet.mjs` |
+| Tests | `_SYSTEM/Scripts/zai-tmux-fleet.test.mjs` |
+| runFleet hook | `--zai-sidecar` → `.claude/jobs/<runId>/zai-tasks.json` |
+| substrateHint | `company.mjs` `applySubstrateHint` — `tmux-zai` → `dispatch: zai-tmux` |
+
+**Automation limitation (documented):** `ai claude-zai` has no headless `--print` path; fleet uses headless tmux spawn (default) or `showTerminal:true` + `yuri-spawn-worker.sh`, prompt inject via `send-keys`, completion via `capture-pane` + `extractResultLabel`. Pane capture may miss labels scrolled off-screen — prefer explicit `RESULT_LABEL:` line in last 500 pane lines.
 
 **Related task files (do not duplicate):**
 
