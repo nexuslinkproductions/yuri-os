@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planCompany, runCompany, castRole, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME, ARM_ENV, ARM_FLAG } from './company.mjs';
+import { planCompany, runCompany, castRole, applySubstrateHint, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME, ARM_ENV, ARM_FLAG } from './company.mjs';
 import { loadRoster, getRole } from './role-registry.mjs';
 import { CLASS } from './governance.mjs';
 
@@ -131,6 +131,19 @@ test('GREY (prompt contract): every role prompt frames the role and demands a RE
   assert.ok(p.includes(MURE_NAME));
   assert.ok(/RESULT_LABEL/.test(p));
   assert.ok(p.includes('do the thing'));
+});
+
+test('GREEN: substrateHint tmux-zai routes to zai-tmux dispatch', () => {
+  const c = castRole(roster, { id: 'k1', role: 'kernelsmith', substrateHint: 'tmux-zai', prompt: 'build kernel' });
+  assert.equal(c.target.dispatch, 'zai-tmux');
+  assert.equal(c.target.lane, 'glm-max');
+  assert.equal(c.target.model, 'glm-5.2');
+});
+
+test('GREEN: applySubstrateHint glm-max lane override', () => {
+  const base = { substrate: 'glm', lane: 'glm', model: 'glm', dispatch: 'glm-lane' };
+  const t = applySubstrateHint({ substrateHint: 'glm-max' }, base);
+  assert.equal(t.lane, 'glm-max');
 });
 
 test('GREY (no silent drop): a subtask with no capability match falls back to a real role, never null', () => {

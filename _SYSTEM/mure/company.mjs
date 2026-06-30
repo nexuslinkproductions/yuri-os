@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, getRole } from './role-registry.mjs';
+import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, getRole, GLM_LANES, NATIVE_LANES } from './role-registry.mjs';
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket, defaultTimeoutMsForLane } from '../Scripts/glm-fleet.mjs';
@@ -122,6 +122,8 @@ export function buildLeaf(role, subtask, target) {
     reasoning: 'high',
     prompt: buildRolePrompt(role, subtask),
     role: role.id,
+    dispatch: target.dispatch || 'glm-lane',
+    substrateHint: subtask.substrateHint || null,
   };
   if (subtask.timeoutMs != null) {
     leaf.timeoutMs = subtask.timeoutMs;
@@ -131,6 +133,38 @@ export function buildLeaf(role, subtask, target) {
   return leaf;
 }
 
+/** Map task JSON substrateHint / lane override onto a resolveLane target. */
+export function applySubstrateHint(subtask, target) {
+  const hint = String(subtask?.substrateHint || '').trim().toLowerCase();
+  const out = { ...target };
+  if (subtask?.lane && (GLM_LANES.includes(subtask.lane) || NATIVE_LANES.includes(subtask.lane))) {
+    out.lane = subtask.lane;
+    out.model = subtask.lane;
+    if (NATIVE_LANES.includes(subtask.lane)) {
+      out.substrate = 'native';
+      out.dispatch = subtask.lane === 'native' ? 'inline' : 'agent';
+    } else {
+      out.substrate = 'glm';
+      out.dispatch = hint === 'tmux-zai' ? 'zai-tmux' : 'glm-lane';
+    }
+    return out;
+  }
+  if (hint === 'tmux-zai') {
+    return { substrate: 'glm', lane: 'glm-max', model: 'glm-5.2', dispatch: 'zai-tmux' };
+  }
+  if (hint === 'native' || hint === 'cursor' || hint === 'opus') {
+    const prefer = resolveLane({ substrate: 'either', lane: 'sonnet', fallbackLane: 'sonnet' }, { preferSubstrate: 'native' });
+    return prefer;
+  }
+  if (hint === 'glm-max' && GLM_LANES.includes('glm-max')) {
+    return { ...out, lane: 'glm-max', model: 'glm-max', dispatch: 'glm-lane' };
+  }
+  if (hint === 'glm' || hint === 'mix') {
+    return { ...out, dispatch: out.dispatch || 'glm-lane' };
+  }
+  return out;
+}
+
 /** Cast a single subtask to its best-matching role + resolved dispatch target + governance ruling. */
 export function castRole(roster, subtask, opts = {}) {
   const need = Array.isArray(subtask.need) ? subtask.need : [];
@@ -138,9 +172,11 @@ export function castRole(roster, subtask, opts = {}) {
   if (subtask.role) role = getRole(roster, subtask.role);             // explicit role override
   if (!role && need.length) role = matchRolesByCapability(roster, need)[0]?.role || null;
   if (!role) role = getRole(roster, 'engineer');                       // default executor
-  const target = resolveLane(role, { preferSubstrate: opts.preferSubstrate || 'glm' });
+  const prefer = subtask.substrateHint === 'native' || subtask.substrateHint === 'cursor' ? 'native' : (opts.preferSubstrate || 'glm');
+  let target = resolveLane(role, { preferSubstrate: prefer });
+  target = applySubstrateHint(subtask, target);
   const ruling = decisionFor(subtask, role);
-  return { subtaskId: subtask.id, role: role.id, roleName: role.name, group: role.group, target, ruling };
+  return { subtaskId: subtask.id, role: role.id, roleName: role.name, group: role.group, target, ruling, substrateHint: subtask.substrateHint || null };
 }
 
 /**
@@ -164,7 +200,7 @@ export async function planCompany(task = {}, opts = {}) {
     if (c.ruling.class === CLASS.OWNER) {
       if (isSubtaskClearedByOwner(subtask.id, subtask, rulings)) {
         clearedHeld.push({ ...c, reason: c.ruling.ruling, clearedBy: rulings.source });
-        if (c.target.dispatch === 'glm-lane') glmLeaves.push(buildLeaf(role, subtask, c.target));
+        if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target));
         else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
         else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
       } else {
@@ -172,7 +208,7 @@ export async function planCompany(task = {}, opts = {}) {
       }
       continue;
     }
-    if (c.target.dispatch === 'glm-lane') glmLeaves.push(buildLeaf(role, subtask, c.target));
+    if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target));
     else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
     else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
   }
@@ -258,7 +294,33 @@ export async function planCompany(task = {}, opts = {}) {
     },
   };
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, ollamaSidecar, clineSidecar, heldRulingsSource: rulings.source };
+  const zaiEligible = [...glmLeaves, ...nativeSpecs]
+    .filter((l) => l.dispatch === 'zai-tmux'
+      || l.substrateHint === 'tmux-zai'
+      || ['architect', 'adjudicator', 'kernelsmith', 'deliberator', 'oracle'].includes(l.role)
+      || ['glm-max', 'glm-sub-orch'].includes(l.lane)
+      || l.routerSuggestion?.substrate === 'tmux-zai'
+      || l.routerSuggestion?.substrate === 'zai-tmux')
+    .map((l) => ({ id: l.id, role: l.role, lane: l.lane, dispatch: l.dispatch || 'glm-lane' }));
+  const zaiSidecar = {
+    discoverable: true,
+    eligibleCount: zaiEligible.length,
+    eligible: zaiEligible,
+    spawn: 'node _SYSTEM/Scripts/zai-tmux-fleet.mjs --dry-run --tasks-file <zai-tasks.json>',
+    note: 'GLM heavy tmux sidecar — runFleet.mjs --zai-sidecar; arm via zai-tmux-fleet.enabled',
+    metadata: {
+      heavyRoles: ['architect', 'adjudicator', 'kernelsmith', 'deliberator', 'oracle'],
+      heavyLanes: ['glm-max', 'glm-sub-orch'],
+      disarmedByDefault: true,
+      armEnv: 'YURI_ZAI_TMUX_FLEET',
+      armFlag: '_SYSTEM/state/zai-tmux-fleet.enabled',
+      tasksFileHint: '.claude/jobs/<runId>/zai-tasks.json',
+      fullImplementation: '_SYSTEM/Scripts/runFleet.mjs::buildZaiSidecar',
+      limitation: 'claude-zai interactive — tmux send-keys + capture-pane poll',
+    },
+  };
+
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, ollamaSidecar, clineSidecar, zaiSidecar, heldRulingsSource: rulings.source };
 }
 
 /**

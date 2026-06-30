@@ -28,6 +28,7 @@
       "status": "DONE",
       "need": ["documentation", "adversarial-verify"],
       "prompt": "Deliver _SYSTEM/reports/GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md comparing ai claude-zai vs glm-fleet headless. Include smoke test evidence. Return 02L0_GLM_DEBUG_DOC_X_PASS_COMMITTED.",
+      "evidence": "Report committed 2026-06-30. Top root cause: exit_null=SIGKILL from lane-dispatch outer timeout on headless full-stack tool loops. Smokes A-C pass (4-8s no-tools); D pass (16s tools light); E fail (full stack+high reasoning, exit_null@180s). Recommended: Hybrid D+zai-tmux adapter.",
       "blastRadius": "LOW",
       "reversible": true
     },
@@ -40,6 +41,8 @@
       "disarmed": true,
       "need": ["integration", "runtime-test"],
       "prompt": "Run smoke matrix: llm-lane glm-5.2 --no-tools, lane-dispatch glm --no-tools, glm-fleet --smoke (DISARMED dry-run OK). Record exit codes + latency in bakeoff doc appendix. Return 02L1_SMOKE_MATRIX_X_PASS_COMMITTED.",
+      "status": "DONE",
+      "evidence": "A: llm-lane glm-5.2 exit=0 4s. B: lane-dispatch glm-max exit=0 4s. C: ai llm glm-5.2 exit=0 8s. D: tools+medium 16s OK. E: full stack+high reasoning exit_null@180s. See GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md smoke table.",
       "blastRadius": "LOW",
       "reversible": true
     },
