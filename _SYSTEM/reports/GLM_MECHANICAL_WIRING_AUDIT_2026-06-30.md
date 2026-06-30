@@ -315,3 +315,93 @@ node _SYSTEM/mure/role-registry.mjs --validate
 ---
 
 **RESULT_LABEL:** `02W1_GLM_WIRING_AUDIT_X_PASS_COMMITTED`
+
+---
+
+## §L Background spawn issue (2026-06-30)
+
+### Symptom
+
+Marcel observes **GLM fleet work never behaves like a true background job**: Cursor “Run in background”, host `&`, or `nohup … &` still tie the session to long-running GLM work or the job appears to “not run in background” at all.
+
+### Spawn chain (sync-by-design)
+
+| Layer | File | Mechanism | Waits on child? |
+|-------|------|-----------|-----------------|
+| MURE apply | `_SYSTEM/mure/company-dispatch.mjs` | `await runFleet(...)` | Yes — blocks until fleet finishes |
+| Fleet conductor | `_SYSTEM/Scripts/runFleet.mjs` | `await company.runCompany(...)` | Yes |
+| GLM governed loop | `_SYSTEM/Scripts/runSwarm.mjs` | `await glmFleet(...)` per round (up to 3 rounds + adversarial) | Yes |
+| Parallel lanes | `_SYSTEM/Scripts/glm-fleet.mjs` `fireTask` | `spawn('node', [lane-dispatch.mjs, …])` — **no** `detached`, **no** `unref` | Yes — `Promise` resolves on `child.on('close')` |
+| Retry wrapper | `_SYSTEM/Scripts/lane-dispatch.mjs` | `spawn('node', [llm-lane.mjs, …])` — default piped stdio | Yes — `await runOnce()` loop (up to 4 attempts; default `LANE_DISPATCH_TIMEOUT_MS` **1_320_000** ms) |
+| Lane | `_SYSTEM/Scripts/llm-lane.mjs` | In-process HTTP + optional tool loop | Runs until exit or SIGKILL from lane-dispatch timer |
+
+**llm-lane is never spawned detached.** Every caller in the chain holds the parent Node event loop until the leaf completes (or is SIGKILL’d at timeout).
+
+### Grep: nohup / disown / detached / background
+
+Scripts requested: `runFleet.mjs`, `glm-fleet.mjs`, `lane-dispatch.mjs`, and `company-dispatch.mjs` (lives under `_SYSTEM/mure/`, not `_SYSTEM/Scripts/`).
+
+| Pattern | runFleet | glm-fleet | lane-dispatch | company-dispatch |
+|---------|----------|-----------|---------------|------------------|
+| `nohup` | — | — | — | — |
+| `disown` | — | — | — | — |
+| `detached` | — | — | — | — |
+| `background` | — | — | — | — |
+| `spawn` | — | yes | yes | `spawnSync` imported (unused in apply path) |
+
+Fleet scripts only mention “spawn” in **comments** (manual sidecar spawn) or **`child_process.spawn` with synchronous wait**.
+
+### Comparison: ollama-fleet / cline-fleet
+
+**Same orchestration model as glm-fleet** — not a different background strategy:
+
+- **ollama-fleet** `fireTask`: `spawn node lane-dispatch …`, `stdio: ['ignore','ignore','pipe']`, resolve on `close`.
+- **cline-fleet** `fireTask`: `spawn cline …`, `stdio: ['ignore','pipe','pipe']`, resolve on `close` (reads stdout into memory instead of `--out` file).
+- **glm-fleet** adds lane-specific timeouts via `defaultTimeoutMsForLane` and `LANE_DISPATCH_ATTEMPTS` for glm-max.
+
+None of the three fleets implement fire-and-forget or process detachment.
+
+### Cursor subagent shell vs host `&`
+
+1. **Cursor “Run in background”** backgrounds the **tool shell** that started `node …/glm-fleet.mjs` (or `runFleet` / `company-dispatch`). That process still **must stay alive** because it `await`s `glmFleet` → `lane-dispatch` → `llm-lane`. There is no `child.unref()` or `detached: true` to orphan workers.
+2. **Host terminal `&`** only backgrounds the **top-level** shell job; the Node parent remains the session leader for its child tree unless wrapped in `nohup`/`disown`/tmux. Even then, **orchestrator semantics** are unchanged: you get a detached *wrapper*, not a first-class “dispatch and poll results dir” API.
+3. **PTY hold**: glm-fleet does not allocate a PTY itself, but **lane-dispatch pipes stdout/stderr** from llm-lane and glm-fleet pipes stderr from lane-dispatch. Long runs + piped stderr keep the parent in the child’s process group story; the dominant effect is **async await chain**, not PTY.
+
+### S0 / enforcement `nohup.log` — did it detach?
+
+Evidence on disk:
+
+- `_SYSTEM/lane-output/enforcement-s0-03-brier/nohup.log` — JSON **manifest** from `company-dispatch` (completed run, `hasFailures: true`, **`swarm: null`** for the s0-03-only task with **glm: 0** leaves).
+- `nohup-apply.log` — single line: `[runSwarm …] round 0: dispatch 1 leaf(s) → MURE-S0-03-held-out-brier` (91 bytes); not a hours-long GLM trace.
+
+**Conclusion:** Operator `nohup` redirected **short-lived orchestrator stdout**; it did **not** prove GLM llm-lane leaves survive terminal detach. No fleet script writes or manages `nohup.log`. Repo-wide `nohup` in `_SYSTEM/Scripts` appears only in `voice/overseer.sh`, not fleet.
+
+### Root cause (ranked)
+
+1. **P0 — Architectural:** Fleet stack is **synchronous orchestration by design** (`await` at company-dispatch → runFleet → runSwarm → glmFleet → lane-dispatch → llm-lane). Background UX was never implemented; only dry-run plans or blocking apply.
+2. **P1 — Duration:** Default lane-dispatch timeout up to **22 min** × retries × swarm rounds × concurrency pool — any “background” shell is still occupied for wall-clock hours on real MURE segments.
+3. **P2 — Operator expectation mismatch:** `nohup … &` without tmux/`wait-for-job` polling gives **no stable detach contract** for multi-hour GLM; Cursor background shell has the same parent-wait behavior.
+4. **P3 — Not PTY-specific:** glm-fleet does not open a PTY; failure mode is **parent waits on child**, same as ollama-fleet/cline-fleet.
+
+### Fix options
+
+| Option | Description | Fits scale? |
+|--------|-------------|-------------|
+| **tmux detach (yuri-worker pattern)** | `yuri-spawn-worker.sh` / `yuri-workers-tmux.sh` — one pane per leaf, Ctrl-b d detach | **Yes** — Marcel-visible, survives terminal |
+| **`zai-tmux-fleet.mjs` (WS-L L1)** | Fleet adapter over worker spawn; packet shape aligned with glm-fleet | **Yes** — long-term GLM heavy path (`GLM_LONGTERM_SUBSTRATE_ARCHITECTURE_2026-06-30.md`, parent plan **d1084fba**) |
+| **`glm-fleet-bg.sh` wrapper** | `nohup node glm-fleet.mjs … >> run.log 2>&1 &` + echo runId | Partial — detaches wrapper only; still need `wait-for-job.mjs` / results dir poll |
+| **`runFleet --detach`** | Write run manifest + spawn detached child with `detached: true`, `stdio: 'ignore'`, `unref()` | Needs new API + job registry |
+| **launchd / tmux session per leaf** | One long-lived session per worker | **Yes** for production fleet |
+
+**Recommended scalable pattern:** **tmux-backed `zai-tmux-fleet`** for GLM Opus-tier/multi-tool leaves; keep **headless glm-fleet** for short advisory bulk with explicit **`wait-for-job`** + results under `.claude/jobs/<runId>/results`. Do not expect Cursor subagent background or bare `&` to replace that.
+
+### Checks (this section)
+
+```bash
+rg -n 'nohup|disown|detached|background' _SYSTEM/Scripts/{runFleet,glm-fleet,lane-dispatch}.mjs _SYSTEM/mure/company-dispatch.mjs
+node --test _SYSTEM/Scripts/glm-fleet-timeout.test.mjs _SYSTEM/Scripts/swarm-convergence.test.mjs
+node _SYSTEM/mure/role-registry.mjs --validate
+```
+
+**RESULT_LABEL:** `02W1_GLM_BACKGROUND_SPAWN_X_PASS_DOC`
+
