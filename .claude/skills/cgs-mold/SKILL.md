@@ -107,7 +107,7 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
 ## Session Notes
 
 ### 2026-06-30
-- session: 1130m | peak ctx: 0% | compacts: 0
-- tools: Read×2258, Shell×914, Grep×328, Write×271, mcp×48, Bash×30, Edit×12
-- corrections: none
+- session: 1167m | peak ctx: 0% | compacts: 0
+- tools: Read×2267, Shell×951, Grep×328, Write×271, mcp×54, Bash×38, Edit×18
+- corrections: that was successful, we need to clean the back face up before we continue otherwise we will run into issues again.
 - errors: none
