@@ -73,7 +73,7 @@ test('(d) damping FORCES stop on marginal-value cutoff when blocked', () => {
   const pool = { L1: pass(1), L2: pass(2) }; // L3 missing → blocked
   const damping = { roundYields: [0, 0], seenFindingHashes: [], actionCooldown: {} };
   const r = converge({ ledger, poolOutputs: pool, signals: [], damping, round: 5, opts: { armed: true, marginalWindow: 2, marginalThreshold: 1 } });
-  assert.equal(r.converged, true);
+  assert.equal(r.converged, false);
   assert.equal(r.forced, true);
   assert.match(r.reason, /marginal-value-cutoff/);
 });

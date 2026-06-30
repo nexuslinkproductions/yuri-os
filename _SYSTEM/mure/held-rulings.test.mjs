@@ -18,9 +18,18 @@ test('RED: finalize subtasks never cleared by ruling', () => {
   assert.equal(isSubtaskClearedByOwner('any', { finalize: true }, bundle), false);
 });
 
-test('GREEN: loadHeldRulings reads committed owner lock', () => {
+test('RED: arming subtask blocked without allowArming ruling', () => {
+  const bundle = { map: new Map([['x', { approved: true }]]) };
+  assert.equal(isSubtaskClearedByOwner('x', { arming: true }, bundle), false);
+});
+
+test('GREEN: allowArming ruling clears arming steward gate', () => {
   const b = loadHeldRulings();
-  assert.ok(b.source?.includes('mure-held-rulings-owner-lock.json'));
-  assert.ok(b.map.has('WS-A-S1-steward-gate'));
-  assert.ok(b.map.has('P8-H1-helmsman-finalize'));
+  assert.equal(isSubtaskClearedByOwner('WS-G-S1-steward-gate', { arming: true }, b), true);
+  assert.ok(b.map.get('WS-G-S1-steward-gate')?.allowArming);
+});
+
+test('GREEN: owner lock includes evolver-global ruling', () => {
+  const b = loadHeldRulings();
+  assert.ok(b.map.has('evolver-arm'));
 });

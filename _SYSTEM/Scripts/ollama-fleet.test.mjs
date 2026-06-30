@@ -26,6 +26,8 @@ test('GREEN: resolveModel — explicit model wins, then tier, then default', () 
 
 test('GREEN: extractResultLabel finds a conforming label, else empty', () => {
   assert.equal(extractResultLabel('blah\n01OL_OLLAMA_FLEET_SMOKE_X_PASS_COMMITTED'), '01OL_OLLAMA_FLEET_SMOKE_X_PASS_COMMITTED');
+  assert.equal(extractResultLabel('summary\n02B1_OLLAMA_SIDECAR_X_PASS_COMMITTED'), '02B1_OLLAMA_SIDECAR_X_PASS_COMMITTED');
+  assert.equal(extractResultLabel('02R1_GOVERNANCE_TESTS_X_PASS_COMMITTED'), '02R1_GOVERNANCE_TESTS_X_PASS_COMMITTED');
   assert.equal(extractResultLabel('no label here'), '');
 });
 

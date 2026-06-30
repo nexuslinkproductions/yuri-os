@@ -150,7 +150,13 @@ export async function companyDispatch(opts = {}) {
           advisory: result.mlpFeedback?.advisory,
         };
         entry.swarm = result.run?.swarm
-          ? { runId: result.run.swarm.runId, converged: result.run.swarm.converged }
+          ? {
+            runId: result.run.swarm.runId,
+            converged: result.run.swarm.converged,
+            finalizeOk: result.run.swarm.finalizeOk,
+            finalizeReason: result.run.swarm.finalizeReason,
+            forced: result.run.swarm.verdict?.forced === true,
+          }
           : null;
         fs.writeFileSync(
           path.join(opts.outDir, `${path.basename(rel, '.json')}-apply.json`),

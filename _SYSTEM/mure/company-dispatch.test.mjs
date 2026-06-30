@@ -9,11 +9,13 @@ test('GREEN: planWorkstream WS-A has zero blocking held after owner lock', async
   assert.equal(entry.clearedHeld, 1);
 });
 
-test('GREEN: WS-G partial dispatch when only arming subtask held', async () => {
+test('GREEN: WS-G fully clears after owner lock with allowArming on steward gate', async () => {
   const entry = await planWorkstream('02_RESOURCES/TASKS/mure-buildout-ws-g-cline-pass.json');
-  assert.equal(entry.held, 1);
+  assert.equal(entry.held, 0);
+  assert.equal(entry.blockingHeld, 0);
   assert.equal(entry.blocked, false);
   assert.ok(entry.glm >= 1);
+  assert.equal(entry.clearedHeld, 1);
 });
 
 test('GREEN: companyDispatch dry-run-all produces manifest', async () => {

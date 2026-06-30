@@ -292,7 +292,8 @@ export function converge({ ledger, poolOutputs = {}, signals = [], adversarialRe
 
   const damp = checkDamping(damping, opts);
   if (!damp.continue) {
-    return { converged: true, reason: `forced-stop:${damp.reason}`, forced: true, blocking, nextRoundWork: [], damping: damp.updatedState };
+    // Fail-closed honesty: forced-stop is NOT convergence — finalizeGuard blocks on forced:true.
+    return { converged: false, reason: `forced-stop:${damp.reason}`, forced: true, blocking, nextRoundWork: [], damping: damp.updatedState };
   }
 
   const dd = dedupeWork(nextRoundWork, damping, round, opts);

@@ -1,6 +1,6 @@
 // @capability: mure-held-rulings
 // @serves: owner held clearance | steward gate unblock | helmsman finalize ruling
-// @does: load owner-approved rulings that clear owner-gated subtasks for cast/dispatch. finalize:true and arming:true are NEVER cleared.
+// @does: load owner-approved rulings that clear owner-gated subtasks for cast/dispatch. finalize:true never cleared; arming:true cleared only with allowArming ruling.
 // @exports: loadHeldRulings, isSubtaskClearedByOwner, HELD_RULINGS_PATHS
 
 import fs from 'node:fs';
@@ -39,13 +39,17 @@ export function loadHeldRulings() {
 
 /**
  * Owner ruling clears an owner-gated subtask for cast (not finalize/publish execution).
- * Hard vetoes: finalize:true, arming:true, evolver without explicit ruling id.
+ * Hard vetoes: finalize:true always blocked.
+ * arming:true cleared only when ruling.approved && ruling.allowArming.
+ * evolver role floor lifted separately via evolver.enabled (see decisionFor).
  */
 export function isSubtaskClearedByOwner(subtaskId, subtask = {}, bundle = null) {
   if (subtask.finalize === true) return false;
-  if (subtask.arming === true) return false;
   const b = bundle || loadHeldRulings();
   const ruling = b.map.get(subtaskId);
+  if (subtask.arming === true) {
+    return !!(ruling?.approved && ruling.allowArming);
+  }
   if (!ruling || ruling.approved !== true) return false;
   if (ruling.scope === 'evolver-only' && subtask.role !== 'evolver') return true;
   return true;

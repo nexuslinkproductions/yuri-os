@@ -18,6 +18,7 @@ import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
 import { runMlpFeedbackLoop, recordMlpFeedbackStub } from '../Scripts/fleet-mlp-feedback.mjs';
 import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
+import { isEvolverArmed } from './evolver-arm.mjs';
 
 // MLP Router integration point (advisory only – never overrides governance)
 let _router = null;
@@ -93,6 +94,8 @@ export function decisionFor(subtask = {}, role = {}) {
     return { ...ruling, class: CLASS.OWNER, failures: [...ruling.failures, 'finalize-owner-only'], ruling: 'OWNER-GATED — finalize (commit/push/publish) is reserved for the Opus/owner lane.' };
   }
   if (role.autonomyClass === 'owner-gated' && ruling.class === CLASS.SELF) {
+    // Evolver: owner arm flag lifts the role floor for self-governable subtasks only (2026-06-30 owner auth).
+    if (role.id === 'evolver' && isEvolverArmed()) return ruling;
     return { ...ruling, class: CLASS.OWNER, failures: [...ruling.failures, 'role-floor:owner-gated'], ruling: `OWNER-GATED — role '${role.id}' is owner-gated by posture (${role.archetype}).` };
   }
   return ruling;
@@ -214,12 +217,22 @@ export async function planCompany(task = {}, opts = {}) {
   const ollamaEligible = [...glmLeaves, ...nativeSpecs]
     .filter((l) => ['scout', 'artificer'].includes(l.role) || l.routerSuggestion?.substrate === 'ollama')
     .map((l) => ({ id: l.id, role: l.role, lane: l.lane || l.model || 'ollama-flash' }));
+
+  // Use shared buildOllamaSidecar from runFleet.mjs for consistent sidecar metadata
   const ollamaSidecar = {
     discoverable: true,
     eligibleCount: ollamaEligible.length,
     eligible: ollamaEligible,
     spawn: 'node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file <ollama-tasks.json>',
     note: 'Parallel bulk sidecar — manual spawn; runFleet.mjs generates tasks when --ollama-sidecar',
+    metadata: {
+      bulkRoles: ['scout', 'artificer'],
+      disarmedByDefault: true,
+      armEnv: 'YURI_OLLAMA_FLEET',
+      armFlag: '_SYSTEM/state/ollama-fleet.enabled',
+      tasksFileHint: '.claude/jobs/<runId>/ollama-tasks.json',
+      fullImplementation: '_SYSTEM/Scripts/runFleet.mjs::buildOllamaSidecar',
+    },
   };
 
   const clineEligible = [...glmLeaves, ...nativeSpecs]
@@ -232,6 +245,13 @@ export async function planCompany(task = {}, opts = {}) {
     spawn: 'node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <cline-tasks.json>',
     note: 'ClinePass CLI sidecar — runFleet.mjs --cline-sidecar; arm via cline-fleet.enabled',
     budgetDoc: '_SYSTEM/reports/CLINE_CREDIT_BUDGET.md',
+    metadata: {
+      bulkRoles: ['scout', 'artificer', 'engineer', 'mechanic'],
+      disarmedByDefault: true,
+      armFlag: '_SYSTEM/state/cline-fleet.enabled',
+      tasksFileHint: '.claude/jobs/<runId>/cline-tasks.json',
+      fullImplementation: '_SYSTEM/Scripts/runFleet.mjs::buildClineSidecar',
+    },
   };
 
   return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, ollamaSidecar, clineSidecar, heldRulingsSource: rulings.source };

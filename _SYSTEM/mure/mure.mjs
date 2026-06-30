@@ -14,10 +14,13 @@ import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runGoalCycle, scoreGoal } from './goal-engine.mjs';
 import { MATH_HOOKS } from './math-bridge.mjs';
 import { runCompany, planCompany, isMureArmed, MURE_NAME, ARM_FLAG } from './company.mjs';
+import { isEvolverArmed, EVOLVER_ARM_FLAG } from './evolver-arm.mjs';
+import { isArmed as isClineFleetArmed, ARM_FLAG as CLINE_ARM_FLAG } from '../Scripts/cline-fleet.mjs';
 
 export {
   runCompany, planCompany, loadRoster, validateRoster, matchRolesByCapability, resolveLane,
   evaluateGovernance, runGoalCycle, scoreGoal, MATH_HOOKS, isMureArmed, MURE_NAME, CLASS, GROUPS,
+  isEvolverArmed,
 };
 
 // A representative sample task to demonstrate the end-to-end DISARMED plan (research → build → verify → doc).
@@ -44,7 +47,13 @@ async function main(argv) {
     return v.ok ? 0 : 1;
   }
   if (argv.includes('--status')) {
-    process.stdout.write(`${MURE_NAME} ${roster.meta.kanji || ''} — ${roster.roles.length} roles · ${isMureArmed() ? `ARMED (${process.env.YURI_MURE_ARMED === '1' ? 'env' : 'flag'})` : `DISARMED (arm: touch ${ARM_FLAG.replace(/.*YURI-OS-MUSUBI\//, '')})`}\n`);
+    const mure = isMureArmed() ? `ARMED (${process.env.YURI_MURE_ARMED === '1' ? 'env' : 'flag'})` : `DISARMED (touch ${ARM_FLAG.replace(/.*YURI-OS-MUSUBI\//, '')})`;
+    const cline = isClineFleetArmed() ? `ARMED (${process.env.YURI_CLINE_FLEET === '1' ? 'env' : 'flag'})` : `DISARMED (touch ${CLINE_ARM_FLAG.replace(/.*YURI-OS-MUSUBI\//, '')})`;
+    const evolver = isEvolverArmed() ? `ARMED (${process.env.YURI_EVOLVER_ARMED === '1' ? 'env' : 'flag'})` : `DISARMED (touch ${EVOLVER_ARM_FLAG.replace(/.*YURI-OS-MUSUBI\//, '')})`;
+    process.stdout.write(`${MURE_NAME} ${roster.meta.kanji || ''} — ${roster.roles.length} roles\n`);
+    process.stdout.write(`  MURE:    ${mure}\n`);
+    process.stdout.write(`  Cline:   ${cline}\n`);
+    process.stdout.write(`  Evolver: ${evolver}\n`);
     return 0;
   }
   if (argv.includes('--roster')) {

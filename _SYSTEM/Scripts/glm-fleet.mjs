@@ -31,11 +31,14 @@ export function isArmed() {
   try { return fs.existsSync(ARM_FLAG); } catch { return false; }
 }
 
-// Lane Result Grammar (yuri-origin): NNxx_DESCRIPTION_(X|P|F)_..._COMMITTED. Lenient — first match wins.
-const RESULT_LABEL_RE = /\b\d{2}[A-Z]{2}_[A-Z0-9_]{2,70}_(?:X|P|F)_[A-Z0-9_]*COMMITTED\b/;
+// Lane Result Grammar — aligned with contract-conformance.mjs LABEL_TOKEN_RE (supports 02B1_, 02R1_, etc.).
+const LABEL_TOKEN_RE = /\b\d{2}[A-Z0-9]{1,3}_[A-Z0-9_]*(?:PASS_COMMITTED|COMMITTED|BLOCKED|REPAIR_REQUIRED)\b/g;
 export function extractResultLabel(text) {
-  const m = String(text || '').match(RESULT_LABEL_RE);
-  return m ? m[0] : '';
+  const s = String(text || '');
+  const marker = s.match(/^[^\n]*\bRESULT_LABEL\b\s*[:=]\s*([0-9][0-9A-Z_]+)/im);
+  if (marker) return marker[1];
+  const all = s.match(LABEL_TOKEN_RE);
+  return all?.length ? all[all.length - 1] : '';
 }
 
 export function buildRunDir(runId) {
@@ -153,9 +156,12 @@ export function aggregatePoolOutputs(runDir) {
         skipped.push({ file: f, error: 'missing or invalid packet.role' });
         continue;
       }
+      let label = typeof packet.resultLabel === 'string' ? packet.resultLabel : '';
+      const text = typeof packet.text === 'string' ? packet.text : '';
+      if (!label && text) label = extractResultLabel(text);
       pool[packet.role] = {
-        label: typeof packet.resultLabel === 'string' ? packet.resultLabel : '',
-        text: typeof packet.text === 'string' ? packet.text : '',
+        label,
+        text,
         status: typeof packet.status === 'string' ? packet.status : 'fail',
       };
     } catch (e) {
