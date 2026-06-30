@@ -433,3 +433,14 @@ _SYSTEM/state/overseer/
 # Agent-Native plans app local-files bridge token (per-serve, local-only; NEVER commit)
 .plan-url
 .agent-native/
+
+# Local Claude runtime — machine-specific, never commit (first-clone hygiene 2026-06-30)
+.claude/downloads/
+.claude/projects/
+.claude/daemon/
+.claude/daemon.log
+.claude/daemon-auth-cooldown
+.claude/daemon-auth-status.json
+.claude/settings.json.bak-*
+.claude/hooks/.claude/
+.claude/projects
