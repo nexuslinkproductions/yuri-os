@@ -20,3 +20,7 @@
 # Markdown uses trailing spaces for line breaks — disable trailing-space check
 *.md whitespace=-trailing-space
 *.txt whitespace=-trailing-space
+
+# Force LF on text so Windows checkouts hash-match the LF-based manifests
+# (skill-registry validator + any content-hash tooling). Binaries above are exempt.
+* text=auto eol=lf
