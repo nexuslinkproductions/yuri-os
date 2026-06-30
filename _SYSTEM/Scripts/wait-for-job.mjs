@@ -349,14 +349,13 @@ Exit codes:
   }
 
   const mPath = manifestPath(runId);
-  const exists = existsSync(mPath);
-
-  if (!exists) {
-    console.error(`wait-for-job: manifest not found at ${mPath} (job may not have started yet)`);
-    process.exit(EXIT_TIMEOUT);
+  if (!existsSync(mPath)) {
+    process.stderr.write(
+      `wait-for-job: manifest not yet at ${mPath} — polling (timeout ${timeoutMs}ms, poll ${pollMs}ms)\n`,
+    );
   }
 
-  // Run the poll loop
+  // Run the poll loop (manifest may appear mid-run; null manifest = in-progress)
   const result = await waitForJob({ runId, expect, leaf, timeoutMs, pollMs });
 
   const elapsedS = (result.elapsedMs / 1000).toFixed(1);

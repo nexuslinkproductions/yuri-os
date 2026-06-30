@@ -387,13 +387,13 @@ describe('CLI subprocess — exit codes', () => {
     assert.equal(res.status, 1, `stdout: ${res.stdout}\nstderr: ${res.stderr}`);
   });
 
-  test('exit 1: manifest not found (job not started)', () => {
+  test('exit 1: manifest not found within timeout (in-flight / missing job)', () => {
     const res = spawnSync('node', [SCRIPT, '--run-id', 'nonexistent-job-xxx', '--expect', 'finishedAt', '--timeout', '100', '--poll-ms', '20'], {
       encoding: 'utf-8',
       timeout: 10000,
     });
     assert.equal(res.status, 1, `stdout: ${res.stdout}\nstderr: ${res.stderr}`);
-    assert.match(res.stderr, /manifest not found/);
+    assert.match(res.stderr, /TIMEOUT|manifest not yet/);
   });
 
   test('exit 1: --expect resultLabel without --leaf', () => {

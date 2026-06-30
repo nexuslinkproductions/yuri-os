@@ -116,7 +116,9 @@ function dot(a, b) {
   return s;
 }
 
-function forward(features, w) {
+// Exported for held-out eval Brier computation (train-fleet-router-from-ledger.mjs).
+// Pure + deterministic: given feature vector + weights → { score, hidden }.
+export function forward(features, w) {
   const { w1, b1, w2, b2 } = w;
   const h = new Array(HIDDEN_SIZE);
   for (let j = 0; j < HIDDEN_SIZE; j++) {
@@ -242,7 +244,13 @@ function encodeOption(c) {
 export async function updateFromOutcome(features, decision, outcome, opts = {}) {
   // outcome example:
   // { success: 0|1, quality: 0-1, cost: number, timeMs: number, converged: bool }
-  const w = await loadWeights();
+  //
+  // When persist === false (advisory / dry-run), operate on a deep copy so the
+  // in-memory singleton (_weights) is NOT mutated. Real outcomes are deferred to
+  // ledger ingest (train-fleet-router-from-ledger.mjs) which calls with persist:true.
+  const persist = opts.persist !== false;
+  const liveWeights = await loadWeights();
+  const w = persist ? liveWeights : structuredClone(liveWeights);
   const lr = opts.learningRate ?? 0.02;
 
   const target = (outcome.success ?? (outcome.converged ? 1 : 0)) * (outcome.quality ?? 0.8);
@@ -267,8 +275,8 @@ export async function updateFromOutcome(features, decision, outcome, opts = {}) 
     }
   }
 
-  if (opts.persist !== false) await saveWeights(w);
-  return { updated: true, error: err, persisted: opts.persist !== false };
+  if (persist) await saveWeights(w);
+  return { updated: true, error: err, persisted: persist };
 }
 
 // ---------------------------------------------------------------------------
