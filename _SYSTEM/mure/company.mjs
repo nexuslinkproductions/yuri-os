@@ -364,12 +364,18 @@ export async function runCompany(task = {}, opts = {}) {
   let swarm = null;
   let nativeResults = { pool: {}, skipped: [] };
 
+  // H2 FIX: Skip leaves already handled by the zai-tmux sidecar (prevent double-dispatch via headless glm-fleet)
+  const skipLeafIds = new Set(opts.skipLeafIds || []);
+  const glmLeavesToDispatch = skipLeafIds.size > 0
+    ? plan.glmLeaves.filter((l) => !skipLeafIds.has(l.id))
+    : plan.glmLeaves;
+
   // Dispatch GLM substrate through runSwarm (governed loop)
-  if (plan.glmLeaves.length) {
+  if (glmLeavesToDispatch.length) {
     // MURE-armed → runSwarm armed (couple the arm state; do NOT rely on runSwarm's separate flag — native
     // red-team #4). We only reach here when `armed===true` (owner flag set). Propagate the resolved armed state
     // to ensure tests can force disarm even when fleet flags exist.
-    swarm = await runSwarm({ leaves: plan.glmLeaves }, {
+    swarm = await runSwarm({ leaves: glmLeavesToDispatch }, {
       rounds: Number(opts.rounds || 2), concurrency: Number(opts.concurrency || 3), armed,
     });
   }
@@ -392,7 +398,7 @@ export async function runCompany(task = {}, opts = {}) {
     });
   }
 
-  return { name: plan.name, armed: true, plan, swarm, nativeResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback };
+  return { name: plan.name, armed: true, plan, swarm, nativeResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback, zaiSidecarResults: opts.zaiSidecarResults || null };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

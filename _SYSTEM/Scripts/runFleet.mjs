@@ -26,6 +26,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 import { recordMlpFeedbackStub, recordMlpPredictions } from './fleet-mlp-feedback.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -159,6 +160,8 @@ export function buildZaiSidecar(plan, task = {}) {
       role: leaf.role,
       lane: leaf.lane,
       prompt: leaf.prompt || `${task.summary || 'fleet task'} — ${leaf.role} (${id}) via zai-tmux`,
+      tmuxClaudeZai: true,
+      showTerminal: false,
     });
   };
   for (const leaf of collectSidecarLeaves(plan)) add(leaf);
@@ -224,7 +227,7 @@ export async function runFleet(task, opts = {}) {
     const { path: tasksPath, fallback } = writeSidecarTasksFile(runId, 'zai-sidecar', 'zai-tasks.json', zaiSidecar.tasks);
     if (fallback) zaiSidecar.tasksFileFallback = true;
     zaiSidecar.tasksFile = tasksPath;
-    zaiSidecar.command = `node _SYSTEM/Scripts/zai-tmux-fleet.mjs --dry-run --tasks-file ${tasksPath}`;
+    zaiSidecar.command = `node _SYSTEM/Scripts/zai-tmux-fleet.mjs ${dryRun ? '--dry-run' : ''} --tasks-file ${tasksPath}`.trim();
   }
 
   const result = {
@@ -254,6 +257,10 @@ export async function runFleet(task, opts = {}) {
 
   if (dryRun) {
     result.plan = plan;
+    // Advisory MLP feedback: calls updateFromOutcome with persist:false (structuredClone, no disk write).
+    // Real training path: runFleet.mjs --apply --mlp-learn (armed) → recordMlpFeedbackFromRun →
+    // runPostTrainSummary → train-fleet-router-from-ledger.mjs (batch replay from prediction-ledger).
+    // Standalone: `node _SYSTEM/Scripts/train-fleet-router-from-ledger.mjs --epochs=4 --lr=0.015`
     result.mlpFeedback = await recordMlpFeedbackStub(plan, { quotaPressure: opts.quotaPressure ?? 0.4 });
     return result;
   }
@@ -267,7 +274,41 @@ export async function runFleet(task, opts = {}) {
   };
   const { ids: predictionIds } = await recordMlpPredictions(plan, { quotaPressure: mlpOpts.quotaPressure }, mlpOpts);
 
-  const run = await company.runCompany(task, { ...opts, armed: opts.armed !== false, predictionIds, mlpLearn: opts.mlpLearn });
+  // H1 FIX: Actually spawn zai-tmux-fleet.mjs in armed mode and collect handled leaf IDs
+  let zaiSpawnResults = null;
+  let zaiHandledLeafIds = [];
+  if (opts.zaiSidecar && zaiSidecar.tasks?.length && zaiSidecar.tasksFile) {
+    try {
+      const zaiScript = join(__dirname, 'zai-tmux-fleet.mjs');
+      const zaiChild = spawn('node', [zaiScript, '--tasks-file', zaiSidecar.tasksFile], {
+        cwd: REPO_ROOT,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: { ...process.env, YURI_ZAI_TMUX_FLEET: '1' },
+      });
+      let zaiStdout = '';
+      let zaiStderr = '';
+      zaiChild.stdout.on('data', (d) => { zaiStdout += d.toString(); });
+      zaiChild.stderr.on('data', (d) => { zaiStderr += d.toString(); });
+      const zaiExitCode = await new Promise((resolve) => {
+        zaiChild.on('close', resolve);
+        zaiChild.on('error', () => resolve(1));
+      });
+      try {
+        zaiSpawnResults = JSON.parse(zaiStdout);
+      } catch {
+        zaiSpawnResults = { ok: false, rawStdout: zaiStdout.slice(0, 500), stderr: zaiStderr.slice(0, 500) };
+      }
+      zaiHandledLeafIds = (zaiSpawnResults?.results || []).map((r) => r.label).filter(Boolean);
+      zaiSidecar.armed = true;
+      zaiSidecar.spawned = true;
+      zaiSidecar.spawnExitCode = zaiExitCode;
+      zaiSidecar.results = zaiSpawnResults?.results || [];
+    } catch (e) {
+      zaiSidecar.spawnError = String(e?.message || e);
+    }
+  }
+
+  const run = await company.runCompany(task, { ...opts, armed: opts.armed !== false, predictionIds, mlpLearn: opts.mlpLearn, skipLeafIds: zaiHandledLeafIds, zaiSidecarResults: zaiSpawnResults });
   return { ...result, dryRun: false, run, mlpFeedback: run.mlpFeedback };
 }
 
