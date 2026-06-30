@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseResultLabel } from './contract-conformance.mjs';
+import { defaultTimeoutMsForLane } from './glm-fleet.mjs';
 
 export const CONVERGENCE_STATE_DIR = '_SYSTEM/state/swarm-convergence'; // ephemeral per-run damping state
 export const ARM_ENV = 'YURI_SWARM_CONVERGENCE';
@@ -160,6 +161,8 @@ export function defaultAdversarialRunner(opts = {}) {
 
     try {
       // Dispatch glm-max review lane — non-work (review only, no mutations).
+      // Outer timeout must match glm-max tier (was 120s — SIGKILL'd lane-dispatch before --out; GLM wiring audit 2026-06-30).
+      const advTimeoutMs = Number(process.env.LANE_DISPATCH_TIMEOUT_MS || defaultTimeoutMsForLane('glm-max'));
       const result = spawnSync(
         'node',
         [
@@ -169,7 +172,12 @@ export function defaultAdversarialRunner(opts = {}) {
           '--out', tmpFile,
           '--reasoning', 'high',
         ],
-        { encoding: 'utf8', timeout: 120_000, cwd: process.cwd() },
+        {
+          encoding: 'utf8',
+          timeout: advTimeoutMs,
+          cwd: process.cwd(),
+          env: { ...process.env, LANE_DISPATCH_TIMEOUT_MS: String(advTimeoutMs) },
+        },
       );
       if (result.error) return { rejections: [] };
     } catch (_) {
