@@ -1,0 +1,195 @@
+{
+  "summary": "WS-K: YURI skills + orchestration upgrade — LLM affinity, skill-role binding, quad-substrate policy",
+  "tags": ["mure", "skills", "orchestration", "routing", "substrate", "affinity", "company-ops"],
+  "researchDoc": "_SYSTEM/reports/YURI_SKILLS_ORCHESTRATION_UPGRADE_2026-06-30.md",
+  "dependsOn": {
+    "recommended": "02_RESOURCES/TASKS/yuri-skeleton-adoption-ws-i-foundation.json",
+    "parallel": [
+      "02_RESOURCES/TASKS/yuri-active-learning-ws-j-memory.json",
+      "02_RESOURCES/TASKS/mure-live-ops-dashboard-ws-h-visual.json"
+    ],
+    "note": "P0 affinity matrix can start immediately (DISARMED). P1 skill binding benefits from WS-I L7 bind metadata. P2 runFleet policy should follow WS-J P0 outcome gate."
+  },
+  "layerBinding": {
+    "primary": "L7",
+    "secondary": ["L5", "L11", "L12", "L14"],
+    "wsIAnchor": "mure-skeleton-bind.json orchestrationHook → skill-role-resolver | llm-affinity-matrix",
+    "wsJAnchor": "episodic-replay skillIds[] + MLP skillMatch feature",
+    "wsHAnchor": "live-ops leaf panel: substrate + skillsLoaded"
+  },
+  "phases": {
+    "P0-affinity": "LLM affinity matrix + role-registry patch proposal (DISARMED)",
+    "P1-skill-bind": "skill→role binding registry + planCompany advisory injection",
+    "P2-substrate-policy": "Multi-substrate orchestration policy in runFleet/runSwarm + MoA aggregation round"
+  },
+  "disarmedByDefault": true,
+  "armingNote": "P0 produces JSON + markdown proposals only. P1 skill injection is advisory footer (zero spend). P2 auto-spawn requires glm/ollama/cline fleet arm flags + owner ruling.",
+  "roleCountPolicy": "STAY at 20 — evolve via substrateProfiles and skill bindings; no new roster IDs in P0-P1",
+  "subtasks": [
+    {
+      "id": "WS-K-P0-A1-affinity-architect",
+      "role": "architect",
+      "phase": "P0-affinity",
+      "need": ["architecture-design", "interface-contracts", "capability-composition"],
+      "prompt": "Read _SYSTEM/reports/YURI_SKILLS_ORCHESTRATION_UPGRADE_2026-06-30.md §5 and §4 P0. Produce _SYSTEM/config/llm-affinity-matrix.json: for each of 20 MURE roles define {primarySubstrate, primaryModel, fallbackChain[], reasoningDepth, costTier, sidecarEligible[]}. Include ollama tiers (flash/kimi/nemotron/deepseek-pro), cline models (glm-5.2/kimi/deepseek), GLM tiers, native lanes. DISARMED — config only. Return 02K1_AFFINITY_MATRIX_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "evidenceDecidable": true,
+      "substrate": "glm",
+      "lane": "glm-max"
+    },
+    {
+      "id": "WS-K-P0-R1-registry-patch-architect",
+      "role": "architect",
+      "phase": "P0-affinity",
+      "need": ["architecture-design", "method-design"],
+      "prompt": "Draft _SYSTEM/reports/MURE_ROLE_REGISTRY_PATCH_PROPOSAL.md: propose DISARMED changes to role-registry.mjs (extend SUBSTRATES: ollama|cline|deepseek-advisory; resolveLane reads llm-affinity-matrix; optional substrateProfiles on roles in fleet-roles.json). Include unified diff for role-registry.mjs only — do NOT apply fleet-roles.json without owner. Validate proposal against role-registry.test.mjs expectations. Return 02K2_REGISTRY_PATCH_PROPOSAL_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P0-A1-affinity-architect"],
+      "substrate": "glm",
+      "lane": "glm-max"
+    },
+    {
+      "id": "WS-K-P0-S1-synthesist-lattice",
+      "role": "synthesist",
+      "phase": "P0-affinity",
+      "need": ["lattice-synthesis", "cross-domain-transfer"],
+      "prompt": "Synthesize affinity matrix into _SYSTEM/reports/MURE_SUBSTRATE_LATTICE_2026-06-30.md: mermaid diagram of role→substrate→model edges; name 5 cross-domain transfers (e.g. Fugu Conductor→quartermaster+MLP, Voyager skills→skill-role-bindings). Return 02K3_SUBSTRATE_LATTICE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P0-A1-affinity-architect"]
+    },
+    {
+      "id": "WS-K-P0-D1-moa-deliberator",
+      "role": "deliberator",
+      "phase": "P0-affinity",
+      "need": ["deep-reasoning", "mechanism-mapping"],
+      "prompt": "Deep-read MoA/SMoA/RouteMoA patterns vs YURI runSwarm. Write _SYSTEM/reports/MURE_MOA_ADOPTION_NOTE.md: which layers YURI already has, what P2 aggregation round requires, refute 'add 5 new roles for MoA'. Max 2 pages. Return 02K4_MOA_ADOPTION_NOTE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrate": "glm",
+      "lane": "glm-max"
+    },
+    {
+      "id": "WS-K-P0-ST1-steward-gate",
+      "role": "steward",
+      "phase": "P0-affinity",
+      "need": ["governance-gate", "doctrine-check"],
+      "prompt": "6-gate review of WS-K P0 subtasks: confirm DISARMED, no fleet-roles.json direct mutation, substrate extension does not bypass governance.mjs. Publish _SYSTEM/reports/MURE_WS_K_STEWARD_GATE_P0.md. Return 02K5_STEWARD_GATE_P0_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-K-P1-A1-skill-bindings-archivist",
+      "role": "archivist",
+      "phase": "P1-skill-bind",
+      "need": ["skill-library", "capability-registry-upkeep", "lineage-tracking"],
+      "prompt": "Inventory skills/ and map top 40 skills to MURE roles. Produce _SYSTEM/config/skill-role-bindings.json with schema {bindings:[{role,skills[],trigger[],priority}]}. Cross-check skill-hash-registry.json paths. Document retired skills to exclude (parallel-clone-orchestrator etc). Return 02K6_SKILL_BINDINGS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrate": "native",
+      "lane": "native"
+    },
+    {
+      "id": "WS-K-P1-K1-resolver-kernelsmith",
+      "role": "kernelsmith",
+      "phase": "P1-skill-bind",
+      "need": ["implementation", "integration"],
+      "prompt": "Implement _SYSTEM/Scripts/skill-role-resolver.mjs: load skill-role-bindings.json + skill-hash-registry; export resolveSkillsForRole(role, need[], taskClass) → [{skillId, path, hash}]. Unit tests in skill-role-resolver.test.mjs. DISARMED-safe pure functions. Return 02K7_SKILL_RESOLVER_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P1-A1-skill-bindings-archivist"],
+      "substrate": "glm",
+      "lane": "glm"
+    },
+    {
+      "id": "WS-K-P1-M1-plan-hook-mechanic",
+      "role": "mechanic",
+      "phase": "P1-skill-bind",
+      "need": ["integration", "wiring"],
+      "prompt": "Wire skill-role-resolver + capability-recall into planCompany/buildRolePrompt as advisory footer (skill titles + paths, NOT full SKILL.md inline unless <2k tokens). Log skillsLoaded[] on plan manifest. Spec in _SYSTEM/mure/SKELETON_BIND_SPEC.md section 'skill dispatch'. Depends WS-K-P1-K1. Return 02K8_PLAN_SKILL_HOOK_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true,
+      "dependsOn": ["WS-K-P1-K1-resolver-kernelsmith"]
+    },
+    {
+      "id": "WS-K-P1-S1-scout-skill-audit",
+      "role": "scout",
+      "phase": "P1-skill-bind",
+      "need": ["local-first-search", "citation"],
+      "prompt": "Audit .claude/skills vs skills/ mirror drift: list skills only in one tree, retired tombstones still in xref, recommend canonical path policy. Output _SYSTEM/reports/SKILL_MIRROR_DRIFT_2026-06-30.md. Return 02K9_SKILL_MIRROR_AUDIT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrate": "glm",
+      "lane": "glm-flash"
+    },
+    {
+      "id": "WS-K-P1-ADJ1-binding-adjudicator",
+      "role": "adjudicator",
+      "phase": "P1-skill-bind",
+      "need": ["adversarial-verify", "gap-detection"],
+      "prompt": "Attack skill-role-bindings.json: false triggers, role-skill overlap, missing adversarial-verification on adjudicator, gitnexus on mechanic. List gaps + minimum fixes before P1 wire. Return 02K10_SKILL_BIND_REVIEW_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P1-A1-skill-bindings-archivist"],
+      "independentOf": ["archivist", "mechanic"]
+    },
+    {
+      "id": "WS-K-P2-K2-substrate-policy-kernelsmith",
+      "role": "kernelsmith",
+      "phase": "P2-substrate-policy",
+      "need": ["implementation", "integration"],
+      "prompt": "Implement substratePolicy in runFleet.mjs: read llm-affinity-matrix + role per leaf; auto-build ollama/cline sidecar tasks when profile.sidecarEligible; document spawn commands in manifest. DISARMED default (dry-run commands only). MoA flag: optional second round dispatches synthesist aggregator leaf. Return 02K11_SUBSTRATE_POLICY_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true,
+      "dependsOn": ["WS-K-P0-A1-affinity-architect", "WS-K-P0-R1-registry-patch-architect"],
+      "substrate": "glm",
+      "lane": "glm-max"
+    },
+    {
+      "id": "WS-K-P2-QM1-quota-quartermaster",
+      "role": "quartermaster",
+      "phase": "P2-substrate-policy",
+      "need": ["quota-routing", "budget-cap", "cost-governance"],
+      "prompt": "Design _SYSTEM/config/substrate-quota.template.json for Marcel to fill private caps (glm-max monthly, ollama concurrent=3, cline flat, anthropic weekly). Wire read-only quota hints into runFleet plan output. No live API polling in P2. Return 02K12_QUOTA_TEMPLATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-K-P2-C1-chronicler-handoff",
+      "role": "chronicler",
+      "phase": "P2-substrate-policy",
+      "need": ["technical-writing", "summary-distillation", "result-labeling"],
+      "prompt": "Distill WS-K research + task JSON into owner-facing 1-page brief _SYSTEM/reports/MURE_WS_K_OWNER_BRIEF.md: what changes for Marcel day-to-day, arming steps, first GLM build order. Return 02K13_WS_K_BRIEF_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P0-A1-affinity-architect", "WS-K-P1-A1-skill-bindings-archivist"]
+    },
+    {
+      "id": "WS-K-P2-ADJ2-orchestration-adjudicator",
+      "role": "adjudicator",
+      "phase": "P2-substrate-policy",
+      "need": ["adversarial-verify", "failure-mode-naming"],
+      "prompt": "Red-team P2 substrate auto-spawn: runaway sidecars, echo chamber if adjudicator on same substrate, skill footer token bloat, MLP overriding affinity. Publish failure modes in _SYSTEM/reports/MURE_WS_K_P2_REDTREAM.md. Return 02K14_P2_REDTREAM_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-K-P2-K2-substrate-policy-kernelsmith"],
+      "independentOf": ["kernelsmith", "quartermaster"]
+    }
+  ],
+  "firstGlmSubtask": "WS-K-P0-A1-affinity-architect",
+  "glmBuildOrder": [
+    "WS-K-P0-A1-affinity-architect",
+    "WS-K-P0-R1-registry-patch-architect",
+    "WS-K-P1-A1-skill-bindings-archivist",
+    "WS-K-P1-K1-resolver-kernelsmith",
+    "WS-K-P1-M1-plan-hook-mechanic",
+    "WS-K-P2-K2-substrate-policy-kernelsmith"
+  ],
+  "verification": {
+    "p0Exit": ["llm-affinity-matrix.json validates", "role-registry patch proposal reviewed", "steward gate PASS"],
+    "p1Exit": ["skill-role-bindings.json", "skill-role-resolver tests green", "adjudicator review PASS"],
+    "p2Exit": ["runFleet substratePolicy dry-run manifest", "quota template present", "P2 redteam documented"]
+  }
+}
