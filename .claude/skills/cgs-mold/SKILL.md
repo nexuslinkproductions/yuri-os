@@ -43,8 +43,18 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
 4b. **Overhang cleanup** (`remove_overhang`) — strong local collapse of any stray flap/hook "hanging
    over" the cut edge (e.g. the beavertail remnant). Gentle smoothing won't shift a flap; a tight
    high-iteration local Laplacian pulls it flush while the flat cut verts hold. [VALIDATED]
-5. **Offset +0.4 mm** — push every vert out along its normal (Kydex mold-shrink compensation). [TODO]
-6. **Split** into clamshell halves + alignment pins. [TODO]
+5. **Offset +0.4 mm — SLIDE REGION ONLY** (`offset_mold`) — owner corrected (2026-06-30): the
+   +0.4mm Kydex-shrink comp goes on the **barrel + slide + beavertail only** (the top assembly
+   above the slide/frame parting line, `z_line`≈14mm), NOT everywhere — the grip/frame/trigger
+   guard stay put. Push the region verts outward along normals, feathered ~2mm at the line (no
+   ridge). Verify the region bbox grew outward (else normals were inward). [VALIDATED]
+6. **Split into clamshell halves** (`split_mold`) — owner spec (2026-06-30): a clean SPLIT, NOT a
+   material-removing saw cut. `bisect_plane` + `holes_fill` on each side → two **capped, closed,
+   manifold** halves that together reconstitute the whole mold (verified **0.006% volume loss** =
+   float noise). The seam is a VERTICAL plane through the **barrel BORE axis** — circle-fit the
+   muzzle crown (`_bore_center_x`), NOT the mold symmetry plane/centroid (one-sided controls pull
+   that off the bore; "center of the barrel, not the centre of the entire mold"). [VALIDATED]
+   - alignment pins on the mating faces — [TODO]
 7. **Done** — export STL, hand to René. [TODO]
 
 ## Invocation (blender-mcp must be live on :9876)
@@ -97,7 +107,7 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
 ## Session Notes
 
 ### 2026-06-30
-- session: 1071m | peak ctx: 0% | compacts: 0
-- tools: Read×2221, Shell×649, Grep×286, Write×256, mcp×25, Bash×8, Edit×1
+- session: 1130m | peak ctx: 0% | compacts: 0
+- tools: Read×2258, Shell×914, Grep×328, Write×271, mcp×48, Bash×30, Edit×12
 - corrections: none
 - errors: none

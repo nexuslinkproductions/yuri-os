@@ -24,7 +24,18 @@
     "_note": "VALIDATED 2026-06-30. 4-stage feature-preserving: flat denoise -> crease de-zigzag -> roughness deburr -> re-straighten. Smooth AND sharp."
   },
 
-  "offset_mm": 0.4,
+  "offset": {
+    "offset_mm": 0.4,
+    "z_line": 14.0,
+    "feather": 2.0,
+    "_note": "VALIDATED 2026-06-30. Region = barrel+slide+beavertail ONLY (Z>z_line), NOT global. Owner-confirmed z_line=14 keeps the grip/frame/trigger-guard unaffected. Feathered 2mm at the parting line."
+  },
+
+  "split": {
+    "plane_x": null,
+    "_note": "VALIDATED 2026-06-30. Clean clamshell split (bisect+holes_fill, ZERO material loss), NOT a saw cut. Seam = vertical plane through the BARREL BORE AXIS (circle-fit of the muzzle crown, _bore_center_x), NOT the mold symmetry plane (controls pull it off the bore). plane_x=null -> auto bore-fit; set a number to override. HK45 bore axis X = -0.777."
+  },
+
   "out_name": "CGS_MOLD_FINAL",
   "render": true
 }

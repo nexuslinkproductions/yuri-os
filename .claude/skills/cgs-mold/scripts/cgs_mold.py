@@ -10,8 +10,9 @@
 #   4. cut_grip()       — cube BOOLEAN DIFFERENCE, FLOAT solver [VALIDATED here]
 #   5. smooth_mold()    — 4-stage feature-preserving retouch    [VALIDATED here]
 #   6. remove_overhang()— collapse stray cut-edge flaps         [VALIDATED here]
-#   7. offset_mold()    — +0.4mm Kydex shrink comp              [TODO]
-#   8. split_mold()     — clamshell halves + pins               [TODO]
+#   7. offset_mold()    — +0.4mm on the SLIDE region only        [VALIDATED here]
+#   8. split_mold()     — clamshell halves on the BORE axis       [VALIDATED here]
+#      (alignment pins   — TODO)
 #
 # THE ROOT-CAUSE LAW (failure-anchored): a swept mold is often a closed shell with
 # INTERNAL WALLS (nonmanifold>0 WITH boundary==0). A boolean cannot read inside vs
@@ -209,6 +210,66 @@ def remove_overhang(obj, box, factor=0.6, iters=25, rings=3):
     disp=np.linalg.norm(P-P0,axis=1)
     return {"affected":int(mask.sum()), "max_disp_mm":round(float(disp.max()),3),
             "nonmanifold":nm, "boundary":bd}
+
+# ---------------------------------------------------------------- stage 7: regional offset
+def offset_mold(obj, z_line=14.0, feather=2.0, offset=0.4):
+    """Thicken ONLY the slide+barrel+beavertail (Kydex shrink comp) — owner corrected the
+    earlier 'offset everywhere' to this region (2026-06-30). Push verts ABOVE the slide/frame
+    parting line outward along their normals by `offset` mm, feathered across `feather` mm at
+    the line so there is no hard ridge. The grip/frame/trigger-guard (below z_line) stay put.
+    REQUIRES the object in OBJECT mode (edit-mode discards foreach_set). In-place.
+    Verify outward: the region bbox max-X and max-Z must GROW by ~offset (else normals inward)."""
+    me=obj.data; N=len(me.vertices)
+    P=_world_verts(obj); P0=P.copy()
+    Nrm=np.empty((N,3)); me.vertices.foreach_get("normal", Nrm.ravel())
+    w=np.clip((P[:,2]-(z_line-feather/2.0))/feather, 0.0, 1.0)
+    P += (w*offset)[:,None]*Nrm
+    me.vertices.foreach_set("co", P.ravel()); me.update()
+    _shade(obj)
+    nm,bd=_manifold(me)
+    return {"region_verts":int((w>0.99).sum()), "offset_mm":offset, "z_line":z_line,
+            "feather":feather, "max_disp_mm":round(float(np.linalg.norm(P-P0,axis=1).max()),3),
+            "nonmanifold":nm, "boundary":bd}
+
+# ---------------------------------------------------------------- stage 8: clamshell split
+def _bore_center_x(P, y_band=3.0, z_min=32.0):
+    """Bore axis X via circle-fit (Kasa) of the muzzle crown in the X-Z plane.
+    THE SPLIT GOES THROUGH THE BARREL BORE AXIS, *not* the mold symmetry plane / centroid —
+    one-sided controls (slide stop, etc.) pull the symmetry plane off the bore. Owner correction
+    2026-06-30: 'center of the barrel, not the exact center point of the entire mold'."""
+    X,Y,Z=P[:,0],P[:,1],P[:,2]; ymin=Y.min()
+    m=(Y<ymin+y_band)&(Z>z_min); u=X[m]; v=Z[m]
+    A=np.vstack([2*u,2*v,np.ones(len(u))]).T
+    sol,_,_,_=np.linalg.lstsq(A, u*u+v*v, rcond=None)
+    return float(sol[0])
+
+def split_mold(obj, plane_x=None, name_l="CGS_HALF_L", name_r="CGS_HALF_R"):
+    """Split into two CAPPED, closed, manifold clamshell halves along a VERTICAL plane through
+    the barrel bore axis (or an explicit `plane_x`). bisect + holes_fill = ZERO material loss —
+    each half is capped flat on the seam and together they reconstitute the whole mold (NOT a
+    saw kerf that removes material — owner correction 2026-06-30). Verify: vol(L)+vol(R) ~=
+    vol(full), both boundary==0."""
+    from mathutils import Vector
+    coll=obj.users_collection[0]
+    cx = _bore_center_x(_world_verts(obj)) if plane_x is None else plane_x
+    for nm in (name_l, name_r):
+        if nm in bpy.data.objects: bpy.data.objects.remove(bpy.data.objects[nm], do_unlink=True)
+    def half(name, clear_outer):
+        o=obj.copy(); o.data=obj.data.copy(); o.name=name; coll.objects.link(o)
+        bm=bmesh.new(); bm.from_mesh(o.data)
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:],
+            plane_co=Vector((cx,0,0)), plane_no=Vector((1,0,0)),
+            clear_inner=not clear_outer, clear_outer=clear_outer)
+        oe=[e for e in bm.edges if e.is_boundary]
+        if oe: bmesh.ops.holes_fill(bm, edges=oe)      # flat cap on the seam plane
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        for f in bm.faces: f.smooth=True
+        nm_=sum(1 for e in bm.edges if not e.is_manifold); bd=sum(1 for e in bm.edges if e.is_boundary)
+        bm.to_mesh(o.data); bm.free(); o.data.update()
+        v=bmesh.new(); v.from_mesh(o.data); vol=abs(v.calc_volume(signed=True)); v.free()
+        return o,{"vol":round(vol,1),"nonmanifold":nm_,"boundary":bd}
+    L,sl=half(name_l, True); R,sr=half(name_r, False)
+    return {"plane_x":round(cx,3), "L":sl, "R":sr}
 
 # ---------------------------------------------------------------- orchestrator
 def build_mold(mold_shell_name, params, out_name=None):

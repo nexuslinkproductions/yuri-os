@@ -43,8 +43,13 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    - **Solver: `FLOAT` on the filled solid** = clean manifold 0/0 cut (Z min −86 → −36.5, ~grip gone).
      `EXACT` returned an EMPTY mesh on the 124k-vert voxel solid (chokes on heavy meshes) — use FLOAT.
    - **Must be a BOOLEAN cut** (cube cutter) — bisect+holes_fill tore the topology (owner-flagged).
-6. **+0.4mm** outward along vertex normals (auto-detect direction: push +0.4; if bbox shrank,
-   normals were inward → reverse). "Expand the mold 0.4mm all over" (Kydex shrink comp).
+6. **+0.4mm offset — SLIDE REGION ONLY (VALIDATED 2026-06-30, owner-corrected)** — push verts
+   outward along normals by 0.4mm, but **only the barrel+slide+beavertail** (Z > `z_line`≈14mm,
+   the top assembly above the slide/frame parting line). Owner explicitly corrected the earlier
+   "0.4mm everywhere": the grip/frame/trigger-guard get NOTHING. Feather ~2mm across the line so
+   there's no hard ridge. Verify OUTWARD: the region bbox max-X and max-Z must GROW by ~0.4 (else
+   normals were inward → reverse). `offset_mold` in `cgs_mold.py`. Confirmed on HK45: region
+   maxX 20.63→21.03, maxZ 58.24→58.64, manifold 0/0. REQUIRES object mode (edit-mode discards the write).
 7. **Smooth / retouch — VALIDATED 2026-06-30 (owner: "very clean now… this is successful")** —
    feature-preserving denoise of the voxel surface that keeps edges/bevels/grooves/corners
    crisp ("smooth AND sharp"). The voxel fill (step 6/solidify) leaves orange-peel noise on
@@ -73,6 +78,21 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    box from the rear-region protruding verts (max distance-to-1-ring-centroid).
 9. (un-subdivide ×2 — owner step; does NOT work on triangulated scan topology, distorts +
    doesn't reduce. Needs grid/quad topology or a planar-decimate substitute. OPEN.)
+10. **Clamshell split — VALIDATED 2026-06-30 (`split_mold`)** — a clean SPLIT, **not a saw cut**.
+   `bisect_plane` + `holes_fill` per side → two **capped, closed, manifold** halves; together they
+   reconstitute the whole mold (verified **0.006% vol loss** = float noise). Owner corrections that
+   shaped this:
+   - "split, NOT cut in half with a saw that took away material" → the earlier delete-verts preview
+     looked lossy/jagged; the real op (bisect+fill) removes ZERO material and caps each half flat on
+     the seam so they mate perfectly.
+   - "center of the BARREL, not the exact center point of the entire mold" → the seam is a VERTICAL
+     plane through the **bore axis**, found by a Kasa **circle-fit of the muzzle crown**
+     (`_bore_center_x`: Y<ymin+3 & Z>32, fit a circle in X-Z, take center-X). HK45 bore axis X=**−0.777**.
+   - WHY not the symmetry plane: the gun's one-sided controls (slide stop, ejection port) pull the
+     reflection-symmetry plane (and the centroid) OFF the bore by ~0.3mm. The mirror-match said yaw≈0
+     but the owner's eye caught the seam was off the bore — the BORE-fit is the correct reference, not
+     the mold's mass center. (Yaw is negligible here, ~0.08°, so a straight vertical plane is the "pure cut".)
+   Halves: `CGS_HALF_L` / `CGS_HALF_R`, both manifold 0/0. Alignment pins on the mating faces = TODO.
 
 ## ★ ROOT CAUSE — why the boolean grip cut kept failing (VERIFIED 2026-06-29, owner-diagnosed)
 The whole "need a manifold sweep / booleans fail" saga was a **MISDIAGNOSIS**. The real cause
@@ -125,7 +145,9 @@ walled → **voxel-fill into a solid, then cut**. Don't rebuild the sweep.
   - SMOOTH: 4-stage feature-preserving (flat denoise → crease de-zigzag → roughness deburr → re-straighten); smooth AND sharp.
   - OVERHANG CLEANUP: strong local collapse of the beavertail flap.
 - **Cut spec (owner-locked):** corner **−20mm**, beavertail **−10mm**. Cube top-face on the A–B diagonal, FLOAT solver.
-- **Final deliverable object in scene = `CGS_MOLD_FINAL`** (cut + 4-stage smooth + overhang removed, manifold 0/0).
-- NEXT (still TODO): **+0.4mm offset** (Kydex shrink), **un-subdivide/decimate**, **X/Y split into clamshell halves + pins**, **STL export**.
+  - OFFSET: +0.4mm outward on the **slide region only** (Z>14, barrel+slide+beavertail), feathered 2mm. (`offset_mold`)
+  - SPLIT: clean clamshell `bisect`+`holes_fill` (ZERO material loss) on the **bore axis** (circle-fit, X=−0.777). (`split_mold`)
+- **Deliverable objects in scene:** `CGS_MOLD_FINAL` (cut+smooth+overhang+offset, manifold 0/0) → split into `CGS_HALF_L` / `CGS_HALF_R` (both manifold 0/0, capped). The full engine is locked in `cgs_mold.py` (solidify_mold · cut_grip · smooth_mold · remove_overhang · offset_mold · split_mold · build_mold).
+- NEXT (still TODO): **alignment pins** on the split mating faces, **un-subdivide/decimate**, **STL export**.
   Upstream **seal+dip/sweep** stages still need their own validation pass (this session started from the pre-existing swept shell).
 - Skill files: `.claude/skills/cgs-mold/{SKILL.md, METHOD-NOTES.md, scripts/cgs_mold.py(VALIDATED engine), params/hk45.json}`.
