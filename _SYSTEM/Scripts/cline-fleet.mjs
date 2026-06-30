@@ -19,7 +19,7 @@ import {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 
-export const PROVIDER = 'clinepass';
+export const PROVIDER = 'cline-pass';
 export const ARM_ENV = 'YURI_CLINE_FLEET';
 export const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'cline-fleet.enabled');
 
@@ -28,13 +28,39 @@ export function isArmed() {
   try { return fs.existsSync(ARM_FLAG); } catch { return false; }
 }
 
-/** ClinePass models (see docs.cline.bot/getting-started/clinepass). */
+/** Load the YURI-registered ClinePass key (gitignored, 600 perms) and inject into spawn env. */
+const CLINE_PASS_KEY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'cline-pass.key');
+let _cachedKey = null;
+function loadClinePassKey() {
+  if (_cachedKey !== null) return _cachedKey;
+  try {
+    if (fs.existsSync(CLINE_PASS_KEY_FILE)) {
+      _cachedKey = fs.readFileSync(CLINE_PASS_KEY_FILE, 'utf8').trim() || false;
+    } else {
+      _cachedKey = false;
+    }
+  } catch { _cachedKey = false; }
+  return _cachedKey;
+}
+
+/** Build the env for a cline spawn, injecting the YURI-registered key if present. */
+function buildClineEnv() {
+  const env = { ...process.env };
+  const key = loadClinePassKey();
+  if (key) {
+    if (!env.CLINE_PASS_API_KEY) env.CLINE_PASS_API_KEY = key;
+    if (!env.CLINE_API_KEY) env.CLINE_API_KEY = key;
+  }
+  return env;
+}
+
+/** ClinePass models — cline CLI v3 expects modelType/model format (cline-pass/<model>). */
 export const CLINE_ROSTER = Object.freeze({
-  glm: 'glm-5.2',
-  kimi: 'kimi-k2.7-code',
-  deepseek: 'deepseek-v4-pro',
-  mimo: 'mimo-v2.5',
-  qwen: 'qwen3.7-max',
+  glm: 'cline-pass/glm-5.2',
+  kimi: 'cline-pass/kimi-k2.7-code',
+  deepseek: 'cline-pass/deepseek-v4-pro',
+  mimo: 'cline-pass/mimo-v2.5',
+  qwen: 'cline-pass/qwen3.7-max',
 });
 export const DEFAULT_MODEL = CLINE_ROSTER.glm;
 
@@ -70,14 +96,16 @@ function fireTask(task, label, runDir, runId) {
     const model = resolveModel(task);
     const timeoutSec = Math.max(60, Math.floor(Number(task.timeoutSec || task.timeoutMs / 1000 || 600)));
     const prompt = String(task.prompt || '');
+    const key = loadClinePassKey();
     const args = [
       '-P', PROVIDER,
       '-m', model,
       '-c', REPO_ROOT,
       '--auto-approve', 'true',
       '-t', String(timeoutSec),
-      prompt,
     ];
+    if (key) args.push('-k', key);
+    args.push(prompt);
     const t0 = Date.now();
     let err = '';
     let stdout = '';
@@ -86,7 +114,7 @@ function fireTask(task, label, runDir, runId) {
       child = spawn('cline', args, {
         cwd: REPO_ROOT,
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env },
+        env: buildClineEnv(),
       });
     } catch (e) {
       resolve({

@@ -69,16 +69,25 @@ export function hasSubstantiveEvidence(text, prompt) {
 /** Classify a candidate label against baseline, duration, and pane substance. */
 export function classifyPollResult({ resultLabel, baselineLabel, elapsedMs, strippedText, prompt, minDurationMs, smokePing = false }) {
   if (!resultLabel) return { ok: false, reason: '' };
-  const violations = [];
-  if (baselineLabel && baselineLabel === resultLabel) violations.push('baseline-had-label');
-  if (elapsedMs < minDurationMs) violations.push('too-fast');
+  const blocking = [];
+  const advisory = [];
+  if (baselineLabel && baselineLabel === resultLabel) blocking.push('baseline-had-label');
+  if (elapsedMs < minDurationMs) advisory.push('too-fast');
+  let hasSubstance = true;
   if (!smokePing) {
     if (prompt.includes(resultLabel) && !hasSubstantiveEvidence(strippedText, prompt)) {
-      violations.push('label-in-prompt');
+      blocking.push('label-in-prompt');
     }
-    if (!hasSubstantiveEvidence(strippedText, prompt)) violations.push('no-substance');
+    if (!hasSubstantiveEvidence(strippedText, prompt)) {
+      blocking.push('no-substance');
+      hasSubstance = false;
+    }
   }
-  if (violations.length) return { ok: false, reason: `${FALSE_GREEN_REASON} (${violations.join(', ')})` };
+  // too-fast is advisory when substance is confirmed and label isn't prompt-echo:
+  // GLM-5.2 legitimately completes focused real work in <60s. The classic false-green
+  // (prompt echo, no substance) is still blocked by label-in-prompt / no-substance above.
+  if (blocking.length) return { ok: false, reason: `${FALSE_GREEN_REASON} (${blocking.join(', ')})` };
+  if (advisory.length) return { ok: true, reason: `advisory: ${advisory.join(', ')}` };
   return { ok: true, reason: '' };
 }
 

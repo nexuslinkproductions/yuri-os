@@ -13,6 +13,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { recordPrediction, recordOutcome } from './prediction-ledger.mjs';
 import { extractResultLabel } from './glm-fleet.mjs';
 
@@ -192,7 +193,29 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
   return { advisory: !persist, persisted: persist, count: records.length, records, skippedOutcomes };
 }
 
-/** Dry-run feedback — compute error, never persist weights or ledger. */
+/**
+ * Dry-run feedback — compute error, never persist weights or ledger.
+ *
+ * This is the ADVISORY STUB called by runFleet.mjs in --dry-run mode.
+ * It calls fleet-router-mlp.mjs::updateFromOutcome with { persist: false },
+ * which operates on a structuredClone of the weights and discards the gradient.
+ * The in-memory singleton _weights and the on-disk weights file are never touched.
+ *
+ * REAL TRAINING PATH:
+ *   1. runFleet.mjs --apply --mlp-learn   (armed: YURI_MLP_LEARN=1 or _SYSTEM/state/mlp-learn.enabled)
+ *      → recordMlpPredictions (log predictions to prediction-ledger)
+ *      → company.runCompany (dispatch real work)
+ *      → recordMlpFeedbackFromRun (derive outcomes from run results, call updateFromOutcome with persist:true)
+ *      → runPostTrainSummary → trainFleetRouterFromLedger (batch replay from ledger with held-out Brier eval)
+ *
+ *   2. Standalone batch training:
+ *      node _SYSTEM/Scripts/train-fleet-router-from-ledger.mjs [--epochs=4] [--lr=0.015] [--dry]
+ *      Loads prediction-ledger, matches predictions→outcomes, runs multi-epoch online gradient descent
+ *      with updateFromOutcome(persist:true), time-ordered 80/20 train/eval split, reports held-out Brier.
+ *
+ * Key invariant: persist:false (this stub) is purely advisory — gradient error is computed for
+ * diagnostics but never written. persist:true (armed path) mutates _weights + saves to disk.
+ */
 export async function recordMlpFeedbackDryRun(plan, ctx = {}) {
   const router = await getRouter();
   if (!router?.updateFromOutcome || !router?.extractFeatures) {
@@ -214,6 +237,7 @@ export async function recordMlpFeedbackDryRun(plan, ctx = {}) {
   return { advisory: true, persisted: false, count: records.length, records, trainSummary: null, predictionIds: {} };
 }
 
+/** Advisory stub alias used by runFleet.mjs dry-run. See recordMlpFeedbackDryRun for full contract. */
 export const recordMlpFeedbackStub = recordMlpFeedbackDryRun;
 
 /** Full apply-path feedback (predictions should already be logged). */
@@ -238,12 +262,13 @@ export async function runMlpFeedbackLoop(plan, runResult, opts = {}) {
   return recordMlpFeedbackFromRun(plan, runResult, { ...opts, dryRun: false, predictionIds: opts.predictionIds });
 }
 
-/** Post-run advisory training from ledger. */
+/** Post-run advisory training from ledger. JS train + Python sidecar Brier compare. */
 export async function runPostTrainSummary(opts = {}) {
+  let jsSummary = { skipped: true, reason: 'train-fleet-router-from-ledger unavailable' };
   try {
     const mod = await import('./train-fleet-router-from-ledger.mjs');
     if (mod?.trainFleetRouterFromLedger) {
-      return mod.trainFleetRouterFromLedger({
+      jsSummary = await mod.trainFleetRouterFromLedger({
         epochs: opts.trainEpochs ?? opts.epochs ?? 2,
         lr: opts.learningRate ?? opts.lr ?? 0.015,
         dry: opts.dry ?? false,
@@ -252,5 +277,27 @@ export async function runPostTrainSummary(opts = {}) {
       });
     }
   } catch { /* optional */ }
-  return { skipped: true, reason: 'train-fleet-router-from-ledger unavailable' };
+
+  // Python numpy sidecar for cross-provider Brier + feature importance (advisory only)
+  let pySummary = null;
+  try {
+    const ledgerPath = opts.ledgerFile || '_SYSTEM/state/prediction-ledger.jsonl';
+    const py = spawnSync('python3', [
+      path.join(REPO_ROOT, '_SYSTEM', 'ml', 'fleet_router_train.py'),
+      '--ledger', ledgerPath,
+      '--epochs', String(opts.epochs ?? 200),
+      '--lr', String(opts.lr ?? 0.01),
+    ], { encoding: 'utf8', timeout: 180000, cwd: REPO_ROOT });
+    if (py.status === 0 && py.stdout?.trim()) {
+      pySummary = JSON.parse(py.stdout);
+    }
+  } catch { /* sidecar optional */ }
+
+  return {
+    ...jsSummary,
+    pythonCompare: pySummary,
+    note: pySummary
+      ? 'Brier comparison + feature importance from Python numpy available (advisory)'
+      : 'Python sidecar unavailable or errored — JS MLP remains authority',
+  };
 }
