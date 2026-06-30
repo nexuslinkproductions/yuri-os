@@ -85,7 +85,7 @@ export const FLEET_PROTOCOL_PREAMBLE = [
   'GLM tier roster (z.ai), all at --reasoning high:',
   '  glm-max (glm-5.2)   = heavy orchestrator / synthesis / final review (1M ctx, premium)',
   '  glm (glm-4.7)       = workhorse: code-gen, analysis, judgment',
-  '  glm-flash (4.7-flash)= fast build: census, scan, fast edits, test-runs (free)',
+  '  glm-flash (=glm-turbo via llm-lane)= fast build: census, scan, fast edits, test-runs',
   '  glm-sub-orch (5.1)  = overflow when glm-max is quota-gated',
   '  glm-vision (4.6v)   = image/screenshot   ·   glm-ocr = document extraction',
   'Dispatch a peer fleet (needs YURI_GLM_FLEET=1):',
@@ -285,7 +285,7 @@ function listRoster() {
   out.push(`glm-fleet — ${armed ? `ARMED (${how})` : 'DISARMED (dry-run; arm via YURI_GLM_FLEET=1 or: touch _SYSTEM/state/glm-fleet.enabled)'}`);
   out.push('GLM lanes registered in models.json:');
   for (const k of glm) out.push(`  ${k}  ctx=${lanes[k].context_window}`);
-  out.push('Aliases (llm-lane.mjs): glm-max=5.2 · glm=4.7 · glm-flash=4.7-flash · glm-flashx · glm-sub-orch=5.1 · glm-turbo=5-turbo · glm-vision=4.6v · glm-ocr');
+  out.push('Aliases (llm-lane.mjs): glm-max=5.2 · glm=4.7 · glm-flash→5-turbo (4.7-flash unstable) · glm-flashx · glm-sub-orch=5.1 · glm-turbo=5-turbo · glm-vision=4.6v · glm-ocr');
   out.push('Usage: node glm-fleet.mjs --tasks \'[{"lane":"glm","label":"R1","prompt":"..."}]\' [--concurrency 3] [--dry-run]');
   out.push('       node glm-fleet.mjs --smoke   (3-lane live smoke; needs YURI_GLM_FLEET=1)');
   return out.join('\n');

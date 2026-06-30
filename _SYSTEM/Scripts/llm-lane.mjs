@@ -88,8 +88,10 @@ const ALIAS = {
   // opus-fleet tier roster (2026-06-22): glm-max=Opus · glm=Sonnet · glm-flash=Haiku · +flashx/sub-orch/vision/ocr.
   glm: 'glm-4.7', zai: 'glm-4.7', 'z-ai': 'glm-4.7', 'glm-4.7': 'glm-4.7', 'glm-4.6': 'glm-4.7',
   'glm-air': 'glm-4.5-air', 'glm-4.5-air': 'glm-4.5-air',
-  // glm-flash remapped 2026-06-22 off glm-4.5-air -> glm-4.7-flash (Haiku-equiv: 200K ctx, faster, free tier)
-  'glm-flash': 'glm-4.7-flash', 'glm-4.7-flash': 'glm-4.7-flash', 'glm-free': 'glm-4.7-flash',
+  // glm-flash: lane name kept for roster compat; model routed to glm-5-turbo since glm-4.7-flash
+  // empty_output_stop on bulk leaves (WS-C-R2 trends-charts, swarm-mr0in95e-c5e62b, 2026-06-30).
+  // Explicit 4.7-flash still available via glm-4.7-flash / glm-free aliases.
+  'glm-flash': 'glm-5-turbo', 'glm-4.7-flash': 'glm-4.7-flash', 'glm-free': 'glm-4.7-flash',
   'glm-flashx': 'glm-4.7-flashx', 'glm-4.7-flashx': 'glm-4.7-flashx',
   'glm-vision': 'glm-4.6v', 'glm-v': 'glm-4.6v', 'glm-4.6v': 'glm-4.6v',
   'glm-ocr': 'glm-ocr',
