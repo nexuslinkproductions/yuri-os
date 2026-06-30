@@ -4516,11 +4516,13 @@
         "GLM heavy substrate",
         "Marcel-visible CC runtime"
       ],
-      "does": "parallel fan-out of N Z.ai Claude Code tmux workers (glm-5.2 via `ai claude-zai`) with concurrency cap (default 2), prompt inject via tmux send-keys, RESULT_LABEL poll from capture-pane, packets in .claude/jobs/<runId>/results/. DISARMED by default; YURI_ZAI_TMUX_FLEET=1 or zai-tmux-fleet.enabled arms live tmux spawns.",
+      "does": "parallel fan-out of N Z.ai GLM workers — headless automation via lane-dispatch glm-max (--out poll, same Z.ai provider); showTerminal:true uses claude-zai in tmux + send-keys for Marcel-visible CC. Concurrency cap default 2. Packets in .claude/jobs/<runId>/results/. DISARMED by default; YURI_ZAI_TMUX_FLEET=1 or zai-tmux-fleet.enabled arms live spawns.",
       "use": "zaiTmuxFleet([{label:'R1',prompt:'...'}], {concurrency:2}) — CLI: node zai-tmux-fleet.mjs --list | --tasks-file <path> | --dry-run | --smoke",
       "exports": [
         "zaiTmuxFleet",
         "resolveModel",
+        "resolveLane",
+        "resolveMode",
         "DEFAULT_MODEL",
         "WORKER_PREFIX",
         "ARM_ENV",

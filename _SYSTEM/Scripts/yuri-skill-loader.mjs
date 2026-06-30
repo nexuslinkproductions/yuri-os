@@ -210,7 +210,7 @@ export function buildRegistry() {
 
       const skill = {
         name: skillName,
-        source_path: path.relative(REPO_ROOT, sourcePath),
+        source_path: path.relative(REPO_ROOT, sourcePath).split(path.sep).join('/'),  // POSIX separators -> Windows-portable manifest (else .codex/plugins/cache reference-only detection breaks on Windows)
         source_type: surface.sourceType,
         body,
         body_length: fullBody.length,

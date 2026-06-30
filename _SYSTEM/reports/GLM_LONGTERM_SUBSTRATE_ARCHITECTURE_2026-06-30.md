@@ -341,10 +341,11 @@ Supports wrapped `{ "tasks": […] }` like cline-fleet.
 1. Resolve `workerName` = `task.workerName` || `zai-worker-${index}` (sanitized)
 2. `buildRunDir(runId)` → `.claude/jobs/<runId>/results/`
 3. If DISARMED: return plan entry only
-4. Armed:
-   - `spawn('bash', ['_SYSTEM/Scripts/voice/yuri-spawn-worker.sh', workerName, ''], { detached: false })` — **no initial prompt** if injecting separately
-   - Wait for `claude_running` (poll `tmux display-message -p '#{pane_current_command}'`, max 60s)
-   - `tmux send-keys -t workerName:0.0 -l "<prompt>"` + Enter
+4. Armed (tmuxClaudeZai / showTerminal — claude-zai interactive):
+   - Spawn: `export ZAI_MODEL=glm-5.2 && ai claude-zai` (1M ctx per models.json; no `[1m]` suffix)
+   - Wait for splash: pane shows WORKSPACE / GLM / SESSION (or `Type your message`) — not stuck at `0 tokens`
+   - Inject: `tmux send-keys -l "<prompt>"` + Enter + sleep 2s + **second Enter** (Marcel 2026-06-30: first Enter may boot/accept, second submits)
+   - Headless tmux (`tmuxClaudeZai:true`) skips macOS Terminal; `showTerminal:true` uses `yuri-spawn-worker.sh`
    - Poll loop until timeout:
      - Capture pane: `tmux capture-pane -p -t workerName:0.0 -S -500`
      - `extractResultLabel(paneText)` — if match → success
@@ -564,7 +565,7 @@ Optional corner-law guard on discrete substrate enum; log via `probabilistic-dec
 | runFleet hook | `--zai-sidecar` → `.claude/jobs/<runId>/zai-tasks.json` |
 | substrateHint | `company.mjs` `applySubstrateHint` — `tmux-zai` → `dispatch: zai-tmux` |
 
-**Automation limitation (documented):** `ai claude-zai` has no headless `--print` path; fleet uses headless tmux spawn (default) or `showTerminal:true` + `yuri-spawn-worker.sh`, prompt inject via `send-keys`, completion via `capture-pane` + `extractResultLabel`. Pane capture may miss labels scrolled off-screen — prefer explicit `RESULT_LABEL:` line in last 500 pane lines.
+**Automation wire (2026-06-30 hybrid fix):** Headless fleet automation (default) uses **`lane-dispatch glm-max` + `--out` poll** — same Z.ai `glm-5.2` provider as `ai claude-zai`, without the detached-tmux TUI stall (`0 tokens` / send-keys no-op). `showTerminal:true` keeps **`yuri-spawn-worker.sh` + claude-zai** for Marcel-visible multi-tool CC; prompt inject via `send-keys`, completion via `capture-pane` + `extractResultLabel`. False-green guard: strip injected prompt, baseline snapshot, min wall, substance check (`66bbecfd` + wire fix).
 
 **Related task files (do not duplicate):**
 

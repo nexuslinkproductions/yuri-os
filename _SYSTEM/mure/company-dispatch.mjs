@@ -8,7 +8,7 @@
  * Usage:
  *   node _SYSTEM/mure/company-dispatch.mjs --dry-run-all
  *   node _SYSTEM/mure/company-dispatch.mjs --dry-run-all --include-release
- *   node _SYSTEM/mure/company-dispatch.mjs --apply --mlp-learn --ollama-sidecar --cline-sidecar
+ *   node _SYSTEM/mure/company-dispatch.mjs --apply --mlp-learn --ollama-sidecar --cline-sidecar --zai-sidecar
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -46,6 +46,7 @@ function parseArgs(argv) {
     mlpLearn: argv.includes('--mlp-learn'),
     ollamaSidecar: argv.includes('--ollama-sidecar'),
     clineSidecar: argv.includes('--cline-sidecar'),
+    zaiSidecar: argv.includes('--zai-sidecar'),
     outDir: (() => {
       const i = argv.indexOf('--out');
       return i >= 0 && argv[i + 1]
@@ -154,6 +155,7 @@ export async function companyDispatch(opts = {}) {
           apply: true,
           ollamaSidecar: opts.ollamaSidecar,
           clineSidecar: opts.clineSidecar,
+          zaiSidecar: opts.zaiSidecar,
           mlpLearn: opts.mlpLearn,
           quotaPressure: opts.quotaPressure ?? 0.4,
         });
@@ -216,6 +218,7 @@ if (isMain) {
     mlpLearn: opts.mlpLearn,
     ollamaSidecar: opts.ollamaSidecar,
     clineSidecar: opts.clineSidecar,
+    zaiSidecar: opts.zaiSidecar,
     outDir: opts.outDir,
     taskFiles: opts.taskFiles,
   }).then((m) => {
