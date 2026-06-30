@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { glmFleet, aggregatePoolOutputs, buildRunDir } from './glm-fleet.mjs';
+import { glmFleet, aggregatePoolOutputs, buildRunDir, defaultTimeoutMsForLane } from './glm-fleet.mjs';
 import {
   buildObligationLedger, checkObligationFloor, runAdversarialPass, defaultAdversarialRunner,
   converge, finalizeGuard, isArmed as convergenceArmed,
@@ -86,9 +86,10 @@ export async function runSwarm(decomposition = {}, opts = {}) {
       leaf.routerConfidence = suggestion.confidence;
       routerSuggestions.push({ id: leaf.id, best: suggestion.best, confidence: suggestion.confidence });
 
-      // Bias timeout for heavy work when router is reasonably confident
+      // Bias timeout for heavy work when router is reasonably confident — use fleet tier default, never below it.
       if (suggestion.confidence > 0.25 && suggestion.best && /max|heavy|adjudicator/.test(String(suggestion.best.lane || ''))) {
-        const suggestedTimeout = Math.max(leaf.timeoutMs || 0, 1200000); // at least 20 min for heavy
+        const heavyLane = suggestion.best.lane || leaf.lane || 'glm-max';
+        const suggestedTimeout = Math.max(leaf.timeoutMs || 0, defaultTimeoutMsForLane(heavyLane));
         if (!leaf.timeoutMs || leaf.timeoutMs < suggestedTimeout) {
           leaf.timeoutMs = suggestedTimeout;
         }

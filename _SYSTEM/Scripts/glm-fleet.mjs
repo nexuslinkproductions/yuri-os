@@ -53,8 +53,8 @@ function safeLabel(s, i = 0) {
 // Tier-aware outer timeout for lane-dispatch (LANE_DISPATCH_TIMEOUT_MS). The old flat 5min default
 // SIGKILL'd glm-max tool loops before --out was written (V1 adversarial audit, 2026-06-29).
 const LANE_TIMEOUT_MS = Object.freeze({
-  'glm-max': 1320000,      // 22min — matches lane-dispatch default; heavy multi-tool orchestration
-  'glm-sub-orch': 1320000,
+  'glm-max': 1800000,      // 30min — heavy multi-tool orchestration (WS-G audit 2026-06-30: 22min×2 attempts SIGKILL'd before --out)
+  'glm-sub-orch': 1800000,
   glm: 900000,             // 15min — workhorse code-gen / judgment
   'glm-turbo': 600000,
   'glm-flash': 600000,     // align with ollama-fleet default
@@ -200,17 +200,27 @@ function fireTask(task, label, runDir, runId) {
     child.on('close', (code) => {
       let text = '';
       try { text = fs.readFileSync(outFile, 'utf8').trim(); } catch { /* lane failed before writing */ }
+      const durationMs = Date.now() - t0;
+      const stderrTail = err.trim().slice(-800);
+      // Surface dispatch failure when --out is empty (SIGKILL timeout, exhausted retries, etc.).
+      if (!text && (stderrTail || code !== 0)) {
+        const hint = durationMs >= timeoutMs * 0.95 ? 'likely_timeout' : 'dispatch_fail';
+        text = [
+          `[GLM_FLEET_${hint.toUpperCase()}] lane=${task.lane} exit=${code} durationMs=${durationMs} timeoutMs=${timeoutMs}`,
+          stderrTail ? `stderr: ${stderrTail}` : '',
+        ].filter(Boolean).join('\n');
+      }
       const resultLabel = extractResultLabel(text);
-      const ok = code === 0 && text.length > 0;
+      const ok = code === 0 && text.length > 0 && !/^(?:\[GLM_FLEET_|LANE_DISPATCH_FAIL)/.test(text);
       const packet = {
         laneId: task.lane,
         role: task.label || label,
         task: String(task.prompt || '').slice(0, 200),
         resultLabel,
-        evidence: '',
+        evidence: ok ? '' : stderrTail.slice(-400),
         status: ok ? 'ok' : 'fail',
         text,
-        durationMs: Date.now() - t0,
+        durationMs,
         runId,
       };
       // Cross-run tracing: inject traceId/spanId when the fleet session sets YURI_FLEET_TRACE_ID.

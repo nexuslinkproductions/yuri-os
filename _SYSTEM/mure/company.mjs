@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, getRole } from './role-registry.mjs';
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
-import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
+import { extractResultLabel, validatePacket, defaultTimeoutMsForLane } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
 import { runMlpFeedbackLoop, recordMlpFeedbackStub } from '../Scripts/fleet-mlp-feedback.mjs';
 import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
@@ -123,7 +123,11 @@ export function buildLeaf(role, subtask, target) {
     prompt: buildRolePrompt(role, subtask),
     role: role.id,
   };
-  if (subtask.timeoutMs != null) leaf.timeoutMs = subtask.timeoutMs;
+  if (subtask.timeoutMs != null) {
+    leaf.timeoutMs = subtask.timeoutMs;
+  } else if (target.lane === 'glm-max' || target.lane === 'glm-sub-orch') {
+    leaf.timeoutMs = defaultTimeoutMsForLane(target.lane);
+  }
   return leaf;
 }
 

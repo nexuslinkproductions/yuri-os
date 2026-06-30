@@ -77,6 +77,7 @@ function isBad(r) {
 }
 
 let last = null;
+let lastWhy = 'unknown';
 for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
   if (IDEMPOTENCY_KEY) {
     process.stderr.write(`LANE_DISPATCH_IDEMPOTENCY key=${IDEMPOTENCY_KEY} attempt=${attempt}\n`);
@@ -89,15 +90,22 @@ for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
     process.exit(0);
   }
   const rl = isRateLimit(last.out, last.err);
-  const why = rl ? 'rate_limit'
+  lastWhy = rl ? 'rate_limit'
     : last.code !== 0 ? `exit_${last.code}`
     : (/AggregateError/.test((last.out || '') + (last.err || '')) ? 'aggregate_error' : 'empty');
-  process.stderr.write(`LANE_DISPATCH_RETRY ${attempt}/${ATTEMPTS} lane=${args[0]} reason=${why}\n`);
+  process.stderr.write(`LANE_DISPATCH_RETRY ${attempt}/${ATTEMPTS} lane=${args[0]} reason=${lastWhy} timeoutMs=${TIMEOUT_MS}\n`);
   if (attempt < ATTEMPTS) {
     const delay = backoffMs(attempt, rl ? RL_FACTOR : 1);
     await sleep(delay);
   }
 }
-fs.writeSync(2, `LANE_DISPATCH_FAIL lane=${args[0]} attempts=${ATTEMPTS}\n`);
-if ((last?.err || '').trim()) fs.writeSync(2, last.err.trim().slice(-400) + '\n');
+const failMsg = [
+  `LANE_DISPATCH_FAIL lane=${args[0]} attempts=${ATTEMPTS} reason=${lastWhy} timeoutMs=${TIMEOUT_MS}`,
+  (last?.err || '').trim().slice(-600),
+].filter(Boolean).join('\n');
+fs.writeSync(2, `${failMsg}\n`);
+// When --out is set, write diagnostics so glm-fleet can surface failure even if llm-lane never wrote output.
+if (outFile) {
+  try { fs.writeFileSync(outFile, `${failMsg}\n`); } catch { /* best-effort */ }
+}
 process.exit(1);
