@@ -1,0 +1,30 @@
+{
+  "_comment": "HK45 Tactical preset for cgs-mold (gun-dip method). Frame: draw axis = Y (rear/grip = +Y), up = Z. Cut points auto-detected then tuned visually per scan. SOURCE OF TRUTH = ../METHOD-NOTES.md.",
+  "draw_axis": "Y",
+
+  "solidify": { "voxel_size": 0.7, "_note": "voxel-fill the MOLD into one manifold solid before cutting; precondition for a clean boolean" },
+
+  "grip_cut": {
+    "enabled": true,
+    "solver": "FLOAT",
+    "corner_below_mm": 20.0,
+    "beavertail_below_mm": 10.0,
+    "_note": "diagonal cube DIFFERENCE: first point = trigger-guard/grip corner, 20mm below; second point = beavertail, 10mm below. Verified clean (manifold 0/0) 2026-06-29."
+  },
+
+  "smooth": {
+    "feature_angle": 50.0,
+    "flat_pairs": 2,
+    "crease_pairs": 6,
+    "deburr_thr": 0.05,
+    "deburr_rings": 3,
+    "deburr_pairs": 8,
+    "final_crease_pairs": 4,
+    "auto_deg": 30.0,
+    "_note": "VALIDATED 2026-06-30. 4-stage feature-preserving: flat denoise -> crease de-zigzag -> roughness deburr -> re-straighten. Smooth AND sharp."
+  },
+
+  "offset_mm": 0.4,
+  "out_name": "CGS_MOLD_FINAL",
+  "render": true
+}
