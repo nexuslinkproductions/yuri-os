@@ -1,0 +1,159 @@
+{
+  "summary": "WS-J: YURI active learning + memory upgrade — MURE learning loop (Phase 1)",
+  "tags": ["mure", "learning", "memory", "mlp", "active-learning", "episodic", "company-ops"],
+  "researchDoc": "_SYSTEM/reports/YURI_ACTIVE_LEARNING_MEMORY_2026-06-30.md",
+  "dependsOn": {
+    "recommended": "02_RESOURCES/TASKS/yuri-skeleton-adoption-ws-i-foundation.json",
+    "parallel": "02_RESOURCES/TASKS/mure-live-ops-dashboard-ws-h-visual.json",
+    "note": "P0 can start before WS-I completes; P1 replay needs mure-skeleton-bind.json L11 metadata"
+  },
+  "layerBinding": {
+    "primary": "L11",
+    "secondary": ["L4", "L5", "L6"],
+    "wsIAnchor": "mure-skeleton-bind.json learningHook → prediction-ledger | work-ledger | memory-kernel-proposal"
+  },
+  "phases": {
+    "P0-outcome-gate": "Outcome-gated MLP persist — no train on empty labels, feature fidelity, held-out Brier",
+    "P1-episodic-replay": "Episodic replay for routing — historicalSuccess, reflections, synthesist insights",
+    "P2-cross-role-kernel": "Cross-role memory kernel — role namespaces, goal-engine wire, held-ruling feedback"
+  },
+  "disarmedByDefault": true,
+  "armingNote": "P0 code paths are safe when mlp-learn DISARMED (dry-run / skip persist). P1 replay append requires mlp-learn.enabled OR explicit --mlp-learn on apply. P2 goal-engine and route-gate require evolver + owner ruling.",
+  "subtasks": [
+    {
+      "id": "WS-J-K1-outcome-gate-kernelsmith",
+      "role": "kernelsmith",
+      "phase": "P0-outcome-gate",
+      "need": ["implementation", "integration"],
+      "prompt": "Read _SYSTEM/reports/YURI_ACTIVE_LEARNING_MEMORY_2026-06-30.md §P0. Implement outcome gate in fleet-mlp-feedback.mjs deriveLeafOutcome: return {skipped:true} when RESULT_LABEL empty AND no substantive text; do not call updateFromOutcome when skipped. Always persist features array on recordPrediction. Add unit tests in _SYSTEM/Scripts/fleet-mlp-feedback.test.mjs (create if missing). DISARMED-safe. Return 02J1_OUTCOME_GATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "evidenceDecidable": true,
+      "learningHook": { "recordsTo": "prediction-ledger", "metrics": ["skip-rate"], "feedbackOn": "dispatch-complete" }
+    },
+    {
+      "id": "WS-J-C1-held-out-calibrator",
+      "role": "calibrator",
+      "phase": "P0-outcome-gate",
+      "need": ["adversarial-verify"],
+      "prompt": "Extend train-fleet-router-from-ledger.mjs with time-ordered 80/20 train/eval split; return evalMeanBrier and evalExampleCount. Wire eval fields into fleet-mlp-feedback runPostTrainSummary and company-dispatch manifest mlpFeedback block. Run calibrationReport before/after on sample ledger. Advisory only. Return 02J2_HELD_OUT_BRIER_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "learningHook": { "recordsTo": "prediction-ledger", "metrics": ["brier", "evalMeanBrier"], "feedbackOn": "dispatch-complete" }
+    },
+    {
+      "id": "WS-J-D1-bandit-policy-deliberator",
+      "role": "deliberator",
+      "phase": "P0-outcome-gate",
+      "need": ["adversarial-verify"],
+      "prompt": "Confirm fleet-mlp-feedback matches bandit (partial feedback) semantics per BaRP paper framing. Document in _SYSTEM/mure/DRILLDOWN_WIRING.md section 'MLP bandit contract': only observed substrate outcome, governance always wins, advisory default. Refute any claim that MLP should override role-registry. Return 02J3_BANDIT_POLICY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-J-A1-episodic-store-archivist",
+      "role": "archivist",
+      "phase": "P1-episodic-replay",
+      "need": ["integration", "local-first-search"],
+      "prompt": "Design and implement _SYSTEM/Scripts/episodic-replay.mjs: append JSONL to _SYSTEM/state/episodic-replay.jsonl on armed dispatch complete; fields per research report schema (leafId, role, taskClass, substrate, resultLabel, success, quality, reflection, artifactPaths). Export rolling historicalSuccess(role, taskClass). Hook from fleet-mlp-feedback or company-dispatch post-run. Return 02J4_EPISODIC_STORE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "learningHook": { "recordsTo": "work-ledger", "metrics": ["historicalSuccess"], "feedbackOn": "dispatch-complete" }
+    },
+    {
+      "id": "WS-J-K2-replay-inject-kernelsmith",
+      "role": "kernelsmith",
+      "phase": "P1-episodic-replay",
+      "need": ["implementation", "integration"],
+      "prompt": "Wire episodic-replay historicalSuccess into fleet-router-mlp extractFeatures context. Inject top-3 reflection snippets (max 400 tokens total) into planCompany leaf prompt footer when replay rows exist. Log injection in plan JSON. Depends on WS-J-A1. Return 02J5_REPLAY_INJECT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "dependsOn": ["WS-J-A1-episodic-store-archivist"]
+    },
+    {
+      "id": "WS-J-C2-reflection-calibrator",
+      "role": "calibrator",
+      "phase": "P1-episodic-replay",
+      "need": ["adversarial-verify"],
+      "prompt": "On finalizeOk:false swarms, generate short reflection snippet (Reflexion-style, max 120 words) from manifest + failed leaf labels; pass to episodic-replay append as reflection field. DISARMED: dry-run writes to lane-output only. Return 02J6_REFLECTION_SNIPPET_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "learningHook": { "recordsTo": "work-ledger", "metrics": ["reflection-count"], "feedbackOn": "oracle-verdict" }
+    },
+    {
+      "id": "WS-J-S1-insight-synthesist",
+      "role": "synthesist",
+      "phase": "P1-episodic-replay",
+      "need": ["lattice-synthesis", "cross-domain-transfer"],
+      "prompt": "ExpeL-style pass: read episodic-replay.jsonl window (last N dispatches); distill 3-7 natural-language insights (routing, substrate, failure class). Output _SYSTEM/reports/MURE_LEARNING_INSIGHTS_<date>.md and memory-kernel proposals via proposeMemoryWrite (proposal only, no auto-promote). Return 02J7_INSIGHT_DIGEST_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "learningHook": { "recordsTo": "memory-kernel-proposal", "metrics": ["insight-count"], "feedbackOn": "dispatch-complete" }
+    },
+    {
+      "id": "WS-J-A2-dispatch-ingest-archivist",
+      "role": "archivist",
+      "phase": "P1-episodic-replay",
+      "need": ["integration"],
+      "prompt": "Post-dispatch hook: on company-dispatch finishedAt, archivist ingests manifest summary + top failures into memory-kernel proposeMemoryWrite (surface: mure-dispatch). Owner promotion unchanged. Spec in SKELETON_BIND_SPEC.md if hook >100 lines. Return 02J8_DISPATCH_INGEST_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "learningHook": { "recordsTo": "memory-kernel-proposal", "metrics": ["proposal-count"], "feedbackOn": "dispatch-complete" }
+    },
+    {
+      "id": "WS-J-K3-role-namespace-kernelsmith",
+      "role": "kernelsmith",
+      "phase": "P2-cross-role-kernel",
+      "need": ["implementation"],
+      "prompt": "Add memory-kernel surface filter mure-role/<roleId> for recallMemory and proposeMemoryWrite. Document archivist write contract. No evict automation. Return 02J9_ROLE_NAMESPACE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-J-EV1-goal-cycle-evolver",
+      "role": "evolver",
+      "phase": "P2-cross-role-kernel",
+      "need": ["improvement-proposal"],
+      "prompt": "Wire runGoalCycle post-dispatch behind DISARMED default: ingest manifest failures as candidate goals; output goalCycle summary to manifest only (no execute). Max 4 cycles per goal-engine.mjs. Requires oracle review before any arm. Return 02J10_GOAL_CYCLE_WIRE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "arming": false
+    },
+    {
+      "id": "WS-J-ST1-held-ruling-feedback",
+      "role": "steward",
+      "phase": "P2-cross-role-kernel",
+      "need": ["governance-gate"],
+      "prompt": "Spec held-ruling ratification → prediction-ledger outcome + episodic-replay historicalSuccess bump + optional Track A proposal. Document in held-rulings.mjs README section. Owner ratify only. Return 02J11_HELD_RULING_FEEDBACK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-J-V1-route-gate-adjudicator",
+      "role": "adjudicator",
+      "phase": "P2-cross-role-kernel",
+      "need": ["adversarial-verify", "gap-detection"],
+      "prompt": "Red-team YURI_MLP_ROUTE_GATE design: MLP override of role-registry substrate only when armed + held ruling + evalMeanBrier below threshold. Refute governance bypass. Output _SYSTEM/reports/MURE_MLP_ROUTE_GATE_REVIEW.md. Return 02J12_ROUTE_GATE_REVIEW_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-J-O1-learning-oracle",
+      "role": "oracle",
+      "phase": "P2-cross-role-kernel",
+      "need": ["adversarial-verify"],
+      "prompt": "Green/grey/red on full WS-J stack vs YURI_ACTIVE_LEARNING_MEMORY report claims. Run tests for P0 outcome gate. Verify no train on synthetic empty labels. Return 02J13_LEARNING_ORACLE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-J-CH1-chronicler-handoff",
+      "role": "chronicler",
+      "phase": "P2-cross-role-kernel",
+      "need": ["documentation"],
+      "prompt": "Distill WS-J into 02_RESOURCES/GUIDES/mure-active-learning.md: operator arming steps, P0/P1/P2 phases, anti-patterns, cross-links to WS-I L11 bind and WS-H dashboard metrics. Return 02J14_CHRONICLER_HANDOFF_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}
