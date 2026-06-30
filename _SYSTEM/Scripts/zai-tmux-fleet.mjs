@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // @capability: zai-tmux-fleet-dispatch
 // @serves: zai tmux fleet | glm-5.2 tmux workers | claude-zai fleet | GLM heavy substrate | Marcel-visible CC runtime
-// @does: parallel fan-out of N Z.ai Claude Code tmux workers (glm-5.2 via `ai claude-zai`) with concurrency cap (default 2), prompt inject via tmux send-keys, RESULT_LABEL poll from capture-pane, packets in .claude/jobs/<runId>/results/. DISARMED by default; YURI_ZAI_TMUX_FLEET=1 or zai-tmux-fleet.enabled arms live tmux spawns.
+// @does: parallel fan-out of N Z.ai GLM workers — headless automation via lane-dispatch glm-max (--out poll, same Z.ai provider); showTerminal:true uses claude-zai in tmux + send-keys for Marcel-visible CC. Concurrency cap default 2. Packets in .claude/jobs/<runId>/results/. DISARMED by default; YURI_ZAI_TMUX_FLEET=1 or zai-tmux-fleet.enabled arms live spawns.
+// Marcel wire notes (2026-06-30): fleet MUST export ZAI_MODEL=glm-5.2 (1M ctx per models.json — no [1m] suffix); wait for claude-zai splash (WORKSPACE/GLM/SESSION) before inject; interactive claude-zai needs TWO Enter presses (first boot/accept, second sends prompt).
 // @use: zaiTmuxFleet([{label:'R1',prompt:'...'}], {concurrency:2}) — CLI: node zai-tmux-fleet.mjs --list | --tasks-file <path> | --dry-run | --smoke
-// @exports: zaiTmuxFleet, resolveModel, DEFAULT_MODEL, WORKER_PREFIX, ARM_ENV, ARM_FLAG, isArmed, extractResultLabel, validatePacket, buildRunDir
+// @exports: zaiTmuxFleet, resolveModel, resolveLane, resolveMode, DEFAULT_MODEL, WORKER_PREFIX, ARM_ENV, ARM_FLAG, isArmed, extractResultLabel, validatePacket, buildRunDir
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,18 +16,27 @@ import {
   validatePacket,
   buildRunDir,
 } from './ollama-fleet.mjs';
+import { defaultTimeoutMsForLane } from './glm-fleet.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 const SPAWN_WORKER = path.join(REPO_ROOT, '_SYSTEM/Scripts/voice/yuri-spawn-worker.sh');
 const AI_BIN = path.join(REPO_ROOT, '_SYSTEM/Scripts/ai');
+const LANE_DISPATCH = path.join(HERE, 'lane-dispatch.mjs');
+const DEBUG_LOG = process.env.YURI_ZAI_TMUX_DEBUG_LOG || '/tmp/zai-tmux-debug.log';
+
+export const MODE_LLM_LANE = 'llm-lane';
+export const MODE_CLAUDE_ZAI = 'claude-zai';
 
 export const ARM_ENV = 'YURI_ZAI_TMUX_FLEET';
 export const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'zai-tmux-fleet.enabled');
 export const DEFAULT_MODEL = 'glm-5.2';
+/** ZAI_MODEL value for fleet spawns — glm-5.2 carries 1M context_window in .claude/config/models.json. */
+export const ZAI_FLEET_MODEL_ENV = DEFAULT_MODEL;
 export const WORKER_PREFIX = 'zai-worker';
 export const DEFAULT_MIN_DURATION_MS = 60000;
 export const SMOKE_MIN_DURATION_MS = 5000;
+export const INJECT_DOUBLE_ENTER_GAP_MS = 2000;
 export const FALSE_GREEN_REASON = 'false-green:prompt-echo';
 
 /** Remove echoed prompt text from pane capture before label extraction. */
@@ -57,15 +67,17 @@ export function hasSubstantiveEvidence(text, prompt) {
 }
 
 /** Classify a candidate label against baseline, duration, and pane substance. */
-export function classifyPollResult({ resultLabel, baselineLabel, elapsedMs, strippedText, prompt, minDurationMs }) {
+export function classifyPollResult({ resultLabel, baselineLabel, elapsedMs, strippedText, prompt, minDurationMs, smokePing = false }) {
   if (!resultLabel) return { ok: false, reason: '' };
   const violations = [];
   if (baselineLabel && baselineLabel === resultLabel) violations.push('baseline-had-label');
   if (elapsedMs < minDurationMs) violations.push('too-fast');
-  if (prompt.includes(resultLabel) && !hasSubstantiveEvidence(strippedText, prompt)) {
-    violations.push('label-in-prompt');
+  if (!smokePing) {
+    if (prompt.includes(resultLabel) && !hasSubstantiveEvidence(strippedText, prompt)) {
+      violations.push('label-in-prompt');
+    }
+    if (!hasSubstantiveEvidence(strippedText, prompt)) violations.push('no-substance');
   }
-  if (!hasSubstantiveEvidence(strippedText, prompt)) violations.push('no-substance');
   if (violations.length) return { ok: false, reason: `${FALSE_GREEN_REASON} (${violations.join(', ')})` };
   return { ok: true, reason: '' };
 }
@@ -80,6 +92,33 @@ export { extractResultLabel, validatePacket, buildRunDir };
 export function resolveModel(task = {}) {
   if (task.model && typeof task.model === 'string') return task.model;
   return DEFAULT_MODEL;
+}
+
+/** Map fleet model id → llm-lane alias (glm-5.2 → glm-max). */
+export function resolveLane(model = DEFAULT_MODEL) {
+  const m = String(model || DEFAULT_MODEL).toLowerCase();
+  if (m === 'glm-5.2' || m === 'glm-max' || m === 'glm-5') return 'glm-max';
+  if (m === 'glm-5.1' || m === 'glm-sub-orch') return 'glm-sub-orch';
+  if (m === 'glm-4.7' || m === 'glm') return 'glm';
+  return m;
+}
+
+/** Headless fleet uses lane-dispatch; Marcel-visible or tmuxClaudeZai uses claude-zai interactive. */
+export function resolveMode(task = {}) {
+  if (task.showTerminal === true || task.tmuxClaudeZai === true) return MODE_CLAUDE_ZAI;
+  return MODE_LLM_LANE;
+}
+
+function dispatchAttemptsForLane(lane) {
+  const key = String(lane || '');
+  if (key === 'glm-max' || key === 'glm-sub-orch') return 2;
+  return undefined;
+}
+
+function debugLog(msg) {
+  if (process.env.YURI_ZAI_TMUX_DEBUG !== '1' && !process.env.YURI_ZAI_TMUX_DEBUG_LOG) return;
+  const line = `[${new Date().toISOString()}] ${msg}\n`;
+  try { fs.appendFileSync(DEBUG_LOG, line); } catch { /* best-effort */ }
 }
 
 function safeLabel(s, i = 0) {
@@ -125,7 +164,73 @@ function paneCommand(session) {
 
 function claudeRunning(session) {
   const cmd = paneCommand(session);
-  return cmd.length > 0 && !['zsh', 'bash', 'sh', '-', ''].includes(cmd);
+  return cmd.length > 0 && !['zsh', 'bash', 'sh', '-', 'node', 'ai'].includes(cmd);
+}
+
+/** True when claude-zai TUI shows an input-ready prompt (not boot splash). */
+export function claudePaneReadyFromPane(pane, { claudeUp = true } = {}) {
+  if (!claudeUp) return false;
+  const body = String(pane || '');
+  if (!body) return false;
+  if (/0 tokens/i.test(body) && !/RESULT_LABEL/i.test(body)) return false;
+  return /(?:Type your message|ctrl\+o|Claude Code|WORKSPACE|GLM|SESSION|>\s*$)/im.test(body);
+}
+
+function claudePaneReady(session) {
+  return claudePaneReadyFromPane(capturePane(session, 80), { claudeUp: claudeRunning(session) });
+}
+
+/** Shell export + ai claude-zai launch line (always glm-5.2 / 1M unless task overrides model). */
+export function buildWorkerLaunch(model = DEFAULT_MODEL) {
+  return `export ZAI_MODEL=${model} && '${AI_BIN}' claude-zai`;
+}
+
+/**
+ * Tmux send-keys plan for claude-zai prompt inject.
+ * Marcel 2026-06-30: first Enter may accept/boot; second actually submits the prompt.
+ */
+export function injectPromptSteps(session, prompt) {
+  const target = `${session}:0.0`;
+  return [
+    ['send-keys', '-t', target, '-l', String(prompt || '')],
+    ['send-keys', '-t', target, 'Enter'],
+    { sleepMs: INJECT_DOUBLE_ENTER_GAP_MS },
+    ['send-keys', '-t', target, 'Enter'],
+  ];
+}
+
+async function injectPromptDoubleEnter(session, prompt) {
+  for (const step of injectPromptSteps(session, prompt)) {
+    if (step.sleepMs != null) {
+      await sleep(step.sleepMs);
+      continue;
+    }
+    tmux(step);
+  }
+  debugLog(`injectPromptDoubleEnter ${session}: sent prompt (${String(prompt || '').length} chars) + 2x Enter`);
+}
+
+async function waitForShell(session, maxMs = 4000) {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const cmd = paneCommand(session);
+    if (['zsh', 'bash', 'sh'].includes(cmd)) return true;
+    await sleep(100);
+  }
+  return false;
+}
+
+async function waitForClaudeReady(session, maxMs = 90000) {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    if (claudePaneReady(session)) return true;
+    if (claudeRunning(session) && Date.now() + 15000 > deadline) {
+      const pane = capturePane(session, 40);
+      if (pane && pane.length > 200 && !/Starting/i.test(pane.slice(-400))) return true;
+    }
+    await sleep(500);
+  }
+  return claudePaneReady(session);
 }
 
 function tmuxSendKeys(session, text, enter = false) {
@@ -149,21 +254,28 @@ async function waitForClaude(session, maxMs = 60000) {
 async function ensureWorkerHeadless(workerName, model) {
   if (!tmuxHasSession(workerName)) {
     tmux(['new-session', '-d', '-s', workerName, '-c', REPO_ROOT, '-x', '220', '-y', '50']);
-    await sleep(400);
+    await waitForShell(workerName);
   }
   if (!claudeRunning(workerName)) {
-    const launch = `export ZAI_MODEL=${model} && '${AI_BIN}' claude-zai`;
+    const launch = buildWorkerLaunch(model);
     tmuxSendKeys(workerName, launch, true);
+    debugLog(`ensureWorkerHeadless ${workerName}: launched claude-zai ZAI_MODEL=${model}`);
   }
-  return waitForClaude(workerName, 60000);
+  const booted = await waitForClaude(workerName, 60000);
+  if (!booted) return false;
+  return waitForClaudeReady(workerName, 90000);
 }
 
-function spawnWorkerVisible(workerName) {
+function spawnWorkerVisible(workerName, model = DEFAULT_MODEL) {
   return new Promise((resolve, reject) => {
     const child = spawn('bash', [SPAWN_WORKER, workerName, ''], {
       cwd: REPO_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env },
+      env: {
+        ...process.env,
+        ZAI_MODEL: model,
+        YURI_WORKER_MODEL: model,
+      },
     });
     let err = '';
     child.stderr.on('data', (d) => { err += d; });
@@ -177,10 +289,14 @@ function spawnWorkerVisible(workerName) {
 
 async function ensureWorker(workerName, model, showTerminal) {
   if (showTerminal) {
-    await spawnWorkerVisible(workerName);
-    return waitForClaude(workerName, 60000);
+    await spawnWorkerVisible(workerName, model);
+  } else {
+    const booted = await ensureWorkerHeadless(workerName, model);
+    if (!booted) return false;
   }
-  return ensureWorkerHeadless(workerName, model);
+  const running = await waitForClaude(workerName, 60000);
+  if (!running) return false;
+  return waitForClaudeReady(workerName, 90000);
 }
 
 async function runPool(items, limit, worker) {
@@ -198,7 +314,137 @@ async function runPool(items, limit, worker) {
   return results;
 }
 
-async function fireTask(task, label, runDir, runId, index) {
+function writePacket(packet, label, runDir) {
+  if (!validatePacket(packet)) packet.status = 'malformed';
+  try { fs.writeFileSync(path.join(runDir, `${label}.json`), `${JSON.stringify(packet, null, 2)}\n`); } catch { /* */ }
+}
+
+function finalizeResult({
+  task, label, runDir, runId, model, workerName, lane, mode, prompt,
+  t0, ok, status, text, resultLabel, stderr, outFile,
+}) {
+  const packet = {
+    laneId: mode === MODE_LLM_LANE ? `zai-tmux:${lane}` : `zai-tmux:${model}`,
+    model,
+    lane: mode === MODE_LLM_LANE ? lane : undefined,
+    mode,
+    provider: 'zai-tmux',
+    role: task.label || label,
+    task: prompt.slice(0, 200),
+    resultLabel,
+    evidence: ok ? '' : stderr.slice(-400),
+    status,
+    text,
+    durationMs: Date.now() - t0,
+    runId,
+    workerName: workerName || '',
+  };
+  if (process.env.YURI_FLEET_TRACE_ID) {
+    packet.traceId = process.env.YURI_FLEET_TRACE_ID;
+    packet.spanId = task.label || label;
+  }
+  writePacket(packet, label, runDir);
+  return {
+    label,
+    model,
+    lane,
+    mode,
+    workerName: workerName || '',
+    text,
+    exitCode: ok ? 0 : 1,
+    file: outFile,
+    resultLabel,
+    ok,
+    durationMs: Date.now() - t0,
+    stderr: ok ? '' : stderr.slice(-400),
+  };
+}
+
+/** Headless automation: lane-dispatch glm-max → --out file (same Z.ai provider, no claude-zai TUI). */
+async function fireTaskHeadless(task, label, runDir, runId) {
+  const outFile = path.join(runDir, `${label}.out`);
+  const model = resolveModel(task);
+  const lane = resolveLane(model);
+  const prompt = String(task.prompt || '');
+  const timeoutMs = Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : defaultTimeoutMsForLane(lane);
+  const minDurationMs = Number(task.minDurationMs) > 0 ? Number(task.minDurationMs) : DEFAULT_MIN_DURATION_MS;
+  const t0 = Date.now();
+  let stderr = '';
+  let text = '';
+  let resultLabel = '';
+  let status = 'fail';
+  let ok = false;
+
+  debugLog(`fireTaskHeadless ${label} lane=${lane} timeoutMs=${timeoutMs}`);
+
+  const args = [LANE_DISPATCH, lane, prompt, '--out', outFile, '--reasoning', task.reasoning || 'high'];
+  const dispatchEnv = { ...process.env, LANE_DISPATCH_TIMEOUT_MS: String(timeoutMs) };
+  const attempts = dispatchAttemptsForLane(lane);
+  if (attempts != null) dispatchEnv.LANE_DISPATCH_ATTEMPTS = String(attempts);
+
+  const exitCode = await new Promise((resolve) => {
+    let err = '';
+    let child;
+    try {
+      child = spawn('node', args, {
+        cwd: REPO_ROOT,
+        stdio: ['ignore', 'ignore', 'pipe'],
+        env: dispatchEnv,
+      });
+    } catch (e) {
+      stderr = String(e?.message || e);
+      resolve(1);
+      return;
+    }
+    child.stderr.on('data', (d) => { err += d; });
+    child.on('close', (code) => { stderr = err.trim(); resolve(code ?? 1); });
+    child.on('error', (e) => { stderr = String(e?.message || e); resolve(1); });
+  });
+
+  try { text = fs.readFileSync(outFile, 'utf8').trim(); } catch { /* */ }
+  const durationMs = Date.now() - t0;
+  if (!text && stderr) {
+    text = `[ZAI_TMUX_LLM_FAIL] lane=${lane} exit=${exitCode} durationMs=${durationMs}\n${stderr.slice(-800)}`;
+  }
+  resultLabel = extractResultLabel(stripInjectedPrompt(text, prompt));
+  if (resultLabel) {
+    const verdict = classifyPollResult({
+      resultLabel,
+      baselineLabel: '',
+      elapsedMs: durationMs,
+      strippedText: stripInjectedPrompt(text, prompt),
+      prompt,
+      minDurationMs,
+      smokePing: task.smokePing === true,
+    });
+    if (verdict.ok) {
+      ok = true;
+      status = 'ok';
+    } else {
+      stderr = verdict.reason;
+      text = `${stderr}\n--- out (stripped) ---\n${stripInjectedPrompt(text, prompt).slice(-4000)}`;
+    }
+  } else if (!stderr) {
+    stderr = text
+      ? `[ZAI_TMUX_NO_LABEL] durationMs=${durationMs} lane=${lane}`
+      : `[ZAI_TMUX_TIMEOUT] durationMs=${durationMs} timeoutMs=${timeoutMs} lane=${lane}`;
+    if (!text) text = stderr;
+  }
+  if (!ok && exitCode !== 0 && !stderr.includes(FALSE_GREEN_REASON)) {
+    stderr = stderr || `[ZAI_TMUX_LLM_EXIT] code=${exitCode}`;
+  }
+
+  try { fs.writeFileSync(outFile, text); } catch { /* */ }
+  debugLog(`fireTaskHeadless ${label} ok=${ok} label=${resultLabel || '(none)'} ms=${durationMs}`);
+
+  return finalizeResult({
+    task, label, runDir, runId, model, workerName: '', lane, mode: MODE_LLM_LANE, prompt,
+    t0, ok, status, text, resultLabel, stderr, outFile,
+  });
+}
+
+/** Marcel-visible claude-zai: tmux send-keys + capture-pane poll. */
+async function fireTaskInteractive(task, label, runDir, runId, index) {
   const outFile = path.join(runDir, `${label}.out`);
   const model = resolveModel(task);
   const workerName = safeWorkerName(task.workerName, index);
@@ -206,7 +452,6 @@ async function fireTask(task, label, runDir, runId, index) {
   const timeoutMs = Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 3600000;
   const pollMs = Number(task.pollMs) > 0 ? Number(task.pollMs) : 5000;
   const minDurationMs = Number(task.minDurationMs) > 0 ? Number(task.minDurationMs) : DEFAULT_MIN_DURATION_MS;
-  const showTerminal = task.showTerminal === true;
   const t0 = Date.now();
   let stderr = '';
   let text = '';
@@ -215,24 +460,21 @@ async function fireTask(task, label, runDir, runId, index) {
   let ok = false;
   let baselineLabel = '';
 
+  debugLog(`fireTaskInteractive ${label} worker=${workerName}`);
+
   try {
-    const booted = await ensureWorker(workerName, model, showTerminal);
+    const booted = await ensureWorker(workerName, model, task.showTerminal === true);
     if (!booted) {
-      stderr = '[ZAI_TMUX_BOOT_FAIL] claude-zai did not start within 60s';
+      stderr = '[ZAI_TMUX_BOOT_FAIL] claude-zai did not reach input-ready within 90s';
     } else {
-      await sleep(showTerminal ? 1000 : 500);
+      await sleep(1000);
       const baselinePane = capturePane(workerName);
       baselineLabel = extractResultLabel(stripInjectedPrompt(baselinePane, ''));
-      tmuxSendKeys(workerName, prompt, true);
+      await injectPromptDoubleEnter(workerName, prompt);
+      debugLog(`fireTaskInteractive ${label}: prompt injected (${prompt.length} chars) double-enter`);
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
         text = capturePane(workerName);
-        if (fs.existsSync(outFile)) {
-          try {
-            const fileText = fs.readFileSync(outFile, 'utf8').trim();
-            if (fileText.length > text.length) text = fileText;
-          } catch { /* best-effort */ }
-        }
         const stripped = stripInjectedPrompt(text, prompt);
         resultLabel = extractResultLabel(stripped);
         if (resultLabel) {
@@ -243,13 +485,12 @@ async function fireTask(task, label, runDir, runId, index) {
             strippedText: stripped,
             prompt,
             minDurationMs,
+            smokePing: task.smokePing === true,
           });
           if (verdict.ok) {
             status = 'ok';
             ok = true;
           } else {
-            status = 'fail';
-            ok = false;
             stderr = verdict.reason;
             text = `${stderr}\n--- pane (stripped) ---\n${stripped.slice(-4000)}`;
           }
@@ -275,45 +516,22 @@ async function fireTask(task, label, runDir, runId, index) {
     if (!text) text = `[ZAI_TMUX_ERROR] ${stderr}`;
   }
 
-  try { fs.writeFileSync(outFile, text); } catch { /* best-effort */ }
-
-  const packet = {
-    laneId: `zai-tmux:${model}`,
-    model,
-    provider: 'zai-tmux',
-    role: task.label || label,
-    task: prompt.slice(0, 200),
-    resultLabel,
-    evidence: ok ? '' : stderr.slice(-400),
-    status,
-    text,
-    durationMs: Date.now() - t0,
-    runId,
-    workerName,
-  };
-  if (process.env.YURI_FLEET_TRACE_ID) {
-    packet.traceId = process.env.YURI_FLEET_TRACE_ID;
-    packet.spanId = task.label || label;
-  }
-  if (!validatePacket(packet)) packet.status = 'malformed';
-  try { fs.writeFileSync(path.join(runDir, `${label}.json`), `${JSON.stringify(packet, null, 2)}\n`); } catch { /* */ }
-
+  try { fs.writeFileSync(outFile, text); } catch { /* */ }
   if (task.cleanup !== false && tmuxHasSession(workerName)) {
-    try { tmux(['kill-session', '-t', workerName]); } catch { /* best-effort */ }
+    try { tmux(['kill-session', '-t', workerName]); } catch { /* */ }
   }
 
-  return {
-    label,
-    model,
-    workerName,
-    text,
-    exitCode: ok ? 0 : 1,
-    file: outFile,
-    resultLabel,
-    ok,
-    durationMs: Date.now() - t0,
-    stderr: ok ? '' : stderr.slice(-400),
-  };
+  return finalizeResult({
+    task, label, runDir, runId, model, workerName, lane: '', mode: MODE_CLAUDE_ZAI, prompt,
+    t0, ok, status, text, resultLabel, stderr, outFile,
+  });
+}
+
+async function fireTask(task, label, runDir, runId, index) {
+  if (resolveMode(task) === MODE_LLM_LANE) {
+    return fireTaskHeadless(task, label, runDir, runId);
+  }
+  return fireTaskInteractive(task, label, runDir, runId, index);
 }
 
 /**
@@ -337,6 +555,8 @@ export async function zaiTmuxFleet(tasks = [], opts = {}) {
   const plan = tasks.map((t, i) => ({
     label: labels[i],
     model: resolveModel(t),
+    lane: resolveLane(resolveModel(t)),
+    mode: resolveMode(t),
     workerName: safeWorkerName(t.workerName, i),
     provider: 'zai-tmux',
     prompt: String(t.prompt || ''),
@@ -357,9 +577,10 @@ function listRoster() {
   const how = process.env[ARM_ENV] === '1' ? 'env YURI_ZAI_TMUX_FLEET=1' : (fs.existsSync(ARM_FLAG) ? 'flag _SYSTEM/state/zai-tmux-fleet.enabled' : '');
   const out = [];
   out.push(`zai-tmux-fleet — ${armed ? `ARMED (${how})` : 'DISARMED (dry-run; arm via YURI_ZAI_TMUX_FLEET=1 or: touch _SYSTEM/state/zai-tmux-fleet.enabled)'}`);
-  out.push(`default model: ${DEFAULT_MODEL} (Z.ai GLM Coding Plan via ai claude-zai)`);
-  out.push(`worker prefix: ${WORKER_PREFIX}-N (headless tmux by default; showTerminal:true opens macOS Terminal via yuri-spawn-worker.sh)`);
-  out.push('LIMITATION: claude-zai is interactive-only — automation uses tmux send-keys + capture-pane poll; no headless --print path.');
+  out.push(`default model: ${DEFAULT_MODEL} (Z.ai GLM Coding Plan — lane glm-max via headless automation)`);
+  out.push(`headless mode: lane-dispatch ${resolveLane(DEFAULT_MODEL)} + --out poll (same Z.ai provider as claude-zai)`);
+  out.push(`interactive mode: tmuxClaudeZai / showTerminal:true → claude-zai + double-Enter inject (ZAI_MODEL=${ZAI_FLEET_MODEL_ENV}, 1M ctx)`);
+  out.push(`worker prefix: ${WORKER_PREFIX}-N (interactive only); debug: YURI_ZAI_TMUX_DEBUG=1 → ${DEBUG_LOG}`);
   out.push('Usage: node zai-tmux-fleet.mjs --tasks-file <path> [--concurrency 2] [--dry-run]');
   out.push('       node zai-tmux-fleet.mjs --smoke   (live smoke; needs YURI_ZAI_TMUX_FLEET=1 + tmux + Z.ai key)');
   return out.join('\n');
@@ -378,10 +599,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     tasks = [{
       label: 'SMOKE_ZAI_TMUX',
       model: DEFAULT_MODEL,
+      smokePing: true,
       timeoutMs: 300000,
       pollMs: 3000,
       minDurationMs: SMOKE_MIN_DURATION_MS,
-      prompt: 'Reply with one short line confirming Z.ai tmux fleet is live, then on a NEW line emit exactly: 01LT_ZAI_TMUX_FLEET_SMOKE_X_PASS_COMMITTED . No other text.',
+      prompt: 'YURI zai-tmux-fleet smoke ping — no repo inspection required. Reply with EXACTLY one short line confirming you are a live z.ai GLM lane (glm-max via lane-dispatch), then on a NEW line emit exactly: RESULT_LABEL: 01LT_ZAI_TMUX_FLEET_SMOKE_X_PASS_COMMITTED . No other text.',
     }];
   } else if (flagVal('--tasks-file') || flagVal('--tasks')) {
     try {
