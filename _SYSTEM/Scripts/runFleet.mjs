@@ -70,7 +70,8 @@ export function buildOllamaSidecar(plan, task = {}) {
     if (!id || seen.has(id)) return;
     const bulk = bulkRoles.has(leaf.role);
     const routerOllama = leaf.routerSuggestion?.substrate === 'ollama';
-    if (!bulk && !routerOllama) return;
+    const affinityOllama = leaf.dispatch === 'ollama-sidecar' || leaf.affinityApplied === 'ollama-flash' || leaf.affinityApplied === 'ollama-minimax';
+    if (!bulk && !routerOllama && !affinityOllama) return;
     seen.add(id);
     tasks.push({
       label: id,

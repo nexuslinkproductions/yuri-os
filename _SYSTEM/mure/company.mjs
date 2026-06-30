@@ -124,6 +124,7 @@ export function buildLeaf(role, subtask, target) {
     role: role.id,
     dispatch: target.dispatch || 'glm-lane',
     substrateHint: subtask.substrateHint || null,
+    affinityApplied: target.affinityApplied || null,
   };
   if (subtask.timeoutMs != null) {
     leaf.timeoutMs = subtask.timeoutMs;
@@ -165,6 +166,55 @@ export function applySubstrateHint(subtask, target) {
   return out;
 }
 
+/**
+ * Apply the LLM affinity matrix to override substrate routing for bulk/heavy roles.
+ * Reads _SYSTEM/config/llm-affinity-matrix.json (cached after first load).
+ * Skips override when the subtask explicitly set a substrateHint (forceSubstrateHint).
+ */
+let _affinityCache = null;
+export function applyAffinityMatrix(role, target, opts = {}) {
+  if (opts.forceSubstrateHint) return target;
+  if (!_affinityCache) {
+    try {
+      const matrixPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'config', 'llm-affinity-matrix.json');
+      _affinityCache = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
+    } catch {
+      _affinityCache = { affinities: {} };
+    }
+  }
+  const affinity = _affinityCache.affinities?.[role?.id];
+  if (!affinity) return target;
+  const preferred = affinity.preferred;
+  const out = { ...target };
+  if (preferred === 'ollama-flash') {
+    out.substrate = 'ollama';
+    out.lane = 'flash';
+    out.dispatch = 'ollama-sidecar';
+  } else if (preferred === 'ollama-minimax') {
+    out.substrate = 'ollama';
+    out.lane = 'minimax';
+    out.dispatch = 'ollama-sidecar';
+  } else if (preferred === 'tmux-zai') {
+    out.substrate = 'glm';
+    out.lane = 'glm-max';
+    out.dispatch = 'zai-tmux';
+  } else if (preferred === 'glm-max' && out.lane !== 'glm-max') {
+    out.substrate = 'glm';
+    out.lane = 'glm-max';
+    out.dispatch = 'glm-lane';
+  } else if (preferred === 'glm-turbo') {
+    out.substrate = 'glm';
+    out.lane = 'glm-turbo';
+    out.dispatch = 'glm-lane';
+  } else if (preferred === 'cline') {
+    out.substrate = 'cline';
+    out.lane = 'glm';
+    out.dispatch = 'cline-sidecar';
+  }
+  out.affinityApplied = preferred;
+  return out;
+}
+
 /** Cast a single subtask to its best-matching role + resolved dispatch target + governance ruling. */
 export function castRole(roster, subtask, opts = {}) {
   const need = Array.isArray(subtask.need) ? subtask.need : [];
@@ -175,6 +225,7 @@ export function castRole(roster, subtask, opts = {}) {
   const prefer = subtask.substrateHint === 'native' || subtask.substrateHint === 'cursor' ? 'native' : (opts.preferSubstrate || 'glm');
   let target = resolveLane(role, { preferSubstrate: prefer });
   target = applySubstrateHint(subtask, target);
+  target = applyAffinityMatrix(role, target, { forceSubstrateHint: !!subtask.substrateHint });
   const ruling = decisionFor(subtask, role);
   return { subtaskId: subtask.id, role: role.id, roleName: role.name, group: role.group, target, ruling, substrateHint: subtask.substrateHint || null };
 }
@@ -255,7 +306,11 @@ export async function planCompany(task = {}, opts = {}) {
   }
 
   const ollamaEligible = [...glmLeaves, ...nativeSpecs]
-    .filter((l) => ['scout', 'artificer'].includes(l.role) || l.routerSuggestion?.substrate === 'ollama')
+    .filter((l) => ['scout', 'artificer', 'archivist', 'chronicler', 'envoy'].includes(l.role)
+      || l.dispatch === 'ollama-sidecar'
+      || l.affinityApplied === 'ollama-flash'
+      || l.affinityApplied === 'ollama-minimax'
+      || l.routerSuggestion?.substrate === 'ollama')
     .map((l) => ({ id: l.id, role: l.role, lane: l.lane || l.model || 'ollama-flash' }));
 
   // Use shared buildOllamaSidecar from runFleet.mjs for consistent sidecar metadata
@@ -266,7 +321,7 @@ export async function planCompany(task = {}, opts = {}) {
     spawn: 'node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file <ollama-tasks.json>',
     note: 'Parallel bulk sidecar — manual spawn; runFleet.mjs generates tasks when --ollama-sidecar',
     metadata: {
-      bulkRoles: ['scout', 'artificer'],
+      bulkRoles: ['scout', 'artificer', 'archivist', 'chronicler', 'envoy'],
       disarmedByDefault: true,
       armEnv: 'YURI_OLLAMA_FLEET',
       armFlag: '_SYSTEM/state/ollama-fleet.enabled',
