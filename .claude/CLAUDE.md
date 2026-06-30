@@ -11,12 +11,12 @@ Canonical repository root:
 
 Canonical branch:
 
-- `main`
+- `rene`
 
 Before any Yuri OS / Musubi sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
 
 - `pwd` resolves to this workspace root
-- `git branch --show-current` equals `main`
+- `git branch --show-current` equals `rene`
 
 If either check fails:
 
