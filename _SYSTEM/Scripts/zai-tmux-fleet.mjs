@@ -25,6 +25,50 @@ export const ARM_ENV = 'YURI_ZAI_TMUX_FLEET';
 export const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'zai-tmux-fleet.enabled');
 export const DEFAULT_MODEL = 'glm-5.2';
 export const WORKER_PREFIX = 'zai-worker';
+export const DEFAULT_MIN_DURATION_MS = 60000;
+export const SMOKE_MIN_DURATION_MS = 5000;
+export const FALSE_GREEN_REASON = 'false-green:prompt-echo';
+
+/** Remove echoed prompt text from pane capture before label extraction. */
+export function stripInjectedPrompt(text, prompt) {
+  let s = String(text || '');
+  const p = String(prompt || '');
+  if (!p) return s;
+  if (s.includes(p)) s = s.split(p).join('');
+  const pLines = p.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (pLines.length > 1) {
+    for (const line of pLines) {
+      if (line.length > 12 && s.includes(line)) s = s.split(line).join('');
+    }
+  }
+  return s.replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/** True when pane body exceeds prompt echo or shows implementation evidence. */
+export function hasSubstantiveEvidence(text, prompt) {
+  const s = String(text || '');
+  const p = String(prompt || '');
+  if (s.length > p.length + 50) return true;
+  if (/```/.test(s)) return true;
+  if (/(?:^|\s)(?:\.\/|_SYSTEM\/|02_RESOURCES\/)[^\s]+/m.test(s)) return true;
+  if (/\b[\w.-]+\.(?:mjs|ts|tsx|js|jsx|json|md)\b/.test(s)) return true;
+  if (/\b(?:function|export|import|const|class)\b/.test(s)) return true;
+  return false;
+}
+
+/** Classify a candidate label against baseline, duration, and pane substance. */
+export function classifyPollResult({ resultLabel, baselineLabel, elapsedMs, strippedText, prompt, minDurationMs }) {
+  if (!resultLabel) return { ok: false, reason: '' };
+  const violations = [];
+  if (baselineLabel && baselineLabel === resultLabel) violations.push('baseline-had-label');
+  if (elapsedMs < minDurationMs) violations.push('too-fast');
+  if (prompt.includes(resultLabel) && !hasSubstantiveEvidence(strippedText, prompt)) {
+    violations.push('label-in-prompt');
+  }
+  if (!hasSubstantiveEvidence(strippedText, prompt)) violations.push('no-substance');
+  if (violations.length) return { ok: false, reason: `${FALSE_GREEN_REASON} (${violations.join(', ')})` };
+  return { ok: true, reason: '' };
+}
 
 export function isArmed() {
   if (process.env[ARM_ENV] === '1') return true;
@@ -161,6 +205,7 @@ async function fireTask(task, label, runDir, runId, index) {
   const prompt = String(task.prompt || '');
   const timeoutMs = Number(task.timeoutMs) > 0 ? Number(task.timeoutMs) : 3600000;
   const pollMs = Number(task.pollMs) > 0 ? Number(task.pollMs) : 5000;
+  const minDurationMs = Number(task.minDurationMs) > 0 ? Number(task.minDurationMs) : DEFAULT_MIN_DURATION_MS;
   const showTerminal = task.showTerminal === true;
   const t0 = Date.now();
   let stderr = '';
@@ -168,6 +213,7 @@ async function fireTask(task, label, runDir, runId, index) {
   let resultLabel = '';
   let status = 'fail';
   let ok = false;
+  let baselineLabel = '';
 
   try {
     const booted = await ensureWorker(workerName, model, showTerminal);
@@ -175,6 +221,8 @@ async function fireTask(task, label, runDir, runId, index) {
       stderr = '[ZAI_TMUX_BOOT_FAIL] claude-zai did not start within 60s';
     } else {
       await sleep(showTerminal ? 1000 : 500);
+      const baselinePane = capturePane(workerName);
+      baselineLabel = extractResultLabel(stripInjectedPrompt(baselinePane, ''));
       tmuxSendKeys(workerName, prompt, true);
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
@@ -185,10 +233,26 @@ async function fireTask(task, label, runDir, runId, index) {
             if (fileText.length > text.length) text = fileText;
           } catch { /* best-effort */ }
         }
-        resultLabel = extractResultLabel(text);
+        const stripped = stripInjectedPrompt(text, prompt);
+        resultLabel = extractResultLabel(stripped);
         if (resultLabel) {
-          status = 'ok';
-          ok = true;
+          const verdict = classifyPollResult({
+            resultLabel,
+            baselineLabel,
+            elapsedMs: Date.now() - t0,
+            strippedText: stripped,
+            prompt,
+            minDurationMs,
+          });
+          if (verdict.ok) {
+            status = 'ok';
+            ok = true;
+          } else {
+            status = 'fail';
+            ok = false;
+            stderr = verdict.reason;
+            text = `${stderr}\n--- pane (stripped) ---\n${stripped.slice(-4000)}`;
+          }
           break;
         }
         if (!claudeRunning(workerName)) {
@@ -316,6 +380,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       model: DEFAULT_MODEL,
       timeoutMs: 300000,
       pollMs: 3000,
+      minDurationMs: SMOKE_MIN_DURATION_MS,
       prompt: 'Reply with one short line confirming Z.ai tmux fleet is live, then on a NEW line emit exactly: 01LT_ZAI_TMUX_FLEET_SMOKE_X_PASS_COMMITTED . No other text.',
     }];
   } else if (flagVal('--tasks-file') || flagVal('--tasks')) {
