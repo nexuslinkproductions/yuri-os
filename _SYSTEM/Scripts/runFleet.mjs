@@ -177,7 +177,7 @@ export function buildZaiSidecar(plan, task = {}) {
     armEnv: 'YURI_ZAI_TMUX_FLEET',
     armFlag: '_SYSTEM/state/zai-tmux-fleet.enabled',
     note: 'GLM heavy tmux sidecar — manual spawn or pass --zai-sidecar; requires tmux + Z.ai key',
-    limitation: 'claude-zai is interactive — fleet uses tmux send-keys + capture-pane poll',
+    limitation: 'headless: lane-dispatch glm-max --out; showTerminal: claude-zai send-keys poll',
     fullImplementation: '_SYSTEM/Scripts/runFleet.mjs::buildZaiSidecar',
   };
 }

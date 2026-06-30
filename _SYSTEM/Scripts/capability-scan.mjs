@@ -38,7 +38,10 @@ function parse(file) {
   for (let i = 0; i < lines.length; i++) {
     const m = lines[i].match(/^\s*(?:\/\/|#)\s*@capability:\s*(\S+)/);  // a real // (js) or # (py/sh) comment line, not a string/regex literal
     if (!m) continue;
-    const cap = { id: m[1].trim(), serves: [], does: '', use: '', exports: [], mechanism: path.relative(ROOT, file) };
+    // POSIX-normalize the stored path: path.relative emits OS-native separators, so a Windows
+    // clone would write backslashes here -> the committed registry (forward-slash) drifts and
+    // --check blocks every Windows commit. .split(path.sep).join('/') is inert on macOS/Linux.
+    const cap = { id: m[1].trim(), serves: [], does: '', use: '', exports: [], mechanism: path.relative(ROOT, file).split(path.sep).join('/') };
     for (let j = i + 1; j < Math.min(i + 12, lines.length); j++) {
       const l = lines[j];
       let g;
