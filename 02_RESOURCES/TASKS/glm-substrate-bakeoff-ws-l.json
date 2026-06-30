@@ -1,0 +1,121 @@
+{
+  "summary": "WS-L: GLM substrate bakeoff — smoke, measure, pre-dispatch quantum/calc gate",
+  "tags": ["glm", "substrate", "bakeoff", "quantum", "ws-l", "dispatch"],
+  "researchDoc": "_SYSTEM/reports/GLM_SUBSTRATE_OPTIONS_BAKEOFF_2026-06-30.md",
+  "debugDoc": "_SYSTEM/reports/GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md",
+  "enforcementDoc": "_SYSTEM/reports/MURE_ENFORCEMENT_MINIMUM_2026-06-30.md",
+  "disarmedByDefault": true,
+  "armingNote": "L0 smoke is DISARMED-safe. L1 zai-tmux needs Terminal+tmux. L3 measurement needs YURI_GLM_FLEET=1 and/or YURI_OLLAMA_FLEET=1 for armed runs. Pre-dispatch selector is pure/advisory — no arming.",
+  "levelOrder": ["L0", "L1", "L2", "L3"],
+  "dependsOn": {
+    "research": [
+      "_SYSTEM/reports/GLM_SUBSTRATE_OPTIONS_BAKEOFF_2026-06-30.md",
+      "_SYSTEM/reports/GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md",
+      "_SYSTEM/reports/MURE_ENFORCEMENT_MINIMUM_2026-06-30.md"
+    ],
+    "skills": [
+      "quantum-hypothesis-simulation",
+      "probabilistic-decision-core",
+      "trade-decision-sim"
+    ],
+    "scripts": [
+      "_SYSTEM/Scripts/decision-sim.mjs",
+      "_SYSTEM/mure/math-bridge.mjs",
+      "_SYSTEM/Scripts/quantum-hypothesis-tracker.mjs",
+      "_SYSTEM/Scripts/fleet-router-mlp.mjs"
+    ]
+  },
+  "subtasks": [
+    {
+      "id": "WS-L-L0-smoke-all-substrates",
+      "level": "L0",
+      "segment": "L0",
+      "substrateHint": "mix",
+      "phase": "smoke",
+      "role": "mechanic",
+      "disarmed": true,
+      "need": ["runtime-test", "integration"],
+      "prompt": "Smoke all substrates DISARMED where needed: (1) llm-lane glm-5.2 --no-tools, (2) lane-dispatch glm --no-tools, (3) glm-fleet --dry-run, (4) ollama-fleet --dry-run, (5) cline-fleet --dry-run, (6) native-spawn-loop dry-run stub. Record exit codes. Return 02L0_SUBSTRATE_SMOKE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L0-baseline-tmux-zai",
+      "level": "L0",
+      "segment": "L0",
+      "substrateHint": "manual",
+      "phase": "smoke",
+      "role": "steward",
+      "disarmed": true,
+      "need": ["runtime-test"],
+      "prompt": "Document Marcel baseline: ai claude-zai via yuri-spawn-worker.sh. Manual one-shot 'Reply OK' task. Record cold-boot latency + pass. Append to bakeoff doc §J. Return 02L0_TMUX_BASELINE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L1-zai-tmux-fleet-adapter",
+      "level": "L1",
+      "segment": "L1",
+      "substrateHint": "glm",
+      "phase": "adapter",
+      "role": "engineer",
+      "disarmed": true,
+      "need": ["code-generation", "implementation"],
+      "prompt": "IF bakeoff ranks tmux-zai #1 (expected): implement _SYSTEM/Scripts/zai-tmux-fleet.mjs wrapping yuri-spawn-worker.sh. ARM_ENV=YURI_ZAI_TMUX_FLEET. Packet shape matches glm-fleet. DISARMED unit test. Do NOT implement if L0 smoke reveals trivial llm-lane one-line fix instead. Return 02L1_ZAI_TMUX_ADAPTER_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L2-quantum-pre-dispatch-selector",
+      "level": "L2",
+      "segment": "L2",
+      "substrateHint": "glm",
+      "phase": "quantum-gate",
+      "role": "kernelsmith",
+      "disarmed": true,
+      "need": ["integration", "implementation"],
+      "prompt": "Wire advisory substrate-pre-dispatch.mjs: score {tmux-zai, glm-fleet, ollama-flash, cline} via math-bridge.scoreOptions + decision-sim.robustScore. Simulate hypotheses with seeded draws. Log to prediction-ledger. quantum-hypothesis-tracker ONLY if order-sensitive escalation path added. Return 02L2_PRE_DISPATCH_SELECTOR_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L2-runfleet-hook",
+      "level": "L2",
+      "segment": "L2",
+      "substrateHint": "glm-max",
+      "phase": "integration",
+      "role": "architect",
+      "disarmed": true,
+      "need": ["architecture", "integration"],
+      "prompt": "Wire pre-dispatch selector into runFleet.mjs dry-run output as routerSuggestions.substrateScore (advisory). Document in bakeoff doc §G. Return 02L2_RUNFLEET_HOOK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L3-bakeoff-measured",
+      "level": "L3",
+      "segment": "L3",
+      "substrateHint": "mix",
+      "phase": "verify",
+      "role": "adjudicator",
+      "disarmed": false,
+      "need": ["adversarial-verify", "runtime-test"],
+      "prompt": "Execute 10-prompt bakeoff per bakeoff doc §I. Measure latency p50/p95, pass rates, RESULT_LABEL yield per substrate. Update options matrix §C with measured scores. Feed mean/sd into pre-dispatch selector. Return 02L3_BAKEOFF_MEASURED_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-L3-enforcement-crosscheck",
+      "level": "L3",
+      "segment": "L3",
+      "substrateHint": "glm-max",
+      "phase": "verify",
+      "role": "deliberator",
+      "disarmed": true,
+      "need": ["adversarial-verify"],
+      "prompt": "Cross-check chosen substrate stack against MURE_ENFORCEMENT_MINIMUM §B honesty invariants + §G orchestration. Confirm wait-for-job replaces blind sleep. Return 02L3_ENFORCEMENT_CROSSCHECK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}
