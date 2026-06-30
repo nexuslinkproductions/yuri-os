@@ -34,3 +34,32 @@ test('GREEN: companyDispatch dry-run-all produces manifest', async () => {
   assert.equal(m.errors.length, 0);
   assert.ok(m.streams.every((s) => s.status === 'planned' || s.status === 'skipped-held'));
 });
+
+test('GREEN: extractBlockingLeaves helper deduplicates and filters null leafId', async () => {
+  // Import the internal helper for testing
+  const { extractBlockingLeaves } = await import('./company-dispatch.mjs');
+
+  const roundLog = [
+    {
+      verdict: {
+        blocking: [
+          { layer: 'obligation-floor', leafId: 'leaf-1', reason: 'missing' },
+          { layer: 'adversarial', leafId: 'leaf-2', reason: 'gap' },
+        ],
+      },
+    },
+    {
+      verdict: {
+        blocking: [
+          { layer: 'convergence', leafId: 'leaf-1', reason: 'recheck' }, // duplicate
+          { layer: 'obligation-floor', leafId: null, reason: 'cross-cutting' },
+        ],
+      },
+    },
+  ];
+
+  const blocking = extractBlockingLeaves(roundLog);
+  assert.equal(blocking.length, 2);
+  assert.ok(blocking.includes('leaf-1'));
+  assert.ok(blocking.includes('leaf-2'));
+});

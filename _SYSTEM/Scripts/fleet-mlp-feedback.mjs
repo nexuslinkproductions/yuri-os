@@ -98,6 +98,15 @@ export function deriveLeafOutcome(leafId, runResult = {}) {
 
   const text = packet?.text || '';
   const label = packet?.label || extractResultLabel(text) || '';
+
+  // WS-J-K1 outcome gate (MURE §B.2): refuse to train on empty outcomes.
+  // Empty RESULT_LABEL with no substantive text → garbage router gradients.
+  const textLen = text.trim().length;
+  const OUTCOME_TEXT_MIN = 16; // substantive floor — below this and no label = no signal
+  if (!label && textLen < OUTCOME_TEXT_MIN) {
+    return { skipped: true, reason: 'empty-outcome', leafId, actualSubstrate };
+  }
+
   const statusOk = packet?.status === 'ok' || packet?.ok === true;
   const passLabel = /_P_PASS_/.test(label) || /_X_PASS_/.test(label);
   const success = statusOk && (passLabel || !!label);
@@ -125,6 +134,7 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
   const ledgerFile = opts.ledgerFile;
   const quotaPressure = opts.quotaPressure ?? 0.4;
   const records = [];
+  let skippedOutcomes = 0;
 
   for (const leaf of leavesFromPlan(plan)) {
     if (!leaf.routerSuggestion) continue;
@@ -135,6 +145,22 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
     );
     const outcome = deriveLeafOutcome(sub, runResult);
     const predId = ids[sub];
+
+    // WS-J-K1 outcome gate (MURE §B.2): do NOT call updateFromOutcome on empty outcomes —
+    // training on lies produces garbage router gradients.
+    if (outcome.skipped) {
+      records.push({
+        id: sub,
+        predictionId: predId,
+        substrate: leaf.routerSuggestion.substrate,
+        actualSubstrate: outcome.actualSubstrate,
+        skipped: true,
+        skipReason: outcome.reason,
+        persisted: false,
+      });
+      skippedOutcomes++;
+      continue;
+    }
 
     if (persist && predId) {
       recordOutcome({
@@ -163,7 +189,7 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
     });
   }
 
-  return { advisory: !persist, persisted: persist, count: records.length, records };
+  return { advisory: !persist, persisted: persist, count: records.length, records, skippedOutcomes };
 }
 
 /** Dry-run feedback — compute error, never persist weights or ledger. */

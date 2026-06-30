@@ -62,6 +62,20 @@ function parseArgs(argv) {
   };
 }
 
+/** Extract blocking leaf IDs from runSwarm roundLog. */
+export function extractBlockingLeaves(roundLog) {
+  const blocking = new Set();
+  for (const round of roundLog || []) {
+    const verdict = round.verdict;
+    if (verdict?.blocking) {
+      for (const b of verdict.blocking) {
+        if (b.leafId) blocking.add(b.leafId);
+      }
+    }
+  }
+  return Array.from(blocking);
+}
+
 /** Build manifest entry for one workstream. */
 export async function planWorkstream(rel, opts = {}) {
   const task = readTask(rel);
@@ -143,7 +157,8 @@ export async function companyDispatch(opts = {}) {
           mlpLearn: opts.mlpLearn,
           quotaPressure: opts.quotaPressure ?? 0.4,
         });
-        entry.status = 'applied';
+        const finalizeOk = result.run?.swarm?.finalizeOk === true;
+        entry.status = finalizeOk ? 'applied' : 'applied-with-failures';
         entry.mlpFeedback = {
           persisted: result.mlpFeedback?.persisted,
           count: result.mlpFeedback?.count,
@@ -156,8 +171,15 @@ export async function companyDispatch(opts = {}) {
             finalizeOk: result.run.swarm.finalizeOk,
             finalizeReason: result.run.swarm.finalizeReason,
             forced: result.run.swarm.verdict?.forced === true,
+            blockingLeaves: extractBlockingLeaves(result.run.swarm.roundLog || []),
           }
           : null;
+        if (!finalizeOk) {
+          manifest.errors.push({
+            taskFile: rel,
+            error: `swarm.finalizeOk=${result.run?.swarm?.finalizeOk}: ${result.run?.swarm?.finalizeReason || 'unknown'}`,
+          });
+        }
         fs.writeFileSync(
           path.join(opts.outDir, `${path.basename(rel, '.json')}-apply.json`),
           JSON.stringify(result, null, 2),
@@ -179,7 +201,8 @@ export async function companyDispatch(opts = {}) {
   const manifestPath = path.join(opts.outDir, runId, 'manifest.json');
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-  return { ...manifest, manifestPath: path.relative(REPO_ROOT, manifestPath) };
+  const hasFailures = manifest.streams.some((s) => s.status === 'applied-with-failures');
+  return { ...manifest, manifestPath: path.relative(REPO_ROOT, manifestPath), hasFailures };
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
@@ -197,6 +220,6 @@ if (isMain) {
     taskFiles: opts.taskFiles,
   }).then((m) => {
     console.log(JSON.stringify(m, null, 2));
-    process.exit(m.errors.length ? 1 : 0);
+    process.exit(m.hasFailures || m.errors.length ? 1 : 0);
   }).catch((e) => { console.error(e); process.exit(1); });
 }
