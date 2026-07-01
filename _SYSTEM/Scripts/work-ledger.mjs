@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import Database from 'better-sqlite3';
 import { loadRoster } from '../mure/role-registry.mjs';
 import { isMureArmed, MURE_NAME } from '../mure/company.mjs';
@@ -240,7 +240,7 @@ export function overview(db) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const db = openLedger();
   if (argv.includes('--ingest') || argv.length === 0) {
