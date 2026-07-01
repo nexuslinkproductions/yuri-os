@@ -6,9 +6,14 @@
  * dev aliases only and must remain opt-in through YURI_PRIVATE_RICK_OVERLAY=1.
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
 export const PRIVATE_PERSONA_ENV = 'YURI_PRIVATE_RICK_OVERLAY';
+export const PRIVATE_PERSONA_ENV_ALIAS = 'YURI_PRIVATE_PERSONA_OVERLAY';
 
 export const LANE_PERSONAS = Object.freeze({
   codex: Object.freeze({
@@ -101,7 +106,30 @@ const WORKER_TO_PERSONA = Object.freeze({
 });
 
 export function privatePersonaOverlayEnabled(env = process.env) {
-  return String(env?.[PRIVATE_PERSONA_ENV] || '') === '1';
+  return String(env?.[PRIVATE_PERSONA_ENV] || '') === '1' || String(env?.[PRIVATE_PERSONA_ENV_ALIAS] || '') === '1';
+}
+
+// Per-machine operator identity, mirrors brain-inject.js's loadOperatorProfile (gitignored
+// .claude/operator.json -> local override, never committed, merge-clean with upstream). Absent
+// profile -> null, callers fall back to the committed Rick roster.
+const OPERATOR_PROFILE_FILE = path.join(REPO_ROOT, '.claude', 'operator.json');
+function loadOperatorProfile() {
+  try {
+    if (!fs.existsSync(OPERATOR_PROFILE_FILE)) return null;
+    return JSON.parse(fs.readFileSync(OPERATOR_PROFILE_FILE, 'utf8')) || null;
+  } catch { return null; }
+}
+
+// Resolves the operator-driven overlay NAME for Claude lanes only ('claude-sonnet' /
+// 'claude-opus'). Non-Claude lanes stay on the committed Rick roster regardless of
+// operator.json, so switching operators never changes deepseek/kagami/automation aliases.
+export function operatorOverlayName(key, options = {}) {
+  const reader = options.operatorReader ?? loadOperatorProfile;
+  const profile = reader();
+  const overlay = profile?.persona?.overlay;
+  if (typeof overlay !== 'string' || overlay.trim() === '') return null;
+  if (key !== 'claude-sonnet' && key !== 'claude-opus') return null;
+  return `${overlay.trim()}${key === 'claude-opus' ? ' · Opus' : ''}`;
 }
 
 export function claudePersonaKeyForModel(model = 'sonnet') {
@@ -127,7 +155,8 @@ export function lanePersonaForWorker(worker, options = {}) {
     rationale: 'Fallback lane with no private reference.',
   };
   const privateOverlay = privatePersonaOverlayEnabled(options.env || process.env);
-  const displayName = privateOverlay ? persona.privateAlias : persona.shipLabel;
+  const opOverlay = privateOverlay ? operatorOverlayName(key, options) : null;
+  const displayName = privateOverlay ? (opOverlay ?? persona.privateAlias) : persona.shipLabel;
   const packetRole = privateOverlay
     ? `${persona.privateAlias} (${persona.shipLabel})`
     : persona.shipLabel;
@@ -137,6 +166,7 @@ export function lanePersonaForWorker(worker, options = {}) {
     displayName,
     packetRole,
     privateOverlay,
+    operatorOverlay: opOverlay || null,
   });
 }
 

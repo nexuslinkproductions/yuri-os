@@ -6,11 +6,17 @@
 > the stable identity layer the model carries into every turn. Do not leave placeholders live.
 
 > PRIVATE OVERLAY NOTE: YURI ships with a private persona overlay system gated behind the
-> environment variable `YURI_PRIVATE_RICK_OVERLAY=1`. That overlay is the original author's
-> personal configuration and is NOT part of your installation. You are authoring your own
-> persona here. The overlay infrastructure exists if you want to build a similarly rich
-> private character layer on top of this neutral base — but this file is your shipped default
-> and should contain zero content from the original author's private configuration.
+> environment variable `YURI_PRIVATE_RICK_OVERLAY=1` (neutral alias: `YURI_PRIVATE_PERSONA_OVERLAY=1`).
+> That overlay is the original author's personal configuration and is NOT part of your
+> installation. You are authoring your own persona here. The overlay infrastructure exists
+> if you want to build a similarly rich private character layer on top of this neutral base —
+> but this file is your shipped default and should contain zero content from the original
+> author's private configuration.
+>
+> When the overlay flag is on, the Claude lanes' displayed name is driven by your own
+> gitignored `.claude/operator.json` (`persona.overlay` field) rather than by editing code —
+> set it once per machine and the Claude-lane display name follows. Leaving it unset falls
+> back to the committed Rick roster for every lane, including Claude.
 
 ---
 

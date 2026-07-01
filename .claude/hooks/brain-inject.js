@@ -30,14 +30,33 @@ const LAUNCH_GATE      = path.join(REPO_ROOT, '.claude', 'state', 'launch-gate.j
 const LANE_HEALTH_FILE = path.join(REPO_ROOT, '.claude', 'state', 'lane-health-status.json');
 const ENERGY_WEIGHTS   = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'energy-weights.json');
 
-// M2 Pro hardware constraints — hardcoded, updated only when hardware changes
-const HARDWARE = {
+// Hardware + operator identity. DEFAULT = upstream author's box; the gitignored
+// per-machine override at .claude/operator.json (see .gitignore) supersedes it when
+// present, so each operator's machine reads its own truth and shared code never
+// hardcodes one person. Absent profile → DEFAULT (fresh clone / upstream unaffected).
+const DEFAULT_HARDWARE = {
   machine: 'MacBook M2 Pro 16GB',
   safe_local: ['llama3.2:latest', 'needle'],
   frozen:     ['deepseek-r1:8b', 'qwen2.5:7b', 'qwen2.5-coder:7b', 'qwen3.5:4b', 'gemma4:latest', 'gemma4:e2b', 'deepseek-liberated:latest'],
   note:       'P9 soak (deepseek-r1:8b) requires Mac Mini M4 Pro — do NOT run on this machine',
   max_concurrent_lanes: 10,
 };
+
+const OPERATOR_PROFILE_FILE = path.join(REPO_ROOT, '.claude', 'operator.json');
+function loadOperatorProfile() {
+  try {
+    if (!fs.existsSync(OPERATOR_PROFILE_FILE)) return null;
+    return JSON.parse(fs.readFileSync(OPERATOR_PROFILE_FILE, 'utf8')) || null;
+  } catch { return null; }
+}
+const OPERATOR_PROFILE = loadOperatorProfile();
+const HARDWARE = (OPERATOR_PROFILE && OPERATOR_PROFILE.hardware)
+  ? { ...DEFAULT_HARDWARE, ...OPERATOR_PROFILE.hardware }
+  : DEFAULT_HARDWARE;
+// Operator display name for the injected identity block — parameterizes the otherwise
+// author-hardcoded identity-hash / neuro-core text at INJECTION time, so the source .md
+// files stay upstream-clean (no merge conflict). null → leave text as-authored.
+const OPERATOR_NAME = (OPERATOR_PROFILE && OPERATOR_PROFILE.operator && OPERATOR_PROFILE.operator.name) || null;
 
 // ── Staleness guard (wave-3 H.3) ────────────────────────────────────────────
 // 20-24-day-old lane-health/roadmap/learned-rules were being presented as live
@@ -424,16 +443,20 @@ function loadOrganState() {
 // ── Compose unified block ───────────────────────────────────────────────────
 
 function buildBrainBlock({ learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore, organState }) {
+  // Parameterize author-hardcoded operator references at injection time (source .md
+  // files stay upstream-clean). null OPERATOR_NAME → text as-authored.
+  const applyOperator = (txt) => (OPERATOR_NAME && txt) ? txt.replace(/\bMarcel\b/g, OPERATOR_NAME) : txt;
+
   const identityHashSection = identityHash
-    ? `\n\n### IDENTITY_HASH — frozen invariants (drift anchor, owner-gated)\n${identityHash}`
+    ? `\n\n### IDENTITY_HASH — frozen invariants (drift anchor, owner-gated)\n${applyOperator(identityHash)}`
     : '';
 
   const neuroCoreSection = neuroCore
-    ? `\n\n### NEURO_CORE — how I learn & remember (always-load key points)\n${neuroCore}`
+    ? `\n\n### NEURO_CORE — how I learn & remember (always-load key points)\n${applyOperator(neuroCore)}`
     : '';
 
-  const hwSafe    = HARDWARE.safe_local.join(', ');
-  const hwFrozen  = HARDWARE.frozen.slice(0,4).join(', ') + '…';
+  const hwSafe    = (HARDWARE.safe_local || []).join(', ');
+  const hwFrozen  = (HARDWARE.frozen || []).length ? (HARDWARE.frozen.slice(0,4).join(', ') + '…') : '';
 
   const dynamicSection = cortexDynamic
     ? `\n### DYNAMIC — Cross-turn cortex state\n${cortexDynamic}`
@@ -471,12 +494,17 @@ function buildBrainBlock({ learnedRules, memoryLines, sessionCtx, gateSnapshot, 
   // behavioral modules. MEMORY.md and learned-rules MUTATE (every memory write /
   // dream synthesis) and were moved to ZONE-C: the old "cacheable stable prefix"
   // claim was false while they lived here. Identity is native (@SOUL.md) — not here.
+  const hwHeader  = `### HARDWARE — ${HARDWARE.machine}`;
+  const hwLines   = [
+    HARDWARE.os ? HARDWARE.os : '',
+    hwSafe   ? `safe local: ${hwSafe}` : '',
+    hwFrozen ? `frozen (DO NOT RUN): ${hwFrozen}` : '',
+    HARDWARE.note || '',
+  ].filter(Boolean).join('\n');
   const stableCore = `<yuri-brain>${identityHashSection.replace(/^\n\n/, '')}${neuroCoreSection}
 
-### HARDWARE — M2 Pro constraints
-safe local: ${hwSafe}
-frozen (DO NOT RUN): ${hwFrozen}
-${HARDWARE.note}${animaDNASection}`;
+${hwHeader}
+${hwLines}${animaDNASection}`;
 
   // ── ZONE C: VOLATILE — mutable + session-scoped content. NOTE: brain-inject output
   // is NOT a guaranteed cacheable prefix — git-log, ages, MEMORY, learned-rules all

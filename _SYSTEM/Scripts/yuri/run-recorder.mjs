@@ -1,4 +1,12 @@
-import { join as joinPath } from 'node:path';
+import { posix as posixPath } from 'node:path';
+
+// Run-artifact paths are logical identifiers (JSON payloads, JSONL logs,
+// cross-lane comparisons like `.endsWith('/pulse.json')`), not literal OS
+// filesystem calls. They must stay POSIX-separated on every platform so
+// Windows (`path.join` => `path.win32.join`, backslash-joined) doesn't
+// diverge from macOS/Linux. Use `path.posix.join` explicitly instead of the
+// platform-dependent default export.
+const joinPath = posixPath.join;
 
 export const DEFAULT_RUN_ARTIFACTS = Object.freeze([
   'request.md',

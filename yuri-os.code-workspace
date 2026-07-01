@@ -1,12 +1,12 @@
 {
   "folders": [
     {
-      "name": "YURI-OS-MUSUBI",
+      "name": "yuri-os",
       "path": "."
     },
     {
       "name": "Yuri Memory (Track B — auto-memory)",
-      "path": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory"
+      "path": "C:/Users/rene/.claude/projects/C--Users-rene-yuri-os/memory"
     }
   ],
   "settings": {
