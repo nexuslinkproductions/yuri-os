@@ -8,6 +8,13 @@
 
 export const SEED_JOBS = [
   {
+    type: 'infra', title: 'Jeffrey local assistant — René vision+reasoning stack (5060 Ti)',
+    detail: 'Ship Jeffrey for CGSSCHWEIZ: Hey Clicky Windows + Ollama dual-slot (qwen3-vl:8b-thinking + qwen3:14b), jeffrey-* llm_compat lanes, setup script, hardware baseline. MURE plan at 02_RESOURCES/TASKS/jeffrey-rene-build.json.',
+    value: 0.9, risk: 0.2, priority: 'high', source: 'owner',
+    nextAction: 'René runs jeffrey-rene-setup.ps1, configures Clicky .env, smoke-tests vision on Blender viewport.',
+    closureCondition: 'René confirms Jeffrey sees screen + reasons locally; benchmark logged in hardware-rene-5060ti.json.',
+  },
+  {
     type: 'gap', title: 'Windows main-module guard — portable pathToFileURL across Scripts/*.mjs (issue #3)',
     detail: 'CGSSCHWEIZ reported github.com/nexuslinkproductions/yuri-os/issues/3: legacy `import.meta.url === file://${process.argv[1]}` silently no-ops on win32 (exit 0, no output). Blocks ai search/reindex/xref and ~159+ Scripts. Fix: pathToFileURL guard + CI check via fix-main-module-guard.mjs --check.',
     value: 0.95, risk: 0.15, priority: 'critical', source: 'owner',

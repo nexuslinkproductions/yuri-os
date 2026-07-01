@@ -25,6 +25,13 @@
       "max_ollama_memory_gb": 10,
       "unified_memory": true,
       "note": "Gemma 4 12B QAT is the only routed local SLM policy. On this 16 GB MacBook it should be treated as a warm, bounded local lane rather than an always-heavy foreground replacement; old Needle/Qwen local choices are retired from llm-compat routing."
+    },
+    "rene_5060ti_16gb": {
+      "max_ollama_memory_gb": 14,
+      "unified_memory": false,
+      "gpu": "RTX 5060 Ti 16GB",
+      "max_concurrency": 1,
+      "note": "Jeffrey stack for CGSSCHWEIZ/René. Dual-slot on-demand: jeffrey-vision-local + jeffrey-brain-local — never load both full 12B+ models simultaneously. See 02_RESOURCES/GUIDES/rene-jeffrey-local-stack.md."
     }
   },
   "environment_override": {
@@ -410,6 +417,37 @@
       "context_window": 16384,
       "max_output": { "off": 2560, "low": 4096, "medium": 6144, "high": 8192, "xhigh": 12288 },
       "max_output_source": "gemma-4-12B-coder-fable5-composer2.5 (Apache-2.0, base google/gemma-4-12B-it, fine-tuned on verifiable Python coding data with chain-of-thought) Q4_K_M 7.38GB — DISARMED/ADVISORY local trade-analysis reasoning lane (owner 2026-06-18). A 12B CODING model with native thinking mode (enable_thinking; emits a reasoning block) — tests whether coding-CoT transfers to quantitative trade reasoning vs the 3B vibethinker-local. num_ctx capped at 16384 (card advertises 256K but the M2 Pro Metal working-set policy caps it like gemma-local; weights 7.38GB + KV must stay under the 10GB cap). llm-lane forces temperature 0 (deterministic analysis) vs the card's creative temp 1.0 — fine for analysis. Invoke with --no-tools --light (a 12B cannot carry the full YURI spine). ADVISORY ONLY — never sizes trades, not wired into any config-write/sizing/overseer path. Card notes reduced safety guardrails (coding focus) — irrelevant for trade-data analysis.",
+      "timeout_ms": 300000
+    },
+    "jeffrey-vision-local": {
+      "model": "qwen3-vl:8b-thinking",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "multimodal": true,
+      "hardware_profile": "rene_5060ti_16gb",
+      "context_window": 32768,
+      "max_output": { "off": 2048, "low": 4096, "medium": 8192, "high": 12288, "xhigh": 16384 },
+      "max_output_source": "Jeffrey vision slot for René (5060 Ti 16GB). Qwen3-VL-8B-Thinking ~6GB Q4 + image tokens. Always-on CoT — budget long max_output for CAD/Blender/screenshot reasoning. Pair with jeffrey-brain-local on-demand (not simultaneous). Clicky OLLAMA_VISION_MODEL target.",
+      "timeout_ms": 300000
+    },
+    "jeffrey-brain-local": {
+      "model": "qwen3:14b",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "hardware_profile": "rene_5060ti_16gb",
+      "context_window": 32768,
+      "max_output": { "off": 2048, "low": 4096, "medium": 8192, "high": 12288, "xhigh": 16384 },
+      "max_output_source": "Jeffrey command brain for René. Qwen3-14B ~9GB Q4 with /think toggle for tool orchestration + multi-step holster/CAD planning. Fallback: gemma4-coder-local (Fable CoT). Clicky OLLAMA_TEXT_MODEL target. YURI_LOCAL_MAX_CONCURRENCY=1.",
       "timeout_ms": 300000
     },
     "ollama-cloud": {

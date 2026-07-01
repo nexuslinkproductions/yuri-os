@@ -4356,11 +4356,6 @@
         "ingestOutputs",
         "pruneMissing",
         "ingestAll",
-        "getRunDetail",
-        "getArtifactsByRole",
-        "getRoleProductivityTrends",
-        "getConvergenceTrend",
-        "getThroughputTrend",
         "overview",
         "DB_PATH",
         "OUTPUT_ROOTS"

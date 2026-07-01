@@ -1,0 +1,48 @@
+{
+  "summary": "Jeffrey — Rene's local vision+reasoning assistant (5060 Ti 16GB, Win11). See screen, think about Blender/CAD/holster work. Integrate Hey Clicky Windows + YURI offline spine.",
+  "tags": ["jeffrey", "rene", "local", "vision", "clicky", "windows"],
+  "subtasks": [
+    {
+      "id": "envoy-intake",
+      "need": ["decode", "requirements"],
+      "prompt": "Decode Jeffrey requirements for CGSSCHWEIZ/Rene: RTX 5060 Ti 16GB, i7-14700K, Windows 11, branch rene. Jeffrey must see (screenshots, Blender viewport, STL refs, PDFs) and reason (holster blocking workflow, CAD steps). Prefer 100% local Ollama. Hey Clicky Windows port for screen-aware voice UI. YURI xref/search for repo knowledge. Output: acceptance criteria + hardware budget table.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "scout-models",
+      "need": ["research", "benchmark"],
+      "prompt": "Scout HF/GitHub for 2026 OSS VLMs + Fable-5 distillations fitting 16GB VRAM. Shortlist Qwen3-VL-8B, Gemma4 12B/E4B, Phi-4-reasoning-vision-15B, MiniCPM-V-4.6-Thinking, Fable distill under 16GB. Output: ranked model matrix with Ollama tags + VRAM + vision+reasoning scores.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "architect-stack",
+      "need": ["architecture", "integration"],
+      "prompt": "Design Jeffrey stack: (1) Hey Clicky Windows vision+text Ollama slots, (2) YURI jeffrey-local lane in models.json, (3) dual-model pattern vision+command, (4) one-model-at-a-time VRAM rule for 16GB. Output: architecture diagram in prose + file list to ship on rene branch.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "engineer-scripts",
+      "need": ["implementation", "scripts"],
+      "prompt": "Spec Windows setup script: install Ollama, pull models, configure Clicky .env (OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL), run YURI ai reindex + fix-main-module-guard --check, smoke test jeffrey-local. Output: ordered command checklist for Rene.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "chronicler-guide",
+      "need": ["documentation"],
+      "prompt": "Write operator guide sections: What is Jeffrey, first 30 minutes on Windows, model swap (instruct vs thinking), Clicky tray setup, when to use YURI search vs Jeffrey vision. Plain language for Rene (non-developer friendly).",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "adjudicator-review",
+      "need": ["verification", "adversarial"],
+      "prompt": "Attack the Jeffrey plan: VRAM OOM risks, Clicky vision model compatibility, Fable 31B on 16GB claims, Windows native vs WSL paths, tool-loop failures on small models. Output: risk table + mitigations.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "machine": "René workstation (CGSSCHWEIZ)",
+  "owner": "rene",
+  "github": "CGSSCHWEIZ",
+  "os": "Windows 11 Pro build 26200",
+  "cpu": "Intel i7-14700K (8P+12E, 28 threads)",
+  "gpu": "NVIDIA RTX 5060 Ti 16GB",
+  "ram_gb": 32,
+  "tested_at": null,
+  "jeffrey_stack": {
+    "vision_primary": "qwen3-vl:8b-thinking",
+    "brain_primary": "qwen3:14b",
+    "vision_fallback": "gemma4:12b",
+    "brain_fallback": "xentriom/gemma-4-12B-coder-fable5-composer2.5-v1:Q4_K_M",
+    "clicky_repo": "https://github.com/Bitshank-2338/clicky-windows",
+    "architecture": "dual_slot_on_demand",
+    "max_concurrency": 1
+  },
+  "ollama_policy": {
+    "max_vram_gb": 14,
+    "kv_cache": "q4_0",
+    "flash_attention": true,
+    "note": "Leave ~2GB headroom for display + capture. One 12B-class model at a time."
+  },
+  "ollama_results": [],
+  "notes": "Baseline seeded 2026-07-01 for Jeffrey local assistant. Benchmarks pending on René hardware."
+}

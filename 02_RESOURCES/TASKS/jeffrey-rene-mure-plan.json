@@ -1,0 +1,54 @@
+{
+  "name": "MURE",
+  "armed": false,
+  "dryRun": true,
+  "summary": {
+    "subtasks": 6,
+    "cast": 6,
+    "glm": 4,
+    "native": 2,
+    "inline": 0,
+    "held": 0,
+    "clearedHeld": 0
+  },
+  "held": [],
+  "glmLeaves": [
+    {
+      "id": "architect-stack",
+      "role": "architect",
+      "lane": "glm-max"
+    },
+    {
+      "id": "engineer-scripts",
+      "role": "engineer",
+      "lane": "glm"
+    },
+    {
+      "id": "chronicler-guide",
+      "role": "engineer",
+      "lane": "glm"
+    },
+    {
+      "id": "adjudicator-review",
+      "role": "adjudicator",
+      "lane": "glm-max"
+    }
+  ],
+  "nativeSpecs": [
+    {
+      "id": "envoy-intake",
+      "role": "envoy",
+      "model": "sonnet"
+    },
+    {
+      "id": "scout-models",
+      "role": "scout",
+      "model": "sonnet"
+    }
+  ],
+  "nativeResults": {
+    "dispatched": 0,
+    "skipped": 0
+  },
+  "swarm": null
+}
