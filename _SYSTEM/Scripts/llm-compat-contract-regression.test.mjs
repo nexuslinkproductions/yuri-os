@@ -13,6 +13,14 @@ const contractPath = resolve(__dirname, 'llm-compat-contract.mjs');
 const llmCompatPath = resolve(__dirname, 'llm-compat.sh');
 const ollamaLanePath = resolve(__dirname, 'ollama-lane.mjs');
 
+// Windows: `ai` and `llm-compat.sh` are bash scripts and cannot be exec'd directly
+// (ENOENT); invoke them via bash. POSIX execs the shebang script directly (unchanged).
+function runShellScript(scriptPath, args, opts = {}) {
+  return process.platform === 'win32'
+    ? execFileSync('bash', [scriptPath, ...args], opts)
+    : execFileSync(scriptPath, args, opts);
+}
+
 function runContract(args) {
   return execFileSync(process.execPath, [contractPath, ...args], { encoding: 'utf8' }).trim();
 }
@@ -86,7 +94,7 @@ const yuriSelftest = execFileSync(
 assert.ok(yuriSelftest.includes('YURI_GUARDED_EXECUTOR_SELFTEST_PASS'), 'yuri guarded executor selftest should pass');
 
 function autoPlan(prompt) {
-  return JSON.parse(execFileSync(
+  return JSON.parse(runShellScript(
     resolve(__dirname, 'ai'),
     ['auto', '--dry-run', prompt],
     { encoding: 'utf8' }
@@ -316,7 +324,7 @@ assert.ok(crossDomainScenario.lifecycle.some((step) => /Bridge/i.test(step)), 'c
 assert.ok(crossDomainScenario.lifecycle.some((step) => /Consolidate/i.test(step)), 'cross-domain lifecycle should include consolidate');
 assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
 
-const deepseekReasoningRoute = JSON.parse(execFileSync(
+const deepseekReasoningRoute = JSON.parse(runShellScript(
   llmCompatPath,
   ['--model', 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
   { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
@@ -327,7 +335,7 @@ assert.match(deepseekReasoningRoute.endpoint, /ollama\.com\/api\/chat$/, 'DeepSe
 assert.equal(deepseekReasoningRoute.provider, 'ollama-cloud', 'DeepSeek V4 Pro now routes through the ollama-cloud provider (repointed 2026-06-15)');
 assert.ok(Array.isArray(deepseekReasoningRoute.tools), 'DeepSeek dry-run should expose the full YURI tool loadout');
 
-const deepseekAliasRoute = JSON.parse(execFileSync(
+const deepseekAliasRoute = JSON.parse(runShellScript(
   llmCompatPath,
   ['--model', 'code-deepseek', '--dry-run', 'review code architecture'],
   { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
@@ -350,7 +358,7 @@ try {
   chmodSync(claudeStub, 0o755);
   let claudeError = null;
   try {
-    execFileSync(
+    runShellScript(
       resolve(__dirname, 'ai'),
       ['@claude', 'review architecture risk'],
       { encoding: 'utf8', env: { ...process.env, CLAUDE_BIN: claudeStub } },
