@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mcs-persistence-sweep
 // @serves: canonical truth | off-disk backup | snapshot | restore | persistence sweep | continuity | disk-loss recovery | backup rotation | memory durability
 // @does: P2 Inc 7 — DISARMED-by-default snapshot/restore for the canonical store. persistenceSweep({arm}) copies the
@@ -147,7 +148,7 @@ export function restoreSnapshot(snapshotDir, opts = {}) {
   return { restored: true, target, fileCount: manifest.files.length, currentGen: symlinked };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [cmd, a] = process.argv.slice(2);
   if (cmd === 'sweep') console.log(JSON.stringify(persistenceSweep({}), null, 2));      // DISARMED unless YURI_CANONICAL_BACKUP_ARM=1
   else if (cmd === 'list') console.log(JSON.stringify(listSnapshots(resolveBackupDir({})).map((s) => path.basename(s)), null, 2));

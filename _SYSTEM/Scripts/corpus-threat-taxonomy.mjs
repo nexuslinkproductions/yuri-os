@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // corpus-threat-taxonomy.mjs — the 16-category threat taxonomy for the skill-security SAST gate.
 //
 // This is the shared vocabulary every security/* analyzer keys against. It is a SUPERSET of the
@@ -202,7 +203,7 @@ export function isKnownCategory(id) {
 }
 
 // Self-check when run directly: print the taxonomy size + a superset assertion.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const missing = LEGACY_CATEGORY_IDS.filter((id) => !isKnownCategory(id));
   if (missing.length) {
     process.stderr.write(`taxonomy: MISSING legacy categories: ${missing.join(', ')}\n`);

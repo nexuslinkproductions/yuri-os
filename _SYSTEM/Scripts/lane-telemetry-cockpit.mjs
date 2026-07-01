@@ -10,7 +10,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..', '..');
@@ -122,7 +122,7 @@ function parsePositiveLimit(args) {
   return { ok: true, limit: Number.parseInt(raw, 10) };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
   const traceArg = (() => { const i = args.indexOf('--trace'); return i >= 0 ? args[i + 1] : null; })();

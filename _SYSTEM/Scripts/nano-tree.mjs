@@ -18,7 +18,7 @@
 
 import { openSync, appendFileSync, fsyncSync, closeSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readJsonOrNull, atomicWriteFile } from './_lib/fs.mjs';
 import { inspectLeases, acquireOrWait, releaseLease } from './nano-lease.mjs';
 
@@ -180,7 +180,7 @@ export function manifestOrphans(rootRunId, parentPath = ROOT_PATH, now = Date.no
   return spawned.filter((p) => !completed.has(p) && !liveLeaseIds.has(inflightLeaseId(rootRunId, p)));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-tree', defaults: DEFAULTS, treesDir: TREES_DIR,
     sample: { rootPath: ROOT_PATH, child: mintPath('r.0', 2), depth: depthOf('r.0.2'), parent: parentOf('r.0.2'), fanoutAt0: fanoutAt(0), fanoutAt4: fanoutAt(4) } }, null, 2)}\n`);
 }

@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // roadmap organ 5 — self-prediction precursor
 // Dock: propagation-scan.mjs (--dry-run predictedEffects source: subject=node-id, targets=propagation targets),
 //       probability-calibration-log (existing calibration culture),
@@ -237,7 +238,7 @@ export function calibrationReport(opts) {
 // ── CLI ─────────────────────────────────────────────────────────────────────
 // `node prediction-ledger.mjs report` — invoked by the homeostat self-model-drift reflex (yuri-homeostat.mjs:136).
 // Was a no-op (no argv handling) → the reflex silently did nothing. Advisory: never throw, fail-open.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   if (cmd === 'report') {
     try {

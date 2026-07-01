@@ -13,7 +13,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadEvents } from './yuri-nerve.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -126,7 +126,7 @@ export function totalRecall({ sinceHours = 72, query = '', budgetTokens = 1200, 
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const sinceHours = Number(process.argv[2]) || 72;
   const query = process.argv.slice(3).join(' ');
   process.stdout.write(JSON.stringify(totalRecall({ sinceHours, query }), null, 2) + '\n');

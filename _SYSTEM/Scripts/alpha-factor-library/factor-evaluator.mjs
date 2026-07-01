@@ -44,7 +44,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { mkAggregator, sequentialDecide } from '../eval-processing.mjs';
 
@@ -500,7 +500,7 @@ export default {
 // ===========================================================================
 // CLI smoke test — `node factor-evaluator.mjs --smoke`
 // ===========================================================================
-if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--smoke')) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.includes('--smoke')) {
   // Seeded LCG so the smoke test is deterministic (no external rng dependency here).
   let seed = 12345;
   const rand = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };

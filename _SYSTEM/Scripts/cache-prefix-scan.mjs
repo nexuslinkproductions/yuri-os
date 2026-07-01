@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * cache-prefix-scan.mjs — WARN-ONLY detector for volatile tokens leaking into the cache-hot prefix.
  *
@@ -162,4 +163,4 @@ function emit(prefix) {
   process.stdout.write(`${JSON.stringify({ count: r.count, byClass: r.byClass, clean: r.clean, findings: r.findings }, null, 2)}\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        Cross-era equivalence checker (Candidate C). Verify the v2→v3
@@ -223,7 +224,7 @@ export function scrambledEraCheck({ trials = 3000, seed = 0x2eec, generator = ge
 }
 
 // --- CLI --------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const trials = Number(process.argv[2]) || 6000;
   const prim = equivalenceCheck(v2Scorer, v3Scorer, { trials, generator: genDriftState });
   const full = equivalenceCheck(v2Scorer, v3Scorer, { trials, generator: genState });

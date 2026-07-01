@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // @capability: energy-gate-property-verifier
 // @serves: prove gateProposal accept decision | gate invariants | veto non-offsettability | gate property test | gate mutation test
 // @does: ∀-input property harness for gateProposal — 7 invariants over a corner-enumerated corpus + 8 planted-mutant negative controls (RED-GREEN)
@@ -438,6 +439,6 @@ function workedExample() {
   return lines.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   console.log(workedExample());
 }

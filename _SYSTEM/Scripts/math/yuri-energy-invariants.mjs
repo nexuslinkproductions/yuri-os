@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        Prove computeU's mathematical invariants over ALL inputs
@@ -515,7 +516,7 @@ export function runMutationCheck({ trials = 1500, seed = 0x5eed } = {}) {
 }
 
 // --- CLI -------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const trials = Number(process.argv[2]) || 5000;
   const green = runInvariants(real, { trials });
   const red = runMutationCheck({ trials: Math.min(trials, 1500) });

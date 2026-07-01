@@ -9,7 +9,7 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { KAGAMI_CANONICAL_STATE_ROOT } from './kagami-control-domain.mjs';
 import { readKagamiEvents } from './kagami-event-bus.mjs';
 
@@ -68,6 +68,6 @@ function hashPayload(payload) {
   return Math.abs(hash).toString(16).padStart(8, '0');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

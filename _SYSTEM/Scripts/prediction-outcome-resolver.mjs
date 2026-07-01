@@ -23,7 +23,7 @@
  *   node _SYSTEM/Scripts/prediction-outcome-resolver.mjs resolve [--min-age 7200000]
  */
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { readLedger, recordOutcome, calibrationReport } from './prediction-ledger.mjs';
 
@@ -82,7 +82,7 @@ export function resolveOutcomes(opts = {}) {
 }
 
 // ── CLI ──
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   if (cmd === 'resolve') {
     const mi = process.argv.indexOf('--min-age');

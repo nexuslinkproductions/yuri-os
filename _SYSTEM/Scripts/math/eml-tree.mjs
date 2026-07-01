@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * eml-tree.mjs — EML Symbolic Regression as 2nd Formula-Foundry Generator.
  *
@@ -655,7 +656,7 @@ export function enumerateSmallTrees(nVars, maxNodes = 5, constants = DEFAULT_CON
 // ---------------------------------------------------------------------------
 // CLI demo
 // ---------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Quick smoke test: fit confidenceDecay
   const halfLife = 12;
   const X = [];

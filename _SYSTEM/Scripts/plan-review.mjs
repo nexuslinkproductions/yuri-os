@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * plan-review.mjs — OPTIONAL human-in-the-loop (HITL) plan/diff review sublane.
  *

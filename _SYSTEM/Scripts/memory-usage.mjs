@@ -15,7 +15,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYSTEM_ROOT = path.resolve(_HERE, '..'); // _SYSTEM/Scripts -> _SYSTEM
@@ -71,7 +71,7 @@ export function usageFor(slug, opts = {}) {
   return buildUsageIndex(opts)[slug] || {};
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [cmd, slug, ev] = process.argv.slice(2);
   if (cmd === 'record' && slug) {
     console.log(JSON.stringify({ ok: recordUse(slug, { event: ev || 'recall' }), slug }));

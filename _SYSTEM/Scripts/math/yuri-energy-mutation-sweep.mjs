@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        The GREY-ZONE catcher (substrate-frontier-grade B5). Hand-planted
@@ -226,7 +227,7 @@ export function runSweep({ trials = 300 } = {}) {
 }
 
 // CLI worked example.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const r = runSweep();
   const lines = [];
   lines.push('yuri-energy-mutation-sweep — B5 grey-zone survivor sweep');

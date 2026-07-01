@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // security/sarif-emit.mjs — SARIF 2.1.0 output for the skill-security SAST gate.
 //
 // CLEAN-ROOM, node builtins ONLY. Converts the gate's findings into a valid SARIF 2.1.0 log so
@@ -118,7 +119,7 @@ export function toSarifString(opts) {
 }
 
 // CLI self-check: emits a tiny demo SARIF so the shape can be eyeballed.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const demo = toSarif({
     findings: [{ id: 'SUPPLY_CHAIN', severity: 'CRITICAL', evidence: 'eval(userInput)', filePath: 'attack.mjs', line: 5 }],
     taxonomy: [{ id: 'SUPPLY_CHAIN', name: 'Supply chain', severity: 'CRITICAL', explanation: 'demo', remediation: 'demo' }],

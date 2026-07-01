@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-swarm-supervisor
 // @serves: swarm supervisor | reap stale leases | reaper | rotate event log | nano liveness | who is alive | swarm janitor | nano crashed | supervise the swarm
 // @does: the NANO SWARM supervisor — one cron-driven cycle that (1) reaps dead/stale leases and records each as a LEASE_EXPIRED audit event attributed to its owning nano, (2) rotates the event log when it exceeds threshold (only the singleton supervisor rotates), (3) computes per-nano liveness from the bus tail, (4) emits a SWARM_SUPERVISION_CYCLE summary for the board. Holds a task:supervisor singleton lease so two overlapping cron firings can't double-reap/double-rotate.
@@ -106,7 +107,7 @@ export async function superviseOnce({
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2] || 'once';
   if (cmd === 'once') {
     const supervisorId = process.argv[3] || `supervisor-${process.pid}`;

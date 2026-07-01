@@ -27,7 +27,7 @@
  * fileURLToPath(import.meta.url) per the YURI-OS hard constraint.
  */
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   brierScore,
   confidenceDecay,
@@ -227,7 +227,7 @@ export function factorQualityScore(factor, {
 // Self-smoke: high-sharpe well-calibrated fresh factor vs stale poorly-calibrated.
 // `node factor-scorer.mjs` runs it; importers don't.
 // ---------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Prove the object-arg convention for confidenceDecay (positional would THROW).
   const decayObjArg = factorEvidenceDecay(1.0, 30, 30); // -> 0.5 at one half-life
   let positionalThrows = false;

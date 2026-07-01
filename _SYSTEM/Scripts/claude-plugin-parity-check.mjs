@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { classifyArtifactPath, loadArtifactRegistry } from './artifact-registry.mjs';
 import { rickRoster } from './lane-persona-map.mjs';
 
@@ -253,7 +253,7 @@ function readJson(filePath, failures) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const result = runClaudePluginParityCheck();
   if (result.warnings.length) {
     for (const warning of result.warnings) console.warn(`WARN ${warning}`);

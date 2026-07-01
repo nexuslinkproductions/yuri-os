@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mcs-fold-mutation-sweep
 // @serves: grey-zone catcher canonical store | mutation testing fold | find verification gaps | survivor report | are the store invariants vacuous | RED grey tests for memory-canonical
 // @does: P2 grey-zone sweep for the canonical store fold (adopts the energy lane's B5 methodology, applied to
@@ -186,7 +187,7 @@ export function runSweep() {
   return { referencePasses, total: rows.length, killed: killedN, score: rows.length ? killedN / rows.length : 0, survivors, rows };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const r = runSweep();
   console.log(`mcs-fold-mutation-sweep — reference passes all invariants: ${r.referencePasses}`);
   console.log(`mutation score: ${(r.score * 100).toFixed(1)}% (${r.killed}/${r.total} killed)`);

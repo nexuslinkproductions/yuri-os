@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-convergence-barrier
 // @serves: convergence barrier | dont finalize over in-flight children | tree-scoped done check | drain before converge | orphan critical signal | late contradiction H2 | recursive swarm soundness
 // @does: the SOUNDNESS barrier for the recursive nanoswarm (Move 1b, 07-ARCHITECTURE.md §5). Wraps the
@@ -113,7 +114,7 @@ export function canFinalize({
   return cv; // subtree clear → the convergence gate verdict stands.
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-barrier', eotPredicate: EOT_PREDICATE,
     invariants: ['INV-1 tree-scoped in-flight enumeration', 'INV-2 forced drain before finalize'],
     note: 'wraps Move-1 converge() with recursion-soundness barrier. Deps injectable via opts.deps.' }, null, 2)}\n`);

@@ -12,7 +12,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseResultLabel } from './contract-conformance.mjs';
 import { defaultTimeoutMsForLane } from './glm-fleet.mjs';
 
@@ -309,7 +309,7 @@ export function converge({ ledger, poolOutputs = {}, signals = [], adversarialRe
 }
 
 // CLI: quick self-describe (no live dispatch). `node swarm-convergence.mjs`
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({
     module: 'swarm-convergence', armed: isArmed(), armEnv: ARM_ENV,
     exports: ['buildObligationLedger', 'checkObligationFloor', 'checkCriticalSignalBlock', 'runAdversarialPass', 'defaultAdversarialRunner', 'finalizeGuard', 'isConformingPass', 'checkDamping', 'dedupeWork', 'converge'],

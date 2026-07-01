@@ -33,7 +33,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { acquireLease, releaseLease } from './nano-lease.mjs';
 import {
   calculateCostUsd,
@@ -570,6 +570,6 @@ function help() {
   console.log('Usage: cost-reservation-pool.mjs <status|estimate|actuals|admit|arm|disarm> [--lane --model --prompt-chars --input-tokens --steps --reasoning --overest --cap --window --reserve-dir]');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => { process.stderr.write(`COST_RESERVATION_FAIL ${String(e?.message || e)}\n`); process.exit(1); });
 }

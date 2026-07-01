@@ -30,7 +30,7 @@
 
 import path from 'node:path';
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gateClaimTransition } from './claim-cortex.mjs';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -101,7 +101,7 @@ export function emitObservation(obs, meta = {}) {
 }
 
 // CLI smoke: prove it fires on a swap attack and stays quiet on a clean pair.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const NOW = 1_700_000_000_000;
   const clean = [{ id: 'a', claimedStatus: 'trusted', evidence: [], contentHash: 'x' }];
   const swapBefore = [{ id: 'k', claimedStatus: 'trusted', evidence: [], contentHash: 'aaa' }];

@@ -12,7 +12,7 @@
 
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readKagamiEventsSince } from './kagami-event-bus.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -87,7 +87,7 @@ export function refresh(nanoId, { cursor = {}, root, worktree, sinceN = 3, displ
   return { brain, cursor: cursorAdvancedTo, counts: { commits: commits.length, dirty: dirty.length, newEvents: allNew.length } };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const nanoId = process.argv[2] || 'nano-cli';
   const r = refresh(nanoId, { nowIso: new Date().toISOString() });
   process.stdout.write(`${r.brain}\n`);

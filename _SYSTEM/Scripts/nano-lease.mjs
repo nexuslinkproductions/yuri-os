@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readJsonOrNull, atomicWriteFile } from './_lib/fs.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -234,7 +234,7 @@ export async function acquireOrWait(id, nanoId, { ttlMs = DEFAULT_TTL_MS, maxWai
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2] || 'list';
   if (cmd === 'list') { for (const l of listLeases()) console.log(`  ${l.leaseId} held by ${l.nanoId} (pid ${l.pid}, renewed ${new Date(l.renewedAt).toISOString()})`); }
   else if (cmd === 'reclaim') { console.log('reclaimed:', reclaimLeases()); }

@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // binance-creds.mjs — hydrate the owner's Binance view-only key from the macOS keychain into env.
 // INV-2: reads the secret into process.env ONLY; NEVER echoes, logs, or commits it. Fail-open (no key → keyless).
 // The key is VIEW-ONLY (read permission, no order placement) — used for higher rate limits on market data
@@ -40,7 +41,7 @@ export function hydrateBinanceCreds() {
   return hasBinanceCreds();
 }
 
-const _main = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+const _main = process.argv[1] && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (_main) {
   // CLI: report presence ONLY (never the value). For startup/diagnostic use.
   const ok = hydrateBinanceCreds();

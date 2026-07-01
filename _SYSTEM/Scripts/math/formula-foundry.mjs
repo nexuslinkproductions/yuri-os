@@ -16,7 +16,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateFormulaBank } from './math-proof-gate.mjs'; // Core B oracle door (preflight)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url)); // _SYSTEM/Scripts/math
@@ -458,7 +458,7 @@ export function proofPreflightCandidate(card, opts = {}) {
 // ------------------------------------------------------------------------------------------------
 // CLI
 // ------------------------------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const op = process.argv[2] || 'catalog';
   const arg = process.argv[3];
   const json = process.argv.includes('--json');

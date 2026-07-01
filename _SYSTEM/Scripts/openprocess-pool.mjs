@@ -23,7 +23,7 @@
  * passes ages in). hazard reuse: math-kernel confidenceDecay (freshness = base·0.5^(age/halfLife); staleness = 1−freshness).
  */
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { confidenceDecay } from './math/math-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -161,6 +161,6 @@ export async function navigateCentrality() {
   } catch { return () => 0; }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write('openprocess-pool: library — import { openMass, rankPool, whatIsUnfinished, navigateCentrality }\n');
 }

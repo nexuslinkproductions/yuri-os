@@ -30,7 +30,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -374,7 +374,7 @@ export async function assembleGraduation({
 // ---------------------------------------------------------------------------
 // Main-guarded --test suite
 // ---------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--test')) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.includes('--test')) {
   let pass = 0;
   let fail = 0;
 

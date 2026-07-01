@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-fsrs.mjs — power-law retention scorer for the subconscious memory loop.
  *
@@ -155,7 +156,7 @@ export function bumpStability(stabilityDays, { growth = 1.6, maxDays = 3650 } = 
 // The catalog flags this as risky without the guard, so Half-2 is deliberately deferred. Do not
 // implement an age debias here without first building the stationarity test it depends on.
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // Tiny demo: a 10-day-stability item recalled 0 vs 40 days ago.
   const cfg = { nowMs: 40 * DAY_MS, rFloor: 0.6 };
   console.log(JSON.stringify({

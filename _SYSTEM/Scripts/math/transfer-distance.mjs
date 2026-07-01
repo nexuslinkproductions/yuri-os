@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * transfer-distance.mjs — Mechanism-Bridged Transfer Surprise (MBTS).
  *
@@ -367,7 +368,7 @@ export function transferScore(t, opts = {}) {
 }
 
 // Tiny self-demo (not the proof — that's transfer-distance.proof.mjs over the 36-card logbook).
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const near = transferScore({
     sourceText: 'A scalar adaptive recursive estimator that predicts then updates an innovation variance, folding each sample weighted by measurement noise to track a drifting mean signal over time.',
     targetText: 'Salience surprise band: replace the static median plus K times MAD outlier rule on the energy delta stream with an adaptive self-scaling innovation gate that re-sensitises after a spike.',

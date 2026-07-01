@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * nexus-numerology.mjs — deterministic numerology-as-encoding channels for NEXUS.
  *
@@ -123,7 +124,7 @@ export function numerologyFeatures(text, opts = {}) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const text = process.argv.slice(2).join(' ') || 'login requires password auth token';
   console.log(JSON.stringify({
     text,

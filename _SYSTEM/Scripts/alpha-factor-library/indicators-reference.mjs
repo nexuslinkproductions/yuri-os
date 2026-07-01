@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: indicators-reference
 // @serves: indicators | naive reference | differential oracle | cross-check | textbook | Wilder | SMA-seeded EMA
 // @does: INDEPENDENT NAIVE REFERENCE implementation of the 8 core technical indicators (sma, ema, rsi, macd, bollinger, atr, stochastic, vwap). Written the most textbook-literal way possible (explicit loops, SMA-seeded EMA, Wilder's recursive smoothing, population stddev for Bollinger) so that any bug in the production `indicators.mjs` (authored by a separate lane) shows up as a diff when the two are compared bar-for-bar on identical inputs. Correctness over speed. NOT for production hot paths.

@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // @capability: strategies-volume-vol
 // @serves: volume volatility regime trading strategies | obv mfi force-index atr breakout squeeze signals | strategy family
 // @does: 8+ distinct VOLUME/VOLATILITY/REGIME strategies turning OHLCV into directional signals. Pure ESM, deterministic, no network, no throws from computeSignals. Each strategy in its own try/catch. Guard divide-by-zero (zero volume / zero ATR / zero bandwidth).
@@ -265,7 +266,7 @@ function allNull(n) {
 }
 
 // ── deterministic test harness (MAIN-GUARDED) ────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--test')) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.includes('--test')) {
   // LCG for deterministic pseudo-random
   let seed = 0xC0FFEE;
   function lcg() {

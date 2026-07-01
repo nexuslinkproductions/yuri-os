@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-mdl.mjs — Minimum Description Length redundancy axis for the memory loop.
  *
@@ -130,7 +131,7 @@ export function redundancyVerdict(body, rest, { redundancyFloor = 0.15, qualityF
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const unique = 'Quantum tunneling in Josephson junctions enables flux qubits via macroscopic coherence over the barrier potential well boundary conditions here.';
   const rest = 'The cat sat on the warm windowsill while rain pattered against the glass and the kettle whistled softly in the next room over there.';
   const dupOfRest = rest + ' ' + rest.slice(0, 40);

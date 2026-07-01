@@ -18,7 +18,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizePath, isProtectedPath, REPO_ROOT } from './yuri-id-bridge.mjs';
 import { isPinned } from './filing-assessor.mjs';
 
@@ -247,7 +247,7 @@ export function scanBatchDeps(filePaths) {
     .sort((a, b) => String(a.path).localeCompare(String(b.path)));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const json = process.argv.includes('--json');
   if (!args.length) { process.stdout.write('usage: filing-deps.mjs <path...> [--json]\n'); process.exitCode = 1; }

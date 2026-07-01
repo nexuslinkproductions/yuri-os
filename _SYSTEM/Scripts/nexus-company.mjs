@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { openPool, rankJobs, claimJob, completeJob, recommendJob, jobStats, listJobs } from './job-pool.mjs';
 import { evaluateGovernance, CLASS } from '../mure/governance.mjs';
@@ -402,7 +402,7 @@ export async function runJobCycle(opts = {}) {
   return { cycleId, armed, halted, executed, picked: results.map((r) => r.job), results, recommended, stats, reportPath: path.join(REPORTS_DIR, `${cycleId}.md`), finalize };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const val = (f, d) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : d; };
   const opts = { max: Number(val('--max', 1)) };

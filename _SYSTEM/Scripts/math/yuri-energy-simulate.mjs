@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-energy-simulate — improve the gate WITHOUT users, by grading it.
  *
@@ -87,7 +88,7 @@ export function evaluateGate(scenarios = SCENARIOS, { weights = DEFAULT_WEIGHTS,
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const base = evaluateGate();
   const fixed = evaluateGate(SCENARIOS, { veto: true });
   console.log(JSON.stringify({

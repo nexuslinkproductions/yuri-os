@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mcs-maintenance
 // @serves: canonical maintenance cycle | sync drain sweep | launchd target | canonical pipeline beat | self-sustaining canonical store
 // @does: ONE canonical-store maintenance beat for the launchd/cron schedule, pure node (no model): (1) sync
@@ -27,7 +28,7 @@ export function maintenanceCycle(drainerId, opts = {}) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const drainerId = process.argv[2] || `maint-${process.pid}`;
   const r = maintenanceCycle(drainerId);
   const s = r.sync || {}, d = r.drain || {};

@@ -8,6 +8,13 @@
 
 export const SEED_JOBS = [
   {
+    type: 'gap', title: 'Windows main-module guard — portable pathToFileURL across Scripts/*.mjs (issue #3)',
+    detail: 'CGSSCHWEIZ reported github.com/nexuslinkproductions/yuri-os/issues/3: legacy `import.meta.url === file://${process.argv[1]}` silently no-ops on win32 (exit 0, no output). Blocks ai search/reindex/xref and ~159+ Scripts. Fix: pathToFileURL guard + CI check via fix-main-module-guard.mjs --check.',
+    value: 0.95, risk: 0.15, priority: 'critical', source: 'owner',
+    nextAction: 'Run fix-main-module-guard.mjs; verify yuri-search + xref-query on win32; add regression test; close issue #3.',
+    closureCondition: 'fix-main-module-guard.mjs --check passes; CGSSCHWEIZ confirms ai search/reindex work on Windows.',
+  },
+  {
     type: 'gap', title: 'Wire the native-substrate execution seam (dispatchNative) end-to-end',
     detail: 'company.mjs emits nativeSpecs for native roles but native Claude Agents are only spawnable via the Agent tool from the Opus session — dispatchNative routes them through lane-dispatch (sonnet/haiku), which is UNVERIFIED live. Wire a real native execution path (Opus-driven spawn loop OR a verified lane), so MURE runs BOTH substrates end-to-end, not just GLM.',
     value: 0.9, risk: 0.5, priority: 'high', source: 'organ',

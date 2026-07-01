@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mcs-fold-order-commutativity
 // @serves: prove canonical fold order-independence | does drain order change the truth | commutativity of convergence | quantum order-effect on memory fold | contested winner order-dependence
 // @does: the FOUNDATION proof for the canonical store's core claim — "shards drain in ANY order -> the same
@@ -100,7 +101,7 @@ export function runCommutativity(scenario, K = 400, seed = 1234) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   console.log('=== canonical fold — ORDER COMMUTATIVITY (400 seeded permutations/scenario) ===\n');
   let foundationHolds = true;
   for (const sc of scenarios) {

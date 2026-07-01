@@ -9,7 +9,7 @@
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import http from 'node:http';
 // L6 — subconscious consolidation: FSRS demote pass + cold re-promotion proposals.
 import { loadItems, planRelocations, executeRelocation, DEFAULT_MEMORY_ROOT } from './memory-relocator.mjs';
@@ -318,6 +318,6 @@ async function main() {
 
 // Run only when executed directly (the plist invokes it as a script); importing the module
 // for tests must NOT trigger a live consolidation run.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(e => log('fatal:', e.message));
 }

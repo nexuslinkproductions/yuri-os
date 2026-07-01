@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: izanagi-decision-bridge
 // @serves: turn measured/simulation outputs into a robust build-or-architecture decision | which option do I build | decide under uncertainty with a flip rule | quantitative izanagi | robust readout with a corner-law guard | commit a build choice
 // @does: bridges MC/measured option values into decision-sim's robust methods (CVaR + minimax-regret + PGD) AND an izanagi-format ruling — with an AUTOMATIC corner-law guard (always enumerates the paramSpace vertices, where an affine/multilinear worst case hides from interior sampling) plus per-axis flip thresholds
@@ -213,7 +214,7 @@ export function runDemo() {
   return ruling;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--demo')) runDemo();
   else console.log('izanagi-bridge: measured-sim → robust decision → izanagi ruling.\n  node izanagi-bridge.mjs --demo\n  import { izanagiRuling, cornerAwareReadout, flipThresholds } from "./izanagi-bridge.mjs"');
 }

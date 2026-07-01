@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * wave3-gate-sim.mjs — large-eval simulation of the Wave-3 claim-transition gate, focused on the
  * WIRING GAP: gateClaimTransition enforces a PER-CLAIM L∞ floor (maxLadderInversionCap) + identity
@@ -117,5 +118,5 @@ function main() {
   console.log(`  ${worst >= 0 ? 'aggregate gate never does WORSE than L∞-only across the corner box' : 'WARNING: a corner exists where the aggregate gate is net-negative (false-veto dominates) — see params'}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
 export { PROBLEM, gateVetoes, attackWrite, honestWrite };

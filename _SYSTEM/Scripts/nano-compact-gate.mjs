@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-compact-gate
 // @serves: 500k compact gate | hard auto-compact | context ceiling | nano token budget | force compaction at 500k | prevent context overflow
 // @does: the NANO SWARM hard context-ceiling decision (G2) — given a token/context signal, decides allow|deny|would_deny at the 500k ceiling, SCOPED to nano sessions only, with a compaction allowlist; pure decision core + a fail-open signal reader for a PreToolUse hook
@@ -132,7 +133,7 @@ export function runGate(event = {}, env = process.env, opts = {}) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // CLI self-check: print a sample verdict for a fake over-threshold nano event.
   const demo = runGate({ session_id: 'nano-demo', tool_name: 'Edit', context_window: { used_percentage: 80 } }, { YURI_NANO_ID: 'demo', YURI_NANO_COMPACT_PCT: '75' });
   process.stdout.write(`${JSON.stringify(demo.verdict)}\n`);

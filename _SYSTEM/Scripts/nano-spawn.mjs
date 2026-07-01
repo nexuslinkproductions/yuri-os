@@ -20,7 +20,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   reserveSpawnSlots, treeConfig, fanoutAt, depthCapFor, tierForParamsB,
   inflightLeaseId, nanoIdOf, depthOf, readManifest, parentOf, recordVoid,
@@ -157,7 +157,7 @@ export const SPAWN_NANO_TOOL = {
   },
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-spawn', armed: spawnArmed(), armEnv: SPAWN_ARM_ENV, flag: SPAWN_FLAG_PATH,
     sampleTiers: { 'nemotron-3-ultra': tierForLane('nemotron-3-ultra'), 'gemma4:31b': tierForLane('gemma4:31b'), unknown: tierForLane('mystery-lane') } }, null, 2)}\n`);
 }

@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // nano-dispatch-gated.mjs — artifact-gated DESIGN→EXECUTE dispatch for nano-swarm lanes.
 //
 // WHY (root cause, 2026-06-15 EDIT-COUNT evidence): ollama-cloud lanes reliably DESIGN but won't
@@ -169,7 +170,7 @@ export async function dispatchGated(opts = {}, deps = {}) {
 }
 
 // ── CLI (operator-gated, mirrors nano-external: spawns lanes, so not an ungoverned fan-out vector) ──
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const dry = argv.includes('--dry');
   const get = (k) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null; };

@@ -23,7 +23,7 @@
 import fs from 'node:fs';
 import { atomicWriteFile } from './_lib/fs.mjs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { analyzeArchGraph, buildMetricsPayload } from './arch-graph-engine.mjs';
 import { recordEvent, closeEvent, mintEventId } from './yuri-nerve.mjs';
 
@@ -181,7 +181,7 @@ export function check(opts = {}) {
 }
 
 // ---- CLI --------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const json = process.argv.includes('--json');
   const r = check({ stamp: new Date().toISOString() });
   if (json) { process.stdout.write(JSON.stringify(r) + '\n'); }

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: memory-kernel-canonical-bridge
 // @serves: track-a to canonical | promote approved memory to canonical truth | yuri-memory convergence | ledger to canonical claim | shared truth from operator-approved memory | first real canonical writer
 // @does: the TRACK-A <-> CANONICAL seam (P2 arming, 2026-06-14). Reads the operator-approved memory ledger
@@ -85,7 +86,7 @@ export function syncLedgerToCanonical(opts = {}) {
   return { ok: true, ledgerPath, scanned, selected, emitted, alreadyPresent, skipped, tooLarge, dryRun, errors: errors.slice(0, 10) };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const dryRun = process.argv.includes('--dry-run') || process.argv.includes('plan');
   console.log(JSON.stringify(syncLedgerToCanonical({ dryRun }), null, 2));
 }

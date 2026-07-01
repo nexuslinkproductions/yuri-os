@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: verifier-best-of-n
 // @serves: verifier | best-of-n | computeU over N proposals | pick survivor | test-time compute | peer lane ranking | gated proposal selection
 // @does: verifierBestOfN(candidates, scoreFn) -> runs computeU/gate scoring over N proposals, returns the survivor (argmin-deltaU clearing hard vetoes). The cheapest test-time-compute path: spend cycles on verification not model size.
@@ -356,7 +357,7 @@ const BUCKET_MIDPOINTS = {
 // CLI
 // ---------------------------------------------------------------------------
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   if (cmd === 'report') {
     const r = scoreVerifierHistory();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * YURI-owned Kagami event bus.
  *
@@ -420,7 +421,7 @@ function compactObject(value) {
   );
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const events = readKagamiEvents({ limit: Number(process.argv[2] || 20) });
   console.log(JSON.stringify(events, null, 2));
 }

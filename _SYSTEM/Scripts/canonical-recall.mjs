@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: canonical-recall
 // @serves: read canonical truth | recall canonical | query canonical store | consume canonical memory | any lane reads canonical | canonical lookup | contested claims surface | what does canonical say
 // @does: the peer-open READ/RECALL surface for the canonical-truth store — turns a write-only store into a
@@ -85,7 +86,7 @@ export function contestedClaims(opts = {}) {
   return Object.entries(c).map(([key, v]) => ({ key, competing: v.competing || [] }));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const q = process.argv.slice(2).join(' ').trim();
   if (!q) {
     console.log(JSON.stringify({ totalClaims: loadCanonical().length, contested: contestedClaims().length }, null, 2));

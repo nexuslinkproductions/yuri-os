@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: energy-gate-scoring
 // @serves: energy | composite score | weighted composite | gate | progress regress | lyapunov | delta U | claim evaluation | penalty reward | calibration | verification credit | should this block
 // @does: U = additive weighted composite of badness (entropy, miscalibration, staleness, protected-path violations +100, ladder-inversions +10) minus credits (information-gain, verified-evidence). Penalties raise U, credits lower it.
@@ -1041,7 +1042,7 @@ function workedExample() {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   if (argv[0] === '--worked-example' || argv.length === 0) {
     console.log(JSON.stringify(workedExample(), null, 2));

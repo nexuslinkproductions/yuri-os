@@ -18,7 +18,7 @@
  */
 import path from 'node:path';
 import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadFtsCorpus, buildIndex, matchPrefixFilter, matchLSH } from './corpus-match.mjs';
 import { extractCircuitryRecords } from './circuitry-auto-register.mjs';
 import { pearson, spearman } from './math/math-kernel.mjs';
@@ -153,6 +153,6 @@ function run() {
 
 // CLI guard: the full multi-corpus experiment must not fire at import — runCorpus
 // is exported so the verdict logic is node --test reachable.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   run();
 }

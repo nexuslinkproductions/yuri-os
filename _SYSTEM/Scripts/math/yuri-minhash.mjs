@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-minhash.mjs — deterministic MinHash + LSH banding (pure math, embedding-free).
  *
@@ -170,7 +171,7 @@ export function tuneBands(k, t) {
   return best;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const h = makeHashes(128);
   const A = new Set('cross site scripting reflected xss login form'.split(' '));
   const B = new Set('reflected xss in the login form input field'.split(' '));
