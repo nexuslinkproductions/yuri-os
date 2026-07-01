@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * wave3-decision.mjs — the Wave-3 governance-substrate decision, expressed as a decision-sim
  * PROBLEM and run through the standing instrument (_SYSTEM/Scripts/decision-sim.mjs).
@@ -165,5 +166,5 @@ function honesty(ceBest) {
   console.log('  ROBUST dims (seed-stable, real wins): firing=async-trailing, foundry=unified, aggGate=target-keyed, soakLen→30.');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
 export { PROBLEM };

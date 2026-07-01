@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: regime-breaker
 // @serves: circuit breaker | abnormal move | adverse selection guard | maker halt/widen | z-score shock
 // @does: pure-compute regime circuit-breaker for the BTC microstructure A-S maker — z-scores the latest 1-step (or windowed) mid return against a trailing per-second σ (EWMA, or caller-supplied) and emits a halt/widen/normal advisory so a maker holding resting orders can widen or pull quotes BEFORE a violent move adversely selects it. Fail-open.
@@ -332,7 +333,7 @@ function runTests() {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--test')) {
     const r = runTests();
     process.exit(r.ALL_PASS ? 0 : 1);

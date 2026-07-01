@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mcs-drain-daemon
 // @serves: canonical truth | drainer daemon | lease per cycle | signal-safe shutdown | abortable sleep
 // @does: Inc 4 — drainDaemon(drainerId,{intervalMs}) -> {stop()}. Lease acquired/released PER CYCLE inside drainOnce (not held across sleep; TTL fallback). SIGTERM/SIGINT releaseLease immediately + abort. AbortSignal-aware sleep(ms,signal).
@@ -81,7 +82,7 @@ export function drainDaemon(drainerId, opts = {}) {
 }
 
 // CLI for manual run: `node _SYSTEM/Scripts/mcs-drain-daemon.mjs <drainerId> [intervalMs]`
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [, , drainerId, intervalMs] = process.argv;
   if (!drainerId) {
     console.error('Usage: node mcs-drain-daemon.mjs <drainerId> [intervalMs]');

@@ -18,7 +18,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizePath, isProtectedPath, REPO_ROOT } from './yuri-id-bridge.mjs';
 import { assess, isPinned } from './filing-assessor.mjs';
 import { scanDeps, exactPathRefs } from './filing-deps.mjs';
@@ -207,7 +207,7 @@ export function executeBatch(plans, opts = {}) {
 }
 
 // ── CLI ────────────────────────────────────────────────────────────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const json = argv.includes('--json');
   const execute = argv.includes('--execute');              // explicit opt-in; default is dry-run

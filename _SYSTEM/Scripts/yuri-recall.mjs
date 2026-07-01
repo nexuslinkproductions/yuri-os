@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-recall.mjs — cue-based associative recall from the subconscious (cold) store.
  *
@@ -84,7 +85,7 @@ export function recall(cue, { coldDb, ledgerFile, nowMs = Date.now(), ...cfg } =
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   let outFile = null;
   const outIdx = argv.indexOf('--out');

@@ -25,7 +25,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { extractCircuitryRecords, resolveTestsCover, listMjs } from './circuitry-auto-register.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -498,7 +498,7 @@ export function run({ coreRoots, full = false, now = null } = {}) {
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const full = process.argv.includes('--full');
   const jsonIdx = process.argv.indexOf('--json');
   const now = new Date().toISOString();

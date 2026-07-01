@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: job-pool
 // @serves: job pool | job list | open work queue | company jobs | tasks to complete | job recommendations | what should the company do next | autonomous work queue | improvement backlog
 // @does: the company's job pool — a first-class `jobs` table in work-ledger.db where open work + improvement recommendations live as OpenProcess-shaped rows, ranked by OpenMass (openprocess-pool) so the autonomous company-runner always picks the highest-leverage open job. Jobs come from three sources: the OS open-work organ (seed), the company's own recommender (self-improvement proposals), and manual/owner adds. Completing a job writes a build report back onto the row.
@@ -127,7 +128,7 @@ export function seedPool(db, jobs = []) {
   let n = 0; for (const j of jobs) { addJob(db, j); n += 1; } return n;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2); const db = openPool();
   if (argv.includes('--seed')) { import('./job-pool-seed.mjs').then((m) => { const n = seedPool(db, m.SEED_JOBS); process.stdout.write(`seeded ${n} jobs\n`); }).catch((e) => process.stderr.write(`seed: ${e.message}\n`)); }
   else if (argv.includes('--rank')) { for (const j of rankJobs(db).slice(0, 20)) process.stdout.write(`  ${String(j.mass).padStart(7)}  [${j.priority}/${j.type}] ${j.title}\n`); }

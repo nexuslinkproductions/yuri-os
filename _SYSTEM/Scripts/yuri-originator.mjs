@@ -3,7 +3,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { gateProposal } from './math/yuri-energy.mjs';
 import {
@@ -2199,7 +2199,7 @@ function printHelp() {
   process.stdout.write(`Ops: decode, xref, compile_state, energy_gate, create_work_substrate, candidate_actions, launch_substrate, synthesize_formula_candidates, worker_exoskeleton, llm_exoskeleton, gemma_exoskeleton, telemetry\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const request = parseCli(process.argv.slice(2));
     const payload = await runOriginator(request);

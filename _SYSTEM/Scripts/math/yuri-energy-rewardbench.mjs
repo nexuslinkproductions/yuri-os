@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // @capability: yuri-energy-rewardbench
 // @serves: score the energy gate AS a reward model over the shadow outcome ledger |
 //   pairwise accuracy (does higher |deltaU| confidence track survived-vs-reverted outcomes?) |
@@ -309,7 +310,7 @@ export function rewardbenchReport(rows, opts = {}) {
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   const file = process.argv[3] ?? DEFAULT_SHADOW_FILE;
 

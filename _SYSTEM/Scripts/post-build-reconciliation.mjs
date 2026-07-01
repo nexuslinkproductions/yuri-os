@@ -6,7 +6,7 @@
 // @exports: reconcileAfterBuild, runPropagationScan, reconcileXref, detectGitNexusChanges, PROPAGATION_SCRIPT, XREF_SCRIPT
 
 import { spawn } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -246,7 +246,7 @@ function spawnNode(args, { useNpx = false } = {}) {
 }
 
 // CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const opts = { jobId: null, nodeId: null, query: '', targets: [], dryRun: true };
 

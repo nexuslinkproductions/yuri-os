@@ -37,7 +37,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const _HERE = path.dirname(fileURLToPath(import.meta.url));
 // _SYSTEM/Scripts/math/<this> -> repo root is three levels up.
@@ -328,7 +328,7 @@ export function replayGateTrace(gateFn, { tracePath = gateTracePath(), reference
 // it suspends THIS module's evaluation, which yuri-energy is waiting to finish. The
 // IIFE lets the module body complete first, unblocking the cycle, then runs the demo.
 // ---------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) (async () => {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) (async () => {
   const os = await import('node:os');
   const { gateProposal, DEFAULT_WEIGHTS } = await import('./yuri-energy.mjs');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gate-trace-'));

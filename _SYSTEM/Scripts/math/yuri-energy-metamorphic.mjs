@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        Metamorphic-relation suite + coverage-fed fault-campaign
@@ -879,7 +880,7 @@ export function runMutationCheck({
 // ===========================================================================
 // CLI
 // ===========================================================================
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const numStates = Number(process.argv[2]) || 2000;
   const green = runCampaign({ numStates });
   const red = runMutationCheck({ numStates: Math.min(numStates, 500) });

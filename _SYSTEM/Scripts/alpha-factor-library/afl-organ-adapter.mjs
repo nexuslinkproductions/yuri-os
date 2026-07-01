@@ -45,7 +45,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   assessClaim,
@@ -392,7 +392,7 @@ export function factorRetractionCascade(tms, premiseId) {
 // ---------------------------------------------------------------------------
 // CLI / quick self-check (advisory; uses the seeded store + an in-memory clock).
 // ---------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const nowMs = 1_700_000_000_000; // fixed deterministic epoch-ms (~2023-11), in-band
   const f = getFactor('rsi-14') ?? { id: 'rsi-14', status: 'hypothesis', formula: 'x' };
   const claim = factorToClaim(f, { nowMs });

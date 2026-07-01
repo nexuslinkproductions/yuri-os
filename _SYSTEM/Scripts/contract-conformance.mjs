@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * contract-conformance.mjs — deterministic OUTPUT-vs-CONTRACT conformance gate.
  *
@@ -365,7 +366,7 @@ function runConformance(contract, output, opts) {
 }
 
 // ── CLI: demo (pure self-test; no external corpus I/O) ──
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const demoContract = {
     flags: { no_stage_narration: true, broad_command_ban: true, final_report_only: true, report_line_cap: 25 },
     output_schema: { type: 'final_report', fields: ['RESULT_LABEL', 'HEAD', 'STAGED', 'FILES_CHANGED', 'VALIDATION'] },

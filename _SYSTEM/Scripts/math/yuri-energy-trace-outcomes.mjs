@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * YURI Energy Trace — Deferred-Outcome Labeler — yuri-energy-trace-outcomes.mjs
  *
@@ -247,7 +248,7 @@ export function readJoinedDecisions(options = {}) {
 }
 
 // CLI: print a join summary over the live trace (read-only). No write side effect.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const summary = readJoinedDecisions();
   const out = {
     ranAt: new Date().toISOString(),

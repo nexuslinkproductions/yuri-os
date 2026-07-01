@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * fleet-router-mlp.mjs
  *
@@ -288,7 +289,7 @@ export function deterministicScore(candidates, context = {}) {
 // ---------------------------------------------------------------------------
 // CLI for quick inspection
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   if (args.includes('--help')) {
     console.log(`fleet-router-mlp

@@ -12,7 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { stdout } from 'node:process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readKagamiEvents } from './kagami-event-bus.mjs';
 import { isProtectedPath } from './lane-kernel.mjs';
 import { scanClaimIntegrity } from './claim-integrity-gate.mjs';
@@ -267,6 +267,6 @@ function runCli(argv = process.argv.slice(2)) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli();
 }

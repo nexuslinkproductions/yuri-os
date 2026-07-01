@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // security/ast-js.mjs — hand-rolled JS/TS lexical analyzer for the skill-security SAST gate.
 //
 // CLEAN-ROOM: no tree-sitter, no semgrep, no acorn, no new dependency. Node builtins ONLY.
@@ -330,7 +331,7 @@ function compact(line) {
 }
 
 // CLI self-check: node ast-js.mjs <file>
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const fs = await import('node:fs');
   const target = process.argv[2];
   if (!target) {

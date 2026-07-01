@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { glmFleet, aggregatePoolOutputs, buildRunDir, defaultTimeoutMsForLane } from './glm-fleet.mjs';
 import {
   buildObligationLedger, checkObligationFloor, runAdversarialPass, defaultAdversarialRunner,
@@ -209,7 +209,7 @@ export async function runSwarm(decomposition = {}, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const val = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
   let leaves = [];

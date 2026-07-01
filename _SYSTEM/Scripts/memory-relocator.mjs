@@ -21,7 +21,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { evaluateRetention } from './math/yuri-fsrs.mjs';
 import { redundancyVerdict } from './math/yuri-mdl.mjs';
 import { buildUsageIndex } from './memory-usage.mjs';
@@ -532,7 +532,7 @@ export function formatSeedTable(seed) {
   return lines.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // --seed [rFloor] [--at-days N]: owner-decision dry-run. Prints the demote-set table,
   // executes NOTHING. --at-days advances the scoring clock N days to PROJECT the dormant
   // tail (labeled as a projection, never presented as present-time forgetting).

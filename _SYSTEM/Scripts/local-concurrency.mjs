@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SLOTS_DIR = process.env.YURI_LOCAL_SLOTS_DIR || path.join(REPO_ROOT, '_SYSTEM/state/local-slots');

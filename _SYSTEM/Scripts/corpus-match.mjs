@@ -26,7 +26,7 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tokenize, tokenFreq, jaccard, tfCosine } from './math/yuri-jaccard.mjs';
 import { makeHashes, minhashSignature, lshBands, tuneBands } from './math/yuri-minhash.mjs';
 
@@ -265,4 +265,4 @@ function run() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run();

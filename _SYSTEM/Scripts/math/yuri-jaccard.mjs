@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-jaccard.mjs — embedding-free hot-tier saturation probe for the memory consolidator.
  *
@@ -131,7 +132,7 @@ export function saturationProbe(entries, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const entries = [
     { id: 'a', text: 'session resume cortex decoder circuitry build plan next steps wire engine' },
     { id: 'b', text: 'session resume cortex decoder circuitry build plan next steps wire engine extra' },

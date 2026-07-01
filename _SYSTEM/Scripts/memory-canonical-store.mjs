@@ -21,7 +21,7 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { acquireLease, releaseLease, renewLease } from './nano-lease.mjs';
 import { atomicWriteFile, readJsonOrNull } from './_lib/fs.mjs';
 import { stalenessScore } from './filing-assessor.mjs';
@@ -484,7 +484,7 @@ export function readView(opts = {}) {
   return readJsonOrNull(readViewPath) || { v: SCHEMA_V, foldedAt: null, claimCount: 0, claims: {}, contested: {} };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [cmd, a, b] = process.argv.slice(2);
   if (cmd === 'drain') console.log(JSON.stringify(drainOnce(a || `cli-${process.pid}`), null, 2));
   else if (cmd === 'view') console.log(JSON.stringify(readView(), null, 2));

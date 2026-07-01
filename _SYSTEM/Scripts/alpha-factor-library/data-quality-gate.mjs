@@ -38,7 +38,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { scalarKalman, median } from '../math/math-kernel.mjs';
 
@@ -565,7 +565,7 @@ function smoke() {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--smoke')) {
     try { const r = smoke(); process.exit(r.ALL_PASS ? 0 : 1); }
     catch (e) { console.error('SMOKE FAILED:', e); process.exit(1); }

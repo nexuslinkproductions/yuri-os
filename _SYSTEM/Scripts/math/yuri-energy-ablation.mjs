@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 import { writeFileSync } from 'node:fs';
 import {
   evaluateTransitions,
@@ -81,7 +82,7 @@ export function runAblation({ weights = DEFAULT_WEIGHTS, seed = 1 } = {}) {
 if (
   typeof process !== 'undefined' &&
   process.argv[1] &&
-  import.meta.url === `file://${process.argv[1]}`
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
   const args = process.argv.slice(2);
   let outPath = null;

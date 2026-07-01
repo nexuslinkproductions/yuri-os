@@ -15,7 +15,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..', '..');
@@ -182,7 +182,7 @@ function writeJson(p, obj) { fs.writeFileSync(p, JSON.stringify(obj, null, 2) + 
 // ------------------------------------------------------------------------------------------------
 // CLI: seed | verify | project | stat
 // ------------------------------------------------------------------------------------------------
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const op = process.argv[2] || 'stat';
   const stamp = (() => { const i = process.argv.indexOf('--stamp'); return i >= 0 ? process.argv[i + 1] : null; })();
   if (op === 'seed') {

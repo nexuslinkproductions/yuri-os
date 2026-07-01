@@ -16,7 +16,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gitnexusStaleness } from './xref-drift-scan.mjs';
 import { indexStaleness } from './yuri-search.mjs';
 
@@ -231,7 +231,7 @@ export function runFreshness({ heal = false, json = false, _spawn = spawnSync } 
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   if (argv.includes('--audit')) {
     console.log(JSON.stringify(coverageAudit(), null, 2));

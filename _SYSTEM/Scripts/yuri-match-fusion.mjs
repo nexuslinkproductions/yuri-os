@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-match-fusion.mjs — distribution-free fusion for yuri-match recallAll results.
  *
@@ -264,6 +265,6 @@ export function fuseRecallAll(cue, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   console.log('usage: import { rrf, normalizeFuse, fuseRecallAll } from "./yuri-match-fusion.mjs"');
 }

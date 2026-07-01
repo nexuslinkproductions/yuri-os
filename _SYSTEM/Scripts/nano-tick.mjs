@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-tick-loop
 // @serves: nano tick | nano loop | autonomous lane loop | wake refresh act emit | nano swarm driver | one tick of an autonomous lane
 // @does: ONE NANO SWARM tick — emit LANE_DISPATCHED, self-refresh (nano-refresh), run the work fn, emit LANE_OUTPUT_DELTA + HANDOFF_RECORDED, return the advanced cursor. The cursor recovers from the nano's OWN last HANDOFF on the Kagami bus, so a fresh per-wake process keeps continuity with no extra state file.
@@ -109,7 +110,7 @@ export async function runTicks(nanoId, { ticks = 3, work, root, worktree, nowIso
   return { nanoId, ticks: out, finalCursor: cursor };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const nanoId = process.argv[2] || 'nano-cli';
   tick(nanoId, { nowIso: new Date().toISOString() }).then((r) => {
     process.stdout.write(`${r.brain}\n--- tick emitted: ${r.emitted.join(', ')}\nresult: ${JSON.stringify(r.result)}\n`);

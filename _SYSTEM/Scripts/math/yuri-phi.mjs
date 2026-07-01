@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-phi.mjs — NEXUS CORE: π / golden-ratio (φ) / Fibonacci applied primitives (pure, deterministic,
  * embedding-free). Owner directive (Marcel 2026-06-06): these are not a research curiosity — they are
@@ -168,7 +169,7 @@ export function goldenAnglePoints(n, { radius = 1 } = {}) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const quad = goldenSectionSearch((x) => (x - 2) ** 2, 0, 5);
   const arr = [9, 7, 5, 3, 1, 2, 4, 6, 8]; // unimodal, min at index 4
   const fibMin = fibonacciSearchMin((i) => arr[i], arr.length);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: fuzzy-cross-surface-match
 // @serves: fuzzy match | near duplicate | entity resolution | dedup | similarity | cross surface recall | compare across surfaces | idf | boilerplate weighting | rare term weighting | ppmi | feature space
 // @does: One union-trained PPMI + global-IDF feature space across all surfaces; rare features up-weighted (boilerplate down-weighted, corpus-derived). Cross-surface recall (memory<->code) via containment + RRF.
@@ -233,7 +234,7 @@ export function verifyPrefixCompleteness(allSurfaces, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const query = process.argv.slice(2).join(' ') || 'energy lyapunov gate veto';
   const yuriMatch = await import('./yuri-match.mjs');
   const { allAdapters } = await import('./yuri-match-adapters.mjs');

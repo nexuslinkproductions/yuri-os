@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * Claim-Evidence Cortex — claim-cortex.mjs
  *
@@ -1104,7 +1105,7 @@ function workedExample() {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   if (argv[0] === '--worked-example' || argv.length === 0) {
     console.log(JSON.stringify(workedExample(), null, 2));

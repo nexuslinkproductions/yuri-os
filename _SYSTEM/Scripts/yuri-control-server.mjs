@@ -18,7 +18,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { computeU, gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
 import { loadEnergyConfig, CONFIG_FILE, num, MIN_SURPRISE_WINDOW } from './math/yuri-energy-config.mjs';
 import operator from './yuri-operator.cjs';
@@ -182,7 +182,7 @@ const server = http.createServer(async (req, res) => {
   } catch (e) { send(500, { error: String((e && e.message) || e) }); }
 });
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   server.listen(PORT, HOST, () => {
     console.log(`YURI Energy Cockpit → http://${HOST}:${PORT}  (preview=anyone · apply=dev-only · localhost)`);
   });

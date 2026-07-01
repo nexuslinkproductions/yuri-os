@@ -17,7 +17,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { confidenceDecay } from './math/math-kernel.mjs';
 import { normalizePath, isProtectedPath } from './yuri-id-bridge.mjs';
 
@@ -275,7 +275,7 @@ export function assessAll(paths, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const json = process.argv.includes('--json');
   if (!args.length) { process.stdout.write('usage: filing-assessor.mjs <path...> [--json]\n'); process.exitCode = 1; }

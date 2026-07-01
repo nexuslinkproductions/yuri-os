@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * quantum-vs-bayes-benchmark.mjs — TASK 1: the falsification gate for the quantum layer.
  *
@@ -247,7 +248,7 @@ export function runBenchmark() {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const r = runBenchmark();
   console.log(JSON.stringify(r, null, 2));
   console.log(`\nVERDICT: ${r.verdict}  (G1 machinery=${r.gates.G1} G2 real-data=${r.gates.G2} G3 control=${r.gates.G3} G4 qq=${r.gates.G4})`);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: session-work-logger
 // @serves: log main-session work to the ledger | dashboard reflect reality | close pool job | record operator-lane work | sync commits to job pool | main session work not on dashboard | what did this session do
 // @does: closes the observability gap where work the OPERATOR/main session does directly (not via nexus-company) never reaches the job pool, so the dashboard only shows cycle-run work. Three moves: (1) syncCommits — log main-branch git commits as DONE jobs (idempotent, stable id from sha, conventional-prefix → type), so every commit shows on the dashboard; (2) closeJob — mark an existing open pool job done (operator finished it by hand); (3) logCompleted — record a standalone completed work item. Pure store writes to the SAME gitignored work-ledger.db the company uses. Wired to fire automatically via the _SYSTEM/git-hooks/post-commit hook.
@@ -64,7 +65,7 @@ export function logCompleted(db = openPool(), { title, detail = '', type = 'impr
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2); const db = openPool();
   const val = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : undefined; };
   if (argv.includes('--sync')) {

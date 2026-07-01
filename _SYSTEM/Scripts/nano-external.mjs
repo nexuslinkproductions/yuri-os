@@ -15,7 +15,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const LLM_LANE = path.join(HERE, 'llm-lane.mjs');
@@ -99,7 +99,7 @@ export function governedFireDecision({ dry = false, env = process.env } = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [lane, ...rest] = process.argv.slice(2);
   const dry = rest.includes('--dry');
   const task = rest.filter((a) => a !== '--dry').join(' ') || 'Summarize what YURI is in two sentences.';

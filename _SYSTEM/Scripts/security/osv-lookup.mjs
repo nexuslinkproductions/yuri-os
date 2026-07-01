@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // security/osv-lookup.mjs — known-vulnerable dependency lookup for the skill-security gate.
 //
 // CLEAN-ROOM, node builtins ONLY. Matches a foreign skill's declared dependencies against an
@@ -188,7 +189,7 @@ export async function lookup({ pkg, snapshot, snapshotPath, online = false, time
 }
 
 // CLI self-check: node osv-lookup.mjs <package.json> <snapshot.json> [--osv-online]
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const pkgPath = process.argv[2];
   const snapPath = process.argv[3];
   const online = process.argv.includes('--osv-online');

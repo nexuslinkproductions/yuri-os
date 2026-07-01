@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
 import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
 
@@ -241,6 +241,6 @@ function runCli(argv = process.argv.slice(2)) {
   process.exitCode = 1;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli();
 }

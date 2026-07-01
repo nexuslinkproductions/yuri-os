@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * memory-match.mjs — COMPLETE prefix-filter recall over memory/subconscious records.
  *
@@ -104,7 +105,7 @@ export function blendMemoryRecall(bm25Candidates = [], matcherMatches = []) {
     .sort((a, b) => (Number(b.matcher?.score || 0) - Number(a.matcher?.score || 0)) || a.id.localeCompare(b.id));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cue = process.argv.slice(2).join(' ');
   if (!cue) {
     console.log('usage: memory-match.mjs "<cue>"');

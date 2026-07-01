@@ -33,7 +33,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { cusum, pearson } from '../math/math-kernel.mjs';
 
@@ -533,7 +533,7 @@ function smoke() {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.includes('--smoke')) {
     const res = smoke();
     process.exit(res.allPass ? 0 : 1);

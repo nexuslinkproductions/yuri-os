@@ -60,7 +60,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, mkdirSync, writeFileSync, appendFileSync, statSync, realpathSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { cortexSnapshot, gateClaimTransition, LADDER } from './claim-cortex.mjs';
 
@@ -774,4 +774,4 @@ function run() {
   process.exit(2);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run();

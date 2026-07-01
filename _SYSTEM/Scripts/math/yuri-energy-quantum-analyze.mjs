@@ -25,7 +25,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   CONTRIBUTION_TO_WEIGHT,
   SOFT_WEIGHT_KEYS,
@@ -335,7 +335,7 @@ export function loadRejectRecords({ traceDir = TRACE_DIR, maxRecords } = {}) {
   return { records: maxRecords ? records.slice(0, maxRecords) : records, total, subsetCount };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const outIdx = args.indexOf('--out');
   const outPath = outIdx !== -1 && args[outIdx + 1] && args[outIdx + 1] !== 'true' && !args[outIdx + 1].startsWith('-') ? args[outIdx + 1] : null;

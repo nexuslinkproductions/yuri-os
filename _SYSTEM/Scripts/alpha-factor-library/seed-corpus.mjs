@@ -18,7 +18,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { openDb, upsertFactor } from './alpha-factor-store.mjs';
 
@@ -89,6 +89,6 @@ function printSummary({ upserted, byCategory, cryptoCompatible, polymarketCompat
   console.log(`  SELECT COUNT(*):         ${totalRows}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   seed();
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * yuri-token-expand.mjs — embedding-free semantic bridging to kill TOKENIZATION COLLAPSE.
  *
@@ -266,7 +267,7 @@ export function makeFeatureFn(items, opts = {}) {
 /** Plain feature fn (tok + c4 only, no corpus) — morphology bridge with zero corpus dependency. */
 export function plainFeatureFn(text) { return features(text, { expansionMap: null }); }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   // demo: a tiny corpus where "login" and "signin" never co-occur but share context (auth/password)
   const corpus = [
     'login requires a password and auth token',

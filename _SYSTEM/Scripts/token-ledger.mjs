@@ -15,7 +15,7 @@ import {
 } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { acquireLease, releaseLease } from './nano-lease.mjs';
 
 const require = createRequire(import.meta.url);
@@ -70,6 +70,7 @@ export const DEFAULT_POLICY = Object.freeze({
     default: { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 },
     'claude-sonnet-4-6': { input: 3, output: 15, cache_read: 0.3, cache_write: 3.75, reasoning: 15 },
     'claude-opus-4-7': { input: 15, output: 75, cache_read: 1.5, cache_write: 18.75, reasoning: 75 },
+    'claude-opus-4-8': { input: 15, output: 75, cache_read: 1.5, cache_write: 18.75, reasoning: 75 }, // Opus 4.x family flat pricing — substring match fails 4-7→4-8, needs its own key (2026-06-23)
     'claude-haiku-4-5': { input: 0.8, output: 4, cache_read: 0.08, cache_write: 1, reasoning: 4 },
     'deepseek-v4-pro': { input: 0.27, output: 1.10, cache_read: 0.07, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'deepseek-v4-flash': { input: 0.07, output: 0.28, cache_read: 0.018, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
@@ -1195,7 +1196,7 @@ function getArg(args, name) {
   return args[idx + 1] || '';
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error.stack || error.message);
     process.exit(1);

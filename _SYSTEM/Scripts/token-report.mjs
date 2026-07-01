@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // _SYSTEM/Scripts/token-report.mjs
 // Token usage watcher — pure formatting surface (observe-only, no enforcement)
 //
@@ -68,7 +69,7 @@ export function renderReport(rollups) {
 }
 
 // ---- CLI entrypoint (only runs when invoked directly) ----
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   import('./token-ledger.mjs')
     .then(({ getRollups }) => getRollups())
     .then((rollups) => console.log(renderReport(rollups)))

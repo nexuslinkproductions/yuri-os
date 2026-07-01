@@ -16,7 +16,7 @@
  * nexus-numerology (gematria hash / digital-root mod-9 / harmonic signature), and the Foundry dimension classifier.
  */
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { digitalRoot, gematria, harmonicSignature, numerologyFeatures } from './math/nexus-numerology.mjs';
 import { classifyDimension } from './math/formula-foundry.mjs';
 
@@ -84,7 +84,7 @@ export function decode(text, opts = {}) {
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const text = process.argv.slice(2).filter((a) => !a.startsWith('--')).join(' ');
   const json = process.argv.includes('--json');
   if (!text) { process.stdout.write('usage: yuri-decode.mjs "<text>" [--json]\n'); process.exitCode = 1; }

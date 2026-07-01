@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * Fast local route classifier for Rick/Kagami.
  *
@@ -208,7 +209,7 @@ export function formatRouteDecision(decision) {
   return lines.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const input = process.argv.slice(2).join(' ');
   console.log(JSON.stringify(classifyRickRoute(input), null, 2));
 }

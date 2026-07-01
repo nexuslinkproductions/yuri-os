@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * Kagami Claude/Codex control-domain contract.
  *
@@ -570,7 +571,7 @@ export function summarizeDomainForPrompt(domain = buildKagamiControlDomain()) {
   ].join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const domain = buildKagamiControlDomain();
   assertNoProtectedCanonicalState(domain.stateFiles);
   console.log(JSON.stringify(domain, null, 2));

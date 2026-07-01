@@ -8,7 +8,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dir = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dir, '../..');
@@ -157,7 +157,7 @@ function printReport(report) {
   console.log(`═══════════════════════════════════════════════════════════════════════\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const report = weeklyUsage();
   if (process.argv.includes('--json')) console.log(JSON.stringify(report, null, 2));
   else printReport(report);

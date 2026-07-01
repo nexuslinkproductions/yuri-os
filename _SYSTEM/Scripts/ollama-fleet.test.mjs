@@ -28,6 +28,8 @@ test('GREEN: extractResultLabel finds a conforming label, else empty', () => {
   assert.equal(extractResultLabel('blah\n01OL_OLLAMA_FLEET_SMOKE_X_PASS_COMMITTED'), '01OL_OLLAMA_FLEET_SMOKE_X_PASS_COMMITTED');
   assert.equal(extractResultLabel('summary\n02B1_OLLAMA_SIDECAR_X_PASS_COMMITTED'), '02B1_OLLAMA_SIDECAR_X_PASS_COMMITTED');
   assert.equal(extractResultLabel('02R1_GOVERNANCE_TESTS_X_PASS_COMMITTED'), '02R1_GOVERNANCE_TESTS_X_PASS_COMMITTED');
+  assert.equal(extractResultLabel('RESULT_LABEL: AMS_Y1_INTEGRITAET_X_PASS_COMMITTED'), 'AMS_Y1_INTEGRITAET_X_PASS_COMMITTED');
+  assert.equal(extractResultLabel('  RESULT_LABEL: AMS_D1_MECHANISMUS_KARTE_X_PASS_COMMITTED'), 'AMS_D1_MECHANISMUS_KARTE_X_PASS_COMMITTED');
   assert.equal(extractResultLabel('no label here'), '');
 });
 

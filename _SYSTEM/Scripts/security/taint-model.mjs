@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // security/taint-model.mjs — source → sink flow modeling for the skill-security SAST gate.
 //
 // CLEAN-ROOM, node builtins ONLY. This is a deliberately LIGHTWEIGHT data-flow model, not a
@@ -126,6 +127,6 @@ export function analyze({ findings = [], source = '', fileName = '<file>' } = {}
 }
 
 // CLI self-check expects a JSON {findings, source} on argv[2] as a file path; minimal.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write('taint-model: library module — import { analyze }. No standalone CLI scan.\n');
 }

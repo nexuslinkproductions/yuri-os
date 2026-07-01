@@ -7,7 +7,7 @@
 
 import crypto from 'node:crypto';
 import https from 'node:https';
-import { URL } from 'node:url';
+import { URL, pathToFileURL } from 'node:url';
 
 // ───────────────────────────────────────────────────────────────────────────
 // §0 — CONSTANTS (two-host allowlist: Binance USDⓈ-M futures + spot)
@@ -336,7 +336,7 @@ export async function getAccountView(opts = {}) {
 // §11 — CLI self-check (reports connected/venue/counts ONLY; never the key/values)
 // ───────────────────────────────────────────────────────────────────────────
 
-const _main = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+const _main = process.argv[1] && process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (_main) {
   // Hydrate creds from keychain (binance-creds), then probe. NEVER prints the key/secret/raw response.
   const { hydrateBinanceCreds } = await import('./binance-creds.mjs');

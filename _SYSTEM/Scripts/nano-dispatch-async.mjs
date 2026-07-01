@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-dispatch-async-pool
 // @serves: concurrent nano dispatch | bounded concurrency pool | parallel fan-out | async spawn pool | pool-bounded child dispatch | non-blocking nano dispatch
 // @does: the CONCURRENT (pool-bounded) dispatch option for the recursive nanoswarm — the async sibling of
@@ -55,7 +56,7 @@ export function dispatchPool(granted = [], mkChildCtx, opts = {}) {
   return { pool, all };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-dispatch-async', defaultConcurrency: DEFAULT_CONCURRENCY,
     note: 'DISARMED — concurrent dispatch option, ZERO live callers; arm step injects dispatchPool as spawnNano batch dispatcher.' }, null, 2)}\n`);
 }

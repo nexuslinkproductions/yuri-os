@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        Measure which regions of computeU's input space any test/run has
@@ -177,7 +178,7 @@ export function coverageFromGenerator(n = 5000, seed = 0x5eed, weights = DEFAULT
 }
 
 // CLI: report coverage of the random state space + flag holes.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const n = Number(process.argv[2]) || 8000;
   const r = report(coverageFromGenerator(n));
   console.log(`\ncomputeU input-space coverage over ${r.samples} random states: ${(r.overallPct * 100).toFixed(1)}% (${r.binsHit}/${r.binsTotal} reachable bins)\n`);

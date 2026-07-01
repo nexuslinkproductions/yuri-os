@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 // @capability: energy-outcome-backfill
 // @serves: Wave-0 keystone L4 (integration + backfill) | real-firing calibration report
 // @does: DISARMED runner that wires runDeriver over REAL firings in _SYSTEM/state/energy-trace/*.jsonl.
@@ -247,7 +248,7 @@ export function runBackfill(opts = {}) {
 // ── 7. CLI ────────────────────────────────────────────────────────────────────
 // `node energy-outcome-backfill.mjs run [--fresh] [--shadow <p>] [--firings <d>] [--report <p>]`
 // Default behavior: run + write report. Never writes the live prediction-ledger.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const opts = parseArgs(process.argv);
   if (opts.help) {
     console.log('energy-outcome-backfill — DISARMED backfill runner.');

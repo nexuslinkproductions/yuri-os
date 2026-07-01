@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 
 import { createRequire } from 'node:module';
 import { resolveTokenLedgerPaths } from './token-ledger.mjs';
@@ -306,6 +307,6 @@ function round6(value) {
   return Math.round(Number(value || 0) * 1e6) / 1e6;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

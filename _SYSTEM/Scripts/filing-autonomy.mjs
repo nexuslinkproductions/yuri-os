@@ -42,7 +42,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizePath, isProtectedPath, REPO_ROOT } from './yuri-id-bridge.mjs';
 import { assess, isPinned } from './filing-assessor.mjs';
 import { planBatch, executeMove, sortByRisk } from './filing-mutator.mjs';
@@ -407,7 +407,7 @@ function fmt(run) {
   return lines.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const execute = argv.includes('--execute');
   const json = argv.includes('--json');

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // ===========================================================================
 // CLAUDE CONTROL PACKET
 //   goal:        Held-out corpus contamination SEAL for the calibration bakeoff.
@@ -101,7 +102,7 @@ export function assertCorpusSeal(seal, records) {
 }
 
 // CLI smoke: seal a corpus, prove reorder is intact + a value change is detected.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const corpus = [
     { id: 'r1', U: 1.2, accept: false }, { id: 'r2', U: -0.3, accept: true }, { id: 'r3', U: 5.0, accept: false },
   ];

@@ -9,7 +9,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { appendKagamiEvent, readKagamiEvents } from './kagami-event-bus.mjs';
 import { isProtectedPath } from './lane-kernel.mjs';
 
@@ -209,7 +209,7 @@ function parseArgs(argv) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const result = arbitrateLatestLaneEvidence(parseArgs(process.argv.slice(2)));
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

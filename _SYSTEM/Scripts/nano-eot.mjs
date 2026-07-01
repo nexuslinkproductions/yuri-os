@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-eot-closeout
 // @serves: nano eot | spawned agent closeout | end of transmission for a nano | write canonical claims on finish | release in-flight lease | eot as canonical writer | recursive swarm convergence write
 // @does: the per-nano END-OF-TRANSMISSION closeout (Move 1b RULE 3, 07-ARCHITECTURE.md §6). Every spawned
@@ -61,7 +62,7 @@ export function closeNano({ rootRunId, myPath, resultLabel = null, claims = [], 
   return { ok: failures.length === 0, nanoId, label: resultLabel || null, claimsWritten, failures, marker, completed, released };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-eot', eotPredicate: EOT_PREDICATE,
     ordering: ['1 work claims -> shard', '2 eot marker + manifest complete (full-success only)', '3 release lease LAST'],
     note: 'partial closeout leaves no marker -> parent barrier flags orphan (H2), never silent.' }, null, 2)}\n`);

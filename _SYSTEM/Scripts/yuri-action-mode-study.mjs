@@ -21,7 +21,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gateProposal, DEFAULT_WEIGHTS } from './math/yuri-energy.mjs';
 import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
 
@@ -96,7 +96,7 @@ export function readTraces(dir = TRACE_DIR) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cfg = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
   const weights = { ...DEFAULT_WEIGHTS, ...(cfg.weights || {}) };
   const threshold = Number.isFinite(cfg.threshold) ? cfg.threshold : 0;

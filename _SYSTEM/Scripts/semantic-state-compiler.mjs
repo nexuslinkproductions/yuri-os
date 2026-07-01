@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 
 import { readFileSync } from 'node:fs';
 
@@ -470,7 +471,7 @@ function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const raw = process.argv.slice(2).join(' ') || readStdin();
   const packet = raw.trim() ? JSON.parse(raw) : {};
   process.stdout.write(`${JSON.stringify(compileSemanticStatePacket(packet), null, 2)}\n`);

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // security/ast-bash.mjs — hand-rolled shell-script analyzer for the skill-security SAST gate.
 //
 // CLEAN-ROOM: node builtins ONLY, no shellcheck, no tree-sitter-bash, no new dependency.
@@ -179,7 +180,7 @@ function compact(line) {
 }
 
 // CLI self-check: node ast-bash.mjs <file>
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const fs = await import('node:fs');
   const target = process.argv[2];
   if (!target) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // eval-processing.mjs — the EVAL-PROCESSING LAYER under YURI's sim arsenal.
 // Turns a million-eval sampling budget into a decision: stream-reduce (never store) → variance-reduce (CRN) →
 // stop-when-decided (confidence sequence) → de-bias (held-out / split-conformal). Pure JS, zero deps.
@@ -217,7 +218,7 @@ export function inSampleVsHeldout(items, fitFn, scoreFn, { frac = 0.7, seed = 13
 export default { mkAggregator, pairedDelta, confidenceSequence, sequentialDecide, heldOutSplit, kFold, conformalQuantile, inSampleVsHeldout };
 
 // --- CLI demo / smoke ---
-if (import.meta.url === `file://${process.argv[1]}` && process.argv.includes('--demo')) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.includes('--demo')) {
   const rng = makeRng(42);
   const agg = mkAggregator({ reservoir: 500, seed: 1 });
   for (let i = 0; i < 1e6; i += 1) agg.push(rng()); // 1M evals, O(1) memory

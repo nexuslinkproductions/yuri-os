@@ -13,7 +13,7 @@
  */
 import { appendFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkOutputConformance } from './contract-conformance.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -88,7 +88,7 @@ export function scopeAudit(invokedPaths = [], opts = {}) {
 }
 
 // ── CLI ──
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   const enforceMsg = (r) => { if (r.enforceBlock) { console.log('ENFORCED: HARD conformance failure → exit 2 (stand down: delete _SYSTEM/state/contract-conformance-enforce.enabled)'); process.exitCode = 2; } };
   if (cmd === 'scope') {

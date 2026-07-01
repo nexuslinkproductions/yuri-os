@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: nano-dispatch-seam
 // @serves: dispatch nano | spawn child lane | tree ctx across process | nano ctx from env | run spawned nano | wire spawn_nano to externalNanoWork
 // @does: the DISPATCH seam for the recursive nanoswarm (Move 1b INC-6, 07-ARCHITECTURE.md §9). Wires the
@@ -121,6 +122,6 @@ export async function dispatchNano(spec = {}, childCtx = {}, opts = {}) {
   return { ok, childNanoId, tick: r, eot };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.stdout.write(`${JSON.stringify({ module: 'nano-dispatch', ctxEnvKeys: CTX_ENV, bootCtx: nanoCtxFromEnv() }, null, 2)}\n`);
 }

@@ -17,7 +17,7 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { atr, sma } from './indicators.mjs';
 import { computeIndicator } from './indicator-registry.mjs';
@@ -197,7 +197,7 @@ function coerceOpt(v, def) {
 
 // ── self-test (main-guarded, --test) ─────────────────────────────────────────
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (!process.argv.includes('--test')) {
     console.log('market-regime: YURI regime-state classifier (trending/ranging/transitional).');
     console.log('  node market-regime.mjs --test');
