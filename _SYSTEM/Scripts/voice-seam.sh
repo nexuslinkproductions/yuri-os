@@ -13,6 +13,7 @@ set -uo pipefail
 TARGET="${VOICE_TMUX_TARGET:-claude:0.0}"      # tmux session:window.pane the claude CLI runs in
 MIC="${VOICE_MIC_INDEX:-:0}"                    # ffmpeg avfoundation audio device, e.g. ":0" (list: ffmpeg -f avfoundation -list_devices true -i "")
 MODEL="${VOICE_WHISPER_MODEL:-$HOME/.cache/whisper-cpp/ggml-large-v3-turbo.bin}"
+WHISPER_LANG="${VOICE_WHISPER_LANG:-auto}"                   # auto = multilingual detect (EN+DE); was hardcoded en
 TMP="${TMPDIR:-/tmp}/voice-seam"; mkdir -p "$TMP"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FLAG="${VOICE_FLAG:-$REPO/_SYSTEM/state/voice-loop.enabled}"
@@ -40,7 +41,7 @@ listen(){
   echo "🎙  recording ${secs}s from avfoundation '$MIC' — speak now…"
   ffmpeg -nostdin -hide_banner -loglevel error -f avfoundation -i "$MIC" -t "$secs" -ac 1 -ar 16000 -y "$wav16" \
     || { echo "listen: capture failed (check VOICE_MIC_INDEX + mic permission)"; return 1; }
-  whisper-cli -m "$MODEL" -f "$wav16" -l en -nt -oj -of "$base" >/dev/null 2>&1 \
+  whisper-cli -m "$MODEL" -f "$wav16" -l "$WHISPER_LANG" -nt -oj -of "$base" >/dev/null 2>&1 \
     || { echo "listen: transcribe failed"; return 1; }
   local text
   text="$(jq -r '[.transcription[].text] | join(" ")' "$base.json" 2>/dev/null | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"

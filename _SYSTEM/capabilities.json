@@ -4023,8 +4023,8 @@
         "speech to overseer",
         "hands free claude"
       ],
-      "does": "always-on mic -> whisper-cli -> cmux send into the overseer surface. Loops short capture windows, transcribes (large-v3-turbo, English), GATES against the Rick TTS playback (won't transcribe its own voice / echo), drops empty + hallucinated segments, injects real speech into the overseer's cmux tab.",
-      "use": "run `listen` (or bash this) in any terminal AFTER `overseer` is up. Ctrl-C to stop. Tune: VOICE_WINDOW, VOICE_MIC_INDEX, VOICE_MIN_CHARS.",
+      "does": "always-on mic -> Parakeet MLX (v3 multilingual) or whisper-cli fallback -> cmux send into the overseer surface. VAD-segmented (Parakeet) or fixed windows (whisper). Echo-gates against Rick TTS playback, drops empty/hallucinated segments, injects real speech into the overseer's cmux tab.",
+      "use": "run `listen` (or bash this) in any terminal AFTER `overseer` is up. Ctrl-C to stop. Tune: VOICE_WINDOW, VOICE_MIC_INDEX, VOICE_MIN_CHARS, VOICE_PARAKEET_MODEL (default v3 EN+DE), VOICE_WHISPER_LANG (whisper fallback; default auto).",
       "exports": [
         "-"
       ],
@@ -4040,7 +4040,7 @@
         "parakeet streaming STT"
       ],
       "does": "always-on mic -> Parakeet MLX (parakeet-tdt-0.6b, ~100x real-time on Apple Silicon) -> cmux send into the overseer surface. Energy-VAD segments utterances (injects on pause, not fixed windows), echo-gates against the Rick TTS playback (won't transcribe its own voice), drops empty/hallucinated segments.",
-      "use": "launched by voice-listen.sh when the parakeet venv exists. Tune via env: VOICE_SILENCE_RMS, VOICE_SILENCE_HANG, VOICE_MIN_SPEECH, VOICE_MIC_DEVICE, VOICE_PARAKEET_MODEL.",
+      "use": "launched by voice-listen.sh when the parakeet venv exists. Tune via env: VOICE_SILENCE_RMS, VOICE_SILENCE_HANG, VOICE_MIN_SPEECH, VOICE_MIC_DEVICE, VOICE_PARAKEET_MODEL (default mlx-community/parakeet-tdt-0.6b-v3 = EN+DE auto-detect; v2 for English-only).",
       "exports": [],
       "mechanism": "_SYSTEM/Scripts/voice/parakeet-listen.py"
     },
@@ -4173,7 +4173,7 @@
         "cancel push to talk"
       ],
       "does": "GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes the clip on release (~39ms per second of audio, doesn't degrade with length) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. Press Escape to CANCEL mid-thought (nothing sent). Drops a ptt-held flag so the Rick-voice overseer never talks over your live dictation. Single-instance (kills prior ptt on launch). No always-on, no VAD wait, no TTS: intentional voice INPUT only.",
-      "use": "run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tap ESCAPE to cancel a press mid-sentence. Tune: VOICE_PTT_KEY (\"ctrl+enter\" | \"alt+enter\" | single like \"alt_r\"/\"f13\"), VOICE_PTT_CANCEL_KEY (default \"esc\"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands; default 0=batch), VOICE_PTT_CHUNK_S.",
+      "use": "run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tap ESCAPE to cancel a press mid-sentence. Tune: VOICE_PTT_KEY (\"ctrl+enter\" | \"alt+enter\" | single like \"alt_r\"/\"f13\"), VOICE_PTT_CANCEL_KEY (default \"esc\"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_MODEL (default mlx-community/parakeet-tdt-0.6b-v3 = EN+DE auto-detect; set mlx-community/parakeet-tdt-0.6b-v2 for English-only), VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands; default 0=batch), VOICE_PTT_CHUNK_S.",
       "exports": [],
       "mechanism": "_SYSTEM/Scripts/voice/voice-ptt.py"
     },
@@ -4324,11 +4324,6 @@
         "ingestOutputs",
         "pruneMissing",
         "ingestAll",
-        "getRunDetail",
-        "getArtifactsByRole",
-        "getRoleProductivityTrends",
-        "getConvergenceTrend",
-        "getThroughputTrend",
         "overview",
         "DB_PATH",
         "OUTPUT_ROOTS"

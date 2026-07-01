@@ -2,13 +2,49 @@
 # @capability: voice-ptt-control
 # @serves: push to talk | voice control claude | hold key speak inject | voice into vscode claude | hands-on voice command | cancel push to talk
 # @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes the clip on release (~39ms per second of audio, doesn't degrade with length) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. Press Escape to CANCEL mid-thought (nothing sent). Drops a ptt-held flag so the Rick-voice overseer never talks over your live dictation. Single-instance (kills prior ptt on launch). No always-on, no VAD wait, no TTS: intentional voice INPUT only.
-# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tap ESCAPE to cancel a press mid-sentence. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_CANCEL_KEY (default "esc"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands; default 0=batch), VOICE_PTT_CHUNK_S.
+# @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tap ESCAPE to cancel a press mid-sentence. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_CANCEL_KEY (default "esc"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_MODEL (default mlx-community/parakeet-tdt-0.6b-v3 = EN+DE auto-detect; set mlx-community/parakeet-tdt-0.6b-v2 for English-only), VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands; default 0=batch), VOICE_PTT_CHUNK_S.
 import os, sys, time, threading, queue, subprocess
 # The 2.3G model is cached locally after first download — never phone the HF Hub again.
 # Kills the "unauthenticated requests to the HF Hub" warning AND skips a network round-trip
 # on every launch (faster start, works fully offline). Override with HF_HUB_OFFLINE=0 to re-check.
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
+_FALLBACK_MODEL = "mlx-community/parakeet-tdt-0.6b-v2"
+
+def _model_cached(repo_id: str) -> bool:
+    try:
+        from huggingface_hub import try_to_load_from_cache
+        return (try_to_load_from_cache(repo_id, "config.json") is not None
+                and try_to_load_from_cache(repo_id, "model.safetensors") is not None)
+    except Exception:
+        return False
+
+def _prefetch_parakeet(repo_id: str) -> None:
+    """Download weights when missing; pop HF_HUB_OFFLINE so hub fetch is not blocked."""
+    from huggingface_hub import hf_hub_download
+    os.environ.pop("HF_HUB_OFFLINE", None)
+    for fname in ("config.json", "model.safetensors"):
+        hf_hub_download(repo_id, fname)
+
+def _load_parakeet(repo_id: str, dtype):
+    """Load Parakeet; prefetch from Hub once when not cached, then stay offline after."""
+    cached = _model_cached(repo_id)
+    was_offline = os.environ.get("HF_HUB_OFFLINE") == "1"
+    restore_offline = False
+    if not cached:
+        print(f"  ⬇ {repo_id} not cached — one-time download (~2.5GB)…", flush=True)
+        _prefetch_parakeet(repo_id)
+        restore_offline = was_offline
+    try:
+        if not cached:
+            os.environ.pop("HF_HUB_OFFLINE", None)
+        model = from_pretrained(repo_id, dtype=dtype)
+        return model
+    finally:
+        if restore_offline and _model_cached(repo_id):
+            os.environ["HF_HUB_OFFLINE"] = "1"
+
 import numpy as np, sounddevice as sd, mlx.core as mx
 from pynput import keyboard
 from parakeet_mlx import from_pretrained
@@ -27,6 +63,10 @@ except Exception:
     pass
 
 SAMPLE_RATE = 16000; BLOCK = 1600
+# v3 = multilingual (25 European langs incl. DE) with automatic language detection — preserves
+# German/English code-switching. v2 = English-only (marginally higher EN accuracy).
+# Mirrors voice-ptt-win.py (rene branch, 2026-07-01).
+MODEL_NAME = os.environ.get("VOICE_PTT_MODEL", "mlx-community/parakeet-tdt-0.6b-v3")
 # PTT trigger. Default: hold right-option. Tokens split on "+" and matched EXACTLY.
 COMBO    = os.environ.get("VOICE_PTT_KEY", "alt_r").lower().strip()
 SUBMIT   = os.environ.get("VOICE_PTT_SUBMIT", "1") == "1"    # paste + Enter, or paste only
@@ -76,8 +116,15 @@ def _track(key, down):
     elif key in ALT_KEYS:   _state["alt"]   = down
     elif key == keyboard.Key.enter: _state["enter"] = down
 
-print(f"loading Parakeet… (PTT = hold {COMBO}, cancel = {_cancel_name}, mode={'stream' if STREAM else 'batch'})", flush=True)
-model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v2", dtype=mx.float32)
+print(f"loading Parakeet ({MODEL_NAME})… (PTT = hold {COMBO}, cancel = {_cancel_name}, mode={'stream' if STREAM else 'batch'})", flush=True)
+try:
+    model = _load_parakeet(MODEL_NAME, mx.float32)
+except Exception:
+    if MODEL_NAME != _FALLBACK_MODEL and _model_cached(_FALLBACK_MODEL):
+        print(f"  ⚠ {MODEL_NAME} unavailable — falling back to cached EN-only v2 (German won't work until v3 downloads)", flush=True)
+        model = _load_parakeet(_FALLBACK_MODEL, mx.float32)
+    else:
+        raise
 preproc = model.preprocessor_config
 # MLX pools Metal GPU buffers across calls; if never cleared, every transcription's intermediate
 # arrays stay resident -> unbounded memory growth (this was the >10GB PTT leak). Clear after each
