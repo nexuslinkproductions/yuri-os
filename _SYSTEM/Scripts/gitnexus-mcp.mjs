@@ -77,7 +77,11 @@ if (fs.existsSync(LOCAL_CLI)) {
   command = process.execPath;
   args = [LOCAL_CLI, ...gitnexusArgs];
 } else {
-  command = 'npx';
+  // On Windows, `npx` resolves to the npx.cmd shim, not a real PE binary — same class of
+  // platform assumption as the main-module guard fix (issue #3). Node's own docs: spawning a
+  // .cmd on Windows requires shell:true (or an explicit `cmd.exe /c` prefix); without it,
+  // spawn() first threw ENOENT (bare 'npx'), then EINVAL even once resolved to 'npx.cmd'.
+  command = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   args = ['--yes', FALLBACK_PACKAGE, ...gitnexusArgs];
 }
 
@@ -85,6 +89,7 @@ const child = spawn(command, args, {
   cwd: REPO_ROOT,
   env: process.env,
   stdio: 'inherit',
+  shell: command.endsWith('.cmd'),
 });
 
 child.on('exit', (code, signal) => {
