@@ -134,13 +134,15 @@ Allowed:
 - bounded packets sent into the live session
 - streamed deltas observed by Kagami/Rick
 
-Forbidden:
+Forbidden (default — do not spawn unsolicited):
 
 - Claude SDK calls
 - `claude -p`
 - `claude --print`
 - no-session-persistence prompt calls
 - fresh paid prompt processes for advisory packets
+
+**Owner-explicit exception (Marcel requests in the active task):** `claude -p` / `claude --print` are **allowed** when Marcel explicitly asks for a headless Sonnet/Opus research or worker spawn. No additional metered API cost on the Max subscription lane. Agents must not refuse on policy grounds when the owner requested it. Optional script gate: `YURI_OWNER_HEADLESS=1` prefix. Still forbidden: unsolicited headless spawns, SDK calls outside an owner packet.
 
 ## Protected Paths
 

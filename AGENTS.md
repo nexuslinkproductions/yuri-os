@@ -53,13 +53,15 @@ If a skill fires from a plugin cache, name that as an activation source only; do
 
 Claude must be used only through an actual continuous CLI/tmux/PTY session when YURI controls it.
 
-Forbidden for Claude routes:
+Forbidden for Claude routes (default — do not spawn unsolicited):
 
 - SDK calls
 - `claude -p`
 - `claude --print`
 - no-session-persistence prompt calls
 - spawning a fresh paid prompt process for each advisory packet
+
+**Owner-explicit exception:** when Marcel explicitly requests `claude -p` / `--print` in the active task (e.g. headless Sonnet research spawn), agents **must comply** — no additional metered API cost on Max. Optional env gate: `YURI_OWNER_HEADLESS=1`. Unsolicited headless spawns remain forbidden.
 
 DeepSeek must be routed only through the LLM compatibility lane: `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `_SYSTEM/Scripts/llm-lane.mjs deepseek ...`. Do not use workhorse, parallel-clone, old offload skills, direct DeepSeek wrappers, or ad hoc DeepSeek command surfaces. Any persistence/cache behavior must come from the llm-compat/lane-session internals.
 

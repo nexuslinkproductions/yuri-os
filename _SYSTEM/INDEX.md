@@ -125,13 +125,15 @@ Allowed:
 - feed bounded packets into that live session through the Kagami bridge
 - stream deltas back into the operator surface
 
-Not allowed:
+Not allowed (default):
 
 - SDK-style Claude calls
-- `claude -p`
+- unsolicited `claude -p`
 - Claude `--print` prompt calls
 - no-session-persistence prompt calls
 - spawning fresh paid model sessions for every advisory packet
+
+**Owner-explicit exception:** Marcel may request headless `claude -p` / `--print` in the active task — allowed; Max subscription, no extra metered API cost. Prefix `YURI_OWNER_HEADLESS=1` for scripted spawns.
 
 ## New Artifact Rule
 

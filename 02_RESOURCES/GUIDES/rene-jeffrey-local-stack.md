@@ -105,6 +105,8 @@ powershell -ExecutionPolicy Bypass -File _SYSTEM/Scripts/jeffrey-rene-setup.ps1
 
 Full research: `02_RESOURCES/RESEARCH/jeffrey-local-model-landscape-2026-07-01.md`
 
+**Deep research spawn (owner-provided):** Marcel may supply a headless `claude -p` command for extra model scouting. Policy allows owner-explicit headless spawns (`YURI_OWNER_HEADLESS=1`). Use the exact command Marcel gives — do not improvise.
+
 ---
 
 ## YURI lanes (Jeffrey)
