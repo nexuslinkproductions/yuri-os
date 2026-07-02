@@ -262,7 +262,9 @@ export async function dispatchAsCeo(task = {}, opts = {}) {
 
   // CEO NEVER arms. dry-run forces armed:false; live passes undefined so isMureArmed() decides.
   const armed = opts.dryRun ? false : undefined;
-  const result = await runCompany(task, { ...opts, armed });
+  // CEO is the capability-max surface: role fusion defaults ON (one lane may carry a compatible
+  // co-role — verification/independence/owner-gated fusions stay hard-blocked in castRole).
+  const result = await runCompany(task, { maxCoRoles: 2, ...opts, armed });
 
   // Stamp CEO metadata onto the result for the report layer.
   result.ceo = {
@@ -428,7 +430,7 @@ export function renderReport(result = {}, snap = {}) {
     lines.push('ROLES CAST:');
     for (const c of plan.casts) {
       const t = c.target || {};
-      lines.push(`  ${String(c.subtaskId).padEnd(16)} → ${String(c.role).padEnd(13)} ${t.substrate || '?'}/${t.lane || '?'}  [${c.ruling?.class || '?'}]`);
+      lines.push(`  ${String(c.subtaskId).padEnd(16)} → ${String(c.role + (c.coRoles?.length ? `+${c.coRoles.join('+')}` : '')).padEnd(13)} ${t.substrate || '?'}/${t.lane || '?'}  [${c.ruling?.class || '?'}]`);
     }
     lines.push('');
   }
@@ -470,7 +472,7 @@ export function renderReport(result = {}, snap = {}) {
   if (runDir) {
     lines.push('ARTIFACTS:');
     lines.push(`  run dir:        ${path.relative(REPO_ROOT, runDir) || runDir}`);
-    lines.push(`  results:        ${path.relative(REPO_ROOT, path.join(runDir, 'results'))}/*.json`);
+    lines.push(`  results:        ${path.relative(REPO_ROOT, runDir)}/*.json`);
     if (snap?.status) lines.push(`  status.json:   ${path.relative(REPO_ROOT, path.join(runDir, 'status.json'))}`);
     if (snap?.spawns?.length) lines.push(`  spawns.jsonl:  ${path.relative(REPO_ROOT, path.join(runDir, 'spawns.jsonl'))}`);
     lines.push('');
@@ -630,7 +632,7 @@ function renderHumanPlan(result, meta = {}) {
   process.stdout.write('CAST (subtask → role → substrate/lane → governance):\n');
   for (const c of (plan.casts || [])) {
     const t = c.target || {};
-    process.stdout.write(`  ${String(c.subtaskId).padEnd(16)} → ${String(c.role).padEnd(13)} ${t.substrate || '?'}/${String(t.lane || '?').padEnd(9)} ${c.ruling?.class || '?'}\n`);
+    process.stdout.write(`  ${String(c.subtaskId).padEnd(16)} → ${String(c.role + (c.coRoles?.length ? `+${c.coRoles.join('+')}` : '')).padEnd(13)} ${t.substrate || '?'}/${String(t.lane || '?').padEnd(9)} ${c.ruling?.class || '?'}\n`);
   }
 
   process.stdout.write(`\nSUBSTRATES: glm=${s.glm ?? 0}  native=${s.native ?? 0}  inline=${s.inline ?? 0}\n`);

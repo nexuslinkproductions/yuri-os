@@ -298,3 +298,53 @@ test('GREEN (D-14 disarmed-degrades): runCompany DISARMED skips the goal cycle w
   assert.ok('inlineResults' in r);
   assert.ok(Array.isArray(r.independenceViolations));
 });
+
+// ── Multi-role fusion (owner feature 2026-07-02): co-roles raise capability density per lane ──
+
+test('GREEN: castRole fuses a compatible co-role when opts.maxCoRoles > 1', () => {
+  const roster = loadRoster();
+  const need = deriveNeeds('research prior art, cite sources and synthesize the findings across domains');
+  const cast = castRole(roster, { id: 'r1', prompt: 'research + synthesize', need }, { maxCoRoles: 2, quiet: true });
+  assert.equal(cast.coRoles.length, 1, `expected exactly one co-role, got ${JSON.stringify(cast.coRoles)}`);
+  assert.notEqual(cast.coRoles[0], cast.role);
+  const co = getRole(roster, cast.coRoles[0]);
+  assert.notEqual(co.group, 'verification');
+  assert.notEqual(co.autonomyClass, 'owner-gated');
+});
+
+test('RED: verification critics NEVER fuse — engineer+adjudicator stays two lanes', () => {
+  const roster = loadRoster();
+  const need = deriveNeeds('implement the module and adversarially verify refute redteam it');
+  const cast = castRole(roster, { id: 'r2', prompt: 'build + verify', need }, { maxCoRoles: 3, quiet: true });
+  for (const id of cast.coRoles) {
+    assert.notEqual(getRole(roster, id).group, 'verification', `verification role '${id}' must not fuse`);
+  }
+});
+
+test('RED: fusion is OFF by default — no coRoles without opts.maxCoRoles', () => {
+  const roster = loadRoster();
+  const need = deriveNeeds('research prior art and synthesize the findings');
+  const cast = castRole(roster, { id: 'r3', prompt: 'x', need }, { quiet: true });
+  assert.deepEqual(cast.coRoles, []);
+});
+
+test('GREEN: fused leaf carries coRoles metadata and a co-role prompt section', async () => {
+  await withDisarmed(async () => {
+    const need = deriveNeeds('research prior art, cite sources and synthesize the findings across domains');
+    const plan = await planCompany({ summary: 'fusion', subtasks: [{ id: 'f1', prompt: 'research + synthesize', need }] }, { maxCoRoles: 2, quiet: true });
+    const all = [...plan.glmLeaves, ...plan.nativeSpecs, ...plan.inlineSpecs];
+    assert.equal(all.length, 1);
+    const unit = all[0];
+    assert.match(unit.prompt, /co-role of/i, 'prompt must carry the co-role section');
+    if (unit.coRoles) assert.equal(unit.coRoles.length, 1);
+  });
+});
+
+test('GREY: owner-gated roles never ride as co-hats', () => {
+  const roster = loadRoster();
+  const need = deriveNeeds('decompose and route the plan, then implement the module');
+  const cast = castRole(roster, { id: 'r4', prompt: 'x', need }, { maxCoRoles: 4, quiet: true });
+  for (const id of cast.coRoles) {
+    assert.notEqual(getRole(roster, id).autonomyClass, 'owner-gated', `owner-gated '${id}' must not fuse`);
+  }
+});

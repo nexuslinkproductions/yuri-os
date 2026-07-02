@@ -103,31 +103,42 @@ export function decisionFor(subtask = {}, role = {}) {
   return ruling;
 }
 
-/** Build a runSwarm/Agent prompt that frames the worker AS its role. */
-export function buildRolePrompt(role, subtask) {
-  return [
+/** Build a runSwarm/Agent prompt that frames the worker AS its role (+ optional fused co-roles). */
+export function buildRolePrompt(role, subtask, coRoles = []) {
+  const lines = [
     `You are the ${role.name} of ${MURE_NAME} — archetype: ${role.archetype}.`,
     `Mission: ${role.mission}.`,
     `Capabilities you bring: ${(role.capabilities || []).join(', ')}.`,
+  ];
+  for (const co of coRoles) {
+    lines.push(
+      '',
+      `You ALSO carry the co-role of ${co.name} (${co.archetype}). Co-mission: ${co.mission}.`,
+      `Additional capabilities: ${(co.capabilities || []).join(', ')}. Integrate both perspectives into ONE coherent deliverable — the co-role is a second hat, not a second report.`,
+    );
+  }
+  lines.push(
     '',
     `TASK: ${subtask.prompt || subtask.summary || ''}`,
     '',
     'Work to local evidence; do not over-claim. End your output with an UPPERCASE RESULT_LABEL of the form NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED.',
-  ].join('\n');
+  );
+  return lines.join('\n');
 }
 
-/** Build a runSwarm leaf (GLM substrate) for a role-cast subtask. */
-export function buildLeaf(role, subtask, target) {
+/** Build a runSwarm leaf (GLM substrate) for a role-cast subtask (+ optional fused co-roles). */
+export function buildLeaf(role, subtask, target, coRoles = []) {
   const leaf = {
     id: subtask.id || role.id,
     lane: target.lane,
     reasoning: 'high',
-    prompt: buildRolePrompt(role, subtask),
+    prompt: buildRolePrompt(role, subtask, coRoles),
     role: role.id,
     dispatch: target.dispatch || 'glm-lane',
     substrateHint: subtask.substrateHint || null,
     affinityApplied: target.affinityApplied || null,
   };
+  if (coRoles.length) leaf.coRoles = coRoles.map((r) => r.id);
   if (subtask.timeoutMs != null) {
     leaf.timeoutMs = subtask.timeoutMs;
   } else if (target.lane === 'glm-max' || target.lane === 'glm-sub-orch') {
@@ -348,6 +359,25 @@ export function castRole(roster, subtask, opts = {}) {
   let matched = false;
   if (subtask.role) { role = getRole(roster, subtask.role); if (role) matched = true; } // explicit role override
   if (!role && need.length) { role = matchRolesByCapability(roster, need)[0]?.role || null; if (role) matched = true; }
+  // Multi-role fusion (owner feature 2026-07-02): one lane may carry CO-ROLES to raise capability
+  // density — opt-in via opts.maxCoRoles (>1). Guardrails, all hard: a verification-group critic never
+  // fuses (charter independence — a producer+critic lane is the echo chamber independentOf forbids);
+  // any independentOf pair (either direction) never fuses; an owner-gated role never rides as a co-hat
+  // (its autonomy floor would force-hold the whole fused leaf).
+  const coRoles = [];
+  const maxCo = Number(opts.maxCoRoles) > 1 ? Math.floor(Number(opts.maxCoRoles)) : 1;
+  if (maxCo > 1 && role && matched && !subtask.role && need.length) {
+    for (const m of matchRolesByCapability(roster, need)) {
+      if (coRoles.length >= maxCo - 1) break;
+      const cand = m?.role;
+      if (!cand || cand.id === role.id || coRoles.some((c) => c.id === cand.id)) continue;
+      if (cand.group === 'verification') continue;
+      if (cand.autonomyClass === 'owner-gated') continue;
+      const indep = new Set([...(cand.independentOf || []), ...(role.independentOf || [])]);
+      if (indep.has(role.id) || indep.has(cand.id)) continue;
+      coRoles.push(cand);
+    }
+  }
   if (!role) {
     role = getRole(roster, 'engineer');                                // default executor
     // D-8: make the silent collapse visible. A subtask that reached the default (no explicit role, no
@@ -365,7 +395,11 @@ export function castRole(roster, subtask, opts = {}) {
   target = applySubstrateHint(subtask, target);
   target = applyAffinityMatrix(role, target, { forceSubstrateHint: !!subtask.substrateHint });
   const ruling = decisionFor(subtask, role);
-  return { subtaskId: subtask.id, role: role.id, roleName: role.name, group: role.group, target, ruling, matched, substrateHint: subtask.substrateHint || null };
+  return {
+    subtaskId: subtask.id, role: role.id, roleName: role.name, group: role.group, target, ruling, matched,
+    substrateHint: subtask.substrateHint || null,
+    coRoles: coRoles.map((r) => r.id), coRoleNames: coRoles.map((r) => r.name),
+  };
 }
 
 /**
@@ -386,20 +420,21 @@ export async function planCompany(task = {}, opts = {}) {
     const c = casts[i];
     const role = getRole(roster, c.role);
     const subtask = subtasks[i];
+    const coRoles = (c.coRoles || []).map((id) => getRole(roster, id)).filter(Boolean);
     if (c.ruling.class === CLASS.OWNER) {
       if (isSubtaskClearedByOwner(subtask.id, subtask, rulings)) {
         clearedHeld.push({ ...c, reason: c.ruling.ruling, clearedBy: rulings.source });
-        if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target));
-        else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
-        else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
+        if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target, coRoles));
+        else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, coRoles: c.coRoles || [], model: c.target.model, prompt: buildRolePrompt(role, subtask, coRoles) });
+        else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask, coRoles) });
       } else {
         held.push({ ...c, reason: c.ruling.ruling });
       }
       continue;
     }
-    if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target));
-    else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, model: c.target.model, prompt: buildRolePrompt(role, subtask) });
-    else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask) });
+    if (c.target.dispatch === 'glm-lane' || c.target.dispatch === 'zai-tmux') glmLeaves.push(buildLeaf(role, subtask, c.target, coRoles));
+    else if (c.target.dispatch === 'agent') nativeSpecs.push({ id: subtask.id || role.id, role: role.id, coRoles: c.coRoles || [], model: c.target.model, prompt: buildRolePrompt(role, subtask, coRoles) });
+    else inlineSpecs.push({ id: subtask.id || role.id, role: role.id, prompt: buildRolePrompt(role, subtask, coRoles) });
   }
   const summary = {
     subtasks: subtasks.length, cast: casts.length,
