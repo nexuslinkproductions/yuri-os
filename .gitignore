@@ -330,6 +330,10 @@ YURI-SENTINEL/08_INGESTION/skool/venv/
 *.canvas
 GeneratedContent
 Volumes
+# Nexus infra kong templates (not macOS mount volumes)
+!03_NEXUS-LINK/infra/volumes/
+!03_NEXUS-LINK/infra/volumes/kong/
+!03_NEXUS-LINK/infra/volumes/kong/**
 
 # Build and generated output
 dist/
