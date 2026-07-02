@@ -7,7 +7,7 @@
  *
  * @exports shouldPersistMlp, shouldPersistMlpLearn, recordMlpPredictions, recordMlpOutcomesFromRun,
  *          recordMlpFeedbackStub, recordMlpFeedbackDryRun, runMlpFeedbackLoop, recordMlpFeedbackFromRun,
- *          deriveLeafOutcome, runPostTrainSummary
+ *          deriveLeafOutcome, runPostTrainSummary, enrichRunResultWithSidecarPools
  */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { recordPrediction, recordOutcome } from './prediction-ledger.mjs';
 import { extractResultLabel } from './glm-fleet.mjs';
+import { aggregatePoolOutputs as aggregateOllamaPool } from './ollama-fleet.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -85,6 +86,42 @@ export function recordMlpCounterfactualShadow(plan, ctx = {}) {
   return { skipped: false, count: records.length, file: COUNTERFACTUAL_SHADOW_FILE, records };
 }
 
+/** Merge ollama/zai sidecar result packets into swarm poolOutputs for MLP outcome derivation. */
+export function enrichRunResultWithSidecarPools(runResult = {}) {
+  const swarm = runResult.swarm ? { ...runResult.swarm } : {};
+  const poolOutputs = { ...(swarm.poolOutputs || {}) };
+
+  const mergeSidecar = (sidecar, substrate = 'ollama') => {
+    if (!sidecar) return;
+    if (sidecar.runDir) {
+      const { pool } = aggregateOllamaPool(sidecar.runDir);
+      for (const [leafId, pkt] of Object.entries(pool)) {
+        poolOutputs[leafId] = { ...pkt, actualSubstrate: substrate, ok: pkt.status === 'ok' };
+      }
+    }
+    for (const r of sidecar.results || []) {
+      const leafId = r.label;
+      if (!leafId) continue;
+      const text = r.text || '';
+      const label = r.resultLabel || extractResultLabel(text) || '';
+      if (!poolOutputs[leafId] || label || text.length >= 16) {
+        poolOutputs[leafId] = {
+          label,
+          text,
+          status: r.ok ? 'ok' : (r.status || 'fail'),
+          ok: !!r.ok,
+          actualSubstrate: substrate,
+        };
+      }
+    }
+  };
+
+  mergeSidecar(runResult.ollamaSidecarResults, 'ollama');
+  mergeSidecar(runResult.zaiSidecarResults, 'tmux-zai');
+
+  return { ...runResult, swarm: { ...swarm, poolOutputs } };
+}
+
 /** Record prediction-ledger rows at plan time. Returns { ids: leafId → predictionId }. */
 export async function recordMlpPredictions(plan, ctx = {}, opts = {}) {
   const router = await getRouter();
@@ -141,6 +178,7 @@ export function deriveLeafOutcome(leafId, runResult = {}) {
     packet = nativePool[leafId];
     actualSubstrate = 'native';
   }
+  if (packet?.actualSubstrate) actualSubstrate = packet.actualSubstrate;
 
   const text = packet?.text || '';
   const label = packet?.label || extractResultLabel(text) || '';

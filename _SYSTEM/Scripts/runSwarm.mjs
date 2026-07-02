@@ -144,6 +144,12 @@ export async function runSwarm(decomposition = {}, opts = {}) {
     }
   }
 
+  // P9 shadow on standalone runSwarm path (advisory — never changes dispatch).
+  try {
+    const { recordMlpCounterfactualShadow } = await import('./fleet-mlp-feedback.mjs');
+    recordMlpCounterfactualShadow({ glmLeaves: leaves }, { quotaPressure: opts.quotaPressure ?? 0.4 });
+  } catch { /* advisory */ }
+
   // Injectable deps (hermetic tests pass fakes; defaults are the real wired functions).
   const _glmFleet = opts.deps?.glmFleet || glmFleet;
   const _aggregate = opts.deps?.aggregatePoolOutputs || aggregatePoolOutputs;

@@ -28,7 +28,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { recordMlpFeedbackStub, recordMlpPredictions } from './fleet-mlp-feedback.mjs';
-import { isArmed as isOllamaFleetArmed } from './ollama-fleet.mjs';
+import { isArmed as isOllamaFleetArmed, OLLAMA_ROSTER } from './ollama-fleet.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '../..');
@@ -60,10 +60,39 @@ function writeSidecarTasksFile(runId, subdir, filename, payload) {
   }
 }
 
+const OLLAMA_TIER_KEYS = new Set(Object.keys(OLLAMA_ROSTER));
+
+/** Resolve ollama-fleet tier from subtask metadata, affinity matrix, or router hints. */
+export function resolveOllamaTier(leaf, subtaskById = new Map()) {
+  const sub = subtaskById.get(leaf.id) || subtaskById.get(String(leaf.id || '').split('-')[0]);
+  if (sub?.tier && OLLAMA_TIER_KEYS.has(sub.tier)) return sub.tier;
+  if (leaf.tier && OLLAMA_TIER_KEYS.has(leaf.tier)) return leaf.tier;
+  if (leaf.lane && OLLAMA_TIER_KEYS.has(leaf.lane)) return leaf.lane;
+  if (leaf.affinityApplied === 'ollama-minimax') return 'minimax';
+  if (leaf.affinityApplied === 'ollama-flash') return 'flash';
+  const rsLane = leaf.routerSuggestion?.lane || '';
+  if (rsLane.includes('minimax')) return 'minimax';
+  if (rsLane.includes('kimi')) return 'kimi';
+  if (rsLane.includes('flash')) return 'flash';
+  if (leaf.routerSuggestion?.substrate === 'ollama' && OLLAMA_TIER_KEYS.has(rsLane.replace(/^ollama-/, ''))) {
+    return rsLane.replace(/^ollama-/, '');
+  }
+  return 'flash';
+}
+
+function subtaskIndex(task = {}) {
+  const map = new Map();
+  for (const st of task.subtasks || []) {
+    if (st.id) map.set(st.id, st);
+  }
+  return map;
+}
+
 /** Build ollama-fleet task list from plan casts (bulk roles + router ollama hints). */
 export function buildOllamaSidecar(plan, task = {}) {
   const tasks = [];
   const seen = new Set();
+  const subById = subtaskIndex(task);
   // Pull bulk roles from plan metadata if available; fall back to hardcoded set
   const bulkRoles = new Set(plan.ollamaSidecar?.metadata?.bulkRoles || ['scout', 'artificer']);
   const add = (leaf) => {
@@ -76,7 +105,7 @@ export function buildOllamaSidecar(plan, task = {}) {
     seen.add(id);
     tasks.push({
       label: id,
-      tier: 'flash',
+      tier: resolveOllamaTier(leaf, subById),
       role: leaf.role,
       prompt: leaf.prompt || `${task.summary || 'fleet task'} — ${leaf.role} (${id})`,
     });

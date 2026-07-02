@@ -285,6 +285,48 @@ Pass `--ollama-sidecar` / `--cline-sidecar` / `--zai-sidecar` to `runFleet` or `
 3. Ollama runId is `olf-*`; result packets land in `.claude/jobs/olf-<id>/results/*.json` + `spawns.jsonl`
 4. Handled leaf IDs merge into `skipLeafIds` so GLM swarm does not double-dispatch
 5. Disarmed (`ollama-fleet.enabled` absent): `ollamaSidecar.skipped=true`, `skipReason` set — no spawn, no spend
+6. **Tier propagation:** subtask `tier` (flash/minimax/kimi) + affinity matrix flow into `ollama-tasks.json` — not hardcoded flash
+
+**Multi-arm substrate table (independent quotas — run in parallel):**
+
+| substrate | entry | arm | concurrent | tier examples |
+|---|---|---|---|---|
+| native Claude | Opus `Agent` tool | (session) | ~12 parallel Agents | sonnet, haiku |
+| z.ai GLM | `glm-fleet.mjs` / `runSwarm` | `glm-fleet.enabled` | plan-dependent | glm-max, glm, glm-flash |
+| ollama-cloud | `ollama-fleet.mjs` / `--ollama-sidecar` | `ollama-fleet.enabled` | 3 (Pro plan) | flash, minimax, kimi |
+| z.ai tmux | `zai-tmux-fleet.mjs` / `--zai-sidecar` | `zai-tmux-fleet.enabled` | tmux sessions | glm-max heavy roles |
+
+**Cross-process cloud slots (multi-machine):** set `YURI_CLOUD_SLOTS_DIR` to a shared directory so `cloud-concurrency.mjs` admission is consistent across hosts (default: `_SYSTEM/state/cloud-slots`). Optional hermetic test: `_SYSTEM/Scripts/cloud-concurrency.test.mjs`.
+
+**P8.4 budgetCap (quartermaster):** `runCompany` → `runSwarm` threads a finite default `budgetCap` of **48** lane-calls (~16 leaves × 3 rounds). Override: `task.budgetCap`, `YURI_MURE_BUDGET=<n>`, or `YURI_MURE_BUDGET_UNLIMITED=1` for legacy unbounded behavior. Force-stop fires via `swarm-convergence` damping when budget exhausts.
+
+**P9 MLP shadow (no active routing):** arm with `YURI_MLP_SHADOW=1` or `touch _SYSTEM/state/mlp-shadow.enabled`. Writes counterfactual rows to `_SYSTEM/state/fleet-router-counterfactual-shadow.jsonl` at plan time (`planCompany`) and apply time (`runCompany` / `runSwarm`). Does **not** change dispatch.
+
+**RESULT_LABEL interpretation:**
+
+| suffix | meaning | example |
+|---|---|---|
+| `_X_PASS_` | executed + verified locally | `15OL_SMOKE_SCOUT_X_PASS_COMMITTED` |
+| `_P_PASS_` | partial / provisional pass | planning-only or incomplete verify |
+| `_F_PASS_` | failed but recorded (honest fail) | adversarial find, not a silent skip |
+| missing + text < 16 chars | **empty-outcome** — MLP training skipped | sidecar timeout with no label |
+
+Grammar: `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED` — validated by `contract-conformance.mjs` (D-3).
+
+**`mure.mjs --run` (Cursor / VS Code terminal):**
+
+```bash
+# Plan only (zero spend) — safe default in any IDE terminal
+node _SYSTEM/mure/mure.mjs --run --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json --dry-run
+
+# Live dispatch (needs mure.enabled + glm-fleet.enabled; sidecars need their flags)
+node _SYSTEM/mure/mure.mjs --run --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json
+
+# Equivalent lower-level entry
+node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json --apply --ollama-sidecar
+```
+
+**OpenAPI:** `_SYSTEM/docs/work-dashboard.openapi.yaml` — work-dashboard :4270 including `/api/processes`.
 
 ### 6.3 The four arm flags (dependency table)
 

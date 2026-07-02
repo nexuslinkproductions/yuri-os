@@ -16,7 +16,7 @@ import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket, defaultTimeoutMsForLane } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
-import { runMlpFeedbackLoop, recordMlpFeedbackStub, recordMlpCounterfactualShadow } from '../Scripts/fleet-mlp-feedback.mjs';
+import { runMlpFeedbackLoop, recordMlpFeedbackStub, recordMlpCounterfactualShadow, enrichRunResultWithSidecarPools } from '../Scripts/fleet-mlp-feedback.mjs';
 import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
 import { isEvolverArmed } from './evolver-arm.mjs';
 import { runGoalCycle } from './goal-engine.mjs';
@@ -38,6 +38,23 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 export const ARM_ENV = 'YURI_MURE_ARMED';
 export const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mure.enabled');
+/** P8.4 default lane-call budget (~16 leaves × 3 rounds). Override: task.budgetCap, YURI_MURE_BUDGET, or YURI_MURE_BUDGET_UNLIMITED=1 */
+export const DEFAULT_MURE_BUDGET_CAP = 48;
+
+/** Resolve cumulative runSwarm budgetCap — finite default unless owner opts out. */
+export function resolveBudgetCap(opts = {}, task = {}) {
+  if (opts.budgetCap === Infinity || task.budgetCap === Infinity) return Infinity;
+  if (opts.budgetCap != null && Number.isFinite(Number(opts.budgetCap))) return Number(opts.budgetCap);
+  if (task.budgetCap != null && Number.isFinite(Number(task.budgetCap))) return Number(task.budgetCap);
+  const env = process.env.YURI_MURE_BUDGET;
+  if (env === 'Infinity' || env === 'unlimited' || env === 'inf') return Infinity;
+  if (env != null && env !== '') {
+    const n = Number(env);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  if (process.env.YURI_MURE_BUDGET_UNLIMITED === '1') return Infinity;
+  return DEFAULT_MURE_BUDGET_CAP;
+}
 
 /** MURE armed via env OR gitignored flag (owner-gated to create; `rm` to disarm). DISARMED = plan-only. */
 export function isMureArmed() {
@@ -139,6 +156,8 @@ export function buildLeaf(role, subtask, target, coRoles = []) {
     affinityApplied: target.affinityApplied || null,
   };
   if (coRoles.length) leaf.coRoles = coRoles.map((r) => r.id);
+  if (subtask.tier) leaf.tier = subtask.tier;
+  if (target.lane === 'minimax' || target.lane === 'flash' || target.lane === 'kimi') leaf.tier = target.lane;
   if (subtask.timeoutMs != null) {
     leaf.timeoutMs = subtask.timeoutMs;
   } else if (target.lane === 'glm-max' || target.lane === 'glm-sub-orch') {
@@ -849,11 +868,7 @@ export async function runCompany(task = {}, opts = {}) {
     ? plan.glmLeaves.filter((l) => !skipLeafIds.has(l.id))
     : plan.glmLeaves;
 
-  // budgetCap pass-through (task.budgetCap → env YURI_MURE_BUDGET → undefined). A parallel lane teaches
-  // runSwarm to accept it; we only thread it through so the seam is ready. undefined = no cap (current behavior).
-  const budgetCap = opts.budgetCap != null ? opts.budgetCap
-    : (task.budgetCap != null ? task.budgetCap
-      : (process.env.YURI_MURE_BUDGET != null && process.env.YURI_MURE_BUDGET !== '' ? Number(process.env.YURI_MURE_BUDGET) : undefined));
+  const budgetCap = resolveBudgetCap(opts, task);
 
   // Dispatch GLM substrate through runSwarm (governed loop)
   if (glmLeavesToDispatch.length) {
@@ -862,7 +877,8 @@ export async function runCompany(task = {}, opts = {}) {
     // to ensure tests can force disarm even when fleet flags exist.
     swarm = await runSwarm({ leaves: glmLeavesToDispatch }, {
       rounds: Number(opts.rounds || 2), concurrency: Number(opts.concurrency || 3), armed,
-      ...(budgetCap != null ? { budgetCap } : {}),
+      budgetCap,
+      quotaPressure: opts.quotaPressure ?? 0.4,
     });
   }
 
@@ -878,7 +894,18 @@ export async function runCompany(task = {}, opts = {}) {
     });
   }
 
-  const runPayload = { swarm, nativeResults, inlineResults };
+  const runPayload = enrichRunResultWithSidecarPools({
+    swarm,
+    nativeResults,
+    inlineResults,
+    ollamaSidecarResults: opts.ollamaSidecarResults || null,
+    zaiSidecarResults: opts.zaiSidecarResults || null,
+  });
+
+  // P9 shadow: counterfactual log at apply time (plan-time shadow already in planCompany).
+  try {
+    runPayload.mlpCounterfactualShadow = recordMlpCounterfactualShadow(plan, { quotaPressure: opts.quotaPressure ?? 0.4 });
+  } catch { /* advisory */ }
 
   // Goal-engine LIVE (D-14): one PROPOSE→SCORE→GATE cycle per participating role, scoped to the run outcome.
   let goalCycle = { ran: false, skipped: true, reason: 'no participating roles' };

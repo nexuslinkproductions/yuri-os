@@ -241,7 +241,7 @@ Before casting leaves, `planCompany` should:
 | Aggregator | `_SYSTEM/Scripts/live-ops-aggregator.mjs` | `buildLiveSnapshot()`, `watchJobs({debounceMs:200})` |
 | Server | `_SYSTEM/Scripts/work-dashboard.mjs` | `GET /api/live`, `GET /api/live/stream` (SSE) |
 | UI | `_SYSTEM/mure/dashboard.html` | Lane strip panel (M0); cards M1 |
-| Canonical port | **:4270** | `server.py` :8433 = demo only |
+| Canonical port | **:4270** | `work-dashboard.mjs` — legacy `server.py :8433` was never built (removed from ops docs 2026-07-02) |
 
 **Aggregator inputs:**
 

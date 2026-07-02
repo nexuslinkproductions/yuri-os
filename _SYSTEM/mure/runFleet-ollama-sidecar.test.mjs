@@ -14,6 +14,28 @@ const SCOUT_TASK = {
   subtasks: [{ id: 'scout-1', role: 'scout', need: ['census'], prompt: 'scan repo', blastRadius: 'LOW' }],
 };
 
+test('buildOllamaSidecar: subtask tier minimax propagates to ollama task', async () => {
+  const { planCompany } = await import('./company.mjs');
+  const { resolveModel } = await import('../Scripts/ollama-fleet.mjs');
+  const task = {
+    summary: 'minimax tier smoke',
+    subtasks: [{
+      id: 'SMOKE-M1-minimax',
+      role: 'artificer',
+      tier: 'minimax',
+      need: ['fast-edits'],
+      prompt: 'confirm tier',
+      blastRadius: 'LOW',
+    }],
+  };
+  const plan = await planCompany(task, { quiet: true });
+  const sidecar = buildOllamaSidecar(plan, task);
+  const minimaxTask = sidecar.tasks.find((t) => t.label === 'SMOKE-M1-minimax');
+  assert.ok(minimaxTask, 'artificer with tier minimax should be sidecar-eligible');
+  assert.equal(minimaxTask.tier, 'minimax');
+  assert.equal(resolveModel({ tier: minimaxTask.tier }), 'minimax-m3:cloud');
+});
+
 test('buildOllamaSidecar: bulk scout role is eligible', async () => {
   const { planCompany } = await import('./company.mjs');
   const plan = await planCompany(SCOUT_TASK, { quiet: true });
