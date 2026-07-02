@@ -66,6 +66,30 @@ async function main(argv) {
     }
     return 0;
   }
+  const val = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
+  if (argv.includes('--run')) {
+    const taskFile = val('--task-file');
+    if (!taskFile) {
+      process.stderr.write('Usage: mure.mjs --run --task-file <task.json> [--dry-run]\n');
+      return 2;
+    }
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+    let task = {};
+    try { task = JSON.parse(fs.readFileSync(path.join(repoRoot, taskFile), 'utf8')); } catch (e) {
+      process.stderr.write(`bad --task-file: ${e.message}\n`);
+      return 2;
+    }
+    const dryRun = argv.includes('--dry-run');
+    const { runFleet } = await import('../Scripts/runFleet.mjs');
+    const result = dryRun
+      ? await runCompany(task, { armed: false })
+      : await runFleet(task, { apply: true, dryRun: false, armed: isMureArmed() });
+    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    return 0;
+  }
   // default / --demo: DISARMED end-to-end plan (zero spend)
   const r = await runCompany(DEMO_TASK, { armed: false });
   process.stdout.write(`${MURE_NAME} (群れ) — DISARMED plan of a sample task (zero spend)\n\n`);

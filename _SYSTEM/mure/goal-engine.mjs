@@ -11,16 +11,11 @@
 
 import { evaluateGovernance, CLASS, BLAST } from './governance.mjs';
 import { scoreOptions } from './math-bridge.mjs';
+import { blastRank } from './blast-analyzer.mjs';
 
 export const SCORE_WEIGHTS = Object.freeze({ capabilityFit: 0.25, reversibility: 0.25, blast: 0.20, evidenceDecidability: 0.20, doctrineFit: 0.10 });
 export const ADVANCE_THRESHOLD = 0.75;
 export const MAX_CYCLES = 4; // Voyager repair-cycle ceiling — then mandatory escalation.
-
-function blastRank(b) {
-  if (typeof b === 'number') return (Number.isInteger(b) && b >= 0 && b <= BLAST.CRITICAL) ? b : BLAST.HIGH; // malformed → HIGH
-  const k = String(b || 'HIGH').toUpperCase();
-  return Object.prototype.hasOwnProperty.call(BLAST, k) ? BLAST[k] : BLAST.HIGH;
-}
 const clamp01 = (x) => Math.max(0, Math.min(1, Number.isFinite(x) ? x : 0));
 
 /**

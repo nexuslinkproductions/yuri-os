@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * company-dispatch.mjs — end-to-end MURE workstream orchestrator.
+ * company-dispatch.mjs — thin workstream driver over runFleet / runCompany.
  *
  * Ordered company-ops dispatch: WS-A → WS-B → WS-F → WS-C → WS-D → WS-G (optional release tail).
- * Respects held-rulings owner lock, visual-plan gates, and MURE arm posture.
+ * All gating delegates to planCompany + runFleet — no parallel orchestration layer (P3.2 demotion).
  *
  * Usage:
  *   node _SYSTEM/mure/company-dispatch.mjs --dry-run-all
