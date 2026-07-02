@@ -16,7 +16,7 @@ import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
 import { extractResultLabel, validatePacket, defaultTimeoutMsForLane } from '../Scripts/glm-fleet.mjs';
 import { spawnNativeLoop } from './native-spawn-loop.mjs';
-import { runMlpFeedbackLoop, recordMlpFeedbackStub } from '../Scripts/fleet-mlp-feedback.mjs';
+import { runMlpFeedbackLoop, recordMlpFeedbackStub, recordMlpCounterfactualShadow } from '../Scripts/fleet-mlp-feedback.mjs';
 import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
 import { isEvolverArmed } from './evolver-arm.mjs';
 import { runGoalCycle } from './goal-engine.mjs';
@@ -461,6 +461,7 @@ export async function planCompany(task = {}, opts = {}) {
         const suggestion = await routerMod.predictRoute(feats, defaultCandidates(leaf));
         leaf.routerSuggestion = suggestion.best;
         leaf.routerConfidence = suggestion.confidence;
+        leaf.routerRanked = suggestion.ranked;
       }
       for (const spec of nativeSpecs) {
         const feats = routerMod.extractFeatures({ ...spec, role: spec.role, prompt: spec.prompt }, ctx);
@@ -472,7 +473,9 @@ export async function planCompany(task = {}, opts = {}) {
         ]);
         spec.routerSuggestion = suggestion.best;
         spec.routerConfidence = suggestion.confidence;
+        spec.routerRanked = suggestion.ranked;
       }
+      plan.mlpCounterfactualShadow = recordMlpCounterfactualShadow(plan, ctx);
     }
   } catch (e) {
     // router is best-effort

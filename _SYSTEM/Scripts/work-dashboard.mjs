@@ -148,6 +148,69 @@ async function loadHeldQueueStub() {
   }
 }
 
+/** Live child-process rows from spawns.jsonl + status.json (P5 /api/processes). Read-only. */
+export function loadActiveProcesses({ jobsDir = JOBS_DIR, limit = 40 } = {}) {
+  const processes = [];
+  let dirs = [];
+  try { dirs = fs.readdirSync(jobsDir).sort().reverse(); } catch { return { processes: [], openCount: 0, generatedAt: new Date().toISOString() }; }
+  for (const runId of dirs.slice(0, limit)) {
+    const base = path.join(jobsDir, runId);
+    let status = null;
+    let spawns = [];
+    try {
+      const sp = path.join(base, 'status.json');
+      if (fs.existsSync(sp)) status = JSON.parse(fs.readFileSync(sp, 'utf8'));
+    } catch { /* malformed */ }
+    try {
+      const sp = path.join(base, 'spawns.jsonl');
+      if (fs.existsSync(sp)) {
+        spawns = fs.readFileSync(sp, 'utf8').split('\n').filter(Boolean)
+          .map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      }
+    } catch { /* unreadable */ }
+    if (!status && !spawns.length) continue;
+    const open = new Map();
+    for (const s of spawns) {
+      const k = `${s.label}|${s.pid}`;
+      if (s.spawnedAt) open.set(k, s);
+      if (s.endedAt) open.delete(k);
+    }
+    for (const s of spawns) {
+      processes.push({
+        runId,
+        label: s.label || null,
+        lane: s.lane || null,
+        pid: s.pid ?? null,
+        status: s.endedAt ? (s.status || 'done') : 'running',
+        spawnedAt: s.spawnedAt || null,
+        endedAt: s.endedAt || null,
+        exitCode: s.exitCode ?? null,
+      });
+    }
+    if (status) {
+      processes.push({
+        runId,
+        label: '__run__',
+        lane: status.kind || runId.split('-')[0] || 'run',
+        pid: null,
+        status: status.status || 'unknown',
+        spawnedAt: status.startedAt || null,
+        endedAt: status.endedAt || null,
+        exitCode: null,
+        round: status.round ?? null,
+        pending: status.pending?.length ?? 0,
+      });
+    }
+    if (open.size && !spawns.some((s) => !s.endedAt)) {
+      for (const s of open.values()) {
+        processes.push({ runId, label: s.label, lane: s.lane, pid: s.pid, status: 'running', spawnedAt: s.spawnedAt, endedAt: null, exitCode: null });
+      }
+    }
+  }
+  const openCount = processes.filter((p) => p.status === 'running').length;
+  return { processes: processes.slice(0, 200), openCount, generatedAt: new Date().toISOString() };
+}
+
 /** Active in-flight leaves from recent swarm manifests (mid-flight visibility, replaces external pgrep PID monitoring). */
 function loadActiveSwarmLeaves() {
   const out = { swarms: [], totalLeaves: 0, zaiSidecar: { active: false, handled: 0 } };
@@ -294,6 +357,12 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
         });
         return;
       }
+      if (url === '/api/processes') {
+        const proc = loadActiveProcesses();
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
+        res.end(JSON.stringify(proc));
+        return;
+      }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }
       if (url === '/api/run') {
         const params = new URLSearchParams(req.url.split('?')[1] || '');
@@ -343,7 +412,7 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
   });
 
   server.listen(port, '127.0.0.1', () => {
-    process.stdout.write(`MURE dashboard → http://localhost:${port}  (api: /api/overview · html: ${path.relative(REPO_ROOT, htmlPath)}${fs.existsSync(htmlPath) ? '' : ' [placeholder]'})\n`);
+    process.stdout.write(`MURE dashboard → http://localhost:${port}  (api: /api/overview · /api/processes · html: ${path.relative(REPO_ROOT, htmlPath)}${fs.existsSync(htmlPath) ? '' : ' [placeholder]'})\n`);
   });
   return server;
 }

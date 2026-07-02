@@ -21,6 +21,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 export const MLP_LEARN_ENV = 'YURI_MLP_LEARN';
 export const MLP_LEARN_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mlp-learn.enabled');
+export const MLP_SHADOW_ENV = 'YURI_MLP_SHADOW';
+export const MLP_SHADOW_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mlp-shadow.enabled');
+export const COUNTERFACTUAL_SHADOW_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'fleet-router-counterfactual-shadow.jsonl');
 
 /** True when owner has armed MLP learning persist and caller is not dry-run. */
 export function shouldPersistMlpLearn(opts = {}) {
@@ -38,6 +41,48 @@ async function getRouter() {
 
 function leavesFromPlan(plan) {
   return [...(plan.glmLeaves ?? []), ...(plan.nativeSpecs ?? [])];
+}
+
+/** P9 shadow: log MLP ranked alternatives vs actual dispatch (no routing change). */
+export function isMlpShadowArmed() {
+  if (process.env[MLP_SHADOW_ENV] === '1') return true;
+  try { return fs.existsSync(MLP_SHADOW_FLAG); } catch { return false; }
+}
+
+function actualDispatchSubstrate(leaf) {
+  if (leaf.dispatch === 'ollama-sidecar' || leaf.affinityApplied?.startsWith('ollama')) return 'ollama';
+  if (leaf.dispatch === 'zai-tmux') return 'tmux-zai';
+  if (leaf.dispatch === 'glm-lane') return 'glm';
+  if (leaf.model && leaf.model !== 'sonnet' && leaf.model !== 'haiku' && leaf.model !== 'opus') return leaf.model;
+  return 'native';
+}
+
+/** Append counterfactual shadow rows — advisory only, never changes dispatch. */
+export function recordMlpCounterfactualShadow(plan, ctx = {}) {
+  if (!isMlpShadowArmed()) return { skipped: true, reason: 'shadow disarmed', count: 0 };
+  const ts = new Date().toISOString();
+  const records = [];
+  for (const leaf of leavesFromPlan(plan)) {
+    if (!leaf.routerRanked?.length && !leaf.routerSuggestion) continue;
+    const row = {
+      type: 'counterfactual-shadow',
+      ts,
+      leafId: leaf.id || leaf.role,
+      role: leaf.role,
+      mlpBest: leaf.routerSuggestion || null,
+      mlpConfidence: leaf.routerConfidence ?? null,
+      actualDispatch: actualDispatchSubstrate(leaf),
+      affinityApplied: leaf.affinityApplied || null,
+      ranked: (leaf.routerRanked || []).slice(0, 4).map((r) => ({ id: r.id, substrate: r.substrate, score: r.score })),
+      quotaPressure: ctx.quotaPressure ?? 0.4,
+    };
+    try {
+      fs.mkdirSync(path.dirname(COUNTERFACTUAL_SHADOW_FILE), { recursive: true });
+      fs.appendFileSync(COUNTERFACTUAL_SHADOW_FILE, `${JSON.stringify(row)}\n`);
+    } catch { /* fail-open */ }
+    records.push(row);
+  }
+  return { skipped: false, count: records.length, file: COUNTERFACTUAL_SHADOW_FILE, records };
 }
 
 /** Record prediction-ledger rows at plan time. Returns { ids: leafId → predictionId }. */

@@ -268,15 +268,23 @@ Do you have free-text operator intent?
       └─ node _SYSTEM/Scripts/runSwarm.mjs --leaves-file leaves.json [--rounds 3] [--concurrency 3]
 ```
 
-**Parallel sidecar fleets** (optional, manual spawn — not auto-dispatched by ceo.mjs):
+**Parallel sidecar fleets** — `runFleet.mjs --apply` with sidecar flags **self-spawns** armed sidecars in-run (P7 ollama mirrors P6 zai; no manual second command):
 
-| entry point | purpose | arm flag |
-|---|---|---|
-| `node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file <t.json>` | Ollama Cloud bulk sidecar (scout/artificer/archivist) | `_SYSTEM/state/ollama-fleet.enabled` |
-| `node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <t.json>` | ClinePass CLI peer sidecar (scout/artificer/engineer) | `_SYSTEM/state/cline-fleet.enabled` |
-| `node _SYSTEM/Scripts/zai-tmux-fleet.mjs --dry-run --tasks-file <t.json>` | GLM heavy tmux sidecar (architect/adjudicator/kernelsmith) | `_SYSTEM/state/zai-tmux-fleet.enabled` |
+| entry point | purpose | arm flag | auto-spawn |
+|---|---|---|---|
+| `node _SYSTEM/Scripts/runFleet.mjs --apply --ollama-sidecar --task-file t.json` | Ollama Cloud bulk (scout/artificer/archivist) — **live self-spawn** when armed | `_SYSTEM/state/ollama-fleet.enabled` | **yes** (P7): spawns `ollama-fleet.mjs`, merges `skipLeafIds`, writes `olf-*` packets |
+| `node _SYSTEM/Scripts/ollama-fleet.mjs --tasks-file <t.json>` | Manual ollama sidecar (same bulk roles) | `_SYSTEM/state/ollama-fleet.enabled` | manual only |
+| `node _SYSTEM/Scripts/runFleet.mjs --apply --zai-sidecar --task-file t.json` | GLM heavy tmux sidecar (architect/adjudicator/kernelsmith) | `_SYSTEM/state/zai-tmux-fleet.enabled` | **yes**: spawns `zai-tmux-fleet.mjs` |
+| `node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <t.json>` | ClinePass CLI peer sidecar (scout/artificer/engineer) | `_SYSTEM/state/cline-fleet.enabled` | tasks file only (manual spawn) |
 
-Pass `--ollama-sidecar` / `--cline-sidecar` / `--zai-sidecar` to `runFleet` or `company-dispatch --apply` to auto-generate the tasks files.
+Pass `--ollama-sidecar` / `--cline-sidecar` / `--zai-sidecar` to `runFleet` or `company-dispatch --apply`.
+
+**P7 ollama live path (verified 2026-07-02):**
+1. Armed `runFleet --apply --ollama-sidecar` writes `.claude/jobs/<runId>/ollama-tasks.json`
+2. Self-spawns `node _SYSTEM/Scripts/ollama-fleet.mjs --tasks-file …` with `YURI_OLLAMA_FLEET=1`
+3. Ollama runId is `olf-*`; result packets land in `.claude/jobs/olf-<id>/results/*.json` + `spawns.jsonl`
+4. Handled leaf IDs merge into `skipLeafIds` so GLM swarm does not double-dispatch
+5. Disarmed (`ollama-fleet.enabled` absent): `ollamaSidecar.skipped=true`, `skipReason` set — no spawn, no spend
 
 ### 6.3 The four arm flags (dependency table)
 
@@ -287,7 +295,7 @@ MURE dispatch is gated by four independent arm flags. They compose: a live end-t
 | `YURI_MURE_ARMED=1` | `_SYSTEM/state/mure.enabled` | The master MURE arm. `runCompany` dispatches GLM leaves only when armed; otherwise returns the plan (zero spend). ceo.mjs passes `armed:undefined` in live mode so this flag is the sole authority. | **DISARMED**: `runCompany` returns plan-only (`dryRun:true`). ceo.mjs prints the plan with "ZERO SPEND". |
 | `YURI_GLM_FLEET=1` | `_SYSTEM/state/glm-fleet.enabled` | GLM lane dispatch (`glmFleet` → `lane-dispatch` → z.ai). The actual API spend gate. | `glmFleet` returns a plan + dry-run stubs; no API calls, zero spend. |
 | `YURI_SWARM_CONVERGENCE=1` | `_SYSTEM/state/swarm-convergence.enabled` | The `converge()` 3-layer gate + `finalizeGuard` over the swarm pool. Without it, `runSwarm` runs rounds but finalization is advisory. | Swarm rounds run; `finalizeOk` is advisory/forced; the owner reads result packets directly. |
-| `YURI_OLLAMA_FLEET=1` | `_SYSTEM/state/ollama-fleet.enabled` | Ollama Cloud sidecar execution (bulk roles). | Ollama sidecar writes a tasks file but does not execute; `--dry-run` stubs only. |
+| `YURI_OLLAMA_FLEET=1` | `_SYSTEM/state/ollama-fleet.enabled` | Ollama Cloud sidecar execution (bulk roles). With `--ollama-sidecar --apply`, runFleet **self-spawns** ollama-fleet in-run (P7). | Sidecar writes tasks file only; `skipped:true` + explicit `skipReason`; no `olf-*` packets. |
 
 Additional arms (role-specific, higher-blast):
 - `evolver` self-modification: additionally gated behind `_SYSTEM/state/evolver-arm.enabled` / `YURI_EVOLVER_ARMED`. The highest-blast role; owner-gated even when the six governance gates pass.
