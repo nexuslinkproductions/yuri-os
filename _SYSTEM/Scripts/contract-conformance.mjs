@@ -186,15 +186,24 @@ function coercePath(p) {
 }
 
 // ── output extraction (deterministic, marker-anchored) ──
-const LABEL_TOKEN_RE = /\b\d{2}[A-Z0-9]{1,3}_[A-Z0-9_]*(?:PASS_COMMITTED|COMMITTED|BLOCKED|REPAIR_REQUIRED)\b/;
+// The SINGLE canonical Lane Result Grammar token — glm-fleet.mjs + ollama-fleet.mjs delegate here.
+// Widened 2026-07-02 (master plan D-3): real lanes emit >3-char and letter-led prefixes (14PHASE0_,
+// AMS_) and wrap labels in markdown bold; the old /\d{2}[A-Z0-9]{1,3}_/ silently dropped ~19% of
+// successful packets, which convergence then re-dispatched as failures.
+export const LABEL_TOKEN_RE = /\b[A-Z0-9]{2,12}(?:_[A-Z0-9]{1,60})*_(?:PASS_COMMITTED|COMMITTED|BLOCKED|REPAIR_REQUIRED)\b/;
 const LABEL_TOKEN_RE_G = new RegExp(LABEL_TOKEN_RE.source, 'g');
-function extractResultLabel(output) {
-  // 1. prefer an explicit "RESULT_LABEL:" / "RESULT_LABEL=" marker line (the lane's DECLARED result)
-  const marker = output.match(/^[^\n]*\bRESULT_LABEL\b\s*[:=]\s*([0-9][0-9A-Z_]+)/im);
-  if (marker) return { label: marker[1], anchored: true };
+export function extractResultLabel(output) {
+  // markdown emphasis never appears INSIDE a label — strip * and ` so **LABEL** / `LABEL` anchor cleanly
+  const s = String(output || '').replace(/[*`]+/g, '');
+  // 1. prefer an explicit "RESULT_LABEL:" / "RESULT_LABEL=" marker line (the lane's DECLARED result);
+  //    the capture must be a SCREAMING token — lowercase prose after the marker falls through to (2)
+  const marker = s.match(/^[^\n]*\bRESULT_LABEL\b\s*[:=]\s*([A-Za-z0-9][A-Za-z0-9_]+)/im);
+  if (marker && /^[A-Z0-9][A-Z0-9_]+$/.test(marker[1])) {
+    return { label: marker[1].replace(/^_+|_+$/g, ''), anchored: true };
+  }
   // 2. else the LAST conforming label (final-report convention) — never a stray prose mention up top
-  const all = output.match(LABEL_TOKEN_RE_G);
-  if (all && all.length) return { label: all[all.length - 1], anchored: false };
+  const all = s.match(LABEL_TOKEN_RE_G);
+  if (all && all.length) return { label: all[all.length - 1].replace(/^_+|_+$/g, ''), anchored: false };
   return { label: null, anchored: false };
 }
 
@@ -222,7 +231,7 @@ const BROAD_COMMAND_RE = [
 // @serves: does this output conform to its contract | output contract gate | validate produced output against declared schema | lane result grammar parser | RESULT_LABEL validation | tool-use scope conformance | check response against output_schema | protected-path scope gate
 // @does: deterministic fail-closed gate — given a compiled one-transaction-contract + a produced output (+ optional invoked paths), checks RESULT_LABEL grammar (marker-anchored), required output_schema fields present, SEGMENT-AWARE scope containment (allowed/forbidden + always-on yuri-origin protected-surface floor), forbidden-pattern flags (stage-narration/broad-command, precision-first), and report line-cap. Returns PASS|PARTIAL|FAIL with per-check evidence. Never throws (any internal error → FAIL).
 // @use: after a lane/agent produces a final report, to verify it actually honored the contract prompt-compiler compiled — the missing enforcement half of compileOneTransactionContract. Also the executable parser for yuri-origin's prose Lane Result Grammar + a protected-path scope check. ADVISORY (does not block).
-// @exports: checkOutputConformance, parseResultLabel
+// @exports: checkOutputConformance, parseResultLabel, extractResultLabel, LABEL_TOKEN_RE
 export function checkOutputConformance(contract, output, opts = {}) {
   try {
     return runConformance(contract, output, opts);
