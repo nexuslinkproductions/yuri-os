@@ -60,6 +60,7 @@ import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 import { gitMutationHit, protectedPathHit } from './_lib/lane-command-gate.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
+import { tryAcquireCloudSlot, releaseCloudSlot } from './cloud-concurrency.mjs';
 import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -899,6 +900,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
   if (isLocal && endpoint && !/^https?:\/\//i.test(endpoint)) endpoint = `http://${endpoint}`;
   let apiKey = process.env[cfg.api_key_env] || '';
+  // P4 env-first: explicit env wins; keychain is macOS fallback only.
   if (!apiKey && cfg.keychain_service) {
     // Hydrate from the macOS keychain so a lane authenticates even when the env export hasn't run
     // (e.g. `ai llm glm-5.2` from a shell that never sourced the ZAI_API_KEY export). Fail-soft.
@@ -984,10 +986,16 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // another machine on a shared slots dir) must hold a concurrency slot before firing a local model.
   // Over threshold -> refuse with a clear signal so the caller enqueues instead of crashing the host.
   let __slotId = null;
+  let __cloudSlotId = null;
   if (isLocal) {
     const slot = tryAcquireLocalSlot({ lane: key, model: cfg.model });
     if (!slot.ok) return fail(3, key, `local_capacity_reached:active=${slot.active}/max=${slot.max}:enqueue_via_ai_slm`);
     __slotId = slot.slotId;
+  } else if (isAnthropic || isOllamaCloud) {
+    // P8 (D-4): cross-process cloud admission — glm + ollama-cloud share per-provider slot pools.
+    const cloudSlot = tryAcquireCloudSlot({ lane: key, model: cfg.model, provider: cfg.provider || cfg.protocol });
+    if (!cloudSlot.ok) return fail(3, key, `cloud_capacity_reached:pool=${cloudSlot.pool}:active=${cloudSlot.active}/max=${cloudSlot.max}:enqueue`);
+    __cloudSlotId = cloudSlot.slotId;
   }
   try {
   const messages = [];
@@ -1173,6 +1181,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     // Release the slot on clean return. fail()/process.exit paths leave a dead-pid lease that the
     // governor's prune() reclaims automatically, so capacity self-heals either way.
     if (__slotId) releaseLocalSlot(__slotId);
+    if (__cloudSlotId) releaseCloudSlot(__cloudSlotId);
     // Release any held cost reservation (armed path only; __costReservationId is null when disarmed).
     // Fail-open: never let reservation cleanup break the return.
     if (__costReservationId) { try { costRelease(__costReservationId); } catch { /* */ } }

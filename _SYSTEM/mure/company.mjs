@@ -895,7 +895,7 @@ export async function runCompany(task = {}, opts = {}) {
     });
   }
 
-  return { name: plan.name, armed: true, plan, swarm, nativeResults, inlineResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback, goalCycle, independenceViolations: plan.independenceViolations || [], zaiSidecarResults: opts.zaiSidecarResults || null };
+  return { name: plan.name, armed: true, plan, swarm, nativeResults, inlineResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback, goalCycle, independenceViolations: plan.independenceViolations || [], zaiSidecarResults: opts.zaiSidecarResults || null, ollamaSidecarResults: opts.ollamaSidecarResults || null };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

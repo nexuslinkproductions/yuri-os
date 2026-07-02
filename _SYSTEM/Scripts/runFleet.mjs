@@ -28,6 +28,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { recordMlpFeedbackStub, recordMlpPredictions } from './fleet-mlp-feedback.mjs';
+import { isArmed as isOllamaFleetArmed } from './ollama-fleet.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '../..');
@@ -213,7 +214,12 @@ export async function runFleet(task, opts = {}) {
     ollamaSidecar.tasksFile = tasksPath;
     ollamaSidecar.written = true;
     if (ollamaSidecar.tasks.length) {
-      ollamaSidecar.command = `node _SYSTEM/Scripts/ollama-fleet.mjs --dry-run --tasks-file ${tasksPath}`;
+      ollamaSidecar.command = `node _SYSTEM/Scripts/ollama-fleet.mjs ${dryRun ? '--dry-run' : ''} --tasks-file ${tasksPath}`.trim();
+      ollamaSidecar.armed = isOllamaFleetArmed();
+      if (!ollamaSidecar.armed && !dryRun) {
+        ollamaSidecar.skipped = true;
+        ollamaSidecar.skipReason = 'ollama-fleet disarmed (YURI_OLLAMA_FLEET=1 or _SYSTEM/state/ollama-fleet.enabled)';
+      }
     }
   }
 
@@ -278,6 +284,8 @@ export async function runFleet(task, opts = {}) {
   // H1 FIX: Actually spawn zai-tmux-fleet.mjs in armed mode and collect handled leaf IDs
   let zaiSpawnResults = null;
   let zaiHandledLeafIds = [];
+  let ollamaSpawnResults = null;
+  let ollamaHandledLeafIds = [];
   if (opts.zaiSidecar && zaiSidecar.tasks?.length && zaiSidecar.tasksFile) {
     try {
       const zaiScript = join(__dirname, 'zai-tmux-fleet.mjs');
@@ -309,7 +317,53 @@ export async function runFleet(task, opts = {}) {
     }
   }
 
-  const run = await company.runCompany(task, { ...opts, armed: opts.armed !== false, predictionIds, mlpLearn: opts.mlpLearn, skipLeafIds: zaiHandledLeafIds, zaiSidecarResults: zaiSpawnResults });
+  // P7 (D-11): mirror zai self-spawn for ollama-fleet — armed sidecar spawns olf-* packets in-run
+  if (opts.ollamaSidecar && ollamaSidecar.tasks?.length && ollamaSidecar.tasksFile) {
+    if (!isOllamaFleetArmed()) {
+      ollamaSidecar.skipped = true;
+      ollamaSidecar.skipReason = ollamaSidecar.skipReason || 'ollama-fleet disarmed';
+    } else {
+      try {
+        const ollamaScript = join(__dirname, 'ollama-fleet.mjs');
+        const ollamaChild = spawn('node', [ollamaScript, '--tasks-file', ollamaSidecar.tasksFile], {
+          cwd: REPO_ROOT,
+          stdio: ['ignore', 'pipe', 'pipe'],
+          env: { ...process.env, YURI_OLLAMA_FLEET: '1' },
+        });
+        let ollamaStdout = '';
+        let ollamaStderr = '';
+        ollamaChild.stdout.on('data', (d) => { ollamaStdout += d.toString(); });
+        ollamaChild.stderr.on('data', (d) => { ollamaStderr += d.toString(); });
+        const ollamaExitCode = await new Promise((resolve) => {
+          ollamaChild.on('close', resolve);
+          ollamaChild.on('error', () => resolve(1));
+        });
+        try {
+          ollamaSpawnResults = JSON.parse(ollamaStdout);
+        } catch {
+          ollamaSpawnResults = { ok: false, rawStdout: ollamaStdout.slice(0, 500), stderr: ollamaStderr.slice(0, 500) };
+        }
+        ollamaHandledLeafIds = (ollamaSpawnResults?.results || []).map((r) => r.label).filter(Boolean);
+        ollamaSidecar.armed = true;
+        ollamaSidecar.spawned = true;
+        ollamaSidecar.spawnExitCode = ollamaExitCode;
+        ollamaSidecar.results = ollamaSpawnResults?.results || [];
+      } catch (e) {
+        ollamaSidecar.spawnError = String(e?.message || e);
+      }
+    }
+  }
+
+  const skipLeafIds = [...zaiHandledLeafIds, ...ollamaHandledLeafIds];
+  const run = await company.runCompany(task, {
+    ...opts,
+    armed: opts.armed !== false,
+    predictionIds,
+    mlpLearn: opts.mlpLearn,
+    skipLeafIds,
+    zaiSidecarResults: zaiSpawnResults,
+    ollamaSidecarResults: ollamaSpawnResults,
+  });
   return { ...result, dryRun: false, run, mlpFeedback: run.mlpFeedback };
 }
 
