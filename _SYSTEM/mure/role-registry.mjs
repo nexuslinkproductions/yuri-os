@@ -108,12 +108,23 @@ export function matchRolesByCapability(roster, neededCaps = []) {
  */
 export function resolveLane(role, opts = {}) {
   if (!role) throw new Error('resolveLane: role required');
-  const prefer = opts.preferSubstrate || 'glm'; // cost-default: GLM plane unless native is required
+  // D-12 FIX: an EXPLICIT opts.preferSubstrate keeps its authority (caller forced the substrate). When NO
+  // preference is passed, an 'either' role must honor its DECLARED lane tier instead of being blanket-forced
+  // to glm — else artificer(haiku)→glm-turbo and chronicler(sonnet)→glm silently discard the roster intent.
+  const explicitPrefer = typeof opts.preferSubstrate === 'string' && opts.preferSubstrate.length > 0;
   let substrate = role.substrate;
   let lane = role.lane;
   if (substrate === 'either') {
-    if (prefer === 'native') { substrate = NATIVE_LANES.includes(role.lane) ? 'native' : 'native'; lane = NATIVE_LANES.includes(role.lane) ? role.lane : (role.fallbackLane || 'sonnet'); }
-    else { substrate = GLM_LANES.includes(role.lane) ? 'glm' : 'glm'; lane = GLM_LANES.includes(role.lane) ? role.lane : (role.fallbackLane || 'glm'); }
+    // derive the side from the DECLARED lane when the caller did not force a preference.
+    const declaredSide = NATIVE_LANES.includes(role.lane) ? 'native' : (GLM_LANES.includes(role.lane) ? 'glm' : 'glm');
+    const prefer = explicitPrefer ? opts.preferSubstrate : declaredSide;
+    if (prefer === 'native') {
+      substrate = 'native';
+      lane = NATIVE_LANES.includes(role.lane) ? role.lane : (role.fallbackLane && NATIVE_LANES.includes(role.fallbackLane) ? role.fallbackLane : 'sonnet');
+    } else {
+      substrate = 'glm';
+      lane = GLM_LANES.includes(role.lane) ? role.lane : (role.fallbackLane && GLM_LANES.includes(role.fallbackLane) ? role.fallbackLane : 'glm');
+    }
   }
   if (substrate === 'native') {
     const dispatch = lane === 'native' ? 'inline' : 'agent';

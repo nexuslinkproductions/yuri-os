@@ -16,6 +16,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { openPool, rankJobs, claimJob, completeJob, recommendJob, jobStats, listJobs } from './job-pool.mjs';
 import { evaluateGovernance, CLASS } from '../mure/governance.mjs';
+import { deriveNeeds } from '../mure/company.mjs';
 import { loadDoctrine, rankByDirection, grade, underServedAxes, axisCoverage, TYPE_AXIS_HINTS } from '../mure/doctrine.mjs';
 import { reconcileAfterBuild } from './post-build-reconciliation.mjs';
 
@@ -60,11 +61,14 @@ export function jobDecision(job = {}) {
 
 /** Build the runCompany task spec for a job (its nextAction decomposed by the helmsman). */
 function jobToTask(job) {
+  // D-8 FIX: derive capability needs from the job text so castRole picks the RIGHT role instead of silently
+  // collapsing every job to 'engineer'. Empty [] on no match → castRole still defaults to engineer (+ WARN).
+  const need = deriveNeeds(`${job.title || ''} ${job.detail || ''} ${job.type || ''}`);
   return {
     summary: job.title,
     tags: [job.type],
     subtasks: [{
-      id: job.id, prompt: `${job.title}\n\n${job.detail}\n\nNEXT ACTION: ${job.nextAction}\nDONE WHEN: ${job.closureCondition}`,
+      id: job.id, need, prompt: `${job.title}\n\n${job.detail}\n\nNEXT ACTION: ${job.nextAction}\nDONE WHEN: ${job.closureCondition}`,
       blastRadius: job.risk > 0.6 ? 'HIGH' : job.risk > 0.35 ? 'MEDIUM' : 'LOW',
     }],
   };

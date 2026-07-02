@@ -1,8 +1,10 @@
 // MURE company orchestrator — red/grey/green over plan/cast/govern/split. Hermetic: force-disarm per test.
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planCompany, runCompany, castRole, applySubstrateHint, buildRolePrompt, decisionFor, dispatchNative, MURE_NAME, ARM_ENV, ARM_FLAG } from './company.mjs';
+import { planCompany, runCompany, castRole, applySubstrateHint, buildRolePrompt, decisionFor, dispatchNative, deriveNeeds, runInlineSpecs, runGoalCycles, MURE_NAME, ARM_ENV, ARM_FLAG } from './company.mjs';
 import { loadRoster, getRole } from './role-registry.mjs';
 import { CLASS } from './governance.mjs';
 
@@ -147,7 +149,152 @@ test('GREEN: applySubstrateHint glm-max lane override', () => {
 });
 
 test('GREY (no silent drop): a subtask with no capability match falls back to a real role, never null', () => {
-  const c = castRole(roster, { id: 'weird', need: ['nonexistent-capability-xyz'], prompt: 'x' });
+  const c = castRole(roster, { id: 'weird', need: ['nonexistent-capability-xyz'], prompt: 'x', quiet: true }, { quiet: true });
   assert.ok(c.role, 'must cast to a fallback role');
   assert.ok(getRole(roster, c.role), 'fallback role must exist in the roster');
+});
+
+// ── PHASE 6: deriveNeeds (D-8) ────────────────────────────────────────────────
+test('GREEN (D-8): deriveNeeds maps intent verbs to EXACT roster capability terms', () => {
+  const caps = new Set(roster.roles.flatMap((r) => r.capabilities));
+  const cases = {
+    'research the corpus and cite sources': 'local-first-search',
+    'implement and build the module': 'code-generation',
+    'design the architecture': 'architecture-design',
+    'refactor and wire the modules': 'refactor',
+    'security audit the endpoints': 'security-review',
+    'optimize the hot path and benchmark': 'perf-optimization',
+    'document and summarize': 'technical-writing',
+    'verify and refute adversarially': 'adversarial-verify',
+  };
+  for (const [text, expectCap] of Object.entries(cases)) {
+    const need = deriveNeeds(text);
+    assert.ok(need.length > 0, `"${text}" must derive needs`);
+    assert.ok(need.includes(expectCap), `"${text}" should include ${expectCap} (got ${need.join(',')})`);
+    for (const n of need) assert.ok(caps.has(n), `derived cap '${n}' must be a REAL roster capability`);
+  }
+});
+
+test('GREEN (D-8): deriveNeeds returns [] when nothing matches', () => {
+  assert.deepEqual(deriveNeeds('zzz qwerty nothing here 12345'), []);
+  assert.deepEqual(deriveNeeds(''), []);
+  assert.deepEqual(deriveNeeds(null), []);
+});
+
+test('GREEN (D-8 acceptance): a realistic 6-subtask task casts >=5 DISTINCT roles (not a 1-role company)', () => {
+  const jobs = [
+    { id: 's1', text: 'research the auth landscape, survey local corpus then online' },
+    { id: 's2', text: 'design the session interface with method design' },
+    { id: 's3', text: 'implement the token refresh, build and code the module' },
+    { id: 's4', text: 'refactor and wire the middleware, integrate the modules' },
+    { id: 's5', text: 'security audit the endpoints, vuln redteam the protected paths' },
+    { id: 's6', text: 'document the API and summarize the findings' },
+  ];
+  const rolesCast = new Set();
+  for (const j of jobs) {
+    const c = castRole(roster, { id: j.id, need: deriveNeeds(j.text), prompt: j.text }, { quiet: true });
+    rolesCast.add(c.role);
+  }
+  assert.ok(rolesCast.size >= 5, `expected >=5 distinct roles, got ${rolesCast.size}: ${[...rolesCast].join(',')}`);
+});
+
+test('GREY (D-8): castRole flags matched=true on a capability hit, matched=false on the engineer default', () => {
+  const hit = castRole(roster, { id: 'h', need: ['code-generation'], prompt: 'x' }, { quiet: true });
+  assert.equal(hit.matched, true);
+  const miss = castRole(roster, { id: 'm', need: ['nonexistent-cap-xyz'], prompt: 'x' }, { quiet: true });
+  assert.equal(miss.matched, false);
+  assert.equal(miss.role, 'engineer');
+});
+
+// ── PHASE 6: inline executor (D-9) ─────────────────────────────────────────────
+test('GREEN (D-9): runInlineSpecs executes the 5 local-code roles into runDir packets', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mure-inline-')) + '/results';
+  fs.mkdirSync(dir, { recursive: true });
+  const inlineSpecs = ['steward', 'oracle', 'calibrator', 'archivist', 'quartermaster'].map((role, i) => ({ id: `x${i}`, role, prompt: role }));
+  const plan = { casts: [{ role: 'engineer', ruling: { class: CLASS.SELF } }], held: [] };
+  const r = await runInlineSpecs(inlineSpecs, { runDir: dir, plan });
+  assert.equal(r.packets.length, 5);
+  assert.equal(Object.keys(r.pool).length, 5);
+  // every packet validates the shared schema (unique inline:<role> laneId, unique role key)
+  for (const p of r.packets) {
+    assert.ok(p.laneId.startsWith('inline:'), `laneId ${p.laneId}`);
+    assert.ok(p.role.startsWith('inline:'), `role key ${p.role}`);
+    assert.ok(['ok', 'skipped', 'fail', 'error'].includes(p.status), `status ${p.status}`);
+    assert.equal(typeof p.resultLabel, 'string');
+  }
+  // files landed on the blackboard
+  const files = fs.readdirSync(dir).filter((f) => f.startsWith('inline-'));
+  assert.equal(files.length, 5);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('GREY (D-9 fail-open): runInlineSpecs never throws, even with a bad runDir or unknown role', async () => {
+  const r1 = await runInlineSpecs([{ id: 'u', role: 'nonexistent-role', prompt: 'x' }], { runDir: '/nonexistent/dir/xyz' });
+  assert.equal(r1.packets.length, 1);
+  assert.equal(r1.packets[0].status, 'skipped'); // unknown role → honest skip, never a stub 'ok'
+  const r2 = await runInlineSpecs([], {});
+  assert.equal(r2.packets.length, 0); // empty specs → no packets, no throw
+});
+
+// ── PHASE 6: goal-engine LIVE (D-14) ───────────────────────────────────────────
+test('GREEN (D-14): runGoalCycles runs one PROPOSE->SCORE->GATE cycle per participating role', async () => {
+  const task = { summary: 'demo', tags: ['build'], subtasks: [
+    { id: 'b', need: ['code-generation'], prompt: 'build', blastRadius: 'LOW' },
+    { id: 'v', need: ['adversarial-verify'], prompt: 'verify', blastRadius: 'LOW' },
+  ] };
+  const plan = await planCompany(task, { quiet: true });
+  const gc = runGoalCycles(plan, task, { swarm: { converged: true } });
+  assert.equal(gc.ran, true);
+  // participating roles = the dispatched glm roles (engineer + adjudicator)
+  assert.ok(gc.roles.includes('engineer'));
+  assert.ok(gc.roles.includes('adjudicator'));
+  assert.equal(gc.cycles.length, gc.roles.length);
+  assert.ok(Array.isArray(gc.selected));
+  assert.ok(Array.isArray(gc.heldProposals));
+  // a strong LOW-blast reversible goal self-governs → selected, not held
+  assert.ok(gc.selected.length >= 1, 'at least one goal advances');
+});
+
+test('GREY (D-14): the constitution hard-stop is inviolable inside the goal cycle', async () => {
+  // even LIVE, a participating role cannot self-select an owner-gated/protected goal — proven by goal-engine.
+  // Here we assert the seam preserves the discipline: heldProposals are pending (approved:false), never auto-cleared.
+  const task = { summary: 't', tags: ['build'], subtasks: [{ id: 'b', need: ['code-generation'], prompt: 'build', blastRadius: 'LOW' }] };
+  const plan = await planCompany(task, { quiet: true });
+  const gc = runGoalCycles(plan, task, { swarm: { converged: false } });
+  for (const hp of gc.heldProposals) assert.equal(hp.approved, false, 'held goal proposals are never auto-approved');
+});
+
+// ── PHASE 6: independenceOf teeth (D-14) ───────────────────────────────────────
+test('GREEN (D-14): planCompany flags a producer/critic same-lane collision', async () => {
+  const task = { subtasks: [
+    { id: 'e', role: 'engineer', substrateHint: 'glm-max', prompt: 'build' },
+    { id: 'a', role: 'adjudicator', substrateHint: 'glm-max', prompt: 'verify' },
+  ] };
+  const p = await planCompany(task, { quiet: true });
+  assert.ok(p.independenceViolations.length >= 1);
+  const v = p.independenceViolations.find((x) => x.critic === 'adjudicator' && x.producer === 'engineer');
+  assert.ok(v, 'adjudicator/engineer same-lane collision must be flagged');
+  assert.match(v.reason, /independentOf/);
+});
+
+test('GREY (D-14): no violation when critic and producer resolve to DIFFERENT lanes', async () => {
+  // engineer(glm) vs adjudicator(glm-max) — different lanes → no collision.
+  const task = { subtasks: [
+    { id: 'e', need: ['code-generation'], prompt: 'build' },
+    { id: 'a', need: ['adversarial-verify'], prompt: 'verify' },
+  ] };
+  const p = await planCompany(task, { quiet: true });
+  const collide = p.independenceViolations.find((x) => x.critic === 'adjudicator' && x.producer === 'engineer' && x.lane === 'glm:glm');
+  assert.equal(collide, undefined, 'engineer(glm) and adjudicator(glm-max) are different lanes — no violation');
+});
+
+// ── PHASE 6: DISARMED goal-cycle degrade + budgetCap ───────────────────────────
+test('GREEN (D-14 disarmed-degrades): runCompany DISARMED skips the goal cycle with an explicit note', async () => {
+  const r = await runCompany(TASK, { armed: false, quiet: true });
+  assert.equal(r.armed, false);
+  assert.equal(r.goalCycle.ran, false);
+  assert.equal(r.goalCycle.skipped, true);
+  assert.match(r.goalCycle.reason, /disarmed/i);
+  assert.ok('inlineResults' in r);
+  assert.ok(Array.isArray(r.independenceViolations));
 });
