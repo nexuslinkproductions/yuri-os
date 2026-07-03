@@ -131,33 +131,42 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
     if float(h[rear].mean()) > float(h[front].mean()):
         aH = -aH; h = -h
 
-    # LEVEL THE SLIDE (owner: "leveled along the slide"): level the SLIDE-TOP FLAT — exactly the surface
-    # the owner's red line follows. The slide top is a machined flat whose UP-normal points straight +Z
-    # when level. Take the area-weighted consensus of the UP-facing faces in the upper-forward region
-    # (the slide top), and rotate so that consensus normal -> +Z. UP-faces only (not the slide bottom /
-    # frame rails, which can taper differently) and iterate to a fixed point -> stable & idempotent.
-    # Immune to sights/optic (localized bumps, tiny area) and to slab taper that broke point-cloud PCA
-    # (slab-PCA landed ~15deg off; both-flats landed the wrong way on ~37% of poses; René 2026-07-03).
+    # LEVEL THE SLIDE (owner: "level to the SLIDE and/or the PICATINNY RAIL — both straight, bore-parallel"):
+    # level the near-HORIZONTAL FLATS. The slide-top flat, the slide bottom, and the dust-cover picatinny
+    # rail are all machined flats parallel to the bore; their normals point straight up/down when level.
+    # Take the area-weighted consensus normal of faces within ~TIGHT_DEG of vertical (both up- and down-
+    # facing, folded to +Z) over the forward body, and rotate that consensus to +Z. Iterate to a fixed point.
+    #   ★ The TIGHT threshold is the fix (René 2026-07-03): a loose 30deg cone let the slide's angled TOP
+    #   BEVELS vote, which read "level" (0.1deg) while the true slide/rail sat -1.7deg. 20deg excludes the
+    #   bevels and keeps only the true flats. (Point-cloud slab-PCA landed ~15deg off; up-faces-only caught
+    #   the bevels.) Both up+down flats + forward-only + iterate = stable, idempotent, bore-accurate.
     slide_tilt_deg = 0.0
     if level_slide and F is not None and len(F):
         a3, b3, c3 = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
-        cos30 = math.cos(math.radians(30))
-        for _ in range(5):
+        cosT = math.cos(math.radians(20))                    # near-horizontal flats only (exclude bevels)
+        for _ in range(6):
             fn = np.cross(b3 - a3, c3 - a3); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
-            fnn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]; cen = ((a3 + b3 + c3) / 3.0)[ok]
-            nH = fnn @ aH; nW = fnn @ aW; nL = fnn @ aL; ch = cen @ aH; cl = cen @ aL
-            sel = ((nH > cos30) &                            # UP-facing flat (slide top, not a side/bottom)
-                   (np.abs(nW) < 0.5) &                      # not a left/right wall
-                   (ch > np.median(ch)) &                    # upper region (the slide, not the frame)
-                   (cl < np.percentile(cl, 75)))             # forward 75% (drop the rear grip tang)
+            fnn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]
+            cl = ((a3 + b3 + c3) / 3.0)[ok] @ aL; ch = ((a3 + b3 + c3) / 3.0)[ok] @ aH
+            nH = fnn @ aH; nW = fnn @ aW; nL = fnn @ aL
+            fwd = cl < np.percentile(cl, 60)                 # forward body (slide + dust cover, not grip)
+            notwall = np.abs(nW) < 0.4
+            # PRIMARY reference = the DOWN-facing forward flats = picatinny rail + slide/dust-cover underside
+            # (owner's yellow line, 2026-07-03). The underside is the cleanest bore-parallel flat — no
+            # sights / optic / serrations, unlike the top. Fall back to the slide-TOP up-flats only if the
+            # underside is too sparse (a gun with no rail / open underside).
+            rail = (nH < -cosT) & notwall & fwd & (ch < np.median(ch))
+            sel = rail if int(rail.sum()) >= 12 else ((nH > cosT) & notwall & fwd & (ch > np.median(ch)))
             if int(sel.sum()) < 8:
                 break
-            ul = float(np.sum(area[sel] * nL[sel])); uh = float(np.sum(area[sel] * nH[sel]))
+            sgn = np.sign(nH[sel])                           # fold the chosen flats to the +aH side
+            ul = float(np.sum(area[sel] * sgn * nL[sel]))    # consensus 'up' of the reference flats, in (l,h)
+            uh = float(np.sum(area[sel] * sgn * nH[sel]))
             m = math.hypot(ul, uh) or 1.0; ul, uh = ul / m, uh / m
             dth = math.degrees(math.atan2(ul, uh)); slide_tilt_deg += dth
-            aH, aL = (ul * aL + uh * aH), (uh * aL - ul * aH)    # rotate so the slide-top up -> +Z
+            aH, aL = (ul * aL + uh * aH), (uh * aL - ul * aH)   # rotate so the reference flat -> horizontal
             l = D @ aL; h = D @ aH
-            if abs(dth) < 0.2:                               # converged
+            if abs(dth) < 0.1:                               # converged
                 break
     # MANUAL PITCH TWEAK about X (owner's eye): + tips the muzzle down. Applied after auto-level.
     if pitch_offset_deg:

@@ -41,10 +41,14 @@ reversible, non-mutating to geometry.**
    (calibrated 43mm margin on the SIG). Robust where "farthest reach from the mass center" failed: the
    tall **front sight** competes with the grip and the grip-shifted origin inverted it → flipped the gun
    upside-down (owner had to apply a manual Ry+180).
-5. **Slide level** — level the **slide-TOP flat** (the surface the owner's red line follows): take the
-   area-weighted consensus normal of the UP-facing faces in the upper-forward region and rotate it to
-   **+Z**, iterated to a fixed point. UP-faces only + iterate = stable, idempotent, and immune to
-   sight/optic bumps and slab taper (point-cloud PCA landed ~15° off; both-flats flipped ~37% of poses).
+5. **Slide level** — owner's rule: "level to the SLIDE and/or the PICATINNY RAIL — both straight,
+   bore-parallel." Take the area-weighted consensus normal of the near-HORIZONTAL flats (within ~20° of
+   vertical — a TIGHT cone that excludes the slide's angled top bevels) and rotate it to **+Z**, iterated
+   to a fixed point. **Primary reference = the DOWN-facing forward flats** (the picatinny rail + slide /
+   dust-cover underside — the cleanest bore-parallel surface, no sights/optic/serrations), with a fallback
+   to the slide-TOP up-flats if the underside is too sparse (no-rail gun). Landed the SIG slide ridge at
+   **−0.14°** ("perfect", owner-confirmed). Rejected en route: point-cloud slab-PCA (~15° off), up-faces
+   with a loose 30° cone (caught the top bevels → left the true slide/rail ~1.7° off).
 6. **Manual pitch tweak** — `pitch_offset_deg` adds a pitch about X on top of the auto-level for the
    owner's eye (+ tips the muzzle down). Default 0.
 7. **Apply** — `New = (P − center) @ Rᵀ`, `R` rows = `[x̂, ŷ, ẑ]`; `matrix_world = identity`. The applied
@@ -89,9 +93,9 @@ wants a touch more/less pitch, set `pitch_offset_deg`.
 
 ## Status / scope
 
-- **OWNER-VALIDATED LIVE 2026-07-03** on the SIG P226 X-Five FULL GUN (63,464 verts): muzzle −Y, grip −Z,
-  slide level (matches René's hand-posed reference within ~1mm on every bbox extent; slide top parallel to
-  a rendered horizontal bar). det +1, centered 0.0mm, upright, straight.
+- **OWNER-CONFIRMED "PERFECT" 2026-07-03** on the SIG P226 X-Five FULL GUN (63,464 verts): muzzle −Y,
+  grip −Z, slide/rail level (slide-top ridge −0.14°; matches René's hand-posed reference within ~1mm on
+  every bbox extent). det +1, centered 0.0mm, upright, straight. Verified in René's own Blender viewport.
 - **Offline: 300/300 random gun poses** pass (det, axis order, centering, off-diagonal, grip-down,
   muzzle-left, slide-level) + volume-centroid, near-cubic light, ambiguity, reversibility.
   Re-run: `"…/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_align_math.py`.
@@ -107,8 +111,10 @@ wants a touch more/less pitch, set `pitch_offset_deg`.
   and **tilted** (pitch) — both caught by René against his Blender viewport.
 - **Two calibrated fixes**, keyed off his hand-posed ground truth: (a) grip-down = rear-vs-front mean
   height (the "farthest reach" test was inverted by the tall front sight + mass-shifted origin);
-  (b) slide-level = slide-top up-face consensus normal → +Z, iterated (point-cloud slab PCA landed ~15°
-  off; a both-flats variant flipped ~37% of poses in offline testing before being replaced).
+  (b) slide-level = consensus normal of the near-horizontal flats (tight 20° cone) → +Z, iterated,
+  **primary reference the DOWN-facing forward flats (picatinny rail + underside)**. Leveling evolved
+  live: point-cloud slab-PCA (~15° off) → up-faces / loose 30° cone (caught the top bevels, left the
+  real slide/rail ~1.7° off) → tight both-flats (~1.1°) → rail-primary (**−0.14°, "perfect"**).
 - **Process lesson (worth keeping):** my numeric verifier initially *shared the aligner's blind spot* and
   rubber-stamped a wrong pose; the raw side render also fooled the eye (wedge-shaped gun reads as tilted).
   Ground truth came only from (1) the owner's Blender viewport, (2) rendering against a known-horizontal
