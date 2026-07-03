@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "name": "LLM Affinity Matrix",
+    "version": "1.0.0",
+    "created": "2026-06-30",
+    "purpose": "Declarative role→substrate routing before MLP override. Cheap-first for bulk roles, heavy-only for deep roles.",
+    "authority": "Advisory — governance.mjs hard gates always win. MLP router may override when warm + confident.",
+    "decisionRule": "Migrate workload class only when substrate-benchmark shows ≥2× pass rate or ≥50% latency reduction"
+  },
+  "substrates": {
+    "native": { "cost": "premium", "description": "Cursor/Claude Agents — opus/sonnet/haiku" },
+    "glm-max": { "cost": "premium", "description": "z.ai glm-5.2 1M ctx — heavy reasoning, architecture, adversarial" },
+    "tmux-zai": { "cost": "premium", "description": "z.ai glm-5.2 via interactive tmux claude-zai — multi-tool builds" },
+    "glm": { "cost": "mid", "description": "z.ai glm-4.7 — workhorse code-gen, analysis" },
+    "glm-turbo": { "cost": "mid", "description": "z.ai glm-5-turbo — faster judgment" },
+    "ollama-flash": { "cost": "cheap", "description": "deepseek-v4-flash:cloud — bulk census, scan, docs" },
+    "ollama-minimax": { "cost": "cheap", "description": "minimax-m3:cloud — efficient generalist drafts" },
+    "cline": { "cost": "mid", "description": "ClinePass CLI — code specialist sidecar" }
+  },
+  "affinities": {
+    "helmsman": { "preferred": "native", "fallback": "glm-max", "rationale": "Owner cockpit — needs native tools + commit authority" },
+    "architect": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Deep system design — needs 1M ctx + reasoning high" },
+    "steward": { "preferred": "native", "fallback": "native", "rationale": "Deterministic governance — no LLM substrate needed" },
+    "ideator": { "preferred": "glm", "fallback": "ollama-flash", "rationale": "Divergent generation — mid-cost sufficient, not heavy reasoning" },
+    "scout": { "preferred": "ollama-flash", "fallback": "glm-turbo", "rationale": "Bulk research + census — cheap-first, high throughput" },
+    "synthesist": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Large-context merge — needs 1M ctx for lattice synthesis" },
+    "evolver": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Evolutionary search + deep proposals — heavy reasoning" },
+    "deliberator": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Deep continuous-thought reasoning — needs compute" },
+    "engineer": { "preferred": "glm", "fallback": "cline", "rationale": "Core code-gen — workhorse lane sufficient" },
+    "mechanic": { "preferred": "glm", "fallback": "cline", "rationale": "Integration + refactor — workhorse lane sufficient" },
+    "artificer": { "preferred": "ollama-flash", "fallback": "glm-turbo", "rationale": "Fast scaffolding + mechanical edits — cheap-first" },
+    "sentinel": { "preferred": "native", "fallback": "glm", "rationale": "Security review — needs native tools for protected-path audit" },
+    "kernelsmith": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Hot-path optimization + benchmarks — heavy reasoning" },
+    "adjudicator": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Adversarial critic — needs deep reasoning, structurally independent" },
+    "oracle": { "preferred": "native", "fallback": "glm-turbo", "rationale": "Test execution + fitness scoring — native tools for test runs" },
+    "calibrator": { "preferred": "native", "fallback": "native", "rationale": "Calibration math — deterministic, no LLM substrate needed" },
+    "archivist": { "preferred": "ollama-flash", "fallback": "native", "rationale": "Memory curation + skill library — bulk scan, cheap-first" },
+    "chronicler": { "preferred": "ollama-flash", "fallback": "glm", "rationale": "Docs + summaries — bulk writing, cheap-first" },
+    "quartermaster": { "preferred": "native", "fallback": "native", "rationale": "Token budget accounting — deterministic, no LLM substrate needed" },
+    "envoy": { "preferred": "ollama-flash", "fallback": "glm", "rationale": "Task intake + requirement decode — bulk processing, cheap-first" }
+  },
+  "bulkRoles": ["scout", "artificer", "archivist", "chronicler", "envoy"],
+  "heavyRoles": ["architect", "adjudicator", "kernelsmith", "deliberator", "oracle", "synthesist", "evolver"],
+  "codeRoles": ["engineer", "mechanic"],
+  "nativeOnlyRoles": ["helmsman", "steward", "sentinel", "calibrator", "quartermaster"]
+}

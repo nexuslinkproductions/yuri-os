@@ -83,14 +83,14 @@ node --test _SYSTEM/Scripts/swarm-convergence.test.mjs \
 2. **Spawn Cline sidecar** for WS-G research task (see tmux pattern in parent summary).
 3. **Investigate glm-max timeouts** — empty `.out` after ~22–40min; consider dedicated retry on empty output or shorter prompts for architect-map leaves.
 4. **Commit arm lift + GLM fixes** with explicit pathspec when Marcel approves.
-5. **Start dashboard** for ops visibility: `python3 _SYSTEM/mure/server.py` → http://127.0.0.1:8433
+5. **Start dashboard** for ops visibility: `node _SYSTEM/Scripts/work-dashboard.mjs` → http://127.0.0.1:4270
 
 ---
 
 ## Dashboard
 
 - **UI:** `_SYSTEM/mure/dashboard.html`
-- **Server:** `_SYSTEM/mure/server.py` (default port 8433)
+- **Server:** `_SYSTEM/Scripts/work-dashboard.mjs` (default port 4270)
 - **Status:** Not running during this health check; wiring documented in `_SYSTEM/mure/RUNBOOK.md`
 
 ---

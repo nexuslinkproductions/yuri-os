@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # @capability: voice-listen-overseer
 # @serves: talk to the overseer | mic into overseer | always-on voice input | speech to overseer | hands free claude
-# @does: always-on mic -> whisper-cli -> cmux send into the overseer surface. Loops short capture windows, transcribes (large-v3-turbo, English), GATES against the Rick TTS playback (won't transcribe its own voice / echo), drops empty + hallucinated segments, injects real speech into the overseer's cmux tab.
-# @use: run `listen` (or bash this) in any terminal AFTER `overseer` is up. Ctrl-C to stop. Tune: VOICE_WINDOW, VOICE_MIC_INDEX, VOICE_MIN_CHARS.
+# @does: always-on mic -> Parakeet MLX (v3 multilingual) or whisper-cli fallback -> cmux send into the overseer surface. VAD-segmented (Parakeet) or fixed windows (whisper). Echo-gates against Rick TTS playback, drops empty/hallucinated segments, injects real speech into the overseer's cmux tab.
+# @use: run `listen` (or bash this) in any terminal AFTER `overseer` is up. Ctrl-C to stop. Tune: VOICE_WINDOW, VOICE_MIC_INDEX, VOICE_MIN_CHARS, VOICE_PARAKEET_MODEL (default v3 EN+DE), VOICE_WHISPER_LANG (whisper fallback; default auto).
 # @exports: -
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -11,6 +11,7 @@ MIC="${VOICE_MIC_INDEX:-:1}"                                 # avfoundation audi
 MODEL="${VOICE_WHISPER_MODEL:-$HOME/.cache/whisper-cpp/ggml-large-v3-turbo.bin}"
 WINDOW="${VOICE_WINDOW:-7}"                                  # seconds per capture window
 MIN_CHARS="${VOICE_MIN_CHARS:-3}"                            # drop transcripts shorter than this (after stripping)
+WHISPER_LANG="${VOICE_WHISPER_LANG:-auto}"                   # whisper fallback: auto = multilingual detect (EN+DE); was hardcoded en
 SURFACE_FILE="$REPO/_SYSTEM/state/overseer/overseer.surface"
 SURFACE="${VOICE_OVERSEER_SURFACE:-$(cat "$SURFACE_FILE" 2>/dev/null || true)}"
 
@@ -53,7 +54,7 @@ is_noise(){
 }
 
 echo "🎙  overseer listener LIVE"
-echo "    mic '$MIC'  →  surface $SURFACE  (window ${WINDOW}s, model large-v3-turbo)"
+echo "    mic '$MIC'  →  surface $SURFACE  (window ${WINDOW}s, whisper-lang ${WHISPER_LANG})"
 echo "    speak normally; it pauses while Rick talks. Ctrl-C to stop."
 echo "    tune live: VOICE_WINDOW=<secs> VOICE_MIC_INDEX=:<n> VOICE_MIN_CHARS=<n> listen"
 echo
@@ -66,7 +67,7 @@ while true; do
     || { echo "(mic read failed — retrying)"; sleep 0.5; continue; }
   # if Rick started talking during the window, discard (it's echo)
   pgrep -x afplay >/dev/null 2>&1 && continue
-  whisper-cli -m "$MODEL" -f "$wav" -l en -nt -oj -of "$base" >/dev/null 2>&1 || continue
+  whisper-cli -m "$MODEL" -f "$wav" -l "$WHISPER_LANG" -nt -oj -of "$base" >/dev/null 2>&1 || continue
   text="$(jq -r '[.transcription[].text] | join(" ")' "$base.json" 2>/dev/null | sed 's/^[[:space:]]*//; s/[[:space:]]*$//; s/  */ /g')"
   is_noise "$text" && continue
   echo "→ $text"

@@ -7,19 +7,24 @@
  *
  * @exports shouldPersistMlp, shouldPersistMlpLearn, recordMlpPredictions, recordMlpOutcomesFromRun,
  *          recordMlpFeedbackStub, recordMlpFeedbackDryRun, runMlpFeedbackLoop, recordMlpFeedbackFromRun,
- *          deriveLeafOutcome, runPostTrainSummary
+ *          deriveLeafOutcome, runPostTrainSummary, enrichRunResultWithSidecarPools
  */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { recordPrediction, recordOutcome } from './prediction-ledger.mjs';
 import { extractResultLabel } from './glm-fleet.mjs';
+import { aggregatePoolOutputs as aggregateOllamaPool } from './ollama-fleet.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 export const MLP_LEARN_ENV = 'YURI_MLP_LEARN';
 export const MLP_LEARN_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mlp-learn.enabled');
+export const MLP_SHADOW_ENV = 'YURI_MLP_SHADOW';
+export const MLP_SHADOW_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mlp-shadow.enabled');
+export const COUNTERFACTUAL_SHADOW_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'fleet-router-counterfactual-shadow.jsonl');
 
 /** True when owner has armed MLP learning persist and caller is not dry-run. */
 export function shouldPersistMlpLearn(opts = {}) {
@@ -37,6 +42,84 @@ async function getRouter() {
 
 function leavesFromPlan(plan) {
   return [...(plan.glmLeaves ?? []), ...(plan.nativeSpecs ?? [])];
+}
+
+/** P9 shadow: log MLP ranked alternatives vs actual dispatch (no routing change). */
+export function isMlpShadowArmed() {
+  if (process.env[MLP_SHADOW_ENV] === '1') return true;
+  try { return fs.existsSync(MLP_SHADOW_FLAG); } catch { return false; }
+}
+
+function actualDispatchSubstrate(leaf) {
+  if (leaf.dispatch === 'ollama-sidecar' || leaf.affinityApplied?.startsWith('ollama')) return 'ollama';
+  if (leaf.dispatch === 'zai-tmux') return 'tmux-zai';
+  if (leaf.dispatch === 'glm-lane') return 'glm';
+  if (leaf.model && leaf.model !== 'sonnet' && leaf.model !== 'haiku' && leaf.model !== 'opus') return leaf.model;
+  return 'native';
+}
+
+/** Append counterfactual shadow rows — advisory only, never changes dispatch. */
+export function recordMlpCounterfactualShadow(plan, ctx = {}) {
+  if (!isMlpShadowArmed()) return { skipped: true, reason: 'shadow disarmed', count: 0 };
+  const ts = new Date().toISOString();
+  const records = [];
+  for (const leaf of leavesFromPlan(plan)) {
+    if (!leaf.routerRanked?.length && !leaf.routerSuggestion) continue;
+    const row = {
+      type: 'counterfactual-shadow',
+      ts,
+      leafId: leaf.id || leaf.role,
+      role: leaf.role,
+      mlpBest: leaf.routerSuggestion || null,
+      mlpConfidence: leaf.routerConfidence ?? null,
+      actualDispatch: actualDispatchSubstrate(leaf),
+      affinityApplied: leaf.affinityApplied || null,
+      ranked: (leaf.routerRanked || []).slice(0, 4).map((r) => ({ id: r.id, substrate: r.substrate, score: r.score })),
+      quotaPressure: ctx.quotaPressure ?? 0.4,
+    };
+    try {
+      fs.mkdirSync(path.dirname(COUNTERFACTUAL_SHADOW_FILE), { recursive: true });
+      fs.appendFileSync(COUNTERFACTUAL_SHADOW_FILE, `${JSON.stringify(row)}\n`);
+    } catch { /* fail-open */ }
+    records.push(row);
+  }
+  return { skipped: false, count: records.length, file: COUNTERFACTUAL_SHADOW_FILE, records };
+}
+
+/** Merge ollama/zai sidecar result packets into swarm poolOutputs for MLP outcome derivation. */
+export function enrichRunResultWithSidecarPools(runResult = {}) {
+  const swarm = runResult.swarm ? { ...runResult.swarm } : {};
+  const poolOutputs = { ...(swarm.poolOutputs || {}) };
+
+  const mergeSidecar = (sidecar, substrate = 'ollama') => {
+    if (!sidecar) return;
+    if (sidecar.runDir) {
+      const { pool } = aggregateOllamaPool(sidecar.runDir);
+      for (const [leafId, pkt] of Object.entries(pool)) {
+        poolOutputs[leafId] = { ...pkt, actualSubstrate: substrate, ok: pkt.status === 'ok' };
+      }
+    }
+    for (const r of sidecar.results || []) {
+      const leafId = r.label;
+      if (!leafId) continue;
+      const text = r.text || '';
+      const label = r.resultLabel || extractResultLabel(text) || '';
+      if (!poolOutputs[leafId] || label || text.length >= 16) {
+        poolOutputs[leafId] = {
+          label,
+          text,
+          status: r.ok ? 'ok' : (r.status || 'fail'),
+          ok: !!r.ok,
+          actualSubstrate: substrate,
+        };
+      }
+    }
+  };
+
+  mergeSidecar(runResult.ollamaSidecarResults, 'ollama');
+  mergeSidecar(runResult.zaiSidecarResults, 'tmux-zai');
+
+  return { ...runResult, swarm: { ...swarm, poolOutputs } };
 }
 
 /** Record prediction-ledger rows at plan time. Returns { ids: leafId → predictionId }. */
@@ -95,6 +178,7 @@ export function deriveLeafOutcome(leafId, runResult = {}) {
     packet = nativePool[leafId];
     actualSubstrate = 'native';
   }
+  if (packet?.actualSubstrate) actualSubstrate = packet.actualSubstrate;
 
   const text = packet?.text || '';
   const label = packet?.label || extractResultLabel(text) || '';
@@ -192,7 +276,29 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
   return { advisory: !persist, persisted: persist, count: records.length, records, skippedOutcomes };
 }
 
-/** Dry-run feedback — compute error, never persist weights or ledger. */
+/**
+ * Dry-run feedback — compute error, never persist weights or ledger.
+ *
+ * This is the ADVISORY STUB called by runFleet.mjs in --dry-run mode.
+ * It calls fleet-router-mlp.mjs::updateFromOutcome with { persist: false },
+ * which operates on a structuredClone of the weights and discards the gradient.
+ * The in-memory singleton _weights and the on-disk weights file are never touched.
+ *
+ * REAL TRAINING PATH:
+ *   1. runFleet.mjs --apply --mlp-learn   (armed: YURI_MLP_LEARN=1 or _SYSTEM/state/mlp-learn.enabled)
+ *      → recordMlpPredictions (log predictions to prediction-ledger)
+ *      → company.runCompany (dispatch real work)
+ *      → recordMlpFeedbackFromRun (derive outcomes from run results, call updateFromOutcome with persist:true)
+ *      → runPostTrainSummary → trainFleetRouterFromLedger (batch replay from ledger with held-out Brier eval)
+ *
+ *   2. Standalone batch training:
+ *      node _SYSTEM/Scripts/train-fleet-router-from-ledger.mjs [--epochs=4] [--lr=0.015] [--dry]
+ *      Loads prediction-ledger, matches predictions→outcomes, runs multi-epoch online gradient descent
+ *      with updateFromOutcome(persist:true), time-ordered 80/20 train/eval split, reports held-out Brier.
+ *
+ * Key invariant: persist:false (this stub) is purely advisory — gradient error is computed for
+ * diagnostics but never written. persist:true (armed path) mutates _weights + saves to disk.
+ */
 export async function recordMlpFeedbackDryRun(plan, ctx = {}) {
   const router = await getRouter();
   if (!router?.updateFromOutcome || !router?.extractFeatures) {
@@ -214,6 +320,7 @@ export async function recordMlpFeedbackDryRun(plan, ctx = {}) {
   return { advisory: true, persisted: false, count: records.length, records, trainSummary: null, predictionIds: {} };
 }
 
+/** Advisory stub alias used by runFleet.mjs dry-run. See recordMlpFeedbackDryRun for full contract. */
 export const recordMlpFeedbackStub = recordMlpFeedbackDryRun;
 
 /** Full apply-path feedback (predictions should already be logged). */
@@ -238,12 +345,13 @@ export async function runMlpFeedbackLoop(plan, runResult, opts = {}) {
   return recordMlpFeedbackFromRun(plan, runResult, { ...opts, dryRun: false, predictionIds: opts.predictionIds });
 }
 
-/** Post-run advisory training from ledger. */
+/** Post-run advisory training from ledger. JS train + Python sidecar Brier compare. */
 export async function runPostTrainSummary(opts = {}) {
+  let jsSummary = { skipped: true, reason: 'train-fleet-router-from-ledger unavailable' };
   try {
     const mod = await import('./train-fleet-router-from-ledger.mjs');
     if (mod?.trainFleetRouterFromLedger) {
-      return mod.trainFleetRouterFromLedger({
+      jsSummary = await mod.trainFleetRouterFromLedger({
         epochs: opts.trainEpochs ?? opts.epochs ?? 2,
         lr: opts.learningRate ?? opts.lr ?? 0.015,
         dry: opts.dry ?? false,
@@ -252,5 +360,27 @@ export async function runPostTrainSummary(opts = {}) {
       });
     }
   } catch { /* optional */ }
-  return { skipped: true, reason: 'train-fleet-router-from-ledger unavailable' };
+
+  // Python numpy sidecar for cross-provider Brier + feature importance (advisory only)
+  let pySummary = null;
+  try {
+    const ledgerPath = opts.ledgerFile || '_SYSTEM/state/prediction-ledger.jsonl';
+    const py = spawnSync('python3', [
+      path.join(REPO_ROOT, '_SYSTEM', 'ml', 'fleet_router_train.py'),
+      '--ledger', ledgerPath,
+      '--epochs', String(opts.epochs ?? 200),
+      '--lr', String(opts.lr ?? 0.01),
+    ], { encoding: 'utf8', timeout: 180000, cwd: REPO_ROOT });
+    if (py.status === 0 && py.stdout?.trim()) {
+      pySummary = JSON.parse(py.stdout);
+    }
+  } catch { /* sidecar optional */ }
+
+  return {
+    ...jsSummary,
+    pythonCompare: pySummary,
+    note: pySummary
+      ? 'Brier comparison + feature importance from Python numpy available (advisory)'
+      : 'Python sidecar unavailable or errored — JS MLP remains authority',
+  };
 }

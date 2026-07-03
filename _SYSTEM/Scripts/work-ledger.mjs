@@ -3,7 +3,7 @@
 // @serves: work ledger | organize all created work | artifact funnel | run registry | company work index | track agentic output | what work was produced | work database
 // @does: the auto-funnel for everything the agentic system (MURE / runSwarm / sessions) produces — a SQLite relational store (runs × artifacts × role_outputs × activity × links) that auto-captures from three sources (.claude/jobs/*/manifest.json run records, per-run results packets, and a bounded sweep of the durable output dirs), and exposes a single overview() query matching the dashboard data contract. The missing unified funnel on top of YURI's filing-system + artifact-registry + search corpus (capability-first: those handle placement/catalog/full-text; this is the run+output ledger that ties them together). The archivist role's backing organ.
 // @use: import { openLedger, ingestAll, overview } from work-ledger.mjs. CLI: node work-ledger.mjs --ingest | --overview | --stats | --recent. DB at _SYSTEM/OS_KERNEL/work-ledger.db (gitignored). Read-only on the repo; only writes its own DB.
-// @exports: openLedger, ensureSchema, ingestRun, ingestArtifact, recordActivity, ingestJobs, ingestOutputs, pruneMissing, ingestAll, overview, DB_PATH, OUTPUT_ROOTS
+// @exports: openLedger, ensureSchema, ingestRun, ingestArtifact, recordActivity, ingestJobs, ingestOutputs, ingestActiveRuns, pruneMissing, ingestAll, overview, getRunDetail, getArtifactsByRole, getThroughputTrend, getConvergenceTrend, getRoleProductivityTrends, DB_PATH, OUTPUT_ROOTS
 //
 // Authority: descriptive index. The ledger RECORDS what was produced; it never mutates the artifacts it
 // indexes and never finalizes. Idempotent (INSERT OR REPLACE on stable keys) — safe to re-ingest every poll.
@@ -180,9 +180,66 @@ export function pruneMissing(db) {
 
 export function ingestAll(db) {
   const runs = ingestJobs(db);
+  const active = ingestActiveRuns(db);
   const arts = ingestOutputs(db);
   const pruned = pruneMissing(db);
-  return { runs, artifacts: arts, pruned };
+  return { runs, active, artifacts: arts, pruned };
+}
+
+/** Parse a run dir's live-state artifacts: status.json (runSwarm rounds) + spawns.jsonl (fleet child spawns). */
+function readRunLiveState(runId, jobsDir = JOBS_DIR) {
+  const base = path.join(jobsDir, runId);
+  let status = null; let spawns = [];
+  try { const p = path.join(base, 'status.json'); if (fs.existsSync(p)) status = JSON.parse(fs.readFileSync(p, 'utf8')); } catch { /* malformed status */ }
+  try {
+    const p = path.join(base, 'spawns.jsonl');
+    if (fs.existsSync(p)) spawns = fs.readFileSync(p, 'utf8').split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  } catch { /* unreadable spawns */ }
+  return { status, spawns };
+}
+
+/**
+ * Live-run ingest — runs that have NOT yet written a final manifest become visible from their
+ * in-flight artifacts: status.json (runSwarm round loop) and/or spawns.jsonl (glm/ollama fleet
+ * child spawns). manifest.json stays the final truth: once it exists, ingestJobs owns the row.
+ */
+export function ingestActiveRuns(db, jobsDir = JOBS_DIR) {
+  let n = 0;
+  let dirs;
+  try { dirs = fs.readdirSync(jobsDir); } catch { return 0; }
+  for (const d of dirs) {
+    if (fs.existsSync(path.join(jobsDir, d, 'manifest.json'))) continue; // final truth already ingested
+    const { status, spawns } = readRunLiveState(d, jobsDir);
+    if (!status && !spawns.length) continue;
+    // open spawns = spawned lines without a matching ended line (keyed by label|pid)
+    const open = new Map();
+    for (const s of spawns) {
+      const k = `${s.label}|${s.pid}`;
+      if (s.spawnedAt) open.set(k, s);
+      if (s.endedAt) open.delete(k);
+      if (s.spawnedAt) recordActivity(db, 'spawn', `${d}/${s.label} lane=${s.lane || '?'} pid=${s.pid}`, s.spawnedAt);
+      if (s.endedAt) recordActivity(db, 'spawn-end', `${d}/${s.label} pid=${s.pid} exit=${s.exitCode ?? '?'} ${s.status || ''}`.trim(), s.endedAt);
+    }
+    const live = status ? ['running', 'running-stragglers'].includes(status.status) : open.size > 0;
+    const started = status?.startedAt || spawns.find((s) => s.spawnedAt)?.spawnedAt || null;
+    const finished = status?.endedAt
+      || (!live && spawns.length ? spawns.filter((s) => s.endedAt).map((s) => s.endedAt).sort().pop() || null : null);
+    const runStatus = live ? 'running' : (status?.status === 'failed' ? 'failed' : (spawns.length || status ? 'done' : 'unknown'));
+    if (runStatus === 'unknown') continue;
+    const labels = [...new Set(spawns.map((s) => s.label).filter(Boolean))];
+    upsertRun(db).run({
+      id: d, kind: d.split('-')[0] || 'run',
+      summary: status?.summary || `${status?.totalLeaves ?? labels.length}-lane run (live)`,
+      status: runStatus, started, finished,
+      rounds: Number(status?.round || 0),
+      leaf_count: Number(status?.totalLeaves ?? labels.length),
+      converged: status?.converged ? 1 : 0, finalize_ok: 0,
+      roles: JSON.stringify(status?.pending?.length ? status.pending : labels),
+      session: null, ingested_at: nowIso(),
+    });
+    n += 1;
+  }
+  return n;
 }
 
 /** The single overview() query — matches the dashboard data contract exactly. */
@@ -238,6 +295,76 @@ export function overview(db) {
     roles, groups: ['orchestration', 'research', 'engineering', 'verification', 'knowledge', 'operations'],
     runs, artifacts, stats: { byKind, byGroup, throughput }, activity,
   };
+}
+
+const mapArtifactRow = (a) => ({
+  id: a.id, kind: a.kind, title: a.title, path: a.path, run: a.run, role: a.role,
+  created: a.created, tags: JSON.parse(a.tags || '[]'), status: a.status, bytes: a.bytes,
+});
+
+/** Drawer contract for GET /api/run?id= — {run, roleOutputs, artifacts, spawns, liveStatus}. */
+export function getRunDetail(db, runId) {
+  const r = db.prepare('SELECT * FROM runs WHERE id = ?').get(runId);
+  if (!r) return null;
+  const run = {
+    id: r.id, kind: r.kind, summary: r.summary, status: r.status, started: r.started, finished: r.finished,
+    rounds: r.rounds, leafCount: r.leaf_count, converged: !!r.converged, finalizeOk: !!r.finalize_ok,
+    roles: JSON.parse(r.roles || '[]'),
+  };
+  const roleOutputs = db.prepare('SELECT role, label, status, chars FROM role_outputs WHERE run_id = ? ORDER BY role').all(runId);
+  const artifacts = db.prepare('SELECT * FROM artifacts WHERE run = ? ORDER BY created DESC LIMIT 100').all(runId).map(mapArtifactRow);
+  const { status, spawns } = readRunLiveState(runId);
+  return { run, roleOutputs, artifacts, spawns, liveStatus: status };
+}
+
+/** GET /api/artifacts?role=&run=&limit= — flat artifact list, newest first. */
+export function getArtifactsByRole(db, { roleId = null, runId = null, limit = 100 } = {}) {
+  const where = []; const args = [];
+  if (roleId) { where.push('role = ?'); args.push(roleId); }
+  if (runId) { where.push('run = ?'); args.push(runId); }
+  const sql = `SELECT * FROM artifacts ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY created DESC LIMIT ?`;
+  return db.prepare(sql).all(...args, Math.min(Number(limit) || 100, 500)).map(mapArtifactRow);
+}
+
+/** GET /api/trends?type=throughput — daily artifact counts over the window: [{date, count, avg}]. */
+export function getThroughputTrend(db, days = 30, smoothWindow = 7) {
+  const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const rows = db.prepare("SELECT substr(created,1,10) d, COUNT(*) c FROM artifacts WHERE created IS NOT NULL AND substr(created,1,10) >= ? GROUP BY d ORDER BY d").all(since);
+  const byDate = Object.fromEntries(rows.map((r) => [r.d, r.c]));
+  const out = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const date = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    out.push({ date, count: byDate[date] || 0 });
+  }
+  const w = Math.max(1, Number(smoothWindow) || 1);
+  for (let i = 0; i < out.length; i += 1) {
+    const slice = out.slice(Math.max(0, i - w + 1), i + 1);
+    out[i].avg = +(slice.reduce((s, x) => s + x.count, 0) / slice.length).toFixed(2);
+  }
+  return out;
+}
+
+/** GET /api/trends?type=convergence — recent runs (oldest→newest) with cumulative runningRate. */
+export function getConvergenceTrend(db, limit = 60) {
+  const rows = db.prepare('SELECT id, started, converged FROM runs ORDER BY COALESCE(started, ingested_at) DESC LIMIT ?').all(Math.min(Number(limit) || 60, 500)).reverse();
+  let seen = 0; let converged = 0;
+  return rows.map((r) => {
+    seen += 1; if (r.converged) converged += 1;
+    return { id: r.id, started: r.started, converged: !!r.converged, runningRate: +(converged / seen).toFixed(3) };
+  });
+}
+
+/** GET /api/trends?type=productivity — per-role daily artifact counts over the window. */
+export function getRoleProductivityTrends(db, days = 30) {
+  const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const rows = db.prepare("SELECT role, substr(created,1,10) d, COUNT(*) c FROM artifacts WHERE role IS NOT NULL AND created IS NOT NULL AND substr(created,1,10) >= ? GROUP BY role, d ORDER BY role, d").all(since);
+  const byRole = {};
+  for (const r of rows) {
+    (byRole[r.role] ||= { role: r.role, total: 0, days: [] });
+    byRole[r.role].total += r.c;
+    byRole[r.role].days.push({ date: r.d, count: r.c });
+  }
+  return Object.values(byRole).sort((a, b) => b.total - a.total);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

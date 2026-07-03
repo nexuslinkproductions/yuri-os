@@ -183,79 +183,297 @@ All scoring functions are pure and deterministic (seeded RNG). `calibrate()` rea
 
 ## 6. How to run
 
-### CLI
+### 6.1 The CEO path (start here)
+
+The owner operates as **CEO** through a single entry point: `_SYSTEM/mure/ceo.mjs`. It takes free-text intent, builds a task spec, casts roles, and (when MURE is armed) dispatches the fleet. Any model or platform can run it — it's a plain Node script with zero non-Node dependencies. **DISARMED by default: `--dry-run` (or an unarmed repo) prints the plan with zero spend.**
 
 ```bash
-# list all roles grouped by group
-node _SYSTEM/mure/mure.mjs --roster
+# the one command — free text in, governed plan + (optionally) live dispatch out
+node _SYSTEM/mure/ceo.mjs "Build a caching module with tests and document it"
 
-# strict schema validation of fleet-roles.json
-node _SYSTEM/mure/mure.mjs --validate
+# plan only (zero spend) — also the automatic behavior when MURE is disarmed
+node _SYSTEM/mure/ceo.mjs --dry-run "Research prior art for a CLI tool"
 
-# DISARMED end-to-end demo (plan only, zero spend)
-node _SYSTEM/mure/mure.mjs --demo
+# after a live dispatch, poll .claude/jobs/<runId>/ every 3s for progress
+node _SYSTEM/mure/ceo.mjs --watch "Build the feature"   # (live; needs MURE armed)
 
-# check arm state
-node _SYSTEM/mure/mure.mjs --status
+# end-of-run report: RESULT_LABELs, convergence verdict, artifact paths, CEO summary
+node _SYSTEM/mure/ceo.mjs --report "Ship the release candidate"
+
+# machine-readable JSON output
+node _SYSTEM/mure/ceo.mjs --json --dry-run "Audit the auth module for security issues"
+
+# full task spec from JSON instead of free text
+node _SYSTEM/mure/ceo.mjs --task-file my-task.json --dry-run
 ```
 
-### Programmatic
+**Flags:**
+
+| flag | effect |
+|---|---|
+| `--dry-run` | Plan only — zero spend. **Automatic when MURE is disarmed.** Prints: roles cast, substrates, held rulings. |
+| `--watch` | After a live dispatch, poll `.claude/jobs/<runId>/status.json` + `spawns.jsonl` + `results/*.json` every 3s and print one-line progress. Degrades gracefully when artifacts are absent. |
+| `--report` | At end, print all RESULT_LABELs, convergence verdict, artifact paths, and a plain-language CEO summary. |
+| `--json` | Emit machine-readable JSON instead of human text. |
+| `--task-file F` | Load a full task spec from JSON instead of building from free text. |
+
+**What ceo.mjs does internally:**
+1. Builds a task spec from free text (`summary` = the text; subtasks via heuristic decomposition into intake → research → build → verify → doc).
+2. Infers capability needs: feature-detects `deriveNeeds` from `company.mjs` (dynamic-import try/catch); if absent, uses an inline keyword→capability fallback map.
+3. Delegates to `planCompany` (plan) / `runCompany` (dispatch) from `company.mjs`.
+4. **Never arms anything itself.** `--dry-run` forces `armed:false`; live mode passes `armed:undefined` so `isMureArmed()` (env or flag) is the sole arming authority.
+
+**Arm semantics (unchanged):** ceo.mjs NEVER writes a flag file or sets an env. To go live:
+
+```bash
+touch _SYSTEM/state/mure.enabled      # arm (owner-gated — persistent)
+# or
+YURI_MURE_ARMED=1 node _SYSTEM/mure/ceo.mjs "task"   # arm for this session only
+```
+
+### 6.2 When to use which entry point (decision tree)
+
+MURE has several entry points. **Use ceo.mjs unless you need a specific lower-level capability.**
+
+```
+Do you have free-text operator intent?
+├─ YES → node _SYSTEM/mure/ceo.mjs "<task>" [--dry-run] [--watch] [--report]
+│         (the CEO path — default for the owner)
+│
+└─ NO — you need a specific tool. Pick by purpose:
+   │
+   ├─ Inspect / validate the roster
+   │  ├─ node _SYSTEM/mure/mure.mjs --roster       (list all 20 roles grouped)
+   │  ├─ node _SYSTEM/mure/mure.mjs --validate     (strict fleet-roles.json schema check)
+   │  ├─ node _SYSTEM/mure/mure.mjs --status       (MURE / Cline / Evolver arm state)
+   │  └─ node _SYSTEM/mure/mure.mjs --demo         (DISARMED end-to-end plan of a sample task)
+   │
+   ├─ Run ONE task from a JSON spec (plan or dispatch)
+   │  ├─ node _SYSTEM/mure/company.mjs --task-file t.json --dry-run   (plan only, zero spend)
+   │  └─ node _SYSTEM/mure/company.mjs --task-file t.json             (dispatch if MURE armed)
+   │
+   ├─ Run the ordered company-ops workstream suite (WS-A → WS-B → WS-F → WS-C → WS-D → WS-G)
+   │  ├─ node _SYSTEM/mure/company-dispatch.mjs --dry-run-all         (plan all streams)
+   │  ├─ node _SYSTEM/mure/company-dispatch.mjs --dry-run-all --include-release
+   │  └─ node _SYSTEM/mure/company-dispatch.mjs --apply --mlp-learn --ollama-sidecar --cline-sidecar --zai-sidecar
+   │      (live armed dispatch with all sidecars + MLP learning)
+   │
+   ├─ Helmsman packet runner (Phase 3+: dry-run all WS files + optional GLM/Ollama parallel lanes)
+   │  └─ node _SYSTEM/mure/helmsman-run.mjs --dry-run-all --ollama-sidecar --out _SYSTEM/lane-output/phase3
+   │
+   ├─ Low-level GLM fleet (leaf-level dispatch, bypassing the company orchestrator)
+   │  └─ node _SYSTEM/Scripts/glm-fleet.mjs --tasks '[{"lane":"glm","label":"R1","prompt":"..."}]'
+   │
+   └─ Low-level swarm convergence loop (runSwarm over a leaves array)
+      └─ node _SYSTEM/Scripts/runSwarm.mjs --leaves-file leaves.json [--rounds 3] [--concurrency 3]
+```
+
+**Parallel sidecar fleets** — `runFleet.mjs --apply` with sidecar flags **self-spawns** armed sidecars in-run (P7 ollama mirrors P6 zai; no manual second command):
+
+| entry point | purpose | arm flag | auto-spawn |
+|---|---|---|---|
+| `node _SYSTEM/Scripts/runFleet.mjs --apply --ollama-sidecar --task-file t.json` | Ollama Cloud bulk (scout/artificer/archivist) — **live self-spawn** when armed | `_SYSTEM/state/ollama-fleet.enabled` | **yes** (P7): spawns `ollama-fleet.mjs`, merges `skipLeafIds`, writes `olf-*` packets |
+| `node _SYSTEM/Scripts/ollama-fleet.mjs --tasks-file <t.json>` | Manual ollama sidecar (same bulk roles) | `_SYSTEM/state/ollama-fleet.enabled` | manual only |
+| `node _SYSTEM/Scripts/runFleet.mjs --apply --zai-sidecar --task-file t.json` | GLM heavy tmux sidecar (architect/adjudicator/kernelsmith) | `_SYSTEM/state/zai-tmux-fleet.enabled` | **yes**: spawns `zai-tmux-fleet.mjs` |
+| `node _SYSTEM/Scripts/cline-fleet.mjs --dry-run --tasks-file <t.json>` | ClinePass CLI peer sidecar (scout/artificer/engineer) | `_SYSTEM/state/cline-fleet.enabled` | tasks file only (manual spawn) |
+
+Pass `--ollama-sidecar` / `--cline-sidecar` / `--zai-sidecar` to `runFleet` or `company-dispatch --apply`.
+
+**P7 ollama live path (verified 2026-07-02):**
+1. Armed `runFleet --apply --ollama-sidecar` writes `.claude/jobs/<runId>/ollama-tasks.json`
+2. Self-spawns `node _SYSTEM/Scripts/ollama-fleet.mjs --tasks-file …` with `YURI_OLLAMA_FLEET=1`
+3. Ollama runId is `olf-*`; result packets land in `.claude/jobs/olf-<id>/results/*.json` + `spawns.jsonl`
+4. Handled leaf IDs merge into `skipLeafIds` so GLM swarm does not double-dispatch
+5. Disarmed (`ollama-fleet.enabled` absent): `ollamaSidecar.skipped=true`, `skipReason` set — no spawn, no spend
+6. **Tier propagation:** subtask `tier` (flash/minimax/kimi) + affinity matrix flow into `ollama-tasks.json` — not hardcoded flash
+
+**Multi-arm substrate table (independent quotas — run in parallel):**
+
+| substrate | entry | arm | concurrent | tier examples |
+|---|---|---|---|---|
+| native Claude | Opus `Agent` tool | (session) | ~12 parallel Agents | sonnet, haiku |
+| z.ai GLM | `glm-fleet.mjs` / `runSwarm` | `glm-fleet.enabled` | plan-dependent | glm-max, glm, glm-flash |
+| ollama-cloud | `ollama-fleet.mjs` / `--ollama-sidecar` | `ollama-fleet.enabled` | 3 (Pro plan) | flash, minimax, kimi |
+| z.ai tmux | `zai-tmux-fleet.mjs` / `--zai-sidecar` | `zai-tmux-fleet.enabled` | tmux sessions | glm-max heavy roles |
+
+**Cross-process cloud slots (multi-machine):** set `YURI_CLOUD_SLOTS_DIR` to a shared directory so `cloud-concurrency.mjs` admission is consistent across hosts (default: `_SYSTEM/state/cloud-slots`). Optional hermetic test: `_SYSTEM/Scripts/cloud-concurrency.test.mjs`.
+
+**P8.4 budgetCap (quartermaster):** `runCompany` → `runSwarm` threads a finite default `budgetCap` of **48** lane-calls (~16 leaves × 3 rounds). Override: `task.budgetCap`, `YURI_MURE_BUDGET=<n>`, or `YURI_MURE_BUDGET_UNLIMITED=1` for legacy unbounded behavior. Force-stop fires via `swarm-convergence` damping when budget exhausts.
+
+**P9 MLP shadow (no active routing):** arm with `YURI_MLP_SHADOW=1` or `touch _SYSTEM/state/mlp-shadow.enabled`. Writes counterfactual rows to `_SYSTEM/state/fleet-router-counterfactual-shadow.jsonl` at plan time (`planCompany`) and apply time (`runCompany` / `runSwarm`). Does **not** change dispatch.
+
+**RESULT_LABEL interpretation:**
+
+| suffix | meaning | example |
+|---|---|---|
+| `_X_PASS_` | executed + verified locally | `15OL_SMOKE_SCOUT_X_PASS_COMMITTED` |
+| `_P_PASS_` | partial / provisional pass | planning-only or incomplete verify |
+| `_F_PASS_` | failed but recorded (honest fail) | adversarial find, not a silent skip |
+| missing + text < 16 chars | **empty-outcome** — MLP training skipped | sidecar timeout with no label |
+
+Grammar: `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED` — validated by `contract-conformance.mjs` (D-3).
+
+**`mure.mjs --run` (Cursor / VS Code terminal):**
+
+```bash
+# Plan only (zero spend) — safe default in any IDE terminal
+node _SYSTEM/mure/mure.mjs --run --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json --dry-run
+
+# Live dispatch (needs mure.enabled + glm-fleet.enabled; sidecars need their flags)
+node _SYSTEM/mure/mure.mjs --run --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json
+
+# Equivalent lower-level entry
+node _SYSTEM/Scripts/runFleet.mjs --task-file 02_RESOURCES/TASKS/mure-finish-wave-master.json --apply --ollama-sidecar
+```
+
+**OpenAPI:** `_SYSTEM/docs/work-dashboard.openapi.yaml` — work-dashboard :4270 including `/api/processes`.
+
+### 6.3 The four arm flags (dependency table)
+
+MURE dispatch is gated by four independent arm flags. They compose: a live end-to-end GLM run needs MURE + GLM + convergence armed. Missing flags degrade safely (plan-only or disarmed packets), never crash.
+
+| flag / env | file | what it gates | when missing |
+|---|---|---|---|
+| `YURI_MURE_ARMED=1` | `_SYSTEM/state/mure.enabled` | The master MURE arm. `runCompany` dispatches GLM leaves only when armed; otherwise returns the plan (zero spend). ceo.mjs passes `armed:undefined` in live mode so this flag is the sole authority. | **DISARMED**: `runCompany` returns plan-only (`dryRun:true`). ceo.mjs prints the plan with "ZERO SPEND". |
+| `YURI_GLM_FLEET=1` | `_SYSTEM/state/glm-fleet.enabled` | GLM lane dispatch (`glmFleet` → `lane-dispatch` → z.ai). The actual API spend gate. | `glmFleet` returns a plan + dry-run stubs; no API calls, zero spend. |
+| `YURI_SWARM_CONVERGENCE=1` | `_SYSTEM/state/swarm-convergence.enabled` | The `converge()` 3-layer gate + `finalizeGuard` over the swarm pool. Without it, `runSwarm` runs rounds but finalization is advisory. | Swarm rounds run; `finalizeOk` is advisory/forced; the owner reads result packets directly. |
+| `YURI_OLLAMA_FLEET=1` | `_SYSTEM/state/ollama-fleet.enabled` | Ollama Cloud sidecar execution (bulk roles). With `--ollama-sidecar --apply`, runFleet **self-spawns** ollama-fleet in-run (P7). | Sidecar writes tasks file only; `skipped:true` + explicit `skipReason`; no `olf-*` packets. |
+
+Additional arms (role-specific, higher-blast):
+- `evolver` self-modification: additionally gated behind `_SYSTEM/state/evolver-arm.enabled` / `YURI_EVOLVER_ARMED`. The highest-blast role; owner-gated even when the six governance gates pass.
+- `cline-fleet` / `zai-tmux-fleet` sidecars: gated by their own `.enabled` flags (see §6.2 table).
+
+**Arming is always owner-gated** (arming = constitution hard-stop). `rm` the flag to disarm. The flags are gitignored (`_SYSTEM/state/*.enabled`).
+
+### 6.4 Artifact schemas
+
+Every run writes to `.claude/jobs/<runId>/`. The runId is generated by `runSwarm.newRunId()` / `glmFleet` and surfaced in the `runCompany` result as `result.swarm.runId`.
+
+```
+.claude/jobs/<runId>/
+├── results/           # per-leaf result packets (GLM + native, same schema)
+│   ├── <label>.json   # one packet per leaf
+│   └── native-*.json  # native-spawn-loop stubs (or real Agent results written by Opus)
+├── status.json        # run-level status (parallel lane — may be absent; watch degrades)
+└── spawns.jsonl       # per-spawn telemetry, one JSON object per line (parallel lane — may be absent)
+```
+
+**Result packet** (`results/<label>.json`) — validated by `glm-fleet.mjs::validatePacket`:
+```jsonc
+{
+  "laneId": "glm",           // required, non-empty string
+  "role": "engineer",        // required, non-empty string (the leafId)
+  "status": "ok",            // required: ok | malformed | error | timeout
+  "resultLabel": "01EN_FEATURE_X_PASS_COMMITTED",  // required (may be "" until the lane emits one)
+  "text": "...full lane output..."   // the lane's text output (RESULT_LABEL parsed from here)
+}
+```
+
+**`status.json`** (parallel lane — schema when present):
+```jsonc
+{
+  "runId": "fleet-abc123",
+  "state": "running",         // running | finished | converged | failed | aborted
+  "startedAt": "2026-07-02T...",
+  "finishedAt": null,         // ISO string when terminal
+  "leafCount": 5,
+  "converged": false,
+  "finalizeOk": null
+}
+```
+
+**`spawns.jsonl`** (parallel lane — one JSON object per line):
+```jsonc
+{"laneId":"glm","role":"engineer","pid":12345,"startedAt":"...","label":"01EN"}
+```
+
+**Manifest** (company-dispatch only — `_SYSTEM/lane-output/dispatch/<runId>/manifest.json`):
+```jsonc
+{
+  "runId": "dispatch-xyz",
+  "dryRun": true,
+  "ratifiedAt": "2026-07-02T...",
+  "heldRulings": "...source path...",
+  "mureArmed": false,
+  "streams": [{ "taskFile": "...", "status": "planned", "held": 0, "glm": 3, "native": 2 }],
+  "skipped": [],
+  "errors": []
+}
+```
+
+**`task` shape** (for `--task-file` / programmatic `planCompany`/`runCompany`):
+```jsonc
+{
+  "summary": "Build a feature module with tests.",
+  "tags": ["build", "feature"],
+  "subtasks": [
+    { "id": "build", "need": ["code-generation", "implementation"], "prompt": "Implement the module.", "blastRadius": "MEDIUM" }
+  ]
+}
+```
+
+### 6.5 Hung-lane recovery playbook
+
+**Where logs live:**
+- Per-leaf packets: `.claude/jobs/<runId>/results/<label>.json` — read these first.
+- Lane dispatch stdout: `.claude/jobs/<runId>/results/<label>.out` (raw, before packet parsing).
+- Detached dispatch log: `_SYSTEM/lane-output/dispatch/run.log` (company-dispatch `--detach`).
+- runSwarm round log: in-memory (`result.swarm.roundLog`); surfaced by `--report`.
+
+**When to intervene:**
+- A leaf has `status: "timeout"` or no `resultLabel` after the round ceiling (default 3 rounds): the lane hung or produced no conforming output. Re-dispatch that leaf.
+- `finalizeOk: false` with `blockingLeaves`: the convergence gate blocked finalization on specific leaves. Address those leaves (re-prompt, fix the failing subtask), then re-run.
+- `converged: false` after max rounds: the swarm did not reach a 3-layer consensus. Read `roundLog` for which leaves blocked.
+
+**How to re-dispatch a single leaf:**
+```bash
+# 1. Identify the blocking leaf from results/ or the swarm roundLog.
+# 2. Re-run just that leaf via the low-level GLM fleet:
+node _SYSTEM/Scripts/glm-fleet.mjs --tasks '[{"lane":"glm","label":"01EN","prompt":"...revised prompt..."}]'
+# 3. The new packet overwrites results/01EN.json; re-run convergence or read it directly.
+```
+
+**How to re-dispatch a full task:**
+```bash
+# Via CEO (re-runs the whole cast + dispatch):
+node _SYSTEM/mure/ceo.mjs "the same task"   # (live, needs MURE armed)
+
+# Via company.mjs with the original task file:
+node _SYSTEM/mure/company.mjs --task-file original-task.json
+```
+
+**Stall detection (ceo.mjs --watch):** if no new result packets appear for 10 minutes, `--watch` reports a stall and stops polling (the run continues independently). Check `run.log` or the detached PID.
+
+### 6.6 Programmatic API
 
 ```js
-import { runCompany, planCompany, loadRoster, evaluateGovernance, runGoalCycle, dispatchNative, MATH_HOOKS }
-  from './_SYSTEM/mure/mure.mjs';
+import { runCompany, planCompany, isMureArmed, MURE_NAME }
+  from './_SYSTEM/mure/company.mjs';
+import { buildTaskSpec, dispatchAsCeo, watchRun, renderReport }
+  from './_SYSTEM/mure/ceo.mjs';
 
-// DISARMED plan (dry-run, zero spend — always safe)
-const plan = await planCompany(task);
+// CEO path in code: free text → spec → dispatch
+const { task } = await buildTaskSpec('Build a feature module with tests.');
+const result = await dispatchAsCeo(task, { dryRun: true });   // zero spend
+// const result = await dispatchAsCeo(task, { dryRun: false }); // live (needs MURE armed)
 
-// armed dispatch (requires MURE armed — owner-gated)
-const result = await runCompany(task);
-// result.nativeResults.pool contains native-lane outputs in the same schema as GLM
+// Lower-level: plan or dispatch directly
+const plan = await planCompany(task);       // always safe (zero spend)
+// const live = await runCompany(task);     // dispatches if MURE armed
 ```
 
-`task` shape: `{ summary, subtasks: [{ id, need: [caps], prompt, blastRadius?, reversible?, ... }], tags? }`.
-
-### Native substrate execution (dual-substrate)
-
-When MURE is armed, `runCompany` dispatches **both substrates**, both writing to the **same `runDir`** in the **same packet schema** (`{laneId,role,resultLabel,text,status}`) — one unified blackboard the convergence gate reads:
-- **GLM leaves**: `runSwarm` → `glmFleet` (z.ai) → `.claude/jobs/<run>/results/*.json`
-- **Native specs**: `dispatchNative` → `spawnNativeLoop` (`native-spawn-loop.mjs`) → `.claude/jobs/<run>/results/native-*.json`
-
-Native Claude Agents are **Agent-tool-only** — a script / GLM-side run cannot spawn them, so `spawnNativeLoop` is a **SEAM**: it writes DISARMED/dry-run **stub** packets, not live results. The REAL native execution is the **Opus session**: it reads `result.nativeSpecs` (role / model / prompt) from `planCompany`/`runCompany`, spawns one `Agent` per spec (`subagent_type` + `model`), and writes the result packets back into the same `runDir` in the shared schema. Packet handling reuses `glm-fleet.mjs`'s `validatePacket` / `extractResultLabel`, so both substrates converge identically.
-
-### Arming (owner-gated)
-
-MURE is DISARMED by default. `planCompany` / `--demo` always runs safely. Dispatch is blocked until armed.
-
-Arm via env (session-scoped, no file written):
-```bash
-YURI_MURE_ARMED=1 node _SYSTEM/mure/mure.mjs --demo
-```
-
-Arm via flag file (persistent until removed):
-```bash
-touch _SYSTEM/state/mure.enabled   # arm
-rm _SYSTEM/state/mure.enabled      # disarm
-```
-
-Both are checked by `isMureArmed()` in `company.mjs` (`ARM_ENV` + `ARM_FLAG`). Creating the flag is owner-gated (arming = constitution hard-stop). The `evolver` self-modification path is the highest-blast arm in the roster and is additionally gated behind `oracle`.
-
-### Tests
+### 6.7 Tests
 
 ```bash
+# all MURE tests
 node --test _SYSTEM/mure/*.test.mjs
-node _SYSTEM/mure/mure.mjs --demo --dry-run
+
+# CEO-specific (hermetic, zero spend)
+node --test _SYSTEM/mure/ceo.test.mjs
+
+# DISARMED demo
+node _SYSTEM/mure/mure.mjs --demo
 ```
-
-### Helmsman packet runner (Phase 3+)
-
-Dry-run all workstream task files and capture plan metadata:
-
-```bash
-node _SYSTEM/mure/helmsman-run.mjs --dry-run-all --ollama-sidecar --out _SYSTEM/lane-output/phase3
-```
-
-See `_SYSTEM/reports/MURE_COMPANY_BUILD_03_HELMSMAN.md` for held register, substrate routing, and GLM/Ollama parallel patterns.
 
 Rollback: delete `_SYSTEM/mure/` + `_SYSTEM/config/fleet-roles.json`; git-revert SKILL.md / MEMORY.md / `capabilities.json` edits. No durable external state (DISARMED = no spend).
 

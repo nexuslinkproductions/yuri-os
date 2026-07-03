@@ -44,28 +44,20 @@ export function isArmed() {
 }
 
 /**
- * Opus-side stub for spawning a native Claude Agent.
- *
- * NOTE: This is the SEAM that the Opus session must implement. In a live Opus session,
- * this would use the Agent tool directly. For GLM-side runs, this is a NO-OP because
- * native Agents are ONLY spawnable from Opus.
- *
- * The actual implementation is NOT in this script — it's in the Opus session that
- * calls company.mjs and reads nativeSpecs. This script exists only to:
- * 1. Define the interface (what nativeSpecs look like)
- * 2. Validate the arming gate
- * 3. Provide a GLM-side dry-run path
- *
- * @param {object} spec - { id, role, model, prompt }
- * @returns {Promise<{ text: string, resultLabel: string, status: string }>}
+ * Native Agent spawn — ONLY available from a live Opus/Cursor Agent session (D-6 honesty).
  */
-async function spawnNativeAgent(spec) {
-  // GLM-side: native Agents are NOT spawnable. Return a stub packet.
-  // Opus-side: replace this stub with actual Agent tool calls.
+async function spawnNativeAgent(spec, { armed = false } = {}) {
+  if (!armed) {
+    return {
+      text: `[DISARMED] Native Agent '${spec.role}' (model=${spec.model}) not spawned — MURE disarmed\n\nPrompt: ${spec.prompt}`,
+      resultLabel: '',
+      status: 'disarmed',
+    };
+  }
   return {
-    text: `[STUB: Native Agent '${spec.role}' (model=${spec.model}) would be spawned here from Opus]\n\nPrompt: ${spec.prompt}`,
+    text: `[BLOCKED: Native Agent '${spec.role}' (model=${spec.model}) requires a live Opus/Cursor Agent session — not spawnable from script]\n\nPrompt: ${spec.prompt}`,
     resultLabel: '',
-    status: 'dry-run',
+    status: 'blocked-needs-opus-session',
   };
 }
 
@@ -101,16 +93,7 @@ export async function spawnNativeLoop(nativeSpecs = [], runDir = '') {
     try {
       const t0 = Date.now();
       let result;
-
-      if (armed) {
-        // Armed: spawn the native Agent (Opus-side only)
-        result = await spawnNativeAgent(spec);
-      } else {
-        // Disarmed: return a dry-run stub
-        result = await spawnNativeAgent(spec);
-        result.text = `[DISARMED DRY-RUN: Native Agent '${spec.role}' (model=${spec.model}) not spawned]\n\nPrompt: ${spec.prompt}`;
-        result.status = 'disarmed';
-      }
+      result = await spawnNativeAgent(spec, { armed });
 
       const durationMs = Date.now() - t0;
       const packet = {

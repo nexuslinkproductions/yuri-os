@@ -9,6 +9,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { spawnNativeLoop, isArmed } from './native-spawn-loop.mjs';
 import { validatePacket, aggregatePoolOutputs } from '../Scripts/glm-fleet.mjs';
+import { fileURLToPath } from 'node:url';
+
+const MURE_FLAG = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), '_SYSTEM/state/mure.enabled');
 
 const TMP = path.join(os.tmpdir(), `native-spawn-test-${process.pid}`);
 fs.mkdirSync(TMP, { recursive: true });
@@ -56,12 +59,38 @@ test('RED: a non-existent runDir → skipped, never throws', async () => {
   assert.ok(skipped.length >= 1);
 });
 
-test('RED (no live spawn): every packet is a STUB — a script never spawns a real native Agent', async () => {
-  const runDir = path.join(TMP, 'stub', 'results');
+test('RED (D-6 honesty): armed without live Agent session → blocked-needs-opus-session, never dry-run stub', async () => {
+  const runDir = path.join(TMP, 'blocked', 'results');
   fs.mkdirSync(runDir, { recursive: true });
+  const prev = process.env.YURI_MURE_ARMED;
+  process.env.YURI_MURE_ARMED = '1';
   const { pool } = await spawnNativeLoop(SPECS, runDir);
-  // status is a stub marker ('dry-run' when armed, 'disarmed' when not) — NEVER 'ok' (no real result from a script)
-  for (const id of Object.keys(pool)) assert.notEqual(pool[id].status, 'ok', `${id} must not claim a live result`);
+  if (prev === undefined) delete process.env.YURI_MURE_ARMED; else process.env.YURI_MURE_ARMED = prev;
+  for (const id of Object.keys(pool)) {
+    assert.equal(pool[id].status, 'blocked-needs-opus-session', `${id} must be honestly blocked`);
+    assert.notEqual(pool[id].status, 'dry-run');
+    assert.notEqual(pool[id].status, 'ok');
+  }
+});
+
+test('RED (no live spawn): disarmed packets are disarmed, never ok', async () => {
+  const runDir = path.join(TMP, 'disarmed', 'results');
+  fs.mkdirSync(runDir, { recursive: true });
+  const prevEnv = process.env.YURI_MURE_ARMED;
+  delete process.env.YURI_MURE_ARMED;
+  const flag = MURE_FLAG;
+  const hadFlag = fs.existsSync(flag);
+  if (hadFlag) fs.renameSync(flag, `${flag}.bak-test`);
+  try {
+    const { pool } = await spawnNativeLoop(SPECS, runDir);
+    for (const id of Object.keys(pool)) {
+      assert.equal(pool[id].status, 'disarmed', `${id} disarmed when MURE disarmed`);
+      assert.notEqual(pool[id].status, 'ok');
+    }
+  } finally {
+    if (hadFlag) fs.renameSync(`${flag}.bak-test`, flag);
+    if (prevEnv !== undefined) process.env.YURI_MURE_ARMED = prevEnv;
+  }
 });
 
 // ── GREY ────────────────────────────────────────────────────────────────────

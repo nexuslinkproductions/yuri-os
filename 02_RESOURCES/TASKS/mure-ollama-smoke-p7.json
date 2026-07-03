@@ -1,0 +1,33 @@
+{
+  "summary": "P7 ollama sidecar live smoke — armed self-spawn verification",
+  "runId": "mure-ollama-smoke-2026-07-02",
+  "tags": ["mure", "smoke", "ollama", "p7"],
+  "requiresVisualPlan": false,
+  "subtasks": [
+    {
+      "id": "SMOKE-S1-scout",
+      "role": "scout",
+      "need": ["census"],
+      "prompt": "Use MAXIMUM reasoning depth. Read _SYSTEM/mure/README.md lines 1-30 only (no other files). Reply with a one-line summary of what MURE is, then emit exactly: 15OL_SMOKE_SCOUT_X_PASS_COMMITTED",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "SMOKE-A1-artificer",
+      "role": "artificer",
+      "need": ["fast-edits"],
+      "prompt": "Use MAXIMUM reasoning depth. Grep _SYSTEM/Scripts/runFleet.mjs for 'ollama-fleet.mjs' and confirm a self-spawn block exists (P7 D-11). Reply one line yes/no with line number, then emit exactly: 16OL_SMOKE_ARTIFICER_X_PASS_COMMITTED",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "SMOKE-M1-minimax",
+      "role": "artificer",
+      "need": ["fast-edits"],
+      "prompt": "Use MAXIMUM reasoning depth. Confirm _SYSTEM/state/ollama-fleet.enabled exists in repo. One line answer, then emit exactly: 17OL_SMOKE_MINIMAX_X_PASS_COMMITTED",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "tier": "minimax"
+    }
+  ]
+}

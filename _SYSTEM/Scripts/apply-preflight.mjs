@@ -21,8 +21,11 @@
  *   node _SYSTEM/Scripts/apply-preflight.mjs --task-file <path>
  *   node _SYSTEM/Scripts/apply-preflight.mjs --apply-ready --task-file <path>
  *
+ * Flags:
+ *   --force-stale — allow apply when company-dispatch/runSwarm already running (escape hatch)
+ *
  * Exit codes:
- *   0 — all checks pass (or warnings only)
+ *   0 — all checks pass (or warnings only in non-apply mode)
  *   1 — hard failure (apply should NOT proceed)
  */
 
@@ -228,38 +231,50 @@ function checkArmFlags(result, applyReady) {
   }
 }
 
+/** Count non-empty lines from pgrep stdout (0 when pgrep exit ≠ 0). */
+export function countProcessLines(stdout) {
+  if (!stdout?.trim()) return 0;
+  return stdout.trim().split('\n').filter(Boolean).length;
+}
+
 /**
- * Check 5: No stale company-dispatch / runSwarm processes
+ * Check 5: No stale company-dispatch / runSwarm processes.
+ * In --apply-ready mode, running dispatch is a hard fail unless --force-stale.
  */
-function checkStaleProcesses(result) {
+export function checkStaleProcesses(result, { applyReady = false, forceStale = false } = {}) {
   try {
-    // Check for stale company-dispatch processes
-    const { status: cdStatus, stdout: cdStdout } = spawnOrFail('pgrep', ['-fl', 'company-dispatch']);
-    const cdCount = cdStatus === 0 ? (cdStdout.match(/\n/g) || []).length + 1 : 0;
+    const { status: cdStatus, stdout: cdStdout } = spawnOrFail('pgrep', ['-fl', 'node.*company-dispatch\\.mjs']);
+    const cdCount = cdStatus === 0 ? countProcessLines(cdStdout) : 0;
 
     if (cdCount === 0) {
       result.pass('Check 5a: No stale company-dispatch processes');
+    } else if (forceStale) {
+      result.warn(`Check 5a: ${cdCount} company-dispatch process(es) running — --force-stale override`);
+      if (cdStdout.trim()) console.warn(cdStdout.trim());
+    } else if (applyReady) {
+      result.fail(`Check 5a: ${cdCount} company-dispatch process(es) already running — relaunch blocked (use --force-stale if intentional)`);
+      if (cdStdout.trim()) console.error(cdStdout.trim());
     } else {
       result.warn(`Check 5a: ${cdCount} company-dispatch process(es) running — verify not stale`);
-      if (cdStdout.trim()) {
-        console.warn(cdStdout.trim());
-      }
+      if (cdStdout.trim()) console.warn(cdStdout.trim());
     }
 
-    // Check for stale runSwarm processes
-    const { status: rsStatus, stdout: rsStdout } = spawnOrFail('pgrep', ['-fl', 'runSwarm']);
-    const rsCount = rsStatus === 0 ? (rsStdout.match(/\n/g) || []).length + 1 : 0;
+    const { status: rsStatus, stdout: rsStdout } = spawnOrFail('pgrep', ['-fl', 'node.*runSwarm\\.mjs']);
+    const rsCount = rsStatus === 0 ? countProcessLines(rsStdout) : 0;
 
     if (rsCount === 0) {
       result.pass('Check 5b: No stale runSwarm processes');
+    } else if (forceStale) {
+      result.warn(`Check 5b: ${rsCount} runSwarm process(es) running — --force-stale override`);
+      if (rsStdout.trim()) console.warn(rsStdout.trim());
+    } else if (applyReady) {
+      result.fail(`Check 5b: ${rsCount} runSwarm process(es) already running — relaunch blocked (use --force-stale if intentional)`);
+      if (rsStdout.trim()) console.error(rsStdout.trim());
     } else {
       result.warn(`Check 5b: ${rsCount} runSwarm process(es) running — verify not stale`);
-      if (rsStdout.trim()) {
-        console.warn(rsStdout.trim());
-      }
+      if (rsStdout.trim()) console.warn(rsStdout.trim());
     }
   } catch (error) {
-    // pgrep may not be available on all systems
     result.warn(`Check 5: Could not check stale processes: ${error.message}`);
   }
 }
@@ -283,7 +298,7 @@ function checkJobsWritable(result) {
  */
 function checkGlmMaxTimeout(result) {
   try {
-    const glmFleetPath = join(REPO_ROOT, '_SYSTEM/mure/glm-fleet.mjs');
+    const glmFleetPath = join(REPO_ROOT, '_SYSTEM/Scripts/glm-fleet.mjs');
     if (!existsSync(glmFleetPath)) {
       result.pass('Check 7: glm-fleet.mjs not found — skipped timeout check');
       return;
@@ -291,10 +306,10 @@ function checkGlmMaxTimeout(result) {
 
     const glmFleetContent = readFileSync(glmFleetPath, 'utf-8');
 
-    // Look for GLM_MAX_TIMEOUT_MS definition
-    const timeoutMatch = glmFleetContent.match(/GLM_MAX_TIMEOUT_MS\s*=\s*(\d+)/);
+    // LANE_TIMEOUT_MS['glm-max'] = 1800000 in glm-fleet.mjs
+    const timeoutMatch = glmFleetContent.match(/['"]glm-max['"]\s*:\s*(\d+)/);
     if (!timeoutMatch) {
-      result.warn('Check 7: GLM_MAX_TIMEOUT_MS not found in glm-fleet.mjs');
+      result.warn('Check 7: glm-max timeout not found in glm-fleet.mjs (LANE_TIMEOUT_MS)');
       return;
     }
 
@@ -431,6 +446,7 @@ function main() {
   const args = process.argv.slice(2);
   const applyReady = args.includes('--apply-ready');
   const mlpLearn = args.includes('--mlp-learn');
+  const forceStale = args.includes('--force-stale');
 
   const taskFileIndex = args.indexOf('--task-file');
   const taskFilePath = taskFileIndex !== -1 && args[taskFileIndex + 1]
@@ -453,7 +469,7 @@ function main() {
   checkBlockingRulings(result, taskFilePath);
   checkVisualGate(result, taskFilePath);
   checkArmFlags(result, applyReady);
-  checkStaleProcesses(result);
+  checkStaleProcesses(result, { applyReady, forceStale });
   checkJobsWritable(result);
   checkGlmMaxTimeout(result);
   checkMlpEnabled(result, mlpLearn);
@@ -466,4 +482,7 @@ function main() {
   process.exit(result.exitCode);
 }
 
-main();
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMain) {
+  main();
+}

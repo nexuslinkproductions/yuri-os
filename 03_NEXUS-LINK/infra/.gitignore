@@ -1,0 +1,7 @@
+# Local env — never commit
+.env
+.env.local
+.env.*.local
+
+# Docker volumes (if bind-mounted locally)
+volumes/db/data/

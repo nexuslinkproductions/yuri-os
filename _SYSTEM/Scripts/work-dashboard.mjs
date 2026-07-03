@@ -23,6 +23,7 @@ export const DEFAULT_PORT = 4270;
 export const HTML_PATH = path.join(REPO_ROOT, '_SYSTEM', 'mure', 'dashboard.html');
 const INGEST_THROTTLE_MS = 5000;
 const LANE_OUTPUT_DIR = path.join(REPO_ROOT, '_SYSTEM', 'lane-output');
+const JOBS_DIR = path.join(REPO_ROOT, '.claude', 'jobs');
 
 /** Newest helmsman-summary.json under lane-output (phase5 > phase4 > phase3 by mtime). */
 function findLatestHelmsmanSummary() {
@@ -105,6 +106,141 @@ function loadVisualPlanRegistry() {
   return plans;
 }
 
+/**
+ * Read-only held-subtask queue stub backed by planCompany metadata (Phase 5).
+ * Reads the latest helmsman-summary.json as a task source so held subtasks
+ * reflect actual governance rulings — no active dispatch, no mutation.
+ * Falls back to an empty stub when no helmsman summary exists (dashboard renders "no held items").
+ * @returns {Promise<{items:Array<{subtask:string,role:string,roleName:string,reason:string,rulingClass:string,groupName:string}>,generatedAt:string,source:string|null}>}
+ */
+async function loadHeldQueueStub() {
+  try {
+    const companyMod = await import('../mure/company.mjs');
+    // Use the latest helmsman summary (if any) as the task source for planCompany
+    // so we get real held subtasks from actual governance rulings.
+    let taskSource = {};
+    const latest = findLatestHelmsmanSummary();
+    if (latest) {
+      try {
+        taskSource = JSON.parse(fs.readFileSync(latest.abs, 'utf8'));
+      } catch { /* malformed summary — plan with empty task, held will be [] */ }
+    }
+    const plan = await companyMod.planCompany(taskSource, { dryRun: true });
+    return {
+      items: (plan?.held || []).map((h) => ({
+        subtask: h.subtaskId,
+        role: h.role,
+        roleName: h.roleName || h.role,
+        reason: h.reason || h.ruling?.ruling || '',
+        rulingClass: h.ruling?.class || 'OWNER',
+        groupName: h.group || '',
+      })),
+      generatedAt: new Date().toISOString(),
+      source: latest ? latest.rel : null,
+    };
+  } catch (e) {
+    console.warn('[dashboard] heldQueueStub error:', e.message);
+    return {
+      items: [],
+      generatedAt: new Date().toISOString(),
+      source: null,
+    };
+  }
+}
+
+/** Live child-process rows from spawns.jsonl + status.json (P5 /api/processes). Read-only. */
+export function loadActiveProcesses({ jobsDir = JOBS_DIR, limit = 40 } = {}) {
+  const processes = [];
+  let dirs = [];
+  try { dirs = fs.readdirSync(jobsDir).sort().reverse(); } catch { return { processes: [], openCount: 0, generatedAt: new Date().toISOString() }; }
+  for (const runId of dirs.slice(0, limit)) {
+    const base = path.join(jobsDir, runId);
+    let status = null;
+    let spawns = [];
+    try {
+      const sp = path.join(base, 'status.json');
+      if (fs.existsSync(sp)) status = JSON.parse(fs.readFileSync(sp, 'utf8'));
+    } catch { /* malformed */ }
+    try {
+      const sp = path.join(base, 'spawns.jsonl');
+      if (fs.existsSync(sp)) {
+        spawns = fs.readFileSync(sp, 'utf8').split('\n').filter(Boolean)
+          .map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      }
+    } catch { /* unreadable */ }
+    if (!status && !spawns.length) continue;
+    const open = new Map();
+    for (const s of spawns) {
+      const k = `${s.label}|${s.pid}`;
+      if (s.spawnedAt) open.set(k, s);
+      if (s.endedAt) open.delete(k);
+    }
+    for (const s of spawns) {
+      processes.push({
+        runId,
+        label: s.label || null,
+        lane: s.lane || null,
+        pid: s.pid ?? null,
+        status: s.endedAt ? (s.status || 'done') : 'running',
+        spawnedAt: s.spawnedAt || null,
+        endedAt: s.endedAt || null,
+        exitCode: s.exitCode ?? null,
+      });
+    }
+    if (status) {
+      processes.push({
+        runId,
+        label: '__run__',
+        lane: status.kind || runId.split('-')[0] || 'run',
+        pid: null,
+        status: status.status || 'unknown',
+        spawnedAt: status.startedAt || null,
+        endedAt: status.endedAt || null,
+        exitCode: null,
+        round: status.round ?? null,
+        pending: status.pending?.length ?? 0,
+      });
+    }
+    if (open.size && !spawns.some((s) => !s.endedAt)) {
+      for (const s of open.values()) {
+        processes.push({ runId, label: s.label, lane: s.lane, pid: s.pid, status: 'running', spawnedAt: s.spawnedAt, endedAt: null, exitCode: null });
+      }
+    }
+  }
+  const openCount = processes.filter((p) => p.status === 'running').length;
+  return { processes: processes.slice(0, 200), openCount, generatedAt: new Date().toISOString() };
+}
+
+/** Active in-flight leaves from recent swarm manifests (mid-flight visibility, replaces external pgrep PID monitoring). */
+function loadActiveSwarmLeaves() {
+  const out = { swarms: [], totalLeaves: 0, zaiSidecar: { active: false, handled: 0 } };
+  try {
+    if (!fs.existsSync(JOBS_DIR)) return out;
+    const dirs = fs.readdirSync(JOBS_DIR).filter((d) => d.startsWith('swarm-')).sort().reverse().slice(0, 3);
+    for (const dir of dirs) {
+      const manifestPath = path.join(JOBS_DIR, dir, 'manifest.json');
+      if (!fs.existsSync(manifestPath)) continue;
+      const m = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      const leaves = Array.isArray(m.leaves) ? m.leaves : [];
+      const zai = m.zaiSidecarResults || null;
+      out.swarms.push({
+        runId: m.runId || dir,
+        phase: m.phase || null,
+        leaves: leaves.length,
+        substrates: [...new Set(leaves.map((l) => l.target?.substrate || l.substrate || 'unknown'))],
+        converged: m.converged ?? null,
+        zaiHandled: zai?.handledLeafIds?.length || 0,
+      });
+      out.totalLeaves += leaves.length;
+      if (zai && zai.handledLeafIds?.length) {
+        out.zaiSidecar.active = true;
+        out.zaiSidecar.handled += zai.handledLeafIds.length;
+      }
+    }
+  } catch { /* ignore */ }
+  return out;
+}
+
 /** Router MLP + prediction-ledger summary for dashboard panel. */
 async function loadRouterStats() {
   try {
@@ -140,7 +276,7 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
   let lastIngest = 0;
   ingestAll(db); // warm once at boot
 
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     const url = (req.url || '/').split('?')[0];
     try {
       if (url === '/api/overview') {
@@ -166,10 +302,43 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
             };
           }
         } catch (e) { ov.jobs = ov.jobs || []; ov.jobStats = ov.jobStats || { error: String(e?.message || e) }; }
-        ov.heldQueue = loadHeldQueue();
+        // Held subtask queue — read-only stub from planCompany (Phase 5)
+        // Awaited here so the response includes the held data (no fire-and-forget).
+        try {
+          ov.heldQueue = await loadHeldQueueStub();
+        } catch (e) {
+          console.warn('[dashboard] heldQueueStub error:', e.message);
+          ov.heldQueue = { items: [], generatedAt: new Date().toISOString(), source: null };
+        }
+        ov.active = loadActiveSwarmLeaves();
         ov.visualPlans = loadVisualPlanRegistry();
         res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
         res.end(JSON.stringify(ov));
+        return;
+      }
+      if (url === '/api/stream') {
+        // SSE for live ops — mid-flight leaf visibility, replaces dead monitor PID pattern
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'access-control-allow-origin': '*',
+        });
+        const send = () => {
+          try {
+            const now = Date.now();
+            if (now - lastIngest > INGEST_THROTTLE_MS) { ingestAll(db); lastIngest = now; }
+            const payload = {
+              ts: new Date().toISOString(),
+              overview: overview(db),
+              active: loadActiveSwarmLeaves(),
+            };
+            res.write(`data: ${JSON.stringify(payload)}\n\n`);
+          } catch { /* client may have closed */ }
+        };
+        send();
+        const iv = setInterval(send, 4000);
+        req.on('close', () => clearInterval(iv));
         return;
       }
       if (url === '/api/visual-plans') {
@@ -186,6 +355,12 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
           res.writeHead(500, { 'content-type': 'application/json' });
           res.end(JSON.stringify({ error: String(e?.message || e) }));
         });
+        return;
+      }
+      if (url === '/api/processes') {
+        const proc = loadActiveProcesses();
+        res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' });
+        res.end(JSON.stringify(proc));
         return;
       }
       if (url === '/health') { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"ok":true}'); return; }
@@ -237,7 +412,7 @@ function startServer({ port = DEFAULT_PORT, htmlPath = HTML_PATH } = {}) {
   });
 
   server.listen(port, '127.0.0.1', () => {
-    process.stdout.write(`MURE dashboard → http://localhost:${port}  (api: /api/overview · html: ${path.relative(REPO_ROOT, htmlPath)}${fs.existsSync(htmlPath) ? '' : ' [placeholder]'})\n`);
+    process.stdout.write(`MURE dashboard → http://localhost:${port}  (api: /api/overview · /api/processes · html: ${path.relative(REPO_ROOT, htmlPath)}${fs.existsSync(htmlPath) ? '' : ' [placeholder]'})\n`);
   });
   return server;
 }
@@ -252,4 +427,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
 }
 
-export { startServer, loadVisualPlanRegistry, findLatestHelmsmanSummary, loadHeldQueue };
+export { startServer, loadVisualPlanRegistry, findLatestHelmsmanSummary, loadHeldQueue, loadHeldQueueStub };

@@ -9,19 +9,14 @@
 // Gödel-Agent self-modification gap). Arming any gate is ALWAYS owner-gated regardless of the six gates.
 
 import { governanceVeto } from './math-bridge.mjs';
+import { blastRank } from './blast-analyzer.mjs';
+
+export { blastRank };
 
 export const CLASS = Object.freeze({ SELF: 'self-governable', OWNER: 'owner-gated' });
 export const BLAST = Object.freeze({ LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 });
 export const GATES = Object.freeze(['reversible', 'evidenceDecidable', 'inDoctrine', 'blastRadius', 'notOutward', 'notContended']);
 export const DOCTRINE_NOTE = 'DISARMED-first · capability-first · Mutation Contract · Protected Surfaces · adversarial verification · no-downgrade';
-
-function blastRank(b) {
-  // A numeric blast must be an in-range tier index; a negative / out-of-range / non-integer number is
-  // MALFORMED → HIGH (conservative). (native red-team #1: blastRadius:-1 must not read as "safer than LOW".)
-  if (typeof b === 'number') return (Number.isInteger(b) && b >= 0 && b <= BLAST.CRITICAL) ? b : BLAST.HIGH;
-  const k = String(b || 'HIGH').toUpperCase(); // missing blast → HIGH (conservative)
-  return Object.prototype.hasOwnProperty.call(BLAST, k) ? BLAST[k] : BLAST.HIGH;
-}
 
 /**
  * Constitution veto — the non-negotiable owner-gate triggers that DOMINATE the six gates.

@@ -1,0 +1,101 @@
+{
+  "summary": "MURE finish wave — tier propagation, budgetCap, OpenAPI, shadow, sidecar MLP, docs (A–H)",
+  "runId": "mure-finish-wave-2026-07-02",
+  "tags": ["mure", "finish-wave", "p8", "p9", "p10", "build-session"],
+  "disarmedByDefault": true,
+  "armingNote": "Owner arms: mure.enabled + glm-fleet.enabled for GLM; ollama-fleet.enabled for sidecar; YURI_MLP_SHADOW=1 for shadow only (no active routing). Native Agent subtasks → held/blocked in Opus session.",
+  "budgetCap": 48,
+  "segmentOrder": ["A", "B", "C", "D", "E", "F", "G", "H"],
+  "subtasks": [
+    {
+      "id": "FIN-A-ollama-tier",
+      "segment": "A",
+      "role": "kernelsmith",
+      "substrateHint": "glm",
+      "need": ["implementation", "integration"],
+      "prompt": "P7 finish: propagate subtask tier (flash/minimax/kimi) from affinity matrix + leaf metadata into buildOllamaSidecar → ollama-tasks.json. Hermetic test: tier minimax → minimax-m3:cloud. Return 18A1_OLLAMA_TIER_PROP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-B-budget-cap",
+      "segment": "B",
+      "role": "quartermaster",
+      "substrateHint": "native",
+      "need": ["budget-cap", "cost-governance"],
+      "prompt": "P8.4: wire resolveBudgetCap into runCompany/runSwarm with finite default DEFAULT_MURE_BUDGET_CAP=48; document YURI_MURE_BUDGET_UNLIMITED=1 override. Hermetic budget force-stop test. Return 18B1_BUDGET_CAP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-C-openapi-p5",
+      "segment": "C",
+      "role": "chronicler",
+      "substrateHint": "glm",
+      "need": ["doc-generation", "technical-writing"],
+      "prompt": "P5: OpenAPI 3.1 spec for work-dashboard :4270 including /api/processes at _SYSTEM/docs/work-dashboard.openapi.yaml. Structure validation test. Return 18C1_OPENAPI_P5_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-D-readme-p10",
+      "segment": "D",
+      "role": "chronicler",
+      "substrateHint": "ollama-flash",
+      "need": ["doc-generation", "summary-distillation"],
+      "prompt": "P10: README §6 runbook — multi-arm table, hung-lane recovery, RESULT_LABEL interpretation, mure.mjs --run examples; kill :8433 phantom refs in DRILLDOWN/reports. Return 18D1_README_P10_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-E-mlp-shadow",
+      "segment": "E",
+      "role": "calibrator",
+      "substrateHint": "glm",
+      "need": ["calibration", "honesty-audit"],
+      "prompt": "P9 shadow: ensure fleet-router-counterfactual-shadow.jsonl fires on runCompany + runSwarm; document YURI_MLP_SHADOW=1 / mlp-shadow.enabled. NO active MLP routing. Return 18E1_MLP_SHADOW_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-F-sidecar-mlp",
+      "segment": "F",
+      "role": "kernelsmith",
+      "substrateHint": "glm-max",
+      "need": ["implementation", "integration"],
+      "prompt": "Fix empty-outcome skip for ollama sidecar packets: enrichRunResultWithSidecarPools merges olf results into pool for deriveLeafOutcome / work-ledger ingest path. Return 18F1_SIDECAR_MLP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-G-gitnexus",
+      "segment": "G",
+      "role": "scout",
+      "substrateHint": "native",
+      "need": ["census-scan"],
+      "prompt": "Run npx gitnexus analyze --skip-agents-md or document blocker; report index freshness in FINISH_WAVE_REPORT.md. Return 18G1_GITNEXUS_REFRESH_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-H-cloud-slots",
+      "segment": "H",
+      "role": "chronicler",
+      "substrateHint": "ollama-flash",
+      "need": ["technical-writing"],
+      "prompt": "Document YURI_CLOUD_SLOTS_DIR for multi-machine shared cloud slot admission; reference cloud-concurrency.test.mjs. Return 18H1_CLOUD_SLOTS_DOC_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "FIN-NATIVE-held-d6",
+      "segment": "NATIVE",
+      "role": "helmsman",
+      "substrateHint": "native",
+      "need": ["dispatch-planning"],
+      "prompt": "D-6 honest: native Agent spawn specs — document as held/blocked packets unless live Opus session spawns them. Do not fake spawn. Return 18N1_NATIVE_HELD_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

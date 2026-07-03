@@ -2,7 +2,7 @@
 # @capability: voice-listen-parakeet
 # @serves: talk to the overseer | mic into overseer | always-on voice input | hands free claude | parakeet streaming STT
 # @does: always-on mic -> Parakeet MLX (parakeet-tdt-0.6b, ~100x real-time on Apple Silicon) -> cmux send into the overseer surface. Energy-VAD segments utterances (injects on pause, not fixed windows), echo-gates against the Rick TTS playback (won't transcribe its own voice), drops empty/hallucinated segments.
-# @use: launched by voice-listen.sh when the parakeet venv exists. Tune via env: VOICE_SILENCE_RMS, VOICE_SILENCE_HANG, VOICE_MIN_SPEECH, VOICE_MIC_DEVICE, VOICE_PARAKEET_MODEL.
+# @use: launched by voice-listen.sh when the parakeet venv exists. Tune via env: VOICE_SILENCE_RMS, VOICE_SILENCE_HANG, VOICE_MIN_SPEECH, VOICE_MIC_DEVICE, VOICE_PARAKEET_MODEL (default mlx-community/parakeet-tdt-0.6b-v3 = EN+DE auto-detect; v2 for English-only).
 """Always-on Parakeet-MLX mic -> overseer (cmux). VAD-segmented, echo-gated."""
 import os, sys, time, queue, subprocess
 import numpy as np
@@ -12,7 +12,7 @@ from parakeet_mlx import from_pretrained
 from parakeet_mlx.audio import get_logmel
 
 REPO = os.environ.get("REPO") or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-MODEL_NAME   = os.environ.get("VOICE_PARAKEET_MODEL", "mlx-community/parakeet-tdt-0.6b-v2")
+MODEL_NAME   = os.environ.get("VOICE_PARAKEET_MODEL", "mlx-community/parakeet-tdt-0.6b-v3")
 SAMPLE_RATE  = 16000
 BLOCK        = 1600                                              # 0.1s frames
 SILENCE_RMS  = float(os.environ.get("VOICE_SILENCE_RMS",  "0.012"))   # below this RMS = silence (tune per mic/room)

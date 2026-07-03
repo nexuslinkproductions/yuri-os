@@ -38,6 +38,34 @@ test('GREEN: roleMathHooks resolves the steward hooks to live functions', () => 
   assert.equal(typeof hooks.salienceTier, 'function');
 });
 
+// ── PHASE 6: resolveLane either-substrate declared-lane honoring (D-12) ────────
+test('GREEN (D-12): an either-role with NO explicit preference resolves to its DECLARED lane tier', () => {
+  // artificer: substrate 'either', lane 'haiku' (native tier) → must resolve NATIVE/haiku, not blanket glm-turbo.
+  const art = resolveLane(getRole(roster, 'artificer'));
+  assert.equal(art.substrate, 'native', 'artificer declared a haiku (native) lane → native side');
+  assert.equal(art.lane, 'haiku');
+  assert.equal(art.dispatch, 'agent');
+  // chronicler: substrate 'either', lane 'sonnet' (native tier) → must resolve NATIVE/sonnet, not glm.
+  const chr = resolveLane(getRole(roster, 'chronicler'));
+  assert.equal(chr.substrate, 'native');
+  assert.equal(chr.lane, 'sonnet');
+  // architect: substrate 'either', lane 'glm-max' (glm tier) → stays glm.
+  const arch = resolveLane(getRole(roster, 'architect'));
+  assert.equal(arch.substrate, 'glm');
+  assert.equal(arch.lane, 'glm-max');
+});
+
+test('GREY (D-12): an EXPLICIT preferSubstrate still overrides the declared lane', () => {
+  // explicit glm on a native-declared either-role → glm side (fallbackLane glm-turbo).
+  const art = resolveLane(getRole(roster, 'artificer'), { preferSubstrate: 'glm' });
+  assert.equal(art.substrate, 'glm');
+  assert.ok(['glm-turbo', 'glm'].includes(art.lane), `explicit glm prefers a glm lane, got ${art.lane}`);
+  // explicit native on a glm-declared either-role → native side (fallbackLane sonnet).
+  const arch = resolveLane(getRole(roster, 'architect'), { preferSubstrate: 'native' });
+  assert.equal(arch.substrate, 'native');
+  assert.ok(['sonnet', 'opus', 'haiku'].includes(arch.lane), `explicit native prefers a native lane, got ${arch.lane}`);
+});
+
 // ── RED ───────────────────────────────────────────────────────────────────
 test('RED: duplicate id is rejected', () => {
   const v = validateRoster({ roles: [{ id: 'x', name: 'X', group: 'research', archetype: 'a', mission: 'm', capabilities: ['c'], substrate: 'glm', lane: 'glm', autonomyClass: 'self-governable', mathHooks: [], goalScope: ['research'] }, { id: 'x', name: 'X2', group: 'research', archetype: 'a', mission: 'm', capabilities: ['c'], substrate: 'glm', lane: 'glm', autonomyClass: 'self-governable', mathHooks: [], goalScope: ['research'] }] });

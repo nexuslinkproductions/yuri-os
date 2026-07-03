@@ -98,6 +98,7 @@ The root is not a product package. It is an active workspace with canonical surf
 | Local model routing | Gemma local lane through `_SYSTEM/Scripts/ollama-lane.mjs`, `_SYSTEM/Scripts/ollama-adapter.mjs`, `_SYSTEM/Scripts/llm-compat.sh`, and `.claude/config/models.json`. Current routed local model: `gemma4:12b-it-qat`. |
 | RAG and knowledge health | `_SYSTEM/backend/src/scripts/`, `_SYSTEM/Scripts/*rag*`, `_SYSTEM/Scripts/*health*`. |
 | Reports and scenario artifacts | `_SYSTEM/reports/`, `_SYSTEM/labs/`, `_SYSTEM/research-archive/`. |
+| MURE agentic collective | `_SYSTEM/mure/` — 20-role self-governing swarm, dashboard, governance loop. See `docs/MURE-DASHBOARD-WIRING.md` for dashboard API wiring. Nexus Link calendar Phase 0: `docs/NEXUS-LINK-CALENDAR-INDEX.md`. |
 
 ## Local Commands
 

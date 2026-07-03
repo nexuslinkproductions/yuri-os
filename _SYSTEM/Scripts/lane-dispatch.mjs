@@ -57,13 +57,14 @@ const outFile = outIdx >= 0 && args[outIdx + 1] ? path.resolve(args[outIdx + 1])
 
 function runOnce() {
   return new Promise((resolve) => {
+    const startMs = Date.now();
     const child = spawn('node', [LANE_SCRIPT, ...args], { cwd: path.resolve(__dirname, '../..'), encoding: 'utf8' });
-    let out = ''; let err = '';
-    const killer = setTimeout(() => { try { child.kill('SIGKILL'); } catch { /* */ } }, TIMEOUT_MS);
+    let out = ''; let err = ''; let signal = null;
+    const killer = setTimeout(() => { try { child.kill('SIGKILL'); signal = 'SIGKILL'; } catch { /* */ } }, TIMEOUT_MS);
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; });
-    child.on('close', (code) => { clearTimeout(killer); resolve({ code, out, err }); });
-    child.on('error', (e) => { clearTimeout(killer); resolve({ code: 1, out: '', err: String(e?.message || e) }); });
+    child.on('close', (code) => { clearTimeout(killer); resolve({ code, out, err, signal, durationMs: Date.now() - startMs }); });
+    child.on('error', (e) => { clearTimeout(killer); resolve({ code: 1, out: '', err: String(e?.message || e), signal: 'SPAWN_ERROR', durationMs: Date.now() - startMs }); });
   });
 }
 
@@ -104,8 +105,29 @@ const failMsg = [
   (last?.err || '').trim().slice(-600),
 ].filter(Boolean).join('\n');
 fs.writeSync(2, `${failMsg}\n`);
-// When --out is set, write diagnostics so glm-fleet can surface failure even if llm-lane never wrote output.
+// D-5 fix: the .out-on-total-failure guarantee must be REAL. On any failure path (transport death,
+// timeout kill, empty output), write a STRUCTURED failure record to outFile containing stderr tail,
+// exit code/signal, duration, and last received stdout bytes — so glm-fleet/convergence can surface
+// failure even if llm-lane itself never wrote output (the D-5 root cause: a SMOKE_FLASH hard failure
+// left zero .out trace). Written synchronously (fs.writeFileSync) so an eager process.exit() can't
+// truncate it.
 if (outFile) {
-  try { fs.writeFileSync(outFile, `${failMsg}\n`); } catch { /* best-effort */ }
+  try {
+    const record = {
+      status: 'fail',
+      lane: args[0],
+      reason: lastWhy,
+      attempts: ATTEMPTS,
+      timeoutMs: TIMEOUT_MS,
+      exitCode: last?.code ?? null,
+      signal: last?.signal ?? null,
+      durationMs: last?.durationMs ?? null,
+      stdoutTail: (last?.out || '').trim().slice(-2048),
+      stderrTail: (last?.err || '').trim().slice(-2048),
+      failedAt: new Date().toISOString(),
+    };
+    const header = `LANE_DISPATCH_FAIL lane=${record.lane} reason=${record.reason} exitCode=${record.exitCode} signal=${record.signal} durationMs=${record.durationMs}\n`;
+    fs.writeFileSync(outFile, `${header}${JSON.stringify(record, null, 2)}\n`);
+  } catch { /* best-effort */ }
 }
 process.exit(1);

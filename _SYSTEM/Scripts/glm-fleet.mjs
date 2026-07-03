@@ -3,7 +3,7 @@
 // @serves: glm fleet | spawn glm agents | z.ai fleet | parallel glm lanes | fan out glm | glm swarm | dual-substrate fleet | opus-fleet glm substrate
 // @does: parallel fan-out of N z.ai GLM lanes at --reasoning high through lane-dispatch.mjs (4-attempt EPIPE/429 retry), each lane's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore. DISARMED by default = dry-run (zero spend, zero fan-out); YURI_GLM_FLEET=1 arms the real fire.
 // @use: glmFleet([{lane:'glm',label:'R1',prompt:'...'}], {concurrency:3}) — the GLM substrate of the opus-fleet model. Native Claude Agents are the other substrate (Agent tool). CLI: node glm-fleet.mjs --list | --dry-run --tasks '<json>' | --smoke (armed needs YURI_GLM_FLEET=1).
-// @exports: glmFleet, buildRunDir, extractResultLabel, aggregatePoolOutputs, validatePacket, defaultTimeoutMsForLane, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
+// @exports: glmFleet, buildRunDir, extractResultLabel, appendSpawnEvent, aggregatePoolOutputs, validatePacket, defaultTimeoutMsForLane, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
 //
 // WHY built on lane-dispatch.mjs (not llm-lane directly): lane-dispatch re-invokes llm-lane in a FRESH
 // process up to 4× with backoff, treating AggregateError / empty / non-zero exit as transient — the exact
@@ -17,6 +17,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { extractResultLabel as ccExtractResultLabel } from './contract-conformance.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -31,14 +32,16 @@ export function isArmed() {
   try { return fs.existsSync(ARM_FLAG); } catch { return false; }
 }
 
-// Lane Result Grammar — aligned with contract-conformance.mjs LABEL_TOKEN_RE (supports 02B1_, 02R1_, etc.).
-const LABEL_TOKEN_RE = /\b\d{2}[A-Z0-9]{1,3}_[A-Z0-9_]*(?:PASS_COMMITTED|COMMITTED|BLOCKED|REPAIR_REQUIRED)\b/g;
+// Lane Result Grammar — DELEGATED to contract-conformance.mjs, the single canonical definition
+// (master plan D-3: three drifted copies of this regex each dropped real labels; one source now).
 export function extractResultLabel(text) {
-  const s = String(text || '');
-  const marker = s.match(/^[^\n]*\bRESULT_LABEL\b\s*[:=]\s*([0-9][0-9A-Z_]+)/im);
-  if (marker) return marker[1];
-  const all = s.match(LABEL_TOKEN_RE);
-  return all?.length ? all[all.length - 1] : '';
+  return ccExtractResultLabel(String(text || '')).label || '';
+}
+
+// P2 live-monitoring seam: append-only spawn lifecycle events at .claude/jobs/<runId>/spawns.jsonl,
+// consumed by work-ledger.ingestActiveRuns → dashboard. Fail-open — emission never breaks dispatch.
+export function appendSpawnEvent(runDir, evt) {
+  try { fs.appendFileSync(path.join(runDir, '..', 'spawns.jsonl'), `${JSON.stringify(evt)}\n`); } catch { /* fail-open */ }
 }
 
 export function buildRunDir(runId) {
@@ -196,6 +199,7 @@ function fireTask(task, label, runDir, runId) {
       resolve({ label, lane: task.lane, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, durationMs: Date.now() - t0, stderr: String(e?.message || e) });
       return;
     }
+    appendSpawnEvent(runDir, { label, lane: task.lane, pid: child.pid, spawnedAt: new Date().toISOString() });
     child.stderr.on('data', (d) => { err += d; });
     child.on('close', (code) => {
       let text = '';
@@ -212,6 +216,7 @@ function fireTask(task, label, runDir, runId) {
       }
       const resultLabel = extractResultLabel(text);
       const ok = code === 0 && text.length > 0 && !/^(?:\[GLM_FLEET_|LANE_DISPATCH_FAIL)/.test(text);
+      appendSpawnEvent(runDir, { label, pid: child.pid, endedAt: new Date().toISOString(), exitCode: code, status: ok ? 'ok' : 'fail' });
       const packet = {
         laneId: task.lane,
         role: task.label || label,
@@ -236,6 +241,7 @@ function fireTask(task, label, runDir, runId) {
       resolve({ label, lane: task.lane, text, exitCode: code, file: outFile, resultLabel, ok, durationMs: Date.now() - t0, stderr: ok ? '' : err.slice(-400) });
     });
     child.on('error', (e) => {
+      appendSpawnEvent(runDir, { label, pid: child?.pid ?? null, endedAt: new Date().toISOString(), exitCode: null, status: 'fail' });
       resolve({ label, lane: task.lane, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, durationMs: Date.now() - t0, stderr: String(e?.message || e) });
     });
   });

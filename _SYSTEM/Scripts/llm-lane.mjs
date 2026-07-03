@@ -60,6 +60,7 @@ import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 import { gitMutationHit, protectedPathHit } from './_lib/lane-command-gate.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
+import { tryAcquireCloudSlot, releaseCloudSlot } from './cloud-concurrency.mjs';
 import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -490,14 +491,34 @@ function renderTools(tools = [], protocol = 'openai') {
   }
 }
 
-// Streaming Anthropic Messages API over node:https (SSE). No idle timeout — a slow reasoner must
-// never be killed by a clock; first byte is prompt under streaming. Returns the same
-// { message: { content, tool_calls? }, finish_reason } shape the OpenAI postChat path returns,
-// so the dispatch loop is protocol-agnostic — it just picks the transport by cfg.protocol.
-function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
+// Transport-failure resolution for the Anthropic streaming path. CRITICAL: this does NOT call fail()
+// (which process.exits), so the retry wrapper in postMessagesAnthropicHttps can actually retry.
+// Returns a choice-like object WITHOUT .message (so the wrapper's `result.message` check treats it
+// as a transport failure and retries) but WITH a .reason, .code, and optional .partialText + .salvaged
+// for forensics. (D-1 fix: the old resolve(fail()) path hard-exited the process, making the inner
+// 3-attempt retry wrapper a dead branch for transport errors.)
+function _transportFail(lane, reason, code = 1, partialText = '', extra = {}) {
+  process.stderr.write(`LLM_COMPAT_FAIL code=${code} lane=${lane || 'unknown'} reason=${String(reason).slice(0, 160)}${partialText ? ` salvagedBytes=${partialText.length}` : ''}\n`);
+  return { exitCode: code, code, reason: String(reason).slice(0, 200), partialText: String(partialText || '').slice(0, 4096), salvaged: Boolean(partialText), ...extra };
+}
+
+// Streaming Anthropic Messages API over node:https (SSE). Two watchdog timers keep a stalled
+// socket from hanging until the outer SIGKILL (D-1 fix, 2026-07-02):
+//   - idleMs (default 120000): an INACTIVITY timer — if no response data events arrive for idleMs,
+//     the request is destroyed with a RETRYABLE error. Reset on every data chunk so a slow-drip
+//     stream (a byte every few seconds) is never falsely killed.
+//   - capMs (default 900000): an ABSOLUTE per-attempt cap — hard kill no matter what, derived from
+//     and never exceeding the outer tier ceiling (cfg.timeout_ms).
+// On a watchdog kill, any partial stream text is salvaged into the error object for forensics.
+// The function resolves (does NOT process.exit) with a transport-failure shape so the retry wrapper
+// (postMessagesAnthropicHttps, 3 attempts) can actually retry — unlike the old resolve(fail()) path
+// which hard-exited the process before the wrapper ever saw the error.
+// Returns the same { message: { content, tool_calls? }, finish_reason } shape the OpenAI postChat
+// path returns, so the dispatch loop is protocol-agnostic — it just picks the transport by cfg.protocol.
+function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader, capMs = 900000, idleMs = 120000) {
   return new Promise((resolve) => {
     let u;
-    try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(fail(3, lane, 'bad_endpoint_url')); return; }
+    try { u = new URL(`${endpoint}/v1/messages`); } catch { resolve(_transportFail(lane, 'bad_endpoint_url', 3)); return; }
     // [1m] is a CLIENT-side alias convention (Claude Code model picker), NOT a wire
     // model id — Mimo's endpoint rejects it with http_400 "Not supported model
     // mimo-v2.5-pro1m". Strip it for the request body and ask for the long-context
@@ -532,13 +553,22 @@ function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, syst
       if (res.statusCode && res.statusCode >= 400) {
         let errBody = ''; res.setEncoding('utf8');
         res.on('data', (c) => { errBody += c; });
-        res.on('end', () => resolve(fail(res.statusCode >= 500 ? 1 : 3, lane, `http_${res.statusCode}:${errBody.slice(0, 160)}`)));
+        // 5xx is retryable (transient server error) — resolve with _transportFail so the retry
+        // wrapper fires; 4xx is terminal (bad request / auth) — fail() hard-exits as before.
+        res.on('end', () => {
+          if (res.statusCode >= 500) resolve(_transportFail(lane, `http_${res.statusCode}:${errBody.slice(0, 160)}`, 1));
+          else resolve(fail(res.statusCode, lane, `http_${res.statusCode}:${errBody.slice(0, 160)}`));
+        });
         return;
       }
       let buf = '', stopReason = '';
       const blocks = new Map(); // index → { type, text, id, name, json }
+      blocksRef.map = blocks; // wire salvage ref before any data event fires
       res.setEncoding('utf8');
+      // Reset the inactivity watchdog on every data chunk — a slow-drip stream (byte every few s)
+      // must NOT trip the idle timer. Only a true silence (no data for idleMs) fires it.
       res.on('data', (chunk) => {
+        _resetIdle();
         buf += chunk;
         let nl;
         while ((nl = buf.indexOf('\n')) >= 0) {
@@ -560,6 +590,7 @@ function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, syst
         }
       });
       res.on('end', () => {
+        _clearTimers();
         let textContent = '';
         const tool_calls = [];
         for (const [, blk] of blocks) {
@@ -572,9 +603,41 @@ function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, syst
         resolve({ message: { content: textContent, ...(tool_calls.length ? { tool_calls } : {}) }, finish_reason: finish });
       });
     });
-    req.setTimeout(0);
-    req.on('socket', (s) => s.setTimeout(0));
-    req.on('error', (err) => { T(`ANTHROPIC_ERROR ${err?.code || err?.name}`); resolve(fail(1, lane, `transport:${err?.code || err?.name || 'https_failed'}`)); });
+    // ── D-1 WATCHDOG: inactivity (idle) + absolute (cap) timers ──────────────────────────────────
+    // Replaces the old req.setTimeout(0) + socket.setTimeout(0) which explicitly disabled all
+    // timeouts — a stalled socket hung until the outer SIGKILL (30-65min field failures).
+    // The watchdogs are managed by _resetIdle / _clearTimers / _kill (closures below) and fire
+    // ONLY for genuine stalls; a healthy stream resets idle on every chunk.
+    let killed = false;
+    // Salvage buffer: snapshot accumulated block text for forensic recovery on a watchdog kill.
+    // blocksRef.map is assigned inside the response callback (where `blocks` is declared) before any
+    // data event fires, so salvage sees the live Map at kill time.
+    const blocksRef = {};
+    const salvageText = () => { let t = ''; const m = blocksRef.map; if (m) for (const [, blk] of m) if (blk.type === 'text') t += blk.text; return t; };
+    const _kill = (kind, ms) => {
+      if (killed) return; killed = true;
+      _clearTimers();
+      const partial = salvageText();
+      T(`ANTHROPIC_WATCHDOG_KILL kind=${kind} budgetMs=${ms} partialBytes=${partial.length}`);
+      try { req.destroy(Object.assign(new Error(`${kind}_${ms}`), { code: kind === 'idle' ? 'EIDLESTALL' : 'ECAPTIMEOUT' })); } catch { /* already gone */ }
+      resolve(_transportFail(lane, `${kind}_stall:${ms}ms`, 1, partial, { watchdog: kind, budgetMs: ms }));
+    };
+    let idleTimer = null;
+    let capTimer = null;
+    const _resetIdle = () => { if (idleTimer) clearTimeout(idleTimer); idleTimer = setTimeout(() => _kill('idle', idleMs), idleMs); };
+    const _clearTimers = () => { if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; } if (capTimer) { clearTimeout(capTimer); capTimer = null; } };
+    // Wire blocksRef so salvage sees the live Map (assigned when the response callback runs).
+    // We defer via a microtask-safe pattern: the response callback sets blocksRef.map before any
+    // data event can fire (blocks is declared before res.on('data')).
+    capTimer = setTimeout(() => _kill('cap', capMs), capMs);
+    _resetIdle(); // start the inactivity clock at request send time
+    req.on('error', (err) => {
+      _clearTimers();
+      if (killed) return; // watchdog already resolved — suppress the destroy-synthetic error
+      T(`ANTHROPIC_ERROR ${err?.code || err?.name}`);
+      const partial = salvageText();
+      resolve(_transportFail(lane, `transport:${err?.code || err?.name || 'https_failed'}`, 1, partial));
+    });
     req.write(payload);
     req.end();
   });
@@ -583,18 +646,17 @@ function _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, syst
 // node:https POST (NOT undici fetch). Root-cause fix: on Node v25.9.0 undici's keep-alive socket
 // reuse throws a bare, deterministic "AggregateError" against api.deepseek.com — the Anthropic/mimo
 // Retry wrapper for the Anthropic streaming path: 3 attempts with backoff (matches postChat's
-// transport-retry contract). The inner function resolves with fail(1,...) on transport errors
-// (EPIPE, ECONNRESET, ETIMEDOUT, etc.) before any response data arrives — safe to retry because
-// no partial output was emitted. Success or HTTP 4xx/5xx resolve with a choice-shaped object
-// (no .exitCode === 'transport' marker) and are returned as-is. 2026-06-17 defense-in-depth.
-async function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader) {
+// transport-retry contract). The inner function (_postMessagesAnthropicHttpsOnce) resolves with a
+// _transportFail shape ({exitCode, reason, partialText, ...} — NO .message) on transport errors,
+// watchdog kills (idle/cap stall), and 5xx — all retryable. Success resolves with a choice-shaped
+// object (.message present). 4xx is terminal (fail() hard-exits). 2026-06-17 defense-in-depth,
+// 2026-07-02 D-1 watchdog + retryable-stall fix (the old resolve(fail()) path hard-exited, making
+// this retry wrapper a dead branch for transport errors — now _transportFail resolves instead).
+async function postMessagesAnthropicHttps(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader, capMs, idleMs) {
   const ATTEMPTS = 3;
   for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
-    const result = await _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader);
-    // Success or non-transport failure — return immediately.
-    // fail() produces a choice-like object WITHOUT finish_reason for transport errors; valid
-    // responses have .message or .finish_reason. Check .message to distinguish: transport fail
-    // returns an object with .code but no .message.
+    const result = await _postMessagesAnthropicHttpsOnce(endpoint, apiKey, model, messages, system, maxTokens, toolsList, lane, authHeader, capMs, idleMs);
+    // Success — return the choice-shaped object (.message present).
     if (result && result.message) return result;
     const isTransport = !result?.message && (typeof result?.exitCode !== 'undefined' ? result.exitCode === 1 : true);
     if (attempt < ATTEMPTS && isTransport) {
@@ -838,6 +900,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // http:// so new URL()/fetch() parse it. Cloud endpoints already carry https:// and are untouched.
   if (isLocal && endpoint && !/^https?:\/\//i.test(endpoint)) endpoint = `http://${endpoint}`;
   let apiKey = process.env[cfg.api_key_env] || '';
+  // P4 env-first: explicit env wins; keychain is macOS fallback only.
   if (!apiKey && cfg.keychain_service) {
     // Hydrate from the macOS keychain so a lane authenticates even when the env export hasn't run
     // (e.g. `ai llm glm-5.2` from a shell that never sourced the ZAI_API_KEY export). Fail-soft.
@@ -923,10 +986,16 @@ async function dispatch(laneArg, prompt, opts = {}) {
   // another machine on a shared slots dir) must hold a concurrency slot before firing a local model.
   // Over threshold -> refuse with a clear signal so the caller enqueues instead of crashing the host.
   let __slotId = null;
+  let __cloudSlotId = null;
   if (isLocal) {
     const slot = tryAcquireLocalSlot({ lane: key, model: cfg.model });
     if (!slot.ok) return fail(3, key, `local_capacity_reached:active=${slot.active}/max=${slot.max}:enqueue_via_ai_slm`);
     __slotId = slot.slotId;
+  } else if (isAnthropic || isOllamaCloud) {
+    // P8 (D-4): cross-process cloud admission — glm + ollama-cloud share per-provider slot pools.
+    const cloudSlot = tryAcquireCloudSlot({ lane: key, model: cfg.model, provider: cfg.provider || cfg.protocol });
+    if (!cloudSlot.ok) return fail(3, key, `cloud_capacity_reached:pool=${cloudSlot.pool}:active=${cloudSlot.active}/max=${cloudSlot.max}:enqueue`);
+    __cloudSlotId = cloudSlot.slotId;
   }
   try {
   const messages = [];
@@ -938,6 +1007,12 @@ async function dispatch(laneArg, prompt, opts = {}) {
   messages.push({ role: 'user', content: contextPack ? `${contextPack}\n\n===== TASK =====\n${prompt}` : prompt });
 
   const timeoutMs = Number(cfg.timeout_ms || 180000);
+  // D-1 watchdog budgets for the Anthropic streaming path: per-attempt cap derived from the tier
+  // ceiling (timeoutMs = cfg.timeout_ms), never exceeding it. idleMs is a fraction of the cap
+  // (default 120s, or cap/5 if the tier ceiling is tighter). Both can be overridden via env for
+  // debugging without touching lane config. (D-1 fix, 2026-07-02.)
+  const _anthropicCap = Math.min(Number(process.env.LLM_LANE_ANTHROPIC_CAP_MS) || timeoutMs, timeoutMs);
+  const _anthropicIdle = Math.min(Number(process.env.LLM_LANE_ANTHROPIC_IDLE_MS) || 120000, Math.max(30000, Math.floor(_anthropicCap / 5)));
   const maxIters = Math.max(1, Number(opts.maxIters || 200));
   const nudgeAt = Math.max(3, Math.floor(maxIters * 0.6));
   const seenSigs = new Map();   // tool-sig -> occurrence count; only a GENUINE loop (3+ identical) nudges
@@ -954,7 +1029,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     } else if (isAnthropic) {
       const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
       const aTools = activeTools.length ? toAnthropicTools(activeTools) : [];
-      choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key, cfg.auth_header);
+      choice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, aTools, key, cfg.auth_header, _anthropicCap, _anthropicIdle);
     } else {
       choice = await postChat(endpoint, apiKey, model, messages, maxTokens, toOpenAITools(activeTools), timeoutMs, key);
     }
@@ -1040,7 +1115,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
         nextChoice = await postChatOllamaCloud(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
       } else if (isAnthropic) {
         const { messages: aMsgs, system: aSys } = toAnthropicMessages(messages);
-        nextChoice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, [], key, cfg.auth_header);
+        nextChoice = await postMessagesAnthropicHttps(endpoint, apiKey, model, aMsgs, aSys, maxTokens, [], key, cfg.auth_header, _anthropicCap, _anthropicIdle);
       } else {
         nextChoice = await postChat(endpoint, apiKey, model, messages, maxTokens, [], timeoutMs, key);
       }
@@ -1095,7 +1170,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     forced = await postChatOllamaCloud(endpoint, apiKey, model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
   } else if (isAnthropic) {
     const { messages: aFMsgs, system: aFSys } = toAnthropicMessages(forcedMsgsRaw);
-    forced = await postMessagesAnthropicHttps(endpoint, apiKey, model, aFMsgs, aFSys, maxTokens, [], key);
+    forced = await postMessagesAnthropicHttps(endpoint, apiKey, model, aFMsgs, aFSys, maxTokens, [], key, cfg.auth_header, _anthropicCap, _anthropicIdle);
   } else {
     forced = await postChat(endpoint, apiKey, model, forcedMsgsRaw, maxTokens, [], timeoutMs, key);
   }
@@ -1106,6 +1181,7 @@ async function dispatch(laneArg, prompt, opts = {}) {
     // Release the slot on clean return. fail()/process.exit paths leave a dead-pid lease that the
     // governor's prune() reclaims automatically, so capacity self-heals either way.
     if (__slotId) releaseLocalSlot(__slotId);
+    if (__cloudSlotId) releaseCloudSlot(__cloudSlotId);
     // Release any held cost reservation (armed path only; __costReservationId is null when disarmed).
     // Fail-open: never let reservation cleanup break the return.
     if (__costReservationId) { try { costRelease(__costReservationId); } catch { /* */ } }
@@ -1206,4 +1282,4 @@ if (isMain) {
   }).catch((err) => fail(1, 'llm-lane', err?.message || 'fatal'));
 }
 
-export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, postChatOllamaCloud, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, toOpenAITools, normalizeTool, renderTools, laneCommandAllowed };
+export { dispatch, assertSafeEndpoint, assertLoopback, postChatOllamaLocal, postChatOllamaCloud, isPrivateHost, isProtectedPath, maxTokensFor, ALIAS, ALLOWED_HOSTS, LANES, executeTool, toAnthropicMessages, toAnthropicTools, toOpenAITools, normalizeTool, renderTools, laneCommandAllowed, _postMessagesAnthropicHttpsOnce, postMessagesAnthropicHttps, _transportFail };

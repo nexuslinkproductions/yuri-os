@@ -25,14 +25,16 @@ Close via: scrim click, `×` button, or `Escape` key.
 
 ### Server
 
-`_SYSTEM/mure/server.py` (Python 3 stdlib, zero deps):
+The dashboard is served by `_SYSTEM/Scripts/work-dashboard.mjs` (Node stdlib, zero deps):
 
-- Serves dashboard at `http://127.0.0.1:8433`
-- Provides demo data for all endpoints
-- CORS enabled for local dev
+- Serves dashboard at `http://127.0.0.1:4270` (default port; override with `--port`)
+- Serves the GLM-5.2-designed `_SYSTEM/mure/dashboard.html`; falls back to a built-in placeholder if absent
 - No-cache headers for fresh data
+- Endpoint handlers are in-work (demo data + polling stubs); see `@exports: startServer, DEFAULT_PORT, HTML_PATH`
 
-Run: `python3 _SYSTEM/mure/server.py`
+Run: `node _SYSTEM/Scripts/work-dashboard.mjs --serve [--port 4270] [--html <path>]`
+
+> **Note (2026-07-02):** a previous version of this doc referenced a Python `_SYSTEM/mure/server.py` on port `:8433`. That server **does not exist** — it was an aspirational spec that was never built. The real dashboard server is the Node `work-dashboard.mjs` above on `:4270`. A parallel lane is wiring the dashboard endpoints to live MURE runtime data.
 
 ### Integration Style
 
@@ -84,12 +86,14 @@ Auto tick (every 3s)
 
 ## Next Steps
 
-Replace demo data in `server.py` with real MURE runtime:
+Replace demo data in `work-dashboard.mjs` endpoints with real MURE runtime:
 
-- `demo_runs()` → query MURE run store
-- `demo_artifacts()` → scan artifact directory
-- `demo_trends()` → compute from run history
-- `demo_run_detail()` → load run manifest + outputs
+- run detail → query MURE run store (`.claude/jobs/<runId>/results/*.json`)
+- artifacts → scan artifact / results directory
+- trends → compute from run history
+- overview → load run manifest + role outputs
+
+> The `_SYSTEM/mure/server.py` referenced here in earlier drafts does not exist; all dashboard serving is via `work-dashboard.mjs` on `:4270`.
 
 ---
 

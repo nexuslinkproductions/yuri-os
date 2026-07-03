@@ -34,14 +34,49 @@ async function getRouter() {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 
+// Default per-round wall-clock watchdog. A round awaits Promise.all over the fleet dispatch, so without a
+// watchdog the slowest lane (30-60min tier ceilings) gates the whole round — the owner's reported hang shape.
+// On expiry we do NOT kill children (they self-limit + keep writing packets to results/); we proceed to
+// aggregation with whatever landed and re-scan the results dir on subsequent rounds to ingest stragglers.
+export const DEFAULT_ROUND_WALL_CLOCK_MS = 900000; // 15min
+
 export function newRunId() { return `swarm-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}`; }
 export function newTraceId() { return `tr-${crypto.randomBytes(6).toString('hex')}`; }
+
+// ── status.json lifecycle (live-run visibility) ──────────────────────────────────────────────────────
+// The manifest is written ONCE after the whole loop exits, so a live run is structurally invisible. status.json
+// is the uniform in-flight run artifact: written at start, updated at each round boundary, and given a terminal
+// state in a finally block so it lands even on throw. Atomic (write tmp + rename) and fail-open — a status write
+// error must NEVER break the run.
+function statusPath(runId) { return path.join(REPO_ROOT, '.claude', 'jobs', String(runId), 'status.json'); }
+
+/** Atomic + fail-open status writer. Merges `patch` into the prior status, stamps updatedAt, tmp-writes + renames.
+ *  Any error is swallowed (logged via `log` if provided) — status is observability, never a run-blocker. */
+function writeStatus(runId, patch, prior = {}, log) {
+  try {
+    const dir = path.join(REPO_ROOT, '.claude', 'jobs', String(runId));
+    fs.mkdirSync(dir, { recursive: true });
+    const next = { ...prior, ...patch, runId, updatedAt: new Date().toISOString() };
+    const target = statusPath(runId);
+    const tmp = `${target}.tmp-${process.pid}-${crypto.randomBytes(3).toString('hex')}`;
+    fs.writeFileSync(tmp, `${JSON.stringify(next, null, 2)}\n`);
+    fs.renameSync(tmp, target); // atomic replace on POSIX
+    return next;
+  } catch (e) {
+    if (typeof log === 'function') log(`status write failed (fail-open): ${String(e?.message || e)}`);
+    return { ...prior, ...patch, runId }; // return the intended state so in-memory tracking stays consistent
+  }
+}
 
 /**
  * Run the governed swarm loop over the GLM substrate.
  * @param {{leaves:Array<{id:string,lane?:string,prompt:string,reasoning?:string,timeoutMs?:number}>}} decomposition
- * @param {{rounds?:number,concurrency?:number,armed?:boolean,signals?:Array,adversarialRunner?:Function,runId?:string,traceId?:string,deps?:object,quiet?:boolean}} opts
- * @returns {Promise<{runId,traceId,converged,finalizeOk,finalizeReason,rounds,poolOutputs,verdict,manifestPath,runDir}>}
+ * @param {{rounds?:number,concurrency?:number,armed?:boolean,signals?:Array,adversarialRunner?:Function,runId?:string,traceId?:string,deps?:object,quiet?:boolean,budgetCap?:number,roundWallClockMs?:number}} opts
+ *   budgetCap — cumulative lane-call budget; when reached, the converge/damping force-stop fires (default Infinity → unbounded, unchanged behavior).
+ *   roundWallClockMs — per-round wall-clock watchdog (default 900000 = 15min). On expiry the round proceeds to
+ *     aggregation with whatever packets landed; children are NOT killed (they keep writing; late packets ingest
+ *     on the next round's re-scan + a pre-final re-scan).
+ * @returns {Promise<{runId,traceId,converged,finalizeOk,finalizeReason,rounds,poolOutputs,verdict,manifestPath,runDir,status,statusPath}>}
  */
 export async function runSwarm(decomposition = {}, opts = {}) {
   const leaves = Array.isArray(decomposition.leaves) ? decomposition.leaves : [];
@@ -60,6 +95,18 @@ export async function runSwarm(decomposition = {}, opts = {}) {
   // when the global swarm-convergence flag is on.)
   const armedNow = (opts.armed !== undefined) ? !!opts.armed : convergenceArmed();
   const runDir = buildRunDir(runId);
+  // Budget force-stop: when a cumulative lane-call budget is set, thread it into the converge/damping opts so
+  // checkDamping's budget-exhausted branch (structurally unreachable at the default Infinity) becomes reachable.
+  // Unset → Infinity → behavior unchanged. Number-coerce + guard against a non-positive / NaN cap.
+  const budgetCapRaw = Number(opts.budgetCap);
+  const budgetCap = Number.isFinite(budgetCapRaw) && budgetCapRaw > 0 ? budgetCapRaw : Infinity;
+  // Per-round wall-clock watchdog window (ms). <=0 / NaN → the default; the watchdog can be disabled with a very
+  // large value if a caller genuinely wants to wait out the tier ceiling.
+  const rwcRaw = Number(opts.roundWallClockMs);
+  const roundWallClockMs = Number.isFinite(rwcRaw) && rwcRaw > 0 ? rwcRaw : DEFAULT_ROUND_WALL_CLOCK_MS;
+  // converge() reads its damping opts from the opts object it is handed; give it a merged view that always
+  // carries budgetCap without mutating the caller's opts (red-team: no side-effect on the passed object).
+  const convergeOpts = { ...opts, budgetCap };
 
   // === Aggressive router wiring ===
   // Consult MLP router for every leaf. Attach suggestion + confidence.
@@ -97,6 +144,12 @@ export async function runSwarm(decomposition = {}, opts = {}) {
     }
   }
 
+  // P9 shadow on standalone runSwarm path (advisory — never changes dispatch).
+  try {
+    const { recordMlpCounterfactualShadow } = await import('./fleet-mlp-feedback.mjs');
+    recordMlpCounterfactualShadow({ glmLeaves: leaves }, { quotaPressure: opts.quotaPressure ?? 0.4 });
+  } catch { /* advisory */ }
+
   // Injectable deps (hermetic tests pass fakes; defaults are the real wired functions).
   const _glmFleet = opts.deps?.glmFleet || glmFleet;
   const _aggregate = opts.deps?.aggregatePoolOutputs || aggregatePoolOutputs;
@@ -125,19 +178,87 @@ export async function runSwarm(decomposition = {}, opts = {}) {
   const roundYields = [];
   let prevConforming = 0;
 
+  // status.json — write the initial RUNNING state so a live run is visible from birth (the manifest only lands
+  // after the loop). Fail-open. `status` tracks the last-persisted view so round-boundary patches merge cleanly.
+  const totalLeaves = leaves.length;
+  let status = writeStatus(runId, {
+    status: 'running', round: 0, totalLeaves,
+    pending: pending.map((l) => l.id), startedAt,
+  }, {}, log);
+
+  // Re-scan the results dir into the accumulating pool (idempotent — aggregate reads the whole dir). Used to
+  // ingest straggler packets that landed after a watchdog cutover, both at round start and before final converge.
+  const rescanPool = () => {
+    const agg = _aggregate(runDir);
+    if (agg && agg.pool) poolOutputs = { ...poolOutputs, ...agg.pool };
+    if (agg && agg.skipped && agg.skipped.length) log(`aggregate skipped ${agg.skipped.length} malformed file(s)`);
+    return agg;
+  };
+  // A leaf is "already satisfied on disk" iff a conforming packet exists for it in the current pool — used to
+  // avoid double-dispatching a straggler whose packet arrived during the next round's planning.
+  const conformingLeafIds = () => {
+    const floor = checkObligationFloor(ledger, poolOutputs);
+    const bad = new Set([...(floor.missing || []), ...(floor.nonConforming || [])]);
+    return new Set((ledger.leafTasks || []).map((l) => l.id).filter((id) => !bad.has(id)));
+  };
+
+  // Wrap the loop + finalize in try/finally so the TERMINAL status.json lands even on a throw (fail path) — the
+  // whole point of a lifecycle artifact is that it never lies about a crashed run. `threw` distinguishes
+  // done/failed; env restore also moves into finally so a throw never leaves a stale YURI_FLEET_TRACE_ID.
+  let threw = null;
+  try {
   while (round < maxRounds) {
+    // Ingest any straggler packets that landed since the last round BEFORE deciding what to dispatch, then — on
+    // re-dispatch rounds only — drop from this round's pending any gap leaf that now has a conforming packet on
+    // disk (no double-dispatch of a straggler that arrived during planning — task req). Round 0 always dispatches
+    // its full pending set: in production the results dir is empty at run start, so there is nothing to filter and
+    // nothing to double-dispatch yet. Gating on round>0 also keeps the semantics clean (the guard exists to catch
+    // a PRIOR round's late packet).
+    rescanPool();
+    if (round > 0) {
+      const satisfied = conformingLeafIds();
+      const preFilter = pending.length;
+      pending = pending.filter((l) => !satisfied.has(l.id));
+      if (pending.length !== preFilter) {
+        log(`round ${round}: ${preFilter - pending.length} straggler leaf(s) already satisfied on disk — not re-dispatching`);
+      }
+      if (!pending.length) { log(`round ${round}: all pending leaves satisfied by stragglers — converging`); }
+    }
+
     log(`round ${round}: dispatch ${pending.length} leaf(s) → ${pending.map((l) => l.id).join(', ')}`);
-    // 1. DISPATCH this round's pending leaves over the GLM substrate.
+    status = writeStatus(runId, { status: 'running', round, pending: pending.map((l) => l.id) }, status, log);
+
+    // 1. DISPATCH this round's pending leaves over the GLM substrate — raced against the per-round wall-clock
+    // watchdog. On expiry we do NOT kill the fleet (children self-limit + keep writing packets to results/); we
+    // flip status to 'running-stragglers' and fall through to aggregation with whatever landed. The detached
+    // fleet promise keeps running; its late packets are ingested by the next round's rescanPool() + the pre-final
+    // re-scan. A no-op dispatch (empty pending) skips the fleet call entirely.
     const tasks = pending.map((l) => ({
       lane: l.lane || 'glm', label: l.id, reasoning: l.reasoning || 'high',
       prompt: l.prompt, timeoutMs: l.timeoutMs,
     }));
-    const fleet = await _glmFleet(tasks, { concurrency, runId, runDir, armed: opts.armed });
+    let fleet = { results: [] };
+    if (tasks.length) {
+      const fleetPromise = Promise.resolve(_glmFleet(tasks, { concurrency, runId, runDir, armed: opts.armed }));
+      let watchdogTimer;
+      const STRAGGLER = Symbol('watchdog-expired');
+      const watchdog = new Promise((resolve) => { watchdogTimer = setTimeout(() => resolve(STRAGGLER), roundWallClockMs); });
+      const raced = await Promise.race([fleetPromise, watchdog]);
+      clearTimeout(watchdogTimer);
+      if (raced === STRAGGLER) {
+        log(`round ${round}: watchdog fired at ${roundWallClockMs}ms — proceeding with stragglers (children not killed)`);
+        status = writeStatus(runId, { status: 'running-stragglers', round, pending: pending.map((l) => l.id) }, status, log);
+        // Detach the still-running fleet: swallow its eventual result/rejection so it can't become an unhandled
+        // rejection, and best-effort ingest any packets it writes after we've moved on.
+        fleetPromise.then(() => rescanPool()).catch((e) => log(`detached fleet settled with error: ${String(e?.message || e).slice(0, 120)}`));
+        fleet = { results: [] };
+      } else {
+        fleet = raced || { results: [] };
+      }
+    }
 
-    // 2. AGGREGATE — merge this round's packets into the accumulating pool.
-    const agg = _aggregate(runDir);
-    poolOutputs = { ...poolOutputs, ...(agg.pool || {}) };
-    if (agg.skipped && agg.skipped.length) log(`aggregate skipped ${agg.skipped.length} malformed file(s)`);
+    // 2. AGGREGATE — merge this round's packets into the accumulating pool (rescanPool logs any skipped files).
+    rescanPool();
 
     // Feed the damping governor: per-round marginal yield (newly-conforming leaves) + cumulative lane spend,
     // so checkDamping can force-stop a stalled (re-dispatching-but-not-progressing) or over-budget loop.
@@ -157,8 +278,9 @@ export async function runSwarm(decomposition = {}, opts = {}) {
       } catch (e) { log(`adversarial fail-soft: ${String(e?.message || e).slice(0, 120)}`); }
     }
 
-    // 4. CONVERGE — 3-layer gate + damping.
-    const verdict = converge({ ledger, poolOutputs, signals: opts.signals || [], adversarialResult, damping, round, opts });
+    // 4. CONVERGE — 3-layer gate + damping. convergeOpts carries budgetCap so the damping budget force-stop is
+    // reachable (default Infinity → unchanged).
+    const verdict = converge({ ledger, poolOutputs, signals: opts.signals || [], adversarialResult, damping, round, opts: convergeOpts });
     damping = verdict.damping || damping;
     lastVerdict = verdict;
     roundLog.push({
@@ -186,6 +308,19 @@ export async function runSwarm(decomposition = {}, opts = {}) {
     round += 1;
   }
 
+  // Final straggler ingestion: re-scan the results dir one last time so any packet that landed after the last
+  // watchdog cutover is folded into the pool BEFORE the finalize verdict is computed (task req).
+  rescanPool();
+  // Recompute the verdict against the final (straggler-inclusive) pool when armed, so a late-arriving packet that
+  // satisfies the last gap can flip a blocked run to converged. Disarmed/no-prior-verdict → keep lastVerdict.
+  if (armedNow && lastVerdict && !lastVerdict.converged) {
+    const finalFloor = checkObligationFloor(ledger, poolOutputs);
+    if (finalFloor.ok) {
+      const finalVerdict = converge({ ledger, poolOutputs, signals: opts.signals || [], adversarialResult: { ok: true, rejections: [] }, damping, round, opts: convergeOpts });
+      if (finalVerdict.converged) { lastVerdict = finalVerdict; log('final re-scan: straggler packets satisfied the obligation floor — converged'); }
+    }
+  }
+
   const guard = finalizeGuard(lastVerdict || { converged: false });
   const manifest = {
     runId, traceId, startedAt, finishedAt: new Date().toISOString(),
@@ -200,13 +335,26 @@ export async function runSwarm(decomposition = {}, opts = {}) {
     fs.writeFileSync(path.join(REPO_ROOT, '.claude', 'jobs', runId, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   } catch (e) { log(`manifest write failed: ${String(e?.message || e)}`); }
 
-  if (_prevTraceEnv === undefined) delete process.env.YURI_FLEET_TRACE_ID;
-  else process.env.YURI_FLEET_TRACE_ID = _prevTraceEnv;
   return {
     runId, traceId, converged: manifest.converged, finalizeOk: guard.ok, finalizeReason: guard.reason,
     rounds: manifest.rounds, poolOutputs, verdict: lastVerdict,
     manifestPath: path.join(REPO_ROOT, '.claude', 'jobs', runId, 'manifest.json'), runDir,
+    status, statusPath: statusPath(runId),
   };
+  } catch (e) {
+    threw = e;
+    throw e;
+  } finally {
+    // TERMINAL status — lands even on throw. converged reflects the last verdict; a throw is a hard 'failed'.
+    const terminal = threw
+      ? { status: 'failed', converged: !!(lastVerdict && lastVerdict.converged), error: String(threw?.message || threw).slice(0, 300), endedAt: new Date().toISOString() }
+      : { status: 'done', converged: !!(lastVerdict && lastVerdict.converged), endedAt: new Date().toISOString() };
+    status = writeStatus(runId, terminal, status, log);
+    // Restore the trace env in ALL exit paths (normal return, break, throw) so a multi-call process never leaks
+    // this run's traceId into the next.
+    if (_prevTraceEnv === undefined) delete process.env.YURI_FLEET_TRACE_ID;
+    else process.env.YURI_FLEET_TRACE_ID = _prevTraceEnv;
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
