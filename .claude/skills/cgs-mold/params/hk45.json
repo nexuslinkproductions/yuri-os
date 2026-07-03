@@ -1,6 +1,10 @@
 {
-  "_comment": "HK45 Tactical preset for cgs-mold (gun-dip method). Frame: draw axis = Y (rear/grip = +Y), up = Z. Cut points auto-detected then tuned visually per scan. SOURCE OF TRUTH = ../METHOD-NOTES.md.",
+  "_comment": "HK45 Tactical REFERENCE preset for cgs-mold (gun-dip method). Frame: draw axis = Y (rear/grip = +Y), up = Z. Cut points auto-detected then tuned visually per scan. New gun -> copy this file and retune. SOURCE OF TRUTH = ../METHOD-NOTES.md.",
   "draw_axis": "Y",
+
+  "assemble": { "speck_frac": 0.02, "center": true, "_note": "UNIVERSAL (René 2026-07-03): assemble_gun_solid UNIONS every island whose bbox-diagonal >= speck_frac x the biggest island (gun + light + rail), dropping only true specks. Replaces the HK45-era 'keep largest island', which dropped a separate light so the dip stopped at the muzzle. Raise speck_frac if scan junk survives; lower it if a small-but-real feature (compact light/laser) is being dropped." },
+
+  "sweep": { "voxel": 0.7, "boot": 2.0, "travel": null, "_note": "sweep_dip: log-doubling voxel-union along +Y. travel=null -> full assembled Y-span (muzzle OR light bezel, whichever is furthest forward) so the dip runs the ENTIRE gun; the excess tail is cut by cut B. Only override travel to force a shorter dip on purpose. Watch front_feature_z in the return: a low Z confirms a forward light is driving the front." },
 
   "solidify": { "voxel_size": 0.7, "_note": "voxel-fill the MOLD into one manifold solid before cutting; precondition for a clean boolean" },
 

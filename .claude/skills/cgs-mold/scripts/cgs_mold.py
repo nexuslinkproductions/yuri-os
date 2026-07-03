@@ -5,7 +5,7 @@
 #
 # Pipeline (owner gun-dip method):
 #   1. seal scan -> GUN_SOLID (watertight manifold)             [upstream, see METHOD-NOTES]
-#   2. dip/sweep gun-solid along +Y -> the mold (swept positive)[upstream, see METHOD-NOTES]
+#   2. sweep_dip()      — FULL-LENGTH dip, log-doubling voxel-union [VALIDATED here 2026-07-02]
 #   3. solidify_mold()  — voxel-fill the mold into ONE solid    [VALIDATED here]
 #   4. cut_grip()       — cube BOOLEAN DIFFERENCE, FLOAT solver [VALIDATED here]
 #   5. smooth_mold()    — 4-stage feature-preserving retouch    [VALIDATED here]
@@ -82,6 +82,135 @@ def _shade(obj, auto_deg=30.0):
     _activate(obj)
     try: bpy.ops.object.shade_smooth_by_angle(angle=math.radians(auto_deg))
     except Exception: pass   # angle-sharpening is a shading nicety; geometry already carries the edges
+
+# ---------------------------------------------------------------- stage 1: assemble + seal GUN_SOLID
+def _island_ids(ei, ej, N):
+    """Connected-component id per vertex (numpy union-find over the edge list)."""
+    parent=list(range(N))
+    def find(a):
+        r=a
+        while parent[r]!=r: r=parent[r]
+        while parent[a]!=r: parent[a],a=r,parent[a]   # path-compress
+        return r
+    for a,b in zip(ei.tolist(), ej.tolist()):
+        ra,rb=find(int(a)),find(int(b))
+        if ra!=rb: parent[ra]=rb
+    return np.array([find(i) for i in range(N)], dtype=np.int64)
+
+def assemble_gun_solid(scan_names, out_name="GUN_SOLID", speck_frac=0.02, center=True):
+    """Build GUN_SOLID from the FULL scan: UNION every substantial island (gun body + light/laser +
+    rail attachment) into ONE sealed solid, dropping ONLY true near-zero specks (bbox-diagonal <
+    speck_frac x the biggest island). This REPLACES the HK45-era 'keep the largest connected island'.
+
+    ★ WHY (failure anchor, René 2026-07-03): 'keep largest' drops a separate light/attachment island,
+    so on a SHORT GUN with a BIG FORWARD LIGHT the light bezel — the furthest-forward feature — never
+    enters GUN_SOLID. sweep_dip then measures travel on the gun body alone and the dip stops at the
+    MUZZLE, not the light: 'the sweep is not going along the entire gun'. Universal fix: keep every
+    real island so the furthest -Y feature (muzzle OR light bezel, whichever protrudes) survives, and
+    sweep_dip's travel/front reference reaches it automatically. The G17 session did this by hand
+    ('joined + kept both islands'); this codifies it so it is not a per-gun manual decision.
+
+    scan_names: one object name or a list (gun + separate light objects). Non-destructive — copies the
+    sources, never mutates the scan. Seal = weld doubles -> fill holes -> outward normals -> center.
+    VALIDATED live 2026-07-03 on Glock 43X + TLR-7 HL-X SUB (2 islands, light longer than the gun):
+    islands_total=2 -> islands_kept=2, front_feature_z=-4.7 (light drives the front), sweep front_y
+    stayed -74.1 through the full 175.8mm dip. Confirms the fix on the exact short-gun/big-light case."""
+    if isinstance(scan_names, str): scan_names=[scan_names]
+    srcs=[bpy.data.objects[n] for n in scan_names]
+    coll=srcs[0].users_collection[0]
+    if out_name in bpy.data.objects: bpy.data.objects.remove(bpy.data.objects[out_name], do_unlink=True)
+    bm=bmesh.new()
+    for s in srcs:                                   # merge all source geometry in WORLD space
+        me=s.data.copy(); me.transform(s.matrix_world)
+        bm.from_mesh(me); bpy.data.meshes.remove(me)
+    bm.verts.ensure_lookup_table(); bm.edges.ensure_lookup_table()
+    bm.verts.index_update()                          # .index must be current before we read it below
+    N=len(bm.verts)
+    P=np.array([[v.co.x,v.co.y,v.co.z] for v in bm.verts]) if N else np.zeros((0,3))
+    ei=np.fromiter((e.verts[0].index for e in bm.edges), dtype=np.int64, count=len(bm.edges))
+    ej=np.fromiter((e.verts[1].index for e in bm.edges), dtype=np.int64, count=len(bm.edges))
+    roots=_island_ids(ei, ej, N)
+    diag={}
+    for r in np.unique(roots):
+        C=P[roots==r]
+        diag[int(r)]=float(np.linalg.norm(C.max(0)-C.min(0))) if len(C)>1 else 0.0
+    dmax=max(diag.values()) if diag else 0.0
+    keep=np.array([diag[int(r)]>=speck_frac*dmax and diag[int(r)]>0 for r in roots])
+    dropped=[bm.verts[i] for i in np.where(~keep)[0]]
+    if dropped: bmesh.ops.delete(bm, geom=dropped, context='VERTS')
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-4)                 # seal
+    bd_edges=[e for e in bm.edges if e.is_boundary]
+    if bd_edges: bmesh.ops.holes_fill(bm, edges=bd_edges)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me=bpy.data.meshes.new(out_name); bm.to_mesh(me); bm.free()
+    obj=bpy.data.objects.new(out_name, me); coll.objects.link(obj); obj.matrix_world.identity()
+    if center:
+        Q=_world_verts(obj); Q-=Q.mean(0); me.vertices.foreach_set("co", Q.ravel()); me.update()
+    Q=_world_verts(obj); fi=int(np.argmin(Q[:,1])) if len(Q) else 0
+    nm,bd=_manifold(me)
+    n_islands=len(diag); n_kept=int(sum(1 for r in diag if diag[r]>=speck_frac*dmax and diag[r]>0))
+    return obj, {"islands_total":n_islands, "islands_kept":n_kept, "specks_dropped":n_islands-n_kept,
+                 "front_y":round(float(Q[:,1].min()),2) if len(Q) else 0.0,
+                 "front_feature_z":round(float(Q[fi,2]),1) if len(Q) else 0.0,   # low z => a light drives the front
+                 "rear_y":round(float(Q[:,1].max()),2) if len(Q) else 0.0,
+                 "y_length":round(float(Q[:,1].max()-Q[:,1].min()),2) if len(Q) else 0.0,
+                 "verts":len(me.vertices), "nonmanifold":nm, "boundary":bd}
+
+# ---------------------------------------------------------------- stage 2: the dip / draw sweep
+def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.7, boot=2.0, travel=None):
+    """FULL-LENGTH translational 'dip' of the sealed GUN_SOLID along +Y, as ONE clean filled
+    manifold solid. THE VALIDATED SWEEP (owner-confirmed 2026-07-02, SIG 1911 + TLR-1 HL-X).
+
+    METHOD = log-doubling voxel-UNION: union the working solid with a +Y-shifted copy and
+    voxel-fill to the OUTER ENVELOPE each pass, doubling the shift (boot -> 2x -> ... -> travel).
+    Envelope-fill EVERY pass is the whole trick — it never tears and never steps, unlike the two
+    REJECTED methods (see METHOD-NOTES failure anchor):
+      - array-of-copies + one final voxel-fill  -> visible STEPS when step > voxel (2026-07-01 G17,
+        2026-07-02 SIG 1911 attempt-1);
+      - front/back-face split + silhouette bridge -> COMBS fine features (slide serrations, light
+        grooves) because it tears co-located front/back faces apart (2026-07-02 SIG 1911 attempt-2).
+    A whole-solid union never tears (both operands are complete solids); each shift <= current swept
+    length keeps the cross-section windows continuous -> no steps. `travel` defaults to the FULL gun
+    Y-length: OWNER REQUIREMENT — the dip runs muzzle ALL THE WAY TO THE END, filling every -Y-facing
+    undercut; the excess tail past the real grip is trimmed later by cut B (vertical). This one call
+    replaces BOTH the old 'sweep' and the initial `solidify_mold` (its last pass is already a fill).
+    PRECONDITION (René 2026-07-03): `gun_solid` MUST be the FULL scan assembly — build it with
+    `assemble_gun_solid` so EVERY island (gun + light + rail) is present. `travel` defaults to that
+    assembly's own Y-span, so the dip automatically reaches the furthest-forward feature — muzzle OR
+    light bezel, whichever protrudes. If GUN_SOLID is only the gun body (a dropped light island), the
+    dip stops at the muzzle and 'does not go along the entire gun'. `front_feature_z` in the return
+    reports the Z at the front-most vert (a low value => a forward light is correctly driving the front).
+    Non-destructive: reads gun_solid, builds a NEW object; identity matrix_world (centered mold)."""
+    gV=np.empty((len(gun_solid.data.vertices),3)); gun_solid.data.vertices.foreach_get("co",gV.ravel()); gV=gV.reshape(-1,3)
+    T = float(gV[:,1].max()-gV[:,1].min()) if travel is None else float(travel)
+    coll=gun_solid.users_collection[0]
+    if out_name in bpy.data.objects: bpy.data.objects.remove(bpy.data.objects[out_name], do_unlink=True)
+    obj=gun_solid.copy(); obj.data=gun_solid.data.copy(); obj.name=out_name; coll.objects.link(obj)
+    obj.matrix_world.identity(); _activate(obj)
+    if bpy.context.object and bpy.context.object.mode!='OBJECT': bpy.ops.object.mode_set(mode='OBJECT')
+    def _vox(o):
+        _activate(o); o.data.remesh_voxel_size=voxel; o.data.remesh_voxel_adaptivity=0.0
+        bpy.ops.object.voxel_remesh()
+    _vox(obj)                                            # clean fill of the base gun
+    L=0.0; step=boot; passes=[]
+    while L < T-1e-6:
+        s = step if L==0.0 else L                        # doubling: shift by current swept length
+        s = min(s, T-L)
+        cp=obj.copy(); cp.data=obj.data.copy(); coll.objects.link(cp)
+        cp.matrix_world=obj.matrix_world.copy(); cp.location.y+=s
+        for x in bpy.context.selected_objects: x.select_set(False)
+        cp.select_set(True); obj.select_set(True); bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.join(); _vox(obj); L+=s; passes.append(round(L,1))
+    bm=bmesh.new(); bm.from_mesh(obj.data); vol=bm.calc_volume(signed=True); bm.free()  # outward normals
+    if vol<0:
+        _activate(obj); bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.flip_normals(); bpy.ops.object.mode_set(mode='OBJECT')
+    nm,bd=_manifold(obj.data)
+    fV=np.empty((len(obj.data.vertices),3)); obj.data.vertices.foreach_get("co",fV.ravel()); fV=fV.reshape(-1,3)
+    fi=int(np.argmin(fV[:,1]))                          # front-most vert (draw axis)
+    return obj, {"travel":round(T,1), "voxel":voxel, "passes":passes,
+                 "front_y":round(float(fV[:,1].min()),2), "front_feature_z":round(float(fV[fi,2]),1),
+                 "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 3: solidify
 def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.7):

@@ -13,20 +13,49 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
 - Draw exit / grip = **+Y**; muzzle = −Y; up = +Z.
 
 ## VALIDATED steps
-1. **Artifact strip** — keep the largest connected island (drops disconnected scan junk).
-   The HK45 scan is ONE island; the Z=144 was the real gun height, not an artifact.
-2. **Center** on origin (mean-subtract).
+1. **Assemble ALL islands (NOT 'keep the largest')** — `assemble_gun_solid` UNIONS every substantial
+   island (gun body + light/laser + rail attachment) into one solid, dropping ONLY true near-zero
+   specks (bbox-diagonal < `speck_frac`≈0.02 × the biggest island). The HK45 scan happened to be ONE
+   island, which is how the old "keep the largest connected island" rule survived — but it is a
+   HK45 accident, not a law.
+   ★ FAILURE ANCHOR (René 2026-07-03): "keep largest" DROPS a separate light island, so on a **short
+   gun with a big forward light** the light bezel (the furthest-forward feature) never enters
+   GUN_SOLID → `sweep_dip`'s `travel` is measured on the gun body alone → **the dip stops at the
+   muzzle and "does not go along the entire gun."** Keeping every real island makes the furthest −Y
+   feature (muzzle OR light bezel, whichever protrudes) survive, and the sweep's default travel
+   (assembled Y-span) reaches it automatically — universal across gun/light proportions. The G17
+   session did this by hand ("joined + kept both islands"); `assemble_gun_solid` codifies it.
+   <!-- @anchor: v1 | failure: cgs-mold sweep incomplete on short-gun/big-light — light island dropped by 'keep largest island', dip stopped at muzzle not light bezel (René 2026-07-03) | regression: assemble_gun_solid() unions all substantial islands; sweep_dip front_feature_z diagnostic; VALIDATED live 2026-07-03 Glock 43X + TLR-7 (2 islands both kept, dip full 175.8mm from light bezel Y-74.1) -->
+2. **Center** on origin (mean-subtract) — folded into `assemble_gun_solid(center=True)`.
 3. **Seal → GUN_SOLID** — `remove_doubles → fill_holes → recalc normals` → a **watertight
-   manifold solid** (0 boundary, 0 non-manifold). This IS the dip's "negative filled +
-   solidified" — the gun as a clean solid. Confirmed solid (front view = solid cross-section).
-4. **The dip / draw sweep** — gun-solid drawn continuously along +Y (in and out) carves a
-   continuous cavity; invert + solidify = the swept-gun positive. **MUST be MANIFOLD.**
-   ★ CRITICAL (2026-06-29): the working swept solid already exists in the scene as
-   `SWEPT_SOLID` / `SWEPT_SOLID.001` (watertight, 0 non-manifold) from a prior session — USE IT.
-   My analytic translational sweep (front/back/silhouette-bridge) LOOKS right and is continuous
-   + step-free, but is **non-manifold** (334–4104 edges) → EXACT booleans on it produce
-   cube-sized garbage. The boolean-UNION-of-copies sweep is manifold but **stepped** (rejected).
-   Do NOT rebuild the sweep non-manifold; start from the manifold `SWEPT_SOLID`.
+   manifold solid** (0 boundary, 0 non-manifold), also folded into `assemble_gun_solid`. This IS the
+   dip's "negative filled + solidified" — the gun as a clean solid. Confirmed solid (front view =
+   solid cross-section). Separate un-touching islands (gun + detached light) are fused into one solid
+   by `sweep_dip`'s first voxel-remesh; both channels are swept regardless.
+4. **The dip / draw sweep — VALIDATED & OWNER-CONFIRMED 2026-07-02 (SIG 1911 + TLR-1 HL-X).**
+   `sweep_dip()` in `scripts/cgs_mold.py`. The dip is a **FULL-LENGTH** translational sweep of
+   GUN_SOLID along +Y: **furthest-forward feature ALL THE WAY TO THE END** (`travel` defaults to the
+   **assembled** solid's own Y-length — muzzle OR light bezel, whichever protrudes, e.g. 197mm), so
+   every −Y-facing undercut (trigger guard, light/dust-cover step, slide notches) gets filled. This
+   is ONLY complete if GUN_SOLID was built by `assemble_gun_solid` (all islands, step 1) — if a
+   forward light island was dropped, `travel` shrinks to the gun body and the dip stops short. The excess tail past the real grip (bbox +Y grows to ~gun-length past the
+   grip) is removed later by cut B — do NOT shorten the travel to avoid the tail.
+   **THE METHOD = log-doubling voxel-UNION:** union the working solid with a +Y-shifted copy and
+   **voxel-fill to the OUTER ENVELOPE each pass**, doubling the shift (2→4→8→…→full length, ~8
+   passes). One `sweep_dip` call replaces BOTH the old sweep and the initial `solidify_mold` (its
+   last pass is a fill) → output = a clean **manifold 0/0, single-island** filled solid, ready to cut.
+   ★ WHY envelope-union and NOT the earlier tries (failure anchor — both REJECTED, do not repeat):
+   - **array-of-copies + one final voxel-fill** → visible STEPS whenever copy-step > voxel size, and
+     the un-unioned trailing faces read as serration. (G17 2026-07-01; SIG 1911 attempt-1 2026-07-02.)
+   - **analytic front/back-face split + silhouette bridge** → continuous but **COMBS fine features**
+     (slide serrations, light grooves) because it tears co-located front/back faces apart; it is also
+     non-manifold (~2.7k edges), though voxel-fill would heal that. (SIG 1911 attempt-2 2026-07-02.)
+   A whole-solid **union never tears** (both operands are complete solids) and the envelope-fill
+   every pass **never steps** (each shift ≤ current swept length keeps the cross-section window
+   continuous). The old "use the pre-existing `SWEPT_SOLID`" advice is now SUPERSEDED — regenerate
+   with `sweep_dip` from GUN_SOLID.
+   <!-- @anchor: v1 | failure: cgs-mold sweep — G17 2026-07-01 stepped array + SIG1911 2026-07-02 attempts 1(array-steps)+2(classification-comb), owner-corrected twice "sweep is incomplete"/"must run muzzle all the way to the end" | regression: sweep_dip() log-doubling voxel-union; owner-confirmed "now it is correct" 2026-07-02 -->
+
 5. **Grip cut — VALIDATED & RE-VERIFIED 2026-06-29 (clean diagonal, manifold 0/0)** — diagonal cut,
    done as a **BOOLEAN DIFFERENCE with a separate CUBE cutter** (NOT bisect — bisect+holes_fill tore it).
    ★ PRECONDITION (the real one): the mold must be a **FILLED SOLID** (see ROOT CAUSE below), NOT a
@@ -76,8 +105,17 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    Laplacian, factor 0.6 ×25 iters, 3-ring halo): the flat cut verts sit at ~0 Laplacian and
    hold, the protruding flap (high Laplacian) gets pulled flush. Manifold preserved. Detect the
    box from the rear-region protruding verts (max distance-to-1-ring-centroid).
-9. (un-subdivide ×2 — owner step; does NOT work on triangulated scan topology, distorts +
-   doesn't reduce. Needs grid/quad topology or a planar-decimate substitute. OPEN.)
+9. **Decimate ×2 + re-solidify — VALIDATED (G17 session, 2026-07-01).** True un-subdivide still
+   fails on this triangulated topology. Substitute: Blender `DECIMATE` modifier, `COLLAPSE` type,
+   ratio 0.5, applied TWICE (matches the owner's "un-subdivision x2" framing) — on this gun took
+   ~99k verts to ~25k, stayed manifold 0/0, no distortion. Immediately re-`solidify_mold` (voxel
+   remesh, same 0.7mm) afterward — REQUIRED, not optional: it regrows vert count back toward the
+   pre-decimate range but guarantees the decimated mesh (which CAN pick up small manifold defects)
+   is a clean filled solid before the final split. Order: smooth_mold → offset_mold → decimate x2
+   → solidify_mold → split_mold → **solidify_mold AGAIN on EACH resulting half individually**
+   (`CGS_HALF_L`/`CGS_HALF_R` → `CGS_HALF_L_SOLID`/`CGS_HALF_R_SOLID`) — the split's bisect+holes_fill
+   cap is already manifold, but the owner wants each half independently re-solidified as the final
+   robustness pass before export, not just the pre-split whole.
 10. **Clamshell split — VALIDATED 2026-06-30 (`split_mold`)** — a clean SPLIT, **not a saw cut**.
    `bisect_plane` + `holes_fill` per side → two **capped, closed, manifold** halves; together they
    reconstitute the whole mold (verified **0.006% vol loss** = float noise). Owner corrections that
@@ -131,8 +169,11 @@ walled → **voxel-fill into a solid, then cut**. Don't rebuild the sweep.
 
 ## ★ ORDER OF OPERATIONS (owner's plan — DO NOT DEVIATE, repeatedly corrected 2026-06-29)
 1. Gun scan → **GUN_SOLID** (sealed watertight manifold) = the solid gun used as the boolean cutter.
-2. **Draw GUN_SOLID along +Y (in and out, ONE continuous motion) through a solid block** → carves a hollow gun-shaped cavity. CONTINUOUS — **no stepping** (union-of-copies = steps = REJECTED).
-3. **Invert that hollow cavity + solidify** → **THE MOLD** (swept-gun positive). Must be **manifold**.
+2. **`sweep_dip()` — draw GUN_SOLID along +Y, muzzle ALL THE WAY TO THE END** (full gun-length travel).
+   VALIDATED method = **log-doubling voxel-UNION** (union with a +Y-shifted copy → voxel-fill the
+   envelope each pass, doubling the shift). CONTINUOUS, **no stepping, no combing** — array-of-copies
+   (steps) AND front/back-classification (combs fine features) are BOTH REJECTED. Owner-confirmed 2026-07-02.
+3. `sweep_dip` output is already the filled **THE MOLD** (manifold 0/0, single island) — no separate solidify needed.
 4. **CUT THE MOLD** (NOT GUN_SOLID — owner corrected this 2x): separate **cube cutter** (sized for the ENTIRE grip cut, not a tiny notch, not 400), top face on the **trigger-guard-corner − 30mm → beavertail** diagonal, body on the grip side → **boolean DIFFERENCE** → delete cube. "It worked before" = the boolean DOES work when the mold is manifold.
 5. **+0.4mm** outward. 6. smooth / un-subdivide (TBD).
 
@@ -148,6 +189,54 @@ walled → **voxel-fill into a solid, then cut**. Don't rebuild the sweep.
   - OFFSET: +0.4mm outward on the **slide region only** (Z>14, barrel+slide+beavertail), feathered 2mm. (`offset_mold`)
   - SPLIT: clean clamshell `bisect`+`holes_fill` (ZERO material loss) on the **bore axis** (circle-fit, X=−0.777). (`split_mold`)
 - **Deliverable objects in scene:** `CGS_MOLD_FINAL` (cut+smooth+overhang+offset, manifold 0/0) → split into `CGS_HALF_L` / `CGS_HALF_R` (both manifold 0/0, capped). The full engine is locked in `cgs_mold.py` (solidify_mold · cut_grip · smooth_mold · remove_overhang · offset_mold · split_mold · build_mold).
-- NEXT (still TODO): **alignment pins** on the split mating faces, **un-subdivide/decimate**, **STL export**.
-  Upstream **seal+dip/sweep** stages still need their own validation pass (this session started from the pre-existing swept shell).
+- NEXT (still TODO): **alignment pins** on the split mating faces.
+  **`sweep_dip` (the dip/draw sweep) is now VALIDATED** (2026-07-02, `sweep_dip()` in the engine) —
+  the last remaining upstream gap is closed; a run now goes scan → seal → `sweep_dip` → cut A/B →
+  smooth → offset → decimate → split → export end-to-end. Seal is trivial when the scan is already a
+  watertight solid (e.g. René's "SOLID GUN FOR AUTOMATION" exports).
 - Skill files: `.claude/skills/cgs-mold/{SKILL.md, METHOD-NOTES.md, scripts/cgs_mold.py(VALIDATED engine), params/hk45.json}`.
+
+## GRIP/TAIL CUT = TWO CUTS, NOT ONE (owner-corrected, G17 Gen6 + TLR-1 session)
+
+First multi-piece scan (gun + attached light as two separate watertight islands, joined + kept
+both — do NOT drop the attachment island as "junk"; only drop true near-zero-vert specks) and
+first gun whose frame stays slide-height tall almost to the rear of the grip (unlike HK45). Two
+owner corrections reshaped the grip-cut stage:
+
+1. **Cut points come from the SWEPT MOLD, not the pre-sweep scan.** Compute `_find_cut_points` (or
+   its manual equivalent) on the object that's actually about to be cut (`CGS_MOLD_SOLID`/the
+   swept+solidified mold), not on `GUN_SOLID`. The solidify voxel-remesh and the sweep itself can
+   shift local geometry slightly; cutting must be self-consistent with what's being cut.
+2. **The auto-knee heuristic (bottom-Z profile, "drop >8mm per 3mm bin") does not generalize.** It
+   was tuned on HK45's sharper trigger-guard/grip transition. A smoother frame curve (Glock) makes
+   it overshoot the knee, landing near the mag base instead of the guard/grip corner. Always dump
+   the raw bottom-Z profile and pick the plateau's own shallowest point (the last bin before Z
+   drops continuously) — verify by rendering markers before cutting, don't trust the auto point.
+3. **THE GRIP CUT IS TWO SEPARATE BOOLEAN CUTS, NOT ONE DIAGONAL.**
+   - **Cut A (diagonal, unchanged in spirit)** — cube FLOAT DIFFERENCE through corner→beavertail,
+     using the **REAL, natural anatomical beavertail point** (same Y the un-swept gun's own grip
+     actually ends at — for this gun ≈ the original centered gun's max-Y). Do NOT shorten this
+     point to "fix" a long tail — that cuts into the real beavertail and is wrong (owner: "Beaver
+     tail must not be cut off. This is too short now.").
+   - **Cut B (new — vertical, perpendicular to the draw axis)** — a second cube DIFFERENCE, a flat
+     plane at constant Y positioned just past the REAL beavertail's natural Y (a few mm margin,
+     not less), full width/height. This removes ONLY the **artificial excess** a long dip-sweep
+     drags past the real grip end — it does not touch the beavertail itself.
+   - **Why two cuts:** a dip/sweep with a generous travel distance (needed to fully bridge Y-axis
+     undercuts, e.g. the trigger guard bow, and matching the owner's "in and out" full dip motion)
+     unions in cross-sections from the ENTIRE original Y-range at every point past the grip —
+     including the tall slide — so the "excess tail" past the original grip can be just as tall as
+     the slide (full gun height), not grip-height. A single diagonal plane sloped from corner to
+     beavertail cannot clear that without either climbing into the slide (if extended too far) or
+     leaving a floating unremoved remnant (if not extended far enough). A flat cut perpendicular to
+     Y removes everything past a given Y regardless of height — it doesn't care how tall the excess
+     is. **This is what makes a generous/full sweep travel safe to use** — don't shrink the travel
+     distance to dodge the tall-tail problem; add the vertical cut instead.
+   - A generous sweep travel (e.g. matching the gun's own length) is fine and in fact bridges the
+     trigger guard opening closed (union of every original cross-section includes the guard's own
+     footprint at other Y positions) — a short travel leaves the guard open. Which is wanted is a
+     per-mold call; both are achievable, just tune the sweep travel and let cut B clean up the tail
+     either way.
+4. Order for this stage: solidify_mold → cut A (diagonal grip) → cut B (vertical tail-shorten,
+   preserving the real beavertail length) → smooth_mold → (remove_overhang only if a render shows a
+   stray flap — this gun's cleaner cut edge didn't need it) → offset_mold → split_mold.
