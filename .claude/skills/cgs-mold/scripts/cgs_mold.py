@@ -426,18 +426,29 @@ def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
             "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 8: decimate + re-solidify
-def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=2, voxel=0.7):
-    """Decimate x`times` (Blender DECIMATE COLLAPSE) as the un-subdivide substitute (true un-subdivide
-    fails on this triangulated topology), then re-solidify (voxel-fill, same size) so the decimated
-    mesh is a clean filled manifold solid. Owner order 2026-07-01/07-03:
-    smooth -> offset -> decimate x2 -> re-solidify -> EXPORT (single piece, NO split)."""
+def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=125000):
+    """Un-subdivide + re-solidify to a clean filled manifold solid, at a controllable FACE BUDGET.
+    ★ The final density is set by the RE-SOLIDIFY voxel, NOT the decimate — the voxel remesh
+    regenerates the mesh, so decimation before it only sheds detail (keep `times` low). Owner
+    (2026-07-03) wants ~120-130k FACES on the deliverable, so pass `target_faces` and the re-solidify
+    voxel is AUTO-SOLVED (faces ~ 1/voxel^2, one measure+correct pass) — a face budget, not a voxel
+    guess. `times` decimate passes are the un-subdivide substitute before the remesh. Owner order:
+    smooth -> offset -> decimate -> re-solidify(face-budgeted) -> EXPORT (single piece, no split)."""
     work=_dup(obj, out_name+"_DEC"); _activate(work)
     for i in range(times):
         m=work.modifiers.new("dec%d"%i,"DECIMATE"); m.decimate_type='COLLAPSE'; m.ratio=ratio
         bpy.ops.object.modifier_apply(modifier=m.name)
     sol,ss=solidify_mold(work, out_name=out_name, voxel=voxel)
+    if target_faces:
+        f0=len(sol.data.polygons)
+        if f0>0 and abs(f0-target_faces)/float(target_faces)>0.05:   # solve voxel to hit the face budget
+            v2=round(max(0.2, voxel*(f0/float(target_faces))**0.5), 3)
+            bpy.data.objects.remove(sol, do_unlink=True)
+            sol,ss=solidify_mold(work, out_name=out_name, voxel=v2)
+            ss["voxel_solved"]=v2
+        ss["target_faces"]=target_faces
     bpy.data.objects.remove(work, do_unlink=True)
-    ss["decimated_x"]=times; ss["ratio"]=ratio
+    ss["faces"]=len(sol.data.polygons); ss["decimated_x"]=times; ss["ratio"]=ratio
     return sol, ss
 
 # ---------------------------------------------------------------- (deprecated) clamshell split

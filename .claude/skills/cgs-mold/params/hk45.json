@@ -8,6 +8,8 @@
 
   "solidify": { "voxel_size": 0.7, "_note": "voxel-fill the MOLD into one manifold solid before cutting; precondition for a clean boolean" },
 
+  "decimate": { "target_faces": 125000, "times": 1, "ratio": 0.5, "voxel": 0.7, "_note": "FINAL deliverable FACE BUDGET (owner 2026-07-03: ~120-130k faces). decimate_mold auto-solves the re-solidify voxel to hit target_faces (faces ~ 1/voxel^2, one measure+correct). ★ The RE-SOLIDIFY voxel — NOT the decimate — sets final density (the remesh regenerates), so keep `times` low; heavy decimation only sheds detail. Glock 43X: solved voxel 0.588 -> 125078 faces." },
+
   "grip_cut": {
     "enabled": true,
     "solver": "FLOAT",

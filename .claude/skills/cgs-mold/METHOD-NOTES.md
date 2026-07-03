@@ -105,7 +105,13 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    Laplacian, factor 0.6 ×25 iters, 3-ring halo): the flat cut verts sit at ~0 Laplacian and
    hold, the protruding flap (high Laplacian) gets pulled flush. Manifold preserved. Detect the
    box from the rear-region protruding verts (max distance-to-1-ring-centroid).
-9. **Decimate ×2 + re-solidify — VALIDATED (G17 session, 2026-07-01).** True un-subdivide still
+9. **Decimate + re-solidify to a FACE BUDGET — UPDATED 2026-07-03 (`decimate_mold`).** Owner: "too much
+   decimation, want ~120-130k faces" (had 88,140). ★ The final face count is set by the RE-SOLIDIFY
+   voxel, NOT the decimate — the voxel remesh regenerates density, so the decimate before it barely
+   moves the output (only sheds detail). Fix: `decimate_mold(target_faces=125000)` auto-solves the
+   re-solidify voxel (faces ~ 1/voxel², one measure+correct) and defaults decimation light (`times=1`).
+   Glock 43X → solved voxel 0.588 → 125,078 faces, manifold 0/0. (Per-half re-solidify below is moot —
+   split removed 2026-07-03.) Historical ×2 notes retained: True un-subdivide still
    fails on this triangulated topology. Substitute: Blender `DECIMATE` modifier, `COLLAPSE` type,
    ratio 0.5, applied TWICE (matches the owner's "un-subdivision x2" framing) — on this gun took
    ~99k verts to ~25k, stayed manifold 0/0, no distortion. Immediately re-`solidify_mold` (voxel

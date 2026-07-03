@@ -77,10 +77,11 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    guard stay put. Push the region verts outward along normals, feathered ~2mm at the line (no
    ridge). Verify the region bbox grew outward (else normals were inward). [VALIDATED]
    **`z_line` is scan-relative (2026-07-03)** — auto-seeded from the mold's own height, not the HK45 14mm.
-5b. **Decimate ×2 + re-solidify** (VALIDATED 2026-07-01) — Blender `DECIMATE` modifier (`COLLAPSE`,
-   ratio 0.5) applied twice as the un-subdivide substitute (true un-subdivide fails on this
-   triangulated topology), immediately followed by another `solidify_mold` pass (same voxel size)
-   to guarantee the decimated mesh is still a clean filled manifold solid.
+5b. **Decimate + re-solidify to a FACE BUDGET** (`decimate_mold`, VALIDATED 2026-07-03) — light
+   `DECIMATE COLLAPSE` un-subdivide, then a `solidify_mold` voxel-remesh whose voxel is **auto-solved
+   to hit `target_faces` ≈ 125k** (owner wants ~120-130k faces). ★ The re-solidify voxel — NOT the
+   decimate — sets final density (the remesh regenerates), so keep decimation light. Glock 43X: solved
+   voxel 0.588 → 125,078 faces, manifold 0/0.
 6. **Export — ONE solid piece** (`export_mold`) — owner directive (2026-07-03): **NO clamshell split
    anymore.** After decimate+re-solidify, export the whole mold as a single STL into the fixed handoff
    folder **`C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\<gun-name>.stl`** (not the gun's own scan
@@ -186,6 +187,12 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
      knee), beavertail Y+101.3 (real rear, NOT the +277 tail), tail trim Y+107.7, z_line +16.4, all manifold
      0/0, owner-confirmed cut placement ("good, finish it"). Exported `Glock 43X TLR-7 HL-X Sub.stl` (88k v).
   - Remaining HK45 absolute now retired from the live path; `_bore_center_x` z_min=32 is moot (split gone).
+- **Density fix (owner: "too much decimation, want ~120-130k faces; had 88,140").** Root cause: the final
+  count is set by the re-solidify VOXEL, not the decimate (the voxel remesh regenerates density — the
+  decimate before it barely matters). Fixed with a FACE BUDGET: `decimate_mold(target_faces=125000)`
+  auto-solves the re-solidify voxel (faces ~ 1/voxel², one measure+correct) and defaults decimation
+  lighter (`times=1`). Glock 43X → solved voxel 0.588 → **125,078 faces**, manifold 0/0, re-exported
+  `Glock 43X TLR-7 HL-X Sub.stl` (12.2 MB). Surface held (finer voxel follows the smoothed surface).
 
 ### 2026-07-02
 - gun: SIG 1911 + TLR-1 HL-X (scan `01_SIG 1911_TLR-1 HL-X_SOLID GUN FOR AUTOMATION.stl`, 93.5k v,
