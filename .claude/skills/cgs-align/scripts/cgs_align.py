@@ -211,6 +211,99 @@ def _slide_top_tilt_deg(P, front_frac=0.55):
     slope = float(np.polyfit(np.array(ys), np.array(zs), 1)[0])
     return float(np.degrees(np.arctan(slope)))
 
+def compute_alignment_light(P, F):
+    """LIGHT-canonical rigid transform (center, R) for a weapon-light STL: long axis -> Y, the RAIL
+    CLAMP face -> +Z (up) and level, the BEZEL -> -Y (left); object mass-centered. Owner spec 2026-07-03
+    (OLIGHT PL2 Valkyrie): "the rail clip is the reference (up + level); the bezel points left".
+
+    A light has none of a gun's grip/slide/sight asymmetry — its cross-section is near-symmetric — so the
+    gun heuristics don't apply. Two light-specific features drive it:
+      CLAMP  (primary, owner's best cue) — the rail-clip face carries a recessed GROOVE (the channel that
+             grips the rail), a valley running along the length; the opposite (battery) side is smooth /
+             convex. Search directions perpendicular to the long axis for the one whose OUTER surface is
+             most CONCAVE (a channel) -> that face's outward direction is UP. Then level its mounting flat.
+      BEZEL  — the reflector/lens end is a concave DISH (the centre is recessed behind the rim); the tail
+             (switch) end is not. The dished end -> -Y.
+    Returns (center, R, diag); R rows = [x_hat, y_hat, z_hat], det(R)=+1. Apply with apply_alignment.
+    """
+    P = np.asarray(P, dtype=np.float64)
+    center, cov, mode, closed = _mass_center_and_cov(P, F)
+    D = P - center
+    evals, evecs = np.linalg.eigh(cov)
+    axes = [evecs[:, k] for k in range(3)]
+    exts = [_robust_extent(D @ a) for a in axes]
+    order = np.argsort(exts)[::-1]
+    aL = axes[order[0]]; a1 = axes[order[1]]; a2 = axes[order[2]]     # long axis + 2 perpendicular
+    pY = D @ aL; p1 = D @ a1; p2 = D @ a2
+
+    # face data (world normals, areas, centroids-about-center) — for clamp search, leveling, bezel
+    fclamp = None
+    if F is None or len(F) == 0:
+        raise RuntimeError("cgs_align light-mode needs faces (the clamp is found from surface structure).")
+    a3, b3, c3 = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+    fn = np.cross(b3 - a3, c3 - a3); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    fnn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]; cen = ((a3 + b3 + c3) / 3.0)[ok] - center
+    nA = fnn @ a1; nB = fnn @ a2; nY = fnn @ aL; cA = cen @ a1; cB = cen @ a2
+    cos15 = math.cos(math.radians(15))
+
+    # ---- CLAMP: the rail mounting face is the most STRUCTURED large flat (rail slot + cross-bolt +
+    # lever) — the battery/body flat is smooth. Score each outward direction by (outer flat area) x
+    # (structural complexity)^2. Calibrated on the PL2 (René 2026-07-03): the body flat has MORE raw
+    # area (1158 vs 970) but the clamp face is far more complex (1.08 vs 0.88), so complexity^2 tips it.
+    best_th, best_score, best_flatarea, best_cx = 0.0, -1.0, 0.0, 0.0
+    for th in np.arange(0.0, 360.0, 5.0):
+        cd, sd = math.cos(math.radians(th)), math.sin(math.radians(th))
+        ndot = nA * cd + nB * sd; cdot = cA * cd + cB * sd
+        outer_thr = np.percentile(cdot, 60); outer2_thr = np.percentile(cdot, 80)
+        flat = (ndot > cos15) & (np.abs(nY) < 0.4) & (cdot > outer_thr)   # outward-facing flats this way
+        outer = cdot > outer2_thr
+        if int(outer.sum()) < 10: continue
+        fa_ = float(np.sum(area[flat]))
+        tang = nA * (-sd) + nB * cd                                    # in-plane tangential normal comp
+        cx = float(np.std(nY[outer])) + float(np.std(tang[outer]))     # structural complexity of the face
+        score = fa_ * cx * cx
+        if score > best_score:
+            best_score, best_th, best_flatarea, best_cx = score, float(th), fa_, cx
+    cd, sd = math.cos(math.radians(best_th)), math.sin(math.radians(best_th))
+    z_hat = cd * a1 + sd * a2                                          # clamp mounting face faces this way -> UP
+    y_hat = aL
+    x_hat = np.cross(y_hat, z_hat); x_hat /= (np.linalg.norm(x_hat) or 1.0)
+    z_hat = np.cross(x_hat, y_hat); z_hat /= (np.linalg.norm(z_hat) or 1.0)
+
+    # ---- LEVEL: set the clamp mounting-flat consensus normal exactly to +Z (fixes roll + pitch) ----
+    clamp_level_deg = 0.0
+    cosT = math.cos(math.radians(20))
+    for _ in range(6):
+        nZ = fnn @ z_hat; nYh = fnn @ y_hat; nX = fnn @ x_hat; cZ = cen @ z_hat
+        sel = (nZ > cosT) & (np.abs(nYh) < 0.4) & (cZ > 0)            # up-facing clamp-side mounting flats
+        if int(sel.sum()) < 8: break
+        up = np.array([float(np.sum(area[sel] * nX[sel])), float(np.sum(area[sel] * nYh[sel])),
+                       float(np.sum(area[sel] * nZ[sel]))])
+        new_z = up[0] * x_hat + up[1] * y_hat + up[2] * z_hat; new_z /= (np.linalg.norm(new_z) or 1.0)
+        dth = math.degrees(math.acos(max(-1.0, min(1.0, float(new_z @ z_hat)))))
+        x_hat = np.cross(y_hat, new_z); x_hat /= (np.linalg.norm(x_hat) or 1.0)
+        z_hat = np.cross(x_hat, y_hat); z_hat /= (np.linalg.norm(z_hat) or 1.0)
+        clamp_level_deg += dth
+        if dth < 0.1: break
+
+    # ---- BEZEL -> -Y: the clamp sits rear-of-centre and the bezel protrudes FORWARD, so the bezel is the
+    # end FARTHEST from the clamp mounting flats' length-position. (Reflector-dish was inconclusive.) ----
+    nZf = fnn @ z_hat; cZf = cen @ z_hat
+    clampsel = (nZf > cosT) & (cZf > 0)
+    clamp_y = float(np.average((cen @ y_hat)[clampsel], weights=area[clampsel])) if clampsel.any() else 0.0
+    pl = D @ y_hat
+    # bezel end = the length extreme farther from clamp_y
+    if abs(float(pl.max()) - clamp_y) > abs(clamp_y - float(pl.min())):   # +Y end is farther -> bezel is +Y
+        y_hat = -y_hat; x_hat = np.cross(y_hat, z_hat); x_hat /= (np.linalg.norm(x_hat) or 1.0)
+        z_hat = np.cross(x_hat, y_hat); z_hat /= (np.linalg.norm(z_hat) or 1.0)
+
+    R = np.vstack([x_hat, y_hat, z_hat])
+    diag = {"mode": "light", "center_mode": mode, "closed_solid": bool(closed),
+            "clamp_angle_deg": round(float(best_th), 1), "clamp_flat_area": round(best_flatarea, 0),
+            "clamp_complexity": round(best_cx, 3), "clamp_leveled_deg": round(float(clamp_level_deg), 2),
+            "clamp_y_pos": round(clamp_y, 1), "det_R": round(float(np.linalg.det(R)), 6)}
+    return center, R, diag
+
 def verify_alignment(P_new, F):
     """Adversarial self-check on the ALIGNED cloud (gun-canonical pose). All must be ~ideal:
       center_residual ~ 0 ; R_new ~ identity ; dims Y>=Z>=X ; muzzle at -Y ; GRIP at bottom-rear
@@ -268,19 +361,25 @@ def _dup(src, out_name):
     src.users_collection[0].objects.link(obj)
     return obj
 
-def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0):
+def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0,
+                 mode="gun"):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
+    mode="gun"  (default) -> muzzle -Y, grip -Z, slide/rail level (gun anatomy heuristics).
+    mode="light"          -> rail clamp +Z & level, bezel -Y (weapon-light heuristics; near-symmetric body).
     in_place=True  -> transform the object's own mesh (lossless rigid transform), matrix_world=identity.
     in_place=False -> leave the source untouched, write an aligned copy `<name>_ALIGNED`.
-    pitch_offset_deg -> manual pitch tweak (deg about X) on top of the auto-level; + tips the muzzle DOWN.
+    pitch_offset_deg -> manual pitch tweak (deg about X) on top of the auto-level (gun mode).
     Stores the applied transform on the object (`cgs_align_center`, `cgs_align_R`) for reversibility/audit.
     Returns (object, summary). Non-geometry-mutating: vertex count + detail are identical, only moved.
     """
     _require_bpy()
     src = _resolve(obj_name)
     P, F = _world_arrays(src)
-    center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg)
+    if mode == "light":
+        center, R, diag = compute_alignment_light(P, F)
+    else:
+        center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg)
     P_new = apply_alignment(P, center, R)
 
     target = src if in_place else _dup(src, out_name or (src.name + "_ALIGNED"))
@@ -294,8 +393,16 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
     target["cgs_align_center"] = [float(c) for c in center]
     target["cgs_align_R"] = [float(v) for v in R.ravel()]  # row-major x_hat,y_hat,z_hat
 
-    ver = verify_alignment(P_new, F)
-    ok = (ver["center_residual_mm"] < 0.05 and ver["R_offdiag_max"] < 1e-2 and ver["dims_ordered_yzx"])
+    if mode == "light":                                    # light-specific evidence (gun verifier N/A)
+        cen2 = float(np.linalg.norm(P_new.mean(0)))
+        dims = P_new.max(0) - P_new.min(0)
+        ver = {"center_residual_mm": round(cen2, 4),
+               "dim_x": round(float(dims[0]), 2), "dim_y": round(float(dims[1]), 2),
+               "dim_z": round(float(dims[2]), 2), "bezel_front_y": round(float(P_new[:, 1].min()), 2)}
+        ok = cen2 < 0.05 and abs(diag["det_R"] - 1.0) < 1e-4
+    else:
+        ver = verify_alignment(P_new, F)
+        ok = (ver["center_residual_mm"] < 0.05 and ver["R_offdiag_max"] < 1e-2 and ver["dims_ordered_yzx"])
     summary = {"object": target.name, "in_place": in_place, "verts": len(target.data.vertices),
                "aligned_ok": bool(ok), **diag, **ver}
     return target, summary
