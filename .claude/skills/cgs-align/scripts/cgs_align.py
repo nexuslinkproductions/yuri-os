@@ -286,14 +286,29 @@ def compute_alignment_light(P, F):
         clamp_level_deg += dth
         if dth < 0.1: break
 
-    # ---- BEZEL -> -Y: the clamp sits rear-of-centre and the bezel protrudes FORWARD, so the bezel is the
-    # end FARTHEST from the clamp mounting flats' length-position. (Reflector-dish was inconclusive.) ----
-    nZf = fnn @ z_hat; cZf = cen @ z_hat
-    clampsel = (nZf > cosT) & (cZf > 0)
-    clamp_y = float(np.average((cen @ y_hat)[clampsel], weights=area[clampsel])) if clampsel.any() else 0.0
-    pl = D @ y_hat
-    # bezel end = the length extreme farther from clamp_y
-    if abs(float(pl.max()) - clamp_y) > abs(clamp_y - float(pl.min())):   # +Y end is farther -> bezel is +Y
+    # ---- BEZEL -> -Y: the REFLECTOR/lens end (owner cue #2). The mount POSITION is unreliable (clamp
+    # vs single-screw; centered vs offset), so key off the light-emitting end itself: a concave reflector
+    # BOWL (centre recessed behind the rim) with a forward-facing lens cap. Score each end by
+    # `cap_area × bowl_depth`; the higher end is the bezel -> -Y. Calibrated on the PL2 (René 2026-07-03):
+    # bezel bowl 5.4 vs tail 3.7, cap area 475 vs 386 -> 2575 vs 1428, a clean 1.8x margin.
+    pl = D @ y_hat; rr_v = np.hypot(D @ x_hat, D @ z_hat)
+    nYb = fnn @ y_hat; cyb = cen @ y_hat
+    lmin, lmax = float(pl.min()), float(pl.max()); span = max(lmax - lmin, 1e-6)
+    cos35 = math.cos(math.radians(35))
+    def _refl_score(front):
+        capdir = -1.0 if front else 1.0
+        capsel = (((cyb < lmin + 0.25 * span) if front else (cyb > lmax - 0.25 * span))
+                  & (nYb * capdir > cos35))                     # end-cap / lens faces pointing out along axis
+        capA = float(np.sum(area[capsel]))
+        tipv = (pl < lmin + 0.18 * span) if front else (pl > lmax - 0.18 * span)
+        if int(tipv.sum()) < 30: return 0.0
+        ry = pl[tipv]; rrr = rr_v[tipv]
+        inner = rrr < np.percentile(rrr, 30); outer = rrr > np.percentile(rrr, 55)
+        if not (inner.any() and outer.any()): return 0.0
+        bowl = (float(ry[inner].mean()) - float(ry[outer].mean())) * capdir   # >0 => centre recessed (a bowl)
+        return capA * max(bowl, 0.1)
+    sf, sr = _refl_score(True), _refl_score(False)
+    if sr > sf:                                                 # reflector is at +Y -> flip so bezel -> -Y
         y_hat = -y_hat; x_hat = np.cross(y_hat, z_hat); x_hat /= (np.linalg.norm(x_hat) or 1.0)
         z_hat = np.cross(x_hat, y_hat); z_hat /= (np.linalg.norm(z_hat) or 1.0)
 
@@ -301,7 +316,8 @@ def compute_alignment_light(P, F):
     diag = {"mode": "light", "center_mode": mode, "closed_solid": bool(closed),
             "clamp_angle_deg": round(float(best_th), 1), "clamp_flat_area": round(best_flatarea, 0),
             "clamp_complexity": round(best_cx, 3), "clamp_leveled_deg": round(float(clamp_level_deg), 2),
-            "clamp_y_pos": round(clamp_y, 1), "det_R": round(float(np.linalg.det(R)), 6)}
+            "bezel_score_front": round(sf, 0), "bezel_score_rear": round(sr, 0),
+            "det_R": round(float(np.linalg.det(R)), 6)}
     return center, R, diag
 
 def verify_alignment(P_new, F):

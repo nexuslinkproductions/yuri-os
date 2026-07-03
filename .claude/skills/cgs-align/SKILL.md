@@ -68,10 +68,11 @@ bezel → −Y (left)**, mass-centered.
    more complex (1.09 vs 0.88), so `complexity²` tips the score to the clamp — area alone picks the wrong
    (smooth) face. Then **level** it: set the clamp mounting-flat consensus normal exactly to +Z (fixes
    roll + pitch together).
-3. **Bezel → −Y** — the clamp sits rear-of-centre and the bezel protrudes forward, so the bezel is the
-   length end FARTHEST from the clamp's Y-position. **Caveat:** weak when the clamp is centered
-   (`clamp_y_pos ≈ 0`, as on the PL2 — it worked but by a thin margin); the reflector-dish cue is the
-   intended tiebreaker (not yet wired). Render-verify the bezel direction on lights.
+3. **Bezel → −Y** — the **REFLECTOR/lens end** (owner cue #2). Do NOT key off the mount's position — it
+   varies (clamp vs single screw, centered vs offset). Key off the light-emitting end itself: score each
+   end by `cap_area × reflector_bowl_depth` (forward-facing lens cap × how much the centre is recessed
+   behind the rim). Higher end → bezel → −Y. Calibrated on the PL2: bezel 2573 vs tail 1428 (1.8× margin);
+   robust from a scrambled start. Render-verify the bezel direction on lights.
 4. **Apply** — same as gun (bake verts, identity matrix, store transform).
 
 ## Invocation (blender-mcp must be live on :9876)
@@ -97,11 +98,11 @@ print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (
 
 Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`, `R_offdiag_max < 0.01`,
 `dims_ordered_yzx`, `grip_is_down == True`, muzzle at `front_y` (min Y). For a light: `det_R == 1.0`,
-`clamp_complexity` clearly the max (the structured face was found). Then **render a side view with a
-horizontal reference bar** (a thin cuboid along Y at Z=0) and confirm the slide top / clamp face is
-parallel to it — do NOT trust the eye alone on the raw render (an elongated gun with a low-rear grip
-reads as tilted even when level; this fooled the build repeatedly until the bar + measurement settled it).
-On a light, also confirm the **bezel points −Y** (the far-from-clamp cue is weak for a centered clamp).
+`clamp_complexity` clearly the max (the structured mount was found), `bezel_score_front > bezel_score_rear`
+(reflector at −Y). Then **render a side view with a horizontal reference bar** (a thin cuboid along Y at
+Z=0) and confirm the slide top / clamp face is parallel to it — do NOT trust the eye alone on the raw
+render (an elongated gun with a low-rear grip reads as tilted even when level; this fooled the build
+repeatedly until the bar + measurement settled it). On a light, also confirm the **bezel points −Y**.
 If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 
 ## Safety conventions
@@ -119,7 +120,9 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
   muzzle-left, slide-level) + volume-centroid, near-cubic light, ambiguity, reversibility.
   Re-run: `"…/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_align_math.py`.
 - **LIGHT MODE OWNER-CONFIRMED 2026-07-03** on the OLIGHT PL2 Valkyrie (63,112 verts, `mode="light"`):
-  rail clamp up + level, bezel −Y. Clamp found by `flat_area × complexity²` (structure, not size).
+  rail clamp up + level, bezel −Y. Mount (clamp OR single screw) found by `flat_area × complexity²`
+  (the machined mount, not the smooth body); bezel found by the reflector bowl (`cap_area × bowl_depth`).
+  Both robust from a scrambled start. **Single-screw-mount lights: not yet tested** — validate when one is available.
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
@@ -151,6 +154,9 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 - **Calibrated against ground truth** (clamp known at +X): the clamp face has the SAME-or-LESS flat area
   than the smooth body panel (965 vs 1158) but far higher **structural complexity** (1.09 vs 0.88) from the
   rail slot + cross-bolt + lever. Score `flat_area × complexity²` → picks the clamp; area alone picks the
-  body. Then level the clamp mounting-flat consensus normal → +Z. Bezel = far-from-clamp (weak when the
-  clamp is centered, as here — worked by a thin margin; reflector-dish tiebreaker noted, not yet wired).
+  body. Then level the clamp mounting-flat consensus normal → +Z.
+- **Bezel — first tried "far from clamp" (weak: clamp position varies, and single-screw lights have no clamp
+  to measure from). Owner: "reference the mount for level; it's always the datum, like a gun's rail." So
+  bezel now keys off the REFLECTOR itself (cue #2): `cap_area × bowl_depth`, bezel = higher end → −Y.
+  Calibrated (bezel bowl 5.4 vs tail 3.7); robust from a scrambled start (2573 vs 1428).**
 - Same lesson as the gun: renders fool the eye; the owner's viewport + a per-side calibration are ground truth.
