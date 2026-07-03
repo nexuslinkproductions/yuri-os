@@ -427,7 +427,7 @@ def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
             "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 8: decimate + re-solidify
-def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=125000,
+def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=123000,
                   remesh=False):
     """Reduce to a clean manifold solid at a controllable FACE BUDGET. Two modes:
     • remesh=True (default): decimate then voxel-remesh to the budget. Uniform quads, but the remesh
@@ -448,13 +448,13 @@ def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7,
                 bpy.ops.object.modifier_apply(modifier="dec")
             return w
         r=max(0.02, min(1.0, target_faces/float(max(src_tris,1))))
-        work=_collapse(r); fa=len(work.data.polygons)
-        if fa>0 and abs(fa-target_faces)/float(target_faces)>0.05:   # one measure+correct pass
+        work=_collapse(r); fa=len(work.data.polygons); tries=1
+        while fa>0 and abs(fa-target_faces)/float(target_faces)>0.015 and tries<5:  # converge to <1.5% (owner band 120-125k)
             r=max(0.02, min(1.0, r*target_faces/float(fa)))
-            bpy.data.objects.remove(work, do_unlink=True); work=_collapse(r); fa=len(work.data.polygons)
+            bpy.data.objects.remove(work, do_unlink=True); work=_collapse(r); fa=len(work.data.polygons); tries+=1
         nm,bd=_manifold(work.data)
         return work, {"mode":"decimate-collapse","ratio":round(r,3),"target_faces":target_faces,
-                      "faces":fa,"verts":len(work.data.vertices),"nonmanifold":nm,"boundary":bd}
+                      "faces":fa,"iters":tries,"verts":len(work.data.vertices),"nonmanifold":nm,"boundary":bd}
     work=_dup(obj, out_name+"_DEC"); _activate(work)
     for i in range(times):
         m=work.modifiers.new("dec%d"%i,"DECIMATE"); m.decimate_type='COLLAPSE'; m.ratio=ratio

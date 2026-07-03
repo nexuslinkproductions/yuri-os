@@ -8,7 +8,7 @@
 
   "solidify": { "voxel_size": 0.4, "_note": "voxel-fill the MOLD into one manifold solid before cutting; precondition for a clean boolean. 0.4 keeps corners crisp (matches the sweep)." },
 
-  "decimate": { "target_faces": 125000, "times": 1, "ratio": 0.5, "voxel": 0.7, "remesh": false, "_note": "FINAL deliverable FACE BUDGET (owner 2026-07-03: ~120-130k faces) WITH crisp corners. remesh=false: decimate-COLLAPSE straight to target_faces (vs TRIS) and SKIP the voxel re-solidify — collapse sheds flat faces first, PRESERVING the crisp corners the 0.4 sweep produced; a voxel-remesh would round them back. ★ so crispness = sweep voxel (0.4), face count = this decimate budget — two independent levers. remesh=true (legacy) re-solidifies to the budget via auto-solved voxel but ROUNDS corners. Glock 43X: 0.4 sweep -> collapse ratio 0.289 -> 119,549 faces, manifold 0/0." },
+  "decimate": { "target_faces": 123000, "times": 1, "ratio": 0.5, "voxel": 0.7, "remesh": false, "_note": "FINAL deliverable FACE BUDGET (owner 2026-07-03: settle anywhere 120-125k faces) WITH crisp corners. target_faces centered at 123000; a convergence loop (<=5 collapse passes, <1.5% tol) lands inside the band (Glock: 121,643 faces, 3 iters). remesh=false: decimate-COLLAPSE straight to target_faces (vs TRIS) and SKIP the voxel re-solidify — collapse sheds flat faces first, PRESERVING the crisp corners the 0.4 sweep produced; a voxel-remesh would round them back. ★ crispness = sweep voxel (0.4), face count = this budget — two independent levers. remesh=true (legacy) re-solidifies to the budget via auto-solved voxel but ROUNDS corners." },
 
   "grip_cut": {
     "enabled": true,
