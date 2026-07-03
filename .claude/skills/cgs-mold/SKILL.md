@@ -41,6 +41,9 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    2026-07-03, Glock 43X + TLR-7]. UNION every substantial island (gun + light + rail), drop only specks, seal + center.
    Universal replacement for "keep the largest island" — the reason the dip now reaches the
    furthest-forward feature (muzzle OR light bezel) on any gun. Check `islands_kept` + `front_feature_z`.
+   **Centering (owner 2026-07-03):** length (Y) + height (Z) on MASS, but WIDTH (X, the vertical
+   clamshell-seam axis) on the **SIGHT CHANNEL** (`_sight_channel_x`) — mass is pulled off the true
+   centerline by one-sided controls, so the seam (X=0) must reference the sights. Verify `sight_x_post`≈0.
 1. **Swept solid (the dip)** — `sweep_dip()` [VALIDATED 2026-07-02]. FULL-LENGTH translational dip
    of GUN_SOLID along +Y — **furthest-forward feature all the way to the end** (travel = assembled
    Y-span, muzzle OR light bezel — whichever protrudes) so every
@@ -202,6 +205,13 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
   PRESERVES corners — a voxel-remesh rounds them). Glock 43X (0.4 throughout → collapse to budget):
   **119,549 faces, crisp corners, manifold 0/0**, re-exported `Glock 43X TLR-7 HL-X Sub.stl` (7.5 MB).
   Cost: sweep ~17s (was ~2s) + denser cut/smooth — worth it for the corners.
+- **Split-seam alignment (owner: "the vertical left/right seam must pass through the SIGHT CHANNEL, not
+  the mass").** The clamshell seam is the X=0 vertical plane (owner splits it there); mass-centering the
+  width put it off the sights because one-sided controls pull the centroid off the true centerline.
+  Fix: `assemble_gun_solid` now centers WIDTH (X) on `_sight_channel_x` (slide-top bilateral-symmetry,
+  trimmed 2/98 pct), length+height still mass. Glock 43X: sight_x_post **0.0** (on the seam), mass_x_post
+  **+0.178** (mass≠sight, proof we used the sight). Full re-run + re-export, 121,228 faces, manifold 0/0.
+  Owner-confirmed intent (front-view AskUserQuestion): vertical seam, make it exact + guaranteed.
 
 ### 2026-07-02
 - gun: SIG 1911 + TLR-1 HL-X (scan `01_SIG 1911_TLR-1 HL-X_SOLID GUN FOR AUTOMATION.stl`, 93.5k v,

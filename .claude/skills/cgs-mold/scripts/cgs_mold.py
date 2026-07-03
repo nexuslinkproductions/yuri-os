@@ -84,6 +84,19 @@ def _shade(obj, auto_deg=30.0):
     except Exception: pass   # angle-sharpening is a shading nicety; geometry already carries the edges
 
 # ---------------------------------------------------------------- stage 1: assemble + seal GUN_SOLID
+def _sight_channel_x(P, top_frac=0.15):
+    """X of the SIGHT-CHANNEL centerline = the bilateral-symmetry center of the slide TOP band.
+    The clamshell seam (a vertical X=const plane) must halve the gun through the sights — but the MASS
+    centroid is pulled off that true centerline by one-sided controls (slide stop, mag release), so
+    mass-centering the width axis misses the sights. Trimmed extremes (2/98 pct) of the top band give
+    a robust symmetry center (the slide top / sights / optic all sit on the gun's optical centerline).
+    Owner 2026-07-03: width axis centers on THIS, not mass; length (Y) + height (Z) stay mass-centered."""
+    Z=P[:,2]; zmax=float(Z.max()); H=zmax-float(Z.min())
+    Xt=P[Z>zmax-top_frac*max(H,1e-6), 0]
+    if len(Xt)<4: return float(P[:,0].mean())
+    lo,hi=np.percentile(Xt,2), np.percentile(Xt,98)
+    return float((lo+hi)/2.0)
+
 def _island_ids(ei, ej, N):
     """Connected-component id per vertex (numpy union-find over the edge list)."""
     parent=list(range(N))
@@ -144,12 +157,18 @@ def assemble_gun_solid(scan_names, out_name="GUN_SOLID", speck_frac=0.02, center
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me=bpy.data.meshes.new(out_name); bm.to_mesh(me); bm.free()
     obj=bpy.data.objects.new(out_name, me); coll.objects.link(obj); obj.matrix_world.identity()
+    sx=0.0
     if center:
-        Q=_world_verts(obj); Q-=Q.mean(0); me.vertices.foreach_set("co", Q.ravel()); me.update()
+        Q=_world_verts(obj); c=Q.mean(0)                 # mass center for length (Y) + height (Z)...
+        sx=_sight_channel_x(Q); c[0]=sx                  # ...but WIDTH (X, split seam) on the SIGHT CHANNEL, not mass
+        Q-=c; me.vertices.foreach_set("co", Q.ravel()); me.update()
     Q=_world_verts(obj); fi=int(np.argmin(Q[:,1])) if len(Q) else 0
     nm,bd=_manifold(me)
     n_islands=len(diag); n_kept=int(sum(1 for r in diag if diag[r]>=speck_frac*dmax and diag[r]>0))
     return obj, {"islands_total":n_islands, "islands_kept":n_kept, "specks_dropped":n_islands-n_kept,
+                 "width_center":"sight_channel",
+                 "sight_x_post":round(float(_sight_channel_x(Q)),3) if len(Q) else 0.0,   # ~0 => seam hits the sights
+                 "mass_x_post":round(float(Q[:,0].mean()),3) if len(Q) else 0.0,           # mass offset from the seam
                  "front_y":round(float(Q[:,1].min()),2) if len(Q) else 0.0,
                  "front_feature_z":round(float(Q[fi,2]),1) if len(Q) else 0.0,   # low z => a light drives the front
                  "rear_y":round(float(Q[:,1].max()),2) if len(Q) else 0.0,

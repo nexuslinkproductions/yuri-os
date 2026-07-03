@@ -9,7 +9,8 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
 - Input: gun scan STL, e.g. `…/HK_45_TACTICAL_PACKAGE/01 …SCAN FULL GUN.stl`.
 - The raw scan is **already correctly oriented**: width=X (~37mm), barrel/length=Y (~222mm),
   upright/height=Z (~145mm — the gun's REAL slide-top-to-grip-bottom height; NOT ~80).
-  **Do NOT PCA-align** — that broke a correct alignment. Just center on origin.
+  **Do NOT PCA-align** — that broke a correct alignment. Center on origin: mass for length (Y) + height
+  (Z), but the WIDTH (X, the clamshell-seam axis) on the SIGHT CHANNEL, not mass (see VALIDATED step 2).
 - Draw exit / grip = **+Y**; muzzle = −Y; up = +Z.
 
 ## VALIDATED steps
@@ -26,7 +27,16 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    (assembled Y-span) reaches it automatically — universal across gun/light proportions. The G17
    session did this by hand ("joined + kept both islands"); `assemble_gun_solid` codifies it.
    <!-- @anchor: v1 | failure: cgs-mold sweep incomplete on short-gun/big-light — light island dropped by 'keep largest island', dip stopped at muzzle not light bezel (René 2026-07-03) | regression: assemble_gun_solid() unions all substantial islands; sweep_dip front_feature_z diagnostic; VALIDATED live 2026-07-03 Glock 43X + TLR-7 (2 islands both kept, dip full 175.8mm from light bezel Y-74.1) -->
-2. **Center** on origin (mean-subtract) — folded into `assemble_gun_solid(center=True)`.
+2. **Center** — folded into `assemble_gun_solid(center=True)`. ★ SPLIT-AXIS RULE (owner 2026-07-03):
+   length (Y) + height (Z) center on MASS (mean-subtract), but the WIDTH (X) — the axis of the vertical
+   left/right clamshell seam — centers on the **SIGHT CHANNEL**, not mass. The mass centroid is pulled
+   off the true centerline by one-sided controls (slide stop, mag release), so a mass-centered seam
+   misses the sights; the owner splits the mold on the world Z-axis line (X=0) and it must run through
+   the sights. `_sight_channel_x` = bilateral-symmetry center of the slide-TOP band (trimmed 2/98 pct;
+   the slide top / sights / optic all sit on the gun's optical centerline). Glock 43X: after centering,
+   sight_x=0.0 (on the seam), mass_x=+0.178 (proof mass≠sight, and we used the sight). Small here but
+   guaranteed exact on any frame.
+   <!-- @anchor: v1 | failure: cgs-mold clamshell seam missed the sight channel — width mass-centered, but one-sided controls pull mass off the true centerline (René 2026-07-03) | regression: _sight_channel_x width-centering in assemble_gun_solid; sight_x_post/mass_x_post in the return; VALIDATED Glock 43X sight_x=0.0 -->
 3. **Seal → GUN_SOLID** — `remove_doubles → fill_holes → recalc normals` → a **watertight
    manifold solid** (0 boundary, 0 non-manifold), also folded into `assemble_gun_solid`. This IS the
    dip's "negative filled + solidified" — the gun as a clean solid. Confirmed solid (front view =
