@@ -77,11 +77,12 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    guard stay put. Push the region verts outward along normals, feathered ~2mm at the line (no
    ridge). Verify the region bbox grew outward (else normals were inward). [VALIDATED]
    **`z_line` is scan-relative (2026-07-03)** — auto-seeded from the mold's own height, not the HK45 14mm.
-5b. **Decimate + re-solidify to a FACE BUDGET** (`decimate_mold`, VALIDATED 2026-07-03) — light
-   `DECIMATE COLLAPSE` un-subdivide, then a `solidify_mold` voxel-remesh whose voxel is **auto-solved
-   to hit `target_faces` ≈ 125k** (owner wants ~120-130k faces). ★ The re-solidify voxel — NOT the
-   decimate — sets final density (the remesh regenerates), so keep decimation light. Glock 43X: solved
-   voxel 0.588 → 125,078 faces, manifold 0/0.
+5b. **Reduce to the FACE BUDGET — decimate-collapse, corners preserved** (`decimate_mold`, default
+   `remesh=False`, VALIDATED 2026-07-03) — `DECIMATE COLLAPSE` straight to `target_faces` ≈ 125k, NO
+   voxel re-solidify. ★ Two INDEPENDENT levers: **crispness = the sweep voxel (0.4)**; **face count =
+   this budget.** Collapse sheds flat faces first so it KEEPS the crisp corners the 0.4 sweep produced —
+   a voxel-remesh (`remesh=True`, legacy) would round them back. Ratio is vs TRIS (collapse
+   triangulates) with one measure+correct. Glock 43X: 0.4 sweep → collapse → 119,549 faces, manifold 0/0.
 6. **Export — ONE solid piece** (`export_mold`) — owner directive (2026-07-03): **NO clamshell split
    anymore.** After decimate+re-solidify, export the whole mold as a single STL into the fixed handoff
    folder **`C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\<gun-name>.stl`** (not the gun's own scan
@@ -103,8 +104,10 @@ gun, sa = assemble_gun_solid(["<gun-scan>", "<light-scan-if-separate>"])   # -> 
 #    check sa["islands_kept"] covers every real part, and sa["front_feature_z"] (low => a forward light drives the front)
 # 2. THE DIP (full-length, furthest-forward feature -> end): produces a filled manifold 0/0 solid directly
 solid, s = sweep_dip(gun)                                     # -> CGS_MOLD_SOLID  (travel = full assembled Y-span)
+# 2b. sweep_dip default voxel=0.4 -> CRISP corners (0.7 rounded them). ~17s, base ~666k verts.
 # 3. cut A (diagonal grip) + cut B (vertical tail) -> smooth -> remove_overhang? -> offset
-# 4. decimate x2 + re-solidify -> export_mold(final, "<gun-name>")   # ONE solid piece, NO split (owner 2026-07-03)
+# 4. decimate_mold(smo) -> export_mold(final, "<gun-name>")   # remesh=False collapse to ~125k faces,
+#    corners preserved; ONE solid piece, NO split (owner 2026-07-03)
 ```
 
 Every stage is a standalone function — `sweep_dip`, `solidify_mold`, `cut_grip`, `smooth_mold`,
@@ -189,10 +192,16 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
   - Remaining HK45 absolute now retired from the live path; `_bore_center_x` z_min=32 is moot (split gone).
 - **Density fix (owner: "too much decimation, want ~120-130k faces; had 88,140").** Root cause: the final
   count is set by the re-solidify VOXEL, not the decimate (the voxel remesh regenerates density — the
-  decimate before it barely matters). Fixed with a FACE BUDGET: `decimate_mold(target_faces=125000)`
-  auto-solves the re-solidify voxel (faces ~ 1/voxel², one measure+correct) and defaults decimation
-  lighter (`times=1`). Glock 43X → solved voxel 0.588 → **125,078 faces**, manifold 0/0, re-exported
-  `Glock 43X TLR-7 HL-X Sub.stl` (12.2 MB). Surface held (finer voxel follows the smoothed surface).
+  decimate before it barely matters). Fixed with a FACE BUDGET: `decimate_mold(target_faces=125000)`.
+- **Crisp corners (owner: "voxel didn't give what I want — I want crisp corners; use 0.4 at sweep+solidify").**
+  Root cause: corner sharpness is locked at the FIRST voxelization — `sweep_dip`/`solidify_mold` at 0.7
+  rounded every corner to 0.7mm BEFORE smoothing ran, and no finer FINAL voxel recovers it. Proven with a
+  same-face-count A/B (0.7 vs 0.4 sweep): 0.4 corners visibly crisp. Two independent levers established —
+  **crispness = sweep voxel, face count = final decimate**. Defaults changed: `sweep_dip`/`solidify_mold`
+  voxel **0.7 → 0.4**; `decimate_mold` default **`remesh=False`** (decimate-COLLAPSE to the budget, which
+  PRESERVES corners — a voxel-remesh rounds them). Glock 43X (0.4 throughout → collapse to budget):
+  **119,549 faces, crisp corners, manifold 0/0**, re-exported `Glock 43X TLR-7 HL-X Sub.stl` (7.5 MB).
+  Cost: sweep ~17s (was ~2s) + denser cut/smooth — worth it for the corners.
 
 ### 2026-07-02
 - gun: SIG 1911 + TLR-1 HL-X (scan `01_SIG 1911_TLR-1 HL-X_SOLID GUN FOR AUTOMATION.stl`, 93.5k v,

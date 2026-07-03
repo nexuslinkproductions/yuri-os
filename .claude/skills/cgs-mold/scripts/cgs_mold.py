@@ -157,7 +157,7 @@ def assemble_gun_solid(scan_names, out_name="GUN_SOLID", speck_frac=0.02, center
                  "verts":len(me.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 2: the dip / draw sweep
-def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.7, boot=2.0, travel=None):
+def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.4, boot=2.0, travel=None):
     """FULL-LENGTH translational 'dip' of the sealed GUN_SOLID along +Y, as ONE clean filled
     manifold solid. THE VALIDATED SWEEP (owner-confirmed 2026-07-02, SIG 1911 + TLR-1 HL-X).
 
@@ -214,8 +214,9 @@ def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.7, boot=2.0, travel=
                  "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 3: solidify
-def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.7):
-    """Voxel-fill the mold shell into ONE filled manifold solid (the cut precondition)."""
+def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.4):
+    """Voxel-fill the mold shell into ONE filled manifold solid (the cut precondition).
+    voxel default 0.4 (2026-07-03) — fine enough to keep corners crisp; 0.7 rounds them."""
     obj=_dup(src, out_name); _activate(obj)
     obj.data.remesh_voxel_size=voxel; obj.data.remesh_voxel_adaptivity=0.0
     bpy.ops.object.voxel_remesh()
@@ -426,14 +427,34 @@ def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
             "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 8: decimate + re-solidify
-def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=125000):
-    """Un-subdivide + re-solidify to a clean filled manifold solid, at a controllable FACE BUDGET.
-    ★ The final density is set by the RE-SOLIDIFY voxel, NOT the decimate — the voxel remesh
-    regenerates the mesh, so decimation before it only sheds detail (keep `times` low). Owner
-    (2026-07-03) wants ~120-130k FACES on the deliverable, so pass `target_faces` and the re-solidify
-    voxel is AUTO-SOLVED (faces ~ 1/voxel^2, one measure+correct pass) — a face budget, not a voxel
-    guess. `times` decimate passes are the un-subdivide substitute before the remesh. Owner order:
-    smooth -> offset -> decimate -> re-solidify(face-budgeted) -> EXPORT (single piece, no split)."""
+def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=125000,
+                  remesh=False):
+    """Reduce to a clean manifold solid at a controllable FACE BUDGET. Two modes:
+    • remesh=True (default): decimate then voxel-remesh to the budget. Uniform quads, but the remesh
+      ROUNDS corners to the voxel — fine when the sweep was coarse anyway.
+    • remesh=False: decimate-COLLAPSE straight to target_faces and SKIP the voxel re-solidify. Collapse
+      sheds flat faces first, so it PRESERVES the crisp corners a FINE sweep (e.g. 0.4) produced. This
+      is the 'crisp corners + face budget' path (owner 2026-07-03): sweep+solidify at 0.4 for crisp
+      corners, then decimate (not remesh) down to ~125k faces.
+    ★ In remesh=True the RE-SOLIDIFY voxel — NOT the decimate — sets final density (the remesh
+    regenerates), auto-solved from target_faces (faces ~ 1/voxel^2). In remesh=False the decimate ratio
+    is solved from the current face count. Owner order: smooth -> offset -> decimate_mold -> EXPORT."""
+    if not remesh and target_faces:
+        src_tris=sum(len(p.vertices)-2 for p in obj.data.polygons)   # COLLAPSE triangulates -> budget is vs TRIS, not quads
+        def _collapse(rr):
+            w=_dup(obj, out_name); _activate(w)
+            if rr<1.0:
+                m=w.modifiers.new("dec","DECIMATE"); m.decimate_type='COLLAPSE'; m.ratio=rr
+                bpy.ops.object.modifier_apply(modifier="dec")
+            return w
+        r=max(0.02, min(1.0, target_faces/float(max(src_tris,1))))
+        work=_collapse(r); fa=len(work.data.polygons)
+        if fa>0 and abs(fa-target_faces)/float(target_faces)>0.05:   # one measure+correct pass
+            r=max(0.02, min(1.0, r*target_faces/float(fa)))
+            bpy.data.objects.remove(work, do_unlink=True); work=_collapse(r); fa=len(work.data.polygons)
+        nm,bd=_manifold(work.data)
+        return work, {"mode":"decimate-collapse","ratio":round(r,3),"target_faces":target_faces,
+                      "faces":fa,"verts":len(work.data.vertices),"nonmanifold":nm,"boundary":bd}
     work=_dup(obj, out_name+"_DEC"); _activate(work)
     for i in range(times):
         m=work.modifiers.new("dec%d"%i,"DECIMATE"); m.decimate_type='COLLAPSE'; m.ratio=ratio
