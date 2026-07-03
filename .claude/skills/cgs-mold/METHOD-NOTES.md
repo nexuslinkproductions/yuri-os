@@ -116,7 +116,10 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    (`CGS_HALF_L`/`CGS_HALF_R` → `CGS_HALF_L_SOLID`/`CGS_HALF_R_SOLID`) — the split's bisect+holes_fill
    cap is already manifold, but the owner wants each half independently re-solidified as the final
    robustness pass before export, not just the pre-split whole.
-10. **Clamshell split — VALIDATED 2026-06-30 (`split_mold`)** — a clean SPLIT, **not a saw cut**.
+10. **Clamshell split — DEPRECATED 2026-07-03 (owner: "in future DO NOT split the mold anymore; after
+   DECIMATE, proceed to EXPORT").** The mold now ships as ONE solid piece via `export_mold`; `split_mold`
+   (+ `_bore_center_x`) is kept in the engine for reference only, out of the pipeline. History below
+   retained for context. ~~VALIDATED 2026-06-30 (`split_mold`)~~ — a clean SPLIT, **not a saw cut**.
    `bisect_plane` + `holes_fill` per side → two **capped, closed, manifold** halves; together they
    reconstitute the whole mold (verified **0.006% vol loss** = float noise). Owner corrections that
    shaped this:
@@ -192,7 +195,7 @@ walled → **voxel-fill into a solid, then cut**. Don't rebuild the sweep.
 - NEXT (still TODO): **alignment pins** on the split mating faces.
   **`sweep_dip` (the dip/draw sweep) is now VALIDATED** (2026-07-02, `sweep_dip()` in the engine) —
   the last remaining upstream gap is closed; a run now goes scan → seal → `sweep_dip` → cut A/B →
-  smooth → offset → decimate → split → export end-to-end. Seal is trivial when the scan is already a
+  smooth → offset → decimate → export (ONE piece, no split — owner 2026-07-03) end-to-end. Seal is trivial when the scan is already a
   watertight solid (e.g. René's "SOLID GUN FOR AUTOMATION" exports).
 - Skill files: `.claude/skills/cgs-mold/{SKILL.md, METHOD-NOTES.md, scripts/cgs_mold.py(VALIDATED engine), params/hk45.json}`.
 
@@ -237,6 +240,29 @@ owner corrections reshaped the grip-cut stage:
      footprint at other Y positions) — a short travel leaves the guard open. Which is wanted is a
      per-mold call; both are achievable, just tune the sweep travel and let cut B clean up the tail
      either way.
-4. Order for this stage: solidify_mold → cut A (diagonal grip) → cut B (vertical tail-shorten,
+4. Order for this stage: cut A (`cut_grip`, diagonal grip) → cut B (`cut_tail`, vertical tail-shorten,
    preserving the real beavertail length) → smooth_mold → (remove_overhang only if a render shows a
-   stray flap — this gun's cleaner cut edge didn't need it) → offset_mold → split_mold.
+   stray flap) → offset_mold → decimate_mold → **export_mold** (single piece; split removed 2026-07-03).
+
+## SCAN-RELATIVE CUT/OFFSET — HK45 constants retired (2026-07-03, validated on Glock 43X + TLR-7)
+
+Both cuts are now codified (`cut_grip` = cut A, `cut_tail` = cut B) and every per-gun constant is
+scan-derived, not an HK45 absolute — the "keep visual tuning" contract (auto-seed in the ballpark,
+owner's eye sets the final `corner_below`/`beavertail_below`/`z_frac`):
+- **Gun-region tag.** `sweep_dip` records the REAL gun extent on the mold (`obj['gun_rear_y']` /
+  `gun_front_y`). Cut-point + beavertail detection restrict to `Y ≤ gun_rear`, so the dip's excess
+  TAIL is never mistaken for the grip/beavertail. This was the core mis-target: the old
+  `(Z>0)&(Z<35)` + rearmost-vertex grabbed the tail end (Y≈+277 on the Glock), not the beavertail.
+- **Knee (corner).** Proportional: the knee is the last bottom-Z bin before the profile drops past
+  15% of the plateau→grip depth — works on a sharp (HK45/43X) AND a smooth (G17) transition, unlike
+  the old absolute "drop >8mm/bin".
+- **Beavertail.** Rearmost vert in the upper-grip Z band (fractions of the gun-region height, below
+  the slide top), gun region only.
+- **Cube.** Auto-sized from the mold bbox (generous multiples), no fixed `(90,220,220)`.
+- **Cut B / tail trim.** Vertical flat cut at `gun_rear + tail_margin` (default 6mm) — removes the
+  artificial excess only, never the real beavertail.
+- **Offset `z_line`.** Scan-relative seed `zmin + z_frac·(zmax−zmin)` (default z_frac 0.62); Glock
+  landed +16.4 at the slide/frame line. Nudge z_frac or pass z_line per scan.
+Live Glock result (owner-confirmed cut placement): corner Y+34.5, beavertail Y+101.3 (real rear),
+tail Y+107.7, z_line +16.4, all manifold 0/0 → `Glock 43X TLR-7 HL-X Sub.stl` (88k v) exported.
+<!-- @anchor: v1 | failure: cgs-mold cut/offset HK45-hardcoded — beavertail band (Z>0)&(Z<35)+rearmost grabbed the dip tail on non-HK45 frames; knee/z_line absolute (René 2026-07-03) | regression: gun_rear tag + proportional knee + scan-relative beavertail/z_line + cut_tail; VALIDATED live Glock 43X + TLR-7 -->

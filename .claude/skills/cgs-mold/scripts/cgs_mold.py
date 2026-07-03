@@ -208,7 +208,8 @@ def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.7, boot=2.0, travel=
     nm,bd=_manifold(obj.data)
     fV=np.empty((len(obj.data.vertices),3)); obj.data.vertices.foreach_get("co",fV.ravel()); fV=fV.reshape(-1,3)
     fi=int(np.argmin(fV[:,1]))                          # front-most vert (draw axis)
-    return obj, {"travel":round(T,1), "voxel":voxel, "passes":passes,
+    obj["gun_front_y"]=float(gV[:,1].min()); obj["gun_rear_y"]=float(gV[:,1].max())  # REAL gun extent (excl. dip tail) -> downstream cut/offset restrict to it so the tail is never mistaken for the grip/beavertail
+    return obj, {"travel":round(T,1), "voxel":voxel, "passes":passes, "gun_rear_y":round(float(gV[:,1].max()),1),
                  "front_y":round(float(fV[:,1].min()),2), "front_feature_z":round(float(fV[fi,2]),1),
                  "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
 
@@ -228,42 +229,63 @@ def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.7):
     return obj, {"voxel":voxel, "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 4: grip cut
-def _find_cut_points(P, corner_below, bt_below):
-    """Trigger-guard/grip corner (knee of bottom-Z profile) + beavertail (rear, mid-height)."""
+def _find_cut_points(P, corner_below, bt_below, gun_rear=None, bt_band=(0.45,0.90)):
+    """Trigger-guard/grip corner (scan-relative knee of the bottom-Z profile) + beavertail (rearmost
+    upper-grip vert). SCAN-RELATIVE (2026-07-03) — no HK45 absolute Z bands:
+      - restrict to the ORIGINAL gun region (Y <= gun_rear) so the dip's rear TAIL is never mistaken
+        for the grip/beavertail (the old `(Z>0)&(Z<35)` + rearmost grabbed the +Y tail end);
+      - beavertail = rearmost vert in the upper-grip Z band (bt_band as fractions of the gun-region
+        height, below the slide top) — auto-scales to any frame;
+      - knee threshold is a FRACTION of the plateau->grip depth (not an absolute 8mm/bin), so it works
+        on both a sharp (HK45/43X) and a smooth (G17) trigger-guard/grip transition.
+    gun_rear defaults to Y.max(); pass the real gun rear on a full-dip mold (sweep_dip tags it as
+    obj['gun_rear_y']). Cut points are auto-seeded then tuned visually per scan (owner's eye)."""
     X,Y,Z=P[:,0],P[:,1],P[:,2]
     xc=float((X.min()+X.max())/2.0)
-    # beavertail = rearmost (max Y) vertex at thumb-rest height
-    m=(Z>0)&(Z<35); idx=np.where(m)[0]; bt=idx[np.argmax(Y[idx])]
-    bt_y=float(Y[bt]); bt_z=float(Z[bt])
+    gr=float(Y.max()) if gun_rear is None else float(gun_rear)
+    reg=Y<=gr+1e-6; Xr,Yr,Zr=X[reg],Y[reg],Z[reg]
+    zmin,zmax=float(Zr.min()),float(Zr.max()); H=max(zmax-zmin,1e-6)
+    # beavertail = rearmost vert in the upper-grip band (below slide top), gun region only
+    lo,hi=zmin+bt_band[0]*H, zmin+bt_band[1]*H
+    band=(Zr>lo)&(Zr<hi); bi=np.where(band)[0]
+    if len(bi)==0: bi=np.arange(len(Yr))                     # degenerate guard
+    bt=bi[np.argmax(Yr[bi])]; bt_y=float(Yr[bt]); bt_z=float(Zr[bt])
     # corner = knee where the trigger-guard underside plateau ends and the grip plunges.
-    # scan the bottom-Z profile front->rear; the knee is the last bin before the steep drop.
-    ymax=Y.max(); step=3.0
-    bins=np.arange(0.0, ymax+step, step)       # grip region only (Y>=0)
+    step=3.0; ys=np.arange(0.0, gr+step, step)               # grip-transition region (Y>=0), gun only
     prof=[]
-    for i in range(len(bins)-1):
-        sl=(Y>=bins[i])&(Y<bins[i+1])
-        if sl.sum(): prof.append(((bins[i]+bins[i+1])/2.0, float(Z[sl].min())))
-    corner_y, corner_z = prof[0]
-    for k in range(1,len(prof)):
-        y,z=prof[k]
-        if z < prof[k-1][1]-8.0:               # steep plunge into the grip -> knee was previous bin
-            corner_y, corner_z = prof[k-1]; break
-        corner_y, corner_z = y, z
-    A=np.array([xc, corner_y, corner_z-corner_below])   # first cut point
-    B=np.array([xc, bt_y,     bt_z-bt_below])           # second cut point
+    for i in range(len(ys)-1):
+        sl=(Yr>=ys[i])&(Yr<ys[i+1])
+        if sl.sum(): prof.append(((ys[i]+ys[i+1])/2.0, float(Zr[sl].min())))
+    if not prof: prof=[(0.0,zmin)]
+    plateau=float(np.median([z for _,z in prof[:max(1,len(prof)//3)]]))  # front-third plateau level
+    gripz=min(z for _,z in prof)
+    thr=plateau-0.15*(plateau-gripz)                         # scan-relative: knee starts at 15% of plateau->grip depth
+    corner_y,corner_z=prof[0]
+    for y,z in prof:
+        if z<thr: break                                     # first bin past the plateau -> knee is the previous bin
+        corner_y,corner_z=y,z
+    A=np.array([xc, corner_y, corner_z-corner_below])       # first cut point
+    B=np.array([xc, bt_y,     bt_z-bt_below])               # second cut point
     return A, B
 
 def cut_grip(src, out_name="CGS_MOLD_CUT", corner_below=20.0, bt_below=10.0,
-             solver='FLOAT', cube=(90.,220.,220.)):
-    """Diagonal grip cut: cube BOOLEAN DIFFERENCE through (corner-Nmm)->(beavertail-Mmm).
-    FLOAT solver on the filled solid (EXACT empties on heavy voxel meshes)."""
+             solver='FLOAT', cube=None, gun_rear=None):
+    """Cut A — diagonal grip cut: cube BOOLEAN DIFFERENCE through (corner-Nmm)->(beavertail-Mmm).
+    FLOAT solver on the filled solid (EXACT empties on heavy voxel meshes). SCAN-RELATIVE (2026-07-03):
+    cut points auto-restricted to the real gun region (gun_rear from obj['gun_rear_y'] so the dip tail
+    is excluded), cube auto-sized from the mold bbox — no HK45 magic numbers. Owner's eye still tunes
+    `corner_below`/`bt_below` per scan (render-verify)."""
     from mathutils import Vector, Euler
     obj=_dup(src, out_name)
     P=_world_verts(src)
-    A,B=_find_cut_points(P, corner_below, bt_below)
+    gr = (src.get("gun_rear_y") if gun_rear is None else gun_rear)
+    A,B=_find_cut_points(P, corner_below, bt_below, gun_rear=gr)
     A=Vector(A.tolist()); B=Vector(B.tolist()); M=(A+B)/2
     alpha=math.atan2(B.z-A.z, B.y-A.y)                 # tilt about X so top face follows A->B
     u=Vector((0,-math.sin(alpha),math.cos(alpha)))    # top-face normal (away from grip)
+    if cube is None:
+        ext=P.max(0)-P.min(0)                          # engulf the grip: generous multiples of the mold bbox
+        cube=(float(ext[0]*3+40), float(ext[1]*1.5+80), float(ext[2]*1.6+40))
     Lx,Ly,Lz=cube; loc=M-(Lz/2.0)*u
     me=bpy.data.meshes.new("GRIP_CUTTER"); bm=bmesh.new(); bmesh.ops.create_cube(bm,size=1.0)
     for v in bm.verts: v.co.x*=Lx; v.co.y*=Ly; v.co.z*=Lz
@@ -273,9 +295,48 @@ def cut_grip(src, out_name="CGS_MOLD_CUT", corner_below=20.0, bt_below=10.0,
     mod=obj.modifiers.new("grip","BOOLEAN"); mod.operation='DIFFERENCE'; mod.object=cutter; mod.solver=solver
     _activate(obj); bpy.ops.object.modifier_apply(modifier="grip")
     bpy.data.objects.remove(cutter, do_unlink=True)
+    if src.get("gun_rear_y") is not None:              # propagate the gun-extent tag through the cut
+        obj["gun_front_y"]=src.get("gun_front_y", float(P[:,1].min())); obj["gun_rear_y"]=src["gun_rear_y"]
     nm,bd=_manifold(obj.data)
     return obj, {"A":[round(c,1) for c in A], "B":[round(c,1) for c in B],
-                 "alpha_deg":round(math.degrees(alpha),1), "verts":len(obj.data.vertices),
+                 "alpha_deg":round(math.degrees(alpha),1), "cube":[round(c,1) for c in cube],
+                 "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
+
+def cut_tail(src, out_name="CGS_MOLD_CUT2", gun_rear=None, margin=6.0, solver='FLOAT'):
+    """Cut B — vertical flat cut perpendicular to the draw axis (constant Y) that removes ONLY the
+    dip's artificial excess tail past the REAL beavertail (Y = gun_rear + margin). Never shortens the
+    real beavertail (owner: 'beavertail must not be cut off'). A full-length dip drags a slide-height
+    tail past the grip that a single diagonal (cut A) cannot clear; this flat cut removes it regardless
+    of height. SCAN-RELATIVE (2026-07-03): gun_rear from obj['gun_rear_y']; cutter auto-sized from bbox.
+    Skips (returns src copy unchanged) if there is no excess tail past gun_rear+margin."""
+    from mathutils import Vector
+    obj=_dup(src, out_name)
+    P=_world_verts(src)
+    gr=(src.get("gun_rear_y") if gun_rear is None else gun_rear)
+    if gr is None: gr=float(P[:,1].max())
+    yc=float(gr)+margin
+    if float(P[:,1].max())<=yc:                        # no excess tail -> nothing to trim
+        if src.get("gun_rear_y") is not None:
+            obj["gun_front_y"]=src.get("gun_front_y",float(P[:,1].min())); obj["gun_rear_y"]=gr
+        nm,bd=_manifold(obj.data)
+        return obj, {"cut_y":round(yc,1), "trimmed":False, "verts":len(obj.data.vertices),
+                     "nonmanifold":nm, "boundary":bd}
+    ext=P.max(0)-P.min(0)
+    Lx,Lz=float(ext[0]*3+40), float(ext[2]*3+40)
+    Ly=float((P[:,1].max()-yc)+80)                     # spans from the cut plane out past the tail end
+    me=bpy.data.meshes.new("TAIL_CUTTER"); bm=bmesh.new(); bmesh.ops.create_cube(bm,size=1.0)
+    for v in bm.verts: v.co.x*=Lx; v.co.y*=Ly; v.co.z*=Lz
+    bm.to_mesh(me); bm.free()
+    cutter=bpy.data.objects.new("TAIL_CUTTER", me); src.users_collection[0].objects.link(cutter)
+    cutter.location=Vector((float((P[:,0].min()+P[:,0].max())/2), yc+Ly/2.0,
+                            float((P[:,2].min()+P[:,2].max())/2)))   # -Y face sits on the cut plane
+    mod=obj.modifiers.new("tail","BOOLEAN"); mod.operation='DIFFERENCE'; mod.object=cutter; mod.solver=solver
+    _activate(obj); bpy.ops.object.modifier_apply(modifier="tail")
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    if src.get("gun_rear_y") is not None:
+        obj["gun_front_y"]=src.get("gun_front_y",float(P[:,1].min())); obj["gun_rear_y"]=gr
+    nm,bd=_manifold(obj.data)
+    return obj, {"cut_y":round(yc,1), "trimmed":True, "verts":len(obj.data.vertices),
                  "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 5: smooth (4 sub-passes)
@@ -341,15 +402,19 @@ def remove_overhang(obj, box, factor=0.6, iters=25, rings=3):
             "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 7: regional offset
-def offset_mold(obj, z_line=14.0, feather=2.0, offset=0.4):
+def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
     """Thicken ONLY the slide+barrel+beavertail (Kydex shrink comp) — owner corrected the
     earlier 'offset everywhere' to this region (2026-06-30). Push verts ABOVE the slide/frame
     parting line outward along their normals by `offset` mm, feathered across `feather` mm at
     the line so there is no hard ridge. The grip/frame/trigger-guard (below z_line) stay put.
     REQUIRES the object in OBJECT mode (edit-mode discards foreach_set). In-place.
-    Verify outward: the region bbox max-X and max-Z must GROW by ~offset (else normals inward)."""
+    Verify outward: the region bbox max-X and max-Z must GROW by ~offset (else normals inward).
+    SCAN-RELATIVE (2026-07-03): z_line=None auto-seeds to zmin + z_frac*(zmax-zmin) of THIS mold's
+    height (was the HK45 absolute 14mm). Render-verify the region boundary and nudge z_frac/z_line."""
     me=obj.data; N=len(me.vertices)
     P=_world_verts(obj); P0=P.copy()
+    if z_line is None:
+        zmn,zmx=float(P[:,2].min()),float(P[:,2].max()); z_line=zmn+z_frac*(zmx-zmn)
     Nrm=np.empty((N,3)); me.vertices.foreach_get("normal", Nrm.ravel())
     w=np.clip((P[:,2]-(z_line-feather/2.0))/feather, 0.0, 1.0)
     P += (w*offset)[:,None]*Nrm
@@ -360,7 +425,22 @@ def offset_mold(obj, z_line=14.0, feather=2.0, offset=0.4):
             "feather":feather, "max_disp_mm":round(float(np.linalg.norm(P-P0,axis=1).max()),3),
             "nonmanifold":nm, "boundary":bd}
 
-# ---------------------------------------------------------------- stage 8: clamshell split
+# ---------------------------------------------------------------- stage 8: decimate + re-solidify
+def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=2, voxel=0.7):
+    """Decimate x`times` (Blender DECIMATE COLLAPSE) as the un-subdivide substitute (true un-subdivide
+    fails on this triangulated topology), then re-solidify (voxel-fill, same size) so the decimated
+    mesh is a clean filled manifold solid. Owner order 2026-07-01/07-03:
+    smooth -> offset -> decimate x2 -> re-solidify -> EXPORT (single piece, NO split)."""
+    work=_dup(obj, out_name+"_DEC"); _activate(work)
+    for i in range(times):
+        m=work.modifiers.new("dec%d"%i,"DECIMATE"); m.decimate_type='COLLAPSE'; m.ratio=ratio
+        bpy.ops.object.modifier_apply(modifier=m.name)
+    sol,ss=solidify_mold(work, out_name=out_name, voxel=voxel)
+    bpy.data.objects.remove(work, do_unlink=True)
+    ss["decimated_x"]=times; ss["ratio"]=ratio
+    return sol, ss
+
+# ---------------------------------------------------------------- (deprecated) clamshell split
 def _bore_center_x(P, y_band=3.0, z_min=32.0):
     """Bore axis X via circle-fit (Kasa) of the muzzle crown in the X-Z plane.
     THE SPLIT GOES THROUGH THE BARREL BORE AXIS, *not* the mold symmetry plane / centroid —
@@ -373,7 +453,10 @@ def _bore_center_x(P, y_band=3.0, z_min=32.0):
     return float(sol[0])
 
 def split_mold(obj, plane_x=None, name_l="CGS_HALF_L", name_r="CGS_HALF_R"):
-    """Split into two CAPPED, closed, manifold clamshell halves along a VERTICAL plane through
+    """DEPRECATED — NOT in the pipeline (owner directive 2026-07-03: 'in future DO NOT split the mold
+    anymore; after DECIMATE, proceed to EXPORT'). The mold now ships as ONE solid piece via
+    `export_mold`. Kept for reference / optional use only; `_bore_center_x` is dead with it.
+    Split into two CAPPED, closed, manifold clamshell halves along a VERTICAL plane through
     the barrel bore axis (or an explicit `plane_x`). bisect + holes_fill = ZERO material loss —
     each half is capped flat on the seam and together they reconstitute the whole mold (NOT a
     saw kerf that removes material — owner correction 2026-06-30). Verify: vol(L)+vol(R) ~=
@@ -399,6 +482,25 @@ def split_mold(obj, plane_x=None, name_l="CGS_HALF_L", name_r="CGS_HALF_R"):
         return o,{"vol":round(vol,1),"nonmanifold":nm_,"boundary":bd}
     L,sl=half(name_l, True); R,sr=half(name_r, False)
     return {"plane_x":round(cx,3), "L":sl, "R":sr}
+
+# ---------------------------------------------------------------- final stage: export (single solid)
+def export_mold(obj, gun_name, out_dir=r"C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS"):
+    """Export the finished mold as ONE STL to the fixed handoff folder — owner directive 2026-07-03:
+    NO clamshell split; after decimate+re-solidify, export the whole mold as a single piece to
+    <out_dir>\\<gun_name>.stl (the fixed cgs-mold handoff location, not the scan's own folder).
+    Selects only `obj`. Blender 4.x uses wm.stl_export; falls back to export_mesh.stl on older builds."""
+    import os
+    os.makedirs(out_dir, exist_ok=True)
+    path=os.path.join(out_dir, gun_name+".stl")
+    for o in bpy.context.selected_objects: o.select_set(False)
+    obj.select_set(True); bpy.context.view_layer.objects.active=obj
+    try:
+        bpy.ops.wm.stl_export(filepath=path, export_selected_objects=True, apply_modifiers=True)
+    except Exception:
+        bpy.ops.export_mesh.stl(filepath=path, use_selection=True)
+    return {"path":path, "exists":os.path.exists(path),
+            "size_kb":round(os.path.getsize(path)/1024,1) if os.path.exists(path) else 0,
+            "verts":len(obj.data.vertices)}
 
 # ---------------------------------------------------------------- orchestrator
 def build_mold(mold_shell_name, params, out_name=None):

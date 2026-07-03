@@ -73,27 +73,19 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    high-iteration local Laplacian pulls it flush while the flat cut verts hold. [VALIDATED]
 5. **Offset +0.4 mm — SLIDE REGION ONLY** (`offset_mold`) — owner corrected (2026-06-30): the
    +0.4mm Kydex-shrink comp goes on the **barrel + slide + beavertail only** (the top assembly
-   above the slide/frame parting line, `z_line`≈14mm), NOT everywhere — the grip/frame/trigger
+   above the slide/frame parting line, `z_line`), NOT everywhere — the grip/frame/trigger
    guard stay put. Push the region verts outward along normals, feathered ~2mm at the line (no
    ridge). Verify the region bbox grew outward (else normals were inward). [VALIDATED]
+   **`z_line` is scan-relative (2026-07-03)** — auto-seeded from the mold's own height, not the HK45 14mm.
 5b. **Decimate ×2 + re-solidify** (VALIDATED 2026-07-01) — Blender `DECIMATE` modifier (`COLLAPSE`,
    ratio 0.5) applied twice as the un-subdivide substitute (true un-subdivide fails on this
    triangulated topology), immediately followed by another `solidify_mold` pass (same voxel size)
-   to guarantee the decimated mesh is still a clean filled manifold solid before the split.
-6. **Split into clamshell halves** (`split_mold`) — owner spec (2026-06-30): a clean SPLIT, NOT a
-   material-removing saw cut. `bisect_plane` + `holes_fill` on each side → two **capped, closed,
-   manifold** halves that together reconstitute the whole mold (verified **0.006% volume loss** =
-   float noise). The seam is a VERTICAL plane through the **barrel BORE axis** — circle-fit the
-   muzzle crown (`_bore_center_x`), NOT the mold symmetry plane/centroid (one-sided controls pull
-   that off the bore; "center of the barrel, not the centre of the entire mold"). [VALIDATED]
-   - alignment pins on the mating faces — [TODO]
-6b. **Solidify EACH half individually** (VALIDATED 2026-07-01) — run `solidify_mold` again on
-   `CGS_HALF_L` and `CGS_HALF_R` separately (→ `CGS_HALF_L_SOLID` / `CGS_HALF_R_SOLID`) as the
-   final per-half robustness pass before export — owner-required, not just a pre-split solidify.
-7. **Done** — export BOTH clamshell halves together as **ONE combined STL** (select both `CGS_HALF_L`
-   + `CGS_HALF_R`, `export_selected_objects`/`use_selection=True`) into the dedicated output folder
-   **`C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\<gun-name>.stl`** — this is the fixed handoff
-   location for every cgs-mold run, not the gun's own scan folder. [VALIDATED]
+   to guarantee the decimated mesh is still a clean filled manifold solid.
+6. **Export — ONE solid piece** (`export_mold`) — owner directive (2026-07-03): **NO clamshell split
+   anymore.** After decimate+re-solidify, export the whole mold as a single STL into the fixed handoff
+   folder **`C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\<gun-name>.stl`** (not the gun's own scan
+   folder). `split_mold` (+ `_bore_center_x`) is DEPRECATED — kept in the engine for reference only,
+   out of the pipeline.
 
 ## Invocation (blender-mcp must be live on :9876)
 
@@ -110,7 +102,8 @@ gun, sa = assemble_gun_solid(["<gun-scan>", "<light-scan-if-separate>"])   # -> 
 #    check sa["islands_kept"] covers every real part, and sa["front_feature_z"] (low => a forward light drives the front)
 # 2. THE DIP (full-length, furthest-forward feature -> end): produces a filled manifold 0/0 solid directly
 solid, s = sweep_dip(gun)                                     # -> CGS_MOLD_SOLID  (travel = full assembled Y-span)
-# 3. cut A (diagonal grip) + cut B (vertical tail) -> smooth -> remove_overhang? -> offset -> split
+# 3. cut A (diagonal grip) + cut B (vertical tail) -> smooth -> remove_overhang? -> offset
+# 4. decimate x2 + re-solidify -> export_mold(final, "<gun-name>")   # ONE solid piece, NO split (owner 2026-07-03)
 ```
 
 Every stage is a standalone function — `sweep_dip`, `solidify_mold`, `cut_grip`, `smooth_mold`,
@@ -147,7 +140,7 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
   Manifold 0/0 throughout. Deliverable on HK45 = `CGS_MOLD_FINAL`.
 - **VALIDATED (owner-confirmed 2026-07-02, "now it is correct"):** the **dip/draw sweep** — `sweep_dip()`
   full-length log-doubling voxel-union, muzzle→end, manifold 0/0. Closes the last upstream gap; the
-  pipeline now runs scan → seal → `sweep_dip` → cut A/B → smooth → offset → decimate → split → export.
+  pipeline now runs scan → assemble → `sweep_dip` → cut A/B → smooth → offset → decimate → export (ONE piece, no split).
 - **TODO:** alignment pins on the split mating faces, STL export gate.
 - **Seal** is trivial when the scan is already a watertight solid (René's "SOLID GUN FOR AUTOMATION"
   exports import as manifold 0/0, 1 island — just center on origin; no reseal needed).
@@ -180,6 +173,19 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
     the light lobe through the whole gun. The old "keep largest island" would have dropped the 23k-v light.
   - The validated `sweep_dip` union math was untouched; the fix is the upstream island assembly.
   - Tune `assemble.speck_frac` only if a real small light gets dropped or scan junk survives.
+- **Same session — 2 more owner directives, both DONE + validated live on the Glock 43X + TLR-7:**
+  1. **NO split anymore** (owner: "after DECIMATE, proceed to EXPORT"). Added `export_mold` (single-piece
+     STL to the fixed handoff folder); `split_mold` + `_bore_center_x` DEPRECATED (kept, out of pipeline).
+     Pipeline: assemble → sweep → cut A/B → smooth → offset → decimate×2+re-solidify → **export (one piece)**.
+  2. **Fixed the HK45 mis-targets** (scan-relative, "keep visual tuning"): `sweep_dip` tags the mold with
+     the REAL gun extent (`obj['gun_rear_y']`) so cut/offset restrict to the gun and never mistake the dip
+     TAIL for the grip/beavertail (the old `(Z>0)&(Z<35)`+rearmost grabbed the +277 tail). `_find_cut_points`
+     → proportional knee (15% of plateau→grip depth) + scan-relative beavertail band; `cut_grip` auto cube;
+     new `cut_tail` codifies cut B (vertical tail trim at `gun_rear+margin`, never shortens the beavertail);
+     `offset_mold` `z_line` scan-relative (zmin + `z_frac`·height). Live Glock result: corner Y+34.5 (the
+     knee), beavertail Y+101.3 (real rear, NOT the +277 tail), tail trim Y+107.7, z_line +16.4, all manifold
+     0/0, owner-confirmed cut placement ("good, finish it"). Exported `Glock 43X TLR-7 HL-X Sub.stl` (88k v).
+  - Remaining HK45 absolute now retired from the live path; `_bore_center_x` z_min=32 is moot (split gone).
 
 ### 2026-07-02
 - gun: SIG 1911 + TLR-1 HL-X (scan `01_SIG 1911_TLR-1 HL-X_SOLID GUN FOR AUTOMATION.stl`, 93.5k v,

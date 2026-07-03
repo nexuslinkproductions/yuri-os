@@ -13,7 +13,8 @@
     "solver": "FLOAT",
     "corner_below_mm": 20.0,
     "beavertail_below_mm": 10.0,
-    "_note": "diagonal cube DIFFERENCE: first point = trigger-guard/grip corner, 20mm below; second point = beavertail, 10mm below. Verified clean (manifold 0/0) 2026-06-29."
+    "tail_margin_mm": 6.0,
+    "_note": "TWO cuts. Cut A (cut_grip): diagonal cube DIFFERENCE, corner (trigger-guard/grip knee) -corner_below, beavertail -beavertail_below. Cut B (cut_tail): vertical trim at gun_rear + tail_margin, removes the dip's excess tail without shortening the real beavertail. SCAN-RELATIVE (2026-07-03): knee = proportional (15% of plateau->grip depth), beavertail = rearmost upper-grip vert in the REAL gun region (dip tail excluded via obj['gun_rear_y']), cube auto-sized from bbox. No HK45 absolute Z bands. corner_below/beavertail_below stay owner-tunable (render-verify). Validated on HK45, Glock 43X + TLR-7."
   },
 
   "smooth": {
@@ -30,15 +31,18 @@
 
   "offset": {
     "offset_mm": 0.4,
-    "z_line": 14.0,
+    "z_line": null,
+    "z_frac": 0.62,
     "feather": 2.0,
-    "_note": "VALIDATED 2026-06-30. Region = barrel+slide+beavertail ONLY (Z>z_line), NOT global. Owner-confirmed z_line=14 keeps the grip/frame/trigger-guard unaffected. Feathered 2mm at the parting line."
+    "_note": "Region = barrel+slide+beavertail ONLY (Z>z_line), NOT global. SCAN-RELATIVE (2026-07-03): z_line=null auto-seeds to zmin + z_frac*(zmax-zmin) of the mold's own height (was the HK45 absolute 14mm). On the Glock 43X that landed z_line=+16.4 at the slide/frame line. Render-verify the boundary; nudge z_frac (or set z_line explicitly) per scan. Feathered 2mm."
   },
 
   "split": {
-    "plane_x": null,
-    "_note": "VALIDATED 2026-06-30. Clean clamshell split (bisect+holes_fill, ZERO material loss), NOT a saw cut. Seam = vertical plane through the BARREL BORE AXIS (circle-fit of the muzzle crown, _bore_center_x), NOT the mold symmetry plane (controls pull it off the bore). plane_x=null -> auto bore-fit; set a number to override. HK45 bore axis X = -0.777."
+    "_deprecated": "2026-07-03 owner directive: DO NOT split anymore. After decimate, export the single mold via export_mold. split_mold + _bore_center_x kept in the engine for reference only, out of the pipeline.",
+    "plane_x": null
   },
+
+  "export": { "out_dir": "C:\\Users\\rene\\Desktop\\CAD\\_AUTOMATED MOLDS", "_note": "export_mold writes ONE STL <out_dir>\\<gun-name>.stl (fixed handoff folder). Single piece, no split." },
 
   "out_name": "CGS_MOLD_FINAL",
   "render": true
