@@ -490,6 +490,7 @@
         "checkOutputConformance",
         "parseResultLabel",
         "extractResultLabel",
+        "classifyLaneOutcome",
         "LABEL_TOKEN_RE"
       ],
       "mechanism": "_SYSTEM/Scripts/contract-conformance.mjs"

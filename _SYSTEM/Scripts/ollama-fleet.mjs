@@ -18,7 +18,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { extractResultLabel as ccExtractResultLabel } from './contract-conformance.mjs';
+import { extractResultLabel as ccExtractResultLabel, classifyLaneOutcome } from './contract-conformance.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -181,7 +181,7 @@ function fireTask(task, label, runDir, runId) {
         env: { ...process.env, LANE_DISPATCH_TIMEOUT_MS: String(timeoutMs) },
       });
     } catch (e) {
-      resolve({ label, model, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, durationMs: Date.now() - t0, stderr: String(e?.message || e) });
+      resolve({ label, model, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, degraded: false, outcomeReason: 'spawn-error', durationMs: Date.now() - t0, stderr: String(e?.message || e) });
       return;
     }
     appendSpawnEvent(runDir, { label, lane: `${OLLAMA_LANE}:${model}`, pid: child.pid, spawnedAt: new Date().toISOString() });
@@ -190,8 +190,13 @@ function fireTask(task, label, runDir, runId) {
       let text = '';
       try { text = fs.readFileSync(outFile, 'utf8').trim(); } catch { /* lane failed before writing */ }
       const resultLabel = extractResultLabel(text);
-      const ok = code === 0 && text.length > 0;
-      appendSpawnEvent(runDir, { label, pid: child.pid, endedAt: new Date().toISOString(), exitCode: code, status: ok ? 'ok' : 'fail' });
+      // OUTPUT-first outcome (shared with glm-fleet): a lane that wrote complete, non-F
+      // RESULT_LABEL'd output is a success even on a non-zero exit. Kills the cosmetic exit-1
+      // false-failure class (2026-07-03).
+      const outcome = classifyLaneOutcome({ code, text });
+      const ok = outcome.ok;
+      const degraded = outcome.degraded;
+      appendSpawnEvent(runDir, { label, pid: child.pid, endedAt: new Date().toISOString(), exitCode: code, status: ok ? (degraded ? 'ok-degraded' : 'ok') : 'fail', reason: outcome.reason });
       const packet = {
         laneId: `${OLLAMA_LANE}:${model}`,
         model,
@@ -200,6 +205,8 @@ function fireTask(task, label, runDir, runId) {
         resultLabel,
         evidence: '',
         status: ok ? 'ok' : 'fail',
+        degraded,
+        outcomeReason: outcome.reason,
         text,
         durationMs: Date.now() - t0,
         runId,
@@ -210,11 +217,11 @@ function fireTask(task, label, runDir, runId) {
       }
       if (!validatePacket(packet)) packet.status = 'malformed';
       try { fs.writeFileSync(path.join(runDir, `${label}.json`), `${JSON.stringify(packet, null, 2)}\n`); } catch { /* best-effort */ }
-      resolve({ label, model, text, exitCode: code, file: outFile, resultLabel, ok, durationMs: Date.now() - t0, stderr: ok ? '' : err.slice(-400) });
+      resolve({ label, model, text, exitCode: code, file: outFile, resultLabel, ok, degraded, outcomeReason: outcome.reason, durationMs: Date.now() - t0, stderr: ok ? '' : err.slice(-400) });
     });
     child.on('error', (e) => {
       appendSpawnEvent(runDir, { label, pid: child?.pid ?? null, endedAt: new Date().toISOString(), exitCode: null, status: 'fail' });
-      resolve({ label, model, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, durationMs: Date.now() - t0, stderr: String(e?.message || e) });
+      resolve({ label, model, text: '', exitCode: 1, file: outFile, resultLabel: '', ok: false, degraded: false, outcomeReason: 'spawn-error', durationMs: Date.now() - t0, stderr: String(e?.message || e) });
     });
   });
 }
@@ -305,8 +312,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   ollamaFleet(tasks, opts).then((r) => {
     const summary = r.dryRun
       ? { runId: r.runId, armed: false, dryRun: true, runDir: r.runDir, lanes: r.plan.map((p) => ({ label: p.label, model: p.model, reasoning: p.reasoning })) }
-      : { runId: r.runId, armed: true, runDir: r.runDir, concurrency: r.concurrency, results: r.results.map((x) => ({ label: x.label, model: x.model, ok: x.ok, exitCode: x.exitCode, resultLabel: x.resultLabel, ms: x.durationMs, chars: x.text.length })) };
+      : { runId: r.runId, armed: true, runDir: r.runDir, concurrency: r.concurrency, results: r.results.map((x) => ({ label: x.label, model: x.model, ok: x.ok, degraded: !!x.degraded, reason: x.outcomeReason, exitCode: x.exitCode, resultLabel: x.resultLabel, ms: x.durationMs, chars: x.text.length })) };
     process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+    // Exit reflects WORK outcome, not raw child exit codes (see classifyLaneOutcome):
+    // 0 = every lane produced usable, labeled output; 1 = a genuine lane failure. 2026-07-03.
     process.exit(r.dryRun ? 0 : (r.results.every((x) => x.ok) ? 0 : 1));
   }).catch((e) => { process.stderr.write(`ollama-fleet error: ${String(e?.message || e)}\n`); process.exit(1); });
 }
