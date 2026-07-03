@@ -10,6 +10,7 @@ NS = {}
 exec(open(os.path.join(HERE, "cgs_align.py")).read(), NS)          # loads the real engine (bpy -> None)
 compute_alignment = NS["compute_alignment"]; apply_alignment = NS["apply_alignment"]
 verify_alignment = NS["verify_alignment"]; _mass_center_and_cov = NS["_mass_center_and_cov"]
+_slide_top_tilt_deg = NS["_slide_top_tilt_deg"]
 
 # ---- consistent-winding axis-aligned box (verts + tris). Winding uniform across boxes -> signed
 #      volumes add, so a set of disjoint boxes has the correct combined volume centroid.
@@ -41,12 +42,16 @@ def rand_rot(rng):
     return Q
 
 def gun_invariants(Pn):
-    """On an aligned cloud: grip (taller) at max-Y, slide (longer) at max-Z, muzzle at min-Y."""
+    """On an aligned cloud (canonical pose): grip DOWN (lowest vert at the rear +Y, below center),
+    MUZZLE at -Y (front thin / rear tall), SLIDE LEVEL (top-ridge tilt ~0)."""
     y=Pn[:,1]; z=Pn[:,2]
-    ymed=np.median(y); zmed=np.median(z)
-    zext_rear = np.ptp(z[y>=ymed]); zext_front = np.ptp(z[y<ymed])   # grip half must be taller
-    yext_top  = np.ptp(y[z>=zmed]); yext_bot  = np.ptp(y[z<zmed])     # slide half must be longer
-    return zext_rear > zext_front, yext_top > yext_bot
+    low=int(np.argmin(z))
+    grip_down = bool(y[low] > 0 and z[low] < z.mean())               # grip toe = lowest, at the rear
+    ymed=np.median(y)
+    zext_front=np.ptp(z[y<ymed]); zext_rear=np.ptp(z[y>=ymed])
+    muzzle_left = bool(zext_rear > zext_front)                        # tall end is the rear -> muzzle -Y
+    slide_level = bool(abs(_slide_top_tilt_deg(Pn)) < 3.0)
+    return grip_down, muzzle_left, slide_level
 
 def main():
     fails=[]; rng=np.random.default_rng(7)
@@ -58,7 +63,7 @@ def main():
         fails.append(f"box volume-centroid wrong: mode={mode} closed={closed} cen={cen}")
 
     # -- 300 random rigid transforms: engine must recover axis-alignment + gun signs every time
-    n=300; bad_order=bad_center=bad_offdiag=bad_det=bad_grip=bad_slide=0
+    n=300; bad_order=bad_center=bad_offdiag=bad_det=bad_grip=bad_muzzle=bad_level=0
     for i in range(n):
         R=rand_rot(rng); t=rng.standard_normal(3)*250
         P = P0 @ R.T + t                                       # arbitrary pose
@@ -69,11 +74,13 @@ def main():
         if not ver["dims_ordered_yzx"]: bad_order+=1
         if ver["center_residual_mm"] > 0.05: bad_center+=1
         if ver["R_offdiag_max"] > 1e-2: bad_offdiag+=1
-        grip_ok, slide_ok = gun_invariants(Pn)
-        if not grip_ok: bad_grip+=1
-        if not slide_ok: bad_slide+=1
+        grip_down, muzzle_left, slide_level = gun_invariants(Pn)
+        if not grip_down: bad_grip+=1
+        if not muzzle_left: bad_muzzle+=1
+        if not slide_level: bad_level+=1
     for label,cnt in [("det!=+1",bad_det),("dims not Y>=Z>=X",bad_order),("center residual",bad_center),
-                      ("R offdiag",bad_offdiag),("grip not +Y",bad_grip),("slide not +Z",bad_slide)]:
+                      ("R offdiag",bad_offdiag),("grip not down/rear",bad_grip),
+                      ("muzzle not -Y",bad_muzzle),("slide not level",bad_level)]:
         if cnt: fails.append(f"[{n} poses] {label}: {cnt} failures")
 
     # -- reversibility: (P-c)@R.T inverted by @R + c returns the original
@@ -96,8 +103,8 @@ def main():
         fails.append(f"ambiguity not flagged on near-square plate: sep_LH={da['sep_length_height']} sep_HW={da['sep_height_width']}")
 
     print("=== cgs-align math verification ===")
-    print(f"random-pose guns: {n} | det/order/center/offdiag/grip/slide failures ="
-          f" {bad_det}/{bad_order}/{bad_center}/{bad_offdiag}/{bad_grip}/{bad_slide}")
+    print(f"random-pose guns: {n} | det/order/center/offdiag/grip-down/muzzle-left/slide-level failures ="
+          f" {bad_det}/{bad_order}/{bad_center}/{bad_offdiag}/{bad_grip}/{bad_muzzle}/{bad_level}")
     print(f"light det_R={dl['det_R']} centered={vl['center_residual_mm']}mm ordered={vl['dims_ordered_yzx']}")
     print(f"near-square plate ambiguous_axes={da['ambiguous_axes']} (expected True)")
     if fails:

@@ -80,65 +80,106 @@ def _mass_center_and_cov(P, F):
             cov = np.einsum('i,ij,ik->jk', w, d, d)          # area-weighted surface covariance
     return center, cov, mode, closed
 
-def _sign_by_cross_extent(t_axis, t_other):
-    """Split points at the median of `t_axis`; return the extent of `t_other` within each half.
-    Used for both sign heuristics (grip=taller half along Y; slide-top=longer half along Z)."""
-    med = float(np.median(t_axis))
-    hi = t_axis >= med
-    lo = ~hi
-    ext_hi = float(t_other[hi].max() - t_other[hi].min()) if hi.any() else 0.0
-    ext_lo = float(t_other[lo].max() - t_other[lo].min()) if lo.any() else 0.0
-    return ext_hi, ext_lo
+def _robust_extent(t):
+    """2/98-percentile span of a 1-D projection — outlier-robust extent in mm."""
+    return float(np.percentile(t, 98) - np.percentile(t, 2)) if len(t) else 0.0
 
-def compute_alignment(P, F):
-    """Compute the rigid transform (center, R) that aligns the object's principal axes to world XYZ
-    (length->Y, height->Z, width->X) with gun sign heuristics, mass-centered.
+def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
+    """Gun-canonical rigid transform (center, R): the SLIDE axis -> world Y and horizontal, muzzle at
+    -Y, WIDTH -> X, GRIP -> -Z (down); object mass-centered. Owner canonical pose (2026-07-03):
+    "muzzle to the left in the X-view, leveled along the slide, grip pointing down".
 
-    Returns (center(3,), R(3,3), diag:dict). R rows = [x_hat, y_hat, z_hat]; det(R) == +1 (proper
-    rotation, never a mirror). Apply with apply_alignment(P, center, R).
+    Returns (center(3,), R(3,3), diag). R rows = [x_hat, y_hat, z_hat]; det(R) == +1 (proper rotation,
+    never a mirror). Apply with apply_alignment(P, center, R). `pitch_offset_deg` adds a manual pitch
+    tweak about X on top of the auto-level (owner's eye sets the final degree; + tips the muzzle DOWN).
+
+    Order: PCA gives 3 orthogonal DIRECTIONS (density-robust) + extent LABELS (length/height/width) ->
+    fixes roll, yaw, width. Then gun-anatomy corrections the raw eigen-signs get wrong (each CALIBRATED
+    against René's hand-posed SIG P226, 2026-07-03):
+      MUZZLE LEFT— the grip (tall) end is the rear; the muzzle end is thin -> the length third with the
+                   larger height extent is the rear (+l); muzzle -> -Y. (sign-independent -> done first.)
+      GRIP DOWN  — compare mean height of the REAR third vs the FRONT third: the heavy grip pulls the
+                   rear DOWN (calib: rear mean_z -17 vs front +26, a 43mm margin) -> put the grip on -Z.
+                   This replaces "farthest reach from mass center", which the TALL FRONT SIGHT + the
+                   grip-shifted mass center inverted -> flipped the gun 180deg upside-down (René: needed
+                   a manual Ry+180 to fix).
+      LEVEL SLIDE— level to the mid-height forward SLAB (fwd ~50%, Z 30-75 pct: excludes sight/optic tops
+                   AND trigger-guard toe -> the clean bore-parallel body). Calibrated as the reference
+                   nearest the owner's eye-level; residual ~1-2deg is covered by `pitch_offset_deg`.
     """
     P = np.asarray(P, dtype=np.float64)
     center, cov, mode, closed = _mass_center_and_cov(P, F)
     D = P - center
-    evals, evecs = np.linalg.eigh(cov)                       # ascending; orthonormal columns
-    # DIRECTIONS from the covariance (density-robust); LABELS length/height/width from the projected
-    # bbox EXTENT (2/98 pct, outlier-robust) so 'longest edge -> Y' holds literally even when a shape
-    # is near-cubic and the eigenvalue order disagrees with the bbox order. Identical for elongated guns.
+    evals, evecs = np.linalg.eigh(cov)
     axes = [evecs[:, k] for k in range(3)]
-    def _rext(ax):
-        t = D @ ax
-        return float(np.percentile(t, 98) - np.percentile(t, 2)) if len(t) else 0.0
-    exts = [_rext(a) for a in axes]
-    order = np.argsort(exts)[::-1]                           # descending extent -> [length, height, width]
-    aL = axes[order[0]]; aH = axes[order[1]]; aW = axes[order[2]]
-    lamL, lamH, lamW = (exts[order[0]], exts[order[1]], exts[order[2]])   # robust extents (mm)
+    exts = [_robust_extent(D @ a) for a in axes]
+    order = np.argsort(exts)[::-1]                           # by extent -> [length, height, width]
+    aL, aH, aW = axes[order[0]], axes[order[1]], axes[order[2]]
+    eL, eH, eW = exts[order[0]], exts[order[1]], exts[order[2]]
+    l = D @ aL; h = D @ aH                                   # length & height projections (sign TBD)
 
-    tL = D @ aL; tH = D @ aH                                 # projections onto provisional length/height
+    # MUZZLE LEFT (-Y) first (sign-independent): the length third with the larger height extent is the
+    # grip/rear -> +l; muzzle -> -l. This fixes which end is the rear so GRIP DOWN can key off it.
+    lo = l < np.percentile(l, 33); hi = l > np.percentile(l, 67)
+    hext_lo = _robust_extent(h[lo]) if lo.any() else 0.0
+    hext_hi = _robust_extent(h[hi]) if hi.any() else 0.0
+    if hext_lo > hext_hi:
+        aL = -aL; l = -l
+    # GRIP DOWN (-Z): the heavy grip pulls the REAR third's mean height below the FRONT third's. If the
+    # rear currently sits higher, the grip is up -> flip. (Calibrated, unfoolable by the front sight.)
+    rear = l > np.percentile(l, 70); front = l < np.percentile(l, 30)
+    if float(h[rear].mean()) > float(h[front].mean()):
+        aH = -aH; h = -h
 
-    # Y sign: grip end (larger HEIGHT extent) -> +Y
-    hgt_hi, hgt_lo = _sign_by_cross_extent(tL, tH)
-    ysgn = 1.0 if hgt_hi >= hgt_lo else -1.0
-    # Z sign: slide-top (larger LENGTH extent) -> +Z
-    len_hi, len_lo = _sign_by_cross_extent(tH, tL)
-    zsgn = 1.0 if len_hi >= len_lo else -1.0
+    # LEVEL THE SLIDE (owner: "leveled along the slide"): level the SLIDE-TOP FLAT — exactly the surface
+    # the owner's red line follows. The slide top is a machined flat whose UP-normal points straight +Z
+    # when level. Take the area-weighted consensus of the UP-facing faces in the upper-forward region
+    # (the slide top), and rotate so that consensus normal -> +Z. UP-faces only (not the slide bottom /
+    # frame rails, which can taper differently) and iterate to a fixed point -> stable & idempotent.
+    # Immune to sights/optic (localized bumps, tiny area) and to slab taper that broke point-cloud PCA
+    # (slab-PCA landed ~15deg off; both-flats landed the wrong way on ~37% of poses; René 2026-07-03).
+    slide_tilt_deg = 0.0
+    if level_slide and F is not None and len(F):
+        a3, b3, c3 = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+        cos30 = math.cos(math.radians(30))
+        for _ in range(5):
+            fn = np.cross(b3 - a3, c3 - a3); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+            fnn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]; cen = ((a3 + b3 + c3) / 3.0)[ok]
+            nH = fnn @ aH; nW = fnn @ aW; nL = fnn @ aL; ch = cen @ aH; cl = cen @ aL
+            sel = ((nH > cos30) &                            # UP-facing flat (slide top, not a side/bottom)
+                   (np.abs(nW) < 0.5) &                      # not a left/right wall
+                   (ch > np.median(ch)) &                    # upper region (the slide, not the frame)
+                   (cl < np.percentile(cl, 75)))             # forward 75% (drop the rear grip tang)
+            if int(sel.sum()) < 8:
+                break
+            ul = float(np.sum(area[sel] * nL[sel])); uh = float(np.sum(area[sel] * nH[sel]))
+            m = math.hypot(ul, uh) or 1.0; ul, uh = ul / m, uh / m
+            dth = math.degrees(math.atan2(ul, uh)); slide_tilt_deg += dth
+            aH, aL = (ul * aL + uh * aH), (uh * aL - ul * aH)    # rotate so the slide-top up -> +Z
+            l = D @ aL; h = D @ aH
+            if abs(dth) < 0.2:                               # converged
+                break
+    # MANUAL PITCH TWEAK about X (owner's eye): + tips the muzzle down. Applied after auto-level.
+    if pitch_offset_deg:
+        th = math.radians(pitch_offset_deg); ct, st = math.cos(th), math.sin(th)
+        aL, aH = ct * aL + st * aH, -st * aL + ct * aH
+        slide_tilt_deg += pitch_offset_deg
 
-    y_hat = ysgn * aL
-    z_hat = zsgn * aH
+    y_hat = aL / (np.linalg.norm(aL) or 1.0)
+    z_hat = aH / (np.linalg.norm(aH) or 1.0)
     x_hat = np.cross(y_hat, z_hat); x_hat /= (np.linalg.norm(x_hat) or 1.0)   # X = Y x Z (right-handed)
     z_hat = np.cross(x_hat, y_hat); z_hat /= (np.linalg.norm(z_hat) or 1.0)   # re-orthonormalize
-    R = np.vstack([x_hat, y_hat, z_hat])                    # rows map a world vector to new-frame coords
+    R = np.vstack([x_hat, y_hat, z_hat])
 
-    # ambiguity flags: near-equal EXTENTS => the length/height/width labels are not well-separated
-    # (e.g. a near-cubic or square shape) => the forward/up sign call is unreliable. Guns are never this.
-    ratio_LH = lamL / lamH if lamH > 1e-9 else float('inf')
-    ratio_HW = lamH / lamW if lamW > 1e-9 else float('inf')
+    ratio_LH = eL / eH if eH > 1e-9 else float('inf')
+    ratio_HW = eH / eW if eW > 1e-9 else float('inf')
     diag = {
         "center_mode": mode, "closed_solid": bool(closed),
-        "extent_length": round(lamL, 2), "extent_height": round(lamH, 2), "extent_width": round(lamW, 2),
+        "extent_length": round(eL, 2), "extent_height": round(eH, 2), "extent_width": round(eW, 2),
         "sep_length_height": round(float(ratio_LH), 3), "sep_height_width": round(float(ratio_HW), 3),
         "ambiguous_axes": bool(ratio_LH < 1.08 or ratio_HW < 1.08),
-        "grip_height_ext": round(max(hgt_hi, hgt_lo), 2), "slide_len_ext": round(max(len_hi, len_lo), 2),
-        "det_R": round(float(np.linalg.det(R)), 6),        # must be +1.0
+        "slide_leveled_deg": round(float(slide_tilt_deg), 2),   # pitch correction applied to reach level
+        "det_R": round(float(np.linalg.det(R)), 6),             # must be +1.0
     }
     return center, R, diag
 
@@ -146,14 +187,30 @@ def apply_alignment(P, center, R):
     """Rigid-transform points into the aligned, mass-centered frame: New = (P - center) @ R.T ."""
     return (np.asarray(P, dtype=np.float64) - center) @ np.asarray(R, dtype=np.float64).T
 
+def _slide_top_tilt_deg(P, front_frac=0.55):
+    """Residual tilt of the slide-top ridge (max-Z per Y-bin over the forward slide) vs horizontal.
+    ~0 => the slide is level. Independent of compute_alignment (a true post-hoc check)."""
+    Y, Z = P[:, 1], P[:, 2]
+    y0, y1 = float(Y.min()), float(Y.min() + front_frac * np.ptp(Y))
+    bins = np.linspace(y0, y1, 40); ys, zs = [], []
+    for i in range(len(bins) - 1):
+        m = (Y >= bins[i]) & (Y < bins[i + 1])
+        if int(m.sum()) > 5:
+            ys.append((bins[i] + bins[i + 1]) / 2.0); zs.append(float(Z[m].max()))
+    if len(ys) < 3:
+        return 0.0
+    slope = float(np.polyfit(np.array(ys), np.array(zs), 1)[0])
+    return float(np.degrees(np.arctan(slope)))
+
 def verify_alignment(P_new, F):
-    """Adversarial self-check on the ALIGNED cloud. Returns residual metrics that must all be ~ideal:
-      center_residual ~ 0 ; R_new ~ identity (max off-diagonal ~ 0) ; dims ordered Y>=Z>=X (up to
-      near-ties); front at -Y ; slide-top at +Z."""
+    """Adversarial self-check on the ALIGNED cloud (gun-canonical pose). All must be ~ideal:
+      center_residual ~ 0 ; R_new ~ identity ; dims Y>=Z>=X ; muzzle at -Y ; GRIP at bottom-rear
+      (min-Z vert sits at +Y and below center) ; slide level (|slide_top_tilt| small)."""
     P_new = np.asarray(P_new, dtype=np.float64)
     cen2, R2, d2 = compute_alignment(P_new, F)
     dims = P_new.max(0) - P_new.min(0)                       # bbox extents X,Y,Z
     off = float(np.abs(R2 - np.eye(3)).max())
+    low_i = int(np.argmin(P_new[:, 2]))                     # the lowest vert = the grip toe
     return {
         "center_residual_mm": round(float(np.linalg.norm(cen2)), 4),
         "R_offdiag_max": round(off, 4),
@@ -161,6 +218,9 @@ def verify_alignment(P_new, F):
         "dims_ordered_yzx": bool(dims[1] >= dims[2] - 1e-6 and dims[2] >= dims[0] - 1e-6),
         "front_y": round(float(P_new[:, 1].min()), 2), "rear_y": round(float(P_new[:, 1].max()), 2),
         "top_z": round(float(P_new[:, 2].max()), 2), "bottom_z": round(float(P_new[:, 2].min()), 2),
+        "grip_low_vert_y": round(float(P_new[low_i, 1]), 2),   # >0 => grip toe is at the rear (correct)
+        "grip_is_down": bool(P_new[low_i, 1] > 0),             # lowest point at the rear = grip pointing down
+        "slide_top_tilt_deg": round(_slide_top_tilt_deg(P_new), 2),
     }
 
 # ============================================================ Blender-facing (bpy) — align in Blender
@@ -199,18 +259,19 @@ def _dup(src, out_name):
     src.users_collection[0].objects.link(obj)
     return obj
 
-def align_object(obj_name=None, in_place=True, out_name=None):
+def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
     in_place=True  -> transform the object's own mesh (lossless rigid transform), matrix_world=identity.
     in_place=False -> leave the source untouched, write an aligned copy `<name>_ALIGNED`.
+    pitch_offset_deg -> manual pitch tweak (deg about X) on top of the auto-level; + tips the muzzle DOWN.
     Stores the applied transform on the object (`cgs_align_center`, `cgs_align_R`) for reversibility/audit.
     Returns (object, summary). Non-geometry-mutating: vertex count + detail are identical, only moved.
     """
     _require_bpy()
     src = _resolve(obj_name)
     P, F = _world_arrays(src)
-    center, R, diag = compute_alignment(P, F)
+    center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg)
     P_new = apply_alignment(P, center, R)
 
     target = src if in_place else _dup(src, out_name or (src.name + "_ALIGNED"))
