@@ -10,7 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, getRole, GLM_LANES, NATIVE_LANES } from './role-registry.mjs';
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runSwarm } from '../Scripts/runSwarm.mjs';
@@ -928,7 +928,7 @@ export async function runCompany(task = {}, opts = {}) {
   return { name: plan.name, armed: true, plan, swarm, nativeResults, inlineResults, nativeSpecs: plan.nativeSpecs, held: plan.held, mlpFeedback, goalCycle, independenceViolations: plan.independenceViolations || [], zaiSidecarResults: opts.zaiSidecarResults || null, ollamaSidecarResults: opts.ollamaSidecarResults || null };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const val = (f) => { const i = argv.indexOf(f); return i >= 0 ? argv[i + 1] : null; };
   let task = {};

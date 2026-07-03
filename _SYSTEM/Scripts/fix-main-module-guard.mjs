@@ -17,6 +17,7 @@ const ROOTS = [
   path.join(HERE, 'alpha-factor-library'),
   path.join(HERE, 'alpha-factor-library', 'adapters'),
   path.join(HERE, 'alpha-factor-library', 'observatory'),
+  path.join(HERE, '..', 'mure'),
 ];
 
 const BROKEN = /import\.meta\.url === `file:\/\/\$\{process\.argv\[1\]\}`/g;

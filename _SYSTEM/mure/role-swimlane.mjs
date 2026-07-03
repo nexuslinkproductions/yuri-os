@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mure-role-swimlane
 // @serves: mure swimlane visualizer | role lane visualization | substrate diagram
 // @does: generates a visual HTML swimlane diagram of the MURE fleet architecture, showing roles grouped by functional areas (orchestration, research, engineering, verification, knowledge, operations) and their substrate assignments (native vs glm). DISARMED-safe: static HTML generation only.
@@ -165,7 +166,7 @@ export function generateSwimlane() {
 }
 
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   if (argv.includes('--json')) {
     process.stdout.write(`${generateSwimlaneJson()}\n`);

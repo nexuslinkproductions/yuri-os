@@ -8,7 +8,7 @@
 // Authority: ADVISORY. MURE plans + governs + (when armed) dispatches the GLM substrate; the native substrate
 // and finalize are driven by the Opus session. Arming is owner-gated. DISARMED by default.
 
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, GROUPS } from './role-registry.mjs';
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runGoalCycle, scoreGoal } from './goal-engine.mjs';
@@ -104,6 +104,6 @@ async function main(argv) {
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main(process.argv.slice(2)).then((code) => process.exit(code)).catch((e) => { process.stderr.write(`mure error: ${String(e?.message || e)}\n`); process.exit(1); });
 }

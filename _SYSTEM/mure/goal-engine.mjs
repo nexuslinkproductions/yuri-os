@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mure-goal-engine
 // @serves: self goal setting agent | agent proposes its own goals | goal scoring | propose score gate execute learn | capability frontier | mure goal engine | autonomous goal loop bounded
 // @does: the self-goal-setting loop for a MURE role — PROPOSE (at the capability frontier, Voyager-style) -> pre-filter (constitution hard-stop: protected-path / arming / outward / scope-violation / intent-drift are DISCARDED before scoring) -> SCORE (5 weighted dims, composite >=0.75 advances; decision-sim robust ranking across candidates) -> GATE (governance 6-gate -> self-governable vs owner-held) -> classify into selected / held / parked / discarded, with hard caps (iteration ceiling <=4, scope-lock, intent-drift) preventing runaway/drift. DISARMED-safe: pure planning, executes nothing itself.
@@ -113,7 +114,7 @@ export function runGoalCycle(candidates = [], context = {}, role = {}, opts = {}
   return { halted: false, haltReason: null, selected, held, parked, discarded, ranked, cycle };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--candidates');
   let candidates = [];

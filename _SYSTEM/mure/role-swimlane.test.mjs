@@ -5,12 +5,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const MODULE_PATH = new URL('./role-swimlane.mjs', import.meta.url);
 
 async function execModule(args = []) {
   return new Promise((resolve, reject) => {
-    const proc = spawn('node', [MODULE_PATH.pathname, ...args]);
+    const proc = spawn('node', [fileURLToPath(MODULE_PATH), ...args]);
     let stdout = '';
     let stderr = '';
     proc.stdout.on('data', (d) => { stdout += d; });

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mure-capability-scanner
 // @serves: mure capability scanner | query capabilities by role | find roles for capability
 // @does: scans the MURE role roster to find which roles support specific capabilities; supports CLI: --list-all, --find <cap>, --role <id>. DISARMED-safe: read-only introspection.
@@ -84,7 +85,7 @@ export function scanCapabilities() {
 }
 
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   if (argv.includes('--list-all')) {
     const all = listAllCapabilities();

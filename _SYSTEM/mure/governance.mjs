@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 // @capability: mure-governance-gate
 // @serves: agent self governance gate | 6-gate charter | self-governable or owner-gated | mure governance | decide vs hold | blast radius gate | contention check
 // @does: the deterministic implementation of YURI's Self-Governance Charter for MURE roles. Given a proposed decision, returns SELF-GOVERNABLE (decide + execute) iff ALL six gates pass (reversible · evidence-decidable · in-doctrine · blast<=MEDIUM · not-outward · not-contended) AND no constitution veto (protected-path / arming / secrets). ANY failure → OWNER-GATED (a finished ruling that HOLDS for a one-token owner confirm). Pure, conservative (missing info → owner-gated), and cross-references the energy protected-path veto via math-bridge. NEVER LLM-judged — this is code, by design (AG2 OnContextCondition principle).
@@ -102,7 +103,7 @@ export function classify(decision = {}) {
   return evaluateGovernance(decision).class;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--decision');
   let decision = {};
