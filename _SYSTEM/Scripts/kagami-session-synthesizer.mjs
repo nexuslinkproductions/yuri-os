@@ -27,24 +27,34 @@ const log = (...a) => {
   try { writeFileSync(LOG, line, { flag: 'a' }); } catch {}
 };
 
+function loadBetterSqlite3() {
+  const require = createRequire(import.meta.url);
+  // Anchor against the live repo root (import.meta.url-derived), not a baked
+  // worktree path — a deleted .codex-worktrees/<name> checkout silently broke
+  // this for every nightly run since 2026-06-29 (ERR_MODULE_NOT_FOUND, swallowed).
+  const candidates = [
+    resolve(REPO_ROOT, 'node_modules/better-sqlite3'),
+    resolve(REPO_ROOT, 'backend/node_modules/better-sqlite3'),
+    resolve(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'),
+  ];
+  for (const path of candidates) {
+    if (existsSync(path)) return require(path);
+  }
+  throw new Error(`better-sqlite3 not found in any known location: ${candidates.join(', ')}`);
+}
+
 function getTodayReflections() {
   if (!existsSync(DB_PATH)) return [];
-  try {
-    const require = createRequire(import.meta.url);
-    const Database = require(resolve(REPO_ROOT, '.codex-worktrees/kagami-rebuild/_SYSTEM/kagami/node_modules/better-sqlite3'));
-    const db = new Database(DB_PATH, { readonly: true });
-    const today = new Date().toISOString().slice(0, 10);
-    const rows = db.prepare(`
-      SELECT command_preview, lane, response_content, latency_ms, created_at
-      FROM reflections
-      WHERE created_at >= ? ORDER BY created_at DESC LIMIT 20
-    `).all(`${today}T00:00:00.000Z`);
-    db.close();
-    return rows;
-  } catch (e) {
-    log('db error:', e.message);
-    return [];
-  }
+  const Database = loadBetterSqlite3();
+  const db = new Database(DB_PATH, { readonly: true });
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = db.prepare(`
+    SELECT command AS command_preview, lane, response_content, latency_ms, created_at
+    FROM kagami_reflections
+    WHERE created_at >= ? ORDER BY created_at DESC LIMIT 20
+  `).all(`${today}T00:00:00.000Z`);
+  db.close();
+  return rows;
 }
 
 async function main() {
@@ -101,4 +111,7 @@ Format: markdown bullets, max 200 words, factual only.`;
   log(`written ${entry.length} chars to session-journal.md`);
 }
 
-main().catch(e => log('fatal:', e.message));
+main().catch(e => {
+  log('ERROR fatal:', e.message);
+  process.exitCode = 1;
+});

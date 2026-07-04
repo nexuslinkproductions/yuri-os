@@ -23,6 +23,16 @@ The body — the mechanisms — is triggered from here, not inlined:
 - DeepSeek advisory lanes → only through LLM compatibility (`ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `llm-lane.mjs deepseek`). Workhorse, parallel-clone, and old offload command surfaces are retired and must not be used.
 - Continuity → memory recall + EOT closeout.
 
+## Standing Operating Model — fleet by default (owner directive 2026-07-04)
+
+The opus-fleet model is the DEFAULT way every non-trivial task runs — never wait for `/opus-fleet` to be typed. On every substantial task (build, research, audit, multi-file edit, refactor; skip trivial reads + pure conversation):
+
+1. Decompose → dispatch parallel worker lanes: native Sonnet/Haiku Agents (max reasoning, up to ~12 wide; Sonnet does FULL build work, not just research) + glm-fleet / ollama-fleet peers (armed via `_SYSTEM/state/*.enabled` flags).
+2. Adversarially verify every lane result against local evidence — lane output is a hypothesis, never proof.
+3. Finalize main-session only: scoped-pathspec commit/push, irreversible/outward calls.
+
+Skills: honor the `<skill-recall-hint>` injected each prompt — invoke matching skills via the Skill tool before substantial work; it is not decorative. Memory: write Track-B memories on every durable learning (write-on-learn), not at session end. Detail + dispatch templates: the `opus-fleet` skill. Binding record: `.claude/memory/feedback-opus-fleet-standing-default.md`.
+
 ## Read Order
 
 1. `_SYSTEM/yuri-origin.md`

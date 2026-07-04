@@ -47,6 +47,22 @@ try {
             if (m && !state.skills_read.includes(m[1])) state.skills_read.push(m[1]);
         }
 
+        // PATCH (2026-07-04 audit): invoking the Skill TOOL itself was invisible to
+        // checkSkillsFirst (musubi-protocol-enforce.js) — it only counted a Read of a
+        // SKILL.md path, so correct Skill-tool usage was silently undercounted. Handle
+        // both the bare "Skill" tool_name and any namespaced/plugin variant (e.g.
+        // "mcp__.../Skill" or "plugin:skill"). The invoked skill's identifier can arrive
+        // under different tool_input keys depending on caller — check the common ones.
+        if (/(^|[:_])skill$/i.test(toolName) || toolName === 'Skill') {
+            const skillId = event?.tool_input?.skill
+                || event?.tool_input?.name
+                || event?.tool_input?.skill_name
+                || event?.tool_input?.command
+                || 'unknown';
+            const tag = `skill:${skillId}`;
+            if (!state.skills_read.includes(tag)) state.skills_read.push(tag);
+        }
+
         // Track skill writes
         if (['Edit', 'Write'].includes(toolName) && filePath) {
             const m = filePath.match(/skills\/([^/]+)\/SKILL\.md$/i);

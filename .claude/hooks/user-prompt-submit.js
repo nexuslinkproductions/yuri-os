@@ -187,6 +187,42 @@ function buildSkillAutoTrigger(text) {
   return `<auto-skill-trigger>\nApplicable skill(s) detected — invoke via Skill tool:\n${lines}\n</auto-skill-trigger>`;
 }
 
+// PATCH — skill-recall hint (2026-07-04 audit): BM25 recall over the LIVE skill corpus, fused
+// into every prompt so relevant skills actually surface (skill-tool usage was 7/106 in 14 days
+// because nothing put candidates in front of the model). ADVISORY ONLY — never blocking, never
+// throws past this function. Budget: keep this under ~15ms in the common case (single sync
+// directory scan over ~150 SKILL.md files); dynamic import() of an ESM module from CJS is the
+// only way to reach rankSkills() without a second process spawn.
+const SKILL_RECALL_SCRIPT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'skill-recall.mjs');
+const SKILL_RECALL_MIN_WORDS = 4;
+const SKILL_RECALL_MIN_SCORE = 3;
+
+async function buildSkillRecallHint(text) {
+  try {
+    if (!text) return null;
+    if (text.trim().startsWith('/')) return null; // already an explicit skill/command invocation
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if (words.length < SKILL_RECALL_MIN_WORDS) return null;
+    if (!fs.existsSync(SKILL_RECALL_SCRIPT)) return null;
+
+    const mod = await import(`file://${SKILL_RECALL_SCRIPT}`);
+    if (!mod || typeof mod.rankSkills !== 'function') return null;
+
+    const hits = mod.rankSkills(text, { top: 3 }).filter(h => h.score >= SKILL_RECALL_MIN_SCORE);
+    if (!hits.length) return null;
+
+    const lines = hits.map(h => `  ▸ /${h.name} — ${h.description} (score ${h.score.toFixed(1)})`).join('\n');
+    return [
+      '<skill-recall-hint>',
+      lines,
+      'invoke the matching skill via the Skill tool if it fits; not decorative.',
+      '</skill-recall-hint>',
+    ].join('\n');
+  } catch (_) {
+    return null; // fail-open — never let recall break prompt submission
+  }
+}
+
 const DESIGN_PATTERN = /design|UI|CSS|visual|layout|component|HUD|dashboard|interface|style|color|font|typography|theme|brand|landing.?page|frontend|html.*build|build.*html|svg|animation|glassmorphism|dark.mode|musubi.brand|ember|audit.html|build.*report/i;
 
 function logTelemetry(line) {
@@ -224,7 +260,7 @@ function spawnOrchestrator(text, turnId) {
 let raw = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', c => raw += c);
-process.stdin.on('end', () => {
+process.stdin.on('end', async () => {
   try {
     const event = JSON.parse(raw);
     const messages = event.messages;
@@ -263,6 +299,12 @@ process.stdin.on('end', () => {
     // 2. SPRINT 3 — skill auto-trigger (runs before trivial gate so short /commands are caught)
     const skillHint = buildSkillAutoTrigger(text);
 
+    // 2b. Skill-recall hint (BM25 over live corpus) — measured, fail-open, budget ~15ms
+    const recallStart = Date.now();
+    const skillRecallHint = await buildSkillRecallHint(text);
+    const recallMs = Date.now() - recallStart;
+    if (recallMs > 80) logTelemetry(`skill-recall-slow ms=${recallMs}`);
+
     const userPrompt = text;
     let additionalContext = '';
     if (DESIGN_PATTERN.test(userPrompt)) {
@@ -287,7 +329,7 @@ process.stdin.on('end', () => {
     if (trivial) {
       logTelemetry(`trivial-skip turn=${turnId} len=${text.length} hash=${crypto.createHash('sha1').update(text).digest('hex').slice(0,8)}`);
       // Still surface skill hints even on trivial prompts (/design, /graphify, etc.)
-      const trivialContext = [skillHint, additionalContext.trimStart()].filter(Boolean).join('\n\n');
+      const trivialContext = [skillHint, skillRecallHint, additionalContext.trimStart()].filter(Boolean).join('\n\n');
       if (trivialContext) {
         console.log(JSON.stringify({ continue: true, additionalContext: trivialContext }));
       } else {
@@ -342,7 +384,7 @@ process.stdin.on('end', () => {
     // M3: inject prior-turn council synthesis if brain:stale sentinel was set
     const brainUpdate = checkBrainStale();
 
-    const baseContext = [cortexHint, brainUpdate, skillHint, priorRecall]
+    const baseContext = [cortexHint, brainUpdate, skillHint, skillRecallHint, priorRecall]
       .filter(Boolean).join('\n');
     additionalContext = [baseContext, additionalContext].filter(Boolean).join('');
 
