@@ -18,6 +18,7 @@ import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { extractResultLabel as ccExtractResultLabel, classifyLaneOutcome } from './contract-conformance.mjs';
+import { buildFidelityPack } from './worker-fidelity-pack.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -254,9 +255,28 @@ function fireTask(task, label, runDir, runId) {
   });
 }
 
+// Worker-fidelity injection: prepend the canonical worker-fidelity-pack (identity/navigation/evidence
+// grammar/protected paths/capability-first/mutation rules/return contract) to a task's raw prompt so the
+// discipline text actually reaches the lane instead of only living in FLEET_PROTOCOL_PREAMBLE (exported
+// but never injected). Default-ON; a task opts out with `fidelity:false` (e.g. trivial --smoke pings).
+// Fail-open: a pack-build error must never break dispatch — falls back to the raw prompt + one warning.
+function withFidelity(task, laneId) {
+  const rawPrompt = String(task.prompt || '');
+  if (task.fidelity === false || !rawPrompt.trim()) return { prompt: rawPrompt, fidelityApplied: false };
+  try {
+    const pack = buildFidelityPack(rawPrompt, {
+      substrate: 'glm', role: task.role, laneId: task.laneId || laneId, files: task.files, xrefEvidence: task.xrefEvidence,
+    });
+    return { prompt: `${pack}\n\n${rawPrompt}`, fidelityApplied: true };
+  } catch (e) {
+    process.stderr.write(`GLM_FLEET_WARN reason=fidelity_pack_build_failed msg=${String(e?.message || e).slice(0, 160)}\n`);
+    return { prompt: rawPrompt, fidelityApplied: false };
+  }
+}
+
 /**
  * Fan out a GLM fleet. DISARMED by default (dry-run, zero spend/fan-out); YURI_GLM_FLEET=1 arms.
- * @param {Array<{lane,label,prompt,reasoning?,timeoutMs?}>} tasks
+ * @param {Array<{lane,label,prompt,reasoning?,timeoutMs?,fidelity?:boolean}>} tasks
  * @param {{concurrency?:number, runId?:string, runDir?:string, armed?:boolean}} opts
  * @returns {Promise<{runId,runDir,armed,concurrency,results?,dryRun?,plan?}>}
  */
@@ -274,14 +294,21 @@ export async function glmFleet(tasks = [], opts = {}) {
     seenLabels.add(l);
     return l;
   });
-  const plan = tasks.map((t, i) => ({ label: labels[i], lane: t.lane, reasoning: t.reasoning || 'high', prompt: String(t.prompt || '') }));
+  // Fidelity-wrap once here (the single seam both dry-run plan display AND live fireTask consume), so
+  // the plan output and the actually-dispatched prompt can never drift apart.
+  const fidelityWrapped = tasks.map((t, i) => withFidelity(t, labels[i]));
+  const plan = tasks.map((t, i) => ({
+    label: labels[i], lane: t.lane, reasoning: t.reasoning || 'high',
+    prompt: fidelityWrapped[i].prompt, fidelity: fidelityWrapped[i].fidelityApplied,
+  }));
 
   if (!armed) {
     return { runId, runDir, armed: false, dryRun: true, concurrency, plan };
   }
 
   fs.mkdirSync(runDir, { recursive: true });
-  const results = await runPool(tasks, concurrency, (t, i) => fireTask(t, labels[i], runDir, runId));
+  const firingTasks = tasks.map((t, i) => ({ ...t, prompt: fidelityWrapped[i].prompt }));
+  const results = await runPool(firingTasks, concurrency, (t, i) => fireTask(t, labels[i], runDir, runId));
   return { runId, runDir, armed: true, concurrency, results };
 }
 
@@ -315,9 +342,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   let tasks = [];
   if (argv.includes('--smoke')) {
     tasks = [
-      { lane: 'glm-flash', label: 'SMOKE_FLASH', reasoning: 'high', prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 01GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
-      { lane: 'glm', label: 'SMOKE_SONNET', reasoning: 'high', prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 02GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
-      { lane: 'glm-turbo', label: 'SMOKE_TURBO', reasoning: 'high', prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 03GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
+      { lane: 'glm-flash', label: 'SMOKE_FLASH', reasoning: 'high', fidelity: false, prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 01GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
+      { lane: 'glm', label: 'SMOKE_SONNET', reasoning: 'high', fidelity: false, prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 02GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
+      { lane: 'glm-turbo', label: 'SMOKE_TURBO', reasoning: 'high', fidelity: false, prompt: 'Reply with EXACTLY one short line confirming you are a live z.ai GLM lane, then on a NEW line emit exactly: 03GL_GLM_FLEET_SMOKE_X_PASS_COMMITTED . No other text.' },
     ];
   } else if (flagVal('--tasks-file') || flagVal('--tasks')) {
     try {
@@ -340,7 +367,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (forceDry) opts.armed = false;
   glmFleet(tasks, opts).then((r) => {
     const summary = r.dryRun
-      ? { runId: r.runId, armed: false, dryRun: true, runDir: r.runDir, lanes: r.plan.map((p) => ({ label: p.label, lane: p.lane, reasoning: p.reasoning })) }
+      ? { runId: r.runId, armed: false, dryRun: true, runDir: r.runDir, lanes: r.plan.map((p) => ({ label: p.label, lane: p.lane, reasoning: p.reasoning, fidelity: p.fidelity, promptChars: p.prompt.length })) }
       : { runId: r.runId, armed: true, runDir: r.runDir, concurrency: r.concurrency, results: r.results.map((x) => ({ label: x.label, lane: x.lane, ok: x.ok, degraded: !!x.degraded, reason: x.outcomeReason, exitCode: x.exitCode, resultLabel: x.resultLabel, ms: x.durationMs, chars: x.text.length })) };
     process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
     // Process exit reflects WORK outcome, not raw child exit codes: 0 = every lane produced

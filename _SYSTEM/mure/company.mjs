@@ -21,6 +21,7 @@ import { loadHeldRulings, isSubtaskClearedByOwner } from './held-rulings.mjs';
 import { isEvolverArmed } from './evolver-arm.mjs';
 import { runGoalCycle } from './goal-engine.mjs';
 import { calibrate as _calibrate } from './math-bridge.mjs';
+import { buildFidelityPack } from '../Scripts/worker-fidelity-pack.mjs';
 
 // MLP Router integration point (advisory only – never overrides governance)
 let _router = null;
@@ -120,13 +121,31 @@ export function decisionFor(subtask = {}, role = {}) {
   return ruling;
 }
 
-/** Build a runSwarm/Agent prompt that frames the worker AS its role (+ optional fused co-roles). */
-export function buildRolePrompt(role, subtask, coRoles = []) {
-  const lines = [
+/**
+ * Build a runSwarm/Agent prompt that frames the worker AS its role (+ optional fused co-roles).
+ * Prefixed with the canonical worker-fidelity pack (identity, navigation, evidence grammar, protected
+ * paths, capability-first, mutation rules, return contract) so every cast role's prompt carries the same
+ * fidelity contract as the other dispatchers, unless the caller opts out via `opts.fidelity === false`
+ * (escape hatch for a raw-prompt caller — none exist today; buildRolePrompt's only production caller is
+ * this module's own buildLeaf/planCompany/runCompany paths, per callers audit 2026-07-04).
+ */
+export function buildRolePrompt(role, subtask, coRoles = [], opts = {}) {
+  const lines = [];
+  if (opts.fidelity !== false) {
+    const fid = buildFidelityPack(subtask.prompt || subtask.summary || '(no task)', {
+      substrate: subtask.substrateHint === 'native' ? 'native' : 'glm',
+      role: role.id,
+      laneId: subtask.laneId || 'NNXX',
+      files: subtask.files,
+      xrefEvidence: subtask.xrefEvidence,
+    });
+    lines.push(fid, '');
+  }
+  lines.push(
     `You are the ${role.name} of ${MURE_NAME} — archetype: ${role.archetype}.`,
     `Mission: ${role.mission}.`,
     `Capabilities you bring: ${(role.capabilities || []).join(', ')}.`,
-  ];
+  );
   for (const co of coRoles) {
     lines.push(
       '',
@@ -464,6 +483,11 @@ export async function planCompany(task = {}, opts = {}) {
   // === MLP Router integration point (advisory) ===
   // Does not change dispatch. Attaches routerSuggestion + confidence to leaves/specs for logging & later training.
   // Real call to predictRoute lives here so every plan sees the learned policy.
+  // D-16 fix: `plan` does not exist yet at this point in the function (it is constructed at the return
+  // statement below) — referencing `plan.mlpCounterfactualShadow` here threw a ReferenceError on every call,
+  // silently swallowed by the catch below, so the shadow record never populated. Compute it into a local
+  // (`mlpCounterfactualShadow`) instead and attach it to the returned plan object at construction time.
+  let mlpCounterfactualShadow;
   try {
     // dynamic so we don't hard-fail if the module is missing during early dev
     const routerMod = await import('../Scripts/fleet-router-mlp.mjs').catch(() => null);
@@ -494,7 +518,7 @@ export async function planCompany(task = {}, opts = {}) {
         spec.routerConfidence = suggestion.confidence;
         spec.routerRanked = suggestion.ranked;
       }
-      plan.mlpCounterfactualShadow = recordMlpCounterfactualShadow(plan, ctx);
+      mlpCounterfactualShadow = recordMlpCounterfactualShadow({ glmLeaves, nativeSpecs }, ctx);
     }
   } catch (e) {
     // router is best-effort
@@ -597,7 +621,7 @@ export async function planCompany(task = {}, opts = {}) {
     }
   }
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, independenceViolations, ollamaSidecar, clineSidecar, zaiSidecar, heldRulingsSource: rulings.source };
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, independenceViolations, ollamaSidecar, clineSidecar, zaiSidecar, heldRulingsSource: rulings.source, mlpCounterfactualShadow };
 }
 
 /**
