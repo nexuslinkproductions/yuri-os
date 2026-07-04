@@ -21,7 +21,15 @@ import { saturationProbe } from './math/yuri-jaccard.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
-const MEMORY_DIR = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory');
+// FIX (2026-07-04): was hardcoded to $HOME/.claude/projects/.../memory, which resolves
+// through TWO symlink hops (~/.claude -> repo/.claude, then repo/.claude/projects ->
+// ~/.claude-local/projects since 2026-06-09) into an almost-empty side pocket (5 files).
+// The real, git-tracked, actively-written Track-B corpus (302 files, confirmed identical
+// to the live MEMORY.md loaded into session context) is the repo-relative .claude/memory/
+// dir. claude-memory-write.mjs's memoryRoot() has the SAME stale-resolution bug (it also
+// derives from $HOME/.claude/projects/<id>/memory) — do not copy that helper here; it
+// would just reproduce the bug. Point straight at the repo dir instead.
+const MEMORY_DIR = resolve(REPO_ROOT, '.claude/memory');
 const MEMORY_IDX = resolve(MEMORY_DIR, 'MEMORY.md');
 const STATE_DIR  = resolve(REPO_ROOT, '_SYSTEM/training/state');
 const REPORT     = resolve(STATE_DIR, 'memory-health.json');
@@ -240,7 +248,10 @@ async function main() {
   try {
     const execute = process.argv.includes('--execute') || process.env.YURI_SUBCONSCIOUS_EXECUTE === '1';
     const ec = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
-    await runSubconsciousPass({ execute, fsrs: ec.fsrs || {} });
+    // Explicit root=MEMORY_DIR (not the DEFAULT_MEMORY_ROOT fallback) — that default is
+    // imported from memory-relocator.mjs and has the SAME stale $HOME-symlink resolution
+    // bug fixed above for readMemoryFiles(). See the MEMORY_DIR comment for the full chain.
+    await runSubconsciousPass({ root: MEMORY_DIR, execute, fsrs: ec.fsrs || {} });
   } catch (e) { log('subconscious pass error:', e.message); }
 
   const memories = readMemoryFiles();

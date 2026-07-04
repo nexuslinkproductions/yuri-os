@@ -212,6 +212,88 @@ function checkOverseer() {
   return out;
 }
 
+// ── [RUNTIME] — Yuri Runtime supervisor (yuri-runtimed.mjs) liveness ───────
+// Read-only: imports readHeartbeat (pure fs.readFileSync, no side effects)
+// from the runtime module itself rather than re-deriving the stale-heartbeat
+// math here — the supervisor's own freshness contract is the single source
+// of truth (DRY, and it's already hermetically tested in
+// yuri-runtime/yuri-runtimed.test.mjs). Fail-open: any throw becomes a single
+// bounded finding, never a crash of the doctor run.
+const RUNTIME_DIR = path.join(SYS, 'runtime');
+const RUNTIME_STATE = path.join(SYS, 'state', 'runtime');
+const RUNTIME_HEARTBEAT_PATH = path.join(RUNTIME_STATE, 'heartbeat.json');
+const RUNTIME_ERROR_EVENTS = new Set(['CHILD_SPAWN_ERROR', 'CHILD_FAILED']);
+
+function tailJsonlEvents(filePath, maxLines = 200) {
+  const text = safeReadFile(filePath, 256 * 1024); // bounded tail read, matches ERRORS/TRACES sizing discipline
+  if (!text) return [];
+  const lines = text.split('\n').filter(Boolean).slice(-maxLines);
+  const events = [];
+  for (const line of lines) {
+    try { events.push(JSON.parse(line)); } catch { /* skip a malformed line, never throw */ }
+  }
+  return events;
+}
+
+async function checkRuntime() {
+  const out = [];
+  try {
+    if (!fs.existsSync(RUNTIME_DIR)) {
+      out.push(finding('RUNTIME', 'LOW', 'runtime not running (yuri-runtimed.mjs not present)', relp(RUNTIME_DIR)));
+      return out;
+    }
+
+    const mod = await import(pathToFileURL(path.join(RUNTIME_DIR, 'yuri-runtimed.mjs')).href);
+    if (typeof mod.readHeartbeat !== 'function') {
+      out.push(finding('RUNTIME', 'HIGH', 'yuri-runtimed.mjs loaded but readHeartbeat export missing', relp(RUNTIME_DIR)));
+      return out;
+    }
+
+    const { present, fresh, ageMs, heartbeat } = mod.readHeartbeat();
+    if (!present || !fresh) {
+      const reason = !present ? 'no heartbeat found' : `stale heartbeat (age ${(ageMs / 1000).toFixed(0)}s)`;
+      out.push(finding('RUNTIME', 'LOW', `runtime not running (${reason})`, relp(RUNTIME_HEARTBEAT_PATH)));
+    } else {
+      const children = heartbeat?.children || {};
+      const names = Object.keys(children);
+      const healthy = names.filter((n) => children[n].status === 'healthy').length;
+      const failed = names.filter((n) => children[n].status === 'failed').length;
+      const other = names.length - healthy - failed;
+      const sev = failed > 0 ? 'HIGH' : 'LOW';
+      out.push(finding('RUNTIME', sev, `runtime running — ${names.length} child(ren): ${healthy} healthy, ${failed} failed, ${other} other`, names.map((n) => `${n}=${children[n].status}`).join(', ') || '(no children configured)'));
+    }
+
+    // Last ERROR-class event in the tail — MED if within 24h, else LOW/none.
+    const events = tailJsonlEvents(path.join(RUNTIME_STATE, 'events.jsonl'));
+    const errorEvents = events.filter((e) => RUNTIME_ERROR_EVENTS.has(e.event));
+    if (errorEvents.length > 0) {
+      const last = errorEvents[errorEvents.length - 1];
+      const lastTs = new Date(last.t).getTime();
+      const ageH = (Date.now() - lastTs) / 3_600_000;
+      if (Number.isFinite(ageH) && ageH <= 24) {
+        out.push(finding('RUNTIME', 'MED', `last ERROR-class event within 24h: ${last.event} (${ageH.toFixed(1)}h ago)`, JSON.stringify(last.data || {}).slice(0, 160)));
+      } else {
+        out.push(finding('RUNTIME', 'LOW', `no ERROR-class event within 24h (last: ${last.event})`, relp(path.join(RUNTIME_STATE, 'events.jsonl'))));
+      }
+    }
+
+    // Log-size quota: any _SYSTEM/state/runtime/*.log over 20MB.
+    let logFiles = [];
+    try { logFiles = fs.readdirSync(RUNTIME_STATE).filter((f) => f.endsWith('.log')); } catch { /* dir absent — nothing to check */ }
+    for (const f of logFiles) {
+      const full = path.join(RUNTIME_STATE, f);
+      let st;
+      try { st = fs.statSync(full); } catch { continue; }
+      if (st.size > 20 * 1024 * 1024) {
+        out.push(finding('RUNTIME', 'MED', `${relp(full)}: ${fmtBytes(st.size)} — exceeds 20MB quota (rotation may not be keeping up)`, full));
+      }
+    }
+  } catch (e) {
+    out.push(finding('RUNTIME', 'HIGH', `section threw: ${String(e?.message || e).slice(0, 160)}`, 'yuri-runtimed.mjs (import or read failed)'));
+  }
+  return out;
+}
+
 // ── [BEATS] — launchd beat-window watchdog + plist integrity ────────────────
 // Known recurring beats: {plist, outputs (any-one-fresh-clears), intervalMs}.
 // A beat's output is considered fresh if mtime is within 2x its interval.
@@ -574,7 +656,7 @@ function checkGraphFreshness() {
 
 // ── section registry ─────────────────────────────────────────────────────────
 // Order matches the required report structure:
-// [BEATS] [ERRORS] [TRACES] [ORPHANS] [GRAPH] [REGISTRY] [FRESHNESS] [OVERSEER]
+// [BEATS] [ERRORS] [TRACES] [ORPHANS] [GRAPH] [REGISTRY] [FRESHNESS] [OVERSEER] [RUNTIME]
 export const CHECKS = [
   { section: 'BEATS', run: async () => checkBeats() },
   { section: 'ERRORS', run: async () => checkErrors() },
@@ -584,6 +666,7 @@ export const CHECKS = [
   { section: 'REGISTRY', run: async () => checkCapabilityRegistry() },
   { section: 'FRESHNESS', run: async () => checkFreshness() },
   { section: 'OVERSEER', run: async () => checkOverseer() },
+  { section: 'RUNTIME', run: async () => checkRuntime() },
 ];
 
 // ── orchestration ─────────────────────────────────────────────────────────────
@@ -629,7 +712,7 @@ export async function runDoctor({ json = false } = {}) {
   if (json) {
     console.log(JSON.stringify({ ...report, summary: summaryLine }, null, 2));
   } else {
-    const order = ['BEATS', 'ERRORS', 'TRACES', 'ORPHANS', 'GRAPH', 'REGISTRY', 'FRESHNESS', 'OVERSEER'];
+    const order = ['BEATS', 'ERRORS', 'TRACES', 'ORPHANS', 'GRAPH', 'REGISTRY', 'FRESHNESS', 'OVERSEER', 'RUNTIME'];
     for (const section of order) {
       const entry = bySection[section];
       if (!entry) continue;
