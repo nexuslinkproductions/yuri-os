@@ -91,7 +91,8 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
 
     Returns (center(3,), R(3,3), diag). R rows = [x_hat, y_hat, z_hat]; det(R) == +1 (proper rotation,
     never a mirror). Apply with apply_alignment(P, center, R). `pitch_offset_deg` adds a manual pitch
-    tweak about X on top of the auto-level (owner's eye sets the final degree; + tips the muzzle DOWN).
+    tweak about X on top of the auto-level (owner's eye sets the final degree; + tips the muzzle UP —
+    verified 2026-07-04 on the Walther PDP; an earlier note said DOWN and was wrong).
 
     Order: PCA gives 3 orthogonal DIRECTIONS (density-robust) + extent LABELS (length/height/width) ->
     fixes roll, yaw, width. Then gun-anatomy corrections the raw eigen-signs get wrong (each CALIBRATED
@@ -168,7 +169,8 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
             l = D @ aL; h = D @ aH
             if abs(dth) < 0.1:                               # converged
                 break
-    # MANUAL PITCH TWEAK about X (owner's eye): + tips the muzzle down. Applied after auto-level.
+    # MANUAL PITCH TWEAK about X (owner's eye): + tips the muzzle UP (verified 2026-07-04, PDP; an older
+    # note said "down" and was wrong). Applied after auto-level.
     if pitch_offset_deg:
         th = math.radians(pitch_offset_deg); ct, st = math.cos(th), math.sin(th)
         aL, aH = ct * aL + st * aH, -st * aL + ct * aH

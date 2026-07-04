@@ -50,7 +50,10 @@ reversible, non-mutating to geometry.**
    **−0.14°** ("perfect", owner-confirmed). Rejected en route: point-cloud slab-PCA (~15° off), up-faces
    with a loose 30° cone (caught the top bevels → left the true slide/rail ~1.7° off).
 6. **Manual pitch tweak** — `pitch_offset_deg` adds a pitch about X on top of the auto-level for the
-   owner's eye (+ tips the muzzle down). Default 0.
+   owner's eye. Default 0. **SIGN (verified 2026-07-04 on the Walther PDP): `+` tips the muzzle UP**, `−`
+   tips it down — the reverse of an earlier note. On the PDP the rail-primary auto-level left the slide
+   ~3° muzzle-down (the rail underside is NOT parallel to the slide there); `pitch_offset_deg=+3.0` leveled
+   it, owner-confirmed. See Session Notes 2026-07-04.
 7. **Apply** — `New = (P − center) @ Rᵀ`, `R` rows = `[x̂, ŷ, ẑ]`; `matrix_world = identity`. The applied
    `center` + `R` are stored on the object (`cgs_align_center`, `cgs_align_R`) for audit / `unalign_object`.
 
@@ -116,6 +119,10 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 - **OWNER-CONFIRMED "PERFECT" 2026-07-03** on the SIG P226 X-Five FULL GUN (63,464 verts): muzzle −Y,
   grip −Z, slide/rail level (slide-top ridge −0.14°; matches René's hand-posed reference within ~1mm on
   every bbox extent). det +1, centered 0.0mm, upright, straight. Verified in René's own Blender viewport.
+- **OWNER-CONFIRMED "PERFECT" 2026-07-04** on the Walther PDP STEEL FRAME SOLID GUN (61,240 verts):
+  aligned + slide-leveled with `pitch_offset_deg=+3.0`. Auto-level leveled to the rail underside, which on
+  this gun sits ~3° off the slide (the owner's true datum) — the manual pitch corrected it. This run also
+  fixed the pitch-sign doc (`+` = muzzle UP). det +1, grip −Z, muzzle −Y, owner-verified in his viewport.
 - **Offline: 300/300 random gun poses** pass (det, axis order, centering, off-diagonal, grip-down,
   muzzle-left, slide-level) + volume-centroid, near-cubic light, ambiguity, reversibility.
   Re-run: `"…/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_align_math.py`.
@@ -126,6 +133,26 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-04 (Walther PDP steel frame — pitch-sign fix + rail≠slide datum)
+- **Owner-confirmed "perfect"** on the `PDP STEEL FRAME SOLID GUN` (61,240 verts) at `pitch_offset_deg=+3.0`.
+- **Auto-level datum miss:** the leveler picks the DOWN-facing forward flats (picatinny rail) as primary.
+  On the PDP the rail underside sits ~3° off the SLIDE — the owner's true datum — so the plain align left the
+  slide muzzle-down ~3° (owner marked it with a yellow line on the slide). Rail-primary is right for the SIG
+  (rail ∥ slide) but not universal; the slide is the datum when the two disagree.
+- **Pitch sign was inverted vs the old docstring.** Verified with the ridge metric + owner line, not the eye:
+  base ridge +1.39° → `pitch −3` → +4.45° (MORE muzzle-down) → `pitch +3` → −1.62° + owner-level. So
+  **`+pitch_offset_deg` tips the muzzle UP** (a rigid, gun-independent rotation; aL always points rear).
+  Corrected the docstring/comment in `cgs_align.py` and method step 6 above.
+- **Ridge metric is front-sight-biased here:** `_slide_top_tilt_deg` reads ≈ −1.6° at TRUE slide-level (the
+  tall front sight lifts the max-Z ridge over the muzzle half) — don't target ridge 0 blindly; verify against
+  the owner's slide datum. A custom "up-facing forward flats" fit I tried was worse (caught frame /
+  trigger-guard / ejection-port faces → −17° garbage; I applied it once, made it worse, reverted via
+  `unalign_object`).
+- **Eye-fooled again (reaffirms the 2026-07-03 lesson):** I read the `−3` render as "flatter" — it was WORSE;
+  only the ridge number + owner's viewport caught it. Renders fool the eye; trust the number + owner.
+- Tools: blender-mcp (execute_blender_code, workbench renders vs a horizontal fiducial bar), Read/Edit/Bash.
+  <!-- @anchor: v1 | failure: PDP pitch-sign inversion + rail≠slide datum, owner yellow-line correction 2026-07-04 | regression: cgs-align SKILL.md Session Notes 2026-07-04 + cgs_align.py pitch_offset_deg docstring/comment -->
 
 ### 2026-07-03 (v1.0.0, created + owner-validated on the SIG P226)
 - Built from cgs-mold's alignment intelligence into a standalone alignment-only skill.
