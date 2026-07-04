@@ -74,3 +74,14 @@ The conveyor **NEVER paraphrases worker facts from memory and NEVER invents work
 3. The Fable-5 distill is a CODER tune — may be wrong for German chat; it's a candidate for Worker B (technical), not the default voice-facing path.
 4. 12B tok/s + TTFT numbers are interpolated — P1 opens with a benchmark script before any tuning.
 5. René is non-technical: everything must survive reboots unattended (service autostart + watchdog + "Jeffrey neu starten" desktop shortcut).
+
+## 9. v1.1 addendum (2026-07-04, post-research — supersedes §1 worker table where noted)
+
+**Context ceiling resolved** (owner concern "8k is quite low"): 8k was a conservative VRAM default, not a ceiling. Three levers, in order:
+1. **KV q4_0** on the dense 12B worker → 16-32k at the same VRAM (free).
+2. **MoE worker option**: Qwen3.6-30B-A3B-class MoE with CPU-offloaded experts (`n-cpu-moe`) = **~245-262k ctx at 15.3GB peak, verified on this hardware tier** — René's 32GB DDR5 is the enabler. Some tok/s cost (PCIe expert traffic); cast as the LONG-CONTEXT worker beside the latency-optimal dense 12B. Detail: `deepseek-releases-local-applicability-2026-07-04.md`.
+3. **Cloud burst**: Marcel-provisioned ollama API key → `deepseek-v4-flash:cloud` (1M ctx) for the rare monster task. Hybrid, not dogma; daily ops stay local.
+
+DeepSeek V4 itself (the "massive throughput" paper, arXiv:2606.19348) is datacenter-only — nothing to run locally; verdict captured in the same file.
+
+**Computer-control layer** (the actual point — "he just talks"): 3-layer stack per `jeffrey-computer-control-stack-2026-07-04.md` — (1) UIA-first via CursorTouch/Windows-MCP (Ollama-proven, ~zero VRAM), (2) on-demand vision fallback (UI-TARS-2B load/unload; OmniParser with worker unloaded), (3) ARCHITECTURAL confirm-gate (policy engine outside the model: allowlist auto-execute, spoken confirm for destructive). New P-phase: **P2.5 — app control** (launch/type/navigate on René's real app list; gate: 20-command scripted session, zero unconfirmed destructive actions, Electron apps inventoried).
