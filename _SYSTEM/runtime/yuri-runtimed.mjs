@@ -135,6 +135,18 @@ const DEFAULT_CHILD_SPECS = [
     env: { YURI_WAKE_ENABLE: '1' }, // hands-free "hey Yuri" wake gate (bot.py default is hot-mic)
     enabledByDefault: false,
   },
+  {
+    // A2 computer-use — the ScreenContextProvider. localhost :8015 HTTP (POST /context = read,
+    // POST /act = execute). AX-primary + OmniParser-v2 fallback. DISARMED: enable via
+    // runtime-config.json + grant Accessibility TCC to the node binary on first run.
+    name: 'screen-context',
+    cmd: 'node',
+    args: [path.join(HERE, 'screen-context.mjs'), 'serve'],
+    port: 8015,
+    healthPath: '/health',
+    env: { YURI_SCREEN_CONTEXT_ARMED: '1' }, // listen when spawned (the DISARMED gate is enabledByDefault:false)
+    enabledByDefault: false,
+  },
 ];
 
 // ── fs helpers (atomic write: tmp + rename, matches task-queue.mjs) ─────────
