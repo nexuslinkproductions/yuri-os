@@ -136,7 +136,7 @@ behind one master password). Treat as top-secret.
 **no double work, no mistakes.** The day-to-day may be humorous, conversational, wide-ranging (banter, philosophy — all fine).
 
 **Tools Jeffrey should understand (exact names):** MS Outlook · MS Excel · Shapr3D (CAD) · FreeCAD (CAM/fräsjobs) ·
-Claude Desktop · Google Drive · mail via hosttech.eu · Mozilla Firefox (+ the protected password manager) ·
+LightBurn Pro (laser cutting/engraving) · Claude Desktop · Google Drive · mail via hosttech.eu · Mozilla Firefox (+ the protected password manager) ·
 bookkeeping milchbuechli.ch · WooCommerce on WordPress · Elementor Pro · Acowebs Custom Product Addons ·
 WooCommerce PDF Invoices & Packing Slips · Germanized · Advanced Order Export · TWINT · WhatsApp Desktop · Threema Desktop.
 

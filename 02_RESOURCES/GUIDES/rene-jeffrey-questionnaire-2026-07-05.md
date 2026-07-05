@@ -54,7 +54,7 @@ Name: René · Datum: 2026-07-05 · Assistant: Jeffrey
 
 ## S7 — Tools & Oberflächen
 25. ★ Tägliche Apps (exakt):
-   - **MS Outlook** · **MS Excel** · **Shapr3D** · **FreeCAD** · **Claude Desktop** · **Google Drive**
+   - **MS Outlook** · **MS Excel** · **Shapr3D** · **FreeCAD** · **LightBurn Pro** (laser cutting/engraving) · **Claude Desktop** · **Google Drive**
    - Mail-Provider: **hosttech.eu**
    - Browser: **Mozilla Firefox** — inkl. **passwortgeschützter Passwort-Manager, hunderte Zugangsdaten hinter EINEM Masterpasswort** ⚠️
    - Buchhaltung: aktuell **milchbuechli.ch**
