@@ -248,7 +248,7 @@ export async function healAll(opts = {}) {
     }
   }
   saveRegistry(updatedReg, { registry, armed });
-  return { healed, skipped, journal };
+  return { healed, skipped, journal, results, joined };
 }
 
 // ── undo: append a compensating record, never mutate the original ──────────────────────────────
