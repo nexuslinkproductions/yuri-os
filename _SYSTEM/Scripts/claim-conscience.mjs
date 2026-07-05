@@ -60,6 +60,7 @@ export function formatSummary(s) {
 const IS_MAIN = process.argv[1] && path.resolve(process.argv[1]) === new URL(import.meta.url).pathname;
 if (IS_MAIN) {
   const json = process.argv.includes('--json');
+  const brief = process.argv.includes('--brief');
   const armRequested = process.argv.includes('--arm');
   const armed = armRequested && isHealArmed();
   if (armRequested && !armed) {
@@ -70,7 +71,7 @@ if (IS_MAIN) {
     if (json) console.log(JSON.stringify(s));
     else {
       console.log(formatSummary(s));
-      if (s.ok) for (const t of s.topStale) console.log(`  ✗ ${t.claimId}  by=${t.verifier}  ${t.evidence}`);
+      if (s.ok && !brief) for (const t of s.topStale) console.log(`  ✗ ${t.claimId}  by=${t.verifier}  ${t.evidence}`);
     }
   }).catch(e => { console.error(`claim-conscience: fatal — ${e?.message || e}`); process.exit(0); });  // exit 0: never block SessionStart
 }

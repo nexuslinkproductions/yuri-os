@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { isArmed, REPO_ROOT } from '../lib/arming.mjs';
 
 export const DEFAULTS = {
@@ -123,8 +124,11 @@ export function getStale({ includeUnverified = false, ledger, registry } = {}) {
   return joined.filter(c => c.match === false || (includeUnverified && c.match === null));
 }
 
-// ── CLI ───────────────────────────────────────────────────────────────────────────────────────
-const cmd = process.argv[2];
+// ── CLI (guarded — only runs when this module is the ENTRY, not when imported by a sibling) ─────
+// Without this guard, importing claim-registry from claim-verify/claim-heal/claim-conscience makes
+// the CLI fire on the IMPORTER's argv (e.g. 'claim-conscience.mjs --brief' printed this help).
+const cmd = (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+  ? process.argv[2] : null;
 if (cmd === 'stale') {
   const stale = getStale();
   const unverified = getStale({ includeUnverified: true }).length - stale.length;
