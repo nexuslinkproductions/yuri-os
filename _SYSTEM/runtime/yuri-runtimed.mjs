@@ -124,6 +124,17 @@ const DEFAULT_CHILD_SPECS = [
     args: [path.join(SYS, 'Scripts', 'task-queue.mjs'), 'run-next'],
     enabledByDefault: false,
   },
+  {
+    // The voice loop (Pipecat: mic -> Whisper STT -> GLM brain :8014 -> Kokoro TTS -> speaker).
+    // No port/healthPath — it's an audio loop, not an HTTP server; health = process-alive,
+    // supervisor restarts with backoff on crash. Enable via runtime-config.json (owner-gated:
+    // always-on mic + first run triggers the macOS mic-permission prompt).
+    name: 'voice-loop',
+    cmd: 'python3',
+    args: [path.join(SYS, 'Scripts', 'voice', 'bot.py')],
+    env: { YURI_WAKE_ENABLE: '1' }, // hands-free "hey Yuri" wake gate (bot.py default is hot-mic)
+    enabledByDefault: false,
+  },
 ];
 
 // ── fs helpers (atomic write: tmp + rename, matches task-queue.mjs) ─────────
@@ -366,7 +377,7 @@ class SupervisedChild {
       cwd: REPO_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
       detached: false,
-      env: process.env,
+      env: { ...process.env, ...(this.spec.env || {}) },
     });
     this.child = child;
     this.pid = child.pid;
