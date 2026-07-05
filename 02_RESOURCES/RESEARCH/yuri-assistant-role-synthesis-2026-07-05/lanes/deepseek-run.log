@@ -1,0 +1,96 @@
+{
+  "runId": "olf-mr850gvv-81e07e",
+  "armed": true,
+  "runDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/jobs/olf-mr850gvv-81e07e/results",
+  "concurrency": 5,
+  "results": [
+    {
+      "label": "D1-role-scope",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_YURI_ASSISTANT_ROLE_SCOPE_SURVEY_X_PASS_COMMITTED",
+      "ms": 676334,
+      "chars": 18443
+    },
+    {
+      "label": "D2-autonomy-gate",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_AUTONOMY_GATE_SURVEY_X_PASS_COMMITTED",
+      "ms": 92281,
+      "chars": 14987
+    },
+    {
+      "label": "D3-memory-continuity",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08CW_MEMORY_CONTINUITY_SURVEY_MINIMAL_POLICY_X_PASS_COMMITTED",
+      "ms": 69387,
+      "chars": 14982
+    },
+    {
+      "label": "D4-proactivity",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_PROACTIVITY_SURVEY_MINIMAL_LOOP_X_PASS_COMMITTED",
+      "ms": 97323,
+      "chars": 12087
+    },
+    {
+      "label": "D5-voice-ux",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08CW_VOICE_UX_SURVEY_BUILD_CUT_X_PASS_COMMITTED",
+      "ms": 671537,
+      "chars": 20717
+    },
+    {
+      "label": "D6-anti-over-engineering",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "06DS_ANTI_OVER_ENGINEERING_SURVEY_X_PASS_COMMITTED",
+      "ms": 59423,
+      "chars": 15921
+    },
+    {
+      "label": "D7-provider-pacing",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08CW_PROVIDER_PACING_SURVEY_X_PASS_COMMITTED",
+      "ms": 94811,
+      "chars": 8238
+    },
+    {
+      "label": "D8-data-routing-privacy",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_DATA_ROUTING_PRIVACY_SURVEY_X_PASS_COMMITTED",
+      "ms": 46662,
+      "chars": 14338
+    }
+  ]
+}

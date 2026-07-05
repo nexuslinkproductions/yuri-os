@@ -1,0 +1,30 @@
+{
+  "runId": "glmf-mr8cehdm-c8ce21",
+  "armed": true,
+  "runDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/jobs/glmf-mr8cehdm-c8ce21/results",
+  "concurrency": 2,
+  "results": [
+    {
+      "label": "G-usage-config",
+      "lane": "glm",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "06GM_USAGE_METERS_BUDGET_CONFIG_ACTIVATE_VERDICT_X_PASS_COMMITTED",
+      "ms": 271665,
+      "chars": 2350
+    },
+    {
+      "label": "G-selfdocs",
+      "lane": "glm-max",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "ITEM6_SELF_DOCS_PROMOTION_VERIFIED_X_PASS_COMMITTED",
+      "ms": 262235,
+      "chars": 3302
+    }
+  ]
+}
