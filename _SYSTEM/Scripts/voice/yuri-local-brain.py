@@ -67,13 +67,19 @@ SYS_DEFAULT = os.environ.get(
 JEFFREY_BRAIN_FILE = os.path.join(os.path.dirname(__file__), "jeffrey-voice-brain.md")
 JEFFREY_TOOL_NOTE = (
     "\n\n## YOUR HANDS (Windows — honest)\n"
-    "You run fully on-device via Ollama. You reason, converse, summarise, and draft. Full voice-driven "
-    "Windows app control (launching apps, typing, clicking, navigating) is the ROADMAP — not wired yet. "
-    "Do NOT claim to open apps, click, or see the screen; when a task needs that, say so plainly and "
-    "offer what you CAN do. Never fabricate a result. CONFIRM-GATE: you organise, remind, propose, and "
-    "draft; René decides and executes. Speak your intent and HOLD for his spoken yes before anything "
-    "decision-bearing or outward-facing — sending, ordering, quoting a price, deleting, changing a shop "
-    "order. Company internals and personal customer data never leave the machine unmasked.")
+    "You run fully on-device via Ollama. You reason, converse, summarise, and draft. You can SEARCH René's "
+    "files (search_files), READ them (read_file), and PROPOSE edits/saves (edit_file / save_file) — but ONLY "
+    "inside his sanctioned CGS folders; anything outside that scope is refused in code, no exceptions. Full "
+    "voice-driven app control (launching apps, clicking, seeing the screen) is still the ROADMAP — do NOT "
+    "claim it; when a task needs it, say so and offer what you CAN do. Never fabricate a result.\n"
+    "## CONFIRM-GATE (architectural — writes are STAGED)\n"
+    "edit_file / save_file do NOT write immediately — they STAGE the change and return 'staged'. You MUST then "
+    "speak the intent in plain words ('I'll save the updated mold map to your CGS folder — shall I?') and get "
+    "René's spoken YES, and only THEN call confirm_write to actually save. On 'no', call cancel_write. Saves "
+    "land on his Google Drive CGS folder by default; local saves are the exception. Searching and reading are "
+    "routine — just do them and speak the result. Everything else outward-facing (sending, ordering, quoting a "
+    "price, deleting) stays speak-and-hold. Company internals and personal customer data never leave the "
+    "machine unmasked.")
 
 
 def _build_local_system():
@@ -141,6 +147,67 @@ JEFFREY_TOOLS = [{
             "required": ["query"],
         },
     },
+}, {
+    "type": "function",
+    "function": {
+        "name": "read_file",
+        "description": ("Read the full text of one of René's files (inside his CGS scope) so you can answer "
+                        "about its contents or prepare an edit. Routine — no confirmation needed. Returns the "
+                        "file's text (capped)."),
+        "parameters": {
+            "type": "object",
+            "properties": {"path": {"type": "string", "description": "Absolute path to the file, e.g. from a search_files result."}},
+            "required": ["path"],
+        },
+    },
+}, {
+    "type": "function",
+    "function": {
+        "name": "save_file",
+        "description": ("STAGE saving new content to a file in René's CGS scope (create or overwrite). Does NOT "
+                        "write yet — it stages the change. After staging, tell René what you'll save and get his "
+                        "spoken YES, then call confirm_write. Saves go to his Google Drive CGS folder by default."),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Absolute path to save to (inside the CGS scope)."},
+                "content": {"type": "string", "description": "The full new file content."},
+            },
+            "required": ["path", "content"],
+        },
+    },
+}, {
+    "type": "function",
+    "function": {
+        "name": "edit_file",
+        "description": ("STAGE an edit to an existing file in René's CGS scope by replacing an exact text "
+                        "snippet. Does NOT write yet — it stages the change. After staging, confirm with René, "
+                        "then call confirm_write."),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Absolute path to the file (inside the CGS scope)."},
+                "old_string": {"type": "string", "description": "The exact text to replace (must exist in the file)."},
+                "new_string": {"type": "string", "description": "The replacement text."},
+            },
+            "required": ["path", "old_string", "new_string"],
+        },
+    },
+}, {
+    "type": "function",
+    "function": {
+        "name": "confirm_write",
+        "description": ("Apply the currently STAGED save/edit — call this ONLY after René has given his spoken "
+                        "confirmation. Actually writes the file (to Drive or local)."),
+        "parameters": {"type": "object", "properties": {}},
+    },
+}, {
+    "type": "function",
+    "function": {
+        "name": "cancel_write",
+        "description": "Discard the currently staged save/edit (René said no / changed his mind).",
+        "parameters": {"type": "object", "properties": {}},
+    },
 }]
 TOOLS_ACTIVE = JEFFREY_TOOLS if _JEFFREY else TOOLS
 
@@ -183,6 +250,66 @@ def _save_history(hist):
         pass
 
 
+# ── File-access scope + staged-write gate (Jeffrey mode) ─────────────────────────────────────────
+# HARD architectural guard, NOT prompt-based: read/edit/save may touch ONLY files under the sanctioned
+# roots (index-roots.json = René's CGS folders + the CGS Drive folder). Everything else on the machine —
+# the Drive's password/private/family folders, system files, the repo — is refused here in code. Writes
+# are STAGED to a pending file and only applied by confirm_write (two-step, inspectable).
+_ROOTS_CONFIG = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "index-roots.json")
+_PENDING_WRITE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "pending-write.json")
+_READ_CAP = 60000
+# Paths staged during the CURRENT turn — confirm_write refuses these so a write can't be staged AND
+# applied in one turn (forces René's confirmation to land on a later turn). Cleared per turn in run_brain.
+# Single-user voice assistant: turns are sequential, so a module-global set is safe here.
+_staged_this_turn = set()
+
+def _scope_roots():
+    try:
+        with open(_ROOTS_CONFIG, encoding="utf-8") as f:
+            j = json.load(f)
+        arr = j if isinstance(j, list) else j.get("roots", [])
+        out = []
+        for r in arr:
+            p = r if isinstance(r, str) else (r.get("path") if isinstance(r, dict) else None)
+            if p:
+                out.append(os.path.normcase(os.path.abspath(p)))
+        return out
+    except Exception:
+        return []
+
+def _in_scope(p):
+    """True only if p resolves INSIDE a sanctioned root. os.path.abspath normalizes '..' so a
+    traversal like CGS/../PRIVAT can't escape. Empty root list → deny all (fail closed)."""
+    if not p:
+        return False
+    try:
+        ap = os.path.normcase(os.path.abspath(p))
+    except Exception:
+        return False
+    for root in _scope_roots():
+        if ap == root or ap.startswith(root + os.sep):
+            return True
+    return False
+
+def _stage_write(path, content, kind):
+    os.makedirs(os.path.dirname(_PENDING_WRITE), exist_ok=True)
+    with open(_PENDING_WRITE, "w", encoding="utf-8") as f:
+        json.dump({"path": path, "content": content, "kind": kind}, f)
+
+def _load_pending():
+    try:
+        with open(_PENDING_WRITE, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def _clear_pending():
+    try:
+        os.remove(_PENDING_WRITE)
+    except Exception:
+        pass
+
+
 def _exec_tool(name, args):
     """Run a capability the model chose to call; return a short result string fed back to the model."""
     if name == "spawn_worker":
@@ -208,6 +335,78 @@ def _exec_tool(name, args):
             return "Found these local files:\n" + "\n".join(f"- {h['name']}  ({h['path']})" for h in hits[:8])
         except Exception as e:
             return f"file search failed: {str(e)[:80]}"
+    if name == "read_file":
+        p = ((args or {}).get("path") or "").strip()
+        if not p:
+            return "no path given"
+        if not _in_scope(p):
+            return f"REFUSED: '{p}' is outside René's CGS scope. I can only read files in his sanctioned CGS folders."
+        try:
+            with open(p, "r", encoding="utf-8", errors="replace") as f:
+                data = f.read(_READ_CAP)
+            more = " …(truncated)" if len(data) >= _READ_CAP else ""
+            return f"Contents of {os.path.basename(p)}:\n{data}{more}"
+        except Exception as e:
+            return f"could not read {os.path.basename(p)}: {str(e)[:80]}"
+    if name == "save_file":
+        p = ((args or {}).get("path") or "").strip()
+        content = (args or {}).get("content")
+        if not p or content is None:
+            return "need both a path and content"
+        if not _in_scope(p):
+            return f"REFUSED: '{p}' is outside René's CGS scope — I won't write there."
+        try:
+            _stage_write(p, content, "save")
+            _staged_this_turn.add(os.path.normcase(os.path.abspath(p)))
+        except Exception as e:
+            return f"could not stage save: {str(e)[:80]}"
+        return (f"STAGED a save to {os.path.basename(p)} ({len(content)} chars) — NOT written yet. "
+                "Tell René exactly what you'll save and get his spoken yes, then call confirm_write.")
+    if name == "edit_file":
+        p = ((args or {}).get("path") or "").strip()
+        old = (args or {}).get("old_string")
+        new = (args or {}).get("new_string")
+        if not p or old is None or new is None:
+            return "need path, old_string and new_string"
+        if not _in_scope(p):
+            return f"REFUSED: '{p}' is outside René's CGS scope — I won't edit there."
+        try:
+            with open(p, "r", encoding="utf-8", errors="replace") as f:
+                cur = f.read()
+        except Exception as e:
+            return f"could not read {os.path.basename(p)} to edit: {str(e)[:80]}"
+        if old not in cur:
+            return f"the exact text to replace was not found in {os.path.basename(p)} — read it first."
+        try:
+            _stage_write(p, cur.replace(old, new, 1), "edit")
+            _staged_this_turn.add(os.path.normcase(os.path.abspath(p)))
+        except Exception as e:
+            return f"could not stage edit: {str(e)[:80]}"
+        return (f"STAGED an edit to {os.path.basename(p)} — NOT written yet. Confirm with René, then call confirm_write.")
+    if name == "confirm_write":
+        pend = _load_pending()
+        if not pend:
+            return "nothing is staged to confirm."
+        p = pend.get("path")
+        content = pend.get("content")
+        if not p or content is None or not _in_scope(p):
+            _clear_pending()
+            return "REFUSED: the staged change was out of scope or invalid — discarded it."
+        if os.path.normcase(os.path.abspath(p)) in _staged_this_turn:
+            return ("Not yet — that change was just staged. Speak the intent to René, get his spoken yes, "
+                    "and confirm on the next turn (I won't stage and save in one breath).")
+        try:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(content)
+            _clear_pending()
+            return f"Done — saved {os.path.basename(p)} ({len(content)} chars) to {p}."
+        except Exception as e:
+            return f"save failed: {str(e)[:80]}"
+    if name == "cancel_write":
+        had = _load_pending() is not None
+        _clear_pending()
+        return "discarded the staged change." if had else "there was nothing staged."
     return f"unknown tool: {name}"
 
 
@@ -226,6 +425,7 @@ def _ollama_chat(messages, tools=None):
 
 
 def run_brain(req_messages):
+    _staged_this_turn.clear()   # a write staged this turn can't be confirmed until the next turn
     user_msg = _latest_user(req_messages) or "(no input)"
     hist = _load_history()
     send = [{"role": "system", "content": SYSTEM}] + hist[-(2 * TURNS):] + [
