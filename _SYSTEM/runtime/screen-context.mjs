@@ -64,11 +64,12 @@ function defaultOsascriptRunner(script, cb) {
   execFile('osascript', ['-l', 'JavaScript', '-e', script], { timeout: 5000, maxBuffer: 8 * 1024 * 1024 }, cb);
 }
 
-// Decide if AX returned empty (frontmost app has no window / empty tree) → need vision fallback.
+// Decide if AX returned nothing useful (no window, or window with no enumerated children —
+// the Electron/canvas case where AX sees the window but can't introspect it) → need vision fallback.
 export function needsVisionFallback(activeWindow) {
   if (!activeWindow || !activeWindow.window) return true;
-  const count = (function n(e) { return e ? 1 + (e.children || []).reduce((s, c) => s + n(c), 0) : 0; })(activeWindow.window);
-  return count === 0;
+  const kids = activeWindow.window.children;
+  return !Array.isArray(kids) || kids.length === 0;
 }
 
 // OmniParser-v2 fallback — STUB for A2.1. The real subprocess (microsoft/OmniParser-v2.0,
@@ -91,18 +92,16 @@ export function buildActionOsascript(action) {
   switch (action.type) {
     case 'open_app':
       return `tell application "${escApple(action.app)}" to activate`;
-    case 'click_menu':
-      return `tell application "System Events"
-  tell process "${escApple(action.app)}"
-    tell menu bar 1
-      ${((action.menu_path || []).map((m, i) =>
-        i === 0
-          ? `tell menu bar item "${escApple(m)}" to tell menu 1`
-          : `tell menu item "${escApple(m)}"${i < (action.menu_path || []).length - 1 ? ' to tell menu 1' : ' to click'}`
-      ).join('\n      '))}
-    end tell
-  end tell
-end tell`;
+    case 'click_menu': {
+      const mp = action.menu_path || [];
+      if (mp.length < 2) throw new Error('click_menu requires menu_path [menuBarItem, menuItem, ...]');
+      let chain = `click menu item "${escApple(mp[mp.length - 1])}"`;
+      for (let i = mp.length - 2; i >= 0; i--) {
+        const ref = i === 0 ? `menu bar item "${escApple(mp[i])}"` : `menu item "${escApple(mp[i])}"`;
+        chain = `${chain} of menu 1 of ${ref}`;
+      }
+      return `tell application "System Events"\n  tell process "${escApple(action.app)}"\n    tell menu bar 1\n      ${chain}\n    end tell\n  end tell\nend tell`;
+    }
     case 'type_field':
       return `tell application "System Events"
   tell process "${escApple(action.app)}"
@@ -177,6 +176,4 @@ if (cmd === 'serve') {
   console.log(`screen-context — the A2 ScreenContextProvider (localhost :${DEFAULT_PORT})
   node screen-context.mjs serve [--arm]   # serve (DISARMED unless --arm / YURI_SCREEN_CONTEXT_ARMED=1)
   GET /health · POST /context · POST /act`);
-} else if (process.argv[1] && import.meta.url === fileURLToPath(process.argv[1]).href) {
-  console.log('Use: node screen-context.mjs serve [--arm]');
 }
