@@ -258,6 +258,11 @@ def _save_history(hist):
 _ROOTS_CONFIG = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "index-roots.json")
 _PENDING_WRITE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "pending-write.json")
 _READ_CAP = 60000
+# Binary documents: read_file routes these through jeffrey-extract.py (pdfminer/python-docx/openpyxl)
+# so it returns readable TEXT, not mojibake. Same venv python the node indexer uses.
+_DOC_EXT = {".pdf", ".docx", ".xlsx"}
+_EXTRACT_PY = os.environ.get("JEFFREY_EXTRACT_PY", "C:/Users/rene/.venvs/parakeet-ptt/Scripts/python.exe")
+_EXTRACT_SCRIPT = os.path.join(os.path.dirname(__file__), "..", "jeffrey-extract.py")
 # Paths staged during the CURRENT turn — confirm_write refuses these so a write can't be staged AND
 # applied in one turn (forces René's confirmation to land on a later turn). Cleared per turn in run_brain.
 # Single-user voice assistant: turns are sequential, so a module-global set is safe here.
@@ -341,6 +346,20 @@ def _exec_tool(name, args):
             return "no path given"
         if not _in_scope(p):
             return f"REFUSED: '{p}' is outside René's CGS scope. I can only read files in his sanctioned CGS folders."
+        ext = os.path.splitext(p)[1].lower()
+        if ext in _DOC_EXT:
+            # PDF/Word/Excel → extract readable text (never raw bytes). Reading a Drive doc downloads
+            # that one file — the on-demand read René authorized for his CGS folder.
+            try:
+                out = subprocess.run([_EXTRACT_PY, _EXTRACT_SCRIPT, p],
+                                     capture_output=True, text=True, encoding="utf-8", timeout=60)
+                txt = (out.stdout or "").strip()
+            except Exception as e:
+                return f"could not extract {os.path.basename(p)}: {str(e)[:80]}"
+            if not txt:
+                return f"No readable text in {os.path.basename(p)} (it may be image-only, empty, or unsupported)."
+            more = " …(truncated)" if len(txt) > _READ_CAP else ""
+            return f"Text from {os.path.basename(p)}:\n{txt[:_READ_CAP]}{more}"
         try:
             with open(p, "r", encoding="utf-8", errors="replace") as f:
                 data = f.read(_READ_CAP)
