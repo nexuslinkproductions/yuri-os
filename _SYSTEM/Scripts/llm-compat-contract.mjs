@@ -983,7 +983,6 @@ function assessSentinelAdvisory(prompt, lane, scenario) {
   if (ocConfig.authority === 'native-integrated') {
     return {
       decision: 'skip',
-      role: 'nisaba-sentinel-native',
       preflight: false,
       postflight: false,
       runtimeKind: 'native_integrated',
