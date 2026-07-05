@@ -14,10 +14,34 @@ import os, json, uuid, re, subprocess, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PORT = int(os.environ.get("YURI_LOCAL_BRAIN_PORT", "8013"))
-MODEL = os.environ.get("YURI_LOCAL_MODEL", "llama3.2:latest")  # parked default: the snappy NON-reasoning one
-# NOTE (2026-06-18): local-SLM voice PARKED until a hardware upgrade. Reasoning models (VibeThinker)
-# speak their <think> CoT aloud — unusable for voice. The future path is a LARGER non-reasoning instruct
-# model with enough RAM to run it fast. `yuri` (claude -p) is the active voice brain meanwhile.
+
+# ── Operator-aware selection — mirrors .claude/operator.json `persona.overlay` (the same per-machine
+# identity brain-inject.js + yuri-z-brain.py read). "Jeffrey" = René's LOCAL Windows lane (COO for
+# Custom Gear Solution, on the RTX 5060 Ti); anything else keeps Marcel's Yuri default byte-identical.
+# Force with env YURI_VOICE_OPERATOR=jeffrey|marcel.
+def _detect_operator():
+    op = os.environ.get("YURI_VOICE_OPERATOR", "").strip().lower()
+    if op:
+        return op
+    try:
+        _prof = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude", "operator.json")
+        with open(_prof, encoding="utf-8") as _f:
+            overlay = (json.load(_f).get("persona", {}).get("overlay") or "").strip().lower()
+        if overlay:
+            return overlay
+    except Exception:
+        pass
+    return "marcel"
+
+_OPERATOR = _detect_operator()
+_JEFFREY = _OPERATOR == "jeffrey"
+
+# Model default: Jeffrey -> qwen3:14b (the research-recommended local tool-caller for voice —
+# jeffrey-voice-stack-2026-07-04.md: "Qwen3 14B or 8B, best local tool-callers; avoid think-mode for
+# voice"; René has it pulled and it runs 100% GPU on the 5060 Ti 16GB). Marcel -> the snappy
+# non-reasoning llama3.2. Any <think> CoT is stripped below regardless, so a thinking-capable model is
+# still safe for voice (never spoken); disabling thinking for lower latency is a tuning follow-up.
+MODEL = os.environ.get("YURI_LOCAL_MODEL", "qwen3:14b" if _JEFFREY else "llama3.2:latest")
 OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 if not OLLAMA.startswith(("http://", "https://")):  # OLLAMA_HOST is often bare host:port
     OLLAMA = "http://" + OLLAMA
@@ -34,6 +58,41 @@ SYS_DEFAULT = os.environ.get(
     "For questions, chit-chat, acknowledgements, or anything else, just talk — do NOT call any tool. "
     "After a tool runs, tell him briefly what you did.",
 )
+
+# ── Jeffrey (local Windows) system prompt — load the spoken brain doc + an honest Windows tool note.
+# Single-sourced at jeffrey-voice-brain.md (the same file yuri-z-brain.py loads for the cloud lane), so
+# Jeffrey's identity is defined in ONE place across both brains. The macOS spawn_worker tool is NOT
+# offered in Jeffrey mode (its bash/tmux helper doesn't run on Windows); app-control is the roadmap.
+# Marcel keeps SYS_DEFAULT byte-identical.
+JEFFREY_BRAIN_FILE = os.path.join(os.path.dirname(__file__), "jeffrey-voice-brain.md")
+JEFFREY_TOOL_NOTE = (
+    "\n\n## YOUR HANDS (Windows — honest)\n"
+    "You run fully on-device via Ollama. You reason, converse, summarise, and draft. Full voice-driven "
+    "Windows app control (launching apps, typing, clicking, navigating) is the ROADMAP — not wired yet. "
+    "Do NOT claim to open apps, click, or see the screen; when a task needs that, say so plainly and "
+    "offer what you CAN do. Never fabricate a result. CONFIRM-GATE: you organise, remind, propose, and "
+    "draft; René decides and executes. Speak your intent and HOLD for his spoken yes before anything "
+    "decision-bearing or outward-facing — sending, ordering, quoting a price, deleting, changing a shop "
+    "order. Company internals and personal customer data never leave the machine unmasked.")
+
+
+def _build_local_system():
+    """Marcel -> the existing SYS_DEFAULT (already honors YURI_LOCAL_SYSTEM). Jeffrey -> the spoken brain
+    doc + honest Windows tool note, unless YURI_LOCAL_SYSTEM explicitly overrides."""
+    if not _JEFFREY:
+        return SYS_DEFAULT
+    override = os.environ.get("YURI_LOCAL_SYSTEM")
+    if override:
+        return override
+    try:
+        with open(JEFFREY_BRAIN_FILE, encoding="utf-8") as f:
+            return f.read().strip() + JEFFREY_TOOL_NOTE
+    except Exception:
+        return ("You are Jeffrey, René's COO voice assistant for Custom Gear Solution — reply in one or "
+                "two natural spoken sentences, British-butler 'Sir', no filler." + JEFFREY_TOOL_NOTE)
+
+
+SYSTEM = _build_local_system()
 
 # Persisted rolling transcript = Yuri's memory across turns AND restarts (the local-SLM stand-in for
 # claude -p --resume). One source of truth lives here in the brain, independent of the client.
@@ -62,6 +121,11 @@ TOOLS = [{
         },
     },
 }]
+
+# Jeffrey mode offers NO tools yet — spawn_worker's bash/tmux helper is macOS-only and would fail on
+# Windows; app-control is the roadmap. Marcel keeps the full TOOLS set. Grow this once a real Windows
+# control tool lands.
+TOOLS_ACTIVE = [] if _JEFFREY else TOOLS
 
 
 def _strip_think(t: str) -> str:
@@ -132,11 +196,11 @@ def _ollama_chat(messages, tools=None):
 def run_brain(req_messages):
     user_msg = _latest_user(req_messages) or "(no input)"
     hist = _load_history()
-    send = [{"role": "system", "content": SYS_DEFAULT}] + hist[-(2 * TURNS):] + [
+    send = [{"role": "system", "content": SYSTEM}] + hist[-(2 * TURNS):] + [
         {"role": "user", "content": user_msg}]
 
     try:
-        msg = _ollama_chat(send, tools=TOOLS)
+        msg = _ollama_chat(send, tools=TOOLS_ACTIVE)
     except Exception:
         try:                                  # model without tool support -> still let her talk
             msg = _ollama_chat(send)
@@ -171,8 +235,9 @@ class H(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok": True, "brain": "ollama-local", "model": MODEL,
-                                         "tools": [t["function"]["name"] for t in TOOLS]}).encode())
+            self.wfile.write(json.dumps({"ok": True, "brain": "ollama-local", "operator": _OPERATOR,
+                                         "model": MODEL,
+                                         "tools": [t["function"]["name"] for t in TOOLS_ACTIVE]}).encode())
         else:
             self.send_response(404)
             self.end_headers()
@@ -210,6 +275,6 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"[yuri-local-brain] :{PORT} -> ollama {MODEL} (on-device, free, num_ctx={NUM_CTX}, "
-          f"tools={[t['function']['name'] for t in TOOLS]})", flush=True)
+    print(f"[yuri-local-brain] :{PORT} operator={_OPERATOR} -> ollama {MODEL} (on-device, free, "
+          f"num_ctx={NUM_CTX}, tools={[t['function']['name'] for t in TOOLS_ACTIVE]})", flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
