@@ -18,7 +18,7 @@ import { loadClaims, loadRegistry, upsertVerification, saveRegistry, joinRegistr
 
 export const VERIFIERS = ['git_status', 'model_id', 'arm_state', 'file_exists', 'cap_present', 'test_count'];
 
-const RX = {
+export const RX = {
   git_status: /\b(UNCOMMITTED|SHIPPED|PUSHED|COMMITTED|UNTRACKED|PENDING\s+SIGN[- ]?OFF|NOT(?:\s+YET)?\s+PUSHED)\b/i,
   arm_state:  /\b(ARMED|DISARMED|LIVE|DISABLED|ENABLED)\b/i,
   file_exists:/\b(MISSING|ABSENT|DELETED|GONE|REMOVED)\b/i,
