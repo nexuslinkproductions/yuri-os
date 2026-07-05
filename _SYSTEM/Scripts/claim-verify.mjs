@@ -65,16 +65,31 @@ export function verifyGitStatus(claim, { gitRunner = defaultGitRunner, fsExists 
     const sha = shaMatch[1];
     const branches = gitRunner(['branch', '-r', '--contains', sha]).stdout || '';
     const onOrigin = /origin\/(main|HEAD)/.test(branches);
+    // ── red-team hardening (Architect 1): the sha-bearing path is the strongest verifier, so it is
+    //    the one most dangerous when it MISFIRES high. Three sub-checks gate the 0.98 confidence;
+    //    any failure demotes below the 0.9 heal floor so S3 surfaces but never auto-heals on a
+    //    misfire. Without these a shallow clone / detached HEAD / wrong-origin reads false-stale.
+    const depthProbe = (gitRunner(['rev-list', '--count', sha]).stdout || '').trim();
+    const depthOk = /^\d+$/.test(depthProbe) && parseInt(depthProbe, 10) > 0;   // errors/empty on shallow or unreachable
+    const headRef = (gitRunner(['rev-parse', '--abbrev-ref', 'HEAD']).stdout || '').trim();
+    const detached = headRef === 'HEAD';                                          // worktree detached-HEAD
+    const originUrl = (gitRunner(['remote', 'get-url', 'origin']).stdout || '').trim();
+    const originOk = originUrl.length > 0;                                        // no origin = can't trust origin/main match
+    const trustworthy = onOrigin && depthOk && !detached && originOk;
     const expectsShipped = /\b(SHIPPED|PUSHED|COMMITTED)\b/.test(claimed);
     const match = expectsShipped ? onOrigin : !onOrigin;
-    const evidence = [`git branch -r --contains ${sha} -> ${onOrigin ? 'on origin/main' : 'NOT on origin/main'}`];
-    if (onOrigin) evidence.push(`verified present on origin (shipped+pushed)`);
+    const evidence = [
+      `git branch -r --contains ${sha} -> ${onOrigin ? 'on origin/main' : 'NOT on origin/main'}`,
+      `depth rev-list --count ${sha} -> ${depthOk ? depthProbe : 'unreachable/shallow'}`,
+      `HEAD -> ${detached ? 'DETACHED (worktree)' : headRef || '(unknown)'}`,
+      `origin -> ${originOk ? originUrl.slice(0, 60) : 'unset'}`,
+    ];
     return {
       verifier: 'git_status',
       verifiedStatus: onOrigin ? 'SHIPPED+PUSHED' : 'NOT_ON_ORIGIN',
       match,
       evidence,
-      confidence: 0.98,
+      confidence: trustworthy ? 0.98 : 0.6,   // demoted below the 0.9 heal floor on any sub-check failure
       proposedFix: match ? null : (onOrigin ? 'SHIPPED+PUSHED' : 'NOT_ON_ORIGIN'),
     };
   }

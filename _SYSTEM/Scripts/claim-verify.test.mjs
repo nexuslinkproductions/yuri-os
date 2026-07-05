@@ -25,6 +25,16 @@ function gitReturning(map) {
     return { ok: false, stdout: '', stderr: 'no mock' };
   };
 }
+// a gitRunner that returns TRUSTWORTHY sub-check responses (depth ok, HEAD on a branch, origin set)
+// so the sha-bearing path keeps confidence 0.98. `branches` overrides the branch-r-contains output.
+function trustworthyGit(branches = '  origin/main\n') {
+  return gitReturning({
+    'branch -r --contains': branches,
+    'rev-list --count': '142',
+    'rev-parse --abbrev-ref': 'main',
+    'remote get-url': 'https://github.com/nexuslinkproductions/yuri-os.git',
+  });
+}
 
 test('classifyClaim: priority order + null for unclassifiable', () => {
   assert.equal(classifyClaim({ claimedStatus: '467/467', _source: { statement: 'tests 467/467 green' } }), 'test_count');
@@ -37,10 +47,10 @@ test('classifyClaim: priority order + null for unclassifiable', () => {
   assert.equal(classifyClaim(null), null);
 });
 
-test('verifyGitStatus (sha-bearing): SHIPPED + sha on origin → match (true)', () => {
+test('verifyGitStatus (sha-bearing): SHIPPED + sha on origin + trustworthy sub-checks → match (true), conf 0.98', () => {
   const r = verifyGitStatus(
     { claimedStatus: 'SHIPPED', _source: { statement: 'SHIPPED cbdca5c0 + pushed origin/main' } },
-    { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n  origin/HEAD-> origin/main\n' }) }
+    { gitRunner: trustworthyGit('  origin/main\n  origin/HEAD-> origin/main\n') }
   );
   assert.equal(r.match, true);
   assert.equal(r.verifiedStatus, 'SHIPPED+PUSHED');
@@ -53,12 +63,38 @@ test('verifyGitStatus (sha-bearing): THE MERGE-MEMORY CASE — UNCOMMITTED claim
   // exactly the stale state: the file references cbdca5c0 but claims UNCOMMITTED
   const r = verifyGitStatus(
     { claimedStatus: 'UNCOMMITTED', _source: { statement: 'merge wave1 — commit cbdca5c0 UNCOMMITTED pending sign-off' } },
-    { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n' }) }
+    { gitRunner: trustworthyGit('  origin/main\n') }
   );
   assert.equal(r.match, false, 'must detect the staleness');
   assert.equal(r.verifiedStatus, 'SHIPPED+PUSHED');
   assert.equal(r.proposedFix, 'SHIPPED+PUSHED', 'must propose the fix');
   assert.ok(r.confidence >= 0.9);
+});
+
+test('verifyGitStatus (sha-bearing): red-team hardening — shallow clone demotes confidence below the heal floor', () => {
+  // sha IS on origin, but rev-list --count errors (shallow/unreachable) -> demoted, NOT auto-healed
+  const r = verifyGitStatus(
+    { claimedStatus: 'SHIPPED', _source: { statement: 'SHIPPED cbdca5c0' } },
+    { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n', 'rev-list --count': '', 'rev-parse --abbrev-ref': 'main', 'remote get-url': 'https://x/y.git' }) }
+  );
+  assert.equal(r.match, true, 'match is still computed (sha is on origin)');
+  assert.ok(r.confidence < 0.9, 'confidence demoted below the 0.9 heal floor on shallow clone');
+});
+
+test('verifyGitStatus (sha-bearing): detached HEAD (worktree) demotes confidence below the floor', () => {
+  const r = verifyGitStatus(
+    { claimedStatus: 'SHIPPED', _source: { statement: 'SHIPPED cbdca5c0' } },
+    { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n', 'rev-list --count': '142', 'rev-parse --abbrev-ref': 'HEAD', 'remote get-url': 'https://x/y.git' }) }
+  );
+  assert.ok(r.confidence < 0.9, 'detached HEAD demotes below the heal floor');
+});
+
+test('verifyGitStatus (sha-bearing): no origin remote demotes confidence below the floor', () => {
+  const r = verifyGitStatus(
+    { claimedStatus: 'SHIPPED', _source: { statement: 'SHIPPED cbdca5c0' } },
+    { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n', 'rev-list --count': '142', 'rev-parse --abbrev-ref': 'main', 'remote get-url': '' }) }
+  );
+  assert.ok(r.confidence < 0.9, 'missing origin demotes below the heal floor');
 });
 
 test('verifyGitStatus (sha-bearing): claim says PUSHED but sha NOT on origin → stale', () => {
@@ -163,7 +199,7 @@ test('verifyAll: updates the registry overlay for every classifiable claim', () 
   }));
   const { results, registry: updated } = verifyAll({
     ledger, registry,
-    runners: { gitRunner: gitReturning({ 'branch -r --contains': '  origin/main\n' }) },
+    runners: { gitRunner: trustworthyGit('  origin/main\n') },
   });
   assert.equal(results.length, 2);
   const m = updated.claims['m:uncommitted'];
