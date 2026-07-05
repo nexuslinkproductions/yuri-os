@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Link — Phase 1 Visual Plan · 2026-07-02</title>
+<style>
+  :root{
+    --np-void:#04070f; --np-panel:#0a1020; --np-panel-2:#0d1526; --np-line:#1a2740;
+    --np-text:#d7e3f4; --np-dim:#7d8fa9; --np-faint:#4a5a72;
+    --np-cyan:#00c8f0; --np-green:#2fd67b; --np-amber:#f0b429; --np-violet:#9a6bff;
+    --np-red:#ff5d6c; --np-mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--np-void);color:var(--np-text);font:15px/1.6 -apple-system,'Inter',sans-serif;padding:0 0 120px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+  header{padding:56px 0 28px;border-bottom:1px solid var(--np-line);margin-bottom:40px;
+    background:radial-gradient(ellipse 900px 300px at 20% -10%,rgba(0,200,240,.08),transparent)}
+  .kicker{font-family:var(--np-mono);font-size:11px;letter-spacing:.28em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+  h1 em{color:var(--np-cyan);font-style:normal}
+  .sub{color:var(--np-dim);max-width:820px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+  .chip{font-family:var(--np-mono);font-size:11px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;border:1px solid var(--np-line);color:var(--np-dim)}
+  .chip.ok{border-color:rgba(47,214,123,.4);color:var(--np-green)}
+  .chip.warn{border-color:rgba(240,180,41,.4);color:var(--np-amber)}
+  .chip.bad{border-color:rgba(255,93,108,.4);color:var(--np-red)}
+  section{margin-bottom:56px}
+  h2{font-size:13px;font-family:var(--np-mono);letter-spacing:.24em;text-transform:uppercase;color:var(--np-cyan);
+     border-left:3px solid var(--np-cyan);padding-left:14px;margin-bottom:8px}
+  h2 .n{color:var(--np-faint)}
+  .lead{color:var(--np-dim);margin-bottom:22px;max-width:860px}
+  .lead b{color:var(--np-text)}
+  h3{font-size:16px;margin:26px 0 10px;color:var(--np-text)}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--np-panel);border:1px solid var(--np-line);border-radius:12px;padding:18px 20px}
+  .card h4{font-size:13px;font-family:var(--np-mono);letter-spacing:.1em;margin-bottom:10px;color:var(--np-text)}
+  .card p{font-size:13.5px;color:var(--np-dim)}
+  .card p b{color:var(--np-text)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--np-faint);
+     text-align:left;padding:8px 12px;border-bottom:1px solid var(--np-line)}
+  td{padding:8px 12px;border-bottom:1px solid rgba(26,39,64,.55);color:var(--np-dim);vertical-align:top}
+  td b, td strong{color:var(--np-text)}
+  code{font-family:var(--np-mono);font-size:12px;color:var(--np-cyan);background:rgba(0,200,240,.07);padding:1.5px 6px;border-radius:4px}
+  .tag{font-family:var(--np-mono);font-size:10px;letter-spacing:.1em;padding:2.5px 9px;border-radius:12px;display:inline-block}
+  .t-live{background:rgba(47,214,123,.12);color:var(--np-green);border:1px solid rgba(47,214,123,.35)}
+  .t-demo{background:rgba(240,180,41,.1);color:var(--np-amber);border:1px solid rgba(240,180,41,.3)}
+  .t-off{background:rgba(74,90,114,.15);color:var(--np-faint);border:1px solid var(--np-line)}
+  .t-p0{background:rgba(255,93,108,.12);color:var(--np-red);border:1px solid rgba(255,93,108,.35)}
+  .t-p1{background:rgba(240,180,41,.1);color:var(--np-amber);border:1px solid rgba(240,180,41,.3)}
+  .t-p2{background:rgba(154,107,255,.12);color:var(--np-violet);border:1px solid rgba(154,107,255,.35)}
+  .t-cy{background:rgba(0,200,240,.1);color:var(--np-cyan);border:1px solid rgba(0,200,240,.3)}
+  .modmap{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+  .mod{background:var(--np-panel);border:1px solid var(--np-line);border-radius:10px;padding:12px 14px}
+  .mod .nm{font-size:13px;font-weight:600;margin-bottom:6px}
+  .mod.live{border-color:rgba(47,214,123,.35)}
+  .mod.focus{border-color:rgba(0,200,240,.55);box-shadow:0 0 24px rgba(0,200,240,.12)}
+  .evi{background:#070d1a;border:1px solid var(--np-line);border-left:3px solid var(--np-red);border-radius:8px;
+       font-family:var(--np-mono);font-size:12px;line-height:1.75;padding:14px 18px;color:var(--np-dim);overflow-x:auto}
+  .evi .r{color:var(--np-red)}.evi .g{color:var(--np-green)}.evi .c{color:var(--np-cyan)}.evi .y{color:var(--np-amber)}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:14px 0}
+  .fnode{background:var(--np-panel-2);border:1px solid var(--np-line);border-radius:10px;padding:12px 16px;min-width:150px;flex:1}
+  .fnode .t{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.12em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:5px}
+  .fnode .d{font-size:12.5px;color:var(--np-dim)}
+  .farr{display:flex;align-items:center;padding:0 10px;color:var(--np-faint);font-size:18px}
+  .wf{background:#0b1322;border:1px solid var(--np-line);border-radius:14px;padding:22px;margin:16px 0}
+  .wf-cap{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.16em;color:var(--np-faint);text-transform:uppercase;margin-bottom:14px}
+  .avail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .avail-head .ti{font-size:15px;font-weight:600}
+  .avail-head .wk{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.22em;color:var(--np-dim)}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .day{background:var(--np-panel);border:1px solid var(--np-line);border-radius:10px;text-align:center;padding:12px 4px;cursor:default}
+  .day .dl{font-family:var(--np-mono);font-size:10px;letter-spacing:.2em;color:var(--np-faint);margin-bottom:6px}
+  .day .dc{font-size:22px;font-weight:600}
+  .day.sel{border-color:var(--np-cyan);box-shadow:0 0 16px rgba(0,200,240,.15)}
+  .day.zero{border-color:rgba(255,93,108,.4)}.day.zero .dc{color:var(--np-red)}
+  .slotrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .slot{font-family:var(--np-mono);font-size:11.5px;padding:6px 12px;border-radius:8px;border:1px solid rgba(0,200,240,.35);color:var(--np-cyan)}
+  .slot.busy{border-color:var(--np-line);color:var(--np-faint);text-decoration:line-through}
+  .wf .note{font-size:12px;color:var(--np-faint);margin-top:12px;font-style:italic}
+  .q{background:var(--np-panel);border:1px solid var(--np-line);border-left:3px solid var(--np-violet);border-radius:10px;padding:16px 20px;margin-bottom:12px}
+  .q .qq{font-weight:600;margin-bottom:6px}
+  .q .qa{font-size:13px;color:var(--np-dim)}
+  .q .qa b{color:var(--np-violet)}
+  .wave{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+  .wnum{font-family:var(--np-mono);font-size:13px;color:var(--np-void);background:var(--np-cyan);min-width:34px;height:34px;border-radius:9px;
+        display:flex;align-items:center;justify-content:center;font-weight:700;margin-top:2px}
+  .wnum.w2{background:var(--np-green)}.wnum.w3{background:var(--np-violet)}
+  .wbody{flex:1;background:var(--np-panel);border:1px solid var(--np-line);border-radius:12px;padding:16px 20px}
+  .wbody h4{font-size:14.5px;margin-bottom:6px}
+  .wbody p{font-size:13px;color:var(--np-dim)}
+  .wbody ul{margin:8px 0 0 18px;font-size:13px;color:var(--np-dim)}
+  .wbody li{margin-bottom:4px}
+  .wbody li b{color:var(--np-text)}
+  footer{border-top:1px solid var(--np-line);margin-top:60px;padding-top:24px;font-family:var(--np-mono);font-size:11px;color:var(--np-faint);letter-spacing:.06em}
+  @media(max-width:860px){.g2,.g3{grid-template-columns:1fr}.days{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Nexus Link · Build Plan · 2026-07-02</div>
+    <h1>Calendar module goes <em>operational</em> — sync hardening, live availability, account linking</h1>
+    <p class="sub">Turn the demo Availability panel into a server-computed slot engine wired to the canonical calendar, fix the Microsoft sync failure at its verified root cause, and open the path for Google + Meta account connections. Fleet-executed: GLM 5.2 peers build, native agents verify, this session reviews, finalizes and drives the browser.</p>
+    <div class="chips">
+      <span class="chip ok">CALENDAR PHASE 0 · LIVE</span>
+      <span class="chip ok">MS OAUTH · CONNECTED</span>
+      <span class="chip bad">MS SYNC · ROOT CAUSE VERIFIED</span>
+      <span class="chip warn">AVAILABILITY · HARDCODED DEMO</span>
+      <span class="chip ok">MURE · 9/10 DEFECTS FIXED</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 1. STATE OF THE OS ============ -->
+<section>
+  <h2><span class="n">01</span> · Where the OS stands — module map</h2>
+  <p class="lead">22 surfaces in the demo UI. <b>6 already run on real REST</b>; the rest render static demo data. This plan makes the <b>Calendar + Availability</b> column fully operational and lays the connector rail every other module will reuse.</p>
+  <div class="modmap">
+    <div class="mod live"><div class="nm">Dashboard</div><span class="tag t-live">LIVE</span></div>
+    <div class="mod live"><div class="nm">Leads</div><span class="tag t-live">LIVE</span></div>
+    <div class="mod live"><div class="nm">Forms</div><span class="tag t-live">LIVE</span></div>
+    <div class="mod live"><div class="nm">Commission</div><span class="tag t-live">LIVE</span></div>
+    <div class="mod live focus"><div class="nm">Calendar</div><span class="tag t-live">LIVE</span> <span class="tag t-cy">THIS PLAN</span></div>
+    <div class="mod focus"><div class="nm">Availability</div><span class="tag t-demo">DEMO</span> <span class="tag t-cy">THIS PLAN</span></div>
+    <div class="mod live focus"><div class="nm">Connections</div><span class="tag t-live">MS ONLY</span> <span class="tag t-cy">THIS PLAN</span></div>
+    <div class="mod"><div class="nm">Contacts / CRM</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Pipeline</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Inbox</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Funnels</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Automation</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Reports</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Social</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Tracking</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Email</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Contracts</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Billing</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Team</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Academy</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Playbook</div><span class="tag t-demo">DEMO</span></div>
+    <div class="mod"><div class="nm">Files</div><span class="tag t-off">STUB</span></div>
+  </div>
+</section>
+
+<!-- ============ 2. WORKSTREAM A — MS SYNC ============ -->
+<section>
+  <h2><span class="n">02</span> · Workstream A — Microsoft sync hardening</h2>
+  <p class="lead">The toast <b>“sync to Microsoft failed: The specified object was not found in the store”</b> is diagnosed and <b>verified against the live outbox</b> — not a token or account problem. Two deletes were queued 4&nbsp;s apart for the same event; the first succeeded on Graph, the replay hit 404, and the code treats a 404 on delete as a hard failure instead of “already done”.</p>
+
+  <div class="evi">
+<span class="c">service/data/calendar.json → outbox (live evidence, tonight)</span><br>
+job_4d5c6366fc9c · delete · <span class="y">pending</span> · ev_964b855c…  ← will replay + re-fail on next propagate<br>
+job_4c06b993dcbe · delete · <span class="r">failed  · “The specified object was not found in the store.”</span> · ev_964b855c…<br>
+job_4019f54d2cc4 / job_2fa7971b211a · create+delete · <span class="y">pending</span> · ev_24966470…  ← never reached Graph, needs reconcile<br><br>
+<span class="c">root cause chain (file:line, read directly)</span><br>
+microsoft.py:371-375 &nbsp;<span class="r">_graph_mutate strips the HTTP status</span> → caller can’t tell 404 from 400<br>
+calendar_service.py:110-117 &nbsp;<span class="r">delete raises on ANY error</span> → no idempotency, no self-heal<br>
+calendar_service.py &nbsp;<span class="y">propagation is synchronous</span> → Graph latency blocks the HTTP request
+  </div>
+
+  <h3>Fix ladder (three independent lanes converged on this)</h3>
+  <table>
+    <tr><th style="width:70px">Prio</th><th style="width:300px">Fix</th><th>Mechanism</th></tr>
+    <tr><td><span class="tag t-p0">P0</span></td><td><b>Preserve HTTP status</b> in <code>_graph_mutate</code></td><td>Return <code>{"error", "status"}</code> — the one-line change that makes every other fix possible.</td></tr>
+    <tr><td><span class="tag t-p0">P0</span></td><td><b>Idempotent delete + 404 self-heal</b></td><td>DELETE + 404 → success (state already achieved). UPDATE + 404 → re-create the event and re-attach the new Graph id.</td></tr>
+    <tr><td><span class="tag t-p0">P0</span></td><td><b>Dedupe outbox jobs</b></td><td>Don’t enqueue a delete when the event is already cancelled with a delete pending — kills the double-delete class at the source.</td></tr>
+    <tr><td><span class="tag t-p1">P1</span></td><td><b>Retry + dead-letter</b></td><td>Exponential backoff (10s → ~13min), dead-letter after 5 attempts, UI “retry sync” button on failed events.</td></tr>
+    <tr><td><span class="tag t-p1">P1</span></td><td><b>Background propagation worker</b></td><td>Daemon thread drains the outbox — saving an event stops blocking on Graph latency.</td></tr>
+    <tr><td><span class="tag t-p2">P2</span></td><td><b>Inbound delta sync</b></td><td><code>/me/calendarView/delta</code> polling (no public URL needed — 1/10th the infra of webhooks). Fulfils the locked “auto-update Nexus” decision: edits made in Outlook flow back in.</td></tr>
+  </table>
+
+  <div class="flow">
+    <div class="fnode"><div class="t">UI / API write</div><div class="d">Save hits Nexus store first — instant response</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">Outbox (deduped)</div><div class="d">One job per event-op; replay-safe</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">Worker thread</div><div class="d">Backoff retry · dead-letter · 404 self-heal</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">MS Graph</div><div class="d">create / patch / delete</div></div>
+    <div class="farr">⇄</div>
+    <div class="fnode"><div class="t">Delta poll (P2)</div><div class="d">Outlook edits flow back into Nexus</div></div>
+  </div>
+</section>
+
+<!-- ============ 3. WORKSTREAM B — AVAILABILITY ============ -->
+<section>
+  <h2><span class="n">03</span> · Workstream B — Availability panel goes live</h2>
+  <p class="lead">Today the panel renders a hardcoded array <code>[6,4,5,3,7,2,0]</code> (app.js:1289). Everything needed to compute it for real <b>already exists server-side and is unused</b>: <code>work_start/work_end/timezone</code> settings, booking types with <code>duration/buffer/rule/pool</code>, and the canonical event store. We build the slot engine the docs already spec’d (“server-computed availability — scan, not UI mirror”), modeled on Cal.com’s proven algorithm.</p>
+
+  <div class="wf">
+    <div class="wf-cap">Target UI state — availability panel, live (wireframe)</div>
+    <div class="avail-head">
+      <span class="ti">Availability</span>
+      <span class="wk">THIS WEEK · ERSTGESPRÄCH 30 MIN</span>
+    </div>
+    <div class="days">
+      <div class="day"><div class="dl">MO</div><div class="dc">7</div></div>
+      <div class="day"><div class="dl">TU</div><div class="dc">5</div></div>
+      <div class="day sel"><div class="dl">WE</div><div class="dc">4</div></div>
+      <div class="day"><div class="dl">TH</div><div class="dc">6</div></div>
+      <div class="day"><div class="dl">FR</div><div class="dc">3</div></div>
+      <div class="day zero"><div class="dl">SA</div><div class="dc">0</div></div>
+      <div class="day zero"><div class="dl">SU</div><div class="dc">0</div></div>
+    </div>
+    <div class="slotrow">
+      <span class="slot">09:00</span><span class="slot">09:45</span><span class="slot busy">10:30</span>
+      <span class="slot">13:00</span><span class="slot busy">14:15</span><span class="slot">15:30</span><span class="slot">16:15</span>
+    </div>
+    <div class="note">Counts computed per booking type from working hours minus busy events (incl. buffers). Clicking a day expands its concrete slots; struck slots are blocked by calendar events. Weekend zero because the work schedule ends Friday — honest, not broken.</div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>REUSED (already in the codebase)</h4>
+      <p>• <code>settings.work_start / work_end / timezone</code> — editable in the settings modal, zero consumers today<br>
+      • <code>booking_types</code> — duration, buffer, rule (round_robin | fixed | load), pool — stored, never resolved<br>
+      • Canonical event store + <code>calViewRange()</code> + <code>calRefresh()</code> render cycle<br>
+      • <code>round_robin_cursor</code> — seeded stub, never read</p>
+    </div>
+    <div class="card">
+      <h4>NEW (the actual delta)</h4>
+      <p>• <code>availability.py</code> — slot engine: working hours → subtract busy (buffered) → slot grid → per-day counts<br>
+      • <code>GET /api/calendar/availability?start=&end=&booking_type=</code><br>
+      • <code>calUI.availability</code> state + live panel render + day-expand slot detail<br>
+      • Booking-type CRUD routes (<code>GET/POST/PUT/DELETE /api/calendar/booking-types</code>)<br>
+      • Booking-type resolution on create — <b>fixed-assignee default</b>; round-robin engine lands after the Mike call</p>
+    </div>
+  </div>
+
+  <h3>Slot algorithm (Cal.com-distilled, adapted to our store)</h3>
+  <div class="flow">
+    <div class="fnode"><div class="t">1 · Schedule</div><div class="d">work_start→work_end per weekday, schedule TZ (Europe/Zurich)</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">2 · Busy merge</div><div class="d">Canonical events in range (status ≠ cancelled), buffers applied before/after</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">3 · Slot grid</div><div class="d">duration + interval + min-notice; slot must fit entirely in free interval</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">4 · Counts</div><div class="d">free slots per day per booking type → panel; slots list on expand</div></div>
+  </div>
+  <p style="font-size:13px;color:var(--np-faint)">Computed per-request from the canonical store (no cache layer yet — Cal.com ships the same way). Because Phase 0 already propagates + imports Microsoft events into the canonical store, “busy” automatically includes the connected calendar. All-day events count as busy; DST handled by computing in the schedule TZ.</p>
+</section>
+
+<!-- ============ 4. WORKSTREAM C — PLATFORM CONNECTION LAYER ============ -->
+<section>
+  <h2><span class="n">04</span> · Workstream C — the platform connection layer (not just calendar)</h2>
+  <p class="lead"><b>Correction from the last plan:</b> connecting Microsoft, Google and Meta is a <b>platform-wide capability, not a calendar feature</b>. One connected account unlocks many modules — so we build a shared <b>identity + OAuth + token rail</b> (the "Connections" subsystem that already exists and holds the live Microsoft link), and each module plugs a capability adapter onto the same connected account. Calendar is simply the <b>first consumer</b> of that rail; Email, Contacts/CRM, Files and the Communication inbox are next, on the exact same connection.</p>
+
+  <h3>One connection → many modules (scope-per-capability)</h3>
+  <table>
+    <tr><th style="width:130px">Provider</th><th>Unlocks these modules</th><th>Scopes / API surface</th><th style="width:90px">State</th></tr>
+    <tr>
+      <td><b>Microsoft 365</b></td>
+      <td>Calendar · Email · Contacts/CRM · Files</td>
+      <td><code>Calendars.ReadWrite</code> · <code>Mail.ReadWrite</code> · <code>Contacts.ReadWrite</code> · <code>Files.ReadWrite.All</code> (Graph)</td>
+      <td><span class="tag t-live">CONNECTED</span></td>
+    </tr>
+    <tr>
+      <td><b>Google</b></td>
+      <td>Calendar · Email (Gmail) · Contacts · Drive</td>
+      <td><code>calendar.events</code> · Gmail · People · Drive scopes (Desktop OAuth + PKCE, loopback)</td>
+      <td><span class="tag t-cy">THIS WAVE</span></td>
+    </tr>
+    <tr>
+      <td><b>Meta</b></td>
+      <td>Communication inbox · Social (NOT calendar)</td>
+      <td>WhatsApp Cloud API · Instagram Graph · FB Pages — <b>no calendar API exists</b></td>
+      <td><span class="tag t-demo">VERIFY TRACK</span></td>
+    </tr>
+    <tr>
+      <td><b>Apple</b></td>
+      <td>Calendar · Contacts (later)</td>
+      <td>Server-side CalDAV (locked decision)</td>
+      <td><span class="tag t-off">PARKED</span></td>
+    </tr>
+  </table>
+
+  <h3>Architecture — shared auth core, per-capability adapters</h3>
+  <div class="flow">
+    <div class="fnode"><div class="t">Auth core (shared)</div><div class="d"><code>_oauth.py</code>: PKCE · loopback catcher · Keychain token store <code>com.nexuslink.app.{provider}</code> · refresh</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">ProviderConnector</div><div class="d"><code>authorize/status/connect_state</code> + per-provider token mgmt — one connected identity</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">Capability adapters</div><div class="d">calendar (now) · mail · contacts · files · messaging — each module plugs onto the same account</div></div>
+  </div>
+  <p style="font-size:13px;color:var(--np-faint)">This wave builds the auth core + the <b>calendar</b> capability adapter for Google, and refactors the working Microsoft connector into the same shape (behavior frozen by tests first). Mail/Contacts/Files/messaging adapters are stubs the later modules fill — the rail is built once, here.</p>
+
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card" style="border-color:rgba(47,214,123,.35)">
+      <h4>GOOGLE <span class="tag t-live" style="float:right">GO</span></h4>
+      <p><b>Console (browser, ~10 min):</b> GCP project → enable Calendar API (Gmail/People/Drive when those modules land) → OAuth consent <b>External + Testing</b> (you as test user, no verification) → <b>Desktop</b> client id → paste into Nexus.<br><br>
+      <b>Code:</b> <code>GoogleConnector(ProviderConnector)</code> off the shared <code>_oauth.py</code>; calendar scope <code>calendar.events</code>; Keychain <code>com.nexuslink.app.google</code>. Gotcha handled: Google all-day events are exclusive-end (+1 day).<br><br>
+      <b>Comet/computer-use:</b> with your standing permission I drive the console in the browser while you watch; you type only your password.</p>
+    </div>
+    <div class="card" style="border-color:rgba(240,180,41,.35)">
+      <h4>META <span class="tag t-demo" style="float:right">MESSAGING</span></h4>
+      <p><b>Two independent lanes confirmed:</b> no general-purpose Meta calendar API (FB Events API is restricted, read-heavy). Meta is a <b>Communication/Social</b> connector — WhatsApp Business Cloud API, Instagram Graph, FB Pages — on the SAME rail, different capability adapter.<br><br>
+      <b>Move:</b> start the Meta <b>Business App + Business Verification</b> track now (2–10 days verify, App Review 2–6 weeks) so the Inbox module isn't blocked later. Zero calendar code.</p>
+    </div>
+    <div class="card">
+      <h4>APPLE <span class="tag t-off" style="float:right">PARKED</span></h4>
+      <p>Locked: server-side CalDAV. Plugs into the same <code>ProviderConnector</code> rail (CalDAV auth instead of OAuth). Scheduled after Google.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FLEET HARDENING (owner ask) ============ -->
+<section>
+  <h2><span class="n">04b</span> · Fleet hardening — the cosmetic exit-1 is fixed</h2>
+  <p class="lead">You flagged the false exit-1 on the GLM dispatch. Root-caused and fixed at the source — <b>done this session, verified, 60/60 tests green</b>. It was two compounding bugs, not one.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h4>ROOT CAUSE</h4>
+      <p><code>lane-dispatch.mjs</code> <code>isBad()</code> checked <b>exit code before the out-file</b>. A lane that wrote its complete, labeled result to <code>--out</code> and then exited non-zero (transport cleanup after the last byte) was judged "bad" and <b>retried — and the empty retry truncated and clobbered the good output</b> with a failure record. The fleet then reported a failure for work that had actually succeeded.</p>
+    </div>
+    <div class="card">
+      <h4>FIX (2 layers)</h4>
+      <p>1. <code>lane-dispatch.isBad()</code> — a non-empty <code>--out</code> is now the authoritative success signal, <b>regardless of exit code</b>; no needless retry, no clobber (matches the file's own contract).<br>
+      2. <code>contract-conformance.classifyLaneOutcome()</code> — shared output-first classifier both fleets use: complete + valid non-F label ⇒ success (flagged <code>degraded</code> if exit was non-zero); empty / sentinel / F-label ⇒ fails loudly. Fleet exit code now reflects <b>work outcome</b>, not raw child exit.</p>
+    </div>
+  </div>
+  <p style="font-size:12.5px;color:var(--np-faint);margin-top:10px">Verified: 9 classifier cases + 3 real-seam lane-dispatch regression tests (a complete-output-then-exit-1 lane is NOT retried and its <code>--out</code> survives intact) + a live 3-lane GLM smoke returning exit 0. Files: <code>_SYSTEM/Scripts/lane-dispatch.mjs</code>, <code>contract-conformance.mjs</code>, <code>glm-fleet.mjs</code>, <code>ollama-fleet.mjs</code> + 2 test files.</p>
+</section>
+
+<!-- ============ 5. EXECUTION MODEL ============ -->
+<section>
+  <h2><span class="n">05</span> · Execution model — who builds what</h2>
+  <p class="lead">Per your directive: <b>GLM 5.2 peers do most of the building</b> (MURE company dispatch), <b>native Sonnet/Haiku agents verify and test</b>, and <b>this session is eyes + brains</b> — reviews every diff, runs the live checks, drives the browser for account setup, finalizes.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4>MURE INSPECTION — VERDICT: DISPATCH-SAFE WITH GUARDRAILS</h4>
+      <p>Active inspection tonight: roster clean (20 roles / 6 groups). Of the master-plan defects: <b>D-1 timeout hangs, D-2 dashboard, D-3 label regex, D-4 cloud admission, D-6 governance honesty, D-8 role collapse, D-9 inline roles, D-11 ollama reachability — all FIXED</b> with cited commits. Two watchdog layers now bound yesterday’s 35-min hang class: 120s idle-stall kill (llm-lane) + 15-min round wall-clock (runSwarm). <b>Still open: D-10</b> — the MLP router remains shadow-only (single candidate), so lanes are pinned explicitly per leaf.</p>
+    </div>
+    <div class="card">
+      <h4>DISPATCH GUARDRAILS (BINDING FOR THE BUILD)</h4>
+      <p>• Every leaf gets a <b>bounded file list</b> — no “search the repo” prompts (yesterday’s hang was a prompt-scope failure, not just transport)<br>
+      • Explicit <code>timeoutMs</code> per leaf; <code>mure-poll-run.mjs</code> monitoring; <code>running-stragglers</code> = check that leaf’s scope<br>
+      • Broad-scan leaves route to <b>native</b> agents, never glm-max<br>
+      • Every GLM “done” is verified against local evidence before it counts (lanes over-claim — standing rule)</p>
+    </div>
+  </div>
+
+  <table style="margin-top:14px">
+    <tr><th>Lane</th><th>Role in this build</th><th>Bills</th></tr>
+    <tr><td><b>GLM 5.2 / 4.7 peers</b> (MURE company)</td><td>Implementation leaves: sync fixes, availability engine, connector refactor, UI wiring</td><td>z.ai plan</td></tr>
+    <tr><td><b>Native Sonnet</b></td><td>Code review per leaf, live REST tests, negative tests (double-delete replay, 404 self-heal, DST edges)</td><td>Sonnet weekly pool</td></tr>
+    <tr><td><b>Native Haiku</b></td><td>Census, log parsing, smoke sweeps</td><td>Sonnet weekly pool</td></tr>
+    <tr><td><b>ollama lanes</b></td><td>Bulk research + second-opinion red-team (already delivered the Graph-404 + Cal.com dossiers)</td><td>ollama Pro</td></tr>
+    <tr><td><b>This session (Opus-tier)</b></td><td>Orchestrates, verifies every claim, drives Comet/computer-use for Google console, finalizes commits</td><td>main</td></tr>
+  </table>
+  <p style="font-size:12.5px;color:var(--np-faint);margin-top:10px">Design dossiers produced tonight by the fleet, all on disk: <code>tasks/ms-sync-robustness-glm.md</code>, <code>tasks/provider-connectors-design-glm.md</code>, <code>tasks/availability-engine-design-glm.md</code> (glm-5.2 ×3), plus the Cal.com availability distillation + Graph-404 root-cause dossier (ollama). The availability dossier also flags assignee-name normalization ("Mike" vs "Mike R.") as a HIGH-risk edge — carried into Wave 1.</p>
+</section>
+
+<!-- ============ 6. BUILD SEQUENCE ============ -->
+<section>
+  <h2><span class="n">06</span> · Build sequence</h2>
+  <div class="wave">
+    <div class="wnum">1</div>
+    <div class="wbody">
+      <h4>Sync you can trust + availability you can see</h4>
+      <ul>
+        <li><b>A · P0 sync fixes</b> — status preservation, idempotent delete, 404 self-heal, outbox dedupe; reconcile the 4 stuck jobs; live-verify against your real MS calendar</li>
+        <li><b>A · P1</b> — retry/backoff + dead-letter, background worker, UI retry button</li>
+        <li><b>B · Availability engine</b> — <code>availability.py</code> + REST + live panel + slot expand; booking-type CRUD; fixed-assignee resolution on create</li>
+        <li><b>Gate:</b> disconnected smoke + live MS CRUD re-run (13/13 baseline) + new negative tests green → you click through the UI</li>
+      </ul>
+    </div>
+  </div>
+  <div class="wave">
+    <div class="wnum w2">2</div>
+    <div class="wbody">
+      <h4>Platform connection rail + Google live</h4>
+      <ul>
+        <li><b>Auth core</b> — extract <code>_oauth.py</code> (PKCE, loopback, Keychain) + <code>ProviderConnector</code> ABC; refactor the working Microsoft connector onto it (behavior frozen by Wave-1 tests first)</li>
+        <li><b>Google connector</b> — <code>GoogleConnector</code> off the shared core, calendar adapter + one-time import + <code>freeBusy</code>; <b>owner-present Comet session</b> for the 5-step console setup</li>
+        <li><b>Rail, not calendar</b> — leave mail/contacts/files/messaging capability adapters as registered stubs so Email, CRM, Files and Inbox modules plug onto the same connected account later</li>
+        <li>Meta <b>Business App + Business Verification</b> kickoff (parallel, zero calendar code)</li>
+        <li><b>Gate:</b> Google CRUD live test + availability counts include Google busy events; MS behavior unchanged post-refactor</li>
+      </ul>
+    </div>
+  </div>
+  <div class="wave">
+    <div class="wnum w3">3</div>
+    <div class="wbody">
+      <h4>Two-way sync + booking becomes a product</h4>
+      <ul>
+        <li>Inbound delta poll (MS <code>calendarView/delta</code>, Google <code>syncToken</code>) — Outlook/Google edits appear in Nexus</li>
+        <li><code>POST /api/public/book/:slug</code> — the Buchungslink goes real; no-show flow stub</li>
+        <li>Round-robin engine (post-Mike-call decision)</li>
+        <li><b>Gate:</b> edit in Outlook → shows in Nexus → availability count changes — the full loop, live</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. RISKS & QUESTIONS ============ -->
+<section>
+  <h2><span class="n">07</span> · Risks + open questions</h2>
+  <div class="grid g2" style="margin-bottom:22px">
+    <div class="card"><h4>RISKS WE CARRY</h4>
+      <p>• Refactoring <code>microsoft.py</code> into the abstraction can regress working sync → Wave-1 tests freeze behavior first<br>
+      • Delta sync conflict rule needed (Outlook edit vs Nexus edit) → last-writer-wins + audit note, revisit later<br>
+      • Stale-server footgun (old process without new routes) → restart discipline + health probe in every gate<br>
+      • Google docs URLs rot; research flagged 2 dead links → re-verify at build, not from memory</p>
+    </div>
+    <div class="card"><h4>EXPLICITLY DEFERRED</h4>
+      <p>Postgres migration (slice 6), multi-assignee availability intersection (needs teammates’ calendars connected), Apple CalDAV, no-show automation sequence, webhook push (delta poll first), per-assignee schedules.</p>
+    </div>
+  </div>
+
+  <div class="q"><div class="qq">Q1 — Availability scope for Wave 1: one business schedule or per-assignee schedules?</div>
+    <div class="qa"><b>Recommended: one business schedule</b> (work_start/work_end already exist) + booking-type durations/buffers. Per-assignee needs teammates’ calendars connected — none are yet. The schema leaves room for it.</div></div>
+  <div class="q"><div class="qq">Q2 — Round-robin on create: build now or after the Mike call?</div>
+    <div class="qa"><b>Recommended: resolution engine now with fixed-assignee default</b>; the round-robin rule activates once Mike decides (it’s a config flip, not a rebuild).</div></div>
+  <div class="q"><div class="qq">Q3 — Google console setup: schedule the Comet/computer-use session?</div>
+    <div class="qa"><b>Recommended: yes, during Wave 2 while you’re present</b> — it creates an OAuth app inside your Google account, so owner-present is the right blast posture. ~10 minutes.</div></div>
+  <div class="q"><div class="qq">Q4 — Meta: confirm rerouting to the Communication-module track + starting Business Verification now?</div>
+    <div class="qa"><b>Recommended: yes.</b> Zero code this wave; the 2–10 day verification clock starts ticking so the Inbox module isn’t blocked later.</div></div>
+</section>
+
+<footer>
+  NEXUS LINK · PHASE 1 VISUAL PLAN · 2026-07-02 · sources: session handoff + calendar index (tracked docs) · live outbox evidence (verified this session) ·
+  fleet dossiers: glm-5.2 ×3 shipped · ollama ×3 · native sonnet ×3 + haiku ×3 · MURE inspection w/ commit-cited defect table ·
+  approval = reply in chat; build starts on your go
+</footer>
+
+</div>
+</body>
+</html>

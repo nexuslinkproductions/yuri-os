@@ -56,7 +56,12 @@ export function loadSignalsOrStub(signalsPath = DEFAULT_SIGNALS) {
   }
   try {
     const mod = require(fullPath);
-    const candidate = mod.signals ?? mod.default ?? mod;
+    // the signals module exports FACTORIES (defaultSignals/buildSignals), never a ready-made
+    // signals object — resolving the namespace directly matched zero stub keys and silently
+    // degraded every run to the all-false stub (the 18.5k-predicted / 0-derived signature)
+    const candidate = (typeof mod.defaultSignals === 'function' && mod.defaultSignals())
+      || (typeof mod.buildSignals === 'function' && mod.buildSignals())
+      || mod.signals || mod.default || mod;
     const merged = { ...stub };
     for (const k of Object.keys(stub)) {
       if (typeof candidate?.[k] === 'function') merged[k] = candidate[k].bind(candidate);

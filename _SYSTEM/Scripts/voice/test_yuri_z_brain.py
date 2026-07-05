@@ -186,6 +186,120 @@ multi = brain._latest_user([
 ])
 check("_latest_user gets last user", multi == "second")
 
+# ---- SECTION J: Session-conductor + runtime tools (voice-Yuri hands) ----
+print("\n--- J. Session conductor + runtime tools ---")
+
+CONDUCTOR_TOOL_NAMES = ["conductor_list", "conductor_create", "conductor_draft", "conductor_send",
+                        "conductor_peek", "morning_brief", "usage_status"]
+for expected in CONDUCTOR_TOOL_NAMES:
+    check(f"tool '{expected}' registered", expected in tool_names, f"missing from {tool_names}")
+
+# J1: confirm-gate classification — conductor_send is ALWAYS critical (git-push-class); everything
+# else in this batch is routine (list/peek are read-only, create/draft are safe/reversible staging).
+check("conductor_send is critical", brain._is_critical_call("conductor_send", {"name": "worker2"}))
+check("conductor_draft is routine", not brain._is_critical_call("conductor_draft", {"name": "w", "text": "hi"}))
+check("conductor_create is routine", not brain._is_critical_call("conductor_create", {"name": "w"}))
+check("conductor_list is routine", not brain._is_critical_call("conductor_list", {}))
+check("conductor_peek is routine", not brain._is_critical_call("conductor_peek", {"name": "w"}))
+check("morning_brief is routine", not brain._is_critical_call("morning_brief", {}))
+check("usage_status is routine", not brain._is_critical_call("usage_status", {}))
+
+# J2: _describe_action speaks the intent, never a raw command, for conductor_send.
+desc = brain._describe_action("conductor_send", {"name": "worker2"})
+check("conductor_send description mentions target session", "worker2" in desc, desc)
+check("conductor_send description says 'send the draft'", "send" in desc.lower() and "draft" in desc.lower(), desc)
+
+# J3: dispatch calls the right argv (mock subprocess.run so no real tmux/node process is spawned).
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='[]\n', stderr='')
+    brain._exec_tool("conductor_list", {})
+    called_argv = mock_run.call_args[0][0]
+    check("conductor_list invokes session-conductor.mjs list",
+          called_argv[:2] == ["node", brain.CONDUCTOR_CLI] and "list" in called_argv, called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='{}\n', stderr='')
+    brain._exec_tool("conductor_create", {"name": "worker9", "cmd": "claude"})
+    called_argv = mock_run.call_args[0][0]
+    check("conductor_create passes name + --cmd",
+          "create" in called_argv and "worker9" in called_argv and "--cmd" in called_argv and "claude" in called_argv,
+          called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='{}\n', stderr='')
+    brain._exec_tool("conductor_draft", {"name": "worker9", "text": "do the thing"})
+    called_argv = mock_run.call_args[0][0]
+    check("conductor_draft passes name + --text",
+          "draft" in called_argv and "worker9" in called_argv and "--text" in called_argv and "do the thing" in called_argv,
+          called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='{}\n', stderr='')
+    brain._exec_tool("conductor_send", {"name": "worker9"})
+    called_argv = mock_run.call_args[0][0]
+    check("conductor_send (direct exec) passes name",
+          "send" in called_argv and "worker9" in called_argv, called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='pane text\n', stderr='')
+    brain._exec_tool("conductor_peek", {"name": "worker9", "lines": 25})
+    called_argv = mock_run.call_args[0][0]
+    check("conductor_peek passes name + --lines",
+          "peek" in called_argv and "worker9" in called_argv and "--lines" in called_argv and "25" in called_argv,
+          called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='the brief text\n', stderr='')
+    brain._exec_tool("morning_brief", {})
+    called_argv = mock_run.call_args[0][0]
+    check("morning_brief invokes morning-brief.mjs --spoken",
+          called_argv[:2] == ["node", brain.MORNING_BRIEF_CLI] and "--spoken" in called_argv, called_argv)
+
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=0, stdout='usage block\n', stderr='')
+    brain._exec_tool("usage_status", {})
+    called_argv = mock_run.call_args[0][0]
+    check("usage_status invokes usage-meters.mjs status",
+          called_argv[:2] == ["node", brain.USAGE_METERS_CLI] and "status" in called_argv, called_argv)
+
+# J4: conductor_send is confirm-gated end-to-end through the agent loop — mirrors the existing
+# critical-tool test pattern (BUG-era gate tests): a critical tool_use from the model must be
+# intercepted, stored as pending, and a spoken confirmation returned WITHOUT executing the tool.
+brain._clear_pending()
+fake_tool_use_resp = {
+    "content": [{"type": "tool_use", "id": "tu_1", "name": "conductor_send", "input": {"name": "worker9"}}]
+}
+with unittest.mock.patch.object(brain, "_messages_call", return_value=fake_tool_use_resp), \
+     unittest.mock.patch.object(brain, "_exec_tool") as mock_exec, \
+     unittest.mock.patch.object(brain.jm, "recall", return_value=""):
+    reply = brain._run_agent_loop([{"role": "user", "content": "send it to worker9"}], "send it to worker9", [])
+    check("conductor_send gate holds (does not execute)", not mock_exec.called, "exec_tool was called despite gate")
+    check("conductor_send gate speaks confirm intent",
+          "confirm" in reply.lower() and "worker9" in reply.lower(), reply)
+    pending = brain._load_pending()
+    check("conductor_send gate stores pending action",
+          pending is not None and pending.get("name") == "conductor_send", pending)
+brain._clear_pending()
+
+# J5: timeout / fail-open path — a broken/hanging CLI must return a readable error string, never raise.
+with unittest.mock.patch("subprocess.run", side_effect=__import__("subprocess").TimeoutExpired(cmd="node", timeout=20)):
+    result = brain._run_runtime_cli([brain.CONDUCTOR_CLI, "list"])
+    check("runtime CLI timeout is fail-open (readable string, no raise)",
+          isinstance(result, str) and "timed out" in result.lower(), result)
+
+# J6: non-zero exit from a runtime CLI is also fail-open (readable error, not an exception).
+with unittest.mock.patch("subprocess.run") as mock_run:
+    mock_run.return_value = unittest.mock.Mock(returncode=1, stdout='', stderr="session 'ghost' not found in registry")
+    result = brain._run_runtime_cli([brain.CONDUCTOR_CLI, "peek", "ghost"])
+    check("runtime CLI non-zero exit is fail-open (readable error)",
+          isinstance(result, str) and "not found in registry" in result, result)
+
+# J7: unexpected exception from subprocess.run (e.g. node missing) is also fail-open.
+with unittest.mock.patch("subprocess.run", side_effect=FileNotFoundError("no such file: node")):
+    result = brain._run_runtime_cli([brain.CONDUCTOR_CLI, "list"])
+    check("runtime CLI missing-binary is fail-open (readable error)",
+          isinstance(result, str) and "runtime command error" in result, result)
+
 # ---- SUMMARY ----
 print("\n" + "=" * 60)
 total = PASS + FAIL

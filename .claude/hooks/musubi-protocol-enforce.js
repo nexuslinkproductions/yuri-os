@@ -56,12 +56,15 @@ function checkOffloadDefault(state, toolName) {
 function checkSkillsFirst(state, toolName) {
   if (toolName !== 'Agent') return null;
 
+  // PATCH (2026-07-04 audit): skills_read now also accrues `skill:<name>` entries from
+  // actual Skill-tool invocations (see post-tool-use.js), not just Read-of-SKILL.md — so
+  // this counter no longer under-reports correct skill usage before an Agent dispatch.
   const skillsRead = (state.skills_read || []).length;
   if (skillsRead === 0) {
     return {
       check: 'skills_first',
       severity: 'ADVISORY',
-      message: 'AEONIC_DIRECTIVE: no skill loaded before Agent dispatch — load task-specific skill first'
+      message: 'AEONIC_DIRECTIVE: no skill loaded before Agent dispatch — check the <skill-recall-hint> in context and load a task-specific skill first'
     };
   }
   return null;

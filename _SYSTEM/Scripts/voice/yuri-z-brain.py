@@ -64,6 +64,19 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "- `screenshot` — capture the screen and get a text description of what's on it. Use when scripting "
              "isn't enough — to read a web page, locate a UI element, see a dialog, or answer 'what's on screen'.\n"
              "- `spawn_worker` — delegate heavy or long-running work to a visible worker terminal.\n\n"
+             "## SESSION CONDUCTOR — you can manage parallel work sessions BY VOICE\n"
+             "You have hands on YURI's runtime session conductor — a registry of tmux-backed worker "
+             "sessions Marcel can watch. You can create worker sessions, draft prompts into them, and "
+             "SEND those drafts only after Marcel confirms:\n"
+             "- `conductor_list` — see what sessions exist and their status.\n"
+             "- `conductor_create` — open a new named worker session (optionally with a start command).\n"
+             "- `conductor_draft` — stage a prompt into a session's pending draft. This is SAFE and never "
+             "sends by itself — it's the crown-scenario staging step (discuss with Marcel -> you draft).\n"
+             "- `conductor_send` — actually dispatch the pending draft into the session. This is CRITICAL "
+             "(confirm-gated, like git push) — always speak the intent and hold for Marcel's yes first.\n"
+             "- `conductor_peek` — read back recent output from a session's pane.\n"
+             "- `morning_brief` — re-read Marcel the daily system brief on request.\n"
+             "- `usage_status` — summarize current per-provider usage/budget pace aloud.\n\n"
              "## EXECUTE — NEVER FABRICATE OR JUST NARRATE\n"
              "You ACT by CALLING tools. If you did not call a tool, the action did NOT happen — so never say a "
              "command out loud and stop; emit the tool call and actually run it. NEVER guess or invent what's on "
@@ -149,6 +162,33 @@ _THINK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
 SPAWN_HELPER = os.path.join(os.path.dirname(__file__), "yuri-spawn-worker.sh")
 WORKER_NAME = os.environ.get("YURI_WORKER_NAME", "worker1")
+
+# ---- SESSION CONDUCTOR + RUNTIME TOOLS (owner directive: voice-Yuri gets hands on parallel sessions) ----
+# Runtime CLIs live at _SYSTEM/runtime/*.mjs (repo-root relative; REPO is defined below). All calls are
+# `node <script> <args>` via the SAME bounded subprocess.run pattern as every other tool — 20s timeout,
+# fail-open readable error string (a broken CLI must never crash the brain, it just tells Marcel it failed).
+RUNTIME_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "runtime")
+CONDUCTOR_CLI = os.path.join(RUNTIME_DIR, "session-conductor.mjs")
+MORNING_BRIEF_CLI = os.path.join(RUNTIME_DIR, "morning-brief.mjs")
+USAGE_METERS_CLI = os.path.join(RUNTIME_DIR, "usage-meters.mjs")
+RUNTIME_TOOL_TIMEOUT = float(os.environ.get("YURI_Z_RUNTIME_TIMEOUT", "20"))
+
+
+def _run_runtime_cli(args) -> str:
+    """Run a node runtime CLI with a bounded timeout and a fail-open, readable error string on any
+    failure (missing node, missing script, non-zero exit, timeout). Never raises — the brain must
+    stay up even if a runtime CLI is broken or absent."""
+    try:
+        r = subprocess.run(["node"] + args, cwd=REPO, capture_output=True, text=True,
+                           timeout=RUNTIME_TOOL_TIMEOUT)
+        out = ((r.stdout or "") + (r.stderr or "")).strip()
+        if r.returncode != 0:
+            return f"runtime command failed (exit {r.returncode}): {_cap(out) if out else '(no output)'}"
+        return _cap(out) if out else "(no output)"
+    except subprocess.TimeoutExpired:
+        return f"runtime command timed out after {int(RUNTIME_TOOL_TIMEOUT)}s"
+    except Exception as e:
+        return f"runtime command error: {str(e)[:120]}"
 
 # ---- WORKER DISPATCH (JARVIS mode) ----
 # When YURI_DISPATCH=1, Yuri can inject prompts into a SEPARATE watched worker terminal (tmux)
@@ -239,7 +279,11 @@ def _is_critical_call(name: str, args: dict) -> bool:
 
     Not gated (routine): edit_file, spawn_worker, read_file, open_app, screenshot, remember, xref, and
     bash/applescript whose content misses the critical patterns. write_file gates ONLY when it would
-    OVERWRITE an existing file (potential data loss); writing a brand-new file is routine."""
+    OVERWRITE an existing file (potential data loss); writing a brand-new file is routine.
+
+    conductor_send is ALWAYS critical — it is the exact git-push-class action for the session conductor
+    (drafting is safe/reversible staging; SENDING dispatches the draft into a live worker session, so it
+    confirm-gates unconditionally, same tier as an outward-facing git push)."""
     if name == "write_file":
         p = (args.get("path") or "").strip()
         return bool(p) and os.path.exists(os.path.join(REPO, p))   # critical only if overwriting
@@ -247,6 +291,8 @@ def _is_critical_call(name: str, args: dict) -> bool:
         return bool(_CRITICAL_BASH.search(args.get("command", "")))
     if name in ("applescript", "gui_script"):
         return bool(_CRITICAL_APPLESCRIPT.search(args.get("script", "")))
+    if name == "conductor_send":
+        return True
     return False
 
 
@@ -300,6 +346,8 @@ def _describe_action(name: str, args: dict) -> str:
         return f"run a GUI script ({tail})" if s else "run a GUI script"
     if name == "open_app":
         return f"{args.get('action', '')} {args.get('app', '')}".strip()
+    if name == "conductor_send":
+        return f"send the draft to {args.get('name', '')}"
     return f"run {name}"
 
 # Capabilities the model CHOOSES to call (Anthropic tool schema: name/description/input_schema).
@@ -410,6 +458,72 @@ TOOLS = [
         "input_schema": {"type": "object",
                          "properties": {"describe": {"type": "boolean", "default": True,
                                       "description": "If true (default), feed the screenshot to a vision model and return a text description. If false, just save the PNG and return the file path."}}},
+    },
+    # ---- SESSION CONDUCTOR (parallel work-session management by voice) ----
+    {
+        "name": "conductor_list",
+        "description": ("List all registered tmux worker sessions (the session conductor's registry) with "
+                        "their status and last activity. Use this to answer 'what sessions do I have running' "
+                        "or before creating/drafting/sending to check what already exists. Voice discipline: "
+                        "SPEAK a one-two sentence summary of what's running, never read the raw list aloud."),
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "conductor_create",
+        "description": ("Create a NEW tmux-backed worker session Marcel can watch, registered in the session "
+                        "conductor. Routine — creating a session is reversible (it can be killed). Optionally "
+                        "give it a start command (e.g. launch Claude Code, Codex, or a shell tool in it)."),
+        "input_schema": {"type": "object", "required": ["name"],
+                         "properties": {"name": {"type": "string", "description": "Session name to register, e.g. 'worker2' or 'research-lane'."},
+                                        "cmd": {"type": "string", "description": "Optional shell command to start in the session, e.g. 'claude' or 'ai claude-zai'. Omit for a plain shell."}}},
+    },
+    {
+        "name": "conductor_draft",
+        "description": ("Stage a prompt as a PENDING draft into a session — the crown-scenario staging step: "
+                        "discuss with Marcel, then draft the prompt into the target session. This NEVER sends "
+                        "by itself and is completely safe/reversible; it only becomes live when conductor_send "
+                        "is called and confirmed. Routine — no confirm needed to draft."),
+        "input_schema": {"type": "object", "required": ["name", "text"],
+                         "properties": {"name": {"type": "string", "description": "Target session name (must already exist — create it first if needed)."},
+                                        "text": {"type": "string", "description": "The full prompt text to stage for that session."}}},
+    },
+    {
+        "name": "conductor_send",
+        "description": ("Dispatch the PENDING draft into its session via tmux send-keys — this is the moment "
+                        "the drafted prompt actually goes live and the worker starts acting on it. CRITICAL: "
+                        "this is confirm-gated exactly like a git push — you must speak the intent ('I'm about "
+                        "to send the draft to <name>. Confirm?') and HOLD for Marcel's explicit yes before it "
+                        "fires. Never call this expecting it to run silently."),
+        "input_schema": {"type": "object", "required": ["name"],
+                         "properties": {"name": {"type": "string", "description": "Session name whose pending draft should be sent."}}},
+    },
+    {
+        "name": "conductor_peek",
+        "description": ("Read back recent terminal output from a worker session's pane — use this to check "
+                        "progress or see what a session is doing/said. Routine, read-only. Voice discipline: "
+                        "SUMMARIZE what you see in one or two spoken sentences, never read raw terminal output aloud."),
+        "input_schema": {"type": "object", "required": ["name"],
+                         "properties": {"name": {"type": "string", "description": "Session name to peek at."},
+                                        "lines": {"type": "integer", "default": 10, "description": "How many recent lines of pane output to capture. Default 10."}}},
+    },
+    # ---- DAILY BRIEF + USAGE (read-only status tools) ----
+    {
+        "name": "morning_brief",
+        "description": ("Get the current daily system brief — commits since last session, system health, "
+                        "queued work, memory freshness — in spoken-ready form. Use when Marcel asks 'what's "
+                        "the brief', 'catch me up', or wants the daily rundown re-read. Voice discipline: this "
+                        "already comes back spoken-ready; deliver it close to verbatim, don't further compress "
+                        "it into something less informative."),
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "usage_status",
+        "description": ("Get current per-provider (Z.ai / Ollama / Anthropic) token usage, budget, and pace "
+                        "status. Use when Marcel asks about usage, budget, quota, or 'how much have we burned'. "
+                        "Voice discipline: this returns a compact multi-line status block — SUMMARIZE it "
+                        "aloud in one or two sentences (which pools are near budget, any HOLD/warn pace), "
+                        "never read the raw block verbatim."),
+        "input_schema": {"type": "object", "properties": {}},
     },
 ]
 
@@ -652,6 +766,46 @@ def _exec_tool(name, args):
                 return f"saved screenshot to {path}"
             desc = _describe_screenshot(path)
             return desc
+        # ---- SESSION CONDUCTOR ----
+        if name == "conductor_list":
+            return _run_runtime_cli([CONDUCTOR_CLI, "list"])
+        if name == "conductor_create":
+            sess_name = (args.get("name") or "").strip()
+            if not sess_name:
+                return "no session name given"
+            argv = [CONDUCTOR_CLI, "create", sess_name]
+            cmd = (args.get("cmd") or "").strip()
+            if cmd:
+                argv += ["--cmd", cmd]
+            return _run_runtime_cli(argv)
+        if name == "conductor_draft":
+            sess_name = (args.get("name") or "").strip()
+            text = args.get("text") or ""
+            if not sess_name:
+                return "no session name given"
+            if not text.strip():
+                return "no draft text given"
+            return _run_runtime_cli([CONDUCTOR_CLI, "draft", sess_name, "--text", text])
+        if name == "conductor_send":
+            sess_name = (args.get("name") or "").strip()
+            if not sess_name:
+                return "no session name given"
+            return _run_runtime_cli([CONDUCTOR_CLI, "send", sess_name])
+        if name == "conductor_peek":
+            sess_name = (args.get("name") or "").strip()
+            if not sess_name:
+                return "no session name given"
+            lines = args.get("lines", 10)
+            try:
+                lines = int(lines)
+            except (TypeError, ValueError):
+                lines = 10
+            return _run_runtime_cli([CONDUCTOR_CLI, "peek", sess_name, "--lines", str(lines)])
+        # ---- DAILY BRIEF + USAGE ----
+        if name == "morning_brief":
+            return _run_runtime_cli([MORNING_BRIEF_CLI, "--spoken"])
+        if name == "usage_status":
+            return _run_runtime_cli([USAGE_METERS_CLI, "status"])
     except subprocess.TimeoutExpired:
         return f"command timed out after {int(BASH_TIMEOUT)}s"
     except Exception as e:

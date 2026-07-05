@@ -3,7 +3,7 @@
 // The REGRESSION block locks the 8 flaws an adversarial red-team (5 lenses) confirmed on 2026-06-13.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseResultLabel, checkOutputConformance } from './contract-conformance.mjs';
+import { parseResultLabel, checkOutputConformance, classifyLaneOutcome } from './contract-conformance.mjs';
 
 const CONTRACT = Object.freeze({
   flags: { no_stage_narration: true, broad_command_ban: true, final_report_only: true, report_line_cap: 25 },
@@ -222,4 +222,45 @@ test('expects_result_label:false skips the label check but still enforces scope'
   assert.equal(ok.verdict, 'PASS', 'no label required + clean scope → PASS');
   assert.ok(!ok.checks.some((c) => c.name === 'result-label-grammar'), 'label check skipped');
   assert.equal(checkOutputConformance(C, '', { invokedPaths: ['.env'] }).verdict, 'FAIL', 'scope still enforced without a label');
+});
+
+// ═══════════════ classifyLaneOutcome — the cosmetic-exit-1 fix (2026-07-03) ═══════════════
+// Both glm-fleet + ollama-fleet delegate lane pass/fail here. A lane's PROCESS EXIT CODE and its
+// PRODUCED OUTPUT can disagree; classification is OUTPUT-first. Locks the owner-flagged false-error:
+// a complete, labeled design doc that exited non-zero (post-output cap-kill) must NOT read as a fleet fail.
+const LABELED = 'Design written.\nRESULT_LABEL: 10GC_PROVIDER_CONNECTORS_DESIGN_X_PASS_COMMITTED';
+test('classifyLaneOutcome: clean exit + labeled output → ok, not degraded', () => {
+  const o = classifyLaneOutcome({ code: 0, text: LABELED });
+  assert.equal(o.ok, true); assert.equal(o.degraded, false); assert.equal(o.reason, 'clean');
+});
+test('REGRESSION cosmetic-exit-1: nonzero exit + complete X-labeled output → ok (degraded)', () => {
+  const o = classifyLaneOutcome({ code: 1, text: LABELED });
+  assert.equal(o.ok, true, 'a finished lane that exited 1 after writing --out is NOT a failure');
+  assert.equal(o.degraded, true);
+  assert.match(o.reason, /completed-despite-exit-1/);
+});
+test('classifyLaneOutcome: nonzero exit + P (partial) label → still ok (work landed)', () => {
+  const o = classifyLaneOutcome({ code: 137, text: 'partial notes\nRESULT_LABEL: 10GS_SYNC_DIAGNOSIS_P_PASS_COMMITTED' });
+  assert.equal(o.ok, true); assert.equal(o.degraded, true);
+});
+test('classifyLaneOutcome: nonzero exit + F (self-reported-failed) label → NOT ok (fail loudly)', () => {
+  const o = classifyLaneOutcome({ code: 1, text: 'could not finish\nRESULT_LABEL: 10GX_TASK_F_PASS_COMMITTED' });
+  assert.equal(o.ok, false, 'an F label is a self-declared failure — never upgrade it');
+});
+test('classifyLaneOutcome: nonzero exit + usable output but NO label → NOT ok (cannot certify)', () => {
+  const o = classifyLaneOutcome({ code: 1, text: 'a long design doc with no result label at all' });
+  assert.equal(o.ok, false); assert.match(o.reason, /no-pass-label/);
+});
+test('classifyLaneOutcome: empty --out (clean exit) → NOT ok (empty-output)', () => {
+  const o = classifyLaneOutcome({ code: 0, text: '' });
+  assert.equal(o.ok, false); assert.equal(o.reason, 'empty-output');
+});
+test('classifyLaneOutcome: failure sentinel in --out → NOT ok even if exit 0', () => {
+  assert.equal(classifyLaneOutcome({ code: 0, text: '[GLM_FLEET_LIKELY_TIMEOUT] lane=glm-max exit=null' }).ok, false);
+  assert.equal(classifyLaneOutcome({ code: 3, text: 'LANE_DISPATCH_FAIL lane=ollama-cloud reason=exit_3' }).ok, false);
+});
+test('classifyLaneOutcome: missing/garbage input fails closed (never throws)', () => {
+  assert.equal(classifyLaneOutcome().ok, false);
+  assert.equal(classifyLaneOutcome({ code: 1 }).ok, false);
+  assert.equal(classifyLaneOutcome({ code: 0, text: null }).ok, false);
 });

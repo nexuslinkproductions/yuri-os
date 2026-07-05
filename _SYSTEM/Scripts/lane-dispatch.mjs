@@ -24,7 +24,9 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const LANE_SCRIPT = path.join(__dirname, 'llm-lane.mjs');
+// LANE_DISPATCH_LANE_SCRIPT overrides the invoked lane script — a test seam (inject a fake lane to
+// exercise the retry/out-file logic hermetically). Defaults to the real llm-lane.mjs.
+const LANE_SCRIPT = process.env.LANE_DISPATCH_LANE_SCRIPT || path.join(__dirname, 'llm-lane.mjs');
 const ATTEMPTS = Number(process.env.LANE_DISPATCH_ATTEMPTS || 4);
 const TIMEOUT_MS = Number(process.env.LANE_DISPATCH_TIMEOUT_MS || 1320000);
 const BACKOFF_BASE = Math.max(1, Number(process.env.LANE_DISPATCH_BACKOFF_MS || 800));
@@ -70,10 +72,21 @@ function runOnce() {
 
 function isBad(r) {
   const text = (r.out || '').trim();
+  // When --out is set, the OUT-FILE is the AUTHORITATIVE success signal — independent of both stdout
+  // AND the exit code. A lane routinely writes its complete final synthesis to --out and THEN exits
+  // non-zero on transport cleanup (idle-socket EPIPE after the last byte). The old order checked
+  // `code !== 0` FIRST and retried such a run — but the retry TRUNCATES the good --out and can clobber
+  // it with an empty-retry LANE_DISPATCH_FAIL record: the completed work is lost AND the fleet reports
+  // a false failure (owner-flagged cosmetic exit-1, 2026-07-03). So: non-empty --out => success,
+  // regardless of exit code; empty/missing --out => bad (retry). This matches the file's own contract
+  // ("Honors --out: the out-file is the success signal", lines 19/54).
+  if (outFile) {
+    try { return fs.statSync(outFile).size === 0; } catch { return true; }
+  }
+  // No --out: fall back to stdout + exit-code signals.
   if (r.code !== 0) return true;
   if (/AggregateError/.test(text) || /AggregateError/.test(r.err || '')) return true;
   if (/LLM_COMPAT_FAIL/.test(r.err || '')) return true;
-  if (outFile) { try { if (!fs.statSync(outFile).size) return true; } catch { return true; } return false; }
   return !text;
 }
 

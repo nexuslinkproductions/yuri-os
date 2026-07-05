@@ -4,7 +4,7 @@
 # @does: the Pipecat realtime pipeline — local mic -> Silero VAD + smart-turn -> MLX Whisper STT -> brain-proxy (drives the live Claude Code tmux session) -> Marvis streaming Rick TTS -> speaker. Always-on, barge-in.
 # @use: R3 of the voice rebuild. Run (venv-pipecat) alongside a tmux `claude` (bridge armed) + claude-brain-proxy.py.
 # @exports: (async main)
-import os, sys, asyncio, re, time
+import os, sys, asyncio, re, time, datetime
 sys.path.insert(0, os.path.dirname(__file__))
 
 from loguru import logger
@@ -25,12 +25,57 @@ from pipecat.pipeline.task import PipelineTask
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.frames.frames import (
     TranscriptionFrame, TTSSpeakFrame, InputAudioRawFrame,
-    VADUserStartedSpeakingFrame, VADUserStoppedSpeakingFrame,
+    VADUserStartedSpeakingFrame, VADUserStoppedSpeakingFrame, InterruptionFrame,
 )
+# InterruptionFrame is this pipecat version's unified barge-in signal (replaces the older
+# Start/StopInterruptionFrame pair). FrameProcessor.broadcast_interruption() pushes it both
+# upstream and downstream; every processor resets its running task on receipt, and
+# BaseOutputTransport's media sender stops in-flight/queued audio immediately (verified by
+# reading pipecat/processors/frame_processor.py + pipecat/transports/base_output.py in the
+# installed 1.3.0 package — this is the SAME primitive VADUserTurnStartStrategy uses).
 from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
 from pipecat.processors.audio.vad_processor import VADProcessor
 
 from kokoro_tts import KokoroTTSService
+
+
+# INSTANT-BARGE-IN
+class InstantBargeIn(FrameProcessor):
+    """Stops Yuri's audio output the INSTANT raw VAD fires (VADUserStartedSpeakingFrame) —
+    before STT/turn-confirmation ever runs. Today the pipeline had no interruption broadcaster
+    at all (no UserTurnProcessor was wired in; CancelFilter's docstring claim of barge-in was
+    aspirational, not actually mechanized), so Yuri kept talking through the whole STT+turn
+    round-trip. This processor calls FrameProcessor.broadcast_interruption() — the same
+    primitive pipecat's own VADUserTurnStartStrategy uses to trigger an "on_user_turn_started"
+    interruption — which pushes an InterruptionFrame both ways: every processor resets its
+    running task, TTSService cancels any in-flight synth, and BaseOutputTransport's media
+    sender stops queued/playing audio immediately (verified against the installed pipecat 1.3.0
+    source, not assumed from memory/older-pipecat APIs).
+
+    Placed directly after `vad` and BEFORE stt in the pipeline, so it reacts to the raw
+    VADUserStartedSpeakingFrame (the earliest signal) rather than waiting for a finalized
+    transcription. VAD's own confidence=0.6 threshold (set on the SileroVADAnalyzer in main())
+    is the ONLY gate applied before this fires — that threshold already rejects ambient/street
+    noise blips, in both wake-gate-ON and hot-mic (wake-gate-OFF) sessions, so hot-mic mode
+    doesn't get extra suppression here: VAD confidence IS "the wake gate would accept this".
+
+    Debounced (min_interval_s) so a stutter of rapid VAD start events doesn't spam
+    broadcast_interruption() calls; harmless if it did (idempotent), but noisy in logs."""
+
+    def __init__(self, min_interval_s: float = 0.25):
+        super().__init__()
+        self._min_interval = min_interval_s
+        self._last_fire = 0.0
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, VADUserStartedSpeakingFrame):
+            now = time.time()
+            if now - self._last_fire >= self._min_interval:
+                self._last_fire = now
+                logger.info("✂️  instant barge-in — muting output on raw VAD (pre-STT)")
+                await self.broadcast_interruption()
+        await self.push_frame(frame, direction)
 
 
 class HeardLogger(FrameProcessor):
@@ -191,6 +236,57 @@ PROXY = os.environ.get("BRAIN_PROXY_URL", "http://127.0.0.1:8014/v1")
 # but Pipecat needs a context/system seed.
 SYSTEM = "You are Yuri, the spoken voice assistant. Keep replies short and conversational."
 
+# BRIEF-ON-START
+MORNING_BRIEF_SCRIPT = os.path.join(REPO, "_SYSTEM", "runtime", "morning-brief.mjs")
+
+
+def _time_of_day_greeting(now: "datetime.datetime | None" = None) -> str:
+    """Good morning/afternoon/evening Marcel — time-of-day aware, local clock."""
+    h = (now or datetime.datetime.now()).hour
+    part = "morning" if 5 <= h < 12 else "afternoon" if 12 <= h < 18 else "evening"
+    return f"Good {part} Marcel."
+
+
+async def _fetch_spoken_brief(timeout_s: float = 15.0) -> str | None:
+    """Runs `node morning-brief.mjs --spoken` and returns its stdout (already a single
+    speakable sentence-joined string — see renderSpoken() in morning-brief.mjs, which
+    guarantees >=1 sentence even when every underlying source is unavailable).
+
+    Fails OPEN on every error path (missing script, non-zero exit, empty stdout, timeout,
+    node not on PATH, etc.) — returns None and logs one line, never raises. A startup brief
+    is a nice-to-have; it must never be able to block or crash the voice loop.
+    """
+    if os.environ.get("YURI_BRIEF", "1") == "0":
+        logger.info("🌅 morning brief disabled (YURI_BRIEF=0)")
+        return None
+    if not os.path.isfile(MORNING_BRIEF_SCRIPT):
+        logger.warning(f"🌅 morning brief skipped — script not found: {MORNING_BRIEF_SCRIPT}")
+        return None
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "node", MORNING_BRIEF_SCRIPT, "--spoken",
+            cwd=REPO, stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout_s)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            logger.warning(f"🌅 morning brief skipped — timed out after {timeout_s}s")
+            return None
+        if proc.returncode != 0:
+            logger.warning(f"🌅 morning brief skipped — exit {proc.returncode}: {(err or b'').decode(errors='replace')[:200]!r}")
+            return None
+        text = (out or b"").decode(errors="replace").strip()
+        if not text:
+            logger.warning("🌅 morning brief skipped — empty output")
+            return None
+        return text
+    except Exception as e:
+        logger.warning(f"🌅 morning brief skipped — {e!r}")
+        return None
+
 
 def _log_audio_devices():
     """Show the ACTUAL mic/speaker Pipecat will use — a wrong/silent default input device
@@ -263,9 +359,14 @@ async def main():
     context = LLMContext(messages=[{"role": "system", "content": SYSTEM}])
     agg = LLMContextAggregatorPair(context)
 
+    # INSTANT-BARGE-IN: placed immediately after `vad`, BEFORE stt/InputLevelLogger, so output
+    # muting reacts to the raw VADUserStartedSpeakingFrame — the earliest signal pipecat emits —
+    # rather than waiting for STT + turn confirmation. See InstantBargeIn's docstring for why.
+    barge_in = InstantBargeIn()
+
     # stt → [wake gate] → HeardLogger: 👂 YOU SAID only logs speech that PASSED the wake gate, so the
     # terminal shows exactly what Yuri acted on (talk without the wake word → 🎤 hearing you but no reply).
-    stages = [transport.input(), vad, InputLevelLogger(), stt, MLXCacheCleaner()]
+    stages = [transport.input(), vad, barge_in, InputLevelLogger(), stt, MLXCacheCleaner()]
     if wake:
         stages.append(wake)
     stages.append(cancel)
@@ -279,7 +380,21 @@ async def main():
     # speaker + TTS work and any later silence is an input problem), and is the first
     # "JARVIS speaks unprompted" primitive.
     greeting = os.environ.get("YURI_GREETING", "Yuri online. Say my name whenever you need me.")
-    if greeting.strip():
+
+    # BRIEF-ON-START: fetch the spoken morning brief (fail-open, 15s budget) and prefix it with a
+    # time-of-day greeting, e.g. "Good morning Marcel. <brief sentences>". Queued as ONE
+    # TTSSpeakFrame (append_to_context defaults True — see pipecat/frames/frames.py TTSSpeakFrame
+    # + llm_response_universal.py's _handle_text/_handle_push_aggregation, read directly from the
+    # installed package): the assistant-side aggregator (agg.assistant(), after tts in the stage
+    # list below) writes it into LLM context as an assistant turn, so the brain already "knows"
+    # it opened with the brief instead of re-greeting. Still fully cancellable by barge-in — it's
+    # a normal TTSSpeakFrame flowing through the same tts -> transport.output() stages as any
+    # other reply, and InstantBargeIn/broadcast_interruption() don't special-case frame origin.
+    brief_text = await _fetch_spoken_brief()
+    if brief_text:
+        opening = f"{_time_of_day_greeting()} {brief_text}"
+        await task.queue_frame(TTSSpeakFrame(opening, append_to_context=True))
+    elif greeting.strip():
         await task.queue_frame(TTSSpeakFrame(greeting))
 
     logger.info("🎙  voice loop live — just talk (no wake word yet). Ctrl-C to stop.")

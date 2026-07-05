@@ -112,30 +112,45 @@ export async function runSwarm(decomposition = {}, opts = {}) {
   // Consult MLP router for every leaf. Attach suggestion + confidence.
   // Use router to bias soft params (timeoutMs) for heavy reasoning leaves when confidence is decent.
   // Router is always advisory; hard governance / flags still control arming and dispatch.
+  // D-10 fix: an upstream caller (company.mjs::planCompany) already runs the router with a REAL 4-way
+  // candidate set (glm/native/ollama/cline) and attaches routerSuggestion/routerRanked to each leaf before
+  // handing it to runSwarm. Re-deriving here with a single-item `[{substrate:'glm',...}]` candidate array
+  // was an argmax-over-1 (decorative) that also clobbered the real upstream suggestion. Only re-derive for
+  // leaves that arrive WITHOUT one (e.g. a standalone runSwarm.mjs CLI call that never went through
+  // planCompany) — leaves that already carry a routerSuggestion keep the genuinely multi-candidate one.
   const router = await getRouter();
   const routerSuggestions = [];
   if (router && typeof router.extractFeatures === 'function' && typeof router.predictRoute === 'function') {
     for (const leaf of leaves) {
-      const ctx = {
-        complexity: (leaf.prompt || '').length > 800 ? 0.8 : 0.55,
-        quotaPressure: 0.35,
-        evidenceDecidability: 0.85,
-        roleHeavy: /adjudicator|architect|deliberator|helmsman/.test(String(leaf.role || leaf.id)),
-      };
-      const feats = router.extractFeatures(leaf, ctx);
-      const suggestion = await router.predictRoute(feats, [{
-        id: leaf.id,
-        substrate: 'glm',
-        lane: leaf.lane || 'glm',
-        role: leaf.role || leaf.id,
-      }]);
-      leaf.routerSuggestion = suggestion.best;
-      leaf.routerConfidence = suggestion.confidence;
-      routerSuggestions.push({ id: leaf.id, best: suggestion.best, confidence: suggestion.confidence });
+      if (leaf.routerSuggestion) {
+        // Already routed upstream against a real candidate set — just surface it in this run's summary.
+        routerSuggestions.push({ id: leaf.id, best: leaf.routerSuggestion, confidence: leaf.routerConfidence ?? null });
+      } else {
+        const ctx = {
+          complexity: (leaf.prompt || '').length > 800 ? 0.8 : 0.55,
+          quotaPressure: 0.35,
+          evidenceDecidability: 0.85,
+          roleHeavy: /adjudicator|architect|deliberator|helmsman/.test(String(leaf.role || leaf.id)),
+        };
+        const feats = router.extractFeatures(leaf, ctx);
+        const candidates = [
+          { id: leaf.id, substrate: 'glm', lane: leaf.lane || 'glm', role: leaf.role || leaf.id },
+          { id: `${leaf.id}-native`, substrate: 'native', lane: 'sonnet', role: leaf.role || leaf.id },
+          { id: `${leaf.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: leaf.role || leaf.id },
+          { id: `${leaf.id}-cline`, substrate: 'cline', lane: 'glm-5.2', role: leaf.role || leaf.id },
+        ];
+        const suggestion = await router.predictRoute(feats, candidates);
+        leaf.routerSuggestion = suggestion.best;
+        leaf.routerConfidence = suggestion.confidence;
+        leaf.routerRanked = suggestion.ranked;
+        routerSuggestions.push({ id: leaf.id, best: suggestion.best, confidence: suggestion.confidence });
+      }
 
       // Bias timeout for heavy work when router is reasonably confident — use fleet tier default, never below it.
-      if (suggestion.confidence > 0.25 && suggestion.best && /max|heavy|adjudicator/.test(String(suggestion.best.lane || ''))) {
-        const heavyLane = suggestion.best.lane || leaf.lane || 'glm-max';
+      const best = leaf.routerSuggestion;
+      const confidence = leaf.routerConfidence;
+      if (confidence > 0.25 && best && /max|heavy|adjudicator/.test(String(best.lane || ''))) {
+        const heavyLane = best.lane || leaf.lane || 'glm-max';
         const suggestedTimeout = Math.max(leaf.timeoutMs || 0, defaultTimeoutMsForLane(heavyLane));
         if (!leaf.timeoutMs || leaf.timeoutMs < suggestedTimeout) {
           leaf.timeoutMs = suggestedTimeout;

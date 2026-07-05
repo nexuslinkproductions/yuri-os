@@ -62,6 +62,7 @@ import { gitMutationHit, protectedPathHit } from './_lib/lane-command-gate.mjs';
 import { tryAcquireLocalSlot, releaseLocalSlot } from './local-concurrency.mjs';
 import { tryAcquireCloudSlot, releaseCloudSlot } from './cloud-concurrency.mjs';
 import { admit as costAdmit, readArmState as costArmState, actualsToDateAsync as costActualsAsync, release as costRelease } from './cost-reservation-pool.mjs';
+import { buildFidelityPack } from './worker-fidelity-pack.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -100,6 +101,18 @@ const ALIAS = {
   'glm-5.2': 'glm-5.2', 'glm-max': 'glm-5.2', 'glm-5': 'glm-5.2',
   'glm-5-turbo': 'glm-5-turbo', 'glm-turbo': 'glm-5-turbo', turbo: 'glm-5-turbo', 'glm-5.1': 'glm-5.1',
 };
+
+// Resolve a lane key (post-ALIAS, e.g. 'glm-5.2', 'ollama-cloud', 'deepseek-v4-pro', 'mimo-v2.5-pro[1m]')
+// to a worker-fidelity-pack SUBSTRATES token. Used ONLY by the opt-in --fidelity flag below — llm-lane's
+// own buildYuriLoadout system spine already carries the full loadout; this pack is a compact user-turn
+// complement, not a replacement (see worker-fidelity-pack.mjs header + the FIDELITY.json proposal caveat).
+function laneSubstrate(key) {
+  const k = String(key || '').toLowerCase();
+  if (k.startsWith('glm')) return 'glm';
+  if (k.startsWith('mimo')) return 'mimo';
+  if (k === 'ollama-cloud' || k.startsWith('ollama') || k.startsWith('deepseek') || k.startsWith('minimax') || k.startsWith('kimi') || k.startsWith('nemotron') || k.startsWith('gemma')) return 'ollama';
+  return 'glm';
+}
 
 // FULL YURI STACK loadout (default): the lane is a fully-equipped mini-me operator that operates BY
 // the framework, not a thin chatbot. The whole spine is injected as system context (~675 lines —
@@ -933,7 +946,11 @@ async function dispatch(laneArg, prompt, opts = {}) {
     const loadoutMode = opts.noSystem ? 'none' : (opts.system ? 'custom' : (useLight ? 'light' : 'full-yuri-stack'));
     const loadoutChars = loadoutMode === 'full-yuri-stack' ? buildYuriLoadout(model).length : (loadoutMode === 'light' ? (LIGHT_SYSTEM + nanoSwarmIdentityAnchor(model)).length : (opts.system?.length || 0));
     const apiPath = (isLocal || isOllamaCloud) ? `${endpoint}/api/chat` : (isAnthropic ? `${endpoint}/v1/messages` : `${endpoint}/chat/completions`);
-    console.log(JSON.stringify({ lane: key, model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, cloud: isOllamaCloud, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey) }, null, 2));
+    let fidelityChars = 0;
+    if (opts.fidelity && prompt && prompt.trim()) {
+      try { fidelityChars = buildFidelityPack(prompt, { substrate: laneSubstrate(key), role: opts.role, laneId: opts.laneId }).length; } catch { /* dry-run surfacing only — never throw */ }
+    }
+    console.log(JSON.stringify({ lane: key, model, provider: cfg.provider, protocol: cfg.protocol, local: isLocal, cloud: isOllamaCloud, endpoint: apiPath, maxTokens, tools: activeTools.map((t) => t.name), loadout: loadoutMode, loadoutChars, contextChars: opts.context ? buildContextPack(opts.context).length : 0, contextWindow: cfg.context_window, hasKey: Boolean(apiKey), fidelity: Boolean(opts.fidelity), fidelityChars }, null, 2));
     return 0;
   }
   if (!prompt || !prompt.trim()) return fail(1, key, 'empty_prompt');
@@ -1004,7 +1021,22 @@ async function dispatch(laneArg, prompt, opts = {}) {
   if (system) messages.push({ role: 'system', content: system });
   const contextPack = opts.context ? buildContextPack(opts.context) : '';
   if (contextPack) T(`CONTEXT_PACK chars=${contextPack.length}`);
-  messages.push({ role: 'user', content: contextPack ? `${contextPack}\n\n===== TASK =====\n${prompt}` : prompt });
+  // Opt-in --fidelity: prepend the compact canonical worker-fidelity-pack to the USER turn. llm-lane's
+  // own system spine (buildYuriLoadout, ~675 lines) already carries the full loadout for cloud lanes —
+  // this pack is a complement (task-anchored contract reminder), not a replacement, hence opt-in rather
+  // than default-ON like the fleet dispatchers. Fail-open: a pack-build error never blocks a live dispatch.
+  let fidelityPack = '';
+  if (opts.fidelity && prompt && prompt.trim()) {
+    try {
+      fidelityPack = buildFidelityPack(prompt, { substrate: laneSubstrate(key), role: opts.role, laneId: opts.laneId });
+      T(`FIDELITY_PACK chars=${fidelityPack.length} substrate=${laneSubstrate(key)}`);
+    } catch (e) {
+      process.stderr.write(`LLM_COMPAT_WARN code=0 lane=${key} reason=fidelity_pack_build_failed msg=${String(e?.message || e).slice(0, 120)}\n`);
+    }
+  }
+  const userBody = [fidelityPack, contextPack, fidelityPack || contextPack ? `===== TASK =====\n${prompt}` : prompt]
+    .filter(Boolean).join('\n\n');
+  messages.push({ role: 'user', content: userBody });
 
   const timeoutMs = Number(cfg.timeout_ms || 180000);
   // D-1 watchdog budgets for the Anthropic streaming path: per-attempt cap derived from the tier
@@ -1223,7 +1255,7 @@ const LEGACY_SKIP = new Set(['--no-tools-legacy', '--fresh', '--no-session', '--
 const LEGACY_SKIP_VALUE = new Set(['--session', '--write-scope', '--ts']);
 
 function parseCli(argv) {
-  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 200, out: '', dryRun: false, list: false, model: '', bestOfN: 1 };
+  const out = { reasoning: '', system: '', noSystem: false, light: false, full: false, noTools: false, noExec: false, maxIters: 200, out: '', dryRun: false, list: false, model: '', bestOfN: 1, fidelity: false };
   const rest = [];
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -1240,6 +1272,9 @@ function parseCli(argv) {
     else if (a === '--out') out.out = argv[++i] || '';
     else if (a === '--context' || a === '--read') out.context = argv[++i] || '';
     else if (a === '--best-of-n') out.bestOfN = Number(argv[++i] || 1);
+    else if (a === '--fidelity') out.fidelity = true;
+    else if (a === '--role') out.role = argv[++i] || '';
+    else if (a === '--lane-id') out.laneId = argv[++i] || '';
     else if (a === '--dry-run' || a === '-d') out.dryRun = true;
     else if (a === '--list') out.list = true;
     else if (LEGACY_SKIP_VALUE.has(a)) i += 1;

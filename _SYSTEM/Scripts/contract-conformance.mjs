@@ -207,6 +207,38 @@ export function extractResultLabel(output) {
   return { label: null, anchored: false };
 }
 
+// A fleet lane's PROCESS EXIT CODE and its PRODUCED OUTPUT can disagree. A lane can write
+// complete, RESULT_LABEL'd output to its --out file and THEN exit non-zero — a post-output
+// cap-kill (idle-stall / wall-clock watchdog), an idle-socket transport cleanup, or a
+// retry-exhaustion after the good write. Treating that as a fleet FAILURE produced the
+// cosmetic exit-1 (owner-flagged 2026-07-03): a 33KB complete design doc carrying
+// 10GC_..._X_PASS_COMMITTED was reported as a failed dispatch. Classify OUTPUT-first:
+//   - no usable output (empty OR a failure sentinel)                 -> failed
+//   - usable output + clean exit (code 0)                            -> ok
+//   - usable output + nonzero exit + valid, non-F RESULT_LABEL       -> ok (degraded — work landed)
+//   - usable output + nonzero exit + no / invalid / F label          -> failed (can't certify a pass)
+// Failure sentinels are the diagnostics a fleet/lane-dispatch writes into --out when the real
+// work never landed: `[GLM_FLEET_…]` / `[OLLAMA_FLEET_…]` (fleet-synthesized) and
+// `LANE_DISPATCH_FAIL …` (lane-dispatch hard-fail marker).
+const FLEET_FAILURE_SENTINEL_RE = /^(?:\[(?:GLM|OLLAMA)_FLEET_|LANE_DISPATCH_FAIL)/;
+export function classifyLaneOutcome({ code, text } = {}) {
+  const t = String(text || '').trim();
+  const cleanExit = code === 0;
+  const hasUsableOutput = t.length > 0 && !FLEET_FAILURE_SENTINEL_RE.test(t);
+  if (!hasUsableOutput) {
+    return { ok: false, degraded: false, reason: cleanExit ? 'empty-output' : `no-usable-output-exit-${code}` };
+  }
+  if (cleanExit) return { ok: true, degraded: false, reason: 'clean' };
+  // Non-zero exit WITH usable output: certify only if the lane self-declared a non-failure
+  // RESULT_LABEL (X or P). An F label or a missing/invalid label stays a real failure — we
+  // will not silently upgrade a truncated or self-reported-failed lane to success.
+  const parsed = parseResultLabel(extractResultLabel(t).label || '');
+  if (parsed.ok && parsed.passTypeNorm !== 'F') {
+    return { ok: true, degraded: true, reason: `completed-despite-exit-${code}` };
+  }
+  return { ok: false, degraded: false, reason: `nonzero-exit-${code}-no-pass-label` };
+}
+
 function fieldPresent(output, field) {
   // present as a heading/label token (word-boundary, case-sensitive — SCREAMING tokens)
   const esc = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -231,7 +263,7 @@ const BROAD_COMMAND_RE = [
 // @serves: does this output conform to its contract | output contract gate | validate produced output against declared schema | lane result grammar parser | RESULT_LABEL validation | tool-use scope conformance | check response against output_schema | protected-path scope gate
 // @does: deterministic fail-closed gate — given a compiled one-transaction-contract + a produced output (+ optional invoked paths), checks RESULT_LABEL grammar (marker-anchored), required output_schema fields present, SEGMENT-AWARE scope containment (allowed/forbidden + always-on yuri-origin protected-surface floor), forbidden-pattern flags (stage-narration/broad-command, precision-first), and report line-cap. Returns PASS|PARTIAL|FAIL with per-check evidence. Never throws (any internal error → FAIL).
 // @use: after a lane/agent produces a final report, to verify it actually honored the contract prompt-compiler compiled — the missing enforcement half of compileOneTransactionContract. Also the executable parser for yuri-origin's prose Lane Result Grammar + a protected-path scope check. ADVISORY (does not block).
-// @exports: checkOutputConformance, parseResultLabel, extractResultLabel, LABEL_TOKEN_RE
+// @exports: checkOutputConformance, parseResultLabel, extractResultLabel, classifyLaneOutcome, LABEL_TOKEN_RE
 export function checkOutputConformance(contract, output, opts = {}) {
   try {
     return runConformance(contract, output, opts);
