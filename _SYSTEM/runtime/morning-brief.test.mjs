@@ -30,6 +30,9 @@ const fakeSources = {
   overnight() {
     return { ok: 3, fail: 1, total: 4, lines: ['  ok     refactor X', '  fail   build Y'] };
   },
+  mure() {
+    return { armed: false, roleCount: 20, groupCount: 6, lastRun: null };
+  },
   doctor() {
     return { verdict: 'DEGRADED', critical: 0, high: 1, med: 2, low: 5 };
   },
@@ -55,6 +58,7 @@ describe('section rendering', () => {
     const text = renderText(brief);
     assert.ok(text.includes('[GIT]'), 'GIT section present');
     assert.ok(text.includes('[OVERNIGHT]'), 'OVERNIGHT section present');
+    assert.ok(text.includes('[MURE]'), 'MURE section present');
     assert.ok(text.includes('[DOCTOR]'), 'DOCTOR section present');
     assert.ok(text.includes('[DREAMS]'), 'DREAMS section present');
     assert.ok(text.includes('[MEMORY]'), 'MEMORY section present');
@@ -77,6 +81,7 @@ describe('section rendering', () => {
     assert.ok(parsed.sections, 'sections object present');
     assert.ok(parsed.sections.git, 'git section present');
     assert.ok(parsed.sections.overnight, 'overnight section present');
+    assert.ok(parsed.sections.mure, 'mure section present');
     assert.ok(parsed.sections.doctor, 'doctor section present');
     assert.ok(parsed.sections.dreams, 'dreams section present');
     assert.ok(parsed.sections.memory, 'memory section present');
@@ -136,7 +141,116 @@ describe('fail-open behavior', () => {
     assert.ok(text.includes('MORNING BRIEF'), 'header still shows');
     // every section should say unavailable
     const unavailCount = (text.match(/unavailable/g) || []).length;
-    assert.ok(unavailCount >= 7, `all 7 sections show unavailable (got ${unavailCount})`);
+    assert.ok(unavailCount >= 8, `all 8 sections show unavailable (got ${unavailCount})`);
+  });
+});
+
+describe('mure section', () => {
+  test('renders ARMED state with role/group counts', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() { return { armed: true, roleCount: 20, groupCount: 6, lastRun: null }; },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('[MURE] ARMED'), 'shows ARMED');
+    assert.ok(text.includes('20 role(s)'), 'shows role count');
+    assert.ok(text.includes('6 group(s)'), 'shows group count');
+  });
+
+  test('renders DISARMED state', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() { return { armed: false, roleCount: 20, groupCount: 6, lastRun: null }; },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('[MURE] DISARMED'), 'shows DISARMED');
+  });
+
+  test('roster summary reflects a mocked/fixture roster shape (roleCount/groupCount from loadRoster)', () => {
+    // Mirrors the real defaultSources.mure() contract: roleCount = roster.roles.length,
+    // groupCount = roster.byGroup.size (see role-registry.mjs loadRoster()).
+    const fixtureRoster = {
+      meta: { name: 'MURE', kanji: '群れ' },
+      roles: [{ id: 'ceo' }, { id: 'scout' }, { id: 'architect' }],
+      byId: new Map(),
+      byGroup: new Map([['orchestration', [{ id: 'ceo' }]], ['research', [{ id: 'scout' }]]]),
+      byCapability: new Map(),
+    };
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() {
+        return {
+          armed: false,
+          roleCount: fixtureRoster.roles.length,
+          groupCount: fixtureRoster.byGroup.size,
+          lastRun: null,
+        };
+      },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('3 role(s)'), 'role count derived from fixture roster.roles.length');
+    assert.ok(text.includes('2 group(s)'), 'group count derived from fixture roster.byGroup.size');
+  });
+
+  test('no runs recorded path renders the exact fallback line', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() { return { armed: false, roleCount: 20, groupCount: 6, lastRun: null }; },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('no runs recorded'), 'shows no-runs-recorded fallback');
+  });
+
+  test('summarizes the most recent run with age + one-line outcome', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() {
+        return {
+          armed: false,
+          roleCount: 20,
+          groupCount: 6,
+          lastRun: { file: 'cycle-abc123.md', age: '3h ago', outcome: 'armed=false halted=false · executed=2 · 5 jobs touched' },
+        };
+      },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('last run: 3h ago'), 'shows run age');
+    assert.ok(text.includes('executed=2'), 'shows one-line outcome');
+  });
+
+  test('a throwing mure collector degrades to unavailable, never crashes the brief', () => {
+    const throwingSources = {
+      ...fakeSources,
+      mure() { throw new Error('mure exploded'); },
+    };
+    const brief = buildBrief(throwingSources);
+    assert.ok(brief.sections.mure.unavailable, 'mure marked unavailable');
+    assert.ok(brief.sections.mure.reason.includes('mure exploded'), 'reason captured');
+    const text = renderText(brief);
+    assert.ok(text.includes('[MURE] unavailable'), 'renders unavailable line');
+    // rest of the brief still renders
+    assert.ok(text.includes('[OVERNIGHT]'), 'overnight still renders');
+    assert.ok(text.includes('[DOCTOR]'), 'doctor still renders');
+  });
+
+  test('a mure collector returning an unavailable object is handled (fail-open reason preserved)', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() { return { unavailable: true, reason: 'mure module not loaded' }; },
+    });
+    const text = renderText(brief);
+    assert.ok(text.includes('[MURE] unavailable — mure module not loaded'), 'shows the exact reason');
+  });
+
+  test('JSON output includes the mure section with armed/roleCount/groupCount/lastRun', () => {
+    const brief = buildBrief({
+      ...fakeSources,
+      mure() { return { armed: true, roleCount: 20, groupCount: 6, lastRun: null }; },
+    });
+    const parsed = JSON.parse(renderJson(brief));
+    assert.equal(parsed.sections.mure.armed, true, 'armed present');
+    assert.equal(parsed.sections.mure.roleCount, 20, 'roleCount present');
+    assert.equal(parsed.sections.mure.groupCount, 6, 'groupCount present');
   });
 });
 
@@ -177,6 +291,21 @@ describe('spoken mode', () => {
     const brief = buildBrief(zeroSources);
     const spoken = renderSpoken(brief);
     assert.ok(spoken.includes('No new commits'), 'says no new commits');
+  });
+
+  test('spoken mentions MURE only when armed', () => {
+    const disarmedBrief = buildBrief(fakeSources); // fakeSources.mure() is armed:false
+    assert.ok(!renderSpoken(disarmedBrief).includes('MURE'), 'no MURE mention when disarmed');
+
+    const armedSources = {
+      ...fakeSources,
+      mure() { return { armed: true, roleCount: 20, groupCount: 6, lastRun: null }; },
+    };
+    const armedBrief = buildBrief(armedSources);
+    const spoken = renderSpoken(armedBrief);
+    assert.ok(spoken.includes('MURE is armed'), 'mentions MURE when armed');
+    const sentenceCount = (spoken.match(/[.!?](?:\s|$)/g) || []).length;
+    assert.ok(sentenceCount <= 5, `still ≤5 sentences with mure added (got ${sentenceCount})`);
   });
 });
 

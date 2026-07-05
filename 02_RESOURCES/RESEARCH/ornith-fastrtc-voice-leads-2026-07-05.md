@@ -9,6 +9,8 @@
 **The catch**: German capability = NOT FOUND anywhere (official benches 100% English coding; only third-party non-English eval is Japanese). Specialization is terminal/SWE tool use, not conversation.
 **VERDICT — SKIP as Jeffrey's conversational worker; FILE as the coding sub-agent.** When Jeffrey (or Yuri's local tier) gets a "write me a script / automate this" skill, Ornith-1.0-9B is the go-to worker — bench it on the 5060 Ti then. Benchmark numbers are vendor-claimed (one credible skeptic flagged hype patterns) — treat as directional until reproduced.
 
+**VERDICT REVISED (owner decision 2026-07-05):** English stays Jeffrey's main driver and German is covered by Claude — the German gap no longer disqualifies. Ornith-1.0-9B is promoted to **P1 candidate for Jeffrey's voice-loop brain**, not just the coding sub-agent. Standing caveat (unresolved by the language decision): the model's specialization is terminal/SWE tool use — its conversational quality is unbenchmarked anywhere. Gate: conversational smoke on the 5060 Ti (ollama GGUF, latency + instruction-following in a voice-loop persona) before it displaces Gemma 4 12B / Qwen3.5-9B as P1. Extra datapoint found on re-verification: SWE-Bench *Multilingual* 52% (multilingual codebases, still not conversation).
+
 ## HF-REALTIME-VOICE — the Space is a shell; FastRTC is the treasure
 
 **Two things, don't conflate**: (1) `smolagents/hf-realtime-voice` Space = a FastAPI **proxy only** (auth, rate limits, session queue; actual inference on a private HF backend over WebSocket) — architecturally opaque, NOT portable. (2) Its ancestor pattern `burtenshaw/coworking_agent` on **FastRTC** (gradio-app/fastrtc, MIT) = the inspectable, portable architecture.

@@ -101,6 +101,12 @@ A model that "wins everywhere" is overfitting, not an effect. Gates are domain-b
 
 ## Session Notes
 
+### 2026-07-01
+- session: 361m | peak ctx: 0% | compacts: 0
+- tools: Read×796, Grep×392, Write×226, Shell×141, Delete×2, MCP:open_resource×1
+- corrections: none
+- errors: none
+
 ### 2026-06-14
 - session: 101m | peak ctx: 0% | compacts: 0
 - tools: Bash×455, Read×142, Edit×74, Write×44, WebSearch×31, WebFetch×19, StructuredOutput×17, ToolSearch×8, TodoWrite×5, Workflow×3, AskUserQuestion×2, Skill×2, TaskStop×1

@@ -219,7 +219,7 @@ export function scan(opts = {}) {
   mkdirSync(path.dirname(watermarkPath), { recursive: true });
   writeFileSync(watermarkPath, JSON.stringify({ lastScanMs: watermarkNow, scannedAt: new Date(scanStart).toISOString(), filesScanned: scannedFiles.length, entriesAdded: newEntries.length }, null, 2) + '\n', 'utf8');
 
-  emitEvent('scan', { filesScanned: scannedFiles.length, entriesAdded: newEntries.length, watermark: watermarkNow });
+  emitEvent('scan', { filesScanned: scannedFiles.length, entriesAdded: newEntries.length, watermark: watermarkNow }, opts.eventsPath);
   return { filesScanned: scannedFiles.length, entriesAdded: newEntries.length, newEntries, watermark: watermarkNow };
 }
 

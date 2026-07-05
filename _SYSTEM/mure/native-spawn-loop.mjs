@@ -28,9 +28,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractResultLabel, validatePacket } from '../Scripts/glm-fleet.mjs';
+import { isArmed as libIsArmed } from '../lib/arming.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
+// Same idiom + same env/flag as company.mjs's isMureArmed. Delegates to the shared lib
+// rather than importing company.mjs, which already imports this module (spawnNativeLoop) —
+// importing company.mjs back here would create an import cycle.
 const ARM_ENV = 'YURI_MURE_ARMED';
 const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mure.enabled');
 
@@ -39,8 +43,7 @@ const ARM_FLAG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'mure.enabled');
  * DISARMED = dry-run (zero spawns, zero Anthropic spend).
  */
 export function isArmed() {
-  if (process.env[ARM_ENV] === '1') return true;
-  try { return fs.existsSync(ARM_FLAG); } catch { return false; }
+  return libIsArmed({ env: ARM_ENV, flag: ARM_FLAG });
 }
 
 /**

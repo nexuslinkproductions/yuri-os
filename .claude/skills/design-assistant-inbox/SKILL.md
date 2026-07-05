@@ -73,4 +73,16 @@ Stop the loop before starting edits. Claim one request at a time.
 
 ## Session Notes
 
-- 2026-06-16 — Claims browser-originated design work from the Chrome Design Assistant bridge and turns it into repo-aware implementation; reach for it when working from browser selections or pending visual design requests.
+### 2026-07-02
+- session: 78m | peak ctx: 0% | compacts: 0
+- tools: Bash×303, Read×146, Edit×37, Agent×17, mcp×8, Write×3, ReportFindings×2
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/opus-fleet
+
+# opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute
+
+The default way to run any non-trivial task. The main **Opus | Base directory for this skill: /Users/marcelspatz/.claude/skills/opus-fleet
+
+# opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute
+
+The default way to run any non-trivial task. The main **Opus
+- errors: none

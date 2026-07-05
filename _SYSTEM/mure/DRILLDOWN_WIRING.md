@@ -34,7 +34,7 @@ The dashboard is served by `_SYSTEM/Scripts/work-dashboard.mjs` (Node stdlib, ze
 
 Run: `node _SYSTEM/Scripts/work-dashboard.mjs --serve [--port 4270] [--html <path>]`
 
-> **Note (2026-07-02):** a previous version of this doc referenced a Python `_SYSTEM/mure/server.py` on port `:8433`. That server **does not exist** — it was an aspirational spec that was never built. The real dashboard server is the Node `work-dashboard.mjs` above on `:4270`. A parallel lane is wiring the dashboard endpoints to live MURE runtime data.
+> **Canonical server:** `_SYSTEM/Scripts/work-dashboard.mjs` on `:4270`. A parallel lane is wiring the dashboard endpoints to live MURE runtime data.
 
 ### Integration Style
 

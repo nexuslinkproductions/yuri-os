@@ -4,20 +4,29 @@
 //        peek-parse/kill-cleanup/registry-persistence with a stubbed runTmux (no real tmux needed).
 // @use: node --test _SYSTEM/runtime/session-conductor.test.mjs
 // @exports: (test suite)
-import { describe, it, beforeEach, afterEach } from 'node:test';
+//
+// Isolation: SESSION_CONDUCTOR_STATE_DIR points this module's state dir at a private
+// tmpdir (never the real _SYSTEM/state/runtime/), same pattern as yuri-runtimed.test.mjs's
+// RUNTIMED_STATE_DIR. Module-level consts read process.env once at import time, so the env
+// var is set BEFORE the dynamic import below. Without this, running the full runtime test
+// glob (`node --test _SYSTEM/runtime/*.test.mjs`) races this suite's per-test recursive
+// rmSync of the real shared state dir against concurrent writes from usage-meters.test.mjs /
+// yuri-repl.test.mjs into the same real events.jsonl — producing an intermittent ENOTEMPTY
+// during teardown and cross-file event-log contamination (fixed 2026-07-05).
+import { describe, it, beforeEach, afterEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import * as cond from './session-conductor.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const sfx = `${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
+const STATE_DIR = join(tmpdir(), `session-conductor-test-${sfx}`);
+process.env.SESSION_CONDUCTOR_STATE_DIR = STATE_DIR;
 
-// ─── hermetic state dir: override the module's STATE_DIR by writing to the real path ──
-// The module computes STATE_DIR from __dirname; tests run in the same dir, so the real
-// _SYSTEM/state/runtime is used. We isolate by backing up and clearing between tests.
-const STATE_DIR = join(__dirname, '..', 'state', 'runtime');
+const cond = await import('./session-conductor.mjs');
+
 const SESSIONS_FILE = join(STATE_DIR, 'sessions.json');
 const DRAFTS_FILE = join(STATE_DIR, 'drafts.json');
 const EVENTS_FILE = join(STATE_DIR, 'events.jsonl');
@@ -50,6 +59,11 @@ function resetState() {
 describe('session-conductor', () => {
   beforeEach(() => resetState());
   afterEach(() => resetState());
+  after(() => {
+    // Full removal (not just empty-and-recreate) — this suite's own private tmpdir,
+    // never the real _SYSTEM/state/runtime/, so nothing else shares this path.
+    rmSync(STATE_DIR, { recursive: true, force: true });
+  });
 
   // ── create ──────────────────────────────────────────────────────────────────
   describe('create', () => {

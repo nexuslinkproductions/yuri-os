@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "lastUpdated": "2026-06-16T15:05:00.447Z",
+  "lastUpdated": "2026-07-03T09:24:05.646Z",
   "templates": {
     "kagami-sprint-audit": {
       "file": "_SYSTEM/reports/kagami-sprint-audit-2026-05-19.html",
@@ -43,6 +43,69 @@
     }
   },
   "entries": [
+    {
+      "date": "2026-07-03",
+      "component": "NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02",
+      "file": "docs/NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02.html",
+      "action": "edit",
+      "decision": "Updated: NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02"
+    },
+    {
+      "date": "2026-07-02",
+      "component": "NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02",
+      "file": "docs/NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02.html",
+      "action": "edit",
+      "decision": "Updated: NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02"
+    },
+    {
+      "date": "2026-07-02",
+      "component": "NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02",
+      "file": "docs/NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02.html",
+      "action": "create",
+      "decision": "New component created: NEXUS-LINK-PHASE1-VISUAL-PLAN-2026-07-02"
+    },
+    {
+      "date": "2026-07-02",
+      "component": "styles",
+      "file": "03_NEXUS-LINK/nexus-app/ui/styles.css",
+      "action": "create",
+      "decision": "New component created: styles"
+    },
+    {
+      "date": "2026-07-01",
+      "component": "styles",
+      "file": "03_NEXUS-LINK/nexus-app/ui/styles.css",
+      "action": "create",
+      "decision": "New component created: styles"
+    },
+    {
+      "date": "2026-07-01",
+      "component": "NEXUS-BUILD-PLAN-REPORT-2026-07-02-DE",
+      "file": "03_NEXUS-LINK/business/research/phase0-docker-supabase/NEXUS-BUILD-PLAN-REPORT-2026-07-02-DE.html",
+      "action": "create",
+      "decision": "New component created: NEXUS-BUILD-PLAN-REPORT-2026-07-02-DE"
+    },
+    {
+      "date": "2026-07-01",
+      "component": "NEXUS-BUILD-PLAN-REPORT-2026-07-01-DE",
+      "file": "03_NEXUS-LINK/business/research/phase0-docker-supabase/NEXUS-BUILD-PLAN-REPORT-2026-07-01-DE.html",
+      "action": "create",
+      "decision": "New component created: NEXUS-BUILD-PLAN-REPORT-2026-07-01-DE"
+    },
+    {
+      "date": "2026-07-01",
+      "component": "NEXUS-MASTER-RECAP-2026-07-01-DE",
+      "file": "03_NEXUS-LINK/business/research/NEXUS-MASTER-RECAP-2026-07-01-DE.html",
+      "action": "create",
+      "decision": "New component created: NEXUS-MASTER-RECAP-2026-07-01-DE"
+    },
+    {
+      "date": "2026-07-01",
+      "component": "LLM-PLATFORM-ARCHITECTURE-2026-07-01-DE",
+      "file": "03_NEXUS-LINK/business/research/llm-connectivity/LLM-PLATFORM-ARCHITECTURE-2026-07-01-DE.html",
+      "action": "create",
+      "decision": "New component created: LLM-PLATFORM-ARCHITECTURE-2026-07-01-DE"
+    },
     {
       "date": "2026-06-16",
       "component": "main",
@@ -679,69 +742,6 @@
       "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneProblem.tsx",
       "action": "create",
       "decision": "New component created: SceneProblem"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "Root",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/Root.tsx",
-      "action": "edit",
-      "decision": "Updated: Root"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "SceneSolution",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneSolution.tsx",
-      "action": "create",
-      "decision": "New component created: SceneSolution"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "SceneColdOpen",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/SceneColdOpen.tsx",
-      "action": "create",
-      "decision": "New component created: SceneColdOpen"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "primitives",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/lib/primitives.tsx",
-      "action": "create",
-      "decision": "New component created: primitives"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "index",
-      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck/index.html",
-      "action": "edit",
-      "decision": "Updated: index"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "nexus-link-investor-deck-v2",
-      "file": "02_RESOURCES/INVESTOR-DECK/nexus-link-investor-deck-v2.html",
-      "action": "edit",
-      "decision": "Updated: nexus-link-investor-deck-v2"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE",
-      "file": "02_RESOURCES/INVESTOR-DECK/send/NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE.html",
-      "action": "edit",
-      "decision": "Updated: NEXUS-LINK-YURI-Investor-Deck-SINGLE-FILE"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "ChaosOrder",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/ChaosOrder.tsx",
-      "action": "edit",
-      "decision": "Updated: ChaosOrder"
-    },
-    {
-      "date": "2026-06-13",
-      "component": "BillArrives",
-      "file": "02_RESOURCES/INVESTOR-DECK/motion/src/scenes/BillArrives.tsx",
-      "action": "edit",
-      "decision": "Updated: BillArrives"
     }
   ],
   "openIssues": [

@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isArmed as libIsArmed } from '../lib/arming.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -50,7 +51,7 @@ const HIGH_IMPACT_PREFIXES = [
  * Check if blast analyzer is enabled. DISARMED by default.
  */
 export function isEnabled() {
-  return process.env[ARM_ENV] === '1' || fs.existsSync(ARM_FLAG);
+  return libIsArmed({ env: ARM_ENV, flag: ARM_FLAG });
 }
 
 /**

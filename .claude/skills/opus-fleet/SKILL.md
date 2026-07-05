@@ -226,6 +226,14 @@ node _SYSTEM/mure/company.mjs --task-file t.json   # cast a real task; armed (YU
 
 ## Session Notes
 
-- **2026-06-22 (v1.0.0, created):** Built via the model itself — Sonnet research lane (overlap audit + discoverability mechanics: byte-0 frontmatter, `skill-recall` ranks `description` not `triggers`, `skill-sync --sync` publishes `skills/`→`.claude/skills/`), Opus synthesized + registered, Haiku testing lane verified discoverability. Corrections caught this session: Haiku WARN/BLOCK misguess (→ verify-agent-output rule), research found an ENOENT solo missed. Tools: Agent (Explore/sonnet, general-purpose/haiku), Write, Edit, Bash, skill-sync, skill-recall. Errors: none on build. Registered in `skills/domain-index.json` → `01-agent-assembly`; alias `commands/opus-fleet.md`.
-- **2026-06-22 (v1.1.0, dual-substrate):** Added the z.ai GLM fleet as the second substrate. Built `_SYSTEM/Scripts/glm-fleet.mjs` (parallel GLM dispatcher on `lane-dispatch.mjs` retry + semaphore, DISARMED dry-run default, `@capability: glm-fleet-dispatch`, `FLEET_PROTOCOL_PREAMBLE` for sub-orchestrators). Wired GLM tier roster into `models.json` (+glm-4.7-flash/flashx, glm-4.6v, glm-ocr) + `llm-lane.mjs` aliases (glm-max=5.2, glm=4.7, glm-flash→4.7-flash remapped off 4.5-air, glm-sub-orch=5.1, glm-vision=4.6v, glm-ocr). Added 5 sections (GLM fleet, dual-substrate routing, sub-orchestrator injection, governed autonomous loop, roles seam) + 4 hard rules + 3 anti-rat rows. GLM reasoning ceiling = `high`. Verified: models.json valid, `glm-flash`→`glm-4.7-flash` resolves, `glm-fleet --list`/`--smoke --dry-run` clean. Built by Opus directly (integration-critical); research via 3 Sonnet Explore lanes (zai internals, governance inventory, online GLM benchmarks) + 1 Sonnet Plan lane (build design); HTML viz approved pre-build. Arming the loop stays owner-gated.
-- **2026-06-23 (v1.2.0, third substrate):** Added the **ollama-cloud peer fleet** — `_SYSTEM/Scripts/ollama-fleet.mjs` (mirrors glm-fleet on `lane-dispatch.mjs` retry + semaphore; ONE base `ollama-cloud` lane + `--model <X>:cloud`; roster tiers flash/minimax/kimi/nemotron/deepseek-pro/gemma; DISARMED dry-run default; `@capability: ollama-fleet-dispatch`) + `ollama-fleet.test.mjs` (9/9 red/grey/green). Root-cause RELIABILITY fix: the 3 ollama-cloud lanes in `models.json` lacked `keychain_service`, so `llm-lane.mjs` keychain hydration was skipped for any non-`ai`-wrapper caller → `missing_key`; added `keychain_service: YURI_OS_MUSUBI:OLLAMA_API_KEY` to all 3 (lane-layer fix → every caller benefits). Verified: armed 3-model LIVE smoke (flash 2s + minimax 9s + kimi 33s, all ok, key UNSET → keychain hydrated end-to-end at concurrency 3). Sections added: "ollama-cloud fleet" + "Multi-substrate routing" (dual→triple). Built by Opus directly. Arming stays owner-gated (flag NOT created; smoke via transient env only). Tools: Bash, Read, Edit, Write, capability-scan, llm-lane, keychain probes.
+### 2026-07-02
+- session: 0m | peak ctx: 0% | compacts: 0
+- tools: Grep×4, Read×2
+- corrections: none
+- errors: none
+
+### 2026-07-01
+- session: 83m | peak ctx: 0% | compacts: 0
+- tools: Write×91, Grep×67, Read×57, Shell×20
+- corrections: none
+- errors: none

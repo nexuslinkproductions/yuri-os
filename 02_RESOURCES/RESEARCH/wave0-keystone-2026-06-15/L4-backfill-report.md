@@ -12,23 +12,24 @@
 | byRule expectation | R4 ≫ R1=R2=R3 (signals unknown at run time → mostly undeterminable) |
 | undeterminablePct | **95.0%** |
 | confidence (calibration of THIS prediction) | low |
-| runStamp | 2026-06-15T01:25:17.124Z |
+| runStamp | 2026-07-04T12:26:38.130Z |
 
 ## Run Summary
 
-- Total firings read: **56,017**
-- Predictions written to shadow: **56,017**
-- Outcomes derived: **0** (0.0% of predicted)
-- Undeterminable (R4): **56,017** (100.0% of predicted)
+- Total firings read: **94,997**
+- Predictions written to shadow: **94,997**
+- Outcomes derived: **95** (0.1% of predicted)
+- Undeterminable (R4): **94,902** (99.9% of predicted)
 - byRule histogram:
-  - R4: 56,017
-- Wall time: 1797 ms
+  - R1: 95
+  - R4: 94,902
+- Wall time: 6579 ms
 
 ## Calibration Report (calibrationReport over shadow ledger)
 
-- Resolved pairs (n): **0**
-- Unresolved (prediction w/o outcome): **55,788**
-- **meanBrier: 0.0000**
+- Resolved pairs (n): **85**
+- Unresolved (prediction w/o outcome): **94,518**
+- **meanBrier: 0.4762**
 
 ### Per-confidence bucket
 
@@ -36,9 +37,9 @@
 |---|---:|---:|---:|
 | 0-0.2 | 0 | 0.0000 | 0.0% |
 | 0.2-0.4 | 0 | 0.0000 | 0.0% |
-| 0.4-0.6 | 0 | 0.0000 | 0.0% |
-| 0.6-0.8 | 0 | 0.0000 | 0.0% |
-| 0.8-1 | 0 | 0.0000 | 0.0% |
+| 0.4-0.6 | 58 | 0.2567 | 0.0% |
+| 0.6-0.8 | 1 | 0.3673 | 0.0% |
+| 0.8-1 | 26 | 0.9701 | 0.0% |
 
 ## Residual Risk / Red-team
 
@@ -56,7 +57,7 @@
 
 ## Run Stamp
 
-- startedAt:  2026-06-15T01:25:17.125Z
-- finishedAt: 2026-06-15T01:25:18.922Z
+- startedAt:  2026-07-04T12:26:38.134Z
+- finishedAt: 2026-07-04T12:26:44.713Z
 - lane:        minimax-m3 (L4)
 - capability:  energy-outcome-backfill

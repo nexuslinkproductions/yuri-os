@@ -13,6 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { readJsonl } from '../lib/jsonl.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -325,12 +326,7 @@ export function snapshotRun(runId) {
   // spawns.jsonl — parallel lane is adding this; tolerate absence. One JSON object per line.
   try {
     const spawnsPath = path.join(dir, 'spawns.jsonl');
-    if (fs.existsSync(spawnsPath)) {
-      const lines = fs.readFileSync(spawnsPath, 'utf8').split('\n').filter(Boolean);
-      for (const line of lines) {
-        try { out.spawns.push(JSON.parse(line)); } catch { /* skip bad line */ }
-      }
-    }
+    out.spawns = readJsonl(spawnsPath, { failOpen: true }).records;
   } catch { /* best-effort */ }
 
   return out;

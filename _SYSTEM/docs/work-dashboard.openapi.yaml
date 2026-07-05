@@ -97,6 +97,18 @@ paths:
       responses:
         "200":
           description: Visual plans
+  /api/stream:
+    get:
+      summary: SSE live stream of overview updates
+      description: Server-sent events stream that pushes overview payloads on each ingest cycle. Clients connect via EventSource.
+      responses:
+        "200":
+          description: SSE event stream (text/event-stream)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: "SSE payload: `data: <json>\\n\\n`"
   /api/router-stats:
     get:
       summary: Fleet router MLP advisory stats

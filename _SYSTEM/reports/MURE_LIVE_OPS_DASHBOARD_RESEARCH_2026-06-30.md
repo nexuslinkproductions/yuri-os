@@ -23,7 +23,7 @@ MURE already has a **strong static→semi-live company overview** (`work-dashboa
 |---------|------------|----------|
 | `_SYSTEM/Scripts/work-dashboard.mjs` | Canonical server `:4270`; throttled `ingestAll` + `/api/overview` | Poll-only; no per-lane “now”; no SSE |
 | `_SYSTEM/mure/dashboard.html` | GLM-designed NEXUS LINK UI: constellation, runs stream, jobs, doctrine, drawers | Role `active` = run with `status='running'` in ledger — coarse; no leaf-level action |
-| `_SYSTEM/mure/server.py` | Demo backend `:8433` with fake data | **Not production** — replace per DRILLDOWN_WIRING “Next Steps” |
+| `_SYSTEM/Scripts/work-dashboard.mjs` | Canonical server `:4270` | Node stdlib, zero deps, SSE-ready |
 | `_SYSTEM/Scripts/work-ledger.mjs` | SQLite funnel: runs, artifacts, role_outputs, activity | Historical + ingest; `running` only if `finishedAt` absent on manifest |
 | `_SYSTEM/Scripts/runSwarm.mjs` | Writes `.claude/jobs/<runId>/manifest.json` with `roundLog[]`, `startedAt`, `finishedAt` | **Rich mid-flight signal** not surfaced to UI |
 | `glm-fleet.mjs` / `ollama-fleet.mjs` / `cline-fleet.mjs` | Per-leaf `results/<label>.json` packets in `.claude/jobs/<runId>/results/` | Packet lands at end of lane call — partial progress only via stderr/log tail |
@@ -340,7 +340,7 @@ Implementation sketch:
 |------|------------|
 | `finishedAt` null but process dead | Timeout + stale detection (mtime on results dir) |
 | Native/Cline lanes invisible | Explicit `substrate` in snapshot; stub status for native-spawn-loop |
-| Dual servers (4270 vs 8433) | Document 4270 canonical; deprecate server.py in chronicler task |
+| Single canonical server (:4270) | `work-dashboard.mjs` is the sole server; no split-brain |
 | SSE client leak | Copy observatory `addSseClient` + close handlers |
 | Game UI scope creep | M2 behind visual-plan gate; M0 read-only strip first |
 

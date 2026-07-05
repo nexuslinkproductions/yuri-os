@@ -16,7 +16,7 @@
 import http from 'node:http';
 import readline from 'node:readline';
 import { spawn } from 'node:child_process';
-import { existsSync, appendFileSync, mkdirSync, openSync } from 'node:fs';
+import { existsSync, appendFileSync, mkdirSync, openSync, closeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -242,11 +242,20 @@ function brainDownMessage(brainUrl) {
 async function startBrain(brainUrl, { pollTimeoutMs = START_BRAIN_TIMEOUT_MS } = {}) {
   mkdirSync(RUNTIME_STATE_DIR, { recursive: true });
   const logFd = openSync(BRAIN_LOG, 'a');
-  const child = spawn('python3', [BRAIN_SCRIPT], {
-    cwd: REPO_ROOT,
-    detached: true,
-    stdio: ['ignore', logFd, logFd],
-  });
+  let child;
+  try {
+    child = spawn('python3', [BRAIN_SCRIPT], {
+      cwd: REPO_ROOT,
+      detached: true,
+      stdio: ['ignore', logFd, logFd],
+    });
+  } finally {
+    // FD-LEAK FIX: spawn() with a raw fd in `stdio` dup()s it into the child; the PARENT's copy
+    // (logFd) is never needed again once the child holds its own duplicate, but was never closed
+    // here — every --start-brain call (each REPL restart while the brain is down) leaked one fd.
+    // Close unconditionally (even if spawn() throws) so repeated restarts never approach EMFILE.
+    closeSync(logFd);
+  }
   child.unref();
   appendEvent('brain-spawn-attempt', { pid: child.pid, script: BRAIN_SCRIPT });
   const start = Date.now();
@@ -505,13 +514,22 @@ function runChatLoop(brainUrl) {
       }
       const slash = parseSlash(text);
       if (slash) {
-        const result = await dispatchSlash(slash.cmd, slash.args, { brainUrl });
-        if (result === '__QUIT__') {
-          closing = true;
-          appendEvent('session-end', { reason: 'quit-command' });
-          return;
+        // UNHANDLED-REJECTION FIX: dispatchSlash (unlike the chatOnce branch below) had no try/catch —
+        // a slash handler throwing synchronously or via a rejected await (e.g. a subprocess helper
+        // throwing outside runSubprocess's own resolve-only contract) propagated straight out of
+        // processLine(), which the `queue = queue.then(...)` chain never .catch()'d — an unhandled
+        // rejection that also silently skipped safePrompt(), leaving the REPL looking stuck.
+        try {
+          const result = await dispatchSlash(slash.cmd, slash.args, { brainUrl });
+          if (result === '__QUIT__') {
+            closing = true;
+            appendEvent('session-end', { reason: 'quit-command' });
+            return;
+          }
+          console.log(ansi.dim(result));
+        } catch (e) {
+          console.log(ansi.red(`(command error: ${e.message})`));
         }
-        console.log(ansi.dim(result));
         safePrompt();
         return;
       }
@@ -530,9 +548,18 @@ function runChatLoop(brainUrl) {
       if (closing) return; // a queued line arriving after /quit's queue entry is a no-op
       // Chain onto the queue so this line's handling starts only after the previous one finished —
       // this is what prevents drop #1: no handler starts until the prior one has fully awaited.
-      queue = queue.then(() => processLine(line)).then(() => {
-        if (closing) rl.close();
-      });
+      // Defense-in-depth .catch(): processLine() itself now guards every branch that can throw, but
+      // this keeps the queue chain alive (rather than "poisoning" all subsequent links with a
+      // permanently-rejected promise) even if a future code path introduces an unguarded throw.
+      queue = queue
+        .then(() => processLine(line))
+        .catch((e) => {
+          console.log(ansi.red(`(unexpected REPL error: ${e && e.message ? e.message : e})`));
+          safePrompt();
+        })
+        .then(() => {
+          if (closing) rl.close();
+        });
     });
 
     rl.on('SIGINT', () => {

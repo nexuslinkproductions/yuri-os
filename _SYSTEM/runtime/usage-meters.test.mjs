@@ -176,14 +176,14 @@ describe('record', () => {
   });
 
   it('records chars as estimated tokens', () => {
-    const entry = record({ pool: 'ollama', chars: 1000, label: 'test-est' }, { ledgerPath });
+    const entry = record({ pool: 'ollama', chars: 1000, label: 'test-est' }, { ledgerPath, eventsPath });
     assert.equal(entry.tokens, 250);  // 1000/4
     assert.equal(entry.estimated, true);
   });
 
   it('appends to ledger as JSONL', () => {
-    record({ pool: 'zai', tokens: 100, label: 'a' }, { ledgerPath });
-    record({ pool: 'ollama', tokens: 200, label: 'b' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 100, label: 'a' }, { ledgerPath, eventsPath });
+    record({ pool: 'ollama', tokens: 200, label: 'b' }, { ledgerPath, eventsPath });
     const lines = readFileSync(ledgerPath, 'utf8').split('\n').filter(Boolean);
     assert.equal(lines.length, 2);
     const e1 = JSON.parse(lines[0]);
@@ -193,11 +193,11 @@ describe('record', () => {
   });
 
   it('throws on invalid pool', () => {
-    assert.throws(() => record({ pool: 'invalid', tokens: 100 }, { ledgerPath }), /Invalid pool/);
+    assert.throws(() => record({ pool: 'invalid', tokens: 100 }, { ledgerPath, eventsPath }), /Invalid pool/);
   });
 
   it('throws when neither tokens nor chars provided', () => {
-    assert.throws(() => record({ pool: 'zai' }, { ledgerPath }), /Must provide/);
+    assert.throws(() => record({ pool: 'zai' }, { ledgerPath, eventsPath }), /Must provide/);
   });
 
   it('emits an event to events.jsonl', () => {
@@ -219,7 +219,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-1', 'r1.json', {
       laneId: 'glm', text: 'hello world', task: 'do thing', durationMs: 1000, status: 'ok',
     });
-    const result = scan({ jobsDir, watermarkPath, ledgerPath });
+    const result = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.ok(result.entriesAdded >= 1);
     assert.ok(result.filesScanned >= 1);
   });
@@ -229,10 +229,10 @@ describe('scan — idempotency', () => {
       laneId: 'glm', text: 'hello world', task: 'do thing', durationMs: 1000, status: 'ok',
     });
     // first scan
-    const r1 = scan({ jobsDir, watermarkPath, ledgerPath });
+    const r1 = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     const added1 = r1.entriesAdded;
     // second scan — same files, watermark updated → 0 new
-    const r2 = scan({ jobsDir, watermarkPath, ledgerPath });
+    const r2 = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(r2.entriesAdded, 0, 'second scan should add 0 entries (idempotent)');
   });
 
@@ -240,7 +240,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-1', 'r1.json', {
       laneId: 'glm', text: 'first', task: 't', durationMs: 1000, status: 'ok',
     });
-    scan({ jobsDir, watermarkPath, ledgerPath });
+    scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
 
     // add a new file with a delay so mtime > watermark
     await new Promise(r => setTimeout(r, 50));
@@ -248,7 +248,7 @@ describe('scan — idempotency', () => {
       laneId: 'ollama-cloud:kimi:cloud', text: 'second result', task: 't2', durationMs: 2000, status: 'ok',
     });
 
-    const r2 = scan({ jobsDir, watermarkPath, ledgerPath });
+    const r2 = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(r2.entriesAdded, 1, 'should pick up the one new file');
   });
 
@@ -256,7 +256,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-a', 'r.json', {
       laneId: 'sonnet', text: 'claude output', task: 't', durationMs: 1000, status: 'ok',
     });
-    const result = scan({ jobsDir, watermarkPath, ledgerPath });
+    const result = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(result.entriesAdded, 0, 'anthropic lanes should be skipped by scan');
   });
 
@@ -264,7 +264,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-x', 'r.json', {
       laneId: 'inline:calibrator', text: 'cal', task: 't', durationMs: 1000, status: 'ok',
     });
-    const result = scan({ jobsDir, watermarkPath, ledgerPath });
+    const result = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(result.entriesAdded, 0);
   });
 
@@ -272,7 +272,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-e', 'r.json', {
       laneId: 'glm', text: '', task: '', durationMs: 1000, status: 'fail',
     });
-    const result = scan({ jobsDir, watermarkPath, ledgerPath });
+    const result = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(result.entriesAdded, 0);
   });
 
@@ -280,7 +280,7 @@ describe('scan — idempotency', () => {
     writeJobResult('job-est', 'r.json', {
       laneId: 'glm', text: 'a'.repeat(100), task: 'b'.repeat(100), durationMs: 1000, status: 'ok',
     });
-    const result = scan({ jobsDir, watermarkPath, ledgerPath });
+    const result = scan({ jobsDir, watermarkPath, ledgerPath, eventsPath });
     assert.equal(result.entriesAdded, 1);
     assert.equal(result.newEntries[0].tokens, 50); // 200 chars / 4
     assert.equal(result.newEntries[0].estimated, true);
@@ -288,7 +288,7 @@ describe('scan — idempotency', () => {
   });
 
   it('handles missing jobs dir gracefully', () => {
-    const result = scan({ jobsDir: '/nonexistent/path', watermarkPath, ledgerPath });
+    const result = scan({ jobsDir: '/nonexistent/path', watermarkPath, ledgerPath, eventsPath });
     assert.equal(result.entriesAdded, 0);
     assert.equal(result.filesScanned, 0);
   });
@@ -299,7 +299,7 @@ describe('buildStatus', () => {
   afterEach(() => { teardownTmp(); });
 
   it('returns per-pool structure for all three pools', async () => {
-    record({ pool: 'zai', tokens: 1000, label: 'a' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 1000, label: 'a' }, { ledgerPath, eventsPath });
     const status = await buildStatus({ ledgerPath, configPath, useGovernor: false });
     for (const pool of POOLS) {
       assert.ok(status.perPool[pool], `pool ${pool} missing`);
@@ -310,8 +310,8 @@ describe('buildStatus', () => {
   });
 
   it('splits real vs estimated tokens', async () => {
-    record({ pool: 'zai', tokens: 1000, label: 'real' }, { ledgerPath });        // real
-    record({ pool: 'zai', chars: 400, label: 'est' }, { ledgerPath });           // estimated=100
+    record({ pool: 'zai', tokens: 1000, label: 'real' }, { ledgerPath, eventsPath });        // real
+    record({ pool: 'zai', chars: 400, label: 'est' }, { ledgerPath, eventsPath });           // estimated=100
     const status = await buildStatus({ ledgerPath, configPath, useGovernor: false });
     const zai = status.perPool.zai;
     assert.equal(zai.usage.real, 1000);
@@ -321,7 +321,7 @@ describe('buildStatus', () => {
   });
 
   it('null budget → no pace verdict, hold throttle', async () => {
-    record({ pool: 'ollama', tokens: 5000, label: 'x' }, { ledgerPath });
+    record({ pool: 'ollama', tokens: 5000, label: 'x' }, { ledgerPath, eventsPath });
     const status = await buildStatus({ ledgerPath, configPath, useGovernor: false });
     const ol = status.perPool.ollama;
     assert.equal(ol.budget, null);
@@ -335,7 +335,7 @@ describe('buildStatus', () => {
     writeFileSync(configPath, JSON.stringify({
       pools: { zai: { period: 'week', budget: 10000 }, ollama: { period: 'week', budget: null }, anthropic: { period: 'week', budget: null } },
     }));
-    record({ pool: 'zai', tokens: 8000, label: 'lots' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 8000, label: 'lots' }, { ledgerPath, eventsPath });
     const status = await buildStatus({ ledgerPath, configPath, useGovernor: false });
     const zai = status.perPool.zai;
     assert.equal(zai.budget, 10000);
@@ -358,7 +358,7 @@ describe('writeSnapshot', () => {
   afterEach(() => { teardownTmp(); });
 
   it('writes usage-meters.json snapshot to disk', async () => {
-    record({ pool: 'zai', tokens: 500, label: 'snap' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 500, label: 'snap' }, { ledgerPath, eventsPath });
     const result = await writeSnapshot({ ledgerPath, configPath, snapshotPath, eventsPath, useGovernor: false });
     assert.ok(existsSync(snapshotPath));
     const snap = JSON.parse(readFileSync(snapshotPath, 'utf8'));
@@ -442,7 +442,7 @@ describe('briefLines', () => {
     writeFileSync(configPath, JSON.stringify({
       pools: { zai: { period: 'week', budget: 10000 }, ollama: { period: 'week', budget: null }, anthropic: { period: 'week', budget: null } },
     }));
-    record({ pool: 'zai', tokens: 8000, label: 'budget-test' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 8000, label: 'budget-test' }, { ledgerPath, eventsPath });
     const status = await buildStatus({ ledgerPath, configPath, useGovernor: false });
     const result = briefLines(status);
     const zaiLine = result.lines.find(l => l.includes('zai:'));
@@ -450,7 +450,7 @@ describe('briefLines', () => {
   });
 
   it('works against a real writeSnapshot output (end-to-end)', async () => {
-    record({ pool: 'zai', tokens: 500, label: 'e2e' }, { ledgerPath });
+    record({ pool: 'zai', tokens: 500, label: 'e2e' }, { ledgerPath, eventsPath });
     const snapResult = await writeSnapshot({ ledgerPath, configPath, snapshotPath, eventsPath, useGovernor: false });
     const result = briefLines(snapResult.status);
     assert.ok(result.lines, 'lines from real snapshot');
@@ -475,10 +475,10 @@ describe('scan — same-mtime double-count edge', () => {
       utimesSync(path.join(jobsDir, `job-${i}`, 'results', 'r.json'), fixedDate, fixedDate);
     }
     // First scan: all 3 should be recorded
-    const r1 = scan({ jobsDir, watermarkPath: watermarkPath, ledgerPath });
+    const r1 = scan({ jobsDir, watermarkPath: watermarkPath, ledgerPath, eventsPath });
     assert.equal(r1.entriesAdded, 3, 'all 3 same-mtime files recorded in pass 1');
     // Second scan: 0 new (watermark advanced past them)
-    const r2 = scan({ jobsDir, watermarkPath: watermarkPath, ledgerPath });
+    const r2 = scan({ jobsDir, watermarkPath: watermarkPath, ledgerPath, eventsPath });
     assert.equal(r2.entriesAdded, 0, '0 new entries in pass 2 (no double-count)');
     // Ledger should have exactly 3 lines
     const ledgerLines = readFileSync(ledgerPath, 'utf8').split('\n').filter(Boolean);

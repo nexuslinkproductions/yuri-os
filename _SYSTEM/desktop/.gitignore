@@ -1,0 +1,7 @@
+# Generated build artifacts only. Never commit compiled/rasterized output; regenerate on demand:
+#   bash _SYSTEM/desktop/make-app.sh          -> .output/
+#   bash _SYSTEM/desktop/make-icon.sh         -> assets/generated/
+#   pwsh _SYSTEM/desktop/make-app-windows.ps1 -> .output-windows/
+.output/
+.output-windows/
+assets/generated/

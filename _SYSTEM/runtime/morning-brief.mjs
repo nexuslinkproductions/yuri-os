@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // @capability: morning-brief
 // @serves: morning brief | wake-up report | what happened while I was gone | absence report | overnight summary
-// @does: READ-ONLY compositor that joins existing sources (git log, overnight results, yuri-doctor, dream queue,
-//   memory, usage meters, sessions) into one sectioned brief answering "what happened while I was gone?".
+// @does: READ-ONLY compositor that joins existing sources (git log, overnight results, MURE agent collective,
+//   yuri-doctor, dream queue, memory, usage meters, sessions) into one sectioned brief answering "what
+//   happened while I was gone?".
 //   Every source is fail-open (a broken source = one 'unavailable' line, never a crash). Every subprocess
 //   has a hard timeout. All sources are INJECTABLE via buildBrief(sources) for hermetic testing.
 // @use: node _SYSTEM/runtime/morning-brief.mjs [--text|--json|--spoken] [--status --json]
@@ -50,6 +51,23 @@ const DOCTOR_SCRIPT = path.join(SYS, 'Scripts', 'yuri-doctor.mjs');
 const OVERNIGHT_FILE = path.join(STATE_DIR, 'overnight-results.jsonl');
 const USAGE_FILE = path.join(STATE_DIR, 'usage-meters.json');
 const SESSIONS_FILE = path.join(STATE_DIR, 'sessions.json');
+
+// MURE (群れ) — the 20-role agentic collective. mure.mjs lives at _SYSTEM/mure/mure.mjs;
+// company-cycle run artifacts land at _SYSTEM/state/company-reports/cycle-*.md.
+const MURE_REPORTS_DIR = path.join(SYS, 'state', 'company-reports');
+
+// SEAM CONTRACT (mure → morning-brief):
+//   morning-brief dynamic-imports isMureArmed + loadRoster from mure/mure.mjs, mirroring the
+//   usage-meters seam above. mure() NEVER re-implements roster parsing — it reads roster.roles.length
+//   and roster.byGroup.size, the shape loadRoster() already returns (see role-registry.mjs loadRoster).
+//   If the import fails, mure() falls back to { unavailable }.
+let isMureArmedFn = null;
+let loadRosterFn = null;
+try {
+  const mureMod = await import(pathToFileURL(path.join(SYS, 'mure', 'mure.mjs')).href);
+  if (typeof mureMod.isMureArmed === 'function') isMureArmedFn = mureMod.isMureArmed;
+  if (typeof mureMod.loadRoster === 'function') loadRosterFn = mureMod.loadRoster;
+} catch { /* mure module not loadable — mure() falls back to unavailable */ }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -147,7 +165,15 @@ function loadBriefState() {
 function saveBriefState(state) {
   try {
     if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
-    fs.writeFileSync(BRIEF_STATE_FILE, JSON.stringify(state, null, 2) + '\n');
+    // ATOMIC-WRITE FIX: a direct writeFileSync can be interrupted mid-write by a crash/SIGKILL,
+    // leaving brief-state.json truncated/corrupt. loadBriefState()'s safeReadJson() then fails to
+    // parse it, silently falling back to { lastBriefTime: null } — resetting the "since last brief"
+    // window every source keys off. tmp+rename is atomic on the same filesystem (same idiom already
+    // used by yuri-runtimed.mjs's atomicWriteJson) — a reader only ever sees the old complete file or
+    // the new complete file, never a partial one.
+    const tmp = `${BRIEF_STATE_FILE}.tmp.${process.pid}`;
+    fs.writeFileSync(tmp, JSON.stringify(state, null, 2) + '\n');
+    fs.renameSync(tmp, BRIEF_STATE_FILE);
   } catch {
     // fail-open
   }
@@ -269,6 +295,66 @@ const defaultSources = {
     return { unavailable: true, reason: 'usage-meters module not loaded' };
   },
 
+  // [MURE] arm state + roster size/groups (from mure.mjs) + most recent company-cycle report, if any.
+  // SEAM: uses the isMureArmedFn/loadRosterFn dynamic-imported at module load (see SEAM CONTRACT above).
+  // Any missing module, throw, or malformed roster degrades to { unavailable, reason } — never a crash.
+  mure() {
+    if (!isMureArmedFn || !loadRosterFn) {
+      return { unavailable: true, reason: 'mure module not loaded' };
+    }
+
+    let armed;
+    try {
+      armed = !!isMureArmedFn();
+    } catch (e) {
+      return { unavailable: true, reason: `isMureArmed failed: ${String(e?.message || e)}` };
+    }
+
+    let roleCount = 0;
+    let groupCount = 0;
+    try {
+      const roster = loadRosterFn();
+      roleCount = Array.isArray(roster?.roles) ? roster.roles.length : 0;
+      groupCount = roster?.byGroup instanceof Map ? roster.byGroup.size : 0;
+    } catch (e) {
+      return { unavailable: true, reason: `loadRoster failed: ${String(e?.message || e)}` };
+    }
+
+    // Most recent company-cycle run artifact under _SYSTEM/state/company-reports/cycle-*.md, if any.
+    let lastRun = null;
+    try {
+      if (fs.existsSync(MURE_REPORTS_DIR)) {
+        const files = fs.readdirSync(MURE_REPORTS_DIR)
+          .filter((f) => f.startsWith('cycle-') && f.endsWith('.md'))
+          .map((f) => {
+            const fp = path.join(MURE_REPORTS_DIR, f);
+            try { return { name: f, mtime: fs.statSync(fp).mtimeMs }; } catch { return null; }
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.mtime - a.mtime);
+        if (files.length > 0) {
+          const newest = files[0];
+          const text = safeReadFile(path.join(MURE_REPORTS_DIR, newest.name), 64 * 1024) || '';
+          // Cycle report header shape (see company-reports/cycle-*.md):
+          //   line 1: "# NEXUS LINK company cycle <id>"
+          //   line 2: "armed=<bool> halted=<bool> · <iso timestamp>"
+          //   line 3: "executed=<N> · <M> jobs touched"
+          const headerLine = (text.split('\n')[2] || '').trim();
+          lastRun = {
+            file: newest.name,
+            age: mtimeAgeStr(path.join(MURE_REPORTS_DIR, newest.name)),
+            outcome: headerLine || 'outcome unavailable (report had no header line)',
+          };
+        }
+      }
+    } catch {
+      // fail-open — a broken report read still yields "no runs recorded" below
+      lastRun = null;
+    }
+
+    return { armed, roleCount, groupCount, lastRun };
+  },
+
   // [SESSIONS] from sessions.json
   sessions() {
     const data = safeReadJson(SESSIONS_FILE);
@@ -291,7 +377,7 @@ const defaultSources = {
  * a throw becomes { unavailable: true, reason } — never a crash.
  * @param {object} sources - override fns keyed by section name. Missing keys use defaults.
  * @param {object} opts - { lastBriefTime }
- * @returns {object} brief object with sections: git, overnight, doctor, dreams, memory, usage, sessions
+ * @returns {object} brief object with sections: git, overnight, mure, doctor, dreams, memory, usage, sessions
  */
 function buildBrief(sources = {}, opts = {}) {
   const src = { ...defaultSources, ...sources };
@@ -311,6 +397,7 @@ function buildBrief(sources = {}, opts = {}) {
 
   sections.git = callSafe('git', src.git, lastBriefTime);
   sections.overnight = callSafe('overnight', src.overnight);
+  sections.mure = callSafe('mure', src.mure);
   sections.doctor = callSafe('doctor', src.doctor);
   sections.dreams = callSafe('dreams', src.dreams);
   sections.memory = callSafe('memory', src.memory);
@@ -351,6 +438,20 @@ function renderText(brief) {
   } else if (o) {
     out.push(`[OVERNIGHT] ${o.ok} ok / ${o.fail} failed (${o.total} total)`);
     for (const l of o.lines) out.push(l);
+  }
+  out.push('');
+
+  // MURE
+  const mu = brief.sections.mure;
+  if (mu?.unavailable) {
+    out.push('[MURE] unavailable — ' + (mu.reason || 'unknown'));
+  } else if (mu) {
+    out.push(`[MURE] ${mu.armed ? 'ARMED' : 'DISARMED'} — ${mu.roleCount} role(s) across ${mu.groupCount} group(s)`);
+    if (mu.lastRun) {
+      out.push(`  last run: ${mu.lastRun.age} — ${mu.lastRun.outcome}`);
+    } else {
+      out.push('  no runs recorded');
+    }
   }
   out.push('');
 
@@ -436,6 +537,13 @@ function renderSpoken(brief) {
     } else {
       sentences.push(`System health looks ${d.verdict.toLowerCase()}.`);
     }
+  }
+
+  // MURE — only worth a spoken sentence when armed (a notable live state); DISARMED is the
+  // steady-state default and would just spend one of the 5 sentence slots on nothing new.
+  const mu = brief.sections.mure;
+  if (!mu?.unavailable && mu && mu.armed) {
+    sentences.push(`MURE is armed with ${mu.roleCount} roles ready.`);
   }
 
   const dr = brief.sections.dreams;

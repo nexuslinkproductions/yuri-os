@@ -300,7 +300,7 @@ type DigitizedRole = {
 
 1. **Skeleton bind missing** — MURE is not registered on `yuri-graph.json` / die layers; no `mure-skeleton-bind.json`; telos organ unwired (L13 MISSING).
 2. **Actuation seam stub** — `native-spawn-loop.mjs` emits STUB packets; ollama/cline sidecars plan-only (manual tmux); Marcel spawns parallel lanes by hand.
-3. **Observability split-brain** — `work-dashboard.mjs` (:4270) vs `server.py` demo (:8433); no leaf-level live feed until WS-H M0 ships.
+3. **Observability gap** — `work-dashboard.mjs` (:4270) is the sole server; no leaf-level live feed until WS-H M0 ships.
 4. **Learning loop thin** — MLP trains without held-out eval; router suggestions don't gate dispatch; archivist/calibrator not in post-run pipeline.
 5. **Quality / manifest honesty** — BUILD_07 `applied` masked empty glm-max leaves; convergence fixes committed but live artifacts need partial re-run (see `MURE_COMPANY_HEALTH` re-run matrix).
 

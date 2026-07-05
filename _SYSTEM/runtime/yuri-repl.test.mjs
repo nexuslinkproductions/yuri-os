@@ -515,6 +515,31 @@ test('e2e: piped input with NO /quit (stdin EOF) still processes every line befo
   }
 });
 
+// ---- RT-08 regression: unhandled rejection from a throwing slash handler no longer kills the queue ----
+// Real (not hypothetical) throw path: runSubprocess()'s `spawn()` call (yuri-repl.mjs) is not wrapped
+// in try/catch and lives inside a `new Promise((resolve) => {...})` executor with no `reject` path —
+// Node's child_process.spawn() throws SYNCHRONOUSLY (not via the 'error' event) when an argv entry
+// contains a NUL byte, which auto-rejects that promise. /draft builds its argv from the user-supplied
+// session name via buildDraftArgv(name, rest), so a NUL byte embedded in the /draft name organically
+// reaches spawn()'s argv and throws — previously propagating unguarded out of dispatchSlash's `await
+// runSubprocess(...)`, through processLine(), into the `queue = queue.then(...)` chain with no .catch(),
+// an unhandled rejection that also skipped safePrompt(), i.e. the REPL looked stuck after that line.
+test('RT-08 e2e: a slash command whose handler throws (NUL-byte arg -> spawn() throws) reports an error and the queue keeps processing', async () => {
+  const { server, url } = await startMockBrainServer();
+  try {
+    const nulName = 'sess\0name'; // embeds a real NUL byte in the /draft name argument
+    const { code, stdout } = await runReplPiped(
+      [`/draft ${nulName} hello world`, 'still alive after the throw', '/quit'],
+      ['--brain-url', url, '--no-brief']
+    );
+    assert.equal(code, 0, `REPL must still exit cleanly (code ${code}) instead of crashing/hanging on the throw`);
+    assert.match(stdout, /command error:/, 'the throw from dispatchSlash is caught and reported, not left unhandled');
+    assert.match(stdout, /reply-to\[still alive after the throw\]/, 'the queue chain survives the throw and keeps processing subsequent lines (the actual regression)');
+  } finally {
+    await stopMockBrain(server);
+  }
+});
+
 test('e2e: a slow first reply does not truncate a fast /quit queued right after it', async () => {
   // Specifically targets drop #1 (queued /quit racing ahead of an in-flight network round-trip):
   // the mock brain delays its first response so /quit would have a real window to run past it if the

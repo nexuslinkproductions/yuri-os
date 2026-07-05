@@ -65,4 +65,8 @@ RETURN caller.name, caller.filePath
 
 ## Session Notes
 
-- 2026-06-16 — Quick reference for all GitNexus MCP tools, resources, and the knowledge graph schema; reach for this when the user asks about GitNexus tools, queries, or graph schema.
+### 2026-07-01
+- session: 361m | peak ctx: 0% | compacts: 0
+- tools: Read×796, Grep×392, Write×226, Shell×141, Delete×2, MCP:open_resource×1
+- corrections: none
+- errors: none

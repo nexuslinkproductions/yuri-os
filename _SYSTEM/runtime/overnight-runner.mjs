@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // @capability: overnight-runner
-// @serves: overnight runner | unattended task execution | yuri runtime overnight | task queue drain | retry-on-fail dispatch | yuri-runtime section 5
-// @does: DISARMED-FIRST runner around task-queue.mjs that pops tasks from an append-only overnight queue, builds a bounded lane-task prompt (task text + autonomous-work + RESULT_LABEL-required template), dispatches via glmFleet (or ollamaFleet) UNLESS --dry-run or the fleet is disarmed (then prints the plan, zero spend), verifies the result via extractResultLabel + classifyLaneOutcome, retries ONCE on outcome F or missing label with a sharper prompt, and appends the final result to overnight-results.jsonl. Fail-open per task: one bad task is recorded as failed, never killing the run. NO scheduling/launchd — the runner is INVOKED by owner/supervisor/beat; a plist TEMPLATE lives in the header comment, nothing is installed.
+// @serves: overnight runner | unattended task execution | yuri runtime overnight | task queue drain | retry-on-fail dispatch | yuri-runtime section 5 | mure task kind | overnight mure dispatch
+// @does: DISARMED-FIRST runner around task-queue.mjs that pops tasks from an append-only overnight queue, builds a bounded lane-task prompt (task text + autonomous-work + RESULT_LABEL-required template), dispatches via glmFleet (or ollamaFleet) UNLESS --dry-run or the fleet is disarmed (then prints the plan, zero spend), verifies the result via extractResultLabel + classifyLaneOutcome, retries ONCE on outcome F or missing label with a sharper prompt, and appends the final result to overnight-results.jsonl. Fail-open per task: one bad task is recorded as failed, never killing the run. A second task KIND, "mure", carries a MURE company-task payload instead of a lane prompt: planCompany ALWAYS runs (zero-spend plan recorded in the result); runCompany (real dispatch) only runs when BOTH the runner itself is armed (not --dry-run) AND isMureArmed() — otherwise the result is an honest plan-only record, never a silent no-op. NO scheduling/launchd — the runner is INVOKED by owner/supervisor/beat; a plist TEMPLATE lives in the header comment, nothing is installed.
 // @use:
 //   node _SYSTEM/runtime/overnight-runner.mjs enqueue --task '<text>' [--lane glm|ollama] [--priority N]
+//   node _SYSTEM/runtime/overnight-runner.mjs enqueue --kind mure --mure-task '<json>' [--priority N]
+//   node _SYSTEM/runtime/overnight-runner.mjs enqueue --kind mure --mure-file <task.json> [--priority N]
 //   node _SYSTEM/runtime/overnight-runner.mjs run --once [--dry-run]
 //   node _SYSTEM/runtime/overnight-runner.mjs run --watch --max N [--dry-run]
 //   node _SYSTEM/runtime/overnight-runner.mjs status --json
-// @exports: enqueueTask, popNext, peekNext, sanitizeTaskText, buildLaneTask, runOnce, runWatch, getStatus, runnerDispatch (overrideable seam), __setDispatch (test hook)
+// @exports: enqueueTask, popNext, peekNext, sanitizeTaskText, buildLaneTask, validateMurePayload, runOnce, runWatch, getStatus, runnerDispatch (overrideable seam), __setDispatch (test hook), POP_LOCK_FILE (test-only)
 //
 // BUILD-ON (capability-first — NOT a reimplementation):
 //   - _SYSTEM/Scripts/task-queue.mjs: FIFO-priority queue + single-task mutex + git-HEAD staleness.
@@ -22,6 +24,10 @@
 //   - _SYSTEM/Scripts/ollama-fleet.mjs: ollamaFleet(tasks,opts) — identical shape/contract (YURI_OLLAMA_FLEET=1 arms).
 //   - _SYSTEM/Scripts/contract-conformance.mjs: extractResultLabel(output)->{label,anchored},
 //     classifyLaneOutcome({code,text})->{ok,degraded,reason}, parseResultLabel(label)->{ok,passTypeNorm,...}.
+//   - _SYSTEM/mure/mure.mjs (re-exports _SYSTEM/mure/company.mjs): planCompany(task,opts) — PURE, DISARMED-safe
+//     plan (casts/gates every subtask, zero spend); runCompany(task,opts) — plans THEN dispatches when
+//     isMureArmed()===true and opts.armed!==false (armed is OWNER-gated inside company.mjs — a caller can only
+//     force-DISARM, never self-arm). Both are used as-is; this runner adds NO parallel arming path.
 //
 // ============================================================================
 // LAUNCHD PLIST TEMPLATE (NOT INSTALLED — copy to ~/Library/LaunchAgents/ to activate).
@@ -79,6 +85,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { glmFleet, isArmed as glmIsArmed } from '../Scripts/glm-fleet.mjs';
 import { ollamaFleet, isArmed as ollamaIsArmed } from '../Scripts/ollama-fleet.mjs';
 import { extractResultLabel, classifyLaneOutcome, parseResultLabel } from '../Scripts/contract-conformance.mjs';
+import { planCompany, runCompany, isMureArmed } from '../mure/mure.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -88,9 +95,23 @@ const RESULTS_FILE = path.join(STATE_DIR, 'overnight-results.jsonl');
 const EVENTS_FILE = path.join(STATE_DIR, 'events.jsonl');
 
 const DEFAULT_LANE = 'glm';
+const DEFAULT_KIND = 'lane'; // existing behavior: a queued task is a lane prompt unless kind:'mure'
+const VALID_KINDS = new Set(['lane', 'mure']);
 const MAX_RETRIES = 1; // one retry on F/missing-label (design §5 gap #1: bounded, not infinite)
 const MAX_RESULTS = 5000; // bounded retention for overnight-results.jsonl (prevents unbounded growth)
 const WATCH_LOCK_FILE = path.join(STATE_DIR, 'overnight-runner.watch.lock'); // concurrent-watch guard
+// RT-06 FIX: pop-mutex guards the read-modify-write in popNext() itself. WATCH_LOCK_FILE only
+// prevents two `run --watch` processes from racing each other; it does nothing for two concurrent
+// `run --once` invocations (or a --once racing a --watch), which each call popNext() with no lock at
+// all — both read the queue, both pick the same top task, and whichever writeFileSync lands last
+// silently clobbers any task a third process enqueued in between (lost enqueue / double-pop).
+// O_EXCL create is atomic at the POSIX FS level (FB:POSIX-FS-CONCURRENCY-FLOOR) — exactly the same
+// primitive class as the existing watch-lock idiom above, scoped tighter (held only for the pop's
+// own read+write, not a whole watch loop) so it never serializes unrelated runner work.
+const POP_LOCK_FILE = path.join(STATE_DIR, 'overnight-runner.pop.lock');
+const POP_LOCK_STALE_MS = 5_000; // a lock older than this is assumed abandoned (crashed holder)
+const POP_LOCK_RETRY_MS = 2; // cross-process contention only; the holder's read+write is microseconds
+const POP_LOCK_MAX_WAIT_MS = 500; // safety ceiling before fail-open (never hangs the CLI on a stuck holder)
 
 // ── I/O helpers ──────────────────────────────────────────────────────────────
 
@@ -137,20 +158,41 @@ function appendJsonl(file, obj) {
   }
 }
 
-/** Read all JSONL lines from a file. Returns []. Skips unparseable lines. */
+/**
+ * Read all JSONL lines from a file. Returns []. Skips unparseable lines.
+ *
+ * SILENT-CORRUPTION FIX: this used to swallow BOTH failure modes with no signal at all — an
+ * unreadable file (permissions, transient FS error) and a file where every non-blank line fails to
+ * parse (corruption) both silently degraded to "queue is empty", indistinguishable from a genuinely
+ * empty/absent queue. An overnight run would then just look idle instead of surfacing a corrupted
+ * queue, quietly abandoning every task it held. Behavior is UNCHANGED (still returns [] / still skips
+ * unparseable lines, callers do not need to change) — this only adds an stderr warning on the two
+ * failure paths so the condition is at least observable (matches this file's existing fail-open +
+ * warn-to-stderr idiom already used by appendJsonl above).
+ * @returns {object[]}
+ */
 function readJsonl(file) {
   if (!fs.existsSync(file)) return [];
   let raw;
   try {
     raw = fs.readFileSync(file, 'utf8');
-  } catch {
+  } catch (e) {
+    process.stderr.write(`[overnight-runner] readJsonl: cannot read ${path.basename(file)}: ${String(e?.message || e)}\n`);
     return [];
   }
   const out = [];
+  let nonBlankLines = 0;
   for (const line of raw.split('\n')) {
     const t = line.trim();
     if (!t) continue;
-    try { out.push(JSON.parse(t)); } catch { /* skip malformed */ }
+    nonBlankLines++;
+    try { out.push(JSON.parse(t)); } catch { /* skip malformed — counted below */ }
+  }
+  if (nonBlankLines > 0 && out.length === 0) {
+    process.stderr.write(
+      `[overnight-runner] readJsonl: ${path.basename(file)} has ${nonBlankLines} non-blank line(s) but NONE parsed as JSON — ` +
+      `file may be corrupted; treating as empty (tasks may be silently abandoned)\n`
+    );
   }
   return out;
 }
@@ -163,22 +205,78 @@ function emit(event, data = {}) {
 // ── Queue operations ─────────────────────────────────────────────────────────
 
 /**
+ * Validate a MURE task payload shape before it enters the queue. This is the runner's OWN honest
+ * validation gate — it does NOT duplicate or pre-empt anything planCompany/company.mjs checks
+ * internally (roster validity, per-subtask governance, etc.); it only rejects a payload the runner
+ * itself cannot even attempt to plan (not an object, or subtasks not an array of plain objects).
+ * @param {object} payload
+ * @returns {{ok:boolean, errors:string[]}}
+ */
+export function validateMurePayload(payload) {
+  const errors = [];
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { ok: false, errors: ['murePayload must be a non-null object'] };
+  }
+  if (payload.summary != null && typeof payload.summary !== 'string') {
+    errors.push('murePayload.summary must be a string when present');
+  }
+  if (payload.subtasks == null) {
+    errors.push('murePayload.subtasks is required (array of subtask objects)');
+  } else if (!Array.isArray(payload.subtasks)) {
+    errors.push('murePayload.subtasks must be an array');
+  } else if (payload.subtasks.length === 0) {
+    errors.push('murePayload.subtasks must contain at least one subtask');
+  } else {
+    payload.subtasks.forEach((s, i) => {
+      if (!s || typeof s !== 'object' || Array.isArray(s)) errors.push(`murePayload.subtasks[${i}] must be an object`);
+    });
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+/**
  * Enqueue a task. Appends to overnight-queue.jsonl (FIFO-within-priority).
  * @param {object} opts
- * @param {string} opts.task - the task text
- * @param {string} [opts.lane='glm'] - 'glm' or 'ollama'
+ * @param {string} [opts.task] - the task text (required for kind='lane', the default)
+ * @param {string} [opts.lane='glm'] - 'glm' or 'ollama' (kind='lane' only)
+ * @param {string} [opts.kind='lane'] - 'lane' (default lane-prompt task) or 'mure' (MURE company task)
+ * @param {object} [opts.murePayload] - required when kind='mure': {summary, subtasks:[...], tags?}
  * @param {number} [opts.priority=5] - 1..10 (higher = sooner)
- * @param {boolean} [opts.useTaskQueue=false] - delegate to task-queue.mjs enqueue instead
+ * @param {boolean} [opts.useTaskQueue=false] - delegate to task-queue.mjs enqueue instead (kind='lane' only)
  * @returns {object} the enqueued task record
  */
-export async function enqueueTask({ task, lane = DEFAULT_LANE, priority = 5, useTaskQueue = false } = {}) {
+export async function enqueueTask({ task, lane = DEFAULT_LANE, kind = DEFAULT_KIND, murePayload, priority = 5, useTaskQueue = false } = {}) {
+  const normKind = VALID_KINDS.has(kind) ? kind : DEFAULT_KIND;
+  const p = Math.max(1, Math.min(10, Number(priority) || 5));
+
+  if (normKind === 'mure') {
+    const validation = validateMurePayload(murePayload);
+    if (!validation.ok) {
+      throw new Error(`enqueueTask: invalid murePayload — ${validation.errors.join('; ')}`);
+    }
+    const rec = {
+      id: crypto.randomUUID().slice(0, 12),
+      ts: nowIso(),
+      kind: 'mure',
+      // a human-readable task label for status/logging parity with lane tasks — never re-parsed
+      task: sanitizeTaskText(task || murePayload.summary || `mure company task (${murePayload.subtasks.length} subtasks)`),
+      murePayload,
+      lane: 'mure',
+      priority: p,
+      status: 'pending',
+    };
+    appendJsonl(QUEUE_FILE, rec);
+    emit('enqueue', { id: rec.id, kind: 'mure', priority: rec.priority });
+    return rec;
+  }
+
   if (!task || typeof task !== 'string' || task.trim().length === 0) {
     throw new Error('enqueueTask: --task text is required');
   }
-  const p = Math.max(1, Math.min(10, Number(priority) || 5));
   const rec = {
     id: crypto.randomUUID().slice(0, 12),
     ts: nowIso(),
+    kind: 'lane',
     task: sanitizeTaskText(task),
     lane: lane === 'ollama' ? 'ollama' : 'glm',
     priority: p,
@@ -208,24 +306,81 @@ export async function enqueueTask({ task, lane = DEFAULT_LANE, priority = 5, use
 }
 
 /**
+ * Acquire the pop-mutex (sync, blocking with bounded spin-wait). O_EXCL create is atomic — only one
+ * caller can ever win the create when multiple processes race it. A lock file older than
+ * POP_LOCK_STALE_MS is treated as abandoned (crashed holder) and force-reclaimed. Fail-open: if the
+ * lock can never be acquired within POP_LOCK_MAX_WAIT_MS (e.g. FS error, pathological contention),
+ * proceeds WITHOUT the lock rather than hanging the CLI forever — matches this file's existing
+ * fail-open philosophy (a queue race is bad; a hung `run --once` is worse).
+ * @returns {boolean} true if the lock was actually acquired (caller should release it)
+ */
+function acquirePopLock() {
+  ensureStateDir();
+  const deadline = Date.now() + POP_LOCK_MAX_WAIT_MS;
+  while (Date.now() < deadline) {
+    try {
+      const fd = fs.openSync(POP_LOCK_FILE, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY);
+      fs.writeSync(fd, String(process.pid));
+      fs.closeSync(fd);
+      return true;
+    } catch (e) {
+      if (e && e.code === 'EEXIST') {
+        // Someone else holds it — check staleness (crashed holder never cleaned up).
+        try {
+          const st = fs.statSync(POP_LOCK_FILE);
+          if (Date.now() - st.mtimeMs > POP_LOCK_STALE_MS) {
+            try { fs.unlinkSync(POP_LOCK_FILE); } catch { /* raced another reclaimer — loop and retry */ }
+            continue;
+          }
+        } catch { /* lock vanished between EEXIST and stat — loop and retry the create */ }
+        // Bounded busy-wait spin (sync — popNext()/main() call this synchronously, no event loop to yield to).
+        const spinUntil = Date.now() + POP_LOCK_RETRY_MS;
+        while (Date.now() < spinUntil) { /* spin */ }
+        continue;
+      }
+      // Non-EEXIST FS error (permissions, disk full, etc.) — fail-open, proceed unlocked.
+      return false;
+    }
+  }
+  return false; // timed out waiting — fail-open, proceed unlocked rather than hang the CLI
+}
+
+/** Release the pop-mutex. Fail-open: a missing/already-removed lock file is not an error. */
+function releasePopLock() {
+  try { fs.unlinkSync(POP_LOCK_FILE); } catch { /* already gone / never held */ }
+}
+
+export { POP_LOCK_FILE }; // test-only visibility (deterministic lock-contention/staleness assertions)
+
+/**
  * Pop the next pending task by FIFO-within-priority (higher priority first; same priority = insertion order).
  * Rewrites the queue file without the popped task. Returns null if empty.
+ *
+ * RT-06 FIX: the read (readJsonl) + write (writeFileSync) below are the queue's read-modify-write —
+ * guarded by acquirePopLock()/releasePopLock() so two concurrent callers (e.g. two `run --once`
+ * invocations, or a --once racing a --watch's internal popNext()) cannot both read the same snapshot
+ * and clobber each other's write. See POP_LOCK_FILE comment above for the failure this closes.
  * @returns {object|null}
  */
 export function popNext() {
-  const all = readJsonl(QUEUE_FILE);
-  const pending = all.filter((t) => t.status === 'pending');
-  if (!pending.length) return null;
-  // sort: higher priority first, then earlier ts (insertion order)
-  pending.sort((a, b) => b.priority - a.priority || String(a.ts).localeCompare(String(b.ts)));
-  const next = pending[0];
-  // rewrite queue without the popped task (keep non-pending for audit? No — pop removes it;
-  // results go to results file. Keep other records.)
-  const remaining = all.filter((t) => t.id !== next.id);
-  ensureStateDir();
-  fs.writeFileSync(QUEUE_FILE, remaining.map((t) => JSON.stringify(t)).join('\n') + (remaining.length ? '\n' : ''));
-  emit('pop', { id: next.id, lane: next.lane, priority: next.priority });
-  return next;
+  const locked = acquirePopLock();
+  try {
+    const all = readJsonl(QUEUE_FILE);
+    const pending = all.filter((t) => t.status === 'pending');
+    if (!pending.length) return null;
+    // sort: higher priority first, then earlier ts (insertion order)
+    pending.sort((a, b) => b.priority - a.priority || String(a.ts).localeCompare(String(b.ts)));
+    const next = pending[0];
+    // rewrite queue without the popped task (keep non-pending for audit? No — pop removes it;
+    // results go to results file. Keep other records.)
+    const remaining = all.filter((t) => t.id !== next.id);
+    ensureStateDir();
+    fs.writeFileSync(QUEUE_FILE, remaining.map((t) => JSON.stringify(t)).join('\n') + (remaining.length ? '\n' : ''));
+    emit('pop', { id: next.id, lane: next.lane, priority: next.priority });
+    return next;
+  } finally {
+    if (locked) releasePopLock();
+  }
 }
 
 /**
@@ -270,17 +425,127 @@ export function buildLaneTask(taskText, attempt = 1) {
 // ── Dispatch seam (overrideable for tests) ───────────────────────────────────
 
 /**
- * Default dispatch implementation: calls glmFleet or ollamaFleet based on the task lane.
- * Returns a NORMALIZED result: { text, code, ok, label }.
+ * Dispatch a kind='mure' task: plan ALWAYS runs (zero spend); runCompany (real dispatch) runs ONLY
+ * when the OVERNIGHT RUNNER itself is armed (not opts.dryRun) AND isMureArmed() — mirroring the
+ * lane path's "DISARMED = dry-run, zero spend" idiom one level up. This function never sets or
+ * checks any arming flag itself — isMureArmed()/company.mjs's own `armed` resolution are the sole
+ * arming authority; a --dry-run runner call always forces plan-only via opts.armed:false, which
+ * company.mjs's runCompany treats as a force-DISARM (it can never self-arm from a caller boolean).
+ *
+ * Result normalization mirrors defaultDispatch's contract: {text, code, ok, label, dryRun, plan?}.
+ * `ok`/`label` are derived honestly from the plan/run outcome shape:
+ *   - plan-only (runner disarmed or --dry-run, or MURE itself disarmed): dryRun:true, ok:false,
+ *     label:'' — an honest plan-only record, never a synthesized pass.
+ *   - armed run: ok = (no thrown error) AND (no unresolved HELD subtasks blocking all work) AND
+ *     (the GLM swarm, if any leaves were dispatched, converged); label is synthesized from the
+ *     Lane Result Grammar so downstream verification (shouldRetry/classifyLaneOutcome-style checks)
+ *     can grade it exactly like a lane result.
+ *
+ * @param {object} task - {task, kind:'mure', murePayload, lane:'mure', priority, id}
+ * @param {object} [opts] - { dryRun:boolean, attempt:number }
+ * @returns {Promise<{text:string, code:number, ok:boolean, label:string, dryRun:boolean, plan?:object}>}
+ */
+async function dispatchMureTask(task, opts = {}) {
+  const validation = validateMurePayload(task.murePayload);
+  if (!validation.ok) {
+    return {
+      text: `[mure-payload-invalid] ${validation.errors.join('; ')}`,
+      code: 1,
+      ok: false,
+      label: '',
+      dryRun: false,
+      error: 'invalid-mure-payload',
+    };
+  }
+
+  const runnerArmed = !opts.dryRun; // the runner's own dry-run switch — independent of MURE's arm flag
+  const mureArmedNow = isMureArmed();
+  const willRunCompany = runnerArmed && mureArmedNow;
+  const labelPrefix = `MURE_${String(task.id).slice(0, 8).toUpperCase()}`;
+
+  if (!willRunCompany) {
+    // Plan-only path (covers: runner --dry-run, OR runner armed but MURE itself disarmed).
+    // planCompany is PURE/DISARMED-safe — zero spend, always safe to run for visibility.
+    let plan;
+    try {
+      plan = await planCompany(task.murePayload, { quiet: true });
+    } catch (e) {
+      return { text: `[mure-plan-error] ${String(e?.message || e)}`, code: 1, ok: false, label: '', dryRun: false, error: 'plan-threw' };
+    }
+    const reason = !runnerArmed ? 'runner-dry-run' : 'mure-disarmed';
+    // Deliberately NO "RESULT_LABEL:" line here (and no grammar-conforming label token) — a plan-only
+    // record must never carry anything extractResultLabel() can pick up, exactly like the lane path's
+    // dry-run branch (which returns text:''). finalizeResult() re-derives a label from res.text when
+    // res.label is falsy, so a labeled plan summary would silently defeat the "dry-run has no label"
+    // invariant every kind='lane' dry-run test already relies on.
+    const summaryText = [
+      `[MURE PLAN-ONLY] reason=${reason} (mureArmed=${mureArmedNow}) — no RESULT_LABEL: this is a plan, not a completed run.`,
+      `subtasks=${plan.summary.subtasks} cast=${plan.summary.cast} glm=${plan.summary.glm} native=${plan.summary.native} inline=${plan.summary.inline} held=${plan.summary.held} clearedHeld=${plan.summary.clearedHeld}`,
+    ].join('\n');
+    return {
+      text: summaryText,
+      code: 0,
+      ok: false, // plan-only never certifies a completed pass — honest, mirrors the lane dry-run contract
+      label: '',
+      dryRun: true,
+      plan: { kind: 'mure', reason, mureArmed: mureArmedNow, labelPrefix, summary: plan.summary, taskId: task.id },
+    };
+  }
+
+  // ARMED path: MURE is armed AND the runner is not in --dry-run. runCompany plans internally
+  // (so we don't double-plan) then dispatches per its own governance (owner-gated subtasks stay
+  // HELD regardless — company.mjs's decisionFor/evaluateGovernance is the sole gate; this runner
+  // adds no bypass).
+  let result;
+  try {
+    result = await runCompany(task.murePayload, {});
+  } catch (e) {
+    return { text: `[mure-run-error] ${String(e?.message || e)}`, code: 1, ok: false, label: '', dryRun: false, error: 'runCompany-threw' };
+  }
+
+  const plan = result.plan || {};
+  const swarmConverged = result.swarm ? !!result.swarm.converged : true; // no GLM leaves dispatched = vacuously fine
+  const swarmDispatched = !!(result.swarm && Array.isArray(plan.glmLeaves) && plan.glmLeaves.length);
+  const heldCount = Array.isArray(result.held) ? result.held.length : 0;
+  const castCount = Array.isArray(plan.casts) ? plan.casts.length : 0;
+  // "fail" only when the run produced literally nothing actionable (every subtask held/nothing cast)
+  // or the dispatched GLM swarm explicitly failed to converge — otherwise partial progress is honest P.
+  const nothingActionable = castCount > 0 && heldCount === castCount;
+  let passType = 'X';
+  if (nothingActionable || (swarmDispatched && !swarmConverged)) passType = 'F';
+  else if (heldCount > 0) passType = 'P';
+
+  const summaryText = [
+    `[MURE RUN] armed=true swarmDispatched=${swarmDispatched} swarmConverged=${swarmConverged}`,
+    `cast=${castCount} glm=${plan.glmLeaves?.length || 0} native=${plan.nativeSpecs?.length || 0} inline=${plan.inlineSpecs?.length || 0} held=${heldCount}`,
+    `RESULT_LABEL: ${labelPrefix}_COMPANY_RUN_${passType}_PASS_COMMITTED`,
+  ].join('\n');
+
+  const outcome = classifyLaneOutcome({ code: 0, text: summaryText });
+  return {
+    text: summaryText,
+    code: 0,
+    ok: !!outcome.ok && passType !== 'F',
+    label: extractResultLabel(summaryText).label || '',
+    dryRun: false,
+  };
+}
+
+/**
+ * Default dispatch implementation: calls glmFleet or ollamaFleet based on the task lane, OR routes
+ * a kind='mure' task to dispatchMureTask (see above). Returns a NORMALIZED result: { text, code, ok, label }.
  *
  * DISARMED-FIRST: if the chosen fleet is not armed (no YURI_*_FLEET=1 env and no flag file),
  * returns a dry-run plan with zero spend — caller treats it as a plan-only result.
  *
- * @param {object} task - {task, lane, priority, id}
+ * @param {object} task - {task, lane, priority, id} (kind='lane') or {task, kind:'mure', murePayload, id}
  * @param {object} [opts] - { dryRun:boolean, attempt:number }
  * @returns {Promise<{text:string, code:number, ok:boolean, label:string, dryRun:boolean, plan?:object}>}
  */
 async function defaultDispatch(task, opts = {}) {
+  if (task.kind === 'mure') {
+    return dispatchMureTask(task, opts);
+  }
   const attempt = opts.attempt || 1;
   const lane = task.lane === 'ollama' ? 'ollama' : 'glm';
   const prompt = buildLaneTask(task.task, attempt);
@@ -638,6 +903,28 @@ async function main() {
 
   switch (cmd) {
     case 'enqueue': {
+      const kind = VALID_KINDS.has(flags.kind) ? flags.kind : DEFAULT_KIND;
+      if (kind === 'mure') {
+        let murePayload;
+        if (flags['mure-file']) {
+          try { murePayload = JSON.parse(fs.readFileSync(path.resolve(REPO_ROOT, String(flags['mure-file'])), 'utf8')); }
+          catch (e) { process.stderr.write(`overnight-runner: bad --mure-file: ${String(e?.message || e)}\n`); process.exit(2); }
+        } else if (flags['mure-task']) {
+          try { murePayload = JSON.parse(String(flags['mure-task'])); }
+          catch (e) { process.stderr.write(`overnight-runner: --mure-task is not valid JSON: ${String(e?.message || e)}\n`); process.exit(2); }
+        } else {
+          process.stderr.write('overnight-runner: --kind mure requires --mure-task \'<json>\' or --mure-file <path>\n');
+          process.exit(2);
+        }
+        try {
+          const rec = await enqueueTask({ kind: 'mure', murePayload, priority: Number(flags.priority) || 5 });
+          process.stdout.write(`✓ enqueued mure task ${rec.id} priority=${rec.priority}\n`);
+        } catch (e) {
+          process.stderr.write(`overnight-runner: ${String(e?.message || e)}\n`);
+          process.exit(2);
+        }
+        break;
+      }
       if (!flags.task) {
         process.stderr.write('overnight-runner: --task <text> is required\n');
         process.exit(2);

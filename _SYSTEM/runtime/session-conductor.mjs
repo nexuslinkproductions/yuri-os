@@ -4,8 +4,9 @@
 //        seam. Drafts NEVER auto-send; send fires ONLY when called explicitly (owner-confirm gate).
 // @use: node _SYSTEM/runtime/session-conductor.mjs <command> [args]
 //       create yuri-sess --cmd 'ai claude-zai'  ·  draft yuri-sess --text '...'  ·  send yuri-sess
-// @exports: runTmux, conductor, sendKeysLiteralArgv (programmatic API)
+// @exports: runTmux, conductor, sendKeysLiteralArgv, STATE_DIR (programmatic API)
 // @state: _SYSTEM/state/runtime/{sessions.json, drafts.json, events.jsonl}
+//         (override via SESSION_CONDUCTOR_STATE_DIR env var, set BEFORE import — test isolation seam)
 // @contract: node stdlib only; append events to events.jsonl; --status --json CLI, exit 0 = healthy
 
 import { execFileSync } from 'node:child_process';
@@ -14,7 +15,15 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const STATE_DIR = join(__dirname, '..', 'state', 'runtime');
+// SESSION_CONDUCTOR_STATE_DIR override seam (same pattern as yuri-runtimed.mjs's
+// RUNTIMED_STATE_DIR): lets hermetic tests point this module at an isolated tmpdir
+// instead of the real _SYSTEM/state/runtime/, which is shared across every other
+// runtime module/test that also writes events.jsonl there. Read once at import
+// time — callers that need isolation must set the env var BEFORE importing this
+// module (e.g. via a dynamic `await import(...)` after the assignment).
+export const STATE_DIR = process.env.SESSION_CONDUCTOR_STATE_DIR
+  ? join(process.env.SESSION_CONDUCTOR_STATE_DIR)
+  : join(__dirname, '..', 'state', 'runtime');
 const SESSIONS_FILE = join(STATE_DIR, 'sessions.json');
 const DRAFTS_FILE = join(STATE_DIR, 'drafts.json');
 const EVENTS_FILE = join(STATE_DIR, 'events.jsonl');
