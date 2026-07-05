@@ -7,7 +7,7 @@
 """Windows screen-aware push-to-talk voice assistant. Parakeet STT -> screenshot -> Claude vision -> SAPI TTS.
 Jeffrey mode (operator.json overlay / VOICE_ASSIST_BRAIN=local) routes instead to the LOCAL Ollama brain
 (:8013) — text-only, no screenshot, no cloud."""
-import os, sys, io, glob, site, time, threading, queue, socket, base64, json, urllib.request
+import os, sys, io, glob, site, time, threading, queue, socket, base64, json, re, urllib.request
 
 # Force UTF-8 console (Windows cp1252 can't encode the status glyphs).
 for _s in (sys.stdout, sys.stderr):
@@ -84,6 +84,16 @@ _OPERATOR     = _detect_operator()
 BRAIN_MODE    = os.environ.get("VOICE_ASSIST_BRAIN", "").strip().lower() or ("local" if _OPERATOR == "jeffrey" else "claude")
 LOCAL_URL     = os.environ.get("VOICE_ASSIST_LOCAL_URL", "http://127.0.0.1:8013/v1/chat/completions")
 LOCAL_TIMEOUT = float(os.environ.get("VOICE_ASSIST_LOCAL_TIMEOUT", "180"))
+
+# TTS voice — Jeffrey defaults to a HUMAN local Kokoro voice (British-male "Sir"); Marcel/others keep
+# Windows SAPI. Kokoro runs on CPU (~5x realtime, no VRAM — leaves the GPU for the brain), 100% local.
+# German text routes to SAPI for now (base Kokoro has no German voice; German Kokoro model is a follow-up).
+TTS_MODE      = os.environ.get("VOICE_ASSIST_TTS", "").strip().lower() or ("kokoro" if _OPERATOR == "jeffrey" else "sapi")
+_TTS_DIR      = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "tts")
+KOKORO_ONNX   = os.environ.get("KOKORO_ONNX",   os.path.join(_TTS_DIR, "kokoro-v1.0.onnx"))
+KOKORO_VOICES = os.environ.get("KOKORO_VOICES", os.path.join(_TTS_DIR, "voices-v1.0.bin"))
+KOKORO_VOICE  = os.environ.get("KOKORO_VOICE", "bm_george")   # British male "Sir" (bm_lewis = alt)
+KOKORO_LANG   = os.environ.get("KOKORO_LANG", "en-gb")
 MIC         = os.environ.get("VOICE_MIC_DEVICE")
 RMS_FLOOR   = float(os.environ.get("VOICE_ASSIST_RMS", "0.0008"))
 MIN_CHARS   = 2
@@ -198,12 +208,33 @@ def ask_local(question):
 # TTS (local Windows SAPI via pyttsx3) — spoken on a worker thread
 # ---------------------------------------------------------------------------
 _tts_lock = threading.Lock()
+_kokoro = [None]  # lazy singleton — load the ~310MB Kokoro model once, on first spoken reply
+# Route German to SAPI (base Kokoro has no German voice yet): umlauts or common German function words.
+_GERMAN_HINT = re.compile(r"[äöüÄÖÜß]|\b(und|nicht|ich|der|die|das|ist|mit|für|auf|Kunde|Holster|Auftrag|Bestellung)\b", re.IGNORECASE)
+
+def _get_kokoro():
+    if _kokoro[0] is None:
+        from kokoro_onnx import Kokoro
+        _kokoro[0] = Kokoro(KOKORO_ONNX, KOKORO_VOICES)
+    return _kokoro[0]
+
+def _speak_sapi(text):
+    import pyttsx3
+    eng = pyttsx3.init()                          # SAPI5; re-init per utterance (pyttsx3 loop is not reentrant)
+    eng.say(text); eng.runAndWait(); eng.stop()
+
 def speak(text):
     with _tts_lock:
+        # English → human Kokoro "Sir" voice; German (or Kokoro unavailable) → SAPI fallback.
+        if TTS_MODE == "kokoro" and text and not _GERMAN_HINT.search(text):
+            try:
+                samples, sr = _get_kokoro().create(text, voice=KOKORO_VOICE, speed=1.0, lang=KOKORO_LANG)
+                sd.play(samples, sr); sd.wait()
+                return
+            except Exception as e:
+                print(f"  ⚠ Kokoro TTS failed ({type(e).__name__}: {str(e)[:60]}); using system voice.", flush=True)
         try:
-            import pyttsx3
-            eng = pyttsx3.init()                 # SAPI5; re-init per utterance (pyttsx3 loop is not reentrant)
-            eng.say(text); eng.runAndWait(); eng.stop()
+            _speak_sapi(text)
         except Exception as e:
             print(f"  ✗ TTS failed: {e}  (answer shown above)", flush=True)
 
@@ -344,11 +375,21 @@ def _check():
     except Exception as e:
         print(f"SCREEN: ✗ {e}"); ok = False
     # TTS
-    try:
-        import pyttsx3; eng = pyttsx3.init(); n = len(eng.getProperty("voices")); eng.stop()
-        print(f"TTS   : ✓ SAPI5, {n} voice(s) installed")
-    except Exception as e:
-        print(f"TTS   : ✗ {e}"); ok = False
+    if TTS_MODE == "kokoro":
+        try:
+            import kokoro_onnx  # noqa: F401
+            has = os.path.exists(KOKORO_ONNX) and os.path.exists(KOKORO_VOICES)
+            print(f"TTS   : {'✓' if has else '✗'} Kokoro '{KOKORO_VOICE}' ({KOKORO_LANG}), model {'present' if has else 'MISSING'} · German→SAPI")
+            if not has:
+                ok = False
+        except Exception as e:
+            print(f"TTS   : ✗ Kokoro import failed: {e}"); ok = False
+    else:
+        try:
+            import pyttsx3; eng = pyttsx3.init(); n = len(eng.getProperty("voices")); eng.stop()
+            print(f"TTS   : ✓ SAPI5, {n} voice(s) installed")
+        except Exception as e:
+            print(f"TTS   : ✗ {e}"); ok = False
     # Brain reachability — local Jeffrey brain (:8013) or Claude auth
     if BRAIN_MODE == "local":
         try:
