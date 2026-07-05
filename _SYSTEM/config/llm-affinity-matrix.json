@@ -11,7 +11,7 @@
     "native": { "cost": "premium", "description": "Cursor/Claude Agents — opus/sonnet/haiku" },
     "glm-max": { "cost": "premium", "description": "z.ai glm-5.2 1M ctx — heavy reasoning, architecture, adversarial" },
     "tmux-zai": { "cost": "premium", "description": "z.ai glm-5.2 via interactive tmux claude-zai — multi-tool builds" },
-    "glm": { "cost": "mid", "description": "z.ai glm-4.7 — workhorse code-gen, analysis" },
+    "glm": { "cost": "mid", "description": "z.ai glm-5.1 — workhorse code-gen, analysis" },
     "glm-turbo": { "cost": "mid", "description": "z.ai glm-5-turbo — faster judgment" },
     "ollama-flash": { "cost": "cheap", "description": "deepseek-v4-flash:cloud — bulk census, scan, docs" },
     "ollama-minimax": { "cost": "cheap", "description": "minimax-m3:cloud — efficient generalist drafts" },

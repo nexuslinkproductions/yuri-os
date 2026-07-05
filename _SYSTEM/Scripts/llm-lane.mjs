@@ -88,7 +88,7 @@ const ALIAS = {
   ollama: 'ollama-cloud', 'ollama-cloud': 'ollama-cloud', 'ollama-pro': 'ollama-cloud', oc: 'ollama-cloud',
   // Z.ai GLM Coding Plan (api.z.ai Anthropic-compatible, Bearer auth) — first-class lane, like Mimo.
   // opus-fleet tier roster (2026-06-22): glm-max=Opus · glm=Sonnet · glm-flash=Haiku · +flashx/sub-orch/vision/ocr.
-  glm: 'glm-4.7', zai: 'glm-4.7', 'z-ai': 'glm-4.7', 'glm-4.7': 'glm-4.7', 'glm-4.6': 'glm-4.7',
+  glm: 'glm-5.1', zai: 'glm-5.1', 'z-ai': 'glm-5.1', 'glm-4.7': 'glm-4.7', 'glm-4.6': 'glm-4.7',
   'glm-air': 'glm-4.5-air', 'glm-4.5-air': 'glm-4.5-air',
   // glm-flash: lane name kept for roster compat; model routed to glm-5-turbo since glm-4.7-flash
   // empty_output_stop on bulk leaves (WS-C-R2 trends-charts, swarm-mr0in95e-c5e62b, 2026-06-30).

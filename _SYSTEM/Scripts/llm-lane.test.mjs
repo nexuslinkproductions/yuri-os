@@ -33,13 +33,13 @@ test('ALIAS resolves every lane handle to its models.json key', () => {
   assert.equal(ALIAS['ollama-cloud'], 'ollama-cloud');
   assert.equal(ALIAS['ollama-pro'], 'ollama-cloud');
   assert.equal(ALIAS.oc, 'ollama-cloud');
-  // GLM tier roster (opus-fleet): glm-max=5.2 workhorse lane `glm`=4.7 — intentional, not ZAI_MODEL default.
+  // GLM tier roster (opus-fleet): glm-max=5.2 workhorse lane `glm`=5.1 — intentional, not ZAI_MODEL default.
   assert.equal(ALIAS['glm-max'], 'glm-5.2');
-  assert.equal(ALIAS.glm, 'glm-4.7');
+  assert.equal(ALIAS.glm, 'glm-5.1');
   assert.equal(ALIAS['glm-5.2'], 'glm-5.2');
   assert.equal(ALIAS['glm-flash'], 'glm-5-turbo');
   assert.equal(LANES[ALIAS['glm-max']].model, 'glm-5.2');
-  assert.equal(LANES[ALIAS.glm].model, 'glm-4.7');
+  assert.equal(LANES[ALIAS.glm].model, 'glm-5.1');
 });
 
 test('ollama-cloud is a first-class peer lane: ollama.com allowlisted, cloud protocol, keyed, full toolset', () => {
