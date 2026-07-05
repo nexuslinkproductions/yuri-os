@@ -411,6 +411,56 @@ function buildBrief(sources = {}, opts = {}) {
   };
 }
 
+// ── "what's next" priority ranker ────────────────────────────────────────────
+// Turns the flat brief sections into a ranked next-action list — the crown-scenario
+// answer to "what's next?". Pure function of the brief object (hermetically testable);
+// deterministic, no LLM. Reactive → proactive (mechanism #4). The spoken brief ends
+// with the top-ranked action; `--what-next` prints the full ranked list.
+export function rankNextActions(brief) {
+  const actions = [];
+  const s = brief?.sections || {};
+
+  const d = s.doctor;
+  if (d && !d.unavailable && d.critical > 0) {
+    actions.push({ severity: 'high', score: 100, source: 'doctor',
+      action: `Fix ${d.critical} critical system-health issue${d.critical === 1 ? '' : 's'} (verdict: ${d.verdict})` });
+  } else if (d && !d.unavailable && d.high > 0) {
+    actions.push({ severity: 'med', score: 60, source: 'doctor',
+      action: `Review ${d.high} high-severity health finding${d.high === 1 ? '' : 's'}` });
+  }
+
+  const o = s.overnight;
+  if (o && !o.unavailable && o.fail > 0) {
+    actions.push({ severity: 'high', score: 80, source: 'overnight',
+      action: `Review ${o.fail} failed overnight run${o.fail === 1 ? '' : 's'} (${o.ok} succeeded)` });
+  }
+
+  const g = s.git;
+  if (g && !g.unavailable && g.statusCount > 0) {
+    actions.push({ severity: 'low', score: 30, source: 'git',
+      action: `${g.statusCount} uncommitted file${g.statusCount === 1 ? '' : 's'} in the working tree — review or commit` });
+  }
+  // (tasks source deferred — will add pending/failed/stale via the dynamic-import seam.)
+
+  actions.sort((a, b) => b.score - a.score);
+  return actions;
+}
+
+function renderWhatNext(brief) {
+  const actions = rankNextActions(brief);
+  const out = ["⚡ WHAT'S NEXT (ranked)", ''];
+  if (actions.length === 0) {
+    out.push('  Nothing flagged — all sources green or unavailable.');
+  } else {
+    for (const a of actions) {
+      out.push(`  [${a.severity.toUpperCase().padEnd(4)}] ${a.action}`);
+    }
+  }
+  out.push('');
+  out.push(`Generated ${brief?.generatedAt || new Date().toISOString()}`);
+  return out.join('\n');
+}
+
 // ── renderers ────────────────────────────────────────────────────────────────
 
 function renderText(brief) {
@@ -562,6 +612,17 @@ function renderSpoken(brief) {
     sentences.push("Good morning. All monitoring sources are currently unavailable, but the system is running.");
   }
 
+  // Crown scenario: end with the single highest-priority "what's next" action.
+  // Reserve one slot so the next-action always survives the 5-sentence cap.
+  const _next = rankNextActions(brief)[0];
+  if (_next) {
+    if (sentences.length > 4) sentences.length = 4;
+    const lead = _next.severity === 'high' ? 'Priority one'
+      : _next.severity === 'med' ? 'Next up'
+      : 'When you have a moment';
+    sentences.push(`${lead}: ${_next.action}.`);
+  }
+
   // Cap at 5 sentences
   return sentences.slice(0, 5).join(' ');
 }
@@ -572,16 +633,17 @@ function parseArgs(argv) {
   const args = argv.slice(2);
   const flags = {
     text: false, json: false, spoken: false,
-    status: false,
+    status: false, whatNext: false,
   };
   for (const a of args) {
     if (a === '--text') flags.text = true;
     else if (a === '--json') flags.json = true;
     else if (a === '--spoken') flags.spoken = true;
     else if (a === '--status') flags.status = true;
+    else if (a === '--what-next') flags.whatNext = true;
   }
   // Default mode is --text
-  if (!flags.json && !flags.spoken && !flags.status) flags.text = true;
+  if (!flags.json && !flags.spoken && !flags.status && !flags.whatNext) flags.text = true;
   return flags;
 }
 
@@ -604,7 +666,9 @@ function cli() {
 
   const brief = buildBrief({}, { lastBriefTime });
 
-  if (flags.json) {
+  if (flags.whatNext) {
+    process.stdout.write(renderWhatNext(brief) + '\n');
+  } else if (flags.json) {
     process.stdout.write(renderJson(brief) + '\n');
   } else if (flags.spoken) {
     process.stdout.write(renderSpoken(brief) + '\n');
