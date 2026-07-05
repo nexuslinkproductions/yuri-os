@@ -1,0 +1,7 @@
+[MURE independence WARN] role 'adjudicator' declares independentOf 'synthesist' but both resolved to lane glm:glm-max
+[runSwarm swarm-mr8edlq8-1440ec] aggregate skipped 1 malformed file(s)
+[runSwarm swarm-mr8edlq8-1440ec] round 0: dispatch 4 leaf(s) → structural-debloat, perf-hotpath, verify-cuts, compounding-roadmap
+[runSwarm swarm-mr8edlq8-1440ec] round 0: blocked (blocking=11)
+[runSwarm swarm-mr8edlq8-1440ec] round 1: 1 straggler leaf(s) already satisfied on disk — not re-dispatching
+[runSwarm swarm-mr8edlq8-1440ec] round 1: dispatch 3 leaf(s) → structural-debloat, verify-cuts, compounding-roadmap
+[runSwarm swarm-mr8edlq8-1440ec] round 1: watchdog fired at 900000ms — proceeding with stragglers (children not killed)
