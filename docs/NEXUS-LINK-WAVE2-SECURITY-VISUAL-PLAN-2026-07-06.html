@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Link — Wave 2 Security Hardening Visual Plan · 2026-07-06</title>
+<style>
+  :root{
+    --np-void:#04070f; --np-panel:#0a1020; --np-panel-2:#0d1526; --np-line:#1a2740;
+    --np-text:#d7e3f4; --np-dim:#7d8fa9; --np-faint:#4a5a72;
+    --np-cyan:#00c8f0; --np-green:#2fd67b; --np-amber:#f0b429; --np-violet:#9a6bff;
+    --np-red:#ff5d6c; --np-mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--np-void);color:var(--np-text);font:15px/1.6 -apple-system,'Inter',sans-serif;padding:0 0 120px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+  header{padding:56px 0 28px;border-bottom:1px solid var(--np-line);margin-bottom:40px;
+    background:radial-gradient(ellipse 900px 300px at 20% -10%,rgba(255,93,108,.07),transparent)}
+  .kicker{font-family:var(--np-mono);font-size:11px;letter-spacing:.28em;color:var(--np-red);text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+  h1 em{color:var(--np-red);font-style:normal}
+  .sub{color:var(--np-dim);max-width:880px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+  .chip{font-family:var(--np-mono);font-size:11px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;border:1px solid var(--np-line);color:var(--np-dim)}
+  .chip.ok{border-color:rgba(47,214,123,.4);color:var(--np-green)}
+  .chip.warn{border-color:rgba(240,180,41,.4);color:var(--np-amber)}
+  .chip.bad{border-color:rgba(255,93,108,.4);color:var(--np-red)}
+  .chip.cy{border-color:rgba(0,200,240,.4);color:var(--np-cyan)}
+  section{margin-bottom:56px}
+  h2{font-size:13px;font-family:var(--np-mono);letter-spacing:.24em;text-transform:uppercase;color:var(--np-red);
+     border-left:3px solid var(--np-red);padding-left:14px;margin-bottom:8px}
+  h2 .n{color:var(--np-faint)}
+  .lead{color:var(--np-dim);margin-bottom:22px;max-width:900px}
+  .lead b{color:var(--np-text)}
+  h3{font-size:16px;margin:24px 0 10px;color:var(--np-text)}
+  p{margin-bottom:12px;color:var(--np-dim);max-width:900px}
+  p b{color:var(--np-text)}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--np-panel);border:1px solid var(--np-line);border-radius:12px;padding:18px 20px}
+  .card p{font-size:13.5px;max-width:none;margin:0}
+  .card p b{color:var(--np-text)}
+  .card.bad{border-color:rgba(255,93,108,.4)}
+  .card.warn{border-color:rgba(240,180,41,.4)}
+  .card.ok{border-color:rgba(47,214,123,.4)}
+  .card.focus{border-color:rgba(0,200,240,.55);box-shadow:0 0 24px rgba(0,200,240,.12)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+  th{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--np-faint);
+     text-align:left;padding:8px 10px;border-bottom:1px solid var(--np-line)}
+  td{padding:9px 10px;border-bottom:1px solid rgba(26,39,64,.55);color:var(--np-dim);vertical-align:top}
+  td b,td strong{color:var(--np-text)}
+  code{font-family:var(--np-mono);font-size:12px;color:var(--np-cyan);background:rgba(0,200,240,.07);padding:1.5px 6px;border-radius:4px}
+  .tag{font-family:var(--np-mono);font-size:10px;letter-spacing:.1em;padding:2.5px 9px;border-radius:12px;display:inline-block;white-space:nowrap}
+  .t-l1{background:rgba(255,93,108,.12);color:var(--np-red);border:1px solid rgba(255,93,108,.35)}
+  .t-l2{background:rgba(240,180,41,.1);color:var(--np-amber);border:1px solid rgba(240,180,41,.3)}
+  .t-l3{background:rgba(0,200,240,.1);color:var(--np-cyan);border:1px solid rgba(0,200,240,.3)}
+  .t-l4{background:rgba(154,107,255,.12);color:var(--np-violet);border:1px solid rgba(154,107,255,.35)}
+  .t-cheap{background:rgba(47,214,123,.12);color:var(--np-green);border:1px solid rgba(47,214,123,.35)}
+  .t-heavy{background:rgba(255,93,108,.12);color:var(--np-red);border:1px solid rgba(255,93,108,.35)}
+  .callout{background:linear-gradient(180deg,rgba(0,200,240,.06),transparent);border:1px solid rgba(0,200,240,.3);border-radius:12px;padding:18px 22px;margin:18px 0}
+  .callout .ct{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.18em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:8px}
+  .callout p{font-size:14px;color:var(--np-text);max-width:none;margin:0}
+  .callout.bad{background:linear-gradient(180deg,rgba(255,93,108,.06),transparent);border-color:rgba(255,93,108,.3)}
+  .callout.bad .ct{color:var(--np-red)}
+  .wave{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+  .wnum{font-family:var(--np-mono);font-size:13px;color:var(--np-void);min-width:34px;height:34px;border-radius:9px;
+        display:flex;align-items:center;justify-content:center;font-weight:700;margin-top:2px;flex-shrink:0}
+  .wbody{flex:1}
+  .wbody .wt{font-size:14px;font-weight:600;margin-bottom:4px}
+  .wbody .wd{font-size:13px;color:var(--np-dim);margin-bottom:6px}
+  .wbody .wg{font-family:var(--np-mono);font-size:11px;color:var(--np-faint)}
+  .dnu{background:var(--np-panel);border:1px solid var(--np-line);border-left:3px solid var(--np-red);border-radius:10px;padding:12px 16px;margin-bottom:8px;font-size:13px;color:var(--np-dim)}
+  .dnu b{color:var(--np-red)}
+  .risk{display:grid;grid-template-columns:120px 1fr;gap:12px;font-size:13px;padding:10px 0;border-bottom:1px solid rgba(26,39,64,.5)}
+  .risk .rl{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .rl.r-h{color:var(--np-red)}.rl.r-m{color:var(--np-amber)}.rl.r-l{color:var(--np-green)}
+  .risk .rb{color:var(--np-dim)}
+  footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--np-line);color:var(--np-faint);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Nexus Link · Wave 2 · Security Hardening · 2026-07-06</div>
+    <h1>Close the <em>three gaps</em> before the first paying tenant</h1>
+    <div class="sub">Wave 0–1 built the foundation (canonical metrics, connectors, ABC, Gmail). Wave 2 is the pre-customer security hardening gate: network perimeter, tamper-evident audit, real encryption. Every control builds from verified canonical code (the Code Reference Pack) — no improvised crypto.</div>
+    <div class="chips">
+      <span class="chip bad">3 load-bearing gaps</span>
+      <span class="chip cy">20 controls · L1–L6</span>
+      <span class="chip">Pre-customer gate (MASTER-PLAN §11)</span>
+      <span class="chip ok">All code permissively licensed</span>
+      <span class="chip warn">WAF: log-mode 2 weeks → block</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">00 ·</span> The honest why — breaches are boring, not exotic</h2>
+  <div class="lead">The verified research (OWASP / NIST / CIS / MITRE + named-breach post-mortems) is unanimous: <b>Nexus's breach risks are not zero-days, they're misconfigured boring infrastructure.</b> Every headline breach traces to one of these. Wave 2 is the discipline that stops them — none of it is exotic hacker-art; all of it is well-vetted, open, buildable.</div>
+  <table>
+    <tr><th>Breach</th><th>What actually failed</th><th>The control that stops it</th><th>Layer</th></tr>
+    <tr><td><b>Capital One</b> 2019 (~106M)</td><td>SSRF → cloud metadata → over-permissive IAM role</td><td>SSRF egress allowlist + metadata-IP block + RLS per-tenant</td><td><span class="tag t-l3">L3</span></td></tr>
+    <tr><td><b>Equifax</b> 2017 (~147M)</td><td>Apache Struts CVE patched in March, unpatched May–Jul</td><td>Patch SLA (critical RCE ≤72h) + SBOM + automated CVE scan</td><td><span class="tag t-l4">L4</span></td></tr>
+    <tr><td><b>LastPass</b> 2022</td><td>Stolen dev creds → repos → vaults; weak PBKDF2 rounds</td><td>XChaCha20 + Argon2id, per-tenant keys, <b>dev Keychain never holds prod tokens</b></td><td><span class="tag t-l2">L2</span></td></tr>
+    <tr><td><b>MOVEit</b> 2023</td><td>Unauthenticated SQLi on a public endpoint (Cl0p mass-exploit)</td><td>SECURITY DEFINER functions + bound params; RLS backstop</td><td><span class="tag t-l3">L3</span></td></tr>
+    <tr><td><b>23andMe</b> 2023 (~6.9M)</td><td>Credential stuffing, no MFA, no abuse mitigation</td><td>Breached-password rejection + MFA (TOTP/WebAuthn) + rate-limit</td><td><span class="tag t-l1">L1</span></td></tr>
+    <tr><td><b>Colonial Pipeline</b> 2021</td><td>One legacy VPN account, no MFA, reused password</td><td>MFA on every admin path + auto-deprovision inactive accounts</td><td><span class="tag t-l1">L1</span></td></tr>
+    <tr><td><b>SolarWinds</b> 2020 (~18k customers)</td><td>Build pipeline backdoored, signed with a valid cert</td><td>Isolated release CI + SLSA provenance + signed Tauri builds</td><td><span class="tag t-l4">L4</span></td></tr>
+  </table>
+  <div class="callout">
+    <div class="ct">The meta-failure across nearly every breach</div>
+    <p><b>Insufficient logging & monitoring (OWASP A09).</b> Equifax attackers were inside ~78 days; MOVEit ran weeks; LastPass had a multi-month gap. Median dwell time is 100+ days. <b>Breaches aren't stopped at intrusion — they're stopped at detection.</b> That's why the audit spine (L3) + the L5.5 detection layer are non-negotiable in Wave 2, not optional polish.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">01 ·</span> The three load-bearing gaps Wave 0–1 left open</h2>
+  <div class="lead">The L1–L6 posture drawn earlier is a <b>labeled skeleton, not a hardened system.</b> Three gaps are load-bearing — they close before any tenant PII lands on Hetzner.</div>
+  <div class="grid g3">
+    <div class="card bad">
+      <h3 style="color:var(--np-red);font-size:14px">① Network perimeter — absent</h3>
+      <p>Postgres / Studio / Kong bind to <b>all interfaces</b> with no host firewall. On a bare Hetzner box they're internet-reachable. <b>Highest-leverage fix:</b> default-deny + Cloudflare-origin IP allowlist + bind 127.0.0.1.</p>
+    </div>
+    <div class="card bad">
+      <h3 style="color:var(--np-red);font-size:14px">② Audit trail — a mutable stub</h3>
+      <p>Not migrated; covers only leads/contacts; <b>mutable</b> (compromised admin rewrites history undetected); <code>str(e)</code> in 500s leaks tokens; feeds no alerting. <b>Fix:</b> NO UPDATE/DELETE + hash-chain + denylist sanitizer + WORM export + detection.</p>
+    </div>
+    <div class="card bad">
+      <h3 style="color:var(--np-red);font-size:14px">③ Encryption — under-specified</h3>
+      <p>"Encrypted at rest" is meaningless without the primitive + nonce + key hierarchy. Postgres has no native TDE; Supabase deprecates pgsodium/pgcrypto. <b>Fix:</b> LUKS + XChaCha20-Poly1305-IETF (192-bit nonce) + per-tenant Vault KEK.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">02 ·</span> The 20 controls, by layer (what gets built)</h2>
+  <div class="lead">Each control has verbatim-ready canonical code in the <code>02_RESOURCES/RESEARCH/nexus-security-code-reference-pack-2026-07-06.md</code> — license + sources + pitfalls + Nexus adaptation. This is the menu Wave 2 implements.</div>
+
+  <h3>L1 — Identity / crypto primitives</h3>
+  <table>
+    <tr><th>Control</th><th>Canonical tool</th><th>What it does</th></tr>
+    <tr><td><b>Field-level AEAD</b></td><td>libsodium <code>XChaCha20-Poly1305-IETF</code> (PyNaCl)</td><td>192-bit random nonce — sidesteps the AES-GCM nonce-reuse catastrophe. For tokens + message bodies.</td></tr>
+    <tr><td><b>Password hashing</b></td><td>Argon2id m=19456/t=2/p=1</td><td>OWASP floor. Never bcrypt for new code.</td></tr>
+    <tr><td><b>PEPPER</b></td><td>HMAC-SHA-256 post-hash</td><td>Defense-in-depth: a DB-only SQLi leak yields uncrackable hashes. Key in KMS, never DB.</td></tr>
+    <tr><td><b>MFA</b></td><td>GoTrue TOTP + WebAuthn</td><td>Mandatory for owner/admin/support. <b>Never SMS</b> (SIM-swap).</td></tr>
+    <tr><td><b>Breached-password rejection</b></td><td>HaveIBeenPwned k-anonymity</td><td>Reject known-breached passwords at signup + change. Doesn't leak the password.</td></tr>
+  </table>
+
+  <h3>L2 — Encryption keys + backups</h3>
+  <table>
+    <tr><th>Control</th><th>Canonical tool</th><th>What it does</th></tr>
+    <tr><td><b>Envelope encryption</b></td><td>Vault transit (KEK→DEK)</td><td>Per-tenant key isolation; KEK never leaves Vault; DSGVO erasure via cryptographic shredding.</td></tr>
+    <tr><td><b>Backup / export crypto</b></td><td>age (rage / pyrage)</td><td>X25519 + ChaCha20-Poly1305, unique file key per file. Replaces GPG. For R2 + DSGVO exports.</td></tr>
+    <tr><td><b>Disk at-rest</b></td><td>LUKS on Hetzner hosts</td><td>The bulk defense — physical-theft protection for all queryable PII.</td></tr>
+  </table>
+
+  <h3>L3 — Tamper-evident audit (the breach-detection spine)</h3>
+  <table>
+    <tr><th>Control</th><th>What it does</th></tr>
+    <tr><td><b>In-DB hash chain</b></td><td><code>prev_hash</code> with the mandatory <code>0x00</code> domain-separation prefix; BEFORE-INSERT trigger; advisory-locked. (Corrected — see §05.)</td></tr>
+    <tr><td><b>Append-only</b></td><td>REVOKE UPDATE/DELETE/TRUNCATE + defense-in-depth trigger + DDL guard. Owner ≠ app role.</td></tr>
+    <tr><td><b>Nightly verification</b></td><td>pg_cron re-walks the chain; any <code>BROKEN_LINK</code> / <code>ROW_HASH_MISMATCH</code> = breach signal (DSGVO Art. 33).</td></tr>
+    <tr><td><b>PII-audit trigger</b></td><td>SECURITY DEFINER; captures workspace_id + actor on every leads/contacts/connector_tokens mutation.</td></tr>
+    <tr><td><b>Off-host Merkle root</b></td><td>Faithful RFC 6962 tree published to R2 object-lock — defeats a superuser who could forge the in-DB chain.</td></tr>
+    <tr><td><b>L5.5 detection</b></td><td>Alerts on: failed-login spike, impossible-travel, bulk-export anomaly, new-IP admin, token-refresh storm.</td></tr>
+  </table>
+
+  <h3>L4 — Network / WAF / zero-trust</h3>
+  <table>
+    <tr><th>Control</th><th>Canonical tool</th><th>What it does</th></tr>
+    <tr><td><b>Host firewall</b></td><td>ufw default-deny</td><td>443 Cloudflare-origin-only + non-standard SSH (key-only). Closes the internet-reachable DB.</td></tr>
+    <tr><td><b>Origin allowlist sync</b></td><td>cloudflare.com/ips → ufw + hcloud</td><td>Hourly diff-and-apply. Origin IP never in public DNS.</td></tr>
+    <tr><td><b>WAF</b></td><td>Cloudflare OWASP CRS PL1</td><td>Log-mode 2 weeks → targeted exclusions → flip to block. Never global rule removal.</td></tr>
+    <tr><td><b>Zero-public admin</b></td><td>Cloudflare Tunnel</td><td>admin/Studio/pgAdmin on loopback only, reached via tunnel + Access SSO. Zero public ports.</td></tr>
+    <tr><td><b>Edge rate-limit</b></td><td>Cloudflare</td><td>Login 50/5min NAT-aware; public-form 60/min; AI-chat RPM+concurrent.</td></tr>
+    <tr><td><b>East-west mTLS</b></td><td>Tailscale + Postgres sslmode=verify-full</td><td>No flat Docker bridge; workload identity by tag; DB never internet-reachable.</td></tr>
+  </table>
+
+  <h3>L5 — App-layer defense</h3>
+  <table>
+    <tr><th>Control</th><th>What it does</th></tr>
+    <tr><td><b>SQLi — DB side</b></td><td>Public writes via SECURITY DEFINER functions (pinned search_path, bound params). App has EXECUTE only, not INSERT.</td></tr>
+    <tr><td><b>SQLi — app side</b></td><td>psycopg3 server-side binding + LiteralString lint gate. No f-strings / <code>%</code> / mogrify.</td></tr>
+    <tr><td><b>SSRF guard</b></td><td>Egress allowlist (deepseek/ollama only) + metadata-IP deny + resolve-then-reverify. <b>Reuses your in-repo social-adapter pattern.</b></td></tr>
+    <tr><td><b>Log sanitizer</b></td><td>Root-logger Filter strips tokens/Bearer/DSN + CR/LF. Fixes the <code>str(e)</code> token-leak path.</td></tr>
+  </table>
+
+  <h3>L6 — Supply chain</h3>
+  <table>
+    <tr><th>Control</th><th>What it does</th></tr>
+    <tr><td><b>SBOM + CVE scan</b></td><td>syft + grype across Python/Rust/Tauri-npm. Written patch SLA (critical RCE ≤72h).</td></tr>
+    <tr><td><b>Build provenance</b></td><td>SLSA L3 — signed, attested releases. <b>Tauri binary = signed-code-delivery surface (SolarWinds analogue).</b></td></tr>
+    <tr><td><b>Dependency confusion</b></td><td>Scoped namespaces (@nexus/) + lockfile hashes + CI fail-on-public-collision.</td></tr>
+    <tr><td><b>Tauri signing</b></td><td>Updater key in isolated release env; macOS codesign + notarize. Dev CI holds no signing secrets.</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">03 ·</span> The build sequence — highest-leverage first</h2>
+  <div class="lead">Not "everything at once." The order is engineered: cheapest blast-radius reduction first, breach-detection spine second, then the crypto, then the polish. Each step ends with a gate.</div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-red)">1</div><div class="wbody">
+    <div class="wt">Network perimeter <span class="tag t-cheap">cheapest · highest leverage</span></div>
+    <div class="wd">ufw default-deny + Cloudflare-origin allowlist + bind Postgres/Studio to 127.0.0.1 + Cloudflare Tunnel for admin. Collapses the internet-reachable-DB risk in hours.</div>
+    <div class="wg">GATE · <code>ss -tlnp</code> shows no public DB/Studio ports · origin IP not in public DNS · allowlist freshness &lt; 25h</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-amber)">2</div><div class="wbody">
+    <div class="wt">Audit hash-chain spine</div>
+    <div class="wd">audit_log table (NO UPDATE/DELETE) + the 0x00-prefixed BEFORE-INSERT trigger + nightly verification + PII-audit triggers. Fixes <code>str(e)</code> token leak via the log sanitizer. This is the breach-detection spine — without it, dwell is 100+ days.</div>
+    <div class="wg">GATE · nightly verification returns all-OK · a deliberate row-tamper is detected · <code>str(e)</code> no longer reaches logs</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-cyan)">3</div><div class="wbody">
+    <div class="wt">Field-level encryption</div>
+    <div class="wd">XChaCha20-Poly1305-IETF for OAuth tokens + DM bodies. LUKS on the Hetzner host. Per-tenant keys via HKDF from the (soon-to-arrive) Vault KEK.</div>
+    <div class="wg">GATE · token ciphertext round-trips · AAD binds ciphertext to (tenant, row) · key never co-located with ciphertext</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-cyan)">4</div><div class="wbody">
+    <div class="wt">Envelope encryption + Vault KEK</div>
+    <div class="wd">Self-hosted Vault on Hetzner (EU sovereignty), transit engine, one transit key per tenant. DEKs transient + zeroised. DSGVO erasure via cryptographic shredding.</div>
+    <div class="wg">GATE · per-tenant wrapped_dek cannot decrypt under another tenant · DEK never persists plaintext · Vault EU-hosted</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-green)">5</div><div class="wbody">
+    <div class="wt">App-layer defense</div>
+    <div class="wd">SECURITY DEFINER public writes + psycopg3 binding + SSRF egress guard (reuses social-adapter) + the root-logger sanitizer. Fixes the public-write SQLi surface.</div>
+    <div class="wg">GATE · G1 negative test (tenant A can't touch tenant B) green in CI · no string SQL in the service</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum" style="background:var(--np-violet)">6</div><div class="wbody">
+    <div class="wt">Supply chain + WAF block-mode</div>
+    <div class="wd">SBOM/grype in CI + SLSA L3 provenance + scoped-namespace deps + Tauri signing in isolated release env. <b>And</b> the WAF flips log→block after its 2-week tuning cadence.</div>
+    <div class="wg">GATE · grype fails-CI on critical CVEs · Tauri release attested + signed · WAF in block-mode with zero recurring false-positives</div>
+  </div></div>
+
+  <div class="callout bad">
+    <div class="ct">The one sequencing trap — WAF block-mode is a GATE, not a default</div>
+    <p>WAF in block-mode on day 1 is the most common Wave-2 outage — legitimate CRM traffic (rich-text deal notes, German umlauts, JSON with SQL-like keywords) trips OWASP CRS rules 942100/932100 and blocks paying users. <b>Always log-mode 2 weeks → review Security Events daily → write targeted <code>ctl:ruleRemoveTargetById=&lt;id&gt;;ARGS:&lt;param&gt;</code> exclusions → only then flip to block.</b> A WAF that blocks tenants is its own outage.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">04 ·</span> DO NOT USE — what Wave 2 refuses to ship</h2>
+  <div class="lead">These are the anti-patterns the verify pass explicitly killed. They're not preferences — each one is a documented breach vector or a cryptographic footgun.</div>
+  <div class="dnu"><b>Hand-rolled AES-GCM</b> / random-96-bit-nonce field crypto — single nonce reuse = catastrophic (leaks auth key + plaintext XORs). Use XChaCha20-Poly1305-IETF.</div>
+  <div class="dnu"><b>bcrypt for new code</b> — legacy-only, truncates at 72 bytes, no memory-hardness. Use Argon2id.</div>
+  <div class="dnu"><b>A linear hash chain labeled "RFC 6962"</b> — RFC 6962 is a Merkle <b>tree</b> with mandatory <code>0x00</code>/<code>0x01</code> domain-separation prefixes. Omitting the prefix loses second-preimage resistance.</div>
+  <div class="dnu"><b>Global WAF rule removal</b> (<code>SecRuleRemoveById 942100</code>) instead of parameter-scoped exclusion — re-opens the entire attack surface on every endpoint.</div>
+  <div class="dnu"><b>SMS-based 2FA</b> — SIM-swap risk. TOTP/WebAuthn only.</div>
+  <div class="dnu"><b>PEPPER in DB / .env / repo</b> — defeats the entire control; OWASP-forbidden.</div>
+  <div class="dnu"><b>US-region KMS</b> for KEK unwrap — breaks DSGVO / Schrems II. Vault stays EU-hosted.</div>
+  <div class="dnu"><b>psycopg ClientCursor / mogrify</b> — client-side merge re-enables SQLi.</div>
+  <div class="dnu"><b>Cloudflare One Access mTLS as workload identity</b> — human/device-to-app only, not service-to-service.</div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">05 ·</span> Effort + the honest sequencing reality</h2>
+  <div class="lead">Wave 2 isn't one sprint. Some controls are hours, some are weeks of external clock. Here's the honest effort map.</div>
+  <table>
+    <tr><th>Control</th><th>Effort</th><th>Why</th></tr>
+    <tr><td>Network perimeter (L4a/L4b)</td><td><span class="tag t-cheap">hours</span></td><td>ufw + a sync script. Highest leverage per hour on the whole plan.</td></tr>
+    <tr><td>App-layer SQLi/SSRF/log-sanitizer (L5)</td><td><span class="tag t-cheap">hours–days</span></td><td> SECURITY DEFINER functions + psycopg binding + the social-adapter port. Mostly mechanical.</td></tr>
+    <tr><td>Audit hash-chain (L3)</td><td><span class="tag t-l2">days</span></td><td>The trigger + verification query + PII triggers are verbatim-ready; the L5.5 detection rules need tuning against real traffic.</td></tr>
+    <tr><td>Field crypto + envelope + Vault (L1/L2)</td><td><span class="tag t-l3">days–week</span></td><td>Standing up a self-hosted Vault cluster is the long pole; the encrypt/decrypt calls are verbatim.</td></tr>
+    <tr><td>SBOM + SLSA + Tauri signing (L6)</td><td><span class="tag t-l3">days</span></td><td>CI plumbing; the Tauri signing needs the Apple Developer cert + an isolated release environment.</td></tr>
+    <tr><td>WAF block-mode</td><td><span class="tag t-heavy">2 weeks</span></td><td><b>Log-mode cadence</b> — can't be shortcut. The 2-week tuning window is the real cost.</td></tr>
+    <tr><td>MFA + breached-password (L1)</td><td><span class="tag t-l2">days</span></td><td>Mostly GoTrue config; the MFA-mandatory policy is a product call (who must enroll).</td></tr>
+  </table>
+  <div class="callout">
+    <div class="ct">What "done" means for Wave 2</div>
+    <p>Wave 2 is the <b>pre-customer gate</b> (MASTER-PLAN §11: "DSGVO baseline before selling"). Concretely done = network default-deny live · audit hash-chain + nightly verification green · tokens/message bodies field-encrypted under per-tenant Vault keys · G1 tenant-isolation negative tests in CI · SBOM + signed Tauri releases · WAF in block-mode after its tuning cadence · the L5.5 detection rules wired to the incident runbook. <b>Until those are green, no paying tenant PII on Hetzner.</b></p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">06 ·</span> Residual risk + open questions</h2>
+  <div class="risk"><div class="rl r-h">HIGH</div><div class="rb"><b>Wave 2 is pre-customer, not post-breach.</b> It reduces the attack surface dramatically but a determined adversary + a future CVE still get in. The audit spine + L5.5 detection + a <b>tested</b> G12 incident runbook (DSGVO Art. 33 72h) are the real safety net — detection + response, not just prevention.</div></div>
+  <div class="risk"><div class="rl r-h">HIGH</div><div class="rb"><b>The Tauri binary is the SolarWinds surface.</b> SLSA provenance + isolated release signing is what catches a build-pipeline compromise. If Wave 2 defers the Tauri signing, the desktop update channel is the soft underbelly.</div></div>
+  <div class="risk"><div class="rl r-m">MED</div><div class="rb"><b>Supabase Auth hash algorithm.</b> If it's bcrypt (not Argon2id), L1 needs a migration workstream. Open question — verify before relying on it.</div></div>
+  <div class="risk"><div class="rl r-m">MED</div><div class="rb"><b>Vault vs Infisical.</b> Both EU-self-hostable; Vault is more mature (transit engine), Infisical is lighter DX. Ops-budget call (no platform team).</div></div>
+  <div class="risk"><div class="rl r-l">LOW</div><div class="rb"><b>WAF false-positive discipline.</b> Bounded by the 2-week log-mode cadence — the only real risk is skipping it.</div></div>
+
+  <h3>Open questions for you</h3>
+  <p><b>1. Patch-SLA policy owner</b> — who action-items a critical CVE within 72h? (Equifax lesson: this is a policy gap, not technical.) <b>2. MFA-mandatory scope</b> — owner/admin/support for sure; do all tenants require it, or just privileged roles? <b>3. Vault vs Infisical</b> — your ops preference. <b>4. Tauri signing key custody</b> — who holds it, is release CI isolated from dev creds?</p>
+</section>
+
+<footer>
+  <div class="wrap">
+    Sources: <code>02_RESOURCES/RESEARCH/nexus-security-hardening-deep-research-2026-07-06.md</code> (the WHAT — breach vectors, posture) + <code>nexus-security-code-reference-pack-2026-07-06.md</code> (the HOW — verbatim code, 20 controls). Runs wf_2f71917f (8 agents) + wf_5fdd3afa (11 agents). Local repo-owned visual plan. Planning read-only — no source edits made. Wave 2 builds on the Wave-0 foundation (<code>c8aadab0</code>) + the security posture (<code>7bfa1e30</code> + <code>25bb3408</code>).
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
