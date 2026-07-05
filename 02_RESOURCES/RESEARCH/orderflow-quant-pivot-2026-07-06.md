@@ -1,5 +1,5 @@
 # Orderflow + Quant Trading Pivot — Research Capture
-**Date:** 2026-07-06 · **Author:** Yuri (Claude lane) · **Status:** Phase-1 research complete; repo-leverage section pending 3-repos agent
+**Date:** 2026-07-06 · **Author:** Yuri (Claude lane) · **Status:** Phase-1 research complete; all 4 starred repos assessed
 **Audience:** Marcel (decision), Fable 5 (build reference)
 
 Marcel is restarting the trading track: pivoting from crypto/HFT to **orderflow + quant-signal trading**, instrument-agnostic but biased to US equities + CME index futures + options (for GEX). Goal: build a system a day trader can fine-tune AND agents can eventually execute autonomously. This doc captures the verified findings that drive the platform + stack decision.
@@ -89,10 +89,14 @@ TOTAL:   Phase-1 floor ~$380–700/mo · full seat ~$530–900/mo
 
 ---
 
-## 5. Repo leverage (4 starred) — nautilus done, 3 pending agent
+## 5. Repo leverage (4 starred) — all assessed
 
-- **nautechsystems/nautilus_trader** — ✅ assessed §1. BUILD ON as the engine.
-- **TauricResearch/TradingAgents** · **koala73/worldmonitor** · **ZhuLinsen/daily_stock_analysis** — ⏳ pending background agent (running healthy). Section to be filled on completion. Likely roles: TradingAgents = LLM decision/reasoning layer candidate; worldmonitor = macro/event overlay; daily_stock_analysis = signal-method reference (OHLCV-grade, not orderflow).
+- **nautechsystems/nautilus_trader** — ✅ BUILD ON (the engine). See §1.
+- **TauricResearch/TradingAgents** (Apache 2.0, Python/LangGraph) — **REFERENCE, fork-and-gut.** Multi-agent debate framework (analyst→researcher→trader→risk). OHLCV+sentiment only — **no orderflow/microstructure at all.** Paid-LLM dependency breaks the $0 constraint. Memory already flagged its in-sample Sharpe 8.21 as overfit. **Carry only the LangGraph debate-orchestration pattern** — strip the LLM analysts, drop in quant-native nautilus-fed nodes (OBI, CVD, depth skew, realized-vol regime). Do not deploy as-is.
+- **koala73/worldmonitor** (AGPL platform / MIT SDK, TypeScript) — **IGNORE.** Macro/news/event dashboard, no microstructure; paid Pro API for data calls or heavy self-host (Vercel+Railway+Upstash). For the regime/event-overlay concept, hit FRED/GDELT directly from Python.
+- **ZhuLinsen/daily_stock_analysis** (MIT, Python) — **IGNORE.** Daily-OHLCV LLM-prose analysis, China A-share focus, no orderflow. Wrong market, wrong method; free A-share sources don't cover US instruments.
+
+**Load-bearing finding:** *none* of the three provide orderflow/microstructure — that layer comes only from nautilus `OrderBook` + Databento L2 + YURI's own signal code. **No repo dependencies for the free start.** TradingAgents' debate pattern is a design reference for an optional later (P2+) LLM decision overlay.
 
 ---
 
