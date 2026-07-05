@@ -65,7 +65,7 @@ BEGIN
     IF v_found THEN
         NEW.prev_hash := v_prev.row_hash;
     ELSE
-        NEW.prev_hash := encode(digest('', 'sha256'), 'hex');   -- genesis = sha256('')
+        NEW.prev_hash := encode(public.digest('', 'sha256'), 'hex');   -- genesis = sha256('')
     END IF;
 
     -- Deterministic canonicalization: jsonb (sorted keys), fixed UTC ISO-8601 timestamp.
@@ -83,7 +83,7 @@ BEGIN
 
     -- 0x00 prefix = domain separation (RFC 6962 §2.1 principle; prevents second-preimage
     -- collisions between a leaf and a node hash). OMITTING THIS IS THE LOAD-BEARING DEFECT.
-    NEW.row_hash := encode(digest(E'\\x00' || v_blob::bytea, 'sha256'), 'hex');
+    NEW.row_hash := encode(public.digest(E'\\x00' || v_blob::bytea, 'sha256'), 'hex');
     RETURN NEW;
 END;
 $$;
@@ -133,24 +133,8 @@ CREATE TRIGGER trg_audit_no_delete BEFORE DELETE ON audit.audit_log
 -- TRUNCATE doesn't fire row-level DELETE triggers -> revoke explicitly (done above)
 -- + a statement-level TRUNCATE guard is belt-and-braces.
 
-CREATE OR REPLACE FUNCTION audit.tg_block_audit_ddl()
-RETURNS event_trigger LANGUAGE plpgsql AS $$
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM pg_event_trigger_ddl_commands()
-        WHERE command_tag IN ('DROP TABLE','ALTER TABLE','DROP SCHEMA')
-          AND (COALESCE(schema_name, '') = 'audit' OR object_identity LIKE 'audit.%')
-    ) THEN
-        RAISE EXCEPTION 'DDL on audit.* is forbidden (tamper-evident log)'
-            USING ERRCODE = 'insufficient_privilege';
-    END IF;
-END;
-$$;
-DROP EVENT TRIGGER IF EXISTS trg_audit_ddl_guard;
-CREATE EVENT TRIGGER trg_audit_ddl_guard
-    ON ddl_command_end
-    WHEN TAG IN ('DROP TABLE','ALTER TABLE','DROP SCHEMA')
-    EXECUTE FUNCTION audit.tg_block_audit_ddl();
+-- (DDL guard moved to the END of this migration — it must be created AFTER the
+--  RLS ALTER TABLE on audit.audit_log, or it blocks the migration's own RLS enable.)
 
 -- ---------------------------------------------------------------------------
 -- 4. PII-audit triggers on tables that exist today (Wave 0/00002 surfaces)
@@ -221,3 +205,26 @@ EXCEPTION
 END $$;
 
 COMMENT ON TABLE audit.audit_log IS 'Wave-2 tamper-evident audit spine — append-only, hash-chained (0x00 RFC 6962 prefix), workspace_id-first-class. See nexus-security-code-reference-pack-2026-07-06.md L3.';
+
+-- ---------------------------------------------------------------------------
+-- 5. DDL guard (LAST — after all legitimate audit DDL, incl. the RLS enable above,
+--    so it doesn't block the migration's own setup)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION audit.tg_block_audit_ddl()
+RETURNS event_trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_event_trigger_ddl_commands()
+        WHERE command_tag IN ('DROP TABLE','ALTER TABLE','DROP SCHEMA')
+          AND (COALESCE(schema_name, '') = 'audit' OR object_identity LIKE 'audit.%')
+    ) THEN
+        RAISE EXCEPTION 'DDL on audit.* is forbidden (tamper-evident log)'
+            USING ERRCODE = 'insufficient_privilege';
+    END IF;
+END;
+$$;
+DROP EVENT TRIGGER IF EXISTS trg_audit_ddl_guard;
+CREATE EVENT TRIGGER trg_audit_ddl_guard
+    ON ddl_command_end
+    WHEN TAG IN ('DROP TABLE','ALTER TABLE','DROP SCHEMA')
+    EXECUTE FUNCTION audit.tg_block_audit_ddl();
