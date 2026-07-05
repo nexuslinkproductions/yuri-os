@@ -160,6 +160,18 @@ test('guard 4 — undoLastJournalEntry restores the original line + appends reve
   } finally { h.cleanup(); }
 });
 
+// ── guard 5: sentence-form proposedFix → refuse (would mangle prose) ───────────────────────────
+test('guard 5 — a sentence-form proposedFix is refused (token-swap would mangle prose)', () => {
+  const h = harness({ proposedFix: 'model superseded (check routing for current)' });
+  try {
+    const r = healOne(h.claim, h.result, { armed: true, journalPath: h.journalPath, registry: h.registry });
+    assert.equal(r.healed, false);
+    assert.match(r.reason, /sentence-form/i);
+    assert.match(fs.readFileSync(h.filePath, 'utf8'), /UNCOMMITTED/);   // untouched
+    assert.deepEqual(readJournal(h.journalPath), []);
+  } finally { h.cleanup(); }
+});
+
 // ── guard 1: no verifier / no evidence → refuse ────────────────────────────────────────────────
 test('guard 1 — a result with no verifier (no deterministic evidence) is refused', () => {
   const h = harness();

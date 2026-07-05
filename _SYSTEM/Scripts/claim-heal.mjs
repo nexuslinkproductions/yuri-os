@@ -139,6 +139,10 @@ export function healOne(claim, result, opts = {}) {
   const fix = result.proposedFix;
   if (fix == null || String(fix).trim() === '') return skip('no proposedFix');
   if (/[|?]/.test(String(fix)) || /\bOR\b/i.test(String(fix))) return skip('ambiguous proposedFix (multi-valued)');
+  // a sentence-form proposedFix (contains whitespace) is NOT a clean status token — swapping it into
+  // prose mangles the line (e.g. "GLM-5.2-designed" -> "model superseded (check routing)-designed").
+  // Refuse; surface for human heal. Verifiers should propose a single token (e.g. "SHIPPED+PUSHED").
+  if (/\s/.test(String(fix).trim())) return skip('proposedFix is sentence-form (not a swappable token) — surface for human heal');
 
   // source locator
   const src = claim?._source ?? claim?.source ?? {};
