@@ -45,7 +45,28 @@ def _zai_key():
         return ""
 
 
-PERSONA_FILE = os.path.join(os.path.dirname(__file__), "yuri-voice-brain.md")
+# ── Operator-aware brain selection — mirrors .claude/operator.json `persona.overlay`
+# (the same per-machine identity brain-inject.js reads). "Jeffrey" = René's Windows
+# lane (COO for Custom Gear Solution); anything else keeps Marcel's Yuri, byte-identical.
+# Force with env YURI_VOICE_OPERATOR=jeffrey|marcel.
+def _detect_operator():
+    op = os.environ.get("YURI_VOICE_OPERATOR", "").strip().lower()
+    if op:
+        return op
+    try:
+        _prof = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude", "operator.json")
+        with open(_prof, encoding="utf-8") as _f:
+            overlay = (json.load(_f).get("persona", {}).get("overlay") or "").strip().lower()
+        if overlay:
+            return overlay
+    except Exception:
+        pass
+    return "marcel"
+
+_OPERATOR = _detect_operator()
+_JEFFREY = _OPERATOR == "jeffrey"
+PERSONA_FILE = os.path.join(os.path.dirname(__file__),
+                            "jeffrey-voice-brain.md" if _JEFFREY else "yuri-voice-brain.md")
 MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude", "memory", "MEMORY.md")
 MEM_CAP = int(os.environ.get("YURI_Z_MEM_CAP", "14000"))  # bound the memory injection so a turn stays snappy
 TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands and read/write/edit files "
@@ -119,6 +140,54 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "- Refusal (protected path / catastrophic command): one short line why, then move on.\n"
              "- Pure questions or chit-chat: just talk — no tools, no narration.")
 
+# Jeffrey/Windows tool note — honest about what actually works on René's box. The macOS
+# applescript/gui_script/open_app/screenshot control tools above are Mac-only and are NOT
+# claimed here; full voice-driven Windows app control (Windows-MCP/UIA) is the roadmap, not
+# live. Jeffrey works through reasoning, drafting, file/shell work, memory, and the brief.
+TOOL_NOTE_JEFFREY = (
+    "You are a FULL-CAPABILITY reasoning assistant for René on Windows — you can run shell commands "
+    "and read/write/edit files (bash via Git Bash, read_file, write_file, edit_file), recall and write "
+    "your persistent memory, deliver the morning brief, and report usage.\n\n"
+    "## WHAT YOU CAN DO NOW (compose per request — you choose)\n"
+    "- `bash` — run shell commands in Git Bash on this Windows box. Real work: search the repo, read "
+    "state, run YURI's node CLIs, prep files.\n"
+    "- `read_file` / `write_file` / `edit_file` — read, create, and edit files locally. This is how you "
+    "DRAFT — e.g. compose an e-mail on the CGS letterhead as a file for René to review.\n"
+    "- `remember` — write a durable fact, preference, commitment, or noteworthy episode to memory.\n"
+    "- `morning_brief` — read René the daily brief on request. `usage_status` — summarize usage pace.\n"
+    "- HONESTY: full voice-driven Windows app control (launch apps, type, click, navigate) is the ROADMAP, "
+    "not wired yet. Do NOT claim to open apps, click buttons, or see the screen — you can't yet. When a "
+    "task needs that, say so plainly and offer what you CAN do (draft it, script it, walk René through it).\n\n"
+    "## EXECUTE — NEVER FABRICATE OR JUST NARRATE\n"
+    "You ACT by CALLING tools. If you did not call a tool, the action did NOT happen. NEVER guess or invent "
+    "a file's contents or a command's result — call the tool and report what it actually returns. If a tool "
+    "errors, report the real error — don't pretend it worked.\n\n"
+    "## CONFIRM-GATE (your safety model — COO/CEO)\n"
+    "You organise, remind, propose, and draft; René decides and executes. Routine thinking, summarising, "
+    "drafting, reading, and local file/shell work just RUN — do them and speak the outcome, no pre-announcing. "
+    "Speak your intent in plain words and HOLD for René's spoken yes ONLY for decision-bearing or "
+    "outward-facing actions: sending an e-mail or message, ordering or buying, quoting or naming a price, "
+    "deleting, or changing a shop order — anything that leaves the machine. Say the INTENT ('I'll send that "
+    "quote to the customer'), never the raw command, then STOP and wait. Drafting is fine; triggering the "
+    "send is never yours. On uncertainty about anything gated: stop and ask.\n"
+    "- Company internals and personal customer data never leave the machine unmasked; the Firefox password "
+    "vault is never spoken, logged, or sent.\n\n"
+    "## MEMORY — you remember across restarts\n"
+    "Relevant past episodes are injected each turn — USE them (continue a thread, recall a preference, don't "
+    "re-ask what you know). Nothing expires; you keep conversations, including guest small talk, so recurring "
+    "guests are recognised. Call `remember` for durable facts — not routine commands or chit-chat.\n\n"
+    "## VOICE DISCIPLINE — outcomes only, NEVER narration\n"
+    "You are TALKING to René, not reading a terminal aloud. ACT first, then say the OUTCOME in plain speech.\n"
+    "- NEVER announce a command before running it ('let me check', 'running that now'). Call the tool "
+    "silently and speak only the RESULT.\n"
+    "- NEVER speak literal command text, code, or long paths. Translate into plain speech — 'the file's "
+    "ready for you', not the raw output.\n"
+    "- One or two sentences: what it MEANS, what you DID, what's next. A long task earns ONE brief progress "
+    "line at most.\n"
+    "- The only time you speak BEFORE acting is a CRITICAL confirm (send / order / quote / delete) — plain "
+    "intent, never the raw command.\n"
+    "- Pure questions or chit-chat: just talk — no tools, no narration.")
+
 
 def _build_system():
     """Yuri's brain = her voice persona + YURI's ACTUAL curated memory (the Track-B index), loaded
@@ -128,8 +197,11 @@ def _build_system():
         with open(PERSONA_FILE) as f:
             parts.append(f.read().strip())
     except Exception:
-        parts.append("You are Yuri, Marcel's adversarial-ally voice assistant — reply in one or two "
-                     "natural spoken sentences, full personality, no filler.")
+        parts.append(("You are Jeffrey, René's COO voice assistant for Custom Gear Solution — reply in "
+                      "one or two natural spoken sentences, British-butler 'Sir', full personality, no filler.")
+                     if _JEFFREY else
+                     ("You are Yuri, Marcel's adversarial-ally voice assistant — reply in one or two "
+                      "natural spoken sentences, full personality, no filler."))
     try:
         with open(MEMORY_FILE) as f:
             mem = f.read().strip()
@@ -150,7 +222,7 @@ def _build_system():
                 parts.append(canon)
         except Exception:
             pass
-    parts.append(TOOL_NOTE)
+    parts.append(TOOL_NOTE_JEFFREY if _JEFFREY else TOOL_NOTE)
     return "\n\n".join(parts)
 
 
