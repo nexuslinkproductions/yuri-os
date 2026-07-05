@@ -5,7 +5,8 @@
 #        on-device, $0, private. Windows-native (uses `py -3`, not the macOS pipecat venv). Subcommands:
 #        (default) start the brain foreground; `test` = health + one chat round-trip smoke then exit;
 #        `stop` = kill a running brain.
-# @use: jeffrey            # start (alias in ~/.bashrc -> this script) — Ctrl-C stops
+# @use: jeffrey            # start the local brain foreground (alias in ~/.bashrc -> this script) — Ctrl-C stops
+#       jeffrey voice      # full VOICE loop: brain + hold-to-talk (Parakeet STT -> brain -> SAPI TTS)
 #       jeffrey test       # smoke test the local brain and exit
 #       jeffrey stop       # stop it
 #       swap model: YURI_LOCAL_MODEL=qwen3:8b jeffrey
@@ -44,6 +45,19 @@ case "${1:-run}" in
       --max-time 180
     echo
     kill "$BPID" 2>/dev/null || true
+    ;;
+  voice)
+    _ollama_up || { echo "❌ ollama not reachable on :11434 — start Ollama first"; exit 1; }
+    VENV="${VOICE_ASSIST_PY:-/c/Users/rene/.venvs/parakeet-ptt/Scripts/python.exe}"
+    [ -x "$VENV" ] || { echo "❌ voice venv missing at $VENV (set VOICE_ASSIST_PY)"; exit 1; }
+    # bring the brain up in the background if it isn't already answering
+    if ! curl -s --max-time 3 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
+      echo "starting Jeffrey brain (:$PORT, $MODEL)…"
+      "${PY[@]}" "$VOICE/yuri-local-brain.py" >"$LOG" 2>&1 &
+      sleep 3
+    fi
+    echo "jeffrey voice — HOLD Right-Shift, speak, release. Local brain ($MODEL), on-device, \$0. Ctrl-C stops."
+    exec "$VENV" "$VOICE/voice-assistant-win.py"
     ;;
   stop)
     if pkill -f yuri-local-brain.py 2>/dev/null; then echo "jeffrey stopped"; else echo "jeffrey was not running"; fi
