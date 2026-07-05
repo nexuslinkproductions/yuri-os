@@ -8,6 +8,7 @@
 # @use: jeffrey            # start the local brain foreground (alias in ~/.bashrc -> this script) — Ctrl-C stops
 #       jeffrey voice      # full VOICE loop: brain + hold-to-talk (Parakeet STT -> brain -> SAPI TTS)
 #       jeffrey test       # smoke test the local brain and exit
+#       jeffrey reindex    # refresh the local file index now (Task Scheduler also runs it every 4h)
 #       jeffrey stop       # stop it
 #       swap model: YURI_LOCAL_MODEL=qwen3:8b jeffrey
 # @exports: (launcher)
@@ -58,6 +59,10 @@ case "${1:-run}" in
     fi
     echo "jeffrey voice — HOLD Right-Shift, speak, release. Local brain ($MODEL), on-device, \$0. Ctrl-C stops."
     exec "$VENV" "$VOICE/voice-assistant-win.py"
+    ;;
+  reindex)
+    echo "refreshing Jeffrey's file index (incremental)…"
+    node "$REPO/_SYSTEM/Scripts/jeffrey-file-index.mjs" "${@:2}"
     ;;
   stop)
     if pkill -f yuri-local-brain.py 2>/dev/null; then echo "jeffrey stopped"; else echo "jeffrey was not running"; fi

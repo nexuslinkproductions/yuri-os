@@ -1644,9 +1644,7 @@
       ],
       "does": "one-word launcher for René's LOCAL Jeffrey brain — Ollama qwen3:14b on :8013, operator=jeffrey,",
       "use": "jeffrey            # start the local brain foreground (alias in ~/.bashrc -> this script) — Ctrl-C stops",
-      "exports": [
-        "(launcher)"
-      ],
+      "exports": [],
       "mechanism": "_SYSTEM/Scripts/voice/jeffrey.sh"
     },
     {
