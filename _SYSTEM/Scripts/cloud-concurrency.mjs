@@ -17,7 +17,7 @@ const HOST = os.hostname();
 
 const POOL_DEFAULTS = Object.freeze({
   glm: 3,
-  'ollama-cloud': 3,
+  'ollama-cloud': 5,  // operator-raised 2026-07-05 (was Pro-plan-default 3 — a false cap); self-limit 5
 });
 
 /** Map llm-lane key / provider to a cloud slot pool id. */

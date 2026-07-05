@@ -92,8 +92,8 @@ export const FLEET_PROTOCOL_PREAMBLE = [
   '  node _SYSTEM/Scripts/ollama-fleet.mjs --tasks \'[{"tier":"flash","label":"R1","prompt":"..."}]\'',
   'Each lane writes .claude/jobs/<run>/results/<label>.json — read them all, then verify.',
   'Every result MUST end with an UPPERCASE RESULT_LABEL: NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED (e.g. 01OL_TASK_DONE_X_PASS_COMMITTED).',
-  'Discipline: verify every peer claim against LOCAL evidence before trusting (lanes over-claim). Pro plan = 3 concurrent.',
-  'Caps: concurrency <=3, rounds <=3. Never tee/redirect a lane call (use --out). Protected paths off-limits.',
+  'Discipline: verify every peer claim against LOCAL evidence before trusting (lanes over-claim). Operator cap = 5 concurrent (raised from Pro-plan-default 3, 2026-07-05).',
+  'Caps: concurrency <=5, rounds <=3. Never tee/redirect a lane call (use --out). Protected paths off-limits.',
   'Finalize (commit/push, irreversible/outward calls) is reserved for the owner/Opus lane — never a peer.',
 ].join('\n');
 
@@ -257,7 +257,7 @@ export async function ollamaFleet(tasks = [], opts = {}) {
   const runId = opts.runId || `olf-${Date.now().toString(36)}-${crypto.randomBytes(3).toString('hex')}`;
   const runDir = opts.runDir || buildRunDir(runId);
   const cRaw = Number(opts.concurrency);
-  const concurrency = Number.isFinite(cRaw) && cRaw >= 1 ? Math.floor(cRaw) : 3; // Pro plan = 3 concurrent
+  const concurrency = Number.isFinite(cRaw) && cRaw >= 1 ? Math.floor(cRaw) : 5; // operator-raised 2026-07-05 (was Pro-plan-default 3 — false cap); self-limit 5 concurrent
   const seenLabels = new Set();
   const labels = tasks.map((t, i) => {
     let l = safeLabel(t.label, i);
@@ -334,7 +334,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.stderr.write('ollama-fleet: provide --tasks <json> | --tasks-file <path> | --smoke | --list\n');
     process.exit(2);
   }
-  const opts = { concurrency: Number(flagVal('--concurrency') || 3) };
+  const opts = { concurrency: Number(flagVal('--concurrency') || 5) };
   if (forceDry) opts.armed = false;
   ollamaFleet(tasks, opts).then((r) => {
     const summary = r.dryRun
