@@ -98,6 +98,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/enforce-claude-symlink.mjs\""
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/claude-memory-write.mjs\" reindex"
           },
           {
