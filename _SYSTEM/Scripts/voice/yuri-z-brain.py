@@ -47,7 +47,8 @@ def _zai_key():
 
 PERSONA_FILE = os.path.join(os.path.dirname(__file__), "yuri-voice-brain.md")
 MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".claude", "memory", "MEMORY.md")
-MEM_CAP = int(os.environ.get("YURI_Z_MEM_CAP", "14000"))  # bound the memory injection so a turn stays snappy
+WORK_STATE_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "runtime", "work-state.json")
+MEM_CAP = int(os.environ.get("YURI_Z_MEM_CAP", "20000"))  # bound the memory injection so a turn stays snappy
 TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands and read/write/edit files "
              "(bash, read_file, write_file, edit_file), spawn worker terminals, AND CONTROL THE ENTIRE MAC "
              "by voice. You are Marcel's JARVIS — his voice and his hands on this MacBook. Anything he'd do "
@@ -120,6 +121,72 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "- Pure questions or chit-chat: just talk — no tools, no narration.")
 
 
+def _work_state_block() -> str:
+    """Read work-state.json (if present) and render a compact 'WHERE WE LEFT OFF' block for the
+    system prompt. Fail-open: missing file, malformed JSON, or an empty/example-only 'open' list
+    all degrade to "" silently — this must never crash brain startup. Turns the greeting from
+    'what happened while I was gone?' into 'we left off on X, next step Y'."""
+    try:
+        with open(WORK_STATE_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        items = data.get("open") if isinstance(data, dict) else None
+        if not isinstance(items, list) or not items:
+            return ""
+        lines = []
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            item = str(it.get("item", "")).strip()
+            if not item or item.lower().startswith("example:"):
+                continue
+            step = str(it.get("nextStep", "")).strip()
+            lines.append(f"- {item}" + (f" — next: {step}" if step else ""))
+        if not lines:
+            return ""
+        return ("## WHERE WE LEFT OFF — open threads from prior sessions\n"
+                "Use this to greet with continuity ('we left off on X, next step Y — want me to start?') "
+                "instead of asking what happened while you were gone.\n" + "\n".join(lines))
+    except Exception:
+        return ""
+
+
+def _set_work_state(item: str, next_step: str = "") -> str:
+    """Tiny helper to update the carryover file — NOT a config engine, just a read-modify-write
+    onto the same schema _work_state_block reads. Replaces any existing entry for the same item
+    (case-insensitive) so re-stating progress on a thread updates it in place instead of piling up
+    duplicates. Wired into the 'remember' tool handler for kind='commitment' so it's reachable
+    through EXISTING plumbing; also callable directly (e.g. from tests or future tools).
+    Fail-open: any error is swallowed and reported back as a string, never raised."""
+    item = (item or "").strip()
+    if not item:
+        return "no item given"
+    try:
+        try:
+            with open(WORK_STATE_FILE, encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+        if not isinstance(data, dict):
+            data = {}
+        open_items = data.get("open")
+        if not isinstance(open_items, list):
+            open_items = []
+        open_items = [it for it in open_items
+                      if not (isinstance(it, dict) and str(it.get("item", "")).strip().lower() == item.lower())
+                      and not (isinstance(it, dict) and str(it.get("item", "")).strip().lower().startswith("example:"))]
+        open_items.append({"item": item, "nextStep": (next_step or "").strip()})
+        data["open"] = open_items
+        data["updated"] = __import__("datetime").datetime.utcnow().isoformat() + "Z"
+        os.makedirs(os.path.dirname(WORK_STATE_FILE), exist_ok=True)
+        tmp = WORK_STATE_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, WORK_STATE_FILE)
+        return f"work-state updated: {item}"
+    except Exception as e:
+        return f"work-state update failed: {str(e)[:80]}"
+
+
 def _build_system():
     """Yuri's brain = her voice persona + YURI's ACTUAL curated memory (the Track-B index), loaded
     from the real files at startup. Wired into the existing system, not a new memory type."""
@@ -139,6 +206,9 @@ def _build_system():
                      "(recall and use it; don't re-ask what's here)\n" + mem)
     except Exception:
         pass
+    ws_block = _work_state_block()
+    if ws_block:
+        parts.append(ws_block)
     # T3 SEAM: inject the system's canonical truth (peer-open readView from memory-canonical-store.mjs,
     # cached via a one-shot node call at jarvis_xref import). Degrades to "" when the store is absent /
     # disabled — startup stays node-free in that case. The brain draws on the SAME operator-grade truth
@@ -203,6 +273,8 @@ MAX_TOOL_ITERS = int(os.environ.get("YURI_Z_MAX_TOOL_ITERS", "50"))   # agent-lo
 BASH_TIMEOUT = float(os.environ.get("YURI_Z_BASH_TIMEOUT", "600"))    # let builds/tests/long jobs finish like a real session, not a 90s cut-off
 OUTPUT_CAP = int(os.environ.get("YURI_Z_OUTPUT_CAP", "40000"))        # she sees full command output (summarizes for voice); only the spoken reply stays short
 BASH_ENABLED = os.environ.get("YURI_Z_NO_BASH", "0") != "1"
+READ_DOC_CHAR_CAP = int(os.environ.get("YURI_Z_READ_DOC_CAP", "20000"))  # bound doc text like OUTPUT_CAP bounds bash output
+READ_DOC_TIMEOUT = float(os.environ.get("YURI_Z_READ_DOC_TIMEOUT", "60"))  # soffice headless conversion can be slow to spin up
 
 # When dispatch is on, append the dispatch instruction to the system prompt so the model knows it
 # can delegate to the watched worker terminal.
@@ -259,7 +331,14 @@ PENDING_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "state", "voi
 # are still hard-BLOCKED by _DESTRUCTIVE regardless of this soft gate. Local rm/mv/redirects/commits run free.
 _CRITICAL_BASH = re.compile(
     r"\bgit\s+push\b|\bsendmail\b|\bmail\s+-s\b|"
-    r"osascript.*\b(send|delete|empty\s+trash)\b",
+    r"osascript.*\b(send|delete|empty\s+trash)\b|"
+    # Package installs — Marcel's never-list rule "never download/install without clearance".
+    r"\b(brew|pip3?|npm|pnpm|yarn|cargo|gem|go|apt(?:-get)?)\s+install\b|"
+    # Downloads that write to disk: curl only writes on -O/-o/redirect (streams to stdout otherwise);
+    # wget writes to disk BY DEFAULT (no flag needed) unless explicitly piped to stdout via -O-/-qO-.
+    r"\bwget\b(?!.*-[A-Za-z]*O-)|\bcurl\b[^\n|]*(-[A-Za-z]*[oO][A-Za-z]*\b|\s>>?\s)|"
+    # git clone of a NON-local remote (http/https/ssh/git@) — local-path clones stay routine.
+    r"\bgit\s+clone\b[^\n]*(https?://|git@|ssh://)",
     re.IGNORECASE)
 # AppleScript keywords that are critical (send/create/delete/trash in Mail, Calendar, Messages).
 _CRITICAL_APPLESCRIPT = re.compile(
@@ -269,6 +348,20 @@ _CRITICAL_APPLESCRIPT = re.compile(
 
 _AFFIRM = re.compile(r"\b(yes|yeah|yep|confirm|do it|go ahead|go for it|correct|affirmative|sure|please do|that'?s right|proceed|make it so)\b", re.IGNORECASE)
 _NEGATE = re.compile(r"\b(no|nope|cancel|stop|don'?t|never\s+mind|forget it|wait|hold on|abort|actually\s+no|wrong)\b", re.IGNORECASE)
+_AFFIRM_MAX_WORDS = 3  # a real confirm IS a short reply ("yes", "do it", "yes do it") — a longer
+
+
+def _affirms_early(msg: str, max_words: int = _AFFIRM_MAX_WORDS) -> bool:
+    """True only when the WHOLE message is short (<= max_words) and matches _AFFIRM within it. A
+    long sentence that merely STARTS with an affirm word ('yeah, but also check my calendar') is
+    NOT a confirm — it's Marcel redirecting, and the old bare _AFFIRM.search() wrongly fired the
+    pending action on it. Real confirms don't carry a trailing clause; length-capping the WHOLE
+    message (not just a prefix window) is what actually excludes that case."""
+    msg = (msg or "").strip()
+    words = msg.split()
+    if not words or len(words) > max_words:
+        return False
+    return bool(_AFFIRM.search(msg))
 
 
 def _is_critical_call(name: str, args: dict) -> bool:
@@ -414,6 +507,16 @@ TOOLS = [
                         "your own system, not the web."),
         "input_schema": {"type": "object", "required": ["query"],
                          "properties": {"query": {"type": "string", "description": "What to navigate YURI's knowledge for."}}},
+    },
+    {
+        "name": "read_doc",
+        "description": ("Extract plain TEXT from a document Marcel points you at — PDF (.pdf) or Office "
+                        "files (.doc/.docx/.xls/.xlsx). Use when Marcel asks you to read, summarize, or pull "
+                        "info from a document file. TEXT ONLY — no layout fidelity, no images/vision, no OCR "
+                        "of scanned pages. Bounded to a reasonable read length. Fails clearly if the file type "
+                        "is unsupported or the extraction CLI is missing."),
+        "input_schema": {"type": "object", "required": ["path"],
+                         "properties": {"path": {"type": "string", "description": "Document path, relative to the repo root or absolute."}}},
     },
     # ---- macOS CONTROL PRIMITIVES (general computer use — she composes these per request) ----
     {
@@ -669,6 +772,68 @@ def _describe_screenshot(path: str) -> str:
         return f"screenshot saved to {path} (vision description failed: {str(e)[:60]})"
 
 
+_PDFTOTEXT_BIN = "/opt/homebrew/bin/pdftotext"   # verified present (poppler); PATH fallback if the absolute path moves
+_SOFFICE_BIN = "/opt/homebrew/bin/soffice"       # verified present (libreoffice); PATH fallback if the absolute path moves
+_OFFICE_EXTS = (".doc", ".docx", ".xls", ".xlsx")
+
+
+def _extract_doc_text(path: str) -> str:
+    """Extract plain TEXT from a document — .pdf via pdftotext, .doc/.docx/.xls/.xlsx via a headless
+    LibreOffice (soffice) convert-to-txt round trip. TEXT ONLY: no layout fidelity, no vision/OCR of
+    scanned pages. Fail-open: a missing CLI, unsupported extension, or any subprocess error returns a
+    clear message string — never raises, matching every other tool in this file."""
+    ext = os.path.splitext(path)[1].lower()
+    if not os.path.exists(path):
+        return f"read_doc failed: file not found: {path}"
+
+    if ext == ".pdf":
+        pdftotext = _PDFTOTEXT_BIN if os.path.exists(_PDFTOTEXT_BIN) else "pdftotext"
+        try:
+            r = subprocess.run([pdftotext, "-layout", path, "-"], capture_output=True, text=True,
+                               timeout=READ_DOC_TIMEOUT)
+        except FileNotFoundError:
+            return "read_doc failed: pdftotext is not installed (brew install poppler)"
+        except subprocess.TimeoutExpired:
+            return f"read_doc failed: pdftotext timed out after {int(READ_DOC_TIMEOUT)}s"
+        except Exception as e:
+            return f"read_doc failed: {str(e)[:100]}"
+        if r.returncode != 0:
+            return f"read_doc failed: pdftotext error: {(r.stderr or '').strip()[:150]}"
+        text = (r.stdout or "").strip()
+        return (text[:READ_DOC_CHAR_CAP] + "\n…(truncated)") if len(text) > READ_DOC_CHAR_CAP else (text or "(no extractable text — the PDF may be scanned/image-only)")
+
+    if ext in _OFFICE_EXTS:
+        soffice = _SOFFICE_BIN if os.path.exists(_SOFFICE_BIN) else "soffice"
+        import tempfile
+        tmpdir = tempfile.mkdtemp(prefix="yuri-read-doc-")
+        try:
+            r = subprocess.run([soffice, "--headless", "--convert-to", "txt", "--outdir", tmpdir, path],
+                               capture_output=True, text=True, timeout=READ_DOC_TIMEOUT)
+        except FileNotFoundError:
+            return "read_doc failed: soffice (LibreOffice) is not installed"
+        except subprocess.TimeoutExpired:
+            return f"read_doc failed: soffice timed out after {int(READ_DOC_TIMEOUT)}s"
+        except Exception as e:
+            return f"read_doc failed: {str(e)[:100]}"
+        finally:
+            pass  # tmpdir cleaned below after read, so soffice has time to write it
+        if r.returncode != 0:
+            return f"read_doc failed: soffice error: {(r.stderr or '').strip()[:150]}"
+        base = os.path.splitext(os.path.basename(path))[0]
+        txt_path = os.path.join(tmpdir, base + ".txt")
+        try:
+            with open(txt_path, encoding="utf-8", errors="replace") as f:
+                text = f.read().strip()
+        except Exception as e:
+            return f"read_doc failed: soffice did not produce output ({str(e)[:80]})"
+        finally:
+            import shutil
+            shutil.rmtree(tmpdir, ignore_errors=True)
+        return (text[:READ_DOC_CHAR_CAP] + "\n…(truncated)") if len(text) > READ_DOC_CHAR_CAP else (text or "(no extractable text)")
+
+    return f"read_doc failed: unsupported file type '{ext}' (supported: .pdf, .doc, .docx, .xls, .xlsx)"
+
+
 def _exec_tool(name, args):
     """Run a capability the model chose. Full worker-grade toolset behind the safety floor."""
     args = args or {}
@@ -722,8 +887,13 @@ def _exec_tool(name, args):
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # non-blocking
             return f"worker '{WORKER_NAME}' terminal is opening" + (f" with task: {task}" if task else "")
         if name == "remember":
-            return jm.remember(args.get("summary"), cues=args.get("cues", ""), kind=args.get("kind", "episode"),
-                               tags=args.get("tags", ""), weight=args.get("weight", 1.0))
+            result = jm.remember(args.get("summary"), cues=args.get("cues", ""), kind=args.get("kind", "episode"),
+                                 tags=args.get("tags", ""), weight=args.get("weight", 1.0))
+            # A 'commitment' is exactly an open thread/next-step — also surface it in the
+            # WHERE WE LEFT OFF carryover block (existing plumbing, not a new tool).
+            if (args.get("kind") or "").strip().lower() == "commitment":
+                _set_work_state(args.get("summary") or "", args.get("cues") or "")
+            return result
         if name == "xref":
             q = (args.get("query") or "").strip()
             if not q:
@@ -731,6 +901,14 @@ def _exec_tool(name, args):
             if jx is None:
                 return "xref unavailable (navigation seam not loaded)"
             return _cap(jx.xref(q))
+        if name == "read_doc":
+            p = (args.get("path") or "").strip()
+            if not p:
+                return "no document path given"
+            if _is_protected(p):
+                return "refused: protected path (safety floor)"
+            full = p if os.path.isabs(p) else os.path.join(REPO, p)
+            return _extract_doc_text(full)
         # ---- macOS CONTROL PRIMITIVES ----
         if name == "applescript":
             script = (args.get("script") or "").strip()
@@ -845,7 +1023,7 @@ def run_brain(req_messages):
 
     # ---- CONFIRM-GATE: check if there's a pending action and this turn is a response to it ----
     pending = _load_pending()
-    if pending and _AFFIRM.search(user_msg) and not _NEGATE.search(user_msg):
+    if pending and _affirms_early(user_msg) and not _NEGATE.search(user_msg):
         # Marcel affirmed — execute the stored action, then continue the normal loop with its result.
         _clear_pending()
         p_name, p_args = pending.get("name", ""), pending.get("args") or {}

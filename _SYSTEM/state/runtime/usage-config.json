@@ -1,0 +1,8 @@
+{
+  "_comment": "Per-provider weekly token budgets for usage-meters.mjs pace verdicts. Read by _SYSTEM/runtime/usage-meters.mjs (loadConfig). These are PACING TARGETS (pace-to-consume-by-period-end), NOT hard caps — the verdict is advisory UP/HOLD/DOWN only and never blocks a lane. Calibrated 2026-07-05 from observed weekly throughput (governor report: zai/other ~269M/wk, anthropic main+sonnet ~178M/wk against Max-20x 2B pools). Pools: zai (z.ai GLM/glm-max/glm-flash/zai-tmux/cline:glm), ollama (ollama-cloud: deepseek/kimi/minimax), anthropic (Sonnet/Opus/Haiku — Max subscription, flat usage not $).",
+  "pools": {
+    "zai":       { "period": "week", "budget": 350000000 },
+    "ollama":    { "period": "week", "budget": 120000000 },
+    "anthropic": { "period": "week", "budget": 2000000000 }
+  }
+}
