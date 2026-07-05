@@ -92,7 +92,7 @@ TTS_MODE      = os.environ.get("VOICE_ASSIST_TTS", "").strip().lower() or ("koko
 _TTS_DIR      = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "tts")
 KOKORO_ONNX   = os.environ.get("KOKORO_ONNX",   os.path.join(_TTS_DIR, "kokoro-v1.0.onnx"))
 KOKORO_VOICES = os.environ.get("KOKORO_VOICES", os.path.join(_TTS_DIR, "voices-v1.0.bin"))
-KOKORO_VOICE  = os.environ.get("KOKORO_VOICE", "bm_george")   # British male "Sir" (bm_lewis = alt)
+KOKORO_VOICE  = os.environ.get("KOKORO_VOICE", "bm_lewis")   # British male "Sir" (René's pick; bm_george = alt)
 KOKORO_LANG   = os.environ.get("KOKORO_LANG", "en-gb")
 MIC         = os.environ.get("VOICE_MIC_DEVICE")
 RMS_FLOOR   = float(os.environ.get("VOICE_ASSIST_RMS", "0.0008"))
