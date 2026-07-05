@@ -305,6 +305,10 @@
     <div class="ct">Sequence discipline — do not let security-perfect block Wave 1</div>
     <p><b>Foundation (Wave 0–1):</b> GoTrue auth + RLS + input validators + parameterized queries + TLS + auth-route rate-limit + captcha. Sufficient to connect your own socials safely. <b>Hardening (Wave 2, pre-customer per MASTER-PLAN §11):</b> MFA + breach-check + audit log + anomaly detection + WAF + encryption-at-rest + ClamAV. <b>Resale-critical (Wave 3–4):</b> token broker + DPoP + per-tenant key isolation + hosted MCP gateway with DCR.</p>
   </div>
+  <div class="callout bad">
+    <div class="ct">Wave-2 research surfaced 3 load-bearing gaps the posture above misses</div>
+    <p><b>Full synthesis:</b> <code>02_RESOURCES/RESEARCH/nexus-security-hardening-deep-research-2026-07-06.md</code> (8-agent verified fan-out). <b>(1) Network perimeter absent</b> — Postgres/Studio bind to all interfaces, no host firewall; fix = default-deny + Cloudflare-origin allowlist + bind 127.0.0.1 (highest-leverage). <b>(2) Audit trail is a mutable stub</b> — not migrated, misses exports/admin/token-vault, <code>str(e)</code> leaks tokens; fix = NO UPDATE/DELETE + RFC 6962 hash-chain + denylist sanitizer + WORM export + L5.5 detection (failed-login, impossible-travel, bulk-export, new-IP admin, refresh-failure storm). <b>(3) Encryption under-specified</b> — Postgres has no native TDE, Supabase deprecates pgsodium/pgcrypto; fix = LUKS on Hetzner + <b>XChaCha20-Poly1305-IETF</b> (192-bit nonce sidesteps the AES-GCM nonce-reuse catastrophe) for tokens/bodies, envelope-wrapped per-tenant under a Vault KEK. Breach truth: risks are misconfigured boring infra (Capital One, Equifax, LastPass, MOVEit), not exotic zero-days. The 30-line Wave-2 build spec + authoritative OSS list (libsodium, age, Vault, OWASP CRS, Tailscale, HIBP) live in the research doc.</p>
+  </div>
   <h3>Token layer — binding OAuth musts (carried from research)</h3>
   <div class="grid g3">
     <div class="card"><h4>S256 PKCE verbatim</h4><p>OAuth 2.1 REQUIREMENT. Carry <code>_pkce()</code> into every connector. Gmail near-clone; Meta uses webview-fragment intercept.</p></div>
