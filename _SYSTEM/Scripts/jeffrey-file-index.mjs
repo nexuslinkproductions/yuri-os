@@ -31,6 +31,7 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -50,17 +51,40 @@ const SKIP_DIR = new Set([
   'node_modules', '.git', '$RECYCLE.BIN', 'System Volume Information', '.cache', '__pycache__',
   'AppData', '.tmp', 'tmp',
 ]);
-const MAX_CONTENT_BYTES = 2_000_000;  // only read content for text files under 2MB
+// Documents whose text is extracted via jeffrey-extract.py (pdfminer/python-docx/openpyxl, Jeffrey venv).
+const DOC_EXT = new Set(['.pdf', '.docx', '.xlsx']);
+const EXTRACT_PY = process.env.JEFFREY_EXTRACT_PY || 'C:/Users/rene/.venvs/parakeet-ptt/Scripts/python.exe';
+const EXTRACT_SCRIPT = path.join(__dirname, 'jeffrey-extract.py');
+const MAX_CONTENT_BYTES = 2_000_000;  // read plain-text content for files under 2MB
+const MAX_DOC_BYTES = 25_000_000;     // extract PDF/Word/Excel text for docs under 25MB
 const MAX_BODY_CHARS = 40_000;        // cap stored body per file
 const BATCH = 500;
 const NUL = String.fromCharCode(0);
 
+// Extract text from a PDF/Word/Excel via the Python helper. Returns '' on any failure (→ filename-only).
+function extractDoc(abs) {
+  try {
+    const r = spawnSync(EXTRACT_PY, [EXTRACT_SCRIPT, abs],
+      { encoding: 'utf8', maxBuffer: 16_000_000, timeout: 45_000, windowsHide: true });
+    if (r.status === 0 && r.stdout && r.stdout.trim()) return r.stdout;
+  } catch { /* ignore → filename-only */ }
+  return '';
+}
+
+// A root is {path, namesOnly}. namesOnly=true indexes ONLY filenames/paths and NEVER reads file
+// content — required for cloud mounts (Google Drive), where reading a file would trigger a download.
+// Config entries may be a plain string (full content index) or {path, namesOnly:true}.
+function _normRoot(r) {
+  if (typeof r === 'string') return r.trim() ? { path: r.trim(), namesOnly: false } : null;
+  if (r && typeof r.path === 'string' && r.path.trim()) return { path: r.path.trim(), namesOnly: !!r.namesOnly };
+  return null;
+}
 export function loadRoots(cliRoots) {
-  if (cliRoots && cliRoots.length) return cliRoots;
+  if (cliRoots && cliRoots.length) return cliRoots.map(_normRoot).filter(Boolean);
   try {
     const j = JSON.parse(fs.readFileSync(ROOTS_CONFIG, 'utf8'));
-    if (Array.isArray(j)) return j.filter((r) => typeof r === 'string' && r.trim());
-    if (Array.isArray(j.roots)) return j.roots.filter((r) => typeof r === 'string' && r.trim());
+    const arr = Array.isArray(j) ? j : (Array.isArray(j.roots) ? j.roots : []);
+    return arr.map(_normRoot).filter(Boolean);
   } catch { /* no config yet */ }
   return [];
 }
@@ -129,8 +153,9 @@ function indexRun({ full, cliRoots }) {
     process.stderr.write(`  indexed ${indexed} (content ${contentIndexed})…\n`);
   };
 
-  for (const root of roots) {
-    const absRoot = path.resolve(root);
+  for (const rootEntry of roots) {
+    const { path: rootPath, namesOnly } = rootEntry;
+    const absRoot = path.resolve(rootPath);
     for (const abs of walk(absRoot)) {
       const norm = abs.replaceAll(path.sep, '/');
       seen.add(norm);
@@ -142,12 +167,18 @@ function indexRun({ full, cliRoots }) {
       const ext = path.extname(abs).toLowerCase();
       const name = path.basename(abs);
       const folder = path.dirname(norm);
+      // namesOnly roots (cloud mounts) NEVER read content — reading would trigger a download.
       let body = '';
-      if (TEXT_EXT.has(ext) && st.size <= MAX_CONTENT_BYTES) {
-        try {
-          const raw = fs.readFileSync(abs, 'utf8');
-          if (!raw.includes(NUL)) { body = raw.slice(0, MAX_BODY_CHARS); contentIndexed++; }
-        } catch { /* unreadable → filename-only row */ }
+      if (!namesOnly) {
+        if (TEXT_EXT.has(ext) && st.size <= MAX_CONTENT_BYTES) {
+          try {
+            const raw = fs.readFileSync(abs, 'utf8');
+            if (!raw.includes(NUL)) { body = raw.slice(0, MAX_BODY_CHARS); contentIndexed++; }
+          } catch { /* unreadable → filename-only row */ }
+        } else if (DOC_EXT.has(ext) && st.size <= MAX_DOC_BYTES) {
+          const txt = extractDoc(abs);
+          if (txt) { body = txt.slice(0, MAX_BODY_CHARS); contentIndexed++; }
+        }
       }
       pending.push({ path: norm, name, ext, folder, body, mtime, size: st.size });
       indexed++;
@@ -208,7 +239,10 @@ function main() {
     return;
   }
   const roots = [];
-  for (let i = 0; i < argv.length; i += 1) if (argv[i] === '--root' && argv[i + 1]) roots.push(argv[++i]);
+  for (let i = 0; i < argv.length; i += 1) {
+    if (argv[i] === '--root' && argv[i + 1]) roots.push(argv[++i]);
+    else if (argv[i] === '--names-root' && argv[i + 1]) roots.push({ path: argv[++i], namesOnly: true });
+  }
   const out = indexRun({ full: argv.includes('--full'), cliRoots: roots });
   process.stdout.write(JSON.stringify(out, null, 2) + '\n');
   process.exitCode = out.ok ? 0 : 1;
