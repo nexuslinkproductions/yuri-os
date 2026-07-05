@@ -97,6 +97,11 @@ export function verifyGitStatus(claim, { gitRunner = defaultGitRunner, fsExists 
   const file = claim?._source?.filePath;
   if (!file) return noEv('git_status', 'no sha in statement + no source file');
   if (!fsExists(file)) return noEv('git_status', `source file absent: ${file}`);
+  // gitignored files are local-only by design (e.g. .claude/memory/*.md) — their git state (UNTRACKED)
+  // is the intended state, not staleness. Return no_evidence so they don't inflate the stale count.
+  if (gitRunner(['check-ignore', file]).stdout.trim()) {
+    return noEv('git_status', 'source file is gitignored (local-only by design — not a git-state claim)');
+  }
   const tracked = gitRunner(['ls-files', '--error-unmatch', '--', file]).ok;
   const dirty = gitRunner(['status', '--short', '--', file]).stdout.trim();
   let actual;

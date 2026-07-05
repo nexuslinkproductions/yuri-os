@@ -24,11 +24,14 @@ export async function sweep(opts = {}) {
     const heal = await healAll(opts);
     const results = Array.isArray(heal.results) ? heal.results : [];
     const total = results.length;
-    const verified = results.filter(r => r.match === true).length;
-    const stale = results.filter(r => r.match === false).length;
+    const verified = results.filter(r => r.match === true).length;            // healthy
+    const stale = results.filter(r => r.match === false).length;              // the review set
+    const unverified = results.filter(r => r.match === null).length;          // no_evidence
     const wouldHeal = (heal.healed || []).filter(h => h.dryRun).length;
     const healedActual = (heal.healed || []).filter(h => h.healed).length;
-    const surfaced = (heal.skipped || []).length;
+    // surfaced = stale-but-NOT-healed (the genuine human-review candidates), NOT all-non-healed
+    // (which used to inflate the count with healthy + unverified claims).
+    const surfaced = Math.max(0, stale - wouldHeal - healedActual);
     const skippedByReason = {};
     for (const s of (heal.skipped || [])) {
       const key = String(s.reason || 'unknown').split(' ')[0];   // bucket by leading word (floor/pinned/negated/...)
@@ -38,11 +41,11 @@ export async function sweep(opts = {}) {
       .filter(r => r.match === false)
       .slice(0, 5)
       .map(r => ({ claimId: r.id || r.claimId, verifier: r.verifier, evidence: (r.evidence || [])[0] || '' }));
-    return { ok: true, armed, totalClaims: total, verified, stale, wouldHeal, healed: healedActual, surfaced, skippedByReason, topStale };
+    return { ok: true, armed, totalClaims: total, healthy: verified, unverified, stale, wouldHeal, healed: healedActual, surfaced, skippedByReason, topStale };
   } catch (e) {
     // SESSIONSTART CONTRACT — degrade, never throw. A broken conscience must not block the session.
     return { ok: false, armed, error: String(e?.message || e).slice(0, 160),
-             totalClaims: 0, verified: 0, stale: 0, wouldHeal: 0, healed: 0, surfaced: 0, skippedByReason: {}, topStale: [] };
+             totalClaims: 0, healthy: 0, unverified: 0, stale: 0, wouldHeal: 0, healed: 0, surfaced: 0, skippedByReason: {}, topStale: [] };
   }
 }
 
@@ -51,7 +54,7 @@ export function formatSummary(s) {
   if (!s || !s.ok) return `staleness: sweep unavailable${s?.error ? ` (${s.error})` : ''}`;
   const parts = [`staleness: ${s.stale} stale`];
   parts.push(s.armed ? `${s.healed} healed` : `${s.wouldHeal} would-heal`);
-  parts.push(`${s.surfaced} surfaced`);
+  parts.push(`${s.surfaced} need-review`);
   parts.push(`(of ${s.totalClaims})`);
   return parts.join(' / ');
 }
@@ -61,12 +64,10 @@ const IS_MAIN = process.argv[1] && path.resolve(process.argv[1]) === new URL(imp
 if (IS_MAIN) {
   const json = process.argv.includes('--json');
   const brief = process.argv.includes('--brief');
-  const armRequested = process.argv.includes('--arm');
-  const armed = armRequested && isHealArmed();
-  if (armRequested && !armed) {
-    console.error('claim-conscience: --arm requested but YURI_CLAIM_HEAL_ARMED=1 not set (arming is owner-gated).');
-    console.error('  Running DRY-RUN sweep instead.');
-  }
+  // armed = the persistent flag (YURI_CLAIM_HEAL_ARMED / claim-heal.enabled) OR a per-invocation --arm.
+  // The SessionStart hook runs `--brief` (no --arm) → it heals iff the owner has armed the flag.
+  // Consistent with claim-heal.mjs (arm || isHealArmed).
+  const armed = process.argv.includes('--arm') || isHealArmed();
   sweep({ armed, ledger: DEFAULTS.ledger, registry: DEFAULTS.registry }).then(s => {
     if (json) console.log(JSON.stringify(s));
     else {

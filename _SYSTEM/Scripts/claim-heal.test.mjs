@@ -160,6 +160,20 @@ test('guard 4 — undoLastJournalEntry restores the original line + appends reve
   } finally { h.cleanup(); }
 });
 
+// ── scope guard (S5): heal only .md prose; refuse test fixtures / source / config ──────────────
+test('scope — a claim sourced from a .mjs test fixture is refused (.md prose only)', () => {
+  const h = harness();
+  try {
+    const testFile = path.join(h.dir, 'foo.test.mjs');
+    fs.writeFileSync(testFile, "const s = 'Status: UNCOMMITTED.';\n");
+    const claim = { ...h.claim, _source: { filePath: testFile, statement: "const s = 'Status: UNCOMMITTED.';" } };
+    const r = healOne(claim, h.result, { armed: true, journalPath: h.journalPath, registry: h.registry });
+    assert.equal(r.healed, false);
+    assert.match(r.reason, /non-prose surface|scope/);
+    assert.deepEqual(readJournal(h.journalPath), []);
+  } finally { h.cleanup(); }
+});
+
 // ── guard 5: sentence-form proposedFix → refuse (would mangle prose) ───────────────────────────
 test('guard 5 — a sentence-form proposedFix is refused (token-swap would mangle prose)', () => {
   const h = harness({ proposedFix: 'model superseded (check routing for current)' });

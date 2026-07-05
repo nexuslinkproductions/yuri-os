@@ -116,6 +116,17 @@ test('verifyGitStatus (file-level): tracked + clean → COMMITTED match', () => 
   assert.equal(r.verifiedStatus, 'COMMITTED');
 });
 
+test('verifyGitStatus (file-level): gitignored source file → no_evidence (not staleness)', () => {
+  // a gitignored file (e.g. .claude/memory/*.md) is local-only by design — UNTRACKED is intended,
+  // not stale. The verifier must not flag it.
+  const r = verifyGitStatus(
+    { claimedStatus: 'COMMITTED', _source: { filePath: FAKE_FILE, statement: 'no sha here' } },
+    { gitRunner: gitReturning({ 'check-ignore': FAKE_FILE + '\n', 'ls-files': 'ok', 'status --short': '' }), fsExists: () => true }
+  );
+  assert.equal(r.match, null);
+  assert.match(r.evidence[0], /gitignored/i);
+});
+
 test('verifyGitStatus: no sha + no file → no_evidence', () => {
   const r = verifyGitStatus({ claimedStatus: 'UNCOMMITTED', _source: { statement: 'merge uncommitted' } }, { gitRunner: () => ({ ok: false, stdout: '' }) });
   assert.equal(r.match, null);

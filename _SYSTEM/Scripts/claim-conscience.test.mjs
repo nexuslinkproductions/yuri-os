@@ -88,7 +88,7 @@ test('formatSummary: compact dry-run line', async () => {
     const line = formatSummary(s);
     assert.match(line, /staleness: 2 stale/);
     assert.match(line, /1 would-heal/);
-    assert.match(line, /1 surfaced/);
+    assert.match(line, /1 need-review/);
     assert.match(line, /of 2/);
   } finally { h.cleanup(); }
 });

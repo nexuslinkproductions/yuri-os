@@ -151,6 +151,12 @@ export function healOne(claim, result, opts = {}) {
   if (!filePath) return skip('no source.filePath');
   if (!statement) return skip('no source.statement');
 
+  // scope guard (S5): heal only PROSE surfaces (.md — memory/docs/research/skills/plans). Test
+  // fixtures / source code / config are NOT heal targets even if the extractor pulled a claim from
+  // them — healing a .mjs test fixture corrupts it. Tight scope now; widen only if a real prose
+  // surface type emerges (none today).
+  if (!/\.md$/i.test(filePath)) return skip('non-prose surface (scope: .md only)');
+
   // guard (3) — pinned exempt
   const reg = opts.registry ?? loadRegistry({});
   if (isPinned(reg, claimId)) return skip('pinned (owner-locked — surface only)');
