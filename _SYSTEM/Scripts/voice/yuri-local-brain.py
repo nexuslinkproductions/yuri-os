@@ -122,10 +122,27 @@ TOOLS = [{
     },
 }]
 
-# Jeffrey mode offers NO tools yet — spawn_worker's bash/tmux helper is macOS-only and would fail on
-# Windows; app-control is the roadmap. Marcel keeps the full TOOLS set. Grow this once a real Windows
-# control tool lands.
-TOOLS_ACTIVE = [] if _JEFFREY else TOOLS
+# Jeffrey's tools (Windows-safe, read-only): search René's OWN local files so he knows what's on the
+# machine (his second brain). spawn_worker stays Marcel-only (its bash/tmux helper is macOS). Full
+# voice-driven app-control is still roadmap.
+JEFFREY_TOOLS = [{
+    "type": "function",
+    "function": {
+        "name": "search_files",
+        "description": ("Search René's OWN local files — CGS CAD / holster designs, laser projects, blocking "
+                        "SVGs, business docs — by keyword. Call this when he asks what he has, whether a "
+                        "design/product/document exists, or to find a file (e.g. 'do I have a Glock 17 TLR-1 "
+                        "design?'). Returns matching file names + paths. Read-only, on-device."),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Keywords, e.g. 'glock 17 tlr1' or 'kydex black' or 'p320 blocking'."}
+            },
+            "required": ["query"],
+        },
+    },
+}]
+TOOLS_ACTIVE = JEFFREY_TOOLS if _JEFFREY else TOOLS
 
 
 def _strip_think(t: str) -> str:
@@ -176,6 +193,21 @@ def _exec_tool(name, args):
             return f"worker '{WORKER_NAME}' terminal is opening" + (f" with task: {task}" if task else "")
         except Exception as e:
             return f"failed to open worker: {str(e)[:60]}"
+    if name == "search_files":
+        q = ((args or {}).get("query") or "").strip()
+        if not q:
+            return "no search query given"
+        try:
+            idx = os.path.join(os.path.dirname(__file__), "..", "jeffrey-file-index.mjs")
+            out = subprocess.run(["node", idx, "--query", q, "--limit", "8"],
+                                 capture_output=True, text=True, timeout=30)
+            data = json.loads(out.stdout or "{}")
+            hits = data.get("hits", [])
+            if not hits:
+                return f"No local files matched '{q}'."
+            return "Found these local files:\n" + "\n".join(f"- {h['name']}  ({h['path']})" for h in hits[:8])
+        except Exception as e:
+            return f"file search failed: {str(e)[:80]}"
     return f"unknown tool: {name}"
 
 

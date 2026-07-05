@@ -387,6 +387,9 @@ _SYSTEM/state/energy-enforce.enabled
 secrets.env
 *.secrets
 
+# Etsy Open API v3 integration — keystring/secret, OAuth tokens, pulled shop data (secrets + private; never commit)
+_SYSTEM/state/etsy/
+
 # arch-graph-watch runtime state (regenerates; not golden)
 _SYSTEM/state/arch-graph-watch-state.json
 
@@ -448,3 +451,6 @@ _SYSTEM/state/overseer/
 .claude/settings.json.bak-*
 .claude/hooks/.claude/
 .claude/projects
+
+# Jeffrey local file index — René's personal/customer data, NEVER commit (Rule B)
+_SYSTEM/state/jeffrey/
