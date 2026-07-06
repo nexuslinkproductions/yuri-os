@@ -267,6 +267,81 @@ export function applyAffinityMatrix(role, target, opts = {}) {
 }
 
 /**
+ * Affinity substrate name → concrete candidate {substrate, lane}. The candidate
+ * builder emits these from llm-affinity-matrix.json preferred/fallback. Substrate
+ * strings match the fleet-router-mlp.mjs encoder vocabulary (substring-matched:
+ * 'glm-max'↦glm, 'ollama-flash'↦ollama+flash) so the candidate builder and the
+ * encoder agree on substrate names.
+ */
+const SUBSTRATE_CANDIDATE = Object.freeze({
+  'glm-max':        { substrate: 'glm-max', lane: 'glm-max' },
+  'glm':            { substrate: 'glm', lane: 'glm' },
+  'glm-turbo':      { substrate: 'glm-turbo', lane: 'glm-turbo' },
+  'tmux-zai':       { substrate: 'tmux-zai', lane: 'glm-max' },
+  'ollama-flash':   { substrate: 'ollama-flash', lane: 'ollama-flash' },
+  'ollama-minimax': { substrate: 'ollama-minimax', lane: 'ollama-minimax' },
+  'native':         { substrate: 'native', lane: 'sonnet' },
+  'cline':          { substrate: 'cline', lane: 'glm-5.2' },
+  'cursor':         { substrate: 'cursor', lane: 'sonnet' },
+});
+
+// Within-substrate steering whitelist: the confidence-gated override may move a node to a
+// different TIER inside its own substrate family, never ACROSS families. A glm leaf dispatched
+// through glmFleet cannot run on a native lane; a native spec cannot run through glmFleet — so a
+// router suggestion whose substrate falls outside the node's family is rejected (steering skipped,
+// routerSteered stays false). Substrate values mirror SUBSTRATE_CANDIDATE above.
+const STEER_FAMILY = Object.freeze({
+  glm: new Set(['glm', 'glm-max', 'glm-turbo', 'tmux-zai', 'glm-flash', 'glm-flashx', 'glm-sub-orch']),
+  native: new Set(['native', 'cursor']),
+});
+
+/**
+ * Build MLP-router candidates for a leaf/spec from the affinity matrix.
+ * Emits the deterministic primary (safety net, first) + the role's affinity
+ * preferred/fallback substrates + a few universal defaults, deduped by substrate.
+ * Pure + defensive: a missing matrix yields primary + defaults only.
+ */
+// Dedicated affinity loader. applyAffinityMatrix's own cache load references bare join/dirname
+// (not imported — ReferenceError swallowed by its try/catch, so its cache stays empty). The
+// candidate builder therefore reads llm-affinity-matrix.json itself via HERE + path.join, cached
+// after first successful load.
+let _routerAffinityCache = null;
+function loadRouterAffinity() {
+  if (_routerAffinityCache) return _routerAffinityCache;
+  try {
+    const matrixPath = path.join(HERE, '..', 'config', 'llm-affinity-matrix.json');
+    _routerAffinityCache = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
+  } catch {
+    _routerAffinityCache = { affinities: {} };
+  }
+  return _routerAffinityCache;
+}
+
+export function buildRouterCandidates(roleId, baseId, primary = {}) {
+  const aff = (loadRouterAffinity().affinities || {})[roleId] || {};
+  const seen = new Set();
+  const picks = [];
+  const push = (idSuffix, substrate, lane) => {
+    if (!substrate || seen.has(substrate)) return;
+    seen.add(substrate);
+    picks.push({ id: `${baseId}${idSuffix}`, substrate, lane, role: roleId });
+  };
+  // Safety-net primary: the deterministic dispatch the plan already chose.
+  push('', primary.substrate || 'glm', primary.lane || 'glm');
+  // Affinity-aware: preferred + fallback from llm-affinity-matrix.json.
+  for (const name of [aff.preferred, aff.fallback]) {
+    const c = SUBSTRATE_CANDIDATE[name];
+    if (c) push(`-${name}`, c.substrate, c.lane);
+  }
+  // Universal defaults so the router always has a cheap + native option.
+  for (const name of ['ollama-flash', 'native', 'cline']) {
+    const c = SUBSTRATE_CANDIDATE[name];
+    if (c) push(`-${name}`, c.substrate, c.lane);
+  }
+  return picks;
+}
+
+/**
  * Intent-verb → roster capability-term map. Every RHS term is an EXACT capability string authored in
  * fleet-roles.json (84 unique terms) — this is what makes matchRolesByCapability cast the intended role
  * rather than silently collapsing to the engineer default (D-8). Keyed by the words an owner/job actually
@@ -480,56 +555,80 @@ export async function planCompany(task = {}, opts = {}) {
     held: held.length, clearedHeld: clearedHeld.length,
   };
 
-  // === MLP Router integration point (advisory) ===
-  // Does not change dispatch. Attaches routerSuggestion + confidence to leaves/specs for logging & later training.
-  // Real call to predictRoute lives here so every plan sees the learned policy.
-  // D-16 fix: `plan` does not exist yet at this point in the function (it is constructed at the return
-  // statement below) — referencing `plan.mlpCounterfactualShadow` here threw a ReferenceError on every call,
-  // silently swallowed by the catch below, so the shadow record never populated. Compute it into a local
-  // (`mlpCounterfactualShadow`) instead and attach it to the returned plan object at construction time.
+  // === MLP Router integration point (advisory, confidence-gated steering) ===
+  // Attaches routerSuggestion + confidence to every leaf/spec. ABOVE the steering threshold the
+  // router's best candidate overrides the deterministic dispatch lane (routerSteered=true); below
+  // it the deterministic lane is kept (routerSteered=false). Steering is further CONSTRAINED to the
+  // node's substrate family (STEER_FAMILY): a glm leaf may only move to another glm tier, a native
+  // spec only to another native model — never across families. The threshold defaults to τ=0.60 per
+  // the opus-fleet v2 research (02_RESOURCES/RESEARCH/opus-fleet-v2-moe-routing-research-2026-07-06.md
+  // §3): the MLP router currently DIVERGES (training error rises across epochs; held-out Brier 0.163
+  // on N=86), so its confidence scores are not trustworthy below this floor — do not let an
+  // uncalibrated margin override a sound declarative affinity. DISARMED-safe: it only mutates the
+  // plan object; nothing dispatches unless MURE is armed. Override: opts.steerThreshold or
+  // YURI_MLP_STEER_THRESHOLD.
+  // D-16 fix: `plan` does not exist yet at this point in the function (it is constructed at the
+  // return statement below) — referencing `plan.mlpCounterfactualShadow` here threw a ReferenceError
+  // on every call, silently swallowed by the catch below. Compute it into a local instead and attach
+  // it to the returned plan object at construction time.
+  const steerThreshold = Number.isFinite(Number(opts.steerThreshold))
+    ? Number(opts.steerThreshold)
+    : (Number.isFinite(Number(process.env.YURI_MLP_STEER_THRESHOLD))
+      ? Number(process.env.YURI_MLP_STEER_THRESHOLD)
+      : 0.6);
+  // Initialize router accounting on every dispatchable node so the plan always carries it — even
+  // when the router module is absent or fails. Required for DISARMED dry-run visibility.
+  for (const leaf of glmLeaves) leaf.routerSteered = false;
+  for (const spec of nativeSpecs) spec.routerSteered = false;
   let mlpCounterfactualShadow;
   try {
     // dynamic so we don't hard-fail if the module is missing during early dev
     const routerMod = await import('../Scripts/fleet-router-mlp.mjs').catch(() => null);
     if (routerMod?.predictRoute && routerMod?.extractFeatures) {
       const ctx = { quotaPressure: opts.quotaPressure ?? 0.4 };
-      const defaultCandidates = (leaf) => [
-        { id: leaf.id, substrate: 'glm', lane: leaf.lane || 'glm', role: leaf.role },
-        { id: `${leaf.id}-native`, substrate: 'native', lane: 'sonnet', role: leaf.role },
-        { id: `${leaf.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: leaf.role },
-        { id: `${leaf.id}-cline`, substrate: 'cline', lane: 'glm-5.2', role: leaf.role },
-      ];
+      // Confidence-gated steering: above threshold, adopt the router's best candidate (lane +
+      // substrateHint); below, keep the deterministic dispatch. Reversible — only mutates the plan.
+      const applySteering = (node, suggestion, family) => {
+        const allow = STEER_FAMILY[family];
+        if (suggestion?.best && Number(suggestion.confidence) >= steerThreshold
+          && allow && allow.has(suggestion.best.substrate)) {
+          node.lane = suggestion.best.lane;
+          node.substrateHint = suggestion.best.substrate;
+          node.routerSteered = true;
+        }
+      };
       for (const leaf of glmLeaves) {
         const feats = routerMod.extractFeatures({ ...leaf, role: leaf.role, prompt: leaf.prompt }, ctx);
-        const suggestion = await routerMod.predictRoute(feats, defaultCandidates(leaf));
+        const candidates = buildRouterCandidates(leaf.role, leaf.id, { substrate: 'glm', lane: leaf.lane || 'glm' });
+        const suggestion = await routerMod.predictRoute(feats, candidates);
         leaf.routerSuggestion = suggestion.best;
         leaf.routerConfidence = suggestion.confidence;
         leaf.routerRanked = suggestion.ranked;
+        applySteering(leaf, suggestion, 'glm');
       }
       for (const spec of nativeSpecs) {
         const feats = routerMod.extractFeatures({ ...spec, role: spec.role, prompt: spec.prompt }, ctx);
-        const suggestion = await routerMod.predictRoute(feats, [
-          { id: spec.id, substrate: 'native', lane: spec.model || 'sonnet', role: spec.role },
-          { id: `${spec.id}-glm`, substrate: 'glm', lane: 'glm-max', role: spec.role },
-          { id: `${spec.id}-ollama`, substrate: 'ollama', lane: 'ollama-flash', role: spec.role },
-          { id: `${spec.id}-cline`, substrate: 'cline', lane: 'glm-5.2', role: spec.role },
-        ]);
+        const candidates = buildRouterCandidates(spec.role, spec.id, { substrate: 'native', lane: spec.model || 'sonnet' });
+        const suggestion = await routerMod.predictRoute(feats, candidates);
         spec.routerSuggestion = suggestion.best;
         spec.routerConfidence = suggestion.confidence;
         spec.routerRanked = suggestion.ranked;
+        applySteering(spec, suggestion, 'native');
       }
       mlpCounterfactualShadow = recordMlpCounterfactualShadow({ glmLeaves, nativeSpecs }, ctx);
     }
   } catch (e) {
     // router is best-effort
   }
+  const routerSteeredCount = [...glmLeaves, ...nativeSpecs].filter((l) => l.routerSteered).length;
+  summary.routerSteeredCount = routerSteeredCount;
 
   const ollamaEligible = [...glmLeaves, ...nativeSpecs]
     .filter((l) => ['scout', 'artificer', 'archivist', 'chronicler', 'envoy'].includes(l.role)
       || l.dispatch === 'ollama-sidecar'
       || l.affinityApplied === 'ollama-flash'
       || l.affinityApplied === 'ollama-minimax'
-      || l.routerSuggestion?.substrate === 'ollama')
+      || String(l.routerSuggestion?.substrate || '').startsWith('ollama'))
     .map((l) => ({ id: l.id, role: l.role, lane: l.lane || l.model || 'ollama-flash' }));
 
   // Use shared buildOllamaSidecar from runFleet.mjs for consistent sidecar metadata
@@ -621,7 +720,7 @@ export async function planCompany(task = {}, opts = {}) {
     }
   }
 
-  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, independenceViolations, ollamaSidecar, clineSidecar, zaiSidecar, heldRulingsSource: rulings.source, mlpCounterfactualShadow };
+  return { name: MURE_NAME, valid: validation.ok, roleCount: validation.roleCount, casts, glmLeaves, nativeSpecs, inlineSpecs, held, clearedHeld, summary, independenceViolations, ollamaSidecar, clineSidecar, zaiSidecar, heldRulingsSource: rulings.source, mlpCounterfactualShadow, routerSteeredCount };
 }
 
 /**

@@ -34,7 +34,7 @@ describe('fleet-mlp-feedback', () => {
 
   it('shouldPersistMlp false by default (dry-run)', () => {
     assert.equal(shouldPersistMlp({ dryRun: true }), false);
-    assert.equal(shouldPersistMlp({ dryRun: false }), false);
+    assert.equal(shouldPersistMlp({ dryRun: false, persist: false }), false);
   });
 
   it('shouldPersistMlp true when persist flag set', () => {

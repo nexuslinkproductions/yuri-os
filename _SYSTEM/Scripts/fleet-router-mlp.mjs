@@ -56,22 +56,46 @@ export const NUM_FEATURES = FEATURE_NAMES.length;
 
 const HIDDEN_SIZE = 8;
 
+// He/Kaiming-uniform input-layer scale: a = sqrt(6 / fan_in). Wider than the old
+// 0.8 Xavier-ish range so pre-activations carry enough variance to keep ReLU
+// units alive instead of collapsing to a permanent 0 (dead-ReLU gradient stall).
+const HE_SCALE = Math.sqrt(6 / NUM_FEATURES);
+
 function initWeights() {
-  // Xavier-ish init with small random values for cold start.
+  // He/Kaiming-uniform init with a small POSITIVE hidden bias so ReLU units
+  // start active. The old (rng()-0.5)*0.2 bias landed ~half negative; with
+  // sparse binary features the pre-activation then stayed ≤0 → hidden[j]=0
+  // → delta=0 → no update → flat training error. Positive bias + He scaling
+  // keeps the gradient flowing from epoch 1.
   const rng = mulberry32(0xC0FFEE);
   const w1 = Array.from({ length: NUM_FEATURES }, () =>
-    Array.from({ length: HIDDEN_SIZE }, () => (rng() - 0.5) * 0.8)
+    Array.from({ length: HIDDEN_SIZE }, () => (rng() - 0.5) * 2 * HE_SCALE)
   );
-  const b1 = Array.from({ length: HIDDEN_SIZE }, () => (rng() - 0.5) * 0.2);
-  const w2 = Array.from({ length: HIDDEN_SIZE }, () => (rng() - 0.5) * 0.8);
+  const b1 = Array.from({ length: HIDDEN_SIZE }, () => rng() * 0.25); // [0, 0.25) positive
+  const w2 = Array.from({ length: HIDDEN_SIZE }, () => (rng() - 0.5) * 2 * HE_SCALE);
   const b2 = (rng() - 0.5) * 0.2;
 
-  return { w1, b1, w2, b2, version: 1 };
+  return { w1, b1, w2, b2, version: 2 };
 }
 
 let _weights = null;
 
+// Dry-run (advisory) weight accumulator. In persist=false mode each call used
+// to clone fresh singleton weights, update the throwaway clone, and discard it
+// — so multi-epoch dry training never accumulated and the error stayed
+// perfectly flat (the root cause of the 0.2793×4 baseline). This scratch copy
+// persists across calls within a process so dry runs actually learn. It seeds
+// from the current singleton on first use; set back to null to reseed.
+let _scratchWeights = null;
+
 export async function loadWeights() {
+  // During a dry/advisory training run the evolving weights live in the scratch
+  // accumulator (_scratchWeights). Surface those so held-out eval and any
+  // in-process inspection reflects the trained state rather than the unmodified
+  // on-disk singleton — otherwise a --dry run reports a stale Brier that ignores
+  // the training that just happened. Safe: the router is advisory + disarmed, and
+  // scratch is only set by dry updateFromOutcome calls within this process.
+  if (_scratchWeights) return _scratchWeights;
   if (_weights) return _weights;
   try {
     const { readFileSync } = await import('node:fs');
@@ -115,6 +139,18 @@ function dot(a, b) {
   let s = 0;
   for (let i = 0; i < a.length; i++) s += a[i] * b[i];
   return s;
+}
+
+// Numerically stable logistic sigmoid. Maps the raw MLP score to a (0,1)
+// probability so the training residual stays bounded in [-1,1] (matching the
+// [0,1] target) instead of growing unbounded on the raw linear output.
+function sigmoid(x) {
+  if (x >= 0) {
+    const z = Math.exp(-x);
+    return 1 / (1 + z);
+  }
+  const z = Math.exp(x);
+  return z / (1 + z);
 }
 
 // Exported for held-out eval Brier computation (train-fleet-router-from-ledger.mjs).
@@ -229,14 +265,51 @@ export async function predictRoute(features, candidates = [], opts = {}) {
   };
 }
 
-// Very small option encoding (can be expanded)
+// ---------------------------------------------------------------------------
+// Substrate vocabulary (shared with the candidate builder in company.mjs).
+// Near-equivalents are grouped into one bucket each, keeping the conditioning
+// vector compact (≤ NUM_FEATURES) instead of 12+ sparse one-hot dimensions.
+// Index order is stable and load-bearing: encodeOption[i] ↔ SUBSTRATE_BUCKETS[i].
+export const SUBSTRATE_BUCKETS = [
+  'native',            // omp_task — primary OMP worker substrate
+  'glm-heavy',         // glm-max, tmux-zai, cline (all run glm-5.2) — orchestrator-peer / architecture
+  'glm-workhorse',     // glm, glm_fleet (umbrella) — code-gen / refactor workhorse
+  'glm-fast',          // glm-flash, glm-turbo — fast bulk / reactive
+  'ollama-flash',      // ollama-flash, ollama_cloud (umbrella) — default bulk
+  'ollama-specialist', // ollama-minimax — specialist tier
+  'mimo',              // mimo substrates (Anthropic-protocol)
+  'cursor',            // cursor substrate
+];
+
+// Map a candidate's raw substrate (+lane, where the specific tier usually
+// lives) onto one canonical bucket. Robust to both umbrella names (glm_fleet,
+// ollama_cloud) and explicit sub-lanes (glm-max, tmux-zai, ollama-minimax).
+function classifySubstrate(substrate, lane) {
+  const s = String(substrate || '').toLowerCase();
+  const l = String(lane || '').toLowerCase();
+  const combined = `${s} ${l}`;
+  if (s === 'omp_task' || s.includes('native') || s === 'omp') return 'native';
+  if (combined.includes('glm-max') || combined.includes('tmux-zai') || combined.includes('cline') || combined.includes('glm-5.2') || combined.includes('glm-heavy')) return 'glm-heavy';
+  if (combined.includes('glm-flash') || combined.includes('glm-turbo')) return 'glm-fast';
+  if (combined.includes('glm')) return 'glm-workhorse';
+  if (combined.includes('minimax')) return 'ollama-specialist';
+  if (combined.includes('ollama')) return 'ollama-flash';
+  if (s.includes('mimo')) return 'mimo';
+  if (s.includes('cursor')) return 'cursor';
+  return 'native';
+}
+
+// One-hot option encoding over the full substrate vocabulary. Returns a
+// SUBSTRATE_BUCKETS.length vector with a single 1 at the matched bucket.
+// Feeds the conditioning blend in predictRoute (optionVec.length ≤ NUM_FEATURES).
 function encodeOption(c) {
-  const sub = (c.substrate || c.target?.substrate || '').toLowerCase();
-  return [
-    sub.includes('native') ? 1 : 0,
-    sub.includes('glm') ? 1 : 0,
-    sub.includes('ollama') ? 1 : 0,
-  ];
+  const sub = c.substrate || c.target?.substrate || '';
+  const lane = c.lane || c.target?.lane || '';
+  const bucket = classifySubstrate(sub, lane);
+  const vec = new Array(SUBSTRATE_BUCKETS.length).fill(0);
+  const idx = SUBSTRATE_BUCKETS.indexOf(bucket);
+  if (idx >= 0) vec[idx] = 1;
+  return vec;
 }
 
 // ---------------------------------------------------------------------------
@@ -246,33 +319,64 @@ export async function updateFromOutcome(features, decision, outcome, opts = {}) 
   // outcome example:
   // { success: 0|1, quality: 0-1, cost: number, timeMs: number, converged: bool }
   //
-  // When persist === false (advisory / dry-run), operate on a deep copy so the
-  // in-memory singleton (_weights) is NOT mutated. Real outcomes are deferred to
-  // ledger ingest (train-fleet-router-from-ledger.mjs) which calls with persist:true.
+  // When persist === true, mutate the live singleton directly. When false
+  // (advisory / dry-run), accumulate into the module-level scratch copy so
+  // consecutive calls (multi-epoch training) build on each other instead of
+  // re-cloning the unchanged singleton every time and discarding the update —
+  // that throwaway-clone behaviour was the root cause of the flat-training bug
+  // (every epoch recomputed identical pre-update errors on the same weights).
   const persist = opts.persist !== false;
   const liveWeights = await loadWeights();
-  const w = persist ? liveWeights : structuredClone(liveWeights);
+  let w;
+  if (persist) {
+    w = liveWeights;
+  } else {
+    if (!_scratchWeights) _scratchWeights = structuredClone(liveWeights);
+    w = _scratchWeights;
+  }
   const lr = opts.learningRate ?? 0.02;
+  // L2 weight decay keeps logits bounded so held-out predictions stay
+  // calibrated instead of collapsing to confident-wrong extremes (which
+  // exploded Brier on this small 68-example training set).
+  const decay = opts.weightDecay ?? 0.1;
+  const wd = lr * decay;
 
   const target = (outcome.success ?? (outcome.converged ? 1 : 0)) * (outcome.quality ?? 0.8);
 
   // Forward
   const { score, hidden } = forward(features, w);
 
-  const err = target - score;
+  // Train in probability space: the raw `score` is an unbounded logit while
+  // targets live in [0,1], so a raw residual (target - score) grows large and
+  // pushes weights straight past the target → overshoot → mean|err| climbs
+  // across epochs. Sigmoid-bounding gives a cross-entropy-style gradient
+  // signal bounded in [-1,1] that actually converges. forward() still returns
+  // the raw score (unchanged contract); the squash is training-local.
+  const err = target - sigmoid(score);
 
-  // Output layer
+  // Snapshot w2 BEFORE the output-layer update. The hidden-layer backprop
+  // delta must use PRE-update output weights: feeding the just-mutated w2
+  // into its own gradient is positive feedback (err up across epochs →
+  // divergence). Standard backprop uses the forward-pass weights for both
+  // layers' deltas.
+  const w2Snapshot = w.w2.slice();
+
+  // Output layer (+ L2 decay)
   for (let j = 0; j < HIDDEN_SIZE; j++) {
-    w.w2[j] += lr * err * hidden[j];
+    w.w2[j] = w.w2[j] * (1 - wd) + lr * err * hidden[j];
   }
-  w.b2 += lr * err;
+  w.b2 = w.b2 * (1 - wd) + lr * err;
 
-  // Hidden layer (very rough)
+  // Hidden layer (+ L2 decay); uses the PRE-update w2 snapshot. Clamp the
+  // delta to [-1,1] as a cheap safety net against outlier-driven blowups
+  // (err and w2Snapshot[j] are each individually bounded, but their product
+  // can still spike on rare large-magnitude pre-update weights).
   for (let j = 0; j < HIDDEN_SIZE; j++) {
-    const delta = err * w.w2[j] * (hidden[j] > 0 ? 1 : 0);
-    w.b1[j] += lr * delta * 0.5;
+    let delta = err * w2Snapshot[j] * (hidden[j] > 0 ? 1 : 0);
+    if (delta > 1) delta = 1; else if (delta < -1) delta = -1;
+    w.b1[j] = w.b1[j] * (1 - wd) + lr * delta * 0.5;
     for (let i = 0; i < NUM_FEATURES; i++) {
-      w.w1[i][j] += lr * delta * features[i];
+      w.w1[i][j] = w.w1[i][j] * (1 - wd) + lr * delta * features[i];
     }
   }
 
