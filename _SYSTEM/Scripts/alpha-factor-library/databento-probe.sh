@@ -17,11 +17,19 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_PY="$HOME/.venvs/nautilus-v2/bin/python"
 KEY_FILE="$HERE/databento.secrets"
+KEYCHAIN="$HERE/../yuri-keychain.mjs"   # _SYSTEM/Scripts/yuri-keychain.mjs
 
-# Persistent path: source the gitignored key file if present and env not already set.
-if [[ -z "${DATABENTO_API_KEY:-}" && -f "$KEY_FILE" ]]; then
-  set -a; # shellcheck disable=SC1090
-  source "$KEY_FILE"; set +a
+# Resolve DATABENTO_API_KEY, most-secure source first, only if not already in env:
+#   1) macOS Keychain (YURI-canonical: YURI_OS_MUSUBI:DATABENTO_API_KEY)  <- primary, cross-lane
+#   2) gitignored databento.secrets file  <- fallback (headless / keychain-unavailable)
+if [[ -z "${DATABENTO_API_KEY:-}" ]]; then
+  if k="$(node "$KEYCHAIN" get DATABENTO_API_KEY 2>/dev/null)" && [[ -n "$k" ]]; then
+    export DATABENTO_API_KEY="$k"
+  elif [[ -f "$KEY_FILE" ]]; then
+    set -a; # shellcheck disable=SC1090
+    source "$KEY_FILE"; set +a
+  fi
+  unset k 2>/dev/null || true
 fi
 
 if [[ ! -x "$VENV_PY" ]]; then

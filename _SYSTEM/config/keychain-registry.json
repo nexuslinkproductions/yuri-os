@@ -85,6 +85,11 @@
       "owner": "coinbase",
       "requiredFor": ["observatory-account-view-only"],
       "missing": "optional"
+    },
+    "DATABENTO_API_KEY": {
+      "owner": "databento",
+      "requiredFor": ["orderflow-quant-es-mbp10", "databento-probe"],
+      "missing": "optional"
     }
   }
 }
