@@ -11,7 +11,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/yuri-origin.md` | Canonical operating contract and authority hierarchy. |
 | `SOUL.md` | Persona, cognitive workflow, and collaboration style. |
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
-| `_SYSTEM/context/context-registry.json` | Machine-readable context packet selector. |
+| `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
+| `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md` | Shared Originator entry point for LLMs to use YURI's math, energy, xref, memory, and llm-compat substrate. |
 | `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
@@ -21,7 +22,15 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `.agents/README.md` | Agent assembly layer: agents are recipes, not hidden provider magic. |
 | `skills/README.md` | Canonical root-visible skill library entrypoint. |
 | `skills/skill-index.json` | Machine-readable root skill index. |
-| `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
+| `_SYSTEM/Scripts/llm-compat-contract.mjs` | Lane routing and model contract. |
+| `_SYSTEM/Scripts/xref-query.mjs` | Current xref-first navigation surface across FTS5, circuitry graph, GitNexus, spectrum, and provenance scoring. Defaults to a 200-result request floor; use `--top N`, `--scan N`, or `--all` for thousand-hit recall. |
+| `_SYSTEM/Scripts/yuri-originator.mjs` | Read-only native Originator facade for decode, xref, semantic compile, energy gate, `create_work_substrate`, `candidate_actions`, `launch_substrate`, model-agnostic `worker_exoskeleton`, formulaSlate/formulaTrace, and telemetry. |
+| `_SYSTEM/Scripts/semantic-state-compiler.mjs` | Semantic-to-executable guard that rejects derived metric smuggling before model output reaches `computeU` / `gateProposal`. |
+| `_SYSTEM/Scripts/propagation-scan.mjs` | Read-only propagation-law scan from a circuitry node to structural mechanism siblings. |
+| `_SYSTEM/Scripts/yuri-id-bridge.mjs` | Deterministic cross-surface canonical-id (`surface::localId`) + file-path spine + EXTENDED protected veto. The hinge that joins the circuitry slug graph to code/doc/mem surfaces (the only join is `node.files[]`, many-to-many; slug vs rel:symbol ids share zero overlap). |
+| `_SYSTEM/Scripts/yuri-navigate.mjs` | Deterministic structural navigation/centrality on the id-bridge graph: closed-form integer DEPENDENCY (outgoing closure) + IMPACT (incoming closure / blast radius), opt-in PPR, bounded + protected-vetoed + completeness-honest. Fills the `graph.impact_centrality` formula-card hook + serves the OpenProcess Sum Pool `dependency_centrality`. Registered Originator discoveryTool `yuri_navigate`. |
+| `_SYSTEM/yuri-graph.json` + `_SYSTEM/Scripts/yuri-graph-unify.mjs` | THE canonical graph (single source of truth, tiered: flow + mechanism nodes). The two graph files — `_SYSTEM/yuri-graph-state.json` (flow/arch view) and `02_RESOURCES/RESEARCH/yuri-circuitry-graph.json` (mechanism/die view) — are now LOSSLESS GENERATED PROJECTIONS, NOT separate sources. Workflow: edit `yuri-graph.json`, run `node _SYSTEM/Scripts/yuri-graph-unify.mjs project`, both views (and the die) regenerate. `seed` re-unions, `verify` proves losslessness. Drift structurally impossible. |
+| `_SYSTEM/Scripts/math/formula-foundry.mjs` | Formula Foundry typing core (Core A): `catalogFormulas` (read-view over the 6 banks), `coverageReport` (kernel↔card binding worklist), and the composition type-algebra (`classifyDimension`/`dimensionsCompatible`/`composeCheck`) — deterministic closed-set prose→dimension classification that rejects illegal output→input combinations (bits↛length) before the proof-gate oracle (Core B) runs. Spec: `02_RESOURCES/RESEARCH/yuri-formula-foundry-spec-2026-06-08.md`. Candidate channels (music/frequency/magnetism, research-status only): `02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md`. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 | `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives — the canonical harness script folder. |
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |
@@ -31,7 +40,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/worker-capture-once.mjs` | Delayed live worker pane capture into `_SYSTEM/state/worker-captures/` with Kagami evidence refs. |
 | `_SYSTEM/Scripts/yuri-workcell.mjs` | Workcell orchestration core: DAG validation hard gate via `topologicalSort()`, packet assembly, scope checking, and decomposition builder. |
 | `_SYSTEM/Scripts/yuri-workcell-capture.mjs` | Workcell intake bridge: captures live worker/Prime pane output into `_SYSTEM/state/workcell/<runId>/<role>/` as structured output. |
-| `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md` | Active governed-autonomy sprint plan: baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
+| `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md` | Active governed-autonomy sprint plan: xref preflight, broad recall, baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
 | `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md` | Multi-Sonnet workcell protocol: worker bundles, memory capsules/signals, Rick Prime supercharge, C-137 integration, and commit authorization. |
 | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs` | Dry-run-first autonomy runner that emits baseline-anchored run manifests and optional Kagami events. |
 | `_SYSTEM/Scripts/memory-proposal-autopilot.mjs` | Background-capable memory proposal processor: reviews pending proposals, records keep/rewrite/reject/defer decisions, and optionally commits/pushes scoped source/docs changes. |
@@ -61,7 +70,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp` plus task-scoped generated outputs | Do not read by default. Root generated dumps should be deleted or regenerated through a scoped task. |
 | Generated artifacts | Historical roots such as `graph`, `graphify-out`, `claude-palace-out` | Not source truth and not kept in the root. Regenerate only for graph/report tasks. |
 | External checkouts | `_SYSTEM/tools/gitnexus`, selected `01_PROJECTS/*`, selected `02_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
-| Local model runtimes | `_SYSTEM/tools/needle`, `_SYSTEM/data/models/needle` | Treat as model runtime/data, not generic research. Use through YURI routing/health contracts. |
+| Local model runtimes | Ollama via `_SYSTEM/Scripts/ollama-lane.mjs`, `_SYSTEM/Scripts/ollama-adapter.mjs`, `.claude/config/models.json` | Active routed local policy is `gemma4:12b-it-qat`; retired local identities are compatibility aliases only. |
 | Protected surfaces | `.env`, `backend/data`, `.claude/state`, `.claude/history`, `node_modules` | Never read directly. Use existing wrappers or explicit owner-approved operation. |
 
 ## Canonical Model Read Path
@@ -74,11 +83,12 @@ owner prompt
   -> _SYSTEM/context/README.md
   -> _SYSTEM/context/context-registry.json
   -> _SYSTEM/INDEX.md
+  -> _SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md when the task involves math/energy/xref/LLM bridging
   -> _SYSTEM/config/folder-registry.json
   -> _SYSTEM/config/artifact-registry.json
   -> .agents/README.md
   -> skills/README.md
-  -> selected context packet
+  -> xref-selected registry/context paths
   -> _SYSTEM/yuri-wiki/index.md when curated memory/context is needed
   -> task-specific local context
   -> implementation files
@@ -142,9 +152,13 @@ Agent recipes belong in `.agents/`. Canonical reusable skills belong in `skills/
 
 `_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/config/artifact-registry.json` is the durable artifact implementation. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
 
-## Mathematical Operating Substrate
+## NEXUS CORE / Mathematical Substrate
 
-Math work routes through the `mathematics` context packet. Use `_SYSTEM/research-archive/yuri-math-engine-2026-05/` for research intake and application playbooks, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
+Math work routes through the `mathematics` context packet and xref-first navigation. Use `02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md` as the living dock-on guide, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. The upcoming NEXUS CORE rename should keep code, data, registry, graph, and manual updates in one continuity-law migration. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
+
+## YURI Originator Bridge
+
+LLM platform-switching and shared math/energy/xref entry-point work routes through `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md`, `_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md`, `_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md`, `_SYSTEM/Scripts/yuri-originator.mjs`, `_SYSTEM/Scripts/semantic-state-compiler.mjs`, and the `originator-bridge` context packet. The bridge is the current canonical design for turning raw operator input into an input genome, broad xref recall, formula/mechanism selection, energy/GVF evaluation, llm-compat advisory routing, and local verification. The rapidfire originator handoff extends that design into a native one-port firing mechanism: decode, xref, compact WorkSubstrate creation, CandidateAction generation, formula/theorem synthesis, semantic-to-executable compilation, energy/proof gating, revision, and verified handoff. `launch_substrate` is the current WorkSubstrate lane launcher; local Gemma/Ollama uses the YURI JSON tool-request loop with streaming lane telemetry and configurable tool budgets, while DeepSeek advisory lanes for this surface must use `launch_substrate` or `worker_exoskeleton` with backend `llm-lane`, `_SYSTEM/Scripts/llm-lane.mjs`, or `_SYSTEM/Scripts/llm-compat.sh --model deepseek-v4-pro`. The next memory bridge is the Open Process Sum Pool: started-but-unclosed tasks, research, ideas, todos, skill work, and experiments become xref-grounded `OpenProcess` objects with mathematical open mass, closure evidence, and ranked CandidateActions.
 
 ## Governed Autonomy
 

@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const crypto = require('crypto');
-const { spawn } = require('child_process');
 
-const SESSION_STATE_FILE = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json';
-const SESSION_FILE      = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-session.json';
-const WEEKLY_FILE       = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-weekly.json';
-const TOKEN_LEDGER      = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/token-ledger.mjs';
+const path = require('path');
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const SESSION_STATE_FILE = path.join(REPO_ROOT, '.claude/state/session-state.json');
+const SESSION_FILE      = path.join(REPO_ROOT, '.claude/state/token-session.json');
 
 // ANSI helpers
 const C = {
@@ -128,35 +126,10 @@ function saveSessionTokens(t, cost, modelId, transcriptPath) {
       && t.outputTokens <= (session.outputTokens || 0)
       && delta.inputTokens + delta.outputTokens + delta.cacheWrite + delta.cacheRead === 0
     ) return;
-    if (delta.inputTokens + delta.outputTokens + delta.cacheWrite + delta.cacheRead > 0) {
-      writeLedgerEvent({
-        event_id: `claude-status-${session.sessionId || 'unknown'}-${t.inputTokens}-${t.outputTokens}-${t.cacheWrite}-${t.cacheRead}`,
-        trace_id: `claude-session-${session.sessionId || 'unknown'}`,
-        session_id: String(session.sessionId || ''),
-        source_path: '.claude/hooks/token-status.js',
-        lane: 'yuri-cli',
-        provider: 'anthropic-claude-code',
-        request_model: modelId || 'claude',
-        response_model: modelId || 'claude',
-        operation_type: 'claude_transcript_delta',
-        status: 'ok',
-        measurement_type: 'observed_transcript',
-        input_tokens: delta.inputTokens,
-        output_tokens: delta.outputTokens,
-        cache_write_tokens: delta.cacheWrite,
-        cache_read_tokens: delta.cacheRead,
-        cost_usd: parseFloat(calcCost(delta, modelId).toFixed(6)),
-        accuracy_class: 'exact_transcript',
-        payload_hash: hashString(transcriptPath || ''),
-        metadata: {
-          transcript_path_hash: hashString(transcriptPath || ''),
-          cumulative_input_tokens: t.inputTokens,
-          cumulative_output_tokens: t.outputTokens,
-          cumulative_cache_write_tokens: t.cacheWrite,
-          cumulative_cache_read_tokens: t.cacheRead,
-        }
-      });
-    }
+    // wave-3 (owner directive 2026-06-11): token MONITORING is retired — the
+    // claude_transcript_delta ledger spawn was removed with the tool-logger /
+    // session-end / budget-check hooks. This hook keeps only what the operator
+    // actually uses: the live status bar and session-state context.pct (auto-compact).
     session.inputTokens  = t.inputTokens;
     session.outputTokens = t.outputTokens;
     session.totalTokens  = t.inputTokens + t.outputTokens;
@@ -170,21 +143,6 @@ function saveSessionTokens(t, cost, modelId, transcriptPath) {
     fs.writeFileSync(tmp, JSON.stringify(session, null, 2));
     fs.renameSync(tmp, SESSION_FILE);
   } catch (_) {}
-}
-
-function writeLedgerEvent(event) {
-  try {
-    const child = spawn(process.execPath, [TOKEN_LEDGER, 'write'], {
-      detached: true,
-      stdio: ['pipe', 'ignore', 'ignore'],
-    });
-    child.stdin.end(JSON.stringify(event));
-    child.unref();
-  } catch (_) {}
-}
-
-function hashString(value) {
-  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
 }
 
 try {
@@ -206,12 +164,6 @@ try {
   const tokens = parseTranscript(transcriptPath) || { inputTokens: 0, outputTokens: 0, cacheWrite: 0, cacheRead: 0 };
   const cost   = calcCost(tokens, modelId);
   if (tokens.inputTokens > 0) saveSessionTokens(tokens, cost, modelId, transcriptPath);
-
-  // Weekly totals (past sessions + current)
-  let weekly = null;
-  try { weekly = JSON.parse(fs.readFileSync(WEEKLY_FILE, 'utf8')); } catch (_) {}
-  const weeklyTok  = (weekly?.totalTokens || 0) + tokens.inputTokens + tokens.outputTokens;
-  const weeklyCost = (weekly?.cost || 0) + cost;
 
   // TM flag
   let tmOn = false;
@@ -245,13 +197,9 @@ try {
     tokenSegment = `${C.dim}no tokens yet${C.reset}`;
   }
 
-  // Weekly segment
-  let weeklySegment = '';
-  if (weeklyTok > 500) {
-    const wK   = (weeklyTok / 1000).toFixed(0);
-    const wCost = `$${weeklyCost.toFixed(2)}`;
-    weeklySegment = `${C.dim}W:${wK}k/${wCost}${C.reset}`;
-  }
+  // Weekly segment retired (wave-3, owner directive): the accumulator died with
+  // token-session-end.js — a frozen W: number is worse than none.
+  const weeklySegment = '';
 
   // Git + time
   const branchStr = branch ? `${C.dim}${gitDirty}${branch}${C.reset}` : '';

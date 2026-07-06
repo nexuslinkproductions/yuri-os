@@ -6,7 +6,8 @@ const path = require('path');
 const bus = require('./memory-bus.js');
 const ss = require('./session-state.js');
 
-const MEMORY_FILE = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/design-master/design-memory.json';
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const MEMORY_FILE = path.join(REPO_ROOT, '.claude/skills/design-master/design-memory.json');
 const DESIGN_EXTS = ['.tsx', '.css', '.html', '.scss'];
 
 try {
@@ -36,7 +37,7 @@ try {
 
         // Track file writes
         if (['Edit', 'Write'].includes(toolName) && filePath) {
-            const rel = filePath.replace('/Users/marcelspatz/YURI-OS-MUSUBI/', '');
+            const rel = filePath.replace(REPO_ROOT + '/', '');
             if (!state.files_written.includes(rel)) state.files_written.push(rel);
         }
 
@@ -44,6 +45,22 @@ try {
         if (toolName === 'Read' && filePath) {
             const m = filePath.match(/skills\/([^/]+)\/SKILL\.md$/i);
             if (m && !state.skills_read.includes(m[1])) state.skills_read.push(m[1]);
+        }
+
+        // PATCH (2026-07-04 audit): invoking the Skill TOOL itself was invisible to
+        // checkSkillsFirst (musubi-protocol-enforce.js) — it only counted a Read of a
+        // SKILL.md path, so correct Skill-tool usage was silently undercounted. Handle
+        // both the bare "Skill" tool_name and any namespaced/plugin variant (e.g.
+        // "mcp__.../Skill" or "plugin:skill"). The invoked skill's identifier can arrive
+        // under different tool_input keys depending on caller — check the common ones.
+        if (/(^|[:_])skill$/i.test(toolName) || toolName === 'Skill') {
+            const skillId = event?.tool_input?.skill
+                || event?.tool_input?.name
+                || event?.tool_input?.skill_name
+                || event?.tool_input?.command
+                || 'unknown';
+            const tag = `skill:${skillId}`;
+            if (!state.skills_read.includes(tag)) state.skills_read.push(tag);
         }
 
         // Track skill writes
@@ -70,7 +87,7 @@ try {
         const entry = {
             date: new Date().toISOString().slice(0, 10),
             component: basename,
-            file: filePath.replace('/Users/marcelspatz/YURI-OS-MUSUBI/', ''),
+            file: filePath.replace(REPO_ROOT + '/', ''),
             action: isNew ? 'create' : 'edit',
             decision: isNew ? `New component created: ${basename}` : `Updated: ${basename}`
         };
@@ -86,15 +103,35 @@ try {
         }
     }
 
-    // ── Plan dispatch gate: arm after ExitPlanMode ────────────────────────────
+    // ── Plan gate arm after ExitPlanMode (MUTUAL-EXCLUSION site 1 of 3) ───────
+    // LOAD-BEARING SAFETY INVARIANT: plan_review_mode and the autonomous plan_dispatch_gate
+    // must NEVER both fire on the same ExitPlanMode event. When HITL plan-review mode is ON
+    // we arm `plan_review_gate` (paced by claude-protocol-guard.mjs checkPlanReviewGate) and
+    // DO NOT arm plan_dispatch_gate; when OFF, the autonomous gate arms exactly as before.
+    // The toggle (plan_review_mode) is the single source of truth, read here from the same
+    // session-state the guard reads — so the arm site and the fire sites can never disagree.
     if (toolName === 'ExitPlanMode' && !isError) {
         ss.update(state => {
-            state.plan_dispatch_gate = {
-                armed: true,
-                armed_at: Date.now(),
-                satisfied: false,
-                warn_count: 0,
-            };
+            const reviewModeOn = !!(state.plan_review_mode && state.plan_review_mode.enabled === true);
+            if (reviewModeOn) {
+                // HITL path: arm the review gate, force the autonomous gate OFF.
+                state.plan_review_gate = {
+                    armed: true,
+                    armed_at: Date.now(),
+                    satisfied: false,
+                    warn_count: 0,
+                };
+                if (state.plan_dispatch_gate) state.plan_dispatch_gate.armed = false;
+            } else {
+                // Autonomous path (unchanged behavior): arm the dispatch gate, force review gate OFF.
+                state.plan_dispatch_gate = {
+                    armed: true,
+                    armed_at: Date.now(),
+                    satisfied: false,
+                    warn_count: 0,
+                };
+                if (state.plan_review_gate) state.plan_review_gate.armed = false;
+            }
         });
     }
 

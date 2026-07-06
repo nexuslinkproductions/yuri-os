@@ -93,7 +93,7 @@ NABU answers these questions:
    *Failure modes, fallback procedures, rollback mechanisms, resilience*
 
 7. **How does this serve Marcel's creative work?**
-   *Domain bridge: how does each blueprint apply to video/design/narrative/business?*
+   *Domain bridge: how does each blueprint apply to design/narrative/business?*
 
 ---
 
@@ -114,7 +114,7 @@ Each House is a complete operating domain. Together, they form NABU's empire.
 - 20 enriched blueprint implementations (individual files: `01-blueprint-name.md` through `20-blueprint-name.md`)
 - Integration notes (which blueprints compose well; which conflict)
 - Failure mode catalog (what breaks in each blueprint; how to detect)
-- Creative domain mapping (how each blueprint applies to video, design, narrative, business)
+- Creative domain mapping (how each blueprint applies to design, narrative, business)
 - Esoteric correspondence (which Hermetic principle governs this blueprint)
 - Calibration data (token costs, timeline estimates, real-world results from Marcel's work)
 
@@ -346,15 +346,15 @@ Next: Load Blueprint 12 + Blueprint 7 + Blueprint 15 prompts; review integration
 
 **Core Documents:**
 
-1. **creative-integration.md** — How AI blueprints serve video, design, narrative
-   - Blueprint: GAN Loop → Apply to color grading (generator grades; evaluator checks against reference LUTs)
-   - Blueprint: Distribution Agents → Create content calendar (film clips, behind-the-scenes, tutorials)
-   - Blueprint: Context Engineering → Manage project files (footage → proxies → edit → color → export)
-   - Blueprint: Auto Memory → Capture lighting setups, camera techniques, crew preferences
+1. **creative-integration.md** — How AI blueprints serve design and narrative
+   - Blueprint: GAN Loop → Apply to iterative refinement (generator produces; evaluator checks against reference)
+   - Blueprint: Distribution Agents → Create content calendar (posts, behind-the-scenes, tutorials)
+   - Blueprint: Context Engineering → Manage project files (source assets → working drafts → review → export)
+   - Blueprint: Auto Memory → Capture creative setups, technique notes, collaborator preferences
 
 2. **business-value.md** — Agent → revenue/cost savings mapping
    - If automated triage saves 3 hours/week @ $60/hour = $9,360/year value
-   - If color grading AI reduces manual grading by 20% = 1 day/week freed = $48k/year capacity
+   - If a refinement AI reduces manual rework by 20% = 1 day/week freed = $48k/year capacity
    - If client communication AI reduces email overhead = 2 hours/week freed = $4,800/year
    - Portfolio: which automations pay for themselves? Which are for learning?
 
@@ -368,8 +368,8 @@ Next: Load Blueprint 12 + Blueprint 7 + Blueprint 15 prompts; review integration
    - House of Futures = Chokmah (Wisdom) — creation of new possibilities
 
 4. **human-ai-loops.md** — When humans override AI decisions
-   - Color correction: AI suggests grade; Marcel reviews and refines
-   - Editorial: AI assembles rough cut; editor reviews and restructures
+   - Visual design: AI suggests a treatment; Marcel reviews and refines
+   - Composition: AI assembles a first draft; Marcel reviews and restructures
    - Client communication: AI drafts proposal; Marcel personalizes
    - Protocol: AI generates, human validates (especially for creative decisions)
 
@@ -407,7 +407,7 @@ Next: Load Blueprint 12 + Blueprint 7 + Blueprint 15 prompts; review integration
 5. **ethical-safeguards.md** — Boundary maintenance
    - Who decides what? (human vs. agent authority)
    - Transparency: which decisions are fully autonomous vs. human-in-loop?
-   - Consent: if an agent affects stakeholders (clients, crew), do they know?
+   - Consent: if an agent affects stakeholders (clients, collaborators), do they know?
    - Power: is the system distributing agency fairly, or concentrating it?
    - Regular audit: quarterly review of agent authority and human override patterns
 
@@ -418,7 +418,7 @@ Next: Load Blueprint 12 + Blueprint 7 + Blueprint 15 prompts; review integration
 Each blueprint is fully enriched with:
 - **Core insight:** What buildthisnow taught
 - **NABU enrichment:** What they missed
-- **Creative domain bridge:** How it applies to video/design/narrative
+- **Creative domain bridge:** How it applies to design/narrative
 - **Failure modes:** What breaks; how to detect
 - **Integration hooks:** How this composes with other blueprints
 - **Cost calibration:** Token budget, timeline, ROI
@@ -433,26 +433,26 @@ Each blueprint is fully enriched with:
 ### Communication Pattern
 
 ```
-Marcel asks: "I have 50 hours of raw footage. How do I organize this efficiently?"
+Marcel asks: "I have thousands of project assets. How do I organize this efficiently?"
 
-YURI (identity.md): "You're asking about the CRAFT mode (post-production workflow)"
+YURI (identity.md): "You're asking about the CRAFT mode (asset-organization workflow)"
 
 NABU (routing):
   1. Problem type: Information management + workflow optimization
-  2. Scope: Medium (50 hours is substantial but defined)
+  2. Scope: Medium (the asset set is substantial but defined)
   3. Deadline: Is this blocking other work?
   4. Answer type: Procedure first; optimization second
   
 NABU (blueprint selection):
   → Blueprint 5 (Context Management): Organize files progressively; don't load everything
   → Blueprint 9 (CLAUDE.md Mastery): Create project-specific workflows
-  → Blueprint 3 (Autonomous Swarm): If delegating proxy creation to agent
+  → Blueprint 3 (Autonomous Swarm): If delegating bulk processing to an agent
   → Blueprint 15 (Agent Teams): If managing 3+ simultaneous tasks
   
 NABU (integration):
   "Use Context Management to limit what's loaded. Use CLAUDE.md project rules 
-   for folder structure. If proxy creation is bottleneck, delegate to swarm agent 
-   (Blueprint 3) while you review rough cuts. Cost: $30–50, timeline: 8 hours human work."
+   for folder structure. If bulk processing is the bottleneck, delegate to a swarm agent 
+   (Blueprint 3) while you review the results. Cost: $30–50, timeline: 8 hours human work."
 
 NOESIS (observes):
   - Does Marcel accept the workflow?

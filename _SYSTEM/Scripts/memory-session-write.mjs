@@ -7,7 +7,10 @@ const cwd = process.cwd();
 const sessionsDir = path.join(cwd, '.claude', 'yuri-sentinel', 'learning', 'sessions');
 const governorPy = path.join(cwd, '_SYSTEM', 'OS_KERNEL', 'memory_governor.py');
 
-if (!fs.existsSync(governorPy)) process.exit(0);
+if (!fs.existsSync(governorPy)) {
+  process.stderr.write('[memory-session-write] WARNING: memory_governor.py absent — session memory not persisted\n');
+  process.exit(1);
+}
 
 const date = new Date().toISOString().slice(0, 10);
 const sessionFile = path.join(sessionsDir, `${date}.jsonl`);
@@ -35,6 +38,22 @@ spawnSync('python3', [
   '--importance', '2',
   '--source-kind', 'hook',
 ], { cwd, timeout: 15000, stdio: 'ignore' });
+
+// D-M2 Option A (owner 2026-06-10) — ARM the STM→MTM→LTM consolidation ladder:
+// use_count only advances via governed_read, and nothing called it before, so
+// MAX(promoted) stayed 0 across 13 runs / 58k events. The session write is the
+// natural read-adjacency point: query the governor for memories matching this
+// session's touched files/skills so genuinely-revisited topics accumulate reads
+// and the weekly manage() can promote them (STM→MTM at use_count>=2).
+try {
+  const readCues = [...new Set([
+    ...(obs.files_modified || []).map((f) => String(f).split('/').pop().replace(/\.[a-z]+$/i, '')),
+    ...(obs.skills_read || []),
+  ])].filter((c) => c && c.length >= 4).slice(0, 3);
+  for (const cue of readCues) {
+    spawnSync('python3', [governorPy, 'read', '--query', cue, '--limit', '5'], { cwd, timeout: 10000, stdio: 'ignore' });
+  }
+} catch {}
 
 // Weekly consolidation: run if last run > 7 days ago
 try {

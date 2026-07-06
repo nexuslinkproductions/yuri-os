@@ -48,7 +48,6 @@ assertIncludes('_SYSTEM/OPERATOR_PROTOCOL.md', 'Canonical operational rules live
 const directInheritFiles = [
   'AGENTS.md',
   'CLAUDE.md',
-  '_SYSTEM/CODEX_PROTOCOL.md',
   '_SYSTEM/LOCAL_EXECUTION_POLICY.md',
   '.claude/CLAUDE.md',
   '.clauderules',
@@ -64,13 +63,16 @@ assertIncludes('.claude/rules/yuri_operating_dna.md', '../../SOUL.md');
 const settings = JSON.parse(read('.claude/settings.json'));
 const sessionHooks = settings.hooks?.SessionStart?.flatMap((group) => group.hooks || []) || [];
 const subagentHooks = settings.hooks?.SubagentStart?.flatMap((group) => group.hooks || []) || [];
+// Match the hook script by name at the end of the command, so it stays valid whether the
+// path is relative (`node .claude/hooks/brain-inject.js`) or cwd-independent
+// (`node "$CLAUDE_PROJECT_DIR/.claude/hooks/brain-inject.js"`). Exact-string equality was
+// brittle and broke when hook commands were hardened to $CLAUDE_PROJECT_DIR.
 assert.ok(
-  sessionHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js')
-    || sessionHooks.some((hook) => hook.command === 'node .claude/hooks/brain-inject.js'),
+  sessionHooks.some((hook) => /\/(soul-persona-inject|brain-inject)\.js"?$/.test(hook.command || '')),
   'SessionStart missing persona injection hook',
 );
 assert.ok(
-  subagentHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js'),
+  subagentHooks.some((hook) => /\/soul-persona-inject\.js"?$/.test(hook.command || '')),
   'SubagentStart missing soul-persona-inject hook',
 );
 
@@ -107,9 +109,8 @@ for (const file of activePromptFiles) {
 assertIncludes('CLAUDE.md', 'Claude-facing adapter for YURI OS / MUSUBI.');
 assertIncludes('CLAUDE.md', 'It does not make Claude the control-plane owner.');
 assertIncludes('CLAUDE.md', 'one real interactive Claude Code session');
-assertIncludes('CLAUDE.md', 'Codex/main remains the final verifier');
+assertIncludes('CLAUDE.md', 'optional external clarification check');
 assertIncludes('CLAUDE.md', 'Protected Paths');
-assertIncludes('_SYSTEM/CODEX_PROTOCOL.md', 'GitNexus impact check on changed symbols');
 
 const rationale = read('_SYSTEM/yuri-cognitive-persona-rationale.md');
 for (const url of [

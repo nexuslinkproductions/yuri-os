@@ -1,11 +1,11 @@
 # Model Registry — YURI Local LLMs
 
-**Benchmarked:** 2026-04-28 15:51
+**Benchmarked:** 2026-06-07
 **Machine:** M2 Pro, 16GB unified memory
 **RAM cap:** 10GB per model
 **Rule:** ONE model at a time. Ollama killed between models.
-**Active local default:** `needle`
-**Retired default:** `qwen2.5:7b` is historical only until the Mac can carry a heavier local general model again.
+**Active local default:** `gemma4:12b-it-qat`
+**Retired defaults:** `needle`, `qwen2.5:7b`, and `gemma4:e2b` are historical/runtime leftovers only; routed local policy must use Gemma 12B QAT through Ollama.
 
 ---
 

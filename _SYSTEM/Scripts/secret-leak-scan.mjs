@@ -39,6 +39,13 @@ function isProtected(rel) {
   return protectedPrefixes.some((prefix) => rel === prefix || rel.startsWith(prefix));
 }
 
+// Safe, non-secret env templates that SHOULD ship (they carry only placeholders).
+// A real `.env` / `.env.local` / `.env.production` still counts as protected.
+function isSafeEnvTemplate(rel) {
+  const base = (rel.split('/').pop() || rel).toLowerCase();
+  return base === '.env.example' || base === '.env.sample' || base === '.env.template';
+}
+
 function hasNodeModulesSegment(rel) {
   return rel.split(path.sep).includes('node_modules') || rel.split('/').includes('node_modules');
 }
@@ -93,7 +100,7 @@ function trackedProtectedFiles() {
     encoding: 'utf8',
     maxBuffer: 128 * 1024 * 1024,
   });
-  return raw.split('\0').filter(Boolean).filter((rel) => isProtected(rel) || hasNodeModulesSegment(rel));
+  return raw.split('\0').filter(Boolean).filter((rel) => (isProtected(rel) || hasNodeModulesSegment(rel)) && !isSafeEnvTemplate(rel));
 }
 
 const allFiles = listedFiles();

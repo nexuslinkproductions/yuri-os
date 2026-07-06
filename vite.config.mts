@@ -18,6 +18,11 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 4200, host: '127.0.0.1' },
+  server: {
+    port: 4200,
+    host: '127.0.0.1',
+    // The YURI Trading Observatory is a SEPARATE app (vite.observatory.config.mts,
+    // port 4250) — its /api/observatory proxy lives there, NOT here.
+  },
   appType: 'spa',
 });

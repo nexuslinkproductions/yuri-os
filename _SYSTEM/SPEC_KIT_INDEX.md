@@ -48,7 +48,7 @@ Quick reference for the Spec Kit operational surface — what to invoke, in what
 │  IMPLEMENTATION via Codex (primary) + DeepSeek-tools (parallel)             │
 │  Per anime DNA gates: Pattern-Mirror → Execution-Domain → Clone-Orchestrator│
 │  → Infinity-Guard (dry-run) → Failure-Evolution (capture + regression)      │
-│  PATCH 015 pre-commit: blocks commits on offload-contract-dispatch drift    │
+│  PATCH 015 pre-commit: blocks commits on llm-compat-contract-dispatch drift    │
 └────────────────────────────────┬────────────────────────────────────────────┘
                                  │ (all tasks committed)
                                  ▼
@@ -93,7 +93,7 @@ specs/
 3. `_SYSTEM/yuri-origin.md`
 4. `SOUL.md`
 5. `AGENTS.md`, `_SYSTEM/spec-kit-workflow-bridge.md` ← Spec Kit adapter sits here
-6. `_SYSTEM/Scripts/offload-contract.mjs`
+6. `_SYSTEM/Scripts/llm-compat-contract.mjs`
 7. References / skills
 8. Model inference
 
@@ -119,8 +119,8 @@ specs/
 
 `_SYSTEM/git-hooks/pre-commit` runs:
 1. cached diff check
-2. offload-contract-regression
-3. **offload-contract-dispatch-check** (NEW — PATCH 015)
+2. llm-compat-contract-regression
+3. **llm-compat-contract-dispatch-check** (NEW — PATCH 015)
 
 PATCH 018 legacy allowlist means default exit=0 unless NEW drift introduced.
 Bypass: `git commit --no-verify`.

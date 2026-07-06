@@ -5,9 +5,9 @@ Owner: YURI control plane
 
 ## Purpose
 
-The context layer is the selector between global authority and task-local files.
+The context layer is the bounded registry between global authority and task-local files.
 
-It prevents models from walking the whole repo, guessing which folders matter, or treating tool/runtime folders as policy. A model should first load the canonical anchors, then ask the context layer which packet fits the task.
+It prevents models from walking the whole repo, guessing which folders matter, or treating tool/runtime folders as policy. A model should first load the canonical anchors, then use the xref layer to navigate current evidence.
 
 ## Read Cascade
 
@@ -23,28 +23,33 @@ operator input
   -> _SYSTEM/config/artifact-registry.json
   -> .agents/README.md
   -> skills/README.md
-  -> selected context packet
+  -> xref-selected registry/context paths
   -> task-local docs
   -> implementation files
   -> verification / release gate
 ```
 
-## Machine Selector
+## Xref-First Navigation
 
 Use:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "task description"
+node _SYSTEM/Scripts/xref-query.mjs "task description"
 ```
 
-It returns:
+Default xref scans request 200 results. Use `--top N` to list larger working sets, `--scan N` to widen candidate collection, and `--all` when the LLM needs a full FTS5/spectrum recall aperture instead of a ranked snippet page.
 
-- canonical read order
-- selected context packet
-- existence checks for packet files
-- protected surfaces to avoid
+For known circuitry nodes, apply the propagation law:
 
-This is the first concrete context registry. It should grow into a richer context database, but it already gives YURI a deterministic first turn instead of a blind filesystem crawl.
+```bash
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+These are the active first navigation surfaces. They cross-reference FTS5, the circuitry graph, GitNexus, and provenance scoring instead of relying on a single substring packet route.
+
+## Registry Packet Layer
+
+The registry still stores bounded packet families for durable architecture, but active navigation happens through `xref-query.mjs` and `propagation-scan.mjs`. Consumers should use xref provenance, graph neighbors, GitNexus structural evidence, and registry paths together instead of asking the retired router to choose a packet.
 
 Use the artifact registry before adding durable files:
 
@@ -56,7 +61,7 @@ node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
 
 | Source | Role | Rule |
 |---|---|---|
-| `_SYSTEM/context/context-registry.json` | Task-to-context packet map | Select before broad exploration. |
+| `_SYSTEM/context/context-registry.json` | Bounded packet map used by xref-aware navigation | Keep paths current; do not treat it as a standalone router. |
 | `_SYSTEM/INDEX.md` | Human/model navigation map | Read before root browsing. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification | Use to answer "what is this path?" without rediscovery. |
 | `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact classification | Use to answer "where should this new artifact live?" before creation. |
@@ -72,7 +77,8 @@ node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
 Current packet families:
 
 - `baseline`: authority, structure, storage, registry
-- `kagami-harness`: Rick/Kagami terminal, lane routing, persistent CLI sessions
+- `llm-compat-lanes`: LLM compatibility lanes, local Gemma/Ollama runner, and operator lane routing
+- `xref-navigation`: xref-query, propagation-scan, drift scan, provenance, circuitry graph, and NEXUS CORE manuals
 - `skills`: skill tree, capability census, design system, skill evolution
 - `memory`: recall, RAG, wiki, persona, EOT
 - `cybersecurity`: threat intel, guardrails, client/product buildout

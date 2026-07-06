@@ -1,0 +1,55 @@
+{
+  "summary": "WS-B: MURE company build-out — fleet substrate rewire",
+  "tags": ["mure", "buildout", "fleet", "substrate"],
+  "requiresVisualPlan": false,
+  "subtasks": [
+    {
+      "id": "WS-B-R1-ollama-sidecar",
+      "role": "mechanic",
+      "need": ["integration", "refactor"],
+      "prompt": "Wire ollama-fleet sidecar generation into runFleet.mjs when plan casts bulk roles (scout, artificer). DISARMED default. Document spawn command in plan metadata. Return 02B1_OLLAMA_SIDECAR_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-B-R2-runfleet-hook",
+      "role": "engineer",
+      "need": ["code-generation", "implementation"],
+      "prompt": "Ensure runFleet.mjs dry-run exposes glmLeaves, nativeSpecs, ollamaSidecar, routerSuggestions in JSON output. Add --ollama-sidecar flag to write ollama-tasks.json. Return 02B2_RUNFLEET_HOOK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-B-R3-mlp-feedback",
+      "role": "kernelsmith",
+      "need": ["integration", "implementation"],
+      "prompt": "Wire advisory MLP updateFromOutcome stub from runFleet dry-run (persist:false). Real outcomes deferred to ledger ingest. Return 02B3_MLP_FEEDBACK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-B-A1-architect-contract",
+      "role": "architect",
+      "need": ["architecture", "integration"],
+      "prompt": "Document tri-substrate contract: GLM via runSwarm, native via Opus spawn loop, ollama parallel sidecar. Append to _SYSTEM/mure/README.md if needed. Return 02B4_ARCHITECT_CONTRACT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-B-D1-deliberator-review",
+      "role": "deliberator",
+      "need": ["adversarial-verify"],
+      "prompt": "Review fleet rewire for blast radius and reversibility. Confirm ollama sidecar remains DISARMED-by-default. Return 02B5_DELIBERATOR_REVIEW_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-B-V1-adjudicator-verify",
+      "role": "adjudicator",
+      "need": ["adversarial-verify"],
+      "prompt": "Verify runFleet --dry-run on this task file produces valid ollamaSidecar metadata and mlpFeedback stub. Return 02B6_FLEET_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

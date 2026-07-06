@@ -1,0 +1,400 @@
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] read_file[0m
+[2m[tool] write_file[0m
+[2m[tool] read_file[0m
+[2m[tool] edit_file[0m
+[2m[tool] write_file[0m
+[2m[tool] read_file[0m
+### A) Inc 4 — `drainDaemon` (updated `_SYSTEM/Scripts/mcs-drain-daemon.mjs`)
+
+```javascript
+#!/usr/bin/env node
+// @capability: mcs-drain-daemon
+// @serves: canonical truth | drainer daemon | lease per cycle | signal-safe shutdown | abortable sleep
+// @does: Inc 4 — drainDaemon(drainerId,{intervalMs}) -> {stop()}. Lease acquired/released PER CYCLE inside drainOnce (not held across sleep; TTL fallback). SIGTERM/SIGINT releaseLease immediately + abort. AbortSignal-aware sleep(ms,signal).
+// @exports: drainDaemon
+// @depends: memory-canonical-store.mjs (drainOnce, DRAIN_LEASE_ID), nano-lease.mjs (releaseLease)
+
+import { drainOnce, DRAIN_LEASE_ID } from './memory-canonical-store.mjs';
+import { releaseLease } from './nano-lease.mjs';
+
+function sleepAbortable(ms, signal) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+    const abortHandler = () => {
+      clearTimeout(timer);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    if (signal?.aborted) {
+      clearTimeout(timer);
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    signal?.addEventListener('abort', abortHandler, { once: true });
+  });
+}
+
+/**
+ * @param {string} drainerId — unique drainer identity (e.g. 'drainer-1', process.pid)
+ * @param {object} opts — { intervalMs?: number, signal?: AbortSignal }
+ * @returns {{ stop: () => Promise<void> }}
+ */
+export function drainDaemon(drainerId, opts = {}) {
+  if (!drainerId) throw new Error('drainerId required');
+  const intervalMs = Number(opts.intervalMs ?? 5000);
+  const externalSignal = opts.signal;
+  const controller = new AbortController();
+  const signal = externalSignal ? AbortSignal.any([externalSignal, controller.signal]) : controller.signal;
+  let stopping = false;
+
+  const handlers = ['SIGTERM', 'SIGINT'].map((sig) => {
+    const h = () => {
+      if (stopping) return;
+      stopping = true;
+      controller.abort();
+    };
+    process.on(sig, h);
+    return { sig, handler: h };
+  });
+
+  async function loop() {
+    while (!signal.aborted) {
+      try {
+        // drainOnce acquires/releases its own lease per cycle; we do NOT hold across sleep.
+        await drainOnce(drainerId);
+      } catch (e) {
+        if (signal.aborted) break;
+        // Transient drain failures are logged; daemon keeps running.
+        process.stderr.write(`[mcs-drain-daemon] drainOnce error: ${e?.message ?? e}\n`);
+      }
+      if (signal.aborted) break;
+      try {
+        await sleepAbortable(intervalMs, signal);
+      } catch (e) {
+        if (e?.name === 'AbortError') break;
+        throw e;
+      }
+    }
+
+    // Graceful lease release on shutdown (best-effort; drainOnce already released on success path).
+    try {
+      await releaseLease(DRAIN_LEASE_ID, drainerId);
+    } catch { /* ignore */ }
+
+    for (const { sig, handler } of handlers) process.off(sig, handler);
+  }
+
+  const promise = loop();
+
+  return {
+    async stop() {
+      if (!stopping) {
+        stopping = true;
+        controller.abort();
+        await promise;
+      }
+    },
+  };
+}
+
+// CLI for manual run: `node _SYSTEM/Scripts/mcs-drain-daemon.mjs <drainerId> [intervalMs]`
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const [, , drainerId, intervalMs] = process.argv;
+  if (!drainerId) {
+    console.error('Usage: node mcs-drain-daemon.mjs <drainerId> [intervalMs]');
+    process.exit(1);
+  }
+  const daemon = drainDaemon(drainerId, { intervalMs: Number(intervalMs) ?? 5000 });
+  console.log(`[mcs-drain-daemon] started: ${drainerId}`);
+  await daemon.stop();
+  console.log(`[mcs-drain-daemon] stopped: ${drainerId}`);
+}
+```
+
+---
+
+### B) Inc 5 — Multi-process fault injection
+
+#### Worker: `_SYSTEM/Scripts/mcs-test-worker.mjs` (updated)
+
+```javascript
+#!/usr/bin/env node
+// @capability: mcs-test-worker
+// @serves: fault injection | multi-process test worker | append/drain/hold-then-die
+// @does: Inc 5 worker for multi-process fault injection. Child process via IPC.
+//   Modes: append-loop | drain | hold-then-die
+//   IPC: parent sends {cmd, ...}, worker replies {ok, ...} or {error}
+// @uses: memory-canonical-store.appendClaim, drainOnce, DRAIN_LEASE_ID
+
+import { appendClaim, drainOnce, DRAIN_LEASE_ID } from './memory-canonical-store.mjs';
+import { acquireLease, releaseLease } from './nano-lease.mjs';
+
+const MODE = process.env.MCS_WORKER_MODE || 'append-loop';
+const LANE_ID = process.env.MCS_WORKER_LANE || `lane-${process.pid}`;
+const SESSION_ID = process.env.MCS_WORKER_SESSION || `sess-${process.pid}`;
+const EVENTS_PER_WORKER = Number(process.env.MCS_WORKER_EVENTS || '500');
+const HOLD_MS = Number(process.env.MCS_WORKER_HOLD_MS || '2000');
+
+function send(msg) { process.send?.(msg); }
+
+async function runAppendLoop() {
+  let sent = 0;
+  for (let i = 0; i < EVENTS_PER_WORKER; i++) {
+    const claim = {
+      kind: 'assert',
+      subject: `test:subject:${LANE_ID}:${i}`,
+      predicate: 'hasValue',
+      object: i,
+      vc: { [LANE_ID]: i },
+    };
+    const res = appendClaim(LANE_ID, SESSION_ID, claim);
+    if (res.ok) sent++;
+    if (i % 100 === 0) await new Promise(r => setImmediate(r));
+  }
+  send({ ok: true, cmd: 'append-loop', sent });
+}
+
+async function runDrain() {
+  const res = await drainOnce(LANE_ID);
+  send({ ok: true, cmd: 'drain', ...res });
+}
+
+async function runHoldThenDie() {
+  const lease = acquireLease(DRAIN_LEASE_ID, LANE_ID, { ttlMs: HOLD_MS + 5000 });
+  if (!lease.ok) {
+    send({ ok: false, cmd: 'hold-then-die', error: 'lease-acquire-failed', heldBy: lease.heldBy });
+    process.exit(1);
+  }
+  send({ ok: true, cmd: 'hold-then-die', acquired: true, dir: lease.dir });
+  await new Promise(r => setTimeout(r, HOLD_MS));
+  // Intentional: die WITHOUT releasing lease (SIMULATES SIGKILL mid-fold)
+  process.exit(0);
+}
+
+const handlers = {
+  'append-loop': runAppendLoop,
+  'drain': runDrain,
+  'hold-then-die': runHoldThenDie,
+};
+
+if (!handlers[MODE]) {
+  send({ ok: false, error: `unknown mode: ${MODE}` });
+  process.exit(1);
+}
+
+handlers[MODE]().catch(e => {
+  send({ ok: false, cmd: MODE, error: e?.message ?? String(e) });
+  process.exit(1);
+});
+```
+
+#### Test harness: `_SYSTEM/Scripts/mcs-fault-injection.test.mjs`
+
+```javascript
+#!/usr/bin/env node
+// @capability: mcs-fault-injection-test
+// @serves: multi-process fault injection | rotation-under-write | 8-proc concurrent | dead-drainer-reclaim
+// @does: Inc 5 — node:test using fork() to exercise:
+//   1) rotation-under-write: concurrent appenders + drainer rotating generations
+//   2) 8-proc-concurrent: 8 workers × 500 events = 4000 events exactly-once (dedup by contentHash)
+//   3) dead-drainer-reclaim: SIGKILL mid-fold -> 2nd drainer reclaims after TTL -> zero dup (renewLease guard)
+// @run: node --test _SYSTEM/Scripts/mcs-fault-injection.test.mjs
+// @env: YURI_CANONICAL_DIR=/tmp/yuri-mcs-test-<runId>
+
+import { describe, it, before, after } from 'node:test';
+import assert from 'node:assert';
+import { fork } from 'node:child_process';
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { resolveDirs, listGenerations, readView, loadCanonical, DRAIN_LEASE_ID } from './memory-canonical-store.mjs';
+import { acquireLease, releaseLease, inspectLeases, reclaimLeases, DEFAULT_TTL_MS } from './nano-lease.mjs';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const TEST_BASE = process.env.YURI_CANONICAL_DIR || path.join('/tmp', `yuri-mcs-test-${Date.now()}-${process.pid}`);
+const WORKER_SCRIPT = path.join(REPO_ROOT, '_SYSTEM/Scripts/mcs-test-worker.mjs');
+
+function spawnWorker(mode, env = {}) {
+  return new Promise((resolve, reject) => {
+    const child = fork(WORKER_SCRIPT, [], {
+      env: { ...process.env, YURI_CANONICAL_DIR: TEST_BASE, MCS_WORKER_MODE: mode, ...env },
+      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+    });
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code !== 0) reject(new Error(`worker exited ${code}`));
+    });
+    const onMessage = (msg) => {
+      if (msg?.ok) { child.off('message', onMessage); resolve(msg); }
+      else if (msg?.error) { child.off('message', onMessage); reject(new Error(msg.error)); }
+    };
+    child.on('message', onMessage);
+    setTimeout(() => { child.off('message', onMessage); reject(new Error('worker timeout')); }, 30000);
+    return child;
+  });
+}
+
+function killWorker(pid, signal = 'SIGKILL') {
+  try { process.kill(pid, signal); } catch { /* already dead */ }
+}
+
+function readAllEvents() {
+  const { base } = resolveDirs({ dir: TEST_BASE });
+  const gens = listGenerations(base);
+  const events = [];
+  for (const gen of gens) {
+    if (!fs.existsSync(gen)) continue;
+    for (const line of fs.readFileSync(gen, 'utf8').split('\n')) {
+      const t = line.trim(); if (!t) continue;
+      try { events.push(JSON.parse(t)); } catch { /* skip */ }
+    }
+  }
+  return events;
+}
+
+function countUniqueEvents(events) {
+  const seen = new Set();
+  for (const e of events) if (e.eventId) seen.add(e.eventId);
+  return seen.size;
+}
+
+describe('MCS Fault Injection (Inc 5)', { timeout: 120000 }, () => {
+  before(() => {
+    fs.rmSync(TEST_BASE, { recursive: true, force: true });
+    fs.mkdirSync(path.join(TEST_BASE, 'shards'), { recursive: true });
+  });
+
+  after(() => {
+    fs.rmSync(TEST_BASE, { recursive: true, force: true });
+  });
+
+  it('rotation-under-write: concurrent appenders + drainer rotates generations', async () => {
+    const NUM_APPENDERS = 4;
+    const EVENTS_EACH = 200;
+    const ROTATION_BYTES = 1024 * 1024; // 1MB to force rotation quickly
+
+    // Start appenders
+    const appenders = await Promise.all(
+      Array.from({ length: NUM_APPENDERS }, (_, i) =>
+        spawnWorker('append-loop', {
+          MCS_WORKER_LANE: `lane-${i}`,
+          MCS_WORKER_SESSION: `sess-${i}`,
+          MCS_WORKER_EVENTS: String(EVENTS_EACH),
+        })
+      )
+    );
+
+    // Start drainer with small rotation to force generation seals
+    const drainer = await spawnWorker('drain', {
+      MCS_WORKER_LANE: 'drainer-1',
+      YURI_CANONICAL_ROTATION_BYTES: String(ROTATION_BYTES),
+    });
+
+    // Wait for all appenders to finish
+    await Promise.all(appenders);
+
+    // Drain a few more cycles to fold remaining
+    for (let i = 0; i < 5; i++) {
+      await spawnWorker('drain', { MCS_WORKER_LANE: 'drainer-1' });
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    const events = readAllEvents();
+    const unique = countUniqueEvents(events);
+    assert.strictEqual(unique, NUM_APPENDERS * EVENTS_EACH, 'all events folded exactly once');
+    const gens = listGenerations(resolveDirs({ dir: TEST_BASE }).base);
+    assert.ok(gens.length >= 2, 'generation rotation occurred under write load');
+  });
+
+  it('8-proc-concurrent: 8 workers × 500 events = 4000 events exactly-once', async () => {
+    const NUM_WORKERS = 8;
+    const EVENTS_EACH = 500;
+
+    const workers = await Promise.all(
+      Array.from({ length: NUM_WORKERS }, (_, i) =>
+        spawnWorker('append-loop', {
+          MCS_WORKER_LANE: `lane-conc-${i}`,
+          MCS_WORKER_SESSION: `sess-conc-${i}`,
+          MCS_WORKER_EVENTS: String(EVENTS_EACH),
+        })
+      )
+    );
+
+    await Promise.all(workers);
+
+    // Single drainer folds all
+    for (let i = 0; i < 3; i++) {
+      await spawnWorker('drain', { MCS_WORKER_LANE: 'drainer-conc' });
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    const events = readAllEvents();
+    const unique = countUniqueEvents(events);
+    assert.strictEqual(unique, NUM_WORKERS * EVENTS_EACH, '4000 events exactly-once (dedup by contentHash)');
+  });
+
+  it('dead-drainer-reclaim: SIGKILL mid-fold -> 2nd drainer reclaims after TTL -> zero dup', async () => {
+    // 1) Populate shards
+    const POPULATORS = 4;
+    const EVENTS_EACH = 300;
+    await Promise.all(
+      Array.from({ length: POPULATORS }, (_, i) =>
+        spawnWorker('append-loop', {
+          MCS_WORKER_LANE: `lane-reclaim-${i}`,
+          MCS_WORKER_SESSION: `sess-reclaim-${i}`,
+          MCS_WORKER_EVENTS: String(EVENTS_EACH),
+        })
+      )
+    );
+
+    // 2) Start drainer-1, let it acquire lease, then SIGKILL it mid-fold
+    const drainer1Env = { MCS_WORKER_LANE: 'drainer-reclaim-1', MCS_WORKER_HOLD_MS: '3000' };
+    const drainer1 = fork(WORKER_SCRIPT, [], {
+      env: { ...process.env, YURI_CANONICAL_DIR: TEST_BASE, MCS_WORKER_MODE: 'hold-then-die', ...drainer1Env },
+      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+    });
+
+    // Wait for lease acquisition signal
+    await new Promise((resolve, reject) => {
+      const onMsg = (msg) => {
+        if (msg?.acquired) { drainer1.off('message', onMsg); resolve(); }
+        else if (msg?.error) { drainer1.off('message', onMsg); reject(new Error(msg.error)); }
+      };
+      drainer1.on('message', onMsg);
+      setTimeout(() => { drainer1.off('message', onMsg); reject(new Error('drainer1 lease acquire timeout')); }, 5000);
+    });
+
+    // Give it a moment to start folding, then SIGKILL
+    await new Promise(r => setTimeout(r, 500));
+    killWorker(drainer1.pid, 'SIGKILL');
+    await new Promise(r => drainer1.on('exit', r));
+
+    // 3) Wait for TTL to expire (lease becomes stale)
+    await new Promise(r => setTimeout(r, DEFAULT_TTL_MS + 1000));
+
+    // 4) Start drainer-2 — should reclaim and fold remaining
+    const drainer2Res = await spawnWorker('drain', { MCS_WORKER_LANE: 'drainer-reclaim-2' });
+    assert.ok(drainer2Res.ok, '2nd drainer acquired reclaimed lease');
+
+    // 5) Drain a few more cycles to ensure completion
+    for (let i = 0; i < 3; i++) {
+      await spawnWorker('drain', { MCS_WORKER_LANE: 'drainer-reclaim-2' });
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    // 6) Verify exactly-once: total unique events = populators × events
+    const events = readAllEvents();
+    const unique = countUniqueEvents(events);
+    assert.strictEqual(unique, POPULATORS * EVENTS_EACH, 'zero duplicates after dead-drainer reclaim (renewLease guard)');
+  });
+});
+```

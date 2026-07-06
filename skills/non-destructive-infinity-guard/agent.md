@@ -1,7 +1,7 @@
 ---
 name: non-destructive-infinity-guard-agent
 description: Always-on action boundary, risk classifier, and mutation approval gate. Operates read-only, produces analysis reports and audit events.
-lane: yuri-audit-capable
+model: deepseek-v4-pro
 color: "#FF6B9D"
 ---
 

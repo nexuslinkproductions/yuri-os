@@ -9,7 +9,6 @@ import {
 
 test('evidence contract exposes base and memory/RAG required IDs', () => {
   assert.deepEqual(SHINTAI_REQUIRED_EVIDENCE_IDS, [
-    'shintai-roster',
     'yuri-memory-index',
     'extraction-sprint-template',
   ]);
@@ -33,7 +32,6 @@ test('task-specific evidence contract upgrades memory/RAG work', () => {
 test('task-specific evidence contract upgrades cyber intelligence work', () => {
   const required = requiredEvidenceIdsForTask('critical cyber threat intelligence Upgreat sprint');
 
-  assert.ok(required.includes('shintai-roster'));
   assert.ok(required.includes('cyber-company-goal'));
   assert.ok(required.includes('cyber-intel-matrix'));
   assert.ok(required.includes('cyber-intel-ingestion-protocol'));

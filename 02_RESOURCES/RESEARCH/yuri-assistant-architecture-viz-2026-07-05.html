@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yuri Assistant — Architecture (clicky-spined, AX-first)</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121723; --ink:#e6edf3; --dim:#8b97a8;
+    --ax:#3fb950;   /* green  = AX path (primary, fast) */
+    --vis:#d29922;  /* amber  = vision fallback (on-demand) */
+    --brain:#a371f7;/* purple = GLM brain */
+    --safe:#58a6ff; /* blue   = confirm-gate */
+    --clicky:#f85149;/* red   = clicky's screenshot-first (the thing we beat) */
+    --line:#2a3140;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:28px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 22px;max-width:980px}
+  .thesis{background:linear-gradient(90deg,#16241a,#0b0e14);border-left:3px solid var(--ax);padding:12px 14px;margin:0 0 24px;max-width:980px;border-radius:4px}
+  .thesis b{color:var(--ax)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:1100px}
+  .layer{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .layer h3{margin:0 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
+  .layer .mods{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#c9d1d9}
+  .layer .mods span{color:var(--dim)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:6px}
+  .p-live{background:#1f2e1f;color:var(--ax);border:1px solid #2a4a2a}
+  .p-build{background:#2a2230;color:var(--brain);border:1px solid #3a2f48}
+  .p-plan{background:#2a2616;color:var(--vis);border:1px solid #3f3520}
+
+  /* the flow */
+  .flow{margin:26px 0;max-width:1100px}
+  .flow h2{font-size:15px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px}
+  .lane{display:flex;align-items:stretch;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+  .step{flex:1;padding:14px 12px;border-right:1px solid var(--line);position:relative}
+  .step:last-child{border-right:0}
+  .step .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  .step .v{font-size:13px;font-weight:600;margin-top:4px}
+  .step .d{font-size:11px;color:var(--dim);margin-top:4px}
+  .step.perceive{border-top:3px solid var(--ax)}
+  .step.fallback{border-top:3px solid var(--vis)}
+  .step.brain{border-top:3px solid var(--brain)}
+  .step.gate{border-top:3px solid var(--safe)}
+  .step.exec{border-top:3px solid var(--ink)}
+
+  /* contrast */
+  .contrast{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:26px 0;max-width:1100px}
+  .col{border-radius:8px;padding:16px;border:1px solid var(--line)}
+  .col.clicky{background:#1c1414;border-color:#3a2222}
+  .col.yuri{background:#10171a;border-color:#1f3a2a}
+  .col h3{margin:0 0 10px;font-size:14px}
+  .col.clicky h3{color:var(--clicky)}
+  .col.yuri h3{color:var(--ax)}
+  .col p{margin:0 0 8px;font-size:13px}
+  .col .stat{font-family:ui-monospace,monospace;font-size:12px;color:var(--dim)}
+
+  .legend{margin-top:8px;font-size:12px;color:var(--dim);max-width:1100px}
+  .legend span{margin-right:18px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  footer{margin-top:30px;color:var(--dim);font-size:11px;max-width:1100px;border-top:1px solid var(--line);padding-top:12px}
+  code{background:#0a0d12;padding:1px 5px;border-radius:3px;font-size:11px;color:#c9d1d9}
+</style>
+</head>
+<body>
+
+<h1>Yuri — the "hey Yuri" super-assistant</h1>
+<p class="sub">Architecture, clicky-spined. A native macOS companion that <b>sees</b> your screen, <b>understands</b> what you're doing, and <b>acts</b> alongside you — voice-first, always-on, cloud-brained (GLM-5.2), local-lightweight-infra.</p>
+
+<div class="thesis">
+  <b>The edge:</b> Yuri perceives via the <b>Accessibility tree</b> (structured, instant, ~80% of the time, no screenshot) and falls back to <b>OmniParser-v2 vision</b> only when AX sees nothing (Electron/canvas). <b>Clicky</b> (and Anthropic Computer Use) screenshot-first — slower, costlier, less reliable. Structured &gt; pixel-guessing.
+</div>
+
+<div class="grid">
+  <div class="layer">
+    <h3>① Voice + Entry <span class="pill p-live">LIVE</span></h3>
+    <div class="mods">
+      <code>bot.py</code> — Pipecat: Silero VAD → MLX Whisper STT → brain → Kokoro TTS, instant barge-in<br>
+      <span>WakeGate (phrases <i>yuri,rick</i>) — built, ships hot-mic; <code>YURI_WAKE_ENABLE=1</code> arms hands-free</span><br>
+      <code>GlobalPushToTalkShortcutMonitor</code> <span>(ported from clicky — Ctrl+Opt)</span>
+    </div>
+  </div>
+  <div class="layer">
+    <h3>② Companion UI <span class="pill p-build">PORT</span></h3>
+    <div class="mods">
+      <code>NSPanel</code> menubar overlay + full-screen transparent cursor layer<br>
+      <span>The </span><code>[POINT:x,y:label:screenN]</code><span> animation — the blue cursor that flies to UI elements (clicky's magic, multi-monitor). Port wholesale.</span>
+    </div>
+  </div>
+  <div class="layer">
+    <h3>③ Computer-Use (A2) <span class="pill p-build">BUILD</span></h3>
+    <div class="mods">
+      <code>ScreenContextProvider</code> — dual-path context (below)<br>
+      <code>osascript + System Events</code> executor (element-aware)<br>
+      <span>OmniParser-v2 fallback (on-demand 2GB, local)</span>
+    </div>
+  </div>
+  <div class="layer">
+    <h3>④ Brain <span class="pill p-live">LIVE</span></h3>
+    <div class="mods">
+      <code>yuri-z-brain.py :8014</code> — cloud <b>GLM-5.2</b><br>
+      <span>Reasons over <b>structured</b> context (AX tree / OmniParser parse) — NOT raw screenshots. Model-agnostic, not Anthropic-locked.</span>
+    </div>
+  </div>
+  <div class="layer">
+    <h3>⑤ Memory <span class="pill p-plan">PARTIAL</span></h3>
+    <div class="mods">
+      <code>memory-canonical-store.mjs</code> — cross-lane truth (live)<br>
+      <span>NEURO_CORE: surprise-gated writes, recall-as-write — </span><b>not yet implemented</b><br>
+      <code>static-encoder.mjs</code> — deterministic embeddings (recall)
+    </div>
+  </div>
+  <div class="layer">
+    <h3>⑥ Proactive Spine <span class="pill p-live">LIVE</span></h3>
+    <div class="mods">
+      <code>yuri-runtimed.mjs</code> — the always-on supervisor (brain + voice-loop + conductor)<br>
+      <code>morning-brief.mjs --what-next</code> — the ranked "what's next" (A1, live)
+    </div>
+  </div>
+</div>
+
+<div class="flow">
+  <h2>How Yuri acts — the perceive → think → gate → do loop</h2>
+  <div class="lane">
+    <div class="step perceive">
+      <div class="k">① Perceive (primary)</div>
+      <div class="v">Accessibility tree</div>
+      <div class="d">AXUIElement via JXA → <code>{app, elements[], focus, text}</code>. ~80% of cases. No screenshot.</div>
+    </div>
+    <div class="step fallback">
+      <div class="k">① Perceive (fallback)</div>
+      <div class="v">OmniParser-v2</div>
+      <div class="d">Only when AX = ∅ (Electron/canvas). screencapture → <code>[{bbox,caption}]</code>. On-demand, zero VRAM resident.</div>
+    </div>
+    <div class="step brain">
+      <div class="k">② Think</div>
+      <div class="v">GLM-5.2 brain</div>
+      <div class="d">Reasons over the structured context. Emits ONE action (click/type/open/…).</div>
+    </div>
+    <div class="step gate">
+      <div class="k">③ Confirm-gate</div>
+      <div class="v">PreToolUse hooks</div>
+      <div class="d">Allowlist → silent. Denylist (delete/send/financial) → confirm. Unknown → default-deny. Outside the LLM.</div>
+    </div>
+    <div class="step exec">
+      <div class="k">④ Do + verify</div>
+      <div class="v">osascript executor</div>
+      <div class="d">System Events acts. Re-read AX / screen-diff to confirm. Loop or done.</div>
+    </div>
+  </div>
+</div>
+
+<div class="contrast">
+  <div class="col clicky">
+    <h3>■ Clicky's way (what we beat)</h3>
+    <p><b>Screenshot-first, single Anthropic VLM.</b> Every action: screencapture → Claude Computer Use API (<code>computer_20251124</code>) → pixel-counted coordinate.</p>
+    <p class="stat">per action: screenshot round-trip + full VLM inference (~3–8s)<br>vendor: Anthropic-locked<br>cost: every action bills the vision model</p>
+    <p style="color:var(--clicky)">"sloppy and slow" — the operator's call.</p>
+  </div>
+  <div class="col yuri">
+    <h3>■ Yuri's way (the edge)</h3>
+    <p><b>AX-first, dual-path, model-agnostic.</b> Reads the structured accessibility tree directly — no screenshot for ~80% of actions. Vision only when AX fails.</p>
+    <p class="stat">per action (AX): ~5–50ms (no VLM)<br>brain: GLM-5.2 (cloud, $0 Coding Plan)<br>vendor: none locked</p>
+    <p style="color:var(--ax)">faster, cheaper, more reliable, vendor-free.</p>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:var(--ax)"></span>Accessibility (primary)</span>
+  <span><span class="dot" style="background:var(--vis)"></span>OmniParser vision (fallback)</span>
+  <span><span class="dot" style="background:var(--brain)"></span>GLM-5.2 brain</span>
+  <span><span class="dot" style="background:var(--safe)"></span>Confirm-gate (PreToolUse hooks)</span>
+  <span><span class="dot" style="background:var(--clicky)"></span>Clicky / screenshot-first (rejected)</span>
+</div>
+
+<footer>
+  Grounded in real YURI modules (live paths shown). <b>Constraint:</b> cloud-only brain (GLM-5.2); local lightweight infra (AX APIs, on-demand OmniParser) — no heavy local LLM inference. Source: <code>02_RESOURCES/RESEARCH/hey-clicky-computer-use-2026-07-05.md</code> + farzaa/clicky. Generated 2026-07-05 via /viz-lab.
+</footer>
+
+</body>
+</html>

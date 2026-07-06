@@ -730,7 +730,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
 
     // Terminal shell execution — proxies to shell service (avoids pm2 posix_spawn EBADF)
     const SHELL_SERVICE = 'http://127.0.0.1:3098';
-    const SHELL_KEY = process.env.SHELL_SERVICE_KEY || 'yuri-master-key-2026-04-23';
+    const SHELL_KEY = process.env.SHELL_SERVICE_KEY || '';
     router.post('/terminal/run', authMiddleware, (req, res) => {
         const { command } = req.body;
         if (typeof command !== 'string' || !command.trim()) {

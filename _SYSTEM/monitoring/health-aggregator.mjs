@@ -107,7 +107,7 @@ const HOOKS = {
   SessionStart: ['token-session-init', 'brain-inject', 'musubi-protocol-ingest', 'startup-offload', 'scout-orchestrator', 'eot-background-start', 'memory-archive'],
   UserPromptSubmit: ['user-prompt-submit'],
   SubagentStart: ['soul-persona-inject', 'yuri-sentinel-start'],
-  PreToolUse: ['pre-tool-gate', 'bash-security-guard', 'tirith-url-guard', 'claude-protocol-guard', 'pre-tool-use', 'musubi-protocol-enforce', 'gitnexus-hook', 'agent-spawn-guard'],
+  PreToolUse: ['bash-security-guard', 'claude-protocol-guard', 'pre-tool-use', 'energy-enforce', 'tirith-url-guard', 'yuri-risk-lite', 'gitnexus-hook', 'agent-spawn-guard', 'math-register-guard', 'filing-gate'],
   PostToolUse: ['post-tool-use', 'scout-orchestrator', 'token-tool-logger', 'session-checkpoint', 'gitnexus-hook'],
   Stop: ['yuri-sentinel-stop', 'token-session-end', 'memory-session-write'],
 };

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
 import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
 
@@ -155,6 +155,39 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
     }
   }
 
+  // Must-register zones: durable substrate where a broad placement rule is NOT
+  // enough — every non-test source file must carry its OWN explicit registry
+  // entry. A new file here fails --validate until registered ("nothing slips
+  // past"). Scoped on purpose: only zones small enough to keep fully registered.
+  for (const prefix of registry.mustRegisterPrefixes || []) {
+    let dirEntries;
+    try {
+      // Recursive (attack-finding fix): a subdirectory file slipped the old top-level
+      // scan. Broadened extensions + symlink-following close the other reported gaps.
+      dirEntries = readdirSync(path.join(repoRoot, prefix), { withFileTypes: true, recursive: true });
+    } catch {
+      continue; // zone directory absent -> nothing to enforce
+    }
+    for (const dirent of dirEntries) {
+      const parent = dirent.parentPath || dirent.path || path.join(repoRoot, prefix);
+      const fullPath = path.join(parent, dirent.name);
+      let isFile = dirent.isFile();
+      if (!isFile && dirent.isSymbolicLink()) {
+        // A symlink dirent reports isFile()=false; resolve it so a symlinked durable
+        // file cannot evade registration enforcement.
+        try { isFile = statSync(fullPath).isFile(); } catch { isFile = false; }
+      }
+      if (!isFile) continue;
+      // Any durable source/config file must register (not just .mjs/.cjs); tests exempt.
+      if (!/\.(mjs|cjs|js|ts|tsx|jsx|py|json)$/.test(dirent.name)) continue;
+      if (/\.test\.(mjs|cjs|js|ts|tsx|jsx)$/.test(dirent.name) || /_test\.py$/.test(dirent.name)) continue;
+      const relPath = normalizeRepoPath(fullPath, repoRoot);
+      if (!seen.has(relPath)) {
+        errors.push(`unregistered durable artifact in must-register zone ${prefix}: ${relPath}`);
+      }
+    }
+  }
+
   if ((registry.artifacts || []).length < 10) warnings.push('artifact registry seed has fewer than 10 artifacts');
   const truthPromotionRuntime = validateTruthPromotionRegistryRuntime(registry, { repoRoot });
   errors.push(...truthPromotionRuntime.errors.map((error) => `truth promotion runtime: ${error}`));
@@ -208,6 +241,6 @@ function runCli(argv = process.argv.slice(2)) {
   process.exitCode = 1;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli();
 }

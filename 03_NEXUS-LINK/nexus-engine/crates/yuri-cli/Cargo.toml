@@ -1,0 +1,26 @@
+[package]
+name = "yuri-cli"
+version = "0.1.0"
+description = "Thin end-to-end CLI ('yuri') wiring the Nexus Link spine: ingest a committed bug-bounty fixture through nexus-ingest into an on-disk tenant-isolated SqliteStore, rank the leads by EVH through the nexus-core Rankable port into a pursue-queue (surfacing the EV inversion and PRIOR badges), and report Brier calibration state. All math lives in nexus-score/nexus-core/nexus-store; the CLI only wires and prints."
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "yuri"
+path = "src/main.rs"
+
+[dependencies]
+nexus-core = { path = "../nexus-core" }
+nexus-store = { path = "../nexus-store" }
+nexus-ingest = { path = "../nexus-ingest" }
+# The kernel ev::ScoredLead is the rank() return type; depend on it directly to name it.
+nexus-score = { path = "../nexus-score" }
+rust_decimal = { workspace = true }
+uuid = { workspace = true }
+time = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+
+[lints]
+workspace = true

@@ -11,11 +11,19 @@
  *   node _SYSTEM/Scripts/yuri-search.mjs "ICM MWP" --top 15
  *   node _SYSTEM/Scripts/yuri-search.mjs "protected path" --json
  *   node _SYSTEM/Scripts/yuri-search.mjs '"exact phrase here"'     # phrase: wrap in quotes
+ *
+ * Tokenizer behavior (FTS5 porter unicode61 — see yuri-search-index.mjs):
+ *   - snake_case / kebab-case SPLIT into sub-tokens: 'energy_tick' matches 'energy' OR 'tick'
+ *   - camelCase is ONE token: search 'scoreHit' for the exact identifier, 'score' for the stem
+ *   - terms under 3 chars are dropped from OR queries (R.18 shared floor); use a quoted
+ *     phrase ("ai") to search a short term deliberately
  */
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { TOKENIZE_MIN_LENGTH } from './xref-provenance.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -33,8 +41,34 @@ export function buildMatch(raw) {
     return inner ? `"${inner}"` : null;
   }
   // Otherwise → OR of quoted terms (recall-friendly; bm25 ranks multi-term hits higher).
-  const terms = q.split(/\s+/).map((t) => t.replace(/["']/g, '')).filter((t) => t.length >= 2);
+  // wave-2 R.18: unified token floor (shared with xref tokenize) — 2-char terms
+  // were FTS5-visible but invisible to every other retrieval leg. Quoted phrase
+  // search above still reaches short terms deliberately.
+  const terms = q.split(/\s+/).map((t) => t.replace(/["']/g, '')).filter((t) => t.length >= TOKENIZE_MIN_LENGTH);
   return terms.length ? terms.map((t) => `"${t}"`).join(' OR ') : null;
+}
+
+// wave-2 R.9 (D-R2: warning-only, never auto-reindex, never block the search).
+// Stale = the latest commit landed more than STALENESS_GRACE_MS after the index
+// was last written — commits since reindex mean the corpus moved under the index.
+// Every failure path is fail-open ({stale:false, reason}).
+const STALENESS_GRACE_MS = 60 * 60 * 1000;
+export function indexStaleness(dbPath = INDEX_DB_PATH) {
+  try {
+    const indexMtimeMs = fs.statSync(dbPath).mtimeMs;
+    const out = execFileSync('git', ['log', '-1', '--format=%ct'], {
+      cwd: REPO_ROOT, encoding: 'utf8', timeout: 3000,
+    }).trim();
+    const lastCommitMs = parseInt(out, 10) * 1000;
+    if (!Number.isFinite(lastCommitMs)) return { stale: false, reason: 'no-commit-time' };
+    return {
+      stale: lastCommitMs - indexMtimeMs > STALENESS_GRACE_MS,
+      indexMtime: new Date(indexMtimeMs).toISOString(),
+      lastCommit: new Date(lastCommitMs).toISOString(),
+    };
+  } catch (err) {
+    return { stale: false, reason: err && err.code === 'ETIMEDOUT' ? 'git-timeout' : 'check-failed' };
+  }
 }
 
 function run() {
@@ -72,11 +106,20 @@ function run() {
     db.close(); process.exitCode = 1; return;
   }
   const total = db.prepare('SELECT COUNT(*) c FROM docs').get().c;
+  // wave-2 R.4 (house law): report how many docs MATCHED, not just the corpus
+  // size — top-10-of-500 must be distinguishable from exactly-10. '?' on FTS5
+  // count failure, never a crash.
+  let matchCount = '?';
+  try { matchCount = db.prepare('SELECT COUNT(*) c FROM docs WHERE docs MATCH ?').get(match).c; } catch { /* keep '?' */ }
   db.close();
 
-  if (json) { console.log(JSON.stringify({ ok: true, query: rawQuery, match, indexed: total, results: rows }, null, 2)); return; }
+  const staleness = indexStaleness();
+  if (json) { console.log(JSON.stringify({ ok: true, query: rawQuery, match, indexed: total, matchCount, stale: staleness.stale, staleness, results: rows }, null, 2)); return; }
+  if (staleness.stale) {
+    console.log(`⚠ [STALE INDEX — last reindex: ${staleness.indexMtime.slice(0, 16)}; commits since then; run 'ai reindex' to refresh]`);
+  }
   if (!rows.length) { console.log(`⬡ no matches for "${rawQuery}" (index: ${total} docs)`); return; }
-  console.log(`⬡ ${rows.length} hit(s) for "${rawQuery}"  ·  ${total} docs indexed\n`);
+  console.log(`⬡ ${rows.length} hit(s) of ${matchCount} matches for "${rawQuery}"  ·  ${total} docs indexed\n`);
   for (const r of rows) {
     const snip = r.snip.replace(/\s+/g, ' ').trim().slice(0, 240);
     console.log(`  ${r.path}`);
@@ -84,4 +127,4 @@ function run() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) run();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) run();

@@ -135,12 +135,17 @@ function inspectCoreProofs(errors) {
   const weighted = weightedMean([1, 2, 3], [1, 1, 2]);
   const dot = dotProduct([1, 2, 3], [4, 5, 6]);
   const distribution = softmax([0, 0]);
-  if (calibrationScore !== 0.025) errors.push('Brier calibration smoke failed');
-  if (Math.abs(calibrationLoss - 0.164252033486018) > 1e-12) errors.push('log-loss calibration smoke failed');
-  if (posterior !== 0.8) errors.push('Bayes update smoke failed');
-  if (weighted !== 2.25) errors.push('weighted mean smoke failed');
-  if (dot !== 32) errors.push('dot product smoke failed');
-  if (distribution[0] !== 0.5 || distribution[1] !== 0.5) errors.push('softmax smoke failed');
+  // 1e-12 tolerance throughout (harmonized with the logLoss sibling): the exact
+  // !== smokes passed only via roundStable pinning — fragile against any future
+  // kernel rounding change. (Implementation check: still green at 1e-30, so no
+  // drift was being masked.)
+  const close = (a, b) => Math.abs(a - b) <= 1e-12;
+  if (!close(calibrationScore, 0.025)) errors.push('Brier calibration smoke failed');
+  if (!close(calibrationLoss, 0.164252033486018)) errors.push('log-loss calibration smoke failed');
+  if (!close(posterior, 0.8)) errors.push('Bayes update smoke failed');
+  if (!close(weighted, 2.25)) errors.push('weighted mean smoke failed');
+  if (!close(dot, 32)) errors.push('dot product smoke failed');
+  if (!close(distribution[0], 0.5) || !close(distribution[1], 0.5)) errors.push('softmax smoke failed');
   return {
     dijkstraCost: dijkstraResult.cost,
     astarCost: astarResult.cost,

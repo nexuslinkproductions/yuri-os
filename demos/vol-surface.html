@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Volatility Surface — synthetic demo</title>
+<style>
+  :root {
+    --bg:#0b0f1a; --panel:#0f1626cc; --panel-solid:#0f1626; --line:#1d2942;
+    --ink:#e8eefc; --muted:#8aa0c6; --accent:#5b8cff; --accent-2:#ff5d73;
+    --field:#0a1120;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font:13px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial; overflow:hidden; }
+  #stage { position:fixed; inset:0; }
+  canvas { display:block; }
+
+  /* ---- left control panel ---- */
+  #panel { position:fixed; top:0; left:0; width:212px; height:100%;
+    background:linear-gradient(180deg,#0d1422 0%,#0a0f1b 100%);
+    border-right:1px solid var(--line); padding:16px 16px 28px; overflow-y:auto;
+    backdrop-filter:blur(6px); }
+  #panel h1 { font-size:15px; margin:0; letter-spacing:.2px; font-weight:650; }
+  #panel .sub { color:var(--accent-2); font-weight:650; font-size:12px; margin-top:2px; }
+  #panel .spot { color:var(--muted); font-size:11px; margin-bottom:18px; }
+  .grp { margin-bottom:14px; }
+  .grp > label { display:block; color:var(--muted); font-size:11px; letter-spacing:.3px;
+    text-transform:uppercase; margin-bottom:6px; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  select, input[type=number] {
+    width:100%; background:var(--field); color:var(--ink); border:1px solid var(--line);
+    border-radius:7px; padding:7px 9px; font:inherit; outline:none; }
+  select:focus, input:focus { border-color:var(--accent); }
+  input[type=number] { width:64px; text-align:right; }
+  input[type=range] { width:100%; accent-color:var(--accent-2); background:transparent; }
+  .chk { display:flex; align-items:center; justify-content:space-between; padding:3px 0;
+    color:var(--ink); font-size:12.5px; cursor:pointer; }
+  .chk input { accent-color:var(--accent); width:15px; height:15px; }
+  .val { color:var(--muted); font-variant-numeric:tabular-nums; font-size:11px; }
+  button { width:100%; border:1px solid var(--line); border-radius:8px; padding:9px;
+    font:inherit; font-weight:600; color:var(--ink); background:#13203a; cursor:pointer; margin-top:6px; }
+  button.primary { background:linear-gradient(180deg,#ff6a7e,#e6485f); border-color:#ff8593; color:#fff; }
+  button:hover { filter:brightness(1.08); }
+  .hint { color:var(--muted); font-size:10.5px; margin-top:14px; line-height:1.5; opacity:.85; }
+
+  /* ---- tooltip ---- */
+  #tip { position:fixed; pointer-events:none; z-index:20; display:none;
+    background:var(--panel-solid); border:1px solid var(--line); border-radius:9px;
+    padding:9px 11px; min-width:120px; box-shadow:0 10px 34px #0008; }
+  #tip .t-row { display:flex; justify-content:space-between; gap:18px; padding:1px 0; }
+  #tip .t-k { color:var(--muted); } #tip .t-v { font-weight:650; font-variant-numeric:tabular-nums; }
+
+  /* ---- colorbar ---- */
+  #bar { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:15;
+    width:14px; height:240px; border-radius:7px; border:1px solid var(--line); }
+  #bar-wrap { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:15;
+    height:240px; display:flex; align-items:center; }
+  #bar-lab { position:fixed; right:38px; top:50%; transform:translate(0,-50%); z-index:15;
+    height:240px; display:flex; flex-direction:column; justify-content:space-between;
+    align-items:flex-end; color:var(--muted); font-size:10px; font-variant-numeric:tabular-nums; }
+  #bar-title { position:fixed; right:14px; top:calc(50% - 142px); z-index:15;
+    color:var(--muted); font-size:10px; letter-spacing:.5px; }
+  #fps { position:fixed; right:16px; bottom:12px; color:var(--muted); font-size:10px; z-index:15; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div id="panel">
+  <h1>Volatility Surface</h1>
+  <div class="sub">SYNTHETIC</div>
+  <div class="spot">$580.00 · demo · no live data</div>
+
+  <div class="grp">
+    <label>Option Type</label>
+    <select id="optType">
+      <option value="all">All</option>
+      <option value="calls">Calls</option>
+      <option value="puts">Puts</option>
+    </select>
+  </div>
+
+  <div class="grp">
+    <label>Resolution</label>
+    <select id="res">
+      <option value="30,20">30 × 20</option>
+      <option value="50,35" selected>50 × 35</option>
+      <option value="70,48">70 × 48</option>
+      <option value="90,60">90 × 60</option>
+    </select>
+  </div>
+
+  <div class="grp">
+    <label>Smoothing <span class="val" id="smoothV">1</span></label>
+    <input type="range" id="smooth" min="0" max="6" step="1" value="1" />
+  </div>
+  <div class="grp">
+    <label>Height <span class="val" id="heightV">48</span></label>
+    <input type="range" id="height" min="12" max="100" step="1" value="48" />
+  </div>
+  <div class="grp">
+    <label>Opacity <span class="val" id="opacV">1.00</span></label>
+    <input type="range" id="opac" min="0.15" max="1" step="0.01" value="1" />
+  </div>
+
+  <div class="grp">
+    <label class="chk"><span>Wireframe</span><input type="checkbox" id="wire" /></label>
+    <label class="chk"><span>Scatter</span><input type="checkbox" id="scatter" /></label>
+    <label class="chk"><span>Flat shading</span><input type="checkbox" id="flat" /></label>
+    <label class="chk"><span>Grid</span><input type="checkbox" id="grid" checked /></label>
+  </div>
+
+  <div class="grp">
+    <label>Colormap</label>
+    <select id="cmap">
+      <option value="rdylbu" selected>RdYlBu</option>
+      <option value="viridis">Viridis</option>
+      <option value="turbo">Turbo</option>
+      <option value="plasma">Plasma</option>
+    </select>
+  </div>
+
+  <button class="primary" id="reroll">Randomize Surface</button>
+  <button id="resetCam">Reset Camera</button>
+
+  <div class="hint">Drag to orbit · scroll to zoom · right-drag to pan · hover a cell for its values.</div>
+</div>
+
+<div id="tip">
+  <div class="t-row"><span class="t-k">Strike</span><span class="t-v" id="tStrike">—</span></div>
+  <div class="t-row"><span class="t-k">DTE</span><span class="t-v" id="tDte">—</span></div>
+  <div class="t-row"><span class="t-k">IV</span><span class="t-v" id="tIv">—</span></div>
+  <div class="t-row"><span class="t-k">Mny</span><span class="t-v" id="tMny">—</span></div>
+</div>
+
+<div id="bar-title">%IV</div>
+<canvas id="bar" width="14" height="240"></canvas>
+<div id="bar-lab"><span id="barHi">—</span><span id="barMid">—</span><span id="barLo">—</span></div>
+<div id="fps"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ───────────────────────── config / domain ─────────────────────────
+const S0 = 580;                 // synthetic spot
+const K_MIN = 420, K_MAX = 720; // strike range  (moneyness ~0.72 .. 1.24)
+const D_MIN = 7,   D_MAX = 365;  // days-to-expiry range
+const WX = 100, WZ = 70;        // world span on x (strike) and z (dte)
+
+// ───────────────────────── colormaps ─────────────────────────
+// each = array of [stop, [r,g,b]] (0..255). low → high.
+const CMAPS = {
+  // RdYlBu reversed so HIGH iv = red (matches the reference shot)
+  rdylbu: [[0,[49,54,149]],[0.25,[116,173,209]],[0.5,[255,255,191]],
+           [0.75,[253,174,97]],[1,[165,0,38]]],
+  viridis:[[0,[68,1,84]],[0.25,[59,82,139]],[0.5,[33,145,140]],
+           [0.75,[94,201,98]],[1,[253,231,37]]],
+  turbo:  [[0,[48,18,59]],[0.25,[40,160,229]],[0.5,[63,234,138]],
+           [0.75,[251,176,33]],[1,[122,4,3]]],
+  plasma: [[0,[13,8,135]],[0.25,[126,3,168]],[0.5,[204,71,120]],
+           [0.75,[248,149,64]],[1,[240,249,33]]],
+};
+function sampleCmap(name, t) {
+  const s = CMAPS[name] || CMAPS.rdylbu;
+  t = Math.min(1, Math.max(0, t));
+  for (let i = 0; i < s.length - 1; i++) {
+    const [a, ca] = s[i], [b, cb] = s[i + 1];
+    if (t >= a && t <= b) {
+      const f = (t - a) / (b - a || 1);
+      return [ (ca[0]+(cb[0]-ca[0])*f)/255,
+               (ca[1]+(cb[1]-ca[1])*f)/255,
+               (ca[2]+(cb[2]-ca[2])*f)/255 ];
+    }
+  }
+  const last = s[s.length-1][1];
+  return [last[0]/255,last[1]/255,last[2]/255];
+}
+
+// ───────────────────────── synthetic IV model ─────────────────────────
+// seeded PRNG so the surface is stable until "Randomize"
+let SEED = 1337;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// implied vol as a function of (strike, dte) — a smile + term structure + skew
+function ivModel(K, dte, skewSign, noise) {
+  const T = dte / 365;
+  const k = Math.log(K / S0);               // log-moneyness
+  const atm  = 0.15 + 0.05 / Math.sqrt(T + 0.04);        // short-dated ATM lift
+  const wing = (0.8 / (T + 0.06)) * k * k * 0.5;          // smile, sharper short-dated
+  const skew = skewSign * 0.5 * k * Math.exp(-2.5 * T);  // decays with maturity
+  let iv = atm + wing + skew + noise;
+  return Math.min(1.5, Math.max(0.05, iv));
+}
+
+// build the nx×nz iv grid (+ smoothing), returns {nx,nz,iv,min,max}
+function buildGrid(nx, nz, optType, smoothIters) {
+  const rng = mulberry32(SEED);
+  const skewSign = optType === 'calls' ? -0.4 : optType === 'puts' ? 1.0 : 0.45;
+  let iv = new Float32Array(nx * nz);
+  for (let j = 0; j < nz; j++) {
+    const dte = D_MIN + (D_MAX - D_MIN) * (j / (nz - 1));
+    for (let i = 0; i < nx; i++) {
+      const K = K_MIN + (K_MAX - K_MIN) * (i / (nx - 1));
+      const noise = (rng() - 0.5) * 0.012;
+      iv[j * nx + i] = ivModel(K, dte, skewSign, noise);
+    }
+  }
+  // box-blur smoothing passes
+  for (let s = 0; s < smoothIters; s++) {
+    const out = new Float32Array(nx * nz);
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      let sum = 0, n = 0;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+        const ii = i + di, jj = j + dj;
+        if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue;
+        sum += iv[jj * nx + ii]; n++;
+      }
+      out[j * nx + i] = sum / n;
+    }
+    iv = out;
+  }
+  let min = Infinity, max = -Infinity;
+  for (let v of iv) { if (v < min) min = v; if (v > max) max = v; }
+  return { nx, nz, iv, min, max };
+}
+
+// ───────────────────────── three setup ─────────────────────────
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+renderer.setSize(window.innerWidth, window.innerHeight);
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0f1a);
+scene.fog = new THREE.Fog(0x0b0f1a, 220, 460);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 2000);
+const CAM0 = new THREE.Vector3(96, 78, 132);
+const TARGET0 = new THREE.Vector3(0, 8, 0);
+camera.position.copy(CAM0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.copy(TARGET0);
+
+scene.add(new THREE.AmbientLight(0x9fb6e8, 0.55));
+const key = new THREE.DirectionalLight(0xffffff, 1.15); key.position.set(80, 140, 60); scene.add(key);
+const rim = new THREE.DirectionalLight(0x6a8cff, 0.5); rim.position.set(-90, 40, -70); scene.add(rim);
+
+const gridHelper = new THREE.GridHelper(Math.max(WX, WZ) * 1.4, 24, 0x1d2942, 0x141d31);
+gridHelper.position.y = -0.2;
+scene.add(gridHelper);
+
+// holders rebuilt on demand
+let mesh = null, points = null;
+let GRID = null;            // {nx,nz,iv,min,max}
+let META = null;           // per-vertex {strike,dte,iv} for tooltip
+
+// ───────────────────────── geometry build ─────────────────────────
+function disposeObj(o){ if(!o) return; scene.remove(o); o.geometry?.dispose?.(); if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose()); } }
+
+function rebuild() {
+  const [nx, nz] = document.getElementById('res').value.split(',').map(Number);
+  const optType  = document.getElementById('optType').value;
+  const smoothIters = +document.getElementById('smooth').value;
+  const heightScale = +document.getElementById('height').value;
+  const cmap = document.getElementById('cmap').value;
+  const opacity = +document.getElementById('opac').value;
+
+  GRID = buildGrid(nx, nz, optType, smoothIters);
+  const { iv, min, max } = GRID;
+  const span = (max - min) || 1;
+
+  const positions = new Float32Array(nx * nz * 3);
+  const colors    = new Float32Array(nx * nz * 3);
+  META = new Array(nx * nz);
+
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      const idx = j * nx + i;
+      const fx = i / (nx - 1), fz = j / (nz - 1);
+      const x = -WX/2 + fx * WX;
+      const z = -WZ/2 + fz * WZ;
+      const v = iv[idx];
+      const y = ((v - min) / span) * (heightScale);   // normalized height
+      positions[idx*3+0] = x; positions[idx*3+1] = y; positions[idx*3+2] = z;
+      const [r,g,b] = sampleCmap(cmap, (v - min) / span);
+      colors[idx*3+0] = r; colors[idx*3+1] = g; colors[idx*3+2] = b;
+      META[idx] = {
+        strike: K_MIN + (K_MAX - K_MIN) * fx,
+        dte:    D_MIN + (D_MAX - D_MIN) * fz,
+        iv:     v,
+      };
+    }
+  }
+
+  // triangle indices
+  const index = [];
+  for (let j = 0; j < nz - 1; j++) for (let i = 0; i < nx - 1; i++) {
+    const a = j*nx + i, b = a + 1, c = a + nx, d = c + 1;
+    index.push(a, c, b,  b, c, d);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+  geo.setIndex(index);
+  geo.computeVertexNormals();
+
+  disposeObj(mesh); disposeObj(points);
+  mesh = null; points = null;
+
+  const flat = document.getElementById('flat').checked;
+  const wire = document.getElementById('wire').checked;
+  const mat = new THREE.MeshStandardMaterial({
+    vertexColors:true, side:THREE.DoubleSide, roughness:0.62, metalness:0.04,
+    flatShading:flat, wireframe:wire, transparent:opacity < 1, opacity,
+  });
+  mesh = new THREE.Mesh(geo, mat);
+  scene.add(mesh);
+
+  // scatter points overlay
+  if (document.getElementById('scatter').checked) {
+    const pgeo = new THREE.BufferGeometry();
+    pgeo.setAttribute('position', new THREE.BufferAttribute(positions.slice(), 3));
+    pgeo.setAttribute('color', new THREE.BufferAttribute(colors.slice(), 3));
+    points = new THREE.Points(pgeo, new THREE.PointsMaterial({ size:1.6, vertexColors:true }));
+    scene.add(points);
+  }
+
+  updateColorbar(min, max, cmap);
+}
+
+// ───────────────────────── colorbar ─────────────────────────
+function updateColorbar(min, max, cmap) {
+  const c = document.getElementById('bar'); const ctx = c.getContext('2d');
+  for (let y = 0; y < c.height; y++) {
+    const t = 1 - y / (c.height - 1);
+    const [r,g,b] = sampleCmap(cmap, t);
+    ctx.fillStyle = `rgb(${r*255|0},${g*255|0},${b*255|0})`;
+    ctx.fillRect(0, y, c.width, 1);
+  }
+  document.getElementById('barHi').textContent  = (max*100).toFixed(1);
+  document.getElementById('barMid').textContent = ((max+min)*50).toFixed(1);
+  document.getElementById('barLo').textContent  = (min*100).toFixed(1);
+}
+
+// ───────────────────────── hover tooltip (raycast) ─────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tip = document.getElementById('tip');
+let hoverX = 0, hoverY = 0, hovering = false;
+
+renderer.domElement.addEventListener('pointermove', (e) => {
+  const r = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  hoverX = e.clientX; hoverY = e.clientY; hovering = true;
+});
+renderer.domElement.addEventListener('pointerleave', () => { hovering = false; tip.style.display = 'none'; });
+
+function updateTooltip() {
+  if (!hovering || !mesh) { tip.style.display = 'none'; return; }
+  raycaster.setFromCamera(mouse, camera);
+  const hit = raycaster.intersectObject(mesh, false)[0];
+  if (!hit) { tip.style.display = 'none'; return; }
+  // invert world x/z → nearest grid (i,j)
+  const { nx, nz } = GRID;
+  const fx = (hit.point.x + WX/2) / WX;
+  const fz = (hit.point.z + WZ/2) / WZ;
+  const i = Math.min(nx-1, Math.max(0, Math.round(fx * (nx-1))));
+  const j = Math.min(nz-1, Math.max(0, Math.round(fz * (nz-1))));
+  const m = META[j * nx + i];
+  if (!m) { tip.style.display = 'none'; return; }
+  document.getElementById('tStrike').textContent = m.strike.toFixed(0);
+  document.getElementById('tDte').textContent    = m.dte.toFixed(0);
+  document.getElementById('tIv').textContent     = (m.iv*100).toFixed(1) + '%';
+  document.getElementById('tMny').textContent    = (m.strike / S0).toFixed(2);
+  tip.style.display = 'block';
+  tip.style.left = (hoverX + 16) + 'px';
+  tip.style.top  = (hoverY + 16) + 'px';
+}
+
+// ───────────────────────── controls wiring ─────────────────────────
+const bind = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
+['res','optType','cmap'].forEach(id => bind(id, 'change', rebuild));
+['wire','scatter','flat','grid'].forEach(id => bind(id, 'change', () => {
+  if (id === 'grid') { gridHelper.visible = document.getElementById('grid').checked; return; }
+  rebuild();
+}));
+bind('smooth','input', e => { document.getElementById('smoothV').textContent = e.target.value; rebuild(); });
+bind('height','input', e => { document.getElementById('heightV').textContent = e.target.value; rebuild(); });
+bind('opac','input',   e => { document.getElementById('opacV').textContent = (+e.target.value).toFixed(2);
+  if (mesh) { mesh.material.opacity = +e.target.value; mesh.material.transparent = +e.target.value < 1; } });
+bind('reroll','click', () => { SEED = (SEED * 1664525 + 1013904223) >>> 0; rebuild(); });
+bind('resetCam','click', () => { camera.position.copy(CAM0); controls.target.copy(TARGET0); controls.update(); });
+
+// ───────────────────────── loop ─────────────────────────
+let last = performance.now(), frames = 0, acc = 0;
+function animate(now) {
+  requestAnimationFrame(animate);
+  controls.update();
+  updateTooltip();
+  renderer.render(scene, camera);
+  frames++; acc += now - last; last = now;
+  if (acc >= 1000) { document.getElementById('fps').textContent = frames + ' fps'; frames = 0; acc = 0; }
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+rebuild();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

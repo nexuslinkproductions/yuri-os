@@ -22,6 +22,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "memory.db"))
+# wave-2 M.16: rich-get-richer guard — use_count is capped (ranking weights it)
+# and manage() applies passive decay to cold high-count items.
+USE_COUNT_CEILING = 100
 
 SENSITIVE_PATTERNS = [
     re.compile(r"sk-[a-zA-Z0-9]{32,}"),
@@ -95,16 +98,27 @@ def get_conn(db_path: str = DB_PATH) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
-    ensure_schema(conn)
+    ensure_schema(conn, db_path=db_path)
     return conn
 
 
-def ensure_schema(conn: sqlite3.Connection) -> None:
+# Per-process schema-init guard (WAL write-amplification fix, wave-2 M.7):
+# the DDL replay + seed used to run on EVERY connection, dirtying WAL pages on
+# every read/health call (live WAL grew to 16 MB). DDL+seed now run once per
+# process per db_path; correctness is unchanged (a fresh process still
+# initializes a fresh DB).
+_schema_initialized: set[str] = set()
+
+
+def ensure_schema(conn: sqlite3.Connection, db_path: str = DB_PATH) -> None:
+    if db_path in _schema_initialized:
+        return
     schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
     with open(schema_path, "r", encoding="utf-8") as handle:
         conn.executescript(handle.read())
     ensure_column(conn, "memory_items", "use_count", "INTEGER NOT NULL DEFAULT 0")
     seed_research_sources(conn)
+    _schema_initialized.add(db_path)
 
 
 def ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
@@ -225,15 +239,7 @@ def seed_research_sources(conn: sqlite3.Connection) -> None:
             INSERT INTO memory_research_sources
               (title, url, publication_date, evidence_grade, venue, relevance_score, implementation_impact, checked_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(url) DO UPDATE SET
-              title=excluded.title,
-              publication_date=excluded.publication_date,
-              evidence_grade=excluded.evidence_grade,
-              venue=excluded.venue,
-              relevance_score=excluded.relevance_score,
-              implementation_impact=excluded.implementation_impact,
-              checked_at=CURRENT_TIMESTAMP,
-              updated_at=CURRENT_TIMESTAMP
+            ON CONFLICT(url) DO NOTHING
             """,
             (title, url, pub_date, grade, venue, relevance, impact),
         )
@@ -294,7 +300,7 @@ def governed_write(
             conn.execute(
                 """
                 UPDATE memory_items
-                SET use_count = use_count + 1,
+                SET use_count = MIN(use_count + 1, 100),
                     last_accessed_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP,
                     legacy_memory_id = COALESCE(legacy_memory_id, ?),
@@ -307,8 +313,9 @@ def governed_write(
             append_event(conn, item_id, "duplicate", "write", source_agent, "deduped", {"tags": tags, "flags": assessment.flags})
             return item_id
 
-        cur = conn.execute(
-            """
+        try:
+            cur = conn.execute(
+                """
             INSERT INTO memory_items (
                 legacy_memory_id, content, canonical_summary, memory_type, tier, structure, scope, status,
                 source_agent, source_uri, source_kind, tags, trust_score, confidence_score, source_quality,
@@ -339,7 +346,23 @@ def governed_write(
                 rag_node_id,
                 json.dumps({**(metadata or {}), "flags": assessment.flags}, sort_keys=True),
             ),
-        )
+            )
+        except sqlite3.IntegrityError:
+            # TOCTOU window (wave-2 M.5): two processes can both pass the
+            # pre-INSERT SELECT and race the UNIQUE content_hash constraint.
+            # The loser used to crash uncaught (caller spawns with
+            # stdio:'ignore' → memory silently lost). Treat the collision as
+            # the duplicate it is: increment use_count and return the winner.
+            sys.stderr.write("[memory_governor] duplicate content_hash race — incrementing use_count\n")
+            conn.execute(
+                "UPDATE memory_items SET use_count = MIN(use_count + 1, ?), last_accessed_at = CURRENT_TIMESTAMP WHERE content_hash = ?",
+                (USE_COUNT_CEILING, assessment.content_hash),
+            )
+            raced = conn.execute("SELECT id FROM memory_items WHERE content_hash = ?", (assessment.content_hash,)).fetchone()
+            item_id = int(raced["id"]) if raced else -1
+            if item_id >= 0:
+                append_event(conn, item_id, "duplicate", "write", source_agent, "deduped-race", {"tags": tags})
+            return item_id
         item_id = int(cur.lastrowid)
         append_event(conn, item_id, "write", "store", stored_agent, assessment.status, {"tags": tags, "flags": assessment.flags, "source_agent": source_agent})
         return item_id
@@ -374,8 +397,8 @@ def governed_read(query: str | None = None, limit: int = 20, include_suppressed:
         ids = [int(row["id"]) for row in rows]
         if ids:
             conn.executemany(
-                "UPDATE memory_items SET use_count = use_count + 1, last_accessed_at = CURRENT_TIMESTAMP WHERE id = ?",
-                [(item_id,) for item_id in ids],
+                "UPDATE memory_items SET use_count = MIN(use_count + 1, ?), last_accessed_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [(USE_COUNT_CEILING, item_id) for item_id in ids],
             )
             for item_id in ids:
                 append_event(conn, item_id, "read", "retrieve", "kernel", "ok", {"query": query})
@@ -537,6 +560,13 @@ def manage(cycle: str = "daily", db_path: str = DB_PATH) -> dict[str, Any]:
                     conn.execute("UPDATE memory_items SET tier='Archive', status='archived', updated_at=CURRENT_TIMESTAMP WHERE id=?", (item_id,))
                     append_event(conn, item_id, "manage", "archive", "memory_governor", "ok", {"age_days": age_days})
                     summary["archived"] += 1
+            # wave-2 M.16 passive decay: cold high-count items lose one step so
+            # the use_count ranking term cannot compound forever (rich-get-richer).
+            decayed = conn.execute(
+                "UPDATE memory_items SET use_count = MAX(1, use_count - 1) WHERE use_count > 1 AND last_accessed_at < datetime('now', '-30 days')"
+            ).rowcount
+            summary["use_count_decayed"] = int(decayed or 0)
+
 
             conn.execute(
                 """

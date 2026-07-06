@@ -49,33 +49,17 @@ try {
     'yuriOffload MCP timeout must not reintroduce the 180s offload cap',
   );
 
-  const responsesPreview = JSON.parse(execFileSync(
-    process.execPath,
-    [path.join(__dirname, 'offload-runner.mjs'), 'codex', '--dry-run', 'timeout smoke'],
-    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
-  ));
-  assert.equal(responsesPreview.timeout, 21600000, 'Codex Responses default timeout must allow long offload work');
 
-  const deepseekPreview = JSON.parse(execFileSync(
-    process.execPath,
-    [path.join(__dirname, 'offload-runner.mjs'), 'deepseek-v4-pro:max-reasoning', '--dry-run', 'timeout smoke'],
-    {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' },
-    },
-  ));
-  assert.equal(deepseekPreview.timeout, 21600000, 'DeepSeek Pro default timeout must allow long offload work');
-
+  // DeepSeek dispatch now runs through the minimal llm-lane.mjs core (offload-runner.mjs retired).
   const protectedEnvHydration = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'set -a; source .env; set +a; LLM_COMPAT_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvHydration.allowed, true, 'Direct DeepSeek runner should be allowed to read .env for key hydration');
 
   const protectedEnvWrite = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'echo SECRET=mutated >> .env; LLM_COMPAT_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/llm-lane.mjs deepseek',
   });
   assert.equal(protectedEnvWrite.allowed, false, 'DeepSeek hook allowance must not permit .env writes');
 
@@ -90,22 +74,22 @@ try {
   });
   assert.equal(protectedAmpWrite.allowed, false, '.amp runtime mutation must stay blocked');
 
-  const pluginRouteStamp = path.join(tempRoot, 'context-router-last.json');
+  const pluginRouteStamp = path.join(tempRoot, 'context-preflight-last.json');
   const pluginBeforeRoute = evaluateToolCall('mcp__codex_apps__github._list_installed_accounts', {}, {
     routeStampPath: pluginRouteStamp,
     now: 1000,
   });
-  assert.equal(pluginBeforeRoute.allowed, false, 'Codex app/plugin tools must route through context-router first');
+  assert.equal(pluginBeforeRoute.allowed, false, 'Codex app/plugin tools must route through YURI xref/context preflight first');
 
   const routeCommand = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'node _SYSTEM/Scripts/context-router.mjs "github plugin task"',
+    command: 'node _SYSTEM/Scripts/xref-query.mjs "github plugin task"',
   }, {
     routeStampPath: pluginRouteStamp,
     now: 1000,
   });
-  assert.equal(routeCommand.allowed, true, 'context-router command should be allowed');
-  assert.equal(fs.existsSync(pluginRouteStamp), true, 'context-router command should stamp the plugin gate');
+  assert.equal(routeCommand.allowed, true, 'xref-query command should be allowed');
+  assert.equal(fs.existsSync(pluginRouteStamp), true, 'xref-query command should stamp the plugin gate');
 
   const pluginAfterRoute = evaluateToolCall('mcp__codex_apps__github._list_installed_accounts', {}, {
     routeStampPath: pluginRouteStamp,

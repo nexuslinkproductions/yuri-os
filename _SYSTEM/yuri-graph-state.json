@@ -1,4 +1,5 @@
 {
+  "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`.",
   "version": "v15",
   "generated_at": "2026-05-16T12:19:15.860Z",
   "commit": "381f9876",
@@ -7,14 +8,14 @@
       "name": "control_plane",
       "color": "#00D4FF",
       "nodes": [
-        "ENKI",
-        "ENKI_INBOX",
-        "ENKI_DECIDES"
+        "NEXUS_CORE",
+        "NEXUS_INBOX",
+        "NEXUS_DECIDES"
       ],
       "plane_radii": {
-        "ENKI": 360,
-        "ENKI_DECIDES": 300,
-        "ENKI_INBOX": 220
+        "NEXUS_CORE": 360,
+        "NEXUS_DECIDES": 300,
+        "NEXUS_INBOX": 220
       }
     },
     {
@@ -59,7 +60,6 @@
         "TIRITH",
         "BASH_GUARD",
         "GITNEX_PRE",
-        "SCOUT_HERMES",
         "SCOUT_ARGUS",
         "HOOK_PIPELINE"
       ],
@@ -109,14 +109,13 @@
       "nodes": [
         "ADVISORS",
         "DEEPSEEK_A",
-        "OPENCLAW_A",
-        "HERMES_A",
+        "SENTINEL_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A",
+        "CRUCIBLE_A",
         "DS_FLASH",
         "DS_PRO",
-        "OC_BRIDGE",
+        "SENTINEL_BRIDGE",
         "SWARM_FLASH",
         "SWARM_PRO",
         "NATIVE_GATES"
@@ -136,31 +135,16 @@
         "LANE_DSP",
         "LANE_MINI",
         "LANE_CODEX",
-        "LANE_KIMI",
+        "LANE_MIMO_FLASH",
+        "LANE_MIMO",
         "LANE_TRIAGE",
         "LANE_GPTOSS",
         "MINI_WRITE",
-        "CDX_FULL"
+        "CDX_FULL",
+        "LANE_GEMMA"
       ],
       "plane_radii": {
         "ROUTING": 400
-      }
-    },
-    {
-      "name": "codex_gate",
-      "color": "#FF6835",
-      "nodes": [
-        "CODEX_GATE",
-        "PROPOSE",
-        "APPROVED",
-        "APPLY",
-        "PROP_DRYRUN",
-        "APPLY_HEAD",
-        "CODEX_FLOW"
-      ],
-      "plane_radii": {
-        "CODEX_GATE": 300,
-        "CODEX_FLOW": 220
       }
     },
     {
@@ -178,7 +162,6 @@
         "WARM_EOT",
         "WARM_JOURNAL",
         "WARM_ARCHIVE",
-        "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
       ],
@@ -193,7 +176,6 @@
         "SERVICES",
         "SVC_SHELL",
         "SVC_RUNTIME",
-        "SVC_RAG",
         "SVC_HEALTH",
         "SVC_EOT",
         "SVC_DIGEST",
@@ -212,7 +194,9 @@
         "GN_DETECT",
         "GN_QUERY",
         "GN_SYMBOL_GRAPH",
-        "GN_FLOW_TRACE"
+        "GN_FLOW_TRACE",
+        "PROPAGATION_SCAN",
+        "XREF_QUERY"
       ],
       "plane_radii": {
         "GITNEXUS": 280
@@ -239,14 +223,14 @@
       "name": "command_registry",
       "color": "#00D4FF",
       "nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_GITNEXUS_FAMILY",
         "CMD_DEEPSEEK_FAMILY",
         "CMD_DESIGN_FAMILY",
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO",
         "CMD_SHURA",
         "CMD_REPORT"
@@ -266,7 +250,7 @@
         "twist": 0.36959913571644626
       },
       {
-        "id": "ENKI",
+        "id": "NEXUS_CORE",
         "y": 760,
         "twist": 0.7391982714328925
       },
@@ -306,7 +290,7 @@
         "twist": 3.326392221448016
       },
       {
-        "id": "ENKI_DECIDES",
+        "id": "NEXUS_DECIDES",
         "y": -540,
         "twist": 3.6959913571644627
       },
@@ -316,7 +300,7 @@
         "twist": 4.065590492880908
       },
       {
-        "id": "CODEX_GATE",
+        "id": null,
         "y": -860,
         "twist": 4.435189628597355
       },
@@ -432,9 +416,9 @@
       "children": []
     },
     {
-      "id": "ENKI",
+      "id": "NEXUS_CORE",
       "tier": "section",
-      "label": "ENKI",
+      "label": "NEXUS_CORE",
       "role": "main session",
       "detail": "Claude Code control plane / final authority",
       "radius": 60,
@@ -459,7 +443,7 @@
           "Veto advisory output"
         ],
         "dependencies": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
@@ -477,10 +461,10 @@
       },
       "parent": null,
       "children": [
-        "ENKI_PLAN",
-        "ENKI_BUS",
-        "ENKI_CTX",
-        "ENKI_COMMANDS"
+        "NEXUS_PLAN",
+        "NEXUS_BUS",
+        "NEXUS_CTX",
+        "NEXUS_COMMANDS"
       ]
     },
     {
@@ -512,7 +496,7 @@
         "dependencies": [],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
@@ -550,7 +534,7 @@
         "dependencies": [],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
@@ -588,16 +572,16 @@
           "Emit beacon when configured"
         ],
         "dependencies": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
-          "OFFLOAD_SH",
-          "OPENCLAW_BRIDGE"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "LLM_COMPAT_SH",
+          "SENTINEL_BRIDGE"
         ],
         "state_files": [
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
         "notes": "Evidence: pulse-orchestrator comments and main() flow.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": null,
       "children": [
@@ -611,7 +595,7 @@
       "id": "CLASSIFIER",
       "tier": "section",
       "label": "CLASSIFIER",
-      "role": "offload-contract.mjs",
+      "role": "llm-compat-contract.mjs",
       "detail": "tier: TRIVIAL / STD / CPLX / CRIT",
       "radius": 50,
       "color": "#48C3D8",
@@ -622,9 +606,9 @@
       },
       "sector": "classification",
       "metadata": {
-        "purpose": "Complexity and scenario classifier from offload contract; maps prompts to tier and lane expectations.",
+        "purpose": "Complexity and scenario classifier from LLM-compat contract; maps prompts to tier and lane expectations.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
           "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md"
         ],
         "capabilities": [
@@ -633,14 +617,14 @@
           "Emit lane plan"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.routingPriority",
           "universalWorkflow"
         ],
         "state_files": [
           ".claude/state/pulse-plan.json"
         ],
         "notes": "Tuning file documents advisor disagreement and classifier calibration.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
@@ -681,7 +665,7 @@
         ],
         "dependencies": [
           "DeepSeek",
-          "OpenClaw bridge",
+          "Yuri Sentinel bridge",
           "native functions",
           "swarm fanout"
         ],
@@ -694,11 +678,10 @@
       "parent": null,
       "children": [
         "DEEPSEEK_A",
-        "OPENCLAW_A",
-        "HERMES_A",
+        "SENTINEL_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A"
+        "CRUCIBLE_A"
       ]
     },
     {
@@ -735,7 +718,7 @@
           ".claude/state/pulse-bus.json"
         ],
         "notes": "CLAUDE.md says main thread reads pulse-bus before non-trivial tool calls.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": null,
       "children": [
@@ -745,9 +728,9 @@
       ]
     },
     {
-      "id": "ENKI_DECIDES",
+      "id": "NEXUS_DECIDES",
       "tier": "section",
-      "label": "ENKI DECIDES",
+      "label": "NEXUS DECIDES",
       "role": "synthesizes findings",
       "detail": "reads bus / routes / acts / final call",
       "radius": 55,
@@ -759,7 +742,7 @@
       },
       "sector": "control_plane",
       "metadata": {
-        "purpose": "Decision stage where ENKI consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
+        "purpose": "Decision stage where NEXUS_CORE consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
         "files": [
           "CLAUDE.md",
           "_SYSTEM/Scripts/pulse-orchestrator.mjs"
@@ -768,7 +751,7 @@
           "Merge findings",
           "Choose route",
           "Apply final authority",
-          "Return control to ENKI"
+          "Return control to NEXUS_CORE"
         ],
         "dependencies": [
           "pulse-bus findings",
@@ -778,8 +761,8 @@
           ".claude/state/pulse-bus.json",
           ".claude/state/pulse-plan.json"
         ],
-        "notes": "Closed-loop return to ENKI models main-thread authority after advisor fanout.",
-        "returns_to": "ENKI"
+        "notes": "Closed-loop return to NEXUS_CORE models main-thread authority after advisor fanout.",
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
@@ -792,8 +775,8 @@
       "id": "ROUTING",
       "tier": "section",
       "label": "ROUTING",
-      "role": "offload lanes",
-      "detail": "12 lanes / priority order",
+      "role": "llm-compat lanes",
+      "detail": "Gemma local + frontier lanes",
       "radius": 50,
       "color": "#00C896",
       "position": {
@@ -803,22 +786,24 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Offload lane router using priority and scenario rules from the shared contract.",
+        "purpose": "LLM-compat lane router using priority and scenario rules from the shared contract. Local Ollama lanes are pinned to gemma4:12b-it-qat through ollama-lane.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs"
         ],
         "capabilities": [
           "Select smallest reliable lane",
           "Prioritize Codex for implementation",
-          "Fallback to Amp/local/cloud lanes",
-          "Route analysis separately"
+          "Route local Gemma SLM tasks through llm-compat",
+          "Route frontier analysis separately"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.routingPriority",
-          "OFFLOAD_CONTRACT.lanes"
+          "LLM_COMPAT_CONTRACT.routingPriority",
+          "LLM_COMPAT_CONTRACT.lanes",
+          "ollama-lane.mjs"
         ],
         "state_files": [],
-        "notes": "Evidence: offload-contract routingPriority and universalWorkflow.",
+        "notes": "Evidence: llm-compat-contract routingPriority plus 2026-06-07 Gemma-only local policy propagation.",
         "returns_to": "RESPONSE"
       },
       "parent": null,
@@ -828,53 +813,11 @@
         "LANE_DSP",
         "LANE_MINI",
         "LANE_CODEX",
-        "LANE_KIMI",
+        "LANE_MIMO_FLASH",
+        "LANE_MIMO",
         "LANE_TRIAGE",
-        "LANE_GPTOSS"
-      ]
-    },
-    {
-      "id": "CODEX_GATE",
-      "tier": "section",
-      "label": "CODEX GATE",
-      "role": "two-phase gate",
-      "detail": "propose / .approved / HEAD SHA / apply",
-      "radius": 50,
-      "color": "#FF6835",
-      "position": {
-        "x": 0,
-        "y": -860,
-        "z": 0
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Propose dry-run diff",
-          "Require approval marker",
-          "Verify HEAD SHA",
-          "Apply after gate passes"
-        ],
-        "dependencies": [
-          "pulse-codex-runner",
-          ".approved marker",
-          "git rev-parse HEAD"
-        ],
-        "state_files": [
-          ".claude/state/pulse-codex-pending.json"
-        ],
-        "notes": "Protected state path referenced only; not read.",
-        "returns_to": "RESPONSE"
-      },
-      "parent": null,
-      "children": [
-        "PROPOSE",
-        "APPROVED",
-        "APPLY"
+        "LANE_GPTOSS",
+        "LANE_GEMMA"
       ]
     },
     {
@@ -916,8 +859,8 @@
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "v13 relocates MEMORY immediately after ENKI so palace, soul, Mnemosyne, classifiers, advisors, routing, GitNexus, and self-improvement can read context before acting.",
-        "returns_to": "ENKI",
+        "notes": "v13 relocates MEMORY immediately after NEXUS_CORE so palace, soul, Mnemosyne, classifiers, advisors, routing, GitNexus, and self-improvement can read context before acting.",
+        "returns_to": "NEXUS_CORE",
         "lifecycle_position": "early",
         "access_pattern": "global - read by all sections, written by EOT/services/archive"
       },
@@ -959,13 +902,12 @@
         "dependencies": [],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
         "SVC_SHELL",
         "SVC_RUNTIME",
-        "SVC_RAG",
         "SVC_HEALTH",
         "SVC_EOT",
         "SVC_DIGEST",
@@ -998,7 +940,7 @@
           "Close user loop"
         ],
         "dependencies": [
-          "ENKI final decision",
+          "NEXUS_CORE final decision",
           "routing output",
           "memory context"
         ],
@@ -1010,7 +952,7 @@
       "children": []
     },
     {
-      "id": "ENKI_PLAN",
+      "id": "NEXUS_PLAN",
       "tier": "sub",
       "label": "pulse-plan.json",
       "role": "turn state",
@@ -1032,21 +974,21 @@
         ],
         "capabilities": [
           "Represent turn state",
-          "Connect under ENKI",
+          "Connect under NEXUS_CORE",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
         "returns_to": "RESPONSE"
       },
-      "parent": "ENKI",
+      "parent": "NEXUS_CORE",
       "children": []
     },
     {
-      "id": "ENKI_BUS",
+      "id": "NEXUS_BUS",
       "tier": "sub",
       "label": "pulse-bus.json",
       "role": "findings ring",
@@ -1068,21 +1010,21 @@
         ],
         "capabilities": [
           "Represent findings ring",
-          "Connect under ENKI",
+          "Connect under NEXUS_CORE",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
         "returns_to": "RESPONSE"
       },
-      "parent": "ENKI",
+      "parent": "NEXUS_CORE",
       "children": []
     },
     {
-      "id": "ENKI_CTX",
+      "id": "NEXUS_CTX",
       "tier": "sub",
       "label": "session context",
       "role": "active window",
@@ -1104,17 +1046,17 @@
         ],
         "capabilities": [
           "Represent active window",
-          "Connect under ENKI",
+          "Connect under NEXUS_CORE",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
         "returns_to": "RESPONSE"
       },
-      "parent": "ENKI",
+      "parent": "NEXUS_CORE",
       "children": []
     },
     {
@@ -1148,7 +1090,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SESSION_INIT",
       "children": [
@@ -1187,7 +1129,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SESSION_INIT",
       "children": [
@@ -1225,7 +1167,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SESSION_INIT",
       "children": []
@@ -1261,7 +1203,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SESSION_INIT",
       "children": []
@@ -1296,7 +1238,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
@@ -1334,7 +1276,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
@@ -1346,7 +1288,7 @@
       "id": "SCOUT_SPAWN",
       "tier": "sub",
       "label": "scout-spawn",
-      "role": "HERMES+ARGUS",
+      "role": "ARGUS",
       "detail": "",
       "radius": 22,
       "color": "#A398B8",
@@ -1357,13 +1299,13 @@
       },
       "sector": "prompt_hooks",
       "metadata": {
-        "purpose": "scout-spawn supports the prompt hooks sector as HERMES+ARGUS.",
+        "purpose": "scout-spawn supports the prompt hooks sector as ARGUS.",
         "files": [
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
         "capabilities": [
-          "Represent HERMES+ARGUS",
+          "Represent ARGUS",
           "Connect under PROMPT_HOOKS",
           "Expose architecture metadata to visual introspection"
         ],
@@ -1372,13 +1314,12 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
       "children": [
-        "SCOUT_HERMES",
         "SCOUT_ARGUS"
       ],
       "collapsed_into": "HOOK_PIPELINE"
@@ -1413,7 +1354,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
@@ -1451,7 +1392,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
@@ -1489,7 +1430,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "collapsed_into": "HOOK_PIPELINE",
         "status": "collapsed-v15"
       },
@@ -1527,7 +1468,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1562,7 +1503,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1597,7 +1538,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": [
@@ -1634,7 +1575,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1669,7 +1610,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1704,7 +1645,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1713,7 +1654,7 @@
       "id": "COMPLEX",
       "tier": "sub",
       "label": "COMPLEX",
-      "role": "+OC+HERMES+CASS",
+      "role": "+OC+CASS",
       "detail": "",
       "radius": 22,
       "color": "#48C3D8",
@@ -1724,13 +1665,13 @@
       },
       "sector": "classification",
       "metadata": {
-        "purpose": "COMPLEX supports the classification sector as +OC+HERMES+CASS.",
+        "purpose": "COMPLEX supports the classification sector as +OC+CASS.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
-          "Represent +OC+HERMES+CASS",
+          "Represent +OC+CASS",
           "Connect under CLASSIFIER",
           "Expose architecture metadata to visual introspection"
         ],
@@ -1739,7 +1680,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1774,7 +1715,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1809,7 +1750,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1844,7 +1785,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1867,7 +1808,7 @@
         "purpose": "DeepSeek preflight/model advisor for biggest risk, ambiguity, or missing context.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Standard-tier preflight",
@@ -1892,9 +1833,9 @@
       ]
     },
     {
-      "id": "OPENCLAW_A",
+      "id": "SENTINEL_A",
       "tier": "sub",
-      "label": "OPENCLAW",
+      "label": "YURI SENTINEL",
       "role": "bridge_advisory",
       "detail": "",
       "radius": 26,
@@ -1906,10 +1847,10 @@
       },
       "sector": "advisors",
       "metadata": {
-        "purpose": "OpenClaw bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
+        "purpose": "Yuri Sentinel bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/OS_KERNEL/openclaw-bridge.sh",
+          "_SYSTEM/OS_KERNEL/yuri-sentinel-bridge.sh",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1918,7 +1859,7 @@
           "Severity capped below critical"
         ],
         "dependencies": [
-          "OPENCLAW_BRIDGE",
+          "SENTINEL_BRIDGE",
           "local bridge JSON envelope"
         ],
         "state_files": [],
@@ -1929,47 +1870,8 @@
       },
       "parent": "ADVISORS",
       "children": [
-        "OC_BRIDGE"
+        "SENTINEL_BRIDGE"
       ]
-    },
-    {
-      "id": "HERMES_A",
-      "tier": "sub",
-      "label": "HERMES",
-      "role": "native_fn",
-      "detail": "",
-      "radius": 24,
-      "color": "#9B6EFF",
-      "position": {
-        "x": -197.922,
-        "y": -266,
-        "z": 96.056
-      },
-      "sector": "advisors",
-      "metadata": {
-        "purpose": "Native forecast advisor for context pressure, scope breadth, and session drift.",
-        "files": [
-          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
-        ],
-        "capabilities": [
-          "Predict context pressure",
-          "Detect broad prompt scope",
-          "Warn on accumulated writes"
-        ],
-        "dependencies": [
-          "session-state path reference",
-          "prompt path mentions"
-        ],
-        "state_files": [
-          ".claude/state/session-state.json"
-        ],
-        "runtime_kind": "native_function",
-        "authority_bounds": "advisory heuristic only",
-        "notes": "dispatchHermesForecast returns runtimeKind native_function; protected state path referenced only.",
-        "returns_to": "PULSE_BUS"
-      },
-      "parent": "ADVISORS",
-      "children": []
     },
     {
       "id": "YURI_RISK_A",
@@ -2028,7 +1930,7 @@
         "purpose": "Dual DeepSeek fanout for high-stakes independent risk scan.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Run flash and pro in parallel",
@@ -2052,9 +1954,9 @@
       ]
     },
     {
-      "id": "OBLITERATUS_A",
+      "id": "CRUCIBLE_A",
       "tier": "sub",
-      "label": "OBLITERATUS",
+      "label": "CRUCIBLE",
       "role": "adv. gate",
       "detail": "",
       "radius": 24,
@@ -2083,7 +1985,7 @@
         "state_files": [],
         "runtime_kind": "gate_advisory",
         "authority_bounds": "conditional gate; owner/local evidence remain decisive",
-        "notes": "CLAUDE.md names Obliteratus as gate hint under critical-tier manual implementation.",
+        "notes": "CLAUDE.md names Crucible as gate hint under critical-tier manual implementation.",
         "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
@@ -2119,7 +2021,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -2154,7 +2056,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -2189,7 +2091,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI_DECIDES"
+        "returns_to": "NEXUS_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -2217,17 +2119,17 @@
         ],
         "capabilities": [
           "Represent merge findings",
-          "Connect under ENKI_DECIDES",
+          "Connect under NEXUS_DECIDES",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI_DECIDES"
+          "NEXUS_DECIDES"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
-      "parent": "ENKI_DECIDES",
+      "parent": "NEXUS_DECIDES",
       "children": []
     },
     {
@@ -2253,17 +2155,17 @@
         ],
         "capabilities": [
           "Represent lane select",
-          "Connect under ENKI_DECIDES",
+          "Connect under NEXUS_DECIDES",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI_DECIDES"
+          "NEXUS_DECIDES"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
-      "parent": "ENKI_DECIDES",
+      "parent": "NEXUS_DECIDES",
       "children": []
     },
     {
@@ -2289,24 +2191,24 @@
         ],
         "capabilities": [
           "Represent act or defer",
-          "Connect under ENKI_DECIDES",
+          "Connect under NEXUS_DECIDES",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "ENKI_DECIDES"
+          "NEXUS_DECIDES"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
-      "parent": "ENKI_DECIDES",
+      "parent": "NEXUS_DECIDES",
       "children": []
     },
     {
       "id": "LANE_LOCAL",
       "tier": "sub",
       "label": "code-local",
-      "role": "qwen:7b",
+      "role": "gemma4:12b-it-qat",
       "detail": "",
       "radius": 20,
       "color": "#00C896",
@@ -2317,22 +2219,25 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Qwen-backed local coding lane",
+        "purpose": "Gemma-backed local code-adjacent compatibility lane for bounded private drafts and implementation sketches.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to qwen:7b / code-local",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
-          "qwen:7b / code-local"
+          "LLM_COMPAT_CONTRACT.lanes.codeLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2355,20 +2260,20 @@
       "metadata": {
         "purpose": "DeepSeek flash cloud analysis lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-flash",
           "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Return evidence to NEXUS_CORE"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-flash"
         ],
         "state_files": [],
         "model": "deepseek-v4-flash",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2391,20 +2296,20 @@
       "metadata": {
         "purpose": "DeepSeek pro cloud reasoning lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-pro",
           "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Return evidence to NEXUS_CORE"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "deepseek-v4-pro"
         ],
         "state_files": [],
         "model": "deepseek-v4-pro",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2427,20 +2332,20 @@
       "metadata": {
         "purpose": "Codex mini bounded implementation lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.4-mini",
           "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Return evidence to NEXUS_CORE"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.4-mini"
         ],
         "state_files": [],
         "model": "gpt-5.4-mini",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2465,20 +2370,20 @@
       "metadata": {
         "purpose": "Codex full workspace implementation lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.5",
           "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Return evidence to NEXUS_CORE"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
+          "LLM_COMPAT_CONTRACT.lanes",
           "gpt-5.5"
         ],
         "state_files": [],
         "model": "gpt-5.5",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-compat-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2487,13 +2392,13 @@
       ]
     },
     {
-      "id": "LANE_KIMI",
+      "id": "LANE_MIMO_FLASH",
       "tier": "sub",
-      "label": "kimi",
-      "role": "fallback",
+      "label": "mimo-flash",
+      "role": "fast reasoning",
       "detail": "",
       "radius": 20,
-      "color": "#4A9EFF",
+      "color": "#FFC480",
       "position": {
         "x": -16.393,
         "y": -756,
@@ -2501,22 +2406,60 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Remote high-grade fallback reasoning lane",
+        "purpose": "Xiaomi Mimo fast tier (mimo-v2-flash, 256K context) — cheap/low-latency reasoning lane",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-lane.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
-          "Route to kimi-k2.6",
+          "Route to mimo-v2-flash",
           "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Return evidence to NEXUS_CORE"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
-          "kimi-k2.6"
+          "LLM_COMPAT_CONTRACT.lanes",
+          "mimo-v2-flash"
         ],
         "state_files": [],
-        "model": "kimi-k2.6",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "model": "mimo-v2-flash",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-lane.mjs (native Anthropic Messages API adapter).",
+        "returns_to": "RESPONSE"
+      },
+      "parent": "ROUTING",
+      "children": []
+    },
+    {
+      "id": "LANE_MIMO",
+      "tier": "sub",
+      "label": "mimo",
+      "role": "first-class reasoning",
+      "detail": "",
+      "radius": 20,
+      "color": "#FF9E4A",
+      "position": {
+        "x": 33.607,
+        "y": -756,
+        "z": -219.388
+      },
+      "sector": "routing_lanes",
+      "metadata": {
+        "purpose": "Xiaomi Mimo first-class reasoning lane (Anthropic Messages API, mimo-v2.5-pro[1m], 1M context, max effort)",
+        "files": [
+          "_SYSTEM/Scripts/llm-lane.mjs",
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
+        ],
+        "capabilities": [
+          "Route to mimo-v2.5-pro[1m]",
+          "Bound work by lane policy",
+          "Return evidence to NEXUS_CORE"
+        ],
+        "dependencies": [
+          "LLM_COMPAT_CONTRACT.lanes",
+          "mimo-v2.5-pro[1m]"
+        ],
+        "state_files": [],
+        "model": "mimo-v2.5-pro[1m]",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/llm-lane.mjs (native Anthropic Messages API adapter). First-class provider equal to Anthropic; advisory-until-verified.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2526,7 +2469,7 @@
       "id": "LANE_TRIAGE",
       "tier": "sub",
       "label": "triage-local",
-      "role": "qwen:7b summarize",
+      "role": "gemma4:12b-it-qat",
       "detail": "",
       "radius": 14,
       "color": "#00C896",
@@ -2537,22 +2480,26 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Qwen-backed local triage and summarization lane",
+        "purpose": "Gemma-backed local triage and summarization lane.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to qwen:7b",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
-          "qwen:7b"
+          "LLM_COMPAT_CONTRACT.lanes.triageLocal",
+          "LLM_COMPAT_CONTRACT.lanes.summarizeLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "qwen:7b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2561,8 +2508,8 @@
     {
       "id": "LANE_GPTOSS",
       "tier": "sub",
-      "label": "gpt-oss 120b",
-      "role": "local GPU",
+      "label": "gpt-oss alias",
+      "role": "Gemma policy alias",
       "detail": "",
       "radius": 14,
       "color": "#00C896",
@@ -2573,144 +2520,29 @@
       },
       "sector": "routing_lanes",
       "metadata": {
-        "purpose": "Formatting and synthesis local GPU lane",
+        "purpose": "Legacy formatting/synthesis token retained as a compatibility alias; active local policy routes it to gemma4:12b-it-qat.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
         ],
         "capabilities": [
-          "Route to gpt-oss 120b",
-          "Bound work by lane policy",
-          "Return evidence to ENKI"
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
         ],
         "dependencies": [
-          "OFFLOAD_CONTRACT.lanes",
-          "gpt-oss 120b"
+          "LLM_COMPAT_CONTRACT.lanes.gptOss",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
         ],
         "state_files": [],
-        "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
-    },
-    {
-      "id": "PROPOSE",
-      "tier": "sub",
-      "label": "propose",
-      "role": "dry-run diff",
-      "detail": "",
-      "radius": 22,
-      "color": "#FF6835",
-      "position": {
-        "x": -219.81,
-        "y": -916,
-        "z": 9.145
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "propose supports the codex gate sector as dry-run diff.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Represent dry-run diff",
-          "Connect under CODEX_GATE",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "CODEX_GATE"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE",
-        "collapsed_into": "CODEX_FLOW",
-        "status": "collapsed-v15"
-      },
-      "parent": "CODEX_GATE",
-      "children": [
-        "PROP_DRYRUN"
-      ],
-      "collapsed_into": "CODEX_FLOW"
-    },
-    {
-      "id": "APPROVED",
-      "tier": "sub",
-      "label": ".approved",
-      "role": "user marker",
-      "detail": "",
-      "radius": 22,
-      "color": "#FF6835",
-      "position": {
-        "x": -60.206,
-        "y": -916,
-        "z": -211.602
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": ".approved supports the codex gate sector as user marker.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Represent user marker",
-          "Connect under CODEX_GATE",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "CODEX_GATE"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE",
-        "collapsed_into": "CODEX_FLOW",
-        "status": "collapsed-v15"
-      },
-      "parent": "CODEX_GATE",
-      "children": [],
-      "collapsed_into": "CODEX_FLOW"
-    },
-    {
-      "id": "APPLY",
-      "tier": "sub",
-      "label": "apply",
-      "role": "HEAD SHA verify",
-      "detail": "",
-      "radius": 22,
-      "color": "#FF6835",
-      "position": {
-        "x": 191.701,
-        "y": -916,
-        "z": -107.94
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "apply supports the codex gate sector as HEAD SHA verify.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Represent HEAD SHA verify",
-          "Connect under CODEX_GATE",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "CODEX_GATE"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE",
-        "collapsed_into": "CODEX_FLOW",
-        "status": "collapsed-v15"
-      },
-      "parent": "CODEX_GATE",
-      "children": [
-        "APPLY_HEAD"
-      ],
-      "collapsed_into": "CODEX_FLOW"
     },
     {
       "id": "MEM_HOT",
@@ -2745,7 +2577,7 @@
           ".claude/state/pulse-bus.json"
         ],
         "notes": "Hot memory paths referenced only.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "MEMORY",
       "children": [
@@ -2784,7 +2616,7 @@
         ],
         "state_files": [],
         "notes": "Warm evidence from self-improvement archive.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "MEMORY",
       "children": [
@@ -2824,11 +2656,10 @@
         ],
         "state_files": [],
         "notes": "Cold layer feeds future architecture and classifier tuning.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "MEMORY",
       "children": [
-        "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
       ]
@@ -2862,7 +2693,7 @@
         ],
         "state_files": [],
         "notes": "Represented as metadata surface only; no database read performed.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "MEMORY",
       "children": []
@@ -2897,7 +2728,7 @@
         ],
         "state_files": [],
         "notes": "Matches yuri-origin local evidence hierarchy.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "MEMORY",
       "children": []
@@ -2933,7 +2764,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -2969,43 +2800,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
-      },
-      "parent": "SERVICES",
-      "children": []
-    },
-    {
-      "id": "SVC_RAG",
-      "tier": "sub",
-      "label": "wiki-rag",
-      "role": "PID 821",
-      "detail": "",
-      "radius": 20,
-      "color": "#00C896",
-      "position": {
-        "x": 82.937,
-        "y": -1348,
-        "z": -203.768
-      },
-      "sector": "services",
-      "metadata": {
-        "purpose": "wiki-rag supports the services sector as PID 821.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/yuri-origin.md",
-          "SOUL.md"
-        ],
-        "capabilities": [
-          "Represent PID 821",
-          "Connect under SERVICES",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "SERVICES"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -3041,7 +2836,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -3077,7 +2872,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -3113,7 +2908,7 @@
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -3121,8 +2916,8 @@
     {
       "id": "SVC_OLLAMA",
       "tier": "sub",
-      "label": "ollama-kv",
-      "role": "cache idle",
+      "label": "ollama-runtime",
+      "role": "local Gemma runtime",
       "detail": "",
       "radius": 12,
       "color": "#94A3B8",
@@ -3133,23 +2928,25 @@
       },
       "sector": "services",
       "metadata": {
-        "purpose": "ollama-kv supports the services sector as cache idle.",
+        "purpose": "Ollama local runtime serving the Gemma 4 12B QAT llm-compat lane.",
         "files": [
-          "CLAUDE.md",
-          "_SYSTEM/yuri-origin.md",
-          "SOUL.md"
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs",
+          ".claude/config/models.json"
         ],
         "capabilities": [
-          "Represent cache idle",
-          "Connect under SERVICES",
-          "Expose architecture metadata to visual introspection"
+          "Serve gemma4:12b-it-qat locally",
+          "Expose /api/tags and /api/chat for llm-compat",
+          "Keep local model policy separate from frontier lanes"
         ],
         "dependencies": [
+          "ollama",
+          "gemma4:12b-it-qat",
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "notes": "Runtime service metadata only; model outputs remain advisory until verified.",
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SERVICES",
       "children": []
@@ -3263,44 +3060,6 @@
       "children": []
     },
     {
-      "id": "SCOUT_HERMES",
-      "tier": "leaf",
-      "label": "HERMES_FC",
-      "role": "context check",
-      "detail": "",
-      "radius": 8,
-      "color": "#A398B8",
-      "position": {
-        "x": 53.974,
-        "y": 216,
-        "z": 261.708
-      },
-      "sector": "prompt_hooks",
-      "metadata": {
-        "purpose": "HERMES_FC supports the prompt hooks sector as context check.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/yuri-origin.md"
-        ],
-        "capabilities": [
-          "Represent context check",
-          "Connect under SCOUT_SPAWN",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "SCOUT_SPAWN"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "SCOUT_SPAWN",
-        "collapsed_into": "NATIVE_GATES",
-        "status": "collapsed-v15"
-      },
-      "parent": "SCOUT_SPAWN",
-      "children": [],
-      "collapsed_into": "NATIVE_GATES"
-    },
-    {
       "id": "SCOUT_ARGUS",
       "tier": "leaf",
       "label": "ARGUS",
@@ -3409,9 +3168,9 @@
       "children": []
     },
     {
-      "id": "OC_BRIDGE",
+      "id": "SENTINEL_BRIDGE",
       "tier": "leaf",
-      "label": "openclaw-bridge.sh",
+      "label": "yuri-sentinel-bridge.sh",
       "role": "127.0.0.1:18789",
       "detail": "",
       "radius": 8,
@@ -3423,24 +3182,24 @@
       },
       "sector": "advisors",
       "metadata": {
-        "purpose": "openclaw-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
+        "purpose": "yuri-sentinel-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
         "files": [
           "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
           "Represent 127.0.0.1:18789",
-          "Connect under OPENCLAW_A",
+          "Connect under SENTINEL_A",
           "Expose architecture metadata to visual introspection"
         ],
         "dependencies": [
-          "OPENCLAW_A"
+          "SENTINEL_A"
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "OPENCLAW_A"
+        "returns_to": "SENTINEL_A"
       },
-      "parent": "OPENCLAW_A",
+      "parent": "SENTINEL_A",
       "children": []
     },
     {
@@ -3530,7 +3289,7 @@
       "metadata": {
         "purpose": "workspace-write supports the routing lanes sector as sandbox impl auth.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent sandbox impl auth",
@@ -3564,7 +3323,7 @@
       "metadata": {
         "purpose": "full workspace supports the routing lanes sector as max reasoning.",
         "files": [
-          "_SYSTEM/Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract.mjs"
         ],
         "capabilities": [
           "Represent max reasoning",
@@ -3579,76 +3338,6 @@
         "returns_to": "LANE_CODEX"
       },
       "parent": "LANE_CODEX",
-      "children": []
-    },
-    {
-      "id": "PROP_DRYRUN",
-      "tier": "leaf",
-      "label": "dry-run diff",
-      "role": "no writes",
-      "detail": "",
-      "radius": 8,
-      "color": "#FF6835",
-      "position": {
-        "x": -289.75,
-        "y": -944,
-        "z": 12.054
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "dry-run diff supports the codex gate sector as no writes.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Represent no writes",
-          "Connect under PROPOSE",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "PROPOSE"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "PROPOSE"
-      },
-      "parent": "CODEX_FLOW",
-      "children": []
-    },
-    {
-      "id": "APPLY_HEAD",
-      "tier": "leaf",
-      "label": "HEAD SHA verify",
-      "role": "stale-protection",
-      "detail": "",
-      "radius": 8,
-      "color": "#FF6835",
-      "position": {
-        "x": 252.696,
-        "y": -944,
-        "z": -142.284
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "HEAD SHA verify supports the codex gate sector as stale-protection.",
-        "files": [
-          "CLAUDE.md",
-          "_SYSTEM/Scripts/offload-contract.mjs"
-        ],
-        "capabilities": [
-          "Represent stale-protection",
-          "Connect under APPLY",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "APPLY"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "APPLY"
-      },
-      "parent": "CODEX_FLOW",
       "children": []
     },
     {
@@ -3827,41 +3516,6 @@
       "children": []
     },
     {
-      "id": "COLD_WIKI",
-      "tier": "leaf",
-      "label": "karpathy wiki atoms",
-      "role": "semantic",
-      "detail": "",
-      "radius": 8,
-      "color": "#74B9FF",
-      "position": {
-        "x": 167.096,
-        "y": 536,
-        "z": 208.525
-      },
-      "sector": "memory",
-      "metadata": {
-        "purpose": "karpathy wiki atoms supports the memory sector as semantic.",
-        "files": [
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md",
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"
-        ],
-        "capabilities": [
-          "Represent semantic",
-          "Connect under MEM_COLD",
-          "Expose architecture metadata to visual introspection"
-        ],
-        "dependencies": [
-          "MEM_COLD"
-        ],
-        "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "MEM_COLD"
-      },
-      "parent": "MEM_COLD",
-      "children": []
-    },
-    {
       "id": "COLD_TAXONOMY",
       "tier": "leaf",
       "label": "cross-reference-taxonomy.md",
@@ -3958,18 +3612,19 @@
           "trace flows"
         ],
         "dependencies": [
-          "ENKI",
-          "CODEX_GATE"
+          "NEXUS_CORE"
         ],
         "state_files": [],
-        "notes": "New v12 sector closes code-impact checks back into ENKI and Codex gate validation.",
-        "returns_to": "ENKI"
+        "notes": "New v12 sector closes code-impact checks back into NEXUS_CORE and Codex gate validation.",
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
         "GN_IMPACT",
         "GN_DETECT",
-        "GN_QUERY"
+        "GN_QUERY",
+        "PROPAGATION_SCAN",
+        "XREF_QUERY"
       ]
     },
     {
@@ -4000,7 +3655,7 @@
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "GITNEXUS",
       "children": []
@@ -4029,12 +3684,11 @@
           "changed-symbol detection"
         ],
         "dependencies": [
-          "GITNEXUS",
-          "CODEX_GATE"
+          "GITNEXUS"
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "GITNEXUS",
       "children": []
@@ -4068,7 +3722,7 @@
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "GITNEXUS",
       "children": [
@@ -4141,6 +3795,73 @@
       "children": []
     },
     {
+      "id": "PROPAGATION_SCAN",
+      "tier": "sub",
+      "label": "propagation-scan",
+      "role": "cross-reference engine v1",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -120,
+        "y": -1076,
+        "z": 120
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Read-only cross-reference engine V1 — structural mechanism-sibling discovery via GitNexus",
+        "files": [
+          "_SYSTEM/Scripts/propagation-scan.mjs"
+        ],
+        "capabilities": [
+          "structural mechanism-sibling discovery",
+          "node-id resolution over circuitry graph"
+        ],
+        "dependencies": [
+          "GITNEXUS",
+          "XREF_QUERY"
+        ],
+        "state_files": [],
+        "notes": "Read-only over the circuitry graph + GitNexus; resolves node-ids and surfaces mechanism-siblings.",
+        "returns_to": "NEXUS_CORE"
+      },
+      "parent": "GITNEXUS",
+      "children": []
+    },
+    {
+      "id": "XREF_QUERY",
+      "tier": "sub",
+      "label": "xref-query",
+      "role": "unified retrieval surface",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -160,
+        "y": -1076,
+        "z": 80
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Unified retrieval surface over corpus + circuitry graph + GitNexus, feeding propagation-scan",
+        "files": [
+          "_SYSTEM/Scripts/xref-query.mjs"
+        ],
+        "capabilities": [
+          "unified retrieval",
+          "feed structural cross-reference"
+        ],
+        "dependencies": [
+          "GITNEXUS"
+        ],
+        "state_files": [],
+        "notes": "Unified retrieval front door feeding PROPAGATION_SCAN.",
+        "returns_to": "NEXUS_CORE"
+      },
+      "parent": "GITNEXUS",
+      "children": []
+    },
+    {
       "id": "SELF_IMPROVE",
       "tier": "section",
       "label": "SELF_IMPROVE",
@@ -4155,7 +3876,7 @@
       },
       "sector": "self_improvement",
       "metadata": {
-        "purpose": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to ENKI.",
+        "purpose": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to NEXUS_CORE.",
         "files": [
           "_SYSTEM/SELF-IMPROVEMENT/",
           "CLAUDE.md"
@@ -4167,13 +3888,13 @@
           "skill registry"
         ],
         "dependencies": [
-          "ENKI",
+          "NEXUS_CORE",
           "MEMORY",
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "New v12 sector makes learning loops explicit and closes them back into ENKI.",
-        "returns_to": "ENKI"
+        "notes": "New v12 sector makes learning loops explicit and closes them back into NEXUS_CORE.",
+        "returns_to": "NEXUS_CORE"
       },
       "parent": null,
       "children": [
@@ -4213,7 +3934,7 @@
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SELF_IMPROVE",
       "children": []
@@ -4247,7 +3968,7 @@
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SELF_IMPROVE",
       "children": []
@@ -4281,7 +4002,7 @@
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SELF_IMPROVE",
       "children": [
@@ -4314,11 +4035,11 @@
         ],
         "dependencies": [
           "SELF_IMPROVE",
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SELF_IMPROVE",
       "children": []
@@ -4349,11 +4070,11 @@
         ],
         "dependencies": [
           "SELF_IMPROVE",
-          "ENKI"
+          "NEXUS_CORE"
         ],
         "state_files": [],
         "notes": "",
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
       "parent": "SELF_IMPROVE",
       "children": []
@@ -4362,7 +4083,7 @@
       "id": "PRECOMMIT_REGRESS",
       "tier": "leaf",
       "label": "precommit regress",
-      "role": "offload-contract",
+      "role": "llm-compat-contract",
       "detail": "",
       "radius": 8,
       "color": "#FF8855",
@@ -4373,16 +4094,15 @@
       },
       "sector": "self_improvement",
       "metadata": {
-        "purpose": "offload-contract-regression.sh",
+        "purpose": "llm-compat-contract-regression.sh",
         "files": [
-          "_SYSTEM/Scripts/offload-contract-regression.test.mjs"
+          "_SYSTEM/Scripts/llm-compat-contract-regression.test.mjs"
         ],
         "capabilities": [
           "regression gate"
         ],
         "dependencies": [
-          "PULSE_ARCHIVE",
-          "CODEX_GATE"
+          "PULSE_ARCHIVE"
         ],
         "state_files": [],
         "notes": "",
@@ -4425,7 +4145,7 @@
       "children": []
     },
     {
-      "id": "ENKI_COMMANDS",
+      "id": "NEXUS_COMMANDS",
       "tier": "sub",
       "label": "COMMANDS",
       "role": "slash registry",
@@ -4447,11 +4167,11 @@
           "Propose consolidation paths"
         ],
         "dependencies": [
-          "ENKI"
+          "NEXUS_CORE"
         ],
-        "returns_to": "ENKI"
+        "returns_to": "NEXUS_CORE"
       },
-      "parent": "ENKI",
+      "parent": "NEXUS_CORE",
       "children": [
         "CMD_GITNEXUS_FAMILY",
         "CMD_DEEPSEEK_FAMILY",
@@ -4459,7 +4179,7 @@
         "CMD_SPEC_FAMILY",
         "CMD_PROBABILITY",
         "CMD_EOT",
-        "CMD_OFFLOAD",
+        "CMD_LLM",
         "CMD_SOLO"
       ]
     },
@@ -4503,11 +4223,11 @@
         "current_size": "8 separate /commands files",
         "ideal_size": "1 /gitnexus with subcommands",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4539,15 +4259,15 @@
           "ds-flash",
           "ds-pro"
         ],
-        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /offload",
+        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /llm",
         "current_size": "4 overlapping deepseek commands",
-        "ideal_size": "2 direct lane commands plus /offload routing",
+        "ideal_size": "2 direct lane commands plus /llm routing",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4581,11 +4301,11 @@
         "current_size": "3 design command surfaces",
         "ideal_size": "1 /design dispatcher with modes",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4621,11 +4341,11 @@
         "current_size": "4 sequential spec commands",
         "ideal_size": "1 /spec pipeline dispatcher",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4659,11 +4379,11 @@
         "current_size": "3 aliases",
         "ideal_size": "1 canonical command",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4695,17 +4415,17 @@
         "current_size": "2 command files",
         "ideal_size": "1 command plus alias",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
-      "id": "CMD_OFFLOAD",
+      "id": "CMD_LLM",
       "tier": "leaf",
-      "label": "OFFLOAD family",
+      "label": "LLM family",
       "role": "2 commands",
       "detail": "2 commands",
       "radius": 8,
@@ -4717,25 +4437,25 @@
       },
       "sector": "command_registry",
       "metadata": {
-        "purpose": "OFFLOAD family command family",
+        "purpose": "LLM family command family",
         "command_count": 2,
         "commands": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
         "duplicates_flagged": [
-          "offload",
+          "llm",
           "ai-pipeline-offloading"
         ],
-        "merge_proposal": "Use /offload as the visible command and keep ai-pipeline-offloading as implementation skill",
+        "merge_proposal": "Use /llm as the visible command and keep ai-pipeline-offloading as implementation skill",
         "current_size": "2 command surfaces",
-        "ideal_size": "1 /offload command",
+        "ideal_size": "1 /llm command",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
@@ -4770,7 +4490,7 @@
           "math-curve-loaders",
           "non-destructive-infinity-guard",
           "openai-codex-workflow",
-          "openclaw-offload",
+          "sentinel-offload",
           "parallel-clone-orchestrator",
           "pattern-mirror-core",
           "reflect",
@@ -4786,28 +4506,28 @@
         "current_size": "24 standalone commands",
         "ideal_size": "24 standalone commands",
         "dependencies": [
-          "ENKI_COMMANDS"
+          "NEXUS_COMMANDS"
         ],
-        "returns_to": "ENKI_COMMANDS"
+        "returns_to": "NEXUS_COMMANDS"
       },
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "children": []
     },
     {
-      "id": "ENKI_INBOX",
-      "label": "ENKI INBOX",
+      "id": "NEXUS_INBOX",
+      "label": "NEXUS INBOX",
       "role": "feedback aggregator",
       "tier": "sub",
       "sector": "control_plane",
       "stage": 0,
       "radius": 34,
       "color": "#00D4FF",
-      "parent": "ENKI",
+      "parent": "NEXUS_CORE",
       "metadata": {
         "purpose": "Aggregates service feedback and memory-write returns before control-plane synthesis.",
         "status": "applied-v15",
-        "reduces_incoming_edges_for": "ENKI",
-        "returns_to": "ENKI"
+        "reduces_incoming_edges_for": "NEXUS_CORE",
+        "returns_to": "NEXUS_CORE"
       },
       "position": {
         "x": 260,
@@ -4830,12 +4550,12 @@
       },
       "sector": "advisors",
       "metadata": {
-        "purpose": "Aggregate native HERMES forecast and ARGUS tool-sequencing gates.",
+        "purpose": "Aggregate native ARGUS tool-sequencing gates.",
         "returns_to": "PULSE_BUS",
         "status": "applied-v15",
         "collapsed_count": 2,
         "collapsed_sources": [
-          "SCOUT_HERMES",
+          "SCOUT_",
           "SCOUT_ARGUS"
         ]
       },
@@ -4858,7 +4578,7 @@
       "sector": "prompt_hooks",
       "metadata": {
         "purpose": "Collapsed prompt-hook pipeline: aeonic, protection guard, scout spawn, Tirith, bash guard, and GitNexus preflight.",
-        "returns_to": "ENKI",
+        "returns_to": "NEXUS_CORE",
         "status": "applied-v15",
         "collapsed_count": 6,
         "collapsed_sources": [
@@ -4874,40 +4594,12 @@
       "children": []
     },
     {
-      "id": "CODEX_FLOW",
-      "tier": "sub",
-      "label": "CODEX FLOW",
-      "role": "propose approve apply",
-      "detail": "propose / .approved / HEAD SHA / apply",
-      "radius": 38,
-      "color": "#FF6835",
-      "position": {
-        "x": 220,
-        "y": -860,
-        "z": 100
-      },
-      "sector": "codex_gate",
-      "metadata": {
-        "purpose": "Merged Codex two-phase gate with visible propose, approve, and apply phase badge.",
-        "returns_to": "RESPONSE",
-        "status": "applied-v15",
-        "collapsed_count": 3,
-        "collapsed_sources": [
-          "PROPOSE",
-          "APPROVED",
-          "APPLY"
-        ]
-      },
-      "parent": "CODEX_GATE",
-      "children": []
-    },
-    {
       "id": "CMD_SHURA",
       "label": "/shura",
       "role": "strategic review",
       "tier": "leaf",
       "sector": "command_registry",
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "radius": 18,
       "color": "#00D4FF",
       "position": {
@@ -4918,7 +4610,7 @@
       "children": [],
       "metadata": {
         "purpose": "Command registry entry for /shura.",
-        "returns_to": "ENKI_COMMANDS",
+        "returns_to": "NEXUS_COMMANDS",
         "status": "applied-v15"
       }
     },
@@ -4928,7 +4620,7 @@
       "role": "report generator",
       "tier": "leaf",
       "sector": "command_registry",
-      "parent": "ENKI_COMMANDS",
+      "parent": "NEXUS_COMMANDS",
       "radius": 18,
       "color": "#00D4FF",
       "position": {
@@ -4939,9 +4631,48 @@
       "children": [],
       "metadata": {
         "purpose": "Command registry entry for /report.",
-        "returns_to": "ENKI_COMMANDS",
+        "returns_to": "NEXUS_COMMANDS",
         "status": "applied-v15"
       }
+    },
+    {
+      "id": "LANE_GEMMA",
+      "tier": "sub",
+      "label": "gemma-local",
+      "role": "gemma4:12b-it-qat",
+      "detail": "Ollama local SLM",
+      "radius": 18,
+      "color": "#00C896",
+      "position": {
+        "x": 103.1,
+        "y": -756,
+        "z": -195.2
+      },
+      "sector": "routing_lanes",
+      "metadata": {
+        "purpose": "Gemma 4 12B QAT local SLM lane for private triage, summarization, code-adjacent sketching, and xref/math evidence preparation.",
+        "files": [
+          "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "_SYSTEM/Scripts/ollama-lane.mjs",
+          "_SYSTEM/Scripts/ollama-adapter.mjs"
+        ],
+        "capabilities": [
+          "Route to gemma4:12b-it-qat through Ollama",
+          "Fire lane-core-hooks for energy/memory/evidence trace",
+          "Keep local output advisory until Codex verifies"
+        ],
+        "dependencies": [
+          "LLM_COMPAT_CONTRACT.lanes.gemmaLocal",
+          "ollama-lane.mjs",
+          "gemma4:12b-it-qat"
+        ],
+        "state_files": [],
+        "model": "gemma4:12b-it-qat",
+        "notes": "Needle, Qwen, gemma4:e2b, and gpt-oss local identities are retired as active policy choices; compatibility aliases route to Gemma.",
+        "returns_to": "RESPONSE"
+      },
+      "parent": "ROUTING",
+      "children": []
     }
   ],
   "edges": [
@@ -4953,13 +4684,13 @@
     },
     {
       "source": "USER_INPUT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "flow",
       "is_return": false,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SESSION_INIT",
       "type": "flow",
       "is_return": false
@@ -4996,20 +4727,14 @@
     },
     {
       "source": "PULSE_BUS",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": false
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ROUTING",
       "type": "flow",
-      "is_return": false
-    },
-    {
-      "source": "ENKI_DECIDES",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": false
     },
     {
@@ -5020,10 +4745,10 @@
     },
     {
       "source": "SERVICES",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": false,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "ROUTING",
@@ -5032,20 +4757,20 @@
       "is_return": false
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_PLAN",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_PLAN",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_BUS",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_BUS",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_CTX",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_CTX",
       "type": "branch",
       "is_return": false
     },
@@ -5148,13 +4873,7 @@
     },
     {
       "source": "ADVISORS",
-      "target": "OPENCLAW_A",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "ADVISORS",
-      "target": "HERMES_A",
+      "target": "SENTINEL_A",
       "type": "branch",
       "is_return": false
     },
@@ -5172,7 +4891,7 @@
     },
     {
       "source": "ADVISORS",
-      "target": "OBLITERATUS_A",
+      "target": "CRUCIBLE_A",
       "type": "branch",
       "is_return": false
     },
@@ -5195,19 +4914,19 @@
       "is_return": false
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_SYNTH",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_ROUTE",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "ENKI_DECIDES",
+      "source": "NEXUS_DECIDES",
       "target": "ED_FINAL",
       "type": "branch",
       "is_return": false
@@ -5244,7 +4963,13 @@
     },
     {
       "source": "ROUTING",
-      "target": "LANE_KIMI",
+      "target": "LANE_MIMO_FLASH",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "ROUTING",
+      "target": "LANE_MIMO",
       "type": "branch",
       "is_return": false
     },
@@ -5259,13 +4984,6 @@
       "target": "LANE_GPTOSS",
       "type": "branch",
       "is_return": false
-    },
-    {
-      "source": "CODEX_GATE",
-      "target": "CODEX_FLOW",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": []
     },
     {
       "source": "MEMORY",
@@ -5306,12 +5024,6 @@
     {
       "source": "SERVICES",
       "target": "SVC_RUNTIME",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "SERVICES",
-      "target": "SVC_RAG",
       "type": "branch",
       "is_return": false
     },
@@ -5377,8 +5089,8 @@
       "is_return": false
     },
     {
-      "source": "OPENCLAW_A",
-      "target": "OC_BRIDGE",
+      "source": "SENTINEL_A",
+      "target": "SENTINEL_BRIDGE",
       "type": "branch",
       "is_return": false
     },
@@ -5405,20 +5117,6 @@
       "target": "CDX_FULL",
       "type": "branch",
       "is_return": false
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "PROP_DRYRUN",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": []
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPLY_HEAD",
-      "type": "gates",
-      "is_return": false,
-      "redirected_from": []
     },
     {
       "source": "MEM_HOT",
@@ -5452,12 +5150,6 @@
     },
     {
       "source": "MEM_COLD",
-      "target": "COLD_WIKI",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "MEM_COLD",
       "target": "COLD_TAXONOMY",
       "type": "branch",
       "is_return": false
@@ -5475,13 +5167,7 @@
       "is_return": false
     },
     {
-      "source": "OPENCLAW_A",
-      "target": "PULSE_BUS",
-      "type": "data",
-      "is_return": false
-    },
-    {
-      "source": "HERMES_A",
+      "source": "SENTINEL_A",
       "target": "PULSE_BUS",
       "type": "data",
       "is_return": false
@@ -5499,34 +5185,22 @@
       "is_return": false
     },
     {
-      "source": "OBLITERATUS_A",
+      "source": "CRUCIBLE_A",
       "target": "PULSE_BUS",
       "type": "data",
       "is_return": false
     },
     {
       "source": "PULSE_PLAN",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": false,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "MEM_HOT",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "memory",
-      "is_return": false
-    },
-    {
-      "source": "LANE_MINI",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": false
-    },
-    {
-      "source": "LANE_CODEX",
-      "target": "CODEX_GATE",
-      "type": "gates",
       "is_return": false
     },
     {
@@ -5537,50 +5211,50 @@
     },
     {
       "source": "PULSE_BUS",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": false
     },
     {
-      "source": "ENKI_DECIDES",
-      "target": "ENKI_INBOX",
+      "source": "NEXUS_DECIDES",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "MEMORY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "SESSION_INIT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "PROMPT_HOOKS",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "NEXUSPULSE",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "return",
       "is_return": true
     },
     {
       "source": "CLASSIFIER",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "ROUTING",
@@ -5589,30 +5263,17 @@
       "is_return": true
     },
     {
-      "source": "CODEX_GATE",
-      "target": "RESPONSE",
-      "type": "return",
-      "is_return": true
-    },
-    {
       "source": "SERVICES",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
-      "source": "OPENCLAW_A",
+      "source": "SENTINEL_A",
       "target": "PULSE_BUS",
       "type": "advises",
       "is_return": true
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "RESPONSE",
-      "type": "flow",
-      "is_return": true,
-      "redirected_from": []
     },
     {
       "source": "LANE_LOCAL",
@@ -5633,7 +5294,13 @@
       "is_return": true
     },
     {
-      "source": "LANE_KIMI",
+      "source": "LANE_MIMO_FLASH",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_MIMO",
       "target": "RESPONSE",
       "type": "flow",
       "is_return": true
@@ -5652,11 +5319,11 @@
     },
     {
       "source": "HOOK_PIPELINE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "validates",
       "is_return": true,
       "redirected_from": [],
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "HOOK_PIPELINE",
@@ -5666,93 +5333,86 @@
       "redirected_from": []
     },
     {
-      "source": "HOOK_PIPELINE",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true,
-      "redirected_from": []
-    },
-    {
       "source": "TRIVIAL",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true
     },
     {
       "source": "STANDARD",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true
     },
     {
       "source": "COMPLEX",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true
     },
     {
       "source": "CRITICAL",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "flow",
       "is_return": true
     },
     {
       "source": "CLF_SCENARIO",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true
     },
     {
       "source": "CLF_ROUTE_PLAN",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true
     },
     {
-      "source": "ENKI_PLAN",
-      "target": "ENKI",
+      "source": "NEXUS_PLAN",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true
     },
     {
-      "source": "ENKI_BUS",
-      "target": "ENKI",
+      "source": "NEXUS_BUS",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true
     },
     {
-      "source": "ENKI_CTX",
-      "target": "ENKI",
+      "source": "NEXUS_CTX",
+      "target": "NEXUS_CORE",
       "type": "data",
       "is_return": true
     },
     {
       "source": "SOUL_INJECT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "PALACE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "MNEMOSYNE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "TOKEN_INIT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "ORCHESTRATOR",
@@ -5762,7 +5422,7 @@
     },
     {
       "source": "PULSE_PLAN",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true
     },
@@ -5773,20 +5433,14 @@
       "is_return": true
     },
     {
-      "source": "NP_CODEX_RUNNER",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true
-    },
-    {
       "source": "PB_RING",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true
     },
     {
       "source": "PB_CONSUME",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "data",
       "is_return": true
     },
@@ -5809,17 +5463,11 @@
       "is_return": true
     },
     {
-      "source": "ED_FINAL",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true
-    },
-    {
       "source": "MEM_KERNEL",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "memory",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "MLM_SANDBOX",
@@ -5829,30 +5477,24 @@
     },
     {
       "source": "SVC_SHELL",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "SVC_RUNTIME",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
-    },
-    {
-      "source": "SVC_RAG",
-      "target": "MEM_COLD",
-      "type": "memory",
-      "is_return": true
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "SVC_HEALTH",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "SVC_EOT",
@@ -5868,23 +5510,23 @@
     },
     {
       "source": "SVC_OLLAMA",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "feedback",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "GITNEXUS",
       "type": "flow",
       "is_return": false
     },
     {
       "source": "GITNEXUS",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "GN_IMPACT",
@@ -5893,17 +5535,30 @@
       "is_return": true
     },
     {
-      "source": "GN_DETECT",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true
-    },
-    {
       "source": "GN_QUERY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
+    },
+    {
+      "source": "XREF_QUERY",
+      "target": "PROPAGATION_SCAN",
+      "type": "data",
+      "is_return": false
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "PROPAGATION_SCAN",
+      "type": "data",
+      "is_return": false
+    },
+    {
+      "source": "PROPAGATION_SCAN",
+      "target": "NEXUS_INBOX",
+      "type": "data",
+      "is_return": true,
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "HOOK_PIPELINE",
@@ -5925,17 +5580,17 @@
       "is_return": true
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SELF_IMPROVE",
       "type": "flow",
       "is_return": false
     },
     {
       "source": "SELF_IMPROVE",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "EOT_PIPELINE",
@@ -5957,23 +5612,17 @@
     },
     {
       "source": "INTROSPECT",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "SKILL_REGISTRY",
-      "target": "ENKI_INBOX",
+      "target": "NEXUS_INBOX",
       "type": "data",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
-    },
-    {
-      "source": "PRECOMMIT_REGRESS",
-      "target": "CODEX_GATE",
-      "type": "gates",
-      "is_return": true
+      "routed_via": "NEXUS_INBOX"
     },
     {
       "source": "BEACON_OBSIDIAN",
@@ -6019,8 +5668,8 @@
       "is_return": true
     },
     {
-      "source": "OC_BRIDGE",
-      "target": "OPENCLAW_A",
+      "source": "SENTINEL_BRIDGE",
+      "target": "SENTINEL_A",
       "type": "logs",
       "is_return": true
     },
@@ -6049,20 +5698,6 @@
       "is_return": true
     },
     {
-      "source": "PROP_DRYRUN",
-      "target": "CODEX_FLOW",
-      "type": "logs",
-      "is_return": true,
-      "redirected_from": []
-    },
-    {
-      "source": "APPLY_HEAD",
-      "target": "CODEX_FLOW",
-      "type": "logs",
-      "is_return": true,
-      "redirected_from": []
-    },
-    {
       "source": "HOT_PLAN",
       "target": "MEM_HOT",
       "type": "logs",
@@ -6089,12 +5724,6 @@
     {
       "source": "WARM_ARCHIVE",
       "target": "MEM_WARM",
-      "type": "logs",
-      "is_return": true
-    },
-    {
-      "source": "COLD_WIKI",
-      "target": "MEM_COLD",
       "type": "logs",
       "is_return": true
     },
@@ -6195,117 +5824,117 @@
       "is_return": true
     },
     {
-      "source": "ENKI",
+      "source": "NEXUS_CORE",
       "target": "SERVICES",
       "type": "flow",
       "is_return": false
     },
     {
-      "source": "ENKI",
-      "target": "ENKI_COMMANDS",
+      "source": "NEXUS_CORE",
+      "target": "NEXUS_COMMANDS",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "ENKI_COMMANDS",
-      "target": "ENKI_INBOX",
+      "source": "NEXUS_COMMANDS",
+      "target": "NEXUS_INBOX",
       "type": "return",
       "is_return": true,
-      "routed_via": "ENKI_INBOX"
+      "routed_via": "NEXUS_INBOX"
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_GITNEXUS_FAMILY",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_GITNEXUS_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_DEEPSEEK_FAMILY",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_DEEPSEEK_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_DESIGN_FAMILY",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_DESIGN_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_SPEC_FAMILY",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_SPEC_FAMILY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_PROBABILITY",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_PROBABILITY",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_EOT",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_EOT",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
-      "target": "CMD_OFFLOAD",
+      "source": "NEXUS_COMMANDS",
+      "target": "CMD_LLM",
       "type": "branch",
       "is_return": false
     },
     {
-      "source": "CMD_OFFLOAD",
-      "target": "ENKI_COMMANDS",
+      "source": "CMD_LLM",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
     {
-      "source": "ENKI_COMMANDS",
+      "source": "NEXUS_COMMANDS",
       "target": "CMD_SOLO",
       "type": "branch",
       "is_return": false
     },
     {
       "source": "CMD_SOLO",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "is_return": true
     },
@@ -6341,19 +5970,13 @@
     },
     {
       "source": "MEMORY",
-      "target": "ENKI_DECIDES",
+      "target": "NEXUS_DECIDES",
       "type": "memory",
       "is_return": false
     },
     {
       "source": "MEMORY",
       "target": "ROUTING",
-      "type": "memory",
-      "is_return": false
-    },
-    {
-      "source": "MEMORY",
-      "target": "CODEX_GATE",
       "type": "memory",
       "is_return": false
     },
@@ -6377,13 +6000,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "OPENCLAW_A",
-      "type": "memory",
-      "is_return": false
-    },
-    {
-      "source": "MEMORY",
-      "target": "HERMES_A",
+      "target": "SENTINEL_A",
       "type": "memory",
       "is_return": false
     },
@@ -6401,7 +6018,7 @@
     },
     {
       "source": "MEMORY",
-      "target": "OBLITERATUS_A",
+      "target": "CRUCIBLE_A",
       "type": "memory",
       "is_return": false
     },
@@ -6442,13 +6059,7 @@
       "is_return": true
     },
     {
-      "source": "ENKI_DECIDES",
-      "target": "MEMORY",
-      "type": "feedback",
-      "is_return": true
-    },
-    {
-      "source": "CODEX_GATE",
+      "source": "NEXUS_DECIDES",
       "target": "MEMORY",
       "type": "feedback",
       "is_return": true
@@ -6472,8 +6083,8 @@
       "is_return": true
     },
     {
-      "source": "ENKI_INBOX",
-      "target": "ENKI",
+      "source": "NEXUS_INBOX",
+      "target": "NEXUS_CORE",
       "type": "feedback-aggregate",
       "strength": 0.95,
       "status": "applied-v15"
@@ -6551,54 +6162,6 @@
       "hidden": true
     },
     {
-      "source": "CODEX_FLOW",
-      "target": "PROPOSE",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "PROPOSE",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPROVED",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "APPROVED",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "CODEX_FLOW",
-      "target": "APPLY",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "APPLY",
-      "target": "CODEX_FLOW",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "NATIVE_GATES",
-      "target": "SCOUT_HERMES",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
-      "source": "SCOUT_HERMES",
-      "target": "NATIVE_GATES",
-      "type": "collapsed-membership",
-      "hidden": true
-    },
-    {
       "source": "NATIVE_GATES",
       "target": "SCOUT_ARGUS",
       "type": "collapsed-membership",
@@ -6612,15 +6175,27 @@
     },
     {
       "source": "CMD_SHURA",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "status": "applied-v15"
     },
     {
       "source": "CMD_REPORT",
-      "target": "ENKI_COMMANDS",
+      "target": "NEXUS_COMMANDS",
       "type": "return",
       "status": "applied-v15"
+    },
+    {
+      "source": "ROUTING",
+      "target": "LANE_GEMMA",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "LANE_GEMMA",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
     }
   ],
   "telemetry": {
@@ -6631,17 +6206,16 @@
     "leaf_count": 26,
     "closed_loops": [
       "RESPONSE→USER",
-      "ENKI_DECIDES→ENKI",
-      "MEMORY→ENKI",
-      "SESSION_INIT→ENKI",
-      "PROMPT_HOOKS→ENKI",
-      "NEXUSPULSE→ENKI_DECIDES",
-      "CLASSIFIER→ENKI",
+      "NEXUS_DECIDES→NEXUS_CORE",
+      "MEMORY→NEXUS_CORE",
+      "SESSION_INIT→NEXUS_CORE",
+      "PROMPT_HOOKS→NEXUS_CORE",
+      "NEXUSPULSE→NEXUS_DECIDES",
+      "CLASSIFIER→NEXUS_CORE",
       "ROUTING→RESPONSE",
-      "CODEX_GATE→RESPONSE",
-      "SERVICES→ENKI",
-      "GITNEXUS→ENKI",
-      "SELF_IMPROVE→ENKI"
+      "SERVICES→NEXUS_CORE",
+      "GITNEXUS→NEXUS_CORE",
+      "SELF_IMPROVE→NEXUS_CORE"
     ],
     "dead_ends_eliminated": "v11→v12 reduced from 73 to 0",
     "v13": {
@@ -6668,17 +6242,15 @@
         "NEXUSPULSE",
         "CLASSIFIER",
         "ADVISORS",
-        "ENKI_DECIDES",
+        "NEXUS_DECIDES",
         "ROUTING",
-        "CODEX_GATE",
         "GITNEXUS",
         "SELF_IMPROVE",
         "DEEPSEEK_A",
-        "OPENCLAW_A",
-        "HERMES_A",
+        "SENTINEL_A",
         "YURI_RISK_A",
         "SWARM_A",
-        "OBLITERATUS_A"
+        "CRUCIBLE_A"
       ],
       "applied_in": "v15"
     },
@@ -6692,7 +6264,7 @@
         ".claude/commands/gitnexus*.md"
       ],
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_GITNEXUS_FAMILY"
       ],
       "applied_in": "v15"
@@ -6701,10 +6273,10 @@
       "id": "command-duplicates-deepseek",
       "title": "Consolidate 4 deepseek commands -> 2",
       "status": "applied-v15",
-      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /offload.",
+      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /llm.",
       "severity": "low",
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_DEEPSEEK_FAMILY"
       ],
       "applied_in": "v15"
@@ -6716,7 +6288,7 @@
       "description": "/probabilistic-decision-core, /probability, /pdc are aliases. Pick one canonical.",
       "severity": "low",
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_PROBABILITY"
       ],
       "applied_in": "v15"
@@ -6728,7 +6300,7 @@
       "description": "Both point to the same skill. /eot is the short alias; make /end-of-transmission a synonym only.",
       "severity": "low",
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_EOT"
       ],
       "applied_in": "v15"
@@ -6740,19 +6312,19 @@
       "description": "/design-master, /design-source-pack, /frontend-design have different scopes but overlapping entry points. Consider unified /design with --mode flag.",
       "severity": "low",
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_DESIGN_FAMILY"
       ],
       "applied_in": "v15"
     },
     {
       "id": "enki-density",
-      "title": "ENKI has 30 incoming edges - high choke risk",
+      "title": "NEXUS_CORE has 30 incoming edges - high choke risk",
       "status": "applied-v15",
-      "description": "ENKI is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before ENKI.",
+      "description": "NEXUS_CORE is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before NEXUS_CORE.",
       "severity": "medium",
       "affected_nodes": [
-        "ENKI"
+        "NEXUS_CORE"
       ],
       "applied_in": "v15"
     },
@@ -6763,7 +6335,7 @@
       "description": "/spec-intake, /spec-clarify, /spec-analyze, /spec-promote are 4 sequential pipeline stages. Could be /spec <stage> with --next flag.",
       "severity": "low",
       "affected_nodes": [
-        "ENKI_COMMANDS",
+        "NEXUS_COMMANDS",
         "CMD_SPEC_FAMILY"
       ],
       "applied_in": "v15"
@@ -6783,8 +6355,7 @@
       "wp3_memory_report": "_SYSTEM/SELF-IMPROVEMENT/memory-placement-impact.md",
       "wp4_node_merges": [
         "NATIVE_GATES",
-        "HOOK_PIPELINE",
-        "CODEX_FLOW"
+        "HOOK_PIPELINE"
       ],
       "collapsed_rendering": true,
       "skill_pruning": "gitnexus compatibility mirrors pruned",

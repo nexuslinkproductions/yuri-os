@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "_doc": "Wiring contracts for regenerative-nexus-guard.mjs. Declares, per artifact domain, what 'wired' MEANS (required edges), what is safe to auto-scaffold, what is owner-gated, and explicit exemptions (intentional standalone / library / demo / fixture / retired). Edit this file — NOT the detector — to suppress a false positive, and always with a reason + owner + reviewBy. An exemption with no reason is itself a finding.",
+  "registries": {
+    "circuitryGraph": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+    "mathManual": "02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md",
+    "settings": ".claude/settings.json",
+    "commandsDir": ".claude/commands",
+    "hooksDir": ".claude/hooks",
+    "skillDirs": [".claude/skills", ".agents/skills"]
+  },
+  "domains": {
+    "skillAlias": {
+      "class": "E",
+      "discover": [".claude/skills/*/SKILL.md", ".agents/skills/*/SKILL.md"],
+      "requiredEdge": "skill-trigger -> .claude/commands/<alias>.md",
+      "severity": "low",
+      "safeAutoWire": "missing-command-shim",
+      "ownerGated": ["alias-conflict"]
+    },
+    "hook": {
+      "class": "F",
+      "discover": [".claude/hooks/*.js", ".claude/hooks/*.mjs", ".claude/hooks/*.cjs"],
+      "requiredEdge": "hook-file -> .claude/settings.json reference",
+      "severity": "high",
+      "safeAutoWire": null,
+      "ownerGated": ["settings-registration"]
+    },
+    "mathModule": {
+      "class": "D",
+      "discover": ["_SYSTEM/Scripts/math/*.mjs"],
+      "requiredEdge": "module -> (MATH-SCIENCE-MANUAL.md OR circuitry-node)",
+      "severity": "medium",
+      "safeAutoWire": null,
+      "ownerGated": ["manual-claim", "graph-node-add"]
+    },
+    "circuitryNode": {
+      "class": "G",
+      "discover": ["_SYSTEM/Scripts/**/*.mjs"],
+      "requiredEdge": "module-file -> circuitry-graph nodes[].files[]",
+      "severity": "medium",
+      "safeAutoWire": null,
+      "ownerGated": ["graph-node-add"]
+    },
+    "test": {
+      "class": "C",
+      "discover": ["_SYSTEM/Scripts/**/*.test.mjs"],
+      "requiredEdge": "test -> covered-module (import|name|matcher)",
+      "severity": "medium",
+      "safeAutoWire": null,
+      "ownerGated": []
+    },
+    "module": {
+      "class": "B",
+      "discover": ["_SYSTEM/Scripts/**/*.mjs"],
+      "requiredEdge": "reachable-from-entrypoint OR declared-standalone",
+      "severity": "medium",
+      "safeAutoWire": null,
+      "ownerGated": [],
+      "note": "import-graph reachability (deterministic, source-derived). GitNexus call-graph is the phase-2 structural upgrade."
+    },
+    "export": {
+      "class": "A",
+      "discover": ["_SYSTEM/Scripts/**/*.mjs"],
+      "requiredEdge": "exported-symbol -> referenced by another module",
+      "severity": "low",
+      "safeAutoWire": null,
+      "ownerGated": [],
+      "note": "textual zero-reference scan (LOW confidence). GitNexus in-degree is the phase-2 structural upgrade. Never delete on this signal alone."
+    }
+  },
+  "filenameExemptions": {
+    "_doc": "Regex (tested against the repo-relative path) → reason. These are CLASSES of intentional non-wiring (CLI harnesses, demos, fixtures, test workers) that would otherwise look unwired. Narrow on purpose.",
+    "rules": [
+      { "match": "\\.proof\\.mjs$", "reason": "proof harness — CLI-run, not imported", "classes": ["A", "B", "D", "G"] },
+      { "match": "\\.bakeoff\\.mjs$", "reason": "benchmark harness — CLI-run", "classes": ["A", "B", "D", "G"] },
+      { "match": "\\.collapse\\.mjs$", "reason": "demonstration harness — CLI-run", "classes": ["A", "B", "D", "G"] },
+      { "match": "\\.v2demo\\.mjs$", "reason": "demo artifact", "classes": ["A", "B", "D", "G"] },
+      { "match": "[.-]demo\\.mjs$", "reason": "demo artifact", "classes": ["A", "B", "D", "G"] },
+      { "match": "(^|/)[^/]*trace-test-worker\\.mjs$", "reason": "spawned test worker — entered as a child process, not imported", "classes": ["A", "B", "D", "G"] },
+      { "match": "(^|/)[^/]*trace-outcomes\\.mjs$", "reason": "trace post-processor — CLI-run over the trace file", "classes": ["B"] }
+    ]
+  },
+  "pathExemptions": {
+    "_doc": "Exact repo-relative path → {reason, owner, reviewBy, classes}. For specific intentional standalones / public APIs / parked research. classes:'*' exempts all.",
+    "rules": [
+      { "path": "_SYSTEM/Scripts/math/extract-logbook-truth.mjs", "reason": "scratch proof-data extractor for the transfer-distance proof (regen helper, not a registered math method) — see transfer-distance.proof.mjs", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["A", "B", "D", "G"] },
+      { "path": "_SYSTEM/Scripts/math/math-research-archive.test.mjs", "reason": "docs/archive consistency test — covers a markdown corpus, not an .mjs module", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["C"] },
+      { "path": ".claude/hooks/pulse-bus.js", "reason": "library-helper — required by _SYSTEM/Scripts/pulse-orchestrator.mjs (appendFinding/withLock/findingsByTurn); not a settings-registered hook (verified by Codex lane F, call sites)", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["F"] },
+      { "path": ".claude/hooks/scout-runner.js", "reason": "spawned worker — forked detached by .claude/hooks/scout-orchestrator.js (SCOUT_RUNNER, expects argv not stdin); not a settings hook (verified by Codex lane F)", "owner": "marcel", "reviewBy": "2026-09-06", "classes": ["F"] }
+    ]
+  }
+}

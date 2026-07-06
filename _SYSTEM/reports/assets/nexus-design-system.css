@@ -1,0 +1,551 @@
+/* ============================================================================
+   NEXUS LINK — BESPOKE DESIGN SYSTEM
+   "Interwoven craft, forward precision."
+   ----------------------------------------------------------------------------
+   A bespoke design language derived from the Nexus Link Celtic-knot identity:
+   interwoven, intricate, timeless craft fused with precise/forward motion.
+   This is NOT a HUD/cyber system. It does not use the YURI HUD or YURI Kagami
+   token namespaces; every token here is the bespoke --nx-* namespace.
+   Self-contained: system font stacks only, zero external requests.
+
+   Emotional temperature: premium, confident, alive, sophisticated.
+
+   LOGO EVIDENCE (verified from the actual SVGs): the real marks are MONOCHROME
+   — only #191d22 (ink) and #b6b6b7 (silver line) exist across logo/element/
+   wordmark. There is no gold in the source identity. The gold "thread" below
+   (Track A, the default) is a DELIBERATE premium brand extension chosen to warm
+   a cold-start monochrome mark into something ownable and alive. --nx-ground is
+   a faithful deepening of the logo ink #191d22. For the literal monochrome
+   identity, flip to Track B via the .nx-logo-true override at the end of file.
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------------
+   1. PALETTE — "Forge & Thread"
+   The Celtic knot reads as worked metal over a deep, quiet ground.
+   Ground   = near-black with a blue-graphite undertone (ink, not pure black).
+   Thread   = a warm metallic gold/bronze — the woven line of the knot.
+   Patina   = a cool teal-verdigris, the aged-metal counterpoint.
+   Parchment= warm off-white for light surfaces and inverted sections.
+   ---------------------------------------------------------------------------- */
+:root {
+  /* --- Core brand --- */
+  --nx-ground:        #0C0E13;  /* hsl(222 17% 6%)  deep ink ground   */
+  --nx-ground-2:      #12151C;  /* hsl(220 16% 9%)  raised surface    */
+  --nx-ground-3:      #1A1E28;  /* hsl(221 16% 13%) card / panel      */
+  --nx-ground-4:      #232836;  /* hsl(222 21% 17%) hover / border-hi */
+
+  --nx-thread:        #C9A14A;  /* hsl(42 53% 54%)  woven gold thread */
+  --nx-thread-bright: #E3C677;  /* hsl(42 66% 67%)  lit highlight     */
+  --nx-thread-deep:   #8A6A28;  /* hsl(41 55% 35%)  shadowed thread   */
+
+  --nx-patina:        #2E7D74;  /* hsl(174 46% 33%) verdigris accent  */
+  --nx-patina-bright: #4FB3A6;  /* hsl(173 39% 50%) lit patina        */
+
+  --nx-parchment:     #F4F0E6;  /* hsl(44 38% 93%)  warm off-white    */
+  --nx-parchment-2:   #E7E1D2;  /* hsl(44 33% 86%)  parchment shade   */
+
+  /* --- Text on dark ground --- */
+  --nx-ink-100:       #F6F4EE;  /* primary text on dark              */
+  --nx-ink-80:        #C6C8CF;  /* secondary text                    */
+  --nx-ink-60:        #8E929D;  /* tertiary / captions               */
+  --nx-ink-40:        #5B606C;  /* faint / disabled                  */
+
+  /* --- Text on parchment (inverted sections) --- */
+  --nx-ink-dark-100:  #14161C;
+  --nx-ink-dark-70:   #44484F;
+  --nx-ink-dark-50:   #6C7079;
+
+  /* --- Functional status (muted, never neon) --- */
+  --nx-pos:           #5FA882;  /* growth / positive                 */
+  --nx-pos-soft:      rgba(95,168,130,0.16);
+  --nx-warn:          #D7A24A;  /* caution                           */
+  --nx-warn-soft:     rgba(215,162,74,0.16);
+  --nx-risk:          #C76E63;  /* risk / decline                    */
+  --nx-risk-soft:     rgba(199,110,99,0.16);
+  --nx-neutral:       #6E8FB0;  /* informational                     */
+  --nx-neutral-soft:  rgba(110,143,176,0.16);
+
+  /* --- Lines & hairlines --- */
+  --nx-line:          rgba(201,161,74,0.18);  /* gold hairline       */
+  --nx-line-soft:     rgba(246,244,238,0.08); /* faint divider       */
+  --nx-line-strong:   rgba(201,161,74,0.40);
+
+  /* --- Gradients (woven sheen) --- */
+  --nx-grad-thread:   linear-gradient(120deg, var(--nx-thread-deep) 0%, var(--nx-thread) 38%, var(--nx-thread-bright) 55%, var(--nx-thread) 72%, var(--nx-thread-deep) 100%);
+  --nx-grad-ground:   radial-gradient(140% 120% at 50% -10%, #161A24 0%, var(--nx-ground) 60%, #07080B 100%);
+  --nx-grad-patina:   linear-gradient(120deg, var(--nx-patina) 0%, var(--nx-patina-bright) 100%);
+  --nx-grad-veil:     linear-gradient(180deg, rgba(12,14,19,0) 0%, rgba(12,14,19,0.82) 100%);
+
+  /* ----------------------------------------------------------------------------
+     2. TYPE SCALE — modular, ratio 1.250 (major third), base 17px
+     Display: high-contrast serif (timeless craft).  System serif stack.
+     Text:    humanist system sans (forward/precise).
+     Mono:    for figures in the data table (tabular).
+     ---------------------------------------------------------------------------- */
+  --nx-font-display: "Hoefler Text", "Iowan Old Style", "Palatino Linotype",
+                     Palatino, "Times New Roman", Georgia, serif;
+  --nx-font-text:    ui-sans-serif, -apple-system, BlinkMacSystemFont,
+                     "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --nx-font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+                     Consolas, "Liberation Mono", monospace;
+
+  --nx-fs-overline: 0.75rem;   /* 12 / tracked label                 */
+  --nx-fs-caption:  0.83rem;   /* ~14 footnotes, table meta          */
+  --nx-fs-small:    0.94rem;   /* ~16 dense body                     */
+  --nx-fs-body:     1.0625rem; /* 17 base                            */
+  --nx-fs-lead:     1.33rem;   /* ~21 lede                           */
+  --nx-fs-h4:       1.5rem;    /* 24                                 */
+  --nx-fs-h3:       2.07rem;   /* ~33                                */
+  --nx-fs-h2:       2.99rem;   /* ~48                                */
+  --nx-fs-h1:       4.3rem;    /* ~69                                */
+  --nx-fs-display:  clamp(3.2rem, 7vw, 6.7rem); /* hero             */
+
+  --nx-lh-tight:    1.04;
+  --nx-lh-snug:     1.18;
+  --nx-lh-body:     1.62;
+  --nx-tracking-overline: 0.22em;
+  --nx-tracking-tight:   -0.02em;
+
+  /* ----------------------------------------------------------------------------
+     3. SPACING & RHYTHM — 4px base, fibonacci-ish steps
+     ---------------------------------------------------------------------------- */
+  --nx-s1: 0.25rem; --nx-s2: 0.5rem;  --nx-s3: 0.75rem; --nx-s4: 1rem;
+  --nx-s5: 1.5rem;  --nx-s6: 2rem;    --nx-s7: 3rem;    --nx-s8: 4.5rem;
+  --nx-s9: 7rem;    --nx-s10: 11rem;
+  --nx-measure: 68ch;            /* readable line length              */
+  --nx-gutter:  clamp(1.25rem, 5vw, 5rem);
+  --nx-maxw:    1180px;
+
+  /* ----------------------------------------------------------------------------
+     4. ELEVATION & RADII — soft, paper-deep, never glassy-HUD
+     ---------------------------------------------------------------------------- */
+  --nx-radius-sm: 6px;  --nx-radius: 12px;  --nx-radius-lg: 20px;
+  --nx-shadow-1: 0 1px 2px rgba(0,0,0,0.30), 0 1px 1px rgba(0,0,0,0.20);
+  --nx-shadow-2: 0 8px 24px -8px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.35);
+  --nx-shadow-3: 0 24px 60px -20px rgba(0,0,0,0.65), 0 6px 16px rgba(0,0,0,0.40);
+  --nx-glow-thread: 0 0 0 1px rgba(201,161,74,0.30), 0 10px 40px -12px rgba(201,161,74,0.28);
+
+  /* ----------------------------------------------------------------------------
+     5. MOTION TOKENS — durations + bespoke easings ("woven" feel)
+     ---------------------------------------------------------------------------- */
+  --nx-dur-fast:   180ms;
+  --nx-dur:        420ms;
+  --nx-dur-slow:   760ms;
+  --nx-dur-reveal: 1100ms;
+  /* easings: weave = gentle overshoot; draw = decisive; settle = soft land */
+  --nx-ease-weave:  cubic-bezier(0.22, 1, 0.36, 1);
+  --nx-ease-draw:   cubic-bezier(0.65, 0, 0.35, 1);
+  --nx-ease-settle: cubic-bezier(0.16, 1, 0.30, 1);
+  --nx-ease-in:     cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--nx-grad-ground);
+  background-attachment: fixed;
+  color: var(--nx-ink-80);
+  font-family: var(--nx-font-text);
+  font-size: var(--nx-fs-body);
+  line-height: var(--nx-lh-body);
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+/* subtle woven texture grain over the ground */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(rgba(201,161,74,0.05) 1px, transparent 1px),
+    radial-gradient(rgba(79,179,166,0.04) 1px, transparent 1px);
+  background-size: 26px 26px, 26px 26px;
+  background-position: 0 0, 13px 13px;
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 90%);
+}
+.nx-shell { position: relative; z-index: 1; }
+
+::selection { background: var(--nx-thread); color: var(--nx-ground); }
+
+a { color: var(--nx-thread-bright); text-decoration: none;
+    border-bottom: 1px solid var(--nx-line-strong);
+    transition: color var(--nx-dur-fast) var(--nx-ease-weave),
+                border-color var(--nx-dur-fast) var(--nx-ease-weave); }
+a:hover { color: var(--nx-parchment); border-color: var(--nx-thread-bright); }
+
+h1, h2, h3, h4 {
+  font-family: var(--nx-font-display);
+  color: var(--nx-ink-100);
+  font-weight: 600;
+  letter-spacing: var(--nx-tracking-tight);
+  line-height: var(--nx-lh-snug);
+  margin: 0 0 var(--nx-s4);
+}
+h1 { font-size: var(--nx-fs-h1); line-height: var(--nx-lh-tight); }
+h2 { font-size: var(--nx-fs-h2); }
+h3 { font-size: var(--nx-fs-h3); }
+h4 { font-size: var(--nx-fs-h4); font-weight: 600; }
+p  { margin: 0 0 var(--nx-s5); max-width: var(--nx-measure); }
+
+.nx-overline {
+  font-family: var(--nx-font-text);
+  font-size: var(--nx-fs-overline);
+  letter-spacing: var(--nx-tracking-overline);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--nx-thread);
+  display: inline-flex; align-items: center; gap: var(--nx-s2);
+}
+.nx-overline::before {
+  content: ""; width: 28px; height: 1px;
+  background: var(--nx-grad-thread);
+}
+
+/* ============================================================================
+   LAYOUT
+   ========================================================================== */
+.nx-container { width: 100%; max-width: var(--nx-maxw);
+  margin-inline: auto; padding-inline: var(--nx-gutter); }
+.nx-section { padding-block: var(--nx-s9); }
+.nx-section--tight { padding-block: var(--nx-s8); }
+.nx-section-head { margin-bottom: var(--nx-s7); max-width: 760px; }
+.nx-section-head .nx-overline { margin-bottom: var(--nx-s4); }
+
+/* inverted (parchment) section for emphasis blocks */
+.nx-section--parchment {
+  background: var(--nx-parchment); color: var(--nx-ink-dark-70);
+  position: relative;
+}
+.nx-section--parchment h1, .nx-section--parchment h2,
+.nx-section--parchment h3, .nx-section--parchment h4 { color: var(--nx-ink-dark-100); }
+.nx-section--parchment .nx-overline { color: var(--nx-thread-deep); }
+
+/* ============================================================================
+   HERO
+   ========================================================================== */
+.nx-hero {
+  position: relative; min-height: 92vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding-block: var(--nx-s9);
+  overflow: hidden;
+}
+.nx-hero__knot {            /* container for the animated knotwork SVG */
+  position: absolute; inset: 0; z-index: 0;
+  display: grid; place-items: center;
+  pointer-events: none; opacity: 0.9;
+}
+.nx-hero__knot svg { width: min(72vmin, 720px); height: auto; overflow: visible; }
+.nx-hero__veil { position: absolute; inset: 0; z-index: 1;
+  background: var(--nx-grad-veil); pointer-events: none; }
+.nx-hero__content { position: relative; z-index: 2; max-width: 880px; }
+.nx-hero h1 {
+  font-size: var(--nx-fs-display);
+  background: var(--nx-grad-thread);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  background-size: 220% 100%;
+}
+.nx-hero__lede { font-size: var(--nx-fs-lead); color: var(--nx-ink-80);
+  max-width: 56ch; margin-top: var(--nx-s5); }
+.nx-hero__meta { display: flex; flex-wrap: wrap; gap: var(--nx-s5);
+  margin-top: var(--nx-s7); font-size: var(--nx-fs-caption);
+  color: var(--nx-ink-60); }
+.nx-hero__meta span { display: inline-flex; align-items: center; gap: var(--nx-s2); }
+.nx-hero__meta span::before { content: ""; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--nx-patina-bright); }
+
+/* ============================================================================
+   KNOTWORK DIVIDER (interwoven motif as section rule)
+   ========================================================================== */
+.nx-divider { display: flex; align-items: center; gap: var(--nx-s4);
+  margin-block: var(--nx-s8); color: var(--nx-thread); }
+.nx-divider::before, .nx-divider::after { content: ""; height: 1px; flex: 1;
+  background: linear-gradient(90deg, transparent, var(--nx-line-strong), transparent); }
+.nx-divider svg { width: 64px; height: 20px; overflow: visible; }
+
+/* ============================================================================
+   CARDS
+   ========================================================================== */
+.nx-grid { display: grid; gap: var(--nx-s5);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.nx-card {
+  position: relative; background: var(--nx-ground-3);
+  border: 1px solid var(--nx-line-soft);
+  border-radius: var(--nx-radius); padding: var(--nx-s6);
+  box-shadow: var(--nx-shadow-1);
+  transition: transform var(--nx-dur) var(--nx-ease-weave),
+              box-shadow var(--nx-dur) var(--nx-ease-weave),
+              border-color var(--nx-dur) var(--nx-ease-weave);
+  overflow: hidden;
+}
+.nx-card::after {           /* woven thread that lights along the top edge on hover */
+  content: ""; position: absolute; left: 0; top: 0; height: 2px; width: 100%;
+  background: var(--nx-grad-thread); background-size: 200% 100%;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform var(--nx-dur) var(--nx-ease-draw);
+}
+.nx-card:hover { transform: translateY(-4px);
+  box-shadow: var(--nx-shadow-3); border-color: var(--nx-line); }
+.nx-card:hover::after { transform: scaleX(1); }
+.nx-card__kicker { font-size: var(--nx-fs-overline);
+  letter-spacing: var(--nx-tracking-overline); text-transform: uppercase;
+  color: var(--nx-thread); margin-bottom: var(--nx-s3); }
+.nx-card__metric { font-family: var(--nx-font-display);
+  font-size: var(--nx-fs-h2); color: var(--nx-ink-100);
+  line-height: 1; margin-bottom: var(--nx-s3); }
+.nx-card__metric small { font-size: 0.42em; color: var(--nx-ink-60);
+  font-family: var(--nx-font-text); margin-left: 0.2em; }
+.nx-card p { font-size: var(--nx-fs-small); color: var(--nx-ink-80); margin: 0; }
+
+/* feature/figure callout card */
+.nx-callout {
+  border: 1px solid var(--nx-line);
+  border-left: 3px solid var(--nx-thread);
+  background: linear-gradient(180deg, rgba(201,161,74,0.05), transparent 60%),
+              var(--nx-ground-2);
+  border-radius: var(--nx-radius);
+  padding: var(--nx-s6) var(--nx-s6) var(--nx-s6) var(--nx-s7);
+  position: relative;
+}
+.nx-callout__label { font-size: var(--nx-fs-overline);
+  letter-spacing: var(--nx-tracking-overline); text-transform: uppercase;
+  color: var(--nx-thread-bright); margin-bottom: var(--nx-s3); display: block; }
+.nx-callout--patina { border-left-color: var(--nx-patina-bright);
+  background: linear-gradient(180deg, rgba(79,179,166,0.06), transparent 60%),
+              var(--nx-ground-2); }
+.nx-callout--patina .nx-callout__label { color: var(--nx-patina-bright); }
+
+.nx-figure { margin: 0; }
+.nx-figure figcaption { font-size: var(--nx-fs-caption);
+  color: var(--nx-ink-60); margin-top: var(--nx-s3);
+  padding-left: var(--nx-s4); border-left: 2px solid var(--nx-line); }
+
+/* ============================================================================
+   DATA TABLE — sticky header, sortable affordance, status badges, inline bars
+   ========================================================================== */
+.nx-table-wrap { width: 100%; overflow-x: auto; border-radius: var(--nx-radius);
+  border: 1px solid var(--nx-line-soft); background: var(--nx-ground-2);
+  box-shadow: var(--nx-shadow-1); }
+.nx-table { width: 100%; border-collapse: collapse;
+  font-size: var(--nx-fs-small); }
+.nx-table caption { text-align: left; padding: var(--nx-s5) var(--nx-s5) var(--nx-s3);
+  font-size: var(--nx-fs-caption); color: var(--nx-ink-60); }
+.nx-table thead th {
+  position: sticky; top: 0; z-index: 3;
+  background: var(--nx-ground-4); color: var(--nx-ink-100);
+  text-align: left; font-weight: 600;
+  font-size: var(--nx-fs-overline); letter-spacing: 0.08em; text-transform: uppercase;
+  padding: var(--nx-s4) var(--nx-s5);
+  border-bottom: 1px solid var(--nx-line);
+  white-space: nowrap; cursor: pointer; user-select: none;
+}
+.nx-table thead th::after {     /* sortable affordance */
+  content: "\2195"; margin-left: var(--nx-s2);
+  color: var(--nx-ink-40); font-size: 0.9em; transition: color var(--nx-dur-fast); }
+.nx-table thead th:hover::after { color: var(--nx-thread); }
+.nx-table thead th[aria-sort="ascending"]::after  { content: "\2191"; color: var(--nx-thread-bright); }
+.nx-table thead th[aria-sort="descending"]::after { content: "\2193"; color: var(--nx-thread-bright); }
+.nx-table thead th[data-nosort] { cursor: default; }
+.nx-table thead th[data-nosort]::after { content: none; }
+.nx-table tbody td { padding: var(--nx-s4) var(--nx-s5);
+  border-bottom: 1px solid var(--nx-line-soft); color: var(--nx-ink-80);
+  vertical-align: middle; }
+.nx-table tbody tr { transition: background var(--nx-dur-fast) var(--nx-ease-weave); }
+.nx-table tbody tr:hover { background: rgba(201,161,74,0.05); }
+.nx-table tbody tr:last-child td { border-bottom: none; }
+.nx-num { font-family: var(--nx-font-mono); font-variant-numeric: tabular-nums;
+  text-align: right; color: var(--nx-ink-100); }
+
+/* inline bar inside a cell */
+.nx-bar { display: flex; align-items: center; gap: var(--nx-s3); min-width: 140px; }
+.nx-bar__track { flex: 1; height: 6px; border-radius: 99px;
+  background: var(--nx-ground-4); overflow: hidden; }
+.nx-bar__fill { height: 100%; border-radius: 99px;
+  background: var(--nx-grad-thread); background-size: 200% 100%;
+  width: var(--nx-bar-w, 0%);
+  transition: width var(--nx-dur-slow) var(--nx-ease-settle); }
+.nx-bar__fill--patina { background: var(--nx-grad-patina); }
+.nx-bar__val { font-family: var(--nx-font-mono); font-variant-numeric: tabular-nums;
+  font-size: var(--nx-fs-caption); color: var(--nx-ink-80); min-width: 3ch; text-align: right; }
+
+/* status badges */
+.nx-badge { display: inline-flex; align-items: center; gap: 0.4em;
+  font-size: var(--nx-fs-overline); font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0.28em 0.7em; border-radius: 99px; white-space: nowrap;
+  border: 1px solid transparent; }
+.nx-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; }
+.nx-badge--pos     { color: var(--nx-pos);     background: var(--nx-pos-soft);     border-color: rgba(95,168,130,0.32); }
+.nx-badge--warn    { color: var(--nx-warn);    background: var(--nx-warn-soft);    border-color: rgba(215,162,74,0.32); }
+.nx-badge--risk    { color: var(--nx-risk);    background: var(--nx-risk-soft);    border-color: rgba(199,110,99,0.32); }
+.nx-badge--neutral { color: var(--nx-neutral); background: var(--nx-neutral-soft); border-color: rgba(110,143,176,0.32); }
+
+/* ============================================================================
+   FOOTNOTES / CITATIONS
+   ========================================================================== */
+.nx-footnotes { margin-top: var(--nx-s8); padding-top: var(--nx-s5);
+  border-top: 1px solid var(--nx-line); font-size: var(--nx-fs-caption);
+  color: var(--nx-ink-60); }
+.nx-footnotes ol { margin: 0; padding-left: var(--nx-s5);
+  display: grid; gap: var(--nx-s3); }
+.nx-footnotes li { padding-left: var(--nx-s2); }
+.nx-ref { font-family: var(--nx-font-mono); font-size: 0.7em;
+  vertical-align: super; color: var(--nx-thread); padding: 0 0.15em;
+  border: none; }
+a.nx-ref:hover { color: var(--nx-thread-bright); }
+
+/* ============================================================================
+   CUSTOM CURSOR LAYER
+   ========================================================================== */
+.nx-cursor, .nx-cursor-dot { position: fixed; top: 0; left: 0; z-index: 9999;
+  pointer-events: none; border-radius: 50%;
+  transform: translate3d(-50%, -50%, 0); will-change: transform; }
+.nx-cursor {                 /* the trailing ring */
+  width: 34px; height: 34px;
+  border: 1.5px solid var(--nx-thread);
+  box-shadow: 0 0 18px -4px rgba(201,161,74,0.45);
+  transition: width var(--nx-dur-fast) var(--nx-ease-weave),
+              height var(--nx-dur-fast) var(--nx-ease-weave),
+              border-color var(--nx-dur-fast) var(--nx-ease-weave),
+              background var(--nx-dur-fast) var(--nx-ease-weave),
+              opacity var(--nx-dur) var(--nx-ease-weave);
+  mix-blend-mode: screen;
+}
+.nx-cursor-dot {             /* the precise center point */
+  width: 6px; height: 6px; background: var(--nx-thread-bright);
+}
+/* hover-active state: ring expands and fills faintly over interactive targets */
+.nx-cursor.is-active {
+  width: 56px; height: 56px;
+  border-color: var(--nx-thread-bright);
+  background: rgba(201,161,74,0.10);
+}
+/* over text / table: ring tightens to an I-beam-ish small ring */
+.nx-cursor.is-text { width: 18px; height: 18px; border-color: var(--nx-patina-bright); }
+.nx-cursor.is-hidden, .nx-cursor-dot.is-hidden { opacity: 0; }
+/* Hide the system cursor only when the custom layer is on and a pointer exists */
+@media (pointer: fine) {
+  body.nx-cursor-on, body.nx-cursor-on a, body.nx-cursor-on button,
+  body.nx-cursor-on .nx-table thead th { cursor: none; }
+}
+
+/* ============================================================================
+   MOTION LAYER  (gated: body.nx-motion + respect reduced-motion)
+   Static fallback is the default; classes add transitions/animation.
+   ========================================================================== */
+/* scroll-reveal: default hidden-ish state ONLY when motion is enabled */
+.nx-reveal { opacity: 1; transform: none; }
+body.nx-motion .nx-reveal {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity var(--nx-dur-reveal) var(--nx-ease-settle),
+              transform var(--nx-dur-reveal) var(--nx-ease-settle);
+  transition-delay: var(--nx-reveal-delay, 0ms);
+}
+body.nx-motion .nx-reveal.is-in { opacity: 1; transform: none; }
+
+/* staggered children */
+body.nx-motion .nx-stagger > * {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity var(--nx-dur-slow) var(--nx-ease-settle),
+              transform var(--nx-dur-slow) var(--nx-ease-settle); }
+body.nx-motion .nx-stagger.is-in > * { opacity: 1; transform: none; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(1) { transition-delay: 0ms; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(2) { transition-delay: 90ms; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(3) { transition-delay: 180ms; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(4) { transition-delay: 270ms; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(5) { transition-delay: 360ms; }
+body.nx-motion .nx-stagger.is-in > *:nth-child(6) { transition-delay: 450ms; }
+
+/* parallax hook (JS sets --nx-parallax in px) */
+body.nx-motion .nx-parallax { transform: translate3d(0, var(--nx-parallax, 0), 0);
+  will-change: transform; }
+
+/* hero gold-thread sheen sweep */
+@keyframes nx-sheen { 0% { background-position: 200% 0; } 100% { background-position: -120% 0; } }
+body.nx-motion .nx-hero h1 { animation: nx-sheen 9s linear infinite; }
+
+/* knotwork line-draw — strokes draw themselves then breathe */
+@keyframes nx-draw { to { stroke-dashoffset: 0; } }
+@keyframes nx-breathe { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+.nx-knot-path { fill: none; stroke: var(--nx-thread);
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nx-knot-path--patina { stroke: var(--nx-patina-bright); }
+body.nx-motion .nx-knot-path {
+  stroke-dasharray: var(--nx-knot-len, 1200);
+  stroke-dashoffset: var(--nx-knot-len, 1200);
+  animation: nx-draw var(--nx-dur-reveal) var(--nx-ease-draw) forwards,
+             nx-breathe 6s ease-in-out 1.2s infinite; }
+
+/* animated metric count-up uses width/opacity; JS injects values */
+@keyframes nx-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+body.nx-motion .nx-card.is-in .nx-card__metric { animation: nx-rise var(--nx-dur) var(--nx-ease-weave) both; }
+
+/* divider knot gentle rotate-in */
+@keyframes nx-knot-in { from { opacity: 0; transform: rotate(-8deg) scale(0.9); }
+                        to { opacity: 1; transform: none; } }
+body.nx-motion .nx-divider.is-in svg { animation: nx-knot-in var(--nx-dur-slow) var(--nx-ease-weave) both; }
+
+/* inline bars animate width when their row enters */
+body.nx-motion .nx-bar__fill { width: 0; }
+body.nx-motion .nx-table tbody tr.is-in .nx-bar__fill { width: var(--nx-bar-w, 0%); }
+
+/* progress thread at top of viewport (scroll progress) */
+.nx-progress { position: fixed; top: 0; left: 0; height: 2px; z-index: 9000;
+  width: var(--nx-scroll, 0%); background: var(--nx-grad-thread);
+  background-size: 200% 100%; }
+
+/* ----------------------------------------------------------------------------
+   REDUCED MOTION — graceful static fallback. Everything visible, no movement.
+   ---------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body.nx-motion .nx-reveal,
+  body.nx-motion .nx-stagger > * { opacity: 1 !important; transform: none !important;
+    transition: none !important; }
+  body.nx-motion .nx-parallax { transform: none !important; }
+  body.nx-motion .nx-hero h1 { animation: none !important; }
+  body.nx-motion .nx-knot-path { stroke-dashoffset: 0 !important; animation: none !important; }
+  body.nx-motion .nx-card.is-in .nx-card__metric { animation: none !important; }
+  body.nx-motion .nx-divider.is-in svg { animation: none !important; }
+  body.nx-motion .nx-bar__fill,
+  body.nx-motion .nx-table tbody tr.is-in .nx-bar__fill { width: var(--nx-bar-w, 0%) !important; transition: none !important; }
+  .nx-cursor, .nx-cursor-dot { display: none !important; }
+  @media (pointer: fine) { body.nx-cursor-on, body.nx-cursor-on * { cursor: auto !important; } }
+}
+
+/* small screens: drop the custom cursor, soften hero */
+@media (max-width: 720px) {
+  .nx-cursor, .nx-cursor-dot { display: none; }
+  .nx-hero { min-height: 80vh; }
+  :root { --nx-fs-h1: 3rem; --nx-fs-h2: 2.3rem; --nx-fs-h3: 1.7rem; }
+}
+
+/* ============================================================================
+   PALETTE TRACK B — "LOGO-TRUE" (monochrome, matches the real marks exactly)
+   ----------------------------------------------------------------------------
+   The actual logo SVGs are monochrome: #191d22 (ink) and #b6b6b7 (silver line).
+   The default (Track A) gold "thread" is a deliberate premium brand EXTENSION,
+   not a logo color. To ship the literal monochrome identity instead, add
+   class="nx-logo-true" to the html element. Every other
+   token, component, and the entire motion + cursor layer stays identical; the
+   thread gradient simply becomes brushed silver.
+   Recommendation: keep Track A (gold) for the revenue memo. This is the escape
+   hatch, not the default.
+   ========================================================================== */
+.nx-logo-true {
+  --nx-thread:        #C8CACE;  /* lifted from logo line #b6b6b7  */
+  --nx-thread-bright: #EDEEF0;
+  --nx-thread-deep:   #7E848C;
+  --nx-patina:        #5E94C0;  /* single cool steel-blue accent  */
+  --nx-patina-bright: #87B4D8;
+  --nx-warn:          #C7C9CD;  /* desaturate status toward mono  */
+  --nx-line:          rgba(200,202,206,0.18);
+  --nx-line-strong:   rgba(200,202,206,0.40);
+  --nx-grad-thread:   linear-gradient(120deg, #7E848C 0%, #C8CACE 38%, #EDEEF0 55%, #C8CACE 72%, #7E848C 100%);
+  --nx-grad-patina:   linear-gradient(120deg, #5E94C0 0%, #87B4D8 100%);
+}

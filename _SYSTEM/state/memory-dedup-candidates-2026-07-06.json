@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-07-06T10:43:39.732Z",
+  "memoryDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/memory",
+  "totalFiles": 316,
+  "overlapThreshold": 0.4,
+  "loadThreshold": 0.15,
+  "mergePairs": [
+    {
+      "a": "feedback-motion-camera-per-scene-and-tighten-loop.md",
+      "b": "proj-nexus-motion-video-parked-2026-06-13.md",
+      "overlap": 0.5156
+    },
+    {
+      "a": "feedback-commit-pathspec-not-bare-multi-session.md",
+      "b": "feedback-shared-index-commit-pathspec.md",
+      "overlap": 0.4808
+    },
+    {
+      "a": "feedback-motion-no-slide-template-continuous-space.md",
+      "b": "proj-nexus-motion-video-parked-2026-06-13.md",
+      "overlap": 0.4762
+    },
+    {
+      "a": "feedback-no-workflow-tool-use-agent-only.md",
+      "b": "feedback-workflow-bills-main-quota-not-sonnet.md",
+      "overlap": 0.4407
+    },
+    {
+      "a": "feedback-motion-camera-per-scene-and-tighten-loop.md",
+      "b": "feedback-motion-no-slide-template-continuous-space.md",
+      "overlap": 0.4328
+    },
+    {
+      "a": "investor-partnership-no-equity.md",
+      "b": "nexus-link-investor-deck-2026-06-13.md",
+      "overlap": 0.4107
+    },
+    {
+      "a": "proj-orderflow-quant-p0-2026-07-06.md",
+      "b": "proj-orderflow-quant-pivot-2026-07-06.md",
+      "overlap": 0.4091
+    }
+  ],
+  "mergePairCount": 7,
+  "overCapacity": false,
+  "load": 0.0222,
+  "note": "Advisory candidates only — a human must verify each pair is a genuine duplicate before merging (see .claude/rules/skill-creation.md merge convention: canonical file + \"superseded by\" stub, cross-linked via [[handle]]). Compare against .claude/memory/MEMORY.md and archive-index.md before acting."
+}

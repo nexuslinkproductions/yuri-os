@@ -11,7 +11,7 @@
 **Core:** Single agents fail; specialized orchestration wins.  
 **Enrichment:** Extended failure modes (6 types), quality gate architecture (hard failures), isolation via worktrees, cascading dependencies.  
 **Failure:** Agent drifts from constraints → file system audit. Cost explodes → token tracking. Learning undone → conflict detection scan.  
-**Creative bridge:** Use for burst automation (proxy creation during edit review; color metadata during shoot).  
+**Creative bridge:** Use for burst automation (batch asset processing; metadata generation during a delivery sprint).  
 **Integration:** Works with Blueprints 7, 9, 15, 19.
 
 ---
@@ -24,7 +24,7 @@
 **Core:** Opus works best with comprehensive briefs upfront, not interactive steering.  
 **Enrichment:** Comprehensive brief structure, session management discipline (when to new session), effort calibration (cost/token per effort level), investigation intensity syntax, batch corrections strategy, validation-first task structure, team workflows with handoff.  
 **Failure:** Multiple course corrections mid-task → broken concentration → new session costs more.  
-**Creative bridge:** Brief cinematographer on shot list; Opus reviews for gaps. Brief editor on timeline structure; Opus reviews for pacing.  
+**Creative bridge:** Brief a specialist on the task plan; Opus reviews for gaps. Brief a collaborator on the structure; Opus reviews for pacing.  
 **Integration:** Works with Blueprints 1, 2, 5, 16.
 
 ---
@@ -37,7 +37,7 @@
 **Core:** 1M token window doesn't eliminate need for session discipline. Real skill is deciding when to continue, rewind, compact, or delegate.  
 **Enrichment:** Context rot mechanics (turns 1-5 focused, 15+ amnesia), advanced branching (parallel subagents, rewinding with preservation, staged sessions), subagent deployment criteria, memory architecture integration (3-layer system), daily habit loop, context usefulness metrics.  
 **Failure:** Stale context + output degradation → /compact or new session.  
-**Creative bridge:** Separate session for footage review (CRAFT mode) vs. business planning (BUILDER mode).  
+**Creative bridge:** Separate session for hands-on technical review (CRAFT mode) vs. business planning (BUILDER mode).  
 **Integration:** Works with Blueprints 9, 11, 16, 17.
 
 ---
@@ -89,7 +89,7 @@
 **Core:** CLAUDE.md is not documentation; it's operational routing logic.  
 **Enrichment:** Workflow definitions (when to route where), skill library architecture, quality standards codification, self-improvement mechanisms.  
 **Failure:** Stale rules → forgotten patterns → redundant work.  
-**Creative bridge:** Project-specific CLAUDE.md for C2MovieZ workflows (file naming, color standards, delivery formats).  
+**Creative bridge:** Project-specific CLAUDE.md for client workflows (file naming, quality standards, delivery formats).  
 **Integration:** Works with all blueprints (foundational).
 
 ---
@@ -102,7 +102,7 @@
 **Core:** Skills are specialized agents. Progressive disclosure (metadata → full instructions) and version management matter.  
 **Enrichment:** Skill vs prompt vs project vs MCP trade-offs, trigger detection (when skills load automatically), version management + deprecation.  
 **Failure:** Skill loads in wrong context → unexpected behavior. Outdated skill → produces stale patterns.  
-**Creative bridge:** Skill for color grading decisions. Skill for footage organization. Skill for client communication templates.  
+**Creative bridge:** Skill for design decisions. Skill for asset organization. Skill for client communication templates.  
 **Integration:** Works with Blueprints 9, 17, 20.
 
 ---
@@ -115,7 +115,7 @@
 **Core:** Four failure modes (poisoning, distraction, confusion, clash). Six pillars framework (specialists, query augmentation, retrieval, prompting, memory, tools).  
 **Enrichment:** Failure mode mitigation, pillar integration, specialist routing.  
 **Failure:** Poisoned context (false information) → output is wrong. Attention dilution → model can't focus.  
-**Creative bridge:** Separate context for video feedback (visual+audio) vs. business feedback (text).  
+**Creative bridge:** Separate context for creative feedback (visual) vs. business feedback (text).  
 **Integration:** Works with Blueprints 5, 9.
 
 ---
@@ -128,7 +128,7 @@
 **Core:** Generator + Evaluator loop with rubrics converges to quality faster than iteration alone.  
 **Enrichment:** Rubric definition with anchor examples, generator→evaluator loop, iteration cap, cost/token optimization.  
 **Failure:** Evaluator too strict → loop never converges. Generator ignores rubric → quality stalls.  
-**Creative bridge:** Grade generator proposes; evaluator checks against reference LUT.  
+**Creative bridge:** Generator proposes a design variant; evaluator checks against the reference style guide.  
 **Integration:** Works with Blueprints 2, 4, 6, 8.
 
 ---
@@ -141,7 +141,7 @@
 **Core:** Desktop-based scheduled execution with catch-up logic and permission models.  
 **Enrichment:** Desktop vs CLI distinction, permission model (always-allow), catch-up logic (7-day window, one-off execution).  
 **Failure:** Laptop closed → task doesn't run. Permissions denied → routine escalates.  
-**Creative bridge:** Daily footage backup verification. Weekly client report generation.  
+**Creative bridge:** Daily asset backup verification. Weekly client report generation.  
 **Integration:** Works with Blueprints 7, 9, 13.
 
 ---
@@ -154,7 +154,7 @@
 **Core:** Narrow specialists work better than generalists.  
 **Enrichment:** Five-path comparison (tasks, definitions, commands, personas, prompting), isolation via subagents, access control via settings.json.  
 **Failure:** Agent scope too broad → errors increase. Access too broad → agents can modify wrong files.  
-**Creative bridge:** Specialist agent for color grading. Specialist for editing. Specialist for client communication.  
+**Creative bridge:** Specialist agent for design execution. Specialist for asset organization. Specialist for client communication.  
 **Integration:** Works with Blueprints 3, 15, 20.
 
 ---
@@ -167,7 +167,7 @@
 **Core:** 3–5 specialists coordinated beats large monolithic team.  
 **Enrichment:** Task sizing (5–6 per teammate), file ownership strategy, team scale (3–5 sweet spot), plan vs execution mode.  
 **Failure:** Teams conflict over shared files → merge conflicts. Task too large → quality degrades.  
-**Creative bridge:** 3-agent team: Editor, Colorist, VFX Specialist for feature film.  
+**Creative bridge:** 3-agent team: research, drafting, and review specialists for a complex deliverable.  
 **Integration:** Works with Blueprints 3, 5, 14, 17.
 
 ---
@@ -180,7 +180,7 @@
 **Core:** Three-tier system (CLAUDE.md, auto memory, session memory) with proper pruning discipline.  
 **Enrichment:** Memory file structure, topic files, pruning discipline.  
 **Failure:** Stale entries in memory → noise → poor decisions. Memory contradicts CLAUDE.md → conflict.  
-**Creative bridge:** Store lighting setups, color LUTs, client preferences.  
+**Creative bridge:** Store reusable presets, style settings, client preferences.  
 **Integration:** Works with Blueprints 5, 9, 19.
 
 ---
@@ -193,7 +193,7 @@
 **Core:** Path-targeted rules activate only when relevant (don't pollute global context).  
 **Enrichment:** Path-targeting logic, precedence hierarchy, rule organization.  
 **Failure:** Rules never activate → knowledge lost. Precedence wrong → old rule overrides new.  
-**Creative bridge:** Project-specific rules for C2MovieZ (brand colors, file formats, crew names).  
+**Creative bridge:** Project-specific rules per client (brand colors, file formats, naming conventions).  
 **Integration:** Works with Blueprints 9, 10, 17.
 
 ---
@@ -206,7 +206,7 @@
 **Core:** Pipeline of specialists (blog→analysis→carousel→reddit). Each agent narrows down what's worth distributing.  
 **Enrichment:** Pipeline design, scheduling strategy, scoring system (recency + relevance + opportunity).  
 **Failure:** Pipeline produces noise → no engagement. Scoring doesn't reflect audience → bad reach.  
-**Creative bridge:** Video clip → social assets, blog post, YouTube thumbnail, behind-the-scenes story.  
+**Creative bridge:** Source asset → social assets, blog post, thumbnail, long-form story.  
 **Integration:** Works with Blueprints 7, 18, 20.
 
 ---
@@ -219,7 +219,7 @@
 **Core:** Three-hook architecture (SubagentStart, Stop, Dream worker). Corrections → learned rules.  
 **Enrichment:** Mnemosyne blocks (saved lessons), signal source (user corrections), 3+ repetition trigger.  
 **Failure:** Dreams don't fire → patterns not extracted. Hooks have no signal → learning stalls.  
-**Creative bridge:** Every color grading correction → archived as "when to use X LUT". Every client feedback → archived pattern.  
+**Creative bridge:** Every style correction → archived as "when to use preset X". Every client feedback → archived pattern.  
 **Integration:** Works with Blueprints 3, 16, 19.
 
 ---
@@ -232,7 +232,7 @@
 **Core:** Three implementation routes (commands, definitions, CLAUDE.md rules). Narrow scope beats broad.  
 **Enrichment:** Scoping principle, common mistakes, token waste prevention.  
 **Failure:** Agent scope too broad → errors. Agent too narrow → unused.  
-**Creative bridge:** Custom agent for footage metadata extraction. Custom agent for color-matching across multiple shots.  
+**Creative bridge:** Custom agent for asset metadata extraction. Custom agent for style-matching across multiple deliverables.  
 **Integration:** Works with Blueprints 9, 10, 14, 20.
 
 ---

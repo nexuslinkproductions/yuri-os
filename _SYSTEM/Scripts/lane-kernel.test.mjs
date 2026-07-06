@@ -6,6 +6,7 @@ import {
   DEAD_NIM_LANES,
   LANE_KERNEL,
   NEMO_STYLE_RAILS,
+  ROLE_TRUST_SURFACES,
   SHINTAI_MEMORY_RAG_MEMBER_IDS,
   SHINTAI_REQUIRED_MEMBER_IDS,
   buildSuperauditDeployment,
@@ -13,18 +14,16 @@ import {
   selectMemoryRagMemberIds,
 } from './lane-kernel.mjs';
 
-test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark', () => {
+test('lane kernel exposes the consolidated Shintai deployment without Spark', () => {
   const deployment = buildSuperauditDeployment();
   const ids = deployment.members.map((member) => member.id);
   const lanes = deployment.members.map((member) => member.lane).join(' ');
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
-  assert.ok(ids.includes('mistral-large'));
-  assert.ok(ids.includes('qwen-coder'));
-  assert.ok(ids.includes('minimax-m27'));
-  assert.equal(ids.includes('glm'), false);
-  assert.ok(ids.includes('qwen3-next'));
+  assert.ok(ids.includes('mimo'));
+  assert.equal(ids.includes('nemotron'), false);
   assert.equal(ids.includes('kimi'), false);
+  assert.equal(ids.includes('glm'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
   assert.equal(deployment.authority.coMain, 'claude-opus-4-7-comain');
   assert.equal(deployment.authority.finalDecision, 'codex-main-after-independent-verification');
@@ -58,54 +57,33 @@ test('DeepSeek Shintai lane routes through direct paid API with no NVIDIA fallba
   assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-pro'), false);
   assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-flash'), false);
   assert.doesNotMatch(deepseek.model, /deepseek-ai\//);
-  assert.match(deepseek.assignment, /NVIDIA DeepSeek fallback is retired/);
+  // NIM lanes fully retired 2026-06-10 — the retired-fallback note was dropped from the
+  // assignment text along with the NVIDIA path itself; assert it routes directly instead.
+  assert.match(deepseek.assignment, /direct DeepSeek V4 Pro/);
+  assert.doesNotMatch(deepseek.assignment, /NVIDIA|nvidia/);
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-minimax-m27'));
-  for (const lane of [
-    'nvidia-nemotron-super-49b',
-    'nvidia-mistral-nemotron',
-    'nvidia-llama4-maverick',
-    'nvidia-vision-90b',
-    'nvidia-nemotron-nano-vl-8b',
-    'nvidia-nemotron-mini-4b',
-  ]) {
-    assert.ok(ACTIVE_NIM_LANES.includes(lane), `${lane} should be an active NIM lane`);
-  }
-  assert.equal(ACTIVE_NIM_LANES.includes('nvidia-glm'), false);
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-gpt-oss-120b'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-kimi'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-397b'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-nemotron-nano-30b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-llama-405b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-magistral-small'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-qwen-coder-32b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-usdcode'));
-  assert.equal(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'), false);
-  assert.equal(DEAD_NIM_LANES.includes('nvidia-kimi'), false);
+  // NIM lanes (nemotron + kimi) retired 2026-06-10 → no active NIM lanes remain; both moved to dead.
+  assert.deepEqual(ACTIVE_NIM_LANES, []);
+  assert.deepEqual(DEAD_NIM_LANES, ['nemotron-3-ultra-550b-a55b', 'kimi-k2.6']);
 });
 
 test('memory/RAG Shintai council uses large task-fit lanes without Spark fallback', () => {
   const ids = selectMemoryRagMemberIds({});
 
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
-  assert.ok(ids.includes('nemotron'));
-  assert.ok(ids.includes('qwen-397b'));
-  assert.ok(ids.includes('mistral-large'));
-  assert.ok(ids.includes('gpt-oss-120b'));
-  assert.ok(ids.includes('minimax-m27'));
-  assert.equal(ids.includes('glm'), false);
-  assert.ok(ids.includes('qwen-coder'));
-  assert.equal(ids.includes('codex-spark'), false);
+  assert.ok(ids.includes('mimo'));
+  assert.equal(ids.includes('nemotron'), false);
   assert.equal(ids.includes('kimi'), false);
+  assert.equal(ids.includes('glm'), false);
+  assert.equal(ids.includes('codex-spark'), false);
   assert.deepEqual(ids, [...SHINTAI_MEMORY_RAG_MEMBER_IDS]);
 });
 
-test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'qwen-397b', 'mistral-large', 'gpt-oss-120b', 'minimax-m27', 'qwen-coder']) {
+test('memory/RAG Shintai advisory lane keeps tool mode available under YURI rails', () => {
+  // NIM lanes (nemotron/kimi) retired 2026-06-10 → mimo is the replacement advisory reasoning lane.
+  for (const id of ['mimo']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
@@ -116,22 +94,10 @@ test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', (
   }
 });
 
-test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
+test('Shintai advisory lane keeps tool mode available under YURI rails', () => {
+  // NIM lanes (nemotron/kimi) retired 2026-06-10 → mimo is the replacement advisory reasoning lane.
   for (const id of [
-    'nemotron',
-    'nemotron-nano-30b',
-    'nemotron-super-49b',
-    'mistral-large',
-    'mistral-medium',
-    'mistral-nemotron',
-    'qwen-coder',
-    'qwen-397b',
-    'minimax-m27',
-    'qwen3-next',
-    'llama4-maverick',
-    'vision-90b',
-    'nemotron-nano-vl-8b',
-    'nemotron-mini-4b',
+    'mimo',
   ]) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
@@ -166,11 +132,23 @@ test('protected path predicate blocks forbidden surfaces', () => {
   assert.equal(isProtectedPath('_SYSTEM/state/shintai-advisory/out.md'), false);
 });
 
-test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
-  const offload = readFileSync(new URL('./offload.sh', import.meta.url), 'utf8');
-  const pulse = readFileSync(new URL('./pulse-orchestrator.mjs', import.meta.url), 'utf8');
+test('ROLE_TRUST_SURFACES is a valid non-empty frozen trust surface', () => {
+  // The dev/coworker role system (and operator-write-guard.js, its second guard) was
+  // removed 2026-06-20/07-06 as confirmed-dead code (single-operator machine, the role
+  // gate could never fire) — this export now only needs to hold shape for its remaining
+  // consumers (e.g. energy-arm-hardening.test.mjs), not cross-check "both role guards".
+  assert.ok(Object.isFrozen(ROLE_TRUST_SURFACES));
+  assert.ok(Array.isArray(ROLE_TRUST_SURFACES.files) && ROLE_TRUST_SURFACES.files.length >= 4);
+  assert.ok(Array.isArray(ROLE_TRUST_SURFACES.dirs) && ROLE_TRUST_SURFACES.dirs.length >= 1);
+  assert.ok(ROLE_TRUST_SURFACES.files.includes('_SYSTEM/SELF/dev-credential.json'));
+  assert.ok(ROLE_TRUST_SURFACES.files.includes('.claude/hooks/bash-security-guard.js'));
+  assert.ok(ROLE_TRUST_SURFACES.dirs.includes('.claude/hooks/operator-guard'));
+});
 
+test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
+  const offload = readFileSync(new URL('./llm-compat.sh', import.meta.url), 'utf8');
+  // pulse-orchestrator.mjs assertion removed (wave-2 D-C2): file deleted —
+  // a deleted dispatch surface cannot force tool mode.
   assert.doesNotMatch(offload, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
-  assert.doesNotMatch(pulse, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
   assert.match(offload, /Tool\/skill intent belongs\s+.*prompt contract/s);
 });

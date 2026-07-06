@@ -10,8 +10,11 @@ git diff --cached --check
 echo "[pre-commit] secret leak scan"
 node _SYSTEM/Scripts/secret-leak-scan.mjs
 
-echo "[pre-commit] offload contract dispatch drift"
-node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs >/dev/null
+echo "[pre-commit] llm-compat contract dispatch drift"
+node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs >/dev/null
+
+echo "[pre-commit] gitnexus block normalize"
+node _SYSTEM/Scripts/gitnexus-block-normalize.mjs
 
 echo "[pre-commit] root architecture"
 node _SYSTEM/Scripts/root-architecture.test.mjs >/dev/null
@@ -21,6 +24,9 @@ node _SYSTEM/Scripts/yuri-persona-check.mjs >/dev/null
 
 echo "[pre-commit] skill registry"
 node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate >/dev/null
+
+echo "[pre-commit] capability registry"
+node _SYSTEM/Scripts/capability-scan.mjs --check >/dev/null
 
 echo "[pre-commit] GitNexus staged scope"
 node _SYSTEM/Scripts/gitnexus-detect-changes.mjs yuri-os staged >/dev/null

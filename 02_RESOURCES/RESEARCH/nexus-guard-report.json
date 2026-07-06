@@ -1,0 +1,287 @@
+{
+  "version": 1,
+  "phase": "1-read-only-detector",
+  "summary": {
+    "total": 25,
+    "byClass": {
+      "A": 25
+    },
+    "highConfidence": 0,
+    "lowConfidence": 25,
+    "tension": {
+      "T": 0.677,
+      "hi": 0,
+      "med": 0,
+      "lo": 25
+    },
+    "exemptionsApplied": 3,
+    "safeAutoWireProposed": 0
+  },
+  "findings": [
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:FIELD_LEXICONS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:FIELD_TO_SYSTEMS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:brotliNcd",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:cdmDistance",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance-cores.mjs:grammarNcd",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/transfer-distance.mjs:DISTANCE_WEIGHTS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:CONFIG_FILE",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:MIN_SURPRISE_WINDOW",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-config.mjs:MIN_VETO_WEIGHT",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:BATTERY_PUBLIC_LABEL",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:META_BY_CC",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:SYM_BY_CC",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:injectIntoDashboard",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs:readLatestStudy",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs:isActionModeEnabled",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs:assertGatePasses",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs:safeLane",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/math/yuri-fsrs.mjs:FSRS_DECAY",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:CANONICAL_TAGS",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:TAXONOMY",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:buildSimilarityCrossReference",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:classifyLesson",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:dedupeTags",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:normalizeToken",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    },
+    {
+      "cls": "A",
+      "code": "orphan-export",
+      "severity": "low",
+      "confidence": "LOW",
+      "method": "textual-zero-reference",
+      "artifact": "_SYSTEM/Scripts/self-improvement/cross-reference.mjs:resolveCanonicalTag",
+      "detail": "exported symbol referenced in no other scanned file (textual scan; GitNexus in-degree is the structural check — never delete on this signal alone)"
+    }
+  ],
+  "safeAutoWire": [],
+  "exemptionsApplied": [
+    {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/pulse-bus.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration",
+      "exemptReason": "library-helper — required by _SYSTEM/Scripts/pulse-orchestrator.mjs (appendFinding/withLock/findingsByTurn); not a settings-registered hook (verified by Codex lane F, call sites)"
+    },
+    {
+      "cls": "F",
+      "code": "hook-not-in-settings",
+      "severity": "high",
+      "confidence": "HIGH",
+      "artifact": ".claude/hooks/scout-runner.js",
+      "detail": "hook file present but not referenced in .claude/settings.json (unwired-new | retired-but-present | library-helper — owner classifies)",
+      "ownerGated": "settings-registration",
+      "exemptReason": "spawned worker — forked detached by .claude/hooks/scout-orchestrator.js (SCOUT_RUNNER, expects argv not stdin); not a settings hook (verified by Codex lane F)"
+    },
+    {
+      "cls": "C",
+      "code": "test-no-cover",
+      "severity": "medium",
+      "confidence": "HIGH",
+      "artifact": "_SYSTEM/Scripts/math/math-research-archive.test.mjs:",
+      "detail": "test resolves to no module by import, name, or matcher",
+      "exemptReason": "docs/archive consistency test — covers a markdown corpus, not an .mjs module"
+    }
+  ],
+  "notes": [
+    "READ-ONLY: no canonical surface was written. safeAutoWire entries are PROPOSALS for the owner-gated phase 2, not applied.",
+    "Classes C/D/E/F/G are deterministic set-differences (HIGH confidence). Class B is import-graph-derived (MEDIUM). Class A is a textual zero-reference scan (LOW) — GitNexus call-graph/in-degree is the phase-2 structural upgrade. Class H is exemption hygiene.",
+    "tension.T is log-compressed per severity tier (severity dominates count). tension.hi/med/lo are raw counts — the non-offsettable L∞ floor: a wired↔unwired swap within a tier cannot launder them. Read hi first.",
+    "PHASE-2 (folded research, parked): git-derived age + Tarjan betweenness centrality + churn weighting (S_c = Σ confidence·age·centrality·churn); GitNexus DSM reachability promoting class A/B from textual→structural on the top-N batches; root-cause batching; exemption sunset/saturation alarm. Grounded in the reflexion-model conformance literature (DS1)."
+  ],
+  "generatedAt": "2026-06-06T18:00:55.539Z",
+  "scope": "core-roots"
+}

@@ -11,7 +11,7 @@ function runHook(input = '') {
     {
       input,
       encoding: 'utf8',
-      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
+      cwd: process.env.YURI_ROOT || require('path').resolve(__dirname, '..', '..', '..'),
     },
   ).trim());
 }

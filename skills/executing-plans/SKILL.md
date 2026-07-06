@@ -68,3 +68,7 @@ After all tasks complete and verified:
 - **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
 - **superpowers:writing-plans** - Creates the plan this skill executes
 - **superpowers:finishing-a-development-branch** - Complete development after all tasks
+
+## Session Notes
+
+- 2026-06-16 — Loads a written implementation plan, reviews it critically, executes all tasks, and reports when complete with review checkpoints; reach for it when you have a plan ready to execute in a separate session.

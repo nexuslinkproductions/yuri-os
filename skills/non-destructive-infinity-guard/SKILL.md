@@ -1,6 +1,7 @@
 ---
 name: non-destructive-infinity-guard
-description: Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / YURI. Inspired by Limitless / Infinity, translated into enterprise-safe system behavior.
+description: "Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS. Use when a user or agent invokes /yuri guard, /guard, or /ndig, or when any proposed action, tool call, or mutation needs risk classification, scope verification, and approval before execution."
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +20,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks YURI OS to perform work involving:
+Use this skill when the user asks Yuri OS / Yuri to perform work involving:
 
 - proposed_action
 - target_path
@@ -144,21 +145,15 @@ failure:
 
 ## Session Notes
 
+### 2026-05-16
+- session: 62m | peak ctx: 0% | compacts: 0
+- tools: Bash×23, Write×21, Edit×17, Read×14, TodoWrite×9, mcp×3, ToolSearch×2, Agent×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
 ### 2026-04-27
 - session: 2m | peak ctx: 44% | compacts: 0
 - tools: Read×13, Bash×4
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 6m | peak ctx: 53% | compacts: 0
-- tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
 - corrections: none
 - errors: none
 
@@ -167,6 +162,6 @@ failure:
 - **Changes:**
   1. Replaced `primary_command: /yuri guard` with `triggers: ["/yuri guard", "/guard", "/ndig"]`
   2. Changed `status: proposed` → `status: active`
-  3. Added `## Session Notes` section (required by `.Codex/rules/skill-creation.md`)
-- **Validation:** Schema now matches NUDIMMUD skill-creation checklist
+  3. Added `## Session Notes` section (required by `.claude/rules/skill-creation.md`)
+- **Validation:** Schema now matches YURI skill-creation checklist
 - **Status:** Ready for command file registration

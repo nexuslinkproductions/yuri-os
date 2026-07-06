@@ -1,0 +1,30 @@
+{
+  "runId": "glmf-mr8edlpn-17d531",
+  "armed": true,
+  "runDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/jobs/glmf-mr8edlpn-17d531/results",
+  "concurrency": 2,
+  "results": [
+    {
+      "label": "G1-blind-cut-and-harden",
+      "lane": "glm-max",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08GL_YURI_CORE_CUT_AND_HARDEN_RULING_X_PASS_COMMITTED",
+      "ms": 234636,
+      "chars": 14778
+    },
+    {
+      "label": "G2-blind-compounding-simplification",
+      "lane": "glm",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08GL_MEMORY_RECALL_UNIFICATION_REVIEW_X_PASS_COMMITTED",
+      "ms": 183365,
+      "chars": 10574
+    }
+  ]
+}

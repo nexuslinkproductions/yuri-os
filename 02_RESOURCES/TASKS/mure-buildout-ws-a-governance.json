@@ -1,0 +1,46 @@
+{
+  "summary": "WS-A: MURE company build-out — governance hardening",
+  "tags": ["mure", "buildout", "governance", "company-ops"],
+  "subtasks": [
+    {
+      "id": "WS-A-R1-sentinel-audit",
+      "role": "sentinel",
+      "need": ["security-review", "safety-audit"],
+      "prompt": "Evidence-first audit: arm-flag inventory, protected-path boundary check (tracked files only), secrets surface scan. Document findings in _SYSTEM/reports/. Return 01R1_SENTINEL_AUDIT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-A-R2-governance-tests",
+      "role": "engineer",
+      "need": ["code-generation", "implementation"],
+      "prompt": "Fix _SYSTEM/mure/company.test.mjs governance regressions: async planCompany awaits, hermetic disarm helper, self-arm/finalize/substrate invariants green. Minimal scoped diff. Return 02R1_GOVERNANCE_TESTS_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "WS-A-V1-adjudicator-verify",
+      "role": "adjudicator",
+      "need": ["adversarial-verify", "gap-detection"],
+      "prompt": "Independent refute-by-default pass on Phase 1 audit completeness and governance test fixes. Run node --test _SYSTEM/mure/*.test.mjs. Return 01V1_GOVERNANCE_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-A-O1-oracle-verdict",
+      "role": "oracle",
+      "need": ["adversarial-verify"],
+      "prompt": "Red/grey/green verdict on mure --demo dry-run and full mure test suite after governance fixes. Return 01O1_ORACLE_VERDICT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-A-S1-steward-gate",
+      "role": "steward",
+      "need": ["improvement-proposal"],
+      "prompt": "Gate each WS-A subtask: blast radius, reversibility, 6-gate charter compliance. Publish held register for owner-gated items. Return 01S1_STEWARD_GATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

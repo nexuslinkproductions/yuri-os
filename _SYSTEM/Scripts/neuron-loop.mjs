@@ -23,9 +23,11 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { computeScoreTrend } from './neuron-loop-trend.mjs';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
@@ -91,13 +93,41 @@ function runScript(scriptPath, extraArgs = [], options = {}) {
   });
 }
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 function loadPriorSynthesis() {
   return readJson(PATHS.synthesis);
+}
+
+// ── ADVISORY trend-health readout over the improvement_score time-series ─────────
+// Catalog card #2 (CUSUM slow-drift) + card #1 (scalar-Kalman recovery) imported
+// from the Tier-1 math-kernel. neuron-loop's existing flaws_delta/rules_delta are a
+// SHOCK-only "vs immediately-prior" view; a slow multi-run decline (score drifting
+// 70->50 over 8 runs, no single step an outlier) is invisible to a single diff.
+// This reads the lower bound of the trend, not a point delta. ADVISORY ONLY — it
+// adds fields to the synthesis object and a sentinel reason; it changes NO phase,
+// NO script invocation, and NOT the improvement_score itself. Pure, never throws.
+
+// medianOf/madOf/stdOf/computeScoreTrend live in neuron-loop-trend.mjs (extracted
+// so the suite tests the LIVE functions — this orchestrator executes at import).
+/** Read the last N improvement_score values from synthesis.jsonl (oldest->newest). */
+function readScoreStream(maxN = 20) {
+  if (!existsSync(PATHS.synthLog)) return [];
+  let lines = [];
+  try {
+    lines = readFileSync(PATHS.synthLog, 'utf8').split('\n').filter(Boolean);
+  } catch {
+    return [];
+  }
+  const scores = [];
+  for (const line of lines) {
+    try {
+      const rec = JSON.parse(line);
+      if (typeof rec.improvement_score === 'number' && Number.isFinite(rec.improvement_score)) {
+        scores.push(rec.improvement_score);
+      }
+    } catch { /* skip malformed row */ }
+  }
+  return scores.slice(-maxN);
 }
 
 function collectJsonFiles(rootDir) {
@@ -282,6 +312,22 @@ const hypoValidated   = (hypotheses?.validated || []).filter(h => h.outcome === 
 const hypoTotal       = (hypotheses?.validated || []).length;
 const hypoAccuracy    = hypoTotal > 0 ? Math.round((hypoValidated / hypoTotal) * 100) : null;
 
+// improvement_score — hoisted so the ADVISORY trend readout can see THIS run's value
+// appended onto the historical stream. Identical formula to the prior inline IIFE.
+const improvementScore = (() => {
+  let score = 50;
+  if (audit) score -= (audit.stats?.criticals ?? 0) * 5;
+  if (audit) score -= (audit.stats?.warns ?? 0) * 1;
+  if (promoter) score += (promoter.promoted_count ?? 0) * 3;
+  if (calibration) score -= (calibration.deprioritized?.length ?? 0) * 2;
+  score += externalGain;
+  if (hypoAccuracy != null) score += Math.round((hypoAccuracy - 50) / 10);
+  return Math.max(0, Math.min(100, score));
+})();
+
+// ADVISORY trend: prior persisted scores + this run's score (newest last).
+const scoreTrend = computeScoreTrend([...readScoreStream(20), improvementScore]);
+
 const synthesis = {
   run_id: runId,
   ts: new Date().toISOString(),
@@ -330,17 +376,18 @@ const synthesis = {
     drives:               fingerprint?.drives ?? {},
   },
 
-  improvement_score: (() => {
-    // Expanded scalar: structural quality + knowledge gain + hypothesis accuracy
-    let score = 50;
-    if (audit) score -= (audit.stats?.criticals ?? 0) * 5;
-    if (audit) score -= (audit.stats?.warns ?? 0) * 1;
-    if (promoter) score += (promoter.promoted_count ?? 0) * 3;
-    if (calibration) score -= (calibration.deprioritized?.length ?? 0) * 2;
-    score += externalGain;                                   // +2 per relevant external signal
-    if (hypoAccuracy != null) score += Math.round((hypoAccuracy - 50) / 10); // +/- based on accuracy
-    return Math.max(0, Math.min(100, score));
-  })(),
+  improvement_score: improvementScore,
+
+  // ADVISORY trend-health readout (CUSUM slow-decline alarm + Kalman recovery).
+  // Computed/shadow metric — does NOT alter any phase, score, or control flow.
+  trend: {
+    alarm:           scoreTrend.alarm,
+    change_index:    scoreTrend.changeIndex,
+    statistic:       scoreTrend.statistic,
+    samples:         scoreTrend.samples,
+    available:       scoreTrend.available,
+    kalman_estimate: scoreTrend.kalman_estimate,
+  },
 
   brain_reloaded: !DRY_RUN,
 };
@@ -352,11 +399,15 @@ appendFileSync(PATHS.synthLog, JSON.stringify(synthesis) + '\n');
 log(`synthesis score=${synthesis.improvement_score} flaws=${synthesis.audit.flaws_found} rules_added=${synthesis.promoter.rules_added.length} external_gain=${externalGain} hypo_accuracy=${hypoAccuracy ?? 'n/a'}`);
 
 // 5. Emit brain:stale sentinel — next Claude session gets fresh brain with today's learnings
+const trendNote = scoreTrend.alarm
+  ? ` ⚠ TREND ALARM: sustained improvement_score decline (CUSUM change~run#${scoreTrend.changeIndex} of ${scoreTrend.samples})`
+  : '';
 if (!DRY_RUN) {
   writeFileSync(PATHS.brainStale, JSON.stringify({
     ts: new Date().toISOString(),
     turnId: runId,
-    reason: `neuron-loop: ${synthesis.promoter.promoted} rules promoted, score=${synthesis.improvement_score}, external_gain=${externalGain}`,
+    reason: `neuron-loop: ${synthesis.promoter.promoted} rules promoted, score=${synthesis.improvement_score}, external_gain=${externalGain}${trendNote}`,
+    trend_alarm: scoreTrend.alarm,
     consensusSummaries: (promoter?.promoted || []).slice(0, 3).map(p => p.cluster_key),
     fingerprint_watch: fingerprint?.watch_for ?? [],
     drives: fingerprint?.drives ?? {},
@@ -375,5 +426,6 @@ console.log(`  External knowledge gain: +${externalGain} (${externalRepos} repos
 console.log(`  Hypothesis accuracy: ${hypoAccuracy != null ? hypoAccuracy + '%' : 'n/a (no prior hypotheses)'}`);
 console.log(`  Calibration trend: ${fingerprint?.calibration_trend ?? 'unknown'}`);
 console.log(`  Confidence bias: ${fingerprint?.confidence_bias ?? 'unknown'}`);
+console.log(`  Score trend: ${scoreTrend.available ? (scoreTrend.alarm ? `⚠ DECLINE ALARM (CUSUM change~run#${scoreTrend.changeIndex}/${scoreTrend.samples})` : `in-control (${scoreTrend.samples} runs)`) : 'insufficient history'}`);
 if (fingerprint?.watch_for?.length) fingerprint.watch_for.forEach(w => console.log(`  ⚠ Watch: ${w}`));
 if (DRY_RUN) console.log('  (dry-run — no permanent writes)');

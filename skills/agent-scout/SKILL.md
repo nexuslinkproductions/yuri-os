@@ -1,9 +1,9 @@
-# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/stefanferreira/agent-scout | scanned: 2026-05-17 | score: 0
-
 ---
 name: agent-scout
 description: Create and configure Scout research assistant agent. Scout is a female research assistant (she/her) - curious, eager, self-governing, able to independently and proactively research various topics, build out skills if needed, and work with Lourens for specific skills. Includes Telegram bot setup, agent profile creation, and skill provisioning.
 ---
+
+<!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/stefanferreira/agent-scout | scanned: 2026-05-17 | score: 0 -->
 
 # Agent Scout - Research Assistant
 

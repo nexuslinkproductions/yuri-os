@@ -1,11 +1,11 @@
-# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/mrhuang09/ad-creative | scanned: 2026-05-17 | score: 10
-
 ---
 name: ad-creative
 description: "When the user wants to generate, iterate, or scale ad creative — headlines, descriptions, primary text, or full ad variations — for any paid advertising platform. Also use when the user mentions 'ad copy variations,' 'ad creative,' 'generate headlines,' 'RSA headlines,' 'bulk ad copy,' 'ad iterations,' 'creative testing,' 'ad performance optimization,' 'write me some ads,' 'Facebook ad copy,' 'Google ad headlines,' 'LinkedIn ad text,' or 'I need more ad variations.' Use this whenever someone needs to produce ad copy at scale or iterate on existing ads. For campaign strategy and targeting, see paid-ads. For landing page copy, see copywriting."
 metadata:
   version: 1.1.0
 ---
+
+<!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/mrhuang09/ad-creative | scanned: 2026-05-17 | score: 10 -->
 
 # Ad Creative
 
@@ -365,38 +365,8 @@ node tools/clis/google-ads.js reports get --type ad_performance --date-range las
 
 ## Session Notes
 
-### 2026-05-29
-- session: 349m | peak ctx: 71% | compacts: 4
-- tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 342m | peak ctx: 70% | compacts: 4
-- tools: Bash×267, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 331m | peak ctx: 67% | compacts: 3
-- tools: Bash×157, Edit×104, Read×100, TodoWrite×12, Write×7, StructuredOutput×5, Workflow×2, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 250m | peak ctx: 67% | compacts: 3
-- tools: Bash×152, Edit×104, Read×98, TodoWrite×12, Write×7, StructuredOutput×5, ToolSearch×1, Workflow×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 210m | peak ctx: 54% | compacts: 0
-- tools: Bash×131, Read×93, Edit×92, TodoWrite×10, Write×7, StructuredOutput×5, ToolSearch×1, Workflow×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 154m | peak ctx: 17% | compacts: 0
-- tools: Bash×45, Read×38, Edit×7, TodoWrite×4, Write×2, ToolSearch×1, Workflow×1
-- corrections: none
+### 2026-06-16
+- session: 178m | peak ctx: 0% | compacts: 0
+- tools: Bash×205, Read×121, WebFetch×114, Edit×87, WebSearch×72, Write×33, TodoWrite×13, Agent×10, ToolSearch×9, Skill×4, AskUserQuestion×1, mcp×1, TaskStop×1
+- corrections: go over it again, full red team and grounding in more fresh online research together with local, then check the compatibility across other organs, run phase 1. all agentic nano swarm | 'The legal one is the wall: an Austria-resident running automated Polymarket ' rick we are not doing full automated trading on polymarket, also polymarket is allowed in austria, you mustve fact checke | go over it again, full red team and grounding in more fresh online research together with local, then check the compatibility across other organs, run phase 1. all agentic nano swarm
 - errors: none

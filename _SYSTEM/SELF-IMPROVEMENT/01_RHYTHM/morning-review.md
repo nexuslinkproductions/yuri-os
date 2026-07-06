@@ -15,7 +15,7 @@ This block is for:
 
 This block is **not** for:
 - Starting new creative work
-- Editing video, writing code, color grading
+- Writing code or deep building
 - Making high-stakes creative decisions
 
 ## What to Check (in order, 15 min total)
@@ -37,7 +37,7 @@ This block is **not** for:
 - Re-read the session close from `evening-reflection.md`
 - Did I hit what I planned?
 - If blocked: can I unblock it with an email/text/request during this block?
-  - *"Need client to approve grade still" → send a follow-up now*
+  - *"Need client sign-off still" → send a follow-up now*
   - *"Asset pack didn't download" → kick off download now*
 
 ### 4. Tonight's Prep (5 min)
@@ -45,7 +45,7 @@ This block is **not** for:
 - Set a time estimate (be realistic — subtract 1h from what you think)
 - If it needs a reference or tool: gather it now, put it in the project folder
 - Write the first-hook sentence for tonight's kickoff
-  - *"Open Premiere, go to timeline, start dialog edit on Interview B."*
+  - *"Open the editor, go to the failing test, start on the auth refactor."*
 
 ---
 
@@ -53,7 +53,7 @@ This block is **not** for:
 
 | Don't | Why |
 |-------|-----|
-| Open Premiere, Resolve, After Effects | You'll get pulled in and ruin the admin block cadence |
+| Open the editor / start a deep build | You'll get pulled in and ruin the admin block cadence |
 | Start coding | Same — you'll surface at 18:00 confused and hungry |
 | Make creative decisions | Your brain is not at peak — decisions made now are worse and you'll redo them at night |
 | Schedule meetings in the evening | Never let someone put a call in your night block |

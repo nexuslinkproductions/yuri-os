@@ -53,6 +53,24 @@ export function appendPulseTraceEvent(event, options = {}) {
 
   mkdirSync(paths.root, { recursive: true });
   appendFileSync(paths.ledgerPath, `${JSON.stringify(normalized)}\n`, 'utf8');
+
+  // wave: quantum layer (owner-approved 2026-06-11) — mirror evidence/verdict-shaped
+  // pulse events into the order-aware evidence log so the QQ test can eventually run
+  // on YURI-native data (evidence-order-log.mjs qqReadiness). Strictly fail-open:
+  // a mirror failure must never affect the ledger write that already happened.
+  try {
+    if (/advis|evidence|verdict|review|judg/i.test(normalized.type)) {
+      import('./evidence-order-log.mjs').then((eol) => {
+        const verdictish = /verdict|judg/i.test(normalized.type);
+        if (verdictish && (payload.verdict === 'yes' || payload.verdict === 'no')) {
+          eol.recordJudgment({ contextId: normalized.trace_id, hypothesis: stringOr(payload.hypothesis, normalized.type), verdict: payload.verdict });
+        } else if (!verdictish) {
+          eol.recordEvidence({ contextId: normalized.trace_id, kind: normalized.lane_id || normalized.type, stance: stringOr(payload.stance, 'neutral'), summary: normalized.stage_id });
+        }
+      }).catch(() => {});
+    }
+  } catch { /* fail-open */ }
+
   return { ...normalized, ledger_path: paths.ledgerPath };
 }
 

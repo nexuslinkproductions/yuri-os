@@ -77,7 +77,7 @@
       "units": {
         "inputs": {
           "predictions": "probabilities in [0,1]",
-          "outcomes": "binary observations represented as 0 or 1 probabilities"
+          "outcomes": "outcome probability targets in [0,1]; binary 0/1 canonical, fractional values are probabilistic targets"
         },
         "output": "mean squared probability error"
       },
@@ -216,10 +216,13 @@
       "units": {
         "inputs": {
           "predictions": "probabilities in [0,1]",
-          "outcomes": "binary observations represented as 0 or 1 probabilities",
+          "outcomes": "outcome probability targets in [0,1]; binary 0/1 canonical, fractional values are probabilistic targets",
           "epsilon": "clipping probability"
         },
-        "output": "mean negative log likelihood in nats"
+        "output": "mean negative log likelihood in nats",
+        "parameterSlots": [
+          "epsilon"
+        ]
       },
       "inputConstraints": [
         "predictions and outcomes must be equal-length probability vectors",
@@ -479,7 +482,10 @@
           "values": "dimensionless comparable scores",
           "temperature": "positive dimensionless smoothing parameter"
         },
-        "output": "dimensionless normalized distribution summing to 1"
+        "output": "dimensionless normalized distribution summing to 1",
+        "parameterSlots": [
+          "temperature"
+        ]
       },
       "inputConstraints": [
         "values must be a non-empty finite number array",

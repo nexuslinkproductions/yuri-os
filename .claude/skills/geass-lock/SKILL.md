@@ -1,6 +1,7 @@
 ---
 name: geass-lock
-description: One-Shot Constraint Lock — user invokes with a constraint phrase; that constraint becomes absolutely inviolable for the session, visible in the brain block on every turn, not overridable by any advisor. Auto-expires at session end. Single active lock per session.
+description: "One-Shot Constraint Lock — user invokes with a constraint phrase; that constraint becomes absolutely inviolable for the session, visible in the brain block on every turn, not overridable by any advisor. Auto-expires at session end. Single active lock per session. Use when the user says '/geass', 'lock this constraint', or 'make this inviolable'."
+invocation: gate
 triggers:
   - /geass
   - /yuri-geass
@@ -10,7 +11,7 @@ triggers:
 
 **Source anime:** Code Geass — Lelouch vi Britannia's Geass gives him the "Power of Absolute Obedience." Anyone who meets his gaze must obey any one command, unconditionally and permanently — but only once per person. After it fires, the effect is irreversible.
 
-**Cognitive translation:** The user can lock one behavioral constraint as absolutely inviolable for the current session. Once locked, no advisor, no complexity tier escalation, no ensemble output can override it. It is visible in the brain block on every turn. At session end, the lock automatically expires (one session = one Geass).
+**Cognitive translation:** The user can lock one behavioral constraint as absolutely inviolable for the current session. Once locked, no reasoning path, complexity escalation, or advisory output can override it. It is visible in the brain block on every turn. At session end, the lock automatically expires (one session = one Geass).
 
 The constraint is a hard gate — not a preference, not a guideline. It fires before any other logic.
 
@@ -19,9 +20,9 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 ## When This Fires
 
 - User explicitly invokes: `/geass <constraint phrase>`
-- Example: `/geass "no Codex dispatches until bankai manifest is approved"`
+- Example: `/geass "no commits until tests pass"`
 - Example: `/geass "all file writes require explicit user confirmation"`
-- Example: `/geass "deepseek-flash only for this session"`
+- Example: `/geass "stay inside _SYSTEM/ this session — no .claude edits"`
 
 ---
 
@@ -39,10 +40,10 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 ### On `/geass <constraint>`
 
 1. Parse constraint from the invocation arguments
-2. Check for existing lock in `nisaba/geass/active-lock.json`
+2. Check for existing lock in `.claude/yuri-sentinel/geass/active-lock.json`
    - If exists: surface current lock, ask for replacement confirmation
    - If none: proceed
-3. Write lock file:
+3. Write lock file (create `.claude/yuri-sentinel/geass/` if absent — this is the exact path brain-inject.js reads):
 ```json
 {
   "constraint": "<exact phrase>",
@@ -57,7 +58,7 @@ The constraint is a hard gate — not a preference, not a guideline. It fires be
 
 ### On every subsequent turn (enforcement)
 
-brain-inject.js reads `nisaba/geass/active-lock.json`:
+brain-inject.js reads `.claude/yuri-sentinel/geass/active-lock.json`:
 - If `active: true` AND `session_id` matches: inject `### GEASS_LOCK` into brain block
 - Before any tool call that could violate the constraint: gate fires a WARN or BLOCK
 
@@ -88,7 +89,7 @@ All advisors and tool calls subject to this constraint.
 🔴 "<constraint>"
 
 This constraint is now inviolable for this session.
-No advisor, ensemble, or complexity escalation can override it.
+No reasoning path, advisory output, or complexity escalation can override it.
 Auto-expires at session end. Use /geass off to remove early.
 ```
 
@@ -98,14 +99,20 @@ Auto-expires at session end. Use /geass off to remove early.
 
 | Constraint | Enforcement point |
 |------------|------------------|
-| "no Codex dispatches until bankai approved" | Before any `codex exec` or pulse-codex-runner call |
+| "no commits until tests pass" | Before any `git commit` |
 | "all file writes need confirmation" | Before any Write/Edit tool call |
-| "deepseek-flash only" | In offload-contract.mjs model selection |
+| "stay inside _SYSTEM/, no .claude edits" | Before any Write/Edit outside `_SYSTEM/` |
 | "no new LaunchAgents this session" | Before any launchctl or plist write |
 
 ---
 
 ## Session Notes
+
+### 2026-06-09
+- session: 123m | peak ctx: 40% | compacts: 0
+- tools: Bash×1003, Read×158, WebSearch×38, StructuredOutput×35, Edit×16, Write×11, WebFetch×10, ToolSearch×4, Workflow×3, TaskOutput×1, AskUserQuestion×1
+- corrections: none
+- errors: none
 
 ### 2026-05-16 — Created
 Tools: Write. Part of Musubi Hyper-Intelligence v2 sprint.

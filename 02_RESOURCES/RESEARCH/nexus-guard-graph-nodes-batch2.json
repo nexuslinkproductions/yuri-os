@@ -1,0 +1,102 @@
+[
+  {
+    "id": "transfer-distance",
+    "label": "Transfer Distance (Mechanism-Bridged Transfer Surprise)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/transfer-distance.mjs"
+    ],
+    "triggeredBy": "import by transfer-distance-cores/proof/bakeoff/v2demo/tests; CLI self-demo when run directly",
+    "description": "Pure advisory scoring engine for cross-domain transfer triangles A→M→B: normalized compression distance plus Jaccard baseline distance, min-side mechanism reconstruction bridge, anti-theater caps, prerequisite-blocked detection, and value tiering. Exports MIN_CHARS, DISTANCE_WEIGHTS, GATE, TIER, detectPrereqBlocked, tokenize, jaccardDistance, ncd, recon, v1BlendMetric, distance, bridge, antiTheaterGate, tierOf, and transferScore; no I/O except its direct-run demo."
+  },
+  {
+    "id": "transfer-distance-cores",
+    "label": "Transfer Distance Cores (V2 structural metrics)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/transfer-distance-cores.mjs"
+    ],
+    "triggeredBy": "import by transfer-distance.test/proof/bakeoff/v2demo and callers that need scoreTransferV2",
+    "description": "Pluggable structural metric bank for the transfer-distance contract: operator-skeleton distance, Brotli NCD, CDM distance, grammar NCD, field classification/distance, mechanism-frame reconstruction, and the shipped V2_CONFIG. Exports FIELD_LEXICONS, FIELD_TO_SYSTEMS, fieldClassify, fieldDistance, operatorSkeletonDistance, brotliNcd, cdmDistance, grammarNcd, mechanismFrameDistance, CANDIDATES, V2_CONFIG, and scoreTransferV2."
+  },
+  {
+    "id": "yuri-jaccard",
+    "label": "YURI Jaccard (hot-tier saturation probe)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/yuri-jaccard.mjs"
+    ],
+    "triggeredBy": "import by corpus-match, corpus-match.collapse, kagami-memory-consolidator deterministicDedup, and tests; CLI self-demo when run directly",
+    "description": "Embedding-free token set/frequency similarity primitive plus Hopfield-inspired hot-memory saturation detector. Exports tokenize, tokenFreq, jaccard, tfCosine, and saturationProbe; caps tokenization input size, reports deterministic mergePairs/load/overCapacity, and supplies the similarity core used by corpus matching and memory dedup."
+  },
+  {
+    "id": "yuri-mdl",
+    "label": "YURI MDL (marginal-bits redundancy axis)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/yuri-mdl.mjs"
+    ],
+    "triggeredBy": "import by memory-relocator planRelocations and yuri-mdl tests; CLI self-demo when run directly",
+    "description": "Pure gzip-based Minimum Description Length redundancy primitive for memory demotion decisions. Exports DEFAULT_QUALITY_FLOOR_CHARS, marginalBits, and redundancyVerdict; computes normalized marginal description length of a body given the rest of the store, treats short/blank bodies as low-quality, and only supplies a protect-or-redundant axis for upstream AND-gated relocation."
+  },
+  {
+    "id": "yuri-minhash",
+    "label": "YURI MinHash + LSH (deterministic set similarity accelerator)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/yuri-minhash.mjs"
+    ],
+    "triggeredBy": "import by corpus-match LSH path, corpus-match tests, and yuri-minhash tests; CLI self-demo when run directly",
+    "description": "Deterministic MinHash and locality-sensitive hashing primitive for approximate Jaccard candidate generation. Exports fnv1a, makeHashes, minhashSignature, estimateJaccard, lshBands, and tuneBands; uses fixed-seed LCG permutation parameters, FNV-1a token hashing, overflow-safe modular affine hashing, all-MAX empty signatures, and deterministic band tuning."
+  },
+  {
+    "id": "yuri-phi",
+    "label": "YURI Phi (π/φ/Fibonacci applied primitives)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/yuri-phi.mjs"
+    ],
+    "triggeredBy": "import by yuri-phi tests and future math/circuitry consumers; CLI self-demo when run directly",
+    "description": "Pure deterministic π, golden-ratio, golden-angle, and Fibonacci primitive set for 1-D minimization, discrete threshold search, anti-resonant cadence, and even 2-D/angular placement. Exports PHI, INV_PHI, INV_PHI_SQ, GOLDEN_ANGLE, fib, fibBig, fibSequence, goldenSectionSearch, fibonacciSearchMin, phiPoint, phiSequence, goldenAnglePoint, and goldenAnglePoints."
+  },
+  {
+    "id": "yuri-token-expand",
+    "label": "YURI Token Expand (embedding-free semantic feature bridge)",
+    "layer": "Energy & Math",
+    "files": [
+      "_SYSTEM/Scripts/math/yuri-token-expand.mjs"
+    ],
+    "triggeredBy": "import by corpus-match.collapse, circuitry-auto-register, self-improvement cross-reference similarity, and tests; CLI self-demo when run directly",
+    "description": "Deterministic feature-expansion layer that repairs tokenization collapse without embeddings. Exports charShingles, tokenCharSim, buildCooccurrence, ppmi, buildExpansionMap, buildPpmiProfiles, sparseCosine, buildSecondOrderMap, expandTokenSet, weightedJaccard, features, makeFeatureFn, and plainFeatureFn; builds tok/c4/sem/sem2 feature sets from char shingles, PPMI co-occurrence, and optional second-order PPMI-profile cosine while preserving prefix-filter completeness."
+  },
+  {
+    "id": "self-improvement-cross-reference",
+    "label": "Self-Improvement Cross-Reference (taxonomy + similarity index)",
+    "layer": "Self-Improvement",
+    "files": [
+      "_SYSTEM/Scripts/self-improvement/cross-reference.mjs"
+    ],
+    "triggeredBy": "import by weekly-comp consolidateWeek and cross-reference tests",
+    "description": "Lesson cross-reference engine for the self-improvement extract surface: owns the canonical failure taxonomy, alias normalization, markdown lesson walking/parsing, tag classification, cross-domain bridge buckets, complete prefix-filter similarity relations, and markdown rendering for cross-reference and prevention rules. Exports TAXONOMY, CANONICAL_TAGS, normalizeToken, walkMarkdownFiles, deriveLessonDomain, parseLessonMetadata, resolveCanonicalTag, dedupeTags, classifyLesson, buildCrossReferenceIndex, buildSimilarityCrossReference, renderCrossReferenceMarkdown, renderPreventionRulesMarkdown, extractLessonQuestions, extractLessonTitle, and summarizeLesson."
+  },
+  {
+    "id": "weekly-comp",
+    "label": "Weekly Comp (self-improvement consolidation writer)",
+    "layer": "Self-Improvement",
+    "files": [
+      "_SYSTEM/Scripts/self-improvement/weekly-comp.mjs"
+    ],
+    "triggeredBy": "CLI `node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs`; import by weekly-consolidation, cross-reference tests, and yuri-lifecycle-controller promotion_path reference",
+    "description": "Weekly self-improvement consolidation CLI/library: collects lessons from 02_EXTRACT entries and experiments, builds the cross-reference index, renders a weekly digest, prevention rules, markdown index, and JSON index, then archives raw lessons unless dry-run is set. Exports root/path constants, isoWeek, pickRoot, pickWeek, pickDryRun, collectLessons, consolidateWeek, renderWeeklyDigest, and main."
+  },
+  {
+    "id": "weekly-consolidation",
+    "label": "Weekly Consolidation (weekly-comp CLI alias)",
+    "layer": "Self-Improvement",
+    "files": [
+      "_SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs"
+    ],
+    "triggeredBy": "CLI `node _SYSTEM/Scripts/self-improvement/weekly-consolidation.mjs`; import as a compatibility re-export of weekly-comp",
+    "description": "Thin compatibility entrypoint for the weekly self-improvement consolidator. It imports main from weekly-comp, runs it when invoked directly, and re-exports the full weekly-comp surface so older callers can use the weekly-consolidation module without duplicating consolidation logic."
+  }
+]

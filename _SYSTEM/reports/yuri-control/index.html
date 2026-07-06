@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YURI · Energy Cockpit</title>
+<style>
+  :root{
+    --bg:#07090d; --panel:#0d1118; --panel2:#11161f; --line:#1c2532;
+    --ink:#e6edf3; --dim:#7d8aa0; --accent:#5ec8ff; --accent2:#9d7bff;
+    --good:#36d399; --bad:#ff5d6c; --warn:#ffd166; --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 700px at 20% -10%,#0e1622 0%,var(--bg) 60%);color:var(--ink);
+       font:14px/1.5 ui-sans-serif,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  header{padding:22px 28px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:18px;letter-spacing:.3px;font-weight:650}
+  header .tag{font:11px/1 var(--mono);color:var(--dim);border:1px solid var(--line);padding:5px 8px;border-radius:6px}
+  header .sub{color:var(--dim);font-size:12.5px;margin-left:auto;max-width:46ch}
+  .wrap{display:grid;grid-template-columns:minmax(360px,1.05fr) minmax(380px,1fr);gap:0;min-height:calc(100vh - 67px)}
+  .col{padding:22px 26px}
+  .col.left{border-right:1px solid var(--line)}
+  h2{font:600 11px/1 var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);margin:0 0 14px}
+  .group{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 6px;margin-bottom:18px}
+  .row{display:grid;grid-template-columns:128px 1fr 64px;align-items:center;gap:12px;margin-bottom:12px}
+  .row label{font:12px/1.2 var(--mono);color:var(--ink)}
+  .row label small{display:block;color:var(--dim);font-size:10.5px;margin-top:3px;letter-spacing:.2px}
+  .row input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:var(--line);outline:none}
+  .row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+       background:var(--accent);box-shadow:0 0 0 4px rgba(94,200,255,.14);cursor:pointer;transition:transform .08s}
+  .row input[type=range]::-webkit-slider-thumb:active{transform:scale(1.25)}
+  .row .val{font:600 13px/1 var(--mono);text-align:right;color:var(--accent)}
+  .row.crit .val{color:var(--bad)} .row.reward .val{color:var(--good)}
+  .scn{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;position:relative;overflow:hidden}
+  .scn .name{font-weight:650;font-size:14px}
+  .scn .desc{color:var(--dim);font-size:12px;margin:2px 0 14px}
+  .scn .nums{display:flex;gap:22px;font:12px/1 var(--mono);color:var(--dim);margin-bottom:12px}
+  .scn .nums b{display:block;color:var(--ink);font-size:15px;margin-top:5px}
+  .verdict{display:inline-flex;align-items:center;gap:8px;font:600 12px/1 var(--mono);padding:7px 12px;border-radius:8px;letter-spacing:.4px}
+  .verdict.accept{color:var(--good);background:rgba(54,211,153,.10);border:1px solid rgba(54,211,153,.35)}
+  .verdict.reject{color:var(--bad);background:rgba(255,93,108,.10);border:1px solid rgba(255,93,108,.35)}
+  .verdict .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+  .deltabar{height:3px;border-radius:3px;background:var(--line);margin-top:14px;position:relative}
+  .deltabar i{position:absolute;top:-2px;width:7px;height:7px;border-radius:50%;background:var(--accent);transition:left .12s,background .12s}
+  .scn .dom{font:11px/1 var(--mono);color:var(--dim);margin-top:12px}
+  .scn .dom b{color:var(--warn)}
+  .foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  button{font:600 12px/1 var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+       padding:10px 14px;border-radius:8px;cursor:pointer;transition:border-color .12s,background .12s}
+  button:hover{border-color:var(--accent);background:#141b26}
+  button.primary{color:#06121a;background:var(--accent);border-color:var(--accent)}
+  pre{background:#05070a;border:1px solid var(--line);border-radius:10px;padding:14px;font:12px/1.6 var(--mono);
+       color:var(--dim);overflow:auto;max-height:230px;margin-top:14px}
+  pre .k{color:var(--accent)} pre .n{color:var(--good)}
+  .note{color:var(--dim);font-size:11.5px;margin-top:14px;line-height:1.6;border-left:2px solid var(--line);padding-left:12px}
+  .note b{color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <h1>YURI · Energy Cockpit</h1>
+  <span class="tag" id="ver">v1 · live preview</span>
+  <span class="sub">Drag a dial — every scenario's ΔU and accept/reject verdict recomputes live. This is the dynamics gate that governs in-motion ICM transitions. Advisory: it guides, you decide.</span>
+</header>
+<div class="wrap">
+  <div class="col left">
+    <h2>Energy weights · U = Σ wᵢ · termᵢ</h2>
+    <div class="group" id="weights"></div>
+    <h2>Gate threshold</h2>
+    <div class="group" id="threshold"></div>
+    <h2>Salience · when the surprise tier fires</h2>
+    <div class="group" id="salience"></div>
+    <h2>Forgetting · subconscious demote curve (FSRS)</h2>
+    <div class="group" id="fsrs"></div>
+    <h2>Eviction · procedural-memory archive horizon</h2>
+    <div class="group" id="evict"></div>
+    <div class="foot">
+      <button class="primary" onclick="applyLive()">Apply to live gate</button>
+      <button onclick="exportCfg()">Export JSON</button>
+      <button onclick="resetAll()">Reset to standards</button>
+    </div>
+    <div class="note">
+      <b>Persist is live.</b> Served by <code>yuri-control-server.mjs</code>, the dials hydrate from
+      the current <code>energy-weights.json</code> and <b>Apply</b> writes back atomically (prior →
+      <code>.bak</code>, change logged). Writes need a <b>dev-role</b> server — it hands the cockpit a
+      bearer token via <code>GET /config</code>; a keyless/coworker run can preview + export but not apply.
+      Opened as a plain file (no server), Apply falls back to Export.
+    </div>
+    <pre id="out" hidden></pre>
+  </div>
+  <div class="col right">
+    <h2>Live scenarios · real energy-tick transitions</h2>
+    <div id="scns"></div>
+    <div class="note">
+      Scenarios use the terms the live everyday-workflow gate actually feeds today: verified-evidence
+      credit (<b>iota</b>), calibration on a failed check (<b>gamma</b>/<b>delta</b>), and the
+      protected-path catastrophe (<b>eta</b>). Sliders for <b>alpha/beta/epsilon/zeta/theta</b> exist but
+      won't move these three — they govern claim-distribution, drift, info-gain, staleness and ladder
+      transitions, which aren't fed by the live hook yet (Steps 2+3).
+    </div>
+  </div>
+</div>
+<script>
+// ── standards (mirror DEFAULT_WEIGHTS / DEFAULT_SALIENCE; threshold default 0) ──
+const STD_W = {alpha:1,beta:2,gamma:1,delta:1,epsilon:1,zeta:0.5,eta:100,theta:10,iota:0.1,kappa:5,lambda:50};
+const STD_T = 0;
+const STD_S = {depthThreshold:6,surpriseK:2.0,surpriseWindow:20};
+const STD_E = {ttlDays:90};
+const STD_F = {rFloor:0.6,decay:-0.5,factor:0.2345679012345679,salience:1.0,freq:0.5,deltaU:0.3};
+const META = {
+  alpha:['entropy','claim-status uncertainty',0,5,0.1],
+  beta:['KL drift','claim ↔ evidence (anti-bullshit)',0,5,0.1],
+  gamma:['logLoss','forecast calibration',0,5,0.1,'crit'],
+  delta:['brier','forecast accuracy',0,5,0.1,'crit'],
+  epsilon:['infoGain','reward learning',0,5,0.1,'reward'],
+  zeta:['staleness','stale evidence drag',0,3,0.05],
+  eta:['protected','catastrophic violation',0,200,1,'crit'],
+  theta:['ladder','promotion inversion',0,50,1,'crit'],
+  iota:['verified','evidence credit',0,2,0.05,'reward'],
+  kappa:['repeatFail','confidently-wrong repeats',0,20,0.5,'crit'],
+  lambda:['malformed','out-of-range forecast (fail-closed)',0,100,1,'crit'],
+};
+const META_F = {
+  rFloor:['R floor','demote below this retrievability',0.05,0.95,0.05,'crit'],
+  decay:['decay','FSRS power-law exponent (negative)',-1.5,-0.1,0.05],
+  factor:['factor','FSRS power-law factor',0.05,1,0.01],
+  salience:['salience·S','salience → slower decay',0,3,0.1,'reward'],
+  freq:['freq·S','recall frequency → slower decay',0,3,0.1,'reward'],
+  deltaU:['ΔU·S','encode-surprise → slower decay',0,2,0.05,'reward'],
+};
+const META_E = {
+  ttlDays:['evict TTL','procedural-memory archive horizon (days)',1,365,1],
+};
+let W={...STD_W}, T=STD_T, S={...STD_S}, E={...STD_E}, F={...STD_F};
+let APPLY_TOKEN=null;
+
+// ── faithful term ports (match yuri-energy.mjs for the live scenarios) ──
+const clamp=(p)=>Math.min(1-1e-9,Math.max(1e-9,p));
+function logLoss(preds,outs){if(!preds.length)return 0;let s=0;for(let i=0;i<preds.length;i++){const p=clamp(preds[i]),y=outs[i];s+=-(y*Math.log(p)+(1-y)*Math.log(1-p));}return s/preds.length;}
+function brier(f,r){if(!f.length)return 0;let s=0;for(let i=0;i<f.length;i++)s+=(f[i]-r[i])**2;return s/f.length;}
+function U(st){
+  let u=0, contrib={};
+  const ev=-(W.iota)*(st.verifiedEvidenceCount||0); contrib.verifiedEvidenceCredit=ev; u+=ev;
+  const pp=(W.eta)*(st.protectedPathViolations||0); contrib.protectedPathViolations=pp; u+=pp;
+  const li=(W.theta)*(st.promotionLadderInversions||0); contrib.promotionLadderInversions=li; u+=li;
+  if(st.predictions&&st.predictions.length){const g=(W.gamma)*logLoss(st.predictions,st.outcomes);contrib.logLoss=g;u+=g;}
+  if(st.forecasts&&st.forecasts.length){const d=(W.delta)*brier(st.forecasts,st.results);contrib.brier=d;u+=d;}
+  return {U:Math.round(u*1e6)/1e6, contrib};
+}
+const SCN=[
+  {name:'Healthy edit lands',desc:'a real edit succeeds → verified-evidence credit',
+   before:{verifiedEvidenceCount:2}, after:{verifiedEvidenceCount:3}},
+  {name:'A check FAILS',desc:'confidently-wrong: claimed p=0.9, outcome 0 → calibration fires',
+   before:{predictions:[],outcomes:[],forecasts:[],results:[]},
+   after:{predictions:[0.9],outcomes:[0],forecasts:[0.9],results:[0]}},
+  {name:'Write to a protected path',desc:'.env touched → eta term, gate must reject',
+   before:{protectedPathViolations:0}, after:{protectedPathViolations:1}},
+];
+
+function slider(key,v,min,max,step,cls,label,sub){
+  return `<div class="row ${cls||''}"><label>${label}<small>${sub}</small></label>
+    <input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-k="${key}">
+    <span class="val" data-v="${key}">${(+v).toFixed(step<1?2:0)}</span></div>`;
+}
+function buildControls(){
+  document.getElementById('weights').innerHTML=Object.entries(META).map(([k,m])=>
+    slider(k,W[k],m[2],m[3],m[4],m[5],`${k} · ${m[0]}`,m[1])).join('');
+  document.getElementById('threshold').innerHTML=
+    slider('T',T,-2,5,0.1,'',`threshold · ΔU ≤ θ`,'raise → looser gate; negative → strict descent');
+  document.getElementById('salience').innerHTML=
+    slider('depthThreshold',S.depthThreshold,1,20,1,'',`depthThreshold`,'meaningful transitions before surprise can engage')+
+    slider('surpriseK',S.surpriseK,0.5,5,0.1,'',`surpriseK`,'|ΔU| past median + K·MAD = surprising')+
+    slider('surpriseWindow',S.surpriseWindow,5,60,1,'',`surpriseWindow`,'samples in the adaptive band');
+  document.getElementById('fsrs').innerHTML=Object.entries(META_F).map(([k,m])=>
+    slider('F.'+k,F[k],m[2],m[3],m[4],m[5],`${k} · ${m[0]}`,m[1])).join('');
+  document.getElementById('evict').innerHTML=Object.entries(META_E).map(([k,m])=>
+    slider('E.'+k,E[k],m[2],m[3],m[4],m[5],`${k} · ${m[0]}`,m[1])).join('');
+  document.querySelectorAll('input[type=range]').forEach(inp=>inp.addEventListener('input',onInput));
+}
+function onInput(e){
+  const k=e.target.dataset.k, v=+e.target.value, step=+e.target.step;
+  if(k.startsWith('F.'))F[k.slice(2)]=v;
+  else if(k.startsWith('E.'))E[k.slice(2)]=v;
+  else if(k in W)W[k]=v;
+  else if(k==='T')T=v;
+  else S[k]=v;
+  e.target.parentElement.querySelector(`[data-v="${k}"]`).textContent=v.toFixed(step<1?2:0);
+  render();
+}
+function render(){
+  document.getElementById('scns').innerHTML=SCN.map((s,i)=>{
+    const a=U(s.after), b=U(s.before);
+    const dU=Math.round((a.U-b.U)*1e6)/1e6;
+    const accept=dU<=T;
+    const pos=Object.entries(a.contrib).filter(([,x])=>x>0).sort((p,q)=>q[1]-p[1]);
+    const dom = (dU>T && pos.length)?pos[0][0]:'—';
+    const pct=Math.max(2,Math.min(98, 50 + dU*0.45));
+    return `<div class="scn"><div class="name">${s.name}</div><div class="desc">${s.desc}</div>
+      <div class="nums">
+        <span>U before<b>${b.U.toFixed(3)}</b></span>
+        <span>U after<b>${a.U.toFixed(3)}</b></span>
+        <span>ΔU<b style="color:${accept?'var(--good)':'var(--bad)'}">${dU>0?'+':''}${dU.toFixed(3)}</b></span>
+      </div>
+      <span class="verdict ${accept?'accept':'reject'}"><span class="dot"></span>${accept?'ACCEPT':'REJECT'}</span>
+      <div class="deltabar"><i style="left:${pct}%;background:${accept?'var(--good)':'var(--bad)'}"></i></div>
+      <div class="dom">dominant term · <b>${dom}</b></div></div>`;
+  }).join('');
+}
+function cfgObj(){return{weights:{...W},threshold:T,salience:{...S},evict:{...E},fsrs:{...F}};}
+// Pull the live config + the dev-only apply token from the server. Hydrates the dials from
+// what the gate actually uses right now (falls back to standards for any unset section), and
+// captures the bearer token so /apply is authorized. Silently no-ops if served as a file://.
+async function loadConfig(){
+  try{
+    const r=await fetch('/config'); const j=await r.json();
+    APPLY_TOKEN=j.applyToken||null;
+    const c=j.config||{};
+    W={...STD_W,...(c.weights||{})};
+    T=Number.isFinite(c.threshold)?c.threshold:STD_T;
+    S={...STD_S,...(c.salience||{})};
+    E={...STD_E,...(c.evict||{})};
+    F={...STD_F,...(c.fsrs||{})};
+    document.getElementById('ver').textContent = j.dev ? 'v1 · live · dev (apply enabled)' : 'v1 · live · preview only';
+    return j;
+  }catch(_){return null;}
+}
+async function applyLive(){
+  const out=document.getElementById('out'); out.hidden=false; out.textContent='applying…';
+  try{
+    if(!APPLY_TOKEN) await loadConfig();   // (re)fetch the dev apply token if we don't have it yet
+    const headers={'content-type':'application/json'};
+    if(APPLY_TOKEN) headers['authorization']='Bearer '+APPLY_TOKEN;
+    const r=await fetch('/apply',{method:'POST',headers,body:JSON.stringify(cfgObj())});
+    const j=await r.json();
+    out.textContent = j.ok
+      ? '✓ written to _SYSTEM/SELF/energy-weights.json — the live gate now uses these dials. (prior backed up to .bak)'
+      : '✗ '+(j.error||'apply failed')+(r.status===401?'\n  Run the server from a dev-role shell so GET /config issues the apply token.':'');
+  }catch(e){
+    out.textContent='✗ not connected to the control server. Start it:\n  node _SYSTEM/Scripts/yuri-control-server.mjs\nthen open http://127.0.0.1:7717';
+  }
+}
+function exportCfg(){
+  const j=JSON.stringify(cfgObj(),null,2).replace(/"(\w+)":/g,'"<span class=k>$1</span>":').replace(/: (-?[\d.]+)/g,': <span class=n>$1</span>');
+  const out=document.getElementById('out'); out.hidden=false; out.innerHTML=j;
+}
+function resetAll(){W={...STD_W};T=STD_T;S={...STD_S};E={...STD_E};F={...STD_F};buildControls();render();document.getElementById('out').hidden=true;}
+loadConfig().finally(()=>{buildControls();render();});
+</script>
+</body>
+</html>

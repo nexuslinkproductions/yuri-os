@@ -9,11 +9,11 @@ const fs = require('fs');
 const path = require('path');
 const stateModule = require('./session-state.js');
 
-const YURI_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const YURI_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const PROTOCOL_FILE = path.join(YURI_ROOT, '_SYSTEM', 'MUSUBI_PROTOCOL.md');
 
 /**
- * Extract sections from AEONIC_PROTOCOL.md via ## heading boundaries
+ * Extract sections from MUSUBI_PROTOCOL.md via ## heading boundaries
  */
 function parseSections(content) {
   const sections = {};
@@ -39,7 +39,7 @@ function parseSections(content) {
 function formatXmlBlock(sections) {
   const timestamp = new Date().toISOString();
   const roleMatrix = sections.ROLE_MATRIX || '';
-  const offloadDirective = sections.GLOBAL_OFFLOAD_DIRECTIVE || '';
+  const llmCompatDirective = sections.GLOBAL_LLM_COMPAT_DIRECTIVE || '';
   const coreDirectives = sections.CORE_DIRECTIVES || '';
 
   return `<musubi-protocol version="1" loaded_at="${timestamp}">
@@ -47,9 +47,9 @@ function formatXmlBlock(sections) {
 
 ${roleMatrix}
 
-### GLOBAL_OFFLOAD_DIRECTIVE
+### GLOBAL_LLM_COMPAT_DIRECTIVE
 
-${offloadDirective}
+${llmCompatDirective}
 
 ### CORE_DIRECTIVES
 
@@ -65,7 +65,7 @@ function main() {
   try {
     if (!fs.existsSync(PROTOCOL_FILE)) {
       process.stderr.write(
-        `[aeonic-ingest] WARN: AEONIC_PROTOCOL.md not found at ${PROTOCOL_FILE}\n`
+        `[aeonic-ingest] WARN: MUSUBI_PROTOCOL.md not found at ${PROTOCOL_FILE}\n`
       );
       process.exit(0);
     }
@@ -76,6 +76,10 @@ function main() {
     // Update session state
     const state = stateModule.read();
     state.aeonic = state.aeonic || {};
+    // DEAD WRITE (wave-3 H.5, D-H3-B): no consumer reads state.aeonic.sections or
+    // .loadedAt — musubi-protocol-enforce reads only lastEnforceAt/tools_used/
+    // skills_read. Kept for potential future wiring AFTER the enforce logic is
+    // reliable (see governance WP-G.4); revisit then.
     state.aeonic.sections = sections;
     state.aeonic.loadedAt = new Date().toISOString();
     stateModule.write(state);

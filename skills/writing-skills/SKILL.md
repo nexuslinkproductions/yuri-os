@@ -653,3 +653,7 @@ Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes
 Same benefits: Better quality, fewer surprises, bulletproof results.
 
 If you follow TDD for code, follow it for skills. It's the same discipline applied to documentation.
+
+## Session Notes
+
+- 2026-06-16 — Test-driven development applied to process documentation — reach for it when creating, editing, or verifying skills before deployment.

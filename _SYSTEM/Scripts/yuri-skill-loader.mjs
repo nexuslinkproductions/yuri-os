@@ -6,7 +6,7 @@
  * Discovers skill files from Yuri's doctrine surfaces and normalises
  * them into a structured in-memory registry.
  *
- * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
+ * Reference pattern: external-agent ~/.agent/workspace/skills/<name>/SKILL.md
  * Substrate: YURI-native root skills/, provider reference skills, and local
  * Codex compatibility skill shims. Retired provider surfaces are not
  * authoritative.
@@ -149,6 +149,36 @@ function printHelp() {
   ].join('\n') + '\n')
 }
 
+// The `## Session Notes` section of a SKILL.md is an auto-appended journal —
+// session-reflect.js / token-session-init.js write to it mid-session. Hashing it makes
+// benign session churn look like integrity drift, so any commit's --validate fails on
+// skills the committing lane never touched, deadlocking parallel lanes (proven
+// 2026-06-13, see 02_RESOURCES/RESEARCH/parallel-session-hardening-2026-06-13). Excise
+// the volatile section from the integrity hash; real skill-logic changes (frontmatter,
+// triggers, instructions, and any section AFTER Session Notes) still register as drift.
+// @capability: skill-hash-volatile-exclusion
+// @serves: skill hash drift | parallel lane commit deadlock | session notes churn | skill-registry false drift
+// @does: returns the SKILL.md body with the auto-journaled Session Notes section removed, for a churn-stable integrity hash
+// @use: inside buildRegistry hash computation; keeps --validate and --write-manifest consistent
+// @exports: stableSkillBody
+export function stableSkillBody(fullBody) {
+  // Normalize line endings FIRST so the integrity hash is platform-invariant: a Windows
+  // CRLF checkout (core.autocrlf=true) must hash identically to a Mac/Linux LF checkout,
+  // else every committed skill shows false DRIFT on a Windows clone and blocks all its
+  // commits (René onboarding, 2026-06-30). Inert on LF; only helps CRLF.
+  const normalized = fullBody.replace(/\r\n?/g, '\n')
+  const lines = normalized.split('\n')
+  const start = lines.findIndex(l => /^#{2,3}\s+session notes\s*$/i.test(l.trim()))
+  if (start === -1) return normalized
+  // Excise from the Session Notes heading up to the next level-2 heading (or EOF),
+  // so content placed after Session Notes stays covered by the hash.
+  let end = lines.length
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+\S/.test(lines[i]) && !/^#{2,3}\s+session notes\s*$/i.test(lines[i].trim())) { end = i; break }
+  }
+  return lines.slice(0, start).concat(lines.slice(end)).join('\n')
+}
+
 export function buildRegistry() {
   const skills = []
   const seen = new Map()
@@ -175,12 +205,12 @@ export function buildRegistry() {
         body = body.slice(0, SKILL_BODY_MAX_PER_SKILL)
         bodyTruncated = true
       }
-      const hash = createHash('sha256').update(fullBody).digest('hex').slice(0, 16)
+      const hash = createHash('sha256').update(stableSkillBody(fullBody)).digest('hex').slice(0, 16)
       const loadedAt = new Date().toISOString()
 
       const skill = {
         name: skillName,
-        source_path: path.relative(REPO_ROOT, sourcePath),
+        source_path: path.relative(REPO_ROOT, sourcePath).split(path.sep).join('/'),  // POSIX separators -> Windows-portable manifest (else .codex/plugins/cache reference-only detection breaks on Windows)
         source_type: surface.sourceType,
         body,
         body_length: fullBody.length,
@@ -212,8 +242,17 @@ function enforceTotalBodyCap(skills) {
   let total = skills.reduce((sum, skill) => sum + String(skill.body || '').length, 0)
   if (total <= SKILL_BODY_MAX_TOTAL) return
 
-  for (let index = skills.length - 1; index >= 0 && total > SKILL_BODY_MAX_TOTAL; index--) {
-    const skill = skills[index]
+  // wave-3 S.10: canonical-skill priority — prune plugin-cache bodies FIRST so the
+  // cap can never silently strip a canonical yuri_skill while cache entries survive.
+  // Sort a prune-order view (cache entries last → reverse loop hits them first);
+  // the skills array itself keeps its original order for callers.
+  const pruneOrder = [...skills].sort((a, b) => {
+    const aCanonical = a.type === 'yuri_skill' ? 0 : 1
+    const bCanonical = b.type === 'yuri_skill' ? 0 : 1
+    return aCanonical - bCanonical
+  })
+  for (let index = pruneOrder.length - 1; index >= 0 && total > SKILL_BODY_MAX_TOTAL; index--) {
+    const skill = pruneOrder[index]
     const bodyLength = String(skill.body || '').length
     if (!bodyLength) continue
     skill.body = ''
@@ -466,13 +505,19 @@ function deriveSignals(text) {
 function writeManifest(registry) {
   const manifest = {}
   for (const skill of registry.skills) {
+    // Provider plugin-cache skills (.codex/plugins/cache/**) are machine-specific,
+    // version-pinned, and regenerable — they are never committed. Baking them into the
+    // manifest made every fresh clone report ~130 phantom REFERENCE_MISSING rows (already
+    // non-blocking, but pure noise; René onboarding 2026-06-30). Keep the committed
+    // manifest to canonical/committed skills only.
+    if (isReferenceOnlySkill(skill)) continue
     manifest[skill.name] = {
       source_path: skill.source_path,
       hash: skill.hash,
     }
   }
   writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n')
-  stdout.write('Wrote manifest: ' + MANIFEST_PATH + ' (' + registry.skills.length + ' entries)\n')
+  stdout.write('Wrote manifest: ' + MANIFEST_PATH + ' (' + Object.keys(manifest).length + ' entries)\n')
 }
 
 function printList(registry) {

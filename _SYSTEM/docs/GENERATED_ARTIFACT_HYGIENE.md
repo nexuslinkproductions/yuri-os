@@ -56,7 +56,6 @@ Before committing generated artifact changes, run:
 
 ```bash
 node _SYSTEM/Scripts/generated-artifact-hygiene.test.mjs
-node _SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs
 node _SYSTEM/Scripts/backend-release-gate.test.mjs
 node _SYSTEM/Scripts/gitnexus-mcp-check.mjs
 npm test

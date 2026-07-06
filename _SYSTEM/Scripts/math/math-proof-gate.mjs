@@ -14,6 +14,11 @@ const ALLOWED_PROMOTION_STATES = new Set(['research', 'verified-baseline', 'stab
 const PROMOTED_STATES = new Set(['verified-baseline', 'stable']);
 const EPSILON = 1e-12;
 
+// @capability: math-proof-gate
+// @serves: promote a formula from advisory to proven | held-out validation oracle | counterexample search | proof gate for math | bind a symbol with a worked example
+// @does: the math proof gate — validateFormulaBank, runFormulaProofGate, runFormulaCounterexample, inspectFormulaBankDirectory; a held-out executable validation oracle gating a formula advisory→fact
+// @use: before a generated/derived formula or sim finding touches a live organ, run it through the proof gate (the domain-blind promotion bar); pairs with formula-foundry (propose) and the quantum G1–G4 gate
+// @exports: ProofGateError, inspectFormulaBankDirectory, validateFormulaBank, runFormulaProofGate, runFormulaCounterexample
 export class ProofGateError extends Error {
   constructor(message, trace = null) {
     super(message);
@@ -24,15 +29,23 @@ export class ProofGateError extends Error {
 
 const FORMULA_IMPLEMENTATIONS = {
   'shannon-entropy': {
+    kernelFn: kernel.entropy,
     invoke: (input) => ({ entropy: kernel.entropy(input.probabilities, { base: input.base }) }),
   },
   'kl-divergence': {
+    kernelFn: kernel.klDivergence,
     invoke: (input) => ({ divergence: kernel.klDivergence(input.p, input.q, { base: input.base }) }),
   },
   'cross-entropy': {
+    kernelFn: kernel.crossEntropy,
     invoke: (input) => ({ crossEntropy: kernel.crossEntropy(input.p, input.q, { base: input.base }) }),
   },
+  'information-gain': {
+    kernelFn: kernel.informationGain,
+    invoke: (input) => ({ gain: kernel.informationGain(input.before, input.after, { base: input.base }) }),
+  },
   'astar-evaluation': {
+    kernelFn: kernel.astar,
     invoke: (input) => {
       const fixture = loadFixture(input.fixture);
       const result = kernel.astar(fixture.graph, fixture.source, fixture.target, fixture.heuristic, { strict: true });
@@ -40,6 +53,7 @@ const FORMULA_IMPLEMENTATIONS = {
     },
   },
   'dijkstra-relaxation': {
+    kernelFn: kernel.dijkstra,
     invoke: (input) => {
       const fixture = loadFixture(input.fixture);
       const result = kernel.dijkstra(fixture.graph, fixture.source, fixture.target);
@@ -47,45 +61,62 @@ const FORMULA_IMPLEMENTATIONS = {
     },
   },
   'topological-dependency-order': {
+    kernelFn: kernel.topologicalSort,
     invoke: (input) => {
       const edges = (input.edges || []).map((edge) => Array.isArray(edge) ? { from: edge[0], to: edge[1] } : edge);
       return { order: kernel.topologicalSort({ nodes: input.nodes, edges }).order };
     },
   },
   'brier-score': {
+    kernelFn: kernel.brierScore,
     invoke: (input) => ({ score: kernel.brierScore(input.predictions, input.outcomes) }),
   },
   'log-loss': {
+    kernelFn: kernel.logLoss,
     invoke: (input) => ({ loss: kernel.logLoss(input.predictions, input.outcomes, { epsilon: input.epsilon }) }),
   },
   'bayes-update': {
+    kernelFn: kernel.bayesUpdate,
     invoke: (input) => ({ posterior: kernel.bayesUpdate(input) }),
   },
   softmax: {
+    kernelFn: kernel.softmax,
     invoke: (input) => ({ distribution: kernel.softmax(input.values, { temperature: input.temperature }) }),
   },
   'weighted-mean': {
+    kernelFn: kernel.weightedMean,
     invoke: (input) => ({ mean: kernel.weightedMean(input.values, input.weights) }),
   },
   'weighted-variance': {
+    kernelFn: kernel.weightedVariance,
     invoke: (input) => ({ variance: kernel.weightedVariance(input.values, input.weights) }),
   },
+  'weighted-std-dev': {
+    kernelFn: kernel.weightedStdDev,
+    invoke: (input) => ({ stdDev: kernel.weightedStdDev(input.values, input.weights) }),
+  },
   'expected-value': {
+    kernelFn: kernel.expectedValue,
     invoke: (input) => ({ value: kernel.expectedValue(input.values, input.probabilities) }),
   },
   'log-scale': {
+    kernelFn: kernel.logScale,
     invoke: (input) => ({ score: kernel.logScale(input.value, input.min, input.max, input.points) }),
   },
   'dot-product': {
+    kernelFn: kernel.dotProduct,
     invoke: (input) => ({ value: kernel.dotProduct(input.left, input.right) }),
   },
   'p-norm': {
+    kernelFn: kernel.pNorm,
     invoke: (input) => ({ value: kernel.pNorm(input.values, input.p) }),
   },
   'cosine-similarity': {
+    kernelFn: kernel.cosineSimilarity,
     invoke: (input) => ({ similarity: kernel.cosineSimilarity(input.left, input.right) }),
   },
   'confidence-decay': {
+    kernelFn: kernel.confidenceDecay,
     invoke: (input) => ({ decay: kernel.confidenceDecay(input) }),
   },
 };
@@ -160,6 +191,28 @@ export function inspectFormulaBankDirectory(bankDir = FORMULA_BANK_DIR) {
       if (bankSummary.executableCounterexamples < bankSummary.formulaCount) {
         errors.push(`${file} expected at least ${bankSummary.formulaCount} executable counterexamples, got ${bankSummary.executableCounterexamples}`);
       }
+    } else if (validation.errors.length === 0) {
+      // ADVISORY pass: run research/fixture/quarantined examples for
+      // visibility — report, never certify. Failures land in warnings only;
+      // executableExamples stays a promoted-only certification count.
+      for (const formula of bank.formulas || []) {
+        if (!FORMULA_IMPLEMENTATIONS[formula.id]) continue;
+        for (const example of formula.workedExamples || []) {
+          const trace = runFormulaProofGate({
+            bank,
+            formula,
+            input: example.input,
+            expected: example.expected,
+            exampleName: example.name,
+            mode: 'advisory',
+          });
+          trace.advisory = true;
+          traces.push(trace);
+          if (!trace.passed) {
+            warnings.push(`${file}:${formula.id}:${example.name || 'example'} ADVISORY example fails (bank not promoted — reported, not certified)`);
+          }
+        }
+      }
     }
 
     banks.push(bankSummary);
@@ -216,17 +269,21 @@ export function runFormulaProofGate(options = {}) {
 
   try {
     const result = formulaImpl.invoke(options.input || {});
-    const passed = options.expected ? matchesExpected(result, options.expected) : true;
+    // Vacuous-pass guard sits AFTER invoke so invalid-input error paths are
+    // untouched: an empty OR missing expected is a vacuous certification — the
+    // gate must never stamp `passed` on a card that asserts nothing.
+    const match = matchesExpected(result, options.expected);
     const trace = {
       ...traceBase,
       result,
       resultHash: sha256Stable(result),
       expected: options.expected || null,
-      passed,
+      passed: match.ok,
       warnings: [],
     };
-    if (!passed) {
-      return failOrReturn(options.mode, `formula example mismatch for ${formula.id}`, trace);
+    if (!match.ok) {
+      trace.error = match.mismatches.join('; ');
+      return failOrReturn(options.mode, `formula example mismatch for ${formula.id}: ${trace.error}`, trace);
     }
     return trace;
   } catch (error) {
@@ -302,6 +359,12 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
   requireArray(formula, 'proofObligations', formulaLabel, errors);
 
   if (bank.promotionStatus === 'fixture' || bank.advisoryOnly === true) {
+    // A DECLARED kernel binding is a CLAIM that must hold even on the advisory/fixture path — fail closed: if a
+    // card declares implementedBy=<path>#<symbol>, the symbol MUST resolve, or a fabricated binding sails through
+    // preflight reporting validationOk:true (the docstring claims it resolves the symbol; it didn't). No binding
+    // ⇒ legitimately inert; non-'#' / non-kernel implementedBy forms are unaffected (the resolver skips them).
+    if (formula.implementedBy) assertImplementedBySymbolResolves(formula.implementedBy, formulaLabel, errors);
+    if (FORMULA_IMPLEMENTATIONS[formula.id]) assertImplementedByIdentity(formula, formulaLabel, errors);
     if (formula.implementedBy || FORMULA_IMPLEMENTATIONS[formula.id]) {
       warnings.push(`${formulaLabel} fixture has executable binding but remains advisory`);
     }
@@ -310,6 +373,8 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
 
   requireString(formula, 'domain', formulaLabel, errors);
   requireString(formula, 'implementedBy', formulaLabel, errors);
+  assertImplementedBySymbolResolves(formula.implementedBy, formulaLabel, errors);
+  assertImplementedByIdentity(formula, formulaLabel, errors);
   requireArray(formula, 'variables', formulaLabel, errors);
   requireArray(formula, 'assumptions', formulaLabel, errors);
   requireArray(formula, 'invalidInputs', formulaLabel, errors);
@@ -345,7 +410,7 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
     }
     requireString(example, 'name', formulaLabel, errors);
     requireObject(example, 'input', formulaLabel, errors);
-    requireObject(example, 'expected', formulaLabel, errors);
+    requireNonEmptyObject(example, 'expected', formulaLabel, errors);
     requireString(example, 'interpretation', formulaLabel, errors);
   }
   for (const counterexample of formula.counterexamples || []) {
@@ -359,6 +424,40 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
     if (isLooseExpectedErrorPattern(counterexample.expectedError)) {
       errors.push(`${formulaLabel} counterexample ${counterexample.name || '(unnamed)'} has loose expectedError`);
     }
+  }
+}
+
+function assertImplementedByIdentity(formula, formulaLabel, errors) {
+  // The card's implementedBy symbol must BE the function the proof gate
+  // executes (function identity, not name existence) — kills the binding
+  // desync where a card documents klDivergence while the gate runs entropy.
+  const impl = FORMULA_IMPLEMENTATIONS[formula.id];
+  if (!impl || typeof impl.kernelFn !== 'function') return;
+  const value = String(formula.implementedBy || '');
+  if (!value.includes('#')) return;
+  const [pathPart, symbol] = value.split('#');
+  if (!pathPart.endsWith('math-kernel.mjs') || !symbol) return; // shape errors handled by the existing resolver
+  if (kernel[symbol] !== impl.kernelFn) {
+    errors.push(`${formulaLabel} implementedBy kernel#${symbol} is not the function the proof gate executes for ${formula.id} (binding desync)`);
+  }
+}
+
+function assertImplementedBySymbolResolves(implementedBy, formulaLabel, errors) {
+  // Fail-closed provenance check: when a card declares a kernel symbol via
+  // '<path>#<symbol>', the symbol MUST be a real exported function of
+  // math-kernel.mjs. This makes the documented kernel function load-bearing so a
+  // future card-author or propagation auto-edit cannot silently desync the
+  // documented function from the executed binding. Scoped to math-kernel.mjs
+  // references only (the runtime); other paths (e.g. fixtures) skip the symbol check.
+  if (typeof implementedBy !== 'string' || !implementedBy.includes('#')) return;
+  const [pathPart, symbol] = implementedBy.split('#');
+  if (!pathPart.endsWith('math-kernel.mjs')) return;
+  if (!symbol || symbol.trim() === '') {
+    errors.push(`${formulaLabel} implementedBy declares an empty kernel symbol after '#'`);
+    return;
+  }
+  if (typeof kernel[symbol] !== 'function') {
+    errors.push(`${formulaLabel} implementedBy declares kernel#${symbol} which is not an exported function of math-kernel.mjs`);
   }
 }
 
@@ -396,10 +495,17 @@ function failOrReturn(mode, message, trace) {
 }
 
 function matchesExpected(result, expected) {
-  for (const [key, expectedValue] of Object.entries(expected || {})) {
-    if (!deepAlmostEqual(result?.[key], expectedValue)) return false;
+  const entries = Object.entries(expected || {});
+  if (entries.length === 0) return { ok: false, mismatches: ['vacuous expectation: no expected keys'] };
+  const mismatches = [];
+  for (const [key, expectedValue] of entries) {
+    if (!result || typeof result !== 'object' || !(key in result)) {
+      mismatches.push(`expected key '${key}' absent from result`);
+      continue;
+    }
+    if (!deepAlmostEqual(result[key], expectedValue)) mismatches.push(`value mismatch at '${key}'`);
   }
-  return true;
+  return { ok: mismatches.length === 0, mismatches };
 }
 
 function matchesExpectedError(message, expectedPattern) {
@@ -465,6 +571,14 @@ function requireArray(value, key, label, errors) {
 
 function requireObject(value, key, label, errors) {
   if (!value[key] || typeof value[key] !== 'object' || Array.isArray(value[key])) errors.push(`${label} missing ${key}`);
+}
+
+function requireNonEmptyObject(value, key, label, errors) {
+  if (!value[key] || typeof value[key] !== 'object' || Array.isArray(value[key])) {
+    errors.push(`${label} missing ${key}`);
+  } else if (Object.keys(value[key]).length === 0) {
+    errors.push(`${label} has empty ${key} (vacuous example)`);
+  }
 }
 
 function sha256Stable(value) {

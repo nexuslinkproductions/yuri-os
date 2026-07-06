@@ -16,6 +16,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClosedDecisions } from './izanagi-postmortem.mjs';
@@ -36,10 +37,6 @@ const args    = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const STATUS  = args.includes('--status');
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 if (STATUS) {
   const h = readJson(PATHS.hypotheses);

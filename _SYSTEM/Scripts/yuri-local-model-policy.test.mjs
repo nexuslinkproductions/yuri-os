@@ -1,288 +1,136 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
+const ollamaLanePath = resolve(__dirname, 'ollama-lane.mjs');
 const benchmarkPath = resolve(__dirname, 'yuri-local-model-benchmark.mjs');
-const heavyModels = new Set(['deepseek-r1:8b', 'deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
-const needleRepo = resolve(process.cwd(), '_SYSTEM/tools/needle');
-const needleCheckpoint = resolve(process.cwd(), '_SYSTEM/data/models/needle/checkpoints/needle.pkl');
-const needlePython = resolve(needleRepo, '.venv/bin/python');
-const needleCacheHome = mkdtempSync(join(tmpdir(), 'needle-hf-'));
+const llmCompatPath = resolve(__dirname, 'llm-compat.sh');
 
-const manifestRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-'));
+// PROMOTED 2026-06-13: qwen-local is the default local SLM (primary/utility/code/deep_reasoning);
+// gemma4:12b-it-qat retained as fallback + the `gemma`/multimodal slots. This test asserts the new
+// policy: generic local lanes resolve to qwen when installed; the gemma-local lane stays on gemma;
+// when NOTHING is installed the lane is blocked referencing the gemma candidate.
+const QWEN = 'hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M';
+const GEMMA = 'gemma4:12b-it-qat';
+
+const tempRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-'));
 
 try {
-  for (const model of [
-    'qwen3.5:4b',
-    'qwen2.5:7b',
-    'qwen2.5-coder:7b',
-    'deepseek-r1:8b',
-    'starcoder2:latest',
-    'llama3.2:latest',
-    'gemma4:e2b',
-    'qwen-liberated:latest',
-  ]) {
+  const manifestRoot = join(tempRoot, 'manifests');
+  const binRoot = join(tempRoot, 'bin');
+  mkdirSync(binRoot, { recursive: true });
+  // Fake ollama: `list` reports BOTH the promoted qwen primary and the gemma fallback as installed.
+  writeFileSync(join(binRoot, 'ollama'), `#!/usr/bin/env bash
+if [[ "\${1:-}" == "list" ]]; then
+  printf 'NAME ID SIZE MODIFIED\\n'
+  printf '%s\\n' '${QWEN}  aaa  6.4GB  now'
+  printf '%s\\n' '${GEMMA}  bbb  7.1GB  now'
+  exit 0
+fi
+exit 1
+`);
+  chmodSync(join(binRoot, 'ollama'), 0o755);
+
+  for (const model of [GEMMA, 'gemma4:e2b', 'needle']) {
     const [name, tag] = model.split(':');
     mkdirSync(join(manifestRoot, name), { recursive: true });
-    writeFileSync(join(manifestRoot, name, tag), '{}');
+    writeFileSync(join(manifestRoot, name, tag || 'latest'), '{}');
   }
 
   const env = {
     ...process.env,
+    PATH: `${binRoot}:${process.env.PATH}`,
     OLLAMA_MANIFEST_DIR: manifestRoot,
     OLLAMA_API_KEY: '',
-    GEMMA_CLOUD_API_KEY: '',
+    OLLAMA_CLOUD_API_KEY: '',
     DEEPSEEK_API_KEY: '',
     CODE_DEEPSEEK_API_KEY: '',
     YURI_KEYCHAIN_SERVICE_PREFIX: 'YURI_OS_MUSUBI_TEST_NO_KEYS',
   };
 
-  assert.equal(route('triage-local', env).model, 'needle');
-  assert.equal(route('summarize-local', env).model, 'needle');
-  assert.equal(route('ollama', env).model, 'needle');
-  assert.equal(route('ollama-local', env).model, 'needle');
-  assert.equal(route('gpt-oss', env).model, 'needle');
-  assert.equal(route('code-local', env).model, 'qwen2.5-coder:7b');
-  const deepseekDefault = route('deepseek', env);
-  assert.equal(deepseekDefault.kind, 'blocked');
-  assert.equal(deepseekDefault.status, 'SKIPPED_MISSING_KEY');
-  assert.match(deepseekDefault.error, /requires DEEPSEEK_API_KEY/);
-  const deepseekLocal = route('deepseek-local', env);
-  assert.equal(deepseekLocal.kind, 'blocked');
-  assert.equal(deepseekLocal.status, 'BLOCKED_FROZEN_MODEL');
-  assert.equal(deepseekLocal.frozen, true);
-  assert.equal(route('gemma-local', env).model, 'gemma4:e2b');
-
-  const checkedLanes = ['triage-local', 'summarize-local', 'ollama', 'ollama-local', 'gpt-oss', 'code-local', 'gemma-local'];
-  for (const lane of checkedLanes) {
-    const model = route(lane, env).model;
-    assert(!heavyModels.has(model), `${lane} must not auto-select heavy manual-only model ${model}`);
+  // Generic local lanes resolve to the promoted qwen primary when it is installed.
+  for (const lane of ['triage-local', 'summarize-local', 'ollama', 'ollama-local', 'gpt-oss', 'code-local']) {
+    const resolved = routeLane(lane, env);
+    assert.equal(resolved.kind, 'local', `${lane} should resolve locally`);
+    assert.equal(resolved.model, QWEN, `${lane} should select the promoted qwen local primary`);
   }
 
-  const starcoderRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-coder-fallback-'));
-  try {
-    for (const model of [
-      'qwen3.5:4b',
-      'qwen2.5:7b',
-      'starcoder2:latest',
-      'llama3.2:latest',
-    ]) {
-      const [name, tag] = model.split(':');
-      mkdirSync(join(starcoderRoot, name), { recursive: true });
-      writeFileSync(join(starcoderRoot, name, tag), '{}');
-    }
-
-    const coderFallbackEnv = {
-      ...env,
-      OLLAMA_MANIFEST_DIR: starcoderRoot,
-    };
-    assert.equal(route('code-local', coderFallbackEnv).model, 'starcoder2:latest');
-  } finally {
-    rmSync(starcoderRoot, { recursive: true, force: true });
+  // The gemma-local lane stays pinned to gemma (its own candidate set), not qwen.
+  {
+    const resolved = routeLane('gemma-local', env);
+    assert.equal(resolved.kind, 'local');
+    assert.equal(resolved.model, GEMMA, 'gemma-local lane stays on gemma4:12b-it-qat');
   }
 
-  const blockedRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-coder-blocked-'));
-  try {
-    for (const model of [
-      'qwen3.5:4b',
-      'qwen2.5:7b',
-      'llama3.2:latest',
-    ]) {
-      const [name, tag] = model.split(':');
-      mkdirSync(join(blockedRoot, name), { recursive: true });
-      writeFileSync(join(blockedRoot, name, tag), '{}');
-    }
-
-    const blockedEnv = {
-      ...env,
-      OLLAMA_MANIFEST_DIR: blockedRoot,
-    };
-    const blockedRoute = route('code-local', blockedEnv);
-    assert.equal(blockedRoute.kind, 'blocked');
-    assert.match(blockedRoute.error, /coder model/i);
-  } finally {
-    rmSync(blockedRoot, { recursive: true, force: true });
+  // A retired alias forced onto the gemma lane still normalizes to gemma4:12b-it-qat.
+  {
+    const resolved = routeLane('gemma-local', env, ['--model', 'gemma4:e2b']);
+    assert.equal(resolved.model, GEMMA);
   }
 
-  const benchmark = JSON.parse(execFileSync(
-    process.execPath,
-    [benchmarkPath, '--dry-run', '--json'],
-    { encoding: 'utf8', env },
-  ));
-  assert.equal(benchmark.dry_run, true);
-  assert.equal(benchmark.policy.utility, 'needle');
-  assert.equal(benchmark.policy.primary, 'needle');
-  assert.equal(benchmark.policy.code, 'qwen2.5-coder:7b');
-  assert.equal(benchmark.summary.failed, 0);
-  assert.deepEqual(benchmark.summary.heavy_models_selected, []);
-
-  if (!existsSync(needleCheckpoint)) {
-    execFileSync(
-      needlePython,
-      [
-        '-c',
-        'from huggingface_hub import hf_hub_download; import sys; print(hf_hub_download(repo_id="Cactus-Compute/needle", filename="needle.pkl", repo_type="model", local_dir=sys.argv[1], force_download=True))',
-        dirname(needleCheckpoint),
-      ],
-      {
-        cwd: needleRepo,
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          HF_HOME: needleCacheHome,
-          HF_HUB_DISABLE_XET: '1',
-        },
-      },
-    );
-  }
-
-  const needleSmoke = execFileSync(
-    needlePython,
-    [
-      '-c',
-      'from needle.cli import main; main()',
-      'run',
-      '--checkpoint',
-      needleCheckpoint,
-      '--query',
-      "What's the weather in San Francisco?",
-      '--tools',
-      '[{"name":"get_weather","parameters":{"location":"string"}}]',
-    ],
-    {
-      cwd: needleRepo,
-      encoding: 'utf8',
-      env: {
-        ...process.env,
-        HF_HOME: needleCacheHome,
-        HF_HUB_DISABLE_XET: '1',
-        PYTHONPATH: needleRepo,
-      },
-    },
-  );
-  assert.match(needleSmoke, /get_weather/i);
-  assert.match(needleSmoke, /SanFrancisco|San Francisco/);
-
-  const offloadCaptureRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-offload-'));
-  try {
-    const nodeStub = join(offloadCaptureRoot, 'node');
-    const captureFile = join(offloadCaptureRoot, 'capture.txt');
-writeFileSync(nodeStub, `#!/usr/bin/env bash
-set -euo pipefail
-: "\${CAPTURE_FILE:?missing capture file}"
-printf '%s\n' "$@" > "$CAPTURE_FILE"
-`);
-    chmodSync(nodeStub, 0o755);
-
-    execFileSync(
+  {
+    const resolved = JSON.parse(execFileSync(
       'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-liberated:latest', 'local model policy check'],
-      {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          CAPTURE_FILE: captureFile,
-          PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
-        },
-      }
-    );
-
-    const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(dispatchedArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
-    assert.equal(dispatchedArgs[1], 'deepseek-local');
-    assert(dispatchedArgs.includes('--model'));
-    assert(dispatchedArgs.includes('deepseek-liberated:latest'));
-    assert(dispatchedArgs.includes('--dry-run'));
-
-    execFileSync(
-      'bash',
-      ['_SYSTEM/Scripts/offload.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
-      {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          CAPTURE_FILE: captureFile,
-          PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
-        },
-      }
-    );
-
-    const laneFirstArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(laneFirstArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
-    assert.equal(laneFirstArgs[1], 'deepseek-v4-flash');
-
-    execFileSync(
-      'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'needle', 'needle smoke test'],
-      {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          CAPTURE_FILE: captureFile,
-          PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
-        },
-      }
-    );
-
-    const needleArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert(needleArgs.some((arg) => arg.endsWith('_SYSTEM/Scripts/needle-adapter.mjs')));
-    assert(needleArgs.includes('--input-type=module'));
-  } finally {
-    rmSync(offloadCaptureRoot, { recursive: true, force: true });
+      [llmCompatPath, '--model', 'needle', '--dry-run', 'retired needle compatibility check'],
+      { encoding: 'utf8', env },
+    ));
+    assert.equal(resolved.lane, 'gemma-local');
+    assert.equal(resolved.model, GEMMA);
   }
 
-  const deepseekCloudCaptureRoot = mkdtempSync(join(tmpdir(), 'yuri-deepseek-cloud-normalization-'));
-  try {
-    const nodeStub = join(deepseekCloudCaptureRoot, 'node');
-    const captureFile = join(deepseekCloudCaptureRoot, 'capture.txt');
-writeFileSync(nodeStub, `#!/usr/bin/env bash
-set -euo pipefail
-: "\${CAPTURE_FILE:?missing capture file}"
-printf '%s\n' "$@" > "$CAPTURE_FILE"
-`);
-    chmodSync(nodeStub, 0o755);
+  {
+    const benchmark = JSON.parse(execFileSync(
+      process.execPath,
+      [benchmarkPath, '--dry-run', '--json'],
+      { encoding: 'utf8', env },
+    ));
+    assert.equal(benchmark.dry_run, true);
+    assert.equal(benchmark.policy.utility, QWEN, 'utility promoted to qwen');
+    assert.equal(benchmark.policy.primary, QWEN, 'primary promoted to qwen');
+    assert.equal(benchmark.policy.code, QWEN, 'code promoted to qwen');
+    assert.ok(benchmark.policy.active_routed_models.includes(QWEN), 'active set includes qwen');
+    assert.ok(benchmark.policy.active_routed_models.includes(GEMMA), 'active set still includes gemma fallback');
+    assert.equal(benchmark.acceptance.reasoning_enabled_by_default, true);
+    assert.equal(benchmark.summary.failed, 0, 'all scenarios planned (qwen + gemma installed in fake env)');
+    // Policy-driven now: every selected model is in policy, so nothing is flagged non-policy.
+    assert.deepEqual(benchmark.summary.non_policy_models_selected, []);
+  }
 
-    execFileSync(
-      'bash',
-      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
-      {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          CAPTURE_FILE: captureFile,
-          PATH: `${deepseekCloudCaptureRoot}:${process.env.PATH}`,
-          OFFLOAD_QUEUE_BYPASS: '1',
-        },
-      }
+  {
+    // Nothing installed -> the gemma-local lane is blocked, referencing the gemma candidate only.
+    const emptyManifest = join(tempRoot, 'empty-manifest');
+    const emptyBin = join(tempRoot, 'empty-bin');
+    mkdirSync(emptyManifest, { recursive: true });
+    mkdirSync(emptyBin, { recursive: true });
+    writeFileSync(join(emptyBin, 'ollama'), "#!/usr/bin/env bash\nif [[ \"${1:-}\" == \"list\" ]]; then printf 'NAME ID SIZE MODIFIED\\n'; exit 0; fi\nexit 1\n");
+    chmodSync(join(emptyBin, 'ollama'), 0o755);
+    const blocked = spawnSync(
+      process.execPath,
+      [ollamaLanePath, 'gemma-local', '--dry-run', 'missing model check'],
+      { encoding: 'utf8', env: { ...env, PATH: `${emptyBin}:${process.env.PATH}`, OLLAMA_MANIFEST_DIR: emptyManifest } },
     );
-
-    const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(dispatchedArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
-    assert.equal(dispatchedArgs[1], 'deepseek-v4-pro');
-    assert(dispatchedArgs.includes('--reasoning'));
-    assert(dispatchedArgs.includes('xhigh'));
-  } finally {
-    rmSync(deepseekCloudCaptureRoot, { recursive: true, force: true });
+    assert.equal(blocked.status, 1);
+    const payload = JSON.parse(blocked.stdout);
+    assert.equal(payload.model, GEMMA);
+    assert.match(payload.error, /gemma4:12b-it-qat/);
+    assert.doesNotMatch(payload.error, /needle|e2b/i);
   }
 
   process.stdout.write('yuri-local-model-policy: pass\n');
 } finally {
-  rmSync(manifestRoot, { recursive: true, force: true });
+  rmSync(tempRoot, { recursive: true, force: true });
 }
 
-function route(lane, env) {
+function routeLane(lane, env, extraArgs = []) {
   return JSON.parse(execFileSync(
     process.execPath,
-    [offloadRunnerPath, lane, '--dry-run', 'local model policy check'],
+    [ollamaLanePath, lane, '--dry-run', 'local model policy check', ...extraArgs],
     { encoding: 'utf8', env },
   ));
 }

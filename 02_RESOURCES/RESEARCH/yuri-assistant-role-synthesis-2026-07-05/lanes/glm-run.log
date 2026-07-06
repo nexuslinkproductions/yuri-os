@@ -1,0 +1,41 @@
+{
+  "runId": "glmf-mr850s8e-c80681",
+  "armed": true,
+  "runDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/jobs/glmf-mr850s8e-c80681/results",
+  "concurrency": 3,
+  "results": [
+    {
+      "label": "G1a-independent-role-synthesis",
+      "lane": "glm-max",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "17GL_BLIND_ROLE_SYNTHESIS_DIVERGENT_MINIMALIST_X_PASS_COMMITTED",
+      "ms": 228167,
+      "chars": 17397
+    },
+    {
+      "label": "G1b-minimal-gap",
+      "lane": "glm",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "06GL_YURI_ROLE_GAP_ANALYSIS_WORKSTATE_BRIDGE_X_PASS_COMMITTED",
+      "ms": 1074238,
+      "chars": 9976
+    },
+    {
+      "label": "G1c-over-engineering-scan",
+      "lane": "glm-flash",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "09GL_OVER_ENGINEERING_TRAP_AUDIT_YURI_X_PASS_COMMITTED",
+      "ms": 175514,
+      "chars": 12920
+    }
+  ]
+}

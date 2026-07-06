@@ -325,7 +325,7 @@ Specific evolution signals for products:
 
 ### Empire 1: Nexus Link Client Portal
 ```
-Stage 0: Research Vienna commercial video market, client management gaps
+Stage 0: Research the target market, client management gaps
 Stage 1: Spec auth → client dashboard → project upload → review workflow → delivery → invoicing
 Stage 2: Build in dependency order (auth first, invoicing last)
 Stage 3: Security focus (client data is sensitive — GDPR compliance required)
@@ -335,7 +335,7 @@ Stage 6: Case study content from completed projects
 Stage 7: Learn from client feedback patterns
 ```
 
-### Empire 2: EXEOFLOW Automation Platform
+### Empire 2: Automation Platform
 ```
 Stage 0: Research AI automation market, identify underserved segments
 Stage 1: Spec auth → workflow builder → execution engine → monitoring → billing
@@ -349,7 +349,7 @@ Stage 7: Learn from workflow patterns users build
 
 ### Empire 3: Creative Tool (Template System)
 ```
-Stage 0: Research video template market, pricing models
+Stage 0: Research the template market, pricing models
 Stage 1: Spec auth → template browser → preview → purchase → download → customization
 Stage 2: Template rendering engine is core
 Stage 3: Payment security focus (PCI compliance considerations)

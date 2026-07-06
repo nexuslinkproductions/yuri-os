@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const LOG_FILE = '.claude/state/progress.log';
@@ -66,7 +67,7 @@ export function emitProgress(operation, phase, progress01, message) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   emitProgress('ExampleOp', 'start', -0.2, 'starting');
   emitProgress('ExampleOp', 'work', 0.5, 'processing');
   emitProgress('ExampleOp', 'done', 1.2, 'completed');

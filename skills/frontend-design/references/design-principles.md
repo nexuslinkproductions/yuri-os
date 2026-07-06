@@ -27,3 +27,17 @@ Before writing UI code, define:
 4. **Typography Scale**.
 5. **Spacing System**.
 6. **Reference Set & Divergence Check**.
+
+## AI-Tell Catalog (countable)
+Pre-flight gate over generated UI. Each tell is countable, not a vibe-check. Tags: `[general]` applies to any surface; `[landing]` applies to landing / marketing / portfolio pages ONLY. Do NOT apply `[landing]` rules to YURI HUD instruments or Kagami cinematic surfaces (those follow design-master's surface model).
+
+- `[general]` Em-dash in rendered copy = fail. Use commas, periods, or restructure.
+- `[general]` AI-default palettes = fail: the premium-consumer beige/brass/espresso family, and the "AI purple" glow gradient. Pick a palette motivated by the brief.
+- `[general]` Decorative status dots, div-based fake "screenshots", and locale/weather/clock filler strips = fail.
+- `[landing]` Section-number "eyebrows" above more than `ceil(sectionCount / 3)` sections = fail.
+- `[landing]` Three or more consecutive image-and-text split sections in the same zigzag rhythm = fail.
+- `[landing]` Two CTAs with the same intent, or a CTA that wraps onto two lines = fail.
+- `[general]` Button contrast below WCAG AA (light-on-light, dark-on-dark) = fail.
+- `[general]` Performative-craftsman copy ("handcrafted", "meticulously designed", "thoughtfully built") = fail. Show the craft, do not narrate it.
+
+A later Tier-3 item may turn this catalog into an executable linter; today it is a countable pre-flight checklist.

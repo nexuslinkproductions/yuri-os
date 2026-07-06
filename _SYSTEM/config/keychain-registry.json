@@ -75,6 +75,21 @@
       "owner": "cloudinary",
       "requiredFor": ["cloudinary"],
       "missing": "optional"
+    },
+    "COINBASE_KEY_NAME": {
+      "owner": "coinbase",
+      "requiredFor": ["observatory-account-view-only"],
+      "missing": "optional"
+    },
+    "COINBASE_API_SECRET": {
+      "owner": "coinbase",
+      "requiredFor": ["observatory-account-view-only"],
+      "missing": "optional"
+    },
+    "DATABENTO_API_KEY": {
+      "owner": "databento",
+      "requiredFor": ["orderflow-quant-es-mbp10", "databento-probe"],
+      "missing": "optional"
     }
   }
 }

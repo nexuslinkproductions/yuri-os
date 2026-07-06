@@ -3,8 +3,10 @@
 // Replaces: soul-persona-inject.js + palace-context-inject.js + memory-rag-inject.js
 // at SessionStart. All context injections become one coherent <yuri-brain> block.
 //
-// Architecture:
-//   [identity]      → SOUL.md persona rules (who Yuri is, how to think)
+// Architecture (wave-3 H.2, D-H2-A): brain-inject provides VOLATILE LIVE STATE only —
+// stable identity (SOUL.md/persona.md) is loaded natively via the CLAUDE.md @-includes
+// and is NOT duplicated here (the old IDENTITY block re-emitted ~570 tok of SOUL.md
+// every boot; subagents got SOUL three times).
 //   [learned_rules] → global.md dream-processor synthesized session rules (what sessions taught)
 //   [memory]        → curated MEMORY.md truths (semantic/palace retrieval retired 2026-05-29;
 //                     corpus lookup lives in the separate FTS5 search index, never auto-injected)
@@ -22,12 +24,11 @@ const fs   = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const REPO_ROOT        = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
-const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
+const REPO_ROOT        = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
 const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
-const STATE_FILE       = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
 const LAUNCH_GATE      = path.join(REPO_ROOT, '.claude', 'state', 'launch-gate.json');
 const LANE_HEALTH_FILE = path.join(REPO_ROOT, '.claude', 'state', 'lane-health-status.json');
+const ENERGY_WEIGHTS   = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'energy-weights.json');
 
 // M2 Pro hardware constraints — hardcoded, updated only when hardware changes
 const HARDWARE = {
@@ -38,16 +39,34 @@ const HARDWARE = {
   max_concurrent_lanes: 10,
 };
 
+// ── Staleness guard (wave-3 H.3) ────────────────────────────────────────────
+// 20-24-day-old lane-health/roadmap/learned-rules were being presented as live
+// state. >48h → prefix a STALE warning; >7d → suppress to a one-line marker.
+const STALE_WARN_MS = 48 * 3600 * 1000;
+const STALE_SUPPRESS_MS = 7 * 24 * 3600 * 1000;
+function stalenessOf(ageMs) {
+  if (ageMs > STALE_SUPPRESS_MS) return 'suppress';
+  if (ageMs > STALE_WARN_MS) return 'warn';
+  return 'fresh';
+}
+function ageDisplay(ageMs) {
+  return ageMs > 86400000 ? `${Math.floor(ageMs / 86400000)}d old` : `${Math.round(ageMs / 60000)}m ago`;
+}
+
 // ── Dream-processor synthesized rules ──────────────────────────────────────
 
 function loadLearnedRules() {
   try {
     if (!fs.existsSync(GLOBAL_MD)) return '(no synthesized rules yet)';
+    const ageMs = Date.now() - fs.statSync(GLOBAL_MD).mtimeMs;
+    const tier = stalenessOf(ageMs);
+    if (tier === 'suppress') return `[LEARNED_RULES stale > 7d (${ageDisplay(ageMs)}) — suppressed]`;
+    const stalePrefix = tier === 'warn' ? `⚠ STALE (${ageDisplay(ageMs)} — may not reflect current state)\n` : '';
     const content = fs.readFileSync(GLOBAL_MD, 'utf8');
     // Strip the Global Session Seed boilerplate — keep only Auto-synthesized sections
     const autoSections = content.match(/### Auto-synthesized[\s\S]*?(?=\n### |\n# |$)/g) || [];
     if (!autoSections.length) return '(no synthesized rules yet)';
-    return autoSections
+    return stalePrefix + autoSections
       .map(s => s.trim())
       .join('\n')
       .split('\n')
@@ -83,12 +102,15 @@ function loadLaneHealth() {
   try {
     if (!fs.existsSync(LANE_HEALTH_FILE)) return '(no health snapshot — run _SYSTEM/Scripts/lane-health.sh)';
     const h = JSON.parse(fs.readFileSync(LANE_HEALTH_FILE, 'utf8'));
-    const age = Math.round((Date.now() - new Date(h.ts).getTime()) / 60000);
+    const ageMs = Date.now() - new Date(h.ts).getTime();
+    const tier = stalenessOf(ageMs);  // wave-3 H.3
+    if (tier === 'suppress') return `[LANE_HEALTH stale > 7d (${ageDisplay(ageMs)}) — suppressed; run _SYSTEM/Scripts/lane-health.sh]`;
+    const stalePrefix = tier === 'warn' ? `⚠ STALE (${ageDisplay(ageMs)} — may not reflect current state)\n` : '';
     const lanes = h.lanes || {};
     const rows = Object.entries(lanes)
       .map(([k, v]) => `  ${v === 'LIVE' ? '✓' : '✗'} ${k}: ${v}`)
       .join('\n');
-    return `as-of: ${age}m ago\n${rows}`;
+    return `${stalePrefix}as-of: ${ageDisplay(ageMs)}\n${rows}`;
   } catch { return '(error reading lane-health-status.json)'; }
 }
 
@@ -98,35 +120,46 @@ function loadGateSnapshot() {
   try {
     if (!fs.existsSync(LAUNCH_GATE)) return 'gate: unknown (run launch-readiness-check.mjs)';
     const g = JSON.parse(fs.readFileSync(LAUNCH_GATE, 'utf8'));
+    // F3 (FABLE audit 2026-07-06): staleness parity with loadLaneHealth/loadLearnedRules.
+    // A go/no-go gate must never render a >7d-old status as live fact (was showing 27d "READY").
+    const ageMs = g.ts ? Date.now() - new Date(g.ts).getTime() : 0;
+    const tier = stalenessOf(ageMs);
+    if (tier === 'suppress') return `[GATE stale > 7d (${ageDisplay(ageMs)}) — suppressed; run launch-readiness-check.mjs]`;
+    const stalePrefix = tier === 'warn' ? `⚠ STALE (${ageDisplay(ageMs)} — may not reflect current state)\n` : '';
     const checks = (g.checks || []).map(c => `  ${c.pass ? '✓' : '✗'} ${c.name}: ${c.value}`).join('\n');
-    return `status: ${g.gateStatus} · as-of: ${(g.ts || '').slice(0,10)}\n${checks}`;
+    return `${stalePrefix}status: ${g.gateStatus} · as-of: ${(g.ts || '').slice(0,10)}\n${checks}`;
   } catch { return 'gate: file unreadable'; }
 }
 
-// ── SOUL persona rules ──────────────────────────────────────────────────────
+// ── SOUL persona rules — REMOVED (wave-3 H.2, D-H2-A) ───────────────────────
+// extractPersonaRules/REQUIRED_HEADINGS deleted: SOUL.md identity arrives natively
+// via the CLAUDE.md @-include; re-emitting 9 Core Truths here was ~570 tok/boot of
+// pure duplication (soul-persona-inject.js still carries its own headings list for
+// the subagent path — that copy is now the only one).
 
-const REQUIRED_HEADINGS = [
-  'Be an adversarial ally.',
-  'Use contextual edge without corrupting the work.',
-  'Treat rules as testable machinery.',
-  'Think with a cognitive workflow, not a costume.',
-  'Run divergent scan before convergence when the task benefits.',
-  'Use monotropic depth with exit checks.',
-  'Switch salience deliberately.',
-  'Use polymathic transfer with verification.',
-  'Compress into lattice maps.',
-];
 
-function extractPersonaRules(content) {
-  const paragraphs = content.split(/\n\s*\n/);
-  const rules = [];
-  for (const heading of REQUIRED_HEADINGS) {
-    const p = paragraphs.find(b => b.startsWith(`**${heading}**`));
-    if (p) rules.push(p.replace(/\s+/g, ' ').trim());
-  }
-  return rules;
+// L7 — conscious-set cap (working-memory size) from the canonical knob file; fail-closed to 12.
+// brain-inject is CJS and the loader (loadEnergyConfig) is ESM, so we read the JSON directly with
+// the same fail-closed spirit: a missing/bad value falls back to the in-code default.
+function consciousSetCap() {
+  try {
+    const cfg = JSON.parse(fs.readFileSync(ENERGY_WEIGHTS, 'utf8'));
+    const cap = Number(cfg && cfg.recall && cfg.recall.consciousSetCap);
+    return Number.isFinite(cap) && cap >= 1 ? Math.trunc(cap) : 12;
+  } catch { return 12; }
 }
 
+// FSRS retrievability, used ONLY to order the conscious set when it overflows the cap (the most
+// retrievable rows stay conscious). Monotonic-decreasing in age, so with a uniform base stability
+// this reduces to recency order — freshest curated truths win. Mirrors yuri-fsrs constants (inlined
+// because this CJS hook cannot import the ESM module). Undated rows sink to least-retrievable.
+function rowRetrievability(dateStr, nowMs) {
+  const t = Date.parse(dateStr);
+  if (!Number.isFinite(t)) return 0;
+  const ageDays = Math.max(0, (nowMs - t) / 86400000);
+  const S = 30; // uniform base stability (days)
+  return Math.pow(1 + (19 / 81) * (ageDays / S), -0.5);
+}
 
 function loadCuratedMemory() {
   // Curated memory only. Semantic/embedding retrieval (memory-query.mjs over semantic-memory.db)
@@ -136,18 +169,30 @@ function loadCuratedMemory() {
   try {
     // _SYSTEM/memory/MEMORY.md is a "| Date | Entry | Surface | Notes |" table — parse rows,
     // skip the header + separator, inject "Entry — Notes(truncated)".
+    const cap = consciousSetCap();
+    const now = Date.now();
     const rows = fs.readFileSync(path.join(REPO_ROOT, '_SYSTEM/memory/MEMORY.md'), 'utf8')
       .split('\n')
       .filter(l => l.startsWith('|') && !/^\|\s*Date\s*\|/i.test(l) && !/^\|[\s:|-]*\|?\s*$/.test(l))
-      .slice(0, 12)
-      .map(l => {
+      .map((l, idx) => {
         const c = l.split('|').map(s => s.trim());
         const entry = c[2] || '';
         const note = (c[4] || '').replace(/\*\*/g, '').slice(0, 110);
-        return entry ? `- ${entry}${note ? ' — ' + note : ''}` : '';
+        return { idx, date: c[1] || '', text: entry ? `- ${entry}${note ? ' — ' + note : ''}` : '' };
       })
-      .filter(Boolean);
-    return rows.length ? rows.join('\n') : '(no curated memory entries)';
+      .filter(r => r.text);
+
+    // Within cap → preserve file order (behavior-neutral). On overflow → keep the most
+    // retrievable rows, then restore file order so the displayed block stays stable.
+    const chosen = rows.length <= cap
+      ? rows
+      : rows.map(r => ({ r, R: rowRetrievability(r.date, now) }))
+            .sort((a, b) => b.R - a.R)
+            .slice(0, cap)
+            .map(x => x.r)
+            .sort((a, b) => a.idx - b.idx);
+
+    return chosen.length ? chosen.map(r => r.text).join('\n') : '(no curated memory entries)';
   } catch { return '(memory index unavailable)'; }
 }
 
@@ -229,34 +274,37 @@ function loadAnimaDNAModes() {
   return MODES.map(m => `${m.name}: ${m.trigger}`).join('\n');
 }
 
-// ── Neurodivergent engine ────────────────────────────────────────────────────
-// Operationalizes Marcel's neurotype traits as testable behavioral modules.
-// Source: _SYSTEM/SELF/Identity.md (Autistic/ADHD/Polymath parameters)
+// ── Identity-hash (drift anchor) ─────────────────────────────────────────────
+// STABLE Zone-A content — zero volatile tokens: the frozen identity invariants.
+// Owner-gated file; loaded byte-identical so the brain prefix stays cacheable across
+// warm restarts. The persona voice, Marcel operating brain, and neurodivergent base are
+// consolidated into _SYSTEM/persona.md (native @-include in CLAUDE.md), not injected here.
 
-function loadNeurodivergentEngine(cortexTier) {
-  const IDENTITY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'SELF', 'Identity.md');
-  const isComplex = cortexTier && ['complex', 'critical'].includes(cortexTier);
+const IDENTITY_HASH_FILE = path.join(REPO_ROOT, '_SYSTEM', 'identity-hash.md');
 
-  const modules = [
-    { trait: 'Autistic pattern depth',   rule: 'Full spec-read + mechanism map before complex analysis; never skim' },
-    { trait: 'ADHD burst mode',          rule: 'Batch independent tasks into parallel tool calls — fan-out, never serial' },
-    { trait: 'Hyperfocus lock',          rule: `${isComplex ? '⚡ ACTIVE' : 'Standby'}: when deep in a thread, block advisor scatter to adjacent concerns` },
-    { trait: 'Polymath transfer',        rule: 'Check: does this problem map to a solved domain? Name source→target→mechanism before applying' },
-    { trait: 'Interest-driven salience', rule: 'High-interest = max depth; admin/low-interest = minimum tokens → route to lane' },
-    { trait: 'Pattern-first decode',     rule: 'Marcel sends brain dumps → decode structure first, ask only when decoding reveals true ambiguity' },
-  ];
+function stripCommentLines(content) {
+  // Drop top-level `# ` comment/title lines; keep `## ` sections + body.
+  return content.split('\n').filter(l => !l.startsWith('# ')).join('\n').trim();
+}
 
-  // Verify Identity.md exists (graceful fallback)
-  let neurotype = 'Autistic+ADHD+Polymath (from Identity.md)';
+function loadIdentityHash() {
   try {
-    if (fs.existsSync(IDENTITY_FILE)) {
-      const content = fs.readFileSync(IDENTITY_FILE, 'utf8');
-      const match = content.match(/## Neurotype & Mind([\s\S]*?)(?=\n## |$)/);
-      if (match) neurotype = match[1].trim().split('\n').slice(0, 3).join(' · ').replace(/[*-]/g, '').trim();
-    }
-  } catch (_) {}
+    if (!fs.existsSync(IDENTITY_HASH_FILE)) return null;
+    return stripCommentLines(fs.readFileSync(IDENTITY_HASH_FILE, 'utf8')) || null;
+  } catch { return null; }
+}
 
-  return `Neurotype: ${neurotype}\n` + modules.map(m => `[${m.trait}] ${m.rule}`).join('\n');
+// ── Neuro-core: the ≤8 always-load memory/learning principles ────────────────
+// Stable Zone-A content. Full corpus is indexed at _SYSTEM/knowledge/neuroscience-corpus.md
+// (on-demand via `ai search`); only the load-bearing principles ride the boot block.
+
+const NEURO_CORE_FILE = path.join(REPO_ROOT, '_SYSTEM', 'neuro-core.md');
+
+function loadNeuroCore() {
+  try {
+    if (!fs.existsSync(NEURO_CORE_FILE)) return null;
+    return stripCommentLines(fs.readFileSync(NEURO_CORE_FILE, 'utf8')) || null;
+  } catch { return null; }
 }
 
 // ── Self-awareness — L1–L3 ───────────────────────────────────────────────────
@@ -296,33 +344,6 @@ function loadSelfAwareness() {
   } catch { return null; }
 }
 
-// ── NVIDIA NIM live lane map ─────────────────────────────────────────────────
-// Source: .claude/config/models.json → nvidia_nim.live_status (updated by probe runs)
-
-function loadNvidiaLanes() {
-  try {
-    const MODELS_JSON = path.join(REPO_ROOT, '.claude', 'config', 'models.json');
-    if (!fs.existsSync(MODELS_JSON)) return null;
-    const cfg = JSON.parse(fs.readFileSync(MODELS_JSON, 'utf8'));
-    const nim = cfg.nvidia_nim;
-    if (!nim) return null;
-    const { live_status, routing_decision_guide } = nim;
-    if (!live_status) return null;
-    const lines = [
-      `tested: ${live_status.tested} | live=${live_status.live?.length ?? 0} dead=${live_status.dead?.length ?? 0}`,
-      `  ✓ live:  ${(live_status.live || []).join(', ')}`,
-      `  ✗ dead:  ${(live_status.dead || []).join(', ')}`,
-    ];
-    if (routing_decision_guide) {
-      lines.push('routing:');
-      for (const [task, lane] of Object.entries(routing_decision_guide).slice(0, 5)) {
-        lines.push(`  ${task.padEnd(32)} → ${lane}`);
-      }
-    }
-    return lines.join('\n');
-  } catch { return null; }
-}
-
 // ── Neuron loop last run ──────────────────────────────────────────────────────
 // Source: .claude/state/neuron-loop.log (written by _SYSTEM/Scripts/neuron-loop.mjs)
 
@@ -349,8 +370,12 @@ function loadRoadmapState() {
   try {
     const STATE_PATH = path.join(REPO_ROOT, '.claude', 'state', 'roadmap-state.json');
     if (!fs.existsSync(STATE_PATH)) return null;
+    const ageMs = Date.now() - fs.statSync(STATE_PATH).mtimeMs;
+    const tier = stalenessOf(ageMs);  // wave-3 H.3
+    if (tier === 'suppress') return `[ROADMAP stale > 7d (${ageDisplay(ageMs)}) — suppressed]`;
     const state = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'));
     const lines = [];
+    if (tier === 'warn') lines.push(`⚠ STALE (${ageDisplay(ageMs)} — may not reflect current sprint)`);
     if (state.active_initiative) lines.push(`initiative: ${state.active_initiative}`);
     if (state.gate_status) lines.push(`gate: ${state.gate_status}`);
     // phases can be object or array
@@ -386,23 +411,32 @@ function loadGeassLock() {
   } catch { return null; }
 }
 
-// ── Nen phase — active work mode ─────────────────────────────────────────────
-
-function loadNenPhase() {
-  const STATE_FILE_PATH = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
+// ── Organ state — the AFFERENT nerve: the brain wakes knowing its open work ──
+// Source: yuri-nerve.mjs digest (OpenProcess-ranked open events). CJS hook → ESM module via spawnSync.
+// Fully defensive: any failure returns null → the section simply does not render → boot is never broken.
+function loadOrganState() {
   try {
-    if (!fs.existsSync(STATE_FILE_PATH)) return null;
-    const state = JSON.parse(fs.readFileSync(STATE_FILE_PATH, 'utf8'));
-    if (!state.nen_phase) return null;
-    const { phase, confidence, config } = state.nen_phase;
-    return `Phase: ${phase} | Confidence: ${confidence != null ? Math.round(confidence * 100) + '%' : '?'}\n${config || ''}`;
+    const r = spawnSync('node', [path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-nerve.mjs'), 'digest'], { cwd: REPO_ROOT, encoding: 'utf8', timeout: 5000 });
+    if (r.status !== 0 || !r.stdout) return null;
+    const d = JSON.parse(r.stdout);
+    if (!d || !Array.isArray(d.top) || !d.top.length) return null;
+    const rows = d.top.slice(0, 6)
+      .map(t => `  ⊙ [${t.type}] ${String(t.title).slice(0, 70)} (m=${t.mass})${t.next ? ' → ' + String(t.next).slice(0, 60) : ''}`)
+      .join('\n');
+    return `open: ${d.openCount} · closed: ${d.closedCount}\n${rows}`;
   } catch { return null; }
 }
 
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState }) {
-  const identityLines = rules.map(r => `- ${r}`).join('\n');
+function buildBrainBlock({ learnedRules, memoryLines, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore, organState }) {
+  const identityHashSection = identityHash
+    ? `\n\n### IDENTITY_HASH — frozen invariants (drift anchor, owner-gated)\n${identityHash}`
+    : '';
+
+  const neuroCoreSection = neuroCore
+    ? `\n\n### NEURO_CORE — how I learn & remember (always-load key points)\n${neuroCore}`
+    : '';
 
   const hwSafe    = HARDWARE.safe_local.join(', ');
   const hwFrozen  = HARDWARE.frozen.slice(0,4).join(', ') + '…';
@@ -419,16 +453,8 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
     ? `\n### ANIMA_DNA_MODES — Cognitive triggers (Japanese principles)\n${animaDNA}`
     : '';
 
-  const neurodivSection = neurodivergent
-    ? `\n### NEURODIVERGENT_ENGINE — Active behavioral modules\n${neurodivergent}`
-    : '';
-
   const selfAwarenessSection = selfAwareness
     ? `\n### SELF_AWARENESS — Behavioral fingerprint (L2/L3)\n${selfAwareness}`
-    : '';
-
-  const nvidiaSection = nvidiaLanes
-    ? `\n### NVIDIA_NIM — Live lane map (probed ${new Date().toISOString().slice(0,10)})\n${nvidiaLanes}`
     : '';
 
   const neuronSection = neuronLoop
@@ -443,13 +469,25 @@ function buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, gateSna
     ? `\n### GEASS_LOCK — Active inviolable constraint\n🔴 ${geassLock}`
     : '';
 
-  const nenSection = nenPhase
-    ? `\n### NEN_PHASE — Active work phase\n${nenPhase}`
+  const organStateSection = organState
+    ? `\n### ORGAN_STATE — open work (afferent nerve · OpenProcess-ranked)\n${organState}`
     : '';
 
-  return `<yuri-brain>
-### IDENTITY — Yuri persona active (SOUL.md)
-${identityLines}
+  // ── ZONE A: STATIC ONLY (wave-3 H.4) — frozen invariants + hardware + stable
+  // behavioral modules. MEMORY.md and learned-rules MUTATE (every memory write /
+  // dream synthesis) and were moved to ZONE-C: the old "cacheable stable prefix"
+  // claim was false while they lived here. Identity is native (@SOUL.md) — not here.
+  const stableCore = `<yuri-brain>${identityHashSection.replace(/^\n\n/, '')}${neuroCoreSection}
+
+### HARDWARE — M2 Pro constraints
+safe local: ${hwSafe}
+frozen (DO NOT RUN): ${hwFrozen}
+${HARDWARE.note}${animaDNASection}`;
+
+  // ── ZONE C: VOLATILE — mutable + session-scoped content. NOTE: brain-inject output
+  // is NOT a guaranteed cacheable prefix — git-log, ages, MEMORY, learned-rules all
+  // mutate; token-cache behavior depends on the harness, not this block. ──
+  const volatileFooter = `
 
 ### LEARNED_RULES — Dream-processor synthesis (global.md)
 ${learnedRules}
@@ -460,25 +498,20 @@ ${memoryLines}
 ### SESSION — Current context
 ${sessionCtx || '(checkpoint unavailable)'}
 
-### HARDWARE — M2 Pro constraints
-safe local: ${hwSafe}
-frozen (DO NOT RUN): ${hwFrozen}
-${HARDWARE.note}
-
 ### LANE_HEALTH — AI routing availability
 ${laneHealth}
 
 ### GATE — Launch readiness
-${gateSnapshot}${pdcSection}${dynamicSection}${animaDNASection}${neurodivSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${roadmapSection}${geassSection}${nenSection}
+${gateSnapshot}${pdcSection}${dynamicSection}${selfAwarenessSection}${neuronSection}${roadmapSection}${geassSection}${organStateSection}
 </yuri-brain>`;
+
+  return stableCore + volatileFooter;
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
 function main() {
-  // 1. Persona
-  let rules = [];
-  try { rules = extractPersonaRules(fs.readFileSync(SOUL_FILE, 'utf8')); } catch (_) {}
+  // 1. Persona — native via CLAUDE.md @-includes (wave-3 H.2: no hook duplication)
 
   // 2. Learned rules from dream processor
   const learnedRules = loadLearnedRules();
@@ -499,25 +532,16 @@ function main() {
   const cortexDynamic  = loadCortexDynamic();
   const pdcContext     = loadPdcContext();
 
-  // Extract complexity tier from cortex state for neurodivergent engine
-  let cortexTier = 'standard';
-  try {
-    const CORTEX_STATE = path.join(REPO_ROOT, '.claude', 'state', 'cortex-state.json');
-    if (fs.existsSync(CORTEX_STATE)) {
-      cortexTier = JSON.parse(fs.readFileSync(CORTEX_STATE, 'utf8')).complexityTier || 'standard';
-    }
-  } catch (_) {}
-
   const animaDNA      = loadAnimaDNAModes();
-  const neurodivergent= loadNeurodivergentEngine(cortexTier);
+  const identityHash  = loadIdentityHash();
+  const neuroCore     = loadNeuroCore();
   const selfAwareness = loadSelfAwareness();
   const geassLock     = loadGeassLock();
-  const nenPhase      = loadNenPhase();
-  const nvidiaLanes   = loadNvidiaLanes();
   const neuronLoop    = loadNeuronLoopState();
   const roadmapState  = loadRoadmapState();
+  const organState    = loadOrganState();
 
-  const block = buildBrainBlock({ rules, learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState });
+  const block = buildBrainBlock({ learnedRules, memoryLines, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, selfAwareness, geassLock, neuronLoop, roadmapState, identityHash, neuroCore, organState });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

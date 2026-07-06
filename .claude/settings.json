@@ -1,7 +1,10 @@
 {
   "env": {
     "CLAUDE_CODE_BASH_NO_TIMEOUT": "1",
-    "YURI_WORKHORSE_TIMEOUT": "0"
+    "YURI_WORKHORSE_TIMEOUT": "0",
+    "YURI_ENERGY_OBSERVABILITY": "1",
+    "API_TIMEOUT_MS": "3000000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
   },
   "permissions": {
     "allow": [
@@ -10,7 +13,6 @@
       "Read(*)",
       "Write(*)",
       "Edit(*)",
-      "MultiEdit(*)",
       "Glob(*)",
       "Ls(*)",
       "WebFetch(*)",
@@ -21,60 +23,72 @@
     ],
     "deny": [
       "Read(.env)",
-      "Read(.env*)",
+      "Read(.env.local)",
+      "Read(.env.*.local)",
+      "Read(.env.production)",
+      "Read(.env.development)",
+      "Read(.env.staging)",
+      "Read(.env.test)",
       "Write(.env)",
-      "Write(.env*)",
+      "Write(.env.local)",
+      "Write(.env.*.local)",
+      "Write(.env.production)",
+      "Write(.env.development)",
+      "Write(.env.staging)",
+      "Write(.env.test)",
       "Edit(.env)",
-      "Edit(.env*)",
-      "MultiEdit(.env)",
-      "MultiEdit(.env*)",
+      "Edit(.env.local)",
+      "Edit(.env.*.local)",
+      "Edit(.env.production)",
+      "Edit(.env.development)",
+      "Edit(.env.staging)",
+      "Edit(.env.test)",
       "Read(backend/data/**)",
       "Write(backend/data/**)",
       "Edit(backend/data/**)",
-      "MultiEdit(backend/data/**)",
       "Read(.claude/state/**)",
       "Write(.claude/state/**)",
       "Edit(.claude/state/**)",
-      "MultiEdit(.claude/state/**)",
       "Read(.claude/history/**)",
       "Write(.claude/history/**)",
       "Edit(.claude/history/**)",
-      "MultiEdit(.claude/history/**)",
       "Read(.claude/file-history/**)",
       "Write(.claude/file-history/**)",
       "Edit(.claude/file-history/**)",
-      "MultiEdit(.claude/file-history/**)",
-      "Read(.claude/projects/**)",
-      "Write(.claude/projects/**)",
-      "Edit(.claude/projects/**)",
-      "MultiEdit(.claude/projects/**)",
+      "Read(.claude/projects/**/history/**)",
+      "Read(.claude/projects/**/state/**)",
+      "Read(.claude/projects/**/file-history/**)",
+      "Read(.claude/projects/**/worktrees/**)",
+      "Read(.claude/projects/**/transcripts/**)",
+      "Write(.claude/projects/**/history/**)",
+      "Write(.claude/projects/**/state/**)",
+      "Write(.claude/projects/**/file-history/**)",
+      "Write(.claude/projects/**/worktrees/**)",
+      "Write(.claude/projects/**/transcripts/**)",
+      "Edit(.claude/projects/**/history/**)",
+      "Edit(.claude/projects/**/state/**)",
+      "Edit(.claude/projects/**/file-history/**)",
+      "Edit(.claude/projects/**/worktrees/**)",
+      "Edit(.claude/projects/**/transcripts/**)",
       "Read(.claude/history.jsonl)",
       "Write(.claude/history.jsonl)",
       "Edit(.claude/history.jsonl)",
-      "MultiEdit(.claude/history.jsonl)",
       "Read(node_modules/**)",
       "Write(node_modules/**)",
       "Edit(node_modules/**)",
-      "MultiEdit(node_modules/**)",
       "Read(.amp/**)",
       "Write(.amp/**)",
       "Edit(.amp/**)",
-      "MultiEdit(.amp/**)",
       "Write(.claude/state/session-state.json)",
       "Edit(.claude/state/session-state.json)",
-      "MultiEdit(.claude/state/session-state.json)",
       "Write(.claude/memory-bus.json)",
       "Edit(.claude/memory-bus.json)",
-      "MultiEdit(.claude/memory-bus.json)",
       "Write(.claude/state/scout-bus.json)",
       "Edit(.claude/state/scout-bus.json)",
-      "MultiEdit(.claude/state/scout-bus.json)",
       "Write(.claude/state/scout-errors.log)",
       "Edit(.claude/state/scout-errors.log)",
-      "MultiEdit(.claude/state/scout-errors.log)",
       "Write(.claude/state/token-session.json)",
-      "Edit(.claude/state/token-session.json)",
-      "MultiEdit(.claude/state/token-session.json)"
+      "Edit(.claude/state/token-session.json)"
     ]
   },
   "hooks": {
@@ -84,35 +98,48 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/token-session-init.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/enforce-claude-symlink.mjs\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/brain-inject.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/claude-memory-write.mjs\" reindex"
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/musubi-protocol-ingest.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-session-init.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/brain-inject.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/musubi-protocol-ingest.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/startup-offload.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/startup-offload.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/scout-orchestrator.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/scout-orchestrator.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/eot-background-start.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-skill-loader.mjs\" --validate",
             "async": true
           },
           {
             "type": "command",
-            "command": "node _SYSTEM/Scripts/memory-archive.mjs --execute",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/slm-producer.mjs\" sessionstart",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/claim-conscience.mjs\" --brief",
             "async": true
           }
         ]
@@ -124,7 +151,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/user-prompt-submit.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.js\""
           }
         ]
       }
@@ -135,11 +162,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/soul-persona-inject.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/soul-persona-inject.js\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/yuri-sentinel-start.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/yuri-sentinel-start.js\""
           }
         ]
       }
@@ -150,36 +177,32 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/pre-tool-gate.js",
-            "async": true
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/bash-security-guard.js\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/bash-security-guard.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/claude-protocol-guard.mjs\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/tirith-url-guard.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.js\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/claude-protocol-guard.mjs"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/energy-enforce.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tirith-url-guard.js\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/pre-tool-use.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/musubi-protocol-enforce.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/yuri-risk-lite.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/token-budget-check.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/yuri-risk-lite.js\""
           }
         ]
       },
@@ -188,7 +211,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Enriching with GitNexus graph context..."
           }
@@ -199,9 +222,25 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/agent-spawn-guard.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/agent-spawn-guard.js\"",
             "timeout": 5,
             "statusMessage": "Agent spawn guard (YURI policy)"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/math-register-guard.mjs\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/filing-gate.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Filing zone advisory (non-blocking)"
           }
         ]
       }
@@ -212,34 +251,64 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/post-tool-use.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/scout-orchestrator.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/scout-orchestrator.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/token-tool-logger.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-checkpoint.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/session-checkpoint.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/energy-tick.mjs\"",
             "async": true
           }
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
             "timeout": 10,
             "statusMessage": "Checking GitNexus index freshness..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/arch-graph-watch.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking architecture-graph structural drift..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/filing-ledger.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Filing ledger (zone classification)",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prose-claim-extract.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Prose-claim shadow collector (advisory)",
+            "async": true
           }
         ]
       }
@@ -250,30 +319,34 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/yuri-sentinel-stop.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/yuri-sentinel-stop.js\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/token-session-end.js",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/memory-session-write.mjs\"",
             "async": true
           },
           {
             "type": "command",
-            "command": "node _SYSTEM/Scripts/memory-session-write.mjs",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-status.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/yuri-dream.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-reflect.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/slm-producer.mjs\" stop",
             "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/token-status.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/yuri-dream.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/session-reflect.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/voice-tts.mjs\""
           }
         ]
       }
@@ -281,18 +354,29 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node .claude/hooks/token-status.js"
+    "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-status.js\""
+  },
+  "enabledPlugins": {
+    "glm-plan-usage@zai-coding-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "zai-coding-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "${HOME}/.npm/_npx/2f024689b4d0d3b0/node_modules/@z_ai/coding-helper/zai-coding-plugins"
+      }
+    }
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "xhigh",
   "prefersReducedMotion": false,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",
   "verbose": true,
+  "switchModelsOnFlag": false,
   "autoScrollEnabled": true,
   "showTurnDuration": true,
   "terminalProgressBarEnabled": true,
-  "remoteControlAtStartup": false,
+  "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true
 }

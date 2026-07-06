@@ -1,3 +1,8 @@
+---
+skill: sharingan
+description: User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows
+---
+
 Invoke the `sharingan` skill on the provided source artifact.
 
 **Usage:**

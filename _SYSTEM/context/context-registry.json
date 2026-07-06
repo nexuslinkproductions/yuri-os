@@ -1,13 +1,14 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-26",
-  "purpose": "Task-to-context routing map for YURI OS. This is the context layer between global authority and task-local files.",
+  "updated": "2026-06-08",
+  "purpose": "Bounded context packet registry for YURI OS. Active navigation is xref-query first, with propagation-scan for circuitry-node sibling checks; this registry supplies maintained path sets that xref-aware tools and humans can cross-reference.",
   "readOrder": [
     "_SYSTEM/yuri-origin.md",
     "SOUL.md",
     "_SYSTEM/context/README.md",
     "_SYSTEM/context/context-registry.json",
     "_SYSTEM/INDEX.md",
+    "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
     "_SYSTEM/config/folder-registry.json",
     "_SYSTEM/config/artifact-registry.json",
     ".agents/README.md",
@@ -23,6 +24,7 @@
         "SOUL.md",
         "_SYSTEM/context/README.md",
         "_SYSTEM/INDEX.md",
+        "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
         "_SYSTEM/config/folder-registry.json",
         "_SYSTEM/config/artifact-registry.json",
         "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
@@ -30,20 +32,54 @@
         ".agents/README.md",
         "skills/README.md"
       ],
-      "loadRule": "Read before broad filesystem exploration."
+      "loadRule": "Read before broad filesystem exploration; use xref-query first when navigating current evidence."
     },
     {
-      "id": "kagami-harness",
-      "label": "Kagami / Rick Harness Context",
-      "triggers": ["kagami", "rick", "terminal", "harness", "repl", "tmux", "pty", "streaming"],
+      "id": "originator-bridge",
+      "label": "YURI Originator / LLM Math Bridge Context",
+      "triggers": ["originator", "origin", "entry point", "bridge", "decoder", "decode", "braindump", "math bridge", "energy core", "semantic compiler", "state compiler", "WorkSubstrate", "work substrate", "create_work_substrate", "launch_substrate", "candidate_actions", "CandidateAction", "toolRequests", "tool loop", "streaming telemetry", "lane telemetry", "OpenProcess", "Open Process", "Open Process Sum Pool", "open mass", "unfinished tasks", "unfinished research", "exoskeleton", "worker_exoskeleton", "llm_exoskeleton", "formulaSlate", "formulaTrace", "originator telemetry", "ActionCapability", "SafeWriteSchema", "Execution Isolation Gap", "llm unlock", "platform switching", "cross-platform", "navigate", "yuri_navigate", "id-bridge", "id bridge", "canonical id", "impact_centrality", "impact centrality", "dependency_centrality", "dependency centrality", "graph centrality", "blast radius", "file-path spine", "structural navigation", "formula foundry", "formula-foundry", "composition type-algebra", "candidate generator", "candidate-source channel", "music theory", "frequency", "magnetism", "harmonic ratio", "equal temperament", "euclidean rhythm", "larmor", "resonance", "dimensional typing", "silent-garbage"],
       "paths": [
-        "_SYSTEM/Scripts/rick-repl.mjs",
-        "_SYSTEM/Scripts/rick-banner.mjs",
-        "_SYSTEM/Scripts/kagami-control-domain.mjs",
+        "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
+        "_SYSTEM/Scripts/yuri-originator.mjs",
+        "_SYSTEM/Scripts/yuri-id-bridge.mjs",
+        "_SYSTEM/Scripts/yuri-navigate.mjs",
+        "_SYSTEM/Scripts/math/formula-foundry.mjs",
+        "02_RESOURCES/RESEARCH/yuri-formula-foundry-spec-2026-06-08.md",
+        "02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md",
+        "_SYSTEM/Scripts/semantic-state-compiler.mjs",
+        "_SYSTEM/Scripts/yuri-input-genome.mjs",
+        "_SYSTEM/Scripts/llm-lane.mjs",
+        "_SYSTEM/Scripts/lane-core-hooks.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/math-kernel.mjs",
+        "_SYSTEM/Scripts/xref-query.mjs",
+        "_SYSTEM/Scripts/propagation-scan.mjs",
+        "_SYSTEM/LANE-MANUAL.md",
+        "02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md",
+        "02_RESOURCES/RESEARCH/yuri-clockwork-northstar-2026-06-06.md",
+        "02_RESOURCES/RESEARCH/yuri-mainspring-synthesis-2026-06-07.md"
+      ],
+      "loadRule": "Use when a model needs to understand or build the shared LLM entry point into YURI's math, energy, xref, memory, streaming telemetry, semantic compiler, WorkSubstrate/CandidateAction launcher, OpenProcess Sum Pool, and llm-compat substrate. Keep local evidence above advisory lane output."
+    },
+    {
+      "id": "llm-compat-lanes",
+      "label": "LLM Compatibility / Operator Lane Context",
+      "triggers": ["llm", "llm-compat", "worker_exoskeleton", "llm_exoskeleton", "launch_substrate", "WorkSubstrate", "toolRequests", "tool loop", "deepseek", "gemma", "ollama", "local model", "local slm", "terminal", "harness", "tmux", "pty", "streaming", "streaming telemetry", "heartbeat", "lane telemetry", "lane", "lanes", "formulaTrace", "telemetry"],
+      "paths": [
+        "_SYSTEM/LANE-MANUAL.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_MATH_ORIGINATOR_2026-06-08.md",
+        "_SYSTEM/docs/YURI_NATIVE_RAPIDFIRE_CLAUDE_HANDOFF_2026-06-08.md",
+        "_SYSTEM/Scripts/yuri-originator.mjs",
+        "_SYSTEM/Scripts/llm-compat.sh",
+        "_SYSTEM/Scripts/llm-compat-contract.mjs",
+        "_SYSTEM/Scripts/llm-lane.mjs",
+        "_SYSTEM/Scripts/ollama-lane.mjs",
+        "_SYSTEM/Scripts/ollama-adapter.mjs",
+        "_SYSTEM/Scripts/lane-core-hooks.mjs",
         "_SYSTEM/Scripts/lane-persona-map.mjs",
         "_SYSTEM/Scripts/lane-kernel.mjs",
-        "_SYSTEM/Scripts/offload-contract.mjs",
-        "_SYSTEM/Scripts/kagami-event-bus.mjs",
         "_SYSTEM/Scripts/lane-arbitration.mjs",
         "_SYSTEM/Scripts/yuri/event-protocol.mjs",
         "_SYSTEM/Scripts/yuri/harness-state.mjs",
@@ -52,7 +88,24 @@
         "_SYSTEM/Scripts/yuri/status-line.mjs",
         "_SYSTEM/Scripts/yuri/symbiotic-pulse.mjs"
       ],
-      "loadRule": "Use for terminal, lane routing, persistent CLI, and operator-surface work."
+      "loadRule": "Use for LLM compatibility, worker_exoskeleton/launch_substrate routing, Gemma/Ollama local routing and JSON tool loop, DeepSeek/Kimi/Nemotron through llm-lane, terminal lane routing, persistent CLI, and operator-surface work. Retired harnesses are not default context authorities."
+    },
+    {
+      "id": "xref-navigation",
+      "label": "Xref / Propagation Navigation Context",
+      "triggers": ["xref", "cross reference", "cross-reference", "propagation", "propagation law", "navigation", "navigate", "circuitry", "graph", "gitnexus", "nexus core"],
+      "paths": [
+        "_SYSTEM/Scripts/xref-query.mjs",
+        "_SYSTEM/Scripts/propagation-scan.mjs",
+        "_SYSTEM/Scripts/xref-provenance.mjs",
+        "_SYSTEM/Scripts/xref-drift-scan.mjs",
+        "_SYSTEM/Scripts/arch-graph-engine.mjs",
+        "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+        "02_RESOURCES/RESEARCH/circuitry/BUILD-MANUAL.md",
+        "02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md",
+        "02_RESOURCES/RESEARCH/yuri-clockwork-northstar-2026-06-06.md"
+      ],
+      "loadRule": "Use xref-query before broad exploration and propagation-scan --dry-run for known circuitry nodes. This packet explains the current navigation substrate."
     },
     {
       "id": "skills",
@@ -118,9 +171,10 @@
     },
     {
       "id": "mathematics",
-      "label": "Mathematical Operating Substrate Context",
-      "triggers": ["math", "mathematics", "algorithm", "algorithms", "logarithm", "logarithmic", "entropy", "kl", "dijkstra", "astar", "a*", "formula", "eml", "proof", "graph", "bayes", "brier", "calibration", "vector", "optimization", "lyapunov", "energy", "energy-landscape", "potential", "scalar-potential", "conservative-vector-field", "gateProposal", "yuri-energy", "agent-control-plane", "lyapunov-gate", "icm", "mwp"],
+      "label": "NEXUS CORE / Mathematical Substrate Context",
+      "triggers": ["math", "mathematics", "nexus", "nexus core", "nexus-core", "algorithm", "algorithms", "logarithm", "logarithmic", "entropy", "kl", "dijkstra", "astar", "a*", "formula", "eml", "proof", "graph", "bayes", "brier", "calibration", "vector", "optimization", "lyapunov", "energy", "energy-landscape", "potential", "scalar-potential", "conservative-vector-field", "gateProposal", "yuri-energy", "agent-control-plane", "lyapunov-gate", "icm", "mwp"],
       "paths": [
+        "02_RESOURCES/RESEARCH/MATH-SCIENCE-MANUAL.md",
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md",
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/01_source_registry.md",
         "_SYSTEM/research-archive/yuri-math-engine-2026-05/04_mathematical_operating_substrate.md",
@@ -138,6 +192,15 @@
         "_SYSTEM/Scripts/math/math-proof-gate.mjs",
         "_SYSTEM/Scripts/math/math-health.mjs",
         "_SYSTEM/Scripts/math/math-operational-simulation.mjs",
+        "_SYSTEM/Scripts/math/transfer-distance.mjs",
+        "_SYSTEM/Scripts/math/transfer-distance-cores.mjs",
+        "_SYSTEM/Scripts/math/yuri-jaccard.mjs",
+        "_SYSTEM/Scripts/math/yuri-minhash.mjs",
+        "_SYSTEM/Scripts/math/yuri-mdl.mjs",
+        "_SYSTEM/Scripts/math/yuri-token-expand.mjs",
+        "_SYSTEM/Scripts/math/yuri-phi.mjs",
+        "_SYSTEM/Scripts/math/nexus-numerology.mjs",
+        "_SYSTEM/Scripts/corpus-match.mjs",
         "_SYSTEM/Scripts/math/yuri-energy.mjs",
         "_SYSTEM/Scripts/math/yuri-energy.test.mjs",
         "_SYSTEM/labs/math/lab-manifest.json",
@@ -148,7 +211,7 @@
         "_SYSTEM/data/math/formula-banks/vector-geometry.v0.json",
         "_SYSTEM/data/math/formula-banks/scoring-normalization.v0.json"
       ],
-      "loadRule": "Use for math substrate, graph algorithms, logarithmic scoring, formula banks, visual proofs, and EML research. External math engines remain advisory unless verified and promoted."
+      "loadRule": "Use for NEXUS CORE / math substrate, graph algorithms, deterministic matching, transfer-distance, logarithmic scoring, formula banks, visual proofs, and EML research. External math engines remain advisory unless verified and promoted."
     },
     {
       "id": "energy-landscape-paper",
@@ -199,7 +262,7 @@
       "label": "Governed Autonomy Context",
       "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard", "sonnet", "workcell", "output pool", "worker bundle", "worker capture", "pane capture", "memory capsule", "memory signal", "symbiotic memory"],
       "paths": [
-        "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
+        "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md",
         "_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md",
         "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
         "_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs",

@@ -16,17 +16,17 @@
 
 ### ❌ Expensive Pattern (OLD)
 ```
-→ "What's in the C2MOVIEZ projects?"
-→ Read 01_PROJECTS/C2MOVIEZ/README.md (2K tokens)
-→ Read 06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md (2K tokens)
+→ "What's in the active projects?"
+→ Read 01_PROJECTS/[Client]/README.md (2K tokens)
+→ Read 06_NETWORK-SYNC/[Partner]/_SYNC-STATUS.md (2K tokens)
 → Read enki_state.md (3K tokens)
 → Total: 7K+ tokens for what I need
 ```
 
 ### ✅ Token-Smart Pattern (NEW)
 ```
-→ Query palace-index.md (400 tokens) — shows CTI (Claudio Tinner), Revenue Tracker, Service Modules as hubs
-→ "Ah, C2MovieZ work centers on CTI + Project files"
+→ Query palace-index.md (400 tokens) — shows Revenue Tracker, Service Modules as hubs
+→ "Ah, the work centers on Project files"
 → Read only 1–2 specific files if needed (2K max)
 → Total: 2.4K tokens saved per navigation
 ```

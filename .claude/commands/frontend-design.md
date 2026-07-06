@@ -1,3 +1,8 @@
+---
+skill: frontend-design
+description: Design skill for external, non-YURI, non-Kagami surfaces. Use when building client work, external products, public-facing sites, or any UI t
+---
+
 > Routes to design-master with surface=frontend. For full design suite: /design
 
 Invoke the frontend-design skill — high-end interface design and UX polish.

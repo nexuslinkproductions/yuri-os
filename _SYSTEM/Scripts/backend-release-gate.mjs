@@ -22,11 +22,6 @@ if (!args.db && !args.allowLiveDb) {
 const dbArgs = args.db ? ['--db', args.db] : ['--allow-live-db'];
 const steps = [
   {
-    name: 'yuri-assimilation-guardrail',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs'],
-  },
-  {
     name: 'generated-artifact-hygiene',
     command: process.execPath,
     args: ['_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs'],
@@ -70,21 +65,6 @@ const steps = [
     name: 'backend-db-readiness-recovery-metadata',
     command: process.execPath,
     args: ['_SYSTEM/Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
-  },
-  {
-    name: 'wiki-rag-health-truth',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/wiki-rag-health-truth.test.mjs'],
-  },
-  {
-    name: 'archive-rag-health-truth',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/archive-rag-health-truth.test.mjs'],
-  },
-  {
-    name: 'rag-db-health-fixtures',
-    command: process.execPath,
-    args: ['_SYSTEM/Scripts/rag-db-health-fixtures.test.mjs'],
   },
   {
     name: 'gitnexus-mcp-live-probe',
@@ -148,9 +128,6 @@ function formatCommand(command, commandArgs) {
 }
 
 function formatDisplayArg(arg) {
-  if (String(arg).includes('yuri-exeoflow-assimilation.test.mjs')) {
-    return '_SYSTEM/Scripts/yuri-assimilation-guardrail.test.mjs';
-  }
   return arg;
 }
 

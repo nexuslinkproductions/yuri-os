@@ -1,8 +1,6 @@
-# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/nexaiguy/nex-vault | scanned: 2026-05-17 | score: 20
-
 ---
 name: nex-vault
-description: Secure local contract and document vault for managing all business agreements and important documents with automatic expiration tracking and compliance alerts. Track diverse documents including contracts (contracten), leases (huurovereenkomsten), insurance policies (verzekeringen), service-level agreements (SLAs), warranties (garanties), software licenses (licenties), subscriptions (abonnementen), maintenance agreements, permits, and certifications. Automatically extract expiration dates, renewal deadlines, termination notice periods (opzegingstermijn), payment terms, and auto-renewal clauses from uploaded documents using intelligent OCR and natural language processing. Receive automatic alerts before expiration (configurable warning windows) so you never miss a renewal deadline or critical termination notice deadline. Optional Telegram notifications keep you continuously informed of upcoming expirations, auto-renewal events, and required actions. Track total monthly and yearly costs across all contracts and subscriptions for budgeting and cost optimization. Search and filter documents by type, contracting party name, date range, or extract key clauses (payment terms, liability limits, confidentiality, termination conditions). Monitor document lifecycle with status tracking (active, expired, pending, terminated). Perfect for agency operators, SME owners, directors, and business managers in Belgium who need systematic contract management, compliance maintenance, and avoidance of costly unexpected renewals.
+description: "Secure local contract and document vault for managing business agreements with automatic expiration tracking, renewal deadline alerts, and compliance monitoring. Use when the user says \"track my contracts\", \"when does this lease expire\", \"add a new contract\", \"show me upcoming renewals\", \"what's my total subscription cost\", or when managing business agreements, leases, insurance policies, and SLAs with deadline awareness."
 version: 1.0.0
 metadata:
   clawdbot:
@@ -20,6 +18,8 @@ metadata:
       - "lib/*"
       - "setup.sh"
 ---
+
+<!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/nexaiguy/nex-vault | scanned: 2026-05-17 | score: 20 -->
 
 # Nex Vault
 
@@ -310,3 +310,11 @@ To enable daily automatic alert checks, add to your crontab:
 Built by Nex AI (https://nex-ai.be) - Digital transformation for Belgian SMEs.
 Author: Kevin Blancaflor
 License: MIT-0
+
+## Session Notes
+
+### 2026-06-16
+- session: 178m | peak ctx: 0% | compacts: 0
+- tools: Bash×205, Read×121, WebFetch×114, Edit×87, WebSearch×72, Write×33, TodoWrite×13, Agent×10, ToolSearch×9, Skill×4, AskUserQuestion×1, mcp×1, TaskStop×1
+- corrections: go over it again, full red team and grounding in more fresh online research together with local, then check the compatibility across other organs, run phase 1. all agentic nano swarm | 'The legal one is the wall: an Austria-resident running automated Polymarket ' rick we are not doing full automated trading on polymarket, also polymarket is allowed in austria, you mustve fact checke | go over it again, full red team and grounding in more fresh online research together with local, then check the compatibility across other organs, run phase 1. all agentic nano swarm
+- errors: none

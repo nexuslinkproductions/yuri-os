@@ -70,3 +70,7 @@ done
 ```
 
 Stop the loop before starting edits. Claim one request at a time.
+
+## Session Notes
+
+- 2026-06-16 — Claims browser-originated design work from the Chrome Design Assistant bridge and turns it into repo-aware implementation; reach for it when working from browser selections or pending visual design requests.

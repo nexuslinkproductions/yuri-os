@@ -1,0 +1,231 @@
+<RichText id="title">
+
+# YURI Trading Engine — Honest Overview
+
+A **math-first** (not vibe-first) quantitative paper-trading engine. This plan is deliberately honest about what works and what does not — the goal is a real review, not a sales pitch. Snapshot 2026-06-20, prepared for an independent trader review.
+
+</RichText>
+
+<Callout id="banner" tone="warning">
+
+**Paper-only. No real orders, ever.** Binance USDⓈ-M perp. Sizing DISARMED. Every claim below is evidenced in the live ledger.
+
+</Callout>
+
+<RichText id="headline-h2">
+
+## 1. The honest headline — why the tape is red
+
+The paper tape is **current and correctly wired** (live `ensemble-*` signals, today's timestamps, post-restart) — not legacy. The losses are real and are the **mathematically-expected** result of two compounding problems, not a bug.
+
+</RichText>
+
+<Table
+  id="kpi-table"
+  columns={["Metric", "Value", "Read"]}
+  rows={[
+    ["Realized win : loss size", "0.08 : 1", "losers ~12× bigger than winners"],
+    ["Win rate", "15% (6W / 34L, n=40)", "far below random"],
+    ["Break-even win rate @ this RR", "92%", "functionally impossible"],
+    ["Expected value / trade", "−$11.26", "every trade bleeds"],
+  ]}
+/>
+
+<RichText id="headline-body">
+
+Winners are cut to **~$1.12** while losers run to **~$13.44**. Even a genuinely good signal loses money at 0.08:1 reward:risk. Layered on top: the signal carries **no validated edge** (every factor DSR≈0, hit-rate ≈ coin-flip) and is heavily **short-biased** (35/40 short). **This is the engine correctly proving — at paper cost — that the current signal + exit logic don't work. That is the system working, not broken.**
+
+</RichText>
+
+<RichText id="arch-h2">
+
+## 2. Architecture — the pipeline
+
+</RichText>
+
+<Diagram
+  id="pipeline"
+  data={{
+    html: '<div class="diagram-panel" data-rough><div class="diagram-card"><div class="diagram-pill">1 DATA</div><div class="diagram-node">Binance fstream + fapi</div><div class="diagram-muted">@bookTicker WS klines REST /depth</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">2 FACTORS x32</div><div class="diagram-node">1-minute TA signals</div><div class="diagram-muted">momentum/vol/MR eff-N ~ 1</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">3 ENSEMBLE</div><div class="diagram-node">vote side + strength</div><div class="diagram-muted">weighted dir-conf net [-1,1]</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">4 GATES</div><div class="diagram-node">fee-hurdle horizon hysteresis</div><div class="diagram-muted">skip if edge below fee</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">5 SIZING</div><div class="diagram-node">computeSize DISARMED</div><div class="diagram-muted">Kelly vol/DD throttle shadow</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">6 PAPER</div><div class="diagram-node">afl-paper engine</div><div class="diagram-muted">Almgren-Chriss fee JSONL</div></div><div class="diagram-muted">→</div><div class="diagram-card"><div class="diagram-pill">7 LEARN</div><div class="diagram-node">decode score graduate</div><div class="diagram-muted">DSR/Brier R0 to R3 fail-closed</div></div></div>',
+    css: '.diagram-panel{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.diagram-card{border:1px solid var(--wf-line);border-radius:8px;padding:10px;min-width:120px;max-width:150px}.diagram-pill{font-size:10px;font-weight:700;opacity:.8}.diagram-node{font-weight:600;font-size:13px;margin:3px 0}.diagram-muted{font-size:11px;opacity:.7}',
+    caption: 'End-to-end pipeline: market data to factors to ensemble to gates to sizing to paper fill to learn loop.',
+  }}
+/>
+
+<RichText id="signal-h2">
+
+## 3. The signal problem — two layers
+
+</RichText>
+
+<Columns id="signal-layers">
+<Column id="layer-a" label="Layer A — 32 price factors (1m)">
+
+<RichText id="layer-a-body">
+
+These **already exist** and drive every trade. The instinct "we need a 1-minute factor" is satisfied — 32 of them. The problem: they are all algebraic shadows of the **same 1m price series**, so they fire + agree together. **Effective independent bets (eff-N) ≈ 1.0–1.7** — "one bet wearing 32 costumes." 14/32 are negative after fees; none reach significance (|t| > 2.3).
+
+</RichText>
+
+</Column>
+<Column id="layer-b" label="Layer B — 5 overlays (info-orthogonal)">
+
+<RichText id="layer-b-body">
+
+To raise eff-N toward ≥5: funding-carry, perp-basis, carry-vol, cross-asset lead/lag, social sentiment — different data, deliberately telemetry-only. **Validate-first (today, 735k rows): 0 / 5 predict returns.** They stay unwired. OFI (order-flow) still needs real-tape R². The orthogonality instinct is right; the candidates just don't validate yet.
+
+</RichText>
+
+</Column>
+</Columns>
+
+<RichText id="risk-h2">
+
+## 4. Sizing & gates — what controls risk
+
+</RichText>
+
+<Columns id="risk-cols">
+<Column id="sizing-col" label="The sizer (computeSize)">
+
+<RichText id="sizing-body">
+
+Fractional-Kelly + CVaR/vol/drawdown throttles, **fail-closed** (no edge → 0). Just wired into crypto but **DISARMED shadow** — paper still sizes by conviction until armed.
+
+</RichText>
+
+<Callout id="phantom" tone="risk">
+
+**Phantom-edge finding (live shadow):** a strong ensemble vote (net≈0.8) produced ~$6–7k "priced" size because the sizer reads **signal intensity as a return-edge**. DISARMED = zero harm; it confirmed **both** sizer inputs must be calibrated before arming.
+
+</Callout>
+
+</Column>
+<Column id="gates-col" label="The gates">
+
+<RichText id="gates-body">
+
+**Energy gate (computeU): advisory** — records ΔU, does **not** block trades (DISARMED). Not what holds back profits. **Real skip-gates:** fee-hurdle, multi-horizon, hysteresis — these *reduce trade count*, correct on a no-edge signal. **The bottleneck is edge, not gating.**
+
+</RichText>
+
+</Column>
+</Columns>
+
+<RichText id="evidence-h2">
+
+## 5. Evidence — today's tape (snapshot)
+
+</RichText>
+
+<Table
+  id="evidence-market"
+  columns={["Market", "Completed", "Gross P&L", "Fees", "Return (bps)"]}
+  rows={[
+    ["BTC-USD", "11", "−28.25", "74.43", "−10.27"],
+  ]}
+/>
+
+<Table
+  id="evidence-exits"
+  columns={["Exit reason (40 trades)", "Count", "Avg P&L", "Read"]}
+  rows={[
+    ["stop-loss", "32", "−$13.44", "stops dominate — exits asymmetric against us"],
+    ["take-profit", "7", "+$1.12", "winners tiny — cut far too short"],
+    ["short side", "35", "−$385", "heavy short bias, losing"],
+    ["long side", "5", "−$66", "rarely long, also losing"],
+  ]}
+/>
+
+<RichText id="gap-h2">
+
+## 6. Path to real edge (owner-greenlit)
+
+</RichText>
+
+<Callout id="fix1" tone="decision">
+
+**① ROOT CAUSE CONFIRMED — the stops are inside the 1-minute noise band.** The multi-horizon gate (ARMED: `OBSERVATORY_MULTI_HORIZON=1`) picks the shortest fee-clearing horizon (**5m**), whose expected move is tiny (~0.18%). The stop is set to `expMove × 0.5 ≈ 0.09%` — **smaller than typical 1-minute crypto noise (0.1–0.3%)**. The fast risk-exit checks at the 1-second tick, so any noise spike trips the stop before the trade can develop. Result in the latest window: **0 winners / 40 losers**, every trade noise-stopped at full size (~$13), avg adverse move only −0.045%. **The fix:** floor the stop at a noise-aware minimum — `stopPct = max(expMove × stopFrac, 2–3 × recentVolPct)` — so it always sits outside the 1-bar noise band. A stop inside the noise is objectively defective (not a judgment call); the exact multiple is the reviewer's Q1 below.
+
+</Callout>
+
+<Callout id="fix2" tone="info">
+
+**② A factor that actually validates.** No current factor clears |t|>2.3 / DSR. Options: microstructure OFI on real L2 tape (needs R²), a calibrated signal→return-edge transform, or event/funding edges at longer horizons. Until one validates, arming the sizer is premature.
+
+</Callout>
+
+<Callout id="fix3" tone="info">
+
+**③ Calibrate the sizer inputs.** Both `edgeMean` and `winProb` must come from walk-forward outcomes (AFL_LEDGER) before arming. Infrastructure exists (`factorCalibration`); it needs an edge to calibrate on.
+
+</Callout>
+
+<RichText id="questions-h2">
+
+## 7. Open questions for the reviewer
+
+Answer these directly — your input routes the next build steps.
+
+</RichText>
+
+<QuestionForm
+  id="trader-questions"
+  questions={[
+    {
+      id: "stop-target",
+      title: "Stop / target placement — we set take = 2× stop from a volatility estimate. Sane for 1-minute crypto perp, or is the stop too tight (noise stop-outs) / target too tight (cutting winners)?",
+      mode: "freeform",
+      placeholder: "Your read on the stop/target geometry...",
+      required: false,
+    },
+    {
+      id: "short-bias",
+      title: "Short bias — the ensemble calls short 88% of the time. Signal-construction bug, or reading a real regime? How would you diagnose systematic directional bias?",
+      mode: "freeform",
+      placeholder: "How you'd diagnose the short bias...",
+      required: false,
+    },
+    {
+      id: "sizing-real",
+      title: "Position sizing at $10–15k/trade — we cap 10% equity/position (paper). For real size, what Kelly fraction / max-gross / correlation haircut across BTC/ETH/SOL/SUI/WIF/AVAX?",
+      mode: "freeform",
+      placeholder: "Your sizing rules at real size...",
+      required: false,
+    },
+    {
+      id: "edge-sources",
+      title: "Edge sources — for a discretionary prop trader, which of {order-flow, funding-carry, lead/lag, sentiment, event} actually pays at intraday crypto? Where look first?",
+      mode: "single",
+      options: [
+        { id: "ofi", label: "Order-flow / microstructure", detail: "L2 tape imbalance — needs real-data R² validation" },
+        { id: "funding", label: "Funding-carry / basis", detail: "Perp basis edge at longer horizon" },
+        { id: "leadlag", label: "Cross-asset lead/lag", detail: "BTC→alt directional tilt" },
+        { id: "event", label: "Event / news", detail: "Sentiment + catalyst-driven" },
+        { id: "none", label: "None at intraday — wrong timeframe", detail: "Edge lives elsewhere (swing/position)" },
+      ],
+      required: false,
+    },
+    {
+      id: "timeframe",
+      title: "Time horizon — is 1-minute even right for a human-reviewable crypto book, or does the edge live on 15m/1h where noise is smaller?",
+      mode: "single",
+      options: [
+        { id: "1m", label: "Keep 1-minute" },
+        { id: "15m", label: "Move to 15-minute" },
+        { id: "1h", label: "Move to 1-hour" },
+        { id: "multi", label: "Multi-timeframe (confluence)" },
+      ],
+      required: false,
+    },
+  ]}
+  submitLabel="Send answers to the build lane"
+/>
+
+<RichText id="footer">
+
+## Verification
+
+All claims evidenced in: live forecast ledger (`_SYSTEM/state/strategy-forecasts.jsonl`, 735k rows), paper ledger (`observatory-paper-*.jsonl`), the audit at `trading-audit-2026-06-19/`, and overlay validation at `overlay-source-validation-2026-06-20.md`. Engine: `_SYSTEM/Scripts/alpha-factor-library/`. Daemon `:4243`, board `:4250`. Paper-only (INV-1) — no real orders, ever. *Living document — flag anything wrong and it gets corrected against the ledger.*
+
+</RichText>

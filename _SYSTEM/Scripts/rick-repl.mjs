@@ -19,7 +19,8 @@ import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.
 import { appendKagamiEvent, appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
-import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
+// input-genome RE-ROUTED to the live lane path (lane-core-hooks coreOnDispatch) 2026-06-13 —
+// rick-repl is no longer the importer; that coupling was a wiring mistake.
 import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
 import { MEMORY_PROPOSAL_DECISIONS, listMemoryProposals, proposeMemoryWrite, recordMemoryProposalDecision } from './memory-kernel.mjs';
 import { enqueue as enqueueWorkerTask } from './worker-bridge.mjs';
@@ -81,7 +82,7 @@ const ROUTES = {
   '@sonnet': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
   '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
   '@claude': { lane: '@claude', label: 'Claude' },
-  '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
+  '@mimo': { lane: '@mimo', label: 'Mimo' },
   '@ds': { lane: '@deepseek-v4-pro', label: 'Simple Rick' },
   '@flash': { lane: '@deepseek-v4-flash', label: 'Simple Rick Flash' },
 };
@@ -337,25 +338,8 @@ function buildPrompt(input, historyCtx, memories, options = {}) {
   } catch {
     userProfile = '';
   }
-  if (options.inputGenome !== false) {
-    try {
-      const inputGenome = options.inputGenome || buildInputGenome(input, {
-        source: 'rick-repl',
-        target: options.target || options.routePlan?.lane || 'rick',
-        routePlan: options.routePlan || {},
-        artifactRoot: '_SYSTEM/state/rick-history',
-        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
-      });
-      inputGenomeBlock = renderInputGenomeBlock(inputGenome, { target: options.target || 'rick' });
-    } catch (err) {
-      inputGenomeBlock = [
-        '[YURI Input Genome v0]',
-        'degraded: true',
-        `reason: ${err?.message || err}`,
-        'fallback: preserve raw Marcel input and proceed conservatively.',
-      ].join('\n');
-    }
-  }
+  // input-genome RE-ROUTED to lane-core-hooks (live path) 2026-06-13 — rick-repl (retiring) no longer
+  // builds/renders a genome block; inputGenomeBlock stays '' so the prompt simply omits it.
   const parts = [
     '[Rick · Marcel · YURI]',
     'Rick full harness active. Evidence-first and conversational; use personality, warmth, and a bit of bite when it improves the work.',
@@ -1004,7 +988,6 @@ function createHarnessUi({ sessionId }) {
 
 function detectRoute(input) {
   const lower = input.toLowerCase();
-  if (lower.includes('@shintai')) return { tag: '@shintai' };
   for (const tag of Object.keys(ROUTES)) {
     if (lower.includes(tag)) return { tag, route: ROUTES[tag] };
   }
@@ -1124,7 +1107,7 @@ function streamLane(ui, lane, prompt, label) {
     stream.start();
     const child = spawn('bash', [AI_SH, lane, prompt], {
       cwd: REPO_ROOT,
-      env: { ...process.env, OFFLOAD_STREAM: '1', OFFLOAD_STREAM_STATUS: '1' },
+      env: { ...process.env, LLM_COMPAT_STREAM: '1', LLM_COMPAT_STREAM_STATUS: '1' },
     });
 
     const firstTokenWatch = setTimeout(() => {
@@ -1240,7 +1223,7 @@ async function streamLaneWithShell(ui, lane, prompt, label, options = {}) {
 
 async function handleHealth(ui) {
   ui.setLane('health');
-  const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@nvidia-nemotron-120b', '@nvidia-qwen3-next']);
+  const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@deepseek-v4-flash', '@mimo']);
   appendRickEvent('LANE_HEALTH_PREFLIGHT', {
     source: 'rick:/health',
     lane: 'health',
@@ -1412,60 +1395,6 @@ async function handleInput(ui, input, history) {
 
   const detected = detectRoute(input);
 
-  if (detected?.tag === '@shintai') {
-    const task = input.replace(/@shintai/gi, '').trim() || input;
-    ui.appendDispatch('@shintai advisory dispatched');
-    ui.setLane('@shintai');
-    const dispatchId = startDispatchRecord('@shintai', 'Shintai advisory', 'Gate 0');
-    const { runAdvisory } = await import('./shintai-dispatch.mjs');
-    const stream = {
-      write(chunk) {
-        const text = normalizeText(chunk).trimEnd();
-        if (!text) return;
-        updateShintaiPhaseStatus(ui, text);
-        updateDispatchRecord(dispatchId, { state: stripAnsi(text).split('\n').at(-1)?.slice(0, 80) || 'running' });
-        ui.appendSystem(text);
-      },
-    };
-    ui.markActivity('loading YURI control-plane Gate 0');
-    let result;
-    try {
-      const shintaiInputGenome = buildInputGenome(task, {
-        source: 'rick-repl',
-        target: 'shintai',
-        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
-        artifactRoot: '_SYSTEM/state/rick-history',
-        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
-      });
-      result = await runAdvisory(buildPrompt(task, historyCtx, memories, {
-        target: 'shintai',
-        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
-        inputGenome: shintaiInputGenome,
-      }), {
-        stream,
-        inputGenome: shintaiInputGenome,
-        taskAlreadyGenomeWrapped: true,
-      });
-    } catch (err) {
-      result = { ok: false, error: err?.message || String(err) };
-    } finally {
-      finishDispatchRecord(dispatchId);
-    }
-    if (!result.ok) {
-      ui.appendError(result.error || 'Shintai advisory failed');
-      if (result.health) ui.appendSystem(JSON.stringify(result.health, null, 2));
-    } else {
-      ui.appendRick(result.synthesis);
-      if (result.artifacts?.markdown) ui.appendSystem(`advisory saved → ${result.artifacts.markdown}`);
-    }
-    const assistant = result.ok ? result.synthesis : `[Shintai advisory failed: ${result.error || 'unknown'}]`;
-    const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant };
-    appendHistory(entry);
-    history.push(entry);
-    await writeMemory(input, assistant);
-    return;
-  }
-
   if (detected) {
     const { tag, route } = detected;
     const msg = input.replace(new RegExp(tag, 'gi'), '').trim() || input;
@@ -1556,7 +1485,7 @@ async function main() {
   ui.reserveBottom();
   ui.redrawBottom();
   ui.appendSystem(`${history.length} turns loaded from last 24h · ${promptSafeHistory(history).length} usable for prompt · session ${SESSION_ID}`);
-  ui.appendSystem('Route: @deepseek(Simple Rick)  @codex  @codex-mini  @sonnet  @opus  @nvidia  @shintai');
+  ui.appendSystem('Route: @deepseek(Simple Rick)  @codex  @codex-mini  @sonnet  @opus  @mimo  @shintai');
 
   let busy = false;
 

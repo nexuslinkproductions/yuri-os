@@ -1,6 +1,13 @@
+-- SCHEMA OWNERSHIP (wave-2 M.12): this schema is owned by memory_governor.py.
+-- lane-memory.mjs co-tenants the SAME DB file via its own lane_findings family
+-- (bootstrapped by lane-memory.mjs ensureSchema / lane-memory-migrate.mjs).
+-- There are NO foreign-key relationships between the two schema families;
+-- write contention is managed via WAL + busy_timeout. The two processes do not
+-- know about each other's tables.
+
 -- Agents: Definition of the Conclave members and their states
 CREATE TABLE IF NOT EXISTS agents (
-    agent_id TEXT PRIMARY KEY, -- ENLIL, NABU, ENKI, INANNA
+    agent_id TEXT PRIMARY KEY, -- legacy conclave agent ids (retired 2026-06-17)
     role TEXT,
     base_model TEXT,
     status TEXT DEFAULT 'IDLE', -- IDLE, THINKING, ACTING, ERROR
@@ -171,10 +178,6 @@ CREATE TABLE IF NOT EXISTS context_switches (
     FOREIGN KEY(task_id) REFERENCES tasks(task_id)
 );
 
--- Initialize the Conclave Members
-INSERT OR IGNORE INTO agents (agent_id, role, base_model) VALUES 
-('ENLIL', 'High Architect', 'Claude 3.5 Sonnet'),
-('NABU', 'Divine Scribe', 'DeepSeek-V3.2'),
-('ENKI', 'Great Craftsman', 'Qwen-3.5-72B'),
-('INANNA', 'Radiant Guardian', 'Gemini 3.1 Pro'),
-('OPENCLAW', 'Channel-Native Execution Lane', 'deepseek/deepseek-v4-flash');
+-- Conclave seed rows retired 2026-06-17: the multi-agent Conclave (swarm-handoff.sh +
+-- the execution bridge) was deleted — not invoked by any live code; agents now route
+-- through the llm-compat lane contract. The agents table schema is kept (unseeded).

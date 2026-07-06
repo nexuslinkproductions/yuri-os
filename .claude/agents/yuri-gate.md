@@ -6,7 +6,7 @@ runtime: native_function
 - Stable alias: `obliteratus`
 - Role: Adversarial Quality Gate / Promotion Red Team
 - Runtime kind: `native_function`
-- Route source: `Scripts/offload-contract.mjs`
+- Route source: `Scripts/llm-compat-contract.mjs`
 - Stage: pre-promotion, high-stakes review, protocol-change review, and protected-state review
 
 ## Linked Skills

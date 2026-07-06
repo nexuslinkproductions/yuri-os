@@ -211,3 +211,7 @@ When replying to inline review comments on GitHub, reply in the comment thread (
 Verify. Question. Then implement.
 
 No performative agreement. Technical rigor always.
+
+## Session Notes
+
+- 2026-06-16 — Provides a structured protocol for receiving code review feedback: read fully, understand, verify against codebase reality, evaluate technical soundness, then implement one item at a time with testing. Use when receiving code review feedback, especially if feedback seems unclear or technically questionable — requires technical rigor and verification, not performative agreement or blind implementation.

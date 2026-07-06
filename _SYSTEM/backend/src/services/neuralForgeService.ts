@@ -105,13 +105,14 @@ type LocalModelPolicy = {
 const LOCAL_MODEL_POLICY_PATH = path.resolve(__dirname, '../../../.claude/config/models.json');
 const LOCAL_MODEL_POLICY = loadLocalModelPolicy();
 const LOCAL_POLICY = (LOCAL_MODEL_POLICY.local || {}) as LocalModelPolicy;
-const LOCAL_PRIMARY_MODEL = LOCAL_POLICY.primary || 'qwen2.5:7b';
-const LOCAL_UTILITY_MODEL = LOCAL_POLICY.utility || 'qwen3.5:4b';
-const LOCAL_CODE_MODEL = LOCAL_POLICY.code || 'qwen2.5-coder:7b';
-const LOCAL_CODE_FALLBACK_MODEL = LOCAL_POLICY.code_fallback || 'starcoder2:latest';
-const LOCAL_DEEP_REASONING_MODEL = LOCAL_POLICY.deep_reasoning || 'deepseek-r1:8b';
-const LOCAL_MULTIMODAL_MODEL = LOCAL_POLICY.multimodal || 'gemma4:e2b';
-const LOCAL_FALLBACK_MODEL = LOCAL_POLICY.fallback || 'llama3.2:latest';
+const GEMMA_LOCAL_DEFAULT = 'gemma4:12b-it-qat';
+const LOCAL_PRIMARY_MODEL = LOCAL_POLICY.primary || GEMMA_LOCAL_DEFAULT;
+const LOCAL_UTILITY_MODEL = LOCAL_POLICY.utility || GEMMA_LOCAL_DEFAULT;
+const LOCAL_CODE_MODEL = LOCAL_POLICY.code || GEMMA_LOCAL_DEFAULT;
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_POLICY.code_fallback || GEMMA_LOCAL_DEFAULT;
+const LOCAL_DEEP_REASONING_MODEL = LOCAL_POLICY.deep_reasoning || GEMMA_LOCAL_DEFAULT;
+const LOCAL_MULTIMODAL_MODEL = LOCAL_POLICY.multimodal || GEMMA_LOCAL_DEFAULT;
+const LOCAL_FALLBACK_MODEL = LOCAL_POLICY.fallback || GEMMA_LOCAL_DEFAULT;
 
 /**
  * ⬡ LATENCY_TRACKER

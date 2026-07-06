@@ -15,7 +15,8 @@ import {
 } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { acquireLease, releaseLease } from './nano-lease.mjs';
 
 const require = createRequire(import.meta.url);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -50,7 +51,12 @@ const DEFAULT_RECONCILIATION_DELAY_HOURS = Object.freeze({
   'ollama-cloud': 24,
 });
 
-const DEFAULT_POLICY = Object.freeze({
+// @capability: token-cost-math
+// @serves: token cost USD math | effective-token weighting | model pricing lookup | cost-to-completion estimation | currency parity for budget gates
+// @does: the file-private TokenOps cost math (effective tokens, USD cost, model pricing find, pricing policy) exported additively so budget/admission gates reuse the SAME formula instead of duplicating it
+// @use: import { calculateEffectiveTokens, calculateCostUsd, findModelPricing, getPricingPolicy, DEFAULT_POLICY } when you need to price a token usage shape — never re-derive the formula (currency parity)
+// @exports: calculateEffectiveTokens, calculateCostUsd, findModelPricing, getPricingPolicy, DEFAULT_POLICY
+export const DEFAULT_POLICY = Object.freeze({
   formula_version: DEFAULT_FORMULA_VERSION,
   description: 'Initial Yuri OS TokenOps effective-token policy.',
   effective_formula: 'model_multiplier * (fresh_input + 0.1 * cache_read + output_weight * output + reasoning_weight * reasoning)',
@@ -64,12 +70,13 @@ const DEFAULT_POLICY = Object.freeze({
     default: { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 },
     'claude-sonnet-4-6': { input: 3, output: 15, cache_read: 0.3, cache_write: 3.75, reasoning: 15 },
     'claude-opus-4-7': { input: 15, output: 75, cache_read: 1.5, cache_write: 18.75, reasoning: 75 },
+    'claude-opus-4-8': { input: 15, output: 75, cache_read: 1.5, cache_write: 18.75, reasoning: 75 }, // Opus 4.x family flat pricing — substring match fails 4-7→4-8, needs its own key (2026-06-23)
     'claude-haiku-4-5': { input: 0.8, output: 4, cache_read: 0.08, cache_write: 1, reasoning: 4 },
     'deepseek-v4-pro': { input: 0.27, output: 1.10, cache_read: 0.07, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'deepseek-v4-flash': { input: 0.07, output: 0.28, cache_read: 0.018, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'deepseek-r1:8b': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // local ollama - no cost
-    'kimi-k2.6': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
-    'nvidia/llama-3.1-nemotron-70b-instruct': { input: 0.20, output: 0.20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'mimo-v2.5-pro[1m]': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // token-plan flat subscription — no per-token cost (2026-06-10)
+    'mimo-v2-flash': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // token-plan flat subscription — no per-token cost (2026-06-10)
     'meta/llama-3.3-70b-instruct': { input: 0.15, output: 0.15, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'gpt-5.5': { input: 5, output: 20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
     'gpt-5.4-mini': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
@@ -238,6 +245,11 @@ export function drainTokenLedger(paths = resolveTokenLedgerPaths()) {
       }
     }
   } catch (error) {
+    if (error.code === 'BETTER_SQLITE3_UNAVAILABLE') {
+      // DB engine absent (e.g. backend removed): events stay safely queued on disk
+      // for a later drain. Not a fault — degrade quietly so the Stop hook exits 0.
+      return { lock_acquired: true, inserted, skipped, failed, db_deferred: true };
+    }
     writeFault('drain_failed', error, {}, paths);
     return { lock_acquired: true, inserted, skipped, failed: failed + 1, error: error.message };
   } finally {
@@ -657,7 +669,7 @@ export function normalizeTokenEvent(event = {}) {
     trace_id: String(event.trace_id || event.session_id || event.event_id || randomUUID()),
     span_id: String(event.span_id || randomUUID()),
     parent_span_id: optionalString(event.parent_span_id),
-    session_id: optionalString(event.session_id || process.env.CLAUDE_SESSION_ID || process.env.CODEX_SESSION_ID || process.env.OFFLOAD_TASK_ID),
+    session_id: optionalString(event.session_id || process.env.CLAUDE_SESSION_ID || process.env.CODEX_SESSION_ID || process.env.LLM_COMPAT_TASK_ID),
     source_path: String(event.source_path || 'unknown'),
     lane: optionalString(event.lane),
     provider: optionalString(event.provider),
@@ -690,8 +702,37 @@ export function normalizeTokenEvent(event = {}) {
   };
 }
 
+let cachedBetterSqlite3;
+// Resolve better-sqlite3 resiliently. The clean install lives at the repo-root
+// node_modules; the legacy `_SYSTEM/backend/node_modules` copy is kept only as a
+// last-resort fallback because that backend tree is being removed. Bare-resolving
+// first means the Stop hooks no longer depend on the dying backend path — which was
+// the source of the MODULE_NOT_FOUND spam on every stop while the backend was being
+// deleted. If nothing resolves, throw ONE clean typed error so the drain/record
+// catches degrade to the on-disk queue instead of dumping a native module stack.
+function loadBetterSqlite3() {
+  if (cachedBetterSqlite3) return cachedBetterSqlite3;
+  const candidates = [
+    'better-sqlite3',
+    path.join(repoRoot, 'node_modules', 'better-sqlite3'),
+    path.join(repoRoot, '_SYSTEM', 'backend', 'node_modules', 'better-sqlite3'),
+  ];
+  for (const spec of candidates) {
+    try {
+      cachedBetterSqlite3 = require(spec);
+      return cachedBetterSqlite3;
+    } catch (_) {
+      // try the next candidate
+    }
+  }
+  throw Object.assign(
+    new Error('better-sqlite3 is not installed (tried repo-root and legacy backend node_modules); token-ledger DB writes are deferred to the on-disk queue'),
+    { code: 'BETTER_SQLITE3_UNAVAILABLE' },
+  );
+}
+
 function openDatabase(dbPath) {
-  const betterSqlite3 = require(path.join(repoRoot, '_SYSTEM', 'backend', 'node_modules', 'better-sqlite3'));
+  const betterSqlite3 = loadBetterSqlite3();
   const dbDir = path.dirname(dbPath);
   if (dbPath !== ':memory:' && !existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
   const db = new betterSqlite3(dbPath, { timeout: 10000 });
@@ -712,7 +753,7 @@ function getPolicy(db, formulaVersion) {
   };
 }
 
-function calculateEffectiveTokens(event, policy) {
+export function calculateEffectiveTokens(event, policy = getPricingPolicy()) {
   const weights = policy.weights || DEFAULT_POLICY.weights;
   const model = event.response_model || event.request_model || 'default';
   const modelMultiplier = policy.model_multipliers?.[model] || weights.model_multiplier || 1;
@@ -725,7 +766,7 @@ function calculateEffectiveTokens(event, policy) {
   );
 }
 
-function calculateCostUsd(event, policy) {
+export function calculateCostUsd(event, policy = getPricingPolicy()) {
   const pricing = policy.pricing_per_million || DEFAULT_POLICY.pricing_per_million;
   const model = event.response_model || event.request_model || 'default';
   const price = findModelPricing(pricing, model);
@@ -738,9 +779,24 @@ function calculateCostUsd(event, policy) {
   );
 }
 
-function findModelPricing(pricing, model) {
+export function findModelPricing(pricing, model) {
   const key = Object.keys(pricing).find((candidate) => candidate !== 'default' && String(model || '').includes(candidate));
   return pricing[key] || pricing.default || DEFAULT_POLICY.pricing_per_million.default;
+}
+
+// getPricingPolicy() — the DB-free accessor for the active pricing/weights policy. Budget and admission
+// gates need to price a usage shape WITHOUT opening the ledger DB (which may be absent in a worktree or
+// when better-sqlite3 is missing). It returns the frozen DEFAULT_POLICY shape that getPolicy() falls back
+// to, normalized to the { formula_version, weights, pricing_per_million, model_multipliers } contract that
+// calculateCostUsd/calculateEffectiveTokens consume. Callers that DO have a live DB can still pass a
+// db-loaded policy object explicitly. This is the currency-parity seam: one formula, one pricing table.
+export function getPricingPolicy() {
+  return {
+    formula_version: DEFAULT_POLICY.formula_version,
+    weights: { ...DEFAULT_POLICY.weights },
+    pricing_per_million: { ...DEFAULT_POLICY.pricing_per_million },
+    model_multipliers: { ...DEFAULT_POLICY.model_multipliers },
+  };
 }
 
 function safeFileSize(filePath) {
@@ -937,30 +993,26 @@ function hashMaterial(row) {
   };
 }
 
+// B1-ext-2 (race-class kill): the drain single-writer lock. CAPABILITY-FIRST — reuse the
+// red-teamed nano-lease (atomic rename claim + dead-only-under-custody reclaim) instead of the
+// former hand-rolled mtime-stale mkdir lock, whose stale-reclaim (two drains both see >120s stale
+// → both rmSync → both mkdir-acquire) was a double-acquire race. The lease id is path-scoped from
+// paths.lockDir so isolated (test) ledgers never collide with the live one; the holder id is
+// per-process so release matches acquire. Same {acquired} contract — drainTokenLedger is unchanged.
+const drainLeaseId = (paths) => `token-ledger-drain:${path.resolve(paths.lockDir)}`;
+const drainNanoId = () => `tldrain-${process.pid}`;
+
 function acquireLock(paths) {
-  mkdirSync(path.dirname(paths.lockDir), { recursive: true });
   try {
-    mkdirSync(paths.lockDir);
-    writeFileSync(path.join(paths.lockDir, 'lock.json'), JSON.stringify({
-      pid: process.pid,
-      acquired_at: new Date().toISOString(),
-    }));
-    return { acquired: true };
-  } catch (error) {
-    if (error.code !== 'EEXIST') throw error;
-    try {
-      const stat = statSync(paths.lockDir);
-      if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
-        rmSync(paths.lockDir, { recursive: true, force: true });
-        return acquireLock(paths);
-      }
-    } catch (_) {}
-    return { acquired: false };
+    const r = acquireLease(drainLeaseId(paths), drainNanoId(), { ttlMs: LOCK_STALE_MS });
+    return { acquired: !!(r && r.ok) }; // acquireLease returns {ok:true,...} | {ok:false,heldBy,...}
+  } catch (_) {
+    return { acquired: false }; // fail-closed: cannot lock → skip this drain, events stay safely queued
   }
 }
 
 function releaseLock(paths) {
-  rmSync(paths.lockDir, { recursive: true, force: true });
+  try { releaseLease(drainLeaseId(paths), drainNanoId()); } catch (_) { /* best-effort; TTL-reclaim backstops */ }
 }
 
 function writeFault(faultType, error, event, paths = resolveTokenLedgerPaths()) {
@@ -1144,7 +1196,7 @@ function getArg(args, name) {
   return args[idx + 1] || '';
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error.stack || error.message);
     process.exit(1);

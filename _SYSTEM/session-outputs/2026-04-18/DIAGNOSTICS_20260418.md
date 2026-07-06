@@ -7,7 +7,7 @@
 | **VAULT STRUCTURE** | GREEN | All 7 core directories exist + populated. 16 subdirs active. Substrate clean (._* pollution purged). |
 | **NOESIS SYSTEM** | GREEN | NOESIS-CORE.md exists (8.6K), noesis-intake.md exists (10.9K), monthly-reflection-template.md exists (3.8K). `.claude/noesis/` fully populated. |
 | **KNOWLEDGE BASE** | GREEN | 28 files across 6 subdirs (00_META, 01_COSMOLOGY, 02_CONSCIOUSNESS, 03_COMMUNICATION, 04_SYNTHESIS, 05_OPERATIONAL). hermetics.md = 648 lines (v2 confirmed). All OPERATIONAL files present. |
-| **PROJECT PIPELINE** | GREEN | 01_PROJECTS/ has 13 active folders (C2MOVIEZ primary with 8 projects: ANGELIKA, BOVIRO, CHEESE-DOCTOR, MUDI, OREA, SHIPSTER, _UNSORTED-EDITS, plus others). _TEMPLATE/ exists. Network sync active (C2MOVIEZ + PLANZERFILMS). |
+| **PROJECT PIPELINE** | GREEN | 01_PROJECTS/ has active folders including NEXUS-LINK-LANDING. _TEMPLATE/ exists. |
 | **CLAUDE PALACE** | GREEN | palace-index.md (9.2K), palace-map.md (8.7K), cross-domain.md (11.6K), suggested-connections.md (8.8K) all exist. GRAPH_REPORT.md current (7038 nodes, 20520 edges, 271 communities). graphify-out/ populated. |
 | **SESSION LOG** | GREEN | session_log.md sealed. 4 session entries (2026-04-11, 2026-04-13, 2026-04-17, 2026-04-18). All NEXT items documented. Drift/insight/pattern logging active. |
 | **IDENTITY/MEMORY SYNC** | GREEN | identity.md root exists (338 lines, full YURI codex). enki_state.md current (Apr 18). All 05_OPERATIONAL files exist (mode_triggers, response_architecture, partner_memory, pneuma-profile). External memory store: MEMORY.md index + 8 files in .auto-memory/. |
@@ -23,13 +23,13 @@
 
 **Core Directories (7):**
 - ✓ 00_COMMAND-CENTER — HOME.md, MOCs/, Daily-Notes/, Dashboards/, Inbox/, SESSION-REPORTS/
-- ✓ 01_PROJECTS — C2MOVIEZ (8 projects), MACL-ONE, NEXUS-LINK-LANDING, _TEMPLATE, superpowers, claude-mem, gstack, openspace, graphify-out
+- ✓ 01_PROJECTS — NEXUS-LINK-LANDING, _TEMPLATE, superpowers, claude-mem, gstack, openspace, graphify-out
 - ✓ 02_AREAS — Clients/, DACH-Market-Intelligence/, Health/, Learning/, Network/, Personal-Brand/, Tech-Setup/, MOC-Areas.md, profile-marcel-en.md, Career.mdd
 - ✓ 03_RESOURCES — (not examined in detail; exists)
 - ✓ 04_FINANCE — (not examined in detail; exists)
 - ✓ 05_NEXUS-LINK — (not examined in detail; exists)
 - ✓ 06_KNOWLEDGE-BASE — Full 6-subdirectory structure with 28 .md files
-- ✓ 06_NETWORK-SYNC — C2MOVIEZ/, PLANZERFILMS/, MOC-Network.md
+- ✓ 06_NETWORK-SYNC — MOC-Network.md
 - ✓ 07_ARCHIVE — (exists)
 - ✓ _SYSTEM — 21+ files: palace-rebuild.py, token-tracker.md, token-audit.md, token-orchestrator.sh, session-outputs/, SELF/, Templates/, deleted-backups/, Claude-Memory/
 
@@ -56,12 +56,11 @@
 | 05_OPERATIONAL | 4 | GREEN | mode_triggers.md, response_architecture.md, partner_memory.md, pneuma-profile.md |
 | REPORT.md | 1 | GREEN | Knowledge base cross-reference index (23.4K) |
 
-**Wikilink Spot Check (5 Tested):**
+**Wikilink Spot Check (4 Tested):**
 1. HOME.md → `[[../identity]]` ✓ (identity.md exists at root)
 2. identity.md → `[[../enki_state]]` ✓ (enki_state.md exists at root)
-3. enki_state.md → references to `01_PROJECTS/C2MOVIEZ/` ✓ (all projects exist)
-4. identity.md → `[[06_KNOWLEDGE-BASE/05_OPERATIONAL/pneuma-profile.md]]` ✓ (file exists, 15.7K)
-5. identity.md → `[[06_KNOWLEDGE-BASE/04_SYNTHESIS/gnostic-architecture.md]]` ✓ (file exists)
+3. identity.md → `[[06_KNOWLEDGE-BASE/05_OPERATIONAL/pneuma-profile.md]]` ✓ (file exists, 15.7K)
+4. identity.md → `[[06_KNOWLEDGE-BASE/04_SYNTHESIS/gnostic-architecture.md]]` ✓ (file exists)
 
 **No broken links detected.** Internal structure is sound.
 
@@ -91,18 +90,7 @@
 
 **01_PROJECTS/ Inventory:**
 
-**C2MOVIEZ (Primary Client — 8 Projects):**
-- ANGELIKA/
-- BOVIRO/
-- CHEESE-DOCTOR/
-- MUDI/
-- OREA/ (active, editor engagement expected)
-- SHIPSTER/
-- _UNSORTED-EDITS/
-- **Status:** Primary income pipeline. On-set video/photo capture. enki_state.md confirms shoot cadence in focus.
-
-**Other Active Folders:**
-- MACL-ONE/ (premium sports brand)
+**Active Folders:**
 - NEXUS-LINK-LANDING/ (public brand site)
 - _TEMPLATE/ (project scaffold — exists ✓)
 
@@ -110,10 +98,7 @@
 - superpowers/, claude-mem/, gstack/, openspace/, graphify-out/ (development/experiment projects)
 
 **06_NETWORK-SYNC/ Status:**
-- ✓ C2MOVIEZ/ (read-only reference layer from GitHub clone; Database/ contains Claudio's vault)
-- ✓ PLANZERFILMS/ (secondary partner sync)
 - ✓ MOC-Network.md (network index)
-- **Sync Protocol:** Weekly `git pull` in Database/ folders documented in enki_state.md.
 
 ---
 
@@ -143,7 +128,6 @@
 
 **Entry History:**
 2. **2026-04-17** — KNOWLEDGE BASE EXPANSION · 7 rounds, rate limits hit. 24 files, 4,990 lines, 233 wikilinks added.
-3. **2026-04-13** — OREA MIGRATION · Project architecture, enki_state.md filled.
 4. **2026-04-18** — NOESIS · Autonomous learning consolidation. Memory store populated (17 entries), palette pollution purged, state files current.
 
 **NEXT Items (All Open):**
@@ -152,7 +136,6 @@
 4. ~~MASTER/ review~~ — Paused, awaiting confirmation on Finder label use
 5. Review memory entries after one session cycle — Pending (target: next session cycle)
 6. Review token system's first auto-generated April summary — 2026-05-01
-7. **Keep advancing OREA edit** — No scaffolding should displace it (active guidance)
 
 ---
 
@@ -170,7 +153,7 @@
 **05_OPERATIONAL Files (All Present):**
 - ✓ `mode_triggers.md` (12.1K) — Mode invocation protocol
 - ✓ `response_architecture.md` (12.6K) — Output doctrine, shadow protocol, format by function
-- ✓ `partner_memory.md` (11.4K) — Claudio memory, network context, relationship dynamics
+- ✓ `partner_memory.md` (11.4K) — network context, relationship dynamics
 - ✓ `pneuma-profile.md` (15.8K) — Full psychological/energetic profile, MBTI, enneagram, trauma patterns
 
 **External Memory Store:**
@@ -286,11 +269,6 @@ From **2026-04-18 — NOESIS · Autonomous Learning Consolidation**:
    - Target: 2026-05-01
    - Action: Check if automation is working; adjust if needed
 
-6. **Keep advancing OREA edit** (Active Guidance — No Scaffolding)
-   - Should remain primary focus
-   - No new project structures should displace it
-   - Scaffolding work is subordinate
-
 ---
 
 ## PRIORITY RECOMMENDATIONS
@@ -299,11 +277,6 @@ From **2026-04-18 — NOESIS · Autonomous Learning Consolidation**:
 1. **Continue nocturnal protocol** — Identity confirms 21:00–04:00 is primary work block. Protect this ruthlessly.
 2. **Skill Refinery is ready** — `02_AREAS/skills/` now exists. Capture skills when patterns repeat 2x (per NOESIS protocol).
 3. **Memory is live** — 8-entry external memory store is feeding into system context. Continue seeding it with insights from sessions.
-
-### Project Level
-1. **OREA remains primary** — Editorial engagement is the next concrete action. All diagnostics work is complete; no further scaffolding should be opened.
-2. **C2MOVIEZ on-set workflow** — enki_state.md shows this as PROJECT 2 priority. Build repeatable templates (shot lists, lighting kits, metadata protocols).
-3. **Network sync is working** — C2MOVIEZ vault sync active. Weekly `git pull` is the protocol. No changes needed.
 
 ### Vault Hygiene
 1. **Substrate is clean** — ._* pollution purged. No further cleanup needed.
@@ -326,13 +299,13 @@ The YURI ecosystem is operationally sound. All critical infrastructure is in pla
 - ✓ NOESIS system live and instrumenting learning
 - ✓ Identity layer coherent and current
 - ✓ Memory store active and indexed
-- ✓ Project pipeline clear (OREA primary, C2MOVIEZ on-set focus)
+- ✓ Project pipeline clear
 - ✓ Session logging sealed (DRIFT/INSIGHT/PATTERN active)
 - ✓ Palace fully generated (1,912 nodes, 840 edges, 271 communities)
 - ✓ Two missing directories created (skills/, research-intake/)
 - ✓ Substrate clean (zero pollution)
 
-**The system is ready for continuous operation. No scaffolding work should displace OREA editorial advancement.**
+**The system is ready for continuous operation.**
 
 ---
 

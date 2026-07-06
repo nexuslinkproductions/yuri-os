@@ -57,7 +57,7 @@ Every destructive action in YURI is a staged transaction. Nothing is "deleted" w
 ## IV. DATA VISUALIZATION: INDRA'S NET
 The YURI Command Center core is a graph.
 
-*   **The Neural Map**: A WebGL-rendered node-link diagram showing the relationships between Plane tickets, Skool members, and C2MovieZ assets.
+*   **The Neural Map**: A WebGL-rendered node-link diagram showing the relationships between tasks, members, and system assets.
 *   **Temporal Heatmaps**: 3D extruded visualizations of activity over time.
 *   **Real-time Telemetry Ribbons**: Continuous scrolling "ticker" tapes for backend worker logs, formatted for peripheral vision processing.
 

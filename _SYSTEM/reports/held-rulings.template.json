@@ -1,0 +1,12 @@
+{
+  "description": "Owner-held clearance convention for MURE company dispatch. Copy to _SYSTEM/state/held-rulings.json (gitignored) — never auto-created by scripts.",
+  "rulings": [
+    {
+      "subtaskId": "WS-A-S1-steward-gate",
+      "approved": true,
+      "by": "owner",
+      "ts": "2026-06-29T12:00:00.000Z",
+      "note": "Steward gate reviewed; dispatch may proceed past this held item."
+    }
+  ]
+}

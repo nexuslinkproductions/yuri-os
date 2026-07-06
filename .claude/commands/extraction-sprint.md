@@ -1,4 +1,5 @@
 ---
+skill: extraction-sprint
 name: extraction-sprint
 description: "Shintai council extraction sprint. Multi-site catalog pull + adversarial synthesis + Codex commit. Use when mapping N sources into a structured reference with competing model recommendations."
 ---

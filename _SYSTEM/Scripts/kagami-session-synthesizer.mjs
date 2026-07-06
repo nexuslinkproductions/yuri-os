@@ -2,7 +2,7 @@
 // kagami-session-synthesizer.mjs
 // Daily cloud task (21:00) — deepseek-flash reads today's Kagami reflections
 // and appends a compact daily synthesis to session-journal.md
-// Uses offload.sh → deepseek-v4-flash (cheap, fast)
+// Uses llm-compat.sh → deepseek-v4-flash (cheap, fast)
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -12,9 +12,11 @@ import { createRequire } from 'node:module';
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
-const OFFLOAD_SH = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LLM_COMPAT_SH = resolve(REPO_ROOT, '_SYSTEM/Scripts/llm-compat.sh');
 const DB_PATH    = process.env.KAGAMI_DB_PATH ?? resolve(REPO_ROOT, '_SYSTEM/OS_KERNEL/kagami.db');
-const RAG_INDEX  = resolve(REPO_ROOT, '_SYSTEM/training/data/rag-index.jsonl');
+// RAG retired (owner, 2026-06-10): live retrieval is FTS5 (ai search) + xref.
+// The old rag-index.jsonl leg and kagami-rag-curator were deleted; this job's
+// living half is the daily journal synthesis from kagami.db reflections.
 const JOURNAL    = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-journal.md');
 const LOG        = '/tmp/kagami-session-synthesizer.log';
 const SYNTH_LANE = process.env.SYNTH_LANE || 'deepseek-v4-flash';
@@ -25,34 +27,34 @@ const log = (...a) => {
   try { writeFileSync(LOG, line, { flag: 'a' }); } catch {}
 };
 
-function getTodayReflections() {
-  if (!existsSync(DB_PATH)) return [];
-  try {
-    const require = createRequire(import.meta.url);
-    const Database = require(resolve(REPO_ROOT, '.codex-worktrees/kagami-rebuild/_SYSTEM/kagami/node_modules/better-sqlite3'));
-    const db = new Database(DB_PATH, { readonly: true });
-    const today = new Date().toISOString().slice(0, 10);
-    const rows = db.prepare(`
-      SELECT command_preview, lane, response_content, latency_ms, created_at
-      FROM reflections
-      WHERE created_at >= ? ORDER BY created_at DESC LIMIT 20
-    `).all(`${today}T00:00:00.000Z`);
-    db.close();
-    return rows;
-  } catch (e) {
-    log('db error:', e.message);
-    return [];
+function loadBetterSqlite3() {
+  const require = createRequire(import.meta.url);
+  // Anchor against the live repo root (import.meta.url-derived), not a baked
+  // worktree path — a deleted .codex-worktrees/<name> checkout silently broke
+  // this for every nightly run since 2026-06-29 (ERR_MODULE_NOT_FOUND, swallowed).
+  const candidates = [
+    resolve(REPO_ROOT, 'node_modules/better-sqlite3'),
+    resolve(REPO_ROOT, 'backend/node_modules/better-sqlite3'),
+    resolve(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'),
+  ];
+  for (const path of candidates) {
+    if (existsSync(path)) return require(path);
   }
+  throw new Error(`better-sqlite3 not found in any known location: ${candidates.join(', ')}`);
 }
 
-function getTodayRagAtoms() {
-  if (!existsSync(RAG_INDEX)) return [];
+function getTodayReflections() {
+  if (!existsSync(DB_PATH)) return [];
+  const Database = loadBetterSqlite3();
+  const db = new Database(DB_PATH, { readonly: true });
   const today = new Date().toISOString().slice(0, 10);
-  return readFileSync(RAG_INDEX, 'utf8')
-    .split('\n').filter(Boolean)
-    .map(l => { try { return JSON.parse(l); } catch { return null; } })
-    .filter(e => e?.indexedAt?.startsWith(today))
-    .slice(0, 10);
+  const rows = db.prepare(`
+    SELECT command AS command_preview, lane, response_content, latency_ms, created_at
+    FROM kagami_reflections
+    WHERE created_at >= ? ORDER BY created_at DESC LIMIT 20
+  `).all(`${today}T00:00:00.000Z`);
+  db.close();
+  return rows;
 }
 
 async function main() {
@@ -68,10 +70,9 @@ async function main() {
   }
 
   const reflections = getTodayReflections();
-  const atoms = getTodayRagAtoms();
-  log(`reflections=${reflections.length} rag-atoms=${atoms.length}`);
+  log(`reflections=${reflections.length}`);
 
-  if (!reflections.length && !atoms.length) {
+  if (!reflections.length) {
     log('nothing to synthesize today');
     return;
   }
@@ -80,17 +81,10 @@ async function main() {
     `- [${r.lane}] ${(r.command_preview ?? '').slice(0, 120)}`
   ).join('\n');
 
-  const atomSummary = atoms.map(a =>
-    `- ${a.title}: ${a.summary?.slice(0, 100)}`
-  ).join('\n');
-
   const prompt = `Synthesize today's AI assistant session (${today}) into a compact journal entry.
 
 Today's interactions (${reflections.length}):
 ${reflectionSummary || '(none)'}
-
-Key topics indexed:
-${atomSummary || '(none)'}
 
 Write a 3-5 bullet journal entry covering:
 - What was built or decided
@@ -99,9 +93,9 @@ Write a 3-5 bullet journal entry covering:
 
 Format: markdown bullets, max 200 words, factual only.`;
 
-  const result = spawnSync('bash', [OFFLOAD_SH, '-m', SYNTH_LANE], {
+  const result = spawnSync('bash', [LLM_COMPAT_SH, '-m', SYNTH_LANE], {
     input: prompt,
-    env: { ...process.env, OFFLOAD_PROMPT_TEXT: prompt },
+    env: { ...process.env, LLM_COMPAT_PROMPT_TEXT: prompt },
     timeout: 60000,
     encoding: 'utf8',
   });
@@ -117,4 +111,7 @@ Format: markdown bullets, max 200 words, factual only.`;
   log(`written ${entry.length} chars to session-journal.md`);
 }
 
-main().catch(e => log('fatal:', e.message));
+main().catch(e => {
+  log('ERROR fatal:', e.message);
+  process.exitCode = 1;
+});

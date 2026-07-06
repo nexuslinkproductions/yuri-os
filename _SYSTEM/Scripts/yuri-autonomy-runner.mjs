@@ -16,7 +16,7 @@ import { isProtectedPath } from './lane-kernel.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
-const CONTEXT_ROUTER = path.join(SCRIPT_DIR, 'context-router.mjs');
+const XREF_QUERY = path.join(SCRIPT_DIR, 'xref-query.mjs');
 
 export const AUTONOMY_RUN_SCHEMA = 'yuri.autonomy-run.v0';
 
@@ -67,7 +67,7 @@ export const APPROVAL_BOUNDARIES = Object.freeze([
 ]);
 
 const BASE_REQUIRED_GATES = Object.freeze([
-  'context-router',
+  'xref-preflight',
   'protected-path-check',
   'baseline-anchor',
   'lane-health-preflight',
@@ -201,11 +201,11 @@ export function buildAutonomyRunManifest(options = {}) {
   const operatorApprovalRequired = autonomy.rank >= 3;
   const requestedMutationAllowed = autonomy.rank >= 3 && approvalBoundary !== 'dry-run-only';
   const mutationAllowed = requestedMutationAllowed && operatorApproved && operatorSigned;
-  const contextRouter = runContextRouter(goal, repoRoot);
+  const xrefPreflight = runXrefPreflight(goal, repoRoot);
   const baselineAnchor = buildBaselineAnchor({
     goal,
     repoRoot,
-    contextRouter,
+    xrefPreflight,
     sourcePaths: options.sourcePaths,
   });
   const gates = buildGates({ autonomy, approvalBoundary, operatorApproved });
@@ -240,7 +240,7 @@ export function buildAutonomyRunManifest(options = {}) {
     scorecard: buildScorecard({
       goal,
       autonomy,
-      contextRouter,
+      xrefPreflight,
       baselineAnchor,
       gates,
       protectedPathMentions,
@@ -260,7 +260,7 @@ export function buildAutonomyRunManifest(options = {}) {
       operatorApproved,
       operatorSigned,
       mutationAllowed,
-      contextRouterOk: Boolean(contextRouter?.ok),
+      xrefPreflightOk: Boolean(xrefPreflight?.ok),
     }),
   };
 }
@@ -295,8 +295,8 @@ export function validateAutonomyRunManifest(manifest = {}) {
   if (Number(autonomy.rank || 0) >= 3 && manifest.approval?.signature?.required !== true) {
     errors.push('L3+ manifests require an operator signature slot');
   }
-  if (Number(autonomy.rank || 0) >= 3 && manifest.baselineAnchor?.contextRouter?.ok === false) {
-    errors.push('L3+ manifests require successful context routing');
+  if (Number(autonomy.rank || 0) >= 3 && manifest.baselineAnchor?.xrefPreflight?.ok === false) {
+    errors.push('L3+ manifests require successful xref preflight');
   }
   for (const entry of manifest.baselineAnchor?.sourceHashes || []) {
     if (isProtectedPath(entry.path)) errors.push(`source hash references protected path: ${entry.path}`);
@@ -323,7 +323,7 @@ export function renderAutonomyRunMarkdown(manifest) {
     '## Baseline Anchor',
     `- Git HEAD: ${manifest.baselineAnchor.git.head || 'unknown'}`,
     `- Dirty files: ${manifest.baselineAnchor.git.dirtyFileCount}`,
-    `- Context packet: ${manifest.baselineAnchor.contextRouter.selectedPacket?.id || 'unknown'}`,
+    `- Xref preflight: ${manifest.baselineAnchor.xrefPreflight?.ok ? 'pass' : 'fail'}`,
     '',
     '## Scorecard',
     ...Object.entries(manifest.scorecard).map(([key, value]) => {
@@ -350,7 +350,7 @@ export function emitAutonomyRunEvents(manifest, options = {}) {
     lane: 'codex-main',
     evidenceRefs: [
       '_SYSTEM/Scripts/yuri-autonomy-runner.mjs',
-      '_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md',
+      '_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-06-07.md',
     ],
   };
 
@@ -370,9 +370,13 @@ export function emitAutonomyRunEvents(manifest, options = {}) {
     status: 'required-not-run',
     note: 'Manifest records lane health as a gate; live lane probes are not part of dry-run planning.',
   }, { root }));
-  events.push(appendKagamiEvent('CONTEXT_PACKET_BUILT', {
+  events.push(appendKagamiEvent('XREF_PREFLIGHT_RECORDED', {
     ...common,
-    selectedPacket: manifest.baselineAnchor.contextRouter.selectedPacket?.id || null,
+    query: manifest.baselineAnchor.xrefPreflight?.query
+      ? redactProtectedMentions(manifest.baselineAnchor.xrefPreflight.query)
+      : null,
+    merged: manifest.baselineAnchor.xrefPreflight?.counts?.merged || 0,
+    structuralLegAvailable: manifest.baselineAnchor.xrefPreflight?.structuralLegAvailable === true,
   }, { root }));
   events.push(appendKagamiEvent('ROUTE_DECISION_RECORDED', {
     ...common,
@@ -437,31 +441,42 @@ function includesAny(text, needles) {
   return needles.some((needle) => text.includes(needle));
 }
 
-function runContextRouter(goal, repoRoot) {
-  const result = spawnSync(process.execPath, [CONTEXT_ROUTER, goal], {
+function runXrefPreflight(goal, repoRoot) {
+  const result = spawnSync(process.execPath, [XREF_QUERY, goal, '--json', '--top', '200'], {
     cwd: repoRoot,
     encoding: 'utf8',
-    maxBuffer: 1024 * 1024,
+    maxBuffer: 4 * 1024 * 1024,
   });
   if (result.error || result.status !== 0) {
     return {
       ok: false,
-      error: result.error?.message || result.stderr || `context-router exited ${result.status}`,
+      error: result.error?.message || result.stderr || `xref-query exited ${result.status}`,
     };
   }
   try {
-    return { ok: true, ...JSON.parse(result.stdout) };
+    const parsed = JSON.parse(result.stdout);
+    return {
+      ok: parsed.ok === true,
+      query: parsed.query || goal,
+      structuralLegAvailable: parsed.structuralLegAvailable === true,
+      gitnexus: parsed.gitnexus || null,
+      counts: parsed.counts || {},
+      topPaths: Array.isArray(parsed.merged)
+        ? parsed.merged.map((entry) => entry.path).filter(Boolean).slice(0, 10)
+        : [],
+    };
   } catch (err) {
-    return { ok: false, error: `context-router JSON parse failed: ${err.message}` };
+    return { ok: false, error: `xref-query JSON parse failed: ${err.message}` };
   }
 }
 
-function buildBaselineAnchor({ goal, repoRoot, contextRouter, sourcePaths }) {
-  const selectedPaths = contextRouter?.selectedPacket?.paths
-    ?.map((entry) => entry.path)
-    .filter(Boolean) || [];
+function buildBaselineAnchor({ goal, repoRoot, xrefPreflight, sourcePaths }) {
+  const selectedPaths = Array.isArray(xrefPreflight?.topPaths) ? xrefPreflight.topPaths : [];
   const defaultSourcePaths = [
     '_SYSTEM/Scripts/yuri-autonomy-runner.mjs',
+    '_SYSTEM/Scripts/xref-query.mjs',
+    '_SYSTEM/Scripts/propagation-scan.mjs',
+    '_SYSTEM/Scripts/xref-provenance.mjs',
     '_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json',
     '_SYSTEM/context/context-registry.json',
     '_SYSTEM/config/artifact-registry.json',
@@ -472,7 +487,7 @@ function buildBaselineAnchor({ goal, repoRoot, contextRouter, sourcePaths }) {
   return {
     repoRoot,
     protectedPathsChecked: true,
-    contextRouter,
+    xrefPreflight,
     git: gitBaseline(repoRoot),
     sourceHashes: hashExistingRepoFiles(uniqueSourcePaths, repoRoot),
     goalHash: hashText(goal),
@@ -563,11 +578,11 @@ function buildGates({ autonomy, approvalBoundary, operatorApproved }) {
   };
 }
 
-function buildScorecard({ goal, autonomy, contextRouter, baselineAnchor, gates, protectedPathMentions = [] }) {
-  const selectedPacket = contextRouter?.selectedPacket?.id || '';
+function buildScorecard({ goal, autonomy, xrefPreflight, baselineAnchor, gates, protectedPathMentions = [] }) {
+  const mergedCount = Number(xrefPreflight?.counts?.merged || 0);
   return {
     taskClarity: scored(goal.length >= 20 ? 0.82 : 0.45, goal.length >= 20 ? 'goal is specific enough for planning' : 'goal is short'),
-    contextPrecision: scored(selectedPacket && selectedPacket !== 'baseline' ? 0.82 : 0.55, selectedPacket ? `selected ${selectedPacket}` : 'no selected packet'),
+    contextPrecision: scored(mergedCount > 0 ? 0.82 : 0.55, mergedCount > 0 ? `xref merged ${mergedCount} hits` : 'no merged xref hits'),
     laneHealth: scored(0.5, 'preflight required; live probes not run by dry-run builder'),
     proofCoverage: scored(autonomy.rank <= 1 ? 0.35 : 0.25, 'manifest proves routing and gates, not task outcome'),
     contradictionRisk: scored(gates.contradictionDetection.required ? 0.45 : 0.65, gates.contradictionDetection.status),
@@ -602,15 +617,15 @@ function buildProposedEvents(autonomy) {
     'INTAKE_RECORDED',
     'GOAL_BOUND',
     'LANE_HEALTH_PREFLIGHT',
-    'CONTEXT_PACKET_BUILT',
+    'XREF_PREFLIGHT_RECORDED',
     'ROUTE_DECISION_RECORDED',
   ];
   if (autonomy.rank >= 3) events.push('AUTHORIZATION_REQUIRED');
   return events;
 }
 
-function decideRun({ autonomy, approvalBoundary, operatorApproved, operatorSigned, mutationAllowed, contextRouterOk = true }) {
-  if (autonomy.rank >= 3 && !contextRouterOk) return 'blocked_context_router_failure';
+function decideRun({ autonomy, approvalBoundary, operatorApproved, operatorSigned, mutationAllowed, xrefPreflightOk = true }) {
+  if (autonomy.rank >= 3 && !xrefPreflightOk) return 'blocked_xref_preflight_failure';
   if (autonomy.rank >= 3 && !operatorApproved) return 'blocked_pending_operator_approval';
   if (autonomy.rank >= 3 && !operatorSigned) return 'blocked_pending_operator_signature';
   if (approvalBoundary === 'dry-run-only') return 'dry_run_manifest';

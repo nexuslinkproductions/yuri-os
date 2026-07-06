@@ -1,0 +1,20 @@
+YURI canonical-truth memory store — P2 Inc-5 multi-process fault-injection test review. You are a YURI NANO SWARM peer (full operator, NOT Claude). Reason locally; output advisory.
+
+STORE (event-sourced, multi-writer, peer-open read):
+- Every lane/session appends immutable claim events to its OWN shard file (one writer per file, append+fsync — zero cross-writer interleave).
+- A single elected drainer (nano-lease, ttl 30s, PID-liveness reclaim: a dead holder PID is reclaimed by the next acquire immediately, no TTL wait) folds all shards into a GENERATION-ROTATED canonical log: canonical.jsonl is a SYMLINK -> canonical.gen-NNNNN.jsonl. Never renames a live log.
+- Dedup by sha256 eventId = hash(kind,subject,predicate,object). Idempotent re-fold (seed = all eventIds across all gens). Offsets (per shard) checkpointed LAST, after canonical + read-view are durably published.
+- Rotation: when current gen > rotationBytes, SEAL it (no-eventId sentinel) + create gen+1 + atomically swap the symlink — AFTER durable publish.
+- Compaction: rescue still-live events into gen-00001 (atomic write) BEFORE dropping redundant older sealed gens; never unlink a gen that still backs a live claim (live-claims guard); fires on dead-ratio>0.3 OR sealed-gen-count>5.
+- Mid-fold lease-loss guard: if renewLease fails after the fold loop (a 2nd drainer reclaimed our lease), we DON'T publish offsets or rotate — our appended canonical events are already durable and the live drainer re-incorporates them via the dedup seed.
+
+MY Inc-5 HARNESS (node:test, forks the REAL on-disk worker, asserts EXACTLY-ONCE under faults):
+A. rotation-under-write: 4 concurrent appender procs (own shard each, 150 distinct claims = 600 total) + 1 drainer proc (40 cycles, rotationBytes=900 via env so it seals/rotates every few events AND crosses the compaction threshold). Final in-process drain. ASSERT loadCanonical().length == 600 AND listGenerations >= 2.
+B. 8 procs x 500 distinct = 4000 claims concurrent + a drainer proc. Final drain. ASSERT == 4000.
+C. dead-drainer-reclaim: seed 50 claims in-process; fork hold-then-die (acquires drain lease ttl 30s, holds 20s); wait for its "acquired lease" IPC; SIGKILL it while the lease is still FRESH; await child exit (PID reaped); in-process drainOnce. ASSERT res.ok==true AND elapsed<5s (PID-liveness reclaim, NOT a 30s TTL wait) AND loadCanonical().length==50 AND a 2nd drain still ==50 (idempotent, no dup after reclaim).
+
+ATTACK THIS AS A FAULT-INJECTION TEST. Be specific and bounded (<=55 lines):
+1. What exactly-once / reclaim / rotation / compaction fault mode does this harness MISS (a real failure the store could have that all 3 scenarios would still pass GREEN)?
+2. What FALSE-GREEN is possible — an assertion that passes for the wrong reason (e.g. exactly-once "holds" only because no real concurrency occurred, or a timing assumption that's flaky on a loaded CI box)?
+3. One concrete added scenario or assertion that would catch the highest-value gap you found.
+No preamble. Numbered findings only.

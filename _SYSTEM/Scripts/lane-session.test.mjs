@@ -55,23 +55,32 @@ test('lane sessions can be disabled for sterile health probes', async () => {
   }
 });
 
-test('NIM persistent sessions are isolated by concrete model, not provider bucket', async () => {
+test('Mimo persistent sessions are bucketed by the xiaomimimo endpoint, not a provider guess', async () => {
+  // NVIDIA NIM bucketing retired 2026-06-10 → laneSessionModelId now buckets ONLY the mimo
+  // endpoint (xiaomimimo.com) into a mimo-${model} session id; other lanes keep their raw lane id.
   const mod = await importFreshLaneSession();
-  const qwenId = mod.laneSessionModelId({
-    lane: 'nvidia-nim',
-    model: 'qwen/qwen3.5-397b-a17b',
-    endpoint: 'https://integrate.api.nvidia.com/v1',
+  const proById = mod.laneSessionModelId({
+    lane: 'mimo',
+    model: 'mimo-v2.5-pro[1m]',
+    endpoint: 'https://token-plan-ams.xiaomimimo.com/anthropic',
   });
-  const nemotronId = mod.laneSessionModelId({
-    lane: 'nvidia-nim',
-    model: 'nvidia/nemotron-3-super-120b-a12b',
-    endpoint: 'https://integrate.api.nvidia.com/v1',
+  const proByEndpoint = mod.laneSessionModelId({
+    lane: 'reason-cloud',
+    model: 'mimo-v2-flash',
+    endpoint: 'https://token-plan-ams.xiaomimimo.com/anthropic',
+  });
+  const nonMimo = mod.laneSessionModelId({
+    lane: 'deepseek-v4-pro',
+    model: 'deepseek-v4-pro',
+    endpoint: 'https://api.deepseek.com/v1',
   });
 
-  assert.equal(qwenId, 'nvidia-qwen/qwen3.5-397b-a17b');
-  assert.equal(nemotronId, 'nvidia-nvidia/nemotron-3-super-120b-a12b');
-  assert.notEqual(qwenId, nemotronId);
-  assert.match(mod.__test__.sessionPaths(qwenId, 'default').jsonl, /nvidia-qwen_qwen3.5-397b-a17b__default\.jsonl$/);
+  assert.equal(proById, 'mimo-mimo-v2.5-pro[1m]');
+  assert.equal(proByEndpoint, 'mimo-mimo-v2-flash');
+  assert.equal(nonMimo, 'deepseek-v4-pro');
+  assert.notEqual(proById, proByEndpoint);
+  // Session-path sanitization replaces '/', '[' and ']' with '_'.
+  assert.match(mod.__test__.sessionPaths(proById, 'default').jsonl, /mimo-mimo-v2.5-pro_1m___default\.jsonl$/);
 });
 
 test('trim rewrite tolerates a concurrently rotated session file', async () => {

@@ -9,7 +9,7 @@
 
 PASS=0
 FAIL=0
-YURI_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
+YURI_ROOT="${YURI_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
 
 # Colors
 GREEN='\033[0;32m'

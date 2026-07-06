@@ -31,8 +31,11 @@ test('automation summary combines worker, browser, launchd, and calibration chec
   assert.equal(summary.counts.ok, 3);
   assert.equal(summary.counts.model_404, 1);
   assert.equal(summary.counts.stale_daemon, 1);
-  assert.ok(summary.activeNimLanes.includes('nvidia-nemotron-120b'));
-  assert.ok(summary.deadNimLanes.includes('nvidia-nemotron'));
+  // NIM lanes retired 2026-06-10 → automation-kernel spreads the now-empty ACTIVE_NIM_LANES and
+  // the [nemotron, kimi] DEAD_NIM_LANES from lane-kernel into its summary verbatim.
+  assert.deepEqual(summary.activeNimLanes, []);
+  assert.ok(summary.deadNimLanes.includes('nemotron-3-ultra-550b-a55b'));
+  assert.ok(summary.deadNimLanes.includes('kimi-k2.6'));
 });
 
 test('automation repair plan is non-destructive and state-specific', () => {

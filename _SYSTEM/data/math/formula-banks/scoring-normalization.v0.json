@@ -274,6 +274,136 @@
       ]
     },
     {
+      "id": "weighted-std-dev",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "statistics",
+      "notation": "sigma_w = sqrt(sum_i w_i (x_i - mu_w)^2 / sum_i w_i)",
+      "purpose": "Measure weighted dispersion in the same units as the values by taking the square root of the weighted variance.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#weightedStdDev",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "finite value",
+          "type": "number",
+          "constraints": [
+            "finite"
+          ]
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "non-negative weight",
+          "type": "number",
+          "constraints": [
+            "w_i >= 0",
+            "sum_i w_i > 0"
+          ]
+        }
+      ],
+      "assumptions": [
+        "population-style variance",
+        "weights are explicit and comparable"
+      ],
+      "invalidInputs": [
+        "empty arrays",
+        "unequal lengths",
+        "negative weights",
+        "zero weight sum"
+      ],
+      "failureModes": [
+        "Standard deviation summarizes spread only; it does not explain why values disagree, and it is sensitive to extreme weighted values."
+      ],
+      "workedExamples": [
+        {
+          "name": "weighted standard deviation fixture",
+          "input": {
+            "values": [
+              1,
+              2,
+              3
+            ],
+            "weights": [
+              1,
+              1,
+              2
+            ]
+          },
+          "expected": {
+            "stdDev": 0.82915619758885
+          },
+          "interpretation": "The square root of the 0.6875 weighted variance gives a spread of about 0.829 in value units."
+        }
+      ],
+      "proofObligations": [
+        "weighted_variance_dependency",
+        "non_negative_output",
+        "same_units_as_values"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs weighted spread reported in the same units as the values, for example a same-units disagreement band on weighted evidence.",
+      "units": {
+        "inputs": {
+          "values": "score units declared by the caller",
+          "weights": "non-negative dimensionless weights"
+        },
+        "output": "same units as values"
+      },
+      "inputConstraints": [
+        "values and weights must be equal-length finite arrays",
+        "weights must be non-negative and have positive sum"
+      ],
+      "counterexamples": [
+        {
+          "name": "empty value array",
+          "input": {
+            "values": [],
+            "weights": []
+          },
+          "expectedError": "must be a non-empty array"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "a disagreement band must be reported in value units rather than squared units",
+          "weighted evidence stability needs an interpretable spread"
+        ],
+        "avoidWhen": [
+          "squared-unit variance is the required quantity",
+          "values are categorical labels"
+        ],
+        "yuriApplications": [
+          "release gate disagreement band",
+          "memory source reliability spread",
+          "routing criterion stability"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#weightedStdDev",
+        "proofGateFormulaId": "weighted-std-dev",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "weighted standard deviation fixture",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "empty value array",
+          "expectedError": "must be a non-empty array"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.mjs#weightedStdDev",
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
+    },
+    {
       "id": "expected-value",
       "promotionStatus": "verified-baseline",
       "advisoryOnly": false,
@@ -486,7 +616,12 @@
           "max": "upper bound in same units as value",
           "points": "score cap units"
         },
-        "output": "bounded score units from 0 to points"
+        "output": "bounded score units from 0 to points",
+        "parameterSlots": [
+          "min",
+          "max",
+          "points"
+        ]
       },
       "inputConstraints": [
         "min must be positive",
@@ -561,7 +696,10 @@
           "age": "time elapsed in same units as halfLife",
           "halfLife": "positive time constant in same units as age"
         },
-        "output": "dimensionless confidence in [0,1]"
+        "output": "dimensionless confidence in [0,1]",
+        "parameterSlots": [
+          "halfLife"
+        ]
       },
       "inputConstraints": [
         "base must be between 0 and 1 inclusive",
@@ -573,19 +711,25 @@
           "symbol": "c_0",
           "meaning": "base confidence at time zero",
           "type": "number",
-          "constraints": ["0 <= c_0 <= 1"]
+          "constraints": [
+            "0 <= c_0 <= 1"
+          ]
         },
         {
           "symbol": "t",
           "meaning": "age since the confidence was established",
           "type": "number",
-          "constraints": ["t >= 0"]
+          "constraints": [
+            "t >= 0"
+          ]
         },
         {
           "symbol": "h",
           "meaning": "half-life: time for confidence to halve",
           "type": "number",
-          "constraints": ["h > 0"]
+          "constraints": [
+            "h > 0"
+          ]
         }
       ],
       "assumptions": [
@@ -601,12 +745,20 @@
       "counterexamples": [
         {
           "name": "negative age",
-          "input": { "base": 0.8, "age": -1, "halfLife": 10 },
+          "input": {
+            "base": 0.8,
+            "age": -1,
+            "halfLife": 10
+          },
           "expectedError": "age must be non-negative"
         },
         {
           "name": "zero halfLife",
-          "input": { "base": 0.8, "age": 5, "halfLife": 0 },
+          "input": {
+            "base": 0.8,
+            "age": 5,
+            "halfLife": 0
+          },
           "expectedError": "halfLife must be positive"
         }
       ],
@@ -632,14 +784,26 @@
       "workedExamples": [
         {
           "name": "memory item at one half-life",
-          "input": { "base": 0.9, "age": 10, "halfLife": 10 },
-          "expected": { "decay": 0.45 },
+          "input": {
+            "base": 0.9,
+            "age": 10,
+            "halfLife": 10
+          },
+          "expected": {
+            "decay": 0.45
+          },
           "interpretation": "After exactly one half-life, the confidence halves from 0.9 to 0.45."
         },
         {
           "name": "fresh item with zero age",
-          "input": { "base": 0.8, "age": 0, "halfLife": 14 },
-          "expected": { "decay": 0.8 },
+          "input": {
+            "base": 0.8,
+            "age": 0,
+            "halfLife": 14
+          },
+          "expected": {
+            "decay": 0.8
+          },
           "interpretation": "At age zero the confidence is unchanged."
         }
       ],

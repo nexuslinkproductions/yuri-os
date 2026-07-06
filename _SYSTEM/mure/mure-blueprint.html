@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MURE 群れ — agentic collective blueprint</title>
+<style>
+:root{--bg:#faf9f5;--surf:#fff;--surf2:#f1efe8;--bd:rgba(0,0,0,.14);--bd2:rgba(0,0,0,.28);--tx:#1a1a18;--tx2:#5f5e5a;--tx3:#888780;--teal:#1D9E75;--purple:#7F77DD;--gray:#888780;--amber:#BA7517;--green:#639922;--ok:#0F6E56;--hold:#854F0B}
+@media(prefers-color-scheme:dark){:root{--bg:#262624;--surf:#30302e;--surf2:#3a3a37;--bd:rgba(255,255,255,.15);--bd2:rgba(255,255,255,.3);--tx:#f1efe8;--tx2:#b4b2a9;--tx3:#888780;--ok:#5DCAA5;--hold:#FAC775}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.5;padding:1.4rem;max-width:1080px;margin:0 auto}
+h1{font-size:24px;font-weight:500;margin:0 0 .1rem}h1 .k{color:var(--tx3);font-weight:400}
+.lede{color:var(--tx2);font-size:14px;margin:0 0 .3rem}
+h2{font-size:17px;font-weight:500;margin:1.5rem 0 .5rem;border-bottom:1px solid var(--bd);padding-bottom:.3rem}
+.legend{display:flex;gap:1.1rem;flex-wrap:wrap;font-size:12.5px;color:var(--tx2);margin:.5rem 0}
+.dot{width:9px;height:9px;border-radius:9px;display:inline-block;vertical-align:middle;margin-right:.25rem}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.grp{border:1px solid var(--bd);border-radius:12px;padding:.55rem .6rem;background:var(--surf)}
+.gh{font-size:11.5px;font-weight:500;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem}
+.role{border:1px solid var(--bd);border-radius:8px;padding:.34rem .45rem;margin-bottom:.32rem;background:var(--surf2)}
+.role .nm{font-weight:500;font-size:13.5px}.role .nm .lk{color:var(--hold);font-size:11px;margin-left:.2rem}
+.role .ar{font-size:11.5px;color:var(--tx2)}
+.role .mt{font-size:11px;color:var(--tx3);margin-top:.15rem}
+.flow{display:flex;flex-wrap:wrap;gap:.4rem}
+.step{flex:1 1 118px;border:1px solid var(--bd);border-radius:8px;padding:.45rem .5rem;background:var(--surf)}
+.step .a{font-size:11.5px;color:var(--tx2)}.step .b{font-weight:500;font-size:13.5px;margin:.1rem 0}
+.step .c{font-size:11px}.ok{color:var(--ok)}.hold{color:var(--hold)}
+table{width:100%;border-collapse:collapse;margin-top:.4rem}td{font-size:13px;padding:.35rem .5rem;border-bottom:1px solid var(--bd);vertical-align:top}
+td b{font-weight:500}code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--surf2);padding:.05rem .25rem;border-radius:4px}
+.loop{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;font-size:13px;margin:.3rem 0}
+.lp{border:1px solid var(--bd);border-radius:8px;padding:.3rem .55rem;background:var(--surf)}.ar2{color:var(--tx3)}
+.note{font-size:12.5px;color:var(--tx2);margin-top:.4rem}
+</style>
+</head>
+<body>
+<h1>MURE <span class="k">群れ</span></h1>
+<p class="lede">A 20-role self-governing agent collective on the runSwarm / dual-substrate foundation. Modeled on Sakana.ai operating principles — roles are functional archetypes, never impersonations. DISARMED by default; arming is owner-gated.</p>
+<div class="legend">
+  <span><span class="dot" style="background:var(--teal)"></span>native (Claude)</span>
+  <span><span class="dot" style="background:var(--purple)"></span>glm (z.ai)</span>
+  <span><span class="dot" style="background:var(--gray)"></span>either</span>
+  <span>🔒 = owner-gated</span>
+</div>
+<h2>The roster — 20 roles, 6 groups</h2>
+<div class="grid" id="grid"></div>
+<h2>The governed flow — a sample task, cast and gated</h2>
+<p class="note">envoy decodes intake → helmsman decomposes → capability-match → steward gates each decision → dual-substrate dispatch → adjudicator + oracle verify → converge → finalize (Opus/owner only).</p>
+<div class="flow" id="flow"></div>
+<h2>Self-governance loop + math-layer cross-reference</h2>
+<div class="loop"><span class="lp">propose</span><span class="ar2">→</span><span class="lp">score (5 dims)</span><span class="ar2">→</span><span class="lp">gate (6-charter)</span><span class="ar2">→</span><span class="lp">execute (caps)</span><span class="ar2">→</span><span class="lp">learn (Brier)</span></div>
+<table>
+<tr><td><b>goal-scoring</b></td><td><code>decision-sim</code> robustScore (0.5·mean + 0.5·CVaR) + minimaxRegret</td></tr>
+<tr><td><b>step ordering</b></td><td><code>quantum</code> orderEffect — non-commutativity (does order change the outcome?)</td></tr>
+<tr><td><b>gate veto</b></td><td><code>energy</code> isProtectedPath + salience + isCatastrophic</td></tr>
+<tr><td><b>learn step</b></td><td><code>prediction-ledger</code> calibrate — Brier / honesty audit</td></tr>
+</table>
+<p class="note">The 6-gate charter: reversible · evidence-decidable · in-doctrine · blast ≤ MEDIUM · not-outward · not-contended → all pass = self-governable; any fail or a constitution veto (protected-path / arming / gate-self-modification / secrets) → owner-gated HOLD.</p>
+<script>
+var roles=[
+["orchestration",[["Helmsman","dispatcher / research-vision lead","native/opus",1,"bestOption, orderEffect"],["Architect","CTO / composer-integrator","either/glm-max",0,"bestOption, robustnessRadius"],["Steward","COO / governance officer","native/native",1,"governanceVeto, salienceTier"]]],
+["research",[["Ideator","divergent hypothesis generator","glm/glm",0,"orderEffect"],["Scout","local-first + online researcher","native/sonnet",0,"calibrate"],["Synthesist","cross-domain transfer / merge","glm/glm-max",0,"scoreOptions"],["Evolver","evolutionary self-modifier","glm/glm-max",1,"scoreOptions, calibrate"],["Deliberator","deep reasoner (depth-adaptive)","glm/glm-max",0,"orderEffect"]]],
+["engineering",[["Engineer","core domain code-gen","either/glm",0,""],["Mechanic","integration / refactor","either/glm",0,""],["Artificer","fast scaffolding / edits","either/haiku",0,""],["Sentinel","cybersecurity / safety audit","native/sonnet",0,"governanceVeto"],["Kernelsmith","perf / language-consolidation","either/glm-max",0,"scoreOptions"]]],
+["verification",[["Adjudicator","adversarial critic","glm/glm-max",0,"robustnessRadius"],["Oracle","benchmark / fitness evaluator","native/native",0,"robustnessRadius"],["Calibrator","calibration / honesty audit","native/native",0,"calibrate"]]],
+["knowledge",[["Archivist","archive / skill-library","native/native",0,""],["Chronicler","science-writer / distiller","either/sonnet",0,""]]],
+["operations",[["Quartermaster","token-budget / cost gov","native/native",0,"scoreOptions"],["Envoy","task intake / decoder","native/sonnet",0,""]]]
+];
+var col={native:"var(--teal)",glm:"var(--purple)",either:"var(--gray)"};
+var g=document.getElementById("grid");
+roles.forEach(function(grp){
+  var box=document.createElement("div");box.className="grp";
+  var h='<div class="gh">'+grp[0]+'</div>';
+  grp[1].forEach(function(r){
+    var sub=r[2].split("/")[0];
+    h+='<div class="role"><div class="nm"><span class="dot" style="background:'+col[sub]+'"></span>'+r[0]+(r[3]?'<span class="lk">🔒</span>':'')+'</div><div class="ar">'+r[1]+'</div><div class="mt">'+r[2]+(r[4]?' · '+r[4]:'')+'</div></div>';
+  });
+  box.innerHTML=h;g.appendChild(box);
+});
+var flow=[["research","scout","native/sonnet",1],["design","architect","glm/glm-max",1],["build","engineer","glm/glm",1],["tests","artificer","glm/glm-flash",1],["security","sentinel","native/sonnet",1],["verify","adjudicator","glm/glm-max",1],["doc","chronicler","glm/glm",1],["ship (arm flag)","evolver","glm/glm-max",0]];
+var f=document.getElementById("flow");
+flow.forEach(function(s){
+  var d=document.createElement("div");d.className="step";
+  d.innerHTML='<div class="a">'+s[0]+'</div><div class="b">'+s[1]+'</div><div class="c '+(s[3]?'ok':'hold')+'">'+(s[3]?'✓ self':'🔒 HELD — owner')+'</div><div class="a">'+s[2]+'</div>';
+  f.appendChild(d);
+});
+</script>
+</body>
+</html>

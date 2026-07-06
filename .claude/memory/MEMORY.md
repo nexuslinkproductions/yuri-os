@@ -1,0 +1,146 @@
+# Memory Index — Claude Auto-Memory (v3: stable-handle format)
+- [ARCHIVE-INDEX](archive-index.md) — older/settled entries; recall via this file or ai search
+
+## Active (2026-07)
+- [PROJ:YURI-FULL-LOGIC-INSPECTION-2026-07-06](proj-yuri-full-logic-inspection-2026-07-06.md) — 12-organ opus-fleet map + Fable-5 mastermind; spine="unmarked non-determinism"; ONE move=Day-1 honesty patch-set + kill wedged backend; 3 findings corrected by adversarial pass
+- [PROJ:ORDERFLOW-QUANT-P0-2026-07-06](proj-orderflow-quant-p0-2026-07-06.md) — trading pivot crypto→orderflow+quant; P0 SHIPPED+VERIFIED (IC spine + 4 gap modules DISARMED, 48 tests, commit 57f46cad); nautilus v2 env up; P1 BLOCKED on Marcel's Databento key
+- [PROJ:NEXUS-LINK-WAVE2-2026-07-06](proj-nexus-link-wave2-2026-07-06.md) — Nexus Link: Wave 0 done + Wave 1 Gmail (struct-only) + Wave 2 audit spine LIVE-VERIFIED; local Postgres stack up; read-first + aggregator-MCP; continue-from-here state
+- [REF:STALENESS-CONSCIENCE-2026-07-05](ref-staleness-conscience-2026-07-05.md) — SHIPPED: extract→verify→heal(6 guards)→sweep; wired SessionStart async DISARMED; heal arm = owner gate
+- [PROJ:YURI-ASSISTANT-ROLE-SYNTHESIS-2026-07-05](proj-yuri-assistant-role-synthesis-2026-07-05.md) — role solidified via Marcel+René questionnaires + Fable-5 one-shot; gate/brief/meters ALREADY shipped, build-now ≈1 day; global CLAUDE.md candidate pending owner swap
+- [REF:YURI-MURE-MERGE-WAVE1-2026-07-05](ref-yuri-mure-merge-wave1-2026-07-05.md) — _SYSTEM/lib shared libs + cross-imports + 5 bug fixes + desktop phase-1; 467/467; SHIPPED cbdca5c0 + pushed origin/main
+- [REF:YURI-RUNTIME-SHIPPED-2026-07-05](ref-yuri-runtime-shipped-2026-07-05.md) — Yuri Runtime SHIPPED a158629a; 218/218; memory loops live; open: kagami control-plane, launchd arms
+- [PROJ:JEFFREY-DAD-ASSISTANT-2026-07-04](proj-jeffrey-dad-assistant-2026-07-04.md) — René's voice assistant; research DONE
+- [REF:YURI-CORE-TOOLING-2026-07-04](ref-yuri-core-tooling-2026-07-04.md) — 4befac34 tooling shipped; MURE 191/191
+- [PROJ:MURE-AGENTIC-COLLECTIVE-2026-06-22](proj-agentic-digital-company-2026-06-22.md) — MURE 20-role collective ARMED degraded
+- [PROJ:BLENDER-DEPARTMENT-2026-06-23](proj-blender-department-2026-06-23.md) — holster automation; Phase-1 LIVE, Phase-2 BLOCKING
+- [PROJ:GLM-FLEET-SUBSTRATE-2026-06-22](proj-glm-fleet-substrate-2026-06-22.md) — GLM fleet SHIPPED ce4350fb, ARMED
+- [PROJ:YURI-TRADING-ENGINE-2026-06-17](proj-yuri-trading-engine-2026-06-17.md) — trading brain SHIPPED+LIVE, no edge yet
+- [PROJ:KEYSTONE-VERIFIER-LEARN-LOOP-2026-06-16](proj-keystone-verifier-learn-loop-2026-06-16.md) — learn loop ARMED, DERIVES 0
+- [PROJ:CANONICAL-MEMORY-STORE-2026-06-14](proj-canonical-memory-store-2026-06-14.md) — canonical store ARMED LIVE
+- [PROJ:AUTONOMOUS-SELF-MAINTENANCE-2026-06-15](proj-autonomous-self-maintenance-2026-06-15.md) — self-maintain doctrine DONE
+- [PROJ:LANGUAGE-CONSOLIDATION-PRIORITIES](proj-language-consolidation-priorities.md) — Rust hot kernels, Mojo for ML
+- [PROJ:FILING-AUTONOMY-LAYER](filing-autonomy-layer-2026-06-13.md) — filing system SHIPPED, DISARMED
+- [PROJ:YURI-VOICE-GLM-ZAI-2026-06-19](proj-yuri-voice-glm-zai-2026-06-19.md) — LIVE: yuri voice = GLM-5-Turbo
+
+## Feedback (standing behavioral rules)
+- [FB:INSPECTION-EXCLUDE-WORKTREES](feedback-inspection-exclude-worktrees.md) — repo-wide grep/find MUST exclude .claude/worktrees (13GB shadow copies contaminate findings)
+- [FB:FLEET-PARALLELISM-BREADTH-DEPTH](feedback-fleet-parallelism-breadth-depth.md) — Agents FLAT, fan out ~12
+- [FB:GLM-LANES-FULL-PEERS](feedback-glm-lanes-full-peers.md) — GLM lanes FULL PEERS; glm-5.2=Opus-peer
+- [FB:ENFORCE-BLOCK-IS-BREAKER-NOT-SOFT-REJECT](feedback-enforce-block-is-breaker-not-soft-reject.md) — enforce blocks only catastrophic BREAKER
+- [FB:NO-HUD-KAGAMI-TOKENS](feedback-no-hud-kagami-tokens.md) — never use HUD/Kagami design tokens
+- [FB:SLM-NOT-LESSER-GIVE-CAPABILITIES](feedback-slm-not-lesser-give-capabilities.md) — don't treat small models as lesser
+- [FB:NATIVE-SPAWN-MODEL-ROUTING](feedback-native-spawn-model-routing.md) — MODEL-PIN spawns: Sonnet=work, Haiku=read
+- [FB:SONNET-SEPARATE-WEEKLY-QUOTA](feedback-sonnet-separate-weekly-quota.md) — Sonnet bills SEPARATE weekly pool
+- [FB:WORKFLOW-BILLS-MAIN-QUOTA-NOT-SONNET](feedback-workflow-bills-main-quota-not-sonnet.md) — `Workflow` bills MAIN quota
+- [FB:NO-WORKFLOW-TOOL-USE-AGENT-ONLY](feedback-no-workflow-tool-use-agent-only.md) — Workflow ban LIFTED 2026-07-05; allowed (bills main quota, not Sonnet pool)
+- [FB:OPUS-ORCHESTRATES-SONNET-HAIKU-AGENTS](feedback-opus-orchestrates-sonnet-haiku-agents.md) — Opus orchestrates, Agents work
+- [FB:ONLINE-VERIFICATION-LAYER](feedback-online-verification-layer.md) — online verify standard for EXTERNAL claims
+- [FB:PEERS-MEANS-NANO-SWARM](feedback-peers-means-nano-swarm.md) — "peers" = ollama-cloud nano-swarm
+- [FB:OLLAMA-FLASH-PRIMARY-ROUTING](feedback-ollama-flash-primary-routing.md) — fan-out defaults deepseek-v4-flash
+- [FB:GLM-ZAI-BUILD-LANE](feedback-glm-zai-build-lane.md) — GLM-5.2 full build peer
+- [FB:NANO-SWARM-ORCHESTRATION](feedback-nano-swarm-orchestration.md) — serialize same-file lanes; verify claims
+- [FB:BACKGROUND-EXIT-CODE-MASKING](feedback-background-exit-code-masking.md) — chained exit code is LAST statement's
+- [FB:CONTINUOUS-AUTONOMOUS-CADENCE](feedback-continuous-autonomous-cadence.md) — keep tight autonomous cadence
+- [FB:DEEPSEEK-LANES-CHEAP-STRONG](feedback-deepseek-lanes-cheap-strong.md) — DeepSeek lanes cheap+strong
+- [FB:SWARM-IS-AGENTS-NOT-DELIVERABLE](feedback-swarm-is-agents-not-deliverable.md) — 'swarm' = execution vehicle
+- [FB:AUTONOMOUS-WORKFLOW-DEFAULT](feedback-autonomous-workflow-default.md) — GROUND→swarm→sims is AUTONOMOUS DEFAULT
+- [FB:ALWAYS-SIMULATE-WHEN-WORKING](feedback-always-simulate-when-working.md) — every cycle runs sim+calc+prediction
+- [FB:ARMING-IMPROVEMENTS-SELF-GOVERNABLE](feedback-arming-improvements-self-governable.md) — telemetry SELF-GOVERNABLE; live-decision GATED
+- [FB:SELF-GOVERNANCE-CHARTER](feedback-self-governance-charter.md) — SELF-GOVERNABLE iff ALL 6 gates hold
+- [FB:GREEN-RED-GREY-TEST-LAYERING](feedback-green-red-grey-test-layering.md) — shrink GREY via mutation sweep
+- [FB:PEER-LANE-DEBUNK-NEEDS-VERIFICATION](feedback-peer-lane-debunk-needs-verification.md) — lane DEBUNKS need verification too
+- [FB:APPROVED-MEANS-COMMIT-AND-PUSH](feedback-approved-means-commit-and-push.md) — commit+push own work directly
+- [FB:COMMIT-PATHSPEC-NOT-BARE-MULTI-SESSION](feedback-commit-pathspec-not-bare-multi-session.md) — bare commit sweeps parallel session
+- [FB:MASTER-BRIEF-PER-MISSION](feedback-master-brief-per-mission.md) — write ONE master-brief doc FIRST
+- [FB:ALL-DISPATCH-THROUGH-LLM-COMPAT](feedback-all-dispatch-through-llm-compat.md) — all dispatch via llm-compat
+- [FB:POSIX-FS-CONCURRENCY-FLOOR](feedback-posix-fs-concurrency-floor.md) — FS leases: O_EXCL before rename
+- [FB:COMMAND-GATE-BYPASS-CLASSES](feedback-command-gate-bypass-classes.md) — denylist: expand globs, split redirection
+- [FB:AFFINE-OBJECTIVE-ENUMERATE-CORNERS](feedback-affine-objective-enumerate-corners.md) — affine worst-case at a CORNER
+- [FB:NONOFFSETTABLE-IS-PER-CLAIM-NOT-NET-DELTA](feedback-nonoffsettable-is-per-claim-not-net-delta.md) — gate keys per-item not net delta
+- [FB:MAX-REASONING-FLEET-OVERRIDE](feedback-max-reasoning-fleet-override.md) — "max reasoning" pins fleet to Opus
+- [FB:EFFECT-SIZE-OVER-BINARY-THRESHOLD](feedback-effect-size-over-binary-threshold.md) — report effect size+rank not binary
+- [FB:TWO-SIDED-GATE-SYMMETRIC-HARDENING](feedback-two-sided-gate-symmetric-hardening.md) — same severity floor both ways
+- [FB:DIAGNOSE-METRIC-BEFORE-SYSTEM](feedback-diagnose-metric-before-system.md) — diagnose METRIC before system-broke
+- [FB:ALL-DOMAINS-FIRST-CLASS-DOMAIN-BLIND-GATE](all-domains-first-class-domain-blind-gate.md) — numerology/alchemy FIRST-CLASS
+- [FB:BLIND-THE-FLEET-NO-SEEDED-CONVERGENCE](blind-the-fleet-no-seeded-convergence.md) — prove convergence genuine
+- [FB:BUILD-AGENT-CONTEXT-LOADOUT](build-agent-context-loadout.md) — PROPORTIONAL loadout to task
+- [FB:COMPLETENESS-CERT-NEEDS-TOTAL-COUNTS](completeness-cert-needs-total-counts.md) — cert over truncation is laundering
+- [FB:CONTROLLED-NOT-CHEAP-BOUNDED-FANOUT](controlled-not-cheap-bounded-fanout.md) — bound SCALE, not quality
+- [FB:DELTA-GATE-SEVERITY-LAUNDERING](delta-gate-severity-laundering.md) — conserved SUM needs L∞ term
+- [FB:AGENT-DISPATCH-CONTRACT](feedback-agent-dispatch-contract.md) — every agent = mini-me+Rick
+- [FB:AI-SLOP-CATALOG](feedback-ai-slop-catalog.md) — no em-dashes, no 'real' crutch
+- [FB:BRAIN-DUMP-DECODE](feedback-brain-dump-decode.md) — decode brain dump first
+- [FB:BRIEF-READY-TO-COPY](feedback-brief-ready-to-copy.md) — artifact output ready-to-copy
+- [FB:CIRCUITRY-VISUAL-IS-CHIP-DIE](feedback-circuitry-visual-is-chip-die.md) — viz aesthetic is CHIP-DIE
+- [FB:CLEAN-STRUCTURE-NO-CLUTTER](feedback-clean-structure-no-clutter.md) — spotless cable management
+- [FB:CODEX-DISPATCH-DISCIPLINE](feedback-codex-dispatch-discipline.md) — Codex = platform not model
+- [FB:CODEX-ENGINEERING-LESSONS](feedback-codex-engineering-lessons.md) — 5 defensive patterns
+- [FB:CODEX-LANE-NOT-TRULY-READ-ONLY](feedback-codex-lane-not-truly-read-only.md) — Codex lanes CAN WRITE
+- [FB:COPY-STORYTELLING-MONO-NO-AWARE](feedback-copy-storytelling-mono-no-aware.md) — copy = moving STORYTELLING
+- [FB:DELIVER-DONT-DEFER-AND-CHECKPOINT](feedback-deliver-dont-defer-and-checkpoint.md) — deliver real increment each turn
+- [FB:DIRECT-TOOLS-FOR-KNOWN-READS](feedback-direct-tools-for-known-reads.md) — direct tools for known reads
+- [FB:DONT-ANNOUNCE-ADVERSARIAL-ALLY](feedback-dont-announce-adversarial-ally.md) — don't announce, just deliver
+- [FB:EXPLAIN-DONT-JUST-LABEL](feedback-explain-dont-just-label.md) — explain flagged items, not labels
+- [FB:FANOUT-SELF-SIZE](feedback-fanout-self-size.md) — self-size fan-out to task
+- [FB:OPUS-FLEET-MURE-DEFAULT-EVEN-SMALL](feedback-opus-fleet-mure-default-even-for-small-edits.md) — dispatch even "small" fixes, don't solo-rationalize
+- [FB:FULL-PREREQUISITE-CLOSURE-NO-WIRE-LATER](feedback-full-prerequisite-closure-no-wire-later.md) — full closure, no "later" stubs
+- [FB:GATE-HARDENING-FAIL-CLOSED](feedback-gate-hardening-fail-closed.md) — gates fail CLOSED
+- [FB:HARNESS-BATCH-AND-HEADLESS](feedback-harness-batch-and-headless.md) — don't bundle tool calls
+- [FB:IDENTITY](feedback-identity.md) — I am Claude, not Sonnet/Opus
+- [FB:IMPORTANT-PRIMITIVE-MEANS-BUILD-IN](feedback-important-primitive-means-build-in.md) — "important" primitive means BUILD IN
+- [FB:OPUS-FLEET-STANDING-DEFAULT](feedback-opus-fleet-standing-default.md) — opus-fleet is STANDING default, never wait for /opus-fleet
+- [FB:LIVE-RECALL-NOT-STALE-TRACKERS](feedback-live-recall-not-stale-trackers.md) — query LIVE nerve, not trackers
+- [FB:MODEL-SELF-SELECT](feedback-model-self-select.md) — self-select model per task
+- [FB:NO-ASK-JUST-WRITE-MEMORY](feedback-no-ask-just-write-memory.md) — just write memory proactively
+- [FB:NO-P-CLAUDE](feedback-no-p-claude.md) — prohibited: claude -p / SDK headless
+- [FB:PREFER-RUST](feedback-prefer-rust.md) — default Rust for new tools
+- [FB:PROACTIVE-CODEX-BATON](feedback-proactive-codex-baton.md) — on Codex BLOCKED, execute automatically
+- [FB:PROPOSAL-DISCIPLINE](feedback-proposal-discipline.md) — omit WHY for origin-only incidents
+- [FB:PROSE-NOT-OUTRUN-WIRING](feedback-prose-not-outrun-wiring.md) — verify vs LIVE runtime
+- [FB:PROTOCOL-GATE-CANONICAL-WRAPPER](feedback-protocol-gate-canonical-wrapper.md) — find canonical wrapper first
+- [FB:PUBLICATION-VOICE-NO-INTERNALS](feedback-publication-voice-no-internals.md) — no filenames/internal mentions
+- [FB:RESEARCH-LOCAL-DB-FIRST](feedback-research-local-db-first.md) — local DB FIRST, then online
+- [FB:RICK-IS-ME-ADDRESS-MARCEL](feedback-rick-is-me-address-marcel.md) — Rick=me; address operator as Marcel
+- [FB:RICK-PERSONA-MEANS-PERSONA-MD](feedback-rick-persona-means-persona-md.md) — read _SYSTEM/persona.md
+- [FB:ROUTE-TO-QUANTUM](feedback-route-to-quantum.md) — non-trivial impl → Quantum Rick
+- [FB:SCOPE-TO-THE-CURRENT-ASK](feedback-scope-to-the-current-ask.md) — match CURRENT step, stay surgical
+- [FB:SIMPLICITY-OVER-FANOUT](feedback-simplicity-over-fanout.md) — default simplest usage
+- [FB:TRIGGER-PHRASES](feedback-trigger-phrases.md) — phrase-to-mode catalog
+- [FB:TWO-TRACK-RULE](feedback-two-track-rule.md) — YURI canonical vs Claude auto
+- [FB:VISUAL-WORK-NEEDS-VISUAL-INSPECTION](feedback-visual-work-needs-visual-inspection.md) — verify by LOOKING at screenshots
+- [FB:VERIFY-MAPS-BEFORE-DESTRUCTIVE](feedback-verify-maps-before-destructive.md) — verify before destructive ops
+- [FB:VERIFY-TRACKED-BEFORE-PUSH](feedback-verify-tracked-before-push.md) — confirm imports TRACKED
+- [FB:YURI-NOT-AGENTIC](feedback-yuri-not-agentic.md) — YURI GUIDES via Lyapunov energy
+- [FB:CONVERSATIONAL-ALIVE-STYLE](feedback_conversational_alive_style.md) — Marcel wants alive register
+- [FB:MULTI-LANE-PARALLEL](feedback_multi_lane_parallel.md) — default multi-lane parallel
+- [FB:FLEET-FINDINGS-MUST-PERSIST-DURABLY](fleet-findings-must-persist-durably.md) — WRITE findings to durable file
+- [FB:GITNEXUS-QUERY-IS-LEXICAL-CONTEXT-IS-STRUCTURAL](gitnexus-query-is-lexical-context-is-structural.md) — `query` lexical, `context` structural
+- [FB:LANE-CONTEXT-FRONT-LOAD](lane-context-front-load.md) — FRONT-LOAD files into packet
+- [FB:LANE-SIMPLIFICATION-AND-FULL-EQUIP](lane-simplification-and-full-equip.md) — one llm-lane.mjs core
+- [FB:LESSONS-DEFAULT-TO-MEMORY-WRITE](lessons-default-to-memory-write.md) — lessons default to memory write
+- [FB:MARCEL-OPERATING-BRAIN](marcel-operating-brain.md) — nervous-system contract, auto-loads
+- [FB:MEMORY-WRITE-NATIVE-FLOW](memory-write-native-flow.md) — memory write is native
+- [FB:NO-BARE-CD-DRIFTS-SESSION-CWD](no-bare-cd-drifts-session-cwd.md) — never bare-cd in Bash
+- [FB:RESEARCH-CAPTURE-DISCIPLINE](research-capture-discipline.md) — persist findings + ai reindex
+- [FB:REUSE-DOCS-NOT-NEW-MARKDOWNS](reuse-docs-not-new-markdowns.md) — reuse docs, no new markdowns
+- [FB:SELF-IMPROVEMENT-LOOP-IS-NATIVE-LANES-ARE-BUILD-MUSCLE](self-improvement-loop-is-native-lanes-are-build-muscle.md) — loop is NATIVE, never sandbox; lanes run FULLY EQUIPPED (absorbed codex-lanes-fully-equipped)
+
+## References (load-bearing architecture facts)
+- [USER:FAVORITE-COLOR](user-favorite-color.md) — favorite color is teal
+- [REF:VIZ-LAB-SKILL](ref-viz-lab-skill.md) — viz-lab skill BUILT; invoke /viz-lab
+- [REF:SKILL-DISCOVERY-ARCHITECTURE](ref-skill-discovery-architecture.md) — skill frontmatter needs BYTE 0
+- [REF:CAPABILITY-SCAN-TAG-WINDOW](ref-capability-scan-tag-window.md) — scans only 12 lines past tag
+- [REF:CIRCUITRY-DUAL-GRAPH-ARCHITECTURE](ref-circuitry-dual-graph-architecture.md) — TWO circuitry graphs; B canonical
+- [REF:CODEX-RICK-YURI-CURRENT-OPERATING-MODEL-2026-06-15](ref-codex-rick-yuri-current-operating-model-2026-06-15.md) — YURI = verifier-centered substrate
+- [REF:OLLAMA-CLOUD-PEER-LANE](ref-ollama-cloud-peer-lane.md) — ollama-cloud = nano-swarm peer lane
+- [REF:SIMULATION-ARSENAL](ref-simulation-arsenal.md) — 4-tier sim arsenal; registry 25
+- [REF:SKILL-XREF-QUANTUM](ref-recallable-skills-xref-quantum.md) — /xref + /quantum-sim recallable
+- [REF:COMMIT-GATE-RECONCILE](ref-commit-gate-reconcile.md) — pre-commit gate REPO-WIDE
+- [REF:MIMO-INTEGRATION](ref-mimo-integration.md) — Mimo native; FIRST-CLASS peer lane
+- [REF:MIMO-FIRING](ref-mimo-firing.md) — fire via `node mimo.mjs` UNSANDBOXED
+- [FB:MIMO-PEER-LANE](feedback-mimo-peer-lane.md) — Mimo+DeepSeek PEER lanes, incl. nano-swarm multi-lane extension
+- [REF:CLAUDE-DIR-SYMLINK-HOME-INTO-REPO](claude-dir-symlink-home-into-repo.md) — ~/.claude is a SYMLINK
+- [REF:CLAUDE-REMOTE-CONTROL-NOT-COWORK](claude-remote-control-not-cowork.md) — Cowork+Remote both real
+- [REF:MEMORY-ARCHITECTURE-MAP](memory-architecture-map.md) — map at MEMORY_ARCHITECTURE.md
+- [REF:ONE-CANONICAL-GRAPH-GENERATED-PROJECTIONS](one-canonical-graph-generated-projections.md) — ONE canonical graph
+- [USR:YURI-NAMED-FOR-LILLY](yuri-named-for-lilly.md) — named after Lilly

@@ -1,9 +1,5 @@
 # Weekly Consolidation
 
-Compatibility forwarder.
+STATUS: FORWARDER — retained for compatibility; no active consumers (wave-3 L.6).
 
-Canonical weekly ritual now lives at:
-
-`_SYSTEM/SELF-IMPROVEMENT/01_RHYTHM/weekly-comp.md`
-
-Use `weekly-comp.md` for consolidation, prevention-rule rewriting, cross-reference indexing, raw lesson archiving, and next-week experiment selection.
+Canonical: `_SYSTEM/Scripts/weekly-comp.mjs` (doc: `_SYSTEM/SELF-IMPROVEMENT/01_RHYTHM/weekly-comp.md`). Run manually: `node _SYSTEM/Scripts/weekly-comp.mjs`.

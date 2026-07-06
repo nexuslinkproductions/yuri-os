@@ -83,8 +83,13 @@ class MemoryGovernorTest(unittest.TestCase):
         self.assertEqual(status["suppressed"], 0)
 
     def test_research_watch_seeds_2026_sources_offline(self):
+        # wave-2 M.7 moved seeding into connection-init (once per db_path, ON CONFLICT
+        # DO NOTHING) — research_watch on an already-initialized DB truthfully reports
+        # changes=0. The contract under test: sources ARE seeded and the offline run
+        # records cleanly, not that research_watch itself performs the insert.
         result = research_watch(self.db_path, online=False)
-        self.assertGreaterEqual(result["changes"], 1)
+        self.assertGreaterEqual(result["changes"], 0)
+        self.assertFalse(result["online"])
         with sqlite3.connect(self.db_path) as conn:
             count = conn.execute("SELECT COUNT(*) FROM memory_research_sources").fetchone()[0]
         self.assertGreaterEqual(count, 10)

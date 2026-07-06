@@ -2,39 +2,29 @@
   "meta": {
     "schema_version": "1.0",
     "hardware": "macbook_m2_pro",
-    "updated": "2026-05-10T00:00:00Z",
-    "source_session": "2026-05-10_local-model-fit-audit",
+    "updated": "2026-06-07T00:00:00Z",
+    "source_session": "2026-06-07_gemma4-12b-it-qat-local-slm-policy",
     "notes": "Centralized Ollama model registry. Skills, MCP bridges, and local lanes reference this policy instead of hardcoding model names. Deterministic Yuri functions stay native; local models provide cheap judgment/extraction only."
   },
   "local": {
-    "primary": "needle",
-    "utility": "needle",
-    "code": "qwen2.5-coder:7b",
-    "code_fallback": "starcoder2:latest",
-    "deep_reasoning": "deepseek-r1:8b",
-    "multimodal": "gemma4:e2b",
+    "primary": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "utility": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "code": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "code_fallback": "gemma4:12b-it-qat",
+    "deep_reasoning": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+    "gemma": "gemma4:12b-it-qat",
+    "multimodal": "gemma4:12b-it-qat",
     "embeddings": "nomic-embed-text:latest",
-    "fallback": "llama3.2:latest",
-    "manual_only": [
-      "deepseek-r1:8b",
-      "deepseek-liberated:latest",
-      "deepseek-v2:16b",
-      "gemma4:latest"
-    ],
-    "frozen": [
-      "deepseek-r1:8b",
-      "deepseek-r1:latest",
-      "deepseek-liberated:latest",
-      "deepseek-v2:16b",
-      "gemma4:latest"
-    ],
-    "reasoning": "primary/utility: needle is installed locally and remains the active lightweight tool-call/default lane. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use DeepSeek V4 cloud lanes for serious reasoning. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
+    "fallback": "gemma4:12b-it-qat",
+    "manual_only": [],
+    "frozen": [],
+    "reasoning": "PROMOTED 2026-06-13: qwen-local (Qwen3.5-9B-GLM5.1-Distill Q5_K_M) is the default local SLM for primary/utility/code/deep_reasoning — 7/7 role-fit on bounded YURI jobs, ~22.6 tok/s, 6.3GB 100% GPU on the M2 Pro (faster+lighter than gemma; see 02_RESOURCES/research/qwen3.5-9b-glm5.1-distill-local-lane-eval-2026-06-13.md). gemma4:12b-it-qat retained as code_fallback + fallback + the multimodal/`gemma` slots (verified vision path; qwen mmproj not wired). All local dispatch is organ-gated through llm-lane.mjs (qwen-local lane). Autonomous background use via yuri-slm-worker.mjs (ships DISARMED). DeepSeek V4 / Mimo cloud lanes remain separate llm-compat reasoning lanes."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {
       "max_ollama_memory_gb": 10,
       "unified_memory": true,
-      "note": "Models above 8B or around 9 GB quantized can cold-load slowly and compete with browser/editor/backend memory on this 16 GB MacBook. Prefer needle for general local work, qwen2.5-coder:7b for code-local, and keep 14B/16B-class models manual-only."
+      "note": "Gemma 4 12B QAT is the only routed local SLM policy. On this 16 GB MacBook it should be treated as a warm, bounded local lane rather than an always-heavy foreground replacement; old Needle/Qwen local choices are retired from llm-compat routing."
     }
   },
   "environment_override": {
@@ -45,10 +35,13 @@
   "deepseek_v4": {
     "docs_as_of": "2026-05-02",
     "base_urls": {
-      "nvidia_nim": "https://integrate.api.nvidia.com/v1"
+      "direct": "https://api.deepseek.com/v1"
     },
-    "api_key_env": "NVIDIA_API_KEY",
-    "direct_api_status": "retired",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "direct_api_status": "active",
+    "direct_api_key_env": "DEEPSEEK_API_KEY",
+    "direct_base_url_env": "DEEPSEEK_BASE_URL",
+    "canonical_route_note": "2026-06-05 owner decision: canonical deepseek route is the DIRECT api.deepseek.com/v1 (matches the live runner); retired status reverted.",
     "models": {
       "flash": "deepseek-v4-flash",
       "pro": "deepseek-v4-pro",
@@ -101,158 +94,337 @@
       "deepseek-reasoner": "2026-07-24T15:59:00Z"
     }
   },
-  "nvidia_nim": {
-    "docs_as_of": "2026-05-17",
-    "base_url": "https://integrate.api.nvidia.com/v1",
-    "protocol": "openai-compatible",
-    "api_key_env": "NVIDIA_API_KEY",
-    "routing_note": "Use @nvidia dispatch token in offload-contract. Pick model by CAPABILITY — never spam the catalogue. Each model has a primary purpose.",
+  "mimo": {
+    "docs_as_of": "2026-06-10",
+    "provider": "xiaomi-mimo-token-plan",
+    "protocol": "anthropic-compatible",
+    "base_url_env": "MIMO_BASE_URL",
+    "base_url_token_plan": "https://token-plan-ams.xiaomimimo.com/anthropic",
+    "base_url_payg": "https://api.xiaomimimo.com/anthropic",
+    "api_key_env": "MIMO_API_KEY",
+    "api_key_format": "tp-xxxxx (token plan) | sk-xxxxx (pay-as-you-go)",
+    "keychain_service": "yuri-mimo-api-key",
+    "launcher": "ai claude-mimo",
+    "integration": "native Claude Code — sets ANTHROPIC_BASE_URL + ANTHROPIC_AUTH_TOKEN at session start; /model mimo-v2.5-pro works natively within that session",
+    "default_model": "mimo-v2.5-pro[1m]",
+    "standing_directive": "Mimo is first-class equal to Anthropic with the SAME FULL CAPABILITIES as Claude Code — a complete agentic coding peer, NOT advisory/reasoning-only and NOT a bulk/cheap fallback. Always prefer largest context (mimo-v2.5-pro[1m]) and max effort.",
     "models": {
-      "default":            "meta/llama-3.3-70b-instruct",
-      "architect":          "nvidia/nemotron-3-super-120b-a12b",
-      "reasoning_heavy":    "qwen/qwen3.5-122b-a10b",
-      "code_mega":          "qwen/qwen3-coder-480b-a35b-instruct",
-      "code_fast":          "nvidia/llama-3.1-nemotron-70b-instruct",
-      "instruction_fast":   "meta/llama-3.3-70b-instruct",
-      "instruction_large":  "meta/llama-3.1-405b-instruct",
-      "chat_balanced":      "mistralai/mistral-medium-3.5-128b",
-      "frontier_chat":      "mistralai/mistral-large-3-675b-instruct-2512",
-      "multimodal_vision":  "meta/llama-3.2-11b-vision-instruct",
-      "kimi_reasoning":     "moonshotai/kimi-k2.6",
-      "mobile_efficient":   "microsoft/phi-4",
-      "qa_comprehension":   "google/gemma-4-31b-it",
-      "embeddings":         "nvidia/llama-nemotron-embed-1b-v2"
-    },
-    "capability_profiles": {
-      "architect": {
-        "model": "nvidia/nemotron-3-super-120b-a12b",
-        "dispatch": "@nvidia-nemotron-120b",
-        "best_for": ["system design", "architecture review", "multi-step planning", "yuri-shura architect lane"],
-        "avoid_for": ["quick lookups", "simple transforms"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "reasoning_heavy": {
-        "model": "qwen/qwen3.5-122b-a10b",
-        "dispatch": "@nvidia-qwen",
-        "best_for": ["complex multi-step reasoning", "long analysis chains", "deep research synthesis"],
-        "avoid_for": ["fast turnaround", "simple generation"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "code_mega": {
-        "model": "qwen/qwen3-coder-480b-a35b-instruct",
-        "dispatch": "@nvidia-qwen-coder",
-        "best_for": ["large codebase refactors", "complex algorithm implementation", "multi-file codegen"],
-        "avoid_for": ["prose", "reasoning-only tasks"],
-        "context_window": 256000,
-        "tools": true
-      },
-      "code_fast": {
-        "model": "nvidia/llama-3.1-nemotron-70b-instruct",
-        "dispatch": "@nvidia-nemotron",
-        "best_for": ["quick code fixes", "code review", "preflight checks", "advisory lane"],
-        "avoid_for": ["long context synthesis"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "instruction_fast": {
-        "model": "meta/llama-3.3-70b-instruct",
-        "dispatch": "@nvidia-llama-70b",
-        "best_for": ["general instruction following", "summaries", "triage", "fast response"],
-        "avoid_for": ["deep reasoning", "massive codebases"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "instruction_large": {
-        "model": "meta/llama-3.1-405b-instruct",
-        "dispatch": "@nvidia-llama-405b",
-        "best_for": ["high-stakes instruction tasks", "broad knowledge synthesis", "fallback when 70b insufficient"],
-        "avoid_for": ["latency-sensitive tasks"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "chat_balanced": {
-        "model": "mistralai/mistral-medium-3.5-128b",
-        "dispatch": "@nvidia-mistral-medium",
-        "best_for": ["balanced chat", "structured output", "moderate reasoning", "European compliance contexts"],
-        "avoid_for": ["pure code generation"],
-        "context_window": 128000,
-        "tools": true
-      },
-      "frontier_chat": {
-        "model": "mistralai/mistral-large-3-675b-instruct-2512",
-        "dispatch": "@nvidia-mistral-large",
-        "best_for": ["frontier-tier reasoning", "long-form synthesis", "European compliance contexts at scale", "Codex / Sonnet failover", "multilingual high-stakes prose"],
-        "avoid_for": ["latency-sensitive tasks (≈12s round-trip on 80 tokens)", "trivial classification"],
-        "context_window": 128000,
-        "tools": true,
-        "probed": "2026-05-19",
-        "size_params": "675B"
-      },
-      "multimodal_vision": {
-        "model": "meta/llama-3.2-11b-vision-instruct",
-        "dispatch": "@nvidia-vision",
-        "best_for": ["image analysis", "screenshot review", "visual QA", "UI review from screenshots"],
-        "avoid_for": ["text-only tasks — wasteful"],
-        "context_window": 128000,
-        "tools": false
-      },
-      "kimi_reasoning": {
-        "model": "moonshotai/kimi-k2.6",
-        "dispatch": "@nvidia-kimi",
-        "best_for": ["long context reasoning", "document QA", "legal/contract review", "128k+ context tasks"],
-        "avoid_for": ["short tasks where context window is wasted"],
+      "default": "mimo-v2.5-pro[1m]",
+      "flagship": {
+        "id": "mimo-v2.5-pro",
+        "id_1m": "mimo-v2.5-pro[1m]",
         "context_window": 1000000,
-        "tools": true
+        "max_output": 131072,
+        "capabilities": ["deep thinking", "function calls", "streaming", "structured output", "web search"],
+        "use_for": ["reasoning", "coding", "synthesis", "long-context tasks"]
       },
-      "mobile_efficient": {
-        "model": "microsoft/phi-4",
-        "dispatch": "@nvidia-phi",
-        "best_for": ["fast classification", "routing decisions", "lightweight extraction", "budget-sensitive tasks"],
-        "avoid_for": ["complex reasoning", "large codebases"],
-        "context_window": 16384,
-        "tools": true
+      "multimodal": {
+        "id": "mimo-v2.5",
+        "id_1m": "mimo-v2.5[1m]",
+        "context_window": 1000000,
+        "max_output": 131072,
+        "capabilities": ["full-modal understanding", "vision", "text generation", "streaming"],
+        "use_for": ["image analysis", "multimodal tasks", "vision + reasoning"]
       },
-      "qa_comprehension": {
-        "model": "google/gemma-4-31b-it",
-        "dispatch": "@nvidia-gemma",
-        "best_for": ["factual QA", "document comprehension", "summarization at scale"],
-        "avoid_for": ["code generation"],
-        "context_window": 128000,
-        "tools": false
+      "flash": {
+        "id": "mimo-v2-flash",
+        "context_window": 262144,
+        "max_output": 65536,
+        "capabilities": ["text generation", "streaming", "fast"],
+        "use_for": ["fast turnaround", "cheap bulk generation", "triage", "low-latency tasks"]
       },
-      "embeddings": {
-        "model": "nvidia/llama-nemotron-embed-1b-v2",
-        "dispatch": "@nvidia-embed",
-        "best_for": ["semantic search", "RAG embedding", "similarity scoring"],
-        "avoid_for": ["generation — embedding-only model"],
+      "asr": {
+        "id": "mimo-v2.5-asr",
         "context_window": 8192,
-        "tools": false,
-        "output": "2048-dimensional vectors"
-      }
+        "capabilities": ["speech recognition", "Chinese + English"],
+        "use_for": ["audio transcription"]
+      },
+      "tts": {
+        "id": "mimo-v2.5-tts",
+        "context_window": 8192,
+        "capabilities": ["text-to-speech synthesis"],
+        "use_for": ["voice output"]
+      },
+      "tts_voiceclone": {
+        "id": "mimo-v2.5-tts-voiceclone",
+        "context_window": 8192,
+        "capabilities": ["TTS with voice timbre cloning"],
+        "use_for": ["custom voice cloning"]
+      },
+      "tts_voicedesign": {
+        "id": "mimo-v2.5-tts-voicedesign",
+        "context_window": 8192,
+        "capabilities": ["TTS with customized tone design"],
+        "use_for": ["bespoke voice design"]
+      },
+      "legacy_deprecated": ["mimo-v2-pro", "mimo-v2-omni"]
     },
-    "live_status": {
-      "tested": "2026-05-19",
-      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-mistral-large", "nvidia-nemotron-120b", "nvidia-dracarys", "nvidia-glm", "nvidia-ising", "nvidia-gemma", "nvidia-qwen-coder", "nvidia-qwen3-next", "nvidia-vision"],
-      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-embed", "nvidia-gpt-oss-120b", "nvidia-kimi"],
-      "untested": [],
-      "note": "Full parallel audit 2026-05-19. glm=stream:true required (hangs on non-stream). gemma recovered. qwen3-next LIVE but ~78s cold-start. gpt-oss-120b+kimi dead at 120s stream."
+    "model_selection_in_session": "Within ai claude-mimo, use /model <id> to switch — e.g. /model mimo-v2-flash for speed, /model mimo-v2.5[1m] for multimodal 1M",
+    "routing_note": "Anthropic Messages API (NOT openai-compatible). Two dispatch surfaces: (1) `ai llm mimo \"<prompt>\"` routes through llm-lane.mjs's native Anthropic adapter (/v1/messages, SSE); (2) `ai claude-mimo` launches a dedicated isolated Claude Code session with /model mimo-v2.5-pro working natively.",
+    "capability_note": "Mimo has the SAME FULL CAPABILITIES as Claude Code — not advisory/reasoning-only, not bulk/cheap-only. `ai claude-mimo` runs the real Claude Code binary, so a Mimo session is a complete agentic peer (full tool loop, coding, file edits) identical to a main Claude session with a different model backend.",
+    "recommended_use": ["full agentic coding sessions (ai claude-mimo) equal to a main Claude session", "any task where 1M context helps", "vision/multimodal via mimo-v2.5", "fast tier via mimo-v2-flash", "audio via ASR/TTS models"],
+    "avoid_for": ["Claude-specific extended thinking (unverified on Mimo)"],
+    "session_constraint": "One ANTHROPIC_BASE_URL per session — a Mimo session is separate from the main Anthropic session by architecture, NOT by capability. Run Mimo in its own `ai claude-mimo` session."
+  },
+  "llm_compat_lanes": {
+    "_comment": "SINGLE SOURCE OF TRUTH for live reasoning lanes. NVIDIA NIM lanes (kimi, nemotron) retired 2026-06-10; Mimo added same day. context_window = INPUT cap; max_output = per-reasoning-depth OUTPUT cap. Consumed by llm-lane.mjs. OpenAI-compatible lanes: deepseek-v4-pro, deepseek-v4-flash. Anthropic-compatible lanes: mimo-v2.5-pro[1m], mimo-v2.5[1m], mimo-v2-flash (Messages API + SSE).",
+    "deepseek-v4-pro": {
+      "model": "deepseek-v4-pro:cloud",
+      "provider": "ollama-cloud",
+      "endpoint_env": "OLLAMA_CLOUD_ENDPOINT",
+      "endpoint_default": "https://ollama.com",
+      "api_key_env": "OLLAMA_API_KEY",
+      "keychain_service": "YURI_OS_MUSUBI:OLLAMA_API_KEY",
+      "protocol": "ollama-cloud",
+      "context_window": 1048576,
+      "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
+      "max_output_source": "REPOINTED 2026-06-15 (owner): the `deepseek`/`ds`/`deepseek-v4-pro` lane now routes through Ollama Cloud (deepseek-v4-pro:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Owner: deepseek-v4-pro is a favourite — powerful, fine for very high complexity + long runs. Output cap PROBED 2026-06-15 via live 400: ollama-cloud caps deepseek-v4-pro:cloud OUTPUT at 65536 (xhigh request 131072 → 400 → memoized 65536, same ceiling as nemotron); model_output_caps clamps to 65536 at dispatch. Input pool still ~1M (deepseek is the only ollama-cloud family delivering true 1M input).",
+      "timeout_ms": 600000
     },
-    "routing_decision_guide": {
-      "note": "NIM lanes are for system/infra tasks only. Codex (gpt-5.5) is the default powerhouse for all impl, design, visual, and refactor work.",
-      "system_infra_quick_task":    "@nvidia-nemotron-120b ✓",
-      "system_infra_analysis":      "@nvidia-qwen ✓",
-      "system_triage_or_summary":   "@nvidia-llama-70b ✓",
-      "high_stakes_broad_knowledge":"@nvidia-mistral-large ✓ (675B frontier)",
-      "research_analysis":          "@nvidia-glm ✓ (z-ai/glm-5.1, flagship-tier, stream-only)",
-      "adversarial_second_opinion": "@nvidia-glm ✓ (stream-only)",
-      "image_or_screenshot_review": "@nvidia-vision ✓",
-      "long_document_over_128k":    "@nvidia-mistral-large ✓ (kimi dead)",
-      "cheap_fast_classification":  "@nvidia-mistral-medium ✓ (phi dead)",
-      "frontier_chat_synthesis":    "@nvidia-mistral-large ✓ (675B)",
-      "mega_codegen":               "@nvidia-qwen-coder ✓ (480B)",
-      "rag_or_similarity_search":   "@nvidia-embed (DEAD — 404 on current tier)"
+    "deepseek-v4-flash": {
+      "model": "deepseek-v4-flash:cloud",
+      "provider": "ollama-cloud",
+      "endpoint_env": "OLLAMA_CLOUD_ENDPOINT",
+      "endpoint_default": "https://ollama.com",
+      "api_key_env": "OLLAMA_API_KEY",
+      "keychain_service": "YURI_OS_MUSUBI:OLLAMA_API_KEY",
+      "protocol": "ollama-cloud",
+      "context_window": 1048576,
+      "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
+      "max_output_source": "REPOINTED 2026-06-15 (owner): the `ds-flash`/`flash`/`deepseek-v4-flash` lane now routes through Ollama Cloud (deepseek-v4-flash:cloud) via llm-lane.mjs, REPLACING the retired paid api.deepseek.com version. Fast tier; output cap PROBED 2026-06-15 via live 400 = 65536 (not 131072); model_output_caps clamps to 65536 at dispatch.",
+      "timeout_ms": 600000
+    },
+    "mimo-v2.5-pro[1m]": {
+      "model": "mimo-v2.5-pro[1m]",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 1000000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Mimo v2.5-pro declared max_output 131072 (2026-06-10). Standing directive: always use largest context + max effort.",
+      "timeout_ms": 300000
+    },
+    "mimo-v2.5[1m]": {
+      "model": "mimo-v2.5[1m]",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 1000000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Mimo v2.5 multimodal 1M context. Vision + reasoning.",
+      "timeout_ms": 300000
+    },
+    "mimo-v2-flash": {
+      "model": "mimo-v2-flash",
+      "provider": "xiaomi-mimo-token-plan",
+      "endpoint_env": "MIMO_BASE_URL",
+      "endpoint_default": "https://token-plan-ams.xiaomimimo.com/anthropic",
+      "api_key_env": "MIMO_API_KEY",
+      "protocol": "anthropic",
+      "context_window": 262144,
+      "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
+      "max_output_source": "Mimo v2-flash 256K context, fast/cheap.",
+      "timeout_ms": 120000
+    },
+    "glm-4.7": {
+      "model": "glm-4.7",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 200000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 98304 },
+      "max_output_source": "Z.ai GLM Coding Plan (api.z.ai/api/anthropic, Anthropic Messages API, Bearer auth via auth_header). glm-4.7 = sonnet-tier coding workhorse. Caps approximate; refine via live 400-probe like the deepseek lanes.",
+      "timeout_ms": 300000
+    },
+    "glm-4.5-air": {
+      "model": "glm-4.5-air",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 128000,
+      "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
+      "max_output_source": "Z.ai glm-4.5-air = fast/haiku-tier. Caps approximate.",
+      "timeout_ms": 120000
+    },
+    "glm-5.2": {
+      "model": "glm-5.2",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 1000000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Z.ai glm-5.2 = Opus-tier flagship (premium on the plan). Context bumped 200K->1M (owner directive 2026-06-19; Z.ai blog confirms 1M max context, 128K max output). max_output tiers left as probe-verified envelope. NOTE: 1M is the model max; if the Anthropic-compat endpoint 400s on a >200K request, a long-context header convention may still be needed (live-probe to confirm).",
+      "timeout_ms": 600000
+    },
+    "glm-5-turbo": {
+      "model": "glm-5-turbo",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 200000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 98304 },
+      "max_output_source": "Z.ai glm-5-turbo = GLM-5 intelligence at TURBO speed. Live-measured ~4s vs glm-5.2 6s / glm-4.7 33s (2026-06-19) — the snappy reactive pick + voice-brain model.",
+      "timeout_ms": 300000
+    },
+    "glm-5.1": {
+      "model": "glm-5.1",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 200000,
+      "max_output": { "off": 4096, "low": 8192, "medium": 32768, "high": 65536, "xhigh": 131072 },
+      "max_output_source": "Z.ai glm-5.1 = GLM-5 flagship, one tier below 5.2.",
+      "timeout_ms": 600000
+    },
+    "glm-4.7-flash": {
+      "model": "glm-4.7-flash",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 200000,
+      "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
+      "max_output_source": "Z.ai glm-4.7-flash = Haiku-equiv (opus-fleet 2026-06-22): fast/free GLM-4.7 distill (~89 tok/s, ~1.6s TTFT, 200K ctx) for census/scan/read. Replaces glm-4.5-air in the Haiku slot. Caps approximate; refine via live 400-probe.",
+      "timeout_ms": 120000
+    },
+    "glm-4.7-flashx": {
+      "model": "glm-4.7-flashx",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 200000,
+      "max_output": { "off": 2048, "low": 4096, "medium": 16384, "high": 32768, "xhigh": 65536 },
+      "max_output_source": "Z.ai glm-4.7-flashx = Haiku+ concurrency upgrade of glm-4.7-flash (paid, higher throughput ceiling) for wide cheap fan-out. LIVE-PROBE 2026-06-22: id ACCEPTED (no 404) but returns empty_output via the Anthropic-compat endpoint at low+high reasoning — UNVERIFIED, do NOT rely (likely not provisioned on the plan). Working free Haiku lane = glm-4.7-flash. Caps approximate.",
+      "timeout_ms": 120000
+    },
+    "glm-4.6v": {
+      "model": "glm-4.6v",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 65536,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 16384 },
+      "max_output_source": "Z.ai glm-4.6v = vision tier (opus-fleet 2026-06-22): image/screenshot analysis (GLM-5V-Turbo not on subscription). Already the voice-brain screenshot model (yuri-z-brain.py). Context/output conservative pending live probe.",
+      "timeout_ms": 120000
+    },
+    "glm-ocr": {
+      "model": "glm-ocr",
+      "provider": "z-ai-coding-plan",
+      "endpoint_env": "ZAI_BASE_URL",
+      "endpoint_default": "https://api.z.ai/api/anthropic",
+      "api_key_env": "ZAI_API_KEY",
+      "keychain_service": "yuri-zai-api-key",
+      "protocol": "anthropic",
+      "auth_header": "bearer",
+      "context_window": 32768,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 16384 },
+      "max_output_source": "Z.ai glm-ocr = OCR/document-extraction specialist (opus-fleet 2026-06-22): OmniDocBench-leading, ~$0.03/M. LIVE-PROBE 2026-06-22: id ACCEPTED but a text-only ping returns empty_output — OCR needs an image payload the text lane does not send; UNVERIFIED via the text path, wire when an image-bearing call path exists. Context/output conservative.",
+      "timeout_ms": 60000
+    },
+    "qwen-local": {
+      "model": "hf.co/Jackrong/Qwen3.5-9B-GLM5.1-Distill-v1-GGUF:Q5_K_M",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "Qwen3.5-9B-GLM5.1-Distill Q5_K_M (6.47GB, 100% GPU on M2 Pro). num_ctx capped at context_window to keep weights+KV under the 10GB Metal working-set policy. Curated local lane: dispatched through llm-lane.mjs so it fires coreOnDispatch (energy ΔU + recall) + coreOnResult (evidence + advisory pulse) + executeTool safety-core gating, identical governance to cloud lanes. Loadout defaults to --light (a 9B can't carry the full 675-line spine in 16k ctx).",
+      "timeout_ms": 300000
+    },
+    "gemma-local": {
+      "model": "gemma4:12b-it-qat",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 1024, "low": 2048, "medium": 4096, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "Gemma 4 12B QAT (7.15GB, 100% GPU on M2 Pro) — the incumbent local SLM, promoted to a curated llm_compat lane so it runs through the SAME governed dispatch as cloud + qwen-local instead of the thin ollama-lane.mjs bypass. Single-lane sequential per the gemma-lanes-strictly-sequential lock.",
+      "timeout_ms": 300000
+    },
+    "vibethinker-local": {
+      "model": "hf.co/prithivMLmods/VibeThinker-3B-GGUF:Q4_K_M",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 2560, "low": 4096, "medium": 6144, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "VibeThinker-3B (WeiboAI, MIT, Qwen2.5-Coder-3B base) Q4_K_M, 1.9GB — DISARMED/ADVISORY local trade-analysis reasoning lane (owner 2026-06-17; overseer-verified ~43 tok/s on the M2 Pro, loads clean, does not choke). DEEP long-chain-of-thought reasoner: emits a <think>...</think> block (~21s+) it CANNOT be told to skip, so num_predict is floored at 2560 (off) to fit the CoT + the answer; strip the <think> block for the terse verdict. The CoT is the asset for quantitative trade reasoning. Invoke with --no-tools --light (a 3B cannot carry the full YURI spine in 16k ctx). ADVISORY ONLY — never sizes trades, not wired into any config-write/sizing/overseer path; available for explicit analysis calls.",
+      "timeout_ms": 300000
+    },
+    "gemma4-coder-local": {
+      "model": "hf.co/yuxinlu1/gemma-4-12B-coder-fable5-composer2.5-v1-GGUF:Q4_K_M",
+      "provider": "ollama-local",
+      "endpoint_env": "OLLAMA_HOST",
+      "endpoint_default": "http://localhost:11434",
+      "api_key_env": "",
+      "protocol": "ollama-local",
+      "local": true,
+      "privacy": "local",
+      "context_window": 16384,
+      "max_output": { "off": 2560, "low": 4096, "medium": 6144, "high": 8192, "xhigh": 12288 },
+      "max_output_source": "gemma-4-12B-coder-fable5-composer2.5 (Apache-2.0, base google/gemma-4-12B-it, fine-tuned on verifiable Python coding data with chain-of-thought) Q4_K_M 7.38GB — DISARMED/ADVISORY local trade-analysis reasoning lane (owner 2026-06-18). A 12B CODING model with native thinking mode (enable_thinking; emits a reasoning block) — tests whether coding-CoT transfers to quantitative trade reasoning vs the 3B vibethinker-local. num_ctx capped at 16384 (card advertises 256K but the M2 Pro Metal working-set policy caps it like gemma-local; weights 7.38GB + KV must stay under the 10GB cap). llm-lane forces temperature 0 (deterministic analysis) vs the card's creative temp 1.0 — fine for analysis. Invoke with --no-tools --light (a 12B cannot carry the full YURI spine). ADVISORY ONLY — never sizes trades, not wired into any config-write/sizing/overseer path. Card notes reduced safety guardrails (coding focus) — irrelevant for trade-data analysis.",
+      "timeout_ms": 300000
+    },
+    "ollama-cloud": {
+      "model": "minimax-m3:cloud",
+      "provider": "ollama-cloud",
+      "endpoint_env": "OLLAMA_CLOUD_ENDPOINT",
+      "endpoint_default": "https://ollama.com",
+      "api_key_env": "OLLAMA_API_KEY",
+      "keychain_service": "YURI_OS_MUSUBI:OLLAMA_API_KEY",
+      "protocol": "ollama-cloud",
+      "context_window": 1048576,
+      "max_output": { "off": 4096, "low": 16384, "medium": 65536, "high": 131072, "xhigh": 131072 },
+      "model_output_caps": { "nemotron-3-ultra:cloud": 65536, "deepseek-v4-pro:cloud": 65536, "deepseek-v4-flash:cloud": 65536 },
+      "max_output_source": "Ollama Cloud (ollama.com /api/chat, Bearer OLLAMA_API_KEY) — FIRST-CLASS PEER lane equal to deepseek/mimo: routed through llm-lane.mjs so it gets the full YURI NANO SWARM loadout + read/grep/search/xref/bash/write/edit toolset + coreOnDispatch/coreOnResult governance, NOT the thin ollama-lane.mjs path. Cloud model IDs carry a :cloud suffix (live-verified 2026-06-14). Default minimax-m3:cloud is overridable per call with --model. (GLM REMOVED from this lane 2026-06-19 (owner) — GLM routes ONLY through the z-ai lanes glm-5.2/glm-5-turbo/glm-4.7/glm-4.5-air to avoid the api.z.ai-vs-ollama naming mismatch.) Pro plan = 3 concurrent → fan out 3 `ollama-cloud --model <X>:cloud` calls for a cross-family peer nano-swarm. Owner-selected build roster (research ollama-cloud-model-selection-2026-06-14.md): nemotron-3-ultra:cloud, minimax-m3:cloud, kimi-k2.7-code:cloud (added 2026-06-14, live-verified in catalog; ollama-native full-Claude-Code bridge: `ollama launch claude --model kimi-k2.7-code:cloud`), gemma4:31b-cloud (added 2026-06-14, owner-selected; catalog lists base `gemma4:31b`, cloud variant addressed via the `-cloud` suffix per `ollama run gemma4:31b-cloud`; live-smoke-verified), deepseek-v4-pro:cloud + deepseek-v4-flash:cloud (added 2026-06-15, owner — these REPLACE the retired paid api.deepseek.com lane; the `deepseek`/`ds`/`ds-flash` aliases now resolve to Ollama Cloud; full 5-model blast roster = nemotron-3-ultra + minimax-m3 + kimi-k2.7-code + deepseek-v4-pro + deepseek-v4-flash, all usable for very high complexity + long runs). CAPABILITY (owner 2026-06-14, LIVE-VERIFIED via 400 errors): context pool up to 1M (input). CONTEXT NUANCE (owner 2026-06-15): deepseek-v4-pro:cloud / deepseek-v4-flash:cloud appear to be the ONLY ollama-cloud models that actually deliver the full 1M INPUT context — the others (minimax-m3, nemotron-3-ultra, kimi-k2.7-code) advertise 1M natively at their own providers but Ollama appears to cap them earlier; treat non-deepseek 1M as UNVERIFIED (real per-model input cap discovered+memoized on 400). OUTPUT caps differ per model: minimax-m3 = 131072 (xhigh), nemotron-3-ultra = 65536. 250k was an over-estimate. So xhigh=131072 (minimax real max). RESOLVED 2026-06-14 (the per-model follow-up): per-model output caps now expressed in `model_output_caps` above — llm-lane clamps maxTokens to the model's cap at dispatch so nemotron runs at 65536 from turn 1 (no manual --reasoning flag), AND postChatOllamaCloud memoizes any cap discovered via a 400 across the whole tool-loop (kills the per-turn re-discovery 400 that made nemotron look stuck). Unknown models (e.g. kimi-k2.7-code, cap not yet probed) fall through to discovery+memo.",
+      "timeout_ms": 600000
     }
   },
   "codex": {

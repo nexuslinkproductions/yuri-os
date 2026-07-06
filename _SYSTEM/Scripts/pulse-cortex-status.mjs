@@ -6,14 +6,13 @@
 //   - pulse-plan.json last turn classification
 //   - pulse-codex-pending.json status
 //   - pulse-beacon-state.json throttle counter
-//   - OpenClaw gateway reachability
 //   - pulse-errors.log tail (recent failures)
 //
 // Pure read-only; never mutates state. Output is human-friendly text
 // (default) or --json for machine consumption.
 
 import { promises as fsp, existsSync } from 'node:fs';
-import { spawn, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,27 +39,14 @@ async function readTail(p, bytes = 2000) {
   } catch { return ''; }
 }
 
-async function openclawHealth() {
-  return new Promise((resolve) => {
-    const child = spawn('openclaw', ['gateway', 'status'], { stdio: ['ignore', 'pipe', 'pipe'] });
-    let out = '';
-    let settled = false;
-    const t = setTimeout(() => { if (!settled) { settled = true; try { child.kill(); } catch (_) {} resolve('timeout'); } }, 2000);
-    child.stdout?.on('data', d => out += d.toString());
-    child.on('error', () => { if (!settled) { settled = true; clearTimeout(t); resolve('not-installed'); } });
-    child.on('close', (code) => { if (!settled) { settled = true; clearTimeout(t); resolve(code === 0 ? 'ok' : `exit=${code}`); } });
-  });
-}
-
 async function collect() {
-  const [bus, plan, pending, beacon, errorTail, hookTail, openclaw] = await Promise.all([
+  const [bus, plan, pending, beacon, errorTail, hookTail] = await Promise.all([
     readJSON(PATHS.bus),
     readJSON(PATHS.plan),
     readJSON(PATHS.pending),
     readJSON(PATHS.beacon),
     readTail(PATHS.errors, 1500),
     readTail(PATHS.hookTel, 1000),
-    openclawHealth(),
   ]);
 
   const now = Date.now();
@@ -102,7 +88,6 @@ async function collect() {
       expired: new Date(pending.expires_at).getTime() < now,
     } : null,
     beacon: beacon || { count: 0 },
-    openclaw_gateway: openclaw,
     recent_errors: errorTail.split('\n').filter(Boolean).slice(-5),
     recent_hook_telemetry: hookTail.split('\n').filter(Boolean).slice(-5),
   };
@@ -135,7 +120,6 @@ function renderText(report) {
     out.push('Codex pending: none');
   }
   out.push(`Beacon: ${report.beacon.count || 0}/5 emits this session`);
-  out.push(`OpenClaw gateway: ${report.openclaw_gateway}`);
   const procs = activeProcesses();
   if (procs.length) {
     out.push('');
@@ -161,7 +145,7 @@ function activeProcesses() {
     { label: 'codex exec',        re: /codex.*exec/i },
     { label: 'offload-runner',    re: /offload-runner\.mjs/i },
     { label: 'pulse-lane-dispatch', re: /pulse-lane-dispatch\.mjs/i },
-    { label: 'nvidia-nim request',  re: /offload.*nvidia|nvidia.*offload/i },
+    { label: 'mimo request',        re: /mimo\.mjs|offload.*mimo|mimo.*offload/i },
     { label: 'deepseek request',    re: /offload.*deepseek|deepseek.*offload/i },
   ];
   try {

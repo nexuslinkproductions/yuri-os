@@ -2,7 +2,7 @@
 
 **Status:** Ready for deployment  
 **Last updated:** 2026-04-19  
-**Maintainers:** Marcel + Claudio (post-sync adjustable)
+**Maintainers:** Marcel (post-sync adjustable)
 
 ---
 
@@ -42,7 +42,7 @@ Output: `shot-list_[date]_[id]-final.md` — ready to send to crew
 ```
 
 Input: Text file with client name, deliverables, timeline, budget  
-Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
+Output: `brief_[date]_[id]-final.md` — ready to send to the client
 
 ---
 
@@ -113,7 +113,7 @@ Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
 **Weighted Dimensions:**
 - Completeness (25%) — All questions answered?
 - Clarity (25%) — Could client greenlight on one read?
-- Tone match (20%) — Matches relationship with Claudio/Marc?
+- Tone match (20%) — Matches relationship with the client?
 - Confidence (15%) — Scope realistic?
 - Next steps (15%) — Clear what happens next?
 
@@ -123,7 +123,7 @@ Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
 
 ## Example Workflow
 
-### Scenario: MACL ONE Q2 Campaign Brief
+### Scenario: Q2 Campaign Brief
 
 1. **Create input file:**
    ```
@@ -150,17 +150,17 @@ Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
 
 ### Custom Rubrics
 
-Both rubrics are adjustable. You and Claudio can:
+Both rubrics are adjustable. You can:
 
 1. **Add gates** — "Budget must include contingency"
-2. **Change weights** — Prefer clarity over completeness for MACL ONE
+2. **Change weights** — Prefer clarity over completeness for a given client
 3. **Adjust thresholds** — Pass at 6.5 instead of 7.0 if tight schedule
-4. **Domain-specific versions** — Separate rubrics for Claudio vs. Marc vs. MACL
+4. **Domain-specific versions** — Separate rubrics per client type
 
 Example:
 ```bash
   ~/requirements.txt \
-  ~/custom-brief-rubric-claudio.md
+  ~/custom-brief-rubric.md
 ```
 
 ### Skipping the Loop
@@ -177,7 +177,7 @@ node orchestrator.js brief ~/requirements.txt --no-loop
 
 Once GAN Loop generates briefs, corrections you make to the output get captured by the learning system:
 
-- "no, don't use that tone" → finance.md learns "avoid formal register with MACL"
+- "no, don't use that tone" → finance.md learns "avoid formal register with this client"
 - "yes, add contingency to budget" → finance.md learns "always include budget contingency"
 
 The two systems reinforce each other: GAN Loop generates, hooks learn from your corrections.
@@ -195,7 +195,7 @@ The two systems reinforce each other: GAN Loop generates, hooks learn from your 
 
 ## Post-Sync Adjustments
 
-Once you and Claudio sync:
+Once collaborators sync:
 
 1. **Review rubrics together** — Are gates appropriate for both?
 2. **Define domain versions** — Different standards for different client types?
@@ -204,6 +204,6 @@ Once you and Claudio sync:
 5. **Shared feedback** — Create template feedback language you both use
 
 Example conversation:
-- **Marcel:** "My briefs usually pass at 6.8, is that okay?"
-- **Claudio:** "For you, 6.8 is fine. For sending to big clients, 7.2 minimum."
+- "My briefs usually pass at 6.8, is that okay?"
+- "For you, 6.8 is fine. For sending to big clients, 7.2 minimum."
 - **Action:** Create two rubrics, or adjust threshold per content type

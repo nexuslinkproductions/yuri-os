@@ -6,11 +6,6 @@ import { spawnSync } from 'node:child_process';
 
 const missingDbPath = `/tmp/yuri-release-gate-missing-${process.pid}.db`;
 const releaseGateSource = fs.readFileSync('_SYSTEM/Scripts/backend-release-gate.mjs', 'utf8');
-const retiredIdentityPattern = new RegExp([
-  ['exeo', 'flow'].join(''),
-  ['exeo', '-flow'].join(''),
-  ['exeo', ' flow'].join(''),
-].join('|'), 'i');
 const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-release-gate.mjs', '--dry-run', '--db', '/tmp/restored-candidate.db'], {
   cwd: process.cwd(),
   encoding: 'utf8',
@@ -55,9 +50,6 @@ assert.match(
 
 assert.equal(result.status, 0, `release gate dry run should pass:\n${result.stdout}\n${result.stderr}`);
 assert.match(result.stdout, /YURI_BACKEND_RELEASE_GATE_DRY_RUN.*system=YURI_OS/, 'dry run should emit Yuri OS marker');
-assert.doesNotMatch(result.stdout, retiredIdentityPattern, 'release gate output should not expose retired flow identity');
-assert.match(result.stdout, /yuri-assimilation-guardrail/, 'release gate should include assimilation guardrail step');
-assert.match(releaseGateSource, /yuri-exeoflow-assimilation\.test\.mjs/, 'release gate should invoke the assimilation guardrail script');
 assert.match(result.stdout, /generated-artifact-hygiene/, 'release gate should include generated artifact hygiene step');
 assert.match(releaseGateSource, /generated-artifact-hygiene\.test\.mjs/, 'release gate should invoke generated artifact hygiene');
 assert.match(result.stdout, /backend-db-check\.mjs --db \/tmp\/restored-candidate\.db/, 'release gate should include explicit DB candidate check');
@@ -68,9 +60,9 @@ assert.match(result.stdout, /backend-observability-truth\.test\.mjs/, 'release g
 assert.match(result.stdout, /backend-db-readiness-migration-status\.test\.mjs/, 'release gate should include readiness migration test');
 assert.match(result.stdout, /backend-db-readiness-recovery-metadata\.test\.mjs/, 'release gate should include readiness recovery metadata test');
 assert.match(result.stdout, /backend-gitnexus-status-truth\.test\.mjs/, 'release gate should include GitNexus truth test');
-assert.match(result.stdout, /wiki-rag-health-truth\.test\.mjs/, 'release gate should include wiki RAG health truth test');
-assert.match(result.stdout, /archive-rag-health-truth\.test\.mjs/, 'release gate should include archive RAG health truth test');
-assert.match(result.stdout, /rag-db-health-fixtures\.test\.mjs/, 'release gate should include fixture-backed RAG DB health test');
 assert.match(result.stdout, /gitnexus-mcp-check\.mjs/, 'release gate should include live GitNexus MCP probe');
+// RAG retired (owner, 2026-06-10): wiki/archive/fixture RAG health steps removed with the
+// rag-health script family — live retrieval truth is FTS5 (ai search) + xref.
+assert.doesNotMatch(result.stdout, /rag-health|rag-db-health/, 'release gate must not reference retired RAG health steps');
 
 process.stdout.write('backend-release-gate: pass\n');

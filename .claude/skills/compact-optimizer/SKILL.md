@@ -1,8 +1,10 @@
 ---
 name: compact-optimizer
-description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, perplexity-based pruning, attention-sink preservation). Use before every /compact call to prevent loss of session-critical state."
+disable-model-invocation: true
+description: "Construct the minimum-viable /compact hint using selective context compression (self-information scoring, perplexity-based pruning, attention-sink preservation). Use when about to call /compact, when context is nearing capacity, or when you need to preserve session-critical state through a compression boundary."
+invocation: user
 triggers:
-  - "/compact"
+  - "/compact-hint"
   - "context is getting long"
   - "running out of context"
   - "compact before"
@@ -83,7 +85,7 @@ Rank 3 — **Drop entirely** (reconstructable, low self-information):
 
 ## When to Call /compact
 
-- Context bar >65%: run /compact with hint
+- Context bar >60% (tokenmaxxing mode) or >65% (standard mode): run /compact with hint — thresholds match the tier table in pre-tool-use.js getTier()
 - Phase change (research→implement, implement→review): always /compact with phase-transition hint
 - After a user correction: /compact immediately, include correction verbatim
 - Never compact mid-tool-use or mid-plan without noting the interruption point
@@ -105,7 +107,7 @@ Per the YURI Aversion Memory Protocol: if you are compacting after a **failed br
 
 ## Token Budget Policy
 
-- Trigger /compact at 65%+ context OR at 40k transcript hard max — whichever comes first.
+- Trigger /compact at 60%+ (tokenmaxxing) / 65%+ (standard) context. A long transcript (~40k lines) is a guideline for manual /compact — no hook enforces a transcript-line limit.
 - Dirty repo + mid-sprint: capture scoped `git status --short` marker before compacting.
 - Lane output arriving in main context: summarize to marker-only before injection.
 - After /compact, re-read 2–3 key touched files to verify compact summary accuracy.
@@ -129,17 +131,100 @@ OUTPUT_CAP: <80 lines research | 120 lines final report>
 
 Never inject raw command dumps, full file contents, or unfiltered grep output into a compact payload.
 
+## Reversible Path (ccr-compress)
+
+This skill builds a ONE-WAY hint — the tokens it tells `/compact` to drop are gone. When a section is too valuable to lose-permanently but too heavy to keep inline, route it through the reversible compaction mechanism instead:
+
+- `_SYSTEM/Scripts/ccr-compress.mjs` — `compress(payload)` caches the BYTE-EXACT original under a content hash (sibling dir `_SYSTEM/state/ccr-cache/`, TTL-pruned, gitignored) and injects a retrieval **sentinel** (`⟪CCR:<hash>:<type>:<bytes>⟫`) in its place. `retrieve(hash)` pulls the original back. The cache is the undo button — that is what makes dropping a section safe.
+- **Content-typed + honest about loss:** `json`/`code`/`prose` routing. Structural elision is **lossless** (round-trips byte-exact). Semantic elision is marked `lossy:true` — the cache still restores the source, but the inline placeholder is not self-reconstructable. Never claim semantic inline is reversible.
+- **Cache-prefix conscience:** `_SYSTEM/Scripts/cache-prefix-scan.mjs` is a WARN-ONLY detector — it flags volatile tokens (UUID / ISO-timestamp / JWT / long-hex / epoch-ms) leaking into the KV-cache-hot prefix and NEVER mutates the prefix. Pairs with the "Token Caching Shape" rule in CLAUDE.md (keep volatile ids out of the stable preamble). Lane label: `04CP_CACHE_PREFIX_SCAN_X_COMMITTED`.
+- **`--self` is hardened + diagnose-only:** reads ONLY `global.md` + `MEMORY.md`, never invokes `brain-inject` (which reads the deny-listed `.claude/state/cortex-state.json`). It reports self-context headroom; it does not repair context.
+
+Reach for ccr-compress when the answer to "can I get this back if I need it?" must be yes. Use the plain `/compact` hint above when the dropped content is genuinely reconstructable from the codebase.
+
 ## Session Notes
 
-### 2026-05-02
-- session: 4m | peak ctx: 14% | compacts: 0
-- tools: Bash×16, Read×4, Edit×4, Skill×1
+### 2026-06-16
+- session: 7m | peak ctx: 0% | compacts: 0
+- tools: Bash×9, Read×6, Edit×5, WebSearch×3, Write×1, Skill×1, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-06-15
+- session: 11m | peak ctx: 0% | compacts: 0
+- tools: Bash×19, Read×2, Edit×2, Skill×1, Write×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
+
+### 2026-06-14
+- session: 101m | peak ctx: 0% | compacts: 0
+- tools: Bash×455, Read×142, Edit×74, Write×44, WebSearch×31, WebFetch×19, StructuredOutput×17, ToolSearch×8, TodoWrite×5, Workflow×3, AskUserQuestion×2, Skill×2, TaskStop×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a | Base directory for this skill: /Users/marcelspatz/.claude/skills/quantum-hypothesis-simulation
+
+# Quantum Hypothesis Simulation
+
+The quantum-probability layer for YURI's claim/pulse machinery. It mode | Base directory for this skill: /Users/marcelspatz/.claude/skills/cross-reference-navigation
+
+# Cross-Reference Navigation (XREF)
+
+The GROUND step of the work loop, made reflexive. One question asked a
+- errors: none
+
+### 2026-06-13
+- session: 9m | peak ctx: 0% | compacts: 0
+- tools: Bash×45, Write×16, Edit×13, Read×10, TaskStop×1, Skill×1
+- corrections: rick i have a fun little task for you. I will be giving you the task of going through trending repos on github, scanning them, compare yuri to those, see what we can adopt and rebuild better in yuri u
+- errors: none
+
+### 2026-06-12
+- session: 97m | peak ctx: 100% | compacts: 3
+- tools: Edit×67, Bash×47, Read×42, Write×5, WebFetch×3, Skill×3, TaskUpdate×2, WebSearch×2, TaskCreate×1, EnterPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-06-11
+- session: 70m | peak ctx: 100% | compacts: 3
+- tools: Read×34, Edit×30, Bash×19, Write×5, WebFetch×3, Skill×3, TaskUpdate×2, WebSearch×2, TaskCreate×1, EnterPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-06-10
+- session: 847m | peak ctx: 62% | compacts: 1
+- tools: Bash×776, Read×365, Edit×55, Write×27, StructuredOutput×12, TodoWrite×11, WebFetch×9, Agent×7, Workflow×3, ToolSearch×2
+- corrections: none
+- errors: none
+
+### 2026-06-04
+- session: 90m | peak ctx: 0% | compacts: 0
+- tools: Bash×452, Read×180, StructuredOutput×34, WebSearch×19, Edit×13, Write×10, TodoWrite×8, WebFetch×7, ToolSearch×6, Workflow×4, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-06-03
+- session: 147m | peak ctx: 0% | compacts: 0
+- tools: Bash×798, Read×626, Write×163, StructuredOutput×140, WebSearch×84, Edit×75, ToolSearch×39, WebFetch×16, Workflow×7, AskUserQuestion×1, Agent×1
 - corrections: none
 - errors: none
 
 ### 2026-05-02
-- session: 1m | peak ctx: 34% | compacts: 0
-- tools: Bash×6, Read×4
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
 - corrections: none
 - errors: none
 
@@ -149,63 +234,15 @@ Never inject raw command dumps, full file contents, or unfiltered grep output in
 - corrections: none
 - errors: none
 
-### 2026-04-27
-- session: 2m | peak ctx: 45% | compacts: 0
-- tools: Read×12, Bash×8, Write×4
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 1m | peak ctx: 40% | compacts: 0
-- tools: Read×10, Bash×2
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 6m | peak ctx: 53% | compacts: 0
-- tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
-- corrections: none
-- errors: none
-
 ### 2026-04-26
 - session: 7m | peak ctx: 0% | compacts: 0
 - tools: Bash×15, Read×9, Write×4, Agent×1, ToolSearch×1, ExitPlanMode×1, Edit×1
 - corrections: none
 - errors: none
 
-### 2026-04-26
-- session: 6m | peak ctx: 0% | compacts: 0
-- tools: Bash×15, Read×9, Write×4, Agent×1, ToolSearch×1, ExitPlanMode×1, Edit×1
-- corrections: none
-- errors: none
-
-### 2026-04-26
-- session: 7m | peak ctx: 52% | compacts: 0
-- tools: Bash×40, Read×14, Write×4, Edit×4
-- corrections: none
-- errors: none
-
 ### 2026-04-25
 - session: 0m | peak ctx: 14% | compacts: 0
 - tools: Read×9, Bash×4, Write×2, Edit×2
-- corrections: none
-- errors: none
-
-### 2026-04-25
-- session: 12m | peak ctx: 14% | compacts: 0
-- tools: Bash×10, Read×9, Write×4, Edit×3, ToolSearch×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-04-25
-- session: 2m | peak ctx: 8% | compacts: 0
-- tools: Read×56, Bash×23, TaskCreate×11, Write×1, ExitPlanMode×1, ToolSearch×1
 - corrections: none
 - errors: none
 

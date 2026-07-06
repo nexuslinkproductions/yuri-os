@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import {
   classifyArtifactPath,
@@ -69,4 +71,62 @@ test('artifact registry CLI emits valid JSON', () => {
 
   assert.equal(result.classification, 'placement_rule');
   assert.equal(result.ruleId, 'system-doc');
+});
+
+// --- attack regressions: must-register zone enforcement (recursive / ext / symlink) ---
+function zoneRegistry() {
+  return {
+    schemaVersion: 1,
+    artifactTypes: ['script', 'test', 'config', 'doc', 'report', 'folder'],
+    artifacts: [],
+    placementRules: [],
+    mustRegisterPrefixes: ['_SYSTEM/Scripts/math/'],
+  };
+}
+function makeZone() {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'artreg-'));
+  mkdirSync(path.join(root, '_SYSTEM/Scripts/math'), { recursive: true });
+  return root;
+}
+
+test('must-register flags an unregistered file in a SUBDIRECTORY (recursive scan)', () => {
+  const root = makeZone();
+  mkdirSync(path.join(root, '_SYSTEM/Scripts/math/experiments'), { recursive: true });
+  writeFileSync(path.join(root, '_SYSTEM/Scripts/math/experiments/rogue.mjs'), 'export const x=1;\n');
+  const result = validateArtifactRegistry(zoneRegistry(), { repoRoot: root, folderClasses: new Set() });
+  assert.ok(result.errors.some((e) => e.includes('must-register zone') && e.includes('experiments/rogue.mjs')));
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('must-register flags unregistered .js/.py/.json (broadened extensions)', () => {
+  const root = makeZone();
+  for (const name of ['rogue.js', 'rogue.py', 'rogue.json']) {
+    writeFileSync(path.join(root, '_SYSTEM/Scripts/math', name), 'x\n');
+  }
+  const result = validateArtifactRegistry(zoneRegistry(), { repoRoot: root, folderClasses: new Set() });
+  for (const name of ['rogue.js', 'rogue.py', 'rogue.json']) {
+    assert.ok(result.errors.some((e) => e.includes(name)), `${name} must be flagged`);
+  }
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('must-register flags an unregistered durable file reached via SYMLINK', () => {
+  const root = makeZone();
+  const target = path.join(root, 'real_target.mjs');
+  writeFileSync(target, 'export const x=1;\n');
+  symlinkSync(target, path.join(root, '_SYSTEM/Scripts/math/rogue_link.mjs'));
+  const result = validateArtifactRegistry(zoneRegistry(), { repoRoot: root, folderClasses: new Set() });
+  assert.ok(result.errors.some((e) => e.includes('rogue_link.mjs')));
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('must-register accepts a registered file and still ignores test files', () => {
+  const root = makeZone();
+  writeFileSync(path.join(root, '_SYSTEM/Scripts/math/ok.mjs'), 'export const x=1;\n');
+  writeFileSync(path.join(root, '_SYSTEM/Scripts/math/ok.test.mjs'), 'export const x=1;\n');
+  const reg = zoneRegistry();
+  reg.artifacts.push({ path: '_SYSTEM/Scripts/math/ok.mjs', type: 'script', class: 'x', owner: 'y', status: 'planned', storageRule: 's', rebuildRule: 'r' });
+  const result = validateArtifactRegistry(reg, { repoRoot: root, folderClasses: new Set() });
+  assert.ok(!result.errors.some((e) => e.includes('must-register zone')));
+  rmSync(root, { recursive: true, force: true });
 });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-28",
+  "updated": "2026-06-07",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -9,11 +9,9 @@
       "label": "Symbiotic Core",
       "purpose": "Intent, pulse, routing, constraints, and high-stakes reasoning composition.",
       "skillIds": [
-        "ai-pipeline-offloading",
         "codex-plugin-control-plane",
         "claude-output-lane",
         "claude-codex-capability-bridge",
-        "swarm-coordination",
         "tokenmaxxing",
         "haki-intent",
         "nen-phase-detector",
@@ -28,11 +26,10 @@
       "label": "Agent Assembly",
       "purpose": "Compose agents from skill bundles, lanes, roles, and verification gates.",
       "skillIds": [
-        "parallel-clone-orchestrator",
+        "opus-fleet",
         "dispatching-parallel-agents",
         "subagent-driven-development",
         "bg",
-        "local-subagent",
         "oracle-router",
         "anthropic-managed-agents"
       ]
@@ -83,7 +80,6 @@
         "pattern-mirror-core",
         "sharingan",
         "research-artifact-factory",
-        "graphify",
         "probabilistic-decision-core"
       ]
     },
@@ -111,14 +107,12 @@
         "design-source-pack",
         "design-assistant-inbox",
         "codebase-to-course",
-        "yuri-report",
-        "yuri-video-script",
         "sales-psychology",
         "yuri-sales-intelligence",
-        "business-dach-market-intelligence",
         "nex-deliverables",
         "nex-vault",
-        "ad-creative"
+        "ad-creative",
+        "viz-lab"
       ]
     },
     {

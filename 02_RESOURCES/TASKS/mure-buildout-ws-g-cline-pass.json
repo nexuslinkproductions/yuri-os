@@ -1,0 +1,56 @@
+{
+  "summary": "WS-G: MURE company build-out — Cline Pass integration (advisory substrate)",
+  "tags": ["mure", "buildout", "cline", "clinepass", "substrate"],
+  "visualPlanUrl": null,
+  "subtasks": [
+    {
+      "id": "WS-G-R1-cline-research",
+      "role": "scout",
+      "need": ["research", "integration"],
+      "prompt": "Validate ClinePass docs vs _SYSTEM/reports/CLINE_PASS_INTEGRATION_2026-06-29.md. Confirm model list, billing windows, CLI flags. No live spend. Return CLINE_RESEARCH_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-G-A1-architect-map",
+      "role": "architect",
+      "need": ["architecture", "integration"],
+      "prompt": "Map Cline as fourth advisory substrate in runFleet sidecar pattern (mirror ollama). Document M0–M5 tiers in integration report appendix if gaps found. DISARMED default. Return CLINE_ARCHITECT_MAP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-G-Q1-quartermaster-budget",
+      "role": "quartermaster",
+      "need": ["cost", "integration"],
+      "prompt": "Draft _SYSTEM/reports/CLINE_CREDIT_BUDGET.md template: monthly ceiling, 5h/weekly/monthly window alerts, overlap rules vs z.ai GLM and Cursor pool. HELD until owner fills live numbers. Return CLINE_BUDGET_TEMPLATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-G-K1-mlp-encode",
+      "role": "kernelsmith",
+      "need": ["integration", "implementation"],
+      "prompt": "Design fleet-router-mlp encodeOption extension for cline substrate (4th bit). Advisory only; cold weights fallback. Do not wire live until steward gate. Return CLINE_MLP_DESIGN_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-G-S1-steward-gate",
+      "role": "steward",
+      "need": ["governance"],
+      "prompt": "Gate live Cline dispatch: require credit budget doc + cline auth + owner token. Produce ruling for held register cline-live-dispatch. Return CLINE_STEWARD_GATE_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true,
+      "arming": true
+    },
+    {
+      "id": "WS-G-V1-adjudicator-verify",
+      "role": "adjudicator",
+      "need": ["adversarial-verify"],
+      "prompt": "Verify company.mjs ADVISORY_SUBSTRATES.cline metadata exists; dry-run planCompany on this file shows no cline dispatch path. Return CLINE_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

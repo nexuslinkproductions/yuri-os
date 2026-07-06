@@ -1,5 +1,8 @@
 # Failure Log — 7-Rung Ladder
 
+> STATUS: TEMPLATE-ONLY (wave-3 L.3) — no failures have ever been logged here and no
+> script writes to this path. The ladder below is the intended process, not a record.
+
 Failures are routed upward until they become prevention rules.
 
 ## The Ladder

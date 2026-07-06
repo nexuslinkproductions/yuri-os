@@ -1,0 +1,423 @@
+{
+ "GOVERNANCE": [
+  {
+   "id": "ENKI",
+   "label": "ENKI",
+   "role": "main session",
+   "detail": "Claude Code control plane / final authority",
+   "sector": "control_plane"
+  },
+  {
+   "id": "ADVISORS",
+   "label": "ADVISOR FANOUT",
+   "role": "parallel ensemble",
+   "detail": "Promise.allSettled / 60-90s timeout",
+   "sector": "advisors"
+  },
+  {
+   "id": "ENKI_DECIDES",
+   "label": "ENKI DECIDES",
+   "role": "synthesizes findings",
+   "detail": "reads bus / routes / acts / final call",
+   "sector": "control_plane"
+  },
+  {
+   "id": "ROUTING",
+   "label": "ROUTING",
+   "role": "llm-compat lanes",
+   "detail": "Gemma local + frontier lanes",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "DEEPSEEK_A",
+   "label": "DEEPSEEK",
+   "role": "model_advisor",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "OPENCLAW_A",
+   "label": "OPENCLAW",
+   "role": "bridge_advisory",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "HERMES_A",
+   "label": "HERMES",
+   "role": "native_fn",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "YURI_RISK_A",
+   "label": "YURI-RISK",
+   "role": "foresight",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "SWARM_A",
+   "label": "SWARM",
+   "role": "dual fan-out",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "OBLITERATUS_A",
+   "label": "OBLITERATUS",
+   "role": "adv. gate",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "LANE_LOCAL",
+   "label": "code-local",
+   "role": "gemma4:12b-it-qat",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_DSF",
+   "label": "ds-flash",
+   "role": "cloud",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_DSP",
+   "label": "ds-pro",
+   "role": "cloud",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_MINI",
+   "label": "codex-mini",
+   "role": "impl auth",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_CODEX",
+   "label": "codex",
+   "role": "full ws",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_KIMI",
+   "label": "kimi",
+   "role": "fallback",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_NEMOTRON",
+   "label": "nemotron",
+   "role": "advisory reasoning",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_TRIAGE",
+   "label": "triage-local",
+   "role": "gemma4:12b-it-qat",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "LANE_GPTOSS",
+   "label": "gpt-oss alias",
+   "role": "Gemma policy alias",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "DS_FLASH",
+   "label": "deepseek-v4-flash",
+   "role": "60s preflight",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "DS_PRO",
+   "label": "deepseek-v4-pro",
+   "role": "complex reasoning",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "OC_BRIDGE",
+   "label": "openclaw-bridge.sh",
+   "role": "127.0.0.1:18789",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "SWARM_FLASH",
+   "label": "swarm flash lane",
+   "role": "flash fan-out",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "SWARM_PRO",
+   "label": "swarm pro lane",
+   "role": "pro fan-out",
+   "detail": "",
+   "sector": "advisors"
+  },
+  {
+   "id": "MINI_WRITE",
+   "label": "workspace-write",
+   "role": "sandbox impl auth",
+   "detail": "",
+   "sector": "routing_lanes"
+  },
+  {
+   "id": "ENKI_INBOX",
+   "label": "ENKI INBOX",
+   "role": "feedback aggregator",
+   "detail": "",
+   "sector": "control_plane"
+  },
+  {
+   "id": "NATIVE_GATES",
+   "label": "NATIVE GATES",
+   "role": "native advisory gates",
+   "detail": "Promise.allSettled / 60-90s timeout",
+   "sector": "advisors"
+  },
+  {
+   "id": "LANE_GEMMA",
+   "label": "gemma-local",
+   "role": "gemma4:12b-it-qat",
+   "detail": "Ollama local SLM",
+   "sector": "routing_lanes"
+  }
+ ],
+ "HIDDEN_META": [
+  {
+   "id": "SESSION_INIT",
+   "label": "SESSION INIT",
+   "role": "startup hooks",
+   "detail": "boot / seed / context inject",
+   "sector": "initialization"
+  },
+  {
+   "id": "PROMPT_HOOKS",
+   "label": "PROMPT HOOKS",
+   "role": "submit hooks",
+   "detail": "aeonic / protocol-guard / scout",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "SOUL_INJECT",
+   "label": "soul-inject",
+   "role": "SOUL.md",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "PALACE",
+   "label": "palace-inject",
+   "role": "memory palace",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "MNEMOSYNE",
+   "label": "mnemosyne-seed",
+   "role": "global seed",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "TOKEN_INIT",
+   "label": "token-init",
+   "role": "session tracking",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "AEONIC",
+   "label": "aeonic-enforce",
+   "role": "protocol",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "PROT_GUARD",
+   "label": "protocol-guard",
+   "role": "gate",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "SCOUT_SPAWN",
+   "label": "scout-spawn",
+   "role": "HERMES+ARGUS",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "TIRITH",
+   "label": "tirith-url",
+   "role": "url guard",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "BASH_GUARD",
+   "label": "bash-security-guard.js",
+   "role": "destructive ops gate",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "GITNEX_PRE",
+   "label": "gitnexus-impact-check",
+   "role": "blast radius",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "SOUL_FILE",
+   "label": "SOUL.md",
+   "role": "behavioral rules",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "YURI_COG",
+   "label": "YURI-COGNITION.md",
+   "role": "paradigm rules",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "PALACE_IDX",
+   "label": "palace-index.md",
+   "role": "vault navigator",
+   "detail": "",
+   "sector": "initialization"
+  },
+  {
+   "id": "SCOUT_HERMES",
+   "label": "HERMES_FC",
+   "role": "context check",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "SCOUT_ARGUS",
+   "label": "ARGUS",
+   "role": "tool sequencing",
+   "detail": "",
+   "sector": "prompt_hooks"
+  },
+  {
+   "id": "HOOK_PIPELINE",
+   "label": "HOOK PIPELINE",
+   "role": "prompt hook cluster",
+   "detail": "aeonic / protocol-guard / scout",
+   "sector": "prompt_hooks"
+  }
+ ],
+ "SKILLS": [
+  {
+   "id": "ENKI_COMMANDS",
+   "label": "COMMANDS",
+   "role": "slash registry",
+   "detail": "50 active commands grouped by domain",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_GITNEXUS_FAMILY",
+   "label": "GITNEXUS family",
+   "role": "8 commands",
+   "detail": "8 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_DEEPSEEK_FAMILY",
+   "label": "DEEPSEEK family",
+   "role": "4 commands",
+   "detail": "4 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_DESIGN_FAMILY",
+   "label": "DESIGN family",
+   "role": "3 commands",
+   "detail": "3 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_SPEC_FAMILY",
+   "label": "SPEC family",
+   "role": "4 commands",
+   "detail": "4 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_PROBABILITY",
+   "label": "PROBABILITY family",
+   "role": "3 commands",
+   "detail": "3 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_EOT",
+   "label": "EOT family",
+   "role": "2 commands",
+   "detail": "2 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_LLM",
+   "label": "LLM family",
+   "role": "2 commands",
+   "detail": "2 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_SOLO",
+   "label": "STANDALONE",
+   "role": "24 commands",
+   "detail": "24 commands",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_SHURA",
+   "label": "/shura",
+   "role": "strategic review",
+   "detail": "",
+   "sector": "command_registry"
+  },
+  {
+   "id": "CMD_REPORT",
+   "label": "/report",
+   "role": "report generator",
+   "detail": "",
+   "sector": "command_registry"
+  }
+ ],
+ "RESIDUE_UNASSIGNED": [
+  "services:SERVICES",
+  "unassigned:ENKI_PLAN",
+  "unassigned:ENKI_BUS",
+  "unassigned:ENKI_CTX",
+  "unassigned:ED_SYNTH",
+  "unassigned:ED_ROUTE",
+  "unassigned:ED_FINAL",
+  "services:SVC_SHELL",
+  "services:SVC_RUNTIME",
+  "services:SVC_RAG",
+  "services:SVC_HEALTH",
+  "services:SVC_EOT",
+  "services:SVC_DIGEST",
+  "services:SVC_OLLAMA"
+ ]
+}

@@ -13,34 +13,13 @@ export const QUARANTINE_THRESHOLD = 3;
 export const AUTO_UNQUARANTINE_MS = 120 * 60 * 1000;
 
 export const MODEL_TO_LANE = Object.freeze({
-  'nvidia/nemotron-3-super-120b-a12b': 'nvidia-nemotron-120b',
-  'nvidia/nemotron-3-nano-30b-a3b': 'nvidia-nemotron-nano-30b',
-  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning': 'nvidia-ising',
-  'mistralai/mistral-large-3-675b-instruct-2512': 'nvidia-mistral-large',
-  'mistralai/mistral-medium-3.5-128b': 'nvidia-mistral-medium',
-  'qwen/qwen3-next-80b-a3b-instruct': 'nvidia-qwen3-next',
-  'qwen/qwen3-coder-480b-a35b-instruct': 'nvidia-qwen-coder',
-  'qwen/qwen3.5-397b-a17b': 'nvidia-qwen-397b',
-  'z-ai/glm-5.1': 'nvidia-glm',
-  'minimaxai/minimax-m2.7': 'nvidia-minimax-m27',
-  'openai/gpt-oss-120b': 'nvidia-gpt-oss-120b',
-  'abacusai/dracarys-llama-3.1-70b-instruct': 'nvidia-dracarys',
-  'meta/llama-3.3-70b-instruct': 'nvidia-llama-70b',
+  'mimo-v2.5-pro[1m]': 'mimo-v2.5-pro[1m]',
+  'mimo-v2-flash': 'mimo-v2-flash',
 });
 
 const LANE_ALIASES = Object.freeze({
-  nemotron: 'nvidia-nemotron-120b',
-  'nemotron-120b': 'nvidia-nemotron-120b',
-  'nemotron-nano': 'nvidia-nemotron-nano-30b',
-  'nemotron-nano-30b': 'nvidia-nemotron-nano-30b',
-  'mistral-large': 'nvidia-mistral-large',
-  'mistral-medium': 'nvidia-mistral-medium',
-  'qwen-coder': 'nvidia-qwen-coder',
-  'qwen3-next': 'nvidia-qwen3-next',
-  'qwen-397b': 'nvidia-qwen-397b',
-  glm: 'nvidia-glm',
-  'minimax-m27': 'nvidia-minimax-m27',
-  'minimax-m2.7': 'nvidia-minimax-m27',
+  mimo: 'mimo-v2.5-pro[1m]',
+  'mimo-flash': 'mimo-v2-flash',
   codex: 'codex',
   'gpt-5.5': 'codex',
   'gpt-5.4': 'codex',
@@ -48,14 +27,6 @@ const LANE_ALIASES = Object.freeze({
 });
 
 const FALLBACK_LANES = Object.freeze({
-  'nvidia-nemotron-120b': ['nvidia-nemotron-nano-30b', 'nvidia-mistral-medium'],
-  'nvidia-nemotron-nano-30b': ['nvidia-mistral-medium'],
-  'nvidia-mistral-large': ['nvidia-mistral-medium'],
-  'nvidia-qwen3-next': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
-  'nvidia-qwen-397b': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
-  'nvidia-glm': ['nvidia-mistral-medium'],
-  'nvidia-minimax-m27': ['nvidia-mistral-large', 'nvidia-mistral-medium'],
-  'nvidia-qwen-coder': ['nvidia-mistral-medium'],
 });
 
 export function resolveKagamiLedgerPath(options = {}) {

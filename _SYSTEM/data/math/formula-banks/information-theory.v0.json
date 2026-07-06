@@ -28,8 +28,7 @@
           "meaning": "logarithm base",
           "type": "number",
           "constraints": [
-            "b > 0",
-            "b != 1"
+            "b > 1"
           ]
         }
       ],
@@ -72,12 +71,15 @@
           "probabilities": "dimensionless probability weights; normalized internally",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "probabilities must be finite non-negative numbers",
         "probability mass must have positive sum",
-        "base must be positive and not equal to 1"
+        "base must be greater than 1"
       ],
       "counterexamples": [
         {
@@ -90,6 +92,18 @@
             "base": 2
           },
           "expectedError": "non-negative"
+        },
+        {
+          "name": "fractional log base flips entropy sign",
+          "input": {
+            "probabilities": [
+              0.5,
+              0.5
+            ],
+            "base": 0.5
+          },
+          "expectedError": "greater than 1",
+          "interpretation": "A base in (0,1) silently negates entropy; the kernel rejects it as a permanent negative proof."
         }
       ],
       "selectionGuidance": {
@@ -189,7 +203,7 @@
             "base": 2
           },
           "expected": {
-            "divergence": 0.20751874963942185
+            "divergence": 0.207518749639422
           },
           "interpretation": "The observed distribution has measurable directional shift from the reference."
         }
@@ -205,7 +219,10 @@
           "q": "dimensionless probability weights for reference distribution",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "p and q must be finite non-negative equal-length vectors",
@@ -326,7 +343,7 @@
             "base": 2
           },
           "expected": {
-            "crossEntropy": 1.207518749639422
+            "crossEntropy": 1.20751874963942
           },
           "interpretation": "The encoding is worse than the one-bit entropy baseline by the KL divergence amount."
         }
@@ -342,7 +359,10 @@
           "q": "dimensionless predicted/reference probability weights",
           "base": "dimensionless logarithm base"
         },
-        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base",
+        "parameterSlots": [
+          "base"
+        ]
       },
       "inputConstraints": [
         "p and q must be finite non-negative equal-length vectors",
@@ -406,6 +426,153 @@
       "sources": [
         "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
         "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md"
+      ]
+    },
+    {
+      "id": "information-gain",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "information-theory",
+      "notation": "IG(before, after) = H(before) - H(after)",
+      "purpose": "Measure how much uncertainty an update removed: the entropy drop from a prior distribution to a posterior distribution.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#informationGain",
+      "variables": [
+        {
+          "symbol": "before",
+          "meaning": "prior distribution before evidence",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum"
+          ]
+        },
+        {
+          "symbol": "after",
+          "meaning": "posterior distribution after evidence",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum"
+          ]
+        },
+        {
+          "symbol": "b",
+          "meaning": "logarithm base",
+          "type": "number",
+          "constraints": [
+            "b > 1"
+          ]
+        }
+      ],
+      "assumptions": [
+        "before and after can each be normalized into probability distributions",
+        "both distributions describe the same event space"
+      ],
+      "invalidInputs": [
+        "empty array",
+        "negative values",
+        "zero distribution sum",
+        "invalid log base"
+      ],
+      "failureModes": [
+        "Information gain can be negative if the update increased uncertainty; it measures entropy change only, not correctness of the update."
+      ],
+      "workedExamples": [
+        {
+          "name": "evidence sharpens a fair prior",
+          "input": {
+            "before": [
+              0.5,
+              0.5
+            ],
+            "after": [
+              0.9,
+              0.1
+            ],
+            "base": 2
+          },
+          "expected": {
+            "gain": 0.531004406410719
+          },
+          "interpretation": "Moving from a fair coin to a 90/10 belief removes about 0.531 bits of uncertainty."
+        }
+      ],
+      "proofObligations": [
+        "entropy_difference_definition",
+        "probabilities_non_negative",
+        "positive_distribution_sum"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs to quantify how much an evidence update reduced uncertainty, for example crediting the epsilon energy term for genuine belief sharpening.",
+      "units": {
+        "inputs": {
+          "before": "dimensionless prior probability weights; normalized internally",
+          "after": "dimensionless posterior probability weights; normalized internally",
+          "base": "dimensionless logarithm base"
+        },
+        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base",
+        "parameterSlots": [
+          "base"
+        ]
+      },
+      "inputConstraints": [
+        "before and after must be finite non-negative non-empty arrays",
+        "each distribution must have positive mass",
+        "base must be greater than 1"
+      ],
+      "counterexamples": [
+        {
+          "name": "empty prior distribution",
+          "input": {
+            "before": [],
+            "after": [
+              0.5,
+              0.5
+            ],
+            "base": 2
+          },
+          "expectedError": "must be a non-empty array"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "credit an update for genuinely sharpening belief",
+          "compare uncertainty before and after evidence is applied"
+        ],
+        "avoidWhen": [
+          "the two distributions describe different event spaces",
+          "the question is directional drift rather than uncertainty reduction"
+        ],
+        "yuriApplications": [
+          "epsilon energy term information credit",
+          "claim-cortex belief sharpening reward",
+          "evidence value scoring"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#informationGain",
+        "proofGateFormulaId": "information-gain",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "evidence sharpens a fair prior",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "empty prior distribution",
+          "expectedError": "must be a non-empty array"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.mjs#informationGain",
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
       ]
     }
   ]

@@ -9,7 +9,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const DEFAULT_HOST = normalizeHost(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || '127.0.0.1:11434');
 const DEFAULT_KV_CACHE_TYPE = process.env.OLLAMA_KV_CACHE_TYPE || 'q8_0';
 const DEFAULT_FLASH_ATTENTION = parseBoolean(process.env.OLLAMA_FLASH_ATTENTION, true);
-const DEFAULT_NO_CLOUD = parseBoolean(process.env.OLLAMA_NO_CLOUD, true);
+const DEFAULT_NO_CLOUD = parseBoolean(process.env.OLLAMA_NO_CLOUD, false);
 
 const mode = process.argv[2] || 'status';
 const flags = parseFlags(process.argv.slice(3));

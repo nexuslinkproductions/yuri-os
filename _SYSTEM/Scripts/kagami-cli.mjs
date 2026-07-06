@@ -157,7 +157,11 @@ const LANE_RATES = {
 };
 
 function fail(reason, code = 1) {
-  process.stderr.write(`${RED}${reason}${RESET}\n${DIM}${BOOT_HINT}${RESET}\n`);
+  // Only hint to boot the facade if it is actually meant to be running. When KAGAMI_FACADE_ENABLED!=1
+  // the facade is OFF by design (moat 2026-06-03) and its boot script (kagami-start.sh) doesn't exist,
+  // so the hint is misleading noise — it polluted lane/tool output all over and masqueraded as a lane error.
+  const hint = process.env.KAGAMI_FACADE_ENABLED === '1' ? `\n${DIM}${BOOT_HINT}${RESET}` : '';
+  process.stderr.write(`${RED}${reason}${RESET}${hint}\n`);
   process.exit(code);
 }
 

@@ -16,7 +16,7 @@ if curl -sf http://localhost:3005/kagami/health > /tmp/_hb_kagami.json 2>/dev/nu
   UPTIME=$(python3 -c "import json,sys; d=json.load(open('/tmp/_hb_kagami.json')); print(round(d.get('value',d).get('uptimeSeconds',0)))" 2>/dev/null || echo "?")
   log "kagami=OK uptime=${UPTIME}s"
 else
-  log "kagami=DOWN — consider: bash .codex-worktrees/kagami-rebuild/_SYSTEM/Scripts/kagami-start.sh"
+  log "kagami=DOWN (control-plane service retired with .codex-worktrees/kagami-rebuild; capture dormant)"
 fi
 
 # ── Rapid-MLX ───────────────────────────────────────────────────────────────

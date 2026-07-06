@@ -10,10 +10,10 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Config loaded | ✓ | `config.json` valid JSON, 5 domains, thresholds set |
+| Config loaded | ✓ | `config.json` valid JSON, 4 domains, thresholds set |
 | Hook scripts | ✓ | All 3 hooks: syntax valid, no runtime errors |
 | Settings wired | ✓ | `settings.json` SessionStart + Stop hooks configured |
-| Learning files | ✓ | 5 domain files + README in place |
+| Learning files | ✓ | 4 domain files + README in place |
 
 ---
 
@@ -68,16 +68,10 @@ To bootstrap learning, intentionally correct Claude on:
 
 ### Brief Corrections
 - "no, that brief is missing the location"
-- "add the shoot date to proposals"
-- "don't use jargon Claudio won't understand"
-
-### On-Set Corrections
-- "include equipment manufacturer in call sheets"
-- "never forget the location address"
-- "add weather notes to shot lists"
+- "don't use jargon the client won't understand"
 
 ### Client Communications
-- "too formal, use Claudio's tone instead"
+- "too formal, use a warmer tone instead"
 - "clarify the timeline"
 - "don't assume they know our jargon"
 
@@ -99,13 +93,11 @@ To bootstrap learning, intentionally correct Claude on:
 
 ---
 
-## Adjustments (Post-Claudio Sync)
-
-Once Claudio reviews:
+## Adjustments
 
 1. **Too many false positives?** Increase `minSessionsForRule` to 3–4 in `config.json`
-2. **Rules too generic?** Mark domain-specific rules with `[ONSITE]` prefix
-3. **Need shared rules?** Edit `client-comms.md` together
+2. **Rules too generic?** Mark domain-specific rules with a domain prefix
+3. **Need shared rules?** Edit `client-comms.md`
 4. **Want to disable learning?** Set `enabled: false` in `config.json`
 
 ---
@@ -129,4 +121,4 @@ Once Claudio reviews:
 - **Day 3+:** Rules prepend automatically, correction frequency drops
 - **Week 1:** 15–20 domain-specific rules learned
 
-Once you and Claudio sync (Week 2+): tune thresholds, merge shared rules, lock in your house style.
+Over time (Week 2+): tune thresholds, merge shared rules, lock in your house style.

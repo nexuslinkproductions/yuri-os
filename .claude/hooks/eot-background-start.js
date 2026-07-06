@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
- * EOT Background Start Hook
- * Spawns end-of-transmission monitoring in background at session start
- * Monitors for user exit keywords (done/finished/end) to surface report
+ * RETIRED 2026-06-11 (wave-3 H.1, D-H1-A) — see wave3-session-boot-deep.md CRIT-2.
+ * This hook was a dead organ: it spawned NOTHING, wrote a never-read marker file
+ * (with a key collision on /tmp/claude-eot-unknown.marker), and injected a false
+ * "🔄 EOT monitoring active" claim into every turn-1 context. Unregistered from
+ * the settings.json SessionStart array; file kept on disk for the record.
+ * Real EOT detection lives in user-prompt-submit.js + yuri-closeout.mjs.
  */
 
 const sessionId = process.env.CLAUDE_SESSION_ID || 'unknown';

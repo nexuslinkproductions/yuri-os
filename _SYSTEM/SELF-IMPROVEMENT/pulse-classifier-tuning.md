@@ -24,7 +24,7 @@ const FILE_PATH    = /[/][\w-]+\.[a-z]+/i;
 const LANE_MENTION = /@\w+/;
 ```
 
-### Complexity classifier (`_SYSTEM/Scripts/offload-contract.mjs → classifyComplexity`)
+### Complexity classifier (`_SYSTEM/Scripts/llm-compat-contract.mjs → classifyComplexity`)
 
 | Tier | Conditions (heuristic) |
 |------|------------------------|
@@ -33,10 +33,15 @@ const LANE_MENTION = /@\w+/;
 | complex | multi-file scope, protocol keywords, 2+ top-level areas |
 | critical | `critical/catastrophic/highest risk` keywords, or swarm/promote/protected-path |
 
-Ensemble by tier:
-- standard: `[deepseek-preflight, openclaw-preflight, hermes-forecast, cassandra]`
-- complex: same + `swarm-fanout`
-- critical: same + `swarm-fanout` (codexPolicy=none, manual only)
+Ensemble by tier (live `buildEnsemble`, post lane-consolidation 8ca6c254):
+- analysis: `[deepseek-preflight, mimo-preflight]` (+ codex-advisory on code signals, + shura-review on explicit council asks)
+- standard: `[deepseek-preflight, mimo-preflight]` (+ codex-advisory on code signals)
+- complex/critical: same + `yuri-risk` + `shura-review` (+ openclaw-preflight when its advisory fires)
+
+> Soak baseline: 12 turns as of 2026-06-10 — the 20-turn milestone has not been
+> reached; NO calibration pass has run. (The retired advisor names
+> openclaw-preflight/hermes-forecast/cassandra and the old offload-contract
+> classifier reference were corrected in wave-2; no calibration data exists yet.)
 
 ---
 

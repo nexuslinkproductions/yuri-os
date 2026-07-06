@@ -43,22 +43,22 @@ Instead of writing skills by hand, this system:
 5 Easy runs
   - Simple inputs, ideal conditions
   - Establish baseline success (should all pass)
-  - Example: shot list for straightforward commercial
+  - Example: straightforward task with clear requirements
 
 8 Normal runs
   - Typical inputs, realistic constraints
   - Core skill demonstration
-  - Example: shot list for multi-location campaign
+  - Example: typical task with multiple constraints
 
 4 Hard runs
   - Complex inputs, tight constraints
   - Stress-test the skill
-  - Example: shot list for 1-day, 5-scene shoot with bad weather
+  - Example: complex task with a tight budget and many constraints
 
 3 Adversarial runs
   - Designed to break the skill
   - Edge cases, unusual requests
-  - Example: shot list for "day/night same location with rain contingency"
+  - Example: task with contradictory or ambiguous requirements
 ```
 
 ### Scoring System
@@ -85,12 +85,12 @@ Questions:
 Output:
 ```
 Failed run #7: Score 4/10 (incomplete)
-  Root cause: Generator didn't understand "one-day shoot, 5 scenes"
-  Preventive rule: "Always extract scene count and time per scene from brief"
+  Root cause: Generator didn't extract the full deliverable count from the brief
+  Preventive rule: "Always extract deliverable count and effort per item from brief"
   
-Failed run #15: Score 5/10 (unrealistic timings)
-  Root cause: Didn't account for setup time between locations
-  Preventive rule: "Add 15–20 min travel + setup time between location changes"
+Failed run #15: Score 5/10 (unrealistic estimates)
+  Root cause: Didn't account for overhead between steps
+  Preventive rule: "Add overhead/transition time between major steps"
 ```
 
 ### 2. Success Analyst
@@ -104,14 +104,14 @@ Questions:
 Output:
 ```
 Top runs (#2, #8, #19) share:
-  - Explicit time allotments per shot (down to 5-min increments)
-  - Named crew roles for each shot
+  - Explicit, measurable detail per item
+  - Named roles for each item
   - Contingency plans for two failure modes
-  - Equipment specified with backup options
+  - Resources specified with backup options
   
 Distinctive behaviors:
-  - Top runs include "why this shot matters" notes
-  - They reference the brief explicitly ("As noted in brief: outdoor scenes")
+  - Top runs include "why this matters" notes
+  - They reference the brief explicitly ("As noted in brief: ...")
   - They list potential issues upfront
 ```
 
@@ -126,18 +126,18 @@ Questions:
 Output:
 ```
 Optimal sequence (from top 8 runs):
-  1. Extract scene list from brief (what are we shooting?)
-  2. Identify constraints (time, location, crew, weather)
-  3. Estimate time per scene (ask "how long for each?")
-  4. Assign equipment per scene
-  5. Name crew roles needed
-  6. Add contingencies (weather, setup delays)
+  1. Extract deliverable list from brief (what are we producing?)
+  2. Identify constraints (budget, resources, requirements, failure modes)
+  3. Estimate effort per item (ask "how much for each?")
+  4. Assign resources per item
+  5. Name roles needed
+  6. Add contingencies (failure modes, overhead delays)
   7. Review against brief for alignment
 
 Tool use patterns:
   - All top runs read brief 2–3 times (start, mid-sequence, final check)
-  - All use a "constraint bucket" (location, time, crew, budget)
-  - All explicitly test "can we do this in the time available?"
+  - All use a "constraint bucket" (resources, budget, requirements)
+  - All explicitly test "can we do this within budget?"
 ```
 
 ### 4. Edge Analyst
@@ -150,15 +150,15 @@ Questions:
 
 Output:
 ```
-Edge case: "One-day shoot, 5 scenes, 2 locations, rain forecast"
-  Failure mode: No indoor backups
-  Defensive check: "For outdoor scenes in uncertain weather, always add indoor alternative"
+Edge case: "Tight deadline, many deliverables, dependency at risk"
+  Failure mode: No fallback path
+  Defensive check: "For at-risk dependencies, always add a fallback alternative"
   
-Edge case: "Budget is tight, need all shots but limited crew"
-  Failure mode: Unrealistic timings
-  Defensive check: "For tight budgets, reduce setup time assumptions by 10%, add risk buffer"
+Edge case: "Budget is tight, need all deliverables but limited resources"
+  Failure mode: Unrealistic estimates
+  Defensive check: "For tight budgets, reduce overhead assumptions by 10%, add risk buffer"
   
-Edge case: "Brief has vague creative direction"
+Edge case: "Brief has vague direction"
   Failure mode: Generated list doesn't match intent
   Defensive check: "If brief lacks specifics, ask clarifying questions upfront"
 ```
@@ -170,7 +170,7 @@ Edge case: "Brief has vague creative direction"
 Consolidated into your skill file:
 
 ```markdown
-# Shot List Generation Skill
+# Task Plan Generation Skill
 
 **Confidence:** Evidence-based (20 runs)  
 **Passing rate:** 85% (17 of 20 runs ≥ 7.0)  
@@ -178,31 +178,31 @@ Consolidated into your skill file:
 
 ## Core Rules (from success analysis)
 
-1. Always specify time allotments down to 5-min increments
-2. Name crew roles explicitly for each shot
-3. Include contingency plans for weather and timing
-4. Specify equipment with backup options
+1. Always specify effort allotments down to the smallest meaningful unit
+2. Name owners/roles explicitly for each deliverable
+3. Include contingency plans for risk and timing
+4. Specify resources with backup options
 5. Reference brief constraints explicitly
 
 ## Failure Preventions (from error analysis)
 
-- If brief is vague on scene count → Ask upfront
-- If time budget is tight → Build 20% buffer
-- If multi-location → Account for travel time
-- If outdoor → Always add indoor alternative
+- If brief is vague on item count → Ask upfront
+- If budget is tight → Build 20% buffer
+- If multi-stage → Account for transition overhead
+- If a dependency is at risk → Always add a fallback alternative
 
 ## Edge Case Handlers (from edge analysis)
 
-- Contradictions in brief? Prioritize: safety > budget > creative
-- Weather risk? Offer 2 contingency approaches
-- Tight crew? Reduce setup time by 10%, extend shoot hours if needed
+- Contradictions in brief? Prioritize: safety > budget > scope
+- Risk on a dependency? Offer 2 contingency approaches
+- Tight resources? Reduce setup overhead by 10%, extend timeline if needed
 
 ## Optimal Workflow (from structure analysis)
 
-1. Extract constraints (time, locations, crew, budget)
-2. List all scenes with durations
-3. Build equipment matrix
-4. Assign crew per scene
+1. Extract constraints (effort, dependencies, owners, budget)
+2. List all deliverables with effort estimates
+3. Build a resource matrix
+4. Assign owners per deliverable
 5. Test feasibility (can we do it?)
 6. Add contingencies
 7. Final brief alignment check
@@ -215,13 +215,13 @@ Consolidated into your skill file:
 ### Command
 
 ```bash
-  shot-list-generation \
+  task-plan-generation \
   --samples 20 \
 ```
 
 ### What Happens
 
-1. **Generation Phase:** 20 runs of shot list generation (5 easy, 8 normal, 4 hard, 3 adversarial)
+1. **Generation Phase:** 20 runs of task plan generation (5 easy, 8 normal, 4 hard, 3 adversarial)
 2. **Evaluation Phase:** Each output scored 1–10
 3. **Analysis Phase:** 4 agents analyze in parallel (error, success, structure, edge)
 4. **Consolidation Phase:** Merge findings into SKILL.md
@@ -260,13 +260,13 @@ Good tasks to trace:
 
 | Task | Effort | Value | Notes |
 |------|--------|-------|-------|
-| Shot list generation | Medium | High | Core on-set skill |
-| Call sheet creation | Low | High | Repeatable logistics |
+| Task plan generation | Medium | High | Core planning skill |
+| Checklist creation | Low | High | Repeatable logistics |
 | Invoice preparation | Medium | Medium | Finance/accuracy critical |
 | Client email drafting | Low | High | Tone/communication |
 | Project brief analysis | Medium | Medium | Planning foundation |
 
-Start with **shot list generation** (core to your on-set work).
+Start with **task plan generation** (core to repeatable planning work).
 
 ---
 
@@ -276,11 +276,11 @@ Start with **shot list generation** (core to your on-set work).
 
 ```
 Self-Evolving Hooks learns from corrections:
-  "no, don't forget weather contingencies"
-  → Rule stored in learning/on-set.md
+  "no, don't forget the at-risk dependency fallback"
+  → Rule stored in learning/planning.md
   
 Later, Trace to Skill extracts skills from 20 runs:
-  "All top runs include weather contingencies"
+  "All top runs include dependency fallbacks"
   → Rule stored in SKILL.md
   
 Result: Same insight from two sources (learning + evidence)
@@ -291,12 +291,12 @@ Result: Same insight from two sources (learning + evidence)
 
 ```
 GAN Loop validates your briefs:
-  Generator creates shot list
+  Generator creates task plan
   Evaluator scores it
   
 Generator uses Trace-to-Skill rules:
-  "Include weather contingencies"
-  "Specify equipment with backups"
+  "Include dependency fallbacks"
+  "Specify resources with backups"
   
 Result: Tighter feedback loops, fewer iterations to pass
 ```
@@ -307,19 +307,19 @@ Result: Tighter feedback loops, fewer iterations to pass
 
 Once SKILL.md is created:
 
-1. **Manual use:** Read the skill, apply rules when generating shot lists
+1. **Manual use:** Read the skill, apply rules when generating task plans
 2. **Agent use:** Claude agents in GAN Loop reference your SKILL.md
 3. **Integration:** Swarm system uses your skills for overnight automation
 4. **Refinement:** After 3–6 months, re-trace the skill (50 runs) for deeper patterns
 
 ---
 
-## Adjusting After Claudio Sync
+## Adjusting After Review
 
-Once you and Claudio review the extracted skills:
+Once you review the extracted skills:
 
 1. **Validate rules together** — Do these match your house standards?
-2. **Mark client-specific rules** — Shot lists for MACL differ from C2MOVIEZ?
+2. **Mark client-specific rules** — Do plans for one client differ from another?
 3. **Create variants** — Separate SKILL files for different clients?
 4. **Refine thresholds** — Is 7.0 the right passing score, or different per client?
 

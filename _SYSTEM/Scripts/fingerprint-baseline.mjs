@@ -43,7 +43,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
@@ -158,7 +158,12 @@ export function computeDelta({ noAppend = false } = {}) {
     as_of: new Date().toISOString(),
     sessions_total: current.session_count ?? history.length,
     history_entries: history.length,
-    baseline_window: `sessions 1-${baselineEntries.length}`,
+    // SLIDING baseline: history is capped keep-most-recent, so these are the
+    // oldest RETAINED entries, not the true first sessions; for history shorter
+    // than baseline+current windows the two OVERLAP, biasing drift → 0.
+    baseline_window: `oldest ${baselineEntries.length} of retained history (sliding after ${HISTORY_CAP}-entry cap)`,
+    baseline_is_sliding: history.length >= HISTORY_CAP,
+    windows_overlap: history.length < BASELINE_WINDOW + CURRENT_WINDOW,
     current_window: `last ${currentEntries.length}`,
     dimensions,
     calibration_trend: current.calibration_trend ?? null,
@@ -180,6 +185,6 @@ function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }

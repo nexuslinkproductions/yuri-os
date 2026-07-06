@@ -4,9 +4,8 @@
 // across dispatches so the provider sees full prior context, prompt-cache fires,
 // and the lane's "personality" compounds across our work session.
 //
-// Used by offload-runner.mjs for DeepSeek + NIM lanes (one-shot lifecycle dropped
-// 2026-05-19 — NIM nemotron/mistral/llama/etc. now get the same persistent treatment
-// as DeepSeek per Marcel's cross-lane continuity directive).
+// Used by the lane runner for DeepSeek + Mimo cloud lanes (persistent-session lifecycle
+// per Marcel's cross-lane continuity directive; NVIDIA NIM lanes retired 2026-06-10).
 // Codex uses its own native session storage via codex-offload-runner.
 
 import {
@@ -33,11 +32,11 @@ const DEFAULT_LEGACY_SESSION_DIR = path.join(REPO_ROOT, '.claude', 'lane-session
 // 'codex-' covers the synthetic id from codex-offload-runner.mjs (e.g. 'codex-gpt-5.5').
 // Standalone gpt-5.5/5.4/5.4-mini/5.3-codex tokens route through openAiResponsesLane and
 // are listed explicitly (no 'gpt-' prefix because that would also catch 'gpt-oss').
-// 'nvidia-' covers all NIM lanes (nemotron-120b, mistral-large/medium, llama-70b, kimi, etc.).
-// Coverage v3 (2026-05-19) — extended to kimi/moonshot/openrouter/ollama-cloud/gemma-cloud.
+// Coverage v4 (2026-06-10) — NVIDIA NIM lanes (nemotron/kimi/etc.) retired; 'mimo' added as the
+// first-class external reasoning lane (token-plan, Anthropic Messages API).
 const PERSISTENT_LANE_PREFIXES = [
-  'deepseek', 'code-deepseek', 'reason-cloud', 'codex-', 'nvidia-',
-  'kimi', 'moonshot', 'openrouter-free', 'ollama-cloud',
+  'deepseek', 'code-deepseek', 'reason-cloud', 'codex-', 'mimo',
+  'openrouter-free', 'ollama-cloud',
   'gpt-5.5', 'gpt-5.4', 'gpt-5.3-codex',
   'gemma-cloud',
 ];
@@ -56,9 +55,9 @@ function isPersistentLane(modelId) {
 export function laneSessionModelId({ lane = '', model = '', endpoint = '' } = {}) {
   const laneId = String(lane || '');
   const modelId = String(model || '').trim();
-  const nvidiaEndpoint = /integrate\.api\.nvidia\.com/i.test(String(endpoint || ''));
-  const nvidiaLane = laneId === 'nvidia-nim' || laneId.startsWith('nvidia-') || nvidiaEndpoint;
-  if (nvidiaLane && modelId) return `nvidia-${modelId}`;
+  const mimoEndpoint = /xiaomimimo\.com/i.test(String(endpoint || ''));
+  const mimoLane = laneId === 'mimo' || laneId.startsWith('mimo') || mimoEndpoint;
+  if (mimoLane && modelId) return `mimo-${modelId}`;
   return laneId;
 }
 

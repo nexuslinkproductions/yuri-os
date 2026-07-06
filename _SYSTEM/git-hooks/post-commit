@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# YURI post-commit — log the just-made commit to the work-ledger so the company dashboard reflects
+# OPERATOR / main-session work, not only nexus-company cycle runs. Best-effort + non-blocking:
+# post-commit cannot fail a commit, and `|| true` guards the node call. Idempotent (dedup by sha).
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+[ -n "$ROOT" ] || exit 0
+cd "$ROOT" || exit 0
+node _SYSTEM/Scripts/session-work-logger.mjs --sync HEAD~1 >/dev/null 2>&1 || true
+exit 0

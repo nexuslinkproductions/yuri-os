@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  DISARMED template — the SECOND continuous trading OVERSEER beat (nemotron-3-super lane), teammate to
+  the deepseek-flash overseer. REPLACES the minimax-m3 lane (owner swap 2026-06-17). Both continuous
+  lanes are OLLAMA (outage-proof). NOT loaded by anything; lives in the repo only. Arm (owner-gated):
+
+    cp _SYSTEM/launchd/com.yuri-os-musubi.overseer-nemotron-super.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.yuri-os-musubi.overseer-nemotron-super.plist
+    # disarm: launchctl bootout gui/$(id -u)/com.yuri-os-musubi.overseer-nemotron-super ; rm ~/Library/LaunchAgents/com.yuri-os-musubi.overseer-nemotron-super.plist
+
+  Every 60s it runs ONE overseer beat on the nemotron-3-super lane: gather live state -> fee-aware
+  reweight (deterministic) -> write the hot-reloaded overseer-config -> nemotron-3-super judgment as an
+  ADVISORY board proposal (NEVER binding config). nemotron-super is a DEEP/SLOW lane (49B, ~60-120s LLM,
+  auto-discovers its 65536 output cap) — the overseer LLM timeout was raised to 120s for it; launchd
+  skips a fire while the prior is in flight, so the effective cadence stretches to the call length.
+  `--feeHurdle 0.002` PINS the edge-gate to the real ~one-taker-round-trip cost (the live value had
+  drifted to 0.0005, letting sub-fee trades through → fee bleed; the flash lane inherits 0.002 from the
+  shared config once this lane sets it). The ollama key is hydrated from Keychain inside the dispatch.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yuri-os-musubi.overseer-nemotron-super</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/alpha-factor-library/overseer.mjs</string>
+        <string>--once</string>
+        <string>--lane</string>
+        <string>nemotron-super</string>
+        <string>--llm</string>
+        <string>nemotron-3-super:cloud</string>
+        <string>--feeHurdle</string>
+        <string>0.002</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/marcelspatz</string>
+        <key>YURI_ROOT</key>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+    </dict>
+
+    <!-- 60s — nemotron-super is slow (49B); launchd skips a fire while the prior call is in flight. -->
+    <key>StartInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/overseer-nemotron-super.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/overseer-nemotron-super.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

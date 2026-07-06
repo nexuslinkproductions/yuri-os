@@ -1,0 +1,28 @@
+You are PEER 1 of 5 GLM-5.2 peers. READ FIRST: the master brief at
+/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/00-MASTER-BRIEF.md
+and the audit at /Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/01-AUDIT-PLAN.md
+(especially §4 vision-reality gap and §8 residual risk). Honor the brief's HARD CONSTRAINTS (READ-ONLY, local-first, cite sources, honest).
+
+YOUR LANE: PRO BENCHMARK + FACTOR SURVIVAL + INDICATOR REALITY.
+Answer: how do PROFESSIONAL systematic crypto-perp funds actually trade, and where does YURI fall short?
+
+Do this:
+1. LOCAL-FIRST: run `ai search "funding rate carry trade alpha"` and `ai search "order flow imbalance OFI edge"` and
+   `ai search "alpha factor deflated sharpe DSR"` — mine the existing YURI research corpus first. Cite what you find.
+2. ONLINE (verification layer, ≥2 primary sources, cite URL+date): establish the institutional reality:
+   - Which FACTOR FAMILIES survive Deflated Sharpe / out-of-sample at scale in crypto perps? Carry/funding-rate,
+     basis (perp-spot), term-structure, cross-asset momentum, microstructure (OFI/VPIN/Kyle-lambda), onchain flows,
+     volatility-risk-premium/funding-skew, liquidation cascades, news/sentiment. Rank by empirical edge persistence.
+   - Which INDICATORS are retail-noise (RSI/MACD/stochastic/Bollinger on 1-min) vs institutional signal
+     (order-book imbalance, funding rate, open-interest, taker-buy ratio, realized-vs-implied vol, skew).
+     Give the empirical verdict on why naive TA underperforms after fees.
+   - The Binance USDⓈ-M fee/maker-rebate/taker schedule (VIP0..VIP9): maker/taker bps per tier, the 30d-volume
+     thresholds, and at what tier maker quoting turns POSITIVE edge. Cite the official Binance fee doc.
+   - Time-horizon reality: classify edge by horizon (μs-HFT / 100ms-1s / 1s-30s / minutes-hours / hours-days).
+     State which horizons are ACCESSIBLE to a retail M2-Pro + public-WS machine vs structurally closed (co-lo).
+3. Compare to YURI's current state (from the audit): YURI sizes from 1-min price-TA (RSI/MACD/supertrend etc),
+   excludes the real-edge overlays (funding/OFI/carry), effective-N≈2. Produce a GAP table: capability | pros have it | YURI has it? | gap size.
+
+Deliver the OUTPUT FORMAT block from the brief. Your "WHAT WE ARE MISSING" must list the specific factor
+families / data feeds / indicator-replacements YURI lacks, each with build-size (S/M/L) + why-it-matters.
+Be numeric and cite sources. No hand-waving.

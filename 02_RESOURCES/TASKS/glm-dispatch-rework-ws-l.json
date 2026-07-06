@@ -1,0 +1,98 @@
+{
+  "summary": "WS-L: GLM dispatch rework — debug claude-zai vs fleet headless, propose zai-tmux adapter",
+  "tags": ["glm", "dispatch", "substrate", "zai", "ws-l", "fleet"],
+  "researchDoc": "_SYSTEM/reports/GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md",
+  "bakeoffDoc": "_SYSTEM/reports/GLM_SUBSTRATE_OPTIONS_BAKEOFF_2026-06-30.md",
+  "disarmedByDefault": true,
+  "armingNote": "L1+ implementation needs YURI_GLM_FLEET=1 for headless segments. zai-tmux adapter needs Marcel Terminal + tmux. Smoke segments are DISARMED-safe.",
+  "dependsOn": {
+    "research": [
+      "_SYSTEM/reports/MURE_ENFORCEMENT_MINIMUM_2026-06-30.md",
+      "_SYSTEM/reports/GLM_SUBSTRATE_OPTIONS_BAKEOFF_2026-06-30.md"
+    ],
+    "scripts": [
+      "_SYSTEM/Scripts/voice/yuri-spawn-worker.sh",
+      "_SYSTEM/Scripts/lane-dispatch.mjs",
+      "_SYSTEM/Scripts/llm-lane.mjs",
+      "_SYSTEM/Scripts/glm-fleet.mjs"
+    ]
+  },
+  "subtasks": [
+    {
+      "id": "WS-L-D0-debug-doc",
+      "segment": "L0",
+      "substrateHint": "cursor",
+      "phase": "debug",
+      "role": "steward",
+      "disarmed": true,
+      "status": "DONE",
+      "need": ["documentation", "adversarial-verify"],
+      "prompt": "Deliver _SYSTEM/reports/GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md comparing ai claude-zai vs glm-fleet headless. Include smoke test evidence. Return 02L0_GLM_DEBUG_DOC_X_PASS_COMMITTED.",
+      "evidence": "Report committed 2026-06-30. Top root cause: exit_null=SIGKILL from lane-dispatch outer timeout on headless full-stack tool loops. Smokes A-C pass (4-8s no-tools); D pass (16s tools light); E fail (full stack+high reasoning, exit_null@180s). Recommended: Hybrid D+zai-tmux adapter.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-D1-smoke-matrix",
+      "segment": "L0",
+      "substrateHint": "glm",
+      "phase": "debug",
+      "role": "mechanic",
+      "disarmed": true,
+      "need": ["integration", "runtime-test"],
+      "prompt": "Run smoke matrix: llm-lane glm-5.2 --no-tools, lane-dispatch glm --no-tools, glm-fleet --smoke (DISARMED dry-run OK). Record exit codes + latency in bakeoff doc appendix. Return 02L1_SMOKE_MATRIX_X_PASS_COMMITTED.",
+      "status": "DONE",
+      "evidence": "A: llm-lane glm-5.2 exit=0 4s. B: lane-dispatch glm-max exit=0 4s. C: ai llm glm-5.2 exit=0 8s. D: tools+medium 16s OK. E: full stack+high reasoning exit_null@180s. See GLM_DISPATCH_VS_CLAUDE_ZAI_DEBUG_2026-06-30.md smoke table.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-R1-zai-tmux-adapter-spec",
+      "segment": "L1",
+      "substrateHint": "glm-max",
+      "phase": "adapter",
+      "role": "architect",
+      "disarmed": true,
+      "need": ["architecture", "integration"],
+      "prompt": "Read bakeoff doc §E recommended stack. Spec zai-tmux-fleet.mjs: spawn via yuri-spawn-worker.sh, tmux send-keys task injection, poll for RESULT_LABEL in pane or results dir, DISARMED dry-run stub. Mirror glm-fleet packet shape. Return 02L2_ZAI_TMUX_SPEC_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-R2-zai-tmux-impl",
+      "segment": "L1",
+      "substrateHint": "glm",
+      "phase": "adapter",
+      "role": "engineer",
+      "disarmed": true,
+      "need": ["code-generation", "implementation"],
+      "prompt": "Implement _SYSTEM/Scripts/zai-tmux-fleet.mjs per architect spec. ARM_ENV=YURI_ZAI_TMUX_FLEET. Unit test DISARMED path. Wire into runFleet substratePolicy as optional fourth GLM path. Return 02L3_ZAI_TMUX_IMPL_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-P0-pre-dispatch-selector",
+      "segment": "L2",
+      "substrateHint": "glm",
+      "phase": "quantum-gate",
+      "role": "kernelsmith",
+      "disarmed": true,
+      "need": ["integration", "implementation"],
+      "prompt": "Read bakeoff doc §F. Implement substrate-pre-dispatch.mjs: score {llm-lane, tmux-zai, ollama-flash, cline} via math-bridge.scoreOptions + decision-sim.robustScore; advisory only; record to prediction-ledger. Return 02L4_PRE_DISPATCH_SELECTOR_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-L-V1-bakeoff-measured",
+      "segment": "L3",
+      "substrateHint": "mix",
+      "phase": "verify",
+      "role": "adjudicator",
+      "disarmed": false,
+      "need": ["adversarial-verify", "runtime-test"],
+      "prompt": "Execute L3 bakeoff: 10 identical prompts across substrates (DISARMED where needed). Measure latency p50/p95, pass rate, RESULT_LABEL yield. Update GLM_SUBSTRATE_OPTIONS_BAKEOFF appendix. Return 02L5_BAKEOFF_MEASURED_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

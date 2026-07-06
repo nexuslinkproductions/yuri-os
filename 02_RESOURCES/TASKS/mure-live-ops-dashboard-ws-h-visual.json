@@ -1,0 +1,142 @@
+{
+  "summary": "WS-H: MURE live ops dashboard — realtime lane monitor + game workspace",
+  "tags": ["mure", "dashboard", "live-ops", "observability", "visual"],
+  "requiresVisualPlan": false,
+  "visualPlanUrl": null,
+  "visualPlanSlug": null,
+  "visualPlanApproved": false,
+  "researchDoc": "_SYSTEM/reports/MURE_LIVE_OPS_DASHBOARD_RESEARCH_2026-06-30.md",
+  "phases": {
+    "M0": "Read-only live feed — aggregator + SSE + lane strip",
+    "M1": "Lane cards — substrate, phase, roundLog, drawer drill-down",
+    "M2": "Game metaphor — zone map, avatar movement, activity feed polish"
+  },
+  "subtasks": [
+    {
+      "id": "WS-H-A1-architect-contract",
+      "role": "architect",
+      "phase": "M0",
+      "need": ["architecture", "integration"],
+      "prompt": "Read _SYSTEM/reports/MURE_LIVE_OPS_DASHBOARD_RESEARCH_2026-06-30.md. Formalize LiveSnapshot JSON schema in _SYSTEM/mure/live-ops-schema.json (draft-07). Document canonical server = work-dashboard.mjs :4270; server.py = deprecated demo. Append API contract to _SYSTEM/mure/DRILLDOWN_WIRING.md (/api/live, /api/live/stream). Return 02H1_LIVE_OPS_CONTRACT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M0-aggregator",
+      "role": "engineer",
+      "phase": "M0",
+      "need": ["code-generation", "implementation"],
+      "prompt": "Implement _SYSTEM/Scripts/live-ops-aggregator.mjs: scan .claude/jobs/*/manifest.json + results/*.json + _SYSTEM/lane-output/**/manifest.json; emit LiveSnapshot per research doc. Export buildLiveSnapshot(), watchJobs({debounceMs:200}). Unit test with tmp fixture dirs. Return 02H2_LIVE_OPS_AGGREGATOR_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M0-sse-wire",
+      "role": "mechanic",
+      "phase": "M0",
+      "need": ["integration", "refactor"],
+      "prompt": "Extend work-dashboard.mjs: GET /api/live (JSON snapshot), GET /api/live/stream (SSE — copy observatory-server.mjs _sseClients pattern). Push snapshot on fs.watch debounce + 2s heartbeat. localhost only. Return 02H3_LIVE_SSE_WIRED_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M0-lane-strip-ui",
+      "role": "artificer",
+      "phase": "M0",
+      "need": ["implementation"],
+      "prompt": "Add Live lanes panel to _SYSTEM/mure/dashboard.html: subscribe to /api/live/stream (fallback poll /api/live every 3s). Show runId, leaf, substrate, lane, status, lastAction, age. Use existing reconcile() pattern — no flicker. Match NEXUS LINK tokens. Return 02H4_LANE_STRIP_UI_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M0-wait-script",
+      "role": "kernelsmith",
+      "phase": "M0",
+      "need": ["implementation", "integration"],
+      "prompt": "Implement _SYSTEM/Scripts/wait-for-job.mjs per research doc Completion signaling section: --run-id, --leaf, --expect finishedAt|resultLabel|finalizeOk, --timeout, --poll-ms. Exit codes 0/1/2. Hermetic test with fixture manifest. Return 02H5_WAIT_FOR_JOB_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M0-scout-verify",
+      "role": "scout",
+      "phase": "M0",
+      "need": ["adversarial-verify"],
+      "prompt": "Verify M0 end-to-end: start work-dashboard --serve, trigger runSwarm --dry-run or short armed leaf, confirm lane strip updates without page reload. Document operator steps in _SYSTEM/mure/README.md#live-ops. Return 02H6_M0_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M1-lane-cards",
+      "role": "artificer",
+      "phase": "M1",
+      "need": ["implementation"],
+      "prompt": "Upgrade lane strip to cards: substrate color (glm/native/ollama/cline), phase from roundLog tail, progress bar for round/N. Click opens drawer with manifest excerpt + result packets. Return 02H7_LANE_CARDS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M1-orchestration-panel",
+      "role": "engineer",
+      "phase": "M1",
+      "need": ["integration", "implementation"],
+      "prompt": "Add orchestration panel: company-dispatch streams, cline/ollama sidecar armed state from _SYSTEM/state/*.enabled, native-spawn stub indicator. Wire into /api/live snapshot. Return 02H8_ORCH_PANEL_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M1-chronicler-docs",
+      "role": "chronicler",
+      "phase": "M1",
+      "need": ["documentation"],
+      "prompt": "Update 02_RESOURCES/GUIDES/agent-native-company-visuals.md with live ops operator guide: start server, read lane cards, wait-for-job.mjs for orchestrators, Cursor Await/notify_on_output patterns. Return 02H9_LIVE_OPS_DOCS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M2-visual-plan-gate",
+      "role": "envoy",
+      "phase": "M2",
+      "need": ["improvement-proposal"],
+      "prompt": "Create visual-plan for game workspace zone map (MURE groups → buildings). Set requiresVisualPlan on this task file subset; link visualPlanSlug before M2 UI dispatch. Return 02H10_GAME_VISUAL_PLAN_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M2-zone-canvas",
+      "role": "artificer",
+      "phase": "M2",
+      "need": ["implementation"],
+      "prompt": "Implement zone overlay on dashboard.html: SVG/canvas layer mapping role groups to zones per research doc. Agent tokens move based on phase/lastAction. Reuse updateStar() in-place update discipline. Requires visualPlanApproved. Return 02H11_ZONE_CANVAS_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-M2-activity-feed",
+      "role": "mechanic",
+      "phase": "M2",
+      "need": ["integration"],
+      "prompt": "Wire live events[] from LiveSnapshot to terminal-style activity feed panel (color-coded: dispatch, result, converge, fail). SSE-driven. Return 02H12_ACTIVITY_FEED_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-D1-deliberator-review",
+      "role": "deliberator",
+      "phase": "M2",
+      "need": ["adversarial-verify"],
+      "prompt": "Review WS-H for scope creep, localhost binding, protected-path safety, SSE leak risk. Confirm server.py not promoted. Return 02H13_DELIBERATOR_REVIEW_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-H-V1-adjudicator-verify",
+      "role": "adjudicator",
+      "phase": "M2",
+      "need": ["adversarial-verify"],
+      "prompt": "Verify full WS-H: tests green, live swarm visible on dashboard, wait-for-job.mjs exits correctly on fixture. Return 02H14_LIVE_OPS_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+You are PEER 3 of 5 GLM-5.2 peers. READ FIRST: the master brief at
+/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/00-MASTER-BRIEF.md
+and the audit (especially §1 keystone + §3 A-row hot-loop + §6 ranked path). Honor HARD CONSTRAINTS.
+
+YOUR LANE: AGENT TOPOLOGY / ROLE DESIGN — "how many effective trading agents to run 24/7, each owning a set of roles."
+The owner explicitly asked this. Currently YURI runs ONE monolithic daemon (observatory/orchestrator.mjs) doing
+everything sequentially per cycle. Your job: design the correct fleet partition.
+
+Do this:
+1. Inventory what the current daemon does per cycle (read orchestrator.mjs): ingest feeds → compute ~24 TA +
+   overlays → ensemble → regime → size → paper-execute → recordForecasts → risk-exits → (throttled) decode/score.
+   List every distinct RESPONSIBILITY. Note which are latency-critical (per-tick: risk-exit, A-S requote,
+   fill-detection) vs latency-tolerant (learn-loop decode/graduation, news sentiment, factor research, reporting).
+2. Establish how PROFESSIONAL firms partition (online, ≥2 primary sources — cite a quant-firm architecture writeup,
+   e.g. market-maker vs execution-vs-research-vs-risk separation, the "strategy process / execution process / risk
+   process / OMS / drop-copy" topology). Cite URLs.
+3. Design YURI's target fleet as a ROLE MATRIX. For each agent: name | owns (responsibility) | latency budget
+   (ms/s/cycle) | inputs | outputs | deployment shape (launchd daemon? tmux lane? GLM-native agent?) | failover.
+   Propose the MINIMAL viable fleet (e.g. 4-7 agents) and an EXTENDED fleet. Cover at least: market-maker (A-S),
+   directional/alpha agent, risk & liquidation sentinel (per-tick, fastest), execution/fill-sim, learn-loop &
+   graduation daemon (slow), news-intel agent, funding/carry harvester, portfolio overseer/capital allocator.
+4. Define the INTER-AGENT CONTRACT: how they communicate (in-memory pub/sub bus? shared SQLite tables? a ring-buffer?).
+   Argue for the simplest correct one given M2-Pro single-machine constraints. State the invariant (e.g. "risk sentinel
+   can kill any position in <1 cycle; others are advisory").
+5. Capacity check: how many concurrent agents can an M2-Pro run before CPU/IO contention degrades the latency-critical
+   path? Reference the audit's "Promise.allSettled ~6s→1s" finding and the WS msg-rate reality (P5 owns the numeric
+   capacity calc; you own the TOPOLOGY — coordinate by referencing each other's lane numbers).
+
+Deliver the OUTPUT FORMAT block. "WHAT WE ARE MISSING" = the agent-role slots not yet implemented + the
+inter-agent bus + the deployment/supervision layer. Include the recommended fleet SIZE (a number) with reasoning.

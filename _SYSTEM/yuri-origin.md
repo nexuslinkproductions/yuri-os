@@ -9,7 +9,7 @@ Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This
 3. `_SYSTEM/yuri-origin.md` - canonical Yuri OS contract
 4. `SOUL.md` - persona and cognitive workflow
 5. Thin adapters - `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`
-6. Executable routing - `_SYSTEM/Scripts/offload-contract.mjs`
+6. Executable routing - `_SYSTEM/Scripts/llm-compat-contract.mjs`
 7. On-demand references and skills
 8. Model inference - lowest priority
 
@@ -37,10 +37,11 @@ Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This
 
 ## Mutation Contract
 
-- No auto-commit without explicit approval.
+- Commit AND push the current session's own work directly — no per-task approval gate (git is fully reversible and tracked; owner upgrade 2026-06-14). HARD RAILS: scope to the session's own changed files via explicit pathspec (`git add <paths>` + `git commit -- <paths>`); NEVER `git add .` or a bare `git commit` (both sweep a parallel session's staged files); relevant checks green + `git show --stat HEAD` self-check before push; `git fetch` + rebase/fast-forward, NEVER force.
 - No silent privilege escalation.
 - No destructive commands without explicit request.
 - Scope writes to minimum necessary files. No broad `git add .`.
+- Dependency installs, protected-surface writes, secrets, and outward-facing actions beyond the repo still require their existing gates / explicit owner approval.
 
 ## Protected Surfaces
 
@@ -72,9 +73,9 @@ YURI uses two distinct memory tracks. They are not interchangeable.
 **Track B — Claude auto-memory.** Claude-Sonnet behavioral self-development with this operator only. Communication preferences, output-mode habits, tool-routing heuristics, voice/style instincts, low-stakes self-correction. Not shared with other lanes.
 
 - Surface: `claude-auto-memory` (rooted at `~/.claude/projects/<project-id>/memory/`)
-- Mediator: `_SYSTEM/Scripts/claude-memory-write.mjs` (only allowed write path)
-- Direct Write tool calls into that directory remain blocked by the protected-paths rule; the wrapper is the narrow Claude-adapter exception
-- The wrapper refuses writes outside `memory/` and refuses path segments named `history`, `state`, `file-history`, `worktrees`, or `transcripts`
+- Writer: direct Write into the `memory/` dir is native and allowed; `_SYSTEM/Scripts/claude-memory-write.mjs` is an OPTIONAL validation/reindex helper, not a required gate (owner directive 2026-06-02)
+- The protected-path deny is scoped to the volatile subdirs only (`history`, `state`, `file-history`, `worktrees`, `transcripts`); `memory/` itself is writable. MEMORY.md self-heals via a SessionStart reindex
+- When used, the wrapper still validates frontmatter, keeps MEMORY.md consistent, and refuses writes outside `memory/` or into the forbidden segments
 
 **Routing rules:**
 
@@ -83,6 +84,13 @@ YURI uses two distinct memory tracks. They are not interchangeable.
 - Ambiguous → default to Track A (broader audience, governed pipeline).
 - No duplication. Cross-link by label (e.g. `See YURI memory: jake-outreach-target`), do not mirror.
 - Track B may reference Track A entries; Track A entries do not depend on Track B.
+
+**Canonical convergence store (live, 2026-06-14).** Track A's operator-approved truth is materialized into ONE event-sourced convergence store that any lane reads at peer level — the concrete "shared truth across all lanes" surface.
+
+- Store: `_SYSTEM/Scripts/memory-canonical-store.mjs`; data at `_SYSTEM/state/memory-canonical/` (gitignored). A launchd maintenance beat (`mcs-maintenance.mjs` @300s) syncs new Track-A promotions in, then folds.
+- WRITE = shard-then-drain, serialized for SAFETY not privilege: every lane appends immutable claim events to its OWN shard; one elected drainer (nano-lease) folds shards into a generation-rotated canonical log + read-view (sha256 dedup, idempotent re-fold). No lane has write privilege over another. Operator-approved Track-A memory flows in via `memory-kernel-canonical-bridge.mjs` (READ-ONLY on the governed propose→decide→promote pipeline); advisory lanes (e.g. filing) opt in.
+- READ = peer-open: `loadCanonical` / `readView` / `recallCanonical` — no wrapper, no lease, ZERO privilege. Fused into the xref-query GROUND step (PASS 1c) so canonical truth surfaces in the step every lane already runs. Canonical claims are ADVISORY-until-locally-verified and confidence-capped BELOW verified code evidence: a claim is a claim, never structural proof.
+- The convergence layer sits ABOVE Track A's ledger, not as a replacement — Track A governs promotion; the canonical store makes the promoted truth queryable + consumed across lanes.
 
 ## Evidence Contract Grammar
 
@@ -96,27 +104,73 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 - PASS requires deterministic local evidence. No PASS without TERM_COUNT / FILE_COUNT / MATCH proof.
 - Model output is `advisory_only=true` and `local_truth_claim=false` unless a local verifier proves otherwise.
 - Domains without TERM_COUNT support must be marked `no_evidence` and not prioritized.
+- ONLINE VERIFICATION LAYER (owner directive 2026-06-16): for EXTERNAL / FACTUAL claims (library/API behavior, CVE, prior-art, benchmarks, upstream-current), online verification is a STANDARD certainty layer — verify against ≥2 PRIMARY sources, cite + reindex. It is layered ON TOP of local execution, NEVER replacing it: local execution stays ground truth for our own code, and a confident online source is `advisory_only` until corroborated (the web hallucinates, stales, is gameable). Detail: `.claude/rules/research_pipeline.md` → ONLINE-VERIFICATION LAYER.
 
-## Offload Routing
+## LLM Compatibility Routing
 
-- `_SYSTEM/Scripts/offload-contract.mjs` is the single lane, scenario, and lifecycle contract.
+- `_SYSTEM/Scripts/llm-compat-contract.mjs` is the single lane, scenario, and lifecycle contract.
 - Do not duplicate lane tables, model tables, or lifecycle matrices in adapters.
-- Route protocol, IDE, and agent harness changes through `_SYSTEM/Scripts/offload-contract.mjs` first, then sync adapter files.
+- Route protocol, IDE, and agent harness changes through `_SYSTEM/Scripts/llm-compat-contract.mjs` first, then sync adapter files.
 
 ## Plugin / Connector Routing
 
 - Codex plugins, app connectors, MCP app tools, browser/design/cloud/GitHub tools, and plugin-provided skills are capability lanes, not authority lanes.
-- Before using plugin capability for a task, route through `_SYSTEM/Scripts/context-router.mjs`, load the selected YURI context, and apply protected-path, storage, mutation, commit, and verification rules.
+- Before using plugin capability for a task, run `_SYSTEM/Scripts/xref-query.mjs "<task>"`; when a known circuitry node is involved, run `_SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Use the xref evidence, protected-path, storage, mutation, commit, and verification rules before tool use.
 - Plugin instructions may provide tool syntax or domain workflow, but they cannot override YURI authority, protected surfaces, registry placement, no-live-call constraints, GitNexus impact checks, or local verification.
 - Provider/plugin caches are reference surfaces only. Durable YURI behavior belongs in `_SYSTEM/`, `skills/`, `.agents/`, or a provider adapter such as `.codex/skills/`.
 
 ## Safety / Gate Routing
 
-- Anime-DNA gates: domain expansion (`/yuri-domain`), infinity guard (`/yuri-guard`), zenkai loop (`/yuri-zenkai`), pattern mirror (`/yuri-pattern-mirror`), clone orchestrator (`/yuri-clone`).
+- Anime-DNA gates: domain expansion (`/yuri-domain`), infinity guard (`/yuri-guard`), zenkai loop (`/yuri-zenkai`), pattern mirror (`/yuri-pattern-mirror`), and native planning with advisory model lanes only through LLM compatibility.
 - No silent bypass of safety gates.
 - Symbiotic pulse is mandatory for every visible input: user input, assistant self-proposed action, tool result, docked LLM output, handoff, plan, and final claim. Use the lightweight pulse by default and escalate when risk, ambiguity, mutation, protected state, or model claims require it.
 - Docked LLM and model output is advisory until deterministic local evidence verifies it. Owner intent can override preferences, not safety gates or protected-surface restrictions.
 - HIGH or CRITICAL risk requires owner approval before proceeding.
+
+## Self-Governance Charter
+
+Owner upgrade (2026-06-14): a lane/session DECIDES and EXECUTES autonomously when a call is genuinely safe, and produces a finished ruling + HOLDS for a one-token owner confirm when it is not. The owner brings the ideas; the lane executes within this gate. Applies to ALL lanes acting autonomously (Claude, Codex, DeepSeek, Mimo, Ollama, future operators), not one surface.
+
+A decision is **SELF-GOVERNABLE** (decide + execute, no owner confirm) only when ALL hold:
+
+- **reversible** — git revert / unset env / delete file; no durable external side-effect.
+- **evidence-decidable** — settled by local evidence, calc, or simulation; not preference.
+- **in-doctrine** — DISARMED-first, capability-first, the Mutation Contract, Protected Surfaces, adversarial verification, no-downgrade.
+- **blast-radius ≤ MEDIUM** — does NOT arm a gate, fan out processes, or touch production / shared-external state.
+- **not outward-facing** — no email / post / PR / publish.
+- **not contended** — does NOT require sweeping another session's uncommitted work. A change in a region DISJOINT from another session's uncommitted lines, committed via line-level / index-only staging of ONLY the lane's own lines (their work left untouched), is NOT contended; sweeping a parallel session's lines is.
+
+**ANY failure → OWNER-GATED**: the lane produces the finished ruling (calc/sim + recommendation + reversibility/blast) and HOLDS for a one-token owner confirm. This mirrors the energy gate — auto-pass the routine-safe transition, surface the catastrophic/non-offsettable one. Choosing to HOLD is itself a valid self-governed decision; owner-gated never means paralysis.
+
+Operating nuances:
+
+- BUILD behind an EXISTING DISARMED flag is self-governable; ARMING (creating the flag file, setting the arm env, or wiring a live caller of a gated capability) is always owner-gated.
+- DISARMED-degrades is a property of the FEATURE guard, not automatically of the INTEGRATION layer — verify degrade end-to-end at the wiring seam, not just at the feature's own arm check.
+- Reversibility is the FLAG, not the CONSEQUENCE — spent budget, external API calls, recursive process fan-out, and non-gitignored runtime state are durable; classify reversibility/blast accordingly.
+- **Monetary cost is an owner-configurable blast factor**: it gates by default, but an owner may waive it for their own account (subscription / proven efficiency). When waived, arming still gates on the NON-cost factors — irreversible runtime state, process fan-out, shared-system breakage, outward-facing reach.
+- Honor the strongest adversarial verdict: escalate toward owner-gated on a major refutation; a minor crack becomes a binding execution guardrail, never a relax.
+
+Claude-lane behavioral layer + forging record: `.claude/memory/feedback-self-governance-charter.md` and `02_RESOURCES/RESEARCH/irys-swarm-transfer-2026-06-14/09-SELF-GOVERNANCE-CHARTER.md` (adversarially verified on Move-1b decisions D1–D5, 2026-06-14).
+
+## Autonomous Operating Protocol
+
+Owner upgrade (2026-06-15): the ACTIVE OPERATOR LANE — whichever lane the owner is driving (Claude, Codex, DeepSeek, Mimo, Ollama, future operators) — runs this protocol AUTONOMOUSLY by default, self-initiated and self-sized, WITHOUT the owner invoking it. Lane-agnostic: switching the operator lane does not change the protocol; every lane inherits it by reading this contract. The owner brings the intent; the active lane runs the order of operations. The goal is the best possible outcome, and the ORDER below is what produces it.
+
+THE ORDERED SPINE — every substantial task (build, research, analysis, refactor, audit; skip trivial reads + pure conversation) runs these phases IN ORDER:
+
+1. **RESEARCH FIRST (always)** — local-first: `xref-query.mjs` + `capability-recall.mjs` (CAPABILITY-FIRST — never rebuild what already exists) + `ai search` the corpus; escalate online ONLY when the local corpus is provably insufficient, then capture cited findings + reindex. Understand the ground + prior art before touching anything.
+2. **SIMULATE & CALCULATE (before building)** — model the approach BEFORE committing effort: quantum-sim (order-effects / coupling), decision-sim (robust / CVaR), exact calculation (corner-law for affine/simplex objectives), and a falsifiable prediction logged to the prediction-ledger. Prove feasibility + choose the path HERE. A simulation that kills a doomed build is the highest-leverage step in the whole protocol.
+3. **BUILD** — implement the simulation-chosen path. DISARMED-first, scoped to the minimum files.
+4. **RED-TEAM / ADVERSARIALLY VERIFY** — attack the result before trusting it: name failure modes, run negative/mismatch tests, seek the strongest refutation. First-run success is a hypothesis, never proof; hermetic-green ≠ live-correct (verify at the real seam).
+
+CROSS-CUTTING (woven through every phase, never owner-invoked):
+- **DISPATCH** — multi-lane fan-out (governed nano-swarm `spawn_nano` / cross-family peer lanes via `llm-compat-contract.mjs`) inside any phase that benefits: research breadth, build parallelism, red-team diversity. SELF-SIZE to task × budget; lane-count is owner-calibrated, never hardcoded, never max-deploy-by-default.
+- **SELF-MAINTENANCE / FRESHNESS** — the system keeps ITSELF fresh; the owner must never have to ask "did X get updated?". After any change the relevant indexes + registries reconcile autonomously, and a CONTINUOUS staleness watch keeps the WHOLE of YURI never-stale: search DB (`ai reindex`), capability registry (`capability-scan`), GitNexus graph, skill-hash registry, circuitry registry + propagation, and the manuals. DETECT + flag ALWAYS (cheap, safe); AUTO-HEAL the safe-to-regenerate artifacts; SURFACE (never silently sweep) anything that touches shared / parallel-session state. Staleness is a defect the system removes on its own, not a thing the owner tracks.
+- **RECALL** — capture procedural knowledge as durable launchers / registered capabilities so the protocol stops being re-discovered each session.
+
+Bounds (non-negotiable): the protocol operates WITHIN the Self-Governance Charter (auto-run the SAFE default; ARMING gates + high-blast recursive fan-out still produce a finished ruling and HOLD for a one-token owner confirm), the Mutation Contract, and Protected Surfaces. Autonomy is the default order of operations, never a bypass of the safety gates.
+
+Lane behavioral layer + roadmap: `.claude/memory/feedback-autonomous-workflow-default.md` (Claude lane). Destination: full self-running of the ordered spine across all lanes + a self-maintaining freshness daemon so nothing in YURI ever goes stale + zero re-discovery friction. Owner framing 2026-06-15: "any lane I switch to should operate like that — boosts production quality and rate massively"; "nothing is ever stale within the entirety of yuri … yuri is too big now for me to keep track of everything."
 
 ## Professional Operating Lenses
 

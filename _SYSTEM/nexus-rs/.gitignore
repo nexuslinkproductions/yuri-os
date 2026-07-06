@@ -1,0 +1,6 @@
+/target
+/node_modules
+*.node
+npm-debug.log*
+/.claude
+/pkg

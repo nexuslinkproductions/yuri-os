@@ -107,3 +107,7 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 [ ] Code is minimal for this test
 [ ] No speculative features added
 ```
+
+## Session Notes
+
+- 2026-06-16 — Test-driven development with red-green-refactor loop. Reach for it when building features or fixing bugs test-first, or when the user mentions TDD, red-green-refactor, or integration tests.

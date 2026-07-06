@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus Link — Social-Connect Foundation Visual Plan (Read-First) · 2026-07-05</title>
+<style>
+  :root{
+    --np-void:#04070f; --np-panel:#0a1020; --np-panel-2:#0d1526; --np-line:#1a2740;
+    --np-text:#d7e3f4; --np-dim:#7d8fa9; --np-faint:#4a5a72;
+    --np-cyan:#00c8f0; --np-green:#2fd67b; --np-amber:#f0b429; --np-violet:#9a6bff;
+    --np-red:#ff5d6c; --np-mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--np-void);color:var(--np-text);font:15px/1.6 -apple-system,'Inter',sans-serif;padding:0 0 120px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+  header{padding:56px 0 28px;border-bottom:1px solid var(--np-line);margin-bottom:40px;
+    background:radial-gradient(ellipse 900px 300px at 20% -10%,rgba(0,200,240,.08),transparent)}
+  .kicker{font-family:var(--np-mono);font-size:11px;letter-spacing:.28em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:12px}
+  h1{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+  h1 em{color:var(--np-cyan);font-style:normal}
+  .sub{color:var(--np-dim);max-width:880px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+  .chip{font-family:var(--np-mono);font-size:11px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;border:1px solid var(--np-line);color:var(--np-dim)}
+  .chip.ok{border-color:rgba(47,214,123,.4);color:var(--np-green)}
+  .chip.warn{border-color:rgba(240,180,41,.4);color:var(--np-amber)}
+  .chip.bad{border-color:rgba(255,93,108,.4);color:var(--np-red)}
+  .chip.cy{border-color:rgba(0,200,240,.4);color:var(--np-cyan)}
+  section{margin-bottom:56px}
+  h2{font-size:13px;font-family:var(--np-mono);letter-spacing:.24em;text-transform:uppercase;color:var(--np-cyan);
+     border-left:3px solid var(--np-cyan);padding-left:14px;margin-bottom:8px}
+  h2 .n{color:var(--np-faint)}
+  .lead{color:var(--np-dim);margin-bottom:22px;max-width:900px}
+  .lead b{color:var(--np-text)}
+  h3{font-size:16px;margin:26px 0 10px;color:var(--np-text)}
+  h4{font-size:13px;font-family:var(--np-mono);letter-spacing:.1em;margin-bottom:10px;color:var(--np-text)}
+  p{margin-bottom:12px;color:var(--np-dim);max-width:900px}
+  p b, .lead b{color:var(--np-text)}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--np-panel);border:1px solid var(--np-line);border-radius:12px;padding:18px 20px}
+  .card p{font-size:13.5px;color:var(--np-dim);max-width:none;margin-bottom:0}
+  .card p b{color:var(--np-text)}
+  .card.focus{border-color:rgba(0,200,240,.55);box-shadow:0 0 24px rgba(0,200,240,.12)}
+  .card.warn{border-color:rgba(240,180,41,.4)}
+  .card.bad{border-color:rgba(255,93,108,.4)}
+  .card.ok{border-color:rgba(47,214,123,.4)}
+  ul{margin:0 0 12px 4px;color:var(--np-dim);max-width:900px}
+  ul li{margin-bottom:6px}
+  ul li b{color:var(--np-text)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+  th{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--np-faint);
+     text-align:left;padding:8px 12px;border-bottom:1px solid var(--np-line)}
+  td{padding:9px 12px;border-bottom:1px solid rgba(26,39,64,.55);color:var(--np-dim);vertical-align:top}
+  td b, td strong{color:var(--np-text)}
+  code{font-family:var(--np-mono);font-size:12px;color:var(--np-cyan);background:rgba(0,200,240,.07);padding:1.5px 6px;border-radius:4px}
+  .tag{font-family:var(--np-mono);font-size:10px;letter-spacing:.1em;padding:2.5px 9px;border-radius:12px;display:inline-block;white-space:nowrap}
+  .t-live{background:rgba(47,214,123,.12);color:var(--np-green);border:1px solid rgba(47,214,123,.35)}
+  .t-cy{background:rgba(0,200,240,.1);color:var(--np-cyan);border:1px solid rgba(0,200,240,.3)}
+  .t-p0{background:rgba(255,93,108,.12);color:var(--np-red);border:1px solid rgba(255,93,108,.35)}
+  .t-p1{background:rgba(240,180,41,.1);color:var(--np-amber);border:1px solid rgba(240,180,41,.3)}
+  .t-drop{background:rgba(74,90,114,.15);color:var(--np-faint);border:1px solid var(--np-line);text-decoration:line-through}
+  .evi{background:#070d1a;border:1px solid var(--np-line);border-left:3px solid var(--np-cyan);border-radius:8px;
+       font-family:var(--np-mono);font-size:12px;line-height:1.75;padding:14px 18px;color:var(--np-dim);overflow-x:auto}
+  .evi .r{color:var(--np-red)}.evi .g{color:var(--np-green)}.evi .c{color:var(--np-cyan)}.evi .y{color:var(--np-amber)}.evi .v{color:var(--np-violet)}
+  .evi.warn{border-left-color:var(--np-amber)}
+  .evi.bad{border-left-color:var(--np-red)}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:16px 0}
+  .fnode{background:var(--np-panel-2);border:1px solid var(--np-line);border-radius:10px;padding:12px 16px;min-width:130px;flex:1}
+  .fnode .t{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.12em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:5px}
+  .fnode .d{font-size:12.5px;color:var(--np-dim)}
+  .fnode.hub{border-color:rgba(0,200,240,.55);box-shadow:0 0 22px rgba(0,200,240,.12)}
+  .fnode.canon{border-color:rgba(47,214,123,.4)}
+  .farr{display:flex;align-items:center;padding:0 10px;color:var(--np-faint);font-size:18px}
+  .lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+  .lane{background:var(--np-panel);border:1px solid var(--np-line);border-radius:10px;padding:12px}
+  .lane .lh{font-family:var(--np-mono);font-size:10px;letter-spacing:.14em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:6px}
+  .lane .lb{font-size:11.5px;color:var(--np-dim);line-height:1.5}
+  .lane.sel{border-color:var(--np-cyan);box-shadow:0 0 16px rgba(0,200,240,.13)}
+  .wave{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+  .wnum{font-family:var(--np-mono);font-size:13px;color:var(--np-void);background:var(--np-cyan);min-width:34px;height:34px;border-radius:9px;
+        display:flex;align-items:center;justify-content:center;font-weight:700;margin-top:2px;flex-shrink:0}
+  .wnum.w0{background:var(--np-red)}.wnum.w1{background:var(--np-cyan)}.wnum.w2{background:var(--np-amber)}.wnum.w3{background:var(--np-violet)}
+  .wbody{flex:1}
+  .wbody .wt{font-size:14px;font-weight:600;margin-bottom:4px}
+  .wbody .wd{font-size:13px;color:var(--np-dim);margin-bottom:6px}
+  .wbody .wg{font-family:var(--np-mono);font-size:11px;color:var(--np-faint)}
+  .q{background:var(--np-panel);border:1px solid var(--np-line);border-left:3px solid var(--np-green);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+  .q .qq{font-weight:600;margin-bottom:4px;font-size:13.5px}
+  .q .qa{font-size:12.5px;color:var(--np-dim)}
+  .q .qa b{color:var(--np-green)}
+  .callout{background:linear-gradient(180deg,rgba(0,200,240,.06),transparent);border:1px solid rgba(0,200,240,.3);border-radius:12px;padding:18px 22px;margin:18px 0}
+  .callout .ct{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.18em;color:var(--np-cyan);text-transform:uppercase;margin-bottom:8px}
+  .callout p{font-size:14px;color:var(--np-text);max-width:none;margin-bottom:0}
+  .callout.bad{background:linear-gradient(180deg,rgba(255,93,108,.06),transparent);border-color:rgba(255,93,108,.3)}
+  .callout.bad .ct{color:var(--np-red)}
+  .risk{display:grid;grid-template-columns:120px 1fr;gap:12px;font-size:13px;padding:10px 0;border-bottom:1px solid rgba(26,39,64,.5)}
+  .risk .rl{font-family:var(--np-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .rl.r-h{color:var(--np-red)}.rl.r-m{color:var(--np-amber)}.rl.r-l{color:var(--np-green)}
+  .risk .rb{color:var(--np-dim)}
+  .signoff{background:linear-gradient(180deg,rgba(47,214,123,.07),transparent);border:1px solid rgba(47,214,123,.4);border-radius:14px;padding:22px 26px;margin-top:18px}
+  .signoff .st{font-family:var(--np-mono);font-size:11px;letter-spacing:.2em;color:var(--np-green);text-transform:uppercase;margin-bottom:10px}
+  footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--np-line);color:var(--np-faint);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Nexus Link · Visual Plan (Read-First revision) · 2026-07-05</div>
+    <h1>Connect socials for <em>comms + analytics</em>, not publishing</h1>
+    <div class="sub">Unified communications inbox (WhatsApp / FB / IG / Gmail / Outlook) + ad + organic analytics (Meta Ads + Google Ads + FB/IG insights) feeding one digital-overview dashboard. Multi-tenant from row one. No feed publishing, no Reddit/LinkedIn/X/TikTok/Telegram in V1.</div>
+    <div class="chips">
+      <span class="chip cy">SCOPE LOCKED: Meta + Google + Microsoft</span>
+      <span class="chip ok">Multi-tenant day one</span>
+      <span class="chip cy">Inbox: platform-separated lanes</span>
+      <span class="chip warn">Meta review = the long pole</span>
+      <span class="chip">Aggregator MCP @ :8787/mcp (read + reply)</span>
+      <span class="chip bad">Publishing DEFERRED</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">00 ·</span> Your locked decisions (reflected verbatim)</h2>
+  <div class="lead">These came back from the four questions. They materially reshape the plan from the earlier write-first draft, so this revision supersedes it.</div>
+  <div class="grid g2">
+    <div class="card ok"><h4>Platform set — Meta + Google + Microsoft only</h4><p><b>Comms:</b> WhatsApp + Facebook + Instagram + Gmail + Outlook (Graph, already live). <b>Ads + analytics:</b> Google Ads + Meta Ads + FB/IG organic insights. Reddit explicitly out. LinkedIn / X / TikTok / Telegram out for V1.</p></div>
+    <div class="card focus"><h4>Inbox — separated by platform, not blended</h4><p>One panel, platform-lane views (WhatsApp / FB / IG / Gmail / Outlook). Each platform's conversations stay in their own lane. <b>No merged chronological soup.</b> Simplifies the canonical message model — no heterogenous-thread normalization across DM schemas.</p></div>
+    <div class="card focus"><h4>Multi-tenant — baked now</h4><p><code>orgId</code>/<code>customerId</code> on every row + per-tenant fairness scheduler. Not optional: Meta + Google rate-limit per app-token shared across ALL tenants.</p></div>
+    <div class="card warn"><h4>Validation lane = Google (Reddit gone)</h4><p>With Reddit out, Google ships the pipeline first — Gmail (sensitive-scope, Testing-mode bypass) + Google Ads (developer-token Test→Explorer). Meta is the long pole behind App Review + Business Verification.</p></div>
+  </div>
+  <div class="evi warn" style="margin-top:14px">
+<span class="y">CORRECTION ON RECORD</span>   read-only does NOT shorten the external review gate on Meta/Google (verified, run wf_a7dd81a6). App Review + Marketing-API Access Tier + developer-token ladder are orthogonal to read-vs-write.
+<span class="y">CONSEQUENCE</span>           Meta review track (WhatsApp + FB + IG comms + FB/IG insights + Meta Ads) starts DAY ONE, IN PARALLEL. It is the critical-path external clock. Google developer-token ladder starts day one too.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">01 ·</span> The three pillars (read-first scope)</h2>
+  <div class="lead">READ is primary. Messaging-WRITE (reply) is the only write in scope. Feed publishing is deferred.</div>
+  <div class="grid g3">
+    <div class="card focus"><h4>① Unified Communications Inbox</h4><p><b>READ</b> WhatsApp + FB + IG + Gmail + Outlook into one panel, <b>platform-separated</b>. <b>WRITE</b> replies (DM / email). Microsoft Graph Mail already live; Gmail + Meta DMs are new. Not feed posts.</p></div>
+    <div class="card focus"><h4>② Analytics ingestion (READ)</h4><p>Meta Ads + Google Ads (paid) + FB Page insights + IG insights (organic) → canonical <code>DataPoint</code> table → Rust attribution → digital-overview dashboard.</p></div>
+    <div class="card"><h4>③ Deferred</h4><p>Bulk feed post / schedule / cross-post publishing. Parked, not cancelled. LinkedIn / X / TikTok / Reddit / Telegram — out of V1.</p></div>
+  </div>
+  <div class="callout">
+    <div class="ct">The agent seam stays — one Nexus MCP at /mcp</div>
+    <p>DeepSeek lane (and future tenants' agents) consume the canonical store through ONE aggregator MCP at <code>:8787/mcp</code>. V1 verbs are read-heavy: <code>list_conversations</code>, <code>read_thread</code>, <code>reply</code> (the one write verb), <code>get_ad_insights</code>, <code>get_social_metrics</code>, <code>get_aggregated_metrics</code>. <code>post_now</code>/<code>schedule</code>/<code>cross_post</code> deferred. Read-first verb naming makes Meta/Google App-Review use-case statements narrower and more defensible.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">02 ·</span> V1 platform map — what connects, what gates it</h2>
+  <div class="lead">Three ecosystems. Microsoft is live. Google is the fast lane. Meta is the long pole behind review.</div>
+  <table>
+    <tr><th>Surface</th><th>Platform</th><th>API</th><th>Gate</th><th>Status</th></tr>
+    <tr><td><b>Email (comms)</b></td><td>Outlook</td><td>Microsoft Graph <code>Mail.ReadWrite</code> + <code>Mail.Send</code></td><td>none (owner lab, done)</td><td><span class="tag t-live">LIVE</span></td></tr>
+    <tr><td><b>Email (comms)</b></td><td>Gmail</td><td>Gmail API (sensitive scope)</td><td>Testing-mode bypass (owner as test user); sensitive-scope verify if published</td><td><span class="tag t-cy">FAST LANE</span></td></tr>
+    <tr><td><b>DM (comms)</b></td><td>WhatsApp</td><td>WhatsApp Cloud API</td><td>verified Meta Business + BSP/number + template approval</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>DM (comms)</b></td><td>Facebook</td><td>Graph <code>pages_messaging</code></td><td>Meta App Review + Business Verification</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>DM (comms)</b></td><td>Instagram</td><td>Graph <code>instagram_manage_messages</code></td><td>Meta App Review + IG Business/Creator + FB Page link</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>Organic analytics</b></td><td>FB Page</td><td>Graph <code>read_insights</code> + Page token</td><td>Meta App Review + Business Verification (read ≠ faster)</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>Organic analytics</b></td><td>Instagram</td><td><code>instagram_business_manage_insights</code> (IG-Login path)</td><td>Meta App Review; ≥100 followers for account-level metrics</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>Paid analytics</b></td><td>Meta Ads</td><td>Marketing API <code>/insights</code>, scope <code>ads_read</code></td><td>Marketing-API Access Tier: Limited → Full (500 calls/15d, &lt;15% err). read-only does NOT shorten it.</td><td><span class="tag t-p0">REVIEW</span></td></tr>
+    <tr><td><b>Paid analytics</b></td><td>Google Ads</td><td>GoogleAdsService.Search (GAQL), scope <code>adwords</code></td><td>Developer-token ladder: Test → Explorer → Basic (15k ops/d). Apply under "Reporting" permissible use.</td><td><span class="tag t-cy">FAST LANE</span></td></tr>
+  </table>
+  <div class="callout bad">
+    <div class="ct">The long pole — and the silent killer</div>
+    <p><b>Meta review track:</b> WhatsApp + FB + IG comms + FB/IG insights + Meta Ads all sit behind Meta App Review + Business Verification. 1–3 months. Start day one, in parallel — it's an external clock you don't control. <b>Shared quota:</b> Meta rate-limits per-ad-account AND per-app; Google per-developer-token. One Nexus app token serves ALL tenants against ONE throttled quota → the per-tenant fairness scheduler isn't optional, and Google Explorer tier (2,880 ops/d) is fatal for multi-tenant — climb to Basic before scaling.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">03 ·</span> The real work — the canonical DataPoint model (Rust)</h2>
+  <div class="lead">The connectors are thin. The hard build is the math layer. Today's Rust kernel is Lead-centric (<code>LeadFeatures</code>, <code>lead_score</code>, <code>attribute</code> on loose <code>(String,f64)</code> tuples) with NO canonical Metric/DataPoint entity. This is the from-scratch moat extension.</div>
+
+  <div class="grid g2">
+    <div class="card canon" style="border-color:rgba(47,214,123,.4)"><h4 style="color:var(--np-green)">Reuse (don't reinvent)</h4><p><code>Money{Decimal,ISO-4217}→(i64 cents, TEXT)</code> at <code>nexus-engine/crates/nexus-core/src/money.rs</code> — matches the GA4 / Google Ads <code>cost_micros</code> dual-currency + integer-minor-units pattern exactly. Time-decay <code>attribute()</code> already in <code>nexus-metrics/src/lib.rs</code>. <code>clamp01</code> / <code>brier_score</code> / <code>anomalies</code> all reusable.</p></div>
+    <div class="card focus"><h4>Build new</h4><p>A GA4-style EVENT model: typed <code>ValueUnion</code>, dimensions-first-class. Two entities emit into ONE time-series table. Re-type <code>attribute()</code> to consume a typed <code>Touchpoint</code> instead of <code>(String,f64)</code>. <code>channel_prior()</code> becomes data-driven config, not a hard-coded match.</p></div>
+  </div>
+
+  <h3>The DataPoint contract (one table, organic + paid)</h3>
+  <div class="evi">
+{
+  <span class="c">entity_id</span>, <span class="c">entity_type</span>(post|profile|ad_account|campaign|ad_group|ad),
+  <span class="c">platform</span>(meta|google|microsoft), <span class="c">channel_type</span>(organic|paid),
+  <span class="c">metric_name</span>,
+  <span class="c">value</span>: <span class="v">ValueUnion</span>{ int(i64) | float(f64) | <span class="y">cents_native(i64)+currency_native(ISO-4217)+cents_eur(i64)</span> | ratio(f64) | text },
+  <span class="c">dimensions</span>: JSON (campaign_id, country, device, age, gender, ...),
+  <span class="c">period</span>(day|month|lifetime|event), <span class="c">metric_kind</span>(counter|ratio|duration|currency|unique_count),
+  <span class="c">aggregation_rule</span>(sum|recompute_from_num_denom|non_aggregatable),
+  <span class="c">captured_at_utc_micros</span>
+}
+  </div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card warn"><h4>Currency: EUR reference</h4><p>Dual-column <code>value_native_cents + currency_native + value_eur_cents</code>, FX-locked at ingest. EU-hosted, DACH SMBs → EUR (not USD).</p></div>
+    <div class="card warn"><h4>Aggregation rules</h4><p>counter→SUM; ratio→store num+denom, RECOMPUTE on aggregate; <b>unique_count→NON-aggregatable</b> (prevents SUM(daily reach) inflating monthly reach 3–5×); currency→SUM with normalization.</p></div>
+    <div class="card bad"><h4>Silent-zero defense</h4><p>IG / post-Nov-2025 FB return <b>empty sets, not zeros</b>. Connector must assert each requested field came back and <b>fail-closed</b> on deprecated metric names (Meta deprecated a wave Nov 15 2025). Empty-set aggregated as 0 corrupts engagement-rate denominators.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">04 ·</span> Inbox design — platform-separated lanes</h2>
+  <div class="lead">You were explicit: <b>"don't just mix and match, have it separated by platform."</b> One panel, one selected lane at a time, each platform's conversations native to that platform's semantics. No heterogenous-thread normalization.</div>
+  <div class="lanes">
+    <div class="lane sel"><div class="lh">Outlook · Graph</div><div class="lb">email threads — LIVE</div></div>
+    <div class="lane"><div class="lh">Gmail</div><div class="lb">email threads — FAST LANE</div></div>
+    <div class="lane"><div class="lh">WhatsApp</div><div class="lb">chats — Cloud API</div></div>
+    <div class="lane"><div class="lh">Facebook</div><div class="lb">Page DMs — Graph</div></div>
+    <div class="lane"><div class="lh">Instagram</div><div class="lb">IG DMs — Graph</div></div>
+  </div>
+  <div class="flow" style="margin-top:14px">
+    <div class="fnode canon"><div class="t">Per-platform connector</div><div class="d">fetch_threads + send_reply</div></div>
+    <div class="farr">→</div>
+    <div class="fnode hub"><div class="t">Canonical Conversation</div><div class="d">{thread_id, platform, platform_thread_id, messages[], last_at, tenant_id}</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">Inbox panel</div><div class="d">platform-tab filter → list → thread view → reply</div></div>
+    <div class="farr">→</div>
+    <div class="fnode"><div class="t">Reply</div><div class="d">routes back through the SAME-platform connector</div></div>
+  </div>
+  <p style="margin-top:10px"><b>Canonical Conversation entity</b> keeps the platform identity first-class (not a merged union type). A reply to a WhatsApp thread goes out via the WhatsApp connector, an email reply via Graph/Gmail — never cross-platform. The "one place" is the <b>panel</b>; the conversations stay platform-native. AI auto-reply (DeepSeek via <code>/mcp</code>) grounds in the same per-platform threads.</p>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">05 ·</span> Multi-tenant + the fairness scheduler</h2>
+  <div class="lead">Baked day one. The shared-quota reality makes the scheduler non-optional, not nice-to-have.</div>
+  <div class="grid g2">
+    <div class="card focus"><h4>orgId / customerId on every row</h4><p>From the first migration — Postiz shape. Postgres RLS enforces isolation (the MASTER-PLAN §11 single largest technical risk). The MCP gateway maps session tokens → per-subscriber provider tokens (DPoP-bound, short-lived).</p></div>
+    <div class="card bad"><h4>Priority-queue scheduler (not round-robin)</h4><p>Keyed by <code>(tenant_id, freshness_window, metric_kind)</code> with per-tenant fairness weights. Meta per-app + Google per-developer-token quotas are shared across all tenants — without fairness scheduling, one heavy tenant starves everyone. Climb Google to Basic (15,000 ops/d) before multi-tenant READ scales.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">06 ·</span> Build sequencing — the read-first waves</h2>
+  <div class="lead">Wave 0 is the from-scratch math layer + multi-tenant scaffold (the real work). Google is the validation lane. Meta review runs parallel from day one. Wave 3 wires the agent seam + dashboard.</div>
+
+  <div class="wave"><div class="wnum w0">0</div><div class="wbody">
+    <div class="wt">Canonical DataPoint layer + multi-tenant scaffold + scheduler + ABC extend</div>
+    <div class="wd">Rust: <code>DataPoint</code> / <code>SocialPost</code> / <code>AdNode</code> / typed <code>Touchpoint</code>; re-type <code>attribute()</code>; <code>Money</code> reuse + EUR column. Postgres migration with <code>orgId</code> + RLS. Priority-queue scheduler. Extend Connector ABC: <code>fetch_threads</code>/<code>send_reply</code> (comms) + <code>fetch_insights</code> (analytics) + typed errors.</div>
+    <div class="wg">GATE · DataPoint round-trips cents/ratio/unique_count correctly · RLS cross-tenant SELECT fails · scheduler honors fairness weights · MS Graph email still works post-ABC-refactor</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum w1">1</div><div class="wbody">
+    <div class="wt">Google lane (validation) — Gmail comms + Google Ads analytics</div>
+    <div class="wd">Gmail connector (PKCE near-clone of the Google Calendar design, sensitive scope, owner as test user). Google Ads connector (GAQL <code>Search</code>, <code>cost_micros</code>→cents). Start developer-token ladder: Test → Explorer → apply Basic under "Reporting".</div>
+    <div class="wg">GATE · Gmail threads render in the Outlook-parity inbox lane · Google Ads spend/impressions/ROAS land as DataPoints · attribution attributes Google touchpoints</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum w2">2</div><div class="wbody">
+    <div class="wt">Meta lane (the long pole — review parallel from day one)</div>
+    <div class="wd">Start Meta App Review + Business Verification for WhatsApp + FB + IG comms + FB/IG insights + Meta Ads in Wave 0, in parallel. Build connectors against the review: WhatsApp Cloud API, FB <code>pages_messaging</code> + <code>read_insights</code>, IG <code>instagram_manage_messages</code> + IG-Login insights, Marketing API <code>ads_read</code> insights. Fail-closed metric allowlist (post-Nov-2025 Meta).</div>
+    <div class="wg">GATE · all 5 Meta surfaces connect + read into DataPoints · inbox shows WhatsApp/FB/IG lanes · Meta Ads ROAS in dashboard · review cleared (external)</div>
+  </div></div>
+
+  <div class="wave"><div class="wnum w3">3</div><div class="wbody">
+    <div class="wt">Agent seam + digital-overview dashboard + reply</div>
+    <div class="wd">Aggregator MCP at <code>:8787/mcp</code> (read verbs + <code>reply</code>). DPoP token-broker. Rust keyring (replace macOS <code>security</code>-CLI). Dashboard: replace <code>demo_metrics()</code>/<code>demo_kpi()</code> with live DataPoint queries → the digital-overview command center. DeepSeek lane executes a verb end-to-end.</div>
+    <div class="wg">GATE · DeepSeek agent reads cross-channel metrics + replies to a thread via /mcp · token-broker issues DPoP-bound short-lived token · dashboard renders live (no demo data)</div>
+  </div></div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">07 ·</span> Security architecture (full posture, layered)</h2>
+  <div class="lead"><b>Posture committed now; built in sequence.</b> Leverage-then-build: Supabase/GoTrue + Cloudflare give us L1 + L4 for free — rebuilding them is malpractice. The DSGVO Art. 32 posture (encryption + access control + audit) IS the selling point vs US incumbents, not a cost center.</div>
+  <table>
+    <tr><th>Layer</th><th>Control</th><th>Leverage / Build</th><th>Wave</th></tr>
+    <tr><td rowspan="6"><b>L1 · Identity</b><br>(login)</td><td>Password hashing (argon2id)</td><td>GoTrue</td><td>0–1</td></tr>
+    <tr><td><b>MFA</b> — TOTP (RFC 6238) + backup codes; WebAuthn/passkey (paid)</td><td>GoTrue</td><td>2</td></tr>
+    <tr><td><b>Brute-force</b> — per-IP+per-acct backoff, lockout after N/T, Turnstile captcha, edge rate-limit</td><td>GoTrue + Cloudflare</td><td>0–1</td></tr>
+    <tr><td><b>Password policy</b> — NIST 800-63B: ≥12 chars, no forced composition/rotation, breach-check (HIBP k-anon)</td><td>GoTrue</td><td>2</td></tr>
+    <tr><td>Credential-stuffing — breach-check + MFA + new-device/geo anomaly</td><td>GoTrue + L5</td><td>2</td></tr>
+    <tr><td>Sessions — short JWT + rotating refresh + server-side revocation</td><td>GoTrue</td><td>0–1</td></tr>
+    <tr><td rowspan="3"><b>L2 · Authz</b></td><td><b>RLS</b> — app_current_workspace_id(), fail-closed (DONE in 00001/00002)</td><td>done</td><td>0</td></tr>
+    <tr><td>RBAC — owner/admin/member/viewer (enum exists)</td><td>done</td><td>0</td></tr>
+    <tr><td>Per-route capability middleware (membership + role check)</td><td>build</td><td>0–1</td></tr>
+    <tr><td rowspan="6"><b>L3 · Input</b><br>(the validators)</td><td><b>Schema validators on every API input</b> — typed, reject malformed early</td><td>build</td><td>0–1</td></tr>
+    <tr><td>SQLi — parameterized queries only (psycopg placeholders, PostgREST)</td><td>build</td><td>0–1</td></tr>
+    <tr><td>XSS — output-encode + strict CSP + sanitize rendered DM HTML</td><td>build</td><td>1</td></tr>
+    <tr><td>CSRF — SameSite cookies + CSRF token on mutating POSTs</td><td>build</td><td>1</td></tr>
+    <tr><td>SSRF — URL allowlist on every fetch path (social-adapter pattern)</td><td>reuse</td><td>0–1</td></tr>
+    <tr><td>File upload — magic-byte type check + size cap + ClamAV scan</td><td>build</td><td>2</td></tr>
+    <tr><td rowspan="1"><b>L3.5 · Tokens</b></td><td>Vault (00002 ciphertext BYTEA) → keyring → broker + DPoP (RFC 9449)</td><td>W0 / W1 / W3</td><td>0→3</td></tr>
+    <tr><td rowspan="5"><b>L4 · Transport</b></td><td>TLS 1.3 only + HSTS</td><td>Hetzner/CF</td><td>1</td></tr>
+    <tr><td><b>Cloudflare WAF + DDoS + bot mgmt</b> in front</td><td>Cloudflare</td><td>2</td></tr>
+    <tr><td>Secrets in hosted vault (Doppler/Infisical), never .env-in-git</td><td>build</td><td>2</td></tr>
+    <tr><td>Dep scanning — cargo/npm/pip audit in CI</td><td>build</td><td>1</td></tr>
+    <tr><td>Encryption at rest (Postgres TDE / disk) — DSGVO Art. 32</td><td>Hetzner</td><td>2</td></tr>
+    <tr><td rowspan="3"><b>L5 · Audit</b></td><td><b>audit_log</b> table — immutable who/what/when (schema slice 13)</td><td>build</td><td>2</td></tr>
+    <tr><td>Anomaly detection — repurpose Rust <code>anomalies()</code> for login behavior</td><td>reuse</td><td>2</td></tr>
+    <tr><td>Alerting on failed-login spikes, new-geo, impossible-travel</td><td>build</td><td>2</td></tr>
+    <tr><td rowspan="2"><b>L6 · DSGVO</b></td><td>Art. 32 posture = the selling point, not a cost center</td><td>posture</td><td>—</td></tr>
+    <tr><td>Right-to-erasure — <code>ON DELETE CASCADE</code> everywhere (done in 00002)</td><td>done</td><td>0</td></tr>
+  </table>
+  <div class="callout">
+    <div class="ct">Sequence discipline — do not let security-perfect block Wave 1</div>
+    <p><b>Foundation (Wave 0–1):</b> GoTrue auth + RLS + input validators + parameterized queries + TLS + auth-route rate-limit + captcha. Sufficient to connect your own socials safely. <b>Hardening (Wave 2, pre-customer per MASTER-PLAN §11):</b> MFA + breach-check + audit log + anomaly detection + WAF + encryption-at-rest + ClamAV. <b>Resale-critical (Wave 3–4):</b> token broker + DPoP + per-tenant key isolation + hosted MCP gateway with DCR.</p>
+  </div>
+  <div class="callout bad">
+    <div class="ct">Wave-2 research surfaced 3 load-bearing gaps the posture above misses</div>
+    <p><b>Full synthesis:</b> <code>02_RESOURCES/RESEARCH/nexus-security-hardening-deep-research-2026-07-06.md</code> (8-agent verified fan-out). <b>(1) Network perimeter absent</b> — Postgres/Studio bind to all interfaces, no host firewall; fix = default-deny + Cloudflare-origin allowlist + bind 127.0.0.1 (highest-leverage). <b>(2) Audit trail is a mutable stub</b> — not migrated, misses exports/admin/token-vault, <code>str(e)</code> leaks tokens; fix = NO UPDATE/DELETE + RFC 6962 hash-chain + denylist sanitizer + WORM export + L5.5 detection (failed-login, impossible-travel, bulk-export, new-IP admin, refresh-failure storm). <b>(3) Encryption under-specified</b> — Postgres has no native TDE, Supabase deprecates pgsodium/pgcrypto; fix = LUKS on Hetzner + <b>XChaCha20-Poly1305-IETF</b> (192-bit nonce sidesteps the AES-GCM nonce-reuse catastrophe) for tokens/bodies, envelope-wrapped per-tenant under a Vault KEK. Breach truth: risks are misconfigured boring infra (Capital One, Equifax, LastPass, MOVEit), not exotic zero-days. The 30-line Wave-2 build spec + authoritative OSS list (libsodium, age, Vault, OWASP CRS, Tailscale, HIBP) live in the research doc.</p>
+  </div>
+  <h3>Token layer — binding OAuth musts (carried from research)</h3>
+  <div class="grid g3">
+    <div class="card"><h4>S256 PKCE verbatim</h4><p>OAuth 2.1 REQUIREMENT. Carry <code>_pkce()</code> into every connector. Gmail near-clone; Meta uses webview-fragment intercept.</p></div>
+    <div class="card"><h4>Rust <code>keyring</code></h4><p>Secret out of Python's reachable FS. <code>com.nexuslink.app.&lt;provider&gt;</code> per connector.</p></div>
+    <div class="card focus"><h4>Token-broker, never pipe</h4><p>Vault RT → mint DPoP-bound 5–15 min access tokens → agent proves possession. Resale-critical.</p></div>
+    <div class="card"><h4>Own refresh cadence</h4><p>Google (7d Testing-mode death) · Meta/IG (~50d beat vs 60d wall). Atomic: new RT before old.</p></div>
+    <div class="card"><h4>State in keyring + TTL</h4><p>Crash/restart fails-closed (RFC 8252 §10).</p></div>
+    <div class="card"><h4>Tiered + incremental scopes</h4><p>Read first; messaging-write on first connect. Narrows App-Review.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">08 ·</span> Residual risk (honest)</h2>
+  <div class="risk"><div class="rl r-h">HIGH</div><div class="rb"><b>Meta review is the critical path.</b> 1–3 months external clock for WhatsApp + FB + IG comms + insights + Meta Ads. Starting day one in parallel is the only mitigation. The Google lane + the math layer ship while Meta review runs.</div></div>
+  <div class="risk"><div class="rl r-h">HIGH</div><div class="rb"><b>The DataPoint math layer is from-scratch.</b> It's more work than the connectors. The aggregation-rule + silent-zero discipline is where subtle dashboard bugs live (summed unique reach, zero-denominator engagement rates).</div></div>
+  <div class="risk"><div class="rl r-m">MED</div><div class="rb"><b>Microsoft refactor regression.</b> Extending the ABC + moving Microsoft onto it risks the only LIVE surface (Outlook email). Freeze behavior with tests first.</div></div>
+  <div class="risk"><div class="rl r-m">MED</div><div class="rb"><b>Google Explorer → Basic timing.</b> Explorer (2,880 ops/d) validates one tenant; multi-tenant needs Basic (15,000 ops/d, 5-day review, brand verification). Apply early.</div></div>
+  <div class="risk"><div class="rl r-l">LOW</div><div class="rb"><b>Token-broker build depth.</b> OAuth 2.1-AS + DCR + DPoP is real work, scoped to Wave 3 (after the read pipeline proves out).</div></div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2><span class="n">09 ·</span> Defaults I'm taking (flag if wrong)</h2>
+  <div class="q"><div class="qq">EUR as the FX-reference currency (not USD)</div><div class="qa">EU-hosted, DACH SMBs. <b>Default: EUR.</b> Reverses GA4's USD default but matches the market.</div></div>
+  <div class="q"><div class="qq">Meta shared-quota: one Nexus app token + per-tenant priority scheduling</div><div class="qa"><b>Default: yes</b> (vs per-tenant app tokens = more review overhead). The fairness scheduler is the mitigation.</div></div>
+  <div class="q"><div class="qq">Google Ads: apply Basic immediately (vs validate on Explorer first)</div><div class="qa"><b>Default: start Test→Explorer immediately, file Basic review in Wave 1</b> so it's cleared by the time multi-tenant matters.</div></div>
+  <div class="q"><div class="qq">Money reuse vs reinvent</div><div class="qa"><b>Default: reuse</b> the existing <code>Money</code> + add a normalized EUR field. Matches GA4 / Google Ads exactly.</div></div>
+  <div class="q"><div class="qq">MCP hosted URL for resale</div><div class="qa"><b>Default: V1 is <code>localhost:8787/mcp</code></b> for your DeepSeek lane; hosted <code>mcp.nexuslink.app</code> + DCR discovery is a Wave-3/resale-MVP decision.</div></div>
+</section>
+
+<!-- ============================================================ -->
+<div class="signoff">
+  <div class="st">Sign-off gate → Wave 0</div>
+  <p style="max-width:none;color:var(--np-text)">This is the approval gate. On your sign-off, the first build dispatch is <b>Wave 0</b>: the canonical <code>DataPoint</code> Rust layer + the multi-tenant Postgres scaffold + RLS + the fairness scheduler + the Connector ABC extension (comms + analytics methods, behavior-frozen Microsoft refactor). No external API calls in Wave 0 — it's pure local foundation. The Meta + Google review tracks file in parallel the moment you greenlight.</p>
+  <p style="max-width:none;margin-top:8px"><b>Files Wave 0 touches:</b> <code>03_NEXUS-LINK/nexus-app/engine/crates/nexus-metrics/src/lib.rs</code> (extend), new <code>nexus-app/engine/crates/nexus-datapoint/</code>, <code>nexus-app/service/connectors/base.py</code> (ABC), <code>nexus-app/service/server.py</code> (routes), new Postgres migration with <code>orgId</code> + RLS. Microsoft <code>microsoft.py</code> refactor is behavior-frozen first.</p>
+</div>
+
+<footer>
+  <div class="wrap">
+    Read-first revision of <code>docs/NEXUS-LINK-SOCIAL-CONNECT-VISUAL-PLAN-2026-07-05.html</code> (supersedes the write-first draft). Research: <code>02_RESOURCES/RESEARCH/nexus-social-connect-deep-research-2026-07-05.md</code> + <code>nexus-analytics-ad-api-read-first-2026-07-05.md</code>. Runs wf_e2f00c4a-bc8 (24 agents) + wf_a7dd81a6-5bd (8 agents). Local repo-owned plan (no external publish). Planning read-only — no source edits made.
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

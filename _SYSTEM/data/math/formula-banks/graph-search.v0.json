@@ -34,7 +34,7 @@
       ],
       "assumptions": [
         "edge weights are non-negative",
-        "strict optimality requires admissible heuristic"
+        "strict optimality requires admissible AND consistent (monotone) heuristic"
       ],
       "invalidInputs": [
         "unknown nodes",
@@ -65,20 +65,20 @@
       ],
       "proofObligations": [
         "non_negative_edges",
-        "admissible_heuristic_for_optimality"
+        "admissible_and_consistent_heuristic_for_optimality"
       ],
       "plainLanguageUseCase": "Use when YURI has a weighted route problem and a checked lower-bound estimate of remaining cost.",
       "units": {
         "inputs": {
           "graph": "nodes plus non-negative edge costs in task-specific cost units",
-          "heuristic": "same cost units as graph edges"
+          "heuristic": "same edge cost units as the graph edges"
         },
         "output": "path cost in graph cost units"
       },
       "inputConstraints": [
         "edge weights must be finite and non-negative",
         "source and target must exist in the graph",
-        "strict mode requires admissible non-negative heuristics"
+        "strict mode requires admissible AND consistent (monotone) non-negative heuristics"
       ],
       "counterexamples": [
         {
@@ -214,7 +214,7 @@
       "selectionGuidance": {
         "useWhen": [
           "baseline correctness matters more than speed",
-          "no admissible heuristic is available"
+          "no admissible AND consistent (monotone) heuristic is available"
         ],
         "avoidWhen": [
           "edge weights may be negative",

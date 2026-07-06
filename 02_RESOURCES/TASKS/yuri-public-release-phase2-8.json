@@ -1,0 +1,62 @@
+{
+  "summary": "WS-E: YURI public release phases 2–8 (release tail)",
+  "tags": ["release", "public", "buildout"],
+  "subtasks": [
+    {
+      "id": "P2-R1-engineering-scaffold",
+      "role": "engineer",
+      "need": ["code-generation", "implementation"],
+      "prompt": "Phase 2 release engineering scaffold per YURI_PUBLIC_RELEASE scope. READ-ONLY census first. Return 02R1_RELEASE_P2_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "P3-A1-architect-structure",
+      "role": "architect",
+      "need": ["architecture"],
+      "prompt": "Phase 3 public repo structure and invite-repo layout design. Document only — no push. Return 03A1_RELEASE_P3_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "P4-S1-steward-gate",
+      "role": "steward",
+      "need": ["improvement-proposal"],
+      "prompt": "Phase 4 outward release gate: blast radius, finalize hold, owner-gated. HELD until owner authorize. Return 04S1_RELEASE_P4_HELD.",
+      "blastRadius": "HIGH",
+      "reversible": true
+    },
+    {
+      "id": "P5-K1-kernelsmith-perf",
+      "role": "kernelsmith",
+      "need": ["implementation"],
+      "prompt": "Phase 5 performance and bundle audit for public export surface. Return 05K1_RELEASE_P5_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true
+    },
+    {
+      "id": "P6-S1-synthesist-narrative",
+      "role": "synthesist",
+      "need": ["synthesis", "documentation"],
+      "prompt": "Phase 6 public narrative and README synthesis from census findings. Return 06S1_RELEASE_P6_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "P7-O1-oracle-verdict",
+      "role": "oracle",
+      "need": ["adversarial-verify"],
+      "prompt": "Phase 7 red/grey/green on release readiness. Sentinel cross-check. Return 07O1_RELEASE_P7_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "P8-H1-helmsman-finalize",
+      "role": "helmsman",
+      "need": ["improvement-proposal"],
+      "prompt": "Phase 8 finalize and publish ceremony. HELD — owner-gated finalize:true. Return 08H1_RELEASE_P8_HELD.",
+      "blastRadius": "HIGH",
+      "reversible": false
+    }
+  ]
+}

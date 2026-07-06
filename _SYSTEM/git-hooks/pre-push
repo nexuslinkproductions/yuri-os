@@ -10,5 +10,5 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "[pre-push] offload contract regression"
-npm run test:offload-contract --silent
+echo "[pre-push] llm-compat contract regression"
+npm run test:llm-compat-contract --silent

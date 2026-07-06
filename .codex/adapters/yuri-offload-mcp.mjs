@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const ADAPTER_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(ADAPTER_DIR, '../..');
-const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LLM_COMPAT_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/llm-compat.sh');
 const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
 const TOOL_NAME = 'yuri.offload_task';
 const DEFAULT_FILE_CHAR_BUDGET = 120000;
@@ -253,7 +253,7 @@ function runKernel(args) {
 }
 
 function runOffload(input, taskId) {
-  const args = [OFFLOAD_SH];
+  const args = [LLM_COMPAT_SH];
   const prompt = buildOffloadPrompt(input);
   args.push('--intent', input.intent);
   if (input.fanout_lanes.length > 0) {
@@ -266,7 +266,7 @@ function runOffload(input, taskId) {
 
   return spawnSync('bash', args, {
     cwd: REPO_ROOT,
-    env: { ...process.env, OFFLOAD_TASK_ID: String(taskId), OFFLOAD_INTENT: input.intent },
+    env: { ...process.env, LLM_COMPAT_TASK_ID: String(taskId), LLM_COMPAT_INTENT: input.intent },
     encoding: 'utf8',
     maxBuffer: 10 * 1024 * 1024,
   });
@@ -277,7 +277,7 @@ function buildOffloadPrompt(input) {
 
   const budget = Math.max(
     1000,
-    Math.floor(Number(process.env.OFFLOAD_MCP_FILE_CHAR_BUDGET || DEFAULT_FILE_CHAR_BUDGET))
+    Math.floor(Number(process.env.LLM_COMPAT_MCP_FILE_CHAR_BUDGET || DEFAULT_FILE_CHAR_BUDGET))
   );
   let remaining = budget;
   const sections = [];

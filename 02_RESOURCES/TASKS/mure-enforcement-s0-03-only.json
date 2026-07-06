@@ -1,0 +1,28 @@
+{
+  "summary": "MURE enforcement S0-03 held-out Brier only",
+  "tags": [
+    "mure",
+    "enforcement",
+    "s0-03",
+    "brier"
+  ],
+  "researchDoc": "_SYSTEM/reports/MURE_ENFORCEMENT_MINIMUM_2026-06-30.md",
+  "disarmedByDefault": false,
+  "subtasks": [
+    {
+      "id": "MURE-S0-03-held-out-brier",
+      "segment": "S0",
+      "substrateHint": "tmux-zai",
+      "phase": "honesty-floor",
+      "role": "ideator",
+      "sourceWs": "WS-J-C1-held-out-calibrator",
+      "disarmed": false,
+      "need": [
+        "adversarial-verify"
+      ],
+      "prompt": "Read _SYSTEM/reports/MURE_ENFORCEMENT_MINIMUM_2026-06-30.md \u00a7B.2. Extend train-fleet-router-from-ledger.mjs with time-ordered 80/20 train/eval split; return evalMeanBrier and evalExampleCount. Wire into fleet-mlp-feedback runPostTrainSummary and company-dispatch manifest mlpFeedback block. Advisory only. Return 02J2_HELD_OUT_BRIER_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

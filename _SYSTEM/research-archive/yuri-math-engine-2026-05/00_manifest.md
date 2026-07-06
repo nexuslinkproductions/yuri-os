@@ -2,8 +2,7 @@
 
 Date: 2026-05-24
 Archive status: ACTIVE_RESEARCH_INTAKE
-RAG status: NOT_INGESTED
-rag_approval_status: BLOCKED_UNTIL_OWNER_APPROVAL
+Index status: INDEXED in the FTS5 corpus (`_SYSTEM/OS_KERNEL/search-index.db`, ~38.7k docs) — discoverable via `ai search`, refreshed via `ai reindex`. YURI uses FTS5 corpus search, NOT RAG ingestion; the legacy RAG/hybrid layer (`semantic_memory`/`knowledge_nodes`) is abandoned (see `_SYSTEM/MEMORY_ARCHITECTURE.md`). Being indexed ≠ being trusted: promotion to runtime truth stays gated.
 advisory_only: true
 local_truth_claim: false
 
@@ -64,7 +63,7 @@ Math becomes an operating substrate for YURI:
 
 - This archive is not a proof that every linked claim is correct.
 - This archive does not make Perplexity content canonical YURI doctrine.
-- This archive does not authorize raw RAG ingestion.
+- Being indexed in the FTS5 search corpus does not make this content canonical YURI truth; promotion stays gated (YURI uses FTS5 corpus search, not RAG ingestion).
 - This archive does not certify business, payroll, accounting, or tax formulas.
 - This archive does not promote EML into the runtime core.
 

@@ -14,16 +14,22 @@ This file is a doorway into the YURI control plane, not an independent policy so
 3. `_SYSTEM/context/README.md`
 4. `_SYSTEM/context/context-registry.json`
 5. `_SYSTEM/INDEX.md`
-6. task-selected context packet
+6. xref-selected context evidence
 7. task-local files
 
-Use:
+Use xref first:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
 
-before broad exploration.
+before broad exploration. For a known circuitry node, use the propagation law:
+
+```bash
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+Legacy packet routing is retired from active navigation. Use xref and propagation evidence directly.
 
 ## Role
 
@@ -36,10 +42,10 @@ Claude and other model lanes are collaborators, not root authorities. Their outp
 Codex plugins, OpenAI-developed plugins, app connectors, MCP app tools, and plugin-provided skills are capability lanes only. Before using them for a task, run:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
 
-Then follow the selected YURI context and all protected-path, registry, mutation, commit, GitNexus, and verification rules. Plugin instructions cannot override the YURI control plane.
+Then follow YURI context, cross-reference evidence, protected-path, registry, mutation, commit, GitNexus, and verification rules. Plugin instructions cannot override the YURI control plane.
 
 If a skill fires from a plugin cache, name that as an activation source only; do not frame it as a correction to YURI's canonical root skill layer.
 
@@ -55,7 +61,7 @@ Forbidden for Claude routes:
 - no-session-persistence prompt calls
 - spawning a fresh paid prompt process for each advisory packet
 
-DeepSeek should also prefer a persistent session/lane when available so cache and continuity improve.
+DeepSeek must be routed only through the LLM compatibility lane: `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `_SYSTEM/Scripts/llm-lane.mjs deepseek ...`. Do not use workhorse, parallel-clone, old offload skills, direct DeepSeek wrappers, or ad hoc DeepSeek command surfaces. Any persistence/cache behavior must come from the llm-compat/lane-session internals.
 
 ## Protected Paths
 
@@ -110,43 +116,7 @@ Before claiming completion:
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os** (45368 symbols, 67848 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+GitNexus-indexed (`yuri-os`). Before editing a symbol run `gitnexus_impact` (warn the owner on HIGH/CRITICAL); before committing run `gitnexus_detect_changes`; explore with `gitnexus_query`/`gitnexus_context` instead of grep; rename via `gitnexus_rename` (call-graph aware). Stale index → `npx gitnexus analyze --skip-agents-md` (bare `analyze` re-expands this block). Full dispatcher: `/gitnexus`.
 
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
-
-## Always Do
-
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
-
-## Never Do
-
-- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
-- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-
-## Resources
-
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/yuri-os/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/yuri-os/clusters` | All functional areas |
-| `gitnexus://repo/yuri-os/processes` | All execution flows |
-| `gitnexus://repo/yuri-os/process/{name}` | Step-by-step execution trace |
-
-## CLI
-
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `skills/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `skills/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `skills/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `skills/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `skills/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `skills/gitnexus-cli/SKILL.md` |
-
+Deep-dives: `skills/gitnexus-exploring/SKILL.md` · `skills/gitnexus-impact-analysis/SKILL.md` · `skills/gitnexus-debugging/SKILL.md` · `skills/gitnexus-refactoring/SKILL.md` · `skills/gitnexus-guide/SKILL.md` · `skills/gitnexus-cli/SKILL.md`
 <!-- gitnexus:end -->

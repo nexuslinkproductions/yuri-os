@@ -35,13 +35,9 @@ tags: [weekly-review, template]
 
 | Client | Project | Status | Next Step | Deadline |
 |--------|---------|--------|-----------|----------|
-| OREA | C2MOVIEZ | | | |
-| ANGELIKA | C2MOVIEZ | | | |
-| MUDI | C2MOVIEZ | | | |
-| BOVIRO | C2MOVIEZ | | | |
-| CHEESE DOCTOR | C2MOVIEZ | | | |
-| SHIPSTER | C2MOVIEZ | | | |
-| MACL-ONE | DIRECT | | | |
+| | | | | |
+| | | | | |
+| | | | | |
 
 ---
 

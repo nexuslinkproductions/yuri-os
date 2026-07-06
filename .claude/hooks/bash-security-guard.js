@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+const path = require('path');
+
 const LIVE_BLOCK_SENTINEL = 'echo __bash_security_guard_live_block_test__';
 
 function isSentinelCommand(cmd) {
@@ -15,6 +17,15 @@ const BLOCKED_CLAUDE_FILES = new Set([
   '.claude/state/scout-bus.json',
   '.claude/state/scout-errors.log',
   '.claude/state/token-session.json',
+]);
+
+// wave-3 G.1 (D-G1): settings.json is the hook REGISTRY — a bash write can delete
+// every guard registration, so writes are blocked (single-operator machine, no role gate).
+// WRITE-only: reads of the registry stay free — settings.json is config, not a secret,
+// and the blanket BLOCKED_CLAUDE_FILES set also drives the sensitive-READ block.
+const BLOCKED_CLAUDE_WRITE_FILES = new Set([
+  ...BLOCKED_CLAUDE_FILES,
+  '.claude/settings.json',
 ]);
 
 const READ_CMDS = new Set(['cat', 'head', 'tail', 'less', 'more', 'bat', 'nl', 'view']);
@@ -32,6 +43,11 @@ function unquote(s) {
   return s;
 }
 
+// Strip a leading ./ (or ././…) so a './.claude/...'-style token cannot dodge the literal/prefix
+// protected checks below. This is the C3 ./-prefix bypass class (verified live at the bash gate by the
+// protected-path consolidation lane, 2026-06-06): `'./.claude/state'.startsWith('.claude/')` is false.
+function normTok(s) { return String(s).replace(/^(?:\.\/)+/, ''); }
+
 function isEnvTarget(tok) {
   const s = unquote(tok);
   return s === '.env' || s === './.env';
@@ -42,9 +58,9 @@ function isEnvTarget(tok) {
 // e.g. backend/.env → _SYSTEM/backend/.env after a folder restructure.
 // Both source and destination MUST:
 //   - end in `.env` (exact basename)
-//   - resolve under /Users/marcelspatz/YURI-OS-MUSUBI/
+//   - resolve under <YURI_ROOT>/
 // Read/write/mutate/remove of .env remain blocked outside this exemption.
-const REPO_ROOT_PREFIX = '/Users/marcelspatz/YURI-OS-MUSUBI/';
+const REPO_ROOT_PREFIX = (process.env.YURI_ROOT || path.resolve(__dirname, '..', '..')) + '/';
 function isPathInsideRepo(p) {
   const s = unquote(p);
   return s.startsWith(REPO_ROOT_PREFIX) && !s.includes('/..');
@@ -132,17 +148,88 @@ function isBlockedEnvRemove(cmd) {
   return false;
 }
 
+// ── HARD BLOCK: the energy-enforce arm flag, breaker snapshot dir, and enforcement
+// code (2026-07-06, B3 audit blocker — re-targeted). Originally gated on a "coworker"
+// role that has since been removed as dead code (no dev-credential.json exists, so
+// activeRole() could never resolve to 'coworker' — see the operator-write-guard.js
+// cleanup commit); the underlying threat (self-disarming YURI's own safety gate) does
+// not depend on a human-operator role distinction that no longer exists — an agent/lane
+// tampering with its own circuit-breaker is the live concern. Made universal instead of
+// retired: same literal-match style as the .env block above, not the deleted glob/brace/
+// decode-exec obfuscation-resistant matcher (this is a fail-open layer-2 conscience, not
+// a sandbox — see the IRREDUCIBLE RESIDUAL note near isDecodeExecuteChain).
+const ENERGY_ARM_PROTECTED_FILES = new Set([
+  '_SYSTEM/state/energy-enforce.enabled',
+  '.claude/hooks/energy-enforce.mjs',
+  '.claude/hooks/energy-tick.mjs',
+]);
+const ENERGY_ARM_PROTECTED_DIR = '_SYSTEM/state/energy-session/';
+function isEnergyArmTarget(tok) {
+  const s = normTok(unquote(tok));
+  return ENERGY_ARM_PROTECTED_FILES.has(s) || s.startsWith(ENERGY_ARM_PROTECTED_DIR);
+}
+function isBlockedEnergyArmRemove(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'rm') {
+      for (let j = i + 1; j < parts.length; j++) {
+        if (isEnergyArmTarget(parts[j])) return true;
+      }
+    }
+  }
+  return false;
+}
+function isBlockedEnergyArmWrite(cmd) {
+  const m = cmd.match(/>>?\s*(\S+)/);
+  return !!(m && isEnergyArmTarget(m[1]));
+}
+function isBlockedEnergyArmMutate(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'tee') {
+      for (let j = i + 1; j < parts.length; j++) {
+        if (!parts[j].startsWith('-') && isEnergyArmTarget(parts[j])) return true;
+      }
+    }
+    if (parts[i] === 'sed' && isEnergyArmTarget(parts[parts.length - 1])) return true;
+  }
+  return false;
+}
+
 function isBlockedClaudeFileWrite(cmd) {
   const parts = toks(cmd);
   if (parts[0] === 'tee') {
     for (let i = 1; i < parts.length; i++) {
-      if (!parts[i].startsWith('-') && BLOCKED_CLAUDE_FILES.has(unquote(parts[i]))) return true;
+      if (!parts[i].startsWith('-') && BLOCKED_CLAUDE_WRITE_FILES.has(unquote(parts[i]))) return true;
     }
   }
-  for (const f of BLOCKED_CLAUDE_FILES) {
+  for (const f of BLOCKED_CLAUDE_WRITE_FILES) {
     const escaped = f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (new RegExp(`>\\s*${escaped}(\\s|$)`).test(cmd)) return true;
   }
+  return false;
+}
+
+// A `.claude/...` rm target that is clearly a SCRATCH artifact, not live config:
+//   - a recognized scratch suffix (.orig/.bak/.old/.tmp/.rej/.swp/trailing ~), OR
+//   - a path that does NOT exist on disk AND does not realpath onto a protected role
+//     file/dir (a superstring/typo of a real name, e.g. operator-guardian.js when the
+//     real artifact is operator-guard / operator-write-guard.js).
+// Removing one's own scratch copy is normal cleanup; destroying live .claude config is not.
+// Dir-root removals (.claude, .claude/, ~/.claude) and real existing files stay blocked.
+const SCRATCH_SUFFIX_RE = /(?:\.orig|\.bak|\.old|\.tmp|\.rej|\.swp|~)$/;
+function isClaudeScratchArtifact(t) {
+  if (t === '.claude' || t === '.claude/' || t === '~/.claude' || t === '$HOME/.claude') return false;
+  if (t.endsWith('/')) return false; // a directory removal, not a single scratch file
+  // A glob / brace can expand onto LIVE files at shell time (e.g. tirith-url-guard.*),
+  // so the literal token's non-existence proves nothing -> never exempt a wildcard.
+  if (/[*?\[\]{}]/.test(t)) return false;
+  if (SCRATCH_SUFFIX_RE.test(t)) return true;
+  // Non-existent + not a protected role file -> a typo/superstring artifact, safe to clean.
+  const abs = path.isAbsolute(t) ? path.resolve(t) : path.resolve(REPO_ROOT_ABS, t);
+  let exists = true;
+  try { exists = require('fs').existsSync(abs); } catch { exists = true; }
+  if (!exists && !absHitsProtected(abs)) return true;
   return false;
 }
 
@@ -151,9 +238,12 @@ function isBlockedClaudeRemove(cmd) {
   for (let i = 0; i < parts.length; i++) {
     if (parts[i] === 'rm') {
       for (let j = i + 1; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/' || t.startsWith('.claude/') ||
-            t === '~/.claude' || t === '$HOME/.claude') return true;
+            t === '~/.claude' || t === '$HOME/.claude') {
+          if (isClaudeScratchArtifact(t)) continue; // scratch cleanup, not destruction
+          return true;
+        }
       }
     }
   }
@@ -165,7 +255,7 @@ function isBlockedBroadGitAdd(cmd) {
   for (let i = 0; i < parts.length - 1; i++) {
     if (parts[i] === 'git' && parts[i + 1] === 'add') {
       for (let j = i + 2; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/') return true;
       }
     }
@@ -178,7 +268,7 @@ function isBlockedGitRm(cmd) {
   for (let i = 0; i < parts.length - 1; i++) {
     if (parts[i] === 'git' && parts[i + 1] === 'rm') {
       for (let j = i + 2; j < parts.length; j++) {
-        const t = unquote(parts[j]);
+        const t = normTok(unquote(parts[j]));
         if (t === '.claude' || t === '.claude/' || t.startsWith('.claude/')) return true;
       }
     }
@@ -197,6 +287,42 @@ function isDownloadExecuteChain(cmd) {
   return /\b(curl|wget)\b[^|]*\|\s*(sudo\s+|env\s+)?(bash|sh|zsh|ksh|dash|python3?|node)\b/.test(cmd);
 }
 
+// A pipeline ending in a BARE shell interpreter (`| sh` / `| bash` / `| zsh` /
+// `| ksh` / `| dash`, optionally via `sudo`/`env`, with trailing flags like `-s --`)
+// where an UPSTREAM stage is an OPAQUE decoder or fetcher. Same risk class as the
+// already-blocked curl|wget|sh: the bytes the shell runs are not auditable from the
+// command line, so decode-then-exec is treated as a blocked chain regardless of the
+// obfuscation layer (base64 -d / xxd -r / openssl enc -d / printf-of-hex / curl / wget).
+//
+// Deliberately NOT triggered by a transparent local source: `cat script.sh | bash`
+// and `printf "echo ok" | bash` stay allowed — `cat` and plain-text `printf` are not
+// opaque. Only the obfuscation/fetch decoders below arm the block.
+function isDecodeExecuteChain(cmd) {
+  // Terminal stage must be a bare shell interpreter (NOT python/node here — that is
+  // the curl|wget download-exec surface; this is specifically the decode-pipe-to-shell
+  // class). Allow optional sudo/env prefix and trailing interpreter flags.
+  // NOTE: decode-pipe to a NON-shell interpreter (python/perl/node/ruby) is handled by
+  // the coworker role gate (isDecodeExecToInterpreter), not globally — so a benign
+  // non-role `echo data | base64 -d | python3` is NOT over-blocked, while the same
+  // chain feeding a role-file mutation DENIES (H2). Keeping shells global preserves the
+  // existing HI-12 contract + matrix/smoke expectations.
+  const endsInShell = /\|\s*(?:sudo\s+|env\s+(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*)*(?:bash|sh|zsh|ksh|dash)\b[^|]*$/.test(cmd);
+  if (!endsInShell) return false;
+  // An upstream stage is an opaque decoder/fetcher.
+  const hasOpaqueSource =
+    /\bbase64\b[^|]*(?:\s-d\b|\s-D\b|\s--decode\b)/.test(cmd) ||      // base64 decode (GNU -d, BSD -D, --decode)
+    /\bbase32\b[^|]*(?:\s-d\b|\s--decode\b)/.test(cmd) ||             // base32 decode
+    /\bxxd\b[^|]*\s-r\b/.test(cmd) ||                                 // xxd reverse (hex -> bytes)
+    /\bopenssl\b[^|]*\benc\b[^|]*\s-d\b/.test(cmd) ||                 // openssl enc -d (decrypt/decode)
+    /\bopenssl\b[^|]*\bbase64\b[^|]*\s-d\b/.test(cmd) ||              // openssl base64 -d
+    /\bprintf\b[^|]*(?:\\x[0-9a-fA-F]|\\[0-7]{1,3}|%b)/.test(cmd) ||  // printf of hex/octal/%b escapes (obfuscated)
+    /\b(?:gzip|gunzip|zcat|bzip2|bunzip2|xz|unxz|zstd)\b[^|]*\s-d?c?\b/.test(cmd) || // decompress-to-stdout
+    /\b(?:gunzip|zcat|bunzip2|unxz)\b/.test(cmd) ||                   // bare decompressors (stdout by default in a pipe)
+    /\b(?:tr|rev|uudecode)\b/.test(cmd) ||                            // byte-transform / uudecode obfuscators
+    /\b(?:curl|wget)\b/.test(cmd);                                    // fetch-then-decode-then-exec
+  return hasOpaqueSource;
+}
+
 // Matches bash/sh/zsh/ksh/dash with -c or combined flags like -lc, -ic
 function extractShellWrapper(cmd) {
   if (!/^(?:bash|sh|zsh|ksh|dash)\b/.test(cmd)) return null;
@@ -207,39 +333,86 @@ function extractShellWrapper(cmd) {
 function isBlockedShellWrapper(cmd) {
   const inner = extractShellWrapper(cmd);
   if (!inner) return false;
-  return isBlockedInner(inner) || isDownloadExecuteChain(inner);
+  return isBlockedInner(inner) || isDownloadExecuteChain(inner) ||
+    isDecodeExecuteChain(inner);
 }
 
+// ROLES REMOVED (owner directive 2026-06-20, cleanup completed): the dev/coworker
+// role system and its enforcement machinery (activeRole, isBlockedForCoworker,
+// isRolePathMutation, the ROLE_TRUST_SURFACES-derived path/basename tables) were
+// deleted as confirmed-dead code — this is a single-operator machine and the role
+// gate could never fire (see commit 54f7fd54 + the follow-up cleanup that removed
+// this block). Enforcement now lives solely in the .env hard-block below, plus the
+// deterministic PreToolUse hooks and settings.json deny-list described in the
+// IRREDUCIBLE RESIDUAL note that used to live here.
+
+// Ungoverned nano-swarm spawn bypass (Move-1b D3). A lane must spawn ONLY through the governed spawn_nano
+// tool (depth/fan-out/budget/cost caps). Running nano-external / nano-tick as a RAW process from a lane's
+// bash skips all governance, so deny it. --dry (routing proof) is allowed. Matches the `bash -c "..."`
+// wrapped form too — the node...nano-external substring survives the wrapper. The soft mechanism guard
+// (governedFireDecision in nano-external.mjs) is the cooperative layer; this is the lane-proof hard stop.
+function isBlockedUngovernedNanoSpawn(cmd) {
+  const c = String(cmd || '');
+  if (!/\bnode\b[^|;&]*\bnano-(?:external|tick)\.mjs\b/.test(c)) return false;
+  if (/\s--dry(?:\s|$)/.test(c)) return false; // routing proof, no fire
+  return true;
+}
 function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
-  // Owner-scoped exemption: intra-repo .env mirror (cp/mv between repo paths).
-  // Documented + tested in this file; harness allowlist also explicitly enumerates
-  // the canonical backend/.env <-> _SYSTEM/backend/.env mirror commands.
+  // ROLES REMOVED (owner directive 2026-06-20): no dev/coworker gate. Flat policy —
+  // HARD BLOCK .env secret access + the energy-enforce arm surface (universal, not
+  // role-gated — see the ENERGY_ARM_PROTECTED_* block above); the .claude-config +
+  // download/decode-exec rules the owner found too strict are now ADVISORY (warn, never
+  // block). isBlockedForCoworker / isRolePathMutation / activeRole no longer exist.
+  if (isBlockedUngovernedNanoSpawn(cmd))
+    return { type: 'block', reason: 'Ungoverned nano spawn — route through the governed spawn_nano tool (depth/fan-out/budget/cost caps), not raw nano-external/nano-tick.' };
+  // Intra-repo .env mirror exemption (cp/mv between repo paths).
   if (isAllowedEnvMirror(cmd))
-    return { type: 'advisory', message: 'Intra-repo .env mirror allowed (owner-scoped exemption).' };
+    return { type: 'advisory', message: 'Intra-repo .env mirror allowed.' };
+  // ── HARD BLOCK: .env secret read / write / mutate / remove (the one rail kept) ──
   if (isBlockedEnvRead(cmd))
-    return { type: 'block', reason: 'Reading .env is blocked.' };
-  if (isBlockedSensitiveClaudeRead(cmd))
-    return { type: 'block', reason: 'Reading sensitive .claude file is blocked.' };
+    return { type: 'block', reason: 'Reading .env (secrets) is blocked.' };
   if (isBlockedEnvWrite(cmd))
     return { type: 'block', reason: 'Writing to .env is blocked.' };
   if (isBlockedEnvMutate(cmd))
     return { type: 'block', reason: 'Mutating .env is blocked.' };
   if (isBlockedEnvRemove(cmd))
     return { type: 'block', reason: 'Removing .env is blocked.' };
+  // .env hidden inside a shell wrapper (bash -c "cat .env") still hard-blocks.
+  {
+    const innerEnv = extractShellWrapper(cmd);
+    if (innerEnv && (isBlockedEnvRead(innerEnv) || isBlockedEnvWrite(innerEnv) ||
+        isBlockedEnvMutate(innerEnv) || isBlockedEnvRemove(innerEnv)))
+      return { type: 'block', reason: '.env (secrets) access inside a shell wrapper is blocked.' };
+  }
+  // ── HARD BLOCK: energy-enforce arm flag / breaker snapshot dir / enforcement code —
+  // universal, not role-gated (B3 audit blocker, re-targeted 2026-07-06).
+  if (isBlockedEnergyArmRemove(cmd))
+    return { type: 'block', reason: 'Removing the energy-enforce arm flag or enforcement code is blocked.' };
+  if (isBlockedEnergyArmWrite(cmd) || isBlockedEnergyArmMutate(cmd))
+    return { type: 'block', reason: 'Writing to the energy-enforce arm flag, breaker snapshot dir, or enforcement code is blocked.' };
+  {
+    const innerArm = extractShellWrapper(cmd);
+    if (innerArm && (isBlockedEnergyArmRemove(innerArm) || isBlockedEnergyArmWrite(innerArm) ||
+        isBlockedEnergyArmMutate(innerArm)))
+      return { type: 'block', reason: 'Energy-enforce arm surface access inside a shell wrapper is blocked.' };
+  }
+  // ── WARN-ONLY (owner relaxed): .claude config ops + download/decode-exec chains ──
+  if (isBlockedSensitiveClaudeRead(cmd))
+    return { type: 'advisory', message: 'Heads-up: reading a sensitive .claude file.' };
   if (isBlockedClaudeFileWrite(cmd))
-    return { type: 'block', reason: 'Writing to sensitive .claude file is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: writing a .claude config file (use the Edit tool for hook-safety).' };
   if (isBlockedClaudeRemove(cmd))
-    return { type: 'block', reason: 'Destructive operation targeting .claude is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: removing .claude config (git-recoverable).' };
   if (isBlockedBroadGitAdd(cmd))
-    return { type: 'block', reason: 'Broad git add targeting .claude is blocked.' };
+    return { type: 'advisory', message: 'Heads-up: broad git add of .claude — verify scope.' };
   if (isBlockedGitRm(cmd))
-    return { type: 'block', reason: 'git rm targeting .claude is blocked.' };
-  if (isBlockedShellWrapper(cmd))
-    return { type: 'block', reason: 'Shell wrapper contains a blocked command.' };
+    return { type: 'advisory', message: 'Heads-up: git rm of .claude.' };
   if (isDownloadExecuteChain(cmd))
-    return { type: 'block', reason: 'Download-and-execute chain is blocked (HI-12).' };
+    return { type: 'advisory', message: 'Heads-up: download-and-execute (curl|bash) chain — verify the source.' };
+  if (isDecodeExecuteChain(cmd))
+    return { type: 'advisory', message: 'Heads-up: decode-and-execute pipe chain — verify the payload.' };
 
   const parts = toks(cmd);
   const first = parts[0];

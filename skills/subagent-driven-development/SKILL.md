@@ -277,3 +277,7 @@ Done!
 
 **Alternative workflow:**
 - **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+
+## Session Notes
+
+- 2026-06-16 — Executes implementation plans by dispatching a fresh subagent per task with two-stage review (spec compliance then code quality); reach for it when running a multi-task implementation plan that benefits from isolated subagent execution.

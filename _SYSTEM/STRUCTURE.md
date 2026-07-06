@@ -39,15 +39,6 @@ Structure:
 ```
 01_PROJECTS/
 ├── _TEMPLATE/          # Copy this for new projects
-├── C2MOVIEZ/           # c2moviez GmbH pipeline
-│   ├── ANGELIKA/       # [Client name — all caps]
-│   ├── BOVIRO/
-│   ├── CHEESE-DOCTOR/
-│   ├── MUDI/
-│   ├── OREA/
-│   ├── SAMPLE/
-│   └── SHIPSTER/
-├── MACL-ONE/           # MACL ONE brand (second pipeline)
 ├── NEXUS-LINK-LANDING/ # Company landing page
 └── [Other clients]
 ```
@@ -55,16 +46,11 @@ Structure:
 **Each project folder contains:**
 - `brief.md` — Creative brief, deliverables, timeline
 - `budget.md` — Costs, invoicing, payment schedule
-- `crew.md` — Team, roles, contact info
-- `timeline.md` — Shoot dates, milestones, deadlines
-- `location-scout/` — Location photos, maps, access notes
-- `shot-list/` — Scene breakdown, shot descriptions
-- `footage/` — Raw captures (or links to storage)
+- `timeline.md` — Milestones, deadlines
 - `deliverables/` — Final outputs, approvals
-- `notes/` — Shoot logs, client feedback, revisions
+- `notes/` — Client feedback, revisions
 
 **Naming convention:** `[ClientName]_[ProjectSlug]_[YYYY-MM]`
-Example: `ANGELIKA_cosmetics-campaign_2026-02`
 
 ---
 
@@ -89,10 +75,7 @@ Each area evolves independently from projects.
 
 ```
 03_RESOURCES/
-├── Templates/          # Project templates, shot lists, briefs
-├── LUTs/               # Color lookup tables (DaVinci, Premiere)
-├── Presets/            # After Effects, Lightroom, camera profiles
-├── Stock/              # Music, sound effects, graphics libraries
+├── Templates/          # Project templates, briefs
 ├── Reference/          # Inspiration, case studies, competitor analysis
 └── Legal/              # Contracts, terms, IP templates
 ```
@@ -152,17 +135,13 @@ This is the **public face** of the company. Everything here should be shareable.
 
 ```
 06_NETWORK-SYNC/
-├── C2MOVIEZ/
-│   ├── CLAUDE.md           # Partner profile + sync rules
-│   ├── _SYNC-STATUS.md     # What's synced, when, status
-│   ├── _MAPPING.md         # Claudio's paths → Marcel's paths
-│   ├── Database/           # Read-only copy of Claudio's filesystem
-│   ├── Shared-Projects/    # Active projects (bi-directional refs)
-│   └── Shared-Assets/      # Shared media, templates
-└── PLANZERFILMS/
-    ├── CLAUDE.md
-    ├── _SYNC-STATUS.md
-    └── ...
+└── [Partner]/
+    ├── CLAUDE.md           # Partner profile + sync rules
+    ├── _SYNC-STATUS.md     # What's synced, when, status
+    ├── _MAPPING.md         # Partner paths → Marcel's paths
+    ├── Database/           # Read-only copy of partner filesystem
+    ├── Shared-Projects/    # Active projects (bi-directional refs)
+    └── Shared-Assets/      # Shared media, templates
 ```
 
 ### Sync Protocol
@@ -207,13 +186,10 @@ _SYSTEM/
 ├── MIGRATION-MAP.md       # Where things belong (for organizing)
 ├── Templates/
 │   ├── Project-Brief.md
-│   ├── Shoot-Checklist.md
 │   ├── Invoice-Template.md
 │   └── ...
 ├── _SYSTEM/Scripts/
-│   ├── organize-footage.sh
-│   ├── backup-vault.sh
-│   └── sync-c2moviez.sh
+│   └── backup-vault.sh
 ├── Claude-Memory/         # Persistent memory for AI agents
 ├── SELF/                  # Self-analysis, reflections, growth tracking
 └── Obsidian-Config/       # .obsidian settings export (for team collab)

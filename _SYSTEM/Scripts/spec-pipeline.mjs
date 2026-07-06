@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
+import { atomicWriteFile } from './_lib/fs.mjs'
 import path from 'node:path'
 import { execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -308,10 +309,7 @@ function buildTasks(template, metadata, criteria, impacts) {
 }
 
 function atomicWrite(filePath, content) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true })
-  const tmp = path.join(path.dirname(filePath), `.${path.basename(filePath)}.${process.pid}.tmp`)
-  fs.writeFileSync(tmp, content)
-  fs.renameSync(tmp, filePath)
+  atomicWriteFile(filePath, content) // tmp+rename consolidated into _lib/fs.mjs (random-suffix fix)
 }
 
 function printTextSummary(summary) {

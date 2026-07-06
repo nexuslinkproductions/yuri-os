@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
+import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
+
 export const SHINTAI_REQUIRED_EVIDENCE_IDS = Object.freeze([
-  'shintai-roster',
   'yuri-memory-index',
   'extraction-sprint-template',
 ]);
@@ -16,7 +17,6 @@ export const MEMORY_RAG_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'msa-readme',
   'memory-kernel-source',
   'skill-loader-source',
-  'shintai-dispatch-source',
   'rails-source',
 ]);
 
@@ -36,14 +36,13 @@ export const CYBER_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'cyber-research-sprint',
 ]);
 
-export const PROTECTED_SURFACE_EXCLUSIONS = Object.freeze([
-  'backend/data/',
-  '.claude/state/',
-  '.claude/history/',
-  '.env',
-  'node_modules/',
-  '.amp/',
-]);
+// Declared protected-surface exclusions reported into evidence bundles (memory-kernel
+// surfaces them as `protectedSurfaceExclusions`; the validator only requires non-empty).
+// Single-sourced from the canonical lane-kernel PROTECTED_SURFACE_PREFIXES so this manifest
+// can never declare a narrower exclusion set than the real protected surface. Collapsing the
+// former hardcoded 6-entry subset onto the canonical 16-entry list is purely additive
+// (strictly MORE surfaces declared excluded) and keeps the list non-empty for validation.
+export const PROTECTED_SURFACE_EXCLUSIONS = PROTECTED_SURFACE_PREFIXES;
 
 export function requiredEvidenceIdsForTask(task = '') {
   const text = String(task || '').toLowerCase();

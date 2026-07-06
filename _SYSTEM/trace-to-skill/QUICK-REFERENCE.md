@@ -10,7 +10,7 @@
 ## Commands
 
 ```bash
-# Extract shot list skill (core on-set work)
+# Extract a task skill
 
 # Extract brief skill
 
@@ -100,9 +100,9 @@ Start with 20, re-run with 50+ after 3–6 months.
 
 ## Next Steps
 
-1. **Extract shot list skill** (core on-set work)
+1. **Extract a task skill**
    ```bash
-   node orchestrator.js shot-list-generation
+   node orchestrator.js task-generation
    ```
 
 2. **Review SKILL.md** — Does it match your intuition?
@@ -111,9 +111,7 @@ Start with 20, re-run with 50+ after 3–6 months.
 
 4. **Validate on real project** — Does it work?
 
-5. **Share with Claudio** — Get feedback
-
-6. **Integrate with other systems** (Hooks, Swarm, Distribution)
+5. **Integrate with other systems** (Hooks, Swarm, Distribution)
 
 ---
 

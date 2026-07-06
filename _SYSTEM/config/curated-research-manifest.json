@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "description": "Curated research DB for YURI Core export — ship-safe, stranger-useful",
+  "sources": [
+    {
+      "path": "02_RESOURCES/CODE-BIBLE/",
+      "score": 0.95,
+      "reason": "Mechanism docs for governance, xref, energy — core exoskeleton literacy"
+    },
+    {
+      "path": "02_RESOURCES/GUIDES/",
+      "score": 0.9,
+      "reason": "Adopter onboarding, fleet delegation, first-30-min"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/github-adoption-2026-06-13/",
+      "score": 0.75,
+      "reason": "OSS adoption patterns — scrub operator refs on export"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/oss-release-moat-audit-2026-06-06.md",
+      "score": 0.7,
+      "reason": "Release posture reference"
+    },
+    {
+      "path": "02_RESOURCES/RESEARCH/memory-architecture-evolution-2026-06-14/",
+      "score": 0.65,
+      "reason": "Memory two-track architecture — generalizable"
+    }
+  ],
+  "exclude": [
+    "02_RESOURCES/RESEARCH/jake-van-klief/",
+    "02_RESOURCES/RESEARCH/trading-*",
+    "02_RESOURCES/INVESTOR-DECK/",
+    "02_RESOURCES/RESEARCH/*-audit-2026-*"
+  ],
+  "exportTarget": "02_RESOURCES/PUBLIC-RESEARCH/",
+  "indexScript": "_SYSTEM/Scripts/curated-research-index.mjs"
+}

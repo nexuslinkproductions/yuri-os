@@ -11,8 +11,6 @@ const bannedColdDraftPatterns = [
     /likely friction/i,
     /potential solution/i,
     /why it matters/i,
-    /c2moviez could/i,
-    /Fanny can/i,
     /B2B teams with clear growth signals/i,
     /share a 5-min overview/i,
     /booking option/i,
@@ -111,7 +109,6 @@ assert.match(swissLead.outreach_drafts.email_cold || '', /Subject: quick note on
 assert.match(swissLead.outreach_drafts.email_cold || '', /I was reviewing Swiss company records and websites and noticed/i);
 assert.match(swissLead.outreach_drafts.email_cold || '', /One thing that stood out:/i);
 assert.match(swissLead.outreach_drafts.email_cold || '', /If you'd like, I can send a short angle\./i);
-assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\bc2moviez\b/i);
 assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\/en\/platform/i);
 assert.ok(bodyWordCount(swissLead.outreach_drafts.email_cold || '') <= 110);
 assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\bEnglish\b|English-speaking|English-first|English-language/i);
@@ -253,8 +250,8 @@ assert.equal((wkoLead.draft_specificity as any).readiness, 'ready_to_rework');
 const staleWkoDrafts = {
     linkedin_intro: 'Hi, I was reviewing Vienna software and services firms and noticed 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien. One thing that stood out: that positioning is doing the first-pass explanation already. If useful, I can send a short angle.',
     linkedin_followup: 'Hi, quick follow-up on 2beWIRED. The same detail still stands: 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.',
-    email_cold: 'Subject: quick thought on your positioning\n\nHi,\n\nI was reviewing Vienna software and services firms and noticed 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nTiny thought: that positioning is doing the first-pass explanation already.\n\nIf you\'d like, I can send a short angle.\n\nBest,\nFanny',
-    email_followup: 'Subject: Re: quick thought on your positioning\n\nHi,\n\nQuick follow-up on 2beWIRED.\n\nThe same detail still stands: 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nBest,\nFanny'
+    email_cold: 'Subject: quick thought on your positioning\n\nHi,\n\nI was reviewing Vienna software and services firms and noticed 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nTiny thought: that positioning is doing the first-pass explanation already.\n\nIf you\'d like, I can send a short angle.\n\nBest regards',
+    email_followup: 'Subject: Re: quick thought on your positioning\n\nHi,\n\nQuick follow-up on 2beWIRED.\n\nThe same detail still stands: 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nBest regards'
 };
 normalizationDb.prepare('UPDATE cold_acquisition_leads SET outreach_drafts_json = ?, draft_versions_json = ? WHERE id = ?').run(
     JSON.stringify(staleWkoDrafts),

@@ -151,7 +151,7 @@ Sealed entry documenting:
    - Minimum 1-2 documents per House that are substantive (200+ lines)
 
 3. **Real-World Calibration**
-   - Run 5 blueprints through live C2MovieZ + Nexus Link workflows
+   - Run 5 blueprints through live Nexus Link workflows
    - Gather actual token costs (not estimates)
    - Time actual executions (not theoretical timelines)
    - Document failure modes encountered in practice

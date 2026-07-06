@@ -4,10 +4,10 @@
 
 ## Quick Start
 
-### Run Shot List Extraction
+### Run Task Plan Extraction
 
 ```bash
-node orchestrator.js shot-list-generation
+node orchestrator.js task-plan-generation
 ```
 
 **What happens:**
@@ -92,13 +92,13 @@ Total confidence with N samples:
 
 ### How to Use It
 
-**Scenario 1: Manual use (you writing a shot list)**
+**Scenario 1: Manual use (you writing a task plan)**
 1. Open SKILL.md
 2. Follow "Optimal Workflow" section
 3. Apply "Core Rules" and "Failure Prevention" as you work
 4. Refer to "Edge Case Handlers" if you encounter unusual constraints
 
-**Scenario 2: Agent use (Claude generating a shot list)**
+**Scenario 2: Agent use (Claude generating a task plan)**
 1. Prepend SKILL.md to Claude's prompt
 2. Claude reads rules and follows them
 3. Output incorporates all learned best practices
@@ -126,10 +126,10 @@ Total confidence with N samples:
 
 **Example:**
 ```
-Failure Pattern: Missing Time Allotments
+Failure Pattern: Missing Effort Allotments
   Affected runs: #3, #12, #18 (3 occurrences)
-  Root cause: Generator didn't extract per-shot duration
-  Preventive rule: "Always ask: how long for each shot?"
+  Root cause: Generator didn't extract per-item effort
+  Preventive rule: "Always ask: how much effort for each item?"
   Severity: Critical
   
 Action: Add rule to SKILL.md "Core Rules" section
@@ -148,10 +148,10 @@ Action: Add rule to SKILL.md "Core Rules" section
 
 **Example:**
 ```
-Common Pattern: Explicit Time Allotments
+Common Pattern: Explicit Effort Allotments
   Runs: #2, #5, #8, #11, #14, #19 (6/6 top runs)
-  Behavior: Every shot has specific duration (e.g., "12–15 min")
-  Impact: Enables crew to plan. Essential.
+  Behavior: Every item has a specific estimate (e.g., "2–3 hours")
+  Impact: Enables the team to plan. Essential.
   
 Action: Make this a "Core Rule" — required for all outputs
 ```
@@ -173,9 +173,9 @@ Action: Make this a "Core Rule" — required for all outputs
 Optimal Workflow:
   1. Read brief
   2. Extract constraints
-  3. List scenes
-  4. Estimate time per scene
-  5. Assign equipment
+  3. List deliverables
+  4. Estimate effort per deliverable
+  5. Assign resources
   6. Add contingencies
   7. CRITICAL CHECKPOINT: Verify feasibility
   8. Cross-check against brief
@@ -198,10 +198,10 @@ Missing step 7 → output fails feasibility → score drops
 
 **Example:**
 ```
-Edge Case: Contradictory Time Constraints
-  Example: "5 scenes, 2 hours" (actually needs 4)
-  Failure mode: Unrealistic shot list, crew can't execute
-  Defensive check: "If total_time > budget, propose: (a) extend, (b) cut, (c) simplify"
+Edge Case: Contradictory Effort Constraints
+  Example: "5 deliverables, 2 days" (actually needs 4 days)
+  Failure mode: Unrealistic plan, the team can't execute
+  Defensive check: "If total_effort > budget, propose: (a) extend, (b) cut, (c) simplify"
   Severity: Critical
   
 Action: Add to "Edge Case Handlers" section
@@ -214,13 +214,13 @@ Action: Add to "Edge Case Handlers" section
 ### With Self-Evolving Hooks
 
 ```
-Week 1: Use GAN Loop to generate shot lists
-  → You make corrections ("add weather contingency")
+Week 1: Use GAN Loop to generate task plans
+  → You make corrections ("add a dependency fallback")
   → Hooks capture corrections
   → Dream worker learns patterns
 
-Later: Run Trace to Skill on shot list generation
-  → Analyst finds: "All top runs include weather contingencies"
+Later: Run Trace to Skill on task plan generation
+  → Analyst finds: "All top runs include dependency fallbacks"
   → Same insight from two sources (learning + evidence)
   → Confidence increases: this IS a best practice
 ```
@@ -229,7 +229,7 @@ Later: Run Trace to Skill on shot list generation
 
 ```
 Before: GAN Loop generator has no special knowledge
-  → Generator creates shot lists (generic quality)
+  → Generator creates task plans (generic quality)
   → Evaluator scores them (70–75% pass rate)
   → Many feedback loops needed
 
@@ -243,7 +243,7 @@ After: GAN Loop generator reads your SKILL.md
 
 ```
 Swarm runs overnight while you sleep
-  → Swarm needs to process shot lists, invoices, etc.
+  → Swarm needs to process task plans, invoices, etc.
   → Swarm reads your SKILL.md files
   → Swarm executes tasks following codified best practices
   → You wake to validated outputs
@@ -253,7 +253,7 @@ Swarm runs overnight while you sleep
 
 ## Running Multiple Tasks
 
-Once shot list is extracted, repeat for other tasks:
+Once the task plan is extracted, repeat for other tasks:
 
 ```bash
 # Extract client brief skill
@@ -262,8 +262,8 @@ node orchestrator.js client-brief-generation
 # Extract invoice skill
 node orchestrator.js invoice-preparation
 
-# Extract call sheet skill (if added to config)
-node orchestrator.js call-sheet-generation
+# Extract checklist skill (if added to config)
+node orchestrator.js checklist-generation
 ```
 
 Each produces its own SKILL.md file.
@@ -271,10 +271,10 @@ Each produces its own SKILL.md file.
 **Result:**
 ```
 /skills/
-├── shot-list-generation/SKILL.md
+├── task-plan-generation/SKILL.md
 ├── client-brief-generation/SKILL.md
 ├── invoice-preparation/SKILL.md
-└── call-sheet-generation/SKILL.md
+└── checklist-generation/SKILL.md
 ```
 
 ---
@@ -286,11 +286,11 @@ Each produces its own SKILL.md file.
 
 ```json
 {
-  "id": "call-sheet-generation",
-  "name": "Generate detailed call sheet",
-  "description": "Creates crew call sheet with timings, locations, contact info",
+  "id": "checklist-generation",
+  "name": "Generate detailed checklist",
+  "description": "Creates a checklist with timings, owners, contact info",
   "inputType": "project-data",
-  "outputType": "call-sheet",
+  "outputType": "checklist",
   "difficulty_distribution": { "easy": 5, "normal": 8, "hard": 4, "adversarial": 3 },
   "evaluation_rubric": "/path/to/rubric.md",
   "passing_score": 7.0,
@@ -300,7 +300,7 @@ Each produces its own SKILL.md file.
 
 Then run:
 ```bash
-node orchestrator.js call-sheet-generation
+node orchestrator.js checklist-generation
 ```
 
 ---
@@ -318,10 +318,10 @@ node orchestrator.js call-sheet-generation
 - Auto-consolidation from analyst reports → SKILL.md
 - Version control and comparison (re-extract every 6 months)
 
-**After Claudio Sync:**
+**After Review:**
 - Review extracted skills together
-- Mark client-specific variants (MACL rules ≠ C2MOVIEZ rules)
-- Create domain variations (on-set shot lists vs. editorial briefs)
+- Mark client-specific variants (one client's rules ≠ another's)
+- Create domain variations (task plans vs. editorial briefs)
 - Agree on re-extraction schedule
 
 ---
@@ -330,7 +330,7 @@ node orchestrator.js call-sheet-generation
 
 **Day 1:**
 ```bash
-node orchestrator.js shot-list-generation
+node orchestrator.js task-plan-generation
 ```
 → Framework runs, generates 20 sample runs, analyzes them
 
@@ -344,7 +344,7 @@ node orchestrator.js shot-list-generation
 
 - Use SKILL.md on a real project — does it work?
 - Make corrections to rules if needed
-- Share with Claudio for feedback
+- Share with a reviewer for feedback
 
 **Week 2:** Integrate
 
@@ -362,5 +362,5 @@ node orchestrator.js shot-list-generation
 
 - SKILL.md is now your documented best practice
 - Auto-prepended to all related generation tasks
-- Version controlled with Claudio
+- Version controlled with the team
 - Reference for training new team members

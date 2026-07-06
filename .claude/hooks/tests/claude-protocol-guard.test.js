@@ -69,7 +69,7 @@ expectPass(
 **Goal:** fix route planner
 
 **Target files:**
-- _SYSTEM/Scripts/offload-contract.mjs - route classification
+- _SYSTEM/Scripts/llm-compat-contract.mjs - route classification
 
 **Constraints:**
 - no new dependencies
@@ -77,7 +77,7 @@ expectPass(
 **Acceptance criteria:**
 - [ ] route plan test passes
 
-**Test command:** \`npm run test:offload-contract\`
+**Test command:** \`npm run test:llm-compat-contract\`
 
 **Rollback boundary:** \`git diff HEAD\`
 
@@ -87,7 +87,7 @@ expectPass(
 
 expectWarning(
   'high-risk route-plan evidence warning',
-  bash('node _SYSTEM/Scripts/offload-contract.mjs route-plan "promote protocol routing memory into canonical state"'),
+  bash('node _SYSTEM/Scripts/llm-compat-contract.mjs route-plan "promote protocol routing memory into canonical state"'),
   'missing-route-plan-evidence',
 );
 

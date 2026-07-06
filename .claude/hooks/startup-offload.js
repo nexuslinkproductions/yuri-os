@@ -11,8 +11,12 @@ process.stdin.on('end', () => {
   const skills = scanSkills();
   if (skills.length === 0) { process.exit(0); return; }
 
-  const lines = skills.map(s => `- **${s.name}**: ${s.description}`).join('\n');
-  const content = `<startup-index>\n\n### Skills (${skills.length}) — loaded from frontmatter, do NOT re-read SKILL.md files\n\n${lines}\n\n</startup-index>`;
+  // wave-3 H.6 (D-H4, verify-first PASSED): the harness delivers its own native
+  // available-skills system-reminder in interactive sessions (verified live
+  // 2026-06-11 — two independent native skill-list injections observed in a main
+  // session). The full per-skill description index here duplicated ~2,900 tok of
+  // it every boot. Inject only count + routing pointer.
+  const content = `<startup-index>${skills.length} skills available via the Skill tool (harness lists them natively). Load an individual SKILL.md on first use; do not re-read from disk.</startup-index>`;
 
   const output = {
     hookSpecificOutput: {

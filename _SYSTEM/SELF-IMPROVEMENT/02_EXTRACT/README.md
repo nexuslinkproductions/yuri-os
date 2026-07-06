@@ -1,5 +1,11 @@
 # 02_EXTRACT — Ten (Twist)
 
+> **STATUS: DORMANT** (wave-3 L.3, D-L2 owner decision 2026-06-11) — last entry 2026-W20;
+> no automatic feeder is wired (`entries/` receives nothing; yuri-closeout writes no
+> learning signal here). The structure is sound and `weekly-comp.mjs` is alive — the
+> pipeline reactivates the moment something writes to `entries/`. Wiring the EOT skill
+> output is the named future build (see wave3-learning-handover WP-L.3 Option A).
+
 > *Where learning happens from failures, surprises, and the unexpected.*
 
 ## Narrative Role

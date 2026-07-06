@@ -30,13 +30,13 @@ function parseArgs(argv) {
   }
 
   args.prompt = promptParts.join(' ');
-  args.model ||= 'deepseek-v4-flash';
+  args.model ||= 'deepseek-v4-pro';
   return args;
 }
 
 function routePlan(prompt) {
   try {
-    const out = execFileSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', prompt], {
+    const out = execFileSync('node', ['_SYSTEM/Scripts/llm-compat-contract.mjs', 'route-plan', prompt], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
@@ -76,8 +76,12 @@ const tier = plan.complexityTier || 'standard';
 
 if (tier === 'trivial' || tier === 'standard') {
   const env = { ...process.env, PULSE_LANE_BYPASS: '1' };
-  execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...args.passthrough], { stdio: 'inherit', env });
-  process.exit(0);
+  try {
+    execFileSync('bash', ['_SYSTEM/Scripts/llm-compat.sh', ...args.passthrough], { stdio: 'inherit', env });
+    process.exit(0);
+  } catch (err) {
+    process.exit(Number(err.status || 1));
+  }
 }
 
 const mem = ''; // semantic-memory/palace retrieval retired 2026-05-29
@@ -87,11 +91,16 @@ const enriched = `${persona}\n\n--- MEMORY CONTEXT ---\n${mem}\n\n--- INSTRUCTIO
 appendPulseBus({ kind: 'lane-dispatch-pre', lane: args.model, tier, scenario: plan.scenario });
 
 const env = { ...process.env, INSIDE_PULSE_WRAPPER: '1' };
-const result = execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...withPrompt(process.argv, enriched)], {
-  encoding: 'utf8',
-  stdio: ['ignore', 'pipe', 'inherit'],
-  env,
-});
+let result = '';
+try {
+  result = execFileSync('bash', ['_SYSTEM/Scripts/llm-compat.sh', ...withPrompt(process.argv, enriched)], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
+    env,
+  });
+} catch (err) {
+  process.exit(Number(err.status || 1));
+}
 
 appendPulseBus({ kind: 'lane-dispatch-return', lane: args.model, tier, len: result.length });
 process.stdout.write(result);

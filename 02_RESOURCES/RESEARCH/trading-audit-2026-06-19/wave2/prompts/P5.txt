@@ -1,0 +1,33 @@
+You are PEER 5 of 5 GLM-5.2 peers. READ FIRST: the master brief at
+/Users/marcelspatz/YURI-OS-MUSUBI/02_RESOURCES/RESEARCH/trading-audit-2026-06-19/wave2/00-MASTER-BRIEF.md
+and audit §0 (edge ceiling), §3 A05/A06 (sizing+maker), §8 residual risk (VIP3 unreachability, κ stability).
+Honor HARD CONSTRAINTS.
+
+YOUR LANE: EDGE / KELLY / CAPACITY / FEE CALC SHEET — does the math close, at what scale, what honest monthly expectancy?
+Run the NUMBERS. Show formulas + inputs + results. Cite Binance fee docs (≥2 primary) for fee inputs.
+
+Compute, each as its own calc with stated assumptions:
+1. A-S MAKER POST-FEE EDGE by VIP tier (VIP0, VIP3, VIP9): per-fill bps = (half-spread captured) − maker_fee + rebate
+   (if any) − adverse-selection (κ). Use the audit's maker-fill-sim Binance tiers (read `_SYSTEM/Scripts/alpha-factor-library/maker-fill-sim.mjs`
+   for the tier table; `avellaneda-stoikov.mjs` for the reservation-price math; `kappa-fit.mjs` for κ). At what tier does
+   maker quoting turn POSITIVE expected edge? Confirm/refute the audit's "VIP0 = −2.16bps/fill, negative edge" claim [V?].
+2. KELLY SIZING given the honest edge ceiling: if directional win-rate ~55%, Sharpe ~0.5, what is the full-Kelly fraction
+   f* = (p*b − q)/b and the QUARTER-Kelly actually used? What position size (as % equity) and gross exposure at 3-8x leverage?
+   Read `_SYSTEM/Scripts/alpha-factor-library/afl-sizing.mjs` (computeSize / fractional-Kelly / vol-target) and confirm
+   the crypto path bypasses it (audit §3 A05). Show the sane sizing vs the current 600% gross.
+3. CORRELATION-ADJUSTED PORTFOLIO: with 3 correlated crypto markets at ρ~0.8, the true portfolio variance is much higher
+   than the sum. Compute the correlation-adjusted gross cap vs the configured 6.0 (600%). What gross is sane? (Ledoit-Wolf
+   or simple ρ-adjusted Kelly: f_adj = f* / (1 + (n−1)·ρ̄)). Show the number.
+4. FUNDING-CARRY BREAKEVEN: the audit claims funding-carry could do +5-15%/mo. Read `funding-carry.mjs`. Compute: with
+   Binance perp funding averaging ~+0.01%/8h (positive = longs pay shorts), delta-neutral short-perp+long-spot captures it.
+   Annualize: 0.01%×3×365 = ~11%/yr gross. After fees (spot+perp taker to enter, borrowing if shorting spot), what's NET?
+   Is +5-15%/mo realistic or is it +5-15%/YR? Be honest — this is a likely audit over-claim to correct.
+5. CAPACITY on M2-Pro + retail WS: Binance fstream @depth@100ms × N symbols + @aggTrade + @markPrice. Estimate msg/sec,
+   JSON-parse + diff-book-apply CPU (reference depth-book.mjs). At what symbol count / msg rate does the ≤10s (target ≤1s
+   parallel) cycle break? What's the max symbols YURI can feed in real-time on this hardware? (Coordinate with P3 on topology.)
+6. SLIPPAGE / QUEUE-POSITION REALITY for retail: on public L2, can a retail maker ever get filled ahead of co-lo? Quantify
+   the adverse-selection cost (κ) a retail maker pays. Is pure maker-quoting viable at VIP0 or is it negative-edge bleed?
+
+Deliver the OUTPUT FORMAT block. Each calc: ASSUMPTIONS → FORMULA → RESULT → HONEST INTERPRETATION. "WHAT WE ARE
+MISSING" = the sizing/capacity/fee-tier capabilities the platform lacks for the math to actually close. End with a
+one-line HONEST MONTHLY EXPECTANCY on a €300 book at the realistic fee tier (this number is the one Marcel needs).

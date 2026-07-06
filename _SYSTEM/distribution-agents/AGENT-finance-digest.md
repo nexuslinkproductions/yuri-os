@@ -26,8 +26,8 @@ Read from finance folder:
 
 ```
 ├── invoices/
-│   ├── INV-2026-001_C2MOVIEZ.pdf
-│   ├── INV-2026-002_PLANZERFILMS.pdf
+│   ├── INV-2026-001.pdf
+│   ├── INV-2026-002.pdf
 │   └── [unpaid invoices...]
 ├── expenses/
 │   ├── EXP-2026-04-18_Operator-Fee.pdf
@@ -61,8 +61,8 @@ List invoices awaiting payment (oldest first):
 ```
 | Invoice | Client | Amount | Days Outstanding | Due | Action |
 |---------|--------|--------|------------------|-----|--------|
-| INV-2026-001 | C2MOVIEZ | €5,000 | 32 | OVERDUE | Chase via email |
-| INV-2026-003 | PLANZERFILMS | €2,500 | 18 | 2 days | Payment terms OK |
+| INV-2026-001 | Client A | €5,000 | 32 | OVERDUE | Chase via email |
+| INV-2026-003 | Client B | €2,500 | 18 | 2 days | Payment terms OK |
 ```
 
 **Status categories:**
@@ -89,7 +89,7 @@ If you have data for it:
 
 ```
 Week of Apr 21-27:
-  Expected in:  €12,500 (C2MOVIEZ payment due Apr 25)
+  Expected in:  €12,500 (Client A payment due Apr 25)
   Expected out: €150 (API subscription)
   Net forecast: +€12,350
 ```
@@ -100,8 +100,8 @@ Prioritized list of what to do:
 
 ```
 URGENT (act today/tomorrow):
-  - [ ] Chase C2MOVIEZ (invoice INV-2026-001, 32 days overdue)
-  - [ ] Prepare INV-2026-004 for MACL ONE (shoot was Apr 18)
+  - [ ] Chase Client A (invoice INV-2026-001, 32 days overdue)
+  - [ ] Prepare INV-2026-004 for Client B (project delivered Apr 18)
 
 NORMAL (this week):
   - [ ] Check Erste Bank balance for budget planning
@@ -117,11 +117,11 @@ OPTIONAL (next week):
 Highlight any concerns:
 
 ```
-⚠️  C2MOVIEZ payment is 32 days overdue
+⚠️  Client A payment is 32 days overdue
     Standard terms: NET 30. Follow up immediately.
 
-📌 MACL ONE invoice still not issued
-    Shoot was Apr 18. Create INV-2026-004 this week so payment timeline starts.
+📌 Client B invoice still not issued
+    Project delivered Apr 18. Create INV-2026-004 this week so payment timeline starts.
 
 ✓  No cash flow issues this week.
    Account balance healthy enough for April expenses.
@@ -134,13 +134,12 @@ Any context or comments:
 ```
 ## Notes
 
-- C2MOVIEZ has been reliable in past; 32-day delay unusual.
-  Possible invoice was missed? Resend + follow up via Claudio.
+- Client A has been reliable in past; 32-day delay unusual.
+  Possible invoice was missed? Resend + follow up.
 
-- PLANZERFILMS payment tracking well (within terms).
+- Client B payment tracking well (within terms).
 
 - Three expenses pending categorization (need receipts).
-  Waiting on Marc for expense reports.
 ```
 
 ### Output Format
@@ -183,7 +182,7 @@ Before submitting, verify:
 
 ## Summary
 
-💰 **Cash In:** €12,500.00 (C2MOVIEZ, paid Apr 25)
+💰 **Cash In:** €12,500.00 (Client A, paid Apr 25)
 💸 **Cash Out:** €150.00 (API subscription, Apr 25)
 📊 **Net:** +€12,350.00
 📈 **Running Balance:** €23,847.32
@@ -194,8 +193,8 @@ Before submitting, verify:
 
 | Invoice | Client | Amount | Days Out | Due | Status |
 |---------|--------|--------|----------|-----|--------|
-| INV-2026-001 | C2MOVIEZ | €5,000 | 32 | OVERDUE | ⚠️ Chase now |
-| INV-2026-003 | Planzerfilms | €2,500 | 18 | Apr 23 | ✓ On track |
+| INV-2026-001 | Client A | €5,000 | 32 | OVERDUE | ⚠️ Chase now |
+| INV-2026-003 | Client B | €2,500 | 18 | Apr 23 | ✓ On track |
 
 ---
 
@@ -211,8 +210,8 @@ Before submitting, verify:
 ## Action Items
 
 ### URGENT
-- [ ] Email C2MOVIEZ: "INV-2026-001 now 32 days overdue. Can you confirm receipt and expected payment date?"
-- [ ] Create invoice INV-2026-004 for MACL ONE (€8,200, April shoot)
+- [ ] Email Client A: "INV-2026-001 now 32 days overdue. Can you confirm receipt and expected payment date?"
+- [ ] Create invoice INV-2026-004 for Client B (€8,200, April project)
 
 ### NORMAL
 - [ ] File expense receipts (EXP-2026-04-17, 18, 19)
@@ -222,9 +221,9 @@ Before submitting, verify:
 
 ## Notes
 
-C2MOVIEZ payment is significantly delayed. They've been reliable in the past, so may be a processing issue. Reach out to Claudio to verify he received the invoice and payment plan.
+Client A payment is significantly delayed. They've been reliable in the past, so may be a processing issue. Reach out to verify they received the invoice and payment plan.
 
-MACL ONE's invoice hasn't been issued yet—create this week so their 30-day clock starts ticking.
+Client B's invoice hasn't been issued yet—create this week so their 30-day clock starts ticking.
 ```
 
 ---
@@ -233,7 +232,7 @@ MACL ONE's invoice hasn't been issued yet—create this week so their 30-day clo
 
 - Finance folder contents (invoices, expenses, bookkeeping files)
 - Calendar (to calculate days outstanding and due dates)
-- Invoice templates (to check if MACL ONE invoice was created)
+- Invoice templates (to check if Client B invoice was created)
 - Optional: Spreadsheet import (if you maintain a `bookkeeping.csv`)
 
 ---
@@ -244,7 +243,7 @@ This digest is:
 - **For Marcel only** (internal tracking)
 - **Weekly rhythm** (every Monday morning)
 - **Actionable** (drives invoice chasing and payment planning)
-- **Shareable** (can send to Claudio/accountant if needed)
+- **Shareable** (can send to accountant if needed)
 
 Expected impact:
 - Invoices paid faster (because follow-ups are clear)

@@ -1,0 +1,168 @@
+openapi: 3.1.0
+info:
+  title: YURI Work Dashboard API
+  version: "1.0.0"
+  description: |
+    Live ops dashboard for MURE fleet runs. Canonical server: `node _SYSTEM/Scripts/work-dashboard.mjs` on port 4270.
+    Read-only JSON endpoints backed by work-ledger + `.claude/jobs/` spawn telemetry.
+servers:
+  - url: http://127.0.0.1:4270
+    description: Local work-dashboard (default)
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+  /api/overview:
+    get:
+      summary: Dashboard overview (runs, throughput, held queue stub)
+      responses:
+        "200":
+          description: Overview payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+  /api/processes:
+    get:
+      summary: Live child-process rows from spawns.jsonl + status.json (P5)
+      responses:
+        "200":
+          description: Active and recent process rows
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessesResponse"
+  /api/run:
+    get:
+      summary: Single run detail
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Run detail
+        "400":
+          description: Missing id
+        "404":
+          description: Run not found
+  /api/artifacts:
+    get:
+      summary: Artifacts filtered by role and/or run
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: run
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Artifact list
+  /api/trends:
+    get:
+      summary: Throughput, convergence, or productivity trends
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [throughput, convergence, productivity]
+            default: throughput
+      responses:
+        "200":
+          description: Trend series
+  /api/visual-plans:
+    get:
+      summary: Visual plan registry entries
+      responses:
+        "200":
+          description: Visual plans
+  /api/stream:
+    get:
+      summary: SSE live stream of overview updates
+      description: Server-sent events stream that pushes overview payloads on each ingest cycle. Clients connect via EventSource.
+      responses:
+        "200":
+          description: SSE event stream (text/event-stream)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: "SSE payload: `data: <json>\\n\\n`"
+  /api/router-stats:
+    get:
+      summary: Fleet router MLP advisory stats
+      responses:
+        "200":
+          description: Router stats
+components:
+  schemas:
+    Overview:
+      type: object
+      additionalProperties: true
+    ProcessesResponse:
+      type: object
+      required: [processes, openCount, generatedAt]
+      properties:
+        processes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProcessRow"
+        openCount:
+          type: integer
+        generatedAt:
+          type: string
+          format: date-time
+    ProcessRow:
+      type: object
+      properties:
+        runId:
+          type: string
+        label:
+          type: string
+          nullable: true
+        lane:
+          type: string
+          nullable: true
+        pid:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        spawnedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+        exitCode:
+          type: integer
+          nullable: true
+        round:
+          type: integer
+          nullable: true
+        pending:
+          type: integer
+          nullable: true

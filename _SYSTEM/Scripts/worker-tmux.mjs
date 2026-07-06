@@ -7,7 +7,7 @@ import { existsSync, readFileSync, accessSync, constants } from 'node:fs';
 import { execFileSync, spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { healthProbe } from './offload-contract.mjs';
+import { healthProbe } from './llm-compat-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const WORKER_TMUX_PATH = fileURLToPath(import.meta.url);

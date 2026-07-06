@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { lastContentChangeMs } from './memory-relocator.mjs';
 import {
   closeSync,
   copyFileSync,
@@ -82,7 +83,11 @@ function classifyFile(filename) {
   const mtime = stat.mtime;
   const content = stat.isFile() ? readFileSync(src, 'utf8') : '';
   const frontmatter = parseArchiveFlag(content);
-  const oldEnough = Date.now() - stat.mtimeMs > TTL_DAYS * DAY_MS;
+  // Age = git author-date (checkout-stable), mirroring the relocator's
+  // lastContentChangeMs — mtime resets on git checkout and let stale files
+  // read as fresh. Falls back to mtime for uncommitted files inside the helper.
+  const contentAgeMs = lastContentChangeMs(src, { mtimeMs: stat.mtimeMs });
+  const oldEnough = Date.now() - contentAgeMs > TTL_DAYS * DAY_MS;
 
   let candidate = false;
   let reason = 'recent';

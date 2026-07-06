@@ -9,12 +9,27 @@
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import http from 'node:http';
+// L6 — subconscious consolidation: FSRS demote pass + cold re-promotion proposals.
+import { loadItems, planRelocations, executeRelocation, DEFAULT_MEMORY_ROOT } from './memory-relocator.mjs';
+import { openColdStore, getCold } from './memory-cold-store.mjs';
+import { buildUsageIndex } from './memory-usage.mjs';
+import { proposeMemoryWrite, listMemoryProposals } from './memory-kernel.mjs';
+import { loadEnergyConfig } from './math/yuri-energy-config.mjs';
+import { saturationProbe } from './math/yuri-jaccard.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
-const MEMORY_DIR = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory');
+// FIX (2026-07-04): was hardcoded to $HOME/.claude/projects/.../memory, which resolves
+// through TWO symlink hops (~/.claude -> repo/.claude, then repo/.claude/projects ->
+// ~/.claude-local/projects since 2026-06-09) into an almost-empty side pocket (5 files).
+// The real, git-tracked, actively-written Track-B corpus (302 files, confirmed identical
+// to the live MEMORY.md loaded into session context) is the repo-relative .claude/memory/
+// dir. claude-memory-write.mjs's memoryRoot() has the SAME stale-resolution bug (it also
+// derives from $HOME/.claude/projects/<id>/memory) — do not copy that helper here; it
+// would just reproduce the bug. Point straight at the repo dir instead.
+const MEMORY_DIR = resolve(REPO_ROOT, '.claude/memory');
 const MEMORY_IDX = resolve(MEMORY_DIR, 'MEMORY.md');
 const STATE_DIR  = resolve(REPO_ROOT, '_SYSTEM/training/state');
 const REPORT     = resolve(STATE_DIR, 'memory-health.json');
@@ -46,9 +61,19 @@ function httpPost(urlStr, bodyObj, timeoutMs = 45000) {
   });
 }
 
+// MEM-04 — mirror the relocator's subconscious exclusion so the MLX consolidation prompt
+// never ingests operational telemetry (the ~1.3MB append-only session journal) or any
+// oversized file. Keeps the two scan surfaces consistent: one exclusion truth, two readers.
+const CONSOLIDATOR_EXCLUDE = new Set(['MEMORY.md', 'session-journal.md']);
+const MAX_CONSOLIDATE_BYTES = 64 * 1024;
+
 function readMemoryFiles() {
   if (!existsSync(MEMORY_DIR)) return [];
-  const files = readdirSync(MEMORY_DIR).filter(f => f.endsWith('.md') && f !== 'MEMORY.md');
+  const files = readdirSync(MEMORY_DIR).filter(f => {
+    if (!f.endsWith('.md') || CONSOLIDATOR_EXCLUDE.has(f)) return false;
+    try { if (statSync(resolve(MEMORY_DIR, f)).size > MAX_CONSOLIDATE_BYTES) { log(`skip ${f} (over ${MAX_CONSOLIDATE_BYTES}B)`); return false; } } catch {}
+    return true;
+  });
   return files.map(f => {
     const path = resolve(MEMORY_DIR, f);
     const content = readFileSync(path, 'utf8');
@@ -56,6 +81,33 @@ function readMemoryFiles() {
     const agedays = (Date.now() - stat.mtimeMs) / 86400000;
     return { filename: f, content: content.slice(0, 600), agedays: Math.round(agedays) };
   });
+}
+
+/**
+ * MEM-03 (card 30) — deterministic, embedding-free hot-tier dedup over the memory files.
+ * Runs the Jaccard saturation probe and returns merge candidates + a saturation load. This
+ * is the LLM-FREE dedup: it produces a non-empty mergePairs signal WHETHER OR NOT rapid-mlx
+ * is up, downgrading the LLM eyeball (analyzeMemories) from primary detector to tie-breaker.
+ *
+ * Pure given the `memories` array ({filename, content}); thresholds come from the energy-config
+ * recall/fsrs knobs (TUNED, never the hard-coded 0.138 AGS constant — that is cited structurally
+ * only). The Hopfield pattern-completion mechanism is PARKED (embedding-free constraint).
+ *
+ * @returns {{ overCapacity:boolean, load:number, mergePairs:Array, n:number, overlapThreshold:number, loadThreshold:number }}
+ */
+export function deterministicDedup(memories, { overlapThreshold = 0.6, loadThreshold = 0.15 } = {}) {
+  const entries = (memories || [])
+    .filter((m) => m && typeof m.content === 'string')
+    .map((m) => ({ id: m.filename, text: m.content }));
+  const probe = saturationProbe(entries, { overlapThreshold, loadThreshold, metric: 'jaccard' });
+  return {
+    overCapacity: probe.overCapacity,
+    load: probe.load,
+    mergePairs: probe.mergePairs,
+    n: probe.n,
+    overlapThreshold: probe.overlapThreshold,
+    loadThreshold: probe.loadThreshold,
+  };
 }
 
 async function analyzeMemories(memories) {
@@ -100,12 +152,193 @@ Output ONLY this JSON:
   }
 }
 
+// @capability: memory-dedup-candidates-report
+// @serves: memory consolidation | dedup report | act on stale memory-health | quarterly memory cleanup
+// @does: deterministicDedup at a LOWER threshold (default 0.4 vs the daily 0.6) written to a DATED
+//   report at _SYSTEM/state/memory-dedup-candidates-<date>.json, distinct from the always-overwritten
+//   _SYSTEM/training/state/memory-health.json — a durable candidates list to start a consolidation
+//   pass FROM instead of a fresh manual grep sweep.
+// @use: `node _SYSTEM/Scripts/kagami-memory-consolidator.mjs --report [--threshold 0.4]` before any
+//   manual memory-consolidation pass (e.g. a FABLE audit). 2026-07: the daily 0.6-threshold run found
+//   ZERO merge pairs while a manual read found real semantic duplicates the metric misses at 0.6
+//   (different wording, same rule); 0.4 surfaces candidates a human still judges each pair of.
+// @exports: writeDedupCandidatesReport
+export function writeDedupCandidatesReport({
+  memories,
+  stateDir = resolve(REPO_ROOT, '_SYSTEM/state'),
+  overlapThreshold = 0.4,
+  loadThreshold = 0.15,
+  nowMs = Date.now(),
+  memoryDir = MEMORY_DIR,
+} = {}) {
+  const mems = memories || readMemoryFiles();
+  const dedup = deterministicDedup(mems, { overlapThreshold, loadThreshold });
+  const dateStamp = new Date(nowMs).toISOString().slice(0, 10);
+  const reportPath = resolve(stateDir, `memory-dedup-candidates-${dateStamp}.json`);
+  const report = {
+    generatedAt: new Date(nowMs).toISOString(),
+    memoryDir,
+    totalFiles: mems.length,
+    overlapThreshold,
+    loadThreshold,
+    mergePairs: dedup.mergePairs,
+    mergePairCount: dedup.mergePairs.length,
+    overCapacity: dedup.overCapacity,
+    load: dedup.load,
+    note: 'Advisory candidates only — a human must verify each pair is a genuine duplicate before merging (see .claude/rules/skill-creation.md merge convention: canonical file + "superseded by" stub, cross-linked via [[handle]]). Compare against .claude/memory/MEMORY.md and archive-index.md before acting.',
+  };
+  mkdirSync(stateDir, { recursive: true });
+  writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  return { reportPath, report };
+}
+
+/**
+ * L6 — cold re-promotion candidates: demoted (cold) memories the subconscious keeps
+ * surfacing. Recall pressure (ledger useCount ≥ minUse) on a slug that is STILL in cold
+ * means "this dormant trace keeps getting queried" → an operator-gated re-consolidation
+ * candidate. Pure read (ledger + cold store); never promotes on its own.
+ */
+export function findRepromotionCandidates(coldDb, { ledgerFile, minUse = 3 } = {}) {
+  const usage = buildUsageIndex(ledgerFile ? { ledgerFile } : {});
+  const out = [];
+  for (const [slug, u] of Object.entries(usage)) {
+    if ((u.useCount || 0) < minUse) continue;
+    const rec = getCold(coldDb, slug);          // only cold (demoted) items are re-promotable
+    if (!rec) continue;
+    out.push({ slug, useCount: u.useCount, lastUsedMs: u.lastUsedMs, title: rec.title });
+  }
+  return out.sort((a, b) => b.useCount - a.useCount);
+}
+
+/**
+ * L6 — subconscious consolidation pass. DRY-RUN by default: it only PLANS demotions and
+ * logs them. Real relocation (which creates the cold store + moves source files) and
+ * re-promotion proposal recording happen only when execute=true. Both halves are offline
+ * and operator-gated — relocation is reversible (relocated/ + cold body), re-promotion is
+ * a pending memory-kernel proposal the operator must approve. Fully injectable for tests.
+ */
+export async function runSubconsciousPass(opts = {}) {
+  const {
+    root = DEFAULT_MEMORY_ROOT,
+    ledgerFile,
+    nowMs = Date.now(),
+    execute = false,
+    rFloor,                    // explicit override; else fsrs.rFloor; else 0.6
+    fsrs = {},                 // fsrs knob block (main() sources it from loadEnergyConfig); {} = code defaults
+    repromotionMinUse = 3,
+    coldDb: injectedDb = null,
+    propose = proposeMemoryWrite,
+    listProposals = listMemoryProposals,
+    log: logFn = log,
+  } = opts;
+
+  // 1. DEMOTE — pure plan always (read-only); relocation I/O only when execute=true. The fsrs
+  // knob block (rFloor + decay/factor/salience/freq/deltaU stability weights) steers the demote
+  // threshold; an empty fsrs falls back to evaluateRetention's in-code defaults (rFloor 0.6).
+  const effRFloor = rFloor != null ? rFloor : (fsrs.rFloor != null ? fsrs.rFloor : 0.6);
+  const usageIndex = buildUsageIndex(ledgerFile ? { ledgerFile } : {});
+  const items = loadItems(root, { nowMs, usageIndex });
+  const plan = planRelocations(items, { nowMs, ...fsrs, rFloor: effRFloor });
+  logFn(`subconscious: scanned=${items.length} demote-candidates=${plan.demote.length} execute=${execute}`);
+  for (const d of plan.demote) logFn(`  DEMOTE-CANDIDATE ${d.slug} R=${Number(d.R).toFixed(3)}`);
+
+  let db = injectedDb;
+  let ownsDb = false;
+  let relocation = { dryRun: true, demoted: 0, kept: plan.keep.length };
+  const proposed = [];
+
+  if (execute) {
+    if (!db) { db = openColdStore(); ownsDb = true; }       // creates the cold store
+    relocation = executeRelocation(plan, { coldDb: db, root, dryRun: false, nowMs });
+    logFn(`subconscious: demoted=${relocation.demoted} kept=${relocation.kept}`);
+
+    // 2. RE-PROMOTION — cold slugs under recall pressure → operator-gated proposals.
+    const candidates = findRepromotionCandidates(db, { ledgerFile, minUse: repromotionMinUse });
+    const pendingTags = new Set();                          // dedup vs already-pending (no daily spam)
+    try {
+      for (const p of (listProposals('', {}).proposals || [])) {
+        if ((p.status || 'pending') === 'pending') for (const t of (p.tags || [])) pendingTags.add(t);
+      }
+    } catch (_) { /* proposal log unreadable → propose anyway */ }
+    for (const c of candidates) {
+      if (pendingTags.has(c.slug)) { logFn(`  REPROMOTE-SKIP ${c.slug} (already pending)`); continue; }
+      const res = propose({
+        content: `Re-promote dormant memory "${c.slug}" — recalled ${c.useCount}× from the subconscious cold store. The subconscious keeps surfacing it; consider restoring it to active memory (memory-relocator promoteHot).`,
+        surface: 'yuri-memory',
+        tags: ['cold-repromotion', c.slug],
+        confidence: 0.6,
+        reason: 'recall pressure on a demoted memory (testing effect → re-consolidation candidate)',
+      }, { record: true, session: 'kagami-memory-consolidator', lane: 'consolidator' });
+      proposed.push({ slug: c.slug, ok: !!(res && res.ok) });
+      logFn(`  REPROMOTE-PROPOSED ${c.slug} useCount=${c.useCount} ok=${!!(res && res.ok)}`);
+    }
+  }
+
+  if (ownsDb && db) db.close();
+  return { scanned: items.length, demoteCandidates: plan.demote.length, relocation, proposed };
+}
+
 async function main() {
+  // Human-facing dated dedup-candidates report — a thin, on-demand CLI mode distinct from the
+  // scheduled daily run below. Run this manually before a consolidation pass instead of a fresh
+  // grep sweep. Does not touch memory-health.json or the subconscious pass.
+  if (process.argv.includes('--report')) {
+    const thresholdArgIdx = process.argv.indexOf('--threshold');
+    const overlapThreshold = thresholdArgIdx >= 0 ? parseFloat(process.argv[thresholdArgIdx + 1]) : 0.4;
+    const memories = readMemoryFiles();
+    const { reportPath, report } = writeDedupCandidatesReport({ memories, overlapThreshold });
+    log(`dedup-candidates report written -> ${reportPath} (threshold=${overlapThreshold} pairs=${report.mergePairCount})`);
+    process.stdout.write(`${reportPath}\n`);
+    return;
+  }
+
   log('starting memory consolidation run');
 
-  // Check Rapid-MLX available
+  // L6 — subconscious consolidation. Independent of Rapid-MLX (pure scoring + file ops),
+  // so it runs even when the local model is down. DRY-RUN unless --execute /
+  // YURI_SUBCONSCIOUS_EXECUTE=1 — the scheduled daily run only REPORTS demote candidates;
+  // the forgetting loop never fires unattended before the operator has verified it.
   try {
-    const check = await new Promise((res, rej) => {
+    const execute = process.argv.includes('--execute') || process.env.YURI_SUBCONSCIOUS_EXECUTE === '1';
+    const ec = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
+    // Explicit root=MEMORY_DIR (not the DEFAULT_MEMORY_ROOT fallback) — that default is
+    // imported from memory-relocator.mjs and has the SAME stale $HOME-symlink resolution
+    // bug fixed above for readMemoryFiles(). See the MEMORY_DIR comment for the full chain.
+    await runSubconsciousPass({ root: MEMORY_DIR, execute, fsrs: ec.fsrs || {} });
+  } catch (e) { log('subconscious pass error:', e.message); }
+
+  const memories = readMemoryFiles();
+  log(`found ${memories.length} memory files`);
+
+  if (!memories.length) { log('no memories to consolidate'); return; }
+
+  // MEM-03 (card 30) — DETERMINISTIC dedup FIRST, before the mlx gate. This is the LLM-free
+  // hot-tier saturation probe: it surfaces merge candidates whether or not rapid-mlx is up, so
+  // the report always carries a dedup signal (today it wrote nothing on an mlx-down run). Write
+  // a partial report immediately so the deterministic signal survives even if mlx is offline.
+  const ec2 = (() => { try { return loadEnergyConfig(); } catch { return {}; } })();
+  const dedup = deterministicDedup(memories, {
+    overlapThreshold: 0.6,
+    loadThreshold: (ec2.fsrs && Number.isFinite(ec2.fsrs.redundancyFloor)) ? Math.max(ec2.fsrs.redundancyFloor, 0.05) : 0.15,
+  });
+  log(`deterministic-dedup: n=${dedup.n} load=${dedup.load} overCapacity=${dedup.overCapacity} mergePairs=${dedup.mergePairs.length}`);
+  mkdirSync(STATE_DIR, { recursive: true });
+  const baseReport = {
+    analyzedAt: new Date().toISOString(),
+    totalFiles: memories.length,
+    deterministicDedup: dedup,
+    mlxAvailable: false,
+    mode: 'deterministic-only',
+  };
+  writeFileSync(REPORT, JSON.stringify(baseReport, null, 2));
+  log(`deterministic report written → ${REPORT} (mode=deterministic-only until mlx confirmed)`);
+
+  // Check Rapid-MLX available — when DOWN, the deterministic report above stands (dedup signal
+  // preserved). When UP, the LLM pass runs as a TIE-BREAKER: it confirms/explains the
+  // deterministic merge candidates rather than being the sole detector.
+  let mlxUp = false;
+  try {
+    mlxUp = await new Promise((res) => {
       const req = http.request(new URL('/v1/models', RAPID_MLX_URL), { timeout: 2000 }, r => {
         res(r.statusCode === 200);
         r.resume();
@@ -114,26 +347,26 @@ async function main() {
       req.on('timeout', () => { req.destroy(); res(false); });
       req.end();
     });
-    if (!check) { log('rapid-mlx not available — skip'); return; }
-  } catch { log('rapid-mlx check failed — skip'); return; }
-
-  const memories = readMemoryFiles();
-  log(`found ${memories.length} memory files`);
-
-  if (!memories.length) { log('no memories to consolidate'); return; }
+  } catch { mlxUp = false; }
+  if (!mlxUp) { log('rapid-mlx not available — deterministic-only report stands (dedup signal preserved)'); return; }
 
   const analysis = await analyzeMemories(memories);
   log(`health_score=${analysis.health_score} stale=${analysis.stale?.length ?? 0} dupes=${analysis.duplicates?.length ?? 0} contradictions=${analysis.contradictions?.length ?? 0}`);
 
-  // Write report
+  // Write report — mlx UP: the deterministic dedup remains the source of truth for merge
+  // candidates; the LLM analysis is folded in as the TIE-BREAKER (contradictions + human
+  // reasons). mlxAvailable:true, mode:enriched.
   mkdirSync(STATE_DIR, { recursive: true });
   const report = {
     analyzedAt: new Date().toISOString(),
     totalFiles: memories.length,
+    deterministicDedup: dedup,
+    mlxAvailable: true,
+    mode: 'enriched',
     ...analysis,
   };
   writeFileSync(REPORT, JSON.stringify(report, null, 2));
-  log(`report written → ${REPORT}`);
+  log(`report written → ${REPORT} (mode=enriched, mlx tie-breaker)`);
 
   // Log action items
   for (const s of analysis.stale ?? []) {
@@ -147,4 +380,8 @@ async function main() {
   }
 }
 
-main().catch(e => log('fatal:', e.message));
+// Run only when executed directly (the plist invokes it as a script); importing the module
+// for tests must NOT trigger a live consolidation run.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(e => log('fatal:', e.message));
+}

@@ -55,7 +55,7 @@ if (state.aeonic) {
 
     if (state.aeonic.sections && typeof state.aeonic.sections === 'object') {
         // Check 4: required sections present
-        const requiredSections = ['ROLE_MATRIX', 'GLOBAL_OFFLOAD_DIRECTIVE', 'CORE_DIRECTIVES'];
+        const requiredSections = ['ROLE_MATRIX', 'GLOBAL_LLM_COMPAT_DIRECTIVE', 'CORE_DIRECTIVES'];
         const sectionCount = Object.keys(state.aeonic.sections).length;
         const hasRequired = requiredSections.every(s => state.aeonic.sections[s] !== undefined);
 

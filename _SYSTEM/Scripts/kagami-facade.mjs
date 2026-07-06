@@ -7,7 +7,7 @@ import https from 'node:https';
 import { createHash } from 'node:crypto';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const KAGAMI_URL        = process.env.KAGAMI_URL        || 'http://localhost:3005';
@@ -296,7 +296,7 @@ async function main() {
   process.exit(2);
 }
 
-const invokedAsScript = import.meta.url === `file://${process.argv[1]}` ||
+const invokedAsScript = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href ||
   (process.argv[1] && process.argv[1].endsWith('kagami-facade.mjs'));
 if (invokedAsScript) {
   main().catch((e) => {

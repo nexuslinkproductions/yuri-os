@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  YURI Filing Autonomy — scheduled DETERMINISTIC filing sweep.
+
+  SHIPPING DEFAULT = DRY-RUN ONLY, DISABLED. As written this fires the runner with NO --execute and NO
+  YURI_FILING_AUTONOMY env flag, so every tick only enumerates → plans → writes the queued-for-owner report +
+  run-ledger. It can NEVER move a file in this shape, even if loaded.
+
+  To ARM autonomous execution of the safe LOW tier you must do ALL THREE (any one missing ⇒ dry-run only):
+    1. Add `--execute` to ProgramArguments below.
+    2. Add the EnvironmentVariables dict (commented out below) so YURI_FILING_AUTONOMY=1 reaches the process.
+    3. Create the flag file:  touch _SYSTEM/state/filing-autonomy.enabled
+  The runner additionally refuses to mutate unless the branch is `main`, and caps each run at --budget moves.
+  See _SYSTEM/launchd/README.md → "Filing Autonomy".
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.yuri.filing-autonomy</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/env</string>
+      <string>node</string>
+      <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/filing-autonomy.mjs</string>
+      <!-- dry-run by default. To arm, append: <string>&#45;&#45;execute</string> -->
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+    <!-- DISABLED by default: do not run on load. Flip to <true/> only after arming intentionally. -->
+    <key>RunAtLoad</key>
+    <false/>
+    <!-- once per day; tune as desired (3600 = hourly). The sweep does ~150 git greps, so daily is sane. -->
+    <key>StartInterval</key>
+    <integer>86400</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/filing-autonomy.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/filing-autonomy.err</string>
+    <!--
+      To ARM execution, uncomment and keep this dict:
+      <key>EnvironmentVariables</key>
+      <dict>
+        <key>YURI_FILING_AUTONOMY</key>
+        <string>1</string>
+      </dict>
+    -->
+  </dict>
+</plist>

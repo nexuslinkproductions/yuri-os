@@ -162,3 +162,7 @@ A question about a UI topic is not automatically a visual question. "What does p
 
 If they agree to the companion, read the detailed guide before proceeding:
 `skills/brainstorming/visual-companion.md`
+
+## Session Notes
+
+- 2026-06-16 — Explores user intent, requirements, and design through collaborative dialogue before any creative or implementation work; reach for it before building features, components, or modifying behavior.

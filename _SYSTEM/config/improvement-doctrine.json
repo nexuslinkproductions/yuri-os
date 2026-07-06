@@ -1,0 +1,60 @@
+{
+  "_doc": "Executable mirror of _SYSTEM/mure/BUILD-DOCTRINE.md — the company's directions of improvement. Authoritative human form is the .md; this is the machine-readable surface the recommender/ranker/grader read. Changing axes, vector weights, or rubrics is OWNER-GATED (axis A8b, see governance below). Read by mure/doctrine.mjs.",
+  "version": 2,
+  "ratified": true,
+  "ratifiedBy": "Marcel Spatz",
+  "ratifiedAt": "2026-06-23",
+  "updated": "2026-06-23",
+  "reviews": [
+    { "by": "GLM-5.2", "date": "2026-06-23", "integrated": ["A8 split into A8a machinery / A8b goalposts", "deterministic selection formula", "churn penalty + capability-first A1 regression", "A3 real-success signal", "A10 Observability axis", "vector reweight A4->2 A6->3"] }
+  ],
+  "axes": [
+    { "id": "A1",  "name": "Capability",        "engine": "self",     "definition": "the system can do something it couldn't before — new primitive/skill/role/substrate/lane", "advance": "new @capability registered; new lane/role live-verified", "regress": "a capability rots, is lost, OR code is rewritten where an existing capability should have been reused (capability-first violation)", "signal": "capability-scan delta; live lane probe; reuse-vs-rebuild check" },
+    { "id": "A2",  "name": "Reliability",       "engine": "self",     "definition": "the same work succeeds more often — fewer crashes/flakes/false-done", "advance": "green suite; failure-rate down across cycles; no false-PASS", "regress": "a regression, a new flake, a silent failure path", "signal": "green/red/grey suite; cycle failure-rate" },
+    { "id": "A3",  "name": "Autonomy",          "engine": "self",     "definition": "the owner drives less — more work completes autonomously WITHOUT the owner having to clean up afterward", "advance": "5+ consecutive successful autonomous runs with no owner git-rollback or state-correction; manual-fire count down", "regress": "manual intervention required to fix a broken state the cycle left behind", "signal": "consecutive clean autonomous runs; owner-cleanup count (NOT just self-governable ratio — passing one's own gates is not autonomy)" },
+    { "id": "A4",  "name": "Quality",           "engine": "self",     "definition": "outputs more correct / better verified / higher craft", "advance": "adversarial pass clean; local-evidence verdict; review findings down", "regress": "shipped-but-wrong; verification skipped; craft drops", "signal": "adversarial verdict; review-finding count" },
+    { "id": "A5",  "name": "Efficiency",        "engine": "self",     "definition": "same outcome for less — tokens/time/$/owner-attention", "advance": "tokens-per-job, latency-per-job, $-per-job, human-touch-per-job down", "regress": "cost/time per outcome rises with no quality gain", "signal": "tokens/job; latency/job; $/job; human-touch/job" },
+    { "id": "A6",  "name": "Compounding",       "engine": "self",     "definition": "the system gets smarter over time — knowledge captured, never-stale, re-discovery killed", "advance": "findings reindexed; registries fresh; a procedure becomes a launcher", "regress": "research evaporates; indexes stale; same thing re-derived", "signal": "reindex events; registry freshness; launcher count" },
+    { "id": "A7",  "name": "Safety",            "engine": "self",     "definition": "the gates get stronger — blast better bounded, fewer ways to do harm", "advance": "a new veto/guard; tighter scope; arming stays owner-gated", "regress": "a gate weakens; blast widens; arming discipline slips", "signal": "guard/veto count; blast-radius scope", "floor": true },
+    { "id": "A8a", "name": "Self-improvement (machinery)", "engine": "self", "definition": "the company improves its own ENGINE — loop hardening, the pool, roles, the assessor — NOT this doctrine", "advance": "an owner-ratified change to roles/pool/assessor/loop that makes the engine better", "regress": "the machinery ossifies; the company can't improve its engine", "signal": "ratified machinery changes" },
+    { "id": "A8b", "name": "Doctrine / goalposts", "engine": "owner", "definition": "changing the axes, the vector, the rubrics, or the doctrine document itself — the company's definition of success", "advance": "an OWNER-ratified doctrine change (the company may PROPOSE, never self-credit)", "regress": "the company alters its own success metric to make its work look better", "signal": "owner-ratified doctrine version bump", "ownerOnly": true },
+    { "id": "A9",  "name": "External value",     "engine": "delivery", "definition": "delivered work creates value outside the OS — venture/product/client outcome", "advance": "shipped deliverable; owner/client-confirmed outcome", "regress": "promised external value undelivered or net-negative", "signal": "shipped deliverable; confirmed outcome", "ownerSteered": true },
+    { "id": "A10", "name": "Observability",      "engine": "self",     "definition": "the owner can determine the exact internal state of the system from logs + dashboards WITHOUT reading code", "advance": "a deterministic execution trace / state log added; a failure becomes explainable from logs alone; the dashboard surfaces it", "regress": "a silent failure, an un-logged mutation, or hidden state", "signal": "cycle failure explainable from logs alone; dashboard state-coverage" }
+  ],
+  "currentVector": {
+    "_note": "The owner-tunable knob — which axes the company weights THIS phase. 0=ignore 1=baseline 2=push 3=primary-front. A7 is a non-tradeable floor; A8b is locked at 0 (owner moves the goalposts, never the company).",
+    "A1": 2, "A2": 3, "A3": 3, "A4": 2, "A5": 2, "A6": 3, "A7": "floor", "A8a": 1, "A8b": 0, "A9": 1, "A10": 2
+  },
+  "selectionRubric": {
+    "scale": [-2, -1, 0, 1, 2, 3],
+    "directionFit": "directionFit(J) = sum over axes of weight(A) * fit(J,A); a floor axis contributes 0 to the push, but a regression on it is a hard violation",
+    "priority": "priority(J) = OpenMass(J) + wDir * directionFit(J)   (wDir default 1.0, tunable — OpenMass and directionFit are on comparable scales)",
+    "wDir": 1.0,
+    "hardVeto": "drop J from the AUTO-EXEC pool if directionFit(J) <= 0 AND OpenMass(J) < staleThreshold, OR if J would regress a floor axis",
+    "staleThreshold": 2.5,
+    "governanceFilter": "governance class is a FILTER not a score — owner-gated jobs are surfaced and held regardless of priority",
+    "deterministic": "strict arithmetic, no subjective urgency bands — an autonomous ranker needs arithmetic, not banding (GLM-5.2 review)",
+    "generalization": "fit is scored against axes, never job type — any job/role/substrate uses the identical rubric"
+  },
+  "assessmentRubric": {
+    "verdicts": ["advanced", "partial", "none", "regressed"],
+    "fields": ["verdict", "evidence", "magnitude", "regressions", "churn"],
+    "magnitude": ["small", "medium", "large"],
+    "rule_no_advance_without_evidence": "a claimed advance/partial with no local proof (TERM_COUNT/FILE_COUNT/MATCH, green test, live probe) grades 'none' not 'advanced'",
+    "net": "net = verdictScore - regressionsCount - churnPenalty",
+    "churnPenalty": "high lines-touched / token-cost for a SMALL axis delta is penalized — the company must prefer small surgical wins over bloated rewrites that fake an advance via churn (GLM-5.2: blocks A2-reliability Goodharting by adding bulk)",
+    "a1_rewrite_is_regression": "rewriting code where an existing capability should have been reused grades as an A1 regression (capability-first)",
+    "feedsRecommender": "under-served axes (low cumulative advancement vs weight) become the recommender's target"
+  },
+  "governance": {
+    "changesOwnerGated": true,
+    "a8b_owner_only": "A8b (changing the doctrine/axes/vector/rubrics) is weight 0 and strictly owner-gated — the company earns NO self-improvement credit for moving its own goalposts; A8a (engine machinery) is the only self-improvement axis a cycle can advance (GLM-5.2 review: closes the A8 self-credit loophole)",
+    "rule": "the company may PROPOSE axis/vector/rubric changes as an A8b job with evidence; only the OWNER ratifies. Editing axes, currentVector, or rubrics is an arming-class change to the success metric — held by owner-floor, exactly like arm/blender/owner-source jobs.",
+    "inherits": "mure/governance.mjs constitution veto — a self-improving company never moves its own goalposts (the Godel-Agent self-modification gap, applied to the success metric not just the safety gate). doctrine.mjs is READ-ONLY by construction.",
+    "protectedFiles": ["_SYSTEM/mure/BUILD-DOCTRINE.md", "_SYSTEM/config/improvement-doctrine.json"]
+  },
+  "wiring": {
+    "shipped": ["improvement-doctrine.json", "BUILD-DOCTRINE.md", "mure/doctrine.mjs (reader: directionFit/grade/underServedAxes)"],
+    "queued_A8a": ["nexus-company.recommend() fills under-served axes", "job-pool.rankJobs adds directionFit+blend term", "build-report writer records axes->verdict->evidence->churn->net", "cycle self-assessment: cumulative axis advancement vs vector"]
+  }
+}

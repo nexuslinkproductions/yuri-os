@@ -34,7 +34,7 @@ test('cyber meeting release refreshes all meeting artifacts', () => {
 
 test('cyber meeting release declares the focused verification gate', () => {
   assert.deepEqual(MEETING_RELEASE_TESTS, [
-    '_SYSTEM/Scripts/context-router.test.mjs',
+    '_SYSTEM/Scripts/xref-navigation.test.mjs',
     '_SYSTEM/Scripts/cyber-retest-proof.test.mjs',
     '_SYSTEM/Scripts/cyber-proof-cards.test.mjs',
     '_SYSTEM/Scripts/cyber-meeting-pack.test.mjs',

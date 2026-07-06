@@ -38,8 +38,8 @@ updated: 2026-04-17
 - **DeepSeek V3.2** (Dec 2025): Matches GPT-5 benchmarks at 11x less compute; 96% AIME pass rate; gold-medal level at 2025 IMO
 - **DeepSeek V4** (Spring 2026): 1 trillion parameters, ~37B active per token; $0.10-0.30/M tokens (50x cheaper than GPT-5); 81%+ SWE-bench solve rate; built on Huawei chips (no US semiconductor dependency)
 - Architecture: DeepSeek Sparse Attention (DSA) — massive efficiency breakthrough that the entire field is now replicating
-- Relevance: **For system-building work (EXEOFLOW, IT development, automation pipelines) — DeepSeek V4 may outperform Claude on coding tasks at a fraction of the API cost**
-- Status: ✅ WATCH — V4 release imminent; evaluate for EXEOFLOW integration
+- Relevance: **For system-building work (IT development, automation pipelines) — DeepSeek V4 may outperform Claude on coding tasks at a fraction of the API cost**
+- Status: ✅ WATCH — V4 release imminent; evaluate for integration
 
 **[2026-04-17] QWEN 3.6-PLUS (Alibaba) — Agentic Coding + Multimodal**
 - Source: CNBC, Alibaba Cloud, eWeek (verified April 2026)
@@ -56,8 +56,8 @@ updated: 2026-04-17
 - South Korea AI Basic Act (January 2026): Requires labeling of AI-generated content; risk assessments for high-impact systems
 - China + ASEAN 2026-2030 action plan: Regional governance + technical research alignment
 - Japan: Cautious adoption in creative industries; workforce pressure forcing AI tools into anime production
-- Relevance: **The agentic AI paradigm (not just tools but autonomous agents) is being built fastest in Asia. EXEOFLOW positioning should track this.**
-- Status: ✅ WATCH — Manus AI, Chinese agentic platforms; monitor for EXEOFLOW relevance
+- Relevance: **The agentic AI paradigm (not just tools but autonomous agents) is being built fastest in Asia. Agent-platform positioning should track this.**
+- Status: ✅ WATCH — Manus AI, Chinese agentic platforms; monitor for agent-platform relevance
 
 **[2026-04-17] JAPAN ANIME AI — Cautious Pioneer**
 - Source: Yodo Labs Field Study, AsiaBizToday (verified 2025-2026)
@@ -78,7 +78,7 @@ updated: 2026-04-17
 - Status: ✅ ACT — Download Resolve 21 beta; test Colourlab AI integration
 
 **[2026-04-17] NICHE: Wellness Content Production (Exploding)**
-- Source: C2MOVIEZ pipeline signals + market research
+- Source: Client pipeline signals + market research
 - Signal: Fitness/meditation/coaching brands need motion content at scale
 - Relevance: Potential new pipeline; different pacing/intimacy than commercial
 - Action: Research production efficiency for low-crew wellness shoots
@@ -95,22 +95,22 @@ updated: 2026-04-17
 ### Engine 2: Skill Refinery (Pattern Watch)
 
 **[2026-04-17] CANDIDATE: Shoot Brief Mastery (1st execution complete)**
-- Source: Recent C2MOVIEZ projects
+- Source: Recent client projects
 - Pattern: Successfully ran production-shoot-brief on 2+ shoots; workflow stabilized
 - Signal: Skill exists; ready for 2nd formalization pass
 - Status: Candidate → Monitor for 2nd cycle → Ready to active by 2026-05-15
 
 **[2026-04-17] FRICTION: Client Handoff Communication**
-- Source: Post-project review (C2MOVIEZ feedback cycle)
+- Source: Post-project review (client feedback cycle)
 - Pattern: Seen 3x: unclear file delivery expectations; 2 rounds of "wait, where's X?"
 - Signal: Skill needed: "business-client-delivery-standards"
 - Status: Intake → Design phase → 1st execution next project
 
 **[2026-04-17] EMERGING: Fast-Turnaround Location Assessment**
-- Source: Planzerfilms initial conversations
+- Source: Partner initial conversations
 - Pattern: New partner asks for rapid location scouting (1-2 days); your process slower
 - Signal: Skill could compress scouting timeline 40% with structure
-- Status: Intake → Observe on next planzerfilms project → 1st execution imminent
+- Status: Intake → Observe on next client project → 1st execution imminent
 
 ---
 
@@ -138,8 +138,8 @@ updated: 2026-04-17
 ### Engine 4: Vision Synthesis (Continuous Building)
 
 **[2026-04-17] 6-MONTH TRAJECTORY (Emerging Pattern)**
-- Q2 2026 (Apr-Jun): Stabilize C2MOVIEZ pipeline; launch planzerfilms collaboration; build 2-3 foundational skills
-- Q3 2026 (Jul-Sep): Deepen MACL ONE relationship; extract business insights from 3-project minimum; test market for wellness content
+- Q2 2026 (Apr-Jun): Stabilize core client pipeline; launch new partner collaboration; build 2-3 foundational skills
+- Q3 2026 (Jul-Sep): Deepen key client relationship; extract business insights from 3-project minimum; test market for wellness content
 - Direction: Toward "premium capture specialist" positioning (not generalist, not commoditized)
 - Risk: Overcommitment if all pipelines hot simultaneously
 - Opportunity: Skill bundling → "integrated production packages" vs. project-by-project

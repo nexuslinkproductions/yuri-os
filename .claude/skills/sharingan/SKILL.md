@@ -1,6 +1,8 @@
 ---
 name: sharingan
-description: "User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows. Observe deeply, extract underlying technique (not property), expose weaknesses, then rebuild as a legally clean, Yuri OS / Yuri-aligned diamond design via 9-phase pipeline."
+disable-model-invocation: true
+description: "User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows. Observe deeply, extract underlying technique (not property), expose weaknesses, then rebuild as a legally clean, Yuri OS / Yuri-aligned diamond design via 9-phase pipeline. Use when the user says \"activate Sharingan\", \"reverse-engineer this\", \"copy the technique not the code\", or wants to deeply understand and rebuild an artifact from first principles."
+invocation: model
 triggers:
   - "/sharingan"
   - "sharingan"
@@ -105,7 +107,7 @@ If no git repository exists, create a working folder:
 For YURI projects, prefer:
 
 ```text
-/Users/marcelspatz/YURI-OS-MUSUBI/.sharingan/<source-name>/<timestamp>/
+<YURI_ROOT>/.sharingan/<source-name>/<timestamp>/
 ```
 
 ---
@@ -646,69 +648,21 @@ Do not finish with vague advice.
 
 ## Session Notes
 
+### 2026-06-10
+- session: 847m | peak ctx: 62% | compacts: 1
+- tools: Bash×776, Read×365, Edit×55, Write×27, StructuredOutput×12, TodoWrite×11, WebFetch×9, Agent×7, Workflow×3, ToolSearch×2
+- corrections: none
+- errors: none
+
+### 2026-06-09
+- session: 106m | peak ctx: 55% | compacts: 0
+- tools: Bash×114, Read×104, Edit×40, WebFetch×9, Agent×6, Write×6, TodoWrite×4, ToolSearch×2
+- corrections: none
+- errors: none
+
 ### 2026-05-29
 - session: 739m | peak ctx: 99% | compacts: 14 (mid-session)
 - tools: Bash×423, Read×235, WebSearch×219, Edit×157, WebFetch×148, StructuredOutput×135, ToolSearch×108, Write×21, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 729m | peak ctx: 98% | compacts: 13
-- tools: Bash×423, Read×235, WebSearch×219, Edit×157, WebFetch×148, StructuredOutput×135, ToolSearch×108, Write×20, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 723m | peak ctx: 96% | compacts: 13 (mid-session)
-- tools: Bash×423, Read×234, Edit×157, WebSearch×156, WebFetch×118, StructuredOutput×109, ToolSearch×91, Write×20, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 718m | peak ctx: 94% | compacts: 12
-- tools: Bash×423, Read×234, Edit×157, StructuredOutput×59, ToolSearch×43, WebSearch×40, WebFetch×40, Write×19, TodoWrite×12, Workflow×6, AskUserQuestion×4, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 711m | peak ctx: 93% | compacts: 12 (mid-session)
-- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 693m | peak ctx: 91% | compacts: 11
-- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 672m | peak ctx: 91% | compacts: 11
-- tools: Bash×423, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×12, Workflow×5, AskUserQuestion×4, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 670m | peak ctx: 90% | compacts: 11 (mid-session)
-- tools: Bash×421, Read×234, Edit×157, StructuredOutput×28, Write×19, TodoWrite×11, Workflow×5, AskUserQuestion×4, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 633m | peak ctx: 87% | compacts: 10 (mid-session)
-- tools: Bash×419, Read×232, Edit×155, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 628m | peak ctx: 84% | compacts: 9 (mid-session)
-- tools: Bash×414, Read×228, Edit×150, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
-- corrections: none
-- errors: none
-
-### 2026-05-29
-- session: 593m | peak ctx: 80% | compacts: 7
-- tools: Bash×408, Read×228, Edit×150, StructuredOutput×28, Write×19, TodoWrite×10, Workflow×5, AskUserQuestion×3, ToolSearch×1
 - corrections: none
 - errors: none
 
@@ -723,36 +677,3 @@ Do not finish with vague advice.
 - tools: Bash×18, Read×6, Agent×4, Skill×2
 - corrections: none
 - errors: none
-
-### 2026-04-26
-- session: 24m | peak ctx: 67% | compacts: 2
-- tools: Edit×33, Read×10, Bash×8
-- corrections: none
-- errors: none
-
-### 2026-04-26 — Installation & hardening (Marcel)
-- **Tools used:** Explore (skill structure), Write (SKILL.md), Bash (verification)
-- **Corrections applied:**
-  1. Removed unsupported `disable-model-invocation: true` field
-  2. Added `triggers: ["/sharingan", "sharingan", "/sr"]`
-  3. Added model routing section (Sonnet 4.6 for analysis, Haiku for extraction, local-subagent for deterministic work)
-  4. Integrated GitNexus tools into Phase 1 (Observe) for local YURI codebases
-  5. Added swarm coordination note for Phase 7 (large repos >50 files)
-  6. Added ecosystem integration section (tokenmaxxing-aware, EOT checkpoint, memory output)
-  7. Added Session Notes section (this entry)
-  8. Clarified output folder path for YURI workspace
-
-### 2026-04-26 — Renamed MANGEKYO → SHARINGAN (Marcel)
-- **Tools used:** Bash (move/rename dirs), Edit (content updates)
-- **Changes:**
-  1. Renamed skill directory: `.claude/skills/mangekyo-sharingan/` → `.claude/skills/sharingan/`
-  2. Renamed command file: `.claude/commands/mangekyo-sharingan.md` → `.claude/commands/sharingan.md`
-  3. Updated triggers from `/mangekyo-sharingan`, `mangekyo` to `/sharingan`, `sharingan`
-  4. Changed short alias from `/ms` to `/sr`
-  5. Updated all invocation examples to use `/sharingan`
-  6. Renamed output folders from `.mangekyo/` to `.sharingan/`
-  7. Renamed report file from `MANGEKYO_REPORT.md` to `SHARINGAN_REPORT.md`
-  8. Updated activation brief header and phase description
-  9. Updated tokenmaxxing awareness section
-- **No functionality destroyed** — all 9 phases, all gates, all architecture preserved
-- **Status:** Ready for invocation as `/sharingan`

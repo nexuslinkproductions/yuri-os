@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xref-hit.schema.json",
+  "title": "YURI Cross-Reference Hit v0",
+  "description": "Canonical shape for a single cross-reference hit surfaced by the XREF engine. Closed (additionalProperties:false) at every object level: fail-closed on unknown fields, consistent with the privacy-gate ALLOWED_STRING_PATHS discipline (yuri-energy-trace.mjs). A hit's provenance.evidenceKind + numeric confidence determine whether it is surfaced or routed to the low-confidence sub-log. A sub-0.55 hit MUST carry a named provenance.mismatch or it is suppressed (mechanism-fit-theater gate). A writes-edge neighbor is never a sibling and never reaches this schema as a surfaced hit.",
+  "type": "object",
+  "required": ["path", "surface", "snippet", "score", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "path": { "type": "string", "minLength": 1 },
+    "surface": { "type": "string", "minLength": 1 },
+    "snippet": { "type": "string" },
+    "score": { "type": "number" },
+    "provenance": { "$ref": "#/$defs/provenance" }
+  },
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "required": ["evidenceKind", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "evidenceKind": {
+          "type": "string",
+          "enum": ["gitnexus-structural", "graph-neighbor", "lexical-only"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "stale": { "type": "boolean" },
+        "mismatch": { "type": "string", "minLength": 1 },
+        "structuralUnavailable": { "type": "boolean" }
+      }
+    }
+  }
+}

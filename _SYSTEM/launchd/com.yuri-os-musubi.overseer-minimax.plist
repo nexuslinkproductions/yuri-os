@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  DISARMED template — the SECOND continuous trading OVERSEER beat (minimax-m3 lane), teammate to the
+  deepseek-flash overseer. Both are OLLAMA lanes (NOT Anthropic-dependent) so an Anthropic outage can
+  never take the continuous oversight down — the resilience lesson from the 2026-06-17 outage. NOT loaded
+  by anything; lives in the repo only. Arming is OWNER-GATED (continuous spend + a recurring process):
+
+    cp _SYSTEM/launchd/com.yuri-os-musubi.overseer-minimax.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.yuri-os-musubi.overseer-minimax.plist
+    # disarm: launchctl bootout gui/$(id -u)/com.yuri-os-musubi.overseer-minimax ; rm ~/Library/LaunchAgents/com.yuri-os-musubi.overseer-minimax.plist
+
+  Every 45s (offset from flash's 30s so the two lanes interleave rather than always firing together) it
+  runs ONE overseer beat on the minimax lane: gather live state -> fee-aware reweight (deterministic) ->
+  write the hot-reloaded overseer-config -> minimax-m3 judgment as an ADVISORY proposal posted to the
+  shared board (it can NEVER write binding config — verified 2026-06-17: its "raise feeHurdle" proposal
+  was clamped to the board, live config unchanged). The two lanes coordinate via the board + shared
+  config. INV-1 safe: writes config + weights only, never an order path. The ollama key is hydrated from
+  Keychain inside the dispatch (no secret in this plist).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.yuri-os-musubi.overseer-minimax</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/node</string>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/alpha-factor-library/overseer.mjs</string>
+        <string>--once</string>
+        <string>--lane</string>
+        <string>minimax</string>
+        <string>--llm</string>
+        <string>minimax-m3:cloud</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/marcelspatz</string>
+        <key>YURI_ROOT</key>
+        <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
+    </dict>
+
+    <!-- 45s — offset from the flash lane's 30s. launchd skips a fire if the prior run is still in
+         flight, so a slow ollama call naturally throttles the cadence. -->
+    <key>StartInterval</key>
+    <integer>45</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/overseer-minimax.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/overseer-minimax.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

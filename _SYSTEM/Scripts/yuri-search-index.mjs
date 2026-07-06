@@ -17,7 +17,7 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { isProtectedPath } from './lane-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,13 +25,17 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
 export const INDEX_DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'search-index.db');
 
 // Meaningful corpus roots — the stuff worth finding. NOT the whole repo.
-export const DEFAULT_ROOTS = ['_SYSTEM', 'skills', '01_PROJECTS', '04_ARCHIVE', '.claude/rules'];
+// wave-2 R.14: '.claude/memory' (Track B behavioral memories) joins the corpus —
+// standing corrections were invisible to `ai search`. MEMORY.md stays excluded
+// below (generated index, not source content).
+export const DEFAULT_ROOTS = ['00_COMMAND-CENTER', '_SYSTEM', 'skills', '01_PROJECTS', '02_RESOURCES', '03_NEXUS-LINK', '04_ARCHIVE', '.claude/rules', '.claude/memory'];
 
 // Hard exclusions (path substring). Protected surfaces + churny/duplicate/binary noise.
 const EXCLUDE_SUBSTR = [
   'node_modules/', '/.git/', 'backend/data/', '.claude/projects/', '/worktrees/',
   '.codex-worktrees/', '.smart-env/', '/archive/legacy-purge', '.claude/state/',
   '.claude/history', 'OS_KERNEL/memory.db', 'OS_KERNEL/semantic-memory.db', 'search-index.db',
+  '.claude/memory/MEMORY.md',
 ];
 const INDEX_EXT = new Set(['.md', '.mjs', '.js', '.ts', '.json', '.sh', '.py', '.txt', '.html']);
 const MAX_FILE_BYTES = 1_000_000;   // skip files larger than 1MB (logs, dumps)
@@ -65,6 +69,11 @@ function firstHeading(body, rel) {
 
 function initSchema(db, full) {
   if (full) { db.exec('DROP TABLE IF EXISTS docs; DROP TABLE IF EXISTS files;'); }
+  // wave-2 R.19 — tokenizer contract for callers: porter unicode61 SPLITS on
+  // _ and - (snake/kebab identifiers become sub-tokens: energy_tick → energy,
+  // tick) but camelCase stays ONE token (scoreHit is a single term). So: search
+  // 'scoreHit' for the exact camelCase identifier, 'score' for stem hits across
+  // identifiers, and a quoted phrase ("energy tick") for adjacency.
   db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS docs USING fts5(
       path UNINDEXED, title, body, tokenize='porter unicode61'
@@ -150,4 +159,17 @@ function run() {
   }, null, 2));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) run();
+// wave-2 R.9b: `--check-staleness` — exit 1 if the index predates the latest
+// commit (warning-only contract lives in yuri-search.mjs; this is the CI/cron
+// probe form). No reindex is triggered (D-R2).
+async function checkStaleness() {
+  const { indexStaleness } = await import('./yuri-search.mjs');
+  const s = indexStaleness(INDEX_DB_PATH);
+  console.log(JSON.stringify(s));
+  process.exitCode = s.stale ? 1 : 0;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  if (process.argv.includes('--check-staleness')) await checkStaleness();
+  else run();
+}

@@ -68,7 +68,7 @@ test('shipping persona audit marks copyrighted aliases private-only', () => {
   }
 });
 
-test('canonical Rick roster includes tmux-backed Quantum and Prime lanes', () => {
+test('canonical Rick roster includes every persona lane', () => {
   const roster = rickRoster({ env: {} });
   const aliases = roster.map((entry) => entry.privateAlias);
 
@@ -79,17 +79,11 @@ test('canonical Rick roster includes tmux-backed Quantum and Prime lanes', () =>
   assert.ok(aliases.includes('Simple Rick'));
   assert.ok(aliases.includes('Council of Ricks'));
   assert.ok(aliases.includes('Robot Rick'));
-
-  const quantum = roster.find((entry) => entry.privateAlias === 'Quantum Rick');
-  const prime = roster.find((entry) => entry.privateAlias === 'Rick Prime');
-
-  assert.equal(quantum.tmux.target, 'yuri-ricks:0.0');
-  assert.equal(prime.tmux.target, 'yuri-ricks:0.1');
 });
 
-test('Rick roster alias resolver accepts pane aliases and private aliases', () => {
-  assert.equal(resolveRickRosterAlias('qtrk', { env: {} }).privateAlias, 'Quantum Rick');
-  assert.equal(resolveRickRosterAlias('Quantum Rick', { env: {} }).tmux.lane, 'quantum');
-  assert.equal(resolveRickRosterAlias('rpri', { env: {} }).privateAlias, 'Rick Prime');
-  assert.equal(resolveRickRosterAlias('Rick C-137', { env: {} }).shipLabel, 'Codex/main');
+test('Rick roster alias resolver accepts persona keys and private aliases', () => {
+  assert.equal(resolveRickRosterAlias('quantum', { env: {} }).privateAlias, 'Quantum Rick');
+  assert.equal(resolveRickRosterAlias('Quantum Rick', { env: {} }).key, 'quantum');
+  assert.equal(resolveRickRosterAlias('rick prime', { env: {} }).privateAlias, 'Rick Prime');
+  assert.equal(resolveRickRosterAlias('Rick C-137', { env: {} }).shipLabel, 'Claude/Opus');
 });

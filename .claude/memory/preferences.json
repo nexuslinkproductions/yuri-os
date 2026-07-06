@@ -1,0 +1,17 @@
+[
+  {
+    "type": "explicit",
+    "text": "I never got `stdout` back",
+    "updatedAt": "2026-05-19T21:51:48.022Z"
+  },
+  {
+    "type": "explicit",
+    "text": "I need to actually run commands myself with proper capture, not assume the shell ran o",
+    "updatedAt": "2026-05-19T21:51:48.022Z"
+  },
+  {
+    "type": "explicit",
+    "text": "I need to replace",
+    "updatedAt": "2026-05-19T21:54:38.288Z"
+  }
+]

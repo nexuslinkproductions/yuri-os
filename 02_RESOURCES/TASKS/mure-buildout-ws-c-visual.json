@@ -1,0 +1,51 @@
+{
+  "summary": "WS-C: MURE company build-out — visual control surface",
+  "tags": ["mure", "buildout", "dashboard", "visual"],
+  "visualPlanUrl": "/visual-plan",
+  "visualPlanSlug": "recap-fb61bca8b66d4ba8",
+  "visualPlanHostedUrl": "https://plan.agent-native.com/recap-fb61bca8b66d4ba8",
+  "visualPlanApproved": true,
+  "visualRecapUrl": "/visual-recap",
+  "subtasks": [
+    {
+      "id": "WS-C-R1-dashboard-drilldown",
+      "role": "mechanic",
+      "need": ["integration", "implementation"],
+      "prompt": "Wire _SYSTEM/mure/dashboard.html to /api/run, /api/artifacts, /api/trends. Run click opens detail drawer; role click shows artifacts. Match existing NEXUS LINK style. Return 02C1_DASHBOARD_DRILLDOWN_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-C-R2-trends-charts",
+      "role": "artificer",
+      "need": ["implementation"],
+      "prompt": "Ensure insights panel consumes /api/trends throughput series. Minimal diff; fallback to overview stats. Return 02C2_TRENDS_WIRED_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-C-E1-visual-plan-gate",
+      "role": "envoy",
+      "need": ["improvement-proposal"],
+      "prompt": "Define visualPlanUrl metadata convention for task JSON. Link WS-C to Agent-Native /visual-plan gate before multi-role UI dispatch. Return 02C3_VISUAL_PLAN_GATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-C-H1-held-queue-stub",
+      "role": "artificer",
+      "need": ["implementation"],
+      "prompt": "Scaffold read-only held-subtask queue stub in dashboard (planCompany held array from work-ledger metadata). Phase 5 scope — document gap if not wired. Return 02C4_HELD_QUEUE_STUB_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-C-C1-chronicler-docs",
+      "role": "chronicler",
+      "need": ["documentation"],
+      "prompt": "Update 02_RESOURCES/GUIDES/agent-native-company-visuals.md with dashboard drill-down endpoints and operator click-through. Return 02C5_VISUAL_DOCS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

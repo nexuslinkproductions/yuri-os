@@ -1,0 +1,32 @@
+# nexus-rs cargo build config — FLOAT-DETERMINISM PIN (anti-FMA).
+#
+# WHY THIS FILE EXISTS (00-MASTER-BRIEF §6/§6a, glm "FMA-aarch64 Cargo catch"):
+# The energy-gate-coupled / 0-ULP kernels in this crate must be BIT-EXACT with the JS (V8) reference,
+# because a 1e-9 drift can flip a gate threshold decision. The biggest cross-ISA divergence is FMA
+# (fused multiply-add): V8 evaluates `a*b+c` as TWO separately-rounded IEEE ops, while a target may
+# contract `a*b+c` into ONE hardware-rounded `fmadd` — a different result in the last ULP.
+#
+# TWO layers of defense, in order of importance:
+#
+#   1. SOURCE DISCIPLINE (the real guarantee): every kernel writes `(a*b)+c`, never `mul_add`. This is
+#      what actually prevents fusion. Rust/LLVM's default FP-contraction is OFF (no `-ffp-contract=fast`
+#      equivalent), so a separate-ops `(a*b)+c` already emits a separate `fmul`+`fadd` even at
+#      `opt-level=3` + `lto=true`. VERIFIED on aarch64-apple-darwin (2026-06-14): `(a*b)+c` →
+#      `fmul d0,d0,d1` + `fadd d0,d0,d2` (two rounded ops); only an explicit `mul_add` →  `fmadd`.
+#      => On aarch64 (Apple Silicon, the primary build target here) `fmadd` is part of the mandatory
+#         base FP ISA and CANNOT be disabled by any target-feature; the source discipline is the guard.
+#
+#   2. `-C target-feature=-fma` (belt-and-suspenders, x86_64 only): on x86_64 `fma` IS a real,
+#      toggleable ISA extension; disabling it removes the FMA instruction set so no codegen/LLVM pass
+#      can emit `vfmadd` even if a future `(a*b)+c` were contracted. On aarch64 `fma` is NOT a valid
+#      target-feature name (rustc emits "unknown and unstable feature" and ignores it) — so we SCOPE
+#      the flag to x86_64 to keep the guard real AND avoid a meaningless per-build warning on aarch64.
+#
+# Do NOT add `+fma`, fast-math, or `-ffp-contract=fast`-equivalents; those re-introduce the divergence
+# this file exists to prevent. Do NOT write `mul_add` in any gate-coupled / 0-ULP kernel.
+
+[target.'cfg(target_arch = "x86_64")']
+rustflags = ["-C", "target-feature=-fma"]
+
+[target.'cfg(target_arch = "x86")']
+rustflags = ["-C", "target-feature=-fma"]

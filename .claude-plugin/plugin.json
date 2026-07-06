@@ -1,0 +1,21 @@
+{
+  "name": "yuri",
+  "version": "1.0.0",
+  "description": "The deterministic gateway for AI. A governance and continuity exoskeleton that wraps a coding AI with protected-path guards, a work-dynamics energy gate, a codebase self-model, and durable memory.",
+  "author": {
+    "name": "Marcel Spatz",
+    "email": "contact@nexuslinkproductions.com"
+  },
+  "homepage": "https://github.com/nexuslinkproductions/YURI",
+  "repository": "https://github.com/nexuslinkproductions/YURI",
+  "license": "MIT",
+  "keywords": [
+    "governance",
+    "continuity",
+    "exoskeleton",
+    "deterministic",
+    "claude-code",
+    "guardrails",
+    "memory"
+  ]
+}

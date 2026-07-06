@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
 /**
  * Kagami Claude/Codex control-domain contract.
  *
@@ -32,7 +33,7 @@ export const KAGAMI_EVENT_KINDS = Object.freeze([
   'AUTHORIZATION_REQUIRED',
   'ENGAGEMENT_SCOPE_BOUND',
   'LANE_HEALTH_PREFLIGHT',
-  'CONTEXT_PACKET_BUILT',
+  'XREF_PREFLIGHT_RECORDED',
   'LANE_DISPATCHED',
   'LANE_OUTPUT_DELTA',
   'PATCH_PROPOSED',
@@ -43,6 +44,14 @@ export const KAGAMI_EVENT_KINDS = Object.freeze([
   'PROOF_ARTIFACT_PROMOTED',
   'COST_GOVERNOR_TRIPPED',
   'HANDOFF_RECORDED',
+  // NANO SWARM lease lifecycle (owner-approved 2026-06-13) — the audit trail of work-unit leases.
+  'LEASE_CLAIMED',
+  'LEASE_RELEASED',
+  'LEASE_RENEWED',
+  'LEASE_EXPIRED',
+  'LEASE_CONTENDED',
+  // NANO SWARM supervisor cycle — reap/rotate/liveness summary for the swarm board.
+  'SWARM_SUPERVISION_CYCLE',
 ]);
 
 export const KAGAMI_DOMAIN_ROLES = Object.freeze({
@@ -562,7 +571,7 @@ export function summarizeDomainForPrompt(domain = buildKagamiControlDomain()) {
   ].join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const domain = buildKagamiControlDomain();
   assertNoProtectedCanonicalState(domain.stateFiles);
   console.log(JSON.stringify(domain, null, 2));

@@ -1,0 +1,132 @@
+{
+  "schema_version": 3,
+  "tool": "lifecycle-gap-scan",
+  "contract": "three-seams-SEAM-2-lifecycle-loop",
+  "generated_at": "2026-06-04T17:23:29.288Z",
+  "advisory_only": true,
+  "local_truth_claim": true,
+  "inputs": {
+    "banks_dir": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/data/math/formula-banks",
+    "bank_files": [
+      {
+        "file": "business-fixtures.v0.json",
+        "cards": 3,
+        "malformed": false
+      },
+      {
+        "file": "graph-search.v0.json",
+        "cards": 3,
+        "malformed": false
+      },
+      {
+        "file": "information-theory.v0.json",
+        "cards": 4,
+        "malformed": false
+      },
+      {
+        "file": "probability-calibration.v0.json",
+        "cards": 4,
+        "malformed": false
+      },
+      {
+        "file": "scoring-normalization.v0.json",
+        "cards": 6,
+        "malformed": false
+      },
+      {
+        "file": "vector-geometry.v0.json",
+        "cards": 3,
+        "malformed": false
+      }
+    ],
+    "proof_gate": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/math/math-proof-gate.mjs",
+    "built_primitive_count": 20,
+    "hypotheses": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/.claude/yuri-sentinel/learning/hypotheses.json",
+    "backlog": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/SELF-IMPROVEMENT/lifecycle-gap-scan-2026-06-04.json",
+    "graph_sectors_seen": [
+      "advisors",
+      "classification",
+      "code_intelligence",
+      "codex_gate",
+      "command_registry",
+      "control_plane",
+      "initialization",
+      "memory",
+      "operator_io",
+      "prompt_hooks",
+      "pulse_cortex",
+      "routing_lanes",
+      "self_improvement",
+      "services",
+      "unassigned"
+    ],
+    "math_bearing_organs": [
+      "classification",
+      "pulse_cortex",
+      "self_improvement"
+    ],
+    "excluded_non_math_sectors": [
+      "command_registry",
+      "control_plane",
+      "operator_io",
+      "prompt_hooks",
+      "services",
+      "unassigned"
+    ],
+    "stale_days": 30,
+    "allowlist_leak": [],
+    "config_validation": {
+      "ok": true,
+      "mapTargetDrift": [],
+      "allowlistLeak": []
+    }
+  },
+  "warnings": [],
+  "counts": {
+    "cards_scanned": 23,
+    "math_bearing_organs": 3,
+    "excluded_non_math_sectors": 6,
+    "no_domain_cards": 3,
+    "gap_organ_no_cards": 0,
+    "gap_pattern_under_propagated": 0,
+    "gap_stale_baseline": 0,
+    "gap_unmapped_domain": 0,
+    "actionable": 0,
+    "unactionable": 0,
+    "deduped": 0
+  },
+  "organ_card_counts": {
+    "classification": 6,
+    "pulse_cortex": 8,
+    "self_improvement": 6
+  },
+  "no_domain_cards": [
+    "accounting-balance-fixture",
+    "lkr-piecewise-fixture",
+    "optimization-cost-fixture"
+  ],
+  "unmapped_domains": {},
+  "gaps": {
+    "organ_no_cards": [],
+    "pattern_under_propagated": [],
+    "stale_baseline": [],
+    "unmapped_domain": []
+  },
+  "actionable": [],
+  "unactionable": [],
+  "deduped": [],
+  "evidence": [
+    "TERM_COUNT term=cards_scanned count=23",
+    "TERM_COUNT term=math_bearing_organs count=3",
+    "TERM_COUNT term=excluded_non_math_sectors count=6",
+    "TERM_COUNT term=GAP_ORGAN_NO_CARDS count=0",
+    "TERM_COUNT term=GAP_PATTERN_UNDER_PROPAGATED count=0",
+    "TERM_COUNT term=GAP_STALE_BASELINE count=0",
+    "TERM_COUNT term=GAP_UNMAPPED_DOMAIN count=0",
+    "TERM_COUNT term=ACTIONABLE count=0",
+    "TERM_COUNT term=UNACTIONABLE count=0",
+    "TERM_COUNT term=DEDUPED count=0",
+    "FILE_COUNT file=/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/data/math/formula-banks count=23",
+    "FILE_COUNT file=/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/math/math-proof-gate.mjs count=20"
+  ]
+}

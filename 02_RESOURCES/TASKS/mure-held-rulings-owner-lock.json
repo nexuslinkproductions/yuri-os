@@ -1,0 +1,38 @@
+{
+  "ratifiedAt": "2026-06-30T02:30:00+02:00",
+  "ratifiedBy": "owner",
+  "note": "Phase 6–7 verified. Owner 2026-06-30: arm Cline Pass sidecar + evolver role for live company dispatch. Still blocks finalize:true, governance.mjs edits, and git push without separate ceremony.",
+  "rulings": [
+    {
+      "subtaskId": "WS-A-S1-steward-gate",
+      "approved": true,
+      "scope": "company-ops",
+      "reason": "Steward gate subtask may cast to produce gate evidence; 6-gate charter remains enforced on all other subtasks."
+    },
+    {
+      "subtaskId": "P4-S1-steward-gate",
+      "approved": true,
+      "scope": "release-tail-advisory",
+      "reason": "Release P4 steward gate may cast for documentation-only gate report; no outward publish."
+    },
+    {
+      "subtaskId": "P8-H1-helmsman-finalize",
+      "approved": true,
+      "scope": "release-tail-advisory",
+      "reason": "Helmsman finalize ceremony subtask may cast to produce HELD ceremony doc only — finalize:true still blocked at runtime."
+    },
+    {
+      "subtaskId": "WS-G-S1-steward-gate",
+      "approved": true,
+      "allowArming": true,
+      "scope": "cline-live-dispatch",
+      "reason": "Owner 2026-06-30: arm Cline Pass fleet (cline-fleet.enabled). Credit budget doc required; no auto-push."
+    },
+    {
+      "subtaskId": "evolver-arm",
+      "approved": true,
+      "scope": "evolver-global",
+      "reason": "Owner 2026-06-30: evolver.enabled lifts role floor for self-governable evolver subtasks; oracle gate on doctrine edits remains."
+    }
+  ]
+}

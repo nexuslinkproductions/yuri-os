@@ -46,6 +46,55 @@ export const PROTECTED_SURFACE_PREFIXES = Object.freeze([
 
 export const PROTECTED_SURFACE_LABELS = PROTECTED_SURFACE_PREFIXES;
 
+// Canonical role/credential/guard TRUST surface — semantically DISTINCT from
+// PROTECTED_SURFACE_PREFIXES. PROTECTED_SURFACE_PREFIXES is a UNIVERSAL read/write
+// block (data + secrets) enforced for everyone via isProtectedPath(). ROLE_TRUST_SURFACES
+// is a COWORKER-ONLY mutation block: the role resolver, the credential hash, and every
+// enforcement hook. The dev/owner role edits these freely (e.g. this guard-hardening work),
+// so they MUST NOT be folded into PROTECTED_SURFACE_PREFIXES or the owner could never edit a
+// hook again. Single-sourced here so bash-security-guard.js (PROTECTED_ROLE_PATHS) and
+// operator-write-guard.js (PROTECTED_ROLE_FILES/DIRS) stop maintaining divergent copies.
+// `files` = exact-path targets; `dirs` = directory prefixes (entry may not exist yet).
+// This is the UNION (fail-closed): operator-write-guard's list was already the superset, so
+// folding bash-security-guard onto it EXPANDS bash coverage from 4 -> the full surface.
+export const ROLE_TRUST_SURFACES = Object.freeze({
+  files: Object.freeze([
+    // trust roots — role resolver + credential hash + this kernel itself.
+    // lane-kernel.mjs DEFINES this surface, so it must be a member: otherwise a
+    // coworker could rm/rewrite the kernel to shrink the protected set out from
+    // under both role guards. Self-protect the trust root.
+    '_SYSTEM/Scripts/lane-kernel.mjs',
+    '_SYSTEM/Scripts/yuri-operator.cjs',
+    '_SYSTEM/SELF/dev-credential.json',
+    // enforcement guards — every PreToolUse hook whose job is enforcement, so a coworker
+    // cannot Edit/Bash-mutate one guard to neuter it. Includes the guards themselves.
+    '.claude/hooks/bash-security-guard.js',
+    '.claude/hooks/claude-protocol-guard.js',
+    '.claude/hooks/claude-protocol-guard.mjs',
+    '.claude/hooks/agent-spawn-guard.js',
+    '.claude/hooks/tirith-url-guard.js',
+    // B3 (peer red-team catch): the energy gate's own enforcement code — PEP + tick. A coworker
+    // could Edit these to neuter the breaker (the rm vector is already caught by the blanket
+    // .claude destructive-op rule, but the Edit-tool vector was open). Same enforcement class as
+    // the guards above, so they belong in the trust surface; dev/owner edits freely.
+    '.claude/hooks/energy-enforce.mjs',
+    '.claude/hooks/energy-tick.mjs',
+    // wave-3 G.1 (D-G1): the hook REGISTRY itself — a coworker editing settings.json
+    // can delete every guard registration above, so the registry is a trust root too.
+    '.claude/settings.json',
+    '.claude/settings.local.json',
+    // B3 (energy-enforce arm hardening): the arm flag itself — a coworker must not be able to
+    // `rm` it to silently self-disarm a live armed gate. dev/owner flips it freely (the arm act).
+    '_SYSTEM/state/energy-enforce.enabled',
+  ]),
+  dirs: Object.freeze([
+    '.claude/hooks/operator-guard',
+    // B3: the breaker snapshot dir — a coworker must not inject a forged CLOSED-breaker snap via
+    // Bash to self-bypass the armed gate. The hooks write here via fs (unaffected by the bash guard).
+    '_SYSTEM/state/energy-session',
+  ]),
+});
+
 // Canonical control-file surfaces — distinct from PROTECTED_SURFACE_PREFIXES (which are
 // read/write BLOCK surfaces like backend/data and secrets). These are core governance files
 // that may be edited, but a direct mutation should carry a control packet. Single-sourced here
@@ -57,45 +106,19 @@ export const CONTROL_FILE_PREFIXES = Object.freeze([
   'AGENTS.md',
   'CODEX_PROTOCOL.md',
   'CLAUDE.md',
-  '_SYSTEM/Scripts/pulse-orchestrator',
-  '_SYSTEM/Scripts/offload-contract',
+  // pulse-orchestrator removed (wave-2 D-C2): file deleted — a dead file needs no mutation protection.
+  '_SYSTEM/Scripts/llm-compat-contract',
   '_SYSTEM/Scripts/lane-kernel',
   '_SYSTEM/Scripts/neuron-loop',
 ]);
 
-export const ACTIVE_NIM_LANES = Object.freeze([
-  'nvidia-llama-70b',
-  'nvidia-qwen',
-  'nvidia-mistral-medium',
-  'nvidia-mistral-large',
-  'nvidia-nemotron-120b',
-  'nvidia-nemotron-super-49b',
-  'nvidia-nemotron-nano-30b',
-  'nvidia-nemotron-nano-vl-8b',
-  'nvidia-nemotron-mini-4b',
-  'nvidia-mistral-nemotron',
-  'nvidia-dracarys',
-  'nvidia-minimax-m27',
-  'nvidia-gpt-oss-120b',
-  'nvidia-ising',
-  'nvidia-gemma',
-  'nvidia-kimi',
-  'nvidia-qwen-coder',
-  'nvidia-qwen-397b',
-  'nvidia-qwen3-next',
-  'nvidia-vision',
-  'nvidia-vision-90b',
-  'nvidia-llama4-maverick',
-]);
+// NVIDIA NIM lanes (nemotron, kimi) retired 2026-06-10 — the advisory reasoning lane is now
+// Xiaomi Mimo (token-plan, Anthropic Messages API), which is NOT a NIM lane. No active NIM lanes remain.
+export const ACTIVE_NIM_LANES = Object.freeze([]);
 
 export const DEAD_NIM_LANES = Object.freeze([
-  'nvidia-nemotron',
-  'nvidia-phi',
-  'nvidia-llama-405b',
-  'nvidia-embed',
-  'nvidia-magistral-small',
-  'nvidia-qwen-coder-32b',
-  'nvidia-usdcode',
+  'nemotron-3-ultra-550b-a55b',
+  'kimi-k2.6',
 ]);
 
 export const NEMO_STYLE_RAILS = Object.freeze({
@@ -110,24 +133,14 @@ export const SHINTAI_SUPERAUDIT_MEMBER_IDS = Object.freeze([
   'codex',
   'deepseek',
   'claude-opus-audit',
-  'nemotron',
-  'mistral-large',
-  'qwen-coder',
-  'minimax-m27',
-  'qwen3-next',
-  'mistral-medium',
+  'mimo',
 ]);
 
 export const SHINTAI_MEMORY_RAG_MEMBER_IDS = Object.freeze([
   'codex',
   'deepseek',
   'claude-opus-audit',
-  'nemotron',
-  'qwen-397b',
-  'mistral-large',
-  'gpt-oss-120b',
-  'minimax-m27',
-  'qwen-coder',
+  'mimo',
 ]);
 
 export const SHINTAI_REQUIRED_MEMBER_IDS = Object.freeze(['codex', 'deepseek']);
@@ -173,7 +186,7 @@ export const LANE_KERNEL = Object.freeze({
     reasoning: 'xhigh',
     contextTier: 'large',
     dispatchArgs: ['offload', '--model', 'deepseek-v4-pro'],
-    assignment: 'First synthesis gate via direct DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out. NVIDIA DeepSeek fallback is retired.',
+    assignment: 'First synthesis gate via direct DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: false },
   },
   'claude-opus-audit': {
@@ -189,244 +202,16 @@ export const LANE_KERNEL = Object.freeze({
     assignment: 'Wake Claude with Haiku, continue Opus 4.7 max-reasoning co-main session, draft or apply scoped code/tests/docs. Codex must independently verify every Opus change before trust.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: true, edit: true },
   },
-  nemotron: {
-    id: 'nemotron',
-    lane: 'nvidia-nemotron-120b',
-    model: 'nvidia/nemotron-3-super-120b-a12b',
-    provider: 'nvidia',
+  mimo: {
+    id: 'mimo',
+    lane: 'mimo-v2.5-pro[1m]',
+    model: 'mimo-v2.5-pro[1m]',
+    provider: 'xiaomi-mimo-token-plan',
     role: 'long-horizon-orchestrator',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b'],
-    assignment: 'Long-horizon control-plane architecture and NeMo-style rail mapping.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'nemotron-nano-30b': {
-    id: 'nemotron-nano-30b',
-    lane: 'nvidia-nemotron-nano-30b',
-    model: 'nvidia/nemotron-3-nano-30b-a3b',
-    provider: 'nvidia',
-    role: 'fast-reasoning-orchestrator',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-nano-30b'],
-    assignment: 'Fast Nemotron reasoning lane for triage, contradiction checks, and lightweight guardrail audits.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'nemotron-super-49b': {
-    id: 'nemotron-super-49b',
-    lane: 'nvidia-nemotron-super-49b',
-    model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-    provider: 'nvidia',
-    role: 'daily-reasoning-orchestrator',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-super-49b'],
-    assignment: 'Default Nemotron workhorse for daily Shintai reasoning when 120B is unnecessary.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'nemotron-nano-vl-8b': {
-    id: 'nemotron-nano-vl-8b',
-    lane: 'nvidia-nemotron-nano-vl-8b',
-    model: 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1',
-    provider: 'nvidia',
-    role: 'cheap-visual-probe',
-    reasoning: 'low',
-    contextTier: 'small',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-nano-vl-8b'],
-    assignment: 'Low-cost visual probe before escalating screenshot and design audits to larger vision lanes.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'nemotron-mini-4b': {
-    id: 'nemotron-mini-4b',
-    lane: 'nvidia-nemotron-mini-4b',
-    model: 'nvidia/nemotron-mini-4b-instruct',
-    provider: 'nvidia',
-    role: 'sentinel-classifier',
-    reasoning: 'low',
-    contextTier: 'small',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-mini-4b'],
-    assignment: 'Ultra-cheap sentinel for routing, labels, smoke checks, and stale-lane triage.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'mistral-large': {
-    id: 'mistral-large',
-    lane: 'nvidia-mistral-large',
-    model: 'mistralai/mistral-large-3-675b-instruct-2512',
-    provider: 'nvidia',
-    role: 'frontier-reasoning-reviewer',
-    reasoning: 'high',
-    contextTier: 'huge',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large'],
-    assignment: 'Stress-test the full merge architecture, large-context contradictions, and failure modes.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'mistral-medium': {
-    id: 'mistral-medium',
-    lane: 'nvidia-mistral-medium',
-    model: 'mistralai/mistral-medium-3.5-128b',
-    provider: 'nvidia',
-    role: 'system-audit-reviewer',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium'],
-    assignment: 'Review routing simplification, fallback policy, and operational clarity.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'mistral-nemotron': {
-    id: 'mistral-nemotron',
-    lane: 'nvidia-mistral-nemotron',
-    model: 'mistralai/mistral-nemotron',
-    provider: 'nvidia',
-    role: 'guardrail-planning-critic',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-nemotron'],
-    assignment: 'Hybrid Mistral/Nemotron critic for guardrail planning, control-plane stress tests, and contradiction review.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'magistral-small': {
-    id: 'magistral-small',
-    lane: 'nvidia-magistral-small',
-    model: 'mistralai/magistral-small-2506',
-    provider: 'nvidia',
-    role: 'fast-reasoning-critic',
-    reasoning: 'medium',
-    contextTier: 'medium',
-    dispatchArgs: ['offload', '--model', 'nvidia-magistral-small'],
-    assignment: 'Compact reasoning-specialized critic for cheap review passes and routing sanity checks.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'qwen-coder': {
-    id: 'qwen-coder',
-    lane: 'nvidia-qwen-coder',
-    model: 'qwen/qwen3-coder-480b-a35b-instruct',
-    provider: 'nvidia',
-    role: 'code-refactor-specialist',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
-    assignment: 'Design the minimal refactor path and regression tests for the lane kernel merge.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'qwen-coder-32b': {
-    id: 'qwen-coder-32b',
-    lane: 'nvidia-qwen-coder-32b',
-    model: 'qwen/qwen2.5-coder-32b-instruct',
-    provider: 'nvidia',
-    role: 'cheap-code-specialist',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder-32b'],
-    assignment: 'Cheaper coding fallback for focused diffs, regression tests, and code review when Qwen Coder 480B is overkill.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'qwen-397b': {
-    id: 'qwen-397b',
-    lane: 'nvidia-qwen-397b',
-    model: 'qwen/qwen3.5-397b-a17b',
-    provider: 'nvidia',
-    role: 'large-reasoning-generalist',
-    reasoning: 'high',
-    contextTier: 'huge',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-397b'],
-    assignment: 'Large Qwen reasoning lane for broad architecture review, synthesis pressure, and code-adjacent audit.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'gpt-oss-120b': {
-    id: 'gpt-oss-120b',
-    lane: 'nvidia-gpt-oss-120b',
-    model: 'openai/gpt-oss-120b',
-    provider: 'nvidia',
-    role: 'deep-generalist',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-gpt-oss-120b'],
-    assignment: 'Adversarial large-model reviewer for memory/RAG simplification, skill recall drift, and overcoupled system plans.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  glm: {
-    id: 'glm',
-    lane: 'nvidia-glm',
-    model: 'z-ai/glm-5.1',
-    provider: 'nvidia',
-    role: 'long-document-memory-auditor',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-glm'],
-    assignment: 'Explicit-only legacy long-document lane. Do not use in default Shintai council until reliability is reprobed.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'minimax-m27': {
-    id: 'minimax-m27',
-    lane: 'nvidia-minimax-m27',
-    model: 'minimaxai/minimax-m2.7',
-    provider: 'nvidia',
-    role: 'long-context-replacement-auditor',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-minimax-m27'],
-    assignment: 'Replace unreliable GLM in Shintai long-document and memory/RAG audits; challenge naming drift, docs consistency, and evidence contracts.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'qwen3-next': {
-    id: 'qwen3-next',
-    lane: 'nvidia-qwen3-next',
-    model: 'qwen/qwen3-next-80b-a3b-instruct',
-    provider: 'nvidia',
-    role: 'state-machine-specialist',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next'],
-    assignment: 'Renderer, PTY, stream batching, resize, and terminal-state regression design.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'nvidia-ising': {
-    id: 'nvidia-ising',
-    lane: 'nvidia-ising',
-    model: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
-    provider: 'nvidia',
-    role: 'fast-classifier',
-    reasoning: 'low',
-    contextTier: 'small',
-    dispatchArgs: ['offload', '--model', 'nvidia-ising'],
-    assignment: 'Fast routing and health triage only.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'llama4-maverick': {
-    id: 'llama4-maverick',
-    lane: 'nvidia-llama4-maverick',
-    model: 'meta/llama-4-maverick-17b-128e-instruct',
-    provider: 'nvidia',
-    role: 'multimodal-generalist',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-llama4-maverick'],
-    assignment: 'General multimodal wildcard for broad reviews when specialist lanes disagree.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  'vision-90b': {
-    id: 'vision-90b',
-    lane: 'nvidia-vision-90b',
-    model: 'meta/llama-3.2-90b-vision-instruct',
-    provider: 'nvidia',
-    role: 'visual-introspection-specialist',
-    reasoning: 'high',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-vision-90b'],
-    assignment: 'High-capacity visual-introspection lane for screenshots, UI audits, presentation polish, and design-system checks.',
-    tools: FULL_ADVISORY_TOOLS,
-  },
-  usdcode: {
-    id: 'usdcode',
-    lane: 'nvidia-usdcode',
-    model: 'nvidia/usdcode',
-    provider: 'nvidia',
-    role: 'scene-graph-3d-specialist',
-    reasoning: 'medium',
-    contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-usdcode'],
-    assignment: 'USD and 3D scene specialist for future Kagami motion/3D mechanics and Omniverse-style scene planning.',
+    reasoning: 'xhigh',
+    contextTier: 'million',
+    dispatchArgs: ['llm', 'mimo'],
+    assignment: 'Long-horizon control-plane architecture, long-context synthesis, coding, and continuity review through Xiaomi Mimo (mimo-v2.5-pro[1m], Anthropic Messages API, 1M context, max effort). First-class lane with the SAME FULL CAPABILITIES as Claude Code — a complete agentic peer (`ai claude-mimo`), not advisory-only.',
     tools: FULL_ADVISORY_TOOLS,
   },
 });
@@ -494,7 +279,7 @@ export function buildSuperauditDeployment() {
       'codex-updates-deployment-packet',
       'claude-haiku-wake',
       'claude-opus-comain',
-      'parallel-nim-shintai-fanout',
+      'parallel-advisory-fanout',
       'codex-synthesis-local-verification-and-opus-double-check',
     ],
     members,

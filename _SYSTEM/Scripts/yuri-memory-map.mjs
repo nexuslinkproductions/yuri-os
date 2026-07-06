@@ -28,16 +28,9 @@ const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.yuri', 'workhorse-runs')
 const ARCHIVE_DIR = '_SYSTEM/yuri-history-archive'
 const MANIFEST_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'manifest_2026-05-03_30.json')
 const CLASSIFICATION_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'classification_2026-05-03_30.md')
-const GRAPHFY_DIR = 'graphify-out'
 const MODEL_REGISTRY_PATH = '_SYSTEM/model-registry.md'
 
-const GRAPHFY_EXPECTED = [
-  'graph.json', 'v2_graph.json', 'v3_graph.json', 'ruflo_core_graph.json',
-  'GRAPH_REPORT.md', 'V2_GRAPH_REPORT.md', 'V3_GRAPH_REPORT.md', 'RUFLO_CORE_REPORT.md',
-  'cost.json',
-]
-
-const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets', 'graphify', 'model-registry', 'memory-governor'])
+const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets', 'model-registry', 'memory-governor'])
 
 main()
 
@@ -84,7 +77,7 @@ function printHelp() {
     '  node _SYSTEM/Scripts/yuri-memory-map.mjs --surface <name>  Single surface',
     '  node _SYSTEM/Scripts/yuri-memory-map.mjs --help       This message',
     '',
-    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, graphify, model-registry, memory-governor',
+    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, model-registry, memory-governor',
   ]
   stdout.write(lines.join('\n') + '\n')
 }
@@ -97,7 +90,6 @@ function writeInventory() {
     inventoryWorkhorse(),
     inventoryClaudeRuntime(),
     inventorySecrets(),
-    inventoryGraphify(),
     inventoryModelRegistry(),
     inventoryMemoryGovernor(),
   ]
@@ -114,7 +106,6 @@ function writeSurface(name) {
     workhorse: inventoryWorkhorse,
     'claude-runtime': inventoryClaudeRuntime,
     secrets: inventorySecrets,
-    graphify: inventoryGraphify,
     'model-registry': inventoryModelRegistry,
     'memory-governor': inventoryMemoryGovernor,
   }
@@ -299,38 +290,6 @@ function dirFiles(dirPath) {
   } catch {
     return ['error']
   }
-}
-
-function inventoryGraphify() {
-  const graphifyPath = path.join(REPO_ROOT, GRAPHFY_DIR)
-  if (!fs.existsSync(graphifyPath)) {
-    return 'SURFACE: graphify TIER: GENERATED_CONTEXT STATUS: not_found PATH: graphify-out DETAILS: graphify-out dir missing'
-  }
-
-  let graphCount = 0
-  let reportCount = 0
-  let costCount = 0
-  let missingFiles = []
-
-  for (const name of GRAPHFY_EXPECTED) {
-    const full = path.join(graphifyPath, name)
-    if (fs.existsSync(full)) {
-      if (name.endsWith('.json') && name !== 'cost.json') graphCount += 1
-      else if (name.endsWith('.md')) reportCount += 1
-      else if (name === 'cost.json') costCount += 1
-    } else {
-      missingFiles.push(name)
-    }
-  }
-
-  const parts = [`graphs=${graphCount}`, `reports=${reportCount}`, `cost_file=${costCount}`]
-  if (missingFiles.length > 0) {
-    parts.push(`missing=${missingFiles.join(',')}`)
-  } else {
-    parts.push('all_expected_present')
-  }
-
-  return `SURFACE: graphify TIER: GENERATED_CONTEXT STATUS: reachable PATH: graphify-out DETAILS: ${parts.join(' | ')}`
 }
 
 function inventoryModelRegistry() {

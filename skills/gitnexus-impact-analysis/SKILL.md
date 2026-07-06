@@ -95,3 +95,7 @@ gitnexus_detect_changes({scope: "staged"})
 
 3. Risk: 2 direct callers, 2 processes = MEDIUM
 ```
+
+## Session Notes
+
+- 2026-06-16 — Safety analysis before editing code; use when the user asks what will break if they change something or needs impact analysis.

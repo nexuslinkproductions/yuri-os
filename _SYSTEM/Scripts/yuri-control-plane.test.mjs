@@ -16,14 +16,16 @@ test('Gate 0 loads required control-plane evidence before Shintai dispatch', () 
   assert.deepEqual(gate.missing, []);
   assert.deepEqual(gate.requiredMissing, []);
   assert.deepEqual(gate.blocked, []);
-  for (const requiredId of ['shintai-roster', 'yuri-memory-index', 'extraction-sprint-template']) {
+  for (const requiredId of ['yuri-memory-index', 'extraction-sprint-template']) {
     assert.ok(gate.loaded.some((entry) => entry.id === requiredId), `${requiredId} should load`);
   }
   assert.equal(gate.constraints.taskTierHint, 'critical');
-  assert.ok(gate.constraints.activeNimLanes.includes('nvidia-nemotron-120b'));
-  assert.ok(gate.constraints.deadNimLanes.includes('nvidia-nemotron'));
+  // NIM lanes were retired in the Mimo migration: ACTIVE_NIM_LANES is now empty and the dead set
+  // carries the retired NVIDIA/Kimi reasoning lanes (nemotron-3-ultra-550b-a55b, kimi-k2.6).
+  assert.deepEqual(gate.constraints.activeNimLanes, []);
+  assert.ok(gate.constraints.deadNimLanes.includes('nemotron-3-ultra-550b-a55b'));
+  assert.ok(gate.constraints.deadNimLanes.includes('kimi-k2.6'));
   assert.ok(gate.warnings.every((entry) => entry.id !== 'memory-rag-skill-research'));
-  assert.ok(gate.constraints.requiredEvidenceIds.includes('shintai-roster'));
 });
 
 test('Gate 0 fails closed when required evidence is missing', () => {
@@ -107,7 +109,9 @@ test('control-plane constraint block carries current authority and lane policy',
   assert.equal(preflight.ok, true);
   assert.match(block, /Codex\/main assembles/);
   assert.match(block, /cyber-intel-matrix/);
-  assert.match(block, /dead_nim=.*nvidia-nemotron/);
+  // Dead NIM line now reflects the retired NVIDIA/Kimi reasoning lanes post-Mimo migration.
+  assert.match(block, /dead_nim=.*nemotron-3-ultra-550b-a55b/);
+  assert.match(block, /dead_nim=.*kimi-k2\.6/);
   assert.match(block, /no DeepSeek CLI --tools forcing/);
   assert.doesNotMatch(block, /codex-spark default/i);
 });

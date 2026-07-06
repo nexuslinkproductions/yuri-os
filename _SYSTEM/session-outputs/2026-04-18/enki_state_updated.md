@@ -63,7 +63,7 @@ Add:
 
 The following sections are accurate and do not need modification:
 - Constraints section (Time/Energy/Money) — accurate, detailed, actionable
-- All three Focus domains (On-Set Capture, Skill Development, Income Pipeline)
+- Both remaining Focus domains (Skill Development, Income Pipeline)
 - Core guidance rules (one action per response, no monument-building, style specs)
 
 ---

@@ -8,9 +8,7 @@
 
 YURI is not a typical codebase, a simple wrapper for Claude, or a standard automation tool. It is a **Self-Evolving Neural Empire**—a hyper-automated digital agency operating as a multi-agent swarm. 
 
-Instead of relying on a single AI model to execute tasks sequentially (which leads to context rot and hallucination), YURI breaks complex production and operational tasks down and distributes them to specialized AI "workers." These workers operate within a strictly governed environment, guided by an autonomous heartbeat, spatial graph memory, and rigorous safety protocols. 
-
-For the C2MovieZ pipeline, YURI acts as the invisible backend infrastructure: instantly syncing project briefs, managing massive file hierarchies, tracking metadata, and preparing environments so Marcel can focus entirely on the physical craft of on-set execution.
+Instead of relying on a single AI model to execute tasks sequentially (which leads to context rot and hallucination), YURI breaks complex operational tasks down and distributes them to specialized AI "workers." These workers operate within a strictly governed environment, guided by an autonomous heartbeat, spatial graph memory, and rigorous safety protocols. 
 
 ---
 
@@ -18,7 +16,7 @@ For the C2MovieZ pipeline, YURI acts as the invisible backend infrastructure: in
 
 YURI routes tasks through five foundational sub-systems, known as the Pantheon. Each persona acts as an independent sub-agent with a strict operational boundary.
 
-*   **ENKI (The Strategist):** Handles high-level creative direction, project planning, and the synthesis of client briefs (e.g., from the C2MovieZ database).
+*   **ENKI (The Strategist):** Handles high-level creative direction, project planning, and the synthesis of client briefs.
 *   **YURI (The Architect):** The execution layer. Handles the actual generation of code, file sorting, proxy structure generation, and physical vault construction.
 *   **NABU (The Codifier):** The routing intelligence. Determines which specific operational blueprint to use for a given task, estimating token costs, and managing governance.
 *   **NISABA (The Measurer):** The deployment goddess. Oversees the sub-agents during execution, measures code quality, and operates the testing protocols.
@@ -37,7 +35,7 @@ Standard AI systems "forget" project details when the conversation resets. YURI 
 
 ### 3.2. Multimedia RAG & Video Ingestion (VideoDB)
 YURI's Retrieval-Augmented Generation (RAG) is not limited to text. Using the local **VideoDB** skill integration, YURI can native ingest raw video files, YouTube URLs, and RTSP live streams.
-*   **Capabilities:** The swarm automatically transcribes audio, builds semantic scene indexes, and pulls exact timestamps from raw footage. This allows the AI to literally "watch" the commercial shoots.
+*   **Capabilities:** The swarm automatically transcribes audio, builds semantic scene indexes, and pulls exact timestamps from ingested media.
 
 ### 3.3. Autonomous Execution (EvoNexus Heartbeat)
 YURI is biologically active. It does not wait for a user prompt to function.
@@ -64,7 +62,6 @@ Operating an AI swarm costs money (API Tokens). Project 0 implemented a fully au
 
 ## 5. Active Implementations
 
-*   **C2MovieZ Bidirectional Sync:** A live sync established between Claudio's GitHub-hosted client vault and Marcel's local system. When Claudio updates a Tier 1 Retainer brief, YURI pulls the data and autonomously prepares the shot lists and billing structures.
 *   **Automated Routines:** Two executable routines (`morning-briefing.js` and `graph-optimizer.js`) actively manage the health of the vault and provide the user with daily action summaries.
 *   **Node.js Lifecycle Hooks:** The system tracks the exact start and stop times of every active agent within the `.claude/hooks/` architecture, providing a live registry of "who" is working on what.
 
@@ -73,9 +70,4 @@ Operating an AI swarm costs money (API Tokens). Project 0 implemented a fully au
 ## 6. Strategic Roadmap (The Next 90 Days)
 
 ### PROJECT 4: The EvoNexus Vessel (Physical Dashboard)
-Currently, YURI operates via the command line and Markdown documents. The immediate trajectory is to construct the **EvoNexus Vessel**—a fully visual, interactive app (Electron/Next.js) acting as the Command Center. This will allow Marcel and Claudio to visually track the Swarm, view the GitNexus node map, and drag-and-drop production workflows in real time.
-
-### Pre-Production Generative Video Pipelines
-With VideoDB integrated, the next phase involves connecting YURI to Ultra-Realism AI Video generation models (like Kling or Sora). 
-*   **Constraint:** The AI will **never** generate final B-Roll. 
-*   **Objective:** The Swarm will automatically ingest a C2MovieZ client brief and generate visual storyboards, moodboards, and style frames overnight, giving Marcel a complete pre-production toolkit before he even arrives on set.
+Currently, YURI operates via the command line and Markdown documents. The immediate trajectory is to construct the **EvoNexus Vessel**—a fully visual, interactive app (Electron/Next.js) acting as the Command Center. This will allow Marcel to visually track the Swarm, view the GitNexus node map, and drag-and-drop workflows in real time.

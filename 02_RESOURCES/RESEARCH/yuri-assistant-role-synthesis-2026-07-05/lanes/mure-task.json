@@ -1,0 +1,17 @@
+{
+  "summary": "Solidify Yuri's role as Marcel's personal AI assistant (front-end to all of YURI) and design a solid-but-minimal setup without over-engineering; adapt René's proven assistant-role architecture, drop all CGS specifics.",
+  "tags": ["assistant-role", "yuri", "no-over-engineering", "prep"],
+  "subtasks": [
+    {"id": "role-crystallize", "need": ["requirement-spec", "goal-tree", "intent-ranking"], "reversible": true, "blastRadius": "LOW", "prompt": "Crystallize Yuri's assistant ROLE from Marcel's + René's questionnaires (drop CGS): one role statement + the CEO/COO operating contract."},
+    {"id": "arch-map", "need": ["mechanism-mapping", "architecture-design"], "reversible": true, "blastRadius": "LOW", "prompt": "Map current Yuri architecture (GLM-5.2 brain, voice, computer-use, memory) LIVE/PARTIAL/STUB and the minimal setup shape."},
+    {"id": "gap-analysis", "need": ["gap-detection", "adversarial-verify"], "reversible": true, "blastRadius": "LOW", "prompt": "Gap-analyze the two questionnaires vs current capabilities; rank missing pieces by leverage; flag over-engineering."},
+    {"id": "persona-gate", "need": ["technical-writing", "doc-generation"], "reversible": true, "blastRadius": "LOW", "prompt": "Draft externalized yuri-persona.md + yuri-confirm-gate.json mirroring the Jeffrey structure, adapted to Marcel."},
+    {"id": "memory-policy", "need": ["memory-curation"], "reversible": true, "blastRadius": "LOW", "prompt": "Consolidate NEURO_CORE + Track A/B + canonical + nothing-expires into one minimal Yuri memory policy."},
+    {"id": "confirm-gate-safety", "need": ["governance-gate", "blast-radius-calc", "doctrine-check"], "reversible": true, "blastRadius": "LOW", "prompt": "Bind Yuri's confirm-gate to the Self-Governance Charter's 6-gate test; define highest-stakes classes."},
+    {"id": "dispatch-map", "need": ["dispatch-planning", "capability-routing"], "reversible": true, "blastRadius": "LOW", "prompt": "Reference for how Yuri as conductor dispatches across MURE/glm/ollama/deepseek/native substrates."},
+    {"id": "anti-overeng-audit", "need": ["adversarial-verify", "failure-mode-naming"], "reversible": true, "blastRadius": "LOW", "prompt": "Adversarially audit the whole setup for over-engineering traps; produce an explicit CUT list."},
+    {"id": "provider-pacing", "need": ["token-accounting", "quota-routing", "budget-cap"], "reversible": true, "blastRadius": "LOW", "prompt": "Design minimal per-provider metering + pacing (Anthropic/z.ai/ollama) to burn weekly quota without a hard cap."},
+    {"id": "improvement-proposals", "need": ["improvement-proposal", "convergence-naming"], "reversible": true, "blastRadius": "LOW", "prompt": "Propose the top improvements ranked by leverage; name the convergence across lanes."},
+    {"id": "security-audit", "need": ["security-review", "protected-path-audit"], "reversible": true, "blastRadius": "LOW", "prompt": "Audit the data-routing/secret-masking/protected-path posture for a full-access assistant."}
+  ]
+}

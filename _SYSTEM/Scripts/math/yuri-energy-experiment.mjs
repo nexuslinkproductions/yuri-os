@@ -174,6 +174,7 @@ export function evaluateTransitions(transitions, {
     const computeUResult = computeU(stateAfter, weights);
     const computeDeltaUResult = computeDeltaU(stateBefore, stateAfter, weights);
     const gateProposalResult = gateProposal({
+      origin: 'experiment',
       stateBefore,
       stateAfter,
       weights,

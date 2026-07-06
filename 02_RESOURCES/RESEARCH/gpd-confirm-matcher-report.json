@@ -1,0 +1,90 @@
+{
+  "experiment": "gpd-confirm-matcher — ALL corpora (predict-vs-realize recall value)",
+  "nonCircular": "predictor = matchLSH (cheap approx); scorer = matchPrefixFilter (exact complete); held-out cues disjoint from index.",
+  "perCorpus": [
+    {
+      "name": "search-index (research+docs+code, 39k)",
+      "indexed": 1870,
+      "cues": 200,
+      "meanAbsErr_top1": 0,
+      "coverage_0p15": 1,
+      "exactCompleteRate": 1,
+      "top1": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "signals": {
+        "rTop1": 1,
+        "sTop1": 1,
+        "rConc": 1,
+        "sConc": 1
+      },
+      "medianSignal": 1,
+      "maxSignal": 1,
+      "tieFraction": 0.955,
+      "tieDominated": true,
+      "tieReason": "tie-dominated signal — modal pred value covers >50% of cues; verdict capped at PARTIAL",
+      "verdict": "PARTIAL"
+    },
+    {
+      "name": "bug-bounty (9,487 disclosed reports)",
+      "indexed": 1870,
+      "cues": 200,
+      "meanAbsErr_top1": 0.001,
+      "coverage_0p15": 0.995,
+      "exactCompleteRate": 1,
+      "top1": {
+        "pearson": 0.9978,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 0.9215,
+        "spearman": 0.9588
+      },
+      "signals": {
+        "rTop1": 0.9978,
+        "sTop1": 1,
+        "rConc": 0.9215,
+        "sConc": 0.9588
+      },
+      "medianSignal": 0.9783,
+      "maxSignal": 1,
+      "tieFraction": 0.105,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "name": "code corpus (modules+symbols)",
+      "indexed": 1261,
+      "cues": 200,
+      "meanAbsErr_top1": 0,
+      "coverage_0p15": 1,
+      "exactCompleteRate": 1,
+      "top1": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "concentration": {
+        "pearson": 1,
+        "spearman": 1
+      },
+      "signals": {
+        "rTop1": 1,
+        "sTop1": 1,
+        "rConc": 1,
+        "sConc": 1
+      },
+      "medianSignal": 1,
+      "maxSignal": 1,
+      "tieFraction": 0.21,
+      "verdict": "CONFIRMED"
+    }
+  ],
+  "aggregateMedianSignal": 0.9928,
+  "overallVerdict": "CONFIRMED (aggregate)",
+  "honestCaveat": "LSH and exact-Jaccard estimate the same underlying similarity, so high correlation is strong-but-expected — it confirms the recall-grounding PREREQUISITE (cheap estimate ≈ true value) across diverse real data, not the full GPD ΔU loop.",
+  "interpretation": "Mixed — see per-corpus; recall-grounding holds where CONFIRMED."
+}

@@ -44,6 +44,21 @@ function findGitNexusDir(startDir) {
 }
 
 /**
+ * True if the working dir is inside a git worktree under .claude/worktrees/.
+ * Worktree lanes must NOT be advised to run `gitnexus analyze`: analyze from a
+ * worktree cwd registers that worktree as a duplicate same-named repo in the
+ * GLOBAL registry, doubling every other lane's MCP startup → pre-commit
+ * detect_changes timeout (the parallel-session footgun, 2026-06-13, see
+ * 02_RESOURCES/RESEARCH/parallel-session-hardening-2026-06-13). The shared graph
+ * is the main checkout's responsibility; worktree lanes get advisory-only impact
+ * analysis off the main index and must never reindex it. gitnexus-mcp.mjs prunes
+ * such pollution self-healingly; this stops it being advised in the first place.
+ */
+function isWorktreeCwd(cwd) {
+  return typeof cwd === 'string' && cwd.includes('/.claude/worktrees/');
+}
+
+/**
  * Extract search pattern from tool input.
  */
 function extractPattern(toolName, toolInput) {
@@ -108,7 +123,7 @@ function extractPattern(toolName, toolInput) {
  * 3. Fall back to npx (returns empty string)
  */
 function resolveCliPath() {
-  let cliPath = "/Users/marcelspatz/YURI-OS-MUSUBI/node_modules/gitnexus/dist/cli/index.js";
+  let cliPath = path.resolve(__dirname, '..', '..', '..', 'node_modules', 'gitnexus', 'dist', 'cli', 'index.js');
   if (!fs.existsSync(cliPath)) {
     try {
       cliPath = require.resolve('gitnexus/dist/cli/index.js');
@@ -194,8 +209,39 @@ function sendHookResponse(hookEventName, message) {
  * lastCommit stored in `.gitnexus/meta.json`. If they differ, notify the
  * agent so it can decide when to reindex.
  */
+// wave-2 R.10: file edits leave the structural index stale long before any git
+// mutation fires the Bash-path warning below. Warn on Edit/Write too — but
+// DEBOUNCED: a marker file inside .gitnexus/ records the last warning; we warn
+// at most once per reindex cycle (marker older than meta.json → analyze ran
+// since → warn again on the next edit). Per-edit warnings would be pure noise.
+function handleEditStaleness(input) {
+  const cwd = input.cwd || process.cwd();
+  if (!path.isAbsolute(cwd)) return;
+  if (isWorktreeCwd(cwd)) return; // worktree lanes must not be advised to reindex the shared graph
+  const gitNexusDir = findGitNexusDir(cwd);
+  if (!gitNexusDir) return;
+
+  const metaPath = path.join(gitNexusDir, 'meta.json');
+  const markerPath = path.join(gitNexusDir, 'edit-stale-warned.marker');
+  let metaMtime = 0;
+  try { metaMtime = fs.statSync(metaPath).mtimeMs; } catch { /* no meta — still worth one warning */ }
+  try {
+    if (fs.statSync(markerPath).mtimeMs > metaMtime) return; // already warned this reindex cycle
+  } catch { /* no marker yet — first warning */ }
+
+  try { fs.writeFileSync(markerPath, new Date().toISOString()); } catch { return; }
+  sendHookResponse(
+    'PostToolUse',
+    "[gitnexus] Structural index may be stale (file edits since last reindex). " +
+      "Run 'npx gitnexus analyze --skip-agents-md' if impact analysis seems off.",
+  );
+}
+
 function handlePostToolUse(input) {
   const toolName = input.tool_name || '';
+  if (toolName === 'Edit' || toolName === 'Write' || toolName === 'MultiEdit' || toolName === 'NotebookEdit') {
+    return handleEditStaleness(input);
+  }
   if (toolName !== 'Bash') return;
 
   const command = (input.tool_input || {}).command || '';
@@ -207,6 +253,7 @@ function handlePostToolUse(input) {
 
   const cwd = input.cwd || process.cwd();
   if (!path.isAbsolute(cwd)) return;
+  if (isWorktreeCwd(cwd)) return; // worktree lanes must not be advised to reindex the shared graph
   const gitNexusDir = findGitNexusDir(cwd);
   if (!gitNexusDir) return;
 
@@ -239,7 +286,10 @@ function handlePostToolUse(input) {
   // If HEAD matches last indexed commit, no reindex needed
   if (currentHead && currentHead === lastCommit) return;
 
-  const analyzeCmd = `npx gitnexus analyze${hadEmbeddings ? ' --embeddings' : ''}`;
+  // --skip-agents-md: do NOT let analyze rewrite the leaned gitnexus block in
+  // CLAUDE.md/AGENTS.md (bare analyze re-expands it to the verbose template and
+  // repoints at .claude/skills paths → fails root-architecture.test.mjs).
+  const analyzeCmd = `npx gitnexus analyze --skip-agents-md${hadEmbeddings ? ' --embeddings' : ''}`;
   sendHookResponse(
     'PostToolUse',
     `GitNexus index is stale (last indexed: ${lastCommit ? lastCommit.slice(0, 7) : 'never'}). ` +

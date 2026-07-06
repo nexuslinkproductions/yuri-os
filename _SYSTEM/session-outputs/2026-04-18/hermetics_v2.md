@@ -201,9 +201,6 @@ The principle underlying all cross-domain synthesis. Patterns that appear at one
 
 **In post-production**: The structure of a well-edited sequence mirrors the structure of a well-constructed argument: opening (establishing context), development (building complexity), turn (the pivot), resolution (where all complexity collapses into clarity). Every great edit is an argument. Every great argument can be cut. Cross-domain work from this direction produces both better edits and better client presentations.
 
-**In creative direction for MACL-ONE (premium sports clothing)**: The athletic body in motion is a visual correspondence for a specific quality of will — *disciplined force*, the physical expression of the Martian (Geburah) principle. Effective visual work for this client resonates because it activates the correct correspondence: not just *showing* the product on an attractive body but *embodying* the quality of will that makes the product meaningful. Color, motion, rhythm — everything tuned to the Martian correspondence.
-
-
 ### IV.3 — Vibration: "Nothing rests; everything moves; everything vibrates"
 
 All phenomena are differentiated by their rate of vibration. States of consciousness are rates of vibration, which can be shifted through deliberate practice.

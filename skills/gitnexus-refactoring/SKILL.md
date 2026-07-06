@@ -119,3 +119,7 @@ RETURN caller.name, caller.filePath ORDER BY caller.filePath
    → Affected: LoginFlow, TokenRefresh
    → Risk: MEDIUM — run tests for these flows
 ```
+
+## Session Notes
+
+- 2026-06-16 — Safe code restructuring; use when the user wants to rename, extract, split, move, or refactor code safely.

@@ -1,0 +1,34 @@
+I have all the evidence. Here is my findings block:
+
+---
+
+```
+AGENT 09 — Stat / math machinery (is the 0-survive verdict trustworthy?)
+SUMMARY: The DSR/BH machinery is mathematically implemented CORRECTLY but never receives actual return moments (skew/kurtosis hardcoded to normal), inflates nTrials with correlated market-clones, double-corrects for multiple-testing (DSR sr0 THEN BH on DSR-derived p-values), and the annualized Sharpe misuses √365 on per-TRADE returns — so the "0 survive" verdict is directionally honest but the gate is biased CONSERVATIVE in a way that could mask a marginal real edge.
+
+[A | HIGH | BUG] factor-reeval.mjs:282 — DSR called with {nTrials,T} but NO skew/kurtosis: deflatedSharpe(bt.sharpePeriod,{nTrials,T}). Defaults skew=0, kurtosis=3 (normal). The PSR non-normality correction (Bailey-LdP eq 6 denominator, factor-evaluator.mjs:257) is DEAD CODE — it always computes the denominator assuming Gaussian returns. FIX: compute empirical skew/kurtosis from `returns` array and pass them.
+
+[A | HIGH | DESIGN-FLAW] factor-reeval.mjs:265 + orchestrator.mjs:246 — factorId = `obs-momentum-${market}`: same strategy on 3 markets = 3 "factors" (nFactors=3) but they are NOT independent. DSR's False Strategy Theorem sr0 (factor-evaluator.mjs:248-253) assumes N INDEPENDENT trials. Correlated clones inflate nTrials → overstate sr0 expected-max → raise the survival bar beyond what independent trials warrant. FIX: effective-N via Ledoit-Wolf shrinkage or principal-variance count, not raw distinct factorIds.
+
+[A | MED | DESIGN-FLAW] factor-reeval.mjs:376 — fleetPValues = stats.map(s => 1 - s.dsr). Each p-value already embeds the nTrials selection-bias deflation (sr0). Feeding DSR-deflated p-values into BH-FDR (factor-evaluator.mjs:283) double-corrects for multiple testing: sr0 raises the bar for N trials, THEN BH raises it again for N tests. This is CONSERVATIVE (kills more than it should), which means "0 survive" is biased toward false-negatives, not false-positives. FIX: use raw t-test p-values for BH (the canonical approach) and let DSR and FDR operate at different layers, or drop the sr0 deflation when BH is active.
+
+[B | HIGH | DESIGN-FLAW] factor-evaluator.mjs:140 — sharpe = sharpePeriod * sqrt(365). But realizedReturn (trade-outcome-decoder.mjs:144) is a PER-TRADE return (entry→exit), not per-DAY. With avg hold 300s, there are ~105k trades/year; √365 annualization UNDERSTATES Sharpe by ~17×. The annualized `sharpe` field is garbage for sub-daily trade frequencies. DSR correctly uses sharpePeriod (not annualized), so the gate itself is unaffected — but the reported/diagnostic Sharpe is misleading. FIX: annualize by actual trades-per-year = secondsPerYear / avgHoldSeconds, or report per-trade SR only.
+
+[B | HIGH | MISSING-PRINCIPLE] factor-evaluator.mjs (whole module) — NO autocorrelation / HAC / Newey-West / Bartlett correction on the Sharpe standard error. Returns from overlapping hold windows are serially correlated (maxHold=300s, signals fire every cycle). The i.i.d. assumption in Var[SR]≈1/T (factor-evaluator.mjs:247) is violated → t-stats inflated → both false-positives AND false-negatives. spread-correction.mjs computes lag-1 autocorr for a DIFFERENT purpose; it is never wired into the evaluator. FIX: apply Newey-West bandwidth = hold-period-overlap count to the SE.
+
+[C | WORKING] factor-evaluator.mjs:257 — DSR denomInner formula matches Bailey-LdP 2014 eq(6) in convention (γ4=kurtosis, not excess; normal=3). The math is textbook-correct IF fed real moments. kurtosis convention is NOT a bug.
+
+[A | MED | BUG] orchestrator.mjs:1251 — reevaluateFactors called with apply:false ONLY. Lifecycle promotion (apply:true) is never invoked from any live path. Combined with A11's learn-loop concern: even if the stats were perfect, no factor ever transitions status. The "0 survive" is a DRY-RUN verdict that never exercises the real gate. FIX: wire apply:true behind the nightly beat when ledger has sufficient N.
+
+[C | WORKING] data-quality-gate.mjs — validateBar + validateSeries are sound: deterministic OHLCV invariant checks, log-return Kalman NIS gate (chi²(1)=3.84), monotonic-timestamp guard. No bugs found. This gate does not contribute to the 0-survive problem.
+
+[C | WORKING] factor-evaluator.mjs:283-317 — benjaminiHochberg implementation is textbook-correct (step-up procedure, largest-k with p_(k) ≤ (k/N)·q). The BH procedure itself is sound; the issue is what p-values it is fed (finding #3 above).
+
+[B | MED | MISSING-PRINCIPLE] whole slice — NO walk-forward (anchored or rolling), NO CSCV (Combinatorially Symmetric Cross-Validation, Bailey-LdP 2017), NO PBO (Probability of Backtest Overfitting). heldOutEvaluate (factor-evaluator.mjs:183) is a SINGLE chronological split — better than random, but one split's optimism gap is high-variance with small N. PBO/CSCV would quantify overfitting probability, which a single split cannot. FIX: implement CSCV with ≥8 folds.
+
+VERDICT for slice: KEEP the core DSR/BH math (correct implementations) + FIX the wiring (real moments, effective-N, HAC correction, per-trade annualization). The "0 survive" verdict is NOT an artifact of buggy stats — the implementations are sound. It IS biased conservative by (a) dead non-normality correction, (b) double multiple-testing correction, (c) inflated nTrials from correlated clones, and (d) missing HAC. These biases make the gate HARDER to pass, not easier — so if anything, a marginal real edge could be falsely killed. But the prior finding (~0 edge, Brier≈0.25) is robust enough that fixing these would not flip 0→N survivors; it would make the verdict more TRUSTWORTHY, not reverse it.
+
+MISSING quant principles in scope: (1) HAC/Newey-West SE for serially-correlated overlapping returns; (2) CSCV/PBO (Bailey-LdP 2017) for backtest-overfitting probability; (3) effective-N / Ledoit-Wolf shrinkage for correlated multi-market factor copies; (4) empirical higher moments (skew/kurtosis) actually fed to the PSR denominator.
+```
+
+**Bottom line for the synthesizer:** The stat machinery is well-implemented textbook math that is *systematically never fed the right inputs*. The DSR formula is correct but runs with hardcoded Gaussian moments (skew=0, kurt=3). The BH procedure is correct but operates on DSR-deflated p-values (double multiple-testing correction). nTrials counts correlated market-clones as independent. The annualized Sharpe misuses √365 on per-trade returns. None of these bugs would turn "0 survive" into "many survive" — the underlying edge is genuinely ~0 — but they make the verdict **statistically unsound as a proof of no-edge**. If Marcel later builds a factor with a real 0.3 Sharpe, this gate would likely kill it.

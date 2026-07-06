@@ -4,19 +4,16 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 
 const sessionId = Date.now();
-const sessionFile = `/tmp/claude-session-${sessionId}.json`;
-const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
+const path = require('path');
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const STATE_DIR = path.join(REPO_ROOT, '.claude/state');
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
-const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
 
 try {
-  fs.writeFileSync(sessionFile, JSON.stringify({
-    id: sessionId,
-    startTime: new Date().toISOString(),
-    toolCalls: [],
-    estimatedTokens: 0
-  }, null, 2));
-  fs.writeFileSync('/tmp/claude-current-session', sessionFile);
+  // wave-3 (owner directive 2026-06-11): token MONITORING retired — the /tmp
+  // claude-session estimator file is gone with its consumers (tool-logger,
+  // budget-check, session-end). This hook keeps session-state lifecycle init,
+  // the status-bar token-session.json reset, and the tokenmaxxing rules injection.
 
   // Reset session state for new session
   if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
@@ -42,12 +39,22 @@ try {
   try {
     const existing = JSON.parse(fs.readFileSync(stateFilePath, 'utf8'));
     if (existing?.status === 'active' && (Date.now() - new Date(existing.start_time).getTime()) < 4 * 3600 * 1000) {
-      // Active root session within 4h — skip re-init
+      // Active root session within 4h — skip re-init.
+      // DESIGN CHOICE (wave-3 T.10): subagents inside this window inherit the root's
+      // session-state, INCLUDING a context.pct that is stale for them (they have their
+      // own context window; no statusLine fires for subagents). Acceptable — subagents
+      // are bounded tasks whose context% is implicitly low at dispatch.
       throw new Error('skip');
     }
   } catch (e) { if (e.message === 'skip') { /* fall through to console.log at bottom */ throw e; } }
   let branch = '';
   try { branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['pipe','pipe','ignore'] }).trim(); } catch (_) {}
+  // wave-3 H.7 dead-field map (documentation, fields kept for shape stability):
+  //   schema_version, git.cwd, skills_written — DEAD WRITE, no runtime reader.
+  //   start_time — read ONLY by this hook's own 4h guard above.
+  //   context.last_updated — written by token-status writeContextPct (live).
+  //   aversions[] — DEAD: initialized but no hook ever writes values; readers always get [].
+  //   errors[] — ALIVE (3 runtime readers; DS claim of dead was corrected in audit §8).
   fs.writeFileSync(stateFilePath, JSON.stringify({
     schema_version: '1',
     session_id: sessionId,
@@ -65,29 +72,7 @@ try {
     errors: []
   }, null, 2));
 
-  // Initialize weekly accumulator if missing or stale (>7d)
-  let weekly = null;
-  try { weekly = JSON.parse(fs.readFileSync(WEEKLY_FILE, 'utf-8')); } catch(_) {}
-  const weekStart = getWeekStart();
-  if (!weekly || weekly.weekStart !== weekStart) {
-    fs.writeFileSync(WEEKLY_FILE, JSON.stringify({
-      weekStart,
-      inputTokens: 0,
-      outputTokens: 0,
-      totalTokens: 0,
-      cost: 0,
-      sessionCount: 0,
-      updatedAt: new Date().toISOString()
-    }, null, 2));
-  }
 } catch(e) { /* silent */ }
-
-function getWeekStart() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - d.getDay());
-  return d.toISOString().slice(0, 10);
-}
 
 // Palace retired 2026-05-29 — spatial vault index removed. Corpus lookup is the FTS5 search index.
 
@@ -95,8 +80,8 @@ function getWeekStart() {
 // Check project path first (most up-to-date), fallback to global
 const TM_PATHS = [
   `${process.cwd()}/.claude/skills/tokenmaxxing/SKILL.md`,
-  '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/tokenmaxxing/SKILL.md',
-  '/Users/marcelspatz/.claude/skills/tokenmaxxing/SKILL.md',
+  path.join(REPO_ROOT, '.claude/skills/tokenmaxxing/SKILL.md'),
+  path.join(require('os').homedir(), '.claude/skills/tokenmaxxing/SKILL.md'),
 ];
 let tokenmaxxingRules = '';
 for (const tmPath of TM_PATHS) {

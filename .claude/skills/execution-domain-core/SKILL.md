@@ -1,6 +1,7 @@
 ---
 name: execution-domain-core
-description: Scoped execution environment, task policy, and exit criteria system for Yuri OS / Yuri. Inspired by Domain Expansion, translated into enterprise-safe system behavior.
+description: "Scoped execution environment, task policy, and exit criteria system for Yuri OS / Yuri. Inspired by Domain Expansion, translated into enterprise-safe system behavior. Use when the user says 'scope this task', 'set boundaries', 'define exit criteria', 'create a domain', or 'contain this work'."
+invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -148,18 +149,6 @@ failure:
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 1m | peak ctx: 40% | compacts: 0
-- tools: Read×7, Bash×4, Edit×3
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
 - corrections: none
 - errors: none
 

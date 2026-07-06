@@ -86,3 +86,7 @@ Do not use identity-simulation or pretend-role phrasing. Replace it with objecti
 ## References
 
 See [REFERENCE.md](REFERENCE.md) for source-backed doctrine, security rules, and eval policy.
+
+## Session Notes
+
+- 2026-06-16 — Designs, audits, and optimizes prompts as task contracts with evidence, constraints, tool policy, output schemas, and evals. Use when the user asks for prompts, system instructions, prompting strategy, prompt quality, prompt optimization, RAG instructions, tool-agent instructions, or asks to avoid identity-roleplay phrasing.

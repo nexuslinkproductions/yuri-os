@@ -1,0 +1,12 @@
+{
+  "name": "yuri-overseer",
+  "displayName": "YURI Overseer",
+  "description": "Localhost bridge: lets the overseer Claude session reveal + inject prompts into the worker Claude tab in the same VS Code window.",
+  "version": "0.1.0",
+  "publisher": "yuri-os",
+  "private": true,
+  "engines": { "vscode": "^1.74.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {}
+}

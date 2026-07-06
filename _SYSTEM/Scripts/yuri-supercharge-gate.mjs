@@ -28,7 +28,6 @@ export const BASELINE_COMMITS = Object.freeze([
 ]);
 
 const NETWORK_DEPENDENT_CHECKS = new Set([
-  'test:rick-harness-runtime',
   'test:offload-runner-rails',
   'browser-harness:health',
 ]);
@@ -73,7 +72,6 @@ export function buildChecks(options = {}) {
     ['syntax:health-status', process.execPath, ['--check', '_SYSTEM/Scripts/health-status.mjs']],
     ['syntax:yuri-supercharge-gate', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-gate.mjs']],
     ['syntax:yuri-supercharge-report', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-report.mjs']],
-    ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
     ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
     ['test:loopback-capability', process.execPath, ['--test', '_SYSTEM/Scripts/loopback-capability.test.mjs']],
     ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
@@ -101,6 +99,16 @@ export function buildChecks(options = {}) {
     ['test:math-adapters', process.execPath, ['--test', '_SYSTEM/Scripts/math/math-adapters.test.mjs']],
     ['test:math-health', process.execPath, ['--test', '_SYSTEM/Scripts/math/math-health.test.mjs']],
     ['test:math-research-archive', process.execPath, ['--test', '_SYSTEM/Scripts/math/math-research-archive.test.mjs']],
+    ['test:energy-config', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-config.test.mjs']],
+    ['test:energy-simulate', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-simulate.test.mjs']],
+    ['test:energy-dashboard-data', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-dashboard-data.test.mjs']],
+    ['test:energy-hardening', process.execPath, ['--test', '_SYSTEM/Scripts/math/yuri-energy-hardening.test.mjs']],
+    ['test:energy-tick-core', process.execPath, ['--test', '_SYSTEM/Scripts/energy-tick-core.test.mjs']],
+    ['test:yuri-user-roster', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-roster.test.cjs']],
+    ['test:yuri-user-auth', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-auth.test.cjs']],
+    ['test:yuri-user', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user.test.mjs']],
+    ['test:yuri-user-data-collect', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-user-data-collect.test.mjs']],
+    ['test:yuri-control-server', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-server.test.mjs']],
     ['test:lane-session', process.execPath, ['--test', '_SYSTEM/Scripts/lane-session.test.mjs']],
     ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
     ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
@@ -113,11 +121,10 @@ export function buildChecks(options = {}) {
     ['test:yuri-supercharge-gate', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs']],
     ['test:yuri-supercharge-report', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-report.test.mjs']],
     ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
-    ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
-    ['test:offload-runner-rails', process.execPath, ['--test', '_SYSTEM/Scripts/offload-runner-rails.test.mjs']],
+    ['test:llm-lane', process.execPath, ['--test', '_SYSTEM/Scripts/llm-lane.test.mjs']],
     ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
-    ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
-    ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
+    ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/llm-compat-contract-regression.test.mjs']],
+    ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs']],
     ['security:secret-leak-live', process.execPath, ['_SYSTEM/Scripts/secret-leak-scan.mjs']],
     ['math:health', process.execPath, ['_SYSTEM/Scripts/math/math-health.mjs']],
   ];

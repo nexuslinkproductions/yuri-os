@@ -1,0 +1,2900 @@
+{
+  "_generated": "GENERATED from _SYSTEM/yuri-graph.json (canonical) by yuri-graph-unify.mjs — DO NOT hand-edit; edit the canonical + run `yuri-graph-unify.mjs project`.",
+  "nodes": [
+    {
+      "id": "energy-fn",
+      "label": "Energy Function (computeU/ΔU/gateProposal)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy.mjs"
+      ],
+      "triggeredBy": "import — live gate core (energy-tick), breaker, cortex, trace, control-server, sims; CLI --worked-example",
+      "description": "The scalar Lyapunov potential U, its gradient ΔU, and the accept/reject gateProposal — with a hard-veto (protected-path eta=100) plus a structural floor (ladder-inversion). This is the heart of the work-dynamics math and the live runtime gate core, fed real tool transitions by the energy-tick PostToolUse path; it reads a frozen 11-term DEFAULT_WEIGHTS and writes nothing."
+    },
+    {
+      "id": "math-kernel",
+      "label": "Math Kernel (22 certified primitives)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-kernel.mjs"
+      ],
+      "triggeredBy": "import — foundational primitive layer",
+      "description": "The proven primitive library — 22 certified primitives (entropy, KL, cross-entropy, infoGain, confidenceDecay, brier, logLoss, bayes, softmax, dijkstra, A*, topo-sort, vector ops) with byte-stable rounding and sha256 result hashing. The foundational math layer the energy function and proof gate build on; stateless. FOUNDRY ROLE: the deterministic operator library every Foundry formula card binds to via implementedBy; formula-foundry.coverageReport diffs these exports against bank-card bindings (UNBOUND-PRIMITIVE worklist)."
+    },
+    {
+      "id": "energy-tick-core",
+      "label": "Energy Tick Core (tool-event→ΔU)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-tick-core.mjs"
+      ],
+      "triggeredBy": "import from energy-tick PostToolUse hook",
+      "description": "Turns LIVE session tool-events into real before/after control-plane state pairs and ΔU — salience tiering (SKIP/WORK/CRITICAL), per-transition state application, and a Layer-C depth-gated surprise trigger. Imported by the energy-tick PostToolUse hook; reads energy-weights via loadEnergyConfig and emits the trace each gated transition."
+    },
+    {
+      "id": "energy-tick-hook",
+      "label": "energy-tick hook (PostToolUse PDP)",
+      "layer": "Energy & Math",
+      "files": [
+        ".claude/hooks/energy-tick.mjs"
+      ],
+      "triggeredBy": "PostToolUse hook (settings.json L259), gated YURI_ENERGY_OBSERVABILITY=1",
+      "description": "The PostToolUse Policy-Decision-Point and everyday ΔU source — reads the session snapshot, runs tickAndTrace on each genuine tool transition, advances the circuit-breaker, and persists the snapshot. Async hook at settings.json L259, gated on YURI_ENERGY_OBSERVABILITY=1."
+    },
+    {
+      "id": "energy-breaker",
+      "label": "Energy Breaker (circuit breaker)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-breaker.mjs"
+      ],
+      "triggeredBy": "import — transitionOnVerdict (PostToolUse), evaluateGate (PreToolUse)",
+      "description": "A Resilience4j-style CLOSED/OPEN/HALF_OPEN circuit breaker ported to the gate — catastrophic non-offsettable verdicts (protected-path / structural-floor veto) trip it, and it auto-decays so it can never permanently block. Splits the outcome-driven transition (PostToolUse) from the time-driven enforcement read (PreToolUse), reading its breaker blob from the energy-session snapshot."
+    },
+    {
+      "id": "energy-enforce-hook",
+      "label": "energy-enforce hook (PreToolUse PEP)",
+      "layer": "Energy & Math",
+      "files": [
+        ".claude/hooks/energy-enforce.mjs"
+      ],
+      "triggeredBy": "PreToolUse hook (settings.json L206), gated OBS=1 AND (ENFORCE=1 OR flag file)",
+      "description": "The PreToolUse Policy-Enforcement-Point that finally makes the gate ACT — reads the trailing breaker state and DENIES the next tool call on a catastrophic OPEN verdict, registered LAST in PreToolUse and failing OPEN on any data gap. Gated on OBSERVABILITY=1 AND (ENFORCE=1 OR the energy-enforce.enabled flag file); shipped default is OFF."
+    },
+    {
+      "id": "energy-config",
+      "label": "Energy Config Loader (knob bridge)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-config.mjs"
+      ],
+      "triggeredBy": "import — loadEnergyConfig per gated transition; CLI dump",
+      "description": "The fail-closed config loader that validates the optional override (bad/non-finite values dropped, not coerced) and returns {weights, threshold, salience, evict, fsrs, recall} merged over in-code defaults. Called by tickAndTrace on every gated transition; the single externalized knob bridge between the energy-weights file and the gate."
+    },
+    {
+      "id": "energy-weights",
+      "label": "Energy Weights Config Surface",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/SELF/energy-weights.json"
+      ],
+      "triggeredBy": "read by config-loader/evict/relocator/fsrs/recall/brain-inject; written by control-server",
+      "description": "The single externalized knob surface (_SYSTEM/SELF/energy-weights.json) where every value equals the in-code default — editing it steers the live system, and the drift test enforces that defaults-equality invariant. Read by config-loader/evict/relocator/fsrs/recall/brain-inject; written only by the control-server POST /apply."
+    },
+    {
+      "id": "energy-trace",
+      "label": "Energy Trace (telemetry + Privacy Gate)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-trace.mjs"
+      ],
+      "triggeredBy": "import — traceGateEvaluation on live tick + experiments",
+      "description": "JSONL telemetry for every gate evaluation, carrying the mechanically-enforced Layer-7 Privacy Gate (structural full-path allow-list, plain-object-only, toJSON/function/symbol/BigInt rejection, serialize-then-re-validate canary) and the closed-set canonical promotion-label key guard. Writes one record per gated transition to energy-trace/<date>.jsonl."
+    },
+    {
+      "id": "claim-cortex",
+      "label": "Claim-Evidence Cortex (epistemic sensor, UNWIRED)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/claim-cortex.mjs"
+      ],
+      "triggeredBy": "import / CLI --worked-example only — NO live hook consumer",
+      "description": "The intended-but-UNWIRED live epistemic sensor — an in-session claim ledger, claimed-vs-evidenced ladder rank, FSRS-style evidence aging, and prior→posterior belief shift that emits a computeU-shaped snapshot lighting the 4 starved terms (alpha/beta/epsilon/zeta) plus the theta floor. Built (36KB) but NOT wired to any live hook; only its own --worked-example CLI / test exercises it, so the live tick still uses 5 of 11 terms."
+    },
+    {
+      "id": "claim-integrity-gate",
+      "label": "Claim-Integrity Gate (canonical ladder)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/claim-integrity-gate.mjs"
+      ],
+      "triggeredBy": "import (PROMOTION_STATES) + CLI lint",
+      "description": "Lints claim PROSE for over-claim vocabulary and owns the canonical PROMOTION_STATES ladder (draft→research→fixture_ready→runtime_tested→operator_validated→trusted→deprecated) that the cortex and trace single-source. Import (ladder) plus an on-demand CLI lint."
+    },
+    {
+      "id": "math-proof-gate",
+      "label": "Math Proof Gate + Formula Banks",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "_SYSTEM/data/math/formula-banks/*.json"
+      ],
+      "triggeredBy": "on-demand CLI + tests; not a runtime hook",
+      "description": "Binds each formula-bank card to a real math-kernel primitive and runs worked examples plus counterexamples (strict error-pattern match) before a bank can be promoted to non-advisory. On-demand CLI and tests only — not a runtime hook; reads the formula-bank JSON banks. FOUNDRY ROLE: this IS Core B of the Formula Foundry — the executable validation oracle; formula-foundry (Core A, dimensional typing) pairs with it, and the synthesis preflight (CHUNK 2) routes candidate cards here for the green-worked-example gate. Both read the same formula-banks."
+    },
+    {
+      "id": "fsrs",
+      "label": "FSRS-4.5 Retention Scorer",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-fsrs.mjs"
+      ],
+      "triggeredBy": "import — reads fsrs:{} via caller",
+      "description": "The FSRS-4.5 retention scorer — power-law retrievability R(t)=(1+factor·t/S)^decay with R(S)=0.9, an effective-stability boost from salience/frequency/|ΔU|, demote/force-keep, and recall-bump. A shared math primitive: it reads fsrs:{} via its caller and is consumed by both the energy layer and the subconscious memory relocator (it does NOT import yuri-energy)."
+    },
+    {
+      "id": "energy-dispatch-bridge",
+      "label": "Energy Dispatch Bridge (LEGACY ΔU surface)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-dispatch-bridge.mjs"
+      ],
+      "triggeredBy": "import — traceDispatchEvent from offload-runner/shintai-dispatch (retired path)",
+      "description": "The ΔU surface that wires the dispatch paths (llm-lane, shintai-dispatch) into a synthetic ΔU=0 (or action-mode real-ΔU) trace, default-off and error-isolated. Still fires via traceDispatchEvent if those surfaces run, but the live everyday ΔU now flows through the energy-tick PostToolUse hook, not here."
+    },
+    {
+      "id": "energy-sanitize",
+      "label": "Energy Sanitizer (raw→experiment bridge)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-sanitize.mjs"
+      ],
+      "triggeredBy": "import by experiment tooling; in-memory only",
+      "description": "The only sanctioned raw-_SYSTEM/state → experiment bridge — an allow-list projection re-validated through the Privacy Gate, in-memory only. Imported by experiment tooling to safely lift recorded state into experiment scenarios."
+    },
+    {
+      "id": "energy-simulate",
+      "label": "Energy Simulate (gate grader)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-simulate.mjs"
+      ],
+      "triggeredBy": "on-demand CLI + supercharge-gate",
+      "description": "The gate grader — runs the real gate against labelled adversarial+healthy scenarios and scores falseAccept / falseReject. Invoked on-demand via CLI and by the supercharge-gate."
+    },
+    {
+      "id": "energy-experiment",
+      "label": "Energy Experiment Runner",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-experiment.mjs",
+        "_SYSTEM/Scripts/math/experiments/descent-demo.mjs"
+      ],
+      "triggeredBy": "on-demand CLI (run --scenario)",
+      "description": "The scenario runner — pushes scenario modules (including experiments/descent-demo.mjs) through computeU/ΔU/gateProposal and records Privacy-Gate-validated traces. On-demand CLI (run --scenario); writes both an experiment JSON and energy-trace JSONL."
+    },
+    {
+      "id": "energy-dashboard-data",
+      "label": "Energy Dashboard Data Aggregator",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-dashboard-data.mjs"
+      ],
+      "triggeredBy": "on-demand CLI / dashboard build",
+      "description": "Assembles the read-only research-paper dashboard's real-data object with real/simulated/planned provenance tags. On-demand CLI / dashboard build; reads the energy-trace JSONL history and pulls legacy dispatch data via the bridge."
+    },
+    {
+      "id": "energy-control-server",
+      "label": "Energy Control Server (tuning cockpit backend)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/yuri-control-server.mjs"
+      ],
+      "triggeredBy": "on-demand CLI launch (not a daemon)",
+      "description": "The on-demand HTTP backend for the live tuning cockpit — previews 3 scenarios through the real gate, validates dials fail-closed, and (DEV-gated) writes tuned dials to energy-weights.json plus a changelog. An on-demand CLI launch, NOT a daemon."
+    },
+    {
+      "id": "energy-obs-health",
+      "label": "Energy Observability Health Probe",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-observability-health.mjs"
+      ],
+      "triggeredBy": "import/CLI from yuri-health",
+      "description": "The energy observability liveness probe for yuri-health — confirms the PostToolUse hook is registered in settings.json and that trace records accrue (absence is reported, not failed). Imported/CLI from yuri-health."
+    },
+    {
+      "id": "action-mode-study",
+      "label": "Action-Mode Study Harness",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/yuri-action-mode-study.mjs"
+      ],
+      "triggeredBy": "on-demand CLI",
+      "description": "The study harness that runs the REAL gate in enforce semantics over labelled transitions (a confusion matrix is the gate's teeth-proof) and replays recorded traces for the real-traffic false-positive rate that gates graduation to enforcement. On-demand CLI; never blocks a live tool."
+    },
+    {
+      "id": "energy-weights-drift-test",
+      "label": "Energy Weights Drift Test (config↔code invariant)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/energy-weights-drift.test.mjs"
+      ],
+      "triggeredBy": "node --test (CI / supercharge-gate)",
+      "description": "Converts the _doc.values_are_defaults prose promise into an ENFORCED invariant — asserts every config value equals the in-code default across the energy/config/tick/fsrs surfaces. Run under node --test in CI and the supercharge-gate; reads energy-weights.json."
+    },
+    {
+      "id": "claude-memory-write",
+      "label": "claude-memory-write (Track-B writer + reindex)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/claude-memory-write.mjs"
+      ],
+      "triggeredBy": "CLI add|remove|read|list|reindex; SessionStart hook runs reindex",
+      "description": "The optional mediated write/CRUD path into Claude Track-B auto-memory: validates v3 frontmatter, enforces memory/-root containment + forbidden-segment refusal, and keeps MEMORY.md consistent. Native direct Write into memory/ is also allowed (block scoped to volatile subdirs 2026-06-02) so this wrapper is the optional validation/reindex helper, not a required gate."
+    },
+    {
+      "id": "yuri-recall",
+      "label": "yuri-recall (subconscious cue-recall, prior-turn-lag)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/yuri-recall.mjs"
+      ],
+      "triggeredBy": "UserPromptSubmit hook spawns detached every turn; CLI",
+      "description": "The subconscious cue-recall organ: BM25 cue-match over the cold store + 1-hop spreading-activation across crosslinks + recency/salience blend yields a bounded top-K of advisory candidates, and surfacing bumps the usage ledger (testing-effect reactivation). Fired DETACHED every turn by the UserPromptSubmit hook with one-turn lag; never auto-writes memory and currently surfaces nothing because the cold store holds 0 rows."
+    },
+    {
+      "id": "memory-cold-store",
+      "label": "memory-cold-store (the subconscious / cold FTS5 DB)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-cold-store.mjs"
+      ],
+      "triggeredBy": "library import — recall(query), relocator(upsert/get/remove), consolidator(get); CLI count|query",
+      "description": "The embedding-free FTS5 long-term store that demoted memories relocate INTO (never deleted) — a SEPARATE DB (memory-cold.db) from the search corpus so the Memory/Search wall holds, with two tables cold_docs (FTS5 porter+unicode61) + cold_meta (salience/base-stability/crosslinks/demotedAt). Has its own inlined buildMatch decoupled from yuri-search; verified holding 0 rows (schema live, empty by design until demotion executes)."
+    },
+    {
+      "id": "memory-usage",
+      "label": "memory-usage (recall-event ledger — real USE signal)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-usage.mjs"
+      ],
+      "triggeredBy": "library import — recordUse per recall, buildUsageIndex; CLI record|index",
+      "description": "The append-only replayable recall/reinforce ledger that REPLACES the broken atime-LRU signal — it replays into a usage index (useCount/lastUsed/lastReinforced) that the relocator scores retrievability off, not mtime/atime. Best-effort writes that never throw into the hot recall path; the jsonl is lazy-created on first recall and lives in writable _SYSTEM/state/."
+    },
+    {
+      "id": "memory-relocator",
+      "label": "memory-relocator (canonical forgetting — RELOCATE not delete)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-relocator.mjs"
+      ],
+      "triggeredBy": "import via consolidator runSubconsciousPass; CLI (DRY-RUN unless --execute)",
+      "description": "The canonical forgetting mechanism — FSRS-scored DEMOTION not deletion: a memory below the retrievability floor is copied verbatim into the cold store AND its source moved into reversible relocated/ (double safety), with a tombstone left in relocation-index.json; promoteHot() restores byte-identical. Tier sets base stability (semantic 60d / episodic 14d / working 3d); pinned + PROTECTED_TYPES (feedback, user) are exempt; DRY-RUN unless --execute (verified never executed)."
+    },
+    {
+      "id": "kagami-consolidator",
+      "label": "kagami-memory-consolidator (subconscious orchestrator + daily MLX review)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/kagami-memory-consolidator.mjs",
+        "~/Library/LaunchAgents/com.yuri.kagami-memory-consolidator.plist",
+        "~/Library/LaunchAgents/com.yuri.kagami-stale-memory-scan.plist"
+      ],
+      "triggeredBy": "launchd daily 06:00 + stale-scan; DRY-RUN unless --execute",
+      "description": "The daily subconscious orchestrator running two jobs in one launchd organ: (1) L6 consolidation via runSubconsciousPass (FSRS demote-plan + executeRelocation + cold re-promotion proposals for slugs with useCount≥3) and (2) a Qwen3.5-4B MLX review of Track-B files for stale/dup/contradiction into memory-health.json. DRY-RUN unless --execute (no plist sets the flag), and the scoring half runs even when MLX is down."
+    },
+    {
+      "id": "memory-kernel",
+      "label": "memory-kernel (Track-A mediator: propose→decide→ledger)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-kernel.mjs"
+      ],
+      "triggeredBy": "library import (CLI/agent + autopilot + consolidator + canonical-import)",
+      "description": "The governed Track-A canonical mediator (propose→decide→ledger) for operating truth shared across all lanes — RBAC by lane, proposeMemoryWrite / recordMemoryProposalDecision / promoteMemoryProposal→appendLedger over a dual-ledger, plus recallEntries; emits Kagami events on promote and enforces protected surfaces via safeRuntimePath. Library import only, not auto-scheduled."
+    },
+    {
+      "id": "memory-proposal-autopilot",
+      "label": "memory-proposal-autopilot (deterministic + Codex reviewer)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-proposal-autopilot.mjs"
+      ],
+      "triggeredBy": "invoked by yuri-autonomy-runner + operator CLI (no launchagent)",
+      "description": "Polls the Track-A proposal queue and runs a DETERMINISTIC review first (reject protected-surface mutation intent via verb-aware unnegated-intent matching, reject empty/no-id, defer oversized, rewrite peer-lane blame), escalating only ambiguous cases to Codex/main. Optional scoped auto-commit stages ONLY a source/docs allowlist and runs secret-leak-scan BEFORE committing, refusing if allowlist paths were dirty pre-run."
+    },
+    {
+      "id": "secret-leak-scan",
+      "label": "secret-leak-scan (scoped-commit secret gate)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/secret-leak-scan.mjs"
+      ],
+      "triggeredBy": "spawnSync from autopilot before commit",
+      "description": "The secret gate the autopilot runs via spawnSync BEFORE any scoped commit — a non-zero exit aborts the commit. Verified to exist and be executable; reads the git staged diff as its input."
+    },
+    {
+      "id": "memory-governor",
+      "label": "memory_governor.py (Track-A memory.db lifecycle governor)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/OS_KERNEL/memory_governor.py"
+      ],
+      "triggeredBy": "spawnSync from memory-session-write (SessionEnd); health-polled; CLI",
+      "description": "The Track-A lifecycle governor over the large legacy memory.db (~230MB): STM/MTM/LTM split, importance scoring, daily/weekly/monthly consolidation cycles, quarantine, research-watch — a SEPARATE consolidation system from the FSRS cold-store subconscious (this governs the SQLite DB, the relocator governs the .md cold store). Its old session-boot RAG recall-injector role is SUPERSEDED by yuri-recall; lifecycle/health/SessionEnd-write role remains live."
+    },
+    {
+      "id": "memory-session-write",
+      "label": "memory-session-write (SessionEnd episodic capture)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-session-write.mjs"
+      ],
+      "triggeredBy": "settings.json Stop/SessionEnd hook (L292)",
+      "description": "The SessionEnd episodic-capture organ — reads the last sentinel learning-session observation and writes it as episodic Track-A memory through memory_governor.py, opportunistically triggering weekly consolidation if the last run is >7d old. Fired by the settings.json Stop/SessionEnd hook (L292)."
+    },
+    {
+      "id": "memory-evict-archive",
+      "label": "memory-evict / memory-archive (SUPERSEDED legacy relics)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/memory-evict.mjs",
+        "_SYSTEM/Scripts/memory-archive.mjs"
+      ],
+      "triggeredBy": "NO live trigger — no launchagent/hook/spawn",
+      "description": "The two original crude forgetting paths now SUPERSEDED by memory-relocator: evict = atime-LRU over memory/patterns/*.md moving stale files to memory/patterns-archive/; archive = mtime+flag move with NO recall path. DORMANT — no live trigger (no launchagent/hook/spawn); the broken atime signal is the exact bug memory-usage.mjs was built to fix."
+    },
+    {
+      "id": "yuri-search",
+      "label": "Corpus Search Engine (yuri-search)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-search.mjs"
+      ],
+      "triggeredBy": "CLI only — `ai search \"<q>\"`; never auto-fired",
+      "description": "On-demand FTS5/BM25 query engine over the ~38.7k-doc local corpus (live count 38,742; the in-file '~26k docs' comment is stale), returning path+snippet ranked by bm25 and never auto-injected. Exports the injection-hardened buildMatch() that quotes every term as an OR-of-quoted-terms so raw user input can never inject FTS5 operators."
+    },
+    {
+      "id": "yuri-search-index",
+      "label": "Corpus Indexer (yuri-search-index)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-search-index.mjs"
+      ],
+      "triggeredBy": "CLI only — `ai reindex`. MANUAL (no hook/cron)",
+      "description": "The corpus indexer that builds/refreshes search-index.db — walks 8 corpus roots, incremental by mtime, Porter+unicode61 FTS5 with WAL, and prunes deleted files. Strictly manual (no SessionStart hook, no LaunchAgent, no cron); enforces the Memory/Search Wall via an EXCLUDE_SUBSTR list + isProtectedPath so it literally cannot index .env, .claude/state, or the memory DBs."
+    },
+    {
+      "id": "context-router",
+      "label": "Context Router (symbolic trigger-scoring)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/context-router.mjs"
+      ],
+      "triggeredBy": "CLI — run before broad work (CLAUDE.md mandate); not a hook",
+      "description": "The pre-broad-work context selector CLAUDE.md mandates — scores each registry packet by counting literal trigger substrings in the task text and returns the top context packet plus its read-order and protected paths. Pure substring-count (no embeddings) so it is fully auditable, but it uses process.cwd() as repo root and must run from repo root or registry resolution fails."
+    },
+    {
+      "id": "memory-kernel-recall",
+      "label": "Track-A Warm Memory Recall (memory-kernel recallMemory)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/memory-kernel.mjs"
+      ],
+      "triggeredBy": "CLI recall <query> / recallBeforeDispatch",
+      "description": "Track-A recall over the WARM canonical store (_SYSTEM/memory/*.md|json|txt) — tokenizes the query, scores each file with a resolvable lexical-default scorer, and returns top-K with sha256 provenance. The warm/lexical tier of the two-tier retrieval split, distinct from the cold-store FTS5 recall (yuri-recall over memory-cold.db); do not conflate the two."
+    },
+    {
+      "id": "evidence-contract-validator",
+      "label": "Evidence Contract Validator (yuri-evidence-contract)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-evidence-contract.mjs"
+      ],
+      "triggeredBy": "CLI — gate a PASS claim on swarm artifact dir",
+      "description": "Gates a swarm artifact dir's PASS claim by validating it contains the required deterministic grammar (TERM_COUNT / FILE_COUNT / MATCH), exiting 1 on a missing, invented, or empty verdict. Its three REQUIRED_EVIDENCE_PATTERNS regexes are the literal evidence grammar from yuri-origin.md."
+    },
+    {
+      "id": "evidence-contract-resolver",
+      "label": "Required-Evidence Resolver (evidence-contract)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/evidence-contract.mjs"
+      ],
+      "triggeredBy": "import — requiredEvidenceIdsForTask(task)",
+      "description": "Pure no-I/O function that maps a task string → required evidence-source IDs (Shintai base set, plus a memory/RAG set on regex match and a cyber set on security regex). Despite the near-identical name it is a different organ from the validator — it answers 'what evidence does this task require' (requiredEvidenceIdsForTask), called at import time by memory-kernel."
+    },
+    {
+      "id": "research-capture",
+      "label": "Research Capture + Provenance",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-research-capture.mjs",
+        "_SYSTEM/Scripts/yuri-research-capture.py"
+      ],
+      "triggeredBy": "CLI — capture online findings, then manual `ai reindex`",
+      "description": "Captures online research findings into the local compounding corpus — inits an archive dir, writes a manifest + source registry carrying provenance, and fetches sources, emitting a dated markdown file under 02_RESOURCES/research/. The capture→corpus bridge is NOT automatic: the written .md becomes searchable only after a manual ai reindex."
+    },
+    {
+      "id": "ai-cli",
+      "label": "ai CLI Facade (retrieval front door)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/ai"
+      ],
+      "triggeredBy": "CLI — `ai search|find|reindex|triage` (bash; never `node ai`)",
+      "description": "The single bash dispatcher and true ingress of the retrieval layer — exec-style pure routing where 'ai search|find' → yuri-search, 'ai reindex|search-index' → yuri-search-index, and 'ai triage|research' → run_triage. Must be invoked as bash 'ai …', never 'node ai'."
+    },
+    {
+      "id": "cross-domain-transfer-engine",
+      "label": "Cross-Domain Transfer Engine (PHANTOM — claimed not built)",
+      "layer": "Retrieval & Knowledge",
+      "files": [],
+      "triggeredBy": "CLAUDE.md claims problem-solving; NO executable trigger exists",
+      "description": "PHANTOM node: CLAUDE.md claims a live 'cross-domain transfer engine (mechanism-tagged cross-reference over the FTS5 corpus)' for problem-solving, but grep finds zero implementing module — it exists only as the future-build YURI memory PROJ:CROSS-DOMAIN-TRANSFER-ENGINE. The corpus search (yuri-search) is real; the mechanism-tagged transfer layer on top of it is not, so this node carries no executable trigger and no files."
+    },
+    {
+      "id": "bash-security-guard",
+      "label": "bash-security-guard (primary Bash deny gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/bash-security-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook 2nd in chain (Bash filter)",
+      "description": "The primary deterministic Bash deny gate (PreToolUse, 2nd in chain) — it DENIES .env read/write/mutate/remove, sensitive .claude file reads, broad .claude destruction/git-rm/git-add, download-execute curl|bash chains, mkfs, shell-wrapper inline-exec, and coworker push/remote/role-path mutation (with an intra-repo .env mirror exemption). It resolves the operator role to decide what a coworker-role session may run."
+    },
+    {
+      "id": "operator-write-guard",
+      "label": "operator-write-guard (tool-agnostic trust-surface guard)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/operator-write-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook 3rd in chain (mutating tools)",
+      "description": "The tool-agnostic defense-in-depth write gate (PreToolUse, 3rd in chain) — denies coworker-role Write/Edit/MultiEdit/NotebookEdit onto the trust surface (dev-credential.json, yuri-operator.cjs, and every enforcement hook including itself), closing the gap that bash-security-guard only inspects Bash. Uses case-insensitive APFS + symlink-realpath ancestor-climb canonicalization and fails closed."
+    },
+    {
+      "id": "yuri-operator",
+      "label": "yuri-operator (two-role resolver + scrypt credential)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/yuri-operator.cjs"
+      ],
+      "triggeredBy": "require — resolveRole by the guards; fail-closed→coworker",
+      "description": "The dev/coworker role trust root — verifies the owner passphrase in YURI_DEV_KEY via scrypt (N=16384,r=8,p=1, timingSafeEqual) against the on-disk credential. A broken module plus existing creds is treated as a tampering signal, not an error, and resolves fail-closed to the coworker role."
+    },
+    {
+      "id": "tirith-url-guard",
+      "label": "tirith-url-guard (URL threat assessment)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/tirith-url-guard.js"
+      ],
+      "triggeredBy": "PreToolUse hook (Bash); scores URLs via ~/.hermes/bin/tirith",
+      "description": "The URL threat-assessment gate (PreToolUse, Bash) — extracts URLs from a Bash command and scores each via the external ~/.hermes/bin/tirith binary, escalating MEDIUM/HIGH/CRITICAL to permissionDecision='ask'. A missing binary silently allows unless TIRITH_FAIL_LOUD=1 is set."
+    },
+    {
+      "id": "claude-protocol-guard",
+      "label": "claude-protocol-guard (routing/control-plane gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/claude-protocol-guard.mjs"
+      ],
+      "triggeredBy": "PreToolUse hook 5th in chain",
+      "description": "The routing/control-plane gate (PreToolUse, 5th in chain) — reads session-state.json for the plan_dispatch_gate and emits WARN advisories for missing-control-packet / missing-codex-task-spec / missing-route-plan-evidence / post-plan-dispatch-required, upgrading WARN→DENY on a critical-tier packet. It writes gate satisfaction/warn-count back to state; YURI_SPRINT_MODE=1 suppresses it."
+    },
+    {
+      "id": "yuri-risk-lite",
+      "label": "yuri-risk-lite (catastrophe regex scanner)",
+      "layer": "Governance & Safety",
+      "files": [
+        ".claude/hooks/yuri-risk-lite.js"
+      ],
+      "triggeredBy": "PreToolUse hook 8th in chain (Bash); also module for scout",
+      "description": "The regex catastrophe scanner (PreToolUse, 8th in chain, Bash) — hard-DENIES the deny:true set (mkfs, raw /dev/sd* writes, DROP DATABASE) and surfaces everything else (rm -rf, force-push, DROP TABLE, curl|bash) as a visible advisory rather than a block. Also exported as a module consumed by the scout-orchestrator."
+    },
+    {
+      "id": "lane-kernel",
+      "label": "lane-kernel (protected-surface + control-file source)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/lane-kernel.mjs"
+      ],
+      "triggeredBy": "import — isProtectedPath/safeRuntimePath/CONTROL_FILE_PREFIXES",
+      "description": "The protected-surface + control-file source of truth — exports isProtectedPath / safeRuntimePath / CONTROL_FILE_PREFIXES that the protocol guard, memory-kernel, and the search indexer all single-source. It is the shared library that defines which paths are off-limits and which files are control-plane files."
+    },
+    {
+      "id": "brain-inject",
+      "label": "brain-inject (unified boot brain composer)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/hooks/brain-inject.js"
+      ],
+      "triggeredBy": "SessionStart hook (settings.json L112) — reads ~14 state files",
+      "description": "The unified boot brain composer (.claude/hooks/brain-inject.js): on the SessionStart SYNC hook (settings.json L112) it reads ~14 sources and emits a single <yuri-brain> block joining a stable Zone-A core (identity/hardware/learned-rules/memory) with a volatile Zone-C footer (session/lane-health/gate/cortex/fingerprint/geass). It re-extracts the same 9 SOUL.md persona headings the native @-include already loaded, so live state rides in alongside the always-present stable identity."
+    },
+    {
+      "id": "soul-persona-inject",
+      "label": "soul-persona-inject (SubagentStart persona)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/hooks/soul-persona-inject.js"
+      ],
+      "triggeredBy": "SubagentStart hook (settings.json L154) — NOT SessionStart",
+      "description": "The SubagentStart persona hook (.claude/hooks/soul-persona-inject.js) that injects the SOUL persona contract into every spawned subagent's context. It fires on SubagentStart (settings.json L154), NOT SessionStart — the boot-time persona load moved into brain-inject's [identity] section, leaving this hook to cover only subagents."
+    },
+    {
+      "id": "cortex-state",
+      "label": "Cortex Dynamic (cross-turn risk + PDC priors)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/state/cortex-state.json"
+      ],
+      "triggeredBy": "read by brain-inject; written by pulse/risk surfaces",
+      "description": "The cross-turn cognitive state file (.claude/state/cortex-state.json) holding accumulated risk and PDC (probabilistic-decision-core) priors. It is a read surface for brain-inject's volatile footer and is written by the pulse/risk surfaces, not by this layer."
+    },
+    {
+      "id": "fingerprint",
+      "label": "Behavioral Fingerprint (L2/L3 self-model)",
+      "layer": "Cognition & Persona",
+      "files": [
+        ".claude/yuri-sentinel/self-model/fingerprint.json"
+      ],
+      "triggeredBy": "read by brain-inject; written by sentinel self-model",
+      "description": "The L2/L3 behavioral self-model file (.claude/yuri-sentinel/self-model/fingerprint.json) capturing the behavioral fingerprint and drives. Read by brain-inject into the volatile footer; written by the sentinel self-model subsystem."
+    },
+    {
+      "id": "persona-md",
+      "label": "persona.md / SOUL.md (native @-include identity)",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/persona.md",
+        "SOUL.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "triggeredBy": "harness NATIVE @-include of CLAUDE.md — no hook fires",
+      "description": "The native stable identity trio (_SYSTEM/persona.md, SOUL.md, _SYSTEM/yuri-origin.md) loaded by the harness's @-include of CLAUDE.md with NO hook firing. This is the always-present identity the whole Cognition & Persona layer rests on — if every SessionStart hook failed, this still loads."
+    },
+    {
+      "id": "neuron-loop",
+      "label": "Neuron-Loop (9-phase self-synthesis)",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/neuron-loop.mjs",
+        "~/Library/LaunchAgents/com.yuri-os-musubi.neuron-loop.plist"
+      ],
+      "triggeredBy": "launchd agent (HEALTHY, not 0-invocations)",
+      "description": "The 9-phase self-synthesis self-improvement loop driven by a real launchd agent (com.yuri-os-musubi.neuron-loop.plist, verified HEALTHY on disk, not 0-invocations); it runs autonomously and records its last run so the boot brain can ingest it. Its log is the NEURON_LOOP section brain-inject reads at SessionStart, closing the loop launchd → neuron-loop.mjs → log → brain."
+    },
+    {
+      "id": "kagami-event-bus",
+      "label": "Kagami Event Bus",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/kagami-event-bus.mjs"
+      ],
+      "triggeredBy": "import — appendKagamiEvent on memory promote etc.",
+      "description": "The append-only Kagami event log surface — its appendKagamiEvent(kind, payload) writes one validated JSON event per line (events.jsonl) on lifecycle moments like memory promotion, with a closed kind allow-list. It is the cross-organ event spine memory-kernel and other surfaces fire into to record durable system events."
+    },
+    {
+      "id": "yuri-dream",
+      "label": "Dream-Processor (mistakes→rules)",
+      "layer": "Learning & Continuity",
+      "files": [
+        ".claude/hooks/yuri-dream.js"
+      ],
+      "triggeredBy": "Stop hook (settings.json L301)",
+      "description": "The Dream-Processor that runs at session Stop, mining the session's human messages and detected corrections into a learning prompt and queuing learned rules into the global/project learning ledgers. It is how repeated operator corrections graduate into durable lessons that apply to every agent."
+    },
+    {
+      "id": "session-reflect",
+      "label": "Session-Reflect (mid+end reflection)",
+      "layer": "Learning & Continuity",
+      "files": [
+        ".claude/hooks/session-reflect.js"
+      ],
+      "triggeredBy": "Stop hook (L305) + spawned mid-session by pre-tool-use tier-4",
+      "description": "The reflection organ that fires at session Stop and is also spawned mid-session (detached) by pre-tool-use at compaction tier 4; it writes dated newest-first entries into the Track-B session-journal.md and dedups the MEMORY.md Session-Notes block. It captures skills used, compact hints, and session shape into continuity memory."
+    },
+    {
+      "id": "yuri-health",
+      "label": "yuri-health (lane/launch health monitor)",
+      "layer": "Learning & Continuity",
+      "files": [
+        "_SYSTEM/Scripts/yuri-health.mjs"
+      ],
+      "triggeredBy": "CLI / monitor",
+      "description": "The lane/launch health monitor — a CLI/monitor harness that runs a roster of subprocess health probes (memory_governor health, energy-observability-health, skill-registry, launchd status, gitnexus) and emits a PASS/FAIL summary table. It is the single liveness dashboard that confirms the heavy memory and energy circuits are actually wired and accruing."
+    },
+    {
+      "id": "startup-offload",
+      "label": "startup-offload (MISNOMER — skills indexer)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        ".claude/hooks/startup-offload.js"
+      ],
+      "triggeredBy": "SessionStart hook (L121) — emits <startup-index>, ZERO offload code",
+      "description": "A misnamed SessionStart hook (settings.json L121, async) that despite its name carries ZERO offload/dispatch code — it is purely a skills-frontmatter indexer that scans .claude/skills/*/SKILL.md (name+description) and emits a <startup-index> 'Skills (N)' roster so the session knows the available skills without re-reading every SKILL.md. Grep for spawn/exec/runner/route/dispatch/llm returns nothing; it does NOT run the dispatch core (llm-lane)."
+    },
+    {
+      "id": "llm-compat-contract",
+      "label": "llm-compat-contract (lane/scenario/lifecycle contract)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/llm-compat-contract.mjs"
+      ],
+      "triggeredBy": "import — single lane routing contract",
+      "description": "The single lane/scenario/lifecycle routing contract per yuri-origin.md — the one authoritative source of lane tables, model tables, and lifecycle matrices that adapters must not duplicate. Import-only library surface; no boot trigger of its own."
+    },
+    {
+      "id": "scout-orchestrator",
+      "label": "Scout Orchestrator (event-driven scout dispatch)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        ".claude/hooks/scout-orchestrator.js"
+      ],
+      "triggeredBy": "SessionStart + PreToolUse + PostToolUse (payload-shape dispatch)",
+      "description": "Event-driven scout dispatch hook wired across three lifecycle points: SessionStart inits the scout bus + trims errors, PreToolUse injects findings, PostToolUse spawns background scouts — dispatched by payload shape. Gated off via YURI_DISABLE_SCOUTS=1; reuses yuri-risk-lite as a risk-scan module and persists state to scout-bus.json."
+    },
+    {
+      "id": "shintai-dispatch",
+      "label": "shintai-dispatch (SEAL-team dispatch)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/shintai-dispatch.mjs"
+      ],
+      "triggeredBy": "import/CLI — task-sized roster dispatch",
+      "description": "The SEAL-team (Shintai 神隊) dispatcher — assembles a task-sized roster (not a fixed team) and dispatches the lanes; when it runs it fires the legacy energy-dispatch-bridge (L1165) to emit a ΔU trace for the dispatch event. Import/CLI triggered, not auto-scheduled."
+    },
+    {
+      "id": "llm-lane",
+      "label": "llm-lane (frontier dispatch core — openai-compatible path)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/llm-lane.mjs"
+      ],
+      "triggeredBy": "CLI/import — llm-compat.sh -m, direct llm-lane dispatch, and yuri-originator worker_exoskeleton backend llm-lane",
+      "description": "The frontier/openai-compatible dispatch path for deepseek-v4-pro, nemotron-3-ultra-550b-a55b, and kimi-k2.6. It loads the YURI spine and guarded tools, then fires lane-core-hooks so dispatches enter energy ΔU, memory recall, evidence ledger, and docked-output pulse. Local Ollama/Gemma compatibility uses ollama-lane.mjs, which inherits the same core-ingest path instead of reusing frontier dispatch."
+    },
+    {
+      "id": "yuri-originator",
+      "label": "YURI Originator (native worker exoskeleton entry port)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/yuri-originator.mjs"
+      ],
+      "triggeredBy": "CLI/import — decode, xref, compile_state, energy_gate, create_work_substrate, candidate_actions, launch_substrate, synthesize_formula_candidates, worker_exoskeleton, telemetry",
+      "description": "The read-only native entry port that lets Codex/main, local Ollama workers, and llm-compat lanes traverse the same YURI procedure. It now compiles compact WorkSubstrate manifests, emits CandidateAction seeds, launches substrate lanes, and still supports xref recall, formulaSlate selection, worker output extraction, semantic-state compilation, formulaTrace verification, optional compiler-feedback revision, energy gate, and inspectable telemetry. Gemma is the default local worker; launch_substrate adds a YURI-controlled JSON tool-request loop with configurable tool budgets, per-iteration trace, child heartbeat, and Ollama stream telemetry for local lanes while DeepSeek/Kimi/Nemotron route through llm-lane, not retired offload/workhorse surfaces. The next memory bridge is OpenProcess Sum Pool tracking started-but-unclosed tasks/research/ideas/todos as xref-grounded process mass. FOUNDRY ROLE: the one-port origin the Formula Foundry plugs into — graph.impact_centrality hook (via yuri-navigate) today; the synthesize_formula op (CHUNK 2) makes the Foundry callable advisory-only through runOriginator."
+    },
+    {
+      "id": "semantic-state-compiler",
+      "label": "Semantic State Compiler (claim-to-energy contract guard)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/semantic-state-compiler.mjs"
+      ],
+      "triggeredBy": "import — called by yuri-originator before any model proposedState can reach energy gates",
+      "description": "Compiles advisory model packets into the closed executable energy-state surface. It rejects derived metric smuggling, arbitrary labels, object-shaped distributions, and malformed evidence, preserving human-readable claims under advisory laneClaims/handoff while allowing only canonical numeric stateBefore/stateAfter fields into gateProposal."
+    },
+    {
+      "id": "lane-core-hooks",
+      "label": "lane-core-hooks (core-ingest for pluggable model lanes)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/lane-core-hooks.mjs"
+      ],
+      "triggeredBy": "import — called by llm-lane on every dispatch (coreOnDispatch) and result (coreOnResult)",
+      "description": "The single core-ingest seam that makes ANY frontier model plugged into the lane fire the full YURI core from INSIDE the dispatch, like a native operator turn. coreOnDispatch: energy ΔU (traceDispatchEvent) + memory recall (yuri-recall over the cold store, returned as an injectable block so the lane carries episodic memory). coreOnResult: evidence (lane_output -> control-plane memory-ledger) + the mandatory docked-LLM-output symbiotic pulse (source=docked-llm, authority=advisory_only, verdict=verify -> lane-pulse-trace). Fully error-isolated — a core hook never breaks dispatch. THIS is where to extend when wiring more of the core (protocol, cortex)."
+    },
+    {
+      "id": "token-session-init",
+      "label": "token-session-init (boot token tracking + tokenmaxxing)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-session-init.js"
+      ],
+      "triggeredBy": "SessionStart hook (L108)",
+      "description": "SessionStart hook (settings L108, sync) that boots token tracking: reads the git branch, writes the per-session and weekly token files plus session-state.json (guarded — skips the session-state write if an active root session is <4h old). Greps tokenmaxxing/SKILL.md '## Rules' and injects the '⚡ TOKENMAXXING ACTIVE' banner + those rules as additionalContext so token-efficiency mode is on by default."
+    },
+    {
+      "id": "pre-tool-use",
+      "label": "pre-tool-use (token/compaction + cross-terminal)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/pre-tool-use.js"
+      ],
+      "triggeredBy": "PreToolUse hook 6th in chain",
+      "description": "The 6th PreToolUse hook: token/compaction + cross-terminal awareness. Reads session-state.json context.pct, the memory bus, and MEMORY.md, emits /compact hints on a 5-tier ladder, and at tier 4 spawns session-reflect --mid-session detached; on another terminal's bus write it injects a cross-terminal update. Writes compact_history, context.tier, and the bus cursor."
+    },
+    {
+      "id": "post-tool-use",
+      "label": "post-tool-use (main bookkeeper)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/post-tool-use.js"
+      ],
+      "triggeredBy": "PostToolUse hook 1st (A)",
+      "description": "The 1st PostToolUse hook and the main session bookkeeper: writes session-state.json (tools_used, errors, files_written, skills_read/written), pushes to the memory bus on a memory-file write, appends design-memory on a design-file write, and arms plan_dispatch_gate on a successful ExitPlanMode so claude-protocol-guard reads it next turn."
+    },
+    {
+      "id": "token-tool-logger",
+      "label": "token-tool-logger (per-tool estimate + ledger spawn)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-tool-logger.js"
+      ],
+      "triggeredBy": "PostToolUse hook (C)",
+      "description": "PostToolUse hook (C) that estimates per-tool cost: reads /tmp/claude-current-session, pushes {tool,estimate,time} and increments estimatedTokens from a heuristic table (Agent 8000, Read 800, etc.), then spawns token-ledger.mjs write detached for the durable hashed record."
+    },
+    {
+      "id": "token-ledger",
+      "label": "token-ledger (crypto-chained ledger)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        "_SYSTEM/Scripts/token-ledger.mjs"
+      ],
+      "triggeredBy": "spawned detached by token-tool-logger",
+      "description": "The crypto-chained, privacy-hashed durable token ledger (SQLite token_ledger table with prev_hash/event_hash chaining and hashed payloads). Spawned detached by token-tool-logger to persist one tamper-evident estimate event per tool call."
+    },
+    {
+      "id": "token-budget-check",
+      "label": "token-budget-check (budget WARN/CRITICAL)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/token-budget-check.js"
+      ],
+      "triggeredBy": "PreToolUse hook 9th in chain",
+      "description": "The 9th PreToolUse hook: a budget advisory that reads /tmp/claude-current-session estimatedTokens and emits a 🟠 WARN at ≥80k and a 🔴 CRITICAL at ≥150k (advisory only, never denies) nudging toward ai-search over raw reads and a fresh session."
+    },
+    {
+      "id": "session-state",
+      "label": "session-state (canonical lifecycle file mediator)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/session-state.js"
+      ],
+      "triggeredBy": "require — read/write by pre/post-tool, protocol-guard, checkpoint",
+      "description": "The canonical lifecycle-file mediator (read/write surface for .claude/state/session-state.json) used via require, so hook subprocesses bypass the tool-level deny-list. Called by pre-tool-use, post-tool-use, claude-protocol-guard, musubi-protocol-enforce, session-checkpoint, and token-session-init."
+    },
+    {
+      "id": "memory-bus",
+      "label": "memory-bus (cross-terminal awareness)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/memory-bus.js"
+      ],
+      "triggeredBy": "require — cross-terminal session cursor",
+      "description": "The cross-terminal session cursor backed by .claude/memory-bus.json: lets concurrent terminal sessions see each other's recent activity (e.g. memory-file writes) so one session can surface another's updates. Required by pre-tool-use and post-tool-use."
+    },
+    {
+      "id": "session-checkpoint",
+      "label": "session-checkpoint (periodic snapshot)",
+      "layer": "Token-Efficiency & Session",
+      "files": [
+        ".claude/hooks/session-checkpoint.js"
+      ],
+      "triggeredBy": "PostToolUse hook (D)",
+      "description": "PostToolUse hook (D) that writes an incremental session snapshot (.claude/state/session-checkpoint.json) roughly every 30+ minutes, reading the canonical session lifecycle state via the session-state mediator to build the snapshot."
+    },
+    {
+      "id": "pre-tool-gate",
+      "label": "pre-tool-gate (local-first advisory, async non-blocking)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/pre-tool-gate.js"
+      ],
+      "triggeredBy": "PreToolUse hook 1st (async — does NOT gate the chain)",
+      "description": "Local-first advisory hook (.claude/hooks/pre-tool-gate.js): on a large Read or broad Bash it emits an additionalContext route-to-deepseek-flash advisory. Registered PreToolUse 1st but ASYNC, so despite its position it does NOT gate the chain (the deterministic guards are the real first line); always continue:true and writes nothing."
+    },
+    {
+      "id": "musubi-protocol-enforce",
+      "label": "musubi-protocol-enforce (AEONIC soft compliance)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/musubi-protocol-enforce.js"
+      ],
+      "triggeredBy": "PreToolUse hook 7th (throttled 60s)",
+      "description": "AEONIC soft-compliance hook (.claude/hooks/musubi-protocol-enforce.js), PreToolUse 7th and 60s-throttled: warns on >3 direct writes with 0 Agent dispatches, or an Agent dispatch carrying no skill. Records its last run time as aeonic.lastEnforceAt; advisory only, never blocks."
+    },
+    {
+      "id": "musubi-protocol-ingest",
+      "label": "musubi-protocol-ingest (AEONIC boot ingest)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/musubi-protocol-ingest.js"
+      ],
+      "triggeredBy": "SessionStart hook (L116)",
+      "description": "SessionStart boot hook (.claude/hooks/musubi-protocol-ingest.js, settings L116) that reads the legacy MUSUBI_PROTOCOL.md shim (872 bytes: CORE_DIRECTIVES / GLOBAL_LLM_COMPAT_DIRECTIVE / ROLE_MATRIX), stashes the parsed sections into state.aeonic.sections, and emits a <musubi-protocol> context block into the boot load."
+    },
+    {
+      "id": "user-prompt-submit",
+      "label": "user-prompt-submit (per-turn volatile re-inject)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/user-prompt-submit.js"
+      ],
+      "triggeredBy": "UserPromptSubmit hook (<50ms exit)",
+      "description": "Per-turn volatile re-inject hook (.claude/hooks/user-prompt-submit.js, UserPromptSubmit, <50ms exit): consumes the prior council brain-stale.sentinel into <brain-update>, consumes the one-turn-lagged subconscious recall envelope while spawning THIS turn's detached recall, fires skill-auto-trigger + design-master context on matched verbs, and routes HANDOFF_TRIGGERS to EOT. Pulse-orchestrator, the PATCH-040 memory.db RAG, and the old governor RAG spawn are retired in code; never blocks."
+    },
+    {
+      "id": "eot-background-start",
+      "label": "eot-background-start (EOT monitor arm)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/eot-background-start.js"
+      ],
+      "triggeredBy": "SessionStart hook (L131)",
+      "description": "SessionStart boot hook (.claude/hooks/eot-background-start.js, settings L131) that arms the continuous-reflection EOT engine by writing the per-session /tmp/claude-eot-<sid>.marker and emitting 'EOT monitoring active'; the actual handoff-intent detection happens later, per-turn, inside user-prompt-submit."
+    },
+    {
+      "id": "agent-spawn-guard",
+      "label": "agent-spawn-guard (OBSERVABILITY-ONLY since 2026-05-30)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        ".claude/hooks/agent-spawn-guard.js"
+      ],
+      "triggeredBy": "PreToolUse matcher=Agent — logs only, always allows",
+      "description": "PreToolUse hook matched on Agent (.claude/hooks/agent-spawn-guard.js): OBSERVABILITY-ONLY since 2026-05-30 after its old hard-deny was removed — it logs subagent_type and model to stderr and always allows the spawn."
+    },
+    {
+      "id": "gitnexus-hook",
+      "label": "gitnexus-hook (graph-context enrich)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "~/.claude/hooks/gitnexus/gitnexus-hook.cjs"
+      ],
+      "triggeredBy": "PreToolUse matcher=Grep|Glob|Bash (10ms)",
+      "description": "Global PreToolUse hook (~/.claude/hooks/gitnexus/gitnexus-hook.cjs) matched on Grep|Glob|Bash that enriches the call with GitNexus graph context under a 10ms timeout; advisory enrichment, not a gate."
+    },
+    {
+      "id": "artifact-registry",
+      "label": "artifact-registry (protected-path + repo-path norm)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/artifact-registry.mjs"
+      ],
+      "triggeredBy": "import — isProtectedPath/normalizeRepoPath",
+      "description": "Shared library module (_SYSTEM/Scripts/artifact-registry.mjs) exposing isProtectedPath / normalizeRepoPath / loadArtifactRegistry — the canonical protected-path test and repo-path normalizer imported by gates rather than fired as a hook."
+    },
+    {
+      "id": "yuri-user",
+      "label": "yuri-user (current user handle attribution)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/yuri-user.mjs"
+      ],
+      "triggeredBy": "import — currentUserHandle for trace attribution",
+      "description": "Shared library module (_SYSTEM/Scripts/yuri-user.mjs) exposing currentUserHandle, the single source of user attribution stamped onto energy traces and dispatch records."
+    },
+    {
+      "id": "LANE_MIMO",
+      "label": "mimo lane (first-class reasoning, Anthropic Messages API, via llm-lane)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/llm-lane.mjs"
+      ],
+      "triggeredBy": "CLI / llm-lane dispatch — `ai llm mimo` (Anthropic Messages API, SSE streaming)",
+      "description": "First-class reasoning lane (Xiaomi Mimo, mimo-v2.5-pro[1m], 1M context) dispatched via the consolidated _SYSTEM/Scripts/llm-lane.mjs core — the single dispatch path for all lanes. Mimo speaks the Anthropic Messages API (/v1/messages, SSE) selected by cfg.protocol; deepseek lanes speak OpenAI chat/completions. Advisory-until-verified, returns evidence into the control plane — never a release gate."
+    },
+    {
+      "id": "PROPAGATION_SCAN",
+      "label": "propagation-scan (cross-reference engine V1)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/propagation-scan.mjs"
+      ],
+      "triggeredBy": "CLI — `propagation-scan <node-id>`; read-only structural cross-reference",
+      "description": "Read-only cross-reference engine V1 (_SYSTEM/Scripts/propagation-scan.mjs): resolves a circuitry node-id and surfaces its structural mechanism-siblings via shared node.files membership and GitNexus structural relations (writes-edges excluded). Pure analyzer — reads the circuitry graph + GitNexus and writes nothing to either graph."
+    },
+    {
+      "id": "XREF_QUERY",
+      "label": "xref-query (unified retrieval surface)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/xref-query.mjs"
+      ],
+      "triggeredBy": "CLI / import — unified retrieval front door feeding propagation-scan",
+      "description": "Unified retrieval surface (_SYSTEM/Scripts/xref-query.mjs) over the corpus FTS5 index, the circuitry graph (1-hop graph-neighbors by edge.kind; writes edges excluded), and GitNexus — the single front door whose results feed the propagation-scan structural cross-reference."
+    },
+    {
+      "id": "math-adapters",
+      "label": "Math Adapter Contract (external engine fence)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-adapters.mjs"
+      ],
+      "triggeredBy": "import — validateMathAdapterManifest / validateMathLabManifest from health, tests, and lab-harness consumers",
+      "description": "Fail-closed manifest validator for external math engines and lab adapters. It enforces the v0 schema, allowed run modes and promotion states, non-empty capabilities, and writesRuntimeTruth:false so polyglot engines stay declared, scoped, and non-runtime unless a separate owner-approved gate promotes them."
+    },
+    {
+      "id": "math-health",
+      "label": "Math Health (archive/adapter/proof diagnostic)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-health.mjs"
+      ],
+      "triggeredBy": "CLI / import — node _SYSTEM/Scripts/math/math-health.mjs or runMathHealth()",
+      "description": "Read-only health probe for the math substrate. It checks archive files and source counts, validates the lab adapter manifest, inspects formula banks through the proof gate, and runs smoke fixtures over core math primitives such as Dijkstra, A*, Brier, log-loss, Bayes, weighted mean, dot product, and softmax."
+    },
+    {
+      "id": "mechanism-pattern-registry",
+      "label": "Mechanism Pattern Registry (closed propagation verbs)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/mechanism-pattern-registry.mjs"
+      ],
+      "triggeredBy": "import / CLI — propagation-scan imports MECHANISM_PATTERN_VERBS; CLI validates _SYSTEM/data/math/mechanism-pattern-registry.json",
+      "description": "Closed-set validator for the v0 mechanism-pattern verb taxonomy. It exports a read-only five-verb membership surface and validates registry schema, semver, promotion status, advisoryOnly, required verb fields, duplicate entries, >=2 witnesses, and path:line witness shape; validation rebuilds a private Set so importers cannot self-mint verbs. FOUNDRY ROLE: the closed mechanism-verb taxonomy the Foundry synthesis verb (CHUNK 2) iterates to generate cross-domain transfer-triangle candidates."
+    },
+    {
+      "id": "energy-trace-outcomes",
+      "label": "Energy Trace Outcomes (deferred label join)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-energy-trace-outcomes.mjs"
+      ],
+      "triggeredBy": "import / CLI — resolveOutcome appends labels; readJoinedDecisions and CLI summarize decision→outcome joins",
+      "description": "Pure-additive deferred-outcome layer for the energy decision trace. It builds Privacy-Gate-safe binary outcome records keyed by runId, appends them to a second JSONL stream, and left-joins decisions to the latest outcome per runId for replay while leaving unresolved rows visible."
+    },
+    {
+      "id": "math-operational-simulation",
+      "label": "Operational Math Simulation (synthetic advisory report)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/math-operational-simulation.mjs"
+      ],
+      "triggeredBy": "CLI / import — node _SYSTEM/Scripts/math/math-operational-simulation.mjs or buildOperationalSimulationReport(); listed in _SYSTEM/labs/math/lab-manifest.json",
+      "description": "Deterministic report generator over owned synthetic YURI workflows. It composes existing math-kernel primitives for memory ranking, context routing, RAG conflict detection, tool routing, release scoring, and creative scheduling, emits advisoryOnly/localTruthClaim:false/writesRuntimeTruth:false metadata, and hashes the stable JSON sections."
+    },
+    {
+      "id": "transfer-distance",
+      "label": "Transfer Distance (Mechanism-Bridged Transfer Surprise)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/transfer-distance.mjs"
+      ],
+      "triggeredBy": "import by transfer-distance-cores/proof/bakeoff/v2demo/tests; CLI self-demo when run directly",
+      "description": "Pure advisory scoring engine for cross-domain transfer triangles A→M→B: normalized compression distance plus Jaccard baseline distance, min-side mechanism reconstruction bridge, anti-theater caps, prerequisite-blocked detection, and value tiering. Exports MIN_CHARS, DISTANCE_WEIGHTS, GATE, TIER, detectPrereqBlocked, tokenize, jaccardDistance, ncd, recon, v1BlendMetric, distance, bridge, antiTheaterGate, tierOf, and transferScore; no I/O except its direct-run demo. FOUNDRY ROLE: the A·M·B transfer-triangle scorer the Foundry synthesis verb (CHUNK 2) uses to rank cross-domain candidate formulas — advisory ranking only, never promotes a card."
+    },
+    {
+      "id": "transfer-distance-cores",
+      "label": "Transfer Distance Cores (V2 structural metrics)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/transfer-distance-cores.mjs"
+      ],
+      "triggeredBy": "import by transfer-distance.test/proof/bakeoff/v2demo and callers that need scoreTransferV2",
+      "description": "Pluggable structural metric bank for the transfer-distance contract: operator-skeleton distance, Brotli NCD, CDM distance, grammar NCD, field classification/distance, mechanism-frame reconstruction, and the shipped V2_CONFIG. Exports FIELD_LEXICONS, FIELD_TO_SYSTEMS, fieldClassify, fieldDistance, operatorSkeletonDistance, brotliNcd, cdmDistance, grammarNcd, mechanismFrameDistance, CANDIDATES, V2_CONFIG, and scoreTransferV2."
+    },
+    {
+      "id": "yuri-jaccard",
+      "label": "YURI Jaccard (hot-tier saturation probe)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-jaccard.mjs"
+      ],
+      "triggeredBy": "import by corpus-match, corpus-match.collapse, kagami-memory-consolidator deterministicDedup, and tests; CLI self-demo when run directly",
+      "description": "Embedding-free token set/frequency similarity primitive plus Hopfield-inspired hot-memory saturation detector. Exports tokenize, tokenFreq, jaccard, tfCosine, and saturationProbe; caps tokenization input size, reports deterministic mergePairs/load/overCapacity, and supplies the similarity core used by corpus matching and memory dedup."
+    },
+    {
+      "id": "yuri-mdl",
+      "label": "YURI MDL (marginal-bits redundancy axis)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-mdl.mjs"
+      ],
+      "triggeredBy": "import by memory-relocator planRelocations and yuri-mdl tests; CLI self-demo when run directly",
+      "description": "Pure gzip-based Minimum Description Length redundancy primitive for memory demotion decisions. Exports DEFAULT_QUALITY_FLOOR_CHARS, marginalBits, and redundancyVerdict; computes normalized marginal description length of a body given the rest of the store, treats short/blank bodies as low-quality, and only supplies a protect-or-redundant axis for upstream AND-gated relocation."
+    },
+    {
+      "id": "yuri-minhash",
+      "label": "YURI MinHash + LSH (deterministic set similarity accelerator)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-minhash.mjs"
+      ],
+      "triggeredBy": "import by corpus-match LSH path, corpus-match tests, and yuri-minhash tests; CLI self-demo when run directly",
+      "description": "Deterministic MinHash and locality-sensitive hashing primitive for approximate Jaccard candidate generation. Exports fnv1a, makeHashes, minhashSignature, estimateJaccard, lshBands, and tuneBands; uses fixed-seed LCG permutation parameters, FNV-1a token hashing, overflow-safe modular affine hashing, all-MAX empty signatures, and deterministic band tuning."
+    },
+    {
+      "id": "yuri-phi",
+      "label": "YURI Phi (π/φ/Fibonacci applied primitives)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-phi.mjs"
+      ],
+      "triggeredBy": "import by yuri-phi tests and future math/circuitry consumers; CLI self-demo when run directly",
+      "description": "Pure deterministic π, golden-ratio, golden-angle, and Fibonacci primitive set for 1-D minimization, discrete threshold search, anti-resonant cadence, and even 2-D/angular placement. Exports PHI, INV_PHI, INV_PHI_SQ, GOLDEN_ANGLE, fib, fibBig, fibSequence, goldenSectionSearch, fibonacciSearchMin, phiPoint, phiSequence, goldenAnglePoint, and goldenAnglePoints."
+    },
+    {
+      "id": "nexus-numerology",
+      "label": "NEXUS Numerology (bounded symbolic feature channels)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/nexus-numerology.mjs"
+      ],
+      "triggeredBy": "import by yuri-token-expand optional numerology feature path; CLI self-demo when run directly",
+      "description": "Deterministic numerology-as-encoding channel for NEXUS recall features, not mysticism and not a truth metric. It supplies bounded, namespaced buckets: gematria(text) as a stable 32-bit symbol hash, digitalRoot(n) as a mod-9 ring bucket, harmonicSignature(text) as adjacent-token ratio buckets, and numerologyFeatures(text) as opt-in num:/dr:/harm: feature channels. Default matcher behavior remains off unless callers pass numerology:true. FOUNDRY ROLE: a partially-realized Foundry candidate channel — its HARMONIC_RATIOS + nearestRatioBucket already implement the music harmonic-ratio channel that foundry-channels routes in (the Tenney-height ordering extends it)."
+    },
+    {
+      "id": "yuri-token-expand",
+      "label": "YURI Token Expand (embedding-free semantic feature bridge)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/yuri-token-expand.mjs"
+      ],
+      "triggeredBy": "import by corpus-match.collapse, circuitry-auto-register, self-improvement cross-reference similarity, and tests; CLI self-demo when run directly",
+      "description": "Deterministic feature-expansion layer that repairs tokenization collapse without embeddings. Exports charShingles, tokenCharSim, buildCooccurrence, ppmi, buildExpansionMap, buildPpmiProfiles, sparseCosine, buildSecondOrderMap, expandTokenSet, weightedJaccard, features, makeFeatureFn, and plainFeatureFn; builds tok/c4/sem/sem2 feature sets from char shingles, PPMI co-occurrence, and optional second-order PPMI-profile cosine while preserving prefix-filter completeness."
+    },
+    {
+      "id": "self-improvement-cross-reference",
+      "label": "Self-Improvement Cross-Reference (taxonomy + similarity index)",
+      "layer": "Self-Improvement",
+      "files": [
+        "_SYSTEM/Scripts/self-improvement/cross-reference.mjs"
+      ],
+      "triggeredBy": "import by weekly-comp consolidateWeek and cross-reference tests",
+      "description": "Lesson cross-reference engine for the self-improvement extract surface: owns the canonical failure taxonomy, alias normalization, markdown lesson walking/parsing, tag classification, cross-domain bridge buckets, complete prefix-filter similarity relations, and markdown rendering for cross-reference and prevention rules. Exports TAXONOMY, CANONICAL_TAGS, normalizeToken, walkMarkdownFiles, deriveLessonDomain, parseLessonMetadata, resolveCanonicalTag, dedupeTags, classifyLesson, buildCrossReferenceIndex, buildSimilarityCrossReference, renderCrossReferenceMarkdown, renderPreventionRulesMarkdown, extractLessonQuestions, extractLessonTitle, and summarizeLesson."
+    },
+    {
+      "id": "ollama-adapter",
+      "label": "ollama-adapter (Gemma-only local model policy)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/ollama-adapter.mjs",
+        ".claude/config/models.json"
+      ],
+      "triggeredBy": "import — called by ollama-lane and local policy tests",
+      "description": "Ollama model policy adapter. As of 2026-06-07 every routed local role resolves to gemma4:12b-it-qat. Retired local aliases such as needle, gemma4:e2b, gemma4:latest, and old Qwen-style local requests normalize to the Gemma 4 12B QAT policy model rather than becoming active fallbacks."
+    },
+    {
+      "id": "ollama-lane",
+      "label": "ollama-lane (local Gemma SLM compatibility runner)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/ollama-lane.mjs",
+        "_SYSTEM/Scripts/llm-compat.sh"
+      ],
+      "triggeredBy": "CLI/import — llm-compat.sh local lanes: gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss",
+      "description": "Local Ollama SLM compatibility runner pinned by policy to gemma4:12b-it-qat. It resolves local/cloud Ollama lanes through ollama-adapter and injects lane-core-hooks coreOnDispatch/coreOnResult so local Gemma calls enter energy ΔU, recall, evidence ledger, and docked-output pulse. No repo-read tools by default; output remains advisory until Codex/main verifies."
+    },
+    {
+      "id": "LANE_GEMMA",
+      "label": "gemma-local lane (active local SLM policy)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/llm-compat-contract.mjs",
+        "_SYSTEM/Scripts/ollama-lane.mjs",
+        "_SYSTEM/Scripts/ollama-adapter.mjs",
+        ".claude/config/models.json"
+      ],
+      "triggeredBy": "llm-compat lane tokens — gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss and retired local aliases",
+      "description": "The active local SLM lane under llm-compat. Its model policy is gemma4:12b-it-qat only; retired local identities such as Needle, Qwen, gemma4:e2b, and gpt-oss are compatibility aliases that normalize into Gemma rather than active model choices. Advisory output must be verified by Codex/main."
+    },
+    {
+      "id": "yuri-id-bridge",
+      "label": "YURI ID Bridge (cross-surface canonical-id + file-path spine + protected veto)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-id-bridge.mjs"
+      ],
+      "triggeredBy": "import — yuri-navigate (loadRecords, canonicalize, parseCodeId, file-path spine, EXTENDED isProtectedPath)",
+      "description": "Deterministic cross-surface canonical-id layer. Canonical id = surface::localId (double-colon) defeats the verified slug-vs-rel:symbol namespace split + the doc/code/mem collision. Builds the file-path spine (the ONLY graph<->code hinge, many-to-many) from raw node.files[], applies the EXTENDED protected-prefix veto at id construction (catches the 3 .claude/projects/*/memory edges the inherited 4-prefix set leaks), and flags the 1 phantom node. Read-only."
+    },
+    {
+      "id": "yuri-navigate",
+      "label": "YURI Navigate (deterministic structural impact/dependency centrality)",
+      "layer": "Retrieval & Knowledge",
+      "files": [
+        "_SYSTEM/Scripts/yuri-navigate.mjs"
+      ],
+      "triggeredBy": "CLI/import — fills the graph.impact_centrality formula-card executableHook in yuri-originator; registered discoveryTool yuri_navigate; OpenProcess Sum Pool dependency_centrality_i (OpenMass w_dep)",
+      "description": "The deterministic structural navigation engine on top of yuri-id-bridge. T1 (default) = closed-form integer reachability over dual typed adjacency (dependsOn/dependedOnBy): DEPENDENCY = outgoing closure (what a node rests on), IMPACT = incoming closure (blast radius). Direction is pinned to function names + a math-kernel locking test (NOT forward/reverse, which observers invert). writes INCLUDED in the default edge set (the propagation-scan sibling set excludes it; inheriting that = 26% undercount). T2 opt-in deterministic PPR for distributional weight. Bounded (maxNodes/maxDepth + truncated flag), protected-vetoed at the spine, completeness-honest (structuralLegAvailable=false while the GitNexus fine-grained leg is deferred; unresolved vs grounded-isolated vs phantom kept distinct). Verified: math-kernel dependency=0, impact superset of {energy-fn, math-proof-gate}; exactly 17 protected I/O edges vetoed."
+    },
+    {
+      "id": "formula-foundry",
+      "label": "Formula Foundry (typing core: catalog + coverage + composition type-algebra)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/formula-foundry.mjs"
+      ],
+      "triggeredBy": "import/CLI — Foundry Core A (dimensional typing); reads the 6 formula-banks; the composition type-algebra gates illegal output→input combinations before math-proof-gate (Core B) runs",
+      "description": "The Formula Foundry typing core. catalogFormulas() = unified read-view over the 6 typed formula-banks. coverageReport() = kernel-fn↔bank-card binding worklist (UNBOUND-PRIMITIVE/ORPHAN-CARD). The composition type-algebra (classifyDimension/dimensionsCompatible/composeCheck/composableTargets) is a deterministic closed-set prose→dimension classifier that rejects dimensionally-incoherent compositions (bits↛length) — the silent-garbage closer the blind control independently identified as Core A. Combine/synthesis + real-data bakeoff are separate next-build modules; Core B (validation oracle) is math-proof-gate.",
+      "guide": {
+        "purpose": "Formula Foundry typing CORE A — the legal-move generator. Reads the typed formula-bank cards, classifies each card's input/output UNITS into a deterministic closed-set dimension, and decides whether one formula's output may legally feed another's input. Rejects dimensionally-incoherent compositions (bits→length, probability into an energy slot) — the silent-garbage hole the engine exists to close.",
+        "exports": [
+          {
+            "name": "classifyDimension",
+            "signature": "classifyDimension(unitText)",
+            "inputs": "a prose unit string (e.g. 'bits', 'joule', 'meters/second')",
+            "outputs": "{ dimension, witness } — closed-set dimension + the matched witness token (or null)"
+          },
+          {
+            "name": "dimensionsCompatible",
+            "signature": "dimensionsCompatible(a, b)",
+            "inputs": "two dimension strings (from classifyDimension)",
+            "outputs": "{ compatible, confidence, reason }"
+          },
+          {
+            "name": "catalogFormulas",
+            "signature": "catalogFormulas(opts = {})",
+            "inputs": "optional { bankDir }",
+            "outputs": "{ cards, count, banks, skipped } — unified read-view over the typed formula-banks; corrupt banks are listed in skipped"
+          },
+          {
+            "name": "coverageReport",
+            "signature": "async coverageReport()",
+            "inputs": "none (reads banks + math-kernel exports)",
+            "outputs": "{ boundCount, kernelExportCount, unboundPrimitives, orphanCards, cardCount } — the kernel-fn↔bank-card binding worklist"
+          },
+          {
+            "name": "composeCheck",
+            "signature": "composeCheck(cardA, cardB)",
+            "inputs": "two catalog card objects",
+            "outputs": "{ legal, compatibleSlots, reasons, from, to, outputDim } — whether A's output may legally feed B"
+          },
+          {
+            "name": "composableTargets",
+            "signature": "composableTargets(cardA, catalog = null)",
+            "inputs": "one card + optional pre-loaded catalog",
+            "outputs": "array of legal downstream targets { to, slots, outputDim }"
+          },
+          {
+            "name": "composeOperatorSequences",
+            "signature": "composeOperatorSequences(catalog = null, opts = {})",
+            "inputs": "optional catalog + { min/max chain length, branching, domain filters }",
+            "outputs": "{ sequences, count, truncated, truncation, params } — enumerated legal operator chains"
+          },
+          {
+            "name": "synthesizeFormulaCandidates",
+            "signature": "synthesizeFormulaCandidates(opts = {})",
+            "inputs": "optional catalog + synthesis constraints",
+            "outputs": "{ candidates, count, truncated } — research-status candidates"
+          },
+          {
+            "name": "draftFormulaBankCard",
+            "signature": "draftFormulaBankCard(candidate)",
+            "inputs": "a synthesized candidate",
+            "outputs": "a research-status bank card (promotionStatus:'research', advisoryOnly:true, implementedBy:null)"
+          },
+          {
+            "name": "proofPreflightCandidate",
+            "signature": "proofPreflightCandidate(card, opts = {})",
+            "inputs": "a draft card + optional overrides",
+            "outputs": "{ inert, hasBinding, reason, promotionStatus, advisoryOnly, validationOk, validationErrors }"
+          }
+        ],
+        "cliSubcommands": [
+          "catalog",
+          "coverage",
+          "compose",
+          "composable",
+          "sequences",
+          "synth",
+          "preflight"
+        ],
+        "invocation": "both",
+        "securityBoundary": "READ-ONLY over the formula-bank files; mints NO production cards. Synthesis output is INERT — promotionStatus:'research', advisoryOnly:true, no kernel binding — and cannot promote until someone binds a real kernel symbol AND a green worked example clears math-proof-gate (Core B). No protected-path access. Deterministic: no RNG, no clock, sorted iteration, closed-set classification.",
+        "whenToUse": "Auditing math coverage (which kernel primitives are unbound / which cards are orphaned), checking whether two formulas can legally compose, enumerating legal operator chains, or prototyping new formula candidates by dimensional rules. The upstream typing gate before math-proof-gate validates.",
+        "gotchas": [
+          "Dimension classification is keyword-based over a CLOSED set; short tokens (≤5 chars) require full word boundaries to avoid collisions with ordinary English (F-1 hardening).",
+          "UNKNOWN dimensions are treated as compatible-by-default (cannot be disproven) — an UNKNOWN slot is not a rejection.",
+          "Synthesized candidates are INERT and advisory; they NEVER auto-promote — binding + proof-gate is a separate manual step.",
+          "Corrupt bank files are silently skipped; the only visibility of lost cards is the `skipped` field of catalogFormulas.",
+          "Generator (synthesize) and scorer (bakeoff) are deliberately separate modules — this core does not grade its own candidates."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "foundry-channels",
+      "label": "Foundry candidate-source channels (music/frequency/magnetism)",
+      "layer": "Energy & Math",
+      "files": [
+        "02_RESOURCES/RESEARCH/music-frequency-magnetism-channels-2026-06-08.md",
+        "02_RESOURCES/RESEARCH/astronomy-astrophysics-channel-2026-06-08.md"
+      ],
+      "triggeredBy": "research → Formula Foundry candidate generators: 23 deterministic, falsifiable formulas across music-theory (equal-temperament, Tenney-height consonance, Euclidean rhythm, polyrhythm-LCM, circle-of-fifths Z/12), frequency/wave (DFT, Goertzel, resonance/Q, beats, standing-wave modes), magnetism (Larmor, Maxwell curl/div, Biot-Savart, flux quantization) + cross-domain mechanism bridges",
+      "description": "Deep-research candidate-source channels for the Formula Foundry. Each formula is a DETERMINISTIC, embedding-free candidate-generator operator with a falsifiable test; all capped at promotionStatus:research — candidate generators, NEVER truth, until a real math-kernel binding + a green worked example through math-proof-gate promotes one. Routes into formula-foundry as candidate generators; the harmonic-ratio music channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket). Mechanisms in, mysticism out. Astronomy/astrophysics added 2026-06-08 (Kepler, gravitation, orbital/escape velocity, Hubble, Pogson magnitude, Wien, Schwarzschild, Titius-Bode) — first-class, domain-blind."
+    },
+    {
+      "id": "graph-unify",
+      "label": "YURI Graph Unify (canonical source + lossless projection)",
+      "layer": "Hidden / Meta / Self-referential",
+      "files": [
+        "_SYSTEM/Scripts/yuri-graph-unify.mjs"
+      ],
+      "triggeredBy": "CLI seed/project/verify; the ONE canonical graph _SYSTEM/yuri-graph.json is the single source; the flow (yuri-graph-state.json) + mechanism (yuri-circuitry-graph.json) views are GENERATED projections. Edit canonical, run project, both views regenerate; drift structurally impossible.",
+      "description": "Solves the two-graph fragmentation: one canonical tiered graph (flow + mechanism nodes), the two view files become lossless generated projections. seedCanonical unions both; projectFlow/projectMechanism regenerate the views in original order; verifyLossless proves the round-trip."
+    },
+    {
+      "id": "formula-foundry-bakeoff",
+      "label": "Formula Foundry Bakeoff + Promotion Ledger (Core B test layer)",
+      "layer": "Energy & Math",
+      "files": [
+        "_SYSTEM/Scripts/math/formula-foundry-bakeoff.mjs"
+      ],
+      "triggeredBy": "import/CLI — tests synthesized candidates (stages 0-3: intake, synthetic fixtures via runFormulaProofGate, adversarial counterexamples, real-data bakeoff) generator-not-scorer + real total counts; + the sidecar append-only promotion/demotion ledger (domain-blind mutator). The promotion side of Core B.",
+      "description": "CHUNK 3 of the Formula Foundry. Bakeoff harness: stage 0 intake (reject prose/self-citing/derived-metric), stage 1 synthetic fixtures (reuse math-proof-gate runFormulaProofGate), stage 2 adversarial counterexamples (runFormulaCounterexample), stage 3 real-data bakeoff over search-index/bug-bounty via corpus-match real counts (diagnosticOnly when no frozen labels). Generator!=scorer, deterministic, domain-blind. Promotion ledger: append-only sidecar, mutator refuses a promotionStatus change without a matching gate record; demotion on regression.",
+      "guide": {
+        "purpose": "Foundry CHUNK 3 — the bakeoff harness + the promotion/demotion ledger (the SCORER + GOVERNANCE side of Core B). Takes already-synthesized candidates as INPUT and runs them up a staged promotion ladder, recording every gate verdict to an append-only ledger. Deliberately the GENERATOR≠SCORER boundary: it never imports the synthesizer, so a synthesizer can never grade its own candidate.",
+        "exports": [
+          {
+            "name": "stableHash",
+            "signature": "stableHash(obj)",
+            "inputs": "any JSON-serializable object",
+            "outputs": "a deterministic stable hash string (sorted-key, no clock)"
+          },
+          {
+            "name": "PROMOTION_LADDER",
+            "signature": "PROMOTION_LADDER (frozen const)",
+            "inputs": "—",
+            "outputs": "the ordered, frozen list of promotion rungs"
+          },
+          {
+            "name": "readLedger",
+            "signature": "readLedger(ledgerPath = LEDGER_PATH)",
+            "inputs": "optional ledger path",
+            "outputs": "array of gate records (malformed lines skipped)"
+          },
+          {
+            "name": "appendGateRecord",
+            "signature": "appendGateRecord(record, ledgerPath = LEDGER_PATH)",
+            "inputs": "a gate record + optional path",
+            "outputs": "appends one JSONL line to the ledger (mkdir-safe)"
+          },
+          {
+            "name": "canPromote",
+            "signature": "canPromote(formulaId, toRung, ledger = readLedger())",
+            "inputs": "formula id + target rung + optional ledger",
+            "outputs": "boolean — whether the ladder + evidence permit promotion to that rung"
+          },
+          {
+            "name": "promote",
+            "signature": "promote(card, toRung, ledger = readLedger())",
+            "inputs": "card + target rung + optional ledger",
+            "outputs": "the promotion result; records a gate entry"
+          },
+          {
+            "name": "demote",
+            "signature": "demote(formulaId, toRung, reason, opts = {})",
+            "inputs": "formula id + target rung + reason",
+            "outputs": "the demotion result; records a gate entry with the reason"
+          },
+          {
+            "name": "stage0Intake",
+            "signature": "stage0Intake(candidate)",
+            "inputs": "a candidate",
+            "outputs": "stage-0 intake verdict"
+          },
+          {
+            "name": "stage1Fixtures",
+            "signature": "stage1Fixtures(card)",
+            "inputs": "a card",
+            "outputs": "stage-1 fixture-test verdict"
+          },
+          {
+            "name": "stage2Counterexamples",
+            "signature": "async stage2Counterexamples(card, opts = {})",
+            "inputs": "a card + opts",
+            "outputs": "stage-2 counterexample-search verdict"
+          },
+          {
+            "name": "stage3RealData",
+            "signature": "stage3RealData(candidates, opts = {})",
+            "inputs": "candidates + opts",
+            "outputs": "stage-3 real-data verdict with ACTUAL corpus totals (no top-N laundering) or a refusal"
+          },
+          {
+            "name": "runBakeoff",
+            "signature": "async runBakeoff(candidates, opts = {})",
+            "inputs": "candidates + opts (incl. opts.stamp for determinism)",
+            "outputs": "the full staged bakeoff result"
+          }
+        ],
+        "cliSubcommands": [
+          "ledger"
+        ],
+        "invocation": "both",
+        "securityBoundary": "MUTATING but bounded: appends to the promotion/demotion LEDGER (_SYSTEM/state, append-only JSONL, mkdir-safe) — never deletes or rewrites. No protected-path access. DOMAIN-BLIND: nothing inspects a candidate's source domains to loosen/tighten a gate — music, frequency, magnetism, numerology, alchemy, information-theory clear the SAME rungs on the SAME evidence bar; a candidate fails only for insufficient evidence. Deterministic: no Math.random, no Date.now (timestamps via opts.stamp).",
+        "whenToUse": "Promoting/demoting a formula candidate through the evidence ladder, reading the gate-decision history, or running the full staged bakeoff over a candidate set. The governance/scoring counterpart to formula-foundry's generation.",
+        "gotchas": [
+          "GENERATOR≠SCORER: this module never imports synthesizeFormulaCandidates — keep that separation; do not wire the synthesizer in.",
+          "Determinism requires the caller to pass opts.stamp — there is no clock inside; a missing stamp loses reproducibility.",
+          "stage3RealData reports REAL corpus totals or REFUSES — it will not emit a top-N severity-laundered count.",
+          "The ledger is append-only; a later record for an id supersedes earlier ones (read reconstructs current state)."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "openprocess-pool",
+      "label": "OpenProcess Sum Pool (mathematical memory for started-but-unclosed work)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/openprocess-pool.mjs"
+      ],
+      "triggeredBy": "import/CLI — tracks every started-but-unclosed thread (task/research/idea/todo/skill/bug/experiment/handoff) as an OpenProcess; ranks by OpenMass = w_status*status_open + w_age*staleness(confidenceDecay) + w_dep*dependency_centrality(yuri-navigate.aggregateProcessCentrality) + w_risk*unfinished_risk + w_value*operator_value - w_verify*verified_closure_evidence",
+      "description": "Mathematical memory: answers \"what did we start but not finish?\" from indexed process MASS, not memory vibes. Stale-but-open threads rise back into attention; closed work loses mass (verify term subtracts). Deterministic (ages carried on evidence, no clock). UI-agnostic across Codex/Claude/Gemma/DeepSeek. The dependency-centrality term rides on yuri-navigate (the convergence — OpenProcess uses the structural centrality primitive).",
+      "guide": {
+        "purpose": "The OpenProcess Sum Pool — mathematical memory for started-but-unclosed work. Users + lanes start tasks/research/ideas/todos/skills/bugs/experiments/handoffs over days; many stay open and fall out of working memory. This ranks them by OPEN MASS (status + staleness hazard-decay + dependency centrality + risk + value) so 'what did we start but not finish?' gets a math-grounded answer, not a memory vibe. UI-agnostic and YURI-native (same across all lanes).",
+        "exports": [
+          {
+            "name": "OPEN_PROCESS_TYPES",
+            "signature": "OPEN_PROCESS_TYPES (frozen const)",
+            "inputs": "—",
+            "outputs": "['task','research','idea','todo','skill','bug','experiment','handoff']"
+          },
+          {
+            "name": "OPEN_PROCESS_STATES",
+            "signature": "OPEN_PROCESS_STATES (frozen const)",
+            "inputs": "—",
+            "outputs": "['open','active','blocked','stale','closed']"
+          },
+          {
+            "name": "DEFAULT_WEIGHTS",
+            "signature": "DEFAULT_WEIGHTS (frozen const)",
+            "inputs": "—",
+            "outputs": "the default OpenMass term weights (status/age/dep/risk/value)"
+          },
+          {
+            "name": "staleness",
+            "signature": "staleness(proc)",
+            "inputs": "an OpenProcess object",
+            "outputs": "a hazard-decay staleness score (stale-but-open rises back into attention)"
+          },
+          {
+            "name": "openMass",
+            "signature": "openMass(proc, opts = {})",
+            "inputs": "an OpenProcess + optional { weights }",
+            "outputs": "the scalar OpenMass for that process"
+          },
+          {
+            "name": "rankPool",
+            "signature": "rankPool(processes, opts = {})",
+            "inputs": "array of processes + opts",
+            "outputs": "processes ranked by descending OpenMass"
+          },
+          {
+            "name": "poolTotal",
+            "signature": "poolTotal(processes, opts = {})",
+            "inputs": "array of processes + opts",
+            "outputs": "the summed OpenMass over the pool"
+          },
+          {
+            "name": "categoryPools",
+            "signature": "categoryPools(processes, opts = {})",
+            "inputs": "array of processes + opts",
+            "outputs": "OpenMass grouped/summed by category"
+          },
+          {
+            "name": "whatIsUnfinished",
+            "signature": "whatIsUnfinished(processes, opts = {})",
+            "inputs": "array of processes + { top, weights }",
+            "outputs": "the top-N highest-mass open processes with their next candidate action"
+          },
+          {
+            "name": "navigateCentrality",
+            "signature": "async navigateCentrality()",
+            "inputs": "none",
+            "outputs": "dependency centrality per process via yuri-navigate.aggregateProcessCentrality"
+          }
+        ],
+        "cliSubcommands": [],
+        "invocation": "both",
+        "securityBoundary": "Pure / read-only ranking math — computes OpenMass over process objects supplied by the caller; persists nothing itself. navigateCentrality reads the canonical graph via yuri-navigate (also read-only). No protected-path access. Deterministic (sorted, hazard-decay, no RNG).",
+        "whenToUse": "Answering 'what did we start but not finish?', ranking open work by mass, summing pool/category load, or weighting a process by its dependency centrality. The math layer under the nervous system's afferent digest (yuri-nerve calls whatIsUnfinished).",
+        "gotchas": [
+          "Staleness uses hazard-decay: a stale-but-open item RISES back in rank over time — it is not penalized into invisibility.",
+          "navigateCentrality is async and depends on yuri-navigate over the canonical graph; a stale graph yields stale centrality.",
+          "The pool is data-in/score-out — it does not own storage; the caller supplies the process objects (e.g. from the nerve store)."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "lane-telemetry-cockpit",
+      "label": "Lane Telemetry Cockpit (human-readable view over YURI_LANE_TELEMETRY)",
+      "layer": "Skills & Orchestration",
+      "files": [
+        "_SYSTEM/Scripts/lane-telemetry-cockpit.mjs"
+      ],
+      "triggeredBy": "CLI — reads _SYSTEM/state/originator-telemetry.jsonl, groups by traceId, collapses stream/stderr/stdout chunk noise into counts, prints a compact per-lane timeline (start -> model call -> verification -> exit) with elapsed/heartbeats/streamed-chars/status",
+      "description": "Codex-handoff organ: JSONL is the audit substrate, this is the operator experience. No ugly raw JSON — a clean cockpit so the operator sees what a lane is doing live. Read-only.",
+      "guide": {
+        "purpose": "Human-readable cockpit over the Originator lane-telemetry stream. JSONL is the audit substrate, not the operator experience: this reads originator-telemetry.jsonl, groups by traceId, COLLAPSES the noisy stream/stderr/stdout chunk events into counts, and prints a compact per-run timeline (start → model call → verification → exit) with elapsed, heartbeat count, chars streamed, and status — so the operator sees what a lane is doing without reading raw JSON.",
+        "exports": [
+          {
+            "name": "readTelemetry",
+            "signature": "readTelemetry(file = TELEMETRY, opts = {})",
+            "inputs": "optional telemetry file path + opts",
+            "outputs": "parsed telemetry events (malformed lines tolerated)"
+          },
+          {
+            "name": "summarizeByTrace",
+            "signature": "summarizeByTrace(events)",
+            "inputs": "telemetry events",
+            "outputs": "per-traceId summary collapsing chunk events into counts (elapsed, heartbeats, chars, status)"
+          },
+          {
+            "name": "renderCockpit",
+            "signature": "renderCockpit(traces, opts)",
+            "inputs": "summarized traces + render opts",
+            "outputs": "the compact human-readable cockpit string"
+          }
+        ],
+        "cliSubcommands": [
+          "(path) [--json] [--limit N]"
+        ],
+        "invocation": "both",
+        "securityBoundary": "Strictly READ-ONLY — reads the telemetry JSONL and renders it; never mutates telemetry. Input line-count is bounded (limit guard). No protected-path access.",
+        "whenToUse": "Inspecting what a dispatched lane run actually did (timeline, model call, verification, exit) without parsing raw originator-telemetry JSON; triaging a slow/failed lane run.",
+        "gotchas": [
+          "It collapses stream/stderr/stdout chunk events into COUNTS — individual chunk payloads are not shown (by design, to stay compact).",
+          "Grouping is by traceId; a run without a stable traceId will not group cleanly.",
+          "Read-only over a live-appended file — a snapshot reflects the moment it was read."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "discovery-precision-gate",
+      "label": "Discovery Precision Gate (scope + footprint filter before the energy gate)",
+      "layer": "Governance & Safety",
+      "files": [
+        "_SYSTEM/Scripts/discovery-precision-gate.mjs"
+      ],
+      "triggeredBy": "import/CLI — gates a lane claim against its WorkSubstrate allowedPaths/deniedPaths + discovery footprint BEFORE the energy gate; hard veto on protected/denied/out-of-scope paths; reports precisionScore + graph.impact_centrality (yuri-navigate) blast radius",
+      "description": "Codex-handoff organ. Upstream pre-filter to the energy gate: did the lane stay inside its granted authority, and how precise was its discovery? Reuses yuri-id-bridge isProtectedPath (the protected veto) + yuri-navigate computeImpactCentrality (the blast-radius term). Advisory verdict; a scope/protected veto blocks.",
+      "guide": {
+        "purpose": "Gates a lane claim against its WorkSubstrate scope + discovery footprint BEFORE the energy gate runs. The energy gate scores a transition's quality; this is the upstream filter asking 'did the lane stay inside the authority it was granted, and how precise was its discovery?'. Rides on yuri-id-bridge (isProtectedPath/normalizePath — the protected veto) and yuri-navigate (impact centrality — the claim's blast radius).",
+        "exports": [
+          {
+            "name": "discoveryPrecisionGate",
+            "signature": "discoveryPrecisionGate(claim = {})",
+            "inputs": "a claim { targets, scope (allowed/denied), discovery records }",
+            "outputs": "{ verdict, vetoes, precision, footprint, advisory_only } — a hard protected/scope veto blocks; precision is reported"
+          },
+          {
+            "name": "withNavigate",
+            "signature": "async withNavigate(claim, substrate, opts = {})",
+            "inputs": "a claim + substrate + opts",
+            "outputs": "the gate verdict enriched with yuri-navigate impact centrality (blast radius of the claim's graph targets)"
+          }
+        ],
+        "cliSubcommands": [],
+        "invocation": "both",
+        "securityBoundary": "ADVISORY pre-filter with a HARD veto: a protected-path or out-of-scope target produces a blocking veto (fail-closed via isProtectedPath, which is traversal-hardened so '../'-escapes are caught). Precision + impact are advisory_only (reported for the downstream energy/proof gates + operator). Reads the graph via yuri-navigate; writes nothing. Deterministic (sorted, no RNG/clock).",
+        "whenToUse": "Before accepting a lane's claim/transition — to confirm it stayed inside granted authority (scope + protected paths) and to surface how precise/wide-blast its discovery was, upstream of the energy gate.",
+        "gotchas": [
+          "The verdict is ADVISORY except the protected/scope VETO, which is a hard block — do not treat the precision score as a gate by itself.",
+          "Protected-path detection is realpath/traversal-hardened (yuri-id-bridge), not lexical — '../' escapes are caught.",
+          "withNavigate is async (graph impact lookup); high impact_centrality means 'surface for review', not automatic block."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "filing-assessor",
+      "label": "Filing Assessor (deterministic read-only placement + staleness)",
+      "layer": "Self-Improvement",
+      "files": [
+        "_SYSTEM/Scripts/filing-assessor.mjs"
+      ],
+      "triggeredBy": "CLI/import — classifies an artifact (research/scratch/schema/handoff/report/math-module/script/state) to its canonical zone via ordered first-match rules; flags misplaced + ephemeral-in-repo + unclassified; hazard-decay staleness (confidenceDecay) for purge candidates",
+      "description": "The ASSESSMENT half of the YURI filing system (Marcel: keep the pools tidy). READ-ONLY: it recommends placement + flags stale/misplaced, NEVER moves or deletes a file (the mutation half is owner-gated). Deterministic. The owner acts on the report.",
+      "guide": {
+        "purpose": "Deterministic, READ-ONLY placement assessor for YURI artifacts. As YURI grows, generated artifacts (research docs, /tmp scratch, memories, reports, lane outputs, telemetry) land in pools that aren't clean enough. This is the ASSESSMENT half of the filing system: classify an artifact → its canonical zone, score purge candidates by hazard-decay staleness, and dedup. It RECOMMENDS; it never moves or deletes a file.",
+        "exports": [
+          {
+            "name": "ZONE_RULES",
+            "signature": "ZONE_RULES (const)",
+            "inputs": "—",
+            "outputs": "the closed-set ordered rules mapping a path → its canonical zone"
+          },
+          {
+            "name": "classifyArtifact",
+            "signature": "classifyArtifact(filePath)",
+            "inputs": "a file path",
+            "outputs": "the canonical zone the artifact belongs in (closed-set)"
+          },
+          {
+            "name": "assess",
+            "signature": "assess(filePath)",
+            "inputs": "a file path",
+            "outputs": "{ zone, current, misfiled, staleness, recommendation, advisory_only } — protected paths are vetoed (never recommended for move/purge)"
+          },
+          {
+            "name": "stalenessScore",
+            "signature": "stalenessScore(ageHours, halfLifeHours = 168)",
+            "inputs": "age in hours + optional half-life",
+            "outputs": "a hazard-decay staleness score (math-kernel confidenceDecay)"
+          },
+          {
+            "name": "assessAll",
+            "signature": "assessAll(paths, opts = {})",
+            "inputs": "array of paths + opts",
+            "outputs": "a sorted assessment report over all paths"
+          }
+        ],
+        "cliSubcommands": [
+          "<path...> [--json]"
+        ],
+        "invocation": "both",
+        "securityBoundary": "Strictly READ-ONLY — RECOMMENDS placement/purge, never moves or deletes (the mutation half is a separate owner-gated build). PROTECTED VETO (fail-closed): a protected/secret path is NEVER recommended for relocation or purge, even if misfiled (isProtectedPath is traversal-hardened). Deterministic: closed-set zone rules, sorted output, no RNG.",
+        "whenToUse": "Deciding where a generated artifact canonically belongs, finding misfiled files, or scoring stale purge candidates — to produce a report the OWNER acts on. Never to actually move/delete (that is owner-gated).",
+        "gotchas": [
+          "READ-ONLY by contract — it recommends; the actual relocate/purge is a separate owner-gated mutation half, not here.",
+          "Protected/secret paths are NEVER recommended for move or purge, even when misfiled (fail-closed veto).",
+          "Zone classification is a CLOSED ordered ruleset (ZONE_RULES) — an artifact matching no rule gets the default zone, not an error."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "yuri-decode",
+      "label": "YURI Decode (LLM-wielded decoder instrument: text → math object)",
+      "layer": "Cognition & Persona",
+      "files": [
+        "_SYSTEM/Scripts/yuri-decode.mjs"
+      ],
+      "triggeredBy": "import/CLI — decode(\"<text>\") returns a deterministic math object (raw tokens + frequency + lexical density, numerology channels gematria/digital-root/harmonic, dimensional reading via the Foundry classifier, a compact feature surface) that the LLM reasons over directly",
+      "description": "The LLM-WIELDED decoder instrument (Marcel: the LLM uses the decoder directly, NOT an ingress pre-processor). Same engine, inverted control — the model calls it. Deterministic + embedding-free; reuses nexus-numerology + formula-foundry classifyDimension. Advisory: the returned math object is a representation, not a truth claim.",
+      "guide": {
+        "purpose": "The LLM-WIELDED decoder instrument: translate text → a deterministic math object. NOT an ingress pre-processor that mutates input before the LLM — it is an INSTRUMENT the LLM calls directly: decode('<text>') returns a structured math representation (tokens, numerology channels, dimensional reading, feature surface) the LLM then reasons over. The control inverts — the model wields the decode engine.",
+        "exports": [
+          {
+            "name": "decode",
+            "signature": "decode(text, opts = {})",
+            "inputs": "a text string + optional opts",
+            "outputs": "{ tokens, numerology (gematria hash / digital-root mod-9 / harmonic signature), dimension, features, advisory_only } — a deterministic math object for the same text"
+          }
+        ],
+        "cliSubcommands": [
+          "\"<text>\" [--json]"
+        ],
+        "invocation": "both",
+        "securityBoundary": "Pure / read-only and advisory_only — computes a math object from text; persists nothing, touches no protected paths. Deterministic + embedding-free: same text → same object. Reuses the shipped channels (yuri-jaccard tokenize, nexus-numerology, the Foundry dimension classifier).",
+        "whenToUse": "When the model wants a deterministic structural reading of a piece of text (token surface, numerology channels, dimensional classification) to reason over — e.g. decoding a brain dump's surface features into a stable object.",
+        "gotchas": [
+          "It is an INSTRUMENT the LLM calls, NOT an ingress mutator — it never rewrites the input before the model sees it.",
+          "Deterministic + embedding-free: identical text yields an identical object (no RNG, no clock) — good for caching/equality.",
+          "Output is advisory_only — a decoded reading is structure to reason over, not a verified claim."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    },
+    {
+      "id": "telos-core",
+      "label": "Telos Core - purpose / meaning apex",
+      "layer": "Telos & Meaning",
+      "files": [
+        "SOUL.md",
+        "_SYSTEM/yuri-origin.md",
+        "_SYSTEM/persona.md"
+      ],
+      "triggeredBy": "read-first every session - the WHY behind every action",
+      "description": "YURI telos: the meaning/purpose apex. Owner intent + the SOUL/persona spine + the yuri-origin contract define WHY the system acts. The transcendent cap above the operational stack - the 14th layer."
+    },
+    {
+      "id": "yuri-nerve",
+      "label": "YURI Nerve (nervous-system spine + afferent digest)",
+      "layer": "Memory & Subconscious",
+      "files": [
+        "_SYSTEM/Scripts/yuri-nerve.mjs"
+      ],
+      "triggeredBy": "import/CLI + wired into .claude/hooks/brain-inject.js — recordEvent captures a detected event under ONE id; organStateDigest surfaces the compact open-work heartbeat the brain wakes with each turn",
+      "description": "The NERVOUS SYSTEM spine + afferent nerve. SPINE (one build, not three): a detected event is captured ONCE, gets ONE deterministic id (FNV-1a content hash, no clock), and is threaded across organs under that id — it becomes an OpenProcess-shaped entry (STATE/mass) AND carries a memory link (MEANING), cross-linked not duplicated. Closes three holes at once: auto-tracking, the memory↔task link, and durability (on disk the moment detected — the failure that lost the red-team findings). AFFERENT: organStateDigest() surfaces a COMPACT top-N organ-state the brain wakes with. Append-only store at _SYSTEM/state/nerve-events.jsonl; a later record for an id supersedes (reads as current state).",
+      "guide": {
+        "purpose": "The nervous-system spine + afferent nerve. A detected event is captured ONCE under ONE deterministic id and threaded across organs: it becomes an OpenProcess-shaped entry (STATE) carrying a memory link (MEANING), cross-linked not duplicated. organStateDigest() is the compact open-work heartbeat the brain wakes with each turn. Closes auto-tracking, the memory↔task link, and the durability hole in one spine.",
+        "exports": [
+          {
+            "name": "NERVE_KINDS",
+            "signature": "NERVE_KINDS (frozen const)",
+            "inputs": "—",
+            "outputs": "['task','decision','fix','finding','idea','correction','build','handoff']"
+          },
+          {
+            "name": "mintEventId",
+            "signature": "mintEventId(ev = {})",
+            "inputs": "an event { kind, title, content }",
+            "outputs": "a deterministic id 'nerve.<kind>.<fnv1a(title+content)>' — same input → same id (idempotent)"
+          },
+          {
+            "name": "recordEvent",
+            "signature": "recordEvent(ev = {}, opts = {})",
+            "inputs": "an event { kind, title, state, weight, evidence, refs, memoryLink, nextCandidateAction, closureCondition, stamp } + optional { store }",
+            "outputs": "{ id, entry } — appends one JSONL line to the nerve store (mkdir-safe)"
+          },
+          {
+            "name": "loadEvents",
+            "signature": "loadEvents(store = STORE)",
+            "inputs": "optional store path",
+            "outputs": "current events (de-duped by id: a later record supersedes; malformed lines skipped)"
+          },
+          {
+            "name": "closeEvent",
+            "signature": "closeEvent(id, opts = {})",
+            "inputs": "an event id + optional { kind, title, memoryLink, stamp }",
+            "outputs": "{ ok, id, entry } — records a state:'closed' transition under the same id, carrying the memory link forward"
+          },
+          {
+            "name": "organStateDigest",
+            "signature": "organStateDigest(opts = {})",
+            "inputs": "optional { top, weights, store }",
+            "outputs": "{ op:'organ_state_digest', openCount, closedCount, top:[{id,type,title,mass,next}], advisory_only } — the afferent heartbeat"
+          }
+        ],
+        "cliSubcommands": [
+          "digest"
+        ],
+        "invocation": "both",
+        "securityBoundary": "MUTATING but bounded: appends to the nerve store (_SYSTEM/state/nerve-events.jsonl, append-only JSONL, mkdir-safe) — never deletes or rewrites; a state transition is a NEW superseding record. No protected-path access. Deterministic: stable content-hash ids, caller-stamped time (no clock here). organStateDigest is advisory_only.",
+        "whenToUse": "Durably capturing a detected event (task/decision/fix/finding/idea/correction/build/handoff) the moment it occurs so it survives compaction; closing an event; or pulling the compact open-work digest the brain wakes with (`yuri-nerve.mjs digest`). The continuity spine — record-on-detect, recall-on-wake.",
+        "gotchas": [
+          "Ids are content-hashed (FNV-1a) so re-detecting the same event is idempotent — it supersedes, it does not duplicate.",
+          "No clock inside: the caller supplies stamp; without it, time-ordering relies on append order only.",
+          "The store is append-only and reads via de-dup-by-id — a later line for an id is the current state (closeEvent works this way).",
+          "Only `digest` is wired as a CLI subcommand; recordEvent/closeEvent are the import surface (callers stamp + supply the event)."
+        ],
+        "_authored": "2026-06-09 main-session (source-grounded)"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "energy-fn",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "imports the certified primitives (entropy, KL, logLoss, brierScore, informationGain, confidenceDecay) to assemble the scalar potential U and its ΔU terms."
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "calls gateProposal with DEFAULT_WEIGHTS to compute ΔU and the accept/reject verdict for each live before/after state pair."
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-trace",
+      "kind": "calls",
+      "description": "invokes traceGateEvaluation to append a Privacy-Gate-validated record for the transition it just evaluated."
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-config",
+      "kind": "calls",
+      "description": "calls loadEnergyConfig on every gated transition to fetch the merged-over-defaults weights/threshold/salience block driving the tick."
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "yuri-user",
+      "kind": "calls",
+      "description": "resolves the current user handle to stamp trace attribution onto each gate-evaluation record."
+    },
+    {
+      "from": "energy-tick-core",
+      "to": "energy-weights.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the externalized knob surface (via loadEnergyConfig) so live edits to the weights file steer each tick's ΔU computation."
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "energy-tick-core",
+      "kind": "calls",
+      "description": "calls tickAndTrace/freshState to convert the genuine tool transition in the session snapshot into a ΔU evaluation and a persisted next-state."
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "energy-breaker",
+      "kind": "calls",
+      "description": "calls verdictFromStates then transitionOnVerdict to advance the outcome-driven circuit breaker after each PostToolUse verdict."
+    },
+    {
+      "from": "energy-tick-hook",
+      "to": "_SYSTEM/state/energy-session/<sid>.json",
+      "kind": "writes",
+      "target": true,
+      "description": "persists the per-session snapshot (state, depth, recentAbs, surpriseEngaged, breaker blob) so the next tick and the PreToolUse enforcement read can continue from it."
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "imports the gate's verdict semantics to classify whether a verdict is catastrophic (non-offsettable veto) and should trip the breaker."
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-tick-core",
+      "kind": "calls",
+      "description": "uses toGateState to derive the gate-ready state shape needed to evaluate the breaker verdict from a transition."
+    },
+    {
+      "from": "energy-breaker",
+      "to": "energy-session snapshot (breaker blob)",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the trailing breaker blob stored in the energy-session snapshot (plus env wait/half-open timings) to know the current CLOSED/OPEN/HALF_OPEN state."
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "energy-breaker",
+      "kind": "calls",
+      "description": "calls evaluateGate/loadBreakerCfg/freshBreaker to read the trailing breaker state and decide whether to DENY the next tool call on a catastrophic OPEN verdict."
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "_SYSTEM/state/energy-session/<sid>.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the session snapshot to recover the breaker state left by the previous PostToolUse tick (fails OPEN/allow on any data gap)."
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "_SYSTEM/state/energy-enforce.enabled (flag)",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the gitignored flag file that (with OBSERVABILITY=1) arms enforcement — its absence keeps the shipped default in metrics-only mode."
+    },
+    {
+      "from": "energy-enforce-hook",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true,
+      "description": "appends a deny / would_deny audit line whenever the breaker verdict triggers an enforcement decision."
+    },
+    {
+      "from": "energy-config",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "imports DEFAULT_WEIGHTS as the allow-list and default baseline that the loaded override is validated and merged against."
+    },
+    {
+      "from": "energy-config",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the externalized knob file and fail-closed-validates it (dropping non-finite values) before returning the merged config object."
+    },
+    {
+      "from": "energy-trace",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "references the gate's verdict/label shape to validate and structure each trace record against the canonical schema."
+    },
+    {
+      "from": "energy-trace",
+      "to": "_SYSTEM/state/energy-trace/<date>.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "appends one Privacy-Gate-validated JSONL gate-evaluation record per gated transition to the day's trace file."
+    },
+    {
+      "from": "claim-cortex",
+      "to": "claim-integrity-gate",
+      "kind": "calls",
+      "description": "imports PROMOTION_STATES to rank each claim's claimed-vs-evidenced position on the canonical promotion ladder."
+    },
+    {
+      "from": "claim-cortex",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "emits a computeU-shaped snapshot through gateProposal to light the 4 starved terms (alpha/beta/epsilon/zeta) plus the theta floor — though no live hook currently feeds this path."
+    },
+    {
+      "from": "claim-integrity-gate",
+      "to": "artifact-registry",
+      "kind": "calls",
+      "description": "uses the registry's protected-path/repo-path normalization when linting claims that reference artifact files."
+    },
+    {
+      "from": "math-proof-gate",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "binds each formula-bank card to its real math-kernel primitive (FORMULA_IMPLEMENTATIONS) to run the worked-example and counterexample checks."
+    },
+    {
+      "from": "nexus-numerology",
+      "to": "yuri-jaccard",
+      "kind": "calls",
+      "description": "imports tokenize from yuri-jaccard so numerologyFeatures shares the same bounded tokenization surface as the embedding-free matcher stack."
+    },
+    {
+      "from": "yuri-token-expand",
+      "to": "nexus-numerology",
+      "kind": "calls",
+      "description": "optionally merges numerologyFeatures(text) into the feature surface when callers explicitly pass numerology:true; default matching remains unchanged."
+    },
+    {
+      "from": "math-proof-gate",
+      "to": "_SYSTEM/data/math/formula-banks/*.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the formula-bank JSON cards (the examples/counterexamples) it certifies before a bank may be promoted to non-advisory."
+    },
+    {
+      "from": "energy-dispatch-bridge",
+      "to": "energy-trace",
+      "kind": "calls",
+      "description": "calls validateRecord/traceGateEvaluation to emit a Privacy-Gate-validated synthetic-ΔU trace when a legacy dispatch surface runs."
+    },
+    {
+      "from": "energy-dispatch-bridge",
+      "to": "yuri-user",
+      "kind": "calls",
+      "description": "resolves the current user handle to attribute the legacy dispatch trace record."
+    },
+    {
+      "from": "energy-sanitize",
+      "to": "energy-trace",
+      "kind": "calls",
+      "description": "calls validateRecord to re-validate its allow-list state projection through the Privacy Gate before handing it to experiment tooling."
+    },
+    {
+      "from": "energy-simulate",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "runs each labelled scenario through gateProposal to score the gate's falseAccept / falseReject rate."
+    },
+    {
+      "from": "energy-simulate",
+      "to": "energy-breaker",
+      "kind": "calls",
+      "description": "exercises the breaker transition logic alongside the gate so the simulation reflects the live CLOSED/OPEN behavior."
+    },
+    {
+      "from": "energy-experiment",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "pushes scenario modules through computeU/computeDeltaU/gateProposal to produce the experiment's ΔU descent results."
+    },
+    {
+      "from": "energy-experiment",
+      "to": "energy-trace",
+      "kind": "calls",
+      "description": "calls traceGateEvaluation so every experiment transition is recorded through the same Privacy-Gate-validated trace path as live ticks."
+    },
+    {
+      "from": "energy-experiment",
+      "to": "experiment JSON + energy-trace JSONL",
+      "kind": "writes",
+      "target": true,
+      "description": "writes the per-run experiment result JSON plus the appended energy-trace JSONL records for the scenario."
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "references the gate semantics to compute the derived metrics the read-only dashboard renders."
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls",
+      "description": "pulls the legacy dispatch-trace data so the dashboard can show the retired-path provenance alongside live ticks."
+    },
+    {
+      "from": "energy-dashboard-data",
+      "to": "_SYSTEM/state/energy-trace/*.jsonl",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the accumulated trace JSONL history to build the dashboard's real-data object (tagged real/simulated/planned)."
+    },
+    {
+      "from": "energy-control-server",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "previews 3 scenarios through the real gateProposal so the cockpit shows the actual effect of a proposed dial change before applying it."
+    },
+    {
+      "from": "energy-control-server",
+      "to": "energy-config",
+      "kind": "calls",
+      "description": "uses the config loader to validate proposed dials fail-closed against DEFAULT_WEIGHTS before any write."
+    },
+    {
+      "from": "energy-control-server",
+      "to": "fsrs",
+      "kind": "calls",
+      "description": "calls the FSRS scorer to preview how retention dials behave under the proposed tuning."
+    },
+    {
+      "from": "energy-control-server",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "writes",
+      "target": true,
+      "description": "is the ONLY writer of the knob surface — DEV-gated POST /apply persists the validated tuned dials to the weights file."
+    },
+    {
+      "from": "energy-control-server",
+      "to": "_SYSTEM/state/energy-config-changes.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "appends a changelog record for every applied dial change so weight edits are auditable."
+    },
+    {
+      "from": "energy-obs-health",
+      "to": "energy-tick-core",
+      "kind": "calls",
+      "description": "references the tick core to confirm the live ΔU path is importable and operational as part of the liveness probe."
+    },
+    {
+      "from": "energy-obs-health",
+      "to": ".claude/settings.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the hooks config to confirm the energy-tick PostToolUse hook is actually registered."
+    },
+    {
+      "from": "energy-obs-health",
+      "to": "_SYSTEM/state/energy-trace/",
+      "kind": "reads",
+      "target": true,
+      "description": "checks the trace directory for accruing records (reporting absence rather than failing) as the heartbeat signal."
+    },
+    {
+      "from": "action-mode-study",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "runs the real gateProposal in enforce semantics over labelled transitions to produce the confusion-matrix teeth-proof."
+    },
+    {
+      "from": "action-mode-study",
+      "to": "recorded energy-trace JSONL",
+      "kind": "reads",
+      "target": true,
+      "description": "replays recorded trace records to measure the real-traffic false-positive rate that gates graduation to enforcement."
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "imports DEFAULT_WEIGHTS as the in-code baseline the config file is asserted to match value-for-value."
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-config",
+      "kind": "calls",
+      "description": "loads the validated config so it can compare each loaded value against the in-code default."
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "energy-tick-core",
+      "kind": "calls",
+      "description": "exercises the tick core's config consumption to confirm the defaults invariant holds along the live path."
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "fsrs",
+      "kind": "calls",
+      "description": "checks the FSRS knob block against its in-code defaults so retention tuning can't silently drift."
+    },
+    {
+      "from": "energy-weights-drift-test",
+      "to": "_SYSTEM/SELF/energy-weights.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the config file to assert every externalized value equals the in-code default (the _doc.values_are_defaults invariant)."
+    },
+    {
+      "from": "claude-memory-write",
+      "to": ".claude/projects/*/memory/<slug>.md",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the validated Track-B memory file (v3 frontmatter, memory/-root containment enforced) when the mediated add/remove/edit path is used instead of a native direct Write."
+    },
+    {
+      "from": "claude-memory-write",
+      "to": ".claude/projects/*/memory/MEMORY.md",
+      "kind": "writes",
+      "target": true,
+      "description": "Rebuilds the dense [HANDLE](file) MEMORY.md index via updateIndex() so even direct-Write (wrapper-less) memories self-heal into the boot index on reindex."
+    },
+    {
+      "from": "yuri-recall",
+      "to": "memory-cold-store",
+      "kind": "calls",
+      "description": "Invokes queryCold to over-fetch BM25 cue-matched cold rows (topK×4 for re-rank headroom) as the candidate pool for associative retrieval."
+    },
+    {
+      "from": "yuri-recall",
+      "to": "memory-usage",
+      "kind": "calls",
+      "description": "Calls recordUse on every surfaced recall (testing-effect reactivation) and buildUsageIndex to fold useCount/recency into the recall blend."
+    },
+    {
+      "from": "yuri-recall",
+      "to": "energy-config",
+      "kind": "calls",
+      "description": "Loads the recall block from energy-weights.json to get the recency/salience/crosslink blend knobs that weight the top-K ranking."
+    },
+    {
+      "from": "yuri-recall",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the cold FTS5 store to source recall candidates; currently returns nothing because the DB holds 0 rows until demotion executes."
+    },
+    {
+      "from": "yuri-recall",
+      "to": "_SYSTEM/state/memory-usage.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends a recall event to the usage ledger so each surfaced memory reinforces its use-signal for the relocator's retrievability scoring."
+    },
+    {
+      "from": "yuri-recall",
+      "to": ".claude/state/subconscious-recall.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the bounded top-K candidate envelope (atomic tmp+rename) for the NEXT turn to consume — the one-turn-lag handoff to the prompt context."
+    },
+    {
+      "from": "memory-cold-store",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "writes",
+      "target": true,
+      "description": "Upserts demoted memory bodies + metadata (salience/base-stability/crosslinks/demotedAt) into the embedding-free cold FTS5 DB via better-sqlite3."
+    },
+    {
+      "from": "memory-usage",
+      "to": "_SYSTEM/state/memory-usage.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends best-effort recall/reinforce records to the replayable use-signal ledger that replaces the broken atime-LRU signal."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "fsrs",
+      "kind": "calls",
+      "description": "Calls evaluateRetention to compute FSRS retrievability R(t) per memory and decide which fall below the demotion floor."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "memory-usage",
+      "kind": "calls",
+      "description": "Reads buildUsageIndex (useCount/lastUsed/lastReinforced) as the real use-signal feeding the FSRS effective-stability boost — not mtime/atime."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "memory-cold-store",
+      "kind": "calls",
+      "description": "Upserts the verbatim body of each demoted memory into the cold store so forgetting is relocation, not deletion."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "claude-memory-write",
+      "kind": "calls",
+      "description": "Imports memoryRoot to resolve the Track-B memory/ directory it scans and relocates files out of."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the demoted memory (via the cold store's upsert) into the cold FTS5 DB as the durable destination of a forget."
+    },
+    {
+      "from": "memory-relocator",
+      "to": ".claude/projects/*/memory/relocated/",
+      "kind": "writes",
+      "target": true,
+      "description": "Moves the source .md file into the reversible relocated/ dir (double-safety alongside the cold-store copy) so nothing is ever deleted."
+    },
+    {
+      "from": "memory-relocator",
+      "to": "relocation-index.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Records a tombstone for each relocated slug so the active index knows it was demoted and promoteHot() can restore it byte-identical."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-relocator",
+      "kind": "calls",
+      "description": "Calls runSubconsciousPass (FSRS demote-plan + executeRelocation) as the consolidation half of the daily subconscious pass."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-cold-store",
+      "kind": "calls",
+      "description": "Reads cold slugs (get) to build cold re-promotion proposals for memories under renewed recall pressure."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-usage",
+      "kind": "calls",
+      "description": "Reads the usage index to find cold slugs with recall pressure (useCount≥3) that qualify as re-promotion candidates."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "memory-kernel",
+      "kind": "calls",
+      "description": "Routes each cold re-promotion candidate into an operator-gated Track-A proposal via the kernel's propose pipeline rather than auto-promoting."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "energy-config",
+      "kind": "calls",
+      "description": "Loads the fsrs/recall knobs from energy-weights.json that parameterize the demotion scoring and re-promotion thresholds."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "_SYSTEM/training/state/memory-health.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the Qwen3.5-4B MLX review verdict (stale/dup/contradiction findings) across Track-B files as the daily memory-health report."
+    },
+    {
+      "from": "kagami-consolidator",
+      "to": "_SYSTEM/OS_KERNEL/memory-cold.db",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the cold store to assess which demoted memories have accrued enough recall pressure to propose re-promotion."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "kagami-event-bus",
+      "kind": "calls",
+      "description": "Calls appendKagamiEvent on memory promotion so the canonical-memory mutation is broadcast onto the system event bus."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "lane-kernel",
+      "kind": "calls",
+      "description": "Uses lane-kernel's protected-surface checks (isProtectedPath/safeRuntimePath) and RBAC-by-lane authority to gate proposals and writes."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "evidence-contract-resolver",
+      "kind": "calls",
+      "description": "Calls requiredEvidenceIdsForTask to map a proposal's task string to the required evidence-source IDs before promotion."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/state/memory-ledger.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends the promoted canonical entry to the durable Track-A ledger (the third leg of the propose→decide→ledger dual-ledger)."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/state/memory-proposals.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends each proposeMemoryWrite as a pending Track-A proposal awaiting an operator/autopilot decision."
+    },
+    {
+      "from": "memory-kernel",
+      "to": "_SYSTEM/memory/",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the warm canonical store (incl. MEMORY.md index) to source recallEntries/recallMemory results over Track-A operating truth."
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "memory-kernel",
+      "kind": "calls",
+      "description": "Records each keep/rewrite/reject/defer verdict back through the kernel's recordMemoryProposalDecision so the dual-ledger stays authoritative."
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "lane-kernel",
+      "kind": "calls",
+      "description": "Uses lane-kernel to resolve lane authority and protected-surface rules when deterministically reviewing a proposal's mutation intent."
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "secret-leak-scan",
+      "kind": "calls",
+      "description": "Spawns secret-leak-scan before any scoped commit so a detected secret aborts the commit (non-zero exit)."
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "_SYSTEM/state/memory-proposal-decisions.jsonl",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends the autopilot's review decision per proposal as the decisions leg of the Track-A audit trail."
+    },
+    {
+      "from": "memory-proposal-autopilot",
+      "to": "git commit (allowlist)",
+      "kind": "writes",
+      "target": true,
+      "description": "Optionally stages ONLY the source/docs allowlist and commits, refusing if allowlist paths were dirty pre-run (scoped, never broad git add)."
+    },
+    {
+      "from": "secret-leak-scan",
+      "to": "git staged diff",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the staged diff to scan for secret patterns before the autopilot is allowed to finalize a scoped commit."
+    },
+    {
+      "from": "memory-governor",
+      "to": "_SYSTEM/OS_KERNEL/memory.db",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the STM/MTM/LTM lifecycle transitions, importance scores, and consolidation/quarantine results into the large legacy SQLite memory.db."
+    },
+    {
+      "from": "memory-session-write",
+      "to": "memory-governor",
+      "kind": "calls",
+      "description": "Spawns memory_governor.py to persist the session's episodic observation into memory.db and opportunistically run weekly consolidation."
+    },
+    {
+      "from": "memory-session-write",
+      "to": ".claude/yuri-sentinel/learning/sessions/<date>.jsonl",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the last sentinel learning-session observation as the episodic content to capture at SessionEnd."
+    },
+    {
+      "from": "memory-session-write",
+      "to": "_SYSTEM/OS_KERNEL/memory.db",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the episodic Track-A memory into memory.db (via the governor) as the durable SessionEnd capture."
+    },
+    {
+      "from": "memory-evict-archive",
+      "to": "_SYSTEM/memory/patterns-archive/",
+      "kind": "writes",
+      "target": true,
+      "description": "Moves atime-stale memory/patterns/*.md files into patterns-archive/ via the legacy atime-LRU evict path — DORMANT, no live trigger fires this."
+    },
+    {
+      "from": "yuri-search",
+      "to": "_SYSTEM/OS_KERNEL/search-index.db",
+      "kind": "reads",
+      "target": true,
+      "description": "opens the FTS5/BM25 corpus index read-only to run the quoted-term MATCH query and return path+snippet results ranked by bm25"
+    },
+    {
+      "from": "yuri-search-index",
+      "to": "lane-kernel",
+      "kind": "calls",
+      "description": "imports isProtectedPath to exclude protected surfaces from the corpus walk as defense-in-depth, enforcing the Memory/Search Wall so .env / .claude/state / the memory DBs can never be indexed"
+    },
+    {
+      "from": "yuri-search-index",
+      "to": "_SYSTEM/OS_KERNEL/search-index.db",
+      "kind": "writes",
+      "target": true,
+      "description": "builds/refreshes the index in place — incremental upserts of changed files by mtime under Porter+unicode61 FTS5 with WAL, plus pruning of rows for deleted files"
+    },
+    {
+      "from": "context-router",
+      "to": "_SYSTEM/context/context-registry.json",
+      "kind": "reads",
+      "target": true,
+      "description": "loads the registry of context packets so it can score each packet's literal trigger substrings against the task text and return the top packet with its read-order and protected paths"
+    },
+    {
+      "from": "memory-kernel-recall",
+      "to": "lane-kernel",
+      "kind": "calls",
+      "description": "calls isProtectedPath on the memory surface root at the top of recallMemory so recall fails closed and never reads a protected memory surface"
+    },
+    {
+      "from": "memory-kernel-recall",
+      "to": "_SYSTEM/memory/",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the warm canonical Track-A memory files (.md/.json/.txt) to lexically score each against the query and return top-K hits with sha256 provenance"
+    },
+    {
+      "from": "evidence-contract-validator",
+      "to": "<artifact_dir>/evidence-bundle.txt",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the swarm artifact's evidence bundle to verify it matches the required TERM_COUNT / FILE_COUNT / MATCH grammar, exiting 1 if the deterministic verdict is missing, invented, or empty"
+    },
+    {
+      "from": "research-capture",
+      "to": "02_RESOURCES/research/<topic>-<date>.md",
+      "kind": "writes",
+      "target": true,
+      "description": "writes the synthesized, provenance-tagged research findings as a dated markdown file that joins the searchable corpus only after a subsequent manual ai reindex"
+    },
+    {
+      "from": "ai-cli",
+      "to": "yuri-search",
+      "kind": "calls",
+      "description": "routes 'ai search' / 'ai find' to the corpus search engine (exec-style, replacing the process) as the layer's front-door query path"
+    },
+    {
+      "from": "ai-cli",
+      "to": "yuri-search-index",
+      "kind": "calls",
+      "description": "routes 'ai reindex' / 'ai search-index [--full]' to the corpus indexer to manually build or refresh search-index.db"
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "yuri-operator",
+      "kind": "calls",
+      "description": "Calls resolveRole to determine whether the session is dev or coworker, since coworker-role triggers the push/remote/role-path mutation denials."
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the credential file's existence to fail-closed into a role decision (no/broken creds collapses to coworker), and reads /tmp session packet for tier."
+    },
+    {
+      "from": "bash-security-guard",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends an audit record on every deny so blocked Bash attempts are durably logged."
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "yuri-operator",
+      "kind": "calls",
+      "description": "Calls resolveRole to decide whether to deny the coworker-role write onto the protected guard/role/credential trust surface."
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the credential to resolve role, then realpath-resolves the on-disk write target for symlink-safe canonical ancestor-climb matching."
+    },
+    {
+      "from": "operator-write-guard",
+      "to": "~/.yuri-audit.log",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends an audit record when a coworker-role write onto the trust surface is denied."
+    },
+    {
+      "from": "yuri-operator",
+      "to": "_SYSTEM/SELF/dev-credential.json",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the scrypt-hashed credential to verify the YURI_DEV_KEY passphrase via timingSafeEqual; a broken read with creds present is treated as tampering and fails closed to coworker."
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Calls into the session-state mediator to read the plan_dispatch_gate and write back gate.satisfied / incremented warn_count after evaluating the control-plane packet."
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": "lane-kernel",
+      "kind": "calls",
+      "description": "Imports the canonical CONTROL_FILE_PREFIXES list from lane-kernel so the control-file set is single-sourced rather than re-declared in the guard."
+    },
+    {
+      "from": "claude-protocol-guard",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes gate state — sets plan_dispatch_gate.satisfied and increments warn_count — so the routing verdict persists across turns."
+    },
+    {
+      "from": "brain-inject",
+      "to": "fsrs",
+      "kind": "calls",
+      "description": "imports FSRS-4.5 retrievability scoring to FSRS-order the Track-B MEMORY.md rows when they overflow the 12-row working-memory cap, so the most-retrievable memories survive into the boot brain block."
+    },
+    {
+      "from": "brain-inject",
+      "to": "SOUL.md / persona / energy-weights / MEMORY.md / cortex-state / fingerprint / geass",
+      "kind": "reads",
+      "target": true,
+      "description": "reads its ~14 input sources — the 9 SOUL.md persona headings, identity-hash/neuro-core, energy-weights.json (recall.consciousSetCap → working-mem cap, fail-closed 12), MEMORY.md, sentinel global.md, cortex-state.json, lane/launch/roadmap state, neuron-loop.log, fingerprint.json, and the geass active-lock — to compose the single <yuri-brain> block; it writes nothing."
+    },
+    {
+      "from": "soul-persona-inject",
+      "to": "SOUL.md (9 headings)",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the 9 persona-rule headings out of SOUL.md to materialize the persona contract injected into the subagent's startup context."
+    },
+    {
+      "from": "neuron-loop",
+      "to": ".claude/state/neuron-loop.log",
+      "kind": "writes",
+      "target": true,
+      "description": "writes its last-run record to neuron-loop.log on each launchd-driven pass, so brain-inject can read it back into the NEURON_LOOP boot section next session (the self-improvement loop's only persistence)"
+    },
+    {
+      "from": "kagami-event-bus",
+      "to": "kagami event log",
+      "kind": "writes",
+      "target": true,
+      "description": "appends one validated JSON event line (events.jsonl) per appendKagamiEvent call, recording lifecycle moments such as memory-kernel promotions into the durable cross-organ event spine"
+    },
+    {
+      "from": "yuri-dream",
+      "to": ".claude/yuri-sentinel/learning/global.md",
+      "kind": "writes",
+      "target": true,
+      "description": "queues mined session corrections as learned rules into the global learning ledger (global.md) at Stop, so durable operator corrections become lessons that apply to every agent in every project"
+    },
+    {
+      "from": "session-reflect",
+      "to": "session-journal",
+      "kind": "writes",
+      "target": true,
+      "description": "prepends a dated newest-first reflection entry (skills used, compact hints, session shape, with a mid-session marker when spawned at tier 4) into the Track-B session-journal.md continuity record"
+    },
+    {
+      "from": "yuri-health",
+      "to": "memory-governor",
+      "kind": "calls",
+      "description": "spawns the memory_governor.py health probe (python3 memory_governor.py health) to confirm the Track-A memory.db lifecycle governor is alive as one required liveness check"
+    },
+    {
+      "from": "yuri-health",
+      "to": "energy-obs-health",
+      "kind": "calls",
+      "description": "spawns energy-observability-health.mjs to verify the PostToolUse energy-tick hook is registered and trace records are accruing, surfacing absence rather than failing the energy circuit"
+    },
+    {
+      "from": "yuri-health",
+      "to": ".claude/state/lane-health-status.json",
+      "kind": "reads",
+      "target": true,
+      "description": "reads the persisted lane-health-status snapshot to report current lane/launch health alongside its live probe results"
+    },
+    {
+      "from": "startup-offload",
+      "to": ".claude/skills/*/SKILL.md",
+      "kind": "reads",
+      "target": true,
+      "description": "reads only the YAML frontmatter (name + description) of every skill's SKILL.md to build the <startup-index> skills roster — no body parse, no execution."
+    },
+    {
+      "from": "scout-orchestrator",
+      "to": "yuri-risk-lite",
+      "kind": "calls",
+      "description": "imports yuri-risk-lite as a module (not as a hook) to run its catastrophe-regex risk scan over scout payloads before dispatching findings."
+    },
+    {
+      "from": "scout-orchestrator",
+      "to": ".claude/state/scout-bus.json",
+      "kind": "writes",
+      "target": true,
+      "description": "persists the scout bus — inits/trims it on SessionStart and writes spawned-scout findings on PostToolUse so PreToolUse can later inject them."
+    },
+    {
+      "from": "shintai-dispatch",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls",
+      "description": "calls traceDispatchEvent on the legacy energy-dispatch-bridge (L1165) when the SEAL-team roster runs, emitting one ΔU trace record per dispatch (gated on YURI_ENERGY_OBSERVABILITY=1)."
+    },
+    {
+      "from": "llm-lane",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "every dispatch calls coreOnDispatch (energy ΔU + memory recall) at start and coreOnResult (evidence + docked-output pulse) on result — the full YURI core fired from INSIDE the lane, the seam any frontier model plugs into."
+    },
+    {
+      "from": "lane-core-hooks",
+      "to": "energy-dispatch-bridge",
+      "kind": "calls",
+      "description": "coreOnDispatch fires traceDispatchEvent on every lane call, recording the invocation into the ΔU/energy landscape (gated on YURI_ENERGY_OBSERVABILITY=1) — a lane call is an input into YURI like a native operator turn, the orchestrating lane just supplies it."
+    },
+    {
+      "from": "lane-core-hooks",
+      "to": "yuri-recall",
+      "kind": "calls",
+      "description": "coreOnDispatch calls recall() over the cold store and injects a recall block so the lane carries the same episodic memory a native operator turn gets."
+    },
+    {
+      "from": "token-session-init",
+      "to": ".claude/state/token-session.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the per-session token-tracking file (plus the weekly rollup) at boot to seed token accounting for the session."
+    },
+    {
+      "from": "token-session-init",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Initializes the canonical session lifecycle file at SessionStart — guarded to skip if an active root session under 4h old already owns it."
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Reads context.pct and writes compact_history + context.tier through the session-state mediator to drive the 5-tier /compact ladder."
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "memory-bus",
+      "kind": "calls",
+      "description": "Reads the memory bus to detect another terminal's recent write and inject a cross-terminal awareness update, and advances the bus cursor."
+    },
+    {
+      "from": "pre-tool-use",
+      "to": "session-reflect",
+      "kind": "calls",
+      "description": "At compaction tier 4 spawns session-reflect --mid-session detached to capture a reflection before context pressure forces a compact."
+    },
+    {
+      "from": "pre-tool-use",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Persists compact_history entries and context.tier to the lifecycle file so the next turn's hints and the dashboard see the current compaction state."
+    },
+    {
+      "from": "post-tool-use",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Writes tools_used, errors, files_written, and skills_read/written, and arms plan_dispatch_gate on ExitPlanMode, all through the session-state mediator."
+    },
+    {
+      "from": "post-tool-use",
+      "to": "memory-bus",
+      "kind": "calls",
+      "description": "On a memory-file write, pushes the changed filename to the bus so concurrent terminals know a memory was just written."
+    },
+    {
+      "from": "post-tool-use",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Records the just-completed tool call into the canonical lifecycle file (tool result, error flag, written files, plan-dispatch arm) as the main per-turn bookkeeping write."
+    },
+    {
+      "from": "post-tool-use",
+      "to": ".claude/memory-bus.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends this session's memory-write event to the cross-terminal bus cursor file via memory-bus.writeBus."
+    },
+    {
+      "from": "token-tool-logger",
+      "to": "token-ledger",
+      "kind": "calls",
+      "description": "Spawns token-ledger.mjs write detached, handing off the per-tool estimate for durable crypto-chained, privacy-hashed persistence."
+    },
+    {
+      "from": "token-tool-logger",
+      "to": "/tmp/claude-current-session",
+      "kind": "writes",
+      "target": true,
+      "description": "Pushes {tool,estimate,time} and increments estimatedTokens from the per-tool heuristic table, which token-budget-check later reads for the WARN/CRITICAL thresholds."
+    },
+    {
+      "from": "token-ledger",
+      "to": "token ledger (privacy-hashed)",
+      "kind": "writes",
+      "target": true,
+      "description": "Appends one tamper-evident event row (prev_hash→event_hash chain, hashed payload/source-path) to the SQLite token_ledger per tool call."
+    },
+    {
+      "from": "token-budget-check",
+      "to": "/tmp/claude-current-session",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads estimatedTokens from the live session file to decide whether to emit the ≥80k WARN or ≥150k CRITICAL budget advisory."
+    },
+    {
+      "from": "session-state",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Is the sole mediator that reads and writes the canonical lifecycle file, so every hook routes its session-state mutations through this single fs surface."
+    },
+    {
+      "from": "memory-bus",
+      "to": ".claude/memory-bus.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Owns the cross-terminal cursor file — writeBus appends a session's recent activity so other terminals can read it."
+    },
+    {
+      "from": "session-checkpoint",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Reads the current session lifecycle state via the session-state mediator to assemble the periodic snapshot."
+    },
+    {
+      "from": "session-checkpoint",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Touches the canonical lifecycle file when persisting the ~30-min incremental snapshot of session progress."
+    },
+    {
+      "from": "musubi-protocol-enforce",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Goes through the session-state mediator to read prior counters and stamp aeonic.lastEnforceAt, enforcing its 60s throttle and persisting the compliance check."
+    },
+    {
+      "from": "musubi-protocol-enforce",
+      "to": ".claude/state/session-state.json",
+      "kind": "writes",
+      "target": true,
+      "description": "Persists the AEONIC enforcement timestamp (aeonic.lastEnforceAt) into the lifecycle session-state file so the next call can honor the 60s throttle window."
+    },
+    {
+      "from": "musubi-protocol-ingest",
+      "to": "session-state",
+      "kind": "calls",
+      "description": "Goes through the session-state mediator to write the parsed protocol sections into state.aeonic.sections during SessionStart boot."
+    },
+    {
+      "from": "musubi-protocol-ingest",
+      "to": "_SYSTEM/MUSUBI_PROTOCOL.md",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the legacy 872-byte MUSUBI_PROTOCOL.md shim (CORE_DIRECTIVES / GLOBAL_LLM_COMPAT_DIRECTIVE / ROLE_MATRIX) to build the <musubi-protocol> boot context block."
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": "yuri-recall",
+      "kind": "calls",
+      "description": "Spawns yuri-recall.mjs detached each turn (the hook can't block on it under its <50ms budget) so it runs the query/rank/ledger-bump and writes the recall envelope the NEXT turn consumes."
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": ".claude/state/subconscious-recall.json",
+      "kind": "reads",
+      "target": true,
+      "description": "Consumes the one-turn-lagged subconscious recall envelope written by the prior turn's detached recall (read-then-unlink, consume-once) and re-injects it so a cue surfaces exactly once."
+    },
+    {
+      "from": "user-prompt-submit",
+      "to": ".claude/state/brain-stale.sentinel",
+      "kind": "reads",
+      "target": true,
+      "description": "Reads the council-set brain-stale sentinel and, when present, re-injects the volatile brain delta as a <brain-update> block on this turn."
+    },
+    {
+      "from": "eot-background-start",
+      "to": "/tmp/claude-eot-<sid>.marker",
+      "kind": "writes",
+      "target": true,
+      "description": "Writes the per-session EOT marker file at SessionStart to arm the continuous-reflection EOT engine for that session id."
+    },
+    {
+      "from": "XREF_QUERY",
+      "to": "PROPAGATION_SCAN",
+      "kind": "calls",
+      "description": "The unified retrieval surface feeds its corpus + graph-neighbor + GitNexus results into the propagation-scan structural cross-reference as the upstream retrieval leg."
+    },
+    {
+      "from": "XREF_QUERY",
+      "to": "yuri-search",
+      "kind": "calls",
+      "description": "xref-query queries the FTS5/BM25 corpus search engine as one of its retrieval surfaces, reusing the injection-hardened buildMatch() rather than re-implementing corpus search."
+    },
+    {
+      "from": "llm-compat-contract",
+      "to": "ollama-lane",
+      "kind": "routes",
+      "description": "The shared lane contract exposes gemma-local/gemma/ollama-local/triage-local/summarize-local/code-local/gpt-oss as local compatibility lanes routed through ollama-lane."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "XREF_QUERY",
+      "kind": "calls",
+      "description": "worker_exoskeleton starts from broad xref recall before any model generation; create_work_substrate stores xref policy as a compact recall envelope, and launch_substrate lets lanes discover through xref/tool requests instead of receiving a giant packet."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "semantic-state-compiler",
+      "kind": "calls",
+      "description": "Every worker model output is parsed and compiled before it can be treated as executable energy state."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "energy-fn",
+      "kind": "calls",
+      "description": "Only compiled stateBefore/stateAfter packets reach gateProposal for Lyapunov-style accept/reject checks."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "ollama-lane",
+      "kind": "routes",
+      "description": "Local worker_exoskeleton runs dispatch through the Ollama compatibility backend for gemma-local and other local lane aliases. launch_substrate adds the WorkSubstrate JSON tool loop around Ollama so Gemma can request xref/read/grep/list/propagation observations under YURI policy. Ollama local calls now emit stream/chunk lane telemetry through the adapter, while Originator records process heartbeat, tool iterations, exhaustion edges, and final compile/gate results."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "llm-lane",
+      "kind": "routes",
+      "description": "DeepSeek/Kimi/Nemotron worker_exoskeleton and launch_substrate runs dispatch through the llm-compat llm-lane backend with system packet/substrate, reasoning depth, native tools, and telemetry."
+    },
+    {
+      "from": "ollama-lane",
+      "to": "ollama-adapter",
+      "kind": "calls",
+      "description": "Resolves requested local model aliases against the Gemma-only Ollama policy before dispatch."
+    },
+    {
+      "from": "ollama-lane",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "Every local Gemma dispatch uses coreOnDispatch/coreOnResult so the local SLM enters the same energy, recall, evidence, and docked-output pulse path as frontier lanes."
+    },
+    {
+      "from": "ollama-adapter",
+      "to": "llm-compat-contract",
+      "kind": "implements",
+      "description": "Local Ollama model selection implements the llm-compat local lane contract and retires Needle/Qwen/gemma4:e2b as routed policy choices."
+    },
+    {
+      "from": "llm-compat-contract",
+      "to": "LANE_GEMMA",
+      "kind": "routes",
+      "description": "The lane contract exposes Gemma as the active local SLM policy and maps local utility/code/triage tokens onto it."
+    },
+    {
+      "from": "LANE_GEMMA",
+      "to": "ollama-lane",
+      "kind": "calls",
+      "description": "Gemma local lane dispatch is executed by the Ollama compatibility runner."
+    },
+    {
+      "from": "LANE_GEMMA",
+      "to": "lane-core-hooks",
+      "kind": "calls",
+      "description": "Gemma local lane enters the same core-ingest seam for energy, recall, evidence ledger, and docked-output pulse."
+    },
+    {
+      "from": "yuri-navigate",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "imports loadRecords, loadGraphRaw, canonicalize, parseCanonical, normalizePath, isProtectedPath to build the unified graph + dual adjacency."
+    },
+    {
+      "from": "yuri-navigate",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "reads",
+      "target": true,
+      "description": "loadUnifiedGraph reads the circuitry die (108 nodes/171 edges) as the structural source."
+    },
+    {
+      "from": "yuri-id-bridge",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "reads",
+      "target": true,
+      "description": "loadGraphRaw reads raw node.files[] (structured, not the lossy adapter blob) to build the file-path spine."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "graph.impact_centrality formula-card executableHook + the yuri_navigate discoveryTool dispatch (deterministic structural centrality for worker lanes)."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "coverageReport imports math-kernel exports to diff kernel primitives against bank-card implementedBy bindings."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "_SYSTEM/data/math/formula-banks",
+      "kind": "reads",
+      "target": true,
+      "description": "catalogFormulas reads the 6 typed formula-bank JSON files (the dimensional/units layer = Core A typing source)."
+    },
+    {
+      "from": "foundry-channels",
+      "to": "formula-foundry",
+      "kind": "routes",
+      "description": "the 23 channel formulas route into the Formula Foundry as deterministic candidate-generator operators (research-status only)."
+    },
+    {
+      "from": "foundry-channels",
+      "to": "nexus-numerology",
+      "kind": "routes",
+      "description": "the music harmonic-ratio channel is already partially realized in nexus-numerology (HARMONIC_RATIOS + nearestRatioBucket); the Tenney-height ordering extends it."
+    },
+    {
+      "from": "formula-foundry",
+      "to": "math-proof-gate",
+      "kind": "calls",
+      "description": "proofPreflightCandidate imports validateFormulaBank — Core A (typing) routes a draft research card to Core B (the executable validation oracle); a no-binding card is inert by construction."
+    },
+    {
+      "from": "yuri-originator",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "the synthesize_formula one-port op imports synthesizeFormulaCandidates — the Foundry is reachable through the Originator origin, advisory-only, returning inert research candidates."
+    },
+    {
+      "from": "graph-unify",
+      "to": "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json",
+      "kind": "writes",
+      "target": true,
+      "description": "projects the mechanism view from the canonical"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "tests the candidates synthesizeFormulaCandidates produces"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "math-proof-gate",
+      "kind": "calls",
+      "description": "reuses runFormulaProofGate + runFormulaCounterexample for stages 1-2"
+    },
+    {
+      "from": "formula-foundry-bakeoff",
+      "to": "corpus-match",
+      "kind": "calls",
+      "description": "real non-truncated total counts for stage-3 real-data bakeoff"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "reuses confidenceDecay for the hazard/staleness term"
+    },
+    {
+      "from": "openprocess-pool",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "aggregateProcessCentrality supplies the w_dep dependency-centrality term"
+    },
+    {
+      "from": "lane-telemetry-cockpit",
+      "to": "_SYSTEM/state/originator-telemetry.jsonl",
+      "kind": "reads",
+      "target": true,
+      "description": "the YURI_LANE_TELEMETRY event stream it summarizes"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "isProtectedPath + normalizePath for the protected/scope veto"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "yuri-navigate",
+      "kind": "calls",
+      "description": "computeImpactCentrality supplies the blast-radius term"
+    },
+    {
+      "from": "discovery-precision-gate",
+      "to": "energy-fn",
+      "kind": "routes",
+      "description": "runs upstream of the energy gate as a discovery pre-filter"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "math-kernel",
+      "kind": "calls",
+      "description": "confidenceDecay for the hazard-decay staleness/purge-pressure score"
+    },
+    {
+      "from": "filing-assessor",
+      "to": "yuri-id-bridge",
+      "kind": "calls",
+      "description": "normalizePath for canonical path comparison"
+    },
+    {
+      "from": "yuri-decode",
+      "to": "nexus-numerology",
+      "kind": "calls",
+      "description": "gematria/digital-root/harmonic numerology channels"
+    },
+    {
+      "from": "yuri-decode",
+      "to": "formula-foundry",
+      "kind": "calls",
+      "description": "classifyDimension for the dimensional reading of the text + tokens"
+    }
+  ],
+  "generatedAt": "2026-06-08"
+}

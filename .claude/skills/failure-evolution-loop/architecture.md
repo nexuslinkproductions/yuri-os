@@ -48,7 +48,7 @@ Runs the extension-specific workflow:
 - root-cause analysis
 - evidence mapping
 - pattern matching
-- regression design
+- regression specification (prose/JSON plan for a coding pass to implement — this engine writes no test files)
 - safe improvement plan
 - memory proposal
 - EOT integration

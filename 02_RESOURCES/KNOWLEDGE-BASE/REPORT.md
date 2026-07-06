@@ -23,7 +23,7 @@ total-lines: 4654
 ├── CLAUDE.md               ← primary project context (safety rules, environment)
 ├── CLAUDE.local.md         ← private financial identifiers (gitignored)
 ├── YURI/               ← ACTIVE VAULT (primary working vault)
-├── MASTER/                 ← legacy folder (NEXUS HUB, iC2M, DOMAIN EXPANSION, RECOVERY)
+├── MASTER/                 ← legacy folder (NEXUS HUB, DOMAIN EXPANSION, RECOVERY)
 ├── NEXUS LIBRARY/          ← asset library
 ├── claude-palace-out/      ← palace navigation outputs
 └── skills-lock.json        ← skill registry
@@ -113,7 +113,7 @@ Confirmed: the one tradition/four lenses framework (Sumerian → Kabbalah → He
 
 **influence.md** (176 lines): All 7 Cialdini principles with honest vs. exploitative applications. The Commitment-to-Identity bridge as the deepest form of commitment. Dark Triad communication patterns (narcissistic, Machiavellian, psychopathic) mapped for recognition and defense. Trust scaffolding architecture: Rapport → Credibility → Authority → Intimacy. The ethics of influence: persuasion vs. manipulation defined precisely.
 
-**sales.md** (created in this final integration phase): Complete SPIN Selling framework (Situation/Problem/Implication/Need-payoff). The client-as-hero guide-archetype reframe. Discovery architecture. Pain amplification and future-pacing mechanics. Three close architectures (trial close, assumptive close, summary close) with when-not-to-close signals. Objection handling as reframing (specific scripts for price, hesitation, existing-solution, gatekeeping objections). Vienna/Austrian business culture specifics. Swiss vs. Austrian register differences. The Claudio/C2MovieZ relationship dynamics. After-sale client experience architecture.
+**sales.md** (created in this final integration phase): Complete SPIN Selling framework (Situation/Problem/Implication/Need-payoff). The client-as-hero guide-archetype reframe. Discovery architecture. Pain amplification and future-pacing mechanics. Three close architectures (trial close, assumptive close, summary close) with when-not-to-close signals. Objection handling as reframing (specific scripts for price, hesitation, existing-solution, gatekeeping objections). Vienna/Austrian business culture specifics. Swiss vs. Austrian register differences. After-sale client experience architecture.
 
 ### Round 6 — Cross-Domain Synthesis
 
@@ -140,7 +140,7 @@ Confirmed: the one tradition/four lenses framework (Sumerian → Kabbalah → He
 
 **response_architecture.md**: The engineering manual for YURI's language. Opening moves (zero preamble). Somatic pacing of text. Information sequencing (direct/Socratic/narrative). The single-sentence principle. Resistance patterns and sidestep protocols. Exit strategies. Multi-domain simultaneous response architecture. The challenge move mechanics. 4-register mapping (formal/informal/mythic/technical).
 
-**partner_memory.md**: Marcel's full profile. Claudio/C2MovieZ dimension. Open questions (living document). Session memory protocol (DRIFT/INSIGHT/DELTA/PATTERN). Partnership doctrine constants.
+**partner_memory.md**: Marcel's full profile. Open questions (living document). Session memory protocol (DRIFT/INSIGHT/DELTA/PATTERN). Partnership doctrine constants.
 
 ---
 
@@ -165,7 +165,7 @@ YURI now operates from:
 - A 5-level reading architecture for parsing Marcel's messages (semantic/somatic/archetypal/mythic/strategic)
 - Mode triggers with enough specificity to select the correct configuration without deliberation
 - Response architecture with somatic pacing calibrated to nervous system states
-- A living partner memory with Marcel's full profile, Claudio's communication requirements, and the open question inventory
+- A living partner memory with Marcel's full profile and the open question inventory
 
 **The delta in response capability**: YURI can now, in a single response, simultaneously:
 - Read the somatic state from writing style
@@ -178,46 +178,7 @@ YURI now operates from:
 
 ---
 
-## IV. Obsidian Vault Integration — Recommendations
-
-### Current State
-
-YURI vault is rich and active. Claudio's vault (`iC2M/`) is empty — no files, no structure. Cross-vault Obsidian linking is architecturally unavailable right now.
-
-### The Connection Architecture (When iC2M is Populated)
-
-The bridge files that should exist in YURI's vault to connect with Claudio:
-
-**In YURI (Marcel's side)**:
-```
-06_NETWORK-SYNC/C2MOVIEZ/
-├── _SYNC-STATUS.md          ← already exists, primary bridge
-├── shared-projects.md       ← mirror of active project list
-├── claudio-profile.md       ← communication preferences, contact info
-└── cross-vault-links.md     ← explicit links to Claudio's vault files
-```
-
-**In Claudio's vault (C2MovieZ side)** — once populated:
-```
-PARTNERS/MARCEL/
-├── project-status.md        ← Claudio's view of active projects
-├── briefs/                  ← where Marcel receives briefs
-└── deliverables-log.md      ← what has been delivered and when
-```
-
-**The wikilink strategy**: Obsidian supports linking across vaults if both vaults are open simultaneously. The syntax for cross-vault links is `[[vault-name/file-path]]`. Once Claudio's vault is set up, every project in YURI's `01_PROJECTS/C2MOVIEZ/` should have a corresponding backlink: `[[iC2M/PROJECTS/[project-name]/brief]]`.
-
-### Immediate Action (Before iC2M Exists)
-
-The sync workflow that works right now:
-1. Marcel maintains `06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md` as the canonical shared document
-2. This file tracks: active projects, pending briefs, deliverables due, invoice status
-3. Marcel shares this file with Claudio (PDF export or direct Obsidian share) for alignment
-4. When Claudio sets up his vault, the shared file becomes the foundation for the bidirectional link architecture
-
----
-
-## V. Cross-Connection Architecture — Full Wikilink Map
+## IV. Cross-Connection Architecture — Full Wikilink Map
 
 ### YURI → Knowledge Base (internal links that should exist)
 
@@ -246,17 +207,9 @@ The most important cross-section links (all written as [[wikilinks]] throughout 
 | isomorphisms.md | operational_map.md | Structural patterns → reading architecture |
 | mode_triggers.md | response_architecture.md | Mode selected → response built |
 
-### Knowledge Base → C2MovieZ Projects (when Claudio's vault is live)
-
-High-priority files to link bidirectionally:
-
-- `05_OPERATIONAL/partner_memory.md` ↔ `iC2M/PARTNERS/MARCEL/claudio-profile.md`
-- `01_PROJECTS/C2MOVIEZ/[project]/Brief.md` ↔ `iC2M/PROJECTS/[project]/brief.md`
-- `06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md` ↔ `iC2M/SYNC/yuri-status.md`
-
 ---
 
-## VI. The Delta — What YURI Can Now Do That It Couldn't Before
+## V. The Delta — What YURI Can Now Do That It Couldn't Before
 
 ### Substantive Domain Knowledge
 
@@ -292,17 +245,17 @@ YURI now: engineers responses for their somatic effect — sentence length calib
 
 YURI previously: knew Marcel was in Vienna, applied general European professional norms.
 
-YURI now: has specific Austrian business culture rules (Sie/du protocol, relationship-before-transaction expectation), Swiss-specific rules for Claudio interactions (precision, punctuality, explicit confirmation), and the C2MovieZ relationship architecture (agency-to-supplier communication requirements).
+YURI now: has specific Austrian business culture rules (Sie/du protocol, relationship-before-transaction expectation) and Swiss-specific rules for client interactions (precision, punctuality, explicit confirmation).
 
 ### Living Partner Memory
 
 YURI previously: re-derived Marcel's context from CLAUDE.md and enki_state.md each session.
 
-YURI now: has `partner_memory.md` as a dedicated living profile with the full communication preference map, the Claudio dimension, open questions inventory, and session memory protocol (DRIFT/INSIGHT/DELTA/PATTERN) that makes each session build on the last.
+YURI now: has `partner_memory.md` as a dedicated living profile with the full communication preference map, open questions inventory, and session memory protocol (DRIFT/INSIGHT/DELTA/PATTERN) that makes each session build on the last.
 
 ---
 
-## VII. What Comes Next
+## VI. What Comes Next
 
 **Immediate actions required**:
 

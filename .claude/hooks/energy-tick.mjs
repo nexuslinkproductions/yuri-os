@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+/**
+ * energy-tick hook — the everyday-workflow ΔU source.
+ *
+ * Registered on PostToolUse + Stop. On each genuine session transition it feeds
+ * a real before/after control-plane state pair into the energy gate and appends
+ * a real-ΔU trace record (regime='action', lane='session', user-attributed).
+ * This replaces the retired legacy dispatch surfaces as the live ΔU source.
+ *
+ * SAFETY: gated on YURI_ENERGY_OBSERVABILITY=1 (zero work otherwise). Fully
+ * error-isolated — always exits 0, never blocks or breaks the session. Snapshot
+ * state lives in _SYSTEM/state/energy-session/ (gitignored). Observability-only:
+ * it records the gate's decision, it does NOT block any tool.
+ *
+ * Thin wrapper — all logic lives in _SYSTEM/Scripts/energy-tick-core.mjs (tested).
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { tickAndTrace, freshState } from '../../_SYSTEM/Scripts/energy-tick-core.mjs';
+import { transitionOnVerdict, normBreaker, evaluateGate, loadBreakerCfg } from '../../_SYSTEM/Scripts/energy-breaker.mjs';
+
+const _HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(_HERE, '..', '..');
+// Snapshot dir honors YURI_STATE_DIR (same as the energy-trace dir) so the two
+// session-state stores stay together and tests never touch real state.
+const SNAP_DIR = process.env.YURI_STATE_DIR
+  ? path.join(process.env.YURI_STATE_DIR, 'energy-session')
+  : path.join(REPO_ROOT, '_SYSTEM', 'state', 'energy-session');
+
+function readStdin() {
+  try { return fs.readFileSync(0, 'utf8'); } catch { return ''; }
+}
+
+// CAP-01 (red-team #3): atomic snapshot write — temp + rename so a crash mid-write can never
+// leave a torn JSON that the next read fails to parse (which would fail-OPEN the enforce gate).
+function atomicWrite(p, data) {
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  const tmp = `${p}.tmp-${process.pid}`;
+  fs.writeFileSync(tmp, data);
+  fs.renameSync(tmp, p);
+}
+
+function run() {
+  // Master switch — zero I/O unless explicitly enabled.
+  if (process.env.YURI_ENERGY_OBSERVABILITY !== '1') return;
+
+  let event;
+  try { event = JSON.parse(readStdin() || '{}'); } catch { return; }
+
+  const rawId = (event && typeof event.session_id === 'string' && event.session_id) ? event.session_id : 'default';
+  const sessionId = rawId.replace(/[^A-Za-z0-9_-]/g, '') || 'default';
+  const snapPath = path.join(SNAP_DIR, `${sessionId}.json`);
+
+  let snap = null;
+  try { snap = JSON.parse(fs.readFileSync(snapPath, 'utf8')); } catch { snap = null; }
+  const prevState = (snap && snap.state && typeof snap.state === 'object') ? snap.state : freshState();
+  const depth = (snap && Number.isFinite(snap.depth)) ? snap.depth : 0;
+  const recentAbs = (snap && Array.isArray(snap.recentAbs)) ? snap.recentAbs : [];
+  const nowIso = new Date().toISOString();
+
+  const ledger = (snap && snap.ledger && Array.isArray(snap.ledger.claims)) ? snap.ledger : undefined;
+  const claimFieldFailures = (snap && Number.isFinite(snap.claimFieldFailures)) ? snap.claimFieldFailures : 0;
+
+  const result = tickAndTrace(prevState, event, {
+    runId: `session-${sessionId}-${depth}`, nowIso, depth, recentAbs, ledger, claimFieldFailures,
+  });
+
+  // SKIP transitions don't advance state/depth or write a record — nothing to persist.
+  if (!result.traced) return;
+
+  // Circuit-breaker (layer-2): trip on a catastrophic, non-offsettable trailing
+  // verdict (protected-path / structural-floor veto); recover via a HALF_OPEN probe.
+  // The OUTCOME-driven transition lives here where the verdict is known; the
+  // PreToolUse energy-enforce hook does the TIME-driven decay + enforcement read.
+  // Fully error-isolated — a breaker fault must never affect the session.
+  let breaker;
+  try {
+    // ONE BOOK: the verdict comes from tickAndTrace's own traced gate evaluation
+    // (claim fields + tuned weights/threshold/cap included) — no second,
+    // claim-blind evaluation here.
+    const prevBreaker = (snap && snap.breaker) ? snap.breaker : null;
+    const nowMs = Date.parse(nowIso) || Date.now();
+    // B1 (RMW-race fix): tick is the SOLE breaker writer. Apply the TIME-driven decay
+    // (OPEN->HALF_OPEN->CLOSED) — formerly persisted by the PreToolUse enforce hook —
+    // BEFORE the outcome transition, so making enforce pure-read cannot lose the decay.
+    const decayed = evaluateGate(prevBreaker, nowMs, loadBreakerCfg()).breaker;
+    breaker = transitionOnVerdict(decayed, result.verdict, nowMs);
+  } catch { breaker = normBreaker(snap && snap.breaker); }
+
+  try {
+    atomicWrite(snapPath, JSON.stringify({
+      state: result.state,
+      depth: result.depth,
+      recentAbs: result.recentAbs,
+      surpriseEngaged: result.surpriseEngaged,
+      deepEngaged: result.deepEngaged,
+      breaker,
+      ledger: result.ledger,
+      claimFieldFailures: result.claimFieldFailures,
+      sessionId,
+      updatedAt: nowIso,
+    }) + '\n');
+  } catch { /* snapshot write failure must never affect the session */ }
+}
+
+try { run(); } catch { /* never propagate */ }
+process.exit(0);

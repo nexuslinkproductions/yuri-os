@@ -88,13 +88,34 @@ function updateSkillNotes(state) {
 
     try {
       let content = fs.readFileSync(skillFile, 'utf8');
-      const NOTES_HEADER = '\n\n## Session Notes\n\n';
+      const MARKER = '## Session Notes';
 
-      if (content.includes('## Session Notes')) {
-        // Insert after the header
-        content = content.replace('## Session Notes\n', `## Session Notes\n\n${noteBlock}`);
+      if (content.includes(MARKER)) {
+        // Dedup by date: prepend today's block, keep the FIRST block per date.
+        // (Replaces the old unanchored .replace() that re-appended every Stop → spam.)
+        const i = content.indexOf(MARKER);
+        const head = content.slice(0, i).replace(/\s+$/, '');
+        const after = content.slice(i + MARKER.length);
+        const blocks = [];
+        let cur = null;
+        for (const line of after.split('\n')) {
+          if (/^### \d{4}-\d{2}-\d{2}/.test(line)) { if (cur) blocks.push(cur.join('\n')); cur = [line]; }
+          else if (cur) cur.push(line);
+        }
+        if (cur) blocks.push(cur.join('\n'));
+        const all = [noteBlock.replace(/\s+$/, ''), ...blocks.map(b => b.replace(/\s+$/, ''))];
+        const seen = new Set();
+        const deduped = [];
+        for (const b of all) {
+          const m = b.match(/^### (\d{4}-\d{2}-\d{2})/);
+          const date = m ? m[1] : b;
+          if (seen.has(date)) continue;
+          seen.add(date);
+          deduped.push(b);
+        }
+        content = head + '\n\n' + MARKER + '\n\n' + deduped.join('\n\n') + '\n';
       } else {
-        content = content.trimEnd() + NOTES_HEADER + noteBlock;
+        content = content.trimEnd() + '\n\n' + MARKER + '\n\n' + noteBlock;
       }
 
       const tmp = `${skillFile}.tmp`;

@@ -1,0 +1,68 @@
+{
+  "schema": "yuri.mechanism-pattern-registry.v0",
+  "id": "yuri-mechanism-pattern-registry",
+  "version": "0.1.0",
+  "promotionStatus": "research",
+  "advisoryOnly": true,
+  "authorityBoundary": "Read-only taxonomy. A 6th verb requires >=2 real path:line witnesses AND explicit owner promotion. The validator refuses self-mint of verbs exactly as the proof-gate refuses self-mint of formula cards.",
+  "verbs": [
+    {
+      "verb": "replace-hand-tuned-constant",
+      "definition": "Swap a hand-tuned magic constant for a principled or learnable curve (decay halfLife, drift weight, surprise K). The edit lands on the live conscience, so it ripples wide.",
+      "witnesses": [
+        "_SYSTEM/Scripts/math/yuri-energy.mjs:51",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs:53",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs:365"
+      ],
+      "rippleClass": "HIGH",
+      "guardRequirement": "A regression canary plus frozen guard weights MUST propagate with the pattern; never re-tune a constant without re-pinning the canary.",
+      "cascadeFamily": "energy-weights"
+    },
+    {
+      "verb": "read-lower-bound-not-point",
+      "definition": "Read the sample-count-aware lower bound, not the point estimate, at the ASSERT/HEDGE boundary. Belief width widens with low fresh-count so a thin sample HEDGEs instead of over-asserting.",
+      "witnesses": [
+        "_SYSTEM/Scripts/claim-cortex.mjs:303",
+        "_SYSTEM/Scripts/claim-cortex.mjs:438",
+        "_SYSTEM/Scripts/claim-cortex.mjs:458"
+      ],
+      "rippleClass": "MED-HIGH",
+      "guardRequirement": "The RANK_RESEARCH / EXPLORE exemption MUST propagate or hypothesis-stage work gets vetoed; the de-duped distinct fresh-count is a single shared point of failure and must stay distinct-count, not raw count.",
+      "cascadeFamily": "verdict-boundary"
+    },
+    {
+      "verb": "gate-on-identity-not-aggregate",
+      "definition": "Gate on per-source identity and dependence, not a conserved aggregate or raw count. One calibrated-per-lane verdict schema unlocks the whole family; correlated lanes must not read as independent witnesses.",
+      "witnesses": [
+        "_SYSTEM/Scripts/shintai-dispatch.mjs:365",
+        "_SYSTEM/Scripts/calibration-tracker.mjs:53"
+      ],
+      "rippleClass": "MED",
+      "guardRequirement": "The correlation / shared-base-model tag MUST be a mandatory field, otherwise the family treats correlated lanes as independent witnesses and double-counts agreement.",
+      "cascadeFamily": "lane-identity"
+    },
+    {
+      "verb": "shared-prerequisite-unlock",
+      "definition": "Build one shared resolved-outcome log (or shared prior store) once, and a whole family of downstream cards unblocks at once. Additive to build, but high-risk if shipped on a biased log.",
+      "witnesses": [
+        "_SYSTEM/Scripts/calibration-tracker.mjs:42",
+        "_SYSTEM/Scripts/claim-cortex.mjs:392"
+      ],
+      "rippleClass": "LOW-BUILD-HIGH-IF-BIASED",
+      "guardRequirement": "Each sibling that reads the shared log MUST inherit its drift correction; a biased outcome log silently poisons every consumer.",
+      "cascadeFamily": "outcome-log"
+    },
+    {
+      "verb": "compose-readonly-analyzer",
+      "definition": "Compose read-only analyzers over a static structure (architecture graph, formula-bank directory). Pure functions over a frozen artifact: safe to cascade because nothing is mutated.",
+      "witnesses": [
+        "_SYSTEM/Scripts/math/math-health.mjs:16",
+        "_SYSTEM/Scripts/math/math-health.mjs:36",
+        ".claude/skills/visual-introspection/SKILL.md:87"
+      ],
+      "rippleClass": "LOW",
+      "guardRequirement": "Any structural-VETO analyzer MUST whitelist intentional hub-and-spoke chokes before it gates merges; read-only stays read-only and never promotes itself to a mutator.",
+      "cascadeFamily": "readonly-graph"
+    }
+  ]
+}

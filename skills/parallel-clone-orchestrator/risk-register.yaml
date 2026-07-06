@@ -1,29 +1,9 @@
+status: retired
+retired_on: "2026-06-07"
+surface: "parallel-clone-orchestrator"
+active: false
 risks:
-  - risk: "Clone explosion / token depletion"
+  - risk: "Accidentally reviving retired clone/workhorse routing"
     severity: high
-    likelihood: high
-    impact: "Can reduce reliability, safety, or enterprise readiness of parallel-clone-orchestrator."
-    mitigation: "Hard max clone count, budget allocation, automatic halt thresholds."
-    detection: "Audit events, test failures, guard decisions, and human review."
-    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
-  - risk: "Contradictory outputs"
-    severity: medium
-    likelihood: high
-    impact: "Can reduce reliability, safety, or enterprise readiness of parallel-clone-orchestrator."
-    mitigation: "Contradiction register and synthesis agent required."
-    detection: "Audit events, test failures, guard decisions, and human review."
-    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
-  - risk: "Low-quality parallel noise"
-    severity: medium
-    likelihood: medium
-    impact: "Can reduce reliability, safety, or enterprise readiness of parallel-clone-orchestrator."
-    mitigation: "Each clone must have role, input, output, and evidence rules."
-    detection: "Audit events, test failures, guard decisions, and human review."
-    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
-  - risk: "Uncontrolled mutation by clones"
-    severity: critical
-    likelihood: medium
-    impact: "Can reduce reliability, safety, or enterprise readiness of parallel-clone-orchestrator."
-    mitigation: "Clones are read-only by default; mutation proposals go through domain and guard."
-    detection: "Audit events, test failures, guard decisions, and human review."
-    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
+    mitigation: "Keep this package as a tombstone only; route DeepSeek through LLM compatibility."
+    replacement: "native planning + explicit llm-compat advisory lanes"

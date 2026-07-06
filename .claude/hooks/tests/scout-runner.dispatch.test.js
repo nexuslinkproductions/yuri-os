@@ -8,10 +8,10 @@ const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '../../..');
 
-// Stub offload.sh BEFORE requiring scout-runner — scout-runner reads SCOUT_OFFLOAD_SH at module load.
+// Stub llm-compat.sh BEFORE requiring scout-runner — scout-runner reads SCOUT_LLM_COMPAT_SH at module load.
 const offloadStubDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scout-offload-stub-'));
 const offloadLogFile = path.join(offloadStubDir, 'offload.log');
-const offloadStub = path.join(offloadStubDir, 'offload.sh');
+const offloadStub = path.join(offloadStubDir, 'llm-compat.sh');
 fs.writeFileSync(offloadStub, [
   '#!/usr/bin/env bash',
   `printf "%s\\n" "$*" >> "${offloadLogFile}"`,
@@ -20,7 +20,7 @@ fs.writeFileSync(offloadStub, [
   '',
 ].join('\n'));
 fs.chmodSync(offloadStub, 0o755);
-process.env.SCOUT_OFFLOAD_SH = offloadStub;
+process.env.SCOUT_LLM_COMPAT_SH = offloadStub;
 
 const runner = require(path.join(repoRoot, '.claude/hooks/scout-runner.js'));
 const bus = require(path.join(repoRoot, '.claude/hooks/scout-bus.js'));
@@ -93,5 +93,5 @@ try {
     fs.mkdirSync(path.dirname(bus.BUS_PATH), { recursive: true });
     fs.writeFileSync(bus.BUS_PATH, previousBus);
   }
-  delete process.env.SCOUT_OFFLOAD_SH;
+  delete process.env.SCOUT_LLM_COMPAT_SH;
 }

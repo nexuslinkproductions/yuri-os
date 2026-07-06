@@ -1,0 +1,41 @@
+{
+  "runId": "olf-mr8ebueq-b79e1d",
+  "armed": true,
+  "runDir": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/jobs/olf-mr8ebueq-b79e1d/results",
+  "concurrency": 3,
+  "results": [
+    {
+      "label": "DS1-agent-security-taxonomy",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_AGENT_SECURITY_TAXONOMY_8_THREATS_MUST_OVER_X_PASS_COMMITTED",
+      "ms": 647043,
+      "chars": 17303
+    },
+    {
+      "label": "DS2-debloat-methods",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_DEBLOAT_SURVEY_SAFE_CUT_PROTOCOL_X_PASS_COMMITTED",
+      "ms": 78671,
+      "chars": 20461
+    },
+    {
+      "label": "DS3-minimal-safe-autonomy",
+      "model": "deepseek-v4-flash:cloud",
+      "ok": true,
+      "degraded": false,
+      "reason": "clean",
+      "exitCode": 0,
+      "resultLabel": "08DS_MINIMAL_SAFE_AUTONOMY_SURVEY_X_PASS_COMMITTED",
+      "ms": 66865,
+      "chars": 18611
+    }
+  ]
+}

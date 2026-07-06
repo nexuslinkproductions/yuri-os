@@ -60,7 +60,7 @@ import { validateRecord } from './yuri-energy-trace.mjs';
 /**
  * Canonical lane names. Any lane value not on this list is replaced with the
  * sentinel UNKNOWN_LANE rather than passed through — a raw lane-instance id
- * (e.g. "claude-pty-7f3a", "/Users/marcelspatz/...") must never survive as a
+ * (e.g. "claude-pty-7f3a", "/Users/<username>/...") must never survive as a
  * canonical name.
  */
 export const CANONICAL_LANES = Object.freeze([
@@ -116,12 +116,20 @@ export function eventTypeLabel(code) {
 /**
  * Canonical promotion-ladder transition labels. Counts are keyed by these and
  * nothing else — an arbitrary key (which could leak a claim body) is dropped.
+ *
+ * Must stay equal to yuri-energy-trace.CANONICAL_PROMOTION_LABELS, which in turn
+ * must equal the cortex LADDER (claim-cortex.LADDER). operator_validated was ADDED
+ * 2026-06-04 (ENG-08): it is a live LADDER rung that was omitted here AND in trace,
+ * so both sets drifted from the actual ladder together — the old drift test only
+ * checked trace==sanitize, so it stayed green while both silently dropped
+ * operator_validated mass. 'deprecated' stays OUT (SINK, not a distribution rung).
  */
 export const PROMOTION_LADDER_LABELS = Object.freeze([
   'draft',
   'research',
   'fixture_ready',
   'runtime_tested',
+  'operator_validated',
   'trusted',
 ]);
 

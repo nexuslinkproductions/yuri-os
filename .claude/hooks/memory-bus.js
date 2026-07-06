@@ -11,6 +11,11 @@ const SESSIONS_DIR = path.join(os.homedir(), '.claude', 'memory-sessions');
 const MEMORY_PATTERNS = [
   /\/\.claude\/projects\/[^/]+\/memory\/[^/]+\.md$/,
   /\/\.claude\/yuri-sentinel\/learning\/[^/]+\.md$/,
+  // Canonical repo-relative Track-B path (post-migration ~2026-06). The projects/*/memory
+  // pattern above targets the pre-migration per-project harness dir, which real writes no
+  // longer touch — without this, isMemoryFile() never matches current memory writes and the
+  // bus sequence freezes (2026-07-06: found frozen at seq 253 since 2026-06-11/14).
+  /\/\.claude\/memory\/[^/]+\.md$/,
 ];
 
 // Walk the process tree: Claude → sh → node(hook). Return Claude's stable PID.

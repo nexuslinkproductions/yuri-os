@@ -1,0 +1,76 @@
+{
+  "relocated": {
+    "session-resume-2026-05-31": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-05-31.md",
+      "demotedAt": 1780593633519,
+      "R": 0.520914097086068,
+      "reason": "R=0.521 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-05-31.md"
+    },
+    "session-resume-2026-06-01": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-01.md",
+      "demotedAt": 1780593633519,
+      "R": 0.5270899988267356,
+      "reason": "R=0.527 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-01.md"
+    },
+    "session-resume-2026-06-02-video-purge": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-02-video-purge.md",
+      "demotedAt": 1780593633519,
+      "R": 0.5338933019316554,
+      "reason": "R=0.534 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-02-video-purge.md"
+    },
+    "session-resume-2026-06-03-cortex-decoder-circuitry": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-03-cortex-decoder-circuitry.md",
+      "demotedAt": 1780593633519,
+      "R": 0.5404595709820024,
+      "reason": "R=0.540 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-03-cortex-decoder-circuitry.md"
+    },
+    "session-resume-2026-06-03-yuri-openclaw-codex": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-03-yuri-openclaw-codex.md",
+      "demotedAt": 1780593633519,
+      "R": 0.5394065865414697,
+      "reason": "R=0.539 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-03-yuri-openclaw-codex.md"
+    },
+    "session-resume-2026-06-04-circuitry-instrument": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-04-circuitry-instrument.md",
+      "demotedAt": 1780632001779,
+      "R": 0.5421176585176343,
+      "reason": "R=0.542 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-04-circuitry-instrument.md"
+    },
+    "session-resume-2026-06-04-master-build-plan": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-04-master-build-plan.md",
+      "demotedAt": 1780632001779,
+      "R": 0.5424679859180481,
+      "reason": "R=0.542 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-04-master-build-plan.md"
+    },
+    "session-resume-2026-06-04-redteam": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-04-redteam.md",
+      "demotedAt": 1780632001779,
+      "R": 0.5443062747291831,
+      "reason": "R=0.544 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-04-redteam.md"
+    },
+    "session-resume-2026-06-04-wave0": {
+      "coldHome": "memory-cold.db",
+      "relocatedFile": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/relocated/session-resume-2026-06-04-wave0.md",
+      "demotedAt": 1780632001779,
+      "R": 0.5431631451528843,
+      "reason": "R=0.543 < floor 0.6 (retrieval strength decayed); superseded by a newer same-family anchor (uniqueness moot)",
+      "sourcePath": "/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-resume-2026-06-04-wave0.md"
+    }
+  }
+}

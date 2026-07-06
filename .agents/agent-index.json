@@ -56,9 +56,6 @@
       "contextPackets": ["kagami-harness", "skills", "baseline"],
       "roleContract": "Classify intent, activate only relevant skills and lanes, keep model output advisory until local verification accepts it.",
       "skillIds": [
-        "ai-pipeline-offloading",
-        "swarm-coordination",
-        "parallel-clone-orchestrator",
         "haki-intent",
         "bankai-manifest",
         "failure-evolution-loop"
@@ -80,7 +77,6 @@
         "sharingan",
         "pattern-mirror-core",
         "research-artifact-factory",
-        "graphify",
         "oracle-memory"
       ],
       "lanePolicy": {

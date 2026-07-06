@@ -1,6 +1,7 @@
 ---
 name: izanagi-simulator
-description: Counterfactual Simulation Engine — before committing to a high-stakes plan, generates 3 divergent alternate paths, evaluates each by EV/risk/reversibility, commits with explicit simulation record. Fires automatically on CRITICAL/HIGH complexity tiers with multiple viable paths.
+description: "Counterfactual simulation engine that generates 3 divergent alternate paths before committing to high-stakes plans, evaluating each by EV/risk/reversibility with explicit simulation records. Use when facing CRITICAL or HIGH complexity decisions with multiple viable paths, when the user says \"simulate this decision\", \"what if we tried X instead\", or \"I need to evaluate alternatives before committing\"."
+invocation: model
 triggers:
   - /izanagi
   - /yuri-izanagi
@@ -14,12 +15,11 @@ triggers:
 
 ---
 
-## When This Fires
+## When To Invoke
 
-- `complexity_tier` = CRITICAL or HIGH in pulse-plan.json
-- AND more than one viable architectural path exists
-- OR user explicitly invokes `/izanagi`
-- Does NOT fire on: trivial tasks, single-path decisions, pure implementation with no strategic branch
+- Model-invocable on a CRITICAL/HIGH-complexity decision with more than one viable architectural path; or `/izanagi` explicitly.
+- The standing behavior ("simulate before committing") lives in the brain (`_SYSTEM/persona.md`); this skill is the full counterfactual procedure when a high-stakes branch warrants it.
+- Skip on trivial tasks, single-path decisions, and pure implementation with no strategic branch.
 
 ---
 
@@ -93,7 +93,6 @@ Rejected [Y]: [reason]. Rejected [Z]: [reason].
 
 ## Integration
 
-- Reads `pulse-plan.json` to check complexity tier before firing
 - Writes `nisaba/izanagi/decision-<turnId>.json` for audit trail
 - Feeds `self-hypothesis.mjs` post-mortem validation
 - Cross-references `fingerprint.json` confidence_bias to calibrate EV estimates
@@ -101,6 +100,18 @@ Rejected [Y]: [reason]. Rejected [Z]: [reason].
 ---
 
 ## Session Notes
+
+### 2026-06-13
+- session: 110m | peak ctx: 0% | compacts: 0
+- tools: Bash×938, Read×220, Edit×101, Write×61, StructuredOutput×32, TodoWrite×5, ScheduleWakeup×4, Agent×3, Skill×2, Workflow×2, AskUserQuestion×1
+- corrections: why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact | why wont you compact the actual session, the session is still at 47% remaining? you just re wrote the same skill instead of executing the compact
+- errors: none
+
+### 2026-06-02
+- session: 94m | peak ctx: 0% | compacts: 0
+- tools: Bash×97, Edit×42, Read×39, WebFetch×4, StructuredOutput×4, Workflow×1, AskUserQuestion×1
+- corrections: im back again rick, we pull up the latest station we left off from the previous session | commit and push phase 1 then proceed, im going to rest for a bit again (currently sitting in an ICE train from vienna to frankfurt airport, arrival around 13:00.) | ai pipeline offloading as far as im aware is again another routing workaround to achieve that what opus 4.8 does natively, confirm if that is the case, then you should be able to figure out what to do
+- errors: none
 
 ### 2026-05-16 — Created
 Tools: Write. Part of Musubi Hyper-Intelligence v2 sprint.

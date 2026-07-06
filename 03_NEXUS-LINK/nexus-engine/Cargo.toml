@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = ["crates/nexus-score", "crates/nexus-core", "crates/nexus-store", "crates/nexus-ingest", "crates/nexus-ledger", "crates/yuri-cli"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+authors = ["Nexus Link"]
+rust-version = "1.95"
+
+[workspace.dependencies]
+rust_decimal = { version = "1.36", features = ["serde-str"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+thiserror = "2.0"
+serde = { version = "1", features = ["derive"] }
+uuid = { version = "1.11", features = ["v4", "serde"] }
+time = { version = "0.3", features = ["serde", "macros"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

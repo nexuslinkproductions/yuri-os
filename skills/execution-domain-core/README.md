@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Execution Domain Core translates Domain Expansion into a Yuri OS enterprise extension for scoped execution environment, task policy, and exit criteria system.
+Execution Domain Core translates Domain Expansion into a Yuri OS / Yuri enterprise extension for scoped execution environment, task policy, and exit criteria system.
 
 ## Core principle
 

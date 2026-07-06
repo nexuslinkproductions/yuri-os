@@ -1,0 +1,46 @@
+{
+  "summary": "WS-D: MURE company build-out — knowledge and doctrine",
+  "tags": ["mure", "buildout", "knowledge", "doctrine"],
+  "subtasks": [
+    {
+      "id": "WS-D-R1-archivist-index",
+      "role": "archivist",
+      "need": ["documentation", "local-first-search"],
+      "prompt": "Index MURE build-out artifacts: plan, audit reports, task packets under 02_RESOURCES/TASKS/. Cross-link from _SYSTEM/INDEX.md if appropriate. Return 02D1_ARCHIVIST_INDEX_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-D-S1-synthesist-doctrine",
+      "role": "synthesist",
+      "need": ["synthesis", "documentation"],
+      "prompt": "Synthesize build doctrine axes vs company ops goal tree. One-page summary in _SYSTEM/reports/. Return 02D2_SYNTHESIS_DOCTRINE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-D-I1-ideator-gaps",
+      "role": "ideator",
+      "need": ["improvement-proposal"],
+      "prompt": "Propose 3–5 post-build-out capability gaps (native spawn, dispatch fork, analytics). No execution. Return 02D3_IDEATOR_GAPS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-D-C1-chronicler-runbook",
+      "role": "chronicler",
+      "need": ["documentation"],
+      "prompt": "Publish operator runbook section: DISARMED vs ARMED, dashboard serve, dry-run commands. Cross-link MURE README. Return 02D4_RUNBOOK_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-D-K1-calibrator-honesty",
+      "role": "calibrator",
+      "need": ["adversarial-verify"],
+      "prompt": "Calibrate claims in build-out reports vs local evidence. Flag overclaims. Return 02D5_CALIBRATION_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YURI organs — node graphs</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { background:#0d0d10; color:#d7d7da; font:14px/1.5 ui-monospace,Menlo,Consolas,monospace; margin:0; padding:24px 28px; }
+  h1 { font-size:16px; font-weight:600; color:#fff; margin:0 0 4px; }
+  .sub { color:#7a7a82; font-size:12px; margin:0 0 28px; }
+  h2 { font-size:13px; color:#9fd; margin:34px 0 6px; border-bottom:1px solid #222; padding-bottom:4px; }
+  .note { color:#6a6a72; font-size:11px; margin:0 0 8px; }
+  .mermaid { background:#121216; border:1px solid #1e1e24; border-radius:4px; padding:14px; overflow-x:auto; }
+</style>
+</head>
+<body>
+  <h1>YURI organs — how they work</h1>
+  <p class="sub">bare-bones node graphs · Formula Foundry · OpenProcess Sum Pool · yuri-decode · 2026-06-09</p>
+
+  <h2>1 — Formula Foundry</h2>
+  <p class="note">two cores: A = dimensional TYPING (the legal-move gate), B = the executable proof-gate ORACLE. Creativity is unbounded at synthesis; only PROMOTION is gated, and the gate is domain-blind.</p>
+  <pre class="mermaid">
+flowchart LR
+  CH["candidate channels<br/>info-theory · graph · physics<br/>music · frequency · magnetism · astronomy"] --> CAT["catalog<br/>typed formula-bank cards"]
+  CAT --> TYP["CORE A: composition type-algebra<br/>dimensional typing<br/>rejects bits ↛ length"]
+  TYP --> SYN["synthesis<br/>combine legal chains →<br/>INERT research card (no binding)"]
+  SYN --> BK["bakeoff harness<br/>0 intake · 1 fixtures · 2 counterexamples · 3 real-data"]
+  BK --> OR["CORE B: math-proof-gate<br/>binds a real kernel symbol?<br/>green worked example?"]
+  OR -- "pass" --> LAD["promotion ladder<br/>hypothesis → … → owner-approved<br/>gate-record required · DEMOTE on regression"]
+  OR -- "fail / no binding" --> INERT["stays research (inert)"]
+  LAD --> PROM["promoted formula<br/>real, kernel-bound, as true as Shannon entropy"]
+  </pre>
+
+  <h2>2 — OpenProcess Sum Pool</h2>
+  <p class="note">"what did we start but not finish?" answered from process MASS, not memory vibes. Stale-but-open rises into attention; closed work sinks (the verify term subtracts).</p>
+  <pre class="mermaid">
+flowchart LR
+  P["OpenProcess<br/>task · research · idea · todo<br/>skill · bug · experiment · handoff"] --> M{{"OpenMass = Σ weighted terms"}}
+  T1["+ status_open"] --> M
+  T2["+ staleness<br/>(stale RISES, hazard-decay)"] --> M
+  T3["+ dependency_centrality<br/>via yuri-navigate"] --> M
+  T4["+ unfinished_risk"] --> M
+  T5["+ operator_value"] --> M
+  T6["− verified_closure<br/>(closed work SINKS)"] --> M
+  M --> R["ranked pool<br/>top = blocked + valuable + stale<br/>closed = negative mass"]
+  </pre>
+
+  <h2>3 — yuri-decode</h2>
+  <p class="note">the instrument the LLM WIELDS (not an ingress pre-processor): decode(text) → a deterministic math object the model reasons over.</p>
+  <pre class="mermaid">
+flowchart LR
+  X["input text"] --> TK["raw tokens + frequency<br/>+ lexical density"]
+  X --> NU["numerology channels<br/>gematria hash · digital-root mod-9 · harmonic"]
+  X --> DI["dimensional reading<br/>via the Foundry classifier"]
+  TK --> OBJ["math object<br/>(feature surface)"]
+  NU --> OBJ
+  DI --> OBJ
+  OBJ --> LLM["the LLM reasons over it directly<br/>same engine, inverted control"]
+  </pre>
+
+<script>
+  mermaid.initialize({ startOnLoad:true, theme:'dark', securityLevel:'loose', flowchart:{ curve:'basis' } });
+</script>
+</body>
+</html>

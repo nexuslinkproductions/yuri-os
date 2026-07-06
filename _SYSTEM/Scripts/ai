@@ -2,11 +2,40 @@
 
 set -euo pipefail
 
-# ── Key hydration (runs before any node exec — same pattern as offload.sh) ──
+# ── Key hydration (runs before any node exec — same pattern as llm-compat.sh) ──
 # shellcheck source=/dev/null
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+# Per-lane override (gitignored): durable shared config lives in env.sh above; lane-local
+# overrides live in the WORKTREE root so parallel lanes never churn the shared file
+# (parallel-session-hardening 2026-06-13). Anchored to the worktree root, not cwd — each
+# git worktree resolves to itself, giving true per-lane isolation. Guarded + fail-soft.
+_yuri_wt="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "${_yuri_wt:-}" ] && [ -f "$_yuri_wt/.yuri-env.local.sh" ] && source "$_yuri_wt/.yuri-env.local.sh"
+unset _yuri_wt
+# macOS Keychain hydration — the canonical key store (service "<PREFIX>:<VAR>", account "$USER").
+# This block was previously missing here (only the .zshrc fallback below existed), so keychain-only
+# keys like OLLAMA_API_KEY never reached the lane and dispatch failed missing_key even though the
+# entry existed. Mirrors hydrate_keychain_var in llm-compat.sh. (ollama-cloud peer lane, 2026-06-14.)
+_yuri_hydrate_keychain_var() {
+  local key="$1"
+  local service="${YURI_KEYCHAIN_SERVICE_PREFIX:-YURI_OS_MUSUBI}:$key"
+  local value=""
+  if [ -n "${!key:-}" ] || ! command -v security >/dev/null 2>&1; then
+    return 0
+  fi
+  value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
+  # if/fi (not `&& export`) so an absent key returns 0 — under this script's `set -e` (line 3) a
+  # trailing `&&` that short-circuits would return 1 and kill the whole dispatch. llm-compat.sh dodges
+  # this only because its hydration runs before it enables set -e. (ollama-cloud debug, 2026-06-14.)
+  if [ -n "$value" ]; then export "$key=$value"; fi
+  return 0
+}
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
+  _yuri_hydrate_keychain_var "$_lane_var"
+done
+unset _lane_var
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY MIMO_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -17,8 +46,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${ROOT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
-OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
+# Dispatch hub is now the minimal llm-lane.mjs core (offload-runner.mjs retired in the 3-lane consolidation).
+LLM_COMPAT_RUNNER="$SCRIPT_DIR/llm-lane.mjs"
+LLM_COMPAT_CONTRACT="$SCRIPT_DIR/llm-compat-contract.mjs"
 
 usage() {
   cat <<'EOF'
@@ -33,6 +63,14 @@ Commands:
 
   claude-full
       Start raw Claude interactively with full tool and scout behavior.
+
+  claude-mimo
+      Start Claude Code using Xiaomi Mimo (Anthropic-compatible proxy, token plan).
+
+  claude-zai
+      Start Claude Code using Z.ai GLM Coding Plan (Anthropic-compatible, subscription).
+      Default glm-4.7; set ZAI_MODEL=glm-5.2 for the Opus-tier flagship.
+      Default model: mimo-v2.5-pro[1m] (1M context, max effort).
 
   codex [prompt]
       Start Codex interactively, or run a one-shot prompt with codex exec.
@@ -49,20 +87,17 @@ Commands:
   moonshot [prompt]
       Route directly to the Moonshot cloud lane (deprecated compatibility).
 
-  offload [options] [prompt]
-      Route through the YURI offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
+  llm [options] [prompt]
+      Route through the YURI LLM compatibility lane (lane name, --model, --list, --dry-run, --route-only).
 
-  offload swarm [prompt]
-      Run offload swarm with the shared default workhorse lane set.
-
-  offload capabilities
+  llm capabilities
       Print the full lane and model inventory (JSON).
 
   swarm [prompt]
       Run Ruflo-backed swarm routing, then fan out GPT-OSS as needed.
 
   doctor
-      Check that the launcher and offload entrypoints are available.
+      Check that the launcher and LLM-compat entrypoints are available.
 
   route [prompt]
       Print the lane that btw would choose without executing it.
@@ -74,7 +109,7 @@ Commands:
       Print embedded end-to-end routing scenarios (JSON).
 
   search|find "<query>" [--top N] [--json]
-      Corpus full-text search (FTS5/BM25) over ~26k docs/code. Finds things on demand.
+      Corpus full-text search (FTS5/BM25) over ~41k docs/code. Finds things on demand.
       This is SEARCH, not memory — results are file+snippet, never auto-injected.
 
   reindex|search-index [--full]
@@ -87,13 +122,13 @@ Commands:
       Run the Yuri sandbox improvement loop live and write artifact-only reports.
 
   @kimi [prompt]
-      Deprecated compatibility route to the Kimi cloud offload lane.
+      Deprecated compatibility route to the Kimi cloud lane.
 
   @gpt-oss [prompt]
-      Run the direct GPT-OSS local offload lane.
+      Run the direct GPT-OSS local lane.
 
   @codex-spark|@spark|@fast-codex [prompt]
-      Run the bounded Codex Spark offload lane (gpt-5.3-codex-spark).
+      Run the bounded Codex Spark lane (gpt-5.3-codex-spark).
 
   @nvidia [prompt]
       Run the default NVIDIA NIM lane (meta/llama-3.3-70b-instruct). Tools default ON.
@@ -103,6 +138,12 @@ Commands:
 
   @nvidia-nemotron [prompt]
       Run NVIDIA NIM with nvidia/llama-3.1-nemotron-70b-instruct.
+
+  nemotron --task <string|@file> --files <comma,list> [--handles <string|@file>] [--briefing <@file>] [--dry-run]
+      Assemble the YURI framework preamble, symbol inventory, and advisory dispatch for nvidia/nemotron-3-ultra-550b-a55b.
+
+  ds-reason --task <string|@file> --files <comma,list> [--handles <string|@file>] [--briefing <@file>] [--dry-run]
+      Disciplined DeepSeek adapter (framework preamble, symbol inventory, Track-A handles, falsifier extraction) for deepseek-v4-pro. NOTE: '@deepseek' is the RAW cloud lane with no discipline wrapper; 'ds-reason' adds the wrapper on top of the same lane.
 
   @nvidia-mistral [prompt]
       Run NVIDIA NIM with mistralai/mistral-large-2-instruct.
@@ -120,7 +161,7 @@ Commands:
       Run the official DeepSeek V4 Flash lane. Tool/skill intent belongs in the prompt contract.
 
   @deepseek-v4-pro [prompt]
-      Run the official DeepSeek V4 Pro lane. Add reasoning depth in the prompt or use offload.sh --reasoning.
+      Run the official DeepSeek V4 Pro lane. Add reasoning depth in the prompt or use llm-compat.sh --reasoning.
 
   @triage-local [prompt]
       Run the triage-local lane (fast lightweight local model).
@@ -129,7 +170,7 @@ Commands:
       Run the summarize-local lane (summarization-optimized local model).
 
   @code-local [prompt]
-      Run the code-local lane (code-specialized local model, prefers qwen2.5-coder).
+      Run the code-local lane (Gemma-only local policy via llm-compat).
 
   @ollama [prompt]
       Run additive Ollama auto lane (local first, cloud fallback only if configured).
@@ -142,11 +183,6 @@ Commands:
 
   @reason-kimi [prompt]
       Deprecated compatibility route for Kimi reasoning (cloud, thinking enabled).
-
-  @deepseek-workhorse [prompt]
-      Run DeepSeek workhorse swarm (cloud): shared workhorse pair from Scripts/offload-contract.mjs.
-      Supports --dry-run / --route-only to preview lanes without live API calls.
-      Read-only routing only. No write, patch, stage, or commit capability.
 
   @claude [prompt]
       Run the bounded Claude Sonnet council lane with advisory-only output.
@@ -179,8 +215,8 @@ Commands:
       Run the gemma-cloud lane (Ollama Cloud Gemma4 only).
 
   @swarm [prompt]
-      DEPRECATED — parallel swarm fan-out is retired. Use the native Opus Workflow tool for
-      fan-out, or '@deepseek <prompt>' for a single advisory lane.
+      DEPRECATED — swarm fan-out is retired. Use native workflow orchestration,
+      or 'ai llm deepseek <prompt>' for a single DeepSeek advisory lane.
 
   ruflo [prompt]
       Ask Ruflo for routing guidance without executing the routed lane.
@@ -198,16 +234,17 @@ Examples:
   ai code .
   ai claude
   ai claude-full
+  ai claude-zai
   ai codex "Find the riskiest file in backend/src"
-  ai btw "offload this review"
+  ai btw "review this with the right lane"
   ai moonshot "deep architecture review"
   ai swarm "review this branch"
   ai doctor
-  ai route "offload swarm proceed"
+  ai route "review routing and proceed"
   ai route-plan "fix the failing api test"
   ai auto "fix the failing api test"
   ai sandbox "first Yuri sandbox operational proving run"
-  ai @deepseek-workhorse "Summarize this branch"
+  ai llm deepseek "Summarize this branch"
   ai @swarm "Review the auth flow"
   ai triage "What should I change first?"
   ai ruflo "Route this feature"
@@ -221,11 +258,11 @@ require_cmd() {
   fi
 }
 
-offload_contract() {
+llm_compat_contract() {
   local subcommand="$1"
   shift || true
   require_cmd node
-  node "$OFFLOAD_CONTRACT" "$subcommand" "$@"
+  node "$LLM_COMPAT_CONTRACT" "$subcommand" "$@"
 }
 
 run_claude_safe() {
@@ -467,6 +504,53 @@ join_prompt() {
   printf '%s' "$*"
 }
 
+run_claude_mimo() {
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _mimo_key="${MIMO_API_KEY:-}"
+  local _mimo_url="https://token-plan-ams.xiaomimimo.com/anthropic"
+  require_cmd "$_claude_bin"
+  if [ -z "$_mimo_key" ]; then
+    printf 'ERROR: MIMO_API_KEY not set.\nStore it: security add-generic-password -U -a "$USER" -s yuri-mimo-api-key -w "tp-..."\n' >&2
+    exit 1
+  fi
+  # [1m] is a CLIENT-side alias convention only — Mimo's endpoint rejects it with
+  # http_400 "Not supported model mimo-v2.5-pro1m". Pass the bare WIRE model ids and
+  # request the 1M context window via the anthropic-beta header instead, mirroring the
+  # native llm-lane adapter fix (llm-lane.mjs:367-373, 2026-06-11). Claude Code forwards
+  # ANTHROPIC_CUSTOM_HEADERS verbatim, so the long-context beta reaches Mimo.
+  ANTHROPIC_BASE_URL="$_mimo_url" \
+  ANTHROPIC_AUTH_TOKEN="$_mimo_key" \
+  ANTHROPIC_CUSTOM_HEADERS="anthropic-beta: context-1m-2025-08-07" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="mimo-v2.5-pro" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="mimo-v2.5" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="mimo-v2-flash" \
+  ANTHROPIC_MODEL="mimo-v2.5-pro" \
+  exec "$_claude_bin" --model "mimo-v2.5-pro" --effort max "$@"
+}
+
+run_claude_zai() {
+  # Z.ai GLM Coding Plan as a native Claude Code session — mirrors run_claude_mimo. Sets the
+  # Anthropic-compatible Z.ai endpoint + auth token; /model glm-5.2 etc. work natively in-session.
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _zai_key="${ZAI_API_KEY:-}"
+  [ -z "$_zai_key" ] && _zai_key="$(security find-generic-password -a "$USER" -s yuri-zai-api-key -w 2>/dev/null || true)"
+  local _zai_url="${ZAI_BASE_URL:-https://api.z.ai/api/anthropic}"
+  local _zai_model="${ZAI_MODEL:-glm-4.7}"        # coding default; set ZAI_MODEL=glm-5.2 for the Opus-tier flagship
+  require_cmd "$_claude_bin"
+  if [ -z "$_zai_key" ]; then
+    printf 'ERROR: Z.ai key not found.\nStore it once: security add-generic-password -U -a "$USER" -s yuri-zai-api-key -w "<your-z.ai-key>"\n' >&2
+    exit 1
+  fi
+  ANTHROPIC_BASE_URL="$_zai_url" \
+  ANTHROPIC_AUTH_TOKEN="$_zai_key" \
+  API_TIMEOUT_MS="${ZAI_TIMEOUT_MS:-3000000}" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="glm-5.2" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="glm-5.1" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.6v" \
+  ANTHROPIC_MODEL="$_zai_model" \
+  exec "$_claude_bin" --model "$_zai_model" --effort max "$@"
+}
+
 print_section() {
   local title="$1"
   local file="$2"
@@ -496,8 +580,8 @@ cleanup_tmpdir() {
 
 run_triage() {
   local prompt="$1"
-  local tmpdir="" claude_out claude_err offload_out offload_err codex_out codex_err
-  local pid_claude="" pid_offload="" pid_codex="" status has_claude=0
+  local tmpdir="" claude_out claude_err llm_compat_out llm_compat_err codex_out codex_err
+  local pid_claude="" pid_llm="" pid_codex="" status has_claude=0
 
   require_cmd codex
   if command -v "${CLAUDE_BIN:-claude}" >/dev/null 2>&1; then
@@ -507,8 +591,8 @@ run_triage() {
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/ai-triage.XXXXXX")"
   claude_out="$tmpdir/claude.txt"
   claude_err="$tmpdir/claude.route.txt"
-  offload_out="$tmpdir/offload-swarm.txt"
-  offload_err="$tmpdir/offload-swarm.route.txt"
+  llm_compat_out="$tmpdir/llm-swarm.txt"
+  llm_compat_err="$tmpdir/llm-swarm.route.txt"
   codex_out="$tmpdir/codex.txt"
   codex_err="$tmpdir/codex.route.txt"
 
@@ -524,9 +608,9 @@ run_triage() {
   fi
 
   (
-    bash "$SCRIPT_DIR/offload.sh" --swarm default "$prompt" >"$offload_out" 2>"$offload_err"
+    bash "$SCRIPT_DIR/llm-compat.sh" --swarm default "$prompt" >"$llm_compat_out" 2>"$llm_compat_err"
   ) &
-  pid_offload=$!
+  pid_llm=$!
 
   (
     codex exec --cd "$ROOT_DIR" "$prompt" >"$codex_out" 2>"$codex_err"
@@ -537,7 +621,7 @@ run_triage() {
   if [ -n "$pid_claude" ] && ! wait "$pid_claude"; then
     status=1
   fi
-  if ! wait "$pid_offload"; then
+  if ! wait "$pid_llm"; then
     status=1
   fi
   if ! wait "$pid_codex"; then
@@ -546,15 +630,15 @@ run_triage() {
 
   print_section "claude" "$claude_out"
   print_route_section "claude" "$claude_err"
-  print_section "offload-swarm" "$offload_out"
-  print_route_section "offload-swarm" "$offload_err"
+  print_section "llm-swarm" "$llm_compat_out"
+  print_route_section "llm-swarm" "$llm_compat_err"
   print_section "codex" "$codex_out"
   print_route_section "codex" "$codex_err"
 
   return "$status"
 }
 
-run_codex_offload() {
+run_codex_lane() {
   local agent="$1"
   shift
 
@@ -575,25 +659,25 @@ run_codex_model_prompt() {
   exec codex exec --cd "$ROOT_DIR" --model "$model" "$prompt"
 }
 
-run_amp_offload() {
+run_amp_lane() {
   shift || true
   printf 'Amp lane retired: use Codex, Shintai, DeepSeek, or validated NIM lanes instead.\n' >&2
   return 64
 }
 
-run_offload_lane() {
+run_llm_lane() {
   local lane="$1"
   shift
   local prompt
   prompt="$(join_prompt "$@")"
-  local runner="$OFFLOAD_RUNNER"
+  # The 3 live reasoning lanes (deepseek/kimi/nemotron) dispatch through the minimal
+  # llm-lane.mjs core. codex-spark keeps its own runner. Any other (dead legacy) lane
+  # name reaches llm-lane and loud-fails exit 3 (unknown_lane) — correct for a dead lane.
+  local runner="$SCRIPT_DIR/llm-lane.mjs"
 
   case "$lane" in
     deepseek-cloud|code-deepseek|deepseek-reasoner|deepseek-v4-pro-lite-budget)
       lane="deepseek-v4-pro"
-      ;;
-    deepseek-chat)
-      lane="deepseek-v4-flash"
       ;;
     codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
       runner="$SCRIPT_DIR/codex-offload-runner.mjs"
@@ -607,7 +691,7 @@ run_offload_lane() {
   fi
 
   require_cmd node
-  OFFLOAD_PROMPT_TEXT="$prompt" node "$runner" "$lane"
+  LLM_COMPAT_PROMPT_TEXT="$prompt" node "$runner" "$lane"
 }
 
 run_kagami_or_fallback() {
@@ -616,9 +700,9 @@ run_kagami_or_fallback() {
   local prompt
   prompt="$(join_prompt "$@")"
 
-  # If Kagami facade is not enabled, fall through to direct offload
+  # If Kagami facade is not enabled, fall through to direct llm-compat dispatch
   if [ "${KAGAMI_FACADE_ENABLED:-}" != "1" ]; then
-    run_offload_lane "$lane" "$prompt"
+    run_llm_lane "$lane" "$prompt"
     return $?
   fi
 
@@ -631,7 +715,7 @@ run_kagami_or_fallback() {
 
   if [ "$exit_code" -ne 0 ]; then
     # Kagami unreachable or failed — transparent fallback
-    run_offload_lane "$lane" "$prompt"
+    run_llm_lane "$lane" "$prompt"
     return $?
   fi
 
@@ -645,14 +729,14 @@ run_codex_swarm() {
   local status=0
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
-    offload_contract swarm-default
+    llm_compat_contract swarm-default
     return
   fi
 
   require_cmd node
 
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/codex-swarm.XXXXXX")"
-  swarm_models="$(offload_contract swarm-default)"
+  swarm_models="$(llm_compat_contract swarm-default)"
 
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
@@ -661,7 +745,7 @@ run_codex_swarm() {
   for lane in "${_swarm_lanes[@]}"; do
     lane_out="$tmpdir/$lane.txt"
     lane_err="$tmpdir/$lane.route.txt"
-    if ! node "$OFFLOAD_RUNNER" "$lane" "$prompt" >"$lane_out" 2>"$lane_err"; then
+    if ! node "$LLM_COMPAT_RUNNER" "$lane" "$prompt" >"$lane_out" 2>"$lane_err"; then
       status=1
     fi
     print_section "$lane" "$lane_out"
@@ -701,28 +785,28 @@ run_ruflo_swarm() {
 
   case "$route_lower" in
     *deepseek*)
-      run_offload_lane deepseek "$prompt"
+      run_llm_lane deepseek "$prompt"
       ;;
     *qwen*|*triage*)
-      run_offload_lane triage-local "$prompt"
+      run_llm_lane triage-local "$prompt"
       ;;
     *summarize*)
-      run_offload_lane summarize-local "$prompt"
+      run_llm_lane summarize-local "$prompt"
       ;;
     *gpt-oss*|*gptoss*)
-      run_offload_lane gpt-oss "$prompt"
+      run_llm_lane gpt-oss "$prompt"
       ;;
     *ollama*local*|*local*ollama*)
-      run_offload_lane ollama-local "$prompt"
+      run_llm_lane ollama-local "$prompt"
       ;;
     *ollama*cloud*|*cloud*ollama*)
-      run_offload_lane ollama-cloud "$prompt"
+      run_llm_lane ollama-cloud "$prompt"
       ;;
     *ollama*)
-      run_offload_lane ollama "$prompt"
+      run_llm_lane ollama "$prompt"
       ;;
     *kimi*|*moonshot*)
-      run_offload_lane kimi "$prompt"
+      run_llm_lane kimi "$prompt"
       ;;
     *swarm*|*parallel*|*fan-out*|*hierarchical*|*hive*)
       run_codex_swarm "$prompt"
@@ -748,7 +832,7 @@ run_codex_hint() {
       run_ruflo_swarm "$prompt"
       ;;
     *)
-      run_offload_lane "$lane" "$prompt"
+      run_llm_lane "$lane" "$prompt"
       ;;
   esac
 }
@@ -758,7 +842,7 @@ run_auto_route() {
   local plan_json
   local lane
 
-  plan_json="$(offload_contract route-plan "$prompt")"
+  plan_json="$(llm_compat_contract route-plan "$prompt")"
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
     printf '%s\n' "$plan_json"
@@ -766,6 +850,14 @@ run_auto_route() {
   fi
 
   lane="$(node -e 'const plan=JSON.parse(process.argv[1]); process.stdout.write(plan.lane)' "$plan_json")"
+
+  # wave-3 G.10: lane-table guard — an unrecognized lane name from route-plan falls
+  # through to the kagami catch-all SILENTLY without this. Warn (fail-open: never
+  # hard-fail on a future lane name; the catch-all must keep routing work).
+  local VALID_LANES=" claude deepseek-flash deepseek-pro deepseek codex swarm gemma local kimi nemotron triage gpt-oss mimo native "
+  if [[ "$VALID_LANES" != *" $lane "* ]]; then
+    printf '[auto-route] unrecognized lane '\''%s'\'' from route-plan — falling through to kagami. Check llm-compat-contract lane table.\n' "$lane" >&2
+  fi
 
   case "$lane" in
     swarm)
@@ -779,7 +871,7 @@ run_auto_route() {
 
 select_btw_lane() {
   local prompt="$1"
-  offload_contract steer "$prompt"
+  llm_compat_contract steer "$prompt"
 }
 
 check_cmd() {
@@ -871,6 +963,56 @@ case "${1:-help}" in
     export YURI_SPLASH_SHOWN=1
     run_claude_full
     ;;
+  claude-mimo|@mimo-session|mimo-session)
+    shift || true
+    if [ "$#" -ne 0 ]; then
+      printf 'claude-mimo takes no arguments — it opens an interactive session.\n' >&2
+      exit 1
+    fi
+    _G="\033[38;2;255;120;0m"
+    _G2="\033[38;2;120;60;0m"
+    _AU="\033[38;2;255;180;60m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;255;200;80m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE — MIMO${_RS}  ${_G2}──────────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "PROVIDER"   "Xiaomi Mimo (token-plan)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "DEFAULT"    "mimo-v2.5-pro[1m]  (1M ctx · max effort)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODELS"     "mimo-v2.5-pro[1m] · mimo-v2.5[1m] · mimo-v2-flash"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE"  "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"    "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_mimo
+    ;;
+  claude-zai|@zai-session|zai-session|claude-glm|glm-session)
+    shift || true
+    if [ "$#" -ne 0 ]; then
+      printf 'claude-zai takes no arguments — it opens an interactive session.\n' >&2
+      exit 1
+    fi
+    _G="\033[38;2;90;180;255m"
+    _G2="\033[38;2;40;90;140m"
+    _AU="\033[38;2;120;200;255m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;150;210;255m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE — Z.AI / GLM${_RS}  ${_G2}────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "PROVIDER"   "Z.ai GLM Coding Plan (subscription)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "DEFAULT"    "${ZAI_MODEL:-glm-4.7}  (set ZAI_MODEL=glm-5.2 for Opus-tier)"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODELS"     "glm-5.2 · glm-5-turbo · glm-4.7 · glm-4.5-air"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE"  "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"    "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_zai
+    ;;
   moonshot|kimi|@moonshot)
     shift || true
     prompt="$(join_prompt "$@")"
@@ -878,25 +1020,45 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane moonshot "$prompt"
+    run_llm_lane moonshot "$prompt"
     ;;
-  offload)
+  llm)
+    # Primary LLM compatibility lane:  ai llm <deepseek|kimi|nemotron> "<prompt>" [--reasoning d]
+    # also: ai llm capabilities | ai llm --model <lane>|--list|--dry-run|--route-only (full dispatcher).
+    # Hard rename of the former `ai offload` family — no transitional alias.
     shift || true
-  case "${1:-}" in
+    require_cmd node
+    case "${1:-}" in
       swarm|@swarm)
         shift || true
-        printf '%s\n' "⬡ offload swarm is retired (fan-out scrapped). Use 'ai offload <lane> <prompt>' for a single lane, or the native Opus Workflow tool for orchestration." >&2
+        printf '%s\n' "⬡ llm swarm is retired (fan-out scrapped). Use 'ai llm <lane> <prompt>' for a single lane, or the native Opus Workflow tool for orchestration." >&2
         exit 0
         ;;
-      capabilities|inventory)
+      capabilities|inventory|--list)
         shift || true
-        require_cmd node
-        exec node "$OFFLOAD_RUNNER" --inventory
+        exec node "$LLM_COMPAT_RUNNER" --list
+        ;;
+      --model|--swarm|--dry-run|--route-only|--intent|-m)
+        exec bash "$SCRIPT_DIR/llm-compat.sh" "$@"
         ;;
       *)
-        exec bash "$SCRIPT_DIR/offload.sh" "$@"
+        exec node "$SCRIPT_DIR/llm-lane.mjs" "$@"
         ;;
     esac
+    ;;
+  slm)
+    # Autonomous background local-SLM worker (governed queue/drain via the qwen-local lane). Ships DISARMED.
+    #   ai slm enqueue --type decode --payload "..."  ·  ai slm drain [--watch]  ·  ai slm status|arm|disarm|stop|clear
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/yuri-slm-worker.mjs" "$@"
+    ;;
+  nemotron|kimi|ds-reason)
+    # Convenience aliases -> the same minimal core. ds-reason maps to the deepseek lane.
+    _llm_lane="$1"; [ "$_llm_lane" = "ds-reason" ] && _llm_lane="deepseek"
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/llm-lane.mjs" "$_llm_lane" "$@"
     ;;
   btw|/btw)
     shift || true
@@ -932,7 +1094,7 @@ case "${1:-help}" in
       exit 1
     fi
     if [ "$_dry_run" -eq 1 ] || [ "${AI_DRY_RUN:-0}" = "1" ]; then
-      offload_contract route-plan "$prompt"
+      llm_compat_contract route-plan "$prompt"
     else
       run_auto_route "$prompt"
     fi
@@ -952,14 +1114,14 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    offload_contract route-plan "$prompt"
+    llm_compat_contract route-plan "$prompt"
     ;;
   route-examples|examples)
     shift || true
-    offload_contract examples
+    llm_compat_contract examples
     ;;
   search|find)
-    # Corpus SEARCH (FTS5/BM25) — find things across ~26k docs/code. NOT memory, NOT auto-injected.
+    # Corpus SEARCH (FTS5/BM25) — find things across ~41k docs/code. NOT memory, NOT auto-injected.
     shift || true
     require_cmd node
     exec node "$SCRIPT_DIR/yuri-search.mjs" "$@"
@@ -969,6 +1131,22 @@ case "${1:-help}" in
     shift || true
     require_cmd node
     exec node "$SCRIPT_DIR/yuri-search-index.mjs" "$@"
+    ;;
+  xref-drift)
+    # Continuity-law drift detector (READ-ONLY): verify every circuitry seam still exists.
+    # Advisory (exit 0) by default; --strict yields nonzero on any DRIFT for CI/EOT gating.
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/xref-drift-scan.mjs" "$@"
+    ;;
+  xref)
+    # Unified cross-reference query (READ-ONLY): one question across FTS5 + circuitry-graph +
+    # GitNexus (structural) + mechanism-spectrum, merged + provenance-tagged. Every hit is graded
+    # (xref-provenance) and theater-gated; structural leg fails CLOSED, never silently lexical.
+    #   ai xref "<query>" [--node <id>] [--top N] [--json]
+    shift || true
+    require_cmd node
+    exec node "$SCRIPT_DIR/xref-query.mjs" "$@"
     ;;
   cortex|pulse|pulse-status)
     # PATCH 038 — Pulse Cortex self-inspection
@@ -1047,7 +1225,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_offload_lane codex-spark "$@"
+        run_llm_lane codex-spark "$@"
         ;;
       gpt-5.5|codex-full)
         shift || true
@@ -1071,7 +1249,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload kimi "$@"
+        run_codex_lane kimi "$@"
         ;;
       moonshot|@moonshot)
         shift || true
@@ -1079,7 +1257,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload kimi "$@"
+        run_codex_lane kimi "$@"
         ;;
       gpt-oss|gptoss|gpt_oss)
         shift || true
@@ -1087,7 +1265,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload gpt-oss "$@"
+        run_codex_lane gpt-oss "$@"
         ;;
       ollama)
         shift || true
@@ -1095,7 +1273,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload ollama "$@"
+        run_codex_lane ollama "$@"
         ;;
       ollama-local)
         shift || true
@@ -1103,7 +1281,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload ollama-local "$@"
+        run_codex_lane ollama-local "$@"
         ;;
       ollama-cloud)
         shift || true
@@ -1111,7 +1289,7 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        run_codex_offload ollama-cloud "$@"
+        run_codex_lane ollama-cloud "$@"
         ;;
       @swarm|swarm|triage)
         shift || true
@@ -1133,7 +1311,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane kimi "$@"
+    run_llm_lane kimi "$@"
     ;;
   @gpt-oss|gpt-oss|@gptoss|gptoss|@gpt_oss|gpt_oss)
     shift || true
@@ -1141,7 +1319,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane gpt-oss "$@"
+    run_llm_lane gpt-oss "$@"
     ;;
   @codex-spark|codex-spark|@spark|spark|@fast-codex|fast-codex|gpt-5.3-codex-spark)
     shift || true
@@ -1149,7 +1327,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane codex-spark "$@"
+    run_llm_lane codex-spark "$@"
     ;;
   @codex|@gpt-5.5|gpt-5.5|codex-full|@codex-full)
     shift || true
@@ -1173,7 +1351,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane ollama "$@"
+    run_llm_lane ollama "$@"
     ;;
   @ollama-local|ollama-local)
     shift || true
@@ -1181,7 +1359,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane ollama-local "$@"
+    run_llm_lane ollama-local "$@"
     ;;
   @ollama-cloud|ollama-cloud)
     shift || true
@@ -1189,7 +1367,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane ollama-cloud "$@"
+    run_llm_lane ollama-cloud "$@"
     ;;
   @deepseek|deepseek)
     shift || true
@@ -1197,7 +1375,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek "$@"
+    run_llm_lane deepseek "$@"
     ;;
   @deepseek-v4-flash|deepseek-v4-flash)
     shift || true
@@ -1205,7 +1383,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek-v4-flash "$@"
+    run_llm_lane deepseek-v4-flash "$@"
     ;;
   @deepseek-v4-pro|deepseek-v4-pro)
     shift || true
@@ -1213,7 +1391,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek-v4-pro "$@"
+    run_llm_lane deepseek-v4-pro "$@"
     ;;
   @deepseek-v4-pro-lite-budget|deepseek-v4-pro-lite-budget|@deepseek-reasoner|deepseek-reasoner|@deepseek-cloud|deepseek-cloud|@code-deepseek|code-deepseek)
     shift || true
@@ -1221,7 +1399,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek-v4-pro "$@"
+    run_llm_lane deepseek-v4-pro "$@"
     ;;
   @deepseek-chat|deepseek-chat)
     shift || true
@@ -1229,7 +1407,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek-v4-flash "$@"
+    run_llm_lane deepseek-v4-flash "$@"
     ;;
   @triage-local|triage-local)
     shift || true
@@ -1237,7 +1415,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane triage-local "$@"
+    run_llm_lane triage-local "$@"
     ;;
   @summarize-local|summarize-local)
     shift || true
@@ -1245,7 +1423,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane summarize-local "$@"
+    run_llm_lane summarize-local "$@"
     ;;
   @code-local|code-local)
     shift || true
@@ -1253,7 +1431,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane code-local "$@"
+    run_llm_lane code-local "$@"
     ;;
   @reason-kimi|reason-kimi)
     shift || true
@@ -1261,7 +1439,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane reason-kimi "$@"
+    run_llm_lane reason-kimi "$@"
     ;;
   @nvidia*|nvidia-llama-405b|nvidia-llama-70b|nvidia-nemotron|nvidia-mistral|nvidia-qwen|nvidia-phi)
     _nvidia_lane="${1#@}"
@@ -1277,10 +1455,10 @@ case "${1:-help}" in
     fi
     require_cmd node
     # Pass --tools explicitly for NVIDIA lanes. DeepSeek prompt contracts name tools/skills without forcing CLI tool mode.
-    OFFLOAD_PROMPT_TEXT="$(join_prompt "$@")" exec node "$OFFLOAD_RUNNER" "$_nvidia_lane" --tools
+    LLM_COMPAT_PROMPT_TEXT="$(join_prompt "$@")" exec node "$LLM_COMPAT_RUNNER" "$_nvidia_lane" --tools
     ;;
   @amp|amp-deep|amp-rush)
-    run_amp_offload "$@"
+    run_amp_lane "$@"
     ;;
   @claude|claude-council)
     shift || true
@@ -1316,183 +1494,9 @@ case "${1:-help}" in
     ;;
   @deepseek-workhorse|deepseek-workhorse)
     shift || true
-    _dry_run=0
-    _artifact_root=""
-    _line_cap=80
-    _max_bytes=12000
-    _prompt_parts=()
-    _WORKHORSE_DEFAULT_ROOT="/private/tmp/yuri-workhorse-bundles"
-    _skip_next=0
-    for _arg in "$@"; do
-      if [ "$_skip_next" -eq 1 ]; then
-        _skip_next=0
-        continue
-      fi
-      case "$_arg" in
-        --route-only|--dry-run|-d) _dry_run=1 ;;
-        --bundle-artifacts) _artifact_root="$_WORKHORSE_DEFAULT_ROOT" ;;
-        --artifact-bundle)
-          # value follows as next arg — mark skip and consume inline via shift-style workaround
-          # handled via positional loop below; flag without value is a no-op guard
-          _artifact_root="__NEXT__"
-          ;;
-        --line-cap) _artifact_root_flag_next_linecap=1 ;;
-        --max-output-bytes) _artifact_root_flag_next_bytes=1 ;;
-        *)
-          if [ "${_artifact_root:-}" = "__NEXT__" ]; then
-            _artifact_root="$_arg"
-          elif [ "${_artifact_root_flag_next_linecap:-0}" = "1" ]; then
-            _line_cap="$_arg"
-            _artifact_root_flag_next_linecap=0
-          elif [ "${_artifact_root_flag_next_bytes:-0}" = "1" ]; then
-            _max_bytes="$_arg"
-            _artifact_root_flag_next_bytes=0
-          else
-            _prompt_parts+=("$_arg")
-          fi
-          ;;
-      esac
-    done
-    # Clamp caps
-    [ "$_line_cap" -gt 200 ] && _line_cap=200
-    [ "$_max_bytes" -gt 50000 ] && _max_bytes=50000
-    prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
-
-    # --- Non-bundle path (original behavior preserved) ---
-    if [ -z "$_artifact_root" ] || [ "$_artifact_root" = "__NEXT__" ]; then
-      if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
-        usage
-        exit 1
-      fi
-      if [ "$_dry_run" -eq 1 ]; then
-        exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "$(offload_contract swarm-workhorse)" "$prompt"
-      fi
-      exec "$SCRIPT_DIR/offload.sh" --swarm "$(offload_contract swarm-workhorse)" "$prompt"
-    fi
-
-    # --- Artifact bundle path ---
-
-    # Security: reject repo-internal or relative artifact roots
-    _repo_root="$(cd "$SCRIPT_DIR/.." && pwd)"
-    case "$_artifact_root" in
-      /Users/marcelspatz/YURI*|"$_repo_root"*)
-        printf 'ERROR: artifact-bundle root must be outside the repo: %s\n' "$_artifact_root" >&2
-        exit 1
-        ;;
-      [^/]*)
-        printf 'ERROR: artifact-bundle root must be an absolute path: %s\n' "$_artifact_root" >&2
-        exit 1
-        ;;
-    esac
-
-    if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
-      usage
-      exit 1
-    fi
-
-    if [ "$_dry_run" -eq 1 ]; then
-      printf 'WORKHORSE_BUNDLE_DRY_RUN=1\n'
-      printf 'WORKHORSE_BUNDLE_ROOT=%s\n' "$_artifact_root"
-      printf 'WORKHORSE_BUNDLE_LANES=%s\n' "$(offload_contract swarm-workhorse)"
-      printf 'WORKHORSE_BUNDLE_LINE_CAP=%s\n' "$_line_cap"
-      printf 'WORKHORSE_BUNDLE_MAX_BYTES=%s\n' "$_max_bytes"
-      exit 0
-    fi
-
-    require_cmd node
-    require_cmd shasum
-
-    _run_id="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 4)"
-    _run_dir="$_artifact_root/$_run_id"
-    mkdir -p "$_run_dir"
-
-    _prompt_sha256="$(printf '%s' "$prompt" | shasum -a 256 | awk '{print $1}')"
-    IFS=',' read -ra _lanes <<< "$(offload_contract swarm-workhorse)"
-    _bundle_status="PASS"
-    _lanes_summary=""
-    _total_bytes=0
-    _all_ok=true
-
-    for _lane in "${_lanes[@]}"; do
-      _lane_dir="$_run_dir/$_lane"
-      mkdir -p "$_lane_dir"
-      _stdout_raw="$_lane_dir/stdout_raw.tmp"
-      _stderr_file="$_lane_dir/stderr.txt"
-      _stdout_md="$_lane_dir/stdout.md"
-      _meta_file="$_lane_dir/meta.json"
-      _started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-      _lane_exit=0
-
-      OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_RUNNER" "$_lane" >"$_stdout_raw" 2>"$_stderr_file" || _lane_exit=$?
-
-      _ended="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-      _stdout_raw_bytes="$(wc -c < "$_stdout_raw" | tr -d ' ')"
-      _stdout_raw_lines="$(wc -l < "$_stdout_raw" | tr -d ' ')"
-      _cap_marker="FULL"
-
-      # Apply byte cap first, then line cap
-      if [ "$_stdout_raw_bytes" -gt "$_max_bytes" ]; then
-        _capped_content="$(head -c "$_max_bytes" "$_stdout_raw")"
-        _cap_marker="TRUNCATED"
-      else
-        _capped_content="$(cat "$_stdout_raw")"
-      fi
-      _capped_lines="$(printf '%s' "$_capped_content" | wc -l | tr -d ' ')"
-      if [ "$_capped_lines" -gt "$_line_cap" ]; then
-        _capped_content="$(printf '%s' "$_capped_content" | head -n "$_line_cap")"
-        _cap_marker="TRUNCATED"
-      fi
-
-      _stdout_sha256="$(printf '%s' "$_capped_content" | shasum -a 256 | awk '{print $1}')"
-      _stderr_bytes="$(wc -c < "$_stderr_file" | tr -d ' ')"
-      _stderr_sha256="$(shasum -a 256 "$_stderr_file" | awk '{print $1}')"
-      _written_bytes="$(printf '%s' "$_capped_content" | wc -c | tr -d ' ')"
-      _written_lines="$(printf '%s' "$_capped_content" | wc -l | tr -d ' ')"
-
-      # Write advisory stdout.md
-      {
-        printf '# ADVISORY_WORKHORSE_OUTPUT\n'
-        printf '# lane: %s\n' "$_lane"
-        printf '# route: @deepseek-workhorse\n'
-        printf '# run_id: %s\n' "$_run_id"
-        printf '# sha256: %s\n' "$_stdout_sha256"
-        printf '# cap: %s\n' "$_cap_marker"
-        printf '# NOT_LOCAL_TRUTH\n'
-        printf '\n'
-        printf '%s\n' "$_capped_content"
-      } >"$_stdout_md"
-
-      _lane_status="ok"
-      if [ "$_lane_exit" -ne 0 ]; then
-        _lane_status="error"
-        _bundle_status="PARTIAL"
-        _all_ok=false
-      fi
-
-      # Write meta.json
-      printf '{"lane_id":"%s","route_class":"@deepseek-workhorse","prompt_sha256":"%s","stdout_sha256":"%s","stderr_sha256":"%s","stdout_bytes":%s,"stdout_lines":%s,"stdout_cap_marker":"%s","stderr_bytes":%s,"exit_code":%s,"status":"%s","started_at":"%s","ended_at":"%s"}\n' \
-        "$_lane" "$_prompt_sha256" "$_stdout_sha256" "$_stderr_sha256" \
-        "$_written_bytes" "$_written_lines" "$_cap_marker" \
-        "$_stderr_bytes" "$_lane_exit" "$_lane_status" \
-        "$_started" "$_ended" >"$_meta_file"
-
-      _total_bytes=$(( _total_bytes + _written_bytes ))
-      _lanes_summary="${_lanes_summary}{\"lane\":\"${_lane}\",\"lane_id\":\"${_lane}\",\"status\":\"${_lane_status}\",\"exit_code\":${_lane_exit},\"stdout_bytes\":${_written_bytes},\"stdout_lines\":${_written_lines},\"cap\":\"${_cap_marker}\",\"stdout_cap_marker\":\"${_cap_marker}\"},"
-
-      rm -f "$_stdout_raw"
-    done
-
-    # Trim trailing comma from lanes summary array
-    _lanes_summary="[${_lanes_summary%,}]"
-
-    # Write summary.json
-    printf '{"run_id":"%s","route":"@deepseek-workhorse","artifact_root":"%s","prompt_sha256":"%s","lanes":%s,"total_stdout_bytes":%s,"total_bytes":%s,"all_lanes_ok":%s,"advisory_label":"ADVISORY_WORKHORSE_OUTPUT","local_truth_disclaimer":"NOT_LOCAL_TRUTH — bundle is advisory only; not executor truth","user_approval_required":true,"proposal_validation_status":null,"non_claims":["no write capability","no patch application","no guarded executor widening","no staging/commit through DeepSeek"]}\n' \
-      "$_run_id" "$_artifact_root" "$_prompt_sha256" "$_lanes_summary" \
-      "$_total_bytes" "$_total_bytes" "$_all_ok" >"$_run_dir/summary.json"
-
-    printf 'WORKHORSE_BUNDLE_RUN=%s\n' "$_run_dir"
-    printf 'WORKHORSE_BUNDLE_SUMMARY=%s\n' "$_run_dir/summary.json"
-    printf 'WORKHORSE_BUNDLE_STATUS=%s\n' "$_bundle_status"
+    printf 'LLM_COMPAT_FAIL code=3 lane=deepseek-workhorse reason=retired_use_llm_compat_deepseek\n' >&2
+    printf 'DeepSeek workhorse is retired. Use: ai llm deepseek "<prompt>" or ai deepseek "<prompt>".\n' >&2
+    exit 3
     ;;
   @reason-cloud|reason-cloud)
     shift || true
@@ -1500,7 +1504,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane reason-cloud "$@"
+    run_llm_lane reason-cloud "$@"
     ;;
   @code-cloud|code-cloud)
     shift || true
@@ -1508,7 +1512,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane code-cloud "$@"
+    run_llm_lane code-cloud "$@"
     ;;
   @gemma|gemma)
     shift || true
@@ -1516,7 +1520,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane gemma "$@"
+    run_llm_lane gemma "$@"
     ;;
   @gemma-local|gemma-local)
     shift || true
@@ -1524,7 +1528,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane gemma-local "$@"
+    run_llm_lane gemma-local "$@"
     ;;
   @gemma-cloud|gemma-cloud)
     shift || true
@@ -1532,7 +1536,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane gemma-cloud "$@"
+    run_llm_lane gemma-cloud "$@"
     ;;
   @swarm|swarm)
     shift || true

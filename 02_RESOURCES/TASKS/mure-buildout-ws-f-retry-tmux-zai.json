@@ -1,0 +1,38 @@
+{
+  "summary": "WS-F router leaves retry (R1+D1) tmux-zai",
+  "tags": [
+    "mure",
+    "ws-f",
+    "router",
+    "retry",
+    "tmux-zai"
+  ],
+  "disarmedByDefault": false,
+  "subtasks": [
+    {
+      "id": "WS-F-R1-mlp-stub",
+      "role": "ideator",
+      "need": [
+        "integration",
+        "implementation"
+      ],
+      "prompt": "Wire fleet-router-mlp updateFromOutcome advisory stub from runFleet dry-run with persist:false. Document real training path via train-fleet-router-from-ledger.mjs. Return 02F1_MLP_STUB_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrateHint": "tmux-zai",
+      "disarmed": false
+    },
+    {
+      "id": "WS-F-D1-deliberator-policy",
+      "role": "ideator",
+      "need": [
+        "adversarial-verify"
+      ],
+      "prompt": "Confirm MLP router remains advisory-only; no auto-override of governance.mjs or 6-gate charter. Return 02F4_ROUTER_POLICY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrateHint": "tmux-zai",
+      "disarmed": false
+    }
+  ]
+}

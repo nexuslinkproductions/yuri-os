@@ -29,12 +29,6 @@ const CHECKS = [
     evaluate: evaluateSkillRegistry,
   },
   {
-    id: 'wiki_rag',
-    label: 'Wiki RAG',
-    command: ['node', ['_SYSTEM/Scripts/wiki-rag-health.mjs']],
-    required: true,
-  },
-  {
     id: 'ollama',
     label: 'Ollama local-first runtime',
     command: ['node', ['_SYSTEM/Scripts/ollama-kv-config.mjs', 'status']],
@@ -51,6 +45,13 @@ const CHECKS = [
     label: 'GitNexus local CLI',
     command: gitnexusCommand(),
     required: true,
+  },
+  {
+    id: 'energy_observability',
+    label: 'Energy ΔU telemetry liveness',
+    command: ['node', ['_SYSTEM/Scripts/energy-observability-health.mjs']],
+    required: true,
+    evaluate: evaluateEnergyObservability,
   },
 ];
 
@@ -122,6 +123,16 @@ function evaluateSkillRegistry(stdout, stderr, status) {
     };
   } catch {
     return { ok: false, summary: 'skill validation returned non-JSON output' };
+  }
+}
+
+function evaluateEnergyObservability(stdout, stderr, status) {
+  try {
+    const parsed = JSON.parse(stdout);
+    const s = parsed.summary || {};
+    return { ok: status === 0 && s.ok === true, summary: s.summary || summarize(stdout, stderr) };
+  } catch {
+    return { ok: false, summary: summarize(stdout, stderr) };
   }
 }
 

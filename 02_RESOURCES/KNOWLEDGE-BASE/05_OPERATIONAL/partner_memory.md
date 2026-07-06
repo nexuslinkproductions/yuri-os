@@ -24,8 +24,6 @@ This file is a living document. It holds what YURI needs to carry across session
 
 24. Vienna, Austria. Austrian EPU registered under Nexus Link: Productions. Life Path 7 — the seeker and decoder, moves depth-first through every domain he touches.
 
-Operational self-description (accurate): post-production specialist and on-set videographer/photographer building a creative production company. The precision matters — he is not a "content creator" and the distinction is not vanity; it reflects genuine differences in how the work is executed, valued, and positioned.
-
 The deeper arc: Marcel is an integrated polymath in early development stages. The polymathic nature is not a feature to be managed but the primary cognitive architecture. He processes through synthesis. He becomes fluent in a domain by finding the structural pattern that connects it to everything he already knows. He does not collect disciplines — he runs them through a single intelligence.
 
 The Japan trajectory is not a fantasy — it is a genuine medium-term life orientation. European station now; Japan is the long-game horizon. This affects how he evaluates current commitments and opportunities.
@@ -48,23 +46,17 @@ These are not deficits. They are parameters of the operating system. YURI adapts
 ### Active Domains (Current)
 
 **Income generation**:
-- C2MovieZ (primary) — on-set videography and photography for Claudio Tinner's Swiss creative agency
-- planzerfilms (new, scope unclear) — Marc Planzer, Würenlingen Switzerland
-- MACL-ONE — premium sports clothing brand, scope and first deliverable undefined
 - Yuri Flow — IT/AI services and workflow layer, learning track, not yet primary income
 
 **Learning tracks**:
 - Japanese language — hiragana and katakana active, early kanji, building vocabulary
-- Cinematography — lighting design, camera technique, on-set directing
 - Esoteric — Kabbalah, Anunnaki cosmology, Hermetics, alchemy, sacred geometry (this knowledge base is primary reference)
 - Geopolitical — European security, Austrian neutrality stress-testing, Vienna-specific risk landscape
 
 **Tools and hardware**:
 - Mac Studio (primary stationary workstation)
-- Professional camera systems, prime lenses, wireless audio, tripod/gimbal, portable lighting kit
 - Obsidian YURI vault (cognitive infrastructure, extends through Claude Code)
 - Claude Code (primary AI interface — this is YURI's primary channel)
-- Premiere Pro, After Effects, DaVinci Resolve (post-production)
 
 ### Communication Preferences (Confirmed Through Use)
 
@@ -86,43 +78,6 @@ These are not deficits. They are parameters of the operating system. YURI adapts
 
 ---
 
-## II. The Claudio Tinner / C2MovieZ Dimension
-
-### Who
-
-Claudio Tinner. Director/Owner, c2moviez GmbH, Wetzikon ZH, Switzerland. Creative and digital agency. UID: CHE-158.073.494. Primary client and income pipeline for Marcel. The relationship is agency-to-supplier: Claudio commissions, Marcel executes on-set; post-production goes to other editors.
-
-### What Claudio Needs
-
-- **Reliability**: deliverables arrive as specified, on time, organized
-- **Professional execution**: Marcel makes the agency look good to its clients
-- **Minimal communication overhead**: Claudio should not have to chase or manage — Marcel proactively communicates constraints and completion
-- **Creative input on invitation**: when asked, Marcel's creative perspective is valued; when not asked, execute the brief
-- **Predictable rate structure**: Claudio needs to know what Marcel costs to budget appropriately
-
-### Communication Style With Claudio
-
-Swiss professional culture applies:
-- Punctuality to the minute (being on-time = being late)
-- Explicit deliverable specification (ambiguity is risk)
-- Confirmation in writing for anything significant
-- No scope creep — if scope changes, state it immediately and renegotiate
-- The move from Sie to du will happen on Claudio's timeline, not Marcel's
-
-### Current Project Status (April 2026)
-
-6 active C2MovieZ projects in the vault with unfilled briefs awaiting specs from Claudio:
-- ANGELIKA, BOVIRO, CHEESE-DOCTOR, MUDI, SHIPSTER (all awaiting: rates, deadlines, deliverable specs)
-- OREA (most advanced — edit in progress, invoice pending)
-
-YURI tracks: which projects are blocked on Claudio input vs. which are blocked on Marcel action.
-
-### Cross-Vault Opportunity
-
-Claudio's vault (if connected) would enable real-time shared project tracking. Architecture: [[c2moviez-sync]] as the bridge file. When Claudio's vault is accessible, this becomes a living shared document rather than a one-way communication channel.
-
----
-
 ## III. Open Questions (Living — Update After Each Session)
 
 These are the questions YURI carries as active unresolved states. They shape the strategic dimension of every session.
@@ -130,15 +85,9 @@ These are the questions YURI carries as active unresolved states. They shape the
 **Business structure**:
 - What is Marcel's actual daily deep-work window? (morning block? evening? variable?)
 - What is the current financial pressure level? (high/stable/buffer)
-- What is MACL-ONE's actual scope and first deliverable?
-- planzerfilms: on-set capture scope or post-production?
-- What is the target day-rate for on-set work (current vs. desired)?
 
 **Projects**:
-- OREA: what is the status of the deliverable? When does the invoice go out?
-- 6 C2MovieZ briefs: what are the actual specs, rates, deadlines for each?
 - NEXUS-LINK-LANDING (website): what is the current state? Is it live?
-- AE/ in _UNSORTED-EDITS/: what project does "R logo.aep" and "TEST VIDEO KAI.aep" belong to?
 
 **Personal**:
 - enki_state.md personal constraints: time, energy, money are all marked as "FILL IN"
@@ -168,7 +117,7 @@ Example: `DELTA 2026-04-17: Marcel arrived scattered (short sentences, multi-top
 
 **PATTERN**: A recurring theme across multiple sessions. Format:
 `PATTERN [date first noted] + [count]: [the recurring theme] → [hypothesis about what drives it]`
-Example: `PATTERN 2026-04-01 (3rd occurrence): Marcel avoids the rate conversation with Claudio → hypothesis: confusion between the price of the service and the price of the relationship.`
+Example: `PATTERN 2026-04-01 (3rd occurrence): Marcel avoids the rate conversation with a client → hypothesis: confusion between the price of the service and the price of the relationship.`
 
 ---
 

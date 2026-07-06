@@ -1,6 +1,16 @@
 ---
 name: codebase-to-course
 description: "Turn any codebase into a beautiful, interactive single-page HTML course that teaches how the code works to non-technical people. Use this skill whenever someone wants to create an interactive course, tutorial, or educational walkthrough from a codebase or project. Also trigger when users mention 'turn this into a course,' 'explain this codebase interactively,' 'teach this code,' 'interactive tutorial from code,' 'codebase walkthrough,' 'learn from this codebase,' or 'make a course from this project.' This skill produces a stunning, self-contained HTML file with scroll-based navigation, animated visualizations, embedded quizzes, and code-with-plain-English side-by-side translations."
+triggers:
+  - "turn this into a course"
+  - "turn this into an interactive course"
+  - "explain this codebase interactively"
+  - "teach this code"
+  - "interactive tutorial from code"
+  - "codebase walkthrough"
+  - "learn from this codebase"
+  - "make a course from this project"
+  - "turn [.*] into a course"
 ---
 
 # Codebase-to-Course
@@ -219,3 +229,11 @@ The `references/` directory contains detailed specs. **Read them only when you r
 - **`references/module-brief-template.md`** — Template for Phase 2.5 module briefs. Read only for complex codebases using the parallel path.
 - **`references/design-system.md`** — Complete CSS custom properties, color palette, typography scale, spacing system, shadows, animations, scrollbar styling. Read during Phase 3 when writing module HTML.
 - **`references/interactive-elements.md`** — Implementation patterns for every interactive element: drag-and-drop quizzes, multiple-choice quizzes, code↔English translations, group chat animations, message flow visualizations, architecture diagrams, pattern cards, callout boxes. Read the relevant sections during Phase 3.
+
+## Session Notes
+
+### 2026-04-27
+- session: 22m | peak ctx: 49% | compacts: 0
+- tools: Bash×14, Read×4, Write×2, Edit×1
+- corrections: none
+- errors: none

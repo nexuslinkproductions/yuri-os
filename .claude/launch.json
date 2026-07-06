@@ -72,6 +72,14 @@
       "port": 5555,
       "description": "Static HTTP server for Kagami sprint audit HTML",
       "cwd": "_SYSTEM/reports"
+    },
+    {
+      "name": "mure-dashboard",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["_SYSTEM/Scripts/work-dashboard.mjs", "--serve", "--port", "4270"],
+      "port": 4270,
+      "description": "MURE company-overview realtime dashboard (work-ledger SQLite)",
+      "cwd": "."
     }
   ]
 }

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-28",
+  "updated": "2026-06-23",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 107,
+  "count": 100,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -32,11 +32,6 @@
       "id": "agent-scout",
       "path": "skills/agent-scout/SKILL.md",
       "sourceFamily": "claude_import"
-    },
-    {
-      "id": "ai-pipeline-offloading",
-      "path": "skills/ai-pipeline-offloading/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "anime-dna-extensions",
@@ -72,11 +67,6 @@
       "id": "browser-harness",
       "path": "skills/browser-harness/SKILL.md",
       "sourceFamily": "codex_import"
-    },
-    {
-      "id": "business-dach-market-intelligence",
-      "path": "skills/business-dach-market-intelligence/SKILL.md",
-      "sourceFamily": "claude_import"
     },
     {
       "id": "caveman",
@@ -146,11 +136,6 @@
     {
       "id": "execution-domain-core",
       "path": "skills/execution-domain-core/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
-      "id": "exeoflow-yuri-sitrep-pack",
-      "path": "skills/exeoflow-yuri-sitrep-pack/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -229,11 +214,6 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
-      "id": "graphify",
-      "path": "skills/graphify/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
       "id": "grill-me",
       "path": "skills/grill-me/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -271,11 +251,6 @@
     {
       "id": "kimi-k2-6-server-adapter",
       "path": "skills/kimi-k2-6-server-adapter/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
-      "id": "local-subagent",
-      "path": "skills/local-subagent/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -329,6 +304,11 @@
       "sourceFamily": "codex_import"
     },
     {
+      "id": "opus-fleet",
+      "path": "skills/opus-fleet/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
       "id": "oracle-adapters",
       "path": "skills/oracle-adapters/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -351,11 +331,6 @@
     {
       "id": "oracle-voice",
       "path": "skills/oracle-voice/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
-      "id": "parallel-clone-orchestrator",
-      "path": "skills/parallel-clone-orchestrator/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -444,11 +419,6 @@
       "sourceFamily": "superpowers_import"
     },
     {
-      "id": "swarm-coordination",
-      "path": "skills/swarm-coordination/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
       "id": "systematic-debugging",
       "path": "skills/systematic-debugging/SKILL.md",
       "sourceFamily": "superpowers_import"
@@ -509,6 +479,14 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
+      "id": "visual-plan",
+      "path": "skills/visual-plan/SKILL.md",
+      "sourceFamily": "agent_native",
+      "appSkillId": "visual-plans",
+      "mcpUrl": "https://plan.agent-native.com/_agent-native/mcp",
+      "autoTrigger": "multi-file, UI-heavy, architecture, or MURE helmsman packets before code"
+    },
+    {
       "id": "write-a-skill",
       "path": "skills/write-a-skill/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -529,11 +507,6 @@
       "sourceFamily": "claude_import"
     },
     {
-      "id": "yuri-report",
-      "path": "skills/yuri-report/SKILL.md",
-      "sourceFamily": "claude_import"
-    },
-    {
       "id": "yuri-sales-intelligence",
       "path": "skills/yuri-sales-intelligence/SKILL.md",
       "sourceFamily": "claude_import"
@@ -544,9 +517,9 @@
       "sourceFamily": "claude_import"
     },
     {
-      "id": "yuri-video-script",
-      "path": "skills/yuri-video-script/SKILL.md",
-      "sourceFamily": "claude_import"
+      "id": "viz-lab",
+      "path": "skills/viz-lab/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "zoom-out",

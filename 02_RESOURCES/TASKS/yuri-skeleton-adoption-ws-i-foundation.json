@@ -1,0 +1,141 @@
+{
+  "summary": "WS-I: YURI 14-layer skeleton adoption — MURE foundation bind (Phase 0)",
+  "tags": ["mure", "skeleton", "adoption", "yuri-layers", "foundation", "company-ops"],
+  "researchDoc": "_SYSTEM/reports/YURI_DIGITAL_COMPANY_SKELETON_2026-06-30.md",
+  "dependsOn": {
+    "parallel": "02_RESOURCES/TASKS/mure-live-ops-dashboard-ws-h-visual.json",
+    "note": "WS-H M0 live ops is parallel enabler; WS-I may start bind research before WS-H completes"
+  },
+  "phases": {
+    "P0-bind": "Skeleton bind — layer map, graph registration, xref preflight, telos stub",
+    "P0-wire": "Integration seams — planCompany hooks, propagation scan, drilldown docs",
+    "P0-verify": "Adversarial verify + chronicler handoff for Phase 1 (WS-J) queue"
+  },
+  "disarmedByDefault": true,
+  "armingNote": "All subtasks are plan-only or doc/registry unless explicitly marked requiresArmed. No --apply without owner ruling.",
+  "subtasks": [
+    {
+      "id": "WS-I-A1-skeleton-bind-architect",
+      "role": "architect",
+      "phase": "P0-bind",
+      "need": ["architecture-design", "interface-contracts", "capability-composition"],
+      "prompt": "Read _SYSTEM/reports/YURI_DIGITAL_COMPANY_SKELETON_2026-06-30.md and 02_RESOURCES/RESEARCH/yuri-die-graph.json layer list. Produce _SYSTEM/config/mure-skeleton-bind.json: for each of 20 MURE roles map to YURI layer(s) (L1–L14), target circuitry node id(s), adoption status (WIRED|PARTIAL|STUB|MISSING), and required wiring seam. Append layer coverage table to _SYSTEM/mure/DRILLDOWN_WIRING.md. DISARMED — no dispatch. Return 02I1_SKELETON_BIND_MAP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "evidenceDecidable": true,
+      "inDoctrine": true
+    },
+    {
+      "id": "WS-I-S1-synthesist-lattice",
+      "role": "synthesist",
+      "phase": "P0-bind",
+      "need": ["lattice-synthesis", "cross-domain-transfer", "convergence-naming"],
+      "prompt": "Using mure-skeleton-bind.json draft (or research report matrix if bind file pending): synthesize cross-layer dependency lattice — which YURI layers must wire before others (e.g. L14 observability before L12 actuation retry). Output _SYSTEM/reports/MURE_SKELETON_LATTICE_2026-06-30.md with mermaid dependency graph. Return 02I2_SKELETON_LATTICE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-E1-envoy-telos-stub",
+      "role": "envoy",
+      "phase": "P0-bind",
+      "need": ["task-decomposition", "goal-spine"],
+      "prompt": "Design _SYSTEM/config/schemas/mure.goal-spine.v0.schema.json and example _SYSTEM/state/mure-goal-spine.example.json: company epoch, north-star intent, phase (P0|P1|P2), workstream queue, owner touchpoints. Document helmsman read/write contract in _SYSTEM/mure/README.md#goal-spine. DISARMED schema only — no live state file write. Return 02I3_TELOS_STUB_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-R1-scout-xref-preflight",
+      "role": "scout",
+      "phase": "P0-wire",
+      "need": ["local-first-search", "research-capture"],
+      "prompt": "Research how planCompany should invoke xref-query.mjs: read company.mjs, xref-query.mjs CLI. Write integration spec (not full impl unless trivial) in _SYSTEM/mure/SKELETON_BIND_SPEC.md section 'xref preflight' — advisory log vs hard gate, propagation-scan trigger on known MURE nodes. Cite 3+ local mechanism files. Return 02I4_XREF_PREFLIGHT_SPEC_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-M1-mechanic-graph-register",
+      "role": "mechanic",
+      "phase": "P0-wire",
+      "need": ["integration", "refactor"],
+      "prompt": "Draft yuri-graph.json patch proposal (as markdown diff in _SYSTEM/reports/MURE_GRAPH_REGISTER_PROPOSAL.md) adding MURE mechanism nodes: mure-company-orchestrator, mure-governance-gate, mure-role-registry, company-dispatch with edges to runSwarm and governance. Owner applies graph edit + yuri-graph-unify.mjs project separately. Do NOT hand-edit generated graph views. Return 02I5_GRAPH_REGISTER_PROPOSAL_X_PASS_COMMITTED.",
+      "blastRadius": "MEDIUM",
+      "reversible": true,
+      "contended": true
+    },
+    {
+      "id": "WS-I-K1-kernelsmith-plan-hook",
+      "role": "kernelsmith",
+      "phase": "P0-wire",
+      "need": ["implementation", "integration"],
+      "prompt": "Spec minimal planCompany hook surface for skeleton bind (pure functions, no arm): logLayerCoverage(plan, bindMap), advisoryXrefPreflight(taskSummary). Place spec in SKELETON_BIND_SPEC.md; if implementation is <80 lines and DISARMED-safe, may add to company.mjs behind zero-spend path. Return 02I6_PLAN_HOOK_SPEC_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-ST1-steward-gate",
+      "role": "steward",
+      "phase": "P0-verify",
+      "need": ["governance-gate", "owner-hold-packet"],
+      "prompt": "Gate every WS-I subtask: 6-gate charter, blast radius, graph-edit contention on WS-I-M1. Publish held register entries for any owner-gated items in _SYSTEM/reports/MURE_WS_I_STEWARD_GATE.md. Return 02I7_STEWARD_GATE_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-D1-deliberator-order-effect",
+      "role": "deliberator",
+      "phase": "P0-verify",
+      "need": ["adversarial-verify"],
+      "prompt": "Use math-bridge orderEffect on WS-I subtask sequencing: does bind-before-graph-register vs reverse change outcome? Document in _SYSTEM/reports/MURE_WS_I_ORDER_EFFECT.md. Return 02I8_ORDER_EFFECT_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-O1-oracle-bind-verify",
+      "role": "oracle",
+      "phase": "P0-verify",
+      "need": ["adversarial-verify"],
+      "prompt": "Red/grey/green on mure-skeleton-bind.json: all 20 roles mapped, all 14 layers addressed, no MISSING without explicit Phase 1 deferral. Run node _SYSTEM/mure/mure.mjs --validate. Return 02I9_ORACLE_BIND_VERIFY_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-V1-adjudicator-gap-pass",
+      "role": "adjudicator",
+      "phase": "P0-verify",
+      "need": ["adversarial-verify", "gap-detection"],
+      "prompt": "Refute-by-default pass on YURI_DIGITAL_COMPANY_SKELETON report claims vs live code. Update adoption matrix counts if wrong. List residual lies/narrative drift. Return 02I10_ADJUDICATOR_GAP_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-C1-chronicler-handoff",
+      "role": "chronicler",
+      "phase": "P0-verify",
+      "need": ["documentation"],
+      "prompt": "Distill WS-I outputs into 02_RESOURCES/GUIDES/mure-skeleton-adoption.md: operator steps for Phase 0, link to bind map, telos stub, WS-J preview (learning loop). Cross-link research report. Return 02I11_CHRONICLER_HANDOFF_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true
+    },
+    {
+      "id": "WS-I-EV1-evolver-proposal",
+      "role": "evolver",
+      "phase": "P0-verify",
+      "need": ["improvement-proposal"],
+      "prompt": "Propose ONE bounded improvement to MURE skeleton adoption (max blast LOW). DISARMED — proposal only, behind oracle. No arm flags. Return 02I12_EVOLVER_PROPOSAL_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "arming": false
+    },
+    {
+      "id": "WS-I-OLL1-ideator-ollama",
+      "role": "ideator",
+      "phase": "P0-bind",
+      "need": ["hypothesis-generation", "divergent-scan"],
+      "prompt": "Ollama sidecar (DISARMED plan-only if not armed): generate 5 alternative skeleton bind orderings for Marcel review. Write to _SYSTEM/lane-output/ws-i-ideation/alternatives.md. Return 02I13_IDEATION_ALTS_X_PASS_COMMITTED.",
+      "blastRadius": "LOW",
+      "reversible": true,
+      "substrateOverride": "ollama",
+      "note": "Sidecar leaf — manual spawn if ollama-fleet not auto-wired"
+    }
+  ]
+}

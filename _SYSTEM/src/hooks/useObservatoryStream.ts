@@ -1,0 +1,620 @@
+/**
+ * useObservatoryStream.ts
+ *
+ * SSE + REST snapshot hook for the YURI Observatory dashboard.
+ *
+ * Protocol (from observatory-server.mjs):
+ *   - REST GET /api/observatory/{markets,factors,paper,regime,energy,health} for initial snapshot
+ *   - SSE GET /api/observatory/stream — event type lives in the JSON payload (e.data → JSON.parse → .type)
+ *     NOT in the SSE `event:` field. Use source.onmessage, never addEventListener per-type.
+ *
+ * SSE event types in payload:
+ *   market.tick   { type, market, venue, updatedAt, lastBar, qualityGate, error, ts }
+ *   factor.signal { type, factorId, value, side, confidence, ts, market? }
+ *   paper.fill    { type, market, positions, pnl, drawdown, ts }
+ *   regime.shift  { type, market, recommendation, reasons, layers, ts }
+ *   energy.state  { type, deltaU, accept, reason, ts }
+ *   cycle.start   { type, cycleCount, ts }
+ *   cycle.end     { type, cycleCount, ts }
+ *   connected     { type, ...health }
+ */
+
+import { useEffect, useRef, useState } from 'react';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+export interface OHLCVBar {
+  timestamp: number; // unix seconds — matches lightweight-charts UTCTimestamp
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface QualityGate {
+  pass: boolean;
+  reason?: string;
+}
+
+/** Raw position shape emitted by the server (afl-paper.mjs positions()). */
+export interface RawServerPosition {
+  instrument: string;
+  side: 'long' | 'short';
+  quantity: number;
+  avgEntryPrice: number;
+  currentPrice?: number;
+  unrealizedPnl?: number;
+}
+
+export interface MarketSnapshot {
+  market: string;
+  venue: string;
+  updatedAt?: number;
+  /** Latest fast-tick price (1s loop) — preferred live price over lastBar.close. */
+  lastPrice?: number;
+  lastTickTs?: number;
+  lastBar?: OHLCVBar;
+  bars?: OHLCVBar[];
+  qualityGate?: QualityGate;
+  /** positions from /markets REST snapshot — raw server shape, normalised in hook */
+  paperPositions?: RawServerPosition[];
+  pnl?: number;
+  drawdown?: number;
+  regime?: Record<string, string>;
+  energyDeltaU?: number;
+  signals?: FactorSignal[];
+  error?: string;
+  /** Polymarket-specific: human-readable question text (key poly-<tokenId>) */
+  question?: string;
+  /**
+   * Quantum factor-circuit state for this market.
+   * Present when the observatory has computed the circuit ordering.
+   * null when not yet computed or not applicable.
+   */
+  circuit?: CircuitState | null;
+}
+
+/**
+ * Per-market quantum factor-circuit ordering state.
+ * Emitted by `circuit.state` SSE events.
+ *
+ * ratio > 1  → genuine non-commutative order advantage:
+ *              sequencing factors in bestOrdering order beats order-blind
+ *              by (ratio - 1) (e.g. 1.67 → 67% advantage).
+ * ratio == 1 / allCommute == true → factors commute, no ordering advantage.
+ * injected == true → computed on REAL return vectors (not metadata).
+ * degenerate == true → circuit is degenerate, ratio/allCommute not meaningful.
+ */
+export interface CircuitState {
+  ratio: number | null;
+  allCommute: boolean | null;
+  bestOrdering: number[] | null;
+  factorIds: string[];
+  injected: boolean;
+  degenerate: boolean;
+}
+
+export interface FactorSignal {
+  factorId: string;
+  value: number;
+  side: 'long' | 'short' | 'neutral';
+  confidence: number;
+  ts: number;
+  market?: string;
+  deltaU?: number;
+  /**
+   * Overlay signal source. Absent for standard price signals.
+   * 'perp'   → perpetual funding/basis overlay (advisory, NOT paper-traded)
+   * 'social' → social sentiment overlay (advisory, NOT paper-traded)
+   */
+  source?: 'perp' | 'social';
+  /** Sample count — present on social overlay signals (sampleCount of aggregated posts/data). */
+  sampleCount?: number;
+}
+
+export interface PaperPosition {
+  market: string;
+  qty: number;
+  entryPrice: number;
+  currentPrice?: number;
+  unrealisedPnl?: number;
+  side: 'long' | 'short';
+}
+
+export interface PaperState {
+  positions?: Record<string, PaperPosition>;
+  pnl?: number;
+  drawdown?: number;
+  noTrades?: string[];
+  ts?: number;
+  fills?: PaperFill[];
+}
+
+export interface PaperFill {
+  market: string;
+  positions?: Record<string, PaperPosition>;
+  pnl?: number;
+  drawdown?: number;
+  ts: number;
+}
+
+export interface RegimeState {
+  market?: string;
+  recommendation?: string;
+  reasons?: string[];
+  /** Structured detector layers (e.g. { changePoint: { alarm, statistic, ... } }) — NOT strings. */
+  layers?: Record<string, unknown>;
+  regimeShift?: boolean;
+  ts?: number;
+}
+
+export interface EnergyState {
+  deltaU?: number;
+  accept?: boolean;
+  reason?: string;
+  ts?: number;
+}
+
+export interface HealthState {
+  status?: string;
+  ok?: boolean;
+  cycleCount?: number;
+  uptime?: number;
+  lastCycle?: number;   // unix-seconds of the last completed cycle (server field)
+  marketCount?: number;
+  errorCount?: number;
+  ts?: number;
+}
+
+export interface ObservatoryState {
+  markets: Record<string, MarketSnapshot>;
+  factors: FactorSignal[];
+  paper: PaperState;
+  /** Flattened first-market regime (legacy convenience). */
+  regime: RegimeState;
+  /** Full per-market regime map — { "<market>": RegimeState } (layers are structured objects). */
+  regimes: Record<string, RegimeState>;
+  energy: EnergyState;
+  health: HealthState;
+  /** unix-seconds of the latest fast price-tick (1s loop) — drives the live "last tick" age. */
+  lastTick?: number;
+  connected: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+// Base host for REST + SSE. The standalone observatory app sets VITE_OBSERVATORY_BASE
+// to the backend (e.g. http://127.0.0.1:4243) so it connects DIRECT (CORS-allowed) —
+// the Vite dev-proxy mangles SSE keep-alive. Empty string = same-origin (proxy) fallback.
+const HOST = (import.meta.env.VITE_OBSERVATORY_BASE as string | undefined) || '';
+const BASE = `${HOST}/api/observatory`;
+const RECONNECT_DELAY_MS = 3000;
+const MAX_FACTORS = 50;
+const MAX_FILLS = 20;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+async function safeFetch<T>(url: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * normalizePosition — maps server-side afl-paper field names to the frontend's
+ * render fields. Applied to positions from both /markets.paperPositions and
+ * SSE paper.fill events (BUG-5 fix).
+ *
+ * Server shape (afl-paper.mjs positions()):
+ *   { instrument, side, quantity, avgEntryPrice, currentPrice?, unrealizedPnl? }
+ * Frontend render shape (PaperPosition):
+ *   { market, side, qty, entryPrice, currentPrice?, unrealisedPnl? }
+ */
+export function normalizePosition(raw: RawServerPosition): PaperPosition {
+  return {
+    market: raw.instrument,
+    side: raw.side,
+    qty: raw.quantity,
+    entryPrice: raw.avgEntryPrice,
+    currentPrice: raw.currentPrice,
+    unrealisedPnl: raw.unrealizedPnl,
+  };
+}
+
+/**
+ * normalizePaperFill — takes a raw SSE paper.fill payload whose `positions`
+ * field is an array of RawServerPosition and returns a normalized PaperFill
+ * with positions keyed by market and values normalized to PaperPosition.
+ */
+function normalizePaperFillPositions(
+  rawPositions: RawServerPosition[] | undefined,
+): Record<string, PaperPosition> | undefined {
+  if (!rawPositions || !Array.isArray(rawPositions)) return undefined;
+  const out: Record<string, PaperPosition> = {};
+  for (const raw of rawPositions) {
+    if (raw?.instrument) {
+      const norm = normalizePosition(raw);
+      out[norm.market] = norm;
+    }
+  }
+  return out;
+}
+
+/**
+ * pnlToNumber — the server emits paper P&L as the engine's pnl() OBJECT
+ * ({equity, initialEquity, grossRealizedPnl, unrealizedPnl, ...}), but the UI
+ * renders a scalar. Normalize at the boundary: net total P&L = equity - initialEquity
+ * (falls back to realized+unrealized). A plain number passes through. Anything else → 0.
+ */
+export function pnlToNumber(p: unknown): number {
+  if (typeof p === 'number') return Number.isFinite(p) ? p : 0;
+  if (p && typeof p === 'object') {
+    const o = p as Record<string, unknown>;
+    if (typeof o.equity === 'number' && typeof o.initialEquity === 'number') return o.equity - o.initialEquity;
+    const ur = typeof o.unrealizedPnl === 'number' ? o.unrealizedPnl : 0;
+    const re = typeof o.grossRealizedPnl === 'number' ? o.grossRealizedPnl : 0;
+    return ur + re;
+  }
+  return 0;
+}
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
+
+export function useObservatoryStream(): ObservatoryState {
+  const [state, setState] = useState<ObservatoryState>({
+    markets: {},
+    factors: [],
+    paper: {},
+    regime: {},
+    regimes: {},
+    energy: {},
+    health: {},
+    connected: false,
+    loading: true,
+    error: null,
+  });
+
+  const esRef = useRef<EventSource | null>(null);
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+
+  // ── Initial REST snapshot ──────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      // /paper and /regime return per-market wrappers: { "<market>": { ... } }
+      // Use unknown for the raw fetch so we can do safe narrowing below.
+      const [marketsRaw, factors, paperRaw, regimeRaw, energy, health, ticksRaw] = await Promise.all([
+        safeFetch<Record<string, MarketSnapshot> | MarketSnapshot[]>(`${BASE}/markets`, {}),
+        safeFetch<FactorSignal[]>(`${BASE}/factors`, []),
+        safeFetch<unknown>(`${BASE}/paper`, {}),
+        safeFetch<unknown>(`${BASE}/regime`, {}),
+        safeFetch<EnergyState>(`${BASE}/energy`, {}),
+        safeFetch<HealthState>(`${BASE}/health`, {}),
+        safeFetch<Record<string, { market: string; price: number; ts: number }>>(`${BASE}/ticks`, {}),
+      ]);
+
+      if (cancelled) return;
+
+      // /markets — comes back as object keyed by market (canonical server shape)
+      // but also handle legacy array case for resilience
+      const markets: Record<string, MarketSnapshot> = {};
+      if (Array.isArray(marketsRaw)) {
+        for (const m of marketsRaw) {
+          if (m?.market) markets[m.market] = m;
+        }
+      } else if (marketsRaw && typeof marketsRaw === 'object') {
+        Object.assign(markets, marketsRaw);
+      }
+      // Server sends per-market pnl as the engine pnl() OBJECT — coerce to a scalar
+      // so every consumer (MarketChart, aggregate) gets a number, never an object.
+      for (const k of Object.keys(markets)) {
+        markets[k] = { ...markets[k], pnl: pnlToNumber(markets[k].pnl) };
+      }
+      // Apply initial fast-tick prices (/ticks) so the live price shows immediately.
+      if (ticksRaw && typeof ticksRaw === 'object') {
+        for (const [k, t] of Object.entries(ticksRaw as Record<string, { price?: number; ts?: number }>)) {
+          if (markets[k] && typeof t?.price === 'number') {
+            markets[k] = { ...markets[k], lastPrice: t.price, lastTickTs: t.ts };
+          }
+        }
+      }
+
+      // BUG-2 fix: /paper returns { "<market>": {positions, pnl, drawdown} }
+      // Extract aggregate paper state: merge positions from all markets and
+      // take the first market's pnl/drawdown (markets are independent engines).
+      // The /markets snapshot already carries paperPositions per market, so we
+      // use those as the canonical source and build a combined PaperState here
+      // for the PaperTable (which shows all markets' positions aggregated).
+      const paper: PaperState = (() => {
+        const paperMap = (
+          paperRaw && typeof paperRaw === 'object' && !Array.isArray(paperRaw)
+            ? paperRaw as Record<string, { positions?: RawServerPosition[]; pnl?: number; drawdown?: number }>
+            : {}
+        );
+        const allPositions: Record<string, PaperPosition> = {};
+        let totalPnl = 0;
+        let maxDrawdown = 0;
+        for (const mktData of Object.values(paperMap)) {
+          if (Array.isArray(mktData?.positions)) {
+            for (const raw of mktData.positions) {
+              if (raw?.instrument) {
+                const norm = normalizePosition(raw);
+                allPositions[norm.market] = norm;
+              }
+            }
+          }
+          totalPnl += pnlToNumber(mktData?.pnl);
+          if (typeof mktData?.drawdown === 'number' && mktData.drawdown > maxDrawdown) {
+            maxDrawdown = mktData.drawdown;
+          }
+        }
+        // Also fold in paperPositions from the /markets snapshot (same source, belt-and-suspenders)
+        for (const snap of Object.values(markets)) {
+          if (Array.isArray(snap.paperPositions)) {
+            for (const raw of snap.paperPositions) {
+              if (raw?.instrument && !allPositions[raw.instrument]) {
+                allPositions[raw.instrument] = normalizePosition(raw);
+              }
+            }
+          }
+        }
+        return {
+          positions: Object.keys(allPositions).length > 0 ? allPositions : undefined,
+          pnl: totalPnl,
+          drawdown: maxDrawdown || undefined,
+        };
+      })();
+
+      // BUG-3 fix: /regime returns { "<market>": {regimeShift, layers, reasons, recommendation} }
+      // Pick the first market's regime for the flat RegimeState (MechanismTab shows one regime).
+      // /regime returns the full per-market map. Keep the map AND a flattened first entry.
+      const regimes: Record<string, RegimeState> = (() => {
+        if (!regimeRaw || typeof regimeRaw !== 'object' || Array.isArray(regimeRaw)) return {};
+        const m = regimeRaw as Record<string, RegimeState>;
+        const out: Record<string, RegimeState> = {};
+        for (const [mk, r] of Object.entries(m)) out[mk] = { ...r, market: mk };
+        return out;
+      })();
+      const regimeEntries = Object.entries(regimes);
+      const regime: RegimeState = regimeEntries.length ? regimeEntries[0][1] : {};
+
+      setState(prev => ({
+        ...prev,
+        markets,
+        factors: Array.isArray(factors) ? factors : [],
+        paper,
+        regime,
+        regimes,
+        energy,
+        health,
+        lastTick: (health as HealthState)?.lastTick,
+        loading: false,
+      }));
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── SSE subscription ───────────────────────────────────────────────────────
+  useEffect(() => {
+    mountedRef.current = true;
+
+    function connect() {
+      if (!mountedRef.current) return;
+
+      const es = new EventSource(`${BASE}/stream`);
+      esRef.current = es;
+
+      es.onopen = () => {
+        if (!mountedRef.current) return;
+        setState(prev => ({ ...prev, connected: true, error: null }));
+      };
+
+      // Type lives in the JSON payload — onmessage, NOT addEventListener per-type
+      es.onmessage = (e: MessageEvent) => {
+        if (!mountedRef.current) return;
+        let ev: Record<string, unknown>;
+        try {
+          ev = JSON.parse(e.data as string);
+        } catch {
+          return;
+        }
+
+        const type = ev.type as string | undefined;
+
+        setState(prev => {
+          switch (type) {
+            case 'connected':
+              return {
+                ...prev,
+                connected: true,
+                health: { ...prev.health, ...(ev as HealthState) },
+              };
+
+            case 'market.tick': {
+              const tick = ev as unknown as MarketSnapshot;
+              const key = tick.market || 'unknown';
+              return {
+                ...prev,
+                markets: {
+                  ...prev.markets,
+                  [key]: {
+                    ...(prev.markets[key] ?? {}),
+                    ...tick,
+                    // accumulate bars array from successive ticks
+                    bars: (() => {
+                      const existing = prev.markets[key]?.bars ?? [];
+                      if (!tick.lastBar) return existing;
+                      // deduplicate by timestamp
+                      const last = existing[existing.length - 1];
+                      if (last && last.timestamp === tick.lastBar.timestamp) {
+                        return [...existing.slice(0, -1), tick.lastBar];
+                      }
+                      return [...existing, tick.lastBar];
+                    })(),
+                  },
+                },
+              };
+            }
+
+            case 'price.tick': {
+              // Per-second live price pulse — update the market's lastPrice + the global lastTick age.
+              const t = ev as unknown as { market?: string; venue?: string; price?: number; ts?: number };
+              if (!t.market || typeof t.price !== 'number') return prev;
+              return {
+                ...prev,
+                lastTick: typeof t.ts === 'number' ? t.ts : prev.lastTick,
+                markets: {
+                  ...prev.markets,
+                  [t.market]: {
+                    ...(prev.markets[t.market] ?? { market: t.market, venue: t.venue ?? 'unknown' }),
+                    lastPrice: t.price,
+                    lastTickTs: t.ts,
+                  },
+                },
+              };
+            }
+
+            case 'factor.signal': {
+              const sig = ev as unknown as FactorSignal;
+              const next = [sig, ...prev.factors.filter(f => f.factorId !== sig.factorId)];
+              return { ...prev, factors: next.slice(0, MAX_FACTORS) };
+            }
+
+            case 'paper.fill': {
+              // BUG-5 fix (SSE path): server emits positions as RawServerPosition[]
+              // (instrument/quantity/avgEntryPrice/unrealizedPnl); normalize to PaperPosition.
+              const fillRaw = ev as unknown as {
+                type: string; market?: string;
+                positions?: RawServerPosition[]; pnl?: unknown; drawdown?: number; ts: number;
+              };
+              const normalizedPositions = normalizePaperFillPositions(fillRaw.positions);
+              const mkt = fillRaw.market ?? 'unknown';
+              const fillPnl = pnlToNumber(fillRaw.pnl); // server sends the engine pnl() OBJECT
+              const fillDd = typeof fillRaw.drawdown === 'number' ? fillRaw.drawdown : undefined;
+              // Update the target market snapshot's scalar pnl/drawdown, then aggregate.
+              const nextMarkets: Record<string, MarketSnapshot> = {
+                ...prev.markets,
+                [mkt]: {
+                  ...(prev.markets[mkt] ?? { market: mkt, venue: 'unknown' }),
+                  pnl: fillPnl,
+                  drawdown: fillDd ?? prev.markets[mkt]?.drawdown,
+                },
+              };
+              const aggPnl = Object.values(nextMarkets)
+                .reduce((s, m) => s + (typeof m.pnl === 'number' ? m.pnl : 0), 0);
+              const aggDd = Object.values(nextMarkets)
+                .reduce((mx, m) => Math.max(mx, typeof m.drawdown === 'number' ? m.drawdown : 0), 0);
+              const fill: PaperFill = {
+                market: mkt, positions: normalizedPositions, pnl: fillPnl, drawdown: fillDd, ts: fillRaw.ts,
+              };
+              const mergedPositions: Record<string, PaperPosition> = {
+                ...(prev.paper.positions ?? {}),
+                ...(normalizedPositions ?? {}),
+              };
+              return {
+                ...prev,
+                markets: nextMarkets,
+                paper: {
+                  ...prev.paper,
+                  positions: mergedPositions,
+                  pnl: aggPnl,
+                  drawdown: aggDd || undefined,
+                  fills: [fill, ...(prev.paper.fills ?? [])].slice(0, MAX_FILLS),
+                },
+              };
+            }
+
+            case 'circuit.state': {
+              // Update the circuit field on the target market snapshot.
+              // Payload: { type, market, ratio, allCommute, bestOrdering, factorIds, injected, ts }
+              const cs = ev as unknown as {
+                type: string; market?: string;
+                ratio: number | null; allCommute: boolean | null;
+                bestOrdering: number[] | null; factorIds: string[];
+                injected: boolean; ts: number;
+              };
+              const csKey = cs.market ?? 'unknown';
+              const circuit: CircuitState = {
+                ratio: cs.ratio ?? null,
+                allCommute: cs.allCommute ?? null,
+                bestOrdering: cs.bestOrdering ?? null,
+                factorIds: Array.isArray(cs.factorIds) ? cs.factorIds : [],
+                injected: Boolean(cs.injected),
+                degenerate: false,
+              };
+              return {
+                ...prev,
+                markets: {
+                  ...prev.markets,
+                  [csKey]: {
+                    ...(prev.markets[csKey] ?? { market: csKey, venue: 'unknown' }),
+                    circuit,
+                  },
+                },
+              };
+            }
+
+            case 'regime.shift': {
+              const r = ev as unknown as RegimeState;
+              const mk = r.market;
+              return {
+                ...prev,
+                regime: r,
+                regimes: mk ? { ...prev.regimes, [mk]: r } : prev.regimes,
+              };
+            }
+
+            case 'energy.state':
+              return { ...prev, energy: ev as unknown as EnergyState };
+
+            case 'cycle.start':
+            case 'cycle.end':
+              // heartbeat — update health cycleCount if present
+              if (ev.cycleCount != null) {
+                return {
+                  ...prev,
+                  health: { ...prev.health, cycleCount: ev.cycleCount as number },
+                };
+              }
+              return prev;
+
+            default:
+              return prev;
+          }
+        });
+      };
+
+      es.onerror = () => {
+        if (!mountedRef.current) return;
+        es.close();
+        esRef.current = null;
+        setState(prev => ({ ...prev, connected: false }));
+        // Reconnect after delay
+        reconnectRef.current = setTimeout(() => {
+          if (mountedRef.current) connect();
+        }, RECONNECT_DELAY_MS);
+      };
+    }
+
+    connect();
+
+    return () => {
+      mountedRef.current = false;
+      esRef.current?.close();
+      esRef.current = null;
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
+    };
+  }, []);
+
+  return state;
+}

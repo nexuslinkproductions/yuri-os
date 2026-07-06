@@ -13,6 +13,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
+import { readJsonOrNull as readJson } from './_lib/fs.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -22,10 +23,6 @@ const IZANAGI_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'izanagi');
 
 const args = process.argv.slice(2);
 
-function readJson(p) {
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
 
 function listManifests() {
   if (!existsSync(IZANAGI_DIR)) { console.log('No Izanagi manifests yet.'); return []; }

@@ -10,9 +10,9 @@ This file remains because active hooks and vault domain mapping still look for t
 
 Use `_SYSTEM/yuri-origin.md` for authority, evidence, mutation safety, protected surfaces, output grammar, and gate routing. Use `SOUL.md` for persona and cognitive workflow.
 
-## GLOBAL_OFFLOAD_DIRECTIVE
+## GLOBAL_LLM_COMPAT_DIRECTIVE
 
-Use `_SYSTEM/Scripts/offload-contract.mjs` as the only lane, scenario, and lifecycle contract. Inspect with `./_SYSTEM/Scripts/ai route-plan "<request>"`; execute with `./_SYSTEM/Scripts/ai auto "<request>"`.
+Use `_SYSTEM/Scripts/llm-compat-contract.mjs` as the only lane, scenario, and lifecycle contract. Inspect with `./_SYSTEM/Scripts/ai route-plan "<request>"`; execute with `./_SYSTEM/Scripts/ai auto "<request>"`.
 
 ## ROLE_MATRIX
 

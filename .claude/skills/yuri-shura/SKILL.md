@@ -1,6 +1,7 @@
 ---
 name: yuri-shura
-description: 6-perspective adversarial review for high-stakes turns. Fires when classifier detects scenario=strategic-review (architecture decisions, refactor planning, deployment review). Fans out 6 lanes in parallel: nvidia-nemotron-120b (architect), DS-pro (adversary), codex-spark (maintainer), nvidia-kimi (ops/long-ctx), deepseek-flash (product), nvidia-mistral-medium (security). Additive -- does not replace per-turn 6-advisor ensemble.
+description: "6-perspective adversarial review for high-stakes turns (architecture decisions, refactor planning, deployment review) — fans out architect, adversary (7-vector attack), maintainer, ops, product, and security perspectives in parallel, then consolidates. Use when user says 'review this decision', '/shura', 'adversarial review', 'what could go wrong', 'architecture review', or 'deployment review'."
+invocation: model
 triggers:
   - "/shura"
   - "strategic review"
@@ -12,21 +13,22 @@ triggers:
 
 Inspired by Istishraf (MIT-licensed Claude plugin). Original implementation adapted to Yuri OS's pulse-cortex.
 
-## When to fire
+## When to invoke
 
-Auto: pulse-classifier detects scenario `strategic-review`
-Manual: `/shura <topic>` from user
+Model-invocable for high-stakes strategic review (architecture, refactor planning, deployment); or `/shura <topic>`. Advisory only — never holds implementation authority.
 
-## 6 Perspectives (parallel)
+## 6 Perspectives (native Workflow fan-out)
 
-| Lane | Model | Perspective |
-|---|---|---|
-| @nvidia-nemotron-120b | nvidia/nemotron-3-super-120b-a12b | Architect -- soundness of design |
-| @ds-pro | deepseek-v4-pro | Adversary -- 7-vector attack protocol (see below) |
-| @codex-spark | gpt-5.3-codex | Maintainer -- long-term cost |
-| @nvidia-kimi | moonshotai/kimi-k2.6 | Ops -- production readiness (1M ctx) |
-| @ds-flash | deepseek-v4-flash | Product -- user impact |
-| @nvidia-mistral-medium | mistralai/mistral-medium-3.5-128b | Security -- risk surface |
+Run via the **Workflow tool**: 6 parallel agents, each adopting one perspective lens (Opus/Sonnet, self-selected per depth). Each returns a bounded structured finding; the main thread consolidates. No external model lanes.
+
+| Perspective | Lens |
+|---|---|
+| Architect | soundness of design |
+| Adversary | 7-vector attack protocol (see below) |
+| Maintainer | long-term cost |
+| Ops | production readiness |
+| Product | user impact |
+| Security | risk surface |
 
 ## Output format
 
@@ -50,7 +52,7 @@ Adversary prompt injection: for each vector, deliver one finding or "clean" — 
 
 ## Quarantine rules
 
-Standard advisory output. No impl authority. Findings logged to pulse-bus with source=SHURA. Codex applies any resulting changes through standard two-phase gate.
+Advisory output only — no implementation authority. Findings are consolidated for the owner; any resulting change goes through the normal owner-gated commit path.
 
 ## Trigger phrases (auto-classify)
 
@@ -68,86 +70,8 @@ Standard advisory output. No impl authority. Findings logged to pulse-bus with s
 - corrections: none
 - errors: none
 
-### 2026-05-17
-- session: 111m | peak ctx: 0% | compacts: 0
-- tools: Bash×167, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 108m | peak ctx: 0% | compacts: 0
-- tools: Bash×164, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 107m | peak ctx: 0% | compacts: 0
-- tools: Bash×157, Edit×41, Read×33, mcp×33, Write×10, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 100m | peak ctx: 0% | compacts: 0
-- tools: Bash×153, Edit×41, mcp×33, Read×32, Write×9, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 98m | peak ctx: 0% | compacts: 0
-- tools: Bash×152, Edit×41, mcp×33, Read×32, Write×9, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 84m | peak ctx: 0% | compacts: 0
-- tools: Bash×136, Edit×34, mcp×33, Read×27, Write×7, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 67m | peak ctx: 0% | compacts: 0
-- tools: Bash×119, Read×18, Edit×13, Write×5, mcp×4, Skill×1, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 61m | peak ctx: 0% | compacts: 0
-- tools: Bash×110, Read×17, Edit×13, Write×4, mcp×3, Skill×1, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
-### 2026-05-17
-- session: 59m | peak ctx: 0% | compacts: 0
-- tools: Bash×109, Read×17, Edit×13, Write×4, mcp×3, Skill×1, ToolSearch×1, AskUserQuestion×1
-- corrections: none
-- errors: none
-
 ### 2026-05-16
 - session: 61m | peak ctx: 0% | compacts: 0
 - tools: Bash×50, Edit×28, Write×13, Read×12
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 56m | peak ctx: 0% | compacts: 0
-- tools: Bash×38, Edit×16, Write×12, Read×10
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 49m | peak ctx: 0% | compacts: 0
-- tools: Bash×30, Write×11, Edit×9, Read×6
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 41m | peak ctx: 0% | compacts: 0
-- tools: Bash×21, Write×8, Edit×7, Read×5
-- corrections: none
-- errors: none
-
-### 2026-05-16
-- session: 37m | peak ctx: 0% | compacts: 0
-- tools: Bash×16, Write×7, Edit×6, Read×3
 - corrections: none
 - errors: none

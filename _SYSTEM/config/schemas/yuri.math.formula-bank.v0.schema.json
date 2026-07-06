@@ -41,7 +41,8 @@
           "type": "object",
           "properties": {
             "inputs": { "type": "object" },
-            "output": { "type": "string" }
+            "output": { "type": "string" },
+            "parameterSlots": { "type": "array", "items": { "type": "string" } }
           }
         },
         "inputConstraints": {
@@ -137,7 +138,7 @@
       "properties": {
         "name": { "type": "string", "minLength": 1 },
         "input": { "type": "object" },
-        "expected": { "type": "object" },
+        "expected": { "type": "object", "minProperties": 1 },
         "interpretation": { "type": "string", "minLength": 1 }
       }
     },

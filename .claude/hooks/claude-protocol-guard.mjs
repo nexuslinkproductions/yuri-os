@@ -8,6 +8,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import ssModule from './session-state.js';
 import { CONTROL_FILE_PREFIXES } from '../../_SYSTEM/Scripts/lane-kernel.mjs';
+// HITL plan-review sublane (github-adoption human-review-sublane). isPlanReviewMode is the
+// MUTUAL-EXCLUSION source of truth shared with post-tool-use.js's arm site. It fails SAFE
+// to OFF if plan-review.mjs is absent or session-state is unreadable (try/catch below).
+let isPlanReviewMode = () => false;
+try {
+  ({ isPlanReviewMode } = await import('../../_SYSTEM/Scripts/plan-review.mjs'));
+} catch (_) { /* module absent → review mode treated OFF, autonomous gate unchanged */ }
 
 const ss = ssModule;
 
@@ -132,13 +139,13 @@ function hasRoutePlanEvidence(text) {
     lower.includes('.claude/eot/pulse-cortex/route-plans/') ||
     lower.includes('pulse-cortex/route-plans');
   if (pulseCortexEvidence) return true;
-  // Recognize direct Scripts/ai dispatch or offload as route-plan evidence
+  // Recognize direct Scripts/ai dispatch or llm-compat dispatch as route-plan evidence
   if (lower.includes('_system/scripts/ai route-plan') ||
       lower.includes('_system/scripts/ai auto') ||
       lower.includes('scripts/ai route-plan') ||
       lower.includes('scripts/ai auto') ||
-      lower.includes('offload.sh -m') ||
-      lower.includes('scripts/offload.sh')) return true;
+      lower.includes('llm-compat.sh -m') ||
+      lower.includes('scripts/llm-compat.sh')) return true;
   return (
     lower.includes('route-plan evidence') ||
     lower.includes('scripts/ai route-plan evidence') ||
@@ -199,10 +206,20 @@ function checkPlanDispatchGate(input) {
 
   try {
     const state = ss.read();
+    // MUTUAL-EXCLUSION site A of 3: when HITL plan-review mode is ON, the autonomous dispatch
+    // gate must NOT fire — checkPlanReviewGate owns the pacing this event. Read the SAME state
+    // object so this site and the review-gate site decide off one snapshot.
+    if (isPlanReviewMode(state)) return null;
     const gate = state?.plan_dispatch_gate;
     if (!gate || !gate.armed || gate.satisfied) return null;
 
+    // AUTO-EXPIRE (wave-3 G.5): the gate self-satisfies after PLAN_GATE_MAX_WARNS (3)
+    // warns OR PLAN_GATE_TTL_MS (30min) — BY DESIGN, an escape valve so an interactive
+    // session is never blocked forever. Consequence accepted as advisory-tier behavior:
+    // a session can exhaust the warn budget and then proceed without route-plan evidence.
     if (gate.warn_count >= PLAN_GATE_MAX_WARNS || Date.now() - gate.armed_at > PLAN_GATE_TTL_MS) {
+      const reason = gate.warn_count >= PLAN_GATE_MAX_WARNS ? 'warn-budget-exhausted' : 'ttl-expired';
+      process.stderr.write(`[plan-dispatch-gate] EXPIRED: gate auto-satisfied via ${reason} — session may proceed without route-plan.\n`);
       ss.update(s => { s.plan_dispatch_gate.satisfied = true; });
       return null;
     }
@@ -215,7 +232,46 @@ function checkPlanDispatchGate(input) {
     ss.update(s => { s.plan_dispatch_gate.warn_count = (s.plan_dispatch_gate.warn_count || 0) + 1; });
     return {
       code: 'post-plan-dispatch-required',
-      message: 'ExitPlanMode approved but no route-plan dispatch — run: _SYSTEM/Scripts/ai route-plan "<task>" and dispatch to the returned lane before direct mutation. (offload priority: @gpt-5.5 → @codex-spark → ... → @claude last resort)',
+      message: 'ExitPlanMode approved but no route-plan dispatch — run: _SYSTEM/Scripts/ai route-plan "<task>" and dispatch to the returned lane before direct mutation. (llm-compat lane priority: @gpt-5.5 → @codex-spark → ... → @claude last resort)',
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+// HITL plan-review gate (MUTUAL-EXCLUSION site C of 3). When plan_review_mode is ON, the
+// PostToolUse arm site armed `plan_review_gate` instead of plan_dispatch_gate.
+// OWNER DECISION 2026-06-13 (Marcel "auto block with a reason provided"): this is now a HARD BLOCK,
+// not advisory pacing. In review mode a post-ExitPlanMode mutation is DENIED until the plan is reviewed
+// and approved (satisfy the gate via `plan-review.mjs approve`). The per-attempt auto-open was removed
+// (a hard gate opens on APPROVAL, not on N denied attempts); a long TTL failsafe still auto-expires the
+// gate so a review-mode session left on cannot wedge permanently. Block requires CLAUDE_SESSION_ID — the
+// same degrade-to-WARN contract as every other block here. Fires ONLY when review mode is ON (default OFF).
+function checkPlanReviewGate(input) {
+  const toolName = input?.tool_name || '';
+  const isMutation = MUTATION_TOOLS.has(toolName) ||
+    (toolName === 'Bash' && includesAny(` ${normalize(bashCommand(input))} `, MUTATING_COMMAND_MARKERS));
+  if (!isMutation) return null;
+
+  try {
+    const state = ss.read();
+    // Only fire when review mode is ON — mirror image of site A's exclusion.
+    if (!isPlanReviewMode(state)) return null;
+    const gate = state?.plan_review_gate;
+    if (!gate || !gate.armed || gate.satisfied) return null;
+
+    // TTL failsafe ONLY (a long timeout) so a forgotten review-mode cannot wedge forever. No
+    // per-attempt auto-open: the hard gate is satisfied by APPROVAL, not by repeated denied attempts.
+    if (Date.now() - gate.armed_at > PLAN_GATE_TTL_MS) {
+      ss.update(s => { if (s.plan_review_gate) s.plan_review_gate.satisfied = true; });
+      return null;
+    }
+
+    ss.update(s => { s.plan_review_gate.block_count = (s.plan_review_gate.block_count || 0) + 1; });
+    return {
+      code: 'plan-review-blocked',
+      block: true,
+      message: 'HITL plan-review mode is ON, so this mutation is BLOCKED until the plan is reviewed and approved. Reason: an operator turned on plan-review mode — agent plans require human sign-off before any mutation. Capture + review: `_SYSTEM/Scripts/plan-review.mjs capture "<id>"`, then approve (a changes-requested verdict keeps the block). Leave review mode: `_SYSTEM/Scripts/plan-review.mjs off`.',
     };
   } catch (_) {
     return null;
@@ -229,8 +285,8 @@ function checkShintaiDispatch(input) {
   const isShintai = SHINTAI_DISPATCH_KEYWORDS.some(k => text.includes(k));
   if (!isShintai) return null;
   return {
-    code: 'shintai-must-use-offload',
-    message: 'Shintai operations MUST dispatch via offload lanes — not Claude agents. Run: bash _SYSTEM/Scripts/ai auto "<task>" or bash _SYSTEM/Scripts/offload.sh -m <lane> "<spec>". Claude agents are banned for Shintai. See _SYSTEM/memory/feedback_no_anthropic_agents.md.',
+    code: 'shintai-must-use-llm-compat',
+    message: 'Shintai operations MUST dispatch via llm-compat lanes — not Claude agents. Run: bash _SYSTEM/Scripts/ai auto "<task>" or bash _SYSTEM/Scripts/llm-compat.sh -m <lane> "<spec>". Claude agents are banned for Shintai. See _SYSTEM/memory/feedback_no_anthropic_agents.md.',
   };
 }
 
@@ -239,7 +295,12 @@ function inspect(input) {
   // authorized rapid-implementation sessions. Session-scoped only — does not persist.
   // Activate: export YURI_SPRINT_MODE=1
   // Deactivate: unset YURI_SPRINT_MODE (or open a new session)
-  if (process.env.YURI_SPRINT_MODE === '1') return [];
+  if (process.env.YURI_SPRINT_MODE === '1') {
+    // wave-3 G.11: audit trail — the bypass is intentional, but suppression must be
+    // visible in logs, not silent.
+    process.stderr.write('[protocol-guard] SPRINT_MODE=1 active — all protocol checks suppressed this call\n');
+    return [];
+  }
 
   // Shintai enforcement — block before any other check
   const shintaiBlock = checkShintaiDispatch(input);
@@ -249,10 +310,15 @@ function inspect(input) {
   const lowerToolText = toolText.toLowerCase();
   const warnings = [];
 
-  // Satisfy plan dispatch gate when route-plan evidence appears in any tool call
+  // Satisfy plan dispatch gate when route-plan evidence appears in any tool call.
+  // MUTUAL-EXCLUSION site B of 3: skip this opportunistic self-satisfy entirely when HITL
+  // plan-review mode is ON — in review mode the dispatch gate is not the active gate, so
+  // satisfying it here would let an autonomous-path action quietly clear a gate that should
+  // be dormant. The review gate is paced separately by checkPlanReviewGate.
   try {
     const state = ss.read();
-    if (state?.plan_dispatch_gate?.armed && !state.plan_dispatch_gate.satisfied &&
+    if (!isPlanReviewMode(state) &&
+        state?.plan_dispatch_gate?.armed && !state.plan_dispatch_gate.satisfied &&
         hasRoutePlanEvidence(toolText)) {
       ss.update(s => { s.plan_dispatch_gate.satisfied = true; });
     }
@@ -283,8 +349,13 @@ function inspect(input) {
     });
   }
 
+  // Exactly one of these two fires on a given mutation: checkPlanDispatchGate bails when
+  // review mode is ON, checkPlanReviewGate bails when it is OFF (mutual exclusion sites A+C).
   const planGateWarn = checkPlanDispatchGate(input);
   if (planGateWarn) warnings.push(planGateWarn);
+
+  const planReviewWarn = checkPlanReviewGate(input);
+  if (planReviewWarn) warnings.push(planReviewWarn);
 
   return warnings;
 }
@@ -347,6 +418,29 @@ process.stdin.on('end', () => {
 
   try {
     const sessionId = process.env.CLAUDE_SESSION_ID || '';
+    // NOTE (wave-3 G.3): the block path requires CLAUDE_SESSION_ID — absent in
+    // subagent/headless contexts → critical-tier findings fall through to WARN.
+    // Visible degradation, not silent: log it when findings exist without a session id.
+    if (!sessionId) {
+      process.stderr.write('[protocol-guard] WARN: CLAUDE_SESSION_ID absent — critical-tier block downgraded to WARN\n');
+    }
+    // Owner-armed HARD gates (e.g. plan-review auto-block, Marcel 2026-06-13): a finding flagged
+    // block:true DENIES the tool regardless of complexity tier — same CLAUDE_SESSION_ID requirement
+    // as every other block (absent → degrades to WARN below, logged).
+    const forcedBlocks = warnings.filter((w) => w.block);
+    if (sessionId && forcedBlocks.length) {
+      appendAuditLog({
+        ts: new Date().toISOString(),
+        session_id: sessionId,
+        entry_point: 'claude',
+        tool: (input && input.tool_name) || 'unknown',
+        violation: forcedBlocks.map((w) => w.code).join(','),
+        blocked: true,
+      });
+      emitBlock(forcedBlocks);
+      process.exit(0);
+      return;
+    }
     if (sessionId) {
       const packet = readSessionPacket(sessionId);
       if (packet && packet.pulse_plan && packet.pulse_plan.complexityTier === 'critical') {

@@ -6,7 +6,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { appendKagamiEvent } from './kagami-event-bus.mjs';
 import { captureWorkerPane } from './worker-tmux.mjs';
 
@@ -142,7 +142,7 @@ function parseArgs(argv) {
   return out;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   captureOnce(parseArgs(process.argv.slice(2)))
     .then((result) => {
       process.stdout.write(`${JSON.stringify(result)}\n`);

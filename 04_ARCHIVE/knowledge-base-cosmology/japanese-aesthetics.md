@@ -14,7 +14,7 @@ sources: Stanford Encyclopedia of Philosophy (Japanese Aesthetics), Wabi-sabi-jp
 
 Japan is not merely Marcel's intended destination. It is the **aesthetic system most structurally aligned with his cognitive architecture**: depth-first, meaning-dense, silence-valuing, pattern-obsessed, uncomfortable with surface-level completion.
 
-The Japanese aesthetic tradition is not decoration — it is a precise consciousness technology. Each concept is a *lens* that discloses aspects of reality the Western analytical tradition cannot easily name. Bringing these into NUDIMMUD enriches every domain: production (negative space in framing), design (ma in layout), psychology (mono no aware in decision-making), collaboration (hara in communication), strategy (mushin in execution).
+The Japanese aesthetic tradition is not decoration — it is a precise consciousness technology. Each concept is a *lens* that discloses aspects of reality the Western analytical tradition cannot easily name. Bringing these into NUDIMMUD enriches every domain: design (ma in layout), psychology (mono no aware in decision-making), collaboration (hara in communication), strategy (mushin in execution).
 
 ---
 
@@ -40,9 +40,6 @@ Ma is not absence. Ma is the *active* structural element that organizes and give
 
 ### Ma in Practice
 
-**In composition (film, photography):**
-The frame doesn't fill the space — it creates ma. A Kurosawa shot is as much about what is not shown as what is shown. The held pause before a cut. The empty foreground that makes the distant figure significant.
-
 **In performance:**
 The beat before the actor speaks. The held silence after a statement. In Japanese theatre (Noh), the pause is often longer than the action — and carries more weight.
 
@@ -56,9 +53,6 @@ Japanese interior design: the empty wall is not waiting for a picture. The empty
 
 **In responses:**
 NUDIMMUD knows when the ma is right — when the most powerful response is not a sentence but a pause, a question returned, a silence that creates space for ENKI to arrive at the insight himself.
-
-**In production work:**
-Marcel's eye for framing is a ma-sensitive eye. The shot that works is often the one with the most intentional negative space. Resisting the instinct to fill the frame is resisting the fear of ma.
 
 **In sessions:**
 The best ABZU sessions have ma in them — moments where the synthesis hasn't arrived yet, and the temptation is to fill the space with more words. The experienced practitioner holds the ma.
@@ -95,9 +89,9 @@ Wabi-sabi teaches the eye to find beauty in:
 - The small, the subtle, the hidden (versus the Western preference for the impressive and obvious)
 
 **This has direct implications for how Marcel works:**
-- A commercial shoot doesn't have to achieve impossible perfection — the slightly imperfect frame, the natural shadow, the authentic moment, often carries more *life* than the technically perfect composition.
-- Client briefs that insist on impossible polish often result in lifeless content. The wabi-sabi practitioner knows which imperfections to defend.
-- In the edit: leaving space, resisting over-correction, trusting the raw energy of a moment.
+- Work doesn't have to achieve impossible perfection — the slightly imperfect, the natural, the authentic moment, often carries more *life* than the technically perfect result.
+- Briefs that insist on impossible polish often result in lifeless work. The wabi-sabi practitioner knows which imperfections to defend.
+- Leaving space, resisting over-correction, trusting the raw energy of a moment.
 
 ### Kintsugi (金継ぎ) — Gold Joinery
 
@@ -121,14 +115,12 @@ The most frequently cited example: cherry blossoms (*sakura*). They are beautifu
 
 ### Why This Matters for Marcel's Work
 
-Video and photography *are* mono no aware by nature. The photographer catches the unrepeatable moment. The videographer preserves motion that cannot be repeated. The entire medium is structurally about loss and capture.
-
-Understanding mono no aware deepens the *intentionality* of every shot:
+Understanding mono no aware deepens the *intentionality* of every creative decision:
 - What makes this moment worth capturing? Its unrepeatable quality.
-- What emotion does the frame want to carry? The awareness that this will not come again.
-- Why does good film make people cry? Because it makes the viewer fully aware of impermanence — of time, of beauty, of loss.
+- What emotion does the work want to carry? The awareness that this will not come again.
+- Why does the work that lands make people feel? Because it makes the viewer fully aware of impermanence — of time, of beauty, of loss.
 
-**The content that moves people carries mono no aware.** The commercial that *feels* — not the one with the most impressive production values, but the one that creates the sensation of something true and passing — is doing this.
+**The work that moves people carries mono no aware.** The piece that *feels* — not the one with the most impressive surface, but the one that creates the sensation of something true and passing — is doing this.
 
 ---
 
@@ -154,13 +146,13 @@ The martial artist in mushin is not *trying* to block the attack — the movemen
 
 All describe the same state: **the practitioner becomes transparent to a larger intelligence moving through them**.
 
-### Mushin on Set
+### Mushin in Practice
 
-On set, the best shots come from mushin — not from calculating every technical variable while also trying to feel the scene and direct the talent. The technical precision must be internalized so thoroughly that it no longer requires conscious attention, freeing full awareness for the living moment.
+In the work, the best output comes from mushin — not from calculating every technical variable while also trying to feel the moment. The technical precision must be internalized so thoroughly that it no longer requires conscious attention, freeing full awareness for the living moment.
 
-This is why Marcel's path is: **technique first, until technique disappears**. The T-stop, the focus rack, the lighting ratio — these must become instinct so they cease to be objects of conscious attention, freeing the eye to simply *see*.
+This is why Marcel's path is: **technique first, until technique disappears**. The craft fundamentals must become instinct so they cease to be objects of conscious attention, freeing full awareness to simply *see*.
 
-The transition from competent technician (technique requires attention) to true cinematographer (technique has become mushin) is one of the great thresholds of the craft.
+The transition from competent technician (technique requires attention) to true master (technique has become mushin) is one of the great thresholds of the craft.
 
 ---
 
@@ -172,7 +164,7 @@ En = fate, destiny, karmic bond, *connection that was meant to be*. The relation
 
 Not every collaboration is en. Most business relationships are transactional — useful but not deep. En is the recognition of a genuine resonance: "this person and I were meant to build something together."
 
-The Marcel-Claudio relationship has the quality of en. The Marcel-Lilly connection has the quality of en. Japan itself, as a destination, feels like en to Marcel — not chosen rationally but recognized.
+The Marcel-Lilly connection has the quality of en. Japan itself, as a destination, feels like en to Marcel — not chosen rationally but recognized.
 
 ### Operational Implication
 

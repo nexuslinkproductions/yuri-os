@@ -20,14 +20,16 @@ const MODEL_CONFIG = {
     label: 'codex-spark',
   },
   'gpt-5.4-mini': {
-    sandbox: 'workspace-write',
-    defaultReasoning: 'high',
+    sandbox: 'danger-full-access', // fully equipped (framework-governed, see gpt-5.5). --sandbox read-only for DRAFT.
+    defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX
     ignoreRules: true,
     label: 'gpt-5.4-mini',
   },
   'gpt-5.5': {
-    sandbox: 'workspace-write',
-    defaultReasoning: 'high',   // caller can escalate to xhigh → maps to 'max'
+    sandbox: 'danger-full-access', // owner directive 2026-06-05: fully equipped like Claude — NOT caged.
+                                   // Governed by the framework (AGENTS.md spine + .codex/hooks/pre-tool-use.mjs
+                                   // deterministic guard), not by a sandbox wall. Use --sandbox read-only for a bounded DRAFT.
+    defaultReasoning: 'max',     // owner policy 2026-06-05: reasoning lanes default to MAX (maps to codex 'max')
     ignoreRules: false,          // allow project rules — maximum features
     label: 'gpt-5.5',
   },
@@ -59,12 +61,16 @@ const SKIP_RE             = /(?:rate limit|rate-limited|queued|unavailable|tempo
 const DEFAULT_TIMEOUT_MS  = 6 * 60 * 60 * 1000;
 
 const scriptDir  = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot   = path.resolve(scriptDir, '..');
+// TRUE repo root: this script lives in _SYSTEM/Scripts, so the root is two levels up. (Was '..' =
+// _SYSTEM — an off-by-one that scoped Codex to _SYSTEM and, with the un-sandboxed lane, risked the
+// repo-root .codex/ guard + AGENTS.md spine not loading. Repo-root cwd loads both and lets Codex see
+// the whole repo for repo-wide work.)
+const repoRoot   = path.resolve(scriptDir, '../..');
 const argv       = process.argv.slice(2);
 const options    = parseArgs(argv);
-const envPrompt  = (process.env.OFFLOAD_PROMPT_TEXT || '').trim();
+const envPrompt  = (process.env.LLM_COMPAT_PROMPT_TEXT || '').trim();
 const prompt     = options.prompt || envPrompt || (options.smoke || options.proveRoute ? SMOKE_PROMPT : '');
-const traceId    = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `codex-${options.modelId}-${Date.now()}-${process.pid}`;
+const traceId    = process.env.TOKEN_LEDGER_TRACE_ID || process.env.LLM_COMPAT_TASK_ID || `codex-${options.modelId}-${Date.now()}-${process.pid}`;
 
 if (options.dryRun) {
   const artifactDir = prepareArtifactDir(options.artifactDir);
@@ -117,6 +123,35 @@ writeArtifact(artifactDir, 'run.json', run.summary);
 process.stdout.write(run.output + (run.output.endsWith('\n') ? '' : '\n'));
 process.exit(0);
 
+// ─── Context front-load (parity with llm-lane --context) ─────────────────────
+// Pre-load must-read files INTO the prompt so Codex starts with guaranteed context from turn 1
+// instead of discovering it via tools. Budget-capped (LLM_LANE_CONTEXT_BUDGET, default 240k chars);
+// protected surfaces refused. spec = comma-list of paths, or @manifest (one path per line).
+function buildContextPack(spec) {
+  if (!spec) return '';
+  const list = spec.startsWith('@')
+    ? readFileSync(path.resolve(spec.slice(1)), 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean)
+    : spec.split(',').map((s) => s.trim()).filter(Boolean);
+  const BUDGET = Number(process.env.LLM_LANE_CONTEXT_BUDGET || 240000);
+  const PROTECTED = ['.env', 'backend/data', '.claude/state', '.claude/history', '.claude/file-history'];
+  let used = 0; const parts = [];
+  for (const f of list) {
+    try {
+      const rel = path.relative(repoRoot, path.resolve(f));
+      if (PROTECTED.some((p) => rel === p || rel.startsWith(`${p}/`))) { parts.push(`## ${f}\n[blocked: protected surface]`); continue; }
+      let body = readFileSync(path.resolve(f), 'utf8');
+      const remaining = BUDGET - used;
+      if (remaining <= 0) { parts.push(`## ${f}\n[omitted — context budget reached]`); continue; }
+      if (body.length > remaining) body = body.slice(0, remaining);
+      used += body.length;
+      parts.push(`## ${f}\n\`\`\`\n${body}\n\`\`\``);
+    } catch (e) { parts.push(`## ${f}\n[unreadable: ${String(e?.message || e).slice(0, 80)}]`); }
+  }
+  return parts.length
+    ? `===== PRELOADED CONTEXT — read these first; already provided, do NOT re-fetch them with tools =====\n\n${parts.join('\n\n')}\n\n===== END PRELOADED CONTEXT =====`
+    : '';
+}
+
 // ─── parseArgs ───────────────────────────────────────────────────────────────
 function parseArgs(rest) {
   const out = {
@@ -127,10 +162,13 @@ function parseArgs(rest) {
     dryRun:        false,
     smoke:         false,
     proveRoute:    false,
+    sandboxOverride: null,    // --sandbox override (DRAFT read-only = the gate-on-the-gate)
+    sandboxReason: null,      // --sandbox-reason "<why>" — REQUIRED to actually apply a restrictive (read-only) sandbox
     promptParts:   [],
     artifactDir:   '',
     workspaceRoot: process.env.CODEX_TARGET_WORKTREE || process.env.CODEX_SPARK_WORKSPACE || repoRoot,
     timeoutMs:     parseInt(process.env.CODEX_SPARK_TIMEOUT_MS || String(DEFAULT_TIMEOUT_MS), 10),
+    context:       null,      // --context <files|@manifest> → front-loaded must-read pack (parity with llm-lane)
   };
 
   const args = [...rest];
@@ -156,13 +194,43 @@ function parseArgs(rest) {
       out.reasoningArg = args[++i];
       continue;
     }
+    if (token === '--sandbox' && args[i + 1]) { out.sandboxOverride = args[++i]; continue; }
+    if (token === '--sandbox-reason' && args[i + 1]) { out.sandboxReason = args[++i]; continue; }
     if (token === '--artifact-dir' && args[i + 1]) { out.artifactDir  = args[++i]; continue; }
     if (token === '--cd'           && args[i + 1]) { out.workspaceRoot = path.resolve(args[++i]); continue; }
     if (token === '--timeout-ms'   && args[i + 1]) { out.timeoutMs    = parseInt(args[++i], 10); continue; }
+    if (token === '--context'      && args[i + 1]) { out.context      = args[++i]; continue; }
     out.promptParts.push(token);
   }
 
   out.prompt = out.promptParts.join(' ').trim();
+  // Front-load the must-read context pack into the prompt so Codex starts with guaranteed context
+  // (parity with llm-lane --context). The dispatcher picks the files per task (proportional).
+  if (out.context) { const pack = buildContextPack(out.context); if (pack) out.prompt = `${pack}\n\n===== TASK =====\n${out.prompt}`; }
+
+  // --sandbox override: validate against the codex enum and clone the model config (order-
+  // independent vs --model, which resets modelConfig).
+  //
+  // YURI LANE POLICY (Marcel 2026-06-08): lanes run FULLY EQUIPPED by default — never sandbox a lane
+  // unless EXPLICITLY needed. A RESTRICTIVE sandbox ('read-only') blocks process control, so the lane
+  // cannot run `node`/tests (the exact failure that wasted a Foundry hardening pass). Therefore a
+  // restrictive sandbox is only applied when the caller justifies it with --sandbox-reason "<why>";
+  // a bare `--sandbox read-only` with no reason is IGNORED and the lane runs at the equipped default.
+  // 'workspace-write' and 'danger-full-access' are equipped build modes and pass through freely.
+  if (out.sandboxOverride) {
+    const allowedSandbox = new Set(['read-only', 'workspace-write', 'danger-full-access']);
+    const RESTRICTIVE = new Set(['read-only']);
+    if (!allowedSandbox.has(out.sandboxOverride)) {
+      process.stderr.write(`[runner] ignoring invalid --sandbox '${out.sandboxOverride}'\n`);
+    } else if (RESTRICTIVE.has(out.sandboxOverride) && !String(out.sandboxReason || '').trim()) {
+      process.stderr.write(`[runner] LANE POLICY: ignoring restrictive --sandbox '${out.sandboxOverride}' with no --sandbox-reason; running FULLY EQUIPPED (default '${out.modelConfig.sandbox}'). Pass --sandbox-reason "<why>" to deliberately restrict.\n`);
+    } else {
+      out.modelConfig = { ...out.modelConfig, sandbox: out.sandboxOverride };
+      if (RESTRICTIVE.has(out.sandboxOverride)) {
+        process.stderr.write(`[runner] LANE SANDBOXED (${out.sandboxOverride}) — explicit reason: ${String(out.sandboxReason).trim()}\n`);
+      }
+    }
+  }
 
   // Resolve reasoning: caller arg → model default → null
   const rawDepth = out.reasoningArg || out.modelConfig.defaultReasoning;
@@ -174,7 +242,7 @@ function parseArgs(rest) {
 }
 
 // ─── Reasoning effort mapping ────────────────────────────────────────────────
-// offload.sh --reasoning values → codex -c reasoning_effort= values
+// llm-compat.sh --reasoning values → codex -c reasoning_effort= values
 function mapReasoningEffort(depth) {
   if (!depth) return null;
   const d = String(depth).toLowerCase();
