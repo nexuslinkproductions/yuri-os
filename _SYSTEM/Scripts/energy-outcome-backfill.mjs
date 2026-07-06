@@ -108,7 +108,10 @@ function freshShadowFile(shadowFile) {
   if (existsSync(shadowFile)) {
     try {
       const st = statSync(shadowFile);
-      process.stderr.write(`[energy-outcome-backfill] --fresh: truncating ${shadowFile} (${st.size} bytes)\n`);
+      // Routine idempotent-restart notice, not a failure — stdout, not stderr
+      // (2026-07-06: this line alone accumulated 52.8KB/445 lines in .err over 3 weeks;
+      // it never indicated a fault, so it does not belong on the error stream).
+      process.stdout.write(`[energy-outcome-backfill] --fresh: truncating ${shadowFile} (${st.size} bytes)\n`);
     } catch { /* size lookup is best-effort */ }
   }
   writeFileSync(shadowFile, '', 'utf8');
@@ -261,9 +264,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(0);
   }
 
-  // Step 1: emit a PREDICTION to stderr BEFORE running, so the operator audit log captures it.
+  // Step 1: emit a PREDICTION BEFORE running, so the operator audit log captures it.
   // (We don't write the live prediction-ledger.jsonl — DISARMED. The prediction is also stamped
   // into the report file below for durable record-keeping.)
+  // NOTE: this is a fixed pre-registered prior (not computed from the run), logged once per
+  // invocation for audit purposes — routine status, not an error. stdout, not stderr
+  // (2026-07-06: was misclassified to stderr, accumulating 52.8KB/445 lines of non-failure
+  // noise over 3 weeks with zero signal — see .energy-learn-deriver.err triage).
   const prediction = {
     coveragePct: 5.0,        // signals unknown → expect ≈ 0% coverage; 5% is a generous ceiling
     meanBrierPct: 50.0,      // prior is sigmoid(|deltaU|) → most rows at low |deltaU| → 0.5-ish brier
@@ -271,7 +278,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     runStamp: new Date().toISOString(),
     confidence: 'low',
   };
-  process.stderr.write(`[energy-outcome-backfill] PREDICTION: coverage≈${prediction.coveragePct}% undeterminable≈${prediction.undeterminablePct}% meanBrier≈${prediction.meanBrierPct}% (confidence=${prediction.confidence})\n`);
+  process.stdout.write(`[energy-outcome-backfill] PREDICTION: coverage≈${prediction.coveragePct}% undeterminable≈${prediction.undeterminablePct}% meanBrier≈${prediction.meanBrierPct}% (confidence=${prediction.confidence})\n`);
 
   // Step 2: run the backfill.
   const result = runBackfill(opts);
