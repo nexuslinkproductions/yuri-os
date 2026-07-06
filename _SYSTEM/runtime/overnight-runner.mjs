@@ -6,6 +6,7 @@
 //   node _SYSTEM/runtime/overnight-runner.mjs enqueue --task '<text>' [--lane glm|ollama] [--priority N]
 //   node _SYSTEM/runtime/overnight-runner.mjs enqueue --kind mure --mure-task '<json>' [--priority N]
 //   node _SYSTEM/runtime/overnight-runner.mjs enqueue --kind mure --mure-file <task.json> [--priority N]
+//   node _SYSTEM/runtime/overnight-runner.mjs enqueue --kind dream-drain [--batch-size N] [--priority N]
 //   node _SYSTEM/runtime/overnight-runner.mjs run --once [--dry-run]
 //   node _SYSTEM/runtime/overnight-runner.mjs run --watch --max N [--dry-run]
 //   node _SYSTEM/runtime/overnight-runner.mjs status --json
@@ -28,6 +29,15 @@
 //     plan (casts/gates every subtask, zero spend); runCompany(task,opts) — plans THEN dispatches when
 //     isMureArmed()===true and opts.armed!==false (armed is OWNER-gated inside company.mjs — a caller can only
 //     force-DISARM, never self-arm). Both are used as-is; this runner adds NO parallel arming path.
+//   - _SYSTEM/Scripts/dream-drain.mjs: previewBatch(opts) — PURE/DISARMED-safe (read-only, zero spend);
+//     runOnce(opts) [renamed drainOnce on import here to avoid a name clash with THIS file's own
+//     runOnce] — actually drains one batch of the dream-queue (deterministic, no LLM call, git-reversible
+//     append to global.md); getStatus(opts) — queue/ledger depth. A third task KIND, "dream-drain", carries
+//     no payload beyond an optional {batchSize}: previewBatch ALWAYS runs (zero-spend plan recorded in the
+//     result, mirrors the mure plan-only contract); the real drain (dream-drain's runOnce) only runs when
+//     the OVERNIGHT RUNNER itself is armed (not opts.dryRun) — there is no separate "dream-drain armed" flag
+//     to check (the drain script is unconditionally DISARMED-safe/deterministic per its own header), so the
+//     runner's own dry-run switch is the sole gate here, same one level as the lane path's fleet dry-run.
 //
 // ============================================================================
 // LAUNCHD PLIST TEMPLATE (NOT INSTALLED — copy to ~/Library/LaunchAgents/ to activate).
@@ -86,6 +96,7 @@ import { glmFleet, isArmed as glmIsArmed } from '../Scripts/glm-fleet.mjs';
 import { ollamaFleet, isArmed as ollamaIsArmed } from '../Scripts/ollama-fleet.mjs';
 import { extractResultLabel, classifyLaneOutcome, parseResultLabel } from '../Scripts/contract-conformance.mjs';
 import { planCompany, runCompany, isMureArmed } from '../mure/mure.mjs';
+import { previewBatch as previewDreamDrainBatch, runOnce as runDreamDrainOnce, getStatus as getDreamDrainStatus } from '../Scripts/dream-drain.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -96,7 +107,7 @@ const EVENTS_FILE = path.join(STATE_DIR, 'events.jsonl');
 
 const DEFAULT_LANE = 'glm';
 const DEFAULT_KIND = 'lane'; // existing behavior: a queued task is a lane prompt unless kind:'mure'
-const VALID_KINDS = new Set(['lane', 'mure']);
+const VALID_KINDS = new Set(['lane', 'mure', 'dream-drain']);
 const MAX_RETRIES = 1; // one retry on F/missing-label (design §5 gap #1: bounded, not infinite)
 const MAX_RESULTS = 5000; // bounded retention for overnight-results.jsonl (prevents unbounded growth)
 const WATCH_LOCK_FILE = path.join(STATE_DIR, 'overnight-runner.watch.lock'); // concurrent-watch guard
@@ -239,13 +250,15 @@ export function validateMurePayload(payload) {
  * @param {object} opts
  * @param {string} [opts.task] - the task text (required for kind='lane', the default)
  * @param {string} [opts.lane='glm'] - 'glm' or 'ollama' (kind='lane' only)
- * @param {string} [opts.kind='lane'] - 'lane' (default lane-prompt task) or 'mure' (MURE company task)
+ * @param {string} [opts.kind='lane'] - 'lane' (default lane-prompt task), 'mure' (MURE company task), or
+ *   'dream-drain' (drain one batch of the dream-queue via dream-drain.mjs)
  * @param {object} [opts.murePayload] - required when kind='mure': {summary, subtasks:[...], tags?}
+ * @param {number} [opts.batchSize] - kind='dream-drain' only: batch size passed to dream-drain.mjs (default: its own DEFAULT_BATCH_SIZE)
  * @param {number} [opts.priority=5] - 1..10 (higher = sooner)
  * @param {boolean} [opts.useTaskQueue=false] - delegate to task-queue.mjs enqueue instead (kind='lane' only)
  * @returns {object} the enqueued task record
  */
-export async function enqueueTask({ task, lane = DEFAULT_LANE, kind = DEFAULT_KIND, murePayload, priority = 5, useTaskQueue = false } = {}) {
+export async function enqueueTask({ task, lane = DEFAULT_LANE, kind = DEFAULT_KIND, murePayload, batchSize, priority = 5, useTaskQueue = false } = {}) {
   const normKind = VALID_KINDS.has(kind) ? kind : DEFAULT_KIND;
   const p = Math.max(1, Math.min(10, Number(priority) || 5));
 
@@ -267,6 +280,25 @@ export async function enqueueTask({ task, lane = DEFAULT_LANE, kind = DEFAULT_KI
     };
     appendJsonl(QUEUE_FILE, rec);
     emit('enqueue', { id: rec.id, kind: 'mure', priority: rec.priority });
+    return rec;
+  }
+
+  if (normKind === 'dream-drain') {
+    // No payload validation needed beyond an optional numeric batchSize — dream-drain.mjs's own
+    // functions default batchSize when omitted, and validate their own file paths internally.
+    const normBatchSize = batchSize != null ? Math.max(1, Number(batchSize) || 50) : undefined;
+    const rec = {
+      id: crypto.randomUUID().slice(0, 12),
+      ts: nowIso(),
+      kind: 'dream-drain',
+      task: sanitizeTaskText(task || 'drain one batch of the dream-queue'),
+      ...(normBatchSize != null ? { batchSize: normBatchSize } : {}),
+      lane: 'dream-drain',
+      priority: p,
+      status: 'pending',
+    };
+    appendJsonl(QUEUE_FILE, rec);
+    emit('enqueue', { id: rec.id, kind: 'dream-drain', priority: rec.priority });
     return rec;
   }
 
@@ -532,8 +564,87 @@ async function dispatchMureTask(task, opts = {}) {
 }
 
 /**
+ * Dispatch a kind='dream-drain' task: preview (previewDreamDrainBatch) ALWAYS runs first — it is
+ * PURE/read-only/zero-spend per dream-drain.mjs's own header, so recording a plan is always safe.
+ * The REAL drain (dream-drain's runOnce, imported here as runDreamDrainOnce) fires ONLY when the
+ * OVERNIGHT RUNNER itself is armed (opts.dryRun !== true) — dream-drain.mjs has no separate "armed"
+ * flag of its own to check (it is unconditionally deterministic/no-LLM/git-reversible per its header),
+ * so the runner's own dry-run switch is the single gate, matching the MURE path's "one level up"
+ * arming idiom for a mechanism that is always safe to run once actually invoked.
+ *
+ * Result normalization mirrors dispatchMureTask's contract: {text, code, ok, label, dryRun, plan?}.
+ *   - plan-only (runner --dry-run): dryRun:true, ok:false, label:'' — an honest plan-only record.
+ *   - real drain: ok = drain result.ok (deterministic script always returns ok:true unless it threw,
+ *     which is caught below); label is synthesized from the Lane Result Grammar so downstream
+ *     verification treats it exactly like a lane/mure result. rulesAppended===0 is NOT a failure —
+ *     see dream-drain.mjs's own header: a batch pointing at stale/moved promptFile paths legitimately
+ *     yields zero rules, that is structurally expected, not a heuristic bug.
+ *
+ * @param {object} task - {task, kind:'dream-drain', batchSize?, lane:'dream-drain', priority, id}
+ * @param {object} [opts] - { dryRun:boolean, attempt:number }
+ * @returns {Promise<{text:string, code:number, ok:boolean, label:string, dryRun:boolean, plan?:object}>}
+ */
+async function dispatchDreamDrainTask(task, opts = {}) {
+  const runnerArmed = !opts.dryRun;
+  const batchSize = task.batchSize;
+  const labelPrefix = `DREAM_DRAIN_${String(task.id).slice(0, 8).toUpperCase()}`;
+
+  if (!runnerArmed) {
+    // Plan-only path: previewBatch is PURE/read-only — zero spend, always safe to run for visibility.
+    let preview;
+    try {
+      preview = previewDreamDrainBatch(batchSize != null ? { batchSize } : {});
+    } catch (e) {
+      return { text: `[dream-drain-preview-error] ${String(e?.message || e)}`, code: 1, ok: false, label: '', dryRun: false, error: 'preview-threw' };
+    }
+    // Deliberately NO "RESULT_LABEL:" line — a plan-only record must never carry anything
+    // extractResultLabel() can pick up, exactly like the lane and mure dry-run branches above.
+    const summaryText = [
+      `[DREAM-DRAIN PLAN-ONLY] reason=runner-dry-run — no RESULT_LABEL: this is a plan, not a completed drain.`,
+      `totalPending=${preview.totalPending} eligibleForBatch=${preview.eligibleForBatch} batchEntryCount=${preview.batchEntryCount} uniqueBuckets=${preview.uniqueBuckets} unreadableCount=${preview.unreadableCount}`,
+    ].join('\n');
+    return {
+      text: summaryText,
+      code: 0,
+      ok: false,
+      label: '',
+      dryRun: true,
+      plan: { kind: 'dream-drain', labelPrefix, preview, taskId: task.id },
+    };
+  }
+
+  // ARMED path: runner is not in --dry-run. Fire the real deterministic drain.
+  let result;
+  try {
+    result = runDreamDrainOnce(batchSize != null ? { batchSize } : {});
+  } catch (e) {
+    return { text: `[dream-drain-run-error] ${String(e?.message || e)}`, code: 1, ok: false, label: '', dryRun: false, error: 'runOnce-threw' };
+  }
+
+  // Zero rules appended is honest, expected behavior for a batch pointing at stale promptFile
+  // paths (per dream-drain.mjs's own header) — never treated as a failure by itself. Only an
+  // explicit result.ok===false (the drain script's own internal failure signal) counts as F.
+  const passType = result.ok === false ? 'F' : 'X';
+  const summaryText = [
+    `[DREAM-DRAIN RUN] armed=true drained=${result.drained ?? 0} uniqueBuckets=${result.uniqueBuckets ?? 0} unreadableCount=${result.unreadableCount ?? 0}`,
+    `candidatesFound=${result.candidatesFound ?? 0} rulesAppended=${result.rulesAppended ?? 0}${result.reason ? ` reason=${result.reason}` : ''}`,
+    `RESULT_LABEL: ${labelPrefix}_BATCH_${passType}_PASS_COMMITTED`,
+  ].join('\n');
+
+  const outcome = classifyLaneOutcome({ code: 0, text: summaryText });
+  return {
+    text: summaryText,
+    code: 0,
+    ok: !!outcome.ok && passType !== 'F',
+    label: extractResultLabel(summaryText).label || '',
+    dryRun: false,
+  };
+}
+
+/**
  * Default dispatch implementation: calls glmFleet or ollamaFleet based on the task lane, OR routes
- * a kind='mure' task to dispatchMureTask (see above). Returns a NORMALIZED result: { text, code, ok, label }.
+ * a kind='mure' task to dispatchMureTask, OR routes a kind='dream-drain' task to
+ * dispatchDreamDrainTask (see above). Returns a NORMALIZED result: { text, code, ok, label }.
  *
  * DISARMED-FIRST: if the chosen fleet is not armed (no YURI_*_FLEET=1 env and no flag file),
  * returns a dry-run plan with zero spend — caller treats it as a plan-only result.
@@ -545,6 +656,9 @@ async function dispatchMureTask(task, opts = {}) {
 async function defaultDispatch(task, opts = {}) {
   if (task.kind === 'mure') {
     return dispatchMureTask(task, opts);
+  }
+  if (task.kind === 'dream-drain') {
+    return dispatchDreamDrainTask(task, opts);
   }
   const attempt = opts.attempt || 1;
   const lane = task.lane === 'ollama' ? 'ollama' : 'glm';
@@ -919,6 +1033,20 @@ async function main() {
         try {
           const rec = await enqueueTask({ kind: 'mure', murePayload, priority: Number(flags.priority) || 5 });
           process.stdout.write(`✓ enqueued mure task ${rec.id} priority=${rec.priority}\n`);
+        } catch (e) {
+          process.stderr.write(`overnight-runner: ${String(e?.message || e)}\n`);
+          process.exit(2);
+        }
+        break;
+      }
+      if (kind === 'dream-drain') {
+        try {
+          const rec = await enqueueTask({
+            kind: 'dream-drain',
+            batchSize: flags['batch-size'] ? Number(flags['batch-size']) : undefined,
+            priority: Number(flags.priority) || 5,
+          });
+          process.stdout.write(`✓ enqueued dream-drain task ${rec.id} priority=${rec.priority}\n`);
         } catch (e) {
           process.stderr.write(`overnight-runner: ${String(e?.message || e)}\n`);
           process.exit(2);

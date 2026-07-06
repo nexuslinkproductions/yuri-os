@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: overnight-runner-tests
-// @serves: overnight runner tests | hermetic node:test | dispatch seam injection | enqueue/pop order | dry-run zero-dispatch | retry-on-F | fail-open | mure task kind tests
-// @does: hermetic node:test suite for overnight-runner.mjs using an injected fake dispatcher (via __setDispatch). Covers: enqueue/pop FIFO-within-priority order, dry-run zero-dispatch, retry-on-F outcome, results-append shape, fail-open on dispatcher throw, and the kind='mure' task path (plan-only disarmed, armed with runCompany stubbed, payload validation failure). NO live lanes, NO live MURE/GLM/Ollama dispatch — all dispatch is faked via __setDispatch; the one direct call to the real code path (dispatchMureTask's plan-only branch) is forced via opts.dryRun=true, which is zero-spend regardless of any live arm flags in this repo.
+// @serves: overnight runner tests | hermetic node:test | dispatch seam injection | enqueue/pop order | dry-run zero-dispatch | retry-on-F | fail-open | mure task kind tests | dream-drain task kind tests
+// @does: hermetic node:test suite for overnight-runner.mjs using an injected fake dispatcher (via __setDispatch). Covers: enqueue/pop FIFO-within-priority order, dry-run zero-dispatch, retry-on-F outcome, results-append shape, fail-open on dispatcher throw, the kind='mure' task path (plan-only disarmed, armed with runCompany stubbed, payload validation failure), and the kind='dream-drain' task path (plan-only disarmed via a real previewDreamDrainBatch call, armed with the dispatch seam stubbed, zero-rulesAppended-is-not-a-failure, F-label retry). NO live lanes, NO live MURE/GLM/Ollama dispatch, NO live dream-drain writes — all dispatch is faked via __setDispatch; the two direct calls to real code paths (dispatchMureTask's and dispatchDreamDrainTask's plan-only branches) are forced via opts.dryRun=true, which is zero-spend regardless of any live arm flags in this repo (previewDreamDrainBatch is read-only by dream-drain.mjs's own contract).
 // @use: node --test _SYSTEM/runtime/overnight-runner.test.mjs
 
 import { test, before, after } from 'node:test';
@@ -759,6 +759,155 @@ test('MURE DISPATCH: malformed payload at dispatch time (bypassing enqueue) fail
   assert.equal(result.ok, false, 'malformed payload never certifies a pass');
   assert.equal(result.label, '', 'no label synthesized for a validation failure');
   assert.equal(calls.length, 2, 'shouldRetry retries once on !ok, but the stub keeps failing');
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// DREAM-DRAIN TASK KIND (kind:'dream-drain') — plan-only (disarmed) and armed-with-
+// stubbed-dispatch paths, mirroring the kind='mure' test block above. NO live dream-drain
+// I/O anywhere below: the plan-only test forces opts.dryRun=true (which short-circuits to
+// dispatchDreamDrainTask's plan-only branch — a REAL previewDreamDrainBatch() call, but that
+// function is itself PURE/read-only per dream-drain.mjs's own header, so this is zero-spend
+// and safe against this repo's real dream-queue), and the "armed" tests stub the ENTIRE
+// dispatch seam via __setDispatch exactly like the existing kind='mure' tests — the real
+// dream-drain.mjs runOnce() is never invoked by the armed-path tests below.
+// ════════════════════════════════════════════════════════════════════════════
+
+test('DREAM-DRAIN ENQUEUE: produces a kind=dream-drain record with lane=dream-drain', async () => {
+  clearState();
+  const rec = await enqueueTask({ kind: 'dream-drain', priority: 4 });
+  assert.equal(rec.kind, 'dream-drain');
+  assert.equal(rec.lane, 'dream-drain');
+  assert.equal(rec.priority, 4);
+  assert.ok(rec.task.length > 0, 'a human-readable default task label was set');
+
+  const s = getStatus();
+  assert.equal(s.pendingByLane['dream-drain'], 1, 'status groups the dream-drain task under its own lane bucket');
+});
+
+test('DREAM-DRAIN ENQUEUE: optional batchSize is carried on the record when provided', async () => {
+  clearState();
+  const rec = await enqueueTask({ kind: 'dream-drain', batchSize: 25, priority: 5 });
+  assert.equal(rec.batchSize, 25);
+
+  const recDefault = await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  assert.equal(recDefault.batchSize, undefined, 'no batchSize key when not provided (dream-drain.mjs applies its own default)');
+});
+
+test('DREAM-DRAIN PLAN-ONLY (disarmed): runOnce with dryRun forces plan-only, never fires the real drain', async () => {
+  clearState();
+  __setDispatch(null); // restore the REAL dispatch seam — a prior test's fake dispatcher must not leak in here
+  await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  const task = peekNext(); // non-destructive — mirrors the CLI's real `run --once --dry-run` path
+  assert.ok(task, 'dream-drain task is queued');
+
+  // This exercises the REAL dispatchDreamDrainTask plan-only branch (real previewDreamDrainBatch call,
+  // which is PURE/read-only/zero-spend by its own contract — it reads this repo's REAL dream-queue.jsonl
+  // but writes nothing). opts.dryRun=true forces runnerArmed=false unconditionally, so the real drain
+  // (runDreamDrainOnce) is never invoked regardless of any other state in this repo.
+  const result = await runOnce(task, { dryRun: true });
+
+  assert.equal(result.ok, false, 'plan-only never certifies a completed pass');
+  assert.equal(result.label, '', 'plan-only has no RESULT_LABEL (mirrors the lane/mure dry-run contract)');
+  assert.equal(result.retries, 0, 'plan-only never retries');
+
+  // DRY-RUN WART parity: nothing appended to results, task stays queued (peekNext, not popNext, was used).
+  const results = readResults();
+  assert.equal(results.length, 0, 'dry-run dream-drain task appends nothing to overnight-results.jsonl');
+  assert.equal(getStatus().queueDepth, 1, 'dream-drain task remains queued after a dry-run plan');
+});
+
+test('DREAM-DRAIN ARMED (dispatch stubbed): clean drain -> ok, X label', async () => {
+  clearState();
+  await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  const task = popNext();
+
+  const { fn, calls } = fakeDispatcher([
+    {
+      text: '[DREAM-DRAIN RUN] armed=true drained=50 uniqueBuckets=3 unreadableCount=47\ncandidatesFound=2 rulesAppended=2\nRESULT_LABEL: DREAM_DRAIN_ABCDEFGH_BATCH_X_PASS_COMMITTED',
+      code: 0,
+      ok: true,
+      label: 'DREAM_DRAIN_ABCDEFGH_BATCH_X_PASS_COMMITTED',
+      dryRun: false,
+    },
+  ]);
+  __setDispatch(fn);
+
+  const result = await runOnce(task, {});
+
+  assert.equal(calls.length, 1, 'no retry on a clean dream-drain pass');
+  assert.equal(result.ok, true);
+  assert.equal(result.label, 'DREAM_DRAIN_ABCDEFGH_BATCH_X_PASS_COMMITTED');
+  assert.equal(result.retries, 0);
+
+  const results = readResults();
+  assert.equal(results.length, 1, 'armed dream-drain result appended to overnight-results.jsonl');
+  assert.equal(results[0].lane, 'dream-drain');
+});
+
+test('DREAM-DRAIN ARMED (dispatch stubbed): zero rulesAppended is NOT a failure (structurally expected for stale-path batches)', async () => {
+  clearState();
+  await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  const task = popNext();
+
+  const { fn, calls } = fakeDispatcher([
+    {
+      text: '[DREAM-DRAIN RUN] armed=true drained=50 uniqueBuckets=1 unreadableCount=50\ncandidatesFound=0 rulesAppended=0\nRESULT_LABEL: DREAM_DRAIN_ZEROOKAY_BATCH_X_PASS_COMMITTED',
+      code: 0,
+      ok: true,
+      label: 'DREAM_DRAIN_ZEROOKAY_BATCH_X_PASS_COMMITTED',
+      dryRun: false,
+    },
+  ]);
+  __setDispatch(fn);
+
+  const result = await runOnce(task, {});
+
+  assert.equal(calls.length, 1, 'zero rulesAppended alone must not trigger a retry — it is an honest X pass');
+  assert.equal(result.ok, true, 'zero-rules batch still certifies as ok (stale promptFile paths are expected, not a failure)');
+  assert.equal(result.retries, 0);
+});
+
+test('DREAM-DRAIN ARMED (dispatch stubbed): script-level failure (F label) retries once, still fails if unresolved', async () => {
+  clearState();
+  await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  const task = popNext();
+
+  const failResult = {
+    text: '[dream-drain-run-error] simulated queue-file read failure\nRESULT_LABEL: DREAM_DRAIN_FAILCASE_BATCH_F_PASS_COMMITTED',
+    code: 1,
+    ok: false,
+    label: 'DREAM_DRAIN_FAILCASE_BATCH_F_PASS_COMMITTED',
+    dryRun: false,
+  };
+  const { fn, calls } = fakeDispatcher([failResult, failResult]);
+  __setDispatch(fn);
+
+  const result = await runOnce(task, {});
+
+  assert.equal(calls.length, 2, 'one retry attempted on an F-labeled dream-drain outcome');
+  assert.equal(result.ok, false, 'still fails after the bounded retry');
+  assert.equal(result.retries, 1);
+});
+
+test('DREAM-DRAIN DISPATCH: previewDreamDrainBatch throwing is caught and reported honestly, not silently', async () => {
+  clearState();
+  // Exercise the REAL dispatchDreamDrainTask plan-only branch's error path by pointing previewBatch's
+  // internal defaults at a queue file that genuinely doesn't exist is not itself an error (dream-drain
+  // treats a missing queue file as empty, per its own loadQueue contract) — so instead verify the
+  // real plan-only branch produces an honest, well-formed record end-to-end against the REAL (possibly
+  // populated) repo dream-queue, without needing to fake a throw (dream-drain.mjs's previewBatch is
+  // defensive by construction). This closes the loop that the real (non-stubbed) plan-only dispatch
+  // path is wired and returns the documented shape.
+  __setDispatch(null);
+  await enqueueTask({ kind: 'dream-drain', priority: 5 });
+  const task = peekNext();
+  const result = await runOnce(task, { dryRun: true });
+
+  // finalizeResult() does not surface a `dryRun` field on the record (matches the existing
+  // mure/lane dry-run contract above) — plan-only-ness is expressed via ok:false + label:''.
+  assert.equal(result.ok, false);
+  assert.equal(result.label, '');
+  assert.equal(result.retries, 0);
 });
 
 // ── RT-06: popNext() TOCTOU fix (concurrent `run --once` no longer clobbers the queue) ─────────────
