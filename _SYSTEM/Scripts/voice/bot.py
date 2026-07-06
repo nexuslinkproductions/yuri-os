@@ -363,17 +363,17 @@ async def main():
     stt = WhisperSTTServiceMLX(model=MLXModel.LARGE_V3_TURBO_Q4, ttfs_p99_latency=stop_secs + 0.5)
     llm = OpenAILLMService(api_key="local", model="claude-code", base_url=PROXY, max_tokens=4096)
     _tts_engine = os.environ.get("YURI_TTS_ENGINE", "kokoro").lower()
-        if _tts_engine == "moss":
-            from marvis_tts import MarvisTTSService
-            _ref = os.environ.get("YURI_VOICE_REF", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "rick-ref-10s.wav"))
-            _ref_txt_path = os.environ.get("YURI_VOICE_REF_TEXT", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "rick-ref-10s.txt"))
-            _ref_txt_val = open(_ref_txt_path).read().strip() if os.path.exists(_ref_txt_path) else None
-            tts = MarvisTTSService(ref_audio=_ref, ref_text=_ref_txt_val)
-            logger.info(f"[TTS] MOSS clone voice (ref: {os.path.basename(_ref)})")
-        else:
-            tts = KokoroTTSService(voice=VOICE, lang_code=VOICE_LANG,
-                                   frame_ms=int(os.environ.get("YURI_TTS_FRAME_MS", "150")))
-            logger.info(f"[TTS] Kokoro (voice={VOICE}, frame_ms=150)")
+    if _tts_engine == "moss":
+        from marvis_tts import MarvisTTSService
+        _ref = os.environ.get("YURI_VOICE_REF", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "rick-ref-10s.wav"))
+        _ref_txt_path = os.environ.get("YURI_VOICE_REF_TEXT", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "rick-ref-10s.txt"))
+        _ref_txt_val = open(_ref_txt_path).read().strip() if os.path.exists(_ref_txt_path) else None
+        tts = MarvisTTSService(ref_audio=_ref, ref_text=_ref_txt_val)
+        logger.info(f"[TTS] MOSS clone voice (ref: {os.path.basename(_ref)})")
+    else:
+        tts = KokoroTTSService(voice=VOICE, lang_code=VOICE_LANG,
+                               frame_ms=int(os.environ.get("YURI_TTS_FRAME_MS", "150")))
+        logger.info(f"[TTS] Kokoro (voice={VOICE}, frame_ms=150)")
 
     # VAD as a REAL pipeline stage (Pipecat 1.3.0): emits VADUser{Started,Stopped}SpeakingFrame that
     # the STT service consumes to segment + transcribe. This is the fix — the transport never ran VAD.
