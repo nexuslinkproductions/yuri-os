@@ -69,7 +69,6 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     // enforcement guards — every PreToolUse hook whose job is enforcement, so a coworker
     // cannot Edit/Bash-mutate one guard to neuter it. Includes the guards themselves.
     '.claude/hooks/bash-security-guard.js',
-    '.claude/hooks/operator-write-guard.js',
     '.claude/hooks/claude-protocol-guard.js',
     '.claude/hooks/claude-protocol-guard.mjs',
     '.claude/hooks/agent-spawn-guard.js',

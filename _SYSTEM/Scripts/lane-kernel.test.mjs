@@ -13,8 +13,6 @@ import {
   isProtectedPath,
   selectMemoryRagMemberIds,
 } from './lane-kernel.mjs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 
 test('lane kernel exposes the consolidated Shintai deployment without Spark', () => {
   const deployment = buildSuperauditDeployment();
@@ -134,28 +132,17 @@ test('protected path predicate blocks forbidden surfaces', () => {
   assert.equal(isProtectedPath('_SYSTEM/state/shintai-advisory/out.md'), false);
 });
 
-test('ROLE_TRUST_SURFACES is the canonical single source for both role guards', () => {
-  // Shape: non-empty frozen files + dirs covering trust roots + enforcement hooks.
+test('ROLE_TRUST_SURFACES is a valid non-empty frozen trust surface', () => {
+  // The dev/coworker role system (and operator-write-guard.js, its second guard) was
+  // removed 2026-06-20/07-06 as confirmed-dead code (single-operator machine, the role
+  // gate could never fire) — this export now only needs to hold shape for its remaining
+  // consumers (e.g. energy-arm-hardening.test.mjs), not cross-check "both role guards".
   assert.ok(Object.isFrozen(ROLE_TRUST_SURFACES));
   assert.ok(Array.isArray(ROLE_TRUST_SURFACES.files) && ROLE_TRUST_SURFACES.files.length >= 4);
   assert.ok(Array.isArray(ROLE_TRUST_SURFACES.dirs) && ROLE_TRUST_SURFACES.dirs.length >= 1);
   assert.ok(ROLE_TRUST_SURFACES.files.includes('_SYSTEM/SELF/dev-credential.json'));
   assert.ok(ROLE_TRUST_SURFACES.files.includes('.claude/hooks/bash-security-guard.js'));
   assert.ok(ROLE_TRUST_SURFACES.dirs.includes('.claude/hooks/operator-guard'));
-
-  // Both live guards must consume this canonical export, not a divergent hardcoded primary.
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot = path.resolve(here, '..', '..');
-  const bashSrc = readFileSync(path.resolve(repoRoot, '.claude/hooks/bash-security-guard.js'), 'utf8');
-  const writeSrc = readFileSync(path.resolve(repoRoot, '.claude/hooks/operator-write-guard.js'), 'utf8');
-  for (const src of [bashSrc, writeSrc]) {
-    assert.match(src, /ROLE_TRUST_SURFACES/);
-    assert.match(src, /require\([^)]*lane-kernel\.mjs/);
-  }
-
-  // Fail-closed contract: each guard keeps a NON-EMPTY fallback list (never an open set).
-  assert.match(bashSrc, /PROTECTED_ROLE_PATHS_FALLBACK\s*=\s*\[[\s\S]*?\.claude\/hooks\/tirith-url-guard\.js/);
-  assert.match(writeSrc, /_roleFiles\s*=\s*\[[\s\S]*?dev-credential\.json/);
 });
 
 test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
