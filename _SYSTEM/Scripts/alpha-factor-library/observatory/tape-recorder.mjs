@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @capability: tape-recorder
 // @serves: BTC tape recording | JSONL replay feed | depth diff capture | trade stream capture | order book snapshot | replay harness | backtesting feed | market data archive
-// @does: Records the live BTC feed (diff-depth + trades + periodic L2 snapshots) to gzip-rotated JSONL files for replay. Writes {"t":"diff"...}, {"t":"trade"...}, {"t":"snap"...} lines to <dataDir>/tape-<SYM>-YYYYMMDD.jsonl; auto-rotates previous-day files to .jsonl.gz on first write of a new UTC date. Fail-open — recorder errors never throw to the caller or kill the daemon. ~300MB/day raw BTCUSDT.
+// @does: Records the live BTC feed (diff-depth + trades + periodic L2 snapshots) to gzip-rotated JSONL files for replay. Writes {"t":"diff"...}, {"t":"trade"...}, {"t":"snap"...} lines to <dataDir>/tape-<SYM>-YYYYMMDD.jsonl; auto-rotates previous-day files to .jsonl.gz on first write of a new UTC date, PLUS a startup sweep (sweepStaleTapes) that rotates any stale raw tape left behind by a prior process that stopped before its next-write rollover fired (2026-07-06, after the 2026-06-20 1.3GB dead-tape incident). Fail-open — recorder errors never throw to the caller or kill the daemon. ~300MB/day raw BTCUSDT.
 // @use: startRecorder({symbols,dataDir,snapshotIntervalMs,topN,WebSocketImpl,httpGet,onBook,onTrade}) for durable replay capture. stop() to shut down cleanly.
-// @exports: startRecorder, utcDateTag, buildSnapLine, buildDiffLine, buildTradeLine, fetchFullDepthSnap
+// @exports: startRecorder, utcDateTag, buildSnapLine, buildDiffLine, buildTradeLine, fetchFullDepthSnap, sweepStaleTapes
 //
 // CONSTRAINTS: view-only market data (INV-1 no order path; INV-2 no keys — public keyless feeds only),
 // fail-open (any recorder error is swallowed — caller never sees a throw), no new npm deps
@@ -122,6 +122,32 @@ function rotateTape(dataDir, sym, oldDateTag) {
 }
 
 /**
+ * sweepStaleTapes(dataDir, syms) — startup safety net (2026-07-06, after the
+ * 2026-06-20 dead-tape incident: a recorder process stopped mid-day and its raw
+ * tape-<SYM>-<oldDate>.jsonl never rotated because rotateTape() only fires on the
+ * NEXT write for that symbol — which never came since the process was gone).
+ * On startRecorder(), scan dataDir for any tape-<SYM>-<YYYYMMDD>.jsonl whose date
+ * tag is NOT today's UTC date and gzip it immediately, regardless of whether that
+ * symbol/date pair sees another write. Fail-open, bounded to dataDir's top level.
+ */
+export function sweepStaleTapes(dataDir, syms) {
+  try {
+    const todayTag = utcDateTag(Date.now());
+    const entries = fs.readdirSync(dataDir, { withFileTypes: true });
+    const symSet = new Set(syms.map((s) => String(s).toUpperCase()));
+    for (const ent of entries) {
+      if (!ent.isFile() || !ent.name.endsWith('.jsonl')) continue;
+      const m = /^tape-([A-Z0-9]+)-(\d{8})\.jsonl$/.exec(ent.name);
+      if (!m) continue;
+      const [, sym, dateTag] = m;
+      if (!symSet.has(sym)) continue; // only sweep symbols this recorder instance owns
+      if (dateTag >= todayTag) continue; // today (or a future/clock-skew tag) — leave alone
+      rotateTape(dataDir, sym, dateTag);
+    }
+  } catch { /* fail-open — sweep failure never blocks recorder startup */ }
+}
+
+/**
  * writeLine(state, dataDir, sym, line, ts) — append a JSONL line.
  * state = { lastDateTag: string|null } per-symbol mutable state object.
  */
@@ -220,6 +246,10 @@ export async function startRecorder({
   ensureDir(dataDir);
 
   const syms = symbols.map((s) => String(s).toUpperCase());
+
+  // Startup safety net: rotate any stale (non-today) raw tape left behind by a
+  // prior recorder process that stopped before its own next-write rollover fired.
+  sweepStaleTapes(dataDir, syms);
 
   // Per-symbol write state
   const writeState = new Map();
@@ -530,6 +560,40 @@ if (_main && process.argv.includes('--test')) {
     const gz = fs.readFileSync(gzPath);
     const decompressed = zlib.gunzipSync(gz).toString('utf-8');
     ok(decompressed.includes('"stale":true'), 'gzipped content is valid');
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  })();
+
+  // ── sweepStaleTapes: startup safety net for crash-before-rollover ────────
+  await (async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tape-sweep-'));
+    const sym = 'BTCUSDT';
+
+    // Simulate the 2026-06-20 incident: a stale raw tape from 16 days ago,
+    // recorder process gone, no next-write for that symbol/date ever came.
+    const staleTag = utcDateTag(Date.now() - 16 * 24 * 60 * 60 * 1000);
+    const stalePath = tapePath(tmpDir, sym, staleTag);
+    fs.writeFileSync(stalePath, '{"t":"trade","dead":true}\n', 'utf-8');
+
+    // A live current-day file must be left untouched by the sweep.
+    const todayTag = utcDateTag(Date.now());
+    const todayPath = tapePath(tmpDir, sym, todayTag);
+    fs.writeFileSync(todayPath, '{"t":"trade","live":true}\n', 'utf-8');
+
+    // A stale file for a symbol this recorder instance does NOT own must be
+    // left untouched (sweep is scoped to `syms`, not the whole directory).
+    const otherSymStale = tapePath(tmpDir, 'ETHUSDT', staleTag);
+    fs.writeFileSync(otherSymStale, '{"t":"trade","other":true}\n', 'utf-8');
+
+    sweepStaleTapes(tmpDir, [sym]);
+
+    ok(fs.existsSync(stalePath + '.gz'), 'stale (non-today) tape was gzipped by startup sweep');
+    ok(!fs.existsSync(stalePath), 'stale raw .jsonl removed after startup-sweep gzip');
+    ok(fs.existsSync(todayPath) && !fs.existsSync(todayPath + '.gz'), 'live current-day tape untouched by startup sweep');
+    ok(fs.existsSync(otherSymStale) && !fs.existsSync(otherSymStale + '.gz'), 'stale tape for an unowned symbol untouched by startup sweep');
+
+    const decompressed = zlib.gunzipSync(fs.readFileSync(stalePath + '.gz')).toString('utf-8');
+    ok(decompressed.includes('"dead":true'), 'startup-sweep gzip content is valid');
 
     fs.rmSync(tmpDir, { recursive: true, force: true });
   })();
