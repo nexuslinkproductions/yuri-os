@@ -327,8 +327,6 @@ const PROTECTED_ROLE_PATHS_FALLBACK = [
   '.claude/hooks/claude-protocol-guard.js',
   '.claude/hooks/claude-protocol-guard.mjs',
   '.claude/hooks/agent-spawn-guard.js',
-  '.claude/hooks/pre-tool-gate.js',
-  '.claude/hooks/musubi-protocol-enforce.js',
   '.claude/hooks/tirith-url-guard.js',
   '.claude/hooks/operator-guard',
 ];

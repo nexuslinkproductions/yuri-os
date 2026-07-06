@@ -2,6 +2,7 @@
 - [ARCHIVE-INDEX](archive-index.md) — older/settled entries; recall via this file or ai search
 
 ## Active (2026-07)
+- [PROJ:YURI-FULL-LOGIC-INSPECTION-2026-07-06](proj-yuri-full-logic-inspection-2026-07-06.md) — 12-organ opus-fleet map + Fable-5 mastermind; spine="unmarked non-determinism"; ONE move=Day-1 honesty patch-set + kill wedged backend; 3 findings corrected by adversarial pass
 - [PROJ:ORDERFLOW-QUANT-P0-2026-07-06](proj-orderflow-quant-p0-2026-07-06.md) — trading pivot crypto→orderflow+quant; P0 SHIPPED+VERIFIED (IC spine + 4 gap modules DISARMED, 48 tests, commit 57f46cad); nautilus v2 env up; P1 BLOCKED on Marcel's Databento key
 - [PROJ:NEXUS-LINK-WAVE2-2026-07-06](proj-nexus-link-wave2-2026-07-06.md) — Nexus Link: Wave 0 done + Wave 1 Gmail (struct-only) + Wave 2 audit spine LIVE-VERIFIED; local Postgres stack up; read-first + aggregator-MCP; continue-from-here state
 - [REF:STALENESS-CONSCIENCE-2026-07-05](ref-staleness-conscience-2026-07-05.md) — SHIPPED: extract→verify→heal(6 guards)→sweep; wired SessionStart async DISARMED; heal arm = owner gate
@@ -22,6 +23,7 @@
 - [PROJ:YURI-VOICE-GLM-ZAI-2026-06-19](proj-yuri-voice-glm-zai-2026-06-19.md) — LIVE: yuri voice = GLM-5-Turbo
 
 ## Feedback (standing behavioral rules)
+- [FB:INSPECTION-EXCLUDE-WORKTREES](feedback-inspection-exclude-worktrees.md) — repo-wide grep/find MUST exclude .claude/worktrees (13GB shadow copies contaminate findings)
 - [FB:FLEET-PARALLELISM-BREADTH-DEPTH](feedback-fleet-parallelism-breadth-depth.md) — Agents FLAT, fan out ~12
 - [FB:GLM-LANES-FULL-PEERS](feedback-glm-lanes-full-peers.md) — GLM lanes FULL PEERS; glm-5.2=Opus-peer
 - [FB:ENFORCE-BLOCK-IS-BREAKER-NOT-SOFT-REJECT](feedback-enforce-block-is-breaker-not-soft-reject.md) — enforce blocks only catastrophic BREAKER
@@ -80,6 +82,7 @@
 - [FB:DONT-ANNOUNCE-ADVERSARIAL-ALLY](feedback-dont-announce-adversarial-ally.md) — don't announce, just deliver
 - [FB:EXPLAIN-DONT-JUST-LABEL](feedback-explain-dont-just-label.md) — explain flagged items, not labels
 - [FB:FANOUT-SELF-SIZE](feedback-fanout-self-size.md) — self-size fan-out to task
+- [FB:OPUS-FLEET-MURE-DEFAULT-EVEN-SMALL](feedback-opus-fleet-mure-default-even-for-small-edits.md) — dispatch even "small" fixes, don't solo-rationalize
 - [FB:FULL-PREREQUISITE-CLOSURE-NO-WIRE-LATER](feedback-full-prerequisite-closure-no-wire-later.md) — full closure, no "later" stubs
 - [FB:GATE-HARDENING-FAIL-CLOSED](feedback-gate-hardening-fail-closed.md) — gates fail CLOSED
 - [FB:HARNESS-BATCH-AND-HEADLESS](feedback-harness-batch-and-headless.md) — don't bundle tool calls
