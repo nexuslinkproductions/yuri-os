@@ -38,6 +38,14 @@ const PROTECTED_TARGETS = [
   { path: path.join(HOME_DIR, 'Library/Keychains'), type: 'dir', label: '~/Library/Keychains' },
   { path: path.join(HOME_DIR, '.claude/settings.json'), type: 'file', label: '~/.claude/settings.json' },
   { path: path.join(HOME_DIR, '.claude/settings.local.json'), type: 'file', label: '~/.claude/settings.local.json' },
+  // Phase 6 (SEC-4 residual): additional cloud/vault/VCS credential stores named by the owner
+  // packet — gcloud, Kubernetes, GPG, 1Password, gh CLI host tokens.
+  { path: path.join(HOME_DIR, '.config/gcloud'), type: 'dir', label: '~/.config/gcloud' },
+  { path: path.join(HOME_DIR, '.kube'), type: 'dir', label: '~/.kube' },
+  { path: path.join(HOME_DIR, '.gnupg'), type: 'dir', label: '~/.gnupg' },
+  { path: path.join(HOME_DIR, '.config/op'), type: 'dir', label: '~/.config/op' },
+  { path: path.join(HOME_DIR, '.config/1Password'), type: 'dir', label: '~/.config/1Password' },
+  { path: path.join(HOME_DIR, '.config/gh/hosts.yml'), type: 'file', label: '~/.config/gh/hosts.yml' },
 ];
 
 function escapeRegExp(s) {
@@ -80,6 +88,17 @@ const PROTECTED_LITERAL_PATTERNS = [
   homeRelativePattern('\\.zsh_history($|[\\s"\';|&])', '~/.zsh_history'),
   homeRelativePattern('Library\\/Keychains(\\/|$|[\\s"\';|&])', '~/Library/Keychains'),
   homeRelativePattern('\\.claude\\/settings(?:\\.local)?\\.json($|[\\s"\';|&])', '~/.claude/settings.json'),
+  // Phase 6 (SEC-4 residual): literal mirrors for the new HOME-relative stores above.
+  homeRelativePattern('\\.config\\/gcloud(\\/|$|[\\s"\';|&])', '~/.config/gcloud'),
+  homeRelativePattern('\\.kube(\\/|$|[\\s"\';|&])', '~/.kube'),
+  homeRelativePattern('\\.gnupg(\\/|$|[\\s"\';|&])', '~/.gnupg'),
+  homeRelativePattern('\\.config\\/op(\\/|$|[\\s"\';|&])', '~/.config/op'),
+  homeRelativePattern('\\.config\\/1Password(\\/|$|[\\s"\';|&])', '~/.config/1Password'),
+  homeRelativePattern('\\.config\\/gh\\/hosts\\.yml($|[\\s"\';|&])', '~/.config/gh/hosts.yml'),
+  // Phase 6: private-key material ANYWHERE by name — not scoped to ~/.ssh, since a key can live in a
+  // backup/download/repo-adjacent copy outside that directory. Matches the filename token itself.
+  { re: /(^|[\s"'/=;:])id_(?:rsa|ed25519|ecdsa|dsa)(?:\.pub)?($|[\s"';|&])/u, label: 'private-key file (id_rsa/ed25519/ecdsa/dsa)' },
+  { re: /(^|[\s"'/=;:])[\w.-]+\.(?:pem|p12)($|[\s"';|&])/u, label: 'private-key material (*.pem/*.p12)' },
 ];
 
 const MUTATING_COMMAND_RE =

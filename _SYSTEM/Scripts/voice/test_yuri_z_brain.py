@@ -300,6 +300,172 @@ with unittest.mock.patch("subprocess.run", side_effect=FileNotFoundError("no suc
     check("runtime CLI missing-binary is fail-open (readable error)",
           isinstance(result, str) and "runtime command error" in result, result)
 
+# ---- SECTION K: Phase 6 — SEC-2 taint, SEC-5 unattended profile, SEC-5 cumulative risk, residual creds ----
+print("\n--- K. Phase 6 (taint / unattended / cumulative-risk / residual creds) ---")
+
+
+def _reset_phase6_state():
+    """Module-level globals (taint window, risk score/clock, env-derived UNATTENDED flag) must be
+    reset between sub-tests — these are real session state, not pure functions, and one test's
+    side effect must not leak into the next."""
+    brain._taint_remaining = 0
+    brain._risk_score = 0.0
+    brain._risk_calls_since_last = 0
+    brain._clear_pending()
+
+
+# K1 — SEC-2 taint: after read_doc runs, the NEXT critical-adjacent tool is forced critical even
+# though its own content is benign (no rm/curl|sh/git-push token — _is_critical_call alone would say
+# "routine"). This is exercised at the _is_critical_call/_taint_consume_if_adjacent layer directly
+# (the same layer _run_agent_loop calls), not by mocking the full HTTP loop.
+_reset_phase6_state()
+brain._taint_mark()
+check("K1: taint window armed after read_doc", brain._taint_active())
+benign_bash_regex_verdict = brain._is_critical_call("bash", {"command": "echo hello"})
+check("K1: benign bash alone is NOT critical by regex", not benign_bash_regex_verdict)
+taint_consumed = brain._taint_consume_if_adjacent("bash")
+check("K1: taint escalates the next critical-adjacent tool (bash) even with benign content",
+      taint_consumed, "taint did not consume/escalate")
+check("K1: taint window decremented after one consumption", brain._taint_remaining == brain._TAINT_WINDOW - 1)
+
+# K1b — after the window fully decays, normal (non-escalated) classification resumes.
+_reset_phase6_state()
+brain._taint_mark()
+for _ in range(brain._TAINT_WINDOW):
+    brain._taint_consume_if_adjacent("bash")
+check("K1b: taint window exhausted after N consumptions", not brain._taint_active())
+check("K1b: post-decay, a critical-adjacent tool no longer auto-escalates via taint",
+      not brain._taint_consume_if_adjacent("bash"))
+
+# K1c — a NON-adjacent tool (read_file) does not consume the taint window, preserving it for the
+# actually-risky call that follows a read-only interleaved step.
+_reset_phase6_state()
+brain._taint_mark()
+check("K1c: non-adjacent tool does not consume taint", not brain._taint_consume_if_adjacent("read_file"))
+check("K1c: taint window still fully armed after a non-adjacent call", brain._taint_remaining == brain._TAINT_WINDOW)
+_reset_phase6_state()
+
+# K1d — SAME-BATCH bypass (adversarial self-check, fixed 2026-07-06): a model emitting read_doc AND a
+# regex-invisible critical-adjacent tool in the SAME response must NOT let the adjacent tool slip
+# through just because read_doc's own _taint_mark() hasn't fired yet (it only fires when read_doc
+# actually EXECUTES, which happens after this whole batch is classified). Exercised through the REAL
+# _run_agent_loop (not just the unit-level taint functions) since this is exactly the seam where the
+# bypass lived — classification happens once per iteration, before any of that iteration's tools run.
+_reset_phase6_state()
+_k1d_call_count = [0]
+_k1d_resp1 = {"content": [
+    {"type": "tool_use", "id": "tu1", "name": "read_doc", "input": {"path": "nope.pdf"}},
+    {"type": "tool_use", "id": "tu2", "name": "bash", "input": {"command": "echo pwned-marker >> /tmp/proof.txt"}},
+]}
+_k1d_resp2 = {"content": [{"type": "text", "text": "done"}]}
+
+
+def _k1d_fake_messages_call(messages, sys_prompt, with_tools=True):
+    _k1d_call_count[0] += 1
+    return _k1d_resp1 if _k1d_call_count[0] == 1 else _k1d_resp2
+
+
+check("K1d: same-batch bash alone is NOT critical by regex (isolates taint, not the destructive block)",
+      not brain._is_critical_call("bash", {"command": "echo pwned-marker >> /tmp/proof.txt"}))
+_k1d_executed = []
+_k1d_real_exec = brain._exec_tool
+
+
+def _k1d_spy_exec(name, args):
+    _k1d_executed.append(name)
+    if name == "bash":
+        return "(SHOULD NOT REACH HERE — same-batch taint bypass if this ran)"
+    return _k1d_real_exec(name, args)
+
+
+with unittest.mock.patch.object(brain, "_messages_call", side_effect=_k1d_fake_messages_call), \
+     unittest.mock.patch.object(brain.jm, "recall", return_value=""), \
+     unittest.mock.patch.object(brain, "_exec_tool", side_effect=_k1d_spy_exec):
+    _k1d_reply = brain._run_agent_loop([{"role": "user", "content": "read this pdf then run that"}],
+                                        "read this pdf then run that", [])
+    check("K1d: same-batch read_doc+bash — bash does NOT execute (held for confirm)",
+          "bash" not in _k1d_executed, _k1d_executed)
+    check("K1d: same-batch hold names the taint reason", "external document" in _k1d_reply.lower(), _k1d_reply)
+    _k1d_pending = brain._load_pending()
+    check("K1d: same-batch hold stores bash as the pending action",
+          _k1d_pending is not None and _k1d_pending.get("name") == "bash", _k1d_pending)
+brain._clear_pending()
+_reset_phase6_state()
+
+# K2 — SEC-5 unattended profile: with YURI_Z_UNATTENDED=1, mutating/outward tools are denied by
+# default; read/query tools stay allowed; the allowlist override re-permits a named tool.
+with unittest.mock.patch.object(brain, "UNATTENDED", True):
+    for tool in ("bash", "write_file", "edit_file", "applescript", "gui_script", "conductor_send", "spawn_worker"):
+        with unittest.mock.patch.dict(os.environ, {"YURI_Z_UNATTENDED_ALLOW": ""}):
+            r = brain._unattended_block_reason(tool)
+            check(f"K2: unattended denies '{tool}' by default", r is not None and "unattended" in r, r)
+    for tool in ("read_file", "read_doc", "xref", "remember", "screenshot", "morning_brief", "usage_status"):
+        with unittest.mock.patch.dict(os.environ, {"YURI_Z_UNATTENDED_ALLOW": ""}):
+            r = brain._unattended_block_reason(tool)
+            check(f"K2: unattended still allows '{tool}'", r is None, r)
+    # allowlist override re-permits a named tool
+    with unittest.mock.patch.dict(os.environ, {"YURI_Z_UNATTENDED_ALLOW": "bash,write_file"}):
+        check("K2: allowlist override re-permits 'bash'", brain._unattended_block_reason("bash") is None)
+        check("K2: allowlist override re-permits 'write_file'", brain._unattended_block_reason("write_file") is None)
+        check("K2: allowlist override does NOT blanket-permit an unlisted tool ('applescript')",
+              brain._unattended_block_reason("applescript") is not None)
+# K2b — with UNATTENDED off (default), nothing is denied by the unattended gate at all.
+check("K2b: unattended gate is a no-op when UNATTENDED is False (default)",
+      brain._unattended_block_reason("bash") is None and brain.UNATTENDED is False)
+
+# K3 — SEC-5 cumulative risk: N notable actions in the window escalate the NEXT action; below
+# threshold, normal (non-escalated) classification holds.
+_reset_phase6_state()
+check("K3: risk not escalated at session start", not brain._risk_escalated())
+# Drive the score to the threshold via named notable-action kinds (mirrors what _exec_tool bumps for
+# new_file/chmod/out_of_repo_read/critical_passed) without needing real subprocess/filesystem calls.
+while brain._risk_score < brain._RISK_THRESHOLD:
+    brain._risk_bump("new_file")
+check("K3: risk escalates once the threshold is crossed", brain._risk_escalated())
+benign_after_risk = brain._is_critical_call("bash", {"command": "echo hello"})
+check("K3: the escalation signal is independent of the regex verdict (still benign by regex alone)",
+      not benign_after_risk)
+_reset_phase6_state()
+brain._risk_bump("new_file")
+check("K3: a single notable action alone (below threshold) does NOT escalate", not brain._risk_escalated())
+
+# K3b — decay: enough intervening ticks with no new risk bumps cools the score back down.
+_reset_phase6_state()
+while brain._risk_score < brain._RISK_THRESHOLD:
+    brain._risk_bump("new_file")
+check("K3b: escalated before decay", brain._risk_escalated())
+for _ in range(brain._RISK_DECAY_CALLS * 2):
+    brain._risk_tick()
+check("K3b: score decays toward zero after enough quiet ticks", brain._risk_score < brain._RISK_THRESHOLD)
+_reset_phase6_state()
+
+# K4 — new residual credential paths (Phase 6: gcloud/kube/gnupg/1Password/gh + private-key-by-name)
+# are denied by _is_protected (the brain's inline substring floor) regardless of the unified gate.
+for probe, label in [
+    (os.path.join(os.path.expanduser("~"), ".config/gcloud/credentials.db"), "~/.config/gcloud"),
+    (os.path.join(os.path.expanduser("~"), ".kube/config"), "~/.kube"),
+    (os.path.join(os.path.expanduser("~"), ".gnupg/secring.gpg"), "~/.gnupg"),
+    (os.path.join(os.path.expanduser("~"), ".config/op/config"), "~/.config/op"),
+    (os.path.join(os.path.expanduser("~"), ".config/1Password/1password.sqlite"), "~/.config/1Password"),
+    (os.path.join(os.path.expanduser("~"), ".config/gh/hosts.yml"), "~/.config/gh/hosts.yml"),
+    ("/tmp/backup/id_ed25519", "id_ed25519 anywhere"),
+    ("/tmp/backup/id_ecdsa", "id_ecdsa anywhere"),
+    ("/tmp/certs/server.pem", "*.pem anywhere"),
+    ("/tmp/certs/client.p12", "*.p12 anywhere"),
+]:
+    check(f"K4: _is_protected denies {label}", brain._is_protected(probe), probe)
+
+# K5 — no regression: attended mode (UNATTENDED False), no taint, low risk — routine work still runs
+# un-escalated (mirrors the ORIGINAL Section C checks, re-asserted after Phase 6 wiring).
+_reset_phase6_state()
+check("K5: attended + no taint + low risk — routine bash stays routine",
+      not brain._is_critical_call("bash", {"command": "git status"})
+      and not brain._taint_consume_if_adjacent("bash")
+      and not brain._risk_escalated())
+check("K5: unattended gate is inert with UNATTENDED unset (module default)",
+      brain.UNATTENDED is False and brain._unattended_block_reason("bash") is None)
+_reset_phase6_state()
+
 # ---- SUMMARY ----
 print("\n" + "=" * 60)
 total = PASS + FAIL

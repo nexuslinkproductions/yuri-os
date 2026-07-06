@@ -295,15 +295,26 @@ if DISPATCH:
 # proof (Marcel's voice drives it, not an attacker) — it stops the misheard/model catastrophe.
 # SEC-4 (2026-07-06): added HOME-relative credential stores, macOS Keychain, and .git/hooks — this is
 # the brain's IMMEDIATE hardening (fail-closed substring match) even before SEC-1's unified gate arms.
+# Phase 6 (2026-07-06): residual credential-path additions — gcloud, kube, GPG, 1Password, gh CLI
+# tokens, and private-key material (id_ed25519/ecdsa/dsa, *.pem, *.p12) ANYWHERE by name, not just
+# under ~/.ssh/ — a backup/download copy of a key outside that directory must still refuse.
 PROTECTED = (".env", "backend/data/", ".claude/state/", ".claude/history/", ".claude/file-history/",
-             ".claude/projects/", "node_modules/", ".amp/", "id_rsa", ".ssh/", "credentials", "secret",
+             ".claude/projects/", "node_modules/", ".amp/",
+             "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa", ".pem", ".p12",
+             ".ssh/", "credentials", "secret",
              ".git/hooks/", os.path.join(os.path.expanduser("~"), ".aws"),
              os.path.join(os.path.expanduser("~"), ".npmrc"),
              os.path.join(os.path.expanduser("~"), ".docker"),
              os.path.join(os.path.expanduser("~"), ".gitconfig"),
              os.path.join(os.path.expanduser("~"), ".zsh_history"),
              os.path.join(os.path.expanduser("~"), "Library/Keychains"),
-             os.path.join(os.path.expanduser("~"), ".claude/settings"))
+             os.path.join(os.path.expanduser("~"), ".claude/settings"),
+             os.path.join(os.path.expanduser("~"), ".config/gcloud"),
+             os.path.join(os.path.expanduser("~"), ".kube"),
+             os.path.join(os.path.expanduser("~"), ".gnupg"),
+             os.path.join(os.path.expanduser("~"), ".config/op"),
+             os.path.join(os.path.expanduser("~"), ".config/1Password"),
+             os.path.join(os.path.expanduser("~"), ".config/gh/hosts.yml"))
 _DESTRUCTIVE = re.compile(
     r"\brm\s+-[a-z]*[rf][a-z]*\s+(/|~|\$home|\*|\.\s*$)"
     r"|\bsudo\b|\bdd\b[^|]*\bof=|\bmkfs|:\(\)\s*\{\s*:\s*\|"
@@ -511,6 +522,153 @@ def _is_critical_call(name: str, args: dict) -> bool:
     if name == "conductor_send":
         return True
     return False
+
+
+# ---- SEC-2 TAINT TRACKING (2026-07-06) ----
+# read_doc (and any future fetch_url/web/screen-reader tool) returns UNTRUSTED content — text a
+# crafted PDF/doc could plant an injected instruction inside. _is_critical_call above classifies by
+# regex over the MODEL'S OWN command string; it has no notion of "did this command's intent originate
+# from something the model just read, not from Marcel." An indirect-prompt-injection payload that
+# reads as benign (no rm/curl|sh/git push token) sails through unclassified. This is a MINIMAL
+# session-level taint window, not a provenance graph: a counter + a set-membership check.
+#
+# In-process only (module-level state, one brain process = one voice session) — mirrors the existing
+# PENDING_FILE pattern's scope, but taint deliberately does NOT persist to disk: it should not survive
+# a restart (a fresh process has read nothing yet), and it must decay on its own after N tool-call
+# slots so an unrelated later action isn't punished forever for an old read.
+_TAINT_WINDOW = int(os.environ.get("YURI_Z_TAINT_WINDOW", "3"))  # N tool-call slots the taint covers
+_TAINT_SOURCE_TOOLS = ("read_doc",)          # tools whose OUTPUT is untrusted content
+_TAINT_ADJACENT_TOOLS = ("bash", "write_file", "edit_file", "applescript", "gui_script", "conductor_send")
+_taint_remaining = 0   # counts down; > 0 means "the next critical-adjacent call escalates"
+
+
+def _taint_mark():
+    """Called right after a taint-source tool (read_doc) executes: (re)arm the taint window."""
+    global _taint_remaining
+    _taint_remaining = _TAINT_WINDOW
+
+
+def _taint_consume_if_adjacent(name: str) -> bool:
+    """Called once per dispatched tool call, IN MODEL-EMITTED ORDER, for the tool actually about to
+    run. Returns True (and decays the window) if `name` is a critical-adjacent tool consumed while
+    taint is active — this is the signal _is_critical_call folds in to force confirm-gating regardless
+    of the regex verdict. Non-adjacent tools (read_file, xref, remember, screenshot, morning_brief,
+    usage_status, spawn_worker, open_app, conductor_list/create/draft/peek) do NOT consume the window —
+    only a genuinely critical-adjacent tool should spend it, so Marcel asking a read-only follow-up
+    question in between doesn't burn the window before the actually-risky call arrives."""
+    global _taint_remaining
+    if _taint_remaining <= 0:
+        return False
+    if name not in _TAINT_ADJACENT_TOOLS:
+        return False
+    _taint_remaining -= 1
+    return True
+
+
+def _taint_active() -> bool:
+    return _taint_remaining > 0
+
+
+# ---- SEC-5 UNATTENDED PROFILE (2026-07-06, DISARMED-first) ----
+# Overnight/unattended runs have the SAME tool access as attended today but lose the human spoken-
+# confirm backstop entirely (there's no one to say "yes" to the CONFIRM-GATE), so a critical call just
+# sits PENDING forever with no harm — but a call the regex classifier MISSES runs immediately, same as
+# attended, with no human watching. Structurally safer-than-attended means: reduce capability instead
+# of relying on a confirm no one will answer. DEFAULT OFF — arming is owner-gated (Self-Governance
+# Charter: this changes live tool availability, not a passive telemetry read).
+UNATTENDED = os.environ.get("YURI_Z_UNATTENDED", "0") == "1"
+# Mutating/outward-facing tools: denied by default when unattended. spawn_worker is included — it
+# opens a new terminal that itself gets full capability, which is exactly the kind of unattended
+# capability-expansion SEC-5 is meant to prevent.
+_UNATTENDED_DENY_BY_DEFAULT = (
+    "bash", "write_file", "edit_file", "applescript", "gui_script", "conductor_send", "spawn_worker",
+)
+# Read/query tools stay allowed even in unattended mode — they can't mutate or reach outward.
+_UNATTENDED_ALWAYS_ALLOWED = (
+    "read_file", "read_doc", "xref", "remember", "screenshot", "morning_brief", "usage_status",
+)
+
+
+def _unattended_allowlist() -> set:
+    """Parse YURI_Z_UNATTENDED_ALLOW (comma-separated tool names) into an explicit override set —
+    lets the owner permit specific overnight tasks (e.g. 'bash,write_file' for a scoped batch job)
+    without disarming the whole reduced-capability profile."""
+    raw = os.environ.get("YURI_Z_UNATTENDED_ALLOW", "")
+    return {t.strip() for t in raw.split(",") if t.strip()}
+
+
+def _unattended_block_reason(name: str):
+    """Return a refusal string if `name` should be denied under the unattended profile, else None.
+    Fail-closed shape: a tool not in either named list (future tool added without updating this
+    function) is NOT auto-denied — see residual-gap note in the build report; this scopes exactly to
+    the tools SEC-5 named. Checked in _exec_tool BEFORE any other gate, so it denies before the inline
+    safety-floor gate even runs — cheapest possible refusal, no subprocess/IO cost."""
+    if not UNATTENDED:
+        return None
+    if name not in _UNATTENDED_DENY_BY_DEFAULT:
+        return None
+    if name in _unattended_allowlist():
+        return None
+    return (f"refused: '{name}' is disabled in unattended mode (YURI_Z_UNATTENDED=1) — set "
+            f"YURI_Z_UNATTENDED_ALLOW to include '{name}' to permit it for this overnight run")
+
+
+# ---- SEC-5 CUMULATIVE-RISK COUNTER (2026-07-06) ----
+# Per-call classification is STATELESS — a multi-step persistence chain (new file -> chmod +x ->
+# LaunchAgent) can reach persistence with zero SINGLE step tripping _is_critical_call, because each
+# step individually looks routine. This tracks a decaying per-session risk score across "notable"
+# routine-but-worth-watching actions; once it crosses a threshold within the window, the NEXT action
+# escalates to confirm-gated even in attended mode, even though that action alone wouldn't gate.
+# Minimal by design: an integer + decay + threshold, in-process, reset per session (module state, same
+# scope as the taint window above — does not persist across restarts).
+_RISK_THRESHOLD = int(os.environ.get("YURI_Z_RISK_THRESHOLD", "4"))   # score at/above this escalates
+_RISK_DECAY_CALLS = int(os.environ.get("YURI_Z_RISK_DECAY_CALLS", "10"))  # tool calls before full decay
+_risk_score = 0.0
+_risk_calls_since_last = 0
+
+# Points added per notable action kind. new_file/chmod/out_of_repo_read are the concrete chain steps
+# named in the packet (new file -> chmod +x -> LaunchAgent); "critical_passed" covers a confirm-gated
+# action that WAS approved — approved-but-notable actions still compound risk across a session.
+_RISK_WEIGHTS = {
+    "new_file": 1.0,
+    "chmod": 1.5,
+    "out_of_repo_read": 1.0,
+    "critical_passed": 1.0,
+}
+
+
+def _risk_decay():
+    """Linear decay proportional to calls elapsed since the last risk-affecting event — a session
+    that goes quiet (or does only unrelated routine work) cools back down instead of staying primed
+    on an old, unrelated action forever."""
+    global _risk_score, _risk_calls_since_last
+    if _risk_calls_since_last <= 0 or _risk_score <= 0:
+        return
+    decay = _risk_score * min(1.0, _risk_calls_since_last / max(1, _RISK_DECAY_CALLS))
+    _risk_score = max(0.0, _risk_score - decay)
+    _risk_calls_since_last = 0
+
+
+def _risk_bump(kind: str):
+    """Record a notable action and advance the per-call decay clock. Called from _exec_tool at the
+    point each notable action actually happens (not at classification time) — mirrors _taint_mark's
+    placement so risk reflects what RAN, not what was merely proposed."""
+    global _risk_score, _risk_calls_since_last
+    _risk_decay()
+    _risk_score += _RISK_WEIGHTS.get(kind, 0.0)
+    _risk_calls_since_last = 0
+
+
+def _risk_tick():
+    """Called once per dispatched tool call (any kind) so the decay clock advances even on calls that
+    don't themselves bump risk — otherwise a session that only ever bumps risk would never decay."""
+    global _risk_calls_since_last
+    _risk_calls_since_last += 1
+    _risk_decay()
+
+
+def _risk_escalated() -> bool:
+    return _risk_score >= _RISK_THRESHOLD
 
 
 def _load_pending():
@@ -961,6 +1119,10 @@ def _extract_doc_text(path: str) -> str:
 def _exec_tool(name, args):
     """Run a capability the model chose. Full worker-grade toolset behind the safety floor."""
     args = args or {}
+    _risk_tick()   # SEC-5: advance the decay clock on every dispatched call, gated or not
+    unattended_block = _unattended_block_reason(name)   # SEC-5: cheapest possible check, before any IO
+    if unattended_block:
+        return unattended_block
     try:
         if name == "bash":
             cmd = (args.get("command") or "").strip()
@@ -971,6 +1133,8 @@ def _exec_tool(name, args):
             blocked = _gate_bash(cmd)   # SEC-1: inline floor ALWAYS runs; unified gate layers on top when armed
             if blocked:
                 return blocked
+            if re.search(r"\bchmod\b", cmd, re.IGNORECASE):
+                _risk_bump("chmod")   # SEC-5: chmod is a named step in the persistence-chain example
             r = subprocess.run(cmd, shell=True, cwd=REPO, capture_output=True, text=True, timeout=BASH_TIMEOUT)
             out = ((r.stdout or "") + (r.stderr or "")).strip()
             return _cap(out) if out else f"(no output, exit {r.returncode})"
@@ -978,6 +1142,10 @@ def _exec_tool(name, args):
             p = (args.get("path") or "").strip()
             if _is_protected(p):
                 return "refused: protected path (safety floor)"
+            resolved = os.path.normpath(os.path.join(REPO, p))
+            repo_norm = os.path.normpath(REPO) + os.sep
+            if not (resolved + os.sep).startswith(repo_norm) and resolved != os.path.normpath(REPO):
+                _risk_bump("out_of_repo_read")   # SEC-5: reading outside the repo root is notable
             with open(os.path.join(REPO, p), encoding="utf-8", errors="replace") as f:
                 return _cap(f.read())
         if name == "write_file":
@@ -986,6 +1154,8 @@ def _exec_tool(name, args):
             if blocked:
                 return blocked
             full = os.path.join(REPO, p)
+            if not os.path.exists(full):
+                _risk_bump("new_file")   # SEC-5: brand-new file is the first named persistence-chain step
             os.makedirs(os.path.dirname(full) or ".", exist_ok=True)
             content = _fix_mojibake(args.get("content") or "")
             with open(full, "w", encoding="utf-8") as f:
@@ -1034,7 +1204,12 @@ def _exec_tool(name, args):
             if _is_protected(p):
                 return "refused: protected path (safety floor)"
             full = p if os.path.isabs(p) else os.path.join(REPO, p)
-            return _extract_doc_text(full)
+            result = _extract_doc_text(full)
+            # SEC-2: read_doc returns UNTRUSTED content (a crafted PDF/doc could carry an injected
+            # instruction) — arm the taint window so the NEXT critical-adjacent tool call confirm-gates
+            # regardless of what its own command string looks like.
+            _taint_mark()
+            return result
         # ---- macOS CONTROL PRIMITIVES ----
         if name == "applescript":
             script = (args.get("script") or "").strip()
@@ -1154,6 +1329,7 @@ def run_brain(req_messages):
         _clear_pending()
         p_name, p_args = pending.get("name", ""), pending.get("args") or {}
         gate_result = _exec_tool(p_name, p_args)
+        _risk_bump("critical_passed")  # SEC-5: an approved critical action still compounds session risk
         messages = hist[-(2 * TURNS):] + [
             {"role": "user", "content": pending.get("original_request", "")},
             {"role": "assistant", "content": pending.get("confirm_text", "")},
@@ -1204,11 +1380,40 @@ def _run_agent_loop(messages, user_msg, hist):
             break
 
         # ---- CONFIRM-GATE: check each tool call for critical classification ----
-        critical_calls = [(b, _is_critical_call(b.get("name", ""), b.get("input") or {})) for b in tool_uses]
-        if any(crit for _, crit in critical_calls) and not _load_pending():
+        # SEC-2 taint: consume the window IN MODEL-EMITTED ORDER (same order tool_uses already is) so
+        # the FIRST critical-adjacent tool after a read_doc is the one that gets escalated, mirroring
+        # how the tools will actually be dispatched below if this iteration proceeds. Track WHY each
+        # call escalated (regex vs taint vs cumulative-risk) so the spoken confirm can give Marcel the
+        # real reason instead of a generic line — short-circuiting on `regex_crit` means taint/risk are
+        # only consumed when the regex verdict alone would NOT already have gated the call (preserves
+        # the window/score for the genuinely-invisible case instead of spending it on a call that was
+        # gated anyway). SEC-5 cumulative-risk: a chain of individually-routine actions (new file ->
+        # chmod -> ...) can cross the threshold; the NEXT dispatched call then escalates even though it
+        # alone looks routine — this is what catches the multi-step persistence chain SEC-5 names.
+        #
+        # SAME-BATCH LOOK-AHEAD (adversarial self-check fix, 2026-07-06): a model can emit read_doc
+        # AND a critical-adjacent tool in the SAME response (one iteration, one tool_uses batch).
+        # _taint_mark() only fires when read_doc actually EXECUTES — which happens AFTER this whole
+        # batch is classified — so the cross-iteration counter alone never sees the taint in time for
+        # a same-batch companion call. Fix: if a taint-SOURCE tool appears earlier in THIS SAME batch
+        # (before an adjacent tool, in emitted order), treat that adjacent tool as tainted too, in
+        # addition to the persistent cross-iteration window below.
+        batch_taint_source_seen = False
+        critical_calls = []
+        for b in tool_uses:
+            nm = b.get("name", "")
+            regex_crit = _is_critical_call(nm, b.get("input") or {})
+            same_batch_taint = (not regex_crit) and batch_taint_source_seen and nm in _TAINT_ADJACENT_TOOLS
+            taint_crit = (not regex_crit) and (same_batch_taint or _taint_consume_if_adjacent(nm))
+            risk_crit = (not regex_crit) and (not taint_crit) and _risk_escalated()
+            critical_calls.append((b, regex_crit or taint_crit or risk_crit, taint_crit, risk_crit))
+            if nm in _TAINT_SOURCE_TOOLS:
+                batch_taint_source_seen = True
+        if any(crit for _, crit, _, _ in critical_calls) and not _load_pending():
             # A critical call was chosen — DON'T execute. Store the first critical one as pending,
             # speak the confirmation, and HOLD for Marcel's next voice turn.
-            first_critical = next(b for b, crit in critical_calls if crit)
+            first_critical, _, first_via_taint, first_via_risk = next(
+                (b, c, t, rk) for b, c, t, rk in critical_calls if c)
             _save_pending({
                 "name": first_critical.get("name", ""),
                 "args": first_critical.get("input") or {},
@@ -1216,7 +1421,13 @@ def _run_agent_loop(messages, user_msg, hist):
                 "confirm_text": "",  # filled below
             })
             desc = _describe_action(first_critical.get("name", ""), first_critical.get("input") or {})
-            final = (f"I'm about to {desc}. That right? Confirm and I'll do it.")
+            if first_via_taint:
+                extra_note = " That follows reading an external document, so I'm confirming first."
+            elif first_via_risk:
+                extra_note = " A few notable things have stacked up this session, so I'm confirming this one first."
+            else:
+                extra_note = ""
+            final = (f"I'm about to {desc}.{extra_note} That right? Confirm and I'll do it.")
             _save_pending({  # re-save with the confirm_text included
                 "name": first_critical.get("name", ""),
                 "args": first_critical.get("input") or {},
