@@ -191,12 +191,29 @@ export async function trainFleetRouterFromLedger(opts = {}) {
   }
 
   // WS-J-C1: held-out Brier evaluation on the last 20% (time-ordered).
-  // Load the post-training weights (only updated if persist=true) for the forward pass.
+  // DUAL BRIER (Fable 5 C1): report both the persisted singleton AND the
+  // post-training scratch. The singleton reads on-disk weights via loadWeights()
+  // (frozen across epochs in a dry run — never shows whether training helped); the
+  // scratch reads the in-memory weights mutated by updateFromOutcome and so reflects
+  // the current training state. Without the scratch pass, eval can never demonstrate
+  // generalization gains — it always reads stale weights.
   let evalResult = { evalMeanBrier: null, evalExampleCount: 0 };
+  let scratchResult = { evalMeanBrier: null, evalExampleCount: 0 };
   if (evalExamples.length > 0) {
+    // Persisted singleton: stable model quality (frozen on dry runs).
     const evalWeights = await router.loadWeights();
     evalResult = computeHeldOutBrier(evalExamples, evalWeights, forward);
-    log(`Held-out eval: ${evalResult.evalExampleCount} examples, meanBrier=${evalResult.evalMeanBrier?.toFixed(4) ?? 'n/a'}`);
+    log(`Held-out eval (persisted singleton): ${evalResult.evalExampleCount} examples, meanBrier=${evalResult.evalMeanBrier?.toFixed(4) ?? 'n/a'}`);
+
+    // Post-training scratch: evolving in-memory weights (may be null when no training
+    // ran this process, e.g. --epochs=0 or a fresh invocation that never updated).
+    const scratchWeights = typeof router.getScratchWeights === 'function' ? router.getScratchWeights() : null;
+    if (scratchWeights) {
+      scratchResult = computeHeldOutBrier(evalExamples, scratchWeights, forward);
+      log(`Held-out eval (post-training scratch): meanBrier=${scratchResult.evalMeanBrier?.toFixed(4) ?? 'n/a'}`);
+    } else {
+      log(`Held-out eval (post-training scratch): skipped (no scratch weights — training did not run this process)`);
+    }
   } else {
     log(`Held-out eval: skipped (insufficient examples for ${evalFraction} split)`);
   }
@@ -216,6 +233,7 @@ export async function trainFleetRouterFromLedger(opts = {}) {
     meanError: epochErrors.length ? epochErrors[epochErrors.length - 1] : null,
     epochErrors,
     evalMeanBrier: evalResult.evalMeanBrier,
+    evalMeanBrierScratch: scratchResult.evalMeanBrier,
     dry,
   };
 }

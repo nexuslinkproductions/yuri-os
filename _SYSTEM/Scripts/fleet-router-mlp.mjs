@@ -87,15 +87,24 @@ let _weights = null;
 // persists across calls within a process so dry runs actually learn. It seeds
 // from the current singleton on first use; set back to null to reseed.
 let _scratchWeights = null;
+// Expose the scratch accumulator so the trainer can report dual-Brier:
+//   singleton (loadWeights) → persisted-model generalization quality,
+//   scratch (getScratchWeights) → post-training fit quality.
+// Returns null until updateFromOutcome has run at least once in this process
+// (i.e. no dry-training has happened yet), matching the "no scratch yet" case.
+export function getScratchWeights() {
+  return _scratchWeights;
+}
 
 export async function loadWeights() {
-  // NOTE: the scratch accumulator (_scratchWeights) is intentionally NOT
-  // surfaced here. A --dry run must have zero side effects on the persisted
-  // model, so held-out eval reads the on-disk singleton (unchanged by dry
-  // training). The decreasing *training* error proves the mechanism works;
-  // generalization is measured in the real (persist) run. updateFromOutcome
-  // still mutates scratch internally so its returned per-example errors
-  // reflect real multi-epoch learning.
+  // loadWeights returns the on-disk singleton — a --dry run must have zero
+  // side effects on the persisted model, so held-out eval against the
+  // singleton measures generalization (the model quality that ships). The
+  // scratch accumulator is mutated by updateFromOutcome during dry training
+  // and is surfaced separately via getScratchWeights() so the trainer can
+  // report dual-Brier: singleton Brier = generalization, scratch Brier =
+  // post-training fit. The decreasing scratch *training* error proves the
+  // multi-epoch mechanism works; the singleton/scratch gap signals overfit.
   if (_weights) return _weights;
   try {
     const { readFileSync } = await import('node:fs');

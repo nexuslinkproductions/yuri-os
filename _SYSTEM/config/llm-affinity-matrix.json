@@ -1,14 +1,17 @@
 {
   "meta": {
     "name": "LLM Affinity Matrix",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "created": "2026-06-30",
+    "updated": "2026-07-06",
     "purpose": "Declarative role→substrate routing before MLP override. Cheap-first for bulk roles, heavy-only for deep roles.",
     "authority": "Advisory — governance.mjs hard gates always win. MLP router may override when warm + confident.",
-    "decisionRule": "Migrate workload class only when substrate-benchmark shows ≥2× pass rate or ≥50% latency reduction"
+    "decisionRule": "Migrate workload class only when substrate-benchmark shows ≥2× pass rate or ≥50% latency reduction",
+    "policy": "CLOUD-ONLY for opus-fleet v2 — no local Ollama SLMs, no Codex, no direct DeepSeek API. Orchestrator fallbacks: Claude OAuth → cursor/composer-2.5 → glm-max → mimo."
   },
   "substrates": {
-    "native": { "cost": "premium", "description": "Cursor/Claude Agents — opus/sonnet/haiku" },
+    "native": { "cost": "premium", "description": "OMP task() subagents + Claude/Cursor OAuth — explore/task/tester/reviewer when subscription window open" },
+    "cursor": { "cost": "premium", "description": "Cursor OAuth composer-2.5 — orchestrator fallback when Claude session capped" },
     "glm-max": { "cost": "premium", "description": "z.ai glm-5.2 1M ctx — heavy reasoning, architecture, adversarial" },
     "tmux-zai": { "cost": "premium", "description": "z.ai glm-5.2 via interactive tmux claude-zai — multi-tool builds" },
     "glm": { "cost": "mid", "description": "z.ai glm-5.1 — workhorse code-gen, analysis" },
@@ -22,7 +25,7 @@
     "architect": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Deep system design — needs 1M ctx + reasoning high" },
     "steward": { "preferred": "native", "fallback": "native", "rationale": "Deterministic governance — no LLM substrate needed" },
     "ideator": { "preferred": "glm", "fallback": "ollama-flash", "rationale": "Divergent generation — mid-cost sufficient, not heavy reasoning" },
-    "scout": { "preferred": "ollama-flash", "fallback": "glm-turbo", "rationale": "Bulk research + census — cheap-first, high throughput" },
+    "scout": { "preferred": "native", "fallback": "ollama-flash", "rationale": "Tool-using research needs native xref/capability-recall/citation. ollama-flash reserved for census sub-tasks only." },
     "synthesist": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Large-context merge — needs 1M ctx for lattice synthesis" },
     "evolver": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Evolutionary search + deep proposals — heavy reasoning" },
     "deliberator": { "preferred": "glm-max", "fallback": "tmux-zai", "rationale": "Deep continuous-thought reasoning — needs compute" },
@@ -37,9 +40,9 @@
     "archivist": { "preferred": "ollama-flash", "fallback": "native", "rationale": "Memory curation + skill library — bulk scan, cheap-first" },
     "chronicler": { "preferred": "ollama-flash", "fallback": "glm", "rationale": "Docs + summaries — bulk writing, cheap-first" },
     "quartermaster": { "preferred": "native", "fallback": "native", "rationale": "Token budget accounting — deterministic, no LLM substrate needed" },
-    "envoy": { "preferred": "ollama-flash", "fallback": "glm", "rationale": "Task intake + requirement decode — bulk processing, cheap-first" }
+    "envoy": { "preferred": "glm", "fallback": "glm-turbo", "rationale": "Intent-decoding is divergent/convergent reasoning, not bulk. glm mid-cost is the right tier." }
   },
-  "bulkRoles": ["scout", "artificer", "archivist", "chronicler", "envoy"],
+  "bulkRoles": ["scout", "ideator", "artificer", "archivist", "chronicler", "envoy"],
   "heavyRoles": ["architect", "adjudicator", "kernelsmith", "deliberator", "oracle", "synthesist", "evolver"],
   "codeRoles": ["engineer", "mechanic"],
   "nativeOnlyRoles": ["helmsman", "steward", "sentinel", "calibrator", "quartermaster"]
