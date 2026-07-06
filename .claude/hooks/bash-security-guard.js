@@ -148,6 +148,54 @@ function isBlockedEnvRemove(cmd) {
   return false;
 }
 
+// ── HARD BLOCK: the energy-enforce arm flag, breaker snapshot dir, and enforcement
+// code (2026-07-06, B3 audit blocker — re-targeted). Originally gated on a "coworker"
+// role that has since been removed as dead code (no dev-credential.json exists, so
+// activeRole() could never resolve to 'coworker' — see the operator-write-guard.js
+// cleanup commit); the underlying threat (self-disarming YURI's own safety gate) does
+// not depend on a human-operator role distinction that no longer exists — an agent/lane
+// tampering with its own circuit-breaker is the live concern. Made universal instead of
+// retired: same literal-match style as the .env block above, not the deleted glob/brace/
+// decode-exec obfuscation-resistant matcher (this is a fail-open layer-2 conscience, not
+// a sandbox — see the IRREDUCIBLE RESIDUAL note near isDecodeExecuteChain).
+const ENERGY_ARM_PROTECTED_FILES = new Set([
+  '_SYSTEM/state/energy-enforce.enabled',
+  '.claude/hooks/energy-enforce.mjs',
+  '.claude/hooks/energy-tick.mjs',
+]);
+const ENERGY_ARM_PROTECTED_DIR = '_SYSTEM/state/energy-session/';
+function isEnergyArmTarget(tok) {
+  const s = normTok(unquote(tok));
+  return ENERGY_ARM_PROTECTED_FILES.has(s) || s.startsWith(ENERGY_ARM_PROTECTED_DIR);
+}
+function isBlockedEnergyArmRemove(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'rm') {
+      for (let j = i + 1; j < parts.length; j++) {
+        if (isEnergyArmTarget(parts[j])) return true;
+      }
+    }
+  }
+  return false;
+}
+function isBlockedEnergyArmWrite(cmd) {
+  const m = cmd.match(/>>?\s*(\S+)/);
+  return !!(m && isEnergyArmTarget(m[1]));
+}
+function isBlockedEnergyArmMutate(cmd) {
+  const parts = toks(cmd);
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'tee') {
+      for (let j = i + 1; j < parts.length; j++) {
+        if (!parts[j].startsWith('-') && isEnergyArmTarget(parts[j])) return true;
+      }
+    }
+    if (parts[i] === 'sed' && isEnergyArmTarget(parts[parts.length - 1])) return true;
+  }
+  return false;
+}
+
 function isBlockedClaudeFileWrite(cmd) {
   const parts = toks(cmd);
   if (parts[0] === 'tee') {
@@ -313,9 +361,10 @@ function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
   // ROLES REMOVED (owner directive 2026-06-20): no dev/coworker gate. Flat policy —
-  // HARD BLOCK only .env secret access; the .claude-config + download/decode-exec rules
-  // the owner found too strict are now ADVISORY (warn, never block). isBlockedForCoworker /
-  // isRolePathMutation / activeRole are no longer called (dead code, safe to delete later).
+  // HARD BLOCK .env secret access + the energy-enforce arm surface (universal, not
+  // role-gated — see the ENERGY_ARM_PROTECTED_* block above); the .claude-config +
+  // download/decode-exec rules the owner found too strict are now ADVISORY (warn, never
+  // block). isBlockedForCoworker / isRolePathMutation / activeRole no longer exist.
   if (isBlockedUngovernedNanoSpawn(cmd))
     return { type: 'block', reason: 'Ungoverned nano spawn — route through the governed spawn_nano tool (depth/fan-out/budget/cost caps), not raw nano-external/nano-tick.' };
   // Intra-repo .env mirror exemption (cp/mv between repo paths).
@@ -336,6 +385,18 @@ function inspectCommand(cmd) {
     if (innerEnv && (isBlockedEnvRead(innerEnv) || isBlockedEnvWrite(innerEnv) ||
         isBlockedEnvMutate(innerEnv) || isBlockedEnvRemove(innerEnv)))
       return { type: 'block', reason: '.env (secrets) access inside a shell wrapper is blocked.' };
+  }
+  // ── HARD BLOCK: energy-enforce arm flag / breaker snapshot dir / enforcement code —
+  // universal, not role-gated (B3 audit blocker, re-targeted 2026-07-06).
+  if (isBlockedEnergyArmRemove(cmd))
+    return { type: 'block', reason: 'Removing the energy-enforce arm flag or enforcement code is blocked.' };
+  if (isBlockedEnergyArmWrite(cmd) || isBlockedEnergyArmMutate(cmd))
+    return { type: 'block', reason: 'Writing to the energy-enforce arm flag, breaker snapshot dir, or enforcement code is blocked.' };
+  {
+    const innerArm = extractShellWrapper(cmd);
+    if (innerArm && (isBlockedEnergyArmRemove(innerArm) || isBlockedEnergyArmWrite(innerArm) ||
+        isBlockedEnergyArmMutate(innerArm)))
+      return { type: 'block', reason: 'Energy-enforce arm surface access inside a shell wrapper is blocked.' };
   }
   // ── WARN-ONLY (owner relaxed): .claude config ops + download/decode-exec chains ──
   if (isBlockedSensitiveClaudeRead(cmd))
