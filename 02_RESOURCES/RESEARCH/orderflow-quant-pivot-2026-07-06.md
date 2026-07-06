@@ -2,15 +2,15 @@
 **Date:** 2026-07-06 · **Author:** Yuri (Claude lane) · **Status:** Phase-1 research complete; all 4 starred repos assessed
 **Audience:** Marcel (decision), Fable 5 (build reference)
 
-Marcel is restarting the trading track: pivoting from crypto/HFT to **orderflow + quant-signal trading**, instrument-agnostic but biased to US equities + CME index futures + options (for GEX). Goal: build a system a day trader can fine-tune AND agents can eventually execute autonomously. This doc captures the verified findings that drive the platform + stack decision.
+Marcel is restarting the trading track: pivoting from crypto/HFT to **orderflow + quant-signal trading**, instrument-agnostic but biased to US equities + CME index futures + options (for GEX). Goal: build a system a day trader can fine-tune AND agents can eventually execute autonomously. This doc captures the research findings (primary-source corroborated, not deterministically verified) that drive the platform + stack decision.
 
-Two methodology tracks from Marcel's transcripts, both verified sound (Part D):
+Two methodology tracks from Marcel's transcripts, both corroborated against primary sources (Part D):
 - **Orderflow (human):** real tick/footprint/DOM platform + Bookmap + GEX, stacked on Auction Market Theory (value areas, composite VA, prior value).
 - **Quant (agent):** signal = a number that predicts next-period return; measured by IC (5% = strong), Grinold's law (IR = IC × √breadth), Harvey-Liu-Zhu multiple-testing (t-bar ~3 not 2).
 
 ---
 
-## 1. The platform decision — verified, not the sloppy matrix
+## 1. The platform decision — primary-source checked, not the sloppy matrix
 
 The "which platform" question is the wrong frame. It splits into **four layers sharing one data spine**:
 
@@ -52,7 +52,7 @@ Existing trading infra (`_SYSTEM/Scripts/alpha-factor-library/`) is **crypto-onl
 
 ## 3. macOS visual-platform landscape (for the LATER human phase)
 
-Marcel is Apple-Silicon only. Verified 2026 status:
+Marcel is Apple-Silicon only. Checked against primary sources (2026):
 
 | Platform | macOS | Automation | Orderflow | Notes |
 |---|---|---|---|---|

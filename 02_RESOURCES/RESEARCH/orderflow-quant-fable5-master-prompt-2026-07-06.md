@@ -9,7 +9,7 @@
 # FABLE 5 — BUILD: Orderflow + Quant Trading System (Free-First, P0→P2)
 
 ## Mission
-Build the free-first, paper-only orderflow+quant trading system per the approved Agent-Native Plan. Reuse YURI's existing alpha-factor-library; add the missing orderflow/quant spine. DISARMED paper throughout — no live execution, no recurring paid data until an edge is proven.
+Build the free-first, paper-only orderflow+quant trading system per the approved Agent-Native Plan. Reuse YURI's existing alpha-factor-library; add the missing orderflow/quant spine. DISARMED paper throughout — no live execution, no recurring paid data until an edge is established out-of-sample.
 
 ## Read first (context)
 - Plan (spec + decisions + phasing + verification): https://plan.agent-native.com/plans/plan-dfe4a71e29794c1f
@@ -19,12 +19,12 @@ Build the free-first, paper-only orderflow+quant trading system per the approved
 
 ## Locked decisions (Marcel, 2026-07-06)
 - **P0 instruments:** ES futures + SPX/SPY options.
-- **Budget ceiling:** real-time basic ($1–12/mo). Serious orderflow ($380–700 Databento) DEFERRED until edge proven.
+- **Budget ceiling:** real-time basic ($1–12/mo). Serious orderflow ($380–700 Databento) DEFERRED until an edge is established out-of-sample.
 - **nautilus install APPROVED for P0** (Marcel handed this plan to you to execute).
 - **Visual layer:** defer to P3.
 - **Asian-market scope:** default US-only for P0–P2; revisit at P3.
 
-## Stack (verified — all $0 at P0)
+## Stack (primary-source checked — all $0 at P0)
 - **Engine:** nautilus_trader v2 — pip wheel, macOS arm64, LGPL. No Rust toolchain needed.
 - **Data (free):** Alpaca + yfinance + Polygon free (OHLCV for IC spine) + Databento **$125 FREE sign-up credit** (real MBP-10 on ES — orderflow proof wedge) + crypto testnet (Binance/Bybit, already wired in YURI).
 - **Execution:** IBKR paper + dockerized IB Gateway + nautilus IB adapter. Paper-only.
