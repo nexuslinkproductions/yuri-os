@@ -293,8 +293,17 @@ if DISPATCH:
 # Safety FLOOR — same spirit as a worker's PreToolUse guards. She is otherwise unrestricted (owner
 # 2026-06-19): protected surfaces are off-limits and catastrophic commands are refused. Not adversary-
 # proof (Marcel's voice drives it, not an attacker) — it stops the misheard/model catastrophe.
+# SEC-4 (2026-07-06): added HOME-relative credential stores, macOS Keychain, and .git/hooks — this is
+# the brain's IMMEDIATE hardening (fail-closed substring match) even before SEC-1's unified gate arms.
 PROTECTED = (".env", "backend/data/", ".claude/state/", ".claude/history/", ".claude/file-history/",
-             ".claude/projects/", "node_modules/", ".amp/", "id_rsa", ".ssh/", "credentials", "secret")
+             ".claude/projects/", "node_modules/", ".amp/", "id_rsa", ".ssh/", "credentials", "secret",
+             ".git/hooks/", os.path.join(os.path.expanduser("~"), ".aws"),
+             os.path.join(os.path.expanduser("~"), ".npmrc"),
+             os.path.join(os.path.expanduser("~"), ".docker"),
+             os.path.join(os.path.expanduser("~"), ".gitconfig"),
+             os.path.join(os.path.expanduser("~"), ".zsh_history"),
+             os.path.join(os.path.expanduser("~"), "Library/Keychains"),
+             os.path.join(os.path.expanduser("~"), ".claude/settings"))
 _DESTRUCTIVE = re.compile(
     r"\brm\s+-[a-z]*[rf][a-z]*\s+(/|~|\$home|\*|\.\s*$)"
     r"|\bsudo\b|\bdd\b[^|]*\bof=|\bmkfs|:\(\)\s*\{\s*:\s*\|"
@@ -313,6 +322,75 @@ def _bash_block_reason(cmd: str):
     if _is_protected(cmd):
         return "refused: command touches a protected path (safety floor)"
     return None
+
+
+# ---- SEC-1 UNIFIED GATE (2026-07-06, DISARMED-first) ----
+# Owner-gated ARM: set YURI_Z_UNIFIED_GATE=1 to route bash/write_file/edit_file through the SAME
+# evaluateToolCall gate the fleet lanes use (_SYSTEM/Scripts/policy/yuri-safety-core.mjs), instead of
+# only this file's own inline PROTECTED/_DESTRUCTIVE regexes. DEFAULT OFF: with the flag unset (or any
+# non-"1" value) the brain behaves EXACTLY as before this change — the inline gate (now SEC-4-hardened)
+# is the sole enforcement path. This is a BUILD behind a disarmed flag (self-governable); arming the
+# flag as the live default is owner-gated per the Self-Governance Charter.
+UNIFIED_GATE = os.environ.get("YURI_Z_UNIFIED_GATE", "0") == "1"
+_SAFETY_CORE_CLI = os.path.join(REPO, "_SYSTEM", "Scripts", "policy", "yuri-safety-core.mjs")
+_UNIFIED_GATE_TIMEOUT = float(os.environ.get("YURI_Z_UNIFIED_GATE_TIMEOUT", "10"))
+
+
+def _unified_gate_check(tool_name: str, tool_input: dict):
+    """Shell out to the shared yuri-safety-core.mjs --check-tool CLI and return (allowed: bool,
+    reason: str|None, degraded: bool). ANY failure (missing node, missing script, timeout, bad JSON,
+    non-0/2 exit) DEGRADES to the inline gate rather than fail-open-to-execution — degraded=True tells
+    the caller to fall back to _bash_block_reason/_is_protected instead of trusting this result."""
+    try:
+        payload = json.dumps({"toolName": tool_name, "toolInput": tool_input, "opts": {"cwd": REPO}})
+        r = subprocess.run(
+            ["node", _SAFETY_CORE_CLI, "--check-tool"],
+            input=payload, cwd=REPO, capture_output=True, text=True, timeout=_UNIFIED_GATE_TIMEOUT,
+        )
+        if r.returncode not in (0, 2):
+            return (False, None, True)   # unexpected exit — degrade, don't trust
+        try:
+            decision = json.loads((r.stdout or "").strip() or "{}")
+        except Exception:
+            return (False, None, True)  # unparseable stdout — degrade
+        return (bool(decision.get("allowed")), decision.get("reason"), False)
+    except Exception:
+        return (False, None, True)      # timeout / missing node / any other fault — degrade
+
+
+def _gate_bash(cmd: str):
+    """Return a refusal string if bash `cmd` should be blocked, else None. Layers the unified gate
+    (when armed) ON TOP of the inline floor: the inline _DESTRUCTIVE/_is_protected checks ALWAYS run
+    first regardless of UNIFIED_GATE (never weaken an existing block); the unified gate can ONLY add
+    an additional refusal, never lift one the inline floor already raised."""
+    inline = _bash_block_reason(cmd)
+    if inline:
+        return inline
+    if not UNIFIED_GATE:
+        return None
+    allowed, reason, degraded = _unified_gate_check("bash", {"command": cmd})
+    if degraded:
+        return None   # inline floor already passed above; degrade to that verdict, never fail-open further
+    if not allowed:
+        return f"refused: {reason or 'blocked by unified safety gate'}"
+    return None
+
+
+def _gate_write(tool_name: str, path_arg: str):
+    """Return a refusal string if a write_file/edit_file target should be blocked, else None. Same
+    layering as _gate_bash: inline _is_protected floor first (never weakened), unified gate only adds."""
+    inline = "refused: protected path (safety floor)" if _is_protected(path_arg) else None
+    if inline:
+        return inline
+    if not UNIFIED_GATE:
+        return None
+    allowed, reason, degraded = _unified_gate_check(tool_name, {"path": path_arg})
+    if degraded:
+        return None
+    if not allowed:
+        return f"refused: {reason or 'blocked by unified safety gate'}"
+    return None
+
 
 # ---- CONFIRM-GATE (the safety model — supervised bypass via spoken human-in-the-loop) ----
 # CRITICAL ops: destructive (delete/rm/overwrite/move-over-existing), outward-facing (send email,
@@ -364,6 +442,50 @@ def _affirms_early(msg: str, max_words: int = _AFFIRM_MAX_WORDS) -> bool:
     return bool(_AFFIRM.search(msg))
 
 
+# SEC-3: sensitive-new-file targets — a write_file/edit_file to any of these is CRITICAL even when the
+# target doesn't already exist (persistence / credential-injection paths: SSH auth, LaunchAgents that
+# survive reboot + re-execute, shell rc that runs on every new shell, cron, git hooks that fire on the
+# next commit). Substring match against the RESOLVED absolute path, same spirit as _is_protected.
+_SENSITIVE_NEW_FILE_SEGMENTS = (
+    os.path.join(os.path.expanduser("~"), ".ssh") + os.sep,
+    os.path.join(os.path.expanduser("~"), "Library/LaunchAgents") + os.sep,
+    os.path.join(os.path.expanduser("~"), ".zshrc"),
+    os.path.join(os.path.expanduser("~"), ".bashrc"),
+    os.path.join(os.path.expanduser("~"), ".bash_profile"),
+    os.path.join(os.path.expanduser("~"), ".profile"),
+    "/etc/cron", os.path.join(os.path.expanduser("~"), "crontab"),
+    ".git/hooks" + os.sep,
+)
+
+
+def _resolve_tool_path(p: str) -> str:
+    """Resolve a tool-supplied path the SAME way _exec_tool does: os.path.join(REPO, p) — which,
+    per Python semantics, returns `p` unchanged when `p` is already absolute (REPO is discarded).
+    This mirrors the write_file/edit_file/read_file resolution exactly so the critical-call
+    classifier and the actual executor never disagree on what a path resolves to."""
+    return os.path.normpath(os.path.join(REPO, (p or "").strip()))
+
+
+def _is_write_target_critical(p: str) -> bool:
+    """SEC-3: a write_file/edit_file target is CRITICAL when it (a) already exists (overwrite —
+    original behavior), (b) resolves OUTSIDE the repo root (an absolute path like ~/.ssh/... makes
+    os.path.join discard REPO — this is the exact escape the audit flagged), or (c) matches a
+    sensitive-new-file segment (SSH, LaunchAgents, shell rc, cron, git hooks) regardless of whether
+    it already exists. Fail-closed: any match gates."""
+    p = (p or "").strip()
+    if not p:
+        return False
+    resolved = _resolve_tool_path(p)
+    if os.path.exists(resolved):
+        return True
+    repo_with_sep = os.path.normpath(REPO) + os.sep
+    if not (resolved + os.sep).startswith(repo_with_sep) and resolved != os.path.normpath(REPO):
+        return True   # outside repo root entirely
+    if any(seg in resolved for seg in _SENSITIVE_NEW_FILE_SEGMENTS):
+        return True
+    return False
+
+
 def _is_critical_call(name: str, args: dict) -> bool:
     """Classify a tool call as routine vs critical. Only OUTWARD-FACING or genuinely IRREVERSIBLE
     actions confirm-gate (owner 2026-06-19: stop gating every routine step — she was reading out +
@@ -371,15 +493,17 @@ def _is_critical_call(name: str, args: dict) -> bool:
     block still refuses catastrophic commands regardless of this soft gate.
 
     Not gated (routine): edit_file, spawn_worker, read_file, open_app, screenshot, remember, xref, and
-    bash/applescript whose content misses the critical patterns. write_file gates ONLY when it would
-    OVERWRITE an existing file (potential data loss); writing a brand-new file is routine.
+    bash/applescript whose content misses the critical patterns. write_file/edit_file gate when they
+    would OVERWRITE an existing file, OR (SEC-3, 2026-07-06) when the resolved target is outside the
+    repo root or under a sensitive-new-file path (~/.ssh/, LaunchAgents, shell rc, cron, git hooks) —
+    a brand-new file is only "routine" when it lands inside the repo and isn't one of those.
 
     conductor_send is ALWAYS critical — it is the exact git-push-class action for the session conductor
     (drafting is safe/reversible staging; SENDING dispatches the draft into a live worker session, so it
     confirm-gates unconditionally, same tier as an outward-facing git push)."""
-    if name == "write_file":
+    if name in ("write_file", "edit_file"):
         p = (args.get("path") or "").strip()
-        return bool(p) and os.path.exists(os.path.join(REPO, p))   # critical only if overwriting
+        return bool(p) and _is_write_target_critical(p)
     if name == "bash":
         return bool(_CRITICAL_BASH.search(args.get("command", "")))
     if name in ("applescript", "gui_script"):
@@ -844,7 +968,7 @@ def _exec_tool(name, args):
                 return "no command given"
             if not BASH_ENABLED:
                 return "bash is disabled (YURI_Z_NO_BASH=1)"
-            blocked = _bash_block_reason(cmd)
+            blocked = _gate_bash(cmd)   # SEC-1: inline floor ALWAYS runs; unified gate layers on top when armed
             if blocked:
                 return blocked
             r = subprocess.run(cmd, shell=True, cwd=REPO, capture_output=True, text=True, timeout=BASH_TIMEOUT)
@@ -858,8 +982,9 @@ def _exec_tool(name, args):
                 return _cap(f.read())
         if name == "write_file":
             p = (args.get("path") or "").strip()
-            if _is_protected(p):
-                return "refused: protected path (safety floor)"
+            blocked = _gate_write("write_file", p)   # SEC-1: inline floor first, unified gate on top when armed
+            if blocked:
+                return blocked
             full = os.path.join(REPO, p)
             os.makedirs(os.path.dirname(full) or ".", exist_ok=True)
             content = _fix_mojibake(args.get("content") or "")
@@ -868,8 +993,9 @@ def _exec_tool(name, args):
             return f"wrote {p}"
         if name == "edit_file":
             p = (args.get("path") or "").strip()
-            if _is_protected(p):
-                return "refused: protected path (safety floor)"
+            blocked = _gate_write("edit_file", p)   # SEC-1: inline floor first, unified gate on top when armed
+            if blocked:
+                return blocked
             full = os.path.join(REPO, p)
             with open(full, encoding="utf-8") as f:
                 data = f.read()

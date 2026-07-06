@@ -2,11 +2,13 @@
 import { pathToFileURL } from 'node:url';
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const POLICY_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(POLICY_DIR, '../../..');
+const HOME_DIR = os.homedir();
 const CONTEXT_PREFLIGHT_STAMP_PATH = path.join(PROJECT_ROOT, '_SYSTEM/state/context-preflight-last.json');
 const CONTEXT_PREFLIGHT_STAMP_TTL_MS = 30 * 60 * 1000;
 
@@ -20,7 +22,40 @@ const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, 'backend/data'), type: 'dir', label: 'backend/data' },
   { path: path.join(PROJECT_ROOT, '_SYSTEM/backend/data'), type: 'dir', label: '_SYSTEM/backend/data' },
   { path: path.join(PROJECT_ROOT, 'node_modules'), type: 'dir', label: 'node_modules' },
+  // SEC-4: .git/hooks + .git/config — a poisoned lane writing .git/hooks/pre-commit is a persistence
+  // path that fires on the NEXT commit by any lane, including the owner's.
+  { path: path.join(PROJECT_ROOT, '.git/hooks'), type: 'dir', label: '.git/hooks' },
+  { path: path.join(PROJECT_ROOT, '.git/config'), type: 'file', label: '.git/config' },
+  // SEC-4: HOME-relative credential stores + out-of-repo Claude settings. PROTECTED_TARGETS was
+  // PROJECT_ROOT-relative only — these are absolute so resolveTargetPath's `path.isAbsolute` branch
+  // matches them regardless of cwd.
+  { path: path.join(HOME_DIR, '.aws'), type: 'dir', label: '~/.aws' },
+  { path: path.join(HOME_DIR, '.npmrc'), type: 'file', label: '~/.npmrc' },
+  { path: path.join(HOME_DIR, '.docker'), type: 'dir', label: '~/.docker' },
+  { path: path.join(HOME_DIR, '.gitconfig'), type: 'file', label: '~/.gitconfig' },
+  { path: path.join(HOME_DIR, '.ssh'), type: 'dir', label: '~/.ssh' },
+  { path: path.join(HOME_DIR, '.zsh_history'), type: 'file', label: '~/.zsh_history' },
+  { path: path.join(HOME_DIR, 'Library/Keychains'), type: 'dir', label: '~/Library/Keychains' },
+  { path: path.join(HOME_DIR, '.claude/settings.json'), type: 'file', label: '~/.claude/settings.json' },
+  { path: path.join(HOME_DIR, '.claude/settings.local.json'), type: 'file', label: '~/.claude/settings.local.json' },
 ];
+
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+// SEC-4: a HOME-relative literal must match THREE surface forms a shell command can carry: the
+// literal `~/...` token, the literal `$HOME/...` token, AND the already-expanded absolute path (the
+// shell expands `~`/`$HOME` before the string ever reaches this evaluator in most real invocations —
+// e.g. `cat /Users/marcelspatz/.aws/credentials`). Matching only the unexpanded token forms silently
+// misses every real shell invocation, which is the exact bypass a naive fix would leave open.
+function homeRelativePattern(suffixRe, label) {
+  const literalHome = escapeRegExp(HOME_DIR);
+  return {
+    re: new RegExp(`(^|[\\s"'=;:])(?:~|\\$HOME|${literalHome})\\/${suffixRe}`, 'u'),
+    label,
+  };
+}
 
 const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])\.env($|[\s"';|&])/u, label: '.env' },
@@ -32,10 +67,32 @@ const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])backend\/data(\/|$|[\s"';|&])/u, label: 'backend/data' },
   { re: /(^|[\s"'=;:])_SYSTEM\/backend\/data(\/|$|[\s"';|&])/u, label: '_SYSTEM/backend/data' },
   { re: /(^|[\s"'=;:])node_modules(\/|$|[\s"';|&])/u, label: 'node_modules' },
+  { re: /(^|[\s"'=;:])\.git\/hooks(\/|$|[\s"';|&])/u, label: '.git/hooks' },
+  { re: /(^|[\s"'=;:])\.git\/config($|[\s"';|&])/u, label: '.git/config' },
+  // SEC-4: literal-pattern mirrors for the HOME-relative denylist so string-match paths (e.g.
+  // `cat ~/.aws/credentials`, `cat $HOME/.ssh/id_rsa`, or the shell-expanded absolute form) are
+  // caught even when extractLikelyWriteTargets doesn't fire (reads, not redirects/tee/output-flags).
+  homeRelativePattern('\\.aws(\\/|$|[\\s"\';|&])', '~/.aws'),
+  homeRelativePattern('\\.npmrc($|[\\s"\';|&])', '~/.npmrc'),
+  homeRelativePattern('\\.docker(\\/|$|[\\s"\';|&])', '~/.docker'),
+  homeRelativePattern('\\.gitconfig($|[\\s"\';|&])', '~/.gitconfig'),
+  homeRelativePattern('\\.ssh(\\/|$|[\\s"\';|&])', '~/.ssh'),
+  homeRelativePattern('\\.zsh_history($|[\\s"\';|&])', '~/.zsh_history'),
+  homeRelativePattern('Library\\/Keychains(\\/|$|[\\s"\';|&])', '~/Library/Keychains'),
+  homeRelativePattern('\\.claude\\/settings(?:\\.local)?\\.json($|[\\s"\';|&])', '~/.claude/settings.json'),
 ];
 
 const MUTATING_COMMAND_RE =
   /\b(rm|mv|cp|rsync|install|touch|mkdir|rmdir|truncate|tee|dd|sed|perl|python3?|node|bash|sh|zsh|chmod|chown|git)\b|\s(?:>|>>|2>|&>)/u;
+
+// SEC-4: read-only commands over a protected literal must ALSO deny — the original gate only fired
+// on MUTATING_COMMAND_RE, so `cat ~/.aws/credentials` (a pure read, no mutating verb) sailed through.
+// This is a real gap on the ORIGINAL denylist too (e.g. `cat .env`), not just the newly-added HOME
+// credential stores — fixed here rather than left silently unpatched, since the security matrix this
+// finding is verified against requires these reads to DENY. Narrow and additive: only read/inspect
+// commands, mirrors bash-security-guard.js's READ_CMDS set.
+const READ_COMMAND_RE =
+  /\b(cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|\.|scp|rsync)\b/u;
 
 const DESTRUCTIVE_PATTERNS = [
   { re: /\brm\s+-[^;&|]*[rR][^;&|]*[fF]?/u, reason: 'destructive recursive rm is blocked' },
@@ -147,6 +204,14 @@ function evaluateShellCommand(command, cwd) {
   if (protectedLiteral && MUTATING_COMMAND_RE.test(command)) {
     if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
     return block(`mutation of protected target blocked: ${protectedLiteral.label}`);
+  }
+  // SEC-4: a protected literal under a plain READ command (cat/head/grep/etc, no mutating verb) must
+  // ALSO deny — closes the read-only bypass (e.g. `cat ~/.aws/credentials`, `cat .env`) the original
+  // gate left open by only checking MUTATING_COMMAND_RE. Same offload carve-out applies so the
+  // existing `.env` DEEPSEEK_API_KEY hydration path (source/grep, no redirect) still degrades to allow.
+  if (protectedLiteral && READ_COMMAND_RE.test(command)) {
+    if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
+    return block(`read of protected target blocked: ${protectedLiteral.label}`);
   }
 
   return allow();
@@ -281,6 +346,43 @@ function readStdin() {
   });
 }
 
+// SEC-1 (2026-07-06): minimal cross-language shim CLI so a non-Node caller (yuri-z-brain.py) can
+// consult the SAME evaluateToolCall gate the fleet lanes use, instead of maintaining a separate
+// inline denylist. Reads {toolName, toolInput, opts?} JSON from stdin (an explicit, narrow contract —
+// deliberately NOT the hook-event alias shape runHookFromStdin expects, so the Python caller doesn't
+// need to know Claude-Code/Codex hook-event field names). Exits 0 (allow) / 2 (deny), same convention
+// as --check. Prints {allowed, decision, reason?} JSON on stdout for the caller to parse OR fall back
+// to fail-closed-if-unparseable on the Python side. Additive: does not change any existing CLI path.
+export async function runCheckToolFromStdin() {
+  const raw = await readStdin();
+  let payload;
+  try {
+    payload = raw ? JSON.parse(raw) : {};
+  } catch {
+    console.log(JSON.stringify(block('invalid --check-tool JSON on stdin')));
+    process.exit(2);
+    return;
+  }
+  const toolName = payload.toolName || payload.tool_name || '';
+  const toolInput = payload.toolInput || payload.tool_input || {};
+  const opts = payload.opts || {};
+  let decision;
+  try {
+    decision = evaluateToolCall(toolName, toolInput, opts);
+  } catch (e) {
+    // Fail-closed: an evaluator crash must never be mistaken for an allow.
+    console.log(JSON.stringify(block(`evaluator error: ${String(e && e.message || e)}`)));
+    process.exit(2);
+    return;
+  }
+  console.log(JSON.stringify(decision));
+  process.exit(decision.allowed ? 0 : 2);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  runHookFromStdin({ check: process.argv.includes('--check') });
+  if (process.argv.includes('--check-tool')) {
+    runCheckToolFromStdin();
+  } else {
+    runHookFromStdin({ check: process.argv.includes('--check') });
+  }
 }
