@@ -335,65 +335,28 @@ def voice_speak(text: str) -> str:
         pcm = (np.clip(audio_f32, -1.0, 1.0) * 32767.0).astype("<i2")
 
         # 2) Play it while a monitor thread watches the mic for speech (barge-in).
-        interrupted = threading.Event()
-        playback_done = threading.Event()
-
-        def monitor():
-            """Open a 16kHz input stream and run VAD; fire `interrupted` the moment the user
-            starts speaking (VADState.SPEAKING = ~start_secs of speech)."""
-            try:
-                istream = _pa.open(format=pyaudio.paInt16, channels=1, rate=INPUT_SR, input=True,
-                                  input_device_index=_in_idx, frames_per_buffer=_vad.num_frames_required())
-                _reset_vad()
-                n = _vad.num_frames_required()
-                while not playback_done.is_set():
-                    try:
-                        data = istream.read(n, exception_on_overflow=False)
-                    except OSError:
-                        break
-                    if not data:
-                        continue
-                    if _vad._run_analyzer(data) == VADState.SPEAKING:
-                        log("[voice-mcp] barge-in: speech detected during playback")
-                        interrupted.set()
-                        return
-            except Exception as e:
-                log(f"[voice-mcp] barge-in monitor error: {e}")
-            finally:
-                try:
-                    istream.stop_stream()
-                    istream.close()
-                except Exception:
-                    pass
-
-        mon = threading.Thread(target=monitor, name="voice-barge-in", daemon=True)
-        mon.start()
-
+        # Barge-in DISABLED — echo feedback loop fix. Mic stays off during TTS.
+        # Play the full audio without interruption checks.
         ostream = None
         try:
             ostream = _pa.open(format=pyaudio.paInt16, channels=1, rate=KOKORO_SR, output=True,
                               output_device_index=_out_idx, frames_per_buffer=2048)
-            chunk = 2048                                        # ~85ms @ 24kHz → barge-in check granularity
+            chunk = 2048
             for i in range(0, len(pcm), chunk):
-                if interrupted.is_set():
-                    break
                 block = pcm[i:i + chunk]
                 ostream.write(block.tobytes(), num_frames=len(block))
         except Exception as e:
-            log(f"[voice-mcp] playback failed: {e}\n{traceback.format_exc()}")
+            log(f"[voice-mcp] playback failed: {e}")
             return f"(playback error: {str(e)[:120]})"
         finally:
-            playback_done.set()
             if ostream is not None:
                 try:
                     ostream.stop_stream()
                     ostream.close()
                 except Exception:
                     pass
-            mon.join(timeout=2.0)
 
-        if interrupted.is_set():
-            return "(interrupted)"
+        log("[voice-mcp] speak: done")
         log("[voice-mcp] speak: done")
         return "spoken"
 
