@@ -23,6 +23,10 @@ bash "$VOICE/voice-stop.sh"
 # Persisted memory + model-driven tool-calling (spawn_worker). Key self-hydrates from keychain
 # yuri-zai-api-key. This is the ONE brain for ALL launchers (claude-p-brain.py is retired).
 pkill -f yuri-z-brain.py 2>/dev/null || true
+# SEC-1 armed 2026-07-06: route the brain's bash/write/edit through the ONE shared safety gate
+# (evaluateToolCall). Inline floor still runs first; degrades to inline on any shim fault. Override
+# with YURI_Z_UNIFIED_GATE=0 to disarm.
+export YURI_Z_UNIFIED_GATE="${YURI_Z_UNIFIED_GATE:-1}"
 # Brain as a TRACKED background child (not a detached ( … & ) subshell). The trap below kills the
 # FULL voice set on ANY exit — Ctrl-C (INT), terminal close (HUP), or normal exit — so nothing is
 # ever left orphaned (owner 2026-06-19: "if I close the terminal all of it should end right with it").

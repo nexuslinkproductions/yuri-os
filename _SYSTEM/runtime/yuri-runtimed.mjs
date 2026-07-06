@@ -110,6 +110,7 @@ const DEFAULT_CHILD_SPECS = [
     args: [path.join(SYS, 'Scripts', 'voice', 'yuri-z-brain.py')],
     port: 8014,
     healthPath: '/health',
+    env: { YURI_Z_UNIFIED_GATE: '1' }, // SEC-1 armed 2026-07-06: brain routes tool calls through the unified safety gate (evaluateToolCall); degrades to inline on shim fault
     enabledByDefault: true,
   },
   {

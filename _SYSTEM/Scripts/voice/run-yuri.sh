@@ -18,6 +18,8 @@ BRAIN_URL="${BRAIN_PROXY_URL:-http://127.0.0.1:${BRAIN_PORT}/v1}"
 [ -x "$VP" ] || { echo "❌ venv missing — run setup-pipecat.sh first ($VP)"; exit 1; }
 mkdir -p "$REPO/_SYSTEM/state/voice"
 
+# SEC-1 armed 2026-07-06: brain tool calls route through the unified safety gate (override with =0).
+export YURI_Z_UNIFIED_GATE="${YURI_Z_UNIFIED_GATE:-1}"
 # 1. The GLM brain (yuri-z-brain.py :8014). Start it if it isn't up. NEVER claude-p-brain.py.
 if [[ "$BRAIN_URL" == *":${BRAIN_PORT}/"* ]]; then
   if ! pgrep -f yuri-z-brain.py >/dev/null 2>&1; then
