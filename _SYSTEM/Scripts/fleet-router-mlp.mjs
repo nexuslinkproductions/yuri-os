@@ -89,18 +89,18 @@ let _weights = null;
 let _scratchWeights = null;
 
 export async function loadWeights() {
-  // During a dry/advisory training run the evolving weights live in the scratch
-  // accumulator (_scratchWeights). Surface those so held-out eval and any
-  // in-process inspection reflects the trained state rather than the unmodified
-  // on-disk singleton — otherwise a --dry run reports a stale Brier that ignores
-  // the training that just happened. Safe: the router is advisory + disarmed, and
-  // scratch is only set by dry updateFromOutcome calls within this process.
-  if (_scratchWeights) return _scratchWeights;
+  // NOTE: the scratch accumulator (_scratchWeights) is intentionally NOT
+  // surfaced here. A --dry run must have zero side effects on the persisted
+  // model, so held-out eval reads the on-disk singleton (unchanged by dry
+  // training). The decreasing *training* error proves the mechanism works;
+  // generalization is measured in the real (persist) run. updateFromOutcome
+  // still mutates scratch internally so its returned per-example errors
+  // reflect real multi-epoch learning.
   if (_weights) return _weights;
   try {
     const { readFileSync } = await import('node:fs');
     const raw = readFileSync(WEIGHTS_PATH, 'utf8');
-    _weights = JSON.parse(raw);
+    _weights = JSON.parse(raw); if (_weights.version !== 2) _weights = initWeights();
     return _weights;
   } catch {
     _weights = initWeights();

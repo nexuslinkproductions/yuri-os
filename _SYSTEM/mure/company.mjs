@@ -227,7 +227,7 @@ export function applyAffinityMatrix(role, target, opts = {}) {
   if (opts.forceSubstrateHint) return target;
   if (!_affinityCache) {
     try {
-      const matrixPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'config', 'llm-affinity-matrix.json');
+      const matrixPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'llm-affinity-matrix.json');
       _affinityCache = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
     } catch {
       _affinityCache = { affinities: {} };
