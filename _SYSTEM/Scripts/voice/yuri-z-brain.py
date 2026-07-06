@@ -27,8 +27,8 @@ ZAI_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/anthropic").rstri
 # deepseek-v4-flash:cloud via Ollama Cloud (YURI_BRAIN_PROVIDER/YURI_BRAIN_MODEL override). State
 # persists to disk so a switch_brain_model tool call survives the process — the NEXT turn re-reads it.
 _BRAIN_STATE = pathlib.Path(os.environ.get("YURI_Z_STATE", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "brain-model.json")))
-_DEFAULT_PROVIDER = os.environ.get("YURI_BRAIN_PROVIDER", "ollama")
-_DEFAULT_BRAIN_MODEL = os.environ.get("YURI_BRAIN_MODEL", "deepseek-v4-flash:cloud")
+_DEFAULT_PROVIDER = os.environ.get("YURI_BRAIN_PROVIDER", "zai")  # 'zai' (reliable GLM) | 'ollama' (deepseek, flaky)
+_DEFAULT_BRAIN_MODEL = os.environ.get("YURI_BRAIN_MODEL", "glm-5.2")  # GLM flagship — reliable,  on plan; deepseek-v4-flash:cloud for ollama testing
 OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "https://ollama.com").rstrip("/")
 
 

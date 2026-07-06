@@ -304,42 +304,48 @@ def _log_audio_devices():
         logger.warning(f"could not query audio devices: {e}")
 
 
-def _force_builtin_mic():
-    """Force the MacBook built-in mic as the input device so connected Bluetooth
-    headphones (Sony XM5) stay on A2DP — high-quality output. Without this, macOS
-    routes input to the headphone mic, which flips the headphones into HFP/SCO
-    (hands-free) mode and degrades output to 8kHz mono (they can't do A2DP + mic
-    at once). Disable with YURI_FORCE_BUILTIN_MIC=0 to use the headphone mic."""
+def _resolve_audio_devices():
+    """Resolve input/output PyAudio device indices. Forces a non-Bluetooth input
+    (HyperX > built-in > MacBook) so Bluetooth headphones stay on A2DP (high quality).
+    Returns (input_index, output_index). output_index is always the current default
+    output (never changed). input_index is None if no suitable device found (PyAudio
+    uses its default — may trigger Bluetooth HFP).
+    Override: YURI_INPUT_DEVICE=<substring> (e.g. 'HyperX'). Disable: YURI_FORCE_BUILTIN_MIC=0."""
     if os.environ.get("YURI_FORCE_BUILTIN_MIC", "1") != "1":
-        return
+        return None, None
     try:
-        import sounddevice as sd
-        devs = sd.query_devices()
-        for i, d in enumerate(devs):
-            name = d.get("name", "").lower()
-            if d.get("max_input_channels", 0) > 0 and (
-                os.environ.get("YURI_INPUT_DEVICE", "").strip() and os.environ.get("YURI_INPUT_DEVICE", "").lower().strip() in name or "hyperx" in name or "built-in" in name or "macbook" in name or "internal" in name
-            ):
-                old_in = sd.default.device[0]
-                # input = built-in mic; output left UNCHANGED so headphones stay as speaker.
-                sd.default.device = (i, sd.default.device[1])
-                logger.info(
-                    f"🎧 forced built-in mic [{i}] {d['name']} — Bluetooth stays on A2DP "
-                    f"(was input device {old_in})"
-                )
-                return
-        logger.info("🎧 no built-in mic found — using default input (Bluetooth HFP may degrade output)")
+        import pyaudio
+        pa = pyaudio.PyAudio()
+        out_idx = pa.get_default_output_device_info()["index"]
+        preferred = os.environ.get("YURI_INPUT_DEVICE", "").lower().strip()
+        in_idx = None
+        for i in range(pa.get_device_count()):
+            info = pa.get_device_info_by_index(i)
+            name = info.get("name", "").lower()
+            if info.get("maxInputChannels", 0) > 0:
+                if (preferred and preferred in name) or \
+                   (not preferred and ("hyperx" in name or "built-in" in name or "macbook" in name or "internal" in name)):
+                    in_idx = i
+                    logger.info(f'🎧 input device: [{i}] {info["name"]} — Bluetooth stays on A2DP')
+                    break
+        if in_idx is None:
+            logger.info("🎧 no preferred input found — using system default (Bluetooth HFP may degrade output)")
+        pa.terminate()
+        return in_idx, out_idx
     except Exception as e:
-        logger.warning(f"could not force built-in mic: {e}")
+        logger.warning(f"could not resolve audio devices: {e}")
+        return None, None
 
 
 async def main():
-    _force_builtin_mic()
+    _audio_in, _audio_out = _resolve_audio_devices()
     _log_audio_devices()
     mic_gain = float(os.environ.get("YURI_MIC_GAIN", "0.7"))  # another ~7dB down (loud street-noise rejection)
     transport = LocalAudioTransport(LocalAudioTransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
+        input_device_index=_audio_in,
+        output_device_index=_audio_out,
         # Boost the quiet DJI mic ~8x before VAD/STT so normal speech clears Silero (no shouting).
         # Tune with YURI_MIC_GAIN (lower if it picks up too much / clips, higher if still missed).
         audio_in_filter=GainAudioFilter(gain=mic_gain),
