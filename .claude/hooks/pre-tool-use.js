@@ -7,7 +7,16 @@ const os = require('os');
 const bus = require('./memory-bus.js');
 const ss = require('./session-state.js');
 
-const MEMORY_INDEX = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-YURI-OS-MUSUBI', 'memory', 'MEMORY.md');
+// Canonical Track-B index. NOTE: ~/.claude/projects/<id>/memory/ is a DIFFERENT, orphaned
+// path (resolves outside the repo, to ~/.claude-local/...) that real writes stopped touching
+// around 2026-06 — reading it silently served stale content. Use the repo-relative canonical
+// path instead (found 2026-07-06: the two paths diverged, orphaned one frozen at 525 bytes).
+const REPO_ROOT = process.env.YURI_ROOT || path.resolve(__dirname, '..', '..');
+const MEMORY_INDEX = path.join(REPO_ROOT, '.claude', 'memory', 'MEMORY.md');
+// Only surface the cross-terminal notice for writes that actually happened recently — a
+// freshly-initialized session's lastSeenSequence starts at 0, so without an age guard ANY
+// historical bus entry (however old) reads as "just happened" to a brand-new session.
+const BUS_STALE_MS = 30 * 60 * 1000;
 
 const HEAVY_TOOLS = new Set(['Agent', 'WebSearch', 'WebFetch', 'TaskCreate']);
 
@@ -62,18 +71,24 @@ try {
         currentBus.writerSession &&
         currentBus.writerSession !== sessionId
     ) {
-        let memoryContent = '';
-        try { memoryContent = fs.readFileSync(MEMORY_INDEX, 'utf8').trim(); } catch (_) {}
+        const ageMs = currentBus.lastWrite ? Date.now() - new Date(currentBus.lastWrite).getTime() : Infinity;
 
-        const changedFiles = (currentBus.files || []).join(', ') || 'memory files';
-        emitContext([
-            `[CROSS-TERMINAL MEMORY UPDATE] Another Claude session wrote: ${changedFiles}`,
-            `Written at: ${currentBus.lastWrite}`,
-            '',
-            'Current memory index:',
-            memoryContent || '(could not read MEMORY.md)',
-        ].join('\n'));
+        if (ageMs < BUS_STALE_MS) {
+            let memoryContent = '';
+            try { memoryContent = fs.readFileSync(MEMORY_INDEX, 'utf8').trim(); } catch (_) {}
 
+            const changedFiles = (currentBus.files || []).join(', ') || 'memory files';
+            emitContext([
+                `[CROSS-TERMINAL MEMORY UPDATE] Another Claude session wrote: ${changedFiles}`,
+                `Written at: ${currentBus.lastWrite}`,
+                '',
+                'Current memory index:',
+                memoryContent || '(could not read MEMORY.md)',
+            ].join('\n'));
+        }
+
+        // Catch up bookkeeping regardless of notice — otherwise a stale entry re-evaluates
+        // (harmlessly, but pointlessly) on every tool call for the rest of the session.
         session.lastSeenSequence = currentBus.sequence;
         bus.writeSession(sessionId, session);
         bus.cleanOldSessions();
