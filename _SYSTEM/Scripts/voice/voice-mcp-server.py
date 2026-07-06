@@ -242,6 +242,7 @@ def _reset_vad():
 # Tool: voice_listen — open mic, VAD-segment one utterance, Whisper-transcribe, return text
 # ─────────────────────────────────────────────────────────────────────────────
 def voice_listen(timeout_secs: float = DEFAULT_LISTEN_TIMEOUT) -> str:
+    timeout_secs = min(float(timeout_secs), 15.0)  # CAP at 15s — longer blocks stall the provider stream
     import pyaudio
     from pipecat.audio.vad.vad_analyzer import VADState
 
