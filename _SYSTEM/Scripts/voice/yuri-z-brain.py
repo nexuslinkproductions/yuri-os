@@ -1073,10 +1073,10 @@ def _describe_screenshot(path: str) -> str:
     import base64, time
     try:
         _sz = os.path.getsize(path)
-                if _sz < 2048:
-                    return f"screenshot capture may have failed — file is only {_sz} bytes (expected a real screen capture). Path: {path}"
-                with open(path, "rb") as f:
-                    img_b64 = base64.b64encode(f.read()).decode()
+        if _sz < 2048:
+            return f"screenshot capture may have failed — file is only {_sz} bytes (expected a real screen capture). Path: {path}"
+        with open(path, "rb") as f:
+            img_b64 = base64.b64encode(f.read()).decode()
     except Exception:
         return f"couldn't read screenshot {path}"
 
