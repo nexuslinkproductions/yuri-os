@@ -225,4 +225,14 @@ Oracle (O1) akzeptiert nur, wenn **alle** erfüllt:
 
 **Restrisiko:** Architektur-Blueprint; inhaltliche Korrektheit obliegt Y1/C1/B1. §9-Offene-Punkte sind ungelöste Beleg-Lücken, nicht Architektur-Fehler — sie sind explizit an Calibrator/Oracle delegiert.
 
+## 13. Status-Update (2026-07-06)
+
+**Verschoben:** `04-PRAESENTATION-DE.html` wurde nie in einem Repo committed (lag nur unter `~/Downloads`). Es lebt jetzt kanonisch in `YURI-BUSINESS/02_RESOURCES/INVESTOR-DECK/AMS-2026/04-PRAESENTATION-DE.html` (Branch `ai-business`, selbes zugrundeliegende Repo als Worktree). Diese Datei (`00-DOKUMENT-ARCHITEKTUR-DE.md`) sowie `01-INTEGRITAET-YURI-DE.md`, `research/DELIBERATOR-MECHANISMUS-KARTE-DE.md` und `sections/TOKEN-OEKONOMIE-DE.md` bleiben hier (main-Branch, YURI-OS-MUSUBI-Worktree).
+
+**Nie produziert:** `02-VISION-DE.md`, `03-BUSINESSPLAN-DE.md`, `sections/FINANZEN-DE.md`, `sections/GOVERNANCE-DE.md`, `NEXUS-LINK-YURI-AMS-DE.pdf` existieren nicht — die Präsentation wurde direkt verfasst, nicht über die C1/B1-Rollenkette aus §7/§10 zusammengesetzt. Der Datei-Vertrag in §3 beschreibt damit die **Soll**-Architektur, nicht den tatsächlichen Bauweg dieses Dokuments.
+
+**GTM-Erweiterung:** Ein neues Kapitel "Go-to-Market-Strategie" wird der Präsentation via Opus-Fleet-Dissektion + Fan-out-Synthese hinzugefügt (Vorbereitung für eine Fable-5-Ausbaupass). Siehe `YURI-BUSINESS/02_RESOURCES/INVESTOR-DECK/AMS-2026/` für den aktuellen Stand.
+
+---
+
 RESULT_LABEL: AMS_A1_DOK_ARCHitektur_X_PASS_COMMITTED
