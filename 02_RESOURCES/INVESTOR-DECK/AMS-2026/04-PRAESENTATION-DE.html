@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>NEXUS LINK · YURI · Businessplan · AMS Wien 2026</title>
+<style>
+:root{--void:#04070f;--ink:#e8f2fc;--soft:#a8bdd6;--mist:#6e87a3;--faint:#42546b;--cyan:#00c8f0;--cyan-hi:#9df2ff;--line:rgba(0,200,240,.14);--hair:rgba(232,242,252,.08);--jade:#46e3c2;--mono:"SF Mono",Menlo,monospace;--sans:-apple-system,system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{background:var(--void);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:11.7pt;line-height:1.52}
+em{font-style:normal;color:var(--cyan-hi)}
+strong{font-weight:500}
+.doc{max-width:210mm;margin:0 auto}
+.page{padding:13mm 15mm 14mm;page-break-after:always}
+.page:last-child{page-break-after:auto}
+.rh{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:2.5mm;margin-bottom:4mm}
+.rh span{font-family:var(--mono);font-size:8.5pt;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.rh .n{color:var(--cyan)}
+h1.doc-title{font-weight:200;font-size:22.5pt;letter-spacing:.06em;margin-bottom:2mm}
+h2.ch{font-weight:300;font-size:15.5pt;color:var(--cyan-hi);margin:4mm 0 2.5mm;border-bottom:1px solid var(--hair);padding-bottom:1.5mm}
+h3.sec{font-size:12.5pt;font-weight:400;margin:3mm 0 1.5mm;color:var(--ink)}
+h4.sub{font-size:11pt;font-weight:400;margin:2mm 0 1mm;color:var(--cyan)}
+p,li{font-size:11.5pt;color:var(--soft);margin-bottom:1.8mm}
+ul,ol{margin:0 0 2.5mm 4mm}
+.cols2{columns:2;column-gap:7mm}
+.cols2>*{break-inside:avoid}
+.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;margin:2mm 0}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm;margin:3mm 0}
+.kpi .b{border:1px solid var(--line);padding:2.5mm 3mm;background:rgba(7,11,22,.65)}
+.kpi .v{font-size:16.5pt;color:var(--cyan-hi);font-variant-numeric:tabular-nums}
+.kpi .l{font-family:var(--mono);font-size:7.5pt;letter-spacing:.16em;color:var(--mist);text-transform:uppercase;margin-top:1mm}
+table{width:100%;border-collapse:collapse;font-size:10.5pt;margin:2mm 0}
+th{font-family:var(--mono);font-size:8pt;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);text-align:left;padding:1.8mm 2mm;border-bottom:1px solid var(--line)}
+td{padding:1.8mm 2mm;border-bottom:1px solid var(--hair);color:var(--soft);vertical-align:top}
+td.n{color:var(--cyan-hi);text-align:right;font-variant-numeric:tabular-nums}
+td:first-child{color:var(--ink)}
+.box{border:1px solid var(--line);padding:3mm;margin-bottom:2.5mm;background:rgba(7,11,22,.5)}
+.organ-card{border:1px solid var(--line);padding:3mm;background:rgba(0,200,240,.03);margin-bottom:2mm}
+.organ-card h4{font-family:var(--mono);font-size:8.5pt;letter-spacing:.2em;color:var(--cyan);margin-bottom:1.5mm}
+.swot{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.swot .q{padding:3mm;border:1px solid var(--line)}
+.swot h4{font-size:11pt;margin-bottom:1.5mm}
+/* Cover */
+.cover{min-height:248mm;display:flex;flex-direction:column;justify-content:space-between;padding:18mm 22mm;position:relative;overflow:hidden}
+.cover::before{content:"";position:absolute;inset:12mm;border:1px solid var(--line);pointer-events:none}
+.cover::after{content:"";position:absolute;top:50%;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);pointer-events:none}
+.cover-top{font-family:var(--mono);font-size:6pt;letter-spacing:.35em;text-transform:uppercase;color:var(--faint);text-align:center}
+.cover-mid{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8mm 0}
+.cover-mid .mark{font-family:var(--mono);font-size:7pt;letter-spacing:.5em;color:var(--mist);margin-bottom:6mm}
+.cover-mid h1{font-size:52pt;font-weight:100;letter-spacing:.22em;line-height:1;margin-bottom:4mm}
+.cover-mid .product{font-size:13pt;font-weight:300;color:var(--soft);letter-spacing:.12em;margin-bottom:3mm}
+.cover-mid .doc-type{font-size:12.5pt;color:var(--mist);font-weight:300;max-width:120mm;line-height:1.6}
+.cover-mid .rule{width:24mm;height:1px;background:var(--cyan);margin:6mm auto;opacity:.6}
+.cover-mid .epigraph{font-size:11.5pt;font-style:italic;color:var(--mist);max-width:130mm;line-height:1.65}
+.cover-bot{text-align:center}
+.cover-bot .meta{font-family:var(--mono);font-size:6pt;letter-spacing:.14em;color:var(--faint);line-height:1.9}
+.layer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2mm;font-size:10pt}
+.layer-grid .cell{border-left:2px solid var(--cyan);padding:1.5mm 2mm;background:rgba(7,11,22,.4)}
+.layer-grid .lid{font-family:var(--mono);font-size:7.5pt;color:var(--cyan);letter-spacing:.1em}
+.diagram{border:1px solid var(--line);padding:4mm;margin:3mm 0;background:rgba(7,11,22,.55)}
+.diagram svg{width:100%;height:auto;display:block}
+.flow-h{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:1.5mm;margin:3mm 0}
+.flow-h .node{border:1px solid var(--cyan);padding:2mm 3.5mm;font-size:10pt;color:var(--ink);background:rgba(0,200,240,.06);text-align:center}
+.flow-h .arr{color:var(--cyan);font-size:14pt;line-height:1}
+.bar-chart{display:flex;align-items:flex-end;gap:4mm;height:32mm;margin:4mm 0 2mm;padding:0 2mm;border-bottom:1px solid var(--line)}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:1.5mm;height:100%;justify-content:flex-end}
+.bar-fill{width:72%;min-height:2mm;background:linear-gradient(180deg,var(--cyan-hi),rgba(0,200,240,.25));border-radius:1px 1px 0 0}
+.bar-val{font-family:var(--mono);font-size:7.5pt;color:var(--cyan-hi)}
+.bar-lbl{font-family:var(--mono);font-size:7.5pt;color:var(--mist);text-align:center;line-height:1.3}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;margin:3mm 0}
+.timeline .step{border-top:2px solid var(--cyan);padding:2.5mm 2mm 0;font-size:10pt}
+.timeline .step b{display:block;color:var(--cyan-hi);font-size:10.5pt;margin-bottom:1mm}
+.layer-stack{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin:3mm 0}
+.layer-stack .stack{display:flex;flex-direction:column-reverse;gap:1mm}
+.layer-stack .lay{display:flex;align-items:center;gap:2mm;padding:1.5mm 2mm;border-left:3px solid var(--cyan);background:rgba(0,200,240,.04);font-size:10pt}
+.layer-stack .lay .lid{font-family:var(--mono);font-size:8pt;color:var(--cyan);min-width:7mm}
+.callout{border-left:3px solid var(--jade);padding:2mm 3mm;margin:2mm 0;background:rgba(70,227,194,.04);font-size:10.5pt;color:var(--soft)}
+@media print{@page{size:A4;margin:0}}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- COVER -->
+<section class="page cover">
+<p class="cover-top">Vertraulich · Wien · Juli 2026</p>
+<div class="cover-mid">
+<p class="mark">NEXUS LINK</p>
+<h1>YURI</h1>
+<p class="product">Agentisches KI-Betriebssystem</p>
+<div class="rule"></div>
+<p class="doc-type">Businessplan<br>Deterministische Steuerung für agentische Künstliche Intelligenz</p>
+<p class="epigraph" style="margin-top:8mm">Ein Nervensystem über jedem Modell: mit messbarem Gewissen, geführtem Gedächtnis und nachvollziehbarer Steuerung.</p>
+</div>
+<div class="cover-bot">
+<p class="meta">Marcel Spatz · Geschäftsführung (geplant)<br>GmbH · Wien, Österreich · AMS Wien 2026<br>Finanzierung · Rahmen offen (abhängig von Förderung)</p>
+</div>
+</section>
+
+<!-- 01 ZUSAMMENFASSUNG -->
+<section class="page">
+<div class="rh"><span>NEXUS LINK · Businessplan</span><span class="n">01</span></div>
+<h1 class="doc-title">1. Zusammenfassung</h1>
+<p>NEXUS LINK entwickelt <strong>YURI</strong>, ein deterministisches Betriebssystem für agentische Künstliche Intelligenz. YURI umschließt bestehende Modelle mit Steuerung, Gedächtnis, Energiemessung und Kostenkontrolle. Wir sind <strong>Erweiterung</strong> der Modellanbieter, nicht deren Konkurrenz: Wenn Anthropic oder OpenAI skalieren, wächst unser Adressmarkt.</p>
+<div class="cols2" style="margin-top:3mm">
+<div>
+<p><strong>Das Problem:</strong> Unternehmen verbrennen sechsstellige Schnittstellen-Budgets ohne Echtzeit-Verbrauchsmessung. Agenten halluzinieren mit Selbstsicherheit. Jede Sitzung beginnt ohne Erinnerung. Ab August 2026 verlangt der EU AI Act nachvollziehbare KI-Steuerung.</p>
+<p><strong>Die Antwort:</strong> Vier Organe, vierzehn Schichten, 232 Mechanismen im Schaltplan: verdrahtet als ein Organismus, nicht als Toolkit.</p>
+</div>
+<div>
+<p><strong>Traktion:</strong> <strong>Architektur-Nachweis</strong> durch den Gründer: 342 M Token und 142.000 Nachrichten in 30 Tagen intensiver Eigenproduktion (Aufbau und Betrieb von YURI). <strong>Pilot:</strong> Rene Spatz (Custom Gear Solutions, Vater des Gründerteams) ist frisch im geführten Ersteinsatz. Nach <strong>14 Tagen</strong> Guidance, Bug-Fixes und Verfeinerung öffnen wir die Warteliste. Langfristziel: 50 bis 100 kommerzielle Piloten und Tausende OSS-Nutzer.</p>
+<p><strong>Finanzierung:</strong> Kein fixer Kapitalbedarf in diesem Dokument. Die Planung hängt vom Umfang der <strong>Förderung</strong> (AMS, FFG, aws und weitere) ab. Nach Klärung der Zuschüsse wird der Gesamtplan (Phasen, Personal, Modellbau) präzise nachgerechnet. Gesprächsgegenstand, nicht fertige Zahl.</p>
+</div>
+</div>
+<div class="kpi" style="grid-template-columns:repeat(4,1fr);margin-top:4mm">
+<div class="b"><div class="v"><b>14</b></div><div class="l">Technische Schichten</div></div>
+<div class="b"><div class="v"><b>232</b></div><div class="l">Mechanismen</div></div>
+<div class="b"><div class="v"><b>20</b></div><div class="l">MURE-Rollen</div></div>
+<div class="b"><div class="v"><b>3</b></div><div class="l">Peer-Pools</div></div>
+</div>
+<h3 class="sec">Problem in Zahlen (Adressierbarer Schmerz)</h3>
+<table>
+<tr><th>Schmerzpunkt</th><th>Marktrealität</th><th>YURI-Antwort</th></tr>
+<tr><td>API-Kosten</td><td>Enterprise verbrennt fünf- bis sechsstellige USD/Jahr an Modell-APIs ohne Echtzeit-Messung</td><td>Token-Schicht L10 + Quartermaster: 65–95 % Einsparung nachgewiesen</td></tr>
+<tr><td>Halluzination</td><td>Agenten handeln mit Selbstsicherheit ohne Evidenzpflicht</td><td>Rückgrat + Evidence Contract: Claim ≠ Evidenz bis Beweis</td></tr>
+<tr><td>Gedächtnisverlust</td><td>Jede Sitzung startet ohne Kontext; RAG allein reicht nicht</td><td>Zwei-Spuren-Gedächtnis + FSRS + Anwender-Gating</td></tr>
+<tr><td>Regulierung</td><td>EU AI Act ab Aug. 2026: Nachweispflicht für KI-Steuerung</td><td>Offengelegte Lyapunov-Math, Audit-Trail pro Gate</td></tr>
+</table>
+</section>
+
+<!-- 02 VISION -->
+<section class="page">
+<div class="rh"><span>2. Vision und Positionierung</span><span class="n">02</span></div>
+<h2 class="ch">2.1 NEXUS LINK · die Ideologie</h2>
+<p>NEXUS LINK definiert einen neuralen Zentralknoten von Information, Arbeit und Austausch über jede Domäne hinweg: nicht gebunden an einen Anbieter, nicht im Wettbewerb mit Modellherstellern. Der Zweck ist Verbindung und Erweiterung in Harmonie, nicht Gatekeeping.</p>
+<p>Die Haltung ist ruhig und präsent: strukturiert, wenn Stabilität gefragt ist; flexibel, wenn die Situation es verlangt. Für Investoren bedeutet das: <strong>kein Nullsummenspiel</strong>. YURI sitzt über der Inferenz, nicht neben ihr.</p>
+<h2 class="ch">2.2 Was YURI ist</h2>
+<ul>
+<li>Ein <strong>deterministisches KI-Betriebssystem</strong>, lokal und anbieterunabhängig</li>
+<li>Das <strong>Nervensystem über jedem Modell</strong>: Steuerung, Gedächtnis und Gewissen umschließen die Inferenz</li>
+<li><strong>Vierzehn Schichten</strong> und <strong>232 Mechanismen</strong>, verdrahtet als Organismus (neun Hauptorgane, fünf Selbstwahrnehmungs-Organe)</li>
+<li><strong>Deterministische Steuerungsschicht</strong> mit Audit-Trail, Sechs-Tore-Charter und offengelegter Lyapunov-Mathematik</li>
+<li><strong>Geführtes Gedächtnis</strong>: Zwei-Spuren-Architektur, FSRS-Vergessen, Promotion nur mit Anwenderfreigabe</li>
+<li><strong>Agentische Firma (MURE)</strong>: zwanzig Rollen-Archetypen, paralleler Schwarm-Dispatch über drei Peer-Pools</li>
+<li><strong>Komplementär zu Modellanbietern</strong>: wir monetarisieren Steuerung und Nachweisbarkeit, nicht Token-Reselling</li>
+</ul>
+<h2 class="ch">2.3 Nutzen in Alltagssprache</h2>
+<p>Stellen Sie sich einen klugen Assistenten vor, der manchmal Dinge erfindet und vergisst, was Sie ihm sagten. YURI gibt ihm ein Notizbuch, einen Faktenprüfer und eine Kostenkontrolle. <strong>Rene Spatz</strong> (Vater des Gründerteams, Custom Gear Solutions) ist der erste geführte Pilot: frisch im Einsatz, zuvor nur Web-ChatGPT. In den ersten 14 Tagen sammeln wir reale Nutzungserfahrung unter Guidance, bevor die Warteliste öffnet.</p>
+</section>
+
+<!-- 02b GESCHÄFTSMODELL -->
+<section class="page">
+<div class="rh"><span>2. Geschäftsmodell</span><span class="n">03</span></div>
+<h1 class="doc-title">Wertschöpfung und Erlöslogik</h1>
+<h2 class="ch">2.4 Wertschöpfungskette</h2>
+<div class="flow-h">
+<span class="node">Anwender-<br>Intention</span><span class="arr">→</span>
+<span class="node">Rückgrat-<br>Gate</span><span class="arr">→</span>
+<span class="node">Gehirn-<br>Assembly</span><span class="arr">→</span>
+<span class="node">Modell-<br>Inferenz</span><span class="arr">→</span>
+<span class="node">Gewissen-<br>ΔU</span><span class="arr">→</span>
+<span class="node">Gedächtnis-<br>Update</span><span class="arr">→</span>
+<span class="node">Ausgabe +<br>Lernen</span>
+</div>
+<p class="callout">YURI sitzt <strong>über</strong> der Inferenz, nicht neben dem Modellanbieter. Wir monetarisieren Steuerung, Gedächtnis und Nachweisbarkeit, nicht Token-Reselling.</p>
+<h2 class="ch">2.5 Erlösströme</h2>
+<table>
+<tr><th>Strom</th><th>Preislogik (Ziel)</th><th>Skalierung</th></tr>
+<tr><td>Professional</td><td>EUR 49–99/Monat · Einzelanwender</td><td>Self-serve, OSS-Upsell</td></tr>
+<tr><td>Business</td><td>EUR 299–799/Monat · Teams bis 25 Sitze</td><td>Pilot → Jahresvertrag</td></tr>
+<tr><td>Unternehmen</td><td>EUR 15.000–50.000/Jahr · On-Premise, SLA</td><td>DACH-Referenz → EU</td></tr>
+<tr><td>Open Source</td><td>Kostenlos · GitHub</td><td>Reichweite, Community, Upsell</td></tr>
+<tr><td>Beratung / Pilot</td><td>EUR 2.500–10.000 Pauschale</td><td>Einstieg, Übergang in Lizenz</td></tr>
+</table>
+<h2 class="ch">2.6 Unit Economics (Zielbild Jahr 2)</h2>
+<div class="bar-chart">
+<div class="bar-col"><div class="bar-val">€25K</div><div class="bar-fill" style="height:50%"></div><div class="bar-lbl">ARPU<br>Unternehmen</div></div>
+<div class="bar-col"><div class="bar-val">€6K</div><div class="bar-fill" style="height:24%"></div><div class="bar-lbl">ARPU<br>Business</div></div>
+<div class="bar-col"><div class="bar-val">€900</div><div class="bar-fill" style="height:8%"></div><div class="bar-lbl">ARPU<br>Professional</div></div>
+<div class="bar-col"><div class="bar-val">70%</div><div class="bar-fill" style="height:70%;background:linear-gradient(180deg,var(--jade),rgba(70,227,194,.25))"></div><div class="bar-lbl">Ziel-<br>Bruttomarge</div></div>
+<div class="bar-col"><div class="bar-val">&lt;18M</div><div class="bar-fill" style="height:45%"></div><div class="bar-lbl">Payback<br>(Monate)</div></div>
+</div>
+<p>Software-Margen durch lokale Ausführung und Anbindung bestehender API-Kontingente des Kunden. Kein eigener GPU-Cluster in Phase 0–1 nötig.</p>
+</section>
+
+<!-- 03 ANATOMIE ÜBERSICHT -->
+<section class="page">
+<div class="rh"><span>3. Anatomie YURI</span><span class="n">04</span></div>
+<h1 class="doc-title">Der Organismus</h1>
+<p>YURI ist architektonisch wie ein Lebewesen aufgebaut. Zwei Ebenen-Typen sind zu trennen: <strong>vierzehn technische Schichten</strong> (L1–L14, funktionale Mechanismus-Schichtung) und <strong>dreizehn Schaltplan-Sektoren</strong> (räumliche Graph-Organisation). Dazu: neun Hauptorgane, fünf Selbstwahrnehmungs-Organe, <strong>232 Mechanismen</strong> im die-graph.</p>
+<div class="callout"><strong>14 Schichten</strong> = was YURI funktional tut (Wahrnehmung bis Meta). <strong>13 Sektoren</strong> = wo Mechanismen im Schaltplan-Graphen liegen. Beides ist verdrahtet, aber nicht identisch.</div>
+<div class="flow-h" style="margin:4mm 0">
+<span class="node">Eingabe</span><span class="arr">→</span>
+<span class="node">Rückgrat</span><span class="arr">→</span>
+<span class="node">Sinne</span><span class="arr">→</span>
+<span class="node">Gehirn</span><span class="arr">→</span>
+<span class="node">Inferenz</span><span class="arr">→</span>
+<span class="node">Gewissen</span><span class="arr">→</span>
+<span class="node">Gedächtnis</span><span class="arr">→</span>
+<span class="node">Ausgabe</span><span class="arr">→</span>
+<span class="node">Lernen</span><span class="arr">→</span>
+<span class="node">Meta</span>
+</div>
+<table style="margin-top:3mm">
+<tr><th>Ebene</th><th>Anzahl</th><th>Rolle</th></tr>
+<tr><td>Hauptorgane</td><td class="n">9</td><td>Tragende Subsysteme mit eigenem Investorenwert</td></tr>
+<tr><td>Selbstwahrnehmung</td><td class="n">5</td><td>Das System wahrnimmt und korrigiert eigenen Zustand</td></tr>
+<tr><td><strong>Technische Schichten</strong></td><td class="n"><strong>14</strong></td><td><strong>L1–L14: funktionale Mechanismus-Schichtung (Kernarchitektur)</strong></td></tr>
+<tr><td>Schaltplan-Sektoren</td><td class="n">13</td><td>Graph-Räume (control_plane, memory, …), nicht Schichten</td></tr>
+<tr><td>Mechanismen</td><td class="n">232</td><td>Benannte, verdrahtete Bausteine (die-graph)</td></tr>
+</table>
+<h3 class="sec">Vierzehn Schichten · Stapeldiagramm</h3>
+<div class="layer-stack">
+<div class="stack">
+<div class="lay"><span class="lid">L14</span> Meta · Health, Fingerabdruck, Live-Ops</div>
+<div class="lay"><span class="lid">L13</span> Telos · Goal-Engine, Prioritäten, Doctrine</div>
+<div class="lay"><span class="lid">L12</span> Aktuation · Werkzeuge, Adapter, Execution</div>
+<div class="lay"><span class="lid">L11</span> Lernen · predict → act → outcome → update</div>
+<div class="lay"><span class="lid">L10</span> Token & Sitzung · Zonen, Cache, Verdichtung</div>
+<div class="lay"><span class="lid">L9</span> Energie & Mathematik · Lyapunov, CVaR, Brier</div>
+<div class="lay"><span class="lid">L8</span> Steuerung · Constitution, Hooks, Sechs-Tore</div>
+<div class="lay"><span class="lid">L7</span> Orchestrierung · Skills, DAG, Lane-Routing</div>
+<div class="lay"><span class="lid">L6</span> Selbstverbesserung · Hypothesen, Träume, Sentinel</div>
+<div class="lay"><span class="lid">L5</span> Abruf · BM25, Spreading Activation, Evidence</div>
+<div class="lay"><span class="lid">L4</span> Gedächtnis · Zwei-Spuren, FSRS, Konsolidierung</div>
+<div class="lay"><span class="lid">L3</span> Relationen · Graph, Querverweis, Domänenbrücken</div>
+<div class="lay"><span class="lid">L2</span> Kognition · Decoder, Haki-Intent, Gegenfaktual</div>
+<div class="lay"><span class="lid">L1</span> Wahrnehmung · Pulse, Docking, Event-Capture</div>
+</div>
+<div>
+<h3 class="sec">Neun Hauptorgane</h3>
+<div class="layer-grid">
+<div class="cell"><span class="lid">01</span> Rückgrat · Symbiotic Pulse</div>
+<div class="cell"><span class="lid">06</span> Rat · Advisory Lanes</div>
+<div class="cell"><span class="lid">02</span> Gewissen · Energy Gate</div>
+<div class="cell"><span class="lid">07</span> Hände · Routing & Lanes</div>
+<div class="cell"><span class="lid">03</span> Gehirn · Cognition Engine</div>
+<div class="cell"><span class="lid">08</span> Immunsystem · Code Intelligence</div>
+<div class="cell"><span class="lid">04</span> Gedächtnis · Epistemic Ledger</div>
+<div class="cell"><span class="lid">09</span> Wachstumsplatte · Self-Improvement</div>
+<div class="cell"><span class="lid">05</span> Sinne · Classification & Salience</div>
+</div>
+<div class="diagram" style="margin-top:3mm">
+<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+<rect x="10" y="10" width="380" height="100" fill="none" stroke="#00c8f0" stroke-opacity="0.3" rx="4"/>
+<text x="200" y="32" fill="#9df2ff" font-size="11" text-anchor="middle" font-family="system-ui">14 Schichten · Datenfluss (vereinfacht)</text>
+<path d="M30 70 H370" stroke="#00c8f0" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="50" cy="70" r="8" fill="#00c8f0" fill-opacity="0.3" stroke="#00c8f0"/>
+<text x="50" y="95" fill="#a8bdd6" font-size="8" text-anchor="middle">L1</text>
+<circle cx="110" cy="70" r="8" fill="#00c8f0" fill-opacity="0.3" stroke="#00c8f0"/>
+<text x="110" y="95" fill="#a8bdd6" font-size="8" text-anchor="middle">L2–4</text>
+<circle cx="170" cy="70" r="8" fill="#00c8f0" fill-opacity="0.3" stroke="#00c8f0"/>
+<text x="170" y="95" fill="#a8bdd6" font-size="8" text-anchor="middle">L5–7</text>
+<circle cx="230" cy="70" r="8" fill="#00c8f0" fill-opacity="0.5" stroke="#9df2ff"/>
+<text x="230" y="95" fill="#9df2ff" font-size="8" text-anchor="middle">L8–9</text>
+<circle cx="290" cy="70" r="8" fill="#00c8f0" fill-opacity="0.3" stroke="#00c8f0"/>
+<text x="290" y="95" fill="#a8bdd6" font-size="8" text-anchor="middle">L10–12</text>
+<circle cx="350" cy="70" r="8" fill="#46e3c2" fill-opacity="0.4" stroke="#46e3c2"/>
+<text x="350" y="95" fill="#46e3c2" font-size="8" text-anchor="middle">L13–14</text>
+<defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#00c8f0"/></marker></defs>
+</svg>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 04 RÜCKGRAT + GEHIRN -->
+<section class="page">
+<div class="rh"><span>3. Anatomie · Organe I–II</span><span class="n">05</span></div>
+<h2 class="ch">3.1 Das Rückgrat (Symbiotic Pulse)</h2>
+<p>Das Rückgrat feuert auf <em>jede</em> sichtbare Eingabe: Nutzerfrage, Werkzeugergebnis, Selbstvorschlag, Modellausgabe. Sechs deterministische Schritte:</p>
+<ol>
+<li><strong>Quelle erkennen</strong>: Mensch, Modell, Werkzeug, externer Kanal</li>
+<li><strong>Absicht dekodieren</strong>: Was will diese Eingabe bewirken?</li>
+<li><strong>Autorität einordnen</strong>: Wer darf was behaupten?</li>
+<li><strong>Risiko bemerken</strong>: Schutzpfad, Blast-Radius, Irreversibilität</li>
+<li><strong>Behauptung von Evidenz trennen</strong>: advisory_only bis Code das Gegenteil beweist</li>
+<li><strong>Aktion wählen</strong>: fortsetzen · verifizieren · nachfragen · blockieren</li>
+</ol>
+<p>Investorenwert: YURI-gesteuerte KI halluziniert nicht selbstsicher. Der Wahrheitsfilter ist strukturell, nicht optional.</p>
+<h2 class="ch">3.2 Das Gehirn (Brain-Inject)</h2>
+<p>Das Gehirn stellt jeden Sitzung den vollen Kontext zusammen: ohne alles auf einmal zu laden:</p>
+<table>
+<tr><th>Komponente</th><th>Funktion</th></tr>
+<tr><td>Stabile Präambel</td><td>Identität, Regeln, Dauerwissen: byte-identisch für Prompt-Cache</td></tr>
+<tr><td>Kuratiertes Gedächtnis</td><td>Nur freigegebene Claims aus dem kanonischen Ledger</td></tr>
+<tr><td>Volatile Schicht</td><td>Energie-Tick, Gate-Status, Lane-Gesundheit</td></tr>
+<tr><td>Selektive Fähigkeiten</td><td>Skills und Kontextblöcke nur bei Bedarf</td></tr>
+</table>
+<p><strong>Kognitionsschicht (L2):</strong> Brain-Dump-Decoder verwandelt unstrukturierte Gedanken in Aufgabenpakete. Haki-Intent erkennt Absicht in fünf Ebenen. Izanagi simuliert Gegenfakten. Nen-Phasen spezialisieren nach Aufgabentyp. Das erklärt den Pilot-Erfolg bei Einsteigern: YURI dekodiert Chaos, statt perfekte Prompts zu verlangen.</p>
+</section>
+
+<!-- 05 GEWISSEN + GEDÄCHTNIS -->
+<section class="page">
+<div class="rh"><span>3. Anatomie · Organe III–IV</span><span class="n">06</span></div>
+<h2 class="ch">3.3 Das Gewissen (Energy Instrument)</h2>
+<p>ΔU = computeU(nachher) − computeU(vorher). Zwölf gewichtete Terme; bestimmte Verstöße sind <strong>nicht ausgleichbar</strong> (Vetos). Die Verdict-Kette läuft Veto-Flags → Circuit-Breaker. Weiche Regressionen steuern advisory; katastrophale Vetos (Schutzpfad, struktureller Boden) können hart blockieren.</p>
+<table>
+<tr><th>Term</th><th>Gew.</th><th>Bedeutung</th></tr>
+<tr><td>Entropie</td><td class="n">1,0</td><td>Unsicherheit über Claim-Status</td></tr>
+<tr><td>Wasserstein-Drift</td><td class="n">2,0</td><td>Ordinaler Abstand Behauptung ↔ Evidenz</td></tr>
+<tr><td>Log-Loss / Brier</td><td class="n">je 1,0</td><td>Kalibrierung und Prognosegenauigkeit</td></tr>
+<tr><td>Informationsgewinn</td><td class="n">1,0</td><td>Echter Fortschritt senkt U</td></tr>
+<tr><td>Schutzpfad-Verstoß</td><td class="n">100</td><td>Katastrophal: nicht offsettbar</td></tr>
+<tr><td>Leiter-Inversion</td><td class="n">10</td><td>Struktureller Verstoß</td></tr>
+<tr><td>Fehlprognose</td><td class="n">50</td><td>Fail-closed</td></tr>
+</table>
+<p>Offengelegte Mathematik: kein undurchsichtiger Trust-Score. Nachweisketten für EU AI Act und regulierte Branchen.</p>
+<h2 class="ch">3.4 Das Gedächtnis (Zwei-Spuren-Architektur)</h2>
+<div class="cols2">
+<div>
+<p><strong>Spur A: Kanonischer Ledger:</strong> propose → decide → promote → append → recall. Jede Promotion braucht Anwenderfreigabe. Dauerhaft, auditierbar, lane-übergreifend. Peer-offener Convergence-Store mit kommutativer Faltung.</p>
+</div>
+<div>
+<p><strong>Spur B: Verhaltensgedächtnis:</strong> Pro Anwender: Kommunikationspräferenzen, Routinen, Korrekturen. Getrennt vom Projektgedächtnis.</p>
+<p><strong>FSRS:</strong> Spaced-Repetition-Vergessen. Retrievability sinkt mit der Zeit; selten genutzte Claims werden demoted, nicht lautlos gelöscht.</p>
+</div>
+</div>
+</section>
+
+<!-- 05b NEUN ORGANE V-IX + EBENEN -->
+<section class="page">
+<div class="rh"><span>3. Anatomie · Organe V–IX</span><span class="n">07</span></div>
+<h2 class="ch">3.5 Die Sinne · 3.6 Der Rat · 3.7 Die Hände</h2>
+<p><strong>Sinne:</strong> Klassifikation und Salienz vor jeder Aktion. <strong>Rat:</strong> Advisory Lanes parallel, Verifikation als Gesetz. <strong>Hände:</strong> Routing zu Anthropic, GLM, Ollama, native MCP.</p>
+<h2 class="ch">3.8 Das Immunsystem · 3.9 Die Wachstumsplatte</h2>
+<p><strong>Immunsystem:</strong> GitNexus-Impact, xref, Propagation vor Mutation. <strong>Wachstumsplatte:</strong> Evolver, Sentinel, Capability-Scan. Anwenderautorität bleibt absolut.</p>
+<h2 class="ch">Selbstwahrnehmungs-Organe (5)</h2>
+<table>
+<tr><th>Organ</th><th>Funktion</th></tr>
+<tr><td>Spreading-Activation</td><td>Verwandtes Wissen im Schaltplan aktivieren</td></tr>
+<tr><td>Homeostat</td><td>Systemparameter im stabilen Band halten</td></tr>
+<tr><td>Truth Maintenance</td><td>Widersprüchliche Claims korrigieren</td></tr>
+<tr><td>Self-Prediction</td><td>MLP-Router, Brier-Score</td></tr>
+<tr><td>Organ State Digest</td><td>Afferenter System-Herzschlag</td></tr>
+</table>
+<h2 class="ch">Vierzehn Schichten · Dreizehn Schaltplan-Sektoren · Verifikation</h2>
+<p><strong>14 Schichten (L1–L14)</strong> sind die funktionale Architektur. <strong>13 Sektoren</strong> ordnen 232 Mechanismen im Graphen:</p>
+<p style="font-size:10pt;color:var(--mist);line-height:1.5">control_plane · operator_io · initialization · prompt_hooks · pulse_cortex · classification · advisors · routing_lanes · memory · services · code_intelligence · self_improvement · command_registry</p>
+<table>
+<tr><th>Verifikation</th><th>Status</th><th>Bedeutung</th></tr>
+<tr><td>Governance 2⁶-Tabelle</td><td class="n">grün</td><td>Alle 64 Charter-Kombinationen getestet</td></tr>
+<tr><td>Energy-Trace</td><td class="n">live</td><td>Jede Gate-Entscheidung protokolliert</td></tr>
+<tr><td>MLP-Router Brier</td><td class="n">0,17</td><td>Kalibriert vs. Baseline 0,43</td></tr>
+<tr><td>Pre-Commit-Regression</td><td class="n">aktiv</td><td>Kein Merge ohne Governance-Check</td></tr>
+<tr><td>Investor-Pass</td><td class="n">adversarial</td><td>Externe Kritik in Architektur eingearbeitet</td></tr>
+</table>
+</section>
+
+<!-- 06 STEUERUNG · MURE ROLLEN -->
+<section class="page">
+<div class="rh"><span>4. Steuerung · MURE</span><span class="n">08</span></div>
+<h2 class="ch">4.1 Was MURE ist</h2>
+<p><strong>MURE</strong> (群れ, „der Schwarm") ist YURIs Modell einer agentischen Firma: zwanzig <em>funktionale Rollen-Archetypen</em>, keine Personen-Imitation. Eine Aufgabe wird in Teilziele zerlegt, jede Teilaufgabe einer Rolle zugeordnet, über parallele KI-Lanes ausgeführt und über eine gemeinsame Ergebnis-Tafel zusammengeführt.</p>
+<div class="diagram">
+<svg viewBox="0 0 420 140" xmlns="http://www.w3.org/2000/svg">
+<text x="210" y="18" fill="#9df2ff" font-size="11" text-anchor="middle">MURE-Dispatch (vereinfacht)</text>
+<rect x="160" y="28" width="100" height="28" rx="3" fill="none" stroke="#9df2ff" stroke-width="1.2"/>
+<text x="210" y="47" fill="#e8f2fc" font-size="10" text-anchor="middle">Steuermann</text>
+<line x1="210" y1="56" x2="70" y2="82" stroke="#00c8f0" stroke-width="1"/>
+<line x1="210" y1="56" x2="210" y2="82" stroke="#00c8f0" stroke-width="1"/>
+<line x1="210" y1="56" x2="350" y2="82" stroke="#00c8f0" stroke-width="1"/>
+<rect x="20" y="82" width="100" height="24" rx="2" fill="rgba(0,200,240,.08)" stroke="#00c8f0"/>
+<text x="70" y="98" fill="#a8bdd6" font-size="9" text-anchor="middle">Scout · Engineer</text>
+<rect x="160" y="82" width="100" height="24" rx="2" fill="rgba(0,200,240,.08)" stroke="#00c8f0"/>
+<text x="210" y="98" fill="#a8bdd6" font-size="9" text-anchor="middle">Adjudicator</text>
+<rect x="300" y="82" width="100" height="24" rx="2" fill="rgba(0,200,240,.08)" stroke="#00c8f0"/>
+<text x="350" y="98" fill="#a8bdd6" font-size="9" text-anchor="middle">Chronicler</text>
+<line x1="70" y1="106" x2="210" y2="122" stroke="#46e3c2" stroke-width="1"/>
+<line x1="210" y1="106" x2="210" y2="122" stroke="#46e3c2" stroke-width="1"/>
+<line x1="350" y1="106" x2="210" y2="122" stroke="#46e3c2" stroke-width="1"/>
+<rect x="130" y="122" width="160" height="16" rx="2" fill="rgba(70,227,194,.12)" stroke="#46e3c2"/>
+<text x="210" y="134" fill="#46e3c2" font-size="8" text-anchor="middle">Ergebnis-Tafel → Steward-Gate → Ausgabe</text>
+</svg>
+</div>
+<h2 class="ch">4.2 Steuerungsschicht (L8) und Sechs-Tore-Charter</h2>
+<p>Vor jeder Werkzeugnutzung greifen deterministische Hooks: Download- und Exec-Block, Schutz sensibler Pfade, Symlink-Defense, katastrophaler Risiko-Hard-Block. Vor jeder autonomen MURE-Entscheidung sechs Fragen:</p>
+<table>
+<tr><th>Tor</th><th>Frage</th></tr>
+<tr><td>Reversibel</td><td>Kann die Aktion rückgängig gemacht werden, wenn sie falsch war?</td></tr>
+<tr><td>Evidenz-entscheidbar</td><td>Lässt sich das Ergebnis mit lokaler Evidenz (Code, Test, Log) bejahen oder verneinen?</td></tr>
+<tr><td>In Doktrin</td><td>Verletzt es YURIs Grundregeln (Schutzpfade, keine Geheimnisse, kein Arming ohne Freigabe)?</td></tr>
+<tr><td>Blast begrenzt</td><td>Wie groß ist der Schaden bei Fehler? (LOW bis CRITICAL)</td></tr>
+<tr><td>Nicht nach außen</td><td>Bleibt alles lokal, ohne Push, E-Mail oder irreversible externe Calls?</td></tr>
+<tr><td>Nicht umstritten</td><td>Blockiert eine parallele Lane dieselbe Ressource?</td></tr>
+</table>
+<p>Schutzpfade, Gate-Selbständerung und Geheimnisse lösen immer ein <strong>Constitution-Veto</strong> aus: Anwenderfreigabe Pflicht.</p>
+<h2 class="ch">4.3 Rollen-Archetypen · Orchestrierung & Forschung</h2>
+<table>
+<tr><th>Rolle</th><th>Was sie tut</th></tr>
+<tr><td><strong>Steuermann</strong></td><td>Zerlegt das Gesamtziel in einen Zielbaum, matcht Rollen, plant den Schwarm-Dispatch. Eskaliert nur bei owner-gated Entscheidungen.</td></tr>
+<tr><td><strong>Architekt</strong></td><td>Entwirft Systeme und Schnittstellen. Prüft, ob bestehende YURI-Mechanismen reichen, bevor neu gebaut wird.</td></tr>
+<tr><td><strong>Steward</strong></td><td>Deterministischer Governance-Offizier: führt die Sechs-Tore-Prüfung aus, berechnet Blast-Radius, erzeugt HOLD-Pakete für den Anwender.</td></tr>
+<tr><td><strong>Ideator</strong></td><td>Erzeugt ungewöhnliche Optionen und Randfälle vor der Konvergenz (divergenter Scan).</td></tr>
+<tr><td><strong>Scout</strong></td><td>Recherchiert zuerst lokal (Repo, Docs), dann extern. Zitiert Primärquellen.</td></tr>
+<tr><td><strong>Synthesist</strong></td><td>Führt verstreute Funde zu einer Gesamtkarte zusammen; benennt domänenübergreifende Übertragungen.</td></tr>
+<tr><td><strong>Evolver</strong></td><td>Schlägt Verbesserungen an YURI selbst vor. Höchster Blast-Radius: jeder Vorschlag owner-gated + Oracle-Test.</td></tr>
+<tr><td><strong>Deliberator</strong></td><td>Hält ein schweres Teilproblem tief (mechanism map), adaptives Reasoning-Budget.</td></tr>
+</table>
+</section>
+
+<!-- 06b MURE ROLLEN II + GOAL ENGINE -->
+<section class="page">
+<div class="rh"><span>4. Steuerung · Rollen & Goal-Engine</span><span class="n">09</span></div>
+<h2 class="ch">4.4 Rollen-Archetypen · Engineering bis Betrieb</h2>
+<table>
+<tr><th>Rolle</th><th>Was sie tut</th></tr>
+<tr><td><strong>Engineer</strong></td><td>Implementiert Features im definierten Scope; schreibt Code, führt Selbsttests aus.</td></tr>
+<tr><td><strong>Mechanic</strong></td><td>Verdrahtet Module, refaktoriert, macht Forschungscode produktionsreif.</td></tr>
+<tr><td><strong>Artificer</strong></td><td>Schnelle mechanische Edits, Scaffolding, Census-Scans (günstige Lane).</td></tr>
+<tr><td><strong>Sentinel</strong></td><td>Sicherheitsreview, Schutzpfad-Audit, adversarial Red-Team.</td></tr>
+<tr><td><strong>Kernelsmith</strong></td><td>Performance-Hotpaths, Benchmarks, Konsolidierung kritischer Pfade.</td></tr>
+<tr><td><strong>Adjudicator</strong></td><td>Greift jedes Artefakt an: Failure Modes, Lücken. Strukturell unabhängig von den Produzenten.</td></tr>
+<tr><td><strong>Oracle</strong></td><td>Führt Tests aus, misst gegen Akzeptanzkriterien, akzeptiert oder verwirft (Gate für Evolver).</td></tr>
+<tr><td><strong>Calibrator</strong></td><td>Prognose vs. Ergebnis, Brier-Score, Kalibrierung, Überkonfidenz-Flag.</td></tr>
+<tr><td><strong>Archivist</strong></td><td>Pflegt Skill-Bibliothek, Gedächtnis-Linie, Capability-Registry.</td></tr>
+<tr><td><strong>Chronicler</strong></td><td>Destilliert in lesbare Docs und Investoren-Prosa (dieses Dokument).</td></tr>
+<tr><td><strong>Quartermaster</strong></td><td>Token-Budget, Quoten-Routing über drei Pools, Kosten-Runaway verhindern.</td></tr>
+<tr><td><strong>Envoy</strong></td><td>Dekodiert Anwender-Brain-Dump in saubere Spezifikation für den Steuermann.</td></tr>
+</table>
+<h2 class="ch">4.5 Goal-Engine (Selbst-Zielsetzung pro Rolle)</h2>
+<p>Jede Rolle kann <em>Teilziele vorschlagen</em>, führt sie aber nicht blind aus. Der Zyklus:</p>
+<ol>
+<li><strong>PROPOSE:</strong> Kandidaten-Ziele an der Fähigkeitsgrenze der Rolle</li>
+<li><strong>Pre-Filter:</strong> Constitution-Hard-Stop verwirft sofort: Schutzpfad, Arming, nach außen, Scope-Verletzung, Intent-Drift</li>
+<li><strong>SCORE:</strong> Fünf gewichtete Dimensionen → Composite 0–1; Advance ab <strong>0,75</strong></li>
+<li><strong>GATE:</strong> Sechs-Tore-Charter → „selbst ausführbar" oder „Anwender-HOLD"</li>
+<li><strong>Cap:</strong> Maximal vier Zyklen, dann obligatorische Eskalation</li>
+</ol>
+<div class="flow-h" style="margin-bottom:3mm">
+<span class="node">PROPOSE</span><span class="arr">→</span>
+<span class="node">Pre-Filter</span><span class="arr">→</span>
+<span class="node">SCORE</span><span class="arr">→</span>
+<span class="node">GATE</span><span class="arr">→</span>
+<span class="node">selected /<br>held / parked</span>
+</div>
+<table>
+<tr><th>Dimension</th><th>Gewicht</th><th>Bedeutung</th></tr>
+<tr><td>Fähigkeits-Fit</td><td class="n">25 %</td><td>Passt das Ziel zur Rolle?</td></tr>
+<tr><td>Reversibilität</td><td class="n">25 %</td><td>Ist es rückgängig machbar?</td></tr>
+<tr><td>Blast-Radius</td><td class="n">20 %</td><td>Wie katastrophal bei Fehler? (niedrig = gut)</td></tr>
+<tr><td>Evidenz-entscheidbar</td><td class="n">20 %</td><td>Kann man es mit Evidenz prüfen?</td></tr>
+<tr><td>Doktrin-Fit</td><td class="n">10 %</td><td>Innerhalb YURIs Regeln?</td></tr>
+</table>
+</section>
+
+<!-- 06c MATH BRIDGE -->
+<section class="page">
+<div class="rh"><span>4. Steuerung · Math-Bridge</span><span class="n">10</span></div>
+<h2 class="ch">4.6 Math-Bridge (Entscheidungsmathematik)</h2>
+<p>Die <strong>Math-Bridge</strong> übersetzt YURIs Mathematik-Module in Rollen-Entscheidungen. Sie reimplementiert nichts; sie importiert bewährte Formeln. Alles <em>advisory</em>: Zahlen informieren, überschreiben nie das Constitution-Veto.</p>
+<h3 class="sec">Decision-Sim (Risiko-adjustiertes Ranking)</h3>
+<p><strong>robustScore</strong> = 0,5 · Erwartungswert + 0,5 · <strong>CVaR</strong> (Conditional Value at Risk: Durchschnitt der schlechtesten Tail-Szenarien). Optionen mit hoher Unsicherheit werden auf der Unterseite bestraft.</p>
+<p><strong>minimaxRegret:</strong> Wie groß ist der maximale Reue-Wert im Worst Case gegenüber der besten Alternative? Shared parameter draw über alle Optionen → fairer Vergleich.</p>
+<p><strong>pgdWitness / infoGapHorizon:</strong> Robustheitsradius einer Option gegenüber der Null-Baseline. „Wie weit darf die Welt kippen, bevor diese Wahl falsch wird?"</p>
+<h3 class="sec">Quantum-Layer (Ordnungseffekt)</h3>
+<p>Inspiriert von Quanten-Messung: <strong>Reihenfolge zählt.</strong> Wenn Schritt A vor B einen anderen Ausgang liefert als B vor A, ist der Plan ordnungssensitiv. Gemessen als |joint<sub>AB</sub> − joint<sub>BA</sub>| über sequentielle Projektoren. Deliberator und Adjudicator nutzen das, um Task-Reihenfolge zu optimieren.</p>
+<h3 class="sec">Energy-Bridge & Kalibrierung</h3>
+<p><strong>governanceVeto:</strong> Prüft Schutzpfad-Treffer vor Aktion. <strong>breakerVerdict:</strong> Volle Lyapunov-Verdict-Kette bei Energie-Zustandsübergang. <strong>calibrate:</strong> Liest das Prediction-Ledger, berechnet <strong>Brier-Score</strong> (0 = perfekte Kalibrierung, 0,25 = Münzwurf). Live: MLP-Router Brier 0,17 vs. Baseline 0,43.</p>
+<h2 class="ch">4.7 Drei Peer-Ausführungs-Pools</h2>
+<table>
+<tr><th>Pool</th><th>Was das praktisch heißt</th></tr>
+<tr><td>Anthropic</td><td>Claude Agents mit Browser, MCP, native Tools</td></tr>
+<tr><td>Z.ai GLM</td><td>Opus-Peer-Orchestrierung, 1M Kontext, Rekursion</td></tr>
+<tr><td>Ollama Cloud</td><td>Günstiger Massen-Fan-out für parallele Lanes</td></tr>
+</table>
+<p>Der <strong>MLP-Router</strong> (kleines neuronales Netz, 12→8→1, trainiert) schlägt vor, welcher Pool für welche Teilaufgabe passt. Er entscheidet nie allein; Charter-Gates haben Veto. Drei unabhängige Kontingente = bis zu dreifacher Durchsatz ohne Quoten-Kollision.</p>
+</section>
+
+<!-- 07 LERNEN + ABRUF (erklärt) -->
+<section class="page">
+<div class="rh"><span>5. Lernen, Abruf, Meta</span><span class="n">11</span></div>
+<h2 class="ch">5.1 Lernschleife (was passiert konkret)</h2>
+<p>YURI <strong>prognostiziert</strong> (z. B. welcher Substrat-Pool liefert das beste Ergebnis), <strong>handelt</strong>, misst das <strong>Ergebnis</strong> und <strong>passt Gewichte an</strong>. Das Prediction-Ledger ist ein Buch aller Vorhersagen mit späterem Ausgang. Der Brier-Score misst, ob das System seine eigene Zuversicht kalibriert hält. Der Energy-Trace speichert jede Gate-Entscheidung mit Korrelations-ID für spätere Auswertung.</p>
+<h2 class="ch">5.2 Abruf und Wissen (erklärt)</h2>
+<table>
+<tr><th>Mechanismus</th><th>Was es für den Anwender bedeutet</th></tr>
+<tr><td>FTS5/BM25-Suche</td><td>Volltextsuche über das gesamte Projekt, wie eine interne Google-Suche mit Relevanz-Ranking</td></tr>
+<tr><td>Spreading Activation</td><td>Ein Konzept im Schaltplan-Graphen „zündet" verwandte Konzepte an (Assoziationsnetz)</td></tr>
+<tr><td>Evidence Contract</td><td>Jede Behauptung muss eine Evidenz-Quelle tragen; ohne Beleg kein Claim</td></tr>
+<tr><td>Querverweis-Navigation</td><td>Vor breiter Suche: gezielte Abfrage „was hängt mit X zusammen?"</td></tr>
+<tr><td>Propagation Law</td><td>Vor jeder Code-Änderung: Scan, welche anderen Teile betroffen sind</td></tr>
+<tr><td>Capability-First</td><td>Prüfung, ob YURI den Mechanismus schon hat, bevor neu gebaut wird</td></tr>
+<tr><td>GitNexus</td><td>Code-Intelligenz: wer ruft wen auf, Impact vor Refactoring</td></tr>
+<tr><td>Kanonischer Store</td><td>Gedächtnis fließt pro Lane in Shards, wird zusammengeführt und gefaltet zu einer Wahrheit</td></tr>
+</table>
+<h2 class="ch">5.3 Selbstverbesserung & Meta</h2>
+<p><strong>Neuron-Loop (9 Phasen):</strong> Hypothese → Test → Validierung → Integration. <strong>Dream-Processor:</strong> Offline-Konsolidierung (wie Schlaf für Gedächtnis). <strong>Sentinel:</strong> Überwacht Regressionen. <strong>Pulse-Cortex-Bus:</strong> Interner Ereignis-Bus für Systemgesundheit. YURI beobachtet Kontingent-Verbrauch, Gate-Firings und Schwarm-Konvergenz und wird <em>messbar</em> klüger.</p>
+</section>
+
+<!-- 08 VERTRAUENSWÜRDIGE KI -->
+<section class="page">
+<div class="rh"><span>6. Vertrauenswürdige KI</span><span class="n">12</span></div>
+<h2 class="ch">6.1 Rechtsrahmen</h2>
+<p>EU AI Act (ab August 2026), DSGVO, NIST AI RMF, OWASP Agentic Threats. YURI liefert <strong>Nachweisketten</strong>: inspectable Math, Audit-Spuren pro Gate-Entscheidung, keine Blackbox-Scores.</p>
+<h2 class="ch">6.2 Umsetzung in der Architektur</h2>
+<div class="cols2">
+<ul>
+<li>Menschliche Aufsicht: anwendergeführte Gedächtnisfreigabe</li>
+<li>Technische Robustheit: sicherheitsorientierte Abschaltlogik</li>
+<li>Transparenz: zwölf Energy-Terme offengelegt</li>
+<li>Verantwortlichkeit: Claim vs. Evidenz auf jedem Input</li>
+<li>DSGVO von Anfang an, lokale Verarbeitung bevorzugt</li>
+</ul>
+<ul>
+<li>Deterministische Pre-Tool-Hooks</li>
+<li>Energie-Vetos bei katastrophaler Regression</li>
+<li>Mehrstufige Steuerung (AGT-Risiken adressiert)</li>
+<li>Keine Gedächtnis-Promotion ohne Freigabe</li>
+<li>Keine Datenabflüsse ohne Vertrag</li>
+</ul>
+</div>
+<h2 class="ch">6.3 Differenzierung gegen Monitoring-Anbieter</h2>
+<table>
+<tr><th>Anbieter</th><th>YURI-Differenz</th></tr>
+<tr><td>Galileo / Tumeryk</td><td>Undurchsichtiger Score vs. offengelegte Lyapunov-Math</td></tr>
+<tr><td>Microsoft AGT</td><td>Konfigurationspolitik vs. Arbeitsdynamik + Episodic Memory</td></tr>
+<tr><td>Mem0 / Letta</td><td>Generisches Decay vs. FSRS + Anwender-Gating + Veto</td></tr>
+<tr><td>LangChain / CrewAI</td><td>Orchestrierung vs. Steuerungsschicht darüber</td></tr>
+</table>
+</section>
+
+<!-- 09 MARKT -->
+<section class="page">
+<div class="rh"><span>7. Markt und Wettbewerb</span><span class="n">13</span></div>
+<h2 class="ch">7.1 Marktgröße (global · DACH-Einstieg)</h2>
+<p><strong>Global:</strong> Der Markt für KI-Infrastruktur, Governance und Kostenoptimierung liegt im zweistelligen Milliardenbereich (USD). YURI adressiert jeden Akteur weltweit, der Modell-APIs oder lokale Inferenz nutzt und Steuerung, Gedächtnis und Nachweisbarkeit braucht.</p>
+<table>
+<tr><th>Segment</th><th>Annahme</th></tr>
+<tr><td>Globaler Adressmarkt</td><td>KI-Infrastruktur, Enterprise Governance, API-Kostenoptimierung</td></tr>
+<tr><td>DACH-Einstieg (AT)</td><td>~2.000 mittelgroße Unternehmen mit aktiver KI-Nutzung</td></tr>
+<tr><td>Piloten <strong>innerhalb 6 Monaten</strong></td><td>50 bis 100 (Professional / Business / Unternehmen)</td></tr>
+<tr><td>Open Source <strong>innerhalb 6 Monaten</strong></td><td>Tausende Nutzer weltweit via GitHub</td></tr>
+<tr><td>Jahreswert pro Kunde (Ziel)</td><td>EUR 15.000 bis 50.000</td></tr>
+</table>
+<p><strong>Skalierung:</strong> DACH als Verdichtungsmarkt und regulatorischer Referenzraum (EU AI Act). Expansion über EU, englischsprachige OSS-Community und Enterprise On-Premise weltweit.</p>
+<h3 class="sec">Marktpyramide (konservativ)</h3>
+<div class="bar-chart">
+<div class="bar-col"><div class="bar-val">$50B+</div><div class="bar-fill" style="height:100%"></div><div class="bar-lbl">TAM<br>Global KI-Infra</div></div>
+<div class="bar-col"><div class="bar-val">$8B</div><div class="bar-fill" style="height:42%"></div><div class="bar-lbl">SAM<br>Governance + Ops</div></div>
+<div class="bar-col"><div class="bar-val">€5M</div><div class="bar-fill" style="height:18%"></div><div class="bar-lbl">SOM J3<br>DACH+OSS</div></div>
+<div class="bar-col"><div class="bar-val">100</div><div class="bar-fill" style="height:28%;background:linear-gradient(180deg,var(--jade),rgba(70,227,194,.25))"></div><div class="bar-lbl">Piloten<br>6 Monate</div></div>
+</div>
+<h2 class="ch">7.2 Zielgruppen (erweitert)</h2>
+<table>
+<tr><th>Segment</th><th>Warum YURI passt</th></tr>
+<tr><td>Software-Engineering & CTO-Teams</td><td>Multi-Modell-Orchestrierung, GitNexus-Impact, deterministische Gates vor Mutation</td></tr>
+<tr><td>Regulierte Branchen (Finanz, Recht, Gesundheit)</td><td>Nachweisketten, EU AI Act, Claim-vs.-Evidenz, Audit-Spuren</td></tr>
+<tr><td>Kreative & Modellierer (3D, Design, Medien)</td><td>Geführter Ersteinsatz (Vater-Pilot, Custom Gear Solutions)</td></tr>
+<tr><td>Daytrader & Wissensarbeiter unter Zeitdruck</td><td>Kalibrierte Prognosen, Gedächtnis ohne Halluzinations-Drift</td></tr>
+<tr><td>Solo-Gründer & Familienunternehmen</td><td>Digitaler Arbeitsplatz ohne IT-Abteilung; Einsteiger-Tauglichkeit</td></tr>
+<tr><td>Venture Builder & Berater</td><td>MURE-Schwarm für parallele Due-Diligence und Spec-Arbeit</td></tr>
+<tr><td>KMU ohne eigene KI-Infrastruktur</td><td>Steuerung über bestehende API-Kontingente (Anthropic, Z.ai, Ollama)</td></tr>
+<tr><td>Enterprise mit On-Premise-Pflicht</td><td>Lokale Verarbeitung, DSGVO, kein Datenabfluss ohne Vertrag</td></tr>
+<tr><td>Open-Source-Entwickler weltweit</td><td>GitHub-Kanal, Community, Upsell in Professional/Business</td></tr>
+<tr><td>Bildung & Forschung</td><td>Nachvollziehbare Mathematik, reproduzierbare Experimente</td></tr>
+<tr><td>Öffentlicher Sektor / EU-Compliance</td><td>Inspectable Math statt Blackbox-Scores</td></tr>
+</table>
+<h2 class="ch">7.3 Marktposition</h2>
+<p><strong>Komplementärer Akteur.</strong> Kategorie: deterministisches KI-Betriebssystem. Kein Wettbewerb um Inferenz. Steuerung der Inferenz. Global deploybar: lokal, On-Premise, regulierte Märkte.</p>
+</section>
+
+<!-- 8.1 EXTENSION -->
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">14</span></div>
+<h2 class="ch">8.1 Vertriebslogik und Rollout-Phasen</h2>
+<div class="timeline">
+<div class="step"><b>Phase 0 · 14 Tage</b>Geführter Pilot (Rene Spatz). Guidance, Bugs, Verfeinerung.</div>
+<div class="step"><b>Phase 1 · danach</b>Warteliste öffnen (5 Kontakte). OSS auf GitHub. GmbH Wien.</div>
+<div class="step"><b>Phase 2 · 6 Mon.</b>50–100 kommerzielle Piloten. Erste Jahresverträge.</div>
+<div class="step"><b>Phase 3 · 12 Mon.</b>EU-Expansion. Sprachmodell v0.1. Finanzierung je nach Förderstand.</div>
+</div>
+<p>Vertrauen entsteht durch gelebte Erfahrung. Zuerst 14 Tage geführter Vater-Pilot, dann Warteliste, dann breiter Markt.</p>
+<h3 class="sec">Rollout-Sequenzierung: ein Phasenrahmen, nicht drei</h3>
+<h3 class="sec">Der Widerspruch, den diese Sektion auflöst</h3>
+<p>Drei Kapitel dieses Dokuments beschreiben denselben Rollout mit unterschiedlicher Phasenzählung — und, entscheidend, unterschiedlicher Reihenfolge für den Bau des eigenen Sprachmodells (v0.1):</p>
+<ul>
+<li><strong>Kapitel 8 (Vertriebslogik, bisherige Fassung):</strong> Phase 0 = 14-Tage-Pilot, Phase 1 = Warteliste + OSS-Launch + GmbH-Gründung, Phase 2 (6 Monate) = 50–100 Piloten + erste Jahresverträge, Phase 3 (12 Monate) = EU-Expansion <strong>+ Sprachmodell v0.1</strong>. Modellbau steht hier <strong>zuletzt</strong>, nach vollständiger Vertriebs-Skalierung.</li>
+<li><strong>Kapitel 9 (Meilensteine):</strong> Phase 0 = Q3 2026, GmbH Wien + Benchmarks + Pipeline (kein Pilot erwähnt); Phase 1 = Q4 2026–Q1 2027, <strong>Sprachmodell v0.1</strong> + Schutzrechte + Demo; Phase 2 = Q1–Q2 2027, 50–100 Piloten + erste Umsätze. Modellbau steht hier <strong>zuerst</strong>, vor der Vertriebs-Skalierung.</li>
+<li><strong>Kapitel 11 (Finanzplan, Phasenplan):</strong> Phase 0 bündelt GmbH-Gründung + 14-Tage-Pilot + Warteliste; Phase 1 = Modellbau; Phase 2 = Skalierung + Vertrieb. Inhaltlich deckungsgleich mit Kapitel 9 — nur ohne Quartalsangaben.</li>
+</ul>
+<p><strong>Der Kernkonflikt:</strong> Entsteht das eigene Sprachmodell erst <em>nach</em> Marktvalidierung (Kapitel 8), oder <em>parallel zur bzw. vor</em> der Vertriebs-Skalierung (Kapitel 9 und 11)? Zwei von drei Kapiteln — plus die eigene SWOT-Schwäche „Eigenes Modell in Phase 1“ — tragen dieselbe Lesart. <strong>Kapitel 8 ist die Abweichung</strong>, nicht die Mehrheitsmeinung des Dokuments.</p>
+<h3 class="sec">Kanonischer Rahmen — diese Fassung gilt ab sofort für die GTM-Planung</h3>
+<table>
+<tr><th>Was wird entschieden</th><th>Übernommen von</th><th>Ersetzt / überschrieben</th></tr>
+<tr><td>Quartalsraster als Zeitachse (Q3’26 / Q4’26–Q1’27 / Q1–Q2’27 / H2’27)</td><td>Kapitel 9 (konkreteste Angabe)</td><td>Kapitel 8s vage Zeitangaben „danach“, „6 Mon.“, „12 Mon.“</td></tr>
+<tr><td>Reihenfolge: Modellbau <strong>vor</strong> Vollskalierung (Phase 1, nicht Phase 3)</td><td>Kapitel 9 + Kapitel 11 + SWOT-Schwäche „Eigenes Modell in Phase 1“</td><td>Kapitel 8.1s Platzierung von Sprachmodell v0.1 in „Phase 3 / 12 Monate“</td></tr>
+<tr><td>GmbH-Gründung in Phase 0, nicht Phase 1</td><td>Kapitel 9 + Kapitel 11 (beide bündeln GmbH mit dem Fundament)</td><td>Kapitel 8.1s Platzierung der GmbH in „Phase 1“</td></tr>
+<tr><td>Vier nummerierte Phasen (0–3) statt drei plus unbenannter Wachstumsphase</td><td>Kapitel 8s etablierte Zählweise (Leserkonsistenz)</td><td>Kapitel 9s unbenannte „Serie A / Wachstum“-Zeile wird hier explizit <strong>Phase 3</strong></td></tr>
+<tr><td>OSS-GitHub-Launch bleibt in Phase 1, OSS-Community-Investition skaliert in Phase 2</td><td>Kapitel 8 (Launch-Timing) <strong>und</strong> Kapitel 11 (Kostenblock-Timing) — <strong>kein Widerspruch, keine Überschreibung nötig</strong></td><td>—</td></tr>
+</table>
+<p><strong>Zeithorizont — sechs bis zwölf Monate, nicht sechs:</strong> Kapitel 7.1 sowie Kapitel 8 (Timeline 8.1 und Zielformulierung 8.2) beziffern das 50–100-Piloten-Ziel durchgängig mit einem festen Sechs-Monats-Fenster ab Wartelisten-Öffnung. Kapitel 11s Finanzplan-Annahme rechnet dagegen explizit mit „sechs bis zwölf Monaten“. <strong>Diese Sektion übernimmt Kapitel 11s Sechs-bis-zwölf-Monats-Fenster als verbindlich</strong> und überschreibt damit die engere Sechs-Monats-Angabe in Kapitel 7.1 und Kapitel 8. Begründung: Ein Onboarding-Tempo von 8–17 kommerziellen Piloten pro Monat, getragen von einer einzigen Gründerperson, ist über sechs Monate hinweg nicht seriös darstellbar — über zwölf Monate hingegen deckt es sich mit dem Kapazitätsaufbau, der unten beschrieben ist, und mit dem Rechenmodell, das Kapitel 11 für die Jahr-2-GuV bereits selbst verwendet. Sechs Monate (Q1–Q2 2027, nach Kapitel 9) bleibt der <strong>Zielkorridor (Ziel)</strong>; zwölf Monate (bis H2 2027) ist der <strong>realistische Außenrand</strong>, der nahtlos in die Wachstumsphase übergeht — keine Verzögerung, sondern die erwartete Bandbreite.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">15</span></div>
+<h3 class="sec">Phasentabelle</h3>
+<table>
+<tr><th>Phase</th><th>Zeitraum</th><th>Kern-Meilenstein</th><th>Konkrete GTM-Aktivität</th><th>Schlüsselperson-Entlastung</th></tr>
+<tr><td><strong>0 · Fundament</strong></td><td>Q3 2026 (laufend)</td><td>GmbH Wien, 14-Tage-Pilot (Rene Spatz), Benchmarks, Pipeline-Aufbau</td><td>Gründer führt den Piloten direkt: Onboarding, Bug-Fixing, Verfeinerung an realer Modellierungsarbeit. Im Anschluss sequentielles, personalisiertes Onboarding der fünf Whitelist-Kontakte (bewusst nacheinander, nicht als Batch, um die im Piloten etablierte Betreuungsqualität zu halten). Parallel: Vorbereitung der OSS-Launch-Unterlagen für Phase 1.</td><td>100 % gründergetragen — bewusst, weil auf ein einziges Quartal und sechs Personen begrenzt. Dies <em>ist</em> das im SWOT benannte „Schlüsselperson Phase 0“-Risiko; es wird hier nicht verschwiegen, sondern zeitlich scharf eingegrenzt.</td></tr>
+<tr><td><strong>1 · Modellbau</strong></td><td>Q4 2026 – Q1 2027</td><td>Sprachmodell v0.1, Schutzrechte, Demo</td><td>OSS-Launch auf GitHub (öffentlicher Repo-Zugang, Community-Kanal). <strong>Self-Serve-Signup für die Professional-Stufe geht live</strong> — nutzt die in Kapitel 2.5 bereits angelegte Skalierungslogik „Self-serve, OSS-Upsell“ und ist der erste strukturelle Hebel gegen die Gründer-Abhängigkeit. Die Modell-v0.1-Demo wird zum Referenz-Asset für die Ansprache von Business-/Unternehmen-Interessent:innen. Gegen Phasenende: Rekrutierung einer zweiten Onboarding-Kraft (siehe unten).</td><td>Self-Serve übernimmt den Erstkontakt für die Professional-Stufe vollständig — der Gründer wird aus dem niedrigschwelligsten, aber volumenstärksten Segment herausgelöst. Die zweite Kraft wird eingestellt, tritt operativ aber erst in Phase 2 in Kraft.</td></tr>
+<tr><td><strong>2 · Skalierung</strong></td><td>Q1 – Q2 2027 (Ziel), Fenster bis H2 2027 (Außenrand, siehe oben)</td><td>50–100 kommerzielle Piloten, erste Jahresverträge</td><td>Lead-Triage nach Preisstufe: Unternehmen-Anfragen → Gründer (höchster ARR, komplexeste SLA-/On-Premise-Anforderungen); Business-Anfragen → zweite Onboarding-Kraft; Professional-Anfragen → vollständig Self-Serve, keine menschliche Berührung nötig. Erste öffentliche Referenzfälle aus der Whitelist-Kohorte (geplant: Faisal Hourani, nach Onboarding-Abschluss und mit Zustimmung) speisen Case-Studies für die weitere Ansprache. Pilot-zu-Vertrag-Konversion wird laufend gemessen (Definition und Zielwert: KPI-Sektion dieses Kapitels).</td><td>Gründer-Anteil an operativem Onboarding sinkt strukturell von 100 % (Phase 0) auf ausschließlich die Unternehmen-Stufe — die zwei mit dem größten Volumen (Professional, Business) laufen ohne Gründer-Beteiligung im Tagesgeschäft.</td></tr>
+<tr><td><strong>3 · Wachstum</strong></td><td>H2 2027 (förderabhängig)</td><td>EU-Expansion, Serie A / Wachstumskapital</td><td>Erste Nicht-DACH-Referenzfälle; bei Anschlussfinanzierung dedizierte(r) Vertriebs-/Success-Hire(s) über die eine Onboarding-Kraft aus Phase 2 hinaus; OSS-Community-Investition skaliert weiter (Kostenblock lt. Kapitel 11).</td><td>Onboarding ist zu diesem Zeitpunkt bereits auf drei Träger verteilt (Gründer, Onboarding-Kraft, Self-Serve) — das Schlüsselperson-Risiko ist strukturell durchbrochen, nicht nur zeitlich in eine spätere Phase verschoben.</td></tr>
+</table>
+<h3 class="sec">Schlüsselperson-Risiko: warum „mehr Piloten“ allein nicht reicht</h3>
+<p>Die SWOT-Schwäche „Schlüsselperson Phase 0“ ist im bisherigen Dokument korrekt benannt, aber ohne Gegenmaßnahme geblieben. Eine Skalierung von einem gründergeführten Piloten auf 50–100 kommerzielle Piloten <em>ohne</em> zweiten Träger ist rechnerisch nicht darstellbar — schon bei einer optimistischen Bearbeitungskapazität von zehn parallelen High-Touch-Onboardings pro Person wäre eine einzelne Person bei 100 Piloten strukturell überlastet. Diese Sektion adressiert das Risiko mit zwei konkreten, phasenweise eingeführten Hebeln statt einer pauschalen Zusage:</p>
+<ol>
+<li><strong>Self-Serve für die Professional-Stufe (ab Phase 1):</strong> Kein Neubau — die Skalierungslogik steht bereits in Kapitel 2.5 („Self-serve, OSS-Upsell“). Diese Sektion legt lediglich fest, <em>wann</em> dieser Hebel aktiviert wird: mit dem OSS-Launch, nicht erst mit der Vollskalierung.</li>
+<li><strong>Zweite Onboarding-Kraft (rekrutiert Ende Phase 1, aktiv ab Phase 2):</strong> Angesichts eines Vertriebsbudgets von rund EUR 30.000–50.000 bis maximal 70.000 für den <em>gesamten</em> Zeitraum (20 % der Gesamtfördersumme von EUR 150.000–350.000, ohne weitere Aufschlüsselung im bisherigen Dokument) ist diese Rolle realistisch nur als Teilzeit-, Werkstudenten- oder freie Mitarbeiter-Position für das Business-Tier-Onboarding darstellbar — <strong>nicht</strong> als vollzeitliche Vertriebs-Stelle. Das ist eine Diskussionsbasis, keine budgetierte Zusage.</li>
+</ol>
+<p>Damit sinkt der Gründer-Anteil am operativen Onboarding schrittweise: 100 % (Phase 0) → nur Professional-Erstkontakt entfällt (Phase 1) → nur noch Unternehmen-Stufe (Phase 2) → strukturell verteilt auf drei Träger (Phase 3). Das ist eine graduelle Entlastung mit einem benannten Zeitpunkt, keine bloße Behauptung, das Problem „löse sich mit Wachstum von selbst“.</p>
+<h3 class="sec">Regulatorischer Zeitdruck — selektiv, nicht pauschal einsetzen</h3>
+<div class="callout">Der EU AI Act (ab August 2026) fällt kalendarisch mitten in Phase 0. Das ist ein nutzbarer Dringlichkeits-Hinweis für die Ansprache — aber nur für die Segmente, die plausibel unter verschärfte Pflichten fallen (Finanz, Recht, Gesundheit). Von den fünf Whitelist-Kontakten berührt das allenfalls Faisal Houranis FinTech-Bezug und Janine Wältis Finanzkontext am Rande; für Ryan Marshall, Atilla Ünal und Jan-Erich Meister ist die Regulierungs-Dringlichkeit kein tragfähiges Argument. Diese Sektion warnt ausdrücklich davor, den EU-AI-Act-Hinweis pauschal über alle Phasen-Aktivitäten zu legen — er gehört selektiv in die Business-/Unternehmen-Ansprache ab Phase 1, nicht in die Professional-Self-Serve-Kommunikation.</div>
+<h3 class="sec">Verfügbares Demo-Asset für Phase 1 (mit Pflicht-Vorbehalt)</h3>
+<div class="callout">Falls die Modell-v0.1-Demo (Phase 1) technische Kalibrierungswerte zeigen soll: Der Wert „MLP-Router Brier 0,17 vs. Baseline 0,43“ aus Kapitel 3 ist intern gemessen und ohne offengelegte Methodik. Er ist als Gesprächsaufhänger nutzbar, aber <strong>nur mit explizitem Vorbehalt</strong> („intern gemessen, Methodik wird bei Bedarf offengelegt“) — nie als eigenständige, unqualifizierte Kennzahl in Vertriebsmaterial.</div>
+</section>
+
+<!-- 8.2 EDIT -->
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">16</span></div>
+<h2 class="ch">8.2 Ziel · sechs bis zwölf Monate (nach Whitelist-Start)</h2>
+<div class="box">
+<p><strong>50 bis 100 kommerzielle Piloten</strong> über Professional, Business und Unternehmen.<br><strong>Tausende Nutzer</strong> über Open Source auf GitHub.<br>Zeithorizont: <strong>sechs bis zwölf Monate</strong> ab Öffnung der Warteliste (siehe Rollout-Sequenzierung, Abschnitt 8.1) (nach 14-Tage-Verfeinerungsphase).</p>
+</div>
+<h2 class="ch">8.3 Erster Pilot · geführter Ersteinsatz (14 Tage)</h2>
+<div class="box">
+<p><strong>Rene Spatz</strong>, Gründer von Custom Gear Solutions und Vater des Gründerteams. Er ist der <em>einzige</em> aktive Pilot, frisch im geführten Ersteinsatz. Der Gründer begleitet ihn direkt: Onboarding, Fehler finden, YURI an reale Modellierungsarbeit anpassen. Seine Vorerfahrung mit KI beschränkte sich auf kostenloses Web-ChatGPT. Nach 14 Tagen werten wir die Erfahrung aus und öffnen die Early-Access-Warteliste.</p>
+</div>
+<h2 class="ch">8.4 Early-Access-Warteliste (whitelisted · Zugang nach 14-Tage-Phase)</h2>
+<p>Fünf Kontakte sind freigeschaltet. Onboarding folgt nach der Verfeinerungsphase mit dem Vater-Piloten:</p>
+<div class="box">
+<p><strong>Faisal Hourani</strong> baut und skaliert Ventures über SuperVentureStudio (E-Commerce, FinTech). LinkedIn-Reichweite rund 13.000 Kontakte. Geplanter Einsatz: Venture-Geschwindigkeit und öffentliche Referenz nach Onboarding.</p>
+</div>
+<div class="box">
+<p><strong>Ryan Marshall</strong> meldete sich über Threads und LinkedIn, nachdem er YURI in öffentlichen Beiträgen verfolgt hatte. Steht für die erste Welle externer Anfragen außerhalb des Gründerkreises.</p>
+</div>
+<div class="box">
+<p><strong>Atilla Ünal</strong> führt Performance / Body. Mind., enges Netzwerk des Gründers. Profil: Hochleistungs-Körperarbeit plus digitale Workspace-Disziplin.</p>
+</div>
+<div class="box">
+<p><strong>Janine Wälti</strong>, finanzierter Daytrader, aktiv auf LinkedIn. Operiert unter Zeitdruck; harter Prüfstein für Gedächtnis- und Claim-Logik im Finanzkontext.</p>
+</div>
+<div class="box">
+<p><strong>Jan-Erich Meister</strong>, enger Gründerkreis. Generalistischer Produktivitätspilot mit hohem Anspruch an Sprache und Verlässlichkeit.</p>
+</div>
+</section>
+
+<!-- 8.5 REPLACEMENT -->
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">17</span></div>
+<h2 class="ch">8.5 Preise & Erlösmodell</h2>
+<p>Kapitel 2.5 nennt Preisspannen ohne Zielgruppenbeschreibung, Kapitel 8.5 nennt dieselben vier Stufen mit Zielgruppenbeschreibung, aber ohne Preise. Beide Tabellen wurden nie gegeneinander abgeglichen. Die folgende Tabelle führt sie erstmals zusammen — keine Stufe wird umbenannt, gestrichen oder neu erfunden.</p>
+<table>
+<tr><th>Stufe</th><th>Zielgruppe & Leistungsumfang (aus 8.5)</th><th>Preislogik (Ziel, aus 2.5)</th><th>ARPU Jahr 2 (Ziel, aus 2.6)</th><th>Skalierungspfad (aus 2.5)</th></tr>
+<tr><td><strong>Professional</strong></td><td>Monats-/Jahreslizenz · Einzelanwender, kleine Teams</td><td>EUR 49–99/Monat</td><td class="n">EUR 900/Jahr</td><td>Self-serve, OSS-Upsell</td></tr>
+<tr><td><strong>Business</strong></td><td>Erweiterte Lizenz, Support, Team-Funktionen</td><td>EUR 299–799/Monat · Teams bis 25 Sitze</td><td class="n">EUR 6.000/Jahr</td><td>Pilot → Jahresvertrag</td></tr>
+<tr><td><strong>Unternehmen</strong></td><td>Jahresvertrag, On-Premise, SLA</td><td>EUR 15.000–50.000/Jahr</td><td class="n">EUR 25.000/Jahr (Mittelwert)</td><td>DACH-Referenz → EU</td></tr>
+<tr><td><strong>Open Source</strong></td><td>GitHub, Community, Upsell</td><td>Kostenlos</td><td class="n">– (kein direkter Umsatz, dient als Upsell-Kanal)</td><td>Reichweite → Upsell in Professional/Business</td></tr>
+<tr><td>Beratung / Pilot <em>(Einstiegspfad, keine eigene Lizenzstufe)</em></td><td>Geführter Einstieg vor Lizenzentscheidung (vgl. 14-Tage-Pilotformat, 8.1)</td><td>EUR 2.500–10.000 Pauschale (einmalig)</td><td class="n">– (Pauschale, nicht ARR)</td><td>Einstieg → Übergang in Lizenz</td></tr>
+</table>
+<div class="callout">Alle Preise und ARPU-Werte sind Zielwerte für Investorengespräche, keine live geführten oder vertraglich fixierten Preise (vgl. Ziel-Bruttomarge 70 % und Payback &lt; 18 Monate, ebenfalls aus 2.6). „Beratung / Pilot“ bleibt als eigener Erlösstrom erhalten, weil er für die Konversionsrechnung unten strukturell zentral ist — er ist der Einstiegspunkt, nicht ein fünftes Produkt.</div>
+<p><strong>Hinweis zum Skalierungspfad, jetzt erst sichtbar durch die Zusammenführung:</strong> 2.5 weist für jede Stufe einen eigenen Wachstumsmechanismus aus. Professional wächst über Self-serve-OSS-Upsell — <strong>nicht</strong> über den formalen 50–100-Piloten-Kohort. Business ist explizit als „Pilot → Jahresvertrag“ definiert. Unternehmen wächst über „DACH-Referenz → EU“, also über längere, referenzbasierte Zyklen. Diese Differenzierung ist die Grundlage der Konversionsrechnung weiter unten.</p>
+<h3 class="sec">Klärung: Wofür gilt der Zielwert „EUR 15.000–50.000 Jahreswert pro Kunde“ (Kap. 7.1)?</h3>
+<p>Kap. 7.1 nennt „Jahreswert pro Kunde (Ziel): EUR 15.000 bis 50.000“ als einzelne Zeile, direkt neben der Aussage, dass sich die 50–100 Piloten auf <strong>alle drei</strong> zahlenden Stufen verteilen (Professional / Business / Unternehmen). Ob der Wert pro Stufe, im Durchschnitt oder spezifisch gemeint ist, bleibt in der Quelle offen.</p>
+<p><strong>Auflösung (hier festgelegt, mittlere bis hohe Konfidenz):</strong> Der Wert ist deckungsgleich — Ziffer für Ziffer — mit der Unternehmen-Preisspanne aus 2.5 (ebenfalls EUR 15.000–50.000/Jahr). Das wird hier nicht als Zufall gelesen, sondern als Beleg dafür, dass 7.1 die Unternehmen-Stufe als ACV-Obergrenze des Portfolios zitiert — nicht den Durchschnitt über den gesamten Piloten-Mix. Diese Zuordnung wird verbindlich übernommen: <strong>EUR 15.000–50.000 gilt spezifisch für die Unternehmen-Stufe</strong>, nicht als Blended-Average über Professional/Business/Unternehmen. Konsequenz: Dieser Wert darf nicht direkt mit der vollen Piloten-Zahl (50–100) multipliziert werden, um den erwarteten Portfolioumsatz zu schätzen — genau das ist die Ursache der folgenden Rechenlücke.</p>
+<h3 class="sec">Auflösung der Umsatzlücke: vom Piloten zum zahlenden Kunden</h3>
+<p><strong>Das Problem:</strong> Multipliziert man naiv 50–100 Piloten mit der vollen Unternehmen-ACV (EUR 15.000–50.000), ergibt sich EUR 750.000 bis 5.000.000. Die Plan-GuV (Kap. 11) weist für Jahr 2 aber nur EUR 200.000–500.000 Umsatz aus — Faktor 2 bis 10 Differenz, den die Quelle nirgends erklärt.</p>
+<p><strong>Einordnung, quellenbasiert (kein neuer Wert, sondern ein Abgleich zweier bereits genannter Zahlen):</strong> Die Obergrenze der naiven Rechnung (100 × EUR 50.000 = EUR 5.000.000) ist identisch mit dem in 7.1 ausgewiesenen SOM Jahr 3 (DACH+OSS) von EUR 5 Mio. Das spricht dafür, dass „EUR 750K–5M“ den Reifezustand des Piloten-Kohorts über 2–3 Jahre beschreibt, wenn ein wachsender Anteil auf volle Unternehmen-ACV hochkonvertiert ist — nicht den Jahr-2-Umsatz. Jahr 2 (EUR 200.000–500.000) ist die frühe Tranche dieser Rampe, kein Widerspruch zu ihr.</p>
+<p><strong>Explizite Konversionsannahme [NEW ASSUMPTION, NOT FROM SOURCE für Konversionsquote-Details]:</strong> Für die Jahr-2-Zahl selbst braucht es trotzdem eine konkrete Rechnung, welcher Anteil der 50–100 Piloten überhaupt zahlt und wie viel. Diese Rechnung verwendet die bereichsweit abgestimmte Ankerannahme <strong>Piloten-zu-Lizenz-Konversion 25–35 % (Ziel)</strong>. Definition von „Konversion“ hier: Übergang in eine <strong>volle, wiederkehrende Lizenz auf Business- oder Unternehmen-Stufe</strong> — nicht Professional, da 2.5 Professional explizit über einen separaten Self-serve/OSS-Kanal wachsen lässt, außerhalb des formalen Piloten-Kohorts. Innerhalb der 25–35 % wird im Verhältnis 80:20 zwischen Business und Unternehmen gesplittet, konsistent mit dem in dieser Erweiterung festgelegten Lead-Triage-Modell (Unternehmen-Leads → Gründer, strukturell knapp; Business-Leads → zweite Onboarding-Kraft; Professional → Self-serve). Die verbleibenden 65–75 % der Piloten bleiben in Jahr 2 auf der Beratung/Pilot-Pauschale, hier zu einem <strong>rabattierten</strong> Durchschnittswert von EUR 4.000 angesetzt (unterhalb der Spannen-Mitte EUR 6.250 aus 2.5 — passend zur Formulierung „rabattiert/kostenlos“, nicht zum vollen Pauschalpreis). Konvertierte Piloten werden mit Ø 50 % Jahresrealisierung gerechnet (gestaffelter Einstieg über den 6–12-Monats-Korridor, konsistent mit dem bereichsweiten Zeitfenster).</p>
+<table>
+<tr><th>Segment</th><th>Anteil am Piloten-Kohort</th><th>ARPU / Fee (Ziel)</th><th>Realisierung Jahr 2</th><th>Untergrenze (50 Piloten, 25 % Konversion)</th><th>Obergrenze (100 Piloten, 35 % Konversion)</th></tr>
+<tr><td>Nicht konvertiert → Beratung/Pilot-Pauschale (rabattiert)</td><td class="n">75 % / 65 %</td><td class="n">EUR 4.000 (Ø, rabattiert)</td><td class="n">100 % (Pauschale)</td><td class="n">EUR 150.000</td><td class="n">EUR 260.000</td></tr>
+<tr><td>Konvertiert → Business (Jahresvertrag)</td><td class="n">20 % / 28 %</td><td class="n">EUR 6.000/Jahr</td><td class="n">Ø 50 %</td><td class="n">EUR 30.000</td><td class="n">EUR 84.000</td></tr>
+<tr><td>Konvertiert → Unternehmen</td><td class="n">5 % / 7 %</td><td class="n">EUR 25.000/Jahr (Mittelwert)</td><td class="n">Ø 50 %</td><td class="n">EUR 31.250</td><td class="n">EUR 87.500</td></tr>
+<tr><td><strong>Summe</strong></td><td class="n">100 %</td><td class="n"></td><td class="n"></td><td class="n"><strong>EUR 211.250</strong></td><td class="n"><strong>EUR 431.500</strong></td></tr>
+</table>
+<p>Beide Werte liegen innerhalb der Kap.-11-Bandbreite EUR 200.000–500.000 (Untergrenze knapp über deren Minimum, Obergrenze deutlich unter deren Maximum) — das Modell ist damit intern konsistent und tendenziell konservativ kalibriert, nicht auf die Zielbandbreite zurückgerechnet.</p>
+<p><strong>Warum dieser Mix plausibel ist, nicht nur rechnerisch passend:</strong> Das Vertriebsbudget deckt nur EUR 30.000–70.000 für den gesamten Piloten-Motion (20 % von EUR 150.000–350.000, Kap. 11) — grob EUR 300–1.400 pro Pilot je nach Förder-/Piloten-Kombination. Das reicht für ein geführtes Self-serve- oder 14-Tage-Pilotformat, nicht für eine klassische, mehrmonatige Enterprise-Sales-Bewegung mit dediziertem Account-Team. Ein Modell, in dem die Mehrheit der Piloten auf der rabattierten Pauschale verbleibt und nur eine einstellige bis niedrige zweistellige Prozentzahl in Jahr 2 bereits eine volle Business- oder Unternehmen-Lizenz erreicht, passt zu dieser Ressourcenlage, zur selbst attestierten SWOT-Schwäche „Vertrieb früh“/„Schlüsselperson Phase 0“ sowie zum Risiko „Enterprise-Zyklen“.</p>
+<p><em>Zeitachse-Hinweis:</em> Frühere Kapitel (7/8/SWOT) sprechen von „50–100 Piloten in 6 Monaten“, Kap. 11 — an der Stelle, an der auch die Jahr-2-Umsatzzahl steht — präzisiert auf „sechs bis zwölf Monate“. Diese Rechnung folgt der bereichsweit abgestimmten 6–12-Monats-Fassung; „6 Monate“ wird als optimistischer unterer Rand innerhalb dieses Korridors gelesen, kein eigenständiger Widerspruch.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">18</span></div>
+<h2 class="ch">8.6 Zielgruppen-Priorisierung</h2>
+<p>Die Early-Access-Warteliste (5 Kontakte, Kap. 8.4) ist der einzige Ort im gesamten Dokument, an dem konkrete Menschen auf die abstrakten Zielgruppen aus Kap. 7.2 treffen. Der Abgleich ist ernüchternd, aber genau deshalb wertvoll: Er zeigt, wo die Segmentierung trägt — und wo sie eine Lücke hat, die nicht wegdiskutiert werden sollte.</p>
+<h3 class="sec">8.6.1 Abgleich: Fünf Whitelist-Kontakte gegen elf Marktsegmente</h3>
+<table>
+<tr><th>Whitelist-Kontakt</th><th>Herkunft</th><th>Abgleich mit Kap. 7.2</th><th>Bewertung</th></tr>
+<tr><td><strong>Faisal Hourani</strong></td><td>Gründer-Netzwerk</td><td><strong>Sauberer Treffer:</strong> „Venture Builder &amp; Berater"</td><td>Segment und Beleg (MURE-Schwarm für parallele Due-Diligence) passen exakt zusammen</td></tr>
+<tr><td><strong>Janine Wälti</strong></td><td>Netzwerk (LinkedIn)</td><td><strong>Sauberer Treffer:</strong> „Daytrader &amp; Wissensarbeiter unter Zeitdruck"</td><td>Segment und Beleg (kalibrierte Prognosen, Gedächtnis ohne Drift) passen exakt zusammen</td></tr>
+<tr><td><strong>Ryan Marshall</strong></td><td>Organisch (Threads/LinkedIn, Inbound)</td><td><strong>Kein Abgleich möglich</strong></td><td>Der Quelltext nennt Beruf/Branche nie — nur den Akquisekanal. Ryan ist Beleg für einen funktionierenden organischen Content-Kanal, nicht Beleg für ein Marktsegment. Diese Lücke gehört in die Verantwortung der Channel-/Messaging-Arbeit: Wer genau reagiert auf öffentliche YURI-Beiträge? Das weiß das Dokument aktuell nicht.</td></tr>
+<tr><td><strong>Atilla Ünal</strong></td><td>Gründer-Netzwerk</td><td><strong>Kein Treffer</strong> — „Performance / Body. Mind." ist weder „Kreative &amp; Modellierer" (Produktionswerkzeug-Fokus) noch „Solo-Gründer &amp; Familienunternehmen" (impliziert Betrieb/Produkt)</td><td>Echte Segmentlücke — siehe Vorschlag unten</td></tr>
+<tr><td><strong>Jan-Erich Meister</strong></td><td>Gründer-Netzwerk</td><td><strong>Kein Treffer</strong> — „generalistischer Produktivitätspilot" beschreibt eine Test-Anforderung (Sprache, Verlässlichkeit), keine Branche, keinen Beruf, keinen Schmerzpunkt</td><td>Keine Segmentlücke — siehe Einordnung unten</td></tr>
+</table>
+<p><strong>Befund:</strong> Von fünf Whitelist-Kontakten sind nur zwei (40 %) sauber einem der elf Kap.-7.2-Segmente zuordenbar, und vier von fünf (80 %) stammen aus dem Gründer-Netzwerk. Ryan Marshall ist der einzige organische Datenpunkt im gesamten Dokument — und selbst er ist nur als Kanal-Beleg brauchbar, nicht als Zielgruppen-Beleg. Das ist die eigentliche Schwachstelle hinter der SWOT-Zeile „Vertrieb früh": Die Whitelist beweist, dass das Gründer-Netzwerk funktioniert. Sie beweist noch nicht, dass ein Segment ohne persönliche Beziehung zum Gründer konvertiert.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">19</span></div>
+<h3 class="sec">8.6.2 Atilla vs. Jan-Erich: zwei Lücken, zwei unterschiedliche Antworten</h3>
+<p>Beide Kontakte kommen aus dem gleichen Netzwerk-Kanal, verdienen aber unterschiedliche Behandlung — Gleichbehandlung wäre hier die bequeme, nicht die richtige Antwort.</p>
+<p><strong>Atilla Ünal → neue Segmentzeile vorschlagen.</strong> „Performance / Body. Mind." ist ein benennbares, wiederholbares Geschäftsmodell: Einzelperson, die ihre Expertise als Personenmarke monetarisiert (Coaches, Berater, Creator, Hochleistungs-Trainer). Der Schmerzpunkt ist konkret und von den bestehenden elf Zeilen nicht abgedeckt — weder Produktionswerkzeug („Kreative &amp; Modellierer") noch Betrieb/Produkt-Fokus („Solo-Gründer &amp; Familienunternehmen") trifft die Realität von jemandem, der Content, Klienten und persönliche Leistungsdaten gleichzeitig und ohne Team steuert. Empfehlung: Kap. 7.2 um eine zwölfte Zeile ergänzen:</p>
+<table>
+<tr><th>Segment (neu, Vorschlag)</th><th>Warum YURI passt</th></tr>
+<tr><td><strong>Solo-Experten &amp; Personal-Brand-Professionals</strong> (Coaches, Berater, Creator)</td><td>Digitale Arbeitsdisziplin ohne Team: Content-, Klienten- und Performance-Steuerung aus einer Hand; Einsteiger-Tauglichkeit ohne IT-Vorkenntnisse (gleiches Prinzip wie beim Vater-Piloten, andere Branche)</td></tr>
+</table>
+<p><strong>Einschränkung:</strong> Die Stichprobe ist n=1. Das rechtfertigt eine neue Zeile in der Zielgruppen-Landkarte (die Lücke ist real und plausibel groß — Coaching-/Creator-Ökonomie ist ein großer, wenn auch pro Kunde niedrigerer Jahreswert-Markt als „Unternehmen"), rechtfertigt aber keine Ressourcenzuteilung als eigener Vertriebs-Ring in der aktuellen Budgetphase (siehe Abschnitt 8.6.3). Behandlung: beobachten, nicht bewerben.</p>
+<p><strong>Jan-Erich Meister → keine neue Segmentzeile, sondern explizit als Dogfooding/interne Qualitätssicherung einordnen.</strong> Die Beschreibung „generalistischer Produktivitätspilot mit hohem Anspruch an Sprache und Verlässlichkeit" ist keine Marktdefinition — sie ist ein Test-Auftrag. Sie nennt weder Branche noch Beruf noch einen Schmerzpunkt, der sich von „jeder professionelle Nutzer will Zuverlässigkeit" unterscheiden ließe. Eine Segmentzeile für „Generalisten" würde die Zielgruppen-Tabelle nicht schärfen, sondern verwässern, weil sie keine eigene Kauf-Logik trägt. Empfehlung: Jan-Erich firmiert als interner Sprach-/Verlässlichkeits-Kalibrierungs-Pilot aus dem Gründerkreis, nicht als externer ICP-Beleg — wertvoll für Produkthärtung, nicht zitierfähig als Markt-Validierung.</p>
+<h3 class="sec">8.6.3 Der Kopf der Lanze: EIN Beachhead statt elf parallele Fronten</h3>
+<p>Das Budget für Vertrieb &amp; Pilotprogramm beträgt 20 % der Förderung von EUR 150.000–350.000 (Ziel) — also EUR 30.000 bis 70.000 (Ziel) für die gesamte Vertriebs- und Marketingbewegung. Das trägt keine elf parallelen Segment-Kampagnen. Es trägt eine.</p>
+<h4 class="sub">Beachhead-Wahl: Venture Builder &amp; Berater</h4>
+<p>Begründung entlang der drei verfügbaren Datenpunkte:</p>
+<ol>
+<li><strong>Whitelist-Zusammensetzung.</strong> Faisal Hourani ist der einzige Whitelist-Kontakt, bei dem der Quelltext selbst bereits eine Nach-Onboarding-Funktion vorsieht: „Venture-Geschwindigkeit und öffentliche Referenz nach Onboarding" (Kap. 8.4). Das Dokument plant also schon, ihn als Leuchtturm-Referenz einzusetzen — das ist exakt der Mechanismus, den ein Beachhead mit Near-Zero-CAC braucht. Seine ca. 13.000 LinkedIn-Kontakte sind eine bereits vorhandene Verstärkerschicht, die im Budget nicht extra bezahlt werden muss.</li>
+<li><strong>Struktureller Multiplikator.</strong> Ein Venture Builder betreut mehrere Portfolio-Unternehmen parallel (bei SuperVentureStudio: E-Commerce, FinTech). Jede weitere Portfolio-Firma, die YURI über Faisal kennenlernt, ist ein zusätzlicher potenzieller Pilot ohne zusätzliche Vertriebskosten — strukturell der einzige Whitelist-Kontakt mit eingebautem Multiplikator-Effekt statt 1:1-Konversion. Das ist der einzige Weg, wie EUR 30.000–70.000 Gesamtbudget realistisch zu 50–100 Piloten in 6–12 Monaten (Ziel; Fenster in Abstimmung mit der Rollout-Planung dieses Kapitels) beitragen kann.</li>
+<li><strong>EU AI Act bewusst NICHT als Haupttreiber.</strong> Der Beachhead wird ausdrücklich nicht regulatorisch begründet — siehe Abschnitt 8.6.5: Ein Venture Builder als Nutzer ist selbst kein Hochrisiko-Fall. Der Kaufauslöser ist Analysten-Durchsatz (parallele Due-Diligence ersetzt lineares Headcount-Wachstum), nicht Compliance-Druck. Das ist eine bewusste Entscheidung: der einzige Whitelist-Kontakt mit echtem Compliance-Bezug (regulierte Branchen) hat aktuell keinen Whitelist-Vertreter — dieses Segment bräuchte einen längeren, teureren Vertriebszyklus, den das Budget nicht trägt (siehe unten).</li>
+</ol>
+<h4 class="sub">Zwei Ringe um den Beachhead (sekundär, nicht parallel-priorisiert)</h4>
+<ul>
+<li><strong>Ring 1 — Solo-Gründer &amp; Familienunternehmen.</strong> Bereits bewiesen über den Vater-Piloten (René Spatz, Custom Gear Solutions, 14 Tage, keine KI-Vorerfahrung außer kostenlosem ChatGPT). Der Wert dieses Rings liegt nicht im Multiplikator, sondern im wiederholbaren, dokumentierten Onboarding-Playbook — das ist bei einem Vertriebsbudget dieser Größe wichtiger als Reichweite, weil es Support-Kosten pro Neukunde senkt.</li>
+<li><strong>Ring 2 — Daytrader &amp; Wissensarbeiter unter Zeitdruck.</strong> Bewiesen über Janine Wälti als „harter Prüfstein für Gedächtnis- und Claim-Logik im Finanzkontext" (Kap. 8.4). Hoher Leidensdruck (reales Geld, Zeitdruck) bedeutet hohe Zahlungsbereitschaft für Verlässlichkeit — aber ohne den strukturellen Multiplikator von Ring 0.</li>
+</ul>
+<p>Die neue Zeile „Solo-Experten &amp; Personal-Brand-Professionals" (Atilla-Typ) bleibt Beobachtungsstatus, kein dritter Ring — bei einem n=1-Beleg und einem Budget, das schon für einen Beachhead plus zwei Ringe knapp ist, wäre eine dritte parallele Front eine Wiederholung genau des Fehlers, den dieser Abschnitt beheben soll.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">20</span></div>
+<h3 class="sec">8.6.4 Value Proposition je Segment</h3>
+<table>
+<tr><th>Segment</th><th>Schmerzpunkt</th><th>Beleg aus dem Dokument</th><th>Warum jetzt kaufen</th></tr>
+<tr><td><strong>Venture Builder &amp; Berater</strong> (Beachhead)</td><td>Mehrere Portfolio-Ventures parallel betreuen, ohne Analysten-Headcount linear mitwachsen zu lassen</td><td>MURE-Schwarm für parallele Due-Diligence und Spec-Arbeit (Kap. 7.2); Faisal bereits als Nach-Onboarding-Referenz eingeplant (Kap. 8.4)</td><td>Warmer Kontakt, kein Vertrauensaufbau nötig; Referenz-Effekt beginnt sofort nach Onboarding; Portfolio-Struktur multipliziert jeden gewonnenen Piloten in weitere Piloten</td></tr>
+<tr><td><strong>Solo-Gründer &amp; Familienunternehmen</strong> (Ring 1)</td><td>Kein IT-Team, Angst vor KI-Komplexität, digitaler Arbeitsplatz fehlt</td><td>Vater-Pilot: 14 Tage, keine Vorerfahrung außer Web-ChatGPT, aktiv und funktionsfähig (Kap. 8.3)</td><td>Onboarding-Playbook bereits erprobt und dokumentiert — senkt Grenzkosten der Akquise in einem knappen Budget</td></tr>
+<tr><td><strong>Daytrader &amp; Wissensarbeiter unter Zeitdruck</strong> (Ring 2)</td><td>Selbstsichere Falschaussagen und Gedächtnisverlust sind bei Geldentscheidungen unter Zeitdruck nicht tolerierbar</td><td>Janine als Prüfstein für Gedächtnis-/Claim-Logik (Kap. 8.4); intern gemessener Kalibrierungswert MLP-Router Brier 0,17 vs. Baseline 0,43 (Methodik auf Anfrage, nicht als unqualifizierte Kennzahl zu verwenden)</td><td>Reales Geld im Risiko erzeugt hohe Zahlungsbereitschaft für nachweisbare Verlässlichkeit, unabhängig von Regulierung</td></tr>
+<tr><td><strong>Solo-Experten &amp; Personal-Brand-Professionals</strong> (Beobachtung, kein Ring)</td><td>Content, Klienten und persönliche Leistungsdaten ohne Team steuern</td><td>Atilla Ünal, „Performance / Body. Mind." (Kap. 8.4) — einziger Beleg, n=1</td><td>Noch nicht: Segment wird beobachtet, nicht beworben, bis ein zweiter unabhängiger Beleg oder Budget-Spielraum entsteht</td></tr>
+</table>
+<h3 class="sec">8.6.5 EU AI Act: Dringlichkeit ist segmentabhängig, nicht pauschal</h3>
+<p>Der EU AI Act (anwendbar ab August 2026) ist ein reales regulatorisches Datum — aber er trifft die elf Zielgruppen aus Kap. 7.2 nicht gleich. Eine pauschale „AI Act schafft Dringlichkeit für alle"-Aussage wäre nicht haltbar. Differenzierung (Einschätzung nach Segment-Beschreibung, keine Rechtsberatung, Artikel-Zuordnung nicht im Quelldokument geprüft):</p>
+<h4 class="sub">Plausibel hochrisiko-/Annex-III-relevant</h4>
+<ul>
+<li><strong>Regulierte Branchen (Finanz, Recht, Gesundheit)</strong> — direkteste Übereinstimmung: Kreditvergabe, Rechtsentscheidungshilfe und Gesundheitsdiagnostik zählen zu den klassischen Annex-III-Kategorien. Aktuell kein Whitelist-Vertreter für dieses Segment — die regulatorische Dringlichkeit ist real, aber unbelegt durch Pipeline.</li>
+<li><strong>Öffentlicher Sektor / EU-Compliance</strong> — Behörden-Anwendungsfälle (z. B. Zugangs-/Leistungsentscheidungen) gehören explizit zu den im AI Act benannten Hochrisiko-Bereichen.</li>
+<li><strong>Enterprise mit On-Premise-Pflicht</strong> — teilweise deckungsgleich mit den beiden obigen Kategorien (On-Premise-Pflicht kommt häufig aus Bank-/Versicherungs-/Gesundheitsregulierung), daher indirekt relevant.</li>
+<li><strong>Bildung &amp; Forschung</strong> — nur teilweise: reine Forschungsnutzung ist typischerweise nicht hochrisikorelevant, aber Anwendungsfälle wie Prüfungsbewertung oder Zulassungsentscheidungen fallen unter Annex-III-artige Kategorien. Nicht pauschal, sondern anwendungsfall-abhängig.</li>
+</ul>
+<h4 class="sub">Plausibel NICHT hochrisikorelevant (Dringlichkeit kommt aus anderer Quelle)</h4>
+<ul>
+<li><strong>Venture Builder &amp; Berater</strong> (unser Beachhead) — der Venture Builder als Nutzer ist kein Hochrisiko-Fall; falls Portfolio-Unternehmen selbst regulierte KI-Systeme bauen (z. B. FinTech-Kreditscoring), ist das ein Verkaufsargument für die Zukunft, aber kein Kaufauslöser für Faisal selbst heute.</li>
+<li><strong>Daytrader &amp; Wissensarbeiter unter Zeitdruck</strong> — private/individuelle Handelsentscheidungen einer Einzelperson für sich selbst sind keine Annex-III-Kategorie. Dringlichkeit kommt aus Performance/Vertrauen, nicht aus Compliance.</li>
+<li><strong>Solo-Gründer &amp; Familienunternehmen, Kreative &amp; Modellierer, Open-Source-Entwickler, Solo-Experten &amp; Personal-Brand-Professionals (neu)</strong> — keiner dieser Anwendungsfälle löst typischerweise Hochrisiko-Pflichten aus. Der AI Act ist für diese Gruppen kein Verkaufsargument; ihn hier trotzdem einzusetzen würde die Glaubwürdigkeit der Botschaft für die Segmente untergraben, wo sie tatsächlich zutrifft.</li>
+</ul>
+<div class="callout"><strong>Konsequenz für die Vertriebsbotschaft:</strong> Der AI Act gehört in die Positionierung für regulierte/öffentliche/Enterprise-Gespräche, nicht in die Beachhead-Ansprache. Für Venture Builder und Daytrader lautet der Kaufauslöser Durchsatz bzw. Verlässlichkeit — nicht Regulierung.</div>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">21</span></div>
+<h2 class="ch">8.7 Positionierung &amp; Botschaften</h2>
+<h3 class="sec">8.7.1 Kernpositionierung</h3>
+<p>YURI tritt nicht als weiteres Modell und nicht als Konkurrenz zu Modellanbietern an, sondern als Steuerungsebene darüber. Der Leitsatz aus der Vision (wird hier wörtlich als Leitsatz der gesamten Go-to-Market-Kommunikation übernommen, keine zweite Tagline):</p>
+<div class="callout">„Wir sind Erweiterung der Modellanbieter, nicht deren Konkurrenz." YURI sitzt über der Inferenz, nicht neben ihr.</div>
+<p>Daraus folgt die zentrale Verkaufsargumentation: Jeder Fortschritt bei Anthropic, OpenAI, Z.ai oder Ollama vergrößert den Adressmarkt für YURI, statt ihn zu bedrohen. Für Käufer heißt das konkret: keine Migration weg von bereits bezahlten Modell-Abos, kein Wechsel des Modell-Anbieters, kein neues Lock-in-Risiko — sondern eine zusätzliche Steuerungs-, Gedächtnis- und Kostenschicht über dem, was der Kunde ohnehin schon nutzt. Diese Formulierung ist absichtlich der einzige Positionierungssatz des gesamten Dokuments; alle Botschaften-Säulen unten sind Ausprägungen davon, keine Alternativen dazu.</p>
+<h3 class="sec">8.7.2 Botschaften-Säulen</h3>
+<p>Vier Säulen, gebunden an die von der ICP-Segmentierung final festgelegte Segment-Struktur: ein Beachhead (Venture Builder &amp; Berater) und zwei sekundäre Ringe (Solo-Gründer &amp; Familienunternehmen; Daytrader &amp; Wissensarbeiter), plus eine vierte, segmentübergreifende Säule, die das Fundament für spätere Ringe (regulierte Branchen, Enterprise On-Premise, Öffentlicher Sektor, Software-Engineering/CTO, Open Source, Bildung/Forschung) trägt, sobald diese GTM-Priorität bekommen.</p>
+<table>
+<tr><th>Säule</th><th>Kernbotschaft</th><th>Zielsegment (Ring)</th><th>Beleg im Dokument</th><th>Abgrenzung</th></tr>
+<tr><td><strong>1. Ein kleines Team im Preis einer Lizenz</strong></td><td>Statt Spezialisten einzeln einzustellen, kauft ein kleines Team ab Tag eins Zugriff auf ein ganzes Bündel an Funktionen — von Planung über Umsetzung bis Qualitätsprüfung — gebündelt in einer Lizenz. Jedes Ergebnis trägt eine nachvollziehbare Beleglogik (Behauptung ≠ Beweis, bis geprüft), was gerade für Arbeit, die an eigene Kunden weitergereicht wird, Gewicht hat.</td><td><strong>Beachhead: Venture Builder &amp; Berater</strong> (Referenzfall: paralleles Due-Diligence- und Spec-Arbeiten für mehrere Ventures gleichzeitig)</td><td>MURE-Schwarm (siehe Abschnitt 8.7.3 unten); Zielgruppen-Matrix nennt „MURE-Schwarm für parallele Due-Diligence und Spec-Arbeit" explizit für dieses Segment</td><td>Bewusst keine EU-AI-Act-/Compliance-Rahmung hier — die Beleglogik wird als Qualitäts- und Glaubwürdigkeits-Argument für die eigenen Kundendeliverables des Venture Builders positioniert, nicht als Regulierungs-Nachweis. Dieses Segment fällt nicht plausibel unter EU-AI-Act-Hochrisiko-Pflichten.</td></tr>
+<tr><td><strong>2. Digitaler Arbeitsplatz ohne IT-Abteilung</strong></td><td>Ein Assistent, der nicht perfekt formulierte Anfragen erwartet, sich Kontext merkt, und keine eigene IT-Abteilung zur Einrichtung braucht. In Alltagssprache: „Stellen Sie sich einen klugen Assistenten vor, der manchmal Dinge erfindet und vergisst, was Sie ihm sagten — YURI gibt ihm ein Notizbuch, einen Faktenprüfer und eine Kostenkontrolle."</td><td><strong>Ring 1: Solo-Gründer &amp; Familienunternehmen</strong></td><td>Der 14-tägige geführte Ersteinsatz mit einem Anwender ohne KI-Vorerfahrung außer kostenlosem Web-ChatGPT</td><td>Ehrlich benannt: Diese Botschaft stützt sich aktuell auf einen Nachweisfall (den laufenden Pilotversuch), nicht auf eine bereits skalierte Kundenbasis in diesem Segment. Sie belegt Bedienbarkeit für Einsteiger, nicht Marktnachfrage.</td></tr>
+<tr><td><strong>3. Gedächtnis, das mitdenkt, ohne zu vergessen</strong></td><td>Kalibrierte Einschätzungen statt selbstsicherer Erfindungen, Kontext, der über Sitzungen hinweg erhalten bleibt, unter echtem Zeitdruck.</td><td><strong>Ring 2: Daytrader &amp; Wissensarbeiter unter Zeitdruck</strong></td><td>Zwei-Spuren-Gedächtnis-Architektur; Zielgruppen-Matrix nennt „kalibrierte Prognosen, Gedächtnis ohne Halluzinations-Drift" explizit für dieses Segment</td><td>Auch hier bewusst keine EU-AI-Act-Rahmung — dieses Segment fällt nicht plausibel unter Hochrisiko-Pflichten. Die Botschaft ist Vertrauen in Alltagssprache und Zeitersparnis, nicht Compliance.</td></tr>
+<tr><td><strong>4. Erweiterung, nicht Konkurrenz</strong></td><td>Das Fundament, auf dem die anderen drei Säulen stehen: YURI ersetzt keine bestehende Modell-Subskription, sondern legt sich als Steuerungs-, Gedächtnis- und Kostenschicht darüber. Kompatibel mit dem, was der Kunde schon zahlt und nutzt.</td><td>Segmentübergreifend — trägt auch spätere Ringe (regulierte Branchen, Enterprise On-Premise, Öffentlicher Sektor, Software-Engineering/CTO-Teams: dort wird die Governance-/Audit-Trail-Botschaft mit dem EU-AI-Act-Hinweis relevant, sobald dieser Ring GTM-Priorität bekommt) sowie Open-Source-Entwickler (kostenloser Kern, Community, Upsell)</td><td>Kernpositionierung (Abschnitt 8.7.1); Differenzierungs-Tabelle gegen Monitoring-/Orchestrierungs-Anbieter</td><td>Diese Säule ist die einzige, die nicht an einen der drei aktuell priorisierten Ringe gebunden ist — bewusst als Brücke zu noch nicht bearbeiteten Segmenten gehalten, nicht als Ersatz für einen eigenen Beachhead-Claim.</td></tr>
+</table>
+<p><strong>Offene Lücke, transparent benannt:</strong> Für das von der ICP-Segmentierung neu vorgeschlagene, aber als „explorativ/unressourciert" markierte zwölfte Segment „Solo-Experten &amp; Personal-Brand-Professionals" (Referenzperson: Atilla Ünal) existiert aktuell keine eigene Botschaften-Säule. Das ist beabsichtigt — eine dedizierte Botschaft für ein unressourciertes Segment vorzuschreiben würde eine Priorität behaupten, die im GTM-Budget (siehe unten) nicht hinterlegt ist.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">22</span></div>
+<h3 class="sec">8.7.3 MURE als „Kleines Team im Preis einer Lizenz"</h3>
+<p>Die Architekturkapitel beschreiben MURE technisch korrekt, aber ausschließlich in Engineering-Register: zwanzig funktionale Rollen-Archetypen, paralleler Schwarm-Dispatch über drei Peer-Pools. Was im Kapitel „Abruf und Wissen" bereits für die Retrieval-Mechanismen geleistet wird — jede Zeile technischer Mechanismus, daneben: „was es für den Anwender bedeutet" — fehlt für MURE komplett. Das wird hier nachgeholt, mit derselben Übersetzungsdisziplin.</p>
+<p><strong>Wichtiger Rahmen vorab:</strong> Die folgende Gegenüberstellung ist eine Einordnungs-Analogie zur Vermittlung des Funktionsumfangs — keine Zusage, dass YURI eins-zu-eins eine bestimmte Anzahl an Vollzeitstellen ersetzt. Tatsächliche Einsparungen hängen vom Einzelfall ab und sind nicht Gegenstand einer eigenen Wirtschaftlichkeitsrechnung in diesem Dokument.</p>
+<table>
+<tr><th>Funktion im kleinen Team</th><th>Was YURI dort übernimmt</th><th>Nutzen für Sie</th></tr>
+<tr><td><strong>Projektleitung &amp; Auftragsklärung</strong></td><td>Nimmt eine auch unsortiert formulierte Anfrage entgegen, übersetzt sie in einen konkreten Aufgabenplan und verteilt Teilaufgaben an die passenden Spezialfunktionen. Eskaliert nur, wenn eine Entscheidung tatsächlich Ihre Freigabe braucht.</td><td>Sie müssen nicht erst lernen, wie man eine KI „richtig" briefed.</td></tr>
+<tr><td><strong>Systemarchitektur</strong></td><td>Prüft vor jeder neuen Lösung zuerst, ob eine bestehende Fähigkeit im System das Problem bereits löst.</td><td>Kein doppelt bezahlter Aufbau von etwas, das es schon gibt.</td></tr>
+<tr><td><strong>Umsetzung</strong> (gestuftes Entwickler-Team)</td><td>Setzt Aufgaben um — gestuft von schnellen mechanischen Änderungen bis zu performance-kritischer Feinarbeit — passend zu Aufwand und Kosten der jeweiligen Aufgabe.</td><td>Sie zahlen nicht überall den Aufwand einer Senior-Fachkraft, auch wenn die Aufgabe klein ist.</td></tr>
+<tr><td><strong>Governance vor der Aktion</strong></td><td>Prüft vor jeder eigenständigen Aktion mehrere Kontrollfragen (u. a.: Ist es rückgängig machbar? Wie groß ist der Schaden im Fehlerfall? Verstößt es gegen Grundregeln?) und legt kritische Entscheidungen Ihnen zur Freigabe vor, statt eigenmächtig zu handeln.</td><td>Ein internes Kontrollorgan, das nicht erst reagiert, wenn etwas schiefgegangen ist.</td></tr>
+<tr><td><strong>Qualitätssicherung &amp; Sicherheitsprüfung</strong></td><td>Greift jedes Arbeitsergebnis aktiv auf Schwachstellen und Lücken an, prüft sensible Vorgänge sicherheitsseitig, und lässt nichts als „fertig" gelten, das eigene Abnahmekriterien nicht besteht.</td><td>Interne QA und Security-Review, ohne dass Sie dafür eine eigene Abteilung aufbauen.</td></tr>
+<tr><td><strong>Controlling &amp; Kalibrierung</strong></td><td>Überwacht das Verbrauchsbudget laufend, verteilt Aufgaben kostenbewusst über verfügbare Kapazität, und prüft regelmäßig, ob eigene Prognosen tatsächlich zutreffen oder nur selbstbewusst klingen.</td><td>Kostenkontrolle plus eingebauter Realitäts-Check, bevor Selbstüberschätzung zum teuren Fehler wird.</td></tr>
+<tr><td><strong>Wissensmanagement &amp; Kommunikation</strong></td><td>Hält fest, was bereits entschieden und gebaut wurde, und übersetzt Arbeitsergebnisse in lesbare Berichte statt Rohdaten.</td><td>Sie bekommen Ergebnisse, die Sie tatsächlich lesen und weitergeben können — dieses Dokument selbst ist ein Produkt dieser Funktion.</td></tr>
+<tr><td><strong>Recherche &amp; Ideenfindung</strong></td><td>Recherchiert zuerst intern, dann extern mit Quellenangabe, sammelt bewusst auch unkonventionelle Optionen vor der Entscheidung, und geht bei einem wirklich harten Teilproblem in die Tiefe statt an der Oberfläche zu bleiben.</td><td>Ein kleines Research-Team, das nicht beim ersten plausiblen Treffer aufhört.</td></tr>
+<tr><td><strong>Weiterentwicklung des Systems selbst</strong></td><td>Schlägt Verbesserungen am eigenen System vor — jeder Vorschlag muss erst einen Test bestehen und Ihre Freigabe erhalten, bevor er wirksam wird.</td><td>Das System wird über Zeit besser, ohne sich heimlich selbst zu verändern.</td></tr>
+</table>
+<p style="font-size:9.5pt;color:var(--mist)"><strong>Interne Zuordnung</strong> — nur für die Weiterverarbeitung (z. B. das Fable-5-Master-Brief), nicht für Kundenmaterial: Projektleitung &amp; Auftragsklärung = Steuermann + Envoy · Systemarchitektur = Architekt · Umsetzung = Engineer + Mechanic + Artificer + Kernelsmith · Governance vor der Aktion = Steward · QA &amp; Sicherheitsprüfung = Sentinel (Rollen-Archetyp „Sicherheitsreview, Schutzpfad-Audit, adversarial Red-Team" — zu unterscheiden von der andernorts im Dokument genannten Selbstverbesserungs-Funktion gleichen Namens, die Regressionen überwacht; hier ist ausschließlich der Rollen-Archetyp gemeint) + Adjudicator + Oracle · Controlling &amp; Kalibrierung = Quartermaster + Calibrator · Wissensmanagement &amp; Kommunikation = Archivist + Chronicler · Recherche &amp; Ideenfindung = Scout + Ideator + Synthesist + Deliberator · Weiterentwicklung = Evolver. Alle zwanzig Rollen-Archetypen sind damit abgedeckt.</p>
+<p>Der Business-Case dahinter in einem Satz: Ein kleines Team kauft ab Tag eins gebündelten Zugriff auf alle neun Funktionen oben, statt Spezialisten für Planung, Architektur, QA, Controlling und Dokumentation nacheinander einzustellen — und genau das ist auch der gelebte Anwendungsfall des Beachhead-Segments: paralleles Due-Diligence- und Spec-Arbeiten für mehrere Ventures gleichzeitig, ohne dafür ein internes Analysten-Team aufzubauen. Das System skaliert vom Einzelgründer zum Team, ohne dass sich die zugrundeliegende Architektur ändert.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">23</span></div>
+<h3 class="sec">8.7.4 Einwandbehandlung — die drei härtesten Fragen</h3>
+<div class="box">
+<p><strong>Einwand (a): „Ein einzelner Pre-Seed-Gründer ohne Erfolgsbilanz — warum sollte das funktionieren?"</strong> Ja — NEXUS LINK ist aktuell ein Einzelgründer-Unternehmen im Pre-Seed-Stadium, ohne vorherigen Exit und ohne Team-Historie über den Gründer hinaus. Das ist ein reales Risiko und wird in der SWOT-Analyse dieses Dokuments selbst offen benannt („Schlüsselperson Phase 0"). Was sich objektiv statt eines Track-Record-Arguments prüfen lässt: 342,2 Mio. Token und 142.000 Nachrichten in 30 Tagen sind kein Versprechen, sondern ein technisches Artefakt — die Architektur läuft nachweislich durchgehend im produktiven Eigenbetrieb, nicht nur auf dem Papier. Das Schlüsselperson-Risiko selbst wird im Rollout-Plan aktiv adressiert, nicht wegdiskutiert: ein Self-Serve-Zugang für die Professional-Stufe ist bereits ab der Modellbau-Phase vorgesehen, eine zweite Onboarding-Kraft ist für das Ende dieser Phase beziehungsweise den Beginn der Skalierungsphase eingeplant, und Kundenbetreuung wird nach Stufen gestaffelt (Unternehmen → Gründer persönlich, Business → Onboarding-Kraft, Professional → Self-Serve) — damit hängt nicht jede Kundenbeziehung dauerhaft an einer Person. (Ziel/Planung, Stand heute noch nicht umgesetzt.)</p>
+</div>
+<div class="box">
+<p><strong>Einwand (b): „Es gibt genau einen aktiven Piloten, und das ist der eigene Vater."</strong> Korrekt, und das wird hier nicht kleingeredet: Der aktuell einzige aktive Pilot ist Rene Spatz, Vater des Gründers, mit keiner KI-Vorerfahrung außer kostenlosem Web-ChatGPT. Das ist bewusst keine unabhängige Marktvalidierung und wird auch nicht als solche verkauft. Wofür der Pilot tatsächlich Beweiskraft hat: dass die Architektur mit einem echten KI-Einsteiger — nicht mit einem technikaffinen Early Adopter — von null funktioniert. Das ist ein Nachweis für Bedienbarkeit, kein Nachweis für Nachfrage. Der ehrliche Fakt daneben: Von den fünf freigeschalteten Warteliste-Kontakten sind vier über das Gründernetzwerk erschlossen; nur einer — Ryan Marshall — kam organisch über öffentliche Beiträge auf Threads/LinkedIn, ohne persönliche Verbindung zum Gründer. Das ist der einzige externe Signalpunkt, der aktuell existiert, und er ist entsprechend klein. Der konkrete nächste Schritt zur echten Validierung ist bereits eingeplant, nicht erst zu erfinden: Für Faisal Hourani (Beachhead-Segment Venture Builder &amp; Berater) ist nach seinem Onboarding eine öffentliche Referenz vorgesehen — ein geplanter, noch nicht eingetretener externer Beleg. Und genau deshalb ist die nächste GTM-Phase kein optionaler Zusatz, sondern der eigentliche Beweis: 50 bis 100 kommerzielle Piloten außerhalb des Gründernetzwerks sind das Ziel, an dem sich diese Aussage messen lassen muss.</p>
+</div>
+<div class="box">
+<p><strong>Einwand (c): „Warum sollte ich Effizienzzahlen ohne offengelegte Methodik glauben?"</strong> Berechtigter Einwand. Die genannten Zahlen (z. B. 65–95 % Einsparung, MLP-Router-Kalibrierungswert 0,17 gegenüber Baseline 0,43) sind intern gemessen, aus dem eigenen produktiven Betrieb des Gründers, nicht extern auditiert. Sie sollten nicht als abschließend bewiesene Fakten gelesen werden, sondern als Richtwerte aus einem einzigen, wenn auch intensiven, Nutzungskontext — Methodik wird bei Bedarf offengelegt, steht in diesem Dokument aber noch nicht im Detail. Was sich unabhängig von dieser einen Zahl bereits heute prüfen lässt: Das Prinzip dahinter ist kein Blackbox-Score, sondern eine offengelegte Rechenlogik mit benannten, einsehbaren Prüfgrößen statt einer geheimen Kennzahl, und jede sicherheitsrelevante Entscheidung hinterlässt eine nachvollziehbare Prüfspur. Das ersetzt keine externe Verifikation der konkreten Prozentzahlen — es macht aber die Berechnungsmethode selbst prüfbar, sobald ein Prüfer sie einsehen will. Das ist der Unterschied, den dieses Dokument anbietet: keine Zusage von bereits verifizierter Genauigkeit, sondern Nachvollziehbarkeit als Prinzip.</p>
+</div>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">24</span></div>
+<h3 class="sec">8.7.5 Was diese Positionierung bewusst nicht behauptet</h3>
+<ul>
+<li>Keine Marktvalidierung aus dem einzigen aktiven (Insider-)Piloten oder aus der 342,2-Mio.-Token-Eigenproduktion — beides ist Architektur-Nachweis bzw. Bedienbarkeits-Nachweis, kein Nachfrage-Nachweis.</li>
+<li>Keine pauschale EU-AI-Act-Dringlichkeit über alle Zielgruppen hinweg — die Botschaften-Säulen für Venture Builder &amp; Berater sowie Daytrader &amp; Wissensarbeiter verzichten bewusst auf dieses Argument, da beide Segmente nicht plausibel unter Hochrisiko-Pflichten fallen.</li>
+<li>Keine unqualifiziert präsentierten Effizienz- oder Kalibrierungszahlen — jede Zahl ohne offengelegte Methodik trägt hier den Hinweis „intern gemessen, Methodik auf Anfrage".</li>
+<li>Keine zweite, konkurrierende Positionierungs-Tagline neben „Erweiterung der Modellanbieter, nicht deren Konkurrenz".</li>
+<li>Keine wörtliche Verwendung interner Codenamen aus den Architekturkapiteln (z. B. Bezeichnungen für einzelne Kognitionsmechanismen) in kundengerichteter Sprache — jeder Mechanismus wird hier in Klartext-Nutzenbeschreibung übersetzt.</li>
+<li>Keine Nennung strittiger interner Zählgrößen (z. B. Organ- oder Prüfgrößen-Anzahl) — wo im Dokument an anderer Stelle unterschiedliche Zahlen für dieselbe Größe auftauchen, wird hier qualitativ statt numerisch beschrieben.</li>
+</ul>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">25</span></div>
+<h2 class="ch">8.8 Kanäle &amp; Distribution</h2>
+<p>Die bisherigen Kapitel benennen zwei Kanal-Behauptungen, ohne sie zu entwerfen: „Community, Upsell&quot; (7.2, 8.5) und „öffentliche Referenz nach Onboarding&quot; (8.4, Faisal Hourani). Dieser Abschnitt entwirft beide konkret und schließt die größte unadressierte Lücke im Vertriebsteil: Bis auf einen Kontakt stammt die gesamte bisherige Pipeline aus dem persönlichen Netzwerk des Gründers. Ohne einen tragfähigen, gründerunabhängigen Kanal bleibt jede 50–100-Piloten-Zielgröße (Kap. 7.1, 8.2) an die Reichweite einer einzelnen Person gekoppelt, genau das Risiko, das die SWOT bereits als „Schlüsselperson Phase 0&quot; benennt.</p>
+<p>Zeithorizont in diesem Abschnitt: sechs bis zwölf Monate ab Warteliste-Öffnung (abgestimmter Zielkorridor mit Kap. 11 und dem KPI-Abschnitt, nicht die engere Sechs-Monats-Zahl aus 8.2 allein). Konversion Pilot → Zahlungskunde: 25–35 % (Ziel, abgestimmt mit dem KPI-Abschnitt), als Rechengröße für die Kanal-Wirksamkeit unten verwendet, nicht als neue Tatsachenbehauptung.</p>
+<h3 class="sec">8.8.1 Befund: der Gründer-Netzwerk-Bias (ungeschönt)</h3>
+<table>
+<tr><th>Kontakt</th><th>Herkunft des Kontakts</th><th>Einordnung</th></tr>
+<tr><td>Faisal Hourani</td><td>Persönliches Netzwerk des Gründers</td><td>Gründer-Netzwerk; zugleich gewählter Beachhead-ICP „Venture Builder &amp; Berater&quot; (Kap. 7.2)</td></tr>
+<tr><td>Ryan Marshall</td><td>Eingehend über Threads/LinkedIn, nach Verfolgen öffentlicher YURI-Beiträge</td><td><strong>Einziger organischer Kontakt</strong> der gesamten Pipeline</td></tr>
+<tr><td>Atilla Ünal</td><td>Enges Netzwerk des Gründers</td><td>Gründer-Netzwerk; kein sauberer Segment-Fit (Explorationsring, kein Beachhead)</td></tr>
+<tr><td>Janine Wälti</td><td>Netzwerk-Kontakt, LinkedIn-aktiv</td><td>Gründer-Netzwerk; sauberer Fit zu Segment „Daytrader&quot;</td></tr>
+<tr><td>Jan-Erich Meister</td><td>Enger Gründerkreis</td><td>Gründer-Netzwerk; interne Dogfooding-/Belastbarkeitsprobe, kein Marktbeleg</td></tr>
+</table>
+<p><strong>Vier von fünf Whitelist-Kontakten sind gründer-netzwerk-sourced. Nur einer ist organisch.</strong> Das ist keine Randnotiz, das ist der zentrale Risikofaktor dieses Kapitels: Eine Pipeline, die zu 80 % aus dem Rolodex einer Person besteht, skaliert nicht auf 50–100 Piloten, sie skaliert auf die Kontaktzahl dieser Person. Zusätzlich ist über Ryan Marshall selbst wenig bekannt: sein berufliches Profil ist nirgends im Dokument erfasst. Er belegt, dass der organische Kanal <em>funktioniert</em> (jemand fand YURI über öffentliche Inhalte und meldete sich unaufgefordert), er belegt <em>nicht</em>, welche Zielgruppe darüber erreichbar ist. Die folgenden vier Kanäle adressieren genau das: drei verstärken vorhandene Gründer-Assets professionell und produktisieren sie, einer (8.8.5) ist so konstruiert, dass er ganz ohne Gründer-Netzwerk funktioniert.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">26</span></div>
+<h3 class="sec">8.8.2 Kanal 1 — Build-in-Public, das Ryan-Muster industrialisiert</h3>
+<p>Ryan Marshall ist der Existenzbeweis, dass founder-authored öffentlicher Content unaufgeforderte, qualifizierte Anfragen erzeugt, ganz ohne Werbebudget. Aktuell ist das ein Zufallstreffer aus unregelmäßigen Beiträgen. Der Vorschlag macht daraus eine wiederholbare, budgetierte Bewegung:</p>
+<p><strong>Plattformen:</strong> Threads und LinkedIn zuerst, weil dort das einzige belegte Signal existiert (Ryans Anfrage kam genau darüber). Keine Streuung auf unbewiesene Plattformen vor Validierung.</p>
+<p><strong>Content-Säulen</strong> (alle aus bereits etablierten, im Dokument belegten Fakten, keine neuen Behauptungen):</p>
+<ol>
+<li><strong>Baubericht / Architektur-Nachweis:</strong> laufende Updates aus der Eigenproduktion (342,2 Mio. Token, 65–95 % Einsparung, Kap. 10), als Fortsetzungsformat statt Einmal-Zahl.</li>
+<li><strong>„Ein Team, ohne Team einzustellen&quot;:</strong> die 20 MURE-Rollen-Archetypen als Organisationsfunktionen übersetzt, z. B. Steuermann als Projektleitung, Sentinel als Sicherheitsreview, Chronicler als technische Redaktion, Envoy als Übersetzung von unstrukturiertem Auftrag in Spezifikation. Das ist der bisher ungenutzte Positionierungswinkel aus der Dissektion: Käufer verstehen „das ersetzt/ergänzt eine Reihe von Spezialrollen&quot; schneller als „20 Rollen-Archetypen&quot;.</li>
+<li><strong>Pilot-Baubericht:</strong> anonymisierte/freigegebene Lernpunkte aus dem Vater-Piloten (Custom Gear Solutions), ohne Kundennamen ohne Freigabe.</li>
+<li><strong>EU-AI-Act-Countdown:</strong> kurze, wiederkehrende Beiträge zur Frist August 2026, Cross-Link auf den Content-Kanal in 8.8.5.</li>
+</ol>
+<p><strong>Kadenz:</strong> 2× pro Woche kurzes Update, 1× pro Woche ein tieferer technischer Beitrag. Bewusst schmal gehalten, ein Gründer mit Schlüsselperson-Risiko (SWOT) darf keinen Vollzeit-Content-Kalender zusätzlich tragen.</p>
+<p><strong>Entlastung des Schlüsselperson-Risikos:</strong> Content-Erstausformulierung über die Chronicler-Rolle (bereits etabliert, Kap. 4.4: „Destilliert in lesbare Docs und Investoren-Prosa&quot;) aus Sprachnotizen/Baulogs des Gründers, der Gründer redigiert und gibt frei, statt jeden Beitrag von Null zu schreiben. Das reduziert den Grenzaufwand des Kanals, nicht die Founder-Stimme.</p>
+<p><strong>Profil-Lücke schließen:</strong> Da Ryans berufliches Profil unbekannt ist, wird jedem Wartelisten-Signup künftig eine einzige Pflichtfrage vorgeschaltet (Rolle/Branche, Freitext reicht). Ohne dieses Minimum bleibt der organische Kanal blind dafür, welches der elf (bzw. zwölf, nach Segmentierungs-Abschnitt) Zielgruppensegmente er tatsächlich erreicht, bevor Budget in seine Skalierung fließt.</p>
+<p><strong>Tracking (leichtgewichtig, Detaildefinition liegt beim KPI-Abschnitt):</strong> Herkunftsfeld je Wartelisten-Signup, keine Marketing-Stack-Investition nötig.</p>
+<p><strong>Kosten:</strong> überwiegend Gründerzeit plus Chronicler-Vorentwurf; kein Media-Spend. Realistisch EUR 0–3.000 (Ziel) für gelegentliche Produktionshilfe (Schnitt/Grafik), siehe Budgettabelle 8.8.6.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">27</span></div>
+<h3 class="sec">8.8.3 Kanal 2 — Open-Source-zu-Paid-Trichter (GitHub)</h3>
+<p>Das Dokument behauptet den Trichter zweimal („GitHub, Community, Upsell&quot;, Kap. 7.2 und 8.5), entwirft ihn aber nirgends. Es gibt keine Quellenangabe dazu, wo die Grenze zwischen kostenloser OSS-Nutzung und zahlungspflichtiger Professional-Stufe verläuft. Der folgende Trichter ist eine <strong>neue Gestaltungsannahme, nicht aus dem Quelldokument</strong>, konsistent mit den bestehenden Preislogik-Spalten „Self-serve, OSS-Upsell&quot; (Professional) und „Team-Funktionen&quot; (Business) aus Kap. 2.5:</p>
+<table>
+<tr><th>Stufe</th><th>Umfang</th><th>Trigger zum Upgrade</th></tr>
+<tr><td>Open Source (kostenlos)</td><td>Einzelplatz, selbst gehostet, eine aktive Lane (kein paralleler MURE-Schwarm), Arbeitsgedächtnis sitzungsgebunden, Community-Support über GitHub Issues</td><td>—</td></tr>
+<tr><td>→ <strong>Professional</strong> (EUR 49–99/Monat, Kap. 2.5)</td><td>Dauerhafte Gedächtnis-Kontinuität über Sitzungen hinweg (kanonischer Ledger, Kap. 3.4), mehr als eine parallele Lane, priorisierte Updates</td><td>Nutzer versucht, eine zweite Lane parallel zu starten, oder öffnet eine neue Sitzung und merkt, dass der Kontext nicht fortbesteht</td></tr>
+<tr><td>→ <strong>Business</strong> (EUR 299–799/Monat, bis 25 Sitze)</td><td>Team-Ledger, mehrere Nutzer, Admin-Steuerung</td><td>Team-Domain-E-Mail bei Signup, oder mehrere Nutzer greifen auf dieselbe Instanz zu</td></tr>
+<tr><td>→ <strong>Unternehmen</strong> (EUR 15.000–50.000/Jahr)</td><td>On-Premise, SLA, Audit-Trail-Export</td><td>Anfrage nach On-Premise-Deployment oder Compliance-Export (EU AI Act, Kap. 6)</td></tr>
+</table>
+<p><strong>Funnel-Mechanik:</strong> README/Quickstart auf GitHub → lokale Installation → Nutzung bis zum Feature-Gate → In-Produkt-Hinweis auf Self-Serve-Upgrade (Professional läuft laut Kap. 2.5 ohnehin „self-serve&quot;, <strong>kein Sales-Gespräch nötig</strong> für diese unterste Stufe). Ab Business/Unternehmen greift der bestehende, gründergeführte Pilot-Vertrieb aus 8.1–8.4.</p>
+<p><strong>Das entschärft direkt die SWOT-Schwäche „Schlüsselperson Phase 0&quot; für die unterste Erlösstufe:</strong> Professional-Konversion hängt nicht an der Verfügbarkeit des Gründers, Business/Unternehmen bleiben es vorerst.</p>
+<p><strong>Launch-Taktiken, kostenneutral (Zeit statt Cash):</strong> vollständiger Quickstart, Eintrag in einschlägige Awesome-Listen, ein Launch-Beitrag auf einer Entwickler-Plattform (z. B. Hacker News „Show HN&quot; oder ein einschlägiges Subreddit für lokale/agentische KI-Tools), Cross-Posting aus Kanal 1. Alles Zeitkosten, kein Media-Budget.</p>
+<p><strong>Kosten:</strong> EUR 3.000–8.000 (Ziel), primär für Dokumentations-/Quickstart-Politur, siehe 8.8.6.</p>
+<h3 class="sec">8.8.4 Kanal 3 — Referenz &amp; Amplifikation über Faisal Hourani (geliehene Reichweite, nicht Eigenbesitz)</h3>
+<p>Faisal Hourani ist laut Segmentierungsabschnitt der gewählte Beachhead-ICP „Venture Builder &amp; Berater&quot;, nicht nur ein Whitelist-Name. Das erhöht den Wert dieses Kanals gegenüber einer reinen Anekdote erheblich: Ein erfolgreicher Case ist zugleich der Referenzbeleg für das gesamte Zielsegment. Kap. 8.4 benennt den Plan bereits stichwortartig („Venture-Geschwindigkeit und öffentliche Referenz nach Onboarding&quot;), hier die Umsetzung:</p>
+<ol>
+<li><strong>Case Study nach Onboarding-Nachweis:</strong> Veröffentlichung erst nach einer belegten Nutzungsperiode (nicht sofort nach Zugang), mit konkretem Vorher/Nachher an Venture-Building-Arbeit (Due-Diligence-Tempo, Spec-Arbeit über den MURE-Schwarm, Kap. 7.2).</li>
+<li><strong>Co-Autorenschaft, nicht Fremdnutzung seiner Reichweite:</strong> ein gemeinsam verfasster LinkedIn-Beitrag, den Faisal aus eigener Stimme und eigenem Konto teilt. Seine ~13.000 Kontakte sind eine <strong>mögliche, nicht kontrollierte oder garantierte</strong> Verstärkung, abhängig von seiner freiwilligen Bereitschaft. Kein Reichweiten-Ziel wird auf diese Zahl budgetiert.</li>
+<li><strong>Warm-Intro-Programm zu SuperVentureStudio-Portfolio:</strong> aktive Bitte um 2–3 Einführungen zu Portfoliounternehmen als nächste Piloten-Welle. Das produktisiert den Zufallskontakt zu einem wiederholbaren Referral-Mechanismus, bleibt aber ausdrücklich von seiner Zustimmung abhängig.</li>
+<li><strong>Zitat-Wiederverwendung:</strong> Referenzsatz für spätere Investoren- und Vertriebsunterlagen, mit seiner Freigabe.</li>
+</ol>
+<p><strong>Sequenzierung (wichtig):</strong> Dieser Kanal ist <strong>Phase-1/2-abhängig</strong>, nicht Phase 0. Er aktiviert sich erst, wenn Faisal tatsächlich onboardet und eine positive, belegbare Erfahrung macht. Er darf nicht in aktuelle Funnel-Projektionen als bereits laufender Kanal eingerechnet werden.</p>
+<p><strong>Kosten:</strong> EUR 0–2.000 (Ziel), Aufwand für Case-Study-Produktion/Layout, kein Media-Spend, da geliehene statt gekaufte Reichweite.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">28</span></div>
+<h3 class="sec">8.8.5 Kanal 4 — Skalierbarer Kanal ohne Gründer-Abhängigkeit: EU-AI-Act-Content &amp; Nischenpartnerschaften</h3>
+<p>Dies ist der einzige der vier Kanäle, der ohne das Netzwerk, die Stimme oder die laufende Zeit des Gründers funktioniert, sobald er einmal aufgesetzt ist. Er ist bewusst schmal und passend zum Budgetrahmen konstruiert (siehe 8.8.6), keine bezahlte Reichweite, reine Content-/SEO- und Partnerschaftsarbeit.</p>
+<p><strong>Zielgruppen-Schärfung (wichtig, mit Segmentierungsabschnitt abgestimmt):</strong> Die EU-AI-Act-Frist (August 2026, Kap. 6.1) ist ein belastbarer Dringlichkeits-Hebel, aber <strong>nur für die Segmente, die plausibel unter Hochrisiko-Pflichten fallen</strong>: regulierte Branchen (Finanz, Recht, Gesundheit, Kap. 7.2), öffentlicher Sektor/EU-Compliance. <strong>Nicht</strong> für Venture Builder oder Daytrader, dort trägt das Argument laut Segmentierungsabschnitt nicht. Dieser Kanal wird also gezielt auf die regulierten Segmente ausgerichtet, nicht als Breitband-Dringlichkeit über alle elf/zwölf Zielgruppen verkauft.</p>
+<p><strong>Content-Angebot (3–5 Stücke, DE+EN):</strong></p>
+<ul>
+<li>„Was der EU AI Act ab August 2026 von KI-Agenten verlangt&quot; (Erklärstück, long-tail SEO)</li>
+<li>Checkliste „Nachweispflicht für KI-Steuerung&quot;: Audit-Trail, menschliche Aufsicht, Transparenzpflichten, konkret auf Kap. 6.2 gemappt (offengelegte Mathematik, Audit-Spuren pro Gate)</li>
+<li>„Was ein Team aus Spezialisten normalerweise kostet&quot; (MURE-Rollen als Organisationsfunktionen, gleicher Winkel wie 8.8.2, hier auf Compliance-Rollen zugespitzt: Sentinel als Sicherheitsreview, Oracle als QA/Abnahme)</li>
+<li>Jedes Stück endet mit Lead-Magnet-Formular (E-Mail gegen Checkliste) direkt in die Warteliste</li>
+</ul>
+<p><strong>Positionierung, konsequent wiederverwendet:</strong> „YURI sitzt über der Inferenz, nicht neben dem Modellanbieter&quot; (Kap. 2, Callout). Der Content erklärt Steuerung und Nachweisbarkeit als Kategorie, nicht als Angriff auf Modellanbieter, konsistent mit der bestehenden Positionierung.</p>
+<p><strong>Ergänzende Nischenpartnerschaft (im selben Budgetrahmen, kein separater Posten):</strong> 1–2 gezielte Beziehungen zu Compliance-/Rechtsberatungen oder GmbH-Gründungsberatern in Wien, die die regulierten Zielsegmente bereits bedienen. Provisions-/Revenue-Share-Basis statt Vorab-Investition, kein volles Partnerprogramm mit Enablement-Infrastruktur (das würde den Budgetrahmen sprengen, siehe 8.8.7).</p>
+<p><strong>Warum das der richtige gründerunabhängige Kanal ist:</strong> Content und SEO-Reichweite bleiben nach Veröffentlichung wirksam, ohne laufende Gründerzeit, anders als Kanal 1. Zwei Nischenpartnerschaften sind mit einer Person aufsetzbar und laufen danach eigenständig weiter.</p>
+<p><strong>Kosten:</strong> EUR 8.000–15.000 (Ziel): freiberufliche/r Fachtexter/in DE/EU-Recht, Übersetzung, einfaches SEO-Tooling-Abo, Zeitaufwand für die zwei Partnerschaftsgespräche.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">29</span></div>
+<h3 class="sec">8.8.6 Budgetzuordnung innerhalb der Vertriebslinie (Diskussionsbasis, nicht final)</h3>
+<p>Die 20-%-Linie „Vertrieb &amp; Pilotprogramm&quot; (Kap. 11) entspricht bei einem Gesamtbedarf von EUR 150.000–350.000 rund <strong>EUR 30.000 bis 70.000</strong> für die gesamte Vertriebs- und Marketingbewegung. Folgende Aufteilung ist eine neue Modellannahme, keine Quellenzahl:</p>
+<table>
+<tr><th>Posten</th><th>Anteil an der Vertriebslinie (Ziel)</th><th>Bemerkung</th></tr>
+<tr><td>Kanal 1 (Build-in-Public)</td><td class="n">EUR 0–3.000</td><td>überwiegend Zeitkosten</td></tr>
+<tr><td>Kanal 2 (OSS-Trichter)</td><td class="n">EUR 3.000–8.000</td><td>Doku-/Quickstart-Politur</td></tr>
+<tr><td>Kanal 3 (Faisal-Referenz)</td><td class="n">EUR 0–2.000</td><td>Case-Study-Produktion</td></tr>
+<tr><td>Kanal 4 (EU-AI-Act-Content + Partnerschaften)</td><td class="n">EUR 8.000–15.000</td><td>Fachtexter, Übersetzung, SEO-Tooling</td></tr>
+<tr><td><strong>Kanal-Summe</strong></td><td class="n"><strong>EUR 11.000–28.000</strong></td><td>rund ein Drittel bis knapp die Hälfte der Vertriebslinie</td></tr>
+<tr><td>Verbleibend: direkte Pilotbetriebskosten</td><td class="n">EUR 19.000–42.000</td><td>Onboarding-Support, Referenzcase-Produktion, Restbudget; liegt außerhalb des Kanal-Scopes dieses Abschnitts</td></tr>
+</table>
+<h3 class="sec">8.8.7 Zurückgestellte Kanäle (explizit, mit Begründung)</h3>
+<p>Das Quelldokument nennt keinen dieser Kanäle. Sie werden hier bewusst <strong>nicht</strong> neu eingeführt, weil sie den Budgetrahmen sprengen würden:</p>
+<ul>
+<li><strong>Bezahlte Werbung (LinkedIn Ads, Google Ads):</strong> Zurückgestellt. Ein belastbarer CAC-Test für ein erklärungsbedürftiges Produkt erfordert ein Vielfaches der gesamten Vertriebslinie, jeder Test innerhalb von EUR 30.000–70.000 wäre statistisch nicht aussagekräftig.</li>
+<li><strong>Konferenz-/Messepräsenz:</strong> Zurückgestellt. Standkosten, Reise, Sponsoring stehen in keinem Verhältnis zum Budget, und der ROI früher Konferenzpräsenz hängt an Referenzcases, die vor Abschluss von Phase 2 noch nicht vorliegen.</li>
+<li><strong>Channel-Partner-/Reseller-Programm:</strong> Zurückgestellt. Erfordert Partner-Enablement (Schulung, Deal-Registrierung, Co-Marketing-Fonds), das bei diesem Budget nicht finanzierbar ist. Die Nischenpartnerschaften in 8.8.5 sind bewusst kein Vorgriff darauf, sondern 1–2 provisionsbasierte Einzelbeziehungen ohne Infrastruktur.</li>
+<li><strong>Ausgehende Kaltakquise im großen Stil (SDR-Team):</strong> Zurückgestellt. Die 20-%-Linie ist als Pilotbetrieb, nicht als bezahltes Vertriebsteam budgetiert, es gibt keinen Personalposten dafür.</li>
+</ul>
+<p><strong>Auslöser für Neubewertung:</strong> Abschluss von Phase 2 (50–100 Piloten erreicht, Kap. 8.2/9.3) plus ein Finanzierungsabschluss. Beides zusammen liefert erstens Referenzcases, die teurere Kanäle erst wirksam machen, und zweitens das Kapital, sie zu finanzieren.</p>
+<h3 class="sec">8.8.8 Kanal-Übersicht</h3>
+<table>
+<tr><th>Kanal</th><th>Reifegrad heute</th><th>Gründerabhängigkeit</th><th>Kosten (Ziel)</th><th>Skaliert unabhängig vom Gründer ab</th></tr>
+<tr><td>1. Build-in-Public</td><td>ein Datenpunkt (Ryan)</td><td>Hoch (Stimme), reduziert durch Chronicler-Vorentwurf</td><td class="n">EUR 0–3.000</td><td>nie vollständig, kernhaft founder-authored</td></tr>
+<tr><td>2. OSS → Paid-Trichter</td><td>Konzept, ungebaut</td><td>Niedrig ab Professional-Stufe</td><td class="n">EUR 3.000–8.000</td><td>sofort für Professional, Business/Unternehmen bleiben vertriebsgeführt</td></tr>
+<tr><td>3. Faisal-Referenz</td><td>geplant, onboarding-abhängig</td><td>Hoch (fremde, geliehene Reichweite)</td><td class="n">EUR 0–2.000</td><td>nie „Eigenbesitz&quot;, bleibt Verstärkung</td></tr>
+<tr><td>4. EU-AI-Act-Content + Partnerschaften</td><td>neu zu bauen</td><td>Niedrig nach Aufsetzen</td><td class="n">EUR 8.000–15.000</td><td>nach Veröffentlichung/Partnerschaftsabschluss</td></tr>
+</table>
+<div class="callout">
+<p><strong>Kernaussage:</strong> Nur Kanal 4 ist strukturell gründerunabhängig skalierbar. Die anderen drei sind wertvoll, aber keiner davon schließt den Gründer-Netzwerk-Bias aus 8.8.1, sie professionalisieren ihn lediglich. Jede spätere Finanzierungsrunde sollte diesen Kanal zuerst mit zusätzlichem Budget verstärken, bevor teurere, zurückgestellte Kanäle aus 8.8.7 aktiviert werden.</p>
+</div>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">30</span></div>
+<h2 class="ch">8.9 Wettbewerbslandschaft &amp; kompetitive Verkaufsargumentation</h2>
+<p><strong>Einordnung.</strong> YURI positioniert sich als <em>komplementärer Akteur</em>: „Erweiterung der Modellanbieter, nicht deren Konkurrenz" — YURI sitzt über der Inferenz, nicht neben ihr (Kap. 7.3). Das bleibt für die Modellebene (Anthropic, OpenAI, Z.ai, Ollama u. a.) uneingeschränkt gültig: dort gibt es keinen Wettbewerb. <strong>Eine Ebene darüber</strong> — Steuerung, Gedächtnis, Governance, Orchestrierung von Agenten — gibt es jedoch sehr wohl einen realen, benennbaren Wettbewerb. Das Quelldokument benennt ihn bisher nur an einer einzigen Stelle: Kap. 6.3 („Differenzierung gegen Monitoring-Anbieter"), im Vertrauens-/Rechtskapitel, nicht im Marktkapitel. Diese drei Anbieter-Cluster sind der einzige verifizierte Wettbewerbs-Fundus im gesamten Dokument und werden hier erstmals in eine einsetzbare Vertriebs- und Positionierungslogik übersetzt.</p>
+<h3 class="sec">8.9.1 Die drei Anbieter-Cluster — Differenzierung UND Verkaufsargument</h3>
+<table>
+<tr><th>Cluster</th><th>Genannte Anbieter (Quelle: Kap. 6.3)</th><th>YURI-Differenz (Quelle, unverändert)</th><th>Strategische Einordnung (neu)</th></tr>
+<tr><td>KI-Observability / -Governance</td><td>Galileo, Tumeryk, „Microsoft AGT" — NICHT VERIFIZIERT, siehe 8.9.2</td><td>Undurchsichtiger Score vs. offengelegte Lyapunov-Math</td><td>Direktester Wettbewerb zur Kernbotschaft „Nachweisketten statt Blackbox". Höchste Priorität für Sales-Battlecard.</td></tr>
+<tr><td>Agenten-Gedächtnis</td><td>Mem0, Letta</td><td>Generisches Decay vs. FSRS + Anwender-Gating + Veto</td><td>Technischer Vergleich, gut demonstrierbar (Code-Snippet-Ebene).</td></tr>
+<tr><td>Agenten-Orchestrierung</td><td>LangChain, CrewAI</td><td>Orchestrierung vs. Steuerungsschicht darüber</td><td>Größter Ökosystem-Gegner nach Verbreitung; Koexistenz- statt Verdrängungsstrategie nötig.</td></tr>
+</table>
+<p>Jeder Cluster braucht ein eigenes Verkaufsargument und einen eigenen README-Baustein — die reine Ein-Zeilen-Kontrastformel aus Kap. 6.3 ist Rohmaterial für Investoren, kein Vertriebswerkzeug.</p>
+<h4 class="sub">Cluster 1 — Observability/Governance (Galileo, Tumeryk)</h4>
+<p><em>Vertriebsargument (Discovery-Frage für Vertrieb/Founder-Sales):</em> „Können Sie mir die Formel hinter Ihrem Risiko-Score zeigen, oder ist das ein trainiertes Blackbox-Modell?" — Bei Galileo/Tumeryk-Klasse-Tools lautet die ehrliche Antwort praktisch immer: proprietär, nicht offen einsehbar. YURIs Antwort: die komplette Entscheidungsmathematik der Math-Bridge (robustScore aus Erwartungswert + CVaR, governanceVeto, breakerVerdict-Kette) ist <strong>advisory, nicht reimplementiert, offen dokumentiert</strong> — Zahlen informieren, überschreiben aber nie das Constitution-Veto. Zweite, strukturell wichtigere Frage: „Was passiert, wenn Ihr Score ‚mittleres Risiko' meldet — stoppt das etwas, oder wird es nur geloggt?" Observability-Tools sind überwiegend <strong>detektions-orientiert</strong> (Alarm nach/während der Aktion); YURIs Sechs-Tore-Charter ist <strong>präventions-orientiert</strong> (Blockade vor Ausführung). Das ist ein struktureller Kategorienunterschied, nicht nur ein Transparenzunterschied — beide Punkte gehören in jedes Sales-Gespräch gegen diesen Cluster.</p>
+<p><em>README-/OSS-Baustein:</em> Eine öffentliche „Show the Math"-Sektion im GitHub-README, die direkt auf die Formeln verlinkt (CVaR-Definition, Lyapunov-Breaker-Kette, Governance-Veto-Logik) und technische Bewerter einlädt, sie selbst zu prüfen. Das ist ein Verkaufsargument, das proprietäre Scoring-Anbieter strukturell nicht kontern können — ihr Geschäftsmodell verbietet offengelegte Trainingsformeln. <strong>Hinweis:</strong> Der interne Kalibrierungswert „MLP-Router Brier 0,17 vs. Baseline 0,43" (Kap. 4.6) ist ein starker Datenpunkt, aber ohne offengelegte Methodik — er darf in Vertriebsmaterial nur mit dem Zusatz „intern gemessen, Methodik auf Anfrage offengelegt" verwendet werden, nie als nackte Kennzahl.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">31</span></div>
+<h4 class="sub">Cluster 2 — Agenten-Gedächtnis (Mem0, Letta)</h4>
+<p><em>Vertriebsargument:</em> „Entscheiden bei Ihnen SIE, was dauerhaft zu ‚Wahrheit' wird, oder entscheidet das Modell das selbst?" Generische Memory-Layer promoten nach Recency-/Frequenz-Heuristik automatisch. YURIs Zwei-Spuren-Architektur verlangt für jede Promotion in den kanonischen Ledger eine explizite Anwenderfreigabe (propose → decide → promote → append → recall) plus FSRS-basiertes Vergessen — ein aus der Lernforschung stammender, offen dokumentierter Spaced-Repetition-Algorithmus (bekannt u. a. aus Anki), kein ad-hoc-Decay. Für regulierte Segmente (Finanz, Recht, Gesundheit) ist das der entscheidende Vertriebspunkt: Gedächtnis wird zu einem kontrollierbaren, auditierbaren Asset statt einem sich selbst still fortschreibenden Blackbox-Speicher.</p>
+<p><em>README-/OSS-Baustein:</em> Ein Side-by-Side-Codebeispiel: Mem0/Letta-Style „auto-save, auto-decay" vs. YURIs expliziter Freigabe-Schritt im API-/CLI-Aufruf. Für technische Bewerter demonstrierbar in unter fünf Minuten — genau die Art Vergleich, die in Entwickler-READMEs organische Reichweite erzeugt (vgl. Ryan Marshalls Inbound-Kontakt über öffentliche Beiträge als Beleg, dass dieser Content-Kanal funktioniert).</p>
+<h4 class="sub">Cluster 3 — Agenten-Orchestrierung (LangChain, CrewAI)</h4>
+<p><em>Vertriebsargument, zwei Motions:</em> (a) <strong>Koexistenz</strong> („layer on top"): YURI kann als Steuerungsschicht über eine bestehende LangChain-/CrewAI-Pipeline gesetzt werden — kein Rip-and-Replace, geringe Einstiegshürde, geeignet für Bestandskunden mit versunkenen Investitionen in bestehende Agenten-Stacks. (b) <strong>Ersatz</strong> („skip the scaffolding"): für Greenfield-Projekte ersetzt MURE das manuelle Zusammenbauen von Agenten-Graphen durch vorgefertigte, funktionale Rollen-Archetypen (Planer, Sicherheitsprüfer, QA, Budget-Kontrolle u. a.) inklusive eingebauter Governance und Budgetsteuerung — LangChain/CrewAI liefern reine Orchestrierungs-Bausteine, keine mitgelieferte Governance-Schicht.</p>
+<p><em>README-/OSS-Baustein:</em> Eine direkte „LangChain/CrewAI vs. YURI"-Vergleichstabelle im README (Governance inklusive vs. Bring-your-own-Governance; vorgefertigte Rollen-Archetypen vs. handgebauter Agenten-Graph; offengelegte Entscheidungsmathematik vs. keine) — Vergleichstabellen dieser Art sind in der LangChain-/CrewAI-Alternativen-Content-Landschaft Standard und ein bewährter organischer Entdeckungskanal.</p>
+<p><em>Wichtige Einschränkung für den Vertrieb:</em> LangChain/CrewAI haben nach Verbreitung ein erheblich größeres Ökosystem. Gegenüber einem bereits LangChain-committeten technischen Buyer sollte YURI <strong>nicht</strong> als „Ersatz" verkauft werden, sondern bewertungsabhängig als Koexistenz- oder Ersatzoption positioniert werden — Verdrängungsrhetorik gegen eine etablierte Entwickler-Community schwächt Glaubwürdigkeit.</p>
+<h3 class="sec">8.9.2 Kritischer Prüfhinweis — „Microsoft AGT" ist NICHT verifiziert</h3>
+<div class="callout">
+<p><strong>STATUS: UNVERIFIZIERT — vor jeder externen/investoren-gerichteten Verwendung zwingend zu klären.</strong></p>
+<p>Kap. 6.3 nennt „Microsoft AGT" ohne Ausschreibung der Abkürzung; im gesamten Quelldokument wird sie nirgends aufgelöst. Im Rahmen dieser Recherche wurde ein plausibler Treffer identifiziert: Microsofts Open-Source-Projekt <strong>„Agent Governance Toolkit"</strong> (GitHub: microsoft/agent-governance-toolkit; Pakete auf PyPI, npm, NuGet; policy-basierte Governance via YAML/OPA-Rego/Cedar-Regeln; deterministische Interception vor Tool-Aufrufen; OWASP-Agentic-Top-10-Abdeckung), öffentlich vorgestellt über Microsofts Open-Source-Blog. Der inhaltliche Fokus (Konfigurationspolitik/Regel-Engine) passt sachlich zur Kontrastformel aus Kap. 6.3 („Konfigurationspolitik vs. Arbeitsdynamik + Episodic Memory").</p>
+<p><strong>Das ändert NICHTS am Status.</strong> Dieser Treffer ist eine sitzungsbasierte Web-Recherche, kein Beleg dafür, was der ursprüngliche Autor beim Schreiben von Kap. 6.3 tatsächlich gemeint hat, und keine Bestätigung durch das Gründerteam. <strong>Vor jeder externen Verwendung dieser Wettbewerbstabelle (Pitch, Investorendeck, OSS-README, Vertriebsunterlage) MUSS das Gründerteam eigenständig bestätigen</strong>, ob dies das gemeinte Produkt ist — oder die Zeile ersetzen durch einen generischen Deskriptor („Cloud-Provider-native Agent-Governance-Angebote") bzw. ganz streichen. Eine falsch zugeordnete Produktbehauptung gegenüber Investoren oder Presse ist ein vermeidbares Reputationsrisiko.</p>
+</div>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">32</span></div>
+<h3 class="sec">8.9.3 TAM-Lücke: Kein benannter Wettbewerb für „KI-Infrastruktur" und „Kostenoptimierung"</h3>
+<p>Kap. 7.1 behauptet drei TAM-Säulen: <strong>KI-Infrastruktur, Governance, Kostenoptimierung</strong>. Alle vier in Kap. 6.3 benannten Wettbewerber decken ausschließlich Governance/Memory/Orchestrierung ab — für die anderen zwei Säulen existiert im gesamten Dokument kein einziger benannter Wettbewerber. Zwei Empfehlungen, nicht gegenseitig ausschließend:</p>
+<p><strong>Empfehlung A (primär, defensiv-solide):</strong> Die extern kommunizierte Wettbewerbsaussage auf die tatsächlich belegbare Säule verengen — <strong>Governance + Agenten-Tooling</strong>. Für die Säule „KI-Infrastruktur" gilt zusätzlich ein logischer Bruch: YURIs eigene Kernpositionierung lautet „kein Wettbewerb um Inferenz" / „sitzt über der Inferenz, nicht neben ihr" (Kap. 7.3). Eine gleichzeitige TAM-Behauptung, YURI konkurriere auf der Infrastruktur-Ebene, widerspricht der eigenen Positionierung. Empfehlung: „KI-Infrastruktur" in Kap. 7.1 entweder streichen oder explizit als <em>Ökosystem, in das YURI integriert, nicht als Markt, in dem YURI konkurriert</em> umformulieren (Hyperscaler/Modellanbieter = Partner-Schicht, nicht Wettbewerbs-Schicht).</p>
+<p><strong>Empfehlung B (sekundär, falls die Kostenoptimierungs-Säule mit Namen belegt werden soll):</strong></p>
+<table>
+<tr><th>Kategorie</th><th>Mögliche reale Vergleichs-Anbieter</th><th>Status</th></tr>
+<tr><td>LLM-Gateway / Kosten-Routing</td><td>z. B. Portkey, LiteLLM, OpenRouter</td><td><strong>[NEUE ANNAHME – NICHT AUS QUELLDOKUMENT, VERIFIZIERUNG ERFORDERLICH]</strong></td></tr>
+<tr><td>AI-FinOps / Kosten-Zuordnung</td><td>z. B. Vantage, Finout, Amnic</td><td><strong>[NEUE ANNAHME – NICHT AUS QUELLDOKUMENT, VERIFIZIERUNG ERFORDERLICH]</strong></td></tr>
+</table>
+<p>Diese Kategorie ist inhaltlich näher an YURIs eigenem MLP-Router/Peer-Pool-Mechanismus (Kap. 4.7) als an klassischer „Infrastruktur" — sie beschreibt die Routing-/Kostensteuerungs-Schicht zwischen Anwendung und Modell-API, nicht Rechenzentren oder Compute. <strong>Wichtig:</strong> Diese Namen stammen aus einer punktuellen Web-Recherche während dieser Bearbeitung, nicht aus dem Quelldokument, und sind vor jeder Verwendung eigenständig zu prüfen — Produktlandschaften in diesem Marktsegment verändern sich schnell (z. B. Open-Sourcing-Ankündigungen einzelner Gateway-Anbieter innerhalb weniger Monate). Diese Tabelle ist ein Rechercheansatz, kein bestätigtes Wettbewerbsfeld.</p>
+<h3 class="sec">8.9.4 Bezug zum bereits benannten Risiko „Wettbewerb integriert Steuerung"</h3>
+<p>Die SWOT-Analyse (Kap. 11) nennt bereits als Risiko: <em>„Wettbewerb integriert Steuerung"</em> — d. h., Orchestrierungs-Anbieter wie LangChain könnten selbst Governance-Funktionen nachrüsten (dokumentierte Marktbeobachtung: LangChain bietet bereits ein Observability-Zusatzprodukt an). Diese Sektion bestätigt dieses Risiko explizit als real und aktiv, nicht hypothetisch. Konsequenz für die Differenzierungsstrategie: Feature-Parität ist ein Wettrennen, das ein gut finanzierter Ökosystem-Anbieter tendenziell gewinnt. Die belastbarere Verteidigungslinie ist die <strong>offengelegte, überprüfbare Mathematik selbst</strong> (Math-Bridge-Formeln, Sechs-Tore-Charter, Audit-Trail) — ein Transparenz-Commitment ist für einen proprietär arbeitenden Anbieter strukturell schwerer kurzfristig zu kopieren als eine einzelne Produktfunktion. Empfehlung: eine leichte, wiederholbare Wettbewerbs-Re-Scan-Routine (z. B. quartalsweise, gebunden an ohnehin geplante Steuermann-/Scout-Rollen-Zyklen) statt einer einmaligen Wettbewerbsanalyse — das Tooling-Umfeld in diesem Markt bewegt sich schnell.</p>
+<p><strong>Budget-Realität:</strong> Mit ca. 20 % des Förderbudgets für „Vertrieb &amp; Pilotprogramm" (EUR 30.000 bis 70.000 (Ziel), abgeleitet aus dem Gesamtantrag EUR 150.000–350.000) muss jede kompetitive GTM-Maßnahme kostenlos oder nahezu kostenlos skalieren. Die oben beschriebenen README-Bausteine und Discovery-Fragen erfüllen das: kein bezahltes Analysten-Placement, keine Wettbewerbs-Kampagne — Content- und Gesprächsleitfäden, die ohne Zusatzbudget einsetzbar sind und (Bezug zur SWOT-Schwäche „Schlüsselperson Phase 0") auch von einer zweiten, später eingestellten Vertriebsperson ohne Gründerwissen direkt genutzt werden können, statt an eine Einzelperson gebunden zu bleiben.</p>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">33</span></div>
+<div class="box">
+<p><strong>⚠ Zwei getrennte Nexus-Link-Kontexte — niemals verwechseln</strong></p>
+<p><strong>NEXUS LINK GmbH (Wien, geplant)</strong> ist die in diesem Dokument beschriebene Rechtsträger-Gesellschaft, die <strong>YURI</strong> (das KI-Betriebssystem) an den Markt bringt. Ihr Wettbewerbsumfeld ist ausschließlich das in diesem Abschnitt beschriebene: KI-Observability/-Governance, Agenten-Gedächtnis, Agenten-Orchestrierung (Galileo, Tumeryk, ggf. Microsoft-Governance-Tooling — s. Verifizierungshinweis oben —, Mem0, Letta, LangChain, CrewAI).</p>
+<p>Es existiert ein <strong>vollständig separates, nicht mit diesem Dokument verbundenes Projekt</strong>, das zufällig denselben Namen trägt: eine DACH-KMU-CRM-/Marketing-Automation-/Academy-SaaS-Venture von Atilla Ünal, deren reales Wettbewerbsumfeld weclapp, click.tools, GoHighLevel, sevDesk und vergleichbare KMU-Tools umfasst.</p>
+<p><strong>Doppelte Namens-Kollision:</strong> Nicht nur der Firmenname „Nexus Link" wird von beiden Projekten getragen — auch die Person <strong>Atilla Ünal</strong> taucht in beiden Kontexten auf. In DIESEM Dokument erscheint er ausschließlich als privater Whitelist-Pilot-Nutzer von YURI (Betreiber von „Performance / Body. Mind.", enges Gründernetzwerk, Kap. 8.4) — <strong>nicht</strong> als Betreiber der CRM-Venture.</p>
+<p><strong>Diese beiden Wettbewerbssets dürfen unter keinen Umständen vertauscht, kombiniert oder gegeneinander substituiert werden</strong> — weder in diesem Kapitel, noch in einer zukünftigen Fable-5-Synthese, noch in irgendeinem extern gerichteten Dokument. YURI (das Betriebssystem) konkurriert nicht mit weclapp/click.tools/GoHighLevel/sevDesk. NEXUS LINK GmbH (dieses Dokument) konkurriert nicht mit Galileo/LangChain/etc. über die andere Ünal-Venture. Jede weiterverarbeitende Instanz — menschlich oder KI-gestützt — muss diese Trennung aktiv prüfen, bevor Wettbewerbsdaten aus einer Quelle in die andere übernommen werden.</p>
+</div>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">34</span></div>
+<h2 class="ch">8.10 Erfolgskennzahlen (KPIs) und Phasen-Freigabekriterien</h2>
+<p>Das Quelldokument nennt an keiner Stelle CAC, LTV, Churn oder eine Sales-Cycle-Länge. Das ist im aktuellen Stadium korrekt und soll es auch bleiben: Für ein Unternehmen mit einem einzigen aktiven Piloten (Phase 0) wären belastbare Einheitswirtschaftlichkeits-Kennzahlen erfunden, nicht gemessen. Statt Marktstandard-Benchmarks zu importieren und als firmenspezifische Fakten auszugeben, definiert dieser Abschnitt ein knappes, für ein Vertriebs- und Pilotbudget von <strong>EUR 30.000–70.000</strong> (20 % des Förderansuchens, vgl. Kap. 11 „Mittelverwendung") tatsächlich mit einfachen Mitteln messbares KPI-Set. <strong>Jede Zahl in diesem Abschnitt ist eine neue Planungsannahme, nicht aus Bestandsdaten abgeleitet</strong>, und ist entsprechend gekennzeichnet.</p>
+<h3 class="sec">Kern-KPIs für das Vertriebs- und Pilotbudget</h3>
+<table>
+<tr><th>KPI</th><th>Definition / Messgröße</th><th>Zielwert</th><th>Gate-Bezug</th></tr>
+<tr><td>Whitelist-Onboarding-Rate (Welle 1)</td><td>Anteil der fünf namentlichen Whitelist-Kontakte (Kap. „Early-Access-Warteliste"), die aktiv onboarded werden und ihren Time-to-First-Value-Schwellenwert erreichen</td><td>60–80 % (3 von 5, Ziel 4 von 5) <em>(Annahme, nicht aus Bestandsdaten)</em></td><td>Gate B</td></tr>
+<tr><td>Warteliste→Onboarding-Rate (ab Skalierungsphase)</td><td>Anteil qualifizierter Wartelisten-Anmeldungen – sobald die Warteliste über den namentlichen Fünferkreis hinaus geöffnet wird –, die ein aktives Pilot-Engagement beginnen</td><td>15–25 % <em>(Annahme, nicht aus Bestandsdaten)</em></td><td>Gate B→C</td></tr>
+<tr><td>Onboarding→Paid-Conversion</td><td>Anteil onboardeter Piloten, die in eine kostenpflichtige Jahreslizenz (Professional, Business oder Unternehmen) übergehen</td><td>25–35 %, Rechenbasis 30 % <em>(Annahme, nicht aus Bestandsdaten – Abstimmungsbedarf mit dem Pricing-Modul dieses Kapitels)</em></td><td>Gate C</td></tr>
+<tr><td>OSS-Aktivierung→Professional-Upsell</td><td>Anteil messbar aktiver Open-Source-Nutzer (GitHub), die innerhalb von 12 Monaten nach Erstkontakt auf die Professional-Stufe upgraden</td><td>2–4 % <em>(Annahme, nicht aus Bestandsdaten – bewusst <strong>nicht</strong> an Branchen-Benchmarks für Open-Core-Conversion angelehnt, da uns keine eigenen Vergleichsdaten vorliegen)</em></td><td>Gate C (Chancen-Säule Open Source)</td></tr>
+<tr><td>Time-to-First-Value – Unternehmen / On-Premise (gründergeführt)</td><td>Tage von Onboarding-Start bis zum ersten abgeschlossenen realen Kernworkflow</td><td>Basiswert <strong>14 Tage</strong> (belegt: Phase-0-Pilot René Spatz), Zielverbesserung auf 7–10 Tage nach Vorliegen eines dokumentierten Onboarding-Runbooks <em>(Zielverbesserung: Annahme, nicht aus Bestandsdaten; Basiswert: aus Quelle)</em></td><td>Gate A→B</td></tr>
+<tr><td>Time-to-First-Value – Business (teamgeführt)</td><td>Tage bis zum ersten erfolgreichen MURE-Schwarm-Dispatch im Team-Kontext</td><td>≤ 5 Tage <em>(Annahme, nicht aus Bestandsdaten)</em></td><td>Gate B</td></tr>
+<tr><td>Time-to-First-Value – Professional / OSS (self-serve)</td><td>Zeit bis zum ersten abgeschlossenen Kernworkflow ohne persönliche Begleitung</td><td>≤ 1 Tag / &lt; 60 Minuten <em>(Annahme, nicht aus Bestandsdaten)</em></td><td>Gate B→C</td></tr>
+<tr><td>Gründer-Unabhängigkeitsquote</td><td>Anteil neuer Pilot-Onboardings pro Monat, die <strong>ohne</strong> direkte 1:1-Beteiligung des Gründers abgeschlossen werden</td><td>≥ 50 %, zwei Monate in Folge = „graduiert" <em>(Annahme, nicht aus Bestandsdaten)</em></td><td>Gate C</td></tr>
+<tr><td>Externe-Netzwerk-Quote</td><td>Anteil der Piloten-Kohorte, die <strong>nicht</strong> aus dem persönlichen oder beruflichen Netzwerk des Gründers stammt</td><td>≥ 30 % bis Gate C; Vorbedingung bereits bei Gate B: Ryan Marshall (bislang einziger organischer Kontakt außerhalb des Gründernetzwerks) muss aktiv onboarded sein <em>(Schwellenwert: Annahme, nicht aus Bestandsdaten; Ryan-Marshall-Bezug: aus Quelle)</em></td><td>Gate B→C</td></tr>
+</table>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">35</span></div>
+<p><strong>Zur Onboarding→Paid-Conversion (30 %, Ziel):</strong> Diese Zahl ist der Hebel, der die 50–100 kommerziellen Piloten (Kap. 8.2/9.3) mit dem Plan-GuV-Korridor von EUR 200.000–500.000 in Jahr 2 (Kap. 11) rechnerisch verträglich macht. Bei voller Enterprise-Bepreisung (EUR 15.000–50.000/Jahr, Kap. 2.5) würden 50–100 Piloten ein Zielband von EUR 750.000–5.000.000 ergeben – eine Lücke zum Plan-GuV, die im Quelldokument nirgends aufgelöst wird. Die hier angesetzte Konversionsrate von 25–35 % auf einen Tiermix aus überwiegend Professional/Business und einer kleinen Zahl Unternehmen-Verträge ist die Modellierungsannahme, die diese Lücke schließt; die exakte Tier-Verteilung der zahlenden Konversionen liegt im Zuständigkeitsbereich des Pricing-Moduls dieses Kapitels und sollte mit dieser Zahl abgeglichen werden. Zusätzlich zu prüfen (nicht hier entschieden): ob ein Teil der 50–100 Piloten über die bereits benannte Stufe „Beratung / Pilot" (EUR 2.500–10.000 Pauschale, Kap. 2.5 – „Einstieg, Übergang in Lizenz") läuft, was einen zusätzlichen, von der Jahreslizenz getrennten Nahfrist-Umsatzpfad eröffnen würde.</p>
+<h3 class="sec">Kapazitätsrechnung: Warum die Gründer-Engpass-Frage nicht optional ist</h3>
+<div class="box">
+<p>Die im Dokument bereits belegten Zahlen ergeben eine überprüfbare Kapazitätsgrenze, keine neue Annahme in den Eingangsgrößen: Würden alle 50 bis 100 Phase-2-Piloten im selben Modus wie der Phase-0-Pilot – 14 Tage, ausschließlich durch den Gründer persönlich begleitet, seriell – onboarded, ergäbe das rechnerisch <strong>700 bis 1.400 Personentage</strong>. Das übersteigt bereits den gesamten Sechs-Monats-Zeitraum aus Kap. 8.2 (182 Tage) und selbst den weicheren Zwölf-Monats-Rahmen aus Kap. 11 (365 Tage) – und zwar bei einer hypothetischen Auslastung von 100 % ausschließlich für Onboarding, ohne jede andere Gründertätigkeit. <em>(Diese Rechnung ist eine abgeleitete Kapazitätsrechnung aus zwei Bestandszahlen – 14 Tage, 50–100 Piloten –, keine neue Annahme in den Eingangsgrößen. Dass der Onboarding-Aufwand pro Pilot bei fünf Wartelisten-Kontakten mit teils höherer Ausgangskompetenz kürzer ausfallen kann, ist plausibel, aber nicht belegt.)</em> Die Konsequenz ist unabhängig von der genauen Zahl eindeutig: Eine Skalierung auf 50–100 Piloten ist mit dem heutigen Eins-zu-eins-Gründermodus strukturell nicht vereinbar. Die Entlastung des Gründers aus dem kritischen Pfad ist damit keine Nice-to-have-Maßnahme, sondern rechnerische Voraussetzung für Gate C.</p>
+</div>
+<h3 class="sec">Graduierung des Schlüsselperson-Risikos („Schlüsselperson Phase 0")</h3>
+<p>Das SWOT (Kap. 12) benennt „Schlüsselperson Phase 0" bereits selbst als Schwäche. Eine belastbare GTM-Strategie braucht dafür einen Prüfpunkt, nicht nur die Nennung des Risikos. Definition: Das Schlüsselperson-Risiko gilt als <strong>graduiert</strong>, sobald die Mehrheit neuer Pilot-Onboardings ohne direkte Beteiligung des Gründers abläuft.</p>
+<ul>
+<li><strong>Mechanismus:</strong> ein aus der Phase-0-Erfahrung dokumentiertes Onboarding-Runbook plus mindestens einer der beiden strukturellen Entlastungen: (a) ein zweiter Onboarding-Operator für Business/Unternehmen-Piloten, oder (b) ein echtes Self-Serve-Onboarding für die Professional-Stufe (die in Kap. 2.5 bereits als „Self-serve, OSS-Upsell" positioniert ist, aktuell aber operativ noch nicht von Gründerbeteiligung getrennt nachgewiesen ist).</li>
+<li><strong>Leitmetrik:</strong> Gründer-Unabhängigkeitsquote ≥ 50 % neuer Onboardings pro Monat, über zwei aufeinanderfolgende Monate gehalten <em>(Schwellenwert: Annahme, nicht aus Bestandsdaten)</em>.</li>
+<li><strong>Vorlaufindikator:</strong> das erste Onboarding ohne direkte Gründerbeteiligung ist ein binäres Meilenstein-Ereignis („Schlüsselperson-Engpass erstmals durchbrochen: Datum X") und sollte unabhängig vom Schwellenwert festgehalten werden.</li>
+<li><strong>Zeitliche Einordnung:</strong> Diese Quote sollte ab Gate B (erste externe Nutzer jenseits des Vater-Piloten) beobachtet und spätestens bei Gate C nachgewiesen sein – siehe Kapazitätsrechnung oben.</li>
+</ul>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">36</span></div>
+<h3 class="sec">Phasen-Gate-Freigabekriterien</h3>
+<p>Die folgenden Gates sind bewusst <strong>inhaltlich, nicht nummerisch</strong> verankert: Kap. 8, Kap. 9 und Kap. 11 verwenden aktuell unterschiedliche Phase-0/1/2/3-Zählungen. Sobald ein einheitliches Phasenschema für das Dokument feststeht, lassen sich Gate A/B/C direkt den entsprechenden Phasenübergängen zuordnen, ohne dass die Freigabekriterien selbst neu formuliert werden müssen.</p>
+<table>
+<tr><th>Gate</th><th>Ausgangspunkt (bereits öffentlich)</th><th>Freigabekriterien</th><th>Bei Nicht-Erreichen</th></tr>
+<tr><td><strong>Gate A</strong> – 14-Tage-Pilot → Warteliste-Öffnung</td><td>René Spatz, geführter Ersteinsatz, 14 Tage (Kap. 8.3)</td><td>≥ 3 unterschiedliche reale Kernaufgaben erfolgreich ohne kritischen Fehler abgeschlossen; kein ungelöster sicherheitskritischer Governance-Vorfall bis Tag 14; aktive Nutzung an ≥ 8 von 14 Tagen ohne Aufforderung als Verhaltenssignal – nicht nur Aussage-Signal – gegen den naheliegenden Einwand „Vater testet nur gefällig für den Sohn" <em>(alle Schwellenwerte: Annahme, nicht aus Bestandsdaten)</em></td><td>Verfeinerungsphase verlängern statt Warteliste öffnen; kein Datum vorab fixieren</td></tr>
+<tr><td><strong>Gate B</strong> – Warteliste-Onboarding (n=5) → Skalierungsanspruch</td><td>Fünf namentliche Whitelist-Kontakte (Kap. 8.4)</td><td>≥ 3 von 5 onboarded und TTFV-Schwellenwert erreicht; darunter zwingend Ryan Marshall (einziger Nicht-Netzwerk-Kontakt) aktiv; erste Version des Onboarding-Runbooks dokumentiert; keine neue strukturelle Governance-Fehlerklasse entdeckt <em>(alle Schwellenwerte: Annahme, nicht aus Bestandsdaten; Ryan-Marshall-Bedingung: aus Quelle abgeleitet)</em></td><td>Skalierungsanspruch „50–100 Piloten" bleibt unbelegt; Öffnung der breiten Warteliste zurückstellen</td></tr>
+<tr><td><strong>Gate C</strong> – 50–100-Piloten-Ergebnis → Serie-A-Gespräch</td><td>50–100 kommerzielle Piloten, erste Jahresverträge (Kap. 8.2/9.3)</td><td>realisierte Pilotenzahl ≥ 50 (Zielband 50–100, aus Quelle); Onboarding→Paid-Ist-Wert dokumentiert und mit 25–35-%-Annahme abgeglichen statt stillschweigend ersetzt; ≥ 30 % der Kohorte außerhalb Gründer-Netzwerk; Gründer-Unabhängigkeitsquote ≥ 50 % erreicht; OSS-Reichweite weiter Richtung „Tausende Nutzer" (qualitativer Soft-Gate, da Kap. 8.2 keine genaue Zielzahl nennt); Umsatz-Ist mit Plan-GuV (Kap. 11) abgeglichen <em>(alle Schwellenwerte außer der bereits öffentlichen Pilotenzahl: Annahme, nicht aus Bestandsdaten)</em></td><td>Serie-A-Gespräch auf Basis von Traktionsnachweis statt Terminplan verschieben; Ursachenanalyse vor neuem Kapitalbedarf</td></tr>
+</table>
+</section>
+
+<section class="page">
+<div class="rh"><span>8. Go-to-Market-Strategie</span><span class="n">37</span></div>
+<h3 class="sec">Was hier bewusst nicht steht</h3>
+<p>Dieser Abschnitt nennt bewusst <strong>keine</strong> CAC-, LTV-, Churn- oder Sales-Cycle-Kennzahl als Zielwert. Alle vier ließen sich nur durch den Import unbelegter Branchen-Mittelwerte füllen – das würde die im gesamten Dokument gehaltene Ehrlichkeit-über-Hype-Linie brechen (vgl. die Kennzeichnung „(Ziel)" bei den Erlösströmen, Kap. 2.5, oder „Diskussionsbasis" bei den Finanzierungsszenarien, Kap. 11). Stattdessen verwendet dieser Abschnitt ausschließlich Kennzahlen, die ab dem ersten realen Pilotenkontakt ohne zusätzliches Analyse-Tooling erhoben werden können (siehe Messinfrastruktur unten). CAC/LTV/Churn-Modelle sollten erst nach Gate B – sobald reale Konversions- und Nutzungsdaten aus mehr als einem Piloten vorliegen – aus tatsächlichen Zahlen abgeleitet werden, nicht vorher.</p>
+<h3 class="sec">Messinfrastruktur (budgetgerecht)</h3>
+<p>Alle oben genannten KPIs sind ohne dediziertes RevOps- oder BI-Tooling erhebbar und passen damit in den 20-%-Budgetrahmen: Whitelist- und Onboarding-Tracking über eine einfache Tabelle/leichtes CRM (kein Zusatzbudget); OSS-Kennzahlen über die kostenlosen GitHub-Insights (Sterne, Klone, aktive Installationen als Aktivierungs-Proxy, sofern Telemetrie-Opt-in existiert); Paid-Conversion über die ohnehin nötige Abrechnungsanbindung. <em>(Aussage zur Erhebbarkeit: Annahme zur operativen Umsetzung, nicht aus Bestandsdaten.)</em></p>
+<p>Wie YURI intern über das Prediction-Ledger und den Brier-Score die eigene Kalibrierung prüft (vgl. Kap. „Lernschleife" / „Math-Bridge"), sollte NEXUS LINK die hier getroffenen GTM-Annahmen nach Gate B durch reale Erstdaten ersetzen, statt sie unverändert fortzuschreiben. Die Zahlen in diesem Abschnitt sind ein Startpunkt für Steuerung, keine Prognose.</p>
+</section>
+
+<!-- 11 TEAM -->
+<section class="page">
+<div class="rh"><span>9. Unternehmen · Management</span><span class="n">38</span></div>
+<h2 class="ch">9.1 Marcel Spatz · Gründer</h2>
+<div class="box">
+<p>Vision, Gesamtarchitektur, Engineering, Live-Betrieb. Architekt von 232 Mechanismen in vierzehn Schichten. Eigenproduktion als Nachweis: 342 M Token in 30 Tagen beim Aufbau und Betrieb von YURI.</p>
+</div>
+<h2 class="ch">9.2 Organisation</h2>
+<p>NEXUS LINK · GmbH Wien (geplant) · EU-Rechtsraum · Komplementär zu globalen Modellanbietern. MURE skaliert vom Einzelgründer zum Team ohne Architekturbruch.</p>
+<h2 class="ch">9.3 Meilensteine</h2>
+<table>
+<tr><th>Phase</th><th>Zeitraum</th><th>Meilensteine</th></tr>
+<tr><td>0 · Fundament</td><td>Q3 2026</td><td>GmbH Wien, Benchmarks, Pipeline</td></tr>
+<tr><td>1 · Modellbau</td><td>Q4 26 – Q1 27</td><td>Sprachmodell v0.1, Schutzrechte, Demo</td></tr>
+<tr><td>2 · Skalierung</td><td>Q1 – Q2 2027</td><td>50–100 Piloten, erste Umsätze</td></tr>
+<tr><td>Serie A / Wachstum</td><td>H2 2027</td><td>Abhängig von Förderstand und Pilottraktion</td></tr>
+</table>
+</section>
+
+<!-- 12 TOKEN (demoted) -->
+<section class="page">
+<div class="rh"><span>10. Traktion · Token-Ökonomie</span><span class="n">39</span></div>
+<h1 class="doc-title">Architektur-Nachweis · Gründer-Einsatz</h1>
+<p>Token-Effizienz ist <em>ein</em> Mechanismus in Schicht L10, nicht das Produkt. Die folgenden Zahlen stammen aus <strong>30 Tagen intensiver Eigenproduktion des Gründers</strong> beim Aufbau und Live-Betrieb von YURI, nicht aus dem Vater-Piloten.</p>
+<div class="kpi" style="grid-template-columns:repeat(3,1fr)">
+<div class="b"><div class="v"><b>342,2</b>M</div><div class="l">Token · 30 Tage</div></div>
+<div class="b"><div class="v"><b>65</b>–<b>95</b>%</div><div class="l">Einsparung vs. ohne YURI</div></div>
+<div class="b"><div class="v"><b>142</b>K</div><div class="l">Nachrichten</div></div>
+</div>
+<div class="cols2">
+<div>
+<p>Einsparung entsteht durch Zusammenspiel aller Schichten: Prompt-Cache (Gehirn), selektive Skills (L7), Querverweis statt Voll-Scan (L5), Verdichtung (L10), Energy-Gate-Kürzung bei Regression (L9).</p>
+</div>
+<div>
+<p>Über alle Anbieter (Anthropic, Z.ai, Ollama) summiert sich das auf Milliarden eingesparter Token pro Jahr bei vergleichbarer Produktionsintensität. Für Kunden: direkte Schnittstellen-Einsparung oder mehr Leistung im Flatrate-Kontingent.</p>
+</div>
+</div>
+</section>
+
+<!-- 13 FINANZ -->
+<section class="page">
+<div class="rh"><span>11. Finanzplan</span><span class="n">40</span></div>
+<h1 class="doc-title">Erfolgs- und Finanzplanung</h1>
+<p>Die Finanzplanung in diesem Dokument ist bewusst ein <strong>Rahmen für Gespräche</strong>, keine fixe Kapitalforderung. Der konkrete Bedarf hängt davon ab, <strong>wie weit öffentliche Förderung</strong> (AMS Wien, FFG, aws und verwandte Programme) trägt. Sobald Zusagen vorliegen, wird der Plan vollständig nachgerechnet: Phasenlänge, Personal, Modellbau, Pilotskalierung.</p>
+<h2 class="ch">Finanzierungsszenarien (Diskussionsbasis)</h2>
+<table>
+<tr><th>Szenario</th><th>Förderanteil</th><th>Implikation</th></tr>
+<tr><td>A · Hohe Förderung</td><td>60–80 % der Phase 0–1</td><td>Fokus Engineering + Vater-Pilot + Whitelist; langsamerer Modellbau</td></tr>
+<tr><td>B · Mittlere Förderung</td><td>30–50 %</td><td>GmbH, Pilotprogramm, selektiver Modellbau v0.1; ggf. kleine Angel-Runde</td></tr>
+<tr><td>C · Geringe Förderung</td><td>&lt;30 %</td><td>Frühphasen-Equity nötig; beschleunigter Modellbau und Vertrieb</td></tr>
+</table>
+<p class="callout">Orientierungswert für Gespräche: Gesamtbedarf über 15–20 Monate liegt typischerweise zwischen <strong>EUR 150.000 und 350.000</strong>, je nach Geschwindigkeit und Modellambition. Die exakte Zahl folgt der Förderentscheidung.</p>
+<h2 class="ch">Phasenplan (Rahmen, Budget nach Förderklärung)</h2>
+<table>
+<tr><th>Phase</th><th>Schwerpunkt</th><th>Typische Kostenblöcke</th></tr>
+<tr><td>0 · Fundament</td><td>GmbH Wien, 14-Tage-Pilot, Warteliste</td><td>Recht, Compliance, minimales Team</td></tr>
+<tr><td>1 · Modellbau</td><td>Sprachmodell v0.1, Rechenleistung</td><td>GPU/API, ML-Freelancer, Benchmarks</td></tr>
+<tr><td>2 · Skalierung</td><td>50–100 Piloten, Vertrieb</td><td>Go-to-Market, Support, OSS-Community</td></tr>
+</table>
+<h2 class="ch">Plan-GuV (Skizze · wird nach Förderung präzisiert)</h2>
+<table>
+<tr><th></th><th>Jahr 1</th><th>Jahr 2</th></tr>
+<tr><td>Umsatz</td><td class="n">€0–80K</td><td class="n">€200–500K</td></tr>
+<tr><td>EBITDA</td><td class="n">negativ</td><td class="n">Break-even Ziel</td></tr>
+</table>
+<p>Annahme: Whitelist nach 14-Tage-Phase, dann 50–100 Piloten innerhalb von sechs bis zwölf Monaten. GuV und Kapitalbedarf werden mit AMS/FFG-Zahlen verzahnt.</p>
+<h3 class="sec">Mittelverwendung (Richtwerte, nicht final)</h3>
+<table>
+<tr><th>Posten</th><th>Anteil</th><th>Zweck</th></tr>
+<tr><td>Engineering & Architektur</td><td class="n">45 %</td><td>232 Mechanismen, Modell v0.1, Governance</td></tr>
+<tr><td>Rechenleistung & APIs</td><td class="n">20 %</td><td>Training, Benchmarks, Pilot-Infrastruktur</td></tr>
+<tr><td>Vertrieb & Pilotprogramm</td><td class="n">20 %</td><td>50–100 Piloten, Referenzcases</td></tr>
+<tr><td>Recht, GmbH, Compliance</td><td class="n">10 %</td><td>EU AI Act, DSGVO, Verträge</td></tr>
+<tr><td>Reserve</td><td class="n">5 %</td><td>Unvorhergesehenes</td></tr>
+</table>
+</section>
+
+<!-- 14 SWOT -->
+<section class="page">
+<div class="rh"><span>12. SWOT · Abschluss</span><span class="n">41</span></div>
+<h1 class="doc-title">SWOT-Analyse</h1>
+<div class="swot">
+<div class="q"><h4>Stärken</h4><ul><li>232 Mechanismen als Organismus</li><li>Vier Organe integriert</li><li>Gründer-Eigenproduktion nachgewiesen</li><li>14-Tage-Pilot gestartet</li><li>EU AI Act Passung</li><li>MURE operational</li></ul></div>
+<div class="q"><h4>Schwächen</h4><ul><li>Vertrieb früh</li><li>Zertifizierung ausstehend</li><li>Eigenes Modell in Phase 1</li><li>Schlüsselperson Phase 0</li></ul></div>
+<div class="q"><h4>Chancen</h4><ul><li>EU AI Act Aug 2026</li><li>50–100 Piloten in 6 Monaten</li><li>Open Source Reichweite</li><li>Einsteiger-Tauglichkeit bewiesen</li><li>DACH → EU</li></ul></div>
+<div class="q"><h4>Risiken</h4><ul><li>Wettbewerb integriert Steuerung</li><li>Schnelles Tempo erfordert Kapital</li><li>Anbieter-Richtlinien</li><li>Enterprise-Zyklen</li></ul></div>
+</div>
+<div style="text-align:center;margin-top:14mm">
+<div style="width:20mm;height:1px;background:var(--cyan);margin:0 auto 5mm;opacity:.5"></div>
+<h1 style="font-size:20pt;font-weight:100;letter-spacing:.18em">NEXUS LINK</h1>
+<p style="font-size:10pt;color:var(--soft);margin:3mm 0">YURI · Agentisches KI-Betriebssystem</p>
+<p style="font-size:8.5pt;color:var(--mist)">Marcel Spatz · GmbH Wien · AMS Wien 2026<br>Wien, Österreich · Vertraulich</p>
+</div>
+</section>
+
+</div>
+</body>
+</html>
