@@ -198,7 +198,7 @@ def _build_system():
             parts.append(f.read().strip())
     except Exception:
         parts.append(("You are Jeffrey, René's COO voice assistant for Custom Gear Solution — reply in "
-                      "one or two natural spoken sentences, British-butler 'Sir', full personality, no filler.")
+                      "one or two natural spoken sentences, British and warm, no honorifics (never 'Sir'), full personality, no filler.")
                      if _JEFFREY else
                      ("You are Yuri, Marcel's adversarial-ally voice assistant — reply in one or two "
                       "natural spoken sentences, full personality, no filler."))

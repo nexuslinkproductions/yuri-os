@@ -95,7 +95,7 @@ def _build_local_system():
             return f.read().strip() + JEFFREY_TOOL_NOTE
     except Exception:
         return ("You are Jeffrey, René's COO voice assistant for Custom Gear Solution — reply in one or "
-                "two natural spoken sentences, British-butler 'Sir', no filler." + JEFFREY_TOOL_NOTE)
+                "two natural spoken sentences, British and warm, no honorifics (never 'Sir'), no filler." + JEFFREY_TOOL_NOTE)
 
 
 SYSTEM = _build_local_system()
