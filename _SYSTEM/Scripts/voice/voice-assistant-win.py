@@ -85,15 +85,22 @@ BRAIN_MODE    = os.environ.get("VOICE_ASSIST_BRAIN", "").strip().lower() or ("lo
 LOCAL_URL     = os.environ.get("VOICE_ASSIST_LOCAL_URL", "http://127.0.0.1:8013/v1/chat/completions")
 LOCAL_TIMEOUT = float(os.environ.get("VOICE_ASSIST_LOCAL_TIMEOUT", "180"))
 
-# TTS voice — Jeffrey defaults to a HUMAN local Kokoro voice (British-male "Sir"); Marcel/others keep
-# Windows SAPI. Kokoro runs on CPU (~5x realtime, no VRAM — leaves the GPU for the brain), 100% local.
-# German text routes to SAPI for now (base Kokoro has no German voice; German Kokoro model is a follow-up).
+# TTS voice — Jeffrey defaults to HUMAN local Kokoro voices; Marcel/others keep Windows SAPI. Kokoro runs
+# on CPU (~5x realtime, no VRAM — leaves the GPU for the brain), 100% local. Two voices, auto-routed by
+# language: English → British-male "Sir" (bm_lewis); German → the Martin model (German-trained male).
 TTS_MODE      = os.environ.get("VOICE_ASSIST_TTS", "").strip().lower() or ("kokoro" if _OPERATOR == "jeffrey" else "sapi")
 _TTS_DIR      = os.path.join(os.path.dirname(__file__), "..", "..", "state", "jeffrey", "tts")
 KOKORO_ONNX   = os.environ.get("KOKORO_ONNX",   os.path.join(_TTS_DIR, "kokoro-v1.0.onnx"))
 KOKORO_VOICES = os.environ.get("KOKORO_VOICES", os.path.join(_TTS_DIR, "voices-v1.0.bin"))
 KOKORO_VOICE  = os.environ.get("KOKORO_VOICE", "bm_lewis")   # British male "Sir" (René's pick; bm_george = alt)
 KOKORO_LANG   = os.environ.get("KOKORO_LANG", "en-gb")
+# German voice — Martin (kikiri-german, StyleTTS2, single male "Sir"), loads through the SAME kokoro-onnx
+# lib. Falls back to SAPI if the model files are absent. German text normalization (dates/units/€) skipped
+# for v1 — Martin speaks normal German cleanly; wire german_text_rules.py later if numbers mis-speak.
+KOKORO_DE_ONNX   = os.environ.get("KOKORO_DE_ONNX",   os.path.join(_TTS_DIR, "kokoro-martin.onnx"))
+KOKORO_DE_VOICES = os.environ.get("KOKORO_DE_VOICES", os.path.join(_TTS_DIR, "voices-martin.npz"))
+KOKORO_DE_VOICE  = os.environ.get("KOKORO_DE_VOICE", "martin")
+KOKORO_DE_LANG   = os.environ.get("KOKORO_DE_LANG", "de")
 MIC         = os.environ.get("VOICE_MIC_DEVICE")
 RMS_FLOOR   = float(os.environ.get("VOICE_ASSIST_RMS", "0.0008"))
 MIN_CHARS   = 2
@@ -208,8 +215,9 @@ def ask_local(question):
 # TTS (local Windows SAPI via pyttsx3) — spoken on a worker thread
 # ---------------------------------------------------------------------------
 _tts_lock = threading.Lock()
-_kokoro = [None]  # lazy singleton — load the ~310MB Kokoro model once, on first spoken reply
-# Route German to SAPI (base Kokoro has no German voice yet): umlauts or common German function words.
+_kokoro = [None]     # lazy singleton — English Kokoro (bm_lewis), loaded on first English reply
+_kokoro_de = [None]  # lazy singleton — German Kokoro (Martin), loaded on first German reply
+# Detect German to route to the Martin voice: umlauts or common German function words.
 _GERMAN_HINT = re.compile(r"[äöüÄÖÜß]|\b(und|nicht|ich|der|die|das|ist|mit|für|auf|Kunde|Holster|Auftrag|Bestellung)\b", re.IGNORECASE)
 
 def _get_kokoro():
@@ -218,6 +226,12 @@ def _get_kokoro():
         _kokoro[0] = Kokoro(KOKORO_ONNX, KOKORO_VOICES)
     return _kokoro[0]
 
+def _get_kokoro_de():
+    if _kokoro_de[0] is None:
+        from kokoro_onnx import Kokoro
+        _kokoro_de[0] = Kokoro(KOKORO_DE_ONNX, KOKORO_DE_VOICES)
+    return _kokoro_de[0]
+
 def _speak_sapi(text):
     import pyttsx3
     eng = pyttsx3.init()                          # SAPI5; re-init per utterance (pyttsx3 loop is not reentrant)
@@ -225,10 +239,14 @@ def _speak_sapi(text):
 
 def speak(text):
     with _tts_lock:
-        # English → human Kokoro "Sir" voice; German (or Kokoro unavailable) → SAPI fallback.
-        if TTS_MODE == "kokoro" and text and not _GERMAN_HINT.search(text):
+        # Both languages get a human Kokoro voice: German → Martin, English → the British "Sir" voice.
+        # Any Kokoro failure (e.g. German model files absent) falls back to SAPI.
+        if TTS_MODE == "kokoro" and text:
             try:
-                samples, sr = _get_kokoro().create(text, voice=KOKORO_VOICE, speed=1.0, lang=KOKORO_LANG)
+                if _GERMAN_HINT.search(text):
+                    samples, sr = _get_kokoro_de().create(text, voice=KOKORO_DE_VOICE, speed=1.0, lang=KOKORO_DE_LANG)
+                else:
+                    samples, sr = _get_kokoro().create(text, voice=KOKORO_VOICE, speed=1.0, lang=KOKORO_LANG)
                 sd.play(samples, sr); sd.wait()
                 return
             except Exception as e:
@@ -378,9 +396,11 @@ def _check():
     if TTS_MODE == "kokoro":
         try:
             import kokoro_onnx  # noqa: F401
-            has = os.path.exists(KOKORO_ONNX) and os.path.exists(KOKORO_VOICES)
-            print(f"TTS   : {'✓' if has else '✗'} Kokoro '{KOKORO_VOICE}' ({KOKORO_LANG}), model {'present' if has else 'MISSING'} · German→SAPI")
-            if not has:
+            has_en = os.path.exists(KOKORO_ONNX) and os.path.exists(KOKORO_VOICES)
+            has_de = os.path.exists(KOKORO_DE_ONNX) and os.path.exists(KOKORO_DE_VOICES)
+            de_label = f"DE '{KOKORO_DE_VOICE}'" if has_de else "DE→SAPI (model missing)"
+            print(f"TTS   : {'✓' if has_en else '✗'} Kokoro EN '{KOKORO_VOICE}' + {de_label}")
+            if not has_en:
                 ok = False
         except Exception as e:
             print(f"TTS   : ✗ Kokoro import failed: {e}"); ok = False
