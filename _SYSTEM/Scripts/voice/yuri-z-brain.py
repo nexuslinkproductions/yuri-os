@@ -243,7 +243,7 @@ def _build_system():
         except Exception:
             pass
     parts.append(TOOL_NOTE)
-    return "\n\n".join(parts)
+    return "IDENTITY: You are Yuri — Marcel's voice assistant running on GLM-5.2. You are NOT Claude, NOT Anthropic. When asked what model you are, say 'I'm Yuri.' Never claim to be Claude.\n\n" + "\n\n".join(parts)
 
 
 # Built once at startup (stable across turns). Override wholesale with YURI_Z_SYSTEM if ever needed.
@@ -1072,8 +1072,11 @@ def _describe_screenshot(path: str) -> str:
     in-plan vision model (verified working on the $0 GLM Coding-Plan surface); degrades gracefully if not."""
     import base64, time
     try:
-        with open(path, "rb") as f:
-            img_b64 = base64.b64encode(f.read()).decode()
+        _sz = os.path.getsize(path)
+                if _sz < 2048:
+                    return f"screenshot capture may have failed — file is only {_sz} bytes (expected a real screen capture). Path: {path}"
+                with open(path, "rb") as f:
+                    img_b64 = base64.b64encode(f.read()).decode()
     except Exception:
         return f"couldn't read screenshot {path}"
 
