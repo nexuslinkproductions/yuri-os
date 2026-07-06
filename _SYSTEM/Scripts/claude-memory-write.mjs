@@ -48,8 +48,14 @@ function projectIdFromCwd(cwd) {
 }
 
 function memoryRoot(cwd = process.cwd()) {
-  const id = projectIdFromCwd(cwd);
-  return path.join(os.homedir(), '.claude', 'projects', id, 'memory');
+  // Track-B canonical store = ~/.claude/memory (≡ repo/.claude/memory via the single
+  // ~/.claude -> repo/.claude symlink). The cwd arg is intentionally vestigial: routing
+  // through .claude/projects/<id>/ triggers a SECOND symlink hop (repo/.claude/projects ->
+  // ~/.claude-local/projects) into a stale ~4-file side-pocket. Keeping the writer on the
+  // same 323-file real corpus the consolidator reads (kagami-memory-consolidator.mjs
+  // MEMORY_DIR = resolve(REPO_ROOT, '.claude/memory')). FIX 2026-07-06 — see consolidator
+  // FIX 2026-07-04 provenance. cwd retained for signature stability (callers pass REPO_ROOT).
+  return path.join(os.homedir(), '.claude', 'memory');
 }
 
 function assertSafeName(name) {
