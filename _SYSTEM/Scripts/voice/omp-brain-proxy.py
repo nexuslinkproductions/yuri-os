@@ -79,7 +79,7 @@ REPLY_FILE = os.environ.get(
 POLL = float(os.environ.get("OMP_POLL", "0.3"))                            # capture-pane poll interval (s)
 SETTLE = float(os.environ.get("OMP_SETTLE", "0.4"))                        # let tmux deliver keystrokes
 STABLE_PROMPT = int(os.environ.get("OMP_STABLE_PROMPT", "2"))              # stable polls WITH prompt returned
-STABLE_MAX = int(os.environ.get("OMP_STABLE_MAX", "12"))                   # stable polls as final backstop
+STABLE_MAX = int(os.environ.get("OMP_STABLE_MAX", "25"))                   # stable polls as final backstop (~7s at default POLL; long enough to ride out a mid-turn tool pause, short enough to escape if prompt detection misfires)
 CAPTURE_LINES = int(os.environ.get("OMP_CAPTURE_LINES", "300"))            # scrollback lines to diff
 # Optional explicit prompt regex (matched against the pane's last non-empty line). Empty → use the
 # dynamic signature captured at injection time (recommended). Set only if the signature proves unstable.
@@ -154,7 +154,7 @@ def _capture_pane():
     """Return the pane text (CAPTURE_LINES of scrollback + current screen) as a string."""
     try:
         out = subprocess.run(
-            ["tmux", "capture-pane", "-t", TARGET, "-p", "-S", f"-{CAPTURE_LINES}", "-E", "-"],
+            ["tmux", "capture-pane", "-t", TARGET, "-p", "-S", f"-{CAPTURE_LINES}"],
             capture_output=True, text=True, timeout=3)
         return out.stdout or ""
     except Exception:
@@ -235,28 +235,27 @@ def _last_index(lines, target):
 
 
 def _pane_response(before, now, injected):
-    """Extract OMP's reply from the pane diff. The idle prompt (captured in `before`) appears twice in
-    `now` after a turn: once where it was before injection (pre-injection prompt), once where it
-    returned when OMP finished. The reply is the lines strictly between those two occurrences. Robust to
-    scrollback scroll as long as both occurrences remain inside the capture window; degrades to a
-    common-prefix diff if the pre-injection prompt scrolled out of view."""
+    """Extract OMP's reply as the NEW pane lines since the pre-injection baseline. Uses a COMMON-PREFIX
+    diff (not a prompt-occurrence count): when OMP types the input, it overwrites the idle prompt line IN
+    PLACE ('omp❯ ' -> 'omp❯ second question'), so the pre-injection prompt no longer exists verbatim and
+    a count-of-anchors method misfires (only one prompt left -> grabs the whole history). The common
+    prefix of unchanged leading lines is immune to that. The trailing returned-prompt line and any
+    leading input-echo are then stripped. `_first_index`/`_last_index` are kept as a scrollback fallback
+    for the rare case the whole baseline scrolled out of the capture window."""
     bl = before.splitlines()
     nl = now.splitlines()
     anchor = _last_nonempty(before)
-    if anchor:
-        first = _first_index(nl, anchor)
-        last = _last_index(nl, anchor)
-        if first >= 0 and last > first:
-            resp = nl[first + 1:last]
-        elif last >= 0:
-            resp = nl[:last]
-        else:
-            i = 0
-            while i < len(bl) and i < len(nl) and bl[i] == nl[i]:
-                i += 1
-            resp = nl[i:]
-    else:
-        resp = nl
+    i = 0
+    while i < len(bl) and i < len(nl) and bl[i].rstrip() == nl[i].rstrip():
+        i += 1
+    resp = nl[i:]
+    if not resp and anchor:
+        # baseline fully scrolled out of view — fall back to the lines between the two prompt occurrences
+        first, last = _first_index(nl, anchor), _last_index(nl, anchor)
+        resp = nl[first + 1:last] if first >= 0 and last > first else (nl[:last] if last >= 0 else nl)
+    # strip trailing empties + the returned idle prompt from the tail
+    while resp and (not resp[-1].strip() or resp[-1].rstrip() == anchor):
+        resp.pop()
     return _strip_echo("\n".join(resp), injected, prompt=anchor)
 
 
@@ -266,12 +265,13 @@ def wait_for_response(injected, keepalive=None):
     True to keep waiting — returning False means the client disconnected, so we stop. Returns "" on
     timeout/disconnect (caller renders a spoken fallback)."""
     deadline = time.time() + TIMEOUT
-    before = _capture_pane()                       # pane state + idle prompt signature at injection time
+    before = _capture_pane()                       # PRE-injection baseline + idle prompt signature
     prompt_sig = _last_nonempty(before)
+    if injected:                                  # inject AFTER capturing the baseline, so the diff is clean
+        _inject(injected)
     time.sleep(SETTLE)                             # let tmux deliver the keystrokes
     last = _capture_pane()
     stable = 0
-    changed = False
     while time.time() < deadline:
         if keepalive is not None and not keepalive():
             return ""
@@ -281,17 +281,21 @@ def wait_for_response(injected, keepalive=None):
             return drop
         # (b) FALLBACK — capture-pane completion detection
         now = _capture_pane()
-        if now != last:
-            changed = True
+        if now != last:                            # still streaming/working — reset the stability clock
             stable = 0
             last = now
         else:
             stable += 1
         tail = _last_nonempty(now)
         prompt_back = bool(prompt_sig and tail == prompt_sig) or bool(PROMPT_RE and PROMPT_RE.search(tail or ""))
-        if changed and stable >= STABLE_PROMPT and prompt_back:
+        # `grew` (NOT a post-settle transition): the pane differs from the PRE-INJECTION baseline, so
+        # OMP has produced output. This latches true once any text appears and stays true — which is what
+        # lets a FAST reply (one that finishes DURING the settle window) still be detected: `last` may
+        # already equal the final `now` (so no transition is ever observed), but `grew` is still true.
+        grew = now != before
+        if grew and stable >= STABLE_PROMPT and prompt_back:
             return _pane_response(before, now, injected)
-        if changed and stable >= STABLE_MAX:
+        if grew and stable >= STABLE_MAX:
             return _pane_response(before, now, injected)
         time.sleep(POLL)
     return ""
@@ -363,8 +367,6 @@ class H(BaseHTTPRequestHandler):
             _ensure_reply_dir()
             _drain_reply_file()
             injected = (user or "").strip()
-            if injected:
-                _inject(injected)
             return wait_for_response(injected, keepalive=keepalive) or \
                 "Sorry, I didn't catch a reply from the OMP session."
 
