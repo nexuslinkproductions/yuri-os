@@ -259,7 +259,7 @@ def voice_listen(timeout_secs: float = DEFAULT_LISTEN_TIMEOUT) -> str:
             log("[voice-mcp] listen: waiting for speech…")
             while time.monotonic() < deadline:
                 try:
-                    data = stream.read(frames_per_vad, exception_on_underflow=False)
+                    data = stream.read(frames_per_vad, exception_on_overflow=False)
                 except OSError as e:
                     log(f"[voice-mcp] input read error: {e}")
                     break
@@ -344,7 +344,7 @@ def voice_speak(text: str) -> str:
                 n = _vad.num_frames_required()
                 while not playback_done.is_set():
                     try:
-                        data = istream.read(n, exception_on_underflow=False)
+                        data = istream.read(n, exception_on_overflow=False)
                     except OSError:
                         break
                     if not data:
@@ -480,11 +480,34 @@ TOOLS = [
             },
         },
     },
+    {
+        "name": "voice_screenshot",
+        "description": "Capture a screenshot and return the actual image. Use this to SEE what's on Marcel's "
+                       "screen — the image is returned directly, no description needed. Optional window_id "
+                       "from voice_list_windows to capture a specific window.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "window_id": {
+                    "type": "integer",
+                    "description": "Window ID to capture a specific window. Omit for full screen.",
+                },
+            },
+        },
+    },
 ]
 
 
 def _result_text(text: str) -> dict:
     return {"content": [{"type": "text", "text": text}]}
+
+
+def _result_image(path: str) -> dict:
+    """Return an image file as MCP image content (base64). Composer sees it natively."""
+    import base64 as _b64
+    with open(path, "rb") as f:
+        img_b64 = _b64.b64encode(f.read()).decode()
+    return {"content": [{"type": "image", "data": img_b64, "mimeType": "image/png"}]}
 
 
 def send(obj: dict):
@@ -528,6 +551,18 @@ def handle_request(req: dict):
                 respond(_result_text(voice_listen(float(args.get("timeout_secs", DEFAULT_LISTEN_TIMEOUT)))))
             elif name == "voice_speak":
                 respond(_result_text(voice_speak(str(args.get("text", "")))))
+            elif name == "voice_screenshot":
+                import subprocess as _sp, time as _t, os as _os
+                wid = args.get("window_id")
+                _shot = f"/tmp/yuri-mcp-shot-{int(_t.time())}.png"
+                if wid:
+                    _sp.run(["screencapture", "-l"+str(wid), "-x", _shot], timeout=5)
+                else:
+                    _sp.run(["screencapture", "-x", _shot], timeout=5)
+                if _os.path.exists(_shot) and _os.path.getsize(_shot) > 2048:
+                    respond(_result_image(_shot))
+                else:
+                    respond(_result_text(f"screenshot capture failed — file too small or missing: {_shot}"))
             else:
                 respond_error(-32602, f"unknown tool: {name}")
         else:

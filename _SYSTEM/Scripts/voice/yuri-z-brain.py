@@ -1085,7 +1085,7 @@ def _describe_screenshot(path: str) -> str:
     # glm-4.6v + glm-4.5v are the in-plan vision models; glm-5v-turbo/glm-ocr need a metered balance.
     # Override with YURI_Z_VISION_MODEL (e.g. glm-4.5v).
     payload = {
-        "model": os.environ.get("YURI_Z_VISION_MODEL", "glm-4.6v"),
+        "model": os.environ.get("YURI_Z_VISION_MODEL", "glm-4.5v"),
         "max_tokens": 512,
         "messages": [{"role": "user", "content": [
             {"type": "text", "text": "Describe what's visible on this screenshot — the app, the UI elements, any "
