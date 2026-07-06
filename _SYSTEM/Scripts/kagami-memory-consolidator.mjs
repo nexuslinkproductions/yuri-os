@@ -152,6 +152,46 @@ Output ONLY this JSON:
   }
 }
 
+// @capability: memory-dedup-candidates-report
+// @serves: memory consolidation | dedup report | act on stale memory-health | quarterly memory cleanup
+// @does: deterministicDedup at a LOWER threshold (default 0.4 vs the daily 0.6) written to a DATED
+//   report at _SYSTEM/state/memory-dedup-candidates-<date>.json, distinct from the always-overwritten
+//   _SYSTEM/training/state/memory-health.json — a durable candidates list to start a consolidation
+//   pass FROM instead of a fresh manual grep sweep.
+// @use: `node _SYSTEM/Scripts/kagami-memory-consolidator.mjs --report [--threshold 0.4]` before any
+//   manual memory-consolidation pass (e.g. a FABLE audit). 2026-07: the daily 0.6-threshold run found
+//   ZERO merge pairs while a manual read found real semantic duplicates the metric misses at 0.6
+//   (different wording, same rule); 0.4 surfaces candidates a human still judges each pair of.
+// @exports: writeDedupCandidatesReport
+export function writeDedupCandidatesReport({
+  memories,
+  stateDir = resolve(REPO_ROOT, '_SYSTEM/state'),
+  overlapThreshold = 0.4,
+  loadThreshold = 0.15,
+  nowMs = Date.now(),
+  memoryDir = MEMORY_DIR,
+} = {}) {
+  const mems = memories || readMemoryFiles();
+  const dedup = deterministicDedup(mems, { overlapThreshold, loadThreshold });
+  const dateStamp = new Date(nowMs).toISOString().slice(0, 10);
+  const reportPath = resolve(stateDir, `memory-dedup-candidates-${dateStamp}.json`);
+  const report = {
+    generatedAt: new Date(nowMs).toISOString(),
+    memoryDir,
+    totalFiles: mems.length,
+    overlapThreshold,
+    loadThreshold,
+    mergePairs: dedup.mergePairs,
+    mergePairCount: dedup.mergePairs.length,
+    overCapacity: dedup.overCapacity,
+    load: dedup.load,
+    note: 'Advisory candidates only — a human must verify each pair is a genuine duplicate before merging (see .claude/rules/skill-creation.md merge convention: canonical file + "superseded by" stub, cross-linked via [[handle]]). Compare against .claude/memory/MEMORY.md and archive-index.md before acting.',
+  };
+  mkdirSync(stateDir, { recursive: true });
+  writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  return { reportPath, report };
+}
+
 /**
  * L6 — cold re-promotion candidates: demoted (cold) memories the subconscious keeps
  * surfacing. Recall pressure (ledger useCount ≥ minUse) on a slug that is STILL in cold
@@ -239,6 +279,19 @@ export async function runSubconsciousPass(opts = {}) {
 }
 
 async function main() {
+  // Human-facing dated dedup-candidates report — a thin, on-demand CLI mode distinct from the
+  // scheduled daily run below. Run this manually before a consolidation pass instead of a fresh
+  // grep sweep. Does not touch memory-health.json or the subconscious pass.
+  if (process.argv.includes('--report')) {
+    const thresholdArgIdx = process.argv.indexOf('--threshold');
+    const overlapThreshold = thresholdArgIdx >= 0 ? parseFloat(process.argv[thresholdArgIdx + 1]) : 0.4;
+    const memories = readMemoryFiles();
+    const { reportPath, report } = writeDedupCandidatesReport({ memories, overlapThreshold });
+    log(`dedup-candidates report written -> ${reportPath} (threshold=${overlapThreshold} pairs=${report.mergePairCount})`);
+    process.stdout.write(`${reportPath}\n`);
+    return;
+  }
+
   log('starting memory consolidation run');
 
   // L6 — subconscious consolidation. Independent of Rapid-MLX (pure scoring + file ops),

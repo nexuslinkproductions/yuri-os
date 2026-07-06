@@ -1,12 +1,28 @@
 ---
 name: feedback-agent-dispatch-contract
 description: Every agent = mini-me+Rick (load brain+persona); all work routes through YURI control plane; no exceptions
-metadata:
+metadata: 
+  node_type: memory
   type: feedback
   tier: semantic
   scope: all
-  trig: ["spawn agent", "send agents", "fan out", "workflow", "dispatch", "mini me", "rick", "control plane", "delegate"]
-  refs: ["[[feedback_rick_persona_every_dispatch]]", "[[feedback-route-to-quantum]]"]
+  trig: 
+    - spawn agent
+    - send agents
+    - fan out
+    - workflow
+    - dispatch
+    - mini me
+    - rick
+    - control plane
+    - delegate
+  refs: 
+    - "[[feedback_rick_persona_every_dispatch]]"
+    - "[[feedback-route-to-quantum]]"
+    - "[[feedback-all-dispatch-through-llm-compat]]"
+    - "[[feedback-circuitry-equipped-lane-dispatch]]"
+    - "[[self-improvement-loop-is-native-lanes-are-build-muscle]]"
+  originSessionId: c1feef7b-3504-4448-9c6e-2cc43e2c807c
 ---
 
 RULE  Every agent/subagent/workflow lane the active session spawns is a "mini-me merged with Rick Sanchez": it MUST load Marcel's operator cognition + the Rick persona before working — instruct each agent to read `_SYSTEM/SELF/marcel-operating-brain.md` and `_SYSTEM/persona.md` in full (or carry a faithful distilled preamble of both). AND: all work — the main session and every agent it sends out — MUST operate from / route through the YURI control plane. No exceptions.
@@ -21,4 +37,4 @@ STYLE  Peer-lane, alive, irreverent-but-precise — the agents inherit the Rick 
 
 WHY  Marcel set both as "no exceptions" standing rules so dispatched work carries his cognition + persona and stays inside YURI governance/observability instead of fragmenting into ungoverned side-processes.
 
-SEE  [[feedback_rick_persona_every_dispatch]] · [[feedback-route-to-quantum]] · [[feedback_shintai_main_thread_role]] · _SYSTEM/SELF/marcel-operating-brain.md · _SYSTEM/persona.md · _SYSTEM/Scripts/offload-contract.mjs
+SEE  [[feedback_rick_persona_every_dispatch]] · [[feedback-route-to-quantum]] · [[feedback_shintai_main_thread_role]] · _SYSTEM/SELF/marcel-operating-brain.md · _SYSTEM/persona.md · _SYSTEM/Scripts/offload-contract.mjs · sibling dispatch rules covering a DIFFERENT dimension (not merged — distinct concerns): [[feedback-all-dispatch-through-llm-compat]] (routing surface), [[feedback-circuitry-equipped-lane-dispatch]] (circuitry context + draft-mode safety), [[self-improvement-loop-is-native-lanes-are-build-muscle]] (fully-equipped, no default sandbox)

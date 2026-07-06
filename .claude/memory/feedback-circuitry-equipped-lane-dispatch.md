@@ -21,6 +21,8 @@ metadata:
     - "[[feedback_rick_persona_every_dispatch]]"
     - "[[feedback-observe-codex-process]]"
     - "[[moat-activation-4track-2026-06-03]]"
+    - "[[feedback-agent-dispatch-contract]]"
+    - "[[feedback-all-dispatch-through-llm-compat]]"
   originSessionId: 17414554-b41b-4c38-b0ff-b4247706def7
 ---
 
@@ -37,4 +39,4 @@ DONT: Don't trust a Codex draft's diff blind — it WILL have bugs that look com
 
 WHY: The circuitry is YURI's self-model — a lane that reads it stops guessing blast radius and stops siloing. DRAFT→I-land keeps a human-verified gate on the live gate. Empirically the review pays for itself every round (see [[feedback-substrate-cert-loop]]).
 
-SEE: `_SYSTEM/CODEX_PROTOCOL.md` · [[feedback-build-agent-context-loadout]] · [[feedback-substrate-cert-loop]] · [[moat-activation-4track-2026-06-03]]
+SEE: `_SYSTEM/CODEX_PROTOCOL.md` · [[feedback-build-agent-context-loadout]] · [[feedback-substrate-cert-loop]] · [[moat-activation-4track-2026-06-03]] · sibling dispatch rules covering a DIFFERENT dimension (not merged — distinct concerns): [[feedback-agent-dispatch-contract]] (persona-loading), [[feedback-all-dispatch-through-llm-compat]] (routing surface)

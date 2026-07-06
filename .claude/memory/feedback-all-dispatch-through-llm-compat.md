@@ -19,6 +19,8 @@ metadata:
     - feedback-codex-dispatch-discipline
     - ref-mimo-firing
     - feedback-fanout-self-size
+    - "[[feedback-agent-dispatch-contract]]"
+    - "[[feedback-circuitry-equipped-lane-dispatch]]"
   originSessionId: d0121710-5fe7-4681-801a-e863c3393975
 ---
 
@@ -37,4 +39,4 @@ DONT: bare `codex exec` / `codex-yuri.sh`; raw `Agent`/`Workflow` fan-out that s
 
 WHY: compat is the single lane/scenario/lifecycle contract (yuri-origin authority §6). Routing everything through it keeps lane selection, reasoning policy, token-ledger tracing, artifact capture, and the swarm guides consistent — and it's where the "get the maximum out of the agents" knowledge lives.
 
-SEE: [[feedback-codex-dispatch-discipline]] · [[feedback-fanout-self-size]] · `_SYSTEM/Scripts/llm-compat-contract.mjs` · `_SYSTEM/CODEX_PROTOCOL.md`
+SEE: [[feedback-codex-dispatch-discipline]] · [[feedback-fanout-self-size]] · `_SYSTEM/Scripts/llm-compat-contract.mjs` · `_SYSTEM/CODEX_PROTOCOL.md` · sibling dispatch rules covering a DIFFERENT dimension (not merged — distinct concerns): [[feedback-agent-dispatch-contract]] (persona-loading), [[feedback-circuitry-equipped-lane-dispatch]] (circuitry context + draft-mode safety)

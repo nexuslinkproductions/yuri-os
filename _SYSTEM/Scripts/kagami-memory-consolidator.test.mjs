@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { runSubconsciousPass, findRepromotionCandidates, deterministicDedup } from './kagami-memory-consolidator.mjs';
+import { runSubconsciousPass, findRepromotionCandidates, deterministicDedup, writeDedupCandidatesReport } from './kagami-memory-consolidator.mjs';
 import { openColdStore, upsertCold, getCold, COLD_DB_PATH } from './memory-cold-store.mjs';
 
 const DAY = 86400000;
@@ -142,6 +142,46 @@ test('MEM-03: deterministicDedup tolerates empty / malformed input', () => {
   assert.equal(deterministicDedup([]).mergePairs.length, 0);
   assert.equal(deterministicDedup(null).n, 0);
   assert.equal(deterministicDedup([{ filename: 'x.md' }, { bad: 1 }]).n, 0, 'entries without content filtered');
+});
+
+// writeDedupCandidatesReport (2026-07-06) — closes the loop the FABLE Phase-4 diagnosis flagged:
+// the daily 0.6-threshold consolidator found zero merge pairs while a manual read found real
+// semantic duplicates. This is the on-demand, lower-threshold, DATED report a human/session should
+// start a consolidation pass FROM instead of a fresh manual grep sweep.
+test('writeDedupCandidatesReport writes a dated report distinct from memory-health.json', () => {
+  const root = tmpRoot();
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dedup-state-'));
+  const memories = [
+    { filename: 'a.md', content: 'session resume cortex decoder circuitry build plan next steps wire the engine module' },
+    { filename: 'b.md', content: 'session resume cortex decoder circuitry build plan next steps wire the engine module extra' },
+    { filename: 'c.md', content: 'cold call opener objection rebuttal social selling outreach buyer persona sequence' },
+  ];
+  const nowMs = Date.UTC(2026, 6, 6); // 2026-07-06
+  const { reportPath, report } = writeDedupCandidatesReport({ memories, stateDir, nowMs, overlapThreshold: 0.4 });
+
+  assert.ok(reportPath.endsWith('memory-dedup-candidates-2026-07-06.json'), 'report is dated by day');
+  assert.ok(fs.existsSync(reportPath), 'report file actually written to disk');
+  const onDisk = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+  assert.equal(onDisk.mergePairCount, report.mergePairCount);
+  assert.ok(report.mergePairs.length >= 1, 'lower threshold surfaces the near-duplicate pair');
+  assert.deepEqual([report.mergePairs[0].a, report.mergePairs[0].b].sort(), ['a.md', 'b.md']);
+  assert.equal(report.overlapThreshold, 0.4);
+  assert.equal(report.totalFiles, 3);
+
+  fs.rmSync(root, { recursive: true, force: true });
+  fs.rmSync(stateDir, { recursive: true, force: true });
+});
+
+test('writeDedupCandidatesReport is advisory-only — never deletes or edits memory files', () => {
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dedup-state-'));
+  const memories = [
+    { filename: 'x.md', content: 'quantum tunneling josephson junction flux qubit coherence barrier' },
+    { filename: 'y.md', content: 'cold call opener objection rebuttal social selling outreach' },
+  ];
+  const { report } = writeDedupCandidatesReport({ memories, stateDir, overlapThreshold: 0.4 });
+  assert.equal(report.mergePairCount, 0, 'orthogonal memories produce no false candidates');
+  assert.ok(report.note.includes('Advisory'), 'report explicitly flags itself as advisory, not auto-executed');
+  fs.rmSync(stateDir, { recursive: true, force: true });
 });
 
 test('importing the consolidator is inert — pass is an explicit entrypoint, no import-time side effect (tolerates a legitimately-seeded cold store)', () => {
