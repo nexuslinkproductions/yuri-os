@@ -82,6 +82,10 @@ TOOL_NOTE = ("You are a FULL-CAPABILITY assistant — you can run shell commands
              "- `open_app` — launch/focus/quit any app. Usually the FIRST step before gui_script.\n"
              "- `screenshot` — capture the screen and get a text description of what's on it. Use when scripting "
              "isn't enough — to read a web page, locate a UI element, see a dialog, or answer 'what's on screen'.\n"
+             "- SCREEN AWARENESS: Use `list_windows` to see what's on screen (returns windowID + app + title for "
+             "each window). Use `frontmost_app` to check what's currently focused. Pass `window_id` to `screenshot` "
+             "to capture a SPECIFIC window instead of the whole screen. Always `list_windows` FIRST when Marcel asks "
+             "you to look at something.\n"
              "- `spawn_worker` — delegate heavy or long-running work to a visible worker terminal.\n\n"
              "## SESSION CONDUCTOR — you can manage parallel work sessions BY VOICE\n"
              "You have hands on YURI's runtime session conductor — a registry of tmux-backed worker "
@@ -854,13 +858,31 @@ TOOLS = [
     },
     {
         "name": "screenshot",
-        "description": ("Capture the screen and optionally DESCRIBE what's on it (what UI is visible, where things are). "
-                        "Use this when scripting isn't enough — to read a web page, locate a button, see a dialog, or "
-                        "answer 'what's on screen'. Returns a text description of the screenshot. If you just need a "
-                        "raw file path without a description, set describe=false."),
+        "description": ("Capture the whole screen, a SPECIFIC window (by window_id from list_windows), or a rect — "
+                        "and optionally DESCRIBE what's on it (what UI is visible, where things are). Use this when "
+                        "scripting isn't enough — to read a web page, locate a button, see a dialog, or answer "
+                        "'what's on screen'. Returns a text description of the screenshot. If you just need a raw "
+                        "file path without a description, set describe=false. Pass window_id to target one window."),
         "input_schema": {"type": "object",
-                         "properties": {"describe": {"type": "boolean", "default": True,
-                                      "description": "If true (default), feed the screenshot to a vision model and return a text description. If false, just save the PNG and return the file path."}}},
+                         "properties": {"window_id": {"type": "integer",
+                                      "description": "Window ID from list_windows to capture a SPECIFIC window (even if occluded). Omit for full screen."},
+                                        "describe": {"type": "boolean", "default": True,
+                                     "description": "If true (default), feed the screenshot to a vision model and return a text description. If false, just save the PNG and return the file path."}}},
+    },
+    {
+        "name": "list_windows",
+        "description": ("List all visible application windows on screen. Returns each window's ID, app name, title, "
+                        "and size. Use this BEFORE taking a screenshot to find the right windowID, so screenshot can "
+                        "target a specific window instead of the whole screen."),
+        "input_schema": {"type": "object",
+                         "properties": {"filter": {"type": "string",
+                                     "description": "Optional app-name or title substring to filter by (e.g. 'Terminal', 'Cursor')."}}},
+    },
+    {
+        "name": "frontmost_app",
+        "description": ("Get the name and window title of the currently active/focused application. Use this to "
+                        "check what Marcel is looking at right now before acting on the screen."),
+        "input_schema": {"type": "object", "properties": {}},
     },
     # ---- SESSION CONDUCTOR (parallel work-session management by voice) ----
     {
@@ -1267,13 +1289,57 @@ def _exec_tool(name, args):
         if name == "screenshot":
             describe = args.get("describe", True)
             path = f"/tmp/yuri-screenshot-{int(__import__('time').time())}.png"
-            r = subprocess.run(["screencapture", "-x", path], capture_output=True, text=True, timeout=15)
+            window_id = args.get("window_id")
+            if window_id:
+                # Target a specific window by ID (gold standard — captures even if occluded)
+                r = subprocess.run(["screencapture", "-l" + str(window_id), "-x", path],
+                                   capture_output=True, text=True, timeout=5)
+            else:
+                # Fallback: whole screen (legacy behavior)
+                r = subprocess.run(["screencapture", "-x", path], capture_output=True, text=True, timeout=15)
             if r.returncode != 0 or not os.path.exists(path):
                 return f"screenshot failed: {(r.stderr or '').strip()[:80]}"
             if not describe:
                 return f"saved screenshot to {path}"
-            desc = _describe_screenshot(path)
-            return desc
+            return _describe_screenshot(path)
+        if name == "list_windows":
+            script = os.path.join(os.path.dirname(__file__), "window-list")
+            # Use compiled binary if available, else the swift interpreter
+            cmd = [script] if os.path.exists(script) else ["swift", script + ".swift"]
+            try:
+                out = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            except FileNotFoundError:
+                return "window-list helper not found (expected _SYSTEM/Scripts/voice/window-list)"
+            if out.returncode != 0:
+                return f"window-list failed: {(out.stderr or '').strip()[:100]}"
+            try:
+                windows = json.loads(out.stdout)
+            except ValueError:
+                return f"window-list returned non-JSON: {out.stdout[:100]}"
+            filt = (args.get("filter") or "").lower()
+            if filt:
+                windows = [w for w in windows
+                           if filt in (w.get("app", "") + " " + w.get("title", "")).lower()]
+            # Compact summary for the model (don't dump all 80 windows)
+            return json.dumps([{"id": w.get("windowID"), "app": w.get("app", ""),
+                                "title": w.get("title", ""), "w": w.get("w"), "h": w.get("h")}
+                               for w in windows[:20]])
+        if name == "frontmost_app":
+            script = (
+                'tell application "System Events"\n'
+                '  set p to first application process whose frontmost is true\n'
+                '  set winList to ""\n'
+                '  try\n'
+                '    set winList to name of window 1 of p\n'
+                '  end try\n'
+                '  return (name of p) & "|" & winList\n'
+                'end tell'
+            )
+            out = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, timeout=3)
+            if out.returncode == 0 and out.stdout.strip():
+                parts = out.stdout.strip().split("|", 1)
+                return json.dumps({"app": parts[0], "title": parts[1] if len(parts) > 1 else ""})
+            return '{"app": "unknown", "title": ""}'
         # ---- SESSION CONDUCTOR ----
         if name == "conductor_list":
             return _run_runtime_cli([CONDUCTOR_CLI, "list"])

@@ -1,0 +1,10 @@
+{
+  "presets": {
+    "fast": {"provider": "ollama", "model": "deepseek-v4-flash:cloud", "description": "Fast + cheap. Good for quick chat, simple tasks."},
+    "smart": {"provider": "zai", "model": "glm-5.2", "description": "Smart + capable. GLM-5.2 flagship for complex reasoning + tools."},
+    "heavy": {"provider": "zai", "model": "glm-5.2", "description": "Heavy reasoning. Same as smart (glm-5.2 is the max-tier in-plan model)."},
+    "cheap": {"provider": "ollama", "model": "deepseek-v4-flash:cloud", "description": "Cheapest option. DeepSeek flash via Ollama Cloud."}
+  },
+  "default": "fast",
+  "note": "Aliases resolved by switch_brain_model. Say 'Yuri switch to smart' to use glm-5.2."
+}
