@@ -20,6 +20,68 @@ const BUS_STALE_MS = 30 * 60 * 1000;
 
 const HEAVY_TOOLS = new Set(['Agent', 'WebSearch', 'WebFetch', 'TaskCreate']);
 
+// ── Merged from pre-tool-gate.js (Fable audit Phase 3, 2026-07-06) ──────────
+// Read/Bash delegation advisory — was a standalone always-on PreToolUse hook;
+// folded in here (same event, same non-blocking advisory contract) to cut one
+// Node spawn per tool call. Logic unchanged from the original file.
+const BROAD_BASH_PATTERNS = [
+  /grep\s+-r/i,           // recursive grep
+  /find\s+\.\s/i,         // broad find from root
+  /find\s+\/\w/i,         // find from system paths
+  /cat\s+\S+\s*\|\s*grep/i, // cat + grep pipeline
+  /wc\s+-l/i,             // line count (often prelim to full read)
+  /head\s+-\d{3,}/i,      // head with 100+ lines
+  /ls\s+-la?\s*\|/i,      // ls piped for analysis
+  /git\s+log\s+(?!--oneline).*-\d{2,}/i, // long git log
+];
+
+const LARGE_FILE_SIGNALS = [
+  /\.(mjs|js)$/, // JS files can be 500-1000+ lines
+  /package-lock\.json$/,
+  /yarn\.lock$/,
+  /\.log$/,
+  /memory\.db$/,
+];
+
+const SAFE_FILE_PATTERNS = [
+  /\.(md|json|yaml|yml|env|txt)$/,
+  /settings\.json$/,
+  /CLAUDE\.md$/,
+  /SOUL\.md$/,
+  /MEMORY\.md$/,
+];
+
+function isSafeFile(filePath) {
+  return SAFE_FILE_PATTERNS.some(p => p.test(filePath));
+}
+
+function isLikelyLargeFile(filePath) {
+  if (isSafeFile(filePath)) return false;
+  return LARGE_FILE_SIGNALS.some(p => p.test(filePath));
+}
+
+function isBroadBash(cmd) {
+  return BROAD_BASH_PATTERNS.some(p => p.test(cmd));
+}
+
+function buildReadAdvisory(filePath) {
+  return [
+    `⬢ pre-tool-gate: Large file read — ${path.basename(filePath)}`,
+    `  → Delegation option: bash _SYSTEM/Scripts/llm-compat.sh @deepseek-flash "summarize key points from ${filePath}"`,
+    `  → Or: bash _SYSTEM/Scripts/llm-compat.sh @deepseek-flash "extract <specific section> from ${filePath}"`,
+    `  Proceeding with direct read — route to deepseek-flash if output is noisy.`,
+  ].join('\n');
+}
+
+function buildBashAdvisory(cmd) {
+  const snippet = cmd.slice(0, 80).replace(/\n/g, ' ');
+  return [
+    `⬢ pre-tool-gate: Broad search detected — "${snippet}..."`,
+    `  → Delegation option: bash _SYSTEM/Scripts/llm-compat.sh @deepseek-flash "run: ${snippet} and summarize findings"`,
+    `  Proceeding — consider routing result analysis to deepseek-flash if output is large.`,
+  ].join('\n');
+}
+
 function getTier(pct, tokenmaxxing = false) {
   if (tokenmaxxing) {
     if (pct < 52) return 0;
@@ -60,6 +122,19 @@ try {
 
     const toolName = event?.tool_name || event?.tool || '';
     const toolInput = JSON.stringify(event?.tool_input || {});
+
+    // ── Delegation advisory (merged from pre-tool-gate.js) ────────────────────
+    if (toolName === 'Read') {
+        const filePath = String(event?.tool_input?.file_path || event?.tool_input?.path || '');
+        if (filePath && isLikelyLargeFile(filePath)) {
+            emitContext(buildReadAdvisory(filePath));
+        }
+    } else if (toolName === 'Bash') {
+        const cmd = String(event?.tool_input?.command || event?.tool_input?.cmd || '');
+        if (cmd && isBroadBash(cmd)) {
+            emitContext(buildBashAdvisory(cmd));
+        }
+    }
 
     // ── Cross-terminal memory check ──────────────────────────────────────────
     const sessionId = bus.getSessionId();

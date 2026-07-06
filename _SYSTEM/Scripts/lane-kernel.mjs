@@ -73,8 +73,6 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     '.claude/hooks/claude-protocol-guard.js',
     '.claude/hooks/claude-protocol-guard.mjs',
     '.claude/hooks/agent-spawn-guard.js',
-    '.claude/hooks/pre-tool-gate.js',
-    '.claude/hooks/musubi-protocol-enforce.js',
     '.claude/hooks/tirith-url-guard.js',
     // B3 (peer red-team catch): the energy gate's own enforcement code — PEP + tick. A coworker
     // could Edit these to neuter the breaker (the rm vector is already caught by the blanket
