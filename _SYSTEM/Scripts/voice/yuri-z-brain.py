@@ -10,7 +10,8 @@
 #        bot.py at http://127.0.0.1:8014/v1 (yuri.sh does this). Key from ZAI_API_KEY or keychain
 #        yuri-zai-api-key. Swap model with ZAI_MODEL.
 # @exports: (http server :8014)
-import os, json, re, subprocess, urllib.request
+import os, json, re, subprocess, urllib.request, urllib.error
+import pathlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import jarvis_memory as jm   # persistent episodic store — model-driven `remember` + per-turn FTS5 recall
 try:
@@ -22,6 +23,23 @@ PORT = int(os.environ.get("YURI_Z_BRAIN_PORT", "8014"))
 MODEL = os.environ.get("ZAI_MODEL", "glm-5.2")   # glm-5.2 = the flagship in-plan model; RELIABLY emits
 #   model-driven tool_use (glm-5-turbo narrated/fabricated instead of calling tools — owner 2026-06-19).
 ZAI_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/anthropic").rstrip("/")
+# Provider abstraction — the brain routes to ANY model, switchable at runtime. Default for testing:
+# deepseek-v4-flash:cloud via Ollama Cloud (YURI_BRAIN_PROVIDER/YURI_BRAIN_MODEL override). State
+# persists to disk so a switch_brain_model tool call survives the process — the NEXT turn re-reads it.
+_BRAIN_STATE = pathlib.Path(os.environ.get("YURI_Z_STATE", os.path.join(os.path.dirname(__file__), "..", "..", "state", "voice", "brain-model.json")))
+_DEFAULT_PROVIDER = os.environ.get("YURI_BRAIN_PROVIDER", "ollama")
+_DEFAULT_BRAIN_MODEL = os.environ.get("YURI_BRAIN_MODEL", "deepseek-v4-flash:cloud")
+OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "https://ollama.com").rstrip("/")
+
+
+def _brain_config():
+    """Live brain config from disk (falls back to env defaults). Read fresh each call so a
+    switch_brain_model write takes effect on the very next turn without a restart."""
+    try:
+        st = json.loads(_BRAIN_STATE.read_text())
+        return {"provider": st.get("provider", _DEFAULT_PROVIDER), "model": st.get("model", _DEFAULT_BRAIN_MODEL)}
+    except Exception:
+        return {"provider": _DEFAULT_PROVIDER, "model": _DEFAULT_BRAIN_MODEL}
 # Reasoning: glm-5.2 supports the Anthropic `thinking` param on z.ai (verified 2026-06-19: returns a
 # thinking block then the tool_use). Highest reasoning for the JARVIS goal — `high` default, `max` deepest.
 REASONING = os.environ.get("YURI_Z_REASONING", "high").lower()      # off | low | high | max
@@ -910,6 +928,17 @@ TOOLS = [
                         "never read the raw block verbatim."),
         "input_schema": {"type": "object", "properties": {}},
     },
+    {
+        "name": "switch_brain_model",
+        "description": ("Switch the live brain model by writing {provider, model} to the brain-state "
+                        "file. Takes effect on the NEXT voice turn (each turn re-reads the config, no "
+                        "restart). Use when Marcel asks to switch/change the brain, try a different "
+                        "model, use Ollama or z.ai, or test a new brain. provider: 'ollama' or 'zai'. "
+                        "model: the model id (e.g. 'deepseek-v4-flash:cloud' or 'glm-5.2')."),
+        "input_schema": {"type": "object", "required": ["provider", "model"],
+                         "properties": {"provider": {"type": "string", "description": "'ollama' or 'zai'."},
+                                        "model": {"type": "string", "description": "The model id to route to."}}},
+    },
 ]
 
 
@@ -1285,6 +1314,17 @@ def _exec_tool(name, args):
             return _run_runtime_cli([MORNING_BRIEF_CLI, "--spoken"])
         if name == "usage_status":
             return _run_runtime_cli([USAGE_METERS_CLI, "status"])
+        if name == "switch_brain_model":
+            provider = (args.get("provider") or "").strip()
+            model = (args.get("model") or "").strip()
+            if not provider or not model:
+                return "switch_brain_model needs both provider and model"
+            try:
+                _BRAIN_STATE.parent.mkdir(parents=True, exist_ok=True)
+                _BRAIN_STATE.write_text(json.dumps({"provider": provider, "model": model}))
+                return f"brain switched to {provider}/{model} — takes effect on your next turn"
+            except Exception as e:
+                return f"failed to switch brain model: {str(e)[:80]}"
     except subprocess.TimeoutExpired:
         return f"command timed out after {int(BASH_TIMEOUT)}s"
     except Exception as e:
@@ -1292,9 +1332,10 @@ def _exec_tool(name, args):
     return f"unknown tool: {name}"
 
 
-def _messages_call(messages, system, with_tools=True):
-    """One call to Z.ai's Anthropic Messages endpoint. Returns the parsed message dict
-    {content:[blocks], stop_reason}. Bearer auth (the GLM Coding Plan convention)."""
+def _zai_messages_call(messages, system, with_tools=True):
+    """One call to Z.ai's Anthropic Messages endpoint (the original brain path). Returns the parsed
+    message dict {content:[blocks], stop_reason}. Bearer auth (the GLM Coding Plan convention).
+    Logic unchanged — renamed so _messages_call can route here or to the Ollama adapter."""
     payload = {"model": MODEL, "max_tokens": MAX_TOKENS, "system": system,
                "messages": messages, "stream": False}
     if _THINK_BUDGET > 0:        # extended reasoning (glm-5.2): a thinking block precedes the answer/tool_use
@@ -1309,6 +1350,124 @@ def _messages_call(messages, system, with_tools=True):
     })
     with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         return json.loads(r.read())
+
+def _messages_call(messages, system, with_tools=True):
+    """Provider router. Reads the live brain config and dispatches to the matching adapter. Both
+    adapters return the SAME Anthropic content-block shape {content:[blocks], stop_reason}, so
+    _run_agent_loop and the tool loop stay provider-agnostic. Pipecat's external /v1/chat/completions
+    surface is untouched — only the upstream provider call is swapped."""
+    cfg = _brain_config()
+    if cfg["provider"] == "ollama":
+        return _ollama_messages_call(messages, system, with_tools=with_tools, model=cfg["model"])
+    return _zai_messages_call(messages, system, with_tools)
+
+
+def _ollama_messages_call(messages, system, with_tools=True, model=None):
+    """One call to Ollama's /api/chat endpoint, translated to/from the Anthropic content-block shape
+    the brain uses internally. Native Ollama format, Bearer auth (OLLAMA_API_KEY). Returns
+    {content:[blocks], stop_reason}. No new deps — stdlib urllib only.
+    GOTCHA: Ollama returns tool_call arguments as an OBJECT (not a JSON string); we defendively
+    handle both forms on the way back, and emit a JSON string (json.dumps) on the way out."""
+    cfg_model = model or _brain_config()["model"]
+
+    def _to_ollama_msg(m):
+        """Anthropic message → Ollama message (or a LIST of messages when a single user turn carries
+        multiple tool_result blocks, which Ollama models as separate role:'tool' messages)."""
+        role = m.get("role", "user")
+        content = m.get("content")
+        if isinstance(content, str):
+            return {"role": role, "content": content}
+        texts, tool_results, tool_calls = [], [], []
+        for b in (content or []):
+            if not isinstance(b, dict):
+                continue
+            bt = b.get("type")
+            if bt == "text":
+                texts.append(b.get("text", ""))
+            elif bt == "tool_use":
+                tool_calls.append({"id": b.get("id", ""), "type": "function",
+                                   "function": {"name": b.get("name", ""),
+                                                "arguments": json.dumps(b.get("input") or {})}})
+            elif bt == "tool_result":
+                tool_results.append({"role": "tool",
+                                     "tool_call_id": b.get("tool_use_id", ""),
+                                     "content": b.get("content", "")})
+        if role == "assistant":
+            msg = {"role": "assistant", "content": "\n".join(t for t in texts if t)}
+            if tool_calls:
+                msg["tool_calls"] = tool_calls
+            return msg
+        if tool_results:
+            # user turn carrying tool results → the text (if any) stays a user message, results
+            # fan out into separate role:'tool' messages (Ollama convention).
+            out = []
+            if texts:
+                out.append({"role": "user", "content": "\n".join(texts)})
+            out.extend(tool_results)
+            return out
+        return {"role": role, "content": "\n".join(texts)}
+
+    ollama_messages = ([{"role": "system", "content": system}] if system else [])
+    for m in messages:
+        conv = _to_ollama_msg(m)
+        ollama_messages.extend(conv if isinstance(conv, list) else [conv])
+
+    payload = {"model": cfg_model, "messages": ollama_messages, "stream": False}
+    if with_tools:
+        payload["tools"] = [{"type": "function",
+                             "function": {"name": t.get("name", ""),
+                                          "description": t.get("description", ""),
+                                          "parameters": t.get("input_schema", {"type": "object"})}}
+                            for t in TOOLS]
+
+    def _post(p):
+        body = json.dumps(p).encode()
+        req = urllib.request.Request(f"{OLLAMA_URL}/api/chat", data=body, headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.environ.get('OLLAMA_API_KEY', '').strip()}",
+        })
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            return json.loads(r.read())
+
+    try:
+        data = _post(payload)
+    except urllib.error.HTTPError as e:
+        # 4xx — frequently "model doesn't support tools" — retry once without tools.
+        if with_tools and 400 <= e.code < 500:
+            payload.pop("tools", None)
+            data = _post(payload)
+        else:
+            raise
+
+    # ---- Ollama response → Anthropic content-block shape ----
+    msg = data.get("message") or {}
+    blocks = []
+    txt = msg.get("content")
+    if isinstance(txt, str) and txt.strip():
+        blocks.append({"type": "text", "text": txt})
+    elif isinstance(txt, list):
+        for b in txt:
+            if isinstance(b, dict) and b.get("type") == "text" and b.get("text"):
+                blocks.append({"type": "text", "text": b.get("text", "")})
+    for tc in (msg.get("tool_calls") or []):
+        fn = tc.get("function") or {}
+        raw = fn.get("arguments")
+        if isinstance(raw, str):
+            try:
+                inp = json.loads(raw)
+            except Exception:
+                inp = {}
+        elif isinstance(raw, dict):
+            inp = raw
+        else:
+            inp = {}
+        blocks.append({"type": "tool_use", "id": tc.get("id", f"call_{len(blocks)}"),
+                       "name": fn.get("name", ""), "input": inp})
+    if not blocks:
+        blocks.append({"type": "text", "text": ""})
+    finish = data.get("finish_reason") or ""
+    stop_reason = "tool_use" if (finish == "tool_calls" or msg.get("tool_calls")) else "end_turn"
+    return {"content": blocks, "stop_reason": stop_reason}
 
 
 def _text_of(content):
@@ -1469,7 +1628,9 @@ class H(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
+            bc = _brain_config()
             self.wfile.write(json.dumps({"ok": True, "brain": "z.ai-glm", "model": MODEL,
+                                         "provider": bc["provider"], "active_model": bc["model"],
                                          "haskey": bool(_zai_key())}).encode())
         else:
             self.send_response(404)
@@ -1508,5 +1669,6 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print(f"[yuri-z-brain] :{PORT} -> z.ai {MODEL} (Anthropic Messages, Bearer, $0 on the plan)", flush=True)
+    bc = _brain_config()
+    print(f"[yuri-z-brain] :{PORT} -> {bc['provider']}/{bc['model']} (provider-abstraction: Z.ai + Ollama, $0 on the plan)", flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
