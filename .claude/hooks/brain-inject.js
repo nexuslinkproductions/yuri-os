@@ -120,8 +120,14 @@ function loadGateSnapshot() {
   try {
     if (!fs.existsSync(LAUNCH_GATE)) return 'gate: unknown (run launch-readiness-check.mjs)';
     const g = JSON.parse(fs.readFileSync(LAUNCH_GATE, 'utf8'));
+    // F3 (FABLE audit 2026-07-06): staleness parity with loadLaneHealth/loadLearnedRules.
+    // A go/no-go gate must never render a >7d-old status as live fact (was showing 27d "READY").
+    const ageMs = g.ts ? Date.now() - new Date(g.ts).getTime() : 0;
+    const tier = stalenessOf(ageMs);
+    if (tier === 'suppress') return `[GATE stale > 7d (${ageDisplay(ageMs)}) — suppressed; run launch-readiness-check.mjs]`;
+    const stalePrefix = tier === 'warn' ? `⚠ STALE (${ageDisplay(ageMs)} — may not reflect current state)\n` : '';
     const checks = (g.checks || []).map(c => `  ${c.pass ? '✓' : '✗'} ${c.name}: ${c.value}`).join('\n');
-    return `status: ${g.gateStatus} · as-of: ${(g.ts || '').slice(0,10)}\n${checks}`;
+    return `${stalePrefix}status: ${g.gateStatus} · as-of: ${(g.ts || '').slice(0,10)}\n${checks}`;
   } catch { return 'gate: file unreadable'; }
 }
 

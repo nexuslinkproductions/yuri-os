@@ -52,16 +52,20 @@ export function isArmed() {
 async function spawnNativeAgent(spec, { armed = false } = {}) {
   if (!armed) {
     return {
-      text: `[DISARMED] Native Agent '${spec.role}' (model=${spec.model}) not spawned — MURE disarmed\n\nPrompt: ${spec.prompt}`,
+      text: `[DISARMED] Native Agent '${spec.role}' (model=${spec.model}) not spawned — MURE disarmed`,
       resultLabel: '',
       status: 'disarmed',
     };
   }
-  return {
-    text: `[BLOCKED: Native Agent '${spec.role}' (model=${spec.model}) requires a live Opus/Cursor Agent session — not spawnable from script]\n\nPrompt: ${spec.prompt}`,
-    resultLabel: '',
-    status: 'blocked-needs-opus-session',
-  };
+  // F5 (FABLE audit 2026-07-06): armed native spawn is impossible from a script — native Agents are only
+  // spawnable via the Agent tool from a live Opus session. This previously RETURNED a result-shaped packet
+  // (status 'blocked-needs-opus-session', a plausible `text`) which validatePacket accepted into the
+  // convergence `pool` as if it were a real result — silent dead-data downstream synthesis could not
+  // distinguish from output. THROW instead: spawnNativeLoop's try/catch routes it to `skipped` — a loud,
+  // honest failure. The Opus session executes nativeSpecs directly via the Agent tool; it never reaches here.
+  throw new Error(
+    `native-spawn unavailable from script: role='${spec.role}' model='${spec.model}' — nativeSpecs must be spawned by the live Opus session via the Agent tool, not run through runCompany's GLM/script path`
+  );
 }
 
 /**

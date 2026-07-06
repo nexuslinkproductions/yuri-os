@@ -236,8 +236,10 @@ export function calibrationReport(opts) {
 }
 
 // ── CLI ─────────────────────────────────────────────────────────────────────
-// `node prediction-ledger.mjs report` — invoked by the homeostat self-model-drift reflex (yuri-homeostat.mjs:136).
-// Was a no-op (no argv handling) → the reflex silently did nothing. Advisory: never throw, fail-open.
+// `node prediction-ledger.mjs report` — manual/advisory calibration readout (deflated Brier + per-bucket).
+// F4b (FABLE audit 2026-07-06): previously documented as "invoked by the homeostat self-model-drift reflex
+// (yuri-homeostat.mjs:136)" — that consumer file DOES NOT EXIST anywhere in the repo. The calibration
+// signal currently has NO live automated consumer; run this manually or wire a real caller. Advisory: never throw, fail-open.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   if (cmd === 'report') {
