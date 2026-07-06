@@ -22,7 +22,7 @@ bash "$VOICE/voice-stop.sh" 2>/dev/null || true
 pkill -f omp-brain-proxy.py 2>/dev/null || true
 
 # Brain selection: YURI_BRAIN=omp (default) or YURI_BRAIN=zai (fallback to GLM brain)
-YURI_BRAIN="${YURI_BRAIN:-omp}"
+YURI_BRAIN="${YURI_BRAIN:-zai}"  # reverted to GLM brain — OMP bridge reads terminal output aloud (regression). Use YURI_BRAIN=omp only for debugging.
 
 cleanup() {
   trap - EXIT INT TERM HUP
