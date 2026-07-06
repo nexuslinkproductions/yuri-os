@@ -448,3 +448,6 @@ _SYSTEM/state/overseer/
 .claude/settings.json.bak-*
 .claude/hooks/.claude/
 .claude/projects
+
+# Orderflow-quant P1 — Databento tape recordings (large DBN, never committed)
+_SYSTEM/Scripts/alpha-factor-library/data/databento/
