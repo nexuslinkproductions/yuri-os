@@ -10,7 +10,7 @@
 #        bot.py at http://127.0.0.1:8014/v1 (yuri.sh does this). Key from ZAI_API_KEY or keychain
 #        yuri-zai-api-key. Swap model with ZAI_MODEL.
 # @exports: (http server :8014)
-import os, json, re, subprocess, urllib.request, urllib.error
+import os, sys, json, re, time, subprocess, urllib.request, urllib.error
 import pathlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import jarvis_memory as jm   # persistent episodic store — model-driven `remember` + per-turn FTS5 recall
@@ -1421,10 +1421,23 @@ def _messages_call(messages, system, with_tools=True):
     """Provider router. Reads the live brain config and dispatches to the matching adapter. Both
     adapters return the SAME Anthropic content-block shape {content:[blocks], stop_reason}, so
     _run_agent_loop and the tool loop stay provider-agnostic. Pipecat's external /v1/chat/completions
-    surface is untouched — only the upstream provider call is swapped."""
+    surface is untouched — only the upstream provider call is swapped.
+
+    Resilience: if the Ollama adapter exhausts its retries, fall back to z.ai GLM so the brain
+    ALWAYS answers (deepseek when available, GLM as backup). Set YURI_Z_DEBUG=1 to log the serving
+    provider each turn."""
     cfg = _brain_config()
     if cfg["provider"] == "ollama":
-        return _ollama_messages_call(messages, system, with_tools=with_tools, model=cfg["model"])
+        if os.environ.get("YURI_Z_DEBUG"):
+            print(f"[brain] serving via {cfg['provider']}/{cfg['model']}", file=sys.stderr, flush=True)
+        try:
+            return _ollama_messages_call(messages, system, with_tools=with_tools, model=cfg["model"])
+        except Exception as e:
+            print(f"[brain] ollama failed ({str(e)[:90]}), falling back to zai/{MODEL}",
+                  file=sys.stderr, flush=True)
+            return _zai_messages_call(messages, system, with_tools)
+    if os.environ.get("YURI_Z_DEBUG"):
+        print(f"[brain] serving via zai/{MODEL}", file=sys.stderr, flush=True)
     return _zai_messages_call(messages, system, with_tools)
 
 
@@ -1495,15 +1508,26 @@ def _ollama_messages_call(messages, system, with_tools=True, model=None):
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             return json.loads(r.read())
 
-    try:
-        data = _post(payload)
-    except urllib.error.HTTPError as e:
-        # 4xx — frequently "model doesn't support tools" — retry once without tools.
-        if with_tools and 400 <= e.code < 500:
-            payload.pop("tools", None)
+    # Resilient retry loop: transient Ollama Cloud 400s / rate-limits / server hiccups get retried
+    # instead of killing the brain. Up to 3 total attempts: (0) the original payload; (1) on a 4xx,
+    # retry immediately with tools STRIPPED (the common "model doesn't support tools" case); (2) a
+    # full back-off retry after 1s for rate-limit / transient flakiness. If ALL attempts fail, raise
+    # — _messages_call then falls back to z.ai GLM so the brain ALWAYS answers.
+    last_err = None
+    data = None
+    for attempt in range(3):
+        try:
             data = _post(payload)
-        else:
-            raise
+            break
+        except Exception as e:
+            last_err = f"HTTP {e.code}" if isinstance(e, urllib.error.HTTPError) else str(e)[:80]
+            if attempt == 0 and isinstance(e, urllib.error.HTTPError) \
+                    and with_tools and 400 <= e.code < 500 and "tools" in payload:
+                payload.pop("tools", None)   # first retry: strip tools, retry immediately
+            elif attempt < 2:
+                time.sleep(1)                 # back off 1s, then full retry
+    if data is None:
+        raise RuntimeError(f"ollama call failed after retries: {last_err}")
 
     # ---- Ollama response → Anthropic content-block shape ----
     msg = data.get("message") or {}
@@ -1596,7 +1620,8 @@ def _run_agent_loop(messages, user_msg, hist):
         try:
             resp = _messages_call(messages, sys_prompt)
         except Exception as e:
-            final = f"My GLM brain hiccuped: {str(e)[:90]}"
+            print(f"[brain] all providers failed: {str(e)[:120]}", file=sys.stderr, flush=True)
+            final = "Sorry, I had trouble thinking just then. Try again?"
             break
         content = resp.get("content") or []
         tool_uses = [b for b in content if isinstance(b, dict) and b.get("type") == "tool_use"]

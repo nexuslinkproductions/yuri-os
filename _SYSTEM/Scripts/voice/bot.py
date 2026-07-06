@@ -304,7 +304,37 @@ def _log_audio_devices():
         logger.warning(f"could not query audio devices: {e}")
 
 
+def _force_builtin_mic():
+    """Force the MacBook built-in mic as the input device so connected Bluetooth
+    headphones (Sony XM5) stay on A2DP — high-quality output. Without this, macOS
+    routes input to the headphone mic, which flips the headphones into HFP/SCO
+    (hands-free) mode and degrades output to 8kHz mono (they can't do A2DP + mic
+    at once). Disable with YURI_FORCE_BUILTIN_MIC=0 to use the headphone mic."""
+    if os.environ.get("YURI_FORCE_BUILTIN_MIC", "1") != "1":
+        return
+    try:
+        import sounddevice as sd
+        devs = sd.query_devices()
+        for i, d in enumerate(devs):
+            name = d.get("name", "").lower()
+            if d.get("max_input_channels", 0) > 0 and (
+                os.environ.get("YURI_INPUT_DEVICE", "").strip() and os.environ.get("YURI_INPUT_DEVICE", "").lower().strip() in name or "hyperx" in name or "built-in" in name or "macbook" in name or "internal" in name
+            ):
+                old_in = sd.default.device[0]
+                # input = built-in mic; output left UNCHANGED so headphones stay as speaker.
+                sd.default.device = (i, sd.default.device[1])
+                logger.info(
+                    f"🎧 forced built-in mic [{i}] {d['name']} — Bluetooth stays on A2DP "
+                    f"(was input device {old_in})"
+                )
+                return
+        logger.info("🎧 no built-in mic found — using default input (Bluetooth HFP may degrade output)")
+    except Exception as e:
+        logger.warning(f"could not force built-in mic: {e}")
+
+
 async def main():
+    _force_builtin_mic()
     _log_audio_devices()
     mic_gain = float(os.environ.get("YURI_MIC_GAIN", "0.7"))  # another ~7dB down (loud street-noise rejection)
     transport = LocalAudioTransport(LocalAudioTransportParams(
