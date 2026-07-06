@@ -186,6 +186,7 @@ _vad = None                 # SileroVADAnalyzer (shared; reset before each use)
 _whisper_model = WHISPER_MODEL
 _kokoro = None              # loaded mlx-audio Kokoro model
 _call_lock = threading.Lock()   # serialize voice_listen / voice_speak
+_models_loaded = False
 
 
 def resolve_audio_devices():
@@ -242,6 +243,7 @@ def _reset_vad():
 # Tool: voice_listen — open mic, VAD-segment one utterance, Whisper-transcribe, return text
 # ─────────────────────────────────────────────────────────────────────────────
 def voice_listen(timeout_secs: float = DEFAULT_LISTEN_TIMEOUT) -> str:
+    _ensure_models()
     timeout_secs = min(float(timeout_secs), 15.0)  # CAP at 15s — longer blocks stall the provider stream
     import pyaudio
     from pipecat.audio.vad.vad_analyzer import VADState
@@ -307,6 +309,7 @@ def voice_listen(timeout_secs: float = DEFAULT_LISTEN_TIMEOUT) -> str:
 # Tool: voice_speak — synth via Kokoro, play through speaker, barge-in on mic speech
 # ─────────────────────────────────────────────────────────────────────────────
 def voice_speak(text: str) -> str:
+    _ensure_models()
     import pyaudio
     from pipecat.audio.vad.vad_analyzer import VADState
 
@@ -448,6 +451,18 @@ def startup():
     log("[voice-mcp] ready — voice_listen + voice_speak available")
 
 
+def _ensure_models():
+    """Lazy-load models on first tool call. Lets the MCP initialize handshake
+    respond instantly so OMP registers the voice tools without timing out."""
+    global _models_loaded
+    if _models_loaded:
+        return
+    log("[voice-mcp] loading models (first call — ~15s)…")
+    startup()
+    _models_loaded = True
+    log("[voice-mcp] models loaded — subsequent calls will be fast")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # MCP JSON-RPC 2.0 over stdio (newline-delimited)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -574,8 +589,9 @@ def handle_request(req: dict):
 
 
 def main():
-    startup()
-    log("[voice-mcp] stdio JSON-RPC loop started")
+    # DO NOT load models here — respond to MCP initialize IMMEDIATELY so OMP
+    # registers the voice tools. Models load lazily on first voice_listen/speak call.
+    log("[voice-mcp] stdio JSON-RPC loop started (models load on first tool call)")
     for line in sys.stdin:
         line = line.strip()
         if not line:
