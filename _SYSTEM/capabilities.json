@@ -2294,16 +2294,18 @@
     {
       "id": "mnemopi-canonical-bridge",
       "serves": [
-        "mnemopi auto-retain to yuri-memory proposals",
+        "mnemopi auto-retain to canonical",
         "mnemopi export seam",
-        "governed memory convergence"
+        "omp learnings to canonical truth"
       ],
-      "does": "exports Mnemopi working_memory auto-retentions INTO YURI's canonical pipeline GATED via proposeMemoryWrite",
-      "use": "node _SYSTEM/Scripts/mnemopi-canonical-bridge.mjs [--dry-run|plan|--apply]",
+      "does": "exports Mnemopi working_memory auto-retentions DIRECTLY INTO YURI's canonical store (owner chose",
+      "use": "node _SYSTEM/Scripts/mnemopi-canonical-bridge.mjs [--dry-run|plan|--apply]; or programmatically",
       "exports": [
         "exportMnemopiToCanonical",
         "resolveMnemopiBankPath",
-        "ELIGIBLE_SOURCES"
+        "rowToClaim",
+        "ELIGIBLE_SOURCES",
+        "BRIDGE_LANE"
       ],
       "mechanism": "_SYSTEM/Scripts/mnemopi-canonical-bridge.mjs"
     },
