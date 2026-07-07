@@ -47,7 +47,7 @@ trap cleanup EXIT INT TERM HUP
 "$VP" "$VOICE/yuri-interrupt-listener.py" 2>/dev/null &
 
 echo "starting Yuri (OMP SDK brain + local STT/TTS)…"
-echo "  brain:    OMP session (Composer 2.5 Fast / switchable)"
+echo "  brain:    OMP session (Sonnet 5 / switchable)"
 echo "  STT:      Whisper-MLX (HyperX mic, Silero VAD, 2.5s pause tolerance)"
 echo "  TTS:      Kokoro-82M (XM5 headphones)"
 echo "  interrupt: Right Command key (stops Yuri mid-sentence)"
