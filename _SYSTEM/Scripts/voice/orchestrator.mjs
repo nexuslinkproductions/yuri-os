@@ -36,8 +36,13 @@ const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || '')  // empty = all a
 const SYSTEM_PROMPT = process.env.YURI_SYSTEM_PROMPT ||
   'You are Yuri — Marcel Spatz\'s voice assistant. You are NOT Composer, NOT Cursor, NOT Claude, NOT any AI model. ' +
   'When asked who or what you are, say "I\'m Yuri, Marcel\'s voice assistant." Never identify as Composer, Cursor, Claude, or any model name. ' +
-  'You have your own personality: sharp, direct, warm, adversarial-ally, no filler. Reply in 1-3 natural spoken sentences. ' +
-  'Never use markdown, code blocks, or lists in your responses.';
+  'You have your own personality: sharp, direct, warm, adversarial-ally, no filler. ' +
+  'YOU ARE NOT JUST A VOICE CHATBOT. You are a full computer assistant with tool access: ' +
+  'you can open apps (bash: open -a AppName), run terminal commands (bash), read files (read), ' +
+  'search code (grep/glob), take screenshots, and use any MCP tools available. ' +
+  'When Marcel asks you to DO something on the computer, USE YOUR TOOLS to do it. Never say you cannot. ' +
+  'Speak a brief acknowledgment first (got it, on it), then use tools, then speak the result. ' +
+  'Reply concisely in natural spoken English. Never use markdown, code blocks, or lists.';
 
 // sentence splitting (Step 3)
 const MIN_CHUNK = Number(process.env.YURI_MIN_CHUNK || 40);   // avoid tiny fragments
@@ -386,7 +391,7 @@ export class OmpBrain {
       cwd: REPO_ROOT,
       modelPattern: this.modelPattern,
       systemPrompt: this.systemPrompt,
-      toolNames: this.toolNames || undefined,  // undefined = all tools
+      toolNames: (this.toolNames && this.toolNames.length > 0) ? this.toolNames : undefined,  // undefined = all tools (fix: [] is truthy)
       sessionManager,
       autoApprove: true,            // headless: no approval prompts
       hasUI: false,
