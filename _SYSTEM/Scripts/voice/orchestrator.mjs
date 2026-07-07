@@ -796,7 +796,17 @@ export class VoiceOrchestrator {
         this._handleCommand(cmd).catch((e) => log('error', 'stdin_cmd_failed', { err: String(e) }));
       }
     });
-    process.stdin.on('end', () => { log('info', 'stdin_eof'); this.shutdown('stdin_eof'); });
+    // stdin EOF means "quit" ONLY when a supervisor opted into the command channel (YURI_STDIN_CMD=1).
+    // Under `yuri` the orchestrator is backgrounded (`orchestrator.mjs &`) in a non-interactive shell
+    // (no `set -m`), so bash routes its stdin from /dev/null and the on('data') resume above hits an
+    // instant EOF. An unconditional shutdown here killed the whole voice loop the moment the brain
+    // came up (the "yuri exits on launch" bug). The live loop is stdin-orthogonal (STT/TTS are IPC
+    // bridges, barge-in is /tmp/yuri-interrupt, quit is SIGINT/SIGTERM/SIGHUP), so EOF is not fatal
+    // unless a real command channel was requested.
+    process.stdin.on('end', () => {
+      log('info', 'stdin_eof');
+      if (process.env.YURI_STDIN_CMD === '1') this.shutdown('stdin_eof');
+    });
   }
 
   async _handleCommand(cmd) {
