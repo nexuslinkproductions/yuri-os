@@ -1,3 +1,13 @@
+> ⚠️ **STATUS: UNIMPLEMENTED ROADMAP — relabeled 2026-07-07. Not operational doctrine. Do not cite as live capability.**
+> Zero of the subsystems named below are wired: EvoNexus, OBLITERATUS, NABU, NISABA, ENKI-as-agent, HGCC, and the
+> Pantheon are prose-only or thin metadata — no live script, hook, launchd job, or gate routes through any of them.
+> Present-tense claims in this document ("I am a self-modifying neural network", "I am updating my core operating
+> system") are aspirational and false as stated: every session is a stateless LLM invocation reading markdown context
+> at start. Where this mythology produced something real, it did so by stripping the deity framing into plain
+> engineering (NABU → AGENT_BLUEPRINTS.md; NISABA/NOESIS/OBLITERATUS → named-role agent specs) — that substitution
+> pattern is the reusable lesson; the mythology is not. Full term-by-term disposition:
+> `02_RESOURCES/RESEARCH/global-claude-md-fable5-evolution-2026-07-07/prep-B-neural-net-graph-disposition.md`.
+
 # The Hyper-Graph Cognitive Core (HGCC): A Neural Network for Empire
 
 ## 1. The Core Thesis

@@ -40,7 +40,7 @@ const OUT_PATH = path.join(SYS, 'state', 'yuri-knowledge-graph.json');
 const CAPABILITIES_PATH = path.join(SYS, 'capabilities.json');
 const SKILL_INDEX_PATH = path.join(ROOT, 'skills', 'skill-index.json');
 const FLEET_ROLES_PATH = path.join(SYS, 'config', 'fleet-roles.json');
-const BUILT_AT = '2026-07-04';
+const BUILT_AT = new Date().toISOString().slice(0, 10); // was hardcoded '2026-07-04' — silently stale on every rebuild until now (Fable-5 pass 2026-07-07)
 const IMPORT_LINE_LIMIT = 100; // top-100-line import headers
 
 // Script directories to scan (mirrors capability-scan.mjs DIRS + extras)
@@ -84,6 +84,7 @@ const DOC_FILES = [
   path.join(SYS, 'context', 'README.md'),
   path.join(SYS, 'yuri-graph.json'),
   path.join(SYS, 'yuri-graph-state.json'),
+  path.join(SYS, 'FABLE-5-PROTOCOL.md'),
 ].filter(f => fs.existsSync(f));
 
 // State file patterns for targeted grep (reads-state, writes-state edges)

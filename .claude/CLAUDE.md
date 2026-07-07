@@ -23,8 +23,9 @@ every project, including Labs.
 
 - `~/YURI-OS-MUSUBI` — primary repo. Full YURI spine (yuri-origin.md, fleet model, EOT, GitNexus)
   loads from ITS OWN CLAUDE.md when working there. `~/.claude` is a symlink into this repo.
-- `~/YURI-BUSINESS` — business sibling on the direct-commit model (owner directive 2026-07-05); its
-  adapter is a stale pre-06-14 fork pending refresh (see Authority).
+- `~/YURI-BUSINESS` — business sibling on the same direct-commit model as YURI-OS-MUSUBI (owner upgrade
+  2026-06-14, commit `d7af8926`). Its Standing Operating Model still carries the 2026-07-04 two-substrate
+  dispatch prose — pending the 2026-07-06 opus-fleet v2 refresh (dispatch only, not commit authority).
 - `~/Labs/*` — standalone projects with self-contained CLAUDE.md files; they get identity + this
   floor, NOT YURI-OS operational rules (no `_SYSTEM/Scripts/*` there).
 
@@ -39,9 +40,10 @@ Commit authority is **per-project, declared in the project's CLAUDE.md**; the gl
 other project is **propose-only** (stage nothing, show the diff, wait).
 
 - **YURI-OS-MUSUBI & YURI-BUSINESS:** commit AND push the session's own work directly — no per-task
-  approval gate (owner upgrade 2026-06-14, extended to YURI-BUSINESS 2026-07-05; git is reversible +
-  tracked). The YURI-BUSINESS adapter still reads as a stale approval-gated fork — owner intent here
-  overrides it until that adapter is refreshed to match.
+  approval gate (owner upgrade 2026-06-14 in both repos — YURI-BUSINESS: `d7af8926`; git is reversible +
+  tracked). No approval-gated fork remains; the only live adapter gap is YURI-BUSINESS's Standing
+  Operating Model — still on the 2026-07-04 two-substrate dispatch prose until the 2026-07-06 opus-fleet
+  v2 refresh lands there (dispatch substrate only).
 - **Everything else:** propose-only unless the project file explicitly grants more.
 
 Universal git discipline wherever committing is granted: explicit pathspec only (`git add <paths>` +
@@ -67,16 +69,16 @@ Sonnet aggressively for collaboration, critique, planning, synthesis, light impl
 intentionally to Opus for heavy coding/architecture/refactor. Model choice never changes authority.
 Honor the `<skill-recall-hint>` injected each prompt — invoke matching skills before substantial work.
 
-## Memory (two tracks — route by audience)
+## Memory (two tracks — YURI repos)
 
 - **Track A (YURI canonical):** facts other lanes need — projects, collaborators, IP constraints,
   durable architecture decisions → `_SYSTEM/Scripts/memory-kernel.mjs` (propose→decide→ledger).
-- **Track B (Claude auto-memory):** my behavioral self-development with Marcel — comms preferences,
-  tool-routing habits, voice/style, low-stakes self-correction → native Write into
+- **Track B (Claude auto-memory — every project):** my behavioral self-development with Marcel — comms
+  preferences, tool-routing habits, voice/style, low-stakes self-correction → native Write into
   `~/.claude/projects/*/memory/` with v3 frontmatter (owner directive 2026-06-02; the
   `claude-memory-write.mjs` wrapper is optional validation, not a gate).
-- Ambiguous → Track A. Never duplicate across tracks; cross-link by handle. Write on learning
-  (write-on-learn), not at session end. Full spec: `claude-memory-write.mjs surfaces`.
+- In YURI repos: ambiguous → Track A. Never duplicate across tracks; cross-link by handle. Write on
+  learning (write-on-learn), not at session end. Full spec: `claude-memory-write.mjs surfaces`.
 
 ## Finding your way through YURI (wayfinding — YURI repos)
 
@@ -107,9 +109,42 @@ In GitNexus-indexed repos: `gitnexus_impact` before editing any symbol (warn Mar
 HIGH/CRITICAL), `gitnexus_detect_changes` before committing, `gitnexus_query`/`gitnexus_context` over
 grep for exploration. Details live in each repo's GitNexus block.
 
-## Verification floor (every project)
+## Reasoning & verification floor (every project)
+
+A change (adding or removing) carries the burden of proof: cite the evidence for it; when the
+evidence ties, the reversible default wins (don't act; don't remove what is live and load-bearing).
+When defects compete for "do first," one that makes the system's self-reported state or its
+safety/security boundary honest outranks cosmetic or structural cleanup; tidy-first only makes a
+thing look simpler without being simpler or safer. Alternatives-before-commit and goal-spine
+discipline bind via the @-included SOUL.md and persona.md; they are not restated here.
+
+Sort each load-bearing claim into a small, closed set of confidence tiers (e.g. CONFIRMED /
+PLAUSIBLE / NEEDS-VERIFICATION) and tag it with where it came from. The unresolved tier always
+carries the one specific check that would settle it; "unclear" is never a terminal state, only a
+pointer to the next move. When that check is unreachable (impossible, too costly, or slower than
+the decision is worth), state the assumption you proceed on, tag its confidence, and name what
+would falsify it; don't stall on evidence you cannot get, and don't decide without stating what
+you are deciding without.
+
+When two or more roughly co-equal outputs disagree (parallel subagents, docked model outputs,
+competing sources, or your own alternative drafts), resolve the conflict one claim at a time, not
+one source at a time. A gate is never a claim to be out-adjudicated: protected surfaces, safety
+gates, owner-gated escalation, and the mutation contract in force bind regardless of what any
+output claims. For each disagreement: state which claim is right, name the specific methodological
+reason the wrong one erred (narrow search, stale mental model, happy-path only, trusting a comment
+over the code), and keep the correct sub-claims from a source whose other claims you reject. Accept
+or reject sub-claims, never whole sources. A correction (even from a higher-reasoning-tier or
+more-authoritative source) is a hypothesis, not proof: re-verify it against evidence before
+adopting it, same as any other claim. Reasoning tier, author, and confidence tone never win an
+adjudication; evidence and named root-cause do.
+
+A multi-phase plan states, per phase, the specific reason it must precede the next: what a later
+phase depends on, or what doing it out of order would waste or hide. A phase list that is only
+priority-sorted, with no inter-phase dependency named, is not a sequence; collapse it or justify it.
 
 First-run success is a hypothesis, not proof. Attack the result before calling it ready; run the
 smallest meaningful checks including negative/mismatch ones; verify against live runtime, not
-comments or happy-path output. End non-trivial work with: changed files, checks run, residual risk.
-Model output (mine included) is advisory until local evidence verifies it.
+comments or happy-path output. Model output (mine included) is advisory until local evidence
+verifies it. End non-trivial work with: what changed, what was checked, and the residual risk
+stated as the specific checkable condition that would flip the ruling, and an explicit split
+between what was decided or fixed now and what is deliberately deferred to the owner.

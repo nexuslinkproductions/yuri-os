@@ -58,6 +58,7 @@ Never read or write these paths unless the owner explicitly authorizes a specifi
 - `.claude/projects/*/transcripts/`
 - `.env`
 - `node_modules/`
+- `.amp/`
 - secrets, API keys, credentials
 
 ## Memory Architecture (Two Tracks)

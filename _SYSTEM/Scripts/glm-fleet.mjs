@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // @capability: glm-fleet-dispatch
-// @serves: glm fleet | spawn glm agents | z.ai fleet | parallel glm lanes | fan out glm | glm swarm | dual-substrate fleet | opus-fleet glm substrate
+// @serves: glm fleet | spawn glm agents | z.ai fleet | parallel glm lanes | fan out glm | glm swarm | tri-substrate fleet | opus-fleet glm substrate | fable 5 | fable-5 | mastermind overseer | one-shot mastermind pass | final review pass
 // @does: parallel fan-out of N z.ai GLM lanes at --reasoning high through lane-dispatch.mjs (4-attempt EPIPE/429 retry), each lane's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore. DISARMED by default = dry-run (zero spend, zero fan-out); YURI_GLM_FLEET=1 arms the real fire.
-// @use: glmFleet([{lane:'glm',label:'R1',prompt:'...'}], {concurrency:3}) — the GLM substrate of the opus-fleet model. Native Claude Agents are the other substrate (Agent tool). CLI: node glm-fleet.mjs --list | --dry-run --tasks '<json>' | --smoke (armed needs YURI_GLM_FLEET=1).
+// @use: glmFleet([{lane:'glm',label:'R1',prompt:'...'}], {concurrency:3}) — the GLM substrate of the opus-fleet model (substrate B of tri-substrate: OMP task() + glm-fleet + ollama-cloud). CLI: node glm-fleet.mjs --list | --dry-run --tasks '<json>' | --smoke (armed needs YURI_GLM_FLEET=1).
 // @exports: glmFleet, buildRunDir, extractResultLabel, appendSpawnEvent, aggregatePoolOutputs, validatePacket, defaultTimeoutMsForLane, FLEET_PROTOCOL_PREAMBLE, ARM_ENV
 //
 // WHY built on lane-dispatch.mjs (not llm-lane directly): lane-dispatch re-invokes llm-lane in a FRESH
@@ -88,7 +88,7 @@ export const FLEET_PROTOCOL_PREAMBLE = [
   'Every peer carries the FULL operator harness — read/grep/search/xref AND write_file/edit_file/bash. Peers BUILD directly (design, code, write, run, self-verify), NOT read-only. glm-5.2 is an Opus-peer.',
   'GLM tier roster (z.ai), all at --reasoning high:',
   '  glm-max (glm-5.2)   = heavy orchestrator / synthesis / final review (1M ctx, premium)',
-  '  glm (glm-4.7)       = workhorse: code-gen, analysis, judgment',
+  '  glm (glm-5.1)       = workhorse: code-gen, analysis, judgment',
   '  glm-flash (=glm-turbo via llm-lane)= fast build: census, scan, fast edits, test-runs',
   '  glm-sub-orch (5.1)  = overflow when glm-max is quota-gated',
   '  glm-vision (4.6v)   = image/screenshot   ·   glm-ocr = document extraction',

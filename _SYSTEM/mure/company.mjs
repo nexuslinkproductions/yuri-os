@@ -291,7 +291,7 @@ const SUBSTRATE_CANDIDATE = Object.freeze({
 // router suggestion whose substrate falls outside the node's family is rejected (steering skipped,
 // routerSteered stays false). Substrate values mirror SUBSTRATE_CANDIDATE above.
 const STEER_FAMILY = Object.freeze({
-  glm: new Set(['glm', 'glm-max', 'glm-turbo', 'tmux-zai', 'glm-flash', 'glm-flashx', 'glm-sub-orch']),
+  glm: new Set(['glm', 'glm-max', 'glm-turbo', 'tmux-zai', 'glm-flash', 'glm-flashx', 'glm-sub-orch', 'cline']),
   native: new Set(['native', 'cursor']),
 });
 
