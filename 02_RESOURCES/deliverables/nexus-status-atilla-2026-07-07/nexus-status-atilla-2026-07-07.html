@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Link · Entwicklungsstatus</title>
+<style>
+  :root{
+    --bg:#0a0d14;
+    --bg2:#070a10;
+    --surf:#141a27;
+    --surf2:#18202f;
+    --line:#232c3d;
+    --line2:#2c3750;
+    --tx:#eaf0f7;
+    --tx-mut:#98a6ba;
+    --tx-dim:#6c7a90;
+    --acc:#7dffb3;
+    --acc2:#6ea8fe;
+    --warn:#ffcf70;
+    --ok:#7dffb3;
+    --plan:#8a97ad;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    background:
+      radial-gradient(1100px 600px at 82% -8%,rgba(125,255,179,.10),transparent 60%),
+      radial-gradient(900px 620px at 8% 8%,rgba(110,168,254,.10),transparent 58%),
+      var(--bg);
+    color:var(--tx);
+    line-height:1.62;
+    letter-spacing:.1px;
+    -webkit-font-smoothing:antialiased;
+    padding:0 20px 90px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+
+  /* Header */
+  header{padding:64px 0 30px;border-bottom:1px solid var(--line);margin-bottom:44px}
+  .brandrow{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--acc),var(--acc2));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#04121b;font-size:20px;
+    box-shadow:0 8px 30px rgba(125,255,179,.25);
+  }
+  .brand{font-weight:700;font-size:19px;letter-spacing:.3px}
+  .brand .thin{color:var(--tx-mut);font-weight:500}
+  h1{font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-.6px;margin-bottom:14px}
+  h1 .g{background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:18px;color:var(--tx-mut);max-width:640px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .chip{
+    font-size:13px;color:var(--tx-mut);
+    background:var(--surf);border:1px solid var(--line);
+    padding:7px 13px;border-radius:999px;
+  }
+  .chip b{color:var(--tx)}
+
+  /* Section */
+  section{margin:52px 0}
+  .kicker{font-size:12.5px;letter-spacing:2.4px;text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:12px}
+  h2{font-size:27px;font-weight:750;letter-spacing:-.3px;margin-bottom:8px}
+  .lead{color:var(--tx-mut);font-size:16px;max-width:760px;margin-bottom:26px}
+
+  /* Executive summary */
+  .summary{
+    background:linear-gradient(180deg,var(--surf),var(--surf2));
+    border:1px solid var(--line2);border-radius:var(--radius);
+    padding:30px 32px;
+  }
+  .summary h2{margin-bottom:18px}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px 30px}
+  .spt{display:flex;gap:13px;align-items:flex-start}
+  .spt .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 auto;box-shadow:0 0 12px var(--acc)}
+  .spt p{font-size:15.3px;color:#d6deeb}
+  .spt b{color:#fff}
+
+  /* Cards grid */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .card{
+    background:var(--surf);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 22px 20px;transition:border-color .2s,transform .2s;
+  }
+  .card:hover{border-color:var(--line2);transform:translateY(-2px)}
+  .card .ct{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+  .card h3{font-size:16.5px;font-weight:700}
+  .card p{font-size:14.4px;color:var(--tx-mut)}
+  .badge{font-size:11.5px;font-weight:700;letter-spacing:.4px;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .b-ok{color:#04140c;background:var(--ok)}
+  .b-work{color:#1c1400;background:var(--warn)}
+  .b-plan{color:#0b0f18;background:var(--plan)}
+
+  /* Two column split */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--surf);border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  .panel h3{font-size:18px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .panel h3 .tag{font-size:11.5px;font-weight:700;color:var(--acc);background:rgba(125,255,179,.1);border:1px solid rgba(125,255,179,.25);padding:3px 9px;border-radius:999px}
+  .panel .muted{color:var(--tx-mut);font-size:14.6px;margin-bottom:16px}
+  .plist{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .plist li{display:flex;gap:11px;font-size:14.8px;color:#d3dbe8}
+  .plist .k{color:var(--acc);font-weight:800;flex:0 0 auto}
+  .callout{
+    margin-top:18px;padding:15px 17px;border-radius:12px;
+    background:rgba(255,207,112,.08);border:1px solid rgba(255,207,112,.28);
+    font-size:14.2px;color:#f0e0bf;
+  }
+  .callout b{color:var(--warn)}
+
+  /* Timeline */
+  .tl{position:relative;margin-top:8px;padding-left:8px}
+  .tl:before{content:"";position:absolute;left:22px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--acc),var(--acc2),transparent)}
+  .step{position:relative;display:grid;grid-template-columns:46px 1fr;gap:20px;padding:12px 0}
+  .node{
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;z-index:1;
+    background:var(--surf2);border:1px solid var(--line2);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--acc);font-size:17px;
+  }
+  .step.done .node{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#04121b;border:none}
+  .stepbody{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+  .stepbody .sh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+  .stepbody h3{font-size:16.5px;font-weight:700}
+  .stepbody p{font-size:14.3px;color:var(--tx-mut)}
+  .when{font-size:12px;color:var(--tx-dim);font-weight:600;letter-spacing:.3px}
+
+  /* Next steps */
+  .next{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .ncard{background:linear-gradient(180deg,var(--surf),var(--surf2));border:1px solid var(--line2);border-radius:var(--radius);padding:22px}
+  .ncard .n{font-size:13px;font-weight:800;color:var(--acc2);margin-bottom:10px;letter-spacing:.5px}
+  .ncard h4{font-size:15.5px;margin-bottom:7px}
+  .ncard p{font-size:13.8px;color:var(--tx-mut)}
+
+  footer{margin-top:60px;padding-top:26px;border-top:1px solid var(--line);color:var(--tx-dim);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:720px){
+    h1{font-size:33px}
+    .sgrid,.grid,.split,.next{grid-template-columns:1fr}
+    body{padding:0 16px 60px}
+  }
+  @media print{
+    body{background:#fff;color:#0d1420;padding:0}
+    .card,.panel,.summary,.stepbody,.ncard{border-color:#d5dce6;background:#fff;box-shadow:none}
+    .logo{box-shadow:none}
+    h1 .g,.kicker,.plist .k{-webkit-text-fill-color:initial;color:#0a7d4e}
+    .spt .dot{box-shadow:none}
+    section{margin:26px 0;break-inside:avoid}
+    .step,.card,.panel{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brandrow">
+      <div class="logo">N</div>
+      <div class="brand">NEXUS Link <span class="thin">· Prime State</span></div>
+    </div>
+    <h1>Entwicklungsstatus der <span class="g">Web App</span></h1>
+    <p class="sub">Kurzbriefing zum aktuellen Stand, zu den Entscheidungen der letzten Tage und zum weiteren Fahrplan.</p>
+    <div class="meta">
+      <span class="chip">Datum: <b>7. Juli 2026</b></span>
+      <span class="chip">Für: <b>Atilla</b></span>
+      <span class="chip">Status: <b>Fundament fertig, Anmeldeschicht als Nächstes</b></span>
+      <span class="chip">Demo: <b>läuft lokal im Browser</b></span>
+    </div>
+  </header>
+
+  <section class="summary">
+    <div class="kicker">Kurzfassung</div>
+    <h2>Das Wichtigste in vier Punkten</h2>
+    <div class="sgrid">
+      <div class="spt"><span class="dot"></span><p><b>Die App läuft.</b> Oberfläche, Dashboard, Funnel, Posteingang und Kalender sind sichtbar und bedienbar. Microsoft 365 ist bereits live angebunden.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>Fundament steht.</b> Das Datenmodell und die Sicherheitsschicht (Verschlüsselung, Mandantentrennung, Audit-Protokoll) sind fertig gebaut. Als Nächstes folgt die Anmeldung.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>Anmeldung über Google und Facebook.</b> Instagram und Threads sind technisch keine Anmeldedienste mehr, werden aber als Datenverbindungen eingebunden.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>KI-Chat ist inklusive.</b> Kundinnen und Kunden brauchen kein eigenes Abo. Ein eigener Schlüssel bleibt als spätere Option offen.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Stand heute</div>
+    <h2>Was bereits steht</h2>
+    <p class="lead">Der sichtbare Teil und das unsichtbare Fundament sind weiter, als es von außen wirkt. Die eigentliche Kundenanmeldung ist der nächste große Baustein.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ct"><h3>Web-Oberfläche</h3><span class="badge b-ok">läuft</span></div>
+        <p>Dashboard, Posteingang, Funnel, Kontakte, Kalender, Verträge, Reports. Umschaltbar zwischen Deutsch und Englisch sowie zwischen Kundenmarken.</p>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Microsoft 365</h3><span class="badge b-ok">fertig</span></div>
+        <p>Live angebunden über sichere Anmeldung. Mail, Kalender, Kontakte und Dateien fließen in eine Oberfläche zusammen.</p>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Datenmodell</h3><span class="badge b-ok">fertig</span></div>
+        <p>Mandantenfähig aufgebaut: Arbeitsbereiche, Profile, Rollen und ein Nutzungszähler für die KI. Vorbereitet für viele Kunden auf einer Plattform.</p>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Sicherheitsfundament</h3><span class="badge b-ok">fertig</span></div>
+        <p>Verschlüsselter Tresor für Zugangsdaten, strikte Trennung pro Kunde und ein manipulationssicheres Protokoll aller Zugriffe.</p>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Anmeldung der Nutzer</h3><span class="badge b-work">als Nächstes</span></div>
+        <p>Aktuell ist die App offen. Die Login-Schicht mit Google, Facebook und E-Mail ist der nächste Bauschritt und liegt fertig geplant vor.</p>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>Datenbank lokal</h3><span class="badge b-ok">läuft</span></div>
+        <p>Der erste lokale Datenbankserver läuft. Der vollständige Auth-Stack wird als Nächstes lokal in Betrieb genommen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Klärung</div>
+    <h2>Anmeldung und Datenverbindungen sind zwei verschiedene Dinge</h2>
+    <p class="lead">Diese Unterscheidung ist wichtig, weil sie festlegt, was mit welchem Netzwerk möglich ist.</p>
+    <div class="split">
+      <div class="panel">
+        <h3>Anmeldung <span class="tag">Login</span></h3>
+        <p class="muted">Wer sich in die Plattform einloggt. Identität, nicht Datenzugriff.</p>
+        <ul class="plist">
+          <li><span class="k">Google</span><span>Anmelden mit Google, voll unterstützt.</span></li>
+          <li><span class="k">Facebook</span><span>Anmelden mit Facebook, voll unterstützt.</span></li>
+          <li><span class="k">E-Mail</span><span>Klassische Registrierung mit E-Mail und Passwort.</span></li>
+        </ul>
+        <div class="callout"><b>Wichtig:</b> Instagram und Threads bieten keine Anmeldung an. Meta hat den früheren Instagram-Login Ende 2024 abgeschaltet. Als Login funktionieren also Google und Facebook.</div>
+      </div>
+      <div class="panel">
+        <h3>Datenverbindungen <span class="tag">Connectors</span></h3>
+        <p class="muted">Konten verknüpfen, um Daten in den Funnel zu holen: Beiträge, Nachrichten, Reichweite, Werbedaten.</p>
+        <ul class="plist">
+          <li><span class="k">Google</span><span>Profil, Werbung, Reichweite.</span></li>
+          <li><span class="k">Meta</span><span>Facebook, Instagram und Threads als Datenquellen.</span></li>
+          <li><span class="k">Microsoft</span><span>Bereits live angebunden.</span></li>
+          <li><span class="k">Weitere</span><span>X und Apple sind vorbereitet.</span></li>
+        </ul>
+        <div class="callout"><b>Hinweis:</b> Instagram und Threads laufen hier als Datenverbindung, nach Freigabe durch Meta. Diese Freigabe hat die längste Vorlaufzeit im ganzen Projekt.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Entscheidung</div>
+    <h2>KI-Chat im Produkt enthalten</h2>
+    <p class="lead">Die zentrale Frage war, ob Kunden ein eigenes Abo brauchen. Die Antwort: nein.</p>
+    <div class="split">
+      <div class="panel">
+        <h3>Eingebautes Modell</h3>
+        <p class="muted">Der Chat ist ab Werk enthalten und läuft über uns.</p>
+        <ul class="plist">
+          <li><span class="k">Vorteil</span><span>Kein Abo, kein Schlüssel, keine Technikhürde für den Kunden.</span></li>
+          <li><span class="k">Kosten</span><span>Für uns sehr gering und gut planbar pro Arbeitsbereich.</span></li>
+          <li><span class="k">Abrechnung</span><span>Nutzung wird sauber pro Kunde gezählt, dafür ist das Modell schon gebaut.</span></li>
+        </ul>
+        <div class="callout"><b>DSGVO:</b> Als Standard setzen wir auf ein Modell mit EU-Bezug. Das schützt die Optik und die Compliance für den europäischen Markt.</div>
+      </div>
+      <div class="panel">
+        <h3>Eigener Schlüssel als Option</h3>
+        <p class="muted">Später, für anspruchsvolle Nutzer.</p>
+        <ul class="plist">
+          <li><span class="k">Wahl</span><span>Wer möchte, hinterlegt seinen eigenen Schlüssel und wählt sein bevorzugtes Modell.</span></li>
+          <li><span class="k">Sauber</span><span>Nur eigener Schlüssel, kein Weiterreichen fremder Abos. Das ist rechtlich der einzige saubere Weg.</span></li>
+          <li><span class="k">Timing</span><span>Kommt nach dem Start, das Grundmodell deckt alle ab.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Sicherheit</div>
+    <h2>Sicherheit und Datenschutz von Anfang an</h2>
+    <p class="lead">Die Schutzschicht ist kein Nachtrag, sie ist bereits Teil des Fundaments.</p>
+    <div class="grid">
+      <div class="card"><div class="ct"><h3>Verschlüsselte Zugangsdaten</h3><span class="badge b-ok">gebaut</span></div><p>Alle Tokens liegen serverseitig verschlüsselt, niemals im Klartext und niemals im Browser.</p></div>
+      <div class="card"><div class="ct"><h3>Trennung pro Kunde</h3><span class="badge b-ok">gebaut</span></div><p>Jeder Datensatz ist einem Arbeitsbereich zugeordnet. Kein Kunde kann Daten eines anderen sehen.</p></div>
+      <div class="card"><div class="ct"><h3>Manipulationssicheres Protokoll</h3><span class="badge b-ok">gebaut</span></div><p>Jeder Zugriff auf sensible Daten wird lückenlos und fälschungssicher mitgeschrieben.</p></div>
+      <div class="card"><div class="ct"><h3>EU-Betrieb geplant</h3><span class="badge b-plan">geplant</span></div><p>Der Produktivbetrieb läuft auf EU-Servern in Deutschland, DSGVO-konform.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Fahrplan</div>
+    <h2>Die nächsten Schritte in Reihenfolge</h2>
+    <p class="lead">Jede Stufe baut auf der vorigen auf. Die Zeitangaben sind grobe Schätzungen.</p>
+    <div class="tl">
+      <div class="step done">
+        <div class="node">0</div>
+        <div class="stepbody"><div class="sh"><h3>Infrastruktur bereitstellen</h3><span class="when">kurzfristig</span></div><p>Den vollständigen Datenbank- und Anmeldedienst lokal starten. Das Fundament ist gebaut, es muss nur in Betrieb gehen.</p></div>
+      </div>
+      <div class="step">
+        <div class="node">1</div>
+        <div class="stepbody"><div class="sh"><h3>Anmeldung der Nutzer</h3><span class="when">ca. 1 bis 2 Wochen</span></div><p>Login mit Google, Facebook und E-Mail. Sichere Sitzungen. Jeder Zugriff sauber einem Kunden zugeordnet.</p></div>
+      </div>
+      <div class="step">
+        <div class="node">2</div>
+        <div class="stepbody"><div class="sh"><h3>KI-Chat</h3><span class="when">ca. 1 bis 2 Wochen</span></div><p>Der eingebaute Chat wird angebunden, mit Nutzungszählung pro Kunde und EU-Modell als Standard.</p></div>
+      </div>
+      <div class="step">
+        <div class="node">3</div>
+        <div class="stepbody"><div class="sh"><h3>Datenverbindungen und Meta-Freigabe</h3><span class="when">Freigabe 4 bis 8 Wochen</span></div><p>Google und Meta als gehostete Verbindungen. Die Meta-Geschäftsverifizierung sollte sofort starten, weil sie die längste Vorlaufzeit hat.</p></div>
+      </div>
+      <div class="step">
+        <div class="node">4</div>
+        <div class="stepbody"><div class="sh"><h3>Eigener Schlüssel</h3><span class="when">optional, danach</span></div><p>Vielnutzer können ihr eigenes Modell hinterlegen. Das Grundmodell bleibt der Standard für alle.</p></div>
+      </div>
+      <div class="step">
+        <div class="node">5</div>
+        <div class="stepbody"><div class="sh"><h3>Produktivbetrieb</h3><span class="when">zum Livegang</span></div><p>Umzug auf EU-Server, produktive Anmeldung, echte Domain und TLS. DSGVO-konform.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Jetzt anstoßen</div>
+    <h2>Drei Dinge parallel</h2>
+    <div class="next">
+      <div class="ncard"><div class="n">01</div><h4>Meta-Verifizierung starten</h4><p>Die längste Vorlaufzeit im Projekt. Je früher wir starten, desto früher sind Instagram und Threads als Datenquellen live.</p></div>
+      <div class="ncard"><div class="n">02</div><h4>Infrastruktur lokal hochfahren</h4><p>Docker installieren und den Stack starten, damit die Anmeldeschicht sofort gebaut werden kann.</p></div>
+      <div class="ncard"><div class="n">03</div><h4>Modellwahl festlegen</h4><p>Das EU-Modell für den eingebauten Chat final bestätigen, dann läuft Stufe 2 ohne Wartezeit.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>NEXUS Link · Entwicklungsstatus · intern</span>
+    <span>Stand: 7. Juli 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
