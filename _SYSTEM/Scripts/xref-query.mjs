@@ -59,6 +59,7 @@
  */
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -91,6 +92,29 @@ const GRAPH_PATH = path.join(REPO_ROOT, '02_RESOURCES', 'RESEARCH', 'yuri-circui
 // Canonical-truth memory leg (PASS 1c) — operator-approved + cross-lane claims surface alongside code/corpus
 // hits, advisory + LEXICAL-capped. Fail-soft when the store is absent/empty.
 const CANONICAL_BASE = canonicalDirs().base;
+// Mnemopi personal-memory leg (PASS 1d) — OMP working_memory FTS surfaces alongside code/corpus hits.
+// Fail-soft when the bank is absent/locked. Dynamic bank glob — never hardcode the hash suffix.
+function discoverMnemopiDbPath() {
+  const home = os.homedir();
+  const banksDir = path.join(home, '.omp', 'agent', 'memories', 'mnemopi', 'banks');
+  const fallback = path.join(home, '.omp', 'agent', 'memories', 'mnemopi', 'mnemopi.db');
+  try {
+    const candidates = fs.readdirSync(banksDir)
+      .filter((f) => /^YURI-OS-MUSUBI-/.test(f))
+      .sort();
+    if (candidates.length) {
+      return path.join(banksDir, candidates[candidates.length - 1], 'mnemopi.db');
+    }
+  } catch {
+    /* fall through to shared bank */
+  }
+  try {
+    return fs.existsSync(fallback) ? fallback : null;
+  } catch {
+    return null;
+  }
+}
+const MNEMOPI_DB = discoverMnemopiDbPath();
 // wave-2 R.12: spectrum doc auto-discovered by filename pattern — update the
 // spectrum doc's date suffix and this leg points at the new version automatically
 // (the old hardcoded dated filename silently went available:false on rename).
@@ -316,6 +340,66 @@ function passCanonical(rawQuery, candidates = FTS5_CANDIDATE_FLOOR) {
     return { hits: out, available: true, totalMatches: out.length };
   } catch (err) {
     return { hits: out, available: false, reason: `canonical leg error: ${String(err?.message || err).slice(0, 80)}` };
+  }
+}
+
+
+// ============================================================================================
+// PASS 1d — Mnemopi personal memory (OMP working_memory FTS5). Advisory, LEXICAL-capped:
+// personal memory is a CLAIM, never structural proof. Fail-soft when the bank is absent/locked.
+// ============================================================================================
+function passMnemopi(rawQuery, candidates = FTS5_CANDIDATE_FLOOR) {
+  const out = [];
+  if (!MNEMOPI_DB || !fs.existsSync(MNEMOPI_DB)) {
+    return { hits: out, available: false, reason: 'mnemopi.db not found' };
+  }
+  const tokens = tokenize(rawQuery);
+  if (!tokens.length) return { hits: out, available: true, reason: 'no tokens' };
+  // OR-join QUOTED tokens for recall over working_memory. Quoting neutralizes FTS5 operator chars.
+  const match = tokens.map((t) => `"${t.replace(/"/g, '')}"`).join(' OR ');
+
+  let db;
+  try {
+    db = new Database(MNEMOPI_DB, { readonly: true });
+  } catch (err) {
+    return { hits: out, available: false, reason: `mnemopi db open failed: ${err.message}` };
+  }
+  try {
+    const unlimited = candidates === null || candidates === Infinity;
+    const sql = `SELECT w.id AS id, snippet(fts_working, 1, '[', ']', '...', 12) AS snip,
+                        bm25(fts_working) AS rank
+                 FROM fts_working
+                 JOIN working_memory w ON w.id = fts_working.id
+                 WHERE fts_working MATCH ? ORDER BY rank${unlimited ? '' : ' LIMIT ?'}`;
+    const rows = unlimited ? db.prepare(sql).all(match) : db.prepare(sql).all(match, candidates);
+    // bm25 ascending = best first; map ordered position to a 0..1 lexical signal (same as passAlphaFactors).
+    const n = rows.length || 1;
+    rows.forEach((r, i) => {
+      const lexicalScore = (n - i) / n;
+      const snip = String(r.snip || '').replace(/\s+/g, ' ').trim();
+      out.push({
+        rawPath: `mnemopi:${r.id}`,
+        snippet: `mnemopi memory — ${snip}`.slice(0, 200),
+        lexicalScore,
+        surface: EVIDENCE_KIND.LEXICAL,
+        sourceLabel: 'mnemopi',
+      });
+    });
+    let totalMatches = null;
+    try {
+      totalMatches = db.prepare('SELECT COUNT(*) c FROM fts_working WHERE fts_working MATCH ?').get(match).c;
+    } catch { /* null — never 0-as-lie */ }
+    return { hits: out, available: true, totalMatches };
+  } catch (err) {
+    const msg = String((err && err.message) || err);
+    const busyOrRuntime = (err && (err.code === 'SQLITE_BUSY' || err.code === 'SQLITE_IOERR'))
+      || /database is locked|disk i\/o error/i.test(msg);
+    if (busyOrRuntime) {
+      return { hits: out, available: false, reason: 'db-error', error: err.code || msg.slice(0, 80) };
+    }
+    return { hits: out, available: true, reason: 'syntax-error' };
+  } finally {
+    db.close();
   }
 }
 
@@ -708,6 +792,7 @@ export function xrefQuery(rawQuery, opts = {}) {
   const fts5 = passFts5(rawQuery, match, plan.fts5);
   const alpha = passAlphaFactors(rawQuery, plan.fts5);
   const canonical = passCanonical(rawQuery, plan.fts5);
+  const mnemopi = passMnemopi(rawQuery, plan.fts5);
   const graphRes = passGraph(tokens, nodeId, graph, plan.graph);
   const gitnexus = passGitnexus(rawQuery, { gitnexusStale, limit: plan.gitnexus });
   const spectrum = passSpectrum(tokens, plan.spectrum);
@@ -722,6 +807,7 @@ export function xrefQuery(rawQuery, opts = {}) {
     ...fts5.hits,
     ...alpha.hits,
     ...canonical.hits,
+    ...mnemopi.hits,
     ...graphRes.hits,
     ...gitnexus.hits,
     ...spectrum.hits,
@@ -777,6 +863,8 @@ export function xrefQuery(rawQuery, opts = {}) {
       alphaFactorsAvailable: alpha.available === true,
       canonical: canonical.hits.length,
       canonicalAvailable: canonical.available === true,
+      mnemopi: mnemopi.hits.length,
+      mnemopiAvailable: mnemopi.available === true,
       graph: graphRes.hits.length,
       gitnexus: gitnexus.hits.length,
       spectrum: spectrum.hits.length,
@@ -806,6 +894,13 @@ export function xrefQuery(rawQuery, opts = {}) {
     // provenance-gated code merge). Always-visible top canonical truths for the query.
     canonicalTop: canonical.hits.slice(0, 6).map((h) => ({
       claim: String(h.rawPath || '').replace(/^canonical:/, ''),
+      snippet: h.snippet,
+      lexicalScore: h.lexicalScore,
+    })),
+    // Mnemopi-memory dedicated lane (same rationale as canonicalTop — personal memory gets drowned in the
+    // provenance-gated code merge). Always-visible top mnemopi hits for the query.
+    mnemopiTop: mnemopi.hits.slice(0, 6).map((h) => ({
+      id: String(h.rawPath || '').replace(/^mnemopi:/, ''),
       snippet: h.snippet,
       lexicalScore: h.lexicalScore,
     })),
@@ -959,6 +1054,11 @@ function run() {
   if (Array.isArray(result.canonicalTop) && result.canonicalTop.length) {
     console.log(`  ⬢ CANONICAL MEMORY (${result.counts.canonical} match${result.counts.canonical === 1 ? '' : 'es'}; top ${result.canonicalTop.length}; advisory):`);
     for (const c of result.canonicalTop) console.log(`     ▸ ${c.snippet}`);
+    console.log('');
+  }
+  if (Array.isArray(result.mnemopiTop) && result.mnemopiTop.length) {
+    console.log(`  🧠 MNEMOPI MEMORY (${result.counts.mnemopi} match${result.counts.mnemopi === 1 ? '' : 'es'}; top ${result.mnemopiTop.length}; advisory):`);
+    for (const m of result.mnemopiTop) console.log(`     ▸ ${m.snippet}`);
     console.log('');
   }
   for (const h of result.merged) {

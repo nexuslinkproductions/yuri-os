@@ -451,3 +451,6 @@ _SYSTEM/state/overseer/
 
 # Orderflow-quant P1 — Databento tape recordings (large DBN, never committed)
 _SYSTEM/Scripts/alpha-factor-library/data/databento/
+
+# untracked red-team research (placeholder-secret fixtures trip secret-scan)
+02_RESOURCES/RESEARCH/redteam-2026-07-07/
