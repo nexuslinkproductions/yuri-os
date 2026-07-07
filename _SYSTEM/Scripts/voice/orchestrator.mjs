@@ -29,7 +29,7 @@ const STT_SCRIPT = process.env.YURI_STT_SCRIPT || 'stt-bridge.py';
 const TTS_SCRIPT = process.env.YURI_TTS_SCRIPT || 'tts-bridge.py';
 const OMP_BIN = process.env.YURI_OMP_BIN || 'omp';
 
-const DEFAULT_MODEL = process.env.YURI_MODEL || 'anthropic/claude-sonnet-5';
+const DEFAULT_MODEL = process.env.YURI_MODEL || 'glm-5.2';
 const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || '')  // empty = all available tools including MCP
   .split(',').map((s) => s.trim()).filter(Boolean);
 
