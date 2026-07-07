@@ -40,7 +40,7 @@ const SYSTEM_PROMPT = process.env.YURI_SYSTEM_PROMPT ||
   'Never use markdown, code blocks, or lists in your responses.';
 
 // sentence splitting (Step 3)
-const MIN_CHUNK = Number(process.env.YURI_MIN_CHUNK || 10);   // avoid tiny fragments
+const MIN_CHUNK = Number(process.env.YURI_MIN_CHUNK || 40);   // avoid tiny fragments
 const MAX_BUFFER = Number(process.env.YURI_MAX_BUFFER || 200); // force-flush ceiling
 // tokens that should NOT end a sentence despite a trailing period.
 const ABBREVIATIONS = new Set([
@@ -710,6 +710,19 @@ export class VoiceOrchestrator {
     this._installStdinCommands();
     this._installSignalHandlers();
 
+    // Barge-in: watch /tmp/yuri-interrupt
+    const fs2 = await import('node:fs');
+    this._interruptInterval = setInterval(() => {
+      try {
+        fs2.accessSync('/tmp/yuri-interrupt');
+        fs2.unlinkSync('/tmp/yuri-interrupt');
+        log('info', 'barge_in');
+        this._speakLock = Promise.resolve();
+        if (this.tts && this.tts.alive) this.tts.send({ cmd: 'stop' }).catch(() => {});
+        if (this.brain && this.brain._abort) this.brain._abort();
+      } catch {}
+    }, 200);
+
     // main loop
     while (this.running) {
       try {
@@ -724,6 +737,7 @@ export class VoiceOrchestrator {
         await sleep(RESTART_MIN_MS);
       }
     }
+    if (this._interruptInterval) clearInterval(this._interruptInterval);
     await this._cleanup();
   }
 

@@ -20,7 +20,8 @@ import json
 import logging
 import os
 import re
-import sys
+import sys, threading
+_stop_event = threading.Event()
 
 import numpy as np
 import pyaudio
@@ -202,7 +203,7 @@ def resolve_output_device(pa):
 
 
 def play_pcm(pa, out_idx, pcm):
-    """Open a 24kHz mono int16 output stream, play PCM, wait for drain, close."""
+    """Open a 24kHz mono int16 output stream, play PCM in chunks (stoppable), close."""
     stream = pa.open(
         format=pyaudio.paInt16,
         channels=1,
@@ -211,13 +212,19 @@ def play_pcm(pa, out_idx, pcm):
         output_device_index=out_idx,
     )
     try:
-        stream.write(pcm)        # blocks until all bytes are in the buffer
-        stream.stop_stream()     # waits for buffered audio to finish playing
+        chunk = 8192  # ~340ms @ 24kHz — stop granularity
+        for i in range(0, len(pcm), chunk):
+            if _stop_event.is_set():
+                log.debug("playback stopped mid-sentence (barge-in)")
+                break
+            stream.write(pcm[i:i + chunk])
+        stream.stop_stream()
     finally:
         stream.close()
 
 
 def synth_and_play(model, pa, out_idx, text):
+    _stop_event.clear()
     """Normalize → synth → convert to int16 PCM → play → clear MLX cache."""
     norm = _normalize(text)
     if not norm:
@@ -265,6 +272,10 @@ def main():
             log.debug(f"speak: {text[:80]!r}")
             synth_and_play(model, pa, out_idx, text)
             print(json.dumps({"status": "done"}), flush=True)
+        elif c == "stop":
+            _stop_event.set()
+            log.debug("stop requested — will abort after current chunk")
+            continue
         elif c == "quit":
             log.info("quit command — shutting down")
             break
