@@ -639,8 +639,9 @@ export class VoiceOrchestrator {
     for (const sentence of splitter.flush()) {
       if (sentence) { spoken++; this.speak(sentence); }
     }
-    // wait for the TTS queue to drain so we don't listen over our own voice (half-duplex)
-    await this._speakLock;
+    // FULL-DUPLEX: don't wait for TTS to finish — XM5 sealed headphones prevent echo.
+    // The mic (HyperX USB) can't hear the XM5 output. Start listening immediately.
+    // this._speakLock still serializes TTS sentences internally, but we don't block on it.
     log('debug', 'brain_turn_done', { sentences: spoken });
   }
 
