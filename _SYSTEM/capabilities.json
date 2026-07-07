@@ -2297,10 +2297,11 @@
         "mnemopi auto-retain to canonical",
         "mnemopi export seam",
         "omp learnings gated into canonical",
-        "auto-adjudicated memory proposals"
+        "llm-adjudicated memory proposals",
+        "deepseek-flash memory review"
       ],
       "does": "the OMP→YURI memory seam in TWO gated phases (owner design 2026-07-07: \"keep proposals, avoid flood,",
-      "use": "node mnemopi-canonical-bridge.mjs [--dry-run|--apply] [--export-only|--adjudicate-only]; or",
+      "use": "node mnemopi-canonical-bridge.mjs [--dry-run|--apply] [--export-only|--adjudicate-only] [--deterministic];",
       "exports": [],
       "mechanism": "_SYSTEM/Scripts/mnemopi-canonical-bridge.mjs"
     },

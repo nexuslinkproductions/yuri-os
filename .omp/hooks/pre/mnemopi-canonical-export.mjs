@@ -45,7 +45,7 @@ async function proposeSessionLearnings() {
   const bridge = await lazyBridge();
   if (!bridge?.runExportAndAdjudicate) return;
   try {
-    bridge.runExportAndAdjudicate({ apply: true });
+    await bridge.runExportAndAdjudicate({ apply: true });
   } catch { /* fail-open — never break session shutdown */ }
 }
 
