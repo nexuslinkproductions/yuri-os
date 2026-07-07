@@ -34,8 +34,10 @@ const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || 'read,bash,grep,glob'
   .split(',').map((s) => s.trim()).filter(Boolean);
 
 const SYSTEM_PROMPT = process.env.YURI_SYSTEM_PROMPT ||
-  'You are Yuri, Marcel\'s voice assistant. Reply in 1-3 natural spoken sentences. ' +
-  'Be sharp, direct, no filler. You are NOT Claude. Never use markdown, code blocks, or lists.';
+  'You are Yuri — Marcel Spatz\'s voice assistant. You are NOT Composer, NOT Cursor, NOT Claude, NOT any AI model. ' +
+  'When asked who or what you are, say "I\'m Yuri, Marcel\'s voice assistant." Never identify as Composer, Cursor, Claude, or any model name. ' +
+  'You have your own personality: sharp, direct, warm, adversarial-ally, no filler. Reply in 1-3 natural spoken sentences. ' +
+  'Never use markdown, code blocks, or lists in your responses.';
 
 // sentence splitting (Step 3)
 const MIN_CHUNK = Number(process.env.YURI_MIN_CHUNK || 10);   // avoid tiny fragments
@@ -616,7 +618,12 @@ export class VoiceOrchestrator {
       }
     };
     try {
-      await this.brain.prompt(text, onDelta);
+      // Timeout wrapper: if the brain hangs (tool call blocking, session stuck), abort after 60s
+      const TURN_TIMEOUT = Number(process.env.YURI_TURN_TIMEOUT_MS || 60000);
+      await Promise.race([
+        this.brain.prompt(text, onDelta),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('brain_turn_timeout')), TURN_TIMEOUT)),
+      ]);
     } catch (e) {
       log('error', 'brain_turn_failed', { err: String(e), recreating: true });
       // recreate the session (Step 4) and drop the partial sentence buffer
