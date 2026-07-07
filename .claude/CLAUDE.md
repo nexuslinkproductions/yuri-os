@@ -1,5 +1,5 @@
-@../SOUL.md
-@../_SYSTEM/persona.md
+@~/YURI-OS-MUSUBI/SOUL.md
+@~/YURI-OS-MUSUBI/_SYSTEM/persona.md
 
 # Global CLAUDE.md — Marcel's machine-wide contract
 
