@@ -12,6 +12,7 @@ VP="$REPO/_SYSTEM/state/voice/.venv-pipecat/bin/python"
 BUN="${BUN:-$(command -v bun 2>/dev/null || echo "$HOME/.bun/bin/bun")}"
 NODE="${NODE:-$(command -v node)}"
 RUNTIME=""
+PID_FILE="$REPO/_SYSTEM/state/voice/yuri-orchestrator.pid"
 
 if [ -x "$BUN" ]; then
   RUNTIME="$BUN"
@@ -23,22 +24,36 @@ fi
 
 mkdir -p "$REPO/_SYSTEM/state/voice"
 
-# Clean slate
+# Clean slate — SIGKILL (SIGTERM is ignored by native-spun processes that block the event loop)
 bash "$VOICE/voice-stop.sh" 2>/dev/null || true
-pkill -f "voice/orchestrator.mjs" 2>/dev/null || true
-pkill -f "stt-bridge.py" 2>/dev/null || true
-pkill -f "tts-bridge.py" 2>/dev/null || true
+pkill -9 -f "voice/orchestrator.mjs" 2>/dev/null || true
+pkill -9 -f "stt-bridge.py" 2>/dev/null || true
+pkill -9 -f "tts-bridge.py" 2>/dev/null || true
 pkill -f "yuri-interrupt-listener.py" 2>/dev/null || true
 rm -f /tmp/yuri-interrupt 2>/dev/null || true
+
+# Singleton guard — kill a stale orchestrator recorded in the PID file
+if [ -f "$PID_FILE" ]; then
+  OLD_PID="$(cat "$PID_FILE" 2>/dev/null || true)"
+  if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+    if ps -o command= -p "$OLD_PID" 2>/dev/null | grep -q "orchestrator.mjs"; then
+      echo "⚠️  stale Yuri orchestrator (PID $OLD_PID) still running — SIGKILL"
+      kill -9 "$OLD_PID" 2>/dev/null || true
+      sleep 1
+    fi
+  fi
+  rm -f "$PID_FILE"
+fi
 
 cleanup() {
   trap - EXIT INT TERM HUP
   echo ""; echo "stopping Yuri…"
-  pkill -f "voice/orchestrator.mjs" 2>/dev/null || true
-  pkill -f "stt-bridge.py" 2>/dev/null || true
-  pkill -f "tts-bridge.py" 2>/dev/null || true
+  pkill -9 -f "voice/orchestrator.mjs" 2>/dev/null || true
+  pkill -9 -f "stt-bridge.py" 2>/dev/null || true
+  pkill -9 -f "tts-bridge.py" 2>/dev/null || true
   pkill -f "yuri-interrupt-listener.py" 2>/dev/null || true
   bash "$VOICE/voice-stop.sh" >/dev/null 2>&1 || true
+  rm -f "$PID_FILE"
   exit 0
 }
 trap cleanup EXIT INT TERM HUP
@@ -47,7 +62,7 @@ trap cleanup EXIT INT TERM HUP
 "$VP" "$VOICE/yuri-interrupt-listener.py" 2>/dev/null &
 
 echo "starting Yuri (OMP SDK brain + local STT/TTS)…"
-echo "  brain:    OMP session (Sonnet 5 / switchable)"
+echo "  brain:    OMP session (GLM-5.2 / switchable)"
 echo "  STT:      Whisper-MLX (HyperX mic, Silero VAD, 2.5s pause tolerance)"
 echo "  TTS:      Kokoro-82M (XM5 headphones)"
 echo "  interrupt: Right Command key (stops Yuri mid-sentence)"
@@ -55,5 +70,12 @@ echo "  stop:     Ctrl-C"
 echo ""
 
 # The orchestrator handles everything: spawns STT+TTS, creates OMP session,
-# runs the voice loop. We just run it in the foreground.
-exec "$RUNTIME" "$VOICE/orchestrator.mjs"
+# runs the voice loop. Launch in background so we can record the PID, then wait
+# so Ctrl-C still works in the foreground.
+"$RUNTIME" "$VOICE/orchestrator.mjs" &
+ORCH_PID=$!
+echo "$ORCH_PID" > "$PID_FILE"
+wait "$ORCH_PID"
+EXIT_CODE=$?
+rm -f "$PID_FILE"
+exit "$EXIT_CODE"

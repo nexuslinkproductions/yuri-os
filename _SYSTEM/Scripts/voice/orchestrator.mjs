@@ -17,6 +17,7 @@ import { homedir, platform } from 'node:os';
 import { dirname, join, resolve as pathResolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { realpathSync, existsSync } from 'node:fs';
+import { Worker } from 'node:worker_threads';
 
 // ─── configuration ──────────────────────────────────────────────────────────
 // File lives at <root>/_SYSTEM/Scripts/voice/orchestrator.mjs → three levels up to repo root.
@@ -30,8 +31,34 @@ const TTS_SCRIPT = process.env.YURI_TTS_SCRIPT || 'tts-bridge.py';
 const OMP_BIN = process.env.YURI_OMP_BIN || 'omp';
 
 const DEFAULT_MODEL = process.env.YURI_MODEL || 'glm-5.2';
-const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || '')  // empty = all available tools including MCP
-  .split(',').map((s) => s.trim()).filter(Boolean);
+// 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh'. GLM-5.2 is a reasoning model and the SDK
+// defaults new sessions to extended thinking, turning every voice turn into an 11-25s wait even for
+// "what's two plus two". 'off' brings a turn down to ~1-1.5s; override with YURI_THINKING if a task
+// genuinely needs deeper reasoning.
+const DEFAULT_THINKING = process.env.YURI_THINKING || 'off';
+
+// Marcel's global ~/.omp/agent/config.yml has `advisor: { enabled: true, syncBacklog: "1" }` with
+// the advisor model role pinned to `:xhigh` reasoning. That's a useful second-opinion reviewer for
+// an interactive coding session, but createAgentSession() picks it up for EVERY session in this cwd
+// — including the voice brain. Per turn it silently re-prompts the model with an unsolicited
+// critique (its text gets heard as extra spoken garbage appended to the real reply) and blocks the
+// turn ~8-20s+ AFTER the real reply is already generated (onTurnEnd awaits advisor.syncBacklog
+// catch-up). Disabled below via a per-session, read-only Settings override (real disk config still
+// loads, only the override is in-memory) — never touches Marcel's on-disk config, so interactive
+// `omp` sessions keep their advisor. YURI_DISABLE_ADVISOR=0 restores it.
+const DISABLE_VOICE_ADVISOR = process.env.YURI_DISABLE_ADVISOR !== '0';
+
+// Voice brain tool policy: a lean computer-control assistant, NOT the full coding harness. Leaving
+// task/irc/todo/web_search etc. out of the toolset stops GLM-5.2 from treating an ordinary voice
+// prompt ("tell Marcel you're working") as multi-agent orchestration — with task/irc present it
+// answered "no agents are running right now" instead of just replying as Yuri.
+// YURI_TOOL_NAMES overrides: a comma list of tool names, or 'all'/'*' as an escape hatch back to
+// every built-in tool (mapped to [] below, which _initSdk treats as undefined = all tools).
+const COMPUTER_CONTROL_TOOL_NAMES = ['bash', 'read', 'grep', 'glob'];
+const RAW_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || '').trim();
+const DEFAULT_TOOL_NAMES = RAW_TOOL_NAMES === '' ? COMPUTER_CONTROL_TOOL_NAMES
+  : (RAW_TOOL_NAMES === 'all' || RAW_TOOL_NAMES === '*') ? []
+  : RAW_TOOL_NAMES.split(',').map((s) => s.trim()).filter(Boolean);
 
 const SYSTEM_PROMPT = process.env.YURI_SYSTEM_PROMPT ||
   'You are Yuri — Marcel Spatz\'s voice assistant. You are NOT Composer, NOT Cursor, NOT Claude, NOT any AI model. ' +
@@ -64,6 +91,91 @@ function log(level, event, extra = {}) {
 }
 const now = () => Date.now();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ─── native-spin watchdog ───────────────────────────────────────────────────
+// When the OMP SDK's GLM streaming connection stalls, the SDK enters a native
+// busy-poll that blocks the JS event loop. setTimeout-based timeouts (the 60s
+// Promise.race in respond()) and SIGTERM handlers CANNOT fire. The process spins
+// at 100% CPU forever. This worker-thread watchdog has its OWN event loop
+// (separate libuv thread), so its setInterval keeps ticking even when the main
+// thread is stuck. If the heartbeat goes stale beyond WATCHDOG_TIMEOUT_SECS,
+// the worker force-kills the process so the launcher can restart cleanly.
+const WATCHDOG_TIMEOUT_SECS = Number(process.env.YURI_WATCHDOG_TIMEOUT_SECS || 30);
+
+class SpinWatchdog {
+  constructor(timeoutSecs = WATCHDOG_TIMEOUT_SECS) {
+    this.timeoutMs = timeoutSecs * 1000;
+    this.worker = null;
+    this.sab = null;
+    this.beatView = null;       // Float64Array over the SAB — holds the full Date.now()
+    this.beatInterval = null;   // main-thread heartbeat (fires only when the loop is responsive)
+  }
+
+  start() {
+    // Heartbeat design: a MAIN-THREAD setInterval writes Date.now() every second. It fires ONLY
+    // when the event loop is responsive, so it is the true "not spinning" signal — independent of
+    // application idle. Awaiting STT for 60s keeps the loop free, so the interval keeps firing and
+    // the watchdog stays quiet; a native SDK busy-poll blocks the loop, the interval stops firing,
+    // the heartbeat goes stale, and the worker SIGKILLs the whole process.
+    // Float64Array (not Int32) because Date.now() ~1.78e12 overflows Int32.
+    let mode;
+    try {
+      this.sab = new SharedArrayBuffer(8);           // one Float64 slot
+      this.beatView = new Float64Array(this.sab);
+      this.beatView[0] = Date.now();
+      mode = 'sab';
+    } catch {
+      mode = 'postMessage';
+    }
+
+    const workerCode = `
+      const { parentPort, workerData } = require('node:worker_threads');
+      const timeoutMs = workerData.timeoutMs;
+      const mode = workerData.mode;
+      const view = workerData.sab ? new Float64Array(workerData.sab) : null;
+      const checkMs = Math.max(1000, Math.min(5000, Math.floor(timeoutMs / 3)));
+      let lastSeen = view ? view[0] : Date.now();
+      let lastFresh = Date.now();
+      function kill(reason) {
+        process.stderr.write('[watchdog] ' + reason + ' — SIGKILL self\\n');
+        // Worker threads share the process pid; SIGKILL to self kills the whole process (all threads).
+        try { process.kill(process.pid, 'SIGKILL'); } catch (e) {}
+        process.exit(1); // fallback if kill is unavailable
+      }
+      if (mode === 'sab') {
+        setInterval(() => {
+          const hb = view[0];
+          if (hb !== lastSeen) { lastSeen = hb; lastFresh = Date.now(); return; }
+          if (Date.now() - lastFresh > timeoutMs) kill('event loop blocked >' + timeoutMs + 'ms');
+        }, checkMs);
+      } else {
+        parentPort.on('message', () => { lastFresh = Date.now(); });
+        setInterval(() => {
+          if (Date.now() - lastFresh > timeoutMs) kill('heartbeat stale >' + timeoutMs + 'ms');
+        }, checkMs);
+      }
+    `;
+
+    this.worker = new Worker(workerCode, {
+      eval: true,
+      workerData: { timeoutMs: this.timeoutMs, mode, sab: this.sab },
+    });
+    this.worker.unref?.();  // never keep the process alive just for the watchdog
+    this.worker.on('error', (e) => log('warn', 'watchdog_worker_error', { err: String(e) }));
+
+    this.beatInterval = setInterval(() => {
+      if (this.beatView) this.beatView[0] = Date.now();
+      else if (this.worker) { try { this.worker.postMessage(1); } catch {} }
+    }, 1000);
+    this.beatInterval.unref?.();
+    log('info', 'watchdog_started', { timeoutMs: this.timeoutMs, mode });
+  }
+
+  stop() {
+    if (this.beatInterval) { clearInterval(this.beatInterval); this.beatInterval = null; }
+    if (this.worker) { try { this.worker.terminate(); } catch {} this.worker = null; }
+  }
+}
 
 // ─── OMP SDK resolution ─────────────────────────────────────────────────────
 // The SDK ships as TypeScript source (main: ./src/index.ts) and lives in the Bun
@@ -341,10 +453,11 @@ export class JsonBridge {
 
 // ─── OMP brain (SDK mode + subprocess mode share the event handler) ──────────
 export class OmpBrain {
-  constructor({ model, toolNames, systemPrompt }) {
+  constructor({ model, toolNames, systemPrompt, thinkingLevel }) {
     this.modelPattern = model;
     this.toolNames = toolNames;
     this.systemPrompt = systemPrompt;
+    this.thinkingLevel = thinkingLevel || DEFAULT_THINKING;  // 'off'|'minimal'|'low'|'medium'|'high'|'xhigh'
     this.mode = null;            // 'sdk' | 'subprocess'
     this.sdk = null;             // resolved SDK module
     this.session = null;         // AgentSession (sdk mode)
@@ -383,17 +496,32 @@ export class OmpBrain {
   }
 
   async _initSdk() {
-    const { createAgentSession, SessionManager } = this.sdk;
+    const { createAgentSession, SessionManager, Settings } = this.sdk;
     const sessionManager = typeof SessionManager?.inMemory === 'function'
       ? await SessionManager.inMemory() : undefined;
-    log('info', 'brain_sdk_creating', { model: this.modelPattern, tools: this.toolNames });
+    // Read-only settings load (see DISABLE_VOICE_ADVISOR above): Settings.loadReadOnly() reads
+    // Marcel's REAL global + project config.yml (modelRoles, compaction, disabledProviders, etc.
+    // all preserved) and layers the advisor override on top, in-memory. Its persist flag is
+    // hardcoded false internally — structurally guaranteed to never write config.yml, unlike
+    // Settings.init() (the normal singleton, which DOES persist runtime mutations back to disk).
+    let settings;
+    if (DISABLE_VOICE_ADVISOR && typeof Settings?.loadReadOnly === 'function') {
+      try {
+        settings = await Settings.loadReadOnly({ cwd: REPO_ROOT, overrides: { 'advisor.enabled': false } });
+      } catch (e) {
+        log('warn', 'brain_settings_override_failed', { err: String(e).split('\n')[0] });
+      }
+    }
+    log('info', 'brain_sdk_creating', { model: this.modelPattern, tools: this.toolNames, thinking: this.thinkingLevel, advisorDisabled: !!settings });
     const result = await createAgentSession({
       cwd: REPO_ROOT,
       modelPattern: this.modelPattern,
+      thinkingLevel: this.thinkingLevel,  // 'off' by default — extended thinking otherwise adds 11-25s/turn
       systemPrompt: this.systemPrompt,
       toolNames: (this.toolNames && this.toolNames.length > 0) ? this.toolNames : undefined,  // undefined = all tools (fix: [] is truthy)
       sessionManager,
       autoApprove: true,            // headless: no approval prompts
+      settings,
       hasUI: false,
       enableMcp: false,             // clean voice brain — no MCP surface
       enableLsp: false,
@@ -518,11 +646,13 @@ export class VoiceOrchestrator {
       model: DEFAULT_MODEL,
       toolNames: DEFAULT_TOOL_NAMES,
       systemPrompt: SYSTEM_PROMPT,
+      thinkingLevel: DEFAULT_THINKING,
     });
     this.stt = null;
     this.tts = null;
     this.running = false;
     this._speakLock = Promise.resolve();
+    this.watchdog = new SpinWatchdog();
   }
 
   _newStt() {
@@ -696,6 +826,9 @@ export class VoiceOrchestrator {
       pid: process.pid,
     });
 
+    // native-spin watchdog — force-exits if the main event loop blocks (SDK native busy-poll)
+    this.watchdog.start();
+
     // bridges come up eagerly so failures surface immediately; TTS must finish warming its
     // Kokoro model + opening PyAudio before we accept any speak command (it signals ready).
     try {
@@ -769,10 +902,12 @@ export class VoiceOrchestrator {
   shutdown(reason) {
     if (!this.running) return;
     this.running = false;
+    this.watchdog.stop();
     log('info', 'orchestrator_shutdown', { reason });
   }
 
   async _cleanup() {
+    this.watchdog.stop();
     log('info', 'cleanup_begin');
     // tell TTS to quit, then stop both bridges
     try { this.tts && this.tts.alive && this.tts.send({ cmd: 'quit' }); } catch { /* ignore */ }
