@@ -115,9 +115,18 @@ async function onDispatch(input) {
     const meta = resolveAgentMeta(s.agent);
     const substrate = substrateOf(meta?.model);
     const taskShape = { role: meta?.role || s.role, prompt: s.assignment, recursionDepth: 0 };
+    // Derive real feature values from role + prompt (was context:{} — 8/12 features were constant defaults)
+    const role = (meta?.role || s.role || '').toLowerCase();
+    const promptLen = (s.assignment || '').length;
+    const ctx = {
+      complexity: promptLen < 200 ? 0.2 : promptLen < 1000 ? 0.5 : promptLen < 3000 ? 0.7 : 0.9,
+      blast: /steward|helmsman|evolver/.test(role) ? 'HIGH' : /engineer|mechanic|architect|kernelsmith/.test(role) ? 'MEDIUM' : 'LOW',
+      evidenceDecidability: /adjudicator|oracle|calibrator|sentinel/.test(role) ? 0.9 : /architect|engineer|mechanic/.test(role) ? 0.7 : 0.5,
+      roleHeavy: /adjudicator|architect|deliberator|helmsman/.test(role),
+    };
     let features = null, suggestion = null, confidence = null;
     try {
-      if (router?.extractFeatures) features = router.extractFeatures(taskShape, {});
+      if (router?.extractFeatures) features = router.extractFeatures(taskShape, ctx);
       if (router?.predictRoute && features) {
         const pr = await router.predictRoute(features, [{ id: s.agent, substrate, role: meta?.role, lane: meta?.model }]);
         suggestion = pr?.best || null; confidence = pr?.confidence ?? null;
