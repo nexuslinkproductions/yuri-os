@@ -384,9 +384,16 @@ process.stdin.on('end', async () => {
     // M3: inject prior-turn council synthesis if brain:stale sentinel was set
     const brainUpdate = checkBrainStale();
 
-    const baseContext = [cortexHint, brainUpdate, skillHint, skillRecallHint, priorRecall]
+    // DELEGATION PRIMER (non-trivial prompts only): re-arm subagent-first posture
+    const delegationPrimer = `<delegation-primer>
+Default posture (persona.md → Standing execution rules → Delegate by default): you INSTRUCT, subagents EXECUTE. Before editing/coding directly, ask if this should be a task(agent:...) fan-out — including several instances of the same mure-* role for divisible work. Direct main-lane edits are for trivial, self-contained changes only.
+</delegation-primer>`;
+
+    const baseContext = [cortexHint, brainUpdate, skillHint, skillRecallHint, priorRecall, delegationPrimer]
       .filter(Boolean).join('\n');
     additionalContext = [baseContext, additionalContext].filter(Boolean).join('');
+
+    logTelemetry(`delegation-primer turn=${turnId} injected`);
 
     console.log(JSON.stringify({ continue: true, additionalContext }));
     process.exit(0);

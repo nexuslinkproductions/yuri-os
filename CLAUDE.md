@@ -23,15 +23,17 @@ The body — the mechanisms — is triggered from here, not inlined:
 - DeepSeek advisory lanes → only through LLM compatibility (`ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `llm-lane.mjs deepseek`). Workhorse, parallel-clone, and old offload command surfaces are retired and must not be used.
 - Continuity → memory recall + EOT closeout.
 
-## Standing Operating Model — fleet by default (owner directive 2026-07-04)
+## Standing Operating Model — fleet by default (owner directive 2026-07-04, v2 2026-07-06)
 
 The opus-fleet model is the DEFAULT way every non-trivial task runs — never wait for `/opus-fleet` to be typed. On every substantial task (build, research, audit, multi-file edit, refactor; skip trivial reads + pure conversation):
 
-1. Decompose → dispatch parallel worker lanes: native Sonnet/Haiku Agents (max reasoning, up to ~12 wide; Sonnet does FULL build work, not just research) + glm-fleet / ollama-fleet peers (armed via `_SYSTEM/state/*.enabled` flags).
+1. Decompose → dispatch parallel worker lanes across **three substrates**: OMP `task()` subagents (explore / task / tester / reviewer / …), **glm-fleet** (`glm-fleet.mjs`), and **ollama-cloud** (`ollama-fleet.mjs`) — **cloud only**, no local SLMs, **no Codex**. Fan out up to ~32 parallel `task()` items per batch when work divides cleanly.
 2. Adversarially verify every lane result against local evidence — lane output is a hypothesis, never proof.
-3. Finalize main-session only: scoped-pathspec commit/push, irreversible/outward calls.
+3. Finalize orchestrator-session only: scoped-pathspec commit/push, irreversible/outward calls.
 
-Skills: honor the `<skill-recall-hint>` injected each prompt — invoke matching skills via the Skill tool before substantial work; it is not decorative. Memory: write Track-B memories on every durable learning (write-on-learn), not at session end. Detail + dispatch templates: the `opus-fleet` skill. Binding record: `.claude/memory/feedback-opus-fleet-standing-default.md`.
+Default posture: the orchestrator INSTRUCTS, subagents EXECUTE — reach for `task(agent:...)` before editing/coding directly, fanning the same role across multiple instances (distinct id + assignment each) when work divides rather than treating roles as singletons; direct main-lane edits are for trivial, self-contained changes only. (Identity rule: `persona.md` → Standing execution rules → Delegate by default.)
+
+Canonical cloud model map: `_SYSTEM/config/cloud-fleet-models.json`. Skills: honor the `<skill-recall-hint>` injected each prompt — invoke matching skills via the Skill tool before substantial work; it is not decorative. Memory: write Track-B memories on every durable learning (write-on-learn), not at session end. Detail + dispatch templates: the `opus-fleet` skill. Binding record: `.claude/memory/feedback-opus-fleet-standing-default.md`.
 
 ## Read Order
 
