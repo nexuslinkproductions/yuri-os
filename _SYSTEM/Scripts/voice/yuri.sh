@@ -69,13 +69,49 @@ echo "  interrupt: Right Command key (stops Yuri mid-sentence)"
 echo "  stop:     Ctrl-C"
 echo ""
 
-# The orchestrator handles everything: spawns STT+TTS, creates OMP session,
-# runs the voice loop. Launch in background so we can record the PID, then wait
-# so Ctrl-C still works in the foreground.
-"$RUNTIME" "$VOICE/orchestrator.mjs" &
-ORCH_PID=$!
-echo "$ORCH_PID" > "$PID_FILE"
-wait "$ORCH_PID"
-EXIT_CODE=$?
-rm -f "$PID_FILE"
-exit "$EXIT_CODE"
+# ── supervisor loop ───────────────────────────────────────────────────────────
+# The orchestrator embeds the OMP SDK brain in-process. When a brain turn stalls
+# and blocks the JS event loop, the SpinWatchdog (orchestrator.mjs:105-178)
+# SIGKILLs the process "so the launcher can restart cleanly" — this loop is that
+# missing counterpart. SIGKILL skips the orchestrator's own _cleanup(), so its
+# STT/TTS bridge children ORPHAN and keep holding the HyperX mic + XM5 output;
+# they must die before each relaunch or the restarted orchestrator cannot reopen
+# the audio devices. Ctrl-C / clean exit (0) stops for good (the EXIT trap runs);
+# a watchdog SIGKILL (137) or crash (non-zero) triggers a backed-off restart,
+# bounded so a persistent startup failure cannot spin forever.
+fails=0
+while true; do
+  # Reap orphaned audio-holding bridges from a prior SIGKILL'd orchestrator, then
+  # give CoreAudio a beat to release the HyperX mic before PyAudio reopens it.
+  pkill -9 -f "stt-bridge.py" 2>/dev/null || true
+  pkill -9 -f "tts-bridge.py" 2>/dev/null || true
+  rm -f /tmp/yuri-interrupt 2>/dev/null || true
+  sleep 1   # let CoreAudio release the HyperX mic before the relaunched bridges reopen it
+
+  started=$(date +%s)
+  "$RUNTIME" "$VOICE/orchestrator.mjs" &
+  ORCH_PID=$!
+  echo "$ORCH_PID" > "$PID_FILE"
+  wait "$ORCH_PID"
+  EXIT_CODE=$?
+  rm -f "$PID_FILE"
+
+  # Clean stop (Ctrl-C is handled by the EXIT trap; internal quit exits 0).
+  if [ "$EXIT_CODE" -eq 0 ]; then
+    echo "Yuri exited cleanly."
+    exit 0
+  fi
+
+  # Crash-loop guard: only fast deaths (<20s uptime = failed boot) accumulate; a
+  # death after serving a while is a stall/restart and resets the counter.
+  ran=$(( $(date +%s) - started ))
+  if [ "$ran" -lt 20 ]; then fails=$((fails + 1)); else fails=0; fi
+  if [ "$fails" -ge 5 ]; then
+    echo "❌ Yuri failed to stay up (5 fast crashes) — see the log above. Giving up."
+    exit 1
+  fi
+
+  backoff=1; [ "$fails" -ge 2 ] && backoff=3
+  echo "⚠️  Yuri orchestrator died (exit $EXIT_CODE) — watchdog kill or crash. Restarting in ${backoff}s (fail ${fails}/5)…"
+  sleep "$backoff"
+done
