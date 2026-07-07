@@ -39,6 +39,7 @@ function hookArmed() {
 const _agentCache = new Map();
 function resolveAgentMeta(agentName) {
   if (!agentName) return null;
+  if (!isValidAgentName(agentName)) return null; // CRIT-1: never path.join untrusted input
   if (_agentCache.has(agentName)) return _agentCache.get(agentName);
   let meta = null;
   try {
@@ -68,10 +69,16 @@ function substrateOf(model) {
   return 'native';
 }
 
+// Strict allowlist: agentName is used in path.join — NEVER accept traversal chars.
+// Only mure-<lowercase-alnum-hyphen> or the 3 exact worker names. No /, \, ., .., etc.
+const VALID_AGENT_NAME = /^(mure-[a-z0-9-]+|fable-synth|deepseek-flash|composer-fast)$/;
+function isValidAgentName(name) {
+  return typeof name === 'string' && VALID_AGENT_NAME.test(name) && !name.includes('..');
+}
+
 // Only these agents feed the MoE learn loop (mure roles + the three worker lanes).
 function isMureAgent(name) {
-  return typeof name === 'string' && (name.startsWith('mure-')
-    || name === 'fable-synth' || name === 'deepseek-flash' || name === 'composer-fast');
+  return isValidAgentName(name);
 }
 
 // Map an agent id (from the task result) → predictionId, so tool_result can pair the outcome.
@@ -104,7 +111,7 @@ async function onDispatch(input) {
   const ledger = await lazyLedger();
   const router = await lazyRouter();
   if (!ledger) return;
-  for (const s of spawns) {
+  for (const s of spawns.slice(0, 32)) { // HIGH-1: cap at task.maxConcurrency; never unbounded
     const meta = resolveAgentMeta(s.agent);
     const substrate = substrateOf(meta?.model);
     const taskShape = { role: meta?.role || s.role, prompt: s.assignment, recursionDepth: 0 };
@@ -149,17 +156,16 @@ async function onResult(details) {
     if (!pend) continue;
     _pending.delete(key);
     const text = String(r.output || '');
-    const label = feedback?.extractResultLabel ? '' : ''; // label parsed below via router-agnostic regex
     const rl = (text.match(/\b\d{2}[A-Z]{2}_[A-Z0-9_]+_(?:X|P|F)_PASS_COMMITTED\b/) || [])[0]
       || (text.match(/\b[0-9A-Z]{2,}_[A-Z0-9_]+_(?:X|P|F)_PASS_COMMITTED\b/) || [])[0] || '';
     const ok = (r.exitCode === 0 || r.exitCode == null) && !r.error && !r.aborted;
     const pass = /_(X|P)_PASS_/.test(rl);
-    const outcome = {
-      success: ok && (pass || text.trim().length >= 16) ? 1 : 0,
-      quality: pass ? 0.9 : ok ? 0.65 : 0.2,
-      actualSubstrate: pend.substrate,
-      resultLabel: rl,
-    };
+    // HIGH-2: do NOT treat mere text-length as success (spoofable). Without a genuine PASS label,
+    // the outcome is low-confidence — record it as an observation but skip the weight update
+    // (prefer skip-when-uncertain over credit-when-uncertain; garbage gradients are worse than none).
+    const outcome = pass
+      ? { success: ok ? 1 : 0, quality: ok ? 0.9 : 0.2, actualSubstrate: pend.substrate, resultLabel: rl }
+      : { success: 0, quality: 0, actualSubstrate: pend.substrate, resultLabel: '', skipped: true, skipReason: 'no-pass-label' };
     try {
       ledger.recordOutcome({
         predictionId: pend.predictionId,
@@ -170,7 +176,7 @@ async function onResult(details) {
         ],
         ts: new Date().toISOString(),
       }, { file: LEDGER });
-      if (persist && router?.updateFromOutcome && pend.features) {
+      if (persist && router?.updateFromOutcome && pend.features && !outcome.skipped) {
         await router.updateFromOutcome(pend.features, pend.suggestion, outcome, { persist: true, learningRate: 0.02 });
       }
     } catch { /* fail-open */ }

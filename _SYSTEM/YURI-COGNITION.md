@@ -1,6 +1,10 @@
 > ⚠️ **STATUS: UNIMPLEMENTED ROADMAP — relabeled 2026-07-07. Not operational doctrine. Do not cite as live capability.**
-> Zero of the subsystems named below are wired: EvoNexus, OBLITERATUS, NABU, NISABA, ENKI-as-agent, HGCC, and the
-> Pantheon are prose-only or thin metadata — no live script, hook, launchd job, or gate routes through any of them.
+> No live script, hook, launchd job, or gate ROUTES THROUGH the subsystems named below: EvoNexus, OBLITERATUS,
+> NABU, NISABA, ENKI-as-agent, HGCC, and the Pantheon never functioned as the described machinery — but most are
+> not literally "zero" either. Per the disposition cited below, EvoNexus/OBLITERATUS/NABU/NISABA/ENKI are
+> PARTIALLY-WIRED: they survive as live agent-role flavor metadata (e.g. NISABA appears as "House: NISABA House
+> NN" in 8/12 active agent prompts) or a stale doc-comment on a renamed live script — inert residue, not
+> functioning subsystems. Only HGCC and the Pantheon are pure prose with no live artifact at all.
 > Present-tense claims in this document ("I am a self-modifying neural network", "I am updating my core operating
 > system") are aspirational and false as stated: every session is a stateless LLM invocation reading markdown context
 > at start. Where this mythology produced something real, it did so by stripping the deity framing into plain

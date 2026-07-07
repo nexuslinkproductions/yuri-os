@@ -30,14 +30,21 @@ const secretPatterns = [
 ];
 
 const benignValue = /(example|dummy|fake|test|placeholder|redacted|xxxx|your_|changeme|change-me|local-only|not-a-real|sample|api-key-here|pipeline-key|random-secret-here|generate-your-secret-here|generate-a-strong-secret-here)/i;
-const codeReferenceValue = /^\(?(process\.env|this\.|document\.|data\.|row\.|opts?\.|config\.|headers?\.|read[A-Z]|get[A-Z])/;
+const codeReferenceValue = /^\(?(process\.env|this\.|document\.|row\.|opts?\.|config\.|headers?\.|read[A-Z]|get[A-Z])/;
 const filesystemReferenceValue = /^(?:\/|\.\.?\/|[A-Za-z]:[\\/])/;
 const expressionReferenceValue = /^(?:\$|\$\{|op:\/\/|!!|bool\(|Boolean\(|self\.|settings\.|localStorage\.|bpy\.|[A-Za-z_][A-Za-z0-9_.]*\()/;
 const symbolReferenceValue = /^[A-Z][A-Z0-9_]+$/;
-// Angle-bracket placeholders (`<PASTE_CLIENT_SECRET>`, `<32-byte-random-hex>`, `<from-google-cloud-console>`)
-// are a universal doc convention for "fill this in", not a real secret. Match a value that is wholly a
-// <...> placeholder (optionally quote-wrapped). Real secrets never sit inside angle brackets.
-const placeholderReferenceValue = /^['"]?<[^>]{1,80}>/;
+// Dotted identifier chain (e.g. data.session.provider_token) — whole-value, no hyphens/quotes/secrets.
+const dottedIdentifierValue = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+;?$/;
+// Angle-bracket placeholders are benign ONLY if no high-entropy secret-shaped run is embedded.
+// `<APP_SECRET>` = benign. `<sk-live-abc123def456>` or `sk_live_<realkey>` = a real secret = NOT benign.
+const HIGH_ENTROPY_RUN = /[A-Za-z0-9_+/=-]{16,}/;
+function isPlaceholder(value) {
+  if (!/^['"]?<[^>]{1,80}>/.test(value)) return false;
+  // Strip all <...> segments, then check if any high-entropy run remains (a real secret hiding behind brackets).
+  const residual = value.replace(/<[^>]*>/g, '').replace(/['"]/g, '');
+  return !HIGH_ENTROPY_RUN.test(residual);
+}
 
 function isProtected(rel) {
   return protectedPrefixes.some((prefix) => rel === prefix || rel.startsWith(prefix));
@@ -72,7 +79,8 @@ function scanText({ text, rel, source, object }) {
   const lines = text.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (benignValue.test(line)) continue;
+    // CRIT-4 fix: do NOT skip the whole line on a benign word — a real secret sharing a line with
+    // 'example'/'test'/a comment would be shielded. The value-level guard below handles benign values.
     for (const [type, pattern] of secretPatterns) {
       pattern.lastIndex = 0;
       let match;
@@ -84,7 +92,8 @@ function scanText({ text, rel, source, object }) {
           filesystemReferenceValue.test(value) ||
           expressionReferenceValue.test(value) ||
           symbolReferenceValue.test(value) ||
-          placeholderReferenceValue.test(value)
+          dottedIdentifierValue.test(value) ||
+          isPlaceholder(value)
         ) continue;
         localFindings.push({
           file: rel,
