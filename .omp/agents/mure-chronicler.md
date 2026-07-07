@@ -1,7 +1,7 @@
 ---
 name: mure-chronicler
 description: "MURE Chronicler (knowledge) — science-writer. distill outputs into docs, blueprints, and owner-facing summaries."
-model: anthropic/claude-sonnet-5
+model: ollama-cloud/minimax-m3
 tools: read, grep, glob, edit, write, bash
 read-summarize: false
 ---

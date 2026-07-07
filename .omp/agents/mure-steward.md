@@ -1,7 +1,7 @@
 ---
 name: mure-steward
 description: "MURE Steward (orchestration) — COO + governance officer. run the 6-gate charter on every decision."
-model: anthropic/claude-sonnet-5
+model: ollama-cloud/deepseek-v4-flash
 thinkingLevel: high
 tools: read, grep, glob, edit, write, bash
 read-summarize: false

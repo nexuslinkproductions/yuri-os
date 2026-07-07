@@ -1,7 +1,7 @@
 ---
 name: mure-artificer
 description: "MURE Artificer (engineering) — fast scaffolding / mechanical edits. scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane."
-model: anthropic/claude-haiku-4-5
+model: ollama-cloud/deepseek-v4-flash
 tools: read, grep, glob, edit, write, bash
 read-summarize: false
 ---

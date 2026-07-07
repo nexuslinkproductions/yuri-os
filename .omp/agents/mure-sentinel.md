@@ -1,7 +1,7 @@
 ---
 name: mure-sentinel
 description: "MURE Sentinel (engineering) — cybersecurity + security-reviewer. security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities."
-model: anthropic/claude-sonnet-5
+model: ollama-cloud/deepseek-v4-flash
 tools: read, grep, glob, edit, write, bash
 read-summarize: false
 ---

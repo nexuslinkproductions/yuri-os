@@ -1,7 +1,7 @@
 ---
 name: mure-envoy
 description: "MURE Envoy (operations) — task intake / requirement decoder. decode the owner brain-dump (rank intents, surface hidden constraint and meta-need), turn chaotic input into a clean spec / goal tree for the helmsman."
-model: anthropic/claude-sonnet-5
+model: ollama-cloud/minimax-m3
 tools: read, grep, glob
 read-summarize: false
 ---
