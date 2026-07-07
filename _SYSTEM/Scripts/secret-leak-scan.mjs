@@ -30,10 +30,14 @@ const secretPatterns = [
 ];
 
 const benignValue = /(example|dummy|fake|test|placeholder|redacted|xxxx|your_|changeme|change-me|local-only|not-a-real|sample|api-key-here|pipeline-key|random-secret-here|generate-your-secret-here|generate-a-strong-secret-here)/i;
-const codeReferenceValue = /^\(?(process\.env|this\.|document\.|row\.|opts?\.|config\.|headers?\.|read[A-Z]|get[A-Z])/;
+const codeReferenceValue = /^\(?(process\.env|this\.|document\.|data\.|row\.|opts?\.|config\.|headers?\.|read[A-Z]|get[A-Z])/;
 const filesystemReferenceValue = /^(?:\/|\.\.?\/|[A-Za-z]:[\\/])/;
 const expressionReferenceValue = /^(?:\$|\$\{|op:\/\/|!!|bool\(|Boolean\(|self\.|settings\.|localStorage\.|bpy\.|[A-Za-z_][A-Za-z0-9_.]*\()/;
 const symbolReferenceValue = /^[A-Z][A-Z0-9_]+$/;
+// Angle-bracket placeholders (`<PASTE_CLIENT_SECRET>`, `<32-byte-random-hex>`, `<from-google-cloud-console>`)
+// are a universal doc convention for "fill this in", not a real secret. Match a value that is wholly a
+// <...> placeholder (optionally quote-wrapped). Real secrets never sit inside angle brackets.
+const placeholderReferenceValue = /^['"]?<[^>]{1,80}>/;
 
 function isProtected(rel) {
   return protectedPrefixes.some((prefix) => rel === prefix || rel.startsWith(prefix));
@@ -79,7 +83,8 @@ function scanText({ text, rel, source, object }) {
           codeReferenceValue.test(value) ||
           filesystemReferenceValue.test(value) ||
           expressionReferenceValue.test(value) ||
-          symbolReferenceValue.test(value)
+          symbolReferenceValue.test(value) ||
+          placeholderReferenceValue.test(value)
         ) continue;
         localFindings.push({
           file: rel,
