@@ -36,7 +36,7 @@ SAMPLE_RATE = 16000
 CHUNK_FRAMES = 512                         # Silero VAD block size @ 16kHz (num_frames_required)
 CHANNELS = 1
 LISTEN_TIMEOUT = 15.0                      # secs to wait for speech to start -> else timeout
-MAX_RECORD_SECS = 30.0                     # hard cap on a single utterance (anti-hang safety)
+MAX_RECORD_SECS = 60.0                     # Marcel talks long — 60s cap                     # hard cap on a single utterance (anti-hang safety)
 WHISPER_MODEL = os.environ.get(
     "YURI_WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo-q4"
 )

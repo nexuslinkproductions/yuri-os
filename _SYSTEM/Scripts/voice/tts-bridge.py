@@ -147,9 +147,12 @@ def warm_model(model):
 # ─── robust synthesis (chunked + fallback, proven in kokoro_tts.py) ──────────
 
 def _try_synth(model, text):
-    """One synth attempt; returns float32 audio or None on crash (no raise)."""
+    """One synth attempt; returns float32 audio or None on crash (no raise).
+    Strips trailing punctuation that triggers the Kokoro broadcast_shapes bug."""
+    import re as _re
+    clean = _re.sub(r'[,;:]+\s*$', '', text.strip())  # strip trailing comma/colon
     try:
-        a = _synth(model, text, VOICE, LANG_CODE, SPEED)
+        a = _synth(model, clean, VOICE, LANG_CODE, SPEED)
         return a if (a is not None and a.size) else None
     except Exception as e:
         log.warning(f"chunk synth failed ({str(e)[:60]}): {text[:50]!r}")
@@ -183,7 +186,12 @@ def synth_robust(model, norm):
             if emit(" ".join(grp)):
                 continue
             for j in range(0, len(grp), 2):
-                emit(" ".join(grp[j:j + 2]))
+                pair = " ".join(grp[j:j + 2])
+                if emit(pair):
+                    continue
+                # Last resort: try each word individually, skip crashes
+                for w in grp[j:j + 2]:
+                    emit(w)
     return np.concatenate(out) if out else None
 
 

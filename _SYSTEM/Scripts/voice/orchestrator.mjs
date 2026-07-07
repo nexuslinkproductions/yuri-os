@@ -30,7 +30,7 @@ const TTS_SCRIPT = process.env.YURI_TTS_SCRIPT || 'tts-bridge.py';
 const OMP_BIN = process.env.YURI_OMP_BIN || 'omp';
 
 const DEFAULT_MODEL = process.env.YURI_MODEL || 'anthropic/claude-sonnet-5';
-const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || 'read,bash,grep,glob')
+const DEFAULT_TOOL_NAMES = (process.env.YURI_TOOL_NAMES || '')  // empty = all available tools including MCP
   .split(',').map((s) => s.trim()).filter(Boolean);
 
 const SYSTEM_PROMPT = process.env.YURI_SYSTEM_PROMPT ||
@@ -386,7 +386,7 @@ export class OmpBrain {
       cwd: REPO_ROOT,
       modelPattern: this.modelPattern,
       systemPrompt: this.systemPrompt,
-      toolNames: this.toolNames,
+      toolNames: this.toolNames || undefined,  // undefined = all tools
       sessionManager,
       autoApprove: true,            // headless: no approval prompts
       hasUI: false,
@@ -434,7 +434,7 @@ export class OmpBrain {
   async _promptSubprocess(text, onDelta) {
     const omp = which(OMP_BIN);
     if (!omp) throw new Error(`'${OMP_BIN}' binary not found`);
-    const args = ['--allow-home', '--mode', 'json', '-p', '--no-tools', '--model', this.modelPattern];
+    const args = ['--allow-home', '--mode', 'json', '-p', '--model', this.modelPattern];
     if (this.sessionId) args.push('--resume', this.sessionId);
     else { args.push('--system-prompt', this.systemPrompt); }
     args.push(text);
