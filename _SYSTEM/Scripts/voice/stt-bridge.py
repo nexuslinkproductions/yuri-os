@@ -78,7 +78,7 @@ def make_vad():
     0.0 for the same reason. The required confidence/start_secs/stop_secs are honored exactly.
     """
     vad = SileroVADAnalyzer(
-        params=VADParams(confidence=0.5, start_secs=0.15, stop_secs=0.8, min_volume=0.0)
+        params=VADParams(confidence=0.5, start_secs=0.15, stop_secs=2.5, min_volume=0.0)  # 2.5s pause tolerance for slow/thoughtful speech
     )
     vad.set_sample_rate(SAMPLE_RATE)
     return vad

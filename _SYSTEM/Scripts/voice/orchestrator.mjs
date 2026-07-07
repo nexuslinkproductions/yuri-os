@@ -723,6 +723,18 @@ export class VoiceOrchestrator {
       } catch {}
     }, 200);
 
+    // Greeting: speak a welcome message when everything is ready
+    const YURI_GREETING = process.env.YURI_GREETING || "Yuri online. What do you need?";
+    try {
+      this.tts = await this._ensureBridge('tts');
+      await this.tts.awaitReady(30000);
+      this.speak(YURI_GREETING);
+      await this._speakLock;
+      log('info', 'greeting_spoken', { text: YURI_GREETING });
+    } catch (e) {
+      log('warn', 'greeting_failed', { err: String(e) });
+    }
+
     // main loop
     while (this.running) {
       try {
