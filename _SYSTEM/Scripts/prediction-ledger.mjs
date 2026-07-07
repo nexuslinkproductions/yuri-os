@@ -174,7 +174,7 @@ const BUCKETS = [
  * returns overall and per-confidence-bucket calibration stats.
  * Unresolved predictions (no matching outcome) are listed but excluded from scoring.
  */
-export function calibrationReport(opts) {
+export function calibrationReport(opts = {}) {
   const rows = readLedger(opts);
   const preds = new Map();
   const outcomes = new Map();
@@ -198,7 +198,7 @@ export function calibrationReport(opts) {
       continue;
     }
 
-    const sc = scorePrediction(pred, out, { match: opts.match });
+    const sc = scorePrediction(pred, out, { match: opts?.match });
 
     for (const d of sc.detail) {
       gBrier += d.brier;
