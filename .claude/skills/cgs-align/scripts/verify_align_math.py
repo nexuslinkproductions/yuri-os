@@ -23,6 +23,35 @@ def box(x0, x1, y0, y1, z0, z1):
          (3,7,6),(3,6,2),(0,4,7),(0,7,3),(1,2,6),(1,6,5)]
     return V, np.array(F, dtype=np.int64)
 
+def sbox(x0, x1, y0, y1, z0, z1, ny=12, nx=3, nz=3):
+    """A SUBDIVIDED axis-aligned box — dense verts along each axis so length/height percentiles behave like
+    a real scan (the 8-corner box() clusters all verts at the corners, which throws percentile windows).
+    Winding is auto-corrected outward (each tri flipped if its normal points toward the box center) so the
+    divergence-theorem volume centroid is correct and disjoint sboxes' volumes add."""
+    ctr = np.array([(x0+x1)/2, (y0+y1)/2, (z0+z1)/2], float)
+    xs, ys, zs = np.linspace(x0,x1,nx+1), np.linspace(y0,y1,ny+1), np.linspace(z0,z1,nz+1)
+    V=[]; F=[]
+    def face(pgrid):
+        base=len(V); m=len(pgrid)-1; n=len(pgrid[0])-1
+        for row in pgrid:
+            for p in row: V.append(p)
+        for r in range(m):
+            for c in range(n):
+                a=base+r*(n+1)+c; b=base+r*(n+1)+c+1; cc=base+(r+1)*(n+1)+c+1; d=base+(r+1)*(n+1)+c
+                F.append((a,b,cc)); F.append((a,cc,d))
+    face([[(x, y, z0) for x in xs] for y in ys])          # z=z0
+    face([[(x, y, z1) for x in xs] for y in ys])          # z=z1
+    face([[(x, y0, z) for x in xs] for z in zs])          # y=y0
+    face([[(x, y1, z) for x in xs] for z in zs])          # y=y1
+    face([[(x0, y, z) for y in ys] for z in zs])          # x=x0
+    face([[(x1, y, z) for y in ys] for z in zs])          # x=x1
+    V=np.array(V,float); F=np.array(F,np.int64)
+    a3,b3,c3=V[F[:,0]],V[F[:,1]],V[F[:,2]]
+    nrm=np.cross(b3-a3,c3-a3); out=((a3+b3+c3)/3.0)-ctr
+    flip=np.einsum('ij,ij->i',nrm,out)<0                  # tri normal points inward -> reverse it
+    F[flip]=F[flip][:,::-1]
+    return V,F
+
 def merge(parts):
     Vs=[]; Fs=[]; off=0
     for V,F in parts:
@@ -31,10 +60,27 @@ def merge(parts):
 
 # Canonical gun: length->Y (muzzle -Y), height->Z (slide top +Z), grip hangs down at rear +Y.
 def canonical_gun():
-    slide  = box(-6, 6, -90, 10,  20, 40)     # long slide, top at Z=40, spans the length
-    barrel = box(-4, 4, -100, -90, 24, 34)    # muzzle forward to Y=-100
-    grip   = box(-7, 7,   0, 30, -30, 20)     # tall grip at rear (+Y), down to Z=-30
-    return merge([slide, barrel, grip])
+    # dense flat-top slide-dominant pistol: continuous slide-top ridge (clean level check), grip at rear.
+    slide = sbox(-6, 6, -130, 15, 20, 42)     # long slide, flat top Z=42 to the muzzle, spans the length
+    grip  = sbox(-8, 8,    2, 36, -30, 22)    # tall grip at rear (+Y), hangs to Z=-30
+    return merge([slide, grip])
+
+# Canonical gun + an UNDER-BARREL WEAPON-LIGHT (WML) hung below the front dust cover. Regression for
+# René's HK SFP9 TLR-8A (2026-07-07): the retired rear-vs-front MEAN-height grip-down test let the light's
+# front-low mass flip the gun upside-down. The grip toe (Z=-30) still out-reaches any realistic light, so
+# the reach-asymmetry test must keep the grip DOWN. lz0 = how far the light hangs below the bore.
+def wml_gun(lz0=-8.0, ly0=-128.0, ly1=-92.0):
+    slide = sbox(-6, 6, -130, 15, 20, 42)
+    grip  = sbox(-8, 8,    2, 36, -30, 22)
+    light = sbox(-5, 5, ly0, ly1, lz0, 18)     # FORWARD (dust-cover rail, ahead of the trigger), below the
+    return merge([slide, grip, light])         # bore, never below the grip toe — where a real WML mounts
+
+def mean_metric_would_flip(P):
+    """Replicate the RETIRED rear-vs-front MEAN-height grip-down decision in canonical pose (Y=length,
+    Z=height). True => the old test would have flipped this (correctly-posed) gun upside-down."""
+    y = P[:, 1]; z = P[:, 2]
+    rear = y > np.percentile(y, 70); front = y < np.percentile(y, 30)
+    return bool(float(z[rear].mean()) > float(z[front].mean()))
 
 def rand_rot(rng):
     A = rng.standard_normal((3,3)); Q,_ = np.linalg.qr(A)
@@ -47,8 +93,10 @@ def gun_invariants(Pn):
     y=Pn[:,1]; z=Pn[:,2]
     low=int(np.argmin(z))
     grip_down = bool(y[low] > 0 and z[low] < z.mean())               # grip toe = lowest, at the rear
-    ymed=np.median(y)
-    zext_front=np.ptp(z[y<ymed]); zext_rear=np.ptp(z[y>=ymed])
+    # muzzle at -Y: the TALL end (grip) is the rear. Compare the rear/front THIRDS, not halves — a grip that
+    # straddles the MEDIAN Y would put its full height-extent in BOTH halves and defeat a median split.
+    yl=np.percentile(y,33); yh=np.percentile(y,67)
+    zext_front=np.ptp(z[y<yl]); zext_rear=np.ptp(z[y>yh])
     muzzle_left = bool(zext_rear > zext_front)                        # tall end is the rear -> muzzle -Y
     slide_level = bool(abs(_slide_top_tilt_deg(Pn)) < 3.0)
     return grip_down, muzzle_left, slide_level
@@ -83,6 +131,33 @@ def main():
                       ("muzzle not -Y",bad_muzzle),("slide not level",bad_level)]:
         if cnt: fails.append(f"[{n} poses] {label}: {cnt} failures")
 
+    # -- WML regression: under-barrel-light guns must still align grip-DOWN under any pose (2026-07-07)
+    wml_depths = [-6.0, -10.0, -14.0, -18.0]; nw = 60
+    wml_bad_grip = wml_bad_muzzle = wml_bad_level = wml_bad_det = wml_bad_order = 0
+    mean_flip_seen = False
+    for lz0 in wml_depths:
+        Pw0, Fw = wml_gun(lz0=lz0)
+        mean_flip_seen = mean_flip_seen or mean_metric_would_flip(Pw0)   # did the retired test misfire here?
+        for i in range(nw):
+            R = rand_rot(rng); t = rng.standard_normal(3) * 200
+            Pw = Pw0 @ R.T + t
+            c, Ra, diag = compute_alignment(Pw, Fw)
+            Pn = apply_alignment(Pw, c, Ra)
+            if abs(diag["det_R"] - 1.0) > 1e-4: wml_bad_det += 1
+            if not verify_alignment(Pn, Fw)["dims_ordered_yzx"]: wml_bad_order += 1
+            gd, ml, sl = gun_invariants(Pn)
+            if not gd: wml_bad_grip += 1
+            if not ml: wml_bad_muzzle += 1
+            if not sl: wml_bad_level += 1
+    ntot = len(wml_depths) * nw
+    # HARD-assert the invariants the grip-down fix owns (grip/muzzle + rigid-transform health). Slide-level
+    # is REPORTED but not hard-failed for WML: with a light the leveler keys off the light underside (a
+    # separate, known concern the skill mitigates with pitch_offset_deg — the real HK SFP9 TLR-8A levels to
+    # -0.4deg). This block guards grip-down, not leveling.
+    for label, cnt in [("det!=+1", wml_bad_det), ("dims not Y>=Z>=X", wml_bad_order),
+                       ("grip not down/rear", wml_bad_grip), ("muzzle not -Y", wml_bad_muzzle)]:
+        if cnt: fails.append(f"[WML {ntot} poses] {label}: {cnt} failures")
+
     # -- reversibility: (P-c)@R.T inverted by @R + c returns the original
     R=rand_rot(rng); t=rng.standard_normal(3)*100; P=P0 @ R.T + t
     c,Ralign,_=compute_alignment(P,F); Pn=apply_alignment(P,c,Ralign)
@@ -105,6 +180,9 @@ def main():
     print("=== cgs-align math verification ===")
     print(f"random-pose guns: {n} | det/order/center/offdiag/grip-down/muzzle-left/slide-level failures ="
           f" {bad_det}/{bad_order}/{bad_center}/{bad_offdiag}/{bad_grip}/{bad_muzzle}/{bad_level}")
+    print(f"WML under-barrel-light guns: {ntot} poses | det/order/grip-down/muzzle-left/slide-level failures ="
+          f" {wml_bad_det}/{wml_bad_order}/{wml_bad_grip}/{wml_bad_muzzle}/{wml_bad_level}"
+          f" | retired-mean-test-misfires={mean_flip_seen}")
     print(f"light det_R={dl['det_R']} centered={vl['center_residual_mm']}mm ordered={vl['dims_ordered_yzx']}")
     print(f"near-square plate ambiguous_axes={da['ambiguous_axes']} (expected True)")
     if fails:

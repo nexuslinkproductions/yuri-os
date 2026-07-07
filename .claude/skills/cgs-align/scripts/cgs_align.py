@@ -99,11 +99,12 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
     against René's hand-posed SIG P226, 2026-07-03):
       MUZZLE LEFT— the grip (tall) end is the rear; the muzzle end is thin -> the length third with the
                    larger height extent is the rear (+l); muzzle -> -Y. (sign-independent -> done first.)
-      GRIP DOWN  — compare mean height of the REAR third vs the FRONT third: the heavy grip pulls the
-                   rear DOWN (calib: rear mean_z -17 vs front +26, a 43mm margin) -> put the grip on -Z.
-                   This replaces "farthest reach from mass center", which the TALL FRONT SIGHT + the
-                   grip-shifted mass center inverted -> flipped the gun 180deg upside-down (René: needed
-                   a manual Ry+180 to fix).
+      GRIP DOWN  — "is the grip below the bore?": the REAR third's area-weighted mean height vs the MIDDLE
+                   third's (frame/slide body = bore-height ref). Grip below mid -> grip on -Z; above -> flip.
+                   Rear-vs-MID (both exclude the FRONT) survives the two front features that broke earlier
+                   tries: an under-barrel WML (dragged the front MEAN down -> flipped René's HK SFP9 upside-
+                   down, 2026-07-07) and a tall front sight/optic (out-reached the grip -> broke farthest-
+                   reach on the SIG). Area-weighted, so scan vertex-density can't swing it.
       LEVEL SLIDE— level to the mid-height forward SLAB (fwd ~50%, Z 30-75 pct: excludes sight/optic tops
                    AND trigger-guard toe -> the clean bore-parallel body). Calibrated as the reference
                    nearest the owner's eye-level; residual ~1-2deg is covered by `pitch_offset_deg`.
@@ -126,11 +127,35 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0):
     hext_hi = _robust_extent(h[hi]) if hi.any() else 0.0
     if hext_lo > hext_hi:
         aL = -aL; l = -l
-    # GRIP DOWN (-Z): the heavy grip pulls the REAR third's mean height below the FRONT third's. If the
-    # rear currently sits higher, the grip is up -> flip. (Calibrated, unfoolable by the front sight.)
-    rear = l > np.percentile(l, 70); front = l < np.percentile(l, 30)
-    if float(h[rear].mean()) > float(h[front].mean()):
-        aH = -aH; h = -h
+    # GRIP DOWN (-Z): "is the grip below the bore line?" Compare the REAR third's AREA-WEIGHTED mean height
+    # to the MIDDLE third's (the frame/slide body = a clean bore-height reference). The grip hangs well
+    # below the bore -> the rear mean sits below the mid mean -> grip is on -h. If the rear sits ABOVE the
+    # mid, the grip is up -> flip.
+    #   ★ This survives BOTH failure modes that broke earlier tries, because the reference (mid third) and
+    #   the target (rear third) both EXCLUDE the front, where the corrupting features live:
+    #     - rear-vs-front MEAN height flipped René's HK SFP9 upside-down (2026-07-07): the under-barrel
+    #       TLR-8A dumps low mass at the FRONT, dragging the front mean below the rear -> false flip.
+    #     - farthest-reach-from-center flipped the SIG: the tall front sight/optic out-reached the grip
+    #       UPWARD. Both live at the front; keying off rear-vs-MID never sees them.
+    #   AREA-WEIGHTED (not vertex mean) kills scan vertex-density bias (a densely-scanned slide tail would
+    #   otherwise drag a vertex mean up). Verified on the real HK mesh: rear -7.7 vs mid +5.9, a 13.6mm
+    #   margin (a vertex mean gave the wrong sign). Vertex fallback when faces are absent.
+    if F is not None and len(F):
+        fa2, fb2, fc2 = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+        fcen = (fa2 + fb2 + fc2) / 3.0 - center
+        far2 = 0.5 * np.linalg.norm(np.cross(fb2 - fa2, fc2 - fa2), axis=1)
+        fh = fcen @ aH; fl = fcen @ aL
+        mid  = (fl > np.percentile(fl, 35)) & (fl < np.percentile(fl, 62))   # bore-height body (no front, no grip)
+        rr   = fl > np.percentile(fl, 70)                                    # rear third = the grip
+        def _awh(m):
+            s = float(far2[m].sum())
+            return float(np.sum(far2[m] * fh[m]) / s) if s > 1e-9 else 0.0
+        if rr.any() and mid.any() and _awh(rr) > _awh(mid):     # grip sits above the bore -> it's up -> flip
+            aH = -aH; h = -h
+    else:                                                       # no faces: vertex fallback (rear vs mid)
+        midv = (l > np.percentile(l, 35)) & (l < np.percentile(l, 62)); rrv = l > np.percentile(l, 70)
+        if rrv.any() and midv.any() and float(h[rrv].mean()) > float(h[midv].mean()):
+            aH = -aH; h = -h
 
     # LEVEL THE SLIDE (owner: "level to the SLIDE and/or the PICATINNY RAIL — both straight, bore-parallel"):
     # level the near-HORIZONTAL FLATS. The slide-top flat, the slide bottom, and the dust-cover picatinny

@@ -37,10 +37,15 @@ reversible, non-mutating to geometry.**
    length/height/width by robust 2/98-pct bbox extent → fixes **roll, yaw, width**.
 3. **Muzzle left (−Y)** — the length third with the larger height extent is the grip/rear (+Y); the thin
    end is the muzzle (−Y). Sign-independent, so done first.
-4. **Grip down (−Z)** — the heavy grip pulls the **rear third's mean height BELOW the front third's**
-   (calibrated 43mm margin on the SIG). Robust where "farthest reach from the mass center" failed: the
-   tall **front sight** competes with the grip and the grip-shifted origin inverted it → flipped the gun
-   upside-down (owner had to apply a manual Ry+180).
+4. **Grip down (−Z)** — *"is the grip below the bore?"*: compare the **rear third's AREA-WEIGHTED mean
+   height** to the **middle third's** (the frame/slide body = a clean bore-height reference). Grip below
+   mid → grip on −Z; above → flip. Rear-vs-**mid** (both exclude the FRONT) survives the two front features
+   that broke earlier tries: an **under-barrel weapon-light** (dumps low mass at the front, dragged the
+   front MEAN below the rear → flipped René's HK SFP9 upside-down, 2026-07-07) and a **tall front sight /
+   optic** (out-reaches the grip upward → broke "farthest reach from mass center" on the SIG). Area-weighted
+   so scan vertex-density can't swing it. Verified on the real HK mesh: rear −7.7 vs mid +5.9, a **13.6mm
+   margin** (a vertex mean gave the wrong sign). Superseded a rear-vs-front **mean**-height test (the HK
+   flip), which had superseded farthest-reach (the SIG flip).
 5. **Slide level** — owner's rule: "level to the SLIDE and/or the PICATINNY RAIL — both straight,
    bore-parallel." Take the area-weighted consensus normal of the near-HORIZONTAL flats (within ~20° of
    vertical — a TIGHT cone that excludes the slide's angled top bevels) and rotate it to **+Z**, iterated
@@ -123,8 +128,15 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
   aligned + slide-leveled with `pitch_offset_deg=+3.0`. Auto-level leveled to the rail underside, which on
   this gun sits ~3° off the slide (the owner's true datum) — the manual pitch corrected it. This run also
   fixed the pitch-sign doc (`+` = muzzle UP). det +1, grip −Z, muzzle −Y, owner-verified in his viewport.
+- **HARDENED 2026-07-07 for under-barrel weapon-light guns** on René's HK SFP9 TLR-8A (63,866 verts): the
+  raw aligner shipped it upside-down (grip-down heuristic inverted by the TLR-8A's front-low mass); the
+  grip-down test was rebuilt (rear-third-vs-mid-third area-weighted height) and verified on the real mesh.
+  Live end-to-end re-run from the raw pose is **pending a blender-mcp reconnect** (the socket dropped
+  mid-session) — the changed decision is already proven on the real geometry (13.6mm margin).
 - **Offline: 300/300 random gun poses** pass (det, axis order, centering, off-diagonal, grip-down,
-  muzzle-left, slide-level) + volume-centroid, near-cubic light, ambiguity, reversibility.
+  muzzle-left, slide-level) **+ 240 under-barrel-light poses** pass grip-down/muzzle/det/order (WML slide-
+  level is reported-not-asserted — the leveler keys off the light underside, the pitch_offset concern) +
+  volume-centroid, near-cubic light, ambiguity, reversibility.
   Re-run: `"…/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_align_math.py`.
 - **LIGHT MODE OWNER-CONFIRMED 2026-07-03** on the OLIGHT PL2 Valkyrie (63,112 verts, `mode="light"`):
   rail clamp up + level, bezel −Y. Mount (clamp OR single screw) found by `flat_area × complexity²`
@@ -133,6 +145,39 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-07 (HK SFP9 TLR-8A — grip-down hardened for under-barrel weapon-lights)
+- **Failure:** the raw aligner shipped the HK SFP9 with a mounted TLR-8A light **upside-down** (`grip_is_down:
+  false`) — muzzle −Y and centering were right, but slide on the bottom / grip up. Corrected live with a
+  rigid **Ry180** (det stayed +1, stored `cgs_align_R` updated) so René's viewport was left correct.
+- **Root cause:** step-4 grip-down compared the **rear-third vs front-third vertex MEAN height**. The
+  under-barrel light dumps mass below the bore at the FRONT, dragging the front mean *below* the rear mean
+  → the test flipped a correctly-posed gun. Confirmed on the real mesh: old test decision = FLIP (wrong);
+  front vtx-mean −11.4 < rear +5.0.
+- **Fix:** grip-down is now **rear-third area-weighted mean height vs MIDDLE-third** (bore-height ref). Both
+  windows exclude the FRONT, so neither a WML (HK) nor a tall front sight/optic (the SIG failure mode) can
+  corrupt it; area-weighting kills scan vertex-density bias (a vertex mean gave the wrong sign here). Picked
+  by **testing 4 candidate discriminators on the real HK geometry** (the true ground truth — synthetic
+  boxes never reproduced the mean-metric misfire): mid-third reference won with a **13.6mm margin** (rear
+  −7.7 vs mid +5.9) vs ~3mm against a global reference. `cgs_align.py` step 4 + docstring updated.
+- **Regression (offline, `verify_align_math.py`):** added a `sbox` dense-mesh builder (the 8-corner `box`
+  clustered all verts at corners → length-percentile windows misbehaved; a real scan is dense) and a
+  `wml_gun` (canonical gun + a forward under-barrel light) → **240 WML poses** now pass grip-down/muzzle/
+  det/order; the plain suite is 300/300. WML slide-level is reported-not-asserted (with a light the leveler
+  keys off the light underside — the same rail≠slide-datum concern as the PDP, mitigated by `pitch_offset_deg`;
+  the real HK still leveled to −0.4°). Also fixed two synthetic-only artifacts uncovered along the way: the
+  gun builder is now flat-topped (a stepped barrel faked a slide-tilt) and `gun_invariants`' muzzle check
+  uses front/rear **thirds** not halves (a grip straddling the median Y put its full height in both halves).
+- **Process lesson (reaffirms 2026-07-03):** my first two fixes (rear-vs-front reach-asymmetry, then
+  envelope-flatness) *passed my own head-math but FAILED the offline suite* — 180/240 then coin-flips. The
+  synthetic box gun also wasn't faithful (never reproduced the real misfire; its sparse verts + a mid-third
+  light broke the windows). Ground truth was the **real HK mesh**: computing all candidate metrics on it
+  directly is what settled the design. Don't trust a discriminator until it's checked on real geometry.
+- **Pending:** live end-to-end `unalign → align_object` from the raw pose (blender-mcp dropped mid-session).
+  Re-run when Blender reconnects to confirm `grip_is_down:true` on the first pass.
+- Tools: blender-mcp (execute_blender_code on the real mesh, workbench renders), Read/Edit/Write/Bash
+  (Blender-5.1 python numpy suite).
+  <!-- @anchor: v1 | failure: HK SFP9 TLR-8A shipped upside-down — under-barrel-light front-low mass inverted the rear-vs-front mean-height grip-down test, 2026-07-07 | regression: scripts/verify_align_math.py wml_gun 240-pose grip-down suite + cgs-align SKILL.md Session Notes 2026-07-07 + cgs_align.py step-4 rear-vs-mid area-weighted block -->
 
 ### 2026-07-04 (Walther PDP steel frame — pitch-sign fix + rail≠slide datum)
 - **Owner-confirmed "perfect"** on the `PDP STEEL FRAME SOLID GUN` (61,240 verts) at `pitch_offset_deg=+3.0`.
