@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "voice": {
+      "command": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/state/voice/.venv-pipecat/bin/python",
+      "args": [
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/voice/voice-mcp-server.py"
+      ]
+    }
+  }
+}
