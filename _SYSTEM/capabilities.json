@@ -2296,17 +2296,12 @@
       "serves": [
         "mnemopi auto-retain to canonical",
         "mnemopi export seam",
-        "omp learnings to canonical truth"
+        "omp learnings gated into canonical",
+        "auto-adjudicated memory proposals"
       ],
-      "does": "exports Mnemopi working_memory auto-retentions DIRECTLY INTO YURI's canonical store (owner chose",
-      "use": "node _SYSTEM/Scripts/mnemopi-canonical-bridge.mjs [--dry-run|plan|--apply]; or programmatically",
-      "exports": [
-        "exportMnemopiToCanonical",
-        "resolveMnemopiBankPath",
-        "rowToClaim",
-        "ELIGIBLE_SOURCES",
-        "BRIDGE_LANE"
-      ],
+      "does": "the OMP→YURI memory seam in TWO gated phases (owner design 2026-07-07: \"keep proposals, avoid flood,",
+      "use": "node mnemopi-canonical-bridge.mjs [--dry-run|--apply] [--export-only|--adjudicate-only]; or",
+      "exports": [],
       "mechanism": "_SYSTEM/Scripts/mnemopi-canonical-bridge.mjs"
     },
     {

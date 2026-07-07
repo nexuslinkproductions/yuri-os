@@ -5,143 +5,170 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import Database from 'better-sqlite3';
-import { REPO_ROOT } from './memory-kernel.mjs';
+import {
+  REPO_ROOT, proposeMemoryWrite, recordMemoryProposalDecision, MEMORY_PROPOSAL_LOG, MEMORY_LEDGER_LOG,
+} from './memory-kernel.mjs';
 import { appendClaim, mintEventId, loadCanonical, shardPath, drainOnce } from './memory-canonical-store.mjs';
+import { pendingMemoryProposals, deterministicReviewProposal } from './memory-proposal-autopilot.mjs';
 
 // @capability: mnemopi-canonical-bridge
-// @serves: mnemopi auto-retain to canonical | mnemopi export seam | omp learnings to canonical truth
-// @does: exports Mnemopi working_memory auto-retentions DIRECTLY INTO YURI's canonical store (owner chose
-//        bypass 2026-07-07: appendClaim, not proposeMemoryWrite — no propose→decide gate). Loop-guard skips
-//        yuri-seed rows (source not in ELIGIBLE_SOURCES) so the seed↔export cycle can't form; the seed's own
-//        guard (skip provenance.lane==='mnemopi') is the second break. Idempotent: eventId dedup against
-//        canonical + the un-drained shard means re-runs (and the session_shutdown hook) never double-write.
-//        After appending, drains the shard so claims fold into canonical + read-view immediately.
-// @use: node _SYSTEM/Scripts/mnemopi-canonical-bridge.mjs [--dry-run|plan|--apply]; or programmatically
-//       exportMnemopiToCanonical({ apply: true }).
-// @exports: exportMnemopiToCanonical, resolveMnemopiBankPath, rowToClaim, ELIGIBLE_SOURCES, BRIDGE_LANE
-// @depends: memory-canonical-store.mjs (appendClaim, drainOnce, loadCanonical, mintEventId, shardPath), better-sqlite3
+// @serves: mnemopi auto-retain to canonical | mnemopi export seam | omp learnings gated into canonical | auto-adjudicated memory proposals
+// @does: the OMP→YURI memory seam in TWO gated phases (owner design 2026-07-07: "keep proposals, avoid flood,
+//        auto-review pass/reject"). PHASE 1 exportMnemopiToProposals: eligible Mnemopi working_memory rows →
+//        proposeMemoryWrite (the propose→decide gate), content-sha deduped, loop-guarded (skips yuri-seed), with
+//        deliberate `coding-agent-retain` rows pre-tagged durable. PHASE 2 adjudicateMnemopiProposals: each pending
+//        mnemopi-export proposal is auto-reviewed by the existing deterministicReviewProposal — `keep` promotes to
+//        canonical (appendClaim + drain, provenance.lane='mnemopi' so the seed loop-guard skips it), `reject`/`defer`
+//        is recorded and the proposal is RETAINED (never floods canonical). This is the anti-flood answer: chatter
+//        defers as a kept proposal, only durable learnings reach canonical.
+// @use: node mnemopi-canonical-bridge.mjs [--dry-run|--apply] [--export-only|--adjudicate-only]; or
+//       runExportAndAdjudicate({ apply:true }).
+// @exports: runExportAndAdjudicate, exportMnemopiToProposals, adjudicateMnemopiProposals, proposalToClaim,
+//           resolveMnemopiBankPath, ELIGIBLE_SOURCES, EXPORT_TAG, BRIDGE_LANE
+// @depends: memory-kernel.mjs, memory-canonical-store.mjs, memory-proposal-autopilot.mjs, better-sqlite3
 
 export const ELIGIBLE_SOURCES = new Set(['coding-agent-transcript', 'coding-agent-retain']);
+export const EXPORT_TAG = 'mnemopi-export';
 export const BRIDGE_LANE = 'mnemopi';
 const MEM_SUBJECT_PREFIX = 'mem:';
+const READ_VIEW_PATH = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-canonical', 'read-view.json');
 
-// Resolve the Mnemopi project bank dynamically: newest banks/YURI-OS-MUSUBI-<hash>/mnemopi.db,
-// else the shared ~/.omp/agent/memories/mnemopi/mnemopi.db fallback.
 export function resolveMnemopiBankPath() {
   const banksDir = path.join(homedir(), '.omp', 'agent', 'memories', 'mnemopi', 'banks');
   if (existsSync(banksDir)) {
     const matches = readdirSync(banksDir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && entry.name.startsWith('YURI-OS-MUSUBI-'))
-      .map((entry) => {
-        const dbPath = path.join(banksDir, entry.name, 'mnemopi.db');
-        if (!existsSync(dbPath)) return null;
-        return { dbPath, mtimeMs: statSync(dbPath).mtimeMs };
+      .filter((e) => e.isDirectory() && e.name.startsWith('YURI-OS-MUSUBI-'))
+      .map((e) => {
+        const dbPath = path.join(banksDir, e.name, 'mnemopi.db');
+        return existsSync(dbPath) ? { dbPath, mtimeMs: statSync(dbPath).mtimeMs } : null;
       })
       .filter(Boolean)
       .sort((a, b) => b.mtimeMs - a.mtimeMs);
-    if (matches.length > 0) return matches[0].dbPath;
+    if (matches.length) return matches[0].dbPath;
   }
   return path.join(homedir(), '.omp', 'agent', 'memories', 'mnemopi', 'mnemopi.db');
 }
 
-function contentSha256(text) {
-  return crypto.createHash('sha256').update(String(text || '')).digest('hex');
-}
+const sha256 = (t) => crypto.createHash('sha256').update(String(t || '')).digest('hex');
+const truncate = (t, max = 80) => { const v = String(t || ''); return v.length <= max ? v : `${v.slice(0, max)}…`; };
 
-function truncate(text, max = 80) {
-  const value = String(text || '');
-  return value.length <= max ? value : `${value.slice(0, max)}…`;
-}
-
-/**
- * Map ONE Mnemopi working_memory row to a canonical claim. subject = content-hash so each distinct
- * retention is its own canonical key (no false contention); provenance.lane='mnemopi' is set by appendClaim
- * and is what the SEED loop-guard filters on. Deterministic → the store's content-hash dedup makes a re-run a no-op.
- */
-export function rowToClaim(row) {
-  const text = String(row?.embed_text || row?.content || '').trim();
-  if (!text) return null;
-  const sha = contentSha256(text);
-  const mtype = row?.memory_type && row.memory_type !== 'unknown' ? row.memory_type : 'observation';
-  return {
-    kind: 'assert',
-    subject: MEM_SUBJECT_PREFIX + sha,
-    predicate: mtype,
-    object: { content: text, originLane: BRIDGE_LANE, scope: 'bank', sha, importance: row?.importance ?? null },
-    domain: 'memory',
-    tier: null,
-    lifecycle: 'promoted',
-    memory_type: mtype,
-  };
-}
-
-/**
- * Idempotency seed: eventIds already in canonical OR pending (un-drained) in the mnemopi shard.
- * Without this, every re-sync re-appends to the shard (the drainer dedups at fold time, but the shard bloats).
- */
-function buildSeenEventIds(sessionId, opts = {}) {
+// Content already proposed / promoted, so export never re-proposes the same retention.
+function proposedContentShas(opts = {}) {
   const seen = new Set();
-  try { for (const c of loadCanonical({ ...opts, includeAdvisory: true })) if (c?.eventId) seen.add(c.eventId); } catch { /* peer-open tolerant */ }
-  try {
-    const sp = shardPath(BRIDGE_LANE, sessionId, opts);
-    if (existsSync(sp)) for (const ln of readFileSync(sp, 'utf8').split('\n')) {
-      const t = ln.trim(); if (!t) continue;
-      try { const ev = JSON.parse(t); if (ev.eventId) seen.add(ev.eventId); } catch { /* skip */ }
-    }
-  } catch { /* no shard yet */ }
+  const add = (c) => { const t = String(c || '').trim(); if (t) seen.add(sha256(t)); };
+  for (const p of [opts.proposalLogPath || MEMORY_PROPOSAL_LOG, opts.ledgerLogPath || MEMORY_LEDGER_LOG]) {
+    if (!existsSync(p)) continue;
+    for (const ln of readFileSync(p, 'utf8').split('\n')) { const t = ln.trim(); if (!t) continue; try { add(JSON.parse(t).content); } catch { /* skip */ } }
+  }
+  if (existsSync(READ_VIEW_PATH)) {
+    try { const v = JSON.parse(readFileSync(READ_VIEW_PATH, 'utf8')); for (const c of Object.values(v?.claims || {})) if (c?.object?.content != null) add(c.object.content); } catch { /* skip */ }
+  }
   return seen;
 }
 
-/**
- * Scan Mnemopi working_memory and write eligible auto-retentions DIRECTLY into canonical (appendClaim + drain).
- * Default dry-run — pass apply:true or CLI --apply to write. Loop-guarded + eventId-deduped.
- */
-export function exportMnemopiToCanonical(opts = {}) {
+// PHASE 1 — propose eligible Mnemopi retentions into the propose→decide gate (no direct canonical write).
+export function exportMnemopiToProposals(opts = {}) {
   const apply = opts.apply === true;
   const dryRun = !apply;
-  const sessionId = opts.sessionId || 'mnemopi-export';
   const bankPath = opts.bankPath || resolveMnemopiBankPath();
+  if (!existsSync(bankPath)) return { ok: false, reason: 'no-bank', scanned: 0, eligible: 0, alreadyProposed: 0, proposed: 0, dryRun, bankPath, examples: [] };
 
-  if (!existsSync(bankPath)) {
-    return { ok: false, reason: 'no-bank', scanned: 0, eligible: 0, alreadyCanonical: 0, emitted: 0, drained: false, dryRun, bankPath, examples: [] };
-  }
-
-  const seen = buildSeenEventIds(sessionId, opts);
-  let scanned = 0, eligible = 0, alreadyCanonical = 0, emitted = 0;
+  const seen = proposedContentShas(opts);
+  let scanned = 0, eligible = 0, alreadyProposed = 0, proposed = 0;
   const examples = [];
-  const errors = [];
-
   const db = new Database(bankPath, { readonly: true });
   db.pragma('busy_timeout = 10000');
   const rows = db.prepare('SELECT id, content, embed_text, source, importance, memory_type, timestamp FROM working_memory').all();
-
   for (const row of rows) {
     scanned += 1;
-    if (!ELIGIBLE_SOURCES.has(row.source)) continue; // LOOP GUARD: never re-export yuri-seed / foreign rows
+    if (!ELIGIBLE_SOURCES.has(row.source)) continue; // LOOP GUARD: skip yuri-seed / foreign rows
     eligible += 1;
-    const claim = rowToClaim(row);
-    if (!claim) continue;
-    const eventId = mintEventId(claim);
-    if (seen.has(eventId)) { alreadyCanonical += 1; continue; }
-    if (examples.length < 3) examples.push(truncate(claim.object.content));
-    if (dryRun) { emitted += 1; seen.add(eventId); continue; }
-    const r = appendClaim(BRIDGE_LANE, sessionId, claim, opts);
-    if (r.ok) { emitted += 1; seen.add(eventId); }
-    else errors.push({ sha: claim.object.sha, reason: r.reason });
+    const text = String(row.embed_text || row.content || '').trim();
+    if (!text) continue;
+    const hash = sha256(text);
+    if (seen.has(hash)) { alreadyProposed += 1; continue; }
+    if (examples.length < 3) examples.push(truncate(text));
+    // Deliberate retains (retain-tool) are pre-tagged durable → the reviewer keeps them; raw transcript is untagged
+    // → the reviewer defers it (kept as a proposal, never flooding canonical).
+    const tags = row.source === 'coding-agent-retain' ? [EXPORT_TAG, 'reference'] : [EXPORT_TAG];
+    if (!dryRun) {
+      const r = proposeMemoryWrite(
+        { content: text, surface: 'yuri-memory', tags, confidence: 0.6, reason: 'mnemopi auto-retain export — auto-adjudicated', originLane: BRIDGE_LANE },
+        { record: true, lane: BRIDGE_LANE, session: opts.session || 'mnemopi-export' },
+      );
+      if (r.ok && (r.recorded ? r.recorded.ok : true)) { proposed += 1; seen.add(hash); }
+    } else { proposed += 1; seen.add(hash); }
   }
   db.close();
+  return { ok: true, scanned, eligible, alreadyProposed, proposed, dryRun, bankPath, examples };
+}
 
-  // Fold the freshly-appended shard into the canonical generation + read-view so the claims are LIVE now,
-  // not just queued in the shard. Fail-open: a busy lease is retried on the next run.
-  let drained = false;
-  if (!dryRun && emitted > 0) {
-    try { drained = drainOnce(opts.drainerId || 'mnemopi-bridge', opts).ok === true; } catch { /* fail-open */ }
+// Map a KEPT proposal → canonical claim (subject = content-hash; provenance.lane='mnemopi' via appendClaim).
+export function proposalToClaim(proposal = {}) {
+  const text = String(proposal.content || '').trim();
+  if (!text) return null;
+  const sha = sha256(text);
+  return {
+    kind: 'assert', subject: MEM_SUBJECT_PREFIX + sha, predicate: 'learning',
+    object: { content: text, originLane: BRIDGE_LANE, sha, proposalId: proposal.id || null },
+    domain: 'memory', tier: null, lifecycle: 'promoted', memory_type: 'learning',
+  };
+}
+
+// PHASE 2 — auto-review pending mnemopi-export proposals; keep→canonical, reject/defer→recorded (retained).
+export function adjudicateMnemopiProposals(opts = {}) {
+  const apply = opts.apply === true;
+  const dryRun = !apply;
+  const sessionId = opts.session || 'mnemopi-adjudicate';
+  const pending = pendingMemoryProposals(opts);
+  if (!pending.ok) return { ok: false, error: pending.error };
+  const mine = pending.proposals.filter((p) => Array.isArray(p.tags) && p.tags.includes(EXPORT_TAG));
+
+  // eventIds already canonical / pending in the shard → idempotent promotion.
+  const seenEvent = new Set();
+  try { for (const c of loadCanonical({ ...opts, includeAdvisory: true })) if (c?.eventId) seenEvent.add(c.eventId); } catch { /* peer-open */ }
+  try { const sp = shardPath(BRIDGE_LANE, sessionId, opts); if (existsSync(sp)) for (const ln of readFileSync(sp, 'utf8').split('\n')) { const t = ln.trim(); if (!t) continue; try { const ev = JSON.parse(t); if (ev.eventId) seenEvent.add(ev.eventId); } catch { /* skip */ } } } catch { /* none */ }
+
+  let reviewed = 0, kept = 0, promoted = 0, deferred = 0, rejected = 0, rewritten = 0;
+  const decisions = [];
+  for (const proposal of mine) {
+    reviewed += 1;
+    const review = deterministicReviewProposal(proposal);
+    const decision = review.decision;
+    if (decision === 'keep') kept += 1;
+    else if (decision === 'reject') rejected += 1;
+    else if (decision === 'rewrite') rewritten += 1;
+    else deferred += 1;
+    if (decisions.length < 5) decisions.push({ id: proposal.id, decision, reason: review.reason, preview: truncate(proposal.content) });
+    if (dryRun) continue;
+    // record the decision (keep/reject/defer/rewrite) so the proposal is not re-reviewed forever.
+    recordMemoryProposalDecision({ proposalId: proposal.id, decision, reason: review.reason, decidedBy: 'mnemopi-autopilot' },
+      { lane: BRIDGE_LANE, session: sessionId });
+    // KEEP → promote to canonical (appendClaim + drain later). Everything else stays a retained proposal.
+    if (decision === 'keep') {
+      const claim = proposalToClaim(review.content ? { ...proposal, content: review.content } : proposal);
+      if (!claim) continue;
+      const eventId = mintEventId(claim);
+      if (seenEvent.has(eventId)) continue;
+      const r = appendClaim(BRIDGE_LANE, sessionId, claim, opts);
+      if (r.ok) { promoted += 1; seenEvent.add(eventId); }
+    }
   }
+  let drained = false;
+  if (!dryRun && promoted > 0) { try { drained = drainOnce(opts.drainerId || 'mnemopi-bridge', opts).ok === true; } catch { /* fail-open */ } }
+  return { ok: true, reviewed, kept, promoted, deferred, rejected, rewritten, drained, dryRun, decisions };
+}
 
-  return { ok: true, scanned, eligible, alreadyCanonical, emitted, drained, dryRun, bankPath, examples, errors: errors.slice(0, 10) };
+// Full flow: propose then adjudicate. The session_shutdown hook calls this.
+export function runExportAndAdjudicate(opts = {}) {
+  const exported = opts.adjudicateOnly ? null : exportMnemopiToProposals(opts);
+  const adjudicated = opts.exportOnly ? null : adjudicateMnemopiProposals(opts);
+  return { ok: (exported?.ok ?? true) && (adjudicated?.ok ?? true), exported, adjudicated };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const apply = process.argv.includes('--apply');
-  console.log(JSON.stringify(exportMnemopiToCanonical({ apply }), null, 2));
+  const exportOnly = process.argv.includes('--export-only');
+  const adjudicateOnly = process.argv.includes('--adjudicate-only');
+  console.log(JSON.stringify(runExportAndAdjudicate({ apply, exportOnly, adjudicateOnly }), null, 2));
 }

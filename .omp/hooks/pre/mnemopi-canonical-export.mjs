@@ -2,7 +2,7 @@
 //
 // Arms EXPORT-OUT: on session shutdown, proposes this OMP session's Mnemopi auto-retentions
 // INTO YURI's propose→decide gate (memory-proposals.jsonl) via mnemopi-canonical-bridge.mjs's
-// exportMnemopiToCanonical({ apply: true }). "Proposed", not promoted — the operator still decides
+// runExportAndAdjudicate({ apply: true }). "Proposed", not promoted — the operator still decides
 // before anything reaches canonical truth. This is the ongoing, automatic arm of the one-shot bridge.
 //
 // SAFETY POSTURE (mirrors mure-learn.mjs — fires once per session at shutdown):
@@ -43,9 +43,9 @@ async function proposeSessionLearnings() {
   if (_ran) return;
   _ran = true;
   const bridge = await lazyBridge();
-  if (!bridge?.exportMnemopiToCanonical) return;
+  if (!bridge?.runExportAndAdjudicate) return;
   try {
-    bridge.exportMnemopiToCanonical({ apply: true });
+    bridge.runExportAndAdjudicate({ apply: true });
   } catch { /* fail-open — never break session shutdown */ }
 }
 
