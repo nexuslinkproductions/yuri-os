@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P0 Truth Batch — Before / After · YURI OS</title>
+<style>
+  /* ============================================================
+     P0 TRUTH BATCH — visual recap
+     dark HUD / terminal aesthetic · zero external deps
+     ============================================================ */
+
+  :root {
+    --bg:          #070a0f;
+    --bg-elev:     #0c1117;
+    --bg-card:     #0e141b;
+    --bg-card-2:   #111922;
+    --border:      #1b2531;
+    --border-str:  #2a3a4d;
+    --grid:        rgba(120, 160, 200, 0.028);
+
+    --text:        #dde6ef;
+    --text-mute:   #8190a0;
+    --text-dim:    #54616e;
+
+    --before:      #e0704a;          /* muted amber-red */
+    --before-soft: #b85a36;
+    --before-bg:   rgba(224, 112, 74, 0.055);
+    --before-bd:   rgba(224, 112, 74, 0.22);
+
+    --after:       #34d8a8;          /* green-teal */
+    --after-soft:  #2bb58c;
+    --after-bg:    rgba(52, 216, 168, 0.05);
+    --after-bd:    rgba(52, 216, 168, 0.22);
+
+    --accent:      #5cc8ee;          /* HUD cyan */
+    --warn:        #f0b860;
+    --ok:          #4ade80;
+
+    --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+
+    --maxw: 1180px;
+    --gut: clamp(16px, 4vw, 40px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    /* faint technical grid */
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 44px 44px;
+    background-position: -1px -1px;
+  }
+
+  /* scanline overlay — static, subtle */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+
+  /* top ambient glow */
+  body::after {
+    content: "";
+    position: fixed;
+    top: -240px; left: 50%;
+    transform: translateX(-50%);
+    width: 1200px; height: 520px;
+    background: radial-gradient(ellipse at center, rgba(92,200,238,0.07), transparent 68%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 var(--gut);
+  }
+
+  /* ---- terminal status bar ---- */
+  .statusbar {
+    position: relative;
+    z-index: 2;
+    border-bottom: 1px solid var(--border);
+    background: rgba(7,10,15,0.82);
+    backdrop-filter: blur(6px);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .statusbar .inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 9px var(--gut);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .statusbar .dot { color: var(--accent); }
+  .statusbar .sep { color: var(--text-dim); opacity: 0.5; }
+  .statusbar .live {
+    margin-left: auto;
+    color: var(--ok);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .statusbar .live::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 8px var(--ok);
+  }
+
+  /* ---- header ---- */
+  header.report {
+    padding: clamp(48px, 9vw, 92px) 0 clamp(34px, 6vw, 56px);
+    border-bottom: 1px solid var(--border);
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+  .kicker .barline {
+    display: inline-block;
+    width: 38px; height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  h1.title {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: clamp(30px, 6vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: #eaf2fa;
+    margin-bottom: 22px;
+  }
+  h1.title .slash { color: var(--accent); font-weight: 400; }
+  .spine {
+    font-size: clamp(17px, 2.2vw, 21px);
+    color: var(--text-mute);
+    max-width: 760px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+  }
+  .spine strong { color: var(--text); font-weight: 600; }
+  .spine em { font-style: normal; color: var(--accent); }
+
+  .commit-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .chip-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-right: 4px;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-str);
+    border-radius: 6px;
+    background: var(--bg-elev);
+    color: var(--text-mute);
+    transition: border-color .18s, color .18s, transform .18s;
+    cursor: default;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .chip b { color: #cfe; font-weight: 500; }
+
+  /* ---- hero metric ---- */
+  .hero {
+    padding: clamp(46px, 8vw, 80px) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  @media (min-width: 880px) {
+    .hero-grid { grid-template-columns: 1.35fr 1fr; gap: 56px; }
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .hero-num {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(64px, 16vw, 148px);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    display: flex;
+    align-items: baseline;
+    gap: clamp(14px, 3vw, 30px);
+    flex-wrap: wrap;
+  }
+  .hero-num .from { color: var(--before); }
+  .hero-num .arrow {
+    color: var(--text-dim);
+    font-weight: 300;
+    font-size: 0.62em;
+    transform: translateY(-0.06em);
+    display: inline-block;
+  }
+  .hero-num .to { color: var(--after); }
+  .hero-num .of {
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: clamp(15px, 2.4vw, 22px);
+    color: var(--text-mute);
+    letter-spacing: 0;
+    align-self: flex-end;
+    padding-bottom: 0.5em;
+  }
+
+  .hero-sub {
+    margin-top: 22px;
+    font-size: clamp(15.5px, 2vw, 18px);
+    color: var(--text-mute);
+    max-width: 52ch;
+    line-height: 1.55;
+  }
+  .hero-sub code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    color: var(--warn);
+    background: rgba(240,184,96,0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(240,184,96,0.18);
+  }
+  .delta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--after);
+    background: var(--after-bg);
+    border: 1px solid var(--after-bd);
+    padding: 7px 13px;
+    border-radius: 999px;
+  }
+
+  .hero-card {
+    border: 1px solid var(--border-str);
+    border-radius: 12px;
+    background: linear-gradient(165deg, var(--bg-card-2), var(--bg-card));
+    padding: 26px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--before), var(--after));
+  }
+  .hero-card h3 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .row-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 11px 0;
+    border-bottom: 1px dashed var(--border);
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+  .row-stat:last-child { border-bottom: none; }
+  .row-stat .k { color: var(--text-mute); }
+  .row-stat .v { color: var(--text); font-weight: 500; }
+  .row-stat .v.good { color: var(--after); }
+  .row-stat .v.bad  { color: var(--before); }
+  .row-stat .v .sub { color: var(--text-mute); font-weight: 400; font-size: 12px; }
+
+  /* ---- section heading ---- */
+  .sec-head {
+    padding: clamp(44px, 7vw, 68px) 0 26px;
+  }
+  .sec-head .lab {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .sec-head h2 {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: clamp(22px, 3.4vw, 30px);
+    letter-spacing: -0.01em;
+    color: #eaf2fa;
+  }
+  .sec-head p {
+    margin-top: 10px;
+    color: var(--text-mute);
+    max-width: 60ch;
+    font-size: 15.5px;
+  }
+
+  /* ---- before/after cards ---- */
+  .cards { padding-bottom: 18px; }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    margin-bottom: 22px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--border-str); }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(255,255,255,0.014), transparent);
+  }
+  .card-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    width: 30px; height: 30px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-str);
+    border-radius: 7px;
+    background: var(--bg-elev);
+  }
+  .card-title {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(16px, 2vw, 19px);
+    color: #eaf2fa;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+  .card-title .mono-tag {
+    font-family: var(--mono);
+    font-size: 0.74em;
+    color: var(--text-mute);
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  .card-commit {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-mute);
+    border: 1px solid var(--border);
+    padding: 4px 9px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .compare { grid-template-columns: 1fr 1fr; }
+  }
+  .pane {
+    padding: 20px 22px;
+    position: relative;
+    min-height: 88px;
+  }
+  @media (min-width: 760px) {
+    .compare > .pane:first-child { border-right: 1px solid var(--border); }
+  }
+  @media (max-width: 759px) {
+    .compare > .pane:first-child { border-bottom: 1px solid var(--border); }
+  }
+
+  .pane-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .pane-label .glyph { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .pane.before .pane-label { color: var(--before); }
+  .pane.before .glyph { background: var(--before); }
+  .pane.after  .pane-label { color: var(--after); }
+  .pane.after  .glyph { background: var(--after); box-shadow: 0 0 7px var(--after); }
+
+  .pane.before { background: linear-gradient(180deg, var(--before-bg), transparent 70%); }
+  .pane.after  { background: linear-gradient(180deg, var(--after-bg), transparent 70%); }
+
+  .pane p {
+    font-size: 14.5px;
+    line-height: 1.58;
+    color: var(--text-mute);
+  }
+  .pane p + p { margin-top: 9px; }
+  .pane code, .pane .path {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #c8d4e0;
+  }
+  .pane.before code, .pane.before .path { color: var(--before); border-color: var(--before-bd); background: rgba(224,112,74,0.06); }
+  .pane.after  code, .pane.after  .path { color: var(--after);  border-color: var(--after-bd);  background: rgba(52,216,168,0.06); }
+
+  .pane .strike { text-decoration: line-through; text-decoration-color: var(--before-soft); text-decoration-thickness: 1.5px; color: var(--text-mute); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+    letter-spacing: 0.02em;
+  }
+  .badge.bad  { color: var(--before); border-color: var(--before-bd); background: rgba(224,112,74,0.05); }
+  .badge.good { color: var(--after);  border-color: var(--after-bd);  background: rgba(52,216,168,0.05); }
+
+  /* ---- secondary stats ---- */
+  .secondary {
+    margin-top: 18px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-card);
+    padding: 26px 24px;
+  }
+  .secondary h3 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .drift-flow {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2vw, 18px);
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: clamp(15px, 2.4vw, 21px);
+  }
+  .drift-flow .bad-set { color: var(--before); }
+  .drift-flow .arrow { color: var(--text-dim); }
+  .drift-flow .reconciled { color: var(--after); font-weight: 600; }
+  .drift-flow .then { color: var(--text-mute); font-size: 0.7em; margin-left: 6px; }
+  .drift-note { margin-top: 14px; color: var(--text-mute); font-size: 14px; }
+  .drift-note b { color: var(--after); font-family: var(--mono); }
+
+  /* ---- footer / next ---- */
+  footer.next {
+    margin-top: clamp(44px, 7vw, 70px);
+    margin-bottom: clamp(40px, 6vw, 64px);
+    border: 1px solid var(--border-str);
+    border-radius: 14px;
+    background:
+      radial-gradient(ellipse at top right, rgba(92,200,238,0.05), transparent 60%),
+      linear-gradient(180deg, var(--bg-card-2), var(--bg-card));
+    padding: clamp(26px, 4vw, 40px);
+    position: relative;
+    overflow: hidden;
+  }
+  footer.next::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+  }
+  .next-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .next h2 {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: clamp(22px, 3.4vw, 30px);
+    color: #eaf2fa;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .next > p { color: var(--text-mute); max-width: 64ch; margin-bottom: 22px; font-size: 15.5px; }
+  .next-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 720px) { .next-list { grid-template-columns: repeat(3, 1fr); } }
+  .next-list li {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 16px 16px 18px;
+    background: rgba(7,10,15,0.45);
+  }
+  .next-list li .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    margin-bottom: 6px;
+  }
+  .next-list li .t {
+    font-weight: 600;
+    color: #eaf2fa;
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+  .next-list li .d { color: var(--text-mute); font-size: 13.5px; line-height: 1.5; }
+  .gate-flag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--warn);
+    border: 1px solid rgba(240,184,96,0.3);
+    background: rgba(240,184,96,0.06);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 9px;
+    letter-spacing: 0.04em;
+  }
+
+  .closer {
+    border-top: 1px solid var(--border);
+    padding: 26px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-mute);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .closer .ok { color: var(--ok); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="statusbar">
+  <div class="inner">
+    <span class="dot">▸</span>
+    <span>yuri@os</span><span class="sep">:</span><span>~/truth-batch/p0</span>
+    <span class="sep">|</span>
+    <span>narrative</span><span class="sep">→</span><span>honesty-layer</span>
+    <span class="live">LANDED</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <header class="report">
+    <div class="kicker"><span class="barline"></span> P0 · Truth Batch · 2026-07-07</div>
+    <h1 class="title">Prose outruns wiring<span class="slash">.</span><br>The system tells the truth about itself<span class="slash">.</span></h1>
+    <p class="spine">
+      P0 was a plan-breaking honesty pass. It fixed an export bug that was silently gutting the harness's
+      own measurement tool, then forced YURI to stop claiming wiring that did not exist &mdash; in
+      <em>3 commits</em>. Doctrine, citations, and routes that <strong>lied about their own state</strong>
+      were reconciled to what the runtime actually does.
+    </p>
+    <div class="commit-chips">
+      <span class="chip-label">commits</span>
+      <span class="chip">9fa45777 <b>· export fix</b></span>
+      <span class="chip">7435c0e7 <b>· fleet doctrine</b></span>
+      <span class="chip">4b4789fb <b>· publish + truth-layer</b></span>
+    </div>
+  </header>
+
+  <!-- ============ HERO METRIC ============ -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">// hero metric · packaging self-audit</div>
+        <div class="hero-num">
+          <span class="from">107</span>
+          <span class="arrow">⟶</span>
+          <span class="to">576</span>
+          <span class="of">/ 620 modules</span>
+        </div>
+        <p class="hero-sub">
+          The export tool <code>yuri-export.mjs</code> &mdash; the thing that packages and measures the harness &mdash;
+          was shipping only <strong>107 of 620</strong> Scripts modules. Its <code>globMatch</code> regex was broken:
+          <em>the packaging tool itself was broken</em>. After the fix: <strong>576 modules</strong>, exclude globs honored,
+          a TDD test and a packaging census guard locked it in.
+        </p>
+        <span class="delta-tag">▲ +469 modules · 4.4× coverage · measurement now honest</span>
+      </div>
+
+      <aside class="hero-card">
+        <h3>// export census</h3>
+        <div class="row-stat"><span class="k">before</span><span class="v bad">107 <span class="sub">/ 620</span></span></div>
+        <div class="row-stat"><span class="k">after</span><span class="v good">576 <span class="sub">/ 620</span></span></div>
+        <div class="row-stat"><span class="k">root cause</span><span class="v"><span class="sub">broken globMatch regex</span></span></div>
+        <div class="row-stat"><span class="k">exclude globs</span><span class="v good">working</span></div>
+        <div class="row-stat"><span class="k">guard</span><span class="v good">TDD test + census</span></div>
+        <div class="row-stat"><span class="k">commit</span><span class="v">9fa45777</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ CARDS SECTION ============ -->
+  <div class="sec-head">
+    <div class="lab">// seven reconciliations</div>
+    <h2>Before / After &mdash; the honesty diff</h2>
+    <p>Each card pairs what YURI <em>claimed</em> against what the runtime actually does after P0. Claim on the left; honest state on the right.</p>
+  </div>
+
+  <div class="cards">
+
+    <!-- CARD 1 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">01</span>
+        <span class="card-title">Export tool <span class="mono-tag">yuri-export.mjs</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Broken <code>globMatch</code> ships <strong>107 / 620</strong> modules &mdash; the tool that measures the harness was itself broken, silently undercounting everything downstream.</p>
+          <div class="badges"><span class="badge bad">phantom coverage</span><span class="badge bad">no guard</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p><strong>576 modules</strong> ship correctly; exclude globs honored end-to-end. A TDD test plus a packaging census guard make a silent regression impossible.</p>
+          <div class="badges"><span class="badge good">576 / 620</span><span class="badge good">census guard</span><span class="badge good">TDD locked</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 2 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">02</span>
+        <span class="card-title">Symbiotic pulse <span class="mono-tag">cognitive doctrine</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Doctrine declared it <em>&ldquo;mandatory for every visible input&rdquo;</em> &mdash; yet <strong>zero wired callers</strong> existed. Pure prose wearing a mandate's clothes.</p>
+          <div class="badges"><span class="badge bad">0 callers</span><span class="badge bad">unfalsifiable claim</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p>Honestly restated as <em>&ldquo;recommended cognitive discipline, applied by model judgment.&rdquo;</em> The doctrine stays useful; the false mandate is gone.</p>
+          <div class="badges"><span class="badge good">honest framing</span><span class="badge good">advisory</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 3 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">03</span>
+        <span class="card-title">Backend :3004 <span class="mono-tag">canonical-surface claim</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Presented as the <strong>canonical brain</strong> &mdash; yet wedged, unsupervised, with <strong>no marker</strong> telling anyone it was a legacy surface.</p>
+          <div class="badges"><span class="badge bad">wedged</span><span class="badge bad">unsupervised</span><span class="badge bad">no banner</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p>Now carries an explicit <strong>LEGACY / parallel-surface</strong> banner. Its role is stated truthfully; nobody mistakes a wedged node for the live brain.</p>
+          <div class="badges"><span class="badge good">labeled</span><span class="badge good">parallel-surface</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 4 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">04</span>
+        <span class="card-title">Design pipeline <span class="mono-tag">dead citation</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Pipeline step 1 pointed at <code>_SYSTEM/DESIGN.md</code> &mdash; a file that had been <strong>deleted</strong>. The first instruction in the flow was a broken link.</p>
+          <div class="badges"><span class="badge bad">404 · step 1</span><span class="badge bad">phantom doc</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p><span class="strike">_SYSTEM/DESIGN.md</span> dead citations removed. The pipeline now references only files that exist in the tree.</p>
+          <div class="badges"><span class="badge good">no dead refs</span><span class="badge good">resolves</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 5 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">05</span>
+        <span class="card-title">/clone · /pco <span class="mono-tag">route → retired skill</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Routes funneled into a skill marked <em>&ldquo;Retired &mdash; do not invoke.&rdquo;</em> Users following the command hit a tombstone by design.</p>
+          <div class="badges"><span class="badge bad">dead route</span><span class="badge bad">do-not-invoke target</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p>Skill formally retired; routes redirect to <strong>native planning + llm-compat lanes</strong> &mdash; the live replacement the tombstone always pointed at.</p>
+          <div class="badges"><span class="badge good">redirects to live path</span><span class="badge good">native planning</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 6 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">06</span>
+        <span class="card-title">yuri-homeostat <span class="mono-tag">phantom reference</span></span>
+        <span class="card-commit">9fa45777</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Cited as a <strong>live</strong> component &mdash; but the file <strong>does not exist</strong>. A phantom in the architecture map, treated as wired.</p>
+          <div class="badges"><span class="badge bad">file missing</span><span class="badge bad">cited as live</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p>References softened to an honest <em>&ldquo;not wired / advisory.&rdquo;</em> It may exist conceptually; it does not exist in the runtime, and the docs now say so.</p>
+          <div class="badges"><span class="badge good">softened</span><span class="badge good">advisory</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 7 -->
+    <article class="card">
+      <div class="card-head">
+        <span class="card-num">07</span>
+        <span class="card-title">Fleet doctrine <span class="mono-tag">invokable orchestration</span></span>
+        <span class="card-commit">7435c0e7 · 4b4789fb</span>
+      </div>
+      <div class="compare">
+        <div class="pane before">
+          <span class="pane-label"><span class="glyph"></span> Before</span>
+          <p>Doctrine scattered across a <strong>24&nbsp;KB doc</strong>, config files, and MLP internals &mdash; descriptive but <strong>not invokable</strong>. You could read it; nothing could call it.</p>
+          <div class="badges"><span class="badge bad">24 KB prose</span><span class="badge bad">not invokable</span></div>
+        </div>
+        <div class="pane after">
+          <span class="pane-label"><span class="glyph"></span> After</span>
+          <p><code>fleet-economy</code> &mdash; an invokable skill &mdash; is <strong>live and published</strong> to the load surface: <strong>5 Iron Rules</strong>, TDD-verified, MoE/MLP orchestration doctrine made callable.</p>
+          <div class="badges"><span class="badge good">invokable</span><span class="badge good">published</span><span class="badge good">5 Iron Rules</span><span class="badge good">TDD-verified</span></div>
+        </div>
+      </div>
+    </article>
+
+  </div><!-- /.cards -->
+
+  <!-- ============ SECONDARY STATS ============ -->
+  <section class="secondary">
+    <h3>// secondary · skill registry reconciliation</h3>
+    <div class="drift-flow">
+      <span class="bad-set">101 / 120 / 121</span>
+      <span class="arrow">⟶</span>
+      <span class="reconciled">123</span>
+      <span class="then">(drift = 0)</span>
+      <span class="arrow">then</span>
+      <span class="bad-set" style="color:var(--text-mute);">design-master scrapped</span>
+      <span class="arrow">⟶</span>
+      <span class="reconciled">122</span>
+    </div>
+    <p class="drift-note">
+      Three skill registries disagreed on the count (<b>101 / 120 / 121</b>). P0 reconciled them to a single
+      <b>123</b> with <b>drift = 0</b>. The <code>design-master</code> skill was then scrapped, settling the live
+      canonical number at <b>122</b>.
+    </p>
+  </section>
+
+  <!-- ============ NEXT: P1 ============ -->
+  <footer class="next">
+    <div class="next-eyebrow">// next · P1 · owner-gated</div>
+    <h2>From honest state to honest boundaries</h2>
+    <p>P0 made the system describe itself truthfully. P1 takes the next step: clean up the leftovers, prove the golden path end to end, and resolve boundary questions that need an owner decision.</p>
+    <ul class="next-list">
+      <li>
+        <div class="n">P1 · 01</div>
+        <div class="t">Worktree reap</div>
+        <div class="d">Harvest and close out the leftover worktrees from the batch so the tree reflects only live branches.</div>
+      </li>
+      <li>
+        <div class="n">P1 · 02</div>
+        <div class="t">Golden-path test</div>
+        <div class="d">Prove the full export → skill-load path end to end, so the 576-module honesty is asserted, not assumed.</div>
+      </li>
+      <li>
+        <div class="n">P1 · 03</div>
+        <div class="t">Boundary work</div>
+        <div class="d">Resolve the scope/relocation questions surfaced by the truth pass.</div>
+        <span class="gate-flag">⏵ owner-gated relocation</span>
+      </li>
+    </ul>
+  </footer>
+
+  <div class="closer">
+    <span><span class="ok">✓</span> P0 truth batch · landed · 3 commits</span>
+    <span>107 ⟶ 576 · drift = 0 · system honest about itself</span>
+  </div>
+
+</div><!-- /.wrap -->
+
+</body>
+</html>
