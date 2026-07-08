@@ -1,12 +1,5 @@
 export * as breaker from '../energy-breaker.mjs';
-export * as breakerTest from '../energy-breaker.test.mjs';
-export * as observabilityHealth from '../energy-observability-health.mjs';
 export * as outcomeBackfill from '../energy-outcome-backfill.mjs';
-export * as outcomeBackfillTest from '../energy-outcome-backfill.test.mjs';
 export * as outcomeDeriver from '../energy-outcome-deriver.mjs';
-export * as outcomeDeriverTest from '../energy-outcome-deriver.test.mjs';
 export * as outcomeSignals from '../energy-outcome-signals.mjs';
-export * as outcomeSignalsTest from '../energy-outcome-signals.test.mjs';
 export * as tickCore from '../energy-tick-core.mjs';
-export * as tickCoreTest from '../energy-tick-core.test.mjs';
-export * as weightsDriftTest from '../energy-weights-drift.test.mjs';

@@ -1,10 +1,5 @@
 export * as assessor from '../filing-assessor.mjs';
-export * as assessorTest from '../filing-assessor.test.mjs';
 export * as autonomy from '../filing-autonomy.mjs';
-export * as autonomyTest from '../filing-autonomy.test.mjs';
 export * as canonicalBridge from '../filing-canonical-bridge.mjs';
-export * as canonicalBridgeTest from '../filing-canonical-bridge.test.mjs';
 export * as deps from '../filing-deps.mjs';
-export * as depsTest from '../filing-deps.test.mjs';
 export * as mutator from '../filing-mutator.mjs';
-export * as mutatorTest from '../filing-mutator.test.mjs';
