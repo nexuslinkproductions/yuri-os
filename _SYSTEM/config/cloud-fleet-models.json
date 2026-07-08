@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "name": "cloud-fleet-models",
+    "version": "2.0.0",
+    "updated": "2026-07-06",
+    "policy": "CLOUD-ONLY — no local Ollama SLMs on the MacBook. No Codex. No direct DeepSeek API (retired 2026-07-06). Orchestrator uses OMP subscriptions first.",
+    "authority": "Advisory routing map for opus-fleet + MURE. Governance + arm flags always win."
+  },
+  "orchestrator": {
+    "primary": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "ompRole": "default",
+      "when": "Claude OAuth window available"
+    },
+    "fallbacks": [
+      {
+        "rank": 1,
+        "provider": "cursor",
+        "model": "composer-2.5",
+        "ompRole": "default",
+        "when": "Claude session limit / credential block"
+      },
+      {
+        "rank": 2,
+        "provider": "z-ai",
+        "lane": "glm-max",
+        "model": "glm-5.2",
+        "when": "heavy synthesis; z.ai plan"
+      },
+      {
+        "rank": 3,
+        "provider": "xiaomi-mimo",
+        "model": "mimo-v2.5-pro[1m]",
+        "when": "Anthropic-protocol alternative; 1M ctx"
+      }
+    ]
+  },
+  "substrates": {
+    "omp_task": {
+      "description": "OMP harness task() subagents — primary native worker substrate",
+      "roles": {
+        "explore": {
+          "lane": "research",
+          "model": "default",
+          "tools": "read-only"
+        },
+        "reviewer": {
+          "lane": "verification",
+          "model": "default"
+        },
+        "tester": {
+          "lane": "testing",
+          "model": "default"
+        },
+        "task": {
+          "lane": "codegen",
+          "model": "default"
+        },
+        "librarian": {
+          "lane": "research",
+          "model": "default"
+        },
+        "designer": {
+          "lane": "design",
+          "model": "default"
+        },
+        "plan": {
+          "lane": "architecture",
+          "model": "slow"
+        },
+        "sonic": {
+          "lane": "mechanical",
+          "model": "smol"
+        }
+      },
+      "rules": [
+        "Self-contained assignment per spawn (Goal/Constraints/Contract + Target/Change/Acceptance).",
+        "Orchestrator verifies every result against local evidence.",
+        "Never finalize (commit/push) from a subagent."
+      ]
+    },
+    "glm_fleet": {
+      "script": "_SYSTEM/Scripts/glm-fleet.mjs",
+      "armEnv": "YURI_GLM_FLEET",
+      "armFlag": "_SYSTEM/state/glm-fleet.enabled",
+      "reasoning": "high",
+      "tiers": {
+        "glm-max": {
+          "model": "glm-5.2",
+          "ctx": "1M",
+          "use": "orchestrator-peer, architecture, adversarial, synthesis"
+        },
+        "glm": {
+          "model": "glm-5.1",
+          "ctx": "200K",
+          "use": "code-gen, refactor, judgment (workhorse)"
+        },
+        "glm-flash": {
+          "model": "glm-5-turbo",
+          "ctx": "200K",
+          "use": "census, scan, fast bulk (alias remaps from glm-flash; 4.7-flash unstable)"
+        },
+        "glm-turbo": {
+          "model": "glm-5-turbo",
+          "ctx": "200K",
+          "use": "reactive / voice-brain / snappy"
+        },
+        "glm-vision": {
+          "model": "glm-4.6v",
+          "ctx": "64K",
+          "use": "screenshots / UI"
+        }
+      }
+    },
+    "ollama_cloud": {
+      "script": "_SYSTEM/Scripts/ollama-fleet.mjs",
+      "armEnv": "YURI_OLLAMA_FLEET",
+      "armFlag": "_SYSTEM/state/ollama-fleet.enabled",
+      "concurrency": 3,
+      "localForbidden": true,
+      "tiers": {
+        "flash": {
+          "model": "deepseek-v4-flash:cloud",
+          "use": "default bulk — best quality/usage"
+        },
+        "minimax": {
+          "model": "minimax-m3:cloud",
+          "use": "efficient generalist"
+        },
+        "kimi": {
+          "model": "kimi-k2.7-code:cloud",
+          "use": "code-heavy peer"
+        },
+        "nemotron": {
+          "model": "nemotron-3-ultra:cloud",
+          "use": "heavy reasoning burst"
+        },
+        "deepseek-pro": {
+          "model": "deepseek-v4-pro:cloud",
+          "use": "true-1M heavy — avoid bulk (~2x usage)"
+        },
+        "gemma": {
+          "model": "gemma4:31b-cloud",
+          "use": "available cloud generalist"
+        }
+      }
+    },
+    "mimo": {
+      "lanes": {
+        "mimo-v2.5-pro[1m]": {
+          "use": "Opus-class Anthropic-protocol",
+          "ctx": "1M"
+        },
+        "mimo-v2.5[1m]": {
+          "use": "multimodal + reasoning",
+          "ctx": "1M"
+        },
+        "mimo-v2-flash": {
+          "use": "fast/cheap",
+          "ctx": "256K"
+        }
+      }
+    },
+    "cursor": {
+      "model": "composer-2.5",
+      "ompRole": "advisor",
+      "when": "Claude capped; interactive native lane"
+    }
+  },
+  "retired": {
+    "codex": "Owner no longer uses Codex — ignore all codex-offload-runner / openai-codex references.",
+    "direct_deepseek_api": "Retired 2026-07-06 — use Ollama Cloud deepseek-v4-*:cloud only.",
+    "local_ollama": "MacBook cannot run local SLMs in fleet — qwen-local, gemma-local, vibethinker-local forbidden."
+  },
+  "mureNativeTranslation": {
+    "comment": "When MURE emits nativeSpecs with legacy Claude model names, translate to OMP task() under Claude cap.",
+    "sonnet": {
+      "substrate": "omp_task",
+      "agent": "task",
+      "role": "Capable generalist — real coding, refactor, integration, analysis, and verification (NOT research/bulk-only; sonnet-4-6 handles substantial implementation work)"
+    },
+    "haiku": {
+      "substrate": "omp_task",
+      "agent": "sonic",
+      "role": "Mechanical verifier"
+    },
+    "opus": {
+      "substrate": "glm_fleet",
+      "lane": "glm-max",
+      "note": "orchestrator-only — never spawn opus as leaf"
+    }
+  }
+}

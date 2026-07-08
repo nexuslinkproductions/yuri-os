@@ -17,7 +17,7 @@ This is the single invoke-once surface for the fleet. It consolidates what was s
 2. **Reads/searches/scans ALWAYS go to a cheaper model.** File reads, greps, globs, doc scrapes, census, "where is X", "what does Y do" — never keep these for yourself, even the recon that scopes your own fan-out. The only reads you do are the artifacts a lane hands back and the gate output you verify.
 3. **Coding/analysis/synthesis go to medium/heavy models** (see roster). One unit of substantial work per lane; fan the same role across N instances when the work divides.
 4. **Recursive offload is MANDATORY, not optional.** Every large-model subagent you spawn (including Fable) MUST itself offload its reads/searches/bulk to cheap lanes and reserve itself for the hard reasoning. State this in the assignment. A heavy lane that does its own grunt reads is a failure. (Leaf lanes that CANNOT spawn satisfy the spirit by surgical scoped reads — see the leaf-lane exception under the recursive offload contract.)
-5. **Right-size, don't micro-task.** A lane is a substantial or parallelizable chunk. A one-line edit costs less to do than to describe — do those inline. Reserve lanes for work that justifies the dispatch.
+5. **Right-size, don't micro-task — but "trivial" is a NARROW, defined carve-out.** Keep work inline ONLY when it meets ALL of: reads ≤1 already-known file, ≤~50 lines total, no grep/glob to locate it, no multi-stage bash. Everything else — 3+ file reads, ANY search to scope the work, a census, a multi-file edit — is a lane's job even when you *could* do it yourself. "I'll just read these myself, it's faster" is the exact reflex this rule kills; the undefined word "trivial" is the loophole that swallows the delegate-by-default rule, so it is defined here. Reserve inline for the genuinely one-shot edit.
 
 ## Roster & tiers (the MoE) — canonical: `_SYSTEM/config/cloud-fleet-models.json`
 
@@ -45,6 +45,13 @@ Two surfaces, same discipline:
 - **`task` tool** — batch parallel subagents; pick `agent` per lane (explore/Tester/reviewer/task/sonic + the MURE roster).
 
 Every assignment is self-contained: target files (≤3–5 explicit paths), the change with APIs/patterns, edge cases, observable acceptance. Instruct every lane: **skip lint/format/gates — the orchestrator verifies once at phase end.**
+
+## Dispatch reliability (a dead lane kills the habit)
+
+A subagent that 429-dies teaches the orchestrator "delegation fails" — and it reverts to doing everything itself. Keep dispatch reliable so delegation stays the path of least resistance:
+- The OMP `task` role must route to a reliable, independent-quota default — never hard-pinned to a single provider that can hit a weekly/monthly cap. Provider fallback is wired in `~/.omp/agent/config.yml` (`retry.fallbackChains` + `retry.modelFallback`), so a capped provider degrades to a healthy one instead of failing.
+- **Config changes are read at session start** — an in-session `omp config set` does NOT take effect until the next launch. If a provider caps mid-session, route explicit lanes to a known-healthy agent (`deepseek-flash`, or the GLM-free `.claude/agents/*` roster) rather than the capped default.
+- When you see repeated `429` / rate-limit on a lane, that is a routing problem, not a reason to stop delegating — switch the agent, don't absorb the work.
 
 ## Recursive offload contract (for heavy lanes)
 
