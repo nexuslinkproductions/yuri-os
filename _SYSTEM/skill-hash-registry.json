@@ -47,6 +47,10 @@
     "source_path": "skills/caveman/SKILL.md",
     "hash": "04d927756e253def"
   },
+  "cgs-mold": {
+    "source_path": "skills/cgs-mold/SKILL.md",
+    "hash": "6632b99e2246bcf2"
+  },
   "claude-codex-capability-bridge": {
     "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
     "hash": "3a0435f750d5a7fa"
@@ -219,6 +223,10 @@
     "source_path": "skills/nex-vault/SKILL.md",
     "hash": "71176f370b636761"
   },
+  "nexus-security-hardening": {
+    "source_path": "skills/nexus-security-hardening/SKILL.md",
+    "hash": "ee341a8772f69be6"
+  },
   "non-destructive-infinity-guard": {
     "source_path": "skills/non-destructive-infinity-guard/SKILL.md",
     "hash": "3ade39a5a9b96499"
@@ -303,6 +311,10 @@
     "source_path": "skills/peer-signal-build/SKILL.md",
     "hash": "d8d3edf322a78fb4"
   },
+  "pilot-feedback": {
+    "source_path": "skills/pilot-feedback/SKILL.md",
+    "hash": "56dfc75440e6cabd"
+  },
   "plan-review": {
     "source_path": "skills/plan-review/SKILL.md",
     "hash": "75fbfff5351d6bf2"
@@ -377,19 +389,15 @@
   },
   "subagent-driven-development": {
     "source_path": "skills/subagent-driven-development/SKILL.md",
-    "hash": "5eb89fb08e68ca5c"
+    "hash": "43427b0f8b9dbf62"
   },
   "systematic-debugging": {
     "source_path": "skills/systematic-debugging/SKILL.md",
-    "hash": "cf70a30efbe066e2"
+    "hash": "cbae224531238b76"
   },
   "tdd": {
     "source_path": "skills/tdd/SKILL.md",
     "hash": "21e95c98f0538ecb"
-  },
-  "test-driven-development": {
-    "source_path": "skills/test-driven-development/SKILL.md",
-    "hash": "f7a79b1bc5dd224c"
   },
   "to-issues": {
     "source_path": "skills/to-issues/SKILL.md",
@@ -453,7 +461,7 @@
   },
   "writing-skills": {
     "source_path": "skills/writing-skills/SKILL.md",
-    "hash": "1a6a9c39142a23c4"
+    "hash": "b16c0e9f3eadedfd"
   },
   "yuri-code-intelligence": {
     "source_path": "skills/yuri-code-intelligence/SKILL.md",
@@ -470,18 +478,6 @@
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",
     "hash": "7e30ac1074688a3a"
-  },
-  "cgs-mold": {
-    "source_path": ".claude/skills/cgs-mold/SKILL.md",
-    "hash": "6632b99e2246bcf2"
-  },
-  "nexus-security-hardening": {
-    "source_path": ".claude/skills/nexus-security-hardening/SKILL.md",
-    "hash": "ee341a8772f69be6"
-  },
-  "pilot-feedback": {
-    "source_path": ".claude/skills/pilot-feedback/SKILL.md",
-    "hash": "56dfc75440e6cabd"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

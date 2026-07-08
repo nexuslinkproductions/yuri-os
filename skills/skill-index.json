@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-23",
+  "updated": "2026-07-08",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 100,
+  "count": 120,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -27,6 +27,11 @@
       "id": "adversarial-verification",
       "path": "skills/adversarial-verification/SKILL.md",
       "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "agent-reach",
+      "path": "skills/agent-reach/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "agent-scout",
@@ -74,6 +79,21 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
+      "id": "cgs-mold",
+      "path": "skills/cgs-mold/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "claude-codex-capability-bridge",
+      "path": "skills/claude-codex-capability-bridge/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "claude-output-lane",
+      "path": "skills/claude-output-lane/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
       "id": "codebase-to-course",
       "path": "skills/codebase-to-course/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -84,28 +104,18 @@
       "sourceFamily": "yuri_native"
     },
     {
-      "id": "claude-output-lane",
-      "path": "skills/claude-output-lane/SKILL.md",
-      "sourceFamily": "yuri_native"
-    },
-    {
-      "id": "claude-codex-capability-bridge",
-      "path": "skills/claude-codex-capability-bridge/SKILL.md",
-      "sourceFamily": "yuri_native"
-    },
-    {
       "id": "compact-optimizer",
       "path": "skills/compact-optimizer/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
-      "id": "design-assistant-inbox",
-      "path": "skills/design-assistant-inbox/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
+      "id": "cross-reference-navigation",
+      "path": "skills/cross-reference-navigation/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
-      "id": "design-master",
-      "path": "skills/design-master/SKILL.md",
+      "id": "design-assistant-inbox",
+      "path": "skills/design-assistant-inbox/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -152,6 +162,11 @@
       "id": "finishing-a-development-branch",
       "path": "skills/finishing-a-development-branch/SKILL.md",
       "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "fleet-economy",
+      "path": "skills/fleet-economy/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "frontend-design",
@@ -284,6 +299,11 @@
       "sourceFamily": "claude_import"
     },
     {
+      "id": "nexus-security-hardening",
+      "path": "skills/nexus-security-hardening/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
       "id": "non-destructive-infinity-guard",
       "path": "skills/non-destructive-infinity-guard/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -334,8 +354,68 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
+      "id": "organ-discovery-precision-gate",
+      "path": "skills/organ-discovery-precision-gate/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-filing-assessor",
+      "path": "skills/organ-filing-assessor/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-formula-foundry",
+      "path": "skills/organ-formula-foundry/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-formula-foundry-bakeoff",
+      "path": "skills/organ-formula-foundry-bakeoff/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-lane-telemetry-cockpit",
+      "path": "skills/organ-lane-telemetry-cockpit/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-openprocess-pool",
+      "path": "skills/organ-openprocess-pool/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-yuri-decode",
+      "path": "skills/organ-yuri-decode/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "organ-yuri-nerve",
+      "path": "skills/organ-yuri-nerve/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "parallel-clone-orchestrator",
+      "path": "skills/parallel-clone-orchestrator/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
       "id": "pattern-mirror-core",
       "path": "skills/pattern-mirror-core/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "peer-signal-build",
+      "path": "skills/peer-signal-build/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "pilot-feedback",
+      "path": "skills/pilot-feedback/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "plan-review",
+      "path": "skills/plan-review/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -354,6 +434,11 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
+      "id": "quantum-hypothesis-simulation",
+      "path": "skills/quantum-hypothesis-simulation/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
       "id": "receipt-subscription-cleaner",
       "path": "skills/receipt-subscription-cleaner/SKILL.md",
       "sourceFamily": "claude_import"
@@ -366,6 +451,11 @@
     {
       "id": "remotion-best-practices",
       "path": "skills/remotion-best-practices/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "remotion-motion-design",
+      "path": "skills/remotion-motion-design/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -429,11 +519,6 @@
       "sourceFamily": "yuri_native_migrated"
     },
     {
-      "id": "test-driven-development",
-      "path": "skills/test-driven-development/SKILL.md",
-      "sourceFamily": "superpowers_import"
-    },
-    {
       "id": "to-issues",
       "path": "skills/to-issues/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -446,6 +531,16 @@
     {
       "id": "tokenmaxxing",
       "path": "skills/tokenmaxxing/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "trade-decision-sim",
+      "path": "skills/trade-decision-sim/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "trade-edge-audit",
+      "path": "skills/trade-edge-audit/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {
@@ -487,6 +582,11 @@
       "autoTrigger": "multi-file, UI-heavy, architecture, or MURE helmsman packets before code"
     },
     {
+      "id": "viz-lab",
+      "path": "skills/viz-lab/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
       "id": "write-a-skill",
       "path": "skills/write-a-skill/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
@@ -515,11 +615,6 @@
       "id": "yuri-shura",
       "path": "skills/yuri-shura/SKILL.md",
       "sourceFamily": "claude_import"
-    },
-    {
-      "id": "viz-lab",
-      "path": "skills/viz-lab/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
     },
     {
       "id": "zoom-out",
