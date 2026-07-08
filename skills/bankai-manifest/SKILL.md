@@ -1,10 +1,11 @@
 ---
 name: bankai-manifest
 description: "Full Externalize Mode — on CRITICAL complexity tasks, externalizes cognitive state as a structured manifest (goal tree, risk map, evidence chain, failure modes, advisor consensus) before acting. Use when a task reaches CRITICAL complexity and needs full externalized reasoning before action, or when mentioning 'bankai', 'externalize', 'manifest mode', or 'full cognitive dump'."
-invocation: model
 triggers:
   - /bankai
   - /yuri-bankai
+scope: harness
+invocation: workflow
 ---
 
 # Bankai (卍解) — Full Externalize Mode

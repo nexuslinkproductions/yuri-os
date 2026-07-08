@@ -1,6 +1,8 @@
 ---
 name: audit-log-firewall
 description: Policy-based monitoring and command-line enforcement for high-risk agent operations. Intercepts sensitive commands and logs them for human auditing.
+scope: harness
+invocation: ability
 ---
 
 <!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/balkanblbn/audit-log-firewall | scanned: 2026-05-17 | score: 20 -->

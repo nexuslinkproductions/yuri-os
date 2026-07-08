@@ -11,6 +11,8 @@ triggers:
   - "pull from these sites"
   - "squad extraction"
 routing_note: "Use this skill before dispatching any multi-site extraction task. Provides the lane roster, extraction protocol, council structure, and Codex commit pattern. Do NOT improvise the pattern — follow this template to avoid the mistakes already paid for."
+scope: harness
+invocation: workflow
 ---
 
 # Extraction Sprint — Shintai Council Protocol

@@ -1,7 +1,6 @@
 ---
 name: opus-fleet
 description: "Standing operating model — Opus (and its glm-5.2 Opus-equivalent) orchestrates while spawned workers do the work across three substrates: native Sonnet/Haiku Agents, z.ai GLM lanes (glm-fleet.mjs), AND ollama-cloud peer lanes (ollama-fleet.mjs), ALWAYS at max reasoning / --reasoning high, then the orchestrator reviews, corrects, and finalizes. Ships copy-paste dispatch templates, the GLM tier roster, dual-substrate routing, the governed autonomous loop, and Agent-not-Workflow discipline. Use to start or run this model on any non-trivial build, research, multi-file edit, audit, refactor, or fan-out task."
-invocation: user
 version: 1.1.0
 status: active
 triggers:
@@ -17,6 +16,8 @@ triggers:
   - zai fleet
   - dual substrate
   - glm-fleet
+scope: harness
+invocation: workflow
 ---
 
 # opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute

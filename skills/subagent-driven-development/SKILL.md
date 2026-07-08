@@ -1,6 +1,8 @@
 ---
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks in the current session
+scope: harness
+invocation: workflow
 ---
 
 # Subagent-Driven Development

@@ -3,6 +3,8 @@ name: skill-creator
 description: "Guides creation and update of Codex skills with specialized knowledge, workflows, or tool integrations. Use when the user says \"create a new skill\", \"make a skill for X\", \"update this skill\", or wants to extend Codex capabilities with a reusable custom skill."
 metadata:
   short-description: Create or update a skill
+scope: harness
+invocation: workflow
 ---
 
 # Skill Creator

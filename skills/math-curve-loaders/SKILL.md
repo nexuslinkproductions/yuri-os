@@ -1,6 +1,8 @@
 ---
 name: math-curve-loaders
 description: "Reference a read-only catalog of math-based loading animations, formulas, and motion patterns. Use when you need a catalog skill, not a model-routing or runtime skill."
+scope: harness
+invocation: ability
 ---
 
 # Math Curve Loaders

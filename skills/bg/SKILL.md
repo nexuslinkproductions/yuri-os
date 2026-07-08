@@ -2,10 +2,11 @@
 name: bg
 disable-model-invocation: true
 description: "Background task router that spawns an agent with run_in_background: true. Use when typing '/bg <task>' or 'ctrl+b' to run a task in the background, or when mentioning 'background task', 'run in background', or 'defer this task'."
-invocation: user
 triggers:
   - "/bg"
   - "[bg]"
+scope: harness
+invocation: ability
 ---
 
 # Background Task Router

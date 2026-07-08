@@ -1,6 +1,8 @@
 ---
 name: claude-codex-capability-bridge
 description: Use when a Claude lane needs help from Codex-developed plugins, plugin-provided skills, app connectors, MCP tools, browser/design/cloud/GitHub capabilities, or Codex-only workflow knowledge inside YURI-OS-MUSUBI.
+scope: harness
+invocation: ability
 ---
 
 # Claude Codex Capability Bridge

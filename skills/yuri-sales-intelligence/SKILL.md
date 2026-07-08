@@ -1,7 +1,6 @@
 ---
 name: yuri-sales-intelligence
 description: "Unified sales and outreach skill generating cold outreach openers, social selling sequences, objection rebuttals, and ad creative for any paid platform — multi-persona aware, adapting tone and offer frame to buyer type. Use when user says 'write a cold email', 'outreach sequence', 'objection handling', 'ad copy', or 'sales pitch'."
-invocation: user
 triggers:
   - "/sales-intelligence"
   - "/yuri-sales"
@@ -10,6 +9,8 @@ triggers:
   - "sales sequence"
   - "ad copy"
   - "objection handling"
+scope: instance
+invocation: ability
 ---
 
 # Yuri Sales Intelligence — Unified Outreach + Conversion Layer

@@ -2,6 +2,8 @@
 name: remotion-motion-design
 description: Build AE-grade 3D motion-design videos with Remotion (three.js + 2D overlays, frame-driven camera rigs, real scene transitions, cinematic motion blur, kinetic typography). Use when creating, extending, or rendering motion-graphics / presentation / explainer / promo / investor videos, or when adding 3D, transitions, motion blur, or kinetic type to a Remotion project.
 triggers: [motion design, remotion, video, 3d video, motion graphics, mograph, kinetic typography, after effects, AE-grade, scene transition, motion blur, investor video, explainer video, render video]
+scope: harness
+invocation: ability
 ---
 
 # Remotion Motion Design — AE-Grade 3D Engine

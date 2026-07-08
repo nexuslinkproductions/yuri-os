@@ -7,6 +7,8 @@ triggers:
   - build an AFL signal or scorer with a peer lane
   - nano-swarm signal module build
   - peer lane quant module recipe
+scope: instance
+invocation: ability
 ---
 
 # peer-signal-build — peer recipe for building one AFL module

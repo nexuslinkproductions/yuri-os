@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "discovery-precision-gate"
 source_file: "_SYSTEM/Scripts/discovery-precision-gate.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "discovery-precision-gate" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

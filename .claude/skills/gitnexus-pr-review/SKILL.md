@@ -1,6 +1,8 @@
 ---
 name: gitnexus-pr-review
 description: "Use when the user wants to review a pull request, understand what a PR changes, assess risk of merging, or check for missing test coverage. Examples: \"Review this PR\", \"What does PR #42 change?\", \"Is this PR safe to merge?\""
+scope: harness
+invocation: ability
 ---
 
 # PR Review with GitNexus

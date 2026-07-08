@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "yuri-decode"
 source_file: "_SYSTEM/Scripts/yuri-decode.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "yuri-decode" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

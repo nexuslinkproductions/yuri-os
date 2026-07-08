@@ -1,6 +1,8 @@
 ---
 name: codex-plugin-control-plane
 description: "Routes any Codex plugin, app connector, MCP tool, or plugin-provided skill through the YURI control plane before external reads, writes, browser actions, design, cloud, or GitHub tools are used. Use this before using any plugin capability inside YURI-OS-MUSUBI, or when mentioning 'plugin', 'MCP tool', 'app connector', 'browser action', 'design tool', 'GitHub tool', or 'tool_search'."
+scope: harness
+invocation: ability
 ---
 
 # Codex Plugin Control Plane
@@ -42,4 +44,8 @@ If a plugin/app tool is denied with a context-router gate, run the context-route
 
 ## Session Notes
 
-- 2026-06-16 — Routes all plugin capabilities through the YURI control plane before external reads, writes, browser, design, cloud, or GitHub actions; reach for it before using any plugin, MCP tool, or app connector inside YURI-OS-MUSUBI.
+### 2026-07-06
+- session: 58m | peak ctx: 0% | compacts: 0
+- tools: Read×263, Grep×94, Shell×92, Write×43, MCP:search_contacts×4, MCP:list_chats×2, MCP:open_resource×1, MCP:list_messages×1
+- corrections: none
+- errors: none

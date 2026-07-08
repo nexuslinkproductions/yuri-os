@@ -73,6 +73,8 @@ discovery:
       - "Baseline produces 'when they say X, respond with Y' scripts — treats symptoms, not causes"
       - "Baseline does not distinguish between objection types by FAB source"
       - "Baseline cannot recommend specific upstream behavioral changes to prevent recurrence"
+scope: harness
+invocation: ability
 ---
 
 <!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/quochungto/bookforge-objection-source-diagnoser | scanned: 2026-05-17 | score: 0 -->

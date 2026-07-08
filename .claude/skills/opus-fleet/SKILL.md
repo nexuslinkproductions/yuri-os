@@ -1,239 +1,233 @@
 ---
 name: opus-fleet
-description: "Standing operating model — Opus (and its glm-5.2 Opus-equivalent) orchestrates while spawned workers do the work across three substrates: native Sonnet/Haiku Agents, z.ai GLM lanes (glm-fleet.mjs), AND ollama-cloud peer lanes (ollama-fleet.mjs), ALWAYS at max reasoning / --reasoning high, then the orchestrator reviews, corrects, and finalizes. Ships copy-paste dispatch templates, the GLM tier roster, dual-substrate routing, the governed autonomous loop, and Agent-not-Workflow discipline. Use to start or run this model on any non-trivial build, research, multi-file edit, audit, refactor, or fan-out task."
-invocation: user
-version: 1.1.0
+description: "Standing operating model — the OMP orchestrator session decomposes and reviews while spawned workers execute across OMP task() subagents, z.ai GLM lanes (glm-fleet.mjs), and Ollama Cloud peer lanes (ollama-fleet.mjs) — CLOUD ONLY, no local SLMs, no Codex. Includes copy-paste task() dispatch templates, cloud model roster, MURE role dispatch, and governed autonomous loop. Use for any non-trivial build, research, multi-file edit, audit, refactor, or fan-out."
+version: 2.0.0
 status: active
 triggers:
   - /opus-fleet
   - opus orchestrates
   - spawn agents
   - fan out agents
-  - three lane execution
+  - fleet execution
   - research code testing lanes
-  - max reasoning agents
   - agent fleet
   - glm fleet
   - zai fleet
-  - dual substrate
+  - ollama cloud fleet
   - glm-fleet
+  - task subagents
+  - tri-substrate
+  - three substrates
+scope: harness
+invocation: workflow
 ---
 
-# opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute
+# opus-fleet — OMP orchestrator + cloud fleet
 
-The default way to run any non-trivial task. The main **Opus** session never grinds parallelizable work itself — it **orchestrates**: decompose → dispatch a fleet of **Sonnet + Haiku Agents** (always max reasoning) across three lanes → **review and correct every result** → finalize. Greater quality, and cheaper — Sonnet bills a separate weekly pool, so the fan-out barely touches the Opus quota.
-
-Canonical rule: [`.claude/memory/feedback-opus-orchestrates-sonnet-haiku-agents.md`](../../.claude/memory/feedback-opus-orchestrates-sonnet-haiku-agents.md). This skill is the **quick-start + discipline** for it.
+The default way to run any non-trivial task. The **orchestrator session** (this OMP harness) never grinds parallelizable work itself — it **decomposes → dispatches → reviews → finalizes**. Workers run on **OMP `task()` subagents** and/or **armed cloud fleets** (GLM, Ollama Cloud). Canonical model map: [`_SYSTEM/config/cloud-fleet-models.json`](../../../_SYSTEM/config/cloud-fleet-models.json). Binding record: [`.claude/memory/feedback-opus-fleet-standing-default.md`](../../memory/feedback-opus-fleet-standing-default.md).
 
 ## When this fires
 
 Every substantial task — build, research, multi-file edit, audit, verification, refactor. Skip only trivial single reads and pure conversation.
 
-**Fleet sizing — don't under-spawn.** Native Agents are FLAT (they can't spawn sub-agents — `Explore` has no Agent tool, and the model keeps them leaf-only). So trade depth for BREADTH: fanning out **up to ~12 parallel native Agents in one message is encouraged** when the work divides that way (Sonnet bills a separate weekly pool — breadth is cheap). Recursion depth is the GLM / `nano-spawn` substrate's job, capped at **depth 5** (heavy tier) with decaying per-level fan-out. Self-size to the task — but the failure mode here is timidity, not excess.
+**Fleet sizing — don't under-spawn.** OMP `task()` subagents are **flat** (they cannot spawn their own subagents). Trade depth for **breadth**: fan out **up to ~32 parallel `task()` items in one batch** when work divides cleanly. Recursion depth is the GLM substrate's job via `nano-spawn` (owner-gated, depth ≤ 5). The failure mode is timidity, not excess.
 
-## The model at a glance
-
-```
-                 ┌───────────────────────────┐
-                 │   OPUS  (this session)     │
-                 │  decompose · judge · plan  │
-                 │  synthesize · review · ship│
-                 └───────────────────────────┘
-                  ↑            ↑            ↑
-        ┌─────────┘            │            └─────────┐
-  ┌───────────┐         ┌─────────────┐         ┌───────────┐
-  │ RESEARCH  │         │  CODE-GEN   │         │  TESTING  │
-  │ scan code │         │ new files,  │         │ scripts,  │
-  │ docs, APIs│         │ patches,    │         │ browser,  │
-  │           │         │ refactors   │         │ logs      │
-  └───────────┘         └─────────────┘         └───────────┘
-        Sonnet + Haiku Agents — ALWAYS at MAX reasoning
-```
-
-## Quick start — copy-paste dispatch
-
-Run independent lanes **in parallel** (multiple `Agent` calls in one message). Every prompt is self-contained and ends with the max-reasoning directive.
+## Architecture at a glance
 
 ```
-Agent(
-  description: "<3-5 word label>",
-  subagent_type: "Explore"   // read-only research; or "general-purpose" for edits/bash
-  model: "sonnet",           // sonnet = judgment/code-gen; haiku = read/scan/mechanical
-  prompt: `Use MAXIMUM reasoning depth — be exhaustive and rigorous.
-           <ROLE>: <Research | Code-generation | Testing> lane for an Opus-orchestrated task in <repo>.
-           CONTEXT (self-contained — you lack the conversation): <what changed / state>.
-           TASK: <exact, bounded>.
-           DO NOT: touch protected paths; commit; rewrite dated history.
-           RETURN: <exact format — table / verdict / diff>.`
+                 ┌───────────────────────────────┐
+                 │  ORCHESTRATOR (this OMP session) │
+                 │  decompose · judge · synthesize  │
+                 │  review · verify · finalize      │
+                 └───────────────────────────────┘
+          ↑              ↑              ↑              ↑
+    ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+    │ OMP task │   │ GLM fleet│   │ Ollama   │   │ MURE     │
+    │ subagents│   │ (z.ai)   │   │ Cloud    │   │ company  │
+    └──────────┘   └──────────┘   └──────────┘   └──────────┘
+```
+
+## Orchestrator model (subscription order)
+
+| Priority | Provider | Model | When |
+|----------|----------|-------|------|
+| 1 | Anthropic OAuth | `claude-sonnet-4-6` | OMP `default` when window available |
+| 2 | Cursor OAuth | `composer-2.5` | Claude session limit / credential block |
+| 3 | Z.ai | `glm-5.2` (`glm-max`) | Heavy synthesis on z.ai plan |
+| 4 | Mimo | `mimo-v2.5-pro[1m]` | Anthropic-protocol alternative |
+
+Configure OMP roles in `~/.omp/agent/config.yml`. **Direct DeepSeek API is retired** — use Ollama Cloud `:cloud` tags only.
+
+## Quick start — OMP `task()` dispatch
+
+Run independent workers **in parallel** (one `task()` call with multiple `tasks[]`). Every assignment is self-contained.
+
+```
+task(
+  context: `# Goal
+<what the batch accomplishes>
+# Constraints
+<rules, protected paths, cloud-only, no Codex>
+# Contract
+<shared interfaces / acceptance for the batch>`,
+  tasks: [
+    {
+      role: "Research scout",
+      assignment: `# Target
+<exact files/symbols>
+# Change
+<bounded investigation steps>
+# Acceptance
+<table / verdict format — no project-wide test suite>`
+    },
+    {
+      agent: "task",
+      role: "Implementation worker",
+      assignment: `# Target ...
+# Change ...
+# Acceptance ...`
+    }
+  ]
 )
 ```
 
-## Model routing
+### OMP agent roles
 
-| Lane | Default model | Use when |
-|------|---------------|----------|
-| Research (classify, judge, prior-art) | **sonnet** | needs judgment over what it finds |
-| Research (census, grep-survey, read-dump) | **haiku** | mechanical breadth, go heavy |
-| Code-generation (patches, new files, refactors) | **sonnet** | correctness matters |
-| Testing (run scripts, parse logs, verify) | **haiku** | mechanical execution + report |
+| Agent | Lane | Use when |
+|-------|------|----------|
+| `explore` | Research | Read-only census, grep-survey, prior-art (cannot edit) |
+| `task` | Code-gen | Patches, new files, refactors |
+| `tester` | Testing | Test authoring / contract defense |
+| `reviewer` | Verification | Quality + security review |
+| `librarian` | Research | External library/API source verification |
+| `designer` | Design | UI/UX implementation |
+| `plan` | Architecture | Multi-file architectural decisions (`slow` model) |
+| `sonic` | Mechanical | Strictly mechanical updates (`smol` model) |
 
-`Explore` = read-only (can't edit) — safest for research. `general-purpose` = full tools — for edits/bash. Never spawn an Agent to read one known file (do it inline).
+Never spawn a subagent to read one known file — do it inline in the orchestrator.
 
-## The orchestrator loop (Opus keeps these)
+## The orchestrator loop
 
 1. **Decompose** into independent lanes; identify what genuinely parallelizes.
-2. **Dispatch** parallel Agents (one message, multiple calls), each self-contained, each at max reasoning.
-3. **Review + correct** — first-run agent output is a hypothesis. Verify every load-bearing claim against local evidence; override what's wrong.
-4. **Finalize** — Opus only: scoped-pathspec commit, push, irreversible/outward calls, protected-path discipline. Agents never finalize.
+2. **Dispatch** parallel workers (`task()` batch + optional armed GLM/Ollama fleets).
+3. **Review + correct** — first-run output is a hypothesis. Verify load-bearing claims against local evidence.
+4. **Finalize** — orchestrator only: scoped-pathspec commit, push, irreversible/outward calls. Subagents never finalize.
 
 ## Hard rules (failure-anchored)
 
-- **Agent, never Workflow.** Workflow `agent()` bills the main/Opus quota; the `Agent` tool with `model:"sonnet"` bills the separate Sonnet pool. <!-- @anchor: v1 | failure: FB:WORKFLOW-BILLS-MAIN-QUOTA-NOT-SONNET | regression: .claude/memory/feedback-no-workflow-tool-use-agent-only.md -->
-- **Always max reasoning.** The Agent tool has no effort param, so keep the orchestrator at max effort (agents inherit) AND pin `Use MAXIMUM reasoning depth` as the first line of every agent prompt. <!-- @anchor: v1 | failure: FB:OPUS-ORCHESTRATES-SONNET-HAIKU-AGENTS | regression: .claude/memory/feedback-opus-orchestrates-sonnet-haiku-agents.md -->
-- **Verify every agent result.** A Haiku testing lane (2026-06-22) couldn't run its check, *guessed from reading code*, and reported the guard would BLOCK existing `.claude` files — direct evidence showed WARN. Override agent guesses with local runs. <!-- @anchor: v1 | failure: opus-fleet-haiku-warn-block-misguess-2026-06-22 | regression: SKILL.md self-test (verify agent claim before trusting) -->
-- **Agents earn their keep.** Same session, a Sonnet research lane found a real ENOENT (`yuri-supercharge-gate.mjs` pointing at a deleted test) that the solo pass missed — the fan-out is not theater. <!-- @anchor: v1 | failure: none | regression: none -->
-- **Self-contained prompts.** Agents lack the conversation; an underspecified prompt returns confident garbage. Always include state + constraints + return format.
-- **GLM lanes: never `tee`/`>`, always `--out`.** A second reader on the z.ai/Anthropic stream triggers transport:EPIPE (fixed root cause — don't reintroduce). `glm-fleet.mjs` collects each lane's text from its own `--out` file. <!-- @anchor: v1 | failure: FB:GLM-ZAI-BUILD-LANE | regression: .claude/memory/feedback-glm-zai-build-lane.md -->
-- **GLM agents run at `--reasoning high`.** That is the GLM max-equivalent — there is no higher tier. Pin it on every GLM task (the native-Agent "max reasoning" analogue). <!-- @anchor: none -->
-- **The GLM fleet is DISARMED by default.** `glm-fleet.mjs` dry-runs (zero spend, zero fan-out) without `YURI_GLM_FLEET=1`; arming it — and `YURI_SWARM_CONVERGENCE` / `YURI_NANOSWARM_SPAWN` — is owner-gated (durable z.ai spend + process fan-out are not git-reversible). <!-- @anchor: v1 | failure: FB:ARMING-IMPROVEMENTS-SELF-GOVERNABLE | regression: .claude/memory/feedback-arming-improvements-self-governable.md -->
-- **Verify GLM output locally — lanes over-claim.** A peer lane reporting "done" is a hypothesis (precedent: 18/19 false "done", a raw arithmetic hallucination). Re-check against local evidence before trusting, exactly as with native agents. <!-- @anchor: v1 | failure: FB:NANO-SWARM-ORCHESTRATION | regression: .claude/memory/feedback-nano-swarm-orchestration.md -->
+- **`task()` only for OMP fan-out.** Do not use legacy Workflow tools. Do not assume Claude `Agent(model:sonnet)` — this harness uses OMP `task()`.
+- **Cloud only for fleet lanes.** No local Ollama SLMs (`qwen-local`, `gemma-local`, `vibethinker-local`). MacBook cannot run them in fleet.
+- **No Codex.** Owner retired Codex — ignore `codex-offload-runner`, `openai-codex`, and YURI offload-to-Codex paths.
+- **No direct DeepSeek API.** Retired 2026-07-06. DeepSeek work routes through Ollama Cloud `deepseek-v4-*:cloud`.
+- **Self-contained assignments.** Subagents lack conversation history. Always include state + constraints + return format.
+- **GLM lanes: never `tee`/`>`, always `--out`.** Second stream reader triggers transport:EPIPE. <!-- @anchor: v1 | failure: FB:GLM-ZAI-BUILD-LANE -->
+- **GLM agents run at `--reasoning high`.** Pin on every GLM task.
+- **GLM + Ollama fleets DISARMED by default.** `YURI_GLM_FLEET=1` / `YURI_OLLAMA_FLEET=1` or gitignored `*.enabled` flags — owner-gated.
+- **Verify every fleet result locally.** GLM/Ollama lanes over-claim; treat "done" as a hypothesis until locally checked.
 
 ## Anti-rationalization table
 
 | Excuse | Reality |
 |--------|---------|
-| "This is small, I'll just do it solo." | Then it's trivial → fine. But "multi-file / multi-step / needs a survey" is exactly the fan-out case; solo is slower and misses things (the ENOENT above). |
-| "Workflow is right here and easier." | Workflow drains the Opus quota and is banned here. `Agent(model:"sonnet")` is the only fan-out path. |
-| "The agent said it passed, ship it." | Agent output is a hypothesis. The Haiku lane *guessed wrong* this session. Verify against a local run before trusting. |
-| "Max reasoning costs too much." | Sonnet bills a separate weekly pool. The cost concern is inverted — fan out liberally. |
-| "I'll skip the context, the agent will figure it out." | It can't — it has no conversation history. Underspecified → confident garbage. Self-contained prompt every time. |
-| "GLM is the read-only / advisory lane." | Wrong — GLM lanes carry the full harness (write / edit / bash) and build exactly like native Agents; `glm-5.2` is an Opus-peer. Route by quota / context / recursion / native-tool-need, never by a capability tier that doesn't exist. |
-| "I'll pipe the GLM call through `tee` to watch it." | That triggers transport:EPIPE. Use `--out` and read the file. Never a second stream reader on the lane. |
-| "Arm the autonomous loop so it just runs unattended." | Arming spends durable budget + fans out processes — owner-gated, always. Build + smoke DISARMED; the owner flips the flag. |
+| "This is small, I'll solo it." | Multi-file / multi-step / survey work is exactly the fan-out case. |
+| "I'll use Workflow — it's easier." | Banned. Use `task()` batch dispatch. |
+| "The subagent said it passed." | Verify with a local run before trusting. |
+| "I'll route through Codex for heavy code." | Codex retired — use GLM-max, Mimo, or Ollama Cloud heavy tiers. |
+| "I'll spin up local qwen for cheap fan-out." | Forbidden — cloud tiers only (`glm-flash`, `deepseek-v4-flash:cloud`). |
+| "GLM is read-only advisory." | Wrong — full harness (write/edit/bash). Peer build substrate. |
+| "Arm the loop unattended." | Arming spends durable budget — owner-gated always. |
 
-## Optional — loop until done
+## z.ai GLM fleet — substrate B
 
-For unknown-size discovery, wrap rounds with the convergence governor `_SYSTEM/Scripts/swarm-convergence.mjs` (obligation floor + critical-signal block + adversarial "what's missing" pass + damping). DISARMED by default (`YURI_SWARM_CONVERGENCE=1`). Use when one fan-out round isn't provably complete.
-
-## z.ai GLM fleet — the second substrate
-
-The native Claude fleet has a full **twin**, not a sidekick: a **z.ai GLM lane fleet** dispatched through `_SYSTEM/Scripts/glm-fleet.mjs`. Every GLM lane runs the complete YURI operator harness via `llm-lane.mjs` — `read`/`grep`/`search`/`xref` **and** `write_file`/`edit_file`/`bash` — so it **develops, designs, codes, writes files, and runs/self-verifies** exactly like a native Agent. It is a peer build substrate — never read-only or advisory. `glm-max` (glm-5.2, 1M context) is an **Opus-peer**: on par or better at reasoning, coding, and visual design. It bills the z.ai plan (independent of the Anthropic quota), runs at **`--reasoning high`** (the GLM max-equivalent), and the same three lanes mirror onto it — Research, Code-generation, Testing — all doing real work.
-
-The fullest mirror is **`ai claude-zai`**: a complete Claude Code session running on GLM (`OPUS→glm-5.2`, `SONNET→glm-4.7`, `HAIKU→glm-flash`) — the exact same setup as this one, on z.ai. Reach for it for a full interactive GLM build session; use `glm-fleet.mjs` to fan GLM peers out in parallel from here.
-
-DISARMED by default → **dry-run** (prints the plan, spends nothing). Arm (owner-gated) via EITHER the session env `YURI_GLM_FLEET=1` OR a persistent local flag `touch _SYSTEM/state/glm-fleet.enabled` (gitignored, reversible by `rm`). `glm-fleet.mjs --list` shows the current arm state.
-
-GLM tier roster (mirrors Opus/Sonnet/Haiku):
+Twin cloud fleet via `_SYSTEM/Scripts/glm-fleet.mjs`. Full YURI operator harness via `llm-lane.mjs` — read/write/edit/bash. DISARMED by default (dry-run). Arm: `YURI_GLM_FLEET=1` or `touch _SYSTEM/state/glm-fleet.enabled`.
 
 | Tier | alias | model | ctx | use |
 |------|-------|-------|-----|-----|
-| Opus-peer · orchestrator | `glm-max` | glm-5.2 | 1M | heavy reasoning, design, architecture, code, synthesis (premium) |
-| Sonnet · workhorse | `glm` | glm-4.7 | 200K | code-gen, refactor, analysis, judgment |
-| Haiku · fast build | `glm-flash` | glm-4.7-flash | 200K | census, scan, fast edits, test-runs (free) |
-| Haiku+ · concurrency | `glm-flashx` | glm-4.7-flashx | 200K | wide cheap fan-out (paid) |
-| Sub-orch overflow | `glm-sub-orch` | glm-5.1 | 200K | when glm-max is quota-gated |
-| Reactive · voice | `glm-turbo` | glm-5-turbo | 200K | sub-4s interactive |
-| Vision | `glm-vision` | glm-4.6v | 64K | screenshots, images (live-verified) |
-| OCR | `glm-ocr` | glm-ocr | 32K | document / PDF extraction (needs image payload) |
-
-Live-probe 2026-06-22: `glm-max`, `glm`, `glm-flash`, `glm-turbo`, `glm-5.1`, `glm-vision` verified live. `glm-flashx` (id accepted but empty output — likely not provisioned) and `glm-ocr` (needs an image payload) are UNVERIFIED via the text path — registered, not yet relied on.
-
-Dispatch programmatically:
-
-```js
-import { glmFleet } from './glm-fleet.mjs'; // path relative to the importing file; the shell form below is location-independent
-const { results, runDir } = await glmFleet([
-  { lane: 'glm-max',   label: 'DESIGN',  prompt: `Use MAXIMUM reasoning depth. ROLE: design + architecture lane ... RETURN: design doc + RESULT_LABEL` },
-  { lane: 'glm',       label: 'CODEGEN', prompt: `Use MAXIMUM reasoning depth. ROLE: code-generation lane — write/edit the files directly and self-verify by running them ... RETURN: diff summary + RESULT_LABEL` },
-  { lane: 'glm-flash', label: 'TEST',    prompt: `Use MAXIMUM reasoning depth. ROLE: testing lane — run the suite, parse logs, report ... RETURN: results + RESULT_LABEL` },
-], { concurrency: 3 });   // needs YURI_GLM_FLEET=1, else dry-run
-```
-
-Or from the shell (collect via `--out` — NEVER `tee`/`>`):
+| Orchestrator-peer | `glm-max` | glm-5.2 | 1M | architecture, adversarial, synthesis |
+| Workhorse | `glm` | glm-5.1 | 200K | code-gen, refactor, judgment |
+| Fast | `glm-flash` | glm-5-turbo | 200K | census, scan, cheap bulk (`glm-flash` alias; 4.7-flash unstable) |
+| Reactive | `glm-turbo` | glm-5-turbo | 200K | snappy interactive |
+| Vision | `glm-vision` | glm-4.6v | 64K | screenshots / UI |
 
 ```bash
-YURI_GLM_FLEET=1 node _SYSTEM/Scripts/glm-fleet.mjs --tasks '[{"lane":"glm-max","label":"ORCH","prompt":"..."}]' --concurrency 3
-# results land in .claude/jobs/<run>/results/<label>.json   ·   dry-run plan: drop YURI_GLM_FLEET or add --dry-run
+YURI_GLM_FLEET=1 node _SYSTEM/Scripts/glm-fleet.mjs \
+  --tasks '[{"lane":"glm-max","label":"ARCH","prompt":"..."}]' \
+  --concurrency 3
+# results → .claude/jobs/<run>/results/<label>.json
 ```
 
-## ollama-cloud fleet — the third substrate
+## Ollama Cloud fleet — substrate C
 
-The third peer fleet: **ollama-cloud lanes** dispatched through `_SYSTEM/Scripts/ollama-fleet.mjs` — cross-family models (not Claude, not GLM) carrying the full YURI operator harness via `llm-lane.mjs`, so they build, code, write, and self-verify like any other lane. ONE base `ollama-cloud` lane fans out across the roster by `--model <X>:cloud`; the ollama Pro plan allows **3 concurrent**. It bills the ollama plan (independent of both the Anthropic and z.ai quotas) and is the **cheapest bulk fan-out** — reach for it to spread wide, cheap, parallel work.
+**Cloud endpoints only** (`*:cloud`). Script: `_SYSTEM/Scripts/ollama-fleet.mjs`. Pro plan: **3 concurrent**. DISARMED by default. Arm: `YURI_OLLAMA_FLEET=1` or `touch _SYSTEM/state/ollama-fleet.enabled`.
 
-Roster (tier → model), all at `--reasoning high`:
-- `flash` → `deepseek-v4-flash:cloud` — **default bulk**, best quality-per-usage, blast freely
-- `minimax` → `minimax-m3:cloud` · `kimi` → `kimi-k2.7-code:cloud` — the efficient working trio
-- `nemotron` → `nemotron-3-ultra:cloud` (heavy reasoning) · `deepseek-pro` → `deepseek-v4-pro:cloud` (true-1M input; ~2× usage — avoid for bulk) · `gemma` → `gemma4:31b-cloud`
+| tier | model | use |
+|------|-------|-----|
+| `flash` | deepseek-v4-flash:cloud | **default bulk** — best quality/usage |
+| `minimax` | minimax-m3:cloud | efficient generalist |
+| `kimi` | kimi-k2.7-code:cloud | code-heavy peer |
+| `nemotron` | nemotron-3-ultra:cloud | heavy reasoning burst |
+| `deepseek-pro` | deepseek-v4-pro:cloud | true-1M heavy — avoid bulk (~2× usage) |
+| `gemma` | gemma4:31b-cloud | available cloud generalist |
 
-DISARMED by default → **dry-run** (prints the plan, spends nothing). Arm (owner-gated) via EITHER `YURI_OLLAMA_FLEET=1` OR `touch _SYSTEM/state/ollama-fleet.enabled` (gitignored, reversible by `rm`). `ollama-fleet.mjs --list` shows the arm state + roster.
+**Forbidden:** any local model tag without `:cloud`, or MacBook-local SLM names in fleet config.
 
 ```bash
-# 3-model peer fan-out (needs YURI_OLLAMA_FLEET=1, else dry-run)
-YURI_OLLAMA_FLEET=1 node _SYSTEM/Scripts/ollama-fleet.mjs --tasks '[{"tier":"flash","label":"R1","prompt":"..."},{"tier":"kimi","label":"R2","prompt":"..."}]' --concurrency 3
-# results → .claude/jobs/<run>/results/<label>.json   ·   live smoke: --smoke   ·   dry-run: drop the env / add --dry-run
+YURI_OLLAMA_FLEET=1 node _SYSTEM/Scripts/ollama-fleet.mjs \
+  --tasks '[{"tier":"flash","label":"R1","prompt":"..."}]' \
+  --concurrency 3
 ```
 
-The key hydrates from the macOS keychain at the LANE layer (`models.json` `keychain_service: YURI_OS_MUSUBI:OLLAMA_API_KEY`), so a spawned lane authenticates without the `ai` wrapper or an exported `OLLAMA_API_KEY` (root-cause fix 2026-06-23 — every caller benefits, not just the wrapper).
+API key hydrates from keychain at lane layer (`YURI_OS_MUSUBI:OLLAMA_API_KEY`).
 
-## Multi-substrate routing — three equal build fleets
+## Multi-substrate routing
 
-NOT a capability tier. All three fleets have the SAME powers — read, write, edit, bash, design, code, test, self-verify. GLM and ollama-cloud are peer extensions of Claude Code, never advisory or read-only. Route by operational fit, then spread work across ALL THREE for max throughput on independent quotas:
+NOT a capability tier. Route by operational fit, then spread across independent quota pools:
 
-| factor | native Claude Agents | z.ai GLM lanes | ollama-cloud lanes |
-|---|---|---|---|
-| build powers | read · write · edit · bash · test | identical | identical |
-| quota pool | Claude / Sonnet weekly | z.ai plan | ollama Pro (independent — run all three at once) |
-| recursion | FLAT (leaf-only) | recursive via `nano-spawn`, depth ≤ 5 | FLAT (peer fan-out, 3 concurrent) |
-| max context | per-model | `glm-5.2` = 1M | 1M input (deepseek-v4 family) |
-| reasoning / coding tier | Opus / Sonnet / Haiku | `glm-5.2` / `glm-4.7` / `glm-flash` | nemotron / minimax / kimi / deepseek-v4 |
-| native MCP / browser / computer-use | yes | no | no |
-| finalize (commit / push) | no — orchestrator only | no — orchestrator only | no — orchestrator only |
+| factor | OMP `task()` | GLM lanes | Ollama Cloud |
+|--------|--------------|-----------|--------------|
+| build powers | read · write · edit · bash | identical | identical |
+| quota pool | Claude/Cursor OAuth | z.ai plan | Ollama Pro |
+| recursion | flat leaf | nano-spawn depth ≤ 5 | flat peer fan-out |
+| native MCP / browser | yes (orchestrator + task) | no | no |
+| finalize | orchestrator only | orchestrator only | orchestrator only |
 
-The only hard native-only needs are MCP tools, browser, and computer-use. Everything else either fleet does equally. Default to spreading a large build across all three on their independent quotas, in parallel: native (Anthropic), GLM (z.ai), ollama-cloud (ollama Pro) — three quota pools = up to ~3× throughput. `glm-max` is a first-class orchestrator/red-teamer; the ollama lane is the cheap bulk muscle (`deepseek-v4-flash` for breadth, `deepseek-v4-pro` reserved for true-1M / hardest jobs).
+Default: spread large builds across all three quota pools in parallel. Native MCP/browser needs stay on OMP `task()` or orchestrator.
 
-## Spawning a sub-orchestrator (Opus-equivalent fan-out)
+## MURE — 20-role governed collective
 
-A spawned orchestrator — a native `general-purpose` Agent OR a `glm-max` lane — can run this fleet model itself if handed the protocol. Inject `FLEET_PROTOCOL_PREAMBLE` (exported from `glm-fleet.mjs`) as the first block of its prompt; glm-5.2's 1M context also lets you paste this whole SKILL.md verbatim. That is how "the Opus and Opus-equivalent spawns sub-dispatch with this knowledge."
-
-Honest caveat: native Claude subagents are **flat** — `Explore` has no Agent tool and the standing model keeps the native fleet leaf-only (Opus is the sole native spawner). Compensate with breadth (up to ~12 parallel; see Fleet sizing). Real recursion lives on the GLM substrate via the governed `nano-spawn` path (`YURI_NANOSWARM_SPAWN=1`, owner-gated) at **depth ≤ 5**. Until that is armed, "sub-orchestration" means a `glm-max` lane calling `glm-fleet.mjs` for its own peer round.
-
-## The governed autonomous loop
-
-One owner input → a fully governed fleet:
-
-1. **Decompose** — Opus splits into leaves, each tagged substrate `native` | `glm` | `both`; build the obligation ledger (`swarm-convergence.buildObligationLedger`).
-2. **Dispatch** — native Agents (one message, parallel) + `glmFleet(...)` in parallel; each self-contained, max reasoning / `--reasoning high`.
-3. **Aggregate** — read native returns + `.claude/jobs/<run>/results/*.json` into one pool.
-4. **Adversarial verify** — `swarm-convergence.runAdversarialPass` with a `glm-max` runner ("what's missing"); Opus re-verifies load-bearing claims against local evidence.
-5. **Converge** — `converge(...)`; not converged → re-dispatch `nextRoundWork`, capped ≤ 3 rounds (damping force-stops on budget).
-6. **Finalize** — Opus only: scoped-pathspec commit, push, irreversible/outward calls.
-
-Arm the quality gate with `YURI_SWARM_CONVERGENCE=1`; the `nano-barrier` safety block (orphans/contested claims) is always on regardless. Both the convergence arm and the GLM-fleet arm are owner-gated.
-
-**Runnable now — `_SYSTEM/Scripts/runSwarm.mjs`** (the audit's missing "orchestrator binary"). The GLM-substrate version of this loop is wired into one entry point: `runSwarm({leaves:[{id,lane,prompt}]}, {rounds,concurrency})` runs decompose-ledger → `glmFleet` dispatch → `aggregatePoolOutputs` → `runAdversarialPass` (glm-max) → `converge` → re-dispatch only the gap leaves (obligation-floor failures **and** adversarial gaps; null-leaf gaps re-run all; ≤rounds) → `finalizeGuard` → manifest. CLI: `node _SYSTEM/Scripts/runSwarm.mjs --leaves-file leaves.json --rounds 3`. **ARMED** via the gitignored flags `_SYSTEM/state/swarm-convergence.enabled` + `_SYSTEM/state/glm-fleet.enabled` (env vars still work). Live-verified end-to-end (a 2-leaf armed run converged round 1; hermetic tests cover gap re-dispatch, floor-failure re-dispatch, and disarmed-no-spend). The NATIVE substrate stays Opus-orchestrated (Agent tool) and pairs with this at the top. The recursive (Level-B) `nano-spawn`/`dispatchPool` depth is wired but its deep-arm is deferred to hardening (the audit's livelock/lease seams).
-
-## Specialized roles — MURE (built 2026-06-22)
-
-The roles seam is now realized as **MURE** (群れ) — a 20-role self-governing agent collective in `_SYSTEM/config/fleet-roles.json` + `_SYSTEM/mure/`. Each role = `{id, archetype, capabilities, substrate, lane, autonomyClass, mathHooks, goalScope, independentOf}`. Use it instead of hand-casting lanes when a task wants named roles:
+Named roles in `_SYSTEM/config/fleet-roles.json` + `_SYSTEM/mure/`. Use when a task wants role casting instead of hand-picked lanes:
 
 ```bash
-node _SYSTEM/mure/mure.mjs --roster        # the 20 roles, 6 groups
-node _SYSTEM/mure/mure.mjs --demo           # DISARMED plan of a sample task → roles → leaves (zero spend)
-node _SYSTEM/mure/company.mjs --task-file t.json   # cast a real task; armed (YURI_MURE_ARMED / _SYSTEM/state/mure.enabled) → live GLM dispatch
+node _SYSTEM/mure/mure.mjs --roster
+node _SYSTEM/mure/mure.mjs --demo
+node _SYSTEM/mure/company.mjs --task-file t.json --dry-run
+# armed: YURI_MURE_ARMED=1 or touch _SYSTEM/state/mure.enabled
+node _SYSTEM/mure/ceo.mjs "your task description"
 ```
 
-`company.runCompany(task)` casts each subtask to its best-matching role (capability match), gates every decision through the 6-gate self-governance charter (`governance.mjs`), and splits the work: GLM roles → runSwarm leaves (dispatched), native roles → Agent specs (for THIS Opus session to spawn). The math layer is wired into role decisions via `math-bridge.mjs` (decision-sim goal-scoring, quantum order-effect, energy veto, prediction Brier). DISARMED by default; arming is owner-gated; finalize stays Opus/owner. Full manual: `_SYSTEM/mure/README.md`.
+`company.runCompany(task)` maps subtasks → roles → GLM leaves + native specs. **When Claude is capped**, translate MURE `nativeSpecs` (legacy sonnet/haiku/opus) per `cloud-fleet-models.json` → `mureNativeTranslation` (OMP `task()` / `sonic` / `glm-max`).
+
+DISARMED by default. Finalize stays orchestrator/owner. Manual: `_SYSTEM/mure/README.md`.
+
+## Optional — governed autonomous loop
+
+For unknown-size discovery: `_SYSTEM/Scripts/swarm-convergence.mjs` + `runSwarm.mjs`. Owner-gated (`YURI_SWARM_CONVERGENCE=1`). Adversarial pass typically uses `glm-max`. Orchestrator re-verifies load-bearing claims.
+
+## Spawning a sub-orchestrator
+
+A `glm-max` lane can run this protocol if handed `FLEET_PROTOCOL_PREAMBLE` (from `glm-fleet.mjs`) or this SKILL pasted into prompt. Native OMP `task()` subagents remain **flat** — breadth compensates; recursion is GLM `nano-spawn` (owner-gated).
+
+## Retired / ignore
+
+| Item | Status |
+|------|--------|
+| Codex / openai-codex | **Ignore** — owner no longer uses |
+| Direct DeepSeek API | **Retired** 2026-07-06 |
+| Local Ollama SLMs in fleet | **Forbidden** on MacBook |
+| Claude `Agent(model:sonnet)` as primary | **Superseded** by OMP `task()` in this harness |
+| Workflow tool | **Banned** |
 
 ## Session Notes
 
-### 2026-07-02
-- session: 0m | peak ctx: 0% | compacts: 0
-- tools: Grep×4, Read×2
-- corrections: none
-- errors: none
-
-### 2026-07-01
-- session: 83m | peak ctx: 0% | compacts: 0
-- tools: Write×91, Grep×67, Read×57, Shell×20
-- corrections: none
-- errors: none
+### 2026-07-06
+- v2.0.0: OMP `task()` substrate, cloud-only roster, Codex retired, MURE native translation, `cloud-fleet-models.json`

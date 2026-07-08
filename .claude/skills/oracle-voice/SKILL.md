@@ -2,6 +2,8 @@
 name: oracle-voice
 description: "Oracle audio-subsystem builder: STT, TTS, wakeword, call handoff, and audio routing for the Oracle shell. Invoke by name (oracle-voice) only when building the Oracle audio pipeline. NOTE: not the native dictation command — for Claude Code dictation use the built-in /voice."
 triggers: ["oracle-voice"]
+scope: harness
+invocation: ability
 ---
 
 # Oracle Voice

@@ -16,6 +16,8 @@ triggers:
   - "external product"
   - "public page"
 routing_note: "EXTERNAL SURFACES ONLY. Do NOT use for YURI HUD or Kagami — those route to design-master. This skill is for: client work, external products, non-YURI public pages, or any surface outside the YURI OS ecosystem."
+scope: harness
+invocation: ability
 ---
 
 # Frontend Design — External Surfaces

@@ -2,6 +2,8 @@
 name: claude-output-lane
 description: "Routes reusable Claude output (plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, evidence packets) for Codex/main inspection. Use when Claude produces structured output that another lane must inspect, or when mentioning 'Claude output', 'lane handoff', 'output routing', or 'cross-lane artifact'."
 triggers: ["claude output lane", "reusable review output", "draft artifact lane"]
+scope: harness
+invocation: ability
 ---
 
 # Claude Output Lane

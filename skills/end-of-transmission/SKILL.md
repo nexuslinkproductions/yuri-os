@@ -1,11 +1,12 @@
 ---
 name: end-of-transmission
 description: "Continuous background reflection engine that auto-triggers at checkpoints (task completion, context ≥60%, after errors) and runs a full 9-phase pipeline on manual /eot. Use when context is nearing capacity, after completing a major task, after errors, or when you type /eot to trigger structured session reflection."
-invocation: user
 triggers:
   - "end of transmission"
   - "/eot"
   - "/end-of-transmission"
+scope: harness
+invocation: workflow
 ---
 
 # End of Transmission

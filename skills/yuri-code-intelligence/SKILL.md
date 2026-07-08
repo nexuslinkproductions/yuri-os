@@ -1,7 +1,6 @@
 ---
 name: yuri-code-intelligence
 description: "Unified code quality intelligence layer that diagnoses code smells (Long Method, Feature Envy, design pattern issues), prescribes targeted Fowler refactoring techniques, and reviews code for security, performance, and clarity. Use when user says 'review this code', 'refactor this', 'what's wrong with this method', 'code smells', or 'clean this up'."
-invocation: user
 triggers:
   - "/code-intelligence"
   - "/yuri-refactor"
@@ -9,6 +8,8 @@ triggers:
   - "code review"
   - "smell diagnosis"
   - "improve code quality"
+scope: harness
+invocation: ability
 ---
 
 # Yuri Code Intelligence — Unified Refactoring + Review Layer

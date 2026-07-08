@@ -1,6 +1,8 @@
 ---
 name: fleet-economy
 description: Use when orchestrating any non-trivial multi-part task with subagents or model lanes — builds, audits, refactors, research sweeps, migrations — or when deciding which model tier handles a unit of work, how wide to fan out, or whether a heavy lane should itself delegate. Triggers include "orchestrate", "fan out", "route to cheap/heavy models", "workflowz", "MoE", "MLP", "fleet", or a task large enough to split across agents.
+scope: harness
+invocation: workflow
 ---
 
 # Fleet Economy — MoE + MLP orchestration doctrine

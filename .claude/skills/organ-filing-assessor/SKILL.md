@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "filing-assessor"
 source_file: "_SYSTEM/Scripts/filing-assessor.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "filing-assessor" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

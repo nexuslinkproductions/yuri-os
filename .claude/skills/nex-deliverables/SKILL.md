@@ -15,6 +15,8 @@ metadata:
       - "nex-deliverables.py"
       - "lib/*"
       - "setup.sh"
+scope: instance
+invocation: workflow
 ---
 
 <!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/nexaiguy/nex-deliverables | scanned: 2026-05-17 | score: 10 -->

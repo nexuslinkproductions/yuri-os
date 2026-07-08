@@ -1,6 +1,8 @@
 ---
 name: using-superpowers
 description: "Resolves and loads task-relevant skills from the canonical local skill root after the workspace authority chain is loaded. Use when the user wants to discover available skills, load skill capabilities, or needs to know what skills are available for a task."
+scope: harness
+invocation: workflow
 ---
 
 <SUBAGENT-STOP>

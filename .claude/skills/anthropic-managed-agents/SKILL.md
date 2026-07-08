@@ -2,6 +2,8 @@
 name: anthropic-managed-agents
 description: "Research Anthropic managed agents, sessions, events, tools, and skills, then distill the architecture into a portable agent brief. Use when you need a concise reference for agent/session/event design and long-running workflows."
 triggers: ["/anthropic-managed-agents", "managed agents", "agent sessions architecture"]
+scope: harness
+invocation: ability
 ---
 
 # Anthropic Managed Agents

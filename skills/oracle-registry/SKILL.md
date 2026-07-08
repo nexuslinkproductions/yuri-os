@@ -2,6 +2,8 @@
 name: oracle-registry
 description: "Build Oracle registry surfaces for skills, packages, and installs. Use when the task touches local skill packs, discovery, publishing, or install/update flow on this OS."
 triggers: ["oracle-registry"]
+scope: harness
+invocation: ability
 ---
 
 # Oracle Registry

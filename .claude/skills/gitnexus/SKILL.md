@@ -3,6 +3,8 @@ name: gitnexus
 disable-model-invocation: true
 description: "Unified GitNexus dispatcher for CLI, guide, exploration, debugging, PR review, impact analysis, and refactoring workflows. Use when the user says 'run gitnexus', 'analyze this repo', 'check impact', 'trace dependencies', or 'review this PR'."
 triggers: ["/gitnexus", "code intelligence dispatcher", "impact analysis"]
+scope: harness
+invocation: ability
 ---
 
 # GitNexus Dispatcher

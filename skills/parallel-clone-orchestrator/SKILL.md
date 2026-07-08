@@ -12,6 +12,8 @@ requires:
   - enterprise-control-plane
   - audit-events
   - rollback-policy
+scope: harness
+invocation: workflow
 ---
 
 # Parallel Clone Orchestrator Skill (Retired)

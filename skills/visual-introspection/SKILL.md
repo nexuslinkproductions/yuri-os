@@ -1,12 +1,13 @@
 ---
 name: visual-introspection
 description: Engineering visual analysis of the Yuri OS architecture graph. Reads _SYSTEM/yuri-graph-state.json and reports structural insights, optimization opportunities, dead-ends, missing returns, duplicate functionality, and merge candidates. Use when reviewing system architecture, planning refactors, or assessing graph health.
-invocation: user
 triggers:
   - "/introspect"
   - "visual introspection"
   - "graph analysis"
   - "review yuri architecture"
+scope: harness
+invocation: ability
 ---
 
 # Visual Introspection - Yuri OS Engineering Analysis

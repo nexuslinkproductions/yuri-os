@@ -2,6 +2,8 @@
 name: claude-output-lane
 description: "Routes reusable Claude output (plans, ideas, findings, reviews, draft artifacts, diff proposals, questions, decisions, evidence packets) for Codex/main inspection. Use when Claude produces structured output that another lane must inspect, or when mentioning 'Claude output', 'lane handoff', 'output routing', or 'cross-lane artifact'."
 triggers: ["claude output lane", "reusable review output", "draft artifact lane"]
+scope: harness
+invocation: ability
 ---
 
 # Claude Output Lane
@@ -120,6 +122,12 @@ Codex/main should consume the lane by category:
 If Claude writes the wrong category, Codex/main should leave the original intact and create or request a corrected categorized output. Do not silently merge unrelated output types.
 
 ## Session Notes
+
+### 2026-07-06
+- session: 58m | peak ctx: 0% | compacts: 0
+- tools: Read×263, Grep×94, Shell×92, Write×43, MCP:search_contacts×4, MCP:list_chats×2, MCP:open_resource×1, MCP:list_messages×1
+- corrections: none
+- errors: none
 
 ### 2026-06-03
 - session: 1307m | peak ctx: 0% | compacts: 0

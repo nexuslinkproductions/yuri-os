@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "formula-foundry"
 source_file: "_SYSTEM/Scripts/math/formula-foundry.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "formula-foundry" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

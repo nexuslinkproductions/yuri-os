@@ -5,6 +5,8 @@ triggers:
   - "convert this research into a skill"
   - "promote research to skill"
   - "artifact-candidate"
+scope: harness
+invocation: ability
 ---
 
 # Research Artifact Factory

@@ -1,6 +1,8 @@
 ---
 name: prompt-engineering
 description: "Design, audit, and optimize prompts as task contracts with evidence, constraints, tool policy, output schemas, and evals. Use when the user asks for prompts, system instructions, prompting strategy, prompt quality, prompt optimization, RAG instructions, tool-agent instructions, or asks to avoid identity-roleplay phrasing."
+scope: harness
+invocation: ability
 ---
 
 # Prompt Engineering

@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "yuri-nerve"
 source_file: "_SYSTEM/Scripts/yuri-nerve.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "yuri-nerve" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

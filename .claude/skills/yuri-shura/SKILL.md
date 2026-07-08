@@ -1,12 +1,13 @@
 ---
 name: yuri-shura
 description: "6-perspective adversarial review for high-stakes turns (architecture decisions, refactor planning, deployment review) — fans out architect, adversary (7-vector attack), maintainer, ops, product, and security perspectives in parallel, then consolidates. Use when user says 'review this decision', '/shura', 'adversarial review', 'what could go wrong', 'architecture review', or 'deployment review'."
-invocation: model
 triggers:
   - "/shura"
   - "strategic review"
   - "architecture review"
   - "yuri-shura"
+scope: harness
+invocation: workflow
 ---
 
 # Yuri Shura -- 6-Perspective Review

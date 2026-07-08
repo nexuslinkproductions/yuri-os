@@ -10,6 +10,8 @@ triggers:
   - "domain"
   - "failure evolution"
   - "sharingan"
+scope: harness
+invocation: ability
 ---
 
 # Anime DNA Extension Pack — Skill Orchestrator

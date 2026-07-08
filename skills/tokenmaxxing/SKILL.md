@@ -3,6 +3,8 @@ name: tokenmaxxing
 description: "Native token efficiency mode that compresses output, minimizes verbosity, and enables caveman-style communication. Use when the user wants to save tokens, reduce output length, work in minimal-verbosity mode, or mentions token budgets or caveman mode."
 triggers:
   - "tokenmaxxing"
+scope: harness
+invocation: workflow
 ---
 
 # TOKENMAXXING MODE

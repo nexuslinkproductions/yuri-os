@@ -36,6 +36,8 @@ triggers:
 metadata:
   openclaw:
     homepage: https://github.com/Panniantong/Agent-Reach
+scope: harness
+invocation: ability
 ---
 
 # Agent Reach — 互联网能力路由器

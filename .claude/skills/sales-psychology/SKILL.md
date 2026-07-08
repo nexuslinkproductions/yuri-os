@@ -11,6 +11,8 @@ triggers:
   - Raving Fans
   - Jungian
   - sales psychology
+scope: instance
+invocation: ability
 ---
 
 # Sales Psychology

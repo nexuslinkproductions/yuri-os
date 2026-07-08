@@ -1,10 +1,11 @@
 ---
 name: nen-phase-detector
 description: "Adaptive phase specialization that sets the work-phase mode (deep_code, design, strategy, research, admin, rest) to tune depth, verbosity, and approach to match what the current phase needs. Use when starting a new work phase, when the user says \"/nen deep_code\", \"switch to research mode\", \"I need strategy thinking\", or when the task type changes and the approach needs realignment."
-invocation: model
 triggers:
   - /nen
   - /yuri-nen
+scope: harness
+invocation: workflow
 ---
 
 # Nen (念) — Adaptive Phase Specialization

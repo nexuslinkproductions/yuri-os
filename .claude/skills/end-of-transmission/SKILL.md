@@ -1,11 +1,12 @@
 ---
 name: end-of-transmission
 description: "Continuous background reflection engine that auto-triggers at checkpoints (task completion, context ≥60%, after errors) and runs a full 9-phase pipeline on manual /eot. Use when context is nearing capacity, after completing a major task, after errors, or when you type /eot to trigger structured session reflection."
-invocation: user
 triggers:
   - "end of transmission"
   - "/eot"
   - "/end-of-transmission"
+scope: harness
+invocation: workflow
 ---
 
 # End of Transmission
@@ -468,6 +469,16 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 
 ## Session Notes
 
+### 2026-07-06
+- session: 23m | peak ctx: 0% | compacts: 0
+- tools: Bash×139, Read×35, Edit×11, Write×9, Agent×7, mcp×2, Skill×1, CronCreate×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/opus-fleet
+
+# opus-fleet — Opus orchestrates, Sonnet/Haiku agents execute
+
+The default way to run any non-trivial task. The main **Opus
+- errors: none
+
 ### 2026-05-29
 - session: 349m | peak ctx: 71% | compacts: 4
 - tools: Bash×268, Read×133, Edit×104, TodoWrite×12, Write×8, StructuredOutput×8, Workflow×2, ToolSearch×1, AskUserQuestion×1
@@ -492,13 +503,6 @@ Continuous background reflection engine for YURI. Runs **two modes**:
 1. **Micro-EOT** (ba
 - errors: none
 
-### 2026-05-18
-- session: ~90m | peak ctx: ~40% | compacts: 0
-- tools: Bash×35+, Edit×18, Read×20+, Write×6, TodoWrite×5, ToolSearch×2, ExitPlanMode×1, Skill×1
-- corrections: User caught Haiku Explore agent spawns TWICE in same session. Both stopped mid-execution.
-- errors: deepseek bg worker output not captured; backend .env cp denied by user
-- notes: Gate NOT_READY→READY. Semantic LTM live. 4 new lane tools. TOOL_LOOP recovery. calibrationStatus in route-plan. phase 7c in neuron-loop. SELF_DRIFT in brain. autoRecordOutcome wired. NO Agent() for reads rule written + embedded.
-
 ### 2026-05-17
 - session: 65m | peak ctx: 0% | compacts: 0
 - tools: Bash×73, Edit×43, Read×33, mcp×28, TodoWrite×12, Write×6, ToolSearch×3, ExitPlanMode×2, AskUserQuestion×1, Skill×1
@@ -510,12 +514,6 @@ i have run both gitnexus and push origin main commands in terminal
 there are no loose docs left except | I  cant press F12, im on a macbook. it is also not a cache problem, something got fucked up.
 
 I will say this one last time. all of these annoying manual pushes, bash permission denials, blocks etc ne
-- errors: none
-
-### 2026-05-17
-- session: 160m | peak ctx: 0% | compacts: 0
-- tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
-- corrections: none
 - errors: none
 
 ### 2026-05-16
@@ -542,16 +540,6 @@ I will say this one last time. all of these annoying manual pushes, bash permiss
 - corrections: none
 - errors: none
 
-### 2026-04-26 (v2: Continuous Background EOT)
-- EOT v2 implementation: auto-triggered micro-EOT, Claude-worker removal, tiered memory integration
-- changes: added auto-trigger conditions (≥15 tool calls, context ≥60%, error recovery, cycle completion)
-- added micro-EOT mode, now routed through DeepSeek workers and written to `.claude/eot/continuous/`
-- removed Claude-worker EOT routing: eot-005/005b use DeepSeek Pro, eot-006/007 use DeepSeek Flash, eot-009 remains main-thread synthesis
-- updated Phase 7.5: tiered memory framing, micro-EOT wiki atom creation limited to steps 1-3
-- updated frontmatter description, Full Auto Permission Grant, Execution Model, routing table
-- harmony with Karpathy wiki: continuous atom creation via every micro-EOT, not just full EOT
-- model routing enforcement: EOT uses DeepSeek lanes only; no Haiku or Sonnet EOT workers
-
 ### 2026-04-25
 - session: injection + first live EOT run
 - peak ctx: ~40%
@@ -560,43 +548,3 @@ I will say this one last time. all of these annoying manual pushes, bash permiss
 - corrections: /eot CLI alias missing — fixed during EOT run (commands/eot.md created)
 - errors: "Unknown command: /eot" on user test — root cause: triggers frontmatter ≠ CLI command file
 - notes: symbiosed from MARCEL_UwU_End_of_Transmission_Global_Command.md; artifacts at .claude/eot/2026-04-25_1207/; skill refinement patch 001+002 logged
-
-### 2026-04-26
-- session: LLM-Wiki overlay wiring
-- peak ctx: ~15%
-- compacts: 1
-- tools: Read×3, Edit×3
-- corrections: none
-- errors: none
-- notes: Added Phase 7.5 (LLM-Wiki Reflection, conditional) and eot-008 routing task. Non-blocking; skips if system-overlays/karpathy-llm-wiki/ absent. Patch proposal archived at system-overlays/karpathy-llm-wiki/patches/PATCH-EOT-WIKI-INTEGRATION.md.
-
-### 2026-04-25 (update 2)
-- session: FULL_AUTO upgrade from MARCEL_UwU_End_of_Transmission_Global_Command_FULL_AUTO.md
-- peak ctx: ~30%
-- compacts: 0
-- tools: Read×2, Edit×8
-- corrections: none
-- errors: none
-- notes: added Full Auto Permission Grant + No-Interruption Rule + Hard Boundaries sections; updated Phase 0/Routing/Council/Output XMLs with full_auto attrs and blocked_items field; updated both CLAUDE.md inject blocks to full-auto version
-
-### 2026-05-14
-- session: YURI OS 75%+ campaign + Codex multi-tier + palace rebuild
-- peak ctx: high | compacts: 0
-- tools: Bash×80+, Read×30+, Edit×20+, Write×5, Skill×1, Agent×0
-- corrections: Codex rate-limited during EOT dispatch → main thread fallback; artifacts written by earlier Codex invocation at 09:04
-- errors: gpt-5.5 + gpt-5.4-mini both SKIPPED_OR_RATE_LIMITED during EOT burst; palace-context-inject.js pointed at wrong paths
-- notes: PATCH 005 added — single long session > multiple short sessions for Codex burst work
-
-## PATCH 005 — Stay in session through Codex rate-limit windows
-
-**Skill:** `end-of-transmission` / session lifecycle
-**Trigger:** Codex returns SKIPPED_OR_RATE_LIMITED during any multi-dispatch pipeline
-**Rule:** Do NOT end the session and start a new one when Codex hits a rate limit. Session startup
-overhead (hooks, tool loads, palace inject, model warm-up) costs 2-3min per session. A Codex
-rate-limit window is only 5-10min. During the window: dispatch DeepSeek analysis, run llama3.2
-local tasks, do git/gitnexus/deterministic work. Quota auto-resets; resume Codex in same session.
-Only EOT when context window forces it (80%+) or user explicitly requests it.
-**Validation:** No new session spawned within 15min of a Codex rate-limit event.
-**Evidence:** 2026-05-14 — multiple parallel Codex dispatches (EOT 6 artifacts + Q-2 + Q-4 + hook fix)
-saturated burst quota. Subsequent sessions required re-paying startup overhead unnecessarily.
-See: `memory/feedback_long_session_codex_burst.md`

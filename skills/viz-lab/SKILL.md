@@ -1,6 +1,8 @@
 ---
 name: viz-lab
 description: "Build best-in-class, real-data-grounded visualizations of YURI's own systems — energy/ΔU surfaces, quantum Q-spheres, circuitry graphs (2D edge-bundling + 3D die), telemetry cockpits, embedding atlases. Use when the task is to visualize, depict, render, or make interactive any YURI math / quantum / graph / telemetry data, build a 3D / WebGL / three.js / react-three-fiber or D3 visualization, turn a flat view into 3D, or prototype a viz before wiring it into the app. Triggers: visualize, viz, visualization, 3D, WebGL, three.js, D3, surface, graph, chart, dashboard, Q-sphere, edge bundling, make this 3D."
+scope: harness
+invocation: ability
 ---
 
 # YURI Viz-Lab

@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "formula-foundry-bakeoff"
 source_file: "_SYSTEM/Scripts/math/formula-foundry-bakeoff.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "formula-foundry-bakeoff" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

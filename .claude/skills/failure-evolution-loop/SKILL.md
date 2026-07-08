@@ -1,7 +1,6 @@
 ---
 name: failure-evolution-loop
 description: "Real failure capture, root-cause analysis, regression design (outputs a runnable-test SPECIFICATION — does not write test files directly), and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior. Use when the user says 'capture this failure', 'analyze root cause', 'prevent regression', or 'learn from this bug'."
-invocation: gate
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -14,6 +13,8 @@ requires:
   - enterprise-control-plane
   - audit-events
   - rollback-policy
+scope: harness
+invocation: workflow
 ---
 
 # Failure Evolution Loop Skill
@@ -145,6 +146,12 @@ failure:
 ```
 
 ## Session Notes
+
+### 2026-07-06
+- session: 54m | peak ctx: 0% | compacts: 0
+- tools: Bash×601, Read×198, Edit×56, WebFetch×28, Write×17, Agent×13, WebSearch×9, StructuredOutput×9, ToolSearch×8, mcp×2, ReportFindings×2, TaskList×1, TaskOutput×1, Workflow×1, CronCreate×1
+- corrections: none
+- errors: none
 
 ### 2026-06-14
 - session: 119m | peak ctx: 0% | compacts: 0

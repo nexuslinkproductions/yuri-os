@@ -11,6 +11,8 @@ triggers:
   - "learn from this codebase"
   - "make a course from this project"
   - "turn [.*] into a course"
+scope: harness
+invocation: ability
 ---
 
 # Codebase-to-Course

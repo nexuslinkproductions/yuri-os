@@ -1,6 +1,8 @@
 ---
 name: kimi-k2-6-server-adapter
 description: "Plan Kimi K2.6 as a self-hosted, server-grade model behind an OpenAI-compatible endpoint. Use when you need a concise adapter brief, not a consumer-local runtime plan."
+scope: harness
+invocation: ability
 ---
 
 # Kimi K2.6 Server Adapter

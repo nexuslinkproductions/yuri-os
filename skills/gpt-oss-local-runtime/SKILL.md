@@ -1,6 +1,8 @@
 ---
 name: gpt-oss-local-runtime
 description: "Set up and reason about local gpt-oss runtime paths, defaulting to Ollama with LM Studio as fallback. Use when you need a concise local-offload plan, endpoint mapping, or compatibility notes for OpenAI-shaped clients."
+scope: harness
+invocation: ability
 ---
 
 # GPT-OSS Local Runtime

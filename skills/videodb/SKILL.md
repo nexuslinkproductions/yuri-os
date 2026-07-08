@@ -5,6 +5,8 @@ triggers:
   - "videodb"
   - "video database"
   - "video search"
+scope: harness
+invocation: ability
 ---
 
 # VideoDB Skill

@@ -1,7 +1,6 @@
 ---
 name: trade-edge-audit
 description: The EDGE LENS for trading peers — recalls EVERY factor/indicator running from the live forecast ledger (no enumeration) and renders the whole pile through the edge arsenal off ONE call: multi-horizon scoring (the ladder) + deflated Sharpe (overfit) + Benjamini-Hochberg FDR (multiple-testing across the fleet) + spread-bounce + maker-fee falsification, then ranks only what survives ALL of it. Use when a peer must answer "does ANY running factor have real, overfit-corrected, multiple-testing-corrected, fee-surviving edge, and at which horizon" without hand-assembling 6 tools. The trade-engine analog of quantum-hypothesis-simulation.
-invocation: model
 triggers:
   - "/trade-edge-audit"
   - "/edge-audit"
@@ -12,6 +11,8 @@ triggers:
   - "recall all factors and score"
   - "trade brain edge lens"
   - "overfit and multiple testing corrected"
+scope: instance
+invocation: ability
 ---
 
 # Trade Edge Audit — the edge lens

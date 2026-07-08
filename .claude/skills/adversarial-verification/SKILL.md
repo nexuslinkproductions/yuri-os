@@ -2,6 +2,8 @@
 name: adversarial-verification
 description: Use when verifying completed work, reviewing Claude or Codex output, wiring routes or adapters, relaunching lanes, committing, pushing, or avoiding first-run confidence.
 triggers: ["adversarial verification", "attack your own output", "verify completed work"]
+scope: harness
+invocation: workflow
 ---
 
 # Adversarial Verification
@@ -42,6 +44,12 @@ Stop and say so when no deterministic check exists, when the negative case unexp
 No "looks good" shortcut. Evidence first, then the claim.
 
 ## Session Notes
+
+### 2026-07-05
+- session: 117m | peak ctx: 0% | compacts: 0
+- tools: TaskCreate×505, Bash×119, Read×109, TaskUpdate×8, WebSearch×8, TaskOutput×6, StructuredOutput×4, Write×4, Agent×3, Workflow×2, AskUserQuestion×1
+- corrections: none
+- errors: none
 
 ### 2026-06-02
 - session: 196m | peak ctx: 0% | compacts: 0

@@ -3,6 +3,8 @@ name: MinerU Document Extractor
 description: "Document extraction tool using MinerU CLI to convert PDFs and other documents to structured Markdown. Use when the user says \"extract this document\", \"convert PDF to markdown\", \"parse this PDF\", \"I need text from this document\", or when needing to extract structured content from PDFs, scanned documents, or other document formats."
 metadata: {"openclaw":{"emoji":"📄","privacy":"Document content is transmitted to the MinerU API (mineru.net) for server-side extraction. No data is retained after processing completes. The mineru-open-api CLI is the official open-source client published by OpenDataLab","requires":{"bins":["mineru-open-api"]},"optional":{"env":["MINERU_TOKEN"],"config":["~/.mineru/config.yaml"]},"install":[{"id":"npm","kind":"node","package":"mineru-open-api","bins":["mineru-open-api"],"label":"Install via npm"},{"id":"go","kind":"go","bins":["mineru-open-api"],"label":"Install via go install","os":["darwin","linux"]}]}}
 allowed-tools: Bash(mineru-open-api:*)
+scope: harness
+invocation: ability
 ---
 
 <!-- provenance: ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/mineru-extract/mineru-document-extractor | scanned: 2026-05-17 | score: 10 -->

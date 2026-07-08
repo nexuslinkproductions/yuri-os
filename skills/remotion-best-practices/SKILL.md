@@ -6,6 +6,8 @@ triggers:
   - "react video"
   - "video composition"
   - "render video"
+scope: harness
+invocation: ability
 ---
 
 # Remotion Best Practices

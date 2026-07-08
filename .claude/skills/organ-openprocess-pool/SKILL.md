@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "openprocess-pool"
 source_file: "_SYSTEM/Scripts/openprocess-pool.mjs"
+scope: harness
+invocation: ability
 ---
 
 <!-- GENERATED from the canonical graph node "openprocess-pool" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

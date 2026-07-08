@@ -6,6 +6,8 @@ description: >-
   useful.
 metadata:
   visibility: exported
+scope: harness
+invocation: ability
 ---
 
 # Agent-Native Plans

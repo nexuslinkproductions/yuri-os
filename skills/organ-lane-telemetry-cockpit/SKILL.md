@@ -10,6 +10,8 @@ triggers:
 generated: true
 source_node: "lane-telemetry-cockpit"
 source_file: "_SYSTEM/Scripts/lane-telemetry-cockpit.mjs"
+scope: harness
+invocation: workflow
 ---
 
 <!-- GENERATED from the canonical graph node "lane-telemetry-cockpit" (mechanism.guide) by _SYSTEM/Scripts/yuri-guide-project.mjs.

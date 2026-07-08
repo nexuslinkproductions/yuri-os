@@ -13,6 +13,8 @@ requires:
   - execution-domain-core
   - non-destructive-infinity-guard
   - failure-evolution-loop
+scope: harness
+invocation: ability
 ---
 
 # Probabilistic Decision Core Skill

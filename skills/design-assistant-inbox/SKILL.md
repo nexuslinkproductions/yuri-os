@@ -1,6 +1,8 @@
 ---
 name: design-assistant-inbox
 description: Use when working from Chrome Design Assistant browser selections, pending visual design requests, or the local design-assistant MCP/HTTP bridge.
+scope: harness
+invocation: ability
 ---
 
 # Design Assistant Inbox

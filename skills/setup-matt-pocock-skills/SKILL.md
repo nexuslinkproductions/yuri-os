@@ -2,6 +2,8 @@
 name: setup-matt-pocock-skills
 description: "Scaffolds per-repo configuration (issue tracker, triage labels, domain doc layout) that engineering skills assume. Use when first running `to-issues`, `to-prd`, `triage`, `diagnose`, `tdd`, `improve-codebase-architecture`, or `zoom-out` in a new repo, or when those skills appear to be missing context about the issue tracker, triage labels, or domain docs."
 disable-model-invocation: true
+scope: harness
+invocation: workflow
 ---
 
 # Setup Matt Pocock's Skills

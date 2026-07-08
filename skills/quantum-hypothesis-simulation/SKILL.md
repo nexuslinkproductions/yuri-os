@@ -1,7 +1,6 @@
 ---
 name: quantum-hypothesis-simulation
 description: Use when evidence arrives in an ORDER that matters, when hypotheses interfere/are non-commuting, when you need the Schmidt coupling criterion for the cross-reference engine, or when a classical Bayes model may be missing order-effects — quantum-hypothesis-tracker.mjs does real-valued Hilbert-space hypothesis tracking (superposition until measurement, order-aware sequential evidence, QQ-equality), gated to beat classical Bayes on order-sensitive data without spurious control wins. Tier 3 of YURI's 4-tier simulation arsenal.
-invocation: model
 triggers:
   - "/quantum-sim"
   - "/qsim"
@@ -14,6 +13,8 @@ triggers:
   - "non-commuting evidence"
   - "simulation arsenal"
   - "decide under uncertainty"
+scope: harness
+invocation: ability
 ---
 
 # Quantum Hypothesis Simulation

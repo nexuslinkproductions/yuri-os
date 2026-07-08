@@ -1,475 +1,475 @@
 {
   "ad-creative": {
     "source_path": "skills/ad-creative/SKILL.md",
-    "hash": "649d9490ea717a37"
+    "hash": "342c726e0a9682b1"
   },
   "adversarial-verification": {
     "source_path": "skills/adversarial-verification/SKILL.md",
-    "hash": "6a23f51514de1493"
+    "hash": "d9b781cd4f93611b"
   },
   "agent-reach": {
     "source_path": "skills/agent-reach/SKILL.md",
-    "hash": "a9a3ffa3efe24f0d"
+    "hash": "e38f76c2bf2fcb91"
   },
   "agent-scout": {
     "source_path": "skills/agent-scout/SKILL.md",
-    "hash": "801afeb99ba8d3c2"
+    "hash": "0190d03a43b5f4a8"
   },
   "anime-dna-extensions": {
     "source_path": "skills/anime-dna-extensions/SKILL.md",
-    "hash": "377cb97c6c6f5543"
+    "hash": "a7f2e493dd8aaa62"
   },
   "anthropic-managed-agents": {
     "source_path": "skills/anthropic-managed-agents/SKILL.md",
-    "hash": "0fb62faf499c8404"
+    "hash": "cc9e7da8736896eb"
   },
   "audit-log-firewall": {
     "source_path": "skills/audit-log-firewall/SKILL.md",
-    "hash": "b22c3ad0fbcba1eb"
+    "hash": "7b0a2c02df9e1e5a"
   },
   "bankai-manifest": {
     "source_path": "skills/bankai-manifest/SKILL.md",
-    "hash": "41057be3c111ab77"
+    "hash": "d61da92958143aa9"
   },
   "bg": {
     "source_path": "skills/bg/SKILL.md",
-    "hash": "ada30f22b0f2ab7d"
+    "hash": "fda2bef495cf64ba"
   },
   "brainstorming": {
     "source_path": "skills/brainstorming/SKILL.md",
-    "hash": "bba47904a7f6bbee"
+    "hash": "f6bc472d0cbb503f"
   },
   "browser-harness": {
     "source_path": "skills/browser-harness/SKILL.md",
-    "hash": "4833ff29e7cfb8e9"
+    "hash": "df1e5eb9ffecde77"
   },
   "caveman": {
     "source_path": "skills/caveman/SKILL.md",
-    "hash": "b4bb6fe3bf3da222"
+    "hash": "04d927756e253def"
   },
   "claude-codex-capability-bridge": {
     "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
-    "hash": "943a8a6fdc8940a0"
+    "hash": "3a0435f750d5a7fa"
   },
   "claude-output-lane": {
     "source_path": "skills/claude-output-lane/SKILL.md",
-    "hash": "6a61b86732bfd092"
+    "hash": "25e0dc68eac68d95"
   },
   "codebase-to-course": {
     "source_path": "skills/codebase-to-course/SKILL.md",
-    "hash": "2fd06727a58005bc"
+    "hash": "d9e30e9d4ca5cecd"
   },
   "codex-plugin-control-plane": {
     "source_path": "skills/codex-plugin-control-plane/SKILL.md",
-    "hash": "359c6085efa5b188"
+    "hash": "6ac4991817faf246"
   },
   "compact-optimizer": {
     "source_path": "skills/compact-optimizer/SKILL.md",
-    "hash": "a7f071031d8f282e"
+    "hash": "c664c19bec37e7fc"
   },
   "cross-reference-navigation": {
     "source_path": "skills/cross-reference-navigation/SKILL.md",
-    "hash": "74070534825cd356"
+    "hash": "0f618ad6db1aba4a"
   },
   "design-assistant-inbox": {
     "source_path": "skills/design-assistant-inbox/SKILL.md",
-    "hash": "5fedc68fdcfbd2fe"
+    "hash": "abbb3ef127f74dd4"
   },
   "design-source-pack": {
     "source_path": "skills/design-source-pack/SKILL.md",
-    "hash": "9c0320987dc63939"
+    "hash": "daddad595a4715a0"
   },
   "diagnose": {
     "source_path": "skills/diagnose/SKILL.md",
-    "hash": "28886402bbfa0470"
+    "hash": "ddc4ef17318620ab"
   },
   "dispatching-parallel-agents": {
     "source_path": "skills/dispatching-parallel-agents/SKILL.md",
-    "hash": "76806091c7f923ba"
+    "hash": "6c6a812ef63e2579"
   },
   "end-of-transmission": {
     "source_path": "skills/end-of-transmission/SKILL.md",
-    "hash": "c458895cb8c06e24"
+    "hash": "22b14929e7b11f4d"
   },
   "executing-plans": {
     "source_path": "skills/executing-plans/SKILL.md",
-    "hash": "e2102f1163143393"
+    "hash": "08bb9bff4c3be89a"
   },
   "execution-domain-core": {
     "source_path": "skills/execution-domain-core/SKILL.md",
-    "hash": "9af648aabe9c317f"
+    "hash": "86d871f512b956f5"
   },
   "extraction-sprint": {
     "source_path": "skills/extraction-sprint/SKILL.md",
-    "hash": "5783d7f425d2894a"
+    "hash": "bb922bb0fec312e3"
   },
   "failure-evolution-loop": {
     "source_path": "skills/failure-evolution-loop/SKILL.md",
-    "hash": "7dd03133d657a188"
+    "hash": "714e77d3097db0cc"
   },
   "finishing-a-development-branch": {
     "source_path": "skills/finishing-a-development-branch/SKILL.md",
-    "hash": "5c8d4b59aedb14c9"
+    "hash": "b24330509f246eb5"
   },
   "fleet-economy": {
     "source_path": "skills/fleet-economy/SKILL.md",
-    "hash": "bb5f63f4ed550cd5"
+    "hash": "b1a7eba675354918"
   },
   "frontend-design": {
     "source_path": "skills/frontend-design/SKILL.md",
-    "hash": "fe9a2231f6d633b3"
+    "hash": "4be1a581a1556dd2"
   },
   "geass-lock": {
     "source_path": "skills/geass-lock/SKILL.md",
-    "hash": "649e979f785e6553"
+    "hash": "595e944cfd280faf"
   },
   "git-guardrails-claude-code": {
     "source_path": "skills/git-guardrails-claude-code/SKILL.md",
-    "hash": "03c4de7613c712ae"
+    "hash": "8dcc22653a1ac7db"
   },
   "gitnexus": {
     "source_path": "skills/gitnexus/SKILL.md",
-    "hash": "b3f3f65ed9b3b1a8"
+    "hash": "68dc23bf9ed33100"
   },
   "gitnexus-cli": {
     "source_path": "skills/gitnexus-cli/SKILL.md",
-    "hash": "d96337c948a333c8"
+    "hash": "470e78e2512291d3"
   },
   "gitnexus-debugging": {
     "source_path": "skills/gitnexus-debugging/SKILL.md",
-    "hash": "4a1e82aa835c52e3"
+    "hash": "8b32b9ac68bddcb5"
   },
   "gitnexus-exploring": {
     "source_path": "skills/gitnexus-exploring/SKILL.md",
-    "hash": "ffafeaa0ce52be07"
+    "hash": "2a1488b2984ef596"
   },
   "gitnexus-guide": {
     "source_path": "skills/gitnexus-guide/SKILL.md",
-    "hash": "40b047beeb9a7c5d"
+    "hash": "4b812be493aaa2bf"
   },
   "gitnexus-impact-analysis": {
     "source_path": "skills/gitnexus-impact-analysis/SKILL.md",
-    "hash": "a4d6e8003c4a822c"
+    "hash": "871705c0cb5de838"
   },
   "gitnexus-pr-review": {
     "source_path": "skills/gitnexus-pr-review/SKILL.md",
-    "hash": "f7bac200a4752191"
+    "hash": "4f137931a5116cd6"
   },
   "gitnexus-refactoring": {
     "source_path": "skills/gitnexus-refactoring/SKILL.md",
-    "hash": "6aab994ee0266063"
+    "hash": "f66bc0f8113308ca"
   },
   "gpt-oss-local-runtime": {
     "source_path": "skills/gpt-oss-local-runtime/SKILL.md",
-    "hash": "123ea0105c948d32"
+    "hash": "0b5caf8d63bcb89c"
   },
   "grill-me": {
     "source_path": "skills/grill-me/SKILL.md",
-    "hash": "74147eb6010a6595"
+    "hash": "86e67efbf394b3a3"
   },
   "grill-with-docs": {
     "source_path": "skills/grill-with-docs/SKILL.md",
-    "hash": "c7176600a8bffc9f"
+    "hash": "ad9f6506eacdbffc"
   },
   "haki-intent": {
     "source_path": "skills/haki-intent/SKILL.md",
-    "hash": "7948591bddc839a4"
+    "hash": "1dd8e8aca696c2c1"
   },
   "hatch-pet": {
     "source_path": "skills/hatch-pet/SKILL.md",
-    "hash": "7ab0f01e8561085d"
+    "hash": "bf9eaaadddab347f"
   },
   "imagegen": {
     "source_path": "skills/imagegen/SKILL.md",
-    "hash": "c527c66ddfe293f2"
+    "hash": "22583d12990c820b"
   },
   "improve-codebase-architecture": {
     "source_path": "skills/improve-codebase-architecture/SKILL.md",
-    "hash": "9e9b617b1c70d390"
+    "hash": "3c188d3223dfa228"
   },
   "izanagi-simulator": {
     "source_path": "skills/izanagi-simulator/SKILL.md",
-    "hash": "10de89bf66d92233"
+    "hash": "364e9597d7eae542"
   },
   "kimi-k2-6-server-adapter": {
     "source_path": "skills/kimi-k2-6-server-adapter/SKILL.md",
-    "hash": "a8372f7ab537320a"
+    "hash": "24f753501ecbaa3f"
   },
   "math-curve-loaders": {
     "source_path": "skills/math-curve-loaders/SKILL.md",
-    "hash": "6a63ad21935f1407"
+    "hash": "40212c6c66cdc971"
   },
   "migrate-to-shoehorn": {
     "source_path": "skills/migrate-to-shoehorn/SKILL.md",
-    "hash": "de4da4c11d924fac"
+    "hash": "83a2a305fab019db"
   },
   "mineru-document-extractor": {
     "source_path": "skills/mineru-document-extractor/SKILL.md",
-    "hash": "7738ab7c6aa7b972"
+    "hash": "8250e31570672fe9"
   },
   "nen-phase-detector": {
     "source_path": "skills/nen-phase-detector/SKILL.md",
-    "hash": "b4d52bcada873be0"
+    "hash": "02c5c160bfc2decb"
   },
   "nex-deliverables": {
     "source_path": "skills/nex-deliverables/SKILL.md",
-    "hash": "7632cb3287c1ac98"
+    "hash": "784832a9428038a3"
   },
   "nex-vault": {
     "source_path": "skills/nex-vault/SKILL.md",
-    "hash": "55b487ab75575e3f"
+    "hash": "71176f370b636761"
   },
   "non-destructive-infinity-guard": {
     "source_path": "skills/non-destructive-infinity-guard/SKILL.md",
-    "hash": "013273b329c900aa"
+    "hash": "3ade39a5a9b96499"
   },
   "objection-source-diagnoser": {
     "source_path": "skills/objection-source-diagnoser/SKILL.md",
-    "hash": "1a62d36fe9d7c0ac"
+    "hash": "d07460c278e7af67"
   },
   "openai-codex-workflow": {
     "source_path": "skills/openai-codex-workflow/SKILL.md",
-    "hash": "df60a54ed52d5336"
+    "hash": "26b4d0d290a3e780"
   },
   "openai-docs": {
     "source_path": "skills/openai-docs/SKILL.md",
-    "hash": "1ee3c911a5c615c4"
+    "hash": "f1602696827d4f94"
   },
   "opus-fleet": {
     "source_path": "skills/opus-fleet/SKILL.md",
-    "hash": "ad80d9c6921f1575"
+    "hash": "d169397ddef847c8"
   },
   "oracle-adapters": {
     "source_path": "skills/oracle-adapters/SKILL.md",
-    "hash": "f5bc56707653fa83"
+    "hash": "744f0890d61393d6"
   },
   "oracle-memory": {
     "source_path": "skills/oracle-memory/SKILL.md",
-    "hash": "ec62fe2b85981109"
+    "hash": "bba1d408cded03c3"
   },
   "oracle-registry": {
     "source_path": "skills/oracle-registry/SKILL.md",
-    "hash": "accda0e3214e419d"
+    "hash": "7e274bb99d02e872"
   },
   "oracle-router": {
     "source_path": "skills/oracle-router/SKILL.md",
-    "hash": "2383c84c22583524"
+    "hash": "3120fb68026b5a4e"
   },
   "oracle-voice": {
     "source_path": "skills/oracle-voice/SKILL.md",
-    "hash": "7650bbce789b83c3"
+    "hash": "4af16e70e8e0356c"
   },
   "organ-discovery-precision-gate": {
     "source_path": "skills/organ-discovery-precision-gate/SKILL.md",
-    "hash": "2ba41c2836e2d67b"
+    "hash": "b06ba2d673c7f094"
   },
   "organ-filing-assessor": {
     "source_path": "skills/organ-filing-assessor/SKILL.md",
-    "hash": "6bec4239fd1cb394"
+    "hash": "3ce3a1b66a37cc18"
   },
   "organ-formula-foundry": {
     "source_path": "skills/organ-formula-foundry/SKILL.md",
-    "hash": "2a31753ee9e80309"
+    "hash": "81d0ead3c90c2ecc"
   },
   "organ-formula-foundry-bakeoff": {
     "source_path": "skills/organ-formula-foundry-bakeoff/SKILL.md",
-    "hash": "f3a2db2ee442d02c"
+    "hash": "d24f324502887adb"
   },
   "organ-lane-telemetry-cockpit": {
     "source_path": "skills/organ-lane-telemetry-cockpit/SKILL.md",
-    "hash": "a7fd3a0941889d58"
+    "hash": "82c6691314d179e1"
   },
   "organ-openprocess-pool": {
     "source_path": "skills/organ-openprocess-pool/SKILL.md",
-    "hash": "3eab9b4012e4771e"
+    "hash": "50c2d682da767671"
   },
   "organ-yuri-decode": {
     "source_path": "skills/organ-yuri-decode/SKILL.md",
-    "hash": "023cd05d13e041cc"
+    "hash": "109b168b3f134482"
   },
   "organ-yuri-nerve": {
     "source_path": "skills/organ-yuri-nerve/SKILL.md",
-    "hash": "d194aecde4f1043d"
+    "hash": "4c68eb10896804d4"
   },
   "parallel-clone-orchestrator": {
     "source_path": "skills/parallel-clone-orchestrator/SKILL.md",
-    "hash": "bf2a8c6dea9dbc95"
+    "hash": "6032eedcbae5c321"
   },
   "pattern-mirror-core": {
     "source_path": "skills/pattern-mirror-core/SKILL.md",
-    "hash": "4f64f710dfea58f2"
+    "hash": "f9255f00e492f365"
   },
   "peer-signal-build": {
     "source_path": "skills/peer-signal-build/SKILL.md",
-    "hash": "ec22540a2bdea636"
+    "hash": "d8d3edf322a78fb4"
   },
   "plan-review": {
     "source_path": "skills/plan-review/SKILL.md",
-    "hash": "88278336eed3c2f1"
+    "hash": "75fbfff5351d6bf2"
   },
   "plugin-creator": {
     "source_path": "skills/plugin-creator/SKILL.md",
-    "hash": "49af29392f2b37d5"
+    "hash": "f1cadcc69e8a059b"
   },
   "probabilistic-decision-core": {
     "source_path": "skills/probabilistic-decision-core/SKILL.md",
-    "hash": "34df64a6d2bb8dff"
+    "hash": "9590c0423d0c5ab7"
   },
   "prompt-engineering": {
     "source_path": "skills/prompt-engineering/SKILL.md",
-    "hash": "01918939fb936e74"
+    "hash": "3c4d2456710e24e4"
   },
   "quantum-hypothesis-simulation": {
     "source_path": "skills/quantum-hypothesis-simulation/SKILL.md",
-    "hash": "bc7725a3985facba"
+    "hash": "d16334e30bbd7d77"
   },
   "receipt-subscription-cleaner": {
     "source_path": "skills/receipt-subscription-cleaner/SKILL.md",
-    "hash": "61bc804670d70801"
+    "hash": "74c9edc88d30be85"
   },
   "receiving-code-review": {
     "source_path": "skills/receiving-code-review/SKILL.md",
-    "hash": "c9382e92b8f32363"
+    "hash": "bdd34628230724fe"
   },
   "remotion-best-practices": {
     "source_path": "skills/remotion-best-practices/SKILL.md",
-    "hash": "bbfb95e7e746a714"
+    "hash": "18dfe9b818bd35cc"
   },
   "remotion-motion-design": {
     "source_path": "skills/remotion-motion-design/SKILL.md",
-    "hash": "1d7c575451433942"
+    "hash": "ce7198e7714771ca"
   },
   "requesting-code-review": {
     "source_path": "skills/requesting-code-review/SKILL.md",
-    "hash": "5a3a44a3667800e2"
+    "hash": "532d154de0f52c8c"
   },
   "research-artifact-factory": {
     "source_path": "skills/research-artifact-factory/SKILL.md",
-    "hash": "0d8185e4da2dba1f"
+    "hash": "62513ff92762fb94"
   },
   "sales-psychology": {
     "source_path": "skills/sales-psychology/SKILL.md",
-    "hash": "fee3df50caee3f25"
+    "hash": "9f466a6c84efa285"
   },
   "scaffold-exercises": {
     "source_path": "skills/scaffold-exercises/SKILL.md",
-    "hash": "75f5c9d771606fb9"
+    "hash": "e9f7a0c70bfb75c8"
   },
   "setup-matt-pocock-skills": {
     "source_path": "skills/setup-matt-pocock-skills/SKILL.md",
-    "hash": "b2e0b8f93b1183f6"
+    "hash": "1e741707fc91a208"
   },
   "setup-pre-commit": {
     "source_path": "skills/setup-pre-commit/SKILL.md",
-    "hash": "872f4037cb7e6e0e"
+    "hash": "5015f3dcb727be9d"
   },
   "sharingan": {
     "source_path": "skills/sharingan/SKILL.md",
-    "hash": "16b3c9a1bbecfc1f"
+    "hash": "6b10af824289ffbb"
   },
   "skill-creator": {
     "source_path": "skills/skill-creator/SKILL.md",
-    "hash": "8d39bfb73f38d836"
+    "hash": "5e0c727fdbbfcc6f"
   },
   "skill-installer": {
     "source_path": "skills/skill-installer/SKILL.md",
-    "hash": "09df0ea7921f63d5"
+    "hash": "99c74763e937f7c9"
   },
   "subagent-driven-development": {
     "source_path": "skills/subagent-driven-development/SKILL.md",
-    "hash": "905a2b9be59b734d"
+    "hash": "5eb89fb08e68ca5c"
   },
   "systematic-debugging": {
     "source_path": "skills/systematic-debugging/SKILL.md",
-    "hash": "4999cb851360485e"
+    "hash": "cf70a30efbe066e2"
   },
   "tdd": {
     "source_path": "skills/tdd/SKILL.md",
-    "hash": "af059705061156fd"
+    "hash": "21e95c98f0538ecb"
   },
   "test-driven-development": {
     "source_path": "skills/test-driven-development/SKILL.md",
-    "hash": "7dee67b4af6bdccc"
+    "hash": "f7a79b1bc5dd224c"
   },
   "to-issues": {
     "source_path": "skills/to-issues/SKILL.md",
-    "hash": "f8f1c9b220cf96ac"
+    "hash": "86fed2b6151408fe"
   },
   "to-prd": {
     "source_path": "skills/to-prd/SKILL.md",
-    "hash": "eaf4850538d3c4c0"
+    "hash": "23673364b48d43fa"
   },
   "tokenmaxxing": {
     "source_path": "skills/tokenmaxxing/SKILL.md",
-    "hash": "266ecdd1d13ecae0"
+    "hash": "8975ea7555f7a57f"
   },
   "trade-decision-sim": {
     "source_path": "skills/trade-decision-sim/SKILL.md",
-    "hash": "21083f9e79fb949e"
+    "hash": "b4e87cd73b4b2bcb"
   },
   "trade-edge-audit": {
     "source_path": "skills/trade-edge-audit/SKILL.md",
-    "hash": "ed0d2b9fc7f7a5a4"
+    "hash": "90cbeec97e923f77"
   },
   "triage": {
     "source_path": "skills/triage/SKILL.md",
-    "hash": "b819f0285e4e5814"
+    "hash": "b60a2a2cee1e28cd"
   },
   "using-git-worktrees": {
     "source_path": "skills/using-git-worktrees/SKILL.md",
-    "hash": "085a45ee3de432bd"
+    "hash": "62a80fd0f88382d5"
   },
   "using-superpowers": {
     "source_path": "skills/using-superpowers/SKILL.md",
-    "hash": "88409c2d52a8aa63"
+    "hash": "5b290b06196b14b8"
   },
   "verification-before-completion": {
     "source_path": "skills/verification-before-completion/SKILL.md",
-    "hash": "136b56210442b2e1"
+    "hash": "4beffb8f4d70285b"
   },
   "videodb": {
     "source_path": "skills/videodb/SKILL.md",
-    "hash": "210a34f70d91375d"
+    "hash": "fee0589f6fe361c1"
   },
   "visual-introspection": {
     "source_path": "skills/visual-introspection/SKILL.md",
-    "hash": "6bda775a788e3d7f"
+    "hash": "ee3c76f0e062a345"
   },
   "visual-plan": {
     "source_path": "skills/visual-plan/SKILL.md",
-    "hash": "d3cf8ab717f82d39"
+    "hash": "d726ba4600681bed"
   },
   "viz-lab": {
     "source_path": "skills/viz-lab/SKILL.md",
-    "hash": "9ca84ef00ec98695"
+    "hash": "2e3248d14ee35750"
   },
   "write-a-skill": {
     "source_path": "skills/write-a-skill/SKILL.md",
-    "hash": "be8f20e663092580"
+    "hash": "cb2b997c92a29b9c"
   },
   "writing-plans": {
     "source_path": "skills/writing-plans/SKILL.md",
-    "hash": "4fd4627d2c023678"
+    "hash": "e5d14e040636f0ac"
   },
   "writing-skills": {
     "source_path": "skills/writing-skills/SKILL.md",
-    "hash": "d50c7470b58e2000"
+    "hash": "1a6a9c39142a23c4"
   },
   "yuri-code-intelligence": {
     "source_path": "skills/yuri-code-intelligence/SKILL.md",
-    "hash": "773732516708a310"
+    "hash": "dd36647bb80c92d0"
   },
   "yuri-sales-intelligence": {
     "source_path": "skills/yuri-sales-intelligence/SKILL.md",
-    "hash": "88126e16ee8f014b"
+    "hash": "52c290bbcce51859"
   },
   "yuri-shura": {
     "source_path": "skills/yuri-shura/SKILL.md",
-    "hash": "9d14902f0660a435"
+    "hash": "89284b8171ce6cc5"
   },
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",
-    "hash": "2a6894c7f9b1c9c5"
+    "hash": "7e30ac1074688a3a"
   },
   "cgs-mold": {
     "source_path": ".claude/skills/cgs-mold/SKILL.md",

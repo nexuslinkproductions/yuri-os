@@ -2,13 +2,14 @@
 name: compact-optimizer
 disable-model-invocation: true
 description: "Construct the minimum-viable /compact hint using selective context compression (self-information scoring, perplexity-based pruning, attention-sink preservation). Use when about to call /compact, when context is nearing capacity, or when you need to preserve session-critical state through a compression boundary."
-invocation: user
 triggers:
   - "/compact-hint"
   - "context is getting long"
   - "running out of context"
   - "compact before"
   - "compress the context"
+scope: harness
+invocation: ability
 ---
 
 # Compact Optimizer

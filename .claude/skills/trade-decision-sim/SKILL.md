@@ -1,7 +1,6 @@
 ---
 name: trade-decision-sim
 description: The DECISION LENS for trading peers — recalls the CURRENT signal snapshot per market from the live ledger and renders it through the sim arsenal off ONE call: quantum factor-circuit order-optimal sequencing + decision-sim CVaR-robust sizing, sized against the MEASURED per-factor edge (from the edge-audit), correlation-aware. Emits an actionable call per market {side, sizePct, confidence, sequence}. Flat/zero-size when there is no measured edge after cost — the honest default. Sibling of trade-edge-audit (the EDGE lens); the trade-engine analog of quantum-hypothesis-simulation for a live decision.
-invocation: model
 triggers:
   - "/trade-decision-sim"
   - "/decide"
@@ -10,6 +9,8 @@ triggers:
   - "risk-robust position size"
   - "decision lens"
   - "size the trade"
+scope: instance
+invocation: ability
 ---
 
 # Trade Decision Sim — the decision lens

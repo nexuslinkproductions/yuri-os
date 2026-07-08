@@ -8,6 +8,8 @@ triggers:
   - HITL plan gate
   - review my plan before dispatch
   - diff plan revisions
+scope: harness
+invocation: workflow
 ---
 
 # plan-review — Human-in-the-loop plan/diff review sublane
