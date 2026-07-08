@@ -104,7 +104,7 @@ test('corpus absorb copies a passing skill and records the promotion', () => {
     });
 
     assert.equal(result.status, 0, result.stderr || result.stdout);
-    assert.match(result.stdout, /\[corpus-absorb\] ABSORBED: absorbable-skill → \.claude\/skills\/absorbable-skill\//);
+    assert.match(result.stdout, /\[corpus-absorb\] ABSORBED: absorbable-skill -> skills\/absorbable-skill\//);
 
     const destPath = path.join(destRoot, 'absorbable-skill', 'SKILL.md');
     const copied = readFileSync(destPath, 'utf8');
@@ -187,7 +187,7 @@ test('corpus absorb rejects fail verdicts and requires force for warns', () => {
     });
 
     assert.equal(forcedWarnResult.status, 0, forcedWarnResult.stderr || forcedWarnResult.stdout);
-    assert.match(forcedWarnResult.stdout, /\[corpus-absorb\] ABSORBED: warn-skill → \.claude\/skills\/warn-skill\//);
+    assert.match(forcedWarnResult.stdout, /\[corpus-absorb\] ABSORBED: warn-skill -> skills\/warn-skill\//);
     assert.equal(fsExists(path.join(destRoot, 'warn-skill', 'SKILL.md')), true);
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });

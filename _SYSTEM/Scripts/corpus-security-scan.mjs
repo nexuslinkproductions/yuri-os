@@ -44,6 +44,7 @@ import { analyze as analyzeBash } from './security/ast-bash.mjs';
 import { analyze as analyzeTaint } from './security/taint-model.mjs';
 import { lookup as osvLookup } from './security/osv-lookup.mjs';
 import { toSarif } from './security/sarif-emit.mjs';
+import { pathToFileURL } from 'node:url';
 
 // THIS file owns the repo-root computation (canonical _SYSTEM/Scripts home). The security/*
 // modules never compute it — we inject the snapshot path below.
@@ -753,4 +754,4 @@ function findLineNumber(lines, regex) {
 // @exports: scanSkill
 export { scanSkill };
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();
