@@ -42,7 +42,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * AFL_LEDGER — the AFL's OWN prediction-ledger file, isolated from YURI's self-model.
  *
  * CRITICAL: prediction-ledger.mjs defaults to _SYSTEM/state/prediction-ledger.jsonl,
- * which yuri-homeostat.mjs reads as YURI's own self-model accuracy. Factor forecasts
+ * which a planned yuri-homeostat.mjs (NOT YET WIRED) would read as YURI's own self-model accuracy. Factor forecasts
  * MUST NOT land there or they corrupt the homeostat's rolling Brier. Every AFL ledger
  * call (recordPrediction / recordOutcome / calibrationReport / readLedger) in later
  * phases MUST pass `{ file: AFL_LEDGER }`. Defined here, imported elsewhere.

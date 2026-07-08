@@ -21,7 +21,7 @@
  *                            and resolved on an ISOLATED ledger file. EVERY call passes
  *                            {file: AFL_LEDGER} so factor forecasts never corrupt the
  *                            DEFAULT ledger (_SYSTEM/state/prediction-ledger.jsonl) that
- *                            yuri-homeostat.mjs reads as YURI's OWN self-model accuracy.
+ *                            a planned yuri-homeostat.mjs (NOT YET WIRED) would read as YURI's own self-model accuracy.
  *   truth-maintenance.mjs  — factor LINEAGE (parent derives child) becomes JTMS
  *                            justifications; retracting a premise factor cascades OUT
  *                            through every factor derived from it.

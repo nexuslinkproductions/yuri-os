@@ -50,8 +50,8 @@ import { mkAggregator, sequentialDecide } from '../eval-processing.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // alpha-factor-library/ -> Scripts/ -> _SYSTEM/ ; ledger lives at _SYSTEM/state/afl-prediction-ledger.jsonl
-// CRITICAL: this is a SEPARATE file from _SYSTEM/state/prediction-ledger.jsonl, which yuri-homeostat.mjs
-// reads as YURI's OWN self-model accuracy. Factor forecasts MUST land here, never there.
+// CRITICAL: this is a SEPARATE file from _SYSTEM/state/prediction-ledger.jsonl, which a planned yuri-homeostat.mjs
+// (NOT YET WIRED) would read as YURI's own self-model accuracy. Factor forecasts MUST land here, never there.
 export const AFL_LEDGER = path.resolve(__dirname, '..', '..', 'state', 'afl-prediction-ledger.jsonl');
 
 const EULER_MASCHERONI = 0.5772156649015329; // γ — used by the False Strategy Theorem expected-max
@@ -453,11 +453,11 @@ export function mapEvaluationToClaim(factor, evaluation, { promote = false, nowM
  * Record a factor's promotion FORECAST in the prediction-ledger — ALWAYS to AFL_LEDGER.
  *
  * THE non-negotiable constraint: the default ledger file (_SYSTEM/state/prediction-ledger.jsonl)
- * is read by yuri-homeostat.mjs as YURI's OWN self-model accuracy. A factor forecast in there
+ * is reserved for a planned yuri-homeostat.mjs (NOT YET WIRED) as YURI's own self-model accuracy. A factor forecast in there
  * would CORRUPT the homeostat. recordPrediction is therefore ALWAYS called with {file: AFL_LEDGER}.
  *
  * The forecast: "this factor's edge will hold out-of-sample". predictedEffects models the
- * targets the homeostat-style scorer can later resolve via recordOutcome. The design's
+ * targets a future homeostat-style scorer (advisory — NOT YET WIRED) can later resolve via recordOutcome. The design's
  * {claim, horizon} keys are SILENTLY DROPPED by recordPrediction, so we use the real schema:
  * subject / change / predictedEffects:[{target, effect, confidence}] / source / ts.
  *

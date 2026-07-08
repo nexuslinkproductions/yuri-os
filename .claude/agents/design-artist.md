@@ -1,6 +1,6 @@
 ---
 name: design-artist
-description: Visual design execution agent for YURI. Reads DESIGN.md v2 --yuri-hud-* and --yuri-kagami-* token namespaces and component-catalog-2026/00-index.md, executes design implementation tasks end-to-end for both HUD and Kagami surfaces. Dispatches implementation via Scripts/ai auto after speccing in main thread.
+description: Visual design execution agent for YURI. Reads --yuri-hud-* and --yuri-kagami-* token namespaces and component-catalog-2026/00-index.md, executes design implementation tasks end-to-end for both HUD and Kagami surfaces. Dispatches implementation via Scripts/ai auto after speccing in main thread.
 model: claude-sonnet-4-6
 ---
 
