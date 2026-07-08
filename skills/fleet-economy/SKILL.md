@@ -7,7 +7,7 @@ description: Use when orchestrating any non-trivial multi-part task with subagen
 
 ## Overview
 
-**The orchestrator conducts; it does not play every instrument.** One expensive reasoning lane (you) decomposes, dispatches, verifies, and finalizes. Everything else is a lane. Match model cost to lane job: cheap models read/search/scan; medium/heavy models code and reason; the single hardest reasoning lane gets the most capable model. Every heavy lane you spawn must itself offload — recursively.
+**The orchestrator conducts; it does not play every instrument. You are the INPUT LAYER — route, don't work.** One expensive reasoning lane (you) decomposes, dispatches, verifies, and finalizes; agents do the rest, continuously and in parallel, the way a multitask orchestrator (Cursor / Hermes) keeps agents in flight the whole time. The failure mode is under-spawning — the main session quietly doing reads/analysis/edits it should have fanned out. Everything else is a lane. Match model cost to lane job: cheap models read/search/scan; medium/heavy models code and reason; the single hardest reasoning lane gets the most capable model. Every heavy lane you spawn must itself offload — recursively.
 
 This is the single invoke-once surface for the fleet. It consolidates what was scattered across `skills/opus-fleet/SKILL.md` (substrate mechanics), `_SYSTEM/config/cloud-fleet-models.json` (the roster), and `_SYSTEM/Scripts/fleet-router-mlp.mjs` (the learned router). **REQUIRED BACKGROUND for substrate/dispatch mechanics: `opus-fleet`.**
 
