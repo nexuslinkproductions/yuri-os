@@ -115,6 +115,10 @@
     "source_path": "skills/finishing-a-development-branch/SKILL.md",
     "hash": "5c8d4b59aedb14c9"
   },
+  "fleet-economy": {
+    "source_path": "skills/fleet-economy/SKILL.md",
+    "hash": "36a5b59d93d6feac"
+  },
   "frontend-design": {
     "source_path": "skills/frontend-design/SKILL.md",
     "hash": "fe9a2231f6d633b3"
