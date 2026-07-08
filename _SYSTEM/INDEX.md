@@ -9,7 +9,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | Path | Purpose |
 |---|---|
 | `_SYSTEM/yuri-origin.md` | Canonical operating contract and authority hierarchy. |
-| `SOUL.md` | Persona, cognitive workflow, and collaboration style. |
+| `SOUL.md` | Redirect → `_SYSTEM/persona.md` (consolidated identity/behavior doc). |
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
 | `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
 | `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md` | Shared Originator entry point for LLMs to use YURI's math, energy, xref, memory, and llm-compat substrate. |

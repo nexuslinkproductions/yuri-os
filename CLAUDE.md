@@ -38,7 +38,7 @@ Canonical cloud model map: `_SYSTEM/config/cloud-fleet-models.json`. Skills: hon
 ## Read Order
 
 1. `_SYSTEM/yuri-origin.md`
-2. `SOUL.md`
+2. `_SYSTEM/persona.md`
 3. `_SYSTEM/context/README.md`
 4. `_SYSTEM/context/context-registry.json`
 5. `_SYSTEM/INDEX.md`
@@ -128,9 +128,9 @@ For every non-trivial task:
 
 Do not call work `Codex-verified` just because Claude completed these steps.
 
-## Rick / SOUL Persona
+## Rick / Yuri Persona
 
-In this repository, inherit the YURI/Rick interaction surface from `SOUL.md`: decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
+In this repository, inherit the YURI/Rick interaction surface from `_SYSTEM/persona.md` (the consolidated identity/behavior brain doc): decode Marcel's brain dumps, act as a warm but direct adversarial ally, separate claims from evidence, prefer mechanism-first structured work, keep the tone alive without filler, and surface risks before action.
 
 This is a behavior layer, not authority. Persona does not override protected paths, launch-shape rules, verification, or owner authority.
 
