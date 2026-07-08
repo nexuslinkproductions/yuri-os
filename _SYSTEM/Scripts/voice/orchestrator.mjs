@@ -13,10 +13,10 @@
 //   TTS: send {"cmd":"speak","text":"..."} -> recv {"status":"done"}  (also {"cmd":"quit"} to exit)
 
 import { spawn } from 'node:child_process';
-import { homedir, platform } from 'node:os';
+import { homedir, platform, tmpdir } from 'node:os';
 import { dirname, join, resolve as pathResolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { realpathSync, existsSync } from 'node:fs';
+import { realpathSync, existsSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { Worker } from 'node:worker_threads';
 
 // ─── configuration ──────────────────────────────────────────────────────────
@@ -30,7 +30,9 @@ const STT_SCRIPT = process.env.YURI_STT_SCRIPT || 'stt-bridge.py';
 const TTS_SCRIPT = process.env.YURI_TTS_SCRIPT || 'tts-bridge.py';
 const OMP_BIN = process.env.YURI_OMP_BIN || 'omp';
 
-const DEFAULT_MODEL = process.env.YURI_MODEL || 'glm-5.2';
+const DEFAULT_MODEL = process.env.YURI_MODEL || 'anthropic/claude-sonnet-5';
+// Default: anthropic/claude-sonnet-5 via OAuth. Provider-qualified so the CLI resolves it correctly
+// (bare names fuzzy-match the wrong provider). Override with YURI_MODEL (e.g. zai/glm-5.2 once GLM quota resets).
 // 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh'. GLM-5.2 is a reasoning model and the SDK
 // defaults new sessions to extended thinking, turning every voice turn into an 11-25s wait even for
 // "what's two plus two". 'off' brings a turn down to ~1-1.5s; override with YURI_THINKING if a task
@@ -92,15 +94,32 @@ function log(level, event, extra = {}) {
 const now = () => Date.now();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// ─── native-spin watchdog ───────────────────────────────────────────────────
-// When the OMP SDK's GLM streaming connection stalls, the SDK enters a native
-// busy-poll that blocks the JS event loop. setTimeout-based timeouts (the 60s
-// Promise.race in respond()) and SIGTERM handlers CANNOT fire. The process spins
-// at 100% CPU forever. This worker-thread watchdog has its OWN event loop
-// (separate libuv thread), so its setInterval keeps ticking even when the main
-// thread is stuck. If the heartbeat goes stale beyond WATCHDOG_TIMEOUT_SECS,
-// the worker force-kills the process so the launcher can restart cleanly.
-const WATCHDOG_TIMEOUT_SECS = Number(process.env.YURI_WATCHDOG_TIMEOUT_SECS || 30);
+// Compact brain-turn tracer: logs lifecycle events (tool calls, turn/agent boundaries) but NOT the
+// high-frequency *_delta floods, via log() (stderr, flushed) so a watchdog SIGKILL still shows the
+// last thing the brain was doing — turning each crash log into a diagnosis instead of a blank slate.
+function traceBrainEvent(event) {
+  const t = event && event.type;
+  const ame = event && event.assistantMessageEvent;
+  const at = ame && ame.type;
+  const lifecycle = t === 'agent_start' || t === 'agent_end' || t === 'turn_start' || t === 'turn_end'
+    || t === 'tool_execution_start' || t === 'tool_execution_end'
+    || at === 'toolcall_start' || at === 'toolcall_end' || at === 'text_start' || at === 'text_end' || at === 'error';
+  if (lifecycle) log('debug', 'brain_event', { evt: at || t, tool: (ame && ame.toolName) || event.toolName });
+}
+
+// ─── progress watchdog ───────────────────────────────────────────────────────
+// The OMP SDK brain runs IN-PROCESS. If a turn ever truly hangs the JS event loop
+// (a native block where setTimeout-based timeouts — the Promise.race in respond()
+// — and SIGTERM handlers CANNOT fire), this worker-thread watchdog is the only
+// escape: it has its OWN event loop (separate libuv thread), so it keeps ticking
+// even when the main thread is stuck, and SIGKILLs the process past the timeout so
+// the launcher (yuri.sh supervisor loop) restarts cleanly.
+// The heartbeat is bumped by a 1s main-thread interval AND by every brain SDK event
+// (SpinWatchdog.beat, wired via OmpBrain.onEvent). That makes it a PROGRESS signal,
+// not a loop-idle signal: a legitimately long agentic turn (30-40s of multi-round
+// tool use, with events every few seconds) keeps it fresh, so only a genuine
+// no-progress hang trips the kill. The timeout is generous (90s) for the same reason.
+const WATCHDOG_TIMEOUT_SECS = Number(process.env.YURI_WATCHDOG_TIMEOUT_SECS || 90);
 
 class SpinWatchdog {
   constructor(timeoutSecs = WATCHDOG_TIMEOUT_SECS) {
@@ -109,6 +128,14 @@ class SpinWatchdog {
     this.sab = null;
     this.beatView = null;       // Float64Array over the SAB — holds the full Date.now()
     this.beatInterval = null;   // main-thread heartbeat (fires only when the loop is responsive)
+  }
+
+  // Bump the liveness heartbeat. Called by the 1s interval AND by the orchestrator on every brain SDK
+  // event (via OmpBrain.onEvent), so a long-but-PROGRESSING agentic turn keeps the watchdog satisfied
+  // — only a genuine no-progress hang trips the SIGKILL. No-op before start() (SAB/worker not yet up).
+  beat() {
+    if (this.beatView) this.beatView[0] = Date.now();
+    else if (this.worker) { try { this.worker.postMessage(1); } catch { /* ignore */ } }
   }
 
   start() {
@@ -163,10 +190,7 @@ class SpinWatchdog {
     this.worker.unref?.();  // never keep the process alive just for the watchdog
     this.worker.on('error', (e) => log('warn', 'watchdog_worker_error', { err: String(e) }));
 
-    this.beatInterval = setInterval(() => {
-      if (this.beatView) this.beatView[0] = Date.now();
-      else if (this.worker) { try { this.worker.postMessage(1); } catch {} }
-    }, 1000);
+    this.beatInterval = setInterval(() => this.beat(), 1000);
     this.beatInterval.unref?.();
     log('info', 'watchdog_started', { timeoutMs: this.timeoutMs, mode });
   }
@@ -463,6 +487,12 @@ export class OmpBrain {
     this.session = null;         // AgentSession (sdk mode)
     this.sessionId = null;       // for --continue continuity (subprocess mode)
     this._turnListeners = null;  // current turn's {onDelta, resolve, reject}
+    this.onEvent = null;         // hook (set by orchestrator): fires on EVERY SDK event -> watchdog beat + trace
+    this._child = null;          // in-flight subprocess (subprocess mode) — killable by abortTurn()
+    this._agentDir = null;       // throwaway PI_CODING_AGENT_DIR (lean subprocess omp)
+    this._configOverlay = null;  // temp --config overlay that hard-disables the advisor
+    this._authToken = null;      // cached anthropic OAuth token (lean dir bypasses the vault)
+    this._authTs = 0;
   }
 
   // ── shared text_delta / lifecycle handler ──────────────────────────────────
@@ -486,11 +516,13 @@ export class OmpBrain {
   }
 
   async init() {
-    this.sdk = await resolveSdkModule();
-    if (this.sdk && typeof this.sdk.createAgentSession === 'function') {
-      await this._initSdk();
-    } else {
+    const mode = process.env.YURI_BRAIN_MODE || 'subprocess';
+    if (mode === 'subprocess') {
       await this._initSubprocessProbe();
+    } else {
+      this.sdk = await resolveSdkModule();
+      if (this.sdk && typeof this.sdk.createAgentSession === 'function') await this._initSdk();
+      else await this._initSubprocessProbe();
     }
     log('info', 'brain_ready', { mode: this.mode, model: this.modelPattern });
   }
@@ -534,15 +566,53 @@ export class OmpBrain {
     });
     this.session = result.session;
     this.mode = 'sdk';
-    this.session.subscribe((event) => this._handleEvent(event));
+    this.session.subscribe((event) => { try { this.onEvent?.(event); } catch { /* ignore */ } this._handleEvent(event); });
   }
 
   async _initSubprocessProbe() {
     // Confirm `omp` exists; the actual per-turn subprocess is spawned in prompt().
     const p = which(OMP_BIN);
-    if (!p) throw new Error(`OMP SDK unavailable and '${OMP_BIN}' binary not found on PATH`);
+    if (!p) throw new Error(`SDK unavailable and '${OMP_BIN}' binary not found on PATH`);
     this.mode = 'subprocess';
-    log('warn', 'brain_sdk_unavailable', { omp: p, fallback: 'subprocess_per_turn' });
+    // Make the per-turn `omp` as LEAN as the in-process SDK brain was. The bare CLI otherwise loads
+    // Marcel's full agent env (mcp.json 'voice' server, native skills, WATCHDOG, extensions) + the
+    // advisor — pushing a turn from ~30s to 150s+ (past the 60s turn-timeout, so yuri never answers).
+    // A stable throwaway PI_CODING_AGENT_DIR bypasses the whole user agent dir (== the SDK's
+    // enableMcp:false + disableExtensionDiscovery:true + skills:[] + rules:[]); a --config overlay
+    // hard-disables the advisor; --no-extensions/--no-skills/--no-rules belt-and-suspenders. 150s -> ~29s.
+    try {
+      this._agentDir = mkdtempSync(join(tmpdir(), 'yuri-omp-'));
+      this._configOverlay = join(this._agentDir, 'lean.yml');
+      writeFileSync(this._configOverlay,
+        'advisor:\n  enabled: false\n  subagents: false\nmcp:\n  enableProjectConfig: false\ntask:\n  enableLsp: false\nskills:\n  enabled: false\nttsr:\n  enabled: false\n  builtinRules: false\n');
+    } catch (e) {
+      log('warn', 'brain_lean_overlay_failed', { err: String(e).split('\n')[0] });
+      this._agentDir = null; this._configOverlay = null;
+    }
+    log('info', 'brain_subprocess_ready', { omp: p, agentDir: this._agentDir });
+  }
+
+  // Anthropic OAuth for the lean subprocess: the throwaway PI_CODING_AGENT_DIR bypasses the auth-broker
+  // vault, so inject ANTHROPIC_OAUTH_TOKEN (it takes precedence over API keys). `omp token anthropic`
+  // mints/refreshes it from the vault; cache ~45min (the 5h token has margin). Non-anthropic models
+  // (e.g. zai/glm-5.2) fall back to the ambient env (ZAI_API_KEY), so return {}.
+  async _authEnv() {
+    if (!/anthropic|claude|sonnet|opus|haiku/i.test(this.modelPattern)) return {};
+    const fresh = this._authToken && (Date.now() - this._authTs) < 45 * 60 * 1000;
+    if (!fresh) {
+      try {
+        this._authToken = await new Promise((res, rej) => {
+          let out = '';
+          const c = spawn(which(OMP_BIN) || OMP_BIN, ['token', 'anthropic'], { cwd: REPO_ROOT, env: { ...process.env }, stdio: ['ignore', 'pipe', 'ignore'], timeout: 10000, killSignal: 'SIGKILL' });
+          c.stdout.setEncoding('utf8');
+          c.stdout.on('data', (d) => { out += d; });
+          c.on('error', rej);
+          c.on('exit', (code) => (code === 0 && out.trim()) ? res(out.trim()) : rej(new Error('omp token anthropic exit ' + code)));
+        });
+        this._authTs = Date.now();
+      } catch (e) { log('warn', 'brain_auth_token_failed', { err: String(e).split('\n')[0] }); }
+    }
+    return this._authToken ? { ANTHROPIC_OAUTH_TOKEN: this._authToken } : {};
   }
 
   // Run one turn. `onDelta` receives text deltas as they stream. Resolves on turn end.
@@ -567,38 +637,74 @@ export class OmpBrain {
   async _promptSubprocess(text, onDelta) {
     const omp = which(OMP_BIN);
     if (!omp) throw new Error(`'${OMP_BIN}' binary not found`);
-    const args = ['--allow-home', '--mode', 'json', '-p', '--model', this.modelPattern];
+    const args = ['--allow-home', '--mode', 'json', '-p', '--thinking', this.thinkingLevel, '--model', this.modelPattern,
+      '--no-extensions', '--no-skills', '--no-rules'];
+    if (this._configOverlay) args.push('--config', this._configOverlay);
+    if (this.toolNames && this.toolNames.length > 0) args.push('--tools', this.toolNames.join(','));
     if (this.sessionId) args.push('--resume', this.sessionId);
-    else { args.push('--system-prompt', this.systemPrompt); }
+    else args.push('--system-prompt', this.systemPrompt);
     args.push(text);
 
-    log('debug', 'brain_subprocess_prompt', { model: this.modelPattern, resume: !!this.sessionId });
-    await new Promise((resolveRun, rejectRun) => {
-      const child = spawn(omp, args, { cwd: REPO_ROOT, env: { ...process.env }, stdio: ['ignore', 'pipe', 'pipe'] });
-      let buf = '';
-      let stderrTail = '';
-      child.stdout.setEncoding('utf8');
-      child.stdout.on('data', (d) => {
-        buf += d;
-        let nl;
-        while ((nl = buf.indexOf('\n')) >= 0) {
-          const raw = buf.slice(0, nl).replace(/\r$/, '');
-          buf = buf.slice(nl + 1);
-          if (!raw.trim()) continue;
-          let evt;
-          try { evt = JSON.parse(raw); } catch { continue; }
-          if (evt.type === 'session' && evt.id) this.sessionId = evt.id; // capture for --resume
-          this._handleEvent(evt);
-        }
+    log('debug', 'brain_subprocess_prompt', { model: this.modelPattern, resume: !!this.sessionId, tools: this.toolNames });
+    let pendingSessionId = null;
+    // Route text_delta -> onDelta through the shared _handleEvent path (it early-returns without a turn
+    // listener). The turn resolves on process EXIT (omp --mode json emits turn_end, not agent_end), so
+    // resolve/reject in the listener are no-ops.
+    this._turnListeners = { onDelta, resolve: () => {}, reject: () => {} };
+    const authEnv = await this._authEnv();
+    try {
+      await new Promise((resolveRun, rejectRun) => {
+        const child = spawn(omp, args, { cwd: REPO_ROOT, env: { ...process.env, ...authEnv, ...(this._agentDir ? { PI_CODING_AGENT_DIR: this._agentDir } : {}) }, stdio: ['ignore', 'pipe', 'pipe'], timeout: Number(process.env.YURI_SUBPROC_HARD_MS || 90000), killSignal: 'SIGKILL' });
+        this._child = child;
+        let buf = '';
+        let stderrTail = '';
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (d) => {
+          buf += d;
+          let nl;
+          while ((nl = buf.indexOf('\n')) >= 0) {
+            const raw = buf.slice(0, nl).replace(/\r$/, '');
+            buf = buf.slice(nl + 1);
+            if (!raw.trim()) continue;
+            let evt;
+            try { evt = JSON.parse(raw); } catch { continue; }
+            if (evt.type === 'session' && evt.id) pendingSessionId = evt.id; // promote only on CLEAN exit (below)
+            try { this.onEvent?.(evt); } catch { /* ignore */ }
+            this._handleEvent(evt);
+          }
+        });
+        child.stderr.setEncoding('utf8');
+        child.stderr.on('data', (d) => { stderrTail = (stderrTail + d).slice(-2000); });
+        child.on('error', rejectRun);
+        child.on('exit', (code, signal) => {
+          this._child = null;
+          if (code === 0) {
+            // Promote the session id ONLY on a clean turn — omp persists the session file at turn end,
+            // not when it emits the {session,id} event. A SIGKILLed turn never persisted it, so resuming
+            // that id would fail forever ('Session not found'). This is the mute-loop fix.
+            if (pendingSessionId) this.sessionId = pendingSessionId;
+            resolveRun();
+          } else if (signal) {
+            log('warn', 'brain_turn_aborted', { signal }); // abortTurn()/spawn-timeout — session NOT persisted
+            resolveRun();
+          } else {
+            // Real error. If we were resuming, the id is unusable (e.g. after a prior abort) -> drop it so
+            // the NEXT turn starts a fresh session instead of looping on --resume <bad-id>.
+            if (this.sessionId) { log('warn', 'brain_resume_reset', { prev: this.sessionId }); this.sessionId = null; }
+            rejectRun(new Error(`omp subprocess exit ${code}: ${stderrTail.slice(-400)}`));
+          }
+        });
       });
-      child.stderr.setEncoding('utf8');
-      child.stderr.on('data', (d) => { stderrTail = (stderrTail + d).slice(-2000); });
-      child.on('error', rejectRun);
-      child.on('exit', (code) => {
-        if (code === 0) resolveRun();
-        else rejectRun(new Error(`omp subprocess exit ${code}: ${stderrTail.slice(-400)}`));
-      });
-    });
+    } finally {
+      this._turnListeners = null;
+      this._child = null;
+    }
+  }
+
+  // Kill the in-flight subprocess turn (called by respond() on the turn-timeout). Works mid-stream
+  // because the brain is OUT of process — the orchestrator event loop was never blocked by the turn.
+  abortTurn() {
+    if (this._child) { try { this._child.kill('SIGKILL'); } catch { /* ignore */ } this._child = null; }
   }
 
   // Switch the model at runtime (Step 5). Tries an in-place SDK switch, falls back to recreating.
@@ -653,6 +759,10 @@ export class VoiceOrchestrator {
     this.running = false;
     this._speakLock = Promise.resolve();
     this.watchdog = new SpinWatchdog();
+    // The brain turn runs IN-PROCESS: a long agentic turn (multi-round tool use) is legitimately
+    // 30-40s of work. Feed the watchdog a heartbeat on every brain event so a PROGRESSING turn is
+    // never SIGKILLed; also trace lifecycle events (flushed) so a kill shows where the turn was.
+    this.brain.onEvent = (event) => { this.watchdog.beat(); traceBrainEvent(event); };
   }
 
   _newStt() {
@@ -760,14 +870,14 @@ export class VoiceOrchestrator {
         new Promise((_, reject) => setTimeout(() => reject(new Error('brain_turn_timeout')), TURN_TIMEOUT)),
       ]);
     } catch (e) {
-      log('error', 'brain_turn_failed', { err: String(e), recreating: true });
-      // recreate the session (Step 4) and drop the partial sentence buffer
+      log('error', 'brain_turn_failed', { err: String(e), aborting: true });
       splitter.reset();
-      try { await this.brain.dispose(); } catch { /* ignore */ }
-      try {
-        this.brain.session = null;
-        await this.brain.init();
-      } catch (ee) { log('error', 'brain_recreate_failed', { err: String(ee) }); }
+      try { this.brain.abortTurn?.(); } catch { /* ignore */ }
+      if (this.brain.mode === 'sdk') {
+        try { await this.brain.dispose(); } catch { /* ignore */ }
+        try { this.brain.session = null; await this.brain.init(); }
+        catch (ee) { log('error', 'brain_recreate_failed', { err: String(ee) }); }
+      }
       return;
     }
     // flush any trailing partial sentence
@@ -868,7 +978,7 @@ export class VoiceOrchestrator {
         log('info', 'barge_in');
         this._speakLock = Promise.resolve();
         if (this.tts && this.tts.alive) this.tts.send({ cmd: 'stop' }).catch(() => {});
-        if (this.brain && this.brain._abort) this.brain._abort();
+        if (this.brain && this.brain.abortTurn) this.brain.abortTurn();
       } catch {}
     }, 200);
 
@@ -923,6 +1033,7 @@ export class VoiceOrchestrator {
     try { this.tts && this.tts.alive && this.tts.send({ cmd: 'quit' }); } catch { /* ignore */ }
     await this.tts?.stop().catch(() => {});
     await this.stt?.stop().catch(() => {});
+    try { this.brain?.abortTurn?.(); } catch { /* ignore */ }
     try { await this.brain?.dispose(); } catch { /* ignore */ }
     log('info', 'cleanup_done');
   }
