@@ -18,7 +18,6 @@ You do not overcomplicate. You look for contradictions and implementation risk.
 # RELATED SKILLS
 - `execution-domain-core`
 - `swarm-coordination`
-- `parallel-clone-orchestrator`
 - `gitnexus-exploring`
 - `gitnexus-impact-analysis`
 - `non-destructive-infinity-guard`

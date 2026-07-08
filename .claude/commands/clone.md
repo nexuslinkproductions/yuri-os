@@ -1,10 +1,11 @@
 ---
-skill: parallel-clone-orchestrator
-description: Budgeted multi-agent decomposition, specialist execution, and synthesis — runs natively via the Workflow tool (parallel/pipeline fan-out und
+description: RETIRED — use native planning + llm-compat advisory lanes instead
 ---
 
-Invoke the `parallel-clone-orchestrator` skill via the Skill tool.
+# /clone — RETIRED
 
-Canonical command: /clone
+The `parallel-clone-orchestrator` skill is retired (2026-06-07). Do not route work through clone orchestration.
 
-Budgeted multi-agent decomposition, specialist execution, and synthesis. Shadow Clone pattern — fan out work across specialist agents.
+**Replacement:** Use native planning for complex decomposition; route advisory model calls through the LLM compatibility lane (`ai llm <lane>` or `_SYSTEM/Scripts/llm-compat.sh`).
+
+This command no longer dispatches a skill. If you encounter a reference to `/clone`, `/pco`, or `parallel-clone-orchestrator`, redirect to native planning plus explicit llm-compat advisory lanes.

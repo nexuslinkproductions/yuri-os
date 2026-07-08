@@ -56,7 +56,15 @@ export function runPackagingCheck(opts = {}) {
   if (!exportDir) {
     const plan = planExport(manifest);
     checks.push({ id: 'plan', ok: plan.selected > 0, detail: `${plan.selected} files in export plan` });
-    return { ok: plan.selected > 0, checks, plan: plan.selected };
+    const topLevelScripts = plan.files.filter((f) => /^_SYSTEM\/Scripts\/[^/]+\.mjs$/.test(f));
+    const scriptsCensusOk = topLevelScripts.length > 100;
+    checks.push({
+      id: 'scripts-top-level-census',
+      ok: scriptsCensusOk,
+      detail: `${topLevelScripts.length} top-level _SYSTEM/Scripts/*.mjs in export plan`,
+    });
+    const allOk = plan.selected > 0 && scriptsCensusOk;
+    return { ok: allOk, checks, plan: plan.selected };
   }
 
   if (!existsSync(exportDir)) {

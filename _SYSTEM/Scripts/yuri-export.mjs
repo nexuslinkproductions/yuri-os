@@ -40,7 +40,7 @@ function walkDir(dir, base, depth = 0) {
 
 function globMatch(rel, pattern) {
   const re = new RegExp(
-    '^' + pattern.replace(/\*\*/g, '§§').replace(/\*/g, '[^/]*').replace(/§§/g, '.*').replace(/\./g, '\\.') + '$'
+    '^' + pattern.replace(/\./g, '\\.').replace(/\*\*/g, '§§').replace(/\*/g, '[^/]*').replace(/§§\//g, '(?:.*/)*').replace(/§§/g, '.*') + '$'
   );
   return re.test(rel) || rel.startsWith(pattern.replace(/\*\*$/, '').replace(/\*$/, ''));
 }

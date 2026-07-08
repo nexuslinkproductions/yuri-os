@@ -77,7 +77,7 @@
   },
   "design-master": {
     "source_path": "skills/design-master/SKILL.md",
-    "hash": "a68ee1fe009e4373"
+    "hash": "ba70d1707693eaf2"
   },
   "design-source-pack": {
     "source_path": "skills/design-source-pack/SKILL.md",
@@ -474,6 +474,14 @@
   "cgs-mold": {
     "source_path": ".claude/skills/cgs-mold/SKILL.md",
     "hash": "6632b99e2246bcf2"
+  },
+  "nexus-security-hardening": {
+    "source_path": ".claude/skills/nexus-security-hardening/SKILL.md",
+    "hash": "ee341a8772f69be6"
+  },
+  "pilot-feedback": {
+    "source_path": ".claude/skills/pilot-feedback/SKILL.md",
+    "hash": "56dfc75440e6cabd"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

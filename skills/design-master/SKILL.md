@@ -45,7 +45,7 @@ Required questions:
 7. Emotional temperature: calm, severe, premium, ritual, aggressive, playful, clinical, or experimental?
 8. Reference direction: which existing YURI surface or external reference should this feel closest to?
 9. Dislikes: what must be avoided this time?
-10. Success test: what would make the user say “this is it”?
+10. Success test: what would make the user say "this is it"?
 11. Constraint check: deadline, target device, browser, asset limits, accessibility, or no-dependency rules?
 12. Memory update: should this become a reusable system pattern or stay one-off?
 
@@ -54,15 +54,12 @@ The answers become the `Design Brief`. Use it to select references, skills, toke
 ## Canonical Load Order
 Read only what is relevant, but start from this order:
 
-1. Project design source: `_SYSTEM/DESIGN.md`
-2. Brand source: `_SYSTEM/BRAND/design-system.md`
-3. Canonical memory: `_SYSTEM/design-memory.json` or repo root `design-memory.json`
-4. Component catalog index: `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md`
-5. Frontier atlas: `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`
-6. Motion atlas when animation, presentation, camera movement, 3D, or scroll choreography matters: `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md`
-7. Task-specific source subset: target CSS, design tokens, screenshots, current HTML/app route, existing visual artifact
-
-If the current repo has both `_SYSTEM/DESIGN.md` and an older root `DESIGN.md`, prefer `_SYSTEM/DESIGN.md` unless the task explicitly targets the older surface.
+1. Brand source: `_SYSTEM/BRAND/design-system.md`
+2. Canonical memory: `_SYSTEM/design-memory.json` or repo root `design-memory.json`
+3. Component catalog index: `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md`
+4. Frontier atlas: `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`
+5. Motion atlas when animation, presentation, camera movement, 3D, or scroll choreography matters: `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md`
+6. Task-specific source subset: target CSS, design tokens, screenshots, current HTML/app route, existing visual artifact
 
 ## Source Selection
 Pick 3-7 concrete references before editing. Use them as constraints, not as a paste bin.
@@ -114,7 +111,7 @@ Kagami is cinematic, editorial, reflective.
 Kagami bans:
 - HUD chrome, status bars, command-center panels, generic dashboard grids
 - identical section layouts repeated across a long page
-- “one point per screen” sparse AI slide rhythm
+- "one point per screen" sparse AI slide rhythm
 - text thrown into floating cards without a compositional reason
 - purple/blue gradient wash as the main identity
 - screenshots as a crutch unless visual evidence is the point

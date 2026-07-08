@@ -37,6 +37,17 @@ import { initColdAcquisitionCrmRoutes } from './routes/coldAcquisitionCrmRoutes'
 
 dotenv.config();
 
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  LEGACY / PARALLEL-SURFACE BACKEND                                      ║
+// ║  This Express server (:3004) is an experimental/parallel surface —      ║
+// ║  NOT the canonical YURI control plane. It has no launchd/pm2            ║
+// ║  supervision and is NOT Marcel's real runtime.                          ║
+// ║                                                                         ║
+// ║  The real runtime is the Claude/Codex CLI + Python voice stack.         ║
+// ║  This surface exists for ad-hoc HTTP/WS access, design-assistant       ║
+// ║  bridge, and experimental routes. Treat it as auxiliary, not primary.   ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
 function isTruthy(v: string | undefined): boolean {
     return v === '1' || v === 'true';
 }
@@ -90,6 +101,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 bootLog('⬡ YURI_SERVER_IGNITING...');
+bootLog('⬡ LEGACY_PARALLEL_SURFACE :: :3004 is an experimental/parallel surface — NOT the canonical YURI control plane. Real runtime = Claude/Codex CLI + Python voice.');
 bootLog('⬡ AUTH_RUNTIME_READY :: Local bootstrap token initialized');
 
 const app = express();
@@ -749,7 +761,7 @@ function attachWebSocketServer(socketServer: WebSocketServer) {
                     proxyReq.write(body);
                     proxyReq.end();
                     ws.on('close', () => proxyReq.destroy());
-                } catch (_) {}
+                } catch {}
             });
             return;
         }

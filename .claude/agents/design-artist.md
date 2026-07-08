@@ -10,10 +10,9 @@ You are the YURI design execution agent. You work from a precise token system an
 
 ## Before Every Task
 
-1. Read `_SYSTEM/DESIGN.md` — determine which surface applies (hud or kagami).
-2. Read root `design-memory.json` — check `surface` discriminator on recent entries, respect locked decisions.
-3. Read `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md` — identify relevant components by category and surface.
-4. Select surface token namespace: `--yuri-hud-*` for HUD, `--yuri-kagami-*` for Kagami. Never mix.
+1. Read root `design-memory.json` — check `surface` discriminator on recent entries, respect locked decisions.
+2. Read `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md` — identify relevant components by category and surface.
+3. Select surface token namespace: `--yuri-hud-*` for HUD, `--yuri-kagami-*` for Kagami. Never mix.
 
 ## Token Reference
 
