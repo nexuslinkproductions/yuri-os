@@ -1,6 +1,6 @@
 {
   "source": "OMP agent definitions from .omp/agents/",
-  "generated": "2026-07-08T19:02:00Z",
+  "generated": "2026-07-09T12:55:00Z",
   "providerMapping": {
     "anthropic/claude-opus-4-8": "anthropic/claude-opus-4-8",
     "anthropic/claude-opus-4-7": "anthropic/claude-opus-4-7",
@@ -27,7 +27,7 @@
     {
       "name": "mure-helmsman",
       "lane": "orchestration",
-      "description": "MURE Helmsman (orchestration) — dispatcher/router + research-vision lead. decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions.",
+      "description": "MURE Helmsman (orchestration) \u2014 dispatcher/router + research-vision lead. decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions.",
       "model": "anthropic/claude-opus-4-8",
       "thinkingLevel": "high",
       "tools": [
@@ -100,7 +100,7 @@
             "anchor"
           ],
           "costTier": "apex",
-          "note": "Proven orchestrator; max goal-spine + dispatch-planning reasoning — the anchor prime."
+          "note": "Proven orchestrator; max goal-spine + dispatch-planning reasoning \u2014 the anchor prime."
         }
       ],
       "selection": "surfaced-heavy",
@@ -112,7 +112,7 @@
     {
       "name": "mure-helmsman-glm",
       "lane": "orchestration",
-      "description": "MURE Helmsman (GLM-5.2) (orchestration) — dispatcher/router + research-vision lead. GLM-5.2 orchestrator variant (route to z.ai quota pool, or when opus is capped).",
+      "description": "MURE Helmsman (GLM-5.2) (orchestration) \u2014 dispatcher/router + research-vision lead. GLM-5.2 orchestrator variant (route to z.ai quota pool, or when opus is capped).",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -184,7 +184,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Prime — the only Z.ai model with orchestration-class reasoning (1M ctx, Max thinking)."
+          "note": "Prime \u2014 the only Z.ai model with orchestration-class reasoning (1M ctx, Max thinking)."
         }
       ],
       "selection": "surfaced-heavy",
@@ -196,7 +196,7 @@
     {
       "name": "mure-envoy",
       "lane": "operations",
-      "description": "MURE Envoy (operations) — task intake / requirement decoder. decode the owner brain-dump into a clean spec / goal tree for the helmsman.",
+      "description": "MURE Envoy (operations) \u2014 task intake / requirement decoder. decode the owner brain-dump into a clean spec / goal tree for the helmsman.",
       "model": "ollama-cloud/minimax-m3",
       "thinkingLevel": null,
       "tools": [
@@ -212,7 +212,7 @@
         "goal-tree"
       ],
       "autonomy": "self-governable",
-      "notes": "Read-only tools — reads/greps/globs only, no writes.",
+      "notes": "Read-only tools \u2014 reads/greps/globs only, no writes.",
       "variants": [
         {
           "id": "mure-envoy-haiku",
@@ -256,7 +256,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — intent-ranking + hidden-constraint surfacing at cost-perf sweet spot."
+          "note": "Default prime \u2014 intent-ranking + hidden-constraint surfacing at cost-perf sweet spot."
         },
         {
           "id": "mure-envoy-m3",
@@ -291,7 +291,7 @@
     {
       "name": "mure-scout",
       "lane": "research",
-      "description": "MURE Scout (research) — local-first + online researcher. research local corpus first then online.",
+      "description": "MURE Scout (research) \u2014 local-first + online researcher. research local corpus first then online.",
       "model": "ollama-cloud/minimax-m3",
       "thinkingLevel": null,
       "tools": [
@@ -352,7 +352,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — multi-step local-first + online research with synthesis."
+          "note": "Default prime \u2014 multi-step local-first + online research with synthesis."
         },
         {
           "id": "mure-scout-m3",
@@ -387,7 +387,7 @@
     {
       "name": "mure-engineer",
       "lane": "engineering",
-      "description": "MURE Engineer (engineering) — core domain code-gen. implement features.",
+      "description": "MURE Engineer (engineering) \u2014 core domain code-gen. implement features.",
       "model": "ollama-cloud/kimi-k2.7-code",
       "thinkingLevel": null,
       "tools": [
@@ -454,7 +454,7 @@
             "workhorse"
           ],
           "costTier": "medium",
-          "note": "Cost-perf coder; finishes end-to-end where Sonnet 4.6 stalled — Anthropic-pool alternate to GLM."
+          "note": "Cost-perf coder; finishes end-to-end where Sonnet 4.6 stalled \u2014 Anthropic-pool alternate to GLM."
         },
         {
           "id": "mure-engineer-glm52",
@@ -479,7 +479,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Workhorse prime for non-judgment codegen — ×20 GLM pool spares the Anthropic weekly quota; 1M ctx."
+          "note": "Workhorse prime for non-judgment codegen \u2014 \u00d720 GLM pool spares the Anthropic weekly quota; 1M ctx."
         },
         {
           "id": "mure-engineer-m3",
@@ -518,7 +518,7 @@
     {
       "name": "mure-mechanic",
       "lane": "engineering",
-      "description": "MURE Mechanic (engineering) — integration / refactor / wiring. wire modules together, refactor, productize research code, fix integration seams.",
+      "description": "MURE Mechanic (engineering) \u2014 integration / refactor / wiring. wire modules together, refactor, productize research code, fix integration seams.",
       "model": "cursor/composer-2.5",
       "thinkingLevel": null,
       "tools": [
@@ -587,7 +587,7 @@
             "workhorse"
           ],
           "costTier": "medium",
-          "note": "Default prime — integration + refactor + PR-review-grade multi-file work."
+          "note": "Default prime \u2014 integration + refactor + PR-review-grade multi-file work."
         },
         {
           "id": "mure-mechanic-glm52",
@@ -612,7 +612,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Hard cross-module integration on the ×20 GLM pool; 1M ctx for whole-subsystem refactors."
+          "note": "Hard cross-module integration on the \u00d720 GLM pool; 1M ctx for whole-subsystem refactors."
         },
         {
           "id": "mure-mechanic-m3",
@@ -651,7 +651,7 @@
     {
       "name": "mure-artificer",
       "lane": "engineering",
-      "description": "MURE Artificer (engineering) — fast scaffolding / mechanical edits. scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane.",
+      "description": "MURE Artificer (engineering) \u2014 fast scaffolding / mechanical edits. scaffold files, do mechanical edits, run tests, census/scan \u2014 the cheap fast lane.",
       "model": "ollama-cloud/deepseek-v4-flash",
       "thinkingLevel": null,
       "tools": [
@@ -662,7 +662,7 @@
         "write",
         "bash"
       ],
-      "mission": "scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane",
+      "mission": "scaffold files, do mechanical edits, run tests, census/scan \u2014 the cheap fast lane",
       "capabilities": [
         "scaffolding",
         "mechanical-edit",
@@ -694,7 +694,7 @@
             "always-on"
           ],
           "costTier": "cheap",
-          "note": "Prime cheap scaffolding/census lane on the Z.ai pool — designed for always-on high-throughput bulk."
+          "note": "Prime cheap scaffolding/census lane on the Z.ai pool \u2014 designed for always-on high-throughput bulk."
         },
         {
           "id": "mure-artificer-dvf",
@@ -755,7 +755,7 @@
     {
       "name": "mure-kernelsmith",
       "lane": "engineering",
-      "description": "MURE Kernelsmith (engineering) — performance / hot-path / language-consolidation. optimize hot paths.",
+      "description": "MURE Kernelsmith (engineering) \u2014 performance / hot-path / language-consolidation. optimize hot paths.",
       "model": "cursor/gpt-5.5-high",
       "thinkingLevel": "high",
       "tools": [
@@ -799,7 +799,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Workhorse prime for perf codegen + tradeoff reasoning on the ×20 pool."
+          "note": "Workhorse prime for perf codegen + tradeoff reasoning on the \u00d720 pool."
         },
         {
           "id": "mure-kernelsmith-dvp",
@@ -847,7 +847,7 @@
             "minimax-ultra"
           ],
           "costTier": "heavy",
-          "note": "KernelBench-Hard 28.8 — low-level / kernel perf specialty."
+          "note": "KernelBench-Hard 28.8 \u2014 low-level / kernel perf specialty."
         },
         {
           "id": "mure-kernelsmith-opus48",
@@ -872,7 +872,7 @@
             "anchor"
           ],
           "costTier": "apex",
-          "note": "Apex override for the hardest perf-judgment + language-consolidation architecture (JS→Rust/Mojo)."
+          "note": "Apex override for the hardest perf-judgment + language-consolidation architecture (JS\u2192Rust/Mojo)."
         }
       ],
       "selection": "surfaced-heavy",
@@ -886,7 +886,7 @@
     {
       "name": "mure-sentinel",
       "lane": "engineering",
-      "description": "MURE Sentinel (engineering) — cybersecurity + security-reviewer. security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities.",
+      "description": "MURE Sentinel (engineering) \u2014 cybersecurity + security-reviewer. security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities.",
       "model": "ollama-cloud/deepseek-v4-flash",
       "thinkingLevel": null,
       "tools": [
@@ -931,7 +931,7 @@
             "think-max"
           ],
           "costTier": "heavy",
-          "note": "Think Max deep-adversarial security fallback — audit co-primes it with Opus for chained-exploit reasoning; $1.25/day cap."
+          "note": "Think Max deep-adversarial security fallback \u2014 audit co-primes it with Opus for chained-exploit reasoning; $1.25/day cap."
         },
         {
           "id": "mure-sentinel-opus48",
@@ -958,7 +958,7 @@
             "mandatory-prime"
           ],
           "costTier": "apex",
-          "note": "MANDATORY security anchor prime (hard rule) — deepest adversarial + attack-class knowledge."
+          "note": "MANDATORY security anchor prime (hard rule) \u2014 deepest adversarial + attack-class knowledge."
         }
       ],
       "selection": "surfaced-heavy",
@@ -970,7 +970,7 @@
     {
       "name": "mure-ideator",
       "lane": "research",
-      "description": "MURE Ideator (research) — divergent hypothesis generator. generate unusual options, edge cases, and remote associations.",
+      "description": "MURE Ideator (research) \u2014 divergent hypothesis generator. generate unusual options, edge cases, and remote associations.",
       "model": "cursor/grok-4.3",
       "thinkingLevel": "high",
       "tools": [
@@ -1007,7 +1007,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — routine divergent scan + novelty scoring."
+          "note": "Default prime \u2014 routine divergent scan + novelty scoring."
         },
         {
           "id": "mure-ideator-glm52",
@@ -1062,7 +1062,7 @@
     {
       "name": "mure-deliberator",
       "lane": "research",
-      "description": "MURE Deliberator (research) — deep reasoner (continuous-thought) — depth-adaptive. hold one hard sub-problem deeply with adaptive compute.",
+      "description": "MURE Deliberator (research) \u2014 deep reasoner (continuous-thought) \u2014 depth-adaptive. hold one hard sub-problem deeply with adaptive compute.",
       "model": "ollama-cloud/nemotron-3-ultra",
       "thinkingLevel": "high",
       "tools": [
@@ -1105,7 +1105,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Max-thinking deep-reasoning workhorse prime on the ×20 pool."
+          "note": "Max-thinking deep-reasoning workhorse prime on the \u00d720 pool."
         },
         {
           "id": "mure-deliberator-dvp",
@@ -1130,7 +1130,7 @@
             "think-max"
           ],
           "costTier": "heavy",
-          "note": "Think Max — deepest single-problem reasoning (LiveCodeBench 93.5); $1.25/day cap."
+          "note": "Think Max \u2014 deepest single-problem reasoning (LiveCodeBench 93.5); $1.25/day cap."
         },
         {
           "id": "mure-deliberator-opus48",
@@ -1168,7 +1168,7 @@
     {
       "name": "mure-synthesist",
       "lane": "research",
-      "description": "MURE Synthesist (research) — collective-intelligence / cross-domain transfer. merge scattered findings into a lattice map.",
+      "description": "MURE Synthesist (research) \u2014 collective-intelligence / cross-domain transfer. merge scattered findings into a lattice map.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -1235,7 +1235,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "1M-ctx text lattice-synthesis prime — merge large scattered corpora + name convergences."
+          "note": "1M-ctx text lattice-synthesis prime \u2014 merge large scattered corpora + name convergences."
         },
         {
           "id": "mure-synthesist-m3",
@@ -1260,7 +1260,7 @@
             "cross-modal"
           ],
           "costTier": "heavy",
-          "note": "Cross-modal synthesis — lattice maps that span visual artifacts (1M ctx + image + video)."
+          "note": "Cross-modal synthesis \u2014 lattice maps that span visual artifacts (1M ctx + image + video)."
         }
       ],
       "selection": "surfaced-heavy",
@@ -1273,7 +1273,7 @@
     {
       "name": "mure-chronicler",
       "lane": "knowledge",
-      "description": "MURE Chronicler (knowledge) — science-writer. distill outputs into docs, blueprints, and owner-facing summaries.",
+      "description": "MURE Chronicler (knowledge) \u2014 science-writer. distill outputs into docs, blueprints, and owner-facing summaries.",
       "model": "ollama-cloud/minimax-m3",
       "thinkingLevel": null,
       "tools": [
@@ -1340,7 +1340,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — technical writing + owner-facing narrative distillation."
+          "note": "Default prime \u2014 technical writing + owner-facing narrative distillation."
         },
         {
           "id": "mure-chronicler-m3",
@@ -1378,7 +1378,7 @@
     {
       "name": "mure-archivist",
       "lane": "knowledge",
-      "description": "MURE Archivist (knowledge) — archive curator + memory / skill-library. curate the skill library and memory.",
+      "description": "MURE Archivist (knowledge) \u2014 archive curator + memory / skill-library. curate the skill library and memory.",
       "model": "zai/glm-5-turbo",
       "thinkingLevel": null,
       "tools": [
@@ -1480,7 +1480,7 @@
     {
       "name": "mure-adjudicator",
       "lane": "verification",
-      "description": "MURE Adjudicator (verification) — adversarial critic (refute-by-default). attack every artifact — name failure modes, find what is missing, default to refuted when uncertain.",
+      "description": "MURE Adjudicator (verification) \u2014 adversarial critic (refute-by-default). attack every artifact \u2014 name failure modes, find what is missing, default to refuted when uncertain.",
       "model": "anthropic/claude-opus-4-8",
       "thinkingLevel": "high",
       "tools": [
@@ -1491,7 +1491,7 @@
         "write",
         "bash"
       ],
-      "mission": "attack every artifact — name failure modes, find what is missing, default to refuted when uncertain; structurally independent of the producers",
+      "mission": "attack every artifact \u2014 name failure modes, find what is missing, default to refuted when uncertain; structurally independent of the producers",
       "capabilities": [
         "adversarial-verify",
         "failure-mode-naming",
@@ -1529,7 +1529,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Apex-reasoning refutation fallback when Opus is capped (audit-★ adversarial reasoner); NOT for security-relevant artifacts."
+          "note": "Apex-reasoning refutation fallback when Opus is capped (audit-\u2605 adversarial reasoner); NOT for security-relevant artifacts."
         },
         {
           "id": "mure-adjudicator-dvp",
@@ -1580,7 +1580,7 @@
             "mandatory-prime"
           ],
           "costTier": "apex",
-          "note": "Mandatory adversarial anchor prime — best-in-fleet refutation quality + gap detection."
+          "note": "Mandatory adversarial anchor prime \u2014 best-in-fleet refutation quality + gap detection."
         }
       ],
       "selection": "surfaced-heavy",
@@ -1593,7 +1593,7 @@
     {
       "name": "mure-oracle",
       "lane": "verification",
-      "description": "MURE Oracle (verification) — benchmark / fitness evaluator. run the red/grey/green tests, measure against acceptance, accept/reject.",
+      "description": "MURE Oracle (verification) \u2014 benchmark / fitness evaluator. run the red/grey/green tests, measure against acceptance, accept/reject.",
       "model": "cursor/grok-code-fast-1",
       "thinkingLevel": null,
       "tools": [
@@ -1663,7 +1663,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — test execution + acceptance judgment (self-checks output)."
+          "note": "Default prime \u2014 test execution + acceptance judgment (self-checks output)."
         },
         {
           "id": "mure-oracle-glm52",
@@ -1687,7 +1687,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Hard acceptance calls / ambiguous grey-zone verdicts on the ×20 pool."
+          "note": "Hard acceptance calls / ambiguous grey-zone verdicts on the \u00d720 pool."
         }
       ],
       "selection": "auto-cheap",
@@ -1700,7 +1700,7 @@
     {
       "name": "mure-calibrator",
       "lane": "verification",
-      "description": "MURE Calibrator (verification) — calibration + honesty audit. record prediction->outcome, compute Brier and calibration, weight advisors by track record, flag over-confidence.",
+      "description": "MURE Calibrator (verification) \u2014 calibration + honesty audit. record prediction->outcome, compute Brier and calibration, weight advisors by track record, flag over-confidence.",
       "model": "ollama-cloud/deepseek-v4-flash",
       "thinkingLevel": null,
       "tools": [
@@ -1802,7 +1802,7 @@
     {
       "name": "mure-steward",
       "lane": "orchestration",
-      "description": "MURE Steward (orchestration) — COO + governance officer. run the 6-gate charter on every decision.",
+      "description": "MURE Steward (orchestration) \u2014 COO + governance officer. run the 6-gate charter on every decision.",
       "model": "ollama-cloud/deepseek-v4-flash",
       "thinkingLevel": "high",
       "tools": [
@@ -1845,7 +1845,7 @@
             "auto-prime"
           ],
           "costTier": "medium",
-          "note": "Default prime — deterministic 6-gate charter + blast-radius computation."
+          "note": "Default prime \u2014 deterministic 6-gate charter + blast-radius computation."
         },
         {
           "id": "mure-steward-glm52",
@@ -1869,7 +1869,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Harder governance / high-contention calls on the ×20 pool."
+          "note": "Harder governance / high-contention calls on the \u00d720 pool."
         },
         {
           "id": "mure-steward-opus48",
@@ -1906,7 +1906,7 @@
     {
       "name": "mure-quartermaster",
       "lane": "operations",
-      "description": "MURE Quartermaster (operations) — token-budget + cost governance. account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway.",
+      "description": "MURE Quartermaster (operations) \u2014 token-budget + cost governance. account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway.",
       "model": "cursor/composer-2.5-fast",
       "thinkingLevel": null,
       "tools": [
@@ -2008,7 +2008,7 @@
     {
       "name": "mure-architect",
       "lane": "orchestration",
-      "description": "MURE Architect (orchestration) — CTO + composer/integrator. design systems, methods, and interfaces.",
+      "description": "MURE Architect (orchestration) \u2014 CTO + composer/integrator. design systems, methods, and interfaces.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -2076,7 +2076,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Architecture-design workhorse prime (1M ctx, near-Opus FrontierSWE) on the ×20 pool."
+          "note": "Architecture-design workhorse prime (1M ctx, near-Opus FrontierSWE) on the \u00d720 pool."
         },
         {
           "id": "mure-architect-opus48",
@@ -2114,7 +2114,7 @@
     {
       "name": "mure-evolver",
       "lane": "research",
-      "description": "MURE Evolver (research) — evolutionary-methods + self-modifier. propose improvements to MURE itself and to YURI processes via evolutionary search.",
+      "description": "MURE Evolver (research) \u2014 evolutionary-methods + self-modifier. propose improvements to MURE itself and to YURI processes via evolutionary search.",
       "model": "anthropic/claude-opus-4-8",
       "thinkingLevel": "high",
       "tools": [
@@ -2125,7 +2125,7 @@
         "write",
         "bash"
       ],
-      "mission": "propose improvements to MURE itself and to YURI processes via evolutionary search; HIGHEST blast — every proposal is owner-gated and must pass the oracle first",
+      "mission": "propose improvements to MURE itself and to YURI processes via evolutionary search; HIGHEST blast \u2014 every proposal is owner-gated and must pass the oracle first",
       "capabilities": [
         "improvement-proposal",
         "evolutionary-search",
@@ -2157,7 +2157,7 @@
             "z-ai-quota-pool"
           ],
           "costTier": "heavy",
-          "note": "Evolutionary-search / candidate-generation workhorse on the ×20 pool."
+          "note": "Evolutionary-search / candidate-generation workhorse on the \u00d720 pool."
         },
         {
           "id": "mure-evolver-opus48",
@@ -2183,7 +2183,7 @@
             "highest-blast"
           ],
           "costTier": "apex",
-          "note": "Apex prime for highest-blast self-modification design — every proposal owner-gated + oracle-gated."
+          "note": "Apex prime for highest-blast self-modification design \u2014 every proposal owner-gated + oracle-gated."
         }
       ],
       "selection": "surfaced-heavy",
@@ -2205,7 +2205,7 @@
         "write",
         "bash"
       ],
-      "mission": "Fast worker lane for parallel drafting and critique — produce an independent result. Follow assignment exactly.",
+      "mission": "Fast worker lane for parallel drafting and critique \u2014 produce an independent result. Follow assignment exactly.",
       "capabilities": [
         "drafting",
         "critique",
@@ -2306,7 +2306,7 @@
         "write",
         "bash"
       ],
-      "mission": "Fast worker lane for parallel bulk analysis and critique — produce an independent result.",
+      "mission": "Fast worker lane for parallel bulk analysis and critique \u2014 produce an independent result.",
       "capabilities": [
         "bulk-analysis",
         "critique",
@@ -2362,7 +2362,7 @@
             "uncapped-fallback"
           ],
           "costTier": "cheap",
-          "note": "Uncapped Z.ai equivalent when the DeepSeek daily cap is hit — the resilient fallback."
+          "note": "Uncapped Z.ai equivalent when the DeepSeek daily cap is hit \u2014 the resilient fallback."
         }
       ],
       "selection": "auto-cheap",
@@ -2384,7 +2384,7 @@
         "write",
         "bash"
       ],
-      "mission": "Final mastermind synthesizer over multi-model prep fan-out — synthesize, judge, correct, and CUT outputs into a definitive result. Anti-over-engineering: when in doubt, CUT.",
+      "mission": "Final mastermind synthesizer over multi-model prep fan-out \u2014 synthesize, judge, correct, and CUT outputs into a definitive result. Anti-over-engineering: when in doubt, CUT.",
       "capabilities": [
         "final-synthesis",
         "multi-model-judge",
@@ -2392,7 +2392,7 @@
         "decisive-ruling"
       ],
       "autonomy": "self-governable",
-      "notes": "Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. TEMPORARILY EXCLUDED 2026-07-09 (limited access till 2026-07-12, then PPT after).",
+      "notes": "Spawned once after multi-model fan-out. Does not redo work \u2014 synthesizes and judges. TEMPORARILY EXCLUDED 2026-07-09 (limited access till 2026-07-12, then PPT after).",
       "variants": [],
       "selection": "N/A (agent DISABLED)",
       "fallbackChain": [],
@@ -2419,7 +2419,7 @@
             "anti-over-engineering"
           ],
           "costTier": "apex",
-          "note": "[INACTIVE till 2026-07-12] Apex final synthesizer prime — SWE-Verified 95.0, #1 leaderboard."
+          "note": "[INACTIVE till 2026-07-12] Apex final synthesizer prime \u2014 SWE-Verified 95.0, #1 leaderboard."
         },
         {
           "id": "fable-synth-opus48",
@@ -2450,7 +2450,7 @@
     {
       "name": "mure-advisor",
       "lane": "verification",
-      "description": "MURE Advisor (advisory) — tiered per-turn watchdog for main session + WhatsApp. Cheap watcher runs every turn; heavy advisor escalates on flagged conditions. Pure annotation; never blocks. Two surfaces: visible post-hoc note + one-turn-lag injection into chat-model context.",
+      "description": "MURE Advisor (advisory) \u2014 tiered per-turn watchdog for main session + WhatsApp. Cheap watcher runs every turn; heavy advisor escalates on flagged conditions. Pure annotation; never blocks. Two surfaces: visible post-hoc note + one-turn-lag injection into chat-model context.",
       "model": "anthropic/claude-sonnet-5",
       "thinkingLevel": "medium",
       "tools": [
@@ -2656,7 +2656,79 @@
         "mure-advisor-heavy-glm52",
         "mure-advisor-heavy-m3"
       ],
-      "notes": "Heavy-tier fallback chain: Opus 4.8 → DeepSeek V4-Pro Think Max → GLM-5.2 → M3. Haiku never in this chain. Hard security rule: heavy-tier for security-relevant turns MUST be Opus 4.8. Skill procedure lives at skills/mure-advisor/SKILL.md (pending Skill Workshop apply)."
+      "notes": "Heavy-tier fallback chain: Opus 4.8 \u2192 DeepSeek V4-Pro Think Max \u2192 GLM-5.2 \u2192 M3. Haiku never in this chain. Hard security rule: heavy-tier for security-relevant turns MUST be Opus 4.8. Skill procedure lives at skills/mure-advisor/SKILL.md (pending Skill Workshop apply)."
+    },
+    {
+      "name": "mure-yuri",
+      "lane": "orchestration",
+      "description": "MURE Yuri \u2014 main-session front-end binding (option iii). Single canonical brain doc loaded via CLAUDE.md @-include of _SYSTEM/persona.md. Marcel's adversarial ally + cognitive extension + operator of MURE. The front-end to all of YURI: fleet dispatch, memory, sessions, advisor. Per Marcel Q16 of the 49-question deep questionnaire: 'Yuri IS the front-end to all of YURI.'",
+      "model": "anthropic/claude-opus-4-8",
+      "thinkingLevel": "high",
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "edit",
+        "write",
+        "bash"
+      ],
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor",
+      "mission": "Hold the goal spine, run the five-state router, decode Marcel's brain dump via the eight-step decode pipeline, dispatch MURE fleet via decompose/fan-out/verify/synthesize loops. Full control surface (apps, terminal, files, browser) per Marcel Q10. Conversational co-thinker per Q3. Always-confirm on large-scale ops per Q14. Heavy anchor = Opus 4.8 (matches persona.md binding floor). Worker-level research/coding/refactor is OFFLINE for this lane \u2014 delegated.",
+      "capabilities": [
+        "brain-dump-decode",
+        "five-state-router",
+        "goal-spine-holding",
+        "mure-dispatch",
+        "multi-session-conductor",
+        "memory-governance",
+        "persona-evolution-proposals",
+        "operator-confirm-gate"
+      ],
+      "autonomy": "owner-gated",
+      "scope": "main-session-only",
+      "independence": [
+        "mure-helmsman",
+        "mure-engineer",
+        "mure-mechanic",
+        "mure-synthesist",
+        "mure-adjudicator"
+      ],
+      "schema": "_SYSTEM/persona.md",
+      "skillRef": "skills/opus-fleet/SKILL.md",
+      "notes": "Main-session binding (option iii). Identity substrate is _SYSTEM/persona.md (loaded natively). Skill procedures: opus-fleet (primary), fleet-economy, mure-advisor (watcher), mure-role-variant-matrix, grill-me, dispatching-parallel-agents. Operator = Marcel Spatz. Address Marcel by name; never as 'Rick'. Iron Rule 5: inline work ONLY for \u22641 known file \u224850 lines trivial; default = decompose + dispatch.",
+      "variants": [
+        {
+          "id": "mure-yuri-opus48",
+          "model": "anthropic/claude-opus-4-8",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "max_tokens": 16384,
+          "systemSections": [
+            "apex-judgment",
+            "orchestrator-peer",
+            "narrow-prompt-reserved"
+          ],
+          "eligibilityFlags": [
+            "apex",
+            "anchor",
+            "main-binding",
+            "identity-locked"
+          ],
+          "costTier": "apex",
+          "note": "Heavy anchor for the main session. Identity-lock floor (persona.md binding). Sourced dispatch authority for MURE. Operator cannot rotate this binding without crossing into persona-evolution policy."
+        }
+      ],
+      "selection": "main-binding-fixed",
+      "fallbackChain": [
+        "mure-yuri-opus48"
+      ]
     }
   ]
 }
