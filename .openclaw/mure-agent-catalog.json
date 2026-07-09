@@ -2008,7 +2008,7 @@
     {
       "name": "mure-architect",
       "lane": "orchestration",
-      "description": "MURE Architect (orchestration) \u2014 CTO + composer/integrator. design systems, methods, and interfaces.",
+      "description": "MURE Architect (orchestration) \u2014 CTO + strategist + composer/integrator. set strategy, plan the build, design systems, methods, and interfaces.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -2019,8 +2019,11 @@
         "write",
         "bash"
       ],
-      "mission": "design systems, methods, and interfaces; set the quality bar; compose existing capabilities before building new ones",
+      "mission": "own strategy and planning: translate goals into a sequenced build plan, then design the systems, methods, and interfaces that execute it; set the quality bar; compose existing capabilities before building new ones",
       "capabilities": [
+        "strategy",
+        "planning",
+        "roadmap-sequencing",
         "architecture-design",
         "method-design",
         "interface-contracts",
