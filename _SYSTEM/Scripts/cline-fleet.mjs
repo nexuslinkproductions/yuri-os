@@ -56,10 +56,15 @@ function buildClineEnv() {
 
 /** ClinePass models — cline CLI v3 expects modelType/model format (cline-pass/<model>). */
 export const CLINE_ROSTER = Object.freeze({
-  glm: 'cline-pass/glm-5.2',
-  kimi: 'cline-pass/kimi-k2.7-code',
-  deepseek: 'cline-pass/deepseek-v4-pro',
+  // cheap tier — bulk burn (Marcel's cheapest ClinePass streams, 2026-07-09)
+  'deepseek-flash': 'cline-pass/deepseek-v4-flash',
   mimo: 'cline-pass/mimo-v2.5',
+  // heavy tier — coding + reasoning
+  'qwen-max': 'cline-pass/qwen3.7-max',
+  kimi: 'cline-pass/kimi-k2.7-code',
+  // also on the plan (back-compat keys)
+  glm: 'cline-pass/glm-5.2',
+  deepseek: 'cline-pass/deepseek-v4-pro',
   qwen: 'cline-pass/qwen3.7-max',
 });
 export const DEFAULT_MODEL = CLINE_ROSTER.glm;

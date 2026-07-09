@@ -23,7 +23,11 @@
     "cursor/gpt-5.5-high": "cursor-cli/gpt-5.5-high",
     "cursor/grok-code-fast-1": "cursor-cli/grok-code-fast-1",
     "ollama-cloud/qwen3.5:cloud": "ollama-cloud/qwen3.5:cloud",
-    "ollama-cloud/gemma4:31b-cloud": "ollama-cloud/gemma4:31b-cloud"
+    "ollama-cloud/gemma4:31b-cloud": "ollama-cloud/gemma4:31b-cloud",
+    "cline-pass/cline-pass/deepseek-v4-flash": "cline-pass/cline-pass/deepseek-v4-flash",
+    "cline-pass/cline-pass/mimo-v2.5": "cline-pass/cline-pass/mimo-v2.5",
+    "cline-pass/cline-pass/qwen3.7-max": "cline-pass/cline-pass/qwen3.7-max",
+    "cline-pass/cline-pass/kimi-k2.7-code": "cline-pass/cline-pass/kimi-k2.7-code"
   },
   "agents": [
     {
@@ -381,6 +385,10 @@
         {
           "id": "mure-scout-qwen35",
           "model": "ollama-cloud/qwen3.5:cloud"
+        },
+        {
+          "id": "mure-scout-cline-dvf",
+          "model": "cline-pass/cline-pass/deepseek-v4-flash"
         }
       ],
       "selection": "auto-cheap",
@@ -388,7 +396,8 @@
         "mure-scout-haiku",
         "mure-scout-sonnet5",
         "mure-scout-m3",
-        "mure-scout-qwen35"
+        "mure-scout-qwen35",
+        "mure-scout-cline-dvf"
       ]
     },
     {
@@ -512,6 +521,10 @@
           ],
           "costTier": "heavy",
           "note": "1M-ctx builds + implement-from-screenshot/diagram (frontend/backend spec fidelity)."
+        },
+        {
+          "id": "mure-engineer-cline-kimi",
+          "model": "cline-pass/cline-pass/kimi-k2.7-code"
         }
       ],
       "selection": "auto-cheap",
@@ -519,7 +532,8 @@
         "mure-engineer-dvf",
         "mure-engineer-sonnet5",
         "mure-engineer-glm52",
-        "mure-engineer-m3"
+        "mure-engineer-m3",
+        "mure-engineer-cline-kimi"
       ]
     },
     {
@@ -1163,13 +1177,18 @@
           ],
           "costTier": "apex",
           "note": "Apex override for the hardest monotropic deliberation."
+        },
+        {
+          "id": "mure-deliberator-cline-qwen",
+          "model": "cline-pass/cline-pass/qwen3.7-max"
         }
       ],
       "selection": "surfaced-heavy",
       "fallbackChain": [
         "mure-deliberator-glm52",
         "mure-deliberator-dvp",
-        "mure-deliberator-opus48"
+        "mure-deliberator-opus48",
+        "mure-deliberator-cline-qwen"
       ]
     },
     {
@@ -1377,6 +1396,10 @@
         {
           "id": "mure-chronicler-gemma4",
           "model": "ollama-cloud/gemma4:31b-cloud"
+        },
+        {
+          "id": "mure-chronicler-cline-mimo",
+          "model": "cline-pass/cline-pass/mimo-v2.5"
         }
       ],
       "selection": "auto-cheap",
@@ -1384,7 +1407,8 @@
         "mure-chronicler-haiku",
         "mure-chronicler-sonnet5",
         "mure-chronicler-m3",
-        "mure-chronicler-gemma4"
+        "mure-chronicler-gemma4",
+        "mure-chronicler-cline-mimo"
       ]
     },
     {

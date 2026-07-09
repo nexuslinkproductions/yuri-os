@@ -125,6 +125,7 @@ _SYSTEM/state/energy-trace/
 _SYSTEM/state/energy-session/
 _SYSTEM/state/tape/
 _SYSTEM/state/fill-surface-*.json
+_SYSTEM/state/*.enabled
 _SYSTEM/state/adverse-attribution-*.json
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/rick-routing.jsonl

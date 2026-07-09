@@ -7,7 +7,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // repo root derived from this file's location (_SYSTEM/Scripts/ → two up), never hardcoded
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -18,7 +18,7 @@ const DRY = process.argv.includes("--dry-run");
 // catalog model string -> valid OpenClaw provider/model ref (registered in models.providers)
 export function mapModel(m) {
   if (!m) return null;
-  if (/^(anthropic|zai|minimax-portal|ollama-cloud)\//.test(m)) return m;
+  if (/^(anthropic|zai|minimax-portal|ollama-cloud|cline-pass)\//.test(m)) return m;
   if (m === "deepseek-v4-pro:direct") return "deepseek/deepseek-v4-pro";
   if (m === "deepseek-v4-flash:direct") return "deepseek/deepseek-v4-flash";
   if (m.startsWith("cursor/")) {
@@ -102,18 +102,22 @@ export function buildAgentsList(catalog) {
   });
 }
 
-const catalog = JSON.parse(fs.readFileSync(CATALOG, "utf8"));
-const config = JSON.parse(fs.readFileSync(CONFIG, "utf8"));
-const list = buildAgentsList(catalog);
+// Only mutate config when run as a script — importing this module must be pure
+// (validators/tools import buildAgentsList + mapModel without triggering a config write).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const catalog = JSON.parse(fs.readFileSync(CATALOG, "utf8"));
+  const config = JSON.parse(fs.readFileSync(CONFIG, "utf8"));
+  const list = buildAgentsList(catalog);
 
-config.agents = config.agents || {};
-config.agents.list = list;
+  config.agents = config.agents || {};
+  config.agents.list = list;
 
-if (DRY) {
-  console.log(JSON.stringify(list, null, 2));
-  console.log(`\n[dry-run] ${list.length} agents. default=${list.find((x) => x.default)?.id}`);
-} else {
-  fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + "\n");
-  console.log(`Wrote ${list.length} agents.list entries to ${CONFIG}`);
-  console.log(`default=${list.find((x) => x.default)?.id}`);
+  if (DRY) {
+    console.log(JSON.stringify(list, null, 2));
+    console.log(`\n[dry-run] ${list.length} agents. default=${list.find((x) => x.default)?.id}`);
+  } else {
+    fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + "\n");
+    console.log(`Wrote ${list.length} agents.list entries to ${CONFIG}`);
+    console.log(`default=${list.find((x) => x.default)?.id}`);
+  }
 }
