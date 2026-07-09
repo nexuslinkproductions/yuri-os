@@ -1,9 +1,9 @@
 {
   "meta": {
     "name": "cloud-fleet-models",
-    "version": "2.0.0",
-    "updated": "2026-07-06",
-    "policy": "CLOUD-ONLY — no local Ollama SLMs on the MacBook. No Codex. No direct DeepSeek API (retired 2026-07-06). Orchestrator uses OMP subscriptions first.",
+    "version": "2.1.0",
+    "updated": "2026-07-09",
+    "policy": "CLOUD-ONLY with explicit substrate roster. Direct DeepSeek API ACTIVE (re-instated 2026-07-09; daily cap binding $1.25). Ollama Cloud + Cursor kept on the seam but not actively routed. Codex Pro skipped until owner decides. Fable-5 temporarily excluded (limited access till 2026-07-12). M3 native via minimax-portal binding (Ultra tier). Orchestrator uses Anthropic Claude weekly pool first, falls back to GLM-5.2 (Z.ai) when capped.",
     "authority": "Advisory routing map for opus-fleet + MURE. Governance + arm flags always win."
   },
   "orchestrator": {
@@ -163,15 +163,66 @@
       }
     },
     "cursor": {
-      "model": "composer-2.5",
-      "ompRole": "advisor",
-      "when": "Claude capped; interactive native lane"
+      "model": "composer-2.5-fast",
+      "ompRole": "on-seam-only",
+      "when": "NOT actively routed (Cursor may fall away 2026-07-23). Reserved seam for Composer 2.5 Fast; Grok 4.5 to be added when EU-available.",
+      "activeConfig": ["composer-2.5-fast"],
+      "pendingConfig": ["grok-4.5-eu"]
+    },
+    "deepseek_direct": {
+      "description": "Direct DeepSeek API substrate (api.deepseek.com/v1) — re-instated 2026-07-09; subject to binding daily budget cap.",
+      "script": "_SYSTEM/Scripts/deepseek-fleet.mjs",
+      "armEnv": "YURI_DEEPSEEK_DIRECT",
+      "armFlag": "_SYSTEM/state/deepseek-direct.enabled",
+      "reasoning": "deepseek-v4-pro supports thinking mode (Think Max); deepseek-v4-flash disables",
+      "budget": {
+        "currency": "USD",
+        "dailyCapUsd": 1.25,
+        "hardCap": true,
+        "warnAtPct": 80,
+        "burnLedger": "_SYSTEM/state/deepseek-burn.jsonl"
+      },
+      "tiers": {
+        "flash": {
+          "model": "deepseek-v4-flash",
+          "use": "cheap direct API; recon + cheap research; thinking disabled",
+          "ctx": "200K"
+        },
+        "pro": {
+          "model": "deepseek-v4-pro",
+          "use": "heavy reasoning direct API; Think Max enabled; heavy-advisor Tier 2 + sentinel / kernelsmith roles",
+          "ctx": "200K"
+        }
+      }
+    },
+    "minimax_portal": {
+      "description": "MiniMax Portal native binding for M3 (Ultra subscription tier); 1M context + image + video.",
+      "binding": "minimax-portal/MiniMax-M3",
+      "armEnv": "YURI_MINIMAX_PORTAL",
+      "tiers": {
+        "m3": {
+          "model": "minimax-portal/MiniMax-M3",
+          "use": "generalist + cross-modal synthesis + heavy-advisor Tier 2 fallback",
+          "ctx": "1M",
+          "quota": "minimax-ultra"
+        }
+      }
+    },
+    "mure_advisor": {
+      "description": "mure-advisor tiered per-turn watchdog substrate (operator-driven).",
+      "eligibility": {
+        "watcher": ["anthropic/claude-sonnet-5 (prime)", "anthropic/claude-haiku-4-5 (recon/cheap)", "deepseek-v4-flash:direct (capped)"],
+        "heavy": ["anthropic/claude-opus-4-8 (anchor + security-only)", "deepseek-v4-pro:direct (capped)", "zai/glm-5.2 (Z.ai quota)", "minimax-portal/MiniMax-M3 (Ultra)"],
+        "fallbackChain": ["opus-4-8", "deepseek-v4-pro:direct", "zai/glm-5.2", "minimax-portal/MiniMax-M3"],
+        "excluded": ["anthropic/claude-haiku-4-5 at heavy tier (recon/cheap only)", "anthropic/claude-fable-5 (temporarily excluded till 2026-07-12)"]
+      },
+      "schema": "_SYSTEM/research/advisor-note-schema-2026-07-09.md"
     }
   },
   "retired": {
-    "codex": "Owner no longer uses Codex — ignore all codex-offload-runner / openai-codex references.",
-    "direct_deepseek_api": "Retired 2026-07-06 — use Ollama Cloud deepseek-v4-*:cloud only.",
-    "local_ollama": "MacBook cannot run local SLMs in fleet — qwen-local, gemma-local, vibethinker-local forbidden."
+    "codex": "OWNER-SKIP 2026-07-09: Codex Pro not subscribed yet — skip until owner decides and has the money.",
+    "local_ollama": "MacBook cannot run local SLMs in fleet — qwen-local, gemma-local, vibethinker-local forbidden.",
+    "direct_deepseek_api": "RE-INSTATE 2026-07-09: was retired 2026-07-06 line in v2.0.0; owner has been using the direct API all along. Roster v2.1.0 adds `deepseek_direct` substrate entry with $1.25/day cap."
   },
   "mureNativeTranslation": {
     "comment": "When MURE emits nativeSpecs with legacy Claude model names, translate to OMP task() under Claude cap.",
