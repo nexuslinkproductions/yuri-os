@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>MURE · Sol Orchestration Architecture</title>
+  <style>
+    :root {
+      --bg: #07100f;
+      --panel: #0c1715;
+      --panel-2: #101e1b;
+      --ink: #edf7f2;
+      --muted: #91aaa1;
+      --line: #203a34;
+      --sol: #ff7358;
+      --terra: #ffb85c;
+      --opus: #b98cff;
+      --sonnet: #ef92c7;
+      --glm: #4be0b4;
+      --m3: #4ca7ff;
+      --cheap: #d4df70;
+      --danger: #ff6685;
+      --ok: #7be495;
+      --shadow: 0 22px 80px rgba(0, 0, 0, .28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(75, 224, 180, .10), transparent 28rem),
+        radial-gradient(circle at 88% 16%, rgba(255, 115, 88, .10), transparent 30rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .16;
+      background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+    a { color: inherit; }
+    button { font: inherit; }
+    code { font: .88em ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .wrap { width: min(1460px, calc(100% - 40px)); margin: 0 auto; }
+    .eyebrow { color: var(--glm); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 800; }
+    .hero { padding: 58px 0 30px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 26px; align-items: end; }
+    .hero-grid > *, .flow > *, .learning > * { min-width: 0; }
+    h1 { margin: 12px 0 16px; max-width: 940px; font-size: clamp(42px, 7vw, 92px); line-height: .92; letter-spacing: -.066em; font-weight: 780; }
+    h1 span { color: var(--sol); }
+    .lead { max-width: 800px; margin: 0; color: #bdd0c8; font-size: clamp(16px, 2vw, 21px); }
+    .status-card { padding: 20px; border: 1px solid rgba(75, 224, 180, .35); border-radius: 18px; background: rgba(12, 23, 21, .86); box-shadow: var(--shadow); }
+    .status-line { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 6px rgba(123, 228, 149, .10); }
+    .status-card p { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+    .status-card strong { color: var(--ink); }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(12, 23, 21, .62); font-size: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--model); }
+    .section { padding: 42px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    h2 { margin: 4px 0 0; font-size: clamp(28px, 4vw, 48px); letter-spacing: -.045em; line-height: 1; }
+    .section-note { max-width: 540px; color: var(--muted); font-size: 14px; }
+    .flow-shell { border: 1px solid var(--line); border-radius: 24px; padding: 24px; background: linear-gradient(145deg, rgba(16,30,27,.94), rgba(9,18,16,.94)); box-shadow: var(--shadow); overflow: hidden; }
+    .flow { display: grid; grid-template-columns: 1fr 44px 1.15fr 44px 1fr 44px 1fr; align-items: stretch; }
+    .flow-node { min-height: 188px; padding: 19px; border: 1px solid var(--line); background: rgba(255,255,255,.018); border-radius: 16px; position: relative; overflow: hidden; }
+    .flow-node::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--node); }
+    .flow-node .n { color: var(--node); font: 800 11px ui-monospace, monospace; letter-spacing: .12em; }
+    .flow-node h3 { margin: 25px 0 7px; font-size: 20px; letter-spacing: -.025em; }
+    .flow-node p { color: var(--muted); font-size: 13px; margin: 0; }
+    .flow-node ul { padding-left: 17px; color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+    .arrow { display: grid; place-items: center; color: #4f6f65; font-size: 26px; }
+    .decision-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+    .risk { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.018); }
+    .risk strong { display: block; font-size: 13px; }
+    .risk span { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .risk.r2, .risk.r3 { border-color: rgba(255, 102, 133, .35); }
+    .risk.r2 strong, .risk.r3 strong { color: var(--danger); }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 18px; }
+    .filter { cursor: pointer; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; transition: .16s ease; }
+    .filter:hover, .filter.active { color: #06110e; background: var(--glm); border-color: var(--glm); }
+    .routes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .route { min-height: 330px; display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); transition: transform .16s ease, border-color .16s ease, opacity .16s ease; }
+    .route:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--route) 65%, var(--line)); }
+    .route.hidden { display: none; }
+    .route-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+    .route-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: var(--route); background: color-mix(in srgb, var(--route) 12%, transparent); font-weight: 900; }
+    .tier { color: var(--muted); font: 700 10px ui-monospace, monospace; text-transform: uppercase; letter-spacing: .1em; }
+    .route h3 { margin: 18px 0 6px; font-size: 20px; line-height: 1.08; }
+    .route-desc { color: var(--muted); font-size: 12px; min-height: 54px; }
+    .binding { margin: 18px 0 12px; padding: 12px; background: rgba(255,255,255,.025); border-radius: 11px; border-left: 2px solid var(--route); }
+    .binding small { display: block; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 9px; }
+    .binding strong { display: block; margin-top: 4px; color: var(--route); font-size: 13px; overflow-wrap: anywhere; }
+    .route-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: auto; }
+    .meta { padding: 8px; background: rgba(255,255,255,.025); border-radius: 9px; }
+    .meta small { color: var(--muted); display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+    .meta b { display: block; margin-top: 3px; font-size: 11px; }
+    .glm-focus { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; border: 1px solid rgba(75,224,180,.38); border-radius: 24px; padding: 26px; background: linear-gradient(135deg, rgba(75,224,180,.10), rgba(12,23,21,.84) 46%); }
+    .glm-mark { display: flex; flex-direction: column; justify-content: space-between; min-height: 320px; padding: 24px; border-radius: 18px; color: #06110e; background: var(--glm); }
+    .glm-mark .giant { font-size: clamp(58px, 10vw, 126px); line-height: .78; font-weight: 900; letter-spacing: -.085em; }
+    .glm-mark p { max-width: 390px; margin: 0; font-weight: 670; }
+    .glm-jobs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .job { padding: 17px; background: rgba(255,255,255,.025); border: 1px solid var(--line); border-radius: 14px; }
+    .job .job-no { color: var(--glm); font: 800 10px ui-monospace, monospace; }
+    .job h3 { margin: 14px 0 5px; font-size: 16px; }
+    .job p { margin: 0; color: var(--muted); font-size: 12px; }
+    .escalation { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .escalation-card { border: 1px solid var(--line); border-radius: 18px; padding: 19px; background: var(--panel); }
+    .escalation-card .step { font: 800 10px ui-monospace, monospace; color: var(--glm); letter-spacing: .1em; }
+    .escalation-card h3 { margin: 16px 0 7px; font-size: 19px; }
+    .escalation-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .learning { display: grid; grid-template-columns: 1fr 52px 1fr 52px 1fr 52px 1fr; align-items: center; }
+    .learn-node { min-height: 130px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+    .learn-node b { display: block; color: var(--glm); font-size: 12px; }
+    .learn-node p { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
+    .truth { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .truth-card { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.018); }
+    .truth-card strong { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .truth-card p { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+    .state { width: 8px; height: 8px; border-radius: 50%; background: var(--state); }
+    footer { margin-top: 36px; padding: 30px 0 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    footer .foot-grid { display: flex; justify-content: space-between; gap: 20px; }
+    @media (max-width: 1100px) {
+      .routes { grid-template-columns: repeat(2, 1fr); }
+      .flow { grid-template-columns: 1fr; gap: 9px; }
+      .arrow { transform: rotate(90deg); height: 34px; }
+      .glm-focus { grid-template-columns: 1fr; }
+      .learning { grid-template-columns: 1fr; gap: 8px; }
+      .learning .arrow { transform: rotate(90deg); }
+    }
+    @media (max-width: 720px) {
+      .wrap { width: min(calc(100% - 24px), 1460px); }
+      .hero-grid, .routes, .decision-strip, .glm-jobs, .escalation, .truth { grid-template-columns: 1fr; }
+      .hero { padding-top: 34px; }
+      h1 { font-size: clamp(38px, 12vw, 58px); overflow-wrap: break-word; }
+      code { overflow-wrap: anywhere; }
+      .section-head, footer .foot-grid { display: block; }
+      .section-note { margin-top: 10px; }
+      .flow-shell { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">MURE task-level sparse mixture of experts</div>
+        <h1><span>Sol</span> holds the goal. Experts do the work.</h1>
+        <p class="lead">One stable OpenClaw front door classifies risk, selects a role, selects an eligible model, dispatches bounded work, and accepts nothing important without independent evidence.</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <aside class="status-card">
+        <div class="status-line"><span class="pulse"></span> Sol native route responding</div>
+        <p><strong>Live:</strong> <code>mure-yuri → openai/gpt-5.6-sol</code>. Default-route and explicit Sol probes returned successfully on 2026-07-09.</p>
+        <p><strong>Boundary:</strong> this page is the approved routing design. The legacy router still requires full policy wiring before every arrow is enforced automatically.</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">01 · control plane</div><h2>The dispatch loop</h2></div>
+          <p class="section-note">The main seat does not spray cheap agents at everything. Risk and failure cost decide the floor first; learned ranking only operates inside the eligible set.</p>
+        </div>
+        <div class="flow-shell">
+          <div class="flow">
+            <article class="flow-node" style="--node:var(--sol)">
+              <div class="n">INPUT</div><h3>Marcel → Yuri / Sol</h3>
+              <p>Preserve intent, conversational state, the goal spine, and owner gates.</p>
+              <ul><li>final synthesis stays here</li><li>delegation begins with coherent leaves</li></ul>
+            </article>
+            <div class="arrow">›</div>
+            <article class="flow-node" style="--node:var(--terra)">
+              <div class="n">HARD GATE</div><h3>Risk + capability mask</h3>
+              <p>Classify blast radius, reversibility, determinism need, tools, context, and security.</p>
+              <ul><li>R2/R3 exclude cheap semantic workers</li><li>protected paths and auth gate first</li></ul>
+            </article>
+            <div class="arrow">›</div>
+            <article class="flow-node" style="--node:var(--m3)">
+              <div class="n">SPARSE ROUTE</div><h3>Role × model selection</h3>
+              <p>Choose from closed, catalogued variants. Important tasks receive frontier producers and a different-family reviewer.</p>
+              <ul><li>top-k by task class</li><li>quota changes availability, not quality floor</li></ul>
+            </article>
+            <div class="arrow">›</div>
+            <article class="flow-node" style="--node:var(--glm)">
+              <div class="n">EVIDENCE</div><h3>Verify → merge → learn</h3>
+              <p>Canonical merge ordering, schema checks, executable proof, outcome ledger, calibrated updates.</p>
+              <ul><li>evidence outranks consensus</li><li>Sol owns final acceptance</li></ul>
+            </article>
+          </div>
+          <div class="decision-strip">
+            <div class="risk"><strong>R0 · mechanical</strong><span>cheap breadth allowed; 10% frontier calibration sample</span></div>
+            <div class="risk"><strong>R1 · reversible</strong><span>frontier producer; cheap agents collect bounded evidence</span></div>
+            <div class="risk r2"><strong>R2 · important</strong><span>frontier producer + independent frontier verifier</span></div>
+            <div class="risk r3"><strong>R3 · critical</strong><span>frontier-only quorum; owner hold if evidence cannot break tie</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="routing-matrix">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">02 · sparse experts</div><h2>What Sol sends where</h2></div>
+          <p class="section-note">Filter by the primary model. Each card shows the cold-start binding Sol proposed, its fan-out ceiling, and its independent review path.</p>
+        </div>
+        <div class="controls" id="filters"></div>
+        <div class="routes" id="routes"></div>
+      </div>
+    </section>
+
+    <section class="section" id="glm-role">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">03 · corrected emphasis</div><h2>GLM 5.2 is a first-class expert</h2></div>
+          <p class="section-note">It was missing from the earlier compressed summary, not from Sol’s architecture. The correct position is long-context synthesis, verification, and frontier fallback.</p>
+        </div>
+        <div class="glm-focus">
+          <div class="glm-mark">
+            <div class="giant">GLM<br>5.2</div>
+            <p>The system’s long-context integrator: it turns wide evidence into a coherent, checkable result without spending the orchestration seat.</p>
+          </div>
+          <div class="glm-jobs">
+            <article class="job"><div class="job-no">PRIMARY · 01</div><h3>Synthesis + verification</h3><p>Cross-lane consolidation, contradiction detection, evidence grading, and requirement coverage. Sol performs the final review.</p></article>
+            <article class="job"><div class="job-no">VERIFIER · 02</div><h3>Wide extraction swarms</h3><p>Adjudicates results from parallel MiMo/DeepSeek scans before they can become trusted evidence.</p></article>
+            <article class="job"><div class="job-no">FALLBACK · 03</div><h3>Deep research</h3><p>Long-context fallback behind Sonnet 5 when multi-source investigation needs sustained corpus handling.</p></article>
+            <article class="job"><div class="job-no">FALLBACK · 04</div><h3>MiniMax M3 throughput</h3><p>Frontier fallback for large sustained workloads; keeps high-volume important work above the cheap-agent floor.</p></article>
+            <article class="job"><div class="job-no">ROLE PRIME · 05</div><h3>Architect + deliberator</h3><p>Sol’s 26-role ruling assigns GLM to architecture and deliberation lanes, with Opus/Sol as escalations.</p></article>
+            <article class="job"><div class="job-no">POOL · 06</div><h3>Quota diversification</h3><p>A separate provider pool reduces correlated outage and quota risk without silently lowering the quality tier.</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">04 · escalation law</div><h2>Cheap is a tool, not an authority</h2></div>
+          <p class="section-note">The escalation boundary is defined before model ranking. A cheaper candidate cannot “win” a task it is forbidden to decide.</p>
+        </div>
+        <div class="escalation">
+          <article class="escalation-card"><div class="step">BREADTH → FRONTIER</div><h3>Disagreement or incomplete evidence</h3><p>If cheap samples disagree, confidence falls, or required evidence is missing, promote the work to Sonnet 5, GLM 5.2, or MiniMax M3. No endless cheap retries.</p></article>
+          <article class="escalation-card"><div class="step">FRONTIER → CRITICAL</div><h3>Blast radius crosses the line</h3><p>Security boundaries, migrations, irreversible state, protocol contracts, and core architecture move to Terra/Opus/Sol with independent review.</p></article>
+          <article class="escalation-card"><div class="step">CONFLICT → EVIDENCE</div><h3>Models do not vote truth into existence</h3><p>One identical retry, then cross-family adjudication. Executable tests and local evidence override confident model consensus.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div><div class="eyebrow">05 · learned gate</div><h2>How the MLP earns influence</h2></div>
+          <p class="section-note">The learner re-ranks allowed experts. It never changes risk class, protected-path policy, or the frontier floor for important work.</p>
+        </div>
+        <div class="learning">
+          <article class="learn-node"><b>01 · Dispatch ledger</b><p>Record role, model, policy version, latency, tokens, retries, verifier verdict, RESULT_LABEL, and route confidence.</p></article>
+          <div class="arrow">›</div>
+          <article class="learn-node"><b>02 · Calibrated score</b><p>Fit predicted verified success and Brier calibration per role × model × risk class.</p></article>
+          <div class="arrow">›</div>
+          <article class="learn-node"><b>03 · Champion / challenger</b><p>Promote only after ≥30 comparable tasks and ≥5-point verified-success improvement; no critical-lane exploration.</p></article>
+          <div class="arrow">›</div>
+          <article class="learn-node"><b>04 · Hard masks reapply</b><p>Before every dispatch, governance, auth, tools, risk, diversity, quota, and concurrency rules filter the candidate set again.</p></article>
+        </div>
+        <div class="truth">
+          <div class="truth-card"><strong><span class="state" style="--state:var(--ok)"></span>Live now</strong><p>Sol is the <code>mure-yuri</code> primary and responds through OpenClaw’s default and explicit native route.</p></div>
+          <div class="truth-card"><strong><span class="state" style="--state:var(--terra)"></span>Specified</strong><p>The eight task categories, model bindings, escalation rules, and determinism controls on this page come from Sol’s routing ruling.</p></div>
+          <div class="truth-card"><strong><span class="state" style="--state:var(--danger)"></span>Not fully enforced</strong><p>The legacy <code>router-policy.json</code> and advisory MLP do not yet encode every task row and hard mask shown here.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-grid">
+      <span>MURE / OpenClaw · Sol-first orchestration architecture · 2026-07-09</span>
+      <span>Task/session-level sparse MoE, not token-level neural MoE</span>
+    </div>
+  </footer>
+
+  <script>
+    const models = {
+      sol: { label: "GPT-5.6 Sol", full: "openai/gpt-5.6-sol", color: "var(--sol)" },
+      terra: { label: "GPT-5.6 Terra", full: "openai/gpt-5.6-terra", color: "var(--terra)" },
+      opus: { label: "Opus 4.8", full: "anthropic/claude-opus-4-8", color: "var(--opus)" },
+      sonnet: { label: "Sonnet 5", full: "anthropic/claude-sonnet-5", color: "var(--sonnet)" },
+      glm: { label: "GLM 5.2", full: "zai/glm-5.2", color: "var(--glm)" },
+      m3: { label: "MiniMax M3", full: "minimax-portal/MiniMax-M3", color: "var(--m3)" },
+      deepseek: { label: "DeepSeek Flash", full: "deepseek/deepseek-v4-flash", color: "var(--cheap)" },
+      mimo: { label: "MiMo 2.5", full: "xiaomi/mimo-v2.5", color: "var(--cheap)" }
+    };
+
+    const routes = [
+      { icon: "S", id: "orchestration", label: "Orchestration + decomposition", desc: "Intent decoding, dependency mapping, lane assignment, budget allocation, and final routing decisions.", primary: "sol", fallback: "opus", tier: "critical deterministic", temp: "0.1", thinking: "xhigh", fanout: "1", verify: "Sonnet 5" },
+      { icon: "T", id: "critical-code", label: "Critical code + architecture", desc: "Core implementation, migrations, concurrency, state machines, protocol design, and high-blast changes.", primary: "terra", fallback: "opus", tier: "critical deterministic", temp: "0.05", thinking: "xhigh", fanout: "2", verify: "Sonnet 5" },
+      { icon: "O", id: "security", label: "Security + adjudication", desc: "Threat modeling, permission boundaries, exploit review, conflicting verdicts, and irreversible-risk decisions.", primary: "opus", fallback: "sol", tier: "critical deterministic", temp: "0.0", thinking: "xhigh", fanout: "3", verify: "Terra" },
+      { icon: "R", id: "research", label: "Deep research", desc: "Multi-source investigation, literature comparison, long-context analysis, and evidence-backed technical research.", primary: "sonnet", fallback: "glm", tier: "frontier standard", temp: "0.25", thinking: "high", fanout: "4", verify: "Sol" },
+      { icon: "D", id: "drafts", label: "Bulk draft generation", desc: "Large batches of variants, summaries, test cases, documentation stubs, and ideation breadth.", primary: "deepseek", fallback: "mimo", tier: "bulk cheap", temp: "0.55", thinking: "low", fanout: "10", verify: "sample + escalate" },
+      { icon: "X", id: "extraction", label: "Parallel scan + extraction", desc: "Repository scans, document extraction, classification, entity capture, and independent evidence collection.", primary: "mimo", fallback: "deepseek", tier: "bulk cheap", temp: "0.0", thinking: "low", fanout: "12", verify: "GLM 5.2" },
+      { icon: "G", id: "synthesis", label: "Synthesis + verification", desc: "Cross-lane consolidation, contradiction detection, evidence grading, requirement coverage, and final-answer verification.", primary: "glm", fallback: "sonnet", tier: "frontier standard", temp: "0.1", thinking: "high", fanout: "3", verify: "Sol" },
+      { icon: "M", id: "throughput", label: "High-volume frontier throughput", desc: "Sustained complex transformations, coding batches, research synthesis, and high-volume work that still needs frontier reasoning.", primary: "m3", fallback: "glm", tier: "frontier standard", temp: "0.2", thinking: "high", fanout: "8", verify: "Sonnet 5" }
+    ];
+
+    const legend = document.querySelector("#legend");
+    legend.innerHTML = Object.entries(models).map(([key, model]) => `<span class="pill" style="--model:${model.color}"><span class="dot"></span>${model.label}</span>`).join("");
+
+    const primaryKeys = [...new Set(routes.map(route => route.primary))];
+    const filters = document.querySelector("#filters");
+    filters.innerHTML = `<button class="filter active" data-filter="all">All routes</button>` + primaryKeys.map(key => `<button class="filter" data-filter="${key}">${models[key].label}</button>`).join("");
+
+    const routeRoot = document.querySelector("#routes");
+    routeRoot.innerHTML = routes.map(route => {
+      const model = models[route.primary];
+      const fallback = models[route.fallback];
+      return `<article class="route" data-model="${route.primary}" style="--route:${model.color}">
+        <div class="route-top"><div class="route-icon">${route.icon}</div><div class="tier">${route.tier}</div></div>
+        <h3>${route.label}</h3><div class="route-desc">${route.desc}</div>
+        <div class="binding"><small>primary</small><strong>${model.full}</strong></div>
+        <div class="route-meta">
+          <div class="meta"><small>fallback</small><b>${fallback.label}</b></div>
+          <div class="meta"><small>verifier</small><b>${route.verify}</b></div>
+          <div class="meta"><small>fan-out cap</small><b>${route.fanout}</b></div>
+          <div class="meta"><small>temp / think</small><b>${route.temp} / ${route.thinking}</b></div>
+        </div>
+      </article>`;
+    }).join("");
+
+    filters.addEventListener("click", event => {
+      const button = event.target.closest("button[data-filter]");
+      if (!button) return;
+      filters.querySelectorAll("button").forEach(item => item.classList.toggle("active", item === button));
+      const filter = button.dataset.filter;
+      routeRoot.querySelectorAll(".route").forEach(card => card.classList.toggle("hidden", filter !== "all" && card.dataset.model !== filter));
+    });
+  </script>
+</body>
+</html>
