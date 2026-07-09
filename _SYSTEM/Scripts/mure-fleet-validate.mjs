@@ -17,6 +17,8 @@ const CONFIG = path.join(os.homedir(), '.openclaw/openclaw.json');
 
 // providers OpenClaw resolves natively without an explicit models.providers block
 const BUILTIN_PREFIXES = new Set(['anthropic', 'openai']);
+const THINKING_LEVELS = new Set(['off', 'low', 'medium', 'high', 'xhigh']);
+const COST_TIERS = new Set(['cheap', 'medium', 'heavy', 'apex']);
 
 // The 4 models Marcel targets on ClinePass (cheap: dvf+mimo; heavy: qwen3.7-max+kimi).
 const CLINE_TARGETS = [
@@ -61,6 +63,24 @@ export function resolveRef(ref, reg, clineModels) {
   return { ref, ok: false, via: reg.providerNames.has(prov) ? 'id-missing' : 'provider-absent' };
 }
 
+/** Collect skill ids available from workspace and bundled OpenClaw registries. */
+function knownSkillIds() {
+  const roots = [
+    path.join(REPO, 'skills'),
+    path.join(REPO, '.claude', 'skills'),
+    path.join(REPO, '.codex', 'skills'),
+    '/opt/homebrew/lib/node_modules/openclaw/skills',
+  ];
+  const known = new Set();
+  for (const root of roots) {
+    if (!fs.existsSync(root)) continue;
+    for (const id of fs.readdirSync(root)) {
+      if (fs.existsSync(path.join(root, id, 'SKILL.md'))) known.add(id);
+    }
+  }
+  return known;
+}
+
 export function validateFleet() {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
   const config = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
@@ -90,6 +110,44 @@ export function validateFleet() {
   // CHECK C — cline armed
   const armed = clineArmed();
   checks.push({ name: 'C: cline fleet armed', ok: armed, detail: armed ? 'armed' : 'DISARMED (arm via YURI_CLINE_FLEET=1 or touch _SYSTEM/state/cline-fleet.enabled)' });
+
+  // CHECK D — every base role satisfies the bounded immaculate design schema
+  const incomplete = [];
+  const knownSkills = knownSkillIds();
+  for (const a of catalog.agents) {
+    const missing = [];
+    if (!a.description || a.description.length < 20 || a.description.length > 320) missing.push(`description(${a.description?.length || 0})`);
+    if (!Array.isArray(a.skills) || a.skills.length < 4 || a.skills.length > 9) missing.push(`skills(${a.skills?.length || 0})`);
+    else {
+      const unknown = a.skills.filter((id) => !knownSkills.has(id));
+      if (unknown.length) missing.push(`unknown-skills:${unknown.join(',')}`);
+    }
+    if (!THINKING_LEVELS.has(a.thinkingLevel)) missing.push(`thinkingLevel:${a.thinkingLevel}`);
+    const temperature = a.params?.temperature;
+    if (temperature != null && (!Number.isFinite(temperature) || temperature < 0 || temperature > 1)) missing.push(`temperature:${temperature}`);
+    if (missing.length) incomplete.push(`${a.name}: ${missing.join('+')}`);
+  }
+  checks.push({ name: 'D: base-role schema is bounded and resolvable', ok: incomplete.length === 0, detail: incomplete.length ? `${incomplete.length}/${catalog.agents.length} invalid: ${incomplete.slice(0, 6).join('; ')}${incomplete.length > 6 ? ' …' : ''}` : `${catalog.agents.length} roles complete` });
+
+  // CHECK E — Sol pilot variants are complete before they can be selected.
+  const solVariants = catalog.agents.flatMap((a) => (a.variants || [])
+    .filter((v) => v.model === 'openai/gpt-5.6-sol')
+    .map((v) => ({ role: a.name, ...v })));
+  const solProblems = [];
+  const solIds = new Set();
+  for (const v of solVariants) {
+    const bad = [];
+    if (!v.id || solIds.has(v.id)) bad.push(v.id ? 'duplicate-id' : 'id');
+    solIds.add(v.id);
+    if (!THINKING_LEVELS.has(v.thinkingLevel)) bad.push(`thinkingLevel:${v.thinkingLevel}`);
+    if (!Array.isArray(v.tools) || v.tools.length === 0) bad.push('tools');
+    if (!Number.isInteger(v.max_tokens) || v.max_tokens < 1) bad.push(`max_tokens:${v.max_tokens}`);
+    if (!Array.isArray(v.systemSections) || v.systemSections.length === 0) bad.push('systemSections');
+    if (!COST_TIERS.has(v.costTier)) bad.push(`costTier:${v.costTier}`);
+    if (!Array.isArray(v.eligibilityFlags) || !v.eligibilityFlags.includes('sol-pilot')) bad.push('sol-pilot-flag');
+    if (bad.length) solProblems.push(`${v.role}/${v.id || '<missing>'}: ${bad.join('+')}`);
+  }
+  checks.push({ name: 'E: GPT-5.6 Sol pilot variants are complete', ok: solVariants.length > 0 && solProblems.length === 0, detail: solProblems.length ? solProblems.join('; ') : `${solVariants.length} complete Sol variants` });
 
   return { ok: checks.every((c) => c.ok), checks };
 }

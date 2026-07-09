@@ -57,13 +57,52 @@ If `variants` is absent, MURE falls back to the legacy single-binding (`model:` 
 |---|---|---|---|
 | `id` | string | yes | unique within the role; `<role>-<model-shortname>` convention |
 | `model` | string | yes | exact provider/model string |
-| `thinkingLevel` | enum | yes | `null` / `low` / `medium` / `high` (model-specific meaning) |
+| `thinkingLevel` | enum | yes | `off` / `low` / `medium` / `high` / `xhigh` (model-specific meaning). `max` is not an OpenClaw value. |
 | `tools` | string[] | yes | subset of the role's allowed tools |
 | `max_tokens` | int | yes | maximum output tokens for this variant |
 | `systemSections` | string[] | yes | which role-body sections apply to this variant |
 | `eligibilityFlags` | string[] | no | `cheap`, `default-prime`, `medium`, `heavy`, `require-explicit-call`, `security-only`, `auto-eligible`, `recon-eligible`, `cheap-research-only`, etc. |
 | `costTier` | enum | yes | `cheap` / `medium` / `heavy` / `apex` — used by selector |
 | `quota` | enum | no | subscription-quota binding (e.g. `claude-pro-x5`, `z-ai-coding-plan`, `minimax-ultra`, `direct-deepseek-capped`) |
+
+`reasoningDefault` is **not** a second effort field in OpenClaw. It controls
+reasoning visibility (`on` / `off` / `stream`); effort belongs in
+`thinkingLevel` and projects to `agents.list[].thinkingDefault`.
+
+## Native OpenClaw projection
+
+The catalog remains the role × variant authority, while OpenClaw supplies the
+execution primitives:
+
+- `agents.list[]` projects the stable role identities and their baseline model/fallbacks.
+- `sessions_spawn({agentId, model, thinking})` selects a configured role and an
+  explicit variant model for one run.
+- `subagents.allowAgents` controls which configured role identities can be targeted.
+- Each target `agentId` resolves auth from its own `agentDir`; static API-key/token
+  profiles may be seeded, but OAuth refresh credentials must not be copied between
+  role stores. OpenAI OAuth model overrides therefore run under the authenticated
+  Yuri agent scope unless that target role has completed its own OAuth login.
+- Nested `variants[]` are routing metadata, not automatically separate native
+  agents. Do not multiply dashboard agents merely to represent every model binding.
+
+This gives MURE task/session-level sparse expert routing. It does **not** turn
+OpenClaw into a token-level neural MoE. Candidate scoring, policy gates, quota
+features, calibration, and the MLP remain MURE logic; native OpenClaw performs
+the selected dispatch and lifecycle management.
+
+## GPT-5.6 pilot (Sol first)
+
+Current rollout is deliberately asymmetric:
+
+- `openai/gpt-5.6-sol` is the Yuri main-input pilot and an explicit, non-automatic
+  variant for Envoy, Helmsman, Scout, Engineer, Architect, Adjudicator, and Advisor.
+- Only Yuri is promoted to Sol primary. Opus 4.8 remains the temporary Yuri fallback.
+- Non-Yuri Sol variants carry `sol-pilot` plus `require-explicit-call`; they do not
+  enter automatic fallback chains until live outcome, auth, and quota gates pass.
+- Security-critical Adjudicator/Advisor work does not move to Sol during the pilot.
+- Terra and Luna may be registered in the provider catalog, but remain unseeded
+  until reproducible native inference and role-fit benchmarks pass. Availability in
+  `models list` is not evidence of reliable runtime access.
 
 ## Cost tier semantics (binding)
 

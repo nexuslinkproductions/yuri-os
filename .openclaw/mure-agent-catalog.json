@@ -1,6 +1,6 @@
 {
   "source": "OMP agent definitions from .omp/agents/ + OpenClaw-native agents from .openclaw/agents/ (mure-yuri main binding)",
-  "generated": "2026-07-09T13:43:00Z",
+  "generated": "2026-07-09T19:32:40.083Z",
   "providerMapping": {
     "anthropic/claude-opus-4-8": "anthropic/claude-opus-4-8",
     "anthropic/claude-opus-4-7": "anthropic/claude-opus-4-7",
@@ -17,23 +17,24 @@
     "ollama-cloud/kimi-k2.7-code:cloud": "ollama-cloud/kimi-k2.7-code:cloud",
     "ollama-cloud/nemotron-3-ultra:cloud": "ollama-cloud/nemotron-3-ultra:cloud",
     "ollama-cloud/minimax-m3:cloud": "ollama-cloud/minimax-m3:cloud",
-    "cursor/composer-2.5-fast": "cursor-cli/composer-2.5-fast",
-    "cursor/composer-2.5": "cursor-cli/composer-2.5",
-    "cursor/grok-4.3": "cursor-cli/grok-4.3",
-    "cursor/gpt-5.5-high": "cursor-cli/gpt-5.5-high",
-    "cursor/grok-code-fast-1": "cursor-cli/grok-code-fast-1",
     "ollama-cloud/qwen3.5:cloud": "ollama-cloud/qwen3.5:cloud",
     "ollama-cloud/gemma4:31b-cloud": "ollama-cloud/gemma4:31b-cloud",
     "cline-pass/cline-pass/deepseek-v4-flash": "cline-pass/cline-pass/deepseek-v4-flash",
     "cline-pass/cline-pass/mimo-v2.5": "cline-pass/cline-pass/mimo-v2.5",
     "cline-pass/cline-pass/qwen3.7-max": "cline-pass/cline-pass/qwen3.7-max",
-    "cline-pass/cline-pass/kimi-k2.7-code": "cline-pass/cline-pass/kimi-k2.7-code"
+    "cline-pass/cline-pass/kimi-k2.7-code": "cline-pass/cline-pass/kimi-k2.7-code",
+    "cursor/composer-2.5": "cursor-cli/composer-2.5",
+    "cursor/gemini-3.5-flash": "cursor-cli/gemini-3.5-flash",
+    "cursor/kimi-k2.7-code": "cursor-cli/kimi-k2.7-code",
+    "openai/gpt-5.6-sol": "openai/gpt-5.6-sol",
+    "openai/gpt-5.6-terra": "openai/gpt-5.6-terra",
+    "openai/gpt-5.6-luna": "openai/gpt-5.6-luna"
   },
   "agents": [
     {
       "name": "mure-helmsman",
       "lane": "orchestration",
-      "description": "MURE Helmsman (orchestration) — dispatcher/router + research-vision lead. decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions.",
+      "description": "MURE Helmsman — apex orchestrator that decodes goals into executable goal trees, capability-matches roles to sub-tasks, builds runSwarm leaves, holds the goal spine across the run, and escalates owner-gated decisions. The only lane with finalize/goal-spine authority within a run.",
       "model": "anthropic/claude-opus-4-8",
       "thinkingLevel": "high",
       "tools": [
@@ -56,6 +57,34 @@
       "autonomy": "owner-gated",
       "notes": "Holds finalize/goal-spine authority WITHIN a run, but never commits/pushes.",
       "variants": [
+        {
+          "id": "mure-helmsman-sol",
+          "max_tokens": 16384,
+          "systemSections": [
+            "orchestrator-peer",
+            "apex-judgment",
+            "governance-strict"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "orchestrator-only",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Native orchestration pilot for goal-tree quality and delegation discipline; not in automatic fallback until role-scoped OpenAI auth is verified.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-helmsman-glm52",
           "model": "zai/glm-5.2",
@@ -113,7 +142,20 @@
       "fallbackChain": [
         "mure-helmsman-glm52",
         "mure-helmsman-opus48"
-      ]
+      ],
+      "skills": [
+        "dispatching-parallel-agents",
+        "plan-review",
+        "writing-plans",
+        "haki-intent",
+        "probabilistic-decision-core",
+        "cross-reference-navigation",
+        "verification-before-completion"
+      ],
+      "params": {
+        "temperature": 0.5
+      },
+      "reasoningDefault": "high"
     },
     {
       "name": "mure-helmsman-glm",
@@ -197,14 +239,22 @@
       "fallbackChain": [
         "mure-helmsman-glm-glm51",
         "mure-helmsman-glm-glm52"
+      ],
+      "skills": [
+        "dispatching-parallel-agents",
+        "writing-plans",
+        "haki-intent",
+        "probabilistic-decision-core",
+        "cross-reference-navigation",
+        "verification-before-completion"
       ]
     },
     {
       "name": "mure-envoy",
       "lane": "operations",
-      "description": "MURE Envoy (operations) — task intake / requirement decoder. decode the owner brain-dump into a clean spec / goal tree for the helmsman.",
+      "description": "Task intake / requirement decoder. Decodes Marcel's brain-dump into a clean spec and goal tree for the helmsman. Unlike yuri (full session spine) or scout (broad recon), envoy is a fast read-only decoder that surfaces hidden constraints and ranks intents. Dispatch on raw/unstructured input before helmsman takes over.",
       "model": "ollama-cloud/minimax-m3:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -220,6 +270,30 @@
       "autonomy": "self-governable",
       "notes": "Read-only tools — reads/greps/globs only, no writes.",
       "variants": [
+        {
+          "id": "mure-envoy-sol",
+          "max_tokens": 8192,
+          "systemSections": [
+            "minimalist",
+            "agentic-clean-tool-use"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "require-explicit-call",
+            "dense-intake",
+            "sol-pilot"
+          ],
+          "note": "Explicit pilot for unusually dense or ambiguous intake; not cheap-auto eligible.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-envoy-haiku",
           "model": "anthropic/claude-haiku-4-5",
@@ -292,14 +366,25 @@
         "mure-envoy-haiku",
         "mure-envoy-sonnet5",
         "mure-envoy-m3"
-      ]
+      ],
+      "skills": [
+        "cross-reference-navigation",
+        "brainstorming",
+        "triage",
+        "haki-intent",
+        "writing-plans",
+        "end-of-transmission"
+      ],
+      "params": {
+        "temperature": 0.5
+      }
     },
     {
       "name": "mure-scout",
       "lane": "research",
-      "description": "MURE Scout (research) — local-first + online researcher. research local corpus first then online.",
+      "description": "MURE Scout (research) — local-first + online researcher. Sweeps the YURI corpus (FTS5, circuitry graph, GitNexus) first, then escalates to cited online sources; synthesizes findings into research artifacts. Dispatch when you need grounded, cited reconnaissance before any build or decision.",
       "model": "ollama-cloud/minimax-m3:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -316,6 +401,31 @@
       "autonomy": "self-governable",
       "notes": "Read-only tools.",
       "variants": [
+        {
+          "id": "mure-scout-sol",
+          "max_tokens": 8192,
+          "systemSections": [
+            "recon-breadth",
+            "cheap-research",
+            "agentic-clean-tool-use"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "synthesis-only",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Heavy synthesis pilot after cheap recon has gathered evidence; never the first-pass census model.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-scout-haiku",
           "model": "anthropic/claude-haiku-4-5",
@@ -398,14 +508,26 @@
         "mure-scout-m3",
         "mure-scout-qwen35",
         "mure-scout-cline-dvf"
-      ]
+      ],
+      "skills": [
+        "cross-reference-navigation",
+        "agent-reach",
+        "research-artifact-factory",
+        "verification-before-completion",
+        "brainstorming",
+        "probabilistic-decision-core"
+      ],
+      "params": {
+        "temperature": 0.5
+      },
+      "reasoningDefault": "low"
     },
     {
       "name": "mure-engineer",
       "lane": "engineering",
-      "description": "MURE Engineer (engineering) — core domain code-gen. implement features.",
+      "description": "Builds and wires production features end-to-end. Where the Mechanic repairs and the Artificer scaffolds, the Engineer owns greenfield implementation, architecture seams, and testable delivery. Dispatch when a feature branch needs code, tests, and integration.",
       "model": "ollama-cloud/kimi-k2.7-code:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -423,6 +545,33 @@
       ],
       "autonomy": "self-governable",
       "variants": [
+        {
+          "id": "mure-engineer-sol",
+          "max_tokens": 16384,
+          "systemSections": [
+            "coding-excellence",
+            "agentic-clean-tool-use"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "workhorse",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Implementation pilot for complex multi-file work; cheaper code variants remain auto-prime.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-engineer-dvf",
           "model": "deepseek-v4-flash:direct",
@@ -534,14 +683,27 @@
         "mure-engineer-glm52",
         "mure-engineer-m3",
         "mure-engineer-cline-kimi"
-      ]
+      ],
+      "skills": [
+        "gitnexus",
+        "tdd",
+        "systematic-debugging",
+        "improve-codebase-architecture",
+        "receiving-code-review",
+        "verification-before-completion",
+        "cross-reference-navigation",
+        "execution-domain-core"
+      ],
+      "params": {
+        "temperature": 0.5
+      }
     },
     {
       "name": "mure-mechanic",
       "lane": "engineering",
-      "description": "MURE Mechanic (engineering) — integration / refactor / wiring. wire modules together, refactor, productize research code, fix integration seams.",
+      "description": "Repairs, stabilizes, and refactors existing code. Where the Engineer builds new and the Artificer generates bulk assets, the Mechanic diagnoses breakage, pays down tech debt, and hardens seams. Dispatch when something is broken, flaky, or needs safe refactoring.",
       "model": "cursor/composer-2.5",
-      "thinkingLevel": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -667,14 +829,27 @@
         "mure-mechanic-sonnet5",
         "mure-mechanic-glm52",
         "mure-mechanic-m3"
-      ]
+      ],
+      "skills": [
+        "diagnose",
+        "systematic-debugging",
+        "gitnexus-debugging",
+        "gitnexus-refactoring",
+        "gitnexus-impact-analysis",
+        "receiving-code-review",
+        "verification-before-completion",
+        "cross-reference-navigation"
+      ],
+      "params": {
+        "temperature": 0.5
+      }
     },
     {
       "name": "mure-artificer",
       "lane": "engineering",
-      "description": "MURE Artificer (engineering) — fast scaffolding / mechanical edits. scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane.",
+      "description": "Rapidly scaffolds artifacts, skills, docs, and boilerplate at scale. Where the Engineer builds production features and the Mechanic fixes them, the Artificer generates structured bulk output and templates. Dispatch when you need many consistent assets fast.",
       "model": "ollama-cloud/deepseek-v4-flash:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -771,13 +946,25 @@
         "mure-artificer-glmturbo",
         "mure-artificer-dvf",
         "mure-artificer-sonnet5"
-      ]
+      ],
+      "skills": [
+        "extraction-sprint",
+        "skill-creator",
+        "writing-skills",
+        "research-artifact-factory",
+        "compact-optimizer",
+        "prompt-engineering",
+        "writing-plans"
+      ],
+      "params": {
+        "temperature": 0.4
+      }
     },
     {
       "name": "mure-kernelsmith",
       "lane": "engineering",
-      "description": "MURE Kernelsmith (engineering) — performance / hot-path / language-consolidation. optimize hot paths.",
-      "model": "cursor/gpt-5.5-high",
+      "description": "Designs and hardens MURE's execution kernel and core abstractions. Dispatch when a new control-plane primitive, lifecycle contract, or architectural seam needs to be forged, not just patched. Different from engineer/mechanic: it owns the substrate other roles run on.",
+      "model": "cursor/kimi-k2.7-code",
       "thinkingLevel": "high",
       "tools": [
         "read",
@@ -902,14 +1089,26 @@
         "mure-kernelsmith-dvp",
         "mure-kernelsmith-m3",
         "mure-kernelsmith-opus48"
-      ]
+      ],
+      "skills": [
+        "improve-codebase-architecture",
+        "execution-domain-core",
+        "gitnexus-impact-analysis",
+        "systematic-debugging",
+        "tdd",
+        "verification-before-completion",
+        "cross-reference-navigation"
+      ],
+      "params": {
+        "temperature": 0.5
+      }
     },
     {
       "name": "mure-sentinel",
       "lane": "engineering",
-      "description": "MURE Sentinel (engineering) — cybersecurity + security-reviewer. security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities.",
+      "description": "Security-first adversary-in-the-loop role: audits proposals, surfaces blast radius, and blocks unsafe mutations before they ship. Dispatch when a change touches trust boundaries, secrets, gates, or shared runtime. Different from general critics: it has veto over safety, not just quality.",
       "model": "ollama-cloud/deepseek-v4-flash:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -986,13 +1185,25 @@
       "fallbackChain": [
         "mure-sentinel-dvp",
         "mure-sentinel-opus48"
-      ]
+      ],
+      "skills": [
+        "nexus-security-hardening",
+        "adversarial-verification",
+        "gitnexus-impact-analysis",
+        "systematic-debugging",
+        "verification-before-completion",
+        "grill-me",
+        "cross-reference-navigation"
+      ],
+      "params": {
+        "temperature": 0.2
+      }
     },
     {
       "name": "mure-ideator",
       "lane": "research",
-      "description": "MURE Ideator (research) — divergent hypothesis generator. generate unusual options, edge cases, and remote associations.",
-      "model": "cursor/grok-4.3",
+      "description": "MURE Ideator (research) — divergent hypothesis generator. Runs the divergent scan before convergence: generates unusual options, edge cases, remote associations, and cross-domain leaps; scores novelty. Dispatch when the problem needs breadth before depth — strategy forks, architecture alternatives, edge-case hunting.",
+      "model": "cursor/composer-2.5",
       "thinkingLevel": "high",
       "tools": [
         "read",
@@ -1078,7 +1289,20 @@
         "mure-ideator-sonnet5",
         "mure-ideator-glm52",
         "mure-ideator-dvp"
-      ]
+      ],
+      "skills": [
+        "brainstorming",
+        "cross-reference-navigation",
+        "probabilistic-decision-core",
+        "pattern-mirror-core",
+        "quantum-hypothesis-simulation",
+        "adversarial-verification",
+        "verification-before-completion"
+      ],
+      "params": {
+        "temperature": 0.8
+      },
+      "reasoningDefault": "high"
     },
     {
       "name": "mure-deliberator",
@@ -1189,12 +1413,20 @@
         "mure-deliberator-dvp",
         "mure-deliberator-opus48",
         "mure-deliberator-cline-qwen"
+      ],
+      "skills": [
+        "brainstorming",
+        "probabilistic-decision-core",
+        "writing-plans",
+        "plan-review",
+        "adversarial-verification",
+        "verification-before-completion"
       ]
     },
     {
       "name": "mure-synthesist",
       "lane": "research",
-      "description": "MURE Synthesist (research) — collective-intelligence / cross-domain transfer. merge scattered findings into a lattice map.",
+      "description": "High-divergence architectural catalyst. Bridges disparate research streams, identifies hidden structural patterns, and collapses complexity into actionable lattice maps. Dispatch when a task requires cross-domain synthesis or an original conceptual breakthrough.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -1294,14 +1526,27 @@
         "mure-synthesist-sonnet5",
         "mure-synthesist-glm52",
         "mure-synthesist-m3"
-      ]
+      ],
+      "skills": [
+        "brainstorming",
+        "cross-reference-navigation",
+        "pattern-mirror-core",
+        "quantum-hypothesis-simulation",
+        "research-artifact-factory",
+        "probabilistic-decision-core",
+        "writing-skills"
+      ],
+      "params": {
+        "temperature": 0.8
+      },
+      "reasoningDefault": "xhigh"
     },
     {
       "name": "mure-chronicler",
       "lane": "knowledge",
-      "description": "MURE Chronicler (knowledge) — science-writer. distill outputs into docs, blueprints, and owner-facing summaries.",
+      "description": "The system's narrative and procedural historian. Transforms complex session traces and technical evolutions into durable, structured documentation. Dispatched for memory promotion, post-mortems, and turning raw project momentum into readable context.",
       "model": "ollama-cloud/minimax-m3:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -1409,14 +1654,26 @@
         "mure-chronicler-m3",
         "mure-chronicler-gemma4",
         "mure-chronicler-cline-mimo"
-      ]
+      ],
+      "skills": [
+        "writing-skills",
+        "nex-vault",
+        "cross-reference-navigation",
+        "research-artifact-factory",
+        "end-of-transmission",
+        "nex-deliverables"
+      ],
+      "params": {
+        "temperature": 0.5
+      },
+      "reasoningDefault": "medium"
     },
     {
       "name": "mure-archivist",
       "lane": "knowledge",
-      "description": "MURE Archivist (knowledge) — archive curator + memory / skill-library. curate the skill library and memory.",
+      "description": "The custodian of structural truth and registry integrity. Manages the long-term organization of the YURI corpus, enforcing classification rules and ensuring retrieval precision. Dispatched for indexing, artifact registry audits, and structural cleanup.",
       "model": "zai/glm-5-turbo",
-      "thinkingLevel": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -1511,7 +1768,19 @@
         "mure-archivist-glmturbo",
         "mure-archivist-dvf",
         "mure-archivist-sonnet5"
-      ]
+      ],
+      "skills": [
+        "cross-reference-navigation",
+        "nex-vault",
+        "verification-before-completion",
+        "triage",
+        "tokenmaxxing",
+        "skill-creator"
+      ],
+      "params": {
+        "temperature": 0.3
+      },
+      "reasoningDefault": "medium"
     },
     {
       "name": "mure-adjudicator",
@@ -1542,6 +1811,33 @@
         "mure-synthesist"
       ],
       "variants": [
+        {
+          "id": "mure-adjudicator-sol",
+          "max_tokens": 8192,
+          "systemSections": [
+            "apex-judgment",
+            "narrow-prompt-reserved"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "non-security-only",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Adversarial pilot for non-security artifacts. Security-critical rulings remain on the existing mandatory anchor until Sol is calibrated.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-adjudicator-glm52",
           "model": "zai/glm-5.2",
@@ -1624,14 +1920,21 @@
         "mure-adjudicator-glm52",
         "mure-adjudicator-dvp",
         "mure-adjudicator-opus48"
+      ],
+      "skills": [
+        "adversarial-verification",
+        "verification-before-completion",
+        "plan-review",
+        "systematic-debugging",
+        "probabilistic-decision-core"
       ]
     },
     {
       "name": "mure-oracle",
       "lane": "verification",
       "description": "MURE Oracle (verification) — benchmark / fitness evaluator. run the red/grey/green tests, measure against acceptance, accept/reject.",
-      "model": "cursor/grok-code-fast-1",
-      "thinkingLevel": null,
+      "model": "cursor/gemini-3.5-flash",
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -1731,6 +2034,13 @@
         "mure-oracle-dvf",
         "mure-oracle-sonnet5",
         "mure-oracle-glm52"
+      ],
+      "skills": [
+        "adversarial-verification",
+        "verification-before-completion",
+        "probabilistic-decision-core",
+        "cross-reference-navigation",
+        "oracle-router"
       ]
     },
     {
@@ -1738,7 +2048,7 @@
       "lane": "verification",
       "description": "MURE Calibrator (verification) — calibration + honesty audit. record prediction->outcome, compute Brier and calibration, weight advisors by track record, flag over-confidence.",
       "model": "ollama-cloud/deepseek-v4-flash:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -1833,12 +2143,19 @@
         "mure-calibrator-dvf",
         "mure-calibrator-glmturbo",
         "mure-calibrator-sonnet5"
+      ],
+      "skills": [
+        "probabilistic-decision-core",
+        "verification-before-completion",
+        "adversarial-verification",
+        "failure-evolution-loop",
+        "cross-reference-navigation"
       ]
     },
     {
       "name": "mure-steward",
       "lane": "orchestration",
-      "description": "MURE Steward (orchestration) — COO + governance officer. run the 6-gate charter on every decision.",
+      "description": "MURE Steward — deterministic governance layer that runs the 6-gate charter on every decision, computes blast-radius and contention, produces owner-HOLD packets, and enforces doctrine. The COO gate: no decision ships without steward sign-off.",
       "model": "ollama-cloud/deepseek-v4-flash:cloud",
       "thinkingLevel": "high",
       "tools": [
@@ -1937,14 +2254,27 @@
         "mure-steward-sonnet5",
         "mure-steward-glm52",
         "mure-steward-opus48"
-      ]
+      ],
+      "skills": [
+        "adversarial-verification",
+        "verification-before-completion",
+        "plan-review",
+        "probabilistic-decision-core",
+        "grill-me",
+        "gitnexus-impact-analysis",
+        "cross-reference-navigation"
+      ],
+      "params": {
+        "temperature": 0.2
+      },
+      "reasoningDefault": "high"
     },
     {
       "name": "mure-quartermaster",
       "lane": "operations",
       "description": "MURE Quartermaster (operations) — token-budget + cost governance. account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway.",
-      "model": "cursor/composer-2.5-fast",
-      "thinkingLevel": null,
+      "model": "cursor/composer-2.5",
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -2039,12 +2369,19 @@
         "mure-quartermaster-dvf",
         "mure-quartermaster-glmturbo",
         "mure-quartermaster-sonnet5"
+      ],
+      "skills": [
+        "fleet-economy",
+        "execution-domain-core",
+        "cross-reference-navigation",
+        "probabilistic-decision-core",
+        "verification-before-completion"
       ]
     },
     {
       "name": "mure-architect",
       "lane": "orchestration",
-      "description": "MURE Architect (orchestration) — CTO + strategist + composer/integrator. set strategy, plan the build, design systems, methods, and interfaces.",
+      "description": "MURE Architect — CTO/strategist who translates goals into sequenced build plans, designs systems/methods/interfaces, sets the quality bar, and composes existing capabilities before authoring new ones. Owns architecture strategy end-to-end; self-governable within doctrine.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -2068,6 +2405,34 @@
       ],
       "autonomy": "self-governable",
       "variants": [
+        {
+          "id": "mure-architect-sol",
+          "max_tokens": 16384,
+          "systemSections": [
+            "apex-judgment",
+            "coding-excellence",
+            "orchestrator-peer"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "judgment-seat",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Architecture pilot for system design and long-context synthesis; non-security use until independently calibrated.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-architect-sonnet5",
           "model": "anthropic/claude-sonnet-5",
@@ -2148,12 +2513,26 @@
         "mure-architect-sonnet5",
         "mure-architect-glm52",
         "mure-architect-opus48"
-      ]
+      ],
+      "skills": [
+        "writing-plans",
+        "improve-codebase-architecture",
+        "execution-domain-core",
+        "probabilistic-decision-core",
+        "cross-reference-navigation",
+        "verification-before-completion",
+        "plan-review",
+        "dispatching-parallel-agents"
+      ],
+      "params": {
+        "temperature": 0.5
+      },
+      "reasoningDefault": "high"
     },
     {
       "name": "mure-evolver",
       "lane": "research",
-      "description": "MURE Evolver (research) — evolutionary-methods + self-modifier. propose improvements to MURE itself and to YURI processes via evolutionary search.",
+      "description": "Recursive system optimizer. Specializes in failure-analysis, iterative refinement of agent capabilities, and structural evolution of the codebase. Dispatch to move a prototype from 'functional' to 'immaculate' through adversarial stress-testing.",
       "model": "anthropic/claude-opus-4-8",
       "thinkingLevel": "high",
       "tools": [
@@ -2229,14 +2608,27 @@
       "fallbackChain": [
         "mure-evolver-glm52",
         "mure-evolver-opus48"
-      ]
+      ],
+      "skills": [
+        "adversarial-verification",
+        "failure-evolution-loop",
+        "gitnexus-impact-analysis",
+        "gitnexus-refactoring",
+        "improve-codebase-architecture",
+        "plan-review",
+        "verification-before-completion"
+      ],
+      "params": {
+        "temperature": 0.7
+      },
+      "reasoningDefault": "high"
     },
     {
       "name": "composer-fast",
       "lane": "engineering",
-      "description": "Fast cursor composer-2.5-fast worker for parallel drafting and critique lanes.",
+      "description": "Rapid bulk composer for drafts, layouts, and low-stakes artifacts. Dispatch when volume and speed matter more than architectural depth. Different from engineer/artificer: it produces starting material, not shipped systems.",
       "model": "cursor/composer-2.5-fast",
-      "thinkingLevel": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -2330,14 +2722,25 @@
         "composer-fast-glmturbo",
         "composer-fast-dvf",
         "composer-fast-sonnet5"
-      ]
+      ],
+      "skills": [
+        "compact-optimizer",
+        "writing-plans",
+        "frontend-design",
+        "visual-plan",
+        "extraction-sprint",
+        "to-prd"
+      ],
+      "params": {
+        "temperature": 0.3
+      }
     },
     {
       "name": "deepseek-flash",
       "lane": "research",
-      "description": "Fast ollama-cloud deepseek-v4-flash worker for parallel bulk analysis and critique lanes.",
+      "description": "High-velocity mechanical processing lane. Optimized for rapid extraction, bulk formatting, and low-latency evidence gathering. Dispatch for 'caveman' style data dumps, basic grep-like summaries, and high-volume token-efficient throughput.",
       "model": "ollama-cloud/deepseek-v4-flash:cloud",
-      "thinkingLevel": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -2408,7 +2811,18 @@
       "fallbackChain": [
         "deepseek-flash-dvf",
         "deepseek-flash-glmturbo"
-      ]
+      ],
+      "skills": [
+        "caveman",
+        "extraction-sprint",
+        "cross-reference-navigation",
+        "tokenmaxxing",
+        "triage"
+      ],
+      "params": {
+        "temperature": 0.2
+      },
+      "reasoningDefault": "low"
     },
     {
       "name": "fable-synth",
@@ -2484,6 +2898,13 @@
           "costTier": "apex",
           "note": "[INACTIVE] Apex fallback if Fable-5 access is export-blocked for EU operator."
         }
+      ],
+      "skills": [
+        "brainstorming",
+        "cross-reference-navigation",
+        "probabilistic-decision-core",
+        "plan-review",
+        "verification-before-completion"
       ]
     },
     {
@@ -2521,6 +2942,33 @@
       "schema": "_SYSTEM/research/advisor-note-schema-2026-07-09.md",
       "skillRef": "skills/mure-advisor/SKILL.md",
       "variants": [
+        {
+          "id": "mure-advisor-heavy-sol",
+          "max_tokens": 8192,
+          "systemSections": [
+            "apex-judgment",
+            "advisor-heavy"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "non-security-only",
+            "require-explicit-call",
+            "sol-pilot"
+          ],
+          "note": "Heavy escalation pilot only; never a per-turn watcher and not eligible for security-critical advice yet.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
         {
           "id": "mure-advisor-watcher-sonnet5",
           "model": "anthropic/claude-sonnet-5",
@@ -2695,13 +3143,20 @@
         "mure-advisor-heavy-glm52",
         "mure-advisor-heavy-m3"
       ],
-      "notes": "Heavy-tier fallback chain: Opus 4.8 → DeepSeek V4-Pro Think Max → GLM-5.2 → M3. Haiku never in this chain. Hard security rule: heavy-tier for security-relevant turns MUST be Opus 4.8. Skill procedure lives at skills/mure-advisor/SKILL.md (pending Skill Workshop apply)."
+      "notes": "Heavy-tier fallback chain: Opus 4.8 → DeepSeek V4-Pro Think Max → GLM-5.2 → M3. Haiku never in this chain. Hard security rule: heavy-tier for security-relevant turns MUST be Opus 4.8. Skill procedure lives at skills/mure-advisor/SKILL.md (pending Skill Workshop apply).",
+      "skills": [
+        "mure-advisor",
+        "adversarial-verification",
+        "probabilistic-decision-core",
+        "verification-before-completion",
+        "cross-reference-navigation"
+      ]
     },
     {
       "name": "mure-yuri",
       "lane": "orchestration",
-      "description": "MURE Yuri — main-session front-end binding (option iii). Single canonical brain doc loaded via CLAUDE.md @-include of _SYSTEM/persona.md. Marcel's adversarial ally + cognitive extension + operator of MURE. The front-end to all of YURI: fleet dispatch, memory, sessions, advisor. Per Marcel Q16 of the 49-question deep questionnaire: 'Yuri IS the front-end to all of YURI.'",
-      "model": "anthropic/claude-opus-4-8",
+      "description": "MURE Yuri — Marcel’s main OpenClaw front end, adversarial ally, and MURE control plane. Holds the session goal spine, routes work across roles, preserves memory and evidence contracts, and remains the only user-facing identity binding.",
+      "model": "openai/gpt-5.6-sol",
       "thinkingLevel": "high",
       "tools": [
         "read",
@@ -2737,6 +3192,35 @@
       "notes": "Main-session binding (option iii). Identity substrate is _SYSTEM/persona.md (loaded natively). Skill procedures: opus-fleet (primary), fleet-economy, mure-advisor (watcher), mure-role-variant-matrix, grill-me, dispatching-parallel-agents. Operator = Marcel Spatz. Address Marcel by name; never as 'Rick'. Iron Rule 5: inline work ONLY for ≤1 known file ≈50 lines trivial; default = decompose + dispatch.",
       "variants": [
         {
+          "id": "mure-yuri-sol",
+          "max_tokens": 16384,
+          "systemSections": [
+            "apex-judgment",
+            "orchestrator-peer",
+            "governance-strict"
+          ],
+          "eligibilityFlags": [
+            "default-prime",
+            "main-binding",
+            "identity-locked",
+            "sol-pilot",
+            "native-main-scope"
+          ],
+          "note": "Main-input pilot. Runs under the Yuri agent scope so native OpenAI OAuth remains available; Opus 4.8 stays as fallback during evaluation.",
+          "model": "openai/gpt-5.6-sol",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5"
+        },
+        {
           "id": "mure-yuri-opus48",
           "model": "anthropic/claude-opus-4-8",
           "thinkingLevel": "high",
@@ -2766,10 +3250,20 @@
       ],
       "selection": "main-binding-fixed",
       "fallbackChain": [
+        "mure-yuri-sol",
         "mure-yuri-opus48"
       ],
       "sourcePath": ".openclaw/agents/mure-yuri.md",
-      "format": "openclaw-native"
+      "format": "openclaw-native",
+      "skills": [
+        "dispatching-parallel-agents",
+        "haki-intent",
+        "cross-reference-navigation",
+        "probabilistic-decision-core",
+        "adversarial-verification",
+        "verification-before-completion",
+        "end-of-transmission"
+      ]
     }
   ]
 }

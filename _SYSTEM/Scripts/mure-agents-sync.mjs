@@ -91,6 +91,15 @@ export function buildAgentsList(catalog) {
         theme: isYuri ? "adversarial ally / control plane" : lm.theme,
       },
     };
+    // Project the immaculate design fields when the catalog carries them.
+    if (a.description) entry.description = a.description;
+    if (Array.isArray(a.skills)) entry.skills = a.skills;
+    if (a.params && typeof a.params === "object") entry.params = a.params;
+    // OpenClaw's reasoningDefault controls visibility, not effort; effort belongs
+    // in thinkingDefault. Only project schema-valid visibility values.
+    if (["on", "off", "stream"].includes(a.reasoningDefault)) entry.reasoningDefault = a.reasoningDefault;
+    if (a.contextInjection) entry.contextInjection = a.contextInjection;
+    if (Number.isFinite(a.bootstrapMaxChars)) entry.bootstrapMaxChars = a.bootstrapMaxChars;
     if (isYuri) {
       entry.default = true;
       entry.tools.allow.push("group:messaging"); // front-end: reply on bound channels
@@ -106,7 +115,8 @@ export function buildAgentsList(catalog) {
 // (validators/tools import buildAgentsList + mapModel without triggering a config write).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, "utf8"));
-  const config = JSON.parse(fs.readFileSync(CONFIG, "utf8"));
+  const originalConfig = fs.readFileSync(CONFIG, "utf8");
+  const config = JSON.parse(originalConfig);
   const list = buildAgentsList(catalog);
 
   config.agents = config.agents || {};
@@ -116,8 +126,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(JSON.stringify(list, null, 2));
     console.log(`\n[dry-run] ${list.length} agents. default=${list.find((x) => x.default)?.id}`);
   } else {
-    fs.writeFileSync(CONFIG, JSON.stringify(config, null, 2) + "\n");
+    // Preserve unrelated config fields, reject a concurrent edit, retain one
+    // rollback copy, and make the replacement atomic.
+    if (fs.readFileSync(CONFIG, "utf8") !== originalConfig) {
+      throw new Error(`Concurrent config change detected; refusing to overwrite ${CONFIG}`);
+    }
+    const backup = `${CONFIG}.bak-mure-sync`;
+    const temp = `${CONFIG}.tmp-${process.pid}`;
+    fs.copyFileSync(CONFIG, backup);
+    fs.writeFileSync(temp, JSON.stringify(config, null, 2) + "\n", { mode: 0o600 });
+    fs.renameSync(temp, CONFIG);
     console.log(`Wrote ${list.length} agents.list entries to ${CONFIG}`);
+    console.log(`rollback=${backup}`);
     console.log(`default=${list.find((x) => x.default)?.id}`);
   }
 }
