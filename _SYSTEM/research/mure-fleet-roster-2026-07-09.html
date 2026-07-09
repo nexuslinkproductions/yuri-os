@@ -1,0 +1,1656 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MURE Fleet Roster — 2026-07-09</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #1e40af;
+      --accent-soft: #dbeafe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      padding: 0;
+    }
+    header.page-head {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f1f5f9;
+      padding: 28px 36px 24px;
+      border-bottom: 4px solid var(--accent);
+    }
+    header.page-head h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    header.page-head .sub { color: #cbd5e1; font-size: 13px; }
+    .stats { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+    .stat {
+      background: rgba(255,255,255,0.07);
+      padding: 8px 14px;
+      border-radius: 10px;
+      min-width: 110px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .stat .v { font-size: 22px; font-weight: 700; }
+    .stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #cbd5e1; }
+    main { display: grid; grid-template-columns: 220px 1fr; max-width: 1640px; margin: 0 auto; }
+    nav.toc {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      background: #ffffff;
+      border-right: 1px solid var(--line);
+      padding: 24px 18px;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+    nav.toc h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; }
+    nav.toc ol { list-style: none; padding: 0; margin: 0 0 22px; }
+    nav.toc li { margin-bottom: 4px; }
+    nav.toc a { color: var(--fg); text-decoration: none; padding: 5px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    nav.toc a:hover { background: var(--accent-soft); }
+    nav.toc a .nav-count { color: var(--muted); font-size: 11px; }
+    nav.toc .model-pool { font-size: 12px; color: var(--muted); }
+    nav.toc .model-pool li { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed var(--line); }
+    nav.toc .model-pool code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; font-size: 11px; color: var(--fg); }
+    nav.toc .ct { color: var(--accent); font-weight: 700; font-size: 11px; }
+    section.content { padding: 28px 36px 60px; }
+    section.lane-section { margin-bottom: 36px; }
+    section.lane-section > h1 {
+      font-size: 19px;
+      letter-spacing: -0.01em;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 8px;
+      margin: 0 0 18px;
+    }
+    section.lane-section > h1 .lane-count { color: var(--muted); font-size: 13px; font-weight: 400; }
+    article.agent {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px 22px 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    article.agent > header h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .lane-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 6px;
+    }
+    article.agent > header .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    article.agent > header .meta strong { color: var(--fg); font-weight: 600; }
+    article.agent .desc { font-size: 13px; color: var(--fg); margin: 14px 0 6px; }
+    article.agent .mission { font-size: 13px; color: var(--fg); margin: 0 0 14px; }
+    article.agent .notes { font-size: 12px; color: var(--muted); margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+    table.variants {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    table.variants th, table.variants td {
+      border: 1px solid var(--line);
+      padding: 6px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table.variants th {
+      background: #f1f5f9;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    table.variants td code { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; font-size: 11px; color: var(--accent); }
+    table.variants .vnote { color: var(--muted); }
+    p.empty { color: var(--muted); font-style: italic; text-align: center; padding: 18px; background: #f1f5f9; border-radius: 6px; }
+    footer { padding: 30px 36px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--line); background: #fff; }
+    footer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <h1>MURE Fleet Roster — 2026-07-09</h1>
+    <div class="sub">MURE 1.0 rebuild · main binding: <code>anthropic/claude-opus-4-8</code> · generated 2026-07-09 11:44 UTC</div>
+    <div class="stats">
+      <div class="stat"><div class="v">26</div><div class="k">agents</div></div>
+      <div class="stat"><div class="v">25</div><div class="k">with variants</div></div>
+      <div class="stat"><div class="v">75</div><div class="k">active variants</div></div>
+      <div class="stat"><div class="v">2</div><div class="k">pending variants</div></div>
+      <div class="stat"><div class="v">9</div><div class="k">distinct models</div></div>
+      <div class="stat"><div class="v">34</div><div class="k">eligibility flags</div></div>
+    </div>
+  </header>
+  <main>
+    <nav class="toc">
+      <h3>lanes</h3>
+      <ol>
+        <li><a href="#lane-orchestration">orchestration <span class="nav-count">6</span></a></li><li><a href="#lane-engineering">engineering <span class="nav-count">6</span></a></li><li><a href="#lane-research">research <span class="nav-count">6</span></a></li><li><a href="#lane-verification">verification <span class="nav-count">4</span></a></li><li><a href="#lane-knowledge">knowledge <span class="nav-count">2</span></a></li><li><a href="#lane-operations">operations <span class="nav-count">2</span></a></li>
+      </ol>
+      <h3>model pool</h3>
+      <ul class="model-pool">
+        <li><code>anthropic/claude-sonnet-5</code> <span class="ct">16</span></li>
+<li><code>zai/glm-5.2</code> <span class="ct">14</span></li>
+<li><code>anthropic/claude-opus-4-8</code> <span class="ct">10</span></li>
+<li><code>deepseek-v4-flash:direct</code> <span class="ct">10</span></li>
+<li><code>minimax-portal/MiniMax-M3</code> <span class="ct">8</span></li>
+<li><code>zai/glm-5-turbo</code> <span class="ct">6</span></li>
+<li><code>deepseek-v4-pro:direct</code> <span class="ct">6</span></li>
+<li><code>anthropic/claude-haiku-4-5</code> <span class="ct">4</span></li>
+<li><code>zai/glm-5.1</code> <span class="ct">1</span></li>
+      </ul>
+    </nav>
+    <section class="content">
+
+    <section class="lane-section" id="lane-orchestration" data-lane="orchestration">
+      <h1>orchestration <span class="lane-count">(6 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-fable-synth" class="agent" data-lane="orchestration">
+      <header>
+        <h2>fable-synth <span class="lane-pill">orchestration</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 0</span>
+          <span><strong>selection:</strong> N/A (agent DISABLED)</span>
+          <span><strong>fallback:</strong> —</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">Fable-5 (anthropic/claude-fable-5) high-reasoning one-shot mastermind final synthesizer.</p>
+      <p class="mission"><strong>Mission:</strong> Final mastermind synthesizer over multi-model prep fan-out — synthesize, judge, correct, and CUT outputs into a definitive result. Anti-over-engineering: when in doubt, CUT.</p>
+      <p class="empty">— DISABLED (no variants active) —</p>
+      <p class="notes"><strong>Notes:</strong> Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. TEMPORARILY EXCLUDED 2026-07-09 (limited access till 2026-07-12, then PPT after).</p>
+    </article>
+
+    <article id="agent-mure-architect" class="agent" data-lane="orchestration">
+      <header>
+        <h2>mure-architect <span class="lane-pill">orchestration</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-architect-sonnet5, mure-architect-glm52, mure-architect-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Architect (orchestration) — CTO + composer/integrator. design systems, methods, and interfaces.</p>
+      <p class="mission"><strong>Mission:</strong> design systems, methods, and interfaces; set the quality bar; compose existing capabilities before building new ones</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-architect-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, auto-prime">medium, auto-prime</td>
+          <td class="vmisc" title="coding-excellence, agentic-clean-tool-use">coding-excellence, agentic-clean-tool-us</td>
+          <td class="vnote">Lighter interface/method design where apex judgment is not required.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-architect-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, coding-excellence">apex-judgment, coding-excellence</td>
+          <td class="vnote">Architecture-design workhorse prime (1M ctx, near-Opus FrontierSWE) on the ×20 pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-architect-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="apex, judgment-seat, anchor">apex, judgment-seat, anchor</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">MANDATORY for critical/corner-law architecture judgment (partial hard rule).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-helmsman" class="agent" data-lane="orchestration">
+      <header>
+        <h2>mure-helmsman <span class="lane-pill">orchestration</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> owner-gated</span>
+          <span><strong>spawns:</strong> &lt;span style=&quot;color:#9ca3af;font-size:11px;&quot;&gt;* all lanes (orchestrator)&lt;/span&gt;</span>
+          <span><strong>variants:</strong> 2</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-helmsman-glm52, mure-helmsman-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Helmsman (orchestration) — dispatcher/router + research-vision lead. decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions.</p>
+      <p class="mission"><strong>Mission:</strong> decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-helmsman-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, judgment-seat, orchestrator-only, z-ai-quota-pool">heavy, judgment-seat, orchestrator-only, z-ai-quota-pool</td>
+          <td class="vmisc" title="orchestrator-peer, apex-judgment">orchestrator-peer, apex-judgment</td>
+          <td class="vnote">Z.ai-pool orchestrator when the Anthropic weekly pool is capped; near-Opus FrontierSWE (74.4 vs 75.1) at 1M ctx.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-helmsman-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, judgment-seat, orchestrator-only, anchor">apex, judgment-seat, orchestrator-only, anchor</td>
+          <td class="vmisc" title="apex-judgment, orchestrator-peer">apex-judgment, orchestrator-peer</td>
+          <td class="vnote">Proven orchestrator; max goal-spine + dispatch-planning reasoning — the anchor prime.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Holds finalize/goal-spine authority WITHIN a run, but never commits/pushes.</p>
+    </article>
+
+    <article id="agent-mure-helmsman-glm" class="agent" data-lane="orchestration">
+      <header>
+        <h2>mure-helmsman-glm <span class="lane-pill">orchestration</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> owner-gated</span>
+          <span><strong>spawns:</strong> &lt;span style=&quot;color:#9ca3af;font-size:11px;&quot;&gt;* all lanes (orchestrator)&lt;/span&gt;</span>
+          <span><strong>variants:</strong> 2</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-helmsman-glm-glm51, mure-helmsman-glm-glm52</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Helmsman (GLM-5.2) (orchestration) — dispatcher/router + research-vision lead. GLM-5.2 orchestrator variant (route to z.ai quota pool, or when opus is capped).</p>
+      <p class="mission"><strong>Mission:</strong> decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-helmsman-glm-glm51</td>
+          <td class="vmodel"><code>zai/glm-5.1</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, orchestrator-only, z-ai-quota-pool">heavy, workhorse, orchestrator-only, z-ai-quota-pool</td>
+          <td class="vmisc" title="orchestrator-peer">orchestrator-peer</td>
+          <td class="vnote">200K-ctx workhorse orchestrator for shorter goal-trees; 8-hour autonomy stability when GLM-5.2 quota is tight.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-helmsman-glm-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, judgment-seat, orchestrator-only, z-ai-quota-pool">heavy, judgment-seat, orchestrator-only, z-ai-quota-pool</td>
+          <td class="vmisc" title="orchestrator-peer, apex-judgment">orchestrator-peer, apex-judgment</td>
+          <td class="vnote">Prime — the only Z.ai model with orchestration-class reasoning (1M ctx, Max thinking).</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> GLM-5.2 variant of helmsman; route to z.ai quota pool.</p>
+    </article>
+
+    <article id="agent-mure-steward" class="agent" data-lane="orchestration">
+      <header>
+        <h2>mure-steward <span class="lane-pill">orchestration</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> owner-gated</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-steward-sonnet5, mure-steward-glm52, mure-steward-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Steward (orchestration) — COO + governance officer. run the 6-gate charter on every decision.</p>
+      <p class="mission"><strong>Mission:</strong> run the 6-gate charter on every decision; compute blast-radius and contention; produce owner-HOLD packets; the deterministic governance layer</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-steward-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="governance-strict, minimalist">governance-strict, minimalist</td>
+          <td class="vnote">Default prime — deterministic 6-gate charter + blast-radius computation.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-steward-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, z-ai-quota-pool">heavy, z-ai-quota-pool</td>
+          <td class="vmisc" title="governance-strict, apex-judgment">governance-strict, apex-judgment</td>
+          <td class="vnote">Harder governance / high-contention calls on the ×20 pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-steward-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, anchor">apex, anchor</td>
+          <td class="vmisc" title="governance-strict, apex-judgment">governance-strict, apex-judgment</td>
+          <td class="vnote">Apex override for highest-blast owner-HOLD packet composition.</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-yuri" class="agent" data-lane="orchestration">
+      <header>
+        <h2>mure-yuri <span class="lane-pill">orchestration</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#fee2e2;color:#dc2626;">main-binding-fixed (locked)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> owner-gated</span>
+          <span><strong>spawns:</strong> mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor</span>
+          <span><strong>variants:</strong> 1</span>
+          <span><strong>selection:</strong> main-binding-fixed</span>
+          <span><strong>fallback:</strong> mure-yuri-opus48</span>
+          <span><strong>independent of:</strong> mure-helmsman, mure-engineer, mure-mechanic, mure-synthesist, mure-adjudicator</span>
+        </div>
+      </header>
+      <p class="desc">MURE Yuri — main-session front-end binding (option iii). Single canonical brain doc loaded via CLAUDE.md @-include of _SYSTEM/persona.md. Marcel&#x27;s adversarial ally + cognitive extension + operator of MURE. The front-end to all of YURI: flee…</p>
+      <p class="mission"><strong>Mission:</strong> Hold the goal spine, run the five-state router, decode Marcel&#x27;s brain dump via the eight-step decode pipeline, dispatch MURE fleet via decompose/fan-out/verify/synthesize loops. Full control surface (…</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-yuri-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="apex, anchor, main-binding, identity-locked">apex, anchor, main-binding, identity-locked</td>
+          <td class="vmisc" title="apex-judgment, orchestrator-peer, narrow-prompt-reserved">apex-judgment, orchestrator-peer, narrow</td>
+          <td class="vnote">Heavy anchor for the main session. Identity-lock floor (persona.md binding). Sourced dispatch authority for MURE. Operator cannot rotate this binding without cr…</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Main-session binding (option iii). Identity substrate is _SYSTEM/persona.md (loaded natively). Skill procedures: opus-fleet (primary), fleet-economy, mure-advisor (watcher), mure-role-variant-matrix, grill-me, dispatching-parallel-agents. Operator = Marcel Spatz. Address Marcel b…</p>
+    </article>
+      </div>
+    </section>
+    <section class="lane-section" id="lane-engineering" data-lane="engineering">
+      <h1>engineering <span class="lane-count">(6 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-composer-fast" class="agent" data-lane="engineering">
+      <header>
+        <h2>composer-fast <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> composer-fast-glmturbo, composer-fast-dvf, composer-fast-sonnet5</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">Fast cursor composer-2.5-fast worker for parallel drafting and critique lanes.</p>
+      <p class="mission"><strong>Mission:</strong> Fast worker lane for parallel drafting and critique — produce an independent result. Follow assignment exactly.</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">composer-fast-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool, parallel-worker">cheap, z-ai-quota-pool, parallel-worker</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Cheap fast draft/critique prime on the Z.ai pool (replaces the retired Cursor binding).</td>
+        </tr>
+        <tr>
+          <td class="vid">composer-fast-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped, parallel-worker">cheap, deepseek-capped, parallel-worker</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Cheap bulk draft/critique; $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">composer-fast-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, fallback-when-draft-needs-judgment">medium, fallback-when-draft-needs-judgment</td>
+          <td class="vmisc" title="agentic-clean-tool-use, minimalist">agentic-clean-tool-use, minimalist</td>
+          <td class="vnote">Fallback when a draft/critique needs real reasoning.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider. Generic fast worker pattern.</p>
+    </article>
+
+    <article id="agent-mure-artificer" class="agent" data-lane="engineering">
+      <header>
+        <h2>mure-artificer <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-artificer-glmturbo, mure-artificer-dvf, mure-artificer-sonnet5</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Artificer (engineering) — fast scaffolding / mechanical edits. scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane.</p>
+      <p class="mission"><strong>Mission:</strong> scaffold files, do mechanical edits, run tests, census/scan — the cheap fast lane</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-artificer-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool, always-on">cheap, z-ai-quota-pool, always-on</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Prime cheap scaffolding/census lane on the Z.ai pool — designed for always-on high-throughput bulk.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-artificer-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped">cheap, deepseek-capped</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Cheap mechanical edits + test-runs with light reasoning; $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-artificer-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, fallback-when-scaffold-needs-judgment">medium, fallback-when-scaffold-needs-judgment</td>
+          <td class="vmisc" title="agentic-clean-tool-use, minimalist">agentic-clean-tool-use, minimalist</td>
+          <td class="vnote">Fallback when scaffolding needs a brain (non-trivial templates / test authoring judgment).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-engineer" class="agent" data-lane="engineering">
+      <header>
+        <h2>mure-engineer <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 4</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-engineer-dvf, mure-engineer-sonnet5, mure-engineer-glm52, mure-engineer-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Engineer (engineering) — core domain code-gen. implement features.</p>
+      <p class="mission"><strong>Mission:</strong> implement features; write the primary code for a scoped sub-task; build behind disarmed flags</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-engineer-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="cheap, deepseek-capped, workhorse">cheap, deepseek-capped, workhorse</td>
+          <td class="vmisc" title="coding-excellence, minimalist">coding-excellence, minimalist</td>
+          <td class="vnote">Cheap coder for simple scoped features (SWE-Verified 79.0); subject to $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-engineer-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="auto-prime, workhorse">auto-prime, workhorse</td>
+          <td class="vmisc" title="coding-excellence, agentic-clean-tool-use">coding-excellence, agentic-clean-tool-us</td>
+          <td class="vnote">Cost-perf coder; finishes end-to-end where Sonnet 4.6 stalled — Anthropic-pool alternate to GLM.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-engineer-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="coding-excellence, agentic-clean-tool-use">coding-excellence, agentic-clean-tool-us</td>
+          <td class="vnote">Workhorse prime for non-judgment codegen — ×20 GLM pool spares the Anthropic weekly quota; 1M ctx.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-engineer-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="coding-excellence, vision-cross-modal">coding-excellence, vision-cross-modal</td>
+          <td class="vnote">1M-ctx builds + implement-from-screenshot/diagram (frontend/backend spec fidelity).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-kernelsmith" class="agent" data-lane="engineering">
+      <header>
+        <h2>mure-kernelsmith <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 4</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-kernelsmith-glm52, mure-kernelsmith-dvp, mure-kernelsmith-m3, mure-kernelsmith-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Kernelsmith (engineering) — performance / hot-path / language-consolidation. optimize hot paths.</p>
+      <p class="mission"><strong>Mission:</strong> optimize hot paths; identify Rust/Mojo consolidation candidates (JS reference + native delivery); benchmark perf tradeoffs</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-kernelsmith-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="coding-excellence, apex-judgment">coding-excellence, apex-judgment</td>
+          <td class="vnote">Workhorse prime for perf codegen + tradeoff reasoning on the ×20 pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-kernelsmith-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, deepseek-capped, think-max">heavy, deepseek-capped, think-max</td>
+          <td class="vmisc" title="coding-excellence, narrow-prompt-reserved">coding-excellence, narrow-prompt-reserve</td>
+          <td class="vnote">Think Max for elite algorithmic hot-path work (Codeforces 3206, LiveCodeBench 93.5); $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-kernelsmith-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, minimax-ultra">heavy, minimax-ultra</td>
+          <td class="vmisc" title="coding-excellence">coding-excellence</td>
+          <td class="vnote">KernelBench-Hard 28.8 — low-level / kernel perf specialty.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-kernelsmith-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, judgment-seat, anchor">apex, judgment-seat, anchor</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Apex override for the hardest perf-judgment + language-consolidation architecture (JS→Rust/Mojo).</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider.</p>
+    </article>
+
+    <article id="agent-mure-mechanic" class="agent" data-lane="engineering">
+      <header>
+        <h2>mure-mechanic <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 4</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-mechanic-dvf, mure-mechanic-sonnet5, mure-mechanic-glm52, mure-mechanic-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Mechanic (engineering) — integration / refactor / wiring. wire modules together, refactor, productize research code, fix integration seams.</p>
+      <p class="mission"><strong>Mission:</strong> wire modules together, refactor, productize research code, fix integration seams</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-mechanic-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="cheap, deepseek-capped, workhorse">cheap, deepseek-capped, workhorse</td>
+          <td class="vmisc" title="coding-excellence, minimalist">coding-excellence, minimalist</td>
+          <td class="vnote">Cheap mechanical wiring / seam fixes; $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-mechanic-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime, workhorse">default-prime, auto-prime, workhorse</td>
+          <td class="vmisc" title="coding-excellence, agentic-clean-tool-use">coding-excellence, agentic-clean-tool-us</td>
+          <td class="vnote">Default prime — integration + refactor + PR-review-grade multi-file work.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-mechanic-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="coding-excellence, agentic-clean-tool-use">coding-excellence, agentic-clean-tool-us</td>
+          <td class="vnote">Hard cross-module integration on the ×20 GLM pool; 1M ctx for whole-subsystem refactors.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-mechanic-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="coding-excellence, vision-cross-modal">coding-excellence, vision-cross-modal</td>
+          <td class="vnote">Large 1M-ctx refactors; wiring against visual/UI references.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider.</p>
+    </article>
+
+    <article id="agent-mure-sentinel" class="agent" data-lane="engineering">
+      <header>
+        <h2>mure-sentinel <span class="lane-pill">engineering</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 2</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-sentinel-dvp, mure-sentinel-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Sentinel (engineering) — cybersecurity + security-reviewer. security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities.</p>
+      <p class="mission"><strong>Mission:</strong> security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities; any ARM is owner-gated</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-sentinel-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, security-only, deepseek-capped, think-max">heavy, security-only, deepseek-capped, think-max</td>
+          <td class="vmisc" title="security-strict, narrow-prompt-reserved">security-strict, narrow-prompt-reserved</td>
+          <td class="vnote">Think Max deep-adversarial security fallback — audit co-primes it with Opus for chained-exploit reasoning; $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-sentinel-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, security-only, anchor, mandatory-prime">apex, security-only, anchor, mandatory-prime</td>
+          <td class="vmisc" title="security-strict, apex-judgment, narrow-prompt-reserved">security-strict, apex-judgment, narrow-p</td>
+          <td class="vnote">MANDATORY security anchor prime (hard rule) — deepest adversarial + attack-class knowledge.</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+      </div>
+    </section>
+    <section class="lane-section" id="lane-research" data-lane="research">
+      <h1>research <span class="lane-count">(6 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-deepseek-flash" class="agent" data-lane="research">
+      <header>
+        <h2>deepseek-flash <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 2</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> deepseek-flash-dvf, deepseek-flash-glmturbo</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">Fast ollama-cloud deepseek-v4-flash worker for parallel bulk analysis and critique lanes.</p>
+      <p class="mission"><strong>Mission:</strong> Fast worker lane for parallel bulk analysis and critique — produce an independent result.</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">deepseek-flash-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped, parallel-worker">cheap, deepseek-capped, parallel-worker</td>
+          <td class="vmisc" title="minimalist, cheap-research">minimalist, cheap-research</td>
+          <td class="vnote">Native flash bulk-analysis prime; $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">deepseek-flash-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool, parallel-worker, uncapped-fallback">cheap, z-ai-quota-pool, parallel-worker, uncapped-fallback</td>
+          <td class="vmisc" title="minimalist, cheap-research">minimalist, cheap-research</td>
+          <td class="vnote">Uncapped Z.ai equivalent when the DeepSeek daily cap is hit — the resilient fallback.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Generic fast worker pattern on deepseek-v4-flash.</p>
+    </article>
+
+    <article id="agent-mure-deliberator" class="agent" data-lane="research">
+      <header>
+        <h2>mure-deliberator <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-deliberator-glm52, mure-deliberator-dvp, mure-deliberator-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Deliberator (research) — deep reasoner (continuous-thought) — depth-adaptive. hold one hard sub-problem deeply with adaptive compute.</p>
+      <p class="mission"><strong>Mission:</strong> hold one hard sub-problem deeply with adaptive compute; build the full mechanism map; exit on completion or verification checkpoint</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-deliberator-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Max-thinking deep-reasoning workhorse prime on the ×20 pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-deliberator-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, deepseek-capped, think-max">heavy, deepseek-capped, think-max</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Think Max — deepest single-problem reasoning (LiveCodeBench 93.5); $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-deliberator-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, judgment-seat, anchor">apex, judgment-seat, anchor</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Apex override for the hardest monotropic deliberation.</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-evolver" class="agent" data-lane="research">
+      <header>
+        <h2>mure-evolver <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> owner-gated</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 2</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-evolver-glm52, mure-evolver-opus48</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Evolver (research) — evolutionary-methods + self-modifier. propose improvements to MURE itself and to YURI processes via evolutionary search.</p>
+      <p class="mission"><strong>Mission:</strong> propose improvements to MURE itself and to YURI processes via evolutionary search; HIGHEST blast — every proposal is owner-gated and must pass the oracle first</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-evolver-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, z-ai-quota-pool">heavy, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Evolutionary-search / candidate-generation workhorse on the ×20 pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-evolver-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="apex, judgment-seat, anchor, highest-blast">apex, judgment-seat, anchor, highest-blast</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Apex prime for highest-blast self-modification design — every proposal owner-gated + oracle-gated.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Owner-gated + must pass mure-oracle before any proposal is acted on.</p>
+    </article>
+
+    <article id="agent-mure-ideator" class="agent" data-lane="research">
+      <header>
+        <h2>mure-ideator <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-ideator-sonnet5, mure-ideator-glm52, mure-ideator-dvp</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Ideator (research) — divergent hypothesis generator. generate unusual options, edge cases, and remote associations.</p>
+      <p class="mission"><strong>Mission:</strong> generate unusual options, edge cases, and remote associations; score novelty; run the divergent scan before convergence</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-ideator-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="agentic-clean-tool-use, minimalist">agentic-clean-tool-use, minimalist</td>
+          <td class="vnote">Default prime — routine divergent scan + novelty scoring.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-ideator-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, z-ai-quota-pool">heavy, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment">apex-judgment</td>
+          <td class="vnote">Broader remote-association / cross-domain leap generation.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-ideator-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, deepseek-capped, think-max">heavy, deepseek-capped, think-max</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Deep divergent reasoning for high-stakes edge-case hunting; $1.25/day cap.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider. Read-only tools.</p>
+    </article>
+
+    <article id="agent-mure-scout" class="agent" data-lane="research">
+      <header>
+        <h2>mure-scout <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-scout-haiku, mure-scout-sonnet5, mure-scout-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Scout (research) — local-first + online researcher. research local corpus first then online.</p>
+      <p class="mission"><strong>Mission:</strong> research local corpus first then online; cite primary sources; synthesize findings; capture to the research corpus</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-scout-haiku</td>
+          <td class="vmodel"><code>anthropic/claude-haiku-4-5</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, recon-eligible, cheap-research-only, haiku-eligible-context">cheap, recon-eligible, cheap-research-only, haiku-eligible-c…</td>
+          <td class="vmisc" title="recon-breadth, cheap-research">recon-breadth, cheap-research</td>
+          <td class="vnote">Cheap local-corpus recon + citation gathering; scout is an explicit Haiku-eligible read-only context.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-scout-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="cheap-research, agentic-clean-tool-use">cheap-research, agentic-clean-tool-use</td>
+          <td class="vnote">Default prime — multi-step local-first + online research with synthesis.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-scout-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="vision-cross-modal, cheap-research">vision-cross-modal, cheap-research</td>
+          <td class="vnote">1M-ctx sweep over very large corpora + visual/diagram source material.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Read-only tools.</p>
+    </article>
+
+    <article id="agent-mure-synthesist" class="agent" data-lane="research">
+      <header>
+        <h2>mure-synthesist <span class="lane-pill">research</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-synthesist-sonnet5, mure-synthesist-glm52, mure-synthesist-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Synthesist (research) — collective-intelligence / cross-domain transfer. merge scattered findings into a lattice map.</p>
+      <p class="mission"><strong>Mission:</strong> merge scattered findings into a lattice map; name cross-domain transfers (source/target/mechanism/mismatch/confidence); large-context synthesis</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-synthesist-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, auto-prime">medium, auto-prime</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Smaller-scope synthesis where 1M ctx is not required.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-synthesist-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, workhorse, z-ai-quota-pool">heavy, workhorse, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, minimalist">apex-judgment, minimalist</td>
+          <td class="vnote">1M-ctx text lattice-synthesis prime — merge large scattered corpora + name convergences.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-synthesist-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="vision-cross-modal, apex-judgment">vision-cross-modal, apex-judgment</td>
+          <td class="vnote">Cross-modal synthesis — lattice maps that span visual artifacts (1M ctx + image + video).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+      </div>
+    </section>
+    <section class="lane-section" id="lane-verification" data-lane="verification">
+      <h1>verification <span class="lane-count">(4 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-mure-adjudicator" class="agent" data-lane="verification">
+      <header>
+        <h2>mure-adjudicator <span class="lane-pill">verification</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#ffedd5;color:#d97706;">surfaced-heavy (operator override)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> surfaced-heavy</span>
+          <span><strong>fallback:</strong> mure-adjudicator-glm52, mure-adjudicator-dvp, mure-adjudicator-opus48</span>
+          <span><strong>independent of:</strong> mure-ideator, mure-engineer, mure-mechanic, mure-synthesist</span>
+        </div>
+      </header>
+      <p class="desc">MURE Adjudicator (verification) — adversarial critic (refute-by-default). attack every artifact — name failure modes, find what is missing, default to refuted when uncertain.</p>
+      <p class="mission"><strong>Mission:</strong> attack every artifact — name failure modes, find what is missing, default to refuted when uncertain; structurally independent of the producers</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-adjudicator-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, apex-reasoning-fallback, z-ai-quota-pool">heavy, apex-reasoning-fallback, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Apex-reasoning refutation fallback when Opus is capped (audit-★ adversarial reasoner); NOT for security-relevant artifacts.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-adjudicator-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, apex-reasoning-fallback, deepseek-capped, think-max">heavy, apex-reasoning-fallback, deepseek-capped, think-max</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Think Max adversarial fallback; $1.25/day cap; NOT for security-relevant artifacts.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-adjudicator-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#fee2e2;color:#dc2626;border:1px solid #dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">apex</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="apex, anchor, mandatory-prime">apex, anchor, mandatory-prime</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved">apex-judgment, narrow-prompt-reserved</td>
+          <td class="vnote">Mandatory adversarial anchor prime — best-in-fleet refutation quality + gap detection.</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-advisor" class="agent" data-lane="verification">
+      <header>
+        <h2>mure-advisor <span class="lane-pill">verification</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 7</span>
+          <span><strong>selection:</strong> —</span>
+          <span><strong>fallback:</strong> mure-advisor-heavy-opus48, mure-advisor-heavy-dvp, mure-advisor-heavy-glm52, mure-advisor-heavy-m3</span>
+          <span><strong>independent of:</strong> mure-helmsman, mure-engineer, mure-mechanic, mure-synthesist, mure-adjudicator</span>
+        </div>
+      </header>
+      <p class="desc">MURE Advisor (advisory) — tiered per-turn watchdog for main session + WhatsApp. Cheap watcher runs every turn; heavy advisor escalates on flagged conditions. Pure annotation; never blocks. Two surfaces: visible post-hoc note + one-turn-lag …</p>
+      <p class="mission"><strong>Mission:</strong> Emit per-turn annotation in canonical schema (see _SYSTEM/research/advisor-note-schema-2026-07-09.md). Tier 1 watcher runs every main-lane / WhatsApp turn; Tier 2 heavy advisor escalates on flagged co…</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-advisor-watcher-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="default-prime, watcher-prime">default-prime, watcher-prime</td>
+          <td class="vmisc" title="minimalist, advisor-watcher">minimalist, advisor-watcher</td>
+          <td class="vnote">Watcher Tier 1 prime per owner A.17. Cheap-reasoning at 1M ctx; near-Opus on routine turns.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-watcher-haiku</td>
+          <td class="vmodel"><code>anthropic/claude-haiku-4-5</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, watcher-fallback, recon-eligible, cheap-research-only">cheap, watcher-fallback, recon-eligible, cheap-research-only</td>
+          <td class="vmisc" title="minimalist, advisor-watcher, recon-breadth">minimalist, advisor-watcher, recon-bread</td>
+          <td class="vnote">Watcher Tier 1 fallback. Per owner 2026-07-09: Haiku&#x27;s role is recon + cheap research. NEVER in heavy-tier fallback chain.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-watcher-dvflash</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, watcher-fallback, deepseek-capped">cheap, watcher-fallback, deepseek-capped</td>
+          <td class="vmisc" title="minimalist, advisor-watcher, recon-breadth">minimalist, advisor-watcher, recon-bread</td>
+          <td class="vnote">Watcher Tier 1 fallback via direct API. Subject to $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-heavy-opus48</td>
+          <td class="vmodel"><code>anthropic/claude-opus-4-8</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, anchor, security-only">heavy, anchor, security-only</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved, advisor-heavy, security-strict">apex-judgment, narrow-prompt-reserved, a</td>
+          <td class="vnote">Heavy Tier 2 anchor. Mandatory for security-relevant turns (hard rule per Opus 4.8 adversarial review).</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-heavy-dvp</td>
+          <td class="vmodel"><code>deepseek-v4-pro:direct</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, deepseek-capped">heavy, deepseek-capped</td>
+          <td class="vmisc" title="apex-judgment, narrow-prompt-reserved, advisor-heavy">apex-judgment, narrow-prompt-reserved, a</td>
+          <td class="vnote">Heavy Tier 2 via direct API. Think Max mode enabled. Subject to $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-heavy-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, z-ai-quota-pool">heavy, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, advisor-heavy">apex-judgment, advisor-heavy</td>
+          <td class="vnote">Heavy Tier 2 via Z.ai plan. Gated by Z.ai weekly quota (resets 2026-07-10).</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-advisor-heavy-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="apex-judgment, advisor-heavy, vision-cross-modal">apex-judgment, advisor-heavy, vision-cro</td>
+          <td class="vnote">Heavy Tier 2 fallback. Per owner 2026-07-09. 1M ctx + image + video. Subscription Ultra tier.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Heavy-tier fallback chain: Opus 4.8 → DeepSeek V4-Pro Think Max → GLM-5.2 → M3. Haiku never in this chain. Hard security rule: heavy-tier for security-relevant turns MUST be Opus 4.8. Skill procedure lives at skills/mure-advisor/SKILL.md (pending Skill Workshop apply).</p>
+    </article>
+
+    <article id="agent-mure-calibrator" class="agent" data-lane="verification">
+      <header>
+        <h2>mure-calibrator <span class="lane-pill">verification</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-calibrator-dvf, mure-calibrator-glmturbo, mure-calibrator-sonnet5</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Calibrator (verification) — calibration + honesty audit. record prediction-&gt;outcome, compute Brier and calibration, weight advisors by track record, flag over-confidence.</p>
+      <p class="mission"><strong>Mission:</strong> record prediction-&gt;outcome, compute Brier and calibration, weight advisors by track record, flag over-confidence</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-calibrator-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped">cheap, deepseek-capped</td>
+          <td class="vmisc" title="minimalist, cheap-research">minimalist, cheap-research</td>
+          <td class="vnote">Cheap structured Brier/calibration computation; $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-calibrator-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool">cheap, z-ai-quota-pool</td>
+          <td class="vmisc" title="minimalist">minimalist</td>
+          <td class="vnote">Bulk ledger scan + advisor-weight bookkeeping on the Z.ai pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-calibrator-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, fallback-when-audit-needs-judgment">medium, fallback-when-audit-needs-judgment</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Fallback when over-confidence analysis needs judgment over raw scoring.</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-oracle" class="agent" data-lane="verification">
+      <header>
+        <h2>mure-oracle <span class="lane-pill">verification</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-oracle-dvf, mure-oracle-sonnet5, mure-oracle-glm52</span>
+          <span><strong>independent of:</strong> mure-evolver, mure-engineer</span>
+        </div>
+      </header>
+      <p class="desc">MURE Oracle (verification) — benchmark / fitness evaluator. run the red/grey/green tests, measure against acceptance, accept/reject.</p>
+      <p class="mission"><strong>Mission:</strong> run the red/grey/green tests, measure against acceptance, accept/reject; the gate every evolver proposal must pass</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-oracle-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="cheap, deepseek-capped">cheap, deepseek-capped</td>
+          <td class="vmisc" title="agentic-clean-tool-use, minimalist">agentic-clean-tool-use, minimalist</td>
+          <td class="vnote">Cheap test-execution + mechanical accept/reject; $1.25/day cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-oracle-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="agentic-clean-tool-use">agentic-clean-tool-use</td>
+          <td class="vnote">Default prime — test execution + acceptance judgment (self-checks output).</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-oracle-glm52</td>
+          <td class="vmodel"><code>zai/glm-5.2</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="heavy, z-ai-quota-pool">heavy, z-ai-quota-pool</td>
+          <td class="vmisc" title="apex-judgment, agentic-clean-tool-use">apex-judgment, agentic-clean-tool-use</td>
+          <td class="vnote">Hard acceptance calls / ambiguous grey-zone verdicts on the ×20 pool.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider.</p>
+    </article>
+      </div>
+    </section>
+    <section class="lane-section" id="lane-knowledge" data-lane="knowledge">
+      <h1>knowledge <span class="lane-count">(2 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-mure-archivist" class="agent" data-lane="knowledge">
+      <header>
+        <h2>mure-archivist <span class="lane-pill">knowledge</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-archivist-glmturbo, mure-archivist-dvf, mure-archivist-sonnet5</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Archivist (knowledge) — archive curator + memory / skill-library. curate the skill library and memory.</p>
+      <p class="mission"><strong>Mission:</strong> curate the skill library and memory; track lineage; keep the capability registry fresh; preserve stepping-stones</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-archivist-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool, always-on">cheap, z-ai-quota-pool, always-on</td>
+          <td class="vmisc" title="minimalist">minimalist</td>
+          <td class="vnote">Cheap bulk curation / registry upkeep prime on the Z.ai pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-archivist-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped">cheap, deepseek-capped</td>
+          <td class="vmisc" title="minimalist">minimalist</td>
+          <td class="vnote">Cheap lineage-scan + registry-write; $1.25/day DeepSeek cap.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-archivist-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, fallback-when-curation-needs-judgment">medium, fallback-when-curation-needs-judgment</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Fallback when curation needs judgment (dedup/merge/promote decisions).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+
+    <article id="agent-mure-chronicler" class="agent" data-lane="knowledge">
+      <header>
+        <h2>mure-chronicler <span class="lane-pill">knowledge</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-chronicler-haiku, mure-chronicler-sonnet5, mure-chronicler-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Chronicler (knowledge) — science-writer. distill outputs into docs, blueprints, and owner-facing summaries.</p>
+      <p class="mission"><strong>Mission:</strong> distill outputs into docs, blueprints, and owner-facing summaries; emit conforming RESULT_LABELs; translate research to legible narrative</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-chronicler-haiku</td>
+          <td class="vmodel"><code>anthropic/claude-haiku-4-5</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, cheap-research-only, haiku-eligible-context">cheap, cheap-research-only, haiku-eligible-context</td>
+          <td class="vmisc" title="minimalist, cheap-research">minimalist, cheap-research</td>
+          <td class="vnote">Cheap summaries + RESULT_LABEL emission; chronicler-cheap is an explicit Haiku-eligible context.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-chronicler-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="minimalist, agentic-clean-tool-use">minimalist, agentic-clean-tool-use</td>
+          <td class="vnote">Default prime — technical writing + owner-facing narrative distillation.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-chronicler-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="vision-cross-modal, minimalist">vision-cross-modal, minimalist</td>
+          <td class="vnote">Visual blueprints / diagram-bearing docs (cross-modal chronicler).</td>
+        </tr>
+          </tbody>
+        </table>
+
+    </article>
+      </div>
+    </section>
+    <section class="lane-section" id="lane-operations" data-lane="operations">
+      <h1>operations <span class="lane-count">(2 roles)</span></h1>
+      <div class="lane-agents">
+
+    <article id="agent-mure-envoy" class="agent" data-lane="operations">
+      <header>
+        <h2>mure-envoy <span class="lane-pill">operations</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-envoy-haiku, mure-envoy-sonnet5, mure-envoy-m3</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Envoy (operations) — task intake / requirement decoder. decode the owner brain-dump into a clean spec / goal tree for the helmsman.</p>
+      <p class="mission"><strong>Mission:</strong> decode the owner brain-dump (rank intents, surface hidden constraint and meta-need), turn chaotic input into a clean spec / goal tree for the helmsman</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-envoy-haiku</td>
+          <td class="vmodel"><code>anthropic/claude-haiku-4-5</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, recon-eligible, cheap-research-only, haiku-eligible-context">cheap, recon-eligible, cheap-research-only, haiku-eligible-c…</td>
+          <td class="vmisc" title="minimalist, recon-breadth">minimalist, recon-breadth</td>
+          <td class="vnote">Fast cheap decode of short/simple brain-dumps; envoy is an explicit Haiku-eligible read-only context.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-envoy-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="default-prime, auto-prime">default-prime, auto-prime</td>
+          <td class="vmisc" title="agentic-clean-tool-use, minimalist">agentic-clean-tool-use, minimalist</td>
+          <td class="vnote">Default prime — intent-ranking + hidden-constraint surfacing at cost-perf sweet spot.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-envoy-m3</td>
+          <td class="vmodel"><code>minimax-portal/MiniMax-M3</code></td>
+          <td><span style="background:#ffedd5;color:#d97706;border:1px solid #d97706;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">heavy</span></td>
+          <td class="vmid">high</td>
+          <td class="vmisc">16384</td>
+          <td class="vflags" title="heavy, minimax-ultra, cross-modal">heavy, minimax-ultra, cross-modal</td>
+          <td class="vmisc" title="vision-cross-modal, agentic-clean-tool-use">vision-cross-modal, agentic-clean-tool-u</td>
+          <td class="vnote">Decode brain-dumps carrying images/video/screenshots (1M ctx + image + video).</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Read-only tools — reads/greps/globs only, no writes.</p>
+    </article>
+
+    <article id="agent-mure-quartermaster" class="agent" data-lane="operations">
+      <header>
+        <h2>mure-quartermaster <span class="lane-pill">operations</span><span style="margin-left:8px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#dcfce7;color:#2ea043;">auto-prime (cheap lane)</span></h2>
+        <div class="meta">
+          <span><strong>autonomy:</strong> self-governable</span>
+          <span><strong>spawns:</strong> —</span>
+          <span><strong>variants:</strong> 3</span>
+          <span><strong>selection:</strong> auto-cheap</span>
+          <span><strong>fallback:</strong> mure-quartermaster-dvf, mure-quartermaster-glmturbo, mure-quartermaster-sonnet5</span>
+          <span><strong>independent of:</strong> —</span>
+        </div>
+      </header>
+      <p class="desc">MURE Quartermaster (operations) — token-budget + cost governance. account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway.</p>
+      <p class="mission"><strong>Mission:</strong> account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway</p>
+
+        <table class="variants">
+          <thead>
+            <tr>
+              <th>variant id</th><th>model</th><th>tier</th><th>think</th><th>max_tok</th><th>eligibility flags</th><th>systemSections</th><th>note</th>
+            </tr>
+          </thead>
+          <tbody>
+        <tr>
+          <td class="vid">mure-quartermaster-dvf</td>
+          <td class="vmodel"><code>deepseek-v4-flash:direct</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, deepseek-capped">cheap, deepseek-capped</td>
+          <td class="vmisc" title="minimalist">minimalist</td>
+          <td class="vnote">Cheap token-accounting + budget-cap bookkeeping; $1.25/day cap (self-aware of its own tier&#x27;s cap).</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-quartermaster-glmturbo</td>
+          <td class="vmodel"><code>zai/glm-5-turbo</code></td>
+          <td><span style="background:#dcfce7;color:#2ea043;border:1px solid #2ea043;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">cheap</span></td>
+          <td class="vmid">low</td>
+          <td class="vmisc">4096</td>
+          <td class="vflags" title="cheap, z-ai-quota-pool">cheap, z-ai-quota-pool</td>
+          <td class="vmisc" title="minimalist">minimalist</td>
+          <td class="vnote">Quota-routing bulk bookkeeping on the Z.ai pool.</td>
+        </tr>
+        <tr>
+          <td class="vid">mure-quartermaster-sonnet5</td>
+          <td class="vmodel"><code>anthropic/claude-sonnet-5</code></td>
+          <td><span style="background:#fef9c3;color:#d4a017;border:1px solid #d4a017;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;text-transform:uppercase;">medium</span></td>
+          <td class="vmid">medium</td>
+          <td class="vmisc">8192</td>
+          <td class="vflags" title="medium, fallback-when-budget-policy-needs-judgment">medium, fallback-when-budget-policy-needs-judgment</td>
+          <td class="vmisc" title="minimalist, governance-strict">minimalist, governance-strict</td>
+          <td class="vnote">Fallback when budget-routing policy needs a judgment call.</td>
+        </tr>
+          </tbody>
+        </table>
+      <p class="notes"><strong>Notes:</strong> Requires cursor-cli provider.</p>
+    </article>
+      </div>
+    </section>
+    </section>
+  </main>
+  <footer>
+    <p>Source: <code>.openclaw/mure-agent-catalog.json</code> v2.1.0 · Seed: <code>_SYSTEM/research/per-role-variant-table-2026-07-09.md</code> · Schema: <code>_SYSTEM/research/advisor-note-schema-2026-07-09.md</code></p>
+    <p>Fable-5 excluded till 2026-07-12 · M2.7 cleared by operator 2026-07-09 13:42 (pending re-seed) · DeepSeek V4 cap: $1.25/day · Haiku lane: recon + cheap research only</p>
+  </footer>
+</body>
+</html>

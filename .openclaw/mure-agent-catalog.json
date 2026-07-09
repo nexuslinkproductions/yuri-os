@@ -1,6 +1,6 @@
 {
-  "source": "OMP agent definitions from .omp/agents/",
-  "generated": "2026-07-09T12:55:00Z",
+  "source": "OMP agent definitions from .omp/agents/ + OpenClaw-native agents from .openclaw/agents/ (mure-yuri main binding)",
+  "generated": "2026-07-09T13:43:00Z",
   "providerMapping": {
     "anthropic/claude-opus-4-8": "anthropic/claude-opus-4-8",
     "anthropic/claude-opus-4-7": "anthropic/claude-opus-4-7",
@@ -2728,7 +2728,9 @@
       "selection": "main-binding-fixed",
       "fallbackChain": [
         "mure-yuri-opus48"
-      ]
+      ],
+      "sourcePath": ".openclaw/agents/mure-yuri.md",
+      "format": "openclaw-native"
     }
   ]
 }
