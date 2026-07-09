@@ -1,0 +1,164 @@
+{
+  "version": "sol-moe-v1",
+  "mode": "advisory-pure",
+  "seat": {
+    "expert": "sol",
+    "agentId": "mure-yuri",
+    "model": "openai/gpt-5.6-sol",
+    "thinking": "high"
+  },
+  "riskClasses": {
+    "R0": "Mechanical, read-only, bounded, and deterministically checkable",
+    "R1": "Reversible implementation or analysis requiring a frontier semantic producer",
+    "R2": "Important architecture, migration, multi-file logic, or high-blast reversible work",
+    "R3": "Security, governance, protected-surface, destructive, irreversible, or outward-facing work"
+  },
+  "experts": [
+    {
+      "id": "sol",
+      "agentId": "mure-yuri",
+      "model": "openai/gpt-5.6-sol",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "openai",
+      "specialties": ["orchestration", "intent", "integration", "adjudication"]
+    },
+    {
+      "id": "m3",
+      "agentId": "mure-synthesist",
+      "model": "minimax-portal/MiniMax-M3",
+      "thinking": "adaptive",
+      "tier": "frontier",
+      "family": "minimax",
+      "specialties": ["frontier-volume", "research", "synthesis", "production"]
+    },
+    {
+      "id": "glm52",
+      "agentId": "mure-architect",
+      "model": "zai/glm-5.2",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "zai",
+      "specialties": ["long-context", "architecture", "synthesis", "verification"]
+    },
+    {
+      "id": "terra",
+      "agentId": "mure-engineer",
+      "model": "openai/gpt-5.6-terra",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "openai",
+      "specialties": ["implementation", "refactor", "deterministic-execution"]
+    },
+    {
+      "id": "opus48",
+      "agentId": "mure-sentinel",
+      "model": "anthropic/claude-opus-4-8",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "anthropic",
+      "specialties": ["security", "governance", "adjudication", "deep-design"]
+    },
+    {
+      "id": "sonnet5",
+      "agentId": "mure-calibrator",
+      "model": "anthropic/claude-sonnet-5",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "anthropic",
+      "specialties": ["deterministic-gate", "verification", "structured-output"]
+    },
+    {
+      "id": "deepseek-flash",
+      "agentId": "deepseek-flash",
+      "model": "deepseek/deepseek-v4-flash",
+      "thinking": "low",
+      "tier": "cheap",
+      "family": "deepseek",
+      "specialties": ["breadth", "scan", "extraction", "classification"]
+    },
+    {
+      "id": "mimo25",
+      "agentId": "mure-artificer",
+      "model": "cline-pass/mimo-v2.5",
+      "thinking": "low",
+      "tier": "cheap",
+      "family": "mimo",
+      "specialties": ["breadth", "overflow", "bounded-draft", "extraction"]
+    }
+  ],
+  "taskProfiles": {
+    "orchestration": {
+      "producer": ["sol"],
+      "availabilityFallback": ["opus48", "m3"],
+      "qualityEscalation": ["opus48", "m3"],
+      "verifier": ["sonnet5"]
+    },
+    "breadth": {
+      "producer": ["deepseek-flash"],
+      "availabilityFallback": ["mimo25"],
+      "qualityEscalation": ["m3"],
+      "verifier": ["sonnet5"]
+    },
+    "implementation": {
+      "producer": ["terra"],
+      "availabilityFallback": ["m3", "sonnet5"],
+      "qualityEscalation": ["sonnet5", "opus48"],
+      "verifier": ["sonnet5", "glm52"]
+    },
+    "security-implementation": {
+      "producer": ["terra"],
+      "availabilityFallback": ["glm52", "sonnet5"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["opus48"]
+    },
+    "security": {
+      "producer": ["glm52"],
+      "availabilityFallback": ["sol", "sonnet5"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["opus48"]
+    },
+    "governance": {
+      "producer": ["sol"],
+      "availabilityFallback": ["glm52", "sonnet5"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["opus48"]
+    },
+    "architecture": {
+      "producer": ["glm52"],
+      "availabilityFallback": ["m3", "sol"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["sonnet5", "opus48"]
+    },
+    "long-context": {
+      "producer": ["glm52"],
+      "availabilityFallback": ["m3"],
+      "qualityEscalation": ["opus48", "sol"],
+      "verifier": ["sonnet5"]
+    },
+    "synthesis": {
+      "producer": ["m3"],
+      "availabilityFallback": ["glm52"],
+      "qualityEscalation": ["sol", "opus48"],
+      "verifier": ["sonnet5", "glm52"]
+    },
+    "research": {
+      "producer": ["m3"],
+      "availabilityFallback": ["glm52"],
+      "qualityEscalation": ["sol", "opus48"],
+      "verifier": ["sonnet5"]
+    },
+    "verification": {
+      "producer": ["sonnet5"],
+      "availabilityFallback": ["glm52"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["opus48"]
+    },
+    "general": {
+      "producer": ["m3"],
+      "availabilityFallback": ["sol", "glm52"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["sonnet5"]
+    }
+  }
+}

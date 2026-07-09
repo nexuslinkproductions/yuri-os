@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>MURE · Sol MoE Control Room</title>
+  <style>
+    :root {
+      --bg: #07100f;
+      --bg-2: #0a1513;
+      --panel: #0e1c19;
+      --panel-2: #13231f;
+      --panel-3: #172b26;
+      --ink: #eff8f3;
+      --muted: #91aaa1;
+      --faint: #617a71;
+      --line: #274239;
+      --line-hot: #4d7568;
+      --sol: #ff765d;
+      --terra: #ffb45b;
+      --opus: #bd91ff;
+      --sonnet: #ef8fc3;
+      --m3: #4da8ff;
+      --glm: #46dfb1;
+      --cheap: #d6df70;
+      --ok: #7be495;
+      --warn: #ffc45f;
+      --danger: #ff6484;
+      --info: #7ab8ff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -10%, rgba(70, 223, 177, .12), transparent 34rem),
+        radial-gradient(circle at 94% 2%, rgba(255, 118, 93, .11), transparent 32rem),
+        linear-gradient(180deg, #07100f, #081310 55%, #060d0c);
+      font-family: var(--sans);
+      line-height: 1.45;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: .15;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to bottom, #000, transparent 84%);
+    }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button, input, select, textarea { outline: none; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      box-shadow: 0 0 0 3px rgba(70, 223, 177, .25);
+      border-color: var(--glm) !important;
+    }
+    code, .mono { font-family: var(--mono); }
+    code { font-size: .88em; overflow-wrap: anywhere; }
+    .shell { width: min(1580px, calc(100% - 40px)); margin: 0 auto; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .eyebrow { color: var(--glm); font: 800 11px var(--mono); letter-spacing: .18em; text-transform: uppercase; }
+    .muted { color: var(--muted); }
+    .faint { color: var(--faint); }
+    .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+    .card { border: 1px solid var(--line); border-radius: 18px; background: rgba(14, 28, 25, .92); box-shadow: var(--shadow); }
+    .chip { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.025); font: 700 11px var(--mono); }
+    .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chip, var(--muted)); }
+    .status-live { --chip: var(--ok); border-color: rgba(123,228,149,.4); }
+    .status-spec { --chip: var(--warn); border-color: rgba(255,196,95,.4); }
+    .status-sim { --chip: var(--info); border-color: rgba(122,184,255,.4); }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(39,66,57,.78);
+      background: rgba(7,16,15,.84);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; letter-spacing: -.02em; }
+    .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; color: #07100f; background: var(--sol); font: 900 12px var(--mono); }
+    .nav { display: flex; align-items: center; gap: 5px; }
+    .nav a { padding: 7px 9px; border-radius: 8px; color: var(--muted); text-decoration: none; font-size: 12px; }
+    .nav a:hover { color: var(--ink); background: rgba(255,255,255,.04); }
+
+    .hero { padding: 48px 0 30px; }
+    .hero-grid { display: grid; grid-template-columns: 1.35fr .65fr; gap: 24px; align-items: end; }
+    h1 { max-width: 980px; margin: 12px 0 15px; font-size: clamp(42px, 7vw, 88px); line-height: .93; letter-spacing: -.066em; }
+    h1 em { color: var(--sol); font-style: normal; }
+    .lead { max-width: 820px; margin: 0; color: #b8cdc4; font-size: clamp(16px, 2vw, 20px); }
+    .truth-card { padding: 18px; }
+    .truth-card h2 { margin: 0 0 11px; font-size: 15px; }
+    .truth-card p { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+    .truth-card strong { color: var(--ink); }
+    .section { padding: 34px 0; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .section-head h2 { margin: 5px 0 0; font-size: clamp(26px, 3.4vw, 44px); line-height: 1; letter-spacing: -.045em; }
+    .section-note { max-width: 590px; margin: 0; color: var(--muted); font-size: 13px; }
+
+    .control-grid { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .composer { position: sticky; top: 74px; padding: 20px; }
+    .composer h3, .instrument h3 { margin: 0; font-size: 18px; }
+    .composer-sub { margin: 6px 0 18px; color: var(--muted); font-size: 12px; }
+    .field { margin-top: 14px; }
+    .field label, .field legend { display: block; margin-bottom: 7px; color: #c8dbd3; font-size: 12px; font-weight: 760; }
+    textarea, select {
+      width: 100%;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #091411;
+    }
+    textarea { min-height: 80px; resize: vertical; padding: 11px 12px; }
+    select { padding: 10px 12px; }
+    .preset-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+    .preset {
+      cursor: pointer;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255,255,255,.025);
+      color: var(--muted);
+      font-size: 11px;
+      text-align: left;
+    }
+    .preset:hover, .preset.active { color: var(--ink); border-color: var(--glm); background: rgba(70,223,177,.07); }
+    .slider-row { margin-top: 12px; }
+    .slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+    .slider-head label { color: #c8dbd3; font-size: 11px; font-weight: 720; }
+    .slider-head output { color: var(--glm); font: 800 11px var(--mono); }
+    input[type="range"] { width: 100%; accent-color: var(--glm); }
+    .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 14px; }
+    .toggle { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: rgba(255,255,255,.018); font-size: 11px; }
+    .toggle input { width: 16px; height: 16px; accent-color: var(--sol); }
+    .run-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 16px; }
+    .run, .secondary {
+      cursor: pointer;
+      min-height: 42px;
+      border-radius: 11px;
+      font-weight: 820;
+    }
+    .run { color: #07100f; border: 1px solid var(--sol); background: var(--sol); }
+    .run:hover { filter: brightness(1.08); }
+    .secondary { padding: 0 13px; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+    .secondary:hover { color: var(--ink); border-color: var(--line-hot); }
+
+    .instrument { min-width: 0; overflow: hidden; }
+    .instrument-top { display: grid; grid-template-columns: .75fr 1.25fr; gap: 12px; padding: 18px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.016); }
+    .risk-block { display: flex; align-items: center; gap: 14px; }
+    .risk-badge { width: 76px; height: 76px; display: grid; place-items: center; flex: none; border: 1px solid var(--risk); border-radius: 20px; color: var(--risk); background: color-mix(in srgb, var(--risk) 12%, transparent); font: 900 25px var(--mono); box-shadow: inset 0 0 28px color-mix(in srgb, var(--risk) 8%, transparent); }
+    .risk-block b { display: block; font-size: 16px; }
+    .risk-block p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .dispatch-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .summary-cell { min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.018); }
+    .summary-cell small { display: block; color: var(--faint); font: 750 9px var(--mono); letter-spacing: .11em; text-transform: uppercase; }
+    .summary-cell strong { display: block; margin-top: 5px; font-size: 12px; overflow-wrap: anywhere; }
+
+    .pipeline-wrap { padding: 18px; }
+    .pipeline { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .pipe-step { position: relative; min-height: 116px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.018); opacity: .55; transform: translateY(4px); transition: .26s ease; }
+    .pipe-step::after { content: "›"; position: absolute; top: 44px; right: -8px; z-index: 2; color: var(--faint); font-size: 17px; }
+    .pipe-step:last-child::after { display: none; }
+    .pipe-step.active { opacity: 1; transform: none; border-color: var(--step, var(--glm)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--step, var(--glm)) 25%, transparent), inset 0 0 24px color-mix(in srgb, var(--step, var(--glm)) 6%, transparent); }
+    .pipe-no { color: var(--step, var(--glm)); font: 800 9px var(--mono); letter-spacing: .1em; }
+    .pipe-step h4 { margin: 12px 0 6px; font-size: 12px; }
+    .pipe-step p { margin: 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+    .reason { margin-top: 12px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: #091411; color: var(--muted); font-size: 12px; }
+    .reason strong { color: var(--ink); }
+    .fail-loud { display: none; margin-top: 12px; padding: 14px; border: 1px solid rgba(255,100,132,.55); border-radius: 12px; background: rgba(255,100,132,.08); color: #ffc2ce; }
+    .fail-loud.show { display: block; }
+    .fail-loud b { display: block; margin-bottom: 4px; }
+
+    .detail-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-top: 16px; }
+    .detail-card { padding: 18px; min-width: 0; }
+    .detail-card h3 { margin: 0; font-size: 16px; }
+    .detail-card > p { margin: 5px 0 15px; color: var(--muted); font-size: 11px; }
+    .score-row { display: grid; grid-template-columns: 118px minmax(90px, 1fr) 42px 72px; gap: 9px; align-items: center; padding: 7px 0; }
+    .score-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 11px; }
+    .score-name span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .model-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--model); }
+    .bar { height: 8px; overflow: hidden; border-radius: 999px; background: #08110f; }
+    .bar > span { display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--model); transition: width .35s ease; }
+    .score-value { color: #ccddd6; font: 800 10px var(--mono); text-align: right; }
+    .score-status { color: var(--muted); font: 700 9px var(--mono); text-align: right; }
+    .score-row.masked { opacity: .38; }
+    .score-row.chosen { margin: 0 -8px; padding: 7px 8px; border-radius: 9px; background: rgba(255,255,255,.035); }
+    .branch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .branch { min-height: 160px; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.018); }
+    .branch.avail { border-top: 2px solid var(--info); }
+    .branch.quality { border-top: 2px solid var(--warn); }
+    .branch small { color: var(--faint); font: 800 9px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .branch h4 { margin: 11px 0 7px; font-size: 13px; }
+    .branch p { margin: 0; color: var(--muted); font-size: 10px; }
+    .route-line { margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line); color: #c8dbd3; font: 700 10px var(--mono); overflow-wrap: anywhere; }
+    .availability { margin-top: 14px; }
+    .availability summary { cursor: pointer; color: #c8dbd3; font-size: 12px; font-weight: 780; }
+    .model-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+    .model-toggle { display: flex; align-items: center; gap: 7px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 10px; }
+    .model-toggle input { accent-color: var(--ok); }
+
+    .peer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .peer { position: relative; overflow: hidden; min-height: 300px; padding: 23px; }
+    .peer::after { content: attr(data-mark); position: absolute; right: -8px; bottom: -36px; color: var(--peer); opacity: .08; font-size: clamp(110px, 17vw, 220px); font-weight: 950; line-height: 1; letter-spacing: -.09em; }
+    .peer h3 { margin: 14px 0 6px; color: var(--peer); font-size: clamp(28px, 4vw, 52px); letter-spacing: -.05em; }
+    .peer .id { color: #c8dbd3; font: 700 11px var(--mono); }
+    .peer p { position: relative; z-index: 1; max-width: 560px; color: var(--muted); font-size: 13px; }
+    .peer-jobs { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+    .peer-jobs span { padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--peer) 32%, var(--line)); border-radius: 8px; background: color-mix(in srgb, var(--peer) 6%, transparent); color: #c8dbd3; font-size: 10px; }
+
+    .telemetry-grid { display: grid; grid-template-columns: .65fr 1.35fr; gap: 16px; }
+    .telemetry-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .stat { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.018); }
+    .stat small { display: block; color: var(--faint); font: 750 9px var(--mono); text-transform: uppercase; letter-spacing: .1em; }
+    .stat strong { display: block; margin-top: 8px; font-size: 22px; }
+    .telemetry-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .ledger-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 13px; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 10px; }
+    th { position: sticky; top: 0; z-index: 1; padding: 9px 10px; color: var(--faint); background: #0b1714; font: 800 9px var(--mono); letter-spacing: .09em; text-align: left; text-transform: uppercase; }
+    td { padding: 9px 10px; border-top: 1px solid var(--line); color: var(--muted); vertical-align: top; }
+    td strong { color: var(--ink); }
+    .empty { padding: 28px; color: var(--faint); text-align: center; }
+
+    .law-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .law { padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.018); }
+    .law b { display: block; color: var(--law); font: 850 11px var(--mono); }
+    .law p { margin: 8px 0 0; color: var(--muted); font-size: 10px; }
+    footer { margin-top: 30px; padding: 28px 0 42px; border-top: 1px solid var(--line); color: var(--faint); font-size: 10px; }
+    .foot { display: flex; justify-content: space-between; gap: 18px; }
+
+    @media (max-width: 1180px) {
+      .pipeline { grid-template-columns: repeat(4, 1fr); }
+      .pipe-step::after { display: none; }
+      .instrument-top, .detail-grid { grid-template-columns: 1fr; }
+      .law-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      .control-grid, .telemetry-grid { grid-template-columns: 1fr; }
+      .composer { position: static; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .peer-grid { grid-template-columns: 1fr; }
+      .nav { display: none; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(calc(100% - 22px), 1580px); }
+      .hero { padding-top: 30px; }
+      h1 { font-size: clamp(36px, 11.5vw, 49px); overflow-wrap: anywhere; }
+      .topbar .status-sim { display: none; }
+      .section-head h2 { overflow-wrap: anywhere; }
+      .section-head, .foot { display: block; }
+      .section-note { margin-top: 9px; }
+      .pipeline, .dispatch-summary, .branch-grid, .law-grid { grid-template-columns: 1fr; }
+      .toggle-grid, .model-toggles, .telemetry-stats { grid-template-columns: 1fr 1fr; }
+      .score-row { grid-template-columns: 100px 1fr 38px; }
+      .score-status { display: none; }
+      .truth-card { box-shadow: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand"><span class="brand-mark">M</span>MURE · MoE control room</div>
+      <nav class="nav" aria-label="Page sections">
+        <a href="#route">Route</a><a href="#candidates">Candidates</a><a href="#peers">Frontier peers</a><a href="#telemetry">Ledger</a>
+      </nav>
+      <span class="chip status-sim"><span class="dot"></span>simulation instrument</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div>
+        <div class="eyebrow">Sol-first task-level sparse mixture of experts</div>
+        <h1>Compose the task.<br><em>Watch the gate decide.</em></h1>
+        <p class="lead">A deterministic control-room prototype for the OpenClaw architecture: Sol holds intent, hard policy sets the quality floor, frontier peers do important work, and the learned layer may rank only what governance already allows.</p>
+      </div>
+      <aside class="card truth-card" aria-label="Status legend">
+        <h2>Truth boundary</h2>
+        <div class="stack">
+          <span class="chip status-live"><span class="dot"></span>LIVE</span>
+          <span class="chip status-spec"><span class="dot"></span>SPECIFIED</span>
+          <span class="chip status-sim"><span class="dot"></span>SIMULATED</span>
+        </div>
+        <p><strong>LIVE</strong> is limited to bounded gateway canaries verified on 2026-07-10: Sol, Terra, MiniMax M3 (<code>thinking: adaptive</code>), Sonnet 5, Opus 4.8, and DeepSeek Flash executed on their pinned models. GLM 5.2 was configured but quota-blocked; the M3 availability fallback then executed successfully.</p>
+        <p><strong>SPECIFIED</strong> marks the proposed routing contract. <strong>SIMULATED</strong> marks every score, outage, animation, and ledger row on this page. This instrument does not dispatch agents.</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="route">
+      <div class="shell">
+        <div class="section-head">
+          <div><div class="eyebrow">01 · deterministic gate lab</div><h2>Route a task through the full system</h2></div>
+          <p class="section-note">Change the task shape, not a model dropdown. Risk classification and hard masks run first. Provider availability may change the route; it may never lower an R2/R3 task into the cheap pool.</p>
+        </div>
+
+        <div class="control-grid">
+          <form class="card composer" id="composer" aria-label="Task routing controls">
+            <h3>Task composer</h3>
+            <p class="composer-sub">All outputs are deterministic for the same control state.</p>
+
+            <div class="field">
+              <label for="taskText">Task description</label>
+              <textarea id="taskText">Design a provider-resilient multi-agent routing architecture and verify its policy boundaries.</textarea>
+            </div>
+            <div class="field">
+              <label for="domain">Task domain</label>
+              <select id="domain">
+                <option value="architecture">Architecture / system design</option>
+                <option value="code">Implementation / refactor</option>
+                <option value="security">Security / permissions</option>
+                <option value="research">Research / synthesis</option>
+                <option value="verification">Verification / release gate</option>
+                <option value="operations">Operations / migration</option>
+                <option value="documentation">Documentation / extraction</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Scenario presets</label>
+              <div class="preset-row" id="presets"></div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-head"><label for="blast">Blast radius</label><output id="blastOut" for="blast">70</output></div>
+              <input id="blast" type="range" min="0" max="100" value="70">
+            </div>
+            <div class="slider-row">
+              <div class="slider-head"><label for="determinism">Determinism required</label><output id="determinismOut" for="determinism">85</output></div>
+              <input id="determinism" type="range" min="0" max="100" value="85">
+            </div>
+            <div class="slider-row">
+              <div class="slider-head"><label for="volume">Token volume</label><output id="volumeOut" for="volume">68</output></div>
+              <input id="volume" type="range" min="0" max="100" value="68">
+            </div>
+            <div class="slider-row">
+              <div class="slider-head"><label for="ambiguity">Ambiguity / novelty</label><output id="ambiguityOut" for="ambiguity">76</output></div>
+              <input id="ambiguity" type="range" min="0" max="100" value="76">
+            </div>
+
+            <div class="toggle-grid">
+              <label class="toggle"><input id="reversible" type="checkbox" checked>Reversible</label>
+              <label class="toggle"><input id="security" type="checkbox">Security-sensitive</label>
+              <label class="toggle"><input id="protected" type="checkbox">Protected paths</label>
+              <label class="toggle"><input id="longContext" type="checkbox" checked>Long context</label>
+              <label class="toggle"><input id="writePath" type="checkbox" checked>Write path</label>
+              <label class="toggle"><input id="qualityReject" type="checkbox">Verifier rejects</label>
+            </div>
+
+            <div class="run-row">
+              <button class="run" type="submit">Run deterministic route</button>
+              <button class="secondary" id="reset" type="button">Reset</button>
+            </div>
+
+            <details class="availability">
+              <summary>Simulate model availability</summary>
+              <div class="model-toggles" id="modelToggles"></div>
+            </details>
+          </form>
+
+          <div class="card instrument" aria-live="polite" aria-atomic="false">
+            <div class="instrument-top">
+              <div class="risk-block">
+                <div class="risk-badge" id="riskBadge">R2</div>
+                <div><b id="riskTitle">Important system work</b><p id="riskRule">Frontier producer + independent frontier verifier.</p></div>
+              </div>
+              <div class="dispatch-summary">
+                <div class="summary-cell"><small>role</small><strong id="roleSummary">mure-architect</strong></div>
+                <div class="summary-cell"><small>semantic producer (k=1)</small><strong id="producerSummary">—</strong></div>
+                <div class="summary-cell"><small>verification</small><strong id="verifierSummary">—</strong></div>
+              </div>
+            </div>
+            <div class="pipeline-wrap">
+              <div class="pipeline" id="pipeline" aria-label="Routing pipeline"></div>
+              <div class="reason" id="why">Press “Run deterministic route” to calculate the route.</div>
+              <div class="fail-loud" id="failLoud" role="alert"><b>FAIL LOUD · no compliant route</b><span id="failReason"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-grid" id="candidates">
+          <article class="card detail-card">
+            <h3>Candidate score board</h3>
+            <p>Scores are a simulated cold-start prior. Masked or unavailable models remain visible so the exclusion is inspectable.</p>
+            <div id="scoreBoard"></div>
+          </article>
+          <article class="card detail-card">
+            <h3>Two different failure laws</h3>
+            <p>An outage changes availability. A rejected answer changes quality escalation. Those paths never silently collapse into one another.</p>
+            <div class="branch-grid">
+              <div class="branch avail"><small>Availability fallback</small><h4 id="availabilityTitle">Preferred route available</h4><p id="availabilityText">No fallback invoked.</p><div class="route-line" id="availabilityRoute">preferred → effective</div></div>
+              <div class="branch quality"><small>Quality escalation</small><h4 id="qualityTitle">Not invoked</h4><p id="qualityText">Verifier accepted the simulated producer output.</p><div class="route-line" id="qualityRoute">producer → verifier → ledger</div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="peers">
+      <div class="shell">
+        <div class="section-head">
+          <div><div class="eyebrow">02 · frontier volume + long-context spine</div><h2>M3 and GLM 5.2 are peers, not leftovers</h2></div>
+          <p class="section-note">The quality floor is frontier capability, not one provider. M3 absorbs sustained important production; GLM 5.2 integrates wide contexts and independent evidence.</p>
+        </div>
+        <div class="peer-grid">
+          <article class="card peer" style="--peer:var(--m3)" data-mark="M3">
+            <div class="eyebrow">Frontier volume backbone</div>
+            <h3>MiniMax M3</h3>
+            <div class="id">minimax-portal/MiniMax-M3</div>
+            <p>Primary for high-volume frontier work: sustained implementation, research synthesis, transformations, drafting, and multi-file production. OpenClaw runs it with <code>thinking: adaptive</code>. The Ultra plan is a capacity advantage, not a reason to misclassify the model as cheap.</p>
+            <div class="peer-jobs"><span>R1 production</span><span>R2 co-producer</span><span>high token volume</span><span>seat challenger</span><span>provider diversity</span></div>
+          </article>
+          <article class="card peer" style="--peer:var(--glm)" data-mark="5.2">
+            <div class="eyebrow">Long-context integrator</div>
+            <h3>GLM 5.2</h3>
+            <div class="id">zai/glm-5.2</div>
+            <p>Primary for whole-corpus reasoning, architecture maps, cross-lane synthesis, contradiction detection, and verification of cheap extraction swarms. It converts breadth into one checkable artifact without spending the Sol seat.</p>
+            <div class="peer-jobs"><span>long context</span><span>architecture</span><span>deliberation</span><span>swarm verification</span><span>M3 fallback peer</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="telemetry">
+      <div class="shell">
+        <div class="section-head">
+          <div><div class="eyebrow">03 · simulated observability</div><h2>Dispatch ledger</h2></div>
+          <p class="section-note">Each run appends a clearly simulated row. Export the JSON to inspect the contract shape that a future live adapter would emit.</p>
+        </div>
+        <div class="telemetry-grid">
+          <article class="card detail-card">
+            <h3>Session telemetry</h3>
+            <p>Local page state only. Reloading clears it.</p>
+            <div class="telemetry-stats">
+              <div class="stat"><small>routes</small><strong id="statRoutes">0</strong></div>
+              <div class="stat"><small>fail loud</small><strong id="statFails">0</strong></div>
+              <div class="stat"><small>frontier share</small><strong id="statFrontier">0%</strong></div>
+              <div class="stat"><small>M3 / GLM share</small><strong id="statPeers">0%</strong></div>
+            </div>
+            <div class="telemetry-actions">
+              <button class="secondary" id="exportJson" type="button">Export JSON</button>
+              <button class="secondary" id="clearLedger" type="button">Clear simulated rows</button>
+            </div>
+          </article>
+          <article class="card detail-card">
+            <div class="ledger-wrap">
+              <table>
+                <caption class="sr-only">Simulated task routing ledger</caption>
+                <thead><tr><th>time</th><th>risk / role</th><th>producer</th><th>verifier</th><th>route state</th><th>status</th></tr></thead>
+                <tbody id="ledgerBody"><tr><td class="empty" colspan="6">No simulated routes yet.</td></tr></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell">
+        <div class="section-head"><div><div class="eyebrow">04 · invariants</div><h2>What the learner can never override</h2></div></div>
+        <div class="law-grid">
+          <article class="law" style="--law:var(--sol)"><b>01 · SOL OWNS INTENT</b><p>The seat preserves conversation state, goal spine, owner gates, and final acceptance. Expert lanes return evidence, not authority.</p></article>
+          <article class="law" style="--law:var(--danger)"><b>02 · R2/R3 STAY FRONTIER</b><p>No score, outage, quota, or learned weight may route important semantic work into DeepSeek Flash or MiMo.</p></article>
+          <article class="law" style="--law:var(--glm)"><b>03 · EVIDENCE BEATS VOTES</b><p>Independent tests, schemas, and local proof decide conflicts. More agents do not manufacture truth by consensus.</p></article>
+          <article class="law" style="--law:var(--warn)"><b>04 · LEARN INSIDE THE MASK</b><p>The MLP ranks eligible role × model candidates. It does not learn away protected paths, security floors, or owner holds.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell foot"><span>MURE / OpenClaw · Sol MoE control room · verified 2026-07-10</span><span>Self-contained · no network calls · task/session-level MoE, not token-level neural MoE</span></div>
+  </footer>
+
+  <script>
+    "use strict";
+
+    const MODEL = {
+      sol:    { name: "GPT-5.6 Sol", id: "openai/gpt-5.6-sol", provider: "openai", color: "var(--sol)", frontier: true, quality: .95, det: .92, context: .92, quota: .66, latency: .55, cost: .44, roles: ["mure-yuri","mure-helmsman","mure-adjudicator"] },
+      opus:   { name: "Opus 4.8", id: "anthropic/claude-opus-4-8", provider: "anthropic", color: "var(--opus)", frontier: true, quality: .97, det: .91, context: .92, quota: .62, latency: .38, cost: .28, roles: ["mure-sentinel","mure-steward","mure-architect","mure-adjudicator"] },
+      terra:  { name: "GPT-5.6 Terra", id: "openai/gpt-5.6-terra", provider: "openai", color: "var(--terra)", frontier: true, quality: .94, det: .97, context: .86, quota: .65, latency: .55, cost: .45, roles: ["mure-engineer","mure-mechanic","mure-oracle","mure-adjudicator"] },
+      sonnet: { name: "Sonnet 5", id: "anthropic/claude-sonnet-5", provider: "anthropic", color: "var(--sonnet)", frontier: true, quality: .91, det: .98, context: .88, quota: .78, latency: .72, cost: .62, roles: ["mure-calibrator","mure-advisor","mure-oracle","mure-chronicler"] },
+      m3:     { name: "MiniMax M3", id: "minimax-portal/MiniMax-M3", provider: "minimax", color: "var(--m3)", frontier: true, quality: .92, det: .80, context: .91, quota: .98, latency: .78, cost: .93, roles: ["mure-synthesist","mure-scout","mure-engineer","mure-envoy","mure-quartermaster"] },
+      glm:    { name: "GLM 5.2", id: "zai/glm-5.2", provider: "zai", color: "var(--glm)", frontier: true, quality: .91, det: .85, context: 1, quota: .88, latency: .68, cost: .82, roles: ["mure-architect","mure-deliberator","mure-scout","mure-synthesist"] },
+      flash:  { name: "DeepSeek Flash", id: "deepseek/deepseek-v4-flash", provider: "deepseek", color: "var(--cheap)", frontier: false, quality: .72, det: .79, context: .69, quota: .99, latency: .97, cost: 1, roles: ["deepseek-flash","mure-artificer","mure-archivist","mure-scout"] },
+      mimo:   { name: "MiMo v2.5", id: "cline-pass/mimo-v2.5", provider: "mimo", color: "var(--cheap)", frontier: false, quality: .69, det: .74, context: .76, quota: .99, latency: .94, cost: 1, roles: ["mure-archivist","mure-chronicler","mure-artificer","mure-scout"] }
+    };
+
+    const ROUTE_PROFILE = {
+      orchestration: { producer:["sol"], availability:["opus","m3"], quality:["opus","m3"], verifier:["sonnet"] },
+      breadth: { producer:["flash"], availability:["mimo"], quality:["m3"], verifier:["sonnet"] },
+      implementation: { producer:["terra"], availability:["m3","sonnet"], quality:["sonnet","opus"], verifier:["sonnet","glm"] },
+      "security-implementation": { producer:["terra"], availability:["glm","sonnet"], quality:["opus"], verifier:["opus"] },
+      security: { producer:["glm"], availability:["sol","sonnet"], quality:["opus"], verifier:["opus"] },
+      governance: { producer:["sol"], availability:["glm","sonnet"], quality:["opus"], verifier:["opus"] },
+      architecture: { producer:["glm"], availability:["m3","sol"], quality:["opus"], verifier:["sonnet","opus"] },
+      "long-context": { producer:["glm"], availability:["m3"], quality:["opus","sol"], verifier:["sonnet"] },
+      synthesis: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet","glm"] },
+      research: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet"] },
+      verification: { producer:["sonnet"], availability:["glm"], quality:["opus"], verifier:["opus"] },
+      general: { producer:["m3"], availability:["sol","glm"], quality:["opus"], verifier:["sonnet"] }
+    };
+
+    const RISK = {
+      R0: { color: "var(--ok)", title: "Mechanical / read-only", rule: "Cheap breadth is eligible; outputs must remain trivially checkable." },
+      R1: { color: "var(--info)", title: "Reversible production", rule: "One frontier producer by default; cheap agents may gather bounded evidence." },
+      R2: { color: "var(--warn)", title: "Important system work", rule: "Frontier producer + independent frontier verifier. No cheap semantic fallback." },
+      R3: { color: "var(--danger)", title: "Critical / governed", rule: "Frontier-only multi-pass route; fail loud or owner hold when evidence cannot resolve it." }
+    };
+
+    const PRESETS = {
+      architecture: { label: "System architecture", task: "Design a provider-resilient multi-agent routing architecture and verify its policy boundaries.", domain: "architecture", blast: 70, determinism: 85, volume: 68, ambiguity: 76, reversible: true, security: false, protected: false, longContext: true, writePath: true },
+      security: { label: "Security audit", task: "Audit the authentication and permission boundary for chained exploit paths.", domain: "security", blast: 92, determinism: 96, volume: 52, ambiguity: 80, reversible: true, security: true, protected: false, longContext: true, writePath: false },
+      migration: { label: "Production migration", task: "Plan and validate a state migration that changes shared production data.", domain: "operations", blast: 95, determinism: 94, volume: 58, ambiguity: 66, reversible: false, security: false, protected: true, longContext: false, writePath: true },
+      research: { label: "Deep research", task: "Synthesize a large evidence corpus into a decision-ready technical report.", domain: "research", blast: 38, determinism: 62, volume: 92, ambiguity: 72, reversible: true, security: false, protected: false, longContext: true, writePath: false },
+      scan: { label: "Repository scan", task: "Find every reference to the routing contract and return exact locations.", domain: "documentation", blast: 8, determinism: 78, volume: 66, ambiguity: 12, reversible: true, security: false, protected: false, longContext: false, writePath: false },
+      copy: { label: "Client draft", task: "Draft a reversible client-facing explanation from approved source material.", domain: "documentation", blast: 28, determinism: 54, volume: 45, ambiguity: 45, reversible: true, security: false, protected: false, longContext: false, writePath: true }
+    };
+
+    const els = Object.fromEntries([
+      "composer","taskText","domain","blast","determinism","volume","ambiguity","reversible","security","protected","longContext","writePath","qualityReject",
+      "blastOut","determinismOut","volumeOut","ambiguityOut","presets","modelToggles","riskBadge","riskTitle","riskRule","roleSummary","producerSummary","verifierSummary",
+      "pipeline","why","failLoud","failReason","scoreBoard","availabilityTitle","availabilityText","availabilityRoute","qualityTitle","qualityText","qualityRoute",
+      "ledgerBody","statRoutes","statFails","statFrontier","statPeers","exportJson","clearLedger","reset"
+    ].map(id => [id, document.getElementById(id)]));
+
+    const state = { ledger: [], availability: Object.fromEntries(Object.keys(MODEL).map(key => [key, true])), timers: [] };
+
+    function readControls() {
+      return {
+        task: els.taskText.value.trim() || "Untitled task",
+        domain: els.domain.value,
+        blast: Number(els.blast.value),
+        determinism: Number(els.determinism.value),
+        volume: Number(els.volume.value),
+        ambiguity: Number(els.ambiguity.value),
+        reversible: els.reversible.checked,
+        security: els.security.checked,
+        protected: els.protected.checked,
+        longContext: els.longContext.checked,
+        writePath: els.writePath.checked,
+        qualityReject: els.qualityReject.checked
+      };
+    }
+
+    function classifyRisk(s) {
+      if (s.security || s.protected || (!s.reversible && s.blast >= 55) || s.blast >= 92) return "R3";
+      if (s.blast >= 58 || s.determinism >= 84 || (s.ambiguity >= 72 && s.blast >= 38) || (s.writePath && s.blast >= 45)) return "R2";
+      if (s.writePath || s.volume >= 42 || s.ambiguity >= 36 || s.blast >= 22) return "R1";
+      return "R0";
+    }
+
+    function chooseRole(s, risk) {
+      if (s.protected || (!s.reversible && s.writePath)) return "mure-steward";
+      if (s.security || s.domain === "security") return "mure-sentinel";
+      if (s.domain === "verification") return "mure-oracle";
+      if (s.domain === "operations") return "mure-quartermaster";
+      if (s.domain === "architecture") return "mure-architect";
+      if (s.domain === "code") return risk === "R0" ? "mure-artificer" : "mure-mechanic";
+      if (s.domain === "research") return s.longContext ? "mure-scout" : "mure-synthesist";
+      if (s.domain === "documentation") return risk === "R0" ? "mure-archivist" : "mure-chronicler";
+      return "mure-envoy";
+    }
+
+    function chooseTaskType(s, risk) {
+      if ((s.security || s.domain === "security") && s.writePath) return "security-implementation";
+      if (s.security || s.domain === "security") return "security";
+      if (s.protected || (!s.reversible && s.blast >= 55)) return "governance";
+      if (s.domain === "verification") return "verification";
+      if (s.domain === "architecture") return "architecture";
+      if (s.longContext) return "long-context";
+      if (s.domain === "research" && s.volume >= 70) return "synthesis";
+      if (s.domain === "research") return "research";
+      if (s.domain === "code") return "implementation";
+      if (risk === "R0") return "breadth";
+      return "general";
+    }
+
+    function topKFor(s, risk) {
+      // Semantic top-k is deliberately 1. Independent evidence and verification
+      // are represented as separate lanes instead of pretending two producers
+      // are equivalent to one producer plus a critic.
+      return 1;
+    }
+
+    function roleFit(model, role, s) {
+      let fit = model.roles.includes(role) ? 1 : .61;
+      if (model === MODEL.glm && s.longContext) fit += .18;
+      if (model === MODEL.m3 && s.volume >= 60) fit += .16;
+      if (model === MODEL.terra && ["code","verification"].includes(s.domain)) fit += .13;
+      if (model === MODEL.opus && (s.security || s.protected)) fit += .15;
+      if (model === MODEL.sonnet && s.determinism >= 80) fit += .10;
+      return Math.min(1, fit);
+    }
+
+    function scoreModel(key, model, s, risk, role) {
+      const roleScore = roleFit(model, role, s);
+      const contextScore = s.longContext ? model.context : .78 + model.context * .22;
+      const detScore = model.det * (.55 + s.determinism / 220);
+      let weights;
+      if (risk === "R0") weights = { quality:.28, det:.05, role:.12, context:.05, quota:.10, latency:.20, cost:.20 };
+      else if (risk === "R1") weights = { quality:.34, det:.12, role:.16, context:.08, quota:.12, latency:.10, cost:.08 };
+      else weights = { quality:.40, det:.20, role:.15, context:.05, quota:.05, latency:.03, cost:.02 };
+      let score = model.quality*weights.quality + detScore*weights.det + roleScore*weights.role + contextScore*weights.context + model.quota*weights.quota + model.latency*weights.latency + model.cost*weights.cost;
+      if (s.volume >= 70 && key === "m3") score += .08;
+      if (s.longContext && key === "glm") score += .09;
+      if (s.security && key === "opus") score += .10;
+      if (s.domain === "code" && key === "terra") score += .08;
+      if (risk === "R0" && !model.frontier) score += .07;
+      return Math.max(0, Math.min(1, score));
+    }
+
+    function hardMask(key, model, s, risk) {
+      if ((risk === "R2" || risk === "R3") && !model.frontier) return "quality floor";
+      if (s.writePath && !model.frontier) return "read-only pool";
+      if (risk === "R3" && key === "opus") return "reserved for independent R3 verification";
+      return null;
+    }
+
+    function selectVerifier(producers, profile, risk) {
+      if (risk !== "R2" && risk !== "R3") return [];
+      const first = profile.verifier.find(key => state.availability[key] && !producers.includes(key));
+      if (!first) return [];
+      if (risk === "R3" && first !== "opus") return [];
+      return [first];
+    }
+
+    function calculate() {
+      const s = readControls();
+      const risk = classifyRisk(s);
+      const role = chooseRole(s, risk);
+      const taskType = chooseTaskType(s, risk);
+      const profile = ROUTE_PROFILE[taskType] || ROUTE_PROFILE.general;
+      const topK = topKFor(s, risk);
+      const scores = Object.entries(MODEL).map(([key, model]) => {
+        const inProfile = [...profile.producer, ...profile.availability, ...profile.quality, ...profile.verifier].includes(key);
+        const masked = hardMask(key, model, s, risk) || (!inProfile ? "outside task profile" : null);
+        return { key, model, score: scoreModel(key, model, s, risk, role), masked, available: state.availability[key] };
+      }).sort((a,b) => b.score - a.score);
+      const preferred = [...profile.producer];
+      const primary = profile.producer.find(key => state.availability[key] && !hardMask(key, MODEL[key], s, risk));
+      const fallback = profile.availability.find(key => state.availability[key] && !hardMask(key, MODEL[key], s, risk));
+      const effective = primary ? [primary] : fallback ? [fallback] : [];
+      const needsFrontier = risk === "R2" || risk === "R3" || risk === "R1";
+      const noProducer = effective.length === 0 || (needsFrontier && !effective.some(key => MODEL[key].frontier));
+      const verifiers = noProducer ? [] : selectVerifier(effective, profile, risk);
+      const missingVerifier = (risk === "R2" || risk === "R3") && verifiers.length === 0;
+      const fail = noProducer || missingVerifier;
+      const escalation = s.qualityReject && !fail
+        ? profile.quality.map(key => scores.find(item => item.key === key))
+          .find(item => item && !item.masked && item.available && MODEL[item.key].frontier && !effective.includes(item.key) && !verifiers.includes(item.key))
+        : null;
+      const escalationFail = s.qualityReject && !fail && !escalation;
+      return { s, risk, role, taskType, topK, scores, preferred, effective, verifiers, fail: fail || escalationFail, noProducer, missingVerifier, escalation, escalationFail };
+    }
+
+    function modelNames(keys, full=false) {
+      if (!keys.length) return "none";
+      return keys.map(key => full ? MODEL[key].id : MODEL[key].name).join(" + ");
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
+    }
+
+    function renderPipeline(result) {
+      const maskText = result.risk === "R2" || result.risk === "R3"
+        ? "cheap semantic workers excluded"
+        : result.s.writePath ? "cheap write workers excluded" : "cheap pool eligible";
+      const steps = [
+        { name:"Intent", value:result.s.task, color:"var(--sol)" },
+        { name:"Risk", value:`${result.risk} · deterministic rules`, color:RISK[result.risk].color },
+        { name:"Role", value:result.role, color:"var(--terra)" },
+        { name:"Hard mask", value:maskText, color:"var(--danger)" },
+        { name:"Producer", value:result.fail ? "blocked" : modelNames(result.effective), color:"var(--m3)" },
+        { name:"Verifier", value:result.fail ? "blocked" : modelNames(result.verifiers), color:"var(--glm)" },
+        { name:"Ledger", value:"SIMULATED route row", color:"var(--info)" }
+      ];
+      els.pipeline.innerHTML = steps.map((step, index) => `<article class="pipe-step" style="--step:${step.color}"><div class="pipe-no">0${index+1}</div><h4>${step.name}</h4><p>${escapeHtml(step.value)}</p></article>`).join("");
+      state.timers.forEach(clearTimeout);
+      state.timers = [];
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      els.pipeline.querySelectorAll(".pipe-step").forEach((step, index) => {
+        if (reduce) step.classList.add("active");
+        else state.timers.push(setTimeout(() => step.classList.add("active"), 80 + index * 120));
+      });
+    }
+
+    function renderScores(result) {
+      els.scoreBoard.innerHTML = result.scores.map(item => {
+        const chosen = result.effective.includes(item.key);
+        const status = item.masked ? `MASKED · ${item.masked}` : !item.available ? "UNAVAILABLE" : chosen ? "SELECTED" : "ELIGIBLE";
+        const width = Math.round(item.score * 100);
+        return `<div class="score-row${item.masked || !item.available ? " masked" : ""}${chosen ? " chosen" : ""}">
+          <div class="score-name" style="--model:${item.model.color}"><span class="model-dot"></span><span>${escapeHtml(item.model.name)}</span></div>
+          <div class="bar" style="--model:${item.model.color}" role="meter" aria-label="${escapeHtml(item.model.name)} score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${width}"><span style="--w:${width}%"></span></div>
+          <div class="score-value">${width}</div><div class="score-status">${status}</div>
+        </div>`;
+      }).join("");
+    }
+
+    function renderBranches(result) {
+      const unavailablePreferred = result.preferred.filter(key => !state.availability[key]);
+      if (unavailablePreferred.length) {
+        els.availabilityTitle.textContent = "Fallback invoked";
+        els.availabilityText.textContent = `${modelNames(unavailablePreferred)} unavailable. The gate selected the next eligible model without lowering the risk floor.`;
+      } else {
+        els.availabilityTitle.textContent = "Preferred route available";
+        els.availabilityText.textContent = "No provider outage or quota fallback was required.";
+      }
+      els.availabilityRoute.textContent = `${modelNames(result.preferred)} → ${result.fail ? "FAIL LOUD" : modelNames(result.effective)}`;
+
+      if (!result.s.qualityReject) {
+        els.qualityTitle.textContent = "Not invoked";
+        els.qualityText.textContent = "Verifier accepted the simulated producer output.";
+        els.qualityRoute.textContent = `${modelNames(result.effective)} → ${modelNames(result.verifiers)} → ledger`;
+      } else if (result.escalation) {
+        els.qualityTitle.textContent = "Verifier rejection escalates";
+        els.qualityText.textContent = "The original producer remains recorded. A different eligible frontier expert receives a correction packet; this is not an availability retry.";
+        els.qualityRoute.textContent = `${modelNames(result.effective)} → REJECT → ${MODEL[result.escalation.key].name}`;
+      } else {
+        els.qualityTitle.textContent = "Escalation exhausted";
+        els.qualityText.textContent = "No independent frontier escalation remains. The route stops instead of degrading to a cheap model.";
+        els.qualityRoute.textContent = `${modelNames(result.effective)} → REJECT → FAIL LOUD`;
+      }
+    }
+
+    function renderResult(result, record=true) {
+      const riskMeta = RISK[result.risk];
+      els.riskBadge.textContent = result.risk;
+      els.riskBadge.style.setProperty("--risk", riskMeta.color);
+      els.riskTitle.textContent = riskMeta.title;
+      els.riskRule.textContent = riskMeta.rule;
+      els.roleSummary.textContent = result.role;
+      els.producerSummary.textContent = result.fail ? "FAIL LOUD" : modelNames(result.effective);
+      els.verifierSummary.textContent = result.fail ? "route blocked" : modelNames(result.verifiers);
+      renderPipeline(result);
+      renderScores(result);
+      renderBranches(result);
+
+      const exclusions = result.scores.filter(item => item.masked).map(item => item.model.name);
+      const whyBits = [
+        `<strong>${result.risk}</strong> came from the declared task features`,
+        `<strong>${escapeHtml(result.role)}</strong> matched the domain and governance state`,
+        `<strong>semantic k=1</strong>; evidence and verification stay independent lanes`,
+        exclusions.length ? `${escapeHtml(exclusions.join(", "))} were hard-masked` : "all model tiers remained eligible"
+      ];
+      els.why.innerHTML = whyBits.join(" · ") + ". Scores only ranked the survivors.";
+
+      els.failLoud.classList.toggle("show", result.fail);
+      if (result.noProducer) els.failReason.textContent = "No eligible frontier producer is available. The route stops; it does not spill into the cheap pool.";
+      else if (result.missingVerifier) els.failReason.textContent = "No independent compliant verifier is available for this risk/write path.";
+      else if (result.escalationFail) els.failReason.textContent = "The verifier rejected the output and no independent frontier escalation remains.";
+      else els.failReason.textContent = "";
+
+      if (record) appendLedger(result);
+    }
+
+    function appendLedger(result) {
+      const row = {
+        schema: "mure.route.sim.v1",
+        simulated: true,
+        time: new Date().toISOString(),
+        task: result.s.task,
+        features: { blast:result.s.blast, determinism:result.s.determinism, volume:result.s.volume, ambiguity:result.s.ambiguity, reversible:result.s.reversible, security:result.s.security, protectedPaths:result.s.protected, longContext:result.s.longContext, writePath:result.s.writePath },
+        risk: result.risk,
+        role: result.role,
+        topK: result.topK,
+        preferred: result.preferred.map(key => MODEL[key].id),
+        producers: result.effective.map(key => MODEL[key].id),
+        verifiers: result.verifiers.map(key => MODEL[key].id),
+        qualityEscalation: result.escalation ? MODEL[result.escalation.key].id : null,
+        routeState: result.fail ? "FAIL_LOUD" : result.s.qualityReject ? "QUALITY_ESCALATED" : result.preferred.some(key => !state.availability[key]) ? "AVAILABILITY_FALLBACK" : "PRIMARY",
+        resultLabel: result.fail ? "SIM_ROUTE_F_PASS" : "SIM_ROUTE_X_PASS"
+      };
+      state.ledger.unshift(row);
+      renderLedger();
+    }
+
+    function renderLedger() {
+      if (!state.ledger.length) els.ledgerBody.innerHTML = `<tr><td class="empty" colspan="6">No simulated routes yet.</td></tr>`;
+      else els.ledgerBody.innerHTML = state.ledger.map(row => `<tr>
+        <td class="mono">${escapeHtml(row.time.slice(11,19))}</td>
+        <td><strong>${row.risk}</strong><br><span class="mono">${escapeHtml(row.role)}</span></td>
+        <td>${escapeHtml(row.producers.join(" + ") || "none")}</td>
+        <td>${escapeHtml(row.verifiers.join(" + ") || "none")}</td>
+        <td class="mono">${escapeHtml(row.routeState)}</td>
+        <td><span class="chip status-sim"><span class="dot"></span>SIMULATED</span></td>
+      </tr>`).join("");
+      const total = state.ledger.length;
+      const fails = state.ledger.filter(row => row.routeState === "FAIL_LOUD").length;
+      const frontier = state.ledger.filter(row => row.producers.some(id => !id.includes("deepseek") && !id.includes("mimo"))).length;
+      const peers = state.ledger.filter(row => row.producers.some(id => id.includes("MiniMax-M3") || id.includes("glm-5.2"))).length;
+      els.statRoutes.textContent = String(total);
+      els.statFails.textContent = String(fails);
+      els.statFrontier.textContent = total ? `${Math.round(frontier / total * 100)}%` : "0%";
+      els.statPeers.textContent = total ? `${Math.round(peers / total * 100)}%` : "0%";
+    }
+
+    function setPreset(name, run=true) {
+      const p = PRESETS[name];
+      els.taskText.value = p.task;
+      els.domain.value = p.domain;
+      ["blast","determinism","volume","ambiguity"].forEach(key => { els[key].value = p[key]; els[`${key}Out`].textContent = p[key]; });
+      ["reversible","security","protected","longContext","writePath"].forEach(key => { els[key].checked = p[key]; });
+      els.qualityReject.checked = false;
+      document.querySelectorAll(".preset").forEach(button => button.classList.toggle("active", button.dataset.preset === name));
+      if (run) renderResult(calculate());
+    }
+
+    function init() {
+      els.presets.innerHTML = Object.entries(PRESETS).map(([key,p]) => `<button type="button" class="preset${key === "architecture" ? " active" : ""}" data-preset="${key}">${escapeHtml(p.label)}</button>`).join("");
+      els.presets.addEventListener("click", event => {
+        const button = event.target.closest("[data-preset]");
+        if (button) setPreset(button.dataset.preset);
+      });
+      els.modelToggles.innerHTML = Object.entries(MODEL).map(([key,model]) => `<label class="model-toggle"><input type="checkbox" data-model="${key}" checked><span class="model-dot" style="--model:${model.color}"></span>${escapeHtml(model.name)}</label>`).join("");
+      els.modelToggles.addEventListener("change", event => {
+        const input = event.target.closest("input[data-model]");
+        if (!input) return;
+        state.availability[input.dataset.model] = input.checked;
+        renderResult(calculate());
+      });
+      ["blast","determinism","volume","ambiguity"].forEach(key => {
+        els[key].addEventListener("input", () => { els[`${key}Out`].textContent = els[key].value; });
+      });
+      els.composer.addEventListener("submit", event => { event.preventDefault(); renderResult(calculate()); });
+      els.reset.addEventListener("click", () => {
+        Object.keys(state.availability).forEach(key => state.availability[key] = true);
+        els.modelToggles.querySelectorAll("input").forEach(input => input.checked = true);
+        setPreset("architecture");
+      });
+      els.clearLedger.addEventListener("click", () => { state.ledger = []; renderLedger(); });
+      els.exportJson.addEventListener("click", () => {
+        const payload = JSON.stringify({ exportedAt:new Date().toISOString(), status:"SIMULATED", rows:[...state.ledger].reverse() }, null, 2);
+        const blob = new Blob([payload], { type:"application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "mure-simulated-routing-ledger.json";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      });
+      renderResult(calculate(), false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
