@@ -257,6 +257,7 @@
       .shell { width: min(calc(100% - 22px), 1580px); }
       .hero { padding-top: 30px; }
       h1 { font-size: clamp(36px, 11.5vw, 49px); overflow-wrap: anywhere; }
+      h1 em { display: block; font-size: .82em; letter-spacing: -.052em; }
       .topbar .status-sim { display: none; }
       .section-head h2 { overflow-wrap: anywhere; }
       .section-head, .foot { display: block; }
@@ -297,7 +298,7 @@
           <span class="chip status-spec"><span class="dot"></span>SPECIFIED</span>
           <span class="chip status-sim"><span class="dot"></span>SIMULATED</span>
         </div>
-        <p><strong>LIVE</strong> is limited to bounded gateway canaries verified on 2026-07-10: Sol, Terra, MiniMax M3 (<code>thinking: adaptive</code>), Sonnet 5, Opus 4.8, and DeepSeek Flash executed on their pinned models. GLM 5.2 was configured but quota-blocked; the M3 availability fallback then executed successfully.</p>
+        <p><strong>LIVE</strong> is limited to bounded native OpenClaw completions verified on 2026-07-10: Sol, Terra, Luna, MiniMax M3 (<code>thinking: adaptive</code>), Sonnet 5, Opus 4.8, and DeepSeek Flash executed on their pinned models. GLM 5.2 is quota-masked. MiMo is auth-masked until a post-restart native completion proves the freshly seeded profile. Depth-2 Sol orchestration is configured and awaits the same gateway restart.</p>
         <p><strong>SPECIFIED</strong> marks the proposed routing contract. <strong>SIMULATED</strong> marks every score, outage, animation, and ledger row on this page. This instrument does not dispatch agents.</p>
       </aside>
     </div>
@@ -328,6 +329,7 @@
                 <option value="security">Security / permissions</option>
                 <option value="research">Research / synthesis</option>
                 <option value="verification">Verification / release gate</option>
+                <option value="adjudication">Adjudication / red-team</option>
                 <option value="operations">Operations / migration</option>
                 <option value="documentation">Documentation / extraction</option>
               </select>
@@ -493,13 +495,14 @@
 
     const MODEL = {
       sol:    { name: "GPT-5.6 Sol", id: "openai/gpt-5.6-sol", provider: "openai", color: "var(--sol)", frontier: true, quality: .95, det: .92, context: .92, quota: .66, latency: .55, cost: .44, roles: ["mure-yuri","mure-helmsman","mure-adjudicator"] },
+      luna:   { name: "GPT-5.6 Luna", id: "openai/gpt-5.6-luna", provider: "openai", color: "#c49cff", frontier: true, quality: .94, det: .93, context: .90, quota: .66, latency: .54, cost: .44, roles: ["mure-adjudicator","mure-oracle","mure-deliberator"] },
       opus:   { name: "Opus 4.8", id: "anthropic/claude-opus-4-8", provider: "anthropic", color: "var(--opus)", frontier: true, quality: .97, det: .91, context: .92, quota: .62, latency: .38, cost: .28, roles: ["mure-sentinel","mure-steward","mure-architect","mure-adjudicator"] },
       terra:  { name: "GPT-5.6 Terra", id: "openai/gpt-5.6-terra", provider: "openai", color: "var(--terra)", frontier: true, quality: .94, det: .97, context: .86, quota: .65, latency: .55, cost: .45, roles: ["mure-engineer","mure-mechanic","mure-oracle","mure-adjudicator"] },
       sonnet: { name: "Sonnet 5", id: "anthropic/claude-sonnet-5", provider: "anthropic", color: "var(--sonnet)", frontier: true, quality: .91, det: .98, context: .88, quota: .78, latency: .72, cost: .62, roles: ["mure-calibrator","mure-advisor","mure-oracle","mure-chronicler"] },
       m3:     { name: "MiniMax M3", id: "minimax-portal/MiniMax-M3", provider: "minimax", color: "var(--m3)", frontier: true, quality: .92, det: .80, context: .91, quota: .98, latency: .78, cost: .93, roles: ["mure-synthesist","mure-scout","mure-engineer","mure-envoy","mure-quartermaster"] },
       glm:    { name: "GLM 5.2", id: "zai/glm-5.2", provider: "zai", color: "var(--glm)", frontier: true, quality: .91, det: .85, context: 1, quota: .88, latency: .68, cost: .82, roles: ["mure-architect","mure-deliberator","mure-scout","mure-synthesist"] },
       flash:  { name: "DeepSeek Flash", id: "deepseek/deepseek-v4-flash", provider: "deepseek", color: "var(--cheap)", frontier: false, quality: .72, det: .79, context: .69, quota: .99, latency: .97, cost: 1, roles: ["deepseek-flash","mure-artificer","mure-archivist","mure-scout"] },
-      mimo:   { name: "MiMo v2.5", id: "cline-pass/mimo-v2.5", provider: "mimo", color: "var(--cheap)", frontier: false, quality: .69, det: .74, context: .76, quota: .99, latency: .94, cost: 1, roles: ["mure-archivist","mure-chronicler","mure-artificer","mure-scout"] }
+      mimo:   { name: "MiMo v2.5", id: "opencode-go/mimo-v2.5", provider: "mimo", color: "var(--cheap)", frontier: false, quality: .69, det: .74, context: .76, quota: .99, latency: .94, cost: 1, roles: ["mure-archivist","mure-chronicler","mure-artificer","mure-scout"] }
     };
 
     const ROUTE_PROFILE = {
@@ -513,7 +516,8 @@
       "long-context": { producer:["glm"], availability:["m3"], quality:["opus","sol"], verifier:["sonnet"] },
       synthesis: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet","glm"] },
       research: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet"] },
-      verification: { producer:["sonnet"], availability:["glm"], quality:["opus"], verifier:["opus"] },
+      verification: { producer:["sonnet"], availability:["glm"], quality:["luna","opus"], verifier:["opus"] },
+      adjudication: { producer:["luna"], availability:["opus","glm"], quality:["sol","opus"], verifier:["sonnet"] },
       general: { producer:["m3"], availability:["sol","glm"], quality:["opus"], verifier:["sonnet"] }
     };
 
@@ -527,6 +531,7 @@
     const PRESETS = {
       architecture: { label: "System architecture", task: "Design a provider-resilient multi-agent routing architecture and verify its policy boundaries.", domain: "architecture", blast: 70, determinism: 85, volume: 68, ambiguity: 76, reversible: true, security: false, protected: false, longContext: true, writePath: true },
       security: { label: "Security audit", task: "Audit the authentication and permission boundary for chained exploit paths.", domain: "security", blast: 92, determinism: 96, volume: 52, ambiguity: 80, reversible: true, security: true, protected: false, longContext: true, writePath: false },
+      adjudication: { label: "Adjudication", task: "Red-team competing architecture findings and adjudicate the strongest supported conclusion.", domain: "adjudication", blast: 72, determinism: 90, volume: 58, ambiguity: 88, reversible: true, security: true, protected: false, longContext: true, writePath: false },
       migration: { label: "Production migration", task: "Plan and validate a state migration that changes shared production data.", domain: "operations", blast: 95, determinism: 94, volume: 58, ambiguity: 66, reversible: false, security: false, protected: true, longContext: false, writePath: true },
       research: { label: "Deep research", task: "Synthesize a large evidence corpus into a decision-ready technical report.", domain: "research", blast: 38, determinism: 62, volume: 92, ambiguity: 72, reversible: true, security: false, protected: false, longContext: true, writePath: false },
       scan: { label: "Repository scan", task: "Find every reference to the routing contract and return exact locations.", domain: "documentation", blast: 8, determinism: 78, volume: 66, ambiguity: 12, reversible: true, security: false, protected: false, longContext: false, writePath: false },
@@ -540,7 +545,7 @@
       "ledgerBody","statRoutes","statFails","statFrontier","statPeers","exportJson","clearLedger","reset"
     ].map(id => [id, document.getElementById(id)]));
 
-    const state = { ledger: [], availability: Object.fromEntries(Object.keys(MODEL).map(key => [key, true])), timers: [] };
+    const state = { ledger: [], availability: Object.fromEntries(Object.keys(MODEL).map(key => [key, key !== "glm" && key !== "mimo"])), timers: [] };
 
     function readControls() {
       return {
@@ -568,6 +573,7 @@
 
     function chooseRole(s, risk) {
       if (s.protected || (!s.reversible && s.writePath)) return "mure-steward";
+      if (s.domain === "adjudication") return "mure-adjudicator";
       if (s.security || s.domain === "security") return "mure-sentinel";
       if (s.domain === "verification") return "mure-oracle";
       if (s.domain === "operations") return "mure-quartermaster";
@@ -579,6 +585,7 @@
     }
 
     function chooseTaskType(s, risk) {
+      if (s.domain === "adjudication") return "adjudication";
       if ((s.security || s.domain === "security") && s.writePath) return "security-implementation";
       if (s.security || s.domain === "security") return "security";
       if (s.protected || (!s.reversible && s.blast >= 55)) return "governance";
@@ -635,9 +642,9 @@
 
     function selectVerifier(producers, profile, risk) {
       if (risk !== "R2" && risk !== "R3") return [];
+      if (risk === "R3") return state.availability.opus && !producers.includes("opus") ? ["opus"] : [];
       const first = profile.verifier.find(key => state.availability[key] && !producers.includes(key));
       if (!first) return [];
-      if (risk === "R3" && first !== "opus") return [];
       return [first];
     }
 
@@ -830,7 +837,7 @@
         const button = event.target.closest("[data-preset]");
         if (button) setPreset(button.dataset.preset);
       });
-      els.modelToggles.innerHTML = Object.entries(MODEL).map(([key,model]) => `<label class="model-toggle"><input type="checkbox" data-model="${key}" checked><span class="model-dot" style="--model:${model.color}"></span>${escapeHtml(model.name)}</label>`).join("");
+      els.modelToggles.innerHTML = Object.entries(MODEL).map(([key,model]) => `<label class="model-toggle"><input type="checkbox" data-model="${key}"${state.availability[key] ? " checked" : ""}><span class="model-dot" style="--model:${model.color}"></span>${escapeHtml(model.name)}</label>`).join("");
       els.modelToggles.addEventListener("change", event => {
         const input = event.target.closest("input[data-model]");
         if (!input) return;
@@ -842,8 +849,8 @@
       });
       els.composer.addEventListener("submit", event => { event.preventDefault(); renderResult(calculate()); });
       els.reset.addEventListener("click", () => {
-        Object.keys(state.availability).forEach(key => state.availability[key] = true);
-        els.modelToggles.querySelectorAll("input").forEach(input => input.checked = true);
+        Object.keys(state.availability).forEach(key => state.availability[key] = key !== "glm" && key !== "mimo");
+        els.modelToggles.querySelectorAll("input").forEach(input => { input.checked = !["glm", "mimo"].includes(input.dataset.model); });
         setPreset("architecture");
       });
       els.clearLedger.addEventListener("click", () => { state.ledger = []; renderLedger(); });

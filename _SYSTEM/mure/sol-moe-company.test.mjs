@@ -28,6 +28,9 @@ test('plans separate immediate, availability, and quality queues', async () => {
   assert.ok(plan.queues.availabilityFallbacks.some((entry) => entry.model === 'minimax-portal/MiniMax-M3'));
   assert.ok(plan.queues.qualityEscalations.some((entry) => entry.model === 'anthropic/claude-opus-4-8'));
   assert.notDeepEqual(plan.queues.availabilityFallbacks, plan.queues.qualityEscalations);
+  assert.equal(plan.summary.initialReadyTasks, 1);
+  assert.equal(plan.summary.deferredVerifiers, 1);
+  assert.equal('immediateSpawns' in plan.summary, false);
 });
 
 test('owner-held governance work never enters an immediate spawn queue', async () => {
@@ -49,6 +52,24 @@ test('owner-held governance work never enters an immediate spawn queue', async (
   assert.equal(plan.queues.producers.length, 0);
   assert.equal(plan.queues.verifiers.length, 0);
   assert.equal(plan.ledgerSeed[0].outcome, 'owner-held');
+});
+
+test('id-less owner-held work receives the same stable key on both sides of the hold join', async () => {
+  const plan = await planSolMoeCompany({
+    summary: 'Id-less held governance test',
+    subtasks: [{
+      summary: 'Arm the live router',
+      prompt: 'Arm the live router',
+      role: 'steward',
+      arming: true,
+      reversible: true,
+    }],
+  }, { availability: allAvailable, rulings: { source: 'test', map: new Map(), rulings: [] } });
+
+  assert.equal(plan.routes[0].taskId, 'subtask-1');
+  assert.equal(plan.routes[0].held, true);
+  assert.equal(plan.governed.held[0].subtaskId, 'subtask-1');
+  assert.equal(plan.queues.producers.length, 0);
 });
 
 test('important route fails loud per subtask without killing other routes', async () => {

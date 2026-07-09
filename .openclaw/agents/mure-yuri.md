@@ -1,10 +1,10 @@
 ---
 name: mure-yuri
 description: "Main-session binding (option iii). Yuri is Marcel's adversarial ally + cognitive extension + operator of MURE — the front-end to all of YURI (fleet dispatch, memory, sessions, advisor). Loaded via CLAUDE.md @-include of _SYSTEM/persona.md. Single canonical brain doc; never re-authored."
-model: anthropic/claude-opus-4-8
+model: openai/gpt-5.6-sol
 thinkingLevel: high
 tools: read, grep, glob, edit, write, bash
-spawns: mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor
+spawns: mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-artificer, mure-sentinel, mure-synthesist, mure-adjudicator, mure-calibrator, mure-architect, mure-evolver, mure-advisor, deepseek-flash
 persona_file: _SYSTEM/persona.md
 binding: main-session
 ---
@@ -23,7 +23,7 @@ The main session owns: goal-spine holding + five-state router + decode pipeline 
 ## How this entry differs from `_SYSTEM/persona.md`
 
 - **`_SYSTEM/persona.md`** = canonical brain doc (identity · cognition · Marcel operating model · binding floor). Loaded natively every session via `CLAUDE.md` @-include.
-- **`.omp/agents/mure-yuri.md`** (this file) = MURE-fleet registration entry: declares the entry exists in the catalog, names the model binding for the main session, lists the spawnable lanes, fixes the persona-file reference. Sub-agent dispatch sees this; the persona doc sees this lane.
+- **`.openclaw/agents/mure-yuri.md`** (this file) = MURE-fleet registration entry: declares the entry exists in the catalog, names the model binding for the main session, lists the spawnable lanes, and fixes the persona-file reference. Sub-agent dispatch sees this; the persona doc sees this lane.
 
 The two are **load-bearing partners**. Persona tells OpenClaw *how to be*. This entry tells MURE *which role this lane is in the fleet graph*.
 
@@ -32,9 +32,10 @@ The two are **load-bearing partners**. Persona tells OpenClaw *how to be*. This 
 - **opus-fleet** — `/opus-fleet` prompt → research → synthesize → master plan → MURE build (`/opus-fleet` is the primary workflow trigger, Q2 of questionnaire).
 - **fleet-economy** — orchestrator budget 35% · iron rules · leaf-lane exception · cost-tiers.
 - **mure-advisor** — tiered per-turn watchdog (heavy advisor = Opus-4.8 on security-relevant + escalation; watcher = Sonnet 5 prime + Haiku/DVF fallback). The advisor annotates YURI's outputs without consuming her budget.
-- **mure-role-variant-matrix** — 25-agent variant catalog; this entry's `spawns` field is a subset.
+- **mure-role-variant-matrix** — 26-agent variant catalog; this entry's `spawns` field is a governed subset.
 - **grill-me** — adversarial-ally / pre-commit challenge mechanic.
 - **dispatching-parallel-agents** — fleet-by-default posture (Iron Rule 5).
+- **openclaw-moe-dispatch** — canonical native MURE dispatch: Sol/Yuri spawns configured OpenClaw child sessions through `sessions_spawn`; CLI gateway turns and Codex-native subagents are not substitutes.
 
 ## Best For
 
@@ -74,15 +75,17 @@ The main session should be spawned/used for:
 
 - **catalog entry id:** `mure-yuri`
 - **lane:** orchestration (front-end)
-- **model binding:** `anthropic/claude-opus-4-8` (heavy anchor for the main session; matches persona.md binding floor "owner-confirmed identity-lock floor")
-- **spawnable lanes:** `mure-helmsman`, `mure-helmsman-glm`, `mure-envoy`, `mure-scout`, `mure-engineer`, `mure-mechanic`, `mure-sentinel`, `mure-adjudicator`, `mure-architect`, `mure-evolver`, `mure-advisor`
+- **primary model binding:** `openai/gpt-5.6-sol` (`high`) for the reversible Sol-first pilot
+- **rollback fallback:** `anthropic/claude-opus-4-8`; retained until Sol role-fit and quota behavior are calibrated
+- **spawnable lanes:** `mure-helmsman`, `mure-helmsman-glm`, `mure-envoy`, `mure-scout`, `mure-engineer`, `mure-mechanic`, `mure-artificer`, `mure-sentinel`, `mure-synthesist`, `mure-adjudicator`, `mure-calibrator`, `mure-architect`, `mure-evolver`, `mure-advisor`, `deepseek-flash`
 - **persona file:** `_SYSTEM/persona.md` (single source of truth; never re-authored here)
-- **owner confirmation required for:** persona-file edits; lane-graph structural changes; advisor-policy binding; main-session model override
+- **owner confirmation required for:** persona-file edits; lane-graph structural changes; advisor-policy binding; persistent default-model changes (ad hoc main-chat model switching remains allowed)
 
 ## Variant seed (initial; will be expanded post-2026-07-12 calibration)
 
 ```json
 [
-  {"id":"mure-yuri-opus48","model":"anthropic/claude-opus-4-8","thinkingLevel":"high","tools":["read","grep","glob","edit","write","bash"],"max_tokens":16384,"systemSections":["apex-judgment","orchestrator-peer","narrow-prompt-reserved"],"eligibilityFlags":["apex","anchor","main-binding","identity-locked"],"costTier":"apex","note":"Heavy anchor for main session. Identity-lock floor (persona.md binding). Sourced dispatch authority for MURE."}
+  {"id":"mure-yuri-sol","model":"openai/gpt-5.6-sol","thinkingLevel":"high","max_tokens":16384,"eligibilityFlags":["default-prime","main-binding","sol-pilot","native-main-scope"],"costTier":"heavy","quota":"openai-codex-pro-x5","note":"Default main-input pilot under Yuri's native OpenAI OAuth scope."},
+  {"id":"mure-yuri-opus48","model":"anthropic/claude-opus-4-8","thinkingLevel":"high","max_tokens":16384,"eligibilityFlags":["apex","anchor","main-binding","rollback"],"costTier":"apex","note":"Temporary rollback fallback while the Sol-first pilot is calibrated."}
 ]
 ```

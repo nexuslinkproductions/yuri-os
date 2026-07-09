@@ -1,29 +1,28 @@
 #!/usr/bin/env node
-// @capability: sol-moe-openclaw-runner
-// @serves: end-to-end Sol MoE planning and owner-confirmed OpenClaw execution
-// @does: composes the governed company planner, deterministic router, fail-closed executor, and non-delivering OpenClaw adapter behind an explicit owner-confirmation gate
-// @use: node _SYSTEM/mure/sol-moe-run.mjs --task-file <task.json> [--apply --owner-confirmed] [--include-evidence]
-// @exports: OwnerConfirmationRequiredError, runSolMoeTask
+// @capability: sol-moe-native-intent-runner
+// @serves: Sol MoE planning and native sessions_spawn intent compilation
+// @does: composes the governed company planner with the pure native dispatch reducer; the parent OpenClaw session executes returned actions through sessions_spawn
+// @use: node _SYSTEM/mure/sol-moe-run.mjs --task-file <task.json> [--include-evidence]
+// @exports: NativeParentRequiredError, runSolMoeTask
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { planSolMoeCompany } from './sol-moe-company.mjs';
-import { executeSolMoePlan } from './sol-moe-executor.mjs';
-import { createOpenClawSpawn } from './sol-moe-openclaw-adapter.mjs';
+import { createNativeDispatchState, reduceNativeDispatch } from './sol-moe-native-dispatch.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 
-export class OwnerConfirmationRequiredError extends Error {
+export class NativeParentRequiredError extends Error {
   constructor() {
-    super('Live Sol MoE execution requires both apply:true and ownerConfirmed:true. Plan-only mode remains available.');
-    this.name = 'OwnerConfirmationRequiredError';
-    this.code = 'OWNER_CONFIRMATION_REQUIRED';
+    super('Live Sol MoE execution is available only to the parent OpenClaw agent through native sessions_spawn. This Node runner emits dispatch intent and never executes children.');
+    this.name = 'NativeParentRequiredError';
+    this.code = 'NATIVE_OPENCLAW_PARENT_REQUIRED';
   }
 }
 
-/** Plan by default; execute only through the explicit owner-confirmed effect gate. */
+/** Plan and compile the first native action without invoking any tool or subprocess. */
 export async function runSolMoeTask(task = {}, opts = {}) {
   const plan = await planSolMoeCompany(task, {
     availability: opts.availability,
@@ -33,32 +32,15 @@ export async function runSolMoeTask(task = {}, opts = {}) {
     timestamp: opts.timestamp || new Date().toISOString(),
   });
 
-  if (opts.apply !== true) {
-    return Object.freeze({
-      schemaVersion: 'sol-moe-run-v1',
-      mode: 'plan-only-disarmed',
-      plan,
-      execution: null,
-    });
-  }
-  if (opts.ownerConfirmed !== true) throw new OwnerConfirmationRequiredError();
-
-  const spawn = opts.spawn || createOpenClawSpawn({
-    apply: true,
-    ownerConfirmed: true,
-    executionId: opts.executionId,
-    timeoutMs: opts.timeoutMs,
-    maxPromptChars: opts.maxPromptChars,
-  });
-  const execution = await executeSolMoePlan(plan, {
-    spawn,
-    maxConcurrency: opts.maxConcurrency,
-  });
+  if (opts.apply === true || opts.spawn) throw new NativeParentRequiredError();
+  const nativeState = createNativeDispatchState(plan);
+  const scheduled = reduceNativeDispatch(nativeState, null, { cwd: opts.cwd || REPO_ROOT });
   return Object.freeze({
-    schemaVersion: 'sol-moe-run-v1',
-    mode: 'owner-confirmed-live',
+    schemaVersion: 'sol-moe-run-v2',
+    mode: 'native-dispatch-intent',
     plan,
-    execution,
+    nativeState: scheduled.state,
+    nextAction: scheduled.action,
   });
 }
 
@@ -69,12 +51,7 @@ function parseArgs(argv) {
   };
   return {
     taskFile: valueAfter('--task-file'),
-    apply: argv.includes('--apply'),
-    ownerConfirmed: argv.includes('--owner-confirmed'),
     includeEvidence: argv.includes('--include-evidence'),
-    maxConcurrency: valueAfter('--max-concurrency'),
-    timeoutMs: valueAfter('--timeout-ms'),
-    executionId: valueAfter('--execution-id'),
   };
 }
 
@@ -82,7 +59,7 @@ const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.arg
 if (isMain) {
   const args = parseArgs(process.argv.slice(2));
   if (!args.taskFile) {
-    process.stderr.write('Usage: node _SYSTEM/mure/sol-moe-run.mjs --task-file <task.json> [--apply --owner-confirmed] [--include-evidence]\n');
+    process.stderr.write('Usage: node _SYSTEM/mure/sol-moe-run.mjs --task-file <task.json> [--include-evidence]\n');
     process.exit(2);
   }
   const taskPath = path.resolve(REPO_ROOT, args.taskFile);
@@ -90,10 +67,10 @@ if (isMain) {
   runSolMoeTask(task, args)
     .then((result) => {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-      process.exitCode = result.execution?.status === 'fail-loud' ? 1 : 0;
+      process.exitCode = result.nextAction?.type === 'fail-loud' ? 1 : 0;
     })
     .catch((error) => {
       process.stderr.write(`${error?.stack || error}\n`);
-      process.exitCode = error?.code === 'OWNER_CONFIRMATION_REQUIRED' ? 2 : 1;
+      process.exitCode = error?.code === 'NATIVE_OPENCLAW_PARENT_REQUIRED' ? 2 : 1;
     });
 }

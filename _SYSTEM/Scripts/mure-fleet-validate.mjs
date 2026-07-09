@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildAgentsList, mapModel } from './mure-agents-sync.mjs';
+import { buildAgentsList, catalogModelRefs, mapModel } from './mure-agents-sync.mjs';
 import { CLINE_ROSTER, isArmed as clineArmed } from './cline-fleet.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -16,7 +16,7 @@ const CATALOG = path.join(REPO, '.openclaw/mure-agent-catalog.json');
 const CONFIG = path.join(os.homedir(), '.openclaw/openclaw.json');
 
 // providers OpenClaw resolves natively without an explicit models.providers block
-const BUILTIN_PREFIXES = new Set(['anthropic', 'openai']);
+const BUILTIN_PREFIXES = new Set(['anthropic', 'openai', 'opencode-go']);
 const THINKING_LEVELS = new Set(['off', 'low', 'medium', 'high', 'xhigh']);
 const COST_TIERS = new Set(['cheap', 'medium', 'heavy', 'apex']);
 
@@ -148,6 +148,35 @@ export function validateFleet() {
     if (bad.length) solProblems.push(`${v.role}/${v.id || '<missing>'}: ${bad.join('+')}`);
   }
   checks.push({ name: 'E: GPT-5.6 Sol pilot variants are complete', ok: solVariants.length > 0 && solProblems.length === 0, detail: solProblems.length ? solProblems.join('; ') : `${solVariants.length} complete Sol variants` });
+
+  // CHECK F — every baseline/variant model resolves and is available to Yuri's
+  // native model switcher through agents.defaults.models.
+  const allModelRefs = catalogModelRefs(catalog);
+  const unresolvedVariants = [];
+  for (const ref of allModelRefs) {
+    const res = resolveRef(ref, reg, clineModels);
+    if (!res.ok) unresolvedVariants.push(`${ref} (${res.via})`);
+  }
+  const switchable = new Set(Object.keys(config.agents?.defaults?.models || {}));
+  const notSwitchable = allModelRefs.filter((ref) => !switchable.has(ref));
+  const modelProblems = [
+    ...unresolvedVariants.map((x) => `unresolved:${x}`),
+    ...notSwitchable.map((x) => `not-switchable:${x}`),
+  ];
+  checks.push({ name: 'F: all catalog variant models resolve and are switchable', ok: modelProblems.length === 0, detail: modelProblems.length ? modelProblems.join('; ') : `${allModelRefs.length} unique model refs` });
+
+  // CHECK G — Sol can orchestrate exactly one nested native worker layer.
+  const subagentDefaults = config.agents?.defaults?.subagents || {};
+  const yuri = (config.agents?.list || []).find((agent) => agent.id === 'mure-yuri');
+  const yuriTools = new Set(yuri?.tools?.allow || []);
+  const nativeDepthOk = subagentDefaults.maxSpawnDepth === 2
+    && subagentDefaults.maxChildrenPerAgent === 3
+    && yuriTools.has('sessions_spawn');
+  checks.push({
+    name: 'G: Sol native nested dispatch is configured',
+    ok: nativeDepthOk,
+    detail: `maxSpawnDepth=${subagentDefaults.maxSpawnDepth ?? '<default:1>'}, maxChildrenPerAgent=${subagentDefaults.maxChildrenPerAgent ?? '<default:5>'}, yuri.sessions_spawn=${yuriTools.has('sessions_spawn')}`,
+  });
 
   return { ok: checks.every((c) => c.ok), checks };
 }

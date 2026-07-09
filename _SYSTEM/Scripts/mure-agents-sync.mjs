@@ -18,21 +18,32 @@ const DRY = process.argv.includes("--dry-run");
 // catalog model string -> valid OpenClaw provider/model ref (registered in models.providers)
 export function mapModel(m) {
   if (!m) return null;
+  if (m.startsWith("cline-pass/cline-pass/")) return m.slice("cline-pass/".length);
   if (/^(anthropic|zai|minimax-portal|ollama-cloud|cline-pass)\//.test(m)) return m;
   if (m === "deepseek-v4-pro:direct") return "deepseek/deepseek-v4-pro";
   if (m === "deepseek-v4-flash:direct") return "deepseek/deepseek-v4-flash";
+  if (m === "deepseek/deepseek-v4-pro:direct") return "deepseek/deepseek-v4-pro";
+  if (m === "deepseek/deepseek-v4-flash:direct") return "deepseek/deepseek-v4-flash";
+  if (m === "minimax-m2.7-highspeed:direct" || m === "minimax/minimax-m2.7-highspeed:direct") return "minimax-portal/MiniMax-M2.7-highspeed";
+  if (m === "minimax-m2.7:direct" || m === "minimax/minimax-m2.7:direct") return "minimax-portal/MiniMax-M2.7";
   if (m.startsWith("cursor/")) {
     const rest = m.slice(7);
     const map = {
       "composer-2.5": "composer-2.5",
       "composer-2.5-fast": "composer-2.5",
-      "gpt-5.5-high": "gpt-5.5",
-      "grok-4.3": "grok-4.3",
-      "grok-code-fast-1": "grok-build-0.1",
+      "gemini-3.5-flash": "gemini-3.5-flash",
+      "kimi-k2.7-code": "kimi-k2.7-code",
     };
     return "cursor-cli/" + (map[rest] || rest);
   }
   return m; // pass through; doctor will flag unresolved
+}
+
+export function catalogModelRefs(catalog) {
+  return [...new Set(catalog.agents
+    .flatMap((a) => [a.model, ...(a.variants || []).map((v) => v.model)])
+    .map(mapModel)
+    .filter(Boolean))].sort();
 }
 
 const LANE_META = {
@@ -120,6 +131,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const list = buildAgentsList(catalog);
 
   config.agents = config.agents || {};
+  config.agents.defaults = config.agents.defaults || {};
+  config.agents.defaults.subagents = {
+    ...(config.agents.defaults.subagents || {}),
+    maxSpawnDepth: 2,
+    maxChildrenPerAgent: 3,
+  };
+  config.agents.defaults.models = config.agents.defaults.models || {};
+  for (const ref of catalogModelRefs(catalog)) {
+    if (!(ref in config.agents.defaults.models)) config.agents.defaults.models[ref] = {};
+  }
   config.agents.list = list;
 
   if (DRY) {

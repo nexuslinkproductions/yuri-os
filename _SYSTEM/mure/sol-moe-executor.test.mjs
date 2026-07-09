@@ -310,3 +310,18 @@ test('semantic producer failure does not consume an availability fallback', asyn
   assert.equal(result.results[0].selectedRouteKind, 'primary');
   assert.equal(result.results[0].failure.code, 'PRODUCER_SEMANTIC_FAILURE');
 });
+
+test('simulation executor fails loud when a malformed plan self-verifies', async () => {
+  const plan = makePlan({ taskId: 'self-check', primaryModel: 'same', verifierModel: 'same' });
+  const calls = [];
+  const result = await executeSolMoePlan(plan, {
+    spawn: async (request) => {
+      calls.push(request.purpose);
+      return { ok: true, output: 'producer-output' };
+    },
+  });
+
+  assert.deepEqual(calls, ['producer']);
+  assert.equal(result.results[0].status, 'fail-loud');
+  assert.equal(result.results[0].failure.code, 'VERIFIER_NOT_INDEPENDENT');
+});

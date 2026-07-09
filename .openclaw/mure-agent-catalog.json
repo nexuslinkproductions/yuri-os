@@ -28,7 +28,8 @@
     "cursor/kimi-k2.7-code": "cursor-cli/kimi-k2.7-code",
     "openai/gpt-5.6-sol": "openai/gpt-5.6-sol",
     "openai/gpt-5.6-terra": "openai/gpt-5.6-terra",
-    "openai/gpt-5.6-luna": "openai/gpt-5.6-luna"
+    "openai/gpt-5.6-luna": "openai/gpt-5.6-luna",
+    "opencode-go/mimo-v2.5": "opencode-go/mimo-v2.5"
   },
   "agents": [
     {
@@ -573,6 +574,33 @@
           "quota": "openai-codex-pro-x5"
         },
         {
+          "id": "mure-engineer-terra",
+          "model": "openai/gpt-5.6-terra",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "max_tokens": 16384,
+          "systemSections": [
+            "coding-excellence",
+            "agentic-clean-tool-use"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "workhorse",
+            "native-openclaw",
+            "require-explicit-call"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5",
+          "note": "Native GPT-5.6 implementation and refactor specialist for important reversible build work."
+        },
+        {
           "id": "mure-engineer-dvf",
           "model": "deepseek-v4-flash:direct",
           "thinkingLevel": "low",
@@ -867,6 +895,29 @@
       ],
       "autonomy": "self-governable",
       "variants": [
+        {
+          "id": "mure-artificer-mimo25",
+          "model": "opencode-go/mimo-v2.5",
+          "thinkingLevel": "low",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "max_tokens": 4096,
+          "systemSections": [
+            "minimalist",
+            "agentic-clean-tool-use"
+          ],
+          "eligibilityFlags": [
+            "cheap",
+            "read-only",
+            "native-openclaw",
+            "overflow"
+          ],
+          "costTier": "cheap",
+          "note": "Native OpenCode Go MiMo overflow lane for bounded R0 evidence and extraction only."
+        },
         {
           "id": "mure-artificer-glmturbo",
           "model": "zai/glm-5-turbo",
@@ -1837,6 +1888,30 @@
           ],
           "costTier": "heavy",
           "quota": "openai-codex-pro-x5"
+        },
+        {
+          "id": "mure-adjudicator-luna",
+          "model": "openai/gpt-5.6-luna",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "apex-judgment",
+            "narrow-prompt-reserved"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "native-openclaw",
+            "adjudication",
+            "require-explicit-call"
+          ],
+          "costTier": "heavy",
+          "quota": "openai-codex-pro-x5",
+          "note": "Native GPT-5.6 cross-examination lane for red-team, conflict resolution, and non-security adjudication."
         },
         {
           "id": "mure-adjudicator-glm52",
@@ -3167,7 +3242,7 @@
         "bash"
       ],
       "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor",
-      "mission": "Hold the goal spine, run the five-state router, decode Marcel's brain dump via the eight-step decode pipeline, dispatch MURE fleet via decompose/fan-out/verify/synthesize loops. Full control surface (apps, terminal, files, browser) per Marcel Q10. Conversational co-thinker per Q3. Always-confirm on large-scale ops per Q14. Heavy anchor = Opus 4.8 (matches persona.md binding floor). Worker-level research/coding/refactor is OFFLINE for this lane — delegated.",
+      "mission": "Hold the goal spine, run the five-state router, decode Marcel's brain dump via the eight-step decode pipeline, and dispatch MURE through decompose/fan-out/verify/synthesize loops. Sol is the reversible main-session prime; Opus 4.8 remains the temporary rollback anchor. Worker-level research, coding, and refactoring stay delegated.",
       "capabilities": [
         "brain-dump-decode",
         "five-state-router",
@@ -3206,7 +3281,7 @@
             "sol-pilot",
             "native-main-scope"
           ],
-          "note": "Main-input pilot. Runs under the Yuri agent scope so native OpenAI OAuth remains available; Opus 4.8 stays as fallback during evaluation.",
+          "note": "Default main-input pilot under Yuri's native OpenAI OAuth scope. Role-native Sol read-through is proven for configured agents; Opus 4.8 stays as fallback during evaluation.",
           "model": "openai/gpt-5.6-sol",
           "thinkingLevel": "high",
           "tools": [
@@ -3245,7 +3320,7 @@
             "identity-locked"
           ],
           "costTier": "apex",
-          "note": "Heavy anchor for the main session. Identity-lock floor (persona.md binding). Sourced dispatch authority for MURE. Operator cannot rotate this binding without crossing into persona-evolution policy."
+          "note": "Temporary rollback anchor for the Sol-first main-session pilot. The Yuri identity binding is role/persona-level, not permanently tied to this model."
         }
       ],
       "selection": "main-binding-fixed",
@@ -3262,7 +3337,8 @@
         "probabilistic-decision-core",
         "adversarial-verification",
         "verification-before-completion",
-        "end-of-transmission"
+        "end-of-transmission",
+        "openclaw-moe-dispatch"
       ]
     }
   ]

@@ -23,6 +23,7 @@ const ARCHITECTURE = /\b(?:architecture|architect|system design|service design|m
 const SYNTHESIS = /\b(?:synthesi[sz]e|integrate findings|combine findings|final synthesis)\b/i;
 const RESEARCH = /\b(?:research|investigate|survey|compare sources|literature|evidence review)\b/i;
 const VERIFICATION = /\b(?:verify|verification|validate|acceptance test|release gate|finali[sz]e|commit gate|audit result)\b/i;
+const ADJUDICATION = /\b(?:adjudicat|red[ -]?team|second opinion|challenge findings|review competing|resolve disagreement|conflict resolution)\b/i;
 const ORCHESTRATION = /\b(?:orchestrat|delegate|dispatch|route tasks?|goal spine|decompose)\b/i;
 const BREADTH = /\b(?:grep|scan|extract|classify|inventory|list all|summari[sz]e files?|find occurrences?)\b/i;
 
@@ -102,7 +103,10 @@ export function produceCandidatePlan(classification, opts = {}) {
   assertClassification(classification);
   const policy = opts.policy || DEFAULT_POLICY;
   validatePolicy(policy);
-  const availability = opts.availability || {};
+  const availability = {
+    ...(policy.availabilityDefaults || {}),
+    ...(opts.availability || {}),
+  };
   const profile = policy.taskProfiles[classification.taskType] || policy.taskProfiles.general;
   const byId = new Map(policy.experts.map((expert) => [expert.id, expert]));
   const rejected = [];
@@ -165,7 +169,8 @@ export function routeTask(task = {}, opts = {}) {
 
   let verifier = null;
   if (classification.requiresOpusVerification) {
-    verifier = plan.verifiers.find((entry) => entry.id === 'opus48' && entry.available) || null;
+    verifier = plan.verifiers.find((entry) => entry.id === 'opus48' && entry.available
+      && entry.model !== producer.model && entry.agentId !== producer.agentId) || null;
     if (!verifier) {
       throw new NoEligibleFrontierError(
         'R3 requires available Opus verification; no downgrade or cheap verifier is permitted.',
@@ -173,7 +178,8 @@ export function routeTask(task = {}, opts = {}) {
       );
     }
   } else if (classification.requiresVerifier) {
-    verifier = plan.verifiers.find((entry) => entry.available && entry.tier === 'frontier') || null;
+    verifier = plan.verifiers.find((entry) => entry.available && entry.tier === 'frontier'
+      && entry.model !== producer.model && entry.agentId !== producer.agentId) || null;
     if (!verifier) {
       throw new NoEligibleFrontierError(
         `No eligible frontier verifier for ${classification.riskClass}/${classification.taskType}.`,
@@ -194,10 +200,16 @@ export function routeTask(task = {}, opts = {}) {
       .filter((entry) => entry.available)
       .map((entry) => ({ ...entry, dispatch: dispatchSpec(entry) })),
     availabilityFallbacks: availableFallbacks
-      .filter((entry) => entry.id !== producer.id)
+      .filter((entry) => entry.id !== producer.id
+        && entry.model !== verifier?.model
+        && entry.agentId !== verifier?.agentId)
       .map((entry) => ({ ...entry, dispatch: dispatchSpec(entry) })),
     qualityEscalations: plan.qualityEscalations
-      .filter((entry) => entry.available)
+      .filter((entry) => entry.available
+        && entry.model !== producer.model
+        && entry.agentId !== producer.agentId
+        && entry.model !== verifier?.model
+        && entry.agentId !== verifier?.agentId)
       .map((entry) => ({ ...entry, dispatch: dispatchSpec(entry) })),
     rejected: plan.rejected,
   });
@@ -229,6 +241,7 @@ export function createLedgerRow(route, observation = {}) {
 }
 
 function inferTaskType(task, text, state) {
+  if (task.adjudication === true || ADJUDICATION.test(text)) return 'adjudication';
   if (state.security && state.implementation) return 'security-implementation';
   if (state.security) return 'security';
   if (state.governance) return 'governance';

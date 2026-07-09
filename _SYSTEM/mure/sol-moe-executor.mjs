@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// @capability: sol-moe-injected-executor
-// @serves: deterministic execution of Sol MoE company manifests without live OpenClaw coupling
-// @does: consumes a sol-moe-company-v1 plan, invokes a caller-supplied spawn callback, keeps availability and quality routes separate, and returns execution telemetry without writing state
+// @capability: sol-moe-simulation-executor
+// @serves: test-only route simulation for Sol MoE company manifests
+// @does: exercises availability and quality semantics through an injected callback; it is not a live OpenClaw dispatch seam and must never replace the native push controller
 // @use: await executeSolMoePlan(plan, { spawn: async (request) => result, maxConcurrency: 3 })
 // @exports: executeSolMoePlan
 
@@ -166,6 +166,14 @@ export async function executeSolMoePlan(plan, options = {}) {
       continue;
     }
 
+    if (!independentVerifier(producer, verifierEntry)) {
+      results.push(failedTask(routeRecord, evidence, taskTelemetry, {
+        code: 'VERIFIER_NOT_INDEPENDENT',
+        message: `Verifier must differ from the selected producer for ${taskId}.`,
+      }, { producer, selectedRouteKind }));
+      continue;
+    }
+
     let verifierRun = await runVerifier(spawn, verifierEntry, {
       evidence,
       producer,
@@ -213,6 +221,14 @@ export async function executeSolMoePlan(plan, options = {}) {
       producerRun = escalationRun;
       producer = producerObservation(escalationRun);
       selectedRouteKind = 'quality-escalation';
+      if (!independentVerifier(producer, verifierEntry)) {
+        results.push(failedTask(routeRecord, evidence, taskTelemetry, {
+          code: 'VERIFIER_NOT_INDEPENDENT',
+          message: `Verifier must differ from the quality-escalation producer for ${taskId}.`,
+        }, { producer, selectedRouteKind }));
+        qualityPassed = null;
+        break;
+      }
       verifierRun = await runVerifier(spawn, verifierEntry, {
         evidence,
         producer,
@@ -394,6 +410,12 @@ function verifierAccepted(response) {
   // Gate lanes fail closed. Unstructured prose or a missing verdict cannot
   // silently promote a critical artifact to "verified".
   return false;
+}
+
+function independentVerifier(producer, verifierEntry) {
+  return Boolean(producer && verifierEntry
+    && producer.agentId !== verifierEntry.agentId
+    && producer.model !== verifierEntry.model);
 }
 
 function evidenceObservation(run) {

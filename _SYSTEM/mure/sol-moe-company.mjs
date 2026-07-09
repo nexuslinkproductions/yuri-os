@@ -49,8 +49,11 @@ export function buildSpawnEntry(candidate, context = {}) {
  * - Availability and quality paths remain dormant, separate queues.
  */
 export async function planSolMoeCompany(task = {}, opts = {}) {
-  const subtasks = Array.isArray(task.subtasks) ? task.subtasks : [];
-  const governed = await planCompany(task, {
+  const subtasks = (Array.isArray(task.subtasks) ? task.subtasks : []).map((subtask, index) => ({
+    ...(subtask || {}),
+    id: String(subtask?.id || `subtask-${index + 1}`),
+  }));
+  const governed = await planCompany({ ...task, subtasks }, {
     ...opts,
     // Router confidence is clamped to [0,1]. A 1.01 threshold keeps the legacy
     // advisory MLP in shadow while deterministic hard masks own this manifest.
@@ -69,7 +72,7 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
   for (let index = 0; index < subtasks.length; index += 1) {
     const subtask = subtasks[index] || {};
     const cast = governed.casts[index];
-    const taskId = String(subtask.id || `subtask-${index + 1}`);
+    const taskId = subtask.id;
     const prompt = String(subtask.prompt || subtask.summary || '').trim();
     let route;
     try {
@@ -148,7 +151,10 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
       routed: routes.length,
       held: routes.filter((entry) => entry.held).length,
       blocked: blocked.length,
-      immediateSpawns: producerQueue.length + verifierQueue.length + evidenceQueue.length,
+      initialReadyTasks: routes.filter((entry) => !entry.held).length,
+      evidenceBeforeProducer: evidenceQueue.length,
+      deferredProducers: producerQueue.length,
+      deferredVerifiers: verifierQueue.length,
       dormantAvailabilityFallbacks: availabilityQueue.length,
       dormantQualityEscalations: qualityQueue.length,
     }),

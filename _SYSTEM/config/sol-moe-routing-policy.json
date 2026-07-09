@@ -1,6 +1,11 @@
 {
-  "version": "sol-moe-v1",
-  "mode": "advisory-pure",
+  "version": "sol-moe-v2",
+  "mode": "native-parent-controller",
+  "execution": "sessions_spawn-native-push",
+  "availabilityDefaults": {
+    "zai/glm-5.2": false,
+    "opencode-go/mimo-v2.5": false
+  },
   "seat": {
     "expert": "sol",
     "agentId": "mure-yuri",
@@ -51,6 +56,15 @@
       "specialties": ["implementation", "refactor", "deterministic-execution"]
     },
     {
+      "id": "luna",
+      "agentId": "mure-adjudicator",
+      "model": "openai/gpt-5.6-luna",
+      "thinking": "high",
+      "tier": "frontier",
+      "family": "openai",
+      "specialties": ["adjudication", "red-team", "second-opinion", "conflict-resolution"]
+    },
+    {
       "id": "opus48",
       "agentId": "mure-sentinel",
       "model": "anthropic/claude-opus-4-8",
@@ -80,7 +94,7 @@
     {
       "id": "mimo25",
       "agentId": "mure-artificer",
-      "model": "cline-pass/mimo-v2.5",
+      "model": "opencode-go/mimo-v2.5",
       "thinking": "low",
       "tier": "cheap",
       "family": "mimo",
@@ -109,19 +123,19 @@
     "security-implementation": {
       "producer": ["terra"],
       "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["opus48"],
+      "qualityEscalation": ["sol", "sonnet5"],
       "verifier": ["opus48"]
     },
     "security": {
       "producer": ["glm52"],
       "availabilityFallback": ["sol", "sonnet5"],
-      "qualityEscalation": ["opus48"],
+      "qualityEscalation": ["sol", "sonnet5"],
       "verifier": ["opus48"]
     },
     "governance": {
       "producer": ["sol"],
       "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["opus48"],
+      "qualityEscalation": ["sonnet5", "sol"],
       "verifier": ["opus48"]
     },
     "architecture": {
@@ -151,8 +165,14 @@
     "verification": {
       "producer": ["sonnet5"],
       "availabilityFallback": ["glm52"],
-      "qualityEscalation": ["opus48"],
+      "qualityEscalation": ["luna", "opus48"],
       "verifier": ["opus48"]
+    },
+    "adjudication": {
+      "producer": ["luna"],
+      "availabilityFallback": ["opus48", "glm52"],
+      "qualityEscalation": ["sol", "opus48"],
+      "verifier": ["sonnet5"]
     },
     "general": {
       "producer": ["m3"],
