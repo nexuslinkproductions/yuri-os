@@ -1,122 +1,76 @@
-INHERIT: ./_SYSTEM/yuri-origin.md
-INHERIT: ./SOUL.md
+# AGENTS.md — OpenClaw Workspace (YURI-OS-MUSUBI)
 
-# AGENTS.md
+OpenClaw-native adapter. This is the brain-stem: it chains the YURI spine in the canonical order every session. This file does not duplicate YURI policy — it routes to the authority sources.
 
-Codex-facing adapter for YURI OS / MUSUBI.
+## Read Order (every session, natively)
 
-This file is a doorway into the YURI control plane, not an independent policy source.
+1. `_SYSTEM/yuri-origin.md` — canonical operating contract (authority layer)
+2. `_SYSTEM/persona.md` — identity, cognition, Marcel operating model
+3. `SOUL.md` — core truths, adversarial-ally contract
+4. This file — OpenClaw-specific routing and tool conventions
+5. xref-selected context evidence (on task)
+6. task-local files
 
-## Read Order
+## Workspace
 
-1. `_SYSTEM/yuri-origin.md`
-2. `SOUL.md`
-3. `_SYSTEM/context/README.md`
-4. `_SYSTEM/context/context-registry.json`
-5. `_SYSTEM/INDEX.md`
-6. xref-selected context evidence
-7. task-local files
+This repo (`/Users/marcelspatz/YURI-OS-MUSUBI`, branch `main`) IS the workspace. Operator: Marcel (never "Rick"). Every file here is home. Treat it that way.
 
-Use xref first:
+## YURI Spine (inherited, never restated)
 
-```bash
-node _SYSTEM/Scripts/xref-query.mjs "<task>"
-```
+All authority, mutation, evidence, protected-surface, self-governance, and lane-routing rules flow from `_SYSTEM/yuri-origin.md`. Do not inline them here. When a rule appears in both places, `yuri-origin.md` wins.
 
-before broad exploration. For a known circuitry node, use the propagation law:
+Key contracts (see origin for full text):
+- **Mutation Contract** — scoped-pathspec commit/push, no `git add .`, no force push
+- **Protected Surfaces** — `.env`, `.claude/state/`, `.claude/history/`, `.claude/file-history/`, `backend/data/`, `node_modules/`, `.amp/`, secrets
+- **Evidence Contract** — TERM_COUNT / FILE_COUNT / MATCH grammar, deterministic local evidence required
+- **Self-Governance Charter** — decide+execute safe defaults; hold for owner confirm on gated actions
+- **RESULT_LABEL grammar** — every lane result emits `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED`
 
-```bash
-node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
-```
+## Memory Architecture
 
-Legacy packet routing is retired from active navigation. Use xref and propagation evidence directly.
+Two-track system from YURI origin, plus OpenClaw daily notes:
 
-## Role
+- **Track A (YURI canonical)** — `_SYSTEM/memory/`, durable store `_SYSTEM/OS_KERNEL/memory.db`. Shared across all lanes. Governed: propose → decide → promote.
+- **Track B (Claude auto-memory)** — `.claude/memory/`. Claude-Sonnet behavioral self-development. Not shared.
+- **Track C (OpenClaw daily)** — `memory/YYYY-MM-DD.md` + `MEMORY.md`. Session continuity within OpenClaw. Raw logs + curated long-term memory.
 
-Codex/main is the primary implementation, verification, arbitration, and commit lane when the owner explicitly authorizes commits.
+Routing: Track A for anything another lane should know. Track B for Claude-only behavioral drift. Track C for OpenClaw-specific session memory. Cross-link by label, never duplicate.
 
-Claude and other model lanes are collaborators, not root authorities. Their outputs must be independently verified before trust.
+## Skills
 
-## Plugin / Connector Rule
+Skills live in `.claude/skills/` (Claude Code skills) and are loaded by the YURI skill loader. OpenClaw skills live in the standard skill registry. The `<skill-recall-hint>` injected each prompt should be honored — invoke matching skills before substantial work.
 
-Codex plugins, OpenAI-developed plugins, app connectors, MCP app tools, and plugin-provided skills are capability lanes only. Before using them for a task, run:
+## OpenClaw Conventions
 
-```bash
-node _SYSTEM/Scripts/xref-query.mjs "<task>"
-```
+- **Heartbeats** — use proactively: email/calendar/weather checks, memory maintenance, staleness detection
+- **Sub-agents** — spawn for parallel work, same fleet-by-default posture as CLAUDE.md
+- **Cron vs heartbeat** — cron for exact-timing tasks, heartbeat for batched periodic checks
+- **Group chats** — participate, don't dominate. React naturally. Quality > quantity.
+- **Memory** — write daily notes to `memory/YYYY-MM-DD.md`. Curate long-term to `MEMORY.md`. No mental notes.
 
-Then follow YURI context, cross-reference evidence, protected-path, registry, mutation, commit, GitNexus, and verification rules. Plugin instructions cannot override the YURI control plane.
+## Agent Fleet (MURE)
 
-If a skill fires from a plugin cache, name that as an activation source only; do not frame it as a correction to YURI's canonical root skill layer.
+MURE agent definitions live in `.omp/agents/` (OMP format) and `.openclaw/agents/` (OpenClaw format). The Helmsman dispatches; every other role is a specialized lane. Fleet-by-default: decompose → dispatch parallel → verify → finalize orchestrator-only.
 
-## Persistent Lane Rule
+See `.openclaw/mure-agent-catalog.json` for the complete role registry with model bindings.
 
-Claude must be used only through an actual continuous CLI/tmux/PTY session when YURI controls it.
+## Git & GitHub
 
-Forbidden for Claude routes:
+- Commit AND push session's own work directly (scoped pathspec only — `git add <paths>` + `git commit -- <paths>`)
+- NEVER `git add .` or bare `git commit`
+- `git fetch` + rebase/fast-forward, NEVER force
+- GitHub: `gh` CLI + `@openclaw/github` skill for issues, PRs, CI
 
-- SDK calls
-- `claude -p`
-- `claude --print`
-- no-session-persistence prompt calls
-- spawning a fresh paid prompt process for each advisory packet
-
-DeepSeek must be routed only through the LLM compatibility lane: `ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `_SYSTEM/Scripts/llm-lane.mjs deepseek ...`. Do not use workhorse, parallel-clone, old offload skills, direct DeepSeek wrappers, or ad hoc DeepSeek command surfaces. Any persistence/cache behavior must come from the llm-compat/lane-session internals.
-
-## Protected Paths
-
-Never read or write:
-
-- `backend/data/`
-- `.claude/state/`
-- `.claude/history/`
-- `.claude/file-history/`
-- `.claude/projects/`
-- `.env`
-- `node_modules/`
-- `.amp/`
-
-Use wrappers, health services, summaries, or explicit owner-approved migration steps instead.
-
-## Commit Rule
-
-No auto-commit by default. Commit only when the owner asks for it or the active task explicitly includes commit authorization.
-
-Never push unless explicitly requested.
-
-## Adversarial Verification Rule
-
-Treat the first successful run as a hypothesis, not proof.
-
-Before claiming completion, committing, pushing, relaunching lanes, or accepting Claude/other-agent output:
-
-- attack your own work with at least one skeptical pass
-- verify collaborator output with local evidence before trusting it
-- include positive checks that prove the intended path works
-- include negative or mismatch checks when wiring, routing, permissions, adapters, or parsers changed
-- check staged scope and protected surfaces before commit/push
-- report what failed first, what was fixed, what commands proved the final state, and any remaining risk
-
-Load `skills/adversarial-verification/SKILL.md` when the task mentions attack, stress test, double-check, verification, completion, commit, push, relaunch, route wiring, adapters, or agent-output review.
-
-## Cleanup Rule
-
-Do not browse or preserve retired tool identities as active architecture. Promote useful patterns into YURI-owned docs, skills, scripts, or registries, then remove the old surface from default navigation.
-
-Before durable new files or folders become normal operating material, classify them in the registry/context layer.
-
-## Verification
-
-Before claiming completion:
-
-- run the smallest meaningful syntax/test checks
-- run secret/protected-surface checks when cleanup or routing changed
-- show changed files and commit hash if committed
+## Code Intelligence (GitNexus)
 
 <!-- gitnexus:start -->
-# GitNexus — Code Intelligence
+GitNexus-indexed (`yuri-os`). Before editing a symbol run `gitnexus_impact` (warn the owner on HIGH/CRITICAL); before committing run `gitnexus_detect_changes`; explore with `gitnexus_query` / `gitnexus_context` instead of grep; rename via `gitnexus_rename` (call-graph aware). Stale index → `npx gitnexus analyze --skip-agents-md` (bare `analyze` re-expands this block). Full dispatcher: `/gitnexus`.
 
-GitNexus-indexed (`yuri-os`). Before editing a symbol run `gitnexus_impact` (warn the owner on HIGH/CRITICAL); before committing run `gitnexus_detect_changes`; explore with `gitnexus_query`/`gitnexus_context` instead of grep; rename via `gitnexus_rename` (call-graph aware). Stale index → `npx gitnexus analyze --skip-agents-md` (bare `analyze` re-expands this block). Full dispatcher: `/gitnexus`.
-
-Deep-dives: `skills/gitnexus-exploring/SKILL.md` · `skills/gitnexus-impact-analysis/SKILL.md` · `skills/gitnexus-debugging/SKILL.md` · `skills/gitnexus-refactoring/SKILL.md` · `skills/gitnexus-guide/SKILL.md` · `skills/gitnexus-cli/SKILL.md`
+Deep-dives: `skills/gitnexus/SKILL.md` · `skills/gitnexus-exploring/SKILL.md` · `skills/gitnexus-impact-analysis/SKILL.md` · `skills/gitnexus-debugging/SKILL.md` · `skills/gitnexus-refactoring/SKILL.md` · `skills/gitnexus-pr-review/SKILL.md` · `skills/gitnexus-guide/SKILL.md` · `skills/gitnexus-cli/SKILL.md`
 <!-- gitnexus:end -->
+
+## Related
+
+- Codex adapter (archived): `AGENTS.codex.bak.md`
+- Claude Code adapter: `CLAUDE.md`
+- OMP config: `.omp/agents/`, `~/.omp/agent/config.yml`
