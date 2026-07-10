@@ -100,6 +100,43 @@ test('marks a terminal native timeout as LOST instead of silently retrying', () 
   assert.equal(shadowSnapshot(shadow).ledgerStatus, 'lost');
 });
 
+test('classifies returned semantic and verifier execution failures as rejected, not LOST', () => {
+  const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
+  let semanticShadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
+  const semanticAdmission = admit(scheduled.state, scheduled.action, 'semantic');
+  semanticShadow = observeNativeAdmission(semanticShadow, semanticAdmission.receipt);
+  const semanticEvent = { ...completion(scheduled.action, semanticAdmission.receipt, 'semantic'), ok: false, failureKind: 'semantic', error: 'invalid output' };
+  const semanticReduced = reduceNativeDispatch(semanticAdmission.reduced.state, semanticEvent);
+  semanticShadow = observeNativeCompletion(semanticShadow, semanticEvent, semanticReduced);
+  assert.equal(semanticReduced.action.code, 'SEMANTIC_FAILURE');
+  assert.equal(shadowSnapshot(semanticShadow).ledgerStatus, 'rejected');
+
+  const producerAdmission = admit(scheduled.state, scheduled.action, 'producer-for-verifier-failure');
+  let verifierShadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
+  verifierShadow = observeNativeAdmission(verifierShadow, producerAdmission.receipt);
+  const producerEvent = completion(scheduled.action, producerAdmission.receipt, 'producer-for-verifier-failure');
+  const afterProducer = reduceNativeDispatch(producerAdmission.reduced.state, producerEvent);
+  verifierShadow = observeNativeCompletion(verifierShadow, producerEvent, afterProducer, { TERM_COUNT: '1' });
+  const verifierAdmission = admit(afterProducer.state, afterProducer.action, 'verifier-failure');
+  verifierShadow = observeNativeAdmission(verifierShadow, verifierAdmission.receipt);
+  const verifierEvent = { ...completion(afterProducer.action, verifierAdmission.receipt, 'verifier-failure'), ok: false, failureKind: 'auth', error: 'denied' };
+  const verifierReduced = reduceNativeDispatch(verifierAdmission.reduced.state, verifierEvent);
+  verifierShadow = observeNativeCompletion(verifierShadow, verifierEvent, verifierReduced);
+  assert.equal(verifierReduced.action.code, 'VERIFIER_EXECUTION_FAILURE');
+  assert.equal(shadowSnapshot(verifierShadow).ledgerStatus, 'rejected');
+});
+
+test('fails closed on purpose and run identity mismatches', () => {
+  const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
+  let shadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
+  const admission = admit(scheduled.state, scheduled.action, 'identity');
+  shadow = observeNativeAdmission(shadow, admission.receipt);
+  const event = completion(scheduled.action, admission.receipt, 'identity');
+  const reduced = reduceNativeDispatch(admission.reduced.state, event);
+  assert.throws(() => observeNativeCompletion(shadow, { ...event, purpose: 'evidence' }, reduced), /event.purpose/);
+  assert.throws(() => observeNativeCompletion(shadow, { ...event, runId: 'wrong-run' }, reduced), /event.runId/);
+});
+
 test('rejects a producer pass that bypasses independent verification', () => {
   const unsafePlan = plan();
   unsafePlan.routes[0].route.classification = { riskClass: 'R1', requiresVerifier: false };

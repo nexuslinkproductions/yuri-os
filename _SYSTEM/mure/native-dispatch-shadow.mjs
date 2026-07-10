@@ -15,6 +15,7 @@ import {
 } from './delegation-ledger.mjs';
 
 export const NATIVE_DISPATCH_SHADOW_SCHEMA_VERSION = 'mure-native-dispatch-shadow-v1';
+const LOST_FAILURE_KINDS = new Set(['timeout']);
 
 export function createNativeDispatchShadow(ticket, shadowId = `native-shadow-${Date.now()}`) {
   const ledger = recordTicket(createLedger(shadowId), ticket);
@@ -103,8 +104,14 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
     if (nextAction.type === 'sessions_spawn' && nextAction.purpose !== 'verifier') {
       return observeNativeAction(finishAwaiting(shadow, ledger, 'availability-fallback'), nextAction);
     }
-    ledger = markLost(ledger, shadow.ticketId, String(event.error || event.failureKind || 'native child lost'));
-    return finishAwaiting(shadow, ledger, 'lost');
+    const failureKind = String(event.failureKind || 'unknown').toLowerCase();
+    if (LOST_FAILURE_KINDS.has(failureKind)) {
+      ledger = markLost(ledger, shadow.ticketId, String(event.error || failureKind));
+      return finishAwaiting(shadow, ledger, 'lost');
+    }
+    ledger = reject(ledger, shadow.ticketId,
+      String(reduction.action.code || event.error || `native ${purpose} failed`));
+    return finishAwaiting(shadow, ledger, 'rejected');
   }
 
   if (purpose === 'verifier') {
