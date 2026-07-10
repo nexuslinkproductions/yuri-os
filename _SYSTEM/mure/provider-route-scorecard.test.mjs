@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
+  appendProviderRouteTrial,
   createProviderRouteScorecard,
   createProviderRouteTrialLedger,
   summarizeProviderRouteScorecard,
@@ -35,7 +36,7 @@ test('blocked schema outcome remains visible but ineligible', () => {
     ...completed,
     routeId: 'deepseek-v4-flash.ollama',
     runId: 'run-ollama',
-    resolvedModel: 'ollama-cloud/deepseek-v4-flash:cloud',
+    resolvedModel: 'ollama-cloud/deepseek-v4-flash',
     result: 'blocked',
     latencyMs: null,
     evidenceAccurate: false,
@@ -102,4 +103,17 @@ test('trial ledger rejects replayed native completion identities', () => {
     completed,
     { ...completed },
   ]), /duplicate native completion identity/);
+});
+
+test('trial ledger appends immutably and keeps the previous snapshot unchanged', () => {
+  const first = createProviderRouteTrialLedger([completed]);
+  const second = appendProviderRouteTrial(first, {
+    ...completed,
+    runId: 'run-deepseek-next',
+    childSessionKey: 'agent:deepseek-flash:subagent:next',
+  });
+  assert.equal(first.observations.length, 1);
+  assert.equal(second.observations.length, 2);
+  assert.ok(Object.isFrozen(second));
+  assert.throws(() => appendProviderRouteTrial(first, completed), /duplicate native completion identity/);
 });

@@ -16,7 +16,7 @@
     "tmux-zai": { "cost": "premium", "description": "z.ai glm-5.2 via interactive tmux claude-zai — multi-tool builds" },
     "glm": { "cost": "mid", "description": "z.ai glm-5.1 — workhorse code-gen, analysis" },
     "glm-turbo": { "cost": "mid", "description": "z.ai glm-5-turbo — faster judgment" },
-    "ollama-flash": { "cost": "cheap", "description": "deepseek-v4-flash:cloud — bulk census, scan, docs" },
+    "ollama-flash": { "cost": "cheap", "description": "deepseek-v4-flash — bulk census, scan, docs" },
     "ollama-minimax": { "cost": "cheap", "description": "minimax-m3:cloud — efficient generalist drafts" },
     "cline": { "cost": "mid", "description": "ClinePass CLI — code specialist sidecar" }
   },

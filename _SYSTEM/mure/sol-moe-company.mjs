@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { planCompany } from './company.mjs';
-import { NoEligibleFrontierError, createLedgerRow, routeTask } from './sol-moe-router.mjs';
+import { DEFAULT_POLICY, NoEligibleFrontierError, createLedgerRow, routeTask } from './sol-moe-router.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -32,6 +32,7 @@ export function buildSpawnEntry(candidate, context = {}) {
     role: context.role || null,
     agentId: candidate.dispatch.agentId,
     model: candidate.dispatch.model,
+    providerFamily: candidate.family,
     thinking: candidate.dispatch.thinking,
     prompt,
     execution: 'sessions_spawn',
@@ -49,6 +50,7 @@ export function buildSpawnEntry(candidate, context = {}) {
  * - Availability and quality paths remain dormant, separate queues.
  */
 export async function planSolMoeCompany(task = {}, opts = {}) {
+  const policy = opts.policy || DEFAULT_POLICY;
   const subtasks = (Array.isArray(task.subtasks) ? task.subtasks : []).map((subtask, index) => ({
     ...(subtask || {}),
     id: String(subtask?.id || `subtask-${index + 1}`),
@@ -67,6 +69,7 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
   const evidenceQueue = [];
   const availabilityQueue = [];
   const qualityQueue = [];
+  const calibrationQueue = [];
   const ledgerSeed = [];
 
   for (let index = 0; index < subtasks.length; index += 1) {
@@ -82,8 +85,9 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
         summary: prompt,
         role: cast?.role || subtask.role,
       }, {
-        policy: opts.policy,
+        policy,
         availability: opts.availability,
+        availabilityEvidence: opts.availabilityEvidence,
       });
     } catch (error) {
       if (!(error instanceof NoEligibleFrontierError)) throw error;
@@ -120,6 +124,9 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
     for (const candidate of route.qualityEscalations) {
       qualityQueue.push(buildSpawnEntry(candidate, { ...context, purpose: 'quality-escalation' }));
     }
+    for (const candidate of route.calibrationAlternatives) {
+      calibrationQueue.push(buildSpawnEntry(candidate, { ...context, purpose: 'producer' }));
+    }
     const includeEvidence = opts.includeEvidence === true
       || route.classification.riskClass === 'R0'
       || subtask.parallelEvidence === true;
@@ -131,10 +138,14 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
     }
   }
 
+  const plannedProviderMix = summarizeProviderMix(producerQueue, verifierQueue);
+
   return Object.freeze({
     schemaVersion: 'sol-moe-company-v1',
     mode: 'manifest-only-disarmed',
     seat: routes[0]?.route?.seat || null,
+    providerCalibration: policy.providerCalibration || null,
+    availabilityEvidence: opts.availabilityEvidence || null,
     governed,
     routes: Object.freeze(routes),
     queues: Object.freeze({
@@ -143,6 +154,7 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
       evidence: Object.freeze(evidenceQueue),
       availabilityFallbacks: Object.freeze(availabilityQueue),
       qualityEscalations: Object.freeze(qualityQueue),
+      calibrationAlternatives: Object.freeze(calibrationQueue),
     }),
     blocked: Object.freeze(blocked),
     ledgerSeed: Object.freeze(ledgerSeed),
@@ -157,7 +169,29 @@ export async function planSolMoeCompany(task = {}, opts = {}) {
       deferredVerifiers: verifierQueue.length,
       dormantAvailabilityFallbacks: availabilityQueue.length,
       dormantQualityEscalations: qualityQueue.length,
+      dormantCalibrationAlternatives: calibrationQueue.length,
+      plannedProviderMix,
+      providerCalibrationTargets: policy.providerCalibration?.activeTargets || null,
     }),
+  });
+}
+
+function summarizeProviderMix(producers, verifiers) {
+  const summarize = (entries) => {
+    const counts = {};
+    for (const entry of entries) {
+      const family = String(entry.providerFamily || 'unknown');
+      counts[family] = (counts[family] || 0) + 1;
+    }
+    const total = entries.length;
+    const shares = Object.fromEntries(Object.entries(counts)
+      .map(([family, count]) => [family, total ? count / total : 0]));
+    return Object.freeze({ total, counts: Object.freeze(counts), shares: Object.freeze(shares) });
+  };
+  return Object.freeze({
+    producers: summarize(producers),
+    verifiers: summarize(verifiers),
+    allWorkers: summarize([...producers, ...verifiers]),
   });
 }
 

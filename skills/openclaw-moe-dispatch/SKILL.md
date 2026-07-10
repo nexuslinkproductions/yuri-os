@@ -54,14 +54,18 @@ Do not use:
 | Work | Native child |
 |---|---|
 | Parent orchestration and final synthesis | `mure-yuri` · `openai/gpt-5.6-sol` |
-| Implementation and refactor | `mure-engineer` · `openai/gpt-5.6-terra` |
-| Adjudication and red-team | `mure-adjudicator` · `openai/gpt-5.6-luna` |
-| Frontier-volume synthesis/production | `mure-synthesist` · `minimax-portal/MiniMax-M3` · thinking `adaptive` |
+| Delegated orchestration and frontier-volume production | `mure-synthesist` · `minimax-portal/MiniMax-M3` · thinking `adaptive` |
+| Implementation and refactor | deterministic 85% `mure-synthesist` · `MiniMax-M3`; 15% specialist sample / escalation `mure-engineer` · `gpt-5.6-terra` |
+| Adjudication and red-team | deterministic 65% `mure-synthesist` · `MiniMax-M3`; 35% cross-provider specialist `mure-adjudicator` · `gpt-5.6-luna` |
 | Deterministic R2 gate | `mure-calibrator` · `anthropic/claude-sonnet-5` |
 | Security/governance R3 gate | `mure-sentinel` · `anthropic/claude-opus-4-8` |
 | Mechanical breadth | `deepseek-flash` · `deepseek/deepseek-v4-flash` |
 | Cheap overflow/evidence | `mure-artificer` · `opencode-go/mimo-v2.5`, only after a completed native auth canary |
 | Long-context architecture | `mure-architect` · `zai/glm-5.2`, only when runtime availability is proven |
+
+Worker allocation excludes the Sol parent seat and is measured first by native child dispatch count; token share is observed separately. While GLM and MiMo are masked, target a 50-task rolling mix of 40–60% MiniMax, 20–35% Anthropic (including verification), 12–25% DeepSeek, and no more than 12% OpenAI workers. OpenAI worker models are selective specialists and quality escalations, not the volume default. When GLM and MiMo recover, shift 10–20% to Z.ai and 5–15% to MiMo without weakening the R2/R3 floors.
+
+The native reducer records every accepted child admission, including evidence, producer, availability fallback, quality escalation, and verifier attempts. Feed its prior `providerCalibration.history` into the next `createNativeDispatchState(..., { providerHistory })` call to preserve the rolling window. When a selected OpenAI worker would exceed the 12% ceiling, the reducer emits an eligible non-OpenAI peer with route kind `calibration-rebalance`; if none remains, it fails loud. Sol itself is never a worker candidate.
 
 ## Process completions
 
@@ -78,6 +82,8 @@ Do not use:
 When Marcel or a live failure establishes that GLM 5.2 is unavailable, mask `zai/glm-5.2` for the run and begin its declared fallback chain at MiniMax M3. Do not probe GLM repeatedly. Remove the mask only after a successful bounded native canary or explicit availability evidence.
 
 Apply the same fail-closed rule to any child provider whose profile was just seeded but is not visible to the running gateway. Keep it masked until a fresh native child completes; admission alone is not sufficient.
+
+A boolean availability override cannot unmask a default-masked model. Supply proof sourced from the pushed terminal event for that exact model with `source: "native-completion-event"`, `status: "completed-native-canary"`, `ok: true`, an exact `resolvedModel`, plus its native `childSessionKey` and `runId`; otherwise the router keeps it unavailable.
 
 ## Evidence contract
 

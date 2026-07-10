@@ -26,6 +26,7 @@ export class NativeParentRequiredError extends Error {
 export async function runSolMoeTask(task = {}, opts = {}) {
   const plan = await planSolMoeCompany(task, {
     availability: opts.availability,
+    availabilityEvidence: opts.availabilityEvidence,
     includeEvidence: opts.includeEvidence === true,
     policy: opts.policy,
     rulings: opts.rulings,
@@ -33,7 +34,7 @@ export async function runSolMoeTask(task = {}, opts = {}) {
   });
 
   if (opts.apply === true || opts.spawn) throw new NativeParentRequiredError();
-  const nativeState = createNativeDispatchState(plan);
+  const nativeState = createNativeDispatchState(plan, { providerHistory: opts.providerHistory });
   const scheduled = reduceNativeDispatch(nativeState, null, { cwd: opts.cwd || REPO_ROOT });
   return Object.freeze({
     schemaVersion: 'sol-moe-run-v2',

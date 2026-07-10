@@ -4,6 +4,18 @@ import { NativeParentRequiredError, runSolMoeTask } from './sol-moe-run.mjs';
 import { DEFAULT_POLICY } from './sol-moe-router.mjs';
 
 const allAvailable = Object.fromEntries(DEFAULT_POLICY.experts.map((expert) => [expert.model, true]));
+const availabilityEvidence = Object.fromEntries(
+  Object.entries(DEFAULT_POLICY.availabilityDefaults)
+    .filter(([, available]) => available === false)
+    .map(([model]) => [model, {
+      source: 'native-completion-event',
+      status: 'completed-native-canary',
+      ok: true,
+      resolvedModel: model,
+      childSessionKey: `agent:test:subagent:${model.replace(/[^a-z0-9]/gi, '-')}`,
+      runId: `run-${model.replace(/[^a-z0-9]/gi, '-')}`,
+    }]),
+);
 const architectureTask = {
   summary: 'End-to-end architecture task',
   subtasks: [{
@@ -20,6 +32,7 @@ test('compiles native dispatch intent and performs no spawn effects', async () =
   let calls = 0;
   const result = await runSolMoeTask(architectureTask, {
     availability: allAvailable,
+    availabilityEvidence,
     timestamp: 'FIXED',
   });
   assert.equal(result.mode, 'native-dispatch-intent');
@@ -37,6 +50,7 @@ test('any attempt to execute from Node is rejected in favor of the native parent
     () => runSolMoeTask(architectureTask, {
       apply: true,
       availability: allAvailable,
+      availabilityEvidence,
       timestamp: 'FIXED',
     }),
     (error) => error instanceof NativeParentRequiredError,
@@ -46,6 +60,7 @@ test('any attempt to execute from Node is rejected in favor of the native parent
 test('R2 dispatch intent defers the verifier until the producer completion event', async () => {
   const result = await runSolMoeTask(architectureTask, {
     availability: allAvailable,
+    availabilityEvidence,
     timestamp: 'FIXED',
   });
   assert.equal(result.nextAction.purpose, 'producer');

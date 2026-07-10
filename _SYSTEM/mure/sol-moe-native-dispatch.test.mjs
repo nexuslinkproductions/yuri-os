@@ -168,7 +168,7 @@ test('compiler rejects missing or invalid manifest fields and mismatched task co
 test('compiler accepts catalog-backed DeepSeek, Ollama, Cline, Cursor, and Haiku route identities', () => {
   const routes = [
     ['deepseek-v4-flash:direct', 'deepseek-flash'],
-    ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
+    ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash'],
     ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
     ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
     ['anthropic/claude-haiku-4-5', 'mure-scout'],
@@ -500,9 +500,9 @@ test('provider telemetry normalizes execution providers instead of leaking model
       resolvedModel: 'deepseek-v4-flash:direct',
     },
     {
-      model: 'ollama-cloud/deepseek-v4-flash:cloud', agentId: 'deepseek-flash',
+      model: 'ollama-cloud/deepseek-v4-flash', agentId: 'deepseek-flash',
       childSessionKey: 'agent:deepseek-flash:subagent:ollama-1', runId: 'run-ollama',
-      resolvedModel: 'ollama-cloud/deepseek-v4-flash:cloud',
+      resolvedModel: 'ollama-cloud/deepseek-v4-flash',
     },
     {
       model: 'cline-pass/cline-pass/deepseek-v4-flash', agentId: 'mure-scout',

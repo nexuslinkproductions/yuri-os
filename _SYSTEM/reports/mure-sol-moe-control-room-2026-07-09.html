@@ -278,7 +278,7 @@
     <div class="shell topbar-inner">
       <div class="brand"><span class="brand-mark">M</span>MURE · MoE control room</div>
       <nav class="nav" aria-label="Page sections">
-        <a href="#route">Route</a><a href="#candidates">Candidates</a><a href="#peers">Frontier peers</a><a href="#telemetry">Ledger</a>
+        <a href="#route">Route</a><a href="#candidates">Candidates</a><a href="#peers">Frontier peers</a><a href="#calibration">Provider mix</a><a href="#telemetry">Ledger</a>
       </nav>
       <span class="chip status-sim"><span class="dot"></span>simulation instrument</span>
     </div>
@@ -298,7 +298,7 @@
           <span class="chip status-spec"><span class="dot"></span>SPECIFIED</span>
           <span class="chip status-sim"><span class="dot"></span>SIMULATED</span>
         </div>
-        <p><strong>LIVE</strong> is limited to bounded native OpenClaw completions verified on 2026-07-10: Sol, Terra, Luna, MiniMax M3 (<code>thinking: adaptive</code>), Sonnet 5, Opus 4.8, and DeepSeek Flash executed on their pinned models. GLM 5.2 is quota-masked. MiMo is auth-masked until a post-restart native completion proves the freshly seeded profile. Depth-2 Sol orchestration is configured and awaits the same gateway restart.</p>
+        <p><strong>LIVE</strong> is limited to bounded native OpenClaw completions verified on 2026-07-10: Sol, Terra, Luna, MiniMax M3 (<code>thinking: adaptive</code>), Sonnet 5, Opus 4.8, and DeepSeek Flash executed on their pinned models. GLM 5.2 is quota-masked. MiMo remains auth-masked after a native canary failed before inference because the role could not resolve an <code>opencode-go</code> credential.</p>
         <p><strong>SPECIFIED</strong> marks the proposed routing contract. <strong>SIMULATED</strong> marks every score, outage, animation, and ledger row on this page. This instrument does not dispatch agents.</p>
       </aside>
     </div>
@@ -439,10 +439,35 @@
       </div>
     </section>
 
+    <section class="section" id="calibration">
+      <div class="shell">
+        <div class="section-head">
+          <div><div class="eyebrow">03 · provider calibration</div><h2>Sol controls. Other providers carry the work.</h2></div>
+          <p class="section-note">Live shares are accepted native child dispatch counts across evidence, producer, fallback, escalation, and verifier attempts, not token shares, and exclude the Sol parent seat. This simulation has no evidence-lane control, so its displayed share covers only the child lanes shown here; the native reducer counts evidence too. OpenAI workers are sampled specialists, never the volume default.</p>
+        </div>
+        <div class="peer-grid">
+          <article class="card peer" style="--peer:var(--m3)" data-mark="60%">
+            <div class="eyebrow">Active target · GLM and MiMo masked</div>
+            <h3>Non-OpenAI execution floor</h3>
+            <div class="id">50-task rolling window</div>
+            <p>MiniMax <strong>40–60%</strong> · Anthropic <strong>20–35%</strong> including verification · DeepSeek <strong>12–25%</strong> · OpenAI workers <strong>3–12%</strong>. A 100-task reference simulation produced <strong>58.5% / 22.0% / 16.3% / 3.3%</strong>. Z.ai and MiMo remain at zero until native completions prove availability.</p>
+            <div class="peer-jobs"><span>M3 volume prime</span><span>Sonnet gates</span><span>Opus R3</span><span>DeepSeek breadth</span><span>OpenAI ≤12% or fail loud</span></div>
+          </article>
+          <article class="card peer" style="--peer:var(--glm)" data-mark="20%">
+            <div class="eyebrow">Recovered target · canary gated</div>
+            <h3>Provider-diverse steady state</h3>
+            <div class="id">after GLM + MiMo recover</div>
+            <p>Shift <strong>10–20%</strong> to Z.ai and <strong>5–15%</strong> to MiMo. M3 remains the largest frontier pool; Terra and Luna preserve selective cross-family specialist coverage instead of becoming default workers.</p>
+            <div class="peer-jobs"><span>GLM long context</span><span>MiMo R0 only</span><span>Terra 15% implementation sample</span><span>Luna 35% adjudication sample</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="telemetry">
       <div class="shell">
         <div class="section-head">
-          <div><div class="eyebrow">03 · simulated observability</div><h2>Dispatch ledger</h2></div>
+          <div><div class="eyebrow">04 · simulated observability</div><h2>Dispatch ledger</h2></div>
           <p class="section-note">Each run appends a clearly simulated row. Export the JSON to inspect the contract shape that a future live adapter would emit.</p>
         </div>
         <div class="telemetry-grid">
@@ -453,7 +478,7 @@
               <div class="stat"><small>routes</small><strong id="statRoutes">0</strong></div>
               <div class="stat"><small>fail loud</small><strong id="statFails">0</strong></div>
               <div class="stat"><small>frontier share</small><strong id="statFrontier">0%</strong></div>
-              <div class="stat"><small>M3 / GLM share</small><strong id="statPeers">0%</strong></div>
+              <div class="stat"><small>shown-child non-OpenAI share</small><strong id="statPeers">0%</strong></div>
             </div>
             <div class="telemetry-actions">
               <button class="secondary" id="exportJson" type="button">Export JSON</button>
@@ -475,7 +500,7 @@
 
     <section class="section">
       <div class="shell">
-        <div class="section-head"><div><div class="eyebrow">04 · invariants</div><h2>What the learner can never override</h2></div></div>
+        <div class="section-head"><div><div class="eyebrow">05 · invariants</div><h2>What the learner can never override</h2></div></div>
         <div class="law-grid">
           <article class="law" style="--law:var(--sol)"><b>01 · SOL OWNS INTENT</b><p>The seat preserves conversation state, goal spine, owner gates, and final acceptance. Expert lanes return evidence, not authority.</p></article>
           <article class="law" style="--law:var(--danger)"><b>02 · R2/R3 STAY FRONTIER</b><p>No score, outage, quota, or learned weight may route important semantic work into DeepSeek Flash or MiMo.</p></article>
@@ -506,19 +531,19 @@
     };
 
     const ROUTE_PROFILE = {
-      orchestration: { producer:["sol"], availability:["opus","m3"], quality:["opus","m3"], verifier:["sonnet"] },
+      orchestration: { producer:["m3","sonnet"], weights:{m3:.8,sonnet:.2}, availability:["opus"], quality:["opus"], verifier:["sonnet","opus"] },
       breadth: { producer:["flash"], availability:["mimo"], quality:["m3"], verifier:["sonnet"] },
-      implementation: { producer:["terra"], availability:["m3","sonnet"], quality:["sonnet","opus"], verifier:["sonnet","glm"] },
-      "security-implementation": { producer:["terra"], availability:["glm","sonnet"], quality:["opus"], verifier:["opus"] },
-      security: { producer:["glm"], availability:["sol","sonnet"], quality:["opus"], verifier:["opus"] },
-      governance: { producer:["sol"], availability:["glm","sonnet"], quality:["opus"], verifier:["opus"] },
-      architecture: { producer:["glm"], availability:["m3","sol"], quality:["opus"], verifier:["sonnet","opus"] },
-      "long-context": { producer:["glm"], availability:["m3"], quality:["opus","sol"], verifier:["sonnet"] },
-      synthesis: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet","glm"] },
-      research: { producer:["m3"], availability:["glm"], quality:["sol","opus"], verifier:["sonnet"] },
-      verification: { producer:["sonnet"], availability:["glm"], quality:["luna","opus"], verifier:["opus"] },
-      adjudication: { producer:["luna"], availability:["opus","glm"], quality:["sol","opus"], verifier:["sonnet"] },
-      general: { producer:["m3"], availability:["sol","glm"], quality:["opus"], verifier:["sonnet"] }
+      implementation: { producer:["m3","terra"], weights:{m3:.85,terra:.15}, availability:["sonnet"], quality:["terra","opus"], verifier:["sonnet","opus","glm"] },
+      "security-implementation": { producer:["sonnet","m3"], weights:{sonnet:.8,m3:.2}, availability:["terra"], quality:["m3","terra"], verifier:["opus"] },
+      security: { producer:["sonnet","m3"], weights:{sonnet:.75,m3:.25}, availability:["luna"], quality:["m3","luna","sonnet"], verifier:["opus"] },
+      governance: { producer:["sonnet","m3"], weights:{sonnet:.8,m3:.2}, availability:["luna"], quality:["m3","luna","sonnet"], verifier:["opus"] },
+      architecture: { producer:["glm"], availability:["m3","sonnet"], quality:["opus","terra"], verifier:["sonnet","opus"] },
+      "long-context": { producer:["glm"], availability:["m3","sonnet"], quality:["opus","terra"], verifier:["sonnet"] },
+      synthesis: { producer:["m3"], availability:["glm","sonnet"], quality:["opus","luna"], verifier:["sonnet","glm"] },
+      research: { producer:["m3"], availability:["glm","sonnet"], quality:["opus","luna"], verifier:["sonnet"] },
+      verification: { producer:["sonnet"], availability:["glm","m3","luna"], quality:["luna","opus"], verifier:["opus"] },
+      adjudication: { producer:["m3","luna"], weights:{m3:.65,luna:.35}, availability:["sonnet","glm"], quality:["sonnet","luna"], verifier:["opus"] },
+      general: { producer:["m3"], availability:["sonnet","glm","luna"], quality:["opus","luna"], verifier:["sonnet"] }
     };
 
     const RISK = {
@@ -637,15 +662,67 @@
       if ((risk === "R2" || risk === "R3") && !model.frontier) return "quality floor";
       if (s.writePath && !model.frontier) return "read-only pool";
       if (risk === "R3" && key === "opus") return "reserved for independent R3 verification";
+      if (risk === "R3" && model.provider === "anthropic") return "Opus verifier family conflict";
       return null;
     }
 
     function selectVerifier(producers, profile, risk) {
       if (risk !== "R2" && risk !== "R3") return [];
       if (risk === "R3") return state.availability.opus && !producers.includes("opus") ? ["opus"] : [];
-      const first = profile.verifier.find(key => state.availability[key] && !producers.includes(key));
+      const producerFamilies = new Set(producers.map(key => MODEL[key].provider));
+      const first = profile.verifier.find(key => state.availability[key] && !producers.includes(key) && !producerFamilies.has(MODEL[key].provider))
+        || profile.verifier.find(key => state.availability[key] && !producers.includes(key));
       if (!first) return [];
       return [first];
+    }
+
+    function stableUnit(value) {
+      let h1 = 0xdeadbeef ^ String(value).length;
+      let h2 = 0x41c6ce57 ^ String(value).length;
+      for (let index = 0; index < String(value).length; index += 1) {
+        const code = String(value).charCodeAt(index);
+        h1 = Math.imul(h1 ^ code, 2654435761);
+        h2 = Math.imul(h2 ^ code, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      return (h1 >>> 0) / 4294967296;
+    }
+
+    function chooseWeighted(keys, weights, seed) {
+      if (!keys.length) return null;
+      if (keys.length === 1 || !weights) return keys[0];
+      const total = keys.reduce((sum, key) => sum + Number(weights[key] || 0), 0);
+      if (!(total > 0)) return keys[0];
+      const bucket = stableUnit(seed) * total;
+      let cursor = 0;
+      for (const key of keys) {
+        cursor += Number(weights[key] || 0);
+        if (bucket < cursor) return key;
+      }
+      return keys.at(-1);
+    }
+
+    function simulatedChildHistory() {
+      return [...state.ledger].reverse().flatMap(row => [
+        ...row.producers,
+        ...row.verifiers,
+        ...(row.qualityEscalation ? [row.qualityEscalation] : []),
+      ]).slice(-49);
+    }
+
+    function wouldExceedOpenAiCeiling(key) {
+      if (!key || MODEL[key].provider !== "openai") return false;
+      const history = simulatedChildHistory();
+      const openAi = history.filter(id => id.startsWith("openai/")).length;
+      return openAi + 1 > Math.floor(.12 * (history.length + 1));
+    }
+
+    function enforceProviderCeiling(selected, peers) {
+      if (!wouldExceedOpenAiCeiling(selected)) return { selected, rebalanced:false, blocked:false };
+      const peer = peers.find(key => MODEL[key].provider !== "openai");
+      return peer
+        ? { selected:peer, rebalanced:true, blocked:false }
+        : { selected:null, rebalanced:false, blocked:true };
     }
 
     function calculate() {
@@ -660,21 +737,34 @@
         const masked = hardMask(key, model, s, risk) || (!inProfile ? "outside task profile" : null);
         return { key, model, score: scoreModel(key, model, s, risk, role), masked, available: state.availability[key] };
       }).sort((a,b) => b.score - a.score);
-      const preferred = [...profile.producer];
-      const primary = profile.producer.find(key => state.availability[key] && !hardMask(key, MODEL[key], s, risk));
+      const eligiblePrimary = profile.producer.filter(key => !hardMask(key, MODEL[key], s, risk));
+      const preferredKey = chooseWeighted(eligiblePrimary, profile.weights, s.task);
+      const preferred = preferredKey ? [preferredKey] : [];
+      const availablePrimary = eligiblePrimary.filter(key => state.availability[key]);
+      const weightedPrimary = chooseWeighted(
+        availablePrimary,
+        profile.weights,
+        s.task,
+      );
       const fallback = profile.availability.find(key => state.availability[key] && !hardMask(key, MODEL[key], s, risk));
-      const effective = primary ? [primary] : fallback ? [fallback] : [];
+      const initial = weightedPrimary || fallback || null;
+      const peers = [...availablePrimary, ...profile.availability.filter(key => state.availability[key] && !hardMask(key, MODEL[key], s, risk))]
+        .filter((key, index, array) => key !== initial && array.indexOf(key) === index);
+      const calibration = enforceProviderCeiling(initial, peers);
+      const effective = calibration.selected ? [calibration.selected] : [];
       const needsFrontier = risk === "R2" || risk === "R3" || risk === "R1";
-      const noProducer = effective.length === 0 || (needsFrontier && !effective.some(key => MODEL[key].frontier));
+      const noProducer = calibration.blocked || effective.length === 0 || (needsFrontier && !effective.some(key => MODEL[key].frontier));
       const verifiers = noProducer ? [] : selectVerifier(effective, profile, risk);
       const missingVerifier = (risk === "R2" || risk === "R3") && verifiers.length === 0;
       const fail = noProducer || missingVerifier;
-      const escalation = s.qualityReject && !fail
-        ? profile.quality.map(key => scores.find(item => item.key === key))
-          .find(item => item && !item.masked && item.available && MODEL[item.key].frontier && !effective.includes(item.key) && !verifiers.includes(item.key))
-        : null;
+      const escalationCandidates = profile.quality.map(key => scores.find(item => item.key === key))
+        .filter(item => item && !item.masked && item.available && MODEL[item.key].frontier && !effective.includes(item.key) && !verifiers.includes(item.key));
+      const escalationGate = s.qualityReject && !fail
+        ? enforceProviderCeiling(escalationCandidates[0]?.key || null, escalationCandidates.slice(1).map(item => item.key))
+        : { selected:null, rebalanced:false, blocked:false };
+      const escalation = escalationGate.selected ? scores.find(item => item.key === escalationGate.selected) : null;
       const escalationFail = s.qualityReject && !fail && !escalation;
-      return { s, risk, role, taskType, topK, scores, preferred, effective, verifiers, fail: fail || escalationFail, noProducer, missingVerifier, escalation, escalationFail };
+      return { s, risk, role, taskType, topK, scores, preferred, effective, verifiers, calibration, escalationGate, fail: fail || escalationFail, noProducer, missingVerifier, escalation, escalationFail };
     }
 
     function modelNames(keys, full=false) {
@@ -724,7 +814,10 @@
 
     function renderBranches(result) {
       const unavailablePreferred = result.preferred.filter(key => !state.availability[key]);
-      if (unavailablePreferred.length) {
+      if (result.calibration.rebalanced) {
+        els.availabilityTitle.textContent = "Provider ceiling rebalance";
+        els.availabilityText.textContent = "The selected OpenAI worker would exceed 12% of simulated child dispatches, so an eligible non-OpenAI peer was selected.";
+      } else if (unavailablePreferred.length) {
         els.availabilityTitle.textContent = "Fallback invoked";
         els.availabilityText.textContent = `${modelNames(unavailablePreferred)} unavailable. The gate selected the next eligible model without lowering the risk floor.`;
       } else {
@@ -733,7 +826,11 @@
       }
       els.availabilityRoute.textContent = `${modelNames(result.preferred)} → ${result.fail ? "FAIL LOUD" : modelNames(result.effective)}`;
 
-      if (!result.s.qualityReject) {
+      if (result.fail) {
+        els.qualityTitle.textContent = "Route blocked";
+        els.qualityText.textContent = "No acceptance verdict exists because the producer or required verifier path is unavailable.";
+        els.qualityRoute.textContent = `${modelNames(result.effective)} → FAIL LOUD`;
+      } else if (!result.s.qualityReject) {
         els.qualityTitle.textContent = "Not invoked";
         els.qualityText.textContent = "Verifier accepted the simulated producer output.";
         els.qualityRoute.textContent = `${modelNames(result.effective)} → ${modelNames(result.verifiers)} → ledger`;
@@ -766,12 +863,14 @@
         `<strong>${result.risk}</strong> came from the declared task features`,
         `<strong>${escapeHtml(result.role)}</strong> matched the domain and governance state`,
         `<strong>semantic k=1</strong>; evidence and verification stay independent lanes`,
+        result.calibration.rebalanced ? `<strong>provider ceiling</strong> rebalanced the worker away from OpenAI` : `<strong>provider ceiling</strong> remained satisfied`,
         exclusions.length ? `${escapeHtml(exclusions.join(", "))} were hard-masked` : "all model tiers remained eligible"
       ];
       els.why.innerHTML = whyBits.join(" · ") + ". Scores only ranked the survivors.";
 
       els.failLoud.classList.toggle("show", result.fail);
-      if (result.noProducer) els.failReason.textContent = "No eligible frontier producer is available. The route stops; it does not spill into the cheap pool.";
+      if (result.calibration.blocked) els.failReason.textContent = "The OpenAI worker ceiling was reached and no eligible non-OpenAI peer remained.";
+      else if (result.noProducer) els.failReason.textContent = "No eligible frontier producer is available. The route stops; it does not spill into the cheap pool.";
       else if (result.missingVerifier) els.failReason.textContent = "No independent compliant verifier is available for this risk/write path.";
       else if (result.escalationFail) els.failReason.textContent = "The verifier rejected the output and no independent frontier escalation remains.";
       else els.failReason.textContent = "";
@@ -793,7 +892,7 @@
         producers: result.effective.map(key => MODEL[key].id),
         verifiers: result.verifiers.map(key => MODEL[key].id),
         qualityEscalation: result.escalation ? MODEL[result.escalation.key].id : null,
-        routeState: result.fail ? "FAIL_LOUD" : result.s.qualityReject ? "QUALITY_ESCALATED" : result.preferred.some(key => !state.availability[key]) ? "AVAILABILITY_FALLBACK" : "PRIMARY",
+        routeState: result.fail ? "FAIL_LOUD" : result.calibration.rebalanced ? "CALIBRATION_REBALANCE" : result.s.qualityReject ? "QUALITY_ESCALATED" : result.preferred.some(key => !state.availability[key]) ? "AVAILABILITY_FALLBACK" : "PRIMARY",
         resultLabel: result.fail ? "SIM_ROUTE_F_PASS" : "SIM_ROUTE_X_PASS"
       };
       state.ledger.unshift(row);
@@ -812,12 +911,17 @@
       </tr>`).join("");
       const total = state.ledger.length;
       const fails = state.ledger.filter(row => row.routeState === "FAIL_LOUD").length;
-      const frontier = state.ledger.filter(row => row.producers.some(id => !id.includes("deepseek") && !id.includes("mimo"))).length;
-      const peers = state.ledger.filter(row => row.producers.some(id => id.includes("MiniMax-M3") || id.includes("glm-5.2"))).length;
+      const childDispatches = state.ledger.flatMap(row => [
+        ...row.producers,
+        ...row.verifiers,
+        ...(row.qualityEscalation ? [row.qualityEscalation] : []),
+      ]);
+      const frontier = childDispatches.filter(id => !id.includes("deepseek") && !id.includes("mimo")).length;
+      const peers = childDispatches.filter(id => !id.startsWith("openai/")).length;
       els.statRoutes.textContent = String(total);
       els.statFails.textContent = String(fails);
-      els.statFrontier.textContent = total ? `${Math.round(frontier / total * 100)}%` : "0%";
-      els.statPeers.textContent = total ? `${Math.round(peers / total * 100)}%` : "0%";
+      els.statFrontier.textContent = childDispatches.length ? `${Math.round(frontier / childDispatches.length * 100)}%` : "0%";
+      els.statPeers.textContent = childDispatches.length ? `${Math.round(peers / childDispatches.length * 100)}%` : "0%";
     }
 
     function setPreset(name, run=true) {
@@ -837,7 +941,10 @@
         const button = event.target.closest("[data-preset]");
         if (button) setPreset(button.dataset.preset);
       });
-      els.modelToggles.innerHTML = Object.entries(MODEL).map(([key,model]) => `<label class="model-toggle"><input type="checkbox" data-model="${key}"${state.availability[key] ? " checked" : ""}><span class="model-dot" style="--model:${model.color}"></span>${escapeHtml(model.name)}</label>`).join("");
+      els.modelToggles.innerHTML = Object.entries(MODEL).map(([key,model]) => {
+        const proofLocked = key === "glm" || key === "mimo";
+        return `<label class="model-toggle"${proofLocked ? ` title="Requires completed native-canary evidence"` : ""}><input type="checkbox" data-model="${key}"${state.availability[key] ? " checked" : ""}${proofLocked ? " disabled" : ""}><span class="model-dot" style="--model:${model.color}"></span>${escapeHtml(model.name)}${proofLocked ? " · proof locked" : ""}</label>`;
+      }).join("");
       els.modelToggles.addEventListener("change", event => {
         const input = event.target.closest("input[data-model]");
         if (!input) return;

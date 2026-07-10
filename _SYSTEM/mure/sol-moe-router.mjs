@@ -7,6 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -103,10 +104,11 @@ export function produceCandidatePlan(classification, opts = {}) {
   assertClassification(classification);
   const policy = opts.policy || DEFAULT_POLICY;
   validatePolicy(policy);
-  const availability = {
-    ...(policy.availabilityDefaults || {}),
-    ...(opts.availability || {}),
-  };
+  const availability = resolveAvailability(
+    policy,
+    opts.availability || {},
+    opts.availabilityEvidence || {},
+  );
   const profile = policy.taskProfiles[classification.taskType] || policy.taskProfiles.general;
   const byId = new Map(policy.experts.map((expert) => [expert.id, expert]));
   const rejected = [];
@@ -118,6 +120,7 @@ export function produceCandidatePlan(classification, opts = {}) {
     .filter(Boolean);
 
   const primary = resolve(profile.producer || [], 'semantic-producer');
+  const producerWeights = normalizeProducerWeights(profile.producer || [], profile.producerWeights);
   const availabilityFallbacks = resolve(profile.availabilityFallback || [], 'semantic-producer');
   const qualityEscalations = resolve(profile.qualityEscalation || [], 'semantic-producer');
   const verifierIds = classification.requiresOpusVerification
@@ -143,6 +146,7 @@ export function produceCandidatePlan(classification, opts = {}) {
     classification,
     producers: [...primary, ...availabilityFallbacks],
     primaryProducers: primary,
+    producerWeights,
     availabilityFallbacks,
     qualityEscalations,
     verifiers,
@@ -155,8 +159,16 @@ export function produceCandidatePlan(classification, opts = {}) {
 export function routeTask(task = {}, opts = {}) {
   const classification = classifyTask(task);
   const plan = produceCandidatePlan(classification, opts);
-  const availablePrimary = plan.primaryProducers.find((entry) => entry.available);
-  const availableFallbacks = plan.availabilityFallbacks.filter((entry) => entry.available);
+  const taskId = String(task.id || stableTaskId(classification));
+  const primaryPool = plan.primaryProducers.filter((entry) => entry.available
+    && (classification.riskClass !== 'R3' || entry.family !== 'anthropic'));
+  const availablePrimary = selectWeightedPrimary(
+    primaryPool,
+    plan.producerWeights,
+    taskId,
+  );
+  const availableFallbacks = plan.availabilityFallbacks.filter((entry) => entry.available
+    && (classification.riskClass !== 'R3' || entry.family !== 'anthropic'));
   const producer = availablePrimary || availableFallbacks[0] || null;
   const selection = availablePrimary ? 'primary' : 'availability-fallback';
 
@@ -170,7 +182,8 @@ export function routeTask(task = {}, opts = {}) {
   let verifier = null;
   if (classification.requiresOpusVerification) {
     verifier = plan.verifiers.find((entry) => entry.id === 'opus48' && entry.available
-      && entry.model !== producer.model && entry.agentId !== producer.agentId) || null;
+      && entry.model !== producer.model && entry.agentId !== producer.agentId
+      && entry.family !== producer.family) || null;
     if (!verifier) {
       throw new NoEligibleFrontierError(
         'R3 requires available Opus verification; no downgrade or cheap verifier is permitted.',
@@ -190,8 +203,12 @@ export function routeTask(task = {}, opts = {}) {
 
   return deepFreeze({
     policyVersion: plan.policyVersion,
-    taskId: String(task.id || stableTaskId(classification)),
+    taskId,
     selection,
+    allocation: {
+      strategy: Object.keys(plan.producerWeights).length > 1 ? 'deterministic-weighted' : 'ordered-primary',
+      weights: plan.producerWeights,
+    },
     seat: plan.seat,
     classification,
     producer: { ...producer, dispatch: dispatchSpec(producer) },
@@ -211,6 +228,9 @@ export function routeTask(task = {}, opts = {}) {
         && entry.model !== verifier?.model
         && entry.agentId !== verifier?.agentId)
       .map((entry) => ({ ...entry, dispatch: dispatchSpec(entry) })),
+    calibrationAlternatives: primaryPool
+      .filter((entry) => entry.id !== producer.id)
+      .map((entry) => ({ ...entry, dispatch: dispatchSpec(entry) })),
     rejected: plan.rejected,
   });
 }
@@ -229,8 +249,10 @@ export function createLedgerRow(route, observation = {}) {
     riskClass: route.classification.riskClass,
     agentId: route.producer.agentId,
     model: route.producer.model,
+    providerFamily: route.producer.family,
     verifierAgentId: route.verifier?.agentId || null,
     verifierModel: route.verifier?.model || null,
+    verifierFamily: route.verifier?.family || null,
     routeKind: observation.routeKind || route.selection,
     outcome: observation.outcome || 'unknown',
     verifierPass: observation.verifierPass ?? null,
@@ -277,6 +299,9 @@ function candidate(expert, use, classification, availability, rejected) {
 }
 
 function maskReason(expert, use, classification) {
+  if (use === 'semantic-producer' && expert.id === 'sol') {
+    return 'sol-parent-seat-not-worker';
+  }
   if (use === 'semantic-producer' && classification.riskClass === 'R3' && expert.id === 'opus48') {
     return 'opus-reserved-for-independent-r3-verification';
   }
@@ -288,6 +313,29 @@ function maskReason(expert, use, classification) {
     return 'R3-requires-Opus-verification';
   }
   return null;
+}
+
+function resolveAvailability(policy, overrides, evidence) {
+  const availability = { ...(policy.availabilityDefaults || {}), ...overrides };
+  for (const [model, defaultAvailable] of Object.entries(policy.availabilityDefaults || {})) {
+    if (defaultAvailable !== false || overrides[model] !== true) continue;
+    availability[model] = hasNativeAvailabilityEvidence(evidence[model], model);
+  }
+  return availability;
+}
+
+function hasNativeAvailabilityEvidence(proof, model) {
+  const childSessionKey = proof?.childSessionKey;
+  const nativeKey = typeof childSessionKey === 'string'
+    && childSessionKey === childSessionKey.trim()
+    && /^agent:[A-Za-z0-9._-]+:subagent:[A-Za-z0-9][A-Za-z0-9._-]*$/.test(childSessionKey);
+  return proof?.source === 'native-completion-event'
+    && proof?.status === 'completed-native-canary'
+    && proof?.ok === true
+    && proof?.resolvedModel === model
+    && nativeKey
+    && typeof proof?.runId === 'string'
+    && proof.runId.length > 0;
 }
 
 function allowedUses(expert, classification) {
@@ -325,6 +373,71 @@ function validatePolicy(policy) {
   const ids = new Set(policy.experts.map((expert) => expert.id));
   if (!ids.has(policy.seat.expert) || policy.seat.model !== 'openai/gpt-5.6-sol') {
     throw new TypeError('policy seat must resolve to the Sol expert');
+  }
+  for (const [taskType, profile] of Object.entries(policy.taskProfiles)) {
+    const producers = Array.isArray(profile?.producer) ? profile.producer : [];
+    if (!producers.length || producers.some((id) => !ids.has(id))) {
+      throw new TypeError(`task profile ${taskType} has an invalid producer list`);
+    }
+    normalizeProducerWeights(producers, profile.producerWeights);
+  }
+  validateProviderCalibration(policy.providerCalibration);
+}
+
+function normalizeProducerWeights(producerIds, configured) {
+  if (!configured) return Object.freeze(Object.fromEntries(producerIds.map((id, index) => [id, index === 0 ? 1 : 0])));
+  if (!configured || typeof configured !== 'object' || Array.isArray(configured)) {
+    throw new TypeError('producerWeights must be an object');
+  }
+  const unknown = Object.keys(configured).filter((id) => !producerIds.includes(id));
+  if (unknown.length) throw new TypeError(`producerWeights contains unknown producers: ${unknown.join(', ')}`);
+  const raw = producerIds.map((id) => [id, Number(configured[id] ?? 0)]);
+  if (raw.some(([, weight]) => !Number.isFinite(weight) || weight < 0)) {
+    throw new TypeError('producerWeights values must be finite and non-negative');
+  }
+  const total = raw.reduce((sum, [, weight]) => sum + weight, 0);
+  if (!(total > 0)) throw new TypeError('producerWeights must have positive total weight');
+  return Object.freeze(Object.fromEntries(raw.map(([id, weight]) => [id, weight / total])));
+}
+
+function selectWeightedPrimary(candidates, weights, seed) {
+  if (!candidates.length) return null;
+  if (candidates.length === 1) return candidates[0];
+  const weighted = candidates.map((entry) => ({ entry, weight: Number(weights[entry.id] ?? 0) }));
+  const total = weighted.reduce((sum, item) => sum + item.weight, 0);
+  if (!(total > 0)) return candidates[0];
+  const bucket = stableUnitInterval(seed) * total;
+  let cursor = 0;
+  for (const item of weighted) {
+    cursor += item.weight;
+    if (bucket < cursor) return item.entry;
+  }
+  return weighted.at(-1).entry;
+}
+
+function stableUnitInterval(seed) {
+  const digest = createHash('sha256').update(String(seed)).digest();
+  return digest.readUInt32BE(0) / 4294967296;
+}
+
+function validateProviderCalibration(calibration) {
+  if (!calibration) return;
+  for (const targetSet of [calibration.activeTargets, calibration.recoveredTargets]) {
+    if (!targetSet || typeof targetSet !== 'object') throw new TypeError('provider calibration targets are required');
+    let minimumTotal = 0;
+    let maximumTotal = 0;
+    for (const [family, range] of Object.entries(targetSet)) {
+      const min = Number(range?.min);
+      const max = Number(range?.max);
+      if (!Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max > 1 || min > max) {
+        throw new TypeError(`invalid provider calibration range for ${family}`);
+      }
+      minimumTotal += min;
+      maximumTotal += max;
+    }
+    if (minimumTotal > 1 || maximumTotal < 1) {
+      throw new TypeError('provider calibration ranges cannot contain a complete allocation');
+    }
   }
 }
 

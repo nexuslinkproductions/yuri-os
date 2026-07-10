@@ -121,7 +121,7 @@
       "localForbidden": true,
       "tiers": {
         "flash": {
-          "model": "deepseek-v4-flash:cloud",
+          "model": "deepseek-v4-flash",
           "use": "default bulk — best quality/usage"
         },
         "minimax": {

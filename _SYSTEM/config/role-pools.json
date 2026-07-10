@@ -9,7 +9,7 @@
     "dispatchPrimitive": "_SYSTEM/Scripts/lane-dispatch.mjs <lane> \"<prompt>\" [--model <id>] --out <file> — the shared retry+429-detecting wrapper over llm-lane.mjs that glm-fleet and ollama-fleet already ride."
   },
   "substrateLanes": {
-    "ollama:flash":        { "lane": "ollama-cloud", "model": "deepseek-v4-flash:cloud", "substrate": "ollama-cloud", "note": "primary bulk — best quality/usage" },
+    "ollama:flash":        { "lane": "ollama-cloud", "model": "deepseek-v4-flash", "substrate": "ollama-cloud", "note": "primary bulk — best quality/usage" },
     "ollama:minimax":      { "lane": "ollama-cloud", "model": "minimax-m3:cloud",        "substrate": "ollama-cloud", "note": "efficient generalist" },
     "ollama:kimi":         { "lane": "ollama-cloud", "model": "kimi-k2.7-code:cloud",    "substrate": "ollama-cloud", "note": "code specialist" },
     "ollama:nemotron":     { "lane": "ollama-cloud", "model": "nemotron-3-ultra:cloud",  "substrate": "ollama-cloud", "note": "heavy reasoning burst" },
