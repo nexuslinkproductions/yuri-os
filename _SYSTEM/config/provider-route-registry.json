@@ -11,7 +11,13 @@
           "model": "deepseek/deepseek-v4-flash",
           "agentId": "deepseek-flash",
           "status": "canary-proven",
-          "source": "native-micro-test"
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "62cd997b-592b-423b-aa7e-7bb1f078a001",
+            "childSessionKey": "agent:deepseek-flash:subagent:4b5219c7-29f2-4d92-b35b-cfa69c5c421e",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
         },
         {
           "id": "deepseek-v4-flash.direct",
@@ -28,8 +34,15 @@
           "surface": "ollama-cloud",
           "model": "ollama-cloud/deepseek-v4-flash:cloud",
           "agentId": "deepseek-flash",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "blocked-schema",
+          "source": "native-completion-event",
+          "blockedReason": "OpenClaw admission resolved the exact model, but Ollama Cloud rejected the compiled request schema before producing output.",
+          "canaryEvidence": {
+            "runId": "b43b50b4-0079-48b6-abc2-49a40b8abe9e",
+            "childSessionKey": "agent:deepseek-flash:subagent:406e6e28-7318-4652-8e75-ec512606f50f",
+            "result": "provider-rejected-request-schema",
+            "observed": "2026-07-10"
+          }
         },
         {
           "id": "deepseek-v4-flash.cline",
@@ -37,8 +50,14 @@
           "surface": "cline-pass",
           "model": "cline-pass/cline-pass/deepseek-v4-flash",
           "agentId": "mure-scout",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "026ec2d6-80a2-4411-b5f5-abadd9183017",
+            "childSessionKey": "agent:mure-scout:subagent:9a60af74-3490-4acc-a5fb-8c36c69dd9d1",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
         },
         {
           "id": "deepseek-v4-flash.opencode",
@@ -61,8 +80,15 @@
           "surface": "cursor-cli",
           "model": "cursor-cli/gemini-3.5-flash",
           "agentId": "mure-scout",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "18635ef3-b8f1-4f0a-8613-d3864eafc655",
+            "childSessionKey": "agent:mure-scout:subagent:b2c74687-6fc0-4c1a-af49-d95e992e5523",
+            "result": "completed",
+            "qualityFlag": "efficiency-poor",
+            "observed": "2026-07-10"
+          }
         }
       ]
     },
@@ -98,8 +124,14 @@
           "surface": "openclaw-native",
           "model": "anthropic/claude-haiku-4-5",
           "agentId": "mure-scout",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "72ea856c-6ef8-4946-9b1f-f0be18b93f40",
+            "childSessionKey": "agent:mure-scout:subagent:0aca6088-6c81-4012-9372-c2f7763fcc4d",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
         }
       ]
     }

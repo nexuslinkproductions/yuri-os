@@ -14,7 +14,7 @@ export const PROVIDER_ROUTE_REGISTRY = deepFreeze(
   JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8')),
 );
 
-const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'unresolved']);
+const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'blocked-schema', 'unresolved']);
 const SURFACES = new Set(['openclaw-native', 'direct-api', 'ollama-cloud', 'cline-pass', 'cursor-cli', 'opencode']);
 
 export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY) {
@@ -39,6 +39,15 @@ export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY
         if (route.model !== null || !route.blockedReason) throw new TypeError(`unresolved route ${route.id} must have null model and blockedReason`);
       } else if (!route.model || !route.agentId) {
         throw new TypeError(`provider route ${route.id} must have model and agentId`);
+      }
+      if (route.status === 'blocked-schema' && !route.blockedReason) {
+        throw new TypeError(`blocked-schema route ${route.id} must have blockedReason`);
+      }
+      if (route.status === 'canary-proven') {
+        const evidence = route.canaryEvidence;
+        if (!evidence?.runId || !evidence?.childSessionKey || evidence?.result !== 'completed') {
+          throw new TypeError(`canary-proven route ${route.id} requires exact completed native evidence`);
+        }
       }
     }
   }
