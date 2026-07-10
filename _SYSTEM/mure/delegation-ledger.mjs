@@ -25,7 +25,7 @@ const RECONCILED = new Set(['reconciled-clean', 'reconciled-partial', 'reconcile
 const LEDGER_TRANSITIONS = Object.freeze({
   ticketed: new Set(['dispatched', 'cancelled']),
   dispatched: new Set(['produced', 'lost', 'cancelled']),
-  produced: new Set(['verifying', 'lost', 'cancelled']),
+  produced: new Set(['verifying', 'verified', 'rejected', 'lost', 'cancelled']),
   verifying: new Set(['verified', 'rejected', 'lost', 'cancelled']),
   verified: new Set(['accepted', 'rejected', 'cancelled']),
   lost: new Set(['reconciling']),
@@ -43,7 +43,7 @@ const LEDGER_TRANSITIONS = Object.freeze({
  * The ledger is an in-memory append-only log; it persists nothing and routes nothing.
  */
 export function createLedger(ledgerId = `ledger-${Date.now()}`) {
-  return Object.freeze({
+  return freezeLedger({
     schemaVersion: LEDGER_SCHEMA_VERSION,
     id: ledgerId,
     createdAt: new Date().toISOString(),
@@ -58,6 +58,7 @@ export function createLedger(ledgerId = `ledger-${Date.now()}`) {
  */
 export function recordTicket(ledger, ticketInput) {
   const ticket = createDelegationTicket(ticketInput);
+  if (ledger.tickets.has(ticket.id)) throw new TypeError(`duplicate ticketId: ${ticket.id}`);
   const entry = {
     ticketId: ticket.id,
     ticket,
@@ -91,6 +92,7 @@ export function recordTicket(ledger, ticketInput) {
 export function recordDispatch(ledger, ticketId, dispatchMeta = {}) {
   const entry = requireTicket(ledger, ticketId);
   requireLedgerStatus(entry, 'ticketed', 'dispatch');
+  requirePlainObject(dispatchMeta, 'dispatchMeta');
   const dispatch = {
     dispatchedAt: new Date().toISOString(),
     producer: sanitizeMeta(dispatchMeta.producer, 'producer'),
@@ -154,9 +156,20 @@ export function recordVerifierVerdict(ledger, ticketId, verdict) {
     notes: String(verdict.notes || ''),
   };
   const next = cloneLedger(ledger);
-  const status = result === 'pass' ? 'verifying' : result === 'fail' ? 'verifying' : 'verifying';
-  next.tickets.set(ticketId, { ...entry, ledgerStatus: 'verifying', verifierVerdict });
-  next.log.push({ ts: verifierVerdict.recordedAt, action: 'verifier-verdict', ticketId, verdict: result });
+  const status = result === 'pass' ? 'verified' : result === 'fail' ? 'rejected' : 'verifying';
+  next.tickets.set(ticketId, {
+    ...entry,
+    ledgerStatus: status,
+    verifierVerdict,
+    rejectedAt: result === 'fail' ? verifierVerdict.recordedAt : entry.rejectedAt,
+  });
+  next.log.push({
+    ts: verifierVerdict.recordedAt,
+    action: 'verifier-verdict',
+    ticketId,
+    verdict: result,
+    status,
+  });
   return freezeLedger(next);
 }
 
@@ -165,10 +178,10 @@ export function recordVerifierVerdict(ledger, ticketId, verdict) {
  */
 export function accept(ledger, ticketId, note = '') {
   const entry = requireTicket(ledger, ticketId);
-  if (entry.ledgerStatus !== 'verifying' && entry.ledgerStatus !== 'verified') {
-    throw new TypeError(`accept requires status verifying or verified, got: ${entry.ledgerStatus}`);
+  if (entry.ledgerStatus !== 'verified') {
+    throw new TypeError(`accept requires status verified, got: ${entry.ledgerStatus}`);
   }
-  if (!entry.verifierVerdict || entry.verifierVerdict.verdict === 'fail') {
+  if (!entry.verifierVerdict || entry.verifierVerdict.verdict !== 'pass') {
     throw new TypeError('cannot accept a ticket without a passing verifier verdict');
   }
   const acceptedAt = new Date().toISOString();
@@ -178,7 +191,7 @@ export function accept(ledger, ticketId, note = '') {
     ledgerStatus: 'accepted',
     acceptedAt,
   });
-  next.log.push({ ts: entry.acceptedAt || new Date().toISOString(), action: 'accept', ticketId, note });
+  next.log.push({ ts: acceptedAt, action: 'accept', ticketId, note });
   return freezeLedger(next);
 }
 
@@ -188,13 +201,15 @@ export function accept(ledger, ticketId, note = '') {
 export function reject(ledger, ticketId, reason, note = '') {
   const entry = requireTicket(ledger, ticketId);
   requireNonTerminal(entry, 'reject');
+  const rejectionReason = nonEmptyString(reason, 'reason');
+  const rejectedAt = new Date().toISOString();
   const next = cloneLedger(ledger);
   next.tickets.set(ticketId, {
     ...entry,
     ledgerStatus: 'rejected',
-    rejectedAt: new Date().toISOString(),
+    rejectedAt,
   });
-  next.log.push({ ts: entry.rejectedAt || new Date().toISOString(), action: 'reject', ticketId, reason, note });
+  next.log.push({ ts: rejectedAt, action: 'reject', ticketId, reason: rejectionReason, note });
   return freezeLedger(next);
 }
 
@@ -207,13 +222,15 @@ export function markLost(ledger, ticketId, reason) {
   if (!['dispatched', 'produced', 'verifying'].includes(entry.ledgerStatus)) {
     throw new TypeError(`markLost requires dispatched/produced/verifying, got: ${entry.ledgerStatus}`);
   }
+  const lostReason = nonEmptyString(reason, 'reason');
+  const lostAt = new Date().toISOString();
   const next = cloneLedger(ledger);
   next.tickets.set(ticketId, {
     ...entry,
     ledgerStatus: 'lost',
-    lostAt: new Date().toISOString(),
+    lostAt,
   });
-  next.log.push({ ts: entry.lostAt, action: 'mark-lost', ticketId, reason });
+  next.log.push({ ts: lostAt, action: 'mark-lost', ticketId, reason: lostReason });
   return freezeLedger(next);
 }
 
@@ -307,12 +324,23 @@ function cloneLedger(ledger) {
 }
 
 function freezeLedger(ledger) {
+  const tickets = new Map(
+    [...ledger.tickets].map(([ticketId, entry]) => [ticketId, deepFreezeClone(entry)]),
+  );
+  for (const method of ['set', 'delete', 'clear']) {
+    Object.defineProperty(tickets, method, {
+      value() { throw new TypeError('delegation ledger tickets are read-only'); },
+      configurable: false,
+      enumerable: false,
+      writable: false,
+    });
+  }
   return Object.freeze({
     schemaVersion: ledger.schemaVersion,
     id: ledger.id,
     createdAt: ledger.createdAt,
-    tickets: ledger.tickets,
-    log: Object.freeze(ledger.log),
+    tickets: Object.freeze(tickets),
+    log: Object.freeze(ledger.log.map(deepFreezeClone)),
   });
 }
 

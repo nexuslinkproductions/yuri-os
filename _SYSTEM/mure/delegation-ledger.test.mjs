@@ -66,7 +66,7 @@ test('full happy path: ticketed → dispatched → produced → verified → acc
   assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'produced');
 
   ledger = recordVerifierVerdict(ledger, 'ticket-evidence-1', passingVerdict);
-  assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'verifying');
+  assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'verified');
 
   ledger = accept(ledger, 'ticket-evidence-1', 'all evidence present');
   assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'accepted');
@@ -78,7 +78,20 @@ test('accept without passing verdict is rejected', () => {
   ledger = recordDispatch(ledger, 'ticket-evidence-1');
   ledger = recordProducerOutput(ledger, 'ticket-evidence-1', fullPass);
   ledger = recordVerifierVerdict(ledger, 'ticket-evidence-1', { verdict: 'fail', failureReason: 'missing tests' });
-  assert.throws(() => accept(ledger, 'ticket-evidence-1'), /passing verifier verdict/);
+  assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'rejected');
+  assert.throws(() => accept(ledger, 'ticket-evidence-1'), /status verified/);
+});
+
+test('not-checked verdict cannot be accepted', () => {
+  let ledger = freshLedger();
+  ledger = recordDispatch(ledger, 'ticket-evidence-1');
+  ledger = recordProducerOutput(ledger, 'ticket-evidence-1', fullPass);
+  ledger = recordVerifierVerdict(ledger, 'ticket-evidence-1', {
+    verdict: 'not-checked',
+    uncheckedReason: 'live provider seam unavailable',
+  });
+  assert.equal(getTicket(ledger, 'ticket-evidence-1').ledgerStatus, 'verifying');
+  assert.throws(() => accept(ledger, 'ticket-evidence-1'), /status verified/);
 });
 
 // --- evidence enforcement ---
@@ -216,10 +229,31 @@ test('snapshot reports status distribution', () => {
 // --- immutability ---
 
 test('ledger entries are deeply frozen', () => {
+  const empty = createLedger('empty-ledger');
+  assert.throws(() => empty.tickets.set('injected', {}), /read-only/);
+
   const ledger = freshLedger();
   const entry = getTicket(ledger, 'ticket-evidence-1');
   assert.ok(Object.isFrozen(entry));
   assert.ok(Object.isFrozen(entry.ticket));
+  assert.throws(() => ledger.tickets.set('injected', {}), /read-only/);
+  assert.throws(() => { ledger.log[0].action = 'mutated'; }, TypeError);
+});
+
+test('duplicate ticket IDs are rejected instead of overwritten', () => {
+  const ledger = freshLedger();
+  assert.throws(() => recordTicket(ledger, baseTicket), /duplicate ticketId/);
+});
+
+test('terminal event timestamps are recorded from the transition event', () => {
+  let lostLedger = freshLedger();
+  lostLedger = recordDispatch(lostLedger, 'ticket-evidence-1');
+  lostLedger = markLost(lostLedger, 'ticket-evidence-1', 'worker disappeared');
+  assert.equal(lostLedger.log.at(-1).ts, getTicket(lostLedger, 'ticket-evidence-1').lostAt);
+
+  let rejectedLedger = freshLedger();
+  rejectedLedger = reject(rejectedLedger, 'ticket-evidence-1', 'scope mismatch');
+  assert.equal(rejectedLedger.log.at(-1).ts, getTicket(rejectedLedger, 'ticket-evidence-1').rejectedAt);
 });
 
 // --- shadow-only invariant ---
