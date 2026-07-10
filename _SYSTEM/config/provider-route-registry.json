@@ -138,6 +138,69 @@
           }
         }
       ]
+    },
+    "claude-sonnet-5": {
+      "role": "advisor-verifier",
+      "routes": [
+        {
+          "id": "claude-sonnet-5.anthropic",
+          "provider": "anthropic",
+          "surface": "openclaw-native",
+          "model": "anthropic/claude-sonnet-5",
+          "agentId": "mure-scout",
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "7a646d84-2172-41d1-a1b5-324740dc0997",
+            "childSessionKey": "agent:mure-scout:subagent:733a73ac-3bc9-428b-98b1-3910ba41ac04",
+            "resolvedModel": "anthropic/claude-sonnet-5",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
+        }
+      ]
+    },
+    "claude-opus-4-8": {
+      "role": "verifier-strategist",
+      "routes": [
+        {
+          "id": "claude-opus-4-8.anthropic",
+          "provider": "anthropic",
+          "surface": "openclaw-native",
+          "model": "anthropic/claude-opus-4-8",
+          "agentId": "mure-scout",
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "667bdc72-7b22-47bd-8b24-8a19d0dc61a9",
+            "childSessionKey": "agent:mure-scout:subagent:4d04030e-3536-4e5c-ac51-6ba645da4758",
+            "resolvedModel": "anthropic/claude-opus-4-8",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
+        }
+      ]
+    },
+    "minimax-m2.7-highspeed": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "minimax-m2.7-highspeed.portal",
+          "provider": "minimax-portal",
+          "surface": "openclaw-native",
+          "model": "minimax-portal/MiniMax-M2.7-highspeed",
+          "agentId": "mure-scout",
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "58f9810a-af47-4c1c-85fa-e3cdf1d9601d",
+            "childSessionKey": "agent:mure-scout:subagent:806b0142-a48a-412a-8322-5a8f05a585b5",
+            "resolvedModel": "minimax-portal/MiniMax-M2.7-highspeed",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
+        }
+      ]
     }
   },
   "roleTopology": {
@@ -168,6 +231,12 @@
       "mayExecuteWorkerTasks": false,
       "maySpawn": false,
       "mustBeIndependent": true
+    },
+    "strategic-peer": {
+      "preferredModels": ["anthropic/claude-sonnet-5", "anthropic/claude-opus-4-8", "minimax-portal/MiniMax-M3"],
+      "mayExecuteWorkerTasks": false,
+      "maySpawn": false,
+      "invocation": "planning-and-commitment-boundaries"
     }
   },
   "excludedModels": [

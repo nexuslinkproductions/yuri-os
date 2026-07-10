@@ -36,6 +36,9 @@ test('provider outcomes promote exact completions and block schema-incompatible 
   assert.equal(cline.canaryEvidence.resolvedModel, cline.model);
   assert.equal(listModelRoutes('gemini-3.5-flash')[0].status, 'canary-proven');
   assert.equal(listModelRoutes('claude-haiku-4-5')[0].status, 'canary-proven');
+  assert.equal(listModelRoutes('claude-sonnet-5')[0].status, 'canary-proven');
+  assert.equal(listModelRoutes('claude-opus-4-8')[0].status, 'canary-proven');
+  assert.equal(listModelRoutes('minimax-m2.7-highspeed')[0].status, 'canary-proven');
 });
 
 test('role topology keeps Sol above workers and verifiers independent', () => {
@@ -44,6 +47,7 @@ test('role topology keeps Sol above workers and verifiers independent', () => {
   assert.equal(topology.orchestrator.mayExecuteWorkerTasks, false);
   assert.equal(topology.advisor.maySpawn, false);
   assert.equal(topology.verifier.mustBeIndependent, true);
+  assert.ok(topology['strategic-peer'].preferredModels.includes('anthropic/claude-sonnet-5'));
   assert.ok(PROVIDER_ROUTE_REGISTRY.excludedModels.some((entry) => entry.model === 'anthropic/claude-fable-5'));
 });
 

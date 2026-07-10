@@ -139,7 +139,7 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
     summary: String(event.output || ''),
   });
   const next = finishAwaiting(shadow, ledger, 'producer-completed');
-  if (reduction.action.type === 'sessions_spawn' && reduction.action.purpose === 'verifier') {
+  if (reduction.action.type === 'sessions_spawn' && (reduction.action.purpose === 'verifier' || reduction.action.purpose === 'quality-escalation')) {
     return observeNativeAction(next, reduction.action);
   }
   if (reduction.state.tasks[shadow.taskId].status === 'fail-loud') {

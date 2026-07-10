@@ -78,11 +78,12 @@ export function getNativeCanaryRoutes(modelId) {
 }
 
 function validateRoleTopology(topology) {
-  const required = ['orchestrator', 'advisor', 'architect', 'worker', 'verifier'];
+  const required = ['orchestrator', 'advisor', 'architect', 'worker', 'verifier', 'strategic-peer'];
   for (const role of required) {
     const entry = topology?.[role];
-    if (!entry || !Array.isArray(entry.preferredModels) && role !== 'orchestrator') {
-      throw new TypeError(`role topology is missing ${role}`);
+    if (!entry) throw new TypeError(`role topology is missing ${role}`);
+    if (role !== 'orchestrator' && !Array.isArray(entry.preferredModels)) {
+      throw new TypeError(`${role} must define preferredModels`);
     }
     if (entry.maySpawn !== false && role !== 'orchestrator') {
       throw new TypeError(`${role} may not spawn children`);
