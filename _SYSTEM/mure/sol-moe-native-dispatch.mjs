@@ -3,7 +3,7 @@
 // @serves: pure native OpenClaw sessions_spawn compilation and push-event reduction
 // @does: compiles governed manifest entries into whitelist-only native sessions_spawn arguments and reduces child completion events without invoking tools or subprocesses.
 // @use: const state = createNativeDispatchState(plan); const { state: next, action } = reduceNativeDispatch(state, event);
-// @exports: DEFAULT_CWD, compileNativeSpawn, createNativeDispatchState, recordNativeSpawnAccepted, reduceNativeDispatch
+// @exports: DEFAULT_CWD, compileNativeSpawn, createNativeDispatchState, createProviderCalibrationReport, recordNativeSpawnAccepted, reduceNativeDispatch
 
 import { createHash } from 'node:crypto';
 
@@ -12,6 +12,26 @@ export const DEFAULT_CWD = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const PURPOSES = new Set(['producer', 'availability-fallback', 'quality-escalation', 'verifier', 'evidence']);
 const THINKING_LEVELS = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive', 'max']);
 const AVAILABILITY_FAILURES = new Set(['availability', 'transport', 'quota', 'rate-limit', 'timeout', 'auth']);
+const RISK_CLASSES = new Set(['R0', 'R1', 'R2', 'R3']);
+const WORKER_BINDINGS = new Map([
+  ['minimax-portal/MiniMax-M3', 'mure-synthesist'],
+  ['zai/glm-5.2', 'mure-architect'],
+  ['openai/gpt-5.6-terra', 'mure-engineer'],
+  ['openai/gpt-5.6-luna', 'mure-adjudicator'],
+  ['anthropic/claude-opus-4-8', 'mure-sentinel'],
+  ['anthropic/claude-sonnet-5', 'mure-calibrator'],
+  ['anthropic/claude-haiku-4-5', 'mure-scout'],
+  ['deepseek/deepseek-v4-flash', 'deepseek-flash'],
+  ['deepseek-v4-flash:direct', 'deepseek-flash'],
+  ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
+  ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
+  ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
+  ['opencode-go/mimo-v2.5', 'mure-artificer'],
+  ['cline-pass/cline-pass/mimo-v2.5', 'mure-artificer'],
+]);
+const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2', 'opencode-go/mimo-v2.5']);
+const CHEAP_PROVIDER_FAMILIES = new Set(['deepseek', 'mimo', 'ollama', 'cline', 'cursor']);
+const R3_VERIFIER_MODEL = 'anthropic/claude-opus-4-8';
 
 /**
  * Compile one manifest entry to the complete, whitelist-only sessions_spawn payload.
@@ -38,7 +58,7 @@ export function compileNativeSpawn(entry, context = {}) {
 }
 
 /** Create serializable reducer state from a sol-moe-company manifest. */
-export function createNativeDispatchState(plan) {
+export function createNativeDispatchState(plan, options = {}) {
   validatePlan(plan);
   const tasks = {};
   for (const routeRecord of plan.routes) {
@@ -77,6 +97,40 @@ export function createNativeDispatchState(plan) {
     plan: copyPlan(plan),
     tasks,
     processedEventIds: [],
+    providerCalibration: createProviderCalibrationState(plan.providerCalibration, options.providerHistory),
+  });
+}
+
+/** Summarize actual accepted native child dispatches, never planned queue entries. */
+export function createProviderCalibrationReport(config, history = []) {
+  const records = (Array.isArray(history) ? history : []).map(normalizeProviderHistoryRecord);
+  const windowSize = positiveInteger(config?.windowDispatches, 50);
+  const window = records.slice(-windowSize);
+  const counts = {};
+  for (const record of window) {
+    const family = String(record?.providerFamily || 'unknown');
+    counts[family] = (counts[family] || 0) + 1;
+  }
+  const sampleSize = window.length;
+  const shares = Object.fromEntries(Object.entries(counts)
+    .map(([family, count]) => [family, sampleSize ? count / sampleSize : 0]));
+  const targets = config?.activeTargets || {};
+  const deviations = [];
+  for (const [family, range] of Object.entries(targets)) {
+    const share = shares[family] || 0;
+    if (share < Number(range.min) || share > Number(range.max)) {
+      deviations.push({ family, share, min: Number(range.min), max: Number(range.max) });
+    }
+  }
+  const minimumSamples = positiveInteger(config?.minimumSamples, 30);
+  return freeze({
+    metric: config?.metric || 'native child dispatch count',
+    windowDispatches: windowSize,
+    sampleSize,
+    counts,
+    shares,
+    status: sampleSize < minimumSamples ? 'insufficient-sample' : deviations.length ? 'out-of-band' : 'within-band',
+    deviations,
   });
 }
 
@@ -87,7 +141,11 @@ export function recordNativeSpawnAccepted(state, action, receipt) {
     throw new TypeError('accepted spawn requires a sessions_spawn action');
   }
   if (!receipt || receipt.status !== 'accepted') throw new TypeError('native spawn receipt must be accepted');
-  const childSessionKey = nonEmpty(receipt.childSessionKey, 'childSessionKey');
+  nonEmpty(receipt.childSessionKey, 'childSessionKey');
+  const childSessionKey = String(receipt.childSessionKey);
+  if (!isNativeChildSessionKey(childSessionKey, action.args.agentId)) {
+    throw new TypeError(`native childSessionKey must identify ${action.args.agentId} and a subagent id`);
+  }
   const runId = nonEmpty(receipt.runId, 'runId');
   const resolvedModel = nonEmpty(receipt.resolvedModel, 'resolvedModel');
   const next = thaw(state);
@@ -100,6 +158,7 @@ export function recordNativeSpawnAccepted(state, action, receipt) {
       `Requested ${action.args.model} but OpenClaw resolved ${resolvedModel}.`);
   }
   task.awaiting.accepted = { childSessionKey, runId, resolvedModel };
+  recordAcceptedProviderDispatch(next, task, action, { childSessionKey, runId, resolvedModel });
   return result(next, Object.freeze({ type: 'none', reason: 'spawn-accepted' }));
 }
 
@@ -163,11 +222,18 @@ function schedulePending(state, options) {
 }
 
 function scheduleTask(state, task, options) {
-  const evidence = nextUntriedTaskEntry(state.plan.queues.evidence || [], task.taskId, task.attemptedEntryIds);
+  const evidence = nextProviderBalancedTaskEntry(state, state.plan.queues.evidence || [], task, task.attemptedEntryIds);
   if (evidence) return spawn(state, task, evidence, 'evidence', 'evidence', options);
   const producer = firstTaskEntry(state.plan.queues.producers, task.taskId);
   if (!producer) return fail(state, task, 'PRODUCER_MISSING', 'Producer entry is missing.');
-  return spawn(state, task, producer, routeKindFor(task), 'producer', options);
+  const alternatives = (state.plan.queues.calibrationAlternatives || [])
+    .filter((entry) => String(entry?.taskId) === task.taskId && entry.id !== producer.id);
+  const selected = chooseProviderBalancedEntry(state, [producer, ...alternatives], task.attemptedEntryIds);
+  if (!selected) {
+    return fail(state, task, 'PROVIDER_CALIBRATION_CEILING', 'OpenAI worker ceiling reached and no non-OpenAI peer is available.');
+  }
+  const routeKind = selected?.id === producer.id ? routeKindFor(task) : 'calibration-rebalance';
+  return spawn(state, task, selected, routeKind, 'producer', options);
 }
 
 function reduceFailure(state, task, awaiting, event, options) {
@@ -178,7 +244,7 @@ function reduceFailure(state, task, awaiting, event, options) {
   if (!AVAILABILITY_FAILURES.has(failureKind)) {
     return fail(state, task, 'SEMANTIC_FAILURE', `Child ${awaiting.purpose} failed semantically.`, failureKind, event.error);
   }
-  const fallback = nextUntriedTaskEntry(state.plan.queues.availabilityFallbacks, task.taskId, task.attemptedEntryIds);
+  const fallback = nextProviderBalancedTaskEntry(state, state.plan.queues.availabilityFallbacks, task, task.attemptedEntryIds);
   if (!fallback) {
     return fail(state, task, 'AVAILABILITY_FALLBACK_EXHAUSTED', 'No task-scoped availability fallback remains.', failureKind, event.error);
   }
@@ -195,7 +261,7 @@ function reduceVerifierSuccess(state, task, awaiting, event, options) {
     task.status = 'passed';
     return result(state, none('task-passed'));
   }
-  const escalation = nextUntriedTaskEntry(state.plan.queues.qualityEscalations, task.taskId, task.attemptedEntryIds);
+  const escalation = nextProviderBalancedTaskEntry(state, state.plan.queues.qualityEscalations, task, task.attemptedEntryIds);
   if (!escalation) {
     return fail(state, task, 'QUALITY_ESCALATION_EXHAUSTED', 'Verifier rejected the producer and no quality escalation remains.');
   }
@@ -203,6 +269,14 @@ function reduceVerifierSuccess(state, task, awaiting, event, options) {
 }
 
 function spawn(state, task, entry, routeKind, purpose, options) {
+  if (isSolWorker(entry)) {
+    return fail(state, task, 'SOL_PARENT_WORKER_FORBIDDEN', 'Sol/Yuri is the parent control plane and cannot be spawned as a child worker.');
+  }
+  const safetyViolation = workerSafetyViolation(state, task, entry, purpose);
+  if (safetyViolation) return fail(state, task, safetyViolation.code, safetyViolation.message);
+  if (wouldExceedOpenAiCeiling(state, entry)) {
+    return fail(state, task, 'PROVIDER_CALIBRATION_CEILING', 'OpenAI worker ceiling reached for this accepted-dispatch window.');
+  }
   const attempt = task.attempt + 1;
   const upstream = {
     evidence: task.evidence,
@@ -212,6 +286,10 @@ function spawn(state, task, entry, routeKind, purpose, options) {
   if (purpose === 'verifier' && task.producer
       && (entry.agentId === task.producer.agentId || entry.model === task.producer.model)) {
     return fail(state, task, 'VERIFIER_NOT_INDEPENDENT', 'Verifier must differ from the producer agent and model.');
+  }
+  if (purpose === 'verifier' && taskRiskClass(task) === 'R3' && task.producer
+      && providerFamily(entry) === providerFamily(task.producer)) {
+    return fail(state, task, 'VERIFIER_NOT_INDEPENDENT', 'R3 verifier must differ from the producer provider family.');
   }
   const args = compileNativeSpawn(entry, {
     cwd: options.cwd,
@@ -263,6 +341,16 @@ function validateEntry(entry) {
   if (!/^[A-Za-z0-9._-]+$/.test(agentId)) throw new TypeError('manifest entry agentId contains unsupported characters');
   if (!/^[A-Za-z0-9._:/-]+$/.test(model) || model.startsWith('-')) throw new TypeError('manifest entry model contains unsupported characters');
   if (!THINKING_LEVELS.has(thinking)) throw new TypeError(`manifest entry thinking is invalid: ${thinking}`);
+  if (agentId === 'mure-yuri' || model === 'openai/gpt-5.6-sol') {
+    throw new TypeError('Sol/Yuri cannot be compiled as a native child worker');
+  }
+  const expectedAgentId = WORKER_BINDINGS.get(model);
+  if (!expectedAgentId) throw new TypeError(`manifest entry model is not an allowed MURE worker: ${model}`);
+  if (agentId !== expectedAgentId) throw new TypeError(`manifest entry agentId must be ${expectedAgentId} for ${model}`);
+  const derivedProviderFamily = modelProviderFamily(model);
+  if (entry.providerFamily !== undefined && String(entry.providerFamily) !== derivedProviderFamily) {
+    throw new TypeError(`manifest entry providerFamily does not match model provider: ${model}`);
+  }
   return { id, taskId, purpose, role: optionalText(entry.role), agentId, model, thinking, prompt };
 }
 
@@ -330,7 +418,10 @@ function strictVerdict(event) {
 }
 
 function requiresVerifier(task) {
-  return task.route?.classification?.requiresVerifier === true || task.route?.verifier?.required === true;
+  const riskClass = taskRiskClass(task);
+  return riskClass === 'R2' || riskClass === 'R3'
+    || task.route?.classification?.requiresVerifier === true
+    || task.route?.verifier?.required === true;
 }
 
 function routeKindFor(task) {
@@ -341,10 +432,128 @@ function firstTaskEntry(entries, taskId) {
   return (Array.isArray(entries) ? entries : []).find((entry) => String(entry?.taskId) === taskId) || null;
 }
 
-function nextUntriedTaskEntry(entries, taskId, attemptedEntryIds) {
-  return (Array.isArray(entries) ? entries : []).find((entry) => (
-    String(entry?.taskId) === taskId && !attemptedEntryIds.includes(entry.id)
-  )) || null;
+function nextProviderBalancedTaskEntry(state, entries, task, attemptedEntryIds) {
+  const candidates = (Array.isArray(entries) ? entries : []).filter((entry) => (
+    String(entry?.taskId) === task.taskId && !attemptedEntryIds.includes(entry.id)
+  ));
+  return chooseProviderBalancedEntry(state, candidates, attemptedEntryIds);
+}
+
+function chooseProviderBalancedEntry(state, entries, attemptedEntryIds = []) {
+  const candidates = entries.filter((entry) => entry && !attemptedEntryIds.includes(entry.id));
+  const first = candidates[0] || null;
+  if (!first || !wouldExceedOpenAiCeiling(state, first)) return first;
+  return candidates.find((entry) => providerFamily(entry) !== 'openai') || null;
+}
+
+function wouldExceedOpenAiCeiling(state, entry) {
+  if (providerFamily(entry) !== 'openai') return false;
+  const calibration = state.providerCalibration;
+  const maximum = Number(calibration?.config?.activeTargets?.openai?.max);
+  if (!Number.isFinite(maximum)) return false;
+  const windowSize = positiveInteger(calibration.config.windowDispatches, 50);
+  const base = calibration.history.slice(-(windowSize - 1));
+  const currentOpenAi = base.filter((record) => record.providerFamily === 'openai').length;
+  return currentOpenAi + 1 > Math.floor(maximum * (base.length + 1));
+}
+
+function isSolWorker(entry) {
+  return entry?.agentId === 'mure-yuri' || entry?.model === 'openai/gpt-5.6-sol';
+}
+
+function workerSafetyViolation(state, task, entry, purpose) {
+  const riskClass = taskRiskClass(task);
+  const family = providerFamily(entry);
+  if (DEFAULT_MASKED_MODELS.has(entry?.model)
+      && !hasNativeAvailabilityEvidence(state.plan.availabilityEvidence?.[entry.model], entry.model)) {
+    return { code: 'MODEL_AVAILABILITY_UNPROVEN', message: `${entry.model} requires exact native canary evidence.` };
+  }
+  if (purpose === 'verifier' && CHEAP_PROVIDER_FAMILIES.has(family)) {
+    return { code: 'CHEAP_VERIFIER_FORBIDDEN', message: 'Cheap models cannot perform final verification.' };
+  }
+  if (purpose !== 'evidence' && CHEAP_PROVIDER_FAMILIES.has(family) && riskClass !== 'R0') {
+    return { code: 'CHEAP_SEMANTIC_WORK_FORBIDDEN', message: `Cheap models cannot perform ${riskClass || 'non-R0'} semantic work.` };
+  }
+  if (purpose !== 'evidence' && purpose !== 'verifier' && riskClass === 'R3' && family === 'anthropic') {
+    return { code: 'R3_OPUS_RESERVED_FOR_VERIFICATION', message: 'R3 reserves the Anthropic family for independent Opus verification.' };
+  }
+  if (purpose === 'verifier' && riskClass === 'R3' && entry?.model !== R3_VERIFIER_MODEL) {
+    return { code: 'R3_OPUS_VERIFIER_REQUIRED', message: 'R3 requires independent Opus 4.8 verification.' };
+  }
+  return null;
+}
+
+function taskRiskClass(task) {
+  return String(task?.route?.classification?.riskClass || '');
+}
+
+function createProviderCalibrationState(config, history) {
+  const normalizedConfig = config && typeof config === 'object' ? thaw(config) : null;
+  const normalizedHistory = (Array.isArray(history) ? history : []).map(normalizeProviderHistoryRecord);
+  const windowSize = positiveInteger(normalizedConfig?.windowDispatches, 50);
+  const boundedHistory = normalizedHistory.slice(-windowSize);
+  return {
+    config: normalizedConfig,
+    history: boundedHistory,
+    report: createProviderCalibrationReport(normalizedConfig, boundedHistory),
+  };
+}
+
+function normalizeProviderHistoryRecord(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    throw new TypeError('provider history record must be an object');
+  }
+  const model = nonEmpty(record.model, 'provider history model');
+  const agentId = nonEmpty(record.agentId, 'provider history agentId');
+  nonEmpty(record.childSessionKey, 'provider history childSessionKey');
+  const childSessionKey = String(record.childSessionKey);
+  const runId = nonEmpty(record.runId, 'provider history runId');
+  const resolvedModel = nonEmpty(record.resolvedModel, 'provider history resolvedModel');
+  if (resolvedModel !== model) throw new TypeError('provider history resolvedModel must match model');
+  if (!isNativeChildSessionKey(childSessionKey, agentId)) {
+    throw new TypeError('provider history childSessionKey does not match its agentId');
+  }
+  const derivedProviderFamily = modelProviderFamily(model);
+  if (record.providerFamily !== undefined && String(record.providerFamily) !== derivedProviderFamily) {
+    throw new TypeError(`provider history providerFamily does not match model provider: ${model}`);
+  }
+  return { ...record, model, agentId, childSessionKey, runId, resolvedModel, providerFamily: derivedProviderFamily };
+}
+
+function recordAcceptedProviderDispatch(state, task, action, receipt) {
+  const calibration = state.providerCalibration;
+  if (!calibration) return;
+  calibration.history.push({
+    taskId: task.taskId,
+    entryId: action.entryId,
+    purpose: action.purpose,
+    routeKind: action.routeKind,
+    agentId: action.args.agentId,
+    model: action.args.model,
+    providerFamily: providerFamily(task.awaiting.entry),
+    childSessionKey: receipt.childSessionKey,
+    runId: receipt.runId,
+    resolvedModel: receipt.resolvedModel,
+  });
+  const windowSize = positiveInteger(calibration.config?.windowDispatches, 50);
+  calibration.history = calibration.history.slice(-windowSize);
+  calibration.report = thaw(createProviderCalibrationReport(calibration.config, calibration.history));
+}
+
+function providerFamily(entry) {
+  return modelProviderFamily(entry?.model);
+}
+
+function modelProviderFamily(model) {
+  const value = String(model || '');
+  const provider = value.split('/')[0];
+  if (provider === 'minimax-portal') return 'minimax';
+  if (provider === 'opencode-go') return 'mimo';
+  if (provider === 'ollama-cloud') return 'ollama';
+  if (provider === 'cline-pass') return 'cline';
+  if (provider === 'cursor-cli' || provider === 'cursor') return 'cursor';
+  if (provider === 'deepseek' || value.endsWith(':direct')) return 'deepseek';
+  return provider || 'unknown';
 }
 
 function producerRecord(awaiting, event) {
@@ -364,14 +573,21 @@ function validatePlan(plan) {
   for (const name of ['producers', 'verifiers', 'availabilityFallbacks', 'qualityEscalations']) {
     if (!Array.isArray(plan.queues[name])) throw new TypeError(`plan queues.${name} must be an array`);
   }
+  for (const routeRecord of plan.routes) {
+    const riskClass = String(routeRecord?.route?.classification?.riskClass || '');
+    if (!RISK_CLASSES.has(riskClass)) throw new TypeError(`plan route has invalid riskClass: ${riskClass || 'missing'}`);
+  }
   if (plan.queues.evidence !== undefined && !Array.isArray(plan.queues.evidence)) {
     throw new TypeError('plan queues.evidence must be an array');
+  }
+  if (plan.queues.calibrationAlternatives !== undefined && !Array.isArray(plan.queues.calibrationAlternatives)) {
+    throw new TypeError('plan queues.calibrationAlternatives must be an array');
   }
 }
 
 function validateState(state) {
   if (!state || typeof state !== 'object' || state.schemaVersion !== 'sol-moe-native-dispatch-v1'
-      || !state.plan || !state.tasks || !Array.isArray(state.processedEventIds)) {
+      || !state.plan || !state.tasks || !Array.isArray(state.processedEventIds) || !state.providerCalibration) {
     throw new TypeError('invalid native dispatch state');
   }
 }
@@ -397,6 +613,8 @@ function copyPlan(plan) {
       Array.isArray(entries) ? entries.map((entry) => ({ ...entry })) : [],
     ])),
     blocked: Array.isArray(plan.blocked) ? plan.blocked.map((entry) => ({ ...entry })) : [],
+    providerCalibration: plan.providerCalibration ? thaw(plan.providerCalibration) : null,
+    availabilityEvidence: plan.availabilityEvidence ? thaw(plan.availabilityEvidence) : null,
   };
 }
 
@@ -433,4 +651,30 @@ function nonEmpty(value, name) {
 function optionalText(value) {
   const text = String(value ?? '').trim();
   return text || null;
+}
+
+function positiveInteger(value, fallback) {
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number > 0 ? number : fallback;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isNativeChildSessionKey(value, expectedAgentId = null) {
+  if (typeof value !== 'string' || value !== value.trim()) return false;
+  const match = /^agent:([A-Za-z0-9._-]+):subagent:([A-Za-z0-9][A-Za-z0-9._-]*)$/.exec(value);
+  return Boolean(match && (!expectedAgentId || match[1] === expectedAgentId));
+}
+
+function hasNativeAvailabilityEvidence(proof, model) {
+  return proof?.source === 'native-completion-event'
+    && proof?.status === 'completed-native-canary'
+    && proof?.ok === true
+    && proof?.resolvedModel === model
+    && isNativeChildSessionKey(proof?.childSessionKey)
+    && typeof proof?.runId === 'string'
+    && proof.runId.length > 0
+    && proof.runId === proof.runId.trim();
 }

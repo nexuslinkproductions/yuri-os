@@ -53,6 +53,7 @@ Skills live in `.claude/skills/` (Claude Code skills) and are loaded by the YURI
 MURE agent definitions live in `.omp/agents/` (OMP format) and `.openclaw/agents/` (OpenClaw format). The Helmsman dispatches; every other role is a specialized lane. Fleet-by-default: decompose → dispatch parallel → verify → finalize orchestrator-only.
 
 See `.openclaw/mure-agent-catalog.json` for the complete role registry with model bindings.
+The executable role boundaries are summarized in `_SYSTEM/mure/ROLE-TOPOLOGY.md`; the provider/model route registry is `_SYSTEM/config/provider-route-registry.json`. Sol is the orchestrator, advisors are consult-only, workers are bounded leaves, and verifiers are independent downstream gates. Fable 5 is archival and excluded.
 
 ## Git & GitHub
 

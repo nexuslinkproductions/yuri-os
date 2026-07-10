@@ -2,6 +2,11 @@
   "version": "sol-moe-v3.3-cost-tier",
   "mode": "native-parent-controller",
   "execution": "sessions_spawn-native-push",
+  "providerRouteRegistry": {
+    "path": "_SYSTEM/config/provider-route-registry.json",
+    "selection": "provider-calibration-after-exact-native-canary",
+    "unresolvedRoutesAreBlocked": true
+  },
   "availabilityDefaults": {
     "zai/glm-5.2": false,
     "opencode-go/mimo-v2.5": false
