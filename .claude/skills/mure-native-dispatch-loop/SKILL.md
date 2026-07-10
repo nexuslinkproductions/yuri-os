@@ -80,6 +80,10 @@ extractTerminalTaskResults(state)          // only tasks currently in a terminal
 
 Terminal statuses: `passed`, `fail-loud`, `owner-held`, `blocked`. The extracted record carries `producer`, `evidence`, `priorVerifier`, and `failure` (null unless `fail-loud`) — this is what the parent session reports back, never the raw reducer task object.
 
+### Live canary floor
+
+Use an `R2` task for any live canary intended to prove both reducer completion and shadow-ledger acceptance: the shadow ledger accepts a producer only after an independent verifier passes. An `R1` producer can reach reducer `passed`, but it cannot prove a shadow `accepted` lifecycle. Pass proof to producer completion as exact evidence keys, e.g. `{ evidence: { result_label: '<label>' } }` for an `evidenceRequirements: ['RESULT_LABEL']` ticket; `checked` is verifier-verdict metadata, not producer evidence.
+
 ### No polling, no fake subprocess runtime, real-event-only telemetry
 
 - **No polling.** The only way state advances is a pushed completion payload or an explicit scheduling tick (`reduceNativeDispatch(state, null)`). Never loop on `sessions_list`/`sessions_history`/sleep to discover completion.
