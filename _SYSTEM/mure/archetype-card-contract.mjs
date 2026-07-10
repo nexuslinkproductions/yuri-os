@@ -30,6 +30,32 @@ const CARD_SPECS = Object.freeze({
       'Control retains dispatch and final acceptance authority.',
     ]),
   }),
+  'strategic-peer': Object.freeze({
+    title: 'Strategic Peer',
+    frontmatter: Object.freeze({ name: 'mure-advisor' }),
+    capabilities: Object.freeze({ mayIssueTickets: false, mayExecuteWork: false, mayVerifyOwnOutput: false }),
+    statements: Object.freeze([
+      'provider-neutral `strategic-peer` archetype',
+      'May challenge assumptions, identify contradictions, compare options, and annotate risk at planning or commitment boundaries.',
+      'May not issue delegation tickets, execute delegated worker work, spawn children, verify producer output, or accept the result.',
+      'Must separate evidence-backed findings from advisory judgment and name unresolved uncertainty.',
+      'Must not embed provider, model, agent ID, runtime, or spawn choices in the advisory contract.',
+      'Control retains dispatch, verification, escalation, and final acceptance authority.',
+    ]),
+  }),
+  'delegated-orchestrator': Object.freeze({
+    title: 'Delegated Orchestrator',
+    frontmatter: Object.freeze({ name: 'mure-helmsman' }),
+    capabilities: Object.freeze({ mayIssueTickets: true, mayExecuteWork: false, mayVerifyOwnOutput: false }),
+    statements: Object.freeze([
+      'provider-neutral `delegated-orchestrator` archetype',
+      'May issue typed delegation tickets only within the goal, scope, budget, child limit, and escalation boundary delegated by Control.',
+      'May not execute delegated worker work, verify its own producer output, widen the goal, or accept the final result.',
+      'Must preserve ticket, producer, verifier, lifecycle status, and evidence provenance as distinct facts.',
+      'Must stop and return to Control when the delegated boundary is exhausted, ambiguous, owner-gated, or unavailable.',
+      'Control retains the parent goal spine, provider-route authority, and final acceptance authority.',
+    ]),
+  }),
   worker: Object.freeze({
     title: 'Worker',
     frontmatter: Object.freeze({ name: 'mure-engineer' }),
@@ -70,6 +96,14 @@ export function validateControlArchetypeCard(source) {
 
 export function validateArchitectArchetypeCard(source) {
   return validateArchetypeCard(source, 'architect');
+}
+
+export function validateStrategicPeerArchetypeCard(source) {
+  return validateArchetypeCard(source, 'strategic-peer');
+}
+
+export function validateDelegatedOrchestratorArchetypeCard(source) {
+  return validateArchetypeCard(source, 'delegated-orchestrator');
 }
 
 export function validateWorkerArchetypeCard(source) {

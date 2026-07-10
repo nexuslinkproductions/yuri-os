@@ -4,6 +4,8 @@ import test from 'node:test';
 import {
   validateArchitectArchetypeCard,
   validateControlArchetypeCard,
+  validateDelegatedOrchestratorArchetypeCard,
+  validateStrategicPeerArchetypeCard,
   validateVerifierArchetypeCard,
   validateWorkerArchetypeCard,
 } from './archetype-card-contract.mjs';
@@ -11,6 +13,8 @@ import {
 const CARD_URL = new URL('../../.openclaw/agents/mure-yuri.md', import.meta.url);
 const ROLE_CARDS = Object.freeze([
   ['architect', new URL('../../.openclaw/agents/mure-architect.md', import.meta.url), validateArchitectArchetypeCard],
+  ['strategic-peer', new URL('../../.openclaw/agents/mure-advisor.md', import.meta.url), validateStrategicPeerArchetypeCard],
+  ['delegated-orchestrator', new URL('../../.openclaw/agents/mure-helmsman.md', import.meta.url), validateDelegatedOrchestratorArchetypeCard],
   ['worker', new URL('../../.openclaw/agents/mure-engineer.md', import.meta.url), validateWorkerArchetypeCard],
   ['verifier', new URL('../../.openclaw/agents/mure-adjudicator.md', import.meta.url), validateVerifierArchetypeCard],
 ]);
@@ -48,7 +52,7 @@ test('validator rejects a stale result label and a missing Control boundary', as
   assert.ok(missingBoundary.errors.some((error) => error.startsWith('missing Control contract statement:')));
 });
 
-test('Architect, Worker, and Verifier cards validate against provider-neutral contracts', async () => {
+test('all five delegated archetype cards validate against provider-neutral contracts', async () => {
   for (const [archetype, url, validate] of ROLE_CARDS) {
     const source = await readFile(url, 'utf8');
     assert.deepEqual(validate(source), {
@@ -61,7 +65,9 @@ test('Architect, Worker, and Verifier cards validate against provider-neutral co
 });
 
 test('role-card validators reject missing execution and independence boundaries', async () => {
-  const worker = await readFile(ROLE_CARDS[1][1], 'utf8');
+  const workerSpec = ROLE_CARDS.find(([archetype]) => archetype === 'worker');
+  const verifierSpec = ROLE_CARDS.find(([archetype]) => archetype === 'verifier');
+  const worker = await readFile(workerSpec[1], 'utf8');
   const missingWorkerBoundary = validateWorkerArchetypeCard(worker.replace(
     'May not issue delegation tickets, spawn peers, expand scope, verify its own producer output, or accept the result.',
     '',
@@ -69,13 +75,31 @@ test('role-card validators reject missing execution and independence boundaries'
   assert.equal(missingWorkerBoundary.ok, false);
   assert.ok(missingWorkerBoundary.errors.some((error) => error.startsWith('missing Worker contract statement:')));
 
-  const verifier = await readFile(ROLE_CARDS[2][1], 'utf8');
+  const verifier = await readFile(verifierSpec[1], 'utf8');
   const missingVerifierBoundary = validateVerifierArchetypeCard(verifier.replace(
     'Must report both what was checked and what was not checked.',
     '',
   ));
   assert.equal(missingVerifierBoundary.ok, false);
   assert.ok(missingVerifierBoundary.errors.some((error) => error.startsWith('missing Verifier contract statement:')));
+});
+
+test('Strategic Peer and Delegated Orchestrator reject missing authority boundaries', async () => {
+  const peer = await readFile(ROLE_CARDS[1][1], 'utf8');
+  const missingPeerBoundary = validateStrategicPeerArchetypeCard(peer.replace(
+    'May not issue delegation tickets, execute delegated worker work, spawn children, verify producer output, or accept the result.',
+    '',
+  ));
+  assert.equal(missingPeerBoundary.ok, false);
+  assert.ok(missingPeerBoundary.errors.some((error) => error.startsWith('missing Strategic Peer contract statement:')));
+
+  const orchestrator = await readFile(ROLE_CARDS[2][1], 'utf8');
+  const missingOrchestratorBoundary = validateDelegatedOrchestratorArchetypeCard(orchestrator.replace(
+    'Must stop and return to Control when the delegated boundary is exhausted, ambiguous, owner-gated, or unavailable.',
+    '',
+  ));
+  assert.equal(missingOrchestratorBoundary.ok, false);
+  assert.ok(missingOrchestratorBoundary.errors.some((error) => error.startsWith('missing Delegated Orchestrator contract statement:')));
 });
 
 test('archetype card validation remains outside all live routing modules', async () => {
