@@ -37,12 +37,12 @@
           "agentId": "deepseek-flash",
           "status": "blocked-schema",
           "source": "native-completion-event",
-          "blockedReason": "Ollama Cloud rejects the compiled request schema for deepseek-v4-flash. The native OpenClaw catalog resolves ollama-cloud through the OpenAI-compatible http://localhost:11434/v1 surface, not the workspace /api/chat adapter; its deepseek-v4-flash:cloud entry declares no tools compatibility, and the live /v1/models inventory does not advertise that ID (observed 2026-07-11). Keep the route blocked until the catalog and live inventory agree and a no-tools/tool-compatible native canary completes.",
+          "blockedReason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
           "canaryEvidence": {
-            "runId": "b43b50b4-0079-48b6-abc2-49a40b8abe9e",
-            "childSessionKey": "agent:deepseek-flash:subagent:406e6e28-7318-4652-8e75-ec512606f50f",
+            "runId": "402b8e5f-8b65-41e3-b848-abb43d6a1205",
+            "childSessionKey": "agent:deepseek-flash:subagent:c1dccb19-4d65-4a91-bfb5-95f25bdb4e80",
             "result": "provider-rejected-request-schema",
-            "observed": "2026-07-10"
+            "observed": "2026-07-11"
           }
         },
         {
@@ -65,11 +65,17 @@
           "id": "deepseek-v4-flash.opencode",
           "provider": "opencode",
           "surface": "opencode",
-          "model": null,
+          "model": "opencode-go/deepseek-v4-flash",
           "agentId": "mure-artificer",
-          "status": "unresolved",
-          "source": "owner-report",
-          "blockedReason": "No exact OpenCode model identifier is registered; do not invent one."
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "32801b10-6597-47df-8b07-666e10774a3c",
+            "childSessionKey": "agent:mure-artificer:subagent:da6f14d2-2886-4893-80b5-1ecc0979379d",
+            "resolvedModel": "opencode-go/deepseek-v4-flash",
+            "result": "completed",
+            "observed": "2026-07-11"
+          }
         }
       ]
     },

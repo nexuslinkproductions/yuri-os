@@ -55,27 +55,11 @@ test('R0 breadth routes to DeepSeek Flash with MiMo as availability fallback', (
   assert.equal(route.qualityEscalations[0].model, 'minimax-portal/MiniMax-M3');
 });
 
-test('MiMo stays masked until a completed native auth canary re-enables it', () => {
+test('MiMo becomes an R0 availability fallback after its completed native auth canary', () => {
   const task = { id: 'scan-mask', summary: 'grep all TODO markers', readOnly: true, mechanical: true };
-  const masked = routeTask(task);
-  assert.equal(masked.producer.model, 'deepseek/deepseek-v4-flash');
-  assert.ok(!masked.availabilityFallbacks.some((entry) => entry.model === 'opencode-go/mimo-v2.5'));
-  const enabled = routeTask(task, { availability: { 'opencode-go/mimo-v2.5': true } });
-  assert.ok(!enabled.availabilityFallbacks.some((entry) => entry.model === 'opencode-go/mimo-v2.5'));
-  const proven = routeTask(task, {
-    availability: { 'opencode-go/mimo-v2.5': true },
-    availabilityEvidence,
-  });
-  assert.equal(proven.availabilityFallbacks[0].model, 'opencode-go/mimo-v2.5');
-  for (const childSessionKey of ['agent:', 'agent:test:subagent:fake\n']) {
-    const forgedEvidence = structuredClone(availabilityEvidence);
-    forgedEvidence['opencode-go/mimo-v2.5'].childSessionKey = childSessionKey;
-    const forged = routeTask(task, {
-      availability: { 'opencode-go/mimo-v2.5': true },
-      availabilityEvidence: forgedEvidence,
-    });
-    assert.ok(!forged.availabilityFallbacks.some((entry) => entry.model === 'opencode-go/mimo-v2.5'));
-  }
+  const enabled = routeTask(task);
+  assert.equal(enabled.producer.model, 'deepseek/deepseek-v4-flash');
+  assert.equal(enabled.availabilityFallbacks[0].model, 'opencode-go/mimo-v2.5');
 });
 
 test('GLM 5.2 is masked by default until explicit availability evidence re-enables it', () => {

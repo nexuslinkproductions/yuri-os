@@ -9,7 +9,7 @@
   },
   "availabilityDefaults": {
     "zai/glm-5.2": false,
-    "opencode-go/mimo-v2.5": false
+    "opencode-go/mimo-v2.5": true
   },
   "seat": {
     "expert": "sol",

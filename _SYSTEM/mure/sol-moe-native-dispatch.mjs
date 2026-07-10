@@ -27,9 +27,10 @@ const WORKER_BINDINGS = new Map([
   ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
   ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
   ['opencode-go/mimo-v2.5', 'mure-artificer'],
+  ['opencode-go/deepseek-v4-flash', 'mure-artificer'],
   ['cline-pass/cline-pass/mimo-v2.5', 'mure-artificer'],
 ]);
-const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2', 'opencode-go/mimo-v2.5']);
+const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2']);
 const CHEAP_PROVIDER_FAMILIES = new Set(['deepseek', 'mimo', 'ollama', 'cline', 'cursor']);
 const R3_VERIFIER_MODEL = 'anthropic/claude-opus-4-8';
 

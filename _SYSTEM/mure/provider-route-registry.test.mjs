@@ -12,8 +12,8 @@ test('provider route registry validates and keeps model identity separate from e
   assert.equal(validateProviderRouteRegistry(), true);
   const routes = listModelRoutes('deepseek-v4-flash', { includeUnresolved: true });
   assert.deepEqual(routes.map((route) => route.provider), ['deepseek', 'deepseek', 'ollama', 'cline', 'opencode']);
-  assert.equal(routes.at(-1).model, null);
-  assert.equal(routes.at(-1).status, 'unresolved');
+  assert.equal(routes.at(-1).model, 'opencode-go/deepseek-v4-flash');
+  assert.equal(routes.at(-1).status, 'canary-proven');
 });
 
 test('DeepSeek native canary pool contains only exact configured model identities', () => {
@@ -22,7 +22,7 @@ test('DeepSeek native canary pool contains only exact configured model identitie
   assert.ok(routes.some((route) => route.model === 'deepseek-v4-flash:direct'));
   assert.ok(routes.some((route) => route.model === 'cline-pass/cline-pass/deepseek-v4-flash'));
   assert.ok(!routes.some((route) => route.model === null));
-  // Ollama route stays out of the canary pool while blocked
+  // Ollama stays out of the native canary pool while its proxy rejects tool payloads.
   assert.ok(!routes.some((route) => route.model === 'ollama-cloud/deepseek-v4-flash:cloud'));
 });
 
@@ -31,7 +31,7 @@ test('provider outcomes promote exact completions and block schema-incompatible 
   const ollama = deepseek.find((route) => route.provider === 'ollama');
   const cline = deepseek.find((route) => route.provider === 'cline');
   assert.equal(ollama.status, 'blocked-schema');
-  assert.match(ollama.blockedReason, /request schema/);
+  assert.match(ollama.blockedReason, /tool payload/);
   assert.equal(cline.status, 'canary-proven');
   assert.equal(cline.canaryEvidence.result, 'completed');
   assert.equal(cline.canaryEvidence.resolvedModel, cline.model);
@@ -55,10 +55,10 @@ test('role topology keeps Sol above workers and verifiers independent', () => {
   assert.ok(PROVIDER_ROUTE_REGISTRY.excludedModels.some((entry) => entry.model === 'anthropic/claude-fable-5'));
 });
 
-test('registry fails closed on an invented unresolved route', () => {
+test('registry fails closed when a catalog candidate loses its exact model identity', () => {
   const invalid = structuredClone(PROVIDER_ROUTE_REGISTRY);
-  invalid.modelIdentities['deepseek-v4-flash'].routes.at(-1).model = 'opencode-go/deepseek-v4-flash';
-  assert.throws(() => validateProviderRouteRegistry(invalid), /unresolved route/);
+  invalid.modelIdentities['deepseek-v4-flash'].routes.at(-1).model = null;
+  assert.throws(() => validateProviderRouteRegistry(invalid), /model/);
 });
 
 test('registry rejects unsupported canary claims and reasonless schema blocks', () => {
@@ -71,6 +71,8 @@ test('registry rejects unsupported canary claims and reasonless schema blocks', 
   assert.throws(() => validateProviderRouteRegistry(mismatchedModel), /requires exact completed native evidence/);
 
   const reasonlessBlock = structuredClone(PROVIDER_ROUTE_REGISTRY);
-  delete reasonlessBlock.modelIdentities['deepseek-v4-flash'].routes.find((route) => route.provider === 'ollama').blockedReason;
+  const blocked = reasonlessBlock.modelIdentities['deepseek-v4-flash'].routes.find((route) => route.provider === 'ollama');
+  blocked.status = 'blocked-schema';
+  delete blocked.blockedReason;
   assert.throws(() => validateProviderRouteRegistry(reasonlessBlock), /must have blockedReason/);
 });
