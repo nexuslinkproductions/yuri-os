@@ -260,6 +260,36 @@ test('strict verifier semantic failure and exhausted fallback both fail loud', (
   assert.equal(exhausted.action.code, 'AVAILABILITY_FALLBACK_EXHAUSTED');
 });
 
+test('verifier rejection fails loud when quality escalation is exhausted', () => {
+  const producer = reduceNativeDispatch(createNativeDispatchState(plan()));
+  const verifier = acceptedCompletion(producer.state, producer.action, 'producer-before-exhaustion');
+  const exhausted = acceptedCompletion(verifier.state, verifier.action, 'verifier-reject-exhausted', { verdict: 'reject' });
+  assert.equal(exhausted.action.type, 'fail-loud');
+  assert.equal(exhausted.action.code, 'QUALITY_ESCALATION_EXHAUSTED');
+});
+
+test('missing producer and required verifier fail loud with exact codes', () => {
+  const noProducer = plan();
+  noProducer.queues.producers = [];
+  const producerMissing = reduceNativeDispatch(createNativeDispatchState(noProducer));
+  assert.equal(producerMissing.action.type, 'fail-loud');
+  assert.equal(producerMissing.action.code, 'PRODUCER_MISSING');
+
+  const noVerifier = plan();
+  noVerifier.queues.verifiers = [];
+  const producer = reduceNativeDispatch(createNativeDispatchState(noVerifier));
+  const verifierMissing = acceptedCompletion(producer.state, producer.action, 'producer-without-verifier');
+  assert.equal(verifierMissing.action.type, 'fail-loud');
+  assert.equal(verifierMissing.action.code, 'REQUIRED_VERIFIER_MISSING');
+});
+
+test('completion before native admission fails loud', () => {
+  const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
+  const premature = reduceNativeDispatch(scheduled.state, complete(scheduled.action, 'premature-completion'));
+  assert.equal(premature.action.type, 'fail-loud');
+  assert.equal(premature.action.code, 'COMPLETION_BEFORE_ACCEPTANCE');
+});
+
 test('held and blocked tasks emit no spawn actions', () => {
   const held = reduceNativeDispatch(createNativeDispatchState(plan({ held: true })));
   assert.deepEqual(held.action, { type: 'none', reason: 'no-runnable-task' });
