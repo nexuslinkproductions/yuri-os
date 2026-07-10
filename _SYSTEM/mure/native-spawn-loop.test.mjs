@@ -23,25 +23,24 @@ const SPECS = [
 ];
 
 // ── GREEN ───────────────────────────────────────────────────────────────────
-test('GREEN: spawnNativeLoop writes one valid packet per spec, keyed by id', async () => {
+test('GREEN: disarmed spawnNativeLoop emits no result-shaped packets', async () => {
   const runDir = path.join(TMP, 'green', 'results');
   fs.mkdirSync(runDir, { recursive: true });
   const { pool, skipped } = await spawnNativeLoop(SPECS, runDir);
-  assert.equal(Object.keys(pool).length, 2);
-  assert.equal(skipped.length, 0);
+  assert.equal(Object.keys(pool).length, 0);
+  assert.equal(skipped.length, 2);
   for (const id of ['leaf-a', 'leaf-b']) {
-    assert.ok(pool[id], `pool has ${id}`);
-    assert.ok(pool[id].text.length > 0, 'packet has text');
-    assert.ok(fs.existsSync(path.join(runDir, `native-${id}.json`)), 'packet file written');
+    assert.equal(pool[id], undefined, `pool has no fabricated ${id} output`);
+    assert.equal(fs.existsSync(path.join(runDir, `native-${id}.json`)), false, 'no fabricated packet file written');
   }
 });
 
-test('GREEN: written packets are substrate-agnostic (aggregatePoolOutputs reads them)', async () => {
+test('GREEN: convergence receives no fabricated packets while disarmed', async () => {
   const runDir = path.join(TMP, 'agg', 'results');
   fs.mkdirSync(runDir, { recursive: true });
   await spawnNativeLoop(SPECS, runDir);
   const { pool } = aggregatePoolOutputs(runDir);
-  assert.equal(Object.keys(pool).length, 2, 'convergence reads the same schema GLM writes');
+  assert.equal(Object.keys(pool).length, 0, 'convergence sees no fabricated native output');
 });
 
 // ── RED (safety) ─────────────────────────────────────────────────────────────
@@ -94,14 +93,14 @@ test('RED (no live spawn): disarmed packets are disarmed, never ok', async () =>
 });
 
 // ── GREY ────────────────────────────────────────────────────────────────────
-test('GREY: every written packet passes validatePacket (laneId/role/status/resultLabel)', async () => {
+test('GREY: disarmed execution leaves no packet for validatePacket to accept', async () => {
   const runDir = path.join(TMP, 'valid', 'results');
   fs.mkdirSync(runDir, { recursive: true });
-  await spawnNativeLoop(SPECS, runDir);
+  const { pool, skipped } = await spawnNativeLoop(SPECS, runDir);
+  assert.equal(Object.keys(pool).length, 0);
+  assert.equal(skipped.length, 2);
   for (const id of ['leaf-a', 'leaf-b']) {
-    const packet = JSON.parse(fs.readFileSync(path.join(runDir, `native-${id}.json`), 'utf8'));
-    assert.equal(validatePacket(packet), true, `${id} packet conforms`);
-    assert.equal(packet.role, id);
+    assert.equal(fs.existsSync(path.join(runDir, `native-${id}.json`)), false, `${id} writes no result packet`);
   }
 });
 

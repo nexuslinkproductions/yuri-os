@@ -73,7 +73,7 @@ test('mirrors one R2 producer and independent verifier into an accepted ledger t
 
   assert.deepEqual(shadowSnapshot(shadow), {
     schemaVersion: 'mure-native-dispatch-shadow-v1', ticketId: taskId, ledgerStatus: 'accepted', awaiting: null,
-    admissionCount: 2, observationCount: 6,
+    admissionCount: 2, observationCount: 8, governanceWarnings: 2,
   });
 });
 

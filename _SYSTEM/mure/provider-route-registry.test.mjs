@@ -40,6 +40,9 @@ test('provider outcomes promote exact completions and block schema-incompatible 
   assert.equal(listModelRoutes('claude-sonnet-5')[0].status, 'canary-proven');
   assert.equal(listModelRoutes('claude-opus-4-8')[0].status, 'canary-proven');
   assert.equal(listModelRoutes('minimax-m2.7-highspeed')[0].status, 'canary-proven');
+  const terra = listModelRoutes('gpt-5.6-terra')[0];
+  assert.equal(terra.status, 'canary-proven');
+  assert.equal(terra.canaryEvidence.resolvedModel, 'openai/gpt-5.6-terra');
 });
 
 test('role topology keeps Sol above workers and verifiers independent', () => {

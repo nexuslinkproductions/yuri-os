@@ -41,6 +41,22 @@ function collectSidecarLeaves(plan) {
   const leaves = [];
   for (const leaf of plan.glmLeaves ?? []) leaves.push(leaf);
   for (const spec of plan.nativeSpecs ?? []) leaves.push(spec);
+  // Current company planning represents self-governable Ollama work in casts rather
+  // than a runnable GLM/native leaf. Preserve that route information for sidecar
+  // planning without changing the plan or dispatching it.
+  for (const cast of plan.casts ?? []) {
+    if (cast?.subtaskId && cast?.role && cast?.target) {
+      leaves.push({
+        id: cast.subtaskId,
+        role: cast.role,
+        lane: cast.target.lane,
+        model: cast.target.model,
+        dispatch: cast.target.dispatch,
+        affinityApplied: cast.target.affinityApplied,
+        substrateHint: cast.substrateHint,
+      });
+    }
+  }
   return leaves;
 }
 

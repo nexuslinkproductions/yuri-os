@@ -229,6 +229,27 @@
           }
         }
       ]
+    },
+    "gpt-5.6-terra": {
+      "role": "frontier-worker",
+      "routes": [
+        {
+          "id": "gpt-5.6-terra.openai",
+          "provider": "openai",
+          "surface": "openclaw-native",
+          "model": "openai/gpt-5.6-terra",
+          "agentId": "mure-engineer",
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "8b8da6ae-0e49-423f-ad43-5e4a1567185c",
+            "childSessionKey": "agent:mure-engineer:subagent:f8e04090-ddf0-4aec-85c0-05c666e4438f",
+            "resolvedModel": "openai/gpt-5.6-terra",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
+        }
+      ]
     }
   },
   "roleTopology": {
