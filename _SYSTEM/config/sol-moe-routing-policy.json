@@ -1,5 +1,5 @@
 {
-  "version": "sol-moe-v2",
+  "version": "sol-moe-v3.2-cheap-amplified",
   "mode": "native-parent-controller",
   "execution": "sessions_spawn-native-push",
   "availabilityDefaults": {
@@ -11,6 +11,38 @@
     "agentId": "mure-yuri",
     "model": "openai/gpt-5.6-sol",
     "thinking": "high"
+  },
+  "providerCalibration": {
+    "scope": "all accepted native child dispatches: evidence, primary producers, availability fallbacks, quality escalations, and verifiers; excludes the Sol parent seat",
+    "metric": "accepted native child dispatch count; token share is observed separately",
+    "windowDispatches": 50,
+    "minimumSamples": 30,
+    "promotionMargin": 0.03,
+    "maximumBrierRegression": 0,
+    "activeTargets": {
+      "minimax": { "min": 0.3, "max": 0.55 },
+      "anthropic": { "min": 0.12, "max": 0.28 },
+      "deepseek": { "min": 0.22, "max": 0.45 },
+      "mimo": { "min": 0, "max": 0.18 },
+      "openai": { "min": 0, "max": 0.06 },
+      "zai": { "min": 0, "max": 0 }
+    },
+    "recoveredTargets": {
+      "minimax": { "min": 0.28, "max": 0.5 },
+      "anthropic": { "min": 0.12, "max": 0.28 },
+      "deepseek": { "min": 0.2, "max": 0.4 },
+      "mimo": { "min": 0.08, "max": 0.2 },
+      "openai": { "min": 0, "max": 0.06 },
+      "zai": { "min": 0.08, "max": 0.2 }
+    },
+    "hardRules": [
+      "Sol remains the parent control plane and final integrator",
+      "Sol is never compiled into a native child worker entry",
+      "OpenAI worker models are specialists or quality escalations, never the default volume pool",
+      "cheap models may produce only R0 semantics and R1-R3 evidence",
+      "R2 requires an independent frontier verifier",
+      "R3 requires independent Opus 4.8 verification"
+    ]
   },
   "riskClasses": {
     "R0": "Mechanical, read-only, bounded, and deterministically checkable",
@@ -103,10 +135,11 @@
   ],
   "taskProfiles": {
     "orchestration": {
-      "producer": ["sol"],
-      "availabilityFallback": ["opus48", "m3"],
-      "qualityEscalation": ["opus48", "m3"],
-      "verifier": ["sonnet5"]
+      "producer": ["m3", "sonnet5"],
+      "producerWeights": { "m3": 0.8, "sonnet5": 0.2 },
+      "availabilityFallback": ["opus48"],
+      "qualityEscalation": ["opus48"],
+      "verifier": ["sonnet5", "opus48"]
     },
     "breadth": {
       "producer": ["deepseek-flash"],
@@ -115,69 +148,74 @@
       "verifier": ["sonnet5"]
     },
     "implementation": {
-      "producer": ["terra"],
-      "availabilityFallback": ["m3", "sonnet5"],
-      "qualityEscalation": ["sonnet5", "opus48"],
-      "verifier": ["sonnet5", "glm52"]
+      "producer": ["m3", "sonnet5"],
+      "producerWeights": { "m3": 0.8, "sonnet5": 0.2 },
+      "availabilityFallback": ["opus48"],
+      "qualityEscalation": ["opus48", "terra"],
+      "verifier": ["sonnet5", "opus48", "glm52"]
     },
     "security-implementation": {
-      "producer": ["terra"],
-      "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["sol", "sonnet5"],
+      "producer": ["sonnet5", "m3"],
+      "producerWeights": { "sonnet5": 0.8, "m3": 0.2 },
+      "availabilityFallback": ["terra"],
+      "qualityEscalation": ["m3", "terra"],
       "verifier": ["opus48"]
     },
     "security": {
-      "producer": ["glm52"],
-      "availabilityFallback": ["sol", "sonnet5"],
-      "qualityEscalation": ["sol", "sonnet5"],
+      "producer": ["sonnet5", "m3"],
+      "producerWeights": { "sonnet5": 0.75, "m3": 0.25 },
+      "availabilityFallback": ["luna"],
+      "qualityEscalation": ["m3", "luna", "sonnet5"],
       "verifier": ["opus48"]
     },
     "governance": {
-      "producer": ["sol"],
-      "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["sonnet5", "sol"],
+      "producer": ["sonnet5", "m3"],
+      "producerWeights": { "sonnet5": 0.8, "m3": 0.2 },
+      "availabilityFallback": ["luna"],
+      "qualityEscalation": ["m3", "luna", "sonnet5"],
       "verifier": ["opus48"]
     },
     "architecture": {
       "producer": ["glm52"],
-      "availabilityFallback": ["m3", "sol"],
-      "qualityEscalation": ["opus48"],
+      "availabilityFallback": ["m3", "sonnet5"],
+      "qualityEscalation": ["opus48", "terra"],
       "verifier": ["sonnet5", "opus48"]
     },
     "long-context": {
       "producer": ["glm52"],
-      "availabilityFallback": ["m3"],
-      "qualityEscalation": ["opus48", "sol"],
+      "availabilityFallback": ["m3", "sonnet5"],
+      "qualityEscalation": ["opus48", "terra"],
       "verifier": ["sonnet5"]
     },
     "synthesis": {
       "producer": ["m3"],
-      "availabilityFallback": ["glm52"],
-      "qualityEscalation": ["sol", "opus48"],
+      "availabilityFallback": ["glm52", "sonnet5"],
+      "qualityEscalation": ["opus48", "luna"],
       "verifier": ["sonnet5", "glm52"]
     },
     "research": {
       "producer": ["m3"],
-      "availabilityFallback": ["glm52"],
-      "qualityEscalation": ["sol", "opus48"],
+      "availabilityFallback": ["glm52", "sonnet5"],
+      "qualityEscalation": ["opus48", "luna"],
       "verifier": ["sonnet5"]
     },
     "verification": {
       "producer": ["sonnet5"],
-      "availabilityFallback": ["glm52"],
+      "availabilityFallback": ["glm52", "m3", "luna"],
       "qualityEscalation": ["luna", "opus48"],
       "verifier": ["opus48"]
     },
     "adjudication": {
-      "producer": ["luna"],
-      "availabilityFallback": ["opus48", "glm52"],
-      "qualityEscalation": ["sol", "opus48"],
-      "verifier": ["sonnet5"]
+      "producer": ["m3", "sonnet5"],
+      "producerWeights": { "m3": 0.65, "sonnet5": 0.35 },
+      "availabilityFallback": ["glm52", "luna"],
+      "qualityEscalation": ["sonnet5", "luna"],
+      "verifier": ["opus48"]
     },
     "general": {
       "producer": ["m3"],
-      "availabilityFallback": ["sol", "glm52"],
-      "qualityEscalation": ["opus48"],
+      "availabilityFallback": ["sonnet5", "glm52", "luna"],
+      "qualityEscalation": ["opus48", "luna"],
       "verifier": ["sonnet5"]
     }
   }

@@ -5,6 +5,18 @@ import { DEFAULT_POLICY } from './sol-moe-router.mjs';
 import { executeSolMoePlan } from './sol-moe-executor.mjs';
 
 const allAvailable = Object.fromEntries(DEFAULT_POLICY.experts.map((expert) => [expert.model, true]));
+const availabilityEvidence = Object.fromEntries(
+  Object.entries(DEFAULT_POLICY.availabilityDefaults)
+    .filter(([, available]) => available === false)
+    .map(([model]) => [model, {
+      source: 'native-completion-event',
+      status: 'completed-native-canary',
+      ok: true,
+      resolvedModel: model,
+      childSessionKey: `agent:test:subagent:${model.replace(/[^a-z0-9]/gi, '-')}`,
+      runId: `run-${model.replace(/[^a-z0-9]/gi, '-')}`,
+    }]),
+);
 
 test('plans separate immediate, availability, and quality queues', async () => {
   const plan = await planSolMoeCompany({
@@ -19,7 +31,7 @@ test('plans separate immediate, availability, and quality queues', async () => {
         blastRadius: 'MEDIUM',
       },
     ],
-  }, { availability: allAvailable, timestamp: '2026-07-09T22:00:00.000Z' });
+  }, { availability: allAvailable, availabilityEvidence, timestamp: '2026-07-09T22:00:00.000Z' });
 
   assert.equal(plan.mode, 'manifest-only-disarmed');
   assert.equal(plan.routes[0].route.classification.riskClass, 'R2');
@@ -31,6 +43,11 @@ test('plans separate immediate, availability, and quality queues', async () => {
   assert.equal(plan.summary.initialReadyTasks, 1);
   assert.equal(plan.summary.deferredVerifiers, 1);
   assert.equal('immediateSpawns' in plan.summary, false);
+  assert.deepEqual(plan.summary.plannedProviderMix.producers.counts, { zai: 1 });
+  assert.deepEqual(plan.summary.plannedProviderMix.verifiers.counts, { anthropic: 1 });
+  assert.equal(plan.summary.providerCalibrationTargets.openai.max, 0.06);
+  assert.match(DEFAULT_POLICY.providerCalibration.metric, /dispatch count/);
+  assert.equal(plan.availabilityEvidence['zai/glm-5.2'].resolvedModel, 'zai/glm-5.2');
 });
 
 test('owner-held governance work never enters an immediate spawn queue', async () => {
