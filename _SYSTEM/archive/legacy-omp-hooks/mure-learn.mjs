@@ -1,4 +1,5 @@
-// mure-learn.mjs — OMP → MURE learn-loop bridge (the seam the ledger flagged as "no live consumer").
+// ARCHIVAL ONLY — retired OMP → MURE learn-loop bridge.
+// Native OpenClaw dispatch telemetry now belongs to the MURE native reducer; this file has no live loader.
 //
 // Turns every OMP task() dispatch of a MURE role (agent name `mure-*`, or the worker lanes
 // fable-synth / deepseek-flash / composer-fast) into a prediction→outcome tuple in the EXISTING
@@ -16,9 +17,7 @@
 //     break a task dispatch. It observes; it does not gate. (Governance gating is a separate hook.)
 //   • Only `task` tool calls are touched; every other tool passes through untouched and instantly.
 //
-// Wiring: dropped at .omp/hooks/pre/ (project scope). OMP's extension runner loads the default
-// factory and binds pi.on(...) to the runtime event bus. Mirror to ~/.omp/agent/agents-adjacent
-// hook dirs if a user-scope install is wanted later.
+// Historical wiring: this formerly lived at .omp/hooks/pre/ and was loaded by OMP's extension runner.
 
 import fs from 'node:fs';
 import path from 'node:path';

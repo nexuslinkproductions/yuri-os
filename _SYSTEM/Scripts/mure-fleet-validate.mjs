@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: mure-fleet-validate
 // @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector
-// @does: TDD regression anchor for the MURE fleet — asserts (A) every projected agents.list model ref resolves to a registered openclaw provider model OR a known CLI-substrate resolver, (B) the 4 target ClinePass models are present in CLINE_ROSTER, (C) cline is armed. Exits non-zero on any failure.
+// @does: TDD regression anchor for the MURE fleet — validates model refs, Cline targets/arming, bounded role schemas, Sol variants, native nested dispatch, and OpenClaw-native card authority. Exits non-zero on any failure.
 // @use: node mure-fleet-validate.mjs  (CI/regression gate after any catalog/provider/roster change)
 // @exports: validateFleet, registeredProviderModels, resolveRef
 import fs from 'node:fs';
@@ -14,6 +14,9 @@ import { CLINE_ROSTER, isArmed as clineArmed } from './cline-fleet.mjs';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CATALOG = path.join(REPO, '.openclaw/mure-agent-catalog.json');
 const CONFIG = path.join(os.homedir(), '.openclaw/openclaw.json');
+const OPENCLAW_AGENT_DIR = path.join(REPO, '.openclaw', 'agents');
+const RETIRED_OMP_AGENT_DIR = path.join(REPO, '.omp', 'agents');
+const RETIRED_OMP_ROOT = path.join(REPO, '.omp');
 
 // providers OpenClaw resolves natively without an explicit models.providers block
 const BUILTIN_PREFIXES = new Set(['anthropic', 'openai', 'opencode-go']);
@@ -79,6 +82,61 @@ function knownSkillIds() {
     }
   }
   return known;
+}
+
+function readAgentCardName(filePath) {
+  const source = fs.readFileSync(filePath, 'utf8');
+  const frontmatter = source.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!frontmatter) return null;
+  const name = frontmatter[1].match(/^name:\s*["']?([^"'\n]+)["']?\s*$/m);
+  return name ? name[1].trim() : null;
+}
+
+function listFilesRecursive(root) {
+  if (!fs.existsSync(root)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    const target = path.join(root, entry.name);
+    if (entry.isDirectory()) files.push(...listFilesRecursive(target));
+    else if (entry.isFile()) files.push(target);
+  }
+  return files;
+}
+
+export function validateAgentCardAuthority(catalog, options = {}) {
+  const openclawAgentDir = options.openclawAgentDir || OPENCLAW_AGENT_DIR;
+  const retiredOmpRoot = options.retiredOmpRoot || RETIRED_OMP_ROOT;
+  const nativeCards = new Set(
+    fs.existsSync(openclawAgentDir)
+      ? fs.readdirSync(openclawAgentDir).filter((name) => name.endsWith('.md'))
+      : [],
+  );
+  const catalogNames = new Set(catalog.agents.map((agent) => agent.name));
+  const problems = [];
+
+  for (const agent of catalog.agents) {
+    const filename = `${agent.name}.md`;
+    if (!nativeCards.has(filename)) {
+      problems.push(`missing:${filename}`);
+      continue;
+    }
+    const cardName = readAgentCardName(path.join(openclawAgentDir, filename));
+    if (cardName !== agent.name) problems.push(`name-mismatch:${filename}:${cardName ?? '<missing-name>'}`);
+  }
+  for (const filename of nativeCards) {
+    const name = filename.slice(0, -3);
+    if (!catalogNames.has(name)) problems.push(`uncatalogued:${filename}`);
+  }
+
+  const retiredOmpMureFiles = listFilesRecursive(retiredOmpRoot)
+    .filter((file) => path.basename(file).startsWith('mure-'))
+    .map((file) => path.relative(REPO, file));
+  problems.push(...retiredOmpMureFiles.map((name) => `retired-omp-mure-file:${name}`));
+  if (catalog.agentCardRoot !== '.openclaw/agents') {
+    problems.push(`agentCardRoot:${catalog.agentCardRoot ?? '<missing>'}`);
+  }
+  if (String(catalog.source || '').includes('.omp/agents')) problems.push('catalog-source-still-omp');
+  return problems;
 }
 
 export function validateFleet() {
@@ -176,6 +234,15 @@ export function validateFleet() {
     name: 'G: Sol native nested dispatch is configured',
     ok: nativeDepthOk,
     detail: `maxSpawnDepth=${subagentDefaults.maxSpawnDepth ?? '<default:1>'}, maxChildrenPerAgent=${subagentDefaults.maxChildrenPerAgent ?? '<default:5>'}, yuri.sessions_spawn=${yuriTools.has('sessions_spawn')}`,
+  });
+
+  // CHECK H — every catalog role has exactly one OpenClaw-native card and
+  // repo-local OMP cards cannot silently become a second MURE authority.
+  const cardAuthorityProblems = validateAgentCardAuthority(catalog);
+  checks.push({
+    name: 'H: OpenClaw cards are canonical and OMP authority is retired',
+    ok: cardAuthorityProblems.length === 0,
+    detail: cardAuthorityProblems.length ? cardAuthorityProblems.join('; ') : `${catalog.agents.length} catalog cards resolve under .openclaw/agents; repo-local .omp contains no MURE files`,
   });
 
   return { ok: checks.every((c) => c.ok), checks };

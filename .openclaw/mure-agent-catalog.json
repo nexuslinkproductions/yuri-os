@@ -1,5 +1,6 @@
 {
-  "source": "OMP agent definitions from .omp/agents/ + OpenClaw-native agents from .openclaw/agents/ (mure-yuri main binding)",
+  "source": "OpenClaw-native agent definitions from .openclaw/agents/",
+  "agentCardRoot": ".openclaw/agents",
   "generated": "2026-07-09T19:32:40.083Z",
   "providerMapping": {
     "anthropic/claude-opus-4-8": "anthropic/claude-opus-4-8",

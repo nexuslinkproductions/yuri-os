@@ -10,9 +10,9 @@ import {
 
 const CARD_URL = new URL('../../.openclaw/agents/mure-yuri.md', import.meta.url);
 const ROLE_CARDS = Object.freeze([
-  ['architect', new URL('../../.omp/agents/mure-architect.md', import.meta.url), validateArchitectArchetypeCard],
-  ['worker', new URL('../../.omp/agents/mure-engineer.md', import.meta.url), validateWorkerArchetypeCard],
-  ['verifier', new URL('../../.omp/agents/mure-adjudicator.md', import.meta.url), validateVerifierArchetypeCard],
+  ['architect', new URL('../../.openclaw/agents/mure-architect.md', import.meta.url), validateArchitectArchetypeCard],
+  ['worker', new URL('../../.openclaw/agents/mure-engineer.md', import.meta.url), validateWorkerArchetypeCard],
+  ['verifier', new URL('../../.openclaw/agents/mure-adjudicator.md', import.meta.url), validateVerifierArchetypeCard],
 ]);
 const LIVE_ROUTING_URLS = [
   new URL('./sol-moe-company.mjs', import.meta.url),

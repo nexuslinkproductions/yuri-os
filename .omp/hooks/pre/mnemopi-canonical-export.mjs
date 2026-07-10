@@ -5,7 +5,7 @@
 // runExportAndAdjudicate({ apply: true }). "Proposed", not promoted — the operator still decides
 // before anything reaches canonical truth. This is the ongoing, automatic arm of the one-shot bridge.
 //
-// SAFETY POSTURE (mirrors mure-learn.mjs — fires once per session at shutdown):
+// SAFETY POSTURE (arm-gated and fail-open; fires once per session at shutdown):
 //   • ARM-GATED: no-ops unless _SYSTEM/state/mnemopi-export-hook.enabled exists OR
 //     env YURI_MNEMOPI_EXPORT_HOOK=1. Owner-gated (touch/rm the flag to arm/disarm).
 //   • GATED TARGET: the bridge routes through proposeMemoryWrite (propose→decide), never raw

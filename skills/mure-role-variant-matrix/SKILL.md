@@ -13,7 +13,7 @@ One MURE role, several model variants — each variant tuned to a specific model
 
 ## Schema
 
-A role entry in `.omp/agents/<role>.md` (or its successor in OpenClaw agent registry) gains a `variants:` list. Each variant:
+A role entry in `.openclaw/agents/<role>.md` gains a `variants:` list. Repo-local `.omp/agents/` is retired and is not a MURE source. Each variant:
 
 ```yaml
 variants:
