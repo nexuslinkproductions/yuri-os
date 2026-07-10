@@ -14,8 +14,9 @@
           "source": "native-completion-event",
           "canaryEvidence": {
             "runId": "62cd997b-592b-423b-aa7e-7bb1f078a001",
-            "childSessionKey": "agent:deepseek-flash:subagent:4b5219c7-29f2-4d92-b35b-cfa69c5c421e",
-            "result": "completed",
+              "childSessionKey": "agent:deepseek-flash:subagent:4b5219c7-29f2-4d92-b35b-cfa69c5c421e",
+              "resolvedModel": "deepseek/deepseek-v4-flash",
+              "result": "completed",
             "observed": "2026-07-10"
           }
         },
@@ -54,8 +55,9 @@
           "source": "native-completion-event",
           "canaryEvidence": {
             "runId": "026ec2d6-80a2-4411-b5f5-abadd9183017",
-            "childSessionKey": "agent:mure-scout:subagent:9a60af74-3490-4acc-a5fb-8c36c69dd9d1",
-            "result": "completed",
+              "childSessionKey": "agent:mure-scout:subagent:9a60af74-3490-4acc-a5fb-8c36c69dd9d1",
+              "resolvedModel": "cline-pass/cline-pass/deepseek-v4-flash",
+              "result": "completed",
             "observed": "2026-07-10"
           }
         },
@@ -84,8 +86,9 @@
           "source": "native-completion-event",
           "canaryEvidence": {
             "runId": "18635ef3-b8f1-4f0a-8613-d3864eafc655",
-            "childSessionKey": "agent:mure-scout:subagent:b2c74687-6fc0-4c1a-af49-d95e992e5523",
-            "result": "completed",
+              "childSessionKey": "agent:mure-scout:subagent:b2c74687-6fc0-4c1a-af49-d95e992e5523",
+              "resolvedModel": "cursor-cli/gemini-3.5-flash",
+              "result": "completed",
             "qualityFlag": "efficiency-poor",
             "observed": "2026-07-10"
           }
@@ -128,8 +131,9 @@
           "source": "native-completion-event",
           "canaryEvidence": {
             "runId": "72ea856c-6ef8-4946-9b1f-f0be18b93f40",
-            "childSessionKey": "agent:mure-scout:subagent:0aca6088-6c81-4012-9372-c2f7763fcc4d",
-            "result": "completed",
+              "childSessionKey": "agent:mure-scout:subagent:0aca6088-6c81-4012-9372-c2f7763fcc4d",
+              "resolvedModel": "anthropic/claude-haiku-4-5",
+              "result": "completed",
             "observed": "2026-07-10"
           }
         }

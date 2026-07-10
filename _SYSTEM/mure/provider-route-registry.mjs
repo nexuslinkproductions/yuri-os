@@ -45,7 +45,8 @@ export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY
       }
       if (route.status === 'canary-proven') {
         const evidence = route.canaryEvidence;
-        if (!evidence?.runId || !evidence?.childSessionKey || evidence?.result !== 'completed') {
+        if (!evidence?.runId || !evidence?.childSessionKey || evidence?.result !== 'completed'
+          || evidence?.resolvedModel !== route.model || !evidence?.observed) {
           throw new TypeError(`canary-proven route ${route.id} requires exact completed native evidence`);
         }
       }

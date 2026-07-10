@@ -33,6 +33,7 @@ test('provider outcomes promote exact completions and block schema-incompatible 
   assert.match(ollama.blockedReason, /rejected the compiled request schema/);
   assert.equal(cline.status, 'canary-proven');
   assert.equal(cline.canaryEvidence.result, 'completed');
+  assert.equal(cline.canaryEvidence.resolvedModel, cline.model);
   assert.equal(listModelRoutes('gemini-3.5-flash')[0].status, 'canary-proven');
   assert.equal(listModelRoutes('claude-haiku-4-5')[0].status, 'canary-proven');
 });
@@ -56,6 +57,10 @@ test('registry rejects unsupported canary claims and reasonless schema blocks', 
   const unsupportedCanary = structuredClone(PROVIDER_ROUTE_REGISTRY);
   unsupportedCanary.modelIdentities['gemini-3.5-flash'].routes[0].canaryEvidence.result = 'admitted-only';
   assert.throws(() => validateProviderRouteRegistry(unsupportedCanary), /requires exact completed native evidence/);
+
+  const mismatchedModel = structuredClone(PROVIDER_ROUTE_REGISTRY);
+  mismatchedModel.modelIdentities['claude-haiku-4-5'].routes[0].canaryEvidence.resolvedModel = 'anthropic/claude-sonnet-5';
+  assert.throws(() => validateProviderRouteRegistry(mismatchedModel), /requires exact completed native evidence/);
 
   const reasonlessBlock = structuredClone(PROVIDER_ROUTE_REGISTRY);
   delete reasonlessBlock.modelIdentities['deepseek-v4-flash'].routes.find((route) => route.provider === 'ollama').blockedReason;
