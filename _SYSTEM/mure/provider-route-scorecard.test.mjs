@@ -3,7 +3,9 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   createProviderRouteScorecard,
+  createProviderRouteTrialLedger,
   summarizeProviderRouteScorecard,
+  summarizeProviderRouteTrialLedger,
 } from './provider-route-scorecard.mjs';
 
 const completed = {
@@ -60,4 +62,44 @@ test('scorecard stays outside live planner, router, reducer, and runner imports'
     'sol-moe-company.mjs', 'sol-moe-router.mjs', 'sol-moe-native-dispatch.mjs', 'sol-moe-run.mjs',
   ].map((name) => readFile(new URL(`./${name}`, import.meta.url), 'utf8')));
   for (const source of sources) assert.equal(source.includes('provider-route-scorecard'), false);
+});
+
+test('trial ledger preserves repeated route observations and aggregates reliability', () => {
+  const trials = createProviderRouteTrialLedger([
+    completed,
+    { ...completed, runId: 'run-deepseek-2', childSessionKey: 'agent:deepseek-flash:subagent:child-2', latencyMs: 800 },
+    {
+      ...completed,
+      runId: 'run-deepseek-3',
+      childSessionKey: 'agent:deepseek-flash:subagent:child-3',
+      resolvedModel: null,
+      result: 'lost',
+      latencyMs: null,
+      evidenceAccurate: false,
+      verifierVerdict: 'not-run',
+      failureClass: 'timeout',
+    },
+  ]);
+  const summary = summarizeProviderRouteTrialLedger(trials);
+  assert.equal(summary.totalTrials, 3);
+  assert.equal(summary.observedRoutes, 1);
+  assert.deepEqual(summary.routes[0], {
+    routeId: 'deepseek-v4-flash.native',
+    provider: 'deepseek',
+    model: 'deepseek/deepseek-v4-flash',
+    trials: 3,
+    completed: 2,
+    eligible: 2,
+    completionRate: 2 / 3,
+    verifiedEligibilityRate: 2 / 3,
+    medianCompletedLatencyMs: 1000,
+    failureClasses: { timeout: 1 },
+  });
+});
+
+test('trial ledger rejects replayed native completion identities', () => {
+  assert.throws(() => createProviderRouteTrialLedger([
+    completed,
+    { ...completed },
+  ]), /duplicate native completion identity/);
 });

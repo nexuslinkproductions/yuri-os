@@ -5,6 +5,7 @@
 import { PROVIDER_ROUTE_REGISTRY } from './provider-route-registry.mjs';
 
 export const PROVIDER_ROUTE_SCORECARD_SCHEMA_VERSION = 'mure-provider-route-scorecard-v1';
+export const PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION = 'mure-provider-route-trial-ledger-v1';
 
 const TERMINAL_RESULTS = new Set(['completed', 'rejected', 'lost', 'blocked']);
 const VERDICTS = new Set(['pass', 'reject', 'not-required', 'not-run']);
@@ -41,6 +42,59 @@ export function summarizeProviderRouteScorecard(scorecard) {
     schemaVersion: PROVIDER_ROUTE_SCORECARD_SCHEMA_VERSION,
     observedRoutes: routes.length,
     eligibleRoutes: routes.filter((entry) => entry.eligibleForDeterministicRouting).length,
+    routes,
+  });
+}
+
+/** Preserve repeated route trials without allowing the same native event to be counted twice. */
+export function createProviderRouteTrialLedger(observations = []) {
+  if (!Array.isArray(observations)) throw new TypeError('observations must be an array');
+  const normalized = observations.map(normalizeObservation);
+  const eventKeys = new Set();
+  for (const entry of normalized) {
+    const key = `${entry.runId}\u0000${entry.childSessionKey}`;
+    if (eventKeys.has(key)) throw new TypeError('trial ledger rejects duplicate native completion identity');
+    eventKeys.add(key);
+  }
+  return deepFreeze({
+    schemaVersion: PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION,
+    observations: normalized,
+  });
+}
+
+/** Derive deterministic, non-steering reliability summaries from repeated trials. */
+export function summarizeProviderRouteTrialLedger(ledger) {
+  requireTrialLedger(ledger);
+  const grouped = new Map();
+  for (const entry of ledger.observations) {
+    if (!grouped.has(entry.routeId)) grouped.set(entry.routeId, []);
+    grouped.get(entry.routeId).push(entry);
+  }
+  const routes = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([routeId, trials]) => {
+    const completed = trials.filter((entry) => entry.result === 'completed');
+    const eligible = trials.filter(isEligible);
+    const latencies = completed.map((entry) => entry.latencyMs).filter((value) => value !== null).sort((a, b) => a - b);
+    const failureClasses = Object.create(null);
+    for (const entry of trials) {
+      if (entry.failureClass !== 'none') failureClasses[entry.failureClass] = (failureClasses[entry.failureClass] || 0) + 1;
+    }
+    return deepFreeze({
+      routeId,
+      provider: trials[0].provider,
+      model: trials[0].model,
+      trials: trials.length,
+      completed: completed.length,
+      eligible: eligible.length,
+      completionRate: ratio(completed.length, trials.length),
+      verifiedEligibilityRate: ratio(eligible.length, trials.length),
+      medianCompletedLatencyMs: median(latencies),
+      failureClasses: deepFreeze(Object.fromEntries(Object.entries(failureClasses).sort(([a], [b]) => a.localeCompare(b)))),
+    });
+  });
+  return deepFreeze({
+    schemaVersion: PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION,
+    totalTrials: ledger.observations.length,
+    observedRoutes: routes.length,
     routes,
   });
 }
@@ -113,6 +167,23 @@ function requireScorecard(value) {
   if (value.schemaVersion !== PROVIDER_ROUTE_SCORECARD_SCHEMA_VERSION || !Array.isArray(value.observations)) {
     throw new TypeError('invalid provider route scorecard');
   }
+}
+
+function requireTrialLedger(value) {
+  requirePlainObject(value, 'trial ledger');
+  if (value.schemaVersion !== PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION || !Array.isArray(value.observations)) {
+    throw new TypeError('invalid provider route trial ledger');
+  }
+}
+
+function ratio(numerator, denominator) {
+  return denominator === 0 ? 0 : numerator / denominator;
+}
+
+function median(values) {
+  if (!values.length) return null;
+  const middle = Math.floor(values.length / 2);
+  return values.length % 2 === 1 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
 }
 
 function enumValue(value, allowed, label) {
