@@ -114,6 +114,65 @@ export function validateVerifierArchetypeCard(source) {
   return validateArchetypeCard(source, 'verifier');
 }
 
+const ARCHETYPE_HEADING_MAP = Object.freeze({
+  control: 'Control archetype contract (shadow-only)',
+  architect: 'Architect archetype contract (shadow-only)',
+  'strategic-peer': 'Strategic Peer archetype contract (shadow-only)',
+  'delegated-orchestrator': 'Delegated Orchestrator archetype contract (shadow-only)',
+  worker: 'Worker archetype contract (shadow-only)',
+  verifier: 'Verifier archetype contract (shadow-only)',
+});
+
+/** Detect which archetype contract a card declares by scanning for its heading. */
+export function detectArchetype(source) {
+  if (typeof source !== 'string') throw new TypeError('source must be a string');
+  for (const [archetype, heading] of Object.entries(ARCHETYPE_HEADING_MAP)) {
+    if (source.includes(`## ${heading}`)) return archetype;
+  }
+  return null;
+}
+
+/** Validate any card by detecting its declared archetype heading. */
+export function validateCard(source) {
+  if (typeof source !== 'string') throw new TypeError('source must be a string');
+  const archetype = detectArchetype(source);
+  if (!archetype) return Object.freeze({
+    schemaVersion: 'mure-archetype-card-v1',
+    archetype: null,
+    ok: false,
+    errors: Object.freeze(['no archetype contract heading found']),
+  });
+  const spec = CARD_SPECS[archetype];
+  const errors = [];
+  const contract = getArchetypeContract(archetype);
+
+  for (const [capability, expected] of Object.entries(spec.capabilities)) {
+    if (contract[capability] !== expected) {
+      errors.push(`${archetype} archetype capability mismatch: ${capability}`);
+    }
+  }
+
+  const section = sectionBody(source, `## ${ARCHETYPE_HEADING_MAP[archetype]}`);
+  if (section === null) {
+    errors.push(`missing ${spec.title} archetype contract section`);
+  } else {
+    for (const statement of spec.statements) {
+      if (!section.includes(statement)) errors.push(`missing ${spec.title} contract statement: ${statement}`);
+    }
+  }
+  if (source.includes(LEGACY_RESULT_LABEL)) errors.push('contains legacy RESULT_LABEL grammar');
+  if (!source.includes('NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED')) {
+    errors.push('missing canonical RESULT_LABEL grammar');
+  }
+
+  return Object.freeze({
+    schemaVersion: 'mure-archetype-card-v1',
+    archetype: contract.id,
+    ok: errors.length === 0,
+    errors: Object.freeze(errors),
+  });
+}
+
 function validateArchetypeCard(source, archetype) {
   if (typeof source !== 'string') throw new TypeError('source must be a string');
   const errors = [];

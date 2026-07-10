@@ -8,6 +8,8 @@ import {
   validateStrategicPeerArchetypeCard,
   validateVerifierArchetypeCard,
   validateWorkerArchetypeCard,
+  validateCard,
+  detectArchetype,
 } from './archetype-card-contract.mjs';
 
 const CARD_URL = new URL('../../.openclaw/agents/mure-yuri.md', import.meta.url);
@@ -105,4 +107,20 @@ test('Strategic Peer and Delegated Orchestrator reject missing authority boundar
 test('archetype card validation remains outside all live routing modules', async () => {
   const sources = await Promise.all(LIVE_ROUTING_URLS.map((url) => readFile(url, 'utf8')));
   for (const source of sources) assert.equal(source.includes('archetype-card-contract'), false);
+});
+
+const SECONDARY_CARDS = Object.freeze([
+  ['worker', new URL('../../.openclaw/agents/mure-scout.md', import.meta.url)],
+  ['verifier', new URL('../../.openclaw/agents/mure-calibrator.md', import.meta.url)],
+  ['verifier', new URL('../../.openclaw/agents/mure-oracle.md', import.meta.url)],
+]);
+
+test('secondary worker and verifier cards pass generic card validation', async () => {
+  for (const [expectedArchetype, url] of SECONDARY_CARDS) {
+    const source = await readFile(url, 'utf8');
+    const detected = detectArchetype(source);
+    assert.equal(detected, expectedArchetype);
+    const result = validateCard(source);
+    assert.equal(result.ok, true, `${url.href}: ${result.errors.join('; ')}`);
+  }
 });
