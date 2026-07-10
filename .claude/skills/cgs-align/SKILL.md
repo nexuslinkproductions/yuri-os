@@ -30,8 +30,13 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 - **YAW → FRONT SIGHT + REAR SIGHT colinear** down the bore (front post centred in the rear notch, viewed
   from behind). The slide *silhouette* is NOT sensitive enough — a 0.9mm sight offset over a 130mm baseline
   is 0.4° of yaw that reads "square" (0.04°) in the outline but is obvious down the sights.
-- **ROLL / final sub-degree → owner's eye** via the offset knobs (a decimated scan won't nail <0.5° from
-  geometry alone).
+- **ROLL → the SLIDE-TOP FLAT horizontal in the FRONT (down-the-bore) view** — no cant about the bore.
+  Auto-leveled by `refine_roll` (slide-top up-face consensus normal → +Z). The raw pose left the Glock 43
+  ~0.8° rolled (invisible in the side/back views — a THIRD view, the front-ortho, is mandatory; owner caught
+  it there, 2026-07-10b). Final sub-degree still → owner's eye via `roll_offset_deg` (a decimated scan won't
+  nail <0.5° from geometry alone).
+- **VERIFY ALL THREE ORTHO VIEWS** — side=pitch/parting, back=yaw/sights, **front=roll/slide-top**. Declaring
+  "level" off only the views you checked is the skill's #1 repeat failure (2026-07-03/04/07/10/10b).
 
 ## SCOPE — alignment only
 
@@ -61,14 +66,23 @@ reversible, non-mutating to geometry.**
    top bevels) and rotate it to **+Z**, iterated. Primary reference = the DOWN-facing forward flats
    (picatinny rail + slide/dust-cover underside), fallback to slide-TOP up-flats. This gets *close* but its
    reference isn't bore-parallel on every gun — hence step 5b.
-5b. **Slide level (refine to the PARTING LINE)** `refine_parting` — re-level to the SLIDE itself via its
-   flat **SIDEWALL** (a big clean bore-parallel plane whose bottom edge *is* the upper/lower parting line):
-   PCA of the sidewall face-centroids in the (length,height) plane → the slide's true long axis → lay it
-   horizontal. **Self-zeroing + guarded** (no-op when step 5 already nailed it, e.g. the SIG; degrades if the
-   sidewall can't be isolated). This auto-corrects what step 5 misses: the **Glock 43** (no rail → step 5
-   grabbed frame flats, 2.2° off) and the **PDP** (rail 3° off slide) — both now land ~0° with no manual
-   pitch. Owner directive 2026-07-10: *"Always align PITCH referencing the SLIDE… the distinct line between
-   the UPPER and LOWER parts."*
+5b. **Slide level PITCH (refine to the PARTING LINE)** `refine_parting` — re-level to the SLIDE-TOP
+   SILHOUETTE EDGE (bore-parallel to the upper/lower parting line, and exactly what the eye tracks down the
+   side): the 97th-pct height per length-slice across the slide span → robust MAD-trim the sight spikes →
+   line-fit → lay it horizontal. **Self-zeroing + guarded** (no-op on a level slide, e.g. the SIG / flat-top
+   synthetic; degrades on a sparse/wild fit). ⚠ **REPLACED the old sidewall-face-area PCA** (2026-07-10b):
+   that PCA's principal axis is skewed by the selection band and converged to a FIXED POINT ~1° rear-up of
+   the true parting line on the Glock 43 — and the same-basis verifier rubber-stamped it (declared "square",
+   owner caught it against a horizontal ruler). Proven on the real mesh: read +0.99° → corrected 0.00°. Also
+   auto-corrects step 5's misses: **Glock 43** (no rail → frame flats, 2.2°) and **PDP** (rail 3° off slide).
+   Owner directive 2026-07-10: *"Always align PITCH referencing the SLIDE… the distinct line between the
+   UPPER and LOWER parts."*
+5c. **Slide level ROLL (front view)** `refine_roll` — owner's ROLL datum (2026-07-10b): the slide-top must be
+   horizontal in the FRONT / down-the-bore view (no cant). Take the slide-top up-faces' AREA-weighted
+   consensus normal and rotate about the bore (aL) so it points straight up (+Z) — zero its width-component.
+   **Self-zeroing + guarded** (min faces, cap 8°). Pitch/yaw refines don't touch roll and a decimated scan's
+   principal WIDTH axis alone left the Glock 43 ~0.8° rolled — **invisible in the side/back views**, caught
+   only in the front-ortho (owner hand-fixed +0.8° Ry; the refine now auto-lands it, +0.58° → −0.09°).
 6. **Yaw to the SIGHTS** `refine_sights` — owner's YAW datum: make the **front sight + rear sight
    colinear** along the bore. Detect the two sight blades as height spikes protruding >1.5mm above the
    slide-top baseline (front third + rear slide), take each blade's width-centroid (rear = the two notch
@@ -115,10 +129,10 @@ obj, s = align_object("PL2_VALKYRIE - Copy", mode="light")   # LIGHT: clamp up+l
 obj, s = import_and_align(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
 
 print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0), dims (Y>=Z>=X),
-           # front_y (muzzle, min), grip_is_down, slide_leveled_deg, parting_refine_deg, sight_yaw_deg
+           # front_y (muzzle, min), grip_is_down, slide_leveled_deg, parting_refine_deg, roll_refine_deg, sight_yaw_deg
 ```
 
-- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line and YAW to the sights; the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights.
+- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True, refine_roll=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line (`refine_parting`), ROLL to the slide-top flat / front view (`refine_roll`), and YAW to the sights (`refine_sights`); the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights.
 - `import_and_align(path, in_place=True)` — import STL then align (gun mode).
 - `unalign_object(name)` — reverse a prior align from the stored transform.
 
@@ -132,11 +146,17 @@ For a light: `det_R == 1.0`, `clamp_complexity` clearly the max, `bezel_score_fr
 
 **Verify the two owner datums against the real mesh, not the eye** (renders/perspective fool the eye — a
 recurring trap on this skill):
-- **YAW** — measure front-sight X vs rear-sight X centroids; they must be equal (**`sight_dx ≈ 0`**).
-  Render the **BACK orthographic** view (from +Y) and confirm the front post sits centred in the rear notch.
-- **PITCH** — measure the slide **sidewall PCA** / parting-line slope (**≈ 0°**), NOT the slide-top ridge
-  (it's front-sight-biased). Render the **RIGHT orthographic** side view with a horizontal reference bar and
-  confirm the upper/lower parting line is parallel to it.
+**Render and check ALL THREE ortho views — a metric can share the aligner's blind spot; a skipped view hides a real error (front-view roll, 2026-07-10b):**
+- **YAW (BACK ortho, from +Y)** — measure front-sight X vs rear-sight X centroids; equal (**`sight_dx ≈ 0`**).
+  Confirm the front post sits centred in the rear notch.
+- **PITCH (RIGHT/side ortho, +X)** — measure the slide-top **silhouette edge** slope (97th-pct-h per slice,
+  sight-trimmed) **≈ 0°**, NOT the sidewall-area PCA (skewed → converged ~1° off on the G43) nor the
+  slide-top ridge (front-sight-biased). Render with a horizontal bar; confirm the upper/lower parting line
+  is parallel to it.
+- **ROLL (FRONT ortho, down the bore)** — measure the slide-top up-face consensus normal's X-component
+  (**`nx ≈ 0`**, roll ≈ 0°). Render with a horizontal bar across the slide top; confirm the slide top is
+  level, no cant. ⚠ **Never skip this view** — roll is invisible in the side/back views (the G43 was 0.8°
+  rolled and read perfect on the other two).
 - If the owner's eye wants the last sub-degree, set `pitch_offset_deg` / `roll_offset_deg` / `yaw_offset_deg`.
   On a light, also confirm the **bezel points −Y**.
 
@@ -168,6 +188,15 @@ recurring trap on this skill):
   `roll_offset_deg`/`yaw_offset_deg` knobs. Live from the raw pose the new pipeline auto-lands
   **sight_dx 0.0mm + parting 0.06°** (parting-refine fired +0.89°, sight-yaw +0.39°); owner finished with
   `pitch_offset_deg=-0.8`, `roll_offset_deg=0.6`. det +1, grip −Z, muzzle −Y, baked + owner-confirmed.
+- **RE-HARDENED 2026-07-10b (GLOCK 43) — two same-session misses fixed:** (1) the morning's `refine_parting`
+  levelled to a slide-**sidewall-area PCA** that converged ~1° rear-up of the true parting line (my verifier
+  shared the basis and rubber-stamped it; owner caught it on a horizontal ruler) → **rebuilt to level the
+  slide-top SILHOUETTE EDGE** (proven +0.99°→0.00° on the real mesh). (2) The gun shipped **~0.8° ROLLED**
+  because I verified only side+back views and **never rendered the FRONT/down-the-bore view** where roll
+  shows (owner hand-fixed +0.8° Ry) → added **`refine_roll`** (slide-top normal → +Z about the bore).
+  Live from the raw scan the hardened pipeline auto-fired parting +1.03° / **roll +0.58°** / yaw +0.33° and
+  landed **pitch −0.05° / roll −0.09° / yaw ~0.16°** — all three ortho views level, reproducing the owner's
+  hand pose with no manual input. Owner viewport re-confirm of this auto-output pending next load.
 - **Offline: 300/300 random gun poses + 240 WML poses** still green after the refinement (det, axis order,
   centering, off-diagonal, grip-down, muzzle-left; WML slide-level reported-not-asserted, **unchanged** by
   the refinement — verified refine-on == refine-off = 13.95° synthetic artifact) + volume-centroid, light,
@@ -185,6 +214,41 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-10b (GLOCK 43 — ROLL datum added + parting-refine rebuilt from sidewall-PCA to silhouette-edge)
+- **Failure #1 (pitch, same-day regression of the 2026-07-10 fix):** the `refine_parting` I shipped that
+  morning levelled to a **PCA of the slide-sidewall face-area blob**. That 2D blob's principal axis is skewed
+  by the selection band — it has a FIXED POINT ~1° rear-up of the true parting line. The aligner "corrected"
+  0.85° yet the slide stayed +0.75-1.0° tilted, and my verifier measured the SAME sidewall-PCA so it
+  rubber-stamped it ("all three references agree at level"). Owner caught it against a horizontal ruler in
+  his viewport. The skill's oldest lesson, AGAIN: never verify with a metric that can share the aligner's
+  blind spot. **Fix:** re-level to the **slide-top SILHOUETTE EDGE** (97th-pct height per length-slice,
+  MAD-trim the sight spikes, line-fit). Measured the real mesh three ways — top edge +0.99°, sidewall-PCA
+  +0.75°, sidewall-bottom-seam −0.26° — the ortho-ruler render settled it: the top edge (+0.99°) matched the
+  eye. Applied −0.99° → top 0.00°, parting seam 0.04°. Owner: "all good."
+- **Failure #2 (ROLL — the real miss):** after the pitch fix I declared it level off the SIDE (pitch) and
+  BACK (yaw) views — and **never rendered the FRONT view.** Owner rotated to Front-Ortho, drew a horizontal
+  line across the slide top, and it was **canted ~0.8°** (he hand-fixed it: `Rotation Y = +0.8°`, which drove
+  the slide-top normal nx to ~0). Roll is INVISIBLE in the side/back views; a third view is mandatory. The
+  pitch/yaw refines never touch roll, and a decimated scan's principal WIDTH axis alone isn't better than
+  ~0.5-1°. **Fix:** new `refine_roll` — slide-top up-face AREA-weighted consensus normal, rotate about the
+  bore so it points +Z (zero its width-component). Guarded + self-zeroing.
+- **Validated:** offline `verify_align_math.py` 300/300 guns (all asserted checks 0 failures) + 240 WML
+  (slide-level artifact unchanged, overall PASS) — both new refines self-zero on the flat-top synthetic gun.
+  **Live from the TRUE RAW scan** (recovered on a duplicate via the stored transform + owner's Ry): the
+  hardened pipeline auto-fired parting +1.03°, **roll +0.58°**, yaw +0.33° and landed **pitch −0.05° / roll
+  −0.09° / yaw 0.37mm(~0.16°)** — reproducing the owner's hand pose with zero manual input. Rendered all
+  three ortho views (front/side/back) with horizontal/vertical fiducials to confirm.
+- **Process lesson:** "level" is a THREE-view claim (pitch=side, yaw=back, roll=front). Declaring it off the
+  views you happened to check — while the one you skipped hides the error — is the same failure as trusting a
+  verifier that shares the aligner's basis. Both bit in the same session. Render every ortho view; measure
+  against an independent reference; the owner's eye is ground truth.
+- **Pending:** live re-confirm on the SIG/PDP/HK/OLIGHT next load (both refines self-zeroing + guarded, so
+  expected no-change; the PDP should now auto-level roll+pitch without its manual +3°). Owner viewport
+  confirmation of THIS hardened auto-output (front/side/back renders shown) still to bank on next load.
+- Tools: blender-mcp (execute_blender_code on the real mesh + duplicate raw-recovery, workbench ortho renders
+  vs fiducial bars), Read/Edit/Bash (Blender-5.1 numpy offline suite), duplicate-from-raw live E2E test.
+  <!-- @anchor: v2 | failure: GLOCK 43 (a) parting-refine sidewall-PCA converged ~1° off + same-basis verifier rubber-stamped it, (b) roll ~0.8° shipped because the FRONT ortho view was never rendered, 2026-07-10b | regression: cgs_align.py _refine_pitch_to_slide (silhouette-edge) + _refine_roll_to_slide_top (new) + verify_align_math.py 300/240 green + cgs-align SKILL.md Session Notes 2026-07-10b + 3-view verify block -->
 
 ### 2026-07-10 (GLOCK 43 — the definitive gun datums: PITCH=parting line, YAW=sights)
 - **Failure:** the first auto-align passed every internal check and I told the owner it was "square"

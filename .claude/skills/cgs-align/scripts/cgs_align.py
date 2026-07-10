@@ -85,16 +85,56 @@ def _robust_extent(t):
     return float(np.percentile(t, 98) - np.percentile(t, 2)) if len(t) else 0.0
 
 def _refine_pitch_to_slide(P, F, center, aL, aH, aW):
-    """Owner PITCH datum (2026-07-10, GLOCK 43): level to the SLIDE — the straight UPPER/LOWER parting
-    line — NOT the rail / frame underside flats. The flats leveler (compute_alignment step 5) references
-    the down-facing forward flats, which on many guns are NOT bore-parallel: a Glock 43 has no rail at all
-    (it grabbed frame flats, ~2.2deg off), the Walther PDP's rail sits ~3deg off its slide. Re-level to the
-    slide's flat SIDEWALL — a big, clean, bore-parallel plane whose BOTTOM EDGE *is* the parting line —
-    as a rigid body: PCA of its face centroids in the (length,height) plane gives the slide's true long
-    axis; rotate (aL,aH) to lay that axis horizontal. Self-zeroing (a no-op when the flats leveler already
-    nailed it, e.g. the SIG) and GUARDED (degrades to no change if the sidewall can't be isolated — a bare
-    light, a sparse scan, a wild fit), so it refines ON TOP of the flats leveler without regressing the
-    owner-confirmed guns. Returns corrected (aL, aH)."""
+    """Owner PITCH datum (2026-07-10 GLOCK 43; RE-HARDENED 2026-07-10b): level to the SLIDE — the straight
+    UPPER/LOWER parting line. The prior build levelled to a PCA of the slide-SIDEWALL face-area blob, whose
+    principal axis is skewed by the selection band: on the Glock 43 it converged to a FIXED POINT ~1deg
+    rear-up of the true parting line (owner caught it against a horizontal ruler; the sidewall-PCA verifier
+    SHARED the blind spot and rubber-stamped it — this skill's recurring 'never verify with a metric that
+    can share the aligner's bug' failure, repeated). Re-level instead to the SLIDE-TOP SILHOUETTE EDGE —
+    bore-parallel to the parting line and exactly what the eye tracks down the side view: take the top-of-
+    surface envelope (97th-pct height per length-slice) across the slide span, robustly reject the sight
+    spikes (iterative MAD trim), fit a line, and rotate (aL,aH) to lay that edge horizontal. Proven on the
+    real Glock 43 mesh: read +0.99deg (matched the owner's eye + ruler), corrected to 0.00deg. Self-zeroing
+    (no-op on a truly level slide — the SIG, the flat-top synthetic gun) and GUARDED (degrades to no change
+    on a sparse fit or a wild angle). Returns corrected (aL, aH). (`F`,`aW` kept for signature parity.)"""
+    D = P - center
+    l = D @ aL; h = D @ aH
+    lmin, lmax = float(np.percentile(l, 1)), float(np.percentile(l, 99)); Ll = lmax - lmin
+    if Ll < 1e-6:
+        return aL, aH
+    lo = lmin + 0.12 * Ll; hi = lmin + 0.72 * Ll             # slide span: behind muzzle .. before the grip tang
+    edges = np.linspace(lo, hi, 41); ls = []; hs = []
+    for i in range(len(edges) - 1):
+        m = (l >= edges[i]) & (l < edges[i + 1])
+        if int(m.sum()) >= 5:
+            ls.append(0.5 * (edges[i] + edges[i + 1])); hs.append(float(np.percentile(h[m], 97)))  # top edge
+    if len(ls) < 12:
+        return aL, aH                                        # too sparse to trust
+    ls = np.asarray(ls); hs = np.asarray(hs)
+    keep = np.ones(len(ls), bool)                            # robust line fit: MAD-reject the sight spikes
+    for _ in range(3):
+        A = np.polyfit(ls[keep], hs[keep], 1); res = hs - np.polyval(A, ls)
+        med = float(np.median(res[keep])); mad = float(np.median(np.abs(res[keep] - med))) or 1e-6
+        keep = np.abs(res - med) < 3.0 * mad
+        if int(keep.sum()) < 8:
+            keep = np.ones(len(ls), bool); break
+    ang = math.degrees(math.atan(float(np.polyfit(ls[keep], hs[keep], 1)[0])))   # top-edge tilt off level
+    if abs(ang) > 8.0:
+        return aL, aH                                        # guard: ignore a wild fit
+    th = math.radians(ang)
+    aL2 = math.cos(th) * aL + math.sin(th) * aH              # new length axis = the level slide-top direction
+    aH2 = -math.sin(th) * aL + math.cos(th) * aH
+    return aL2, aH2
+
+def _refine_roll_to_slide_top(P, F, center, aL, aH, aW):
+    """Owner ROLL datum (added 2026-07-10b, GLOCK 43): in the FRONT view (down the bore) the SLIDE-TOP FLAT
+    must be horizontal — no cant about the bore. The auto pose left the Glock 43 rolled ~0.8deg (owner caught
+    it in Front-Ortho and hand-fixed it with a +0.8deg bore rotation); the pitch/yaw refines don't touch
+    roll, and a decimated scan's principal WIDTH axis alone isn't better than ~0.5-1deg. Re-level roll to the
+    slide-top UP-FACES: take their AREA-weighted consensus normal and rotate (aH about the bore aL) so that
+    normal points straight up (+aH) — i.e. zero its width-component. Self-zeroing (no-op when the top is
+    already flat) and GUARDED (min faces, cap 8deg). Only aH is returned rotated; x_hat re-derives from
+    cross(aL,aH) downstream. Returns corrected (aL, aH)."""
     if F is None or len(F) == 0:
         return aL, aH
     a, b, c = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
@@ -102,22 +142,18 @@ def _refine_pitch_to_slide(P, F, center, aL, aH, aW):
     if int(ok.sum()) < 50:
         return aL, aH
     nn = fn[ok] / fa[ok][:, None]; cen = ((a + b + c) / 3.0)[ok] - center
-    l = cen @ aL; h = cen @ aH; nW = nn @ aW
-    side = ((np.abs(nW) > math.cos(math.radians(25))) & (h > np.percentile(h, 55))   # slide sidewalls:
-            & (l > np.percentile(l, 8)) & (l < np.percentile(l, 70)))                 # X-facing, upper, fwd-mid
-    if int(side.sum()) < 200:
+    ch = cen @ aH; nH = nn @ aH
+    top = (nH > math.cos(math.radians(20))) & (ch > np.percentile(ch, 80))    # slide-top up-flats (excl. sides)
+    if int(top.sum()) < 60:
         return aL, aH
-    LH = np.c_[l[side], h[side]]; LH = LH - LH.mean(0)
-    ev, evec = np.linalg.eigh(np.cov(LH.T)); d = evec[:, int(np.argmax(ev))]
-    if d[0] < 0:
-        d = -d                                              # keep the slide long-axis pointing +l (rear)
-    ang = math.degrees(math.atan2(d[1], d[0]))              # slide-axis tilt off level, in (l,h)
-    if abs(ang) > 8.0:
-        return aL, aH                                       # guard: ignore a wild fit
-    th = math.radians(ang)
-    aL2 = math.cos(th) * aL + math.sin(th) * aH             # new length axis = the slide's own long axis
-    aH2 = -math.sin(th) * aL + math.cos(th) * aH
-    return aL2, aH2
+    area = 0.5 * fa[ok][top]
+    cons = (nn[top] * area[:, None]).sum(0); cons = cons / (np.linalg.norm(cons) or 1.0)
+    roll = math.atan2(float(cons @ aW), float(cons @ aH))    # top-normal cant about the bore, off +aH
+    if abs(math.degrees(roll)) > 8.0:
+        return aL, aH                                        # guard: ignore a wild fit
+    aH2 = math.cos(roll) * aH + math.sin(roll) * aW          # rotate 'up' onto the slide-top normal -> level
+    aH2 = aH2 / (np.linalg.norm(aH2) or 1.0)
+    return aL, aH2
 
 def _refine_yaw_to_sights(P, F, center, aL, aH):
     """Owner YAW datum (2026-07-10, GLOCK 43): make the FRONT SIGHT and REAR SIGHT colinear along the bore
@@ -162,7 +198,7 @@ def _refine_yaw_to_sights(P, F, center, aL, aH):
     return aL2 / (np.linalg.norm(aL2) or 1.0)
 
 def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0,
-                      yaw_offset_deg=0.0, refine_parting=True, refine_sights=True):
+                      yaw_offset_deg=0.0, refine_parting=True, refine_sights=True, refine_roll=True):
     """Gun-canonical rigid transform (center, R): the SLIDE axis -> world Y and horizontal, muzzle at
     -Y, WIDTH -> X, GRIP -> -Z (down); object mass-centered. Owner canonical pose (2026-07-03):
     "muzzle to the left in the X-view, leveled along the slide, grip pointing down".
@@ -290,6 +326,14 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         aL0 = aL.copy(); aL, aH = _refine_pitch_to_slide(P, F, center, aL, aH, aW)
         parting_refine_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aL0, aL))))))
         l = D @ aL; h = D @ aH
+    # REFINE ROLL to the SLIDE-TOP FLAT (owner datum 2026-07-10b): the slide top must be horizontal in the
+    # FRONT view — no cant about the bore. The pitch/yaw refines don't touch roll; a decimated scan's WIDTH
+    # axis alone left the Glock 43 ~0.8deg rolled (owner caught it in Front-Ortho). Self-zeroing + guarded.
+    roll_refine_deg = 0.0
+    if level_slide and refine_roll and F is not None and len(F):
+        aH0 = aH.copy(); aL, aH = _refine_roll_to_slide_top(P, F, center, aL, aH, aW)
+        roll_refine_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aH0, aH))))))
+        l = D @ aL; h = D @ aH
     # REFINE YAW to the SIGHTS (owner datum 2026-07-10): front + rear sight colinear along the bore.
     sight_yaw_deg = 0.0
     if refine_sights and F is not None and len(F):
@@ -329,6 +373,7 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         "ambiguous_axes": bool(ratio_LH < 1.08 or ratio_HW < 1.08),
         "slide_leveled_deg": round(float(slide_tilt_deg), 2),   # pitch correction applied to reach level
         "parting_refine_deg": round(float(parting_refine_deg), 2),   # extra pitch to the slide/parting line
+        "roll_refine_deg": round(float(roll_refine_deg), 2),         # roll applied to level the slide-top flat
         "sight_yaw_deg": round(float(sight_yaw_deg), 2),        # yaw applied to colinear the sights
         "det_R": round(float(np.linalg.det(R)), 6),             # must be +1.0
     }
@@ -467,7 +512,7 @@ def verify_alignment(P_new, F):
       center_residual ~ 0 ; R_new ~ identity ; dims Y>=Z>=X ; muzzle at -Y ; GRIP at bottom-rear
       (min-Z vert sits at +Y and below center) ; slide level (|slide_top_tilt| small)."""
     P_new = np.asarray(P_new, dtype=np.float64)
-    cen2, R2, d2 = compute_alignment(P_new, F, refine_parting=False, refine_sights=False)  # pure axis/sign recheck
+    cen2, R2, d2 = compute_alignment(P_new, F, refine_parting=False, refine_sights=False, refine_roll=False)  # pure axis/sign recheck
     dims = P_new.max(0) - P_new.min(0)                       # bbox extents X,Y,Z
     off = float(np.abs(R2 - np.eye(3)).max())
     low_i = int(np.argmin(P_new[:, 2]))                     # the lowest vert = the grip toe
@@ -520,7 +565,8 @@ def _dup(src, out_name):
     return obj
 
 def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0,
-                 roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True):
+                 roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True,
+                 refine_roll=True):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
     mode="gun"  (default) -> muzzle -Y, grip -Z, slide/rail level (gun anatomy heuristics).
@@ -542,7 +588,8 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
     else:
         center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg,
                                              roll_offset_deg=roll_offset_deg, yaw_offset_deg=yaw_offset_deg,
-                                             refine_parting=refine_parting, refine_sights=refine_sights)
+                                             refine_parting=refine_parting, refine_sights=refine_sights,
+                                             refine_roll=refine_roll)
     P_new = apply_alignment(P, center, R)
 
     target = src if in_place else _dup(src, out_name or (src.name + "_ALIGNED"))
