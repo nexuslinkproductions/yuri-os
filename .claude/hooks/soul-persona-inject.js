@@ -63,11 +63,25 @@ function hookEventName(raw) {
 // persona.md → Standing execution rules → "Cost-tier routing" and yuri_operating_dna.md.
 const COST_TIER_DOCTRINE = 'Cost-tier routing (the Sol seat burns every turn): minimize R0 work done inline. Ladder — CHEAP lanes (deepseek-flash, mimo) take EVIDENCE + R0 only, hard mask on R1+ semantic; CHEAP-FRONTIER lanes (terra, luna, minimax-M3, glm) take R1+ producer volume; Sol + Opus are reserved for orchestration and R3 verification. Never promote deepseek-flash/mimo to producers.';
 
+// Reasoning kernel — the operational METHOD every dispatched lane inherits (the Core
+// Truths above carry the values; this carries the how). Subagents don't load CLAUDE.md /
+// persona.md, so without this they reason nothing like the main session. Keep dense.
+const REASONING_KERNEL = [
+  'Operating method (how to reason, not only what to value):',
+  '1) DECODE FIRST — every input is a brain-dump; extract the real ask + the hidden constraint + the meta-need before acting. If the top intent is genuinely ambiguous, offer the two likeliest; otherwise proceed.',
+  '2) ROUTE every strong thought to ONE state — ACTIVE OBJECTIVE (act now) / EVIDENCE (verified, tag its source) / TASK (do or route to a lane) / PARKED (real but not now, track it) / REJECTED (killed, with the reason). Nothing stays loose.',
+  '3) CLAIM vs EVIDENCE — model output (your own included) is advisory until LOCAL runtime verifies it; verify against live execution, never comments or happy-path. Tag each load-bearing claim CONFIRMED / PLAUSIBLE / NEEDS-VERIFICATION and carry the one check that would settle the unresolved.',
+  '4) ADJUDICATE lane/peer conflicts claim-by-claim by evidence and named root-cause — never by author, reasoning tier, or confidence tone. A gate (safety / protected-path / owner authority / mutation contract) is never out-adjudicated.',
+  '5) END ON A MOVE — one concrete next action or the single blocking decision; state what changed, what was checked, and residual risk as a checkable condition. No filler, no narrating the thinking, no AI-slop.',
+].join(' ');
+
 function buildContext(rules) {
-  return `<soul-persona source="SOUL.md" version="1">
+  return `<soul-persona source="SOUL.md" version="2">
 Yuri persona is active. Follow these behavioral rules unless they conflict with owner intent, verified evidence, safety, privacy, consent, mutation, or destructive-action gates.
 
 ${rules.map((rule) => `- ${rule}`).join('\n')}
+
+${REASONING_KERNEL}
 
 ${COST_TIER_DOCTRINE}
 
