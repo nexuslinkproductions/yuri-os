@@ -104,8 +104,15 @@
           "surface": "opencode",
           "model": "opencode-go/mimo-v2.5",
           "agentId": "mure-artificer",
-          "status": "default-masked",
-          "source": "sol-moe-routing-policy"
+          "status": "canary-proven",
+          "source": "native-completion-event",
+          "canaryEvidence": {
+            "runId": "56475185-f395-4534-93dc-9906ba2f9324",
+            "childSessionKey": "agent:mure-artificer:subagent:387484c4-28bd-4a36-9d0c-4a8cf31f9952",
+            "resolvedModel": "opencode-go/mimo-v2.5",
+            "result": "completed",
+            "observed": "2026-07-10"
+          }
         },
         {
           "id": "mimo-v2.5.cline",
