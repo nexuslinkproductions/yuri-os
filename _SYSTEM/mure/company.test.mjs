@@ -101,7 +101,7 @@ test('RED regression (GLM-MED): a finalize subtask is held (finalize is owner-on
 // ── GREY ───────────────────────────────────────────────────────────────────
 test('GREY (substrate invariant): every glm leaf has a glm lane; every native spec a native model', async () => {
   const p = await planCompany(TASK);
-  const GLM = new Set(['glm-max', 'glm', 'glm-flash', 'glm-flashx', 'glm-sub-orch', 'glm-turbo', 'glm-vision', 'glm-ocr']);
+  const GLM = new Set(['glm-max', 'glm', 'glm-5.2', 'glm-flash', 'glm-flashx', 'glm-sub-orch', 'glm-turbo', 'glm-vision', 'glm-ocr']);
   const NAT = new Set(['opus', 'sonnet', 'haiku']);
   for (const l of p.glmLeaves) assert.ok(GLM.has(l.lane), `glm leaf lane ${l.lane}`);
   for (const n of p.nativeSpecs) assert.ok(NAT.has(n.model), `native spec model ${n.model}`);
@@ -152,6 +152,26 @@ test('GREY (no silent drop): a subtask with no capability match falls back to a 
   const c = castRole(roster, { id: 'weird', need: ['nonexistent-capability-xyz'], prompt: 'x', quiet: true }, { quiet: true });
   assert.ok(c.role, 'must cast to a fallback role');
   assert.ok(getRole(roster, c.role), 'fallback role must exist in the roster');
+});
+
+test('RED: an unknown explicit role fails closed instead of silently becoming engineer', () => {
+  for (const role of ['researcher', 'worker', 'verifier', 'typo-engineeer']) {
+    assert.throws(
+      () => castRole(roster, { id: `invalid-${role}`, role, prompt: 'bounded work' }, { quiet: true }),
+      new RegExp(`unknown explicit MURE role: ${role}`),
+    );
+  }
+});
+
+test('GREEN: canonical explicit roster roles still bypass capability fallback exactly', () => {
+  const cast = castRole(roster, {
+    id: 'explicit-scout',
+    role: 'scout',
+    need: ['code-generation'],
+    prompt: 'research evidence',
+  }, { quiet: true });
+  assert.equal(cast.role, 'scout');
+  assert.equal(cast.matched, true);
 });
 
 // ── PHASE 6: deriveNeeds (D-8) ────────────────────────────────────────────────

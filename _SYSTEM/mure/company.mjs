@@ -470,7 +470,15 @@ export function castRole(roster, subtask, opts = {}) {
   const need = Array.isArray(subtask.need) ? subtask.need : [];
   let role = null;
   let matched = false;
-  if (subtask.role) { role = getRole(roster, subtask.role); if (role) matched = true; } // explicit role override
+  // Explicit roles are authority-bearing executable identities, not fuzzy suggestions. An unknown
+  // explicit role must fail closed: silently converting `verifier`, `researcher`, or a typo into the
+  // default engineer changes both capability and authority semantics. Generic archetypes remain a
+  // separate namespace until a validated authority-preserving bridge exists.
+  if (subtask.role) {
+    role = getRole(roster, subtask.role);
+    if (!role) throw new TypeError(`unknown explicit MURE role: ${subtask.role}`);
+    matched = true;
+  }
   if (!role && need.length) { role = matchRolesByCapability(roster, need)[0]?.role || null; if (role) matched = true; }
   // Multi-role fusion (owner feature 2026-07-02): one lane may carry CO-ROLES to raise capability
   // density — opt-in via opts.maxCoRoles (>1). Guardrails, all hard: a verification-group critic never
