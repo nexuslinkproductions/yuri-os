@@ -13,6 +13,7 @@ import {
   recordVerifierVerdict,
   reject,
 } from './delegation-ledger.mjs';
+import { validateDispatchGovernance } from './dispatch-governance.mjs';
 
 export const NATIVE_DISPATCH_SHADOW_SCHEMA_VERSION = 'mure-native-dispatch-shadow-v1';
 const LOST_FAILURE_KINDS = new Set(['timeout']);
@@ -40,6 +41,16 @@ export function observeNativeAction(shadow, action) {
     throw new TypeError(`unsupported native action purpose: ${purpose}`);
   }
 
+  // Shadow governance check: record violations but do not block observation
+  const governance = validateDispatchGovernance({
+    purpose: purpose === 'availability-fallback' || purpose === 'quality-escalation' ? 'producer' : purpose,
+    fromArchetype: 'control',
+    toArchetype: action.args?.archetype || 'worker',
+    agentId: action.args?.agentId,
+    producerArchetype: purpose === 'verifier' ? shadow.awaiting?.archetype || 'worker' : undefined,
+    producerAgentId: purpose === 'verifier' ? shadow.awaiting?.agentId : undefined,
+  });
+
   let ledger = shadow.ledger;
   const ticket = getTicket(ledger, shadow.ticketId);
   if (purpose !== 'verifier' && ticket.ledgerStatus === 'ticketed') {
@@ -61,7 +72,11 @@ export function observeNativeAction(shadow, action) {
       requestedModel: nonEmpty(action.args?.model, 'action.args.model'),
       admission: null,
     }),
-    observations: [...shadow.observations, freeze({ type: 'action', purpose, entryId: action.entryId })],
+    observations: [
+      ...shadow.observations,
+      freeze({ type: 'action', purpose, entryId: action.entryId }),
+      ...(governance.ok ? [] : [freeze({ type: 'governance-warning', errors: governance.errors })]),
+    ],
   });
 }
 
@@ -151,6 +166,7 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
 export function shadowSnapshot(shadow) {
   validateShadow(shadow);
   const ticket = getTicket(shadow.ledger, shadow.ticketId);
+  const governanceWarnings = shadow.observations.filter((o) => o.type === 'governance-warning');
   return freeze({
     schemaVersion: NATIVE_DISPATCH_SHADOW_SCHEMA_VERSION,
     ticketId: shadow.ticketId,
@@ -158,6 +174,7 @@ export function shadowSnapshot(shadow) {
     awaiting: shadow.awaiting ? { entryId: shadow.awaiting.entryId, purpose: shadow.awaiting.purpose } : null,
     admissionCount: shadow.admissions.length,
     observationCount: shadow.observations.length,
+    governanceWarnings: governanceWarnings.length,
   });
 }
 

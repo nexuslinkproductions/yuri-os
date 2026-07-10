@@ -237,4 +237,5 @@ test('integration: shadow snapshot is a frozen summary', () => {
   assert.ok(Object.isFrozen(snap));
   assert.equal(snap.ticketId, 'shadow-int-1');
   assert.equal(snap.admissionCount, 0);
+  assert.equal(snap.governanceWarnings, 0);
 });
