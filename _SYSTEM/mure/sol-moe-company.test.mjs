@@ -45,7 +45,7 @@ test('plans separate immediate, availability, and quality queues', async () => {
   assert.equal('immediateSpawns' in plan.summary, false);
   assert.deepEqual(plan.summary.plannedProviderMix.producers.counts, { zai: 1 });
   assert.deepEqual(plan.summary.plannedProviderMix.verifiers.counts, { anthropic: 1 });
-  assert.equal(plan.summary.providerCalibrationTargets.openai.max, 0.06);
+  assert.equal(plan.summary.providerCalibrationTargets.openai.max, 0.30);
   assert.match(DEFAULT_POLICY.providerCalibration.metric, /dispatch count/);
   assert.equal(plan.availabilityEvidence['zai/glm-5.2'].resolvedModel, 'zai/glm-5.2');
 });

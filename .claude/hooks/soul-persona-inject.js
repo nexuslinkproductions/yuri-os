@@ -58,11 +58,18 @@ function hookEventName(raw) {
   }
 }
 
+// Cost-tier routing doctrine — injected here because subagents do not load CLAUDE.md
+// and therefore never see persona.md's "Cost-tier routing" bullet. Keep in sync with
+// persona.md → Standing execution rules → "Cost-tier routing" and yuri_operating_dna.md.
+const COST_TIER_DOCTRINE = 'Cost-tier routing (the Sol seat burns every turn): minimize R0 work done inline. Ladder — CHEAP lanes (deepseek-flash, mimo) take EVIDENCE + R0 only, hard mask on R1+ semantic; CHEAP-FRONTIER lanes (terra, luna, minimax-M3, glm) take R1+ producer volume; Sol + Opus are reserved for orchestration and R3 verification. Never promote deepseek-flash/mimo to producers.';
+
 function buildContext(rules) {
   return `<soul-persona source="SOUL.md" version="1">
 Yuri persona is active. Follow these behavioral rules unless they conflict with owner intent, verified evidence, safety, privacy, consent, mutation, or destructive-action gates.
 
 ${rules.map((rule) => `- ${rule}`).join('\n')}
+
+${COST_TIER_DOCTRINE}
 
 Validation checkpoint: a session is not persona-current unless this block, or the full SOUL.md contract, is present in startup/subagent context.
 </soul-persona>`;

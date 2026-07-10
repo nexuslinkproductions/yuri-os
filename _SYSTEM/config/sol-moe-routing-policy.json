@@ -1,5 +1,5 @@
 {
-  "version": "sol-moe-v3.2-cheap-amplified",
+  "version": "sol-moe-v3.3-cost-tier",
   "mode": "native-parent-controller",
   "execution": "sessions_spawn-native-push",
   "availabilityDefaults": {
@@ -24,7 +24,7 @@
       "anthropic": { "min": 0.12, "max": 0.28 },
       "deepseek": { "min": 0.22, "max": 0.45 },
       "mimo": { "min": 0, "max": 0.18 },
-      "openai": { "min": 0, "max": 0.06 },
+      "openai": { "min": 0.10, "max": 0.30 },
       "zai": { "min": 0, "max": 0 }
     },
     "recoveredTargets": {
@@ -32,13 +32,13 @@
       "anthropic": { "min": 0.12, "max": 0.28 },
       "deepseek": { "min": 0.2, "max": 0.4 },
       "mimo": { "min": 0.08, "max": 0.2 },
-      "openai": { "min": 0, "max": 0.06 },
+      "openai": { "min": 0.10, "max": 0.30 },
       "zai": { "min": 0.08, "max": 0.2 }
     },
     "hardRules": [
       "Sol remains the parent control plane and final integrator",
       "Sol is never compiled into a native child worker entry",
-      "OpenAI worker models are specialists or quality escalations, never the default volume pool",
+      "Sol is never compiled into a native child worker entry — terra and luna are cheap frontier peers and carry real producer volume",
       "cheap models may produce only R0 semantics and R1-R3 evidence",
       "R2 requires an independent frontier verifier",
       "R3 requires independent Opus 4.8 verification"
@@ -148,10 +148,10 @@
       "verifier": ["sonnet5"]
     },
     "implementation": {
-      "producer": ["m3", "sonnet5"],
-      "producerWeights": { "m3": 0.8, "sonnet5": 0.2 },
+      "producer": ["m3", "terra", "sonnet5"],
+      "producerWeights": { "m3": 0.45, "terra": 0.35, "sonnet5": 0.2 },
       "availabilityFallback": ["opus48"],
-      "qualityEscalation": ["opus48", "terra"],
+      "qualityEscalation": ["opus48"],
       "verifier": ["sonnet5", "opus48", "glm52"]
     },
     "security-implementation": {
@@ -188,15 +188,17 @@
       "verifier": ["sonnet5"]
     },
     "synthesis": {
-      "producer": ["m3"],
+      "producer": ["m3", "luna", "sonnet5"],
+      "producerWeights": { "m3": 0.5, "luna": 0.3, "sonnet5": 0.2 },
       "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["opus48", "luna"],
+      "qualityEscalation": ["opus48"],
       "verifier": ["sonnet5", "glm52"]
     },
     "research": {
-      "producer": ["m3"],
+      "producer": ["m3", "terra", "sonnet5"],
+      "producerWeights": { "m3": 0.5, "terra": 0.3, "sonnet5": 0.2 },
       "availabilityFallback": ["glm52", "sonnet5"],
-      "qualityEscalation": ["opus48", "luna"],
+      "qualityEscalation": ["opus48"],
       "verifier": ["sonnet5"]
     },
     "verification": {
@@ -206,15 +208,16 @@
       "verifier": ["opus48"]
     },
     "adjudication": {
-      "producer": ["m3", "sonnet5"],
-      "producerWeights": { "m3": 0.65, "sonnet5": 0.35 },
-      "availabilityFallback": ["glm52", "luna"],
-      "qualityEscalation": ["sonnet5", "luna"],
+      "producer": ["m3", "luna", "sonnet5"],
+      "producerWeights": { "m3": 0.4, "luna": 0.4, "sonnet5": 0.2 },
+      "availabilityFallback": ["glm52"],
+      "qualityEscalation": ["sonnet5"],
       "verifier": ["opus48"]
     },
     "general": {
-      "producer": ["m3"],
-      "availabilityFallback": ["sonnet5", "glm52", "luna"],
+      "producer": ["m3", "terra", "sonnet5"],
+      "producerWeights": { "m3": 0.5, "terra": 0.3, "sonnet5": 0.2 },
+      "availabilityFallback": ["sonnet5", "glm52"],
       "qualityEscalation": ["opus48", "luna"],
       "verifier": ["sonnet5"]
     }
