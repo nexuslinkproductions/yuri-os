@@ -23,6 +23,16 @@ Width                 -> X     (upright, no roll; sign by right-hand rule, det(R
 Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 ```
 
+**The definitive gun datums (owner directive 2026-07-10, GLOCK 43) — reference these, not proxies:**
+- **PITCH → the SLIDE**, specifically the straight **UPPER/LOWER parting line** (slide-bottom / frame-top,
+  dead straight & bore-parallel). NOT the picatinny rail / frame underside — those aren't bore-parallel on
+  every gun (a Glock 43 has no rail; the PDP rail sits 3° off the slide).
+- **YAW → FRONT SIGHT + REAR SIGHT colinear** down the bore (front post centred in the rear notch, viewed
+  from behind). The slide *silhouette* is NOT sensitive enough — a 0.9mm sight offset over a 130mm baseline
+  is 0.4° of yaw that reads "square" (0.04°) in the outline but is obvious down the sights.
+- **ROLL / final sub-degree → owner's eye** via the offset knobs (a decimated scan won't nail <0.5° from
+  geometry alone).
+
 ## SCOPE — alignment only
 
 Do **only** the alignment. Explicitly out of scope (cgs-mold's job): seal / island-union / voxel-remesh /
@@ -46,20 +56,30 @@ reversible, non-mutating to geometry.**
    so scan vertex-density can't swing it. Verified on the real HK mesh: rear −7.7 vs mid +5.9, a **13.6mm
    margin** (a vertex mean gave the wrong sign). Superseded a rear-vs-front **mean**-height test (the HK
    flip), which had superseded farthest-reach (the SIG flip).
-5. **Slide level** — owner's rule: "level to the SLIDE and/or the PICATINNY RAIL — both straight,
-   bore-parallel." Take the area-weighted consensus normal of the near-HORIZONTAL flats (within ~20° of
-   vertical — a TIGHT cone that excludes the slide's angled top bevels) and rotate it to **+Z**, iterated
-   to a fixed point. **Primary reference = the DOWN-facing forward flats** (the picatinny rail + slide /
-   dust-cover underside — the cleanest bore-parallel surface, no sights/optic/serrations), with a fallback
-   to the slide-TOP up-flats if the underside is too sparse (no-rail gun). Landed the SIG slide ridge at
-   **−0.14°** ("perfect", owner-confirmed). Rejected en route: point-cloud slab-PCA (~15° off), up-faces
-   with a loose 30° cone (caught the top bevels → left the true slide/rail ~1.7° off).
-6. **Manual pitch tweak** — `pitch_offset_deg` adds a pitch about X on top of the auto-level for the
-   owner's eye. Default 0. **SIGN (verified 2026-07-04 on the Walther PDP): `+` tips the muzzle UP**, `−`
-   tips it down — the reverse of an earlier note. On the PDP the rail-primary auto-level left the slide
-   ~3° muzzle-down (the rail underside is NOT parallel to the slide there); `pitch_offset_deg=+3.0` leveled
-   it, owner-confirmed. See Session Notes 2026-07-04.
-7. **Apply** — `New = (P − center) @ Rᵀ`, `R` rows = `[x̂, ŷ, ẑ]`; `matrix_world = identity`. The applied
+5. **Slide level (gross)** — owner's rule: "level to the SLIDE." Take the area-weighted consensus normal
+   of the near-HORIZONTAL flats (within ~20° of vertical — a TIGHT cone that excludes the slide's angled
+   top bevels) and rotate it to **+Z**, iterated. Primary reference = the DOWN-facing forward flats
+   (picatinny rail + slide/dust-cover underside), fallback to slide-TOP up-flats. This gets *close* but its
+   reference isn't bore-parallel on every gun — hence step 5b.
+5b. **Slide level (refine to the PARTING LINE)** `refine_parting` — re-level to the SLIDE itself via its
+   flat **SIDEWALL** (a big clean bore-parallel plane whose bottom edge *is* the upper/lower parting line):
+   PCA of the sidewall face-centroids in the (length,height) plane → the slide's true long axis → lay it
+   horizontal. **Self-zeroing + guarded** (no-op when step 5 already nailed it, e.g. the SIG; degrades if the
+   sidewall can't be isolated). This auto-corrects what step 5 misses: the **Glock 43** (no rail → step 5
+   grabbed frame flats, 2.2° off) and the **PDP** (rail 3° off slide) — both now land ~0° with no manual
+   pitch. Owner directive 2026-07-10: *"Always align PITCH referencing the SLIDE… the distinct line between
+   the UPPER and LOWER parts."*
+6. **Yaw to the SIGHTS** `refine_sights` — owner's YAW datum: make the **front sight + rear sight
+   colinear** along the bore. Detect the two sight blades as height spikes protruding >1.5mm above the
+   slide-top baseline (front third + rear slide), take each blade's width-centroid (rear = the two notch
+   posts → notch centre), and rotate about the vertical to zero their width difference. **Guarded** (needs
+   two real protruding blades over a real baseline; cap 3°) so it no-ops on a flat-top / optic-cut slide or
+   a light. Fixes the yaw the slide *silhouette* averages away (Glock 43: 0.9mm sight offset = 0.39° yaw,
+   invisible in the outline). Owner directive 2026-07-10: *"the front SIGHT and REAR sight to adjust YAW."*
+7. **Manual eye-tweaks** — `pitch_offset_deg` (about X, **`+` tips muzzle UP** — verified 2026-07-04 PDP),
+   `roll_offset_deg` (about the bore), `yaw_offset_deg` (about vertical). Each default 0; the owner dials the
+   last sub-degree a coarse scan can't nail from geometry (Glock 43 needed Rx−0.8 pitch / Ry+0.6 roll).
+8. **Apply** — `New = (P − center) @ Rᵀ`, `R` rows = `[x̂, ŷ, ẑ]`; `matrix_world = identity`. The applied
    `center` + `R` are stored on the object (`cgs_align_center`, `cgs_align_R`) for audit / `unalign_object`.
 
 ## Method — LIGHT mode (`mode="light"`, owner-confirmed on the OLIGHT PL2 Valkyrie 2026-07-03)
@@ -88,30 +108,37 @@ bezel → −Y (left)**, mass-centered.
 ```python
 exec(open(r"C:\Users\rene\.claude\skills\cgs-align\scripts\cgs_align.py").read(), globals())
 
-obj, s = align_object()                     # GUN (default), active / sole mesh, in place
+obj, s = align_object()                     # GUN (default): auto pitch→parting-line + yaw→sights, in place
 obj, s = align_object("SIG P226 XFIVE FULL GUN")
-obj, s = align_object(name, pitch_offset_deg=1.5)   # nudge the gun pitch by eye
+obj, s = align_object(name, pitch_offset_deg=-0.8, roll_offset_deg=0.6)   # owner eye-tweaks (Glock 43)
 obj, s = align_object("PL2_VALKYRIE - Copy", mode="light")   # LIGHT: clamp up+level, bezel left
 obj, s = import_and_align(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
 
-print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0),
-           # dims (Y>=Z>=X), front_y (muzzle, min), grip_is_down, slide_leveled_deg, ambiguous_axes
+print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0), dims (Y>=Z>=X),
+           # front_y (muzzle, min), grip_is_down, slide_leveled_deg, parting_refine_deg, sight_yaw_deg
 ```
 
-- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, mode="gun")` — entry point. `mode="light"` for weapon-lights.
+- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line and YAW to the sights; the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights.
 - `import_and_align(path, in_place=True)` — import STL then align (gun mode).
 - `unalign_object(name)` — reverse a prior align from the stored transform.
 
 ## Verify (do this on every real run)
 
-Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`, `R_offdiag_max < 0.01`,
-`dims_ordered_yzx`, `grip_is_down == True`, muzzle at `front_y` (min Y). For a light: `det_R == 1.0`,
-`clamp_complexity` clearly the max (the structured mount was found), `bezel_score_front > bezel_score_rear`
-(reflector at −Y). Then **render a side view with a horizontal reference bar** (a thin cuboid along Y at
-Z=0) and confirm the slide top / clamp face is parallel to it — do NOT trust the eye alone on the raw
-render (an elongated gun with a low-rear grip reads as tilted even when level; this fooled the build
-repeatedly until the bar + measurement settled it). On a light, also confirm the **bezel points −Y**.
-If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
+Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`, `dims_ordered_yzx`,
+`grip_is_down == True`, muzzle at `front_y` (min Y). (`aligned_ok` reads **false** whenever a manual
+`pitch/roll/yaw_offset` is set — the built-in verifier re-checks against the no-offset auto-level, so a
+deliberate eye-tweak trips it; that's benign, same as the PDP at +3°. Trust the datum measurements below.)
+For a light: `det_R == 1.0`, `clamp_complexity` clearly the max, `bezel_score_front > bezel_score_rear`.
+
+**Verify the two owner datums against the real mesh, not the eye** (renders/perspective fool the eye — a
+recurring trap on this skill):
+- **YAW** — measure front-sight X vs rear-sight X centroids; they must be equal (**`sight_dx ≈ 0`**).
+  Render the **BACK orthographic** view (from +Y) and confirm the front post sits centred in the rear notch.
+- **PITCH** — measure the slide **sidewall PCA** / parting-line slope (**≈ 0°**), NOT the slide-top ridge
+  (it's front-sight-biased). Render the **RIGHT orthographic** side view with a horizontal reference bar and
+  confirm the upper/lower parting line is parallel to it.
+- If the owner's eye wants the last sub-degree, set `pitch_offset_deg` / `roll_offset_deg` / `yaw_offset_deg`.
+  On a light, also confirm the **bezel points −Y**.
 
 ## Safety conventions
 
@@ -133,11 +160,24 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
   grip-down test was rebuilt (rear-third-vs-mid-third area-weighted height) and verified on the real mesh.
   Live end-to-end re-run from the raw pose is **pending a blender-mcp reconnect** (the socket dropped
   mid-session) — the changed decision is already proven on the real geometry (13.6mm margin).
-- **Offline: 300/300 random gun poses** pass (det, axis order, centering, off-diagonal, grip-down,
-  muzzle-left, slide-level) **+ 240 under-barrel-light poses** pass grip-down/muzzle/det/order (WML slide-
-  level is reported-not-asserted — the leveler keys off the light underside, the pitch_offset concern) +
-  volume-centroid, near-cubic light, ambiguity, reversibility.
+- **OWNER-CONFIRMED "a lot better" 2026-07-10** on the GLOCK 43 GUN DECIMATED (59,950 verts) — and the
+  aligner HARDENED with the two definitive gun datums. First auto-align read "square" (0.04° yaw / level)
+  but the owner caught the **front sight off-centre** (down-the-sights) and gave the real references:
+  **PITCH = the upper/lower parting line, YAW = front+rear sight colinearity.** Added `refine_parting`
+  (slide-sidewall PCA → parting line) + `refine_sights` (sight-blade width-centroids → colinear) +
+  `roll_offset_deg`/`yaw_offset_deg` knobs. Live from the raw pose the new pipeline auto-lands
+  **sight_dx 0.0mm + parting 0.06°** (parting-refine fired +0.89°, sight-yaw +0.39°); owner finished with
+  `pitch_offset_deg=-0.8`, `roll_offset_deg=0.6`. det +1, grip −Z, muzzle −Y, baked + owner-confirmed.
+- **Offline: 300/300 random gun poses + 240 WML poses** still green after the refinement (det, axis order,
+  centering, off-diagonal, grip-down, muzzle-left; WML slide-level reported-not-asserted, **unchanged** by
+  the refinement — verified refine-on == refine-off = 13.95° synthetic artifact) + volume-centroid, light,
+  ambiguity, reversibility. The refinements **self-zero on the synthetic gun** (flat top → no sights; clean
+  sidewall → already level), so they add real-gun capability without touching the synthetic suite.
   Re-run: `"…/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_align_math.py`.
+- **Pending live re-validation** of the datum refinements on the SIG / PDP / HK / OLIGHT (not loaded
+  2026-07-10). Expected safe: both refinements are self-zeroing + guarded (the SIG rail∥slide → parting
+  refine ≈0; the PDP would auto-correct its 3° with no manual pitch; a light has no sights → yaw refine
+  no-ops). Re-confirm on next load.
 - **LIGHT MODE OWNER-CONFIRMED 2026-07-03** on the OLIGHT PL2 Valkyrie (63,112 verts, `mode="light"`):
   rail clamp up + level, bezel −Y. Mount (clamp OR single screw) found by `flat_area × complexity²`
   (the machined mount, not the smooth body); bezel found by the reflector bowl (`cap_area × bowl_depth`).
@@ -145,6 +185,47 @@ If the owner's eye wants a touch more/less gun pitch, set `pitch_offset_deg`.
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-10 (GLOCK 43 — the definitive gun datums: PITCH=parting line, YAW=sights)
+- **Failure:** the first auto-align passed every internal check and I told the owner it was "square"
+  (yaw 0.04° via the slide *silhouette*, pitch level via the slide-top flats). He rotated to the **BACK
+  ortho** view, looked down the irons, and the **front sight was clearly off-centre in the rear notch.** My
+  silhouette yaw metric had *averaged away* a real 0.9mm front-sight offset (0.39° over the 130mm sight
+  baseline), and my pitch datum (rail/frame underside flats) was wrong for a rail-less Glock (2.2° off the
+  slide). I had confidently declared it correct off metrics that shared the aligner's blind spot — the
+  skill's oldest lesson, repeated.
+- **Owner's ground-truth references (now the canonical gun datums):** *"Always align PITCH referencing the
+  SLIDE — the distinct line between the UPPER and LOWER parts, perfectly straight"* and *"the front SIGHT
+  and REAR sight to adjust YAW."* Screenshots: front sight off-centre (bad), a proper centred sight picture
+  (goal), and the side view with the parting line green-lined.
+- **Fix (code):** two guarded, self-zeroing refinements added to `compute_alignment` — `_refine_pitch_to_slide`
+  (slide-sidewall PCA in the length-height plane → lay the slide's own long axis / parting line horizontal)
+  and `_refine_yaw_to_sights` (detect the two sight blades as >1.5mm height-spikes, take their width-
+  centroids — rear = notch centre — rotate about vertical to colinear them). Plus `roll_offset_deg` /
+  `yaw_offset_deg` manual knobs to mirror `pitch_offset_deg`. Both refinements no-op when already correct or
+  when the feature is absent, so they **don't regress** the SIG/PDP/HK confirmed poses or the synthetic suite.
+- **Verified on the REAL mesh (the only ground truth):** manual measurement first — front-sight X −0.315 vs
+  rear +0.584 = 0.9mm/0.39° yaw; slide sidewall PCA −0.95° pitch (vs the sight-biased slide-top ridge which
+  read +0.67°). Applied Rz+0.39 / Rx+0.95 → sight_dx 0.001mm, parting 0.06°. Then baked the new code and
+  ran it **from the raw scan on a duplicate**: auto-landed sight_dx **0.0mm** + parting **0.06°**
+  (parting-refine fired +0.89°, sight-yaw +0.39°) — reproducing the hand result automatically. Owner then
+  finished with `pitch_offset_deg=-0.8` / `roll_offset_deg=0.6` (the last sub-degree on a decimated scan)
+  and confirmed *"a lot better."* His two viewport rotations were baked into the mesh (matrix_world identity,
+  stored R updated, reversible).
+- **Regression (offline, `verify_align_math.py`):** 300/300 + 240 WML still green; proved refine-on ==
+  refine-off on the synthetic WML (13.95° slide-level artifact **unchanged**) so the refinement adds real-gun
+  capability without perturbing the synthetic gun (flat top → no sight spikes; clean box sidewall → already
+  level). `verify_alignment` pins the refinements OFF so its R_offdiag check stays a pure axis/sign recheck.
+- **Process lesson (reaffirms 2026-07-03/04/07):** don't declare "square/level" off a metric that can share
+  the aligner's blind spot — the slide silhouette missed the sight yaw, the slide-top ridge is front-sight
+  biased. The owner's chosen physical references (sights, parting line) + measurement on the real mesh are
+  ground truth; renders + a perspective viewport fooled the eye BOTH ways this session (I mis-read a
+  perspective muzzle view as yawed when it wasn't, then missed the real yaw the sights showed).
+- **Pending:** live re-confirm the refinements on the SIG/PDP/HK/OLIGHT next time they're loaded (guarded +
+  self-zeroing, so expected no-change; the PDP should now auto-level without its manual +3°).
+- Tools: blender-mcp (execute_blender_code on the real mesh, workbench back/side renders vs fiducial bars),
+  Read/Edit/Bash (Blender-5.1 python numpy suite), duplicate-from-raw live end-to-end test.
+  <!-- @anchor: v1 | failure: GLOCK 43 declared "square" off slide-silhouette yaw + slide-top-flat pitch, but the front sight was off-centre — owner datums are PITCH=parting-line, YAW=front+rear sight colinearity, 2026-07-10 | regression: cgs_align.py _refine_pitch_to_slide + _refine_yaw_to_sights (guarded, self-zeroing) + verify_align_math.py 300/240 green (refine-on==off on synthetic WML) + cgs-align SKILL.md Session Notes 2026-07-10 -->
 
 ### 2026-07-07 (HK SFP9 TLR-8A — grip-down hardened for under-barrel weapon-lights)
 - **Failure:** the raw aligner shipped the HK SFP9 with a mounted TLR-8A light **upside-down** (`grip_is_down:
