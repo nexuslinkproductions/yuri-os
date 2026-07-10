@@ -211,6 +211,14 @@
     "source_path": "skills/mineru-document-extractor/SKILL.md",
     "hash": "8250e31570672fe9"
   },
+  "mure-advisor": {
+    "source_path": "skills/mure-advisor/SKILL.md",
+    "hash": "08c54b737d503eb6"
+  },
+  "mure-role-variant-matrix": {
+    "source_path": "skills/mure-role-variant-matrix/SKILL.md",
+    "hash": "35536fc8b104b3c3"
+  },
   "nen-phase-detector": {
     "source_path": "skills/nen-phase-detector/SKILL.md",
     "hash": "02c5c160bfc2decb"
@@ -242,6 +250,10 @@
   "openai-docs": {
     "source_path": "skills/openai-docs/SKILL.md",
     "hash": "f1602696827d4f94"
+  },
+  "openclaw-moe-dispatch": {
+    "source_path": "skills/openclaw-moe-dispatch/SKILL.md",
+    "hash": "704c568e02f5ac90"
   },
   "opus-fleet": {
     "source_path": "skills/opus-fleet/SKILL.md",
@@ -478,6 +490,1206 @@
   "zoom-out": {
     "source_path": "skills/zoom-out/SKILL.md",
     "hash": "7e30ac1074688a3a"
+  },
+  "cyber-achieving-cmmc-level-2-compliance": {
+    "source_path": ".claude/skills/cyber-achieving-cmmc-level-2-compliance/SKILL.md",
+    "hash": "419cdf0cea57de10"
+  },
+  "cyber-acquiring-disk-image-with-dd-and-dcfldd": {
+    "source_path": ".claude/skills/cyber-acquiring-disk-image-with-dd-and-dcfldd/SKILL.md",
+    "hash": "05da1d36a7d83c94"
+  },
+  "cyber-analyzing-active-directory-acl-abuse": {
+    "source_path": ".claude/skills/cyber-analyzing-active-directory-acl-abuse/SKILL.md",
+    "hash": "4928dd8e6ae9e8c8"
+  },
+  "cyber-analyzing-android-malware-with-apktool": {
+    "source_path": ".claude/skills/cyber-analyzing-android-malware-with-apktool/SKILL.md",
+    "hash": "b7d0b3274ea08b0c"
+  },
+  "cyber-analyzing-api-gateway-access-logs": {
+    "source_path": ".claude/skills/cyber-analyzing-api-gateway-access-logs/SKILL.md",
+    "hash": "b43b7aa1790896c2"
+  },
+  "cyber-analyzing-apt-group-with-mitre-navigator": {
+    "source_path": ".claude/skills/cyber-analyzing-apt-group-with-mitre-navigator/SKILL.md",
+    "hash": "79ebf6142a2d4bf0"
+  },
+  "cyber-analyzing-azure-activity-logs-for-threats": {
+    "source_path": ".claude/skills/cyber-analyzing-azure-activity-logs-for-threats/SKILL.md",
+    "hash": "4cc26e1983556c25"
+  },
+  "cyber-analyzing-bootkit-and-rootkit-samples": {
+    "source_path": ".claude/skills/cyber-analyzing-bootkit-and-rootkit-samples/SKILL.md",
+    "hash": "f71c055123f59bf1"
+  },
+  "cyber-analyzing-browser-forensics-with-hindsight": {
+    "source_path": ".claude/skills/cyber-analyzing-browser-forensics-with-hindsight/SKILL.md",
+    "hash": "22a8d718ffb1710b"
+  },
+  "cyber-analyzing-campaign-attribution-evidence": {
+    "source_path": ".claude/skills/cyber-analyzing-campaign-attribution-evidence/SKILL.md",
+    "hash": "de6756e5a09ee36b"
+  },
+  "cyber-analyzing-certificate-transparency-for-phishing": {
+    "source_path": ".claude/skills/cyber-analyzing-certificate-transparency-for-phishing/SKILL.md",
+    "hash": "dd96a9a406343515"
+  },
+  "cyber-analyzing-cloud-storage-access-patterns": {
+    "source_path": ".claude/skills/cyber-analyzing-cloud-storage-access-patterns/SKILL.md",
+    "hash": "c91db285f905c5db"
+  },
+  "cyber-analyzing-cobalt-strike-beacon-configuration": {
+    "source_path": ".claude/skills/cyber-analyzing-cobalt-strike-beacon-configuration/SKILL.md",
+    "hash": "36c59690eeef40e2"
+  },
+  "cyber-analyzing-cobaltstrike-malleable-c2-profiles": {
+    "source_path": ".claude/skills/cyber-analyzing-cobaltstrike-malleable-c2-profiles/SKILL.md",
+    "hash": "cf3bac010f2fe59b"
+  },
+  "cyber-analyzing-command-and-control-communication": {
+    "source_path": ".claude/skills/cyber-analyzing-command-and-control-communication/SKILL.md",
+    "hash": "f47be982951316a2"
+  },
+  "cyber-analyzing-cyber-kill-chain": {
+    "source_path": ".claude/skills/cyber-analyzing-cyber-kill-chain/SKILL.md",
+    "hash": "cc064afec654bcfb"
+  },
+  "cyber-analyzing-disk-image-with-autopsy": {
+    "source_path": ".claude/skills/cyber-analyzing-disk-image-with-autopsy/SKILL.md",
+    "hash": "af852973dc22b918"
+  },
+  "cyber-analyzing-dns-logs-for-exfiltration": {
+    "source_path": ".claude/skills/cyber-analyzing-dns-logs-for-exfiltration/SKILL.md",
+    "hash": "10a3b5b8ef7b2fa1"
+  },
+  "cyber-analyzing-docker-container-forensics": {
+    "source_path": ".claude/skills/cyber-analyzing-docker-container-forensics/SKILL.md",
+    "hash": "539c718a1c4ab589"
+  },
+  "cyber-analyzing-email-headers-for-phishing-investigation": {
+    "source_path": ".claude/skills/cyber-analyzing-email-headers-for-phishing-investigation/SKILL.md",
+    "hash": "0598403898f153b5"
+  },
+  "cyber-analyzing-ethereum-smart-contract-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-analyzing-ethereum-smart-contract-vulnerabilities/SKILL.md",
+    "hash": "ee8e8c6f60f6edaf"
+  },
+  "cyber-assessing-vector-and-embedding-weaknesses": {
+    "source_path": ".claude/skills/cyber-assessing-vector-and-embedding-weaknesses/SKILL.md",
+    "hash": "4e829b3df0226bc4"
+  },
+  "cyber-auditing-aws-s3-bucket-permissions": {
+    "source_path": ".claude/skills/cyber-auditing-aws-s3-bucket-permissions/SKILL.md",
+    "hash": "30bcc68225a6a442"
+  },
+  "cyber-auditing-azure-active-directory-configuration": {
+    "source_path": ".claude/skills/cyber-auditing-azure-active-directory-configuration/SKILL.md",
+    "hash": "7e0ec1073ac7bb03"
+  },
+  "cyber-auditing-cloud-with-cis-benchmarks": {
+    "source_path": ".claude/skills/cyber-auditing-cloud-with-cis-benchmarks/SKILL.md",
+    "hash": "f0ef0dcb3526f154"
+  },
+  "cyber-auditing-entra-id-with-aadinternals": {
+    "source_path": ".claude/skills/cyber-auditing-entra-id-with-aadinternals/SKILL.md",
+    "hash": "0ea28d79840fb015"
+  },
+  "cyber-auditing-foundry-smart-contract-security": {
+    "source_path": ".claude/skills/cyber-auditing-foundry-smart-contract-security/SKILL.md",
+    "hash": "85ce40542158db81"
+  },
+  "cyber-auditing-gcp-iam-permissions": {
+    "source_path": ".claude/skills/cyber-auditing-gcp-iam-permissions/SKILL.md",
+    "hash": "eb2596452ab77358"
+  },
+  "cyber-auditing-kubernetes-cluster-rbac": {
+    "source_path": ".claude/skills/cyber-auditing-kubernetes-cluster-rbac/SKILL.md",
+    "hash": "54a5149a0fefd28c"
+  },
+  "cyber-auditing-kubernetes-rbac-privilege-escalation": {
+    "source_path": ".claude/skills/cyber-auditing-kubernetes-rbac-privilege-escalation/SKILL.md",
+    "hash": "a763f0fb22776266"
+  },
+  "cyber-auditing-mcp-servers-for-tool-poisoning": {
+    "source_path": ".claude/skills/cyber-auditing-mcp-servers-for-tool-poisoning/SKILL.md",
+    "hash": "c3027aa1fcfc4cdc"
+  },
+  "cyber-auditing-terraform-infrastructure-for-security": {
+    "source_path": ".claude/skills/cyber-auditing-terraform-infrastructure-for-security/SKILL.md",
+    "hash": "76f44c2c939df5f0"
+  },
+  "cyber-auditing-tls-certificate-transparency-logs": {
+    "source_path": ".claude/skills/cyber-auditing-tls-certificate-transparency-logs/SKILL.md",
+    "hash": "93410f431228a86c"
+  },
+  "cyber-auditing-uefi-firmware-with-chipsec": {
+    "source_path": ".claude/skills/cyber-auditing-uefi-firmware-with-chipsec/SKILL.md",
+    "hash": "b642e3163ff30406"
+  },
+  "cyber-automating-ioc-enrichment": {
+    "source_path": ".claude/skills/cyber-automating-ioc-enrichment/SKILL.md",
+    "hash": "3914efe4c097145e"
+  },
+  "cyber-benchmarking-kubernetes-with-kube-bench": {
+    "source_path": ".claude/skills/cyber-benchmarking-kubernetes-with-kube-bench/SKILL.md",
+    "hash": "bcc4d84b3a4702bd"
+  },
+  "cyber-building-adversary-infrastructure-tracking-system": {
+    "source_path": ".claude/skills/cyber-building-adversary-infrastructure-tracking-system/SKILL.md",
+    "hash": "350ad57712b8a6e4"
+  },
+  "cyber-building-attack-pattern-library-from-cti-reports": {
+    "source_path": ".claude/skills/cyber-building-attack-pattern-library-from-cti-reports/SKILL.md",
+    "hash": "da8d679c5832897c"
+  },
+  "cyber-building-automated-malware-submission-pipeline": {
+    "source_path": ".claude/skills/cyber-building-automated-malware-submission-pipeline/SKILL.md",
+    "hash": "000a6176c1259bb0"
+  },
+  "cyber-building-c2-infrastructure-with-sliver-framework": {
+    "source_path": ".claude/skills/cyber-building-c2-infrastructure-with-sliver-framework/SKILL.md",
+    "hash": "bf8c89b687585ffa"
+  },
+  "cyber-building-c2-redirector-infrastructure": {
+    "source_path": ".claude/skills/cyber-building-c2-redirector-infrastructure/SKILL.md",
+    "hash": "38029633ba11698e"
+  },
+  "cyber-building-cloud-siem-with-sentinel": {
+    "source_path": ".claude/skills/cyber-building-cloud-siem-with-sentinel/SKILL.md",
+    "hash": "4127bf4a71ee0b47"
+  },
+  "cyber-building-detection-rule-with-splunk-spl": {
+    "source_path": ".claude/skills/cyber-building-detection-rule-with-splunk-spl/SKILL.md",
+    "hash": "0739c5d9a31b78c2"
+  },
+  "cyber-building-detection-rules-with-sigma": {
+    "source_path": ".claude/skills/cyber-building-detection-rules-with-sigma/SKILL.md",
+    "hash": "312637c0c3dea487"
+  },
+  "cyber-building-devsecops-pipeline-with-gitlab-ci": {
+    "source_path": ".claude/skills/cyber-building-devsecops-pipeline-with-gitlab-ci/SKILL.md",
+    "hash": "36239958180b1921"
+  },
+  "cyber-building-identity-federation-with-saml-azure-ad": {
+    "source_path": ".claude/skills/cyber-building-identity-federation-with-saml-azure-ad/SKILL.md",
+    "hash": "e4ff90894a6e1866"
+  },
+  "cyber-building-identity-governance-lifecycle-process": {
+    "source_path": ".claude/skills/cyber-building-identity-governance-lifecycle-process/SKILL.md",
+    "hash": "002b6a7a1d7fc917"
+  },
+  "cyber-building-incident-response-dashboard": {
+    "source_path": ".claude/skills/cyber-building-incident-response-dashboard/SKILL.md",
+    "hash": "391887e230ae7ce4"
+  },
+  "cyber-building-incident-response-playbook": {
+    "source_path": ".claude/skills/cyber-building-incident-response-playbook/SKILL.md",
+    "hash": "e20aba069e4ec7a7"
+  },
+  "cyber-building-incident-timeline-with-timesketch": {
+    "source_path": ".claude/skills/cyber-building-incident-timeline-with-timesketch/SKILL.md",
+    "hash": "596eba3ba1b5adfc"
+  },
+  "cyber-building-ioc-defanging-and-sharing-pipeline": {
+    "source_path": ".claude/skills/cyber-building-ioc-defanging-and-sharing-pipeline/SKILL.md",
+    "hash": "4b632309269157fa"
+  },
+  "cyber-building-ioc-enrichment-pipeline-with-opencti": {
+    "source_path": ".claude/skills/cyber-building-ioc-enrichment-pipeline-with-opencti/SKILL.md",
+    "hash": "2012cd7da608a517"
+  },
+  "cyber-building-malware-incident-communication-template": {
+    "source_path": ".claude/skills/cyber-building-malware-incident-communication-template/SKILL.md",
+    "hash": "57adc1796c0ae1e1"
+  },
+  "cyber-building-patch-tuesday-response-process": {
+    "source_path": ".claude/skills/cyber-building-patch-tuesday-response-process/SKILL.md",
+    "hash": "27e0a408cae8c021"
+  },
+  "cyber-building-phishing-reporting-button-workflow": {
+    "source_path": ".claude/skills/cyber-building-phishing-reporting-button-workflow/SKILL.md",
+    "hash": "dda543eda27fac08"
+  },
+  "cyber-coercing-authentication-with-coercer-petitpotam": {
+    "source_path": ".claude/skills/cyber-coercing-authentication-with-coercer-petitpotam/SKILL.md",
+    "hash": "63ad654b19f0b18f"
+  },
+  "cyber-collecting-indicators-of-compromise": {
+    "source_path": ".claude/skills/cyber-collecting-indicators-of-compromise/SKILL.md",
+    "hash": "104984d9d7148854"
+  },
+  "cyber-collecting-open-source-intelligence": {
+    "source_path": ".claude/skills/cyber-collecting-open-source-intelligence/SKILL.md",
+    "hash": "e91e6917475107fe"
+  },
+  "cyber-collecting-threat-intelligence-with-misp": {
+    "source_path": ".claude/skills/cyber-collecting-threat-intelligence-with-misp/SKILL.md",
+    "hash": "a5a2a45b6d4843b3"
+  },
+  "cyber-collecting-volatile-evidence-from-compromised-host": {
+    "source_path": ".claude/skills/cyber-collecting-volatile-evidence-from-compromised-host/SKILL.md",
+    "hash": "4fc36dc17692e810"
+  },
+  "cyber-conducting-api-security-testing": {
+    "source_path": ".claude/skills/cyber-conducting-api-security-testing/SKILL.md",
+    "hash": "3455e7d9364b64e3"
+  },
+  "cyber-conducting-cloud-incident-response": {
+    "source_path": ".claude/skills/cyber-conducting-cloud-incident-response/SKILL.md",
+    "hash": "8045374ae36348b5"
+  },
+  "cyber-conducting-cloud-penetration-testing": {
+    "source_path": ".claude/skills/cyber-conducting-cloud-penetration-testing/SKILL.md",
+    "hash": "666f1c8ca17a7ddb"
+  },
+  "cyber-conducting-cyber-risk-assessment-with-nist-800-30": {
+    "source_path": ".claude/skills/cyber-conducting-cyber-risk-assessment-with-nist-800-30/SKILL.md",
+    "hash": "92d1af51fc3b68fe"
+  },
+  "cyber-conducting-domain-persistence-with-dcsync": {
+    "source_path": ".claude/skills/cyber-conducting-domain-persistence-with-dcsync/SKILL.md",
+    "hash": "2239b91d09f36669"
+  },
+  "cyber-conducting-external-reconnaissance-with-osint": {
+    "source_path": ".claude/skills/cyber-conducting-external-reconnaissance-with-osint/SKILL.md",
+    "hash": "e22b20926ef3cdbb"
+  },
+  "cyber-conducting-full-scope-red-team-engagement": {
+    "source_path": ".claude/skills/cyber-conducting-full-scope-red-team-engagement/SKILL.md",
+    "hash": "6e628133f401f99c"
+  },
+  "cyber-conducting-internal-network-penetration-test": {
+    "source_path": ".claude/skills/cyber-conducting-internal-network-penetration-test/SKILL.md",
+    "hash": "97547d6659001fe6"
+  },
+  "cyber-conducting-internal-reconnaissance-with-bloodhound-ce": {
+    "source_path": ".claude/skills/cyber-conducting-internal-reconnaissance-with-bloodhound-ce/SKILL.md",
+    "hash": "cafb74f263f3410a"
+  },
+  "cyber-conducting-malware-incident-response": {
+    "source_path": ".claude/skills/cyber-conducting-malware-incident-response/SKILL.md",
+    "hash": "2d676a6929e0b780"
+  },
+  "cyber-conducting-man-in-the-middle-attack-simulation": {
+    "source_path": ".claude/skills/cyber-conducting-man-in-the-middle-attack-simulation/SKILL.md",
+    "hash": "6c4639f0cf378932"
+  },
+  "cyber-conducting-memory-forensics-with-volatility": {
+    "source_path": ".claude/skills/cyber-conducting-memory-forensics-with-volatility/SKILL.md",
+    "hash": "050357e2a9837da1"
+  },
+  "cyber-conducting-mobile-app-penetration-test": {
+    "source_path": ".claude/skills/cyber-conducting-mobile-app-penetration-test/SKILL.md",
+    "hash": "09691103a692b82a"
+  },
+  "cyber-conducting-network-penetration-test": {
+    "source_path": ".claude/skills/cyber-conducting-network-penetration-test/SKILL.md",
+    "hash": "cc868df9bc0f2893"
+  },
+  "cyber-conducting-pass-the-ticket-attack": {
+    "source_path": ".claude/skills/cyber-conducting-pass-the-ticket-attack/SKILL.md",
+    "hash": "68eef2a89ea124dc"
+  },
+  "cyber-conducting-phishing-incident-response": {
+    "source_path": ".claude/skills/cyber-conducting-phishing-incident-response/SKILL.md",
+    "hash": "38494b838d86f855"
+  },
+  "cyber-conducting-post-incident-lessons-learned": {
+    "source_path": ".claude/skills/cyber-conducting-post-incident-lessons-learned/SKILL.md",
+    "hash": "54df9492642af1cc"
+  },
+  "cyber-conducting-social-engineering-penetration-test": {
+    "source_path": ".claude/skills/cyber-conducting-social-engineering-penetration-test/SKILL.md",
+    "hash": "e7e330ac4ba03c93"
+  },
+  "cyber-conducting-social-engineering-pretext-call": {
+    "source_path": ".claude/skills/cyber-conducting-social-engineering-pretext-call/SKILL.md",
+    "hash": "5a7f37fee1cc037f"
+  },
+  "cyber-configuring-active-directory-tiered-model": {
+    "source_path": ".claude/skills/cyber-configuring-active-directory-tiered-model/SKILL.md",
+    "hash": "b67db8fd5fcd03b6"
+  },
+  "cyber-configuring-aws-verified-access-for-ztna": {
+    "source_path": ".claude/skills/cyber-configuring-aws-verified-access-for-ztna/SKILL.md",
+    "hash": "87555103465e2bc7"
+  },
+  "cyber-configuring-certificate-authority-with-openssl": {
+    "source_path": ".claude/skills/cyber-configuring-certificate-authority-with-openssl/SKILL.md",
+    "hash": "76cf63cc96f15788"
+  },
+  "cyber-configuring-host-based-intrusion-detection": {
+    "source_path": ".claude/skills/cyber-configuring-host-based-intrusion-detection/SKILL.md",
+    "hash": "2f95572ac797707f"
+  },
+  "cyber-configuring-hsm-for-key-storage": {
+    "source_path": ".claude/skills/cyber-configuring-hsm-for-key-storage/SKILL.md",
+    "hash": "b0a18abcdf425eb7"
+  },
+  "cyber-configuring-identity-aware-proxy-with-google-iap": {
+    "source_path": ".claude/skills/cyber-configuring-identity-aware-proxy-with-google-iap/SKILL.md",
+    "hash": "4c9aceee68fa8699"
+  },
+  "cyber-configuring-ldap-security-hardening": {
+    "source_path": ".claude/skills/cyber-configuring-ldap-security-hardening/SKILL.md",
+    "hash": "9be399968e69d078"
+  },
+  "cyber-configuring-microsegmentation-for-zero-trust": {
+    "source_path": ".claude/skills/cyber-configuring-microsegmentation-for-zero-trust/SKILL.md",
+    "hash": "f5efdd20a8cf5e8b"
+  },
+  "cyber-configuring-multi-factor-authentication-with-duo": {
+    "source_path": ".claude/skills/cyber-configuring-multi-factor-authentication-with-duo/SKILL.md",
+    "hash": "d7886c7c183b5969"
+  },
+  "cyber-configuring-network-segmentation-with-vlans": {
+    "source_path": ".claude/skills/cyber-configuring-network-segmentation-with-vlans/SKILL.md",
+    "hash": "5ee8f30ab0e2a218"
+  },
+  "cyber-configuring-oauth2-authorization-flow": {
+    "source_path": ".claude/skills/cyber-configuring-oauth2-authorization-flow/SKILL.md",
+    "hash": "74a2ddd3a40e71f5"
+  },
+  "cyber-configuring-pfsense-firewall-rules": {
+    "source_path": ".claude/skills/cyber-configuring-pfsense-firewall-rules/SKILL.md",
+    "hash": "d413277365f26853"
+  },
+  "cyber-configuring-snort-ids-for-intrusion-detection": {
+    "source_path": ".claude/skills/cyber-configuring-snort-ids-for-intrusion-detection/SKILL.md",
+    "hash": "db3365d10d18e31b"
+  },
+  "cyber-configuring-suricata-for-network-monitoring": {
+    "source_path": ".claude/skills/cyber-configuring-suricata-for-network-monitoring/SKILL.md",
+    "hash": "9d1c4b5a62fd8eb4"
+  },
+  "cyber-configuring-tls-1-3-for-secure-communications": {
+    "source_path": ".claude/skills/cyber-configuring-tls-1-3-for-secure-communications/SKILL.md",
+    "hash": "c827b516bfc3e5ee"
+  },
+  "cyber-configuring-windows-defender-advanced-settings": {
+    "source_path": ".claude/skills/cyber-configuring-windows-defender-advanced-settings/SKILL.md",
+    "hash": "efffb23ec187720a"
+  },
+  "cyber-configuring-windows-event-logging-for-detection": {
+    "source_path": ".claude/skills/cyber-configuring-windows-event-logging-for-detection/SKILL.md",
+    "hash": "527c97f12f9b9a5e"
+  },
+  "cyber-configuring-zscaler-private-access-for-ztna": {
+    "source_path": ".claude/skills/cyber-configuring-zscaler-private-access-for-ztna/SKILL.md",
+    "hash": "f9dfb8d1ec6b9099"
+  },
+  "cyber-containing-active-breach": {
+    "source_path": ".claude/skills/cyber-containing-active-breach/SKILL.md",
+    "hash": "3a793eb74dc22cfc"
+  },
+  "cyber-continuous-llm-red-teaming-with-promptfoo": {
+    "source_path": ".claude/skills/cyber-continuous-llm-red-teaming-with-promptfoo/SKILL.md",
+    "hash": "bfa15bd89ebdbc65"
+  },
+  "cyber-correlating-security-events-in-qradar": {
+    "source_path": ".claude/skills/cyber-correlating-security-events-in-qradar/SKILL.md",
+    "hash": "679b6457dc2e3813"
+  },
+  "cyber-correlating-threat-campaigns": {
+    "source_path": ".claude/skills/cyber-correlating-threat-campaigns/SKILL.md",
+    "hash": "57af79b1432ecf07"
+  },
+  "cyber-defending-llms-with-guardrails": {
+    "source_path": ".claude/skills/cyber-defending-llms-with-guardrails/SKILL.md",
+    "hash": "72751ee4c61f9e2c"
+  },
+  "cyber-deobfuscating-javascript-malware": {
+    "source_path": ".claude/skills/cyber-deobfuscating-javascript-malware/SKILL.md",
+    "hash": "7113f9a1163cf02b"
+  },
+  "cyber-deobfuscating-powershell-obfuscated-malware": {
+    "source_path": ".claude/skills/cyber-deobfuscating-powershell-obfuscated-malware/SKILL.md",
+    "hash": "339c83373767e04c"
+  },
+  "cyber-deploying-active-directory-honeytokens": {
+    "source_path": ".claude/skills/cyber-deploying-active-directory-honeytokens/SKILL.md",
+    "hash": "86bed420743a76e6"
+  },
+  "cyber-deploying-cloud-deception-with-decoy-resources": {
+    "source_path": ".claude/skills/cyber-deploying-cloud-deception-with-decoy-resources/SKILL.md",
+    "hash": "ec91ddd1e3c29e7a"
+  },
+  "cyber-deploying-cloudflare-access-for-zero-trust": {
+    "source_path": ".claude/skills/cyber-deploying-cloudflare-access-for-zero-trust/SKILL.md",
+    "hash": "09e7b7c529209f47"
+  },
+  "cyber-deploying-decoy-files-for-ransomware-detection": {
+    "source_path": ".claude/skills/cyber-deploying-decoy-files-for-ransomware-detection/SKILL.md",
+    "hash": "fa0435b630abaad1"
+  },
+  "cyber-deploying-edr-agent-with-crowdstrike": {
+    "source_path": ".claude/skills/cyber-deploying-edr-agent-with-crowdstrike/SKILL.md",
+    "hash": "51450d68bb534689"
+  },
+  "cyber-deploying-honeytokens-and-canarytokens": {
+    "source_path": ".claude/skills/cyber-deploying-honeytokens-and-canarytokens/SKILL.md",
+    "hash": "69eb671e40ab4763"
+  },
+  "cyber-deploying-osquery-for-endpoint-monitoring": {
+    "source_path": ".claude/skills/cyber-deploying-osquery-for-endpoint-monitoring/SKILL.md",
+    "hash": "4b2985bfc31355a1"
+  },
+  "cyber-deploying-palo-alto-prisma-access-zero-trust": {
+    "source_path": ".claude/skills/cyber-deploying-palo-alto-prisma-access-zero-trust/SKILL.md",
+    "hash": "2e5884e60f4befbe"
+  },
+  "cyber-deploying-ransomware-canary-files": {
+    "source_path": ".claude/skills/cyber-deploying-ransomware-canary-files/SKILL.md",
+    "hash": "43c5c4ee0f9bd50a"
+  },
+  "cyber-deploying-software-defined-perimeter": {
+    "source_path": ".claude/skills/cyber-deploying-software-defined-perimeter/SKILL.md",
+    "hash": "fcce121164e7c151"
+  },
+  "cyber-deploying-tailscale-for-zero-trust-vpn": {
+    "source_path": ".claude/skills/cyber-deploying-tailscale-for-zero-trust-vpn/SKILL.md",
+    "hash": "3e83292a529bcbfe"
+  },
+  "cyber-designing-adversary-engagement-with-mitre-engage": {
+    "source_path": ".claude/skills/cyber-designing-adversary-engagement-with-mitre-engage/SKILL.md",
+    "hash": "eb334cd918b023bf"
+  },
+  "cyber-detecting-ai-model-prompt-injection-attacks": {
+    "source_path": ".claude/skills/cyber-detecting-ai-model-prompt-injection-attacks/SKILL.md",
+    "hash": "349883cc83e683bc"
+  },
+  "cyber-detecting-anomalies-in-industrial-control-systems": {
+    "source_path": ".claude/skills/cyber-detecting-anomalies-in-industrial-control-systems/SKILL.md",
+    "hash": "c3543973d63f0f7c"
+  },
+  "cyber-detecting-anomalous-authentication-patterns": {
+    "source_path": ".claude/skills/cyber-detecting-anomalous-authentication-patterns/SKILL.md",
+    "hash": "2d12e1386fb24c01"
+  },
+  "cyber-detecting-api-enumeration-attacks": {
+    "source_path": ".claude/skills/cyber-detecting-api-enumeration-attacks/SKILL.md",
+    "hash": "c61771951e44e8c5"
+  },
+  "cyber-detecting-arp-poisoning-in-network-traffic": {
+    "source_path": ".claude/skills/cyber-detecting-arp-poisoning-in-network-traffic/SKILL.md",
+    "hash": "3b19c856894bbd76"
+  },
+  "cyber-detecting-attacks-on-historian-servers": {
+    "source_path": ".claude/skills/cyber-detecting-attacks-on-historian-servers/SKILL.md",
+    "hash": "45d730dc16b6360c"
+  },
+  "cyber-detecting-attacks-on-scada-systems": {
+    "source_path": ".claude/skills/cyber-detecting-attacks-on-scada-systems/SKILL.md",
+    "hash": "9c2e57410e90a55f"
+  },
+  "cyber-detecting-aws-cloudtrail-anomalies": {
+    "source_path": ".claude/skills/cyber-detecting-aws-cloudtrail-anomalies/SKILL.md",
+    "hash": "68e782cbb0c8ebfa"
+  },
+  "cyber-detecting-aws-credential-exposure-with-trufflehog": {
+    "source_path": ".claude/skills/cyber-detecting-aws-credential-exposure-with-trufflehog/SKILL.md",
+    "hash": "0debb9c1fac3d8f8"
+  },
+  "cyber-detecting-aws-guardduty-findings-automation": {
+    "source_path": ".claude/skills/cyber-detecting-aws-guardduty-findings-automation/SKILL.md",
+    "hash": "3ee64f5a559b7c3e"
+  },
+  "cyber-detecting-aws-iam-privilege-escalation": {
+    "source_path": ".claude/skills/cyber-detecting-aws-iam-privilege-escalation/SKILL.md",
+    "hash": "03d99b21447c0b61"
+  },
+  "cyber-detecting-azure-lateral-movement": {
+    "source_path": ".claude/skills/cyber-detecting-azure-lateral-movement/SKILL.md",
+    "hash": "5bc07508216e151f"
+  },
+  "cyber-detecting-azure-service-principal-abuse": {
+    "source_path": ".claude/skills/cyber-detecting-azure-service-principal-abuse/SKILL.md",
+    "hash": "ccceb9e6e7b83ec8"
+  },
+  "cyber-detecting-azure-storage-account-misconfigurations": {
+    "source_path": ".claude/skills/cyber-detecting-azure-storage-account-misconfigurations/SKILL.md",
+    "hash": "a5f7191ce39d17a0"
+  },
+  "cyber-detecting-beaconing-patterns-with-zeek": {
+    "source_path": ".claude/skills/cyber-detecting-beaconing-patterns-with-zeek/SKILL.md",
+    "hash": "24ee7bb23fc35628"
+  },
+  "cyber-detecting-bluetooth-low-energy-attacks": {
+    "source_path": ".claude/skills/cyber-detecting-bluetooth-low-energy-attacks/SKILL.md",
+    "hash": "f25756b7e6f77b3b"
+  },
+  "cyber-detecting-broken-object-property-level-authorization": {
+    "source_path": ".claude/skills/cyber-detecting-broken-object-property-level-authorization/SKILL.md",
+    "hash": "ae7732b51c55c64f"
+  },
+  "cyber-detecting-business-email-compromise": {
+    "source_path": ".claude/skills/cyber-detecting-business-email-compromise/SKILL.md",
+    "hash": "78ef63168d1833b2"
+  },
+  "cyber-detecting-business-email-compromise-with-ai": {
+    "source_path": ".claude/skills/cyber-detecting-business-email-compromise-with-ai/SKILL.md",
+    "hash": "fa1ab232b87773bc"
+  },
+  "cyber-emulating-cloud-attacks-with-stratus-red-team": {
+    "source_path": ".claude/skills/cyber-emulating-cloud-attacks-with-stratus-red-team/SKILL.md",
+    "hash": "5acf859c517b8647"
+  },
+  "cyber-enumerating-cloud-with-cloudfox": {
+    "source_path": ".claude/skills/cyber-enumerating-cloud-with-cloudfox/SKILL.md",
+    "hash": "8e4bd5fcf0eee0ad"
+  },
+  "cyber-eradicating-malware-from-infected-systems": {
+    "source_path": ".claude/skills/cyber-eradicating-malware-from-infected-systems/SKILL.md",
+    "hash": "b83fed66e3dff86e"
+  },
+  "cyber-escaping-containers-to-host": {
+    "source_path": ".claude/skills/cyber-escaping-containers-to-host/SKILL.md",
+    "hash": "9c720d6d3b44a174"
+  },
+  "cyber-evaluating-threat-intelligence-platforms": {
+    "source_path": ".claude/skills/cyber-evaluating-threat-intelligence-platforms/SKILL.md",
+    "hash": "c75a4c13e305794d"
+  },
+  "cyber-executing-active-directory-attack-simulation": {
+    "source_path": ".claude/skills/cyber-executing-active-directory-attack-simulation/SKILL.md",
+    "hash": "7e0851b30498558e"
+  },
+  "cyber-executing-nist-rmf-authorization-to-operate": {
+    "source_path": ".claude/skills/cyber-executing-nist-rmf-authorization-to-operate/SKILL.md",
+    "hash": "ee8f028c400c8132"
+  },
+  "cyber-executing-phishing-simulation-campaign": {
+    "source_path": ".claude/skills/cyber-executing-phishing-simulation-campaign/SKILL.md",
+    "hash": "d5df69bd14bd9f50"
+  },
+  "cyber-executing-red-team-engagement-planning": {
+    "source_path": ".claude/skills/cyber-executing-red-team-engagement-planning/SKILL.md",
+    "hash": "8466324cd2792902"
+  },
+  "cyber-executing-red-team-exercise": {
+    "source_path": ".claude/skills/cyber-executing-red-team-exercise/SKILL.md",
+    "hash": "b85fa45d882c8fed"
+  },
+  "cyber-extracting-browser-history-artifacts": {
+    "source_path": ".claude/skills/cyber-extracting-browser-history-artifacts/SKILL.md",
+    "hash": "a05513a2c63ad560"
+  },
+  "cyber-extracting-config-from-agent-tesla-rat": {
+    "source_path": ".claude/skills/cyber-extracting-config-from-agent-tesla-rat/SKILL.md",
+    "hash": "ef19252a604cb4bb"
+  },
+  "cyber-extracting-credentials-from-memory-dump": {
+    "source_path": ".claude/skills/cyber-extracting-credentials-from-memory-dump/SKILL.md",
+    "hash": "c758e3ab5ae3189e"
+  },
+  "cyber-extracting-iocs-from-malware-samples": {
+    "source_path": ".claude/skills/cyber-extracting-iocs-from-malware-samples/SKILL.md",
+    "hash": "b7434577cd06aa31"
+  },
+  "cyber-extracting-memory-artifacts-with-rekall": {
+    "source_path": ".claude/skills/cyber-extracting-memory-artifacts-with-rekall/SKILL.md",
+    "hash": "c5938fe0bf32fe54"
+  },
+  "cyber-extracting-windows-event-logs-artifacts": {
+    "source_path": ".claude/skills/cyber-extracting-windows-event-logs-artifacts/SKILL.md",
+    "hash": "431cbbafd2b419aa"
+  },
+  "cyber-fleet-hunting-with-velociraptor": {
+    "source_path": ".claude/skills/cyber-fleet-hunting-with-velociraptor/SKILL.md",
+    "hash": "ab290f5ca950eb6b"
+  },
+  "cyber-generating-and-analyzing-sboms": {
+    "source_path": ".claude/skills/cyber-generating-and-analyzing-sboms/SKILL.md",
+    "hash": "e64ec16ba13afd17"
+  },
+  "cyber-generating-forensic-timelines-with-hayabusa": {
+    "source_path": ".claude/skills/cyber-generating-forensic-timelines-with-hayabusa/SKILL.md",
+    "hash": "386acf62d0f1405b"
+  },
+  "cyber-generating-threat-intelligence-reports": {
+    "source_path": ".claude/skills/cyber-generating-threat-intelligence-reports/SKILL.md",
+    "hash": "6828f7e0ef9ab680"
+  },
+  "cyber-hardening-docker-containers-for-production": {
+    "source_path": ".claude/skills/cyber-hardening-docker-containers-for-production/SKILL.md",
+    "hash": "790f5f9a2fdb88e4"
+  },
+  "cyber-hardening-docker-daemon-configuration": {
+    "source_path": ".claude/skills/cyber-hardening-docker-daemon-configuration/SKILL.md",
+    "hash": "20da06a882d9910b"
+  },
+  "cyber-hardening-linux-endpoint-with-cis-benchmark": {
+    "source_path": ".claude/skills/cyber-hardening-linux-endpoint-with-cis-benchmark/SKILL.md",
+    "hash": "2149336d83bc7e20"
+  },
+  "cyber-hardening-windows-endpoint-with-cis-benchmark": {
+    "source_path": ".claude/skills/cyber-hardening-windows-endpoint-with-cis-benchmark/SKILL.md",
+    "hash": "8bb2aed281a14389"
+  },
+  "cyber-hunting-advanced-persistent-threats": {
+    "source_path": ".claude/skills/cyber-hunting-advanced-persistent-threats/SKILL.md",
+    "hash": "3bf7c47b94ad03fd"
+  },
+  "cyber-hunting-bootkits-in-efi-system-partition": {
+    "source_path": ".claude/skills/cyber-hunting-bootkits-in-efi-system-partition/SKILL.md",
+    "hash": "a0e0aa54384c8646"
+  },
+  "cyber-hunting-credential-stuffing-attacks": {
+    "source_path": ".claude/skills/cyber-hunting-credential-stuffing-attacks/SKILL.md",
+    "hash": "fd12f7b574457af9"
+  },
+  "cyber-hunting-evtx-with-chainsaw": {
+    "source_path": ".claude/skills/cyber-hunting-evtx-with-chainsaw/SKILL.md",
+    "hash": "08354b84b4d17353"
+  },
+  "cyber-hunting-for-anomalous-powershell-execution": {
+    "source_path": ".claude/skills/cyber-hunting-for-anomalous-powershell-execution/SKILL.md",
+    "hash": "f93e8301436157f2"
+  },
+  "cyber-hunting-for-beaconing-with-frequency-analysis": {
+    "source_path": ".claude/skills/cyber-hunting-for-beaconing-with-frequency-analysis/SKILL.md",
+    "hash": "7b173856799a1cfd"
+  },
+  "cyber-hunting-for-cobalt-strike-beacons": {
+    "source_path": ".claude/skills/cyber-hunting-for-cobalt-strike-beacons/SKILL.md",
+    "hash": "5635adf168d92abe"
+  },
+  "cyber-hunting-for-command-and-control-beaconing": {
+    "source_path": ".claude/skills/cyber-hunting-for-command-and-control-beaconing/SKILL.md",
+    "hash": "86f43cdcfb06baa7"
+  },
+  "cyber-hunting-for-data-exfiltration-indicators": {
+    "source_path": ".claude/skills/cyber-hunting-for-data-exfiltration-indicators/SKILL.md",
+    "hash": "3bd2511ef1a4712c"
+  },
+  "cyber-hunting-for-data-staging-before-exfiltration": {
+    "source_path": ".claude/skills/cyber-hunting-for-data-staging-before-exfiltration/SKILL.md",
+    "hash": "0b0a023fbb49d162"
+  },
+  "cyber-hunting-for-dcom-lateral-movement": {
+    "source_path": ".claude/skills/cyber-hunting-for-dcom-lateral-movement/SKILL.md",
+    "hash": "3799df3255a9af6b"
+  },
+  "cyber-hunting-for-dcsync-attacks": {
+    "source_path": ".claude/skills/cyber-hunting-for-dcsync-attacks/SKILL.md",
+    "hash": "029dd693c5b944ae"
+  },
+  "cyber-hunting-for-defense-evasion-via-timestomping": {
+    "source_path": ".claude/skills/cyber-hunting-for-defense-evasion-via-timestomping/SKILL.md",
+    "hash": "7371d6e598ae86b8"
+  },
+  "cyber-hunting-for-dns-based-persistence": {
+    "source_path": ".claude/skills/cyber-hunting-for-dns-based-persistence/SKILL.md",
+    "hash": "3f03c6aa5c050fe7"
+  },
+  "cyber-hunting-for-dns-tunneling-with-zeek": {
+    "source_path": ".claude/skills/cyber-hunting-for-dns-tunneling-with-zeek/SKILL.md",
+    "hash": "e46f45d6b76694f9"
+  },
+  "cyber-hunting-for-domain-fronting-c2-traffic": {
+    "source_path": ".claude/skills/cyber-hunting-for-domain-fronting-c2-traffic/SKILL.md",
+    "hash": "90783bde2c44215d"
+  },
+  "cyber-hunting-for-lateral-movement-via-wmi": {
+    "source_path": ".claude/skills/cyber-hunting-for-lateral-movement-via-wmi/SKILL.md",
+    "hash": "ec6882382ac896a6"
+  },
+  "cyber-hunting-for-living-off-the-cloud-techniques": {
+    "source_path": ".claude/skills/cyber-hunting-for-living-off-the-cloud-techniques/SKILL.md",
+    "hash": "328be2622f151ad2"
+  },
+  "cyber-hunting-for-living-off-the-land-binaries": {
+    "source_path": ".claude/skills/cyber-hunting-for-living-off-the-land-binaries/SKILL.md",
+    "hash": "3d3b93f5c00d826a"
+  },
+  "cyber-implementing-aes-encryption-for-data-at-rest": {
+    "source_path": ".claude/skills/cyber-implementing-aes-encryption-for-data-at-rest/SKILL.md",
+    "hash": "1b5276b36c2fa1a6"
+  },
+  "cyber-implementing-alert-fatigue-reduction": {
+    "source_path": ".claude/skills/cyber-implementing-alert-fatigue-reduction/SKILL.md",
+    "hash": "cd2a6b00986d63e1"
+  },
+  "cyber-implementing-anti-phishing-training-program": {
+    "source_path": ".claude/skills/cyber-implementing-anti-phishing-training-program/SKILL.md",
+    "hash": "6b9a94bc6c4c125a"
+  },
+  "cyber-implementing-anti-ransomware-group-policy": {
+    "source_path": ".claude/skills/cyber-implementing-anti-ransomware-group-policy/SKILL.md",
+    "hash": "12e84cf488fcd1b5"
+  },
+  "cyber-implementing-api-abuse-detection-with-rate-limiting": {
+    "source_path": ".claude/skills/cyber-implementing-api-abuse-detection-with-rate-limiting/SKILL.md",
+    "hash": "1242dfd1a2bbbb88"
+  },
+  "cyber-implementing-api-gateway-security-controls": {
+    "source_path": ".claude/skills/cyber-implementing-api-gateway-security-controls/SKILL.md",
+    "hash": "5aa26aca327a9324"
+  },
+  "cyber-implementing-api-key-security-controls": {
+    "source_path": ".claude/skills/cyber-implementing-api-key-security-controls/SKILL.md",
+    "hash": "be0647a188f36624"
+  },
+  "cyber-implementing-api-rate-limiting-and-throttling": {
+    "source_path": ".claude/skills/cyber-implementing-api-rate-limiting-and-throttling/SKILL.md",
+    "hash": "c77f184c30d86e41"
+  },
+  "cyber-implementing-api-schema-validation-security": {
+    "source_path": ".claude/skills/cyber-implementing-api-schema-validation-security/SKILL.md",
+    "hash": "6002ac6008d162e6"
+  },
+  "cyber-implementing-api-security-posture-management": {
+    "source_path": ".claude/skills/cyber-implementing-api-security-posture-management/SKILL.md",
+    "hash": "29678a23ccd4bebb"
+  },
+  "cyber-implementing-api-security-testing-with-42crunch": {
+    "source_path": ".claude/skills/cyber-implementing-api-security-testing-with-42crunch/SKILL.md",
+    "hash": "144d2c5b23b0e1d5"
+  },
+  "cyber-implementing-api-threat-protection-with-apigee": {
+    "source_path": ".claude/skills/cyber-implementing-api-threat-protection-with-apigee/SKILL.md",
+    "hash": "9e78dee21eb59c11"
+  },
+  "cyber-implementing-application-whitelisting-with-applocker": {
+    "source_path": ".claude/skills/cyber-implementing-application-whitelisting-with-applocker/SKILL.md",
+    "hash": "edd792e2da670fb0"
+  },
+  "cyber-implementing-aqua-security-for-container-scanning": {
+    "source_path": ".claude/skills/cyber-implementing-aqua-security-for-container-scanning/SKILL.md",
+    "hash": "0ad623a5cb46fc7c"
+  },
+  "cyber-implementing-attack-path-analysis-with-xm-cyber": {
+    "source_path": ".claude/skills/cyber-implementing-attack-path-analysis-with-xm-cyber/SKILL.md",
+    "hash": "992abd5ce9477949"
+  },
+  "cyber-implementing-attack-surface-management": {
+    "source_path": ".claude/skills/cyber-implementing-attack-surface-management/SKILL.md",
+    "hash": "f74dd25967090139"
+  },
+  "cyber-implementing-aws-config-rules-for-compliance": {
+    "source_path": ".claude/skills/cyber-implementing-aws-config-rules-for-compliance/SKILL.md",
+    "hash": "4565abf79d528dbb"
+  },
+  "cyber-implementing-aws-iam-permission-boundaries": {
+    "source_path": ".claude/skills/cyber-implementing-aws-iam-permission-boundaries/SKILL.md",
+    "hash": "8b0e77d3bd40140f"
+  },
+  "cyber-implementing-aws-macie-for-data-classification": {
+    "source_path": ".claude/skills/cyber-implementing-aws-macie-for-data-classification/SKILL.md",
+    "hash": "148bfcf76452924c"
+  },
+  "cyber-integrating-dast-with-owasp-zap-in-pipeline": {
+    "source_path": ".claude/skills/cyber-integrating-dast-with-owasp-zap-in-pipeline/SKILL.md",
+    "hash": "db42b3c652f65b71"
+  },
+  "cyber-integrating-sast-into-github-actions-pipeline": {
+    "source_path": ".claude/skills/cyber-integrating-sast-into-github-actions-pipeline/SKILL.md",
+    "hash": "5b326acbf47dbd9b"
+  },
+  "cyber-intercepting-mobile-traffic-with-burpsuite": {
+    "source_path": ".claude/skills/cyber-intercepting-mobile-traffic-with-burpsuite/SKILL.md",
+    "hash": "7e6be19da552a827"
+  },
+  "cyber-investigating-insider-threat-indicators": {
+    "source_path": ".claude/skills/cyber-investigating-insider-threat-indicators/SKILL.md",
+    "hash": "ce37603521e2d28c"
+  },
+  "cyber-investigating-phishing-email-incident": {
+    "source_path": ".claude/skills/cyber-investigating-phishing-email-incident/SKILL.md",
+    "hash": "a649f4ef5bbdfcd2"
+  },
+  "cyber-investigating-ransomware-attack-artifacts": {
+    "source_path": ".claude/skills/cyber-investigating-ransomware-attack-artifacts/SKILL.md",
+    "hash": "94b289dfd36df53c"
+  },
+  "cyber-managing-cloud-identity-with-okta": {
+    "source_path": ".claude/skills/cyber-managing-cloud-identity-with-okta/SKILL.md",
+    "hash": "d31e7c6e3d89f655"
+  },
+  "cyber-managing-intelligence-lifecycle": {
+    "source_path": ".claude/skills/cyber-managing-intelligence-lifecycle/SKILL.md",
+    "hash": "08b2aa64b714a7b1"
+  },
+  "cyber-managing-third-party-vendor-risk": {
+    "source_path": ".claude/skills/cyber-managing-third-party-vendor-risk/SKILL.md",
+    "hash": "0326affa15c751f5"
+  },
+  "cyber-mapping-attack-paths-with-bloodhound-ce": {
+    "source_path": ".claude/skills/cyber-mapping-attack-paths-with-bloodhound-ce/SKILL.md",
+    "hash": "a0176a0e9583a717"
+  },
+  "cyber-mapping-mitre-attack-techniques": {
+    "source_path": ".claude/skills/cyber-mapping-mitre-attack-techniques/SKILL.md",
+    "hash": "93ec20b18c25bd63"
+  },
+  "cyber-migrating-to-post-quantum-cryptography": {
+    "source_path": ".claude/skills/cyber-migrating-to-post-quantum-cryptography/SKILL.md",
+    "hash": "0d88d77236d61e9f"
+  },
+  "cyber-modeling-threats-with-opencti": {
+    "source_path": ".claude/skills/cyber-modeling-threats-with-opencti/SKILL.md",
+    "hash": "7204b4a504db15ba"
+  },
+  "cyber-monitoring-darkweb-sources": {
+    "source_path": ".claude/skills/cyber-monitoring-darkweb-sources/SKILL.md",
+    "hash": "2ab724f80aab7834"
+  },
+  "cyber-monitoring-scada-modbus-traffic-anomalies": {
+    "source_path": ".claude/skills/cyber-monitoring-scada-modbus-traffic-anomalies/SKILL.md",
+    "hash": "6d653c17b092dfe7"
+  },
+  "cyber-moving-laterally-with-netexec": {
+    "source_path": ".claude/skills/cyber-moving-laterally-with-netexec/SKILL.md",
+    "hash": "dbdc0ac2cbfe1113"
+  },
+  "cyber-operating-havoc-c2": {
+    "source_path": ".claude/skills/cyber-operating-havoc-c2/SKILL.md",
+    "hash": "998be5c6f5fcf3cc"
+  },
+  "cyber-operating-sliver-c2": {
+    "source_path": ".claude/skills/cyber-operating-sliver-c2/SKILL.md",
+    "hash": "1030b603cab5ca56"
+  },
+  "cyber-operationalizing-misp-threat-feeds": {
+    "source_path": ".claude/skills/cyber-operationalizing-misp-threat-feeds/SKILL.md",
+    "hash": "2b96390a4dcb8837"
+  },
+  "cyber-orchestrating-llm-attacks-with-pyrit": {
+    "source_path": ".claude/skills/cyber-orchestrating-llm-attacks-with-pyrit/SKILL.md",
+    "hash": "eed47a4bce8511c4"
+  },
+  "cyber-parsing-artifacts-with-eric-zimmerman-tools": {
+    "source_path": ".claude/skills/cyber-parsing-artifacts-with-eric-zimmerman-tools/SKILL.md",
+    "hash": "e11c24eb1213835b"
+  },
+  "cyber-performing-access-recertification-with-saviynt": {
+    "source_path": ".claude/skills/cyber-performing-access-recertification-with-saviynt/SKILL.md",
+    "hash": "1fc22559cb8048e4"
+  },
+  "cyber-performing-access-review-and-certification": {
+    "source_path": ".claude/skills/cyber-performing-access-review-and-certification/SKILL.md",
+    "hash": "3fb315087a46b137"
+  },
+  "cyber-performing-active-directory-bloodhound-analysis": {
+    "source_path": ".claude/skills/cyber-performing-active-directory-bloodhound-analysis/SKILL.md",
+    "hash": "f96f34d8511164e0"
+  },
+  "cyber-performing-active-directory-compromise-investigation": {
+    "source_path": ".claude/skills/cyber-performing-active-directory-compromise-investigation/SKILL.md",
+    "hash": "2a3527ab5c8bea18"
+  },
+  "cyber-performing-active-directory-forest-trust-attack": {
+    "source_path": ".claude/skills/cyber-performing-active-directory-forest-trust-attack/SKILL.md",
+    "hash": "a808484fac1c9408"
+  },
+  "cyber-performing-active-directory-penetration-test": {
+    "source_path": ".claude/skills/cyber-performing-active-directory-penetration-test/SKILL.md",
+    "hash": "ed8d6a02964b7d97"
+  },
+  "cyber-performing-active-directory-vulnerability-assessment": {
+    "source_path": ".claude/skills/cyber-performing-active-directory-vulnerability-assessment/SKILL.md",
+    "hash": "8c0ba33b668a1fae"
+  },
+  "cyber-performing-adversary-in-the-middle-phishing-detection": {
+    "source_path": ".claude/skills/cyber-performing-adversary-in-the-middle-phishing-detection/SKILL.md",
+    "hash": "da2af21df564725d"
+  },
+  "cyber-performing-agentless-vulnerability-scanning": {
+    "source_path": ".claude/skills/cyber-performing-agentless-vulnerability-scanning/SKILL.md",
+    "hash": "bfd29ea411e8401b"
+  },
+  "cyber-performing-ai-driven-osint-correlation": {
+    "source_path": ".claude/skills/cyber-performing-ai-driven-osint-correlation/SKILL.md",
+    "hash": "f762c33de19ae228"
+  },
+  "cyber-performing-alert-triage-with-elastic-siem": {
+    "source_path": ".claude/skills/cyber-performing-alert-triage-with-elastic-siem/SKILL.md",
+    "hash": "374d1138ca67138e"
+  },
+  "cyber-performing-android-app-static-analysis-with-mobsf": {
+    "source_path": ".claude/skills/cyber-performing-android-app-static-analysis-with-mobsf/SKILL.md",
+    "hash": "86803f98e06fa408"
+  },
+  "cyber-performing-api-fuzzing-with-restler": {
+    "source_path": ".claude/skills/cyber-performing-api-fuzzing-with-restler/SKILL.md",
+    "hash": "7c262a257bc03acd"
+  },
+  "cyber-performing-api-inventory-and-discovery": {
+    "source_path": ".claude/skills/cyber-performing-api-inventory-and-discovery/SKILL.md",
+    "hash": "437d60a315913bfc"
+  },
+  "cyber-performing-api-rate-limiting-bypass": {
+    "source_path": ".claude/skills/cyber-performing-api-rate-limiting-bypass/SKILL.md",
+    "hash": "a1bfecd123f5fc67"
+  },
+  "cyber-performing-api-security-testing-with-postman": {
+    "source_path": ".claude/skills/cyber-performing-api-security-testing-with-postman/SKILL.md",
+    "hash": "7d1a6490dac49869"
+  },
+  "cyber-performing-arp-spoofing-attack-simulation": {
+    "source_path": ".claude/skills/cyber-performing-arp-spoofing-attack-simulation/SKILL.md",
+    "hash": "d74fa445edee8a39"
+  },
+  "cyber-performing-asset-criticality-scoring-for-vulns": {
+    "source_path": ".claude/skills/cyber-performing-asset-criticality-scoring-for-vulns/SKILL.md",
+    "hash": "ab0b5571f25c8973"
+  },
+  "cyber-performing-authenticated-scan-with-openvas": {
+    "source_path": ".claude/skills/cyber-performing-authenticated-scan-with-openvas/SKILL.md",
+    "hash": "3c45c3694cf15d9a"
+  },
+  "cyber-post-exploiting-microsoft-graph-with-graphrunner": {
+    "source_path": ".claude/skills/cyber-post-exploiting-microsoft-graph-with-graphrunner/SKILL.md",
+    "hash": "574f0f83314866e5"
+  },
+  "cyber-prioritizing-vulnerabilities-with-cvss-scoring": {
+    "source_path": ".claude/skills/cyber-prioritizing-vulnerabilities-with-cvss-scoring/SKILL.md",
+    "hash": "87552b7bbf09e03d"
+  },
+  "cyber-processing-stix-taxii-feeds": {
+    "source_path": ".claude/skills/cyber-processing-stix-taxii-feeds/SKILL.md",
+    "hash": "ac18d37449f47d6b"
+  },
+  "cyber-profiling-threat-actor-groups": {
+    "source_path": ".claude/skills/cyber-profiling-threat-actor-groups/SKILL.md",
+    "hash": "76afee0dbd4ef69c"
+  },
+  "cyber-recovering-deleted-files-with-photorec": {
+    "source_path": ".claude/skills/cyber-recovering-deleted-files-with-photorec/SKILL.md",
+    "hash": "372d5d102463c658"
+  },
+  "cyber-recovering-from-ransomware-attack": {
+    "source_path": ".claude/skills/cyber-recovering-from-ransomware-attack/SKILL.md",
+    "hash": "ab5ad48fd89dd2c9"
+  },
+  "cyber-red-teaming-llms-with-garak": {
+    "source_path": ".claude/skills/cyber-red-teaming-llms-with-garak/SKILL.md",
+    "hash": "afb53efe44fe5699"
+  },
+  "cyber-relaying-ntlm-for-adcs-esc8": {
+    "source_path": ".claude/skills/cyber-relaying-ntlm-for-adcs-esc8/SKILL.md",
+    "hash": "b27b988db3f870c3"
+  },
+  "cyber-remediating-s3-bucket-misconfiguration": {
+    "source_path": ".claude/skills/cyber-remediating-s3-bucket-misconfiguration/SKILL.md",
+    "hash": "60e414c6e221a37c"
+  },
+  "cyber-reverse-engineering-android-malware-with-jadx": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-android-malware-with-jadx/SKILL.md",
+    "hash": "8f59a43660fc6a69"
+  },
+  "cyber-reverse-engineering-dotnet-malware-with-dnspy": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-dotnet-malware-with-dnspy/SKILL.md",
+    "hash": "5e3d79b99c43ded5"
+  },
+  "cyber-reverse-engineering-ios-app-with-frida": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-ios-app-with-frida/SKILL.md",
+    "hash": "081996de4ccbe2d7"
+  },
+  "cyber-reverse-engineering-malware-with-ghidra": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-malware-with-ghidra/SKILL.md",
+    "hash": "a11e80faa5e37355"
+  },
+  "cyber-reverse-engineering-ransomware-encryption-routine": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-ransomware-encryption-routine/SKILL.md",
+    "hash": "3fef9adf9a9da422"
+  },
+  "cyber-reverse-engineering-rust-malware": {
+    "source_path": ".claude/skills/cyber-reverse-engineering-rust-malware/SKILL.md",
+    "hash": "5c1efa9eecf68f07"
+  },
+  "cyber-scanning-container-images-with-grype": {
+    "source_path": ".claude/skills/cyber-scanning-container-images-with-grype/SKILL.md",
+    "hash": "6f93a7f6f112ff39"
+  },
+  "cyber-scanning-containers-with-trivy-in-cicd": {
+    "source_path": ".claude/skills/cyber-scanning-containers-with-trivy-in-cicd/SKILL.md",
+    "hash": "54a57cd5ac710247"
+  },
+  "cyber-scanning-docker-images-with-trivy": {
+    "source_path": ".claude/skills/cyber-scanning-docker-images-with-trivy/SKILL.md",
+    "hash": "d7e57a3eb013591f"
+  },
+  "cyber-scanning-iac-and-images-with-trivy": {
+    "source_path": ".claude/skills/cyber-scanning-iac-and-images-with-trivy/SKILL.md",
+    "hash": "0d68aa20ca36deb7"
+  },
+  "cyber-scanning-infrastructure-with-nessus": {
+    "source_path": ".claude/skills/cyber-scanning-infrastructure-with-nessus/SKILL.md",
+    "hash": "3db3aa86a3df5143"
+  },
+  "cyber-scanning-kubernetes-manifests-with-kubesec": {
+    "source_path": ".claude/skills/cyber-scanning-kubernetes-manifests-with-kubesec/SKILL.md",
+    "hash": "d87af77be3e70309"
+  },
+  "cyber-scanning-network-with-nmap-advanced": {
+    "source_path": ".claude/skills/cyber-scanning-network-with-nmap-advanced/SKILL.md",
+    "hash": "6deaa8705eb37985"
+  },
+  "cyber-securing-agentic-ai-tool-invocation": {
+    "source_path": ".claude/skills/cyber-securing-agentic-ai-tool-invocation/SKILL.md",
+    "hash": "5643d8a01afef599"
+  },
+  "cyber-securing-api-gateway-with-aws-waf": {
+    "source_path": ".claude/skills/cyber-securing-api-gateway-with-aws-waf/SKILL.md",
+    "hash": "c53a3e5c7bba5b7f"
+  },
+  "cyber-securing-aws-iam-permissions": {
+    "source_path": ".claude/skills/cyber-securing-aws-iam-permissions/SKILL.md",
+    "hash": "fba7918ecee12a5d"
+  },
+  "cyber-securing-aws-lambda-execution-roles": {
+    "source_path": ".claude/skills/cyber-securing-aws-lambda-execution-roles/SKILL.md",
+    "hash": "87f33ce7ea669908"
+  },
+  "cyber-securing-azure-with-microsoft-defender": {
+    "source_path": ".claude/skills/cyber-securing-azure-with-microsoft-defender/SKILL.md",
+    "hash": "01155ee6a693b39d"
+  },
+  "cyber-securing-container-registry-images": {
+    "source_path": ".claude/skills/cyber-securing-container-registry-images/SKILL.md",
+    "hash": "bc1feeef016b2703"
+  },
+  "cyber-securing-container-registry-with-harbor": {
+    "source_path": ".claude/skills/cyber-securing-container-registry-with-harbor/SKILL.md",
+    "hash": "9a147a9f74227d94"
+  },
+  "cyber-securing-github-actions-workflows": {
+    "source_path": ".claude/skills/cyber-securing-github-actions-workflows/SKILL.md",
+    "hash": "6c0029ec2eb2897e"
+  },
+  "cyber-securing-helm-chart-deployments": {
+    "source_path": ".claude/skills/cyber-securing-helm-chart-deployments/SKILL.md",
+    "hash": "9eccaf010eec3a7d"
+  },
+  "cyber-securing-historian-server-in-ot-environment": {
+    "source_path": ".claude/skills/cyber-securing-historian-server-in-ot-environment/SKILL.md",
+    "hash": "862f40d0cded556d"
+  },
+  "cyber-securing-kubernetes-on-cloud": {
+    "source_path": ".claude/skills/cyber-securing-kubernetes-on-cloud/SKILL.md",
+    "hash": "754fd08ae47446e0"
+  },
+  "cyber-securing-remote-access-to-ot-environment": {
+    "source_path": ".claude/skills/cyber-securing-remote-access-to-ot-environment/SKILL.md",
+    "hash": "4c26e3ef84e8d3a5"
+  },
+  "cyber-securing-serverless-functions": {
+    "source_path": ".claude/skills/cyber-securing-serverless-functions/SKILL.md",
+    "hash": "3e6a2987e57ff6e8"
+  },
+  "cyber-testing-android-intents-for-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-android-intents-for-vulnerabilities/SKILL.md",
+    "hash": "85d7d66f6677fb52"
+  },
+  "cyber-testing-api-authentication-weaknesses": {
+    "source_path": ".claude/skills/cyber-testing-api-authentication-weaknesses/SKILL.md",
+    "hash": "f0e7e7dc5149e309"
+  },
+  "cyber-testing-api-for-broken-object-level-authorization": {
+    "source_path": ".claude/skills/cyber-testing-api-for-broken-object-level-authorization/SKILL.md",
+    "hash": "09b8674716ad2c1a"
+  },
+  "cyber-testing-api-for-mass-assignment-vulnerability": {
+    "source_path": ".claude/skills/cyber-testing-api-for-mass-assignment-vulnerability/SKILL.md",
+    "hash": "a71871881987ca28"
+  },
+  "cyber-testing-api-security-with-owasp-top-10": {
+    "source_path": ".claude/skills/cyber-testing-api-security-with-owasp-top-10/SKILL.md",
+    "hash": "dcd304e5c8742922"
+  },
+  "cyber-testing-cors-misconfiguration": {
+    "source_path": ".claude/skills/cyber-testing-cors-misconfiguration/SKILL.md",
+    "hash": "79152fd8ff4cce97"
+  },
+  "cyber-testing-for-broken-access-control": {
+    "source_path": ".claude/skills/cyber-testing-for-broken-access-control/SKILL.md",
+    "hash": "3a2b9c6dae42be7b"
+  },
+  "cyber-testing-for-business-logic-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-business-logic-vulnerabilities/SKILL.md",
+    "hash": "d06a63a71a5b8645"
+  },
+  "cyber-testing-for-email-header-injection": {
+    "source_path": ".claude/skills/cyber-testing-for-email-header-injection/SKILL.md",
+    "hash": "3f5eb552fab2205b"
+  },
+  "cyber-testing-for-host-header-injection": {
+    "source_path": ".claude/skills/cyber-testing-for-host-header-injection/SKILL.md",
+    "hash": "b8b26ec831ac2b05"
+  },
+  "cyber-testing-for-json-web-token-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-json-web-token-vulnerabilities/SKILL.md",
+    "hash": "c07494bb4b031bb2"
+  },
+  "cyber-testing-for-open-redirect-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-open-redirect-vulnerabilities/SKILL.md",
+    "hash": "01d1f30fe79de37b"
+  },
+  "cyber-testing-for-sensitive-data-exposure": {
+    "source_path": ".claude/skills/cyber-testing-for-sensitive-data-exposure/SKILL.md",
+    "hash": "292d94e4e6281686"
+  },
+  "cyber-testing-for-system-prompt-leakage": {
+    "source_path": ".claude/skills/cyber-testing-for-system-prompt-leakage/SKILL.md",
+    "hash": "2f0a457557416e47"
+  },
+  "cyber-testing-for-xml-injection-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-xml-injection-vulnerabilities/SKILL.md",
+    "hash": "6d480af9f0f397c2"
+  },
+  "cyber-testing-for-xss-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-xss-vulnerabilities/SKILL.md",
+    "hash": "99d74491df0929d4"
+  },
+  "cyber-testing-for-xss-vulnerabilities-with-burpsuite": {
+    "source_path": ".claude/skills/cyber-testing-for-xss-vulnerabilities-with-burpsuite/SKILL.md",
+    "hash": "19d9d1af46854037"
+  },
+  "cyber-testing-for-xxe-injection-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-xxe-injection-vulnerabilities/SKILL.md",
+    "hash": "daca6c08f5c41668"
+  },
+  "cyber-testing-jwt-token-security": {
+    "source_path": ".claude/skills/cyber-testing-jwt-token-security/SKILL.md",
+    "hash": "717d9a57ec6dcc98"
+  },
+  "cyber-tracking-threat-actor-infrastructure": {
+    "source_path": ".claude/skills/cyber-tracking-threat-actor-infrastructure/SKILL.md",
+    "hash": "fee402fa55a9ac2d"
+  },
+  "cyber-triaging-security-alerts-in-splunk": {
+    "source_path": ".claude/skills/cyber-triaging-security-alerts-in-splunk/SKILL.md",
+    "hash": "4e2339cdb32951a2"
+  },
+  "cyber-triaging-security-incident": {
+    "source_path": ".claude/skills/cyber-triaging-security-incident/SKILL.md",
+    "hash": "0cfaae919cdc40b9"
+  },
+  "cyber-triaging-security-incident-with-ir-playbook": {
+    "source_path": ".claude/skills/cyber-triaging-security-incident-with-ir-playbook/SKILL.md",
+    "hash": "1810585f4e3e6428"
+  },
+  "cyber-triaging-vulnerabilities-with-ssvc-framework": {
+    "source_path": ".claude/skills/cyber-triaging-vulnerabilities-with-ssvc-framework/SKILL.md",
+    "hash": "da7eb57723f56a7a"
+  },
+  "cyber-triaging-windows-with-kape": {
+    "source_path": ".claude/skills/cyber-triaging-windows-with-kape/SKILL.md",
+    "hash": "1e874add2d224b3e"
+  },
+  "cyber-validating-backup-integrity-for-recovery": {
+    "source_path": ".claude/skills/cyber-validating-backup-integrity-for-recovery/SKILL.md",
+    "hash": "c91dcd72595a8aa4"
+  },
+  "cyber-validating-tpm-measured-boot-attestation": {
+    "source_path": ".claude/skills/cyber-validating-tpm-measured-boot-attestation/SKILL.md",
+    "hash": "05e3328e8d80e592"
+  },
+  "cyber-verifying-build-provenance-with-slsa-sigstore": {
+    "source_path": ".claude/skills/cyber-verifying-build-provenance-with-slsa-sigstore/SKILL.md",
+    "hash": "c164a87a35a6149d"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

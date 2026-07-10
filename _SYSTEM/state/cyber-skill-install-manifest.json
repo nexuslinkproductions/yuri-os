@@ -1,0 +1,2046 @@
+{
+  "version": "cyber-v1",
+  "generated": "2026-07-10",
+  "source": "mukul975/Anthropic-Cybersecurity-Skills",
+  "license": "Apache-2.0",
+  "armedCount": 300,
+  "gatedCount": 39,
+  "armed": [
+    {
+      "name": "performing-access-recertification-with-saviynt",
+      "path": "skills/performing-access-recertification-with-saviynt",
+      "domain": "performing",
+      "description": "Configure and execute access recertification campaigns in Saviynt Enterprise"
+    },
+    {
+      "name": "implementing-aes-encryption-for-data-at-rest",
+      "path": "skills/implementing-aes-encryption-for-data-at-rest",
+      "domain": "implementing",
+      "description": "AES (Advanced Encryption Standard) is a symmetric block cipher standardized"
+    },
+    {
+      "name": "detecting-ai-model-prompt-injection-attacks",
+      "path": "skills/detecting-ai-model-prompt-injection-attacks",
+      "domain": "detecting",
+      "description": "'Detects prompt injection attacks targeting LLM-based applications using"
+    },
+    {
+      "name": "analyzing-active-directory-acl-abuse",
+      "path": "skills/analyzing-active-directory-acl-abuse",
+      "domain": "analyzing",
+      "description": "Detect dangerous ACL misconfigurations in Active Directory using ldap3"
+    },
+    {
+      "name": "hunting-advanced-persistent-threats",
+      "path": "skills/hunting-advanced-persistent-threats",
+      "domain": "hunting",
+      "description": "'Proactively hunts for Advanced Persistent Threat (APT) activity within"
+    },
+    {
+      "name": "building-adversary-infrastructure-tracking-system",
+      "path": "skills/building-adversary-infrastructure-tracking-system",
+      "domain": "building",
+      "description": "Build an automated system to track adversary infrastructure using passive"
+    },
+    {
+      "name": "testing-android-intents-for-vulnerabilities",
+      "path": "skills/testing-android-intents-for-vulnerabilities",
+      "domain": "testing",
+      "description": "'Tests Android inter-process communication (IPC) through intents for"
+    },
+    {
+      "name": "conducting-api-security-testing",
+      "path": "skills/conducting-api-security-testing",
+      "domain": "conducting",
+      "description": "'Conducts security testing of REST, GraphQL, and gRPC APIs to identify"
+    },
+    {
+      "name": "configuring-active-directory-tiered-model",
+      "path": "skills/configuring-active-directory-tiered-model",
+      "domain": "configuring",
+      "description": "Implement Microsoft's Enhanced Security Admin Environment (ESAE) tiered"
+    },
+    {
+      "name": "securing-agentic-ai-tool-invocation",
+      "path": "skills/securing-agentic-ai-tool-invocation",
+      "domain": "securing",
+      "description": "Apply least-privilege tool allowlisting, identity binding, and human-in-the-loop controls for agent tool calls."
+    },
+    {
+      "name": "auditing-aws-s3-bucket-permissions",
+      "path": "skills/auditing-aws-s3-bucket-permissions",
+      "domain": "auditing",
+      "description": "'Systematically audit AWS S3 bucket permissions to identify publicly"
+    },
+    {
+      "name": "deploying-active-directory-honeytokens",
+      "path": "skills/deploying-active-directory-honeytokens",
+      "domain": "deploying",
+      "description": "'Deploys deception-based honeytokens in Active Directory including fake"
+    },
+    {
+      "name": "scanning-container-images-with-grype",
+      "path": "skills/scanning-container-images-with-grype",
+      "domain": "scanning",
+      "description": "Scan container images for known vulnerabilities using Anchore Grype with"
+    },
+    {
+      "name": "extracting-browser-history-artifacts",
+      "path": "skills/extracting-browser-history-artifacts",
+      "domain": "extracting",
+      "description": "Extract and analyze browser history, cookies, cache, downloads, and bookmarks"
+    },
+    {
+      "name": "reverse-engineering-android-malware-with-jadx",
+      "path": "skills/reverse-engineering-android-malware-with-jadx",
+      "domain": "reverse",
+      "description": "'Reverse engineers malicious Android APK files using JADX decompiler"
+    },
+    {
+      "name": "executing-active-directory-attack-simulation",
+      "path": "skills/executing-active-directory-attack-simulation",
+      "domain": "executing",
+      "description": "'Executes authorized attack simulations against Active Directory environments"
+    },
+    {
+      "name": "triaging-security-alerts-in-splunk",
+      "path": "skills/triaging-security-alerts-in-splunk",
+      "domain": "triaging",
+      "description": "'Triages security alerts in Splunk Enterprise Security by classifying"
+    },
+    {
+      "name": "collecting-indicators-of-compromise",
+      "path": "skills/collecting-indicators-of-compromise",
+      "domain": "collecting",
+      "description": "'Systematically collects, categorizes, and distributes indicators of"
+    },
+    {
+      "name": "hardening-docker-containers-for-production",
+      "path": "skills/hardening-docker-containers-for-production",
+      "domain": "hardening",
+      "description": "Hardening Docker containers for production involves applying security"
+    },
+    {
+      "name": "generating-and-analyzing-sboms",
+      "path": "skills/generating-and-analyzing-sboms",
+      "domain": "generating",
+      "description": "Produce and ingest CycloneDX and SPDX SBOMs and correlate them to vulnerability intelligence."
+    },
+    {
+      "name": "investigating-insider-threat-indicators",
+      "path": "skills/investigating-insider-threat-indicators",
+      "domain": "investigating",
+      "description": "'Investigates insider threat indicators including data exfiltration attempts,"
+    },
+    {
+      "name": "managing-cloud-identity-with-okta",
+      "path": "skills/managing-cloud-identity-with-okta",
+      "domain": "managing",
+      "description": "'This skill covers implementing Okta as a centralized identity provider"
+    },
+    {
+      "name": "correlating-security-events-in-qradar",
+      "path": "skills/correlating-security-events-in-qradar",
+      "domain": "correlating",
+      "description": "'Correlates security events in IBM QRadar SIEM using AQL (Ariel Query"
+    },
+    {
+      "name": "deobfuscating-javascript-malware",
+      "path": "skills/deobfuscating-javascript-malware",
+      "domain": "deobfuscating",
+      "description": "'Deobfuscates malicious JavaScript code used in web-based attacks, phishing"
+    },
+    {
+      "name": "integrating-dast-with-owasp-zap-in-pipeline",
+      "path": "skills/integrating-dast-with-owasp-zap-in-pipeline",
+      "domain": "integrating",
+      "description": "'This skill covers integrating OWASP ZAP (Zed Attack Proxy) for Dynamic"
+    },
+    {
+      "name": "mapping-attack-paths-with-bloodhound-ce",
+      "path": "skills/mapping-attack-paths-with-bloodhound-ce",
+      "domain": "mapping",
+      "description": "Collect Active Directory data with SharpHound and Entra ID data with AzureHound, ingest into BloodHound Community Edition, and analyze on-prem, cloud, and hybrid attack paths with built-in queries and custom Cypher."
+    },
+    {
+      "name": "monitoring-darkweb-sources",
+      "path": "skills/monitoring-darkweb-sources",
+      "domain": "monitoring",
+      "description": "'Monitors dark web forums, marketplaces, paste sites, and ransomware"
+    },
+    {
+      "name": "operating-havoc-c2",
+      "path": "skills/operating-havoc-c2",
+      "domain": "operating",
+      "description": "Deploy a Havoc team server with Yaotl profiles, generate evasive Demon agents with indirect syscalls and sleep obfuscation, and run post-exploitation and pivoting for adversary emulation."
+    },
+    {
+      "name": "recovering-deleted-files-with-photorec",
+      "path": "skills/recovering-deleted-files-with-photorec",
+      "domain": "recovering",
+      "description": "Recover deleted files from disk images and storage media using PhotoRec's"
+    },
+    {
+      "name": "validating-backup-integrity-for-recovery",
+      "path": "skills/validating-backup-integrity-for-recovery",
+      "domain": "validating",
+      "description": "Validate backup integrity through cryptographic hash verification, automated"
+    },
+    {
+      "name": "achieving-cmmc-level-2-compliance",
+      "path": "skills/achieving-cmmc-level-2-compliance",
+      "domain": "achieving",
+      "description": ">-"
+    },
+    {
+      "name": "acquiring-disk-image-with-dd-and-dcfldd",
+      "path": "skills/acquiring-disk-image-with-dd-and-dcfldd",
+      "domain": "acquiring",
+      "description": "Create forensically sound bit-for-bit disk images using dd and dcfldd"
+    },
+    {
+      "name": "assessing-vector-and-embedding-weaknesses",
+      "path": "skills/assessing-vector-and-embedding-weaknesses",
+      "domain": "assessing",
+      "description": "Test vector stores for embedding inversion, cross-tenant leakage, and poisoning."
+    },
+    {
+      "name": "automating-ioc-enrichment",
+      "path": "skills/automating-ioc-enrichment",
+      "domain": "automating",
+      "description": "'Automates the enrichment of raw indicators of compromise with multi-source"
+    },
+    {
+      "name": "benchmarking-kubernetes-with-kube-bench",
+      "path": "skills/benchmarking-kubernetes-with-kube-bench",
+      "domain": "benchmarking",
+      "description": "Run CIS Kubernetes Benchmark checks and remediate findings with kube-bench."
+    },
+    {
+      "name": "coercing-authentication-with-coercer-petitpotam",
+      "path": "skills/coercing-authentication-with-coercer-petitpotam",
+      "domain": "coercing",
+      "description": "Trigger machine account authentication with PetitPotam (MS-EFSR) and Coercer across MS-RPRN, MS-DFSNM, and MS-FSRVP to feed NTLM relay into AD CS Web Enrollment (ESC8) and other relay targets."
+    },
+    {
+      "name": "containing-active-breach",
+      "path": "skills/containing-active-breach",
+      "domain": "containing",
+      "description": "'Executes containment strategies to stop active adversary operations"
+    },
+    {
+      "name": "continuous-llm-red-teaming-with-promptfoo",
+      "path": "skills/continuous-llm-red-teaming-with-promptfoo",
+      "domain": "continuous",
+      "description": "Wire Promptfoo and DeepTeam into CI/CD for automated regression red-teaming of LLM apps against OWASP LLM Top 10 and OWASP Agentic presets, failing the build when jailbreak or injection vulnerabilities regress."
+    },
+    {
+      "name": "defending-llms-with-guardrails",
+      "path": "skills/defending-llms-with-guardrails",
+      "domain": "defending",
+      "description": "Deploy Llama Guard, NeMo Guardrails, and LLM Guard input/output scanners as runtime defenses."
+    },
+    {
+      "name": "designing-adversary-engagement-with-mitre-engage",
+      "path": "skills/designing-adversary-engagement-with-mitre-engage",
+      "domain": "designing",
+      "description": ">-"
+    },
+    {
+      "name": "emulating-cloud-attacks-with-stratus-red-team",
+      "path": "skills/emulating-cloud-attacks-with-stratus-red-team",
+      "domain": "emulating",
+      "description": "Detonate granular AWS, Azure, GCP, and Kubernetes attack techniques to validate"
+    },
+    {
+      "name": "enumerating-cloud-with-cloudfox",
+      "path": "skills/enumerating-cloud-with-cloudfox",
+      "domain": "enumerating",
+      "description": "Map AWS and Azure attack paths and find exploitable misconfigurations with"
+    },
+    {
+      "name": "eradicating-malware-from-infected-systems",
+      "path": "skills/eradicating-malware-from-infected-systems",
+      "domain": "eradicating",
+      "description": "Systematically remove malware, backdoors, and attacker persistence mechanisms"
+    },
+    {
+      "name": "escaping-containers-to-host",
+      "path": "skills/escaping-containers-to-host",
+      "domain": "escaping",
+      "description": "Exploit privileged pods, host mounts, runC CVEs, and exposed Docker sockets to break out of a container and reach the underlying host during authorized container-security assessments."
+    },
+    {
+      "name": "evaluating-threat-intelligence-platforms",
+      "path": "skills/evaluating-threat-intelligence-platforms",
+      "domain": "evaluating",
+      "description": "'Evaluates and selects Threat Intelligence Platform (TIP) products based"
+    },
+    {
+      "name": "fleet-hunting-with-velociraptor",
+      "path": "skills/fleet-hunting-with-velociraptor",
+      "domain": "fleet",
+      "description": "Deploy a Velociraptor server and agents and write VQL hunts across a fleet."
+    },
+    {
+      "name": "intercepting-mobile-traffic-with-burpsuite",
+      "path": "skills/intercepting-mobile-traffic-with-burpsuite",
+      "domain": "intercepting",
+      "description": "'Intercepts and analyzes HTTP/HTTPS traffic from mobile applications"
+    },
+    {
+      "name": "migrating-to-post-quantum-cryptography",
+      "path": "skills/migrating-to-post-quantum-cryptography",
+      "domain": "migrating",
+      "description": "Inventory cryptography, deploy hybrid X25519 and ML-KEM, and prioritize harvest-now-decrypt-later data."
+    },
+    {
+      "name": "modeling-threats-with-opencti",
+      "path": "skills/modeling-threats-with-opencti",
+      "domain": "modeling",
+      "description": "Model threat actors, intrusion sets, campaigns, and TTPs as a STIX 2.1 knowledge graph in OpenCTI (Filigran) using the pycti Python client, connectors, and import workers for structured cyber threat intelligence."
+    },
+    {
+      "name": "moving-laterally-with-netexec",
+      "path": "skills/moving-laterally-with-netexec",
+      "domain": "moving",
+      "description": "Use NetExec for SMB, WinRM, LDAP, and MSSQL enumeration, password spraying,"
+    },
+    {
+      "name": "operationalizing-misp-threat-feeds",
+      "path": "skills/operationalizing-misp-threat-feeds",
+      "domain": "operationalizing",
+      "description": "Run MISP, curate feeds, and auto-generate detections for Wazuh, Sigma, and Suricata."
+    },
+    {
+      "name": "orchestrating-llm-attacks-with-pyrit",
+      "path": "skills/orchestrating-llm-attacks-with-pyrit",
+      "domain": "orchestrating",
+      "description": "Build multi-turn, Crescendo, and Tree-of-Attacks-with-Pruning (TAP) automated attack chains against conversational LLM agents using Microsoft PyRIT, with adversarial chat and scorer feedback loops."
+    },
+    {
+      "name": "parsing-artifacts-with-eric-zimmerman-tools",
+      "path": "skills/parsing-artifacts-with-eric-zimmerman-tools",
+      "domain": "parsing",
+      "description": "Parse registry, prefetch, shellbags, and MFT with EZ Tools and Timeline Explorer."
+    },
+    {
+      "name": "post-exploiting-microsoft-graph-with-graphrunner",
+      "path": "skills/post-exploiting-microsoft-graph-with-graphrunner",
+      "domain": "post",
+      "description": "Perform recon, persistence, privilege escalation, and data search via the Microsoft Graph API using GraphRunner."
+    },
+    {
+      "name": "prioritizing-vulnerabilities-with-cvss-scoring",
+      "path": "skills/prioritizing-vulnerabilities-with-cvss-scoring",
+      "domain": "prioritizing",
+      "description": "The Common Vulnerability Scoring System (CVSS) is the industry standard"
+    },
+    {
+      "name": "processing-stix-taxii-feeds",
+      "path": "skills/processing-stix-taxii-feeds",
+      "domain": "processing",
+      "description": "'Processes STIX 2.1 threat intelligence bundles delivered via TAXII 2.1"
+    },
+    {
+      "name": "profiling-threat-actor-groups",
+      "path": "skills/profiling-threat-actor-groups",
+      "domain": "profiling",
+      "description": "'Develops comprehensive threat actor profiles for APT groups, criminal"
+    },
+    {
+      "name": "red-teaming-llms-with-garak",
+      "path": "skills/red-teaming-llms-with-garak",
+      "domain": "red",
+      "description": "Run NVIDIA garak probe suites against an LLM endpoint to test for jailbreaks, prompt injection, data leakage, and toxic generation, then interpret the hit-rate report for triage and reporting."
+    },
+    {
+      "name": "relaying-ntlm-for-adcs-esc8",
+      "path": "skills/relaying-ntlm-for-adcs-esc8",
+      "domain": "relaying",
+      "description": "Run ntlmrelayx into ADCS web enrollment to obtain a domain controller certificate via ESC8."
+    },
+    {
+      "name": "remediating-s3-bucket-misconfiguration",
+      "path": "skills/remediating-s3-bucket-misconfiguration",
+      "domain": "remediating",
+      "description": "'This skill provides step-by-step procedures for identifying and remediating"
+    },
+    {
+      "name": "tracking-threat-actor-infrastructure",
+      "path": "skills/tracking-threat-actor-infrastructure",
+      "domain": "tracking",
+      "description": "Threat actor infrastructure tracking involves monitoring and mapping"
+    },
+    {
+      "name": "verifying-build-provenance-with-slsa-sigstore",
+      "path": "skills/verifying-build-provenance-with-slsa-sigstore",
+      "domain": "verifying",
+      "description": "Verify signed artifacts and SLSA build provenance with Sigstore cosign and slsa-verifier, enforce keyless OIDC identity, and apply SLSA Build levels to harden the software supply chain."
+    },
+    {
+      "name": "performing-access-review-and-certification",
+      "path": "skills/performing-access-review-and-certification",
+      "domain": "performing",
+      "description": "Conduct systematic access reviews and certifications to ensure users"
+    },
+    {
+      "name": "implementing-alert-fatigue-reduction",
+      "path": "skills/implementing-alert-fatigue-reduction",
+      "domain": "implementing",
+      "description": "'Implements strategies to reduce SOC alert fatigue by tuning detection"
+    },
+    {
+      "name": "detecting-anomalies-in-industrial-control-systems",
+      "path": "skills/detecting-anomalies-in-industrial-control-systems",
+      "domain": "detecting",
+      "description": "'This skill covers deploying anomaly detection systems for industrial"
+    },
+    {
+      "name": "analyzing-android-malware-with-apktool",
+      "path": "skills/analyzing-android-malware-with-apktool",
+      "domain": "analyzing",
+      "description": "Perform static analysis of Android APK malware samples using apktool"
+    },
+    {
+      "name": "hunting-bootkits-in-efi-system-partition",
+      "path": "skills/hunting-bootkits-in-efi-system-partition",
+      "domain": "hunting",
+      "description": "Baseline the EFI System Partition and hunt malicious EFI binaries (ESPecter, BlackLotus, Bootkitty, Glupteba) by mounting the ESP, hashing and verifying boot loaders, scanning with YARA, and detecting anomalous non-EFI files."
+    },
+    {
+      "name": "building-attack-pattern-library-from-cti-reports",
+      "path": "skills/building-attack-pattern-library-from-cti-reports",
+      "domain": "building",
+      "description": "Extract and catalog attack patterns from cyber threat intelligence reports"
+    },
+    {
+      "name": "testing-api-authentication-weaknesses",
+      "path": "skills/testing-api-authentication-weaknesses",
+      "domain": "testing",
+      "description": "'Tests API authentication mechanisms for weaknesses including broken"
+    },
+    {
+      "name": "conducting-cloud-incident-response",
+      "path": "skills/conducting-cloud-incident-response",
+      "domain": "conducting",
+      "description": "'Responds to security incidents in cloud environments (AWS, Azure, GCP) by performing identity-based containment,"
+    },
+    {
+      "name": "configuring-aws-verified-access-for-ztna",
+      "path": "skills/configuring-aws-verified-access-for-ztna",
+      "domain": "configuring",
+      "description": "Configure AWS Verified Access to provide VPN-less zero trust network"
+    },
+    {
+      "name": "securing-api-gateway-with-aws-waf",
+      "path": "skills/securing-api-gateway-with-aws-waf",
+      "domain": "securing",
+      "description": "'Securing API Gateway endpoints with AWS WAF by configuring managed rule"
+    },
+    {
+      "name": "auditing-azure-active-directory-configuration",
+      "path": "skills/auditing-azure-active-directory-configuration",
+      "domain": "auditing",
+      "description": "'Auditing Microsoft Entra ID (Azure Active Directory) configuration to"
+    },
+    {
+      "name": "deploying-cloud-deception-with-decoy-resources",
+      "path": "skills/deploying-cloud-deception-with-decoy-resources",
+      "domain": "deploying",
+      "description": ">-"
+    },
+    {
+      "name": "scanning-containers-with-trivy-in-cicd",
+      "path": "skills/scanning-containers-with-trivy-in-cicd",
+      "domain": "scanning",
+      "description": "'This skill covers integrating Aqua Security''s Trivy scanner into CI/CD"
+    },
+    {
+      "name": "extracting-config-from-agent-tesla-rat",
+      "path": "skills/extracting-config-from-agent-tesla-rat",
+      "domain": "extracting",
+      "description": "Extract embedded configuration from Agent Tesla RAT samples including"
+    },
+    {
+      "name": "reverse-engineering-dotnet-malware-with-dnspy",
+      "path": "skills/reverse-engineering-dotnet-malware-with-dnspy",
+      "domain": "reverse",
+      "description": "'Reverse engineers .NET malware using dnSpy decompiler and debugger to"
+    },
+    {
+      "name": "executing-nist-rmf-authorization-to-operate",
+      "path": "skills/executing-nist-rmf-authorization-to-operate",
+      "domain": "executing",
+      "description": ">-"
+    },
+    {
+      "name": "triaging-security-incident",
+      "path": "skills/triaging-security-incident",
+      "domain": "triaging",
+      "description": "'Performs initial triage of security incidents to determine severity,"
+    },
+    {
+      "name": "collecting-open-source-intelligence",
+      "path": "skills/collecting-open-source-intelligence",
+      "domain": "collecting",
+      "description": "'Collects and synthesizes open-source intelligence (OSINT) about threat"
+    },
+    {
+      "name": "hardening-docker-daemon-configuration",
+      "path": "skills/hardening-docker-daemon-configuration",
+      "domain": "hardening",
+      "description": "Harden the Docker daemon by configuring daemon.json with user namespace"
+    },
+    {
+      "name": "generating-forensic-timelines-with-hayabusa",
+      "path": "skills/generating-forensic-timelines-with-hayabusa",
+      "domain": "generating",
+      "description": "Produce Sigma-based EVTX timelines and summaries with Hayabusa."
+    },
+    {
+      "name": "investigating-phishing-email-incident",
+      "path": "skills/investigating-phishing-email-incident",
+      "domain": "investigating",
+      "description": "'Investigates phishing email incidents from initial user report through"
+    },
+    {
+      "name": "managing-intelligence-lifecycle",
+      "path": "skills/managing-intelligence-lifecycle",
+      "domain": "managing",
+      "description": "'Manages the end-to-end cyber threat intelligence lifecycle from planning"
+    },
+    {
+      "name": "correlating-threat-campaigns",
+      "path": "skills/correlating-threat-campaigns",
+      "domain": "correlating",
+      "description": "'Correlates disparate security incidents, IOCs, and adversary behaviors"
+    },
+    {
+      "name": "deobfuscating-powershell-obfuscated-malware",
+      "path": "skills/deobfuscating-powershell-obfuscated-malware",
+      "domain": "deobfuscating",
+      "description": "Systematically deobfuscate multi-layer PowerShell malware using AST analysis,"
+    },
+    {
+      "name": "integrating-sast-into-github-actions-pipeline",
+      "path": "skills/integrating-sast-into-github-actions-pipeline",
+      "domain": "integrating",
+      "description": "'This skill covers integrating Static Application Security Testing (SAST)"
+    },
+    {
+      "name": "mapping-mitre-attack-techniques",
+      "path": "skills/mapping-mitre-attack-techniques",
+      "domain": "mapping",
+      "description": "'Maps observed adversary behaviors, security alerts, and detection rules"
+    },
+    {
+      "name": "monitoring-scada-modbus-traffic-anomalies",
+      "path": "skills/monitoring-scada-modbus-traffic-anomalies",
+      "domain": "monitoring",
+      "description": "'Monitors Modbus TCP traffic on SCADA and ICS networks to detect anomalous"
+    },
+    {
+      "name": "operating-sliver-c2",
+      "path": "skills/operating-sliver-c2",
+      "domain": "operating",
+      "description": "Stand up a Sliver C2 server and listeners, generate cross-platform implants and beacons, and run post-exploitation, pivoting, and BOF/.NET tooling via the armory for adversary emulation."
+    },
+    {
+      "name": "recovering-from-ransomware-attack",
+      "path": "skills/recovering-from-ransomware-attack",
+      "domain": "recovering",
+      "description": "'Executes structured recovery from a ransomware incident following NIST"
+    },
+    {
+      "name": "validating-tpm-measured-boot-attestation",
+      "path": "skills/validating-tpm-measured-boot-attestation",
+      "domain": "validating",
+      "description": "Verify TPM PCRs and measured-boot and remote-attestation integrity."
+    },
+    {
+      "name": "performing-active-directory-bloodhound-analysis",
+      "path": "skills/performing-active-directory-bloodhound-analysis",
+      "domain": "performing",
+      "description": "Use BloodHound and SharpHound to enumerate Active Directory relationships"
+    },
+    {
+      "name": "implementing-anti-phishing-training-program",
+      "path": "skills/implementing-anti-phishing-training-program",
+      "domain": "implementing",
+      "description": "Security awareness training is the human layer of phishing defense. An"
+    },
+    {
+      "name": "detecting-anomalous-authentication-patterns",
+      "path": "skills/detecting-anomalous-authentication-patterns",
+      "domain": "detecting",
+      "description": "'Detects anomalous authentication patterns using UEBA analytics, statistical"
+    },
+    {
+      "name": "analyzing-api-gateway-access-logs",
+      "path": "skills/analyzing-api-gateway-access-logs",
+      "domain": "analyzing",
+      "description": "'Parses API Gateway access logs (AWS API Gateway, Kong, Nginx) to detect"
+    },
+    {
+      "name": "hunting-credential-stuffing-attacks",
+      "path": "skills/hunting-credential-stuffing-attacks",
+      "domain": "hunting",
+      "description": "'Detects credential stuffing attacks by analyzing authentication logs"
+    },
+    {
+      "name": "building-automated-malware-submission-pipeline",
+      "path": "skills/building-automated-malware-submission-pipeline",
+      "domain": "building",
+      "description": "'Builds an automated malware submission and analysis pipeline that collects"
+    },
+    {
+      "name": "testing-api-for-broken-object-level-authorization",
+      "path": "skills/testing-api-for-broken-object-level-authorization",
+      "domain": "testing",
+      "description": "'Tests REST and GraphQL APIs for Broken Object Level Authorization (BOLA/IDOR)"
+    },
+    {
+      "name": "conducting-cloud-penetration-testing",
+      "path": "skills/conducting-cloud-penetration-testing",
+      "domain": "conducting",
+      "description": "'This skill outlines methodologies for performing authorized penetration"
+    },
+    {
+      "name": "configuring-certificate-authority-with-openssl",
+      "path": "skills/configuring-certificate-authority-with-openssl",
+      "domain": "configuring",
+      "description": "A Certificate Authority (CA) is the trust anchor in a PKI hierarchy,"
+    },
+    {
+      "name": "securing-aws-iam-permissions",
+      "path": "skills/securing-aws-iam-permissions",
+      "domain": "securing",
+      "description": "'This skill guides practitioners through hardening AWS Identity and Access"
+    },
+    {
+      "name": "auditing-cloud-with-cis-benchmarks",
+      "path": "skills/auditing-cloud-with-cis-benchmarks",
+      "domain": "auditing",
+      "description": "'This skill details how to conduct cloud security audits using Center"
+    },
+    {
+      "name": "deploying-cloudflare-access-for-zero-trust",
+      "path": "skills/deploying-cloudflare-access-for-zero-trust",
+      "domain": "deploying",
+      "description": "'Deploying Cloudflare Access with Cloudflare Tunnel to provide zero trust"
+    },
+    {
+      "name": "scanning-docker-images-with-trivy",
+      "path": "skills/scanning-docker-images-with-trivy",
+      "domain": "scanning",
+      "description": "Trivy is a comprehensive open-source vulnerability scanner by Aqua Security"
+    },
+    {
+      "name": "extracting-credentials-from-memory-dump",
+      "path": "skills/extracting-credentials-from-memory-dump",
+      "domain": "extracting",
+      "description": "Extract cached credentials, password hashes, Kerberos tickets, and authentication"
+    },
+    {
+      "name": "reverse-engineering-ios-app-with-frida",
+      "path": "skills/reverse-engineering-ios-app-with-frida",
+      "domain": "reverse",
+      "description": "'Reverse engineers iOS applications using Frida dynamic instrumentation"
+    },
+    {
+      "name": "executing-phishing-simulation-campaign",
+      "path": "skills/executing-phishing-simulation-campaign",
+      "domain": "executing",
+      "description": "'Executes authorized phishing simulation campaigns to assess an organization''s"
+    },
+    {
+      "name": "triaging-security-incident-with-ir-playbook",
+      "path": "skills/triaging-security-incident-with-ir-playbook",
+      "domain": "triaging",
+      "description": "Classify and prioritize security incidents using structured IR playbooks"
+    },
+    {
+      "name": "collecting-threat-intelligence-with-misp",
+      "path": "skills/collecting-threat-intelligence-with-misp",
+      "domain": "collecting",
+      "description": "MISP (Malware Information Sharing Platform) is an open-source threat"
+    },
+    {
+      "name": "hardening-linux-endpoint-with-cis-benchmark",
+      "path": "skills/hardening-linux-endpoint-with-cis-benchmark",
+      "domain": "hardening",
+      "description": "'Hardens Linux endpoints using CIS Benchmark recommendations for Ubuntu,"
+    },
+    {
+      "name": "generating-threat-intelligence-reports",
+      "path": "skills/generating-threat-intelligence-reports",
+      "domain": "generating",
+      "description": "'Generates structured cyber threat intelligence reports at strategic,"
+    },
+    {
+      "name": "investigating-ransomware-attack-artifacts",
+      "path": "skills/investigating-ransomware-attack-artifacts",
+      "domain": "investigating",
+      "description": "Identify, collect, and analyze ransomware attack artifacts to determine"
+    },
+    {
+      "name": "managing-third-party-vendor-risk",
+      "path": "skills/managing-third-party-vendor-risk",
+      "domain": "managing",
+      "description": ">-"
+    },
+    {
+      "name": "performing-active-directory-compromise-investigation",
+      "path": "skills/performing-active-directory-compromise-investigation",
+      "domain": "performing",
+      "description": "Investigate Active Directory compromise by analyzing authentication logs,"
+    },
+    {
+      "name": "implementing-anti-ransomware-group-policy",
+      "path": "skills/implementing-anti-ransomware-group-policy",
+      "domain": "implementing",
+      "description": "'Configures Windows Group Policy Objects (GPO) to prevent ransomware"
+    },
+    {
+      "name": "detecting-api-enumeration-attacks",
+      "path": "skills/detecting-api-enumeration-attacks",
+      "domain": "detecting",
+      "description": "Detect and prevent API enumeration attacks including BOLA and IDOR exploitation"
+    },
+    {
+      "name": "analyzing-apt-group-with-mitre-navigator",
+      "path": "skills/analyzing-apt-group-with-mitre-navigator",
+      "domain": "analyzing",
+      "description": "Analyze advanced persistent threat (APT) group techniques using MITRE"
+    },
+    {
+      "name": "hunting-evtx-with-chainsaw",
+      "path": "skills/hunting-evtx-with-chainsaw",
+      "domain": "hunting",
+      "description": "Perform rapid Sigma and keyword hunting across Windows event logs with"
+    },
+    {
+      "name": "building-c2-infrastructure-with-sliver-framework",
+      "path": "skills/building-c2-infrastructure-with-sliver-framework",
+      "domain": "building",
+      "description": "Build and configure a resilient command-and-control infrastructure using"
+    },
+    {
+      "name": "testing-api-for-mass-assignment-vulnerability",
+      "path": "skills/testing-api-for-mass-assignment-vulnerability",
+      "domain": "testing",
+      "description": "'Tests APIs for mass assignment (auto-binding) vulnerabilities where"
+    },
+    {
+      "name": "conducting-cyber-risk-assessment-with-nist-800-30",
+      "path": "skills/conducting-cyber-risk-assessment-with-nist-800-30",
+      "domain": "conducting",
+      "description": ">-"
+    },
+    {
+      "name": "configuring-host-based-intrusion-detection",
+      "path": "skills/configuring-host-based-intrusion-detection",
+      "domain": "configuring",
+      "description": "'Configures host-based intrusion detection systems (HIDS) to monitor"
+    },
+    {
+      "name": "securing-aws-lambda-execution-roles",
+      "path": "skills/securing-aws-lambda-execution-roles",
+      "domain": "securing",
+      "description": "'Securing AWS Lambda execution roles by implementing least-privilege"
+    },
+    {
+      "name": "auditing-entra-id-with-aadinternals",
+      "path": "skills/auditing-entra-id-with-aadinternals",
+      "domain": "auditing",
+      "description": "Run Microsoft Entra ID tenant reconnaissance, token acquisition and manipulation, and federation backdoor testing with the AADInternals PowerShell toolkit to validate identity-attack resilience."
+    },
+    {
+      "name": "deploying-decoy-files-for-ransomware-detection",
+      "path": "skills/deploying-decoy-files-for-ransomware-detection",
+      "domain": "deploying",
+      "description": "'Deploys canary files (honeytokens) across file systems to detect ransomware"
+    },
+    {
+      "name": "scanning-iac-and-images-with-trivy",
+      "path": "skills/scanning-iac-and-images-with-trivy",
+      "domain": "scanning",
+      "description": "Scan container images, IaC, and SBOMs for vulnerabilities and misconfigurations in CI/CD with Trivy."
+    },
+    {
+      "name": "extracting-iocs-from-malware-samples",
+      "path": "skills/extracting-iocs-from-malware-samples",
+      "domain": "extracting",
+      "description": "'Extracts indicators of compromise (IOCs) from malware samples including"
+    },
+    {
+      "name": "reverse-engineering-malware-with-ghidra",
+      "path": "skills/reverse-engineering-malware-with-ghidra",
+      "domain": "reverse",
+      "description": "'Reverse engineers malware binaries using NSA''s Ghidra disassembler"
+    },
+    {
+      "name": "executing-red-team-engagement-planning",
+      "path": "skills/executing-red-team-engagement-planning",
+      "domain": "executing",
+      "description": "Red team engagement planning is the foundational phase that defines scope,"
+    },
+    {
+      "name": "triaging-vulnerabilities-with-ssvc-framework",
+      "path": "skills/triaging-vulnerabilities-with-ssvc-framework",
+      "domain": "triaging",
+      "description": "Triage and prioritize vulnerabilities using CISA's Stakeholder-Specific"
+    },
+    {
+      "name": "collecting-volatile-evidence-from-compromised-host",
+      "path": "skills/collecting-volatile-evidence-from-compromised-host",
+      "domain": "collecting",
+      "description": "Collect volatile forensic evidence from a compromised system following"
+    },
+    {
+      "name": "hardening-windows-endpoint-with-cis-benchmark",
+      "path": "skills/hardening-windows-endpoint-with-cis-benchmark",
+      "domain": "hardening",
+      "description": "'Hardens Windows endpoints using CIS (Center for Internet Security) Benchmark"
+    },
+    {
+      "name": "performing-active-directory-forest-trust-attack",
+      "path": "skills/performing-active-directory-forest-trust-attack",
+      "domain": "performing",
+      "description": "Enumerate and audit Active Directory forest trust relationships using"
+    },
+    {
+      "name": "implementing-api-abuse-detection-with-rate-limiting",
+      "path": "skills/implementing-api-abuse-detection-with-rate-limiting",
+      "domain": "implementing",
+      "description": "Implement API abuse detection using token bucket, sliding window, and"
+    },
+    {
+      "name": "detecting-arp-poisoning-in-network-traffic",
+      "path": "skills/detecting-arp-poisoning-in-network-traffic",
+      "domain": "detecting",
+      "description": "Detect and prevent ARP spoofing attacks using ARPWatch, Dynamic ARP Inspection,"
+    },
+    {
+      "name": "analyzing-azure-activity-logs-for-threats",
+      "path": "skills/analyzing-azure-activity-logs-for-threats",
+      "domain": "analyzing",
+      "description": "'Queries Azure Monitor activity logs and sign-in logs via azure-monitor-query"
+    },
+    {
+      "name": "hunting-for-anomalous-powershell-execution",
+      "path": "skills/hunting-for-anomalous-powershell-execution",
+      "domain": "hunting",
+      "description": "'Hunt for malicious PowerShell activity by analyzing Script Block Logging"
+    },
+    {
+      "name": "building-c2-redirector-infrastructure",
+      "path": "skills/building-c2-redirector-infrastructure",
+      "domain": "building",
+      "description": "Architect redirectors with nginx and Apache, malleable profiles, and OPSEC"
+    },
+    {
+      "name": "testing-api-security-with-owasp-top-10",
+      "path": "skills/testing-api-security-with-owasp-top-10",
+      "domain": "testing",
+      "description": "Systematically assessing REST and GraphQL API endpoints against the OWASP"
+    },
+    {
+      "name": "conducting-domain-persistence-with-dcsync",
+      "path": "skills/conducting-domain-persistence-with-dcsync",
+      "domain": "conducting",
+      "description": "Perform DCSync attacks to replicate Active Directory credentials and"
+    },
+    {
+      "name": "configuring-hsm-for-key-storage",
+      "path": "skills/configuring-hsm-for-key-storage",
+      "domain": "configuring",
+      "description": "Hardware Security Modules (HSMs) are tamper-resistant physical devices"
+    },
+    {
+      "name": "securing-azure-with-microsoft-defender",
+      "path": "skills/securing-azure-with-microsoft-defender",
+      "domain": "securing",
+      "description": "'This skill instructs security practitioners on deploying Microsoft Defender"
+    },
+    {
+      "name": "auditing-foundry-smart-contract-security",
+      "path": "skills/auditing-foundry-smart-contract-security",
+      "domain": "auditing",
+      "description": ">-"
+    },
+    {
+      "name": "deploying-edr-agent-with-crowdstrike",
+      "path": "skills/deploying-edr-agent-with-crowdstrike",
+      "domain": "deploying",
+      "description": "'Deploys and configures CrowdStrike Falcon EDR agents across enterprise"
+    },
+    {
+      "name": "scanning-infrastructure-with-nessus",
+      "path": "skills/scanning-infrastructure-with-nessus",
+      "domain": "scanning",
+      "description": "Tenable Nessus is the industry-leading vulnerability scanner used to"
+    },
+    {
+      "name": "extracting-memory-artifacts-with-rekall",
+      "path": "skills/extracting-memory-artifacts-with-rekall",
+      "domain": "extracting",
+      "description": "'Uses Rekall memory forensics framework to analyze memory dumps for process"
+    },
+    {
+      "name": "reverse-engineering-ransomware-encryption-routine",
+      "path": "skills/reverse-engineering-ransomware-encryption-routine",
+      "domain": "reverse",
+      "description": "Reverse engineer ransomware encryption routines to identify cryptographic"
+    },
+    {
+      "name": "executing-red-team-exercise",
+      "path": "skills/executing-red-team-exercise",
+      "domain": "executing",
+      "description": "'Executes comprehensive red team exercises that simulate real-world adversary"
+    },
+    {
+      "name": "triaging-windows-with-kape",
+      "path": "skills/triaging-windows-with-kape",
+      "domain": "triaging",
+      "description": "Run targeted forensic artifact collection and module parsing with KAPE."
+    },
+    {
+      "name": "performing-active-directory-penetration-test",
+      "path": "skills/performing-active-directory-penetration-test",
+      "domain": "performing",
+      "description": "Conduct a focused Active Directory penetration test to enumerate domain"
+    },
+    {
+      "name": "implementing-api-gateway-security-controls",
+      "path": "skills/implementing-api-gateway-security-controls",
+      "domain": "implementing",
+      "description": "'Implements security controls at the API gateway layer including authentication"
+    },
+    {
+      "name": "detecting-attacks-on-historian-servers",
+      "path": "skills/detecting-attacks-on-historian-servers",
+      "domain": "detecting",
+      "description": "'Detect cyber attacks targeting OT historian servers (OSIsoft PI, Ignition,"
+    },
+    {
+      "name": "analyzing-bootkit-and-rootkit-samples",
+      "path": "skills/analyzing-bootkit-and-rootkit-samples",
+      "domain": "analyzing",
+      "description": "'Analyzes bootkit and advanced rootkit malware that infects the Master"
+    },
+    {
+      "name": "hunting-for-beaconing-with-frequency-analysis",
+      "path": "skills/hunting-for-beaconing-with-frequency-analysis",
+      "domain": "hunting",
+      "description": "Identify command-and-control beaconing patterns in network traffic by"
+    },
+    {
+      "name": "building-cloud-siem-with-sentinel",
+      "path": "skills/building-cloud-siem-with-sentinel",
+      "domain": "building",
+      "description": "'This skill covers deploying Microsoft Sentinel as a cloud-native SIEM"
+    },
+    {
+      "name": "testing-cors-misconfiguration",
+      "path": "skills/testing-cors-misconfiguration",
+      "domain": "testing",
+      "description": "Identifying and exploiting Cross-Origin Resource Sharing misconfigurations"
+    },
+    {
+      "name": "conducting-external-reconnaissance-with-osint",
+      "path": "skills/conducting-external-reconnaissance-with-osint",
+      "domain": "conducting",
+      "description": "'Conducts external reconnaissance using Open Source Intelligence (OSINT)"
+    },
+    {
+      "name": "configuring-identity-aware-proxy-with-google-iap",
+      "path": "skills/configuring-identity-aware-proxy-with-google-iap",
+      "domain": "configuring",
+      "description": "'Configuring Google Cloud Identity-Aware Proxy (IAP) to enforce per-request"
+    },
+    {
+      "name": "securing-container-registry-images",
+      "path": "skills/securing-container-registry-images",
+      "domain": "securing",
+      "description": "'Securing container registry images by implementing vulnerability scanning"
+    },
+    {
+      "name": "auditing-gcp-iam-permissions",
+      "path": "skills/auditing-gcp-iam-permissions",
+      "domain": "auditing",
+      "description": "'Auditing Google Cloud Platform IAM permissions to identify overly permissive"
+    },
+    {
+      "name": "deploying-honeytokens-and-canarytokens",
+      "path": "skills/deploying-honeytokens-and-canarytokens",
+      "domain": "deploying",
+      "description": "Plant canarytokens and honey credentials and alert on breach."
+    },
+    {
+      "name": "scanning-kubernetes-manifests-with-kubesec",
+      "path": "skills/scanning-kubernetes-manifests-with-kubesec",
+      "domain": "scanning",
+      "description": "Perform security risk analysis on Kubernetes resource manifests using"
+    },
+    {
+      "name": "extracting-windows-event-logs-artifacts",
+      "path": "skills/extracting-windows-event-logs-artifacts",
+      "domain": "extracting",
+      "description": "Extract, parse, and analyze Windows Event Logs (EVTX) using Chainsaw,"
+    },
+    {
+      "name": "reverse-engineering-rust-malware",
+      "path": "skills/reverse-engineering-rust-malware",
+      "domain": "reverse",
+      "description": "Reverse engineer Rust-compiled malware using IDA Pro and Ghidra with"
+    },
+    {
+      "name": "performing-active-directory-vulnerability-assessment",
+      "path": "skills/performing-active-directory-vulnerability-assessment",
+      "domain": "performing",
+      "description": "Assess Active Directory security posture using PingCastle, BloodHound,"
+    },
+    {
+      "name": "implementing-api-key-security-controls",
+      "path": "skills/implementing-api-key-security-controls",
+      "domain": "implementing",
+      "description": "'Implements secure API key generation, storage, rotation, and revocation"
+    },
+    {
+      "name": "detecting-attacks-on-scada-systems",
+      "path": "skills/detecting-attacks-on-scada-systems",
+      "domain": "detecting",
+      "description": "'This skill covers detecting cyber attacks targeting Supervisory Control"
+    },
+    {
+      "name": "analyzing-browser-forensics-with-hindsight",
+      "path": "skills/analyzing-browser-forensics-with-hindsight",
+      "domain": "analyzing",
+      "description": "Analyze Chromium-based browser artifacts using Hindsight to extract browsing"
+    },
+    {
+      "name": "hunting-for-cobalt-strike-beacons",
+      "path": "skills/hunting-for-cobalt-strike-beacons",
+      "domain": "hunting",
+      "description": "Detect Cobalt Strike beacon network activity using default TLS certificate"
+    },
+    {
+      "name": "building-detection-rule-with-splunk-spl",
+      "path": "skills/building-detection-rule-with-splunk-spl",
+      "domain": "building",
+      "description": "Build effective detection rules using Splunk Search Processing Language"
+    },
+    {
+      "name": "testing-for-broken-access-control",
+      "path": "skills/testing-for-broken-access-control",
+      "domain": "testing",
+      "description": "Systematically testing web applications for broken access control vulnerabilities"
+    },
+    {
+      "name": "conducting-full-scope-red-team-engagement",
+      "path": "skills/conducting-full-scope-red-team-engagement",
+      "domain": "conducting",
+      "description": "Plan and execute a comprehensive red team engagement covering reconnaissance"
+    },
+    {
+      "name": "configuring-ldap-security-hardening",
+      "path": "skills/configuring-ldap-security-hardening",
+      "domain": "configuring",
+      "description": "Harden LDAP directory services against common attacks including credential"
+    },
+    {
+      "name": "securing-container-registry-with-harbor",
+      "path": "skills/securing-container-registry-with-harbor",
+      "domain": "securing",
+      "description": "Harbor is an open-source container registry that provides security features"
+    },
+    {
+      "name": "auditing-kubernetes-cluster-rbac",
+      "path": "skills/auditing-kubernetes-cluster-rbac",
+      "domain": "auditing",
+      "description": "'Auditing Kubernetes cluster RBAC configurations to identify overly permissive"
+    },
+    {
+      "name": "deploying-osquery-for-endpoint-monitoring",
+      "path": "skills/deploying-osquery-for-endpoint-monitoring",
+      "domain": "deploying",
+      "description": "'Deploys and configures osquery for real-time endpoint monitoring using"
+    },
+    {
+      "name": "scanning-network-with-nmap-advanced",
+      "path": "skills/scanning-network-with-nmap-advanced",
+      "domain": "scanning",
+      "description": "'Performs advanced network reconnaissance using Nmap''s scripting engine,"
+    },
+    {
+      "name": "performing-adversary-in-the-middle-phishing-detection",
+      "path": "skills/performing-adversary-in-the-middle-phishing-detection",
+      "domain": "performing",
+      "description": "Detect and respond to Adversary-in-the-Middle (AiTM) phishing attacks"
+    },
+    {
+      "name": "implementing-api-rate-limiting-and-throttling",
+      "path": "skills/implementing-api-rate-limiting-and-throttling",
+      "domain": "implementing",
+      "description": "'Implements API rate limiting and throttling controls using token bucket,"
+    },
+    {
+      "name": "detecting-aws-cloudtrail-anomalies",
+      "path": "skills/detecting-aws-cloudtrail-anomalies",
+      "domain": "detecting",
+      "description": "Detect unusual API call patterns in AWS CloudTrail logs using boto3,"
+    },
+    {
+      "name": "analyzing-campaign-attribution-evidence",
+      "path": "skills/analyzing-campaign-attribution-evidence",
+      "domain": "analyzing",
+      "description": "Campaign attribution analysis involves systematically evaluating evidence"
+    },
+    {
+      "name": "hunting-for-command-and-control-beaconing",
+      "path": "skills/hunting-for-command-and-control-beaconing",
+      "domain": "hunting",
+      "description": "Detect C2 beaconing patterns in network traffic using frequency analysis,"
+    },
+    {
+      "name": "building-detection-rules-with-sigma",
+      "path": "skills/building-detection-rules-with-sigma",
+      "domain": "building",
+      "description": "'Builds vendor-agnostic detection rules using the Sigma rule format for"
+    },
+    {
+      "name": "testing-for-business-logic-vulnerabilities",
+      "path": "skills/testing-for-business-logic-vulnerabilities",
+      "domain": "testing",
+      "description": "Identifying flaws in application business logic that allow price manipulation,"
+    },
+    {
+      "name": "conducting-internal-network-penetration-test",
+      "path": "skills/conducting-internal-network-penetration-test",
+      "domain": "conducting",
+      "description": "Execute an internal network penetration test simulating an insider threat"
+    },
+    {
+      "name": "configuring-microsegmentation-for-zero-trust",
+      "path": "skills/configuring-microsegmentation-for-zero-trust",
+      "domain": "configuring",
+      "description": "Configure microsegmentation policies to enforce least-privilege workload-to-workload"
+    },
+    {
+      "name": "securing-github-actions-workflows",
+      "path": "skills/securing-github-actions-workflows",
+      "domain": "securing",
+      "description": "'This skill covers hardening GitHub Actions workflows against supply"
+    },
+    {
+      "name": "auditing-kubernetes-rbac-privilege-escalation",
+      "path": "skills/auditing-kubernetes-rbac-privilege-escalation",
+      "domain": "auditing",
+      "description": "Find over-permissive RBAC roles and service-account token abuse paths in Kubernetes using kubectl auth can-i, rbac-police, kubectl-who-can, and rakkess during authorized cluster security reviews."
+    },
+    {
+      "name": "deploying-palo-alto-prisma-access-zero-trust",
+      "path": "skills/deploying-palo-alto-prisma-access-zero-trust",
+      "domain": "deploying",
+      "description": "'Deploying Palo Alto Networks Prisma Access for SASE-based zero trust"
+    },
+    {
+      "name": "performing-agentless-vulnerability-scanning",
+      "path": "skills/performing-agentless-vulnerability-scanning",
+      "domain": "performing",
+      "description": "Configure and execute agentless vulnerability scanning using network"
+    },
+    {
+      "name": "implementing-api-schema-validation-security",
+      "path": "skills/implementing-api-schema-validation-security",
+      "domain": "implementing",
+      "description": "Implement API schema validation using OpenAPI specifications and JSON"
+    },
+    {
+      "name": "detecting-aws-credential-exposure-with-trufflehog",
+      "path": "skills/detecting-aws-credential-exposure-with-trufflehog",
+      "domain": "detecting",
+      "description": "'Detecting exposed AWS credentials in source code repositories, CI/CD"
+    },
+    {
+      "name": "analyzing-certificate-transparency-for-phishing",
+      "path": "skills/analyzing-certificate-transparency-for-phishing",
+      "domain": "analyzing",
+      "description": "Monitor Certificate Transparency logs using crt.sh and Certstream to"
+    },
+    {
+      "name": "hunting-for-data-exfiltration-indicators",
+      "path": "skills/hunting-for-data-exfiltration-indicators",
+      "domain": "hunting",
+      "description": "Hunt for data exfiltration through network traffic analysis, detecting"
+    },
+    {
+      "name": "building-devsecops-pipeline-with-gitlab-ci",
+      "path": "skills/building-devsecops-pipeline-with-gitlab-ci",
+      "domain": "building",
+      "description": "Design and implement a comprehensive DevSecOps pipeline in GitLab CI/CD"
+    },
+    {
+      "name": "testing-for-email-header-injection",
+      "path": "skills/testing-for-email-header-injection",
+      "domain": "testing",
+      "description": "Test web application email functionality for SMTP header injection vulnerabilities"
+    },
+    {
+      "name": "conducting-internal-reconnaissance-with-bloodhound-ce",
+      "path": "skills/conducting-internal-reconnaissance-with-bloodhound-ce",
+      "domain": "conducting",
+      "description": "Conduct internal Active Directory reconnaissance using BloodHound Community"
+    },
+    {
+      "name": "configuring-multi-factor-authentication-with-duo",
+      "path": "skills/configuring-multi-factor-authentication-with-duo",
+      "domain": "configuring",
+      "description": "Deploy Cisco Duo multi-factor authentication across enterprise applications,"
+    },
+    {
+      "name": "securing-helm-chart-deployments",
+      "path": "skills/securing-helm-chart-deployments",
+      "domain": "securing",
+      "description": "Secure Helm chart deployments by validating chart integrity, scanning"
+    },
+    {
+      "name": "auditing-mcp-servers-for-tool-poisoning",
+      "path": "skills/auditing-mcp-servers-for-tool-poisoning",
+      "domain": "auditing",
+      "description": "Scan Model Context Protocol servers and tool metadata for poisoning, SSRF, and unauthenticated exposure."
+    },
+    {
+      "name": "deploying-ransomware-canary-files",
+      "path": "skills/deploying-ransomware-canary-files",
+      "domain": "deploying",
+      "description": "'Deploys and monitors ransomware canary files across critical directories"
+    },
+    {
+      "name": "performing-ai-driven-osint-correlation",
+      "path": "skills/performing-ai-driven-osint-correlation",
+      "domain": "performing",
+      "description": "Use AI and LLM-based reasoning to correlate findings across multiple"
+    },
+    {
+      "name": "implementing-api-security-posture-management",
+      "path": "skills/implementing-api-security-posture-management",
+      "domain": "implementing",
+      "description": "Implement API Security Posture Management to continuously discover, classify,"
+    },
+    {
+      "name": "detecting-aws-guardduty-findings-automation",
+      "path": "skills/detecting-aws-guardduty-findings-automation",
+      "domain": "detecting",
+      "description": "Automate AWS GuardDuty threat detection findings processing using EventBridge"
+    },
+    {
+      "name": "analyzing-cloud-storage-access-patterns",
+      "path": "skills/analyzing-cloud-storage-access-patterns",
+      "domain": "analyzing",
+      "description": "Detect abnormal access patterns in AWS S3, GCS, and Azure Blob Storage"
+    },
+    {
+      "name": "hunting-for-data-staging-before-exfiltration",
+      "path": "skills/hunting-for-data-staging-before-exfiltration",
+      "domain": "hunting",
+      "description": "Detect data staging activity before exfiltration by monitoring for archive"
+    },
+    {
+      "name": "building-identity-federation-with-saml-azure-ad",
+      "path": "skills/building-identity-federation-with-saml-azure-ad",
+      "domain": "building",
+      "description": "Establish SAML 2.0 identity federation between on-premises Active Directory"
+    },
+    {
+      "name": "testing-for-host-header-injection",
+      "path": "skills/testing-for-host-header-injection",
+      "domain": "testing",
+      "description": "Test web applications for HTTP Host header injection vulnerabilities"
+    },
+    {
+      "name": "conducting-malware-incident-response",
+      "path": "skills/conducting-malware-incident-response",
+      "domain": "conducting",
+      "description": "'Responds to malware infections across enterprise endpoints by identifying the malware family, determining infection"
+    },
+    {
+      "name": "configuring-network-segmentation-with-vlans",
+      "path": "skills/configuring-network-segmentation-with-vlans",
+      "domain": "configuring",
+      "description": "'Designs and implements VLAN-based network segmentation on managed switches"
+    },
+    {
+      "name": "securing-historian-server-in-ot-environment",
+      "path": "skills/securing-historian-server-in-ot-environment",
+      "domain": "securing",
+      "description": "'This skill covers hardening and securing process historian servers (OSIsoft"
+    },
+    {
+      "name": "auditing-terraform-infrastructure-for-security",
+      "path": "skills/auditing-terraform-infrastructure-for-security",
+      "domain": "auditing",
+      "description": "'Auditing Terraform infrastructure-as-code for security misconfigurations"
+    },
+    {
+      "name": "deploying-software-defined-perimeter",
+      "path": "skills/deploying-software-defined-perimeter",
+      "domain": "deploying",
+      "description": "Deploy a Software-Defined Perimeter using the CSA v2.0 specification"
+    },
+    {
+      "name": "performing-alert-triage-with-elastic-siem",
+      "path": "skills/performing-alert-triage-with-elastic-siem",
+      "domain": "performing",
+      "description": "Perform systematic alert triage in Elastic Security SIEM to rapidly classify,"
+    },
+    {
+      "name": "implementing-api-security-testing-with-42crunch",
+      "path": "skills/implementing-api-security-testing-with-42crunch",
+      "domain": "implementing",
+      "description": "Implement comprehensive API security testing using the 42Crunch platform"
+    },
+    {
+      "name": "detecting-aws-iam-privilege-escalation",
+      "path": "skills/detecting-aws-iam-privilege-escalation",
+      "domain": "detecting",
+      "description": "Detect AWS IAM privilege escalation paths using boto3 and Cloudsplaining"
+    },
+    {
+      "name": "analyzing-cobalt-strike-beacon-configuration",
+      "path": "skills/analyzing-cobalt-strike-beacon-configuration",
+      "domain": "analyzing",
+      "description": "Extract and analyze Cobalt Strike beacon configuration from PE files"
+    },
+    {
+      "name": "hunting-for-dcom-lateral-movement",
+      "path": "skills/hunting-for-dcom-lateral-movement",
+      "domain": "hunting",
+      "description": "'Hunt for DCOM-based lateral movement by detecting abuse of MMC20.Application,"
+    },
+    {
+      "name": "building-identity-governance-lifecycle-process",
+      "path": "skills/building-identity-governance-lifecycle-process",
+      "domain": "building",
+      "description": "'Builds comprehensive identity governance and lifecycle management processes"
+    },
+    {
+      "name": "testing-for-json-web-token-vulnerabilities",
+      "path": "skills/testing-for-json-web-token-vulnerabilities",
+      "domain": "testing",
+      "description": "Test JWT implementations for critical vulnerabilities including algorithm"
+    },
+    {
+      "name": "conducting-man-in-the-middle-attack-simulation",
+      "path": "skills/conducting-man-in-the-middle-attack-simulation",
+      "domain": "conducting",
+      "description": "'Simulates man-in-the-middle attacks using Ettercap, mitmproxy, and Bettercap"
+    },
+    {
+      "name": "configuring-oauth2-authorization-flow",
+      "path": "skills/configuring-oauth2-authorization-flow",
+      "domain": "configuring",
+      "description": "Configure secure OAuth 2.0 authorization flows including Authorization"
+    },
+    {
+      "name": "securing-kubernetes-on-cloud",
+      "path": "skills/securing-kubernetes-on-cloud",
+      "domain": "securing",
+      "description": "'This skill covers hardening managed Kubernetes clusters on EKS, AKS,"
+    },
+    {
+      "name": "auditing-tls-certificate-transparency-logs",
+      "path": "skills/auditing-tls-certificate-transparency-logs",
+      "domain": "auditing",
+      "description": "'Monitors Certificate Transparency (CT) logs to detect unauthorized certificate"
+    },
+    {
+      "name": "deploying-tailscale-for-zero-trust-vpn",
+      "path": "skills/deploying-tailscale-for-zero-trust-vpn",
+      "domain": "deploying",
+      "description": "Deploy and configure Tailscale as a WireGuard-based zero trust mesh VPN"
+    },
+    {
+      "name": "performing-android-app-static-analysis-with-mobsf",
+      "path": "skills/performing-android-app-static-analysis-with-mobsf",
+      "domain": "performing",
+      "description": "'Performs automated static analysis of Android applications using Mobile"
+    },
+    {
+      "name": "implementing-api-threat-protection-with-apigee",
+      "path": "skills/implementing-api-threat-protection-with-apigee",
+      "domain": "implementing",
+      "description": "Implement API threat protection using Google Apigee policies including"
+    },
+    {
+      "name": "detecting-azure-lateral-movement",
+      "path": "skills/detecting-azure-lateral-movement",
+      "domain": "detecting",
+      "description": "Detect lateral movement in Azure AD/Entra ID environments using Microsoft"
+    },
+    {
+      "name": "analyzing-cobaltstrike-malleable-c2-profiles",
+      "path": "skills/analyzing-cobaltstrike-malleable-c2-profiles",
+      "domain": "analyzing",
+      "description": "Parse and analyze Cobalt Strike Malleable C2 profiles using dissect.cobaltstrike"
+    },
+    {
+      "name": "hunting-for-dcsync-attacks",
+      "path": "skills/hunting-for-dcsync-attacks",
+      "domain": "hunting",
+      "description": "Detect DCSync attacks by analyzing Windows Event ID 4662 for unauthorized"
+    },
+    {
+      "name": "building-incident-response-dashboard",
+      "path": "skills/building-incident-response-dashboard",
+      "domain": "building",
+      "description": "'Builds real-time incident response dashboards in Splunk, Elastic, or"
+    },
+    {
+      "name": "testing-for-open-redirect-vulnerabilities",
+      "path": "skills/testing-for-open-redirect-vulnerabilities",
+      "domain": "testing",
+      "description": "Identify and test open redirect vulnerabilities in web applications by"
+    },
+    {
+      "name": "conducting-memory-forensics-with-volatility",
+      "path": "skills/conducting-memory-forensics-with-volatility",
+      "domain": "conducting",
+      "description": "'Performs memory forensics analysis using Volatility 3 to extract evidence"
+    },
+    {
+      "name": "configuring-pfsense-firewall-rules",
+      "path": "skills/configuring-pfsense-firewall-rules",
+      "domain": "configuring",
+      "description": "'Configures pfSense firewall rules, NAT policies, VPN tunnels, and traffic"
+    },
+    {
+      "name": "securing-remote-access-to-ot-environment",
+      "path": "skills/securing-remote-access-to-ot-environment",
+      "domain": "securing",
+      "description": "'This skill covers implementing secure remote access to OT/ICS environments"
+    },
+    {
+      "name": "auditing-uefi-firmware-with-chipsec",
+      "path": "skills/auditing-uefi-firmware-with-chipsec",
+      "domain": "auditing",
+      "description": "Use Intel CHIPSEC to assess platform firmware configuration, SPI flash write protection, BIOS lock, SMM/SMRR, and Secure Boot variable state, dump SPI flash, and triage UEFI variables for firmware-level threats."
+    },
+    {
+      "name": "performing-api-fuzzing-with-restler",
+      "path": "skills/performing-api-fuzzing-with-restler",
+      "domain": "performing",
+      "description": "'Uses Microsoft RESTler to perform stateful REST API fuzzing by automatically"
+    },
+    {
+      "name": "implementing-application-whitelisting-with-applocker",
+      "path": "skills/implementing-application-whitelisting-with-applocker",
+      "domain": "implementing",
+      "description": "'Implements application whitelisting using Windows AppLocker to restrict"
+    },
+    {
+      "name": "detecting-azure-service-principal-abuse",
+      "path": "skills/detecting-azure-service-principal-abuse",
+      "domain": "detecting",
+      "description": "Detect and investigate Azure service principal abuse including privilege"
+    },
+    {
+      "name": "analyzing-command-and-control-communication",
+      "path": "skills/analyzing-command-and-control-communication",
+      "domain": "analyzing",
+      "description": "'Analyzes malware command-and-control (C2) communication protocols to"
+    },
+    {
+      "name": "hunting-for-defense-evasion-via-timestomping",
+      "path": "skills/hunting-for-defense-evasion-via-timestomping",
+      "domain": "hunting",
+      "description": "'Detect NTFS timestamp manipulation (MITRE T1070.006) by comparing $STANDARD_INFORMATION"
+    },
+    {
+      "name": "building-incident-response-playbook",
+      "path": "skills/building-incident-response-playbook",
+      "domain": "building",
+      "description": "'Designs and documents structured incident response playbooks that define"
+    },
+    {
+      "name": "testing-for-sensitive-data-exposure",
+      "path": "skills/testing-for-sensitive-data-exposure",
+      "domain": "testing",
+      "description": "Identifying sensitive data exposure vulnerabilities including API key"
+    },
+    {
+      "name": "conducting-mobile-app-penetration-test",
+      "path": "skills/conducting-mobile-app-penetration-test",
+      "domain": "conducting",
+      "description": "'Conducts penetration testing of iOS and Android mobile applications"
+    },
+    {
+      "name": "configuring-snort-ids-for-intrusion-detection",
+      "path": "skills/configuring-snort-ids-for-intrusion-detection",
+      "domain": "configuring",
+      "description": "'Installs, configures, and tunes Snort 3 intrusion detection system to"
+    },
+    {
+      "name": "securing-serverless-functions",
+      "path": "skills/securing-serverless-functions",
+      "domain": "securing",
+      "description": "'This skill covers security hardening for serverless compute platforms"
+    },
+    {
+      "name": "performing-api-inventory-and-discovery",
+      "path": "skills/performing-api-inventory-and-discovery",
+      "domain": "performing",
+      "description": "'Performs API inventory and discovery to identify all API endpoints in"
+    },
+    {
+      "name": "implementing-aqua-security-for-container-scanning",
+      "path": "skills/implementing-aqua-security-for-container-scanning",
+      "domain": "implementing",
+      "description": "Deploy Aqua Security's Trivy scanner to detect vulnerabilities, misconfigurations,"
+    },
+    {
+      "name": "detecting-azure-storage-account-misconfigurations",
+      "path": "skills/detecting-azure-storage-account-misconfigurations",
+      "domain": "detecting",
+      "description": "Audit Azure Blob and ADLS storage accounts for public access exposure,"
+    },
+    {
+      "name": "analyzing-cyber-kill-chain",
+      "path": "skills/analyzing-cyber-kill-chain",
+      "domain": "analyzing",
+      "description": "'Analyzes intrusion activity against the Lockheed Martin Cyber Kill Chain"
+    },
+    {
+      "name": "hunting-for-dns-based-persistence",
+      "path": "skills/hunting-for-dns-based-persistence",
+      "domain": "hunting",
+      "description": "Hunt for DNS-based persistence mechanisms including DNS hijacking, dangling"
+    },
+    {
+      "name": "building-incident-timeline-with-timesketch",
+      "path": "skills/building-incident-timeline-with-timesketch",
+      "domain": "building",
+      "description": "Build collaborative forensic incident timelines using Timesketch to ingest,"
+    },
+    {
+      "name": "testing-for-system-prompt-leakage",
+      "path": "skills/testing-for-system-prompt-leakage",
+      "domain": "testing",
+      "description": "Extract and defend system prompts plus embedded secrets and routing logic."
+    },
+    {
+      "name": "conducting-network-penetration-test",
+      "path": "skills/conducting-network-penetration-test",
+      "domain": "conducting",
+      "description": "'Conducts comprehensive network penetration tests against authorized"
+    },
+    {
+      "name": "configuring-suricata-for-network-monitoring",
+      "path": "skills/configuring-suricata-for-network-monitoring",
+      "domain": "configuring",
+      "description": "'Deploys and configures Suricata IDS/IPS with Emerging Threats rulesets,"
+    },
+    {
+      "name": "performing-api-rate-limiting-bypass",
+      "path": "skills/performing-api-rate-limiting-bypass",
+      "domain": "performing",
+      "description": "'Tests API rate limiting implementations for bypass vulnerabilities by"
+    },
+    {
+      "name": "implementing-attack-path-analysis-with-xm-cyber",
+      "path": "skills/implementing-attack-path-analysis-with-xm-cyber",
+      "domain": "implementing",
+      "description": "Deploy XM Cyber's continuous exposure management platform to map attack"
+    },
+    {
+      "name": "detecting-beaconing-patterns-with-zeek",
+      "path": "skills/detecting-beaconing-patterns-with-zeek",
+      "domain": "detecting",
+      "description": "'Performs statistical analysis of Zeek conn.log connection intervals"
+    },
+    {
+      "name": "analyzing-disk-image-with-autopsy",
+      "path": "skills/analyzing-disk-image-with-autopsy",
+      "domain": "analyzing",
+      "description": "Perform comprehensive forensic analysis of disk images using Autopsy"
+    },
+    {
+      "name": "hunting-for-dns-tunneling-with-zeek",
+      "path": "skills/hunting-for-dns-tunneling-with-zeek",
+      "domain": "hunting",
+      "description": "Detect DNS tunneling and data exfiltration by analyzing Zeek dns.log"
+    },
+    {
+      "name": "building-ioc-defanging-and-sharing-pipeline",
+      "path": "skills/building-ioc-defanging-and-sharing-pipeline",
+      "domain": "building",
+      "description": "Build an automated pipeline to defang indicators of compromise (URLs,"
+    },
+    {
+      "name": "testing-for-xml-injection-vulnerabilities",
+      "path": "skills/testing-for-xml-injection-vulnerabilities",
+      "domain": "testing",
+      "description": "Test web applications for XML injection vulnerabilities including XXE,"
+    },
+    {
+      "name": "conducting-pass-the-ticket-attack",
+      "path": "skills/conducting-pass-the-ticket-attack",
+      "domain": "conducting",
+      "description": "Pass-the-Ticket (PtT) is a lateral movement technique that uses stolen"
+    },
+    {
+      "name": "configuring-tls-1-3-for-secure-communications",
+      "path": "skills/configuring-tls-1-3-for-secure-communications",
+      "domain": "configuring",
+      "description": "TLS 1.3 (RFC 8446) is the latest version of the Transport Layer Security"
+    },
+    {
+      "name": "performing-api-security-testing-with-postman",
+      "path": "skills/performing-api-security-testing-with-postman",
+      "domain": "performing",
+      "description": "'Uses Postman to perform structured API security testing by building"
+    },
+    {
+      "name": "implementing-attack-surface-management",
+      "path": "skills/implementing-attack-surface-management",
+      "domain": "implementing",
+      "description": "'Implements external attack surface management (EASM) using Shodan, Censys,"
+    },
+    {
+      "name": "detecting-bluetooth-low-energy-attacks",
+      "path": "skills/detecting-bluetooth-low-energy-attacks",
+      "domain": "detecting",
+      "description": "'Detects and analyzes Bluetooth Low Energy (BLE) security attacks including"
+    },
+    {
+      "name": "analyzing-dns-logs-for-exfiltration",
+      "path": "skills/analyzing-dns-logs-for-exfiltration",
+      "domain": "analyzing",
+      "description": "'Analyzes DNS query logs to detect data exfiltration via DNS tunneling,"
+    },
+    {
+      "name": "hunting-for-domain-fronting-c2-traffic",
+      "path": "skills/hunting-for-domain-fronting-c2-traffic",
+      "domain": "hunting",
+      "description": "Detect domain fronting C2 traffic by analyzing SNI vs HTTP Host header"
+    },
+    {
+      "name": "building-ioc-enrichment-pipeline-with-opencti",
+      "path": "skills/building-ioc-enrichment-pipeline-with-opencti",
+      "domain": "building",
+      "description": "OpenCTI is an open-source platform for managing cyber threat intelligence"
+    },
+    {
+      "name": "testing-for-xss-vulnerabilities",
+      "path": "skills/testing-for-xss-vulnerabilities",
+      "domain": "testing",
+      "description": "'Tests web applications for Cross-Site Scripting (XSS) vulnerabilities"
+    },
+    {
+      "name": "conducting-phishing-incident-response",
+      "path": "skills/conducting-phishing-incident-response",
+      "domain": "conducting",
+      "description": "'Responds to phishing incidents by analyzing reported emails, extracting"
+    },
+    {
+      "name": "configuring-windows-defender-advanced-settings",
+      "path": "skills/configuring-windows-defender-advanced-settings",
+      "domain": "configuring",
+      "description": "'Configures Microsoft Defender for Endpoint (MDE) advanced protection"
+    },
+    {
+      "name": "performing-arp-spoofing-attack-simulation",
+      "path": "skills/performing-arp-spoofing-attack-simulation",
+      "domain": "performing",
+      "description": "'Simulates ARP spoofing attacks in authorized lab or pentest environments"
+    },
+    {
+      "name": "implementing-aws-config-rules-for-compliance",
+      "path": "skills/implementing-aws-config-rules-for-compliance",
+      "domain": "implementing",
+      "description": "'Implementing AWS Config rules for continuous compliance monitoring of"
+    },
+    {
+      "name": "detecting-broken-object-property-level-authorization",
+      "path": "skills/detecting-broken-object-property-level-authorization",
+      "domain": "detecting",
+      "description": "Detect and test for OWASP API3:2023 Broken Object Property Level Authorization"
+    },
+    {
+      "name": "analyzing-docker-container-forensics",
+      "path": "skills/analyzing-docker-container-forensics",
+      "domain": "analyzing",
+      "description": "Investigate compromised Docker containers by analyzing images, layers,"
+    },
+    {
+      "name": "hunting-for-lateral-movement-via-wmi",
+      "path": "skills/hunting-for-lateral-movement-via-wmi",
+      "domain": "hunting",
+      "description": "Detect WMI-based lateral movement by analyzing Windows Event ID 4688"
+    },
+    {
+      "name": "building-malware-incident-communication-template",
+      "path": "skills/building-malware-incident-communication-template",
+      "domain": "building",
+      "description": "Build structured communication templates for malware incidents including"
+    },
+    {
+      "name": "testing-for-xss-vulnerabilities-with-burpsuite",
+      "path": "skills/testing-for-xss-vulnerabilities-with-burpsuite",
+      "domain": "testing",
+      "description": "Identifying and validating cross-site scripting vulnerabilities using"
+    },
+    {
+      "name": "conducting-post-incident-lessons-learned",
+      "path": "skills/conducting-post-incident-lessons-learned",
+      "domain": "conducting",
+      "description": "Facilitate structured post-incident reviews to identify root causes,"
+    },
+    {
+      "name": "configuring-windows-event-logging-for-detection",
+      "path": "skills/configuring-windows-event-logging-for-detection",
+      "domain": "configuring",
+      "description": "'Configures Windows Event Logging with advanced audit policies to generate"
+    },
+    {
+      "name": "performing-asset-criticality-scoring-for-vulns",
+      "path": "skills/performing-asset-criticality-scoring-for-vulns",
+      "domain": "performing",
+      "description": "Develop and apply a multi-factor asset criticality scoring model to weight"
+    },
+    {
+      "name": "implementing-aws-iam-permission-boundaries",
+      "path": "skills/implementing-aws-iam-permission-boundaries",
+      "domain": "implementing",
+      "description": "Configure IAM permission boundaries in AWS to delegate role creation"
+    },
+    {
+      "name": "detecting-business-email-compromise",
+      "path": "skills/detecting-business-email-compromise",
+      "domain": "detecting",
+      "description": "Business Email Compromise (BEC) is a sophisticated fraud scheme where"
+    },
+    {
+      "name": "analyzing-email-headers-for-phishing-investigation",
+      "path": "skills/analyzing-email-headers-for-phishing-investigation",
+      "domain": "analyzing",
+      "description": "Parse and analyze email headers to trace the origin of phishing emails,"
+    },
+    {
+      "name": "hunting-for-living-off-the-cloud-techniques",
+      "path": "skills/hunting-for-living-off-the-cloud-techniques",
+      "domain": "hunting",
+      "description": "Hunt for adversary abuse of legitimate cloud services for C2, data staging,"
+    },
+    {
+      "name": "building-patch-tuesday-response-process",
+      "path": "skills/building-patch-tuesday-response-process",
+      "domain": "building",
+      "description": "Establish a structured operational process to triage, test, and deploy"
+    },
+    {
+      "name": "testing-for-xxe-injection-vulnerabilities",
+      "path": "skills/testing-for-xxe-injection-vulnerabilities",
+      "domain": "testing",
+      "description": "Discovering and exploiting XML External Entity injection vulnerabilities"
+    },
+    {
+      "name": "conducting-social-engineering-penetration-test",
+      "path": "skills/conducting-social-engineering-penetration-test",
+      "domain": "conducting",
+      "description": "Design and execute a social engineering penetration test including phishing,"
+    },
+    {
+      "name": "configuring-zscaler-private-access-for-ztna",
+      "path": "skills/configuring-zscaler-private-access-for-ztna",
+      "domain": "configuring",
+      "description": "'Configuring Zscaler Private Access (ZPA) to replace traditional VPN"
+    },
+    {
+      "name": "performing-authenticated-scan-with-openvas",
+      "path": "skills/performing-authenticated-scan-with-openvas",
+      "domain": "performing",
+      "description": "Configure and execute authenticated vulnerability scans using OpenVAS/Greenbone"
+    },
+    {
+      "name": "implementing-aws-macie-for-data-classification",
+      "path": "skills/implementing-aws-macie-for-data-classification",
+      "domain": "implementing",
+      "description": "Implement Amazon Macie to automatically discover, classify, and protect"
+    },
+    {
+      "name": "detecting-business-email-compromise-with-ai",
+      "path": "skills/detecting-business-email-compromise-with-ai",
+      "domain": "detecting",
+      "description": "Deploy AI and NLP-powered detection systems to identify business email"
+    },
+    {
+      "name": "analyzing-ethereum-smart-contract-vulnerabilities",
+      "path": "skills/analyzing-ethereum-smart-contract-vulnerabilities",
+      "domain": "analyzing",
+      "description": "Perform static and symbolic analysis of Solidity smart contracts using"
+    },
+    {
+      "name": "hunting-for-living-off-the-land-binaries",
+      "path": "skills/hunting-for-living-off-the-land-binaries",
+      "domain": "hunting",
+      "description": "Proactively hunt for adversary abuse of legitimate system binaries (LOLBins)"
+    },
+    {
+      "name": "building-phishing-reporting-button-workflow",
+      "path": "skills/building-phishing-reporting-button-workflow",
+      "domain": "building",
+      "description": "Implement a phishing report button in email clients with automated triage"
+    },
+    {
+      "name": "testing-jwt-token-security",
+      "path": "skills/testing-jwt-token-security",
+      "domain": "testing",
+      "description": "Assessing JSON Web Token implementations for cryptographic weaknesses,"
+    },
+    {
+      "name": "conducting-social-engineering-pretext-call",
+      "path": "skills/conducting-social-engineering-pretext-call",
+      "domain": "conducting",
+      "description": "Plan and execute authorized vishing (voice phishing) pretext calls to"
+    }
+  ],
+  "gated": [
+    {
+      "name": "abusing-dpapi-for-credential-access",
+      "path": "skills/abusing-dpapi-for-credential-access",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Extract DPAPI-protected secrets such as credentials and browser data offline and online."
+    },
+    {
+      "name": "abusing-shadow-credentials-for-privesc",
+      "path": "skills/abusing-shadow-credentials-for-privesc",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Take over Active Directory user and computer accounts by writing alternate certificate keys to msDS-KeyCredentialLink (Shadow Credentials) with pyWhisker, Whisker, and Certipy, then authenticate via PKINIT."
+    },
+    {
+      "name": "attacking-entra-id-with-roadtools",
+      "path": "skills/attacking-entra-id-with-roadtools",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Enumerate Entra ID with ROADrecon and acquire and exchange tokens with roadtx."
+    },
+    {
+      "name": "attacking-oauth-with-device-code-phishing",
+      "path": "skills/attacking-oauth-with-device-code-phishing",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Run OAuth 2.0 device-code and illicit-consent phishing against Microsoft Entra ID to steal access and refresh tokens, bypass MFA, and pivot across Microsoft 365 services."
+    },
+    {
+      "name": "bypassing-authentication-with-forced-browsing",
+      "path": "skills/bypassing-authentication-with-forced-browsing",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Discovering and accessing unprotected pages, APIs, and administrative"
+    },
+    {
+      "name": "exploiting-active-directory-certificate-services-esc1",
+      "path": "skills/exploiting-active-directory-certificate-services-esc1",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Exploit misconfigured Active Directory Certificate Services (AD CS) ESC1"
+    },
+    {
+      "name": "exploiting-active-directory-with-bloodhound",
+      "path": "skills/exploiting-active-directory-with-bloodhound",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "BloodHound is a graph-based Active Directory reconnaissance tool that"
+    },
+    {
+      "name": "exploiting-adcs-with-certipy",
+      "path": "skills/exploiting-adcs-with-certipy",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Enumerate and exploit Active Directory Certificate Services ESC1 through ESC16 misconfigurations with Certipy, including SAN abuse, NTLM relay to web enrollment (ESC8), and golden certificate forgery."
+    },
+    {
+      "name": "exploiting-api-injection-vulnerabilities",
+      "path": "skills/exploiting-api-injection-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Tests APIs for injection vulnerabilities including SQL injection, NoSQL"
+    },
+    {
+      "name": "exploiting-aws-with-pacu",
+      "path": "skills/exploiting-aws-with-pacu",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Use Pacu modules for AWS privilege escalation, persistence, and backdooring."
+    },
+    {
+      "name": "exploiting-bgp-hijacking-vulnerabilities",
+      "path": "skills/exploiting-bgp-hijacking-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Analyzes and simulates BGP hijacking scenarios in authorized lab environments"
+    },
+    {
+      "name": "exploiting-broken-function-level-authorization",
+      "path": "skills/exploiting-broken-function-level-authorization",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Tests APIs for Broken Function Level Authorization (BFLA) vulnerabilities"
+    },
+    {
+      "name": "exploiting-broken-link-hijacking",
+      "path": "skills/exploiting-broken-link-hijacking",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Discover and exploit broken link hijacking vulnerabilities by identifying"
+    },
+    {
+      "name": "exploiting-constrained-delegation-abuse",
+      "path": "skills/exploiting-constrained-delegation-abuse",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Exploit Kerberos Constrained Delegation misconfigurations in Active Directory"
+    },
+    {
+      "name": "exploiting-deeplink-vulnerabilities",
+      "path": "skills/exploiting-deeplink-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Tests and exploits deep link (URL scheme and App Link) vulnerabilities"
+    },
+    {
+      "name": "exploiting-excessive-data-exposure-in-api",
+      "path": "skills/exploiting-excessive-data-exposure-in-api",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Tests APIs for excessive data exposure where endpoints return more data"
+    },
+    {
+      "name": "exploiting-http-request-smuggling",
+      "path": "skills/exploiting-http-request-smuggling",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detecting and exploiting HTTP request smuggling vulnerabilities caused"
+    },
+    {
+      "name": "exploiting-idor-vulnerabilities",
+      "path": "skills/exploiting-idor-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Identifying and exploiting Insecure Direct Object Reference vulnerabilities"
+    },
+    {
+      "name": "exploiting-insecure-data-storage-in-mobile",
+      "path": "skills/exploiting-insecure-data-storage-in-mobile",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Identifies and exploits insecure local data storage vulnerabilities"
+    },
+    {
+      "name": "exploiting-insecure-deserialization",
+      "path": "skills/exploiting-insecure-deserialization",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Identifying and exploiting insecure deserialization vulnerabilities in"
+    },
+    {
+      "name": "exploiting-ipv6-vulnerabilities",
+      "path": "skills/exploiting-ipv6-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Identifies and exploits IPv6-specific vulnerabilities including SLAAC"
+    },
+    {
+      "name": "exploiting-jwt-algorithm-confusion-attack",
+      "path": "skills/exploiting-jwt-algorithm-confusion-attack",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Exploits JWT algorithm confusion vulnerabilities where the server''s"
+    },
+    {
+      "name": "exploiting-kerberoasting-with-impacket",
+      "path": "skills/exploiting-kerberoasting-with-impacket",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Perform Kerberoasting attacks using Impacket's GetUserSPNs to extract"
+    },
+    {
+      "name": "exploiting-mass-assignment-in-rest-apis",
+      "path": "skills/exploiting-mass-assignment-in-rest-apis",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Discover and exploit mass assignment vulnerabilities in REST APIs to"
+    },
+    {
+      "name": "exploiting-ms17-010-eternalblue-vulnerability",
+      "path": "skills/exploiting-ms17-010-eternalblue-vulnerability",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "MS17-010 (EternalBlue) is a critical vulnerability in Microsoft's SMBv1"
+    },
+    {
+      "name": "exploiting-nopac-cve-2021-42278-42287",
+      "path": "skills/exploiting-nopac-cve-2021-42278-42287",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Exploit the noPac vulnerability chain (CVE-2021-42278 sAMAccountName"
+    },
+    {
+      "name": "exploiting-nosql-injection-vulnerabilities",
+      "path": "skills/exploiting-nosql-injection-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detect and exploit NoSQL injection vulnerabilities in MongoDB, CouchDB,"
+    },
+    {
+      "name": "exploiting-oauth-misconfiguration",
+      "path": "skills/exploiting-oauth-misconfiguration",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Identifying and exploiting OAuth 2.0 and OpenID Connect misconfigurations"
+    },
+    {
+      "name": "exploiting-prototype-pollution-in-javascript",
+      "path": "skills/exploiting-prototype-pollution-in-javascript",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detect and exploit JavaScript prototype pollution vulnerabilities on"
+    },
+    {
+      "name": "exploiting-race-condition-vulnerabilities",
+      "path": "skills/exploiting-race-condition-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detect and exploit race condition vulnerabilities in web applications"
+    },
+    {
+      "name": "exploiting-server-side-request-forgery",
+      "path": "skills/exploiting-server-side-request-forgery",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Identifying and exploiting SSRF vulnerabilities to access internal services,"
+    },
+    {
+      "name": "exploiting-smb-vulnerabilities-with-metasploit",
+      "path": "skills/exploiting-smb-vulnerabilities-with-metasploit",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Identifies and exploits SMB protocol vulnerabilities using Metasploit"
+    },
+    {
+      "name": "exploiting-sql-injection-vulnerabilities",
+      "path": "skills/exploiting-sql-injection-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "'Identifies and exploits SQL injection vulnerabilities in web applications"
+    },
+    {
+      "name": "exploiting-sql-injection-with-sqlmap",
+      "path": "skills/exploiting-sql-injection-with-sqlmap",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detecting and exploiting SQL injection vulnerabilities using sqlmap to"
+    },
+    {
+      "name": "exploiting-template-injection-vulnerabilities",
+      "path": "skills/exploiting-template-injection-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Detecting and exploiting Server-Side Template Injection (SSTI) vulnerabilities"
+    },
+    {
+      "name": "exploiting-type-juggling-vulnerabilities",
+      "path": "skills/exploiting-type-juggling-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Exploit PHP type juggling vulnerabilities caused by loose comparison"
+    },
+    {
+      "name": "exploiting-vulnerabilities-with-metasploit-framework",
+      "path": "skills/exploiting-vulnerabilities-with-metasploit-framework",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "The Metasploit Framework is the world's most widely used penetration"
+    },
+    {
+      "name": "exploiting-websocket-vulnerabilities",
+      "path": "skills/exploiting-websocket-vulnerabilities",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Testing WebSocket implementations for authentication bypass, cross-site"
+    },
+    {
+      "name": "exploiting-zerologon-vulnerability-cve-2020-1472",
+      "path": "skills/exploiting-zerologon-vulnerability-cve-2020-1472",
+      "reason": "offensive/dual-use — authorized-lab gate",
+      "description": "Exploit the Zerologon vulnerability (CVE-2020-1472) in the Netlogon Remote"
+    }
+  ]
+}
