@@ -23,7 +23,7 @@ const WORKER_BINDINGS = new Map([
   ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ['deepseek/deepseek-v4-flash', 'deepseek-flash'],
   ['deepseek-v4-flash:direct', 'deepseek-flash'],
-  ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash'],
+  ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
   ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
   ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
   ['opencode-go/mimo-v2.5', 'mure-artificer'],

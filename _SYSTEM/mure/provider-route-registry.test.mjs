@@ -20,17 +20,18 @@ test('DeepSeek native canary pool contains only exact configured model identitie
   const routes = getNativeCanaryRoutes('deepseek-v4-flash');
   assert.ok(routes.some((route) => route.model === 'deepseek/deepseek-v4-flash'));
   assert.ok(routes.some((route) => route.model === 'deepseek-v4-flash:direct'));
-  assert.ok(routes.some((route) => route.model === 'ollama-cloud/deepseek-v4-flash'));
   assert.ok(routes.some((route) => route.model === 'cline-pass/cline-pass/deepseek-v4-flash'));
   assert.ok(!routes.some((route) => route.model === null));
+  // Ollama route stays out of the canary pool while blocked
+  assert.ok(!routes.some((route) => route.model === 'ollama-cloud/deepseek-v4-flash:cloud'));
 });
 
 test('provider outcomes promote exact completions and block schema-incompatible routes', () => {
   const deepseek = listModelRoutes('deepseek-v4-flash', { includeUnresolved: true });
   const ollama = deepseek.find((route) => route.provider === 'ollama');
   const cline = deepseek.find((route) => route.provider === 'cline');
-  assert.equal(ollama.status, 'catalog-candidate');
-  assert.match(ollama.blockedReason, /:cloud suffix/);
+  assert.equal(ollama.status, 'blocked-schema');
+  assert.match(ollama.blockedReason, /request schema/);
   assert.equal(cline.status, 'canary-proven');
   assert.equal(cline.canaryEvidence.result, 'completed');
   assert.equal(cline.canaryEvidence.resolvedModel, cline.model);
@@ -66,7 +67,7 @@ test('registry rejects unsupported canary claims and reasonless schema blocks', 
   mismatchedModel.modelIdentities['claude-haiku-4-5'].routes[0].canaryEvidence.resolvedModel = 'anthropic/claude-sonnet-5';
   assert.throws(() => validateProviderRouteRegistry(mismatchedModel), /requires exact completed native evidence/);
 
-  const unresolvedWithoutReason = structuredClone(PROVIDER_ROUTE_REGISTRY);
-  delete unresolvedWithoutReason.modelIdentities['deepseek-v4-flash'].routes.find((route) => route.provider === 'opencode').blockedReason;
-  assert.throws(() => validateProviderRouteRegistry(unresolvedWithoutReason), /must have null model and blockedReason/);
+  const reasonlessBlock = structuredClone(PROVIDER_ROUTE_REGISTRY);
+  delete reasonlessBlock.modelIdentities['deepseek-v4-flash'].routes.find((route) => route.provider === 'ollama').blockedReason;
+  assert.throws(() => validateProviderRouteRegistry(reasonlessBlock), /must have blockedReason/);
 });
