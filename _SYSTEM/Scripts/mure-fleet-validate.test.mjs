@@ -3,7 +3,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { validateAgentCardAuthority } from './mure-fleet-validate.mjs';
+import { validateAgentCardAuthority, validateCanaryEvidence, DISABLED_MODEL_SELECTOR } from './mure-fleet-validate.mjs';
+import {
+  buildOmpProjection,
+  renderOmpAgent,
+  renderProjectConfig,
+  renderProjectionManifest,
+  AGENT_MARKER_SHORT,
+  AGENT_MARKER_LONG,
+} from './mure-omp-sync.mjs';
+
+// ── Existing card-authority fixtures ──────────────────────────────────────
 
 function writeCard(dir, filename, name) {
   fs.mkdirSync(dir, { recursive: true });
@@ -23,6 +33,8 @@ function fixture() {
   writeCard(openclawAgentDir, 'worker-beta.md', 'worker-beta');
   return { root, openclawAgentDir, retiredOmpRoot, catalog };
 }
+
+// ── Existing card-authority tests (preserved) ─────────────────────────────
 
 test('OpenClaw-native card authority accepts a complete exact catalog', (t) => {
   const f = fixture();
@@ -49,4 +61,1001 @@ test('card authority rejects OMP catalog provenance', (t) => {
   t.after(() => fs.rmSync(f.root, { recursive: true, force: true }));
   const stale = { ...f.catalog, source: 'OMP agent definitions from .omp/agents/' };
   assert.ok(validateAgentCardAuthority(stale, f).includes('catalog-source-still-omp'));
+});
+
+// ── CHECK I: OMP projection validation ────────────────────────────────────
+
+const REPO_SCRIPTS = path.resolve('_SYSTEM', 'Scripts');
+const REPO_MURE = path.resolve('_SYSTEM', 'mure');
+const REPO_CONFIG = path.resolve('_SYSTEM', 'config');
+
+// Catalog factory helpers
+
+function makeCatalog(agents) {
+  return {
+    source: 'OpenClaw-native agent definitions from .openclaw/agents/',
+    agentCardRoot: '.openclaw/agents',
+    agents,
+  };
+}
+
+function makeAgent(name, overrides = {}) {
+  return {
+    name,
+    lane: 'worker',
+    description: `${name} executes delegated tasks`,
+    model: 'anthropic/claude-haiku-4-5',
+    thinkingLevel: 'medium',
+    tools: ['read', 'grep', 'glob', 'bash'],
+    capabilities: ['execution', 'analysis'],
+    skills: ['executing-plans', 'systematic-debugging', 'finishing-a-development-branch', 'verification-before-completion'],
+    mission: `Execute ${name} tasks with discipline`,
+    ...overrides,
+  };
+}
+
+// Stable catalogs used across tests.
+// CLEAN: 1 OK agent (alpha) + 1 FAIL_CLOSED agent (beta via cline-pass)
+const CLEAN_CATALOG = makeCatalog([
+  makeAgent('alpha'),
+  makeAgent('beta', {
+    model: 'cline-pass/cline-pass/deepseek-v4-flash',
+    description: 'beta runs cline-pass tasks',
+    mission: 'Execute beta tasks via ClinePass',
+  }),
+]);
+
+
+// DUAL_FAIL_CLOSED: 2 FAIL_CLOSED agents so removing one from disabledAgents
+// keeps the list non-empty (empty list → parser stores '' not array).
+const DUAL_FAIL_CLOSED_CATALOG = makeCatalog([
+  makeAgent('alpha'),
+  makeAgent('beta', {
+    model: 'cline-pass/cline-pass/deepseek-v4-flash',
+    description: 'beta cline-pass',
+    mission: 'beta tasks',
+  }),
+  makeAgent('gamma', {
+    model: 'cline-pass/cline-pass/mimo-v2.5',
+    description: 'gamma cline-pass',
+    mission: 'gamma tasks',
+  }),
+]);
+
+// SOURCE_INVALID: variant without model field
+const SOURCE_INVALID_CATALOG = makeCatalog([
+  makeAgent('alpha', {
+    variants: [{ id: 'alpha-fast', tools: ['read'] }],
+  }),
+]);
+
+// ── Temp-root OMP fixture ─────────────────────────────────────────────────
+//
+// Copies mure-fleet-validate.mjs into <root>/_SYSTEM/Scripts/ so its REPO
+// calculation targets the temp root.  Symlinks all transitive imports so the
+// real implementation is exercised without a second code path.
+//
+// Returns { root, agentsDir, stateDir, projection, catalog }.
+
+const SYMLINK_TARGETS = [
+  { src: path.join(REPO_SCRIPTS, 'mure-omp-sync.mjs'),     dstRel: '_SYSTEM/Scripts/mure-omp-sync.mjs' },
+  { src: path.join(REPO_SCRIPTS, 'mure-agents-sync.mjs'),  dstRel: '_SYSTEM/Scripts/mure-agents-sync.mjs' },
+  { src: path.join(REPO_SCRIPTS, 'cline-fleet.mjs'),       dstRel: '_SYSTEM/Scripts/cline-fleet.mjs' },
+  { src: path.join(REPO_MURE, 'omp-model-resolver.mjs'),    dstRel: '_SYSTEM/mure/omp-model-resolver.mjs' },
+  { src: path.join(REPO_CONFIG, 'provider-route-registry.json'), dstRel: '_SYSTEM/config/provider-route-registry.json' },
+];
+
+function setupOmpFixture(catalog, t, opts = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omp-check-i-'));
+
+  // Symlink targets (must exist before copyFile — their parent dirs needed)
+  for (const { dstRel } of SYMLINK_TARGETS) {
+    fs.mkdirSync(path.join(root, path.dirname(dstRel)), { recursive: true });
+  }
+  // Extra dirs not covered by symlink targets
+  fs.mkdirSync(path.join(root, '.omp', 'agents'), { recursive: true });
+  fs.mkdirSync(path.join(root, '_SYSTEM', 'state'), { recursive: true });
+
+  // Copy the ONE file we are allowed to touch — the validator entry module
+  fs.copyFileSync(
+    path.join(REPO_SCRIPTS, 'mure-fleet-validate.mjs'),
+    path.join(root, '_SYSTEM', 'Scripts', 'mure-fleet-validate.mjs'),
+  );
+
+  // Symlink every import so the real code resolves
+  for (const { src, dstRel } of SYMLINK_TARGETS) {
+    fs.symlinkSync(src, path.join(root, dstRel));
+  }
+
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  if (opts.skipProjection) {
+    return { root, catalog, projection: null };
+  }
+
+  // Build projection and write artifacts from the real renderers
+  const projection = buildOmpProjection(catalog);
+
+  for (const card of projection.cards) {
+    fs.writeFileSync(
+      path.join(root, '.omp', 'agents', `${card.filename}.md`),
+      renderOmpAgent(card),
+      'utf8',
+    );
+  }
+
+  fs.writeFileSync(
+    path.join(root, '.omp', 'config.yml'),
+    renderProjectConfig(projection),
+    'utf8',
+  );
+
+  fs.writeFileSync(
+    path.join(root, '_SYSTEM', 'state', 'mure-omp-projection.json'),
+    renderProjectionManifest(projection),
+    'utf8',
+  );
+
+  return { root, catalog, projection };
+}
+
+async function loadValidatorModule(tempRoot) {
+  const entry = path.join(tempRoot, '_SYSTEM', 'Scripts', 'mure-fleet-validate.mjs');
+  // Force a fresh module per temp root (cache-bust via query param)
+  return import(`${entry}?t=${Date.now()}-${Math.random().toString(36).slice(2)}`);
+}
+
+async function loadValidator(tempRoot) {
+  const mod = await loadValidatorModule(tempRoot);
+  return mod.validateOmpProjection;
+}
+
+// ── CHECK I tests ─────────────────────────────────────────────────────────
+
+test('CHECK I: clean generated projection passes', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, []);
+});
+
+test('CHECK I: missing card fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Delete one agent card
+  fs.rmSync(path.join(f.root, '.omp', 'agents', 'alpha.md'));
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-missing:') && p.includes('alpha')));
+});
+
+test('CHECK I: stale (unexpected) card fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Write a card the catalog does not project
+  fs.writeFileSync(
+    path.join(f.root, '.omp', 'agents', 'gamma.md'),
+    '---\n# GENERATED BY mure-omp-sync.mjs — DO NOT EDIT\nname: gamma\n---\n',
+    'utf8',
+  );
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-agent-stale:gamma.md'));
+});
+
+test('CHECK I: unowned expected card fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Rewrite alpha.md without the ownership marker line
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  // Strip the # GENERATED BY … line (second line after ---)
+  source = source.replace(/^---\r?\n# GENERATED BY mure-omp-sync\.mjs.*\r?\n/m, '---\n');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-agent-no-ownership:alpha.md'));
+});
+
+test('CHECK I: wrong normalized model fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Rewrite alpha.md with a different (still valid) model
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^model: .*$/m, 'model: anthropic/claude-opus-4-8');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) =>
+    p.startsWith('omp-agent-model-mismatch:alpha') && p.includes('anthropic/claude-opus-4-8'),
+  ));
+});
+
+test('CHECK I: FAIL_CLOSED card with real model fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // beta is FAIL_CLOSED (cline-pass). Replace sentinel with a real model.
+  const cardPath = path.join(f.root, '.omp', 'agents', 'beta.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^model: .*$/m, 'model: anthropic/claude-haiku-4-5');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-disabled-wrong-model:beta') && p.includes('anthropic/claude-haiku-4-5')));
+});
+
+test('CHECK I: FAIL_CLOSED card with alternate sentinel fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // beta is FAIL_CLOSED. Replace sentinel with a different disabled/ prefix string.
+  const cardPath = path.join(f.root, '.omp', 'agents', 'beta.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^model: .*$/m, 'model: disabled/alternate-route');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-disabled-wrong-model:beta') && p.includes('disabled/alternate-route')));
+});
+
+test('CHECK I: FAIL_CLOSED card missing model fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // beta is FAIL_CLOSED (cline-pass). Remove the model line entirely.
+  const cardPath = path.join(f.root, '.omp', 'agents', 'beta.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^model: .*\n/m, '');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-disabled-missing-model:beta')));
+});
+
+test('CHECK I: OK card with disabled sentinel fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // alpha is OK. Replace its real model with the disabled sentinel.
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^model: .*$/m, `model: ${DISABLED_MODEL_SELECTOR}`);
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-ok-has-disabled-sentinel:alpha')));
+});
+
+test('CHECK I: missing disabledAgents membership fails', async (t) => {
+  // Use two FAIL_CLOSED cards so removing beta keeps disabledAgents non-empty
+  // (empty YAML list → parseOmpConfig stores '' not array).
+  const f = setupOmpFixture(DUAL_FAIL_CLOSED_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Remove beta from config disabledAgents list while keeping gamma
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  let configSource = fs.readFileSync(configPath, 'utf8');
+  configSource = configSource.replace(/^    - beta\n/m, '');
+  fs.writeFileSync(configPath, configSource, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-config-missing-disabled:') && p.includes('beta')));
+});
+
+test('CHECK I: executable agent disabled fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Add alpha (OK card) to disabledAgents
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  let configSource = fs.readFileSync(configPath, 'utf8');
+  configSource = configSource.replace(
+    /^(  disabledAgents:\n(?:    - beta\n)*)/m,
+    '$1    - alpha\n',
+  );
+  fs.writeFileSync(configPath, configSource, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-config-executable-disabled:') && p.includes('alpha')));
+});
+
+test('CHECK I: wrong tools fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Mutate alpha's tools list to differ from catalog
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  // Replace tools block with a shorter list
+  source = source.replace(/^tools:\n(?:  - .*\n)+/m, 'tools:\n  - read\n');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) =>
+    p.startsWith('omp-agent-tools-mismatch:alpha'),
+  ));
+});
+
+test('CHECK I: wrong thinkingLevel fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Mutate alpha's thinkingLevel to diverge from the catalog's projected value
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^thinkingLevel: .*$/m, 'thinkingLevel: xhigh');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-thinkingLevel-mismatch:alpha') && p.includes('xhigh')));
+});
+
+test('CHECK I: wrong spawns fails', async (t) => {
+  // Need an agent with spawns.  Use a catalog where alpha has spawns.
+  const cat = makeCatalog([
+    makeAgent('alpha', { spawns: 'read-only' }),
+    makeAgent('beta', { model: 'cline-pass/cline-pass/deepseek-v4-flash' }),
+  ]);
+  const f = setupOmpFixture(cat, t);
+  const validate = await loadValidator(f.root);
+  // Mutate alpha's spawns in the rendered card
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^spawns: .*$/m, 'spawns: "*"');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.some((p) => p.startsWith('omp-agent-spawns-mismatch:alpha') && p.includes('*')));
+});
+
+test('CHECK I: agentId frontmatter key fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Add agentId to alpha's frontmatter
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^(name: .*)$/m, '$1\nagentId: mure-scout');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-agent-has-agentId:alpha.md'));
+});
+
+test('CHECK I: short ownership markers accepted', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // The generator already renders the short form.  Verify no ownership problems.
+  const problems = validate(f.catalog);
+  const ownershipProblems = problems.filter((p) => p.includes('ownership'));
+  assert.deepEqual(ownershipProblems, []);
+});
+
+test('CHECK I: long agent ownership marker still recognized as owned but is content drift', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Rewrite alpha.md with the long-form marker
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(
+    /^# GENERATED BY mure-omp-sync\.mjs — DO NOT EDIT$/m,
+    '# GENERATED BY mure-omp-sync.mjs from .openclaw/mure-agent-catalog.json — DO NOT EDIT',
+  );
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  const ownershipProblems = problems.filter((p) => p.includes('ownership'));
+  assert.deepEqual(ownershipProblems, [], 'the long marker must still be recognized as owned');
+  assert.ok(
+    problems.includes('omp-agent-content-mismatch:alpha.md'),
+    `expected omp-agent-content-mismatch:alpha.md — LONG marker is owned but is content drift, matching sync --check byte-exact parity (renderOmpAgent always emits SHORT). Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: long config ownership marker still recognized as owned but is content drift', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  let source = fs.readFileSync(configPath, 'utf8');
+  source = source.replace(
+    /^# GENERATED BY mure-omp-sync\.mjs — DO NOT EDIT$/m,
+    '# GENERATED BY mure-omp-sync.mjs from .openclaw/mure-agent-catalog.json — DO NOT EDIT',
+  );
+  fs.writeFileSync(configPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  const ownershipProblems = problems.filter((p) => p.includes('ownership'));
+  assert.deepEqual(ownershipProblems, [], 'the long marker must still be recognized as owned');
+  assert.ok(
+    problems.includes('omp-config-content-mismatch'),
+    `expected omp-config-content-mismatch — LONG marker is owned but is content drift, matching sync --check byte-exact parity (renderProjectConfig always emits SHORT). Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: flat manifest count drift fails', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Corrupt the manifest's projected count
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  let manifestSource = fs.readFileSync(manifestPath, 'utf8');
+  manifestSource = manifestSource.replace(/"projected": \d+/, '"projected": 999');
+  fs.writeFileSync(manifestPath, manifestSource, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-state-projected-mismatch:got=999 expected=2'));
+});
+
+test('CHECK I: source variant without model reports source-invalid', async (t) => {
+  // buildOmpProjection throws SyncError on variant missing model, so skip
+  // artifact generation — validateOmpProjection catches it before reading fs.
+  const f = setupOmpFixture(SOURCE_INVALID_CATALOG, t, { skipProjection: true });
+  const validate = await loadValidator(f.root);
+  const problems = validate(f.catalog);
+  assert.ok(problems.length === 1, `expected exactly 1 problem, got ${JSON.stringify(problems)}`);
+  assert.ok(
+    problems[0].startsWith('omp-source-invalid:') && problems[0].includes('alpha-fast'),
+    `expected omp-source-invalid including alpha-fast, got "${problems[0]}"`,
+  );
+});
+
+// ── CHECK I: projection-absence + full-content drift gates ────────────────
+
+test('CHECK I: nonempty catalog with no projection artifacts fails absent', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t, { skipProjection: true });
+  fs.rmdirSync(path.join(f.root, '.omp', 'agents'));
+  fs.rmdirSync(path.join(f.root, '_SYSTEM', 'state'));
+  const validate = await loadValidator(f.root);
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-projection-absent:2']);
+});
+
+test('CHECK I: empty catalog with no projection artifacts passes', async (t) => {
+  const emptyCatalog = makeCatalog([]);
+  const f = setupOmpFixture(emptyCatalog, t, { skipProjection: true });
+  fs.rmdirSync(path.join(f.root, '.omp', 'agents'));
+  fs.rmdirSync(path.join(f.root, '_SYSTEM', 'state'));
+  const validate = await loadValidator(f.root);
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, []);
+});
+
+test('CHECK I: manifest cards array entry removed with counts unchanged fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.cards = manifest.cards.slice(1); // drop one card entry; projected/executable/disabled left untouched
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+test('CHECK I: manifest resolvedModel mutated with counts unchanged fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const alphaEntry = manifest.cards.find((c) => c.cardName === 'alpha');
+  alphaEntry.resolvedModel = 'anthropic/claude-opus-4-8';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+test('CHECK I: manifest _provenance corruption fails ownership and content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest._provenance = 'tampered-marker';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-no-ownership', 'omp-state-content-mismatch']);
+});
+
+test('CHECK I: manifest schemaVersion corruption fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.schemaVersion = '2.0';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+test('CHECK I: manifest source corruption fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.source = '.openclaw/wrong-catalog.json';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+test('CHECK I: manifest generated corruption fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.generated = '2099-01-01T00:00:00Z';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+test('CHECK I: nonempty card description drift fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^description: .*$/m, 'description: "alpha now does something entirely different"');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-agent-content-mismatch:alpha.md']);
+});
+
+test('CHECK I: task field removal fails content-mismatch', async (t) => {
+  const cat = makeCatalog([
+    makeAgent('alpha', { spawns: 'read-only' }),
+    makeAgent('beta', { model: 'cline-pass/cline-pass/deepseek-v4-flash' }),
+  ]);
+  const f = setupOmpFixture(cat, t);
+  const validate = await loadValidator(f.root);
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  source = source.replace(/^task: true\n/m, '');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-agent-content-mismatch:alpha.md'));
+});
+
+test('CHECK I: task field addition fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  // alpha has no spawns/task; insert an unexpected task: true before the closing fence
+  source = source.replace(/\n---\n\n/, '\ntask: true\n---\n\n');
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(problems.includes('omp-agent-content-mismatch:alpha.md'));
+});
+
+test('CHECK I: config maxRecursionDepth drift fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  let source = fs.readFileSync(configPath, 'utf8');
+  source = source.replace(/^  maxRecursionDepth: 2$/m, '  maxRecursionDepth: 5');
+  fs.writeFileSync(configPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-config-content-mismatch']);
+});
+
+test('CHECK I: config modelRoles value drift fails content-mismatch', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  let source = fs.readFileSync(configPath, 'utf8');
+  source = source.replace(/^  smol: anthropic\/claude-haiku-4-5$/m, '  smol: anthropic/claude-sonnet-5');
+  fs.writeFileSync(configPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-config-content-mismatch']);
+});
+
+test('CHECK I: CRLF round-trip with short ownership marker agrees with producer', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+
+  const agentsDir = path.join(f.root, '.omp', 'agents');
+  for (const filename of fs.readdirSync(agentsDir).filter((n) => n.endsWith('.md'))) {
+    const filePath = path.join(agentsDir, filename);
+    fs.writeFileSync(filePath, fs.readFileSync(filePath, 'utf8').replace(/\n/g, '\r\n'), 'utf8');
+  }
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  fs.writeFileSync(configPath, fs.readFileSync(configPath, 'utf8').replace(/\n/g, '\r\n'), 'utf8');
+
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, []);
+});
+
+test('CHECK I: CRLF plus long ownership marker is owned but content-drifted, not unowned', async (t) => {
+  // sync --check parity: renderOmpAgent/renderProjectConfig always emit the
+  // SHORT marker, so a LONG-marker artifact is owned (isOwnedAgentFile/
+  // isOwnedConfig still accept it) but its exact bytes never match the
+  // generator's own output — content-mismatch, never no-ownership.
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+
+  const toCRLFLongMarker = (text) => text.split(AGENT_MARKER_SHORT).join(AGENT_MARKER_LONG).replace(/\n/g, '\r\n');
+
+  const agentsDir = path.join(f.root, '.omp', 'agents');
+  for (const filename of fs.readdirSync(agentsDir).filter((n) => n.endsWith('.md'))) {
+    const filePath = path.join(agentsDir, filename);
+    fs.writeFileSync(filePath, toCRLFLongMarker(fs.readFileSync(filePath, 'utf8')), 'utf8');
+  }
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  fs.writeFileSync(configPath, toCRLFLongMarker(fs.readFileSync(configPath, 'utf8')), 'utf8');
+
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, [
+    'omp-agent-content-mismatch:alpha.md',
+    'omp-agent-content-mismatch:beta.md',
+    'omp-config-content-mismatch',
+  ]);
+});
+
+// ── CHECK D: catalog thinkingLevel vocabulary (validateFleet) ─────────────
+
+test('CHECK D: catalog thinkingLevel "max" is accepted vocabulary', async (t) => {
+  const cat = makeCatalog([
+    {
+      name: 'maxthinker',
+      lane: 'worker',
+      description: 'maxthinker executes delegated tasks at the maximum reasoning depth for validation',
+      model: 'anthropic/claude-haiku-4-5',
+      thinkingLevel: 'max',
+      tools: ['read'],
+      capabilities: ['execution'],
+      skills: ['max-skill-a', 'max-skill-b', 'max-skill-c', 'max-skill-d'],
+      mission: 'Validate max thinking vocabulary acceptance',
+    },
+  ]);
+  const f = setupOmpFixture(cat, t, { skipProjection: true });
+
+  fs.mkdirSync(path.join(f.root, '.openclaw'), { recursive: true });
+  fs.writeFileSync(
+    path.join(f.root, '.openclaw', 'mure-agent-catalog.json'),
+    JSON.stringify(cat),
+    'utf8',
+  );
+  for (const id of cat.agents[0].skills) {
+    const skillDir = path.join(f.root, '.claude', 'skills', id);
+    fs.mkdirSync(skillDir, { recursive: true });
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), `# ${id}\n`, 'utf8');
+  }
+
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'omp-check-d-home-'));
+  fs.mkdirSync(path.join(tempHome, '.openclaw'), { recursive: true });
+  fs.writeFileSync(path.join(tempHome, '.openclaw', 'openclaw.json'), '{}', 'utf8');
+  t.after(() => fs.rmSync(tempHome, { recursive: true, force: true }));
+
+  const originalHome = process.env.HOME;
+  let mod;
+  try {
+    process.env.HOME = tempHome;
+    mod = await loadValidatorModule(f.root);
+  } finally {
+    process.env.HOME = originalHome;
+  }
+
+  const { checks } = mod.validateFleet();
+  const checkD = checks.find((c) => c.name.startsWith('D:'));
+  assert.ok(checkD, 'expected CHECK D to run');
+  assert.equal(checkD.ok, true, checkD.detail);
+});
+
+// ── CHECK J: canary evidence gate ──────────────────────────────────────────
+
+test('CHECK J: canary evidence — invalid standard evidence fails with model diagnostic', () => {
+  const registry = {
+    modelIdentities: {
+      widget: {
+        role: 'bounded-worker',
+        routes: [
+          {
+            id: 'widget.native',
+            provider: 'widget-co',
+            surface: 'openclaw-native',
+            model: 'widget-co/widget-1',
+            agentId: 'widget-agent',
+            status: 'canary-proven',
+            source: 'native-completion-event',
+            canaryEvidence: {
+              runId: 'run-1',
+              childSessionKey: 'agent:widget-agent:subagent:abc',
+              resolvedModel: 'widget-co/widget-DIFFERENT',
+              result: 'completed',
+              observed: '2026-07-11',
+            },
+          },
+        ],
+      },
+    },
+  };
+  const problems = validateCanaryEvidence(registry);
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:widget-co/widget-1']);
+});
+
+test('CHECK J: canary evidence — invalid corroborated evidence fails with model diagnostic', () => {
+  const registry = {
+    modelIdentities: {
+      synth: {
+        role: 'frontier-worker',
+        routes: [
+          {
+            id: 'synth.omp',
+            provider: 'synth-co',
+            surface: 'omp-native',
+            model: 'synth-code/Synth-1',
+            agentId: 'synth-agent',
+            status: 'canary-proven',
+            source: 'omp-task-completion',
+            canaryEvidence: {
+              primaryRun: { runId: 'run-a', resolvedModel: 'synth-code/Synth-1', result: 'completed' },
+              corroboratingRun: { runId: 'run-a', resolvedModel: 'synth-code/Synth-1', result: 'completed' },
+              observed: '2026-07-11',
+            },
+          },
+        ],
+      },
+    },
+  };
+  const problems = validateCanaryEvidence(registry);
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — current live registry evidence union passes', () => {
+  const raw = fs.readFileSync(path.join(REPO_CONFIG, 'provider-route-registry.json'), 'utf8');
+  const registry = JSON.parse(raw.replace(/,\s*([}\]])/g, '$1'));
+  const problems = validateCanaryEvidence(registry);
+  assert.deepEqual(problems, []);
+});
+
+// ── CHECK I: canonicalization scope + manifest-only absence (Main-requested regressions) ──
+
+test('CHECK I: long-marker text in a card body line still fails content-mismatch', async (t) => {
+  // canonicalizeProjectionText folds the accepted LONG ownership marker down
+  // to SHORT so a legitimately long-form ownership line round-trips clean.
+  // That folding MUST be scoped to the ownership-marker position — if it
+  // instead folds every occurrence of the long-marker substring anywhere in
+  // the file, a corrupted BODY line that happens to carry the marker text
+  // gets silently normalized away and the exact-content gate never fires.
+  // This agent's `notes` field is set to the literal short-marker text so a
+  // legitimate rendered body line reads "**Notes:** <AGENT_MARKER_SHORT>";
+  // mutating only that body occurrence to the long form (leaving the real
+  // ownership line on line 2 untouched) must still trip the content gate.
+  const cat = makeCatalog([
+    makeAgent('alpha', { notes: AGENT_MARKER_SHORT }),
+    makeAgent('beta', { model: 'cline-pass/cline-pass/deepseek-v4-flash', description: 'beta cline-pass', mission: 'beta tasks' }),
+  ]);
+  const f = setupOmpFixture(cat, t);
+  const validate = await loadValidator(f.root);
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  let source = fs.readFileSync(cardPath, 'utf8');
+  const notesLinePrefix = '**Notes:** ';
+  assert.ok(source.includes(`${notesLinePrefix}${AGENT_MARKER_SHORT}`), 'fixture must render the marker text inside the Notes body line');
+  source = source.replace(`${notesLinePrefix}${AGENT_MARKER_SHORT}`, `${notesLinePrefix}${AGENT_MARKER_LONG}`);
+  fs.writeFileSync(cardPath, source, 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-agent-content-mismatch:alpha.md'),
+    `expected omp-agent-content-mismatch:alpha.md — canonicalization must be scoped to the ownership-marker position, not fold every long-marker substring in the file. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: manifest removed from an otherwise complete nonempty projection fails state-missing', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  // Agents + config remain intact; only the manifest is deleted.
+  fs.rmSync(path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json'));
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.some((p) => p.startsWith('omp-state-missing')),
+    `expected omp-state-missing when agents+config exist but the manifest is absent (symmetric with omp-agents-missing/omp-config-missing). Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+// ── CHECK I: malformed-artifact deterministic read errors (Main-requested) ──
+
+test('CHECK I: expected card path replaced with a directory fails read-error, not throw', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const cardPath = path.join(f.root, '.omp', 'agents', 'alpha.md');
+  fs.rmSync(cardPath);
+  fs.mkdirSync(cardPath);
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-agent-read-error:alpha.md'),
+    `expected omp-agent-read-error:alpha.md without a throw. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: config path replaced with a directory fails read-error, not throw', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  fs.rmSync(configPath);
+  fs.mkdirSync(configPath);
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-config-read-error'),
+    `expected omp-config-read-error without a throw. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: manifest path replaced with a directory fails read-error, not throw', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  fs.rmSync(manifestPath);
+  fs.mkdirSync(manifestPath);
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-state-read-error'),
+    `expected omp-state-read-error (split from omp-state-parse-error) without a throw. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: .omp/agents replaced with a regular file fails agents-read-error, not throw', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const agentsDir = path.join(f.root, '.omp', 'agents');
+  fs.rmSync(agentsDir, { recursive: true, force: true });
+  fs.writeFileSync(agentsDir, 'not a directory', 'utf8');
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-agents-read-error'),
+    `expected omp-agents-read-error (separate readdir-level catch) without a throw. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+// ── CHECK J: corroborated canary evidence — agentId/ompSessionId/date (F1) ─
+
+function makeCorroboratedRoute(overrides = {}) {
+  return {
+    id: 'synth.omp',
+    provider: 'synth-co',
+    surface: 'omp-native',
+    model: 'synth-code/Synth-1',
+    agentId: 'synth-agent',
+    status: 'canary-proven',
+    source: 'omp-task-completion',
+    canaryEvidence: {
+      primaryRun: { runId: 'run-a', ompSessionId: 'session-a', agentId: 'synth-agent', resolvedModel: 'synth-code/Synth-1', result: 'completed' },
+      corroboratingRun: { runId: 'run-b', ompSessionId: 'session-b', agentId: 'synth-agent', resolvedModel: 'synth-code/Synth-1', result: 'completed' },
+      observed: '2026-07-11',
+    },
+    ...overrides,
+  };
+}
+
+function registryOfRoute(route) {
+  return { modelIdentities: { synth: { role: 'frontier-worker', routes: [route] } } };
+}
+
+test('CHECK J: canary evidence — valid corroborated evidence with agentId/ompSessionId/date passes', () => {
+  const problems = validateCanaryEvidence(registryOfRoute(makeCorroboratedRoute()));
+  assert.deepEqual(problems, []);
+});
+
+test('CHECK J: canary evidence — corroborated evidence with an impossible observed date fails', () => {
+  const route = makeCorroboratedRoute();
+  route.canaryEvidence.observed = '2026-02-31'; // February never has 31 days
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — corroborated evidence with a non-date-shaped observed fails', () => {
+  const route = makeCorroboratedRoute();
+  route.canaryEvidence.observed = 'yesterday';
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — corroborated evidence with duplicate ompSessionId across runs fails', () => {
+  const route = makeCorroboratedRoute();
+  route.canaryEvidence.corroboratingRun.ompSessionId = route.canaryEvidence.primaryRun.ompSessionId;
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — corroborated evidence with a missing per-run agentId fails', () => {
+  const route = makeCorroboratedRoute();
+  delete route.canaryEvidence.primaryRun.agentId;
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — corroborated evidence with a foreign per-run agentId fails', () => {
+  const route = makeCorroboratedRoute();
+  route.canaryEvidence.corroboratingRun.agentId = 'someone-elses-agent';
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+test('CHECK J: canary evidence — route missing agentId fails regardless of otherwise-valid evidence', () => {
+  const route = makeCorroboratedRoute();
+  delete route.agentId;
+  const problems = validateCanaryEvidence(registryOfRoute(route));
+  assert.deepEqual(problems, ['provider-route-canary-evidence-invalid:synth-code/Synth-1']);
+});
+
+// ── CHECK I: manifest byte-exact drift gate (F2) ───────────────────────────
+
+test('CHECK I: manifest reordered but semantically identical fails content-mismatch (byte-exact contract)', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  // Reorder every card's own keys and the manifest's top-level keys without
+  // changing a single value — semantically identical, byte-different from
+  // the generator's own renderProjectionManifest output.
+  const reorderedCards = manifest.cards.map((card) => {
+    const reordered = {};
+    for (const key of Object.keys(card).reverse()) reordered[key] = card[key];
+    return reordered;
+  });
+  const reorderedManifest = {
+    schemaVersion: manifest.schemaVersion,
+    _provenance: manifest._provenance,
+    generated: manifest.generated,
+    source: manifest.source,
+    projected: manifest.projected,
+    disabled: manifest.disabled,
+    executable: manifest.executable,
+    cards: reorderedCards,
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(reorderedManifest, null, 2) + '\n', 'utf8');
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, ['omp-state-content-mismatch']);
+});
+
+// ── CHECK I: symlink safety — unsafe-path gates (F3) ───────────────────────
+
+test('CHECK I: .omp/agents symlinked to an external byte-identical directory fails unsafe-path, not followed', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+
+  const externalDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omp-external-agents-'));
+  t.after(() => fs.rmSync(externalDir, { recursive: true, force: true }));
+  const agentsDir = path.join(f.root, '.omp', 'agents');
+  for (const filename of fs.readdirSync(agentsDir)) {
+    fs.copyFileSync(path.join(agentsDir, filename), path.join(externalDir, filename));
+  }
+  fs.rmSync(agentsDir, { recursive: true, force: true });
+  fs.symlinkSync(externalDir, agentsDir);
+
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-agents-unsafe-path'),
+    `expected omp-agents-unsafe-path without following the symlink. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: config.yml symlinked to an external byte-identical file fails unsafe-path, not followed', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+
+  const externalDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omp-external-config-'));
+  t.after(() => fs.rmSync(externalDir, { recursive: true, force: true }));
+  const configPath = path.join(f.root, '.omp', 'config.yml');
+  const externalConfig = path.join(externalDir, 'config.yml');
+  fs.copyFileSync(configPath, externalConfig);
+  fs.rmSync(configPath);
+  fs.symlinkSync(externalConfig, configPath);
+
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-config-unsafe-path'),
+    `expected omp-config-unsafe-path without following the symlink. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+test('CHECK I: manifest symlinked to an external byte-identical file fails unsafe-path, not followed', async (t) => {
+  const f = setupOmpFixture(CLEAN_CATALOG, t);
+  const validate = await loadValidator(f.root);
+
+  const externalDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omp-external-manifest-'));
+  t.after(() => fs.rmSync(externalDir, { recursive: true, force: true }));
+  const manifestPath = path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json');
+  const externalManifest = path.join(externalDir, 'mure-omp-projection.json');
+  fs.copyFileSync(manifestPath, externalManifest);
+  fs.rmSync(manifestPath);
+  fs.symlinkSync(externalManifest, manifestPath);
+
+  const problems = validate(f.catalog);
+  assert.ok(
+    problems.includes('omp-state-unsafe-path'),
+    `expected omp-state-unsafe-path without following the symlink. Got: ${JSON.stringify(problems)}`,
+  );
+});
+
+// ── CHECK I: catalog.generated empty-string producer/consumer round-trip (F4) ──
+
+test('CHECK I: catalog.generated empty string round-trips clean', async (t) => {
+  const cat = { ...CLEAN_CATALOG, generated: '' };
+  const f = setupOmpFixture(cat, t, { skipProjection: true });
+  const projection = buildOmpProjection(f.catalog);
+  for (const card of projection.cards) {
+    fs.writeFileSync(path.join(f.root, '.omp', 'agents', `${card.filename}.md`), renderOmpAgent(card), 'utf8');
+  }
+  fs.writeFileSync(path.join(f.root, '.omp', 'config.yml'), renderProjectConfig(projection), 'utf8');
+  fs.writeFileSync(
+    path.join(f.root, '_SYSTEM', 'state', 'mure-omp-projection.json'),
+    renderProjectionManifest(projection, f.catalog.generated),
+    'utf8',
+  );
+  const validate = await loadValidator(f.root);
+  const problems = validate(f.catalog);
+  assert.deepEqual(problems, []);
 });

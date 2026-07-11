@@ -17,7 +17,6 @@
     "ollama-cloud/deepseek-v4-pro:cloud": "ollama-cloud/deepseek-v4-pro:cloud",
     "ollama-cloud/kimi-k2.7-code:cloud": "ollama-cloud/kimi-k2.7-code:cloud",
     "ollama-cloud/nemotron-3-ultra:cloud": "ollama-cloud/nemotron-3-ultra:cloud",
-    "ollama-cloud/minimax-m3:cloud": "ollama-cloud/minimax-m3:cloud",
     "ollama-cloud/qwen3.5:cloud": "ollama-cloud/qwen3.5:cloud",
     "ollama-cloud/gemma4:31b-cloud": "ollama-cloud/gemma4:31b-cloud",
     "cline-pass/cline-pass/deepseek-v4-flash": "cline-pass/cline-pass/deepseek-v4-flash",
@@ -255,7 +254,7 @@
       "name": "mure-envoy",
       "lane": "operations",
       "description": "Task intake / requirement decoder. Decodes Marcel's brain-dump into a clean spec and goal tree for the helmsman. Unlike yuri (full session spine) or scout (broad recon), envoy is a fast read-only decoder that surfaces hidden constraints and ranks intents. Dispatch on raw/unstructured input before helmsman takes over.",
-      "model": "ollama-cloud/minimax-m3:cloud",
+      "model": "minimax-portal/MiniMax-M3",
       "thinkingLevel": "low",
       "tools": [
         "read",
@@ -385,7 +384,7 @@
       "name": "mure-scout",
       "lane": "research",
       "description": "MURE Scout (research) — local-first + online researcher. Sweeps the YURI corpus (FTS5, circuitry graph, GitNexus) first, then escalates to cited online sources; synthesizes findings into research artifacts. Dispatch when you need grounded, cited reconnaissance before any build or decision.",
-      "model": "ollama-cloud/minimax-m3:cloud",
+      "model": "minimax-portal/MiniMax-M3",
       "thinkingLevel": "low",
       "tools": [
         "read",
@@ -1597,7 +1596,7 @@
       "name": "mure-chronicler",
       "lane": "knowledge",
       "description": "The system's narrative and procedural historian. Transforms complex session traces and technical evolutions into durable, structured documentation. Dispatched for memory promotion, post-mortems, and turning raw project momentum into readable context.",
-      "model": "ollama-cloud/minimax-m3:cloud",
+      "model": "minimax-portal/MiniMax-M3",
       "thinkingLevel": "medium",
       "tools": [
         "read",

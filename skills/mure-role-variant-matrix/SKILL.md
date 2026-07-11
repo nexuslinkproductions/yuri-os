@@ -13,7 +13,7 @@ One MURE role, several model variants — each variant tuned to a specific model
 
 ## Schema
 
-A role entry in `.openclaw/agents/<role>.md` gains a `variants:` list. Repo-local `.omp/agents/` is retired and is not a MURE source. Each variant:
+The authoritative source is `.openclaw/mure-agent-catalog.json` — every role entry and its `variants:` list lives there. `.openclaw/agents/` is a catalog-generated projection for OpenClaw-native config consumption. Repo-local `.omp/agents/` is a deterministic generated projection for OMP discovery, never hand-edited. Each variant:
 
 ```yaml
 variants:
@@ -51,6 +51,10 @@ The role's top-level `model:`, `thinkingLevel:`, `tools:` fields remain for back
 
 If `variants` is absent, MURE falls back to the legacy single-binding (`model:` + `thinkingLevel:` + `tools:`). Existing single-model roles keep working without modification.
 
+### Variant frontmatter (schema preservation)
+
+A variant's ID, model binding, thinking level, tools, and token budget are core control fields — these appear in variant frontmatter (`id`, `model`, `thinkingLevel`, `tools`, `max_tokens`, `systemSections`, `eligibilityFlags`, `costTier`, `quota`). The role's top-level `description` is preserved across all variants; it captures the role's invariant mission and appears inherited in each variant. The explanatory tuning note — why this variant exists, what model behavior it optimizes for, how it differs from the base role — lives in body documentation, not in frontmatter. Never rewrite a role's description to document a single variant's tuning; that belongs in the body and the variant's field choices.
+
 ## Per-variant fields (full set)
 
 | Field | Type | Required | Notes |
@@ -69,40 +73,88 @@ If `variants` is absent, MURE falls back to the legacy single-binding (`model:` 
 reasoning visibility (`on` / `off` / `stream`); effort belongs in
 `thinkingLevel` and projects to `agents.list[].thinkingDefault`.
 
-## Native OpenClaw projection
+## Projections
 
-The catalog remains the role × variant authority, while OpenClaw supplies the
-execution primitives:
+### OpenClaw native
 
-- `agents.list[]` projects the stable role identities and their baseline model/fallbacks.
+The catalog is the role × variant authority; OpenClaw supplies execution primitives:
+
+- `agents.list[]` projects stable role identities and their baseline model/fallbacks.
 - `sessions_spawn({agentId, model, thinking})` selects a configured role and an
   explicit variant model for one run.
 - `subagents.allowAgents` controls which configured role identities can be targeted.
 - Each target `agentId` resolves auth from its own `agentDir`; static API-key/token
   profiles may be seeded, but OAuth refresh credentials must not be copied between
-  role stores. OpenAI OAuth model overrides therefore run under the authenticated
+  role stores. OpenAI OAuth model overrides run under the authenticated
   Yuri agent scope unless that target role has completed its own OAuth login.
-- Nested `variants[]` are routing metadata, not automatically separate native
-  agents. Do not multiply dashboard agents merely to represent every model binding.
+- **OpenClaw-specific:** nested `variants[]` are routing metadata, not automatically
+  separate native agents. Do not multiply OpenClaw dashboard agents merely to
+  represent every model binding. OpenClaw is one projection surface, not the only
+  runtime.
 
-This gives MURE task/session-level sparse expert routing. It does **not** turn
-OpenClaw into a token-level neural MoE. Candidate scoring, policy gates, quota
-features, calibration, and the MLP remain MURE logic; native OpenClaw performs
-the selected dispatch and lifecycle management.
+### OMP projection
 
-## GPT-5.6 pilot (Sol first)
+OMP projects each variant to an explicit agent card. `.omp/agents/` is generated
+deterministically from the catalog — every catalog variant produces a projected
+OMP agent card for discovery. This is the opposite of the OpenClaw model: OMP
+variants ARE separate agent cards because OMP's dispatch model requires
+one-card-per-binding. Being projected is not the same as being executable;
+only `canary-proven` cards with passing latest canary are dispatch-eligible (see Provider route eligibility
+below). Never edit `.omp/agents/` by hand; regenerate from the catalog on seed.
 
-Current rollout is deliberately asymmetric:
+MURE task/session-level sparse expert routing remains catalog-driven. It does
+**not** turn any runtime into a token-level neural MoE. Candidate scoring, policy
+gates, quota features, calibration, and the MLP remain MURE logic; the runtime
+performs the selected dispatch and lifecycle management.
+## Provider route eligibility
 
-- `openai/gpt-5.6-sol` is the Yuri main-input pilot and an explicit, non-automatic
-  variant for Envoy, Helmsman, Scout, Engineer, Architect, Adjudicator, and Advisor.
-- Only Yuri is promoted to Sol primary. Opus 4.8 remains the temporary Yuri fallback.
-- Non-Yuri Sol variants carry `sol-pilot` plus `require-explicit-call`; they do not
-  enter automatic fallback chains until live outcome, auth, and quota gates pass.
-- Security-critical Adjudicator/Advisor work does not move to Sol during the pilot.
-- Terra and Luna may be registered in the provider catalog, but remain unseeded
-  until reproducible native inference and role-fit benchmarks pass. Availability in
-  `models list` is not evidence of reliable runtime access.
+The MURE agent catalog is the sole authority for role-variant bindings.
+Catalog presence alone is insufficient for dispatch eligibility. Every variant's
+model binding must satisfy both conditions:
+
+1. **Admission history**: Resolvable to a `canary-proven` entry in
+   `_SYSTEM/config/provider-route-registry.json`.
+2. **Live gate**: The variant's latest canary must have passed; no later failed canary
+   exists. A failed canary (quota exhaustion, provider drift, API change) blocks that
+   route immediately until re-canary succeeds.
+
+Acceptable evidence is exactly one of:
+- Exact source-route match (e.g. `zai/glm-5.2`) in the registry with `canary-proven`
+  status and passing latest canary.
+- Normalized selector match (provider-scoped shorthand like `minimax-code` →
+  `minimax-code/MiniMax-M3`) backed by `canary-proven` registry evidence and passing
+  latest canary.
+
+Missing admission history OR latest canary failure → route fails closed.
+
+Routes with `blocked-schema`, `unresolved`, or `owner-excluded` status are known
+disqualifications — they fail closed regardless of catalog or model-list appearance.
+
+### Discoverability vs. executability
+
+All catalog cards are projected — every variant and role binding appears in generated
+`.omp/agents/` for discovery. But being projected is not the same as being executable.
+Unproven, blocked, and excluded cards are listed in the generated project config's
+`task.disabledAgents` and must never inherit the parent or default model binding.
+Only cards meeting Provider route eligibility criteria (canary-proven admission history and passing latest canary) are dispatch-eligible.
+
+### Card-level stale-session backstop
+
+`task.disabledAgents` is the primary steady-state gate after session startup.
+`disabled/mure-route-unavailable` is the card-level stale-session backstop
+that blocks parent/default model inheritance. Project-config changes require a
+fresh OMP session — there is no hot reload; do not rely on settings-layer
+enforcement until the session has restarted.
+
+The MLP and fallback chain skip ineligible variants automatically.
+
+## Provider status and pilot rollout
+
+**Sol (`openai/gpt-5.6-sol`)** is catalogued but currently unproven — no successful exact OMP canary exists. It was Yuri's experimental variant and carried `sol-pilot` flag; later hardening tasks targeted different routes. Sol remains blocked until a fresh canary succeeds and meets dispatch eligibility criteria.
+
+**Terra (`openai/gpt-5.6-terra`)** is a normalization example only. Currently quota-blocked after provider drift; routes configured for Terra dispatch will fail closed. Terra re-proves only when liveness is confirmed by passing canary.
+
+**Fallback defaults** are seeded from routes with `canary-proven` admission history, subject to dispatch eligibility criteria (see Provider route eligibility), depending on role and cost tier. No role is currently promoted to Sol or Terra dispatch until their latest canaries pass.
 
 ## Cost tier semantics (binding)
 

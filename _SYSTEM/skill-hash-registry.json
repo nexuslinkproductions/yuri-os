@@ -53,7 +53,7 @@
   },
   "claude-codex-capability-bridge": {
     "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
-    "hash": "3a0435f750d5a7fa"
+    "hash": "7cd69a7f729db192"
   },
   "claude-output-lane": {
     "source_path": "skills/claude-output-lane/SKILL.md",
@@ -65,7 +65,7 @@
   },
   "codex-plugin-control-plane": {
     "source_path": "skills/codex-plugin-control-plane/SKILL.md",
-    "hash": "6ac4991817faf246"
+    "hash": "52008e79e728c58a"
   },
   "compact-optimizer": {
     "source_path": "skills/compact-optimizer/SKILL.md",
@@ -217,7 +217,7 @@
   },
   "mure-role-variant-matrix": {
     "source_path": "skills/mure-role-variant-matrix/SKILL.md",
-    "hash": "61f215d33bdd5a50"
+    "hash": "d3db09da8918ce81"
   },
   "nen-phase-detector": {
     "source_path": "skills/nen-phase-detector/SKILL.md",
@@ -1691,8 +1691,12 @@
     "source_path": ".claude/skills/cyber-verifying-build-provenance-with-slsa-sigstore/SKILL.md",
     "hash": "c164a87a35a6149d"
   },
-  "yuri-control-plane-first": {
-    "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",
-    "hash": "65094e924d65bf17"
+  "mure-native-dispatch-loop": {
+    "source_path": ".claude/skills/mure-native-dispatch-loop/SKILL.md",
+    "hash": "3c8184a04a44657a"
+  },
+  "yuri-xref-preflight": {
+    "source_path": ".codex/skills/yuri-xref-preflight/SKILL.md",
+    "hash": "c974e81803fa8dc7"
   }
 }
