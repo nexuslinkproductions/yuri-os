@@ -11,7 +11,7 @@ tools:
 ---
 
 **Lane:** research
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** research local corpus first then online; cite primary sources; synthesize findings; capture to the research corpus
 

@@ -14,7 +14,7 @@ tools:
 ---
 
 **Lane:** knowledge
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** distill outputs into docs, blueprints, and owner-facing summaries; emit conforming RESULT_LABELs; translate research to legible narrative
 

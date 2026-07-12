@@ -37,7 +37,7 @@ test('plans separate immediate, availability, and quality queues', async () => {
   assert.equal(plan.routes[0].route.classification.riskClass, 'R2');
   assert.equal(plan.queues.producers[0].model, 'zai/glm-5.2');
   assert.equal(plan.queues.verifiers[0].model, 'anthropic/claude-sonnet-5');
-  assert.ok(plan.queues.availabilityFallbacks.some((entry) => entry.model === 'minimax-portal/MiniMax-M3'));
+  assert.ok(plan.queues.availabilityFallbacks.some((entry) => entry.model === 'minimax-code/MiniMax-M3'));
   assert.ok(plan.queues.qualityEscalations.some((entry) => entry.model === 'anthropic/claude-opus-4-8'));
   assert.notDeepEqual(plan.queues.availabilityFallbacks, plan.queues.qualityEscalations);
   assert.equal(plan.summary.initialReadyTasks, 1);
@@ -177,14 +177,14 @@ test('planner and executor compose across an availability fallback and verifier 
     spawn: async (request) => {
       calls.push({ model: request.model, routeKind: request.routeKind, upstream: request.upstream });
       if (request.purpose === 'verifier') {
-        assert.equal(request.upstream.producer.model, 'minimax-portal/MiniMax-M3');
+        assert.equal(request.upstream.producer.model, 'minimax-code/MiniMax-M3');
         return { ok: true, verdict: 'pass', output: { verdict: 'pass' } };
       }
       return { ok: true, output: 'frontier-output' };
     },
   });
 
-  assert.equal(plan.queues.producers[0].model, 'minimax-portal/MiniMax-M3');
+  assert.equal(plan.queues.producers[0].model, 'minimax-code/MiniMax-M3');
   assert.equal(plan.routes[0].route.selection, 'availability-fallback');
   assert.equal(execution.status, 'passed');
   assert.deepEqual(calls.map((call) => call.routeKind), ['availability-fallback', 'verification']);

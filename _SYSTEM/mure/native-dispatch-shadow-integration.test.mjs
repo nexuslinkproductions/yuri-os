@@ -27,7 +27,7 @@ const baseTicket = {
 // WORKER_BINDINGS-consistent model → agent pairs (sol-moe-native-dispatch.mjs), so fixtures
 // mirror what the live reducer actually dispatches.
 const PRODUCER_MODEL = 'minimax-portal/MiniMax-M3';
-const PRODUCER_AGENT = 'mure-synthesist';
+const PRODUCER_AGENT = 'mure-synthesist-m3';
 const VERIFIER_MODEL = 'anthropic/claude-sonnet-5';
 const VERIFIER_AGENT = 'mure-calibrator-sonnet5';
 const FALLBACK_MODEL = 'deepseek/deepseek-v4-flash';

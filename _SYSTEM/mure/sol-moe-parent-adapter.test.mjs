@@ -15,7 +15,7 @@ import { parseOmpTranscript } from './omp-task-adapter.mjs';
 
 // --- helpers ---
 
-function transcript(model = 'minimax-portal/MiniMax-M3') {
+function transcript(model = 'minimax-code/MiniMax-M3') {
   return [
     JSON.stringify({ type: 'session', sessionId: 'sess-1' }),
     JSON.stringify({ type: 'model_change', model }),
@@ -29,13 +29,13 @@ function transcriptEvidence(model, jobId) {
 }
 
 const modelToAgent = {
-  'minimax-portal/MiniMax-M3': 'mure-synthesist',
+  'minimax-code/MiniMax-M3': 'mure-synthesist-m3',
   'anthropic/claude-sonnet-5': 'mure-calibrator-sonnet5',
 };
 
 function entry(taskId, purpose, model = null) {
   const defaultModels = {
-    producer: 'minimax-portal/MiniMax-M3',
+    producer: 'minimax-code/MiniMax-M3',
     verifier: 'anthropic/claude-sonnet-5',
     'availability-fallback': 'anthropic/claude-sonnet-5',
   };
@@ -99,7 +99,7 @@ function receiptFor(action, id) {
 }
 
 function spawnResult(base, model) {
-  const selectedModel = model || 'minimax-portal/MiniMax-M3';
+  const selectedModel = model || 'minimax-code/MiniMax-M3';
   return {
     id: base.id,
     agent: modelToAgent[selectedModel] || 'mure-producer',
@@ -172,7 +172,7 @@ test('applyOmpCompletion resolves taskId/entryId/purpose from state by jobId', (
   const applied = applyOmpCompletion(state, shadow,
     spawnResult({ id: action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     jobId,
-    transcriptEvidence('minimax-portal/MiniMax-M3', jobId),
+    transcriptEvidence('minimax-code/MiniMax-M3', jobId),
     producerEvidence);
 
   assert.equal(applied.event.taskId, 'task-a');
@@ -203,7 +203,7 @@ test('applyOmpCompletion rejects on agent mismatch', () => {
     status: 'completed',
     duration: 100,
     output: '{}',
-  }, jobId, transcriptEvidence('minimax-portal/MiniMax-M3', jobId), producerEvidence), /result agent/);
+  }, jobId, transcriptEvidence('minimax-code/MiniMax-M3', jobId), producerEvidence), /result agent/);
 });
 
 test('applyOmpCompletion rejects on emitted task id mismatch', () => {
@@ -214,7 +214,7 @@ test('applyOmpCompletion rejects on emitted task id mismatch', () => {
     status: 'completed',
     duration: 100,
     output: '{}',
-  }, jobId, transcriptEvidence('minimax-portal/MiniMax-M3', jobId), producerEvidence), /result id/);
+  }, jobId, transcriptEvidence('minimax-code/MiniMax-M3', jobId), producerEvidence), /result id/);
 });
 
 test('applyOmpCompletion drives producer→verifier→passed loop', () => {
@@ -222,7 +222,7 @@ test('applyOmpCompletion drives producer→verifier→passed loop', () => {
   const producerApplied = applyOmpCompletion(first.state, first.shadow,
     spawnResult({ id: first.action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     first.jobId,
-    transcriptEvidence('minimax-portal/MiniMax-M3', first.jobId),
+    transcriptEvidence('minimax-code/MiniMax-M3', first.jobId),
     producerEvidence);
 
   assert.equal(producerApplied.action.type, 'omp-task-spawn');
@@ -257,7 +257,7 @@ test('applyOmpCompletion drives producer→verifier→passed loop', () => {
 
   const terminal = extractTerminalTaskResult(finalApplied.state, 'task-a');
   assert.equal(terminal.status, 'passed');
-  assert.equal(terminal.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(terminal.producer.model, 'minimax-code/MiniMax-M3');
 });
 
 test('applyOmpCompletion carries verifier pass through to accepted ledger', () => {
@@ -265,7 +265,7 @@ test('applyOmpCompletion carries verifier pass through to accepted ledger', () =
   const producerApplied = applyOmpCompletion(first.state, first.shadow,
     spawnResult({ id: first.action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     first.jobId,
-    transcriptEvidence('minimax-portal/MiniMax-M3', first.jobId),
+    transcriptEvidence('minimax-code/MiniMax-M3', first.jobId),
     producerEvidence);
 
   assert.equal(producerApplied.shadow.awaiting.purpose, 'verifier');
@@ -297,7 +297,7 @@ test('applyOmpCompletion carries verifier pass through to accepted ledger', () =
 
   const terminal = extractTerminalTaskResult(finalApplied.state, 'task-a');
   assert.equal(terminal.status, 'passed');
-  assert.equal(terminal.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(terminal.producer.model, 'minimax-code/MiniMax-M3');
 });
 
 // --- extractTerminalTaskResult / extractTerminalTaskResults ---
@@ -318,7 +318,7 @@ test('extractTerminalTaskResult surfaces failure on fail-loud', () => {
   const applied = applyOmpCompletion(state, shadow,
     spawnResult({ id: action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     jobId,
-    transcriptEvidence('anthropic/claude-sonnet-5', jobId),  // model doesn't match entry (minimax-portal/MiniMax-M3)
+    transcriptEvidence('anthropic/claude-sonnet-5', jobId),  // model doesn't match entry (minimax-code/MiniMax-M3)
     producerEvidence);
 
   assert.equal(applied.state.tasks['task-a'].status, 'fail-loud');

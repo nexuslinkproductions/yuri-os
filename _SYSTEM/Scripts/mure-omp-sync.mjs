@@ -642,7 +642,11 @@ export function renderProjectConfig(projection) {
   lines.push(CONFIG_MARKER_SHORT);
   lines.push('');
   lines.push('task:');
+  lines.push('  maxConcurrency: 32');
   lines.push('  maxRecursionDepth: 2');
+  lines.push('  isolation:');
+  lines.push('    mode: auto');
+  lines.push('    merge: patch');
   lines.push('');
 
   if (projection.disabledCards.length > 0) {
@@ -657,7 +661,13 @@ export function renderProjectConfig(projection) {
   }
 
   lines.push('modelRoles:');
-  lines.push('  smol: anthropic/claude-haiku-4-5');
+  lines.push('  smol: ollama-cloud/deepseek-v4-flash');
+  lines.push('  task: minimax-code/MiniMax-M3');
+  lines.push('  plan: zai/glm-5.2');
+  lines.push('  commit: zai/glm-5.2');
+  lines.push('  designer: zai/glm-5.2');
+  lines.push('  vision: openai-codex/gpt-5.6-luna');
+  lines.push('  advisor: anthropic/claude-fable-5');
   lines.push('  slow: anthropic/claude-opus-4-8');
   lines.push('');
 

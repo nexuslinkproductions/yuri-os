@@ -14,7 +14,7 @@ tools:
 ---
 
 **Lane:** engineering
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** implement features; write the primary code for a scoped sub-task; build behind disarmed flags
 

@@ -11,7 +11,7 @@ tools:
   - edit
   - write
   - bash
-spawns: "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor"
+spawns: "mure-helmsman, mure-helmsman-glm, mure-scout-c25, mure-sentinel-glm52, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor"
 task: true
 ---
 

@@ -72,6 +72,6 @@ test('default availability mask routes around GLM without probing it', async () 
   const result = await runSolMoeTask(architectureTask, {
     timestamp: 'FIXED',
   });
-  assert.equal(result.nextAction.args.tasks[0].agent, 'mure-synthesist');
+  assert.equal(result.nextAction.args.tasks[0].agent, 'mure-synthesist-m3');
   assert.equal(result.nextAction.routeKind, 'availability-fallback');
 });

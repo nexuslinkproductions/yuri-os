@@ -22,7 +22,7 @@ const TERMINAL_STATUSES = new Set(['completed', 'failed', 'cancelled', 'timeout'
 const TRANSCRIPT_EVENT_TYPES = Object.freeze(new Set(['session', 'model_change', 'thinking_level_change', 'yield']));
 const VALID_THINKING_LEVELS = Object.freeze(new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive', 'max']));
 const VALID_AGENT_IDS = Object.freeze(new Set([
-  'mure-synthesist', 'mure-architect', 'mure-engineer', 'mure-adjudicator',
+  'mure-synthesist', 'mure-synthesist-m3', 'mure-architect', 'mure-engineer', 'mure-adjudicator',
   'mure-sentinel', 'mure-calibrator-sonnet5', 'mure-scout', 'mure-artificer',
   'deepseek-flash', 'mure-yuri',
   // Evidence-only canary-bootstrap agent cards (WORKER_BINDINGS in
@@ -234,7 +234,7 @@ export function deterministicOmpTaskId(entry) {
 // --- private helpers ---
 
 function normalizeSessionEvent(parsed, lineNum) {
-  const sessionId = nonEmpty(parsed.sessionId, `transcript line ${lineNum} sessionId`);
+  const sessionId = nonEmpty(parsed.sessionId ?? parsed.id, `transcript line ${lineNum} sessionId`);
   return Object.freeze({ sessionId });
 }
 
@@ -247,7 +247,7 @@ function normalizeModelChangeEvent(parsed, lineNum) {
 }
 
 function normalizeThinkingLevelChangeEvent(parsed, lineNum) {
-  const level = nonEmpty(parsed.level, `transcript line ${lineNum} level`);
+  const level = nonEmpty(parsed.level ?? parsed.thinkingLevel, `transcript line ${lineNum} level`);
   if (!VALID_THINKING_LEVELS.has(level)) {
     throw new TypeError(`transcript line ${lineNum} thinking level is invalid: ${level}`);
   }

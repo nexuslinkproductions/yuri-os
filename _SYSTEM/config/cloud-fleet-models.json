@@ -3,7 +3,7 @@
     "name": "cloud-fleet-models",
     "version": "2.1.0",
     "updated": "2026-07-09",
-    "policy": "CLOUD-ONLY with explicit substrate roster. Direct DeepSeek API ACTIVE (re-instated 2026-07-09; daily cap binding $1.25). Ollama Cloud + Cursor kept on the seam but not actively routed. Codex Pro skipped until owner decides. Fable-5 temporarily excluded (limited access till 2026-07-12). M3 native via minimax-portal binding (Ultra tier). Orchestrator uses Anthropic Claude weekly pool first, falls back to GLM-5.2 (Z.ai) when capped.",
+    "policy": "CLOUD-ONLY with explicit substrate roster. Direct DeepSeek API ACTIVE (re-instated 2026-07-09; daily cap binding $1.25). Ollama Cloud + Cursor kept on the seam but not actively routed. Codex Pro skipped until owner decides. Haiku 4.5 RETIRED 2026-07-12 (MiniMax/GLM/Ollama primary for non-security work). Fable-5 evidence-only bootstrap live; normal route fail-closed until a live canary promotes it. M3 native via canary-proven minimax-code binding (Ultra tier). Orchestrator uses Anthropic Claude weekly pool first, falls back to GLM-5.2 (Z.ai) when capped. Designer role is GLM-5.2, NOT Composer; Composer 2.5 is cheap coding/research/bulk + low-risk fallbacks only.",
     "authority": "Advisory routing map for opus-fleet + MURE. Governance + arm flags always win."
   },
   "orchestrator": {
@@ -197,11 +197,11 @@
     },
     "minimax_portal": {
       "description": "MiniMax Portal native binding for M3 (Ultra subscription tier); 1M context + image + video.",
-      "binding": "minimax-portal/MiniMax-M3",
+      "binding": "minimax-code/MiniMax-M3",
       "armEnv": "YURI_MINIMAX_PORTAL",
       "tiers": {
         "m3": {
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "use": "generalist + cross-modal synthesis + heavy-advisor Tier 2 fallback",
           "ctx": "1M",
           "quota": "minimax-ultra"
@@ -211,10 +211,10 @@
     "mure_advisor": {
       "description": "mure-advisor tiered per-turn watchdog substrate (operator-driven).",
       "eligibility": {
-        "watcher": ["anthropic/claude-sonnet-5 (prime)", "anthropic/claude-haiku-4-5 (recon/cheap)", "deepseek-v4-flash:direct (capped)"],
-        "heavy": ["anthropic/claude-opus-4-8 (anchor + security-only)", "deepseek-v4-pro:direct (capped)", "zai/glm-5.2 (Z.ai quota)", "minimax-portal/MiniMax-M3 (Ultra)"],
-        "fallbackChain": ["opus-4-8", "deepseek-v4-pro:direct", "zai/glm-5.2", "minimax-portal/MiniMax-M3"],
-        "excluded": ["anthropic/claude-haiku-4-5 at heavy tier (recon/cheap only)", "anthropic/claude-fable-5 (temporarily excluded till 2026-07-12)"]
+        "watcher": ["anthropic/claude-sonnet-5 (prime)", "deepseek-v4-flash:direct (recon/cheap, capped)"],
+        "heavy": ["anthropic/claude-opus-4-8 (anchor + security-only)", "deepseek-v4-pro:direct (capped)", "zai/glm-5.2 (Z.ai quota)", "minimax-code/MiniMax-M3 (Ultra)"],
+        "fallbackChain": ["opus-4-8", "deepseek-v4-pro:direct", "zai/glm-5.2", "minimax-code/MiniMax-M3"],
+        "excluded": ["anthropic/claude-fable-5 normal route (fail-closed until canary; evidence-only bootstrap is the sole executable Fable path)"]
       },
       "schema": "_SYSTEM/research/advisor-note-schema-2026-07-09.md"
     }
@@ -234,7 +234,8 @@
     "haiku": {
       "substrate": "omp_task",
       "agent": "sonic",
-      "role": "Mechanical verifier"
+      "role": "RETIRED 2026-07-12 — Haiku 4.5 removed from active roles; legacy haiku nativeSpecs redirect to DeepSeek Flash for recon/cheap work",
+      "redirect": "deepseek-v4-flash"
     },
     "opus": {
       "substrate": "glm_fleet",

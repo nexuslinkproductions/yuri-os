@@ -84,7 +84,7 @@ function makeAgent(name, overrides = {}) {
     name,
     lane: 'worker',
     description: `${name} executes delegated tasks`,
-    model: 'anthropic/claude-haiku-4-5',
+    model: 'anthropic/claude-sonnet-5',
     thinkingLevel: 'medium',
     tools: ['read', 'grep', 'glob', 'bash'],
     capabilities: ['execution', 'analysis'],
@@ -615,7 +615,7 @@ test('CHECK I: config modelRoles value drift fails content-mismatch', async (t) 
   const validate = await loadValidator(f.root);
   const configPath = path.join(f.root, '.omp', 'config.yml');
   let source = fs.readFileSync(configPath, 'utf8');
-  source = source.replace(/^  smol: anthropic\/claude-haiku-4-5$/m, '  smol: anthropic/claude-sonnet-5');
+  source = source.replace(/^  smol: ollama-cloud\/deepseek-v4-flash$/m, '  smol: anthropic/claude-sonnet-5');
   fs.writeFileSync(configPath, source, 'utf8');
   const problems = validate(f.catalog);
   assert.deepEqual(problems, ['omp-config-content-mismatch']);

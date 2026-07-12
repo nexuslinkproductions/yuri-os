@@ -9,6 +9,7 @@
 
 import { createHash } from 'node:crypto';
 import { deterministicOmpTaskId, validateOmpJobId } from './omp-task-adapter.mjs';
+import { normalizeSelector } from './omp-model-resolver.mjs';
 
 export const DEFAULT_CWD = '/Users/marcelspatz/YURI-OS-MUSUBI';
 
@@ -19,10 +20,9 @@ const RISK_CLASSES = new Set(['R0', 'R1', 'R2', 'R3']);
 const WORKER_BINDINGS = new Map([
   ['anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5'],
   ['anthropic/claude-opus-4-8', 'mure-sentinel'],
-  ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ['openai/gpt-5.6-terra', 'mure-engineer'],
   ['openai/gpt-5.6-luna', 'mure-adjudicator'],
-  ['minimax-portal/MiniMax-M3', 'mure-synthesist'],
+  ['minimax-code/MiniMax-M3', 'mure-synthesist-m3'],
   ['zai/glm-5.2', 'mure-architect'],
   ['opencode-go/mimo-v2.5', 'mure-artificer'],
   ['deepseek/deepseek-v4-flash', 'deepseek-flash'],
@@ -238,7 +238,7 @@ export function reduceNativeDispatch(state, event = null, options = {}) {
       return fail(next, task, 'MISSING_MODEL_EVIDENCE', 'Successful completion requires model_change transcript evidence.');
     }
     const actualModel = String(event.modelChange.model).trim();
-    if (actualModel !== awaiting.entry.model) {
+    if (normalizeSelector(actualModel) !== normalizeSelector(awaiting.entry.model)) {
       return fail(next, task, 'MODEL_MISMATCH', `Requested ${awaiting.entry.model} but child resolved ${actualModel}.`);
     }
     recordCompletionCalibration(next, task, awaiting, event);
@@ -601,7 +601,7 @@ function providerFamily(entry) {
 function modelProviderFamily(model) {
   const value = String(model || '');
   const provider = value.split('/')[0];
-  if (provider === 'minimax-portal') return 'minimax';
+  if (provider === 'minimax-code' || provider === 'minimax-portal') return 'minimax';
   if (provider === 'opencode-go') return 'mimo';
   if (provider === 'ollama-cloud') return 'ollama';
   if (provider === 'cline-pass') return 'cline';

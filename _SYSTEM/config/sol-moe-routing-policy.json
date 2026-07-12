@@ -46,7 +46,8 @@
       "Sol is never compiled into a native child worker entry — terra and luna are cheap frontier peers and carry real producer volume",
       "cheap models may produce only R0 semantics and R1-R3 evidence",
       "R2 requires an independent frontier verifier",
-      "R3 requires independent Opus 4.8 verification"
+      "R3 requires independent Opus 4.8 verification",
+      "R3 security runs the three-view contract: canary-proven GLM-5.2 produces, Opus 4.8 independently verifies, and the Sol parent seat adjudicates finally; Sol is never a dispatched child"
     ]
   },
   "riskClasses": {
@@ -67,8 +68,8 @@
     },
     {
       "id": "m3",
-      "agentId": "mure-synthesist",
-      "model": "minimax-portal/MiniMax-M3",
+      "agentId": "mure-synthesist-m3",
+      "model": "minimax-code/MiniMax-M3",
       "thinking": "adaptive",
       "tier": "frontier",
       "family": "minimax",
@@ -112,7 +113,7 @@
     },
     {
       "id": "sonnet5",
-      "agentId": "mure-calibrator",
+      "agentId": "mure-calibrator-sonnet5",
       "model": "anthropic/claude-sonnet-5",
       "thinking": "high",
       "tier": "frontier",
@@ -136,6 +137,15 @@
       "tier": "cheap",
       "family": "mimo",
       "specialties": ["breadth", "overflow", "bounded-draft", "extraction"]
+    },
+    {
+      "id": "composer25",
+      "agentId": "composer-fast-c25",
+      "model": "cursor/composer-2.5",
+      "thinking": "medium",
+      "tier": "cheap",
+      "family": "cursor",
+      "specialties": ["coding", "research", "bulk-draft", "extraction"]
     }
   ],
   "taskProfiles": {
@@ -148,7 +158,7 @@
     },
     "breadth": {
       "producer": ["deepseek-flash"],
-      "availabilityFallback": ["mimo25"],
+      "availabilityFallback": ["mimo25", "composer25"],
       "qualityEscalation": ["m3"],
       "verifier": ["sonnet5"]
     },
@@ -160,24 +170,24 @@
       "verifier": ["sonnet5", "opus48", "glm52"]
     },
     "security-implementation": {
-      "producer": ["sonnet5", "m3"],
-      "producerWeights": { "sonnet5": 0.8, "m3": 0.2 },
-      "availabilityFallback": ["terra"],
-      "qualityEscalation": ["m3", "terra"],
+      "producer": ["glm52"],
+      "producerWeights": { "glm52": 1.0 },
+      "availabilityFallback": ["luna"],
+      "qualityEscalation": ["luna"],
       "verifier": ["opus48"]
     },
     "security": {
-      "producer": ["sonnet5", "m3"],
-      "producerWeights": { "sonnet5": 0.75, "m3": 0.25 },
+      "producer": ["glm52"],
+      "producerWeights": { "glm52": 1.0 },
       "availabilityFallback": ["luna"],
-      "qualityEscalation": ["m3", "luna", "sonnet5"],
+      "qualityEscalation": ["luna"],
       "verifier": ["opus48"]
     },
     "governance": {
-      "producer": ["sonnet5", "m3"],
-      "producerWeights": { "sonnet5": 0.8, "m3": 0.2 },
+      "producer": ["glm52"],
+      "producerWeights": { "glm52": 1.0 },
       "availabilityFallback": ["luna"],
-      "qualityEscalation": ["m3", "luna", "sonnet5"],
+      "qualityEscalation": ["luna"],
       "verifier": ["opus48"]
     },
     "architecture": {

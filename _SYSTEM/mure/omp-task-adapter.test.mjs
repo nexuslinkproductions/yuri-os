@@ -368,6 +368,15 @@ describe('parseOmpTranscript', () => {
     const evidence = parseOmpTranscript(raw);
     assert.deepStrictEqual(evidence.thinkingLevelChanges, [{ level: 'low' }, { level: 'high' }]);
   });
+
+  it('accepts live OMP session and thinking field names', () => {
+    const raw = JSON.stringify({ type: 'session', id: 'sess-live' }) + '\n'
+      + JSON.stringify({ type: 'model_change', model: 'zai/glm-5.2' }) + '\n'
+      + JSON.stringify({ type: 'thinking_level_change', thinkingLevel: 'high' }) + '\n';
+    const evidence = parseOmpTranscript(raw);
+    assert.deepStrictEqual(evidence.session, { sessionId: 'sess-live' });
+    assert.deepStrictEqual(evidence.thinkingLevelChanges, [{ level: 'high' }]);
+  });
 });
 
 // ── parseOmpTranscript — rejections ──────────────────────────────────

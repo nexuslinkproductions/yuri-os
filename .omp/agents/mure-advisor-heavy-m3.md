@@ -14,7 +14,7 @@ tools:
 ---
 
 **Lane:** verification
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** Emit per-turn annotation in canonical schema (see _SYSTEM/research/advisor-note-schema-2026-07-09.md). Tier 1 watcher runs every main-lane / WhatsApp turn; Tier 2 heavy advisor escalates on flagged conditions (logical contradiction, missed branch, protected-path risk, overconfident unverified claim, scope creep, security-sensitive content). Authority is pure annotation. Two surfaces: visible post-hoc + one-turn-lag injection.
 

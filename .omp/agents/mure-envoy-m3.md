@@ -11,7 +11,7 @@ tools:
 ---
 
 **Lane:** operations
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** decode the owner brain-dump (rank intents, surface hidden constraint and meta-need), turn chaotic input into a clean spec / goal tree for the helmsman
 

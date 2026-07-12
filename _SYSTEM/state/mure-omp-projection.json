@@ -191,7 +191,7 @@
       "filename": "mure-envoy",
       "sourceAgent": "mure-envoy",
       "sourceVariant": null,
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -227,26 +227,6 @@
       "evidenceAgentId": null
     },
     {
-      "cardName": "mure-envoy-haiku",
-      "filename": "mure-envoy-haiku",
-      "sourceAgent": "mure-envoy",
-      "sourceVariant": "mure-envoy-haiku",
-      "catalogModel": "anthropic/claude-haiku-4-5",
-      "resolvedModel": "anthropic/claude-haiku-4-5",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "low",
-      "tools": [
-        "read",
-        "grep",
-        "glob"
-      ],
-      "spawns": null,
-      "task": false,
-      "evidenceAgentId": "mure-scout-haiku"
-    },
-    {
       "cardName": "mure-envoy-sonnet5",
       "filename": "mure-envoy-sonnet5",
       "sourceAgent": "mure-envoy",
@@ -271,7 +251,7 @@
       "filename": "mure-envoy-m3",
       "sourceAgent": "mure-envoy",
       "sourceVariant": "mure-envoy-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -291,7 +271,7 @@
       "filename": "mure-scout",
       "sourceAgent": "mure-scout",
       "sourceVariant": null,
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -327,26 +307,6 @@
       "evidenceAgentId": null
     },
     {
-      "cardName": "mure-scout-haiku",
-      "filename": "mure-scout-haiku",
-      "sourceAgent": "mure-scout",
-      "sourceVariant": "mure-scout-haiku",
-      "catalogModel": "anthropic/claude-haiku-4-5",
-      "resolvedModel": "anthropic/claude-haiku-4-5",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "low",
-      "tools": [
-        "read",
-        "grep",
-        "glob"
-      ],
-      "spawns": null,
-      "task": false,
-      "evidenceAgentId": "mure-scout-haiku"
-    },
-    {
       "cardName": "mure-scout-sonnet5",
       "filename": "mure-scout-sonnet5",
       "sourceAgent": "mure-scout",
@@ -371,7 +331,7 @@
       "filename": "mure-scout-m3",
       "sourceAgent": "mure-scout",
       "sourceVariant": "mure-scout-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -425,6 +385,26 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": null
+    },
+    {
+      "cardName": "mure-scout-c25",
+      "filename": "mure-scout-c25",
+      "sourceAgent": "mure-scout",
+      "sourceVariant": "mure-scout-c25",
+      "catalogModel": "cursor/composer-2.5",
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
+      "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "spawns": null,
+      "task": false,
+      "evidenceAgentId": "composer-25-bootstrap"
     },
     {
       "cardName": "mure-engineer",
@@ -569,7 +549,7 @@
       "filename": "mure-engineer-m3",
       "sourceAgent": "mure-engineer",
       "sourceVariant": "mure-engineer-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -725,7 +705,7 @@
       "filename": "mure-mechanic-m3",
       "sourceAgent": "mure-mechanic",
       "sourceVariant": "mure-mechanic-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -856,6 +836,29 @@
       "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
+      "cardName": "mure-artificer-c25",
+      "filename": "mure-artificer-c25",
+      "sourceAgent": "mure-artificer",
+      "sourceVariant": "mure-artificer-c25",
+      "catalogModel": "cursor/composer-2.5",
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "edit",
+        "write",
+        "bash"
+      ],
+      "spawns": null,
+      "task": false,
+      "evidenceAgentId": "composer-25-bootstrap"
+    },
+    {
       "cardName": "mure-kernelsmith",
       "filename": "mure-kernelsmith",
       "sourceAgent": "mure-kernelsmith",
@@ -929,7 +932,7 @@
       "filename": "mure-kernelsmith-m3",
       "sourceAgent": "mure-kernelsmith",
       "sourceVariant": "mure-kernelsmith-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -1038,6 +1041,29 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": "mure-yuri-opus48"
+    },
+    {
+      "cardName": "mure-sentinel-glm52",
+      "filename": "mure-sentinel-glm52",
+      "sourceAgent": "mure-sentinel",
+      "sourceVariant": "mure-sentinel-glm52",
+      "catalogModel": "zai/glm-5.2",
+      "resolvedModel": "zai/glm-5.2",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "edit",
+        "write",
+        "bash"
+      ],
+      "spawns": null,
+      "task": false,
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-ideator",
@@ -1382,7 +1408,7 @@
       "filename": "mure-synthesist-m3",
       "sourceAgent": "mure-synthesist",
       "sourceVariant": "mure-synthesist-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -1405,7 +1431,7 @@
       "filename": "mure-chronicler",
       "sourceAgent": "mure-chronicler",
       "sourceVariant": null,
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -1422,29 +1448,6 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": "mure-synthesist-m3"
-    },
-    {
-      "cardName": "mure-chronicler-haiku",
-      "filename": "mure-chronicler-haiku",
-      "sourceAgent": "mure-chronicler",
-      "sourceVariant": "mure-chronicler-haiku",
-      "catalogModel": "anthropic/claude-haiku-4-5",
-      "resolvedModel": "anthropic/claude-haiku-4-5",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "low",
-      "tools": [
-        "read",
-        "grep",
-        "glob",
-        "edit",
-        "write",
-        "bash"
-      ],
-      "spawns": null,
-      "task": false,
-      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-chronicler-sonnet5",
@@ -1474,7 +1477,7 @@
       "filename": "mure-chronicler-m3",
       "sourceAgent": "mure-chronicler",
       "sourceVariant": "mure-chronicler-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -2537,8 +2540,8 @@
       "catalogModel": "anthropic/claude-fable-5",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "model_excluded",
-      "reason": "Explicitly excluded by owner; replace with an available advisor or verifier route.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"anthropic/claude-fable-5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2549,7 +2552,25 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "fable-synth-bootstrap"
+    },
+    {
+      "cardName": "fable-synth-bootstrap",
+      "filename": "fable-synth-bootstrap",
+      "sourceAgent": "fable-synth",
+      "sourceVariant": "fable-synth-bootstrap",
+      "catalogModel": "anthropic/claude-fable-5",
+      "resolvedModel": "anthropic/claude-fable-5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "fable-synth-bootstrap"
     },
     {
       "cardName": "mure-advisor",
@@ -2616,26 +2637,6 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": "mure-engineer-sonnet5"
-    },
-    {
-      "cardName": "mure-advisor-watcher-haiku",
-      "filename": "mure-advisor-watcher-haiku",
-      "sourceAgent": "mure-advisor",
-      "sourceVariant": "mure-advisor-watcher-haiku",
-      "catalogModel": "anthropic/claude-haiku-4-5",
-      "resolvedModel": "anthropic/claude-haiku-4-5",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "low",
-      "tools": [
-        "read",
-        "grep",
-        "glob"
-      ],
-      "spawns": null,
-      "task": false,
-      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-advisor-watcher-dvflash",
@@ -2728,7 +2729,7 @@
       "filename": "mure-advisor-heavy-m3",
       "sourceAgent": "mure-advisor",
       "sourceVariant": "mure-advisor-heavy-m3",
-      "catalogModel": "minimax-portal/MiniMax-M3",
+      "catalogModel": "minimax-code/MiniMax-M3",
       "resolvedModel": "minimax-code/MiniMax-M3",
       "status": "OK",
       "failClass": null,
@@ -2765,7 +2766,7 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-scout-c25, mure-sentinel-glm52, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
       "evidenceAgentId": "mure-yuri-opus48"
     },
@@ -2788,7 +2789,7 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-scout-c25, mure-sentinel-glm52, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
       "evidenceAgentId": null
     },
@@ -2811,7 +2812,7 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-scout-c25, mure-sentinel-glm52, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
       "evidenceAgentId": "mure-yuri-opus48"
     }

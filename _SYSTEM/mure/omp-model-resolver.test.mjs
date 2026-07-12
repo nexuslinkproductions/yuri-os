@@ -87,13 +87,16 @@ test('ollama-cloud/deepseek-v4-flash:cloud fails closed for unproven route (no r
 
 // ── Fail-closed: excluded model ─────────────────────────────────────────────
 
-test('anthropic/claude-fable-5 fails closed (owner-excluded)', () => {
-  const result = resolveOmpModel('anthropic/claude-fable-5');
-  assert.equal(result.selector, null, 'excluded model must not emit a selector');
-  assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.MODEL_EXCLUDED);
-  assert.ok(result.reason, 'excluded model must carry a reason');
-  assert.ok(result.reason.toLowerCase().includes('excluded'), 'reason must mention exclusion');
+test('anthropic/claude-fable-5 normal route fails closed as canary-pending; the evidence-only bootstrap variant is the sole executable path', () => {
+  const normal = resolveOmpModel('anthropic/claude-fable-5');
+  assert.equal(normal.selector, null, 'normal Fable route must not emit a selector before a live canary');
+  assert.equal(normal.status, 'FAIL_CLOSED');
+  assert.equal(normal.failClass, FAIL_CLASSES.CANARY_PENDING);
+  const bootstrap = resolveOmpModel('anthropic/claude-fable-5', 'high', bootstrapVariant());
+  assert.equal(bootstrap.status, 'OK', 'the evidence-only bootstrap variant must be the sole executable Fable path');
+  assert.equal(bootstrap.selector, 'anthropic/claude-fable-5');
+  assert.equal(bootstrap.bootstrapOnly, true);
+  assert.equal(bootstrap.failClass, null);
 });
 
 // ── Fail-closed: Cline-pass policy gate (before registry / known-input) ─────
@@ -339,11 +342,11 @@ test('openai/gpt-5.6-terra (quota-blocked) stays blocked for a bootstrap variant
   assert.equal(result.bootstrapOnly, false);
 });
 
-test('anthropic/claude-fable-5 (owner-excluded) stays excluded for a bootstrap variant', () => {
-  const result = resolveOmpModel('anthropic/claude-fable-5', null, bootstrapVariant());
+test('anthropic/claude-haiku-4-5 (owner-excluded, retired) cannot be rescued by a bootstrap variant', () => {
+  const result = resolveOmpModel('anthropic/claude-haiku-4-5', null, bootstrapVariant());
   assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.MODEL_EXCLUDED,
-    'owner-exclusion is independent of the registry bootstrap gate and must not be bypassed');
+  assert.ok(result.failClass === FAIL_CLASSES.REGISTRY_BLOCKED || result.failClass === FAIL_CLASSES.MODEL_EXCLUDED,
+    `retired Haiku must not be rescuable by a bootstrap variant (got ${result.failClass})`);
   assert.equal(result.bootstrapOnly, false);
 });
 
@@ -597,11 +600,10 @@ test('findExclusion: fixture-injectable regression across raw, sourceRoute, and 
     findExclusion('raw/nope', 'normalized/nope', 'source/nope', fixtureMap),
     null,
   );
-  // Live default map still resolves the real exclusion without a fixture.
-  assert.equal(
-    findExclusion('anthropic/claude-fable-5', 'anthropic/claude-fable-5', 'anthropic/claude-fable-5'),
-    'Explicitly excluded by owner; replace with an available advisor or verifier route.',
-  );
+  // Live default map still resolves the real (Haiku) exclusion without a fixture.
+  const haikuExclusion = findExclusion('anthropic/claude-haiku-4-5', 'anthropic/claude-haiku-4-5', 'anthropic/claude-haiku-4-5');
+  assert.equal(typeof haikuExclusion, 'string');
+  assert.match(haikuExclusion, /Haiku 4\.5/);
 });
 
 // ── Registry-index builder: rejects duplicate route.model keys ──────────────
@@ -874,7 +876,8 @@ test('OMP_REGISTRY_EVIDENCE maps resolved selectors to advisory agentIds', () =>
   // DeepSeek is catalog-candidate, not canary-proven → not in evidence
   assert.equal(OMP_REGISTRY_EVIDENCE['deepseek/deepseek-v4-flash'], undefined,
     'catalog-candidate deepseek must not surface advisory canary evidence');
-  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-haiku-4-5'], 'mure-scout-haiku');
+  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-haiku-4-5'], undefined,
+    'owner-excluded Haiku must not surface advisory canary evidence');
   assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-sonnet-5'], 'mure-engineer-sonnet5');
   assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-opus-4-8'], 'mure-yuri-opus48');
   assert.equal(OMP_REGISTRY_EVIDENCE['zai/glm-5.2'], 'mure-architect');
@@ -947,20 +950,24 @@ test('every model in the live catalog resolves deterministically', () => {
 // emits). Report missing and stale sets separately so a failure names which
 // side drifted.
 
-test('live catalog inputs and ALL_SOURCE_ROUTES are exactly set-equal', () => {
+// Defensive aliases kept deliberately in EXTRA_SOURCE_ROUTES so a stale
+// selector string (e.g. a pre-remap minimax-portal/ value) still normalizes
+// safely to its canonical selector instead of failing as unknown_model. These
+// are NOT emitted by the live catalog, which uses the canonical selector.
+const DEFENSIVE_ALIASES = new Set(['minimax-portal/MiniMax-M3']);
+
+test('live catalog inputs and ALL_SOURCE_ROUTES are set-equal modulo documented defensive aliases', () => {
   const catalogSet = new Set(LIVE_CATALOG_INPUTS);
   const routeSet = new Set(Object.keys(ALL_SOURCE_ROUTES));
 
   const missingFromRoutes = LIVE_CATALOG_INPUTS.filter((k) => !routeSet.has(k));
-  const staleInRoutes = [...routeSet].filter((k) => !catalogSet.has(k));
+  const staleInRoutes = [...routeSet].filter((k) => !catalogSet.has(k) && !DEFENSIVE_ALIASES.has(k));
+  const unassignedAliases = [...DEFENSIVE_ALIASES].filter((k) => !routeSet.has(k));
 
-  assert.deepEqual(
-    missingFromRoutes, [],
-    `catalog inputs missing from ALL_SOURCE_ROUTES (would unknown_model): ${JSON.stringify(missingFromRoutes)}`,
-  );
-  assert.deepEqual(
-    staleInRoutes, [],
-    `ALL_SOURCE_ROUTES entries no longer in the live catalog (stale): ${JSON.stringify(staleInRoutes)}`,
-  );
-  assert.equal(catalogSet.size, routeSet.size, 'set sizes must match once missing/stale are both empty');
+  assert.deepEqual(missingFromRoutes, [],
+    `catalog inputs missing from ALL_SOURCE_ROUTES (would unknown_model): ${JSON.stringify(missingFromRoutes)}`);
+  assert.deepEqual(staleInRoutes, [],
+    `ALL_SOURCE_ROUTES entries no longer in the live catalog and not documented defensive aliases (stale): ${JSON.stringify(staleInRoutes)}`);
+  assert.deepEqual(unassignedAliases, [],
+    `DEFENSIVE_ALIASES references a key not actually in ALL_SOURCE_ROUTES: ${JSON.stringify(unassignedAliases)}`);
 });

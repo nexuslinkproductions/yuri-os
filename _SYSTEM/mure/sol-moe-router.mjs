@@ -300,7 +300,7 @@ function candidate(expert, use, classification, availability, rejected) {
 }
 
 function maskReason(expert, use, classification) {
-  if (use === 'semantic-producer' && expert.id === 'sol') {
+  if (expert.id === 'sol') {
     return 'sol-parent-seat-not-worker';
   }
   if (use === 'semantic-producer' && classification.riskClass === 'R3' && expert.id === 'opus48') {

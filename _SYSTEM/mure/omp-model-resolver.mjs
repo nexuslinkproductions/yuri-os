@@ -343,6 +343,9 @@ const CATALOG_SOURCE_ROUTES = Object.freeze({
   'openai-codex/gpt-5.6-luna': 'openai-codex/gpt-5.6-luna',
   // OpenCode-Go — exact (1)
   'opencode-go/mimo-v2.5': 'opencode-go/mimo-v2.5',
+  // MiniMax Code — exact (1); canary-proven native selector that replaces the
+  // stale minimax-portal/ alias in live catalog base+variant models.
+  'minimax-code/MiniMax-M3': 'minimax-code/MiniMax-M3',
 });
 
 // Entries not in catalog providerMapping but present in agent definitions

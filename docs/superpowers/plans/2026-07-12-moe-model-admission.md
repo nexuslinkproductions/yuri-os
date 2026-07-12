@@ -233,7 +233,7 @@ Add fixtures with a registry route whose status is `catalog-candidate`.
 Normal variant expectation:
 
 ```javascript
-const normal = resolveOmpModel('ollama-cloud/deepseek-v4-flash:cloud', 'low', {
+const normal = resolveOmpModel('ollama-cloud/deepseek-v4-flash', 'low', {
   eligibilityFlags: []
 });
 assert.equal(normal.status, 'FAIL_CLOSED');
@@ -243,11 +243,11 @@ assert.equal(normal.failClass, 'canary_pending');
 Bootstrap variant expectation:
 
 ```javascript
-const bootstrap = resolveOmpModel('ollama-cloud/deepseek-v4-flash:cloud', 'low', {
+const bootstrap = resolveOmpModel('ollama-cloud/deepseek-v4-flash', 'low', {
   eligibilityFlags: ['canary-bootstrap']
 });
 assert.equal(bootstrap.status, 'OK');
-assert.equal(bootstrap.selector, 'ollama-cloud/deepseek-v4-flash:cloud');
+assert.equal(bootstrap.selector, 'ollama-cloud/deepseek-v4-flash');
 ```
 
 A bootstrap variant for a `quota-blocked`, `blocked-schema`, `unresolved`, `owner-excluded`, or unknown route must remain `FAIL_CLOSED`.
@@ -255,7 +255,7 @@ A bootstrap variant for a `quota-blocked`, `blocked-schema`, `unresolved`, `owne
 A bootstrap variant on the same route after promotion must fail closed:
 
 ```javascript
-const expired = resolveOmpModel('ollama-cloud/deepseek-v4-flash:cloud', 'low', {
+const expired = resolveOmpModel('ollama-cloud/deepseek-v4-flash', 'low', {
   eligibilityFlags: ['canary-bootstrap']
 });
 assert.equal(expired.status, 'FAIL_CLOSED');
@@ -411,19 +411,16 @@ git commit -m "feat: add evidence-only route bootstrap" -- \
 Run the supported OMP model listings:
 
 ```bash
-omp models list --provider ollama-cloud --json
-omp models list --provider openai-codex --json
-omp models list --provider zai --json
-omp models list --provider cursor --json
+omp models
 ```
 
 Acceptance:
 
-- Ollama Cloud contains `deepseek-v4-flash:cloud`, `kimi-k2.7-code:cloud`, and `nemotron-3-ultra:cloud`.
+- Ollama Cloud contains `deepseek-v4-flash`, `kimi-k2.7-code`, and `nemotron-3-ultra`.
 - OpenAI Codex contains `gpt-5.6-luna`.
 - z.ai contains `glm-5.1`.
-- Cursor Composer resolves to `composer-2.5` or `composer-2.5-fast`; record the exact provider ID.
-- Cursor Grok resolves to `grok-4.5` or `grok-4.5-eu`; record the exact provider ID.
+- Cursor contains `composer-2.5`.
+- Cursor contains `grok-4.5-xhigh` with display label `Cursor Grok 4.5`.
 - If any accepted ID is absent, stop this task with `MODEL_NOT_IN_PROVIDER_CATALOG`; do not spend a session restart to discover an ID typo and do not substitute a nearby model.
 
 - [ ] **Step 2: Add catalog-candidate route objects**
@@ -432,13 +429,13 @@ Add one model identity and route per exact selector. Use these stable role/card 
 
 | Selector | Normal agent/card | Bootstrap card |
 |---|---|---|
-| `ollama-cloud/deepseek-v4-flash:cloud` | `deepseek-flash` | `deepseek-flash-bootstrap` |
-| `ollama-cloud/kimi-k2.7-code:cloud` | `mure-engineer` | `mure-engineer-kimi-bootstrap` |
-| `ollama-cloud/nemotron-3-ultra:cloud` | `mure-deliberator` | `mure-deliberator-nemotron-bootstrap` |
+| `ollama-cloud/deepseek-v4-flash` | `deepseek-flash` | `deepseek-flash-bootstrap` |
+| `ollama-cloud/kimi-k2.7-code` | `mure-engineer` | `mure-engineer-kimi-bootstrap` |
+| `ollama-cloud/nemotron-3-ultra` | `mure-deliberator` | `mure-deliberator-nemotron-bootstrap` |
 | `openai-codex/gpt-5.6-luna` | `mure-adjudicator-luna` | `mure-adjudicator-luna-bootstrap` |
 | `zai/glm-5.1` | `mure-helmsman-glm-glm51` | `mure-helmsman-glm51-bootstrap` |
-| `cursor/composer-2.5` or live-listed `cursor/composer-2.5-fast` | `composer-fast` | `composer-25-bootstrap` |
-| `cursor/grok-4.5` or live-listed `cursor/grok-4.5-eu` | `mure-ideator-grok45` | `mure-ideator-grok45-bootstrap` |
+| `cursor/composer-2.5` | `composer-fast` | `composer-25-bootstrap` |
+| `cursor/grok-4.5-xhigh` | `mure-ideator-grok45` | `mure-ideator-grok45-bootstrap` |
 
 The registry route `agentId` is the bootstrap card that actually produces the canary transcript. It remains the historical evidence identity after promotion; the normal production card is selected separately through `WORKER_BINDINGS`.
 
@@ -450,7 +447,7 @@ Add these route records, using the live-listed Cursor alternative only when the 
     "id": "deepseek-v4-flash.ollama-cloud",
     "provider": "ollama-cloud",
     "surface": "omp-native",
-    "model": "ollama-cloud/deepseek-v4-flash:cloud",
+    "model": "ollama-cloud/deepseek-v4-flash",
     "agentId": "deepseek-flash-bootstrap",
     "status": "catalog-candidate",
     "source": "mure-agent-catalog"
@@ -459,7 +456,7 @@ Add these route records, using the live-listed Cursor alternative only when the 
     "id": "kimi-k2.7-code.ollama-cloud",
     "provider": "ollama-cloud",
     "surface": "omp-native",
-    "model": "ollama-cloud/kimi-k2.7-code:cloud",
+    "model": "ollama-cloud/kimi-k2.7-code",
     "agentId": "mure-engineer-kimi-bootstrap",
     "status": "catalog-candidate",
     "source": "mure-agent-catalog"
@@ -468,7 +465,7 @@ Add these route records, using the live-listed Cursor alternative only when the 
     "id": "nemotron-3-ultra.ollama-cloud",
     "provider": "ollama-cloud",
     "surface": "omp-native",
-    "model": "ollama-cloud/nemotron-3-ultra:cloud",
+    "model": "ollama-cloud/nemotron-3-ultra",
     "agentId": "mure-deliberator-nemotron-bootstrap",
     "status": "catalog-candidate",
     "source": "mure-agent-catalog"
@@ -501,10 +498,10 @@ Add these route records, using the live-listed Cursor alternative only when the 
     "source": "mure-agent-catalog"
   },
   {
-    "id": "grok-4.5.cursor",
+    "id": "grok-4.5-xhigh.cursor",
     "provider": "cursor",
     "surface": "omp-native",
-    "model": "cursor/grok-4.5",
+    "model": "cursor/grok-4.5-xhigh",
     "agentId": "mure-ideator-grok45-bootstrap",
     "status": "catalog-candidate",
     "source": "mure-agent-catalog"
@@ -519,10 +516,10 @@ Each bootstrap variant must follow this exact catalog shape, changing only `id`,
 ```json
 {
   "id": "deepseek-flash-bootstrap",
-  "model": "ollama-cloud/deepseek-v4-flash:cloud",
+  "model": "ollama-cloud/deepseek-v4-flash",
   "thinkingLevel": "low",
   "tools": ["read"],
-  "description": "Evidence-only bootstrap canary for ollama-cloud/deepseek-v4-flash:cloud.",
+  "description": "Evidence-only bootstrap canary for ollama-cloud/deepseek-v4-flash.",
   "eligibilityFlags": ["canary-bootstrap"],
   "costTier": "cheap"
 }
@@ -603,13 +600,13 @@ Use this exact canary table:
 
 ```javascript
 const canaries = [
-  { taskId: 'canary-deepseek-v4-flash', model: 'ollama-cloud/deepseek-v4-flash:cloud', agentId: 'deepseek-flash-bootstrap', canaryLabel: 'ollama-deepseek-v4-flash' },
-  { taskId: 'canary-kimi-k2-7-code', model: 'ollama-cloud/kimi-k2.7-code:cloud', agentId: 'mure-engineer-kimi-bootstrap', canaryLabel: 'ollama-kimi-k2-7-code' },
-  { taskId: 'canary-nemotron-3-ultra', model: 'ollama-cloud/nemotron-3-ultra:cloud', agentId: 'mure-deliberator-nemotron-bootstrap', canaryLabel: 'ollama-nemotron-3-ultra' },
+  { taskId: 'canary-deepseek-v4-flash', model: 'ollama-cloud/deepseek-v4-flash', agentId: 'deepseek-flash-bootstrap', canaryLabel: 'ollama-deepseek-v4-flash' },
+  { taskId: 'canary-kimi-k2-7-code', model: 'ollama-cloud/kimi-k2.7-code', agentId: 'mure-engineer-kimi-bootstrap', canaryLabel: 'ollama-kimi-k2-7-code' },
+  { taskId: 'canary-nemotron-3-ultra', model: 'ollama-cloud/nemotron-3-ultra', agentId: 'mure-deliberator-nemotron-bootstrap', canaryLabel: 'ollama-nemotron-3-ultra' },
   { taskId: 'canary-gpt-5-6-luna', model: 'openai-codex/gpt-5.6-luna', agentId: 'mure-adjudicator-luna-bootstrap', canaryLabel: 'openai-gpt-5-6-luna' },
   { taskId: 'canary-glm-5-1', model: 'zai/glm-5.1', agentId: 'mure-helmsman-glm51-bootstrap', canaryLabel: 'zai-glm-5-1' },
   { taskId: 'canary-composer-2-5', model: 'cursor/composer-2.5', agentId: 'composer-25-bootstrap', canaryLabel: 'cursor-composer-2-5' },
-  { taskId: 'canary-grok-4-5', model: 'cursor/grok-4.5', agentId: 'mure-ideator-grok45-bootstrap', canaryLabel: 'cursor-grok-4-5' },
+  { taskId: 'canary-grok-4-5', model: 'cursor/grok-4.5-xhigh', agentId: 'mure-ideator-grok45-bootstrap', canaryLabel: 'cursor-grok-4-5' },
 ];
 
 const routes = canaries.map(({ taskId }) => ({

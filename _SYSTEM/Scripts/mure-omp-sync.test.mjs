@@ -10,7 +10,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 
 // ── Model facts (from omp-model-resolver.test.mjs + provider-route-registry.json) ──
 // OK, canary-proven:
-const M_OK_HAIKU      = 'anthropic/claude-haiku-4-5';   // selector unchanged
+const M_OK_SONNET      = 'anthropic/claude-sonnet-5';   // canary-proven OK fixture (Haiku 4.5 retired 2026-07-12; sonnet-5 is identity-normalized)
 // Terra (openai/gpt-5.6-terra) is live quota-blocked (registry_blocked) as of
 // 2026-07-11 — it now resolves FAIL_CLOSED. MiniMax-M3 replaces it wherever
 // OK/dispatch-eligible semantics are needed; a dedicated fail-closed
@@ -22,7 +22,7 @@ const M_LIVE_TERRA_BLOCKED = 'openai/gpt-5.6-terra';    // now FAIL_CLOSED (regi
 const M_OK_OPUS       = 'anthropic/claude-opus-4-8';     // selector unchanged
 // FAIL_CLOSED:
 const M_FAIL_CLINE    = 'cline-pass/cline-pass/mimo-v2.5'; // cline_unavailable
-const M_FAIL_FABLE    = 'anthropic/claude-fable-5';        // model_excluded
+const M_FAIL_FABLE    = 'anthropic/claude-fable-5';        // canary_pending (evidence-only bootstrap is the sole executable path; normal route fail-closed)
 
 // Source paths in the real repo — copied into each fixture so the script
 // (when it exists) resolves imports relative to itself without touching
@@ -135,7 +135,7 @@ function buildCatalog(overrides = {}) {
       name: 'mure-scout',
       lane: 'worker',
       description: 'Scout agent for research.',
-      model: M_OK_HAIKU,
+      model: M_OK_SONNET,
       thinkingLevel: 'medium',
       tools: ['read', 'grep', 'glob'],
       spawns: '*',
@@ -239,7 +239,7 @@ test('pendingVariants produce no agent cards', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -253,7 +253,7 @@ test('pendingVariants produce no agent cards', () => {
       },
     ],
     pending: [
-      { id: 'mure-scout-pending', model: M_OK_HAIKU },
+      { id: 'mure-scout-pending', model: M_OK_SONNET },
       { id: 'mure-scout-pending2', model: M_OK_TERRA },
     ],
   });
@@ -289,7 +289,7 @@ test('every projected card carries model; disabled use sentinel, enabled never d
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout (OK).',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -343,7 +343,7 @@ test('every projected card carries model; disabled use sentinel, enabled never d
 
   // ── Expected resolved selectors for OK cards ──
   const expectedModel = {
-    'mure-scout':       'anthropic/claude-haiku-4-5',
+    'mure-scout':       M_OK_SONNET,
     'mure-scout-terra': M_OK_TERRA_SELECTOR,
   };
 
@@ -459,7 +459,7 @@ test('missing model on variant aborts generation with zero partial projection', 
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout with OK model.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -512,7 +512,7 @@ test('config disabledAgents lists all fail-closed cards', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout (OK).',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -555,7 +555,7 @@ test('config disabledAgents lists all fail-closed cards', () => {
 
     // mure-scout MUST have a model (it is OK, not disabled)
     const scoutCard = readText(path.join(fixture.agentDir, 'mure-scout.md'));
-    assert.ok(scoutCard.includes('model: anthropic/claude-haiku-4-5'),
+    assert.ok(scoutCard.includes('model: anthropic/claude-sonnet-5'),
       'mure-scout (OK) must have model field — it is dispatch-eligible');
   } finally {
     rmSync(fixture.root, { recursive: true, force: true });
@@ -569,7 +569,7 @@ test('config includes maxRecursionDepth: 2, modelRoles.smol, modelRoles.slow', (
 
     const config = readText(path.join(fixture.ompDir, 'config.yml'));
     assert.ok(/maxRecursionDepth:\s*2/.test(config), 'config must set maxRecursionDepth: 2');
-    assert.ok(/anthropic\/claude-haiku-4-5/.test(config), 'config must set smol model role');
+    assert.ok(/ollama-cloud\/deepseek-v4-flash/.test(config), 'config must set smol model role (DeepSeek Flash)');
     assert.ok(/anthropic\/claude-opus-4-8/.test(config), 'config must set slow model role');
     assert.ok(!/^\s*default:/.test(config), 'generated config must not contain modelRoles.default');
   } finally {
@@ -692,7 +692,7 @@ test('expected-name agent without ownership marker causes sync to fail and prese
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -742,7 +742,7 @@ test('non-expected unowned mure-*.md survives while separately deleted owned car
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -851,8 +851,8 @@ test('every card has a non-empty body with provenance text', () => {
 // ── Role identity ───────────────────────────────────────────────────────────
 
 test('role identity is from catalog name, not registry agentId', () => {
-  // Haiku's registry agentId is "mure-scout" — using a different catalog
-  // name proves the sync module preserves catalog identity.
+  // Sonnet-5's registry agentId is "mure-engineer-sonnet5" — using a different
+  // catalog name proves the sync module preserves catalog identity.
   const CATALOG_NAME = 'mure-fixture-scout';
   const fixture = makeFixture({
     agents: [
@@ -860,7 +860,7 @@ test('role identity is from catalog name, not registry agentId', () => {
         name: CATALOG_NAME,
         lane: 'worker',
         description: 'Fixture scout with name distinct from registry agentId.',
-        model: M_OK_HAIKU,  // registry agentId for Haiku is "mure-scout"
+        model: M_OK_SONNET,  // registry agentId for sonnet-5 is "mure-engineer-sonnet5"
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -885,8 +885,8 @@ test('role identity is from catalog name, not registry agentId', () => {
 
     assert.ok(baseFrontmatter.includes(`name: ${CATALOG_NAME}`),
       `base card name must be "${CATALOG_NAME}" (catalog), got: ${baseFrontmatter.match(/^name:\s*(.+)$/m)?.[1]}`);
-    assert.ok(!baseFrontmatter.includes('name: mure-scout'),
-      `base card must NOT use registry agentId "mure-scout" as name`);
+    assert.ok(!baseFrontmatter.includes('name: mure-engineer-sonnet5'),
+      `base card must NOT use registry agentId "mure-engineer-sonnet5" as name`);
     assert.ok(!/^(?:agentId|evidenceAgentId)\s*:/m.test(baseFrontmatter),
       'agentId and evidenceAgentId keys must not appear in frontmatter');
 
@@ -962,7 +962,7 @@ test('spawns field is preserved in cards that carry it', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout with wildcard spawns.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read', 'grep', 'glob'],
         spawns: '*',
@@ -1074,7 +1074,7 @@ test('--check detects drift when an agent card is missing', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1125,7 +1125,7 @@ test('--check detects drift when card content differs', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1181,7 +1181,7 @@ test('manifest projected/executable/disabled counts are consistent', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout (OK).',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1268,7 +1268,7 @@ test('manifest counts are computed dynamically, not hardcoded', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1288,7 +1288,7 @@ test('manifest counts are computed dynamically, not hardcoded', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1297,9 +1297,9 @@ test('manifest counts are computed dynamically, not hardcoded', () => {
         autonomy: 'autonomous',
         notes: '',
         variants: [
-          { id: 'mure-scout-a', model: M_OK_HAIKU },
-          { id: 'mure-scout-b', model: M_OK_HAIKU },
-          { id: 'mure-scout-c', model: M_OK_HAIKU },
+          { id: 'mure-scout-a', model: M_OK_SONNET },
+          { id: 'mure-scout-b', model: M_OK_SONNET },
+          { id: 'mure-scout-c', model: M_OK_SONNET },
         ],
         selection: 'surfaced-light',
         skills: [],
@@ -1359,7 +1359,7 @@ test('handles naming collisions: variant id same as a different base agent name'
         name: 'mure-scout',
         lane: 'worker',
         description: 'Base scout.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1383,7 +1383,7 @@ test('handles naming collisions: variant id same as a different base agent name'
         capabilities: ['implementation'],
         autonomy: 'autonomous',
         notes: '',
-        variants: [{ id: 'mure-scout', model: M_OK_HAIKU }],
+        variants: [{ id: 'mure-scout', model: M_OK_SONNET }],
         selection: 'surfaced-heavy',
         skills: [],
       },
@@ -1415,8 +1415,8 @@ test('handles naming collisions: variant id same as a different base agent name'
       `collision card frontmatter name must be "mure-engineer--mure-scout", got "${collisionName}"`);
 
     // Its model must be Haiku (the variant's model)
-    assert.ok(collisionContent.includes('model: anthropic/claude-haiku-4-5'),
-      'collision card must contain Haiku model (the variant model)');
+    assert.ok(collisionContent.includes('model: anthropic/claude-sonnet-5'),
+      'collision card must contain the variant model (sonnet-5)');
 
     // Collision card must carry its variant parent's description (engineer's)
     assert.ok(collisionFrontmatter.includes('description: "Engineer base."'),
@@ -1504,7 +1504,7 @@ test('handles agent without variants field', () => {
         name: 'mure-minimal',
         lane: 'worker',
         description: 'Minimal agent.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -1535,7 +1535,7 @@ test('handles agent with empty variants array', () => {
         name: 'mure-scout',
         lane: 'worker',
         description: 'Scout with empty variants.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -2038,7 +2038,7 @@ test('variant frontmatter description always equals base description; note appea
         name: 'mure-scout',
         lane: 'worker',
         description: 'Base scout description.',
-        model: M_OK_HAIKU,
+        model: M_OK_SONNET,
         thinkingLevel: 'medium',
         tools: ['read'],
         spawns: '*',
@@ -2108,7 +2108,7 @@ test('--check reports unowned extra .md files; sync never deletes them', () => {
 test('rejects agent with empty description via deterministic SyncError', () => {
   const fixture = makeFixture({
     agents: [{
-      name: 'mure-scout', lane: 'worker', description: '', model: M_OK_HAIKU,
+      name: 'mure-scout', lane: 'worker', description: '', model: M_OK_SONNET,
       thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
       capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
       selection: 'surfaced-light', skills: [],
@@ -2127,7 +2127,7 @@ test('rejects agent with empty description via deterministic SyncError', () => {
 test('rejects non-string spawns via deterministic SyncError', () => {
   const fixture = makeFixture({
     agents: [{
-      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
       thinkingLevel: 'medium', tools: ['read'], spawns: ['not', 'a', 'string'], mission: 'scout',
       capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
       selection: 'surfaced-light', skills: [],
@@ -2146,7 +2146,7 @@ test('rejects non-string spawns via deterministic SyncError', () => {
 test('rejects non-array capabilities via deterministic SyncError', () => {
   const fixture = makeFixture({
     agents: [{
-      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
       thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
       capabilities: 'research', autonomy: 'autonomous', notes: '', variants: [],
       selection: 'surfaced-light', skills: [],
@@ -2165,7 +2165,7 @@ test('rejects non-array capabilities via deterministic SyncError', () => {
 test('rejects non-array skills via deterministic SyncError', () => {
   const fixture = makeFixture({
     agents: [{
-      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+      name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
       thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
       capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
       selection: 'surfaced-light', skills: 'brainstorming',
@@ -2187,12 +2187,12 @@ test('live pending_variants and legacy pendingVariants never project, even with 
   const fixture = makeFixture({
     agents: [
       {
-        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
         thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
         capabilities: ['research'], autonomy: 'autonomous', notes: '',
         variants: [{ id: 'mure-scout-terra', model: M_OK_TERRA }],
         pendingVariants: [{ id: 'mure-scout-legacy-pending', model: M_OK_OPUS }],
-        pending_variants: [{ id: 'mure-scout-live-pending', model: M_OK_HAIKU }],
+        pending_variants: [{ id: 'mure-scout-live-pending', model: M_OK_SONNET }],
         selection: 'surfaced-light', skills: [],
       },
     ],
@@ -2216,10 +2216,10 @@ test('malformed pending_variants entry (missing id) raises deterministic SyncErr
   const fixture = makeFixture({
     agents: [
       {
-        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
         thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
         capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
-        pending_variants: [{ model: M_OK_HAIKU }], // missing required "id"
+        pending_variants: [{ model: M_OK_SONNET }], // missing required "id"
         selection: 'surfaced-light', skills: [],
       },
     ],
@@ -2238,7 +2238,7 @@ test('malformed legacy pendingVariants entry (non-array) raises deterministic Sy
   const fixture = makeFixture({
     agents: [
       {
-        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_HAIKU,
+        name: 'mure-scout', lane: 'worker', description: 'Scout.', model: M_OK_SONNET,
         thinkingLevel: 'medium', tools: ['read'], spawns: '*', mission: 'scout',
         capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
         pendingVariants: 'not-an-array', // must be an array, not a string (buildCatalog's own
@@ -2272,7 +2272,7 @@ test('task:true iff base role has spawns — both directions and variant inherit
         selection: 'surfaced-heavy', skills: [],
       },
       {
-        name: 'mure-leaf', lane: 'worker', description: 'No spawns.', model: M_OK_HAIKU,
+        name: 'mure-leaf', lane: 'worker', description: 'No spawns.', model: M_OK_SONNET,
         thinkingLevel: 'medium', tools: ['read'], mission: 'leaf role',
         capabilities: ['research'], autonomy: 'autonomous', notes: '', variants: [],
         selection: 'surfaced-light', skills: [],
@@ -2317,6 +2317,32 @@ test('live Terra (quota-blocked) still projects fail-closed with the disabled se
     const entry = manifest.cards.find(c => c.cardName === 'mure-terra-canary');
     assert.equal(entry.status, 'FAIL_CLOSED');
     assert.equal(entry.resolvedModel, null);
+  } finally {
+    rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
+
+test('config pins task.isolation (auto/patch), maxConcurrency 32, and the full subscription-saturation modelRoles', () => {
+  const fixture = makeFixture();
+  try {
+    runSync([], { cwd: fixture.root });
+    const config = readText(path.join(fixture.ompDir, 'config.yml'));
+    // Isolation + concurrency (parent-confirmed OMP keys — sync must never erase them).
+    assert.ok(/maxConcurrency:\s*32/.test(config), 'config must pin task.maxConcurrency: 32');
+    assert.ok(/isolation:\s*\n\s*mode:\s*auto/.test(config), 'config must pin task.isolation.mode: auto');
+    assert.ok(/merge:\s*patch/.test(config), 'config must pin task.isolation.merge: patch');
+    assert.ok(/maxRecursionDepth:\s*2/.test(config), 'config must preserve task.maxRecursionDepth: 2');
+    // Subscription saturation: MiniMax/GLM/Ollama before Sonnet/Opus for non-security work.
+    assert.ok(/smol:\s*ollama-cloud\/deepseek-v4-flash/.test(config), 'smol = DeepSeek Flash');
+    assert.ok(/task:\s*minimax-code\/MiniMax-M3/.test(config), 'task = MiniMax-M3 (primary non-security producer)');
+    assert.ok(/plan:\s*zai\/glm-5.2/.test(config), 'plan = GLM-5.2');
+    assert.ok(/commit:\s*zai\/glm-5.2/.test(config), 'commit = GLM-5.2');
+    assert.ok(/designer:\s*zai\/glm-5.2/.test(config), 'designer = GLM-5.2 (NOT Composer)');
+    assert.ok(/vision:\s*openai-codex\/gpt-5.6-luna/.test(config), 'vision = Luna');
+    assert.ok(/advisor:\s*anthropic\/claude-fable-5/.test(config), 'advisor = Fable 5 (active now as OMP advisor; MURE dispatch fail-closed until canary)');
+    assert.ok(/slow:\s*anthropic\/claude-opus-4-8/.test(config), 'slow = Opus 4.8');
+    assert.ok(!/^\s*default:/.test(config), 'config must not set modelRoles.default (Sol default lives at the session level)');
+    assert.ok(!/designer:\s*cursor\/composer/.test(config), 'Composer must never be the designer');
   } finally {
     rmSync(fixture.root, { recursive: true, force: true });
   }

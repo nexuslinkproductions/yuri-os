@@ -34,7 +34,8 @@
     "ollama-cloud/kimi-k2.7-code": "ollama-cloud/kimi-k2.7-code",
     "ollama-cloud/nemotron-3-ultra": "ollama-cloud/nemotron-3-ultra",
     "openai-codex/gpt-5.6-luna": "openai-codex/gpt-5.6-luna",
-    "cursor/grok-4.5-xhigh": "cursor-cli/grok-4.5-xhigh"
+    "cursor/grok-4.5-xhigh": "cursor-cli/grok-4.5-xhigh",
+    "minimax-code/MiniMax-M3": "minimax-code/MiniMax-M3"
   },
   "agents": [
     {
@@ -276,7 +277,7 @@
       "name": "mure-envoy",
       "lane": "operations",
       "description": "Task intake / requirement decoder. Decodes Marcel's brain-dump into a clean spec and goal tree for the helmsman. Unlike yuri (full session spine) or scout (broad recon), envoy is a fast read-only decoder that surfaces hidden constraints and ranks intents. Dispatch on raw/unstructured input before helmsman takes over.",
-      "model": "minimax-portal/MiniMax-M3",
+      "model": "minimax-code/MiniMax-M3",
       "thinkingLevel": "low",
       "tools": [
         "read",
@@ -318,29 +319,6 @@
           "quota": "openai-codex-pro-x5"
         },
         {
-          "id": "mure-envoy-haiku",
-          "model": "anthropic/claude-haiku-4-5",
-          "thinkingLevel": "low",
-          "tools": [
-            "read",
-            "grep",
-            "glob"
-          ],
-          "max_tokens": 4096,
-          "systemSections": [
-            "minimalist",
-            "recon-breadth"
-          ],
-          "eligibilityFlags": [
-            "cheap",
-            "recon-eligible",
-            "cheap-research-only",
-            "haiku-eligible-context"
-          ],
-          "costTier": "cheap",
-          "note": "Fast cheap decode of short/simple brain-dumps; envoy is an explicit Haiku-eligible read-only context."
-        },
-        {
           "id": "mure-envoy-sonnet5",
           "model": "anthropic/claude-sonnet-5",
           "thinkingLevel": "medium",
@@ -363,7 +341,7 @@
         },
         {
           "id": "mure-envoy-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -386,7 +364,6 @@
       ],
       "selection": "auto-cheap",
       "fallbackChain": [
-        "mure-envoy-haiku",
         "mure-envoy-sonnet5",
         "mure-envoy-m3"
       ],
@@ -406,7 +383,7 @@
       "name": "mure-scout",
       "lane": "research",
       "description": "MURE Scout (research) — local-first + online researcher. Sweeps the YURI corpus (FTS5, circuitry graph, GitNexus) first, then escalates to cited online sources; synthesizes findings into research artifacts. Dispatch when you need grounded, cited reconnaissance before any build or decision.",
-      "model": "minimax-portal/MiniMax-M3",
+      "model": "minimax-code/MiniMax-M3",
       "thinkingLevel": "low",
       "tools": [
         "read",
@@ -450,29 +427,6 @@
           "quota": "openai-codex-pro-x5"
         },
         {
-          "id": "mure-scout-haiku",
-          "model": "anthropic/claude-haiku-4-5",
-          "thinkingLevel": "low",
-          "tools": [
-            "read",
-            "grep",
-            "glob"
-          ],
-          "max_tokens": 4096,
-          "systemSections": [
-            "recon-breadth",
-            "cheap-research"
-          ],
-          "eligibilityFlags": [
-            "cheap",
-            "recon-eligible",
-            "cheap-research-only",
-            "haiku-eligible-context"
-          ],
-          "costTier": "cheap",
-          "note": "Cheap local-corpus recon + citation gathering; scout is an explicit Haiku-eligible read-only context."
-        },
-        {
           "id": "mure-scout-sonnet5",
           "model": "anthropic/claude-sonnet-5",
           "thinkingLevel": "medium",
@@ -495,7 +449,7 @@
         },
         {
           "id": "mure-scout-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -522,11 +476,33 @@
         {
           "id": "mure-scout-cline-dvf",
           "model": "cline-pass/cline-pass/deepseek-v4-flash"
+        },
+        {
+          "id": "mure-scout-c25",
+          "model": "cursor/composer-2.5",
+          "thinkingLevel": "medium",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "recon-breadth",
+            "parallel-worker"
+          ],
+          "eligibilityFlags": [
+            "cursor-quota-pool",
+            "parallel-worker",
+            "coding-research-bulk"
+          ],
+          "costTier": "medium",
+          "note": "Fast Cursor Composer 2.5 research/bulk recon worker on the Cursor quota pool — NOT a designer. Low-risk cited reconnaissance and parallel extraction only."
         }
       ],
       "selection": "auto-cheap",
       "fallbackChain": [
-        "mure-scout-haiku",
+        "mure-scout-c25",
         "mure-scout-sonnet5",
         "mure-scout-m3",
         "mure-scout-qwen35",
@@ -698,7 +674,7 @@
         },
         {
           "id": "mure-engineer-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -866,7 +842,7 @@
         },
         {
           "id": "mure-mechanic-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -1029,6 +1005,30 @@
           ],
           "costTier": "medium",
           "note": "Fallback when scaffolding needs a brain (non-trivial templates / test authoring judgment)."
+        },
+        {
+          "id": "mure-artificer-c25",
+          "model": "cursor/composer-2.5",
+          "thinkingLevel": "medium",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "parallel-worker"
+          ],
+          "eligibilityFlags": [
+            "cursor-quota-pool",
+            "parallel-worker",
+            "coding-research-bulk"
+          ],
+          "costTier": "medium",
+          "note": "Fast Cursor Composer 2.5 coding/research/bulk worker on the Cursor quota pool — NOT a designer. Low-risk scaffolding, templates, and parallel drafts only."
         }
       ],
       "selection": "auto-cheap",
@@ -1126,7 +1126,7 @@
         },
         {
           "id": "mure-kernelsmith-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -1269,10 +1269,36 @@
           ],
           "costTier": "apex",
           "note": "MANDATORY security anchor prime (hard rule) — deepest adversarial + attack-class knowledge."
+        },
+        {
+          "id": "mure-sentinel-glm52",
+          "model": "zai/glm-5.2",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "edit",
+            "write",
+            "bash"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "security-strict",
+            "narrow-prompt-reserved"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "security-only",
+            "z-ai-quota-pool"
+          ],
+          "costTier": "heavy",
+          "note": "Canary-proven GLM-5.2 security producer — R3 three-view producer (independent Opus 4.8 verifier, Sol parent final adjudicator). 1M-ctx adversarial audit; not a designer."
         }
       ],
       "selection": "surfaced-heavy",
       "fallbackChain": [
+        "mure-sentinel-glm52",
         "mure-sentinel-dvp",
         "mure-sentinel-opus48"
       ],
@@ -1658,7 +1684,7 @@
         },
         {
           "id": "mure-synthesist-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -1706,7 +1732,7 @@
       "name": "mure-chronicler",
       "lane": "knowledge",
       "description": "The system's narrative and procedural historian. Transforms complex session traces and technical evolutions into durable, structured documentation. Dispatched for memory promotion, post-mortems, and turning raw project momentum into readable context.",
-      "model": "minimax-portal/MiniMax-M3",
+      "model": "minimax-code/MiniMax-M3",
       "thinkingLevel": "medium",
       "tools": [
         "read",
@@ -1725,31 +1751,6 @@
       ],
       "autonomy": "self-governable",
       "variants": [
-        {
-          "id": "mure-chronicler-haiku",
-          "model": "anthropic/claude-haiku-4-5",
-          "thinkingLevel": "low",
-          "tools": [
-            "read",
-            "grep",
-            "glob",
-            "edit",
-            "write",
-            "bash"
-          ],
-          "max_tokens": 4096,
-          "systemSections": [
-            "minimalist",
-            "cheap-research"
-          ],
-          "eligibilityFlags": [
-            "cheap",
-            "cheap-research-only",
-            "haiku-eligible-context"
-          ],
-          "costTier": "cheap",
-          "note": "Cheap summaries + RESULT_LABEL emission; chronicler-cheap is an explicit Haiku-eligible context."
-        },
         {
           "id": "mure-chronicler-sonnet5",
           "model": "anthropic/claude-sonnet-5",
@@ -1776,7 +1777,7 @@
         },
         {
           "id": "mure-chronicler-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -1810,7 +1811,6 @@
       ],
       "selection": "auto-cheap",
       "fallbackChain": [
-        "mure-chronicler-haiku",
         "mure-chronicler-sonnet5",
         "mure-chronicler-m3",
         "mure-chronicler-gemma4",
@@ -3088,9 +3088,22 @@
         "decisive-ruling"
       ],
       "autonomy": "self-governable",
-      "notes": "Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. TEMPORARILY EXCLUDED 2026-07-09 (limited access till 2026-07-12, then PPT after).",
-      "variants": [],
-      "selection": "N/A (agent DISABLED)",
+      "notes": "Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. Boundary: the OMP advisor system role may use Fable independently now (designated modelRoles.advisor in .omp/config.yml, owner-active); the normal MURE dispatch route remains fail-closed (canary_pending) until a live canary promotes it, with the evidence-only fable-synth-bootstrap variant as the sole executable MURE dispatch path before then.",
+      "variants": [
+        {
+          "id": "fable-synth-bootstrap",
+          "model": "anthropic/claude-fable-5",
+          "thinkingLevel": "high",
+          "tools": [
+            "read"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "note": "evidence-only canary bootstrap for anthropic/claude-fable-5 — the sole executable MURE dispatch path before a live canary promotes the normal route. The OMP advisor system role is separate and already active via modelRoles.advisor. Read-only, no spawn; never marked canary-proven."
+        }
+      ],
+      "selection": "MURE dispatch: bootstrap-only until canary (normal route fail-closed); OMP advisor system role active now via modelRoles.advisor",
       "fallbackChain": [],
       "pending_variants": [
         {
@@ -3115,7 +3128,7 @@
             "anti-over-engineering"
           ],
           "costTier": "apex",
-          "note": "[INACTIVE till 2026-07-12] Apex final synthesizer prime — SWE-Verified 95.0, #1 leaderboard."
+          "note": "Apex final synthesizer prime — SWE-Verified 95.0, #1 leaderboard. Pending canary promotion (normal route currently fail-closed; the evidence-only bootstrap is the sole executable path)."
         },
         {
           "id": "fable-synth-opus48",
@@ -3234,30 +3247,6 @@
           "note": "Watcher Tier 1 prime per owner A.17. Cheap-reasoning at 1M ctx; near-Opus on routine turns."
         },
         {
-          "id": "mure-advisor-watcher-haiku",
-          "model": "anthropic/claude-haiku-4-5",
-          "thinkingLevel": "low",
-          "tools": [
-            "read",
-            "grep",
-            "glob"
-          ],
-          "max_tokens": 4096,
-          "systemSections": [
-            "minimalist",
-            "advisor-watcher",
-            "recon-breadth"
-          ],
-          "eligibilityFlags": [
-            "cheap",
-            "watcher-fallback",
-            "recon-eligible",
-            "cheap-research-only"
-          ],
-          "costTier": "cheap",
-          "note": "Watcher Tier 1 fallback. Per owner 2026-07-09: Haiku's role is recon + cheap research. NEVER in heavy-tier fallback chain."
-        },
-        {
           "id": "mure-advisor-watcher-dvflash",
           "model": "deepseek-v4-flash:direct",
           "thinkingLevel": "low",
@@ -3355,7 +3344,7 @@
         },
         {
           "id": "mure-advisor-heavy-m3",
-          "model": "minimax-portal/MiniMax-M3",
+          "model": "minimax-code/MiniMax-M3",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -3409,7 +3398,7 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-scout-c25, mure-sentinel-glm52, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "mission": "Hold the goal spine, run the five-state router, decode Marcel's brain dump via the eight-step decode pipeline, and dispatch MURE through decompose/fan-out/verify/synthesize loops. Opus 4.8 is the canary-proven main-session prime. Worker-level research, coding, and refactoring stay delegated.",
       "capabilities": [
         "brain-dump-decode",

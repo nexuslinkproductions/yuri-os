@@ -12,7 +12,7 @@ import { deterministicOmpTaskId } from './omp-task-adapter.mjs';
 
 function entry(taskId, purpose, model = null) {
   const defaultModels = {
-    producer: 'minimax-portal/MiniMax-M3',
+    producer: 'minimax-code/MiniMax-M3',
     verifier: 'anthropic/claude-sonnet-5',
     'availability-fallback': 'anthropic/claude-sonnet-5',
     'quality-escalation': 'openai/gpt-5.6-terra',
@@ -20,7 +20,7 @@ function entry(taskId, purpose, model = null) {
   };
   model ||= defaultModels[purpose];
   const agentByModel = {
-    'minimax-portal/MiniMax-M3': 'mure-synthesist',
+    'minimax-code/MiniMax-M3': 'mure-synthesist-m3',
     'zai/glm-5.2': 'mure-architect',
     'openai/gpt-5.6-terra': 'mure-engineer',
     'openai/gpt-5.6-luna': 'mure-adjudicator',
@@ -84,7 +84,7 @@ const providerCalibration = {
 // scout actions must pass `model` explicitly.
 function resolveModel(action) {
   const agent = action.args.tasks[0].agent;
-  if (agent === 'mure-synthesist') return 'minimax-portal/MiniMax-M3';
+  if (agent === 'mure-synthesist-m3') return 'minimax-code/MiniMax-M3';
   if (agent === 'mure-calibrator-sonnet5') return 'anthropic/claude-sonnet-5';
   if (agent === 'mure-engineer') return 'openai/gpt-5.6-terra';
   if (agent === 'mure-adjudicator') return 'openai/gpt-5.6-luna';
@@ -98,7 +98,7 @@ function resolveModel(action) {
 function historyEntry(family, index) {
   const modelByFamily = {
     openai: 'openai/gpt-5.6-terra',
-    minimax: 'minimax-portal/MiniMax-M3',
+    minimax: 'minimax-code/MiniMax-M3',
     anthropic: 'anthropic/claude-sonnet-5',
     deepseek: 'deepseek/deepseek-v4-flash',
   };
@@ -176,7 +176,7 @@ test('compiler rejects missing or invalid manifest fields and mismatched task co
   assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'agent bad' }), /agentId contains unsupported/);
   assert.throws(() => compileOmpSpawn({ ...valid, thinking: 'turbo' }), /thinking is invalid/);
   assert.throws(() => compileOmpSpawn({ ...valid, model: 'cheap/custom-model' }), /not an allowed MURE worker/);
-  assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'mure-engineer' }), /agentId must be mure-synthesist/);
+  assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'mure-engineer' }), /agentId must be mure-synthesist-m3/);
   assert.throws(() => compileOmpSpawn(valid, { taskId: 'other-task' }), /taskId must match/);
   assert.throws(() => compileOmpSpawn(valid, { cwd: 'relative' }), /absolute path/);
   assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'mure-yuri' }), /cannot be compiled as a native child worker/);
@@ -189,19 +189,26 @@ test('compiler rejects missing or invalid manifest fields and mismatched task co
   }), /providerFamily does not match model provider/);
 });
 
-test('compiler accepts catalog-backed DeepSeek, Ollama, Cline, Cursor, and Haiku route identities', () => {
+test('compiler accepts active evidence routes and rejects the retired Haiku route', () => {
   const routes = [
     ['deepseek-v4-flash:direct', 'deepseek-flash'],
     ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
     ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
     ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
-    ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ];
   for (const [model, agentId] of routes) {
     const compiled = compileOmpSpawn({ ...entry('route-identity', 'evidence', model), agentId }, { taskId: 'route-identity' });
     assert.ok(!('agent' in compiled), 'compiled action must not contain a top-level agent');
     assert.equal(compiled.tasks[0].agent, agentId);
   }
+
+  assert.throws(
+    () => compileOmpSpawn({
+      ...entry('retired-haiku', 'evidence', 'anthropic/claude-haiku-4-5'),
+      agentId: 'mure-scout',
+    }),
+    /not an allowed MURE worker/,
+  );
 });
 
 test('promoted canary routes compile to normal cards and reject expired bootstrap cards', () => {
@@ -254,11 +261,27 @@ test('producer success advances only its own task to a verifier', () => {
   const next = acceptedCompletion(first.state, first.action, 'event-producer');
   assert.equal(next.action.type, 'omp-task-spawn');
   assert.equal(next.action.purpose, 'verifier');
-  assert.match(next.action.args.tasks[0].task, /"entryId":"task-a:producer:minimax-portal-MiniMax-M3"/);
+  assert.match(next.action.args.tasks[0].task, /"entryId":"task-a:producer:minimax-code-MiniMax-M3"/);
   const admittedVerifier = accept(next.state, next.action, 'verifier-accepted');
   assert.ok(admittedVerifier.state.tasks['task-a'].awaiting.accepted);
   assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.jobId, 'verifier-accepted');
   assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator-sonnet5');
+});
+
+test('completion model comparison accepts canonical selectors and rejects different models', () => {
+  const first = reduceNativeDispatch(createNativeDispatchState(plan()));
+  const canonical = acceptedCompletion(first.state, first.action, 'canonical-m3', {
+    model: 'minimax-code/MiniMax-M3',
+  });
+  assert.equal(canonical.action.type, 'omp-task-spawn');
+  assert.equal(canonical.action.purpose, 'verifier');
+
+  const mismatchFirst = reduceNativeDispatch(createNativeDispatchState(plan()));
+  const mismatch = acceptedCompletion(mismatchFirst.state, mismatchFirst.action, 'wrong-model', {
+    model: 'zai/glm-5.2',
+  });
+  assert.equal(mismatch.action.type, 'fail-loud');
+  assert.equal(mismatch.action.code, 'MODEL_MISMATCH');
 });
 
 test('transport, quota, timeout, and auth failures take the next task-scoped availability fallback', () => {
@@ -381,7 +404,7 @@ test('queues and completion events remain task-scoped and pushed events are idem
   const admitted = accept(first.state, first.action, 'event-a-pass');
   const mismatch = reduceNativeDispatch(admitted.state, {
     id: 'wrong-task-event', taskId: 'task-b', entryId: 'task-b:producer:primary-b', purpose: 'producer',
-    jobId: 'wrong-job', ok: true, modelChange: { model: 'minimax-portal/MiniMax-M3' },
+    jobId: 'wrong-job', ok: true, modelChange: { model: 'minimax-code/MiniMax-M3' },
   });
   assert.equal(mismatch.action.reason, 'stale-or-mismatched-event');
   const pass = reduceNativeDispatch(mismatch.state, complete(first.action, 'event-a-pass'));
@@ -438,7 +461,7 @@ test('custom policy entries cannot inject Sol or Yuri as a child worker', () => 
   const verifierPlan = plan();
   verifierPlan.queues.producers[0] = {
     ...verifierPlan.queues.producers[0],
-    model: 'minimax-portal/MiniMax-M3',
+    model: 'minimax-code/MiniMax-M3',
     providerFamily: 'minimax',
   };
   verifierPlan.queues.verifiers = [{
@@ -470,7 +493,7 @@ test('custom manifests cannot bypass cheap semantic and verifier floors', () => 
   r2VerifierPlan.routes[0].route.classification = { riskClass: 'R2', requiresVerifier: true };
   r2VerifierPlan.queues.producers[0] = {
     ...r2VerifierPlan.queues.producers[0],
-    model: 'minimax-portal/MiniMax-M3',
+    model: 'minimax-code/MiniMax-M3',
     providerFamily: 'minimax',
   };
   r2VerifierPlan.queues.verifiers[0] = {
@@ -515,7 +538,7 @@ test('custom manifests cannot bypass cheap semantic and verifier floors', () => 
 
 test('provider history and entry metadata cannot spoof an OpenAI model as another family', () => {
   const primary = { ...entry('task-a', 'producer', 'openai/gpt-5.6-terra'), providerFamily: 'minimax' };
-  const alternative = { ...entry('task-a', 'producer', 'minimax-portal/MiniMax-M3'), providerFamily: 'minimax' };
+  const alternative = { ...entry('task-a', 'producer', 'minimax-code/MiniMax-M3'), providerFamily: 'minimax' };
   const p = plan({ providerCalibration, verifier: false, calibrationAlternatives: [alternative] });
   p.queues.producers = [primary];
   const history = [
@@ -524,7 +547,7 @@ test('provider history and entry metadata cannot spoof an OpenAI model as anothe
   ];
   const selected = reduceNativeDispatch(createNativeDispatchState(p, { providerHistory: history }));
   assert.equal(selected.action.routeKind, 'calibration-rebalance');
-  assert.equal(selected.action.args.tasks[0].agent, 'mure-synthesist');
+  assert.equal(selected.action.args.tasks[0].agent, 'mure-synthesist-m3');
 
   assert.throws(() => createNativeDispatchState(p, { providerHistory: [{
     ...historyEntry('openai', 'spoofed'),
@@ -593,7 +616,7 @@ test('a canary proof minted for a different model cannot unmask GLM by replay', 
       status: 'completed-omp-canary',
       ok: true,
       jobId: 'glm-canary-proven',
-      model: 'minimax-portal/MiniMax-M3',
+      model: 'minimax-code/MiniMax-M3',
       agentId: 'mure-architect',
     },
   };
@@ -640,7 +663,7 @@ test('legacy native-completion proof fields cannot unmask a default-masked model
 
 test('actual OMP spawn admissions enforce the OpenAI worker ceiling through a non-OpenAI peer', () => {
   const primary = { ...entry('task-a', 'producer', 'openai/gpt-5.6-terra'), providerFamily: 'openai' };
-  const alternative = { ...entry('task-a', 'producer', 'minimax-portal/MiniMax-M3'), providerFamily: 'minimax' };
+  const alternative = { ...entry('task-a', 'producer', 'minimax-code/MiniMax-M3'), providerFamily: 'minimax' };
   const p = plan({ providerCalibration, calibrationAlternatives: [alternative] });
   p.queues.producers = [primary];
   const history = [
@@ -649,7 +672,7 @@ test('actual OMP spawn admissions enforce the OpenAI worker ceiling through a no
   ];
   const first = reduceNativeDispatch(createNativeDispatchState(p, { providerHistory: history }));
   assert.equal(first.action.routeKind, 'calibration-rebalance');
-  assert.equal(first.action.args.tasks[0].agent, 'mure-synthesist');
+  assert.equal(first.action.args.tasks[0].agent, 'mure-synthesist-m3');
   const admitted = accept(first.state, first.action, 'balanced-admission');
   // Calibration recorded at completion, not admission — report still shows initial 49 entries
   assert.equal(admitted.state.providerCalibration.report.sampleSize, 49);
@@ -677,18 +700,18 @@ test('OpenAI worker ceiling fails loud when no non-OpenAI peer remains', () => {
 
 test('OpenAI ceiling is hard on short histories and applies to verifier spawns', () => {
   const primary = { ...entry('task-a', 'producer', 'openai/gpt-5.6-terra'), providerFamily: 'openai' };
-  const alternative = { ...entry('task-a', 'producer', 'minimax-portal/MiniMax-M3'), providerFamily: 'minimax' };
+  const alternative = { ...entry('task-a', 'producer', 'minimax-code/MiniMax-M3'), providerFamily: 'minimax' };
   const shortPlan = plan({ providerCalibration, verifier: false, calibrationAlternatives: [alternative] });
   shortPlan.queues.producers = [primary];
   const sevenNonOpenAi = Array.from({ length: 7 }, (_, index) => historyEntry('minimax', index));
   const scheduled = reduceNativeDispatch(createNativeDispatchState(shortPlan, { providerHistory: sevenNonOpenAi }));
   assert.equal(scheduled.action.routeKind, 'calibration-rebalance');
-  assert.equal(scheduled.action.args.tasks[0].agent, 'mure-synthesist');
+  assert.equal(scheduled.action.args.tasks[0].agent, 'mure-synthesist-m3');
 
   const verifierPlan = plan({ providerCalibration });
   verifierPlan.queues.producers[0] = {
     ...verifierPlan.queues.producers[0],
-    model: 'minimax-portal/MiniMax-M3',
+    model: 'minimax-code/MiniMax-M3',
     providerFamily: 'minimax',
   };
   verifierPlan.queues.verifiers[0] = {
@@ -711,7 +734,7 @@ test('50 accepted implementation workers cannot exceed the 12 percent OpenAI cei
     const taskId = `implementation-${index}`;
     routes.push({ taskId, held: false, route: { selection: 'primary', classification: { riskClass: 'R1', requiresVerifier: false } } });
     producers.push({ ...entry(taskId, 'producer', 'openai/gpt-5.6-terra'), providerFamily: 'openai' });
-    calibrationAlternatives.push({ ...entry(taskId, 'producer', 'minimax-portal/MiniMax-M3'), providerFamily: 'minimax' });
+    calibrationAlternatives.push({ ...entry(taskId, 'producer', 'minimax-code/MiniMax-M3'), providerFamily: 'minimax' });
   }
   let state = createNativeDispatchState({
     routes,
@@ -742,7 +765,7 @@ test('evidence and producer admissions are counted from completed OMP spawns', (
   const p = plan({ providerCalibration, verifier: false });
   p.queues.producers[0] = {
     ...p.queues.producers[0],
-    model: 'minimax-portal/MiniMax-M3',
+    model: 'minimax-code/MiniMax-M3',
     providerFamily: 'minimax',
   };
   p.queues.evidence = [{ ...entry('task-a', 'evidence', 'deepseek/deepseek-v4-flash'), providerFamily: 'deepseek' }];
@@ -809,4 +832,26 @@ test('quality-escalation producer cannot become its own verifier', () => {
   const quality = acceptedCompletion(verifier.state, verifier.action, 'verifier-reject', { verdict: 'reject' });
   const failed = acceptedCompletion(quality.state, quality.action, 'quality-done');
   assert.equal(failed.action.code, 'VERIFIER_NOT_INDEPENDENT');
+});
+
+test('exact minimax-code worker compiles and a portal completion event is accepted via alias normalization', () => {
+  // Canonical selector compiles to the M3 worker (WORKER_BINDINGS exact key).
+  const manifest = entry('alias-task', 'producer', 'minimax-code/MiniMax-M3');
+  const compiled = compileOmpSpawn(manifest, { attempt: 1 });
+  assert.equal(compiled.tasks[0].agent, 'mure-synthesist-m3');
+
+  // Drive a real plan whose default producer is the canonical minimax-code selector.
+  const p = plan({ verifier: false });
+  const first = reduceNativeDispatch(createNativeDispatchState(p));
+  assert.equal(first.action.args.tasks[0].agent, 'mure-synthesist-m3');
+  const admitted = accept(first.state, first.action, 'event-alias');
+  // The completion event reports the legacy minimax-portal alias; the defensive
+  // normalizeSelector (model-mismatch gate) must treat it as equivalent, not
+  // reject it as MODEL_MISMATCH. This is the sole preserved alias-normalization test.
+  const portalEvent = complete(first.action, 'event-alias', { model: 'minimax-portal/MiniMax-M3' });
+  const result = reduceNativeDispatch(admitted.state, portalEvent);
+  assert.notEqual(result.action.reason, 'MODEL_MISMATCH',
+    'a portal completion event must normalize to the minimax-code entry, not be rejected');
+  assert.equal(result.action.reason, 'task-passed',
+    'the defensively-normalized portal event must complete the producer successfully');
 });

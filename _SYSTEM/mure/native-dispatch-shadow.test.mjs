@@ -20,7 +20,7 @@ const ticket = {
   id: taskId,
   from: 'control',
   to: 'worker',
-  actors: { issuer: 'sol-parent', assignee: 'mure-synthesist' },
+  actors: { issuer: 'sol-parent', assignee: 'mure-synthesist-m3' },
   scope: ['_SYSTEM/mure/'],
   expectedOutcome: 'bounded implementation with deterministic evidence',
   constraints: ['shadow observation only'],
@@ -37,7 +37,7 @@ function plan() {
   return {
     routes: [{ taskId, held: false, route: { classification: { riskClass: 'R2', requiresVerifier: true }, verifier: { required: true } } }],
     queues: {
-      producers: [entry('producer', 'minimax-portal/MiniMax-M3', 'mure-synthesist')],
+      producers: [entry('producer', 'minimax-code/MiniMax-M3', 'mure-synthesist-m3')],
       verifiers: [entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5')],
       availabilityFallbacks: [], qualityEscalations: [], calibrationAlternatives: [], evidence: [],
     },
@@ -59,7 +59,7 @@ function completion(action, receipt, suffix, extra = {}) {
     jobId: receipt.jobId,
     ok: true,
     output: 'producer output',
-    modelChange: { model: 'minimax-portal/MiniMax-M3' },
+    modelChange: { model: 'minimax-code/MiniMax-M3' },
     ...extra,
   };
 }
@@ -70,7 +70,7 @@ test('mirrors one R2 producer and independent verifier into an accepted ledger t
   let shadow = observeNativeAction(createNativeDispatchShadow(ticket, 'shadow-test'), scheduled.action);
 
   // Verify dispatch args match compileOmpSpawn for the producer
-  const producerEntry = entry('producer', 'minimax-portal/MiniMax-M3', 'mure-synthesist');
+  const producerEntry = entry('producer', 'minimax-code/MiniMax-M3', 'mure-synthesist-m3');
   const producerCompilerContext = { attempt: 1, taskId, upstream: { evidence: [], producer: null, priorVerifier: null } };
   assert.deepStrictEqual(scheduled.action.args, compileOmpSpawn(producerEntry, producerCompilerContext));
 

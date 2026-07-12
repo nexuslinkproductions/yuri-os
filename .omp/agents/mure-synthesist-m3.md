@@ -14,7 +14,7 @@ tools:
 ---
 
 **Lane:** research
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** merge scattered findings into a lattice map; name cross-domain transfers (source/target/mechanism/mismatch/confidence); large-context synthesis
 

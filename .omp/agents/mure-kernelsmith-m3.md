@@ -14,7 +14,7 @@ tools:
 ---
 
 **Lane:** engineering
-**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-portal/MiniMax-M3`)
+**Model:** minimax-code/MiniMax-M3 (resolved from `minimax-code/MiniMax-M3`)
 
 **Mission:** optimize hot paths; identify Rust/Mojo consolidation candidates (JS reference + native delivery); benchmark perf tradeoffs
 

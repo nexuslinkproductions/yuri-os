@@ -5,7 +5,7 @@
     "created": "2026-07-07",
     "purpose": "Roles resolve to an ORDERED POOL of models across substrates, not a single pin. The dispatcher tries the pool top-down and fails over to the next candidate on 429 / rate-limit / unavailability. This removes the single-provider dependency that let an Anthropic rate limit block ALL spawns.",
     "principle": "A role is an abstraction; many models can fulfill it. Ordering is preference (capability + quota-headroom); every pool is non-Anthropic-first so no spawn depends on the Anthropic 5h window.",
-    "authority": "Advisory routing pool. Governance + arm flags always win. Native Anthropic (opus/sonnet/haiku) is deliberately NOT in the lane pools — it is reached via OMP task(), not lane-dispatch; add it only as an explicit owner-chosen last resort.",
+    "authority": "Advisory routing pool. Governance + arm flags always win. Native Anthropic (opus/sonnet, plus fable via evidence-only bootstrap) is deliberately NOT in the lane pools — it is reached via OMP task(), not lane-dispatch; add it only as an explicit owner-chosen last resort. Haiku 4.5 was retired 2026-07-12 (MiniMax/GLM/Ollama primary for non-security work).",
     "dispatchPrimitive": "_SYSTEM/Scripts/lane-dispatch.mjs <lane> \"<prompt>\" [--model <id>] --out <file> — the shared retry+429-detecting wrapper over llm-lane.mjs that glm-fleet and ollama-fleet already ride."
   },
   "substrateLanes": {

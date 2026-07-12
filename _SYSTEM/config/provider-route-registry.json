@@ -85,8 +85,9 @@
           "surface": "omp-native",
           "model": "anthropic/claude-haiku-4-5",
           "agentId": "mure-scout-haiku",
-          "status": "canary-proven",
+          "status": "owner-excluded",
           "source": "omp-task-completion",
+          "blockedReason": "Owner-retired 2026-07-12: Haiku 4.5 removed from active OMP/MURE roles and fallbacks for near-maximum subscription saturation (MiniMax/GLM/Ollama primary for non-security work). Historical canary evidence preserved; route fails closed and cannot resolve.",
           "canaryEvidence": {
             "agentId": "mure-scout-haiku",
             "jobId": "CanaryHaiku45",
@@ -103,6 +104,20 @@
             "transcriptReadObserved": true,
             "transcriptYieldObserved": true
           }
+        }
+      ]
+    },
+    "anthropic/claude-fable-5": {
+      "role": "advisor-synthesizer",
+      "routes": [
+        {
+          "id": "claude-fable-5.anthropic",
+          "provider": "anthropic",
+          "surface": "omp-native",
+          "model": "anthropic/claude-fable-5",
+          "agentId": "fable-synth-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
         }
       ]
     },
@@ -472,7 +487,7 @@
       "maySpawn": false
     },
     "worker": {
-      "preferredModels": ["minimax-code/MiniMax-M3", "deepseek/deepseek-v4-flash", "anthropic/claude-haiku-4-5", "opencode-go/mimo-v2.5", "cursor/gemini-3.5-flash"],
+      "preferredModels": ["minimax-code/MiniMax-M3", "deepseek/deepseek-v4-flash", "opencode-go/mimo-v2.5", "cursor/gemini-3.5-flash"],
       "mayExecuteWorkerTasks": true,
       "maySpawn": false
     },
@@ -491,8 +506,8 @@
   },
   "excludedModels": [
     {
-      "model": "anthropic/claude-fable-5",
-      "reason": "Explicitly excluded by owner; replace with an available advisor or verifier route."
+      "model": "anthropic/claude-haiku-4-5",
+      "reason": "Owner-retired 2026-07-12: Haiku 4.5 removed from active OMP/MURE roles and fallbacks. MiniMax/GLM/Ollama are primary for non-security work; the route is also owner-excluded."
     },
     {
       "model": "openai/gpt-5.6-sol",

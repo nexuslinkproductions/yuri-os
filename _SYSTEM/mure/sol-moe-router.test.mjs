@@ -52,7 +52,7 @@ test('R0 breadth routes to DeepSeek Flash with MiMo as availability fallback', (
     thinking: 'low',
   });
   assert.equal(route.availabilityFallbacks[0].model, 'opencode-go/mimo-v2.5');
-  assert.equal(route.qualityEscalations[0].model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.qualityEscalations[0].model, 'minimax-code/MiniMax-M3');
 });
 
 test('MiMo becomes an R0 availability fallback after its completed native auth canary', () => {
@@ -64,7 +64,7 @@ test('MiMo becomes an R0 availability fallback after its completed native auth c
 
 test('GLM 5.2 is masked by default until explicit availability evidence re-enables it', () => {
   const route = routeTask({ summary: 'design a service architecture', architecture: true });
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'minimax-code/MiniMax-M3');
   assert.equal(route.selection, 'availability-fallback');
   const enabled = routeTask(
     { summary: 'design a service architecture', architecture: true },
@@ -85,13 +85,13 @@ test('a canary proof minted for a different model cannot unmask GLM at the route
           status: 'completed-omp-canary',
           ok: true,
           jobId: 'canary-cross-model',
-          model: 'minimax-portal/MiniMax-M3',
+          model: 'minimax-code/MiniMax-M3',
           agentId: 'mure-architect',
         },
       },
     },
   );
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'minimax-code/MiniMax-M3');
   assert.equal(route.selection, 'availability-fallback');
 });
 
@@ -112,7 +112,7 @@ test('a canary proof minted for a different agent cannot unmask GLM at the route
       },
     },
   );
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'minimax-code/MiniMax-M3');
   assert.equal(route.selection, 'availability-fallback');
 });
 
@@ -133,7 +133,7 @@ test('legacy native-completion proof fields cannot unmask GLM at the router', ()
       },
     },
   );
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'minimax-code/MiniMax-M3');
   assert.equal(route.selection, 'availability-fallback');
 });
 
@@ -261,7 +261,7 @@ test('long-context synthesis uses GLM 5.2 and M3 remains its volume fallback', (
   );
   assert.equal(route.classification.taskType, 'long-context');
   assert.equal(route.producer.model, 'zai/glm-5.2');
-  assert.equal(route.availabilityFallbacks[0].model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.availabilityFallbacks[0].model, 'minimax-code/MiniMax-M3');
 });
 
 test('adjudication routes luna and M3 as co-primary weighted producers; Opus independently verifies (v3.3 cost-tier)', () => {
@@ -272,8 +272,8 @@ test('adjudication routes luna and M3 as co-primary weighted producers; Opus ind
   assert.equal(route.classification.taskType, 'adjudication');
   assert.equal(route.classification.riskClass, 'R3');
   // v3.3: luna and M3 are co-primary at equal 0.4 weight; Sonnet 5 is masked for R3 anthropic production.
-  // The winning seat depends on the stable seed hash — either mure-adjudicator (luna) or mure-synthesist (M3).
-  const validProducers = new Set(['minimax-portal/MiniMax-M3', 'openai/gpt-5.6-luna']);
+  // The winning seat depends on the stable seed hash — either mure-adjudicator (luna) or mure-synthesist-m3 (M3).
+  const validProducers = new Set(['minimax-code/MiniMax-M3', 'openai/gpt-5.6-luna']);
   assert.ok(validProducers.has(route.producer.model),
     `adjudication producer must be M3 or luna, got ${route.producer.model}`);
   // Opus always independently verifies R3.
@@ -292,7 +292,7 @@ test('R2 cheap candidates are evidence-only and rejected as semantic producer or
     { availability: allAvailable },
   );
   const cheap = plan.evidenceGatherers.filter((candidate) => candidate.tier === 'cheap');
-  assert.equal(cheap.length, 2);
+  assert.equal(cheap.length, 3);
   assert.ok(cheap.every((candidate) => candidate.allowedUses.length === 1 && candidate.allowedUses[0] === 'evidence'));
   assert.ok(plan.rejected.some((entry) => entry.model === 'deepseek/deepseek-v4-flash' && entry.use === 'semantic-producer'));
   assert.ok(plan.rejected.some((entry) => entry.model === 'opencode-go/mimo-v2.5' && entry.use === 'final-verifier'));
@@ -300,25 +300,26 @@ test('R2 cheap candidates are evidence-only and rejected as semantic producer or
   assert.ok(plan.verifiers.every((candidate) => candidate.tier === 'frontier'));
 });
 
-test('R3 security implementation offloads production to M3 and retains cross-provider Opus verification', () => {
+test('R3 security-implementation runs the three-view contract: GLM-5.2 produces, Opus 4.8 independently verifies', () => {
   const route = routeTask(
     { id: 'sec-1', summary: 'patch an authentication bypass', security: true, files: ['auth.mjs'] },
-    { availability: allAvailable },
+    { availability: allAvailable, availabilityEvidence },
   );
   assert.equal(route.classification.riskClass, 'R3');
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'zai/glm-5.2');
   assert.equal(route.verifier.model, 'anthropic/claude-opus-4-8');
   assert.equal(route.verifier.required, true);
   assert.notEqual(route.producer.model, route.verifier.model);
+  assert.notEqual(route.producer.family, route.verifier.family);
 });
 
 test('R3 reserves Opus for independent verification instead of self-verifying', () => {
   const route = routeTask(
     { id: 'sec-review', summary: 'security review of OAuth policy', security: true },
-    { availability: allAvailable },
+    { availability: allAvailable, availabilityEvidence },
   );
   assert.equal(route.classification.riskClass, 'R3');
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'zai/glm-5.2');
   assert.equal(route.verifier.model, 'anthropic/claude-opus-4-8');
   assert.notEqual(route.producer.family, route.verifier.family);
   assert.ok(route.qualityEscalations.every((entry) => entry.id !== 'opus48'));
@@ -386,7 +387,7 @@ test('availability fallback and quality escalation remain separate routes', () =
     { summary: 'synthesize findings from many reports', synthesis: true, estimatedTokens: 80_000 },
     { availability: allAvailable, availabilityEvidence },
   );
-  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.producer.model, 'minimax-code/MiniMax-M3');
   assert.equal(route.producer.dispatch.thinking, 'adaptive');
   assert.equal(route.availabilityFallbacks[0].model, 'zai/glm-5.2');
   assert.equal(route.qualityEscalations[0].model, 'anthropic/claude-opus-4-8');
@@ -399,7 +400,7 @@ test('quality escalation is never silently consumed as availability fallback', (
   // no primary or fallback route is possible — must fail loud, not silently consume a quality escalation.
   const availability = {
     ...allAvailable,
-    'minimax-portal/MiniMax-M3': false,
+    'minimax-code/MiniMax-M3': false,
     'anthropic/claude-sonnet-5': false,
     'anthropic/claude-opus-4-8': false,
     'openai/gpt-5.6-terra': false,
@@ -426,7 +427,7 @@ test('router selects a distinct verifier after an availability fallback changes 
     { availability: {
       ...allAvailable,
       'zai/glm-5.2': false,
-      'minimax-portal/MiniMax-M3': false,
+      'minimax-code/MiniMax-M3': false,
     } },
   );
   assert.equal(route.producer.model, 'anthropic/claude-sonnet-5');
@@ -435,7 +436,11 @@ test('router selects a distinct verifier after an availability fallback changes 
 });
 
 test('R3 routes retain a real quality escalation distinct from producer and Opus verifier', () => {
-  const route = routeTask({ summary: 'audit authentication boundaries', security: true });
+  const route = routeTask(
+    { summary: 'audit authentication boundaries', security: true },
+    { availability: allAvailable, availabilityEvidence },
+  );
+  assert.equal(route.producer.model, 'zai/glm-5.2');
   assert.notEqual(route.producer.family, 'openai');
   assert.equal(route.verifier.model, 'anthropic/claude-opus-4-8');
   assert.ok(route.qualityEscalations.length >= 1);
@@ -447,7 +452,7 @@ test('availability fallback selection is explicit for telemetry', () => {
   // When M3, terra, and sonnet5 are all down, the route falls to the availability fallback (Opus).
   const availability = {
     ...allAvailable,
-    'minimax-portal/MiniMax-M3': false,
+    'minimax-code/MiniMax-M3': false,
     'anthropic/claude-sonnet-5': false,
     'openai/gpt-5.6-terra': false,
   };
@@ -489,4 +494,36 @@ test('ledger row requires caller-supplied time to remain pure', () => {
     { availability: allAvailable },
   );
   assert.throws(() => createLedgerRow(route, { outcome: 'pass' }), /timestamp/);
+});
+
+test('Sol is rejected for every child use (parent-only adjudicator — three-view parent leg)', () => {
+  const policy = structuredClone(DEFAULT_POLICY);
+  // Force Sol into producer, verifier, fallback, and escalation slots of a profile.
+  policy.taskProfiles.general = {
+    producer: ['sol', 'm3'],
+    producerWeights: { sol: 0.5, m3: 0.5 },
+    availabilityFallback: ['sol'],
+    qualityEscalation: ['sol'],
+    verifier: ['sol', 'opus48'],
+  };
+  const plan = produceCandidatePlan(
+    classifyTask({ summary: 'general reversible work', reversible: true, files: ['a.mjs'] }),
+    { policy, availability: allAvailable },
+  );
+  // Sol must be rejected for every child use it was named in.
+  const solRejections = plan.rejected.filter((r) => r.id === 'sol');
+  const solUses = solRejections.map((r) => r.use);
+  assert.ok(solUses.includes('semantic-producer'), 'Sol must be rejected as a producer');
+  assert.ok(solUses.includes('final-verifier'), 'Sol must be rejected as a verifier');
+  for (const r of solRejections) {
+    assert.equal(r.reason, 'sol-parent-seat-not-worker',
+      `Sol child rejection reason must be sol-parent-seat-not-worker (got ${r.reason} for use ${r.use})`);
+  }
+  // Sol must never appear as a dispatchable producer/verifier/fallback.
+  assert.ok(!plan.primaryProducers.some((c) => c.id === 'sol'));
+  assert.ok(!plan.verifiers.some((c) => c.id === 'sol'));
+  assert.ok(!plan.availabilityFallbacks.some((c) => c.id === 'sol'));
+  assert.ok(!plan.qualityEscalations.some((c) => c.id === 'sol'));
+  // The Sol seat is still the parent seat (never a dispatched child).
+  assert.equal(plan.seat.model, 'openai/gpt-5.6-sol');
 });
