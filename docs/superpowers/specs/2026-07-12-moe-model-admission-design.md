@@ -110,9 +110,11 @@ For each exact requested selector:
 3. Generate an isolated canary card bound to that exact model.
 4. Restrict the card to `purpose: evidence`; it must not be selectable for ordinary producer work.
 5. Keep the normal role card disabled until promotion.
-6. Remove or disable the bootstrap card after the route reaches a terminal admission result.
+6. After promotion, keep the bootstrap variant as a disabled evidence-identity tombstone: its historical card ID remains the route's `agentId`, while `WORKER_BINDINGS` switches to the normal admitted card. The resolver must fail-close the bootstrap variant as `bootstrap_expired`.
 
 A fresh OMP session is required after card/config projection changes because `task.disabledAgents` and model bindings are startup-loaded.
+
+This lifecycle keeps `canaryEvidence.agentId === route.agentId === the actually dispatched bootstrap card`; it never rewrites observed evidence to the normal card ID.
 
 ### 3. Native R2 canary lifecycle
 
@@ -155,6 +157,7 @@ For each successful route:
 5. Run the MURE sync generator.
 6. Verify the normal card resolves to the intended model rather than `disabled/mure-route-unavailable`.
 7. Verify the card is absent from `task.disabledAgents` in the generated project config.
+8. Verify the bootstrap evidence card is now `bootstrap_expired`, uses the disabled sentinel, and is listed in `task.disabledAgents`; verify `WORKER_BINDINGS` now targets the normal card.
 
 Failed routes remain catalogued but disabled, with their concrete failure reason recorded. Scope is never silently reduced from "all requested routes" to "whatever happened to pass."
 
@@ -209,7 +212,7 @@ The correction, when proven, changes only OMP's local metadata for the provider 
 7. Bootstrap cards cannot execute ordinary producer tasks.
 8. Registry validation accepts only complete, model-matching evidence.
 9. Resolver and projection enable only successful requested routes.
-10. Generated `disabledAgents` contains every failed route and none of the admitted routes.
+10. Generated `disabledAgents` contains every failed normal route and every expired bootstrap evidence card, while containing none of the admitted normal cards.
 11. Provenance establishes whether 372,000 is stale metadata or an intentional `openai-codex` transport cap.
 12. If and only if the transport supports it, runtime metadata and a bounded boundary test confirm operation beyond 372,000 before accepting the 1,050,000 override.
 13. Negative checks prove no OpenAI route resolves through Cursor.
@@ -242,6 +245,7 @@ The work is complete only when all of the following are directly observed:
 - every requested route is executable in normal MURE projection; any live provider failure is recorded with exact evidence and blocks completion rather than silently shrinking scope;
 - DeepSeek Flash, Kimi K2.7 Code, Nemotron 3 Ultra, Luna, GLM-5.1, Composer 2.5, and Grok 4.5 are present in the MoE catalog and role topology;
 - normal cards for admitted routes no longer use the disabled sentinel and are not listed in `task.disabledAgents`;
+- bootstrap evidence cards for admitted routes remain disabled tombstones so registry evidence continues to name the actual dispatched agent;
 - the GPT-5.6 context discrepancy is resolved with provenance: Sol, Terra, and Luna report 1,050,000 through `openai-codex` only if the transport is directly proven beyond 372,000; otherwise the conservative 372,000 cap remains and the API/transport distinction is documented;
 - no OpenAI model is routed through Cursor;
 - focused tests, negative checks, projection checks, and the adversarial audit pass;
