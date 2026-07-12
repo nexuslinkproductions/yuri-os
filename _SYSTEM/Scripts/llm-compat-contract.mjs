@@ -337,8 +337,7 @@ const LLM_COMPAT_CONTRACT = {
     sentinel: {
       authority: 'native-integrated',
       status: 'absorbed-2026-05-17',
-      note: 'Yuri Sentinel/09OC fully absorbed into Musubi as Yuri Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/yuri-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Yuri Sentinel operates under the same native gates as all other Musubi components.',
-      gatewayPort: 18789,
+      note: 'Yuri Sentinel runs as a native Musubi component (_SYSTEM/Scripts/yuri-sentinel.mjs, every 33min via LaunchAgent). No quarantine — operates under the same native gates as all other components.',
       sentinel: '_SYSTEM/Scripts/yuri-sentinel.mjs',
       launchAgent: 'com.yuri-os-musubi.yuri-sentinel'
     },
@@ -425,7 +424,7 @@ const LLM_COMPAT_CONTRACT = {
         kind: 'pattern_profile',
         activation: 'reference-pattern',
         focus: 'manifest-first capabilities, SKILL.md convention, tool profiles, session isolation, sandbox doctrine',
-        rejects: ['channel_sprawl', 'chat_first_identity', 'multi_tenant_gateway', 'in_process_host_trust_plugins', 'host_first_exec_default'],
+        rejects: ['channel_sprawl', 'chat_first_identity', 'multi_tenant_proxy', 'in_process_host_trust_plugins', 'host_first_exec_default'],
         checkpoints: [
           { phase: 'intake_classify', action: 'manifest_first_capability_load_pattern', severity: 'pattern' },
           { phase: 'campaign_decompose', action: 'session_model_and_tool_profile_pattern', severity: 'pattern' },
@@ -969,64 +968,10 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // PATCH 030 — Pulse Cortex classifier extensions
 // =====================================================================
 // Adds the four cortex fields (complexityTier, ensemble, beaconLevel,
-// codexPolicy) plus the Yuri Sentinel advisory assessor. All advisory-only;
-// none of these grant write or canonical authority. (The pulse-orchestrator
-// consumer was DELETED in wave-2 D-C2 — these assessors now serve route-plan
-// inspection only; no automatic fan-out consumes them.)
-
-function assessSentinelAdvisory(prompt, lane, scenario) {
-  const ocConfig = LLM_COMPAT_CONTRACT.claudeProtocolGate.sentinel;
-  // DEAD BRANCH (wave-3 G.7): authority='native-integrated' is hardcoded in the contract,
-  // so this assessor ALWAYS returns {decision:'skip'} — sentinel-preflight never enters any
-  // ensemble and the OC_BRIDGE die node is a ghost. Yuri Sentinel is absorbed into native
-  // function routing (Yuri Sentinel); the code below the early return is unreachable config.
-  if (ocConfig.authority === 'native-integrated') {
-    return {
-      decision: 'skip',
-      preflight: false,
-      postflight: false,
-      runtimeKind: 'native_integrated',
-      authority: 'native-integrated',
-      reason: 'absorbed_into_yuri_sentinel'
-    };
-  }
-  // Legacy bridge-only-advisory path (kept for backward compat)
-  const text = normalizePrompt(prompt);
-  const eligibleScenarios = [
-    'control-plane-orchestration', 'protocol-change',
-    'high-stakes-review', 'sandbox-improvement',
-    'cross-domain-lesson-work'
-  ];
-  const patternSignals = [
-    'pattern', 'architecture', 'design', 'system', 'cross-cutting',
-    'refactor', 'protocol', 'governance', 'cortex'
-  ];
-  const shouldFire = lane === 'native' ||
-    eligibleScenarios.includes(scenario.id) ||
-    includesAny(text, patternSignals);
-
-  if (!shouldFire) {
-    return {
-      decision: 'skip', role: 'none', preflight: false, postflight: false,
-      runtimeKind: 'bridge_advisory', authority: ocConfig.authority,
-      reason: 'below_pattern_advisory_threshold'
-    };
-  }
-  return {
-    decision: 'use-bridge',
-    role: 'pattern advisory (bridge-only, advisory-only)',
-    model: 'deepseek-v4-flash',
-    preflight: true,
-    postflight: scenario.id === 'code-change',
-    outputCapLines: 60,
-    runtimeKind: 'bridge_advisory',
-    authority: ocConfig.authority,
-    reason: lane === 'native' ? 'native_orchestration_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
-    bridgeCommand: null, // retired 2026-06-17: bridge deleted with the dead Conclave
-    localTruthRequired: true,
-    codexFinalAuthority: true
-  };
-}
+// codexPolicy). All advisory-only; none of these grant write or canonical
+// authority. The pulse-orchestrator consumer was DELETED in wave-2 D-C2 —
+// these assessors now serve route-plan inspection only; no automatic fan-out
+// consumes them.
 
 function classifyComplexity(prompt, lane, scenario) {
   const text = normalizePrompt(prompt);
@@ -1109,7 +1054,7 @@ function assessCouncilComposition(prompt, complexityTier, scenario) {
   return { deepseekModel, codexModel, codexReason, reason };
 }
 
-function buildEnsemble(complexityTier, scenario, sentinelAdvisory, prompt = '', codexDispatch = null, councilComposition = null) {
+function buildEnsemble(complexityTier, scenario, prompt = '', codexDispatch = null, councilComposition = null) {
   const ensemble = [];
   if (complexityTier === 'trivial') return ensemble;
 
@@ -1142,9 +1087,6 @@ function buildEnsemble(complexityTier, scenario, sentinelAdvisory, prompt = '', 
   }
 
   if (complexityTier === 'complex' || complexityTier === 'critical') {
-    if (sentinelAdvisory && sentinelAdvisory.decision !== 'skip') {
-      ensemble.push('sentinel-preflight');
-    }
     ensemble.push('yuri-risk');
     // SHURA fires at complex+ (was: strategic-review only)
     ensemble.push('shura-review');
@@ -1357,12 +1299,10 @@ function buildRoutePlan(prompt) {
   const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
   const nativeFunctionGates = assessNativeFunctionGates(prompt, lane, scenario);
   const pulseGovernanceSkeleton = buildPulseGovernanceSkeleton(nativeFunctionGates);
-  // PATCH 030 — Pulse Cortex extensions
-  const sentinelAdvisory = assessSentinelAdvisory(prompt, lane, scenario);
   const complexityTier = classifyComplexity(prompt, lane, scenario);
   const codexDispatch = buildCodexDispatch(prompt, complexityTier, scenario);
   const councilComposition = assessCouncilComposition(prompt, complexityTier, scenario);
-  const ensemble = buildEnsemble(complexityTier, scenario, sentinelAdvisory, prompt, codexDispatch, councilComposition);
+  const ensemble = buildEnsemble(complexityTier, scenario, prompt, codexDispatch, councilComposition);
   const beaconLevel = pickBeaconLevel(complexityTier, scenario);
   const codexPolicy = pickCodexPolicy(prompt, scenario, complexityTier);
   return {
@@ -1381,7 +1321,6 @@ function buildRoutePlan(prompt) {
     codexPolicy,
     codexDispatch,
     councilComposition,
-    sentinelAdvisory,
     // existing fields
     deepseekAdvisory,
     claudeAdvisory,

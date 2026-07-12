@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @capability: sol-moe-company-planner
-// @serves: Sol-first OpenClaw MoE planning | governed sessions_spawn manifests | deterministic model dispatch
+// @serves: Sol-first OMP MoE planning | governed OMP TaskTool manifests | deterministic model dispatch
 // @does: composes the existing governed MURE company planner with the pure Sol MoE router. Produces explicit producer, verifier, availability-fallback, quality-escalation, and optional evidence queues without calling live agents.
 // @use: node _SYSTEM/mure/sol-moe-company.mjs --task-file <task.json> [--include-evidence]
 // @exports: planSolMoeCompany, buildSpawnEntry
@@ -15,8 +15,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
 
 /**
- * Convert one pure-router candidate into an OpenClaw sessions_spawn manifest entry.
- * This is data only. The live Yuri/OpenClaw session remains the authority that executes it.
+ * Convert one pure-router candidate into an OMP TaskTool manifest entry.
+ * This is data only. The live Yuri OMP session remains the authority that executes it.
  */
 export function buildSpawnEntry(candidate, context = {}) {
   if (!candidate?.dispatch?.agentId || !candidate?.dispatch?.model) {
@@ -35,7 +35,7 @@ export function buildSpawnEntry(candidate, context = {}) {
     providerFamily: candidate.family,
     thinking: candidate.dispatch.thinking,
     prompt,
-    execution: 'sessions_spawn',
+    execution: 'omp-task-tool',
   });
 }
 
@@ -45,7 +45,7 @@ export function buildSpawnEntry(candidate, context = {}) {
  * Safety properties:
  * - Calls the existing planCompany() for role casting + governance.
  * - Disables legacy MLP steering (threshold 1.01) so hard policy is authoritative.
- * - Never calls sessions_spawn and never writes runtime state.
+ * - Never invokes OMP TaskTool and never writes runtime state.
  * - Owner-held subtasks never enter an executable queue.
  * - Availability and quality paths remain dormant, separate queues.
  */

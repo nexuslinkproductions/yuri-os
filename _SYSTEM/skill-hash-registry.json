@@ -243,6 +243,10 @@
     "source_path": "skills/objection-source-diagnoser/SKILL.md",
     "hash": "d07460c278e7af67"
   },
+  "omp-moe-dispatch": {
+    "source_path": "skills/omp-moe-dispatch/SKILL.md",
+    "hash": "ed961c7648d63156"
+  },
   "openai-codex-workflow": {
     "source_path": "skills/openai-codex-workflow/SKILL.md",
     "hash": "26b4d0d290a3e780"
@@ -250,10 +254,6 @@
   "openai-docs": {
     "source_path": "skills/openai-docs/SKILL.md",
     "hash": "f1602696827d4f94"
-  },
-  "openclaw-moe-dispatch": {
-    "source_path": "skills/openclaw-moe-dispatch/SKILL.md",
-    "hash": "704c568e02f5ac90"
   },
   "opus-fleet": {
     "source_path": "skills/opus-fleet/SKILL.md",
@@ -1693,7 +1693,7 @@
   },
   "mure-native-dispatch-loop": {
     "source_path": ".claude/skills/mure-native-dispatch-loop/SKILL.md",
-    "hash": "3c8184a04a44657a"
+    "hash": "beb6cc25a17465ba"
   },
   "yuri-xref-preflight": {
     "source_path": ".codex/skills/yuri-xref-preflight/SKILL.md",

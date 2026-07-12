@@ -4,7 +4,7 @@
 
 ## 1. What MURE is
 
-MURE is YURI's ~20-role self-governing agent collective built on the live `runSwarm` / dual-substrate foundation (native Anthropic Agents + z.ai GLM lanes). It models the Sakana.ai operating principle: ideas and specialisation over raw compute, flat hierarchy with deep autonomy inside a capability envelope, and collective intelligence that governs the swarm rather than inflating a super-agent. Each of the 20 roles is a **functional archetype** — never an impersonation of an individual — paired with a declared capability set, a default dispatch lane, a math-hook list, and an autonomy class (self-governable or owner-gated) that determines whether the role decides-and-executes or produces a finished ruling and holds for a one-token owner confirm. MURE is DISARMED by default: every run produces a governed plan with zero spend until the owner arms it.
+MURE is YURI's ~20-role self-governing agent collective built on the live `runSwarm` / **tri-substrate** foundation (OMP `task()` subagents + z.ai GLM fleet + Ollama Cloud peer fleet). It models the Sakana.ai operating principle: ideas and specialisation over raw compute, flat hierarchy with deep autonomy inside a capability envelope, and collective intelligence that governs the swarm rather than inflating a super-agent. Each of the 20 roles is a **functional archetype** — never an impersonation of an individual — paired with a declared capability set, a default dispatch lane, a math-hook list, and an autonomy class (self-governable or owner-gated) that determines whether the role decides-and-executes or produces a finished ruling and holds for a one-token owner confirm. MURE is DISARMED by default (`_SYSTEM/state/mure.enabled` absent) — dry-run only until the owner arms it.
 
 ---
 
@@ -83,9 +83,10 @@ owner input
   │                              ├─ SELF-GOVERNABLE → execute
   │                              └─ OWNER-GATED     → finished ruling + hold packet
   ▼
-DISPATCH (dual substrate, unified blackboard)
-  ├─ native lanes → spawnNativeLoop (Opus Agent tool) → .claude/jobs/<run>/results/native-*.json
-  └─ glm lanes   → runSwarm → glmFleet → .claude/jobs/<run>/results/*.json
+DISPATCH (tri-substrate, unified blackboard)
+  ├─ OMP task() → explore/task/tester/reviewer → .claude/jobs/<run>/results/native-*.json
+  ├─ glm lanes   → runSwarm → glmFleet → .claude/jobs/<run>/results/*.json
+  └─ ollama-cloud → ollamaFleet → .claude/jobs/olf-<id>/results/*.json
   │
   ▼  typed result packets (shared schema) → .claude/jobs/<run>/results/*.json   (BLACKBOARD)
   │
@@ -100,13 +101,13 @@ DISPATCH (dual substrate, unified blackboard)
   │
   ▼
 converge() 3-layer gate + damping → finalizeGuard
-  └─ finalize = Opus / owner only (never autonomous)
+  └─ finalize = orchestrator / owner only (never autonomous)
 ```
 
-Substrates:
-- **native** — Anthropic Agents (`Agent` tool, opus/sonnet/haiku). Bills Claude weekly pool. Writes, native tools, commit discipline.
-- **glm** — z.ai GLM lanes via `runSwarm`/`glmFleet` (glm-max / glm / glm-flash / glm-sub-orch). Bills z.ai plan. Breadth, 1 M context, zero Anthropic spend for adversarial passes.
-
+Substrates (canonical map: `_SYSTEM/config/cloud-fleet-models.json`):
+- **OMP task()** — orchestrator `task()` subagents (`explore` / `task` / `tester` / `reviewer` / …). Native MCP/browser. Bills Claude/Cursor OAuth when available.
+- **glm** — z.ai GLM lanes via `runSwarm`/`glmFleet` (glm-max=glm-5.2 / glm=glm-5.1 / glm-flash=glm-5-turbo). Bills z.ai plan. Breadth, 1M ctx, adversarial passes.
+- **ollama-cloud** — Ollama Pro `:cloud` tiers via `ollama-fleet.mjs` (flash/minimax/kimi/nemotron/deepseek-pro/gemma). Bills Ollama Pro. Default bulk substrate.
 ---
 
 ## 4. The self-governance loop

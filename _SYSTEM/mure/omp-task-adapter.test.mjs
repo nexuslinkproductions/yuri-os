@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 import {
+  loadOmpTranscript,
   parseOmpSpawnReceipt,
   parseOmpTaskResult,
   deterministicOmpTaskId,
@@ -176,11 +180,11 @@ describe('parseOmpTaskResult', () => {
     );
   });
 
-  it('rejects non-terminal status', () => {
-    assert.throws(
-      () => parseOmpTaskResult({ ...VALID_RESULT, status: 'running' }),
-      { name: 'TypeError', message: /not terminal/ },
-    );
+  it('accepts any status string (terminal check deferred to parent adapter)', () => {
+    // 'running' and 'failed (exit 1)' are valid OMP status strings.
+    // Only exact 'completed' yields ok:true in the parent adapter.
+    assert.doesNotThrow(() => parseOmpTaskResult({ ...VALID_RESULT, status: 'running' }));
+    assert.doesNotThrow(() => parseOmpTaskResult({ ...VALID_RESULT, status: 'failed (exit 1)' }));
   });
 
   it('rejects non-CamelCase id (lowercase start)', () => {
@@ -515,5 +519,111 @@ describe('parseOmpTranscript yield normalization', () => {
     const raw = prefix() + JSON.stringify({ type: 'yield', data: { ok: true } });
     const evidence = parseOmpTranscript(raw);
     assert.strictEqual(evidence.terminalYield.yieldType, 'result');
+  });
+});
+
+// ── loadOmpTranscript path containment ────────────────────────────────
+describe('loadOmpTranscript path containment', () => {
+  const baseDir = () => fs.mkdtempSync(path.join(os.tmpdir(), '.omp-contain-'));
+  const transcriptLines = [
+    JSON.stringify({ type: 'session', sessionId: 'sess-x' }),
+    JSON.stringify({ type: 'model_change', model: 'openai/gpt-5.6-terra' }),
+    JSON.stringify({ type: 'thinking_level_change', level: 'medium' }),
+    JSON.stringify({ type: 'yield', yieldType: 'result', data: { ok: true } }),
+  ].join('\n');
+
+  it('reads a transcript inside the base directory', () => {
+    const dir = baseDir();
+    try {
+      fs.writeFileSync(path.join(dir, 'j1.jsonl'), transcriptLines);
+      const evidence = loadOmpTranscript('j1', dir);
+      assert.strictEqual(evidence.session.sessionId, 'sess-x');
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+
+  it('rejects an in-directory symlink to an external file', () => {
+    const dir = baseDir();
+    const targetDir = path.join(dir, 'real');
+    const externalDir = fs.mkdtempSync(path.join(os.tmpdir(), '.omp-ext-'));
+    try {
+      fs.mkdirSync(targetDir, { recursive: true });
+      const externalFile = path.join(externalDir, 'esc.jsonl');
+      fs.writeFileSync(externalFile, transcriptLines);
+      fs.symlinkSync(externalFile, path.join(targetDir, 'j2.jsonl'));
+
+      assert.throws(
+        () => loadOmpTranscript('j2', targetDir),
+        { name: 'TypeError', message: /symlink escaped confinement/ },
+      );
+    } finally {
+      try { fs.rmSync(externalDir, { recursive: true, force: true }); } catch { /* cleanup */ }
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+
+  it('rejects a base symlink that escapes containment', () => {
+    const dir = baseDir();
+    try {
+      const realStorage = path.join(dir, 'real-storage');
+      fs.mkdirSync(realStorage, { recursive: true });
+      // Symlink dir/sym-base -> realStorage, then symlink file inside to outside
+      const symBase = path.join(dir, 'sym-base');
+      fs.symlinkSync(realStorage, symBase);
+      const externalFile = path.join(dir, 'escaped-outside.jsonl');
+      fs.writeFileSync(externalFile, transcriptLines);
+      fs.symlinkSync(externalFile, path.join(symBase, 'j3.jsonl'));
+
+      assert.throws(
+        () => loadOmpTranscript('j3', symBase),
+        { name: 'TypeError', message: /symlink escaped confinement/ },
+      );
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+
+  it('rejects a sibling-prefix path (not contained)', () => {
+    const dir = baseDir();
+    try {
+      const realStorage = path.join(dir, 'real');
+      fs.mkdirSync(realStorage, { recursive: true });
+      fs.writeFileSync(path.join(realStorage, 'j4.jsonl'), transcriptLines);
+      assert.throws(
+        () => loadOmpTranscript('j4', realStorage + '-evil'),
+        { name: 'TypeError', message: /not accessible/ },
+      );
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+
+  it('rejects missing transcript file (ENOENT)', () => {
+    const dir = baseDir();
+    try {
+      const emptyDir = path.join(dir, 'empty');
+      fs.mkdirSync(emptyDir, { recursive: true });
+      assert.throws(
+        () => loadOmpTranscript('j5', emptyDir),
+        { name: 'TypeError', message: /not accessible/ },
+      );
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+
+  it('rejects non-regular-file (directory)', () => {
+    const dir = baseDir();
+    try {
+      const dirAsFile = path.join(dir, 'j6.jsonl');
+      fs.mkdirSync(dirAsFile, { recursive: true });
+      assert.throws(
+        () => loadOmpTranscript('j6', dir),
+        { name: 'TypeError', message: /not a regular file/ },
+      );
+    } finally {
+      try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
   });
 });

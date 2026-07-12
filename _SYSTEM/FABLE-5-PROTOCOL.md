@@ -16,7 +16,7 @@ Its job is **not** to redo prep work. It **synthesizes, judges, corrects, and CU
 
 **Durable mastermind stand-in: `anthropic/claude-opus-4-8`** (dispatch as `anthropic/claude-opus-4-8:xhigh` for the mastermind role). When Fable-5 is unreachable, the SAME protocol runs on the stand-in: same brief convention, same one-shot discipline, same output contract. The protocol is model-portable by design — what makes a pass "Fable-grade" is the methodology (now encoded in the global reasoning floor plus this doc), enforced by the brief, executed at the highest reasoning tier available.
 
-**Archival identity anchor:** `.openclaw/agents/fable-synth.md`. The catalog marks this agent disabled; it is not a selectable MURE route. Durable synthesis work is assigned through the active provider-neutral archetypes instead.
+**Archival identity anchor:** `_SYSTEM/mure/agents/fable-synth.md`. The catalog marks this agent disabled; it is not a selectable MURE route. Durable synthesis work is assigned through the active provider-neutral archetypes instead.
 
 ### What Fable-5 is NOT
 
@@ -54,7 +54,7 @@ Spawning the mastermind **before** prep finishes, or **twice** on the same evide
 
 ## 3. Historical dispatch mechanism (retired OMP custom agents)
 
-This section documents the former OMP mechanism. Active MURE agent cards now live exclusively in `.openclaw/agents/`; repo-local and user-level OMP agent cards were retired on 2026-07-10.
+This section documents the former OMP mechanism. Active MURE agent cards now live exclusively in `_SYSTEM/mure/agents/`; repo-local and user-level OMP agent cards were retired on 2026-07-10.
 
 The mastermind is **not** selected via the `modelRoles` table in `~/.omp/agent/config.yml` — that table has **exactly 9 slots** (default, smol, slow, plan, commit, advisor, designer, task, vision — verified full, 2026-07-07). Custom task-agent definitions bypass the limit entirely.
 
@@ -106,7 +106,7 @@ Single-purpose lane agents:
 
 ### 3.4 The persistent MURE MoE (20 roles, 21 agent files)
 
-The active mixture-of-experts now lives under `.openclaw/agents/`, with model bindings and variants in `.openclaw/mure-agent-catalog.json`. The former user-level `~/.omp/agent/agents/mure-*.md` copies are archived and non-authoritative.
+The active mixture-of-experts now lives under `_SYSTEM/mure/agents/`, with model bindings and variants in `_SYSTEM/mure/agent-catalog.json`. The former user-level `~/.omp/agent/agents/mure-*.md` copies are archived and non-authoritative.
 
 Model spread (counted from live frontmatter, 2026-07-07): **anthropic** ×8 (4× sonnet-5, 3× opus-4-8, 1× haiku-4-5) · **cursor** ×5 (grok-4.3, grok-code-fast-1, gpt-5.5-high, composer-2.5, composer-2.5-fast) · **ollama-cloud** ×4 (nemotron-3-ultra, minimax-m3, kimi-k2.7-code, deepseek-v4-flash) · **zai** ×4 (3× glm-5.2, 1× glm-5-turbo).
 
@@ -202,7 +202,7 @@ Six mastermind passes documented under `02_RESOURCES/RESEARCH/`:
 |---|---|
 | `anthropic/claude-fable-5` is today-only; opus-4-8 is the durable stand-in | Anthropic extends or productizes the model → keep `fable-synth.md` pointed at it and strike the ephemeral note here. Settling check: does the model string still resolve on next spawn? |
 | Custom-agent dispatch remains the >9-model bypass | OMP changes agent discovery or drops per-agent `model:` frontmatter → re-verify against the task executor before next spawn. |
-| Historical MURE roster counts (20 roles / 21 files / 4 providers) | Active roster edits under `.openclaw/agents/` or `.openclaw/mure-agent-catalog.json` → recount before citing; this row snapshots 2026-07-07. |
+| Historical MURE roster counts (20 roles / 21 files / 4 providers) | Active roster edits under `_SYSTEM/mure/agents/` or `_SYSTEM/mure/agent-catalog.json` → recount before citing; this row snapshots 2026-07-07. |
 | Brief skeleton's ≤25-line digest default | A pass whose adjudication genuinely needs a longer digest → the brief overrides; the bound is a default, not doctrine. |
 
 `00FB_FABLE5_PROTOCOL_CANONICAL_X_PASS_COMMITTED`

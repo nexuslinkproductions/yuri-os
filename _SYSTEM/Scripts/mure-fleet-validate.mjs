@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 // @capability: mure-fleet-validate
 // @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector | OMP projection drift gate | canary-evidence gate
-// @does: TDD regression anchor for the MURE fleet — validates model refs, Cline targets/arming, bounded role schemas, Sol variants, native nested dispatch, OpenClaw-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), and canary-proven provider route evidence. Exits non-zero on any failure.
+// @does: TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), and canary-proven provider route evidence. Exits non-zero on any failure.
 // @use: node mure-fleet-validate.mjs  (CI/regression gate after any catalog/provider/roster change)
-// @exports: validateFleet, registeredProviderModels, resolveRef, validateOmpProjection, validateCanaryEvidence, DISABLED_MODEL_SELECTOR
+// @exports: validateFleet, validateOmpProjection, validateCanaryEvidence, validateAgentCardAuthority, DISABLED_MODEL_SELECTOR
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildAgentsList, catalogModelRefs, mapModel } from './mure-agents-sync.mjs';
 import { CLINE_ROSTER, isArmed as clineArmed } from './cline-fleet.mjs';
 import { FORBIDDEN_SELECTOR_PREFIXES, OMP_THINKING_LEVELS, isAdmissibleCanaryEvidence } from '../mure/omp-model-resolver.mjs';
 import {
@@ -26,18 +25,14 @@ import {
 export { DISABLED_MODEL_SELECTOR };
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const CATALOG = path.join(REPO, '.openclaw/mure-agent-catalog.json');
-const CONFIG = path.join(os.homedir(), '.openclaw/openclaw.json');
-const OPENCLAW_AGENT_DIR = path.join(REPO, '.openclaw', 'agents');
-const RETIRED_OMP_AGENT_DIR = path.join(REPO, '.omp', 'agents');
-const RETIRED_OMP_ROOT = path.join(REPO, '.omp');
+const CATALOG = path.join(REPO, '_SYSTEM/mure/agent-catalog.json');
+const MURE_AGENT_DIR = path.join(REPO, '_SYSTEM/mure', 'agents');
 const OMP_AGENT_DIR = path.join(REPO, '.omp', 'agents');
+const OMP_ROOT = path.join(REPO, '.omp');
 const OMP_CONFIG = path.join(REPO, '.omp', 'config.yml');
 const OMP_PROJECTION_STATE = path.join(REPO, '_SYSTEM', 'state', 'mure-omp-projection.json');
 const PROVIDER_ROUTE_REGISTRY_PATH = path.join(REPO, '_SYSTEM', 'config', 'provider-route-registry.json');
 
-// providers OpenClaw resolves natively without an explicit models.providers block
-const BUILTIN_PREFIXES = new Set(['anthropic', 'openai', 'opencode-go']);
 // Thinking-level vocabulary is resolver-owned — never duplicated locally.
 const THINKING_LEVELS = new Set(OMP_THINKING_LEVELS);
 const COST_TIERS = new Set(['cheap', 'medium', 'heavy', 'apex']);
@@ -50,48 +45,13 @@ const CLINE_TARGETS = [
   'cline-pass/kimi-k2.7-code',
 ];
 
-/** Build the set of valid "provider/id" refs from the live openclaw config. */
-export function registeredProviderModels(config) {
-  const valid = new Set();
-  const provs = (config.models && config.models.providers) || {};
-  const passthrough = new Set(); // registered providers that declare NO models -> dynamic passthrough
-  for (const [prov, def] of Object.entries(provs)) {
-    const models = def.models || [];
-    if (!models.length) passthrough.add(prov);
-    for (const m of models) {
-      if (m && m.id) valid.add(`${prov}/${m.id}`);
-    }
-  }
-  return { valid, providerNames: new Set(Object.keys(provs)), passthrough };
-}
 
-/**
- * Classify one projected model ref.
- * @returns {{ref:string, ok:boolean, via:string}}
- */
-export function resolveRef(ref, reg, clineModels) {
-  const prov = ref.split('/')[0];
-  if (BUILTIN_PREFIXES.has(prov)) return { ref, ok: true, via: 'builtin' };
-  if (reg.valid.has(ref)) return { ref, ok: true, via: 'provider' };
-  // cline-pass: resolvable via native provider OR the CLI substrate (CLINE_ROSTER)
-  if (prov === 'cline-pass') {
-    if (reg.providerNames.has('cline-pass') && !reg.passthrough.has('cline-pass')) return { ref, ok: true, via: 'provider' };
-    if (clineModels.has(ref)) return { ref, ok: true, via: 'cli-substrate' };
-    return { ref, ok: false, via: 'cline-unmapped' };
-  }
-  // provider registered with an empty models[] -> dynamic passthrough (can't verify id; WARN not FAIL)
-  if (reg.passthrough.has(prov)) return { ref, ok: true, via: 'passthrough', warn: true };
-  // provider registered with a model list but id absent, or provider missing entirely
-  return { ref, ok: false, via: reg.providerNames.has(prov) ? 'id-missing' : 'provider-absent' };
-}
-
-/** Collect skill ids available from workspace and bundled OpenClaw registries. */
+/** Collect skill ids available from workspace registries. */
 function knownSkillIds() {
   const roots = [
     path.join(REPO, 'skills'),
     path.join(REPO, '.claude', 'skills'),
     path.join(REPO, '.codex', 'skills'),
-    '/opt/homebrew/lib/node_modules/openclaw/skills',
   ];
   const known = new Set();
   for (const root of roots) {
@@ -188,11 +148,11 @@ function listFilesRecursive(root) {
 }
 
 export function validateAgentCardAuthority(catalog, options = {}) {
-  const openclawAgentDir = options.openclawAgentDir || OPENCLAW_AGENT_DIR;
-  const retiredOmpRoot = options.retiredOmpRoot || RETIRED_OMP_ROOT;
+  const mureAgentDir = options.mureAgentDir || MURE_AGENT_DIR;
+  const ompRoot = options.ompRoot || OMP_ROOT;
   const nativeCards = new Set(
-    fs.existsSync(openclawAgentDir)
-      ? fs.readdirSync(openclawAgentDir).filter((name) => name.endsWith('.md'))
+    fs.existsSync(mureAgentDir)
+      ? fs.readdirSync(mureAgentDir).filter((name) => name.endsWith('.md'))
       : [],
   );
   const catalogNames = new Set(catalog.agents.map((agent) => agent.name));
@@ -204,7 +164,7 @@ export function validateAgentCardAuthority(catalog, options = {}) {
       problems.push(`missing:${filename}`);
       continue;
     }
-    const cardName = readAgentCardName(path.join(openclawAgentDir, filename));
+    const cardName = readAgentCardName(path.join(mureAgentDir, filename));
     if (cardName !== agent.name) problems.push(`name-mismatch:${filename}:${cardName ?? '<missing-name>'}`);
   }
   for (const filename of nativeCards) {
@@ -214,7 +174,7 @@ export function validateAgentCardAuthority(catalog, options = {}) {
 
   // Narrowed: only flag OMP mure-* files OUTSIDE the projection agents/ dir.
   // Generated projection files inside .omp/agents/ are validated by validateOmpProjection.
-  const retiredOmpMureFiles = listFilesRecursive(retiredOmpRoot)
+  const ompMureFiles = listFilesRecursive(ompRoot)
     .filter((file) => {
       const rel = path.relative(REPO, file);
       // Skip the projection directory — validated separately
@@ -222,8 +182,8 @@ export function validateAgentCardAuthority(catalog, options = {}) {
       return path.basename(file).startsWith('mure-');
     })
     .map((file) => path.relative(REPO, file));
-  problems.push(...retiredOmpMureFiles.map((name) => `retired-omp-mure-file:${name}`));
-  if (catalog.agentCardRoot !== '.openclaw/agents') {
+  problems.push(...ompMureFiles.map((name) => `retired-omp-mure-file:${name}`));
+  if (catalog.agentCardRoot !== '_SYSTEM/mure/agents') {
     problems.push(`agentCardRoot:${catalog.agentCardRoot ?? '<missing>'}`);
   }
   if (String(catalog.source || '').includes('.omp/agents')) problems.push('catalog-source-still-omp');
@@ -793,25 +753,8 @@ export function validateCanaryEvidence(registry) {
 
 export function validateFleet() {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
-  const config = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
-  const reg = registeredProviderModels(config);
   const clineModels = new Set(Object.values(CLINE_ROSTER));
   const checks = [];
-
-  // CHECK A — every projected agents.list ref resolves
-  const list = buildAgentsList(catalog);
-  const bad = [];
-  const warns = new Set();
-  for (const a of list) {
-    const refs = [a.model.primary, ...((a.model && a.model.fallbacks) || [])].filter(Boolean);
-    for (const r of refs) {
-      const res = resolveRef(r, reg, clineModels);
-      if (!res.ok) bad.push(`${a.id} -> ${r} (${res.via})`);
-      else if (res.warn) warns.add(`${r} (${res.via})`);
-    }
-  }
-  const warnNote = warns.size ? ` | WARN passthrough: ${[...warns].join(', ')}` : '';
-  checks.push({ name: 'A: agents.list refs all resolve', ok: bad.length === 0, detail: (bad.length ? bad.join('; ') : `${list.length} agents, all refs resolve`) + warnNote });
 
   // CHECK B — the 4 ClinePass targets present in CLINE_ROSTER
   const missing = CLINE_TARGETS.filter((t) => !clineModels.has(t));
@@ -825,106 +768,57 @@ export function validateFleet() {
   const incomplete = [];
   const knownSkills = knownSkillIds();
   for (const a of catalog.agents) {
-    const missing = [];
-    if (!a.description || a.description.length < 20 || a.description.length > 320) missing.push(`description(${a.description?.length || 0})`);
-    if (!Array.isArray(a.skills) || a.skills.length < 4 || a.skills.length > 9) missing.push(`skills(${a.skills?.length || 0})`);
+    const missingFields = [];
+    if (!a.description || a.description.length < 20 || a.description.length > 320) missingFields.push(`description(${a.description?.length || 0})`);
+    if (!Array.isArray(a.skills) || a.skills.length < 4 || a.skills.length > 9) missingFields.push(`skills(${a.skills?.length || 0})`);
     else {
       const unknown = a.skills.filter((id) => !knownSkills.has(id));
-      if (unknown.length) missing.push(`unknown-skills:${unknown.join(',')}`);
+      if (unknown.length) missingFields.push(`unknown-skills:${unknown.join(',')}`);
     }
-    if (!THINKING_LEVELS.has(a.thinkingLevel)) missing.push(`thinkingLevel:${a.thinkingLevel}`);
+    if (!THINKING_LEVELS.has(a.thinkingLevel)) missingFields.push(`thinkingLevel:${a.thinkingLevel}`);
     const temperature = a.params?.temperature;
-    if (temperature != null && (!Number.isFinite(temperature) || temperature < 0 || temperature > 1)) missing.push(`temperature:${temperature}`);
-    if (missing.length) incomplete.push(`${a.name}: ${missing.join('+')}`);
+    if (temperature != null && (!Number.isFinite(temperature) || temperature < 0 || temperature > 1)) missingFields.push(`temperature:${temperature}`);
+    if (missingFields.length) incomplete.push(`${a.name}: ${missingFields.join('+')}`);
   }
   checks.push({ name: 'D: base-role schema is bounded and resolvable', ok: incomplete.length === 0, detail: incomplete.length ? `${incomplete.length}/${catalog.agents.length} invalid: ${incomplete.slice(0, 6).join('; ')}${incomplete.length > 6 ? ' …' : ''}` : `${catalog.agents.length} roles complete` });
 
   // CHECK E — Sol pilot variant CATALOG DEFINITIONS are structurally complete.
   // This validates catalog shape only (id/thinkingLevel/tools/max_tokens/
-  // systemSections/costTier/sol-pilot flag) — it does NOT prove the route is
-  // dispatch-eligible; that is a separate concern checked by CHECK F
-  // (provider/CLI ref resolution) and CHECK I/J (OMP projection + canary evidence).
+  // systemSections/costTier/sol-pilot flag) — dispatch eligibility is a
+  // separate concern checked by CHECK I/J (OMP projection + canary evidence).
   const solVariants = catalog.agents.flatMap((a) => (a.variants || [])
     .filter((v) => v.model === 'openai/gpt-5.6-sol')
     .map((v) => ({ role: a.name, ...v })));
   const solProblems = [];
   const solIds = new Set();
   for (const v of solVariants) {
-    const bad = [];
-    if (!v.id || solIds.has(v.id)) bad.push(v.id ? 'duplicate-id' : 'id');
+    const badFields = [];
+    if (!v.id || solIds.has(v.id)) badFields.push(v.id ? 'duplicate-id' : 'id');
     solIds.add(v.id);
-    if (!THINKING_LEVELS.has(v.thinkingLevel)) bad.push(`thinkingLevel:${v.thinkingLevel}`);
-    if (!Array.isArray(v.tools) || v.tools.length === 0) bad.push('tools');
-    if (!Number.isInteger(v.max_tokens) || v.max_tokens < 1) bad.push(`max_tokens:${v.max_tokens}`);
-    if (!Array.isArray(v.systemSections) || v.systemSections.length === 0) bad.push('systemSections');
-    if (!COST_TIERS.has(v.costTier)) bad.push(`costTier:${v.costTier}`);
-    if (!Array.isArray(v.eligibilityFlags) || !v.eligibilityFlags.includes('sol-pilot')) bad.push('sol-pilot-flag');
-    if (bad.length) solProblems.push(`${v.role}/${v.id || '<missing>'}: ${bad.join('+')}`);
+    if (!THINKING_LEVELS.has(v.thinkingLevel)) badFields.push(`thinkingLevel:${v.thinkingLevel}`);
+    if (!Array.isArray(v.tools) || v.tools.length === 0) badFields.push('tools');
+    if (!Number.isInteger(v.max_tokens) || v.max_tokens < 1) badFields.push(`max_tokens:${v.max_tokens}`);
+    if (!Array.isArray(v.systemSections) || v.systemSections.length === 0) badFields.push('systemSections');
+    if (!COST_TIERS.has(v.costTier)) badFields.push(`costTier:${v.costTier}`);
+    if (!Array.isArray(v.eligibilityFlags) || !v.eligibilityFlags.includes('sol-pilot')) badFields.push('sol-pilot-flag');
+    if (badFields.length) solProblems.push(`${v.role}/${v.id || '<missing>'}: ${badFields.join('+')}`);
   }
   checks.push({
     name: 'E: GPT-5.6 Sol pilot catalog definitions are structurally complete',
     ok: solVariants.length > 0 && solProblems.length === 0,
     detail: solProblems.length
       ? solProblems.join('; ')
-      : `${solVariants.length} structurally complete Sol variant definitions (provider resolution checked separately by CHECK F; OMP dispatch/canary eligibility by CHECK I/J)`,
+      : `${solVariants.length} structurally complete Sol variant definitions (OMP dispatch/canary eligibility by CHECK I/J)`,
   });
 
-  // CHECK F — every baseline/variant model resolves DETERMINISTICALLY to a
-  // known provider/CLI ref and is registered on Yuri's native model switcher
-  // (agents.defaults.models). This is provider/ref-level resolution — it does
-  // NOT mean the model is currently dispatch-eligible: many refs that resolve
-  // cleanly here still fail closed under OMP's stricter canary-proven policy
-  // (see CHECK I/J). The detail below reports that OK/FAIL_CLOSED split so a
-  // clean pass here is never misread as "all models are switchable".
-  const allModelRefs = catalogModelRefs(catalog);
-  const unresolvedVariants = [];
-  for (const ref of allModelRefs) {
-    const res = resolveRef(ref, reg, clineModels);
-    if (!res.ok) unresolvedVariants.push(`${ref} (${res.via})`);
-  }
-  const switchable = new Set(Object.keys(config.agents?.defaults?.models || {}));
-  const notSwitchable = allModelRefs.filter((ref) => !switchable.has(ref));
-  const modelProblems = [
-    ...unresolvedVariants.map((x) => `unresolved:${x}`),
-    ...notSwitchable.map((x) => `not-switchable:${x}`),
-  ];
-  let ompDispatchSplit = null;
-  try {
-    const ompProjectionForDisplay = buildOmpProjection(catalog);
-    ompDispatchSplit = `${ompProjectionForDisplay.executable} OMP-dispatch-OK, ${ompProjectionForDisplay.disabled} OMP-FAIL_CLOSED across ${ompProjectionForDisplay.cards.length} projected cards — see CHECK I/J`;
-  } catch (e) {
-    // Source-invalid catalogs are reported by CHECK I; this display-only
-    // cross-reference simply omits the split rather than duplicating that failure.
-  }
-  checks.push({
-    name: 'F: all catalog variant models resolve deterministically under OMP policy',
-    ok: modelProblems.length === 0,
-    detail: modelProblems.length
-      ? modelProblems.join('; ')
-      : `${allModelRefs.length} unique model refs resolve deterministically` + (ompDispatchSplit ? ` (${ompDispatchSplit})` : ''),
-  });
-
-  // CHECK G — Sol can orchestrate exactly one nested native worker layer.
-  const subagentDefaults = config.agents?.defaults?.subagents || {};
-  const yuri = (config.agents?.list || []).find((agent) => agent.id === 'mure-yuri');
-  const yuriTools = new Set(yuri?.tools?.allow || []);
-  const nativeDepthOk = subagentDefaults.maxSpawnDepth === 2
-    && subagentDefaults.maxChildrenPerAgent === 3
-    && yuriTools.has('sessions_spawn');
-  checks.push({
-    name: 'G: Sol native nested dispatch is configured',
-    ok: nativeDepthOk,
-    detail: `maxSpawnDepth=${subagentDefaults.maxSpawnDepth ?? '<default:1>'}, maxChildrenPerAgent=${subagentDefaults.maxChildrenPerAgent ?? '<default:5>'}, yuri.sessions_spawn=${yuriTools.has('sessions_spawn')}`,
-  });
-
-  // CHECK H — every catalog role has exactly one OpenClaw-native card and
+  // CHECK H — every catalog role has exactly one MURE-native card and
   // repo-local OMP non-projection files cannot silently become a second MURE authority.
   const cardAuthorityProblems = validateAgentCardAuthority(catalog);
   const ompCount = fs.existsSync(OMP_AGENT_DIR) ? fs.readdirSync(OMP_AGENT_DIR).filter(n => n.endsWith('.md')).length : 0;
   checks.push({
-    name: 'H: OpenClaw cards are canonical; OMP projection files accepted',
+    name: 'H: MURE cards are canonical; OMP projection files accepted',
     ok: cardAuthorityProblems.length === 0,
-    detail: cardAuthorityProblems.length ? cardAuthorityProblems.join('; ') : `${catalog.agents.length} catalog cards resolve under .openclaw/agents; .omp/agents has ${ompCount} projected files`,
+    detail: cardAuthorityProblems.length ? cardAuthorityProblems.join('; ') : `${catalog.agents.length} catalog cards resolve under _SYSTEM/mure/agents; .omp/agents has ${ompCount} projected files`,
   });
 
   // CHECK I — generated OMP projection artifacts match the live catalog exactly

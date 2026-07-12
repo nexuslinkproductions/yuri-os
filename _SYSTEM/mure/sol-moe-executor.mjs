@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: sol-moe-simulation-executor
 // @serves: test-only route simulation for Sol MoE company manifests
-// @does: exercises availability and quality semantics through an injected callback; it is not a live OpenClaw dispatch seam and must never replace the native push controller
+// @does: exercises availability and quality semantics through an injected callback; it is not a live dispatch seam and must never replace the native push controller
 // @use: await executeSolMoePlan(plan, { spawn: async (request) => result, maxConcurrency: 3 })
 // @exports: executeSolMoePlan
 
@@ -17,7 +17,7 @@ const AVAILABILITY_FAILURES = new Set(['availability', 'transport', 'timeout', '
  * error, durationMs }. A thrown callback error is treated as a transport
  * failure unless it carries an explicit failureKind/kind.
  *
- * This function never imports OpenClaw, calls sessions_spawn, or persists data.
+ * This function never calls the OMP TaskTool or persists data.
  */
 export async function executeSolMoePlan(plan, options = {}) {
   validateInputs(plan, options);

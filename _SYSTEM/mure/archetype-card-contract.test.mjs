@@ -12,13 +12,13 @@ import {
   detectArchetype,
 } from './archetype-card-contract.mjs';
 
-const CARD_URL = new URL('../../.openclaw/agents/mure-yuri.md', import.meta.url);
+const CARD_URL = new URL('./agents/mure-yuri.md', import.meta.url);
 const ROLE_CARDS = Object.freeze([
-  ['architect', new URL('../../.openclaw/agents/mure-architect.md', import.meta.url), validateArchitectArchetypeCard],
-  ['strategic-peer', new URL('../../.openclaw/agents/mure-advisor.md', import.meta.url), validateStrategicPeerArchetypeCard],
-  ['delegated-orchestrator', new URL('../../.openclaw/agents/mure-helmsman.md', import.meta.url), validateDelegatedOrchestratorArchetypeCard],
-  ['worker', new URL('../../.openclaw/agents/mure-engineer.md', import.meta.url), validateWorkerArchetypeCard],
-  ['verifier', new URL('../../.openclaw/agents/mure-adjudicator.md', import.meta.url), validateVerifierArchetypeCard],
+  ['architect', new URL('./agents/mure-architect.md', import.meta.url), validateArchitectArchetypeCard],
+  ['strategic-peer', new URL('./agents/mure-advisor.md', import.meta.url), validateStrategicPeerArchetypeCard],
+  ['delegated-orchestrator', new URL('./agents/mure-helmsman.md', import.meta.url), validateDelegatedOrchestratorArchetypeCard],
+  ['worker', new URL('./agents/mure-engineer.md', import.meta.url), validateWorkerArchetypeCard],
+  ['verifier', new URL('./agents/mure-adjudicator.md', import.meta.url), validateVerifierArchetypeCard],
 ]);
 const LIVE_ROUTING_URLS = [
   new URL('./sol-moe-company.mjs', import.meta.url),
@@ -110,9 +110,9 @@ test('archetype card validation remains outside all live routing modules', async
 });
 
 const SECONDARY_CARDS = Object.freeze([
-  ['worker', new URL('../../.openclaw/agents/mure-scout.md', import.meta.url)],
-  ['verifier', new URL('../../.openclaw/agents/mure-calibrator.md', import.meta.url)],
-  ['verifier', new URL('../../.openclaw/agents/mure-oracle.md', import.meta.url)],
+  ['worker', new URL('./agents/mure-scout.md', import.meta.url)],
+  ['verifier', new URL('./agents/mure-calibrator.md', import.meta.url)],
+  ['verifier', new URL('./agents/mure-oracle.md', import.meta.url)],
 ]);
 
 test('secondary worker and verifier cards pass generic card validation', async () => {

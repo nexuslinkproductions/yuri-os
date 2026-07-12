@@ -19,7 +19,7 @@ const { clampThinking, ALL_SOURCE_ROUTES, findExclusion, isForbiddenSelector } =
 // cannot shrink the test's own input set and pass vacuously.
 
 const catalogRaw = await readFile(
-  new URL('../../.openclaw/mure-agent-catalog.json', import.meta.url),
+  new URL('../../_SYSTEM/mure/agent-catalog.json', import.meta.url),
   'utf8',
 );
 const catalog = JSON.parse(catalogRaw);
@@ -69,16 +69,17 @@ const CLINE_ROUTE_MODELS = new Set(FLAT_ROUTES.filter((r) => r.model.startsWith(
 
 // ── Fail-closed: blocked-schema Ollama route ────────────────────────────────
 
-test('ollama-cloud/deepseek-v4-flash:cloud fails closed for blocked-schema', () => {
+test('ollama-cloud/deepseek-v4-flash:cloud fails closed for unproven route (no registry row)', () => {
   const result = resolveOmpModel('ollama-cloud/deepseek-v4-flash:cloud');
-  assert.equal(result.selector, null, 'blocked-schema route must not emit a selector');
+  assert.equal(result.selector, null, 'unproven route must not emit a selector');
   assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.REGISTRY_BLOCKED, 'blocked-schema is a registry_blocked failure');
-  assert.ok(result.reason, 'blocked-schema failure must carry a reason');
+  assert.equal(result.failClass, FAIL_CLASSES.UNPROVEN_ROUTE, 'no registry row — unproven_route');
+  assert.ok(result.reason, 'unproven route failure must carry a reason');
   assert.ok(
-    result.reason.toLowerCase().includes('blocked') ||
-    result.reason.toLowerCase().includes('schema'),
-    'reason must mention blocked schema',
+    result.reason.toLowerCase().includes('unproven') ||
+    result.reason.toLowerCase().includes('canary') ||
+    result.reason.toLowerCase().includes('evidence'),
+    'reason must mention lack of proven evidence',
   );
 });
 
@@ -221,7 +222,7 @@ test('cursor/gemini-3.5-flash normalizes cursor-cli/* registry evidence to a cur
   assert.equal(result.selector, 'cursor/gemini-3.5-flash', 'selector must use cursor/, never cursor-cli/');
   assert.equal(result.sourceRoute, 'cursor-cli/gemini-3.5-flash', 'sourceRoute carries the catalog cursor-cli/* alias');
   assert.equal(result.routeStatus, 'canary-proven');
-  assert.equal(result.evidenceAgentId, 'mure-scout');
+  assert.equal(result.evidenceAgentId, 'mure-oracle');
   assert.ok(!result.selector.startsWith('cursor-cli/'));
 });
 
@@ -243,8 +244,7 @@ test('cursor/composer-2.5 normalizes to cursor/* selector but fails closed unpro
 
 test('every non-canary-proven registry route fails closed', () => {
   const nonCanaryRoutes = FLAT_ROUTES.filter((r) => r.status !== 'canary-proven');
-
-  assert.ok(nonCanaryRoutes.length >= 3, 'must have known non-canary routes');
+  assert.ok(nonCanaryRoutes.length >= 2, `must have known non-canary routes (got ${nonCanaryRoutes.length})`);
 
   for (const route of nonCanaryRoutes) {
     const result = resolveOmpModel(route.model);
@@ -571,57 +571,36 @@ test('buildRouteByModelIndex: distinct route.model keys across identities do not
 });
 
 // ── Canary evidence admissibility gate ───────────────────────────────────────
-// A canary-proven route must carry admissible evidence under exactly one of
-// two schemas (standard: single run bound via childSessionKey; corroborated:
-// two independent runs bound via agentId+ompSessionId). buildRouteByModelIndex
-// enforces this at registry-load time so every consumer (resolver, sync,
-// generator) fails closed even if a separate validator pass is skipped.
-// Non-canary-proven routes are never evidence-checked — historical evidence
-// on a demoted/blocked route is not readmission.
+// A canary-proven route must carry admissible OMP-native evidence.
+// buildRouteByModelIndex enforces this at registry-load time so every consumer
+// (resolver, sync, generator) fails closed even if a separate validator pass
+// is skipped. Non-canary-proven routes are never evidence-checked — historical
+// evidence on a demoted/blocked route is not readmission.
 
-function standardRoute(overrides = {}) {
+function ompRoute(overrides = {}) {
   return {
-    id: 'fixture.standard',
+    id: 'fixture.omp',
     provider: 'fixture',
-    surface: 'fixture',
-    model: 'fixture/standard-model',
+    surface: 'omp-native',
+    model: 'fixture/omp-model',
     agentId: 'fixture-agent',
     status: 'canary-proven',
+    source: 'omp-task-completion',
     canaryEvidence: {
-      runId: 'run-1',
-      childSessionKey: 'agent:fixture-agent:subagent:abc123',
-      resolvedModel: 'fixture/standard-model',
-      result: 'completed',
-      observed: '2026-07-10',
-    },
-    ...overrides,
-  };
-}
-
-function corroboratedRoute(overrides = {}) {
-  return {
-    id: 'fixture.corroborated',
-    provider: 'fixture',
-    surface: 'fixture',
-    model: 'fixture/corroborated-model',
-    agentId: 'fixture-agent',
-    status: 'canary-proven',
-    canaryEvidence: {
-      primaryRun: {
-        runId: 'run-a',
-        agentId: 'fixture-agent',
-        resolvedModel: 'fixture/corroborated-model',
-        result: 'completed',
-        ompSessionId: 'session-a',
+      jobId: 'CanaryFixture',
+      ompSessionId: '019f5000-0000-7000-0000-000000000000',
+      model: 'fixture/omp-model',
+      agentId: 'fixture-agent',
+      taskResultStatus: 'completed',
+      observed: '2026-07-12',
+      result: {
+        canary: 'fixture-model',
+        packageName: 'yuri-os-musubi',
+        status: 'ok',
       },
-      corroboratingRun: {
-        runId: 'run-b',
-        agentId: 'fixture-agent',
-        resolvedModel: 'fixture/corroborated-model',
-        result: 'completed',
-        ompSessionId: 'session-b',
-      },
-      observed: '2026-07-11',
+      transcriptReadObserved: true,
+      transcriptYieldObserved: true,
+      thinkingLevel: 'high',
     },
     ...overrides,
   };
@@ -631,139 +610,158 @@ function registryWithRoute(route) {
   return { modelIdentities: { fixture: { routes: [route] } } };
 }
 
-test('isAdmissibleCanaryEvidence: valid standard evidence is admissible', () => {
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute()), true);
+test('isAdmissibleCanaryEvidence: valid OMP evidence is admissible', () => {
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute()), true);
 });
 
-test('isAdmissibleCanaryEvidence: valid corroborated evidence is admissible', () => {
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute()), true);
+test('isAdmissibleCanaryEvidence: OMP evidence with null thinkingLevel is admissible', () => {
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, thinkingLevel: null },
+  })), true);
 });
 
-test('isAdmissibleCanaryEvidence: standard evidence is rejected when malformed or missing', () => {
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({ canaryEvidence: undefined })), false, 'missing evidence');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, childSessionKey: undefined },
-  })), false, 'missing childSessionKey');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, childSessionKey: 'agent:someone-else:subagent:abc123' },
-  })), false, 'childSessionKey not bound to route.agentId');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, resolvedModel: 'fixture/different-model' },
-  })), false, 'resolvedModel mismatch');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, result: 'in-progress' },
-  })), false, 'result not completed');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, observed: '2026-02-31' },
+test('isAdmissibleCanaryEvidence: OMP evidence without thinkingLevel field is admissible', () => {
+  const evidence = { ...ompRoute().canaryEvidence };
+  delete evidence.thinkingLevel;
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: evidence })), true);
+});
+
+test('isAdmissibleCanaryEvidence: OMP evidence is rejected when malformed or missing', () => {
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: undefined })), false, 'missing evidence');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, jobId: undefined },
+  })), false, 'missing jobId');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, ompSessionId: '' },
+  })), false, 'empty ompSessionId');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, model: 'fixture/different-model' },
+  })), false, 'model mismatch');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, agentId: 'different-agent' },
+  })), false, 'agentId mismatch');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, taskResultStatus: 'in-progress' },
+  })), false, 'taskResultStatus not completed');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, observed: '2026-02-31' },
   })), false, 'calendar-invalid observed date');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({
-    canaryEvidence: { ...standardRoute().canaryEvidence, observed: '' },
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, observed: '' },
   })), false, 'empty observed date');
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, observed: 'not-a-date' },
+  })), false, 'malformed observed date');
+  // Missing result object
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, result: undefined },
+  })), false, 'missing result');
+  // result.status not ok
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, result: { ...ompRoute().canaryEvidence.result, status: 'error' } },
+  })), false, 'result.status not ok');
+  // missing transcript booleans
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, transcriptReadObserved: false },
+  })), false, 'transcriptReadObserved false');
+  // invalid thinkingLevel
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({
+    canaryEvidence: { ...ompRoute().canaryEvidence, thinkingLevel: 'super-high' },
+  })), false, 'invalid thinkingLevel');
 });
 
-test('isAdmissibleCanaryEvidence: corroborated evidence is rejected when malformed or missing', () => {
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({ canaryEvidence: undefined })), false, 'missing evidence');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: { ...corroboratedRoute().canaryEvidence, corroboratingRun: undefined },
-  })), false, 'missing corroboratingRun');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: {
-      ...corroboratedRoute().canaryEvidence,
-      primaryRun: { ...corroboratedRoute().canaryEvidence.primaryRun, ompSessionId: undefined },
-    },
-  })), false, 'missing ompSessionId on primaryRun');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: {
-      ...corroboratedRoute().canaryEvidence,
-      primaryRun: { ...corroboratedRoute().canaryEvidence.primaryRun, agentId: 'a-different-agent' },
-    },
-  })), false, 'agentId mismatch on primaryRun');
-  // Same runId on both runs: not a genuine independent second observation.
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: {
-      ...corroboratedRoute().canaryEvidence,
-      corroboratingRun: { ...corroboratedRoute().canaryEvidence.corroboratingRun, runId: 'run-a' },
-    },
-  })), false, 'duplicate runId across primary/corroborating runs');
-  // Same ompSessionId on both runs: the same underlying OMP session replayed
-  // under a different runId proves nothing either.
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: {
-      ...corroboratedRoute().canaryEvidence,
-      corroboratingRun: { ...corroboratedRoute().canaryEvidence.corroboratingRun, ompSessionId: 'session-a' },
-    },
-  })), false, 'duplicate ompSessionId across primary/corroborating runs');
-  assert.equal(_internals.isAdmissibleCanaryEvidence(corroboratedRoute({
-    canaryEvidence: { ...corroboratedRoute().canaryEvidence, observed: 'not-a-date' },
-  })), false, 'malformed observed date');
+test('isAdmissibleCanaryEvidence: rejects legacy evidence fields (runId, childSessionKey, resolvedModel)', () => {
+  // Even if all OMP fields are present, a legacy field makes it inadmissible
+  const withRunId = { ...ompRoute().canaryEvidence, runId: 'old-run-id' };
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: withRunId })), false, 'runId present');
+
+  const withChildSessionKey = { ...ompRoute().canaryEvidence, childSessionKey: 'agent:x:subagent:y' };
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: withChildSessionKey })), false, 'childSessionKey present');
+
+  const withResolvedModel = { ...ompRoute().canaryEvidence, resolvedModel: 'fixture/omp-model' };
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: withResolvedModel })), false, 'resolvedModel present');
 });
 
 test('isAdmissibleCanaryEvidence: requires nonempty route.model and route.agentId regardless of evidence', () => {
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({ model: '' })), false);
-  assert.equal(_internals.isAdmissibleCanaryEvidence(standardRoute({ agentId: undefined })), false);
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ model: '' })), false);
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ agentId: undefined })), false);
   assert.equal(_internals.isAdmissibleCanaryEvidence(null), false);
 });
 
-test('buildRouteByModelIndex: throws when a canary-proven route has missing/invalid standard evidence', () => {
+// ── Regression: failed taskResultStatus payload is not admissible ────────────
+test('isAdmissibleCanaryEvidence: failed taskResultStatus is rejected (plausible failed payload regression)', () => {
+  const failedEvidence = {
+    ...ompRoute().canaryEvidence,
+    taskResultStatus: 'failed',
+    result: { ...ompRoute().canaryEvidence.result, status: 'error' },
+  };
+  assert.equal(_internals.isAdmissibleCanaryEvidence(ompRoute({ canaryEvidence: failedEvidence })), false,
+    'taskResultStatus "failed" must not be admissible even with plausible surrounding payload');
+});
+
+// ── Regression: MiniMax M3 at thinkingLevel below high is not proven ─────────
+test('isAdmissibleCanaryEvidence: MiniMax M3 below-high thinkingLevel is rejected by minimumBindingThinkingLevel', () => {
+  // The real proof is at thinkingLevel: high. With minimumBindingThinkingLevel: "high"
+  // on the route, evidence at "medium" must be rejected.
+  const miniMaxEvidence = {
+    jobId: 'CanaryMiniMaxM3',
+    ompSessionId: '019f534b-c934-7000-a9b5-04afbaef1bf3',
+    model: 'minimax-code/MiniMax-M3',
+    agentId: 'mure-synthesist-m3',
+    taskResultStatus: 'completed',
+    observed: '2026-07-12',
+    result: { canary: 'minimax-m3', packageName: 'yuri-os-musubi', status: 'ok' },
+    transcriptReadObserved: true,
+    transcriptYieldObserved: true,
+    thinkingLevel: 'medium', // below the proven high binding
+  };
+  assert.equal(_internals.isAdmissibleCanaryEvidence({
+    id: 'mini-max-fixture',
+    provider: 'minimax-code',
+    surface: 'omp-native',
+    model: 'minimax-code/MiniMax-M3',
+    agentId: 'mure-synthesist-m3',
+    status: 'canary-proven',
+    source: 'omp-task-completion',
+    minimumBindingThinkingLevel: 'high',
+    canaryEvidence: miniMaxEvidence,
+  }), false, 'thinkingLevel "medium" below minimum binding "high" must be rejected');
+});
+
+// ── Registry index builder tests (OMP-native) ───────────────────────────────
+test('buildRouteByModelIndex: throws when a canary-proven route lacks admissible evidence', () => {
   assert.throws(
-    () => buildRouteByModelIndex(registryWithRoute(standardRoute({ canaryEvidence: undefined }))),
-    /lacks admissible canary evidence/,
+    () => buildRouteByModelIndex(registryWithRoute(ompRoute({ canaryEvidence: undefined }))),
+    /lacks admissible/,
   );
   assert.throws(
-    () => buildRouteByModelIndex(registryWithRoute(standardRoute({
-      canaryEvidence: { ...standardRoute().canaryEvidence, childSessionKey: 'agent:wrong-agent:subagent:x' },
+    () => buildRouteByModelIndex(registryWithRoute(ompRoute({
+      canaryEvidence: { ...ompRoute().canaryEvidence, taskResultStatus: 'cancelled' },
     }))),
-    /lacks admissible canary evidence/,
+    /lacks admissible/,
   );
 });
 
-test('buildRouteByModelIndex: throws when a canary-proven route has missing/invalid corroborated evidence', () => {
-  assert.throws(
-    () => buildRouteByModelIndex(registryWithRoute(corroboratedRoute({
-      canaryEvidence: {
-        ...corroboratedRoute().canaryEvidence,
-        corroboratingRun: { ...corroboratedRoute().canaryEvidence.corroboratingRun, ompSessionId: undefined },
-      },
-    }))),
-    /lacks admissible canary evidence/,
-  );
-  assert.throws(
-    () => buildRouteByModelIndex(registryWithRoute(corroboratedRoute({
-      canaryEvidence: {
-        ...corroboratedRoute().canaryEvidence,
-        corroboratingRun: { ...corroboratedRoute().canaryEvidence.corroboratingRun, runId: 'run-a' },
-      },
-    }))),
-    /lacks admissible canary evidence/,
-  );
-});
-
-test('buildRouteByModelIndex: a canary-proven route with a valid distinct corroborated fixture builds cleanly', () => {
-  const index = buildRouteByModelIndex(registryWithRoute(corroboratedRoute()));
-  assert.equal(index['fixture/corroborated-model'].status, 'canary-proven');
-  assert.equal(index['fixture/corroborated-model'].agentId, 'fixture-agent');
-});
-
-test('buildRouteByModelIndex: a canary-proven route with valid standard evidence builds cleanly', () => {
-  const index = buildRouteByModelIndex(registryWithRoute(standardRoute()));
-  assert.equal(index['fixture/standard-model'].status, 'canary-proven');
+test('buildRouteByModelIndex: a canary-proven route with valid OMP evidence builds cleanly', () => {
+  const index = buildRouteByModelIndex(registryWithRoute(ompRoute()));
+  assert.equal(index['fixture/omp-model'].status, 'canary-proven');
+  assert.equal(index['fixture/omp-model'].agentId, 'fixture-agent');
 });
 
 test('buildRouteByModelIndex: non-canary-proven routes are never evidence-checked (historical evidence is irrelevant)', () => {
-  const noEvidenceCatalogCandidate = standardRoute({ status: 'catalog-candidate', canaryEvidence: undefined });
-  const staleEvidenceBlocked = standardRoute({
-    status: 'blocked-schema',
-    canaryEvidence: { runId: 'old-run', result: 'provider-rejected-request-schema', observed: '2026-01-01' },
+  const noEvidenceCatalogCandidate = ompRoute({ status: 'catalog-candidate', canaryEvidence: undefined });
+  const staleOmpEvidenceBlocked = ompRoute({
+    status: 'quota-blocked',
+    canaryEvidence: { ...ompRoute().canaryEvidence, taskResultStatus: 'failed' },
   });
   assert.doesNotThrow(() => buildRouteByModelIndex(registryWithRoute(noEvidenceCatalogCandidate)));
-  assert.doesNotThrow(() => buildRouteByModelIndex(registryWithRoute(staleEvidenceBlocked)));
+  assert.doesNotThrow(() => buildRouteByModelIndex(registryWithRoute(staleOmpEvidenceBlocked)));
 });
 
 test('buildRouteByModelIndex: the live registry index passes the admissibility gate', () => {
   // Every canary-proven route in the live registry must already satisfy
   // isAdmissibleCanaryEvidence; buildRouteByModelIndex(registry) not
-  // throwing is exactly that proof, re-asserted explicitly here rather than
-  // only incidentally via the uniqueness test above.
+  // throwing is exactly that proof.
   assert.doesNotThrow(() => buildRouteByModelIndex(registry));
   for (const route of FLAT_ROUTES) {
     if (route.status === 'canary-proven') {
@@ -776,14 +774,16 @@ test('buildRouteByModelIndex: the live registry index passes the admissibility g
 // ── Registry evidence is advisory metadata only ──────────────────────────────
 
 test('OMP_REGISTRY_EVIDENCE maps resolved selectors to advisory agentIds', () => {
-  assert.equal(OMP_REGISTRY_EVIDENCE['deepseek/deepseek-v4-flash'], 'deepseek-flash');
-  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-haiku-4-5'], 'mure-scout');
-  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-sonnet-5'], 'mure-scout');
-  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-opus-4-8'], 'mure-scout');
-  assert.equal(OMP_REGISTRY_EVIDENCE['zai/glm-5.2'], 'mure-scout');
-  assert.equal(OMP_REGISTRY_EVIDENCE['opencode-go/mimo-v2.5'], 'mure-artificer');
+  // DeepSeek is catalog-candidate, not canary-proven → not in evidence
+  assert.equal(OMP_REGISTRY_EVIDENCE['deepseek/deepseek-v4-flash'], undefined,
+    'catalog-candidate deepseek must not surface advisory canary evidence');
+  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-haiku-4-5'], 'mure-scout-haiku');
+  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-sonnet-5'], 'mure-engineer-sonnet5');
+  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-opus-4-8'], 'mure-yuri-opus48');
+  assert.equal(OMP_REGISTRY_EVIDENCE['zai/glm-5.2'], 'mure-architect');
+  assert.equal(OMP_REGISTRY_EVIDENCE['opencode-go/mimo-v2.5'], 'mure-artificer-mimo25');
   assert.equal(OMP_REGISTRY_EVIDENCE['minimax-code/MiniMax-M3'], 'mure-synthesist-m3');
-  assert.equal(OMP_REGISTRY_EVIDENCE['cursor/gemini-3.5-flash'], 'mure-scout');
+  assert.equal(OMP_REGISTRY_EVIDENCE['cursor/gemini-3.5-flash'], 'mure-oracle');
   // Terra is live quota-blocked — it must NOT appear as canary-proven evidence.
   assert.equal(OMP_REGISTRY_EVIDENCE['openai-codex/gpt-5.6-terra'], undefined,
     'quota-blocked Terra must not surface advisory canary evidence');

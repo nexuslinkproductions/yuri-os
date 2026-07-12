@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  DEFAULT_CWD,
-  compileNativeSpawn,
+  compileOmpSpawn,
   createNativeDispatchState,
   createProviderCalibrationReport,
   recordNativeSpawnAccepted,
@@ -70,7 +69,7 @@ function plan(options = {}) {
 }
 
 const providerCalibration = {
-  metric: 'native child dispatch count',
+  metric: 'OMP TaskTool dispatch count',
   windowDispatches: 50,
   minimumSamples: 30,
   activeTargets: {
@@ -78,6 +77,22 @@ const providerCalibration = {
     minimax: { min: 0, max: 1 },
   },
 };
+
+// Agent-id → model lookup for test helpers. Covers every agent dispatched by
+// the manifest entries above.  mure-scout is multi-model — tests that complete
+// scout actions must pass `model` explicitly.
+function resolveModel(action) {
+  const agent = action.args.agent;
+  if (agent === 'mure-synthesist') return 'minimax-portal/MiniMax-M3';
+  if (agent === 'mure-calibrator') return 'anthropic/claude-sonnet-5';
+  if (agent === 'mure-engineer') return 'openai/gpt-5.6-terra';
+  if (agent === 'mure-adjudicator') return 'openai/gpt-5.6-luna';
+  if (agent === 'mure-sentinel') return 'anthropic/claude-opus-4-8';
+  if (agent === 'mure-architect') return 'zai/glm-5.2';
+  if (agent === 'mure-artificer') return 'opencode-go/mimo-v2.5';
+  if (agent === 'deepseek-flash') return 'deepseek/deepseek-v4-flash';
+  return '';
+}
 
 function historyEntry(family, index) {
   const modelByFamily = {
@@ -92,32 +107,32 @@ function historyEntry(family, index) {
     model: modelByFamily[family],
     agentId,
     providerFamily: family,
-    childSessionKey: `agent:${agentId}:subagent:${index}`,
-    runId: `run-${family}-${index}`,
-    resolvedModel: modelByFamily[family],
+    jobId: `job-${family}-${index}`,
+    agent: agentId,
   };
 }
 
 function complete(action, id, fields = {}) {
+  const { model: explicitModel, output, ...rest } = fields;
+  const ok = rest.ok !== false;
+  const completionModel = explicitModel || resolveModel(action);
   return {
     id,
     taskId: action.taskId,
     entryId: action.entryId,
     purpose: action.purpose,
-    childSessionKey: `agent:${action.args.agentId}:subagent:${id}`,
-    runId: `run-${id}`,
-    ok: true,
-    output: 'work-product',
-    ...fields,
+    jobId: id,
+    ok,
+    ...(output !== undefined ? { output } : ok ? { output: 'work-product' } : {}),
+    ...(ok ? { modelChange: { model: completionModel } } : {}),
+    ...rest,
   };
 }
 
 function accept(state, action, id = action.entryId.replace(/[^a-z0-9]+/gi, '-')) {
   const receipt = {
-    status: 'accepted',
-    childSessionKey: `agent:${action.args.agentId}:subagent:${id}`,
-    runId: `run-${id}`,
-    resolvedModel: action.args.model,
+    jobId: id,
+    agent: action.args.agent,
   };
   return { ...recordNativeSpawnAccepted(state, action, receipt), receipt };
 }
@@ -127,37 +142,44 @@ function acceptedCompletion(state, action, id, fields = {}) {
   return reduceNativeDispatch(admitted.state, complete(action, id, fields));
 }
 
-test('compiler emits exactly the native sessions_spawn allowlist and deterministic taskName', () => {
+test('compiler emits exactly the OMP TaskTool dispatch shape and deterministic task ID', () => {
   const manifest = entry('alpha-task', 'producer', 'openai/gpt-5.6-terra');
-  const a = compileNativeSpawn(manifest, { attempt: 2 });
-  const b = compileNativeSpawn(manifest, { attempt: 2 });
+  const a = compileOmpSpawn(manifest, { attempt: 2 });
+  const b = compileOmpSpawn(manifest, { attempt: 2 });
   assert.deepEqual(a, b);
-  assert.deepEqual(Object.keys(a).sort(), [
-    'agentId', 'cleanup', 'context', 'cwd', 'label', 'mode', 'model', 'runtime', 'sandbox', 'task', 'taskName', 'thinking',
-  ]);
-  assert.equal(a.cwd, DEFAULT_CWD);
-  assert.equal(a.runtime, 'subagent');
-  assert.equal(a.mode, 'run');
-  assert.equal(a.context, 'isolated');
-  assert.equal(a.cleanup, 'keep');
-  assert.equal(a.sandbox, 'inherit');
-  for (const forbidden of ['sessionKey', 'timeout', 'deliver', 'channel', 'transport']) assert.ok(!(forbidden in a));
+  assert.deepEqual(Object.keys(a).sort(), ['agent', 'context', 'i', 'tasks']);
+  assert.ok(Array.isArray(a.tasks) && a.tasks.length === 1);
+  const task = a.tasks[0];
+  assert.deepEqual(Object.keys(task).sort(), ['assignment', 'description', 'id', 'role']);
+  assert.ok(!('agent' in task), 'task must not contain agent');
+  assert.equal(typeof a.agent, 'string');
+  assert.ok(a.agent.length > 0);
+  assert.equal(typeof task.assignment, 'string');
+  assert.ok(task.assignment.length > 0);
+  assert.equal(typeof task.description, 'string');
+  assert.equal(typeof task.role, 'string');
+  assert.ok(/^[A-Z][A-Za-z0-9]{0,31}$/.test(task.id), `task id ${task.id} must be CamelCase ≤32 chars`);
+  assert.ok(typeof a.i === 'string' && a.i.length > 0);
+  assert.ok(typeof a.context === 'string' && a.context.length > 0);
+  for (const forbidden of ['cwd', 'model', 'thinking', 'taskName', 'agentId', 'runtime', 'sandbox', 'cleanup', 'mode', 'label']) {
+    assert.ok(!(forbidden in a), `forbidden key "${forbidden}" should not be in compiled action`);
+  }
 });
 
 test('compiler rejects missing or invalid manifest fields and mismatched task context', () => {
   const valid = entry('task-a', 'producer');
-  assert.throws(() => compileNativeSpawn({ ...valid, id: '' }), /id is required/);
-  assert.throws(() => compileNativeSpawn({ ...valid, model: '' }), /model is required/);
-  assert.throws(() => compileNativeSpawn({ ...valid, purpose: 'unknown' }), /purpose is invalid/);
-  assert.throws(() => compileNativeSpawn({ ...valid, agentId: 'agent bad' }), /agentId contains unsupported/);
-  assert.throws(() => compileNativeSpawn({ ...valid, thinking: 'turbo' }), /thinking is invalid/);
-  assert.throws(() => compileNativeSpawn({ ...valid, model: 'cheap/custom-model' }), /not an allowed MURE worker/);
-  assert.throws(() => compileNativeSpawn({ ...valid, agentId: 'mure-engineer' }), /agentId must be mure-synthesist/);
-  assert.throws(() => compileNativeSpawn(valid, { taskId: 'other-task' }), /taskId must match/);
-  assert.throws(() => compileNativeSpawn(valid, { cwd: 'relative' }), /absolute path/);
-  assert.throws(() => compileNativeSpawn({ ...valid, agentId: 'mure-yuri' }), /cannot be compiled as a native child worker/);
-  assert.throws(() => compileNativeSpawn({ ...valid, model: 'openai/gpt-5.6-sol' }), /cannot be compiled as a native child worker/);
-  assert.throws(() => compileNativeSpawn({
+  assert.throws(() => compileOmpSpawn({ ...valid, id: '' }), /id is required/);
+  assert.throws(() => compileOmpSpawn({ ...valid, model: '' }), /model is required/);
+  assert.throws(() => compileOmpSpawn({ ...valid, purpose: 'unknown' }), /purpose is invalid/);
+  assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'agent bad' }), /agentId contains unsupported/);
+  assert.throws(() => compileOmpSpawn({ ...valid, thinking: 'turbo' }), /thinking is invalid/);
+  assert.throws(() => compileOmpSpawn({ ...valid, model: 'cheap/custom-model' }), /not an allowed MURE worker/);
+  assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'mure-engineer' }), /agentId must be mure-synthesist/);
+  assert.throws(() => compileOmpSpawn(valid, { taskId: 'other-task' }), /taskId must match/);
+  assert.throws(() => compileOmpSpawn(valid, { cwd: 'relative' }), /absolute path/);
+  assert.throws(() => compileOmpSpawn({ ...valid, agentId: 'mure-yuri' }), /cannot be compiled as a native child worker/);
+  assert.throws(() => compileOmpSpawn({ ...valid, model: 'openai/gpt-5.6-sol' }), /cannot be compiled as a native child worker/);
+  assert.throws(() => compileOmpSpawn({
     ...valid,
     agentId: 'mure-engineer',
     model: 'openai/gpt-5.6-terra',
@@ -174,32 +196,34 @@ test('compiler accepts catalog-backed DeepSeek, Ollama, Cline, Cursor, and Haiku
     ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ];
   for (const [model, agentId] of routes) {
-    const compiled = compileNativeSpawn({ ...entry('route-identity', 'evidence', model), agentId }, { taskId: 'route-identity' });
-    assert.equal(compiled.model, model);
-    assert.equal(compiled.agentId, agentId);
+    const compiled = compileOmpSpawn({ ...entry('route-identity', 'evidence', model), agentId }, { taskId: 'route-identity' });
+    assert.equal(compiled.agent, agentId);
+    assert.ok(!('agent' in compiled.tasks[0]), 'tasks[0] must not contain agent');
   }
 });
 
 test('only verifier prompts demand strict JSON verdicts', () => {
-  const producer = compileNativeSpawn(entry('task-a', 'producer'));
-  const verifier = compileNativeSpawn(entry('task-a', 'verifier'));
-  assert.match(verifier.task, /VERIFIER CONTRACT/);
-  assert.match(verifier.task, /\{"verdict":"pass"\}/);
-  assert.doesNotMatch(producer.task, /VERIFIER CONTRACT|\{"verdict":"pass"\}/);
-  assert.match(producer.task, /Task ID: task-a/);
+  const producer = compileOmpSpawn(entry('task-a', 'producer'));
+  const verifier = compileOmpSpawn(entry('task-a', 'verifier'));
+  assert.match(verifier.tasks[0].assignment, /VERIFIER CONTRACT/);
+  assert.match(verifier.tasks[0].assignment, /\{"verdict":"pass"\}/);
+  assert.doesNotMatch(producer.tasks[0].assignment, /VERIFIER CONTRACT|\{"verdict":"pass"\}/);
+  assert.match(producer.tasks[0].assignment, /Task ID: task-a/);
 });
 
 test('producer success advances only its own task to a verifier', () => {
   const state = createNativeDispatchState(plan());
   const first = reduceNativeDispatch(state);
-  assert.equal(first.action.type, 'sessions_spawn');
+  assert.equal(first.action.type, 'omp-task-spawn');
   assert.equal(first.action.purpose, 'producer');
   const next = acceptedCompletion(first.state, first.action, 'event-producer');
-  assert.equal(next.action.type, 'sessions_spawn');
+  assert.equal(next.action.type, 'omp-task-spawn');
   assert.equal(next.action.purpose, 'verifier');
-  assert.match(next.action.args.task, /"entryId":"task-a:producer:minimax-portal-MiniMax-M3"/);
+  assert.match(next.action.args.tasks[0].assignment, /"entryId":"task-a:producer:minimax-portal-MiniMax-M3"/);
   const admittedVerifier = accept(next.state, next.action, 'verifier-accepted');
-  assert.equal(admittedVerifier.state.providerCalibration.history.at(-1).purpose, 'verifier');
+  assert.ok(admittedVerifier.state.tasks['task-a'].awaiting.accepted);
+  assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.jobId, 'verifier-accepted');
+  assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator');
 });
 
 test('transport, quota, timeout, and auth failures take the next task-scoped availability fallback', () => {
@@ -211,12 +235,13 @@ test('transport, quota, timeout, and auth failures take the next task-scoped ava
       failureKind,
       error: `${failureKind} unavailable`,
     });
-    assert.equal(next.action.type, 'sessions_spawn');
+    assert.equal(next.action.type, 'omp-task-spawn');
     assert.equal(next.action.purpose, 'producer');
     assert.equal(next.action.routeKind, 'availability-fallback');
-    assert.equal(next.action.args.model, 'anthropic/claude-sonnet-5');
+    assert.equal(next.action.args.agent, 'mure-calibrator');
     const admittedFallback = accept(next.state, next.action, `fallback-${failureKind}-accepted`);
-    assert.equal(admittedFallback.state.providerCalibration.history.at(-1).routeKind, 'availability-fallback');
+    assert.equal(admittedFallback.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator');
+    assert.equal(admittedFallback.state.tasks['task-a'].awaiting.routeKind, 'availability-fallback');
   }
 });
 
@@ -236,13 +261,13 @@ test('verifier rejection runs quality escalation and then re-runs the verifier',
   const first = reduceNativeDispatch(createNativeDispatchState(plan({ escalations: [escalation] })));
   const verifier = acceptedCompletion(first.state, first.action, 'event-producer');
   const quality = acceptedCompletion(verifier.state, verifier.action, 'event-reject', { verdict: 'reject' });
-  assert.equal(quality.action.type, 'sessions_spawn');
+  assert.equal(quality.action.type, 'omp-task-spawn');
   assert.equal(quality.action.purpose, 'quality-escalation');
-  assert.equal(quality.action.args.model, 'openai/gpt-5.6-terra');
+  assert.equal(quality.action.args.agent, 'mure-engineer');
   const admittedQuality = accept(quality.state, quality.action, 'quality-accepted');
-  assert.equal(admittedQuality.state.providerCalibration.history.at(-1).routeKind, 'quality-escalation');
+  assert.equal(admittedQuality.state.tasks['task-a'].awaiting.routeKind, 'quality-escalation');
   const verifierAgain = reduceNativeDispatch(admittedQuality.state, complete(quality.action, 'quality-accepted'));
-  assert.equal(verifierAgain.action.type, 'sessions_spawn');
+  assert.equal(verifierAgain.action.type, 'omp-task-spawn');
   assert.equal(verifierAgain.action.purpose, 'verifier');
 });
 
@@ -283,7 +308,7 @@ test('missing producer and required verifier fail loud with exact codes', () => 
   assert.equal(verifierMissing.action.code, 'REQUIRED_VERIFIER_MISSING');
 });
 
-test('completion before native admission fails loud', () => {
+test('completion before OMP spawn admission fails loud', () => {
   const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
   const premature = reduceNativeDispatch(scheduled.state, complete(scheduled.action, 'premature-completion'));
   assert.equal(premature.action.type, 'fail-loud');
@@ -321,7 +346,7 @@ test('queues and completion events remain task-scoped and pushed events are idem
   const admitted = accept(first.state, first.action, 'event-a-pass');
   const mismatch = reduceNativeDispatch(admitted.state, {
     id: 'wrong-task-event', taskId: 'task-b', entryId: 'task-b:producer:primary-b', purpose: 'producer',
-    childSessionKey: 'agent:wrong:subagent:wrong', runId: 'run-wrong', ok: true,
+    jobId: 'wrong-job', ok: true, modelChange: { model: 'minimax-portal/MiniMax-M3' },
   });
   assert.equal(mismatch.action.reason, 'stale-or-mismatched-event');
   const pass = reduceNativeDispatch(mismatch.state, complete(first.action, 'event-a-pass'));
@@ -332,52 +357,35 @@ test('queues and completion events remain task-scoped and pushed events are idem
   assert.equal(taskB.action.taskId, 'task-b');
   const fallback = acceptedCompletion(taskB.state, taskB.action, 'event-b-transport', { ok: false, failureKind: 'transport' });
   assert.equal(fallback.action.taskId, 'task-b');
-  assert.equal(fallback.action.args.model, 'anthropic/claude-sonnet-5');
+  assert.equal(fallback.action.args.agent, 'mure-calibrator');
 });
 
-test('admission records native ids and rejects a silently resolved model change', () => {
+test('admission records OMP jobId and agent, rejects agent mismatch', () => {
   const first = reduceNativeDispatch(createNativeDispatchState(plan()));
   const accepted = recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: `agent:${first.action.args.agentId}:subagent:abc`,
-    runId: 'run-abc',
-    resolvedModel: first.action.args.model,
+    jobId: 'admission-abc',
+    agent: first.action.args.agent,
   });
   assert.equal(accepted.action.reason, 'spawn-accepted');
-  assert.equal(accepted.state.tasks['task-a'].awaiting.accepted.runId, 'run-abc');
-
-  const mismatch = recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: `agent:${first.action.args.agentId}:subagent:def`,
-    runId: 'run-def',
-    resolvedModel: 'unexpected/model',
-  });
-  assert.equal(mismatch.action.code, 'RESOLVED_MODEL_MISMATCH');
+  assert.equal(accepted.state.tasks['task-a'].awaiting.accepted.jobId, 'admission-abc');
+  assert.equal(accepted.state.tasks['task-a'].awaiting.accepted.agent, first.action.args.agent);
 
   assert.throws(() => recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: 'not-a-native-session-key',
-    runId: 'run-malformed',
-    resolvedModel: first.action.args.model,
-  }), /must identify/);
+    jobId: 'agent-mismatch-job',
+    agent: 'wrong-card-agent',
+  }), /does not match dispatched card/);
+
   assert.throws(() => recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: 'agent:',
-    runId: 'run-empty-agent',
-    resolvedModel: first.action.args.model,
-  }), /must identify/);
+    jobId: 'not-valid job id with spaces',
+    agent: first.action.args.agent,
+  }), /malformed/);
+
   assert.throws(() => recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: 'agent:wrong-agent:subagent:abc',
-    runId: 'run-wrong-agent',
-    resolvedModel: first.action.args.model,
-  }), /must identify/);
-  assert.throws(() => recordNativeSpawnAccepted(first.state, first.action, {
-    status: 'accepted',
-    childSessionKey: `agent:${first.action.args.agentId}:subagent:abc\n`,
-    runId: 'run-trailing-newline',
-    resolvedModel: first.action.args.model,
-  }), /must identify/);
+    jobId: '',
+    agent: first.action.args.agent,
+  }), /required/);
+
+  assert.throws(() => recordNativeSpawnAccepted(first.state, first.action, null), /must be an object/);
 });
 
 test('custom policy entries cannot inject Sol or Yuri as a child worker', () => {
@@ -481,38 +489,34 @@ test('provider history and entry metadata cannot spoof an OpenAI model as anothe
   ];
   const selected = reduceNativeDispatch(createNativeDispatchState(p, { providerHistory: history }));
   assert.equal(selected.action.routeKind, 'calibration-rebalance');
-  assert.equal(selected.action.args.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(selected.action.args.agent, 'mure-synthesist');
 
   assert.throws(() => createNativeDispatchState(p, { providerHistory: [{
     ...historyEntry('openai', 'spoofed'),
     providerFamily: 'minimax',
   }] }), /providerFamily does not match model provider/);
-  const resolvedMismatch = { ...historyEntry('openai', 'resolved-mismatch'), resolvedModel: 'openai/gpt-5.6-luna' };
-  assert.throws(() => createNativeDispatchState(p, { providerHistory: [resolvedMismatch] }), /resolvedModel must match model/);
-  assert.throws(() => createProviderCalibrationReport(providerCalibration, [resolvedMismatch]), /resolvedModel must match model/);
+  const agentMismatch = { ...historyEntry('openai', 'agent-mismatch'), agent: 'different-agent' };
+  assert.throws(() => createNativeDispatchState(p, { providerHistory: [agentMismatch] }), /agent must match agentId/);
+  assert.throws(() => createProviderCalibrationReport(providerCalibration, [agentMismatch]), /agent must match agentId/);
 });
 
 test('provider telemetry normalizes execution providers instead of leaking model prefixes', () => {
   const history = [
     {
       model: 'deepseek-v4-flash:direct', agentId: 'deepseek-flash',
-      childSessionKey: 'agent:deepseek-flash:subagent:direct-1', runId: 'run-direct',
-      resolvedModel: 'deepseek-v4-flash:direct',
+      jobId: 'job-direct-1', agent: 'deepseek-flash',
     },
     {
       model: 'ollama-cloud/deepseek-v4-flash:cloud', agentId: 'deepseek-flash',
-      childSessionKey: 'agent:deepseek-flash:subagent:ollama-1', runId: 'run-ollama',
-      resolvedModel: 'ollama-cloud/deepseek-v4-flash:cloud',
+      jobId: 'job-ollama-1', agent: 'deepseek-flash',
     },
     {
       model: 'cline-pass/cline-pass/deepseek-v4-flash', agentId: 'mure-scout',
-      childSessionKey: 'agent:mure-scout:subagent:cline-1', runId: 'run-cline',
-      resolvedModel: 'cline-pass/cline-pass/deepseek-v4-flash',
+      jobId: 'job-cline-1', agent: 'mure-scout',
     },
     {
       model: 'cursor-cli/gemini-3.5-flash', agentId: 'mure-scout',
-      childSessionKey: 'agent:mure-scout:subagent:cursor-1', runId: 'run-cursor',
-      resolvedModel: 'cursor-cli/gemini-3.5-flash',
+      jobId: 'job-cursor-1', agent: 'mure-scout',
     },
   ];
   assert.deepEqual(createProviderCalibrationReport({ windowDispatches: 10, minimumSamples: 1 }, history).counts, {
@@ -532,20 +536,74 @@ test('custom manifests cannot bypass default-masked model canary proof', () => {
 
   p.availabilityEvidence = {
     'zai/glm-5.2': {
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
+      ok: true,
+      jobId: 'glm-canary-proven',
+      model: 'zai/glm-5.2',
+      agentId: 'mure-architect',
+    },
+  };
+  const admitted = reduceNativeDispatch(createNativeDispatchState(p));
+  assert.equal(admitted.action.type, 'omp-task-spawn');
+  assert.equal(admitted.action.args.agent, 'mure-architect');
+});
+
+test('a canary proof minted for a different model cannot unmask GLM by replay', () => {
+  const p = plan({ verifier: false });
+  p.queues.producers[0] = entry('task-a', 'producer', 'zai/glm-5.2');
+  p.availabilityEvidence = {
+    'zai/glm-5.2': {
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
+      ok: true,
+      jobId: 'glm-canary-proven',
+      model: 'minimax-portal/MiniMax-M3',
+      agentId: 'mure-architect',
+    },
+  };
+  const blocked = reduceNativeDispatch(createNativeDispatchState(p));
+  assert.equal(blocked.action.type, 'fail-loud');
+  assert.equal(blocked.action.code, 'MODEL_AVAILABILITY_UNPROVEN');
+});
+
+test('a canary proof minted for a different agent cannot unmask GLM by replay', () => {
+  const p = plan({ verifier: false });
+  p.queues.producers[0] = entry('task-a', 'producer', 'zai/glm-5.2');
+  p.availabilityEvidence = {
+    'zai/glm-5.2': {
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
+      ok: true,
+      jobId: 'glm-canary-proven',
+      model: 'zai/glm-5.2',
+      agentId: 'mure-synthesist',
+    },
+  };
+  const blocked = reduceNativeDispatch(createNativeDispatchState(p));
+  assert.equal(blocked.action.type, 'fail-loud');
+  assert.equal(blocked.action.code, 'MODEL_AVAILABILITY_UNPROVEN');
+});
+
+test('legacy native-completion proof fields cannot unmask a default-masked model', () => {
+  const p = plan({ verifier: false });
+  p.queues.producers[0] = entry('task-a', 'producer', 'zai/glm-5.2');
+  p.availabilityEvidence = {
+    'zai/glm-5.2': {
       source: 'native-completion-event',
       status: 'completed-native-canary',
       ok: true,
       resolvedModel: 'zai/glm-5.2',
-      childSessionKey: 'agent:mure-architect:subagent:proven',
-      runId: 'run-proven',
+      childSessionKey: 'agent:test:subagent:zai-glm-5-2',
+      runId: 'run-zai-glm-5-2',
     },
   };
-  const admitted = reduceNativeDispatch(createNativeDispatchState(p));
-  assert.equal(admitted.action.type, 'sessions_spawn');
-  assert.equal(admitted.action.args.model, 'zai/glm-5.2');
+  const blocked = reduceNativeDispatch(createNativeDispatchState(p));
+  assert.equal(blocked.action.type, 'fail-loud');
+  assert.equal(blocked.action.code, 'MODEL_AVAILABILITY_UNPROVEN');
 });
 
-test('actual native admissions enforce the OpenAI worker ceiling through a non-OpenAI peer', () => {
+test('actual OMP spawn admissions enforce the OpenAI worker ceiling through a non-OpenAI peer', () => {
   const primary = { ...entry('task-a', 'producer', 'openai/gpt-5.6-terra'), providerFamily: 'openai' };
   const alternative = { ...entry('task-a', 'producer', 'minimax-portal/MiniMax-M3'), providerFamily: 'minimax' };
   const p = plan({ providerCalibration, calibrationAlternatives: [alternative] });
@@ -556,12 +614,17 @@ test('actual native admissions enforce the OpenAI worker ceiling through a non-O
   ];
   const first = reduceNativeDispatch(createNativeDispatchState(p, { providerHistory: history }));
   assert.equal(first.action.routeKind, 'calibration-rebalance');
-  assert.equal(first.action.args.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(first.action.args.agent, 'mure-synthesist');
   const admitted = accept(first.state, first.action, 'balanced-admission');
-  assert.equal(admitted.state.providerCalibration.report.sampleSize, 50);
+  // Calibration recorded at completion, not admission — report still shows initial 49 entries
+  assert.equal(admitted.state.providerCalibration.report.sampleSize, 49);
   assert.equal(admitted.state.providerCalibration.report.counts.openai, 6);
-  assert.equal(admitted.state.providerCalibration.report.counts.minimax, 44);
-  assert.equal(admitted.state.providerCalibration.report.status, 'within-band');
+  assert.equal(admitted.state.providerCalibration.report.counts.minimax, 43);
+  // Completion records the MiniMax entry, bumping sample to 50
+  const completed = reduceNativeDispatch(admitted.state, complete(first.action, 'balanced-admission'));
+  assert.equal(completed.state.providerCalibration.report.sampleSize, 50);
+  assert.equal(completed.state.providerCalibration.report.counts.minimax, 44);
+  assert.equal(completed.state.providerCalibration.report.status, 'within-band');
 });
 
 test('OpenAI worker ceiling fails loud when no non-OpenAI peer remains', () => {
@@ -585,7 +648,7 @@ test('OpenAI ceiling is hard on short histories and applies to verifier spawns',
   const sevenNonOpenAi = Array.from({ length: 7 }, (_, index) => historyEntry('minimax', index));
   const scheduled = reduceNativeDispatch(createNativeDispatchState(shortPlan, { providerHistory: sevenNonOpenAi }));
   assert.equal(scheduled.action.routeKind, 'calibration-rebalance');
-  assert.equal(scheduled.action.args.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(scheduled.action.args.agent, 'mure-synthesist');
 
   const verifierPlan = plan({ providerCalibration });
   verifierPlan.queues.producers[0] = {
@@ -623,14 +686,15 @@ test('50 accepted implementation workers cannot exceed the 12 percent OpenAI cei
   });
   for (let index = 0; index < 50; index += 1) {
     const scheduled = reduceNativeDispatch(state);
-    assert.equal(scheduled.action.type, 'sessions_spawn');
+    assert.equal(scheduled.action.type, 'omp-task-spawn');
     const id = `accepted-${index}`;
     const admitted = accept(scheduled.state, scheduled.action, id);
-    const acceptedReport = admitted.state.providerCalibration.report;
-    const acceptedOpenAiShare = (acceptedReport.counts.openai || 0) / acceptedReport.sampleSize;
-    assert.ok(acceptedOpenAiShare <= 0.12, `prefix ${acceptedReport.sampleSize} exceeded ceiling: ${acceptedOpenAiShare}`);
     const completed = reduceNativeDispatch(admitted.state, complete(scheduled.action, id));
     assert.equal(completed.action.reason, 'task-passed');
+    // Calibration recorded at completion; check post-completion report
+    const postReport = completed.state.providerCalibration.report;
+    const postOpenAiShare = (postReport.counts.openai || 0) / postReport.sampleSize;
+    assert.ok(postOpenAiShare <= 0.12, `sample ${postReport.sampleSize} exceeded ceiling: ${postOpenAiShare}`);
     state = completed.state;
   }
   assert.equal(state.providerCalibration.report.sampleSize, 50);
@@ -639,7 +703,7 @@ test('50 accepted implementation workers cannot exceed the 12 percent OpenAI cei
   assert.equal(state.providerCalibration.report.status, 'within-band');
 });
 
-test('evidence and producer admissions are counted from accepted native spawns', () => {
+test('evidence and producer admissions are counted from completed OMP spawns', () => {
   const p = plan({ providerCalibration, verifier: false });
   p.queues.producers[0] = {
     ...p.queues.producers[0],
@@ -649,10 +713,16 @@ test('evidence and producer admissions are counted from accepted native spawns',
   p.queues.evidence = [{ ...entry('task-a', 'evidence', 'deepseek/deepseek-v4-flash'), providerFamily: 'deepseek' }];
   const evidence = reduceNativeDispatch(createNativeDispatchState(p));
   const admittedEvidence = accept(evidence.state, evidence.action, 'evidence-accepted');
-  assert.deepEqual(admittedEvidence.state.providerCalibration.report.counts, { deepseek: 1 });
-  const producer = reduceNativeDispatch(admittedEvidence.state, complete(evidence.action, 'evidence-accepted'));
-  const admittedProducer = accept(producer.state, producer.action, 'producer-accepted');
-  assert.deepEqual(admittedProducer.state.providerCalibration.report.counts, { deepseek: 1, minimax: 1 });
+  // Calibration recorded at completion, not admission
+  assert.equal(admittedEvidence.state.providerCalibration.report.sampleSize, 0);
+  const evidenceDone = reduceNativeDispatch(admittedEvidence.state, complete(evidence.action, 'evidence-accepted'));
+  assert.deepEqual(evidenceDone.state.providerCalibration.report.counts, { deepseek: 1 });
+  // evidenceDone already contains the producer spawn (scheduleTask chains after evidence completion)
+  const admittedProducer = accept(evidenceDone.state, evidenceDone.action, 'producer-accepted');
+  // Still just evidence until producer completes
+  assert.deepEqual(admittedProducer.state.providerCalibration.report.counts, { deepseek: 1 });
+  const producerDone = reduceNativeDispatch(admittedProducer.state, complete(evidenceDone.action, 'producer-accepted'));
+  assert.deepEqual(producerDone.state.providerCalibration.report.counts, { deepseek: 1, minimax: 1 });
 });
 
 test('evidence completes before producer and is injected into the producer task', () => {
@@ -662,7 +732,7 @@ test('evidence completes before producer and is injected into the producer task'
   assert.equal(evidence.action.purpose, 'evidence');
   const producer = acceptedCompletion(evidence.state, evidence.action, 'evidence-done', { output: 'bounded-evidence' });
   assert.equal(producer.action.purpose, 'producer');
-  assert.match(producer.action.args.task, /bounded-evidence/);
+  assert.match(producer.action.args.tasks[0].assignment, /bounded-evidence/);
 });
 
 test('verifier execution failure fails loud and never consumes producer fallbacks', () => {

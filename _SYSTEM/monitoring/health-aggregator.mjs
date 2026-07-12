@@ -1,9 +1,15 @@
-import { createServer, request as httpRequest } from 'node:http';
+import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getHealthSummary as getKagamiHealthSummary } from '../Scripts/kagami-overseer.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+function isMain() {
+  return path.resolve(process.argv[1] || '') === __filename;
+}
 
 function pad(n) { return String(n || '0').padStart(2, '0'); }
 
@@ -45,9 +51,11 @@ healthServer.on('error', (error) => {
   console.error(`[health-aggregator] HTTP server unavailable: ${error.code || error.message}`);
 });
 
-healthServer.listen(HTTP_PORT, '127.0.0.1', () => {
-  console.log(`[health-aggregator] HTTP server on http://localhost:${HTTP_PORT}`);
-});
+if (isMain()) {
+  healthServer.listen(HTTP_PORT, '127.0.0.1', () => {
+    console.log(`[health-aggregator] HTTP server on http://localhost:${HTTP_PORT}`);
+  });
+}
 
 const LAUNCH_AGENTS = [
   { label: 'com.yuri-os-musubi.eot-refresh', schedule: '2AM,8AM,2PM,8PM' },
@@ -301,46 +309,23 @@ const SESSION_BUFFER_PATH = path.join(
   '/Users/marcelspatz',
   '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-buffer.json',
 );
-const WORKER_REGISTRY_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/worker-tmux-registry.json');
-const SYNTHESIS_PATH = path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json');
 
 function countHookScripts(hooksByPhase) {
   return Object.values(hooksByPhase).reduce((total, scripts) => total + scripts.length, 0);
 }
 
-function probeHttp(port, urlPath, timeoutMs = 3000) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve({ ok: false, status: null, error: 'timeout' }), timeoutMs);
-    const req = httpRequest({ hostname: '127.0.0.1', port, path: urlPath, method: 'GET' }, (res) => {
-      clearTimeout(timer);
-      res.resume();
-      resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode });
-    });
-    req.on('error', (e) => { clearTimeout(timer); resolve({ ok: false, status: null, error: e.code }); });
-    req.end();
-  });
+export function buildServiceStatus(launchagents, kagamiOverseer) {
+  return {
+    backend: { status: launchagents.some((l) => l.label.startsWith('com.yuri.kagami') && l.status === 'running') ? 'ok' : 'fail' },
+    dream_synthesis: { status: existsSync(path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json')) ? 'ok' : 'fail' },
+    session_buffer: { status: existsSync(SESSION_BUFFER_PATH) ? 'ok' : 'fail' },
+    'kagami-overseer': {
+      status: kagamiOverseer.status === 'ok' ? 'ok' : kagamiOverseer.status === 'fail' ? 'fail' : 'warn',
+      quarantined_lanes: kagamiOverseer.quarantinedLanes,
+    },
+  };
 }
 
-async function readServiceStatus() {
-  const [backend, openclaw] = await Promise.all([
-    probeHttp(3004, '/api/health'),
-    probeHttp(18789, '/health'),
-  ]);
-
-  const dreamSynthesis = existsSync(SYNTHESIS_PATH)
-    ? (() => { const s = statSync(SYNTHESIS_PATH); return { mtime_iso: s.mtime.toISOString(), age_hours: Number(((Date.now() - s.mtimeMs) / 36e5).toFixed(2)) }; })()
-    : null;
-
-  const workerBridge = existsSync(WORKER_REGISTRY_PATH)
-    ? (() => { const s = statSync(WORKER_REGISTRY_PATH); return { exists: true, mtime_iso: s.mtime.toISOString() }; })()
-    : { exists: false };
-
-  const sessionBuffer = existsSync(SESSION_BUFFER_PATH)
-    ? (() => { const s = statSync(SESSION_BUFFER_PATH); return { exists: true, mtime_iso: s.mtime.toISOString(), age_hours: Number(((Date.now() - s.mtimeMs) / 36e5).toFixed(2)) }; })()
-    : { exists: false };
-
-  return { backend, openclaw, dream_synthesis: dreamSynthesis, worker_bridge: workerBridge, session_buffer: sessionBuffer };
-}
 
 async function main() {
   const hooksByPhase = { ...HOOKS };
@@ -366,17 +351,7 @@ async function main() {
       hooks_by_phase: hooksByPhase,
     },
   };
-  result.services = {
-    backend: { status: launchagents.some((l) => l.label.startsWith('com.yuri.kagami') && l.status === 'running') ? 'ok' : 'fail' },
-    openclaw: { status: launchagents.find((l) => l.label === 'com.yuri.openclaw')?.status === 'running' ? 'ok' : 'fail' },
-    dream_synthesis: { status: existsSync(path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json')) ? 'ok' : 'fail' },
-    worker_bridge: { status: existsSync(path.join(REPO_ROOT, '_SYSTEM/Scripts/worker-bridge.mjs')) ? 'ok' : 'fail' },
-    session_buffer: { status: existsSync(path.join('/Users/marcelspatz', '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-buffer.json')) ? 'ok' : 'fail' },
-    'kagami-overseer': {
-      status: kagamiOverseer.status === 'ok' ? 'ok' : kagamiOverseer.status === 'fail' ? 'fail' : 'warn',
-      quarantined_lanes: kagamiOverseer.quarantinedLanes,
-    },
-  };
+  result.services = buildServiceStatus(launchagents, kagamiOverseer);
 
   mkdirSync(MONITORING_DIR, { recursive: true });
   const healthJson = `${JSON.stringify(result, null, 2)}\n`;
@@ -385,5 +360,7 @@ async function main() {
   cachedHealthJson = healthJson;
 }
 
-main();
-setInterval(main, 60000);
+if (isMain()) {
+  main();
+  setInterval(main, 60000);
+}

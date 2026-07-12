@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** engineering
-**Model:** DISABLED — Neither "openai/gpt-5.6-sol" nor "openai-codex/gpt-5.6-sol" has canary-proven registry evidence.
+**Model:** DISABLED — Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.
 
 **Mission:** implement features; write the primary code for a scoped sub-task; build behind disarmed flags
 

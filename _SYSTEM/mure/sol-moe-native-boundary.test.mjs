@@ -6,21 +6,27 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-test('production Sol MoE modules contain no CLI or subprocess agent dispatch path', () => {
-  const files = fs.readdirSync(HERE)
-    .filter((name) => /^sol-moe-.*\.mjs$/.test(name) && !name.endsWith('.test.mjs'))
-    .sort();
+test('production OMP dispatch modules contain no legacy OpenClaw dispatch symbols', () => {
+  const files = [
+    'sol-moe-native-dispatch.mjs',
+    'sol-moe-parent-adapter.mjs',
+    'native-dispatch-shadow.mjs',
+    'sol-moe-run.mjs',
+    'omp-task-adapter.mjs',
+  ];
   const forbidden = [
     /node:child_process/,
     /\bexecFile\b/,
-    /openclaw\s+agent/,
-    /--session-key/,
-    /['"]--message['"]/,
+    /\bsessions_spawn\b/,
+    /\bchildSessionKey\b/,
+    /\brunId\b/,
+    /\bresolvedModel\b/,
+    /\bOpenClaw\b/,
   ];
   for (const file of files) {
     const source = fs.readFileSync(path.join(HERE, file), 'utf8');
     for (const pattern of forbidden) {
-      assert.doesNotMatch(source, pattern, `${file} contains forbidden native-dispatch bypass ${pattern}`);
+      assert.doesNotMatch(source, pattern, `${file} contains forbidden legacy symbol ${pattern}`);
     }
   }
 });

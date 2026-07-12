@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenClaw MoE Dispatch"
-  short_description: "Route work through native OpenClaw subagents"
-  default_prompt: "Use $openclaw-moe-dispatch to route this task through native OpenClaw subagents."

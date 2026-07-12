@@ -16,7 +16,6 @@ const CANDIDATE_NODE_MODULE_DIRS = [
   process.env.CODEX_PLAYWRIGHT_NODE_MODULES,
   path.join(REPO_ROOT, 'node_modules'),
   '/Users/marcelspatz/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules',
-  '/Users/marcelspatz/.hermes/hermes-agent/node_modules',
   path.join(REPO_ROOT, '01_PROJECTS', 'gstack', 'node_modules'),
   '/opt/homebrew/lib/node_modules',
 ].filter(Boolean);

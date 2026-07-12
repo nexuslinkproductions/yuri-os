@@ -14,8 +14,8 @@ export const PROVIDER_ROUTE_REGISTRY = deepFreeze(
   JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8')),
 );
 
-const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'blocked-schema', 'unresolved']);
-const SURFACES = new Set(['openclaw-native', 'direct-api', 'ollama-cloud', 'cline-pass', 'cursor-cli', 'opencode']);
+const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'blocked-schema', 'quota-blocked', 'unresolved']);
+const SURFACES = new Set(['omp-native', 'direct-api', 'ollama-cloud', 'cline-pass', 'cursor-cli', 'opencode']);
 
 export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY) {
   if (registry?.schemaVersion !== 'yuri-provider-route-v1') {
@@ -43,11 +43,81 @@ export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY
       if (route.status === 'blocked-schema' && !route.blockedReason) {
         throw new TypeError(`blocked-schema route ${route.id} must have blockedReason`);
       }
+      if (route.minimumBindingThinkingLevel !== undefined) {
+        if (typeof route.minimumBindingThinkingLevel !== 'string' || !/^(off|low|medium|high|xhigh|max)$/.test(route.minimumBindingThinkingLevel)) {
+          throw new TypeError(`provider route ${route.id} minimumBindingThinkingLevel must be a valid level (off/low/medium/high/xhigh/max)`);
+        }
+        if (route.status !== 'canary-proven') {
+          throw new TypeError(`provider route ${route.id} minimumBindingThinkingLevel is only valid on canary-proven routes`);
+        }
+      }
       if (route.status === 'canary-proven') {
         const evidence = route.canaryEvidence;
-        if (!evidence?.runId || !evidence?.childSessionKey || evidence?.result !== 'completed'
-          || evidence?.resolvedModel !== route.model || !evidence?.observed) {
-          throw new TypeError(`canary-proven route ${route.id} requires exact completed native evidence`);
+        // Strict OMP evidence contract: require the full packet shape.
+        if (!evidence || typeof evidence !== 'object') {
+          throw new TypeError(`canary-proven route ${route.id} lacks canaryEvidence object`);
+        }
+        // Reject any legacy field — OMP-only contract.
+        if ('runId' in evidence || 'childSessionKey' in evidence || 'resolvedModel' in evidence) {
+          throw new TypeError(`canary-proven route ${route.id} carries legacy evidence fields (runId/childSessionKey/resolvedModel forbidden)`);
+        }
+        if (typeof evidence.jobId !== 'string' || !evidence.jobId) {
+          throw new TypeError(`canary-proven route ${route.id} requires nonempty jobId`);
+        }
+        if (typeof evidence.ompSessionId !== 'string' || !evidence.ompSessionId) {
+          throw new TypeError(`canary-proven route ${route.id} requires nonempty ompSessionId`);
+        }
+        if (evidence.model !== route.model) {
+          throw new TypeError(`canary-proven route ${route.id} evidence.model must match route.model`);
+        }
+        if (evidence.agentId !== route.agentId) {
+          throw new TypeError(`canary-proven route ${route.id} evidence.agentId must match route.agentId`);
+        }
+        if (evidence.taskResultStatus !== 'completed') {
+          throw new TypeError(`canary-proven route ${route.id} requires taskResultStatus "completed"`);
+        }
+        if (typeof evidence.observed !== 'string' || !evidence.observed) {
+          throw new TypeError(`canary-proven route ${route.id} requires nonempty observed date`);
+        }
+        // Calendar-valid UTC round-trip (match resolver's isValidObservedDate)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(evidence.observed)) {
+          throw new TypeError(`canary-proven route ${route.id} observed date must be YYYY-MM-DD format`);
+        }
+        const d = new Date(`${evidence.observed}T00:00:00.000Z`);
+        if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== evidence.observed) {
+          throw new TypeError(`canary-proven route ${route.id} requires a calendar-valid observed date`);
+        }
+        const result = evidence.result;
+        if (!result || typeof result !== 'object') {
+          throw new TypeError(`canary-proven route ${route.id} requires result object`);
+        }
+        if (typeof result.canary !== 'string' || !result.canary) {
+          throw new TypeError(`canary-proven route ${route.id} requires nonempty result.canary`);
+        }
+        if (typeof result.packageName !== 'string' || !result.packageName) {
+          throw new TypeError(`canary-proven route ${route.id} requires nonempty result.packageName`);
+        }
+        if (result.status !== 'ok') {
+          throw new TypeError(`canary-proven route ${route.id} requires result.status "ok"`);
+        }
+        // Transcript observation booleans
+        if (evidence.transcriptReadObserved !== true || evidence.transcriptYieldObserved !== true) {
+          throw new TypeError(`canary-proven route ${route.id} requires transcriptReadObserved and transcriptYieldObserved both true`);
+        }
+        // thinkingLevel: absent, null, or valid vocabulary value
+        if (evidence.thinkingLevel !== null && evidence.thinkingLevel !== undefined) {
+          if (typeof evidence.thinkingLevel !== 'string' || !/^(off|low|medium|high|xhigh|max)$/.test(evidence.thinkingLevel)) {
+            throw new TypeError(`canary-proven route ${route.id} thinkingLevel must be null or a valid level (off/low/medium/high/xhigh/max)`);
+          }
+        }
+        // Model-specific minimum binding level enforcement
+        if (route.minimumBindingThinkingLevel) {
+          const evidenceLevel = (evidence.thinkingLevel !== null && evidence.thinkingLevel !== undefined)
+            ? evidence.thinkingLevel : 'off';
+          const RANKS = { off: 0, low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
+          if (RANKS[evidenceLevel] < RANKS[route.minimumBindingThinkingLevel]) {
+            throw new TypeError(`canary-proven route ${route.id} evidence thinkingLevel "${evidenceLevel}" is below minimum binding "${route.minimumBindingThinkingLevel}"`);
+          }
         }
       }
     }
@@ -69,7 +139,7 @@ export function listModelRoutes(modelId, options = {}) {
 }
 
 export function getNativeCanaryRoutes(modelId) {
-  // The provider surface (direct API, Ollama, Cline, Cursor, or native OpenClaw)
+  // The provider surface (direct API, Ollama, Cline, Cursor, or the OMP TaskTool route)
   // is distinct from the launch mechanism. A route is canary-eligible when its
   // exact model and configured agent binding exist; unresolved routes stay out.
   return listModelRoutes(modelId)

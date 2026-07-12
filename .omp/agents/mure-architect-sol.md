@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** orchestration
-**Model:** DISABLED — Neither "openai/gpt-5.6-sol" nor "openai-codex/gpt-5.6-sol" has canary-proven registry evidence.
+**Model:** DISABLED — Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.
 
 **Mission:** own strategy and planning: translate goals into a sequenced build plan, then design the systems, methods, and interfaces that execute it; set the quality bar; compose existing capabilities before building new ones
 

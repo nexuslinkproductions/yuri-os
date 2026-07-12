@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** engineering
-**Model:** DISABLED — The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.
+**Model:** DISABLED — Neither "ollama-cloud/deepseek-v4-flash:cloud" nor "ollama-cloud/deepseek-v4-flash:cloud" has canary-proven registry evidence.
 
 **Mission:** security-review code, audit protected-path and safety boundaries, adversarial red-team for vulnerabilities; any ARM is owner-gated
 

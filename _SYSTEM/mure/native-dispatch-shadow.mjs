@@ -1,6 +1,7 @@
 // @serves: shadow-only projection of native MURE dispatch into the delegation ledger
-// @does: validates reducer actions, admissions, and terminal events before mirroring lifecycle facts
-// @does-not: select routes, execute sessions_spawn, persist state, or alter live reducer behavior
+// @does: validates reducer actions, OMP admissions, and terminal events before mirroring
+//   lifecycle facts into the delegation ledger. Validates via model_change evidence.
+// @does-not: select routes, execute OMP TaskTool spawns, persist state, or alter live reducer behavior
 
 import {
   accept,
@@ -15,7 +16,7 @@ import {
 } from './delegation-ledger.mjs';
 import { validateDispatchGovernance } from './dispatch-governance.mjs';
 
-export const NATIVE_DISPATCH_SHADOW_SCHEMA_VERSION = 'mure-native-dispatch-shadow-v1';
+export const NATIVE_DISPATCH_SHADOW_SCHEMA_VERSION = 'mure-native-dispatch-shadow-v2';
 const LOST_FAILURE_KINDS = new Set(['timeout']);
 
 export function createNativeDispatchShadow(ticket, shadowId = `native-shadow-${Date.now()}`) {
@@ -33,7 +34,7 @@ export function createNativeDispatchShadow(ticket, shadowId = `native-shadow-${D
 
 export function observeNativeAction(shadow, action) {
   validateShadow(shadow);
-  if (!action || action.type !== 'sessions_spawn') return appendObservation(shadow, 'ignored-action', action?.type || 'none');
+  if (!action || action.type !== 'omp-task-spawn') return appendObservation(shadow, 'ignored-action', action?.type || 'none');
   requireMatch(action.taskId, shadow.taskId, 'action.taskId');
   if (shadow.awaiting) throw new TypeError('shadow already awaits a native completion');
   const purpose = nonEmpty(action.purpose, 'action.purpose');
@@ -45,8 +46,8 @@ export function observeNativeAction(shadow, action) {
   const governance = validateDispatchGovernance({
     purpose: purpose === 'availability-fallback' || purpose === 'quality-escalation' ? 'producer' : purpose,
     fromArchetype: 'control',
-    toArchetype: action.args?.archetype || 'worker',
-    agentId: action.args?.agentId,
+    toArchetype: action.args?.tasks?.[0]?.role || 'worker',
+    agentId: action.args?.agent,
     producerArchetype: purpose === 'verifier' ? shadow.awaiting?.archetype || 'worker' : undefined,
     producerAgentId: purpose === 'verifier' ? shadow.awaiting?.agentId : undefined,
   });
@@ -55,8 +56,8 @@ export function observeNativeAction(shadow, action) {
   const ticket = getTicket(ledger, shadow.ticketId);
   if (purpose !== 'verifier' && ticket.ledgerStatus === 'ticketed') {
     ledger = recordDispatch(ledger, shadow.ticketId, {
-      producer: action.args?.agentId || '',
-      note: `native ${purpose} dispatched`,
+      producer: action.args?.agent || '',
+      note: `native ${purpose} dispatched via OMP TaskTool`,
     });
   } else if (purpose === 'verifier' && ticket.ledgerStatus !== 'produced') {
     throw new TypeError(`verifier action requires produced ledger state, got: ${ticket.ledgerStatus}`);
@@ -68,8 +69,7 @@ export function observeNativeAction(shadow, action) {
     awaiting: freeze({
       entryId: nonEmpty(action.entryId, 'action.entryId'),
       purpose,
-      agentId: nonEmpty(action.args?.agentId, 'action.args.agentId'),
-      requestedModel: nonEmpty(action.args?.model, 'action.args.model'),
+      agentId: nonEmpty(action.args?.agent, 'action args agent'),
       admission: null,
     }),
     observations: [
@@ -82,16 +82,12 @@ export function observeNativeAction(shadow, action) {
 
 export function observeNativeAdmission(shadow, receipt) {
   validateShadow(shadow);
-  if (!shadow.awaiting) throw new TypeError('native admission requires an awaiting action');
-  if (!receipt || receipt.status !== 'accepted') throw new TypeError('native admission receipt must be accepted');
-  const resolvedModel = nonEmpty(receipt.resolvedModel, 'receipt.resolvedModel');
-  requireMatch(resolvedModel, shadow.awaiting.requestedModel, 'receipt.resolvedModel');
-  const childSessionKey = nonEmpty(receipt.childSessionKey, 'receipt.childSessionKey');
-  const runId = nonEmpty(receipt.runId, 'receipt.runId');
-  if (!childSessionKey.includes(`agent:${shadow.awaiting.agentId}:subagent:`)) {
-    throw new TypeError('receipt.childSessionKey does not match awaiting agentId');
-  }
-  const admission = freeze({ childSessionKey, runId, resolvedModel });
+  if (!shadow.awaiting) throw new TypeError('OMP admission requires an awaiting action');
+  if (!receipt || !receipt.jobId) throw new TypeError('OMP admission receipt must include jobId');
+  const jobId = nonEmpty(receipt.jobId, 'receipt.jobId');
+  const agent = nonEmpty(receipt.agent, 'receipt.agent');
+  requireMatch(agent, shadow.awaiting.agentId, 'receipt.agent');
+  const admission = freeze({ jobId, agent });
   return freeze({
     ...thawShadow(shadow),
     awaiting: freeze({ ...shadow.awaiting, admission }),
@@ -102,12 +98,11 @@ export function observeNativeAdmission(shadow, receipt) {
 
 export function observeNativeCompletion(shadow, event, reduction, evidence = {}) {
   validateShadow(shadow);
-  if (!shadow.awaiting?.admission) throw new TypeError('native completion requires a matching accepted admission');
+  if (!shadow.awaiting?.admission) throw new TypeError('OMP completion requires a matching accepted admission');
   requireMatch(event?.taskId, shadow.taskId, 'event.taskId');
   requireMatch(event?.entryId, shadow.awaiting.entryId, 'event.entryId');
   requireMatch(event?.purpose, shadow.awaiting.purpose, 'event.purpose');
-  requireMatch(event?.childSessionKey, shadow.awaiting.admission.childSessionKey, 'event.childSessionKey');
-  if (event.runId !== undefined) requireMatch(event.runId, shadow.awaiting.admission.runId, 'event.runId');
+  requireMatch(event?.jobId, shadow.awaiting.admission.jobId, 'event.jobId');
   if (!reduction?.state?.tasks?.[shadow.taskId] || !reduction.action) {
     throw new TypeError('completion requires the matching native reducer result');
   }
@@ -116,7 +111,7 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
   const purpose = shadow.awaiting.purpose;
   if (event.ok !== true) {
     const nextAction = reduction.action;
-    if (nextAction.type === 'sessions_spawn' && nextAction.purpose !== 'verifier') {
+    if (nextAction.type === 'omp-task-spawn' && nextAction.purpose !== 'verifier') {
       return observeNativeAction(finishAwaiting(shadow, ledger, 'availability-fallback'), nextAction);
     }
     const failureKind = String(event.failureKind || 'unknown').toLowerCase();
@@ -125,28 +120,28 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
       return finishAwaiting(shadow, ledger, 'lost');
     }
     ledger = reject(ledger, shadow.ticketId,
-      String(reduction.action.code || event.error || `native ${purpose} failed`));
+      String(reduction.action.code || event.error || `OMP ${purpose} failed`));
     return finishAwaiting(shadow, ledger, 'rejected');
   }
 
   if (purpose === 'verifier') {
     const verdict = strictVerdict(event);
     ledger = recordVerifierVerdict(ledger, shadow.ticketId, verdict === 'pass'
-      ? { verdict: 'pass', checked: evidence.checked || ['native reducer verdict'] }
-      : { verdict: 'fail', failureReason: evidence.failureReason || 'native verifier rejected producer' });
+      ? { verdict: 'pass', checked: evidence.checked || ['OMP reducer verdict'] }
+      : { verdict: 'fail', failureReason: evidence.failureReason || 'OMP verifier rejected producer' });
     if (verdict === 'pass') {
       if (reduction.state.tasks[shadow.taskId].status !== 'passed') {
         throw new TypeError('passing verifier event does not match reducer task status');
       }
-      ledger = accept(ledger, shadow.ticketId, 'accepted by native reducer and independent verifier');
+      ledger = accept(ledger, shadow.ticketId, 'accepted by OMP reducer and independent verifier');
     }
     return finishAwaiting(shadow, ledger, verdict === 'pass' ? 'accepted' : 'rejected');
   }
 
   if (purpose === 'evidence') {
     const next = finishAwaiting(shadow, ledger, 'evidence-observed');
-    if (reduction.action.type === 'sessions_spawn') return observeNativeAction(next, reduction.action);
-    throw new TypeError('evidence completion did not yield the next native dispatch action');
+    if (reduction.action.type === 'omp-task-spawn') return observeNativeAction(next, reduction.action);
+    throw new TypeError('evidence completion did not yield the next OMP dispatch action');
   }
 
   ledger = recordProducerOutput(ledger, shadow.ticketId, {
@@ -154,11 +149,11 @@ export function observeNativeCompletion(shadow, event, reduction, evidence = {})
     summary: String(event.output || ''),
   });
   const next = finishAwaiting(shadow, ledger, 'producer-completed');
-  if (reduction.action.type === 'sessions_spawn' && (reduction.action.purpose === 'verifier' || reduction.action.purpose === 'quality-escalation')) {
+  if (reduction.action.type === 'omp-task-spawn' && (reduction.action.purpose === 'verifier' || reduction.action.purpose === 'quality-escalation')) {
     return observeNativeAction(next, reduction.action);
   }
   if (reduction.state.tasks[shadow.taskId].status === 'fail-loud') {
-    return freeze({ ...thawShadow(next), ledger: reject(ledger, shadow.ticketId, reduction.action.message || 'native reducer failed loud') });
+    return freeze({ ...thawShadow(next), ledger: reject(ledger, shadow.ticketId, reduction.action.message || 'OMP reducer failed loud') });
   }
   throw new TypeError('producer completion did not yield the required independent verifier action');
 }

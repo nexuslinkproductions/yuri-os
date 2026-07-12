@@ -202,7 +202,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/tirith-url-guard.js\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/url-safety-guard.js\""
           },
           {
             "type": "command",

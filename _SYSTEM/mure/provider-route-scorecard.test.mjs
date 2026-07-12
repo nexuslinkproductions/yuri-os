@@ -8,12 +8,32 @@ import {
   summarizeProviderRouteScorecard,
   summarizeProviderRouteTrialLedger,
 } from './provider-route-scorecard.mjs';
+import { PROVIDER_ROUTE_REGISTRY } from './provider-route-registry.mjs';
+
+// Pick live canary-proven routes from the registry rather than hardcoding route ids: the
+// registry is a moving target under active OMP cutover, and the fixture only needs two
+// distinct routes with a proven {model,agentId} pair.
+function allRoutes() {
+  const routes = [];
+  for (const identity of Object.values(PROVIDER_ROUTE_REGISTRY.modelIdentities)) {
+    for (const route of identity.routes) routes.push(route);
+  }
+  return routes;
+}
+
+const canaryRoutes = allRoutes()
+  .filter((route) => route.status === 'canary-proven' && route.model && route.agentId)
+  .sort((a, b) => a.id.localeCompare(b.id));
+if (canaryRoutes.length < 2) {
+  throw new Error('provider-route-scorecard tests require at least two canary-proven provider routes');
+}
+const [routeA, routeB] = canaryRoutes;
 
 const completed = {
-  routeId: 'deepseek-v4-flash.native',
-  runId: 'run-deepseek',
-  childSessionKey: 'agent:deepseek-flash:subagent:child',
-  resolvedModel: 'deepseek/deepseek-v4-flash',
+  routeId: routeA.id,
+  jobId: 'CanaryScorecardJob1',
+  agent: routeA.agentId,
+  observedModel: routeA.model,
   result: 'completed',
   latencyMs: 1200,
   evidenceAccurate: true,
@@ -34,9 +54,10 @@ test('exact completed evidence becomes deterministically eligible', () => {
 test('blocked schema outcome remains visible but ineligible', () => {
   const scorecard = createProviderRouteScorecard([{
     ...completed,
-    routeId: 'deepseek-v4-flash.ollama',
-    runId: 'run-ollama',
-    resolvedModel: 'ollama-cloud/deepseek-v4-flash',
+    routeId: routeB.id,
+    jobId: 'CanaryScorecardJob2',
+    agent: routeB.agentId,
+    observedModel: null,
     result: 'blocked',
     latencyMs: null,
     evidenceAccurate: false,
@@ -46,16 +67,23 @@ test('blocked schema outcome remains visible but ineligible', () => {
   assert.equal(summarizeProviderRouteScorecard(scorecard).eligibleRoutes, 0);
 });
 
-test('fails closed on unknown routes, duplicate routes, and model mismatch', () => {
+test('fails closed on unknown routes, duplicate routes, and model/agent mismatch', () => {
   assert.throws(() => createProviderRouteScorecard([{ ...completed, routeId: 'invented.route' }]), /unknown provider route/);
   assert.throws(() => createProviderRouteScorecard([completed, completed]), /one observation per routeId/);
-  assert.throws(() => createProviderRouteScorecard([{ ...completed, resolvedModel: 'wrong/model' }]), /exact resolvedModel/);
+  assert.throws(() => createProviderRouteScorecard([{ ...completed, observedModel: 'wrong/model' }]), /exact transcript model match/);
+  assert.throws(() => createProviderRouteScorecard([{ ...completed, agent: 'wrong-agent-card' }]), /exact agent card match/);
 });
 
 test('rejects contradictory success, failure, and verifier claims', () => {
   assert.throws(() => createProviderRouteScorecard([{ ...completed, failureClass: 'timeout' }]), /failureClass none/);
   assert.throws(() => createProviderRouteScorecard([{ ...completed, result: 'lost' }]), /requires a failureClass/);
   assert.throws(() => createProviderRouteScorecard([{ ...completed, evidenceAccurate: false }]), /verifier pass requires/);
+});
+
+test('rejects legacy runId/childSessionKey/resolvedModel fields categorically', () => {
+  assert.throws(() => createProviderRouteScorecard([{ ...completed, runId: 'legacy-run' }]), /legacy field 'runId'/);
+  assert.throws(() => createProviderRouteScorecard([{ ...completed, childSessionKey: 'legacy-child' }]), /legacy field 'childSessionKey'/);
+  assert.throws(() => createProviderRouteScorecard([{ ...completed, resolvedModel: 'legacy/model' }]), /legacy field 'resolvedModel'/);
 });
 
 test('scorecard stays outside live planner, router, reducer, and runner imports', async () => {
@@ -68,12 +96,11 @@ test('scorecard stays outside live planner, router, reducer, and runner imports'
 test('trial ledger preserves repeated route observations and aggregates reliability', () => {
   const trials = createProviderRouteTrialLedger([
     completed,
-    { ...completed, runId: 'run-deepseek-2', childSessionKey: 'agent:deepseek-flash:subagent:child-2', latencyMs: 800 },
+    { ...completed, jobId: 'CanaryScorecardJob1b', latencyMs: 800 },
     {
       ...completed,
-      runId: 'run-deepseek-3',
-      childSessionKey: 'agent:deepseek-flash:subagent:child-3',
-      resolvedModel: null,
+      jobId: 'CanaryScorecardJob1c',
+      observedModel: null,
       result: 'lost',
       latencyMs: null,
       evidenceAccurate: false,
@@ -85,9 +112,9 @@ test('trial ledger preserves repeated route observations and aggregates reliabil
   assert.equal(summary.totalTrials, 3);
   assert.equal(summary.observedRoutes, 1);
   assert.deepEqual(summary.routes[0], {
-    routeId: 'deepseek-v4-flash.native',
-    provider: 'deepseek',
-    model: 'deepseek/deepseek-v4-flash',
+    routeId: routeA.id,
+    provider: routeA.provider,
+    model: routeA.model,
     trials: 3,
     completed: 2,
     eligible: 2,
@@ -98,22 +125,29 @@ test('trial ledger preserves repeated route observations and aggregates reliabil
   });
 });
 
-test('trial ledger rejects replayed native completion identities', () => {
+test('trial ledger rejects replayed OMP completion identities', () => {
   assert.throws(() => createProviderRouteTrialLedger([
     completed,
     { ...completed },
-  ]), /duplicate native completion identity/);
+  ]), /duplicate OMP completion identity/);
+});
+
+test('trial ledger deduplicates by jobId plus taskId when taskId is a grounded observation field', () => {
+  const withTask = { ...completed, taskId: 'ScorecardTaskAlpha' };
+  const sameJobDifferentTask = { ...withTask, taskId: 'ScorecardTaskBeta' };
+  const ledger = createProviderRouteTrialLedger([withTask, sameJobDifferentTask]);
+  assert.equal(ledger.observations.length, 2);
+  assert.throws(() => createProviderRouteTrialLedger([withTask, { ...withTask }]), /duplicate OMP completion identity/);
 });
 
 test('trial ledger appends immutably and keeps the previous snapshot unchanged', () => {
   const first = createProviderRouteTrialLedger([completed]);
   const second = appendProviderRouteTrial(first, {
     ...completed,
-    runId: 'run-deepseek-next',
-    childSessionKey: 'agent:deepseek-flash:subagent:next',
+    jobId: 'CanaryScorecardJob1d',
   });
   assert.equal(first.observations.length, 1);
   assert.equal(second.observations.length, 2);
   assert.ok(Object.isFrozen(second));
-  assert.throws(() => appendProviderRouteTrial(first, completed), /duplicate native completion identity/);
+  assert.throws(() => appendProviderRouteTrial(first, completed), /duplicate OMP completion identity/);
 });

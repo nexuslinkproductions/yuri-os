@@ -64,7 +64,6 @@ function createEmpty() {
     ring: [],
     throttle: {
       DEEPSEEK:  { last_emit: 0 },
-      OPENCLAW:  { last_emit: 0 },
       YURI_RISK: { last_emit: 0 },
       SWARM:     { last_emit: 0 },
       // wave-2 C.7: orchestrator-dispatched sources had no slots — appendFinding
@@ -161,7 +160,7 @@ function detectDisagreement(turnEntries) {
   // we tag advisor_disagreement so main thread asks user to weight voices.
   const ranks = { INFO: 1, WARN: 2, HIGH: 3, CRITICAL: 4 };
   const advisors = turnEntries.filter(e =>
-    ['DEEPSEEK', 'OPENCLAW', 'YURI_RISK'].includes(e.source)
+    ['DEEPSEEK', 'YURI_RISK'].includes(e.source)
   );
   if (advisors.length < 2) return false;
   const sevs = advisors.map(e => ranks[e.severity] || 0);

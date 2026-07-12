@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: sonnet-enrich-fleet
 // @serves: MURE role immaculate enrichment (D-check) | sonnet-5 fan-out per immaculate-role-config brief
-// @does: fans out 25 base roles (8 lanes × 3-4 roles) to sonnet-5 using the immaculate-role-config brief as system prompt. Each lane returns (1) a JSON array of enrichment objects, (2) a RESULT_LABEL line. Pipeline parses, validates against the brief contract, and merges into .openclaw/mure-agent-catalog.json.
+// @does: fans out 25 base roles (8 lanes × 3-4 roles) to sonnet-5 using the immaculate-role-config brief as system prompt. Each lane returns (1) a JSON array of enrichment objects, (2) a RESULT_LABEL line. Pipeline parses, validates against the brief contract, and merges into _SYSTEM/mure/agent-catalog.json.
 // @use: node sonnet-enrich-fleet.mjs --dry-run          (partition preview, no calls)
 //       node sonnet-enrich-fleet.mjs --smoke --lane L3 (1 lane, 1 sonnet-5 call, validate)
 //       node sonnet-enrich-fleet.mjs --run [--parallel N] (full fan-out, results to <runDir>)
@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../..");
 const BRIEF_PATH = path.join(REPO, "_SYSTEM/mure/immaculate-role-config-brief.md");
-const CATALOG_PATH = path.join(REPO, ".openclaw/mure-agent-catalog.json");
+const CATALOG_PATH = path.join(REPO, "_SYSTEM/mure/agent-catalog.json");
 const RUNS_DIR = path.join(REPO, "_SYSTEM/state/sonnet-enrich");
 
 const MODEL = process.env.SONNET_ENRICH_MODEL || "sonnet";

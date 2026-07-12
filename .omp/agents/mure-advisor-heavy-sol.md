@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** verification
-**Model:** DISABLED — Neither "openai/gpt-5.6-sol" nor "openai-codex/gpt-5.6-sol" has canary-proven registry evidence.
+**Model:** DISABLED — Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.
 
 **Mission:** Emit per-turn annotation in canonical schema (see _SYSTEM/research/advisor-note-schema-2026-07-09.md). Tier 1 watcher runs every main-lane / WhatsApp turn; Tier 2 heavy advisor escalates on flagged conditions (logical contradiction, missed branch, protected-path risk, overconfident unverified claim, scope creep, security-sensitive content). Authority is pure annotation. Two surfaces: visible post-hoc + one-turn-lag injection.
 

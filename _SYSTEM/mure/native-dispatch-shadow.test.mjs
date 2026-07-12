@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
+  compileOmpSpawn,
   createNativeDispatchState,
   recordNativeSpawnAccepted,
   reduceNativeDispatch,
@@ -45,18 +46,33 @@ function plan() {
 }
 
 function admit(state, action, suffix) {
-  const receipt = { status: 'accepted', childSessionKey: `agent:${action.args.agentId}:subagent:${suffix}`, runId: `run-${suffix}`, resolvedModel: action.args.model };
+  const receipt = { jobId: `job-${suffix}`, agent: action.args.agent };
   return { receipt, reduced: recordNativeSpawnAccepted(state, action, receipt) };
 }
 
 function completion(action, receipt, suffix, extra = {}) {
-  return { id: `event-${suffix}`, taskId, entryId: action.entryId, purpose: action.purpose, childSessionKey: receipt.childSessionKey, runId: receipt.runId, ok: true, output: 'producer output', ...extra };
+  return {
+    id: `event-${suffix}`,
+    taskId,
+    entryId: action.entryId,
+    purpose: action.purpose,
+    jobId: receipt.jobId,
+    ok: true,
+    output: 'producer output',
+    modelChange: { model: 'minimax-portal/MiniMax-M3' },
+    ...extra,
+  };
 }
 
 test('mirrors one R2 producer and independent verifier into an accepted ledger ticket', () => {
   let native = createNativeDispatchState(plan());
   let scheduled = reduceNativeDispatch(native);
   let shadow = observeNativeAction(createNativeDispatchShadow(ticket, 'shadow-test'), scheduled.action);
+
+  // Verify dispatch args match compileOmpSpawn for the producer
+  const producerEntry = entry('producer', 'minimax-portal/MiniMax-M3', 'mure-synthesist');
+  const producerCompilerContext = { attempt: 1, taskId, upstream: { evidence: [], producer: null, priorVerifier: null } };
+  assert.deepStrictEqual(scheduled.action.args, compileOmpSpawn(producerEntry, producerCompilerContext));
 
   const producerAdmission = admit(scheduled.state, scheduled.action, 'producer');
   shadow = observeNativeAdmission(shadow, producerAdmission.receipt);
@@ -65,14 +81,31 @@ test('mirrors one R2 producer and independent verifier into an accepted ledger t
   shadow = observeNativeCompletion(shadow, producerEvent, afterProducer, { TERM_COUNT: '1' });
   assert.equal(shadowSnapshot(shadow).awaiting.purpose, 'verifier');
 
+  // Verify dispatch args match compileOmpSpawn for the verifier
+  const verifierEntry = entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator');
+  const verifierCompilerContext = {
+    attempt: afterProducer.action.attempt,
+    taskId,
+    upstream: {
+      evidence: afterProducer.state.tasks[taskId].evidence,
+      producer: afterProducer.state.tasks[taskId].producer,
+      priorVerifier: afterProducer.state.tasks[taskId].priorVerifier,
+    },
+  };
+  assert.deepStrictEqual(afterProducer.action.args, compileOmpSpawn(verifierEntry, verifierCompilerContext));
+
   const verifierAdmission = admit(afterProducer.state, afterProducer.action, 'verifier');
   shadow = observeNativeAdmission(shadow, verifierAdmission.receipt);
-  const verifierEvent = completion(afterProducer.action, verifierAdmission.receipt, 'verifier', { verdict: 'pass', output: '{"verdict":"pass"}' });
+  const verifierEvent = completion(afterProducer.action, verifierAdmission.receipt, 'verifier', {
+    verdict: 'pass',
+    output: '{"verdict":"pass"}',
+    modelChange: { model: 'anthropic/claude-sonnet-5' },
+  });
   const afterVerifier = reduceNativeDispatch(verifierAdmission.reduced.state, verifierEvent);
   shadow = observeNativeCompletion(shadow, verifierEvent, afterVerifier, { checked: ['TERM_COUNT'] });
 
   assert.deepEqual(shadowSnapshot(shadow), {
-    schemaVersion: 'mure-native-dispatch-shadow-v1', ticketId: taskId, ledgerStatus: 'accepted', awaiting: null,
+    schemaVersion: 'mure-native-dispatch-shadow-v2', ticketId: taskId, ledgerStatus: 'accepted', awaiting: null,
     admissionCount: 2, observationCount: 8, governanceWarnings: 2,
   });
 });
@@ -81,15 +114,32 @@ test('fails closed on model, session, event identity, and reducer-status mismatc
   const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
   const actionShadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
   const admission = admit(scheduled.state, scheduled.action, 'producer');
-  assert.throws(() => observeNativeAdmission(actionShadow, { ...admission.receipt, resolvedModel: 'openai/gpt-5.6-terra' }), /resolvedModel/);
+
+  // Agent mismatch on OMP admission receipt
+  assert.throws(() => observeNativeAdmission(actionShadow, { ...admission.receipt, agent: 'wrong-agent' }), /receipt.agent/);
+
   const admittedShadow = observeNativeAdmission(actionShadow, admission.receipt);
   const event = completion(scheduled.action, admission.receipt, 'producer');
+
+  // Model mismatch: shadow rejects the ticket via reducer MODEL_MISMATCH
+  {
+    const wrongModelEvent = { ...event, modelChange: { model: 'wrong/model' } };
+    const wrongReduced = reduceNativeDispatch(admission.reduced.state, wrongModelEvent);
+    assert.equal(wrongReduced.action.code, 'MODEL_MISMATCH');
+    const wrongShadow = observeNativeCompletion(admittedShadow, wrongModelEvent, wrongReduced, { TERM_COUNT: '1' });
+    assert.equal(shadowSnapshot(wrongShadow).ledgerStatus, 'rejected');
+  }
+
   const reduced = reduceNativeDispatch(admission.reduced.state, event);
-  assert.throws(() => observeNativeCompletion(admittedShadow, { ...event, childSessionKey: 'agent:wrong:subagent:x' }, reduced, { TERM_COUNT: '1' }), /childSessionKey/);
+
+  // jobId mismatch on completion
+  assert.throws(() => observeNativeCompletion(admittedShadow, { ...event, jobId: 'wrong-job' }, reduced, { TERM_COUNT: '1' }), /event.jobId/);
+
+  // Reducer status mismatch
   assert.throws(() => observeNativeCompletion(admittedShadow, event, { ...reduced, state: { ...reduced.state, tasks: {} } }, { TERM_COUNT: '1' }), /reducer result/);
 });
 
-test('marks a terminal native timeout as LOST instead of silently retrying', () => {
+test('marks a terminal timeout as LOST', () => {
   const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
   let shadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
   const admission = admit(scheduled.state, scheduled.action, 'timeout');
@@ -100,8 +150,10 @@ test('marks a terminal native timeout as LOST instead of silently retrying', () 
   assert.equal(shadowSnapshot(shadow).ledgerStatus, 'lost');
 });
 
-test('classifies returned semantic and verifier execution failures as rejected, not LOST', () => {
+test('classifies semantic and verifier execution failures as rejected', () => {
   const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
+
+  // Semantic failure on producer
   let semanticShadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
   const semanticAdmission = admit(scheduled.state, scheduled.action, 'semantic');
   semanticShadow = observeNativeAdmission(semanticShadow, semanticAdmission.receipt);
@@ -111,6 +163,7 @@ test('classifies returned semantic and verifier execution failures as rejected, 
   assert.equal(semanticReduced.action.code, 'SEMANTIC_FAILURE');
   assert.equal(shadowSnapshot(semanticShadow).ledgerStatus, 'rejected');
 
+  // Verifier execution failure
   const producerAdmission = admit(scheduled.state, scheduled.action, 'producer-for-verifier-failure');
   let verifierShadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
   verifierShadow = observeNativeAdmission(verifierShadow, producerAdmission.receipt);
@@ -119,14 +172,19 @@ test('classifies returned semantic and verifier execution failures as rejected, 
   verifierShadow = observeNativeCompletion(verifierShadow, producerEvent, afterProducer, { TERM_COUNT: '1' });
   const verifierAdmission = admit(afterProducer.state, afterProducer.action, 'verifier-failure');
   verifierShadow = observeNativeAdmission(verifierShadow, verifierAdmission.receipt);
-  const verifierEvent = { ...completion(afterProducer.action, verifierAdmission.receipt, 'verifier-failure'), ok: false, failureKind: 'auth', error: 'denied' };
+  const verifierEvent = {
+    ...completion(afterProducer.action, verifierAdmission.receipt, 'verifier-failure'),
+    ok: false,
+    failureKind: 'auth',
+    error: 'denied',
+  };
   const verifierReduced = reduceNativeDispatch(verifierAdmission.reduced.state, verifierEvent);
   verifierShadow = observeNativeCompletion(verifierShadow, verifierEvent, verifierReduced);
   assert.equal(verifierReduced.action.code, 'VERIFIER_EXECUTION_FAILURE');
   assert.equal(shadowSnapshot(verifierShadow).ledgerStatus, 'rejected');
 });
 
-test('fails closed on purpose and run identity mismatches', () => {
+test('fails closed on purpose and job identity mismatches', () => {
   const scheduled = reduceNativeDispatch(createNativeDispatchState(plan()));
   let shadow = observeNativeAction(createNativeDispatchShadow(ticket), scheduled.action);
   const admission = admit(scheduled.state, scheduled.action, 'identity');
@@ -134,7 +192,7 @@ test('fails closed on purpose and run identity mismatches', () => {
   const event = completion(scheduled.action, admission.receipt, 'identity');
   const reduced = reduceNativeDispatch(admission.reduced.state, event);
   assert.throws(() => observeNativeCompletion(shadow, { ...event, purpose: 'evidence' }, reduced), /event.purpose/);
-  assert.throws(() => observeNativeCompletion(shadow, { ...event, runId: 'wrong-run' }, reduced), /event.runId/);
+  assert.throws(() => observeNativeCompletion(shadow, { ...event, jobId: 'wrong-job' }, reduced), /event.jobId/);
 });
 
 test('rejects a producer pass that bypasses independent verification', () => {

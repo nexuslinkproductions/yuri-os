@@ -1,14 +1,19 @@
 // @serves: deterministic shadow scoring of native provider-route observations
-// @does: validates route observations and derives comparable evidence/eligibility summaries
+// @does: validates OMP-evidenced route observations {jobId,agent,observedModel} against
+// @does:   route-owned {model,agentId} and derives comparable evidence/eligibility summaries
 // @does-not: select models, alter route status, compile spawns, or influence live routing
 
 import { PROVIDER_ROUTE_REGISTRY } from './provider-route-registry.mjs';
+import { validateOmpJobId } from './omp-task-adapter.mjs';
 
-export const PROVIDER_ROUTE_SCORECARD_SCHEMA_VERSION = 'mure-provider-route-scorecard-v1';
-export const PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION = 'mure-provider-route-trial-ledger-v1';
+export const PROVIDER_ROUTE_SCORECARD_SCHEMA_VERSION = 'mure-provider-route-scorecard-v2';
+export const PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION = 'mure-provider-route-trial-ledger-v2';
 
 const TERMINAL_RESULTS = new Set(['completed', 'rejected', 'lost', 'blocked']);
 const VERDICTS = new Set(['pass', 'reject', 'not-required', 'not-run']);
+// Legacy native-completion identity fields are rejected categorically: OMP evidence is
+// {jobId,agent} (spawn receipt / task result) plus the transcript's model_change.model.
+const LEGACY_OBSERVATION_FIELDS = ['runId', 'childSessionKey', 'resolvedModel'];
 const FAILURE_CLASSES = new Set([
   'none', 'auth', 'quota', 'timeout', 'request-schema', 'model-identifier',
   'transport', 'evidence-mismatch', 'verifier-rejection', 'unknown',
@@ -46,20 +51,28 @@ export function summarizeProviderRouteScorecard(scorecard) {
   });
 }
 
-/** Preserve repeated route trials without allowing the same native event to be counted twice. */
+/** Preserve repeated route trials without allowing the same OMP completion to be counted twice. */
 export function createProviderRouteTrialLedger(observations = []) {
   if (!Array.isArray(observations)) throw new TypeError('observations must be an array');
   const normalized = observations.map(normalizeObservation);
   const eventKeys = new Set();
   for (const entry of normalized) {
-    const key = `${entry.runId}\u0000${entry.childSessionKey}`;
-    if (eventKeys.has(key)) throw new TypeError('trial ledger rejects duplicate native completion identity');
+    // Dedup on jobId alone unless the observation also grounds a deterministic taskId;
+    // when present, taskId narrows the identity instead of being synthesized here.
+    const key = entry.taskId ? `${entry.jobId}\u0000${entry.taskId}` : entry.jobId;
+    if (eventKeys.has(key)) throw new TypeError('trial ledger rejects duplicate OMP completion identity');
     eventKeys.add(key);
   }
   return deepFreeze({
     schemaVersion: PROVIDER_ROUTE_TRIAL_LEDGER_SCHEMA_VERSION,
     observations: normalized,
   });
+}
+
+/** Append one normalized trial immutably; replayed OMP completion identities fail closed. */
+export function appendProviderRouteTrial(ledger, observation) {
+  requireTrialLedger(ledger);
+  return createProviderRouteTrialLedger([...ledger.observations, observation]);
 }
 
 /** Derive deterministic, non-steering reliability summaries from repeated trials. */
@@ -101,6 +114,11 @@ export function summarizeProviderRouteTrialLedger(ledger) {
 
 function normalizeObservation(input) {
   requirePlainObject(input, 'observation');
+  for (const legacyField of LEGACY_OBSERVATION_FIELDS) {
+    if (legacyField in input) {
+      throw new TypeError(`observation must not use legacy field '${legacyField}'; OMP evidence requires jobId/agent/observedModel`);
+    }
+  }
   const route = findRoute(nonEmpty(input.routeId, 'observation.routeId'));
   if (!route) throw new TypeError(`unknown provider route: ${input.routeId}`);
   const result = enumValue(input.result, TERMINAL_RESULTS, 'observation.result');
@@ -108,12 +126,19 @@ function normalizeObservation(input) {
   const failureClass = enumValue(input.failureClass, FAILURE_CLASSES, 'observation.failureClass');
   const evidenceAccurate = requireBoolean(input.evidenceAccurate, 'observation.evidenceAccurate');
   const latencyMs = input.latencyMs === null ? null : nonNegativeNumber(input.latencyMs, 'observation.latencyMs');
-  const runId = nonEmpty(input.runId, 'observation.runId');
-  const childSessionKey = nonEmpty(input.childSessionKey, 'observation.childSessionKey');
-  const resolvedModel = input.resolvedModel === null ? null : nonEmpty(input.resolvedModel, 'observation.resolvedModel');
+  const jobId = nonEmpty(input.jobId, 'observation.jobId');
+  if (!validateOmpJobId(jobId)) throw new TypeError(`observation.jobId is malformed: ${jobId}`);
+  const agent = nonEmpty(input.agent, 'observation.agent');
+  const observedModel = input.observedModel === null ? null : nonEmpty(input.observedModel, 'observation.observedModel');
+  // taskId is optional: only carried when the caller grounds a deterministic task identity
+  // (e.g. omp-task-adapter's deterministicOmpTaskId); absent otherwise, never synthesized here.
+  const taskId = input.taskId === undefined || input.taskId === null ? null : nonEmpty(input.taskId, 'observation.taskId');
 
-  if (result === 'completed' && resolvedModel !== route.model) {
-    throw new TypeError(`completed route ${route.id} requires exact resolvedModel`);
+  if (result === 'completed' && observedModel !== route.model) {
+    throw new TypeError(`completed route ${route.id} requires exact transcript model match`);
+  }
+  if (result === 'completed' && agent !== route.agentId) {
+    throw new TypeError(`completed route ${route.id} requires exact agent card match`);
   }
   if (result === 'completed' && failureClass !== 'none') {
     throw new TypeError('completed observation must use failureClass none');
@@ -134,9 +159,10 @@ function normalizeObservation(input) {
     surface: route.surface,
     model: route.model,
     agentId: route.agentId ?? null,
-    runId,
-    childSessionKey,
-    resolvedModel,
+    jobId,
+    agent,
+    observedModel,
+    taskId,
     result,
     latencyMs,
     evidenceAccurate,
@@ -148,7 +174,8 @@ function normalizeObservation(input) {
 
 function isEligible(entry) {
   return entry.result === 'completed'
-    && entry.resolvedModel === entry.model
+    && entry.observedModel === entry.model
+    && entry.agent === entry.agentId
     && entry.evidenceAccurate
     && (entry.verifierVerdict === 'pass' || entry.verifierVerdict === 'not-required')
     && entry.failureClass === 'none';

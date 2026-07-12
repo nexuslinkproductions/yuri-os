@@ -1,0 +1,4 @@
+interface:
+  display_name: "OMP MoE Dispatch"
+  short_description: "Route work through native OMP TaskTool subagents"
+  default_prompt: "Use $omp-moe-dispatch to route this task through native OMP TaskTool subagents."

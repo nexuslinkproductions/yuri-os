@@ -42,4 +42,4 @@ The main session runs Sol (expensive) on every turn regardless of worker activit
 - **CHEAP-FRONTIER (terra, luna, minimax-M3, glm)** — R1+ frontier PRODUCER volume. Route here before escalating to Sol or Opus. Peer-grade workers, not advisory sidecars.
 - **Sol seat + Opus** — orchestration decisions and R3 verification only. Never for R0/R1 work a cheaper tier can own.
 
-The "2+ inline reads/greps/edits → stop and dispatch" rule in persona.md is a cost trigger: each done inline burns Sol budget on R0 work. persona.md is the always-loaded enforcement surface; this section is the reference anchor for dispatched-lane context. Mimo is availability-gated (`mure-artificer` must be registered in OpenClaw) — until then, DeepSeek carries the cheap tier.
+The "2+ inline reads/greps/edits → stop and dispatch" rule in persona.md is a cost trigger: each done inline burns Sol budget on R0 work. persona.md is the always-loaded enforcement surface; this section is the reference anchor for dispatched-lane context. Mimo is availability-gated (`mure-artificer` must be registered in the OMP agent catalog) — until then, DeepSeek carries the cheap tier.

@@ -8,12 +8,12 @@ const availabilityEvidence = Object.fromEntries(
   Object.entries(DEFAULT_POLICY.availabilityDefaults)
     .filter(([, available]) => available === false)
     .map(([model]) => [model, {
-      source: 'native-completion-event',
-      status: 'completed-native-canary',
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
       ok: true,
-      resolvedModel: model,
-      childSessionKey: `agent:test:subagent:${model.replace(/[^a-z0-9]/gi, '-')}`,
-      runId: `run-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      jobId: `canary-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      model,
+      agentId: DEFAULT_POLICY.experts.find((expert) => expert.model === model)?.agentId,
     }]),
 );
 const architectureTask = {
@@ -39,9 +39,9 @@ test('compiles native dispatch intent and performs no spawn effects', async () =
   assert.equal(result.schemaVersion, 'sol-moe-run-v2');
   assert.equal(calls, 0);
   assert.equal(result.plan.queues.producers[0].model, 'zai/glm-5.2');
-  assert.equal(result.nextAction.type, 'sessions_spawn');
+  assert.equal(result.nextAction.type, 'omp-task-spawn');
   assert.deepEqual(Object.keys(result.nextAction.args).sort(), [
-    'agentId', 'cleanup', 'context', 'cwd', 'label', 'mode', 'model', 'runtime', 'sandbox', 'task', 'taskName', 'thinking',
+    'agent', 'context', 'i', 'tasks',
   ]);
 });
 
@@ -72,6 +72,6 @@ test('default availability mask routes around GLM without probing it', async () 
   const result = await runSolMoeTask(architectureTask, {
     timestamp: 'FIXED',
   });
-  assert.equal(result.nextAction.args.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(result.nextAction.args.agent, 'mure-synthesist');
   assert.equal(result.nextAction.routeKind, 'availability-fallback');
 });

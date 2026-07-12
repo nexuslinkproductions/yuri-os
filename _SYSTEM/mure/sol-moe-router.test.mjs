@@ -17,12 +17,12 @@ const availabilityEvidence = Object.fromEntries(
   Object.entries(DEFAULT_POLICY.availabilityDefaults)
     .filter(([, available]) => available === false)
     .map(([model]) => [model, {
-      source: 'native-completion-event',
-      status: 'completed-native-canary',
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
       ok: true,
-      resolvedModel: model,
-      childSessionKey: `agent:test:subagent:${model.replace(/[^a-z0-9]/gi, '-')}`,
-      runId: `run-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      jobId: `canary-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      model,
+      agentId: DEFAULT_POLICY.experts.find((expert) => expert.model === model)?.agentId,
     }]),
 );
 
@@ -72,6 +72,69 @@ test('GLM 5.2 is masked by default until explicit availability evidence re-enabl
   );
   assert.equal(enabled.producer.model, 'zai/glm-5.2');
   assert.equal(enabled.selection, 'primary');
+});
+
+test('a canary proof minted for a different model cannot unmask GLM at the router', () => {
+  const route = routeTask(
+    { summary: 'design a service architecture', architecture: true },
+    {
+      availability: { 'zai/glm-5.2': true },
+      availabilityEvidence: {
+        'zai/glm-5.2': {
+          source: 'omp-task-result',
+          status: 'completed-omp-canary',
+          ok: true,
+          jobId: 'canary-cross-model',
+          model: 'minimax-portal/MiniMax-M3',
+          agentId: 'mure-architect',
+        },
+      },
+    },
+  );
+  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.selection, 'availability-fallback');
+});
+
+test('a canary proof minted for a different agent cannot unmask GLM at the router', () => {
+  const route = routeTask(
+    { summary: 'design a service architecture', architecture: true },
+    {
+      availability: { 'zai/glm-5.2': true },
+      availabilityEvidence: {
+        'zai/glm-5.2': {
+          source: 'omp-task-result',
+          status: 'completed-omp-canary',
+          ok: true,
+          jobId: 'canary-cross-agent',
+          model: 'zai/glm-5.2',
+          agentId: 'mure-synthesist',
+        },
+      },
+    },
+  );
+  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.selection, 'availability-fallback');
+});
+
+test('legacy native-completion proof fields cannot unmask GLM at the router', () => {
+  const route = routeTask(
+    { summary: 'design a service architecture', architecture: true },
+    {
+      availability: { 'zai/glm-5.2': true },
+      availabilityEvidence: {
+        'zai/glm-5.2': {
+          source: 'native-completion-event',
+          status: 'completed-native-canary',
+          ok: true,
+          resolvedModel: 'zai/glm-5.2',
+          childSessionKey: 'agent:test:subagent:zai-glm-5-2',
+          runId: 'run-zai-glm-5-2',
+        },
+      },
+    },
+  );
+  assert.equal(route.producer.model, 'minimax-portal/MiniMax-M3');
+  assert.equal(route.selection, 'availability-fallback');
 });
 
 test('no default task route selects or queues GLM while its availability mask is false', () => {

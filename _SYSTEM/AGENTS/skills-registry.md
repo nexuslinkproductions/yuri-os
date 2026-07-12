@@ -65,7 +65,7 @@
 ## Integration Notes
 - Matt Pocock skills are promoted into root `skills/<skill-id>/`
 - Yuri OS canonical skills are at root `skills/`
-- All skills are loaded by OpenClaw on session boot
+- All skills are loaded by the YURI skill loader on session boot
 - Skills can be invoked by slash command or triggered automatically
 - Cross-domain lesson indexing lives in `_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md`, `cross-reference-index.md`, and `prevention-rules.md`; keep canonical tags when promoting memory or summarized logs.
 

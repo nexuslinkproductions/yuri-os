@@ -56,7 +56,6 @@ task:
     - mure-sentinel
     - mure-sentinel-dvp
     - mure-steward
-    - mure-yuri
     - mure-yuri-sol
 
 modelRoles:

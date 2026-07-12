@@ -323,7 +323,7 @@ Filter rules:
 - Keep all `severity >= WARN` findings
 - Keep all `source === 'CORTEX'` (advisor disagreement markers)
 - Keep all `source === 'YURI_RISK'` strategic foresights regardless of severity
-- Drop pure INFO findings from DeepSeek/OpenClaw (too noisy)
+- Drop pure INFO findings from DEEPSEEK workers (too noisy)
 - Drop expired entries
 
 Archive shape:
@@ -336,7 +336,7 @@ Archive shape:
     {
       "ts": "...",
       "turn_id": "...",
-      "source": "DEEPSEEK|OPENCLAW|YURI_RISK|CORTEX",
+      "source": "DEEPSEEK|YURI_RISK|CORTEX",
       "severity": "WARN|HIGH|CRITICAL",
       "finding": "...",
       "runtime_kind": "model_advisor|bridge_advisory|native_function|meta",

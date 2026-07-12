@@ -60,9 +60,8 @@ export function parseOmpTaskResult(result) {
     throw new TypeError(`OMP task result agent is not a known card id: ${agent}`);
   }
   const status = nonEmpty(result.status, 'result.status');
-  if (!TERMINAL_STATUSES.has(status)) {
-    throw new TypeError(`OMP task result status is not terminal: ${status}`);
-  }
+  // Status validation is deferred to the parent adapter — only exact 'completed' yields ok:true.
+  // OMP may emit variant failure statuses like 'failed (exit 1)' that are terminal.
   if (!('duration' in result)) throw new TypeError('result.duration is required');
   const duration = nonNegativeOrNull(result.duration, 'result.duration');
   if (!('output' in result)) throw new TypeError('result.output key is required');
@@ -86,17 +85,43 @@ export function loadOmpTranscript(jobId, artifactsDir) {
   if (resolvedBase !== base && !base.startsWith('/')) {
     throw new TypeError('OMP transcript artifactsDir must be an absolute path');
   }
+  // Canonicalize base to guard against symlink escape
+  let realBase;
+  try {
+    realBase = fs.realpathSync(resolvedBase);
+  } catch {
+    throw new TypeError(`OMP transcript artifactsDir is not accessible: ${truncate(resolvedBase, 128)}`);
+  }
   const filename = `${safeJobId}.jsonl`;
   const resolved = path.resolve(resolvedBase, filename);
-  // Path confinement: the resolved path must start with the resolved base
+  // String-containment guard against ../ traversal
   if (!resolved.startsWith(resolvedBase + path.sep)) {
     throw new TypeError(`OMP transcript path escaped confinement: ${truncate(resolved, 128)}`);
   }
+  // Canonicalize target to guard against in-directory symlinks
+  let realTarget;
+  try {
+    realTarget = fs.realpathSync(resolved);
+  } catch {
+    throw new TypeError(`OMP transcript not accessible at ${truncate(resolved, 128)}`);
+  }
+  if (!realTarget.startsWith(realBase + path.sep)) {
+    throw new TypeError(`OMP transcript symlink escaped confinement: ${truncate(realTarget, 128)}`);
+  }
+  // Reject non-regular files (directories, FIFOs, sockets)
+  try {
+    if (!fs.statSync(realTarget).isFile()) {
+      throw new TypeError(`OMP transcript is not a regular file: ${truncate(realTarget, 128)}`);
+    }
+  } catch (err) {
+    if (err instanceof TypeError) throw err;
+    throw new TypeError(`OMP transcript stat failed at ${truncate(realTarget, 128)}: ${err.message}`);
+  }
   let raw;
   try {
-    raw = fs.readFileSync(resolved, 'utf8');
+    raw = fs.readFileSync(realTarget, 'utf8');
   } catch (err) {
-    throw new TypeError(`OMP transcript not readable at ${truncate(resolved, 128)}: ${err.message}`);
+    throw new TypeError(`OMP transcript not readable at ${truncate(realTarget, 128)}: ${err.message}`);
   }
   return parseOmpTranscript(raw, safeJobId);
 }
@@ -104,7 +129,8 @@ export function loadOmpTranscript(jobId, artifactsDir) {
 /**
  * Parse raw transcript JSONL into structured evidence.
  * Requires: exactly one session, exactly one model_change, at least one
- * thinking_level_change, exactly one terminal yield (result|error).
+ * thinking_level_change. Yield is optional corroboration; parent
+ * &lt;task-result&gt; status/output is the terminal authority.
  * Rejects: duplicate session/model_change/yield, unknown event types,
  * non-JSON lines, non-object lines.
  */

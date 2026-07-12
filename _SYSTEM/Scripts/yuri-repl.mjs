@@ -1,4 +1,4 @@
-// Yuri-native YURI DeepSeek HUD REPL. No Hermes code. Clean-room inspired terminal workflow only.
+// Yuri-native YURI DeepSeek HUD REPL. Clean-room inspired terminal workflow only.
 
 import readline from 'readline';
 import { execSync, spawn } from 'child_process';

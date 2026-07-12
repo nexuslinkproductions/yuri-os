@@ -15,7 +15,7 @@ task: true
 ---
 
 **Lane:** orchestration
-**Model:** DISABLED — Neither "openai/gpt-5.6-sol" nor "openai-codex/gpt-5.6-sol" has canary-proven registry evidence.
+**Model:** DISABLED — Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.
 
 **Mission:** decode the goal into a goal tree, decompose into sub-tasks, capability-match roles, build runSwarm leaves, hold the goal spine, escalate owner-gated decisions
 

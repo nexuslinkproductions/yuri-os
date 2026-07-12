@@ -5,22 +5,6 @@
       "role": "bounded-worker",
       "routes": [
         {
-          "id": "deepseek-v4-flash.native",
-          "provider": "deepseek",
-          "surface": "openclaw-native",
-          "model": "deepseek/deepseek-v4-flash",
-          "agentId": "deepseek-flash",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "62cd997b-592b-423b-aa7e-7bb1f078a001",
-              "childSessionKey": "agent:deepseek-flash:subagent:4b5219c7-29f2-4d92-b35b-cfa69c5c421e",
-              "resolvedModel": "deepseek/deepseek-v4-flash",
-              "result": "completed",
-            "observed": "2026-07-10"
-          }
-        },
-        {
           "id": "deepseek-v4-flash.direct",
           "provider": "deepseek",
           "surface": "direct-api",
@@ -28,237 +12,40 @@
           "agentId": "deepseek-flash",
           "status": "catalog-candidate",
           "source": "mure-agent-catalog"
-        },
-        {
-          "id": "deepseek-v4-flash.ollama",
-          "provider": "ollama",
-          "surface": "ollama-cloud",
-          "model": "ollama-cloud/deepseek-v4-flash:cloud",
-          "agentId": "deepseek-flash",
-          "status": "blocked-schema",
-          "source": "native-completion-event",
-          "blockedReason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
-          "canaryEvidence": {
-            "runId": "402b8e5f-8b65-41e3-b848-abb43d6a1205",
-            "childSessionKey": "agent:deepseek-flash:subagent:c1dccb19-4d65-4a91-bfb5-95f25bdb4e80",
-            "result": "provider-rejected-request-schema",
-            "observed": "2026-07-11"
-          }
-        },
-        {
-          "id": "deepseek-v4-flash.cline",
-          "provider": "cline",
-          "surface": "cline-pass",
-          "model": "cline-pass/cline-pass/deepseek-v4-flash",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "026ec2d6-80a2-4411-b5f5-abadd9183017",
-              "childSessionKey": "agent:mure-scout:subagent:9a60af74-3490-4acc-a5fb-8c36c69dd9d1",
-              "resolvedModel": "cline-pass/cline-pass/deepseek-v4-flash",
-              "result": "completed",
-            "observed": "2026-07-10"
-          }
-        },
-        {
-          "id": "deepseek-v4-flash.opencode",
-          "provider": "opencode",
-          "surface": "opencode",
-          "model": "opencode-go/deepseek-v4-flash",
-          "agentId": "mure-artificer",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "32801b10-6597-47df-8b07-666e10774a3c",
-            "childSessionKey": "agent:mure-artificer:subagent:da6f14d2-2886-4893-80b5-1ecc0979379d",
-            "resolvedModel": "opencode-go/deepseek-v4-flash",
-            "result": "completed",
-            "observed": "2026-07-11"
-          }
         }
       ]
     },
-    "gemini-3.5-flash": {
-      "role": "bounded-worker",
-      "routes": [
-        {
-          "id": "gemini-3.5-flash.cursor",
-          "provider": "cursor",
-          "surface": "cursor-cli",
-          "model": "cursor-cli/gemini-3.5-flash",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "18635ef3-b8f1-4f0a-8613-d3864eafc655",
-              "childSessionKey": "agent:mure-scout:subagent:b2c74687-6fc0-4c1a-af49-d95e992e5523",
-              "resolvedModel": "cursor-cli/gemini-3.5-flash",
-              "result": "completed",
-            "qualityFlag": "efficiency-poor",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "mimo-v2.5": {
-      "role": "bounded-worker",
-      "routes": [
-        {
-          "id": "mimo-v2.5.opencode",
-          "provider": "opencode",
-          "surface": "opencode",
-          "model": "opencode-go/mimo-v2.5",
-          "agentId": "mure-artificer",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "56475185-f395-4534-93dc-9906ba2f9324",
-            "childSessionKey": "agent:mure-artificer:subagent:387484c4-28bd-4a36-9d0c-4a8cf31f9952",
-            "resolvedModel": "opencode-go/mimo-v2.5",
-            "result": "completed",
-            "observed": "2026-07-10"
-          }
-        },
-        {
-          "id": "mimo-v2.5.cline",
-          "provider": "cline",
-          "surface": "cline-pass",
-          "model": "cline-pass/cline-pass/mimo-v2.5",
-          "agentId": "mure-artificer",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
-        }
-      ]
-    },
-    "glm-5.2": {
+    "zai/glm-5.2": {
       "role": "architect",
       "routes": [
         {
           "id": "glm-5.2.zai",
           "provider": "zai",
-          "surface": "openclaw-native",
+          "surface": "omp-native",
           "model": "zai/glm-5.2",
-          "agentId": "mure-scout",
+          "agentId": "mure-architect",
           "status": "canary-proven",
-          "source": "native-completion-event",
+          "source": "omp-task-completion",
           "canaryEvidence": {
-            "runId": "4048604a-6bf6-40ec-9a20-d820ac233d51",
-            "childSessionKey": "agent:mure-scout:subagent:2e784f83-023c-4b86-8a52-53a4eac2dc7a",
-            "resolvedModel": "zai/glm-5.2",
-            "result": "completed",
-            "observed": "2026-07-10"
+            "agentId": "mure-architect",
+            "jobId": "CanaryGlm52",
+            "model": "zai/glm-5.2",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534b-5544-7000-a2ce-6705ca61f011",
+            "result": {
+              "canary": "glm-5-2",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
           }
         }
       ]
     },
-    "claude-haiku-4-5": {
-      "role": "bounded-worker-advisor",
-      "routes": [
-        {
-          "id": "claude-haiku-4-5.anthropic",
-          "provider": "anthropic",
-          "surface": "openclaw-native",
-          "model": "anthropic/claude-haiku-4-5",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "72ea856c-6ef8-4946-9b1f-f0be18b93f40",
-              "childSessionKey": "agent:mure-scout:subagent:0aca6088-6c81-4012-9372-c2f7763fcc4d",
-              "resolvedModel": "anthropic/claude-haiku-4-5",
-              "result": "completed",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "claude-sonnet-5": {
-      "role": "advisor-verifier",
-      "routes": [
-        {
-          "id": "claude-sonnet-5.anthropic",
-          "provider": "anthropic",
-          "surface": "openclaw-native",
-          "model": "anthropic/claude-sonnet-5",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "7a646d84-2172-41d1-a1b5-324740dc0997",
-            "childSessionKey": "agent:mure-scout:subagent:733a73ac-3bc9-428b-98b1-3910ba41ac04",
-            "resolvedModel": "anthropic/claude-sonnet-5",
-            "result": "completed",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "claude-opus-4-8": {
-      "role": "verifier-strategist",
-      "routes": [
-        {
-          "id": "claude-opus-4-8.anthropic",
-          "provider": "anthropic",
-          "surface": "openclaw-native",
-          "model": "anthropic/claude-opus-4-8",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "667bdc72-7b22-47bd-8b24-8a19d0dc61a9",
-            "childSessionKey": "agent:mure-scout:subagent:4d04030e-3536-4e5c-ac51-6ba645da4758",
-            "resolvedModel": "anthropic/claude-opus-4-8",
-            "result": "completed",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "minimax-m2.7-highspeed": {
-      "role": "bounded-worker",
-      "routes": [
-        {
-          "id": "minimax-m2.7-highspeed.portal",
-          "provider": "minimax-portal",
-          "surface": "openclaw-native",
-          "model": "minimax-portal/MiniMax-M2.7-highspeed",
-          "agentId": "mure-scout",
-          "status": "canary-proven",
-          "source": "native-completion-event",
-          "canaryEvidence": {
-            "runId": "58f9810a-af47-4c1c-85fa-e3cdf1d9601d",
-            "childSessionKey": "agent:mure-scout:subagent:806b0142-a48a-412a-8322-5a8f05a585b5",
-            "resolvedModel": "minimax-portal/MiniMax-M2.7-highspeed",
-            "result": "completed",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "gpt-5.6-terra": {
-      "role": "frontier-worker",
-      "routes": [
-        {
-          "id": "gpt-5.6-terra.openai",
-          "provider": "openai",
-          "surface": "openclaw-native",
-          "model": "openai/gpt-5.6-terra",
-          "agentId": "mure-engineer",
-          "status": "quota-blocked",
-          "blockedReason": "Two OMP TaskTool dispatches returned usage_limit_reached on 2026-07-11 after earlier success (2026-07-10). Route blocked until new successful live canary.",
-          "source": "omp-task-event",
-          "canaryEvidence": {
-            "runId": "8b8da6ae-0e49-423f-ad43-5e4a1567185c",
-            "childSessionKey": "agent:mure-engineer:subagent:f8e04090-ddf0-4aec-85c0-05c666e4438f",
-            "resolvedModel": "openai/gpt-5.6-terra",
-            "result": "completed",
-            "observed": "2026-07-10"
-          }
-        }
-      ]
-    },
-    "minimax-m3": {
+    "minimax-code/MiniMax-M3": {
       "role": "frontier-worker",
       "routes": [
         {
@@ -269,23 +56,188 @@
           "agentId": "mure-synthesist-m3",
           "status": "canary-proven",
           "source": "omp-task-completion",
+          "minimumBindingThinkingLevel": "high",
           "canaryEvidence": {
-            "primaryRun": {
-              "runId": "MiniMaxM3CanaryA",
-              "agentId": "mure-synthesist-m3",
-              "resolvedModel": "minimax-code/MiniMax-M3",
-              "result": "completed",
-              "ompSessionId": "019f506b-2f41-7001-a39a-46bd976d66b5"
+            "agentId": "mure-synthesist-m3",
+            "jobId": "CanaryMiniMaxM3",
+            "model": "minimax-code/MiniMax-M3",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534b-c934-7000-a9b5-04afbaef1bf3",
+            "result": {
+              "canary": "minimax-m3",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
             },
-            "corroboratingRun": {
-              "runId": "MiniMaxM3CanaryB",
-              "agentId": "mure-synthesist-m3",
-              "resolvedModel": "minimax-code/MiniMax-M3",
-              "result": "completed",
-              "ompSessionId": "019f506b-2f41-7000-90b3-f26fce6a7660"
-            },
-            "observed": "2026-07-11"
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
           }
+        }
+      ]
+    },
+    "anthropic/claude-haiku-4-5": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "claude-haiku-4-5.anthropic",
+          "provider": "anthropic",
+          "surface": "omp-native",
+          "model": "anthropic/claude-haiku-4-5",
+          "agentId": "mure-scout-haiku",
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-scout-haiku",
+            "jobId": "CanaryHaiku45",
+            "model": "anthropic/claude-haiku-4-5",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534c-17d9-7000-8476-aa74f75960d6",
+            "result": {
+              "canary": "haiku-4-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "low",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
+        }
+      ]
+    },
+    "anthropic/claude-sonnet-5": {
+      "role": "advisor-verifier",
+      "routes": [
+        {
+          "id": "claude-sonnet-5.anthropic",
+          "provider": "anthropic",
+          "surface": "omp-native",
+          "model": "anthropic/claude-sonnet-5",
+          "agentId": "mure-engineer-sonnet5",
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-engineer-sonnet5",
+            "jobId": "CanarySonnet5",
+            "model": "anthropic/claude-sonnet-5",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534c-5824-7000-8d0e-beb975ad3d74",
+            "result": {
+              "canary": "sonnet-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "medium",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
+        }
+      ]
+    },
+    "anthropic/claude-opus-4-8": {
+      "role": "verifier-strategist",
+      "routes": [
+        {
+          "id": "claude-opus-4-8.anthropic",
+          "provider": "anthropic",
+          "surface": "omp-native",
+          "model": "anthropic/claude-opus-4-8",
+          "agentId": "mure-yuri-opus48",
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-yuri-opus48",
+            "jobId": "CanaryOpus48",
+            "model": "anthropic/claude-opus-4-8",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534c-a628-7000-bdf5-95bcf8a1c69a",
+            "result": {
+              "canary": "opus-4-8",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
+        }
+      ]
+    },
+    "cursor/gemini-3.5-flash": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "gemini-3.5-flash.cursor",
+          "provider": "cursor",
+          "surface": "omp-native",
+          "model": "cursor/gemini-3.5-flash",
+          "agentId": "mure-oracle",
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-oracle",
+            "jobId": "CanaryGemini35",
+            "model": "cursor/gemini-3.5-flash",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534c-d583-7000-97b1-25b5642d8de1",
+            "result": {
+              "canary": "gemini-3-5-flash",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": null,
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
+        }
+      ]
+    },
+    "opencode-go/mimo-v2.5": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "mimo-v2.5.opencode",
+          "provider": "opencode",
+          "surface": "omp-native",
+          "model": "opencode-go/mimo-v2.5",
+          "agentId": "mure-artificer-mimo25",
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-artificer-mimo25",
+            "jobId": "CanaryMimo25",
+            "model": "opencode-go/mimo-v2.5",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f534d-0a4f-7000-a810-6df7fe26008a",
+            "result": {
+              "canary": "mimo-v2-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
+        }
+      ]
+    },
+    "openai/gpt-5.6-terra": {
+      "role": "frontier-worker",
+      "routes": [
+        {
+          "id": "gpt-5.6-terra.openai",
+          "provider": "openai",
+          "surface": "omp-native",
+          "model": "openai/gpt-5.6-terra",
+          "agentId": "mure-engineer",
+          "status": "quota-blocked",
+          "blockedReason": "Two OMP TaskTool dispatches returned usage_limit_reached on 2026-07-11 after earlier success (2026-07-10). Route blocked until new successful live canary.",
+          "source": "omp-task-event"
         }
       ]
     }
@@ -309,7 +261,7 @@
       "maySpawn": false
     },
     "worker": {
-      "preferredModels": ["minimax-code/MiniMax-M3", "deepseek/deepseek-v4-flash", "anthropic/claude-haiku-4-5", "opencode-go/mimo-v2.5", "cursor-cli/gemini-3.5-flash"],
+      "preferredModels": ["minimax-code/MiniMax-M3", "deepseek/deepseek-v4-flash", "anthropic/claude-haiku-4-5", "opencode-go/mimo-v2.5", "cursor/gemini-3.5-flash"],
       "mayExecuteWorkerTasks": true,
       "maySpawn": false
     },
@@ -330,6 +282,10 @@
     {
       "model": "anthropic/claude-fable-5",
       "reason": "Explicitly excluded by owner; replace with an available advisor or verifier route."
+    },
+    {
+      "model": "openai/gpt-5.6-sol",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve."
     }
   ]
 }

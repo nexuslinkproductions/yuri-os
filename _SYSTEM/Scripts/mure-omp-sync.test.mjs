@@ -95,7 +95,7 @@ function runSync(args, { cwd, env } = {}) {
 
 /**
  * Create a temporary fixture directory shaped like the repo:
- *   .openclaw/mure-agent-catalog.json   ← fixture catalog (input)
+ *   _SYSTEM/mure/agent-catalog.json      ← fixture catalog (input)
  *   .omp/agents/                         ← output dir for agent cards
  *   .omp/config.yml                      ← config (created by sync)
  *   _SYSTEM/state/                       ← output dir for manifest
@@ -109,8 +109,8 @@ function makeFixture(catalogOverrides) {
   const ompDir = path.join(root, '.omp');
   const agentDir = path.join(ompDir, 'agents');
   const stateDir = path.join(root, '_SYSTEM', 'state');
-  const catalogDir = path.join(root, '.openclaw');
-  const catalogPath = path.join(catalogDir, 'mure-agent-catalog.json');
+  const catalogDir = path.join(root, '_SYSTEM', 'mure');
+  const catalogPath = path.join(catalogDir, 'agent-catalog.json');
 
   mkdirDeep(catalogDir);
   mkdirDeep(agentDir);
@@ -196,10 +196,9 @@ function buildCatalog(overrides = {}) {
   for (const m of [...new Set(allModels)]) {
     providerMapping[m] = m;
   }
-
   return {
-    source: 'OpenClaw-native agent definitions from .openclaw/agents/',
-    agentCardRoot: '.openclaw/agents',
+    source: 'MURE-native agent definitions from _SYSTEM/mure/agents/',
+    agentCardRoot: '_SYSTEM/mure/agents',
     generated: '2026-07-11T00:00:00.000Z',
     providerMapping,
     agents,

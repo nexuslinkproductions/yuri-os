@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Skill/doctrine discovery and normalisation for Yuri OS, based on the OpenClaw `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Uses Yuri's root `skills/<name>/SKILL.md` library as the canonical substrate, with provider skill folders as compatibility/reference surfaces.
+Skill/doctrine discovery and normalisation for Yuri OS. Uses Yuri's root `skills/<name>/SKILL.md` library as the canonical substrate, with provider skill folders as compatibility/reference surfaces.
 
 ## Current Discovery Paths
 

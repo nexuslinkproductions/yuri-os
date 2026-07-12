@@ -10,7 +10,7 @@ tools:
 ---
 
 **Lane:** research
-**Model:** DISABLED — Neither "openai/gpt-5.6-sol" nor "openai-codex/gpt-5.6-sol" has canary-proven registry evidence.
+**Model:** DISABLED — Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.
 
 **Mission:** research local corpus first then online; cite primary sources; synthesize findings; capture to the research corpus
 

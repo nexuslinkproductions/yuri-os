@@ -18,12 +18,12 @@ This is the compact contract behind the provider route registry. A model is not 
 - Verifiers are downstream and independent. A producer cannot grade itself.
 - Cheap routes may produce R0 semantics and evidence for higher-risk work, but they do not perform R2/R3 semantic work or final verification.
 - Fable 5 is excluded. Any catalog entry is archival metadata, not a selectable route.
-- Provider route identities remain separate: direct DeepSeek, Ollama, Cline, OpenCode, Cursor, and native OpenClaw are different operational routes even when they expose the same model family.
+- Provider route identities remain separate: direct DeepSeek, Ollama, Cline, OpenCode, Cursor, and the OMP TaskTool route are different operational routes even when they expose the same model family.
 
 ## Route status vocabulary
 
-- `canary-proven`: exact model, child session key, run ID, and successful native terminal event captured.
-- `catalog-candidate`: described by the catalog but not yet proven in the running gateway.
+- `canary-proven`: exact model, `jobId`/`ompSessionId`, exact `agentId`, and a completed `<task-result>` status with transcript evidence captured.
+- `catalog-candidate`: described by the catalog but not yet proven in the active OMP runtime.
 - `default-masked`: intentionally unavailable until canary evidence exists.
 - `unresolved`: provider/model binding is incomplete; no spawn may be attempted.
 

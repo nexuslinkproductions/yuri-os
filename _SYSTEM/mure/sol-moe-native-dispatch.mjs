@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 // @capability: sol-moe-native-dispatch
-// @serves: pure native OpenClaw sessions_spawn compilation and push-event reduction
-// @does: compiles governed manifest entries into whitelist-only native sessions_spawn arguments and reduces child completion events without invoking tools or subprocesses.
+// @serves: pure native OMP TaskTool dispatch compilation and push-event reduction
+// @does: compiles governed manifest entries into OMP TaskTool arguments and reduces
+//   child completion events without invoking tools or subprocesses.
 // @use: const state = createNativeDispatchState(plan); const { state: next, action } = reduceNativeDispatch(state, event);
-// @exports: DEFAULT_CWD, compileNativeSpawn, createNativeDispatchState, createProviderCalibrationReport, recordNativeSpawnAccepted, reduceNativeDispatch
+// @exports: DEFAULT_CWD, compileOmpSpawn, createNativeDispatchState, createProviderCalibrationReport,
+//           recordNativeSpawnAccepted, reduceNativeDispatch
 
 import { createHash } from 'node:crypto';
+import { deterministicOmpTaskId, validateOmpJobId } from './omp-task-adapter.mjs';
 
 export const DEFAULT_CWD = '/Users/marcelspatz/YURI-OS-MUSUBI';
 
@@ -14,48 +17,58 @@ const THINKING_LEVELS = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhi
 const AVAILABILITY_FAILURES = new Set(['availability', 'transport', 'quota', 'rate-limit', 'timeout', 'auth']);
 const RISK_CLASSES = new Set(['R0', 'R1', 'R2', 'R3']);
 const WORKER_BINDINGS = new Map([
-  ['minimax-portal/MiniMax-M3', 'mure-synthesist'],
-  ['zai/glm-5.2', 'mure-architect'],
+  ['anthropic/claude-sonnet-5', 'mure-calibrator'],
+  ['anthropic/claude-opus-4-8', 'mure-sentinel'],
+  ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ['openai/gpt-5.6-terra', 'mure-engineer'],
   ['openai/gpt-5.6-luna', 'mure-adjudicator'],
-  ['anthropic/claude-opus-4-8', 'mure-sentinel'],
-  ['anthropic/claude-sonnet-5', 'mure-calibrator'],
-  ['anthropic/claude-haiku-4-5', 'mure-scout'],
+  ['minimax-portal/MiniMax-M3', 'mure-synthesist'],
+  ['zai/glm-5.2', 'mure-architect'],
+  ['opencode-go/mimo-v2.5', 'mure-artificer'],
   ['deepseek/deepseek-v4-flash', 'deepseek-flash'],
   ['deepseek-v4-flash:direct', 'deepseek-flash'],
   ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
   ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
   ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
-  ['opencode-go/mimo-v2.5', 'mure-artificer'],
-  ['opencode-go/deepseek-v4-flash', 'mure-artificer'],
-  ['cline-pass/cline-pass/mimo-v2.5', 'mure-artificer'],
 ]);
 const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2']);
 const CHEAP_PROVIDER_FAMILIES = new Set(['deepseek', 'mimo', 'ollama', 'cline', 'cursor']);
 const R3_VERIFIER_MODEL = 'anthropic/claude-opus-4-8';
 
 /**
- * Compile one manifest entry to the complete, whitelist-only sessions_spawn payload.
- * This function is pure: it neither calls sessions_spawn nor records session state.
+ * Compile one manifest entry to the OMP TaskTool dispatch payload.
+ * This function is pure: it never calls TaskTool or records state.
+ * Emits the exact arguments the parent must pass to the `task` tool.
  */
-export function compileNativeSpawn(entry, context = {}) {
+export function compileOmpSpawn(entry, context = {}) {
   const normalized = validateEntry(entry);
   const execution = validateContext(context, normalized.taskId);
   const task = buildTask(normalized, execution);
+  const ompTaskId = deterministicOmpTaskId(normalized);
+  const roleLabel = normalized.role || 'worker';
   return Object.freeze({
-    task,
-    taskName: deterministicTaskName(normalized, execution.attempt),
-    label: nativeLabel(normalized),
-    agentId: normalized.agentId,
-    model: normalized.model,
-    thinking: normalized.thinking,
-    cwd: execution.cwd,
-    runtime: 'subagent',
-    mode: 'run',
-    context: 'isolated',
-    cleanup: 'keep',
-    sandbox: 'inherit',
+    i: `MURE ${normalized.purpose} ${safeToken(normalized.taskId, 20)}`,
+    context: buildOmpContext(normalized),
+    agent: normalized.agentId,
+    tasks: [Object.freeze({
+      assignment: task,
+      id: ompTaskId,
+      description: `${normalized.purpose}: ${normalized.taskId} (${roleLabel})`,
+      role: roleLabel,
+    })],
   });
+}
+
+function buildOmpContext(entry) {
+  return [
+    '# Goal',
+    `Execute one MURE ${entry.purpose} task.`,
+    '# Constraints',
+    'Run only the assigned task. Do not modify files outside its scope. ' +
+    'The dispatcher is the parent OMP session.',
+    '# Contract',
+    'Task ID is the emitted tasks[0].id. This is a single isolated unit of work.',
+  ].join('\n');
 }
 
 /** Create serializable reducer state from a sol-moe-company manifest. */
@@ -94,7 +107,7 @@ export function createNativeDispatchState(plan, options = {}) {
     };
   }
   return freeze({
-    schemaVersion: 'sol-moe-native-dispatch-v1',
+    schemaVersion: 'sol-moe-native-dispatch-v2',
     plan: copyPlan(plan),
     tasks,
     processedEventIds: [],
@@ -125,7 +138,7 @@ export function createProviderCalibrationReport(config, history = []) {
   }
   const minimumSamples = positiveInteger(config?.minimumSamples, 30);
   return freeze({
-    metric: config?.metric || 'native child dispatch count',
+    metric: config?.metric || 'OMP TaskTool dispatch count',
     windowDispatches: windowSize,
     sampleSize,
     counts,
@@ -135,37 +148,38 @@ export function createProviderCalibrationReport(config, history = []) {
   });
 }
 
-/** Record native sessions_spawn admission without mistaking admission for completion. */
+/**
+ * Record an OMP TaskTool spawn admission without mistaking admission for completion.
+ * Receipt shape: { jobId, agent } — returned by the OMP `task` tool on successful spawn.
+ * The model from the entry is recorded for calibration; the resolved model is verified
+ * later via model_change transcript evidence.
+ */
 export function recordNativeSpawnAccepted(state, action, receipt) {
   validateState(state);
-  if (!action || action.type !== 'sessions_spawn' || !action.taskId || !action.entryId) {
-    throw new TypeError('accepted spawn requires a sessions_spawn action');
+  if (!action || action.type !== 'omp-task-spawn' || !action.taskId || !action.entryId) {
+    throw new TypeError('accepted spawn requires an omp-task-spawn action');
   }
-  if (!receipt || receipt.status !== 'accepted') throw new TypeError('native spawn receipt must be accepted');
-  nonEmpty(receipt.childSessionKey, 'childSessionKey');
-  const childSessionKey = String(receipt.childSessionKey);
-  if (!isNativeChildSessionKey(childSessionKey, action.args.agentId)) {
-    throw new TypeError(`native childSessionKey must identify ${action.args.agentId} and a subagent id`);
+  if (!receipt || typeof receipt !== 'object') throw new TypeError('OMP spawn receipt must be an object');
+  const jobId = nonEmpty(receipt.jobId, 'receipt.jobId');
+  if (!validateOmpJobId(jobId)) {
+    throw new TypeError(`OMP spawn receipt jobId is malformed: ${truncate(jobId, 64)}`);
   }
-  const runId = nonEmpty(receipt.runId, 'runId');
-  const resolvedModel = nonEmpty(receipt.resolvedModel, 'resolvedModel');
+  const agent = nonEmpty(receipt.agent, 'receipt.agent');
+  if (agent !== action.args.agent) {
+    throw new TypeError(`OMP spawn receipt agent ${agent} does not match dispatched card ${action.args.agent}`);
+  }
   const next = thaw(state);
   const task = next.tasks[action.taskId];
   if (!task?.awaiting || task.awaiting.entry.id !== action.entryId || task.awaiting.accepted) {
-    throw new TypeError('accepted spawn does not match the pending native action');
+    throw new TypeError('accepted spawn does not match the pending OMP action');
   }
-  if (resolvedModel !== action.args.model) {
-    return fail(next, task, 'RESOLVED_MODEL_MISMATCH',
-      `Requested ${action.args.model} but OpenClaw resolved ${resolvedModel}.`);
-  }
-  task.awaiting.accepted = { childSessionKey, runId, resolvedModel };
-  recordAcceptedProviderDispatch(next, task, action, { childSessionKey, runId, resolvedModel });
+  task.awaiting.accepted = { jobId, agent };
   return result(next, Object.freeze({ type: 'none', reason: 'spawn-accepted' }));
 }
 
 /**
  * Reduce either an initial scheduling tick (event=null) or one pushed child completion.
- * The returned action is data for the caller to execute through native sessions_spawn.
+ * The returned action is data for the caller to execute through OMP TaskTool.
  */
 export function reduceNativeDispatch(state, event = null, options = {}) {
   validateState(state);
@@ -187,13 +201,26 @@ export function reduceNativeDispatch(state, event = null, options = {}) {
     return result(next, none('stale-or-mismatched-event'));
   }
 
-  if (!task.awaiting.accepted) return fail(next, task, 'COMPLETION_BEFORE_ACCEPTANCE', 'Completion arrived before native spawn admission was recorded.');
-  if (event.childSessionKey !== task.awaiting.accepted.childSessionKey
-      || (event.runId && event.runId !== task.awaiting.accepted.runId)) {
+  if (!task.awaiting.accepted) return fail(next, task, 'COMPLETION_BEFORE_ACCEPTANCE', 'Completion arrived before OMP spawn admission was recorded.');
+  if (event.jobId !== task.awaiting.accepted.jobId) {
     return result(next, none('stale-or-mismatched-event'));
   }
 
+
   const awaiting = task.awaiting;
+
+  // Model evidence from transcript required for all successful completions
+  if (event.ok) {
+    if (!event.modelChange || !event.modelChange.model || typeof event.modelChange.model !== 'string' || !String(event.modelChange.model).trim()) {
+      return fail(next, task, 'MISSING_MODEL_EVIDENCE', 'Successful completion requires model_change transcript evidence.');
+    }
+    const actualModel = String(event.modelChange.model).trim();
+    if (actualModel !== awaiting.entry.model) {
+      return fail(next, task, 'MODEL_MISMATCH', `Requested ${awaiting.entry.model} but child resolved ${actualModel}.`);
+    }
+    recordCompletionCalibration(next, task, awaiting, event);
+  }
+
   task.awaiting = null;
   if (!event.ok) return reduceFailure(next, task, awaiting, event, options);
 
@@ -223,50 +250,65 @@ function schedulePending(state, options) {
 }
 
 function scheduleTask(state, task, options) {
-  const evidence = nextProviderBalancedTaskEntry(state, state.plan.queues.evidence || [], task, task.attemptedEntryIds);
-  if (evidence) return spawn(state, task, evidence, 'evidence', 'evidence', options);
-  const producer = firstTaskEntry(state.plan.queues.producers, task.taskId);
-  if (!producer) return fail(state, task, 'PRODUCER_MISSING', 'Producer entry is missing.');
-  const alternatives = (state.plan.queues.calibrationAlternatives || [])
-    .filter((entry) => String(entry?.taskId) === task.taskId && entry.id !== producer.id);
-  const selected = chooseProviderBalancedEntry(state, [producer, ...alternatives], task.attemptedEntryIds);
-  if (!selected) {
-    return fail(state, task, 'PROVIDER_CALIBRATION_CEILING', 'OpenAI worker ceiling reached and no non-OpenAI peer is available.');
+  // Evidence must complete before producer so its output is available
+  for (const queue of ['evidence', 'producers', 'availabilityFallbacks', 'qualityEscalations']) {
+    if (queue === 'producers') {
+      const entry = firstTaskEntry(state.plan.queues.producers, task.taskId);
+      if (!entry) continue;
+      const alternates = state.plan.queues.calibrationAlternatives || [];
+      const candidates = [entry, ...alternates].filter(
+        (e) => String(e?.taskId) === task.taskId && !task.attemptedEntryIds.includes(e.id),
+      );
+      const balanced = chooseProviderBalancedEntry(state, candidates, task.attemptedEntryIds);
+      if (!balanced) {
+        return fail(state, task, 'PROVIDER_CALIBRATION_CEILING',
+          'OpenAI worker ceiling reached for this accepted-dispatch window.');
+      }
+      const routeKind = balanced === entry ? routeKindFor(task) : 'calibration-rebalance';
+      return spawn(state, task, balanced, routeKind, 'producer', options);
+    }
+    const candidates = (Array.isArray(state.plan.queues[queue]) ? state.plan.queues[queue] : [])
+      .filter((e) => String(e?.taskId) === task.taskId && !task.attemptedEntryIds.includes(e.id));
+    const entry = candidates[0] || null;
+    if (!entry) continue;
+    const purpose = queue === 'availabilityFallbacks' ? 'availability-fallback'
+      : queue === 'qualityEscalations' ? 'quality-escalation'
+      : 'evidence';
+    const routeKind = routeKindFor(task);
+    return spawn(state, task, entry, routeKind, purpose, options);
   }
-  const routeKind = selected?.id === producer.id ? routeKindFor(task) : 'calibration-rebalance';
-  return spawn(state, task, selected, routeKind, 'producer', options);
+  const code = task.attempt > 0 ? 'AVAILABILITY_FALLBACK_EXHAUSTED' : 'PRODUCER_MISSING';
+  return fail(state, task, code, code === 'PRODUCER_MISSING' ? 'No producer entry is available.' : 'No fallback entry remains.');
 }
 
 function reduceFailure(state, task, awaiting, event, options) {
-  const failureKind = String(event.failureKind || 'semantic').toLowerCase();
-  if (awaiting.purpose === 'verifier') {
-    return fail(state, task, 'VERIFIER_EXECUTION_FAILURE', 'The independent verifier did not execute successfully.', failureKind, event.error);
+  const failureKind = String(event.failureKind || '').toLowerCase();
+  const isVerifier = awaiting.purpose === 'verifier';
+  if (isVerifier) return fail(state, task, 'VERIFIER_EXECUTION_FAILURE', 'Independent verifier execution failed.');
+
+  if (AVAILABILITY_FAILURES.has(failureKind)) {
+    const fallback = nextProviderBalancedTaskEntry(state, state.plan.queues.availabilityFallbacks, task, task.attemptedEntryIds);
+    if (!fallback) return fail(state, task, 'AVAILABILITY_FALLBACK_EXHAUSTED', 'No non-attempted availability fallback remains.');
+    return spawn(state, task, fallback, 'availability-fallback', awaiting.purpose, options);
   }
-  if (!AVAILABILITY_FAILURES.has(failureKind)) {
-    return fail(state, task, 'SEMANTIC_FAILURE', `Child ${awaiting.purpose} failed semantically.`, failureKind, event.error);
-  }
-  const fallback = nextProviderBalancedTaskEntry(state, state.plan.queues.availabilityFallbacks, task, task.attemptedEntryIds);
-  if (!fallback) {
-    return fail(state, task, 'AVAILABILITY_FALLBACK_EXHAUSTED', 'No task-scoped availability fallback remains.', failureKind, event.error);
-  }
-  return spawn(state, task, fallback, 'availability-fallback', 'producer', options);
+
+  return fail(state, task, 'SEMANTIC_FAILURE', event.error || 'Child reported a semantic failure.');
 }
 
 function reduceVerifierSuccess(state, task, awaiting, event, options) {
   const verdict = strictVerdict(event);
-  if (!verdict) {
-    return fail(state, task, 'SEMANTIC_FAILURE', 'Verifier completion did not contain a strict pass/reject verdict.', 'semantic');
-  }
-  task.priorVerifier = { entryId: awaiting.entry.id, verdict, output: event.output ?? null };
+  if (!verdict) return fail(state, task, 'SEMANTIC_FAILURE', 'Verifier did not return a strict pass|reject verdict.');
+
+  task.priorVerifier = producerRecord(awaiting, event);
+
   if (verdict === 'pass') {
     task.status = 'passed';
     return result(state, none('task-passed'));
   }
-  const escalation = nextProviderBalancedTaskEntry(state, state.plan.queues.qualityEscalations, task, task.attemptedEntryIds);
-  if (!escalation) {
-    return fail(state, task, 'QUALITY_ESCALATION_EXHAUSTED', 'Verifier rejected the producer and no quality escalation remains.');
-  }
-  return spawn(state, task, escalation, 'quality-escalation', 'quality-escalation', options);
+
+  const quality = nextProviderBalancedTaskEntry(state, state.plan.queues.qualityEscalations, task, task.attemptedEntryIds);
+  if (!quality) return fail(state, task, 'QUALITY_ESCALATION_EXHAUSTED', 'No quality-escalation entry remains.');
+  return spawn(state, task, quality, 'quality-escalation', 'quality-escalation', options);
 }
 
 function spawn(state, task, entry, routeKind, purpose, options) {
@@ -292,7 +334,7 @@ function spawn(state, task, entry, routeKind, purpose, options) {
       && providerFamily(entry) === providerFamily(task.producer)) {
     return fail(state, task, 'VERIFIER_NOT_INDEPENDENT', 'R3 verifier must differ from the producer provider family.');
   }
-  const args = compileNativeSpawn(entry, {
+  const args = compileOmpSpawn(entry, {
     cwd: options.cwd,
     attempt,
     taskId: task.taskId,
@@ -300,10 +342,10 @@ function spawn(state, task, entry, routeKind, purpose, options) {
   });
   task.attempt = attempt;
   task.status = 'awaiting';
-  task.awaiting = { entry, routeKind, purpose, attempt };
+  task.awaiting = { entry, routeKind, purpose, attempt, emittedTaskId: args.tasks[0].id };
   task.attemptedEntryIds.push(entry.id);
   return result(state, Object.freeze({
-    type: 'sessions_spawn',
+    type: 'omp-task-spawn',
     taskId: task.taskId,
     purpose,
     routeKind,
@@ -370,7 +412,7 @@ function validateContext(context, taskId) {
 
 function buildTask(entry, context) {
   const lines = [
-    'MURE SOL MOE NATIVE DISPATCH',
+    'MURE SOL MOE OMP DISPATCH',
     `Task ID: ${entry.taskId}`,
     `Purpose: ${entry.purpose}`,
     `Role: ${entry.role || 'unassigned'}`,
@@ -394,19 +436,6 @@ function buildTask(entry, context) {
     lines.push('', 'Return the requested work product. Do not claim independent verification.');
   }
   return lines.join('\n');
-}
-
-function deterministicTaskName(entry, attempt) {
-  const prefix = `${safeToken(entry.taskId, 24)}-${safeToken(entry.purpose, 18)}`;
-  const digest = createHash('sha256').update(JSON.stringify({
-    id: entry.id,
-    taskId: entry.taskId,
-    purpose: entry.purpose,
-    agentId: entry.agentId,
-    model: entry.model,
-    attempt,
-  })).digest('hex').slice(0, 12);
-  return `mure-${prefix}-${digest}`;
 }
 
 function nativeLabel(entry) {
@@ -466,8 +495,8 @@ function workerSafetyViolation(state, task, entry, purpose) {
   const riskClass = taskRiskClass(task);
   const family = providerFamily(entry);
   if (DEFAULT_MASKED_MODELS.has(entry?.model)
-      && !hasNativeAvailabilityEvidence(state.plan.availabilityEvidence?.[entry.model], entry.model)) {
-    return { code: 'MODEL_AVAILABILITY_UNPROVEN', message: `${entry.model} requires exact native canary evidence.` };
+      && !hasOmpAvailabilityEvidence(state.plan.availabilityEvidence?.[entry.model], entry.model)) {
+    return { code: 'MODEL_AVAILABILITY_UNPROVEN', message: `${entry.model} requires exact OMP canary evidence.` };
   }
   if (purpose === 'verifier' && CHEAP_PROVIDER_FAMILIES.has(family)) {
     return { code: 'CHEAP_VERIFIER_FORBIDDEN', message: 'Cheap models cannot perform final verification.' };
@@ -506,35 +535,33 @@ function normalizeProviderHistoryRecord(record) {
   }
   const model = nonEmpty(record.model, 'provider history model');
   const agentId = nonEmpty(record.agentId, 'provider history agentId');
-  nonEmpty(record.childSessionKey, 'provider history childSessionKey');
-  const childSessionKey = String(record.childSessionKey);
-  const runId = nonEmpty(record.runId, 'provider history runId');
-  const resolvedModel = nonEmpty(record.resolvedModel, 'provider history resolvedModel');
-  if (resolvedModel !== model) throw new TypeError('provider history resolvedModel must match model');
-  if (!isNativeChildSessionKey(childSessionKey, agentId)) {
-    throw new TypeError('provider history childSessionKey does not match its agentId');
+  nonEmpty(record.jobId, 'provider history jobId');
+  const jobId = String(record.jobId);
+  if (!validateOmpJobId(jobId)) {
+    throw new TypeError(`provider history jobId is malformed: ${truncate(jobId, 64)}`);
   }
+  const agent = nonEmpty(record.agent, 'provider history agent');
+  if (agent !== agentId) throw new TypeError('provider history agent must match agentId');
   const derivedProviderFamily = modelProviderFamily(model);
   if (record.providerFamily !== undefined && String(record.providerFamily) !== derivedProviderFamily) {
     throw new TypeError(`provider history providerFamily does not match model provider: ${model}`);
   }
-  return { ...record, model, agentId, childSessionKey, runId, resolvedModel, providerFamily: derivedProviderFamily };
+  return { ...record, model, agentId, jobId, agent, providerFamily: derivedProviderFamily };
 }
-
-function recordAcceptedProviderDispatch(state, task, action, receipt) {
+function recordCompletionCalibration(state, task, awaiting, event) {
   const calibration = state.providerCalibration;
   if (!calibration) return;
+  const actualModel = String(event.modelChange.model).trim();
   calibration.history.push({
     taskId: task.taskId,
-    entryId: action.entryId,
-    purpose: action.purpose,
-    routeKind: action.routeKind,
-    agentId: action.args.agentId,
-    model: action.args.model,
-    providerFamily: providerFamily(task.awaiting.entry),
-    childSessionKey: receipt.childSessionKey,
-    runId: receipt.runId,
-    resolvedModel: receipt.resolvedModel,
+    entryId: awaiting.entry.id,
+    purpose: awaiting.purpose,
+    routeKind: awaiting.routeKind,
+    agentId: awaiting.entry.agentId,
+    agent: awaiting.entry.agentId,
+    model: actualModel,
+    providerFamily: modelProviderFamily(actualModel),
+    jobId: event.jobId,
   });
   const windowSize = positiveInteger(calibration.config?.windowDispatches, 50);
   calibration.history = calibration.history.slice(-windowSize);
@@ -561,7 +588,7 @@ function producerRecord(awaiting, event) {
   return {
     entryId: awaiting.entry.id,
     agentId: awaiting.entry.agentId,
-    model: awaiting.entry.model,
+    model: event.modelChange.model,
     routeKind: awaiting.routeKind,
     output: event.output ?? null,
   };
@@ -587,7 +614,7 @@ function validatePlan(plan) {
 }
 
 function validateState(state) {
-  if (!state || typeof state !== 'object' || state.schemaVersion !== 'sol-moe-native-dispatch-v1'
+  if (!state || typeof state !== 'object' || state.schemaVersion !== 'sol-moe-native-dispatch-v2'
       || !state.plan || !state.tasks || !Array.isArray(state.processedEventIds) || !state.providerCalibration) {
     throw new TypeError('invalid native dispatch state');
   }
@@ -599,8 +626,17 @@ function validateEvent(event) {
   nonEmpty(event.taskId, 'completion event taskId');
   nonEmpty(event.entryId, 'completion event entryId');
   nonEmpty(event.purpose, 'completion event purpose');
-  nonEmpty(event.childSessionKey, 'completion event childSessionKey');
+  nonEmpty(event.jobId, 'completion event jobId');
+  if (!validateOmpJobId(event.jobId)) {
+    throw new TypeError(`completion event jobId is malformed: ${truncate(event.jobId, 64)}`);
+  }
   if (typeof event.ok !== 'boolean') throw new TypeError('completion event ok must be boolean');
+  if (event.ok) {
+    if (!event.modelChange || typeof event.modelChange !== 'object' || Array.isArray(event.modelChange)) {
+      throw new TypeError('completion event modelChange must be an object on success');
+    }
+    nonEmpty(event.modelChange.model, 'modelChange.model');
+  }
   if (!event.ok && event.failureKind !== undefined && typeof event.failureKind !== 'string') {
     throw new TypeError('completion event failureKind must be a string');
   }
@@ -659,23 +695,18 @@ function positiveInteger(value, fallback) {
   return Number.isSafeInteger(number) && number > 0 ? number : fallback;
 }
 
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function isNativeChildSessionKey(value, expectedAgentId = null) {
-  if (typeof value !== 'string' || value !== value.trim()) return false;
-  const match = /^agent:([A-Za-z0-9._-]+):subagent:([A-Za-z0-9][A-Za-z0-9._-]*)$/.exec(value);
-  return Boolean(match && (!expectedAgentId || match[1] === expectedAgentId));
-}
-
-function hasNativeAvailabilityEvidence(proof, model) {
-  return proof?.source === 'native-completion-event'
-    && proof?.status === 'completed-native-canary'
+function hasOmpAvailabilityEvidence(proof, model) {
+  const expectedAgentId = WORKER_BINDINGS.get(model);
+  return proof?.source === 'omp-task-result'
+    && proof?.status === 'completed-omp-canary'
     && proof?.ok === true
-    && proof?.resolvedModel === model
-    && isNativeChildSessionKey(proof?.childSessionKey)
-    && typeof proof?.runId === 'string'
-    && proof.runId.length > 0
-    && proof.runId === proof.runId.trim();
+    && validateOmpJobId(proof?.jobId)
+    && proof?.model === model
+    && expectedAgentId != null
+    && proof?.agentId === expectedAgentId;
+}
+
+function truncate(value, max) {
+  const s = String(value);
+  return s.length <= max ? s : `${s.slice(0, max)}…`;
 }

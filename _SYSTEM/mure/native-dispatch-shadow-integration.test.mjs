@@ -9,8 +9,10 @@ import {
 } from './native-dispatch-shadow.mjs';
 import { getTicket } from './delegation-ledger.mjs';
 
+const TASK_ID = 'shadow-int-1';
+
 const baseTicket = {
-  id: 'shadow-int-1',
+  id: TASK_ID,
   from: 'control',
   to: 'worker',
   actors: { issuer: 'sol-parent', assignee: 'worker-a' },
@@ -22,40 +24,63 @@ const baseTicket = {
   writeSet: [],
 };
 
-function makeAction(taskId, entryId, purpose, agentId, model) {
+// WORKER_BINDINGS-consistent model → agent pairs (sol-moe-native-dispatch.mjs), so fixtures
+// mirror what the live reducer actually dispatches.
+const PRODUCER_MODEL = 'minimax-portal/MiniMax-M3';
+const PRODUCER_AGENT = 'mure-synthesist';
+const VERIFIER_MODEL = 'anthropic/claude-sonnet-5';
+const VERIFIER_AGENT = 'mure-calibrator';
+const FALLBACK_MODEL = 'deepseek/deepseek-v4-flash';
+const FALLBACK_AGENT = 'deepseek-flash';
+
+// Compiler-like OMP TaskTool spawn action (mirrors compileOmpSpawn shape from sol-moe-native-dispatch.mjs).
+// routeKind mirrors spawn()'s dispatch metadata (primary | availability-fallback | quality-escalation | verification);
+// note purpose is NOT the same axis as routeKind — reduceFailure's fallback dispatch (line 292) retains the
+// original awaiting.purpose (e.g. still 'producer') and only routeKind flips to 'availability-fallback'.
+function makeAction(entryId, purpose, agentId, model, routeKind = 'primary', role = 'engineer') {
   return {
-    type: 'sessions_spawn',
-    taskId,
-    entryId,
+    type: 'omp-task-spawn',
+    taskId: TASK_ID,
     purpose,
-    args: { agentId, model },
+    routeKind,
+    entryId,
+    attempt: 1,
+    args: {
+      i: `MURE ${purpose} ${TASK_ID}`,
+      context: `# Goal\nExecute one MURE ${purpose} task.`,
+      agent: agentId,
+      tasks: [{
+        assignment: `MURE SOL MOE OMP DISPATCH\nTask ID: ${TASK_ID}\nPurpose: ${purpose}\nModel: ${model}`,
+        id: `${TASK_ID}::${entryId}`,
+        description: `${purpose}: ${TASK_ID} (${role})`,
+        role,
+      }],
+    },
   };
 }
 
-function makeAdmission(entryId, resolvedModel, agentId, runId) {
-  return {
-    status: 'accepted',
-    resolvedModel,
-    childSessionKey: `agent:${agentId}:subagent:${runId}`,
-    runId,
-  };
+// OMP TaskTool spawn admission receipt: {jobId, agent}
+function makeAdmission(jobId, agentId) {
+  return { jobId, agent: agentId };
 }
 
-function makeCompletion(taskId, entryId, purpose, childSessionKey, runId, overrides = {}) {
+// OMP push-completion event, keyed by jobId, carrying model_change transcript evidence
+function makeCompletion(entryId, purpose, jobId, model, overrides = {}) {
   return {
-    taskId,
+    taskId: TASK_ID,
     entryId,
     purpose,
-    childSessionKey,
-    runId,
+    jobId,
     ok: true,
+    output: '{"summary":"ok"}',
+    modelChange: { model },
     ...overrides,
   };
 }
 
-function makeReduction(taskId, action, taskStatus = 'running') {
+function makeReduction(action, taskStatus = 'running') {
   return {
-    state: { tasks: { [taskId]: { status: taskStatus } } },
+    state: { tasks: { [TASK_ID]: { status: taskStatus } } },
     action,
   };
 }
@@ -64,29 +89,27 @@ function makeReduction(taskId, action, taskStatus = 'running') {
 
 test('integration: producer → verifier → accepted', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
   assert.equal(s.awaiting.purpose, 'producer');
 
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
   assert.equal(s.admissions.length, 1);
 
-  const verifierAction = makeAction('shadow-int-1', 'v1', 'verifier', 'mure-calibrator', 'anthropic/claude-sonnet-5');
+  const verifierAction = makeAction('v1', 'verifier', VERIFIER_AGENT, VERIFIER_MODEL, 'verification');
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
-      { output: '{"summary":"ok"}' }),
-    makeReduction('shadow-int-1', verifierAction),
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL, { output: '{"summary":"ok"}' }),
+    makeReduction(verifierAction),
     { TERM_COUNT: '4', FILE_COUNT: '1' },
   );
   assert.equal(s.awaiting.purpose, 'verifier');
 
-  s = observeNativeAdmission(s, makeAdmission('v1', 'anthropic/claude-sonnet-5', 'mure-calibrator', 'run-v'));
+  s = observeNativeAdmission(s, makeAdmission('job-v', VERIFIER_AGENT));
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'v1', 'verifier', `agent:mure-calibrator:subagent:run-v`, 'run-v',
-      { verdict: 'pass' }),
-    makeReduction('shadow-int-1', { type: 'done' }, 'passed'),
+    makeCompletion('v1', 'verifier', 'job-v', VERIFIER_MODEL, { verdict: 'pass', output: '{"verdict":"pass"}' }),
+    makeReduction({ type: 'none', reason: 'task-passed' }, 'passed'),
   );
-  assert.equal(getTicket(s.ledger, 'shadow-int-1').ledgerStatus, 'accepted');
+  assert.equal(getTicket(s.ledger, TASK_ID).ledgerStatus, 'accepted');
   assert.equal(s.awaiting, null);
 
   const snap = shadowSnapshot(s);
@@ -94,28 +117,30 @@ test('integration: producer → verifier → accepted', () => {
 });
 
 // --- availability fallback path ---
+// Mirrors reduceFailure()'s fallback dispatch: purpose stays the ORIGINAL awaiting purpose
+// ('producer'); only routeKind flips to 'availability-fallback' and a new entry/agent is bound.
 
-test('integration: producer failure → availability fallback → retry', () => {
+test('integration: producer failure → availability fallback retains purpose, retries as producer', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
 
-  const fallbackAction = makeAction('shadow-int-1', 'p2', 'availability-fallback', 'deepseek-flash', 'deepseek/deepseek-v4-flash');
+  const fallbackAction = makeAction('p2', 'producer', FALLBACK_AGENT, FALLBACK_MODEL, 'availability-fallback');
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL,
       { ok: false, failureKind: 'provider-error', error: 'quota exceeded' }),
-    makeReduction('shadow-int-1', fallbackAction),
+    makeReduction(fallbackAction),
   );
-  assert.equal(s.awaiting.purpose, 'availability-fallback');
+  assert.equal(s.awaiting.purpose, 'producer');
   assert.equal(s.awaiting.entryId, 'p2');
+  assert.equal(s.awaiting.agentId, FALLBACK_AGENT);
 
-  s = observeNativeAdmission(s, makeAdmission('p2', 'deepseek/deepseek-v4-flash', 'deepseek-flash', 'run-b'));
-  const verifierAction = makeAction('shadow-int-1', 'v1', 'verifier', 'mure-calibrator', 'anthropic/claude-sonnet-5');
+  s = observeNativeAdmission(s, makeAdmission('job-b', FALLBACK_AGENT));
+  const verifierAction = makeAction('v1', 'verifier', VERIFIER_AGENT, VERIFIER_MODEL, 'verification');
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p2', 'availability-fallback', `agent:deepseek-flash:subagent:run-b`, 'run-b',
-      { output: '{"summary":"ok"}' }),
-    makeReduction('shadow-int-1', verifierAction),
+    makeCompletion('p2', 'producer', 'job-b', FALLBACK_MODEL, { output: '{"summary":"ok"}' }),
+    makeReduction(verifierAction),
     { TERM_COUNT: '4', FILE_COUNT: '1' },
   );
   assert.equal(s.awaiting.purpose, 'verifier');
@@ -125,57 +150,56 @@ test('integration: producer failure → availability fallback → retry', () => 
 
 test('integration: timeout produces LOST status, not rejected', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
 
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL,
       { ok: false, failureKind: 'timeout', error: 'worker timed out' }),
-    makeReduction('shadow-int-1', { type: 'done' }, 'fail-loud'),
+    makeReduction({ type: 'fail-loud', taskId: TASK_ID, code: 'TIMEOUT_EXHAUSTED', message: 'worker timed out' }, 'fail-loud'),
   );
-  assert.equal(getTicket(s.ledger, 'shadow-int-1').ledgerStatus, 'lost');
-  assert.ok(getTicket(s.ledger, 'shadow-int-1').lostAt);
+  assert.equal(getTicket(s.ledger, TASK_ID).ledgerStatus, 'lost');
+  assert.ok(getTicket(s.ledger, TASK_ID).lostAt);
 });
 
 // --- verifier rejection path ---
 
 test('integration: verifier reject does not accept producer output', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
 
-  const verifierAction = makeAction('shadow-int-1', 'v1', 'verifier', 'mure-calibrator', 'anthropic/claude-sonnet-5');
+  const verifierAction = makeAction('v1', 'verifier', VERIFIER_AGENT, VERIFIER_MODEL, 'verification');
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
-      { output: '{"summary":"ok"}' }),
-    makeReduction('shadow-int-1', verifierAction),
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL, { output: '{"summary":"ok"}' }),
+    makeReduction(verifierAction),
     { TERM_COUNT: '4', FILE_COUNT: '1' },
   );
-  s = observeNativeAdmission(s, makeAdmission('v1', 'anthropic/claude-sonnet-5', 'mure-calibrator', 'run-v'));
+  s = observeNativeAdmission(s, makeAdmission('job-v', VERIFIER_AGENT));
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'v1', 'verifier', `agent:mure-calibrator:subagent:run-v`, 'run-v',
-      { verdict: 'reject' }),
-    makeReduction('shadow-int-1', { type: 'done' }, 'rejected'),
+    makeCompletion('v1', 'verifier', 'job-v', VERIFIER_MODEL, { verdict: 'reject' }),
+    makeReduction({ type: 'none', reason: 'task-rejected' }, 'rejected'),
   );
-  assert.equal(getTicket(s.ledger, 'shadow-int-1').ledgerStatus, 'rejected');
-  assert.ok(getTicket(s.ledger, 'shadow-int-1').rejectedAt);
+  assert.equal(getTicket(s.ledger, TASK_ID).ledgerStatus, 'rejected');
+  assert.ok(getTicket(s.ledger, TASK_ID).rejectedAt);
 });
 
 // --- quality escalation path ---
+// Mirrors reduceVerifierSuccess()'s escalation dispatch: purpose AND routeKind both become
+// 'quality-escalation' (unlike availability-fallback, which keeps the original purpose).
 
-test('integration: quality-escalation after producer pass → new producer dispatch', () => {
+test('integration: quality-escalation after verifier reject → new producer dispatch', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
 
-  const escalationAction = makeAction('shadow-int-1', 'q1', 'quality-escalation', 'mure-calibrator', 'anthropic/claude-sonnet-5');
+  const escalationAction = makeAction('q1', 'quality-escalation', VERIFIER_AGENT, VERIFIER_MODEL, 'quality-escalation');
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
-      { output: '{"summary":"ok"}' }),
-    makeReduction('shadow-int-1', escalationAction),
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL, { output: '{"summary":"ok"}' }),
+    makeReduction(escalationAction),
     { TERM_COUNT: '4', FILE_COUNT: '1' },
   );
   assert.equal(s.awaiting.purpose, 'quality-escalation');
@@ -186,47 +210,43 @@ test('integration: quality-escalation after producer pass → new producer dispa
 
 test('integration: evidence lane runs before producer dispatch', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const evidenceAction = makeAction('shadow-int-1', 'e1', 'evidence', 'deepseek-flash', 'deepseek/deepseek-v4-flash');
+  const evidenceAction = makeAction('e1', 'evidence', FALLBACK_AGENT, FALLBACK_MODEL);
   let s = observeNativeAction(shadow, evidenceAction);
   assert.equal(s.awaiting.purpose, 'evidence');
 
-  s = observeNativeAdmission(s, makeAdmission('e1', 'deepseek/deepseek-v4-flash', 'deepseek-flash', 'run-e'));
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  s = observeNativeAdmission(s, makeAdmission('job-e', FALLBACK_AGENT));
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'e1', 'evidence', `agent:deepseek-flash:subagent:run-e`, 'run-e',
-      { output: '{"upstream":[]}' }),
-    makeReduction('shadow-int-1', producerAction),
+    makeCompletion('e1', 'evidence', 'job-e', FALLBACK_MODEL, { output: '{"upstream":[]}' }),
+    makeReduction(producerAction),
   );
   assert.equal(s.awaiting.purpose, 'producer');
 });
 
 // --- mismatch failures ---
 
-test('integration: mismatched child session key fails closed', () => {
+test('integration: mismatched OMP admission receipt agent fails closed', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
-  let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
+  const s = observeNativeAction(shadow, producerAction);
 
-  assert.throws(() => observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', 'agent:different-agent:subagent:wrong', 'run-a'),
-    makeReduction('shadow-int-1', { type: 'done' }),
-  ), /childSessionKey does not match/);
+  assert.throws(() => observeNativeAdmission(s, makeAdmission('job-a', 'wrong-agent')),
+    /receipt.agent/);
 });
 
 // --- exhausted escalation fails loud ---
 
 test('integration: all-failed producer with no fallback fails loud as rejected', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
-  const producerAction = makeAction('shadow-int-1', 'p1', 'producer', 'mure-scout', 'minimax-portal/MiniMax-M3');
+  const producerAction = makeAction('p1', 'producer', PRODUCER_AGENT, PRODUCER_MODEL);
   let s = observeNativeAction(shadow, producerAction);
-  s = observeNativeAdmission(s, makeAdmission('p1', 'minimax-portal/MiniMax-M3', 'mure-scout', 'run-a'));
+  s = observeNativeAdmission(s, makeAdmission('job-a', PRODUCER_AGENT));
   s = observeNativeCompletion(s,
-    makeCompletion('shadow-int-1', 'p1', 'producer', `agent:mure-scout:subagent:run-a`, 'run-a',
+    makeCompletion('p1', 'producer', 'job-a', PRODUCER_MODEL,
       { ok: false, failureKind: 'provider-error', error: 'all retries exhausted' }),
-    makeReduction('shadow-int-1', { type: 'done' }, 'fail-loud'),
+    makeReduction({ type: 'fail-loud', taskId: TASK_ID, code: 'ALL_ROUTES_EXHAUSTED', message: 'all retries exhausted' }, 'fail-loud'),
   );
-  assert.equal(getTicket(s.ledger, 'shadow-int-1').ledgerStatus, 'rejected');
+  assert.equal(getTicket(s.ledger, TASK_ID).ledgerStatus, 'rejected');
 });
 
 // --- shadow snapshot is immutable ---
@@ -235,7 +255,7 @@ test('integration: shadow snapshot is a frozen summary', () => {
   const shadow = createNativeDispatchShadow(baseTicket);
   const snap = shadowSnapshot(shadow);
   assert.ok(Object.isFrozen(snap));
-  assert.equal(snap.ticketId, 'shadow-int-1');
+  assert.equal(snap.ticketId, TASK_ID);
   assert.equal(snap.admissionCount, 0);
   assert.equal(snap.governanceWarnings, 0);
 });

@@ -35,7 +35,7 @@ assert.equal(contract.claudeProtocolGate.codexSpecCompatibility.requiredSpec, '#
 assert.equal(contract.claudeProtocolGate.nativeFunctionGates.argus, 'always-on', 'Claude gate should keep Argus native gate always-on');
 assert.equal(contract.claudeProtocolGate.nativeFunctionGates.crucible, 'conditional-high-risk', 'Claude gate should make Crucible conditional');
 // Yuri Sentinel absorbed into Musubi as Nisaba Sentinel (2026-05-17) — authority updated to native-integrated
-assert.ok(['bridge-only-advisory', 'native-integrated'].includes(contract.claudeProtocolGate.sentinel.authority), 'Yuri Sentinel/Nisaba authority must be advisory or native-integrated');
+assert.equal(contract.claudeProtocolGate.sentinel.authority, 'native-integrated', 'Yuri Sentinel authority must be native-integrated');
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.gemmaLocal.alias, '@gemma-local', 'Gemma local lane metadata missing');

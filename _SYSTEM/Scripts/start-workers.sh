@@ -43,20 +43,20 @@ tmux list-panes -t "$SESSION" -F "  pane #{pane_index}: #{pane_title} (#{pane_pi
 #
 # ISSUE 1 — No heartbeat or reclaim mechanism
 #   YURI workers run as long-lived tmux panes. If a pane crashes or hangs, the
-#   worker-bridge loop stops silently. Hermes Kanban has per-task heartbeats and
-#   a reclaim sweep that re-assigns abandoned tasks. YURI has neither.
+#   worker-bridge loop stops silently. There is no per-task heartbeat or
+#   reclaim sweep that re-assigns abandoned tasks yet.
 #   Fix: add a watchdog loop to worker-bridge.mjs that pings each worker every
 #   60s and restarts the pane if the heartbeat fails.
 #
 # ISSUE 2 — Transport fragility (tmux keys >> FIFO >> probe cascade)
 #   worker-tmux.mjs tries tmux first, then FIFO, then HTTP probe. But tmux
 #   send-keys is fire-and-forget — there's no ACK. If tmux is slow to start
-#   the workers, the first few tasks silently drop. Hermes uses a message queue
+#   the workers, the first few tasks silently drop. There is no message queue
 #   with idempotency keys and retry budgets.
 #   Fix: add a 2s startup delay + readiness probe before accepting first task.
 #
 # ISSUE 3 — Single session per worker type
 #   All 3 workers share one tmux session. If one worker panics and corrupts the
-#   session, all 3 go down. Hermes uses isolated worker profiles per board.
+#   session, all 3 go down. There is no isolated worker profile per board yet.
 #   Fix: run each worker in its own named session (yuri-codex, yuri-claude,
 #   yuri-deepseek) for blast radius isolation.

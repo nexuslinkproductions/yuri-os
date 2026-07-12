@@ -22,8 +22,6 @@ const PATHS = {
   // semantic-memory/palace retrieval retired 2026-05-29
 };
 
-const SENTINEL_HEALTH_URL = 'http://localhost:18789/health';
-const FETCH_TIMEOUT_MS = 2000;
 const NEURON_LOOP_MAX_AGE_HOURS = 25;
 const KNOWLEDGE_SCOUT_MAX_AGE_HOURS = 23;
 // semantic-memory/palace retrieval retired 2026-05-29
@@ -117,60 +115,6 @@ function worstStatus(items) {
   return 'ok';
 }
 
-async function runLiveness(alerts) {
-  const phase = 'liveness';
-  const startedAt = Date.now();
-  let timer = null;
-
-  try {
-    const controller = new AbortController();
-    timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    const response = await fetch(SENTINEL_HEALTH_URL, {
-      method: 'GET',
-      signal: controller.signal,
-    });
-    const elapsedMs = Date.now() - startedAt;
-    const status = response.ok ? 'ok' : 'warn';
-    const msg = `GET ${SENTINEL_HEALTH_URL} -> ${response.status} (${elapsedMs}ms)`;
-
-    phaseLog(phase, status, msg);
-
-    if (!response.ok) {
-      addIssue(alerts, phase, 'warn', `Yuri Sentinel health returned HTTP ${response.status}`, {
-        httpStatus: response.status,
-        elapsedMs,
-        url: SENTINEL_HEALTH_URL,
-      });
-    }
-
-    return {
-      status,
-      msg,
-      url: SENTINEL_HEALTH_URL,
-      httpStatus: response.status,
-      elapsedMs,
-    };
-  } catch (error) {
-    const message = error instanceof Error
-      ? (error.name === 'AbortError'
-        ? `GET ${SENTINEL_HEALTH_URL} timed out after ${FETCH_TIMEOUT_MS}ms`
-        : `GET ${SENTINEL_HEALTH_URL} failed: ${error.message}`)
-      : `GET ${SENTINEL_HEALTH_URL} failed: ${String(error)}`;
-
-    phaseLog(phase, 'warn', message);
-    addIssue(alerts, phase, 'warn', message, { url: SENTINEL_HEALTH_URL });
-
-    return {
-      status: 'warn',
-      msg: message,
-      url: SENTINEL_HEALTH_URL,
-      httpStatus: null,
-      elapsedMs: Date.now() - startedAt,
-    };
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
 
 function readHealthInputs() {
   return {
@@ -366,7 +310,6 @@ async function main() {
   const alerts = [];
 
   const phases = {
-    liveness: await runLiveness(alerts),
     health: collectHealthResult(alerts),
     // semantic-memory/palace retrieval retired 2026-05-29
     external: runExternal(alerts),

@@ -102,8 +102,7 @@
     "yuri:session:launchd:status": "node _SYSTEM/Scripts/yuri-session-launchd.mjs status",
     "yuri:session:launchd:restart": "node _SYSTEM/Scripts/yuri-session-launchd.mjs restart",
     "validate:ledger": "node _SYSTEM/validators/validate-evidence-ledger.mjs",
-    "yuri": "node _SYSTEM/Scripts/yuri-repl.mjs",
-    "openclaw": "bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh"
+    "yuri": "node _SYSTEM/Scripts/yuri-repl.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

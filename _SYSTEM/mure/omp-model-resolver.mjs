@@ -35,60 +35,68 @@ function isValidObservedDate(value) {
   if (Number.isNaN(d.getTime())) return false;
   return d.toISOString().slice(0, 10) === value;
 }
+// ── Immutable provider-level thinking caps ────────────────────────────────
+// Must precede ROUTE_BY_MODEL: buildRouteByModelIndex → isAdmissibleCanaryEvidence
+// may need LEVEL_RANK for thinkingLevel validation.
+const LEVEL_RANK = Object.freeze({
+  off: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+  xhigh: 4,
+  max: 5,
+});
 
 /**
- * Standard canary evidence schema:
- *   { runId, childSessionKey, resolvedModel, result: 'completed', observed }
- * — resolvedModel === route.model, observed is a calendar-valid YYYY-MM-DD
- * date, and childSessionKey is bound to the route's agentId ("agent:<agentId>:...").
+ * OMP-native canary evidence schema (single source: omp-task-completion packets).
+ *   { jobId, ompSessionId, model, agentId, taskResultStatus, observed,
+ *     result: { canary, packageName, status: 'ok' },
+ *     transcriptReadObserved, transcriptYieldObserved, thinkingLevel? }
+ * — model === route.model, agentId === route.agentId, taskResultStatus exactly
+ * 'completed', observed is a calendar-valid YYYY-MM-DD date, thinkingLevel if
+ * present and non-null must be a valid vocabulary value.
+ * Rejects legacy fields (runId, childSessionKey, resolvedModel) categorically.
  */
-function isValidStandardCanaryEvidence(route) {
+function isValidOmpCanaryEvidence(route) {
   const evidence = route && route.canaryEvidence;
   if (!evidence || typeof evidence !== 'object') return false;
-  const { runId, childSessionKey, resolvedModel, result, observed } = evidence;
-  if (typeof runId !== 'string' || !runId) return false;
-  if (typeof childSessionKey !== 'string' || !childSessionKey) return false;
-  if (result !== 'completed') return false;
-  if (resolvedModel !== route.model) return false;
+  // Reject any legacy field — OMP-only contract.
+  if ('runId' in evidence || 'childSessionKey' in evidence || 'resolvedModel' in evidence) return false;
+  const { jobId, ompSessionId, model, agentId, taskResultStatus, observed, result,
+    transcriptReadObserved, transcriptYieldObserved, thinkingLevel } = evidence;
+  if (typeof jobId !== 'string' || !jobId) return false;
+  if (typeof ompSessionId !== 'string' || !ompSessionId) return false;
+  if (model !== route.model) return false;
+  if (agentId !== route.agentId) return false;
+  if (taskResultStatus !== 'completed') return false;
   if (!isValidObservedDate(observed)) return false;
-  if (!childSessionKey.startsWith(`agent:${route.agentId}:`)) return false;
-  return true;
-}
-
-/**
- * Corroborated canary evidence schema:
- *   { primaryRun, corroboratingRun, observed }
- * — observed is a calendar-valid YYYY-MM-DD date; both runs carry a
- * nonempty runId, a nonempty ompSessionId, agentId === route.agentId,
- * resolvedModel === route.model, and result 'completed'; the two runs must
- * have DISTINCT runIds AND DISTINCT ompSessionIds (a duplicated run, or the
- * same underlying OMP session replayed under a different runId, proves
- * nothing — corroboration requires genuine independence on both axes).
- */
-function isValidCorroboratedCanaryEvidence(route) {
-  const evidence = route && route.canaryEvidence;
-  if (!evidence || typeof evidence !== 'object') return false;
-  const { primaryRun, corroboratingRun, observed } = evidence;
-  if (!isValidObservedDate(observed)) return false;
-  if (!primaryRun || typeof primaryRun !== 'object') return false;
-  if (!corroboratingRun || typeof corroboratingRun !== 'object') return false;
-  for (const run of [primaryRun, corroboratingRun]) {
-    if (typeof run.runId !== 'string' || !run.runId) return false;
-    if (typeof run.ompSessionId !== 'string' || !run.ompSessionId) return false;
-    if (run.agentId !== route.agentId) return false;
-    if (run.result !== 'completed') return false;
-    if (run.resolvedModel !== route.model) return false;
+  // Nested result object
+  if (!result || typeof result !== 'object') return false;
+  if (typeof result.canary !== 'string' || !result.canary) return false;
+  if (typeof result.packageName !== 'string' || !result.packageName) return false;
+  if (result.status !== 'ok') return false;
+  // Transcript observation booleans
+  if (transcriptReadObserved !== true || transcriptYieldObserved !== true) return false;
+  // thinkingLevel: null or valid vocabulary value
+  if (thinkingLevel !== null && thinkingLevel !== undefined) {
+    if (typeof thinkingLevel !== 'string' || !Object.hasOwn(LEVEL_RANK, thinkingLevel)) return false;
   }
-  if (primaryRun.runId === corroboratingRun.runId) return false;
-  if (primaryRun.ompSessionId === corroboratingRun.ompSessionId) return false;
+  // Model-specific minimum binding level: if the route declares a minimum,
+  // the evidence thinkingLevel must meet or exceed it.
+  const minBinding = route.minimumBindingThinkingLevel;
+  if (minBinding) {
+    if (typeof minBinding !== 'string' || !Object.hasOwn(LEVEL_RANK, minBinding)) return false;
+    const evidenceLevel = (thinkingLevel !== null && thinkingLevel !== undefined) ? thinkingLevel : 'off';
+    if (LEVEL_RANK[evidenceLevel] < LEVEL_RANK[minBinding]) return false;
+  }
   return true;
 }
 
 /**
- * Whether a route's canary evidence is admissible under exactly one of the
- * two schemas above. Requires route.model and route.agentId to both be
- * nonempty strings first — without either, an evidence-side comparison
- * against `undefined` could pass on an equally modelless/agentless record.
+ * Whether a route's canary evidence is admissible under the OMP-native schema.
+ * Requires route.model and route.agentId to both be nonempty strings first —
+ * without either, an evidence-side comparison against undefined could pass on
+ * an equally modelless/agentless record.
  * Exported so the registry-index builder (below), the fleet validator, and
  * tests share one admissibility rule instead of three drifting copies.
  * Non-canary-proven routes are the caller's concern to skip: this predicate
@@ -97,7 +105,7 @@ function isValidCorroboratedCanaryEvidence(route) {
 export function isAdmissibleCanaryEvidence(route) {
   if (!route || typeof route.model !== 'string' || !route.model) return false;
   if (typeof route.agentId !== 'string' || !route.agentId) return false;
-  return isValidStandardCanaryEvidence(route) || isValidCorroboratedCanaryEvidence(route);
+  return isValidOmpCanaryEvidence(route);
 }
 
 /**
@@ -132,9 +140,8 @@ export function buildRouteByModelIndex(registryData) {
       if (route.status === 'canary-proven' && !isAdmissibleCanaryEvidence(route)) {
         throw new Error(
           `Registry route "${route.model}" (route id "${route.id}") is status "canary-proven" ` +
-          `but lacks admissible canary evidence (neither the standard nor the corroborated ` +
-          `schema is satisfied); a canary-proven route must carry proof or it must not claim ` +
-          `canary-proven status.`,
+          `but lacks admissible OMP canary evidence; a canary-proven route must carry proof ` +
+          `or it must not claim canary-proven status.`,
         );
       }
       idx[route.model] = {
@@ -191,15 +198,6 @@ export const FORBIDDEN_SELECTOR_PREFIXES = Object.freeze([
 ]);
 
 // ── Immutable provider-level thinking caps ────────────────────────────────
-const LEVEL_RANK = Object.freeze({
-  off: 0,
-  low: 1,
-  medium: 2,
-  high: 3,
-  xhigh: 4,
-  max: 5,
-});
-
 /**
  * Per-provider maximum supported thinking level.
  * - Anthropic: model-specific (Opus→high, Sonnet→high, Haiku→medium, Fable→medium)
@@ -289,7 +287,7 @@ function clampThinking(inputLevel, resolvedSelector) {
 
 /**
  * Catalog providerMapping source routes.
- * Keys match `providerMapping` from `.openclaw/mure-agent-catalog.json`.
+ * Keys match `providerMapping` from `_SYSTEM/mure/agent-catalog.json`.
  * Cursor values are `cursor-cli/*` in the catalog but our output selectors
  * MUST be `cursor/*` per acceptance: no output starts `cursor-cli/`.
  */

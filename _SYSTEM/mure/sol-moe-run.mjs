@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // @capability: sol-moe-native-intent-runner
-// @serves: Sol MoE planning and native sessions_spawn intent compilation
-// @does: composes the governed company planner with the pure native dispatch reducer; the parent OpenClaw session executes returned actions through sessions_spawn
+// @serves: Sol MoE planning and OMP TaskTool intent compilation
+// @does: composes the governed company planner with the pure native dispatch reducer;
+//   the parent OMP session executes returned actions through TaskTool
 // @use: node _SYSTEM/mure/sol-moe-run.mjs --task-file <task.json> [--include-evidence]
 // @exports: NativeParentRequiredError, runSolMoeTask
 
@@ -16,9 +17,9 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 
 export class NativeParentRequiredError extends Error {
   constructor() {
-    super('Live Sol MoE execution is available only to the parent OpenClaw agent through native sessions_spawn. This Node runner emits dispatch intent and never executes children.');
+    super('Live Sol MoE execution is available only to the parent OMP session through TaskTool. This Node runner emits dispatch intent and never executes children.');
     this.name = 'NativeParentRequiredError';
-    this.code = 'NATIVE_OPENCLAW_PARENT_REQUIRED';
+    this.code = 'OMP_TASKTOOL_PARENT_REQUIRED';
   }
 }
 
@@ -72,6 +73,6 @@ if (isMain) {
     })
     .catch((error) => {
       process.stderr.write(`${error?.stack || error}\n`);
-      process.exitCode = error?.code === 'NATIVE_OPENCLAW_PARENT_REQUIRED' ? 2 : 1;
+      process.exitCode = error?.code === 'OMP_TASKTOOL_PARENT_REQUIRED' ? 2 : 1;
     });
 }

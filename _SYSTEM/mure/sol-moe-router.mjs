@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 // @capability: sol-moe-routing-policy
 // @serves: deterministic Sol-first MURE routing | task risk class | native dispatch specs | route telemetry
-// @does: pure, advisory routing for the existing MURE company orchestrator. It classifies tasks before any LLM call, applies hard risk masks, returns sessions_spawn-compatible dispatch specs, and creates ledger rows without dispatching or writing live state.
-// @use: import { classifyTask, produceCandidatePlan, routeTask, createLedgerRow } from './sol-moe-router.mjs'. This module never calls sessions_spawn and never mutates runtime config.
+// @does: pure, advisory routing for the existing MURE company orchestrator. It classifies tasks before any LLM call, applies hard risk masks, returns OMP TaskTool-compatible dispatch specs, and creates ledger rows without dispatching or writing live state.
+// @use: import { classifyTask, produceCandidatePlan, routeTask, createLedgerRow } from './sol-moe-router.mjs'. This module never calls the OMP TaskTool and never mutates runtime config.
 // @exports: DEFAULT_POLICY, NoEligibleFrontierError, classifyTask, produceCandidatePlan, routeTask, createLedgerRow
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { validateOmpJobId } from './omp-task-adapter.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const POLICY_PATH = path.resolve(HERE, '../config/sol-moe-routing-policy.json');
@@ -319,23 +320,21 @@ function resolveAvailability(policy, overrides, evidence) {
   const availability = { ...(policy.availabilityDefaults || {}), ...overrides };
   for (const [model, defaultAvailable] of Object.entries(policy.availabilityDefaults || {})) {
     if (defaultAvailable !== false || overrides[model] !== true) continue;
-    availability[model] = hasNativeAvailabilityEvidence(evidence[model], model);
+    availability[model] = hasOmpAvailabilityEvidence(evidence[model], model, policy);
   }
   return availability;
 }
 
-function hasNativeAvailabilityEvidence(proof, model) {
-  const childSessionKey = proof?.childSessionKey;
-  const nativeKey = typeof childSessionKey === 'string'
-    && childSessionKey === childSessionKey.trim()
-    && /^agent:[A-Za-z0-9._-]+:subagent:[A-Za-z0-9][A-Za-z0-9._-]*$/.test(childSessionKey);
-  return proof?.source === 'native-completion-event'
-    && proof?.status === 'completed-native-canary'
+function hasOmpAvailabilityEvidence(proof, model, policy) {
+  const expert = (policy.experts || []).find((entry) => entry.model === model);
+  const expectedAgentId = expert?.agentId;
+  return proof?.source === 'omp-task-result'
+    && proof?.status === 'completed-omp-canary'
     && proof?.ok === true
-    && proof?.resolvedModel === model
-    && nativeKey
-    && typeof proof?.runId === 'string'
-    && proof.runId.length > 0;
+    && validateOmpJobId(proof?.jobId)
+    && proof?.model === model
+    && expectedAgentId != null
+    && proof?.agentId === expectedAgentId;
 }
 
 function allowedUses(expert, classification) {

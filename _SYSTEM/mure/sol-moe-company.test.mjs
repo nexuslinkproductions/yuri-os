@@ -9,12 +9,12 @@ const availabilityEvidence = Object.fromEntries(
   Object.entries(DEFAULT_POLICY.availabilityDefaults)
     .filter(([, available]) => available === false)
     .map(([model]) => [model, {
-      source: 'native-completion-event',
-      status: 'completed-native-canary',
+      source: 'omp-task-result',
+      status: 'completed-omp-canary',
       ok: true,
-      resolvedModel: model,
-      childSessionKey: `agent:test:subagent:${model.replace(/[^a-z0-9]/gi, '-')}`,
-      runId: `run-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      jobId: `canary-${model.replace(/[^a-z0-9]/gi, '-')}`,
+      model,
+      agentId: DEFAULT_POLICY.experts.find((expert) => expert.model === model)?.agentId,
     }]),
 );
 
@@ -47,7 +47,7 @@ test('plans separate immediate, availability, and quality queues', async () => {
   assert.deepEqual(plan.summary.plannedProviderMix.verifiers.counts, { anthropic: 1 });
   assert.equal(plan.summary.providerCalibrationTargets.openai.max, 0.30);
   assert.match(DEFAULT_POLICY.providerCalibration.metric, /dispatch count/);
-  assert.equal(plan.availabilityEvidence['zai/glm-5.2'].resolvedModel, 'zai/glm-5.2');
+  assert.equal(plan.availabilityEvidence['zai/glm-5.2'].model, 'zai/glm-5.2');
 });
 
 test('owner-held governance work never enters an immediate spawn queue', async () => {

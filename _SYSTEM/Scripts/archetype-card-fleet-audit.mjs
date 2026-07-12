@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @capability: archetype-card-fleet-audit
-// @serves: one-shot audit of every .openclaw/agents/*.md card against archetype contracts
+// @serves: one-shot audit of every _SYSTEM/mure/agents/*.md card against archetype contracts
 // @does: reports card→archetype bindings, missing contracts, stale grammar, and coverage gaps
 // @does-not: edit files, spawn, commit, or alter routing
 
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { validateCard, detectArchetype } from '../mure/archetype-card-contract.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const AGENTS_DIR = path.resolve(HERE, '../../.openclaw/agents');
+const AGENTS_DIR = path.resolve(HERE, '../mure/agents');
 
 async function main() {
   const files = (await readdir(AGENTS_DIR)).filter((f) => f.endsWith('.md')).sort();
