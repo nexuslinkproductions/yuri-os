@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { validateAgentCardAuthority, validateCanaryEvidence, DISABLED_MODEL_SELECTOR } from './mure-fleet-validate.mjs';
+import { validateAgentCardAuthority, validateCanaryEvidence, validateCanaryBootstrapVariants, DISABLED_MODEL_SELECTOR } from './mure-fleet-validate.mjs';
 import {
   buildOmpProjection,
   renderOmpAgent,
@@ -1020,4 +1020,217 @@ test('CHECK I: catalog.generated empty string round-trips clean', async (t) => {
   const validate = await loadValidator(f.root);
   const problems = validate(f.catalog);
   assert.deepEqual(problems, []);
+});
+
+// ── Canary-bootstrap variant identity + projection envelope ────────────────
+// deepseek-v4-flash:direct (live catalog-candidate) and minimax-portal/MiniMax-M3
+// (live canary-proven) are used as real registry-backed targets — no registry
+// fixture/mutation needed for the OK-path envelope tests. Registry-eligibility
+// (blocked/quota/unresolved/owner-excluded/unknown-status routes) is tested via
+// a small fixture registry through validateCanaryBootstrapVariants directly.
+
+function bootstrapVariantFixture(overrides = {}) {
+  return {
+    id: 'bootstrap-fixture',
+    model: 'deepseek-v4-flash:direct',
+    eligibilityFlags: ['canary-bootstrap'],
+    tools: ['read'],
+    note: 'An evidence-only canary bootstrap for the pending deepseek-v4-flash:direct route.',
+    ...overrides,
+  };
+}
+
+test('buildOmpProjection: catalog-candidate bootstrap variant resolves OK/bootstrapOnly with a forced read-only/no-spawn/task envelope; base card stays canary_pending', () => {
+  const cat = makeCatalog([
+    makeAgent('bootstrap-host', {
+      model: 'deepseek-v4-flash:direct',
+      tools: ['read', 'grep', 'glob', 'edit', 'write', 'bash'],
+      spawns: 'worker-*',
+      variants: [bootstrapVariantFixture()],
+    }),
+  ]);
+
+  const projection = buildOmpProjection(cat);
+  const baseCard = projection.cards.find((c) => c.variant === null);
+  const bootstrapCard = projection.cards.find((c) => c.variant !== null);
+  assert.ok(baseCard && bootstrapCard, 'expected both a base and a bootstrap card');
+
+  assert.equal(baseCard.resolution.status, 'FAIL_CLOSED');
+  assert.equal(baseCard.resolution.failClass, 'canary_pending');
+  assert.equal(baseCard.resolution.bootstrapOnly, false);
+
+  assert.equal(bootstrapCard.resolution.status, 'OK');
+  assert.equal(bootstrapCard.resolution.bootstrapOnly, true);
+  assert.deepEqual(bootstrapCard.tools, ['read'], 'bootstrap card must be forced read-only regardless of base tools');
+  assert.equal(bootstrapCard.spawns, null, 'bootstrap card must never inherit spawn authority');
+  assert.equal(bootstrapCard.task, true, 'bootstrap card must be forced task mode');
+});
+
+test('buildOmpProjection: canary-proven bootstrap variant tombstones (bootstrap_expired) while the base card resolves normally OK', () => {
+  const cat = makeCatalog([
+    makeAgent('proven-host', {
+      model: 'minimax-portal/MiniMax-M3',
+      variants: [bootstrapVariantFixture({
+        id: 'proven-host-bootstrap',
+        model: 'minimax-portal/MiniMax-M3',
+        note: 'An evidence-only canary bootstrap — tombstoned now that the route is canary-proven.',
+      })],
+    }),
+  ]);
+
+  const projection = buildOmpProjection(cat);
+  const baseCard = projection.cards.find((c) => c.variant === null);
+  const bootstrapCard = projection.cards.find((c) => c.variant !== null);
+  assert.ok(baseCard && bootstrapCard, 'expected both a base and a bootstrap card');
+
+  assert.equal(baseCard.resolution.status, 'OK');
+  assert.equal(baseCard.resolution.bootstrapOnly, false);
+
+  assert.equal(bootstrapCard.resolution.status, 'FAIL_CLOSED');
+  assert.equal(bootstrapCard.resolution.failClass, 'bootstrap_expired');
+  assert.equal(bootstrapCard.resolution.bootstrapOnly, false);
+});
+
+// ── validateCanaryBootstrapVariants: catalog hygiene for canary-bootstrap variants ──
+
+function bootstrapCatalog(variantOverrides = {}) {
+  return makeCatalog([
+    makeAgent('bootstrap-host', {
+      model: 'deepseek-v4-flash:direct',
+      variants: [bootstrapVariantFixture(variantOverrides)],
+    }),
+  ]);
+}
+
+function candidateRegistry() {
+  return { modelIdentities: { deepseek: { role: 'bounded-worker', routes: [
+    { id: 'dvf.direct', provider: 'deepseek', surface: 'direct-api', model: 'deepseek-v4-flash:direct', agentId: 'deepseek-flash', status: 'catalog-candidate', source: 'mure-agent-catalog' },
+  ] } } };
+}
+
+test('validateCanaryBootstrapVariants: exact evidence-only bootstrap targeting a catalog-candidate route is clean', () => {
+  const problems = validateCanaryBootstrapVariants(bootstrapCatalog(), candidateRegistry());
+  assert.deepEqual(problems, []);
+});
+
+test('validateCanaryBootstrapVariants: exact evidence-only bootstrap targeting a canary-proven route is clean (pre-tombstone catalog state)', () => {
+  const provenRoute = makeOmpRoute({ model: 'deepseek-v4-flash:direct', canaryEvidence: { ...makeOmpRoute().canaryEvidence, model: 'deepseek-v4-flash:direct' } });
+  const registry = { modelIdentities: { deepseek: { role: 'bounded-worker', routes: [provenRoute] } } };
+  const problems = validateCanaryBootstrapVariants(bootstrapCatalog(), registry);
+  assert.deepEqual(problems, []);
+});
+
+test('validateCanaryBootstrapVariants: catalog-candidate route registered under a REMAPPED source-route key (cursor/* -> cursor-cli/*) is recognized eligible', () => {
+  // cursor/composer-2.5's exact source-route key is cursor-cli/composer-2.5
+  // (see CATALOG_SOURCE_ROUTES) — the registry row lives at that ALIASED
+  // key, never at the raw variant.model string itself. A naive
+  // routeByModel[variant.model] lookup would miss this and wrongly reject.
+  const cat = bootstrapCatalog({ model: 'cursor/composer-2.5', note: bootstrapVariantFixture().note });
+  const registry = { modelIdentities: { cursor: { role: 'bounded-worker', routes: [
+    { id: 'composer.cli', provider: 'cursor-cli', surface: 'omp-native', model: 'cursor-cli/composer-2.5', agentId: 'composer-agent', status: 'catalog-candidate', source: 'mure-agent-catalog' },
+  ] } } };
+  const problems = validateCanaryBootstrapVariants(cat, registry);
+  assert.deepEqual(problems, []);
+});
+
+test('validateCanaryBootstrapVariants: canary-proven route registered under a REMAPPED normalized-selector key (minimax-portal/MiniMax-M3 -> minimax-code/MiniMax-M3) is recognized eligible', () => {
+  // minimax-portal/MiniMax-M3's exact source-route key IS itself (identity
+  // mapping in EXTRA_SOURCE_ROUTES) — the live registry row is instead keyed
+  // at the NORMALIZED SELECTOR minimax-code/MiniMax-M3. A naive
+  // routeByModel[variant.model] lookup would miss this too.
+  const cat = bootstrapCatalog({ model: 'minimax-portal/MiniMax-M3', note: bootstrapVariantFixture().note });
+  const provenRoute = makeOmpRoute({ model: 'minimax-code/MiniMax-M3', canaryEvidence: { ...makeOmpRoute().canaryEvidence, model: 'minimax-code/MiniMax-M3' } });
+  const registry = { modelIdentities: { minimax: { role: 'frontier-worker', routes: [provenRoute] } } };
+  const problems = validateCanaryBootstrapVariants(cat, registry);
+  assert.deepEqual(problems, []);
+});
+
+test('validateCanaryBootstrapVariants: a REMAPPED route in a blocked status is still rejected — remapping never rescues an ineligible status', () => {
+  const cat = bootstrapCatalog({ model: 'cursor/composer-2.5', note: bootstrapVariantFixture().note });
+  const registry = { modelIdentities: { cursor: { role: 'bounded-worker', routes: [
+    { id: 'composer.cli', provider: 'cursor-cli', surface: 'omp-native', model: 'cursor-cli/composer-2.5', agentId: 'composer-agent', status: 'quota-blocked', blockedReason: 'fixture', source: 'mure-agent-catalog' },
+  ] } } };
+  const problems = validateCanaryBootstrapVariants(cat, registry);
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-route-not-eligible:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a bare selector-key catalog-candidate row (no source-key row at all) is rejected — the resolver never admits bootstrap by selector-key candidacy', () => {
+  // sourceRoute for cursor/composer-2.5 is the aliased cursor-cli/composer-2.5
+  // (absent here); the registry row instead sits at the SELECTOR key
+  // cursor/composer-2.5 itself. The resolver's Step 2 bootstrap admission is
+  // decided ONLY at the source key — a selector-key candidate row is never
+  // consulted for admission (Step 6 only ever checks selector-key
+  // CANARY-PROVEN-ness, never catalog-candidate-ness) — so this must stay
+  // ineligible even though a "catalog-candidate" row technically exists.
+  const cat = bootstrapCatalog({ model: 'cursor/composer-2.5', note: bootstrapVariantFixture().note });
+  const registry = { modelIdentities: { cursor: { role: 'bounded-worker', routes: [
+    { id: 'composer.selector', provider: 'cursor-cli', surface: 'omp-native', model: 'cursor/composer-2.5', agentId: 'composer-agent', status: 'catalog-candidate', source: 'mure-agent-catalog' },
+  ] } } };
+  const problems = validateCanaryBootstrapVariants(cat, registry);
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-route-not-eligible:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a blocked/quota source-key row is rejected even when the selector-key row is canary-proven — a blocked source always wins', () => {
+  // sourceRoute cursor-cli/composer-2.5 exists and is quota-blocked; the
+  // resolver's Step 2 REGISTRY_BLOCKED fires unconditionally on that source
+  // row and Step 6 (where a proven selector could otherwise matter) is
+  // never reached. A proven selector must never rescue a blocked source.
+  const cat = bootstrapCatalog({ model: 'cursor/composer-2.5', note: bootstrapVariantFixture().note });
+  const provenSelectorRoute = makeOmpRoute({
+    model: 'cursor/composer-2.5',
+    canaryEvidence: { ...makeOmpRoute().canaryEvidence, model: 'cursor/composer-2.5' },
+  });
+  const registry = { modelIdentities: { cursor: { role: 'bounded-worker', routes: [
+    { id: 'composer.cli', provider: 'cursor-cli', surface: 'omp-native', model: 'cursor-cli/composer-2.5', agentId: 'composer-agent', status: 'quota-blocked', blockedReason: 'fixture', source: 'mure-agent-catalog' },
+    provenSelectorRoute,
+  ] } } };
+  const problems = validateCanaryBootstrapVariants(cat, registry);
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-route-not-eligible:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: extra eligibility flags are rejected', () => {
+  const problems = validateCanaryBootstrapVariants(
+    bootstrapCatalog({ eligibilityFlags: ['canary-bootstrap', 'heavy'] }),
+    candidateRegistry(),
+  );
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-extra-flags:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a write-capable bootstrap variant is rejected', () => {
+  const problems = validateCanaryBootstrapVariants(
+    bootstrapCatalog({ tools: ['read', 'write'] }),
+    candidateRegistry(),
+  );
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-not-read-only:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a bootstrap variant missing the evidence-only description is rejected', () => {
+  const problems = validateCanaryBootstrapVariants(
+    bootstrapCatalog({ note: 'Cheap fast worker for scaffolding.' }),
+    candidateRegistry(),
+  );
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-missing-evidence-only-description:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a bootstrap variant targeting a blocked/quota/unresolved/unknown-status route is rejected', () => {
+  for (const status of ['blocked-schema', 'quota-blocked', 'unresolved', 'some-future-status']) {
+    const registry = { modelIdentities: { deepseek: { role: 'bounded-worker', routes: [
+      { id: 'dvf.direct', provider: 'deepseek', surface: 'direct-api', model: 'deepseek-v4-flash:direct', agentId: 'deepseek-flash', status, blockedReason: status === 'blocked-schema' ? 'fixture' : undefined, source: 'mure-agent-catalog' },
+    ] } } };
+    const problems = validateCanaryBootstrapVariants(bootstrapCatalog(), registry);
+    assert.ok(problems.some((p) => p.startsWith('bootstrap-route-not-eligible:')),
+      `status "${status}" must be rejected as bootstrap-route-not-eligible: ${problems.join('; ')}`);
+  }
+});
+
+test('validateCanaryBootstrapVariants: a bootstrap variant targeting an owner-excluded/unregistered route is rejected', () => {
+  const emptyRegistry = { modelIdentities: {} };
+  const problems = validateCanaryBootstrapVariants(bootstrapCatalog(), emptyRegistry);
+  assert.ok(problems.some((p) => p.startsWith('bootstrap-route-not-eligible:')), problems.join('; '));
+});
+
+test('validateCanaryBootstrapVariants: a non-bootstrap variant (no canary-bootstrap flag) is never inspected', () => {
+  const cat = bootstrapCatalog({ eligibilityFlags: ['heavy'], tools: ['read', 'write'], note: 'normal variant' });
+  const problems = validateCanaryBootstrapVariants(cat, candidateRegistry());
+  assert.deepEqual(problems, [], 'a variant that never claims canary-bootstrap must not be flagged');
 });

@@ -443,11 +443,18 @@ export function buildOmpProjection(catalog) {
   for (const { agent, variant, cardName, filename } of allCards) {
     const catalogModel = resolveCatalogModel(agent, variant);
     const thinkingLevel = resolveThinkingLevel(agent, variant);
-    const resolution = resolveOmpModel(catalogModel, thinkingLevel);
+    const resolution = resolveOmpModel(catalogModel, thinkingLevel, variant);
 
-    const tools = resolveTools(agent, variant);
-    const spawns = resolveSpawns(agent, variant);
-    const task = resolveTask(agent, variant);
+    // Evidence-only canary-bootstrap admission forces a restricted envelope
+    // regardless of what the catalog variant declares: read-only tools, no
+    // spawn authority, task mode on. This is a safety net enforced here (not
+    // merely a catalog-authoring convention) — a bootstrap card can never
+    // inherit write/spawn capability even if the catalog variant is
+    // malformed, because dispatch eligibility for bootstrapOnly is decided
+    // by the resolver, not by catalog tool declarations.
+    const tools = resolution.bootstrapOnly ? ['read'] : resolveTools(agent, variant);
+    const spawns = resolution.bootstrapOnly ? null : resolveSpawns(agent, variant);
+    const task = resolution.bootstrapOnly ? true : resolveTask(agent, variant);
 
     // Reject forbidden selector prefixes in resolved output
     if (resolution.selector) {

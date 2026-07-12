@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 // @capability: mure-fleet-validate
-// @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector | OMP projection drift gate | canary-evidence gate
-// @does: TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), and canary-proven provider route evidence. Exits non-zero on any failure.
+// @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector | OMP projection drift gate | canary-evidence gate | canary-bootstrap-variant hygiene gate
+// @does: TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), canary-proven provider route evidence, and the evidence-only canary-bootstrap variant contract (exact eligibility flag, read-only tools, evidence-only description, and a catalog-candidate/canary-proven target route). Exits non-zero on any failure.
 // @use: node mure-fleet-validate.mjs  (CI/regression gate after any catalog/provider/roster change)
-// @exports: validateFleet, validateOmpProjection, validateCanaryEvidence, validateAgentCardAuthority, DISABLED_MODEL_SELECTOR
+// @exports: validateFleet, validateOmpProjection, validateCanaryEvidence, validateCanaryBootstrapVariants, validateAgentCardAuthority, DISABLED_MODEL_SELECTOR
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CLINE_ROSTER, isArmed as clineArmed } from './cline-fleet.mjs';
-import { FORBIDDEN_SELECTOR_PREFIXES, OMP_THINKING_LEVELS, isAdmissibleCanaryEvidence } from '../mure/omp-model-resolver.mjs';
+import { FORBIDDEN_SELECTOR_PREFIXES, OMP_THINKING_LEVELS, isAdmissibleCanaryEvidence, buildRouteByModelIndex, resolveCatalogRoute } from '../mure/omp-model-resolver.mjs';
 import {
   buildOmpProjection,
   DISABLED_MODEL_SELECTOR,
@@ -751,6 +751,108 @@ export function validateCanaryEvidence(registry) {
   return problems;
 }
 
+// ── Canary-bootstrap variant hygiene gate ──────────────────────────────────
+
+/**
+ * Validate every canary-bootstrap catalog variant against the exact
+ * evidence-only identity contract:
+ *   - `eligibilityFlags` is EXACTLY `['canary-bootstrap']` — no extra flags.
+ *   - `tools` is EXACTLY `['read']` — never write-capable.
+ *   - the variant's `note` (its only per-variant descriptive field) contains
+ *     the substring "evidence-only".
+ *   - the variant's `model` resolves — under EITHER its exact source-route
+ *     key or its normalized-selector key (see resolveCatalogRoute; a
+ *     catalog model can be registered under either, e.g. cursor/* aliases
+ *     to cursor-cli/* at the source key, minimax-portal/MiniMax-M3 is
+ *     registered at the normalized minimax-code/MiniMax-M3 selector key) —
+ *     to a route in `registry` whose status is `catalog-candidate` (the
+ *     bootstrap's intended pending-canary window) or `canary-proven`
+ *     (where the resolver tombstones the variant as `bootstrap_expired` —
+ *     still a legal catalog state, just a dead one pending catalog
+ *     cleanup). Any other status — blocked-schema, quota-blocked,
+ *     unresolved, a future/unknown status, or no registry row at all under
+ *     either key (owner-excluded/unregistered) — is a catalog authoring
+ *     error: a bootstrap must never be authored against an already-dead or
+ *     never-eligible route.
+ *
+ * A variant is IN SCOPE the moment its `eligibilityFlags` array contains
+ * `'canary-bootstrap'` ANYWHERE — not only once the flag set is already
+ * exact — so a malformed near-miss (extra flags, write tools, a missing
+ * evidence-only note) is caught rather than silently skipped. A variant
+ * that never claims the flag is never inspected.
+ *
+ * Only ACTIVE `variants` are inspected; `pending_variants`/`pendingVariants`
+ * are structurally excluded from projection (see collectCatalogCards) and
+ * are out of scope here too — a pending draft is not yet a live claim.
+ *
+ * Read-only: never mutates catalog or registry.
+ * @param {object} catalog — parsed MURE agent catalog JSON
+ * @param {object} registry — parsed provider-route-registry.json (or compatible fixture)
+ * @returns {string[]} problems (empty = clean)
+ */
+export function validateCanaryBootstrapVariants(catalog, registry) {
+  const problems = [];
+  const routeByModel = buildRouteByModelIndex(registry);
+
+  for (const agent of catalog.agents) {
+    for (const variant of (agent.variants || [])) {
+      const flags = Array.isArray(variant.eligibilityFlags) ? variant.eligibilityFlags : [];
+      if (!flags.includes('canary-bootstrap')) continue;
+
+      const label = `${agent.name}/${variant.id || '<missing-id>'}`;
+
+      if (flags.length !== 1) {
+        problems.push(`bootstrap-extra-flags:${label}:[${flags.join(',')}]`);
+      }
+
+      const tools = Array.isArray(variant.tools) ? variant.tools : null;
+      if (!tools || tools.length !== 1 || tools[0] !== 'read') {
+        problems.push(`bootstrap-not-read-only:${label}:${tools ? tools.join(',') : '<missing>'}`);
+      }
+
+      const note = typeof variant.note === 'string' ? variant.note : '';
+      if (!note.includes('evidence-only')) {
+        problems.push(`bootstrap-missing-evidence-only-description:${label}`);
+      }
+
+      // Resolver-faithful eligibility (mirrors resolveOmpModel exactly):
+      // - a source-route registry row that exists ALWAYS decides the
+      //   outcome by itself — catalog-candidate/canary-proven admit,
+      //   anything else (blocked-schema/quota-blocked/unresolved/etc.)
+      //   vetoes unconditionally; the selector key is never consulted
+      //   once a source row exists (Step 2's REGISTRY_BLOCKED fires
+      //   before Step 6 ever runs).
+      // - only when the source key has NO row at all does the selector
+      //   key get a say, and then ONLY canary-proven counts (Step 6's
+      //   sourceProven || selectorProven tombstone/OK gate) — a bare
+      //   selector-key catalog-candidate is never admitted by the
+      //   resolver (bootstrap admission is decided solely at the source
+      //   key in Step 2), so it must not be accepted here either.
+      const { sourceRoute, selector } = resolveCatalogRoute(variant.model);
+      const sourceEntry = Object.hasOwn(routeByModel, sourceRoute) ? routeByModel[sourceRoute] : null;
+      const selectorEntry = Object.hasOwn(routeByModel, selector) ? routeByModel[selector] : null;
+
+      let eligible;
+      let reportedStatus;
+      if (sourceEntry) {
+        eligible = sourceEntry.status === 'catalog-candidate' || sourceEntry.status === 'canary-proven';
+        reportedStatus = sourceEntry.status;
+      } else if (selectorEntry && selectorEntry.status === 'canary-proven') {
+        eligible = true;
+        reportedStatus = selectorEntry.status;
+      } else {
+        eligible = false;
+        reportedStatus = selectorEntry?.status ?? 'unregistered';
+      }
+      if (!eligible) {
+        problems.push(`bootstrap-route-not-eligible:${label}:model=${variant.model}:status=${reportedStatus}`);
+      }
+    }
+  }
+
+  return problems;
+}
+
 export function validateFleet() {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
   const clineModels = new Set(Object.values(CLINE_ROSTER));
@@ -840,6 +942,15 @@ export function validateFleet() {
     name: 'J: canary-proven provider routes carry admissible evidence',
     ok: canaryProblems.length === 0,
     detail: canaryProblems.length ? canaryProblems.join('; ') : 'all canary-proven routes carry admissible evidence',
+  });
+
+  // CHECK K — every canary-bootstrap variant carries the exact evidence-only
+  // identity and targets an eligible (catalog-candidate or canary-proven) route
+  const bootstrapProblems = validateCanaryBootstrapVariants(catalog, registry);
+  checks.push({
+    name: 'K: canary-bootstrap variants carry the exact evidence-only identity',
+    ok: bootstrapProblems.length === 0,
+    detail: bootstrapProblems.length ? bootstrapProblems.join('; ') : 'all canary-bootstrap variants are structurally clean',
   });
 
   return { ok: checks.every((c) => c.ok), checks };

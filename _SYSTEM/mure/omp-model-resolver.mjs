@@ -10,9 +10,19 @@
 // Every translation is source-commented with its rule origin. No silent swaps.
 // Route eligibility is governed by provider-route-registry.json. Only routes
 // with status "canary-proven" may resolve OK; any other status (including
-// catalog-candidate, blocked-schema, quota-blocked, unresolved, or future
-// unknown status) fails closed. excludedModels fail closed. Cline-pass inputs
-// fail closed categorically, before the registry is ever consulted.
+// blocked-schema, quota-blocked, unresolved, or future unknown status) fails
+// closed. excludedModels fail closed. Cline-pass inputs fail closed
+// categorically, before the registry is ever consulted.
+//
+// Bootstrap exception: a catalog-candidate route may resolve OK, with
+// bootstrapOnly: true, when the caller passes the exact evidence-only
+// canary-bootstrap variant (eligibilityFlags === ['canary-bootstrap']) for
+// that route — see classifyBootstrapGate / isCanaryBootstrapVariant below.
+// A normal (non-bootstrap) resolution of a catalog-candidate route fails
+// closed as canary_pending, not registry_blocked. Once a bootstrapped
+// route's registry status advances to canary-proven, the bootstrap variant
+// itself tombstones (bootstrap_expired) — it must never resolve again; the
+// normal variant is required going forward.
 
 import { readFileSync } from 'node:fs';
 
@@ -182,6 +192,8 @@ export const FAIL_CLASSES = Object.freeze({
   FORBIDDEN_SELECTOR: 'forbidden_selector',
   MODEL_EXCLUDED: 'model_excluded',
   UNPROVEN_ROUTE: 'unproven_route',
+  CANARY_PENDING: 'canary_pending',
+  BOOTSTRAP_EXPIRED: 'bootstrap_expired',
 });
 
 /**
@@ -341,6 +353,65 @@ const ALL_SOURCE_ROUTES = Object.freeze({
   ...EXTRA_SOURCE_ROUTES,
 });
 
+/**
+ * Normalize a catalog model string into its canonical OMP-native selector
+ * (the same rules resolveOmpModel's Step 3 applies), independent of any
+ * registry lookup, canary gate, exclusion, or forbidden-prefix check —
+ * those remain resolveOmpModel's job. Pure string transform: given any
+ * catalogModel it always returns SOME selector and never throws, even for
+ * an input resolveOmpModel would separately reject upstream (unknown_model
+ * at Step 1, cline-pass/* at Step 0).
+ *
+ * Exported so any consumer that needs "what selector would this catalog
+ * model normalize to" — without running the full canary/exclusion
+ * pipeline — shares this exact rule instead of a second, driftable copy.
+ * resolveOmpModel itself calls this function for its own Step 3.
+ */
+export function normalizeSelector(catalogModel) {
+  // 3a: :direct suffix → strip into deepseek/*
+  const directMatch = catalogModel.match(/^(deepseek-v4-(?:flash|pro)):direct$/);
+  // 3b: openai/gpt-5.6-* → openai-codex/gpt-5.6-*
+  const openaiMatch = catalogModel.match(/^openai\/gpt-5\.6-(sol|terra|luna)$/);
+
+  if (directMatch) return `deepseek/${directMatch[1]}`;
+  if (openaiMatch) return `openai-codex/gpt-5.6-${openaiMatch[1]}`;
+  if (catalogModel === 'minimax-portal/MiniMax-M3') return 'minimax-code/MiniMax-M3';
+  // 3c: ollama-cloud/qwen3.5:cloud → ollama-cloud/qwen3.5:397b
+  if (catalogModel === 'ollama-cloud/qwen3.5:cloud') return 'ollama-cloud/qwen3.5:397b';
+  // 3d: ollama-cloud/gemma4:31b-cloud → normalize tag
+  if (catalogModel === 'ollama-cloud/gemma4:31b-cloud') return 'ollama-cloud/gemma4:31b';
+  // 3e: ollama-cloud/*:cloud → pass-through
+  if (catalogModel.startsWith('ollama-cloud/') && catalogModel.endsWith(':cloud')) return catalogModel;
+  // 3f: Cursor → exact (cursor/* not cursor-cli/*; sourceRoute carries the
+  // catalog's cursor-cli/* alias, the output selector never does)
+  if (catalogModel.startsWith('cursor/')) return catalogModel;
+  // 3g: Anthropic, Zai, OpenCode-Go → exact pass-through
+  return catalogModel;
+}
+
+/**
+ * Resolve the exact source-route key AND the normalized-selector key a
+ * catalog model would be evaluated under — WITHOUT consulting any registry,
+ * canary evidence, exclusion, or forbidden-prefix gate. `sourceRoute` falls
+ * back to `catalogModel` itself when the model has no known alias in
+ * ALL_SOURCE_ROUTES (mirrors "sourceRoute carries the alias, or the input
+ * itself if unmapped").
+ *
+ * Exported specifically so a registry-INJECTABLE consumer (e.g. the fleet
+ * validator's bootstrap-route-eligibility check, which takes its own
+ * fixture or live registry rather than the frozen live singleton this
+ * module loads at import time) can look a catalog model up under BOTH
+ * keys — mirroring the exact dual-key philosophy resolveOmpModel's Step 2/
+ * Step 6 gates use against ROUTE_BY_MODEL — without re-deriving or
+ * drifting from the resolver's own alias/normalization rules.
+ */
+export function resolveCatalogRoute(catalogModel) {
+  const sourceRoute = Object.hasOwn(ALL_SOURCE_ROUTES, catalogModel)
+    ? ALL_SOURCE_ROUTES[catalogModel]
+    : catalogModel;
+  return { sourceRoute, selector: normalizeSelector(catalogModel) };
+}
+
 // Registry evidence is now sourced from provider-route-registry.json at module
 // load time (ROUTE_BY_MODEL + EXCLUDED_BY_MODEL above). A convenience export is
 // rebuilt below for downstream consumers.
@@ -375,6 +446,62 @@ function isForbiddenSelector(selector, prefixes = FORBIDDEN_SELECTOR_PREFIXES) {
 }
 
 /**
+ * Whether `variant` carries the exact evidence-only canary-bootstrap
+ * identity: `eligibilityFlags` is an array containing exactly the single
+ * flag `'canary-bootstrap'`. This is the resolver's own admission test —
+ * it is deliberately narrow (identity only). Deeper catalog hygiene (tools
+ * restricted to read-only, a variant note containing "evidence-only") is
+ * validated separately by `validateCanaryBootstrapVariants`
+ * (mure-fleet-validate.mjs) and enforced structurally by
+ * `buildOmpProjection`, which always forces tools/spawns/task for a
+ * bootstrap-admitted card regardless of what the catalog variant declares.
+ * A near-miss (extra flags, wrong flag) is never treated as a bootstrap
+ * variant here — it simply resolves as an ordinary (non-bootstrap) variant,
+ * so a malformed "almost bootstrap" variant fails closed the same way any
+ * other catalog-candidate resolution does (canary_pending), never silently
+ * granted bootstrap admission.
+ */
+export function isCanaryBootstrapVariant(variant) {
+  if (!variant || typeof variant !== 'object') return false;
+  const flags = variant.eligibilityFlags;
+  return Array.isArray(flags) && flags.length === 1 && flags[0] === 'canary-bootstrap';
+}
+
+/**
+ * Pure, registry-independent decision table for the catalog-candidate /
+ * canary-proven bootstrap gate. Given a route's registry `status` (or
+ * `null` for an unregistered route) and whether the resolving variant
+ * carries the exact canary-bootstrap identity, returns exactly one verdict:
+ *
+ *   - `admit-bootstrap` — catalog-candidate route + bootstrap variant:
+ *     resolves OK with bootstrapOnly: true.
+ *   - `pending`          — catalog-candidate route, no bootstrap variant:
+ *     fails closed as canary_pending.
+ *   - `tombstone`        — canary-proven route + bootstrap variant: the
+ *     bootstrap has served its purpose and must never resolve again; fails
+ *     closed as bootstrap_expired.
+ *   - `proceed`          — canary-proven route, no bootstrap variant: the
+ *     resolver's normal OK path applies unchanged.
+ *   - `blocked`          — any other status (blocked-schema, quota-blocked,
+ *     unresolved, a future/unknown status, or no registry row at all):
+ *     bootstrap identity never rescues a non-candidate, non-proven route.
+ *
+ * Deliberately independent of ROUTE_BY_MODEL/the live registry so every
+ * status — live, hypothetical, or introduced after this code was written —
+ * is exhaustively regression-tested without registry fixture injection or
+ * mutating the frozen live singleton.
+ */
+export function classifyBootstrapGate(routeStatus, isBootstrapVariant) {
+  if (routeStatus === 'catalog-candidate') {
+    return { verdict: isBootstrapVariant ? 'admit-bootstrap' : 'pending' };
+  }
+  if (routeStatus === 'canary-proven') {
+    return { verdict: isBootstrapVariant ? 'tombstone' : 'proceed' };
+  }
+  return { verdict: 'blocked' };
+}
+
+/**
  * Build a FAIL_CLOSED result with consistent shape.
  */
 function makeFailClosed(input, failClass, reason, sourceRoute, routeStatus, evidenceAgentId) {
@@ -389,13 +516,14 @@ function makeFailClosed(input, failClass, reason, sourceRoute, routeStatus, evid
     thinkingLevel: null,
     routeStatus,
     evidenceAgentId,
+    bootstrapOnly: false,
   };
 }
 
 /**
  * Build an OK result with consistent shape.
  */
-function makeOk(input, selector, sourceRoute, thinkingLevel, routeStatus, evidenceAgentId) {
+function makeOk(input, selector, sourceRoute, thinkingLevel, routeStatus, evidenceAgentId, bootstrapOnly = false) {
   return {
     input,
     selector,
@@ -407,6 +535,7 @@ function makeOk(input, selector, sourceRoute, thinkingLevel, routeStatus, eviden
     thinkingLevel: clampThinking(thinkingLevel, selector),
     routeStatus,
     evidenceAgentId,
+    bootstrapOnly,
   };
 }
 
@@ -417,6 +546,11 @@ function makeOk(input, selector, sourceRoute, thinkingLevel, routeStatus, eviden
  *
  * @param {string} catalogModel  — exact model string from the MURE agent catalog
  * @param {string|null} thinkingLevel — requested thinking level (off/low/medium/high/xhigh/max)
+ * @param {object|null} variant — the catalog variant object being resolved, or
+ *   null for a base-role (non-variant) resolution. Only its identity
+ *   matters here (see isCanaryBootstrapVariant) — an exact evidence-only
+ *   canary-bootstrap variant is the sole way a catalog-candidate route may
+ *   resolve OK, and the sole way a canary-proven route can be tombstoned.
  * @returns {{
  *   input: string,
  *   selector: string|null,
@@ -428,9 +562,10 @@ function makeOk(input, selector, sourceRoute, thinkingLevel, routeStatus, eviden
  *   thinkingLevel: string|null,
  *   routeStatus: string|null,
  *   evidenceAgentId: string|null,
+ *   bootstrapOnly: boolean,
  * }}
  */
-export function resolveOmpModel(catalogModel, thinkingLevel = null) {
+export function resolveOmpModel(catalogModel, thinkingLevel = null, variant = null) {
   // ── Step 0: Cline-pass policy gate — evaluated before the known-input and
   // registry gates. Any input beginning with 'cline-pass/' fails closed
   // whether or not it is a recognized catalog route: Cline is categorically
@@ -462,53 +597,58 @@ export function resolveOmpModel(catalogModel, thinkingLevel = null) {
     : null;
   const routeStatus = registryEntry?.status ?? null;
   const evidenceAgentId = registryEntry?.agentId ?? null;
-  // Only canary-proven routes may resolve OK. Any other status — including
-  // catalog-candidate, blocked-schema, quota-blocked, unresolved, or future
-  // unknown statuses — fails closed. This is an allow-only gate, not an
-  // enumerated deny-list; it protects against statuses added after this
-  // code was written (e.g. openai/gpt-5.6-terra moving canary-proven →
-  // quota-blocked after a live usage_limit_reached failure).
-  if (registryEntry && registryEntry.status !== 'canary-proven') {
-    return makeFailClosed(
-      catalogModel, FAIL_CLASSES.REGISTRY_BLOCKED,
-      registryEntry.blockedReason ||
-        `Registry route "${sourceRoute}" has status "${registryEntry.status}" — only canary-proven routes may resolve.`,
-      sourceRoute, routeStatus, evidenceAgentId
-    );
+  const isBootstrapVariant = isCanaryBootstrapVariant(variant);
+  // Only canary-proven routes may resolve OK (with a single evidence-only
+  // exception: an exact canary-bootstrap variant admits a catalog-candidate
+  // route). Any other status — blocked-schema, quota-blocked, unresolved,
+  // or future unknown statuses — fails closed regardless of bootstrap
+  // identity. This is an allow-only gate, not an enumerated deny-list; it
+  // protects against statuses added after this code was written (e.g.
+  // openai/gpt-5.6-terra moving canary-proven → quota-blocked after a live
+  // usage_limit_reached failure).
+  //
+  // The catalog-candidate/bootstrap admission decision is made HERE, keyed
+  // only on the exact source route (bootstrap variants exist precisely to
+  // bootstrap a route that has no proof anywhere yet). The canary-proven
+  // tombstone decision, by contrast, is made below at Step 6 — a route can
+  // become canary-proven under EITHER its exact source-route key or its
+  // normalized-selector key (e.g. minimax-portal/MiniMax-M3's registry row
+  // is keyed at the normalized "minimax-code/MiniMax-M3", not the source
+  // route), so only Step 6 — which already checks both keys — has enough
+  // visibility to tombstone correctly in every case.
+  let bootstrapAdmittedAtSource = false;
+  if (registryEntry) {
+    if (registryEntry.status === 'catalog-candidate') {
+      const gate = classifyBootstrapGate('catalog-candidate', isBootstrapVariant);
+      if (gate.verdict === 'pending') {
+        return makeFailClosed(
+          catalogModel, FAIL_CLASSES.CANARY_PENDING,
+          `Registry route "${sourceRoute}" has status "catalog-candidate" — canary proof is pending; ` +
+            `only the exact evidence-only canary-bootstrap variant (eligibilityFlags: ["canary-bootstrap"]) may resolve while pending.`,
+          sourceRoute, routeStatus, evidenceAgentId
+        );
+      }
+      // gate.verdict === 'admit-bootstrap' — continue to normalize; final
+      // admission is confirmed at Step 6 once we know the route is not
+      // ALSO already canary-proven under its normalized selector key.
+      bootstrapAdmittedAtSource = true;
+    } else if (registryEntry.status !== 'canary-proven') {
+      // blocked-schema, quota-blocked, unresolved, or any other
+      // non-candidate, non-proven status — fails closed unconditionally;
+      // bootstrap identity never rescues a non-candidate route.
+      return makeFailClosed(
+        catalogModel, FAIL_CLASSES.REGISTRY_BLOCKED,
+        registryEntry.blockedReason ||
+          `Registry route "${sourceRoute}" has status "${registryEntry.status}" — only canary-proven routes may resolve.`,
+        sourceRoute, routeStatus, evidenceAgentId
+      );
+    }
+    // else: status === 'canary-proven' at the source key — fall through
+    // unchanged; Step 6 decides OK vs bootstrap_expired tombstone.
   }
 
-  // ── Step 3: Normalize selector ──────────────────────────────────────
-  let selector;
-
-  // 3a: :direct suffix → strip into deepseek/*
-  const directMatch = catalogModel.match(/^(deepseek-v4-(?:flash|pro)):direct$/);
-
-  // 3b: openai/gpt-5.6-* → openai-codex/gpt-5.6-*
-  const openaiMatch = catalogModel.match(/^openai\/gpt-5\.6-(sol|terra|luna)$/);
-
-  if (directMatch) {
-    selector = `deepseek/${directMatch[1]}`;
-  } else if (openaiMatch) {
-    selector = `openai-codex/gpt-5.6-${openaiMatch[1]}`;
-  } else if (catalogModel === 'minimax-portal/MiniMax-M3') {
-    selector = 'minimax-code/MiniMax-M3';
-  } else if (catalogModel === 'ollama-cloud/qwen3.5:cloud') {
-    // 3c: ollama-cloud/qwen3.5:cloud → ollama-cloud/qwen3.5:397b
-    selector = 'ollama-cloud/qwen3.5:397b';
-  } else if (catalogModel === 'ollama-cloud/gemma4:31b-cloud') {
-    // 3d: ollama-cloud/gemma4:31b-cloud → normalize tag
-    selector = 'ollama-cloud/gemma4:31b';
-  } else if (catalogModel.startsWith('ollama-cloud/') && catalogModel.endsWith(':cloud')) {
-    // 3e: ollama-cloud/*:cloud → pass-through
-    selector = catalogModel;
-  } else if (catalogModel.startsWith('cursor/')) {
-    // 3f: Cursor → exact (cursor/* not cursor-cli/*; sourceRoute carries the
-    // catalog's cursor-cli/* alias, the output selector never does)
-    selector = catalogModel;
-  } else {
-    // 3g: Anthropic, Zai, OpenCode-Go → exact pass-through
-    selector = catalogModel;
-  }
+  // ── Step 3: Normalize selector (shared rule — see normalizeSelector) ──
+  const selector = normalizeSelector(catalogModel);
 
   // ── Step 4: Forbidden-prefix gate — reject before any OK can be returned ─
   if (isForbiddenSelector(selector)) {
@@ -538,8 +678,28 @@ export function resolveOmpModel(catalogModel, thinkingLevel = null) {
   const selectorCanary = ROUTE_BY_MODEL[selector];
   const sourceProven = sourceCanary?.status === 'canary-proven';
   const selectorProven = selectorCanary?.status === 'canary-proven';
+  const provenSomewhere = sourceProven || selectorProven;
 
-  if (!sourceProven && !selectorProven) {
+  // Tombstone: the route this variant targets is now proven under EITHER
+  // key — a canary-bootstrap variant must never resolve past that point,
+  // proven-anywhere or not; the normal (non-bootstrap) variant is required.
+  if (provenSomewhere && isBootstrapVariant) {
+    const provenEntry = sourceProven ? sourceCanary : selectorCanary;
+    return makeFailClosed(
+      catalogModel, FAIL_CLASSES.BOOTSTRAP_EXPIRED,
+      `Route "${sourceProven ? sourceRoute : selector}" is now canary-proven; the canary-bootstrap variant is a ` +
+        `tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.`,
+      sourceRoute, provenEntry.status, provenEntry.agentId
+    );
+  }
+
+  if (!provenSomewhere) {
+    // Evidence-only bootstrap admission: the source route was confirmed
+    // catalog-candidate above and no proof exists anywhere yet — the exact
+    // bootstrap variant may resolve OK with bootstrapOnly: true.
+    if (bootstrapAdmittedAtSource) {
+      return makeOk(catalogModel, selector, sourceRoute, thinkingLevel, routeStatus, evidenceAgentId, true);
+    }
     return makeFailClosed(
       catalogModel, FAIL_CLASSES.UNPROVEN_ROUTE,
       sourceCanary
@@ -551,7 +711,8 @@ export function resolveOmpModel(catalogModel, thinkingLevel = null) {
     );
   }
 
-  // Use the winning canary entry's metadata for the resolution record
+  // provenSomewhere && !isBootstrapVariant — the normal OK path, unchanged.
+  // Use the winning canary entry's metadata for the resolution record.
   const finalRouteStatus = selectorProven ? selectorCanary.status : routeStatus;
   const finalEvidenceAgentId = selectorProven ? selectorCanary.agentId : evidenceAgentId;
 

@@ -2525,14 +2525,16 @@
         "armed-state gate",
         "agents.list dangling-ref detector",
         "OMP projection drift gate",
-        "canary-evidence gate"
+        "canary-evidence gate",
+        "canary-bootstrap-variant hygiene gate"
       ],
-      "does": "TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), and canary-proven provider route evidence. Exits non-zero on any failure.",
+      "does": "TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), canary-proven provider route evidence, and the evidence-only canary-bootstrap variant contract (exact eligibility flag, read-only tools, evidence-only description, and a catalog-candidate/canary-proven target route). Exits non-zero on any failure.",
       "use": "node mure-fleet-validate.mjs  (CI/regression gate after any catalog/provider/roster change)",
       "exports": [
         "validateFleet",
         "validateOmpProjection",
         "validateCanaryEvidence",
+        "validateCanaryBootstrapVariants",
         "validateAgentCardAuthority",
         "DISABLED_MODEL_SELECTOR"
       ],

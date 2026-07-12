@@ -9,6 +9,8 @@ import {
   FORBIDDEN_SELECTOR_PREFIXES,
   FAIL_CLASSES,
   buildRouteByModelIndex,
+  isCanaryBootstrapVariant,
+  classifyBootstrapGate,
   _internals,
 } from './omp-model-resolver.mjs';
 
@@ -281,14 +283,108 @@ test('every non-canary-proven registry route fails closed', () => {
 // deepseek-v4-flash:direct → registry status catalog-candidate
 // deepseek-v4-pro:direct  → no registry row (EXTRA_SOURCE_ROUTES only; routeStatus: unregistered)
 
-test('deepseek-v4-flash:direct fails closed (catalog-candidate)', () => {
+test('deepseek-v4-flash:direct fails closed (catalog-candidate, no bootstrap variant)', () => {
   const result = resolveOmpModel('deepseek-v4-flash:direct');
   assert.equal(result.selector, null, 'catalog-candidate must not emit a selector');
   assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.REGISTRY_BLOCKED);
+  assert.equal(result.failClass, FAIL_CLASSES.CANARY_PENDING);
   assert.equal(result.routeStatus, 'catalog-candidate', 'registry status must be preserved');
   assert.equal(result.sourceRoute, 'deepseek-v4-flash:direct');
   assert.ok(result.reason, 'catalog-candidate must carry a reason');
+  assert.equal(result.bootstrapOnly, false, 'non-bootstrap failure must not claim bootstrapOnly');
+});
+
+// ── Canary-bootstrap admission (evidence-only, deterministic) ───────────────
+// A catalog-candidate route stays fail-closed (canary_pending) for a normal
+// resolution, but admits OK/bootstrapOnly:true for the exact evidence-only
+// canary-bootstrap variant identity (eligibilityFlags === ['canary-bootstrap']).
+// deepseek-v4-flash:direct is live catalog-candidate — no fixture/mutation needed.
+
+function bootstrapVariant(overrides = {}) {
+  return { id: 'bootstrap-fixture', eligibilityFlags: ['canary-bootstrap'], tools: ['read'], ...overrides };
+}
+
+test('deepseek-v4-flash:direct resolves OK/bootstrapOnly for the exact canary-bootstrap variant', () => {
+  const result = resolveOmpModel('deepseek-v4-flash:direct', null, bootstrapVariant());
+  assert.equal(result.status, 'OK');
+  assert.equal(result.selector, 'deepseek/deepseek-v4-flash');
+  assert.equal(result.failClass, null);
+  assert.equal(result.routeStatus, 'catalog-candidate');
+  assert.equal(result.bootstrapOnly, true, 'bootstrap admission must be flagged bootstrapOnly: true');
+});
+
+test('minimax-portal/MiniMax-M3 (canary-proven) tombstones an exact canary-bootstrap variant as bootstrap_expired', () => {
+  const result = resolveOmpModel('minimax-portal/MiniMax-M3', null, bootstrapVariant());
+  assert.equal(result.status, 'FAIL_CLOSED');
+  assert.equal(result.selector, null, 'tombstoned bootstrap must not emit a selector');
+  assert.equal(result.failClass, FAIL_CLASSES.BOOTSTRAP_EXPIRED);
+  assert.equal(result.routeStatus, 'canary-proven');
+  assert.equal(result.bootstrapOnly, false);
+  assert.match(result.reason, /canary-proven/i);
+});
+
+test('minimax-portal/MiniMax-M3 (canary-proven) resolves normally OK when no bootstrap variant is passed', () => {
+  const result = resolveOmpModel('minimax-portal/MiniMax-M3');
+  assert.equal(result.status, 'OK');
+  assert.equal(result.bootstrapOnly, false, 'a normal proven resolution must not claim bootstrapOnly');
+});
+
+test('openai/gpt-5.6-terra (quota-blocked) stays blocked for a bootstrap variant', () => {
+  const result = resolveOmpModel('openai/gpt-5.6-terra', null, bootstrapVariant());
+  assert.equal(result.status, 'FAIL_CLOSED');
+  assert.equal(result.failClass, FAIL_CLASSES.REGISTRY_BLOCKED,
+    'quota-blocked must stay registry_blocked; bootstrap only rescues catalog-candidate');
+  assert.equal(result.routeStatus, 'quota-blocked');
+  assert.equal(result.bootstrapOnly, false);
+});
+
+test('anthropic/claude-fable-5 (owner-excluded) stays excluded for a bootstrap variant', () => {
+  const result = resolveOmpModel('anthropic/claude-fable-5', null, bootstrapVariant());
+  assert.equal(result.status, 'FAIL_CLOSED');
+  assert.equal(result.failClass, FAIL_CLASSES.MODEL_EXCLUDED,
+    'owner-exclusion is independent of the registry bootstrap gate and must not be bypassed');
+  assert.equal(result.bootstrapOnly, false);
+});
+
+test('resolveOmpModel with variant=null behaves identically to the default (backward compatible)', () => {
+  const withDefault = resolveOmpModel('minimax-portal/MiniMax-M3');
+  const withExplicitNull = resolveOmpModel('minimax-portal/MiniMax-M3', null, null);
+  assert.deepEqual(withDefault, withExplicitNull);
+});
+
+// ── isCanaryBootstrapVariant: exact-identity predicate ───────────────────────
+
+test('isCanaryBootstrapVariant: true only for eligibilityFlags exactly ["canary-bootstrap"]', () => {
+  assert.equal(isCanaryBootstrapVariant({ eligibilityFlags: ['canary-bootstrap'] }), true);
+  assert.equal(isCanaryBootstrapVariant({ eligibilityFlags: ['canary-bootstrap', 'heavy'] }), false, 'extra flags must reject');
+  assert.equal(isCanaryBootstrapVariant({ eligibilityFlags: ['heavy'] }), false);
+  assert.equal(isCanaryBootstrapVariant({ eligibilityFlags: [] }), false);
+  assert.equal(isCanaryBootstrapVariant({}), false, 'missing eligibilityFlags must reject');
+  assert.equal(isCanaryBootstrapVariant(null), false);
+  assert.equal(isCanaryBootstrapVariant(undefined), false);
+});
+
+// ── classifyBootstrapGate: pure, registry-independent, exhaustive over any
+// route status (live, hypothetical, or future) — no fixture registry or
+// mutation of the live singleton required. ────────────────────────────────
+
+test('classifyBootstrapGate: catalog-candidate admits bootstrap, pends otherwise', () => {
+  assert.deepEqual(classifyBootstrapGate('catalog-candidate', true), { verdict: 'admit-bootstrap' });
+  assert.deepEqual(classifyBootstrapGate('catalog-candidate', false), { verdict: 'pending' });
+});
+
+test('classifyBootstrapGate: canary-proven tombstones bootstrap, proceeds otherwise', () => {
+  assert.deepEqual(classifyBootstrapGate('canary-proven', true), { verdict: 'tombstone' });
+  assert.deepEqual(classifyBootstrapGate('canary-proven', false), { verdict: 'proceed' });
+});
+
+test('classifyBootstrapGate: every other known or unknown status stays blocked regardless of bootstrap identity', () => {
+  for (const status of ['blocked-schema', 'quota-blocked', 'unresolved', 'default-masked', 'some-future-status', null]) {
+    assert.deepEqual(classifyBootstrapGate(status, true), { verdict: 'blocked' },
+      `status "${status}" with bootstrap variant must stay blocked`);
+    assert.deepEqual(classifyBootstrapGate(status, false), { verdict: 'blocked' },
+      `status "${status}" without bootstrap variant must stay blocked`);
+  }
 });
 
 test('deepseek-v4-pro:direct fails closed (unregistered — no canary evidence)', () => {
