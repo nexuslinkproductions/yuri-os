@@ -30,7 +30,7 @@ function transcriptEvidence(model, jobId) {
 
 const modelToAgent = {
   'minimax-portal/MiniMax-M3': 'mure-synthesist',
-  'anthropic/claude-sonnet-5': 'mure-calibrator',
+  'anthropic/claude-sonnet-5': 'mure-calibrator-sonnet5',
 };
 
 function entry(taskId, purpose, model = null) {
@@ -158,7 +158,7 @@ test('admitOmpSpawn rejects receipt whose agent diverges from dispatched card', 
   const scheduled = reduceNativeDispatch(state, null);
   shadow = mirrorOmpSpawnAction(shadow, scheduled.action);
 
-  const badReceipt = { ...receiptFor(scheduled.action, 'a'), agent: 'mure-calibrator' };
+  const badReceipt = { ...receiptFor(scheduled.action, 'a'), agent: 'mure-calibrator-sonnet5' };
   assert.throws(
     () => admitOmpSpawn(scheduled.state, shadow, scheduled.action, badReceipt),
     /receipt agent/,
@@ -199,7 +199,7 @@ test('applyOmpCompletion rejects on agent mismatch', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   assert.throws(() => applyOmpCompletion(state, shadow, {
     id: action.args.tasks[0].name,
-    agent: 'mure-calibrator',
+    agent: 'mure-calibrator-sonnet5',
     status: 'completed',
     duration: 100,
     output: '{}',

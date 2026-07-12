@@ -241,6 +241,105 @@
         }
       ]
     }
+    ,
+    "ollama-cloud/deepseek-v4-flash": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "ollama-cloud-deepseek-v4-flash.omp",
+          "provider": "ollama-cloud",
+          "surface": "omp-native",
+          "model": "ollama-cloud/deepseek-v4-flash",
+          "agentId": "deepseek-flash-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "ollama-cloud/kimi-k2.7-code": {
+      "role": "frontier-worker",
+      "routes": [
+        {
+          "id": "ollama-cloud-kimi-k2-7-code.omp",
+          "provider": "ollama-cloud",
+          "surface": "omp-native",
+          "model": "ollama-cloud/kimi-k2.7-code",
+          "agentId": "mure-engineer-kimi-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "ollama-cloud/nemotron-3-ultra": {
+      "role": "advisor-verifier",
+      "routes": [
+        {
+          "id": "ollama-cloud-nemotron-3-ultra.omp",
+          "provider": "ollama-cloud",
+          "surface": "omp-native",
+          "model": "ollama-cloud/nemotron-3-ultra",
+          "agentId": "mure-deliberator-nemotron-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "openai-codex/gpt-5.6-luna": {
+      "role": "verifier-strategist",
+      "routes": [
+        {
+          "id": "openai-codex-gpt-5.6-luna.omp",
+          "provider": "openai-codex",
+          "surface": "omp-native",
+          "model": "openai-codex/gpt-5.6-luna",
+          "agentId": "mure-adjudicator-luna-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "zai/glm-5.1": {
+      "role": "architect",
+      "routes": [
+        {
+          "id": "glm-5.1.zai",
+          "provider": "zai",
+          "surface": "omp-native",
+          "model": "zai/glm-5.1",
+          "agentId": "mure-helmsman-glm51-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "cursor/composer-2.5": {
+      "role": "bounded-worker",
+      "routes": [
+        {
+          "id": "composer-2.5.cursor",
+          "provider": "cursor",
+          "surface": "omp-native",
+          "model": "cursor-cli/composer-2.5",
+          "agentId": "composer-25-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    },
+    "cursor/grok-4.5-xhigh": {
+      "role": "frontier-worker",
+      "routes": [
+        {
+          "id": "grok-4.5-xhigh.cursor",
+          "provider": "cursor",
+          "surface": "omp-native",
+          "model": "cursor-cli/grok-4.5-xhigh",
+          "agentId": "mure-ideator-grok45-bootstrap",
+          "status": "catalog-candidate",
+          "source": "mure-agent-catalog"
+        }
+      ]
+    }
   },
   "roleTopology": {
     "orchestrator": {

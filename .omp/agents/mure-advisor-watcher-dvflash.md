@@ -10,7 +10,7 @@ tools:
 ---
 
 **Lane:** verification
-**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — only canary-proven routes may resolve.
+**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: ["canary-bootstrap"]) may resolve while pending.
 
 **Mission:** Emit per-turn annotation in canonical schema (see _SYSTEM/research/advisor-note-schema-2026-07-09.md). Tier 1 watcher runs every main-lane / WhatsApp turn; Tier 2 heavy advisor escalates on flagged conditions (logical contradiction, missed branch, protected-path risk, overconfident unverified claim, scope creep, security-sensitive content). Authority is pure annotation. Two surfaces: visible post-hoc + one-turn-lag injection.
 

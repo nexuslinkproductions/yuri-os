@@ -38,7 +38,7 @@ function plan() {
     routes: [{ taskId, held: false, route: { classification: { riskClass: 'R2', requiresVerifier: true }, verifier: { required: true } } }],
     queues: {
       producers: [entry('producer', 'minimax-portal/MiniMax-M3', 'mure-synthesist')],
-      verifiers: [entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator')],
+      verifiers: [entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5')],
       availabilityFallbacks: [], qualityEscalations: [], calibrationAlternatives: [], evidence: [],
     },
     blocked: [], providerCalibration: null,
@@ -46,7 +46,7 @@ function plan() {
 }
 
 function admit(state, action, suffix) {
-  const receipt = { jobId: `job-${suffix}`, agent: action.args.agent };
+  const receipt = { jobId: `job-${suffix}`, agent: action.args.tasks[0].agent };
   return { receipt, reduced: recordNativeSpawnAccepted(state, action, receipt) };
 }
 
@@ -82,7 +82,7 @@ test('mirrors one R2 producer and independent verifier into an accepted ledger t
   assert.equal(shadowSnapshot(shadow).awaiting.purpose, 'verifier');
 
   // Verify dispatch args match compileOmpSpawn for the verifier
-  const verifierEntry = entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator');
+  const verifierEntry = entry('verifier', 'anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5');
   const verifierCompilerContext = {
     attempt: afterProducer.action.attempt,
     taskId,

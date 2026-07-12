@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** operations
-**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — only canary-proven routes may resolve.
+**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: ["canary-bootstrap"]) may resolve while pending.
 
 **Mission:** account token budget, route by quota (native weekly pool vs z.ai plan), enforce budgetCap, prevent cost runaway
 

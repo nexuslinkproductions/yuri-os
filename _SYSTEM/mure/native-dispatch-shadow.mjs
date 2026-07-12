@@ -43,11 +43,12 @@ export function observeNativeAction(shadow, action) {
   }
 
   // Shadow governance check: record violations but do not block observation
+  const dispatchedAgent = action.args?.tasks?.[0]?.agent;
   const governance = validateDispatchGovernance({
     purpose: purpose === 'availability-fallback' || purpose === 'quality-escalation' ? 'producer' : purpose,
     fromArchetype: 'control',
-    toArchetype: action.args?.tasks?.[0]?.role || 'worker',
-    agentId: action.args?.agent,
+    toArchetype: 'worker',
+    agentId: dispatchedAgent,
     producerArchetype: purpose === 'verifier' ? shadow.awaiting?.archetype || 'worker' : undefined,
     producerAgentId: purpose === 'verifier' ? shadow.awaiting?.agentId : undefined,
   });
@@ -56,7 +57,7 @@ export function observeNativeAction(shadow, action) {
   const ticket = getTicket(ledger, shadow.ticketId);
   if (purpose !== 'verifier' && ticket.ledgerStatus === 'ticketed') {
     ledger = recordDispatch(ledger, shadow.ticketId, {
-      producer: action.args?.agent || '',
+      producer: dispatchedAgent || '',
       note: `native ${purpose} dispatched via OMP TaskTool`,
     });
   } else if (purpose === 'verifier' && ticket.ledgerStatus !== 'produced') {
@@ -69,7 +70,7 @@ export function observeNativeAction(shadow, action) {
     awaiting: freeze({
       entryId: nonEmpty(action.entryId, 'action.entryId'),
       purpose,
-      agentId: nonEmpty(action.args?.agent, 'action args agent'),
+      agentId: nonEmpty(dispatchedAgent, 'action args agent'),
       admission: null,
     }),
     observations: [

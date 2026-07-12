@@ -316,13 +316,16 @@ const CATALOG_SOURCE_ROUTES = Object.freeze({
   'zai/glm-5.1': 'zai/glm-5.1',
   'zai/glm-5': 'zai/glm-5',
   'zai/glm-5-turbo': 'zai/glm-5-turbo',
-  // Ollama Cloud — normalize (6)
+  // Ollama Cloud — normalize (6) + bare bootstrap identities (3)
   'ollama-cloud/deepseek-v4-flash:cloud': 'ollama-cloud/deepseek-v4-flash:cloud',
   'ollama-cloud/deepseek-v4-pro:cloud': 'ollama-cloud/deepseek-v4-pro:cloud',
   'ollama-cloud/kimi-k2.7-code:cloud': 'ollama-cloud/kimi-k2.7-code:cloud',
   'ollama-cloud/nemotron-3-ultra:cloud': 'ollama-cloud/nemotron-3-ultra:cloud',
   'ollama-cloud/qwen3.5:cloud': 'ollama-cloud/qwen3.5:cloud',
   'ollama-cloud/gemma4:31b-cloud': 'ollama-cloud/gemma4:31b-cloud',
+  'ollama-cloud/deepseek-v4-flash': 'ollama-cloud/deepseek-v4-flash',
+  'ollama-cloud/kimi-k2.7-code': 'ollama-cloud/kimi-k2.7-code',
+  'ollama-cloud/nemotron-3-ultra': 'ollama-cloud/nemotron-3-ultra',
   // Cline-pass — FAIL_CLOSED (4)
   'cline-pass/cline-pass/deepseek-v4-flash': 'cline-pass/cline-pass/deepseek-v4-flash',
   'cline-pass/cline-pass/mimo-v2.5': 'cline-pass/cline-pass/mimo-v2.5',
@@ -332,10 +335,12 @@ const CATALOG_SOURCE_ROUTES = Object.freeze({
   'cursor/composer-2.5': 'cursor-cli/composer-2.5', // catalog source is cursor-cli
   'cursor/gemini-3.5-flash': 'cursor-cli/gemini-3.5-flash',
   'cursor/kimi-k2.7-code': 'cursor-cli/kimi-k2.7-code',
+  'cursor/grok-4.5-xhigh': 'cursor-cli/grok-4.5-xhigh',
   // OpenAI — translate to openai-codex (3)
   'openai/gpt-5.6-sol': 'openai/gpt-5.6-sol',
   'openai/gpt-5.6-terra': 'openai/gpt-5.6-terra',
   'openai/gpt-5.6-luna': 'openai/gpt-5.6-luna',
+  'openai-codex/gpt-5.6-luna': 'openai-codex/gpt-5.6-luna',
   // OpenCode-Go — exact (1)
   'opencode-go/mimo-v2.5': 'opencode-go/mimo-v2.5',
 });

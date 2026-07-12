@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** knowledge
-**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — only canary-proven routes may resolve.
+**Model:** DISABLED — Registry route "deepseek-v4-flash:direct" has status "catalog-candidate" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: ["canary-bootstrap"]) may resolve while pending.
 
 **Mission:** curate the skill library and memory; track lineage; keep the capability registry fresh; preserve stepping-stones
 

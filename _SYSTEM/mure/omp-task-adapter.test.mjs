@@ -109,6 +109,34 @@ describe('parseOmpSpawnReceipt', () => {
       { name: 'TypeError', message: /not a known card id/ },
     );
   });
+
+  it('accepts every canary-bootstrap agent id (evidence-only cards)', () => {
+    const bootstrapAgentIds = [
+      'deepseek-flash-bootstrap',
+      'mure-engineer-kimi-bootstrap',
+      'mure-deliberator-nemotron-bootstrap',
+      'mure-adjudicator-luna-bootstrap',
+      'mure-helmsman-glm51-bootstrap',
+      'composer-25-bootstrap',
+      'mure-ideator-grok45-bootstrap',
+    ];
+    for (const agent of bootstrapAgentIds) {
+      const result = parseOmpSpawnReceipt({ jobId: 'task-001', agent });
+      assert.deepStrictEqual(result, { jobId: 'task-001', agent });
+    }
+  });
+
+  it('accepts mure-calibrator-sonnet5 (current Sonnet verifier card)', () => {
+    const result = parseOmpSpawnReceipt({ jobId: 'task-001', agent: 'mure-calibrator-sonnet5' });
+    assert.deepStrictEqual(result, { jobId: 'task-001', agent: 'mure-calibrator-sonnet5' });
+  });
+
+  it('rejects the retired bare mure-calibrator agent id', () => {
+    assert.throws(
+      () => parseOmpSpawnReceipt({ jobId: 'task-001', agent: 'mure-calibrator' }),
+      { name: 'TypeError', message: /not a known card id/ },
+    );
+  });
 });
 
 // ── parseOmpTaskResult ───────────────────────────────────────────────

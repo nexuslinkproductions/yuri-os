@@ -228,10 +228,10 @@ test('cursor/gemini-3.5-flash normalizes cursor-cli/* registry evidence to a cur
   assert.ok(!result.selector.startsWith('cursor-cli/'));
 });
 
-test('cursor/composer-2.5 normalizes to cursor/* selector but fails closed unproven (no registry row)', () => {
+test('cursor/composer-2.5 normalizes to cursor/* selector but fails closed pending (catalog-candidate registry row)', () => {
   const result = resolveOmpModel('cursor/composer-2.5');
   assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.UNPROVEN_ROUTE);
+  assert.equal(result.failClass, FAIL_CLASSES.CANARY_PENDING);
   assert.equal(result.sourceRoute, 'cursor-cli/composer-2.5');
   assert.equal(result.selector, null);
 });

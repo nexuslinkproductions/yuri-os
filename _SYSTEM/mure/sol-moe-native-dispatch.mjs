@@ -17,7 +17,7 @@ const THINKING_LEVELS = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhi
 const AVAILABILITY_FAILURES = new Set(['availability', 'transport', 'quota', 'rate-limit', 'timeout', 'auth']);
 const RISK_CLASSES = new Set(['R0', 'R1', 'R2', 'R3']);
 const WORKER_BINDINGS = new Map([
-  ['anthropic/claude-sonnet-5', 'mure-calibrator'],
+  ['anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5'],
   ['anthropic/claude-opus-4-8', 'mure-sentinel'],
   ['anthropic/claude-haiku-4-5', 'mure-scout'],
   ['openai/gpt-5.6-terra', 'mure-engineer'],
@@ -30,6 +30,29 @@ const WORKER_BINDINGS = new Map([
   ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
   ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
   ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
+  // Evidence-only canary-bootstrap admission — catalog-candidate routes.
+  // These exact live-confirmed selectors bind ONLY to their bootstrap card;
+  // see BOOTSTRAP_AGENT_IDS + the evidence-only compiler guard below.
+  ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash-bootstrap'],
+  ['ollama-cloud/kimi-k2.7-code', 'mure-engineer-kimi-bootstrap'],
+  ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator-nemotron-bootstrap'],
+  ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna-bootstrap'],
+  ['zai/glm-5.1', 'mure-helmsman-glm51-bootstrap'],
+  ['cursor/composer-2.5', 'composer-25-bootstrap'],
+  ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45-bootstrap'],
+]);
+// Canary-bootstrap evidence-only agent cards — never eligible for producer,
+// verifier, availability-fallback, or quality-escalation purposes. Their
+// only legitimate role is capturing the canary proof for an unproven
+// catalog-candidate route (see the compiler guard in validateEntry below).
+const BOOTSTRAP_AGENT_IDS = new Set([
+  'deepseek-flash-bootstrap',
+  'mure-engineer-kimi-bootstrap',
+  'mure-deliberator-nemotron-bootstrap',
+  'mure-adjudicator-luna-bootstrap',
+  'mure-helmsman-glm51-bootstrap',
+  'composer-25-bootstrap',
+  'mure-ideator-grok45-bootstrap',
 ]);
 const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2']);
 const CHEAP_PROVIDER_FAMILIES = new Set(['deepseek', 'mimo', 'ollama', 'cline', 'cursor']);
@@ -388,6 +411,9 @@ function validateEntry(entry) {
   const expectedAgentId = WORKER_BINDINGS.get(model);
   if (!expectedAgentId) throw new TypeError(`manifest entry model is not an allowed MURE worker: ${model}`);
   if (agentId !== expectedAgentId) throw new TypeError(`manifest entry agentId must be ${expectedAgentId} for ${model}`);
+  if (BOOTSTRAP_AGENT_IDS.has(agentId) && purpose !== 'evidence') {
+    throw new TypeError(`bootstrap agent ${agentId} is evidence-only and may not compile for purpose: ${purpose}`);
+  }
   const derivedProviderFamily = modelProviderFamily(model);
   if (entry.providerFamily !== undefined && String(entry.providerFamily) !== derivedProviderFamily) {
     throw new TypeError(`manifest entry providerFamily does not match model provider: ${model}`);

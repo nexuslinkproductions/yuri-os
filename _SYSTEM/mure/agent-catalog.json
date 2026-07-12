@@ -29,7 +29,12 @@
     "openai/gpt-5.6-sol": "openai/gpt-5.6-sol",
     "openai/gpt-5.6-terra": "openai/gpt-5.6-terra",
     "openai/gpt-5.6-luna": "openai/gpt-5.6-luna",
-    "opencode-go/mimo-v2.5": "opencode-go/mimo-v2.5"
+    "opencode-go/mimo-v2.5": "opencode-go/mimo-v2.5",
+    "ollama-cloud/deepseek-v4-flash": "ollama-cloud/deepseek-v4-flash",
+    "ollama-cloud/kimi-k2.7-code": "ollama-cloud/kimi-k2.7-code",
+    "ollama-cloud/nemotron-3-ultra": "ollama-cloud/nemotron-3-ultra",
+    "openai-codex/gpt-5.6-luna": "openai-codex/gpt-5.6-luna",
+    "cursor/grok-4.5-xhigh": "cursor-cli/grok-4.5-xhigh"
   },
   "agents": [
     {
@@ -208,6 +213,23 @@
           ],
           "costTier": "heavy",
           "note": "200K-ctx workhorse orchestrator for shorter goal-trees; 8-hour autonomy stability when GLM-5.2 quota is tight."
+        },
+        {
+          "id": "mure-helmsman-glm51-bootstrap",
+          "model": "zai/glm-5.1",
+          "thinkingLevel": "high",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "heavy",
+          "note": "Evidence-only canary-bootstrap capture for the zai/glm-5.1 catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         },
         {
           "id": "mure-helmsman-glm-glm52",
@@ -702,6 +724,23 @@
         {
           "id": "mure-engineer-cline-kimi",
           "model": "cline-pass/cline-pass/kimi-k2.7-code"
+        },
+        {
+          "id": "mure-engineer-kimi-bootstrap",
+          "model": "ollama-cloud/kimi-k2.7-code",
+          "thinkingLevel": "medium",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "medium",
+          "note": "Evidence-only canary-bootstrap capture for the ollama-cloud/kimi-k2.7-code catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         }
       ],
       "selection": "auto-cheap",
@@ -1333,6 +1372,40 @@
           ],
           "costTier": "heavy",
           "note": "Deep divergent reasoning for high-stakes edge-case hunting; $1.25/day cap."
+        },
+        {
+          "id": "composer-25-bootstrap",
+          "model": "cursor/composer-2.5",
+          "thinkingLevel": "off",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "cheap",
+          "note": "Evidence-only canary-bootstrap capture for the cursor/composer-2.5 catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
+        },
+        {
+          "id": "mure-ideator-grok45-bootstrap",
+          "model": "cursor/grok-4.5-xhigh",
+          "thinkingLevel": "off",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "heavy",
+          "note": "Evidence-only canary-bootstrap capture for the cursor/grok-4.5-xhigh catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         }
       ],
       "selection": "auto-cheap",
@@ -1456,6 +1529,23 @@
         {
           "id": "mure-deliberator-cline-qwen",
           "model": "cline-pass/cline-pass/qwen3.7-max"
+        },
+        {
+          "id": "mure-deliberator-nemotron-bootstrap",
+          "model": "ollama-cloud/nemotron-3-ultra",
+          "thinkingLevel": "high",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "heavy",
+          "note": "Evidence-only canary-bootstrap capture for the ollama-cloud/nemotron-3-ultra catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         }
       ],
       "selection": "surfaced-heavy",
@@ -1988,6 +2078,23 @@
           ],
           "costTier": "apex",
           "note": "Mandatory adversarial anchor prime — best-in-fleet refutation quality + gap detection."
+        },
+        {
+          "id": "mure-adjudicator-luna-bootstrap",
+          "model": "openai-codex/gpt-5.6-luna",
+          "thinkingLevel": "high",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "heavy",
+          "note": "Evidence-only canary-bootstrap capture for the openai-codex/gpt-5.6-luna catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         }
       ],
       "selection": "surfaced-heavy",
@@ -2880,6 +2987,23 @@
           ],
           "costTier": "cheap",
           "note": "Uncapped Z.ai equivalent when the DeepSeek daily cap is hit — the resilient fallback."
+        },
+        {
+          "id": "deepseek-flash-bootstrap",
+          "model": "ollama-cloud/deepseek-v4-flash",
+          "thinkingLevel": "low",
+          "tools": [
+            "read"
+          ],
+          "max_tokens": 2048,
+          "systemSections": [
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "canary-bootstrap"
+          ],
+          "costTier": "cheap",
+          "note": "Evidence-only canary-bootstrap capture for the ollama-cloud/deepseek-v4-flash catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         }
       ],
       "selection": "auto-cheap",

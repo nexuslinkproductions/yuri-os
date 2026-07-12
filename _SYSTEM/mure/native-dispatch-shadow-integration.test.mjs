@@ -29,7 +29,7 @@ const baseTicket = {
 const PRODUCER_MODEL = 'minimax-portal/MiniMax-M3';
 const PRODUCER_AGENT = 'mure-synthesist';
 const VERIFIER_MODEL = 'anthropic/claude-sonnet-5';
-const VERIFIER_AGENT = 'mure-calibrator';
+const VERIFIER_AGENT = 'mure-calibrator-sonnet5';
 const FALLBACK_MODEL = 'deepseek/deepseek-v4-flash';
 const FALLBACK_AGENT = 'deepseek-flash';
 
@@ -37,7 +37,7 @@ const FALLBACK_AGENT = 'deepseek-flash';
 // routeKind mirrors spawn()'s dispatch metadata (primary | availability-fallback | quality-escalation | verification);
 // note purpose is NOT the same axis as routeKind — reduceFailure's fallback dispatch (line 292) retains the
 // original awaiting.purpose (e.g. still 'producer') and only routeKind flips to 'availability-fallback'.
-function makeAction(entryId, purpose, agentId, model, routeKind = 'primary', role = 'engineer') {
+function makeAction(entryId, purpose, agentId, model, routeKind = 'primary') {
   return {
     type: 'omp-task-spawn',
     taskId: TASK_ID,
@@ -48,12 +48,10 @@ function makeAction(entryId, purpose, agentId, model, routeKind = 'primary', rol
     args: {
       i: `MURE ${purpose} ${TASK_ID}`,
       context: `# Goal\nExecute one MURE ${purpose} task.`,
-      agent: agentId,
       tasks: [{
-        assignment: `MURE SOL MOE OMP DISPATCH\nTask ID: ${TASK_ID}\nPurpose: ${purpose}\nModel: ${model}`,
-        id: `${TASK_ID}::${entryId}`,
-        description: `${purpose}: ${TASK_ID} (${role})`,
-        role,
+        task: `MURE SOL MOE OMP DISPATCH\nTask ID: ${TASK_ID}\nPurpose: ${purpose}\nModel: ${model}`,
+        name: `${TASK_ID}::${entryId}`,
+        agent: agentId,
       }],
     },
   };

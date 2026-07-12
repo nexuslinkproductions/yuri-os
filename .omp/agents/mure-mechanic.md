@@ -13,7 +13,7 @@ tools:
 ---
 
 **Lane:** engineering
-**Model:** DISABLED — Neither "cursor-cli/composer-2.5" nor "cursor/composer-2.5" has canary-proven registry evidence.
+**Model:** DISABLED — Registry route "cursor-cli/composer-2.5" has status "catalog-candidate" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: ["canary-bootstrap"]) may resolve while pending.
 
 **Mission:** wire modules together, refactor, productize research code, fix integration seams
 

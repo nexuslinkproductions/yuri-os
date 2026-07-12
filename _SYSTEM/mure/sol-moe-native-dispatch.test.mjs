@@ -25,7 +25,7 @@ function entry(taskId, purpose, model = null) {
     'openai/gpt-5.6-terra': 'mure-engineer',
     'openai/gpt-5.6-luna': 'mure-adjudicator',
     'anthropic/claude-opus-4-8': 'mure-sentinel',
-    'anthropic/claude-sonnet-5': 'mure-calibrator',
+    'anthropic/claude-sonnet-5': 'mure-calibrator-sonnet5',
     'deepseek/deepseek-v4-flash': 'deepseek-flash',
     'opencode-go/mimo-v2.5': 'mure-artificer',
   };
@@ -85,7 +85,7 @@ const providerCalibration = {
 function resolveModel(action) {
   const agent = action.args.tasks[0].agent;
   if (agent === 'mure-synthesist') return 'minimax-portal/MiniMax-M3';
-  if (agent === 'mure-calibrator') return 'anthropic/claude-sonnet-5';
+  if (agent === 'mure-calibrator-sonnet5') return 'anthropic/claude-sonnet-5';
   if (agent === 'mure-engineer') return 'openai/gpt-5.6-terra';
   if (agent === 'mure-adjudicator') return 'openai/gpt-5.6-luna';
   if (agent === 'mure-sentinel') return 'anthropic/claude-opus-4-8';
@@ -204,6 +204,36 @@ test('compiler accepts catalog-backed DeepSeek, Ollama, Cline, Cursor, and Haiku
   }
 });
 
+test('canary-bootstrap agent models compile for purpose evidence and reject purpose producer', () => {
+  const bootstrapRoutes = [
+    ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash-bootstrap'],
+    ['ollama-cloud/kimi-k2.7-code', 'mure-engineer-kimi-bootstrap'],
+    ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator-nemotron-bootstrap'],
+    ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna-bootstrap'],
+    ['zai/glm-5.1', 'mure-helmsman-glm51-bootstrap'],
+    ['cursor/composer-2.5', 'composer-25-bootstrap'],
+    ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45-bootstrap'],
+  ];
+  for (const [model, agentId] of bootstrapRoutes) {
+    const compiled = compileOmpSpawn(
+      { ...entry('bootstrap-identity', 'evidence', model), agentId },
+      { taskId: 'bootstrap-identity' },
+    );
+    assert.equal(compiled.tasks[0].agent, agentId, `${model} must compile evidence purpose to ${agentId}`);
+
+    assert.throws(
+      () => compileOmpSpawn({ ...entry('bootstrap-identity', 'producer', model), agentId }, { taskId: 'bootstrap-identity' }),
+      /evidence-only and may not compile for purpose: producer/,
+      `${agentId} must reject purpose producer`,
+    );
+  }
+});
+
+test('anthropic/claude-sonnet-5 binds to mure-calibrator-sonnet5', () => {
+  const compiled = compileOmpSpawn(entry('task-a', 'verifier'));
+  assert.equal(compiled.tasks[0].agent, 'mure-calibrator-sonnet5');
+});
+
 test('only verifier prompts demand strict JSON verdicts', () => {
   const producer = compileOmpSpawn(entry('task-a', 'producer'));
   const verifier = compileOmpSpawn(entry('task-a', 'verifier'));
@@ -225,7 +255,7 @@ test('producer success advances only its own task to a verifier', () => {
   const admittedVerifier = accept(next.state, next.action, 'verifier-accepted');
   assert.ok(admittedVerifier.state.tasks['task-a'].awaiting.accepted);
   assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.jobId, 'verifier-accepted');
-  assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator');
+  assert.equal(admittedVerifier.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator-sonnet5');
 });
 
 test('transport, quota, timeout, and auth failures take the next task-scoped availability fallback', () => {
@@ -240,9 +270,9 @@ test('transport, quota, timeout, and auth failures take the next task-scoped ava
     assert.equal(next.action.type, 'omp-task-spawn');
     assert.equal(next.action.purpose, 'producer');
     assert.equal(next.action.routeKind, 'availability-fallback');
-    assert.equal(next.action.args.tasks[0].agent, 'mure-calibrator');
+    assert.equal(next.action.args.tasks[0].agent, 'mure-calibrator-sonnet5');
     const admittedFallback = accept(next.state, next.action, `fallback-${failureKind}-accepted`);
-    assert.equal(admittedFallback.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator');
+    assert.equal(admittedFallback.state.tasks['task-a'].awaiting.accepted.agent, 'mure-calibrator-sonnet5');
     assert.equal(admittedFallback.state.tasks['task-a'].awaiting.routeKind, 'availability-fallback');
   }
 });
@@ -359,7 +389,7 @@ test('queues and completion events remain task-scoped and pushed events are idem
   assert.equal(taskB.action.taskId, 'task-b');
   const fallback = acceptedCompletion(taskB.state, taskB.action, 'event-b-transport', { ok: false, failureKind: 'transport' });
   assert.equal(fallback.action.taskId, 'task-b');
-  assert.equal(fallback.action.args.tasks[0].agent, 'mure-calibrator');
+  assert.equal(fallback.action.args.tasks[0].agent, 'mure-calibrator-sonnet5');
 });
 
 test('admission records OMP jobId and agent, rejects agent mismatch', () => {
@@ -455,7 +485,7 @@ test('custom manifests cannot bypass cheap semantic and verifier floors', () => 
   r3VerifierPlan.routes[0].route.classification = { riskClass: 'R3', requiresVerifier: true };
   r3VerifierPlan.queues.verifiers[0] = {
     ...r3VerifierPlan.queues.verifiers[0],
-    agentId: 'mure-calibrator',
+    agentId: 'mure-calibrator-sonnet5',
     model: 'anthropic/claude-sonnet-5',
     providerFamily: 'anthropic',
   };

@@ -23,8 +23,14 @@ const TRANSCRIPT_EVENT_TYPES = Object.freeze(new Set(['session', 'model_change',
 const VALID_THINKING_LEVELS = Object.freeze(new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive', 'max']));
 const VALID_AGENT_IDS = Object.freeze(new Set([
   'mure-synthesist', 'mure-architect', 'mure-engineer', 'mure-adjudicator',
-  'mure-sentinel', 'mure-calibrator', 'mure-scout', 'mure-artificer',
+  'mure-sentinel', 'mure-calibrator-sonnet5', 'mure-scout', 'mure-artificer',
   'deepseek-flash', 'mure-yuri',
+  // Evidence-only canary-bootstrap agent cards (WORKER_BINDINGS in
+  // sol-moe-native-dispatch.mjs); never used as producer/verifier/fallback.
+  'deepseek-flash-bootstrap', 'mure-engineer-kimi-bootstrap',
+  'mure-deliberator-nemotron-bootstrap', 'mure-adjudicator-luna-bootstrap',
+  'mure-helmsman-glm51-bootstrap', 'composer-25-bootstrap',
+  'mure-ideator-grok45-bootstrap',
 ]));
 const MODEL_PATTERN = /^[A-Za-z0-9._:/-]+$/;
 

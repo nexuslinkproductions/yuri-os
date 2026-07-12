@@ -1,11 +1,11 @@
 {
   "_provenance": "mure-omp-sync.mjs:generated:v1",
   "schemaVersion": "1.0",
-  "source": ".openclaw/mure-agent-catalog.json",
+  "source": "_SYSTEM/mure/agent-catalog.json",
   "generated": "2026-07-09T19:32:40.083Z",
-  "projected": 118,
-  "executable": 64,
-  "disabled": 54,
+  "projected": 125,
+  "executable": 72,
+  "disabled": 53,
   "cards": [
     {
       "cardName": "mure-helmsman",
@@ -28,7 +28,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-helmsman-sol",
@@ -38,8 +38,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -74,7 +74,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-helmsman-opus48",
@@ -97,7 +97,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-helmsman-glm",
@@ -120,7 +120,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-helmsman-glm-glm51",
@@ -130,8 +130,8 @@
       "catalogModel": "zai/glm-5.1",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"zai/glm-5.1\" nor \"zai/glm-5.1\" has canary-proven registry evidence.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"zai/glm-5.1\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -143,7 +143,25 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": null
+      "evidenceAgentId": "mure-helmsman-glm51-bootstrap"
+    },
+    {
+      "cardName": "mure-helmsman-glm51-bootstrap",
+      "filename": "mure-helmsman-glm51-bootstrap",
+      "sourceAgent": "mure-helmsman-glm",
+      "sourceVariant": "mure-helmsman-glm51-bootstrap",
+      "catalogModel": "zai/glm-5.1",
+      "resolvedModel": "zai/glm-5.1",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "mure-helmsman-glm51-bootstrap"
     },
     {
       "cardName": "mure-helmsman-glm-glm52",
@@ -166,7 +184,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-envoy",
@@ -196,8 +214,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -226,7 +244,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-envoy-sonnet5",
@@ -246,7 +264,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-envoy-m3",
@@ -296,8 +314,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -326,7 +344,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-scout-sonnet5",
@@ -346,7 +364,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-scout-m3",
@@ -439,8 +457,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -485,8 +503,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -521,7 +539,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-engineer-glm52",
@@ -544,7 +562,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-engineer-m3",
@@ -593,6 +611,24 @@
       "evidenceAgentId": null
     },
     {
+      "cardName": "mure-engineer-kimi-bootstrap",
+      "filename": "mure-engineer-kimi-bootstrap",
+      "sourceAgent": "mure-engineer",
+      "sourceVariant": "mure-engineer-kimi-bootstrap",
+      "catalogModel": "ollama-cloud/kimi-k2.7-code",
+      "resolvedModel": "ollama-cloud/kimi-k2.7-code",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "medium",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "mure-engineer-kimi-bootstrap"
+    },
+    {
       "cardName": "mure-mechanic",
       "filename": "mure-mechanic",
       "sourceAgent": "mure-mechanic",
@@ -600,8 +636,8 @@
       "catalogModel": "cursor/composer-2.5",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"cursor-cli/composer-2.5\" nor \"cursor/composer-2.5\" has canary-proven registry evidence.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -613,7 +649,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "composer-25-bootstrap"
     },
     {
       "cardName": "mure-mechanic-dvf",
@@ -623,8 +659,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -659,7 +695,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-mechanic-glm52",
@@ -682,7 +718,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-mechanic-m3",
@@ -715,8 +751,8 @@
       "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
+      "failClass": "unproven_route",
+      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -728,7 +764,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "deepseek-flash"
+      "evidenceAgentId": null
     },
     {
       "cardName": "mure-artificer-mimo25",
@@ -748,7 +784,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-artificer"
+      "evidenceAgentId": "mure-artificer-mimo25"
     },
     {
       "cardName": "mure-artificer-glmturbo",
@@ -781,8 +817,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -817,7 +853,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-kernelsmith",
@@ -863,7 +899,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-kernelsmith-dvp",
@@ -932,7 +968,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-sentinel",
@@ -942,8 +978,8 @@
       "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
+      "failClass": "unproven_route",
+      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -955,7 +991,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "deepseek-flash"
+      "evidenceAgentId": null
     },
     {
       "cardName": "mure-sentinel-dvp",
@@ -1001,7 +1037,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-ideator",
@@ -1011,8 +1047,8 @@
       "catalogModel": "cursor/composer-2.5",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"cursor-cli/composer-2.5\" nor \"cursor/composer-2.5\" has canary-proven registry evidence.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1021,7 +1057,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "composer-25-bootstrap"
     },
     {
       "cardName": "mure-ideator-sonnet5",
@@ -1041,7 +1077,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-ideator-glm52",
@@ -1061,7 +1097,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-ideator-dvp",
@@ -1082,6 +1118,42 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": null
+    },
+    {
+      "cardName": "composer-25-bootstrap",
+      "filename": "composer-25-bootstrap",
+      "sourceAgent": "mure-ideator",
+      "sourceVariant": "composer-25-bootstrap",
+      "catalogModel": "cursor/composer-2.5",
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "composer-25-bootstrap"
+    },
+    {
+      "cardName": "mure-ideator-grok45-bootstrap",
+      "filename": "mure-ideator-grok45-bootstrap",
+      "sourceAgent": "mure-ideator",
+      "sourceVariant": "mure-ideator-grok45-bootstrap",
+      "catalogModel": "cursor/grok-4.5-xhigh",
+      "resolvedModel": "cursor/grok-4.5-xhigh",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "mure-ideator-grok45-bootstrap"
     },
     {
       "cardName": "mure-deliberator",
@@ -1127,7 +1199,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-deliberator-dvp",
@@ -1173,7 +1245,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-deliberator-cline-qwen",
@@ -1199,6 +1271,24 @@
       "evidenceAgentId": null
     },
     {
+      "cardName": "mure-deliberator-nemotron-bootstrap",
+      "filename": "mure-deliberator-nemotron-bootstrap",
+      "sourceAgent": "mure-deliberator",
+      "sourceVariant": "mure-deliberator-nemotron-bootstrap",
+      "catalogModel": "ollama-cloud/nemotron-3-ultra",
+      "resolvedModel": "ollama-cloud/nemotron-3-ultra",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "mure-deliberator-nemotron-bootstrap"
+    },
+    {
       "cardName": "mure-synthesist",
       "filename": "mure-synthesist",
       "sourceAgent": "mure-synthesist",
@@ -1219,7 +1309,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-synthesist-sonnet5",
@@ -1242,7 +1332,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-synthesist-glm52",
@@ -1265,7 +1355,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-synthesist-m3",
@@ -1334,7 +1424,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-chronicler-sonnet5",
@@ -1357,7 +1447,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-chronicler-m3",
@@ -1482,8 +1572,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1518,7 +1608,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-adjudicator",
@@ -1541,7 +1631,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-adjudicator-sol",
@@ -1551,8 +1641,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1575,7 +1665,7 @@
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
       "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-luna\" nor \"openai-codex/gpt-5.6-luna\" has canary-proven registry evidence.",
+      "reason": "Registry route \"openai-codex/gpt-5.6-luna\" has status \"catalog-candidate\" (not canary-proven).",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1607,7 +1697,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-adjudicator-dvp",
@@ -1653,7 +1743,25 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
+    },
+    {
+      "cardName": "mure-adjudicator-luna-bootstrap",
+      "filename": "mure-adjudicator-luna-bootstrap",
+      "sourceAgent": "mure-adjudicator",
+      "sourceVariant": "mure-adjudicator-luna-bootstrap",
+      "catalogModel": "openai-codex/gpt-5.6-luna",
+      "resolvedModel": "openai-codex/gpt-5.6-luna",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "mure-adjudicator-luna-bootstrap"
     },
     {
       "cardName": "mure-oracle",
@@ -1676,7 +1784,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-oracle"
     },
     {
       "cardName": "mure-oracle-dvf",
@@ -1686,8 +1794,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1722,7 +1830,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-oracle-glm52",
@@ -1745,7 +1853,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-calibrator",
@@ -1755,8 +1863,8 @@
       "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
+      "failClass": "unproven_route",
+      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1768,7 +1876,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "deepseek-flash"
+      "evidenceAgentId": null
     },
     {
       "cardName": "mure-calibrator-dvf",
@@ -1778,8 +1886,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1837,7 +1945,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-steward",
@@ -1847,8 +1955,8 @@
       "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
+      "failClass": "unproven_route",
+      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1860,7 +1968,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "deepseek-flash"
+      "evidenceAgentId": null
     },
     {
       "cardName": "mure-steward-sonnet5",
@@ -1883,7 +1991,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-steward-glm52",
@@ -1906,7 +2014,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-steward-opus48",
@@ -1929,7 +2037,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-quartermaster",
@@ -1939,8 +2047,8 @@
       "catalogModel": "cursor/composer-2.5",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"cursor-cli/composer-2.5\" nor \"cursor/composer-2.5\" has canary-proven registry evidence.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -1952,7 +2060,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "composer-25-bootstrap"
     },
     {
       "cardName": "mure-quartermaster-dvf",
@@ -1962,8 +2070,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2021,7 +2129,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-architect",
@@ -2044,7 +2152,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-architect-sol",
@@ -2054,8 +2162,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2090,7 +2198,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-architect-glm52",
@@ -2113,7 +2221,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-architect-opus48",
@@ -2136,7 +2244,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-evolver",
@@ -2159,7 +2267,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-evolver-glm52",
@@ -2182,7 +2290,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-evolver-opus48",
@@ -2205,7 +2313,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "composer-fast",
@@ -2259,8 +2367,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2293,7 +2401,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "deepseek-flash",
@@ -2303,8 +2411,8 @@
       "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "The local Ollama cloud proxy at http://localhost:11434/v1 now advertises deepseek-v4-flash:cloud, but OpenClaw's OpenAI-compatible adapter still rejects its tool payload. The canonical hosted-native provider attempt at https://ollama.com/api/chat was blocked by the hosted gateway before a request reached the model (observed 2026-07-11). Keep this route blocked until hosted-cloud credential/edge authorization is repaired or the local proxy accepts the OpenAI tool schema.",
+      "failClass": "unproven_route",
+      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2315,7 +2423,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "deepseek-flash"
+      "evidenceAgentId": null
     },
     {
       "cardName": "deepseek-flash-dvf",
@@ -2325,8 +2433,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2360,6 +2468,24 @@
       "spawns": null,
       "task": false,
       "evidenceAgentId": null
+    },
+    {
+      "cardName": "deepseek-flash-bootstrap",
+      "filename": "deepseek-flash-bootstrap",
+      "sourceAgent": "deepseek-flash",
+      "sourceVariant": "deepseek-flash-bootstrap",
+      "catalogModel": "ollama-cloud/deepseek-v4-flash",
+      "resolvedModel": "ollama-cloud/deepseek-v4-flash",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "low",
+      "tools": [
+        "read"
+      ],
+      "spawns": null,
+      "task": true,
+      "evidenceAgentId": "deepseek-flash-bootstrap"
     },
     {
       "cardName": "fable-synth",
@@ -2404,7 +2530,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-advisor-heavy-sol",
@@ -2414,8 +2540,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2447,7 +2573,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-engineer-sonnet5"
     },
     {
       "cardName": "mure-advisor-watcher-haiku",
@@ -2467,7 +2593,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-scout-haiku"
     },
     {
       "cardName": "mure-advisor-watcher-dvflash",
@@ -2477,8 +2603,8 @@
       "catalogModel": "deepseek-v4-flash:direct",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "registry_blocked",
-      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — only canary-proven routes may resolve.",
+      "failClass": "canary_pending",
+      "reason": "Registry route \"deepseek-v4-flash:direct\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2510,7 +2636,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-advisor-heavy-dvp",
@@ -2553,7 +2679,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-architect"
     },
     {
       "cardName": "mure-advisor-heavy-m3",
@@ -2583,12 +2709,12 @@
       "filename": "mure-yuri",
       "sourceAgent": "mure-yuri",
       "sourceVariant": null,
-      "catalogModel": "openai/gpt-5.6-sol",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
-      "thinkingLevel": null,
+      "catalogModel": "anthropic/claude-opus-4-8",
+      "resolvedModel": "anthropic/claude-opus-4-8",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -2597,9 +2723,9 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
-      "evidenceAgentId": null
+      "evidenceAgentId": "mure-yuri-opus48"
     },
     {
       "cardName": "mure-yuri-sol",
@@ -2609,8 +2735,8 @@
       "catalogModel": "openai/gpt-5.6-sol",
       "resolvedModel": null,
       "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"openai/gpt-5.6-sol\" nor \"openai-codex/gpt-5.6-sol\" has canary-proven registry evidence.",
+      "failClass": "model_excluded",
+      "reason": "Sol is the orchestrator seat and unavailable as a dispatched worker model. No OMP route exists; do not attempt to resolve.",
       "thinkingLevel": null,
       "tools": [
         "read",
@@ -2620,7 +2746,7 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
       "evidenceAgentId": null
     },
@@ -2643,9 +2769,9 @@
         "write",
         "bash"
       ],
-      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy, mure-scout, mure-engineer, mure-mechanic, mure-sentinel, mure-adjudicator, mure-architect, mure-evolver, mure-advisor",
+      "spawns": "mure-helmsman, mure-helmsman-glm, mure-envoy-haiku, mure-scout-haiku, mure-engineer-sonnet5, mure-architect, mure-synthesist-m3, mure-oracle, mure-artificer-mimo25, mure-yuri-opus48, mure-sentinel-opus48, mure-adjudicator, mure-evolver, mure-advisor",
       "task": true,
-      "evidenceAgentId": "mure-scout"
+      "evidenceAgentId": "mure-yuri-opus48"
     }
   ]
 }
