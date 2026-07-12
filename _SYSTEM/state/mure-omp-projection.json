@@ -3,9 +3,9 @@
   "schemaVersion": "1.0",
   "source": "_SYSTEM/mure/agent-catalog.json",
   "generated": "2026-07-09T19:32:40.083Z",
-  "projected": 125,
-  "executable": 72,
-  "disabled": 53,
+  "projected": 127,
+  "executable": 75,
+  "disabled": 52,
   "cards": [
     {
       "cardName": "mure-helmsman",
@@ -128,11 +128,11 @@
       "sourceAgent": "mure-helmsman-glm",
       "sourceVariant": "mure-helmsman-glm-glm51",
       "catalogModel": "zai/glm-5.1",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "canary_pending",
-      "reason": "Registry route \"zai/glm-5.1\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
-      "thinkingLevel": null,
+      "resolvedModel": "zai/glm-5.1",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -151,15 +151,15 @@
       "sourceAgent": "mure-helmsman-glm",
       "sourceVariant": "mure-helmsman-glm51-bootstrap",
       "catalogModel": "zai/glm-5.1",
-      "resolvedModel": "zai/glm-5.1",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "high",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"zai/glm-5.1\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
-      "spawns": null,
+      "spawns": "*",
       "task": true,
       "evidenceAgentId": "mure-helmsman-glm51-bootstrap"
     },
@@ -431,12 +431,12 @@
       "filename": "mure-engineer",
       "sourceAgent": "mure-engineer",
       "sourceVariant": null,
-      "catalogModel": "ollama-cloud/kimi-k2.7-code:cloud",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"ollama-cloud/kimi-k2.7-code:cloud\" nor \"ollama-cloud/kimi-k2.7-code:cloud\" has canary-proven registry evidence.",
-      "thinkingLevel": null,
+      "catalogModel": "ollama-cloud/kimi-k2.7-code",
+      "resolvedModel": "ollama-cloud/kimi-k2.7-code",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "medium",
       "tools": [
         "read",
         "grep",
@@ -447,7 +447,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "mure-engineer-kimi-bootstrap"
     },
     {
       "cardName": "mure-engineer-sol",
@@ -616,16 +616,16 @@
       "sourceAgent": "mure-engineer",
       "sourceVariant": "mure-engineer-kimi-bootstrap",
       "catalogModel": "ollama-cloud/kimi-k2.7-code",
-      "resolvedModel": "ollama-cloud/kimi-k2.7-code",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "medium",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"ollama-cloud/kimi-k2.7-code\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "mure-engineer-kimi-bootstrap"
     },
     {
@@ -634,11 +634,11 @@
       "sourceAgent": "mure-mechanic",
       "sourceVariant": null,
       "catalogModel": "cursor/composer-2.5",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "canary_pending",
-      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
-      "thinkingLevel": null,
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
       "tools": [
         "read",
         "grep",
@@ -1045,11 +1045,11 @@
       "sourceAgent": "mure-ideator",
       "sourceVariant": null,
       "catalogModel": "cursor/composer-2.5",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "canary_pending",
-      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
-      "thinkingLevel": null,
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
       "tools": [
         "read",
         "grep",
@@ -1125,23 +1125,23 @@
       "sourceAgent": "mure-ideator",
       "sourceVariant": "composer-25-bootstrap",
       "catalogModel": "cursor/composer-2.5",
-      "resolvedModel": "cursor/composer-2.5",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "off",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"cursor/composer-2.5\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "composer-25-bootstrap"
     },
     {
-      "cardName": "mure-ideator-grok45-bootstrap",
-      "filename": "mure-ideator-grok45-bootstrap",
+      "cardName": "mure-ideator-grok45",
+      "filename": "mure-ideator-grok45",
       "sourceAgent": "mure-ideator",
-      "sourceVariant": "mure-ideator-grok45-bootstrap",
+      "sourceVariant": "mure-ideator-grok45",
       "catalogModel": "cursor/grok-4.5-xhigh",
       "resolvedModel": "cursor/grok-4.5-xhigh",
       "status": "OK",
@@ -1149,10 +1149,30 @@
       "reason": null,
       "thinkingLevel": "off",
       "tools": [
+        "read",
+        "grep",
+        "glob"
+      ],
+      "spawns": null,
+      "task": false,
+      "evidenceAgentId": "mure-ideator-grok45-bootstrap"
+    },
+    {
+      "cardName": "mure-ideator-grok45-bootstrap",
+      "filename": "mure-ideator-grok45-bootstrap",
+      "sourceAgent": "mure-ideator",
+      "sourceVariant": "mure-ideator-grok45-bootstrap",
+      "catalogModel": "cursor/grok-4.5-xhigh",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"cursor/grok-4.5-xhigh\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
+      "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "mure-ideator-grok45-bootstrap"
     },
     {
@@ -1160,12 +1180,12 @@
       "filename": "mure-deliberator",
       "sourceAgent": "mure-deliberator",
       "sourceVariant": null,
-      "catalogModel": "ollama-cloud/nemotron-3-ultra:cloud",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"ollama-cloud/nemotron-3-ultra:cloud\" nor \"ollama-cloud/nemotron-3-ultra:cloud\" has canary-proven registry evidence.",
-      "thinkingLevel": null,
+      "catalogModel": "ollama-cloud/nemotron-3-ultra",
+      "resolvedModel": "ollama-cloud/nemotron-3-ultra",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -1176,7 +1196,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "mure-deliberator-nemotron-bootstrap"
     },
     {
       "cardName": "mure-deliberator-glm52",
@@ -1276,16 +1296,16 @@
       "sourceAgent": "mure-deliberator",
       "sourceVariant": "mure-deliberator-nemotron-bootstrap",
       "catalogModel": "ollama-cloud/nemotron-3-ultra",
-      "resolvedModel": "ollama-cloud/nemotron-3-ultra",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "high",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"ollama-cloud/nemotron-3-ultra\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "mure-deliberator-nemotron-bootstrap"
     },
     {
@@ -1661,12 +1681,12 @@
       "filename": "mure-adjudicator-luna",
       "sourceAgent": "mure-adjudicator",
       "sourceVariant": "mure-adjudicator-luna",
-      "catalogModel": "openai/gpt-5.6-luna",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Registry route \"openai-codex/gpt-5.6-luna\" has status \"catalog-candidate\" (not canary-proven).",
-      "thinkingLevel": null,
+      "catalogModel": "openai-codex/gpt-5.6-luna",
+      "resolvedModel": "openai-codex/gpt-5.6-luna",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -1674,7 +1694,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "mure-adjudicator-luna-bootstrap"
     },
     {
       "cardName": "mure-adjudicator-glm52",
@@ -1751,16 +1771,16 @@
       "sourceAgent": "mure-adjudicator",
       "sourceVariant": "mure-adjudicator-luna-bootstrap",
       "catalogModel": "openai-codex/gpt-5.6-luna",
-      "resolvedModel": "openai-codex/gpt-5.6-luna",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "high",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"openai-codex/gpt-5.6-luna\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "mure-adjudicator-luna-bootstrap"
     },
     {
@@ -2045,11 +2065,11 @@
       "sourceAgent": "mure-quartermaster",
       "sourceVariant": null,
       "catalogModel": "cursor/composer-2.5",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "canary_pending",
-      "reason": "Registry route \"cursor-cli/composer-2.5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
-      "thinkingLevel": null,
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
       "tools": [
         "read",
         "grep",
@@ -2338,6 +2358,28 @@
       "evidenceAgentId": null
     },
     {
+      "cardName": "composer-fast-c25",
+      "filename": "composer-fast-c25",
+      "sourceAgent": "composer-fast",
+      "sourceVariant": "composer-fast-c25",
+      "catalogModel": "cursor/composer-2.5",
+      "resolvedModel": "cursor/composer-2.5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "off",
+      "tools": [
+        "read",
+        "grep",
+        "glob",
+        "write",
+        "bash"
+      ],
+      "spawns": null,
+      "task": false,
+      "evidenceAgentId": "composer-25-bootstrap"
+    },
+    {
       "cardName": "composer-fast-glmturbo",
       "filename": "composer-fast-glmturbo",
       "sourceAgent": "composer-fast",
@@ -2408,12 +2450,12 @@
       "filename": "deepseek-flash",
       "sourceAgent": "deepseek-flash",
       "sourceVariant": null,
-      "catalogModel": "ollama-cloud/deepseek-v4-flash:cloud",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "unproven_route",
-      "reason": "Neither \"ollama-cloud/deepseek-v4-flash:cloud\" nor \"ollama-cloud/deepseek-v4-flash:cloud\" has canary-proven registry evidence.",
-      "thinkingLevel": null,
+      "catalogModel": "ollama-cloud/deepseek-v4-flash",
+      "resolvedModel": "ollama-cloud/deepseek-v4-flash",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "low",
       "tools": [
         "read",
         "grep",
@@ -2423,7 +2465,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": null
+      "evidenceAgentId": "deepseek-flash-bootstrap"
     },
     {
       "cardName": "deepseek-flash-dvf",
@@ -2475,16 +2517,16 @@
       "sourceAgent": "deepseek-flash",
       "sourceVariant": "deepseek-flash-bootstrap",
       "catalogModel": "ollama-cloud/deepseek-v4-flash",
-      "resolvedModel": "ollama-cloud/deepseek-v4-flash",
-      "status": "OK",
-      "failClass": null,
-      "reason": null,
-      "thinkingLevel": "low",
+      "resolvedModel": null,
+      "status": "FAIL_CLOSED",
+      "failClass": "bootstrap_expired",
+      "reason": "Route \"ollama-cloud/deepseek-v4-flash\" is now canary-proven; the canary-bootstrap variant is a tombstone and must never resolve again — dispatch the normal (non-bootstrap) variant instead.",
+      "thinkingLevel": null,
       "tools": [
         "read"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "deepseek-flash-bootstrap"
     },
     {

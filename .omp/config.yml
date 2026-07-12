@@ -4,15 +4,16 @@ task:
   maxRecursionDepth: 2
 
   disabledAgents:
+    - composer-25-bootstrap
     - composer-fast
     - composer-fast-dvf
     - composer-fast-glmturbo
-    - deepseek-flash
+    - deepseek-flash-bootstrap
     - deepseek-flash-dvf
     - deepseek-flash-glmturbo
     - fable-synth
     - mure-adjudicator-dvp
-    - mure-adjudicator-luna
+    - mure-adjudicator-luna-bootstrap
     - mure-adjudicator-sol
     - mure-advisor-heavy-dvp
     - mure-advisor-heavy-sol
@@ -29,25 +30,23 @@ task:
     - mure-calibrator-glmturbo
     - mure-chronicler-cline-mimo
     - mure-chronicler-gemma4
-    - mure-deliberator
     - mure-deliberator-cline-qwen
     - mure-deliberator-dvp
-    - mure-engineer
+    - mure-deliberator-nemotron-bootstrap
     - mure-engineer-cline-kimi
     - mure-engineer-dvf
+    - mure-engineer-kimi-bootstrap
     - mure-engineer-sol
     - mure-engineer-terra
     - mure-envoy-sol
-    - mure-helmsman-glm-glm51
+    - mure-helmsman-glm51-bootstrap
     - mure-helmsman-sol
-    - mure-ideator
     - mure-ideator-dvp
+    - mure-ideator-grok45-bootstrap
     - mure-kernelsmith
     - mure-kernelsmith-dvp
-    - mure-mechanic
     - mure-mechanic-dvf
     - mure-oracle-dvf
-    - mure-quartermaster
     - mure-quartermaster-dvf
     - mure-quartermaster-glmturbo
     - mure-scout-cline-dvf

@@ -186,14 +186,14 @@ test('openai/gpt-5.6-sol fails closed (registry_blocked or unproven — no live 
   assert.equal(result.sourceRoute, 'openai/gpt-5.6-sol');
 });
 
-test('openai/gpt-5.6-luna fails closed (unproven — no registry row)', () => {
+test('openai/gpt-5.6-luna resolves OK via normalized openai-codex selector (canary-proven)', () => {
   const result = resolveOmpModel('openai/gpt-5.6-luna');
-  assert.equal(result.selector, null, 'unproven route must not emit a selector');
-  assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.UNPROVEN_ROUTE);
-  assert.equal(result.routeStatus, 'unregistered');
+  assert.equal(result.status, 'OK');
+  assert.equal(result.selector, 'openai-codex/gpt-5.6-luna', 'selector must normalize to openai-codex/gpt-5.6-luna');
   assert.equal(result.sourceRoute, 'openai/gpt-5.6-luna');
-  assert.ok(result.reason.toLowerCase().includes('canary-proven'), 'reason must mention missing canary evidence');
+  assert.equal(result.routeStatus, 'canary-proven');
+  assert.equal(result.failClass, null);
+  assert.ok(!result.selector.startsWith('openai/'), 'normalized selector must never carry the openai/ forbidden prefix');
 });
 
 // ── MiniMax M3 (canary-proven) ─────────────────────────────────────────────
@@ -228,12 +228,13 @@ test('cursor/gemini-3.5-flash normalizes cursor-cli/* registry evidence to a cur
   assert.ok(!result.selector.startsWith('cursor-cli/'));
 });
 
-test('cursor/composer-2.5 normalizes to cursor/* selector but fails closed pending (catalog-candidate registry row)', () => {
+test('cursor/composer-2.5 normalizes to cursor/* selector and resolves OK (canary-proven)', () => {
   const result = resolveOmpModel('cursor/composer-2.5');
-  assert.equal(result.status, 'FAIL_CLOSED');
-  assert.equal(result.failClass, FAIL_CLASSES.CANARY_PENDING);
+  assert.equal(result.status, 'OK');
+  assert.equal(result.selector, 'cursor/composer-2.5', 'selector must use cursor/, never cursor-cli/');
   assert.equal(result.sourceRoute, 'cursor-cli/composer-2.5');
-  assert.equal(result.selector, null);
+  assert.equal(result.routeStatus, 'canary-proven');
+  assert.ok(!result.selector.startsWith('cursor-cli/'));
 });
 
 // ── Non-canary-proven registry routes fail closed (table-driven) ────────────

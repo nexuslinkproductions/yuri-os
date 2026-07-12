@@ -30,16 +30,18 @@ const WORKER_BINDINGS = new Map([
   ['ollama-cloud/deepseek-v4-flash:cloud', 'deepseek-flash'],
   ['cline-pass/cline-pass/deepseek-v4-flash', 'mure-scout'],
   ['cursor-cli/gemini-3.5-flash', 'mure-scout'],
-  // Evidence-only canary-bootstrap admission — catalog-candidate routes.
-  // These exact live-confirmed selectors bind ONLY to their bootstrap card;
-  // see BOOTSTRAP_AGENT_IDS + the evidence-only compiler guard below.
-  ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash-bootstrap'],
-  ['ollama-cloud/kimi-k2.7-code', 'mure-engineer-kimi-bootstrap'],
-  ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator-nemotron-bootstrap'],
-  ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna-bootstrap'],
-  ['zai/glm-5.1', 'mure-helmsman-glm51-bootstrap'],
-  ['cursor/composer-2.5', 'composer-25-bootstrap'],
-  ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45-bootstrap'],
+  // Promoted MoE routes (canary-proven) — bind to the normal admitted
+  // card. Bootstrap agent IDs remain in BOOTSTRAP_AGENT_IDS below as
+  // historical evidence identities but no longer appear as a
+  // WORKER_BINDINGS target for these models; the resolver tombstones the
+  // bootstrap variant (bootstrap_expired) once a route is canary-proven.
+  ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash'],
+  ['ollama-cloud/kimi-k2.7-code', 'mure-engineer'],
+  ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator'],
+  ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna'],
+  ['zai/glm-5.1', 'mure-helmsman-glm-glm51'],
+  ['cursor/composer-2.5', 'composer-fast-c25'],
+  ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45'],
 ]);
 // Canary-bootstrap evidence-only agent cards — never eligible for producer,
 // verifier, availability-fallback, or quality-escalation purposes. Their

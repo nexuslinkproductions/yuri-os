@@ -204,27 +204,30 @@ test('compiler accepts catalog-backed DeepSeek, Ollama, Cline, Cursor, and Haiku
   }
 });
 
-test('canary-bootstrap agent models compile for purpose evidence and reject purpose producer', () => {
-  const bootstrapRoutes = [
-    ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash-bootstrap'],
-    ['ollama-cloud/kimi-k2.7-code', 'mure-engineer-kimi-bootstrap'],
-    ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator-nemotron-bootstrap'],
-    ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna-bootstrap'],
-    ['zai/glm-5.1', 'mure-helmsman-glm51-bootstrap'],
-    ['cursor/composer-2.5', 'composer-25-bootstrap'],
-    ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45-bootstrap'],
+test('promoted canary routes compile to normal cards and reject expired bootstrap cards', () => {
+  const promotedRoutes = [
+    ['ollama-cloud/deepseek-v4-flash', 'deepseek-flash', 'deepseek-flash-bootstrap'],
+    ['ollama-cloud/kimi-k2.7-code', 'mure-engineer', 'mure-engineer-kimi-bootstrap'],
+    ['ollama-cloud/nemotron-3-ultra', 'mure-deliberator', 'mure-deliberator-nemotron-bootstrap'],
+    ['openai-codex/gpt-5.6-luna', 'mure-adjudicator-luna', 'mure-adjudicator-luna-bootstrap'],
+    ['zai/glm-5.1', 'mure-helmsman-glm-glm51', 'mure-helmsman-glm51-bootstrap'],
+    ['cursor/composer-2.5', 'composer-fast-c25', 'composer-25-bootstrap'],
+    ['cursor/grok-4.5-xhigh', 'mure-ideator-grok45', 'mure-ideator-grok45-bootstrap'],
   ];
-  for (const [model, agentId] of bootstrapRoutes) {
+  for (const [model, agentId, bootstrapAgentId] of promotedRoutes) {
     const compiled = compileOmpSpawn(
-      { ...entry('bootstrap-identity', 'evidence', model), agentId },
-      { taskId: 'bootstrap-identity' },
+      { ...entry('promoted-identity', 'producer', model), agentId },
+      { taskId: 'promoted-identity' },
     );
-    assert.equal(compiled.tasks[0].agent, agentId, `${model} must compile evidence purpose to ${agentId}`);
+    assert.equal(compiled.tasks[0].agent, agentId, `${model} must compile producer purpose to ${agentId}`);
 
     assert.throws(
-      () => compileOmpSpawn({ ...entry('bootstrap-identity', 'producer', model), agentId }, { taskId: 'bootstrap-identity' }),
-      /evidence-only and may not compile for purpose: producer/,
-      `${agentId} must reject purpose producer`,
+      () => compileOmpSpawn(
+        { ...entry('promoted-identity', 'evidence', model), agentId: bootstrapAgentId },
+        { taskId: 'promoted-identity' },
+      ),
+      new RegExp(`agentId must be ${agentId}`),
+      `${bootstrapAgentId} must remain expired after route promotion`,
     );
   }
 });

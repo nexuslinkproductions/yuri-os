@@ -166,7 +166,7 @@
     {
       "name": "mure-helmsman-glm",
       "lane": "orchestration",
-      "description": "MURE Helmsman (GLM-5.2) (orchestration) — dispatcher/router + research-vision lead. GLM-5.2 orchestrator variant (route to z.ai quota pool, or when opus is capped).",
+      "description": "MURE Helmsman (GLM family) (orchestration) — dispatcher/router + research-vision lead. Use the admitted z.ai variant that matches the task's depth and available quota.",
       "model": "zai/glm-5.2",
       "thinkingLevel": "high",
       "tools": [
@@ -187,7 +187,7 @@
         "dispatch-planning"
       ],
       "autonomy": "owner-gated",
-      "notes": "GLM-5.2 variant of helmsman; route to z.ai quota pool.",
+      "notes": "Z.ai GLM helmsman family; the base route uses GLM-5.2 and admitted variants may use other proven GLM releases.",
       "variants": [
         {
           "id": "mure-helmsman-glm-glm51",
@@ -549,7 +549,7 @@
       "name": "mure-engineer",
       "lane": "engineering",
       "description": "Builds and wires production features end-to-end. Where the Mechanic repairs and the Artificer scaffolds, the Engineer owns greenfield implementation, architecture seams, and testable delivery. Dispatch when a feature branch needs code, tests, and integration.",
-      "model": "ollama-cloud/kimi-k2.7-code:cloud",
+      "model": "ollama-cloud/kimi-k2.7-code",
       "thinkingLevel": "medium",
       "tools": [
         "read",
@@ -1391,6 +1391,26 @@
           "note": "Evidence-only canary-bootstrap capture for the cursor/composer-2.5 catalog-candidate route (evidence-only, read-only; never producer-dispatched)."
         },
         {
+          "id": "mure-ideator-grok45",
+          "model": "cursor/grok-4.5-xhigh",
+          "thinkingLevel": "high",
+          "tools": [
+            "read",
+            "grep",
+            "glob"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "apex-judgment"
+          ],
+          "eligibilityFlags": [
+            "heavy",
+            "cursor-quota-pool"
+          ],
+          "costTier": "heavy",
+          "note": "Normal canary-proven producer variant for cursor/grok-4.5-xhigh — divergent scan + remote-association generator on the exact proven selector."
+        },
+        {
           "id": "mure-ideator-grok45-bootstrap",
           "model": "cursor/grok-4.5-xhigh",
           "thinkingLevel": "off",
@@ -1432,7 +1452,7 @@
       "name": "mure-deliberator",
       "lane": "research",
       "description": "MURE Deliberator (research) — deep reasoner (continuous-thought) — depth-adaptive. hold one hard sub-problem deeply with adaptive compute.",
-      "model": "ollama-cloud/nemotron-3-ultra:cloud",
+      "model": "ollama-cloud/nemotron-3-ultra",
       "thinkingLevel": "high",
       "tools": [
         "read",
@@ -1981,7 +2001,7 @@
         },
         {
           "id": "mure-adjudicator-luna",
-          "model": "openai/gpt-5.6-luna",
+          "model": "openai-codex/gpt-5.6-luna",
           "thinkingLevel": "high",
           "tools": [
             "read",
@@ -2828,6 +2848,30 @@
       "notes": "Requires cursor-cli provider. Generic fast worker pattern.",
       "variants": [
         {
+          "id": "composer-fast-c25",
+          "model": "cursor/composer-2.5",
+          "thinkingLevel": "medium",
+          "tools": [
+            "read",
+            "grep",
+            "glob",
+            "write",
+            "bash"
+          ],
+          "max_tokens": 8192,
+          "systemSections": [
+            "agentic-clean-tool-use",
+            "minimalist"
+          ],
+          "eligibilityFlags": [
+            "medium",
+            "cursor-quota-pool",
+            "parallel-worker"
+          ],
+          "costTier": "medium",
+          "note": "Normal canary-proven producer variant for cursor/composer-2.5 — bulk drafting and critique on the exact proven selector."
+        },
+        {
           "id": "composer-fast-glmturbo",
           "model": "zai/glm-5-turbo",
           "thinkingLevel": "low",
@@ -2921,7 +2965,7 @@
       "name": "deepseek-flash",
       "lane": "research",
       "description": "High-velocity mechanical processing lane. Optimized for rapid extraction, bulk formatting, and low-latency evidence gathering. Dispatch for 'caveman' style data dumps, basic grep-like summaries, and high-volume token-efficient throughput.",
-      "model": "ollama-cloud/deepseek-v4-flash:cloud",
+      "model": "ollama-cloud/deepseek-v4-flash",
       "thinkingLevel": "low",
       "tools": [
         "read",

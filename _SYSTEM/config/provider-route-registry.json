@@ -251,8 +251,24 @@
           "surface": "omp-native",
           "model": "ollama-cloud/deepseek-v4-flash",
           "agentId": "deepseek-flash-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "deepseek-flash-bootstrap",
+            "jobId": "CanaryDeepseekEvidenceFinal",
+            "model": "ollama-cloud/deepseek-v4-flash",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f5610-fc04-7000-a190-80e810233b71",
+            "result": {
+              "canary": "ollama-deepseek-v4-flash",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "low",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -265,8 +281,24 @@
           "surface": "omp-native",
           "model": "ollama-cloud/kimi-k2.7-code",
           "agentId": "mure-engineer-kimi-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-engineer-kimi-bootstrap",
+            "jobId": "CanaryKimiEvidenceFinal",
+            "model": "ollama-cloud/kimi-k2.7-code",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f5611-5e68-7000-b37e-a56e3a22b081",
+            "result": {
+              "canary": "ollama-kimi-k2-7-code",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "medium",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -279,8 +311,24 @@
           "surface": "omp-native",
           "model": "ollama-cloud/nemotron-3-ultra",
           "agentId": "mure-deliberator-nemotron-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-deliberator-nemotron-bootstrap",
+            "jobId": "CanaryNemotronEvidence",
+            "model": "ollama-cloud/nemotron-3-ultra",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f560a-5b03-7000-b962-3f73ac42197b",
+            "result": {
+              "canary": "ollama-nemotron-3-ultra",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -293,8 +341,24 @@
           "surface": "omp-native",
           "model": "openai-codex/gpt-5.6-luna",
           "agentId": "mure-adjudicator-luna-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-adjudicator-luna-bootstrap",
+            "jobId": "CanaryLunaEvidence",
+            "model": "openai-codex/gpt-5.6-luna",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f560a-a6a6-7000-9d67-861a7a5867a0",
+            "result": {
+              "canary": "openai-gpt-5-6-luna",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -307,8 +371,24 @@
           "surface": "omp-native",
           "model": "zai/glm-5.1",
           "agentId": "mure-helmsman-glm51-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-helmsman-glm51-bootstrap",
+            "jobId": "CanaryGlm51Evidence",
+            "model": "zai/glm-5.1",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f560b-123b-7000-8855-644be0d501e3",
+            "result": {
+              "canary": "zai-glm-5-1",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -319,10 +399,26 @@
           "id": "composer-2.5.cursor",
           "provider": "cursor",
           "surface": "omp-native",
-          "model": "cursor-cli/composer-2.5",
+          "model": "cursor/composer-2.5",
           "agentId": "composer-25-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "composer-25-bootstrap",
+            "jobId": "CanaryComposer25Evidence",
+            "model": "cursor/composer-2.5",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f560b-710d-7000-ac55-c61e1081e990",
+            "result": {
+              "canary": "cursor-composer-2-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": null,
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },
@@ -333,10 +429,26 @@
           "id": "grok-4.5-xhigh.cursor",
           "provider": "cursor",
           "surface": "omp-native",
-          "model": "cursor-cli/grok-4.5-xhigh",
+          "model": "cursor/grok-4.5-xhigh",
           "agentId": "mure-ideator-grok45-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "mure-ideator-grok45-bootstrap",
+            "jobId": "CanaryGrok45Evidence",
+            "model": "cursor/grok-4.5-xhigh",
+            "observed": "2026-07-12",
+            "ompSessionId": "019f560b-bfa2-7000-9e16-ebae76cee78a",
+            "result": {
+              "canary": "cursor-grok-4-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": null,
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     }
