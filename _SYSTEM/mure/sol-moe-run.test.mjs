@@ -41,7 +41,7 @@ test('compiles native dispatch intent and performs no spawn effects', async () =
   assert.equal(result.plan.queues.producers[0].model, 'zai/glm-5.2');
   assert.equal(result.nextAction.type, 'omp-task-spawn');
   assert.deepEqual(Object.keys(result.nextAction.args).sort(), [
-    'agent', 'context', 'i', 'tasks',
+    'context', 'i', 'tasks',
   ]);
 });
 
@@ -72,6 +72,6 @@ test('default availability mask routes around GLM without probing it', async () 
   const result = await runSolMoeTask(architectureTask, {
     timestamp: 'FIXED',
   });
-  assert.equal(result.nextAction.args.agent, 'mure-synthesist');
+  assert.equal(result.nextAction.args.tasks[0].agent, 'mure-synthesist');
   assert.equal(result.nextAction.routeKind, 'availability-fallback');
 });

@@ -45,16 +45,13 @@ export function compileOmpSpawn(entry, context = {}) {
   const execution = validateContext(context, normalized.taskId);
   const task = buildTask(normalized, execution);
   const ompTaskId = deterministicOmpTaskId(normalized);
-  const roleLabel = normalized.role || 'worker';
   return Object.freeze({
     i: `MURE ${normalized.purpose} ${safeToken(normalized.taskId, 20)}`,
     context: buildOmpContext(normalized),
-    agent: normalized.agentId,
     tasks: [Object.freeze({
-      assignment: task,
-      id: ompTaskId,
-      description: `${normalized.purpose}: ${normalized.taskId} (${roleLabel})`,
-      role: roleLabel,
+      task,
+      name: ompTaskId,
+      agent: normalized.agentId,
     })],
   });
 }
@@ -67,7 +64,7 @@ function buildOmpContext(entry) {
     'Run only the assigned task. Do not modify files outside its scope. ' +
     'The dispatcher is the parent OMP session.',
     '# Contract',
-    'Task ID is the emitted tasks[0].id. This is a single isolated unit of work.',
+    'Task ID is the emitted tasks[0].name. This is a single isolated unit of work.',
   ].join('\n');
 }
 
@@ -165,8 +162,9 @@ export function recordNativeSpawnAccepted(state, action, receipt) {
     throw new TypeError(`OMP spawn receipt jobId is malformed: ${truncate(jobId, 64)}`);
   }
   const agent = nonEmpty(receipt.agent, 'receipt.agent');
-  if (agent !== action.args.agent) {
-    throw new TypeError(`OMP spawn receipt agent ${agent} does not match dispatched card ${action.args.agent}`);
+  const dispatchedAgent = action.args.tasks[0].agent;
+  if (agent !== dispatchedAgent) {
+    throw new TypeError(`OMP spawn receipt agent ${agent} does not match dispatched card ${dispatchedAgent}`);
   }
   const next = thaw(state);
   const task = next.tasks[action.taskId];
@@ -342,7 +340,7 @@ function spawn(state, task, entry, routeKind, purpose, options) {
   });
   task.attempt = attempt;
   task.status = 'awaiting';
-  task.awaiting = { entry, routeKind, purpose, attempt, emittedTaskId: args.tasks[0].id };
+  task.awaiting = { entry, routeKind, purpose, attempt, emittedTaskId: args.tasks[0].name };
   task.attemptedEntryIds.push(entry.id);
   return result(state, Object.freeze({
     type: 'omp-task-spawn',

@@ -94,7 +94,7 @@ const producerEvidence = { evidence: { TERM_COUNT: '4', FILE_COUNT: '1' } };
 function receiptFor(action, id) {
   return {
     jobId: `job-${id}`,
-    agent: action.args.agent,
+    agent: action.args.tasks[0].agent,
   };
 }
 
@@ -170,7 +170,7 @@ test('admitOmpSpawn rejects receipt whose agent diverges from dispatched card', 
 test('applyOmpCompletion resolves taskId/entryId/purpose from state by jobId', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   const applied = applyOmpCompletion(state, shadow,
-    spawnResult({ id: action.args.tasks[0].id, output: '{"summary":"ok"}' }),
+    spawnResult({ id: action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     jobId,
     transcriptEvidence('minimax-portal/MiniMax-M3', jobId),
     producerEvidence);
@@ -184,8 +184,8 @@ test('applyOmpCompletion resolves taskId/entryId/purpose from state by jobId', (
 test('applyOmpCompletion carries failure on non-completed status', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   const applied = applyOmpCompletion(state, shadow, {
-    id: action.args.tasks[0].id,
-    agent: action.args.agent,
+    id: action.args.tasks[0].name,
+    agent: action.args.tasks[0].agent,
     status: 'failed',
     duration: 100,
     output: null,
@@ -198,7 +198,7 @@ test('applyOmpCompletion carries failure on non-completed status', () => {
 test('applyOmpCompletion rejects on agent mismatch', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   assert.throws(() => applyOmpCompletion(state, shadow, {
-    id: action.args.tasks[0].id,
+    id: action.args.tasks[0].name,
     agent: 'mure-calibrator',
     status: 'completed',
     duration: 100,
@@ -210,7 +210,7 @@ test('applyOmpCompletion rejects on emitted task id mismatch', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   assert.throws(() => applyOmpCompletion(state, shadow, {
     id: 'WrongTaskIdentifier',
-    agent: action.args.agent,
+    agent: action.args.tasks[0].agent,
     status: 'completed',
     duration: 100,
     output: '{}',
@@ -220,7 +220,7 @@ test('applyOmpCompletion rejects on emitted task id mismatch', () => {
 test('applyOmpCompletion drives producer→verifier→passed loop', () => {
   const first = scheduleAndAdmit();
   const producerApplied = applyOmpCompletion(first.state, first.shadow,
-    spawnResult({ id: first.action.args.tasks[0].id, output: '{"summary":"ok"}' }),
+    spawnResult({ id: first.action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     first.jobId,
     transcriptEvidence('minimax-portal/MiniMax-M3', first.jobId),
     producerEvidence);
@@ -242,8 +242,8 @@ test('applyOmpCompletion drives producer→verifier→passed loop', () => {
     verifierAdmitted.state,
     verifierAdmitted.shadow,
     {
-      id: producerApplied.action.args.tasks[0].id,
-      agent: producerApplied.action.args.agent,
+      id: producerApplied.action.args.tasks[0].name,
+      agent: producerApplied.action.args.tasks[0].agent,
       status: 'completed',
       duration: 100,
       output: '{"verdict":"pass"}',
@@ -263,7 +263,7 @@ test('applyOmpCompletion drives producer→verifier→passed loop', () => {
 test('applyOmpCompletion carries verifier pass through to accepted ledger', () => {
   const first = scheduleAndAdmit();
   const producerApplied = applyOmpCompletion(first.state, first.shadow,
-    spawnResult({ id: first.action.args.tasks[0].id, output: '{"summary":"ok"}' }),
+    spawnResult({ id: first.action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     first.jobId,
     transcriptEvidence('minimax-portal/MiniMax-M3', first.jobId),
     producerEvidence);
@@ -281,8 +281,8 @@ test('applyOmpCompletion carries verifier pass through to accepted ledger', () =
     verifierAdmitted.state,
     verifierAdmitted.shadow,
     {
-      id: producerApplied.action.args.tasks[0].id,
-      agent: producerApplied.action.args.agent,
+      id: producerApplied.action.args.tasks[0].name,
+      agent: producerApplied.action.args.tasks[0].agent,
       status: 'completed',
       duration: 100,
       output: '{"verdict":"pass"}',
@@ -316,7 +316,7 @@ test('extractTerminalTaskResult surfaces failure on fail-loud', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   // Use a transcript with a mismatched model to trigger MODEL_MISMATCH
   const applied = applyOmpCompletion(state, shadow,
-    spawnResult({ id: action.args.tasks[0].id, output: '{"summary":"ok"}' }),
+    spawnResult({ id: action.args.tasks[0].name, output: '{"summary":"ok"}' }),
     jobId,
     transcriptEvidence('anthropic/claude-sonnet-5', jobId),  // model doesn't match entry (minimax-portal/MiniMax-M3)
     producerEvidence);
@@ -352,8 +352,8 @@ test('extractTerminalTaskResults reports only terminal tasks', () => {
 test('applyOmpCompletion rejects success on failed (exit 1) status with valid-looking output', () => {
   const { action, state, shadow, jobId } = scheduleAndAdmit();
   const applied = applyOmpCompletion(state, shadow, {
-    id: action.args.tasks[0].id,
-    agent: action.args.agent,
+    id: action.args.tasks[0].name,
+    agent: action.args.tasks[0].agent,
     status: 'failed (exit 1)',
     duration: 100,
     output: '{"result":"looks ok"}',
