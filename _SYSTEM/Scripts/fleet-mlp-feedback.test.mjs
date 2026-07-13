@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, statSync } from 'node:fs';
+import { mkdtempSync, statSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
@@ -10,6 +10,7 @@ import {
   recordMlpOutcomesFromRun,
   deriveLeafOutcome,
 } from './fleet-mlp-feedback.mjs';
+import { recordPrediction, recordOutcome } from './prediction-ledger.mjs';
 
 function fakePlan() {
   return {
@@ -148,5 +149,274 @@ describe('fleet-mlp-feedback', () => {
     assert.equal(out.skippedOutcomes, 0);
     assert.equal(out.records[0].skipped, undefined);
     assert.equal(out.records[0].success, 1);
+  });
+  // ── Fail-label calibration defect: !!label fallback must not catch explicit failures ──
+
+  it('deriveLeafOutcome marks F-type label as failure even with ok status', () => {
+    // F-type = lane self-declared FAILURE. The !!label fallback used to count this as
+    // success=1, feeding a false-positive gradient to the MLP router.
+    const o = deriveLeafOutcome('leaf-f', {
+      swarm: { poolOutputs: { 'leaf-f': { status: 'ok', label: '08CW_AUDIT_F_PASS_COMMITTED', text: 'self-declared failure' } } },
+    });
+    assert.equal(o.skipped, undefined, 'a labeled outcome must not be skipped');
+    assert.equal(o.success, 0, 'F-type (failure) label must NOT count as success regardless of status');
+  });
+
+  it('deriveLeafOutcome marks BLOCKED terminal as failure even with ok status', () => {
+    // BLOCKED terminal = work did not complete. Even with P-type self-certification,
+    // a blocked task is a routing failure — the substrate could not complete the work.
+    const o = deriveLeafOutcome('leaf-b', {
+      swarm: { poolOutputs: { 'leaf-b': { status: 'ok', label: '08CW_TASK_P_BLOCKED', text: 'task blocked' } } },
+    });
+    assert.equal(o.skipped, undefined);
+    assert.equal(o.success, 0, 'BLOCKED terminal must NOT count as success');
+  });
+
+  it('deriveLeafOutcome marks REPAIR_REQUIRED terminal as failure even with ok status', () => {
+    const o = deriveLeafOutcome('leaf-r', {
+      swarm: { poolOutputs: { 'leaf-r': { status: 'ok', label: '08CW_TASK_X_REPAIR_REQUIRED', text: 'needs repair' } } },
+    });
+    assert.equal(o.skipped, undefined);
+    assert.equal(o.success, 0, 'REPAIR_REQUIRED terminal must NOT count as success');
+  });
+
+  it('deriveLeafOutcome F-type with COMMITTED terminal (no PASS) is also failure', () => {
+    const o = deriveLeafOutcome('leaf-fc', {
+      swarm: { poolOutputs: { 'leaf-fc': { status: 'ok', label: '08CW_TASK_F_COMMITTED', text: 'committed failure' } } },
+    });
+    assert.equal(o.skipped, undefined);
+    assert.equal(o.success, 0, 'F-type COMMITTED must NOT count as success');
+  });
+
+  it('deriveLeafOutcome P-type COMMITTED (no PASS, no BLOCKED) still counts as degraded success', () => {
+    // Negative-path: P/X-type with plain COMMITTED (not PASS, not BLOCKED/REPAIR) is
+    // a degraded pass — the lane self-certified but without explicit PASS verification.
+    // The !!label fallback correctly handles this ambiguous case.
+    const o = deriveLeafOutcome('leaf-pc', {
+      swarm: { poolOutputs: { 'leaf-pc': { status: 'ok', label: '08CW_TASK_P_COMMITTED', text: 'committed' } } },
+    });
+    assert.equal(o.skipped, undefined);
+    assert.equal(o.success, 1, 'P-type COMMITTED is a degraded success, not a failure');
+    assert.equal(o.quality, 0.65);
+  });
+});
+
+/** Seed a matched, labeled (role, substrate) sample directly on a ledger file — mirrors the
+ * shape recordMlpPredictions/recordMlpOutcomesFromRun write in production. */
+function seedMatchedSample(ledgerFile, { id, role, substrate, success, ts }) {
+  recordPrediction({
+    id,
+    subject: `fleet-route:${id}`,
+    change: `route ${id} (role=${role}) → ${substrate}`,
+    predictedEffects: [{ target: 'substrate', effect: substrate, confidence: 0.7 }],
+    source: 'fleet-router-mlp',
+    ts,
+  }, { file: ledgerFile });
+  recordOutcome({
+    predictionId: id,
+    observedEffects: [
+      { target: 'substrate', effect: substrate },
+      { target: 'success', effect: success },
+      { target: 'quality', effect: success ? 0.9 : 0.2 },
+    ],
+    ts,
+  }, { file: ledgerFile });
+}
+
+function planWithLeaf(id, role, substrate) {
+  return {
+    glmLeaves: [{
+      id, role, prompt: 'test task',
+      routerSuggestion: { substrate, lane: substrate === 'glm' ? 'glm-max' : substrate },
+      routerConfidence: 0.72,
+    }],
+    nativeSpecs: [],
+  };
+}
+
+function okRunResult(id) {
+  return {
+    swarm: {
+      converged: true,
+      poolOutputs: { [id]: { status: 'ok', label: '01AA_TEST_X_PASS_COMMITTED', text: 'done' } },
+    },
+  };
+}
+
+describe('fleet-mlp-feedback: Track-A historicalSuccess evidence bridge', () => {
+  it('threshold met: writes exactly ONE aggregated snapshot, never a raw per-outcome row', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mlp-evidence-'));
+    const ledgerFile = join(dir, 'ledger.jsonl');
+    const memoryLogPath = join(dir, 'memory-ledger.jsonl');
+    // 2 prior matched samples — below HISTORICAL_SUCCESS_MIN_SAMPLES(3) on their own.
+    seedMatchedSample(ledgerFile, { id: 'seed1', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 1).toISOString() });
+    seedMatchedSample(ledgerFile, { id: 'seed2', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 2).toISOString() });
+
+    const plan = planWithLeaf('leaf-x', 'engineer', 'glm');
+    const pred = await recordMlpPredictions(plan, {}, { persist: true, ledgerFile });
+    const out = await recordMlpOutcomesFromRun(plan, okRunResult('leaf-x'), pred, { persist: true, ledgerFile, memoryLogPath });
+
+    // Primary path unaffected.
+    assert.equal(out.records[0].success, 1);
+    assert.equal(out.skippedOutcomes, 0);
+
+    // Aggregated evidence: exactly one snapshot, sampleSize 3 (2 seeded + this run's own outcome).
+    assert.equal(out.memoryEvidence.length, 1);
+    const snap = out.memoryEvidence[0];
+    assert.equal(snap.skipped, false);
+    assert.equal(snap.role, 'engineer');
+    assert.equal(snap.substrateFamily, 'glm-workhorse');
+    assert.equal(snap.sampleSize, 3);
+    assert.equal(snap.value, 1);
+
+    // The Track-A ledger itself carries exactly one aggregated row, never a raw per-outcome dump.
+    const lines = readFileSync(memoryLogPath, 'utf8').trim().split('\n').filter(Boolean);
+    assert.equal(lines.length, 1);
+    const row = JSON.parse(lines[0]);
+    assert.equal(row.type, 'evidence');
+    assert.equal(row.metadata.role, 'engineer');
+    assert.equal(row.metadata.substrateFamily, 'glm-workhorse');
+    assert.equal(row.metadata.sampleSize, 3);
+    assert.equal(row.content.includes('resultLabel'), false, 'must never leak a raw per-outcome field');
+    assert.equal(row.content.includes('01AA_TEST'), false, 'must never leak the raw RESULT_LABEL');
+  });
+
+  it('below minimum samples: no evidence snapshot is written, Track-A ledger untouched', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mlp-evidence-'));
+    const ledgerFile = join(dir, 'ledger.jsonl');
+    const memoryLogPath = join(dir, 'memory-ledger.jsonl');
+
+    const plan = planWithLeaf('leaf-y', 'engineer', 'glm');
+    const pred = await recordMlpPredictions(plan, {}, { persist: true, ledgerFile });
+    const out = await recordMlpOutcomesFromRun(plan, okRunResult('leaf-y'), pred, { persist: true, ledgerFile, memoryLogPath });
+
+    assert.equal(out.memoryEvidence.length, 1);
+    assert.equal(out.memoryEvidence[0].skipped, true);
+    assert.equal(out.memoryEvidence[0].reason, 'below-min-samples');
+    assert.equal(out.memoryEvidence[0].sampleSize, 1);
+
+    let size = 0;
+    try { size = statSync(memoryLogPath).size; } catch { size = 0; }
+    assert.equal(size, 0, 'no Track-A entry may be written below the minimum-sample threshold');
+  });
+
+  it('malformed/empty outcome produces no evidence at all (never fabricates a false snapshot)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mlp-evidence-'));
+    const ledgerFile = join(dir, 'ledger.jsonl');
+    const memoryLogPath = join(dir, 'memory-ledger.jsonl');
+    // Even with plenty of matched prior history, THIS run's own outcome is empty/unlabeled.
+    seedMatchedSample(ledgerFile, { id: 'seed1', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 1).toISOString() });
+    seedMatchedSample(ledgerFile, { id: 'seed2', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 2).toISOString() });
+    seedMatchedSample(ledgerFile, { id: 'seed3', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 3).toISOString() });
+
+    const plan = planWithLeaf('leaf-z', 'engineer', 'glm');
+    const pred = await recordMlpPredictions(plan, {}, { persist: true, ledgerFile });
+    const emptyRunResult = { swarm: { poolOutputs: { 'leaf-z': { status: 'error', label: '', text: '' } } } };
+    const out = await recordMlpOutcomesFromRun(plan, emptyRunResult, pred, { persist: true, ledgerFile, memoryLogPath });
+
+    assert.equal(out.skippedOutcomes, 1);
+    assert.equal(out.memoryEvidence.length, 0, 'a skipped/malformed outcome must never reach the evidence bridge');
+    let size = 0;
+    try { size = statSync(memoryLogPath).size; } catch { size = 0; }
+    assert.equal(size, 0);
+  });
+
+  it('delta-gating: an unchanged snapshot value is NOT re-appended on the next run', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mlp-evidence-'));
+    const ledgerFile = join(dir, 'ledger.jsonl');
+    const memoryLogPath = join(dir, 'memory-ledger.jsonl');
+    seedMatchedSample(ledgerFile, { id: 'seed1', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 1).toISOString() });
+    seedMatchedSample(ledgerFile, { id: 'seed2', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 2).toISOString() });
+
+    const plan1 = planWithLeaf('leaf-d1', 'engineer', 'glm');
+    const pred1 = await recordMlpPredictions(plan1, {}, { persist: true, ledgerFile });
+    const out1 = await recordMlpOutcomesFromRun(plan1, okRunResult('leaf-d1'), pred1, { persist: true, ledgerFile, memoryLogPath });
+    assert.equal(out1.memoryEvidence[0].skipped, false);
+    assert.equal(out1.memoryEvidence[0].sampleSize, 3);
+    assert.equal(out1.memoryEvidence[0].value, 1);
+
+    // A second success barely moves sampleSize (3→4, below the 5-sample step) and not at all the
+    // mean (still 1.0, below the 0.05 delta threshold) — must be treated as no material change.
+    const plan2 = planWithLeaf('leaf-d2', 'engineer', 'glm');
+    const pred2 = await recordMlpPredictions(plan2, {}, { persist: true, ledgerFile });
+    const out2 = await recordMlpOutcomesFromRun(plan2, okRunResult('leaf-d2'), pred2, { persist: true, ledgerFile, memoryLogPath });
+    assert.equal(out2.memoryEvidence[0].skipped, true);
+    assert.equal(out2.memoryEvidence[0].reason, 'no-material-change');
+
+    const lines = readFileSync(memoryLogPath, 'utf8').trim().split('\n').filter(Boolean);
+    assert.equal(lines.length, 1, 'no-material-change must not append a second Track-A row');
+  });
+
+  it('a memory-bridge failure (e.g. IO fault) never aborts primary outcome/ledger recording', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'mlp-evidence-'));
+    const ledgerFile = join(dir, 'ledger.jsonl');
+    seedMatchedSample(ledgerFile, { id: 'seed1', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 1).toISOString() });
+    seedMatchedSample(ledgerFile, { id: 'seed2', role: 'engineer', substrate: 'glm', success: 1, ts: new Date(2026, 0, 2).toISOString() });
+
+    const plan = planWithLeaf('leaf-fail', 'engineer', 'glm');
+    const pred = await recordMlpPredictions(plan, {}, { persist: true, ledgerFile });
+    // A directory path forces recallEntries/appendMemoryEntry to throw (EISDIR).
+    const out = await recordMlpOutcomesFromRun(plan, okRunResult('leaf-fail'), pred, { persist: true, ledgerFile, memoryLogPath: dir });
+
+    // Primary outcome recording must complete normally despite the bridge fault.
+    assert.equal(out.records.length, 1);
+    assert.equal(out.records[0].success, 1);
+    assert.equal(out.persisted, true);
+
+    assert.equal(out.memoryEvidence.length, 1);
+    assert.equal(out.memoryEvidence[0].skipped, true);
+    assert.equal(out.memoryEvidence[0].reason, 'evidence-bridge-error');
+    assert.equal(typeof out.memoryEvidence[0].error, 'string');
+  });
+});
+
+describe('fleet-mlp-feedback: custom ledger path reaches extractFeatures (historicalLedgerFile)', () => {
+  // Inject a recording router via the opts.router DI seam (production never passes it) so the
+  // exact context handed to extractFeatures is observable on both the prediction and outcome paths.
+  function recordingRouter() {
+    const calls = [];
+    return {
+      calls,
+      extractFeatures: (task, ctx) => { calls.push({ stage: 'extract', ctx }); return new Array(8).fill(0); },
+      updateFromOutcome: async () => ({ persisted: false, error: null }),
+    };
+  }
+
+  it('recordMlpPredictions threads opts.ledgerFile as historicalLedgerFile into extractFeatures', async () => {
+    const router = recordingRouter();
+    const ledgerFile = '/tmp/custom-prediction-ledger.jsonl';
+    const plan = planWithLeaf('leaf-p', 'engineer', 'glm');
+    await recordMlpPredictions(plan, {}, { router, ledgerFile });
+    const extractCalls = router.calls.filter((c) => c.stage === 'extract');
+    assert.ok(extractCalls.length > 0, 'extractFeatures was never called');
+    for (const c of extractCalls) {
+      assert.equal(c.ctx.historicalLedgerFile, ledgerFile,
+        `prediction extractFeatures did not receive historicalLedgerFile; got ctx=${JSON.stringify(c.ctx)}`);
+    }
+  });
+
+  it('recordMlpOutcomesFromRun threads opts.ledgerFile as historicalLedgerFile into extractFeatures', async () => {
+    const router = recordingRouter();
+    const ledgerFile = '/tmp/custom-outcome-ledger.jsonl';
+    const plan = planWithLeaf('leaf-o', 'engineer', 'glm');
+    await recordMlpOutcomesFromRun(plan, okRunResult('leaf-o'), {}, { router, ledgerFile });
+    const extractCalls = router.calls.filter((c) => c.stage === 'extract');
+    assert.ok(extractCalls.length > 0, 'extractFeatures was never called');
+    for (const c of extractCalls) {
+      assert.equal(c.ctx.historicalLedgerFile, ledgerFile,
+        `outcome extractFeatures did not receive historicalLedgerFile; got ctx=${JSON.stringify(c.ctx)}`);
+    }
+  });
+
+  it('when opts.ledgerFile is unset, no historicalLedgerFile key is forced (common path untouched)', async () => {
+    const router = recordingRouter();
+    const plan = planWithLeaf('leaf-u', 'engineer', 'glm');
+    await recordMlpPredictions(plan, {}, { router });
+    await recordMlpOutcomesFromRun(plan, okRunResult('leaf-u'), {}, { router });
+    assert.ok(router.calls.length > 0, 'no extractFeatures calls captured');
+    for (const c of router.calls) {
+      assert.equal('historicalLedgerFile' in c.ctx, false,
+        `common path must not force historicalLedgerFile; got ctx=${JSON.stringify(c.ctx)}`);
+    }
   });
 });

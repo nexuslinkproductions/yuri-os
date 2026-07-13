@@ -4,8 +4,8 @@
 // @does: compiles governed manifest entries into OMP TaskTool arguments and reduces
 //   child completion events without invoking tools or subprocesses.
 // @use: const state = createNativeDispatchState(plan); const { state: next, action } = reduceNativeDispatch(state, event);
-// @exports: DEFAULT_CWD, compileOmpSpawn, createNativeDispatchState, createProviderCalibrationReport,
-//           recordNativeSpawnAccepted, reduceNativeDispatch
+// @exports: DEFAULT_CWD, WORKER_BINDINGS, compileOmpSpawn, createNativeDispatchState,
+//           createProviderCalibrationReport, recordNativeSpawnAccepted, reduceNativeDispatch
 
 import { createHash } from 'node:crypto';
 import { deterministicOmpTaskId, validateOmpJobId } from './omp-task-adapter.mjs';
@@ -17,7 +17,7 @@ const PURPOSES = new Set(['producer', 'availability-fallback', 'quality-escalati
 const THINKING_LEVELS = new Set(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive', 'max']);
 const AVAILABILITY_FAILURES = new Set(['availability', 'transport', 'quota', 'rate-limit', 'timeout', 'auth']);
 const RISK_CLASSES = new Set(['R0', 'R1', 'R2', 'R3']);
-const WORKER_BINDINGS = new Map([
+export const WORKER_BINDINGS = new Map([
   ['anthropic/claude-sonnet-5', 'mure-calibrator-sonnet5'],
   ['anthropic/claude-opus-4-8', 'mure-sentinel'],
   ['openai/gpt-5.6-terra', 'mure-engineer'],
@@ -56,7 +56,9 @@ const BOOTSTRAP_AGENT_IDS = new Set([
   'composer-25-bootstrap',
   'mure-ideator-grok45-bootstrap',
 ]);
-const DEFAULT_MASKED_MODELS = new Set(['zai/glm-5.2']);
+// Models masked (blocked) until their availability is proven by exact OMP canary
+// evidence in plan.availabilityEvidence (see hasOmpAvailabilityEvidence).
+const AVAILABILITY_MASKED_MODELS = new Set(['zai/glm-5.2']);
 const CHEAP_PROVIDER_FAMILIES = new Set(['deepseek', 'mimo', 'ollama', 'cline', 'cursor']);
 const R3_VERIFIER_MODEL = 'anthropic/claude-opus-4-8';
 
@@ -520,7 +522,7 @@ function isSolWorker(entry) {
 function workerSafetyViolation(state, task, entry, purpose) {
   const riskClass = taskRiskClass(task);
   const family = providerFamily(entry);
-  if (DEFAULT_MASKED_MODELS.has(entry?.model)
+  if (AVAILABILITY_MASKED_MODELS.has(entry?.model)
       && !hasOmpAvailabilityEvidence(state.plan.availabilityEvidence?.[entry.model], entry.model)) {
     return { code: 'MODEL_AVAILABILITY_UNPROVEN', message: `${entry.model} requires exact OMP canary evidence.` };
   }

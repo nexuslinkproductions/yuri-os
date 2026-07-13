@@ -22,6 +22,6 @@ tools:
 
 **Variant:** Cheap bulk draft/critique; $1.25/day cap.
 
-**Skills:** compact-optimizer, writing-plans, frontend-design, visual-plan, extraction-sprint, to-prd
+**Skills:** compact-optimizer, writing-plans, visual-plan, extraction-sprint, to-prd
 
 **Notes:** Requires cursor-cli provider. Generic fast worker pattern.

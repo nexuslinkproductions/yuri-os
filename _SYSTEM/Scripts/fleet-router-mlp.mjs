@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { pathToFileURL } from 'node:url';
+import { readLedger } from './prediction-ledger.mjs';
 /**
  * fleet-router-mlp.mjs
  *
@@ -194,8 +195,26 @@ export function extractFeatures(task = {}, context = {}) {
   // capabilityMatch (if pre-computed by role-registry)
   f[2] = clamp01(task.capabilityMatch ?? context.capabilityMatch ?? 0.7);
 
-  // historicalSuccess – look up from context or default to neutral
-  f[3] = clamp01(context.historicalSuccess ?? 0.6);
+  // role (moved up: historicalSuccess below is keyed by role)
+  const role = (task.role || context.role || '').toLowerCase();
+
+  // historicalSuccess – explicit context override wins (back-compat / callers that
+  // already computed it); otherwise pull a deterministic, bounded rolling mean from
+  // matched prediction-ledger evidence for (role, substrateFamily). Falls back to the
+  // documented neutral prior when there is no ledger, no match, or too few samples —
+  // never lets sparse/malformed evidence steer the feature.
+  if (context.historicalSuccess != null) {
+    f[3] = clamp01(context.historicalSuccess);
+  } else {
+    // Raw hints ('glm', 'native', a lane string, …) must go through the same
+    // canonical bucketing the ledger rows are classified with, or a raw hint
+    // like 'glm' will never match the 'glm-workhorse' bucket key. No hint at
+    // all → empty family → historicalSuccess's own guard returns the fallback.
+    const substrateHint = context.historicalSubstrate || context.substrate || '';
+    const substrateFamily = substrateHint ? classifySubstrate(substrateHint) : '';
+    const hs = historicalSuccess(role, substrateFamily, { file: context.historicalLedgerFile });
+    f[3] = clamp01(hs.value);
+  }
 
   // quotaPressure – higher means we should prefer cheaper bulk lanes
   f[4] = clamp01(context.quotaPressure ?? 0.3);
@@ -211,7 +230,6 @@ export function extractFeatures(task = {}, context = {}) {
   f[7] = clamp01((task.recursionDepth ?? context.recursionDepth ?? 0) / 5);
 
   // role signals (can be overridden by context)
-  const role = (task.role || context.role || '').toLowerCase();
   f[8] = /adjudicator|architect|deliberator|helmsman/.test(role) ? 1 : 0;
   f[9] = /scout|artificer|bulk/.test(role) ? 1 : 0;
   f[10] = /sentinel|security/.test(role) ? 1 : 0;
@@ -224,6 +242,94 @@ export function extractFeatures(task = {}, context = {}) {
 
 function clamp01(x) {
   return Math.max(0, Math.min(1, Number(x) || 0));
+}
+
+// ---------------------------------------------------------------------------
+// Rolling historicalSuccess aggregator — evidence-backed replacement for the
+// old hardcoded 0.6 constant. Reads matched (prediction ↔ outcome) pairs from
+// the prediction-ledger, keyed by role + candidate substrate/model family
+// (SUBSTRATE_BUCKETS bucket, via classifySubstrate below). Pure / deterministic
+// given a ledger snapshot: same file contents → same value, every call.
+//
+// Contract:
+// - Only rows written by this router (source==='fleet-router-mlp') are eligible.
+// - Only RESOLVED predictions (a matching outcome exists) enter the sample —
+//   unresolved predictions carry no signal yet and must not count as failures.
+// - Only outcomes carrying an explicit numeric 0/1 'success' target count —
+//   missing/non-boolean success is treated as unlabeled and skipped. This is
+//   the same "refuse to train on garbage" discipline as the WS-J-K1 outcome
+//   gate in fleet-mlp-feedback.mjs, applied to the read side.
+// - Corrupt JSONL lines are already dropped by prediction-ledger.readLedger.
+// - Bounded rolling window (HISTORICAL_SUCCESS_WINDOW, most-recent-first) caps
+//   how much history any one key can accumulate.
+// - Below HISTORICAL_SUCCESS_MIN_SAMPLES matched samples, falls back to
+//   HISTORICAL_SUCCESS_FALLBACK (0.6 — the prior neutral constant), so a cold
+//   or sparse (role, substrate) pair never gets an overconfident average from
+//   1-2 data points.
+export const HISTORICAL_SUCCESS_FALLBACK = 0.6;
+export const HISTORICAL_SUCCESS_MIN_SAMPLES = 3;
+export const HISTORICAL_SUCCESS_WINDOW = 50;
+
+const ROLE_TAG_RE = /\(role=([^)]*)\)/;
+
+export function historicalSuccess(role, substrateFamily, opts = {}) {
+  const minSamples = Number.isInteger(opts.minSamples) ? opts.minSamples : HISTORICAL_SUCCESS_MIN_SAMPLES;
+  const window = Number.isInteger(opts.window) ? opts.window : HISTORICAL_SUCCESS_WINDOW;
+  const queryRole = String(role || '').trim().toLowerCase();
+  const queryFamily = String(substrateFamily || '').trim().toLowerCase();
+
+  if (!queryRole || !queryFamily) {
+    return { value: HISTORICAL_SUCCESS_FALLBACK, fallback: true, sampleSize: 0 };
+  }
+
+  let rows;
+  try {
+    rows = readLedger(opts.file ? { file: opts.file } : {});
+  } catch {
+    rows = [];
+  }
+
+  const preds = new Map();
+  const outcomes = new Map();
+  for (const r of rows) {
+    if (!r || typeof r !== 'object') continue;
+    if (r.type === 'prediction' && r.source === 'fleet-router-mlp' && r.id) preds.set(r.id, r);
+    if (r.type === 'outcome' && r.predictionId) outcomes.set(r.predictionId, r);
+  }
+
+  const matched = [];
+  for (const [id, pred] of preds) {
+    const out = outcomes.get(id);
+    if (!out) continue; // unresolved — no signal yet, never counted as failure
+
+    const roleTag = ROLE_TAG_RE.exec(String(pred.change || ''));
+    const predRole = roleTag ? roleTag[1].trim().toLowerCase() : '';
+    if (!predRole || predRole === 'unknown' || predRole !== queryRole) continue;
+
+    const effects = Array.isArray(pred.predictedEffects) ? pred.predictedEffects : [];
+    const substrateEffect = effects.find((e) => e && e.target === 'substrate')?.effect;
+    if (!substrateEffect) continue;
+    if (classifySubstrate(substrateEffect) !== queryFamily) continue;
+
+    const observed = Array.isArray(out.observedEffects) ? out.observedEffects : [];
+    const successEntry = observed.find((e) => e && e.target === 'success');
+    if (!successEntry) continue; // unlabeled outcome — refuse to guess
+    const successVal = Number(successEntry.effect);
+    if (successVal !== 0 && successVal !== 1) continue; // malformed label — refuse to steer
+
+    const ts = Date.parse(pred.ts || out.ts || '');
+    matched.push({ ts: Number.isFinite(ts) ? ts : 0, success: successVal });
+  }
+
+  matched.sort((a, b) => a.ts - b.ts);
+  const windowed = matched.slice(-window);
+
+  if (windowed.length < minSamples) {
+    return { value: HISTORICAL_SUCCESS_FALLBACK, fallback: true, sampleSize: windowed.length };
+  }
+
+  const mean = windowed.reduce((s, r) => s + r.success, 0) / windowed.length;
+  return { value: mean, fallback: false, sampleSize: windowed.length };
 }
 
 // ---------------------------------------------------------------------------
@@ -293,7 +399,7 @@ export const SUBSTRATE_BUCKETS = [
 // Map a candidate's raw substrate (+lane, where the specific tier usually
 // lives) onto one canonical bucket. Robust to both umbrella names (glm_fleet,
 // ollama_cloud) and explicit sub-lanes (glm-max, tmux-zai, ollama-minimax).
-function classifySubstrate(substrate, lane) {
+export function classifySubstrate(substrate, lane) {
   const s = String(substrate || '').toLowerCase();
   const l = String(lane || '').toLowerCase();
   const combined = `${s} ${l}`;

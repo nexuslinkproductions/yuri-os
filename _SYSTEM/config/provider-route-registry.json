@@ -23,15 +23,15 @@
           "provider": "zai",
           "surface": "omp-native",
           "model": "zai/glm-5.2",
-          "agentId": "mure-architect",
+          "agentId": "mure-architect-glm52",
           "status": "canary-proven",
           "source": "omp-task-completion",
           "canaryEvidence": {
-            "agentId": "mure-architect",
-            "jobId": "CanaryGlm52",
+            "agentId": "mure-architect-glm52",
+            "jobId": "2026-07-13-live",
             "model": "zai/glm-5.2",
-            "observed": "2026-07-12",
-            "ompSessionId": "019f534b-5544-7000-a2ce-6705ca61f011",
+            "observed": "2026-07-13",
+            "ompSessionId": "history://Glm52LiveCanary",
             "result": {
               "canary": "glm-5-2",
               "packageName": "yuri-os-musubi",
@@ -41,7 +41,26 @@
             "thinkingLevel": "high",
             "transcriptReadObserved": true,
             "transcriptYieldObserved": true
-          }
+          },
+          "admissionHistory": [
+            {
+              "agentId": "mure-architect",
+              "jobId": "CanaryGlm52",
+              "model": "zai/glm-5.2",
+              "observed": "2026-07-12",
+              "ompSessionId": "019f534b-5544-7000-a2ce-6705ca61f011",
+              "result": {
+                "canary": "glm-5-2",
+                "packageName": "yuri-os-musubi",
+                "status": "ok"
+              },
+              "taskResultStatus": "completed",
+              "thinkingLevel": "high",
+              "transcriptReadObserved": true,
+              "transcriptYieldObserved": true,
+              "superseded": "2026-07-13 by agent mure-architect-glm52 (canary 2026-07-13-live, transcript history://Glm52LiveCanary)"
+            }
+          ]
         }
       ]
     },
@@ -116,8 +135,24 @@
           "surface": "omp-native",
           "model": "anthropic/claude-fable-5",
           "agentId": "fable-synth-bootstrap",
-          "status": "catalog-candidate",
-          "source": "mure-agent-catalog"
+          "status": "canary-proven",
+          "source": "omp-task-completion",
+          "canaryEvidence": {
+            "agentId": "fable-synth-bootstrap",
+            "jobId": "2026-07-13-live",
+            "model": "anthropic/claude-fable-5",
+            "observed": "2026-07-13",
+            "ompSessionId": "history://Fable5LiveCanary",
+            "result": {
+              "canary": "fable-5",
+              "packageName": "yuri-os-musubi",
+              "status": "ok"
+            },
+            "taskResultStatus": "completed",
+            "thinkingLevel": "high",
+            "transcriptReadObserved": true,
+            "transcriptYieldObserved": true
+          }
         }
       ]
     },

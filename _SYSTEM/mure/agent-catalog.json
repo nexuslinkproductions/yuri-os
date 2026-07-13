@@ -63,6 +63,13 @@
       ],
       "autonomy": "owner-gated",
       "notes": "Holds finalize/goal-spine authority WITHIN a run, but never commits/pushes.",
+      "authorityBoundary": "Holds run finalize and goal-spine authority and issues delegation within Control's boundary; may not execute leaves, verify producer output, or widen the goal, and escalates owner-gated decisions. Control retains the parent goal-spine and final acceptance.",
+      "operatingContract": {
+        "method": "Decode the goal into an executable goal tree, capability-match roles to sub-tasks, build runSwarm leaves, and hold the goal spine across the run",
+        "artifact": "A runnable goal tree with one scoped runSwarm dispatch leaf per sub-task (role + ticket + exit criteria) and an escalated-decisions log",
+        "stop": "Stop once every leaf is dispatched and all owner-gated decisions are escalated; never execute a leaf, finalize, or commit inline",
+        "handoff": "Control for owner-gated decisions and final acceptance; worker lanes for leaf execution"
+      },
       "variants": [
         {
           "id": "mure-helmsman-sol",
@@ -189,6 +196,13 @@
       ],
       "autonomy": "owner-gated",
       "notes": "Z.ai GLM helmsman family; the base route uses GLM-5.2 and admitted variants may use other proven GLM releases.",
+      "authorityBoundary": "Holds run finalize and goal-spine authority and issues delegation within Control's boundary; may not execute leaves, verify producer output, or widen the goal, and escalates owner-gated decisions. Control retains the parent goal-spine and final acceptance.",
+      "operatingContract": {
+        "method": "Decode the goal into an executable goal tree, capability-match roles to sub-tasks, build runSwarm leaves, and hold the goal spine across the run",
+        "artifact": "A runnable goal tree with one scoped runSwarm dispatch leaf per sub-task (role + ticket + exit criteria) and an escalated-decisions log",
+        "stop": "Stop once every leaf is dispatched and all owner-gated decisions are escalated; never execute a leaf, finalize, or commit inline",
+        "handoff": "Control for owner-gated decisions and final acceptance; worker lanes for leaf execution"
+      },
       "variants": [
         {
           "id": "mure-helmsman-glm-glm51",
@@ -543,6 +557,13 @@
         "self-test"
       ],
       "autonomy": "self-governable",
+      "authorityBoundary": "Executes one scoped build leaf within its ticket; may not spawn peers, expand scope, verify its own output, or accept the result — self-tests are evidence, not acceptance. Helmsman and Control retain final acceptance.",
+      "operatingContract": {
+        "method": "Implement the primary code for one scoped build leaf end-to-end and build behind disarmed flags; self-tests are evidence, not acceptance",
+        "artifact": "Production code with tests for the scoped build leaf, delivered behind disarmed flags, plus a focused self-test result",
+        "stop": "Stop at the scoped build leaf; never spawn peers, expand scope, verify its own output, or accept the result",
+        "handoff": "Oracle for acceptance testing; Adjudicator for adversarial review; Helmsman and Control retain final acceptance"
+      },
       "variants": [
         {
           "id": "mure-engineer-sol",
@@ -1073,6 +1094,12 @@
       ],
       "autonomy": "self-governable",
       "notes": "Requires cursor-cli provider.",
+      "operatingContract": {
+        "method": "Forge and harden the execution-kernel substrate and core abstractions — design control-plane primitives, lifecycle contracts, and architectural seams, not patches",
+        "artifact": "Kernel and core-substrate changes: the primitive, its lifecycle contract, seam interfaces, and perf benchmarks with tests",
+        "stop": "Stop at substrate implementation behind disarmed flags; never spawn peers, expand scope, or verify and accept its own output",
+        "handoff": "Oracle for acceptance testing; Adjudicator for adversarial review; Helmsman and Control retain final acceptance"
+      },
       "variants": [
         {
           "id": "mure-kernelsmith-glm52",
@@ -1496,6 +1523,12 @@
         "monotropic-depth"
       ],
       "autonomy": "self-governable",
+      "operatingContract": {
+        "method": "Hold one hard sub-problem deeply with adaptive compute and build the full mechanism map before converging",
+        "artifact": "A depth-reasoned analysis: the mechanism map, ranked options with evidence, risk, and reversibility, and a recommended path or explicit non-action",
+        "stop": "Stop at analysis and recommendation; never implement, dispatch, or accept a result, and never widen into execution",
+        "handoff": "Architect for plan integration; Helmsman for dispatch; Control for owner-gated decisions"
+      },
       "variants": [
         {
           "id": "mure-deliberator-glm52",
@@ -1818,11 +1851,9 @@
       ],
       "skills": [
         "writing-skills",
-        "nex-vault",
         "cross-reference-navigation",
         "research-artifact-factory",
-        "end-of-transmission",
-        "nex-deliverables"
+        "end-of-transmission"
       ],
       "params": {
         "temperature": 0.5
@@ -1971,6 +2002,13 @@
         "mure-mechanic",
         "mure-synthesist"
       ],
+      "authorityBoundary": "Independent, advisory adversarial critic, downstream of and structurally independent from the producers; returns refutation findings (pass/fail/not-checked) only and may not accept the result or execute the fix. Helmsman and Control retain final acceptance.",
+      "operatingContract": {
+        "method": "Attack every artifact by refutation: name failure modes, find what is missing, and default to refuted when uncertain, structurally independent of the producers",
+        "artifact": "A refutation report: pass, fail, or not-checked per claim, with named failure modes and the gaps found",
+        "stop": "Stop at refutation findings only; never accept the result or execute the fix, and never cross from review into implementation",
+        "handoff": "Helmsman for disposition; Engineer and Mechanic for fixes; Control retains final acceptance"
+      },
       "variants": [
         {
           "id": "mure-adjudicator-sol",
@@ -2134,7 +2172,7 @@
     {
       "name": "mure-oracle",
       "lane": "verification",
-      "description": "MURE Oracle (verification) — benchmark / fitness evaluator. run the red/grey/green tests, measure against acceptance, accept/reject.",
+      "description": "MURE Oracle (verification) — benchmark / fitness evaluator. Run the red/grey/green tests, measure against acceptance, and return an accept/reject verdict.",
       "model": "cursor/gemini-3.5-flash",
       "thinkingLevel": "medium",
       "tools": [
@@ -2145,7 +2183,7 @@
         "write",
         "bash"
       ],
-      "mission": "run the red/grey/green tests, measure against acceptance, accept/reject; the gate every evolver proposal must pass",
+      "mission": "run the red/grey/green tests, measure against acceptance, and return an accept/reject verdict; the gate every evolver proposal must pass",
       "capabilities": [
         "test-execution",
         "fitness-scoring",
@@ -2158,6 +2196,13 @@
         "mure-engineer"
       ],
       "notes": "Requires cursor-cli provider.",
+      "authorityBoundary": "Independent, advisory acceptance-test evaluator, downstream of and structurally independent from the producers; returns a measured pass/fail verdict against acceptance only and may not accept the result or execute the fix. Helmsman and Control retain final acceptance.",
+      "operatingContract": {
+        "method": "Run the red, grey, and green tests, measure each against acceptance, and return a measured verdict, structurally independent of the producers",
+        "artifact": "A measured accept or reject verdict per acceptance criterion with test output and fitness scores",
+        "stop": "Stop at the measured verdict; never accept the result or execute the fix, and never cross from evaluation into implementation",
+        "handoff": "Helmsman for disposition and gate enforcement; Engineer and Mechanic for fixes; Control retains final acceptance"
+      },
       "variants": [
         {
           "id": "mure-oracle-dvf",
@@ -2241,8 +2286,7 @@
         "adversarial-verification",
         "verification-before-completion",
         "probabilistic-decision-core",
-        "cross-reference-navigation",
-        "oracle-router"
+        "cross-reference-navigation"
       ]
     },
     {
@@ -2606,6 +2650,13 @@
         "corner-law-audit"
       ],
       "autonomy": "self-governable",
+      "authorityBoundary": "Designs strategy, systems, methods, and interfaces and sets the quality bar; may not issue delegation tickets, execute worker work, or verify producer output, and carries no finalize authority. Helmsman dispatches and Control retains final acceptance.",
+      "operatingContract": {
+        "method": "Translate goals into a sequenced build plan, design systems/methods/interfaces, and compose existing capabilities before authoring new ones",
+        "artifact": "A sequenced build plan with system, method, and interface contracts plus a capability-composition map and the quality bar",
+        "stop": "Stop at plan and interface design; never issue delegation tickets, execute worker work, or verify producer output",
+        "handoff": "Helmsman for dispatch and ticket issuance; Engineer and Kernelsmith for implementation; Control retains final acceptance"
+      },
       "variants": [
         {
           "id": "mure-architect-sol",
@@ -2952,7 +3003,6 @@
       "skills": [
         "compact-optimizer",
         "writing-plans",
-        "frontend-design",
         "visual-plan",
         "extraction-sprint",
         "to-prd"
@@ -3088,24 +3138,8 @@
         "decisive-ruling"
       ],
       "autonomy": "self-governable",
-      "notes": "Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. Boundary: the OMP advisor system role may use Fable independently now (designated modelRoles.advisor in .omp/config.yml, owner-active); the normal MURE dispatch route remains fail-closed (canary_pending) until a live canary promotes it, with the evidence-only fable-synth-bootstrap variant as the sole executable MURE dispatch path before then.",
+      "notes": "Spawned once after multi-model fan-out. Does not redo work — synthesizes and judges. Fable model eligibility is backed by the 2026-07-13 live exact-route canary captured through the evidence-only fable-synth-bootstrap seam; the normal fable-synth card is the dispatch surface, while bootstrap is not a dispatch route. The OMP advisor system role also uses Fable independently (modelRoles.advisor in .omp/config.yml, owner-active).",
       "variants": [
-        {
-          "id": "fable-synth-bootstrap",
-          "model": "anthropic/claude-fable-5",
-          "thinkingLevel": "high",
-          "tools": [
-            "read"
-          ],
-          "eligibilityFlags": [
-            "canary-bootstrap"
-          ],
-          "note": "evidence-only canary bootstrap for anthropic/claude-fable-5 — the sole executable MURE dispatch path before a live canary promotes the normal route. The OMP advisor system role is separate and already active via modelRoles.advisor. Read-only, no spawn; never marked canary-proven."
-        }
-      ],
-      "selection": "MURE dispatch: bootstrap-only until canary (normal route fail-closed); OMP advisor system role active now via modelRoles.advisor",
-      "fallbackChain": [],
-      "pending_variants": [
         {
           "id": "fable-synth-fable5",
           "model": "anthropic/claude-fable-5",
@@ -3128,8 +3162,12 @@
             "anti-over-engineering"
           ],
           "costTier": "apex",
-          "note": "Apex final synthesizer prime — SWE-Verified 95.0, #1 leaderboard. Pending canary promotion (normal route currently fail-closed; the evidence-only bootstrap is the sole executable path)."
-        },
+          "note": "Apex final synthesizer prime — SWE-Verified 95.0, #1 leaderboard. Canary-proven 2026-07-13 (normal route admitted via the live exact-route canary); the evidence-only bootstrap seam is tombstoned."
+        }
+      ],
+      "selection": "MURE dispatch: normal route canary-proven (admitted 2026-07-13); OMP advisor system role active via modelRoles.advisor",
+      "fallbackChain": [],
+      "pending_variants": [
         {
           "id": "fable-synth-opus48",
           "model": "anthropic/claude-opus-4-8",
@@ -3493,7 +3531,8 @@
         "probabilistic-decision-core",
         "adversarial-verification",
         "verification-before-completion",
-        "end-of-transmission"
+        "end-of-transmission",
+        "mure-role-variant-matrix"
       ]
     }
   ]

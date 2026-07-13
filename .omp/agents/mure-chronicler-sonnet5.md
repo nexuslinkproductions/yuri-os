@@ -24,4 +24,4 @@ tools:
 
 **Variant:** Default prime — technical writing + owner-facing narrative distillation.
 
-**Skills:** writing-skills, nex-vault, cross-reference-navigation, research-artifact-factory, end-of-transmission, nex-deliverables
+**Skills:** writing-skills, cross-reference-navigation, research-artifact-factory, end-of-transmission

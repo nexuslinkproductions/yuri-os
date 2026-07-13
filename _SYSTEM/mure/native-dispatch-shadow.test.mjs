@@ -104,9 +104,11 @@ test('mirrors one R2 producer and independent verifier into an accepted ledger t
   const afterVerifier = reduceNativeDispatch(verifierAdmission.reduced.state, verifierEvent);
   shadow = observeNativeCompletion(shadow, verifierEvent, afterVerifier, { checked: ['TERM_COUNT'] });
 
+  // Projected worker (mure-synthesist-m3) and verifier (mure-calibrator-sonnet5) card IDs now
+  // classify against their true archetypes, so a clean R2 producer→verifier flow warns zero times.
   assert.deepEqual(shadowSnapshot(shadow), {
     schemaVersion: 'mure-native-dispatch-shadow-v2', ticketId: taskId, ledgerStatus: 'accepted', awaiting: null,
-    admissionCount: 2, observationCount: 8, governanceWarnings: 2,
+    admissionCount: 2, observationCount: 6, governanceWarnings: 0,
   });
 });
 

@@ -14,7 +14,7 @@ export const PROVIDER_ROUTE_REGISTRY = deepFreeze(
   JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8')),
 );
 
-const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'blocked-schema', 'quota-blocked', 'unresolved']);
+const ROUTE_STATUSES = new Set(['canary-proven', 'catalog-candidate', 'default-masked', 'blocked-schema', 'quota-blocked', 'unresolved', 'owner-excluded']);
 const SURFACES = new Set(['omp-native', 'direct-api', 'ollama-cloud', 'cline-pass', 'cursor-cli', 'opencode']);
 
 export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY) {
@@ -42,6 +42,9 @@ export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY
       }
       if (route.status === 'blocked-schema' && !route.blockedReason) {
         throw new TypeError(`blocked-schema route ${route.id} must have blockedReason`);
+      }
+      if (route.status === 'owner-excluded' && !route.blockedReason) {
+        throw new TypeError(`owner-excluded route ${route.id} must have blockedReason`);
       }
       if (route.minimumBindingThinkingLevel !== undefined) {
         if (typeof route.minimumBindingThinkingLevel !== 'string' || !/^(off|low|medium|high|xhigh|max)$/.test(route.minimumBindingThinkingLevel)) {
@@ -123,8 +126,32 @@ export function validateProviderRouteRegistry(registry = PROVIDER_ROUTE_REGISTRY
     }
   }
   validateRoleTopology(registry.roleTopology);
-  if (!Array.isArray(registry.excludedModels) || !registry.excludedModels.some((entry) => entry.model === 'anthropic/claude-fable-5')) {
-    throw new TypeError('provider route registry must explicitly exclude Fable 5');
+  if (!Array.isArray(registry.excludedModels)) {
+    throw new TypeError('provider route registry must define excludedModels');
+  }
+  // Fable 5: promoted to canary-proven via the 2026-07-13-live exact-route canary.
+  // The normal route is the executable path; the evidence-only bootstrap seam is
+  // tombstoned. catalog-candidate remains a valid pre-admission state for OTHER
+  // routes — Fable has advanced past it — so only Fable's own lifecycle is pinned.
+  // (Admissible evidence is enforced generically for every canary-proven route in
+  // the loop above, so this guard pins only the route-status lifecycle.)
+  const fableRoutes = registry.modelIdentities['anthropic/claude-fable-5']?.routes || [];
+  if (!fableRoutes.some((r) => r.status === 'canary-proven')) {
+    throw new TypeError('provider route registry must carry a canary-proven Fable 5 route (promoted 2026-07-13 via the live exact-route canary)');
+  }
+  if (registry.excludedModels.some((e) => e.model === 'anthropic/claude-fable-5')) {
+    throw new TypeError('Fable 5 must not be blanket-excluded; the normal route is canary-proven');
+  }
+  // Haiku 4.5: retired 2026-07-12 — owner-excluded AND listed in excludedModels so it can never resolve.
+  const haikuRoutes = registry.modelIdentities['anthropic/claude-haiku-4-5']?.routes || [];
+  if (!haikuRoutes.some((r) => r.status === 'owner-excluded')) {
+    throw new TypeError('Haiku 4.5 must be owner-excluded (retired 2026-07-12)');
+  }
+  if (!registry.excludedModels.some((e) => e.model === 'anthropic/claude-haiku-4-5')) {
+    throw new TypeError('Haiku 4.5 must be listed in excludedModels so it cannot resolve');
+  }
+  if (!registry.excludedModels.some((e) => e.model === 'openai/gpt-5.6-sol')) {
+    throw new TypeError('provider route registry must explicitly exclude Sol (orchestrator seat, not a worker)');
   }
   return true;
 }

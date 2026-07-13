@@ -23,6 +23,6 @@ tools:
 
 **Variant:** Fallback when a draft/critique needs real reasoning.
 
-**Skills:** compact-optimizer, writing-plans, frontend-design, visual-plan, extraction-sprint, to-prd
+**Skills:** compact-optimizer, writing-plans, visual-plan, extraction-sprint, to-prd
 
 **Notes:** Requires cursor-cli provider. Generic fast worker pattern.

@@ -103,6 +103,109 @@ export async function planWorkstream(rel, opts = {}) {
     planSummary: plan.summary,
   };
 }
+/**
+ * Derive apply-status from a runFleet result.
+ *
+ * Exported for focused regression testing of the swarm-present / swarm-absent lifecycle.
+ *
+ * @param {object} result  the runFleet return value
+ *   ({ run?: { swarm?, nativeResults?, inlineResults? }, zaiSidecar?, ollamaSidecar? })
+ * @returns {{ status: string, ok: boolean, error: string|null }}
+ */
+export function deriveApplyOutcome(result) {
+  const swarm = result?.run?.swarm;
+  // A successful GLM swarm is necessary but not sufficient: native and inline
+  // substrates run only after runSwarm returns, so swarm.finalizeOk cannot include
+  // their terminal outcomes. Sidecar failures are intentionally omitted here when
+  // the swarm ran: the swarm is the fallback path for sidecar leaves that failed.
+  if (swarm) {
+    const errors = [];
+    if (swarm.finalizeOk !== true) {
+      errors.push(`swarm.finalizeOk=${swarm.finalizeOk}: ${swarm.finalizeReason || 'unknown'}`);
+    }
+    errors.push(...collectNativeInlineErrors(result, { swarmPresent: true }));
+    const ok = errors.length === 0;
+    return { status: ok ? 'applied' : 'applied-with-failures', ok, error: ok ? null : errors.join('; ') };
+  }
+  // swarm absent — every GLM leaf was handled by sidecars (glmLeavesToDispatch was
+  // empty inside runCompany) or there were no GLM leaves.  Classify from aggregate
+  // sidecar / native / inline outcomes, NOT from an undefined swarm.finalizeOk.
+  const errors = collectSwarmAbsentErrors(result);
+  const ok = errors.length === 0;
+  return { status: ok ? 'applied' : 'applied-with-failures', ok, error: ok ? null : errors.join('; ') };
+}
+
+/**
+ * Collect genuine failures from sidecar / native / inline outcomes when swarm is absent.
+ * Sidecar results require ok===true (strict). Native and inline terminal outcomes are
+ * delegated to collectNativeInlineErrors. Returns [] when clean.
+ */
+function collectSwarmAbsentErrors(result) {
+  const errors = [];
+  const run = result?.run || {};
+  // Sidecar outcomes (zai + ollama). A spawned sidecar is terminal only when
+  // every task it accepted produced an explicitly successful result.
+  for (const [sidecarName, sc] of [
+    ['zai', result?.zaiSidecar],
+    ['ollama', result?.ollamaSidecar],
+  ]) {
+    if (!sc) continue;
+    if (sc.spawnError) errors.push(`${sidecarName} sidecar spawn error: ${sc.spawnError}`);
+    if (sc.spawned && sc.spawnExitCode != null && sc.spawnExitCode !== 0) {
+      errors.push(`${sidecarName} sidecar non-zero exit (${sc.spawnExitCode})`);
+    }
+    const results = Array.isArray(sc.results) ? sc.results : [];
+    for (const r of results) {
+      if (r?.ok !== true) errors.push(`${sidecarName} sidecar leaf ${r?.label || '(unlabeled)'} failed`);
+    }
+    if (sc.spawned === true) {
+      const returnedLabels = new Set(results.map((r) => r?.label).filter(Boolean));
+      for (const task of Array.isArray(sc.tasks) ? sc.tasks : []) {
+        const expectedLabel = task?.label;
+        if (expectedLabel && !returnedLabels.has(expectedLabel)) {
+          errors.push(`${sidecarName} sidecar missing terminal result for ${expectedLabel}`);
+        }
+      }
+    }
+  }
+  errors.push(...collectNativeInlineErrors(result, { swarmPresent: false }));
+  return errors;
+}
+
+/**
+ * Collect terminal failures from native and inline substrates. These substrates run
+ * after runSwarm returns, so their outcomes must be checked independently whether a
+ * swarm exists or not.
+ */
+function collectNativeInlineErrors(result, { swarmPresent }) {
+  const errors = [];
+  const run = result?.run || {};
+  const nativeSpecs = run.plan?.nativeSpecs || run.nativeSpecs || [];
+  const nativePool = run.nativeResults?.pool || {};
+  for (const spec of nativeSpecs) {
+    const key = spec.id || spec.role || 'native';
+    const entry = nativePool[key];
+    if (!entry) {
+      const reason = swarmPresent ? 'dispatch missing' : 'dispatch skipped — no swarm.runDir';
+      errors.push(`native ${spec.role || key}: no result (${reason})`);
+    } else if (entry.status !== 'ok') {
+      errors.push(`native ${spec.role || key}: ${entry.status}`);
+    }
+  }
+
+  // Inline 'skipped' is a designed fail-open for environmental unavailability.
+  const inlineSpecs = run.plan?.inlineSpecs || [];
+  const inlinePool = run.inlineResults?.pool || {};
+  for (const spec of inlineSpecs) {
+    const role = spec.role || 'inline';
+    const id = spec.id || role;
+    const key = `inline:${role}:${id}`;
+    const entry = inlinePool[key];
+    if (!entry) errors.push(`inline ${role}: no result (dispatch missing)`);
+    else if (entry.status === 'error' || entry.status === 'fail') errors.push(`inline ${role}: ${entry.status}`);
+  }
+  return errors;
+}
 
 /**
  * Run full company-ops dispatch manifest or apply.
@@ -151,7 +254,7 @@ export async function companyDispatch(opts = {}) {
       const task = readTask(rel);
       task.runId = `${runId}-${path.basename(rel, '.json')}`;
       try {
-        const result = await runFleet(task, {
+        const result = await (opts.runFleet || runFleet)(task, {
           dryRun: false,
           apply: true,
           ollamaSidecar: opts.ollamaSidecar,
@@ -160,8 +263,8 @@ export async function companyDispatch(opts = {}) {
           mlpLearn: opts.mlpLearn,
           quotaPressure: opts.quotaPressure ?? 0.4,
         });
-        const finalizeOk = result.run?.swarm?.finalizeOk === true;
-        entry.status = finalizeOk ? 'applied' : 'applied-with-failures';
+        const outcome = deriveApplyOutcome(result);
+        entry.status = outcome.status;
         entry.mlpFeedback = {
           persisted: result.mlpFeedback?.persisted,
           count: result.mlpFeedback?.count,
@@ -182,10 +285,10 @@ export async function companyDispatch(opts = {}) {
             blockingLeaves: extractBlockingLeaves(result.run.swarm.roundLog || []),
           }
           : null;
-        if (!finalizeOk) {
+        if (!outcome.ok) {
           manifest.errors.push({
             taskFile: rel,
-            error: `swarm.finalizeOk=${result.run?.swarm?.finalizeOk}: ${result.run?.swarm?.finalizeReason || 'unknown'}`,
+            error: outcome.error,
           });
         }
         fs.writeFileSync(

@@ -263,3 +263,146 @@ test('memory audit supports dry-run and protected eviction denial', () => {
   assert.equal(eviction.ok, false);
   assert.match(eviction.error, /protected eviction target/);
 });
+
+
+test('ledger dedup never re-appends an identical re-submission past the recent tail (WP-M.14)', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-dedup-full-'));
+  const logPath = path.join(dir, 'memory-ledger.jsonl');
+  try {
+    // 51 DISTINCT entries (distinct content -> distinct contentSha256). The
+    // oldest sits one row BEYOND a 50-row recent-tail window.
+    for (let i = 0; i < 51; i += 1) {
+      appendMemoryEntry({
+        originLane: 'codex',
+        type: 'evidence',
+        scope: 'session',
+        content: `unique-entry-${i}`,
+      }, { logPath });
+    }
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 51);
+
+    // Re-submit content identical to the OLDEST entry. The WP-M.14 contract
+    // ("identical re-submissions are acknowledged, never re-appended") requires
+    // dedup — a 50-row window would miss it and append a duplicate ledger row.
+    const dup = appendMemoryEntry({
+      originLane: 'codex',
+      type: 'evidence',
+      scope: 'session',
+      content: 'unique-entry-0',
+    }, { logPath });
+
+    assert.equal(dup.ok, true);
+    assert.equal(dup.duplicate, true, 'identical re-submission must be acknowledged as a duplicate, not re-appended');
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 51, 'no duplicate ledger row appended');
+
+    // Negative path: a genuinely NOVEL entry is still appended (dedup must not over-suppress the primary write).
+    const fresh = appendMemoryEntry({
+      originLane: 'codex',
+      type: 'evidence',
+      scope: 'session',
+      content: 'unique-entry-novel-not-seen-before',
+    }, { logPath });
+    assert.equal(fresh.ok, true);
+    assert.equal(fresh.duplicate, undefined, 'a novel entry is appended, not falsely deduped');
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 52, 'novel entry appended exactly once');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+test('ledger dedup matches durable semantic identity (type/scope/source), not content hash alone', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-dedup-semantic-'));
+  const logPath = path.join(dir, 'memory-ledger.jsonl');
+  try {
+    const text = 'identical canonical text shared across submissions';
+
+    // Baseline: codex holds 'permanent'. Effective scope = 'permanent'.
+    const base = appendMemoryEntry({
+      originLane: 'codex', type: 'evidence', scope: 'permanent', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(base.ok, true);
+    assert.equal(base.entry.scope, 'permanent');
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 1);
+
+    // (1) Effective-scope proof: deepseek requests 'permanent' but is authority-downgraded to
+    // 'project'. Dedup MUST key on the effective scope ('project'), not requestedScope
+    // ('permanent') — keying on requestedScope would collide with baseline. Since
+    // {evidence,project,model} is not yet recorded, this APPENDS, proving effective scope is
+    // the match key.
+    const downgraded = appendMemoryEntry({
+      originLane: 'deepseek', type: 'evidence', scope: 'permanent', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(downgraded.ok, true);
+    assert.equal(downgraded.entry.scope, 'project');
+    assert.match(downgraded.warnings.join('\n'), /scope downgraded/);
+    assert.equal(downgraded.duplicate, undefined, 'effective scope differs from baseline -> appended, not deduped');
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 2);
+
+    // (2) Same content, DIFFERENT type -> independently recordable.
+    const diffType = appendMemoryEntry({
+      originLane: 'codex', type: 'task', scope: 'permanent', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(diffType.ok, true);
+    assert.equal(diffType.duplicate, undefined, 'same text with a different type is NOT a duplicate');
+
+    // (3) Same content+type+scope, DIFFERENT source -> independently recordable.
+    const diffSource = appendMemoryEntry({
+      originLane: 'codex', type: 'evidence', scope: 'permanent', source: 'user', content: text,
+    }, { logPath });
+    assert.equal(diffSource.ok, true);
+    assert.equal(diffSource.duplicate, undefined, 'same text with a different source is NOT a duplicate');
+
+    // Four distinct semantic identities persisted.
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 4);
+
+    // (4) Exact semantic resubmission from a DIFFERENT origin lane -> STILL a duplicate.
+    // Origin lane is not part of durable identity; matching content+type+scope+source wins.
+    const resubmitDifferentLane = appendMemoryEntry({
+      originLane: 'gpt-5.5', type: 'evidence', scope: 'permanent', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(resubmitDifferentLane.ok, true);
+    assert.equal(resubmitDifferentLane.duplicate, true, 'exact semantic match dedupes even from a different origin lane');
+
+    // (5) Exact semantic resubmission of the downgraded 'project' row, also from a different
+    // lane, must dedupe across full history (not just the recent tail).
+    const resubmitProject = appendMemoryEntry({
+      originLane: 'gpt-5.5', type: 'evidence', scope: 'project', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(resubmitProject.duplicate, true, 'non-baseline identity also dedupes across full history');
+
+    // No new rows beyond the four distinct identities.
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 4);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('ledger dedup stays compatible with pre-DBarr3 rows lacking the source field', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-dedup-legacy-'));
+  const logPath = path.join(dir, 'memory-ledger.jsonl');
+  try {
+    const text = 'legacy row content predating source provenance';
+    // Seed a real row, then strip `source` to emulate a pre-DBarr3 (2026-06-17) ledger row.
+    // Such rows predated source provenance and defaulted to agent-authored ('model').
+    appendMemoryEntry({
+      originLane: 'codex', type: 'evidence', scope: 'session', source: 'model', content: text,
+    }, { logPath });
+    const seeded = JSON.parse(readFileSync(logPath, 'utf8').trim());
+    delete seeded.source;
+    writeFileSync(logPath, `${JSON.stringify(seeded)}\n`);
+
+    // Default 'model' source -> dedupes (a legacy row with no source reads as 'model').
+    const modelResubmit = appendMemoryEntry({
+      originLane: 'codex', type: 'evidence', scope: 'session', source: 'model', content: text,
+    }, { logPath });
+    assert.equal(modelResubmit.duplicate, true, 'default-source resubmission dedupes against a legacy row (source defaults to model)');
+
+    // 'user' source -> distinct; the legacy row is treated as model-authored.
+    const userEntry = appendMemoryEntry({
+      originLane: 'codex', type: 'evidence', scope: 'session', source: 'user', content: text,
+    }, { logPath });
+    assert.equal(userEntry.duplicate, undefined, 'a user-planted entry is distinct from a model-authored legacy row');
+    assert.equal(readFileSync(logPath, 'utf8').trim().split('\n').length, 2);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -24,4 +24,4 @@ tools:
 
 **Variant:** Visual blueprints / diagram-bearing docs (cross-modal chronicler).
 
-**Skills:** writing-skills, nex-vault, cross-reference-navigation, research-artifact-factory, end-of-transmission, nex-deliverables
+**Skills:** writing-skills, cross-reference-navigation, research-artifact-factory, end-of-transmission

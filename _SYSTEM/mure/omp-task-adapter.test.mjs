@@ -13,6 +13,7 @@ import {
   parseOmpTranscript,
   OMP_OBSERVATION_CONTRACT_VERSION,
 } from './omp-task-adapter.mjs';
+import { WORKER_BINDINGS } from './sol-moe-native-dispatch.mjs';
 
 // ── shared fixtures ──────────────────────────────────────────────────
 
@@ -661,6 +662,45 @@ describe('loadOmpTranscript path containment', () => {
       );
     } finally {
       try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* cleanup */ }
+    }
+  });
+});
+
+// ── VALID_AGENT_IDS drift guard vs live WORKER_BINDINGS ───────────────
+
+describe('valid agent id roster tracks live WORKER_BINDINGS (no stale drift)', () => {
+  const PROMOTED_MOE_AGENTS = [
+    'mure-deliberator',
+    'mure-adjudicator-luna',
+    'mure-helmsman-glm-glm51',
+    'composer-fast-c25',
+    'mure-ideator-grok45',
+  ];
+
+  it('admits every promoted MoE worker agent id in spawn receipts', () => {
+    for (const agent of PROMOTED_MOE_AGENTS) {
+      assert.deepStrictEqual(
+        parseOmpSpawnReceipt({ jobId: 'task-001', agent }),
+        { jobId: 'task-001', agent },
+      );
+    }
+  });
+
+  it('admits every promoted MoE worker agent id in task results', () => {
+    for (const agent of PROMOTED_MOE_AGENTS) {
+      const result = parseOmpTaskResult({ ...VALID_RESULT, agent });
+      assert.strictEqual(result.agent, agent);
+    }
+  });
+
+  it('every WORKER_BINDINGS target agent is an admissible card id', () => {
+    const boundAgents = [...new Set(WORKER_BINDINGS.values())];
+    assert.ok(boundAgents.length >= 10, `expected the reducer to bind many workers, saw ${boundAgents.length}`);
+    for (const agent of boundAgents) {
+      assert.doesNotThrow(
+        () => parseOmpSpawnReceipt({ jobId: 'task-001', agent }),
+        `dispatched worker card ${agent} must be admissible by the OMP adapter`,
+      );
     }
   });
 });

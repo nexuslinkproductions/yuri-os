@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @capability: yuri-doctor
 // @serves: diagnostics | health check | doctor | staleness sweep | beat watchdog | disk hazard | orphaned state
-// @does: one-command read-only diagnostics — orchestrates existing detectors (freshness, gitnexus drift, capability registry, overseer) + new checks (launchd beat windows, err accumulation, trace-size quotas, orphaned state files, graph freshness)
+// @does: one-command read-only diagnostics — orchestrates existing detectors (freshness, gitnexus drift, capability registry, overseer) + new checks (launchd beat windows, err accumulation, trace-size quotas, orphaned state files, graph freshness, MCP server health)
 // @use: run before/after sessions or from a beat to catch silent failures; exit 1 = CRITICAL present
-// @exports: runDoctor, CHECKS
+// @exports: runDoctor, CHECKS, checkMcpHealth, classifyMcpServer
 //
 // yuri-doctor.mjs — unified YURI diagnostics CLI.
 //
@@ -23,6 +23,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { probeStdioServer, redactSecrets } from './mcp-health-probe.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = HERE;
@@ -532,12 +533,39 @@ function checkTraces() {
       if (KNOWN_TRACES.includes(f)) continue; // already reported above
       let st;
       try { st = fs.statSync(f); } catch { continue; }
+      const tapeInfo = classifyTapeFile(f);
+      if (tapeInfo) {
+        // Registered pattern: _SYSTEM/state/tape/tape-<SYM>-<YYYYMMDD>.jsonl (raw, uncompressed).
+        // The recorder (observatory/tape-recorder.mjs) gzips the PREVIOUS day's file on the
+        // first write of a new UTC day — so a raw .jsonl for any date OTHER than today is a
+        // dead/unrotated leftover (recorder crashed/stopped before the next day's rollover),
+        // not a live-growing file. Flag those distinctly; today's file growing large is expected.
+        if (tapeInfo.dateTag !== tapeInfo.todayTag) {
+          out.push(finding('TRACES', 'HIGH', `${relp(f)}: ${fmtBytes(st.size)} — unrotated tape (date ${tapeInfo.dateTag} != today ${tapeInfo.todayTag}; recorder likely stopped before day-rollover — gzip or archive)`, f));
+        } else {
+          out.push(finding('TRACES', 'LOW', `${relp(f)}: ${fmtBytes(st.size)} — live current-day tape (expected growth, rotates on next UTC day)`, f));
+        }
+        continue;
+      }
       const sev = st.size > 5 * 1024 ** 3 ? 'CRITICAL' : 'HIGH';
       out.push(finding('TRACES', sev, `${relp(f)}: ${fmtBytes(st.size)} — unbounded growth outside known trace list`, f));
     }
   }
 
   return out;
+}
+
+// Registered pattern for the tape-recorder's own rotation convention (see
+// alpha-factor-library/observatory/tape-recorder.mjs `tapePath`/`rotateTape`):
+// _SYSTEM/state/tape/tape-<SYM>-<YYYYMMDD>.jsonl, gzipped to .jsonl.gz on the
+// recorder's next write after the UTC date advances. Returns null for anything
+// that doesn't match (falls through to the generic unbounded-growth finding).
+function classifyTapeFile(f) {
+  const m = /(?:^|\/)tape[\\/]tape-[A-Z0-9]+-(\d{8})\.jsonl$/.exec(f);
+  if (!m) return null;
+  const now = new Date();
+  const todayTag = `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, '0')}${String(now.getUTCDate()).padStart(2, '0')}`;
+  return { dateTag: m[1], todayTag };
 }
 
 // ── [ORPHANS] — top-level _SYSTEM/state files not referenced by basename ────
@@ -654,9 +682,189 @@ function checkGraphFreshness() {
   return out;
 }
 
+// ── [MCP] — MCP server health aggregation ────────────────────────────────────
+// Credential-safe: discovers configured MCP servers from .mcp.json,
+// .vscode/mcp.json, .codex/config.toml; reuses dedicated checks (gitnexus,
+// ollama-bridge); probes repo-owned stdio servers with initialize+tools/list;
+// reports network/auth/external servers as UNVERIFIED. Never prints env values,
+// auth tokens, or full commands containing secrets. Protected paths and
+// token-like patterns are redacted from all error output via redactSecrets.
+
+const MCP_CONFIG_SOURCES = [
+  { rel: '.mcp.json', format: 'json' },
+  { rel: path.join('.vscode', 'mcp.json'), format: 'json' },
+  { rel: path.join('.omp', 'mcp.json'), format: 'json' },
+  { rel: path.join('.codex', 'config.toml'), format: 'toml' },
+];
+
+const MCP_DEDICATED_CHECKS = {
+  gitnexus: { script: path.join('_SYSTEM', 'Scripts', 'gitnexus-mcp-check.mjs'), passPattern: /^GITNEXUS_MCP_CHECK_PASS/ },
+  'ollama-bridge': { script: path.join('_SYSTEM', 'Scripts', 'ollama-bridge-mcp-check.mjs'), passPattern: /^OLLAMA_BRIDGE_MCP_CHECK_PASS/ },
+};
+
+const MCP_AUTH_CACHE_REL = path.join('.claude', 'mcp-needs-auth-cache.json');
+
+function parseCodexMcpServers(toml) {
+  const servers = {};
+  const re = /\[mcp_servers\.([\w.-]+)\]\s*\n([\s\S]*?)(?=\n\[|$)/g;
+  for (const match of toml.matchAll(re)) {
+    const name = match[1];
+    const body = match[2];
+    const command = body.match(/command\s*=\s*"([^"]*)"/)?.[1];
+    if (!command) continue; // subtable (e.g. [mcp_servers.x.env]), not a server definition
+    const argsMatch = body.match(/args\s*=\s*\[([^\]]*)\]/);
+    const args = argsMatch ? [...argsMatch[1].matchAll(/"([^"]*)"/g)].map((m) => m[1]) : [];
+    const enabledMatch = body.match(/enabled\s*=\s*(true|false)/);
+    const enabled = enabledMatch ? enabledMatch[1] === 'true' : true;
+    const envSubtableRe = new RegExp(`\\[mcp_servers\\.${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.env\\]`);
+    const hasEnv = /\benv\s*=/.test(body) || envSubtableRe.test(toml);
+    servers[name] = { command, args, enabled, hasEnv };
+  }
+  return servers;
+}
+
+function discoverMcpServers(root = ROOT) {
+  const servers = [];
+  const seen = new Set();
+  for (const source of MCP_CONFIG_SOURCES) {
+    const filePath = path.join(root, source.rel);
+    const content = safeReadFile(filePath);
+    if (!content) continue;
+    if (source.format === 'json') {
+      try {
+        const config = JSON.parse(content);
+        for (const [name, def] of Object.entries(config.mcpServers || {})) {
+          if (seen.has(name)) continue;
+          seen.add(name);
+          servers.push({
+            name,
+            command: def.command,
+            args: def.args || [],
+            transport: def.type,
+            hasUrl: typeof def.url === 'string' && def.url.length > 0,
+            hasEnv: !!(def.env && Object.keys(def.env).length > 0),
+            enabled: def.enabled !== false,
+            source: source.rel,
+          });
+        }
+      } catch { /* malformed JSON config, skip */ }
+    } else if (source.format === 'toml') {
+      for (const [name, def] of Object.entries(parseCodexMcpServers(content))) {
+        if (seen.has(name)) continue;
+        seen.add(name);
+        servers.push({ name, ...def, source: source.rel });
+      }
+    }
+  }
+  return servers;
+}
+
+export function classifyMcpServer(server, root = ROOT) {
+  const cmd = server.command || '';
+  const cmdBase = path.basename(cmd);
+  if (server.hasUrl || server.transport === 'http' || server.transport === 'sse') {
+    return { action: 'UNVERIFIED', reason: 'external HTTP transport (network/auth dependent)' };
+  }
+  if (cmd === 'npx' || cmdBase === 'npx') {
+    return { action: 'UNVERIFIED', reason: 'external package via npx (network/auth dependent)' };
+  }
+  if (server.hasEnv) {
+    return { action: 'UNVERIFIED', reason: 'auth/env credentials required (not probed for safety)' };
+  }
+  const isNode = cmd === 'node' || cmd === process.execPath || cmdBase === 'node' || cmd.endsWith('node');
+  if (!isNode) {
+    return { action: 'UNVERIFIED', reason: `non-node runtime (${cmdBase || 'unknown'})` };
+  }
+  const firstArg = server.args?.[0];
+  if (!firstArg) {
+    return { action: 'UNVERIFIED', reason: 'no script path in args' };
+  }
+  const scriptPath = path.isAbsolute(firstArg) ? firstArg : path.resolve(root, firstArg);
+  if (!fs.existsSync(scriptPath)) {
+    return { action: 'UNVERIFIED', reason: 'script not found' };
+  }
+  if (!/\.(mjs|js)$/.test(scriptPath)) {
+    return { action: 'UNVERIFIED', reason: `non-JS script (${path.extname(scriptPath) || 'no ext'})` };
+  }
+  return { action: 'PROBE', reason: 'repo-owned stdio server' };
+}
+
+function loadAuthCache(root = ROOT) {
+  const content = safeReadFile(path.join(root, MCP_AUTH_CACHE_REL));
+  if (!content) return new Set();
+  try {
+    return new Set(Object.keys(JSON.parse(content)));
+  } catch {
+    return new Set();
+  }
+}
+
+export async function checkMcpHealth({ root, dedicatedChecks } = {}) {
+  const out = [];
+  const checkRoot = root || ROOT;
+  const dedicated = dedicatedChecks || MCP_DEDICATED_CHECKS;
+  const authCache = loadAuthCache(checkRoot);
+
+  // 1. Run dedicated checks (always, even if server not in any config)
+  for (const [name, check] of Object.entries(dedicated)) {
+    const scriptPath = path.join(checkRoot, check.script);
+    if (!fs.existsSync(scriptPath)) {
+      out.push(finding('MCP', 'MED', `MCP server '${name}': UNVERIFIED — dedicated check script not found`, check.script));
+      continue;
+    }
+    const r = runBounded(process.execPath, [scriptPath], { timeout: 20_000, cwd: checkRoot });
+    if (r.timedOut) {
+      out.push(finding('MCP', 'HIGH', `MCP server '${name}': FAIL — dedicated check timed out`, null));
+    } else if (r.ok && r.code === 0 && check.passPattern.test(r.stdout)) {
+      const toolMatch = r.stdout.match(/tools=(\d+)/);
+      out.push(finding('MCP', 'LOW', `MCP server '${name}': PASS${toolMatch ? ` (${toolMatch[1]} tools)` : ''}`, 'dedicated check'));
+    } else {
+      const err = redactSecrets((r.stderr || r.stdout || r.error || '').slice(0, 200));
+      out.push(finding('MCP', 'HIGH', `MCP server '${name}': FAIL — dedicated check failed`, err || `exit ${r.code}`));
+    }
+  }
+
+  // 2. Discover configured servers and check each (skip dedicated-checked ones)
+  const discovered = discoverMcpServers(checkRoot);
+  for (const server of discovered) {
+    if (dedicated[server.name]) continue;
+
+    if (server.enabled === false) {
+      out.push(finding('MCP', 'LOW', `MCP server '${server.name}': UNVERIFIED — disabled in config`, `source: ${server.source}`));
+      continue;
+    }
+
+    if (authCache.has(server.name)) {
+      out.push(finding('MCP', 'LOW', `MCP server '${server.name}': UNVERIFIED — auth-dependent (per auth cache)`, `source: ${server.source}`));
+      continue;
+    }
+
+    const classification = classifyMcpServer(server, checkRoot);
+    if (classification.action === 'PROBE') {
+      const result = await probeStdioServer({
+        command: server.command,
+        args: server.args,
+        cwd: checkRoot,
+        timeoutMs: 8000,
+        clientName: 'yuri-doctor-mcp-check',
+      });
+      if (result.status === 'PASS') {
+        out.push(finding('MCP', 'LOW', `MCP server '${server.name}': PASS (${result.tools.length} tools)`, `probe ${result.ms}ms; source: ${server.source}`));
+      } else {
+        out.push(finding('MCP', 'HIGH', `MCP server '${server.name}': FAIL — ${result.status}`, redactSecrets(result.error || '')));
+      }
+    } else {
+      out.push(finding('MCP', 'LOW', `MCP server '${server.name}': UNVERIFIED — ${classification.reason}`, `source: ${server.source}`));
+    }
+  }
+
+  return out;
+}
+
+
 // ── section registry ─────────────────────────────────────────────────────────
 // Order matches the required report structure:
-// [BEATS] [ERRORS] [TRACES] [ORPHANS] [GRAPH] [REGISTRY] [FRESHNESS] [OVERSEER] [RUNTIME]
+// [BEATS] [ERRORS] [TRACES] [ORPHANS] [GRAPH] [REGISTRY] [FRESHNESS] [OVERSEER] [RUNTIME] [MCP]
 export const CHECKS = [
   { section: 'BEATS', run: async () => checkBeats() },
   { section: 'ERRORS', run: async () => checkErrors() },
@@ -667,6 +875,7 @@ export const CHECKS = [
   { section: 'FRESHNESS', run: async () => checkFreshness() },
   { section: 'OVERSEER', run: async () => checkOverseer() },
   { section: 'RUNTIME', run: async () => checkRuntime() },
+  { section: 'MCP', run: async () => checkMcpHealth() },
 ];
 
 // ── orchestration ─────────────────────────────────────────────────────────────
@@ -712,7 +921,7 @@ export async function runDoctor({ json = false } = {}) {
   if (json) {
     console.log(JSON.stringify({ ...report, summary: summaryLine }, null, 2));
   } else {
-    const order = ['BEATS', 'ERRORS', 'TRACES', 'ORPHANS', 'GRAPH', 'REGISTRY', 'FRESHNESS', 'OVERSEER', 'RUNTIME'];
+    const order = ['BEATS', 'ERRORS', 'TRACES', 'ORPHANS', 'GRAPH', 'REGISTRY', 'FRESHNESS', 'OVERSEER', 'RUNTIME', 'MCP'];
     for (const section of order) {
       const entry = bySection[section];
       if (!entry) continue;

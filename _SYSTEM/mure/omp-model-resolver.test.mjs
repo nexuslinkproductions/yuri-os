@@ -87,16 +87,21 @@ test('ollama-cloud/deepseek-v4-flash:cloud fails closed for unproven route (no r
 
 // ── Fail-closed: excluded model ─────────────────────────────────────────────
 
-test('anthropic/claude-fable-5 normal route fails closed as canary-pending; the evidence-only bootstrap variant is the sole executable path', () => {
+test('anthropic/claude-fable-5 normal route resolves OK (canary-proven 2026-07-13); the bootstrap variant tombstones as expired', () => {
+  // After the 2026-07-13-live canary promoted the route, the NORMAL variant
+  // is the executable path; the evidence-only bootstrap is a dead tombstone.
   const normal = resolveOmpModel('anthropic/claude-fable-5');
-  assert.equal(normal.selector, null, 'normal Fable route must not emit a selector before a live canary');
-  assert.equal(normal.status, 'FAIL_CLOSED');
-  assert.equal(normal.failClass, FAIL_CLASSES.CANARY_PENDING);
+  assert.equal(normal.status, 'OK', 'normal Fable route must resolve OK after the 2026-07-13 live canary');
+  assert.equal(normal.selector, 'anthropic/claude-fable-5');
+  assert.equal(normal.routeStatus, 'canary-proven');
+  assert.equal(normal.bootstrapOnly, false, 'a normal proven resolution must not claim bootstrapOnly');
+  assert.equal(normal.failClass, null);
   const bootstrap = resolveOmpModel('anthropic/claude-fable-5', 'high', bootstrapVariant());
-  assert.equal(bootstrap.status, 'OK', 'the evidence-only bootstrap variant must be the sole executable Fable path');
-  assert.equal(bootstrap.selector, 'anthropic/claude-fable-5');
-  assert.equal(bootstrap.bootstrapOnly, true);
-  assert.equal(bootstrap.failClass, null);
+  assert.equal(bootstrap.status, 'FAIL_CLOSED', 'the bootstrap variant must never resolve once the route is canary-proven');
+  assert.equal(bootstrap.selector, null, 'a tombstoned bootstrap must not emit a selector');
+  assert.equal(bootstrap.failClass, FAIL_CLASSES.BOOTSTRAP_EXPIRED);
+  assert.equal(bootstrap.routeStatus, 'canary-proven');
+  assert.equal(bootstrap.bootstrapOnly, false);
 });
 
 // ── Fail-closed: Cline-pass policy gate (before registry / known-input) ─────
@@ -880,7 +885,8 @@ test('OMP_REGISTRY_EVIDENCE maps resolved selectors to advisory agentIds', () =>
     'owner-excluded Haiku must not surface advisory canary evidence');
   assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-sonnet-5'], 'mure-engineer-sonnet5');
   assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-opus-4-8'], 'mure-yuri-opus48');
-  assert.equal(OMP_REGISTRY_EVIDENCE['zai/glm-5.2'], 'mure-architect');
+  assert.equal(OMP_REGISTRY_EVIDENCE['zai/glm-5.2'], 'mure-architect-glm52');
+  assert.equal(OMP_REGISTRY_EVIDENCE['anthropic/claude-fable-5'], 'fable-synth-bootstrap');
   assert.equal(OMP_REGISTRY_EVIDENCE['opencode-go/mimo-v2.5'], 'mure-artificer-mimo25');
   assert.equal(OMP_REGISTRY_EVIDENCE['minimax-code/MiniMax-M3'], 'mure-synthesist-m3');
   assert.equal(OMP_REGISTRY_EVIDENCE['cursor/gemini-3.5-flash'], 'mure-oracle');

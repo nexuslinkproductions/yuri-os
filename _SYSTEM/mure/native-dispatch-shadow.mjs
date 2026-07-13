@@ -47,10 +47,13 @@ export function observeNativeAction(shadow, action) {
   const governance = validateDispatchGovernance({
     purpose: purpose === 'availability-fallback' || purpose === 'quality-escalation' ? 'producer' : purpose,
     fromArchetype: 'control',
-    toArchetype: 'worker',
+    toArchetype: purpose === 'verifier' ? 'verifier' : 'worker',
     agentId: dispatchedAgent,
-    producerArchetype: purpose === 'verifier' ? shadow.awaiting?.archetype || 'worker' : undefined,
-    producerAgentId: purpose === 'verifier' ? shadow.awaiting?.agentId : undefined,
+    // Native producers are always the 'worker' archetype. `awaiting` is cleared
+    // (finishAwaiting) before the verifier action is observed and observeNativeAction
+    // requires awaiting===null, so per-agent producer identity cannot be threaded
+    // here; the reducer (VERIFIER_NOT_INDEPENDENT) enforces verifier↔producer independence.
+    producerArchetype: purpose === 'verifier' ? 'worker' : undefined,
   });
 
   let ledger = shadow.ledger;

@@ -25,6 +25,10 @@ const VALID_AGENT_IDS = Object.freeze(new Set([
   'mure-synthesist', 'mure-synthesist-m3', 'mure-architect', 'mure-engineer', 'mure-adjudicator',
   'mure-sentinel', 'mure-calibrator-sonnet5', 'mure-scout', 'mure-artificer',
   'deepseek-flash', 'mure-yuri',
+  // Promoted (canary-proven) MoE worker cards — live WORKER_BINDINGS targets
+  // in sol-moe-native-dispatch.mjs; admissible producer/verifier/fallback cards.
+  'mure-deliberator', 'mure-adjudicator-luna', 'mure-helmsman-glm-glm51',
+  'composer-fast-c25', 'mure-ideator-grok45',
   // Evidence-only canary-bootstrap agent cards (WORKER_BINDINGS in
   // sol-moe-native-dispatch.mjs); never used as producer/verifier/fallback.
   'deepseek-flash-bootstrap', 'mure-engineer-kimi-bootstrap',

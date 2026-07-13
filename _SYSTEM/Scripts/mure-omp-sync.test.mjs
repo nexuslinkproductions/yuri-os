@@ -22,7 +22,7 @@ const M_LIVE_TERRA_BLOCKED = 'openai/gpt-5.6-terra';    // now FAIL_CLOSED (regi
 const M_OK_OPUS       = 'anthropic/claude-opus-4-8';     // selector unchanged
 // FAIL_CLOSED:
 const M_FAIL_CLINE    = 'cline-pass/cline-pass/mimo-v2.5'; // cline_unavailable
-const M_FAIL_FABLE    = 'anthropic/claude-fable-5';        // canary_pending (evidence-only bootstrap is the sole executable path; normal route fail-closed)
+const M_FABLE         = 'anthropic/claude-fable-5';        // canary-proven OK (promoted 2026-07-13-live); normal route now resolves
 
 // Source paths in the real repo — copied into each fixture so the script
 // (when it exists) resolves imports relative to itself without touching
@@ -320,8 +320,8 @@ test('every projected card carries model; disabled use sentinel, enabled never d
       {
         name: 'mure-fable',
         lane: 'worker',
-        description: 'Fable — excluded (fail-closed).',
-        model: M_FAIL_FABLE,
+        description: 'Fable — OK (canary-proven 2026-07-13).',
+        model: M_FABLE,
         thinkingLevel: 'high',
         tools: ['read'],
         spawns: '*',
@@ -337,14 +337,15 @@ test('every projected card carries model; disabled use sentinel, enabled never d
     ],
   });
 
-  const OK_NAMES          = ['mure-scout', 'mure-scout-terra'];
-  const DISABLED_NAMES    = ['mure-cline', 'mure-fable'];
+  const OK_NAMES          = ['mure-scout', 'mure-scout-terra', 'mure-fable'];
+  const DISABLED_NAMES    = ['mure-cline'];
   const ALL_NAMES         = [...OK_NAMES, ...DISABLED_NAMES];
 
   // ── Expected resolved selectors for OK cards ──
   const expectedModel = {
     'mure-scout':       M_OK_SONNET,
     'mure-scout-terra': M_OK_TERRA_SELECTOR,
+    'mure-fable':       M_FABLE,
   };
 
   try {
@@ -1212,8 +1213,8 @@ test('manifest projected/executable/disabled counts are consistent', () => {
       {
         name: 'mure-fable',
         lane: 'worker',
-        description: 'Fable (excluded, fail-closed).',
-        model: M_FAIL_FABLE,
+        description: 'Fable (OK, canary-proven 2026-07-13).',
+        model: M_FABLE,
         thinkingLevel: 'high',
         tools: ['read'],
         spawns: '*',
@@ -2339,7 +2340,7 @@ test('config pins task.isolation (auto/patch), maxConcurrency 32, and the full s
     assert.ok(/commit:\s*zai\/glm-5.2/.test(config), 'commit = GLM-5.2');
     assert.ok(/designer:\s*zai\/glm-5.2/.test(config), 'designer = GLM-5.2 (NOT Composer)');
     assert.ok(/vision:\s*openai-codex\/gpt-5.6-luna/.test(config), 'vision = Luna');
-    assert.ok(/advisor:\s*anthropic\/claude-fable-5/.test(config), 'advisor = Fable 5 (active now as OMP advisor; MURE dispatch fail-closed until canary)');
+    assert.ok(/advisor:\s*anthropic\/claude-fable-5/.test(config), 'advisor = Fable 5 (canary-proven 2026-07-13; OMP advisor role + normal MURE dispatch both admitted)');
     assert.ok(/slow:\s*anthropic\/claude-opus-4-8/.test(config), 'slow = Opus 4.8');
     assert.ok(!/^\s*default:/.test(config), 'config must not set modelRoles.default (Sol default lives at the session level)');
     assert.ok(!/designer:\s*cursor\/composer/.test(config), 'Composer must never be the designer');

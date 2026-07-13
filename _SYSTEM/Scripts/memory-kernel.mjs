@@ -357,12 +357,16 @@ export function appendMemoryEntry(entry = {}, options = {}) {
 
   const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', options.logPath || MEMORY_LEDGER_LOG);
   if (!logPath) return { ok: false, error: 'memory ledger path is protected' };
-  // WP-M.14 dedup: scan the recent tail for the same content hash before
-  // appending — identical re-submissions are acknowledged, never re-appended.
-  const DEDUP_WINDOW = 50;
+  // WP-M.14 dedup: identical re-submissions are acknowledged, never re-appended.
+  // readJsonlRows already parses the ENTIRE ledger into memory, so scanning the
+  // full history (not a bounded tail) is free and closes a duplicate window where
+  // a re-submission older than the tail slice was silently re-appended.
+  // Dedup matches on durable SEMANTIC IDENTITY (content + type + effective scope +
+  // source), not content hash alone — same text in a different scope/type/source is
+  // a distinct fact and must stay independently recordable. Origin lane is excluded.
   if (existsSync(logPath)) {
-    const recent = readJsonlRows(logPath).slice(-DEDUP_WINDOW);
-    if (recent.some((row) => row && row.contentSha256 === payload.contentSha256)) {
+    const rows = readJsonlRows(logPath);
+    if (rows.some((row) => isDuplicateMemoryRow(row, payload))) {
       return { ok: true, duplicate: true, path: logPath, entry: payload, warnings };
     }
   }
@@ -782,6 +786,21 @@ function strongestAllowedScope(requestedScope, allowedScopes) {
   if (allowedScopes.includes(requestedScope)) return requestedScope;
   if (requestedScope === 'permanent' && allowedScopes.includes('project')) return 'project';
   return allowedScopes.includes('session') ? 'session' : allowedScopes[0];
+}
+// Two ledger rows are duplicates only when their DURABLE SEMANTIC IDENTITY matches:
+// identical content (contentSha256) AND type AND effective scope AND source. Origin lane is
+// intentionally excluded — a resubmission of the same fact from a different lane is still the
+// same fact. timestamp, requestedScope, warnings, and metadata are NOT part of identity.
+// `source` is post-DBarr3 (2026-06-17); rows predating it lacked the field and defaulted to
+// 'model' (the payload default), so a missing source is read as 'model' — old rows dedup
+// against new submissions without a migration. contentSha256 is retained as the cheap
+// pre-filter: differing content can never collide, so the field-order short-circuits.
+function isDuplicateMemoryRow(row, payload) {
+  if (!row) return false;
+  if (row.contentSha256 !== payload.contentSha256) return false;
+  if (row.type !== payload.type) return false;
+  if (row.scope !== payload.scope) return false;
+  return (row.source || 'model') === payload.source;
 }
 
 function printJson(value) {

@@ -14,6 +14,14 @@ tools:
 
 **Capabilities:** code-generation, implementation, scoped-build, self-test
 
+**Authority:** Executes one scoped build leaf within its ticket; may not spawn peers, expand scope, verify its own output, or accept the result — self-tests are evidence, not acceptance. Helmsman and Control retain final acceptance.
+
+**Operating Contract:**
+- **Method:** Implement the primary code for one scoped build leaf end-to-end and build behind disarmed flags; self-tests are evidence, not acceptance
+- **Artifact:** Production code with tests for the scoped build leaf, delivered behind disarmed flags, plus a focused self-test result
+- **Stop:** Stop at the scoped build leaf; never spawn peers, expand scope, verify its own output, or accept the result
+- **Handoff:** Oracle for acceptance testing; Adjudicator for adversarial review; Helmsman and Control retain final acceptance
+
 **System sections:** minimalist
 
 **Variant:** Evidence-only canary-bootstrap capture for the ollama-cloud/kimi-k2.7-code catalog-candidate route (evidence-only, read-only; never producer-dispatched).

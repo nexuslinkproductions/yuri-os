@@ -20,6 +20,13 @@ const ARCHETYPE_ROLE_MAP = Object.freeze({
   control: new Set(['yuri']),
 });
 
+// Longest-first list of every canonical role across archetypes, for prefix-aware
+// resolution of projected agent IDs (e.g. 'mure-calibrator-sonnet5' -> 'calibrator').
+const ALL_ROLES = Object.freeze(
+  [...new Set(Object.values(ARCHETYPE_ROLE_MAP).flatMap((set) => [...set]))]
+    .sort((a, b) => b.length - a.length),
+);
+
 /**
  * Validate a dispatch intent against archetype governance rules.
  * Returns immutable diagnostics; never touches live state.
@@ -72,7 +79,8 @@ export function validateDispatchGovernance(intent) {
 
   if (agentId && errors.length === 0) {
     const knownRoles = ARCHETYPE_ROLE_MAP[toArchetype];
-    if (knownRoles && !knownRoles.has(agentId)) {
+    const role = resolveAgentRole(agentId);
+    if (knownRoles && (!role || !knownRoles.has(role))) {
       errors.push(`agentId ${agentId} is not a recognized ${toArchetype} role`);
     }
   }
@@ -93,9 +101,27 @@ export function validateDispatchGovernance(intent) {
  * Returns null for unmapped agents.
  */
 export function deriveArchetypeForAgent(agentId) {
-  const id = String(agentId || '').toLowerCase().trim();
+  const role = resolveAgentRole(agentId);
+  if (!role) return null;
   for (const [archetype, roles] of Object.entries(ARCHETYPE_ROLE_MAP)) {
-    if (roles.has(id)) return archetype;
+    if (roles.has(role)) return archetype;
+  }
+  return null;
+}
+
+/**
+ * Resolve a projected/prefixed agent ID to its canonical archetype role.
+ * Strips an optional 'mure-' projection prefix, then matches the longest known
+ * role the remainder equals or begins with at a '-' boundary (so provider/model
+ * suffixes like '-sonnet5' or '-luna' are tolerated). Returns null when nothing
+ * matches, and for evidence-only '-bootstrap' cards so they never classify as a
+ * producer/verifier/worker role (disabled IDs fail closed at governance).
+ */
+function resolveAgentRole(agentId) {
+  const base = String(agentId || '').toLowerCase().trim().replace(/^mure-/, '');
+  if (!base || base.endsWith('-bootstrap')) return null;
+  for (const role of ALL_ROLES) {
+    if (base === role || base.startsWith(`${role}-`)) return role;
   }
   return null;
 }

@@ -15,7 +15,6 @@ task:
     - deepseek-flash-bootstrap
     - deepseek-flash-dvf
     - deepseek-flash-glmturbo
-    - fable-synth
     - mure-adjudicator-dvp
     - mure-adjudicator-luna-bootstrap
     - mure-adjudicator-sol

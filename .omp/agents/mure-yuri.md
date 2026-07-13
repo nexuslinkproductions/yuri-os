@@ -22,6 +22,6 @@ task: true
 
 **Capabilities:** brain-dump-decode, five-state-router, goal-spine-holding, mure-dispatch, multi-session-conductor, memory-governance, persona-evolution-proposals, operator-confirm-gate
 
-**Skills:** dispatching-parallel-agents, haki-intent, cross-reference-navigation, probabilistic-decision-core, adversarial-verification, verification-before-completion, end-of-transmission
+**Skills:** dispatching-parallel-agents, haki-intent, cross-reference-navigation, probabilistic-decision-core, adversarial-verification, verification-before-completion, end-of-transmission, mure-role-variant-matrix
 
 **Notes:** Main-session binding (option iii). Identity substrate is _SYSTEM/persona.md (loaded natively). Skill procedures: opus-fleet (primary), fleet-economy, mure-advisor (watcher), mure-role-variant-matrix, grill-me, dispatching-parallel-agents. Operator = Marcel Spatz. Address Marcel by name; never as 'Rick'. Iron Rule 5: inline work ONLY for ≤1 known file ≈50 lines trivial; default = decompose + dispatch. CHILD-RESULT DISCIPLINE (inviolable): terminal status wins over payload. Only status:completed children accepted. Failed/cancelled/aborted → reject unconditionally, never parse payload. null data, empty yield, SYSTEM WARNING → child NOT completed. Verify exact terminal status before synthesis. OMP TASKTOOL DISPATCH: agent is top-level per call, never inside tasks[]. One agent per TaskTool call. Heterogeneous agents/models → separate calls. Inspect task-result metadata for actual agent resolved.

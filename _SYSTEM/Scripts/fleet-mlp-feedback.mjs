@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { recordPrediction, recordOutcome } from './prediction-ledger.mjs';
 import { extractResultLabel } from './glm-fleet.mjs';
 import { aggregatePoolOutputs as aggregateOllamaPool } from './ollama-fleet.mjs';
+import { appendMemoryEntry, recallEntries } from './memory-kernel.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../..');
@@ -124,7 +125,7 @@ export function enrichRunResultWithSidecarPools(runResult = {}) {
 
 /** Record prediction-ledger rows at plan time. Returns { ids: leafId → predictionId }. */
 export async function recordMlpPredictions(plan, ctx = {}, opts = {}) {
-  const router = await getRouter();
+  const router = opts.router ?? await getRouter();
   if (!router?.extractFeatures) return { skipped: true, reason: 'router unavailable', ids: {} };
 
   const persist = shouldPersistMlpLearn({ ...opts, dryRun: opts.dryRun ?? false });
@@ -137,7 +138,7 @@ export async function recordMlpPredictions(plan, ctx = {}, opts = {}) {
     if (!leaf.routerSuggestion) continue;
     const feats = router.extractFeatures(
       { ...leaf, role: leaf.role, prompt: leaf.prompt || '' },
-      { quotaPressure, ...ctx },
+      { quotaPressure, ...ctx, historicalSubstrate: leaf.routerSuggestion.substrate, ...(ledgerFile ? { historicalLedgerFile: ledgerFile } : {}) },
     );
     const sub = leaf.id || leaf.role;
     const ts = new Date().toISOString();
@@ -147,7 +148,7 @@ export async function recordMlpPredictions(plan, ctx = {}, opts = {}) {
       recordPrediction({
         id: predictionId,
         subject: `fleet-route:${sub}`,
-        change: `route ${sub} → ${leaf.routerSuggestion.substrate}`,
+        change: `route ${sub} (role=${leaf.role || 'unknown'}) → ${leaf.routerSuggestion.substrate}`,
         predictedEffects: [{
           target: 'substrate',
           effect: leaf.routerSuggestion.substrate || 'glm',
@@ -193,11 +194,18 @@ export function deriveLeafOutcome(leafId, runResult = {}) {
 
   const statusOk = packet?.status === 'ok' || packet?.ok === true;
   const passLabel = /_P_PASS_/.test(label) || /_X_PASS_/.test(label);
-  const success = statusOk && (passLabel || !!label);
+  // Explicit failure signals must NOT be caught by the !!label fallback below.
+  // F-type pass (lane self-declared failure) or BLOCKED/REPAIR_REQUIRED terminal
+  // (work did not complete) are unambiguous routing failures. Without this guard
+  // the !!label fallback counts them as success=1, feeding false-positive gradients
+  // to the MLP calibrator — the router learns that blocked/failed substrates are good.
+  const failLabel = /_F_(?:PASS_COMMITTED|COMMITTED|BLOCKED|REPAIR_REQUIRED)$/.test(label)
+    || /(?:_BLOCKED|_REPAIR_REQUIRED)$/.test(label);
+  const success = statusOk && !failLabel && (passLabel || !!label);
 
   return {
     success: success ? 1 : 0,
-    quality: passLabel ? 0.9 : statusOk ? 0.65 : 0.2,
+    quality: failLabel ? 0.2 : passLabel ? 0.9 : statusOk ? 0.65 : 0.2,
     converged: swarm?.converged === true,
     actualSubstrate,
     resultLabel: label,
@@ -206,9 +214,63 @@ export function deriveLeafOutcome(leafId, runResult = {}) {
   };
 }
 
+/** Minimum meaningful shift before a new evidence snapshot is worth appending. A rolling mean
+ * over <=HISTORICAL_SUCCESS_WINDOW samples moves on nearly every labeled outcome; without a
+ * delta gate that would drift into slow-motion per-outcome noise in Track-A (the exact thing
+ * constraint #6 forbids), even though content-hash dedup blocks byte-identical resubmits. */
+const EVIDENCE_DELTA_THRESHOLD = 0.05;
+/** ...or a coarse sample-count step, so "learned meaningfully more" still registers even when
+ * the mean itself barely moved. */
+const EVIDENCE_SAMPLE_STEP = 5;
+
+/**
+ * Bridge historicalSuccess evidence into Track-A memory — AGGREGATED, not per-outcome.
+ * Writes at most one durable snapshot per (role, substrate family) per call, only once the
+ * prediction-ledger's rolling aggregator has cleared its own minimum-sample threshold
+ * (router.historicalSuccess's own fallback gate — never invents evidence from sparse data),
+ * AND only when the value/sample-count has moved materially since the last recorded snapshot
+ * for this exact key (EVIDENCE_DELTA_THRESHOLD / EVIDENCE_SAMPLE_STEP above). appendMemoryEntry's
+ * own content-hash dedup (WP-M.14, memory-kernel.mjs:360-368) is a second, independent guard
+ * against byte-identical resubmits. Never writes a raw per-outcome row.
+ */
+async function recordHistoricalSuccessEvidence(router, role, substrateFamily, opts = {}) {
+  if (!router?.historicalSuccess) return { skipped: true, reason: 'router unavailable' };
+  const hs = router.historicalSuccess(role, substrateFamily, opts.ledgerFile ? { file: opts.ledgerFile } : {});
+  if (hs.fallback) return { skipped: true, reason: 'below-min-samples', role, substrateFamily, sampleSize: hs.sampleSize };
+
+  const value = Number(hs.value.toFixed(3));
+  const recallOpts = { scope: 'project', maxEntries: 50, ...(opts.memoryLogPath ? { logPath: opts.memoryLogPath } : {}) };
+  const recall = recallEntries(`${role} ${substrateFamily} fleet-router-mlp historicalSuccess`, recallOpts);
+  const prior = (recall?.entries || []).find((e) => e?.metadata?.source === 'fleet-router-mlp'
+    && e.metadata.role === role && e.metadata.substrateFamily === substrateFamily);
+
+  const materialChange = !prior
+    || Math.abs(value - Number(prior.metadata.value)) >= EVIDENCE_DELTA_THRESHOLD
+    || Math.abs(hs.sampleSize - Number(prior.metadata.sampleSize)) >= EVIDENCE_SAMPLE_STEP;
+  if (!materialChange) {
+    return {
+      skipped: true, reason: 'no-material-change', role, substrateFamily, value, sampleSize: hs.sampleSize,
+      priorValue: prior.metadata.value, priorSampleSize: prior.metadata.sampleSize,
+    };
+  }
+
+  const content = `MLP router historicalSuccess evidence — role=${role} substrateFamily=${substrateFamily} `
+    + `value=${value} sampleSize=${hs.sampleSize}`;
+  const write = appendMemoryEntry({
+    originLane: 'claude',
+    type: 'evidence',
+    scope: 'project',
+    source: 'tool',
+    content,
+    metadata: { role, substrateFamily, value, sampleSize: hs.sampleSize, source: 'fleet-router-mlp' },
+  }, opts.memoryLogPath ? { logPath: opts.memoryLogPath } : {});
+
+  return { skipped: false, role, substrateFamily, value, sampleSize: hs.sampleSize, ...write };
+}
+
 /** Record outcomes + optional weight updates after an armed run. */
 export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionIds = {}, opts = {}) {
-  const router = await getRouter();
+  const router = opts.router ?? await getRouter();
   if (!router?.updateFromOutcome || !router?.extractFeatures) {
     return { skipped: true, reason: 'router unavailable', persisted: false, count: 0, records: [] };
   }
@@ -219,13 +281,15 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
   const quotaPressure = opts.quotaPressure ?? 0.4;
   const records = [];
   let skippedOutcomes = 0;
+  const memoryEvidence = [];
+  const evidenceKeysSeen = new Set();
 
   for (const leaf of leavesFromPlan(plan)) {
     if (!leaf.routerSuggestion) continue;
     const sub = leaf.id || leaf.role;
     const feats = router.extractFeatures(
       { ...leaf, role: leaf.role, prompt: leaf.prompt || '' },
-      { quotaPressure },
+      { quotaPressure, historicalSubstrate: leaf.routerSuggestion.substrate, ...(ledgerFile ? { historicalLedgerFile: ledgerFile } : {}) },
     );
     const outcome = deriveLeafOutcome(sub, runResult);
     const predId = ids[sub];
@@ -256,6 +320,32 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
         ],
         ts: new Date().toISOString(),
       }, ledgerFile ? { file: ledgerFile } : {});
+
+      // Aggregated Track-A evidence bridge: keyed by (role, substrate family), deduped within
+      // this run — the freshly recorded outcome above is already reflected in the ledger read
+      // inside recordHistoricalSuccessEvidence. Only fires when armed (persist===true); never
+      // runs during an advisory/dry-run plan.
+      const family = router.classifySubstrate ? router.classifySubstrate(leaf.routerSuggestion.substrate) : null;
+      const roleKey = String(leaf.role || '').toLowerCase();
+      const evidenceKey = `${roleKey}|${family}`;
+      if (family && roleKey && !evidenceKeysSeen.has(evidenceKey)) {
+        evidenceKeysSeen.add(evidenceKey);
+        // Never let the auxiliary memory bridge abort the primary outcome/ledger loop —
+        // a validation error, protected-path denial, or ledger IO fault here must degrade
+        // to "no evidence snapshot this run", not lose the remaining leaves' outcomes.
+        try {
+          const snap = await recordHistoricalSuccessEvidence(router, roleKey, family, {
+            ledgerFile,
+            memoryLogPath: opts.memoryLogPath,
+          });
+          if (snap) memoryEvidence.push(snap);
+        } catch (evidenceErr) {
+          memoryEvidence.push({
+            skipped: true, reason: 'evidence-bridge-error', role: roleKey, substrateFamily: family,
+            error: evidenceErr?.message || String(evidenceErr),
+          });
+        }
+      }
     }
 
     const res = await router.updateFromOutcome(feats, leaf.routerSuggestion, outcome, {
@@ -273,7 +363,7 @@ export async function recordMlpOutcomesFromRun(plan, runResult = {}, predictionI
     });
   }
 
-  return { advisory: !persist, persisted: persist, count: records.length, records, skippedOutcomes };
+  return { advisory: !persist, persisted: persist, count: records.length, records, skippedOutcomes, memoryEvidence };
 }
 
 /**

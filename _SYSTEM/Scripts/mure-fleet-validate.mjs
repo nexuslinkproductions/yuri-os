@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @capability: mure-fleet-validate
-// @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector | OMP projection drift gate | canary-evidence gate | canary-bootstrap-variant hygiene gate
-// @does: TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), canary-proven provider route evidence, and the evidence-only canary-bootstrap variant contract (exact eligibility flag, read-only tools, evidence-only description, and a catalog-candidate/canary-proven target route). Exits non-zero on any failure.
+// @serves: mure fleet integrity test | catalog dispatch-resolvability | cline roster check | armed-state gate | agents.list dangling-ref detector | OMP projection drift gate | canary-evidence gate | canary-bootstrap-variant hygiene gate | role-skill affinity bleed gate | projected-skill integrity gate
+// @does: TDD regression anchor for the MURE fleet — validates Cline targets/arming, bounded role schemas, Sol variants, MURE-native card authority, generated OMP projection integrity (exact byte-for-byte drift against the generator's own renderers), canary-proven provider route evidence, the evidence-only canary-bootstrap variant contract (exact eligibility flag, read-only tools, evidence-only description, and a catalog-candidate/canary-proven target route), and projected-skill integrity (every projected card's rendered skills equal its canonical source agent skills as sets). Exits non-zero on any failure.
 // @use: node mure-fleet-validate.mjs  (CI/regression gate after any catalog/provider/roster change)
-// @exports: validateFleet, validateOmpProjection, validateCanaryEvidence, validateCanaryBootstrapVariants, validateAgentCardAuthority, DISABLED_MODEL_SELECTOR
+// @exports: validateFleet, validateOmpProjection, validateCanaryEvidence, validateCanaryBootstrapVariants, validateAgentCardAuthority, validateProjectedRoleAuthority, validateOperatingContracts, validateSkillAffinity, validateProjectedSkillIntegrity, normalizeSkillSet, SKILL_AFFINITY_DENY, DISABLED_MODEL_SELECTOR
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -853,6 +853,379 @@ export function validateCanaryBootstrapVariants(catalog, registry) {
   return problems;
 }
 
+// Roles whose PROJECTED card must carry an explicit finalize/acceptance boundary.
+const AUTHORITY_BOUNDARY_ROLES = Object.freeze([
+  'mure-helmsman', 'mure-architect', 'mure-engineer', 'mure-adjudicator', 'mure-oracle',
+]);
+// Verifier lanes: the projected boundary must additionally read as independent +
+// advisory and explicitly deny self-acceptance.
+const VERIFIER_AUTHORITY_ROLES = Object.freeze(['mure-adjudicator', 'mure-oracle']);
+// Verifier lanes whose named producer-independence must be projected into the loaded card.
+const INDEPENDENCE_PROJECTED_ROLES = Object.freeze(['mure-adjudicator', 'mure-oracle']);
+// The shared producer both verifier lanes must remain independent of (drop-guard floor).
+const SHARED_INDEPENDENCE_PRODUCER = 'mure-engineer';
+// Roles whose catalog entry must carry a complete operating contract — a
+// provider-neutral execution method, required artifact/output shape, explicit
+// stop/escalation boundary, and handoff target — projected onto the loaded card.
+const OPERATING_CONTRACT_ROLES = Object.freeze([
+  'mure-helmsman', 'mure-architect', 'mure-deliberator', 'mure-kernelsmith',
+  'mure-engineer', 'mure-adjudicator', 'mure-oracle',
+]);
+/**
+ * The helmsman family: orchestration-lane roles that hold the goal-spine
+ * capability and thus carry finalize/goal-spine authority. These are
+ * model-family twins of the canonical helmsman — they share one logical
+ * authority boundary and operating contract, must NOT require an explicit
+ * authority denial (they hold finalize authority, like mure-helmsman), and,
+ * as intentional twins, may share a byte-identical operating contract
+ * without tripping the role-distinct guard. Derived from lane + capability
+ * so a future helmsman twin is covered automatically and cannot be silently
+ * omitted from the authority/contract checks.
+ */
+function goalSpineOrchestratorNames(catalog) {
+  const names = new Set();
+  for (const a of catalog.agents) {
+    if (a.lane === 'orchestration' && Array.isArray(a.capabilities)
+      && a.capabilities.includes('goal-spine')) {
+      names.add(a.name);
+    }
+  }
+  return names;
+}
+
+/**
+ * Validate that the PROJECTED (loaded) card for each authority-bearing role
+ * carries an explicit finalize/acceptance boundary — the runtime surface OMP
+ * actually reads, not the shadow-only _SYSTEM/mure/agents/*.md documentation.
+ *
+ * Renders each base card in-memory via the generator's own renderers, so the
+ * check is disk-independent (valid before the projection is re-synced) and
+ * always reflects the live catalog. Read-only.
+ *
+ * Contract enforced on the rendered `**Authority:**` line:
+ *  - present and non-empty for every AUTHORITY_BOUNDARY_ROLE;
+ *  - attributes final acceptance upward (`retain(s)? … final acceptance`) and
+ *    names Control;
+ *  - every non-Helmsman role explicitly denies some authority (`may not`);
+ *  - verifier lanes read as `independent` + `advisory` and explicitly say
+ *    `may not accept the result`.
+ *  - verifier lanes (adjudicator, oracle) project their catalog `independence`
+ *    as a named `**Independent of:**` line whose set equals the catalog array
+ *    and always includes the shared producer (mure-engineer).
+ *
+ * @param {object} catalog — parsed MURE agent catalog JSON
+ * @returns {string[]} problems (empty = clean)
+ */
+export function validateProjectedRoleAuthority(catalog) {
+  const problems = [];
+  let projection;
+  try {
+    projection = buildOmpProjection(catalog);
+  } catch (e) {
+    if (e && e.name === 'SyncError') {
+      problems.push(`authority-source-invalid:${e.message}`);
+      return problems;
+    }
+    throw e;
+  }
+
+  const baseByName = new Map();
+  for (const card of projection.cards) {
+    if (card.variant == null) baseByName.set(card.cardName, card);
+  }
+
+  const authorityOf = (roleName) => {
+    const card = baseByName.get(roleName);
+    if (!card) return null;
+    const m = renderOmpAgent(card).match(/\*\*Authority:\*\*\s*(.+)/);
+    return m ? m[1].trim() : undefined;
+  };
+
+  const goalSpineOrchestrators = goalSpineOrchestratorNames(catalog);
+  for (const roleName of new Set([...AUTHORITY_BOUNDARY_ROLES, ...goalSpineOrchestrators])) {
+    const authority = authorityOf(roleName);
+    if (authority === null) { problems.push(`authority-role-missing:${roleName}`); continue; }
+    if (!authority) { problems.push(`authority-line-missing:${roleName}`); continue; }
+    const lc = authority.toLowerCase();
+    if (!/\bretain(s|ed)?\b[^.]*\bfinal acceptance\b/i.test(authority)) {
+      problems.push(`authority-no-upward-final-acceptance:${roleName}`);
+    }
+    if (!lc.includes('control')) problems.push(`authority-no-control:${roleName}`);
+    if (!goalSpineOrchestrators.has(roleName) && !lc.includes('may not')) {
+      problems.push(`authority-missing-denial:${roleName}`);
+    }
+  }
+
+  for (const roleName of VERIFIER_AUTHORITY_ROLES) {
+    const authority = authorityOf(roleName);
+    if (!authority) continue; // already reported above
+    const lc = authority.toLowerCase();
+    if (!lc.includes('independent')) problems.push(`verifier-not-independent:${roleName}`);
+    if (!lc.includes('advisory')) problems.push(`verifier-not-advisory:${roleName}`);
+    if (!lc.includes('may not accept')) problems.push(`verifier-can-accept:${roleName}`);
+  }
+
+  const independenceOf = (roleName) => {
+    const card = baseByName.get(roleName);
+    if (!card) return null;
+    const m = renderOmpAgent(card).match(/\*\*Independent of:\*\*\s*(.+)/);
+    if (!m) return undefined;
+    return m[1].split(',').map((s) => s.trim()).filter(Boolean);
+  };
+
+  for (const roleName of INDEPENDENCE_PROJECTED_ROLES) {
+    const agent = catalog.agents.find((a) => a.name === roleName);
+    const declared = Array.isArray(agent?.independence) ? agent.independence : [];
+    if (declared.length === 0) { problems.push(`independence-empty:${roleName}`); continue; }
+    const projected = independenceOf(roleName);
+    if (projected === null) continue; // role-missing already reported above
+    if (projected === undefined) { problems.push(`independence-not-projected:${roleName}`); continue; }
+    const declaredSet = new Set(declared);
+    const projectedSet = new Set(projected);
+    for (const r of declaredSet) if (!projectedSet.has(r)) problems.push(`independence-dropped:${roleName}:${r}`);
+    for (const r of projectedSet) if (!declaredSet.has(r)) problems.push(`independence-extra:${roleName}:${r}`);
+    if (!projectedSet.has(SHARED_INDEPENDENCE_PRODUCER)) {
+      problems.push(`independence-missing-shared-producer:${roleName}:${SHARED_INDEPENDENCE_PRODUCER}`);
+    }
+  }
+
+  return problems;
+}
+/**
+ * Validate that every OPERATING_CONTRACT_ROLE carries a complete, non-empty,
+ * role-distinct, provider-neutral operating contract — method, required
+ * artifact/output shape, explicit stop/escalation boundary, and handoff
+ * target — and that the contract is projected into the loaded card by the
+ * generator's own renderer.
+ *
+ * Renders each base card in-memory via buildOmpProjection + renderOmpAgent,
+ * so the check is disk-independent (valid before the projection is re-synced)
+ * and always reflects the live catalog. Read-only.
+ *
+ * Contract enforced:
+ *  - every OPERATING_CONTRACT_ROLE is present in the catalog;
+ *  - `operatingContract` is a non-array object whose required keys
+ *    (method, artifact, stop, handoff) are each a non-empty trimmed string;
+ *  - the four-field contract is unique across roles (a duplicate full
+ *    contract is rejected as non-role-distinct);
+ *  - the rendered base card surfaces an `**Operating Contract:**` block with
+ *    every field label (the catalog-to-card projection seam).
+ *
+ * @param {object} catalog — parsed MURE agent catalog JSON
+ * @returns {string[]} problems (empty = clean)
+ */
+export function validateOperatingContracts(catalog) {
+  const problems = [];
+  let projection;
+  try {
+    projection = buildOmpProjection(catalog);
+  } catch (e) {
+    if (e && e.name === 'SyncError') {
+      problems.push(`operating-contract-source-invalid:${e.message}`);
+      return problems;
+    }
+    throw e;
+  }
+
+  const baseByName = new Map();
+  for (const card of projection.cards) {
+    if (card.variant == null) baseByName.set(card.cardName, card);
+  }
+
+  const REQUIRED_KEYS = ['method', 'artifact', 'stop', 'handoff'];
+  const seenSignatures = new Map(); // signature JSON → roleName (distinctness)
+
+  const goalSpineOrchestrators = goalSpineOrchestratorNames(catalog);
+  for (const roleName of new Set([...OPERATING_CONTRACT_ROLES, ...goalSpineOrchestrators])) {
+    const agent = catalog.agents.find((a) => a.name === roleName);
+    if (!agent) { problems.push(`operating-contract-role-missing:${roleName}`); continue; }
+
+    const oc = agent.operatingContract;
+    if (!oc || typeof oc !== 'object' || Array.isArray(oc)) {
+      problems.push(`operating-contract-missing:${roleName}`);
+      continue;
+    }
+
+    // Each required field must be a non-empty trimmed string.
+    const cleaned = {};
+    for (const key of REQUIRED_KEYS) {
+      const val = oc[key];
+      if (typeof val !== 'string' || val.trim().length < 12) {
+        problems.push(`operating-contract-field-invalid:${roleName}:${key}`);
+      }
+      cleaned[key] = typeof val === 'string' ? val.trim() : '';
+    }
+
+    // Role-distinct: the full four-field contract must be unique across roles.
+    const signature = JSON.stringify({
+      method: cleaned.method, artifact: cleaned.artifact,
+      stop: cleaned.stop, handoff: cleaned.handoff,
+    });
+    const priorRole = seenSignatures.get(signature);
+    if (priorRole !== undefined) {
+      // Goal-spine orchestrator twins (helmsman model-family variants) intentionally
+      // share one operating contract — exempt them from the role-distinct guard so a
+      // byte-identical twin contract is not mis-flagged as a cross-role copy-paste;
+      // a genuine cross-role duplicate (e.g. adjudicator↔oracle) still bites.
+      if (!(goalSpineOrchestrators.has(roleName) && goalSpineOrchestrators.has(priorRole))) {
+        problems.push(`operating-contract-duplicate:${roleName}:${priorRole}`);
+      }
+    } else {
+      seenSignatures.set(signature, roleName);
+    }
+
+    // Catalog-to-card projection: the rendered base card must surface the
+    // whole contract block and every field label.
+    const card = baseByName.get(roleName);
+    if (!card) { problems.push(`operating-contract-card-missing:${roleName}`); continue; }
+    const rendered = renderOmpAgent(card);
+    if (!rendered.includes('**Operating Contract:**')) {
+      problems.push(`operating-contract-not-projected:${roleName}`);
+      continue;
+    }
+    for (const key of REQUIRED_KEYS) {
+      const label = key.charAt(0).toUpperCase() + key.slice(1);
+      if (!rendered.includes(`**${label}:**`)) {
+        problems.push(`operating-contract-field-not-projected:${roleName}:${key}`);
+      }
+    }
+  }
+
+  return problems;
+}
+
+// Role → skills confirmed as scenario/workflow bleed for THAT role. Scoped
+// deny-list (not a taxonomy): each pair is a confirmed mismatch the role's
+// function never invokes. Skills live on the base card and are inherited by
+// every dispatch-eligible variant, so the guard also protects executable cards.
+export const SKILL_AFFINITY_DENY = Object.freeze({
+  'mure-chronicler': ['nex-vault', 'nex-deliverables'],
+  'composer-fast': ['frontend-design'],
+  'mure-oracle': ['oracle-router'],
+});
+
+/**
+ * Confirm no dispatch-eligible role carries a scenario/workflow skill bleed the
+ * role's function never invokes. Reads the base role card (the source the OMP
+ * projection inherits into every variant), so a deny-list hit also flags the
+ * executable variants that would carry the bleed.
+ *
+ * @param {object} catalog — parsed MURE agent catalog JSON
+ * @returns {string[]} problems (empty = clean)
+ */
+export function validateSkillAffinity(catalog) {
+  const problems = [];
+  for (const [roleName, forbidden] of Object.entries(SKILL_AFFINITY_DENY)) {
+    const agent = catalog.agents.find((a) => a.name === roleName);
+    if (!agent) continue; // role absent → not this check's concern
+    const skills = Array.isArray(agent.skills) ? agent.skills : [];
+    for (const skill of forbidden) {
+      if (skills.includes(skill)) {
+        problems.push(`skill-affinity-bleed:${roleName}:${skill}`);
+      }
+    }
+  }
+  return problems;
+}
+
+// ── CHECK O: projected-skill integrity (generic projection invariant) ─────
+//
+// Complementary to CHECK N, NOT a second taxonomy. CHECK N catches a known
+// scenario/workflow skill that should never ride a given role's base card
+// (narrow, hand-curated, role-scoped deny-list read from the catalog). CHECK O
+// is the generic projection-time invariant: for every projected variant card,
+// the skills the renderer ACTUALLY emits (parsed back out of the rendered
+// text — never trusted from card.skills) must equal the canonical source
+// agent's skills as sets, under deterministic normalization. It catches any
+// renderer-time skill addition, removal, or deny-listed-skill injection
+// independently of CHECK N's enumerated pairs. Today there are no variant-
+// level skill overrides, so projected skills always inherit the base role's
+// skills and this passes trivially; it is a regression anchor that fails the
+// moment a future override, merge, or renderer change silently drifts a
+// variant's skill set away from its source agent.
+
+/** Deterministic normalization of a single skill id for set comparison:
+ *  trim, collapse internal whitespace, lowercase. Stable across runs and
+ *  independent of the renderer's comma/spacing formatting. */
+function normalizeSkillId(id) {
+  return String(id == null ? '' : id).trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+/** Normalize an array of skill ids into a deduplicated, normalized Set.
+ *  Non-array/empty → empty Set. Exported for behavioral (negative-path) testing. */
+export function normalizeSkillSet(skills) {
+  const set = new Set();
+  if (Array.isArray(skills)) {
+    for (const s of skills) {
+      const n = normalizeSkillId(s);
+      if (n) set.add(n);
+    }
+  }
+  return set;
+}
+
+/** Parse the rendered Skills line back out of a fully-rendered OMP agent card.
+ *  This is the projection-integrity lens: instead of trusting card.skills, we
+ *  round-trip through the renderer's own emitted text and parse what it
+ *  actually produced. Returns a normalized Set; empty if no Skills line. */
+function parseRenderedSkills(renderedText) {
+  const set = new Set();
+  if (typeof renderedText !== 'string') return set;
+  const m = renderedText.match(/^\*\*Skills:\*\*\s*(.*)$/m);
+  if (!m) return set;
+  for (const part of m[1].split(',')) {
+    const n = normalizeSkillId(part);
+    if (n) set.add(n);
+  }
+  return set;
+}
+
+/**
+ * Generic projected-skill integrity invariant (CHECK O). For every projected
+ * card, the skills the renderer emits — parsed from `renderOmpAgent(card)`,
+ * not trusted from `card.skills` — must equal the canonical source agent's
+ * skills as sets (deterministic normalization). Reports:
+ *   projected-skill-bleed:<filename>:<skill>  — renderer added a skill the
+ *                                               source agent does not carry
+ *                                               (includes deny-listed injection)
+ *   projected-skill-drop:<filename>:<skill>   — renderer dropped a source skill
+ *
+ * Read-only: never writes, never mutates catalog or projection.
+ *
+ * @param {object} catalog — parsed MURE agent catalog JSON (canonical source skills)
+ * @param {object} [options.projection] — pre-built projection; overrides
+ *   buildOmpProjection(catalog). Used by the negative-path test to feed a
+ *   card whose skills were mutated at projection time without touching the
+ *   renderer or the catalog source.
+ * @returns {string[]} problems (empty = clean)
+ */
+export function validateProjectedSkillIntegrity(catalog, options = {}) {
+  const problems = [];
+  const projection = options && options.projection ? options.projection : buildOmpProjection(catalog);
+  // Canonical source skills keyed by agent name.
+  const sourceSkillsByName = new Map();
+  for (const a of catalog.agents) {
+    sourceSkillsByName.set(a.name, normalizeSkillSet(a.skills));
+  }
+  for (const card of projection.cards) {
+    const sourceAgentName = card.agent && card.agent.name ? card.agent.name : card.cardName;
+    const sourceSkills = sourceSkillsByName.get(sourceAgentName);
+    if (!sourceSkills) continue; // unknown source agent → not this check's concern
+    const renderedSkills = parseRenderedSkills(renderOmpAgent(card));
+    for (const skill of renderedSkills) {
+      if (!sourceSkills.has(skill)) {
+        problems.push(`projected-skill-bleed:${card.filename}:${skill}`);
+      }
+    }
+    for (const skill of sourceSkills) {
+      if (!renderedSkills.has(skill)) {
+        problems.push(`projected-skill-drop:${card.filename}:${skill}`);
+      }
+    }
+  }
+  return problems;
+}
+
 export function validateFleet() {
   const catalog = JSON.parse(fs.readFileSync(CATALOG, 'utf8'));
   const clineModels = new Set(Object.values(CLINE_ROSTER));
@@ -951,6 +1324,55 @@ export function validateFleet() {
     name: 'K: canary-bootstrap variants carry the exact evidence-only identity',
     ok: bootstrapProblems.length === 0,
     detail: bootstrapProblems.length ? bootstrapProblems.join('; ') : 'all canary-bootstrap variants are structurally clean',
+  });
+
+  // CHECK L — every authority-bearing role's PROJECTED card carries an explicit
+  // finalize/acceptance boundary; verifiers read as independent + advisory and
+  // deny self-acceptance (the loaded-surface guard for role authority exclusivity).
+  const authorityProblems = validateProjectedRoleAuthority(catalog);
+  checks.push({
+    name: 'L: projected role authority boundaries are explicit and mutually exclusive',
+    ok: authorityProblems.length === 0,
+    detail: authorityProblems.length
+      ? authorityProblems.join('; ')
+      : 'all authority-bearing projected cards (helmsman family + architect/engineer/adjudicator/oracle) carry correct finalize/acceptance boundaries',
+  });
+
+  // CHECK M — every operating-contract role carries a complete, non-empty,
+  // role-distinct provider-neutral operating contract and projects it onto the
+  // loaded card (method, artifact/output shape, stop/escalation boundary, handoff).
+  const operatingContractProblems = validateOperatingContracts(catalog);
+  checks.push({
+    name: 'M: operating contracts are complete, role-distinct, and projected',
+    ok: operatingContractProblems.length === 0,
+    detail: operatingContractProblems.length
+      ? operatingContractProblems.join('; ')
+      : `${new Set([...OPERATING_CONTRACT_ROLES, ...goalSpineOrchestratorNames(catalog)]).size} roles carry complete role-distinct operating contracts`,
+  });
+
+  // CHECK N — no dispatch-eligible role carries a scenario/workflow skill bleed
+  // the role's function never invokes (skills are defined on the base card and
+  // inherited by every executable variant, so this guards the executable set).
+  const skillAffinityProblems = validateSkillAffinity(catalog);
+  checks.push({
+    name: 'N: dispatch-eligible roles carry no scenario/workflow skill bleed',
+    ok: skillAffinityProblems.length === 0,
+    detail: skillAffinityProblems.length
+      ? skillAffinityProblems.join('; ')
+      : `${Object.keys(SKILL_AFFINITY_DENY).length} role-skill affinity deny-rules honored`,
+  });
+
+  // CHECK O — generic projected-skill integrity: for every projected variant,
+  // the skills the renderer emits (parsed from the rendered text) must equal
+  // the canonical source agent's skills as sets. Catches renderer-time skill
+  // addition/removal and deny-listed-skill injection independently of CHECK N.
+  const projectedSkillProblems = validateProjectedSkillIntegrity(catalog);
+  checks.push({
+    name: 'O: projected skills equal canonical source agent skills (sets)',
+    ok: projectedSkillProblems.length === 0,
+    detail: projectedSkillProblems.length
+      ? projectedSkillProblems.join('; ')
+      : `${buildOmpProjection(catalog).cards.length} projected cards carry exactly their source agent skills`,
   });
 
   return { ok: checks.every((c) => c.ok), checks };

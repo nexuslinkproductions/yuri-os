@@ -485,6 +485,9 @@ export function buildOmpProjection(catalog) {
       capabilities: agent.capabilities,
       skills: agent.skills,
       notes: agent.notes || agent.note || null,
+      authorityBoundary: agent.authorityBoundary || null,
+      independence: agent.independence || null,
+      operatingContract: agent.operatingContract || null,
       variantPurpose: variant?.note || null,
     };
 
@@ -602,6 +605,34 @@ export function renderOmpAgent(card) {
   if (card.capabilities && card.capabilities.length > 0) {
     bodyLines.push('');
     bodyLines.push(`**Capabilities:** ${card.capabilities.join(', ')}`);
+  }
+
+  if (card.authorityBoundary) {
+    bodyLines.push('');
+    bodyLines.push(`**Authority:** ${card.authorityBoundary}`);
+  }
+
+  // Scoped producer-independence projection: the verifier lanes that gate
+  // producer output (adjudicator, oracle) surface their named independence on
+  // the loaded card so the runtime prompt shows exactly which producers they
+  // must stay independent of.
+  if (card.independence && card.independence.length > 0
+    && (card.agent?.name === 'mure-adjudicator' || card.agent?.name === 'mure-oracle')) {
+    bodyLines.push('');
+    bodyLines.push(`**Independent of:** ${card.independence.join(', ')}`);
+  }
+  // Operating-contract projection: each role's provider-neutral execution
+  // method, required artifact/output shape, explicit stop/escalation
+  // boundary, and handoff target — surfaced on the loaded card so the
+  // runtime prompt states how the role executes and where it stops.
+  if (card.operatingContract) {
+    const oc = card.operatingContract;
+    bodyLines.push('');
+    bodyLines.push('**Operating Contract:**');
+    bodyLines.push(`- **Method:** ${oc.method}`);
+    bodyLines.push(`- **Artifact:** ${oc.artifact}`);
+    bodyLines.push(`- **Stop:** ${oc.stop}`);
+    bodyLines.push(`- **Handoff:** ${oc.handoff}`);
   }
 
   if (card.systemSections && card.systemSections.length > 0) {

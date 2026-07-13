@@ -4,8 +4,8 @@
   "source": "_SYSTEM/mure/agent-catalog.json",
   "generated": "2026-07-09T19:32:40.083Z",
   "projected": 127,
-  "executable": 75,
-  "disabled": 52,
+  "executable": 76,
+  "disabled": 51,
   "cards": [
     {
       "cardName": "mure-helmsman",
@@ -74,7 +74,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-helmsman-opus48",
@@ -120,7 +120,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-helmsman-glm-glm51",
@@ -184,7 +184,7 @@
       ],
       "spawns": "*",
       "task": true,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-envoy",
@@ -542,7 +542,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-engineer-m3",
@@ -698,7 +698,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-mechanic-m3",
@@ -902,7 +902,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-kernelsmith-dvp",
@@ -1063,7 +1063,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-ideator",
@@ -1123,7 +1123,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-ideator-dvp",
@@ -1245,7 +1245,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-deliberator-dvp",
@@ -1355,7 +1355,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-synthesist-sonnet5",
@@ -1401,7 +1401,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-synthesist-m3",
@@ -1720,7 +1720,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-adjudicator-dvp",
@@ -1876,7 +1876,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-calibrator",
@@ -2037,7 +2037,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-steward-opus48",
@@ -2175,7 +2175,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-architect-sol",
@@ -2244,7 +2244,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-architect-opus48",
@@ -2313,7 +2313,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-evolver-opus48",
@@ -2538,11 +2538,11 @@
       "sourceAgent": "fable-synth",
       "sourceVariant": null,
       "catalogModel": "anthropic/claude-fable-5",
-      "resolvedModel": null,
-      "status": "FAIL_CLOSED",
-      "failClass": "canary_pending",
-      "reason": "Registry route \"anthropic/claude-fable-5\" has status \"catalog-candidate\" — canary proof is pending; only the exact evidence-only canary-bootstrap variant (eligibilityFlags: [\"canary-bootstrap\"]) may resolve while pending.",
-      "thinkingLevel": null,
+      "resolvedModel": "anthropic/claude-fable-5",
+      "status": "OK",
+      "failClass": null,
+      "reason": null,
+      "thinkingLevel": "high",
       "tools": [
         "read",
         "grep",
@@ -2555,10 +2555,10 @@
       "evidenceAgentId": "fable-synth-bootstrap"
     },
     {
-      "cardName": "fable-synth-bootstrap",
-      "filename": "fable-synth-bootstrap",
+      "cardName": "fable-synth-fable5",
+      "filename": "fable-synth-fable5",
       "sourceAgent": "fable-synth",
-      "sourceVariant": "fable-synth-bootstrap",
+      "sourceVariant": "fable-synth-fable5",
       "catalogModel": "anthropic/claude-fable-5",
       "resolvedModel": "anthropic/claude-fable-5",
       "status": "OK",
@@ -2566,10 +2566,14 @@
       "reason": null,
       "thinkingLevel": "high",
       "tools": [
-        "read"
+        "read",
+        "grep",
+        "glob",
+        "write",
+        "bash"
       ],
       "spawns": null,
-      "task": true,
+      "task": false,
       "evidenceAgentId": "fable-synth-bootstrap"
     },
     {
@@ -2722,7 +2726,7 @@
       ],
       "spawns": null,
       "task": false,
-      "evidenceAgentId": "mure-architect"
+      "evidenceAgentId": "mure-architect-glm52"
     },
     {
       "cardName": "mure-advisor-heavy-m3",

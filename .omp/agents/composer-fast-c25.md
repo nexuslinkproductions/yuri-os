@@ -22,6 +22,6 @@ tools:
 
 **Variant:** Normal canary-proven producer variant for cursor/composer-2.5 — bulk drafting and critique on the exact proven selector.
 
-**Skills:** compact-optimizer, writing-plans, frontend-design, visual-plan, extraction-sprint, to-prd
+**Skills:** compact-optimizer, writing-plans, visual-plan, extraction-sprint, to-prd
 
 **Notes:** Requires cursor-cli provider. Generic fast worker pattern.

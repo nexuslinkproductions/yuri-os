@@ -20,4 +20,4 @@ tools:
 
 **Capabilities:** technical-writing, summary-distillation, result-labeling, doc-generation
 
-**Skills:** writing-skills, nex-vault, cross-reference-navigation, research-artifact-factory, end-of-transmission, nex-deliverables
+**Skills:** writing-skills, cross-reference-navigation, research-artifact-factory, end-of-transmission

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { validateAgentCardAuthority, validateCanaryEvidence, validateCanaryBootstrapVariants, DISABLED_MODEL_SELECTOR } from './mure-fleet-validate.mjs';
+import { validateAgentCardAuthority, validateCanaryEvidence, validateCanaryBootstrapVariants, validateSkillAffinity, validateProjectedSkillIntegrity, normalizeSkillSet, SKILL_AFFINITY_DENY, DISABLED_MODEL_SELECTOR } from './mure-fleet-validate.mjs';
 import {
   buildOmpProjection,
   renderOmpAgent,
@@ -1233,4 +1233,131 @@ test('validateCanaryBootstrapVariants: a non-bootstrap variant (no canary-bootst
   const cat = bootstrapCatalog({ eligibilityFlags: ['heavy'], tools: ['read', 'write'], note: 'normal variant' });
   const problems = validateCanaryBootstrapVariants(cat, candidateRegistry());
   assert.deepEqual(problems, [], 'a variant that never claims canary-bootstrap must not be flagged');
+});
+
+// ── CHECK N: role-skill affinity bleed gate ───────────────────────────────
+
+const LIVE_CATALOG = JSON.parse(
+  fs.readFileSync(path.join(REPO_MURE, 'agent-catalog.json'), 'utf8'),
+);
+
+test('CHECK N: live catalog carries no scenario/workflow skill bleed', () => {
+  // mure-chronicler must not carry nex-vault / nex-deliverables;
+  // composer-fast must not carry frontend-design;
+  // mure-oracle must not carry oracle-router.
+  assert.deepEqual(validateSkillAffinity(LIVE_CATALOG), []);
+});
+
+test('CHECK N: every confirmed bleed pair is flagged (negative path)', () => {
+  // Inject every forbidden skill into its role's base card → all must bite.
+  const tampered = {
+    ...LIVE_CATALOG,
+    agents: LIVE_CATALOG.agents.map((a) => {
+      const deny = SKILL_AFFINITY_DENY[a.name];
+      return deny ? { ...a, skills: [...(a.skills || []), ...deny] } : a;
+    }),
+  };
+  const problems = validateSkillAffinity(tampered);
+  for (const [role, forbidden] of Object.entries(SKILL_AFFINITY_DENY)) {
+    for (const skill of forbidden) {
+      assert.ok(problems.includes(`skill-affinity-bleed:${role}:${skill}`),
+        `expected skill-affinity-bleed:${role}:${skill} in ${problems.join('; ')}`);
+    }
+  }
+});
+
+test('CHECK N: a role absent from the catalog is skipped, not flagged', () => {
+  const noChronicler = { ...LIVE_CATALOG, agents: LIVE_CATALOG.agents.filter((a) => a.name !== 'mure-chronicler') };
+  assert.deepEqual(validateSkillAffinity(noChronicler), [],
+    'absent roles are skipped, so no bleed is reported');
+});
+
+test('mure-yuri projects mure-role-variant-matrix into Skills: (no duplication)', () => {
+  // The skill is hash-registered and named in mure-yuri notes; it must also
+  // ride the machine-readable skills array so the OMP skill:// projection surfaces it.
+  const yuri = LIVE_CATALOG.agents.find((a) => a.name === 'mure-yuri');
+  assert.ok(yuri, 'mure-yuri present in live catalog');
+  const skills = Array.isArray(yuri.skills) ? yuri.skills : [];
+  assert.equal(skills.filter((s) => s === 'mure-role-variant-matrix').length, 1,
+    'mure-role-variant-matrix must appear exactly once in mure-yuri skills (no duplication)');
+  // The rendered base card's Skills: line must surface it (what OMP loads).
+  const projection = buildOmpProjection(LIVE_CATALOG);
+  const base = projection.cards.find((c) => c.cardName === 'mure-yuri' && c.variant == null);
+  assert.ok(base, 'mure-yuri projected base card exists');
+  assert.ok(renderOmpAgent(base).includes('**Skills:**') &&
+    renderOmpAgent(base).match(/\*\*Skills:\*\* (.*)/)[1].split(', ').includes('mure-role-variant-matrix'),
+    'mure-yuri projected Skills: line must contain mure-role-variant-matrix');
+});
+
+
+// ── CHECK O: projected-skill integrity (generic projection invariant) ──────
+
+test('CHECK O: live catalog — every projected card renders exactly its source agent skills', () => {
+  // The generic projection invariant must pass trivially today: there are no
+  // variant-level skill overrides, so every projected variant inherits its
+  // base role's skills and the renderer echoes them verbatim.
+  const problems = validateProjectedSkillIntegrity(LIVE_CATALOG);
+  assert.deepEqual(problems, [],
+    `live catalog must have zero projected-skill bleed/drop; got ${problems.join('; ')}`);
+});
+
+test('CHECK O: projected card with a deny-listed skill injected at projection time is flagged (negative path)', () => {
+  // Simulate a renderer-time injection: build the real projection, then mutate
+  // ONE card's skills at projection time (reassigning the array so the catalog
+  // source stays clean) to add a deny-listed skill that role's source agent
+  // does NOT carry. The invariant parses the renderer's own output and must
+  // catch the bleed against the canonical source — without trusting card.skills
+  // and without altering production renderer code.
+  const projection = buildOmpProjection(LIVE_CATALOG);
+  const chroniclerCard = projection.cards.find(
+    (c) => c.agent && c.agent.name === 'mure-chronicler',
+  );
+  assert.ok(chroniclerCard, 'mure-chronicler projects at least one card');
+  // nex-vault is deny-listed for mure-chronicler (SKILL_AFFINITY_DENY) and the
+  // source agent does not carry it — a textbook renderer-time injection.
+  assert.ok(!(chroniclerCard.agent.skills || []).includes('nex-vault'),
+    'precondition: chronicler source does not carry nex-vault');
+  const tampered = {
+    ...projection,
+    cards: projection.cards.map((c) =>
+      c === chroniclerCard
+        ? { ...c, skills: [...(c.skills || []), 'nex-vault'] }
+        : c,
+    ),
+  };
+  const problems = validateProjectedSkillIntegrity(LIVE_CATALOG, { projection: tampered });
+  assert.ok(
+    problems.some((p) => p === `projected-skill-bleed:${chroniclerCard.filename}:nex-vault`),
+    `expected projected-skill-bleed:${chroniclerCard.filename}:nex-vault in ${problems.join('; ')}`,
+  );
+});
+
+test('CHECK O: projected card missing a source skill (renderer dropped it) is flagged', () => {
+  // The reverse drift: the renderer silently drops a skill the source agent
+  // carries. Mutate one card's skills to drop a legitimate skill; the
+  // invariant must report projected-skill-drop.
+  const projection = buildOmpProjection(LIVE_CATALOG);
+  const card = projection.cards.find((c) => (c.skills || []).length > 0);
+  assert.ok(card, 'a card with skills exists');
+  const dropped = card.skills[0];
+  const tampered = {
+    ...projection,
+    cards: projection.cards.map((c) =>
+      c === card ? { ...c, skills: c.skills.slice(1) } : c,
+    ),
+  };
+  const problems = validateProjectedSkillIntegrity(LIVE_CATALOG, { projection: tampered });
+  assert.ok(
+    problems.some((p) => p === `projected-skill-drop:${card.filename}:${dropped.toLowerCase()}`),
+    `expected projected-skill-drop:${card.filename}:${dropped.toLowerCase()} in ${problems.join('; ')}`,
+  );
+});
+
+test('CHECK O: normalizeSkillSet is deterministic and order/case/whitespace-insensitive (pure helper)', () => {
+  assert.deepEqual([...normalizeSkillSet(['B', ' a ', 'A', 'b', 'a'])].sort(), ['a', 'b'],
+    'dedupes case-insensitively and trims whitespace');
+  assert.equal(normalizeSkillSet(null).size, 0, 'null → empty');
+  assert.equal(normalizeSkillSet(undefined).size, 0, 'undefined → empty');
+  assert.equal(normalizeSkillSet('not-an-array').size, 0, 'non-array → empty');
+  assert.equal(normalizeSkillSet([]).size, 0, 'empty array → empty');
 });
