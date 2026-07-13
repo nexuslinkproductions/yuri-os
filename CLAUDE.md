@@ -23,17 +23,17 @@ The body — the mechanisms — is triggered from here, not inlined:
 - DeepSeek advisory lanes → only through LLM compatibility (`ai llm deepseek ...`, `_SYSTEM/Scripts/llm-compat.sh`, or `llm-lane.mjs deepseek`). Workhorse, parallel-clone, and old offload command surfaces are retired and must not be used.
 - Continuity → memory recall + EOT closeout.
 
-## Standing Operating Model — fleet by default (owner directive 2026-07-04, v2 2026-07-06)
+## Standing Operating Model — fleet by default (owner directive 2026-07-04, v3 2026-07-13)
 
-The opus-fleet model is the DEFAULT way every non-trivial task runs — never wait for `/opus-fleet` to be typed. On every substantial task (build, research, audit, multi-file edit, refactor; skip trivial reads + pure conversation):
+The `fleet-economy` model is the DEFAULT way every non-trivial task runs — never wait for a skill trigger to be typed. On every substantial task (build, research, audit, multi-file edit, refactor; skip trivial reads + pure conversation):
 
-1. Decompose → dispatch parallel worker lanes across **three substrates**: OMP `task()` subagents (explore / task / tester / reviewer / …), **glm-fleet** (`glm-fleet.mjs`), and **ollama-cloud** (`ollama-fleet.mjs`) — **cloud only**, no local SLMs, **no Codex**. Fan out up to ~32 parallel `task()` items per batch when work divides cleanly.
+1. Decompose → dispatch parallel worker lanes through the native **OMP `task` tool** (parent-orchestrator-only — only a live OMP session holds it, never a spawned lane), casting to `mure-*` agent cards or bare roles (explore / task / tester / reviewer / …). Every route is gated by the provider-route registry (`_SYSTEM/config/provider-route-registry.json`): `canary-proven` admission history AND a passing latest canary, or it fails closed regardless of catalog presence. Fan out up to ~32 parallel `task()` items per batch when work divides cleanly. Retired/blocked: Haiku 4.5 (owner-retired 2026-07-12), Terra (quota-blocked pending re-canary), local Ollama SLMs, Codex in the dispatch roster. Direct DeepSeek is not an executable substrate until its runner is restored and live-canary proven; its catalog entry alone does not admit it.
 2. Adversarially verify every lane result against local evidence — lane output is a hypothesis, never proof.
 3. Finalize orchestrator-session only: scoped-pathspec commit/push, irreversible/outward calls.
 
 Default posture: the orchestrator INSTRUCTS, subagents EXECUTE — reach for `task(agent:...)` before editing/coding directly, fanning the same role across multiple instances (distinct id + assignment each) when work divides rather than treating roles as singletons — e.g. 3x `mure-engineer` on 3 modules, 4x `mure-scout` on 4 sources; direct main-lane edits are for trivial, self-contained changes only. (Identity rule, posture only — no repo-specific names or `task()` mechanics there by design: `persona.md` → Standing execution rules → Delegate by default. The concrete dispatch mechanics live HERE, in this YURI-OS-scoped file, not in the global identity layer.)
 
-Canonical cloud model map: `_SYSTEM/config/cloud-fleet-models.json`. Skills: honor the `<skill-recall-hint>` injected each prompt — invoke matching skills via the Skill tool before substantial work; it is not decorative. Memory: write Track-B memories on every durable learning (write-on-learn), not at session end. Detail + dispatch templates: the `opus-fleet` skill. Binding record: `.claude/memory/feedback-opus-fleet-standing-default.md`.
+Canonical cloud model map: `_SYSTEM/config/cloud-fleet-models.json`. Skills: honor the `<skill-recall-hint>` injected each prompt — invoke matching skills via the Skill tool before substantial work; it is not decorative. Memory: write Track-B memories on every durable learning (write-on-learn), not at session end. Detail + dispatch templates: the `fleet-economy` skill is the single canonical orchestration doctrine — `opus-fleet` is a compatibility redirect only. Binding record: `.claude/memory/feedback-opus-fleet-standing-default.md`.
 
 ## Read Order
 
@@ -71,7 +71,7 @@ Codex (the OpenAI *codex* platform; model `gpt-5.5`) is an optional external cla
 
 Treat the Claude lane as live peer collaboration in the PTY lane, not as a detached tool. Marcel's private overlay styles this lane's persona as Rick — Rick is this lane (me), not the operator; the operator logged on is Marcel, and Marcel is who this lane addresses. Never address Marcel as "Rick". Neutral YURI labels remain the default shipping-safe surface.
 
-Use Sonnet aggressively for regular collaboration, critique, planning, synthesis, operator work, and lightweight implementation discussion. Escalate intentionally to Opus for heavier coding, architecture, or refactor work where the extra reasoning budget is justified.
+The orchestrator seat is whatever the provider-route registry's `roleTopology.orchestrator.owner` resolves at session start — historical seats include Sol (`openai/gpt-5.6-sol`) and Opus (`anthropic/claude-opus-4-8`, canary-proven); the registry, not this doc, is the source of truth for the live prime. Use Sonnet for delegated worker lanes, regular collaboration, critique, planning, synthesis, and lightweight implementation where the full reasoning budget is not the bottleneck; reserve the main lane's own reasoning for heavier coding, architecture, or refactor judgment, and route mechanical/bulk work down to cheaper dispatched lanes (see Standing Operating Model) rather than doing it inline.
 
 Model choice does not change authority. Claude output is advisory until local evidence verifies it; owner approval gates any mutation.
 
@@ -97,7 +97,7 @@ Keep cacheable context compact and stable. Prefer one short, reusable packet hea
 
 Do not churn `CLAUDE.md`, tool permissions, MCP/tool lists, or launch shape in the middle of a session unless the task requires it. Stable project instructions and a continuous tmux/PTY lane are better for cache reuse than repeated fresh prompt calls.
 
-When compaction or reset is needed, warm-start Sonnet/Haiku, send the stable load-up prompt, then choose Sonnet or Opus intentionally before the task packet.
+When compaction or reset is needed, warm-start on Sonnet (Haiku 4.5 is owner-retired 2026-07-12 — do not warm-start on it), send the stable load-up prompt, then choose Sonnet or Opus intentionally before the task packet.
 
 ## Claude Output Lane
 
@@ -139,7 +139,7 @@ This is a behavior layer, not authority. Persona does not override protected pat
 Allowed:
 
 - one real interactive Claude Code session
-- warm reset/start on Haiku or Sonnet by default; escalate to Opus only when the task justifies it
+- warm reset/start on Sonnet by default (Haiku 4.5 is owner-retired 2026-07-12); the orchestrator seat is whatever the registry `roleTopology.orchestrator.owner` resolves at session start (Sol and Opus are both historical options — re-check the registry for today's prime, do not assume), so "escalate to Opus" is a delegate-side decision, not a description of the main lane
 - tmux/PTY-backed continuity
 - bounded packets sent into the live session
 - streamed deltas observed by Kagami/Rick

@@ -1,6 +1,6 @@
 ---
-skill: opus-fleet
-description: "Opus orchestrates; Sonnet/Haiku agents work in 3 lanes (Research/Code-gen/Testing) at max reasoning; Opus reviews + finalizes."
+skill: fleet-economy
+description: "Compatibility redirect — opus-fleet is now a tombstone; /opus-fleet loads fleet-economy, the single canonical orchestration doctrine."
 ---
 
-Invoke the opus-fleet skill — run the standing operating model: Opus orchestrates, spawned Sonnet/Haiku Agents do the work in three lanes (Research / Code-generation / Testing) at MAX reasoning, Opus reviews, corrects, and finalizes. Use Agent (never Workflow); self-contained prompts; verify every result.
+`/opus-fleet` is a legacy trigger. The doctrine it used to carry (task() dispatch templates, GLM/Ollama-cloud fan-out, MURE role-cast, the MLP router) now lives entirely in the **`fleet-economy`** skill — load that instead. `opus-fleet` itself (`.claude/skills/opus-fleet/SKILL.md`) is a tombstone with no roster or execution rules of its own.

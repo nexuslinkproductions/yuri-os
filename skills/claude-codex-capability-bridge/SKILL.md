@@ -22,7 +22,7 @@ Codex plugins are capability lanes. YURI remains the control plane.
 Before plugin-derived capability is used or routed into Claude:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
 
 Then load the selected YURI context and follow protected-path, mutation, registry, verification, and commit rules.

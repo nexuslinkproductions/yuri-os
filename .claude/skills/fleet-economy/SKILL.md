@@ -11,7 +11,7 @@ invocation: workflow
 
 **The orchestrator conducts; it does not play every instrument. You are the INPUT LAYER — route, don't work.** One expensive reasoning lane (you) decomposes, dispatches, verifies, and finalizes; agents do the rest, continuously and in parallel, the way a multitask orchestrator (Cursor / Hermes) keeps agents in flight the whole time. The failure mode is under-spawning — the main session quietly doing reads/analysis/edits it should have fanned out. Everything else is a lane. Match model cost to lane job: cheap models read/search/scan; medium/heavy models code and reason; the single hardest reasoning lane gets the most capable model. Every heavy lane you spawn must itself offload — recursively.
 
-This is the single invoke-once surface for the fleet. It consolidates what was scattered across `skills/opus-fleet/SKILL.md` (substrate mechanics), `_SYSTEM/config/cloud-fleet-models.json` (the roster), and `_SYSTEM/Scripts/fleet-router-mlp.mjs` (the learned router). **REQUIRED BACKGROUND for substrate/dispatch mechanics: `opus-fleet`.**
+This is the single invoke-once surface for the fleet — self-contained, not dependent on any other skill for mechanics. It supersedes `skills/opus-fleet/SKILL.md` (now a compatibility redirect only) and consolidates the roster (`_SYSTEM/config/cloud-fleet-models.json`) and the learned router (`_SYSTEM/Scripts/fleet-router-mlp.mjs`). Native dispatch is **parent-orchestrator-only**: the OMP `task` tool spawns worker agents; only a live OMP session holds that tool, never a spawned lane. Every route below is gated by the provider-route registry (`_SYSTEM/config/provider-route-registry.json`) — an agent card being listed is not eligibility; it needs `canary-proven` admission history AND a passing latest canary, or it fails closed regardless of catalog presence.
 
 ## The Iron Rules (violating the letter violates the spirit)
 
@@ -27,16 +27,18 @@ Pick the tier by the SHAPE of the work, not by habit.
 
 | Job shape | Tier | Models | Parallel cap |
 |---|---|---|---|
-| reads · search · scan · census · scrape · mechanical | **CHEAP** | deepseek-flash, composer, haiku, gemini-flash, gpt-mini | deepseek-flash **≤5**, others wide |
+| reads · search · scan · census · scrape · mechanical | **CHEAP** | deepseek-flash (ollama-cloud, canary-proven), composer (cursor/composer-2.5, canary-proven), gemini-flash (cursor/gemini-3.5-flash, canary-proven — `mure-oracle`) | deepseek-flash **≤5**, others wide |
 | bulk analysis · digest · first-pass classification | **CHEAP** | deepseek-flash, glm-flash (glm-5-turbo) | ≤5 |
-| code-gen · refactor · wiring · integration | **MEDIUM/HEAVY** | sonnet-5, glm (glm-5.1 workhorse), kimi-k2.7-code, minimax-m3 | minimax-m3 **≤3** |
-| architecture · adversarial verify · hard synthesis | **HEAVY** | opus-4.8, glm-5.2 (glm-max), nemotron ultra/super | reserve for the single hardest lane |
+| code-gen · refactor · wiring · integration | **MEDIUM/HEAVY** | sonnet-5 (canary-proven, `advisor-verifier` role), glm (glm-5.1 workhorse, canary-proven `architect`), kimi-k2.7-code (canary-proven `frontier-worker`), minimax-m3 (canary-proven `frontier-worker`) | minimax-m3 **≤3** |
+| architecture · adversarial verify · hard synthesis | **HEAVY** | opus-4.8 (canary-proven, registry role `verifier-strategist` — strategic verification anchor, not a general coding worker), glm-5.2 (glm-max, canary-proven `architect`), nemotron ultra (ollama-cloud, canary-proven `advisor-verifier`) | reserve for the single hardest lane |
 | test authoring | **DEDICATED** | Tester agent (authoritative — never write tests yourself) | — |
-| final strategic pass | **APEX** | fable-synth (Fable-5) — itself recursive | 1 |
+| final strategic pass | **APEX** | `fable-synth` (canary-proven normal route; the former `fable-synth-bootstrap` evidence seam is tombstoned) — itself recursive | 1 |
 
-Named-model → substrate map: cheap bulk = `deepseek-flash` (ollama-cloud `deepseek-v4-flash`); heavy synth = `glm-5.2` (glm-max) / `opus-4.8`; code peer = `kimi-k2.7-code`; generalist = `minimax-m3`; reasoning burst = `nemotron-3-ultra`. Retired/forbidden: Codex, direct DeepSeek API, local Ollama SLMs.
+Named-model → substrate map: cheap bulk = `deepseek-flash` (ollama-cloud `deepseek-v4-flash`); heavy synth = `glm-5.2` (glm-max) / `opus-4.8`; code peer = `kimi-k2.7-code`; generalist = `minimax-m3`; reasoning burst = `nemotron-3-ultra`. Direct DeepSeek remains catalogued but is not executable because `deepseek-fleet.mjs` is absent; do not route to it until the runner is restored and a fresh live canary passes. Forbidden: Codex in the dispatch roster, local Ollama SLMs.
 
 **Reserve the apex.** Do NOT default every lane to a heavy model. One hard lane earns opus/glm-5.2/Fable; parallel verify/research/bulk goes cheap.
+
+**Retired/blocked — do not route here.** Haiku 4.5 is owner-retired (2026-07-12): removed from active OMP/MURE roles and fallbacks, historical canary evidence preserved but the route fails closed and cannot resolve. Terra (`openai/gpt-5.6-terra`) is quota-blocked (two `usage_limit_reached` dispatches 2026-07-11) — blocked until a new successful live canary. Sol (`openai/gpt-5.6-sol`) is the **orchestrator seat**, not a dispatched worker — no OMP route exists for it and none should be attempted. Fable (`anthropic/claude-fable-5`) is `canary-proven` in the registry (`claude-fable-5.anthropic`, observed 2026-07-13, `jobId: 2026-07-13-live`, `taskResultStatus: completed`, transcript read + yield observed). The live apex path is `fable-synth` (the normal card, admitted 2026-07-13); `fable-synth-bootstrap` is tombstoned as an evidence-only seam, not a dispatch path.
 
 ## How to dispatch
 
@@ -58,15 +60,15 @@ A subagent that 429-dies teaches the orchestrator "delegation fails" — and it 
 ## Recursive offload contract (for heavy lanes)
 
 When you spawn a heavy/reasoning lane, its assignment MUST include:
-> "Offload your reads/searches/scans to cheap sub-lanes (deepseek-flash/composer/haiku); reserve yourself for the hard reasoning. Do not do your own grunt reads."
+> "Offload your reads/searches/scans to cheap sub-lanes (deepseek-flash/composer); reserve yourself for the hard reasoning. Do not do your own grunt reads."
 
 Recursion follows the harness depth cap (main=0, child=1, …). GLM sub-orchestration (`glm-max` → `glm-fleet.mjs`) and nano-spawn are the deep paths (owner-gated, ≤5). Native OMP `explore` lanes are FLAT (no further spawn) — use them as leaves.
 
-**Leaf-lane exception.** A lane whose harness exposes NO spawn/task surface — a depth-capped subagent (e.g. Fable spawned via `eval agent()`) or an OMP `explore` lane — CANNOT recurse. It MUST instead do surgical scoped reads (grep-scoped, line selectors, per-file inspection, no bulk ingestion) and state in its output that it operated as a leaf. Rule 4 binds every lane that CAN spawn; a leaf satisfies the spirit by minimizing its own read footprint, not by recursing.
+**Leaf-lane exception.** A lane whose harness exposes NO spawn/task surface — a depth-capped subagent (e.g. Fable spawned via `eval agent()` as `fable-synth`) or an OMP `explore` lane — CANNOT recurse. It MUST instead do surgical scoped reads (grep-scoped, line selectors, per-file inspection, no bulk ingestion) and state in its output that it operated as a leaf. Rule 4 binds every lane that CAN spawn; a leaf satisfies the spirit by minimizing its own read footprint, not by recursing.
 
 ## The MLP router (advisory)
 
-`fleet-router-mlp.mjs` learns task-shape → substrate routing from the prediction-ledger (12 features → 8 hidden → 1 score; `predictRoute(features, candidates)`). It is **ADVISORY** — the 6-gate governance charter always overrides it; weight-persistence is gated (`YURI_MLP_LEARN=1`). Features are logged even when disarmed (offline replay). Treat its ranking as a hint, verify against evidence. Cold-start note: disk weights may lag the code version → first load re-initializes; warm from the ledger via `train-fleet-router-from-ledger.mjs`.
+`fleet-router-mlp.mjs` learns task-shape → substrate routing from the prediction ledger (12 features → 8 hidden → 1 score; `predictRoute(features, candidates)`). The `historicalSuccess` feature now uses a deterministic bounded rolling mean over matched prediction/outcome evidence keyed by `(role, substrateFamily)`; explicit caller overrides still win, while absent, sparse, malformed, or legacy evidence falls back to the neutral prior. `fleet-mlp-feedback.mjs` feeds accepted run outcomes through `updateFromOutcome`, persists learning only when armed (`YURI_MLP_LEARN=1`), and promotes only aggregated threshold-cleared historical-success snapshots into Track-A memory. The router remains **ADVISORY**: the six-gate governance charter overrides it; `STEER_FAMILY` (`company.mjs`) bounds which substrate family a role may enter (`glm`: glm/glm-max/glm-turbo/tmux-zai/glm-flash/glm-flashx/glm-sub-orch/cline; `native`: native/cursor); and suggestions below the confidence threshold (default `0.6`, `steerThreshold`/`YURI_MLP_STEER_THRESHOLD`) do not steer. Features and predictions remain available for offline replay while disarmed; weight persistence requires the armed gate. Treat rankings as evidence-backed hints, not authority. Cold-start note: disk weights may lag the code version, so first load re-initializes; warm from the ledger via `train-fleet-router-from-ledger.mjs`.
 
 ## MURE role-cast (when the work maps to specialists)
 
@@ -74,7 +76,7 @@ For work that decomposes onto named specialists, cast to the MURE 20-role collec
 
 ## Final pass
 
-Close a substantial effort with **Fable-5** (`fable-synth`) as an APEX strategic/adversarial pass over the prepared package — and instruct it to use its OWN cheap sub-lanes (rule 4). Its refutations are the last gate before you finalize.
+Close a substantial effort with **Fable-5** as an APEX strategic/adversarial pass over the prepared package — dispatch through the canary-proven `fable-synth` card — and instruct it to use its own cheap sub-lanes when the harness exposes a spawn surface (rule 4); otherwise the leaf-lane exception applies. Its refutations are the last gate before you finalize.
 
 ## Rationalizations — STOP
 
@@ -95,4 +97,12 @@ Close a substantial effort with **Fable-5** (`fable-synth`) as an APEX strategic
 
 ## Quick reference
 
-Decompose → **cheap** lanes read/scan/scrape (≤5 deepseek-flash) → **medium/heavy** lanes code/analyze (each recursively offloading) → **adversarial** verify (mure-adjudicator) → **you** gate + commit → **Fable-5** apex final pass. You: ~20%. Roster: `cloud-fleet-models.json`. Mechanics: `opus-fleet`.
+Decompose → **cheap** lanes read/scan/scrape (≤5 deepseek-flash) → **medium/heavy** lanes code/analyze (each recursively offloading) → **adversarial** verify (mure-adjudicator) → **you** gate + commit → **Fable-5** apex final pass (`fable-synth`, canary-proven). You: ~20%. Roster: `cloud-fleet-models.json`. Mechanics: this skill is the single canonical surface — `opus-fleet` is a compatibility redirect only, not a second source of doctrine.
+
+## Session Notes
+
+### 2026-07-09
+- session: 45m | peak ctx: 0% | compacts: 0
+- tools: Read×6, Bash×4, Write×1
+- corrections: none
+- errors: none
