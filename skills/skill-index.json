@@ -3,7 +3,7 @@
   "updated": "2026-07-08",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 120,
+  "count": 119,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -76,11 +76,6 @@
     {
       "id": "caveman",
       "path": "skills/caveman/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
-    },
-    {
-      "id": "cgs-mold",
-      "path": "skills/cgs-mold/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
     },
     {

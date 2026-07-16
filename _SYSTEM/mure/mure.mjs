@@ -9,6 +9,8 @@
 // and finalize are driven by the Opus session. Arming is owner-gated. DISARMED by default.
 
 import { fileURLToPath } from 'node:url';
+import { realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { loadRoster, validateRoster, matchRolesByCapability, resolveLane, GROUPS } from './role-registry.mjs';
 import { evaluateGovernance, CLASS } from './governance.mjs';
 import { runGoalCycle, scoreGoal } from './goal-engine.mjs';
@@ -104,6 +106,24 @@ async function main(argv) {
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// CLI entry guard: compare canonical REAL paths, not raw file:// URLs. The old
+// `import.meta.url === \`file://${process.argv[1]}\`` check broke under macOS
+// /tmp → /private/tmp, symlinked roots, and paths with spaces — a direct
+// invocation silently fell through to exit 0 with no output. realpathSync
+// normalizes both sides to their real on-disk location; if argv[1] cannot be
+// resolved (shouldn't happen for a real direct invocation), we fall back to a
+// path.resolve() comparison so a valid CLI call is never silently dropped.
+// Importing the module (argv[1] absent or a different file) leaves main() idle.
+const __moduleRealPath = realpathSync(fileURLToPath(import.meta.url));
+function isDirectInvocation() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  let entryReal;
+  try { entryReal = realpathSync(entry); }
+  catch { entryReal = resolve(entry); }
+  return entryReal === __moduleRealPath;
+}
+
+if (isDirectInvocation()) {
   main(process.argv.slice(2)).then((code) => process.exit(code)).catch((e) => { process.stderr.write(`mure error: ${String(e?.message || e)}\n`); process.exit(1); });
 }

@@ -47,10 +47,6 @@
     "source_path": "skills/caveman/SKILL.md",
     "hash": "04d927756e253def"
   },
-  "cgs-mold": {
-    "source_path": "skills/cgs-mold/SKILL.md",
-    "hash": "6632b99e2246bcf2"
-  },
   "claude-codex-capability-bridge": {
     "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
     "hash": "7cd69a7f729db192"

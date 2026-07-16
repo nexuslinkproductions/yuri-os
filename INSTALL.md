@@ -13,6 +13,26 @@ This guide docks YURI into your setup **without clobbering anything you already
 have.** Every step is reversible.
 
 ---
+## MIKE collaborator branch
+
+If you are MIKE, do not follow the steps below by hand. Feed
+[`MIKE-INSTALL.md`](MIKE-INSTALL.md) directly to OMP instead — it is a
+self-contained execution contract for cloning and verifying the `mike`
+branch:
+
+```bash
+omp --allow-home @MIKE-INSTALL.md      # before clone
+omp @MIKE-INSTALL.md                   # from inside an existing checkout
+```
+
+**Repository identity.** `MIKE-INSTALL.md` clones and operates on the
+canonical collaborator repository — `nexuslinkproductions/yuri-os.git`,
+`mike` branch. This is a distinct repo/path from the generic public
+distribution repository used below in Path A/B/C
+(`nexuslinkproductions/YURI.git`, `main`). The two serve different
+audiences; do not mix instructions or URLs between them.
+
+---
 
 ## Requirements
 
@@ -132,6 +152,12 @@ touch _SYSTEM/state/swarm-convergence.enabled
 # optional: touch _SYSTEM/state/ollama-fleet.enabled
 ```
 
+Installation itself leaves everything DISARMED; arming is always a
+separate, explicit, owner-only step, and the flags above are the common
+path, not the only lane-specific combination — see
+`_SYSTEM/mure/README.md` §6.3 ("The four arm flags") for the canonical
+arming/state-flag reference: four core flags (MURE, GLM, swarm-convergence,
+Ollama) plus role-specific additional arms (evolver, Cline, z.ai tmux).
 Requires z.ai / Ollama / Cursor keys for live lanes. See [`02_RESOURCES/GUIDES/yuri-first-30-minutes.md`](02_RESOURCES/GUIDES/yuri-first-30-minutes.md) and [`02_RESOURCES/GUIDES/fleet-router-adopter-guide.md`](02_RESOURCES/GUIDES/fleet-router-adopter-guide.md).
 
 **Disarm after use:** `rm _SYSTEM/state/*.enabled` (fleet flags only).

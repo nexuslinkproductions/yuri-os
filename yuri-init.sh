@@ -39,6 +39,25 @@ c_dim=$'\033[2m'; c_grn=$'\033[32m'; c_yel=$'\033[33m'; c_rst=$'\033[0m'
 say(){ printf '  %s\n' "$*"; }
 plan(){ printf '  %s%s%s\n' "$c_dim" "$* (dry-run)" "$c_rst"; }
 act(){ if [[ "$MODE" == "apply" ]]; then eval "$@"; else plan "$*"; fi; }
+# mact <command> [note] — MURE/OMP pipeline step. Dry-run: print the exact
+# command (via plan). Apply: echo it, run it, print <note> on success, and on a
+# non-zero exit fail LOUD with the offending command. The MURE scripts are
+# location-anchored (they resolve REPO_ROOT from their own __dirname), so each
+# caller cds into YURI_ROOT first. Ends with an explicit return 0 so an omitted
+# note can never trip `set -e` at the call site.
+mact(){ local cmd="$1" note="${2:-}"
+  if [[ "$MODE" == "apply" ]]; then
+    printf '  %s$ %s%s\n' "$c_dim" "$cmd" "$c_rst"
+    if ! eval "$cmd"; then
+      printf '\n  %s✗ MURE/OMP step failed — command:%s\n    %s\n' "$c_yel" "$c_rst" "$cmd"
+      exit 1
+    fi
+    [[ -n "$note" ]] && say "$note"
+    return 0
+  else
+    plan "$cmd"
+    return 0
+  fi; }
 
 printf '\n%s▌ YURI init%s — %s\n\n' "$c_grn" "$c_rst" \
   "$([[ "$REMOVE" == 1 ]] && echo 'DETACH' || echo "$([[ "$MODE" == apply ]] && echo INSTALL || echo 'PLAN (no changes)')")"
@@ -75,6 +94,7 @@ if [[ "$REMOVE" == 1 ]]; then
       tgt="$(readlink "$link")"; case "$tgt" in "$YURI_ROOT"/*) act "rm '$link'" && say "unlinked $kind/$(basename "$link")" ;; esac
     done
   done
+  say "   .omp/ projection + global OMP auth left intact (repository-owned — not installer-owned; re-run mure-omp-sync by hand to refresh)."
   echo; say "$c_grn YURI detached.$c_rst Your own hooks/skills are untouched; YURI_ROOT export remains in your shell rc (remove by hand if you like)."
   exit 0
 fi
@@ -127,8 +147,26 @@ for kind in skills commands; do
   say "   $kind: linked $linked, skipped $skipped pre-existing"
 done
 
+# ── 6. MURE / OMP projection (repository-owned, deterministic, idempotent) ────
+# Projects the catalog → .omp/agents/*.md + .omp/config.yml + manifest via the
+# canonical sync, then verifies (drift check + schema validate) and runs a
+# DISARMED demo (zero spend). Every output is repo-local & generator-owned; no
+# credential or global OMP auth file is copied or modified. Re-running is a
+# no-op (deterministic projection). --remove deliberately skips this whole
+# stage (see the detach block above) so the projection stays intact.
+say "6. project MURE/OMP agent cards + config (deterministic; repo-owned)"
+mact "cd '$YURI_ROOT' && node '$YURI_ROOT/_SYSTEM/Scripts/mure-omp-sync.mjs' sync" \
+     "   projected .omp/agents/*.md + .omp/config.yml + projection manifest"
+mact "cd '$YURI_ROOT' && node '$YURI_ROOT/_SYSTEM/Scripts/mure-omp-sync.mjs' --check" \
+     "   drift check OK — projection matches catalog (deterministic)"
+mact "cd '$YURI_ROOT' && node '$YURI_ROOT/_SYSTEM/mure/mure.mjs' --validate" \
+     "   fleet-roles schema valid"
+mact "cd '$YURI_ROOT' && node '$YURI_ROOT/_SYSTEM/mure/mure.mjs' --demo" \
+     "   DISARMED demo plan OK (zero spend)"
+
 echo
 printf '  %s✓ %s%s\n' "$c_grn" "$([[ "$MODE" == apply ]] && echo 'YURI docked.' || echo 'Plan complete — re-run with --apply to install.')" "$c_rst"
 say "Verify: open a new Claude Code session in any project; the YURI brain block should appear at SessionStart."
+say "Verify OMP: run 'omp setup --check' (and 'omp models' / 'omp usage --json') to confirm the CLI is docked."
 say "Detach anytime: ./yuri-init.sh --remove"
 echo
