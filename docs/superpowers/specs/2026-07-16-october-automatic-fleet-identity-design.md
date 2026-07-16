@@ -60,6 +60,12 @@ The automatic worker suffix is derived deterministically from the raw UTF-8 byte
 
 The hash is always present because normalization is lossy: values such as `node_A` and `node-A` must not collapse to the same worker ID. Invalid UTF-8/string input or an empty trimmed node disables the bridge with a specific invalid-October-node diagnostic. Automatic derivation never produces the unqualified peer ID `worker`.
 
+### Automatic node uniqueness lease
+
+Every October-automatic process, including the process that becomes captain, must reserve its normalized node identity before role election. The stable resource is `fleet-node:<projectId>:<sha256(trimmedRawNode)>`; it is owned by the same unique process owner ID used for peer and task leases. Acquisition is atomic through the lease substrate.
+
+If the node lease is already held by a live process, startup disables the bridge with structured holder evidence. The process must not attempt captain or worker acquisition. The node lease is renewed with the peer lease and released on every startup rollback and shutdown path. Explicit `YURI_FLEET_ID` sessions do not acquire a node lease because their identity contract is independent of October's node namespace.
+
 ## Race-safe captain election
 
 Automatic election uses the existing exclusive peer lease as the authority. No preflight "is captain free?" check is permitted because it would introduce a time-of-check/time-of-use race.
@@ -72,14 +78,15 @@ Automatic election uses the existing exclusive peer lease as the authority. No p
 
 For an October automatic launch:
 
-1. build the unique process owner ID;
-2. atomically attempt to acquire the stable `captain` peer lease;
-3. if acquired, activate as `captain`;
-4. only when acquisition returns `reason: live-holder`, derive the worker peer ID and atomically acquire that worker's peer lease;
-5. if the worker lease is held or loses a reacquisition race, disable the bridge with lease ID, holder owner ID, reason, and acquisition time when available; do not choose another identity;
-6. a captain `reacquire-race`, validation failure, filesystem error, or protocol error disables the bridge and surfaces that failure. It never silently downgrades to worker.
+1. build the unique process owner ID and deterministic node-lease ID;
+2. atomically acquire the node-identity lease; any contention or error disables startup before role election;
+3. atomically attempt to acquire the stable `captain` peer lease;
+4. if acquired, activate as `captain` while retaining both node and captain leases;
+5. only when captain acquisition returns `reason: live-holder`, derive the worker peer ID and atomically acquire that worker's peer lease;
+6. if the worker lease is held or loses a reacquisition race, release the node lease best-effort, disable the bridge with lease ID, holder owner ID, reason, and acquisition time when available, and do not choose another identity;
+7. a captain `reacquire-race`, validation failure, filesystem error, or protocol error releases the node lease best-effort, disables the bridge, and surfaces the failure. It never silently downgrades to worker.
 
-This guarantees exactly one captain across simultaneous starts without classifying unstable error strings. Competing terminals that positively lose to a live captain proceed under collision-resistant worker IDs.
+This guarantees exactly one captain and exactly one live automatic process per October node across simultaneous starts. A captain reserves its node identity just as a worker does; losing captain election cannot turn a duplicate node into an accepted worker.
 
 ## Addressing model
 
@@ -122,15 +129,17 @@ A task addressed to an exact worker ID is visible only to that worker. Captain-d
 ## Bridge runtime data flow
 
 1. `session_start` resolves explicit or October-automatic identity using undefined-vs-present environment semantics.
-2. The bridge acquires exactly one peer lease for the resolved identity.
-3. Runtime state records the resolved peer ID and identity source (`explicit` or `october-auto`).
-4. Event authorization classifies senders through the closed captain/worker-role predicate, allowing legacy `worker` and validated `worker-*` peers while rejecting other roles for worker-only events.
-5. The peer publishes `fleet.peer.joined` using its exact peer ID as `from`.
-6. Reconciliation folds validated events, including recipient-aware message acknowledgements.
-7. Delivery selectors evaluate exact destinations and the closed `worker` group alias.
-8. Message injection remains session-local per receiving peer and message ID.
-9. Task claiming acquires the exclusive task lease before publishing a claim or executing.
-10. Shutdown publishes `fleet.peer.left` only while identity remains active, then releases task and peer leases best-effort.
+2. An automatic session acquires its node-identity lease before attempting role election.
+3. The bridge acquires exactly one peer lease for the resolved identity.
+4. Runtime state records the resolved peer ID, identity source (`explicit` or `october-auto`), and owned node lease when automatic.
+5. Event authorization classifies senders through the closed captain/worker-role predicate, allowing legacy `worker` and validated `worker-*` peers while rejecting other roles for worker-only events.
+6. The peer publishes `fleet.peer.joined` using its exact peer ID as `from`.
+7. Reconciliation folds validated events, including recipient-aware message acknowledgements.
+8. Delivery selectors evaluate exact destinations and the closed `worker` group alias.
+9. Message injection remains session-local per receiving peer and message ID.
+10. Task claiming acquires the exclusive task lease before publishing a claim or executing.
+11. Lease renewal covers the automatic node lease, peer lease, and owned task leases; loss of any required identity lease degrades the bridge.
+12. Shutdown publishes `fleet.peer.left` only while identity remains active, then releases task, peer, and automatic node leases best-effort.
 
 ## Commands and diagnostics
 
@@ -150,17 +159,18 @@ Disabled sessions expose only fields already resolved before failure; they never
 |---|---|
 | Valid explicit fleet ID | Use exactly; do not auto-elect |
 | Invalid explicit fleet ID | Disable with validation error; do not fall back |
-| Missing explicit ID and valid October node; captain free | Acquire captain and activate |
-| Missing explicit ID and valid October node; captain held live | Derive collision-resistant worker ID, acquire worker lease, activate |
-| Captain lease reacquisition race, I/O, validation, or protocol failure | Disable and surface error; do not downgrade |
-| Duplicate automatic October node | Second process fails on its worker lease with structured holder evidence |
+| Missing explicit ID and valid unique October node; captain free | Acquire node and captain leases, then activate |
+| Missing explicit ID and valid unique October node; captain held live | Retain node lease, derive worker ID, acquire worker lease, activate |
+| Duplicate automatic October node, including duplicate of captain's node | Reject on node lease before role election with structured holder evidence |
+| Captain lease reacquisition race, I/O, validation, or protocol failure | Release node lease best-effort, disable, and do not downgrade |
+| Worker lease failure after node reservation | Release node lease best-effort and disable |
 | Missing both identity variables | Preserve `fleet:disabled`; OMP remains usable |
 | Invalid or empty October node | Disable with specific node-normalization diagnostic |
 | Group message | Deliver once to each worker-role peer; acknowledge per recipient |
 | Group task offer | Multiple workers may observe; exactly one task lease owner claims and executes |
 | Claim append failure after lease acquisition | Release task lease best-effort and do not execute |
 | Direct dynamic worker destination | Deliver only to exact worker |
-| Lease renewal loss | Preserve existing degraded behavior, block new operations, omit unsafe leave publication |
+| Node, peer, or task lease renewal loss | Preserve existing degraded behavior, block new operations, omit unsafe leave publication |
 
 ## Compatibility
 
@@ -182,14 +192,17 @@ Disabled sessions expose only fields already resolved before failure; they never
 - `_SYSTEM/Scripts/omp-fleet-protocol.mjs`
   - collision-resistant October worker-ID derivation;
   - captain/worker-role authorization predicate;
+  - deterministic automatic node-lease ID derivation;
   - pure destination-membership predicate;
   - recipient-aware message acknowledgement reducer and message/task selectors.
 - `_SYSTEM/Scripts/nano-lease.mjs`
-  - closed acquisition-failure reason discriminant with holder evidence.
+  - closed acquisition-failure reason discriminant with holder evidence;
+  - atomic node-identity lease acquisition, renewal, rollback, and release using the existing generic lease primitive.
 - `_SYSTEM/Scripts/omp-fleet-protocol.test.mjs`
   - normalization collisions, authorization, destination membership, acknowledgement isolation, selector, and negative contracts.
 - `_SYSTEM/Scripts/nano-lease.test.mjs`
-  - live-holder versus reacquisition-race result contracts.
+  - live-holder versus reacquisition-race result contracts;
+  - duplicate node rejection, including when the first node holder is captain.
 - `_SYSTEM/Scripts/omp-fleet-smoke.mjs`
   - multi-process automatic launch, fan-out, direct delivery, and single-winner task acceptance.
 
@@ -200,7 +213,7 @@ Disabled sessions expose only fields already resolved before failure; they never
 3. One October launch with no explicit identity becomes `captain`.
 4. Two simultaneous October launches elect exactly one captain and one unique worker.
 5. Three or more launches elect one captain and distinct workers.
-6. Reusing the same October node rejects the duplicate worker with holder evidence.
+6. Reusing the same October node is rejected by the node-identity lease before role election, whether the first process is captain or worker.
 7. Missing both environment variables preserves disabled-but-usable OMP behavior.
 8. Invalid October node input fails visibly.
 9. Non-collision captain startup errors do not downgrade to worker.
@@ -209,4 +222,4 @@ Disabled sessions expose only fields already resolved before failure; they never
 12. A `worker` group task is observed by eligible workers but executed by exactly one lease winner.
 13. A direct worker task is offered only to the named worker.
 14. Join and leave events remain visible to the intended captain or worker group.
-15. A deterministic multi-process smoke run proves peer discovery, group message fan-out, direct message delivery, single-winner group task claiming, and clean lease release.
+15. A deterministic multi-process smoke run proves peer discovery, duplicate-node rejection against a captain and worker, group message fan-out, direct message delivery, single-winner group task claiming, and clean node/peer/task lease release.
