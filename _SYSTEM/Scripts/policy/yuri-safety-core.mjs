@@ -6,6 +6,8 @@ import os from 'node:os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { repoIntegrityCommandHit } from './repo-integrity-guard.mjs';
+
 const POLICY_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(POLICY_DIR, '../../..');
 const HOME_DIR = os.homedir();
@@ -210,6 +212,9 @@ export async function runHookFromStdin({ check = false } = {}) {
 }
 
 function evaluateShellCommand(command, cwd) {
+  const integrityHit = repoIntegrityCommandHit(command, { cwd });
+  if (integrityHit) return block(integrityHit.reason);
+
   for (const pattern of DESTRUCTIVE_PATTERNS) {
     if (pattern.re.test(command)) return block(pattern.reason);
   }

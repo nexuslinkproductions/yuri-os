@@ -7,6 +7,7 @@
 // Fail-closed: policy errors → block.
 
 import { scanCommand as _scanCommand } from '../../../_SYSTEM/Scripts/url-policy.mjs';
+import { evaluateToolCall as _evaluateToolCall } from '../../../_SYSTEM/Scripts/policy/yuri-safety-core.mjs';
 
 /**
  * Build a tool_call event handler that scans Bash commands for dangerous URLs.
@@ -14,7 +15,7 @@ import { scanCommand as _scanCommand } from '../../../_SYSTEM/Scripts/url-policy
  *   Defaults to the shared url-policy scanCommand.
  * @returns {function} async event handler: (event) => void | {block: true, reason: string}
  */
-export function createHandler(scanner = _scanCommand) {
+export function createHandler(scanner = _scanCommand, safetyEvaluator = _evaluateToolCall) {
   return async (event) => {
     // Only gate Bash tool invocations.
     if (event?.toolName !== 'bash') return;
@@ -23,6 +24,14 @@ export function createHandler(scanner = _scanCommand) {
     if (typeof command !== 'string' || !command) return;
 
     try {
+      const safetyDecision = safetyEvaluator('bash', {
+        command,
+        cwd: event?.input?.cwd || event?.input?.workdir,
+      });
+      if (!safetyDecision?.allowed) {
+        return { block: true, reason: safetyDecision?.reason || 'YURI safety policy denied the command' };
+      }
+
       const blocked = scanner(command);
       if (blocked) {
         return { block: true, reason: blocked.reason };

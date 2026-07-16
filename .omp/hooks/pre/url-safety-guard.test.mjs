@@ -38,6 +38,8 @@ class FakeHookAPI {
 const passScanner = () => null;
 const blockScanner = (cmd) => cmd ? { url: cmd, reason: `URL blocked: private host in "${cmd}"` } : null;
 const throwScanner = () => { throw new Error('simulated policy explosion'); };
+const allowSafety = () => ({ allowed: true, decision: 'allow' });
+const blockSafety = () => ({ allowed: false, decision: 'deny', reason: 'repo wipe blocked' });
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -64,51 +66,70 @@ describe('hook factory (sync registration)', () => {
 
 describe('createHandler (injected scanner)', () => {
   it('safe public HTTPS → no block', async () => {
-    const h = createHandler(passScanner);
+    const h = createHandler(passScanner, allowSafety);
     const r = await h({ toolName: 'bash', input: { command: 'curl https://example.com/' } });
     strictEqual(r, undefined);
   });
 
   it('safe command with no URLs → no block', async () => {
-    const h = createHandler(passScanner);
+    const h = createHandler(passScanner, allowSafety);
     const r = await h({ toolName: 'bash', input: { command: 'echo hello world' } });
     strictEqual(r, undefined);
   });
 
   it('empty command → no block', async () => {
-    const h = createHandler(blockScanner);
+    const h = createHandler(blockScanner, allowSafety);
     const r = await h({ toolName: 'bash', input: { command: '' } });
     strictEqual(r, undefined);
   });
 
   it('non-bash tool → no block', async () => {
-    const h = createHandler(blockScanner);
+    const h = createHandler(blockScanner, allowSafety);
     const r = await h({ toolName: 'Read', input: { command: 'curl http://127.0.0.1/' } });
     strictEqual(r, undefined);
   });
 
   it('blocked URL → { block: true, reason }', async () => {
-    const h = createHandler(blockScanner);
+    const h = createHandler(blockScanner, allowSafety);
     const r = await h({ toolName: 'bash', input: { command: 'curl http://127.0.0.1/' } });
     deepStrictEqual(r, { block: true, reason: 'URL blocked: private host in "curl http://127.0.0.1/"' });
   });
 
   it('thrown policy error → fail closed', async () => {
-    const h = createHandler(throwScanner);
+    const h = createHandler(throwScanner, allowSafety);
     const r = await h({ toolName: 'bash', input: { command: 'curl https://safe.example.com/' } });
     deepStrictEqual(r, { block: true, reason: 'URL guard error: simulated policy explosion' });
   });
 
   it('missing toolName → no block', async () => {
-    const h = createHandler(blockScanner);
+    const h = createHandler(blockScanner, allowSafety);
     const r = await h({ input: { command: 'curl http://127.0.0.1/' } });
     strictEqual(r, undefined);
   });
 
   it('missing input → no block', async () => {
-    const h = createHandler(blockScanner);
+    const h = createHandler(blockScanner, allowSafety);
     const r = await h({ toolName: 'bash' });
     strictEqual(r, undefined);
+  });
+});
+
+describe('shared YURI safety integration', () => {
+  it('blocks when the shared safety core denies a command', async () => {
+    const h = createHandler(passScanner, blockSafety);
+    const r = await h({ toolName: 'bash', input: { command: 'node dangerous.js' } });
+    deepStrictEqual(r, { block: true, reason: 'repo wipe blocked' });
+  });
+
+  it('real safety core blocks dynamic repository deletion', async () => {
+    const pi = new FakeHookAPI();
+    hook(pi);
+    const r = await pi.invokeToolCall({
+      toolName: 'bash',
+      input: { command: 'node -e "require(\'fs\').rmSync(process.cwd(), {recursive:true, force:true})"' },
+    });
+    ok(r?.block, 'dynamic deletion should be blocked');
+    ok(r?.reason?.includes('dynamic interpreter filesystem deletion'));
   });
 });
 

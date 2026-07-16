@@ -2,7 +2,7 @@
 
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,16 +13,26 @@ const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
 const TOOL_NAME = 'yuri.offload_task';
 const DEFAULT_FILE_CHAR_BUDGET = 120000;
 const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning partial result.';
+const FILE_ATTACHMENTS_ENABLED = false;
+const ALLOWED_LANES = new Set(['deepseek-v4-pro', 'deepseek-v4-flash']);
+const ALLOWED_INPUT_KEYS = new Set([
+  'prompt', 'intent', 'lane_hint', 'fanout_lanes', 'files',
+  'budget_tokens', 'mutation_allowed', 'dry_run',
+]);
+const PROTECTED_ATTACHMENT_PREFIXES = Object.freeze([
+  '.env', '.git', '.amp', 'node_modules', 'backend/data', '_SYSTEM/backend/data',
+  '.claude/state', '.claude/history', '.claude/file-history', '.claude/projects',
+]);
 
 const TOOL = {
   name: TOOL_NAME,
-  description: 'Route a Codex task through the YURI offload spine with OS_KERNEL task logging.',
+  description: 'Route a bounded, text-only Codex task through the YURI offload spine with OS_KERNEL task logging.',
   inputSchema: {
     type: 'object',
     additionalProperties: false,
     required: ['prompt'],
     properties: {
-      prompt: { type: 'string', minLength: 1 },
+      prompt: { type: 'string', minLength: 1, maxLength: 120000 },
       intent: {
         type: 'string',
         enum: [
@@ -36,10 +46,10 @@ const TOOL = {
           'custom',
         ],
       },
-      lane_hint: { type: 'string', minLength: 1 },
-      fanout_lanes: { type: 'array', items: { type: 'string', minLength: 1 } },
-      files: { type: 'array', items: { type: 'string' } },
-      budget_tokens: { type: 'number', minimum: 1 },
+      lane_hint: { type: 'string', enum: [...ALLOWED_LANES] },
+      fanout_lanes: { type: 'array', maxItems: 8, uniqueItems: true, items: { type: 'string', enum: [...ALLOWED_LANES] } },
+      files: { type: 'array', maxItems: 0, items: { type: 'string' }, description: 'Disabled: MCP file attachment forwarding is not permitted.' },
+      budget_tokens: { type: 'integer', minimum: 1, maximum: 200000 },
       mutation_allowed: { type: 'boolean' },
       dry_run: { type: 'boolean' },
     },
@@ -160,6 +170,29 @@ async function callTool(params) {
 }
 
 function validateInput(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('arguments must be an object');
+  }
+  const unknownKeys = Object.keys(raw).filter((key) => !ALLOWED_INPUT_KEYS.has(key));
+  if (unknownKeys.length > 0) {
+    throw new Error(`unknown argument key(s): ${unknownKeys.sort().join(', ')}`);
+  }
+  if (raw.lane_hint !== undefined && typeof raw.lane_hint !== 'string') {
+    throw new Error('lane_hint must be a string');
+  }
+  if (raw.fanout_lanes !== undefined && !Array.isArray(raw.fanout_lanes)) {
+    throw new Error('fanout_lanes must be an array');
+  }
+  if (raw.files !== undefined && !Array.isArray(raw.files)) {
+    throw new Error('files must be an array');
+  }
+  if (raw.mutation_allowed !== undefined && typeof raw.mutation_allowed !== 'boolean') {
+    throw new Error('mutation_allowed must be a boolean');
+  }
+  if (raw.dry_run !== undefined && typeof raw.dry_run !== 'boolean') {
+    throw new Error('dry_run must be a boolean');
+  }
+
   const input = {
     prompt: raw.prompt,
     intent: raw.intent || 'custom',
@@ -174,11 +207,15 @@ function validateInput(raw) {
   if (typeof input.prompt !== 'string' || input.prompt.trim().length === 0) {
     throw new Error('prompt must be a non-empty string');
   }
+  if (input.prompt.length > 120000) throw new Error('prompt exceeds 120000 characters');
   if (!TOOL.inputSchema.properties.intent.enum.includes(input.intent)) {
     throw new Error(`unsupported intent: ${input.intent}`);
   }
   if (input.files.some((file) => typeof file !== 'string')) {
     throw new Error('files must be an array of strings');
+  }
+  if (input.files.length > 0 && !FILE_ATTACHMENTS_ENABLED) {
+    throw new Error('MCP file attachments are disabled; provide bounded text in prompt instead');
   }
   if (input.fanout_lanes.some((lane) => typeof lane !== 'string' || lane.trim().length === 0)) {
     throw new Error('fanout_lanes must be non-empty lane strings');
@@ -186,10 +223,18 @@ function validateInput(raw) {
   if (input.lane_hint && input.fanout_lanes.length > 0) {
     throw new Error('Use lane_hint or fanout_lanes, not both');
   }
+  if (input.budget_tokens !== undefined && (
+    !Number.isInteger(input.budget_tokens) || input.budget_tokens < 1 || input.budget_tokens > 200000
+  )) {
+    throw new Error('budget_tokens must be an integer between 1 and 200000');
+  }
 
   input.prompt = input.prompt.trim();
-  input.lane_hint = input.lane_hint.trim();
-  input.fanout_lanes = input.fanout_lanes.map((lane) => lane.trim());
+  input.lane_hint = input.lane_hint ? requireAllowedLane(input.lane_hint) : '';
+  input.fanout_lanes = input.fanout_lanes.map(requireAllowedLane);
+  if (new Set(input.fanout_lanes).size !== input.fanout_lanes.length) {
+    throw new Error('fanout_lanes must not contain duplicates');
+  }
   return input;
 }
 
@@ -208,6 +253,14 @@ function canonicalLaneLabel(lane) {
   }
   if (base === 'deepseek-chat') return 'deepseek-v4-flash';
   return clean;
+}
+
+function requireAllowedLane(lane) {
+  const canonical = canonicalLaneLabel(lane);
+  if (!ALLOWED_LANES.has(canonical)) {
+    throw new Error(`unsupported lane: ${lane}`);
+  }
+  return canonical;
 }
 
 function createTask(input, lane, promptHash) {
@@ -266,7 +319,12 @@ function runOffload(input, taskId) {
 
   return spawnSync('bash', args, {
     cwd: REPO_ROOT,
-    env: { ...process.env, LLM_COMPAT_TASK_ID: String(taskId), LLM_COMPAT_INTENT: input.intent },
+    env: {
+      ...process.env,
+      LLM_COMPAT_TASK_ID: String(taskId),
+      LLM_COMPAT_INTENT: input.intent,
+      YURI_MUTATION_ALLOWED: input.mutation_allowed ? '1' : '0',
+    },
     encoding: 'utf8',
     maxBuffer: 10 * 1024 * 1024,
   });
@@ -274,6 +332,9 @@ function runOffload(input, taskId) {
 
 function buildOffloadPrompt(input) {
   if (input.files.length === 0) return input.prompt;
+  if (!FILE_ATTACHMENTS_ENABLED) {
+    throw new Error('MCP file attachments are disabled');
+  }
 
   const budget = Math.max(
     1000,
@@ -283,14 +344,7 @@ function buildOffloadPrompt(input) {
   const sections = [];
 
   for (const file of input.files) {
-    const resolved = path.resolve(REPO_ROOT, file);
-    if (!existsSync(resolved)) {
-      throw new Error(`offload file not found: ${resolved}`);
-    }
-    const stat = statSync(resolved);
-    if (!stat.isFile()) {
-      throw new Error(`offload file is not a regular file: ${resolved}`);
-    }
+    const resolved = resolveAllowedAttachment(file);
     if (remaining <= 0) {
       sections.push(`### ${resolved}\n[omitted: file attachment budget exhausted]`);
       continue;
@@ -311,6 +365,34 @@ function buildOffloadPrompt(input) {
     'Attached files are source context for this offload. Use them directly; do not call tools to inspect them.',
     sections.join('\n\n'),
   ].join('\n');
+}
+
+function resolveAllowedAttachment(file) {
+  if (typeof file !== 'string' || file.trim().length === 0) {
+    throw new Error('offload file path must be a non-empty string');
+  }
+  const lexical = path.resolve(REPO_ROOT, file);
+  const rootReal = realpathSync(REPO_ROOT);
+  const lexicalRelative = path.relative(REPO_ROOT, lexical);
+  if (lexicalRelative.startsWith('..') || path.isAbsolute(lexicalRelative)) {
+    throw new Error('offload file escapes repository root');
+  }
+  if (!existsSync(lexical)) throw new Error(`offload file not found: ${lexicalRelative}`);
+
+  const resolved = realpathSync(lexical);
+  const relative = path.relative(rootReal, resolved);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error('offload file resolves outside repository root');
+  }
+  const normalized = relative.split(path.sep).join('/');
+  if (PROTECTED_ATTACHMENT_PREFIXES.some((prefix) =>
+    normalized === prefix || normalized.startsWith(`${prefix}/`)
+  )) {
+    throw new Error(`offload file is protected: ${normalized}`);
+  }
+  const stat = statSync(resolved);
+  if (!stat.isFile()) throw new Error(`offload file is not a regular file: ${normalized}`);
+  return resolved;
 }
 
 function hasToolRepetitionSentinel(stdout) {

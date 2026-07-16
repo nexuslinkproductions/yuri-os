@@ -1,9 +1,9 @@
 # YURI Codex Offload Policy
 
-Use `yuri.offload_task` for scans across multiple files, repo research, summarization and extraction, architecture review, security or safety audits, and parallel fan-out.
+`yuri.offload_task` is disabled while the MCP attachment and lane boundary is under security review. Do not enable it or require it as a workflow dependency.
 
 Self-execute only for small edits already in current context, deterministic shell inspection, single-file reads, and final synthesis from offload outputs.
 
-Do not use native Codex agents for offload-eligible work while `yuriOffload` is available. If it is unavailable, treat OS_KERNEL task memory and offload budgets as non-authoritative before using native agents.
+Use native Codex subagents or explicitly launched Pi/OMP lanes for bounded work. Treat OS_KERNEL task memory and offload budgets as non-authoritative while `yuriOffload` is disabled.
 
 Protected surfaces remain blocked per `_SYSTEM/yuri-origin.md`.

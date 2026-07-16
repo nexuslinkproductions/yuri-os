@@ -1,5 +1,8 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
+approval_policy = "untrusted"
+sandbox_mode = "workspace-write"
+
 # Keep the skill surface focused in this workspace.
 # Large research / sandbox trees create noisy sessions and skill-list overflow.
 
@@ -19,7 +22,6 @@ enabled = false
 path = "01_PROJECTS/claude-cookbooks"
 enabled = false
 
-sandbox_mode = "danger-full-access"
 [sandbox_workspace_write]
 network_access = true
 
@@ -34,7 +36,7 @@ multi_agent = false
 [mcp_servers.yuriOffload]
 command = "node"
 args = [".codex/adapters/yuri-offload-mcp.mjs"]
-enabled = true
+enabled = false
 startup_timeout_sec = 5
 # Long offload jobs can legitimately spend minutes reasoning before returning text.
 # Keep this effectively out of the way so lane-level budgets own cancellation.

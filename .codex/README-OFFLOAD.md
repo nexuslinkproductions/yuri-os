@@ -1,5 +1,7 @@
 # Codex Offload Cutover
 
+> Security hold (2026-07-16): `yuriOffload` is disabled. MCP file attachments are hard-disabled, and only the closed DeepSeek lane set is accepted by the dormant adapter. Do not re-enable until its live dispatch seam is independently reviewed.
+
 ## Verify Config
 
 ```bash
@@ -9,7 +11,7 @@ codex debug prompt-input "YURI config probe" >/tmp/yuri-codex-probe.json
 ```
 
 Expected:
-- `yuriOffload` is enabled.
+- `yuriOffload` is disabled during the security hold.
 - `agents.max_threads = 1`, `agents.max_depth = 1`, `features.enable_fanout = false`, and `features.multi_agent = false` parse without warnings.
 - `[[hooks.PreToolUse]]` uses `.codex/hooks/pre-tool-use.mjs`.
 - `mcp_servers.yuriOffload.tool_timeout_sec` stays high enough for long-running offload work; cancellation should be owned by lane-level budgets, not the Codex MCP parent process.
@@ -43,17 +45,17 @@ Live Codex smoke requires `OPENAI_API_KEY`:
 LLM_COMPAT_PROMPT_TEXT="Return YURI_CODEX_OK only." node Scripts/offload-runner.mjs codex
 ```
 
-## MCP Smoke
+## MCP Rejection Smoke
 
 ```bash
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"yuri.offload_task","arguments":{"prompt":"ping","intent":"custom","lane_hint":"codex","dry_run":true,"mutation_allowed":false}}}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"yuri.offload_task","arguments":{"prompt":"ping","files":["README.md"],"dry_run":true,"mutation_allowed":false}}}' \
 | node .codex/adapters/yuri-offload-mcp.mjs
 ```
 
-Expected: OS_KERNEL task row created, memory log written, and Codex dry-run JSON returned.
+Expected: the call is rejected because MCP file attachments are disabled; no file is read and no task is dispatched.
 
 ## Safety Smokes
 

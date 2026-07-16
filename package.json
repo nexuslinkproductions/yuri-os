@@ -21,6 +21,7 @@
     "test:yuri-symbiotic-pulse": "node _SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs",
     "test:llm-compat-contract": "node _SYSTEM/Scripts/llm-compat-contract-regression.test.mjs",
     "test:codex-runner": "node _SYSTEM/Scripts/codex-offload-runner.test.mjs",
+    "test:yuri-offload-mcp": "node --test _SYSTEM/Scripts/yuri-offload-mcp.test.mjs",
     "test:artifact-audit": "node _SYSTEM/Scripts/yuri-artifact-audit.test.mjs",
     "test:council-claims": "node _SYSTEM/Scripts/yuri-council-claim-evidence.test.mjs",
     "test:canonical-memory-import": "node _SYSTEM/Scripts/yuri-canonical-memory-import.test.mjs",

@@ -181,6 +181,10 @@
           },
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/policy/yuri-safety-core.mjs\""
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/claude-protocol-guard.mjs\""
           },
           {
