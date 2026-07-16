@@ -16,6 +16,10 @@ import {
   parseProcessOwnerId,
   buildFleetEvent,
   validateFleetEvent,
+  authorizeFleetOperation,
+  createFleetState,
+  reduceFleetEvent,
+  foldFleetEvents,
 } from './omp-fleet-protocol.mjs';
 
 // ── isolated temp root ──────────────────────────────────────────────────
@@ -326,4 +330,450 @@ test('buildFleetEvent enforces UTF-8 byte and count bounds for bodies, artifact 
       },
     }),
   );
+});
+
+// ── fleet operation authorization ─────────────────────────────────────────
+
+test('authorizeFleetOperation is closed by role and throws on an unknown operation', () => {
+  assert.equal(authorizeFleetOperation('captain', 'offerTask'), true);
+  assert.equal(authorizeFleetOperation('worker', 'claimTask'), true);
+  assert.equal(authorizeFleetOperation('worker', 'offerTask'), false);
+  assert.equal(authorizeFleetOperation('captain', 'completeTask'), false);
+  assert.throws(() => authorizeFleetOperation('captain', 'shell'), /Unknown fleet operation/);
+});
+
+// ── fleet state reducer ────────────────────────────────────────────────────
+
+test('foldFleetEvents applies the offered→claimed→completed task lifecycle and protects terminal tasks from recovery', () => {
+  const projectId = 'project_deadbeef';
+  const workerOwnerId = buildProcessOwnerId({
+    fleetId: 'worker',
+    pid: 4242,
+    processUuid: '22222222-2222-4222-8222-222222222222',
+  });
+
+  const offered = buildFleetEvent(
+    'fleet.task.offered',
+    {
+      projectId,
+      traceId: 'trace-lifecycle',
+      from: 'captain',
+      to: 'worker',
+      payload: {
+        taskId: 'task-lifecycle',
+        contract: { goal: 'ship it', acceptance: ['it works'] },
+      },
+    },
+    { id: 'fleet_lifecycle-offered', ts: '2026-01-01T00:00:00.000Z' },
+  );
+
+  const claimed = buildFleetEvent(
+    'fleet.task.claimed',
+    {
+      projectId,
+      traceId: 'trace-lifecycle',
+      from: 'worker',
+      to: 'captain',
+      payload: { taskId: 'task-lifecycle', attemptId: 'attempt-1', ownerId: workerOwnerId },
+    },
+    { id: 'fleet_lifecycle-claimed', ts: '2026-01-01T00:01:00.000Z' },
+  );
+
+  const completed = buildFleetEvent(
+    'fleet.task.completed',
+    {
+      projectId,
+      traceId: 'trace-lifecycle',
+      from: 'worker',
+      to: 'captain',
+      payload: {
+        taskId: 'task-lifecycle',
+        attemptId: 'attempt-1',
+        summary: 'shipped',
+        artifactUris: [],
+      },
+    },
+    { id: 'fleet_lifecycle-completed', ts: '2026-01-01T00:02:00.000Z' },
+  );
+
+  const state = foldFleetEvents([offered, claimed], { projectId });
+
+  const duplicateOffer = buildFleetEvent(
+    'fleet.task.offered',
+    {
+      projectId,
+      traceId: 'trace-lifecycle-duplicate-offer',
+      from: 'captain',
+      to: 'worker',
+      payload: {
+        taskId: 'task-lifecycle',
+        contract: { goal: 'ship it', acceptance: ['it works'] },
+      },
+    },
+    { id: 'fleet_lifecycle-duplicate-offer', ts: '2026-01-01T00:00:30.000Z' },
+  );
+
+  const preDuplicateOfferSnapshot = structuredClone({
+    peers: state.peers,
+    messages: state.messages,
+    tasks: state.tasks,
+    recentEventIds: state.recentEventIds,
+    recentEventIdSet: state.recentEventIdSet,
+    cursor: state.cursor,
+    errors: state.errors,
+  });
+
+  assert.throws(() => reduceFleetEvent(state, duplicateOffer), /already exists/);
+
+  assert.deepStrictEqual(state.peers, preDuplicateOfferSnapshot.peers);
+  assert.deepStrictEqual(state.messages, preDuplicateOfferSnapshot.messages);
+  assert.deepStrictEqual(state.tasks, preDuplicateOfferSnapshot.tasks);
+  assert.deepStrictEqual(state.recentEventIds, preDuplicateOfferSnapshot.recentEventIds);
+  assert.deepStrictEqual(state.recentEventIdSet, preDuplicateOfferSnapshot.recentEventIdSet);
+  assert.deepStrictEqual(state.cursor, preDuplicateOfferSnapshot.cursor);
+  assert.deepStrictEqual(state.errors, preDuplicateOfferSnapshot.errors);
+
+  const postClaimSnapshot = structuredClone({
+    peers: state.peers,
+    messages: state.messages,
+    tasks: state.tasks,
+    recentEventIds: state.recentEventIds,
+    recentEventIdSet: state.recentEventIdSet,
+    cursor: state.cursor,
+    errors: state.errors,
+  });
+
+  const dedupResult = reduceFleetEvent(state, claimed);
+
+  assert.equal(dedupResult, state);
+  assert.equal(state.tasks.get('task-lifecycle').attempt, 1);
+  assert.deepStrictEqual(state.peers, postClaimSnapshot.peers);
+  assert.deepStrictEqual(state.messages, postClaimSnapshot.messages);
+  assert.deepStrictEqual(state.tasks, postClaimSnapshot.tasks);
+  assert.deepStrictEqual(state.recentEventIds, postClaimSnapshot.recentEventIds);
+  assert.deepStrictEqual(state.recentEventIdSet, postClaimSnapshot.recentEventIdSet);
+  assert.deepStrictEqual(state.cursor, postClaimSnapshot.cursor);
+  assert.deepStrictEqual(state.errors, postClaimSnapshot.errors);
+
+  reduceFleetEvent(state, completed);
+
+  const task = state.tasks.get('task-lifecycle');
+  assert.equal(task.status, 'completed');
+  assert.equal(task.attempt, 1);
+  assert.equal(task.summary, 'shipped');
+  assert.equal(task.ownerId, workerOwnerId);
+  assert.equal('owner' in task, false);
+
+  const messageSent = buildFleetEvent(
+    'fleet.message.sent',
+    {
+      projectId,
+      traceId: 'trace-message',
+      from: 'captain',
+      to: 'worker',
+      payload: {
+        messageId: 'msg-lifecycle-1',
+        body: 'status check',
+        replyTo: null,
+        artifactUris: ['artifact://lifecycle-status'],
+        authority: 'peer',
+      },
+    },
+    { id: 'fleet_lifecycle-message-sent', ts: '2026-01-01T00:02:30.000Z' },
+  );
+
+  reduceFleetEvent(state, messageSent);
+
+  const storedMessage = state.messages.get('msg-lifecycle-1');
+  assert.equal(storedMessage.body, 'status check');
+  assert.deepStrictEqual(storedMessage.artifactUris, ['artifact://lifecycle-status']);
+  assert.equal(storedMessage.authority, 'peer');
+  assert.equal(storedMessage.eventId, 'fleet_lifecycle-message-sent');
+  assert.equal(storedMessage.traceId, 'trace-message');
+  assert.equal(storedMessage.from, 'captain');
+  assert.equal(storedMessage.to, 'worker');
+  assert.equal(storedMessage.ts, '2026-01-01T00:02:30.000Z');
+  assert.equal(storedMessage.acknowledged, false);
+  assert.equal(storedMessage.disposition, undefined);
+  assert.equal(storedMessage.acknowledgedAt, undefined);
+
+  const messageAcknowledged = buildFleetEvent(
+    'fleet.message.acknowledged',
+    {
+      projectId,
+      traceId: 'trace-message',
+      from: 'worker',
+      to: 'captain',
+      payload: { messageId: 'msg-lifecycle-1', recipient: 'worker', disposition: 'injected' },
+    },
+    { id: 'fleet_lifecycle-message-acknowledged', ts: '2026-01-01T00:02:31.000Z' },
+  );
+
+  reduceFleetEvent(state, messageAcknowledged);
+
+  const ackedMessage = state.messages.get('msg-lifecycle-1');
+  assert.equal(ackedMessage.acknowledged, true);
+  assert.equal(ackedMessage.disposition, 'injected');
+  assert.equal(ackedMessage.acknowledgedAt, '2026-01-01T00:02:31.000Z');
+
+  const unknownAck = buildFleetEvent(
+    'fleet.message.acknowledged',
+    {
+      projectId,
+      traceId: 'trace-message-unknown',
+      from: 'worker',
+      to: 'captain',
+      payload: { messageId: 'msg-never-sent', recipient: 'worker', disposition: 'injected' },
+    },
+    { id: 'fleet_lifecycle-message-unknown-ack', ts: '2026-01-01T00:02:32.000Z' },
+  );
+
+  const preUnknownAckMessages = structuredClone(state.messages);
+
+  const unknownAckResult = reduceFleetEvent(state, unknownAck);
+
+  assert.equal(unknownAckResult, state);
+  assert.deepStrictEqual(state.messages, preUnknownAckMessages);
+  assert.equal(state.messages.has('msg-never-sent'), false);
+  assert.equal(state.cursor.afterId, 'fleet_lifecycle-message-unknown-ack');
+  assert.equal(state.cursor.afterTs, '2026-01-01T00:02:32.000Z');
+  assert.ok(state.recentEventIds.includes('fleet_lifecycle-message-unknown-ack'));
+  assert.ok(state.recentEventIdSet.has('fleet_lifecycle-message-unknown-ack'));
+
+  const recoverableOffered = buildFleetEvent(
+    'fleet.task.offered',
+    {
+      projectId,
+      traceId: 'trace-lifecycle-recoverable',
+      from: 'captain',
+      to: 'worker',
+      payload: {
+        taskId: 'task-lifecycle-recoverable',
+        contract: { goal: 'ship it again', acceptance: ['it works again'] },
+      },
+    },
+    { id: 'fleet_lifecycle-recoverable-offered', ts: '2026-01-01T00:04:00.000Z' },
+  );
+
+  const recoverableClaimed = buildFleetEvent(
+    'fleet.task.claimed',
+    {
+      projectId,
+      traceId: 'trace-lifecycle-recoverable',
+      from: 'worker',
+      to: 'captain',
+      payload: { taskId: 'task-lifecycle-recoverable', attemptId: 'attempt2-1', ownerId: workerOwnerId },
+    },
+    { id: 'fleet_lifecycle-recoverable-claimed', ts: '2026-01-01T00:05:00.000Z' },
+  );
+
+  const recoveredOwnerId = buildProcessOwnerId({
+    fleetId: 'worker',
+    pid: 5252,
+    processUuid: '44444444-4444-4444-8444-444444444444',
+  });
+
+  const recoverableRecovered = buildFleetEvent(
+    'fleet.task.recovered',
+    {
+      projectId,
+      traceId: 'trace-lifecycle-recoverable',
+      from: 'worker',
+      to: 'captain',
+      payload: {
+        taskId: 'task-lifecycle-recoverable',
+        attemptId: 'attempt2-2',
+        priorAttemptId: 'attempt2-1',
+        ownerId: recoveredOwnerId,
+        reason: 'flaky-network',
+      },
+    },
+    { id: 'fleet_lifecycle-recoverable-recovered', ts: '2026-01-01T00:06:00.000Z' },
+  );
+
+  reduceFleetEvent(state, recoverableOffered);
+  reduceFleetEvent(state, recoverableClaimed);
+
+  const mismatchedCompletion = buildFleetEvent(
+    'fleet.task.completed',
+    {
+      projectId,
+      traceId: 'trace-lifecycle-recoverable',
+      from: 'worker',
+      to: 'captain',
+      payload: {
+        taskId: 'task-lifecycle-recoverable',
+        attemptId: 'wrong-attempt',
+        summary: 'should not apply',
+        artifactUris: [],
+      },
+    },
+    { id: 'fleet_lifecycle-recoverable-mismatched-completed', ts: '2026-01-01T00:05:30.000Z' },
+  );
+
+  const preMismatchSnapshot = structuredClone({
+    peers: state.peers,
+    messages: state.messages,
+    tasks: state.tasks,
+    recentEventIds: state.recentEventIds,
+    recentEventIdSet: state.recentEventIdSet,
+    cursor: state.cursor,
+    errors: state.errors,
+  });
+
+  assert.throws(
+    () => reduceFleetEvent(state, mismatchedCompletion),
+    /does not match claimed attemptId/,
+  );
+
+  assert.deepStrictEqual(state.peers, preMismatchSnapshot.peers);
+  assert.deepStrictEqual(state.messages, preMismatchSnapshot.messages);
+  assert.deepStrictEqual(state.tasks, preMismatchSnapshot.tasks);
+  assert.deepStrictEqual(state.recentEventIds, preMismatchSnapshot.recentEventIds);
+  assert.deepStrictEqual(state.recentEventIdSet, preMismatchSnapshot.recentEventIdSet);
+  assert.deepStrictEqual(state.cursor, preMismatchSnapshot.cursor);
+  assert.deepStrictEqual(state.errors, preMismatchSnapshot.errors);
+
+  reduceFleetEvent(state, recoverableRecovered);
+
+  const recoveredTask = state.tasks.get('task-lifecycle-recoverable');
+  assert.equal(recoveredTask.status, 'claimed');
+  assert.equal(recoveredTask.recovered, true);
+  assert.equal(recoveredTask.ownerId, recoveredOwnerId);
+  assert.equal('owner' in recoveredTask, false);
+
+  const recovered = buildFleetEvent(
+    'fleet.task.recovered',
+    {
+      projectId,
+      traceId: 'trace-lifecycle',
+      from: 'worker',
+      to: 'captain',
+      payload: {
+        taskId: 'task-lifecycle',
+        attemptId: 'attempt-2',
+        priorAttemptId: 'attempt-1',
+        ownerId: workerOwnerId,
+        reason: 'flaky-network',
+      },
+    },
+    { id: 'fleet_lifecycle-recovered', ts: '2026-01-01T00:03:00.000Z' },
+  );
+
+  const preRejectSnapshot = structuredClone({
+    peers: state.peers,
+    messages: state.messages,
+    tasks: state.tasks,
+    recentEventIds: state.recentEventIds,
+    recentEventIdSet: state.recentEventIdSet,
+    cursor: state.cursor,
+    errors: state.errors,
+  });
+
+  assert.throws(() => reduceFleetEvent(state, recovered), /outside claimed state/);
+
+  assert.deepStrictEqual(state.peers, preRejectSnapshot.peers);
+  assert.deepStrictEqual(state.messages, preRejectSnapshot.messages);
+  assert.deepStrictEqual(state.tasks, preRejectSnapshot.tasks);
+  assert.deepStrictEqual(state.recentEventIds, preRejectSnapshot.recentEventIds);
+  assert.deepStrictEqual(state.recentEventIdSet, preRejectSnapshot.recentEventIdSet);
+  assert.deepStrictEqual(state.cursor, preRejectSnapshot.cursor);
+  assert.deepStrictEqual(state.errors, preRejectSnapshot.errors);
+});
+
+test('reduceFleetEvent ignores an otherwise-valid event for a foreign projectId', () => {
+  const state = createFleetState('project_deadbeef');
+  const captainOwnerId = buildProcessOwnerId({
+    fleetId: 'captain',
+    pid: 99,
+    processUuid: '33333333-3333-4333-8333-333333333333',
+  });
+
+  const foreignJoin = buildFleetEvent(
+    'fleet.peer.joined',
+    {
+      projectId: 'project_other',
+      traceId: 'trace-foreign',
+      from: 'captain',
+      to: 'worker',
+      payload: { ownerId: captainOwnerId },
+    },
+    { id: 'fleet_foreign-joined', ts: '2026-01-01T00:00:00.000Z' },
+  );
+
+  const result = reduceFleetEvent(state, foreignJoin);
+
+  assert.equal(result, state);
+  assert.equal(state.peers.size, 0);
+
+  const workerOwnerId = buildProcessOwnerId({
+    fleetId: 'worker',
+    pid: 100,
+    processUuid: '55555555-5555-4555-8555-555555555555',
+  });
+
+  const unknownLeave = buildFleetEvent(
+    'fleet.peer.left',
+    {
+      projectId: 'project_deadbeef',
+      traceId: 'trace-unknown-leave',
+      from: 'worker',
+      to: 'captain',
+      payload: { ownerId: workerOwnerId },
+    },
+    { id: 'fleet_unknown-leave', ts: '2026-01-01T00:00:01.000Z' },
+  );
+
+  const afterLeave = reduceFleetEvent(state, unknownLeave);
+
+  assert.equal(afterLeave, state);
+  assert.equal(state.peers.size, 0);
+  assert.equal(state.peers.has('worker'), false);
+  assert.equal(state.cursor.afterId, 'fleet_unknown-leave');
+  assert.equal(state.cursor.afterTs, '2026-01-01T00:00:01.000Z');
+  assert.ok(state.recentEventIds.includes('fleet_unknown-leave'));
+  assert.ok(state.recentEventIdSet.has('fleet_unknown-leave'));
+
+  const recentLimitState = createFleetState('project_deadbeef');
+  const recentLimitOwnerId = buildProcessOwnerId({
+    fleetId: 'worker',
+    pid: 200,
+    processUuid: '66666666-6666-4666-8666-666666666666',
+  });
+  const recentLimitBaseTs = Date.parse('2026-06-01T00:00:00.000Z');
+  const recentLimitEventIds = [];
+
+  for (let i = 0; i < FLEET_LIMITS.recentEventIds + 1; i += 1) {
+    const eventId = `fleet_recent-limit-${i}`;
+    recentLimitEventIds.push(eventId);
+    reduceFleetEvent(
+      recentLimitState,
+      buildFleetEvent(
+        'fleet.peer.left',
+        {
+          projectId: 'project_deadbeef',
+          traceId: `trace-recent-limit-${i}`,
+          from: 'worker',
+          to: 'captain',
+          payload: { ownerId: recentLimitOwnerId },
+        },
+        { id: eventId, ts: new Date(recentLimitBaseTs + i * 1000).toISOString() },
+      ),
+    );
+  }
+
+  const oldestRecentLimitEventId = recentLimitEventIds[0];
+  const newestRecentLimitEventId = recentLimitEventIds[recentLimitEventIds.length - 1];
+
+  assert.equal(recentLimitState.recentEventIds.length, FLEET_LIMITS.recentEventIds);
+  assert.equal(recentLimitState.recentEventIdSet.size, FLEET_LIMITS.recentEventIds);
+  assert.equal(recentLimitState.recentEventIds.includes(oldestRecentLimitEventId), false);
+  assert.equal(recentLimitState.recentEventIdSet.has(oldestRecentLimitEventId), false);
+  assert.equal(
+    recentLimitState.recentEventIds[recentLimitState.recentEventIds.length - 1],
+    newestRecentLimitEventId,
+  );
+  assert.equal(recentLimitState.recentEventIdSet.has(newestRecentLimitEventId), true);
+  assert.equal(recentLimitState.cursor.afterId, newestRecentLimitEventId);
+  assert.equal(recentLimitState.peers.size, 0);
 });

@@ -1,9 +1,10 @@
 // omp-fleet-protocol.mjs
 //
 // Pure protocol foundation for the OMP fleet bridge: identities, constants,
-// and event schemas. No reducer, delivery selectors, OMP extension, or smoke
-// harness live here — see the October OMP fleet bridge plan for the phases
-// that add those on top of this module.
+// event schemas, operation authorization, and a deterministic in-memory
+// reducer that folds a validated event stream into fleet state. No delivery
+// selectors, OMP extension, or smoke harness live here — see the October
+// OMP fleet bridge plan for the phases that add those on top of this module.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -500,4 +501,287 @@ export function buildFleetEvent(kind, fields = {}, options = {}) {
   };
 
   return validateFleetEvent(event);
+}
+
+// ── fleet operation authorization ─────────────────────────────────────────
+//
+// Closed, role-scoped authorization for the higher-level fleet operations a
+// runtime surface (status/send/task lifecycle calls) exposes to a peer. This
+// is a distinct axis from FLEET_EVENT_AUTHORIZED_SENDERS above (which gates
+// *event kinds* at the wire-schema layer): operations name a caller-facing
+// action, not an event, and are not wired into reduceFleetEvent — a runtime
+// layer (out of scope here) calls this before invoking the corresponding
+// transport action.
+
+const FLEET_OPERATIONS = Object.freeze([
+  'peers',
+  'status',
+  'send',
+  'offerTask',
+  'claimTask',
+  'completeTask',
+  'failTask',
+]);
+
+const FLEET_OPERATION_SET = new Set(FLEET_OPERATIONS);
+
+const FLEET_OPERATION_AUTHORIZATION = Object.freeze({
+  captain: Object.freeze(['peers', 'status', 'send', 'offerTask']),
+  worker: Object.freeze(['peers', 'status', 'send', 'claimTask', 'completeTask', 'failTask']),
+});
+
+/**
+ * Authorize `actor` (exact string, verbatim — no role-inference fallback)
+ * to perform `operation`. `operation` must belong to the closed
+ * FLEET_OPERATIONS set or this throws `Unknown fleet operation`. A known
+ * operation the actor's role does not carry (or an actor outside the
+ * closed captain/worker role map) resolves to `false`, never a throw.
+ */
+export function authorizeFleetOperation(actor, operation) {
+  if (typeof operation !== 'string' || !FLEET_OPERATION_SET.has(operation)) {
+    throw new Error(`Unknown fleet operation "${operation}"`);
+  }
+  const allowed = FLEET_OPERATION_AUTHORIZATION[actor];
+  return Boolean(allowed) && allowed.includes(operation);
+}
+
+// ── fleet state + reducer ──────────────────────────────────────────────────
+//
+// Deterministic, pure, in-memory fold of a validated fleet event stream.
+// No pending-delivery/recovery selectors and no runtime transport live
+// here — createFleetState/reduceFleetEvent/foldFleetEvents only build and
+// advance the state shape; a later phase reads it.
+
+/**
+ * Build an empty fleet state scoped to `projectId`: Maps for peers,
+ * messages, and tasks; a bounded recent-event-ID array paired with a Set
+ * for O(1) dedup membership; a `{afterId, afterTs}` cursor (both
+ * `undefined` until the first successful transition); and a reserved,
+ * always-empty errors array — a rejected transition throws without
+ * recording anything here or anywhere else in state (see
+ * rejectFleetTransition), so a rejected event never mutates state at all.
+ */
+export function createFleetState(projectId) {
+  if (!isBoundedScalar(projectId)) {
+    throw new Error('Invalid fleet state projectId');
+  }
+  return {
+    projectId,
+    peers: new Map(),
+    messages: new Map(),
+    tasks: new Map(),
+    recentEventIds: [],
+    recentEventIdSet: new Set(),
+    cursor: { afterId: undefined, afterTs: undefined },
+    errors: [],
+  };
+}
+
+function rejectFleetTransition(message) {
+  throw new Error(message);
+}
+
+function applyPeerJoined(state, event) {
+  const { from, ts, payload } = event;
+  state.peers.set(from, {
+    fleetId: from,
+    ownerId: payload.ownerId,
+    status: 'live',
+    joinedAt: ts,
+    leftAt: undefined,
+    updatedAt: ts,
+  });
+}
+
+function applyPeerLeft(state, event) {
+  const { from, ts, payload } = event;
+  const existing = state.peers.get(from);
+  if (!existing) {
+    // Accepted unknown leave: a no-op on the peers map, but the event is
+    // still valid and still advances dedup/cursor (see caller).
+    return;
+  }
+  state.peers.set(from, {
+    ...existing,
+    ownerId: payload.ownerId,
+    status: 'left',
+    leftAt: ts,
+    updatedAt: ts,
+  });
+}
+
+function applyMessageSent(state, event) {
+  const { id, traceId, from, to, ts, payload } = event;
+  state.messages.set(payload.messageId, {
+    ...payload,
+    eventId: id,
+    traceId,
+    from,
+    to,
+    ts,
+    acknowledged: false,
+    disposition: undefined,
+    acknowledgedAt: undefined,
+  });
+}
+
+function applyMessageAcknowledged(state, event) {
+  const { ts, payload } = event;
+  const existing = state.messages.get(payload.messageId);
+  if (!existing) {
+    // Accepted unknown acknowledgement: a no-op on the messages map, but the
+    // event is still valid and still advances dedup/cursor (see caller).
+    return;
+  }
+  state.messages.set(payload.messageId, {
+    ...existing,
+    acknowledged: true,
+    disposition: payload.disposition,
+    acknowledgedAt: ts,
+  });
+}
+
+function applyTaskOffered(state, event) {
+  const { traceId, from, to, ts, payload } = event;
+  if (state.tasks.has(payload.taskId)) {
+    rejectFleetTransition(`Cannot offer task "${payload.taskId}": task already exists`);
+  }
+  state.tasks.set(payload.taskId, {
+    taskId: payload.taskId,
+    status: 'offered',
+    contract: payload.contract,
+    from,
+    to,
+    traceId,
+    offeredAt: ts,
+    attempt: 0,
+    attemptId: undefined,
+    ownerId: undefined,
+    recovered: false,
+    priorAttemptId: undefined,
+    reason: undefined,
+    summary: undefined,
+    artifactUris: undefined,
+  });
+}
+
+function applyTaskClaimed(state, event) {
+  const { ts, payload } = event;
+  const task = state.tasks.get(payload.taskId);
+  if (!task || task.status !== 'offered') {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.claimed outside offered state for task "${payload.taskId}"`,
+    );
+  }
+  state.tasks.set(payload.taskId, {
+    ...task,
+    status: 'claimed',
+    ownerId: payload.ownerId,
+    attemptId: payload.attemptId,
+    attempt: 1,
+    recovered: false,
+    claimedAt: ts,
+  });
+}
+
+function applyTaskRecovered(state, event) {
+  const { ts, payload } = event;
+  const task = state.tasks.get(payload.taskId);
+  if (!task || task.status !== 'claimed') {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.recovered outside claimed state for task "${payload.taskId}"`,
+    );
+  }
+  state.tasks.set(payload.taskId, {
+    ...task,
+    attemptId: payload.attemptId,
+    priorAttemptId: payload.priorAttemptId,
+    ownerId: payload.ownerId,
+    attempt: task.attempt + 1,
+    recovered: true,
+    reason: payload.reason,
+    recoveredAt: ts,
+  });
+}
+
+function applyTaskResult(state, event, terminalStatus) {
+  const { kind, ts, payload } = event;
+  const task = state.tasks.get(payload.taskId);
+  if (!task || task.status !== 'claimed') {
+    rejectFleetTransition(
+      `Cannot apply ${kind} outside claimed state for task "${payload.taskId}"`,
+    );
+  }
+  if (task.attemptId !== payload.attemptId) {
+    rejectFleetTransition(
+      `Cannot apply ${kind}: attemptId "${payload.attemptId}" does not match claimed attemptId for task "${payload.taskId}"`,
+    );
+  }
+  state.tasks.set(payload.taskId, {
+    ...task,
+    status: terminalStatus,
+    summary: payload.summary,
+    artifactUris: payload.artifactUris,
+    completedAt: ts,
+  });
+}
+
+const FLEET_EVENT_REDUCERS = Object.freeze({
+  'fleet.peer.joined': applyPeerJoined,
+  'fleet.peer.left': applyPeerLeft,
+  'fleet.message.sent': applyMessageSent,
+  'fleet.message.acknowledged': applyMessageAcknowledged,
+  'fleet.task.offered': applyTaskOffered,
+  'fleet.task.claimed': applyTaskClaimed,
+  'fleet.task.recovered': applyTaskRecovered,
+  'fleet.task.completed': (state, event) => applyTaskResult(state, event, 'completed'),
+  'fleet.task.failed': (state, event) => applyTaskResult(state, event, 'failed'),
+});
+
+/**
+ * Fold one already-built or wire-received event into `state`, mutating and
+ * returning the same state object. Validates `input` via validateFleetEvent
+ * first (throws on any structural violation). An event for a foreign
+ * projectId or a previously-seen event ID is silently ignored — state is
+ * returned unchanged, and dedup/cursor are not touched either way. A
+ * semantically invalid transition (duplicate task offer, claim without a
+ * matching offer, recover/complete/fail outside claimed state, or a
+ * completed/failed attemptId mismatch) throws without mutating `state` at
+ * all — a rejected event never touches peers/messages/tasks/errors, and
+ * recentEventIds/recentEventIdSet/cursor are only advanced after a
+ * transition succeeds, so it never poisons dedup or cursor ordering either.
+ */
+export function reduceFleetEvent(state, input) {
+  const event = validateFleetEvent(input);
+
+  if (event.projectId !== state.projectId) {
+    return state;
+  }
+  if (state.recentEventIdSet.has(event.id)) {
+    return state;
+  }
+
+  FLEET_EVENT_REDUCERS[event.kind](state, event);
+
+  state.recentEventIds.push(event.id);
+  state.recentEventIdSet.add(event.id);
+  if (state.recentEventIds.length > FLEET_LIMITS.recentEventIds) {
+    const evicted = state.recentEventIds.shift();
+    state.recentEventIdSet.delete(evicted);
+  }
+  state.cursor = { afterId: event.id, afterTs: event.ts };
+
+  return state;
+}
+
+/**
+ * Fold `events` in order into a fresh state created via
+ * `createFleetState(projectId)`, returning the resulting state.
+ */
+export function foldFleetEvents(events, { projectId } = {}) {
+  const state = createFleetState(projectId);
+  for (const event of events) {
+    reduceFleetEvent(state, event);
+  }
+  return state;
 }
