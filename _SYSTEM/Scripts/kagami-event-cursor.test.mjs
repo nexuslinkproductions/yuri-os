@@ -12,7 +12,7 @@ import crypto from 'node:crypto';
 
 const ROOT = path.join(os.tmpdir(), `kagami-cursor-${process.pid}-${crypto.randomBytes(4).toString('hex')}`);
 process.env.KAGAMI_CONTROL_STATE_ROOT = ROOT;
-const { appendKagamiEvent, readKagamiEventsSince } = await import('./kagami-event-bus.mjs');
+const { appendKagamiEvent, readKagamiEventsSince, rotateEventLog } = await import('./kagami-event-bus.mjs');
 
 // 5 events, known ids/ts/lanes/kinds, chronological.
 function seed() {
@@ -78,4 +78,24 @@ test('RED-TEAM: a same-millisecond peer event after the cursor is NOT dropped (a
   appendKagamiEvent('LANE_OUTPUT_DELTA', { lane: 'nano-b' }, { root: ROOT, id: 'c2', ts: T }); // same ms, NEW
   const got = readKagamiEventsSince({ afterId: 'c1', afterTs: T }, { root: ROOT });
   assert.deepEqual(got.map((e) => e.id), ['c2'], 'same-ms peer event is surfaced, not silently skipped');
+});
+
+test('RED-TEAM: same-millisecond fleet event survives log rotation (afterId+afterTs cursor)', () => {
+  // Isolated temp root, separate from the module-level ROOT used above, so this test is self-contained
+  // and cleans up after itself even on assertion failure.
+  const rotRoot = path.join(os.tmpdir(), `kagami-cursor-rotation-${process.pid}-${crypto.randomBytes(4).toString('hex')}`);
+  try {
+    const T = '2026-06-13T13:00:00.000Z';
+    appendKagamiEvent('fleet.message.sent', { lane: 'nano-a' }, { root: rotRoot, id: 'c1', ts: T, allowUnknownKind: true });
+    // Force rotation so c1 is sealed into an immutable segment before c2 lands in the fresh active file.
+    const rotation = rotateEventLog({ root: rotRoot, force: true });
+    assert.equal(rotation.rotated, true, 'rotation must actually seal the segment, not report a no-op (false-pass guard)');
+    appendKagamiEvent('fleet.message.sent', { lane: 'nano-b' }, { root: rotRoot, id: 'c2', ts: T, allowUnknownKind: true });
+    // c1 lives in the sealed segment; c2 (same ms) lives in the active file. afterId=c1 positions the
+    // slice past the rotation boundary; afterTs=T must not then re-drop c2 for sharing c1's millisecond.
+    const got = readKagamiEventsSince({ afterId: 'c1', afterTs: T }, { root: rotRoot });
+    assert.deepEqual(got.map((e) => e.id), ['c2'], 'same-ms event added after rotation is surfaced exactly once, not dropped or duplicated');
+  } finally {
+    fs.rmSync(rotRoot, { recursive: true, force: true });
+  }
 });
