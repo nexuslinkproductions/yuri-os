@@ -20,6 +20,9 @@ import {
   createFleetState,
   reduceFleetEvent,
   foldFleetEvents,
+  selectPendingDeliveries,
+  selectPendingTaskDeliveries,
+  deriveRecoveryActions,
 } from './omp-fleet-protocol.mjs';
 
 // ── isolated temp root ──────────────────────────────────────────────────
@@ -776,4 +779,133 @@ test('reduceFleetEvent ignores an otherwise-valid event for a foreign projectId'
   assert.equal(recentLimitState.recentEventIdSet.has(newestRecentLimitEventId), true);
   assert.equal(recentLimitState.cursor.afterId, newestRecentLimitEventId);
   assert.equal(recentLimitState.peers.size, 0);
+});
+
+// ── delivery selection + recovery decisions ────────────────────────────────
+
+test('cursor carries afterId and afterTs; duplicate events do not re-deliver; pending deliveries sort by ts then eventId and honor injectedMessageIds', () => {
+  const message = buildFleetEvent('fleet.message.sent', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm1', body: 'hello', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e1', ts: '2026-07-15T15:00:00.000Z' });
+  const earlier = buildFleetEvent('fleet.message.sent', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm0', body: 'earlier', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e0', ts: '2026-07-15T14:59:00.000Z' });
+  const sameTsLaterEventId = buildFleetEvent('fleet.message.sent', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm2', body: 'same-ts', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e2', ts: '2026-07-15T15:00:00.000Z' });
+  const injected = buildFleetEvent('fleet.message.sent', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-injected', body: 'session-injected', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e3', ts: '2026-07-15T15:00:02.000Z' });
+  const state = foldFleetEvents(
+    [sameTsLaterEventId, message, message, earlier, injected],
+    { projectId: 'project_deadbeef' },
+  );
+  assert.deepEqual(state.cursor, { afterId: 'e3', afterTs: '2026-07-15T15:00:02.000Z' });
+  assert.deepEqual(
+    selectPendingDeliveries(state, 'worker', new Set(['m-injected'])).map((entry) => entry.messageId),
+    ['m0', 'm1', 'm2'],
+  );
+
+  const cursorBeforeInvalidSelect = { ...state.cursor };
+  assert.throws(() => selectPendingDeliveries(state, 'Bad Fleet'), /Invalid fleet ID/);
+  assert.deepEqual(state.cursor, cursorBeforeInvalidSelect);
+  assert.equal(state.messages.size, 4);
+});
+
+test('acknowledged and foreign-recipient messages are excluded from delivery', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm1', body: 'hello', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e1', ts: '2026-07-15T15:00:00.000Z' });
+  const ack = buildFleetEvent('fleet.message.acknowledged', {
+    projectId: 'project_deadbeef', traceId: 't1', from: 'worker', to: 'captain',
+    payload: { messageId: 'm1', recipient: 'worker', disposition: 'injected' },
+  }, { id: 'e2', ts: '2026-07-15T15:00:01.000Z' });
+  const state = foldFleetEvents([sent, ack], { projectId: 'project_deadbeef' });
+  assert.deepEqual(selectPendingDeliveries(state, 'worker'), []);
+  assert.deepEqual(selectPendingDeliveries(state, 'captain'), []);
+});
+
+test('offered and recovered tasks are selected once per live session', () => {
+  const state = createFleetState('project_deadbeef');
+  state.tasks.set('offered', { status: 'offered', to: 'worker', attempt: 0 });
+  state.tasks.set('recovered', {
+    status: 'claimed',
+    to: 'worker',
+    ownerId: 'worker:new',
+    attemptId: 'recovered-2',
+    attempt: 2,
+    recovered: true,
+  });
+  state.tasks.set('claimed-not-recovered', {
+    status: 'claimed',
+    to: 'worker',
+    ownerId: 'worker:new',
+    attemptId: 'claimed-not-recovered-1',
+    attempt: 1,
+  });
+  state.tasks.set('claimed-recovered-mismatched-owner', {
+    status: 'claimed',
+    to: 'worker',
+    ownerId: 'worker:other',
+    attemptId: 'claimed-recovered-mismatched-owner-2',
+    attempt: 2,
+    recovered: true,
+  });
+  state.tasks.set('completed', {
+    status: 'completed',
+    to: 'worker',
+    ownerId: 'worker:new',
+    attemptId: 'completed-1',
+    attempt: 1,
+  });
+  state.tasks.set('failed', {
+    status: 'failed',
+    to: 'worker',
+    ownerId: 'worker:new',
+    attemptId: 'failed-1',
+    attempt: 1,
+  });
+  const injected = new Set(['offered:offer']);
+  assert.deepEqual(
+    selectPendingTaskDeliveries(state, 'worker', 'worker:new', injected).map((task) => task.deliveryId),
+    ['recovered-2'],
+  );
+});
+
+test('recovery is safe only for nonterminal task owned by dead prior process, and terminal tasks are never recovered', () => {
+  const state = createFleetState('project_deadbeef');
+  state.tasks.set('audit', {
+    status: 'claimed',
+    to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:',
+    attemptId: 'audit-1',
+    attempt: 1,
+  });
+  state.tasks.set('done', {
+    status: 'completed',
+    to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:',
+    attemptId: 'done-1',
+    attempt: 1,
+  });
+  assert.deepEqual(deriveRecoveryActions(state, {
+    fleetId: 'worker',
+    ownerAlive: () => false,
+    newOwnerId: 'worker:8:223e4567-e89b-12d3-a456-426614174000:',
+  }), [{
+    taskId: 'audit',
+    status: 'recover',
+    priorAttemptId: 'audit-1',
+    attemptId: 'audit-2',
+    ownerId: 'worker:8:223e4567-e89b-12d3-a456-426614174000:',
+    reason: 'prior process dead; no terminal task event',
+  }]);
+  assert.equal(deriveRecoveryActions(state, {
+    fleetId: 'worker', ownerAlive: () => true, newOwnerId: 'new',
+  })[0].status, 'needs-review');
 });

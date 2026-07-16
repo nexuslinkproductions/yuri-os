@@ -2,9 +2,10 @@
 //
 // Pure protocol foundation for the OMP fleet bridge: identities, constants,
 // event schemas, operation authorization, and a deterministic in-memory
-// reducer that folds a validated event stream into fleet state. No delivery
-// selectors, OMP extension, or smoke harness live here — see the October
-// OMP fleet bridge plan for the phases that add those on top of this module.
+// reducer that folds a validated event stream into fleet state, plus pure
+// delivery selectors and recovery decisions derived from that state. No OMP
+// extension or smoke harness lives here — see the October OMP fleet bridge
+// plan for the phases that add those on top of this module.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -548,9 +549,9 @@ export function authorizeFleetOperation(actor, operation) {
 // ── fleet state + reducer ──────────────────────────────────────────────────
 //
 // Deterministic, pure, in-memory fold of a validated fleet event stream.
-// No pending-delivery/recovery selectors and no runtime transport live
-// here — createFleetState/reduceFleetEvent/foldFleetEvents only build and
-// advance the state shape; a later phase reads it.
+// No runtime transport lives here — createFleetState/reduceFleetEvent/
+// foldFleetEvents only build and advance the state shape; pure delivery
+// selectors and recovery decisions follow in the section below.
 
 /**
  * Build an empty fleet state scoped to `projectId`: Maps for peers,
@@ -784,4 +785,75 @@ export function foldFleetEvents(events, { projectId } = {}) {
     reduceFleetEvent(state, event);
   }
   return state;
+}
+
+// ── fleet delivery selection + recovery decisions ─────────────────────────
+//
+// Pure selectors over already-folded fleet state: which messages/tasks are
+// still owed to a given peer, and which claimed tasks are safe to recover
+// after a prior owning process disappears. No mutation, no I/O, no OMP
+// extension or transport wiring lives here — a later phase reads these.
+
+/**
+ * Select messages still owed to `fleetId`: addressed to that peer,
+ * unacknowledged, and not already delivered this session (per
+ * `injectedMessageIds`). Sorted by `ts` then `eventId` so delivery order is
+ * deterministic even when two messages share a timestamp.
+ */
+export function selectPendingDeliveries(state, fleetId, injectedMessageIds = new Set()) {
+  const peer = validateFleetId(fleetId);
+  return [...state.messages.values()]
+    .filter((message) => message.to === peer && !message.acknowledged && !injectedMessageIds.has(message.messageId))
+    .sort((a, b) => a.ts.localeCompare(b.ts) || a.eventId.localeCompare(b.eventId));
+}
+
+/**
+ * Select tasks still owed to `fleetId` for `ownerId`: a fresh offer
+ * (`${taskId}:offer`), or a claimed task that was recovered onto this exact
+ * `ownerId` (`task.attemptId`). Any other status — including terminal
+ * completed/failed tasks and claims not owned by `ownerId` — is excluded.
+ * `injectedTaskAttemptIds` drops deliveries already handed out this
+ * session, keyed by the same `deliveryId` returned on each entry.
+ */
+export function selectPendingTaskDeliveries(state, fleetId, ownerId, injectedTaskAttemptIds = new Set()) {
+  const peer = validateFleetId(fleetId);
+  return [...state.tasks.entries()]
+    .map(([taskId, task]) => {
+      if (task.to !== peer) return null;
+      if (task.status === 'offered') return { ...task, taskId, deliveryId: `${taskId}:offer` };
+      if (task.status === 'claimed' && task.recovered && task.ownerId === ownerId) {
+        return { ...task, taskId, deliveryId: task.attemptId };
+      }
+      return null;
+    })
+    .filter((task) => task && !injectedTaskAttemptIds.has(task.deliveryId));
+}
+
+/**
+ * Derive safe recovery decisions for `fleetId`'s claimed tasks only —
+ * terminal (completed/failed) and offered tasks are never candidates.
+ * `ownerAlive(task.ownerId)` decides per task: an alive prior owner yields
+ * `needs-review` (no automatic takeover of a task someone may still be
+ * working); a dead prior owner yields a `recover` action carrying the next
+ * attempt's `priorAttemptId`, `attemptId` (`${taskId}-${attempt + 1}`), and
+ * `newOwnerId` so the caller can emit a matching `fleet.task.recovered`
+ * event.
+ */
+export function deriveRecoveryActions(state, { fleetId, ownerAlive, newOwnerId }) {
+  const peer = validateFleetId(fleetId);
+  return [...state.tasks.entries()]
+    .filter(([, task]) => task.to === peer && task.status === 'claimed')
+    .map(([taskId, task]) => {
+      if (ownerAlive(task.ownerId)) {
+        return { taskId, status: 'needs-review', reason: 'prior owner still appears alive' };
+      }
+      return {
+        taskId,
+        status: 'recover',
+        priorAttemptId: task.attemptId,
+        attemptId: `${taskId}-${task.attempt + 1}`,
+        ownerId: newOwnerId,
+        reason: 'prior process dead; no terminal task event',
+      };
+    });
 }
