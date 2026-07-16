@@ -12,8 +12,8 @@ OpenAI-developed Codex plugins may provide useful tools and skills, but they mus
 
 - Canonical rule: `_SYSTEM/yuri-origin.md` -> Plugin / Connector Routing.
 - Codex adapter rule: `AGENTS.md` -> Plugin / Connector Rule.
-- Future-session skill trigger: `.codex/skills/yuri-control-plane-first/SKILL.md`.
 - Canonical reusable skill: `skills/codex-plugin-control-plane/SKILL.md`.
+- Direct preflight: `_SYSTEM/Scripts/xref-query.mjs`, plus `_SYSTEM/Scripts/propagation-scan.mjs` for known circuitry nodes.
 - Context routing trigger: `_SYSTEM/context/context-registry.json` maps plugin/connector tasks to the skills packet.
 - Mechanical gate: `.codex/hooks/pre-tool-use.mjs` routes through `_SYSTEM/Scripts/policy/yuri-safety-core.mjs`.
 

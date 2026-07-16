@@ -14,10 +14,16 @@ Use plugins as capability lanes, not authority lanes.
 Before using a plugin/app connector/MCP tool for a task, run:
 
 ```bash
-node _SYSTEM/Scripts/context-router.mjs "<task>"
+node _SYSTEM/Scripts/xref-query.mjs "<task>"
 ```
 
-Then follow the returned read order and selected packet before broad exploration or plugin action.
+When the task touches a known circuitry node, also run:
+
+```bash
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+Use the resulting provenance and propagation evidence before broad exploration or plugin action. No wrapper skill is required.
 
 ## Authority
 
@@ -40,9 +46,12 @@ If a skill fires from a plugin cache, call that an activation source only. Do no
 
 ## Failure Mode
 
-If a plugin/app tool is denied with a context-router gate, run the context-router command for the active task, load the selected YURI context, and retry only if the action still fits the task and constraints.
+If a plugin/app tool is denied by the preflight gate, run xref-query for the active task (plus propagation-scan for a known circuitry node) and retry only if the action still fits the task and constraints.
 
 ## Session Notes
+
+### 2026-07-16
+- Removed the legacy Codex wrapper and made direct xref/propagation preflight the only documented ingress.
 
 ### 2026-07-06
 - session: 58m | peak ctx: 0% | compacts: 0
