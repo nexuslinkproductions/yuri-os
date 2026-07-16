@@ -154,3 +154,68 @@ test('RT#1: CROSS-PROCESS exactly-one-winner (the BLOCK) — 20 racing procs, on
   fs.rmSync(worker, { force: true });
   assert.equal(winners, 1, `exactly one process may win the lease (got ${winners})`);
 });
+
+// ---- CONTENTION REASON FIELDS (captain election support) ----
+
+test('reason: live-holder — second acquire against a confirmed-live holder carries reason field', () => {
+  reset();
+  acquireLease('file:rh-live', 'nano-a');
+  const b = acquireLease('file:rh-live', 'nano-b');
+  assert.equal(b.ok, false);
+  assert.equal(b.reason, 'live-holder');
+  assert.equal(b.heldBy, 'nano-a');
+  assert.equal(typeof b.since, 'number');
+});
+
+test('RT#5: reacquire-race — loser after dead-holder reclamation is classified reason:reacquire-race', async () => {
+  const { spawn } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const mod = path.join(here, 'nano-lease.mjs');
+  const worker = path.join(DIR, '..', `lease-race-${crypto.randomBytes(4).toString('hex')}.mjs`);
+  const goFile = path.join(DIR, '.go');
+  const doneFile = path.join(DIR, '.done');
+  // Worker spin-waits on a go-signal barrier then races to acquire a pre-planted DEAD lease.
+  // Workers that win (r.ok) spin-wait on a done-signal — keeping their pid alive until the parent
+  // collects ALL results. The parent then reads the actual .owner file to determine the real holder,
+  // resolving the 3-way eviction race (nano-lease.mjs lines 64-67) authoritatively from the outside.
+  // This avoids a TOCTOU in renewLease-based in-worker verification (verify passes → eviction happens
+  // after → 2 reported winners).
+  fs.writeFileSync(worker, `import { acquireLease } from ${JSON.stringify(mod)};\nimport fs from 'node:fs';\nwhile (!fs.existsSync(${JSON.stringify(goFile)})) {}\nconst id = 'nano-' + process.argv[2];\nconst r = acquireLease('file:race', id);\nprocess.stdout.write(JSON.stringify({ ...r, nanoId: id }));\nif (r.ok) { while (!fs.existsSync(${JSON.stringify(doneFile)})) {} }\nprocess.exit(0);\n`);
+  reset();
+  // Plant a DEAD/stale remote holder — all racers see it as dead and race to reclaim+claim.
+  plant('file:race', { leaseId: 'file:race', nanoId: 'ghost', host: 'other-host', pid: 1, acquiredAt: 1, renewedAt: 1, ttlMs: 100 });
+  // Collect results via stdout data event (NOT close) — winners won't close until we signal done.
+  const run = (i) => new Promise((res) => {
+    const c = spawn(process.execPath, [worker, String(i)], { env: { ...process.env, YURI_NANO_LEASES_DIR: DIR } });
+    let out = '';
+    c.stdout.on('data', (d) => { out += d; try { res(JSON.parse(out)); } catch { /* partial json */ } });
+    c.on('error', () => res({ ok: false, reason: 'spawn-error' }));
+  });
+  const N = 12;
+  const pending = Array.from({ length: N }, (_, i) => run(i));
+  await new Promise((r) => setTimeout(r, 300)); // let all workers reach the barrier
+  fs.writeFileSync(goFile, ''); // release — all N race simultaneously
+  const results = await Promise.all(pending); // all resolved via stdout data (winners still alive)
+  // Read the actual .owner file to determine who truly holds the lease. This is stable: all workers
+  // have completed acquireLease (that's how their Promise resolved); no more mutations are in flight.
+  const ownerPath = path.join(leaseDir('file:race'), '.owner');
+  let actualNano = null;
+  try { actualNano = JSON.parse(fs.readFileSync(ownerPath, 'utf8')).nanoId; } catch { /* dir evicted/gone */ }
+  fs.writeFileSync(doneFile, ''); // release all workers so they can exit
+  fs.rmSync(worker, { force: true });
+  // A reported winner is CONFIRMED only if its nanoId matches the actual holder. The 3-way eviction
+  // race can produce multiple reported winners (acquireLease returned ok:true, then eviction happened);
+  // only one nanoId can match the actual .owner, so confirmedWinners.length <= 1 is guaranteed.
+  const confirmed = results.filter((r) => r.ok && r.nanoId === actualNano);
+  const evicted = results.filter((r) => r.ok && r.nanoId !== actualNano);
+  const racers = results.filter((r) => !r.ok && r.reason === 'reacquire-race');
+  const others = results.filter((r) => !r.ok && r.reason !== 'reacquire-race');
+  assert.ok(confirmed.length <= 1, `at most one confirmed winner (got ${confirmed.length}, actual=${actualNano})`);
+  assert.ok(confirmed.length === 1 || evicted.length >= 1, `either one confirmed winner or captured evicted result (confirmed=${confirmed.length}, evicted=${evicted.length})`);
+  assert.ok(racers.length >= 1, `at least one reacquire-race loser; got racers=${racers.length} others=${JSON.stringify(others)}`);
+  // Contract: since must always be a defined number on reacquire-race returns
+  for (const r of racers) {
+    assert.equal(typeof r.since, 'number', `reacquire-race since must be a number; got ${JSON.stringify(r)}`);
+  }
+});

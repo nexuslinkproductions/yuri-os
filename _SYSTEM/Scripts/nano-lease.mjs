@@ -101,7 +101,7 @@ function claimViaRename(dir, meta) {
 
 /**
  * Atomically claim `id` for `nanoId` via owner-included rename (no TOCTOU). A dead/stale holder is
- * reclaimed and the lease retaken ONCE. Returns { ok:true, leaseId, dir } or { ok:false, heldBy }.
+ * reclaimed and the lease retaken ONCE. Returns { ok:true, leaseId, dir } or { ok:false, reason, heldBy, since }.
  */
 export function acquireLease(id, nanoId, { ttlMs = DEFAULT_TTL_MS } = {}) {
   if (!id || !nanoId) return { ok: false, reason: 'id and nanoId required' };
@@ -112,17 +112,17 @@ export function acquireLease(id, nanoId, { ttlMs = DEFAULT_TTL_MS } = {}) {
   if (claimViaRename(dir, meta)) return { ok: true, leaseId: meta.leaseId, dir };
   // Lost the rename OR a holder already exists — inspect it.
   const cur = readOwner(dir);
-  if (holderAlive(cur, now)) return { ok: false, heldBy: cur?.nanoId || 'unknown', since: cur?.acquiredAt };
+  if (holderAlive(cur, now)) return { ok: false, reason: 'live-holder', heldBy: cur?.nanoId || 'unknown', since: cur?.acquiredAt ?? now };
   // dead/stale holder → reclaim ONLY the exact dead lease we inspected (owner-matched), then retry the
   // atomic claim ONCE. If a live lease was claimed in the window, reclaim refuses → we report contended
   // rather than stealing it.
   if (!reclaimDirIfDead(dir, now)) {
     const c0 = readOwner(dir);
-    return { ok: false, heldBy: c0?.nanoId || 'reacquire-race' };
+    return { ok: false, reason: 'reacquire-race', heldBy: c0?.nanoId || 'unknown', since: c0?.acquiredAt ?? now };
   }
   if (claimViaRename(dir, meta)) return { ok: true, leaseId: meta.leaseId, dir };
   const c2 = readOwner(dir);
-  return { ok: false, heldBy: c2?.nanoId || 'reacquire-race' };
+  return { ok: false, reason: 'reacquire-race', heldBy: c2?.nanoId || 'unknown', since: c2?.acquiredAt ?? now };
 }
 
 /** Release — ONLY the owner can. Returns true if released (or already gone), false if held by another. */
