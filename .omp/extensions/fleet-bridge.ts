@@ -136,6 +136,19 @@ type PendingTaskDelivery = {
   summary?: string;
   artifactUris?: string[];
 };
+/** Shape returned by deriveRecoveryActions for each claimed task: `recover`
+ *  (dead prior owner — safe to take over after exact task lease acquisition)
+ *  or `needs-review` (ambiguous/live prior owner — surface for operator
+ *  decision, never auto-takeover). Terminal tasks are never candidates. */
+type RecoveryAction = {
+  taskId: string;
+  status: 'recover' | 'needs-review';
+  priorAttemptId?: string;
+  attemptId?: string;
+  ownerId?: string;
+  reason?: string;
+};
+
 
 // ── pure Kagami-row → fleet-event helpers ─────────────────────────────────
 //
@@ -976,6 +989,131 @@ pi.registerCommand('fleet-fail', {
     await notifyFleetResult(ctx, () => executeOperation({ op: 'failTask', taskId, reason }), usage);
   },
 });
+  // ── performStartupRecovery(): Task 8 — restart recovery for claimed tasks
+  // whose prior owning process has disappeared. Runs ONCE at startup, AFTER
+  // the complete stream reconstruction + this session's own peer.joined have
+  // been folded into state, but BEFORE ordinary pending-delivery
+  // reconciliation so recovered tasks flow into the first reconcile() pass
+  // as injected deliveries owed to this peer.
+  //
+  // Owner liveness is determined authoritatively from inspectLeases(): a
+  // prior ownerId is "alive" iff it holds ANY currently-live lease (peer or
+  // task). reclaimLeases() runs first as the approved startup dead/stale
+  // cleanup (plan item 6) so the live set reflects post-cleanup truth.
+  // reclaimLeases only destroys dead/stale holders under exclusive custody
+  // — never a live lease — so this process's freshly-acquired peer lease
+  // and any genuinely-live task lease are safe. The exact task lease
+  // (taskLeaseId) remains the serialization gate for each recover:
+  // acquired BEFORE the fleet.task.recovered event is published, and rolled
+  // back (released) if that publish fails. A live or ambiguous prior owner
+  // yields needs-review (no automatic takeover). Recovery failure
+  // degrades/surfaces error but never crashes ordinary OMP — no new timers;
+  // the existing 5s renew loop covers successfully recovered tasks.
+
+  function performStartupRecovery(): void {
+    const { fleetId, projectId, ownerId, state } = requireActive();
+
+    // Startup dead/stale cleanup (plan item 6): sweep ALL dead/stale leases
+    // globally. holderAlive===false entries are reclaimed under custody;
+    // live leases are skipped. This pre-cleans stale incumbent task leases
+    // (and orphan staging dirs) so inspectLeases reflects the true live set.
+    reclaimLeases();
+
+    // Authoritative live owner/nano IDs from the post-cleanup lease set.
+    const liveOwnerIds = new Set(
+      inspectLeases()
+        .filter((lease) => lease.alive && typeof lease.nanoId === 'string')
+        .map((lease) => lease.nanoId as string),
+    );
+    const ownerAlive = (candidateOwnerId: unknown): boolean =>
+      typeof candidateOwnerId === 'string' && liveOwnerIds.has(candidateOwnerId);
+
+    const actions = deriveRecoveryActions(state, {
+      fleetId,
+      ownerAlive,
+      newOwnerId: ownerId,
+    }) as RecoveryAction[];
+
+    for (const action of actions) {
+      const taskId = action.taskId;
+
+      if (action.status === 'needs-review') {
+        // Ambiguous or live prior owner — surface evidence, publish nothing,
+        // never steal a task someone may still be working.
+        pushBoundedError(
+          runtime.errors,
+          `Task ${taskId} needs review: ${action.reason || 'prior owner still appears alive'}`,
+        );
+        continue;
+      }
+      if (action.status !== 'recover') continue;
+
+      // Idempotency guard: never emit a duplicate recovery for a task this
+      // process already owns. Structurally impossible at the first startup
+      // pass (ownedTaskIds is empty), but belt-and-suspenders against a task
+      // whose ownerId already resolved to THIS process via a prior recovery
+      // event on the reconstructed stream.
+      if (runtime.ownedTaskIds.has(taskId)) continue;
+
+      const leaseId = taskLeaseId(projectId, taskId);
+
+      // Exact task lease is the serialization gate — acquire FIRST. A
+      // dead/stale incumbent is reclaimed inside acquireLease itself; a live
+      // incumbent (racing recovery) wins and we defer.
+      const acquired = acquireLease(leaseId, ownerId, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
+      if (!acquired.ok) {
+        // Another owner won the race or the prior owner is still genuinely
+        // alive. Do not publish, do not claim ownership; surface needs-review
+        // with heldBy evidence. Prior folded state is untouched.
+        pushBoundedError(
+          runtime.errors,
+          `Task ${taskId} recovery deferred: held by ${acquired.heldBy || 'unknown'} (${acquired.reason || 'contended'})`,
+        );
+        continue;
+      }
+
+      // Lease acquired — publish the recovery event. Payload fields come
+      // EXACTLY from the selector (priorAttemptId/attemptId/ownerId/reason);
+      // the `to`/traceId come from the task's own folded record so the event
+      // routes back to the original offerer (captain).
+      const taskRecord = state.tasks.get(taskId);
+      const task = isStringRecord(taskRecord) ? taskRecord : {};
+      const taskFrom = typeof task.from === 'string' ? task.from : fleetId;
+      const taskTraceId = typeof task.traceId === 'string' ? task.traceId : `task-${taskId}`;
+      const attemptId = typeof action.attemptId === 'string' ? action.attemptId : '';
+      const priorAttemptId = typeof action.priorAttemptId === 'string' ? action.priorAttemptId : '';
+      const newOwnerId = typeof action.ownerId === 'string' ? action.ownerId : ownerId;
+      const reason = typeof action.reason === 'string' ? action.reason : 'prior process dead';
+      try {
+        publish('fleet.task.recovered', {
+          traceId: taskTraceId,
+          to: taskFrom,
+          payload: { taskId, attemptId, priorAttemptId, ownerId: newOwnerId, reason },
+        });
+      } catch (error) {
+        // Publish failed — roll back the newly acquired lease so
+        // exclusivity is not silently stranded under a recovery that never
+        // landed. Surface the bounded error; do not claim ownership.
+        try {
+          releaseLease(leaseId, ownerId);
+        } catch (releaseError) {
+          pushBoundedError(
+            runtime.errors,
+            `Task ${taskId} recovery rollback failed: ${String(releaseError)}`,
+          );
+        }
+        pushBoundedError(
+          runtime.errors,
+          `Task ${taskId} recovery publish failed: ${String(error)}`,
+        );
+        continue;
+      }
+      // Recovery landed and state folded — record ownership so the existing
+      // 5s renewal loop preserves the task lease.
+      runtime.ownedTaskIds.add(taskId);
+    }
+  }
+
 
   // ── session_start: validate identity, acquire the exclusive peer lease,
   // restore live-session delivery idempotency sets, announce presence ──
@@ -1035,6 +1173,18 @@ pi.registerCommand('fleet-fail', {
       });
       ctx.ui.setStatus('omp-fleet', `fleet:${fleetId}`);
       ctx.ui.notify(`Fleet bridge active as ${fleetId}`, 'info');
+      // ── Task 8 startup recovery: recover claimed tasks whose prior owning
+      // process has disappeared — AFTER complete stream reconstruction +
+      // this peer's own joined event are folded into state, BEFORE the first
+      // ordinary pending-delivery reconciliation so recovered tasks are
+      // injected as deliveries in that same first pass. Failure degrades but
+      // never crashes ordinary OMP.
+      try {
+        performStartupRecovery();
+      } catch (error) {
+        pushBoundedError(runtime.errors, `Fleet startup recovery failed: ${String(error)}`);
+      }
+
 
       // Catch up once — folds this session's own peer.joined event (and
       // anything else appended since the reconstruction scan above), then
@@ -1158,8 +1308,6 @@ pi.registerCommand('fleet-fail', {
     runtime.active = false;
   });
 
-  // Task 6 reconciliation/delivery/rendering/watch wiring is complete
-  // above. The model-callable fleet tool + slash commands (Task 7) and
-  // recovery (Task 8) are added by those tasks — none of that scope is
-  // wired here.
+  // Task 6 reconciliation/delivery/rendering/watch wiring, Task 7 fleet tool
+  // + slash commands, and Task 8 startup recovery are all wired above.
 }
