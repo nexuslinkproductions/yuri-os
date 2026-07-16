@@ -499,6 +499,484 @@ export default function fleetBridge(pi: ExtensionAPI) {
     runtime.injectedTaskAttemptIds.add(task.deliveryId);
   }
 
+// ── Task 7: model-callable fleet tool + human slash commands ───────────
+//
+// executeOperation is the SOLE command/tool mutation boundary and the
+// authoritative authorization gate. Both the closed `fleet` model tool and
+// every `/fleet-*` slash command route through it; neither surface builds
+// fleet events directly or bypasses authorization. It requires an active
+// runtime + canonical fleet identity, calls authorizeFleetOperation(fleetId,
+// op) BEFORE any side effect (so an unauthorized attempt publishes nothing),
+// and supports exactly the closed operation set below — no default branch.
+
+type FleetOperation =
+  | 'peers'
+  | 'status'
+  | 'send'
+  | 'offerTask'
+  | 'claimTask'
+  | 'completeTask'
+  | 'failTask';
+
+type FleetOperationParams = {
+  op: FleetOperation;
+  to?: string;
+  message?: string;
+  replyTo?: string;
+  taskId?: string;
+  traceId?: string;
+  contract?: { goal: string; acceptance: string[] };
+  summary?: string;
+  reason?: string;
+  artifactUris?: string[];
+};
+
+/** Narrow an unknown Map value (the protocol reducer stores only plain
+ *  objects) to a string-keyed record so field reads below use `typeof`
+ *  guards rather than unchecked inline casts. */
+function isStringRecord(value: unknown): value is Record<string, unknown> {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/** Bounded, non-empty task-id precondition; structural kebab validation is
+ *  owned by buildFleetEvent (via publish), so this only guards presence.
+ *  Used by the three task-lifecycle ops; narrows `string | undefined` to a
+ *  stable `string` at each call site. */
+function requireTaskId(taskId: string | undefined): string {
+  if (typeof taskId !== 'string' || taskId.length === 0) {
+    throw new Error('Fleet task operation requires a taskId');
+  }
+  return taskId;
+}
+
+/** Project this project's fleet-peer leases to a bounded health view — only
+ *  peers in THIS project (filtered by the `fleet-peer:<projectId>:` prefix),
+ *  and never the raw ownerId/pid/host the lease records internally. */
+function projectFleetHealth(
+  projectId: string,
+): Map<string, { alive: boolean; renewedAgoMs: number }> {
+  const now = Date.now();
+  const prefix = `fleet-peer:${projectId}:`;
+  const out = new Map<string, { alive: boolean; renewedAgoMs: number }>();
+  for (const lease of inspectLeases()) {
+    const id = String(lease.leaseId ?? '');
+    if (!id.startsWith(prefix)) continue; // never expose unrelated project peers
+    const fleetId = id.slice(prefix.length);
+    if (!fleetId) continue;
+    out.set(fleetId, {
+      alive: Boolean(lease.alive),
+      renewedAgoMs: Math.max(0, now - (typeof lease.renewedAt === 'number' ? lease.renewedAt : now)),
+    });
+  }
+  return out;
+}
+
+/** peers/status: folded protocol state + lease health, read-only. peers
+ *  returns the live peer roster; status adds task counts, cursor, owned
+ *  tasks, and the tail of bounded errors. No mutation, no side effects. */
+function peersStatusView(
+  op: 'peers' | 'status',
+  identity: ActiveFleetIdentity,
+): { text: string; details: { peers: unknown } } {
+  const { fleetId, projectId, ownerId, state } = identity;
+  const health = projectFleetHealth(projectId);
+  const peers = [...state.peers.values()].map((raw) => {
+    const peer = isStringRecord(raw) ? raw : {};
+    const fid = typeof peer.fleetId === 'string' ? peer.fleetId : '';
+    return {
+      fleetId: fid,
+      status: typeof peer.status === 'string' ? peer.status : 'unknown',
+      joinedAt: typeof peer.joinedAt === 'string' ? peer.joinedAt : undefined,
+      lease: health.get(fid) ?? null,
+    };
+  });
+  if (op === 'peers') {
+    return {
+      text: JSON.stringify({ fleetId, projectId, peers }, null, 2),
+      details: { peers },
+    };
+  }
+  const taskStatuses = [...state.tasks.values()].map((t) =>
+    isStringRecord(t) && typeof t.status === 'string' ? t.status : '',
+  );
+  const taskSummary = {
+    offered: taskStatuses.filter((s) => s === 'offered').length,
+    claimed: taskStatuses.filter((s) => s === 'claimed').length,
+    completed: taskStatuses.filter((s) => s === 'completed').length,
+    failed: taskStatuses.filter((s) => s === 'failed').length,
+  };
+  const snapshot = {
+    fleetId,
+    ownerId,
+    projectId,
+    cursor: state.cursor,
+    peers,
+    tasks: taskSummary,
+    ownedTaskIds: [...runtime.ownedTaskIds],
+    errors: runtime.errors.slice(-10),
+  };
+  return { text: JSON.stringify(snapshot, null, 2), details: { peers, tasks: taskSummary } };
+}
+
+/**
+ * Sole command/tool mutation boundary. Authorizes the exact (fleetId, op)
+ * pair before any side effect, then dispatches one of the closed operation
+ * set. Throws on any unauthorized, unknown, or invalid transition — callers
+ * (tool execute + slash command handlers) catch and surface a bounded error
+ * so no rejection escapes unhandled.
+ */
+async function executeOperation(
+  params: FleetOperationParams,
+): Promise<{ text: string; details?: unknown }> {
+  const identity = requireActive();
+  const { fleetId, projectId, ownerId, state } = identity;
+
+  // Authorization BEFORE any side effect — an unauthorized attempt must emit
+  // no events and touch no leases. authorizeFleetOperation throws on an
+  // unknown operation; the closed tool enum and fixed slash-command op
+  // strings guarantee only known operations reach here.
+  if (!authorizeFleetOperation(fleetId, params.op)) {
+    throw new Error(`${fleetId} is not authorized to perform ${params.op}`);
+  }
+
+  if (params.op === 'peers' || params.op === 'status') {
+    return peersStatusView(params.op, identity);
+  }
+
+  if (params.op === 'send') {
+    // recipient/body/replyTo/artifactUris are validated by buildFleetEvent
+    // (via publish) against the closed message-sent payload schema; the
+    // returned event/message IDs are stable identifiers the caller can quote.
+    const to = validateFleetId(params.to);
+    const messageId = `msg-${crypto.randomUUID()}`;
+    const event = publish('fleet.message.sent', {
+      traceId:
+        typeof params.traceId === 'string' && params.traceId.length > 0 ? params.traceId : `message-${messageId}`,
+      to,
+      payload: {
+        messageId,
+        body: typeof params.message === 'string' ? params.message : '',
+        replyTo:
+          typeof params.replyTo === 'string' && params.replyTo.length > 0 ? params.replyTo : null,
+        artifactUris: Array.isArray(params.artifactUris) ? params.artifactUris : [],
+        authority: 'peer',
+      },
+    });
+    return {
+      text: `Sent message ${messageId} (event ${event.id}) to ${event.to}`,
+      details: { eventId: event.id, messageId, to: event.to, traceId: event.traceId },
+    };
+  }
+
+  if (params.op === 'offerTask') {
+    // captain-only (authorized above). Publishes the exact bounded contract
+    // {goal, acceptance}; the protocol reducer initializes attempt/attemptId
+    // (attempt 0, no attemptId) — no terminal flag, no auto-claim.
+    const to = validateFleetId(params.to);
+    const taskId =
+      typeof params.taskId === 'string' && params.taskId.length > 0
+        ? params.taskId
+        : `task-${crypto.randomUUID().replace(/-/g, '')}`;
+    const goal = typeof params.contract?.goal === 'string' ? params.contract.goal : '';
+    const acceptance =
+      Array.isArray(params.contract?.acceptance) && params.contract.acceptance.length > 0
+        ? params.contract.acceptance.filter((a): a is string => typeof a === 'string' && a.length > 0)
+        : ['Return a bounded summary and any artifact URI'];
+    const event = publish('fleet.task.offered', {
+      traceId:
+        typeof params.traceId === 'string' && params.traceId.length > 0 ? params.traceId : `task-${taskId}`,
+      to,
+      payload: { taskId, contract: { goal, acceptance } },
+    });
+    return {
+      text: `Offered task ${taskId} (event ${event.id}) to ${event.to}`,
+      details: { eventId: event.id, taskId, to: event.to, traceId: event.traceId },
+    };
+  }
+
+  if (params.op === 'claimTask') {
+    const taskId = requireTaskId(params.taskId);
+    const taskRecord = state.tasks.get(taskId);
+    const task = isStringRecord(taskRecord) ? taskRecord : undefined;
+    const taskStatus = typeof task?.status === 'string' ? task.status : '';
+    const taskTo = typeof task?.to === 'string' ? task.to : '';
+    // Confirm the task is currently offered TO this peer (current attempt 0).
+    if (!task || taskStatus !== 'offered' || taskTo !== fleetId) {
+      throw new Error(`Task ${taskId} is not offered to ${fleetId}`);
+    }
+    const offerFrom = typeof task.from === 'string' ? task.from : '';
+    const offerTraceId = typeof task.traceId === 'string' ? task.traceId : '';
+    const attemptId = `${taskId}-1`;
+    const leaseId = taskLeaseId(projectId, taskId);
+    // Acquire the exact task lease BEFORE publishing the claim event. If the
+    // append/publish fails below, the new lease is released so exclusivity is
+    // not silently stranded under a claim that never landed.
+    const acquired = acquireLease(leaseId, ownerId, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
+    if (!acquired.ok) {
+      throw new Error(`Task ${taskId} is held by ${acquired.heldBy}`);
+    }
+    let event;
+    try {
+      event = publish('fleet.task.claimed', {
+        traceId: offerTraceId,
+        to: offerFrom,
+        payload: { taskId, attemptId, ownerId },
+      });
+    } catch (error) {
+      try {
+        releaseLease(leaseId, ownerId);
+      } catch {
+        /* best-effort cleanup; publish failure is the reported error */
+      }
+      throw error;
+    }
+    // Only record ownership after a successful publish — a failed claim never
+    // enters ownedTaskIds, so the renewal loop and terminal ops ignore it.
+    runtime.ownedTaskIds.add(taskId);
+    return {
+      text: `Claimed task ${taskId} (attempt ${attemptId})`,
+      details: { eventId: event.id, taskId, attemptId, ownerId },
+    };
+  }
+
+  // completeTask / failTask: worker-only (authorized above). Requires a
+  // matching claimed task this process owns, the current attemptId, and a
+  // live owned task lease. Publishes the terminal event BEFORE releasing the
+  // lease / dropping ownership — if publish throws (e.g. attemptId mismatch
+  // caught at the reducer), the lease is retained and ownership stays so the
+  // 5s renewal loop keeps exclusivity. Terminal transitions cannot replay:
+  // once status flips to completed/failed, a second terminal op fails this
+  // pre-check before any event is constructed.
+  const terminal = params.op === 'completeTask' ? 'completed' : 'failed';
+  const taskId = requireTaskId(params.taskId);
+  const taskRecord = state.tasks.get(taskId);
+  const task = isStringRecord(taskRecord) ? taskRecord : undefined;
+  const taskStatus = typeof task?.status === 'string' ? task.status : '';
+  if (!task || taskStatus !== 'claimed') {
+    throw new Error(`Task ${taskId} is not claimed (status: ${taskStatus || 'missing'})`);
+  }
+  const taskOwnerId = typeof task.ownerId === 'string' ? task.ownerId : '';
+  if (taskOwnerId !== ownerId) {
+    throw new Error(`Task ${taskId} is owned by another process`);
+  }
+  const taskLeaseAlive = inspectLeases().some(
+    (lease) => lease.leaseId === taskLeaseId(projectId, taskId) && lease.alive && lease.nanoId === ownerId,
+  );
+  if (!runtime.ownedTaskIds.has(taskId) || !taskLeaseAlive) {
+    throw new Error(`Task ${taskId} lease is not live for this process`);
+  }
+  // validateTaskResultPayload requires a `summary` string for BOTH completed
+  // and failed; for failTask the caller's reason is carried as the summary.
+  const summary =
+    params.op === 'completeTask'
+      ? typeof params.summary === 'string'
+        ? params.summary
+        : ''
+      : typeof params.reason === 'string' && params.reason.length > 0
+        ? params.reason
+        : 'failed';
+  const artifactUris = Array.isArray(params.artifactUris) ? params.artifactUris : [];
+  const attemptId = typeof task.attemptId === 'string' ? task.attemptId : '';
+  const terminalTraceId = typeof task.traceId === 'string' ? task.traceId : '';
+  const terminalFrom = typeof task.from === 'string' ? task.from : '';
+  const event = publish(`fleet.task.${terminal}`, {
+    traceId: terminalTraceId,
+    to: terminalFrom,
+    payload: { taskId, attemptId, summary, artifactUris },
+  });
+  // Terminal event landed — release the lease and drop ownership. A release
+  // failure is recorded but never blocks the now-durable terminal transition.
+  try {
+    releaseLease(taskLeaseId(projectId, taskId), ownerId);
+  } catch (error) {
+    pushBoundedError(runtime.errors, `Task ${taskId} lease release failed: ${String(error)}`);
+  }
+  runtime.ownedTaskIds.delete(taskId);
+  return {
+    text: `${terminal === 'completed' ? 'Completed' : 'Failed'} task ${taskId} (attempt ${attemptId})`,
+    details: { eventId: event.id, taskId, attemptId, terminal },
+  };
+}
+
+// ── closed model-callable `fleet` tool ─────────────────────────────────
+//
+// Bounded zod enum + bounded fields; no shell operation, no arbitrary
+// command forwarding. execute delegates entirely to executeOperation, so the
+// tool inherits its authorization gate and event construction — it never
+// builds a fleet event itself. renderCall/renderResult render with the
+// existing pi-tui Container/Text so calls and results stay visible but bounded.
+
+const { z: fleetZod } = pi.zod;
+const fleetToolParams = fleetZod.object({
+  op: fleetZod.enum(['peers', 'status', 'send', 'offerTask', 'claimTask', 'completeTask', 'failTask']),
+  to: fleetZod.string().optional(),
+  message: fleetZod.string().optional(),
+  replyTo: fleetZod.string().optional(),
+  taskId: fleetZod.string().optional(),
+  traceId: fleetZod.string().optional(),
+  contract: fleetZod.object({ goal: fleetZod.string(), acceptance: fleetZod.array(fleetZod.string()) }).optional(),
+  summary: fleetZod.string().optional(),
+  reason: fleetZod.string().optional(),
+  artifactUris: fleetZod.array(fleetZod.string()).optional(),
+});
+
+pi.registerTool({
+  name: 'fleet',
+  label: 'OMP Fleet',
+  description:
+    'Inspect peers and exchange bounded messages/tasks with independent OMP sessions in this project. Operations are role-authorized: captain may peers/status/send/offerTask; worker may peers/status/send/claimTask/completeTask/failTask.',
+  parameters: fleetToolParams,
+  async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
+    if (signal?.aborted) {
+      return { content: [{ type: 'text' as const, text: 'Fleet operation aborted' }], isError: true };
+    }
+    try {
+      const result = await executeOperation(params as FleetOperationParams);
+      return { content: [{ type: 'text' as const, text: result.text }], details: result.details };
+    } catch (error) {
+      return { content: [{ type: 'text' as const, text: String(error) }], isError: true };
+    }
+  },
+  renderCall(args, _options, theme) {
+    const a = isStringRecord(args) ? args : {};
+    const op = typeof a.op === 'string' ? a.op : 'fleet';
+    const box = new Container();
+    box.addChild(new Text(theme.fg('accent', `fleet ${op}`), 0, 0));
+    if (typeof a.to === 'string') box.addChild(new Text(theme.fg('dim', `to: ${a.to}`), 0, 0));
+    if (typeof a.taskId === 'string') box.addChild(new Text(theme.fg('dim', `task: ${a.taskId}`), 0, 0));
+    if (typeof a.message === 'string' && a.message.length > 0) {
+      box.addChild(new Text(theme.fg('dim', a.message.length > 80 ? `${a.message.slice(0, 77)}...` : a.message), 0, 0));
+    }
+    return box;
+  },
+  renderResult(result, _options, theme) {
+    const box = new Container();
+    const first = result.content?.[0];
+    const text = first && first.type === 'text' ? first.text : '';
+    box.addChild(new Text(theme.fg(result.isError ? 'error' : 'dim', text), 0, 0));
+    return box;
+  },
+});
+
+// ── human slash commands (thin parsers over executeOperation) ──────────
+//
+// Each command parses its args into a fixed op + bounded fields and delegates
+// to executeOperation — never constructing events itself or bypassing the
+// authorization gate. Malformed args produce an actionable usage notice;
+// operational errors are surfaced as warnings. Every handler is fully
+// caught so no rejection escapes unhandled.
+
+async function notifyFleetResult(
+  ctx: ExtensionContext,
+  run: () => Promise<{ text: string }>,
+  usage: string,
+): Promise<void> {
+  try {
+    const result = await run();
+    ctx.ui.notify(result.text, 'info');
+  } catch (error) {
+    ctx.ui.notify(`${usage}\n${String(error)}`, 'warning');
+  }
+}
+
+pi.registerCommand('fleet-peers', {
+  description: 'List live fleet peers in this project (with lease health)',
+  handler: async (_args, ctx) => {
+    await notifyFleetResult(ctx, () => executeOperation({ op: 'peers' }), '/fleet-peers');
+  },
+});
+
+pi.registerCommand('fleet-status', {
+  description: 'Show this fleet peer: identity, cursor, peers, task counts, owned tasks, errors',
+  handler: async (_args, ctx) => {
+    await notifyFleetResult(ctx, () => executeOperation({ op: 'status' }), '/fleet-status');
+  },
+});
+
+pi.registerCommand('fleet-send', {
+  description: 'Send a fleet message: /fleet-send <peer> <message>',
+  handler: async (args, ctx) => {
+    const usage = 'Usage: /fleet-send <peer> <message>';
+    const match = args.trim().match(/^(\S+)\s+([\s\S]+)$/);
+    if (!match) {
+      ctx.ui.notify(usage, 'warning');
+      return;
+    }
+    const [, to, message] = match;
+    await notifyFleetResult(ctx, () => executeOperation({ op: 'send', to, message }), usage);
+  },
+});
+
+pi.registerCommand('fleet-task', {
+  description: 'Offer a task: /fleet-task <peer> <task-id> <goal>',
+  handler: async (args, ctx) => {
+    const usage = 'Usage: /fleet-task <peer> <task-id> <goal>';
+    const match = args.trim().match(/^(\S+)\s+(\S+)\s+([\s\S]+)$/);
+    if (!match) {
+      ctx.ui.notify(usage, 'warning');
+      return;
+    }
+    const [, to, taskId, goal] = match;
+    await notifyFleetResult(
+      ctx,
+      () =>
+        executeOperation({
+          op: 'offerTask',
+          to,
+          taskId,
+          contract: { goal, acceptance: ['Return a bounded summary and any artifact URI'] },
+        }),
+      usage,
+    );
+  },
+});
+
+pi.registerCommand('fleet-claim', {
+  description: 'Claim an offered task: /fleet-claim <task-id>',
+  handler: async (args, ctx) => {
+    const usage = 'Usage: /fleet-claim <task-id>';
+    const match = args.trim().match(/^(\S+)$/);
+    if (!match) {
+      ctx.ui.notify(usage, 'warning');
+      return;
+    }
+    const [, taskId] = match;
+    await notifyFleetResult(ctx, () => executeOperation({ op: 'claimTask', taskId }), usage);
+  },
+});
+
+pi.registerCommand('fleet-complete', {
+  description: 'Complete a claimed task: /fleet-complete <task-id> [summary]',
+  handler: async (args, ctx) => {
+    const usage = 'Usage: /fleet-complete <task-id> [summary]';
+    const match = args.trim().match(/^(\S+)(?:\s+([\s\S]+))?$/);
+    if (!match) {
+      ctx.ui.notify(usage, 'warning');
+      return;
+    }
+    const [, taskId, summary] = match;
+    await notifyFleetResult(
+      ctx,
+      () => executeOperation({ op: 'completeTask', taskId, summary }),
+      usage,
+    );
+  },
+});
+
+pi.registerCommand('fleet-fail', {
+  description: 'Fail a claimed task: /fleet-fail <task-id> <reason>',
+  handler: async (args, ctx) => {
+    const usage = 'Usage: /fleet-fail <task-id> <reason>';
+    const match = args.trim().match(/^(\S+)\s+([\s\S]+)$/);
+    if (!match) {
+      ctx.ui.notify(usage, 'warning');
+      return;
+    }
+    const [, taskId, reason] = match;
+    await notifyFleetResult(ctx, () => executeOperation({ op: 'failTask', taskId, reason }), usage);
+  },
+});
+
   // ── session_start: validate identity, acquire the exclusive peer lease,
   // restore live-session delivery idempotency sets, announce presence ──
 
