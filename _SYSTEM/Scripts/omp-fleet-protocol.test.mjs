@@ -23,6 +23,10 @@ import {
   selectPendingDeliveries,
   selectPendingTaskDeliveries,
   deriveRecoveryActions,
+  deriveOctoberWorkerId,
+  octoberNodeLeaseId,
+  isWorkerPeerId,
+  destinationMatchesPeer,
 } from './omp-fleet-protocol.mjs';
 
 // ── isolated temp root ──────────────────────────────────────────────────
@@ -908,4 +912,97 @@ test('recovery is safe only for nonterminal task owned by dead prior process, an
   assert.equal(deriveRecoveryActions(state, {
     fleetId: 'worker', ownerAlive: () => true, newOwnerId: 'new',
   })[0].status, 'needs-review');
+});
+
+// ── October worker identity ──────────────────────────────────────────────
+
+test('deriveOctoberWorkerId produces worker-<slug>-<hash8>, deterministic, <=48 chars', () => {
+  const id = deriveOctoberWorkerId('auth-helper');
+  assert.match(id, /^worker-[a-z0-9-]+-[0-9a-f]{8}$/);
+  assert.equal(id, 'worker-auth-helper-131ae90f');
+  assert.equal(id, deriveOctoberWorkerId('auth-helper'));
+  assert.ok(id.length <= 48, `expected <=48 chars, got ${id.length}`);
+});
+
+test('deriveOctoberWorkerId survives lossy normalization collisions via hash8', () => {
+  // 'Auth Helper' and 'auth-helper' normalize to the same slug 'auth-helper'
+  // but hash8 differs because the hash is over the trimmed raw node, not the slug.
+  const idUpper = deriveOctoberWorkerId('Auth Helper');
+  const idLower = deriveOctoberWorkerId('auth-helper');
+  assert.notEqual(idUpper, idLower);
+  assert.equal(idUpper, 'worker-auth-helper-af2d2bb8');
+  assert.equal(idLower, 'worker-auth-helper-131ae90f');
+});
+
+test('deriveOctoberWorkerId bounds long inputs to <=48 chars', () => {
+  const longNode = 'x'.repeat(200);
+  const id = deriveOctoberWorkerId(longNode);
+  assert.ok(id.length <= 48, `expected <=48 chars, got ${id.length}`);
+  assert.match(id, /^worker-x{1,32}-[0-9a-f]{8}$/);
+});
+
+test('deriveOctoberWorkerId strips trailing hyphen after slug truncation', () => {
+  // 'a'.repeat(31) + ' b' normalizes to 'aaa...aaa-b' (33 chars).
+  // Slicing to 32 leaves a trailing hyphen that must be stripped
+  // so the ID is a valid single-hyphen kebab.
+  const id = deriveOctoberWorkerId('a'.repeat(31) + ' b');
+  assert.ok(id.length <= 48);
+  assert.ok(!id.includes('--'), `expected no double hyphen, got ${id}`);
+  assert.equal(id, 'worker-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-53f877ca');
+  assert.equal(isWorkerPeerId(id), true);
+});
+
+test('deriveOctoberWorkerId throws on empty or non-normalizable input', () => {
+  assert.throws(() => deriveOctoberWorkerId(''), /Invalid October node/);
+  assert.throws(() => deriveOctoberWorkerId('   '), /Invalid October node/);
+  assert.throws(() => deriveOctoberWorkerId('!!!'), /Invalid October node/);
+  assert.throws(() => deriveOctoberWorkerId('@@@'), /Invalid October node/);
+});
+
+test('octoberNodeLeaseId is deterministic, project-scoped, full SHA-256', () => {
+  const projectId = 'project_deadbeef';
+  const lease = octoberNodeLeaseId(projectId, 'auth-helper');
+  const expectedHash = '131ae90f0febb828a6f63ec3a5fd581f17e3a7d9fac142804c1e6d1d5ded0596';
+  assert.equal(lease, `fleet-node:${projectId}:${expectedHash}`);
+  assert.equal(lease, octoberNodeLeaseId(projectId, 'auth-helper'));
+  assert.notEqual(lease, octoberNodeLeaseId(projectId, 'auth-helper-2'));
+  assert.throws(() => octoberNodeLeaseId('', 'auth-helper'), /Invalid project ID/);
+  assert.throws(() => octoberNodeLeaseId('  ', 'auth-helper'), /Invalid project ID/);
+  assert.throws(() => octoberNodeLeaseId(projectId, ''), /Invalid October node/);
+  assert.throws(() => octoberNodeLeaseId(projectId, '   '), /Invalid October node/);
+});
+
+test('octoberNodeLeaseId differs across projects for the same node', () => {
+  const hash = '131ae90f0febb828a6f63ec3a5fd581f17e3a7d9fac142804c1e6d1d5ded0596';
+  const leaseA = octoberNodeLeaseId('project_aaa', 'auth-helper');
+  const leaseB = octoberNodeLeaseId('project_bbb', 'auth-helper');
+  assert.notEqual(leaseA, leaseB);
+  assert.equal(leaseA, `fleet-node:project_aaa:${hash}`);
+  assert.equal(leaseB, `fleet-node:project_bbb:${hash}`);
+});
+
+test('isWorkerPeerId accepts exact worker and validated worker-* only', () => {
+  assert.equal(isWorkerPeerId('worker'), true);
+  assert.equal(isWorkerPeerId('worker-7'), true);
+  assert.equal(isWorkerPeerId('worker-foo-bar'), true);
+
+  assert.equal(isWorkerPeerId('captain'), false);
+  assert.equal(isWorkerPeerId('workers'), false);
+  assert.equal(isWorkerPeerId('workerish'), false);
+  assert.equal(isWorkerPeerId('Worker'), false);
+  assert.equal(isWorkerPeerId('worker-'), false);
+  assert.equal(isWorkerPeerId(''), false);
+});
+
+test('destinationMatchesPeer group-matches worker, exact-matches everything else', () => {
+  assert.equal(destinationMatchesPeer('worker', 'worker'), true);
+  assert.equal(destinationMatchesPeer('worker', 'worker-7'), true);
+  assert.equal(destinationMatchesPeer('worker', 'worker-foo'), true);
+
+  assert.equal(destinationMatchesPeer('worker-7', 'worker-7'), true);
+  assert.equal(destinationMatchesPeer('worker-7', 'worker'), false);
+  assert.equal(destinationMatchesPeer('captain', 'captain'), true);
+  assert.equal(destinationMatchesPeer('captain', 'worker'), false);
+  assert.equal(destinationMatchesPeer('workers', 'workers'), true);
+  assert.equal(destinationMatchesPeer('workers', 'worker'), false);
 });

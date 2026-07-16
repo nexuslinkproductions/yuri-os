@@ -160,6 +160,93 @@ export function taskLeaseId(projectId, taskId) {
   return `fleet-task:${projectId}:${validTaskId}`;
 }
 
+// ── October worker identity ──────────────────────────────────────────────
+//
+// Automatic worker IDs and node lease IDs for the October fleet bridge.
+// A raw node string (typically a human-readable lane/role label) is turned
+// into a deterministic, collision-resistant worker peer ID and a stable
+// node-scoped lease. No I/O, no randomness — every call with the same raw
+// node produces the same identifiers.
+
+// 'worker-' (7) + slug + '-' (1) + hash8 (8) must never exceed MAX_FLEET_ID_CHARS (48).
+const MAX_OCTOBER_SLUG_CHARS = MAX_FLEET_ID_CHARS - 'worker-'.length - '-'.length - 8;
+
+function trimOctoberNode(rawNode) {
+  if (typeof rawNode !== 'string') {
+    throw new Error('Invalid October node');
+  }
+  const trimmed = rawNode.trim();
+  if (trimmed.length === 0) {
+    throw new Error('Invalid October node');
+  }
+  return trimmed;
+}
+
+function normalizeOctoberSlug(trimmed) {
+  const slug = trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (slug.length === 0) {
+    throw new Error('Invalid October node');
+  }
+  return slug.slice(0, MAX_OCTOBER_SLUG_CHARS).replace(/-+$/g, '');
+}
+
+/**
+ * Derive an automatic worker peer ID from a raw node string. The ID is
+ * `worker-<bounded-normalized-slug>-<hash8>` where hash8 is the first 8
+ * hex characters of SHA-256 over the trimmed raw node (NOT the slug), so
+ * two inputs that normalize to the same slug still produce distinct IDs.
+ * The result is always a valid fleet ID and never exceeds 48 characters.
+ */
+export function deriveOctoberWorkerId(rawNode) {
+  const trimmed = trimOctoberNode(rawNode);
+  const slug = normalizeOctoberSlug(trimmed);
+  const hash8 = crypto.createHash('sha256').update(trimmed, 'utf8').digest('hex').slice(0, 8);
+  return `worker-${slug}-${hash8}`;
+}
+
+/**
+ * Stable, project-scoped resource ID for an October node's lease, derived
+ * by hashing the trimmed raw node with SHA-256 (full 64-char hex digest).
+ * Throws 'Invalid project ID' when projectId is not a nonempty string.
+ */
+export function octoberNodeLeaseId(projectId, rawNode) {
+  if (typeof projectId !== 'string' || projectId.trim().length === 0) {
+    throw new Error('Invalid project ID');
+  }
+  const trimmed = trimOctoberNode(rawNode);
+  const hash = crypto.createHash('sha256').update(trimmed, 'utf8').digest('hex');
+  return `fleet-node:${projectId}:${hash}`;
+}
+
+/**
+ * Returns true when `peerId` is the exact identity `worker` or a valid
+ * `worker-*` peer ID (kebab-case suffix, bounded to fleet-ID rules). A
+ * near-prefix like `workers` or `workerish` is NOT a worker peer.
+ */
+export function isWorkerPeerId(peerId) {
+  if (peerId === 'worker') return true;
+  if (typeof peerId !== 'string' || !peerId.startsWith('worker-')) return false;
+  try {
+    validateFleetId(peerId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns true when `destination` matches `peerId`. The literal destination
+ * `worker` group-matches any worker-role peer (exact `worker` or any valid
+ * `worker-*`). Every other destination string is compared verbatim.
+ */
+export function destinationMatchesPeer(destination, peerId) {
+  if (destination === 'worker') return isWorkerPeerId(peerId);
+  return destination === peerId;
+}
+
 // ── fleet event schemas ───────────────────────────────────────────────────
 //
 // Closed, versioned, size-bounded event contract. Every event is a plain
