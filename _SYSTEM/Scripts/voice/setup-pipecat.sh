@@ -21,14 +21,14 @@ python -m pip install --quiet --upgrade pip
 
 echo "== installing pipecat realtime-voice stack (several minutes) =="
 pip install --quiet \
-  python-dotenv mlx-lm mlx-audio aiortc nltk fastapi "uvicorn[standard]" \
+  python-dotenv mlx-lm mlx-audio aiortc nltk fastapi "uvicorn[standard]" pyaudio "pynput==1.8.2" \
   "pipecat-ai[openai,silero,webrtc,mlx-whisper]>=0.0.80" \
   || { echo "❌ install FAILED — paste the error"; exit 1; }
 
 echo "✅ pipecat stack installed → $VENV"
 echo "   python: $("$PY" --version 2>&1)"
 "$VENV/bin/python" - <<'PY'
-mods = ["pipecat", "mlx_audio", "mlx_whisper", "aiortc", "fastapi"]
+mods = ["pipecat", "mlx_audio", "mlx_whisper", "aiortc", "fastapi", "pyaudio", "pynput"]
 import importlib
 for m in mods:
     try:
