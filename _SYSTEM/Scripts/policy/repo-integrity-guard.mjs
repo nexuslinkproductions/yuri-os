@@ -24,6 +24,17 @@ const INTERPRETER_NAMES = new Set([
   'node', 'bun', 'deno', 'python', 'python2', 'python3', 'ruby', 'perl', 'php',
 ]);
 
+const RSYNC_VALUE_OPTIONS = new Set([
+  '-e', '-f', '-B',
+  '--address', '--backup-dir', '--bwlimit', '--checksum-seed', '--chmod',
+  '--compare-dest', '--compress-level', '--contimeout', '--copy-dest',
+  '--exclude', '--exclude-from', '--files-from', '--include', '--include-from',
+  '--link-dest', '--max-delete', '--max-size', '--min-size', '--modify-window',
+  '--out-format', '--partial-dir', '--password-file', '--port', '--protocol',
+  '--read-batch', '--rsync-path', '--sockopts', '--suffix', '--timeout',
+  '--only-write-batch', '--write-batch',
+]);
+
 const DYNAMIC_DELETE_API_RE = /(?:\b(?:rmSync|rmdirSync|unlinkSync|renameSync)\s*\(|\b(?:fs|fsp|promises)\s*\.\s*(?:rm|rmdir|unlink|rename)\s*\(|\bshutil\s*\.\s*rmtree\s*\(|\bos\s*\.\s*(?:remove|removedirs|rmdir|unlink|rename|replace)\s*\(|\bPath\s*\([^)]*\)\s*\.\s*(?:unlink|rmdir|rename|replace)\s*\(|\bFileUtils\s*\.\s*(?:rm_rf|remove_dir|mv)\s*\(|\bDeno\s*\.\s*(?:remove|rename)\s*\()/u;
 
 function basename(token) {
@@ -40,6 +51,20 @@ function expandCommandVariables(command, cwd) {
     .replace(/\$\(\s*pwd\s*\)|`\s*pwd\s*`/gu, cwd)
     .replace(/\$\{PWD\}|\$PWD/gu, cwd)
     .replace(/\$\{HOME\}|\$HOME/gu, os.homedir());
+}
+
+function commandSegments(command) {
+  const withoutRedirections = String(command || '')
+    .replace(/(^|\s)\d*>\s*&\s*\d+/gu, ' ')
+    .replace(/(^|\s)(?:\d*>>?|\d*<<?|&>>?)\s*(?:"[^"]*"|'[^']*'|[^\s;|&]+)/gu, ' ');
+  return withoutRedirections
+    .replace(/\\\n/gu, ' ')
+    .replace(/[`]/gu, ' ')
+    .replace(/\$\(/gu, ' ')
+    .replace(/[(){}]/gu, ' ')
+    .split(/&&|\|\||[;|&\n]+/gu)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
 }
 
 function resolveCandidate(token, cwd) {
@@ -74,6 +99,79 @@ function criticalPathReason(token, cwd, roots) {
       if (resolved === root) return `canonical repository root ${root}`;
       if (resolved === gitPath || resolved.startsWith(`${gitPath}${path.sep}`)) return `Git control path ${gitPath}`;
       if (root.startsWith(`${resolved}${path.sep}`)) return `ancestor of canonical repository ${resolved}`;
+    }
+  }
+  return null;
+}
+
+function pathsOverlap(left, right) {
+  return left === right
+    || left.startsWith(`${right}${path.sep}`)
+    || right.startsWith(`${left}${path.sep}`);
+}
+
+function protectedReceiverReason(token, cwd, protectedPaths = []) {
+  const candidate = resolveCandidate(token, cwd);
+  if (!candidate || candidate.unknown || candidate.glob) return 'ambiguous rsync receiver';
+  const candidatePaths = [candidate.lexical, candidate.real];
+
+  for (const rawTarget of protectedPaths) {
+    const lexicalTarget = path.resolve(String(rawTarget));
+    let realTarget = lexicalTarget;
+    try { realTarget = fs.realpathSync.native(lexicalTarget); } catch { /* lexical fallback */ }
+    if (candidatePaths.some((candidatePath) =>
+      [lexicalTarget, realTarget].some((targetPath) => pathsOverlap(candidatePath, targetPath)))) {
+      return `protected rsync receiver ${lexicalTarget}`;
+    }
+  }
+  return null;
+}
+
+function rsyncPositionals(tokens, start) {
+  const positionals = [];
+  let optionsEnded = false;
+  for (let i = start + 1; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    if (!optionsEnded && token === '--') {
+      optionsEnded = true;
+      continue;
+    }
+    if (!optionsEnded && token.startsWith('--')) {
+      const option = token.split('=')[0];
+      if (!token.includes('=') && RSYNC_VALUE_OPTIONS.has(option)) i += 1;
+      continue;
+    }
+    if (!optionsEnded && token.startsWith('-') && token !== '-') {
+      const option = token.slice(0, 2);
+      if (token.length === 2 && RSYNC_VALUE_OPTIONS.has(option)) i += 1;
+      continue;
+    }
+    positionals.push(token);
+  }
+  return positionals;
+}
+
+function rsyncDestructiveReason(command, cwd, roots, protectedPaths = []) {
+  for (const segment of commandSegments(command)) {
+    const tokens = tokenizeCommand(segment);
+    for (let i = 0; i < tokens.length; i += 1) {
+      if (basename(tokens[i]) !== 'rsync') continue;
+      const tail = tokens.slice(i + 1);
+      if (tail.some((token) => token === '--remove-source-files' || token === '--remove-sent-files')) {
+        return 'rsync source-removal mode is blocked by repository integrity policy';
+      }
+
+      const positionals = rsyncPositionals(tokens, i);
+      if (positionals.length < 2) {
+        if (tail.some((token) => token === '--help' || token === '--version')) continue;
+        return 'ambiguous rsync receiver is blocked by repository integrity policy';
+      }
+
+      const receiver = positionals.at(-1);
+      const criticalReason = criticalPathReason(receiver, cwd, roots);
+      if (criticalReason) return `rsync to ${criticalReason} is blocked`;
+      const protectedReason = protectedReceiverReason(receiver, cwd, protectedPaths);
+      if (protectedReason) return `${protectedReason} is blocked`;
     }
   }
   return null;
@@ -139,6 +237,9 @@ export function repoIntegrityCommandHit(command, opts = {}) {
   if (/\brsync\b[^;&|\n]*(?:--delete(?:-[a-z-]+)?)(?:\s|$)/u.test(normalized)) {
     return { reason: 'rsync destructive delete mode is blocked by repository integrity policy' };
   }
+
+  const rsyncReason = rsyncDestructiveReason(expanded, cwd, roots, opts.protectedPaths);
+  if (rsyncReason) return { reason: rsyncReason };
 
   const invokesInterpreter = tokens.some((token) => INTERPRETER_NAMES.has(basename(token)));
   if (invokesInterpreter && DYNAMIC_DELETE_API_RE.test(expanded)) {

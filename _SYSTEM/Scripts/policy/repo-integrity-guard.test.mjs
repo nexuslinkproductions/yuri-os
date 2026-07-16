@@ -1,13 +1,21 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
 import { evaluateToolCall } from './yuri-safety-core.mjs';
 import { repoIntegrityCommandHit } from './repo-integrity-guard.mjs';
 
 const ROOT = '/Users/example/YURI-OS-MUSUBI';
-const hit = (command, cwd = ROOT) => repoIntegrityCommandHit(command, { cwd, repoRoot: ROOT });
+const PROTECTED = [`${ROOT}/.claude/projects`, `${ROOT}/_SYSTEM/backend/data`];
+const hit = (command, cwd = ROOT) => repoIntegrityCommandHit(command, {
+  cwd,
+  repoRoot: ROOT,
+  protectedPaths: PROTECTED,
+});
 
 test('blocks dynamic interpreter deletion and rename APIs', () => {
   for (const command of [
@@ -30,6 +38,41 @@ test('blocks find, rsync, and option-prefixed destructive Git forms', () => {
     'git -C . restore --source=HEAD -- README.md',
   ]) assert.ok(hit(command), command);
   assert.equal(hit('git clean -ndx'), null, 'dry-run clean remains allowed');
+});
+
+test('blocks rsync receivers that can replace the repository or protected paths', (t) => {
+  for (const command of [
+    `rsync -a --ignore-existing /tmp/recovery/ ${ROOT}/`,
+    `rsync -a /tmp/recovery/ ${ROOT}/.claude/projects/`,
+    `rsync -a /tmp/recovery/ ${ROOT}/ > /tmp/rsync.log`,
+    `rsync --exclude '*.tmp' /tmp/recovery/ ${ROOT}/`,
+    `rsync /tmp/recovery/ ${ROOT}/ && echo done`,
+    `rsync host:/recovery/ ${ROOT}/`,
+    `rsync --remove-source-files ${ROOT}/ /Volumes/T7/backup/`,
+    `rsync --remove-sent-files ${ROOT}/ /Volumes/T7/backup/`,
+  ]) assert.ok(hit(command), command);
+
+  const tempRoot = mkdtempSync(path.join(os.tmpdir(), 'yuri-rsync-guard-'));
+  t.after(() => rmSync(tempRoot, { recursive: true, force: true }));
+  const protectedDir = path.join(tempRoot, '.claude', 'projects');
+  const alias = path.join(tempRoot, 'projects-alias');
+  mkdirSync(protectedDir, { recursive: true });
+  symlinkSync(protectedDir, alias, 'dir');
+  assert.ok(repoIntegrityCommandHit(`rsync -a /tmp/recovery/ ${alias}/`, {
+    cwd: tempRoot,
+    repoRoot: tempRoot,
+    protectedPaths: [protectedDir],
+  }), 'symlink alias to a protected receiver must be blocked');
+});
+
+test('allows rsync backups from the repository to external receivers', () => {
+  for (const command of [
+    `rsync -a ${ROOT}/ /Volumes/T7/backup/`,
+    `rsync -a ${ROOT}/a ${ROOT}/b /Volumes/T7/backup/`,
+    `rsync -a ${ROOT}/ host:/backup/`,
+    'rsync -a /tmp/source/ /tmp/destination/',
+    'rsync --version',
+  ]) assert.equal(hit(command), null, command);
 });
 
 test('blocks move/remove of root, .git, root-wide globs, ancestors, and unresolved targets', () => {
@@ -62,6 +105,8 @@ test('shared Codex safety core denies the newly covered bypass classes', () => {
     'python3 -c "import shutil; shutil.rmtree(\'.\')"',
     'find . -delete',
     'rsync --delete /tmp/empty/ ./',
+    `rsync -a /tmp/recovery/ ${process.env.HOME}/YURI-OS-MUSUBI/`,
+    `rsync -a /tmp/recovery/ ${process.env.HOME}/YURI-OS-MUSUBI/.claude/projects/`,
     'git -C . reset --hard',
     `mv ${process.env.HOME}/YURI-OS-MUSUBI /tmp/gone`,
   ]) {

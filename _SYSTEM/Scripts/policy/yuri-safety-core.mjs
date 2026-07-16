@@ -212,7 +212,10 @@ export async function runHookFromStdin({ check = false } = {}) {
 }
 
 function evaluateShellCommand(command, cwd) {
-  const integrityHit = repoIntegrityCommandHit(command, { cwd });
+  const integrityHit = repoIntegrityCommandHit(command, {
+    cwd,
+    protectedPaths: PROTECTED_TARGETS.map((target) => target.path),
+  });
   if (integrityHit) return block(integrityHit.reason);
 
   for (const pattern of DESTRUCTIVE_PATTERNS) {
