@@ -3144,7 +3144,7 @@
         "nano swarm fan-out",
         "dozens of models"
       ],
-      "does": "parallel fan-out of N ollama-cloud PEER lanes (ONE base lane + --model <X>:cloud per task) through lane-dispatch.mjs (4-attempt AggregateError/EPIPE/429 retry in a fresh process), each model's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore (default 3 = Ollama Pro concurrent ceiling). DISARMED by default = dry-run (zero spend, zero fan-out); YURI_OLLAMA_FLEET=1 arms. The **Ollama Cloud** substrate (substrate C) of opus-fleet tri-substrate: OMP `task()` + glm-fleet + ollama-cloud.",
+      "does": "parallel fan-out of N ollama-cloud PEER lanes (ONE base lane + --model <X>:cloud per task) through lane-dispatch.mjs (4-attempt AggregateError/EPIPE/429 retry in a fresh process), each model's text collected via --out into a per-run results dir, wrapped into a labeled JSON result packet (RESULT_LABEL extracted). Concurrency-bounded by a semaphore (default 3 = Ollama Pro concurrent ceiling). DISARMED by default = dry-run (zero spend, zero fan-out); YURI_OLLAMA_FLEET=1 arms. The THIRD opus-fleet substrate alongside native Claude Agents + the z.ai GLM fleet.",
       "use": "ollamaFleet([{model:'deepseek-v4-flash:cloud',label:'R1',prompt:'...'}], {concurrency:3}) — or use {tier:'flash'} shorthand. Roster tiers: flash/minimax/kimi/nemotron/deepseek-pro/gemma. CLI: node ollama-fleet.mjs --list | --tasks '<json>' | --smoke (armed needs YURI_OLLAMA_FLEET=1) | --dry-run.",
       "exports": [
         "ollamaFleet",
